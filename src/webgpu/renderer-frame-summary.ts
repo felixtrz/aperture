@@ -6,7 +6,9 @@ import { summarizeDiagnostics } from "../diagnostics/index.js";
 import {
   packSnapshotTransforms,
   planRenderWorldDrawPackages,
+  type MeshDrawPacket,
   type PackedSnapshotTransforms,
+  type RenderDiagnostic,
   type RenderSnapshot,
   type RenderWorld,
   type RenderWorldApplyReport,
@@ -174,6 +176,21 @@ export interface InjectedRenderFrameSnapshotResourceBinding {
   readonly update: RenderWorldResourceBindingUpdate;
 }
 
+export type InjectedRenderFrameSnapshotResourceKeyResolver = (
+  draw: MeshDrawPacket,
+) => string | null | undefined;
+
+export interface InjectedRenderFrameSnapshotResourceBindingPlanInput {
+  readonly snapshot: RenderSnapshot;
+  readonly resolveMeshResourceKey: InjectedRenderFrameSnapshotResourceKeyResolver;
+  readonly resolveMaterialResourceKey: InjectedRenderFrameSnapshotResourceKeyResolver;
+}
+
+export interface InjectedRenderFrameSnapshotResourceBindingPlan {
+  readonly bindings: readonly InjectedRenderFrameSnapshotResourceBinding[];
+  readonly diagnostics: readonly RenderDiagnostic[];
+}
+
 export interface InjectedRenderFrameSnapshotRunnerInput {
   readonly renderer: RendererAssemblySmokeReport | null;
   readonly renderWorld: RenderWorld;
@@ -296,6 +313,26 @@ export interface InjectedRenderFrameSnapshotRunnerReportJsonValue {
     readonly diagnostics: DiagnosticSummary;
   };
   readonly frame: InjectedRenderFrameRenderWorldPackageRunnerReportJsonValue;
+}
+
+export interface InjectedRenderFrameSnapshotDiagnosticGroupReport {
+  readonly ready: boolean;
+  readonly phases: {
+    readonly apply: {
+      readonly diagnostics: DiagnosticSummary;
+    };
+    readonly bindings: {
+      readonly diagnostics: DiagnosticSummary;
+    };
+    readonly transforms: {
+      readonly diagnostics: DiagnosticSummary;
+    };
+    readonly readiness: {
+      readonly diagnostics: DiagnosticSummary;
+    };
+    readonly frame: InjectedRenderFrameRenderWorldPackageDiagnosticGroupReport;
+  };
+  readonly diagnostics: DiagnosticSummary;
 }
 
 export interface InjectedRenderFrameRenderWorldPackageRunnerReportJsonValue {
@@ -685,6 +722,63 @@ export function runInjectedRenderFrameFromSnapshot(
   };
 }
 
+export function planInjectedRenderFrameSnapshotResourceBindings(
+  input: InjectedRenderFrameSnapshotResourceBindingPlanInput,
+): InjectedRenderFrameSnapshotResourceBindingPlan {
+  const diagnostics: RenderDiagnostic[] = [];
+  const bindings: InjectedRenderFrameSnapshotResourceBinding[] = [];
+  const seen = new Set<number>();
+
+  for (const draw of input.snapshot.meshDraws) {
+    if (seen.has(draw.renderId)) {
+      diagnostics.push({
+        code: "renderFrameSnapshotBinding.duplicateRenderId",
+        message: `Duplicate render id ${draw.renderId} while planning snapshot resource bindings.`,
+        severity: "error",
+        entity: draw.entity,
+      });
+      continue;
+    }
+
+    seen.add(draw.renderId);
+
+    const meshResourceKey = input.resolveMeshResourceKey(draw);
+    const materialResourceKey = input.resolveMaterialResourceKey(draw);
+
+    if (meshResourceKey == null) {
+      diagnostics.push({
+        code: "renderFrameSnapshotBinding.missingMeshResource",
+        message: `No mesh resource binding was resolved for render id ${draw.renderId}.`,
+        severity: "warning",
+        entity: draw.entity,
+        assetKey: draw.mesh.id,
+      });
+    }
+
+    if (materialResourceKey == null) {
+      diagnostics.push({
+        code: "renderFrameSnapshotBinding.missingMaterialResource",
+        message: `No material resource binding was resolved for render id ${draw.renderId}.`,
+        severity: "warning",
+        entity: draw.entity,
+        assetKey: draw.material.id,
+      });
+    }
+
+    bindings.push({
+      renderId: draw.renderId,
+      update: {
+        ...(meshResourceKey == null ? {} : { meshResourceKey }),
+        ...(materialResourceKey == null ? {} : { materialResourceKey }),
+      },
+    });
+  }
+
+  bindings.sort((a, b) => a.renderId - b.renderId);
+
+  return { bindings, diagnostics };
+}
+
 export function injectedRenderFrameSnapshotRunnerReportToJsonValue(
   report: InjectedRenderFrameSnapshotRunnerReport,
 ): InjectedRenderFrameSnapshotRunnerReportJsonValue {
@@ -756,6 +850,56 @@ export function injectedRenderFrameSnapshotRunnerReportToJson(
   return JSON.stringify(
     injectedRenderFrameSnapshotRunnerReportToJsonValue(report),
   );
+}
+
+export function summarizeInjectedRenderFrameSnapshotDiagnosticsByPhase(
+  report: InjectedRenderFrameSnapshotRunnerReport,
+): InjectedRenderFrameSnapshotDiagnosticGroupReport {
+  const applyDiagnostics = summarizeDiagnostics(report.apply.diagnostics);
+  const bindingDiagnostics = summarizeDiagnostics(
+    collectSnapshotBindingDiagnostics(report.bindings),
+  );
+  const transformDiagnostics = summarizeDiagnostics(
+    report.transforms.diagnostics,
+  );
+  const readinessDiagnostics = summarizeDiagnostics(
+    report.readiness.diagnostics,
+  );
+  const frame =
+    summarizeInjectedRenderFrameRenderWorldPackageDiagnosticsByPhase(
+      report.frame,
+    );
+
+  return {
+    ready:
+      applyDiagnostics.total === 0 &&
+      bindingDiagnostics.total === 0 &&
+      transformDiagnostics.total === 0 &&
+      readinessDiagnostics.total === 0 &&
+      frame.ready,
+    phases: {
+      apply: {
+        diagnostics: cloneDiagnosticSummary(applyDiagnostics),
+      },
+      bindings: {
+        diagnostics: cloneDiagnosticSummary(bindingDiagnostics),
+      },
+      transforms: {
+        diagnostics: cloneDiagnosticSummary(transformDiagnostics),
+      },
+      readiness: {
+        diagnostics: cloneDiagnosticSummary(readinessDiagnostics),
+      },
+      frame,
+    },
+    diagnostics: mergeDiagnosticSummaries(
+      applyDiagnostics,
+      bindingDiagnostics,
+      transformDiagnostics,
+      readinessDiagnostics,
+      frame.diagnostics,
+    ),
+  };
 }
 
 export function injectedRenderFrameRenderWorldPackageRunnerReportToJsonValue(

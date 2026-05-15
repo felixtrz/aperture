@@ -1725,3 +1725,61 @@ Summary:
 - Omitted raw render-world objects and injected WebGPU handles from snapshot runner JSON output.
 - Added tests for ready output, apply failures, binding failures, transform failures, downstream failures, stable JSON, and raw-handle omission.
 - Validation run: targeted snapshot JSON tests, `npm run build`, `npm run lint`, `npm test`, and `npm run format:check` all pass.
+
+## task-0158 — Add injected render frame snapshot diagnostics helper
+
+Completed: 2026-05-15
+
+Summary:
+
+- Added `summarizeInjectedRenderFrameSnapshotDiagnosticsByPhase`.
+- Grouped snapshot runner diagnostics by apply, bindings, transform packing, draw readiness, and downstream render-world package phases.
+- Reused `summarizeInjectedRenderFrameRenderWorldPackageDiagnosticsByPhase` for downstream grouping.
+- Added tests for apply, binding, transform, readiness, downstream submit failures, stable JSON-safe output, and raw-handle omission.
+- Validation run: targeted snapshot diagnostics tests, `npm run build`, `npm run lint`, `npm test`, and `npm run format:check` all pass.
+
+## task-0159 — Add snapshot injected render frame fixture
+
+Completed: 2026-05-15
+
+Summary:
+
+- Added `createSnapshotRenderFrameFixture`.
+- Fixture starts from a render snapshot and delegates to `runInjectedRenderFrameFromSnapshot`.
+- Tests cover ready multi-draw output, duplicate render ids, missing resource bindings, missing transforms, and submit failure.
+- Validation run: targeted snapshot fixture tests, `npm run build`, `npm run lint`, `npm test`, and `npm run format:check` all pass.
+
+## task-0160 — Update render frame readiness docs for snapshot runner
+
+Completed: 2026-05-15
+
+Summary:
+
+- Updated `docs/RENDER_FRAME_READINESS.md` for the snapshot injected render frame runner.
+- Documented when to use snapshots versus render-world readiness, draw packages, draw-command descriptors, and draw-list records.
+- Clarified that snapshot application updates render-world state without querying ECS directly or making rendering authoritative.
+- Validation run: `npm run build`, `npm run lint`, `npm test`, and `npm run format:check` all pass.
+
+## task-0161 — Add snapshot resource binding planner
+
+Completed: 2026-05-15
+
+Summary:
+
+- Added `planInjectedRenderFrameSnapshotResourceBindings`.
+- Planner consumes a `RenderSnapshot` plus typed mesh/material resource-key resolvers and emits ordered binding updates for `runInjectedRenderFrameFromSnapshot`.
+- Diagnostics cover missing mesh resources, missing material resources, and duplicate render ids without mutating `RenderWorld`.
+- Added tests for ready output, missing resources, duplicate render ids, and stable output order.
+- Validation run: targeted binding planner tests, `npm run build`, `npm run lint`, `npm test`, and `npm run format:check` all pass.
+
+## task-0162 — Add ECS-extracted snapshot render frame fixture
+
+Completed: 2026-05-15
+
+Summary:
+
+- Added `createEcsSnapshotRenderFrameFixture`.
+- Fixture builds camera and mesh entities through ECS components, extracts a render snapshot, plans resource bindings, and runs `runInjectedRenderFrameFromSnapshot`.
+- Tests assert extraction, apply, binding, transform, readiness, package, descriptor, draw-list, frame execution, and summary counts.
+- Tests cover skipped invalid renderable diagnostics and submit failure while keeping production WebGPU code free of ECS queries.
+- Validation run: targeted ECS snapshot fixture tests, `npm run build`, `npm run lint`, `npm test`, and `npm run format:check` all pass.

@@ -47,6 +47,7 @@ Renderer frame summary report:
 - `runInjectedRenderFrameFromDrawCommands` starts one step earlier: callers provide draw-command descriptors, and the helper plans the render-pass draw list before invoking `runInjectedRenderFrame`.
 - `runInjectedRenderFrameFromDrawPackages` starts from render-world draw packages and mesh resources, creates draw-command descriptors, then invokes `runInjectedRenderFrameFromDrawCommands`.
 - `runInjectedRenderFrameFromRenderWorldPackages` starts from render-world draw readiness plus packed snapshot transforms, plans render-world draw packages, then invokes `runInjectedRenderFrameFromDrawPackages`.
+- `runInjectedRenderFrameFromSnapshot` starts from a `RenderSnapshot`, applies it to a caller-owned `RenderWorld`, updates caller-provided resource bindings, packs snapshot transforms, derives render-world draw readiness, and then invokes `runInjectedRenderFrameFromRenderWorldPackages`.
 
 ## Helper Relationships
 
@@ -80,6 +81,8 @@ Renderer summary helpers:
 - `summarizeInjectedRenderFrameDrawPackageDiagnosticsByPhase` adds descriptor planning diagnostics before draw-list and full-frame diagnostics.
 - `injectedRenderFrameRenderWorldPackageRunnerReportToJsonValue` and `injectedRenderFrameRenderWorldPackageRunnerReportToJson` add render-world package planning JSON before descriptor, draw-list, and full-frame JSON.
 - `summarizeInjectedRenderFrameRenderWorldPackageDiagnosticsByPhase` adds render-world package planning diagnostics before descriptor, draw-list, and full-frame diagnostics.
+- `injectedRenderFrameSnapshotRunnerReportToJsonValue` and `injectedRenderFrameSnapshotRunnerReportToJson` add snapshot apply, resource binding, transform packing, and draw readiness JSON before render-world package, descriptor, draw-list, and full-frame JSON.
+- `summarizeInjectedRenderFrameSnapshotDiagnosticsByPhase` groups snapshot apply, resource binding, transform packing, draw readiness, and downstream render-world package diagnostics. It delegates downstream grouping to `summarizeInjectedRenderFrameRenderWorldPackageDiagnosticsByPhase`.
 
 ## Inspection Guide
 
@@ -93,6 +96,7 @@ Use the smallest helper that matches the question:
 - Draw-command injected frame runner: `injectedRenderFrameDrawCommandRunnerReportToJsonValue` for draw-list plus full-frame data, `summarizeInjectedRenderFrameDrawCommandDiagnosticsByPhase` for draw-list plus full-frame phase grouping.
 - Draw-package injected frame runner: `injectedRenderFrameDrawPackageRunnerReportToJsonValue` for descriptor plus draw-list plus full-frame data, `summarizeInjectedRenderFrameDrawPackageDiagnosticsByPhase` for descriptor plus downstream phase grouping.
 - Render-world package injected frame runner: `injectedRenderFrameRenderWorldPackageRunnerReportToJsonValue` for package plus descriptor plus draw-list plus full-frame data, `summarizeInjectedRenderFrameRenderWorldPackageDiagnosticsByPhase` for package plus downstream phase grouping.
+- Snapshot injected frame runner: `injectedRenderFrameSnapshotRunnerReportToJsonValue` for snapshot apply through full-frame data, `summarizeInjectedRenderFrameSnapshotDiagnosticsByPhase` for snapshot apply, binding, transform packing, readiness, and downstream phase grouping.
 
 These JSON and diagnostic helpers are derived inspection surfaces. They do not store ECS/game state, do not become renderer-owned source of truth, and should remain serializable across future worker/main-thread boundaries.
 
@@ -100,20 +104,24 @@ Test-only fixture chain:
 
 - `createInjectedRenderFrameSmokeFixture` delegates to `runInjectedRenderFrame` to provide one end-to-end smoke fixture for runner tests.
 - `createDrawPackageRenderFrameFixture` starts from ECS-derived render-world draw packages, creates draw-command descriptors with `createDrawCommandDescriptors`, then delegates to `runInjectedRenderFrameFromDrawCommands`.
+- `createRenderWorldPackageFrameFixture` starts from render-world draw readiness and packed transforms, then delegates to `runInjectedRenderFrameFromRenderWorldPackages`.
+- `createSnapshotRenderFrameFixture` starts from a render snapshot, updates render-world bindings, then delegates to `runInjectedRenderFrameFromSnapshot`.
 - The fixture returns both raw renderer-side runner outputs and JSON summaries so tests can assert handle boundaries explicitly.
 
 ## Draw Data Boundaries
 
-The current runner chain has three useful entry points:
+The current runner chain has five useful entry points:
 
-- Render-world draw readiness plus packed transforms: use `runInjectedRenderFrameFromRenderWorldPackages` when render-world readiness and transform packing have happened but draw-package planning has not.
-- Draw-list records: use `runInjectedRenderFrame` when draw-list planning has already happened.
-- Draw-command descriptors: use `runInjectedRenderFrameFromDrawCommands` when package-to-command descriptor planning has happened but draw-list planning has not.
+- Render snapshots: use `runInjectedRenderFrameFromSnapshot` when the caller has the extracted snapshot and wants the helper to apply it to a `RenderWorld`, update explicit resource bindings, pack transforms, derive readiness, and continue into the renderer-side frame path.
+- Render-world draw readiness plus packed transforms: use `runInjectedRenderFrameFromRenderWorldPackages` when render-world state has already been updated and checked for resource bindings, but draw-package planning has not.
 - Render-world draw packages: use `runInjectedRenderFrameFromDrawPackages` when render-world packaging has happened but descriptor and draw-list planning have not.
+- Draw-command descriptors: use `runInjectedRenderFrameFromDrawCommands` when package-to-command descriptor planning has happened but draw-list planning has not.
+- Draw-list records: use `runInjectedRenderFrame` when draw-list planning has already happened.
 - Test fixtures such as `createDrawPackageRenderFrameFixture` prove the package-to-descriptor-to-frame path and should delegate to the production draw-package runner.
 - Test fixtures such as `createRenderWorldPackageFrameFixture` prove the readiness-to-package-to-descriptor-to-frame path and should delegate to the production render-world package runner.
+- Test fixtures such as `createSnapshotRenderFrameFixture` prove the snapshot-to-render-world-to-package-to-frame path and should delegate to the production snapshot runner.
 
-Render-world draw readiness, packed transforms, render-world draw packages, draw-command descriptors, and draw-list records are still render-side products derived from ECS snapshots and render-world state. They are not direct ECS queries, not gameplay state, and not a mutable scene graph.
+Snapshots are the extracted ECS/render boundary. Render-world draw readiness, packed transforms, render-world draw packages, draw-command descriptors, and draw-list records are render-side products derived from snapshots and render-world state. The snapshot runner applies snapshot data to render-world state, but it still does not query ECS directly and does not make rendering authoritative for gameplay state, transform hierarchy, or entity lifecycle.
 
 ## Architecture Boundary
 

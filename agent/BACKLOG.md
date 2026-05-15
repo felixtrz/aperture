@@ -27,64 +27,64 @@ Keep implementation vertical, typed, and testable. Do not introduce a public mut
 
 ## Recommended Next Task
 
-Start with `task-0158`. It adds phase diagnostics for the snapshot injected render frame runner.
+Start with `task-0163`. It adds reusable resource-key resolver maps for snapshot binding plans.
 
 ## Ready Tasks
 
-### task-0158 — Add injected render frame snapshot diagnostics helper
+### task-0163 — Add snapshot resource resolver map helper
 
-Create diagnostics grouping for the snapshot injected render frame runner.
+Add a production helper that creates typed snapshot resource-key resolvers from mesh and material handle-to-resource-key maps.
 
 Acceptance criteria:
 
-- Group diagnostics by snapshot apply, binding, transform packing, draw readiness, and downstream render-world package phases.
-- Reuse `summarizeInjectedRenderFrameRenderWorldPackageDiagnosticsByPhase` for downstream phases.
+- Helper consumes readonly mesh/material resource-key lookup data without mutating it.
+- Helper returns resolver functions compatible with `planInjectedRenderFrameSnapshotResourceBindings`.
+- Missing mesh or material handles resolve to `null` so the planner emits its existing diagnostics.
+- Tests cover ready lookups, missing mesh resources, missing material resources, duplicate handles, and stable lookup behavior.
+
+### task-0164 — Add snapshot resource binding plan JSON helper
+
+Add JSON-safe helpers for snapshot resource binding plans.
+
+Acceptance criteria:
+
+- JSON value includes binding count, render ids, mesh/material key presence, and diagnostic summary.
+- String helper returns stable JSON from the value helper.
+- Output omits raw renderer handles and injected objects.
+- Tests cover ready plans, missing mesh/material resources, duplicate render ids, stable JSON, and raw-handle omission.
+
+### task-0165 — Add snapshot resource binding plan diagnostics helper
+
+Add diagnostic grouping for snapshot resource binding plans.
+
+Acceptance criteria:
+
+- Group planner diagnostics by duplicate render ids, missing mesh resources, and missing material resources.
+- Include an aggregate diagnostic summary and ready boolean.
 - Keep output JSON-safe and free of raw renderer or injected handles.
-- Tests cover apply, binding, transform, readiness, and downstream failures.
+- Tests cover each diagnostic group and clean ready plans.
 
-### task-0159 — Add snapshot injected render frame fixture
+### task-0166 — Use resolver map helper in ECS snapshot fixture
 
-Add a test fixture that starts from a render snapshot and runs the snapshot injected render frame helper.
-
-Acceptance criteria:
-
-- Fixture supports ready multi-draw output, duplicate render ids, missing resource bindings, missing transforms, and submit failure.
-- Tests assert apply, binding, transform, readiness, package, descriptor, draw-list, frame execution, and summary counts.
-- No production code imports test fixtures.
-
-### task-0160 — Update render frame readiness docs for snapshot runner
-
-Document the snapshot injected render frame runner and its relationship to render worlds, snapshots, bindings, and packed transforms.
+Refactor the ECS-extracted snapshot render frame fixture to use the resolver map helper.
 
 Acceptance criteria:
 
-- Explain when to use snapshots versus render-world readiness, draw packages, draw-command descriptors, and draw-list records.
-- Clarify that the helper applies snapshots to render-world state but still does not query ECS directly or make rendering authoritative.
-- Link the new helper from `docs/RENDER_FRAME_READINESS.md`.
-- Keep the note linked from the architecture documentation.
-
-### task-0161 — Add snapshot resource binding planner
-
-Add a production helper that derives render-world resource binding updates from a render snapshot and resolver functions for mesh and material resource keys.
-
-Acceptance criteria:
-
-- Consume a `RenderSnapshot` and typed mesh/material resource key resolvers.
-- Produce ordered binding updates suitable for `runInjectedRenderFrameFromSnapshot` without mutating `RenderWorld`.
-- Report missing mesh resources, missing material resources, and duplicate render ids with diagnostics.
-- Tests cover ready multi-draw output, missing mesh resources, missing material resources, duplicate render ids, and stable output order.
-
-### task-0162 — Add ECS-extracted snapshot render frame fixture
-
-Add a test fixture that builds a small ECS world, extracts a render snapshot, plans bindings, and runs the snapshot injected render frame helper.
-
-Acceptance criteria:
-
-- Fixture builds camera and renderable mesh entities through ECS components, then calls `extractRenderSnapshot`.
-- Fixture uses the snapshot resource binding planner and `runInjectedRenderFrameFromSnapshot`.
-- Tests assert extraction, apply, binding, transform, readiness, package, descriptor, draw-list, frame execution, and summary counts.
-- Tests cover a skipped/invalid renderable diagnostic and submit failure.
+- Fixture still builds camera and renderable mesh entities through ECS components and calls `extractRenderSnapshot`.
+- Fixture uses resolver maps plus `planInjectedRenderFrameSnapshotResourceBindings`.
+- Tests still assert extraction, apply, binding, transform, readiness, package, descriptor, draw-list, frame execution, and summary counts.
 - No production WebGPU code queries ECS directly.
+
+### task-0167 — Document snapshot binding planner usage
+
+Document the snapshot resource binding planner and resolver map helper.
+
+Acceptance criteria:
+
+- Explain how callers map extracted mesh/material handles to renderer-owned resource keys.
+- Clarify that planning bindings does not mutate `RenderWorld` and does not query ECS.
+- Link planner usage from `docs/RENDER_FRAME_READINESS.md`.
+- Keep architecture text consistent with the snapshot/render-world boundary.
 
 ## Superseded / Rewritten Tasks
 
