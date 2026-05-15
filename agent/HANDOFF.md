@@ -2,7 +2,7 @@
 
 ## Current Status
 
-Aperture now has a minimal TypeScript library/runtime foundation. The repository is ready for the next roadmap phase: ECS core work.
+Aperture now has a minimal TypeScript library/runtime foundation and a project-local Codex stop hook. The repository is ready for the next roadmap phase: ECS core work.
 
 ## Last Run
 
@@ -12,6 +12,13 @@ Completed the initial setup slice:
 - `task-0002 — Add repository documentation layout`
 
 No ECS, renderer, WebGPU, or scene/runtime implementation was started.
+
+Follow-up infrastructure work:
+
+- Initialized Git on `main`.
+- Added `.codex/config.toml` with a Codex `Stop` hook.
+- Added executable `scripts/codex-stop-hook.sh`.
+- Manually verified the stop hook passes.
 
 ## Completed Work
 
@@ -24,6 +31,7 @@ No ECS, renderer, WebGPU, or scene/runtime implementation was started.
 - Added `.gitignore` and `.prettierignore`.
 - Verified no legacy project-name references needed replacement.
 - Verified the required docs and agent files already existed and left them intact aside from end-of-run updates.
+- Configured the stop hook to run deterministic end-of-turn checks without invoking another Codex agent.
 
 ## Files Touched
 
@@ -36,11 +44,14 @@ No ECS, renderer, WebGPU, or scene/runtime implementation was started.
 - `tsconfig.test.json`
 - `src/index.ts`
 - `test/index.test.ts`
+- `.codex/config.toml`
+- `scripts/codex-stop-hook.sh`
 - `agent/BACKLOG.md`
 - `agent/COMPLETED.md`
 - `agent/HANDOFF.md`
 - `agent/STATUS.json`
 - Generated build output in `dist/` from `npm run build` (ignored by `.gitignore`).
+- Generated hook logs in `agent/logs/` from manual verification (ignored by `.gitignore` via `*.log`).
 
 ## Validation Run
 
@@ -49,10 +60,11 @@ No ECS, renderer, WebGPU, or scene/runtime implementation was started.
 - `npm test` — passed, 1 Vitest test.
 - `npm run lint` — passed.
 - `npm run format:check` — passed.
+- `scripts/codex-stop-hook.sh` — passed.
 
 ## Known Issues
 
-- The directory is not currently initialized as a Git repository, so `git status`/diff checks are unavailable until `.git` exists.
+- Codex may prompt for hook trust the first time it sees `.codex/config.toml`.
 - A root `.DS_Store` file existed before this run. It was not removed, but `.gitignore` now ignores it.
 
 ## Architectural Notes
