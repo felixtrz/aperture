@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 
 import {
   createMvpFrameReadinessReport,
+  mvpFrameReadinessReportToJson,
+  mvpFrameReadinessReportToJsonValue,
   type FrameBoundaryValidationReport,
   type FrameSubmissionSmokeReport,
   type RenderPassAssemblySmokeReport,
@@ -19,6 +21,12 @@ describe("MVP frame readiness aggregate", () => {
       }),
     ).toEqual({
       ready: true,
+      sections: {
+        rendererAssembly: true,
+        renderPassAssembly: true,
+        frameSubmission: true,
+        frameBoundary: true,
+      },
       counts: {
         rendererDiagnostics: 0,
         renderPassDiagnostics: 0,
@@ -49,6 +57,12 @@ describe("MVP frame readiness aggregate", () => {
     });
 
     expect(report.ready).toBe(false);
+    expect(report.sections).toEqual({
+      rendererAssembly: true,
+      renderPassAssembly: false,
+      frameSubmission: false,
+      frameBoundary: false,
+    });
     expect(report.counts).toEqual({
       rendererDiagnostics: 0,
       renderPassDiagnostics: 1,
@@ -60,6 +74,53 @@ describe("MVP frame readiness aggregate", () => {
       "mvpFrameReadiness.frameSubmissionNotReady",
       "mvpFrameReadiness.frameBoundaryNotReady",
     ]);
+  });
+
+  it("creates JSON-safe values with section readiness and key counts", () => {
+    const report = createMvpFrameReadinessReport({
+      renderer: renderer(false),
+      renderPass: renderPass(true),
+      submission: submission(true),
+      boundary: boundary(true),
+    });
+
+    expect(mvpFrameReadinessReportToJsonValue(report)).toEqual({
+      ready: false,
+      sections: {
+        rendererAssembly: false,
+        renderPassAssembly: true,
+        frameSubmission: true,
+        frameBoundary: true,
+      },
+      counts: {
+        rendererDiagnostics: 1,
+        renderPassDiagnostics: 0,
+        submissionDiagnostics: 0,
+        boundaryDiagnostics: 0,
+      },
+      diagnostics: [
+        {
+          code: "mvpFrameReadiness.rendererAssemblyNotReady",
+          message: "Renderer assembly smoke report is not ready.",
+        },
+      ],
+    });
+  });
+
+  it("serializes stable repeated JSON output", () => {
+    const report = createMvpFrameReadinessReport({
+      renderer: renderer(true),
+      renderPass: renderPass(false),
+      submission: submission(false),
+      boundary: boundary(true),
+    });
+
+    expect(
+      JSON.parse(mvpFrameReadinessReportToJson(report)) as unknown,
+    ).toEqual(mvpFrameReadinessReportToJsonValue(report));
+    expect(mvpFrameReadinessReportToJson(report)).toBe(
+      mvpFrameReadinessReportToJson(report),
+    );
   });
 });
 

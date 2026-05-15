@@ -1199,3 +1199,115 @@ Summary:
 - Added constructor, TRS, matrix operation, projection, quaternion, bounds, and ray tests that compare Aperture wrappers against `wgpu-matrix`.
 - Validation run: `npm run build`, `npm run lint`, `npm test`, and `npm run format:check` all pass after formatting touched files.
 - Follow-up tasks added: `task-0111` through `task-0115` continue renderer readiness summaries and documentation.
+
+## task-0111 — Add MVP frame readiness JSON helper
+
+Completed: 2026-05-15
+
+Summary:
+
+- Added section readiness to `MvpFrameReadinessReport`.
+- Added `mvpFrameReadinessReportToJsonValue` and `mvpFrameReadinessReportToJson`.
+- Covered ready reports, blocked reports, diagnostics, and stable repeated JSON output.
+- Validation run: targeted MVP frame readiness tests, `npm run build`, `npm run lint`, `npm test`, and `npm run format:check` all pass.
+
+## task-0112 — Add renderer frame summary aggregate
+
+Completed: 2026-05-15
+
+Summary:
+
+- Added `createRendererFrameSummaryReport` to combine renderer assembly, render-pass assembly, frame submission, frame-boundary validation, MVP readiness, and command-submission metrics.
+- Reports section presence/readiness, draw/command/submission counts, source diagnostics with stable top-level section labels, and diagnostic summaries.
+- Added tests for all-ready input, missing sections, and mixed diagnostics.
+- Validation run: targeted renderer frame summary tests, `npm run build`, `npm run lint`, `npm test`, and `npm run format:check` all pass.
+
+## task-0113 — Add renderer frame summary JSON helper
+
+Completed: 2026-05-15
+
+Summary:
+
+- Added `rendererFrameSummaryReportToJsonValue` and `rendererFrameSummaryReportToJson`.
+- JSON output includes section readiness, counts, and diagnostic summary while omitting detailed source diagnostic payloads that may mention injected handles.
+- Added tests for JSON shape, stable repeated output, and handle-leak prevention.
+- Validation run: targeted renderer frame summary JSON tests, `npm run build`, `npm run lint`, `npm test`, and `npm run format:check` all pass.
+
+## task-0114 — Add frame execution smoke fixture
+
+Completed: 2026-05-15
+
+Summary:
+
+- Added `createFrameExecutionSmokeFixture` for ready injected frame execution and texture, begin, execute, finish, and submit failure injection.
+- Fixture derives frame-boundary smoke and frame submission smoke reports from the real frame-boundary assembly path.
+- Updated frame-boundary and submission smoke ready-path tests to use the fixture.
+- Validation run: targeted fixture/smoke tests, `npm run build`, `npm run lint`, `npm test`, and `npm run format:check` all pass.
+
+## task-0115 — Add render frame readiness docs
+
+Completed: 2026-05-15
+
+Summary:
+
+- Added `docs/RENDER_FRAME_READINESS.md` describing renderer assembly, render-pass assembly, frame submission, frame-boundary validation, MVP readiness, and renderer frame summary reports.
+- Documented that these reports are data-only and that renderer-owned GPU state remains outside ECS.
+- Linked the note from `docs/ARCHITECTURE.md`.
+- Validation run: `npm run build`, `npm run lint`, `npm test`, and `npm run format:check` all pass.
+- Follow-up tasks added: `task-0116` through `task-0120` continue frame execution aggregation and renderer frame diagnostics.
+
+## task-0116 — Add frame execution aggregate report
+
+Completed: 2026-05-15
+
+Summary:
+
+- Added `createFrameExecutionReport` to derive boundary smoke, clear compatibility, diagnostic summary, boundary validation, frame submission smoke, and command-submission metrics from a `FrameBoundaryAssemblyReport`.
+- Reports section readiness, command/submission counts, and diagnostics for missing execution, finish, or submit inputs.
+- Added tests for ready execution plus texture, execution, finish, and submit failures.
+- Validation run: targeted frame execution report tests, `npm run build`, `npm run lint`, `npm test`, and `npm run format:check` all pass.
+
+## task-0117 — Add frame execution aggregate JSON helper
+
+Completed: 2026-05-15
+
+Summary:
+
+- Added `frameExecutionReportToJsonValue` and `frameExecutionReportToJson`.
+- JSON output includes section readiness, command/submission counts, and diagnostic summary while omitting nested report payloads and injected handle details.
+- Added tests for ready output, stable repeated JSON output, and handle-leak prevention.
+- Validation run: targeted frame execution JSON tests, `npm run build`, `npm run lint`, `npm test`, and `npm run format:check` all pass.
+
+## task-0118 — Add renderer frame summary builder from execution report
+
+Completed: 2026-05-15
+
+Summary:
+
+- Added `createRendererFrameSummaryFromExecutionReport`.
+- Derives MVP frame readiness and renderer frame summary from renderer assembly, render-pass assembly, and frame execution aggregate reports.
+- Added tests for all-ready input, missing execution aggregates, and mixed renderer/render-pass failures.
+- Validation run: targeted renderer frame summary builder tests, `npm run build`, `npm run lint`, `npm test`, and `npm run format:check` all pass.
+
+## task-0119 — Add injected renderer frame summary fixture
+
+Completed: 2026-05-15
+
+Summary:
+
+- Added `createRendererFrameSummaryFixture` for test-only ready renderer frame summary and JSON generation.
+- Supports injected renderer, render-pass, texture, execution, finish, and submit failures.
+- Updated a renderer frame summary JSON test to use the fixture where practical.
+- Validation run: targeted renderer frame summary fixture/JSON tests, `npm run build`, `npm run lint`, `npm test`, and `npm run format:check` all pass.
+
+## task-0120 — Add renderer frame summary diagnostics grouping helper
+
+Completed: 2026-05-15
+
+Summary:
+
+- Added `summarizeRendererFrameSummaryDiagnosticsBySection`.
+- Groups renderer frame summary diagnostics by renderer assembly, render-pass assembly, frame submission, frame boundary, MVP readiness, and command submission metrics.
+- Added tests for missing-section diagnostics, source diagnostics, and stable repeated JSON-safe output.
+- Validation run: targeted renderer frame summary diagnostics tests, `npm run build`, `npm run lint`, `npm test`, and `npm run format:check` all pass.
+- Follow-up tasks added: `task-0121` through `task-0125` continue frame execution diagnostics, JSON helpers, docs, and injected runner helpers.

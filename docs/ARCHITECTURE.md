@@ -229,6 +229,8 @@ Material diagnostics should explain performance costs where possible.
 
 Diagnostics are part of the architecture, not an afterthought.
 
+Current renderer frame readiness report relationships are documented in [`RENDER_FRAME_READINESS.md`](./RENDER_FRAME_READINESS.md).
+
 The runtime should eventually provide:
 
 - `inspectEntity(entity)`

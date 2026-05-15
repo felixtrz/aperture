@@ -9,17 +9,11 @@ import {
   type RenderPassCommandExecutionReport,
   type SubmitCommandBuffersReport,
 } from "../../src/index.js";
+import { createFrameExecutionSmokeFixture } from "./fixtures/frame-execution.js";
 
 describe("frame submission smoke report", () => {
   it("reports ready when all submission sections are ready", () => {
-    const report = createFrameSubmissionSmokeReport({
-      attachments: attachments(true),
-      begin: begin(true),
-      execution: execution(true),
-      end: end(true),
-      finish: finish(true),
-      submit: submit(true),
-    });
+    const report = createFrameExecutionSmokeFixture().submissionSmoke;
 
     expect(report.ready).toBe(true);
     expect(report.diagnostics).toEqual([]);
@@ -28,7 +22,7 @@ describe("frame submission smoke report", () => {
     ).toBe(true);
     expect(report.summary.attachments?.colorTargets).toBe(1);
     expect(report.summary.finish?.commandBufferKey).toBe(
-      "command-buffer:frame",
+      "command-buffer:fixture-frame",
     );
     expect(report.summary.submit?.submitted).toBe(1);
   });

@@ -14,8 +14,16 @@ export interface MvpFrameReadinessDiagnostic {
   readonly message: string;
 }
 
+export interface MvpFrameReadinessSections {
+  readonly rendererAssembly: boolean;
+  readonly renderPassAssembly: boolean;
+  readonly frameSubmission: boolean;
+  readonly frameBoundary: boolean;
+}
+
 export interface MvpFrameReadinessReport {
   readonly ready: boolean;
+  readonly sections: MvpFrameReadinessSections;
   readonly counts: {
     readonly rendererDiagnostics: number;
     readonly renderPassDiagnostics: number;
@@ -63,6 +71,12 @@ export function createMvpFrameReadinessReport(input: {
 
   return {
     ready: diagnostics.length === 0,
+    sections: {
+      rendererAssembly: input.renderer.ready,
+      renderPassAssembly: input.renderPass.ready,
+      frameSubmission: input.submission.ready,
+      frameBoundary: input.boundary.ready,
+    },
     counts: {
       rendererDiagnostics: input.renderer.diagnostics.length,
       renderPassDiagnostics: input.renderPass.diagnostics.length,
@@ -71,4 +85,41 @@ export function createMvpFrameReadinessReport(input: {
     },
     diagnostics,
   };
+}
+
+export interface MvpFrameReadinessReportJsonValue {
+  readonly ready: boolean;
+  readonly sections: MvpFrameReadinessSections;
+  readonly counts: MvpFrameReadinessReport["counts"];
+  readonly diagnostics: readonly MvpFrameReadinessDiagnostic[];
+}
+
+export function mvpFrameReadinessReportToJsonValue(
+  report: MvpFrameReadinessReport,
+): MvpFrameReadinessReportJsonValue {
+  return {
+    ready: report.ready,
+    sections: {
+      rendererAssembly: report.sections.rendererAssembly,
+      renderPassAssembly: report.sections.renderPassAssembly,
+      frameSubmission: report.sections.frameSubmission,
+      frameBoundary: report.sections.frameBoundary,
+    },
+    counts: {
+      rendererDiagnostics: report.counts.rendererDiagnostics,
+      renderPassDiagnostics: report.counts.renderPassDiagnostics,
+      submissionDiagnostics: report.counts.submissionDiagnostics,
+      boundaryDiagnostics: report.counts.boundaryDiagnostics,
+    },
+    diagnostics: report.diagnostics.map((diagnostic) => ({
+      code: diagnostic.code,
+      message: diagnostic.message,
+    })),
+  };
+}
+
+export function mvpFrameReadinessReportToJson(
+  report: MvpFrameReadinessReport,
+): string {
+  return JSON.stringify(mvpFrameReadinessReportToJsonValue(report));
 }

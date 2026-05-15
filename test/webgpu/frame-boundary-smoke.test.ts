@@ -4,10 +4,11 @@ import {
   createFrameBoundarySmokeReport,
   type FrameBoundaryAssemblyReport,
 } from "../../src/index.js";
+import { createFrameExecutionSmokeFixture } from "./fixtures/frame-execution.js";
 
 describe("frame boundary smoke report", () => {
   it("reports ready when all frame boundary sections are ready", () => {
-    const report = createFrameBoundarySmokeReport(boundary());
+    const report = createFrameExecutionSmokeFixture().boundarySmoke;
 
     expect(report.ready).toBe(true);
     expect(report.diagnostics).toEqual([]);
