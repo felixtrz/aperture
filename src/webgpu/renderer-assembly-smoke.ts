@@ -1,3 +1,7 @@
+import {
+  summarizeDiagnostics,
+  type DiagnosticSummary,
+} from "../diagnostics/index.js";
 import type {
   RenderPackageInspectionReport,
   RenderSnapshotCloneabilityResult,
@@ -83,6 +87,60 @@ export interface RendererAssemblySmokeReport {
   readonly summary: RendererAssemblySmokeSummary;
 }
 
+export interface RendererAssemblySmokeSectionJsonValue {
+  readonly present: boolean;
+  readonly ready: boolean;
+  readonly diagnosticCodes: readonly string[];
+}
+
+export interface RendererAssemblySmokeSectionsJsonValue {
+  readonly snapshot: RendererAssemblySmokeSectionJsonValue;
+  readonly cloneability: RendererAssemblySmokeSectionJsonValue;
+  readonly packages: RendererAssemblySmokeSectionJsonValue;
+  readonly resources: RendererAssemblySmokeSectionJsonValue;
+  readonly frame: RendererAssemblySmokeSectionJsonValue;
+}
+
+export interface RendererAssemblySmokeSummaryJsonValue {
+  readonly snapshot: RendererAssemblySmokeSummary["snapshot"];
+  readonly cloneability: {
+    readonly valid: boolean;
+    readonly diagnostics: DiagnosticSummary;
+  } | null;
+  readonly packages: {
+    readonly packageCount: number;
+    readonly diagnostics: DiagnosticSummary;
+  } | null;
+  readonly resources: RendererAssemblySmokeSummary["resources"];
+  readonly frame: RendererAssemblySmokeSummary["frame"];
+}
+
+export interface RendererAssemblySmokeReportJsonValue {
+  readonly ready: boolean;
+  readonly sections: RendererAssemblySmokeSectionsJsonValue;
+  readonly summary: RendererAssemblySmokeSummaryJsonValue;
+  readonly diagnostics: DiagnosticSummary;
+}
+
+export interface RendererAssemblySectionDiagnosticSummary {
+  readonly section: RendererAssemblySmokeSection;
+  readonly diagnostics: DiagnosticSummary;
+}
+
+export interface RendererAssemblyDiagnosticGroups {
+  readonly snapshot: RendererAssemblySectionDiagnosticSummary;
+  readonly cloneability: RendererAssemblySectionDiagnosticSummary;
+  readonly packages: RendererAssemblySectionDiagnosticSummary;
+  readonly resources: RendererAssemblySectionDiagnosticSummary;
+  readonly frame: RendererAssemblySectionDiagnosticSummary;
+}
+
+export interface RendererAssemblyDiagnosticGroupReport {
+  readonly ready: boolean;
+  readonly sections: RendererAssemblyDiagnosticGroups;
+  readonly diagnostics: DiagnosticSummary;
+}
+
 export function createRendererAssemblySmokeReport(
   input: RendererAssemblySmokeInput,
 ): RendererAssemblySmokeReport {
@@ -138,6 +196,118 @@ export function createRendererAssemblySmokeReport(
               diagnostics: input.frame.diagnostics,
             },
     },
+  };
+}
+
+export function rendererAssemblySmokeReportToJsonValue(
+  report: RendererAssemblySmokeReport,
+): RendererAssemblySmokeReportJsonValue {
+  const diagnostics = summarizeDiagnostics(report.diagnostics);
+
+  return {
+    ready: report.ready,
+    sections: {
+      snapshot: sectionToJsonValue(report.sections.snapshot),
+      cloneability: sectionToJsonValue(report.sections.cloneability),
+      packages: sectionToJsonValue(report.sections.packages),
+      resources: sectionToJsonValue(report.sections.resources),
+      frame: sectionToJsonValue(report.sections.frame),
+    },
+    summary: {
+      snapshot: report.summary.snapshot,
+      cloneability:
+        report.summary.cloneability === null
+          ? null
+          : {
+              valid: report.summary.cloneability.valid,
+              diagnostics: summarizeDiagnostics(
+                report.summary.cloneability.diagnostics,
+              ),
+            },
+      packages:
+        report.summary.packages === null
+          ? null
+          : {
+              packageCount: report.summary.packages.packageCount,
+              diagnostics: summarizeDiagnostics(
+                report.summary.packages.diagnostics,
+              ),
+            },
+      resources: report.summary.resources,
+      frame:
+        report.summary.frame === null
+          ? null
+          : {
+              frame: report.summary.frame.frame,
+              ready: report.summary.frame.ready,
+              draws: report.summary.frame.draws,
+              batches: report.summary.frame.batches,
+              diagnostics: {
+                total: report.summary.frame.diagnostics.total,
+                bySeverity: {
+                  info: report.summary.frame.diagnostics.bySeverity.info,
+                  warning: report.summary.frame.diagnostics.bySeverity.warning,
+                  error: report.summary.frame.diagnostics.bySeverity.error,
+                },
+                byCode: { ...report.summary.frame.diagnostics.byCode },
+              },
+            },
+    },
+    diagnostics: {
+      total: diagnostics.total,
+      bySeverity: {
+        info: diagnostics.bySeverity.info,
+        warning: diagnostics.bySeverity.warning,
+        error: diagnostics.bySeverity.error,
+      },
+      byCode: { ...diagnostics.byCode },
+    },
+  };
+}
+
+export function rendererAssemblySmokeReportToJson(
+  report: RendererAssemblySmokeReport,
+): string {
+  return JSON.stringify(rendererAssemblySmokeReportToJsonValue(report));
+}
+
+export function summarizeRendererAssemblyDiagnosticsBySection(
+  report: RendererAssemblySmokeReport,
+): RendererAssemblyDiagnosticGroupReport {
+  const diagnostics = summarizeDiagnostics(report.diagnostics);
+
+  return {
+    ready: diagnostics.total === 0,
+    sections: {
+      snapshot: summarizeSectionDiagnostics("snapshot", report),
+      cloneability: summarizeSectionDiagnostics("cloneability", report),
+      packages: summarizeSectionDiagnostics("packages", report),
+      resources: summarizeSectionDiagnostics("resources", report),
+      frame: summarizeSectionDiagnostics("frame", report),
+    },
+    diagnostics,
+  };
+}
+
+function summarizeSectionDiagnostics(
+  section: RendererAssemblySmokeSection,
+  report: RendererAssemblySmokeReport,
+): RendererAssemblySectionDiagnosticSummary {
+  return {
+    section,
+    diagnostics: summarizeDiagnostics(
+      report.diagnostics.filter((diagnostic) => diagnostic.section === section),
+    ),
+  };
+}
+
+function sectionToJsonValue(
+  section: RendererAssemblySmokeSectionStatus,
+): RendererAssemblySmokeSectionJsonValue {
+  return {
+    present: section.present,
+    ready: section.ready,
+    diagnosticCodes: [...section.diagnosticCodes],
   };
 }
 

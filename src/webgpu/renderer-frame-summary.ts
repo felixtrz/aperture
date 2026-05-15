@@ -3,14 +3,56 @@ import type {
   DiagnosticSummary,
 } from "../diagnostics/index.js";
 import { summarizeDiagnostics } from "../diagnostics/index.js";
+import {
+  packSnapshotTransforms,
+  planRenderWorldDrawPackages,
+  type PackedSnapshotTransforms,
+  type RenderSnapshot,
+  type RenderWorld,
+  type RenderWorldApplyReport,
+  type RenderWorldDrawPackage,
+  type RenderWorldDrawPackagePlan,
+  type RenderWorldDrawReadinessReport,
+  type RenderWorldResourceBindingResult,
+  type RenderWorldResourceBindingUpdate,
+} from "../rendering/index.js";
 import type { CommandSubmissionMetricsReport } from "./command-submission-metrics.js";
+import {
+  createDrawCommandDescriptors,
+  type DrawCommandDescriptor,
+  type DrawCommandDescriptorPlan,
+} from "./draw-command.js";
+import type {
+  AssembleFrameBoundaryOptions,
+  FrameBoundaryAssemblyReport,
+} from "./frame-boundary.js";
 import type { FrameBoundaryValidationReport } from "./frame-boundary-validation.js";
-import type { FrameExecutionReport } from "./frame-execution-report.js";
+import {
+  frameExecutionReportToJsonValue,
+  runInjectedFrameExecution,
+  summarizeFrameExecutionDiagnosticsBySection,
+  type FrameExecutionDiagnosticGroupReport,
+  type FrameExecutionReport,
+  type FrameExecutionReportJsonValue,
+} from "./frame-execution-report.js";
 import type { FrameSubmissionSmokeReport } from "./frame-submission-smoke.js";
 import {
   createMvpFrameReadinessReport,
   type MvpFrameReadinessReport,
 } from "./mvp-frame-readiness.js";
+import {
+  planRenderPassDrawList,
+  type RenderPassDrawListPlan,
+} from "./render-pass-draw-list.js";
+import {
+  renderPassAssemblySmokeReportToJsonValue,
+  runInjectedRenderPassAssembly,
+  summarizeRenderPassAssemblyDiagnosticsBySection,
+  type InjectedRenderPassAssemblyRunnerInput,
+  type InjectedRenderPassAssemblyRunnerReport,
+  type RenderPassAssemblyDiagnosticGroupReport,
+  type RenderPassAssemblySmokeReportJsonValue,
+} from "./render-pass-assembly-smoke.js";
 import type { RenderPassAssemblySmokeReport } from "./render-pass-assembly-smoke.js";
 import type { RendererAssemblySmokeReport } from "./renderer-assembly-smoke.js";
 
@@ -81,6 +123,75 @@ export interface RendererFrameSummaryFromExecutionInput {
   readonly execution: FrameExecutionReport | null;
 }
 
+export interface InjectedRendererFrameSummaryRunnerInput {
+  readonly renderer: RendererAssemblySmokeReport | null;
+  readonly renderPass: RenderPassAssemblySmokeReport | null;
+  readonly frameExecution: AssembleFrameBoundaryOptions;
+}
+
+export interface InjectedRenderFrameRunnerInput {
+  readonly renderer: RendererAssemblySmokeReport | null;
+  readonly renderPass: InjectedRenderPassAssemblyRunnerInput;
+  readonly frameExecution: Omit<AssembleFrameBoundaryOptions, "commands">;
+}
+
+export interface InjectedRenderFrameDrawCommandRunnerInput {
+  readonly renderer: RendererAssemblySmokeReport | null;
+  readonly drawCommands: readonly DrawCommandDescriptor[];
+  readonly pipelines: InjectedRenderPassAssemblyRunnerInput["pipelines"];
+  readonly bindGroups: InjectedRenderPassAssemblyRunnerInput["bindGroups"];
+  readonly meshResources: InjectedRenderPassAssemblyRunnerInput["meshResources"];
+  readonly requiredBindGroupGroups?: readonly number[];
+  readonly pass: InjectedRenderPassAssemblyRunnerInput["pass"];
+  readonly frameExecution: Omit<AssembleFrameBoundaryOptions, "commands">;
+}
+
+export interface InjectedRenderFrameDrawPackageRunnerInput {
+  readonly renderer: RendererAssemblySmokeReport | null;
+  readonly packages: readonly RenderWorldDrawPackage[];
+  readonly meshResources: InjectedRenderFrameDrawCommandRunnerInput["meshResources"];
+  readonly pipelines: InjectedRenderFrameDrawCommandRunnerInput["pipelines"];
+  readonly bindGroups: InjectedRenderFrameDrawCommandRunnerInput["bindGroups"];
+  readonly requiredBindGroupGroups?: readonly number[];
+  readonly pass: InjectedRenderFrameDrawCommandRunnerInput["pass"];
+  readonly frameExecution: Omit<AssembleFrameBoundaryOptions, "commands">;
+}
+
+export interface InjectedRenderFrameRenderWorldPackageRunnerInput {
+  readonly renderer: RendererAssemblySmokeReport | null;
+  readonly readiness: RenderWorldDrawReadinessReport;
+  readonly transforms: PackedSnapshotTransforms;
+  readonly meshResources: InjectedRenderFrameDrawPackageRunnerInput["meshResources"];
+  readonly pipelines: InjectedRenderFrameDrawPackageRunnerInput["pipelines"];
+  readonly bindGroups: InjectedRenderFrameDrawPackageRunnerInput["bindGroups"];
+  readonly requiredBindGroupGroups?: readonly number[];
+  readonly pass: InjectedRenderFrameDrawPackageRunnerInput["pass"];
+  readonly frameExecution: Omit<AssembleFrameBoundaryOptions, "commands">;
+}
+
+export interface InjectedRenderFrameSnapshotResourceBinding {
+  readonly renderId: number;
+  readonly update: RenderWorldResourceBindingUpdate;
+}
+
+export interface InjectedRenderFrameSnapshotRunnerInput {
+  readonly renderer: RendererAssemblySmokeReport | null;
+  readonly renderWorld: RenderWorld;
+  readonly snapshot: RenderSnapshot;
+  readonly bindings: readonly InjectedRenderFrameSnapshotResourceBinding[];
+  readonly meshResources: InjectedRenderFrameRenderWorldPackageRunnerInput["meshResources"];
+  readonly pipelines: InjectedRenderFrameRenderWorldPackageRunnerInput["pipelines"];
+  readonly bindGroups: InjectedRenderFrameRenderWorldPackageRunnerInput["bindGroups"];
+  readonly requiredBindGroupGroups?: readonly number[];
+  readonly pass: InjectedRenderFrameRenderWorldPackageRunnerInput["pass"];
+  readonly frameExecution: Omit<AssembleFrameBoundaryOptions, "commands">;
+}
+
+export interface InjectedRenderFrameSnapshotBindingReport {
+  readonly renderId: number;
+  readonly result: RenderWorldResourceBindingResult;
+}
+
 export interface RendererFrameSummaryReport {
   readonly ready: boolean;
   readonly sections: RendererFrameSummarySections;
@@ -108,6 +219,171 @@ export interface RendererFrameSummaryReportJsonValue {
   readonly ready: boolean;
   readonly sections: RendererFrameSummarySectionsJsonValue;
   readonly counts: RendererFrameSummaryCounts;
+  readonly diagnostics: DiagnosticSummary;
+}
+
+export interface InjectedRendererFrameSummaryRunnerReport {
+  readonly assembly: FrameBoundaryAssemblyReport;
+  readonly execution: FrameExecutionReport;
+  readonly summary: RendererFrameSummaryReport;
+  readonly json: RendererFrameSummaryReportJsonValue;
+}
+
+export interface InjectedRenderFrameRunnerReport {
+  readonly renderPass: InjectedRenderPassAssemblyRunnerReport;
+  readonly assembly: FrameBoundaryAssemblyReport;
+  readonly execution: FrameExecutionReport;
+  readonly summary: RendererFrameSummaryReport;
+  readonly json: RendererFrameSummaryReportJsonValue;
+}
+
+export interface InjectedRenderFrameDrawCommandRunnerReport {
+  readonly drawList: RenderPassDrawListPlan;
+  readonly frame: InjectedRenderFrameRunnerReport;
+}
+
+export interface InjectedRenderFrameDrawPackageRunnerReport {
+  readonly descriptors: DrawCommandDescriptorPlan;
+  readonly frame: InjectedRenderFrameDrawCommandRunnerReport;
+}
+
+export interface InjectedRenderFrameRenderWorldPackageRunnerReport {
+  readonly packages: RenderWorldDrawPackagePlan;
+  readonly frame: InjectedRenderFrameDrawPackageRunnerReport;
+}
+
+export interface InjectedRenderFrameSnapshotRunnerReport {
+  readonly apply: RenderWorldApplyReport;
+  readonly bindings: readonly InjectedRenderFrameSnapshotBindingReport[];
+  readonly transforms: PackedSnapshotTransforms;
+  readonly readiness: RenderWorldDrawReadinessReport;
+  readonly frame: InjectedRenderFrameRenderWorldPackageRunnerReport;
+}
+
+export interface InjectedRenderFrameSnapshotRunnerReportJsonValue {
+  readonly ready: boolean;
+  readonly apply: {
+    readonly valid: boolean;
+    readonly created: number;
+    readonly updated: number;
+    readonly removed: number;
+    readonly active: number;
+    readonly diagnostics: DiagnosticSummary;
+  };
+  readonly bindings: {
+    readonly valid: boolean;
+    readonly attemptedCount: number;
+    readonly succeededCount: number;
+    readonly failedCount: number;
+    readonly renderIds: readonly number[];
+    readonly failedRenderIds: readonly number[];
+    readonly diagnostics: DiagnosticSummary;
+  };
+  readonly transforms: {
+    readonly valid: boolean;
+    readonly floatCount: number;
+    readonly matrixCount: number;
+    readonly offsetCount: number;
+    readonly renderIds: readonly number[];
+    readonly diagnostics: DiagnosticSummary;
+  };
+  readonly readiness: {
+    readonly valid: boolean;
+    readonly readyDrawCount: number;
+    readonly blockedDrawCount: number;
+    readonly readyRenderIds: readonly number[];
+    readonly blockedRenderIds: readonly number[];
+    readonly diagnostics: DiagnosticSummary;
+  };
+  readonly frame: InjectedRenderFrameRenderWorldPackageRunnerReportJsonValue;
+}
+
+export interface InjectedRenderFrameRenderWorldPackageRunnerReportJsonValue {
+  readonly ready: boolean;
+  readonly packages: {
+    readonly valid: boolean;
+    readonly packageCount: number;
+    readonly renderIds: readonly number[];
+    readonly diagnostics: DiagnosticSummary;
+  };
+  readonly frame: InjectedRenderFrameDrawPackageRunnerReportJsonValue;
+}
+
+export interface InjectedRenderFrameRenderWorldPackageDiagnosticGroupReport {
+  readonly ready: boolean;
+  readonly phases: {
+    readonly packages: {
+      readonly diagnostics: DiagnosticSummary;
+    };
+    readonly frame: InjectedRenderFrameDrawPackageDiagnosticGroupReport;
+  };
+  readonly diagnostics: DiagnosticSummary;
+}
+
+export interface InjectedRenderFrameDrawPackageRunnerReportJsonValue {
+  readonly ready: boolean;
+  readonly descriptors: {
+    readonly valid: boolean;
+    readonly descriptorCount: number;
+    readonly renderIds: readonly number[];
+    readonly diagnostics: DiagnosticSummary;
+  };
+  readonly frame: InjectedRenderFrameDrawCommandRunnerReportJsonValue;
+}
+
+export interface InjectedRenderFrameDrawPackageDiagnosticGroupReport {
+  readonly ready: boolean;
+  readonly phases: {
+    readonly descriptors: {
+      readonly diagnostics: DiagnosticSummary;
+    };
+    readonly frame: InjectedRenderFrameDrawCommandDiagnosticGroupReport;
+  };
+  readonly diagnostics: DiagnosticSummary;
+}
+
+export interface InjectedRenderFrameDrawCommandRunnerReportJsonValue {
+  readonly ready: boolean;
+  readonly drawList: {
+    readonly valid: boolean;
+    readonly drawCount: number;
+    readonly renderIds: readonly number[];
+    readonly diagnostics: DiagnosticSummary;
+  };
+  readonly frame: InjectedRenderFrameRunnerReportJsonValue;
+}
+
+export interface InjectedRenderFrameDrawCommandDiagnosticGroupReport {
+  readonly ready: boolean;
+  readonly phases: {
+    readonly drawList: {
+      readonly diagnostics: DiagnosticSummary;
+    };
+    readonly frame: InjectedRenderFrameDiagnosticGroupReport;
+  };
+  readonly diagnostics: DiagnosticSummary;
+}
+
+export interface InjectedRenderFrameRunnerReportJsonValue {
+  readonly ready: boolean;
+  readonly boundary: {
+    readonly valid: boolean;
+  };
+  readonly renderPass: RenderPassAssemblySmokeReportJsonValue;
+  readonly frameExecution: FrameExecutionReportJsonValue;
+  readonly summary: RendererFrameSummaryReportJsonValue;
+}
+
+export interface InjectedRenderFrameDiagnosticGroups {
+  readonly rendererAssembly: RendererFrameSummarySectionDiagnosticSummary;
+  readonly renderPassAssembly: RenderPassAssemblyDiagnosticGroupReport;
+  readonly frameExecution: FrameExecutionDiagnosticGroupReport;
+  readonly rendererFrameSummary: RendererFrameSummaryDiagnosticGroupReport;
+}
+
+export interface InjectedRenderFrameDiagnosticGroupReport {
+  readonly ready: boolean;
+  readonly phases: InjectedRenderFrameDiagnosticGroups;
   readonly diagnostics: DiagnosticSummary;
 }
 
@@ -248,6 +524,465 @@ export function createRendererFrameSummaryFromExecutionReport(
     commandSubmission:
       input.execution?.reports.commandSubmissionMetrics ?? null,
   });
+}
+
+export function runInjectedRendererFrameSummary(
+  input: InjectedRendererFrameSummaryRunnerInput,
+): InjectedRendererFrameSummaryRunnerReport {
+  const execution = runInjectedFrameExecution(input.frameExecution);
+  const summary = createRendererFrameSummaryFromExecutionReport({
+    renderer: input.renderer,
+    renderPass: input.renderPass,
+    execution: execution.execution,
+  });
+
+  return {
+    assembly: execution.assembly,
+    execution: execution.execution,
+    summary,
+    json: rendererFrameSummaryReportToJsonValue(summary),
+  };
+}
+
+export function runInjectedRenderFrame(
+  input: InjectedRenderFrameRunnerInput,
+): InjectedRenderFrameRunnerReport {
+  const renderPass = runInjectedRenderPassAssembly(input.renderPass);
+  const frame = runInjectedRendererFrameSummary({
+    renderer: input.renderer,
+    renderPass: renderPass.assembly,
+    frameExecution: {
+      ...input.frameExecution,
+      commands: renderPass.commands.commands,
+    },
+  });
+
+  return {
+    renderPass,
+    assembly: frame.assembly,
+    execution: frame.execution,
+    summary: frame.summary,
+    json: frame.json,
+  };
+}
+
+export function runInjectedRenderFrameFromDrawCommands(
+  input: InjectedRenderFrameDrawCommandRunnerInput,
+): InjectedRenderFrameDrawCommandRunnerReport {
+  const drawList = planRenderPassDrawList({
+    drawCommands: input.drawCommands,
+    pipelines: input.pipelines,
+    bindGroups: input.bindGroups,
+    ...(input.requiredBindGroupGroups === undefined
+      ? {}
+      : { requiredBindGroupGroups: input.requiredBindGroupGroups }),
+  });
+  const frame = runInjectedRenderFrame({
+    renderer: input.renderer,
+    renderPass: {
+      drawList: drawList.draws,
+      drawListValid: drawList.valid,
+      drawListDiagnostics: drawList.diagnostics,
+      pipelines: input.pipelines,
+      bindGroups: input.bindGroups,
+      meshResources: input.meshResources,
+      pass: input.pass,
+    },
+    frameExecution: input.frameExecution,
+  });
+
+  return {
+    drawList,
+    frame,
+  };
+}
+
+export function runInjectedRenderFrameFromDrawPackages(
+  input: InjectedRenderFrameDrawPackageRunnerInput,
+): InjectedRenderFrameDrawPackageRunnerReport {
+  const descriptors = createDrawCommandDescriptors(
+    input.packages,
+    input.meshResources,
+  );
+  const frame = runInjectedRenderFrameFromDrawCommands({
+    renderer: input.renderer,
+    drawCommands: descriptors.descriptors,
+    pipelines: input.pipelines,
+    bindGroups: input.bindGroups,
+    meshResources: input.meshResources,
+    ...(input.requiredBindGroupGroups === undefined
+      ? {}
+      : { requiredBindGroupGroups: input.requiredBindGroupGroups }),
+    pass: input.pass,
+    frameExecution: input.frameExecution,
+  });
+
+  return {
+    descriptors,
+    frame,
+  };
+}
+
+export function runInjectedRenderFrameFromRenderWorldPackages(
+  input: InjectedRenderFrameRenderWorldPackageRunnerInput,
+): InjectedRenderFrameRenderWorldPackageRunnerReport {
+  const packages = planRenderWorldDrawPackages(
+    input.readiness,
+    input.transforms,
+  );
+  const frame = runInjectedRenderFrameFromDrawPackages({
+    renderer: input.renderer,
+    packages: packages.packages,
+    meshResources: input.meshResources,
+    pipelines: input.pipelines,
+    bindGroups: input.bindGroups,
+    ...(input.requiredBindGroupGroups === undefined
+      ? {}
+      : { requiredBindGroupGroups: input.requiredBindGroupGroups }),
+    pass: input.pass,
+    frameExecution: input.frameExecution,
+  });
+
+  return {
+    packages,
+    frame,
+  };
+}
+
+export function runInjectedRenderFrameFromSnapshot(
+  input: InjectedRenderFrameSnapshotRunnerInput,
+): InjectedRenderFrameSnapshotRunnerReport {
+  const apply = input.renderWorld.applySnapshot(input.snapshot);
+  const bindings = input.bindings.map((binding) => ({
+    renderId: binding.renderId,
+    result: input.renderWorld.updateResourceBindings(
+      binding.renderId,
+      binding.update,
+    ),
+  }));
+  const transforms = packSnapshotTransforms(input.snapshot);
+  const readiness = input.renderWorld.createDrawReadinessReport();
+  const frame = runInjectedRenderFrameFromRenderWorldPackages({
+    renderer: input.renderer,
+    readiness,
+    transforms,
+    meshResources: input.meshResources,
+    pipelines: input.pipelines,
+    bindGroups: input.bindGroups,
+    ...(input.requiredBindGroupGroups === undefined
+      ? {}
+      : { requiredBindGroupGroups: input.requiredBindGroupGroups }),
+    pass: input.pass,
+    frameExecution: input.frameExecution,
+  });
+
+  return {
+    apply,
+    bindings,
+    transforms,
+    readiness,
+    frame,
+  };
+}
+
+export function injectedRenderFrameSnapshotRunnerReportToJsonValue(
+  report: InjectedRenderFrameSnapshotRunnerReport,
+): InjectedRenderFrameSnapshotRunnerReportJsonValue {
+  const applyDiagnostics = summarizeDiagnostics(report.apply.diagnostics);
+  const bindingDiagnostics = summarizeDiagnostics(
+    collectSnapshotBindingDiagnostics(report.bindings),
+  );
+  const transformDiagnostics = summarizeDiagnostics(
+    report.transforms.diagnostics,
+  );
+  const readinessDiagnostics = summarizeDiagnostics(
+    report.readiness.diagnostics,
+  );
+  const frame = injectedRenderFrameRenderWorldPackageRunnerReportToJsonValue(
+    report.frame,
+  );
+
+  return {
+    ready:
+      applyDiagnostics.total === 0 &&
+      bindingDiagnostics.total === 0 &&
+      transformDiagnostics.total === 0 &&
+      readinessDiagnostics.total === 0 &&
+      frame.ready,
+    apply: {
+      valid: applyDiagnostics.total === 0,
+      created: report.apply.created,
+      updated: report.apply.updated,
+      removed: report.apply.removed,
+      active: report.apply.active,
+      diagnostics: cloneDiagnosticSummary(applyDiagnostics),
+    },
+    bindings: {
+      valid: bindingDiagnostics.total === 0,
+      attemptedCount: report.bindings.length,
+      succeededCount: report.bindings.filter((binding) => binding.result.ok)
+        .length,
+      failedCount: report.bindings.filter((binding) => !binding.result.ok)
+        .length,
+      renderIds: report.bindings.map((binding) => binding.renderId),
+      failedRenderIds: report.bindings
+        .filter((binding) => !binding.result.ok)
+        .map((binding) => binding.renderId),
+      diagnostics: cloneDiagnosticSummary(bindingDiagnostics),
+    },
+    transforms: {
+      valid: transformDiagnostics.total === 0,
+      floatCount: report.transforms.data.length,
+      matrixCount: report.transforms.data.length / 16,
+      offsetCount: report.transforms.offsets.length,
+      renderIds: report.transforms.offsets.map((offset) => offset.renderId),
+      diagnostics: cloneDiagnosticSummary(transformDiagnostics),
+    },
+    readiness: {
+      valid: readinessDiagnostics.total === 0,
+      readyDrawCount: report.readiness.ready.length,
+      blockedDrawCount: report.readiness.blocked.length,
+      readyRenderIds: report.readiness.ready.map((draw) => draw.renderId),
+      blockedRenderIds: report.readiness.blocked.map((draw) => draw.renderId),
+      diagnostics: cloneDiagnosticSummary(readinessDiagnostics),
+    },
+    frame,
+  };
+}
+
+export function injectedRenderFrameSnapshotRunnerReportToJson(
+  report: InjectedRenderFrameSnapshotRunnerReport,
+): string {
+  return JSON.stringify(
+    injectedRenderFrameSnapshotRunnerReportToJsonValue(report),
+  );
+}
+
+export function injectedRenderFrameRenderWorldPackageRunnerReportToJsonValue(
+  report: InjectedRenderFrameRenderWorldPackageRunnerReport,
+): InjectedRenderFrameRenderWorldPackageRunnerReportJsonValue {
+  const packageDiagnostics = summarizeDiagnostics(report.packages.diagnostics);
+  const frame = injectedRenderFrameDrawPackageRunnerReportToJsonValue(
+    report.frame,
+  );
+
+  return {
+    ready: packageDiagnostics.total === 0 && frame.ready,
+    packages: {
+      valid: packageDiagnostics.total === 0,
+      packageCount: report.packages.packages.length,
+      renderIds: report.packages.packages.map(
+        (drawPackage) => drawPackage.renderId,
+      ),
+      diagnostics: cloneDiagnosticSummary(packageDiagnostics),
+    },
+    frame,
+  };
+}
+
+export function injectedRenderFrameRenderWorldPackageRunnerReportToJson(
+  report: InjectedRenderFrameRenderWorldPackageRunnerReport,
+): string {
+  return JSON.stringify(
+    injectedRenderFrameRenderWorldPackageRunnerReportToJsonValue(report),
+  );
+}
+
+export function summarizeInjectedRenderFrameRenderWorldPackageDiagnosticsByPhase(
+  report: InjectedRenderFrameRenderWorldPackageRunnerReport,
+): InjectedRenderFrameRenderWorldPackageDiagnosticGroupReport {
+  const packageDiagnostics = summarizeDiagnostics(report.packages.diagnostics);
+  const frame = summarizeInjectedRenderFrameDrawPackageDiagnosticsByPhase(
+    report.frame,
+  );
+
+  return {
+    ready: packageDiagnostics.total === 0 && frame.ready,
+    phases: {
+      packages: {
+        diagnostics: cloneDiagnosticSummary(packageDiagnostics),
+      },
+      frame,
+    },
+    diagnostics: mergeDiagnosticSummaries(
+      packageDiagnostics,
+      frame.diagnostics,
+    ),
+  };
+}
+
+export function injectedRenderFrameDrawPackageRunnerReportToJsonValue(
+  report: InjectedRenderFrameDrawPackageRunnerReport,
+): InjectedRenderFrameDrawPackageRunnerReportJsonValue {
+  const descriptorDiagnostics = summarizeDiagnostics(
+    report.descriptors.diagnostics,
+  );
+  const frame = injectedRenderFrameDrawCommandRunnerReportToJsonValue(
+    report.frame,
+  );
+
+  return {
+    ready: descriptorDiagnostics.total === 0 && frame.ready,
+    descriptors: {
+      valid: descriptorDiagnostics.total === 0,
+      descriptorCount: report.descriptors.descriptors.length,
+      renderIds: report.descriptors.descriptors.map(
+        (descriptor) => descriptor.renderId,
+      ),
+      diagnostics: cloneDiagnosticSummary(descriptorDiagnostics),
+    },
+    frame,
+  };
+}
+
+export function injectedRenderFrameDrawPackageRunnerReportToJson(
+  report: InjectedRenderFrameDrawPackageRunnerReport,
+): string {
+  return JSON.stringify(
+    injectedRenderFrameDrawPackageRunnerReportToJsonValue(report),
+  );
+}
+
+export function summarizeInjectedRenderFrameDrawPackageDiagnosticsByPhase(
+  report: InjectedRenderFrameDrawPackageRunnerReport,
+): InjectedRenderFrameDrawPackageDiagnosticGroupReport {
+  const descriptorDiagnostics = summarizeDiagnostics(
+    report.descriptors.diagnostics,
+  );
+  const frame = summarizeInjectedRenderFrameDrawCommandDiagnosticsByPhase(
+    report.frame,
+  );
+
+  return {
+    ready: descriptorDiagnostics.total === 0 && frame.ready,
+    phases: {
+      descriptors: {
+        diagnostics: cloneDiagnosticSummary(descriptorDiagnostics),
+      },
+      frame,
+    },
+    diagnostics: mergeDiagnosticSummaries(
+      descriptorDiagnostics,
+      frame.diagnostics,
+    ),
+  };
+}
+
+export function injectedRenderFrameDrawCommandRunnerReportToJsonValue(
+  report: InjectedRenderFrameDrawCommandRunnerReport,
+): InjectedRenderFrameDrawCommandRunnerReportJsonValue {
+  const drawListDiagnostics = summarizeDiagnostics(report.drawList.diagnostics);
+  const frame = injectedRenderFrameRunnerReportToJsonValue(report.frame);
+
+  return {
+    ready: report.drawList.valid && frame.ready,
+    drawList: {
+      valid: report.drawList.valid,
+      drawCount: report.drawList.draws.length,
+      renderIds: report.drawList.draws.map((draw) => draw.renderId),
+      diagnostics: {
+        total: drawListDiagnostics.total,
+        bySeverity: {
+          info: drawListDiagnostics.bySeverity.info,
+          warning: drawListDiagnostics.bySeverity.warning,
+          error: drawListDiagnostics.bySeverity.error,
+        },
+        byCode: { ...drawListDiagnostics.byCode },
+      },
+    },
+    frame,
+  };
+}
+
+export function injectedRenderFrameDrawCommandRunnerReportToJson(
+  report: InjectedRenderFrameDrawCommandRunnerReport,
+): string {
+  return JSON.stringify(
+    injectedRenderFrameDrawCommandRunnerReportToJsonValue(report),
+  );
+}
+
+export function summarizeInjectedRenderFrameDrawCommandDiagnosticsByPhase(
+  report: InjectedRenderFrameDrawCommandRunnerReport,
+): InjectedRenderFrameDrawCommandDiagnosticGroupReport {
+  const drawListDiagnostics = summarizeDiagnostics(report.drawList.diagnostics);
+  const frame = summarizeInjectedRenderFrameDiagnosticsByPhase(report.frame);
+
+  return {
+    ready: drawListDiagnostics.total === 0 && frame.ready,
+    phases: {
+      drawList: {
+        diagnostics: cloneDiagnosticSummary(drawListDiagnostics),
+      },
+      frame,
+    },
+    diagnostics: mergeDiagnosticSummaries(
+      drawListDiagnostics,
+      frame.diagnostics,
+    ),
+  };
+}
+
+export function injectedRenderFrameRunnerReportToJsonValue(
+  report: InjectedRenderFrameRunnerReport,
+): InjectedRenderFrameRunnerReportJsonValue {
+  return {
+    ready:
+      report.assembly.valid &&
+      report.renderPass.assembly.ready &&
+      report.execution.ready &&
+      report.summary.ready,
+    boundary: {
+      valid: report.assembly.valid,
+    },
+    renderPass: renderPassAssemblySmokeReportToJsonValue(
+      report.renderPass.assembly,
+    ),
+    frameExecution: frameExecutionReportToJsonValue(report.execution),
+    summary: rendererFrameSummaryReportToJsonValue(report.summary),
+  };
+}
+
+export function injectedRenderFrameRunnerReportToJson(
+  report: InjectedRenderFrameRunnerReport,
+): string {
+  return JSON.stringify(injectedRenderFrameRunnerReportToJsonValue(report));
+}
+
+export function summarizeInjectedRenderFrameDiagnosticsByPhase(
+  report: InjectedRenderFrameRunnerReport,
+): InjectedRenderFrameDiagnosticGroupReport {
+  const renderPass = summarizeRenderPassAssemblyDiagnosticsBySection(
+    report.renderPass.assembly,
+  );
+  const frameExecution = summarizeFrameExecutionDiagnosticsBySection(
+    report.execution,
+  );
+  const rendererFrameSummary =
+    summarizeRendererFrameSummaryDiagnosticsBySection(report.summary);
+
+  return {
+    ready:
+      rendererFrameSummary.sections.rendererAssembly.diagnostics.total === 0 &&
+      renderPass.ready &&
+      frameExecution.ready &&
+      rendererFrameSummary.ready,
+    phases: {
+      rendererAssembly: rendererFrameSummary.sections.rendererAssembly,
+      renderPassAssembly: renderPass,
+      frameExecution,
+      rendererFrameSummary,
+    },
+    diagnostics: {
+      total: report.summary.diagnosticSummary.total,
+      bySeverity: {
+        info: report.summary.diagnosticSummary.bySeverity.info,
+        warning: report.summary.diagnosticSummary.bySeverity.warning,
+        error: report.summary.diagnosticSummary.bySeverity.error,
+      },
+      byCode: { ...report.summary.diagnosticSummary.byCode },
+    },
+  };
 }
 
 export function rendererFrameSummaryReportToJsonValue(
@@ -392,6 +1127,51 @@ function summarizeSectionDiagnostics(
       report.diagnostics.filter((diagnostic) => diagnostic.section === section),
     ),
   };
+}
+
+function collectSnapshotBindingDiagnostics(
+  bindings: readonly InjectedRenderFrameSnapshotBindingReport[],
+): readonly SourceDiagnosticLike[] {
+  return bindings.flatMap((binding) =>
+    binding.result.ok ? [] : binding.result.diagnostics,
+  );
+}
+
+function cloneDiagnosticSummary(summary: DiagnosticSummary): DiagnosticSummary {
+  return {
+    total: summary.total,
+    bySeverity: {
+      info: summary.bySeverity.info,
+      warning: summary.bySeverity.warning,
+      error: summary.bySeverity.error,
+    },
+    byCode: { ...summary.byCode },
+  };
+}
+
+function mergeDiagnosticSummaries(
+  ...summaries: readonly DiagnosticSummary[]
+): DiagnosticSummary {
+  const bySeverity: Record<DiagnosticSeverity, number> = {
+    info: 0,
+    warning: 0,
+    error: 0,
+  };
+  const byCode: Record<string, number> = {};
+  let total = 0;
+
+  for (const summary of summaries) {
+    total += summary.total;
+    bySeverity.info += summary.bySeverity.info;
+    bySeverity.warning += summary.bySeverity.warning;
+    bySeverity.error += summary.bySeverity.error;
+
+    for (const [code, count] of Object.entries(summary.byCode)) {
+      byCode[code] = (byCode[code] ?? 0) + count;
+    }
+  }
+
+  return { total, bySeverity, byCode };
 }
 
 function copySourceDiagnostics(

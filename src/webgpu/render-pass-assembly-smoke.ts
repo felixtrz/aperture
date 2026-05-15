@@ -1,7 +1,28 @@
-import type { RenderPassCommandExecutionReport } from "./render-pass-command-executor.js";
-import type { RenderPassCommandPlan } from "./render-pass-commands.js";
-import type { RenderPassDrawListPlan } from "./render-pass-draw-list.js";
-import type { ResolveRenderPassResourcesResult } from "./render-pass-resources.js";
+import {
+  summarizeDiagnostics,
+  type DiagnosticSummary,
+} from "../diagnostics/index.js";
+import {
+  executeRenderPassCommands,
+  type RenderPassCommandExecutionReport,
+  type RenderPassEncoderLike,
+} from "./render-pass-command-executor.js";
+import {
+  planRenderPassCommands,
+  type RenderPassCommandPlan,
+} from "./render-pass-commands.js";
+import type {
+  RenderPassDrawListPlan,
+  RenderPassDrawListRecord,
+} from "./render-pass-draw-list.js";
+import type { GetOrCreateRenderPipelineResult } from "./pipeline-cache-integration.js";
+import type { MeshGpuBufferResource } from "./mesh-buffer-resources.js";
+import {
+  resolveRenderPassResources,
+  type ResolveRenderPassResourcesResult,
+  type ResolvedRenderPassDraw,
+} from "./render-pass-resources.js";
+import type { UnlitBindGroupResource } from "./unlit-bind-group.js";
 
 export type RenderPassAssemblySmokeSection =
   | "drawList"
@@ -42,10 +63,10 @@ export interface RenderPassAssemblySmokeSections {
 
 export interface RenderPassAssemblySmokeSummary {
   readonly drawList: Pick<RenderPassDrawListPlan, "valid" | "draws"> | null;
-  readonly resources: Pick<
-    ResolveRenderPassResourcesResult,
-    "valid" | "draws"
-  > | null;
+  readonly resources: {
+    readonly valid: boolean;
+    readonly draws: readonly RenderPassAssemblyResolvedDrawSummary[];
+  } | null;
   readonly commands: {
     readonly valid: boolean;
     readonly drawCount: number;
@@ -63,11 +84,33 @@ export interface RenderPassAssemblySmokeSummary {
   > | null;
 }
 
+export interface RenderPassAssemblyResolvedDrawSummary {
+  readonly renderId: number;
+  readonly pipelineKey: string;
+  readonly bindGroupKeys: readonly string[];
+  readonly vertexBufferKeys: readonly string[];
+  readonly vertexCount: number;
+  readonly indexBufferKey: string | null;
+  readonly indexCount: number | null;
+  readonly instanceCount: number;
+  readonly transformPackedOffset: number;
+}
+
 export interface RenderPassAssemblySmokeInput {
   readonly drawList: RenderPassDrawListPlan | null;
   readonly resources: ResolveRenderPassResourcesResult | null;
   readonly commands: RenderPassCommandPlan | null;
   readonly execution: RenderPassCommandExecutionReport | null;
+}
+
+export interface InjectedRenderPassAssemblyRunnerInput {
+  readonly drawList: readonly RenderPassDrawListRecord[];
+  readonly drawListValid?: boolean;
+  readonly drawListDiagnostics?: RenderPassDrawListPlan["diagnostics"];
+  readonly pipelines: readonly GetOrCreateRenderPipelineResult[];
+  readonly bindGroups: readonly UnlitBindGroupResource[];
+  readonly meshResources: readonly MeshGpuBufferResource[];
+  readonly pass: RenderPassEncoderLike;
 }
 
 export interface RenderPassAssemblySmokeReport {
@@ -81,6 +124,66 @@ export interface RenderPassAssemblySmokeReport {
     | RenderPassCommandExecutionReport["diagnostics"][number]
   )[];
   readonly summary: RenderPassAssemblySmokeSummary;
+}
+
+export interface InjectedRenderPassAssemblyRunnerReport {
+  readonly resources: ResolveRenderPassResourcesResult;
+  readonly commands: RenderPassCommandPlan;
+  readonly execution: RenderPassCommandExecutionReport;
+  readonly assembly: RenderPassAssemblySmokeReport;
+}
+
+export interface RenderPassAssemblySmokeSectionJsonValue {
+  readonly present: boolean;
+  readonly ready: boolean;
+  readonly diagnosticCodes: readonly string[];
+}
+
+export interface RenderPassAssemblySmokeSectionsJsonValue {
+  readonly drawList: RenderPassAssemblySmokeSectionJsonValue;
+  readonly resources: RenderPassAssemblySmokeSectionJsonValue;
+  readonly commands: RenderPassAssemblySmokeSectionJsonValue;
+  readonly execution: RenderPassAssemblySmokeSectionJsonValue;
+}
+
+export interface RenderPassAssemblySmokeSummaryJsonValue {
+  readonly drawList: {
+    readonly valid: boolean;
+    readonly drawCount: number;
+    readonly renderIds: readonly number[];
+  } | null;
+  readonly resources: {
+    readonly valid: boolean;
+    readonly drawCount: number;
+    readonly draws: readonly RenderPassAssemblyResolvedDrawSummary[];
+  } | null;
+  readonly commands: RenderPassAssemblySmokeSummary["commands"];
+  readonly execution: RenderPassAssemblySmokeSummary["execution"];
+}
+
+export interface RenderPassAssemblySmokeReportJsonValue {
+  readonly ready: boolean;
+  readonly sections: RenderPassAssemblySmokeSectionsJsonValue;
+  readonly summary: RenderPassAssemblySmokeSummaryJsonValue;
+  readonly diagnostics: DiagnosticSummary;
+}
+
+export interface RenderPassAssemblySectionDiagnosticSummary {
+  readonly section: RenderPassAssemblySmokeSection;
+  readonly diagnostics: DiagnosticSummary;
+}
+
+export interface RenderPassAssemblyDiagnosticGroups {
+  readonly drawList: RenderPassAssemblySectionDiagnosticSummary;
+  readonly resources: RenderPassAssemblySectionDiagnosticSummary;
+  readonly commands: RenderPassAssemblySectionDiagnosticSummary;
+  readonly execution: RenderPassAssemblySectionDiagnosticSummary;
+}
+
+export interface RenderPassAssemblyDiagnosticGroupReport {
+  readonly ready: boolean;
+  readonly sections: RenderPassAssemblyDiagnosticGroups;
+  readonly diagnostics: DiagnosticSummary;
 }
 
 export function createRenderPassAssemblySmokeReport(
@@ -150,7 +253,10 @@ export function createRenderPassAssemblySmokeReport(
       resources:
         input.resources === null
           ? null
-          : { valid: input.resources.valid, draws: input.resources.draws },
+          : {
+              valid: input.resources.valid,
+              draws: input.resources.draws.map(resolvedDrawToSummary),
+            },
       commands:
         input.commands === null
           ? null
@@ -172,6 +278,219 @@ export function createRenderPassAssemblySmokeReport(
               drawCalls: input.execution.drawCalls,
             },
     },
+  };
+}
+
+export function renderPassAssemblySmokeReportToJsonValue(
+  report: RenderPassAssemblySmokeReport,
+): RenderPassAssemblySmokeReportJsonValue {
+  const diagnostics = summarizeDiagnostics(report.diagnostics);
+
+  return {
+    ready: report.ready,
+    sections: {
+      drawList: sectionToJsonValue(report.sections.drawList),
+      resources: sectionToJsonValue(report.sections.resources),
+      commands: sectionToJsonValue(report.sections.commands),
+      execution: sectionToJsonValue(report.sections.execution),
+    },
+    summary: {
+      drawList:
+        report.summary.drawList === null
+          ? null
+          : {
+              valid: report.summary.drawList.valid,
+              drawCount: report.summary.drawList.draws.length,
+              renderIds: report.summary.drawList.draws.map(
+                (draw) => draw.renderId,
+              ),
+            },
+      resources:
+        report.summary.resources === null
+          ? null
+          : {
+              valid: report.summary.resources.valid,
+              drawCount: report.summary.resources.draws.length,
+              draws: report.summary.resources.draws.map((draw) => ({
+                renderId: draw.renderId,
+                pipelineKey: draw.pipelineKey,
+                bindGroupKeys: [...draw.bindGroupKeys],
+                vertexBufferKeys: [...draw.vertexBufferKeys],
+                vertexCount: draw.vertexCount,
+                indexBufferKey: draw.indexBufferKey,
+                indexCount: draw.indexCount,
+                instanceCount: draw.instanceCount,
+                transformPackedOffset: draw.transformPackedOffset,
+              })),
+            },
+      commands:
+        report.summary.commands === null
+          ? null
+          : {
+              valid: report.summary.commands.valid,
+              drawCount: report.summary.commands.drawCount,
+              commandCount: report.summary.commands.commandCount,
+              indexedDrawCount: report.summary.commands.indexedDrawCount,
+              nonIndexedDrawCount: report.summary.commands.nonIndexedDrawCount,
+            },
+      execution:
+        report.summary.execution === null
+          ? null
+          : {
+              valid: report.summary.execution.valid,
+              commandCount: report.summary.execution.commandCount,
+              executedCommands: report.summary.execution.executedCommands,
+              skippedCommands: report.summary.execution.skippedCommands,
+              drawCalls: report.summary.execution.drawCalls,
+            },
+    },
+    diagnostics: {
+      total: diagnostics.total,
+      bySeverity: {
+        info: diagnostics.bySeverity.info,
+        warning: diagnostics.bySeverity.warning,
+        error: diagnostics.bySeverity.error,
+      },
+      byCode: { ...diagnostics.byCode },
+    },
+  };
+}
+
+export function renderPassAssemblySmokeReportToJson(
+  report: RenderPassAssemblySmokeReport,
+): string {
+  return JSON.stringify(renderPassAssemblySmokeReportToJsonValue(report));
+}
+
+export function summarizeRenderPassAssemblyDiagnosticsBySection(
+  report: RenderPassAssemblySmokeReport,
+): RenderPassAssemblyDiagnosticGroupReport {
+  const diagnostics = summarizeDiagnostics(report.diagnostics);
+
+  return {
+    ready: diagnostics.total === 0,
+    sections: {
+      drawList: summarizeSectionDiagnostics("drawList", report),
+      resources: summarizeSectionDiagnostics("resources", report),
+      commands: summarizeSectionDiagnostics("commands", report),
+      execution: summarizeSectionDiagnostics("execution", report),
+    },
+    diagnostics,
+  };
+}
+
+export function runInjectedRenderPassAssembly(
+  input: InjectedRenderPassAssemblyRunnerInput,
+): InjectedRenderPassAssemblyRunnerReport {
+  const resources = resolveRenderPassResources({
+    drawList: input.drawList,
+    pipelines: input.pipelines,
+    bindGroups: input.bindGroups,
+    meshResources: input.meshResources,
+  });
+  const commands = planRenderPassCommands({ draws: resources.draws });
+  const execution = executeRenderPassCommands({
+    pass: input.pass,
+    commands: commands.commands,
+  });
+  const assembly = createRenderPassAssemblySmokeReport({
+    drawList: {
+      valid: input.drawListValid ?? true,
+      draws: input.drawList,
+      diagnostics: input.drawListDiagnostics ?? [],
+    },
+    resources,
+    commands,
+    execution,
+  });
+
+  return {
+    resources,
+    commands,
+    execution,
+    assembly,
+  };
+}
+
+function summarizeSectionDiagnostics(
+  section: RenderPassAssemblySmokeSection,
+  report: RenderPassAssemblySmokeReport,
+): RenderPassAssemblySectionDiagnosticSummary {
+  return {
+    section,
+    diagnostics: summarizeDiagnostics(
+      report.diagnostics.filter(
+        (diagnostic) => diagnosticSection(diagnostic) === section,
+      ),
+    ),
+  };
+}
+
+function diagnosticSection(diagnostic: {
+  readonly code: string;
+  readonly section?: string;
+}): RenderPassAssemblySmokeSection {
+  if (isRenderPassAssemblySection(diagnostic.section)) {
+    return diagnostic.section;
+  }
+
+  if (
+    diagnostic.code.startsWith("renderPassDrawList.") ||
+    diagnostic.code.startsWith("drawCommand.")
+  ) {
+    return "drawList";
+  }
+
+  if (
+    diagnostic.code.startsWith("renderPassResource.") ||
+    diagnostic.code.startsWith("unlitBindGroupResource.")
+  ) {
+    return "resources";
+  }
+
+  if (diagnostic.code.startsWith("renderPassCommand.")) {
+    return "commands";
+  }
+
+  return "execution";
+}
+
+function isRenderPassAssemblySection(
+  section: string | undefined,
+): section is RenderPassAssemblySmokeSection {
+  return (
+    section === "drawList" ||
+    section === "resources" ||
+    section === "commands" ||
+    section === "execution"
+  );
+}
+
+function sectionToJsonValue(
+  section: RenderPassAssemblySmokeSectionStatus,
+): RenderPassAssemblySmokeSectionJsonValue {
+  return {
+    present: section.present,
+    ready: section.ready,
+    diagnosticCodes: [...section.diagnosticCodes],
+  };
+}
+
+function resolvedDrawToSummary(
+  draw: ResolvedRenderPassDraw,
+): RenderPassAssemblyResolvedDrawSummary {
+  return {
+    renderId: draw.renderId,
+    pipelineKey: draw.pipelineKey,
+    bindGroupKeys: draw.bindGroups.map((bindGroup) => bindGroup.resourceKey),
+    vertexBufferKeys: draw.vertexBuffers.map(
+      (vertexBuffer) => vertexBuffer.resourceKey,
+    ),
+    vertexCount: draw.vertexCount,
+    indexBufferKey: draw.indexBuffer?.resourceKey ?? null,
+    indexCount: draw.indexCount,
+    instanceCount: draw.instanceCount,
+    transformPackedOffset: draw.transformPackedOffset,
   };
 }
 

@@ -1,6 +1,10 @@
 import type { FinishCommandEncoderResult } from "./command-buffer.js";
 import type { SubmitCommandBuffersReport } from "./queue-submit.js";
 import type { RenderPassCommandExecutionReport } from "./render-pass-command-executor.js";
+import {
+  summarizeDiagnostics,
+  type DiagnosticSummary,
+} from "../diagnostics/index.js";
 
 export type CommandSubmissionMetricsDiagnosticCode =
   | "commandSubmissionMetrics.executionFailed"
@@ -24,6 +28,12 @@ export interface CommandSubmissionMetricsReport {
     readonly skippedSubmissions: number;
   };
   readonly diagnostics: readonly CommandSubmissionMetricsDiagnostic[];
+}
+
+export interface CommandSubmissionMetricsReportJsonValue {
+  readonly ready: boolean;
+  readonly counts: CommandSubmissionMetricsReport["counts"];
+  readonly diagnostics: DiagnosticSummary;
 }
 
 export function createCommandSubmissionMetricsReport(input: {
@@ -67,4 +77,38 @@ export function createCommandSubmissionMetricsReport(input: {
     },
     diagnostics,
   };
+}
+
+export function commandSubmissionMetricsReportToJsonValue(
+  report: CommandSubmissionMetricsReport,
+): CommandSubmissionMetricsReportJsonValue {
+  const diagnostics = summarizeDiagnostics(report.diagnostics);
+
+  return {
+    ready: report.ready,
+    counts: {
+      commands: report.counts.commands,
+      executedCommands: report.counts.executedCommands,
+      skippedCommands: report.counts.skippedCommands,
+      drawCalls: report.counts.drawCalls,
+      commandBuffers: report.counts.commandBuffers,
+      submittedCommandBuffers: report.counts.submittedCommandBuffers,
+      skippedSubmissions: report.counts.skippedSubmissions,
+    },
+    diagnostics: {
+      total: diagnostics.total,
+      bySeverity: {
+        info: diagnostics.bySeverity.info,
+        warning: diagnostics.bySeverity.warning,
+        error: diagnostics.bySeverity.error,
+      },
+      byCode: { ...diagnostics.byCode },
+    },
+  };
+}
+
+export function commandSubmissionMetricsReportToJson(
+  report: CommandSubmissionMetricsReport,
+): string {
+  return JSON.stringify(commandSubmissionMetricsReportToJsonValue(report));
 }

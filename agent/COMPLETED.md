@@ -1311,3 +1311,417 @@ Summary:
 - Added tests for missing-section diagnostics, source diagnostics, and stable repeated JSON-safe output.
 - Validation run: targeted renderer frame summary diagnostics tests, `npm run build`, `npm run lint`, `npm test`, and `npm run format:check` all pass.
 - Follow-up tasks added: `task-0121` through `task-0125` continue frame execution diagnostics, JSON helpers, docs, and injected runner helpers.
+
+## task-0121 — Add frame execution diagnostics grouping helper
+
+Completed: 2026-05-15
+
+Summary:
+
+- Added `summarizeFrameExecutionDiagnosticsBySection`.
+- Groups frame execution diagnostics by boundary smoke, clear compatibility, source diagnostic summary, boundary validation, submission smoke, and command submission metrics.
+- Added tests for missing command-metric inputs, source diagnostics, and stable JSON-safe repeated output.
+- Validation run: targeted frame execution diagnostics tests, `npm run build`, `npm run lint`, `npm test`, and `npm run format:check` all pass.
+
+## task-0122 — Add command submission metrics JSON helper
+
+Completed: 2026-05-15
+
+Summary:
+
+- Added `commandSubmissionMetricsReportToJsonValue` and `commandSubmissionMetricsReportToJson`.
+- JSON output includes readiness, command/draw/command-buffer/submission counts, and diagnostic summaries.
+- Added tests for ready reports, execution/finish/submit failures, and stable repeated JSON output.
+- Validation run: targeted command submission metrics JSON tests, `npm run build`, `npm run lint`, `npm test`, and `npm run format:check` all pass.
+
+## task-0123 — Add render frame readiness docs update
+
+Completed: 2026-05-15
+
+Summary:
+
+- Updated `docs/RENDER_FRAME_READINESS.md` for `FrameExecutionReport`, JSON helpers, diagnostics grouping, and the renderer frame summary builder.
+- Clarified which helpers derive reports from frame-boundary assembly and which remain summary-only.
+- Reiterated that JSON helpers omit WebGPU handles, command encoders, command buffers, queues, contexts, devices, and detailed injected objects.
+- Validation run: `npm run build`, `npm run lint`, `npm test`, and `npm run format:check` all pass.
+
+## task-0124 — Add injected frame execution runner helper
+
+Completed: 2026-05-15
+
+Summary:
+
+- Added `runInjectedFrameExecution`.
+- The helper consumes the same injected inputs as `assembleFrameBoundary` and returns both the boundary assembly report and derived frame execution report.
+- Added tests for ready execution plus texture, execution, finish, and submit failures.
+- Validation run: targeted frame execution runner tests, `npm run build`, `npm run lint`, `npm test`, and `npm run format:check` all pass.
+
+## task-0125 — Add injected renderer frame summary runner helper
+
+Completed: 2026-05-15
+
+Summary:
+
+- Added `runInjectedRendererFrameSummary`.
+- The helper combines renderer assembly, render-pass assembly, and injected frame execution inputs into a boundary assembly, frame execution report, renderer frame summary, and JSON summary.
+- Added tests for all-ready input plus renderer, render-pass, texture, execution, and submit failures.
+- Validation run: targeted renderer frame summary runner tests, `npm run build`, `npm run lint`, `npm test`, and `npm run format:check` all pass.
+- Follow-up tasks added: `task-0126` through `task-0130` continue render-pass runners, JSON helpers, fixtures, and runner docs.
+
+## task-0126 — Add injected render pass assembly runner helper
+
+Completed: 2026-05-15
+
+Summary:
+
+- Added `runInjectedRenderPassAssembly`.
+- The helper resolves render-pass resources, plans commands, executes those commands against an injected pass encoder, and derives a render-pass assembly smoke report.
+- Sanitized render-pass resource summaries so report summaries carry resource keys and counts instead of raw pipeline, bind-group, or buffer handles.
+- Added tests for ready draws, missing pipeline resources, invalid draw counts, missing pass methods, and summary handle boundaries.
+- Validation run: targeted render-pass runner tests, `npm run build`, `npm run lint`, `npm test`, and `npm run format:check` all pass.
+
+## task-0127 — Add render pass assembly JSON helper
+
+Completed: 2026-05-15
+
+Summary:
+
+- Added `renderPassAssemblySmokeReportToJsonValue` and `renderPassAssemblySmokeReportToJson`.
+- JSON output includes section readiness, draw/resource/command/execution summaries, and diagnostic summaries.
+- Added tests for ready output, resource failures, command planning failures, execution failures, stable JSON, and raw-handle omission.
+- Validation run: targeted render-pass assembly JSON tests, `npm run build`, `npm run lint`, `npm test`, and `npm run format:check` all pass.
+
+## task-0128 — Add renderer assembly JSON helper
+
+Completed: 2026-05-15
+
+Summary:
+
+- Added `rendererAssemblySmokeReportToJsonValue` and `rendererAssemblySmokeReportToJson`.
+- JSON output includes section readiness, snapshot/resource/frame counts, package counts, cloneability diagnostic summaries, and renderer assembly diagnostic summaries.
+- Added tests for ready reports, missing sections, source diagnostics, stable JSON, and omission of detailed package/handle payloads.
+- Validation run: targeted renderer assembly JSON tests, `npm run build`, `npm run lint`, `npm test`, and `npm run format:check` all pass.
+
+## task-0129 — Add injected render frame smoke fixture
+
+Completed: 2026-05-15
+
+Summary:
+
+- Added `createInjectedRenderFrameSmokeFixture`.
+- The fixture wires renderer assembly, `runInjectedRenderPassAssembly`, and `runInjectedRendererFrameSummary` into one test-only smoke path with event logging.
+- Supports injected renderer, render-pass resource, command execution, texture, finish, and submit failures.
+- Validation run: targeted injected render frame fixture tests, `npm run build`, `npm run lint`, `npm test`, and `npm run format:check` all pass.
+
+## task-0130 — Update render frame readiness docs for runners
+
+Completed: 2026-05-15
+
+Summary:
+
+- Updated `docs/RENDER_FRAME_READINESS.md` to document render-pass assembly, frame execution, renderer summary runners, and the test-only injected render frame fixture.
+- Clarified which runner returns may contain renderer-side handles and which JSON helpers are safe to serialize.
+- Reiterated that runner helpers do not query ECS or make the renderer authoritative.
+- Validation run: `npm run build`, `npm run lint`, `npm test`, and `npm run format:check` all pass.
+- Follow-up tasks added: `task-0131` through `task-0135` continue diagnostics grouping and runner JSON surfaces.
+
+## task-0131 — Add render pass assembly diagnostics grouping helper
+
+Completed: 2026-05-15
+
+Summary:
+
+- Added `summarizeRenderPassAssemblyDiagnosticsBySection`.
+- Groups render-pass assembly diagnostics by draw list, resources, commands, and execution, including inferred grouping for source diagnostic code prefixes.
+- Added tests for missing resources, command planning failures, execution failures, and stable JSON-safe repeated output.
+- Validation run: targeted render-pass assembly diagnostics tests, `npm run build`, `npm run lint`, `npm test`, and `npm run format:check` all pass.
+
+## task-0132 — Add renderer assembly diagnostics grouping helper
+
+Completed: 2026-05-15
+
+Summary:
+
+- Added `summarizeRendererAssemblyDiagnosticsBySection`.
+- Groups renderer assembly diagnostics by snapshot, cloneability, packages, resources, and frame.
+- Added tests for missing sections, source diagnostics, and stable JSON-safe repeated output.
+- Validation run: targeted renderer assembly diagnostics tests, `npm run build`, `npm run lint`, `npm test`, and `npm run format:check` all pass.
+
+## task-0133 — Add injected render frame runner helper
+
+Completed: 2026-05-15
+
+Summary:
+
+- Added `runInjectedRenderFrame`.
+- The helper composes renderer assembly, `runInjectedRenderPassAssembly`, and `runInjectedRendererFrameSummary`, using the render-pass command plan as the frame execution command input.
+- Added tests for ready output plus renderer, render-pass resource, render-pass execution, texture, finish, and submit failures.
+- Validation run: targeted render frame runner tests, `npm run build`, `npm run lint`, `npm test`, and `npm run format:check` all pass.
+
+## task-0134 — Update injected render frame fixture to use production runner
+
+Completed: 2026-05-15
+
+Summary:
+
+- Refactored `createInjectedRenderFrameSmokeFixture` to delegate to `runInjectedRenderFrame`.
+- Preserved the fixture return shape, event logs, and failure injection behavior.
+- Validation run: targeted injected render frame fixture tests, `npm run build`, `npm run lint`, `npm test`, and `npm run format:check` all pass.
+
+## task-0135 — Update render frame readiness docs for full frame runner
+
+Completed: 2026-05-15
+
+Summary:
+
+- Updated `docs/RENDER_FRAME_READINESS.md` for `runInjectedRenderFrame`.
+- Clarified caller-owned injected handles, renderer-side raw outputs, and the JSON-safe summary boundary.
+- Documented that the test fixture now delegates to the production full-frame runner.
+- Validation run: `npm run build`, `npm run lint`, `npm test`, and `npm run format:check` all pass.
+- Follow-up tasks added: `task-0136` through `task-0140` continue full-frame runner JSON and diagnostics surfaces.
+
+## task-0136 — Add injected render frame runner JSON helper
+
+Completed: 2026-05-15
+
+Summary:
+
+- Added `injectedRenderFrameRunnerReportToJsonValue` and `injectedRenderFrameRunnerReportToJson`.
+- JSON output includes render-pass assembly JSON, frame execution JSON, renderer frame summary JSON, boundary validity, and aggregate readiness.
+- Added tests for ready output, render-pass failures, frame execution failures, stable repeated JSON, and raw-handle omission.
+- Validation run: targeted render frame runner JSON tests, `npm run build`, `npm run lint`, `npm test`, and `npm run format:check` all pass.
+
+## task-0137 — Add injected render frame diagnostics grouping helper
+
+Completed: 2026-05-15
+
+Summary:
+
+- Added `summarizeInjectedRenderFrameDiagnosticsByPhase`.
+- Groups full injected render frame diagnostics by renderer assembly, render-pass assembly, frame execution, and renderer frame summary phases.
+- Reuses existing render-pass, frame execution, and renderer frame summary diagnostic grouping helpers.
+- Added tests for renderer, render-pass, frame execution failures, and stable JSON-safe repeated output.
+- Validation run: targeted render frame diagnostics tests, `npm run build`, `npm run lint`, `npm test`, and `npm run format:check` all pass.
+
+## task-0138 — Add multi-draw injected render frame fixture coverage
+
+Completed: 2026-05-15
+
+Summary:
+
+- Extended `createInjectedRenderFrameSmokeFixture` with `drawCount`.
+- Added stable two-draw coverage with intentionally unsorted draw-list input to lock command planning by render id.
+- Added tests for multi-draw command counts, summary counts, and missing-resource diagnostics.
+- Validation run: targeted injected render frame fixture tests, `npm run build`, `npm run lint`, `npm test`, and `npm run format:check` all pass.
+
+## task-0139 — Add runner handle-boundary regression tests
+
+Completed: 2026-05-15
+
+Summary:
+
+- Added focused JSON handle-boundary regression tests across render-pass assembly, renderer assembly, frame execution, renderer summary, and full injected render frame helpers.
+- Tests use recognizable injected handle strings and assert JSON outputs omit those raw handles while keeping stable counts/keys.
+- Validation run: targeted handle-boundary tests, `npm run build`, `npm run lint`, `npm test`, and `npm run format:check` all pass.
+
+## task-0140 — Update render frame readiness docs for JSON and diagnostics
+
+Completed: 2026-05-15
+
+Summary:
+
+- Updated `docs/RENDER_FRAME_READINESS.md` with a helper inspection guide.
+- Documented render-pass, frame execution, renderer assembly, renderer summary, and full-frame JSON/diagnostics helper choices.
+- Reiterated that JSON and diagnostics are derived inspection surfaces, not ECS/game state or renderer-owned source of truth.
+- Validation run: `npm run build`, `npm run lint`, `npm test`, and `npm run format:check` all pass.
+- Follow-up tasks added: `task-0141` through `task-0145` move the full runner up from draw-list records to draw-command descriptors.
+
+## task-0141 — Add injected render frame draw-command runner helper
+
+Completed: 2026-05-15
+
+Summary:
+
+- Added `runInjectedRenderFrameFromDrawCommands`.
+- The helper plans a render-pass draw list from draw-command descriptors, preserves draw-list diagnostics, and feeds draw records into `runInjectedRenderFrame`.
+- Added tests for ready multi-draw output, missing bind groups, missing pipeline resources, command execution failures, and submit failures.
+- Validation run: targeted draw-command runner tests, `npm run build`, `npm run lint`, `npm test`, and `npm run format:check` all pass.
+
+## task-0142 — Add injected render frame draw-command JSON helper
+
+Completed: 2026-05-15
+
+Summary:
+
+- Added `injectedRenderFrameDrawCommandRunnerReportToJsonValue` and `injectedRenderFrameDrawCommandRunnerReportToJson`.
+- JSON output includes draw-list readiness/counts/diagnostics plus the full injected render frame JSON.
+- Added tests for ready output, draw-list failures, render-frame failures, stable JSON, and raw-handle omission.
+- Validation run: targeted draw-command JSON tests, `npm run build`, `npm run lint`, `npm test`, and `npm run format:check` all pass.
+
+## task-0143 — Add injected render frame draw-command diagnostics helper
+
+Completed: 2026-05-15
+
+Summary:
+
+- Added `summarizeInjectedRenderFrameDrawCommandDiagnosticsByPhase`.
+- Groups draw-command runner diagnostics by draw-list planning plus the existing full-frame phases.
+- Added tests for draw-list, render-pass, frame execution, and renderer failures.
+- Validation run: targeted draw-command diagnostics tests, `npm run build`, `npm run lint`, `npm test`, and `npm run format:check` all pass.
+
+## task-0144 — Add draw-package injected render frame fixture
+
+Completed: 2026-05-15
+
+Summary:
+
+- Added `createDrawPackageRenderFrameFixture`.
+- The fixture starts from render-world draw packages, creates draw-command descriptors, and runs the draw-command injected render frame helper.
+- Added tests for ready multi-draw output, missing mesh resource descriptor diagnostics, and submit failures.
+- Validation run: targeted draw-package fixture tests, `npm run build`, `npm run lint`, `npm test`, and `npm run format:check` all pass.
+
+## task-0145 — Update render frame readiness docs for draw-command runner
+
+Completed: 2026-05-15
+
+Summary:
+
+- Updated `docs/RENDER_FRAME_READINESS.md` for `runInjectedRenderFrameFromDrawCommands`.
+- Documented draw-list, draw-command descriptor, and render-world draw-package boundaries.
+- Clarified that descriptors and draw-list records are render-side products derived from ECS snapshots/render packages, not direct ECS queries or scene graph state.
+- Validation run: `npm run build`, `npm run lint`, `npm test`, and `npm run format:check` all pass.
+- Follow-up tasks added: `task-0146` through `task-0150` move the production runner up from draw-command descriptors to draw packages.
+
+## task-0146 — Add injected render frame draw-package runner helper
+
+Completed: 2026-05-15
+
+Summary:
+
+- Added `runInjectedRenderFrameFromDrawPackages`.
+- The helper creates draw-command descriptors from render-world draw packages, then delegates to `runInjectedRenderFrameFromDrawCommands`.
+- Added tests for ready multi-draw output, missing mesh resources, missing bind groups, command execution failures, and submit failures.
+- Validation run: targeted draw-package runner tests, `npm run build`, `npm run lint`, `npm test`, and `npm run format:check` all pass.
+
+## task-0147 — Add injected render frame draw-package JSON helper
+
+Completed: 2026-05-15
+
+Summary:
+
+- Added `injectedRenderFrameDrawPackageRunnerReportToJsonValue` and `injectedRenderFrameDrawPackageRunnerReportToJson`.
+- JSON output includes descriptor readiness/counts/diagnostics plus the draw-command runner JSON.
+- Added tests for ready output, descriptor failures, frame failures, stable JSON, and raw-handle omission.
+- Validation run: targeted draw-package JSON tests, `npm run build`, `npm run lint`, `npm test`, and `npm run format:check` all pass.
+
+## task-0148 — Add injected render frame draw-package diagnostics helper
+
+Completed: 2026-05-15
+
+Summary:
+
+- Added `summarizeInjectedRenderFrameDrawPackageDiagnosticsByPhase`.
+- Groups draw-package runner diagnostics by descriptor planning plus downstream draw-command/full-frame phases.
+- Added tests for descriptor failures, frame failures, and stable JSON-safe repeated output.
+- Validation run: targeted draw-package diagnostics tests, `npm run build`, `npm run lint`, `npm test`, and `npm run format:check` all pass.
+
+## task-0149 — Update draw-package render frame fixture to use production runner
+
+Completed: 2026-05-15
+
+Summary:
+
+- Refactored `createDrawPackageRenderFrameFixture` to delegate to `runInjectedRenderFrameFromDrawPackages`.
+- Preserved ready multi-draw, missing mesh resource, and submit failure behavior.
+- Validation run: targeted draw-package fixture tests, `npm run build`, `npm run lint`, `npm test`, and `npm run format:check` all pass.
+
+## task-0150 — Update render frame readiness docs for draw-package runner
+
+Completed: 2026-05-15
+
+Summary:
+
+- Updated `docs/RENDER_FRAME_READINESS.md` for `runInjectedRenderFrameFromDrawPackages`.
+- Documented render-world draw packages as the current earliest runner entry point.
+- Clarified that render-world draw packages, draw-command descriptors, and draw-list records are render-side products derived from ECS snapshots.
+- Validation run: `npm run build`, `npm run lint`, `npm test`, and `npm run format:check` all pass.
+- Follow-up tasks added: `task-0151` through `task-0155` move the runner up to render-world readiness plus packed transforms.
+
+## task-0151 — Add injected render frame render-world package runner helper
+
+Completed: 2026-05-15
+
+Summary:
+
+- Added `runInjectedRenderFrameFromRenderWorldPackages`.
+- The helper plans render-world draw packages from draw readiness plus packed transforms, then delegates to `runInjectedRenderFrameFromDrawPackages`.
+- Added tests for ready output, blocked draws, missing packed transforms, missing mesh resources, and submit failures.
+- Validation run: targeted render-world package runner tests, `npm run build`, `npm run lint`, `npm test`, and `npm run format:check` all pass.
+
+## task-0152 — Add injected render frame render-world package JSON helper
+
+Completed: 2026-05-15
+
+Summary:
+
+- Added `injectedRenderFrameRenderWorldPackageRunnerReportToJsonValue` and `injectedRenderFrameRenderWorldPackageRunnerReportToJson`.
+- JSON output includes package readiness/counts/diagnostics plus downstream draw-package runner JSON.
+- Added tests for ready output, package failures, downstream frame failures, stable JSON, and raw-handle omission.
+- Validation run: targeted render-world package JSON tests, `npm run build`, `npm run lint`, `npm test`, and `npm run format:check` all pass.
+
+## task-0153 — Add injected render frame render-world package diagnostics helper
+
+Completed: 2026-05-15
+
+Summary:
+
+- Added `summarizeInjectedRenderFrameRenderWorldPackageDiagnosticsByPhase`.
+- Groups render-world package runner diagnostics by package planning plus downstream draw-package/draw-command/full-frame phases.
+- Added tests for package, descriptor, draw-list, render-pass, frame execution, and renderer failures.
+- Validation run: targeted render-world package diagnostics tests, `npm run build`, `npm run lint`, `npm test`, and `npm run format:check` all pass.
+
+## task-0154 — Add render-world package injected render frame fixture
+
+Completed: 2026-05-15
+
+Summary:
+
+- Added `createRenderWorldPackageFrameFixture`.
+- The fixture starts from render-world draw readiness plus packed transforms and delegates to `runInjectedRenderFrameFromRenderWorldPackages`.
+- Added tests for ready multi-draw output, blocked draw diagnostics, missing packed transform diagnostics, missing mesh resource diagnostics, and submit failure.
+- Validation run: targeted render-world package fixture tests, `npm run build`, `npm run lint`, `npm test`, and `npm run format:check` all pass.
+
+## task-0155 — Update render frame readiness docs for render-world package runner
+
+Completed: 2026-05-15
+
+Summary:
+
+- Updated `docs/RENDER_FRAME_READINESS.md` for `runInjectedRenderFrameFromRenderWorldPackages`.
+- Documented render-world draw readiness plus packed transforms as the earliest current runner entry point.
+- Clarified that render-world readiness and packed transforms are derived from snapshots/render-world state, not direct ECS queries.
+- Validation run: `npm run build`, `npm run lint`, `npm test`, and `npm run format:check` all pass.
+- Follow-up tasks added: `task-0156` through `task-0160` move the runner up to render snapshots and render-world binding.
+
+## task-0156 — Add injected render frame snapshot runner helper
+
+Completed: 2026-05-15
+
+Summary:
+
+- Added `runInjectedRenderFrameFromSnapshot`.
+- The helper applies a snapshot to a `RenderWorld`, updates resource bindings, packs transforms, derives draw readiness, and delegates to `runInjectedRenderFrameFromRenderWorldPackages`.
+- Added tests for ready output, duplicate render ids, missing bindings, missing transforms, and submit failures.
+- Validation run: targeted snapshot runner tests pass.
+
+## task-0157 — Add injected render frame snapshot JSON helper
+
+Completed: 2026-05-15
+
+Summary:
+
+- Added `injectedRenderFrameSnapshotRunnerReportToJsonValue` and `injectedRenderFrameSnapshotRunnerReportToJson`.
+- JSON output includes apply, binding, transform packing, readiness, and downstream render-world package runner counts and diagnostic summaries.
+- Omitted raw render-world objects and injected WebGPU handles from snapshot runner JSON output.
+- Added tests for ready output, apply failures, binding failures, transform failures, downstream failures, stable JSON, and raw-handle omission.
+- Validation run: targeted snapshot JSON tests, `npm run build`, `npm run lint`, `npm test`, and `npm run format:check` all pass.

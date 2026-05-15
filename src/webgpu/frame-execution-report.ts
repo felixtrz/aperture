@@ -7,7 +7,11 @@ import { createClearCompatibilityReport } from "./clear-compatibility.js";
 import type { ClearCompatibilityReport } from "./clear-compatibility.js";
 import { createCommandSubmissionMetricsReport } from "./command-submission-metrics.js";
 import type { CommandSubmissionMetricsReport } from "./command-submission-metrics.js";
-import type { FrameBoundaryAssemblyReport } from "./frame-boundary.js";
+import {
+  assembleFrameBoundary,
+  type AssembleFrameBoundaryOptions,
+  type FrameBoundaryAssemblyReport,
+} from "./frame-boundary.js";
 import {
   summarizeFrameBoundaryDiagnostics,
   type FrameBoundaryDiagnosticSummaryReport,
@@ -113,6 +117,31 @@ export interface FrameExecutionReportJsonValue {
   readonly sections: FrameExecutionSectionsJsonValue;
   readonly counts: FrameExecutionCounts;
   readonly diagnostics: DiagnosticSummary;
+}
+
+export interface FrameExecutionSectionDiagnosticSummary {
+  readonly section: FrameExecutionSection;
+  readonly diagnostics: DiagnosticSummary;
+}
+
+export interface FrameExecutionDiagnosticGroups {
+  readonly boundarySmoke: FrameExecutionSectionDiagnosticSummary;
+  readonly clearCompatibility: FrameExecutionSectionDiagnosticSummary;
+  readonly diagnosticSummary: FrameExecutionSectionDiagnosticSummary;
+  readonly boundaryValidation: FrameExecutionSectionDiagnosticSummary;
+  readonly submissionSmoke: FrameExecutionSectionDiagnosticSummary;
+  readonly commandSubmissionMetrics: FrameExecutionSectionDiagnosticSummary;
+}
+
+export interface FrameExecutionDiagnosticGroupReport {
+  readonly ready: boolean;
+  readonly sections: FrameExecutionDiagnosticGroups;
+  readonly diagnostics: DiagnosticSummary;
+}
+
+export interface InjectedFrameExecutionRunnerReport {
+  readonly assembly: FrameBoundaryAssemblyReport;
+  readonly execution: FrameExecutionReport;
 }
 
 interface DiagnosticLike {
@@ -237,6 +266,17 @@ export function createFrameExecutionReport(
   };
 }
 
+export function runInjectedFrameExecution(
+  options: AssembleFrameBoundaryOptions,
+): InjectedFrameExecutionRunnerReport {
+  const assembly = assembleFrameBoundary(options);
+
+  return {
+    assembly,
+    execution: createFrameExecutionReport(assembly),
+  };
+}
+
 export function frameExecutionReportToJsonValue(
   report: FrameExecutionReport,
 ): FrameExecutionReportJsonValue {
@@ -292,6 +332,39 @@ export function frameExecutionReportToJson(
   return JSON.stringify(frameExecutionReportToJsonValue(report));
 }
 
+export function summarizeFrameExecutionDiagnosticsBySection(
+  report: FrameExecutionReport,
+): FrameExecutionDiagnosticGroupReport {
+  const diagnostics = summarizeDiagnostics(report.diagnostics);
+
+  return {
+    ready: diagnostics.total === 0,
+    sections: {
+      boundarySmoke: summarizeSectionDiagnostics("boundarySmoke", report),
+      clearCompatibility: summarizeSectionDiagnostics(
+        "clearCompatibility",
+        report,
+      ),
+      diagnosticSummary: {
+        section: "diagnosticSummary",
+        diagnostics: cloneDiagnosticSummary(
+          report.reports.diagnosticSummary.diagnostics,
+        ),
+      },
+      boundaryValidation: summarizeSectionDiagnostics(
+        "boundaryValidation",
+        report,
+      ),
+      submissionSmoke: summarizeSectionDiagnostics("submissionSmoke", report),
+      commandSubmissionMetrics: summarizeSectionDiagnostics(
+        "commandSubmissionMetrics",
+        report,
+      ),
+    },
+    diagnostics,
+  };
+}
+
 function status(
   section: FrameExecutionSection,
   present: boolean,
@@ -313,6 +386,30 @@ function sectionToJsonValue(
     present: section.present,
     ready: section.ready,
     diagnosticCodes: [...section.diagnosticCodes],
+  };
+}
+
+function summarizeSectionDiagnostics(
+  section: FrameExecutionSection,
+  report: FrameExecutionReport,
+): FrameExecutionSectionDiagnosticSummary {
+  return {
+    section,
+    diagnostics: summarizeDiagnostics(
+      report.diagnostics.filter((diagnostic) => diagnostic.section === section),
+    ),
+  };
+}
+
+function cloneDiagnosticSummary(summary: DiagnosticSummary): DiagnosticSummary {
+  return {
+    total: summary.total,
+    bySeverity: {
+      info: summary.bySeverity.info,
+      warning: summary.bySeverity.warning,
+      error: summary.bySeverity.error,
+    },
+    byCode: { ...summary.byCode },
   };
 }
 

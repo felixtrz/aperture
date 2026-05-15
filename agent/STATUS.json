@@ -1,10 +1,10 @@
 {
   "state": "idle",
   "currentTaskId": null,
-  "lastRunStartedAt": "2026-05-15T21:01:38Z",
-  "lastRunFinishedAt": "2026-05-15T21:17:30Z",
-  "lastResult": "ready-work-exhausted",
+  "lastRunStartedAt": "2026-05-15T22:01:56Z",
+  "lastRunFinishedAt": "2026-05-15T22:47:15Z",
+  "lastResult": "time-window-elapsed",
   "lastCommit": null,
   "activePid": null,
-  "notes": "Completed task-0111 through task-0120 with full validation; refilled ready backlog through task-0125 after exhausting the ready set."
+  "notes": "Completed task-0121 through task-0157 with full validation; next recommended task is task-0158."
 }
