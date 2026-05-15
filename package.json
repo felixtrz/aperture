@@ -34,5 +34,9 @@
     "prettier": "^3.8.3",
     "typescript": "^6.0.3",
     "vitest": "^4.1.6"
+  },
+  "dependencies": {
+    "elics": "^3.4.2",
+    "wgpu-matrix": "^3.4.2"
   }
 }

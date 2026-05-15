@@ -1,0 +1,140 @@
+import { describe, expect, it } from "vitest";
+
+import {
+  planRenderPassCommands,
+  type ResolvedRenderPassDraw,
+} from "../../src/index.js";
+
+describe("render pass command planning", () => {
+  it("plans indexed render pass commands", () => {
+    const plan = planRenderPassCommands({ draws: [resolvedDraw(1)] });
+
+    expect(plan.valid).toBe(true);
+    expect(plan.drawCount).toBe(1);
+    expect(plan.indexedDrawCount).toBe(1);
+    expect(plan.nonIndexedDrawCount).toBe(0);
+    expect(plan.commands).toMatchObject([
+      { kind: "setPipeline", renderId: 1, pipelineKey: "pipeline:unlit" },
+      { kind: "setBindGroup", renderId: 1, index: 0, resourceKey: "bind:view" },
+      {
+        kind: "setBindGroup",
+        renderId: 1,
+        index: 1,
+        resourceKey: "bind:transforms",
+      },
+      {
+        kind: "setVertexBuffer",
+        renderId: 1,
+        slot: 0,
+        resourceKey: "mesh:1/vertex",
+      },
+      {
+        kind: "setIndexBuffer",
+        renderId: 1,
+        resourceKey: "mesh:1/index",
+        format: "uint16",
+      },
+      { kind: "drawIndexed", renderId: 1, indexCount: 6, instanceCount: 1 },
+    ]);
+  });
+
+  it("plans non-indexed render pass commands", () => {
+    const plan = planRenderPassCommands({
+      draws: [resolvedDraw(1, { indexed: false })],
+    });
+
+    expect(plan.valid).toBe(true);
+    expect(plan.indexedDrawCount).toBe(0);
+    expect(plan.nonIndexedDrawCount).toBe(1);
+    expect(plan.commands.at(-1)).toMatchObject({
+      kind: "draw",
+      renderId: 1,
+      vertexCount: 24,
+      instanceCount: 1,
+    });
+  });
+
+  it("sorts bind groups and keeps draw commands in render id order", () => {
+    const plan = planRenderPassCommands({
+      draws: [resolvedDraw(2), resolvedDraw(1)],
+    });
+
+    expect(
+      plan.commands
+        .filter((command) => command.kind === "drawIndexed")
+        .map((command) => command.renderId),
+    ).toEqual([1, 2]);
+    expect(
+      plan.commands
+        .filter(
+          (command) =>
+            command.renderId === 1 && command.kind === "setBindGroup",
+        )
+        .map((command) => ("index" in command ? command.index : null)),
+    ).toEqual([0, 1]);
+  });
+
+  it("diagnoses invalid indexed and non-indexed draw counts", () => {
+    const plan = planRenderPassCommands({
+      draws: [
+        resolvedDraw(1, { indexCount: 0 }),
+        resolvedDraw(2, { indexed: false, vertexCount: 0 }),
+      ],
+    });
+
+    expect(plan.valid).toBe(false);
+    expect(plan.drawCount).toBe(0);
+    expect(plan.diagnostics.map((diagnostic) => diagnostic.code)).toEqual([
+      "renderPassCommand.invalidIndexCount",
+      "renderPassCommand.invalidVertexCount",
+    ]);
+  });
+});
+
+function resolvedDraw(
+  renderId: number,
+  options: {
+    readonly indexed?: boolean;
+    readonly indexCount?: number | null;
+    readonly vertexCount?: number;
+  } = {},
+): ResolvedRenderPassDraw {
+  const indexed = options.indexed ?? true;
+
+  return {
+    renderId,
+    pipelineKey: "pipeline:unlit",
+    pipeline: { renderId, type: "pipeline" },
+    bindGroups: [
+      {
+        group: 1,
+        resourceKey: "bind:transforms",
+        bindGroup: { renderId, group: 1 },
+      },
+      {
+        group: 0,
+        resourceKey: "bind:view",
+        bindGroup: { renderId, group: 0 },
+      },
+    ],
+    vertexBuffers: [
+      {
+        resourceKey: `mesh:${renderId}/vertex`,
+        buffer: { renderId, type: "vertex" },
+        vertexCount: options.vertexCount ?? 24,
+      },
+    ],
+    vertexCount: options.vertexCount ?? 24,
+    indexBuffer: indexed
+      ? {
+          resourceKey: `mesh:${renderId}/index`,
+          buffer: { renderId, type: "index" },
+          format: "uint16",
+          indexCount: 6,
+        }
+      : null,
+    indexCount: indexed ? (options.indexCount ?? 6) : null,
+    instanceCount: 1,
+    transformPackedOffset: renderId * 16,
+  };
+}

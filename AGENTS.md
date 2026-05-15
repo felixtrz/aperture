@@ -39,16 +39,21 @@ When you start:
 1. Check `agent/STATUS.json`.
 2. Read `agent/HANDOFF.md`.
 3. Read `agent/BACKLOG.md`.
-4. Pick exactly one task from the backlog unless `agent/CURRENT_TASK.md` says otherwise.
-5. Keep the task small and coherent.
-6. Implement only that task.
-7. Add or update tests where practical.
-8. Run relevant validation.
-9. Update docs if architecture changes.
-10. Update `agent/HANDOFF.md`.
-11. Update `agent/BACKLOG.md`.
-12. Update `agent/COMPLETED.md` if a task is complete.
-13. Stop.
+4. Pick the next task from `agent/CURRENT_TASK.md` or the highest-priority ready task in `agent/BACKLOG.md`.
+5. Work on one coherent task at a time.
+6. Add or update tests where practical.
+7. Run relevant validation for the work completed.
+8. After each coherent task, check elapsed run time.
+9. If less than 45 minutes have elapsed and no stop condition applies, select the next ready task and continue.
+10. If 45 minutes or more have elapsed, no ready task remains, or a stop condition applies, perform the end-of-run review.
+11. Update docs if architecture changes.
+12. Update `agent/HANDOFF.md`.
+13. Update `agent/BACKLOG.md`.
+14. Update `agent/COMPLETED.md` for completed tasks.
+15. Ensure `agent/STATUS.json` is not left in `running` state.
+16. Stop.
+
+Completing one task is not, by itself, a reason to stop before the 45-minute work window has elapsed. Continue into the next ready task unless doing so would violate a stop condition, mix unrelated changes into an incoherent diff, or leave too little time to validate and hand off cleanly.
 
 ## Backlog Expansion Protocol
 
@@ -64,7 +69,7 @@ Rules:
 
 - Add concrete tasks, not vague aspirations.
 - Each task should have acceptance criteria.
-- Each task should be completable in one focused agent run.
+- Each task should be substantial enough for about 30-60 minutes of focused work when possible.
 - Prefer vertical slices.
 - Do not add huge epics as immediate tasks.
 - Do not invent architecture that conflicts with docs.
@@ -72,13 +77,18 @@ Rules:
 
 ## Stop-Hook / End-of-Run Requirements
 
-Before stopping, you must perform an end-of-run review:
+Before stopping, first check the elapsed run time:
+
+- If less than 45 minutes have elapsed, a ready task remains, and no stop condition applies, do not finalize yet. Select the next ready task and continue.
+- If 45 minutes or more have elapsed, no ready task remains, or a stop condition applies, perform the end-of-run review below.
+
+When performing the end-of-run review:
 
 1. Summarize what changed.
 2. List files touched.
 3. List tests/validation run.
 4. Note known issues.
-5. Mark completed backlog items.
+5. Mark all completed backlog items.
 6. Add new backlog items if needed.
 7. Recommend the next task.
 8. Update `agent/HANDOFF.md`.
@@ -94,7 +104,7 @@ Do not:
 - Change the core architecture without updating `docs/DECISIONS.md`.
 - Auto-merge to main.
 - Leave broad unfinished scaffolding.
-- Start multiple unrelated tasks.
+- Start multiple tasks concurrently or combine unrelated work into one incoherent change.
 - Delete roadmap, North Star, decision log, or handoff docs.
 - Create a hidden scene graph as the renderer's source of truth.
 - Make WebGL fallback part of the core renderer.

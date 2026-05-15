@@ -4,6 +4,32 @@ This roadmap is the medium-term execution plan. The North Star defines where the
 
 Agents should use this document to understand phase order, but should work from `agent/BACKLOG.md` for specific tasks.
 
+## Immediate Planning Gate — Reference Engine Coverage
+
+As of 2026-05-15, more implementation should pause until Aperture has a thorough MVP concept map based on local reference research into three.js, Babylon.js, and PlayCanvas.
+
+Reason:
+
+- Aperture aims to become a practical 3D runtime, not just a minimal ECS/WebGPU demo.
+- The immediate backlog was still shaped like a custom ECS implementation plan even after EliCS adoption.
+- Future hourly automation runs should spend full cycles on high-leverage research/design tasks instead of finishing tiny two-minute implementation slices.
+
+Current reference checkouts:
+
+- three.js: `/Users/felixz/Projects/aperture-reference-libs/three.js`
+- Babylon.js: `/Users/felixz/Projects/aperture-reference-libs/Babylon.js`
+- PlayCanvas engine: `/Users/felixz/Projects/aperture-reference-libs/playcanvas-engine`
+- gl-matrix: `/Users/felixz/Projects/aperture-reference-libs/gl-matrix`
+- wgpu-matrix: `/Users/felixz/Projects/aperture-reference-libs/wgpu-matrix`
+
+Planning gate exit criteria:
+
+- `docs/MVP_3D_CONCEPTS.md` covers the MVP domains: math/spatial primitives, transforms, geometry/mesh, render authoring components, materials, textures, cameras, lights, visibility/culling/sorting, assets/loading, animation/skinning/morph design, picking/bounds, render extraction, WebGPU render world, diagnostics, and examples.
+- Each MVP domain has explicit references to three.js, Babylon.js, and PlayCanvas concepts.
+- Each MVP domain has an Aperture ECS binding plan that preserves the architecture invariants.
+- Implementation tasks in `agent/BACKLOG.md` are either superseded, rewritten, or deferred until concept coverage is complete.
+- Ready backlog tasks are substantial enough for a focused 30-60 minute automation run.
+
 ## Phase 0 — Repository Foundation
 
 Goal: create a safe, testable TypeScript project structure that autonomous agents can extend.
@@ -30,17 +56,14 @@ Exit criteria:
 
 ## Phase 1 — ECS Core
 
-Goal: implement a minimal but serious ECS foundation.
+Goal: use EliCS as Aperture's ECS foundation and define only the Aperture-specific ECS conventions needed by the MVP concept map.
 
 Core work:
 
-- Entity allocation with generation counters.
-- Entity destruction.
-- Component registration.
-- Component storage.
-- Component add/remove/get/has.
-- Query API.
-- System scheduler.
+- EliCS-backed world/entity/component/query/system usage.
+- Aperture naming conventions for components and resources.
+- Thin helpers only where they improve public API clarity.
+- Validation that component schemas remain serializable and renderer-independent.
 - Resources.
 - Commands/events model.
 
@@ -50,7 +73,8 @@ Exit criteria:
 - Components can be attached/removed.
 - Queries work.
 - Systems run deterministically.
-- Tests cover lifecycle and query behavior.
+- Tests cover lifecycle, query behavior, and any Aperture-specific helper surface.
+- No custom ECS internals are rebuilt unless EliCS cannot support a required invariant.
 
 ## Phase 2 — Transform System
 

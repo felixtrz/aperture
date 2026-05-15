@@ -1,0 +1,165 @@
+import { describe, expect, it } from "vitest";
+
+import {
+  createUnlitBindGroupDescriptorPlan,
+  createUnlitBindGroups,
+  type UnlitBindGroupCreationDescriptor,
+  type UnlitBindGroupLayoutResource,
+} from "../../src/index.js";
+
+describe("unlit bind group descriptor planning", () => {
+  it("creates descriptor entries for all required resources", () => {
+    expect(
+      createUnlitBindGroupDescriptorPlan({
+        viewUniformResourceKey: "view",
+        worldTransformResourceKey: "transforms",
+        materialResourceKey: "material",
+      }),
+    ).toEqual({
+      valid: true,
+      diagnostics: [],
+      entries: [
+        { group: 0, binding: 0, resourceKey: "view" },
+        { group: 1, binding: 0, resourceKey: "transforms" },
+        { group: 2, binding: 0, resourceKey: "material" },
+      ],
+    });
+  });
+
+  it("diagnoses each missing resource independently", () => {
+    expect(
+      createUnlitBindGroupDescriptorPlan({
+        viewUniformResourceKey: null,
+        worldTransformResourceKey: null,
+        materialResourceKey: null,
+      }).diagnostics.map((diagnostic) => diagnostic.code),
+    ).toEqual([
+      "unlitBindGroup.missingViewResource",
+      "unlitBindGroup.missingTransformResource",
+      "unlitBindGroup.missingMaterialResource",
+    ]);
+  });
+
+  it("creates bind group resources from descriptor plans and layouts", () => {
+    const descriptors: UnlitBindGroupCreationDescriptor[] = [];
+    const device = {
+      createBindGroup: (descriptor: UnlitBindGroupCreationDescriptor) => {
+        descriptors.push(descriptor);
+        return { label: descriptor.label };
+      },
+    };
+    const result = createUnlitBindGroups({
+      device,
+      plan: createUnlitBindGroupDescriptorPlan({
+        viewUniformResourceKey: "view-uniform-buffer:main",
+        worldTransformResourceKey: "buffer:transforms",
+        materialResourceKey: "material-buffer:white",
+      }),
+      layouts: layoutResources(),
+    });
+
+    expect(result.valid).toBe(true);
+    expect(result.diagnostics).toEqual([]);
+    expect(result.resources).toMatchObject([
+      {
+        group: 0,
+        layoutKey: "layout:0",
+        resourceKey: "bind-group:unlit/group-0/0:view-uniform-buffer:main",
+        entryResourceKeys: ["view-uniform-buffer:main"],
+      },
+      {
+        group: 1,
+        layoutKey: "layout:1",
+        resourceKey: "bind-group:unlit/group-1/0:buffer:transforms",
+        entryResourceKeys: ["buffer:transforms"],
+      },
+      {
+        group: 2,
+        layoutKey: "layout:2",
+        resourceKey: "bind-group:unlit/group-2/0:material-buffer:white",
+        entryResourceKeys: ["material-buffer:white"],
+      },
+    ]);
+    expect(descriptors).toMatchObject([
+      {
+        label: "unlit/group-0",
+        layout: { group: 0 },
+        entries: [
+          { binding: 0, resource: { resourceKey: "view-uniform-buffer:main" } },
+        ],
+      },
+      {
+        label: "unlit/group-1",
+        layout: { group: 1 },
+        entries: [
+          { binding: 0, resource: { resourceKey: "buffer:transforms" } },
+        ],
+      },
+      {
+        label: "unlit/group-2",
+        layout: { group: 2 },
+        entries: [
+          { binding: 0, resource: { resourceKey: "material-buffer:white" } },
+        ],
+      },
+    ]);
+  });
+
+  it("diagnoses null descriptor plans", () => {
+    expect(
+      createUnlitBindGroups({
+        device: { createBindGroup: () => ({}) },
+        plan: null,
+        layouts: layoutResources(),
+      }),
+    ).toMatchObject({
+      valid: false,
+      resources: [],
+      diagnostics: [{ code: "unlitBindGroupResource.nullDescriptorPlan" }],
+    });
+  });
+
+  it("diagnoses missing layout resources", () => {
+    const result = createUnlitBindGroups({
+      device: { createBindGroup: () => ({}) },
+      plan: createUnlitBindGroupDescriptorPlan({
+        viewUniformResourceKey: "view",
+        worldTransformResourceKey: "transforms",
+        materialResourceKey: "material",
+      }),
+      layouts: layoutResources().filter((layout) => layout.group !== 1),
+    });
+
+    expect(result.valid).toBe(false);
+    expect(result.resources.map((resource) => resource.group)).toEqual([0, 2]);
+    expect(result.diagnostics).toMatchObject([
+      { code: "unlitBindGroupResource.missingLayout", group: 1 },
+    ]);
+  });
+
+  it("diagnoses missing device support", () => {
+    expect(
+      createUnlitBindGroups({
+        device: {},
+        plan: createUnlitBindGroupDescriptorPlan({
+          viewUniformResourceKey: "view",
+          worldTransformResourceKey: "transforms",
+          materialResourceKey: "material",
+        }),
+        layouts: layoutResources(),
+      }),
+    ).toMatchObject({
+      valid: false,
+      resources: [],
+      diagnostics: [{ code: "unlitBindGroupResource.missingDeviceSupport" }],
+    });
+  });
+});
+
+function layoutResources(): UnlitBindGroupLayoutResource[] {
+  return [
+    { group: 0, layoutKey: "layout:0", layout: { group: 0 } },
+    { group: 1, layoutKey: "layout:1", layout: { group: 1 } },
+    { group: 2, layoutKey: "layout:2", layout: { group: 2 } },
+  ];
+}

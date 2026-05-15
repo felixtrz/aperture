@@ -10,9 +10,21 @@ LOG_FILE="$LOG_DIR/stop-hook-$RUN_ID.log"
 
 mkdir -p "$LOG_DIR"
 
-exec > >(tee -a "$LOG_FILE") 2>&1
+# Stop hooks must write valid JSON to stdout. Keep the original stdout on fd 3
+# and send all human-readable diagnostics to the log file.
+exec 3>&1
+exec >>"$LOG_FILE" 2>&1
 
 failures=0
+
+emit_success() {
+  printf '{"continue":true}\n' >&3
+}
+
+emit_continue_request() {
+  local reason="$1"
+  node -e 'console.log(JSON.stringify({ decision: "block", reason: process.argv[1] }))' "$reason" >&3
+}
 
 fail() {
   echo "ERROR: $*"
@@ -30,6 +42,53 @@ run_if_script_exists() {
   else
     echo "Skipping npm script: $script_name is not defined"
   fi
+}
+
+commit_all_changes() {
+  local status_before_commit
+  status_before_commit="$(git status --short --untracked-files=all)"
+
+  if [[ -z "$status_before_commit" ]]; then
+    echo "No changes to checkpoint; working tree is already clean."
+    return
+  fi
+
+  echo "Checkpointing all repository changes:"
+  printf '%s\n' "$status_before_commit"
+
+  if ! git add -A; then
+    fail "git add -A failed"
+    return
+  fi
+
+  if git diff --cached --quiet; then
+    echo "No staged changes after git add -A; nothing to commit."
+    return
+  fi
+
+  local timestamp
+  timestamp="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+
+  if ! git commit \
+    -m "chore: checkpoint automation changes" \
+    -m "Automated stop-hook checkpoint at $timestamp."; then
+    fail "git commit failed"
+    return
+  fi
+
+  echo "Created checkpoint commit: $(git rev-parse --short HEAD)"
+
+  local status_after_commit
+  status_after_commit="$(git status --short --untracked-files=all)"
+
+  if [[ -n "$status_after_commit" ]]; then
+    echo "Working tree after checkpoint:"
+    printf '%s\n' "$status_after_commit"
+    fail "working tree is still dirty after checkpoint commit"
+    return
+  fi
+
+  echo "Working tree is clean after checkpoint commit."
 }
 
 echo "Aperture stop hook started at $(date -u +"%Y-%m-%dT%H:%M:%SZ")"
@@ -70,6 +129,21 @@ if (status.activePid !== null) {
 }
 
 console.log(`Agent status: ${status.state}; lastResult: ${status.lastResult}`);
+
+if (status.lastRunStartedAt) {
+  const startedAt = Date.parse(status.lastRunStartedAt);
+  const finishedAt = status.lastRunFinishedAt ? Date.parse(status.lastRunFinishedAt) : Date.now();
+
+  if (!Number.isNaN(startedAt) && !Number.isNaN(finishedAt)) {
+    const elapsedMs = Math.max(0, finishedAt - startedAt);
+    const elapsedMinutes = elapsedMs / 60000;
+    console.log(`Recorded run elapsed time: ${elapsedMinutes.toFixed(1)} minute(s)`);
+
+    if (status.lastResult === "success" && elapsedMs < 45 * 60000) {
+      throw new Error(`recorded successful run finished after ${elapsedMinutes.toFixed(1)} minute(s), below the 45-minute minimum`);
+    }
+  }
+}
 NODE
   fail "agent/STATUS.json is invalid or not finalized"
 fi
@@ -93,7 +167,17 @@ fi
 
 if ((failures > 0)); then
   echo "Aperture stop hook failed with $failures issue(s)."
-  exit 1
+  emit_continue_request "Aperture stop hook found $failures issue(s). Read $LOG_FILE, fix straightforward failures, and update the handoff before stopping."
+  exit 0
+fi
+
+commit_all_changes
+
+if ((failures > 0)); then
+  echo "Aperture stop hook failed with $failures issue(s)."
+  emit_continue_request "Aperture stop hook found $failures issue(s). Read $LOG_FILE, fix straightforward failures, and update the handoff before stopping."
+  exit 0
 fi
 
 echo "Aperture stop hook completed successfully."
+emit_success

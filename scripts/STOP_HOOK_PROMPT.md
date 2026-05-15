@@ -4,6 +4,19 @@ This prompt is intended to be run when the agent is about to stop.
 
 You must perform a final repository state evaluation and update the agent docs.
 
+## Continuation Gate
+
+Before performing final stop updates, check elapsed time for this run using `agent/STATUS.json.lastRunStartedAt` when available, otherwise the best available run-start time from the current session.
+
+If all of the following are true, do not stop yet:
+
+- Less than 45 minutes have elapsed.
+- At least one ready task remains in `agent/BACKLOG.md`.
+- No stop condition or safety issue applies.
+- Continuing would not mix unrelated changes into an incoherent diff.
+
+When the continuation gate says not to stop, select the next ready task and keep working. Defer final handoff/backlog/completed/status updates until the 45-minute window has elapsed, no ready task remains, or a stop condition applies.
+
 ## Required Review
 
 Review:
@@ -20,7 +33,7 @@ Review:
 
 Update `agent/HANDOFF.md` with:
 
-- Summary of work completed.
+- Summary of all work completed in the run.
 - Files touched.
 - Tests/validation run.
 - Current known issues.
@@ -29,14 +42,14 @@ Update `agent/HANDOFF.md` with:
 
 Update `agent/BACKLOG.md`:
 
-- Mark the completed task.
-- Remove or move completed task if appropriate.
+- Mark every completed task.
+- Remove or move completed tasks if appropriate.
 - Add follow-up tasks if needed.
 - Ensure at least five ready tasks exist unless the project is blocked.
 
 Update `agent/COMPLETED.md`:
 
-- Add completed task summary.
+- Add completed task summaries.
 - Include date if available.
 - Include validation result.
 
@@ -53,7 +66,7 @@ Use `docs/NORTH_STAR.md` and `docs/ROADMAP.md` to decide what the next useful ta
 New backlog tasks must:
 
 - Be specific.
-- Be small.
+- Be sized for about 30-60 minutes of focused work when possible.
 - Have acceptance criteria.
 - Align with architecture.
 - Avoid speculative bloat.

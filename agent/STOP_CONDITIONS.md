@@ -14,6 +14,9 @@ An autonomous agent must stop and update `agent/HANDOFF.md` instead of continuin
 10. The agent detects that another run may still be active.
 11. The requested change conflicts with `docs/NORTH_STAR.md` or `docs/ARCHITECTURE.md`.
 12. The agent is tempted to create a three.js-style scene graph as the core model.
+13. No ready task remains in `agent/BACKLOG.md`.
+
+Completing a single task before the 45-minute work window has elapsed is not a stop condition. If no stop condition applies and ready work remains, the agent should select the next ready task and continue.
 
 When stopping:
 

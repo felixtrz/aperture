@@ -53,12 +53,13 @@ trap cleanup EXIT
 
 RUN_ID="$(date -u +"%Y%m%dT%H%M%SZ")"
 LOG_FILE="$LOG_DIR/$RUN_ID.log"
+RUN_STARTED_AT="$(now)"
 
 cat > "$STATUS_FILE" <<EOF
 {
   "state": "running",
   "currentTaskId": "auto",
-  "lastRunStartedAt": "$(now)",
+  "lastRunStartedAt": "$RUN_STARTED_AT",
   "lastRunFinishedAt": null,
   "lastResult": "in_progress",
   "lastCommit": null,
@@ -79,7 +80,7 @@ if [[ "$CODEX_EXIT" -ne 0 ]]; then
 {
   "state": "idle",
   "currentTaskId": null,
-  "lastRunStartedAt": null,
+  "lastRunStartedAt": "$RUN_STARTED_AT",
   "lastRunFinishedAt": "$(now)",
   "lastResult": "failure",
   "lastCommit": null,
@@ -113,7 +114,7 @@ cat > "$STATUS_FILE" <<EOF
 {
   "state": "idle",
   "currentTaskId": null,
-  "lastRunStartedAt": null,
+  "lastRunStartedAt": "$RUN_STARTED_AT",
   "lastRunFinishedAt": "$(now)",
   "lastResult": "success",
   "lastCommit": "$LAST_COMMIT",

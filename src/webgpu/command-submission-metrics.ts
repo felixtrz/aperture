@@ -1,0 +1,70 @@
+import type { FinishCommandEncoderResult } from "./command-buffer.js";
+import type { SubmitCommandBuffersReport } from "./queue-submit.js";
+import type { RenderPassCommandExecutionReport } from "./render-pass-command-executor.js";
+
+export type CommandSubmissionMetricsDiagnosticCode =
+  | "commandSubmissionMetrics.executionFailed"
+  | "commandSubmissionMetrics.finishFailed"
+  | "commandSubmissionMetrics.submitFailed";
+
+export interface CommandSubmissionMetricsDiagnostic {
+  readonly code: CommandSubmissionMetricsDiagnosticCode;
+  readonly message: string;
+}
+
+export interface CommandSubmissionMetricsReport {
+  readonly ready: boolean;
+  readonly counts: {
+    readonly commands: number;
+    readonly executedCommands: number;
+    readonly skippedCommands: number;
+    readonly drawCalls: number;
+    readonly commandBuffers: number;
+    readonly submittedCommandBuffers: number;
+    readonly skippedSubmissions: number;
+  };
+  readonly diagnostics: readonly CommandSubmissionMetricsDiagnostic[];
+}
+
+export function createCommandSubmissionMetricsReport(input: {
+  readonly execution: RenderPassCommandExecutionReport;
+  readonly finish: FinishCommandEncoderResult;
+  readonly submit: SubmitCommandBuffersReport;
+}): CommandSubmissionMetricsReport {
+  const diagnostics: CommandSubmissionMetricsDiagnostic[] = [];
+
+  if (!input.execution.valid) {
+    diagnostics.push({
+      code: "commandSubmissionMetrics.executionFailed",
+      message: "Render pass command execution failed.",
+    });
+  }
+
+  if (!input.finish.valid) {
+    diagnostics.push({
+      code: "commandSubmissionMetrics.finishFailed",
+      message: "Command encoder finish failed.",
+    });
+  }
+
+  if (!input.submit.valid) {
+    diagnostics.push({
+      code: "commandSubmissionMetrics.submitFailed",
+      message: "Queue submission failed.",
+    });
+  }
+
+  return {
+    ready: diagnostics.length === 0,
+    counts: {
+      commands: input.execution.commandCount,
+      executedCommands: input.execution.executedCommands,
+      skippedCommands: input.execution.skippedCommands,
+      drawCalls: input.execution.drawCalls,
+      commandBuffers: input.finish.resource === null ? 0 : 1,
+      submittedCommandBuffers: input.submit.submitted,
+      skippedSubmissions: input.submit.skipped,
+    },
+    diagnostics,
+  };
+}

@@ -1,12 +1,2 @@
 [features]
 hooks = true
-
-[hooks]
-
-[[hooks.Stop]]
-
-[[hooks.Stop.hooks]]
-type = "command"
-command = "scripts/codex-stop-hook.sh"
-timeout = 180
-statusMessage = "running Aperture stop hook"

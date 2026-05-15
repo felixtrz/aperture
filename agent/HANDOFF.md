@@ -2,88 +2,96 @@
 
 ## Current Status
 
-Aperture now has a minimal TypeScript library/runtime foundation and a project-local Codex stop hook. The repository is ready for the next roadmap phase: ECS core work.
+The user interrupted the autonomous run and required the full math-layer migration to `wgpu-matrix` before any other work. That migration is complete and fully validated.
 
-## Last Run
+The stale backlog entries `task-0106` through `task-0110` were also reconciled as completed because their code and tests were already present from the interrupted automation run.
 
-Completed the initial setup slice:
+The next recommended task is `task-0111 — Add MVP frame readiness JSON helper`.
 
-- `task-0001 — Initialize TypeScript package`
-- `task-0002 — Add repository documentation layout`
+## Run Summary
 
-No ECS, renderer, WebGPU, or scene/runtime implementation was started.
+Major changes:
 
-Follow-up infrastructure work:
+- Migrated Aperture's math constructors, quaternion, matrix, projection, bounds, and ray helper paths to use `wgpu-matrix` internally.
+- Preserved the public Aperture math API, including tuple-like inputs, `Float32Array` storage, destination arguments, WebGPU projection depth `[0, 1]`, quaternion ordering `[x, y, z, w]`, and `invertMat4` returning `null` for singular matrices.
+- Added direct parity tests against `wgpu-matrix` for constructors, TRS composition, matrix multiply/inverse, point/vector transforms, perspective/orthographic projection, quaternion axis normalization, bounds, and ray hit points.
+- Formatted the new math files and the previously unformatted WebGPU files left by the interrupted run.
+- Marked `task-0106` through `task-0110` complete and refilled the ready backlog with `task-0111` through `task-0115`.
 
-- Initialized Git on `main`.
-- Added `.codex/config.toml` with a Codex `Stop` hook.
-- Added executable `scripts/codex-stop-hook.sh`.
-- Manually verified the stop hook passes.
+Architecture boundaries remain intact:
 
-## Completed Work
+- ECS remains authoritative.
+- Rendering remains a derived view.
+- Math storage stays array-first and WebGPU-oriented.
+- No scene graph, renderer-owned ECS/game state, or WebGL fallback was introduced.
+- No new dependency was added beyond the already accepted and declared `wgpu-matrix` dependency.
 
-- Added `package.json` and `package-lock.json` with a minimal private ESM package setup.
-- Added strict TypeScript build config in `tsconfig.json`.
-- Added `tsconfig.test.json` so tests are type-checked by `npm run lint`.
-- Added `src/index.ts` exporting `APERTURE_VERSION` and `APERTURE_IDENTITY` as a placeholder public API.
-- Added Vitest test coverage for the public entrypoint.
-- Added README with Aperture identity, architecture summary, constraints, and development commands.
-- Added `.gitignore` and `.prettierignore`.
-- Verified no legacy project-name references needed replacement.
-- Verified the required docs and agent files already existed and left them intact aside from end-of-run updates.
-- Configured the stop hook to run deterministic end-of-turn checks without invoking another Codex agent.
+## Files Touched This Run
 
-## Files Touched
+Math source:
 
-- `.gitignore`
-- `.prettierignore`
-- `README.md`
-- `package.json`
-- `package-lock.json`
-- `tsconfig.json`
-- `tsconfig.test.json`
-- `src/index.ts`
-- `test/index.test.ts`
-- `.codex/config.toml`
-- `scripts/codex-stop-hook.sh`
-- `agent/BACKLOG.md`
-- `agent/COMPLETED.md`
-- `agent/HANDOFF.md`
-- `agent/STATUS.json`
-- Generated build output in `dist/` from `npm run build` (ignored by `.gitignore`).
-- Generated hook logs in `agent/logs/` from manual verification (ignored by `.gitignore` via `*.log`).
+- [`/Users/felixz/Projects/aperture/src/math/types.ts`](/Users/felixz/Projects/aperture/src/math/types.ts)
+- [`/Users/felixz/Projects/aperture/src/math/constructors.ts`](/Users/felixz/Projects/aperture/src/math/constructors.ts)
+- [`/Users/felixz/Projects/aperture/src/math/matrix.ts`](/Users/felixz/Projects/aperture/src/math/matrix.ts)
+- [`/Users/felixz/Projects/aperture/src/math/projection.ts`](/Users/felixz/Projects/aperture/src/math/projection.ts)
+- [`/Users/felixz/Projects/aperture/src/math/quaternion.ts`](/Users/felixz/Projects/aperture/src/math/quaternion.ts)
+- [`/Users/felixz/Projects/aperture/src/math/bounds.ts`](/Users/felixz/Projects/aperture/src/math/bounds.ts)
+- [`/Users/felixz/Projects/aperture/src/math/ray.ts`](/Users/felixz/Projects/aperture/src/math/ray.ts)
+
+Math tests:
+
+- [`/Users/felixz/Projects/aperture/test/math/constructors.test.ts`](/Users/felixz/Projects/aperture/test/math/constructors.test.ts)
+- [`/Users/felixz/Projects/aperture/test/math/matrix.test.ts`](/Users/felixz/Projects/aperture/test/math/matrix.test.ts)
+- [`/Users/felixz/Projects/aperture/test/math/projection.test.ts`](/Users/felixz/Projects/aperture/test/math/projection.test.ts)
+- [`/Users/felixz/Projects/aperture/test/math/bounds-ray.test.ts`](/Users/felixz/Projects/aperture/test/math/bounds-ray.test.ts)
+
+Bookkeeping:
+
+- [`/Users/felixz/Projects/aperture/agent/BACKLOG.md`](/Users/felixz/Projects/aperture/agent/BACKLOG.md)
+- [`/Users/felixz/Projects/aperture/agent/COMPLETED.md`](/Users/felixz/Projects/aperture/agent/COMPLETED.md)
+- [`/Users/felixz/Projects/aperture/agent/HANDOFF.md`](/Users/felixz/Projects/aperture/agent/HANDOFF.md)
+- [`/Users/felixz/Projects/aperture/agent/STATUS.json`](/Users/felixz/Projects/aperture/agent/STATUS.json)
+
+Formatting also touched previously modified WebGPU files from the interrupted run so `npm run format:check` passes.
 
 ## Validation Run
 
-- `npm install` — passed.
-- `npm run build` — passed.
-- `npm test` — passed, 1 Vitest test.
-- `npm run lint` — passed.
-- `npm run format:check` — passed.
-- `scripts/codex-stop-hook.sh` — passed.
+Final validation:
+
+- `npm run build` — passed
+- `npm run lint` — passed
+- `npm test` — passed, 79 test files / 294 tests
+- `npm run format:check` — passed
+
+Targeted validation:
+
+- `npm test -- test/math/constructors.test.ts test/math/matrix.test.ts test/math/projection.test.ts test/math/bounds-ray.test.ts` — passed, 4 test files / 14 tests
 
 ## Known Issues
 
-- Codex may prompt for hook trust the first time it sees `.codex/config.toml`.
-- A root `.DS_Store` file existed before this run. It was not removed, but `.gitignore` now ignores it.
+- The repository still contains the broad uncommitted/untracked implementation set from this automation run. The stop hook is expected to checkpoint it.
+- `wgpu-matrix` is now required at runtime and is installed in `node_modules`; it is already declared in `package.json`.
+- The renderer path is still report/planning-heavy and does not yet execute a complete user-facing render frame from real WebGPU resources.
 
-## Architectural Notes
+## Backlog
 
-Current intended architecture:
+Completed tasks appended to [`/Users/felixz/Projects/aperture/agent/COMPLETED.md`](/Users/felixz/Projects/aperture/agent/COMPLETED.md):
 
-- ECS is authoritative.
-- Rendering is a derived view.
-- WebGPU only.
-- No core mutable scene graph.
-- Render extraction is the ECS/render boundary.
-- Future worker simulation should remain possible.
+- `task-0106 — Refactor clear helper through frame boundary helpers`
+- `task-0107 — Add clear parity JSON helper`
+- `task-0108 — Add frame boundary report merge helper`
+- `task-0109 — Add command submission metrics report`
+- `task-0110 — Add MVP frame readiness aggregate`
+- `manual-math-wgpu-matrix-migration — Migrate math layer to wgpu-matrix`
 
-The new `src/index.ts` is identity metadata only. It intentionally does not introduce ECS state, renderer state, WebGPU objects, or any scene graph concept.
+Ready backlog now contains:
+
+- `task-0111 — Add MVP frame readiness JSON helper`
+- `task-0112 — Add renderer frame summary aggregate`
+- `task-0113 — Add renderer frame summary JSON helper`
+- `task-0114 — Add frame execution smoke fixture`
+- `task-0115 — Add render frame readiness docs`
 
 ## Recommended Next Task
 
-Start `task-0003 — Implement entity allocator`.
-
-## Notes for Next Agent
-
-Keep the next implementation small and focused. The entity allocator should establish stable numeric IDs and generation counters with tests before moving to component storage.
+Start `task-0111 — Add MVP frame readiness JSON helper`.

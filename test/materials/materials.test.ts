@@ -1,0 +1,105 @@
+import { describe, expect, it } from "vitest";
+
+import {
+  createMaterialPipelineKeyInput,
+  createMaterialHandle,
+  createSamplerAsset,
+  createSamplerHandle,
+  createStandardMaterialAsset,
+  createTextureAsset,
+  createTextureHandle,
+  createUnlitMaterialAsset,
+  samplerPipelineKey,
+  validateMaterialAsset,
+  validateTextureAsset,
+} from "../../src/index.js";
+
+describe("material, texture, sampler, and render-state schemas", () => {
+  it("validates a simple unlit material", () => {
+    const material = createUnlitMaterialAsset({
+      label: "White Unlit",
+      baseColorFactor: new Float32Array([1, 1, 1, 1]),
+    });
+
+    expect(validateMaterialAsset(material)).toEqual({
+      valid: true,
+      diagnostics: [],
+    });
+    expect(createMaterialHandle("white").kind).toBe("material");
+    expect(createMaterialPipelineKeyInput(material)).toMatchObject({
+      shaderFamily: "unlit",
+      features: [],
+      alphaMode: "opaque",
+    });
+  });
+
+  it("validates a standard metallic-roughness material and stable sampler keys", () => {
+    const texture = createTextureHandle("albedo");
+    const sampler = createSamplerHandle("linear-repeat");
+    const material = createStandardMaterialAsset({
+      baseColorTexture: { texture, sampler },
+      metallicFactor: 0.25,
+      roughnessFactor: 0.75,
+    });
+    const firstSampler = createSamplerAsset({ label: "linear-repeat" });
+    const secondSampler = createSamplerAsset({
+      label: "same-fields-different-label",
+    });
+
+    expect(validateMaterialAsset(material)).toEqual({
+      valid: true,
+      diagnostics: [],
+    });
+    expect(createMaterialPipelineKeyInput(material).features).toEqual([
+      "baseColorTexture",
+    ]);
+    expect(samplerPipelineKey(firstSampler)).toBe(
+      samplerPipelineKey(secondSampler),
+    );
+  });
+
+  it("validates texture color-space rules", () => {
+    const invalidNormal = createTextureAsset({
+      label: "Normal",
+      dimension: "2d",
+      width: 4,
+      height: 4,
+      format: "rgba8unorm-srgb",
+      colorSpace: "srgb",
+      semantic: "normal",
+    });
+
+    expect(
+      validateTextureAsset(invalidNormal).diagnostics.map(
+        (diagnostic) => diagnostic.code,
+      ),
+    ).toEqual(["material.invalidTextureColorSpace"]);
+  });
+
+  it("reports missing handles, invalid alpha cutoff, unsupported features, and incompatible render state", () => {
+    const invalid = createStandardMaterialAsset({
+      baseColorTexture: { texture: null, sampler: null },
+      unsupportedFeatures: ["stencil", "custom-shader"],
+      renderState: {
+        alphaMode: "blend",
+        alphaCutoff: 1.5,
+        depth: { test: true, write: true, compare: "less" },
+        blend: { preset: "none" },
+      },
+    });
+
+    expect(
+      validateMaterialAsset(invalid).diagnostics.map(
+        (diagnostic) => diagnostic.code,
+      ),
+    ).toEqual([
+      "material.invalidAlphaCutoff",
+      "material.incompatibleRenderState",
+      "material.incompatibleRenderState",
+      "material.unsupportedFeature",
+      "material.unsupportedFeature",
+      "material.missingTextureHandle",
+      "material.missingSamplerHandle",
+    ]);
+  });
+});
