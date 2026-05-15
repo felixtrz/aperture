@@ -1,9 +1,9 @@
 import type {
+  WebGpuRenderPipelineCache,
   WebGpuRenderPipelineCacheFailureReason,
   WebGpuRenderPipelineCacheStatus,
+  WebGpuRenderPipelineDeviceLike,
 } from "./pipeline-cache.js";
-import { WebGpuRenderPipelineCache } from "./pipeline-cache.js";
-import type { WebGpuRenderPipelineDeviceLike } from "./pipeline-cache.js";
 import type { UnlitPipelineDescriptorPlan } from "./unlit-pipeline-descriptor.js";
 
 export type PipelineCacheIntegrationDiagnosticCode =

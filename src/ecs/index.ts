@@ -2,7 +2,6 @@ import { World } from "elics";
 import type {
   AnyComponent,
   Component,
-  ComponentInitialData,
   DataType,
   Entity,
   TypedSchema,

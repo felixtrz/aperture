@@ -1,8 +1,4 @@
-import type {
-  WebGpuCanvasContextLike,
-  WebGpuDeviceLike,
-  WebGpuFailure,
-} from "./index.js";
+import type { WebGpuCanvasContextLike, WebGpuDeviceLike } from "./index.js";
 import { finishCommandEncoder } from "./command-buffer.js";
 import { createCommandEncoderResource } from "./command-encoder.js";
 import { createCurrentTextureColorTarget } from "./current-texture-view.js";

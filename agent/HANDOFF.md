@@ -20,7 +20,7 @@ RenderSnapshot
   -> renderer frame summary
 ```
 
-The next recommended task is `task-0163 — Add snapshot resource resolver map helper`.
+The next recommended task is `task-0163 — Add browser example harness`.
 
 ## Run Summary
 
@@ -32,6 +32,10 @@ Major changes:
 - Added `planInjectedRenderFrameSnapshotResourceBindings`, which derives ordered binding updates from snapshots and mesh/material resource-key resolvers without mutating `RenderWorld`.
 - Added `createEcsSnapshotRenderFrameFixture`, which builds ECS camera/mesh entities, extracts a snapshot, plans bindings, and runs the snapshot injected frame helper.
 - Refilled the ready backlog with resolver-map, binding-plan JSON/diagnostics, fixture refactor, and docs follow-up tasks.
+- User then redirected the next work toward browser end-to-end verification. The ready backlog was rewritten to prioritize a browser example harness, WebGPU clear smoke test, Playwright verification, real unlit GPU resources, and ECS-extracted scene rendering.
+- User then asked to stabilize dependencies and validation tooling before automated browser work. Installed all npm dependencies from a clean lockfile path, added ESLint, split typecheck/lint scripts, and added a combined `npm run check`.
+- User then asked to install Playwright dependencies before the next session. Added `@playwright/test`, `@types/node`, Chromium via `npx playwright install chromium`, baseline Playwright config, and E2E npm scripts.
+- User also asked to record the next phase after unlit E2E works: expand browser/Playwright verification across geometries, materials, textures, lighting, cameras/render targets, visibility/sorting, and diagnostics.
 
 Architecture boundaries remain intact:
 
@@ -78,10 +82,11 @@ Targeted validation was also run for snapshot diagnostics, snapshot fixture, bin
 
 ## Known Issues
 
-- Binding planner callers still write resolver functions manually. `task-0163` adds reusable resolver map helpers.
-- Binding plan outputs do not yet have JSON or grouped diagnostic helpers. `task-0164` and `task-0165` cover that.
+- The previous resolver-map and binding-plan polish tasks were deferred in favor of browser E2E rendering.
+- There is no browser example harness, static server, or real WebGPU scene test yet.
+- Playwright is installed and configured, but no E2E tests exist yet.
 - The renderer path is still report/planning-heavy and does not yet execute a complete user-facing WebGPU frame from real GPU resources.
-- The stop hook is expected to checkpoint this run's changes.
+- The stop-hook fix in `scripts/codex-stop-hook.sh` is intentionally uncheckpointed because the corrected hook now blocks the current under-45-minute status while ready tasks remain. It now also runs `typecheck` and `typecheck:test` when those scripts exist.
 
 ## Backlog
 
@@ -91,12 +96,30 @@ Completed tasks appended to `agent/COMPLETED.md`:
 
 Ready backlog now contains:
 
-- `task-0163 — Add snapshot resource resolver map helper`
-- `task-0164 — Add snapshot resource binding plan JSON helper`
-- `task-0165 — Add snapshot resource binding plan diagnostics helper`
-- `task-0166 — Use resolver map helper in ECS snapshot fixture`
-- `task-0167 — Document snapshot binding planner usage`
+- `task-0163 — Add browser example harness`
+- `task-0164 — Add browser WebGPU clear smoke example`
+- `task-0165 — Add Playwright browser smoke verification`
+- `task-0166 — Create real unlit WebGPU pipeline bridge`
+- `task-0167 — Upload simple mesh and frame GPU resources`
+- `task-0168 — Render ECS-extracted triangle scene in browser`
+- `task-0169 — Add Playwright triangle scene pixel verification`
+- `task-0170 — Render multi-entity simple scene in browser`
+- `task-0171 — Add Playwright multi-entity scene verification`
+- `task-0172 — Document browser E2E rendering workflow`
+
+After those unlit/browser verification tasks are complete and stable, use the new "Post-Unlit E2E Verification Targets" section in `agent/BACKLOG.md` to expand coverage across geometry, material, texture, lighting, camera/render-target, visibility/sorting, and diagnostics paths.
 
 ## Recommended Next Task
 
-Start `task-0163 — Add snapshot resource resolver map helper`.
+Start `task-0163 — Add browser example harness`.
+
+## Tooling Note
+
+Current uncheckpointed tooling changes:
+
+- `npm ci` succeeds and installs the lockfile dependency set.
+- `eslint.config.js` adds ESLint flat config for source and tests.
+- `package.json` scripts now separate `typecheck`, `typecheck:test`, `lint`, `format:check`, `test`, and combined `check`.
+- `playwright.config.ts` is present; `npm run test:e2e`, `npm run test:e2e:ui`, and `npm run test:e2e:install` are available.
+- Chromium for Playwright was installed with `npx playwright install chromium`.
+- Validation passed: `npm run check`, `npm run build`, `bash -n scripts/codex-stop-hook.sh`, and `git diff --check`.

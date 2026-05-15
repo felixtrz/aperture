@@ -8,7 +8,6 @@ import {
   type FrameReport,
   type RenderPackageInspectionReport,
   type RenderResourceSummaryReport,
-  type RenderSnapshotCloneabilityResult,
   type RenderSnapshotInspectionReport,
 } from "../../src/index.js";
 

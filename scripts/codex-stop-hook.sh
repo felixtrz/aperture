@@ -119,6 +119,7 @@ const fs = require("node:fs");
 
 const statusPath = "agent/STATUS.json";
 const status = JSON.parse(fs.readFileSync(statusPath, "utf8"));
+const readyTaskCount = countReadyTasks("agent/BACKLOG.md");
 
 if (status.state === "running") {
   throw new Error(`${statusPath} is still in running state`);
@@ -129,6 +130,7 @@ if (status.activePid !== null) {
 }
 
 console.log(`Agent status: ${status.state}; lastResult: ${status.lastResult}`);
+console.log(`Ready backlog tasks: ${readyTaskCount}`);
 
 if (status.lastRunStartedAt) {
   const startedAt = Date.parse(status.lastRunStartedAt);
@@ -139,10 +141,56 @@ if (status.lastRunStartedAt) {
     const elapsedMinutes = elapsedMs / 60000;
     console.log(`Recorded run elapsed time: ${elapsedMinutes.toFixed(1)} minute(s)`);
 
+    if (status.lastResult === "no-ready-tasks" && readyTaskCount > 0) {
+      throw new Error(`lastResult is no-ready-tasks, but ${readyTaskCount} ready task(s) remain in agent/BACKLOG.md`);
+    }
+
+    if (
+      readyTaskCount > 0 &&
+      elapsedMs < 45 * 60000 &&
+      !isExplicitStopCondition(status.lastResult)
+    ) {
+      throw new Error(`recorded run finished after ${elapsedMinutes.toFixed(1)} minute(s) with ${readyTaskCount} ready task(s) still available, below the 45-minute minimum`);
+    }
+
     if (status.lastResult === "success" && elapsedMs < 45 * 60000) {
       throw new Error(`recorded successful run finished after ${elapsedMinutes.toFixed(1)} minute(s), below the 45-minute minimum`);
     }
   }
+}
+
+function countReadyTasks(backlogPath) {
+  const backlog = fs.readFileSync(backlogPath, "utf8");
+  const lines = backlog.split(/\r?\n/);
+  let inReadySection = false;
+  let count = 0;
+
+  for (const line of lines) {
+    if (/^##\s+Ready Tasks\s*$/.test(line)) {
+      inReadySection = true;
+      continue;
+    }
+
+    if (inReadySection && /^##\s+/.test(line)) {
+      break;
+    }
+
+    if (inReadySection && /^###\s+task-\d+\b/.test(line)) {
+      count += 1;
+    }
+  }
+
+  return count;
+}
+
+function isExplicitStopCondition(lastResult) {
+  return new Set([
+    "blocked",
+    "stop-condition",
+    "unsafe",
+    "tests-failed",
+    "validation-failed",
+  ]).has(lastResult);
 }
 NODE
   fail "agent/STATUS.json is invalid or not finalized"
@@ -157,6 +205,8 @@ else
 fi
 
 if [[ -f package.json ]]; then
+  run_if_script_exists typecheck
+  run_if_script_exists typecheck:test
   run_if_script_exists build
   run_if_script_exists test
   run_if_script_exists lint

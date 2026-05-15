@@ -1,9 +1,9 @@
 import {
-  AssetRegistry,
   assetHandleKey,
   createMaterialHandle,
   createMeshHandle,
   createRenderTargetHandle,
+  type AssetRegistry,
   type MaterialHandle,
   type MeshHandle,
   type RenderTargetHandle,
@@ -11,7 +11,6 @@ import {
 import type { EcsWorld, Entity } from "../ecs/index.js";
 import {
   Enabled,
-  LocalTransform,
   WorldTransform,
   registerMetadataComponents,
   registerTransformComponents,
@@ -525,10 +524,6 @@ function pushMatrix(values: number[], matrix: Mat4): number {
   const offset = values.length;
   values.push(...matrix);
   return offset;
-}
-
-function pushMatrixLike(values: number[], matrix: Mat4): number {
-  return pushMatrix(values, matrix);
 }
 
 function parseMeshHandle(value: string): MeshHandle | null {
