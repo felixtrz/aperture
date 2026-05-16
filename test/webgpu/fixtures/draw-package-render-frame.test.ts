@@ -9,9 +9,9 @@ describe("draw-package injected render frame fixture", () => {
     expect(fixture.descriptors.diagnostics).toEqual([]);
     expect(
       fixture.descriptors.descriptors.map((descriptor) => descriptor.renderId),
-    ).toEqual([7, 9]);
+    ).toEqual([9, 7]);
     expect(fixture.frame.drawList.draws.map((draw) => draw.renderId)).toEqual([
-      7, 9,
+      9, 7,
     ]);
     expect(fixture.frame.frame.execution.counts).toMatchObject({
       commands: 12,

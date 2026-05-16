@@ -62,9 +62,7 @@ export function planRenderPassDrawList(
   const draws: RenderPassDrawListRecord[] = [];
   const requiredGroups = options.requiredBindGroupGroups ?? [0, 1, 2];
 
-  for (const command of [...options.drawCommands].sort(
-    (a, b) => a.renderId - b.renderId,
-  )) {
+  for (const command of options.drawCommands) {
     let ready = true;
 
     if (!pipelineKeys.has(command.pipelineKey)) {

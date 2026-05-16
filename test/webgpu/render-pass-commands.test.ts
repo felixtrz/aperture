@@ -61,7 +61,7 @@ describe("render pass command planning", () => {
     });
   });
 
-  it("sorts bind groups and keeps draw commands in render id order", () => {
+  it("sorts bind groups and preserves resolved draw order", () => {
     const plan = planRenderPassCommands({
       draws: [resolvedDraw(2), resolvedDraw(1)],
     });
@@ -70,7 +70,7 @@ describe("render pass command planning", () => {
       plan.commands
         .filter((command) => command.kind === "drawIndexed")
         .map((command) => command.renderId),
-    ).toEqual([1, 2]);
+    ).toEqual([2, 1]);
     expect(
       plan.commands
         .filter(

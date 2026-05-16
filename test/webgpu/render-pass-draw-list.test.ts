@@ -19,20 +19,6 @@ describe("render pass draw list planning", () => {
     expect(plan.diagnostics).toEqual([]);
     expect(plan.draws).toMatchObject([
       {
-        renderId: 1,
-        pipelineKey: "pipeline:unlit",
-        bindGroupKeys: [
-          "bind-group:view",
-          "bind-group:transforms",
-          "bind-group:material:white",
-        ],
-        vertexBufferKeys: ["mesh:1/vertex"],
-        vertexCount: 24,
-        indexBufferKey: "mesh:1/index",
-        indexCount: 6,
-        instanceCount: 1,
-      },
-      {
         renderId: 2,
         pipelineKey: "pipeline:unlit",
         bindGroupKeys: [
@@ -43,6 +29,20 @@ describe("render pass draw list planning", () => {
         vertexBufferKeys: ["mesh:2/vertex"],
         vertexCount: 24,
         indexBufferKey: "mesh:2/index",
+        indexCount: 6,
+        instanceCount: 1,
+      },
+      {
+        renderId: 1,
+        pipelineKey: "pipeline:unlit",
+        bindGroupKeys: [
+          "bind-group:view",
+          "bind-group:transforms",
+          "bind-group:material:white",
+        ],
+        vertexBufferKeys: ["mesh:1/vertex"],
+        vertexCount: 24,
+        indexBufferKey: "mesh:1/index",
         indexCount: 6,
         instanceCount: 1,
       },
@@ -85,14 +85,14 @@ describe("render pass draw list planning", () => {
     ]);
   });
 
-  it("keeps draw list records in stable render id order", () => {
+  it("preserves draw command order", () => {
     const plan = planRenderPassDrawList({
       drawCommands: [drawCommand(3), drawCommand(1), drawCommand(2)],
       pipelines: [pipeline("pipeline:unlit")],
       bindGroups: bindGroups("material:white"),
     });
 
-    expect(plan.draws.map((draw) => draw.renderId)).toEqual([1, 2, 3]);
+    expect(plan.draws.map((draw) => draw.renderId)).toEqual([3, 1, 2]);
   });
 });
 

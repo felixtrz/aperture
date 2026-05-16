@@ -139,12 +139,16 @@ export interface MultiEntityExampleStatus extends ExampleStatusBase {
   };
   readonly camera?: {
     readonly projection: string;
+    readonly fovYRadians?: number;
     readonly orthographicHeight?: number;
   };
   readonly renderOrder?: {
     readonly back: number;
     readonly front: number;
     readonly expectedTopMaterial: string;
+  };
+  readonly depth?: {
+    readonly format: string;
   };
   readonly visibility?: {
     readonly authored: number;
@@ -156,17 +160,32 @@ export interface MultiEntityExampleStatus extends ExampleStatusBase {
   };
   readonly layerFiltering?: {
     readonly cameraLayerMask: number;
-    readonly renderableLayerMask: number;
+    readonly renderableLayerMask?: number;
+    readonly visibleLayerMask?: number;
+    readonly skippedLayerMask?: number;
+    readonly skippedMaterialKey?: string;
+    readonly skippedMaterialColor?: readonly [number, number, number, number];
+    readonly extracted?: number;
+    readonly skipped?: number;
     readonly diagnostics: readonly string[];
   };
   readonly assetStatus?: {
     readonly mesh?: string;
     readonly material?: string;
     readonly diagnostics: readonly string[];
+    readonly registryDiagnostics?: readonly {
+      readonly code: string;
+      readonly message: string;
+      readonly severity?: string;
+    }[];
   };
   readonly disabled?: {
     readonly authored: number;
+    readonly enabled?: number;
+    readonly disabled?: number;
     readonly extracted: number;
+    readonly disabledMaterialKey?: string;
+    readonly disabledMaterialColor?: readonly [number, number, number, number];
     readonly diagnostics: readonly string[];
   };
   readonly command?: {

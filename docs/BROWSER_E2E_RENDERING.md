@@ -132,16 +132,32 @@ Current checks:
   `?scenario=disabled-renderable`, authors a renderable with
   `Enabled.value = false`, and verifies extraction skips it before resource
   binding or draw submission.
+- Disabled visible peer smoke: loads the multi-entity page with
+  `?scenario=disabled-visible-peer`, authors one enabled renderable and one
+  disabled peer, then verifies only the enabled color renders.
 - Box primitive smoke: loads the multi-entity page with
   `?scenario=box-primitive`, renders a built-in `createBoxMeshAsset` mesh, and
   verifies a non-clear center pixel through readback.
+- Sphere primitive smoke: loads the multi-entity page with
+  `?scenario=sphere-primitive`, renders a built-in `createSphereMeshAsset`
+  mesh, and verifies a non-clear center pixel through readback.
+- Perspective FOV camera smoke: loads the multi-entity page with
+  `?scenario=perspective-fov-camera`, authors a perspective ECS camera with a
+  non-default vertical FOV, and verifies a primitive plane through readback.
 - Orthographic camera smoke: loads the multi-entity page with
   `?scenario=orthographic-camera`, authors an orthographic ECS camera, and
   verifies a primitive plane through readback.
+- Render layer filter smoke: loads the multi-entity page with
+  `?scenario=render-layer-filter`, authors one renderable matching the camera
+  layer and one mismatched peer, then verifies only the matching color renders.
 - Render-order overlap smoke: loads the multi-entity page with
   `?scenario=render-order-overlap`, authors two overlapping primitive planes
   with explicit `RenderOrder` values, and verifies the expected top color
   through readback.
+- Depth overlap smoke: loads the multi-entity page with
+  `?scenario=depth-overlap`, creates a depth attachment and depth-enabled
+  unlit pipeline, then verifies the nearer 3D renderable wins even when the
+  farther renderable is submitted later.
 - Unknown scenario smoke: loads the multi-entity page with an unsupported
   `scenario` query value and verifies the harness publishes an explicit
   zero-submission `unknown-scenario` diagnostic.

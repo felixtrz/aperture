@@ -18,7 +18,7 @@ describe("injected render frame draw-package JSON helpers", () => {
       descriptors: {
         valid: true,
         descriptorCount: 2,
-        renderIds: [7, 9],
+        renderIds: [9, 7],
         diagnostics: {
           total: 0,
           bySeverity: { info: 0, warning: 0, error: 0 },
@@ -27,7 +27,7 @@ describe("injected render frame draw-package JSON helpers", () => {
       },
       frame: {
         ready: true,
-        drawList: { drawCount: 2, renderIds: [7, 9] },
+        drawList: { drawCount: 2, renderIds: [9, 7] },
       },
     });
   });

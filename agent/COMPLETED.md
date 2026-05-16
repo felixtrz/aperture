@@ -2487,3 +2487,147 @@ Summary:
 - The scenario authors a ready renderable with `Enabled.value = false`, reports `render.disabled`, and submits no draws.
 - Added Playwright coverage for the disabled-renderable extraction payload and zero-submission counts.
 - Validation run: `npm run build`, `npm run check`, and full `npm run test:e2e -- --reporter=line` pass.
+
+## task-0228 — Preserve render sort order through draw planning
+
+Completed: 2026-05-16
+
+Summary:
+
+- Preserved render package order through draw command descriptors, draw-list records, resource resolution, and render pass command planning.
+- Updated unit and runner fixture tests so sort order can differ from render id order.
+- Validation run: focused Vitest coverage, `npm run build`, `npm run check`, and `npm run test:e2e -- test/e2e/render-order-overlap.spec.ts --reporter=line` pass.
+
+## task-0229 — Refactor browser diagnostic scenario status builders
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added shared extraction-failure and resource-binding-failure status builders for multi-entity zero-submission browser scenarios.
+- Kept existing JSON-safe payload shapes for missing resources, layer mismatch, asset states, unknown scenario, and disabled renderable cases.
+- Validation run: targeted diagnostic Playwright specs and `npm run check` pass.
+
+## task-0230 — Add perspective camera FOV browser readback coverage
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added `?scenario=perspective-fov-camera` with a non-default perspective `fovYRadians`.
+- Added Playwright readback coverage for the rendered primitive and camera status payload.
+- Validation run: targeted Playwright spec and `npm run check` pass.
+
+## task-0231 — Add mesh asset failed-diagnostic payload coverage
+
+Completed: 2026-05-16
+
+Summary:
+
+- Failed mesh/material browser scenarios now expose sanitized registry diagnostic code/message/severity fields.
+- Playwright asserts failed asset diagnostic details stay JSON-safe and extraction/submission counts remain unchanged.
+- Validation run: targeted asset-status Playwright specs and `npm run check` pass.
+
+## task-0233 — Add render layer positive/negative browser scenario
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added `?scenario=render-layer-filter` with one matching render layer and one skipped mismatched peer.
+- Status reports one extracted draw plus `render.layerMismatch`; readback verifies the visible color and absence of skipped color.
+- Validation run: targeted Playwright spec and `npm run check` pass.
+
+## task-0234 — Add disabled renderable with visible peer browser coverage
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added `?scenario=disabled-visible-peer` with one enabled renderable and one disabled peer.
+- Status reports one extracted draw plus `render.disabled`; readback verifies the enabled color and absence of disabled color.
+- Validation run: targeted Playwright spec and `npm run check` pass.
+
+## task-0235 — Add sphere primitive mesh builder
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added `createSphereMeshAsset` with interleaved position/normal/UV data, indexed triangle-list geometry, bounds, and material slot support.
+- Added unit tests for counts, representative vertices, UVs, bounds, clamping, and validation.
+- Validation run: primitive Vitest coverage and `npm run check` pass.
+
+## task-0236 — Add cylinder and cone primitive mesh builders
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added `createCylinderMeshAsset` and `createConeMeshAsset` via shared frustum generation with caps, bounds, and material slot support.
+- Added unit tests for representative vertices, index ranges, bounds, and validation.
+- Validation run: primitive Vitest coverage and `npm run check` pass.
+
+## task-0237 — Add capsule and torus primitive mesh builders
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added `createCapsuleMeshAsset` and `createTorusMeshAsset` with interleaved primitive vertex layout, indexed triangles, bounds, and material slot support.
+- Added unit tests for representative vertices, index ranges, bounds, and validation.
+- Validation run: primitive Vitest coverage and `npm run check` pass.
+
+## task-0238 — Add browser primitive readback coverage for curved primitives
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added `?scenario=sphere-primitive` rendering `createSphereMeshAsset` through the ECS-to-WebGPU path.
+- Playwright verifies a non-clear sphere pixel through GPU readback.
+- Validation run: targeted Playwright spec and `npm run check` pass.
+
+## task-0239 — Add depth-tested 3D overlap browser coverage
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added optional depth target support to the multi-entity browser render path.
+- Added `?scenario=depth-overlap`, with a depth-enabled unlit pipeline and a farther object submitted after the nearer object.
+- Playwright verifies the nearer object wins through depth testing.
+- Validation run: targeted Playwright spec and `npm run check` pass.
+
+## task-0240 — Add a narrow render-frame orchestration helper
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added `planRenderFrameFromSnapshot` to package snapshot application, resource binding, draw package planning, descriptor planning, draw-list/resource resolution, and command planning.
+- The helper returns JSON-safe counts/diagnostics plus the render pass command plan and is used by the multi-entity browser example.
+- Unit tests cover success and missing-resource diagnostics.
+- Validation run: helper Vitest coverage, targeted browser smoke, and `npm run check` pass.
+
+## task-0241 — Add initial texture-backed unlit material design task
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added `docs/UNLIT_TEXTURED_MATERIAL_PLAN.md`.
+- Documented the ECS/asset/render-world boundary, minimal WebGPU resource/bind-group/shader changes, diagnostics policy, and browser scenario for texture-backed unlit materials.
+- Added follow-up backlog tasks `task-0242` through `task-0246`.
+- Validation run: `npm run check` passes.
+
+## task-0242 — Add texture and sampler GPU resource helpers
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added renderer-owned texture and sampler GPU resource helper APIs.
+- Texture resources accept explicit descriptors plus optional byte uploads; sampler resources map `SamplerAsset` fields to WebGPU sampler descriptors.
+- Diagnostics stay JSON-safe and cover missing device support plus texture/sampler creation, upload, and view failures.
+- Validation run: targeted texture-resource Vitest coverage and `npm run check` pass.

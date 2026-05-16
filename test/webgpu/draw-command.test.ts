@@ -18,7 +18,7 @@ const BATCH: BatchCompatibilityKey = {
 };
 
 describe("draw command descriptor planning", () => {
-  it("creates indexed draw descriptors in stable render id order", () => {
+  it("creates indexed draw descriptors in package order", () => {
     const result = createDrawCommandDescriptors(
       [drawPackage(2, "mesh:a"), drawPackage(1, "mesh:a")],
       [meshResource("mesh:a", true)],
@@ -27,14 +27,14 @@ describe("draw command descriptor planning", () => {
     expect(result.diagnostics).toEqual([]);
     expect(result.descriptors).toMatchObject([
       {
-        renderId: 1,
+        renderId: 2,
         vertexBufferKeys: ["mesh:a/vertex"],
         vertexCount: 24,
         indexBufferKey: "mesh:a/index",
         indexCount: 6,
       },
       {
-        renderId: 2,
+        renderId: 1,
         vertexBufferKeys: ["mesh:a/vertex"],
         vertexCount: 24,
         indexBufferKey: "mesh:a/index",
@@ -60,7 +60,13 @@ describe("draw command descriptor planning", () => {
     expect(
       createDrawCommandDescriptors([drawPackage(1, "mesh:missing")], [])
         .diagnostics,
-    ).toMatchObject([{ code: "drawCommand.missingMeshResource" }]);
+    ).toMatchObject([
+      {
+        code: "drawCommand.missingMeshResource",
+        renderId: 1,
+        resourceKey: "mesh:missing",
+      },
+    ]);
   });
 });
 

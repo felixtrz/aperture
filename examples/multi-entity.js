@@ -25,9 +25,14 @@ const knownScenarios = new Set([
   "loading-material-asset",
   "failed-material-asset",
   "disabled-renderable",
+  "disabled-visible-peer",
   "box-primitive",
+  "sphere-primitive",
+  "perspective-fov-camera",
   "orthographic-camera",
+  "render-layer-filter",
   "render-order-overlap",
+  "depth-overlap",
 ]);
 const readbackSamplePoints = [
   { id: "left-upper", x: 0.31, y: 0.48 },
@@ -151,7 +156,7 @@ try {
                                     height: canvas.height,
                                   },
                                 )
-                              : scenario === "box-primitive"
+                              : scenario === "disabled-visible-peer"
                                 ? await renderMultiEntityScene(
                                     aperture,
                                     initialized,
@@ -160,12 +165,12 @@ try {
                                       height: canvas.height,
                                     },
                                     readbackUsage,
-                                    createBoxPrimitiveWorld(aperture, {
+                                    createDisabledVisiblePeerWorld(aperture, {
                                       width: canvas.width,
                                       height: canvas.height,
                                     }),
                                   )
-                                : scenario === "orthographic-camera"
+                                : scenario === "box-primitive"
                                   ? await renderMultiEntityScene(
                                       aperture,
                                       initialized,
@@ -174,12 +179,12 @@ try {
                                         height: canvas.height,
                                       },
                                       readbackUsage,
-                                      createOrthographicCameraWorld(aperture, {
+                                      createBoxPrimitiveWorld(aperture, {
                                         width: canvas.width,
                                         height: canvas.height,
                                       }),
                                     )
-                                  : scenario === "render-order-overlap"
+                                  : scenario === "sphere-primitive"
                                     ? await renderMultiEntityScene(
                                         aperture,
                                         initialized,
@@ -188,23 +193,105 @@ try {
                                           height: canvas.height,
                                         },
                                         readbackUsage,
-                                        createRenderOrderOverlapWorld(
+                                        createSpherePrimitiveWorld(aperture, {
+                                          width: canvas.width,
+                                          height: canvas.height,
+                                        }),
+                                      )
+                                    : scenario === "perspective-fov-camera"
+                                      ? await renderMultiEntityScene(
                                           aperture,
+                                          initialized,
                                           {
                                             width: canvas.width,
                                             height: canvas.height,
                                           },
-                                        ),
-                                      )
-                                    : await renderMultiEntityScene(
-                                        aperture,
-                                        initialized,
-                                        {
-                                          width: canvas.width,
-                                          height: canvas.height,
-                                        },
-                                        readbackUsage,
-                                      ),
+                                          readbackUsage,
+                                          createPerspectiveFovCameraWorld(
+                                            aperture,
+                                            {
+                                              width: canvas.width,
+                                              height: canvas.height,
+                                            },
+                                          ),
+                                        )
+                                      : scenario === "orthographic-camera"
+                                        ? await renderMultiEntityScene(
+                                            aperture,
+                                            initialized,
+                                            {
+                                              width: canvas.width,
+                                              height: canvas.height,
+                                            },
+                                            readbackUsage,
+                                            createOrthographicCameraWorld(
+                                              aperture,
+                                              {
+                                                width: canvas.width,
+                                                height: canvas.height,
+                                              },
+                                            ),
+                                          )
+                                        : scenario === "render-layer-filter"
+                                          ? await renderMultiEntityScene(
+                                              aperture,
+                                              initialized,
+                                              {
+                                                width: canvas.width,
+                                                height: canvas.height,
+                                              },
+                                              readbackUsage,
+                                              createRenderLayerFilterWorld(
+                                                aperture,
+                                                {
+                                                  width: canvas.width,
+                                                  height: canvas.height,
+                                                },
+                                              ),
+                                            )
+                                          : scenario === "render-order-overlap"
+                                            ? await renderMultiEntityScene(
+                                                aperture,
+                                                initialized,
+                                                {
+                                                  width: canvas.width,
+                                                  height: canvas.height,
+                                                },
+                                                readbackUsage,
+                                                createRenderOrderOverlapWorld(
+                                                  aperture,
+                                                  {
+                                                    width: canvas.width,
+                                                    height: canvas.height,
+                                                  },
+                                                ),
+                                              )
+                                            : scenario === "depth-overlap"
+                                              ? await renderMultiEntityScene(
+                                                  aperture,
+                                                  initialized,
+                                                  {
+                                                    width: canvas.width,
+                                                    height: canvas.height,
+                                                  },
+                                                  readbackUsage,
+                                                  createDepthOverlapWorld(
+                                                    aperture,
+                                                    {
+                                                      width: canvas.width,
+                                                      height: canvas.height,
+                                                    },
+                                                  ),
+                                                )
+                                              : await renderMultiEntityScene(
+                                                  aperture,
+                                                  initialized,
+                                                  {
+                                                    width: canvas.width,
+                                                    height: canvas.height,
+                                                  },
+                                                  readbackUsage,
+                                                ),
       );
     }
   }
@@ -254,6 +341,9 @@ async function renderMultiEntityScene(
   const pipelineResource = await aperture.createUnlitRenderPipelineResource({
     device: initialized.device,
     colorFormat: initialized.format,
+    ...(scene.depthFormat === undefined
+      ? {}
+      : { depthFormat: scene.depthFormat }),
     batchKey: firstDraw.batchKey,
   });
 
@@ -313,30 +403,6 @@ async function renderMultiEntityScene(
       frameResources.resources.materials[index]?.resourceKey ?? null,
     ]),
   );
-  const renderWorld = new aperture.RenderWorld();
-  const apply = renderWorld.applySnapshot(snapshot);
-  const bindingPlan = aperture.planInjectedRenderFrameSnapshotResourceBindings({
-    snapshot,
-    resolveMeshResourceKey: (draw) =>
-      aperture.assetHandleKey(draw.mesh) ===
-      aperture.assetHandleKey(scene.meshHandle)
-        ? meshResourceKey
-        : null,
-    resolveMaterialResourceKey: (draw) =>
-      materialResourceKeys.get(aperture.assetHandleKey(draw.material)) ?? null,
-  });
-  const bindingResults = bindingPlan.bindings.map((binding) =>
-    renderWorld.updateResourceBindings(binding.renderId, binding.update),
-  );
-  const readiness = renderWorld.createDrawReadinessReport();
-  const packages = aperture.planRenderWorldDrawPackages(
-    readiness,
-    packedTransforms,
-  );
-  const drawCommands = aperture.createDrawCommandDescriptors(
-    packages.packages,
-    [frameResources.resources.mesh],
-  );
   const pipelineResult = {
     ok: true,
     status: "miss",
@@ -344,27 +410,35 @@ async function renderMultiEntityScene(
     pipeline,
     diagnostics: [],
   };
-  const drawList = aperture.planRenderPassDrawList({
-    drawCommands: drawCommands.descriptors,
-    pipelines: [pipelineResult],
-    bindGroups: frameResources.resources.bindGroups,
-  });
-  const resources = aperture.resolveRenderPassResources({
-    drawList: drawList.draws,
-    pipelines: [pipelineResult],
-    bindGroups: frameResources.resources.bindGroups,
+  const renderWorld = new aperture.RenderWorld();
+  const framePlan = aperture.planRenderFrameFromSnapshot({
+    snapshot,
+    renderWorld,
+    transforms: packedTransforms,
+    resolveMeshResourceKey: (draw) =>
+      aperture.assetHandleKey(draw.mesh) ===
+      aperture.assetHandleKey(scene.meshHandle)
+        ? meshResourceKey
+        : null,
+    resolveMaterialResourceKey: (draw) =>
+      materialResourceKeys.get(aperture.assetHandleKey(draw.material)) ?? null,
     meshResources: [frameResources.resources.mesh],
+    pipelines: [pipelineResult],
+    bindGroups: frameResources.resources.bindGroups,
   });
-  const commandPlan = aperture.planRenderPassCommands({
-    draws: resources.draws,
-  });
+  const {
+    apply,
+    bindingPlan,
+    bindingResults,
+    readiness,
+    packages,
+    drawCommands,
+    drawList,
+    resources,
+    commandPlan,
+  } = framePlan;
 
-  if (
-    !drawList.valid ||
-    !resources.valid ||
-    !commandPlan.valid ||
-    commandPlan.drawCount !== expectedDrawCount
-  ) {
+  if (!framePlan.summary.ready || commandPlan.drawCount !== expectedDrawCount) {
     return {
       ...failure(
         "draw-plan",
@@ -372,13 +446,7 @@ async function renderMultiEntityScene(
         `The ECS multi-entity draw plan did not produce ${expectedDrawCount} drawable command(s).`,
       ),
       extraction: snapshotCounts(snapshot),
-      diagnostics: [
-        ...packages.diagnostics,
-        ...drawCommands.diagnostics,
-        ...drawList.diagnostics,
-        ...resources.diagnostics,
-        ...commandPlan.diagnostics,
-      ],
+      diagnostics: framePlan.summary.diagnostics,
     };
   }
 
@@ -389,6 +457,7 @@ async function renderMultiEntityScene(
     canvasSize,
     readbackUsage,
     scene.readbackSamplePoints ?? readbackSamplePoints,
+    { depthFormat: scene.depthFormat },
   );
 
   if (!submitted.ok) {
@@ -435,6 +504,15 @@ async function renderMultiEntityScene(
     ...(scene.renderOrder === undefined
       ? {}
       : { renderOrder: scene.renderOrder }),
+    ...(scene.depthFormat === undefined
+      ? {}
+      : { depth: { format: scene.depthFormat } }),
+    ...(scene.layerFiltering === undefined
+      ? {}
+      : { layerFiltering: layerFilteringStatus(scene, snapshot) }),
+    ...(scene.disabled === undefined
+      ? {}
+      : { disabled: disabledStatus(scene, snapshot) }),
     ...(scene.authoredRenderableCount === undefined
       ? {}
       : { visibility: visibilityStatus(scene, snapshot) }),
@@ -472,66 +550,21 @@ function renderDisabledRenderableScene(aperture, initialized, canvasSize) {
   const snapshot = aperture.extractRenderSnapshot(scene.world, scene.assets, {
     frame: 1,
   });
-  const renderWorld = new aperture.RenderWorld();
-  const apply = renderWorld.applySnapshot(snapshot);
-  const readiness = renderWorld.createDrawReadinessReport();
 
-  return {
-    ...baseStatus,
-    ok: false,
-    phase: "extract",
+  return extractionFailureStatus(aperture, initialized, {
+    snapshot,
     reason: "disabled-renderable",
     message:
       "The ECS renderable is intentionally disabled with Enabled.value=false; no draw submission was attempted.",
-    apertureVersion: aperture.APERTURE_VERSION,
-    renderingBackend: aperture.APERTURE_IDENTITY.renderingBackend,
-    format: initialized.format,
-    clearColor,
-    extraction: snapshotCounts(snapshot),
-    disabled: {
-      authored: 1,
-      extracted: snapshot.meshDraws.length,
-      diagnostics: diagnosticCodes(snapshot.diagnostics),
+    missing: "none",
+    extra: {
+      disabled: {
+        authored: 1,
+        extracted: snapshot.meshDraws.length,
+        diagnostics: diagnosticCodes(snapshot.diagnostics),
+      },
     },
-    resources: {
-      materials: 0,
-      bindGroups: 0,
-      missing: "none",
-    },
-    binding: {
-      planned: 0,
-      applied: 0,
-      ready: 0,
-      diagnostics: 0,
-      diagnosticCodes: [],
-    },
-    renderWorld: {
-      active: apply.active,
-      ready: readiness.ready.length,
-      blocked: readiness.blocked.length,
-      blockedReasons: [],
-      diagnostics: diagnosticCodes(readiness.diagnostics),
-    },
-    draw: {
-      packages: 0,
-      descriptors: 0,
-      drawList: 0,
-      resolved: 0,
-    },
-    command: {
-      commands: 0,
-      drawCount: 0,
-      indexedDrawCount: 0,
-      nonIndexedDrawCount: 0,
-    },
-    submission: {
-      commandBuffers: 0,
-      commands: 0,
-      drawCalls: 0,
-      indexedDrawCalls: 0,
-    },
-    diagnostics: jsonSafeDiagnostics(snapshot.diagnostics),
-  };
+  });
 }
 
 function renderMaterialAssetStatusScene(
@@ -548,64 +581,23 @@ function renderMaterialAssetStatusScene(
   const snapshot = aperture.extractRenderSnapshot(scene.world, scene.assets, {
     frame: 1,
   });
-  const renderWorld = new aperture.RenderWorld();
-  const apply = renderWorld.applySnapshot(snapshot);
-  const readiness = renderWorld.createDrawReadinessReport();
 
-  return {
-    ...baseStatus,
-    ok: false,
-    phase: "extract",
+  return extractionFailureStatus(aperture, initialized, {
+    snapshot,
     reason: `material-asset-${assetStatus}`,
     message: `The ECS renderable intentionally references a ${assetStatus} material asset; no draw submission was attempted.`,
-    apertureVersion: aperture.APERTURE_VERSION,
-    renderingBackend: aperture.APERTURE_IDENTITY.renderingBackend,
-    format: initialized.format,
-    clearColor,
-    extraction: snapshotCounts(snapshot),
-    assetStatus: {
-      material: assetStatus,
-      diagnostics: diagnosticCodes(snapshot.diagnostics),
+    missing: "material",
+    extra: {
+      assetStatus: {
+        material: assetStatus,
+        diagnostics: diagnosticCodes(snapshot.diagnostics),
+        registryDiagnostics: assetRegistryDiagnostics(
+          scene.assets,
+          scene.materialHandle,
+        ),
+      },
     },
-    resources: {
-      materials: 0,
-      bindGroups: 0,
-      missing: "material",
-    },
-    binding: {
-      planned: 0,
-      applied: 0,
-      ready: 0,
-      diagnostics: 0,
-      diagnosticCodes: [],
-    },
-    renderWorld: {
-      active: apply.active,
-      ready: readiness.ready.length,
-      blocked: readiness.blocked.length,
-      blockedReasons: [],
-      diagnostics: diagnosticCodes(readiness.diagnostics),
-    },
-    draw: {
-      packages: 0,
-      descriptors: 0,
-      drawList: 0,
-      resolved: 0,
-    },
-    command: {
-      commands: 0,
-      drawCount: 0,
-      indexedDrawCount: 0,
-      nonIndexedDrawCount: 0,
-    },
-    submission: {
-      commandBuffers: 0,
-      commands: 0,
-      drawCalls: 0,
-      indexedDrawCalls: 0,
-    },
-    diagnostics: jsonSafeDiagnostics(snapshot.diagnostics),
-  };
+  });
 }
 
 function renderMeshAssetStatusScene(
@@ -618,64 +610,23 @@ function renderMeshAssetStatusScene(
   const snapshot = aperture.extractRenderSnapshot(scene.world, scene.assets, {
     frame: 1,
   });
-  const renderWorld = new aperture.RenderWorld();
-  const apply = renderWorld.applySnapshot(snapshot);
-  const readiness = renderWorld.createDrawReadinessReport();
 
-  return {
-    ...baseStatus,
-    ok: false,
-    phase: "extract",
+  return extractionFailureStatus(aperture, initialized, {
+    snapshot,
     reason: `mesh-asset-${assetStatus}`,
     message: `The ECS renderable intentionally references a ${assetStatus} mesh asset; no draw submission was attempted.`,
-    apertureVersion: aperture.APERTURE_VERSION,
-    renderingBackend: aperture.APERTURE_IDENTITY.renderingBackend,
-    format: initialized.format,
-    clearColor,
-    extraction: snapshotCounts(snapshot),
-    assetStatus: {
-      mesh: assetStatus,
-      diagnostics: diagnosticCodes(snapshot.diagnostics),
+    missing: "mesh",
+    extra: {
+      assetStatus: {
+        mesh: assetStatus,
+        diagnostics: diagnosticCodes(snapshot.diagnostics),
+        registryDiagnostics: assetRegistryDiagnostics(
+          scene.assets,
+          scene.meshHandle,
+        ),
+      },
     },
-    resources: {
-      materials: 0,
-      bindGroups: 0,
-      missing: "mesh",
-    },
-    binding: {
-      planned: 0,
-      applied: 0,
-      ready: 0,
-      diagnostics: 0,
-      diagnosticCodes: [],
-    },
-    renderWorld: {
-      active: apply.active,
-      ready: readiness.ready.length,
-      blocked: readiness.blocked.length,
-      blockedReasons: [],
-      diagnostics: diagnosticCodes(readiness.diagnostics),
-    },
-    draw: {
-      packages: 0,
-      descriptors: 0,
-      drawList: 0,
-      resolved: 0,
-    },
-    command: {
-      commands: 0,
-      drawCount: 0,
-      indexedDrawCount: 0,
-      nonIndexedDrawCount: 0,
-    },
-    submission: {
-      commandBuffers: 0,
-      commands: 0,
-      drawCalls: 0,
-      indexedDrawCalls: 0,
-    },
-    diagnostics: jsonSafeDiagnostics(snapshot.diagnostics),
-  };
+  });
 }
 
 function unknownScenarioStatus(aperture, initialized) {
@@ -714,61 +665,14 @@ function renderMissingMaterialAssetScene(aperture, initialized, canvasSize) {
   const snapshot = aperture.extractRenderSnapshot(scene.world, scene.assets, {
     frame: 1,
   });
-  const renderWorld = new aperture.RenderWorld();
-  const apply = renderWorld.applySnapshot(snapshot);
-  const readiness = renderWorld.createDrawReadinessReport();
 
-  return {
-    ...baseStatus,
-    ok: false,
-    phase: "extract",
+  return extractionFailureStatus(aperture, initialized, {
+    snapshot,
     reason: "missing-material-asset",
     message:
       "The ECS renderable intentionally references an unavailable material asset; no draw submission was attempted.",
-    apertureVersion: aperture.APERTURE_VERSION,
-    renderingBackend: aperture.APERTURE_IDENTITY.renderingBackend,
-    format: initialized.format,
-    clearColor,
-    extraction: snapshotCounts(snapshot),
-    resources: {
-      materials: 0,
-      bindGroups: 0,
-      missing: "material",
-    },
-    binding: {
-      planned: 0,
-      applied: 0,
-      ready: 0,
-      diagnostics: 0,
-      diagnosticCodes: [],
-    },
-    renderWorld: {
-      active: apply.active,
-      ready: readiness.ready.length,
-      blocked: readiness.blocked.length,
-      blockedReasons: [],
-      diagnostics: diagnosticCodes(readiness.diagnostics),
-    },
-    draw: {
-      packages: 0,
-      descriptors: 0,
-      drawList: 0,
-      resolved: 0,
-    },
-    command: {
-      commands: 0,
-      drawCount: 0,
-      indexedDrawCount: 0,
-      nonIndexedDrawCount: 0,
-    },
-    submission: {
-      commandBuffers: 0,
-      commands: 0,
-      drawCalls: 0,
-      indexedDrawCalls: 0,
-    },
-    diagnostics: jsonSafeDiagnostics(snapshot.diagnostics),
-  };
+    missing: "material",
+  });
 }
 
 function renderMissingMeshResourceScene(aperture, initialized, canvasSize) {
@@ -793,57 +697,18 @@ function renderMissingMeshResourceScene(aperture, initialized, canvasSize) {
   const readiness = renderWorld.createDrawReadinessReport();
   const diagnostics = [...bindingPlan.diagnostics, ...readiness.diagnostics];
 
-  return {
-    ...baseStatus,
-    ok: false,
-    phase: "resource-bindings",
+  return resourceBindingFailureStatus(aperture, initialized, {
+    snapshot,
+    apply,
+    bindingPlan,
+    bindingResults,
+    readiness,
+    diagnostics,
     reason: "missing-mesh-resource",
     message:
       "A renderer-side mesh resource binding was intentionally withheld; no draw submission was attempted.",
-    apertureVersion: aperture.APERTURE_VERSION,
-    renderingBackend: aperture.APERTURE_IDENTITY.renderingBackend,
-    format: initialized.format,
-    clearColor,
-    extraction: snapshotCounts(snapshot),
-    resources: {
-      materials: 0,
-      bindGroups: 0,
-      missing: "mesh",
-    },
-    binding: {
-      planned: bindingPlan.bindings.length,
-      applied: bindingResults.filter((result) => result.ok).length,
-      ready: readiness.ready.length,
-      diagnostics: bindingPlan.diagnostics.length,
-      diagnosticCodes: diagnosticCodes(bindingPlan.diagnostics),
-    },
-    renderWorld: {
-      active: apply.active,
-      ready: readiness.ready.length,
-      blocked: readiness.blocked.length,
-      blockedReasons: readiness.blocked.flatMap((blocked) => blocked.missing),
-      diagnostics: diagnosticCodes(readiness.diagnostics),
-    },
-    draw: {
-      packages: 0,
-      descriptors: 0,
-      drawList: 0,
-      resolved: 0,
-    },
-    command: {
-      commands: 0,
-      drawCount: 0,
-      indexedDrawCount: 0,
-      nonIndexedDrawCount: 0,
-    },
-    submission: {
-      commandBuffers: 0,
-      commands: 0,
-      drawCalls: 0,
-      indexedDrawCalls: 0,
-    },
-    diagnostics: jsonSafeDiagnostics(diagnostics),
-  };
+    missing: "mesh",
+  });
 }
 
 function renderMissingMeshAssetScene(aperture, initialized, canvasSize) {
@@ -851,61 +716,14 @@ function renderMissingMeshAssetScene(aperture, initialized, canvasSize) {
   const snapshot = aperture.extractRenderSnapshot(scene.world, scene.assets, {
     frame: 1,
   });
-  const renderWorld = new aperture.RenderWorld();
-  const apply = renderWorld.applySnapshot(snapshot);
-  const readiness = renderWorld.createDrawReadinessReport();
 
-  return {
-    ...baseStatus,
-    ok: false,
-    phase: "extract",
+  return extractionFailureStatus(aperture, initialized, {
+    snapshot,
     reason: "missing-mesh-asset",
     message:
       "The ECS renderable intentionally references an unavailable mesh asset; no draw submission was attempted.",
-    apertureVersion: aperture.APERTURE_VERSION,
-    renderingBackend: aperture.APERTURE_IDENTITY.renderingBackend,
-    format: initialized.format,
-    clearColor,
-    extraction: snapshotCounts(snapshot),
-    resources: {
-      materials: 0,
-      bindGroups: 0,
-      missing: "mesh",
-    },
-    binding: {
-      planned: 0,
-      applied: 0,
-      ready: 0,
-      diagnostics: 0,
-      diagnosticCodes: [],
-    },
-    renderWorld: {
-      active: apply.active,
-      ready: readiness.ready.length,
-      blocked: readiness.blocked.length,
-      blockedReasons: [],
-      diagnostics: diagnosticCodes(readiness.diagnostics),
-    },
-    draw: {
-      packages: 0,
-      descriptors: 0,
-      drawList: 0,
-      resolved: 0,
-    },
-    command: {
-      commands: 0,
-      drawCount: 0,
-      indexedDrawCount: 0,
-      nonIndexedDrawCount: 0,
-    },
-    submission: {
-      commandBuffers: 0,
-      commands: 0,
-      drawCalls: 0,
-      indexedDrawCalls: 0,
-    },
-    diagnostics: jsonSafeDiagnostics(snapshot.diagnostics),
-  };
+    missing: "mesh",
+  });
 }
 
 function renderLayerMismatchScene(aperture, initialized, canvasSize) {
@@ -913,66 +731,21 @@ function renderLayerMismatchScene(aperture, initialized, canvasSize) {
   const snapshot = aperture.extractRenderSnapshot(scene.world, scene.assets, {
     frame: 1,
   });
-  const renderWorld = new aperture.RenderWorld();
-  const apply = renderWorld.applySnapshot(snapshot);
-  const readiness = renderWorld.createDrawReadinessReport();
 
-  return {
-    ...baseStatus,
-    ok: false,
-    phase: "extract",
+  return extractionFailureStatus(aperture, initialized, {
+    snapshot,
     reason: "layer-mismatch",
     message:
       "The renderable was intentionally authored on a layer outside the camera mask; no draw submission was attempted.",
-    apertureVersion: aperture.APERTURE_VERSION,
-    renderingBackend: aperture.APERTURE_IDENTITY.renderingBackend,
-    format: initialized.format,
-    clearColor,
-    extraction: snapshotCounts(snapshot),
-    layerFiltering: {
-      cameraLayerMask: scene.cameraLayerMask,
-      renderableLayerMask: scene.renderableLayerMask,
-      diagnostics: diagnosticCodes(snapshot.diagnostics),
+    missing: "none",
+    extra: {
+      layerFiltering: {
+        cameraLayerMask: scene.cameraLayerMask,
+        renderableLayerMask: scene.renderableLayerMask,
+        diagnostics: diagnosticCodes(snapshot.diagnostics),
+      },
     },
-    resources: {
-      materials: 0,
-      bindGroups: 0,
-      missing: "none",
-    },
-    binding: {
-      planned: 0,
-      applied: 0,
-      ready: 0,
-      diagnostics: 0,
-      diagnosticCodes: [],
-    },
-    renderWorld: {
-      active: apply.active,
-      ready: readiness.ready.length,
-      blocked: readiness.blocked.length,
-      blockedReasons: [],
-      diagnostics: diagnosticCodes(readiness.diagnostics),
-    },
-    draw: {
-      packages: 0,
-      descriptors: 0,
-      drawList: 0,
-      resolved: 0,
-    },
-    command: {
-      commands: 0,
-      drawCount: 0,
-      indexedDrawCount: 0,
-      nonIndexedDrawCount: 0,
-    },
-    submission: {
-      commandBuffers: 0,
-      commands: 0,
-      drawCalls: 0,
-      indexedDrawCalls: 0,
-    },
-    diagnostics: jsonSafeDiagnostics(snapshot.diagnostics),
-  };
+  });
 }
 
 function renderMissingResourceScene(aperture, initialized, canvasSize) {
@@ -997,23 +770,74 @@ function renderMissingResourceScene(aperture, initialized, canvasSize) {
   const readiness = renderWorld.createDrawReadinessReport();
   const diagnostics = [...bindingPlan.diagnostics, ...readiness.diagnostics];
 
+  return resourceBindingFailureStatus(aperture, initialized, {
+    snapshot,
+    apply,
+    bindingPlan,
+    bindingResults,
+    readiness,
+    diagnostics,
+    reason: "missing-material-resource",
+    message:
+      "A renderer-side material resource binding was intentionally withheld; no draw submission was attempted.",
+    missing: "material",
+  });
+}
+
+function extractionFailureStatus(
+  aperture,
+  initialized,
+  { snapshot, reason, message, missing, extra = {} },
+) {
+  const renderWorld = new aperture.RenderWorld();
+  const apply = renderWorld.applySnapshot(snapshot);
+  const readiness = renderWorld.createDrawReadinessReport();
+
+  return {
+    ...baseStatus,
+    ok: false,
+    phase: "extract",
+    reason,
+    message,
+    ...runtimeStatus(aperture, initialized),
+    clearColor,
+    extraction: snapshotCounts(snapshot),
+    ...extra,
+    resources: zeroResourcesStatus(missing),
+    binding: zeroBindingStatus(),
+    renderWorld: renderWorldStatus(apply, readiness, []),
+    draw: zeroDrawStatus(),
+    command: zeroCommandStatus(),
+    submission: zeroSubmissionStatus(),
+    diagnostics: jsonSafeDiagnostics(snapshot.diagnostics),
+  };
+}
+
+function resourceBindingFailureStatus(
+  aperture,
+  initialized,
+  {
+    snapshot,
+    apply,
+    bindingPlan,
+    bindingResults,
+    readiness,
+    diagnostics,
+    reason,
+    message,
+    missing,
+  },
+) {
   return {
     ...baseStatus,
     ok: false,
     phase: "resource-bindings",
-    reason: "missing-material-resource",
-    message:
-      "A renderer-side material resource binding was intentionally withheld; no draw submission was attempted.",
-    apertureVersion: aperture.APERTURE_VERSION,
-    renderingBackend: aperture.APERTURE_IDENTITY.renderingBackend,
-    format: initialized.format,
+    reason,
+    message,
+    ...runtimeStatus(aperture, initialized),
     clearColor,
     extraction: snapshotCounts(snapshot),
-    resources: {
-      materials: 0,
-      bindGroups: 0,
-      missing: "material",
-    },
+    resources: zeroResourcesStatus(missing),
     binding: {
       planned: bindingPlan.bindings.length,
       applied: bindingResults.filter((result) => result.ok).length,
@@ -1021,32 +845,92 @@ function renderMissingResourceScene(aperture, initialized, canvasSize) {
       diagnostics: bindingPlan.diagnostics.length,
       diagnosticCodes: diagnosticCodes(bindingPlan.diagnostics),
     },
-    renderWorld: {
-      active: apply.active,
-      ready: readiness.ready.length,
-      blocked: readiness.blocked.length,
-      blockedReasons: readiness.blocked.flatMap((blocked) => blocked.missing),
-      diagnostics: diagnosticCodes(readiness.diagnostics),
-    },
-    draw: {
-      packages: 0,
-      descriptors: 0,
-      drawList: 0,
-      resolved: 0,
-    },
-    command: {
-      commands: 0,
-      drawCount: 0,
-      indexedDrawCount: 0,
-      nonIndexedDrawCount: 0,
-    },
-    submission: {
-      commandBuffers: 0,
-      commands: 0,
-      drawCalls: 0,
-      indexedDrawCalls: 0,
-    },
+    renderWorld: renderWorldStatus(
+      apply,
+      readiness,
+      readiness.blocked.flatMap((blocked) => blocked.missing),
+    ),
+    draw: zeroDrawStatus(),
+    command: zeroCommandStatus(),
+    submission: zeroSubmissionStatus(),
     diagnostics: jsonSafeDiagnostics(diagnostics),
+  };
+}
+
+function runtimeStatus(aperture, initialized) {
+  return {
+    apertureVersion: aperture.APERTURE_VERSION,
+    renderingBackend: aperture.APERTURE_IDENTITY.renderingBackend,
+    format: initialized.format,
+  };
+}
+
+function assetRegistryDiagnostics(assets, handle) {
+  if (handle === undefined) {
+    return [];
+  }
+
+  return assets.collectDiagnostics(handle).map((diagnostic) => ({
+    code: diagnostic.code,
+    message: diagnostic.message,
+    ...(typeof diagnostic.severity === "string"
+      ? { severity: diagnostic.severity }
+      : {}),
+  }));
+}
+
+function zeroResourcesStatus(missing) {
+  return {
+    materials: 0,
+    bindGroups: 0,
+    missing,
+  };
+}
+
+function zeroBindingStatus() {
+  return {
+    planned: 0,
+    applied: 0,
+    ready: 0,
+    diagnostics: 0,
+    diagnosticCodes: [],
+  };
+}
+
+function renderWorldStatus(apply, readiness, blockedReasons) {
+  return {
+    active: apply.active,
+    ready: readiness.ready.length,
+    blocked: readiness.blocked.length,
+    blockedReasons,
+    diagnostics: diagnosticCodes(readiness.diagnostics),
+  };
+}
+
+function zeroDrawStatus() {
+  return {
+    packages: 0,
+    descriptors: 0,
+    drawList: 0,
+    resolved: 0,
+  };
+}
+
+function zeroCommandStatus() {
+  return {
+    commands: 0,
+    drawCount: 0,
+    indexedDrawCount: 0,
+    nonIndexedDrawCount: 0,
+  };
+}
+
+function zeroSubmissionStatus() {
+  return {
+    commandBuffers: 0,
+    commands: 0,
+    drawCalls: 0,
+    indexedDrawCalls: 0,
   };
 }
 
@@ -1057,6 +941,7 @@ async function submitMultiEntityFrame(
   canvasSize,
   readbackUsage,
   samples,
+  options = {},
 ) {
   const colorTarget = createCurrentTextureColorTargetWithTexture({
     context: initialized.context,
@@ -1071,8 +956,15 @@ async function submitMultiEntityFrame(
     );
   }
 
+  const depthTarget =
+    options.depthFormat === undefined
+      ? null
+      : createDepthTarget(initialized.device, canvasSize, options.depthFormat);
   const attachments = aperture.createRenderPassAttachmentPlan({
     colorTargets: [colorTarget.target],
+    ...(depthTarget === null
+      ? {}
+      : { depthTarget: { view: depthTarget.view, depthClearValue: 1 } }),
   });
 
   if (!attachments.valid || attachments.plan === null) {
@@ -1176,6 +1068,21 @@ async function submitMultiEntityFrame(
   };
 }
 
+function createDepthTarget(device, canvasSize, format) {
+  if (typeof device.createTexture !== "function") {
+    return null;
+  }
+
+  const usage = globalThis.GPUTextureUsage?.RENDER_ATTACHMENT ?? 0x10;
+  const texture = device.createTexture({
+    size: [canvasSize.width, canvasSize.height, 1],
+    format,
+    usage,
+  });
+
+  return { texture, view: texture.createView() };
+}
+
 function createDisabledRenderableWorld(aperture, canvasSize) {
   const world = aperture.createWorld({ entityCapacity: 4 });
   const assets = new aperture.AssetRegistry();
@@ -1223,6 +1130,82 @@ function createDisabledRenderableWorld(aperture, canvasSize) {
   return { world, assets };
 }
 
+function createDisabledVisiblePeerWorld(aperture, canvasSize) {
+  const world = aperture.createWorld({ entityCapacity: 6 });
+  const assets = new aperture.AssetRegistry();
+  const meshHandle = aperture.createMeshHandle("disabled-visible-peer-plane");
+  const visibleHandle = aperture.createMaterialHandle("enabled-peer-green");
+  const disabledHandle = aperture.createMaterialHandle("disabled-peer-red");
+  const mesh = aperture.createPlaneMeshAsset({
+    label: "DisabledVisiblePeerPlane",
+    width: 1.05,
+    height: 1.05,
+  });
+  const visibleMaterial = aperture.createUnlitMaterialAsset({
+    label: "EnabledPeerGreenMaterial",
+    baseColorFactor: new Float32Array([0.18, 0.78, 1, 1]),
+  });
+  const disabledMaterial = aperture.createUnlitMaterialAsset({
+    label: "DisabledPeerRedMaterial",
+    baseColorFactor: new Float32Array([1, 0.08, 0.08, 1]),
+  });
+  const disabledMaterialColor = [1, 0.08, 0.08, 1];
+
+  aperture.registerTransformComponents(world);
+  aperture.registerMetadataComponents(world);
+  aperture.registerRenderAuthoringComponents(world);
+  assets.register(meshHandle);
+  assets.register(visibleHandle);
+  assets.register(disabledHandle);
+  assets.markReady(meshHandle, mesh);
+  assets.markReady(visibleHandle, visibleMaterial);
+  assets.markReady(disabledHandle, disabledMaterial);
+
+  const camera = world.createEntity();
+  const cameraTransform = aperture.createRootTransform({
+    translation: [0, 0, 2.5],
+  });
+
+  camera.addComponent(aperture.WorldTransform, cameraTransform.world);
+  camera.addComponent(
+    aperture.Camera,
+    aperture.createCamera({
+      aspect: canvasSize.width / canvasSize.height,
+      near: 0.1,
+      far: 100,
+      clearColor: [clearColor.r, clearColor.g, clearColor.b, clearColor.a],
+      layerMask: 1,
+    }),
+  );
+
+  addPrimitiveEntity(aperture, world, meshHandle, visibleHandle, [0, 0, 0]);
+  addPrimitiveEntity(aperture, world, meshHandle, disabledHandle, [0, 0, 0], {
+    enabled: false,
+    renderOrder: 10,
+  });
+
+  return {
+    world,
+    assets,
+    meshHandle,
+    mesh,
+    expectedDrawCount: 1,
+    readbackSamplePoints: boxReadbackSamplePoints,
+    geometry: {
+      primitive: "plane",
+      source: "aperture.createPlaneMeshAsset",
+    },
+    disabled: {
+      authored: 2,
+      enabled: 1,
+      disabled: 1,
+      disabledMaterialKey: aperture.assetHandleKey(disabledHandle),
+      disabledMaterialColor,
+    },
+    materials: [{ handle: visibleHandle, asset: visibleMaterial }],
+  };
+}
+
 function createMaterialAssetStatusWorld(aperture, canvasSize, assetStatus) {
   const world = aperture.createWorld({ entityCapacity: 4 });
   const assets = new aperture.AssetRegistry();
@@ -1248,6 +1231,7 @@ function createMaterialAssetStatusWorld(aperture, canvasSize, assetStatus) {
       {
         code: "browser.fixture.failedMaterial",
         message: "Intentional browser fixture failed material asset.",
+        severity: "error",
       },
     ]);
   }
@@ -1271,7 +1255,7 @@ function createMaterialAssetStatusWorld(aperture, canvasSize, assetStatus) {
 
   addPrimitiveEntity(aperture, world, meshHandle, materialHandle, [0, 0, 0]);
 
-  return { world, assets };
+  return { world, assets, materialHandle };
 }
 
 function createMeshAssetStatusWorld(aperture, canvasSize, assetStatus) {
@@ -1297,6 +1281,7 @@ function createMeshAssetStatusWorld(aperture, canvasSize, assetStatus) {
       {
         code: "browser.fixture.failedMesh",
         message: "Intentional browser fixture failed mesh asset.",
+        severity: "error",
       },
     ]);
   }
@@ -1322,7 +1307,7 @@ function createMeshAssetStatusWorld(aperture, canvasSize, assetStatus) {
 
   addPrimitiveEntity(aperture, world, meshHandle, materialHandle, [0, 0, 0]);
 
-  return { world, assets };
+  return { world, assets, meshHandle };
 }
 
 function createMissingMaterialAssetWorld(aperture, canvasSize) {
@@ -1559,6 +1544,128 @@ function createBoxPrimitiveWorld(aperture, canvasSize) {
   };
 }
 
+function createSpherePrimitiveWorld(aperture, canvasSize) {
+  const world = aperture.createWorld({ entityCapacity: 4 });
+  const assets = new aperture.AssetRegistry();
+  const meshHandle = aperture.createMeshHandle("sphere-primitive");
+  const materialHandle = aperture.createMaterialHandle("sphere-unlit");
+  const mesh = aperture.createSphereMeshAsset({
+    label: "SpherePrimitive",
+    radius: 0.7,
+    widthSegments: 16,
+    heightSegments: 8,
+  });
+  const material = aperture.createUnlitMaterialAsset({
+    label: "SphereUnlitMaterial",
+    baseColorFactor: new Float32Array([0.86, 0.28, 0.95, 1]),
+  });
+
+  aperture.registerTransformComponents(world);
+  aperture.registerMetadataComponents(world);
+  aperture.registerRenderAuthoringComponents(world);
+  assets.register(meshHandle);
+  assets.register(materialHandle);
+  assets.markReady(meshHandle, mesh);
+  assets.markReady(materialHandle, material);
+
+  const camera = world.createEntity();
+  const cameraTransform = aperture.createRootTransform({
+    translation: [0, 0, 3],
+  });
+
+  camera.addComponent(aperture.WorldTransform, cameraTransform.world);
+  camera.addComponent(
+    aperture.Camera,
+    aperture.createCamera({
+      aspect: canvasSize.width / canvasSize.height,
+      near: 0.1,
+      far: 100,
+      clearColor: [clearColor.r, clearColor.g, clearColor.b, clearColor.a],
+      layerMask: 1,
+    }),
+  );
+
+  addPrimitiveEntity(aperture, world, meshHandle, materialHandle, [0, 0, 0]);
+
+  return {
+    world,
+    assets,
+    meshHandle,
+    mesh,
+    expectedDrawCount: 1,
+    readbackSamplePoints: boxReadbackSamplePoints,
+    geometry: {
+      primitive: "sphere",
+      source: "aperture.createSphereMeshAsset",
+    },
+    materials: [{ handle: materialHandle, asset: material }],
+  };
+}
+
+function createPerspectiveFovCameraWorld(aperture, canvasSize) {
+  const world = aperture.createWorld({ entityCapacity: 4 });
+  const assets = new aperture.AssetRegistry();
+  const meshHandle = aperture.createMeshHandle("perspective-fov-plane");
+  const materialHandle = aperture.createMaterialHandle("perspective-fov-unlit");
+  const mesh = aperture.createPlaneMeshAsset({
+    label: "PerspectiveFovPlane",
+    width: 1.1,
+    height: 1.1,
+  });
+  const material = aperture.createUnlitMaterialAsset({
+    label: "PerspectiveFovUnlitMaterial",
+    baseColorFactor: new Float32Array([0.72, 0.28, 1, 1]),
+  });
+  const fovYRadians = Math.PI / 4;
+
+  aperture.registerTransformComponents(world);
+  aperture.registerMetadataComponents(world);
+  aperture.registerRenderAuthoringComponents(world);
+  assets.register(meshHandle);
+  assets.register(materialHandle);
+  assets.markReady(meshHandle, mesh);
+  assets.markReady(materialHandle, material);
+
+  const camera = world.createEntity();
+  const cameraTransform = aperture.createRootTransform({
+    translation: [0, 0, 3],
+  });
+
+  camera.addComponent(aperture.WorldTransform, cameraTransform.world);
+  camera.addComponent(
+    aperture.Camera,
+    aperture.createCamera({
+      projection: aperture.CameraProjection.Perspective,
+      fovYRadians,
+      aspect: canvasSize.width / canvasSize.height,
+      near: 0.1,
+      far: 100,
+      clearColor: [clearColor.r, clearColor.g, clearColor.b, clearColor.a],
+      layerMask: 1,
+    }),
+  );
+
+  addPrimitiveEntity(aperture, world, meshHandle, materialHandle, [0, 0, 0]);
+
+  return {
+    world,
+    assets,
+    meshHandle,
+    mesh,
+    expectedDrawCount: 1,
+    readbackSamplePoints: boxReadbackSamplePoints,
+    geometry: {
+      primitive: "plane",
+      source: "aperture.createPlaneMeshAsset",
+    },
+    camera: {
+      projection: "perspective",
+      fovYRadians,
+    },
+    materials: [{ handle: materialHandle, asset: material }],
+  };
+}
+
 function createOrthographicCameraWorld(aperture, canvasSize) {
   const world = aperture.createWorld({ entityCapacity: 4 });
   const assets = new aperture.AssetRegistry();
@@ -1620,6 +1727,165 @@ function createOrthographicCameraWorld(aperture, canvasSize) {
       orthographicHeight,
     },
     materials: [{ handle: materialHandle, asset: material }],
+  };
+}
+
+function createRenderLayerFilterWorld(aperture, canvasSize) {
+  const world = aperture.createWorld({ entityCapacity: 6 });
+  const assets = new aperture.AssetRegistry();
+  const meshHandle = aperture.createMeshHandle("render-layer-filter-plane");
+  const visibleHandle = aperture.createMaterialHandle("layer-visible-green");
+  const skippedHandle = aperture.createMaterialHandle("layer-skipped-red");
+  const mesh = aperture.createPlaneMeshAsset({
+    label: "RenderLayerFilterPlane",
+    width: 1.05,
+    height: 1.05,
+  });
+  const visibleMaterial = aperture.createUnlitMaterialAsset({
+    label: "LayerVisibleGreenMaterial",
+    baseColorFactor: new Float32Array([0.12, 0.9, 0.36, 1]),
+  });
+  const skippedMaterial = aperture.createUnlitMaterialAsset({
+    label: "LayerSkippedRedMaterial",
+    baseColorFactor: new Float32Array([1, 0.06, 0.06, 1]),
+  });
+  const cameraLayerMask = 1;
+  const visibleLayerMask = 1;
+  const skippedLayerMask = 2;
+  const skippedMaterialColor = [1, 0.06, 0.06, 1];
+
+  aperture.registerTransformComponents(world);
+  aperture.registerMetadataComponents(world);
+  aperture.registerRenderAuthoringComponents(world);
+  assets.register(meshHandle);
+  assets.register(visibleHandle);
+  assets.register(skippedHandle);
+  assets.markReady(meshHandle, mesh);
+  assets.markReady(visibleHandle, visibleMaterial);
+  assets.markReady(skippedHandle, skippedMaterial);
+
+  const camera = world.createEntity();
+  const cameraTransform = aperture.createRootTransform({
+    translation: [0, 0, 2.5],
+  });
+
+  camera.addComponent(aperture.WorldTransform, cameraTransform.world);
+  camera.addComponent(
+    aperture.Camera,
+    aperture.createCamera({
+      aspect: canvasSize.width / canvasSize.height,
+      near: 0.1,
+      far: 100,
+      clearColor: [clearColor.r, clearColor.g, clearColor.b, clearColor.a],
+      layerMask: cameraLayerMask,
+    }),
+  );
+
+  addPrimitiveEntity(aperture, world, meshHandle, visibleHandle, [0, 0, 0], {
+    layerMask: visibleLayerMask,
+  });
+  addPrimitiveEntity(aperture, world, meshHandle, skippedHandle, [0, 0, 0], {
+    layerMask: skippedLayerMask,
+    renderOrder: 10,
+  });
+
+  return {
+    world,
+    assets,
+    meshHandle,
+    mesh,
+    expectedDrawCount: 1,
+    readbackSamplePoints: boxReadbackSamplePoints,
+    geometry: {
+      primitive: "plane",
+      source: "aperture.createPlaneMeshAsset",
+    },
+    layerFiltering: {
+      cameraLayerMask,
+      visibleLayerMask,
+      skippedLayerMask,
+      skippedMaterialKey: aperture.assetHandleKey(skippedHandle),
+      skippedMaterialColor,
+    },
+    materials: [{ handle: visibleHandle, asset: visibleMaterial }],
+  };
+}
+
+function createDepthOverlapWorld(aperture, canvasSize) {
+  const world = aperture.createWorld({ entityCapacity: 6 });
+  const assets = new aperture.AssetRegistry();
+  const meshHandle = aperture.createMeshHandle("depth-overlap-plane");
+  const nearHandle = aperture.createMaterialHandle("depth-near-green");
+  const farHandle = aperture.createMaterialHandle("depth-far-red");
+  const mesh = aperture.createPlaneMeshAsset({
+    label: "DepthOverlapPlane",
+    width: 1.05,
+    height: 1.05,
+  });
+  const nearMaterial = aperture.createUnlitMaterialAsset({
+    label: "DepthNearGreenMaterial",
+    baseColorFactor: new Float32Array([0.16, 0.9, 0.32, 1]),
+  });
+  const farMaterial = aperture.createUnlitMaterialAsset({
+    label: "DepthFarRedMaterial",
+    baseColorFactor: new Float32Array([1, 0.08, 0.04, 1]),
+  });
+
+  aperture.registerTransformComponents(world);
+  aperture.registerMetadataComponents(world);
+  aperture.registerRenderAuthoringComponents(world);
+  assets.register(meshHandle);
+  assets.register(nearHandle);
+  assets.register(farHandle);
+  assets.markReady(meshHandle, mesh);
+  assets.markReady(nearHandle, nearMaterial);
+  assets.markReady(farHandle, farMaterial);
+
+  const camera = world.createEntity();
+  const cameraTransform = aperture.createRootTransform({
+    translation: [0, 0, 3],
+  });
+
+  camera.addComponent(aperture.WorldTransform, cameraTransform.world);
+  camera.addComponent(
+    aperture.Camera,
+    aperture.createCamera({
+      aspect: canvasSize.width / canvasSize.height,
+      near: 0.1,
+      far: 100,
+      clearColor: [clearColor.r, clearColor.g, clearColor.b, clearColor.a],
+      layerMask: 1,
+    }),
+  );
+
+  addPrimitiveEntity(aperture, world, meshHandle, nearHandle, [0, 0, 0.3], {
+    renderOrder: 0,
+  });
+  addPrimitiveEntity(aperture, world, meshHandle, farHandle, [0, 0, -0.3], {
+    renderOrder: 10,
+  });
+
+  return {
+    world,
+    assets,
+    meshHandle,
+    mesh,
+    expectedDrawCount: 2,
+    readbackSamplePoints: boxReadbackSamplePoints,
+    depthFormat: "depth24plus",
+    geometry: {
+      primitive: "plane",
+      source: "aperture.createPlaneMeshAsset",
+    },
+    renderOrder: {
+      back: 10,
+      front: 0,
+      expectedTopMaterial: "depth-near-green",
+    },
+    materials: [
+      { handle: nearHandle, asset: nearMaterial },
+      { handle: farHandle, asset: farMaterial },
+    ],
   };
 }
 
@@ -1857,6 +2123,31 @@ function visibilityStatus(scene, snapshot) {
     hiddenMaterialKey: scene.hiddenMaterialKey,
     hiddenMaterialColor: scene.hiddenMaterialColor,
     diagnostics: skipped.map((diagnostic) => diagnostic.code),
+  };
+}
+
+function layerFilteringStatus(scene, snapshot) {
+  const skipped = snapshot.diagnostics.filter(
+    (diagnostic) => diagnostic.code === "render.layerMismatch",
+  );
+
+  return {
+    ...scene.layerFiltering,
+    extracted: snapshot.meshDraws.length,
+    skipped: skipped.length,
+    diagnostics: skipped.map((diagnostic) => diagnostic.code),
+  };
+}
+
+function disabledStatus(scene, snapshot) {
+  const diagnostics = snapshot.diagnostics.filter(
+    (diagnostic) => diagnostic.code === "render.disabled",
+  );
+
+  return {
+    ...scene.disabled,
+    extracted: snapshot.meshDraws.length,
+    diagnostics: diagnostics.map((diagnostic) => diagnostic.code),
   };
 }
 

@@ -27,157 +27,64 @@ Keep implementation vertical, typed, and testable. Do not introduce a public mut
 
 ## Recommended Next Task
 
-Start with `task-0228`. Browser E2E now verifies plane and box primitive rendering, orthographic camera rendering, unlit material variants, hidden and disabled renderable skipping, layer mismatch, render-order overlap, missing renderer resource bindings, missing/failed/loading mesh and material assets, and unknown scenario diagnostics through JSON-safe status payloads. The next useful slice is to lock render sort order preservation through the draw planning stages.
+Start with `task-0243`. The unlit texture design is documented in `docs/UNLIT_TEXTURED_MATERIAL_PLAN.md`; the next useful slice is to extend unlit bind group planning for base-color textures while preserving the current factor-only path.
 
 ## Ready Tasks
 
-### task-0228 — Preserve render sort order through draw planning
+### task-0243 — Extend unlit bind group planning for base-color textures
 
-Add focused unit coverage, and a fix if needed, so render-world package sort order is preserved through draw command descriptors, draw-list records, and render pass command planning.
-
-Acceptance criteria:
-
-- Tests cover a case where render sort order differs from render id order.
-- Draw command descriptors, draw-list records, and render pass commands preserve the intended render order or intentionally document a different ordering decision.
-- Existing diagnostics still report missing resources with stable render ids.
-- Browser render-order overlap coverage remains passing.
-
-### task-0229 — Refactor browser diagnostic scenario status builders
-
-Reduce duplication across zero-submission browser diagnostic scenarios without changing published payload shapes.
+Add a textured unlit bind group layout/resource variant that includes material uniforms, a base-color texture view, and a sampler.
 
 Acceptance criteria:
 
-- Shared helpers build extraction-failure and resource-binding-failure status payloads.
-- Existing e2e diagnostics for missing resources, layer mismatch, asset states, and unknown scenarios still pass.
-- The helpers do not serialize raw WebGPU handles.
-- The example module remains easy to inspect for future scenarios.
+- Factor-only unlit materials continue to use the existing path.
+- Textured unlit materials require texture and sampler resource keys in group 2.
+- Missing texture/sampler resources produce draw-list or resource diagnostics.
+- Unit tests cover factor-only compatibility and textured resource requirements.
 
-### task-0230 — Add perspective camera FOV browser readback coverage
+### task-0244 — Add unlit texture shader feature and pipeline key
 
-Add browser coverage for a primitive renderable viewed through a non-default perspective FOV.
-
-Acceptance criteria:
-
-- The scenario authors a perspective `Camera` with a non-default `fovYRadians`.
-- Status reports projection type, FOV, extraction counts, draw counts, and readback samples.
-- Playwright verifies a non-clear pixel through readback.
-- The renderer still consumes extracted view packets and does not query ECS directly.
-
-### task-0231 — Add mesh asset failed-diagnostic payload coverage
-
-Expand failed asset browser diagnostics to verify asset registry diagnostic payloads remain inspectable.
+Add the smallest shader/pipeline variant needed to sample `baseColorTexture` in the unlit material path.
 
 Acceptance criteria:
 
-- Failed mesh and material asset scenarios include safe asset diagnostic details from the registry.
-- Playwright asserts the diagnostic code/message are present and JSON-safe.
-- Extraction and submission counts remain unchanged.
-- No raw asset objects or WebGPU handles are serialized.
+- `createMaterialPipelineKeyInput` includes a stable feature flag when an unlit material has a base-color texture.
+- The unlit shader has a textured variant or feature path that multiplies sampled color by `baseColorFactor`.
+- Pipeline descriptor/cache keys distinguish textured and factor-only unlit materials.
+- Unit tests cover pipeline key and descriptor differences.
 
-### task-0233 — Add render layer positive/negative browser scenario
+### task-0245 — Add extraction diagnostics for unlit texture asset states
 
-Add browser coverage where one renderable matches the camera layer and another renderable is skipped for a layer mismatch in the same scene.
-
-Acceptance criteria:
-
-- The scene authors two renderables with different layer masks and a camera layer mask that matches only one.
-- Status reports one extracted draw, one `render.layerMismatch` diagnostic, resource/draw/submission counts for the visible renderable, and JSON-safe skipped-layer diagnostics.
-- Readback verifies the visible color and absence of the skipped color.
-- Renderer ownership boundaries remain unchanged.
-
-### task-0234 — Add disabled renderable with visible peer browser coverage
-
-Add browser coverage where one enabled renderable draws while a disabled peer is skipped.
+Teach render extraction to validate texture and sampler handles referenced by ready unlit material assets.
 
 Acceptance criteria:
 
-- The scene authors one enabled renderable and one `Enabled.value = false` renderable.
-- Status reports one extracted draw, one `render.disabled` diagnostic, and draw/submission counts for the enabled renderable.
-- Readback verifies the enabled color and absence of the disabled color.
-- The failure/diagnostic payload remains JSON-safe.
+- Missing texture and sampler handles produce extraction diagnostics before draw submission.
+- Loading and failed texture/sampler assets produce extraction diagnostics with safe asset keys.
+- Existing mesh/material extraction diagnostics remain unchanged.
+- Unit tests cover missing, loading, failed, and ready texture/sampler states.
 
-### task-0235 — Add sphere primitive mesh builder
+### task-0246 — Add texture-backed unlit browser readback coverage
 
-Add a built-in `createSphereMeshAsset` primitive builder that follows the existing mesh asset schema and primitive vertex layout.
-
-Acceptance criteria:
-
-- `createSphereMeshAsset` emits interleaved `POSITION`, `NORMAL`, and `TEXCOORD_0` data.
-- The mesh uses `triangle-list` topology, an index buffer, one default submesh, one material slot, local AABB, and local bounding sphere.
-- Options cover at least radius, segment counts, label, and optional material handle.
-- Unit tests validate vertex/index counts, representative positions/normals/UVs, bounds, and `validateMeshAsset` success.
-- Existing plane and box primitive behavior remains unchanged.
-
-### task-0236 — Add cylinder and cone primitive mesh builders
-
-Add built-in cylinder and cone primitive builders using a shared implementation where practical.
+Render a textured unlit plane through the ECS-to-WebGPU browser path and verify sampled pixels.
 
 Acceptance criteria:
 
-- `createCylinderMeshAsset` and `createConeMeshAsset` emit interleaved `POSITION`, `NORMAL`, and `TEXCOORD_0` data.
-- Both builders produce indexed `triangle-list` meshes with caps, one default submesh, one material slot, local AABB, and local bounding sphere.
-- Options cover radius/radii, height, radial segments, height segments where useful, label, and optional material handle.
-- Unit tests validate representative vertices, index ranges, bounds, and `validateMeshAsset` success.
-- Degenerate or invalid segment/radius options are clamped or diagnosed consistently with existing primitive style.
+- The scenario authors a ready texture-backed unlit material through asset handles.
+- Status reports texture/sampler resource counts, extraction counts, draw counts, and readback samples.
+- Readback verifies at least two UV-separated pixels so sampling is proven.
+- No raw WebGPU texture, view, sampler, bind group, or pipeline handles are serialized.
 
-### task-0237 — Add capsule and torus primitive mesh builders
+### task-0247 — Add texture and sampler resource summary counts
 
-Add the remaining MVP curved primitive builders after sphere/cylinder/cone coverage is in place.
-
-Acceptance criteria:
-
-- `createCapsuleMeshAsset` and `createTorusMeshAsset` emit interleaved `POSITION`, `NORMAL`, and `TEXCOORD_0` data.
-- Both builders produce indexed `triangle-list` meshes with one default submesh, one material slot, local AABB, and local bounding sphere.
-- Options cover dimensions, segment counts, label, and optional material handle.
-- Unit tests validate representative vertices, index ranges, bounds, and `validateMeshAsset` success.
-- The implementation does not add renderer-owned state or a scene graph convenience layer.
-
-### task-0238 — Add browser primitive readback coverage for curved primitives
-
-Render at least one newly added curved primitive through the existing ECS-to-WebGPU browser path.
+Include renderer-owned texture and sampler resource creation results in JSON-safe resource summaries.
 
 Acceptance criteria:
 
-- A multi-entity browser scenario renders a new built-in curved primitive, starting with `createSphereMeshAsset`.
-- Status reports primitive metadata, extraction counts, resource counts, draw counts, and readback samples.
-- Playwright verifies a non-clear pixel through GPU readback.
-- The example still authors ECS components and feeds WebGPU through extracted snapshots/render-world state.
-
-### task-0239 — Add depth-tested 3D overlap browser coverage
-
-Add a browser scenario that proves true 3D depth behavior rather than only 2D screen-space overlap/order behavior.
-
-Acceptance criteria:
-
-- The scenario renders at least two overlapping 3D mesh entities at different depths.
-- The render pass includes a depth attachment and an unlit pipeline descriptor with depth state.
-- Readback verifies the nearer object wins when render order would otherwise not guarantee that result.
-- Status reports depth format, draw counts, command counts, and JSON-safe diagnostics.
-- Existing render-order overlap coverage remains passing.
-
-### task-0240 — Add a narrow render-frame orchestration helper
-
-Create a small helper that packages the currently manual example path from snapshot/render-world inputs through draw planning.
-
-Acceptance criteria:
-
-- The helper accepts an extracted `RenderSnapshot`, a caller-owned `RenderWorld`, packed transforms, resource binding resolvers, mesh resources, pipelines, and bind groups.
-- The helper returns JSON-safe phase counts and diagnostics plus the render pass command plan.
-- It does not create or own ECS state, WebGPU device/context, or hidden scene graph state.
-- Unit tests cover success and missing-resource diagnostics.
-- At least one browser example uses the helper without changing its published status payload shape.
-
-### task-0241 — Add initial texture-backed unlit material design task
-
-Define the smallest texture-backed unlit rendering slice before implementing texture upload and sampling.
-
-Acceptance criteria:
-
-- Document the proposed ECS/asset/render-world boundary for texture and sampler handles in the unlit material path.
-- Identify the minimal WebGPU resources, bind group layout changes, diagnostics, and browser scenario needed.
-- Confirm how missing/loading/failed texture assets should appear in extraction or resource-binding diagnostics.
-- Add follow-up implementation tasks if the design is accepted.
+- Resource summaries count texture and sampler resources separately from buffers and shaders.
+- Texture/sampler helper diagnostics are included without raw WebGPU handles.
+- Existing resource summary consumers continue to compile without requiring texture resources.
+- Unit tests cover valid resources, failed resources, and merged summary counts.
 
 ## Post-Unlit E2E Verification Targets
 

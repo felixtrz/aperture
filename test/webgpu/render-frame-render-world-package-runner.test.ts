@@ -30,12 +30,12 @@ describe("injected render frame render-world package runner", () => {
     const report = run();
 
     expect(report.packages.diagnostics).toEqual([]);
-    expect(report.packages.packages.map((pkg) => pkg.renderId)).toEqual([7, 9]);
+    expect(report.packages.packages.map((pkg) => pkg.renderId)).toEqual([9, 7]);
     expect(
       report.frame.descriptors.descriptors.map(
         (descriptor) => descriptor.renderId,
       ),
-    ).toEqual([7, 9]);
+    ).toEqual([9, 7]);
     expect(report.frame.frame.frame.execution.counts).toMatchObject({
       commands: 12,
       drawCalls: 2,
@@ -50,7 +50,7 @@ describe("injected render frame render-world package runner", () => {
       { code: "renderDrawPackage.blockedDraw" },
     ]);
     expect(blocked.packages.packages.map((pkg) => pkg.renderId)).toEqual([
-      7, 9,
+      9, 7,
     ]);
     expect(missingTransform.packages.diagnostics).toMatchObject([
       { code: "renderDrawPackage.missingPackedTransform" },
@@ -155,7 +155,7 @@ function sortKey(stableId: number): RenderSortKey {
     queue: "opaque",
     viewId: 0,
     layer: 0,
-    order: 0,
+    order: stableId === 9 ? 0 : stableId === 7 ? 1 : stableId,
     pipelineKey: "pipeline:unlit",
     materialKey: "material:red",
     meshKey: "mesh:triangle",

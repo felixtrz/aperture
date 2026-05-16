@@ -13,12 +13,18 @@ for (const fixture of [
     status: "loading",
     reason: "mesh-asset-loading",
     diagnostic: "render.mesh.loading",
+    registryDiagnostic: null,
   },
   {
     scenario: "failed-mesh-asset",
     status: "failed",
     reason: "mesh-asset-failed",
     diagnostic: "render.mesh.failed",
+    registryDiagnostic: {
+      code: "browser.fixture.failedMesh",
+      message: "Intentional browser fixture failed mesh asset.",
+      severity: "error",
+    },
   },
 ] as const) {
   test(`ECS browser example reports ${fixture.status} mesh asset without submitting draws`, async ({
@@ -48,6 +54,10 @@ for (const fixture of [
       assetStatus: {
         mesh: fixture.status,
         diagnostics: [fixture.diagnostic],
+        registryDiagnostics:
+          fixture.registryDiagnostic === null
+            ? []
+            : [fixture.registryDiagnostic],
       },
       resources: { materials: 0, bindGroups: 0, missing: "mesh" },
       binding: { planned: 0, applied: 0, ready: 0, diagnostics: 0 },
@@ -66,5 +76,17 @@ for (const fixture of [
         code: fixture.diagnostic,
       }),
     ]);
+    if (fixture.registryDiagnostic !== null) {
+      expect(
+        status.assetStatus?.registryDiagnostics,
+        JSON.stringify(status, null, 2),
+      ).toEqual([expect.objectContaining(fixture.registryDiagnostic)]);
+      expect(
+        JSON.stringify(status.assetStatus?.registryDiagnostics),
+      ).not.toContain("vertexStreams");
+      expect(
+        JSON.stringify(status.assetStatus?.registryDiagnostics),
+      ).not.toContain("GPU");
+    }
   });
 }

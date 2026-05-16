@@ -123,3 +123,49 @@ export interface PlaneMeshOptions {
   readonly height?: number;
   readonly material?: MaterialHandle | null;
 }
+
+export interface SphereMeshOptions {
+  readonly label?: string;
+  readonly radius?: number;
+  readonly widthSegments?: number;
+  readonly heightSegments?: number;
+  readonly material?: MaterialHandle | null;
+}
+
+export interface CylinderMeshOptions {
+  readonly label?: string;
+  readonly radius?: number;
+  readonly radiusTop?: number;
+  readonly radiusBottom?: number;
+  readonly height?: number;
+  readonly radialSegments?: number;
+  readonly heightSegments?: number;
+  readonly material?: MaterialHandle | null;
+}
+
+export interface ConeMeshOptions {
+  readonly label?: string;
+  readonly radius?: number;
+  readonly height?: number;
+  readonly radialSegments?: number;
+  readonly heightSegments?: number;
+  readonly material?: MaterialHandle | null;
+}
+
+export interface CapsuleMeshOptions {
+  readonly label?: string;
+  readonly radius?: number;
+  readonly height?: number;
+  readonly radialSegments?: number;
+  readonly capSegments?: number;
+  readonly material?: MaterialHandle | null;
+}
+
+export interface TorusMeshOptions {
+  readonly label?: string;
+  readonly majorRadius?: number;
+  readonly tubeRadius?: number;
+  readonly radialSegments?: number;
+  readonly tubeSegments?: number;
+  readonly material?: MaterialHandle | null;
+}

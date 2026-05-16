@@ -119,7 +119,7 @@ function sortKey(stableId: number): RenderSortKey {
     queue: "opaque",
     viewId: 0,
     layer: 0,
-    order: 0,
+    order: stableId === 9 ? 0 : stableId === 7 ? 1 : stableId,
     pipelineKey: "pipeline:unlit",
     materialKey: "material:red",
     meshKey: "mesh:triangle",

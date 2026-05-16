@@ -100,7 +100,7 @@ describe("injected render frame smoke fixture", () => {
       fixture.renderPassRun.commands.commands
         .filter((command) => command.kind === "draw")
         .map((command) => command.renderId),
-    ).toEqual([7, 9]);
+    ).toEqual([9, 7]);
     expect(fixture.frameExecution.counts).toMatchObject({
       commands: 12,
       executedCommands: 12,
@@ -125,6 +125,6 @@ describe("injected render frame smoke fixture", () => {
       fixture.renderPassRun.resources.diagnostics.map((diagnostic) =>
         "renderId" in diagnostic ? diagnostic.renderId : -1,
       ),
-    ).toEqual([7, 9]);
+    ).toEqual([9, 7]);
   });
 });

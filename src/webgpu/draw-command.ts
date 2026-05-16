@@ -39,9 +39,7 @@ export function createDrawCommandDescriptors(
   const diagnostics: DrawCommandDescriptorDiagnostic[] = [];
   const descriptors: DrawCommandDescriptor[] = [];
 
-  for (const drawPackage of [...packages].sort(
-    (a, b) => a.renderId - b.renderId,
-  )) {
+  for (const drawPackage of packages) {
     const mesh = meshes.get(drawPackage.meshResourceKey);
 
     if (mesh === undefined) {

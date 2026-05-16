@@ -18,7 +18,7 @@ describe("render pass resource resolution", () => {
       drawList: [drawListRecord(1)],
       pipelines: [pipeline("pipeline:unlit", pipelineHandle)],
       bindGroups: bindGroups(viewBindGroup),
-      meshResources: [meshResource(vertexBuffer, indexBuffer)],
+      meshResources: [meshResource(1, vertexBuffer, indexBuffer)],
     });
 
     expect(result.valid).toBe(true);
@@ -53,6 +53,18 @@ describe("render pass resource resolution", () => {
         instanceCount: 1,
       },
     ]);
+  });
+
+  it("preserves draw list order during resource resolution", () => {
+    const result = resolveRenderPassResources({
+      drawList: [drawListRecord(2), drawListRecord(1)],
+      pipelines: [pipeline("pipeline:unlit")],
+      bindGroups: bindGroups(),
+      meshResources: [meshResource(1), meshResource(2)],
+    });
+
+    expect(result.valid).toBe(true);
+    expect(result.draws.map((draw) => draw.renderId)).toEqual([2, 1]);
   });
 
   it("diagnoses missing pipeline handles", () => {
@@ -97,7 +109,7 @@ describe("render pass resource resolution", () => {
       drawList: [drawListRecord(1)],
       pipelines: [pipeline("pipeline:unlit")],
       bindGroups: bindGroups(),
-      meshResources: [meshResource(null)],
+      meshResources: [meshResource(1, null)],
     });
 
     expect(result.valid).toBe(false);
@@ -115,7 +127,7 @@ describe("render pass resource resolution", () => {
       drawList: [drawListRecord(1)],
       pipelines: [pipeline("pipeline:unlit")],
       bindGroups: bindGroups(),
-      meshResources: [meshResource({}, null)],
+      meshResources: [meshResource(1, {}, null)],
     });
 
     expect(result.valid).toBe(false);
@@ -171,11 +183,12 @@ function bindGroups(bindGroup: unknown = {}): UnlitBindGroupResource[] {
 }
 
 function meshResource(
+  renderId = 1,
   vertexBuffer: unknown | null = {},
   indexBuffer: unknown | null = {},
 ): MeshGpuBufferResource {
   return {
-    resourceKey: "mesh:1",
+    resourceKey: `mesh:${renderId}`,
     vertexCount: 24,
     vertexBuffers:
       vertexBuffer === null
@@ -183,7 +196,7 @@ function meshResource(
         : [
             {
               streamId: "main",
-              resourceKey: "mesh:1/vertex",
+              resourceKey: `mesh:${renderId}/vertex`,
               buffer: vertexBuffer,
               vertexCount: 24,
             },
@@ -192,7 +205,7 @@ function meshResource(
       ? {}
       : {
           indexBuffer: {
-            resourceKey: "mesh:1/index",
+            resourceKey: `mesh:${renderId}/index`,
             buffer: indexBuffer,
             format: "uint16",
             indexCount: 6,

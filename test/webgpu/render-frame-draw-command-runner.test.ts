@@ -18,7 +18,7 @@ describe("injected render frame draw-command runner", () => {
     const report = run(events);
 
     expect(report.drawList.valid).toBe(true);
-    expect(report.drawList.draws.map((draw) => draw.renderId)).toEqual([7, 9]);
+    expect(report.drawList.draws.map((draw) => draw.renderId)).toEqual([9, 7]);
     expect(report.frame.summary.ready).toBe(true);
     expect(report.frame.execution.counts).toMatchObject({
       commands: 12,
@@ -46,8 +46,8 @@ describe("injected render frame draw-command runner", () => {
 
     expect(report.drawList.valid).toBe(false);
     expect(report.drawList.diagnostics).toMatchObject([
-      { code: "renderPassDrawList.missingPipelineResource", renderId: 7 },
       { code: "renderPassDrawList.missingPipelineResource", renderId: 9 },
+      { code: "renderPassDrawList.missingPipelineResource", renderId: 7 },
     ]);
     expect(report.frame.summary.sections.renderPassAssembly.ready).toBe(false);
   });

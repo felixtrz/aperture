@@ -30,9 +30,9 @@ describe("injected render frame draw-package runner", () => {
     expect(report.descriptors.diagnostics).toEqual([]);
     expect(
       report.descriptors.descriptors.map((descriptor) => descriptor.renderId),
-    ).toEqual([7, 9]);
+    ).toEqual([9, 7]);
     expect(report.frame.drawList.draws.map((draw) => draw.renderId)).toEqual([
-      7, 9,
+      9, 7,
     ]);
     expect(report.frame.frame.execution.counts).toMatchObject({
       commands: 12,

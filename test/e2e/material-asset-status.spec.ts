@@ -13,12 +13,18 @@ for (const fixture of [
     status: "loading",
     reason: "material-asset-loading",
     diagnostic: "render.material.loading",
+    registryDiagnostic: null,
   },
   {
     scenario: "failed-material-asset",
     status: "failed",
     reason: "material-asset-failed",
     diagnostic: "render.material.failed",
+    registryDiagnostic: {
+      code: "browser.fixture.failedMaterial",
+      message: "Intentional browser fixture failed material asset.",
+      severity: "error",
+    },
   },
 ] as const) {
   test(`ECS browser example reports ${fixture.status} material asset without submitting draws`, async ({
@@ -48,6 +54,10 @@ for (const fixture of [
       assetStatus: {
         material: fixture.status,
         diagnostics: [fixture.diagnostic],
+        registryDiagnostics:
+          fixture.registryDiagnostic === null
+            ? []
+            : [fixture.registryDiagnostic],
       },
       resources: { materials: 0, bindGroups: 0, missing: "material" },
       binding: { planned: 0, applied: 0, ready: 0, diagnostics: 0 },
@@ -66,5 +76,17 @@ for (const fixture of [
         code: fixture.diagnostic,
       }),
     ]);
+    if (fixture.registryDiagnostic !== null) {
+      expect(
+        status.assetStatus?.registryDiagnostics,
+        JSON.stringify(status, null, 2),
+      ).toEqual([expect.objectContaining(fixture.registryDiagnostic)]);
+      expect(
+        JSON.stringify(status.assetStatus?.registryDiagnostics),
+      ).not.toContain("baseColorFactor");
+      expect(
+        JSON.stringify(status.assetStatus?.registryDiagnostics),
+      ).not.toContain("GPU");
+    }
   });
 }

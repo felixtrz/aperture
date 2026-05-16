@@ -97,9 +97,7 @@ export function resolveRenderPassResources(
   const diagnostics: RenderPassResourceDiagnostic[] = [];
   const draws: ResolvedRenderPassDraw[] = [];
 
-  for (const draw of [...options.drawList].sort(
-    (a, b) => a.renderId - b.renderId,
-  )) {
+  for (const draw of options.drawList) {
     const pipeline = pipelines.get(draw.pipelineKey);
     const resolvedBindGroups = resolveBindGroups(draw, bindGroups, diagnostics);
     const resolvedVertexBuffers = resolveVertexBuffers(

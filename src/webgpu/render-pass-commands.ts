@@ -98,9 +98,7 @@ export function planRenderPassCommands(
   let indexedDrawCount = 0;
   let nonIndexedDrawCount = 0;
 
-  for (const draw of [...options.draws].sort(
-    (a, b) => a.renderId - b.renderId,
-  )) {
+  for (const draw of options.draws) {
     const firstInstance = transformPackedOffsetToInstance(
       draw.transformPackedOffset,
     );

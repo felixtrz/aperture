@@ -7,7 +7,7 @@ describe("render-world package injected render frame fixture", () => {
     const fixture = createRenderWorldPackageFrameFixture();
 
     expect(fixture.report.packages.packages.map((pkg) => pkg.renderId)).toEqual(
-      [7, 9],
+      [9, 7],
     );
     expect(fixture.report.frame.descriptors.descriptors).toHaveLength(2);
     expect(fixture.report.frame.frame.drawList.draws).toHaveLength(2);
