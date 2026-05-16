@@ -4,6 +4,7 @@ import type { MultiEntityExampleStatus } from "./example-status-types.js";
 import { expectSceneReadbackStatus } from "./readback-status.js";
 import {
   attachExampleStatus,
+  expectedDiagnosticCounts,
   skipIfUnsupportedWebGpu,
   waitForExampleStatus,
 } from "./webgpu-status.js";
@@ -53,13 +54,7 @@ test("ECS multi-entity example publishes three-draw frame status", async ({
     },
     command: { drawCount: 3, indexedDrawCount: 3 },
     submission: { commandBuffers: 1, drawCalls: 3, indexedDrawCalls: 3 },
-    diagnosticCounts: {
-      extraction: 1,
-      resources: 0,
-      binding: 0,
-      draw: 0,
-      submission: 0,
-    },
+    diagnosticCounts: expectedDiagnosticCounts({ extraction: 1 }),
   });
   expect(
     status.command?.commands,

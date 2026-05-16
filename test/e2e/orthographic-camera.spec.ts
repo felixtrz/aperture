@@ -4,6 +4,7 @@ import type { MultiEntityExampleStatus } from "./example-status-types.js";
 import { pixelDistance, rgbaColorToPixel } from "./png.js";
 import {
   attachExampleStatus,
+  expectedDiagnosticCounts,
   skipIfUnsupportedWebGpu,
   waitForExampleStatus,
 } from "./webgpu-status.js";
@@ -52,6 +53,7 @@ test("ECS browser example renders primitive through orthographic camera", async 
     },
     command: { drawCount: 1, indexedDrawCount: 1 },
     submission: { commandBuffers: 1, drawCalls: 1, indexedDrawCalls: 1 },
+    diagnosticCounts: expectedDiagnosticCounts({}),
   });
   expect(status.clearColor, JSON.stringify(status, null, 2)).toBeDefined();
 

@@ -273,6 +273,25 @@ they verify URL scenarios reach `phase: "extract"` and stay at zero submitted
 draws. The deeper multi-textured tests continue to own duplicate diagnostic
 order and asset-key assertions for those same scenarios.
 
+The no-browser `test/examples/multi-entity-scenarios.test.mjs` guard keeps the
+ordered scenario id list aligned with the explicit dispatch table and verifies
+literal e2e scenario routes/fixtures are registered. This catches route drift
+before Playwright starts a browser; it complements but does not replace browser
+coverage for status shape, pixels, and WebGPU execution.
+
+Route smoke specs cover broad scenario families without duplicating pixel
+assertions:
+
+- `test/e2e/primitive-routing.spec.ts` loads every built-in primitive route and
+  asserts a submitted frame plus matching `geometry.primitive` status.
+- `test/e2e/camera-routing.spec.ts` loads perspective and orthographic camera
+  routes and asserts submitted frames plus camera projection status.
+- `test/e2e/visibility-routing.spec.ts` loads visibility, layer, ordering, and
+  depth routes and asserts submitted frames plus representative status fields.
+- `test/e2e/texture-routing.spec.ts` loads texture, sampler, and mixed material
+  routes and asserts submitted frames plus representative texture, sampler, and
+  pipeline status fields.
+
 Extraction failure statuses include `diagnosticCounts` with non-zero extraction
 counts and zero downstream resource, binding, draw, submission, and readback
 counts. This keeps failed-route summaries comparable with successful frame
@@ -457,6 +476,55 @@ Use the published status first:
 
 Keep future browser checks JSON-safe. Assertions should use serializable counts,
 stable keys, status fields, and diagnostics, not raw WebGPU handles.
+
+Browser specs should prefer the shared helpers in `test/e2e/webgpu-status.ts`
+when adding common status assertions:
+
+- Use `expectedDiagnosticCounts` for `diagnosticCounts` expectations so omitted
+  buckets default to zero consistently.
+- Use `expectNoDrawSubmissionStatus` for failure routes that must not submit
+  draw work. The helper checks any published draw, command, and submission
+  numeric counts are zero without requiring specs to repeat every field.
+- Use `expectStatusJsonSafeForGpu` on failure statuses that pass through
+  texture, sampler, or resource diagnostics to keep raw WebGPU handles and
+  creation calls out of JSON payloads.
+
+## Diagnostic Count Phases
+
+`diagnosticCounts` is a JSON-safe phase summary for browser statuses. It is a
+triage aid, not an alternate source of render state. ECS authoring state still
+flows through extraction first, renderer-owned resources stay outside ECS, and
+the browser status only reports counts and stable diagnostic codes.
+
+Current buckets:
+
+- `extraction`: diagnostics emitted while reading ECS-derived authoring data
+  and producing the render snapshot. Missing, loading, failed, hidden, disabled,
+  or layer-filtered authoring data should appear here before GPU resource
+  creation.
+- `resources`: diagnostics emitted while uploading or validating renderer-owned
+  GPU resources, such as texture upload validation or missing texture/sampler
+  resource inputs.
+- `binding`: diagnostics emitted while applying an extracted snapshot to the
+  render world with explicit renderer resource bindings.
+- `draw`: diagnostics emitted while resolving render-world draw packages,
+  draw-command descriptors, or draw-list records.
+- `submission`: diagnostics emitted while creating or submitting WebGPU command
+  buffers.
+- `readback`: diagnostics emitted by optional current-texture readback. Readback
+  failures explain browser capture limitations and do not imply ECS extraction
+  or WebGPU submission failed.
+
+Interpret the buckets relative to `phase`. A failed `phase: "extract"` status
+can have non-zero `extraction` counts with every downstream bucket at zero
+because resource upload, binding, draw planning, submission, and readback were
+not attempted. A failed `phase: "resources"` status has succeeded extraction
+but stopped before render-world binding or draw submission. A failed
+`phase: "resource-bindings"` status has an extracted snapshot and reached
+render-world binding, but no draw submission should be expected. Successful
+`phase: "submit"` statuses normally carry zero counts across all buckets; if a
+future submitted frame reports a non-zero bucket, tests should assert the
+specific phase and code rather than infer raw WebGPU object state.
 
 ## Status Payloads
 

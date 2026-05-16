@@ -3,6 +3,8 @@ import { expect, test } from "@playwright/test";
 import type { MultiEntityExampleStatus } from "./example-status-types.js";
 import {
   attachExampleStatus,
+  expectedDiagnosticCounts,
+  expectStatusJsonSafeForGpu,
   skipIfUnsupportedWebGpu,
   waitForExampleStatus,
 } from "./webgpu-status.js";
@@ -50,10 +52,11 @@ test("ECS browser example reports invalid texture upload diagnostics", async ({
           "Texture upload bytesPerRow for resource 'texture:checker-albedo' must be at least 8 bytes for 2 texel(s) of 'rgba8unorm'.",
       },
     ],
+    diagnosticCounts: expectedDiagnosticCounts({ resources: 1 }),
   });
   expect(status.submission).toBeUndefined();
   expect(status.command).toBeUndefined();
-  expect(JSON.stringify(status)).not.toMatch(/GPU(Texture|Sampler|Buffer)/);
+  expectStatusJsonSafeForGpu(status);
 });
 
 test("ECS browser example reports short texture upload diagnostics", async ({
@@ -98,10 +101,11 @@ test("ECS browser example reports short texture upload diagnostics", async ({
           "Texture upload data for resource 'texture:checker-albedo' must contain at least 16 byte(s); received 15.",
       },
     ],
+    diagnosticCounts: expectedDiagnosticCounts({ resources: 1 }),
   });
   expect(status.submission).toBeUndefined();
   expect(status.command).toBeUndefined();
-  expect(JSON.stringify(status)).not.toMatch(/GPU(Texture|Sampler|Buffer)/);
+  expectStatusJsonSafeForGpu(status);
 });
 
 test("ECS browser example reports invalid rows-per-image texture upload diagnostics", async ({
@@ -148,8 +152,9 @@ test("ECS browser example reports invalid rows-per-image texture upload diagnost
           "Texture upload rowsPerImage for resource 'texture:checker-albedo' must be an integer at least 2 row(s).",
       },
     ],
+    diagnosticCounts: expectedDiagnosticCounts({ resources: 1 }),
   });
   expect(status.submission).toBeUndefined();
   expect(status.command).toBeUndefined();
-  expect(JSON.stringify(status)).not.toMatch(/GPU(Texture|Sampler|Buffer)/);
+  expectStatusJsonSafeForGpu(status);
 });

@@ -4,6 +4,7 @@ import type { MultiEntityExampleStatus } from "./example-status-types.js";
 import { pixelDistance, rgbaColorToPixel } from "./png.js";
 import {
   attachExampleStatus,
+  expectedDiagnosticCounts,
   skipIfUnsupportedWebGpu,
   waitForExampleStatus,
 } from "./webgpu-status.js";
@@ -53,7 +54,7 @@ test("ECS browser example multiplies texture color by unlit tint", async ({
     },
     command: { drawCount: 1, indexedDrawCount: 1 },
     submission: { commandBuffers: 1, drawCalls: 1, indexedDrawCalls: 1 },
-    diagnosticCounts: { extraction: 0, resources: 0, draw: 0, submission: 0 },
+    diagnosticCounts: expectedDiagnosticCounts({}),
   });
 
   if (status.texturedTint === undefined || !status.readback?.ok) {
@@ -151,7 +152,7 @@ test("ECS browser example renders two tints from one shared texture", async ({
     },
     command: { drawCount: 2, indexedDrawCount: 2 },
     submission: { commandBuffers: 1, drawCalls: 2, indexedDrawCalls: 2 },
-    diagnosticCounts: { extraction: 0, resources: 0, draw: 0, submission: 0 },
+    diagnosticCounts: expectedDiagnosticCounts({}),
   });
 
   if (status.sharedTextureTinted === undefined || !status.readback?.ok) {

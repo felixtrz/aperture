@@ -27,59 +27,77 @@ Keep implementation vertical, typed, and testable. Do not introduce a public mut
 
 ## Recommended Next Task
 
-Start with `task-0340`. Browser failure statuses now carry diagnostic counts across extraction, scenario, and resource-binding failures; the next useful slice is reducing repeated JSON-safe status assertions in texture failure tests.
+Start with `task-0380`. The browser route smoke coverage now covers
+successful primitive, camera, visibility/order/depth, and texture scenarios; the
+next useful slice is adding the same lightweight route/status guard for
+extraction-failure scenarios that currently only have detailed specs.
 
 ## Ready Tasks
 
-### task-0340 — Add no-raw-GPU assertion helper for texture failures
+### task-0380 — Add route smoke for extraction failure scenarios
 
-Reduce repeated JSON-safe status checks across texture/sampler failure specs.
+Add lightweight route/status coverage for core extraction-failure scenarios.
 
 Acceptance criteria:
 
-- A shared test helper asserts status JSON does not expose raw GPU handles or WebGPU creation calls.
-- Texture/sampler asset and resource failure specs use the helper where practical.
+- A focused Playwright loop loads layer mismatch, disabled renderable, missing
+  mesh/material asset, and mesh/material asset status scenarios.
+- The test asserts `phase: "extract"`, the expected scenario key, and no draw
+  submission.
+- It does not duplicate detailed diagnostic body assertions from existing specs.
 - Targeted Playwright coverage continues to pass.
 
-### task-0341 — Split multi-entity scenario dispatch into a lookup table
+### task-0381 — Add route smoke for texture asset failure scenarios
 
-Replace the deeply nested scenario ternary in `examples/multi-entity.js` with a small explicit dispatch table.
-
-Acceptance criteria:
-
-- Scenario behavior and `knownScenarios` remain unchanged.
-- The dispatch table does not move ECS state into renderer-owned structures.
-- `npm run check:examples` and full Playwright coverage continue to pass.
-
-### task-0342 — Document browser diagnostic count phases
-
-Clarify how `diagnosticCounts` should be interpreted across successful, extraction-failure, and future resource-binding-failure statuses.
+Add lightweight route/status coverage for texture and sampler asset failure
+scenarios that are not already covered by shared route guards.
 
 Acceptance criteria:
 
-- `docs/BROWSER_E2E_RENDERING.md` describes the count buckets and phase limitations.
-- The note preserves ECS/render extraction ownership boundaries.
+- A focused Playwright loop loads missing/loading/failed texture and sampler
+  dependency scenarios plus multi-textured missing texture/sampler asset routes.
+- The test asserts `phase: "extract"`, the expected diagnostic code, and no draw
+  submission.
+- Shared-sampler/shared-texture route guards remain focused and passing.
+- Targeted Playwright coverage continues to pass.
+
+### task-0382 — Extract shared multi-entity route loader helper
+
+Reduce route-spec duplication by centralizing multi-entity scenario URL loading
+and status waiting.
+
+Acceptance criteria:
+
+- A shared test helper loads `/examples/multi-entity.html?scenario=...` and
+  returns the published status.
+- Existing route smoke specs use the helper where practical.
+- Status attachments and WebGPU unsupported skips still behave as before.
+- Targeted typecheck and Playwright route coverage pass.
+
+### task-0383 — Add route smoke coverage table to docs
+
+Add a concise browser e2e docs table that maps route smoke specs to scenario
+families.
+
+Acceptance criteria:
+
+- `docs/BROWSER_E2E_RENDERING.md` includes a table for route guard specs and
+  their scenario families.
+- The table distinguishes route/status guards from detailed pixel/readback
+  specs.
 - No implementation behavior changes.
 
-### task-0343 — Add route guard coverage for resource-binding scenarios
+### task-0384 — Add route smoke status attachments
 
-Prevent missing renderer resource scenarios from falling through to the default browser scene.
-
-Acceptance criteria:
-
-- A lightweight Playwright test loads missing mesh/material resource scenarios and asserts `phase: "resource-bindings"`.
-- The test remains focused on route/status shape, not full duplicate diagnostics.
-- Existing Playwright coverage continues to pass.
-
-### task-0344 — Add diagnostic count assertions for asset-state failures
-
-Lock diagnostic count summaries for loading and failed mesh/material asset statuses.
+Ensure lightweight route smoke specs attach status JSON on assertion failures.
 
 Acceptance criteria:
 
-- Mesh and material asset status Playwright tests assert `diagnosticCounts`.
-- Assertions cover loading and failed asset states without duplicating registry diagnostic bodies.
-- Targeted Playwright coverage continues to pass.
+- Primitive, camera, visibility/order/depth, texture, resource-binding, and
+  texture-upload route smoke specs attach their final status payload.
+- Existing helper behavior is reused rather than duplicating attachment code.
+- Targeted Playwright coverage confirms attachments do not affect passing
+  routes.
 
 ## Post-Unlit E2E Verification Targets
 

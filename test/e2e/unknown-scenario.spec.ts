@@ -3,6 +3,8 @@ import { expect, test } from "@playwright/test";
 import type { MultiEntityExampleStatus } from "./example-status-types.js";
 import {
   attachExampleStatus,
+  expectedDiagnosticCounts,
+  expectNoDrawSubmissionStatus,
   skipIfUnsupportedWebGpu,
   waitForExampleStatus,
 } from "./webgpu-status.js";
@@ -33,19 +35,10 @@ test("ECS browser example reports unknown query scenarios without submitting dra
     extraction: { views: 0, meshDraws: 0, diagnostics: 0 },
     resources: { materials: 0, bindGroups: 0, missing: "none" },
     binding: { planned: 0, applied: 0, ready: 0, diagnostics: 0 },
-    draw: { packages: 0, descriptors: 0, drawList: 0, resolved: 0 },
-    command: { commands: 0, drawCount: 0, indexedDrawCount: 0 },
-    submission: { commandBuffers: 0, commands: 0, drawCalls: 0 },
-    diagnosticCounts: {
-      extraction: 0,
-      resources: 0,
-      binding: 0,
-      draw: 0,
-      submission: 0,
-      readback: 0,
-    },
+    diagnosticCounts: expectedDiagnosticCounts({}),
     diagnostics: [],
   });
+  expectNoDrawSubmissionStatus(status);
   expect(status.availableScenarios, JSON.stringify(status, null, 2)).toEqual(
     expect.arrayContaining([
       "default",

@@ -3,6 +3,9 @@ import { expect, type Page } from "@playwright/test";
 import type { MultiEntityExampleStatus } from "./example-status-types.js";
 import {
   attachExampleStatus,
+  expectedDiagnosticCounts,
+  expectNoDrawSubmissionStatus,
+  expectStatusJsonSafeForGpu,
   skipIfUnsupportedWebGpu,
   waitForExampleStatus,
 } from "./webgpu-status.js";
@@ -54,16 +57,10 @@ export async function expectTextureAssetRouteStatus(
       blocked: fixture.blocked,
       diagnostics: fixture.renderWorldDiagnostics,
     },
-    draw: { packages: 0, descriptors: 0, drawList: 0, resolved: 0 },
-    command: { commands: 0, drawCount: 0, indexedDrawCount: 0 },
-    submission: { commandBuffers: 0, commands: 0, drawCalls: 0 },
-    diagnosticCounts: {
+    diagnosticCounts: expectedDiagnosticCounts({
       extraction: fixture.diagnostics,
-      resources: 0,
-      binding: 0,
-      draw: 0,
-      submission: 0,
-      readback: 0,
-    },
+    }),
   });
+  expectNoDrawSubmissionStatus(status);
+  expectStatusJsonSafeForGpu(status);
 }

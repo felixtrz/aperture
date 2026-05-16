@@ -5,6 +5,7 @@ import { pixelDistance, rgbaColorToPixel } from "./png.js";
 import { sampleCanvasCenterPresentation } from "./webgpu-presentation.js";
 import {
   attachExampleStatus,
+  expectedDiagnosticCounts,
   skipIfUnsupportedWebGpu,
   waitForExampleStatus,
 } from "./webgpu-status.js";
@@ -49,13 +50,7 @@ test("ECS browser example renders built-in box primitive through readback", asyn
     },
     command: { drawCount: 1, indexedDrawCount: 1 },
     submission: { commandBuffers: 1, drawCalls: 1, indexedDrawCalls: 1 },
-    diagnosticCounts: {
-      extraction: 0,
-      resources: 0,
-      binding: 0,
-      draw: 0,
-      submission: 0,
-    },
+    diagnosticCounts: expectedDiagnosticCounts({}),
   });
   expect(status.clearColor, JSON.stringify(status, null, 2)).toBeDefined();
 

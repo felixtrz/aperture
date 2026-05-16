@@ -3,6 +3,9 @@ import { expect, test } from "@playwright/test";
 import type { MultiEntityExampleStatus } from "./example-status-types.js";
 import {
   attachExampleStatus,
+  expectedDiagnosticCounts,
+  expectNoDrawSubmissionStatus,
+  expectStatusJsonSafeForGpu,
   skipIfUnsupportedWebGpu,
   waitForExampleStatus,
 } from "./webgpu-status.js";
@@ -50,6 +53,7 @@ test("ECS browser example reports missing texture and sampler GPU resources", as
       textureKey: "texture:checker-albedo",
       samplerKey: "sampler:nearest-clamp",
     },
+    diagnosticCounts: expectedDiagnosticCounts({ resources: 2 }),
   });
   expect(
     status.diagnostics?.map((diagnostic) => diagnostic.code),
@@ -58,10 +62,8 @@ test("ECS browser example reports missing texture and sampler GPU resources", as
     "unlitBindGroupResource.missingTextureResource",
     "unlitBindGroupResource.missingSamplerResource",
   ]);
-  expect(
-    JSON.stringify(status),
-    "status must not expose raw GPU handles",
-  ).not.toMatch(/GPUTexture|GPUTextureView|GPUSampler|createBindGroup/);
+  expectNoDrawSubmissionStatus(status);
+  expectStatusJsonSafeForGpu(status);
 });
 
 test("ECS browser example reports one missing texture resource among multiple textured draws", async ({
@@ -101,6 +103,7 @@ test("ECS browser example reports one missing texture resource among multiple te
       textureKey: "texture:multi-cyan-albedo",
       expectedDiagnostic: "unlitBindGroupResource.missingTextureResource",
     },
+    diagnosticCounts: expectedDiagnosticCounts({ resources: 1 }),
   });
   expect(status.multiTextured?.right.textureKey).toBe(
     "texture:multi-cyan-albedo",
@@ -111,11 +114,8 @@ test("ECS browser example reports one missing texture resource among multiple te
       resourceKey: "texture:multi-cyan-albedo",
     },
   ]);
-  expect(status.submission).toBeUndefined();
-  expect(
-    JSON.stringify(status),
-    "status must not expose raw GPU handles",
-  ).not.toMatch(/GPUTexture|GPUTextureView|GPUSampler|createBindGroup/);
+  expectNoDrawSubmissionStatus(status);
+  expectStatusJsonSafeForGpu(status);
 });
 
 test("ECS browser example reports a missing shared sampler resource", async ({
@@ -159,6 +159,7 @@ test("ECS browser example reports a missing shared sampler resource", async ({
       samplerKey: "sampler:shared-tint-nearest",
       expectedDiagnostic: "unlitBindGroupResource.missingSamplerResource",
     },
+    diagnosticCounts: expectedDiagnosticCounts({ resources: 2 }),
   });
   expect(
     diagnosticResourcePairs(status),
@@ -173,11 +174,8 @@ test("ECS browser example reports a missing shared sampler resource", async ({
       resourceKey: "sampler:shared-tint-nearest",
     },
   ]);
-  expect(status.submission).toBeUndefined();
-  expect(
-    JSON.stringify(status),
-    "status must not expose raw GPU handles",
-  ).not.toMatch(/GPUTexture|GPUTextureView|GPUSampler|createBindGroup/);
+  expectNoDrawSubmissionStatus(status);
+  expectStatusJsonSafeForGpu(status);
 });
 
 test("ECS browser example reports a missing shared texture resource", async ({
@@ -221,6 +219,7 @@ test("ECS browser example reports a missing shared texture resource", async ({
       textureKey: "texture:shared-tint-albedo",
       expectedDiagnostic: "unlitBindGroupResource.missingTextureResource",
     },
+    diagnosticCounts: expectedDiagnosticCounts({ resources: 2 }),
   });
   expect(
     diagnosticResourcePairs(status),
@@ -235,11 +234,8 @@ test("ECS browser example reports a missing shared texture resource", async ({
       resourceKey: "texture:shared-tint-albedo",
     },
   ]);
-  expect(status.submission).toBeUndefined();
-  expect(
-    JSON.stringify(status),
-    "status must not expose raw GPU handles",
-  ).not.toMatch(/GPUTexture|GPUTextureView|GPUSampler|createBindGroup/);
+  expectNoDrawSubmissionStatus(status);
+  expectStatusJsonSafeForGpu(status);
 });
 
 test("ECS browser example reports one missing sampler resource among multiple textured draws", async ({
@@ -286,6 +282,7 @@ test("ECS browser example reports one missing sampler resource among multiple te
       samplerKey: "sampler:multi-cyan-nearest",
       expectedDiagnostic: "unlitBindGroupResource.missingSamplerResource",
     },
+    diagnosticCounts: expectedDiagnosticCounts({ resources: 1 }),
   });
   expect(status.diagnostics).toMatchObject([
     {
@@ -293,11 +290,8 @@ test("ECS browser example reports one missing sampler resource among multiple te
       resourceKey: "sampler:multi-cyan-nearest",
     },
   ]);
-  expect(status.submission).toBeUndefined();
-  expect(
-    JSON.stringify(status),
-    "status must not expose raw GPU handles",
-  ).not.toMatch(/GPUTexture|GPUTextureView|GPUSampler|createBindGroup/);
+  expectNoDrawSubmissionStatus(status);
+  expectStatusJsonSafeForGpu(status);
 });
 
 test("ECS browser example reports missing texture and sampler resources for one textured draw", async ({
@@ -351,6 +345,7 @@ test("ECS browser example reports missing texture and sampler resources for one 
       samplerKey: "sampler:multi-cyan-nearest",
       expectedDiagnostic: "unlitBindGroupResource.missingSamplerResource",
     },
+    diagnosticCounts: expectedDiagnosticCounts({ resources: 2 }),
   });
   expect(
     diagnosticResourcePairs(status),
@@ -365,11 +360,8 @@ test("ECS browser example reports missing texture and sampler resources for one 
       resourceKey: "sampler:multi-cyan-nearest",
     },
   ]);
-  expect(status.submission).toBeUndefined();
-  expect(
-    JSON.stringify(status),
-    "status must not expose raw GPU handles",
-  ).not.toMatch(/GPUTexture|GPUTextureView|GPUSampler|createBindGroup/);
+  expectNoDrawSubmissionStatus(status);
+  expectStatusJsonSafeForGpu(status);
 });
 
 test("ECS browser example reports missing shared texture and sampler resources", async ({
@@ -420,6 +412,7 @@ test("ECS browser example reports missing shared texture and sampler resources",
       samplerKey: "sampler:shared-tint-nearest",
       expectedDiagnostic: "unlitBindGroupResource.missingSamplerResource",
     },
+    diagnosticCounts: expectedDiagnosticCounts({ resources: 4 }),
   });
   expect(
     diagnosticResourcePairs(status),
@@ -442,11 +435,8 @@ test("ECS browser example reports missing shared texture and sampler resources",
       resourceKey: "sampler:shared-tint-nearest",
     },
   ]);
-  expect(status.submission).toBeUndefined();
-  expect(
-    JSON.stringify(status),
-    "status must not expose raw GPU handles",
-  ).not.toMatch(/GPUTexture|GPUTextureView|GPUSampler|createBindGroup/);
+  expectNoDrawSubmissionStatus(status);
+  expectStatusJsonSafeForGpu(status);
 });
 
 test("ECS browser example reports a missing shared sampler resource across two textured draws", async ({
@@ -491,6 +481,7 @@ test("ECS browser example reports a missing shared sampler resource across two t
       samplerKey: "sampler:multi-red-nearest",
       expectedDiagnostic: "unlitBindGroupResource.missingSamplerResource",
     },
+    diagnosticCounts: expectedDiagnosticCounts({ resources: 2 }),
   });
   expect(
     diagnosticResourcePairs(status),
@@ -505,11 +496,8 @@ test("ECS browser example reports a missing shared sampler resource across two t
       resourceKey: "sampler:multi-red-nearest",
     },
   ]);
-  expect(status.submission).toBeUndefined();
-  expect(
-    JSON.stringify(status),
-    "status must not expose raw GPU handles",
-  ).not.toMatch(/GPUTexture|GPUTextureView|GPUSampler|createBindGroup/);
+  expectNoDrawSubmissionStatus(status);
+  expectStatusJsonSafeForGpu(status);
 });
 
 test("ECS browser example reports one missing texture resource in a shared-sampler scene", async ({
@@ -556,6 +544,7 @@ test("ECS browser example reports one missing texture resource in a shared-sampl
       textureKey: "texture:multi-cyan-albedo",
       expectedDiagnostic: "unlitBindGroupResource.missingTextureResource",
     },
+    diagnosticCounts: expectedDiagnosticCounts({ resources: 1 }),
   });
   expect(
     diagnosticResourcePairs(status),
@@ -566,11 +555,8 @@ test("ECS browser example reports one missing texture resource in a shared-sampl
       resourceKey: "texture:multi-cyan-albedo",
     },
   ]);
-  expect(status.submission).toBeUndefined();
-  expect(
-    JSON.stringify(status),
-    "status must not expose raw GPU handles",
-  ).not.toMatch(/GPUTexture|GPUTextureView|GPUSampler|createBindGroup/);
+  expectNoDrawSubmissionStatus(status);
+  expectStatusJsonSafeForGpu(status);
 });
 
 test("ECS browser example reports missing texture and shared sampler resources in a shared-sampler scene", async ({
@@ -624,6 +610,7 @@ test("ECS browser example reports missing texture and shared sampler resources i
       samplerKey: "sampler:multi-red-nearest",
       expectedDiagnostic: "unlitBindGroupResource.missingSamplerResource",
     },
+    diagnosticCounts: expectedDiagnosticCounts({ resources: 3 }),
   });
   expect(
     diagnosticResourcePairs(status),
@@ -642,11 +629,8 @@ test("ECS browser example reports missing texture and shared sampler resources i
       resourceKey: "sampler:multi-red-nearest",
     },
   ]);
-  expect(status.submission).toBeUndefined();
-  expect(
-    JSON.stringify(status),
-    "status must not expose raw GPU handles",
-  ).not.toMatch(/GPUTexture|GPUTextureView|GPUSampler|createBindGroup/);
+  expectNoDrawSubmissionStatus(status);
+  expectStatusJsonSafeForGpu(status);
 });
 
 function diagnosticResourcePairs(

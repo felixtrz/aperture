@@ -13,7 +13,7 @@ const clearColor = { r: 0.015, g: 0.025, b: 0.035, a: 1 };
 const hiddenMaterialColor = [1, 0, 1, 1];
 const scenario =
   new URLSearchParams(window.location.search).get("scenario") ?? "default";
-const knownScenarios = new Set([
+const knownScenarioIds = [
   "default",
   "missing-resource",
   "missing-mesh-resource",
@@ -71,7 +71,8 @@ const knownScenarios = new Set([
   "shared-sampler-missing-texture-resource",
   "shared-sampler-missing-texture-sampler-resources",
   "mixed-unlit-pipelines",
-]);
+];
+const knownScenarios = new Set(knownScenarioIds);
 const readbackSamplePoints = [
   { id: "left-upper", x: 0.31, y: 0.48 },
   { id: "left-center", x: 0.34, y: 0.5 },
@@ -92,6 +93,120 @@ const baseStatus = {
     width: canvas?.width ?? 0,
     height: canvas?.height ?? 0,
   },
+};
+
+const scenarioRenderers = {
+  default: renderDefaultMultiEntityScenario,
+  "missing-resource": renderStatusScene(renderMissingResourceScene),
+  "missing-mesh-resource": renderStatusScene(renderMissingMeshResourceScene),
+  "layer-mismatch": renderStatusScene(renderLayerMismatchScene),
+  "missing-mesh-asset": renderStatusScene(renderMissingMeshAssetScene),
+  "missing-material-asset": renderStatusScene(renderMissingMaterialAssetScene),
+  "loading-mesh-asset": renderMeshAssetStatusScenario("loading"),
+  "failed-mesh-asset": renderMeshAssetStatusScenario("failed"),
+  "loading-material-asset": renderMaterialAssetStatusScenario("loading"),
+  "failed-material-asset": renderMaterialAssetStatusScenario("failed"),
+  "missing-texture-asset": renderTextureAssetStatusScenario(
+    "texture",
+    "missing",
+  ),
+  "missing-sampler-asset": renderTextureAssetStatusScenario(
+    "sampler",
+    "missing",
+  ),
+  "loading-texture-asset": renderTextureAssetStatusScenario(
+    "texture",
+    "loading",
+  ),
+  "failed-texture-asset": renderTextureAssetStatusScenario("texture", "failed"),
+  "loading-sampler-asset": renderTextureAssetStatusScenario(
+    "sampler",
+    "loading",
+  ),
+  "failed-sampler-asset": renderTextureAssetStatusScenario("sampler", "failed"),
+  "multi-textured-missing-texture-asset": renderStatusScene(
+    renderMultiTexturedMissingTextureAssetScene,
+  ),
+  "multi-textured-missing-sampler-asset": renderStatusScene(
+    renderMultiTexturedMissingSamplerAssetScene,
+  ),
+  "shared-sampler-missing-texture-asset": renderStatusScene(
+    renderSharedSamplerMissingTextureAssetScene,
+  ),
+  "shared-sampler-missing-sampler-asset": renderStatusScene(
+    renderSharedSamplerMissingSamplerAssetScene,
+  ),
+  "shared-texture-missing-texture-asset": renderStatusScene(
+    renderSharedTextureMissingTextureAssetScene,
+  ),
+  "shared-texture-missing-sampler-asset": renderStatusScene(
+    renderSharedTextureMissingSamplerAssetScene,
+  ),
+  "shared-texture-missing-texture-sampler-assets": renderStatusScene(
+    renderSharedTextureMissingTextureSamplerAssetScene,
+  ),
+  "missing-texture-sampler-resources": renderWorldScene(
+    createMissingTextureSamplerResourceWorld,
+  ),
+  "invalid-texture-upload": renderWorldScene(createInvalidTextureUploadWorld),
+  "short-texture-upload": renderWorldScene(createShortTextureUploadWorld),
+  "invalid-texture-rows-per-image": renderWorldScene(
+    createInvalidTextureRowsPerImageWorld,
+  ),
+  "disabled-renderable": renderStatusScene(renderDisabledRenderableScene),
+  "disabled-visible-peer": renderWorldScene(createDisabledVisiblePeerWorld),
+  "box-primitive": renderWorldScene(createBoxPrimitiveWorld),
+  "sphere-primitive": renderWorldScene(createSpherePrimitiveWorld),
+  "cylinder-primitive": renderWorldScene(createCylinderPrimitiveWorld),
+  "cone-primitive": renderWorldScene(createConePrimitiveWorld),
+  "capsule-primitive": renderWorldScene(createCapsulePrimitiveWorld),
+  "torus-primitive": renderWorldScene(createTorusPrimitiveWorld),
+  "perspective-fov-camera": renderWorldScene(createPerspectiveFovCameraWorld),
+  "orthographic-camera": renderWorldScene(createOrthographicCameraWorld),
+  "render-layer-filter": renderWorldScene(createRenderLayerFilterWorld),
+  "render-order-overlap": renderWorldScene(createRenderOrderOverlapWorld),
+  "depth-overlap": renderWorldScene(createDepthOverlapWorld),
+  "textured-unlit": renderWorldScene(createTexturedUnlitWorld),
+  "sampler-filter-address": renderWorldScene(createSamplerFilterAddressWorld),
+  "textured-unlit-tint": renderWorldScene(createTexturedUnlitTintWorld),
+  "sampler-v-address": renderWorldScene(createSamplerVAddressWorld),
+  "multi-textured-unlit": renderWorldScene(createMultiTexturedUnlitWorld),
+  "shared-sampler-multi-textured": renderWorldScene((aperture, canvasSize) =>
+    createMultiTexturedUnlitWorld(aperture, canvasSize, {
+      sharedSampler: true,
+    }),
+  ),
+  "shared-texture-tinted-unlit": renderWorldScene(
+    createSharedTextureTintedWorld,
+  ),
+  "shared-texture-missing-texture-resource": renderWorldScene(
+    createSharedTextureMissingTextureResourceWorld,
+  ),
+  "shared-texture-missing-sampler-resource": renderWorldScene(
+    createSharedTextureMissingSamplerResourceWorld,
+  ),
+  "shared-texture-missing-texture-sampler-resources": renderWorldScene(
+    createSharedTextureMissingTextureSamplerResourceWorld,
+  ),
+  "multi-textured-missing-texture-resource": renderWorldScene(
+    createMultiTexturedMissingTextureResourceWorld,
+  ),
+  "multi-textured-missing-sampler-resource": renderWorldScene(
+    createMultiTexturedMissingSamplerResourceWorld,
+  ),
+  "multi-textured-missing-texture-sampler-resources": renderWorldScene(
+    createMultiTexturedMissingTextureSamplerResourceWorld,
+  ),
+  "shared-sampler-missing-sampler-resource": renderWorldScene(
+    createSharedSamplerMissingSamplerResourceWorld,
+  ),
+  "shared-sampler-missing-texture-resource": renderWorldScene(
+    createSharedSamplerMissingTextureResourceWorld,
+  ),
+  "shared-sampler-missing-texture-sampler-resources": renderWorldScene(
+    createSharedSamplerMissingTextureSamplerResourceWorld,
+  ),
+  "mixed-unlit-pipelines": renderWorldScene(createMixedUnlitPipelineWorld),
 };
 
 try {
@@ -117,737 +232,18 @@ try {
         renderingBackend: aperture.APERTURE_IDENTITY.renderingBackend,
       });
     } else {
+      const canvasSize = { width: canvas.width, height: canvas.height };
+      const renderScenario = scenarioRenderers[scenario];
+
       publishStatus(
-        !knownScenarios.has(scenario)
+        !knownScenarios.has(scenario) || renderScenario === undefined
           ? unknownScenarioStatus(aperture, initialized)
-          : scenario === "missing-resource"
-            ? renderMissingResourceScene(aperture, initialized, {
-                width: canvas.width,
-                height: canvas.height,
-              })
-            : scenario === "missing-mesh-resource"
-              ? renderMissingMeshResourceScene(aperture, initialized, {
-                  width: canvas.width,
-                  height: canvas.height,
-                })
-              : scenario === "layer-mismatch"
-                ? renderLayerMismatchScene(aperture, initialized, {
-                    width: canvas.width,
-                    height: canvas.height,
-                  })
-                : scenario === "missing-mesh-asset"
-                  ? renderMissingMeshAssetScene(aperture, initialized, {
-                      width: canvas.width,
-                      height: canvas.height,
-                    })
-                  : scenario === "missing-material-asset"
-                    ? renderMissingMaterialAssetScene(aperture, initialized, {
-                        width: canvas.width,
-                        height: canvas.height,
-                      })
-                    : scenario === "loading-mesh-asset"
-                      ? renderMeshAssetStatusScene(
-                          aperture,
-                          initialized,
-                          {
-                            width: canvas.width,
-                            height: canvas.height,
-                          },
-                          "loading",
-                        )
-                      : scenario === "failed-mesh-asset"
-                        ? renderMeshAssetStatusScene(
-                            aperture,
-                            initialized,
-                            {
-                              width: canvas.width,
-                              height: canvas.height,
-                            },
-                            "failed",
-                          )
-                        : scenario === "loading-material-asset"
-                          ? renderMaterialAssetStatusScene(
-                              aperture,
-                              initialized,
-                              {
-                                width: canvas.width,
-                                height: canvas.height,
-                              },
-                              "loading",
-                            )
-                          : scenario === "failed-material-asset"
-                            ? renderMaterialAssetStatusScene(
-                                aperture,
-                                initialized,
-                                {
-                                  width: canvas.width,
-                                  height: canvas.height,
-                                },
-                                "failed",
-                              )
-                            : scenario === "missing-texture-asset"
-                              ? renderTextureDependencyAssetStatusScene(
-                                  aperture,
-                                  initialized,
-                                  {
-                                    width: canvas.width,
-                                    height: canvas.height,
-                                  },
-                                  "texture",
-                                  "missing",
-                                )
-                              : scenario === "missing-sampler-asset"
-                                ? renderTextureDependencyAssetStatusScene(
-                                    aperture,
-                                    initialized,
-                                    {
-                                      width: canvas.width,
-                                      height: canvas.height,
-                                    },
-                                    "sampler",
-                                    "missing",
-                                  )
-                                : scenario ===
-                                    "multi-textured-missing-texture-asset"
-                                  ? renderMultiTexturedMissingTextureAssetScene(
-                                      aperture,
-                                      initialized,
-                                      {
-                                        width: canvas.width,
-                                        height: canvas.height,
-                                      },
-                                    )
-                                  : scenario ===
-                                      "shared-sampler-missing-texture-asset"
-                                    ? renderSharedSamplerMissingTextureAssetScene(
-                                        aperture,
-                                        initialized,
-                                        {
-                                          width: canvas.width,
-                                          height: canvas.height,
-                                        },
-                                      )
-                                    : scenario ===
-                                        "multi-textured-missing-sampler-asset"
-                                      ? renderMultiTexturedMissingSamplerAssetScene(
-                                          aperture,
-                                          initialized,
-                                          {
-                                            width: canvas.width,
-                                            height: canvas.height,
-                                          },
-                                        )
-                                      : scenario ===
-                                          "shared-sampler-missing-sampler-asset"
-                                        ? renderSharedSamplerMissingSamplerAssetScene(
-                                            aperture,
-                                            initialized,
-                                            {
-                                              width: canvas.width,
-                                              height: canvas.height,
-                                            },
-                                          )
-                                        : scenario ===
-                                            "shared-texture-missing-texture-sampler-assets"
-                                          ? renderSharedTextureMissingTextureSamplerAssetScene(
-                                              aperture,
-                                              initialized,
-                                              {
-                                                width: canvas.width,
-                                                height: canvas.height,
-                                              },
-                                            )
-                                          : scenario ===
-                                              "shared-texture-missing-sampler-asset"
-                                            ? renderSharedTextureMissingSamplerAssetScene(
-                                                aperture,
-                                                initialized,
-                                                {
-                                                  width: canvas.width,
-                                                  height: canvas.height,
-                                                },
-                                              )
-                                            : scenario ===
-                                                "shared-texture-missing-texture-asset"
-                                              ? renderSharedTextureMissingTextureAssetScene(
-                                                  aperture,
-                                                  initialized,
-                                                  {
-                                                    width: canvas.width,
-                                                    height: canvas.height,
-                                                  },
-                                                )
-                                              : scenario ===
-                                                  "loading-texture-asset"
-                                                ? renderTextureDependencyAssetStatusScene(
-                                                    aperture,
-                                                    initialized,
-                                                    {
-                                                      width: canvas.width,
-                                                      height: canvas.height,
-                                                    },
-                                                    "texture",
-                                                    "loading",
-                                                  )
-                                                : scenario ===
-                                                    "failed-texture-asset"
-                                                  ? renderTextureDependencyAssetStatusScene(
-                                                      aperture,
-                                                      initialized,
-                                                      {
-                                                        width: canvas.width,
-                                                        height: canvas.height,
-                                                      },
-                                                      "texture",
-                                                      "failed",
-                                                    )
-                                                  : scenario ===
-                                                      "loading-sampler-asset"
-                                                    ? renderTextureDependencyAssetStatusScene(
-                                                        aperture,
-                                                        initialized,
-                                                        {
-                                                          width: canvas.width,
-                                                          height: canvas.height,
-                                                        },
-                                                        "sampler",
-                                                        "loading",
-                                                      )
-                                                    : scenario ===
-                                                        "failed-sampler-asset"
-                                                      ? renderTextureDependencyAssetStatusScene(
-                                                          aperture,
-                                                          initialized,
-                                                          {
-                                                            width: canvas.width,
-                                                            height:
-                                                              canvas.height,
-                                                          },
-                                                          "sampler",
-                                                          "failed",
-                                                        )
-                                                      : scenario ===
-                                                          "disabled-renderable"
-                                                        ? renderDisabledRenderableScene(
-                                                            aperture,
-                                                            initialized,
-                                                            {
-                                                              width:
-                                                                canvas.width,
-                                                              height:
-                                                                canvas.height,
-                                                            },
-                                                          )
-                                                        : scenario ===
-                                                            "disabled-visible-peer"
-                                                          ? await renderMultiEntityScene(
-                                                              aperture,
-                                                              initialized,
-                                                              {
-                                                                width:
-                                                                  canvas.width,
-                                                                height:
-                                                                  canvas.height,
-                                                              },
-                                                              readbackUsage,
-                                                              createDisabledVisiblePeerWorld(
-                                                                aperture,
-                                                                {
-                                                                  width:
-                                                                    canvas.width,
-                                                                  height:
-                                                                    canvas.height,
-                                                                },
-                                                              ),
-                                                            )
-                                                          : scenario ===
-                                                              "box-primitive"
-                                                            ? await renderMultiEntityScene(
-                                                                aperture,
-                                                                initialized,
-                                                                {
-                                                                  width:
-                                                                    canvas.width,
-                                                                  height:
-                                                                    canvas.height,
-                                                                },
-                                                                readbackUsage,
-                                                                createBoxPrimitiveWorld(
-                                                                  aperture,
-                                                                  {
-                                                                    width:
-                                                                      canvas.width,
-                                                                    height:
-                                                                      canvas.height,
-                                                                  },
-                                                                ),
-                                                              )
-                                                            : scenario ===
-                                                                "sphere-primitive"
-                                                              ? await renderMultiEntityScene(
-                                                                  aperture,
-                                                                  initialized,
-                                                                  {
-                                                                    width:
-                                                                      canvas.width,
-                                                                    height:
-                                                                      canvas.height,
-                                                                  },
-                                                                  readbackUsage,
-                                                                  createSpherePrimitiveWorld(
-                                                                    aperture,
-                                                                    {
-                                                                      width:
-                                                                        canvas.width,
-                                                                      height:
-                                                                        canvas.height,
-                                                                    },
-                                                                  ),
-                                                                )
-                                                              : scenario ===
-                                                                  "cylinder-primitive"
-                                                                ? await renderMultiEntityScene(
-                                                                    aperture,
-                                                                    initialized,
-                                                                    {
-                                                                      width:
-                                                                        canvas.width,
-                                                                      height:
-                                                                        canvas.height,
-                                                                    },
-                                                                    readbackUsage,
-                                                                    createCylinderPrimitiveWorld(
-                                                                      aperture,
-                                                                      {
-                                                                        width:
-                                                                          canvas.width,
-                                                                        height:
-                                                                          canvas.height,
-                                                                      },
-                                                                    ),
-                                                                  )
-                                                                : scenario ===
-                                                                    "cone-primitive"
-                                                                  ? await renderMultiEntityScene(
-                                                                      aperture,
-                                                                      initialized,
-                                                                      {
-                                                                        width:
-                                                                          canvas.width,
-                                                                        height:
-                                                                          canvas.height,
-                                                                      },
-                                                                      readbackUsage,
-                                                                      createConePrimitiveWorld(
-                                                                        aperture,
-                                                                        {
-                                                                          width:
-                                                                            canvas.width,
-                                                                          height:
-                                                                            canvas.height,
-                                                                        },
-                                                                      ),
-                                                                    )
-                                                                  : scenario ===
-                                                                      "capsule-primitive"
-                                                                    ? await renderMultiEntityScene(
-                                                                        aperture,
-                                                                        initialized,
-                                                                        {
-                                                                          width:
-                                                                            canvas.width,
-                                                                          height:
-                                                                            canvas.height,
-                                                                        },
-                                                                        readbackUsage,
-                                                                        createCapsulePrimitiveWorld(
-                                                                          aperture,
-                                                                          {
-                                                                            width:
-                                                                              canvas.width,
-                                                                            height:
-                                                                              canvas.height,
-                                                                          },
-                                                                        ),
-                                                                      )
-                                                                    : scenario ===
-                                                                        "torus-primitive"
-                                                                      ? await renderMultiEntityScene(
-                                                                          aperture,
-                                                                          initialized,
-                                                                          {
-                                                                            width:
-                                                                              canvas.width,
-                                                                            height:
-                                                                              canvas.height,
-                                                                          },
-                                                                          readbackUsage,
-                                                                          createTorusPrimitiveWorld(
-                                                                            aperture,
-                                                                            {
-                                                                              width:
-                                                                                canvas.width,
-                                                                              height:
-                                                                                canvas.height,
-                                                                            },
-                                                                          ),
-                                                                        )
-                                                                      : scenario ===
-                                                                          "perspective-fov-camera"
-                                                                        ? await renderMultiEntityScene(
-                                                                            aperture,
-                                                                            initialized,
-                                                                            {
-                                                                              width:
-                                                                                canvas.width,
-                                                                              height:
-                                                                                canvas.height,
-                                                                            },
-                                                                            readbackUsage,
-                                                                            createPerspectiveFovCameraWorld(
-                                                                              aperture,
-                                                                              {
-                                                                                width:
-                                                                                  canvas.width,
-                                                                                height:
-                                                                                  canvas.height,
-                                                                              },
-                                                                            ),
-                                                                          )
-                                                                        : scenario ===
-                                                                            "orthographic-camera"
-                                                                          ? await renderMultiEntityScene(
-                                                                              aperture,
-                                                                              initialized,
-                                                                              {
-                                                                                width:
-                                                                                  canvas.width,
-                                                                                height:
-                                                                                  canvas.height,
-                                                                              },
-                                                                              readbackUsage,
-                                                                              createOrthographicCameraWorld(
-                                                                                aperture,
-                                                                                {
-                                                                                  width:
-                                                                                    canvas.width,
-                                                                                  height:
-                                                                                    canvas.height,
-                                                                                },
-                                                                              ),
-                                                                            )
-                                                                          : scenario ===
-                                                                              "render-layer-filter"
-                                                                            ? await renderMultiEntityScene(
-                                                                                aperture,
-                                                                                initialized,
-                                                                                {
-                                                                                  width:
-                                                                                    canvas.width,
-                                                                                  height:
-                                                                                    canvas.height,
-                                                                                },
-                                                                                readbackUsage,
-                                                                                createRenderLayerFilterWorld(
-                                                                                  aperture,
-                                                                                  {
-                                                                                    width:
-                                                                                      canvas.width,
-                                                                                    height:
-                                                                                      canvas.height,
-                                                                                  },
-                                                                                ),
-                                                                              )
-                                                                            : scenario ===
-                                                                                "render-order-overlap"
-                                                                              ? await renderMultiEntityScene(
-                                                                                  aperture,
-                                                                                  initialized,
-                                                                                  {
-                                                                                    width:
-                                                                                      canvas.width,
-                                                                                    height:
-                                                                                      canvas.height,
-                                                                                  },
-                                                                                  readbackUsage,
-                                                                                  createRenderOrderOverlapWorld(
-                                                                                    aperture,
-                                                                                    {
-                                                                                      width:
-                                                                                        canvas.width,
-                                                                                      height:
-                                                                                        canvas.height,
-                                                                                    },
-                                                                                  ),
-                                                                                )
-                                                                              : scenario ===
-                                                                                  "depth-overlap"
-                                                                                ? await renderMultiEntityScene(
-                                                                                    aperture,
-                                                                                    initialized,
-                                                                                    {
-                                                                                      width:
-                                                                                        canvas.width,
-                                                                                      height:
-                                                                                        canvas.height,
-                                                                                    },
-                                                                                    readbackUsage,
-                                                                                    createDepthOverlapWorld(
-                                                                                      aperture,
-                                                                                      {
-                                                                                        width:
-                                                                                          canvas.width,
-                                                                                        height:
-                                                                                          canvas.height,
-                                                                                      },
-                                                                                    ),
-                                                                                  )
-                                                                                : await renderMultiEntityScene(
-                                                                                    aperture,
-                                                                                    initialized,
-                                                                                    {
-                                                                                      width:
-                                                                                        canvas.width,
-                                                                                      height:
-                                                                                        canvas.height,
-                                                                                    },
-                                                                                    readbackUsage,
-                                                                                    scenario ===
-                                                                                      "textured-unlit"
-                                                                                      ? createTexturedUnlitWorld(
-                                                                                          aperture,
-                                                                                          {
-                                                                                            width:
-                                                                                              canvas.width,
-                                                                                            height:
-                                                                                              canvas.height,
-                                                                                          },
-                                                                                        )
-                                                                                      : scenario ===
-                                                                                          "sampler-filter-address"
-                                                                                        ? createSamplerFilterAddressWorld(
-                                                                                            aperture,
-                                                                                            {
-                                                                                              width:
-                                                                                                canvas.width,
-                                                                                              height:
-                                                                                                canvas.height,
-                                                                                            },
-                                                                                          )
-                                                                                        : scenario ===
-                                                                                            "textured-unlit-tint"
-                                                                                          ? createTexturedUnlitTintWorld(
-                                                                                              aperture,
-                                                                                              {
-                                                                                                width:
-                                                                                                  canvas.width,
-                                                                                                height:
-                                                                                                  canvas.height,
-                                                                                              },
-                                                                                            )
-                                                                                          : scenario ===
-                                                                                              "sampler-v-address"
-                                                                                            ? createSamplerVAddressWorld(
-                                                                                                aperture,
-                                                                                                {
-                                                                                                  width:
-                                                                                                    canvas.width,
-                                                                                                  height:
-                                                                                                    canvas.height,
-                                                                                                },
-                                                                                              )
-                                                                                            : scenario ===
-                                                                                                "multi-textured-unlit"
-                                                                                              ? createMultiTexturedUnlitWorld(
-                                                                                                  aperture,
-                                                                                                  {
-                                                                                                    width:
-                                                                                                      canvas.width,
-                                                                                                    height:
-                                                                                                      canvas.height,
-                                                                                                  },
-                                                                                                )
-                                                                                              : scenario ===
-                                                                                                  "shared-sampler-multi-textured"
-                                                                                                ? createMultiTexturedUnlitWorld(
-                                                                                                    aperture,
-                                                                                                    {
-                                                                                                      width:
-                                                                                                        canvas.width,
-                                                                                                      height:
-                                                                                                        canvas.height,
-                                                                                                    },
-                                                                                                    {
-                                                                                                      sharedSampler: true,
-                                                                                                    },
-                                                                                                  )
-                                                                                                : scenario ===
-                                                                                                    "shared-texture-tinted-unlit"
-                                                                                                  ? createSharedTextureTintedWorld(
-                                                                                                      aperture,
-                                                                                                      {
-                                                                                                        width:
-                                                                                                          canvas.width,
-                                                                                                        height:
-                                                                                                          canvas.height,
-                                                                                                      },
-                                                                                                    )
-                                                                                                  : scenario ===
-                                                                                                      "shared-texture-missing-texture-resource"
-                                                                                                    ? createSharedTextureMissingTextureResourceWorld(
-                                                                                                        aperture,
-                                                                                                        {
-                                                                                                          width:
-                                                                                                            canvas.width,
-                                                                                                          height:
-                                                                                                            canvas.height,
-                                                                                                        },
-                                                                                                      )
-                                                                                                    : scenario ===
-                                                                                                        "shared-texture-missing-sampler-resource"
-                                                                                                      ? createSharedTextureMissingSamplerResourceWorld(
-                                                                                                          aperture,
-                                                                                                          {
-                                                                                                            width:
-                                                                                                              canvas.width,
-                                                                                                            height:
-                                                                                                              canvas.height,
-                                                                                                          },
-                                                                                                        )
-                                                                                                      : scenario ===
-                                                                                                          "shared-texture-missing-texture-sampler-resources"
-                                                                                                        ? createSharedTextureMissingTextureSamplerResourceWorld(
-                                                                                                            aperture,
-                                                                                                            {
-                                                                                                              width:
-                                                                                                                canvas.width,
-                                                                                                              height:
-                                                                                                                canvas.height,
-                                                                                                            },
-                                                                                                          )
-                                                                                                        : scenario ===
-                                                                                                            "multi-textured-missing-texture-resource"
-                                                                                                          ? createMultiTexturedMissingTextureResourceWorld(
-                                                                                                              aperture,
-                                                                                                              {
-                                                                                                                width:
-                                                                                                                  canvas.width,
-                                                                                                                height:
-                                                                                                                  canvas.height,
-                                                                                                              },
-                                                                                                            )
-                                                                                                          : scenario ===
-                                                                                                              "multi-textured-missing-sampler-resource"
-                                                                                                            ? createMultiTexturedMissingSamplerResourceWorld(
-                                                                                                                aperture,
-                                                                                                                {
-                                                                                                                  width:
-                                                                                                                    canvas.width,
-                                                                                                                  height:
-                                                                                                                    canvas.height,
-                                                                                                                },
-                                                                                                              )
-                                                                                                            : scenario ===
-                                                                                                                "multi-textured-missing-texture-sampler-resources"
-                                                                                                              ? createMultiTexturedMissingTextureSamplerResourceWorld(
-                                                                                                                  aperture,
-                                                                                                                  {
-                                                                                                                    width:
-                                                                                                                      canvas.width,
-                                                                                                                    height:
-                                                                                                                      canvas.height,
-                                                                                                                  },
-                                                                                                                )
-                                                                                                              : scenario ===
-                                                                                                                  "shared-sampler-missing-sampler-resource"
-                                                                                                                ? createSharedSamplerMissingSamplerResourceWorld(
-                                                                                                                    aperture,
-                                                                                                                    {
-                                                                                                                      width:
-                                                                                                                        canvas.width,
-                                                                                                                      height:
-                                                                                                                        canvas.height,
-                                                                                                                    },
-                                                                                                                  )
-                                                                                                                : scenario ===
-                                                                                                                    "shared-sampler-missing-texture-resource"
-                                                                                                                  ? createSharedSamplerMissingTextureResourceWorld(
-                                                                                                                      aperture,
-                                                                                                                      {
-                                                                                                                        width:
-                                                                                                                          canvas.width,
-                                                                                                                        height:
-                                                                                                                          canvas.height,
-                                                                                                                      },
-                                                                                                                    )
-                                                                                                                  : scenario ===
-                                                                                                                      "shared-sampler-missing-texture-sampler-resources"
-                                                                                                                    ? createSharedSamplerMissingTextureSamplerResourceWorld(
-                                                                                                                        aperture,
-                                                                                                                        {
-                                                                                                                          width:
-                                                                                                                            canvas.width,
-                                                                                                                          height:
-                                                                                                                            canvas.height,
-                                                                                                                        },
-                                                                                                                      )
-                                                                                                                    : scenario ===
-                                                                                                                        "mixed-unlit-pipelines"
-                                                                                                                      ? createMixedUnlitPipelineWorld(
-                                                                                                                          aperture,
-                                                                                                                          {
-                                                                                                                            width:
-                                                                                                                              canvas.width,
-                                                                                                                            height:
-                                                                                                                              canvas.height,
-                                                                                                                          },
-                                                                                                                        )
-                                                                                                                      : scenario ===
-                                                                                                                          "missing-texture-sampler-resources"
-                                                                                                                        ? createMissingTextureSamplerResourceWorld(
-                                                                                                                            aperture,
-                                                                                                                            {
-                                                                                                                              width:
-                                                                                                                                canvas.width,
-                                                                                                                              height:
-                                                                                                                                canvas.height,
-                                                                                                                            },
-                                                                                                                          )
-                                                                                                                        : scenario ===
-                                                                                                                            "invalid-texture-upload"
-                                                                                                                          ? createInvalidTextureUploadWorld(
-                                                                                                                              aperture,
-                                                                                                                              {
-                                                                                                                                width:
-                                                                                                                                  canvas.width,
-                                                                                                                                height:
-                                                                                                                                  canvas.height,
-                                                                                                                              },
-                                                                                                                            )
-                                                                                                                          : scenario ===
-                                                                                                                              "short-texture-upload"
-                                                                                                                            ? createShortTextureUploadWorld(
-                                                                                                                                aperture,
-                                                                                                                                {
-                                                                                                                                  width:
-                                                                                                                                    canvas.width,
-                                                                                                                                  height:
-                                                                                                                                    canvas.height,
-                                                                                                                                },
-                                                                                                                              )
-                                                                                                                            : scenario ===
-                                                                                                                                "invalid-texture-rows-per-image"
-                                                                                                                              ? createInvalidTextureRowsPerImageWorld(
-                                                                                                                                  aperture,
-                                                                                                                                  {
-                                                                                                                                    width:
-                                                                                                                                      canvas.width,
-                                                                                                                                    height:
-                                                                                                                                      canvas.height,
-                                                                                                                                  },
-                                                                                                                                )
-                                                                                                                              : undefined,
-                                                                                  ),
+          : await renderScenario({
+              aperture,
+              initialized,
+              canvasSize,
+              readbackUsage,
+            }),
       );
     }
   }
@@ -861,6 +257,57 @@ try {
         : "The built Aperture package could not be imported from /dist.",
     ),
   );
+}
+
+function renderDefaultMultiEntityScenario(context) {
+  return renderMultiEntityScene(
+    context.aperture,
+    context.initialized,
+    context.canvasSize,
+    context.readbackUsage,
+  );
+}
+
+function renderStatusScene(renderScene) {
+  return ({ aperture, initialized, canvasSize }) =>
+    renderScene(aperture, initialized, canvasSize);
+}
+
+function renderWorldScene(createWorld) {
+  return ({ aperture, initialized, canvasSize, readbackUsage }) =>
+    renderMultiEntityScene(
+      aperture,
+      initialized,
+      canvasSize,
+      readbackUsage,
+      createWorld(aperture, canvasSize),
+    );
+}
+
+function renderMeshAssetStatusScenario(assetStatus) {
+  return ({ aperture, initialized, canvasSize }) =>
+    renderMeshAssetStatusScene(aperture, initialized, canvasSize, assetStatus);
+}
+
+function renderMaterialAssetStatusScenario(assetStatus) {
+  return ({ aperture, initialized, canvasSize }) =>
+    renderMaterialAssetStatusScene(
+      aperture,
+      initialized,
+      canvasSize,
+      assetStatus,
+    );
+}
+
+function renderTextureAssetStatusScenario(dependencyKind, assetStatus) {
+  return ({ aperture, initialized, canvasSize }) =>
+    renderTextureDependencyAssetStatusScene(
+      aperture,
+      initialized,
+      canvasSize,
+      dependencyKind,
+      assetStatus,
+    );
 }
 
 async function renderMultiEntityScene(
@@ -969,6 +416,14 @@ async function renderMultiEntityScene(
       ...(scene.invalidTextureUpload === undefined
         ? {}
         : { invalidTextureUpload: scene.invalidTextureUpload }),
+      diagnosticCounts: {
+        extraction: snapshot.diagnostics.length,
+        resources: textureResources.diagnostics.length,
+        binding: 0,
+        draw: 0,
+        submission: 0,
+        readback: 0,
+      },
     };
   }
 
@@ -1020,6 +475,16 @@ async function renderMultiEntityScene(
       ...(scene.missingSamplerResource === undefined
         ? {}
         : { missingSamplerResource: scene.missingSamplerResource }),
+      diagnosticCounts: {
+        extraction: snapshot.diagnostics.length,
+        resources:
+          textureResources.diagnostics.length +
+          frameResources.diagnostics.length,
+        binding: 0,
+        draw: 0,
+        submission: 0,
+        readback: 0,
+      },
     };
   }
 
@@ -1685,7 +1150,7 @@ function unknownScenarioStatus(aperture, initialized) {
     apertureVersion: aperture.APERTURE_VERSION,
     renderingBackend: aperture.APERTURE_IDENTITY.renderingBackend,
     format: initialized.format,
-    availableScenarios: [...knownScenarios],
+    availableScenarios: knownScenarioIds,
     extraction: { frame: 0, views: 0, meshDraws: 0, diagnostics: 0 },
     resources: { materials: 0, bindGroups: 0, missing: "none" },
     binding: { planned: 0, applied: 0, ready: 0, diagnostics: 0 },

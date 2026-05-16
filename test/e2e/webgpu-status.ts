@@ -1,10 +1,27 @@
-import { test, type Page } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 
 import type { ExampleStatusBase } from "./example-status-types.js";
 
 type ExampleGlobal = typeof globalThis & {
   readonly __APERTURE_EXAMPLE_STATUS__?: unknown;
 };
+
+type CountStatusSection = Readonly<Record<string, unknown>>;
+
+interface NoDrawSubmissionStatus {
+  readonly draw?: CountStatusSection;
+  readonly command?: CountStatusSection;
+  readonly submission?: CountStatusSection;
+}
+
+interface DiagnosticCountSummary {
+  readonly extraction: number;
+  readonly resources: number;
+  readonly binding: number;
+  readonly draw: number;
+  readonly submission: number;
+  readonly readback: number;
+}
 
 const unsupportedWebGpuReasons = new Set<string>([
   "navigator-gpu-unavailable",
@@ -13,6 +30,9 @@ const unsupportedWebGpuReasons = new Set<string>([
   "context-unavailable",
   "device-lost",
 ]);
+
+const rawGpuStatusJsonPattern =
+  /\b(?:GPU[A-Z][A-Za-z0-9]*|create(?:Texture(?:View)?|Sampler|Buffer|BindGroup|CommandEncoder|RenderPipeline|ShaderModule|PipelineLayout)|request(?:Adapter|Device))\b/u;
 
 export async function waitForExampleStatus<T>(
   page: Page,
@@ -48,6 +68,57 @@ export function skipIfUnsupportedWebGpu(status: ExampleStatusBase): void {
       `WebGPU unsupported in this browser: ${status.reason} - ${
         status.message ?? "no message"
       }`,
+    );
+  }
+}
+
+export function expectStatusJsonSafeForGpu(status: unknown): void {
+  expect(
+    JSON.stringify(status ?? null, null, 2),
+    "status JSON must not expose raw GPU handles or WebGPU creation calls",
+  ).not.toMatch(rawGpuStatusJsonPattern);
+}
+
+export function expectNoDrawSubmissionStatus(
+  status: NoDrawSubmissionStatus,
+): void {
+  const statusJson = JSON.stringify(status ?? null, null, 2);
+
+  expectNoNonZeroCountSection("draw", status.draw, statusJson);
+  expectNoNonZeroCountSection("command", status.command, statusJson);
+  expectNoNonZeroCountSection("submission", status.submission, statusJson);
+}
+
+export function expectedDiagnosticCounts(
+  counts: Partial<DiagnosticCountSummary>,
+): DiagnosticCountSummary {
+  return {
+    extraction: 0,
+    resources: 0,
+    binding: 0,
+    draw: 0,
+    submission: 0,
+    readback: 0,
+    ...counts,
+  };
+}
+
+function expectNoNonZeroCountSection(
+  sectionName: string,
+  section: CountStatusSection | undefined,
+  statusJson: string,
+): void {
+  if (section === undefined) {
+    return;
+  }
+
+  for (const [key, value] of Object.entries(section)) {
+    if (typeof value !== "number") {
+      continue;
+    }
+
+    expect(value, `${sectionName}.${key} should be zero; ${statusJson}`).toBe(
+      0,
     );
   }
 }

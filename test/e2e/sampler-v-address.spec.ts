@@ -4,6 +4,7 @@ import type { MultiEntityExampleStatus } from "./example-status-types.js";
 import { pixelDistance, rgbaColorToPixel } from "./png.js";
 import {
   attachExampleStatus,
+  expectedDiagnosticCounts,
   skipIfUnsupportedWebGpu,
   waitForExampleStatus,
 } from "./webgpu-status.js";
@@ -56,7 +57,7 @@ test("ECS browser example applies vertical sampler address settings", async ({
     },
     command: { drawCount: 1, indexedDrawCount: 1 },
     submission: { commandBuffers: 1, drawCalls: 1, indexedDrawCalls: 1 },
-    diagnosticCounts: { extraction: 0, resources: 0, draw: 0, submission: 0 },
+    diagnosticCounts: expectedDiagnosticCounts({}),
   });
 
   if (status.samplerVAddress === undefined || !status.readback?.ok) {

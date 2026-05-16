@@ -4,6 +4,7 @@ import type { MultiEntityExampleStatus } from "./example-status-types.js";
 import { pixelDistance, rgbaColorToPixel } from "./png.js";
 import {
   attachExampleStatus,
+  expectedDiagnosticCounts,
   skipIfUnsupportedWebGpu,
   waitForExampleStatus,
 } from "./webgpu-status.js";
@@ -50,7 +51,7 @@ test("ECS browser example renders matching layer and skips mismatched peer", asy
     },
     command: { drawCount: 1, indexedDrawCount: 1 },
     submission: { commandBuffers: 1, drawCalls: 1, indexedDrawCalls: 1 },
-    diagnosticCounts: { extraction: 1, draw: 0, submission: 0 },
+    diagnosticCounts: expectedDiagnosticCounts({ extraction: 1 }),
   });
   expect(status.clearColor, JSON.stringify(status, null, 2)).toBeDefined();
 

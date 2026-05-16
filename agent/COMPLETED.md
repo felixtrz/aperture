@@ -3611,3 +3611,403 @@ Summary:
 - Missing mesh asset, missing material asset, layer mismatch, and disabled renderable Playwright tests now assert extraction-failure `diagnosticCounts`.
 - Assertions stay focused on status shape and downstream zero counts.
 - `npm run check` and full Playwright coverage pass.
+
+## task-0340 — Add no-raw-GPU assertion helper for texture failures
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added `expectStatusJsonSafeForGpu` for JSON-safe browser status assertions.
+- Texture/sampler asset, resource, routing, and upload failure specs use the helper.
+- Targeted Playwright coverage passed.
+
+## task-0341 — Split multi-entity scenario dispatch into a lookup table
+
+Completed: 2026-05-16
+
+Summary:
+
+- Replaced the nested multi-entity scenario ternary with `scenarioRenderers`.
+- Added small dispatch helper factories without moving ECS state into renderer-owned structures.
+- `check:examples` and full Playwright coverage passed.
+
+## task-0342 — Document browser diagnostic count phases
+
+Completed: 2026-05-16
+
+Summary:
+
+- Documented `diagnosticCounts` buckets and phase interpretation in `docs/BROWSER_E2E_RENDERING.md`.
+- Preserved ECS/render extraction and JSON-safe status boundaries.
+- Docs-only change.
+
+## task-0343 — Add route guard coverage for resource-binding scenarios
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added lightweight route coverage for missing material and mesh resource scenarios.
+- The guard asserts `phase: "resource-bindings"` without duplicating detailed diagnostics.
+- Targeted Playwright coverage passed.
+
+## task-0344 — Add diagnostic count assertions for asset-state failures
+
+Completed: 2026-05-16
+
+Summary:
+
+- Mesh and material loading/failed asset specs now assert extraction `diagnosticCounts`.
+- Registry diagnostic assertions remain focused on failure bodies.
+- Targeted Playwright coverage passed.
+
+## task-0345 — Add diagnostic counts for texture resource failures
+
+Completed: 2026-05-16
+
+Summary:
+
+- Texture/sampler GPU resource failure statuses now include resource-phase `diagnosticCounts`.
+- Missing texture resource coverage asserts resource counts and zero downstream buckets.
+- Targeted Playwright coverage passed.
+
+## task-0346 — Add diagnostic counts for texture upload validation
+
+Completed: 2026-05-16
+
+Summary:
+
+- Invalid texture upload statuses now include resource-phase `diagnosticCounts`.
+- Bytes-per-row, short data, and rows-per-image specs assert the count summaries.
+- Targeted Playwright coverage passed.
+
+## task-0347 — Guard multi-entity scenario registry alignment
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added a no-browser Vitest guard comparing `knownScenarios` with `scenarioRenderers`.
+- The guard catches missing or extra scenario dispatch entries.
+- Targeted Vitest coverage passed.
+
+## task-0348 — Add route guard coverage for texture upload failures
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added lightweight route coverage for invalid texture upload scenarios.
+- The guard asserts `phase: "resources"`, diagnostic code, and no draw submission.
+- Targeted Playwright coverage passed.
+
+## task-0349 — Share zero-submission browser assertions
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added `expectNoDrawSubmissionStatus` for browser failure status checks.
+- Texture dependency and texture resource failure specs use the helper.
+- Targeted typecheck and Playwright coverage passed.
+
+## task-0350 — Share browser diagnostic count helpers
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added `expectedDiagnosticCounts` for shared diagnostic count expectations.
+- Texture resource and invalid upload specs use the shared helper.
+- Targeted typecheck and Playwright coverage passed.
+
+## task-0351 — Add texture dependency diagnostic count assertions
+
+Completed: 2026-05-16
+
+Summary:
+
+- Texture dependency asset status coverage now asserts extraction `diagnosticCounts`.
+- Missing, loading, and failed texture/sampler dependency rows are covered.
+- Targeted Playwright coverage passed.
+
+## task-0352 — Add multi-textured asset diagnostic count assertions
+
+Completed: 2026-05-16
+
+Summary:
+
+- Multi-textured texture/sampler asset failure specs now assert diagnostic count summaries.
+- Shared texture/sampler cases lock one-draw and two-draw extraction totals.
+- Targeted Playwright coverage passed.
+
+## task-0353 — Add resource-binding route count assertions
+
+Completed: 2026-05-16
+
+Summary:
+
+- Resource-binding route guards now assert binding and draw diagnostic count buckets.
+- Route/status scope remains lightweight.
+- Targeted Playwright coverage passed.
+
+## task-0354 — Add zero-submission helper coverage to asset status specs
+
+Completed: 2026-05-16
+
+Summary:
+
+- Mesh and material asset status specs now use `expectNoDrawSubmissionStatus`.
+- Registry diagnostic checks remain unchanged.
+- Targeted typecheck and Playwright coverage passed.
+
+## task-0355 — Share asset-status diagnostic count helpers
+
+Completed: 2026-05-16
+
+Summary:
+
+- Mesh and material asset status specs now use `expectedDiagnosticCounts`.
+- Extraction count expectations remain unchanged.
+- Targeted Playwright coverage passed.
+
+## task-0356 — Share missing-asset diagnostic count helpers
+
+Completed: 2026-05-16
+
+Summary:
+
+- Missing mesh and material asset specs now use `expectedDiagnosticCounts`.
+- Stable diagnostic code assertions remain unchanged.
+- Targeted Playwright coverage passed.
+
+## task-0357 — Use no-submit helper in missing-asset specs
+
+Completed: 2026-05-16
+
+Summary:
+
+- Missing mesh and material asset specs now call `expectNoDrawSubmissionStatus`.
+- Existing diagnostic assertions remain unchanged.
+- Targeted typecheck and Playwright coverage passed.
+
+## task-0358 — Use no-submit helper in multi-textured asset failures
+
+Completed: 2026-05-16
+
+Summary:
+
+- Multi-textured asset failure specs now use the shared no-submit helper.
+- Asset diagnostic order and key assertions remain unchanged.
+- Targeted typecheck and Playwright coverage passed.
+
+## task-0359 — Use no-submit helper in route guard specs
+
+Completed: 2026-05-16
+
+Summary:
+
+- Resource-binding and texture-upload route guards now call `expectNoDrawSubmissionStatus`.
+- Route phase assertions remain unchanged.
+- Targeted typecheck and Playwright coverage passed.
+
+## task-0360 — Share helpers in missing resource specs
+
+Completed: 2026-05-16
+
+Summary:
+
+- Missing material and mesh resource specs now use shared count and no-submit helpers.
+- Detailed diagnostic assertions remain unchanged.
+- Targeted typecheck and Playwright coverage passed.
+
+## task-0361 — Share helpers in extraction skip specs
+
+Completed: 2026-05-16
+
+Summary:
+
+- Layer mismatch and disabled renderable specs now use shared count and no-submit helpers.
+- Diagnostic body assertions remain unchanged.
+- Targeted typecheck and Playwright coverage passed.
+
+## task-0362 — Share helpers in unknown scenario spec
+
+Completed: 2026-05-16
+
+Summary:
+
+- Unknown scenario coverage now uses shared count and no-submit helpers.
+- Available scenario assertions remain unchanged.
+- Targeted typecheck and Playwright coverage passed.
+
+## task-0363 — Share no-submit helper in texture asset routes
+
+Completed: 2026-05-16
+
+Summary:
+
+- Texture asset route guard helper now calls `expectNoDrawSubmissionStatus`.
+- Route/status assertions remain focused.
+- Targeted typecheck and Playwright coverage passed.
+
+## task-0364 — Share count helper in route guards
+
+Completed: 2026-05-16
+
+Summary:
+
+- Texture asset route guard helper now uses `expectedDiagnosticCounts`.
+- Shared sampler/texture route coverage still passes.
+- Targeted typecheck and Playwright coverage passed.
+
+## task-0365 — Name ordered multi-entity scenario ids
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added `knownScenarioIds` and derived `knownScenarios` from it.
+- Unknown-scenario `availableScenarios` now uses the ordered id array directly.
+- Scenario guard, example syntax, and unknown-scenario Playwright coverage passed.
+
+## task-0366 — Use helper counts in core e2e status smoke specs
+
+Completed: 2026-05-16
+
+Summary:
+
+- ECS multi-entity status smoke now uses `expectedDiagnosticCounts`.
+- Triangle/basic status checks were left unchanged because they do not publish the same count summary.
+- Targeted typecheck and Playwright coverage passed.
+
+## task-0367 — Use helper counts in texture success specs
+
+Completed: 2026-05-16
+
+Summary:
+
+- Successful texture, sampler, mixed unlit, and multi-textured specs now use `expectedDiagnosticCounts`.
+- Pixel/readback assertions remain unchanged.
+- Targeted typecheck and Playwright coverage passed.
+
+## task-0368 — Use helper counts in primitive/camera specs
+
+Completed: 2026-05-16
+
+Summary:
+
+- Primitive and camera specs now use `expectedDiagnosticCounts`.
+- Geometry and readback assertions remain unchanged.
+- Targeted typecheck and Playwright coverage passed.
+
+## task-0369 — Document browser e2e helper conventions
+
+Completed: 2026-05-16
+
+Summary:
+
+- Documented the shared browser e2e status helpers in `docs/BROWSER_E2E_RENDERING.md`.
+- The note reinforces JSON-safe count/no-submit/GPU-handle boundaries.
+- `npm run check` and full Playwright coverage pass.
+
+## task-0370 — Share count helpers in visibility specs
+
+Completed: 2026-05-16
+
+Summary:
+
+- Visibility, disabled-peer, render-order, and depth specs now use `expectedDiagnosticCounts`.
+- Readback and scenario-specific status assertions remain unchanged.
+- Targeted typecheck and Playwright coverage passed.
+
+## task-0371 — Remove repeated zero fields from route guards
+
+Completed: 2026-05-16
+
+Summary:
+
+- Resource-binding and texture asset route guards now rely on shared no-submit/count helpers.
+- Route assertions remain focused on phase, scenario, and stable status fields.
+- Targeted typecheck and Playwright coverage passed.
+
+## task-0372 — Add static scenario coverage guard for e2e routes
+
+Completed: 2026-05-16
+
+Summary:
+
+- Extended the no-browser scenario guard to scan literal route URLs and simple fixture scenarios.
+- Intentional negative fixtures are explicitly excluded.
+- Targeted Vitest coverage passed.
+
+## task-0373 — Add successful route smoke for primitive scenarios
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added lightweight Playwright route/status coverage for built-in primitive scenarios.
+- The guard asserts submitted frames and matching primitive status without duplicating pixel tests.
+- Targeted typecheck and Playwright coverage passed.
+
+## task-0374 — Add successful route smoke for camera scenarios
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added lightweight Playwright route/status coverage for perspective and orthographic camera scenarios.
+- The guard asserts submitted frames and expected projection status without duplicating readback tests.
+- Targeted typecheck and Playwright coverage passed.
+
+## task-0375 — Add route smoke for visibility/order scenarios
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added lightweight Playwright route/status coverage for render-layer, disabled-peer, render-order, and depth scenarios.
+- The guard asserts submitted frames and representative scenario status fields without duplicating pixel tests.
+- Targeted typecheck and Playwright coverage passed.
+
+## task-0376 — Add route smoke for texture success scenarios
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added lightweight Playwright route/status coverage for texture, sampler, shared-texture, multi-textured, and mixed pipeline scenarios.
+- The guard asserts submitted frames and representative texture/sampler/pipeline status fields without duplicating readback tests.
+- Targeted typecheck and Playwright coverage passed.
+
+## task-0377 — Extend static route guard to fixture scenarios
+
+Completed: 2026-05-16
+
+Summary:
+
+- Extended the no-browser route guard to check simple `scenario: "..."` fixtures in e2e specs.
+- The guard keeps intentional unknown-scenario fixtures excluded.
+- Targeted Vitest coverage passed.
+
+## task-0378 — Document scenario route guard coverage
+
+Completed: 2026-05-16
+
+Summary:
+
+- Documented the no-browser scenario registry/route guard in `docs/BROWSER_E2E_RENDERING.md`.
+- The note explains that the static guard complements browser coverage rather than replacing it.
+- No implementation behavior changed.
+
+## task-0379 — Add route smoke docs entries for new guards
+
+Completed: 2026-05-16
+
+Summary:
+
+- Documented primitive, camera, visibility/order/depth, and texture route smoke specs.
+- The entries keep route/status guards separate from detailed pixel/readback assertions.
+- No implementation behavior changed.

@@ -4,6 +4,7 @@ import type { MultiEntityExampleStatus } from "./example-status-types.js";
 import { pixelDistance, rgbaColorToPixel } from "./png.js";
 import {
   attachExampleStatus,
+  expectedDiagnosticCounts,
   skipIfUnsupportedWebGpu,
   waitForExampleStatus,
 } from "./webgpu-status.js";
@@ -54,6 +55,7 @@ test("ECS browser example renders primitive through non-default perspective FOV"
     },
     command: { drawCount: 1, indexedDrawCount: 1 },
     submission: { commandBuffers: 1, drawCalls: 1, indexedDrawCalls: 1 },
+    diagnosticCounts: expectedDiagnosticCounts({}),
   });
   expect(status.camera?.fovYRadians).not.toBeCloseTo(Math.PI / 3, 6);
   expect(status.clearColor, JSON.stringify(status, null, 2)).toBeDefined();

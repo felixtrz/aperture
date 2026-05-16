@@ -4,6 +4,7 @@ import type { MultiEntityExampleStatus } from "./example-status-types.js";
 import { pixelDistance, rgbaColorToPixel } from "./png.js";
 import {
   attachExampleStatus,
+  expectedDiagnosticCounts,
   skipIfUnsupportedWebGpu,
   waitForExampleStatus,
 } from "./webgpu-status.js";
@@ -53,6 +54,7 @@ test("ECS browser example renders overlapping primitives in explicit order", asy
     },
     command: { drawCount: 2, indexedDrawCount: 2 },
     submission: { commandBuffers: 1, drawCalls: 2, indexedDrawCalls: 2 },
+    diagnosticCounts: expectedDiagnosticCounts({}),
   });
   expect(status.clearColor, JSON.stringify(status, null, 2)).toBeDefined();
 

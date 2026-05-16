@@ -4,6 +4,7 @@ import type { MultiEntityExampleStatus } from "./example-status-types.js";
 import { pixelDistance, rgbaColorToPixel } from "./png.js";
 import {
   attachExampleStatus,
+  expectedDiagnosticCounts,
   skipIfUnsupportedWebGpu,
   waitForExampleStatus,
 } from "./webgpu-status.js";
@@ -46,7 +47,7 @@ test("ECS browser example depth-tests overlapping 3D renderables", async ({
     },
     command: { drawCount: 2, indexedDrawCount: 2 },
     submission: { commandBuffers: 1, drawCalls: 2, indexedDrawCalls: 2 },
-    diagnosticCounts: { extraction: 0, draw: 0, submission: 0 },
+    diagnosticCounts: expectedDiagnosticCounts({}),
   });
   expect(status.clearColor, JSON.stringify(status, null, 2)).toBeDefined();
 
