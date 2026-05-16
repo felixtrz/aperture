@@ -1,31 +1,23 @@
 import { expect, test } from "@playwright/test";
 
-import type { MultiEntityExampleStatus } from "./example-status-types.js";
 import {
-  attachExampleStatus,
   expectedDiagnosticCounts,
   expectStatusJsonSafeForGpu,
-  skipIfUnsupportedWebGpu,
-  waitForExampleStatus,
+  loadMultiEntityScenarioStatus,
 } from "./webgpu-status.js";
 
 test("ECS browser example reports invalid texture upload diagnostics", async ({
   page,
 }) => {
-  await page.goto(
-    "/examples/multi-entity.html?scenario=invalid-texture-upload",
+  const status = await loadMultiEntityScenarioStatus(
+    page,
+    "invalid-texture-upload",
+    "invalid-texture-upload-status",
   );
-  const status = await waitForExampleStatus<MultiEntityExampleStatus>(page);
-
-  await attachExampleStatus("invalid-texture-upload-status", status);
-
-  expect(status, "example status should be published").toBeDefined();
 
   if (status === undefined) {
     return;
   }
-
-  skipIfUnsupportedWebGpu(status);
 
   expect(status, JSON.stringify(status, null, 2)).toMatchObject({
     example: "ecs-multi-entity",
@@ -62,18 +54,15 @@ test("ECS browser example reports invalid texture upload diagnostics", async ({
 test("ECS browser example reports short texture upload diagnostics", async ({
   page,
 }) => {
-  await page.goto("/examples/multi-entity.html?scenario=short-texture-upload");
-  const status = await waitForExampleStatus<MultiEntityExampleStatus>(page);
-
-  await attachExampleStatus("short-texture-upload-status", status);
-
-  expect(status, "example status should be published").toBeDefined();
+  const status = await loadMultiEntityScenarioStatus(
+    page,
+    "short-texture-upload",
+    "short-texture-upload-status",
+  );
 
   if (status === undefined) {
     return;
   }
-
-  skipIfUnsupportedWebGpu(status);
 
   expect(status, JSON.stringify(status, null, 2)).toMatchObject({
     example: "ecs-multi-entity",
@@ -111,20 +100,15 @@ test("ECS browser example reports short texture upload diagnostics", async ({
 test("ECS browser example reports invalid rows-per-image texture upload diagnostics", async ({
   page,
 }) => {
-  await page.goto(
-    "/examples/multi-entity.html?scenario=invalid-texture-rows-per-image",
+  const status = await loadMultiEntityScenarioStatus(
+    page,
+    "invalid-texture-rows-per-image",
+    "invalid-texture-rows-per-image-status",
   );
-  const status = await waitForExampleStatus<MultiEntityExampleStatus>(page);
-
-  await attachExampleStatus("invalid-texture-rows-per-image-status", status);
-
-  expect(status, "example status should be published").toBeDefined();
 
   if (status === undefined) {
     return;
   }
-
-  skipIfUnsupportedWebGpu(status);
 
   expect(status, JSON.stringify(status, null, 2)).toMatchObject({
     example: "ecs-multi-entity",

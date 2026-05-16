@@ -1,12 +1,9 @@
 import { expect, test } from "@playwright/test";
 
-import type { MultiEntityExampleStatus } from "./example-status-types.js";
 import { pixelDistance, rgbaColorToPixel } from "./png.js";
 import {
-  attachExampleStatus,
   expectedDiagnosticCounts,
-  skipIfUnsupportedWebGpu,
-  waitForExampleStatus,
+  loadMultiEntityScenarioStatus,
 } from "./webgpu-status.js";
 
 const frontMaterial = { r: 0.08, g: 0.35, b: 1, a: 1 };
@@ -14,18 +11,15 @@ const frontMaterial = { r: 0.08, g: 0.35, b: 1, a: 1 };
 test("ECS browser example renders overlapping primitives in explicit order", async ({
   page,
 }) => {
-  await page.goto("/examples/multi-entity.html?scenario=render-order-overlap");
-  const status = await waitForExampleStatus<MultiEntityExampleStatus>(page);
-
-  await attachExampleStatus("render-order-overlap-status", status);
-
-  expect(status, "example status should be published").toBeDefined();
+  const status = await loadMultiEntityScenarioStatus(
+    page,
+    "render-order-overlap",
+    "render-order-overlap-status",
+  );
 
   if (status === undefined) {
     return;
   }
-
-  skipIfUnsupportedWebGpu(status);
 
   expect(status, JSON.stringify(status, null, 2)).toMatchObject({
     example: "ecs-multi-entity",

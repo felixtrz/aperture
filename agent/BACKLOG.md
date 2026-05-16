@@ -27,77 +27,70 @@ Keep implementation vertical, typed, and testable. Do not introduce a public mut
 
 ## Recommended Next Task
 
-Start with `task-0380`. The browser route smoke coverage now covers
-successful primitive, camera, visibility/order/depth, and texture scenarios; the
-next useful slice is adding the same lightweight route/status guard for
-extraction-failure scenarios that currently only have detailed specs.
+Start with `task-0420`. Browser specs now use shared example loaders and static
+guards protect helper usage. The next useful slice is reducing repeated shallow
+failure-route assertions by applying `expectMultiEntityRouteFailureStatus` to
+the remaining route guard families.
 
 ## Ready Tasks
 
-### task-0380 — Add route smoke for extraction failure scenarios
+### task-0420 — Use failure helper in resource route specs
 
-Add lightweight route/status coverage for core extraction-failure scenarios.
-
-Acceptance criteria:
-
-- A focused Playwright loop loads layer mismatch, disabled renderable, missing
-  mesh/material asset, and mesh/material asset status scenarios.
-- The test asserts `phase: "extract"`, the expected scenario key, and no draw
-  submission.
-- It does not duplicate detailed diagnostic body assertions from existing specs.
-- Targeted Playwright coverage continues to pass.
-
-### task-0381 — Add route smoke for texture asset failure scenarios
-
-Add lightweight route/status coverage for texture and sampler asset failure
-scenarios that are not already covered by shared route guards.
+Migrate resource-binding and texture-upload route guards to
+`expectMultiEntityRouteFailureStatus`.
 
 Acceptance criteria:
 
-- A focused Playwright loop loads missing/loading/failed texture and sampler
-  dependency scenarios plus multi-textured missing texture/sampler asset routes.
-- The test asserts `phase: "extract"`, the expected diagnostic code, and no draw
-  submission.
-- Shared-sampler/shared-texture route guards remain focused and passing.
-- Targeted Playwright coverage continues to pass.
+- `resource-binding-routing.spec.ts` and `texture-upload-routing.spec.ts` use
+  the shared failure-route assertion helper where practical.
+- Diagnostic-code assertions remain focused and unchanged.
+- Targeted typecheck and route Playwright coverage pass.
 
-### task-0382 — Extract shared multi-entity route loader helper
+### task-0421 — Use failure helper in texture resource routes
 
-Reduce route-spec duplication by centralizing multi-entity scenario URL loading
-and status waiting.
+Migrate texture/sampler GPU resource route guards to
+`expectMultiEntityRouteFailureStatus`.
 
 Acceptance criteria:
 
-- A shared test helper loads `/examples/multi-entity.html?scenario=...` and
-  returns the published status.
-- Existing route smoke specs use the helper where practical.
-- Status attachments and WebGPU unsupported skips still behave as before.
-- Targeted typecheck and Playwright route coverage pass.
+- `texture-resource-routing.spec.ts` uses the shared failure-route assertion
+  helper where practical.
+- Diagnostic code-count assertions remain unchanged.
+- Targeted typecheck and route Playwright coverage pass.
 
-### task-0383 — Add route smoke coverage table to docs
+### task-0422 — Use failure helper in scenario route guard
 
-Add a concise browser e2e docs table that maps route smoke specs to scenario
-families.
-
-Acceptance criteria:
-
-- `docs/BROWSER_E2E_RENDERING.md` includes a table for route guard specs and
-  their scenario families.
-- The table distinguishes route/status guards from detailed pixel/readback
-  specs.
-- No implementation behavior changes.
-
-### task-0384 — Add route smoke status attachments
-
-Ensure lightweight route smoke specs attach status JSON on assertion failures.
+Migrate the unknown-scenario route guard to the shared failure-route assertion
+helper.
 
 Acceptance criteria:
 
-- Primitive, camera, visibility/order/depth, texture, resource-binding, and
-  texture-upload route smoke specs attach their final status payload.
-- Existing helper behavior is reused rather than duplicating attachment code.
-- Targeted Playwright coverage confirms attachments do not affect passing
-  routes.
+- `scenario-routing.spec.ts` uses `expectMultiEntityRouteFailureStatus`.
+- The test still avoids duplicating available-scenario list assertions.
+- Targeted typecheck and Playwright coverage pass.
+
+### task-0423 — Document failure helper route coverage
+
+Update browser e2e docs after route guard families consistently use the shared
+failure-route helper.
+
+Acceptance criteria:
+
+- Docs mention `expectMultiEntityRouteFailureStatus` as the standard helper for
+  shallow failure route guards.
+- Docs distinguish count/code checks from detailed diagnostic body assertions.
+- Formatting validation passes.
+
+### task-0424 — Audit route helper docs and static guards
+
+Run a focused audit of route helper docs and static guard behavior after the
+failure-helper migration.
+
+Acceptance criteria:
+
+- Targeted static scenario guard tests pass.
+- Route helper docs remain accurate.
+- Handoff records any remaining intentional exceptions.
 
 ## Post-Unlit E2E Verification Targets
 

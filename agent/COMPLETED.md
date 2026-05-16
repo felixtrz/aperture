@@ -4011,3 +4011,59 @@ Summary:
 - Documented primitive, camera, visibility/order/depth, and texture route smoke specs.
 - The entries keep route/status guards separate from detailed pixel/readback assertions.
 - No implementation behavior changed.
+
+## task-0380 through task-0419 — Browser E2E route and loader cleanup
+
+Completed: 2026-05-16
+
+Completed task ids:
+
+- `task-0380` — Add route smoke for extraction failure scenarios.
+- `task-0381` — Add route smoke for texture asset failure scenarios.
+- `task-0382` — Extract shared multi-entity route loader helper.
+- `task-0383` — Add route smoke coverage table to docs.
+- `task-0384` — Add route smoke status attachments.
+- `task-0385` — Add route smoke for texture resource failures.
+- `task-0386` — Document texture resource route guards.
+- `task-0387` — Add route smoke for unknown scenario dispatch.
+- `task-0388` — Extract shared route failure assertion helper.
+- `task-0389` — Document route helper conventions.
+- `task-0390` — Use route loader in extraction failure specs.
+- `task-0391` — Use route loader in texture dependency specs.
+- `task-0392` — Use route loader in texture resource specs.
+- `task-0393` — Use route loader in upload/resource binding specs.
+- `task-0394` — Document detailed-spec loader reuse.
+- `task-0395` — Use route loader in primitive and camera specs.
+- `task-0396` — Use route loader in visibility and ordering specs.
+- `task-0397` — Use route loader in texture success specs.
+- `task-0398` — Use route loader in core multi-entity status spec.
+- `task-0399` — Audit remaining multi-entity e2e loaders.
+- `task-0400` — Extract generic example status loader.
+- `task-0401` — Use generic loader in clear status specs.
+- `task-0402` — Use generic loader in triangle status specs.
+- `task-0403` — Use generic loader in clear pixel specs.
+- `task-0404` — Document generic example loader helper.
+- `task-0405` — Use generic loader in readback diagnostics.
+- `task-0406` — Document unsupported-WebGPU loader exception.
+- `task-0407` — Audit generic loader adoption.
+- `task-0408` — Run consolidated route Playwright suite.
+- `task-0409` — Run full browser Playwright suite.
+- `task-0410` — Extend static guard to route loader calls.
+- `task-0411` — Document loader-aware static route guard.
+- `task-0412` — Add direct multi-entity navigation audit.
+- `task-0413` — Run full standard check.
+- `task-0414` — Refill next browser verification tasks.
+- `task-0415` — Guard direct multi-entity navigation.
+- `task-0416` — Document direct navigation guard.
+- `task-0417` — Add route helper import audit.
+- `task-0418` — Refresh browser route docs after audits.
+- `task-0419` — Run full validation after guard audits.
+
+Summary:
+
+- Added route smoke specs for extraction failures, texture/sampler dependency failures, texture/sampler GPU resource failures, and unknown scenario dispatch.
+- Added `loadExampleStatus`, `loadMultiEntityScenarioStatus`, and `expectMultiEntityRouteFailureStatus` browser e2e helpers.
+- Migrated multi-entity, clear, triangle, texture, resource, primitive, camera, visibility, ordering, depth, and readback diagnostic specs to shared loader helpers where practical.
+- Added no-browser static guards for helper-call scenario registration, direct multi-entity navigation regressions, and route smoke helper usage.
+- Expanded `docs/BROWSER_E2E_RENDERING.md` with a route guard coverage table, helper conventions, detailed-spec reuse notes, unsupported-WebGPU loader exception, and static guard behavior.
+- Validation run: targeted Playwright/Vitest throughout, consolidated route suite passed with 57 tests, full `npm run test:e2e -- --reporter=line` passed with 123 tests, and `npm run check` passed with 129 Vitest files / 563 tests.

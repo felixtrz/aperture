@@ -3,27 +3,20 @@ import { expect, test } from "@playwright/test";
 import type { ClearExampleStatus } from "./example-status-types.js";
 import { colorChannelToByte, expectChannelClose } from "./png.js";
 import { sampleCanvasCenterPresentation } from "./webgpu-presentation.js";
-import {
-  attachExampleStatus,
-  skipIfUnsupportedWebGpu,
-  waitForExampleStatus,
-} from "./webgpu-status.js";
+import { attachExampleStatus, loadExampleStatus } from "./webgpu-status.js";
 
 test("browser WebGPU clear example reports readiness and changes pixels", async ({
   page,
 }) => {
-  await page.goto("/");
-  const status = await waitForExampleStatus<ClearExampleStatus>(page);
-
-  await attachExampleStatus("webgpu-clear-status", status);
-
-  expect(status, "example status should be published").toBeDefined();
+  const status = await loadExampleStatus<ClearExampleStatus>(
+    page,
+    "/",
+    "webgpu-clear-status",
+  );
 
   if (status === undefined) {
     return;
   }
-
-  skipIfUnsupportedWebGpu(status);
 
   expect(status, JSON.stringify(status, null, 2)).toMatchObject({
     example: "webgpu-clear",

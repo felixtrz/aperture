@@ -3,10 +3,8 @@ import { expect, test } from "@playwright/test";
 import type { MultiEntityExampleStatus } from "./example-status-types.js";
 import { pixelDistance, rgbaColorToPixel } from "./png.js";
 import {
-  attachExampleStatus,
   expectedDiagnosticCounts,
-  skipIfUnsupportedWebGpu,
-  waitForExampleStatus,
+  loadMultiEntityScenarioStatus,
 } from "./webgpu-status.js";
 
 type RgbaTuple = readonly [number, number, number, number];
@@ -14,20 +12,15 @@ type RgbaTuple = readonly [number, number, number, number];
 test("ECS browser example applies sampler filter and address settings", async ({
   page,
 }) => {
-  await page.goto(
-    "/examples/multi-entity.html?scenario=sampler-filter-address",
+  const status = await loadMultiEntityScenarioStatus(
+    page,
+    "sampler-filter-address",
+    "sampler-filter-address-status",
   );
-  const status = await waitForExampleStatus<MultiEntityExampleStatus>(page);
-
-  await attachExampleStatus("sampler-filter-address-status", status);
-
-  expect(status, "example status should be published").toBeDefined();
 
   if (status === undefined) {
     return;
   }
-
-  skipIfUnsupportedWebGpu(status);
 
   expect(status, JSON.stringify(status, null, 2)).toMatchObject({
     example: "ecs-multi-entity",

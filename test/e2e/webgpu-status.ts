@@ -1,6 +1,9 @@
 import { expect, test, type Page } from "@playwright/test";
 
-import type { ExampleStatusBase } from "./example-status-types.js";
+import type {
+  ExampleStatusBase,
+  MultiEntityExampleStatus,
+} from "./example-status-types.js";
 
 type ExampleGlobal = typeof globalThis & {
   readonly __APERTURE_EXAMPLE_STATUS__?: unknown;
@@ -21,6 +24,14 @@ interface DiagnosticCountSummary {
   readonly draw: number;
   readonly submission: number;
   readonly readback: number;
+}
+
+interface MultiEntityRouteFailureExpectation {
+  readonly scenario: string;
+  readonly phase: string;
+  readonly reason: string;
+  readonly diagnosticCounts?: Partial<DiagnosticCountSummary>;
+  readonly matchObject?: Readonly<Record<string, unknown>>;
 }
 
 const unsupportedWebGpuReasons = new Set<string>([
@@ -57,6 +68,43 @@ export async function attachExampleStatus(
   });
 }
 
+export async function loadExampleStatus<T extends ExampleStatusBase>(
+  page: Page,
+  url: string,
+  attachmentName: string,
+): Promise<T | undefined> {
+  await page.goto(url);
+  const status = await waitForExampleStatus<T>(page);
+
+  await attachExampleStatus(attachmentName, status);
+
+  expect(status, "example status should be published").toBeDefined();
+
+  if (status === undefined) {
+    return undefined;
+  }
+
+  skipIfUnsupportedWebGpu(status);
+
+  return status;
+}
+
+export async function loadMultiEntityScenarioStatus(
+  page: Page,
+  scenario: string | undefined,
+  attachmentName = scenario === undefined
+    ? "multi-entity-status"
+    : `${scenario}-status`,
+): Promise<MultiEntityExampleStatus | undefined> {
+  return loadExampleStatus<MultiEntityExampleStatus>(
+    page,
+    scenario === undefined
+      ? "/examples/multi-entity.html"
+      : `/examples/multi-entity.html?scenario=${scenario}`,
+    attachmentName,
+  );
+}
+
 export function skipIfUnsupportedWebGpu(status: ExampleStatusBase): void {
   if (
     !status.ok &&
@@ -87,6 +135,23 @@ export function expectNoDrawSubmissionStatus(
   expectNoNonZeroCountSection("draw", status.draw, statusJson);
   expectNoNonZeroCountSection("command", status.command, statusJson);
   expectNoNonZeroCountSection("submission", status.submission, statusJson);
+}
+
+export function expectMultiEntityRouteFailureStatus(
+  status: MultiEntityExampleStatus,
+  expected: MultiEntityRouteFailureExpectation,
+): void {
+  expect(status, JSON.stringify(status, null, 2)).toMatchObject({
+    example: "ecs-multi-entity",
+    scenario: expected.scenario,
+    ok: false,
+    phase: expected.phase,
+    reason: expected.reason,
+    renderingBackend: "webgpu",
+    diagnosticCounts: expectedDiagnosticCounts(expected.diagnosticCounts ?? {}),
+    ...(expected.matchObject ?? {}),
+  });
+  expectNoDrawSubmissionStatus(status);
 }
 
 export function expectedDiagnosticCounts(

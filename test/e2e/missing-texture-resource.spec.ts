@@ -2,12 +2,10 @@ import { expect, test } from "@playwright/test";
 
 import type { MultiEntityExampleStatus } from "./example-status-types.js";
 import {
-  attachExampleStatus,
   expectedDiagnosticCounts,
   expectNoDrawSubmissionStatus,
   expectStatusJsonSafeForGpu,
-  skipIfUnsupportedWebGpu,
-  waitForExampleStatus,
+  loadMultiEntityScenarioStatus,
 } from "./webgpu-status.js";
 
 type DiagnosticResourcePair = {
@@ -18,20 +16,15 @@ type DiagnosticResourcePair = {
 test("ECS browser example reports missing texture and sampler GPU resources", async ({
   page,
 }) => {
-  await page.goto(
-    "/examples/multi-entity.html?scenario=missing-texture-sampler-resources",
+  const status = await loadMultiEntityScenarioStatus(
+    page,
+    "missing-texture-sampler-resources",
+    "missing-texture-sampler-resources-status",
   );
-  const status = await waitForExampleStatus<MultiEntityExampleStatus>(page);
-
-  await attachExampleStatus("missing-texture-sampler-resources-status", status);
-
-  expect(status, "example status should be published").toBeDefined();
 
   if (status === undefined) {
     return;
   }
-
-  skipIfUnsupportedWebGpu(status);
 
   expect(status, JSON.stringify(status, null, 2)).toMatchObject({
     example: "ecs-multi-entity",
@@ -69,20 +62,15 @@ test("ECS browser example reports missing texture and sampler GPU resources", as
 test("ECS browser example reports one missing texture resource among multiple textured draws", async ({
   page,
 }) => {
-  await page.goto(
-    "/examples/multi-entity.html?scenario=multi-textured-missing-texture-resource",
+  const status = await loadMultiEntityScenarioStatus(
+    page,
+    "multi-textured-missing-texture-resource",
+    "multi-textured-missing-texture-resource",
   );
-  const status = await waitForExampleStatus<MultiEntityExampleStatus>(page);
-
-  await attachExampleStatus("multi-textured-missing-texture-resource", status);
-
-  expect(status, "example status should be published").toBeDefined();
 
   if (status === undefined) {
     return;
   }
-
-  skipIfUnsupportedWebGpu(status);
 
   expect(status, JSON.stringify(status, null, 2)).toMatchObject({
     example: "ecs-multi-entity",
@@ -121,20 +109,15 @@ test("ECS browser example reports one missing texture resource among multiple te
 test("ECS browser example reports a missing shared sampler resource", async ({
   page,
 }) => {
-  await page.goto(
-    "/examples/multi-entity.html?scenario=shared-texture-missing-sampler-resource",
+  const status = await loadMultiEntityScenarioStatus(
+    page,
+    "shared-texture-missing-sampler-resource",
+    "shared-texture-missing-sampler-resource",
   );
-  const status = await waitForExampleStatus<MultiEntityExampleStatus>(page);
-
-  await attachExampleStatus("shared-texture-missing-sampler-resource", status);
-
-  expect(status, "example status should be published").toBeDefined();
 
   if (status === undefined) {
     return;
   }
-
-  skipIfUnsupportedWebGpu(status);
 
   expect(status, JSON.stringify(status, null, 2)).toMatchObject({
     example: "ecs-multi-entity",
@@ -181,20 +164,15 @@ test("ECS browser example reports a missing shared sampler resource", async ({
 test("ECS browser example reports a missing shared texture resource", async ({
   page,
 }) => {
-  await page.goto(
-    "/examples/multi-entity.html?scenario=shared-texture-missing-texture-resource",
+  const status = await loadMultiEntityScenarioStatus(
+    page,
+    "shared-texture-missing-texture-resource",
+    "shared-texture-missing-texture-resource",
   );
-  const status = await waitForExampleStatus<MultiEntityExampleStatus>(page);
-
-  await attachExampleStatus("shared-texture-missing-texture-resource", status);
-
-  expect(status, "example status should be published").toBeDefined();
 
   if (status === undefined) {
     return;
   }
-
-  skipIfUnsupportedWebGpu(status);
 
   expect(status, JSON.stringify(status, null, 2)).toMatchObject({
     example: "ecs-multi-entity",
@@ -241,20 +219,15 @@ test("ECS browser example reports a missing shared texture resource", async ({
 test("ECS browser example reports one missing sampler resource among multiple textured draws", async ({
   page,
 }) => {
-  await page.goto(
-    "/examples/multi-entity.html?scenario=multi-textured-missing-sampler-resource",
+  const status = await loadMultiEntityScenarioStatus(
+    page,
+    "multi-textured-missing-sampler-resource",
+    "multi-textured-missing-sampler-resource",
   );
-  const status = await waitForExampleStatus<MultiEntityExampleStatus>(page);
-
-  await attachExampleStatus("multi-textured-missing-sampler-resource", status);
-
-  expect(status, "example status should be published").toBeDefined();
 
   if (status === undefined) {
     return;
   }
-
-  skipIfUnsupportedWebGpu(status);
 
   expect(status, JSON.stringify(status, null, 2)).toMatchObject({
     example: "ecs-multi-entity",
@@ -297,23 +270,15 @@ test("ECS browser example reports one missing sampler resource among multiple te
 test("ECS browser example reports missing texture and sampler resources for one textured draw", async ({
   page,
 }) => {
-  await page.goto(
-    "/examples/multi-entity.html?scenario=multi-textured-missing-texture-sampler-resources",
-  );
-  const status = await waitForExampleStatus<MultiEntityExampleStatus>(page);
-
-  await attachExampleStatus(
+  const status = await loadMultiEntityScenarioStatus(
+    page,
     "multi-textured-missing-texture-sampler-resources",
-    status,
+    "multi-textured-missing-texture-sampler-resources",
   );
-
-  expect(status, "example status should be published").toBeDefined();
 
   if (status === undefined) {
     return;
   }
-
-  skipIfUnsupportedWebGpu(status);
 
   expect(status, JSON.stringify(status, null, 2)).toMatchObject({
     example: "ecs-multi-entity",
@@ -367,23 +332,15 @@ test("ECS browser example reports missing texture and sampler resources for one 
 test("ECS browser example reports missing shared texture and sampler resources", async ({
   page,
 }) => {
-  await page.goto(
-    "/examples/multi-entity.html?scenario=shared-texture-missing-texture-sampler-resources",
-  );
-  const status = await waitForExampleStatus<MultiEntityExampleStatus>(page);
-
-  await attachExampleStatus(
+  const status = await loadMultiEntityScenarioStatus(
+    page,
     "shared-texture-missing-texture-sampler-resources",
-    status,
+    "shared-texture-missing-texture-sampler-resources",
   );
-
-  expect(status, "example status should be published").toBeDefined();
 
   if (status === undefined) {
     return;
   }
-
-  skipIfUnsupportedWebGpu(status);
 
   expect(status, JSON.stringify(status, null, 2)).toMatchObject({
     example: "ecs-multi-entity",
@@ -442,20 +399,15 @@ test("ECS browser example reports missing shared texture and sampler resources",
 test("ECS browser example reports a missing shared sampler resource across two textured draws", async ({
   page,
 }) => {
-  await page.goto(
-    "/examples/multi-entity.html?scenario=shared-sampler-missing-sampler-resource",
+  const status = await loadMultiEntityScenarioStatus(
+    page,
+    "shared-sampler-missing-sampler-resource",
+    "shared-sampler-missing-sampler-resource",
   );
-  const status = await waitForExampleStatus<MultiEntityExampleStatus>(page);
-
-  await attachExampleStatus("shared-sampler-missing-sampler-resource", status);
-
-  expect(status, "example status should be published").toBeDefined();
 
   if (status === undefined) {
     return;
   }
-
-  skipIfUnsupportedWebGpu(status);
 
   expect(status, JSON.stringify(status, null, 2)).toMatchObject({
     example: "ecs-multi-entity",
@@ -503,20 +455,15 @@ test("ECS browser example reports a missing shared sampler resource across two t
 test("ECS browser example reports one missing texture resource in a shared-sampler scene", async ({
   page,
 }) => {
-  await page.goto(
-    "/examples/multi-entity.html?scenario=shared-sampler-missing-texture-resource",
+  const status = await loadMultiEntityScenarioStatus(
+    page,
+    "shared-sampler-missing-texture-resource",
+    "shared-sampler-missing-texture-resource",
   );
-  const status = await waitForExampleStatus<MultiEntityExampleStatus>(page);
-
-  await attachExampleStatus("shared-sampler-missing-texture-resource", status);
-
-  expect(status, "example status should be published").toBeDefined();
 
   if (status === undefined) {
     return;
   }
-
-  skipIfUnsupportedWebGpu(status);
 
   expect(status, JSON.stringify(status, null, 2)).toMatchObject({
     example: "ecs-multi-entity",
@@ -562,23 +509,15 @@ test("ECS browser example reports one missing texture resource in a shared-sampl
 test("ECS browser example reports missing texture and shared sampler resources in a shared-sampler scene", async ({
   page,
 }) => {
-  await page.goto(
-    "/examples/multi-entity.html?scenario=shared-sampler-missing-texture-sampler-resources",
-  );
-  const status = await waitForExampleStatus<MultiEntityExampleStatus>(page);
-
-  await attachExampleStatus(
+  const status = await loadMultiEntityScenarioStatus(
+    page,
     "shared-sampler-missing-texture-sampler-resources",
-    status,
+    "shared-sampler-missing-texture-sampler-resources",
   );
-
-  expect(status, "example status should be published").toBeDefined();
 
   if (status === undefined) {
     return;
   }
-
-  skipIfUnsupportedWebGpu(status);
 
   expect(status, JSON.stringify(status, null, 2)).toMatchObject({
     example: "ecs-multi-entity",

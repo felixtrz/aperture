@@ -1,11 +1,8 @@
 import { expect, test } from "@playwright/test";
 
-import type { MultiEntityExampleStatus } from "./example-status-types.js";
 import {
-  attachExampleStatus,
   expectedDiagnosticCounts,
-  skipIfUnsupportedWebGpu,
-  waitForExampleStatus,
+  loadMultiEntityScenarioStatus,
 } from "./webgpu-status.js";
 
 for (const fixture of [
@@ -15,18 +12,15 @@ for (const fixture of [
   test(`ECS browser example routes ${fixture.scenario} to camera submit status`, async ({
     page,
   }) => {
-    await page.goto(`/examples/multi-entity.html?scenario=${fixture.scenario}`);
-    const status = await waitForExampleStatus<MultiEntityExampleStatus>(page);
-
-    await attachExampleStatus(`${fixture.scenario}-camera-route`, status);
-
-    expect(status, "example status should be published").toBeDefined();
+    const status = await loadMultiEntityScenarioStatus(
+      page,
+      fixture.scenario,
+      `${fixture.scenario}-camera-route`,
+    );
 
     if (status === undefined) {
       return;
     }
-
-    skipIfUnsupportedWebGpu(status);
 
     expect(status, JSON.stringify(status, null, 2)).toMatchObject({
       example: "ecs-multi-entity",

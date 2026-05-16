@@ -1,12 +1,9 @@
 import { expect, test } from "@playwright/test";
 
-import type { MultiEntityExampleStatus } from "./example-status-types.js";
 import { pixelDistance, rgbaColorToPixel } from "./png.js";
 import {
-  attachExampleStatus,
   expectedDiagnosticCounts,
-  skipIfUnsupportedWebGpu,
-  waitForExampleStatus,
+  loadMultiEntityScenarioStatus,
 } from "./webgpu-status.js";
 
 const sphereMaterial = { r: 0.86, g: 0.28, b: 0.95, a: 1 };
@@ -14,18 +11,15 @@ const sphereMaterial = { r: 0.86, g: 0.28, b: 0.95, a: 1 };
 test("ECS browser example renders built-in sphere primitive through readback", async ({
   page,
 }) => {
-  await page.goto("/examples/multi-entity.html?scenario=sphere-primitive");
-  const status = await waitForExampleStatus<MultiEntityExampleStatus>(page);
-
-  await attachExampleStatus("sphere-primitive-status", status);
-
-  expect(status, "example status should be published").toBeDefined();
+  const status = await loadMultiEntityScenarioStatus(
+    page,
+    "sphere-primitive",
+    "sphere-primitive-status",
+  );
 
   if (status === undefined) {
     return;
   }
-
-  skipIfUnsupportedWebGpu(status);
 
   expect(status, JSON.stringify(status, null, 2)).toMatchObject({
     example: "ecs-multi-entity",

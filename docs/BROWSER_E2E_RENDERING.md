@@ -275,22 +275,38 @@ order and asset-key assertions for those same scenarios.
 
 The no-browser `test/examples/multi-entity-scenarios.test.mjs` guard keeps the
 ordered scenario id list aligned with the explicit dispatch table and verifies
-literal e2e scenario routes/fixtures are registered. This catches route drift
-before Playwright starts a browser; it complements but does not replace browser
-coverage for status shape, pixels, and WebGPU execution.
+literal e2e scenario routes, fixture objects, and
+`loadMultiEntityScenarioStatus` helper calls are registered. This catches route
+drift before Playwright starts a browser; it complements but does not replace
+browser coverage for status shape, pixels, and WebGPU execution.
 
-Route smoke specs cover broad scenario families without duplicating pixel
-assertions:
+The same no-browser guard also rejects direct e2e `page.goto` calls to
+`/examples/multi-entity.html`. Multi-entity specs should use
+`loadMultiEntityScenarioStatus` so route loading, status attachments,
+unsupported-WebGPU skips, and static scenario registration checks stay
+consistent.
 
-- `test/e2e/primitive-routing.spec.ts` loads every built-in primitive route and
-  asserts a submitted frame plus matching `geometry.primitive` status.
-- `test/e2e/camera-routing.spec.ts` loads perspective and orthographic camera
-  routes and asserts submitted frames plus camera projection status.
-- `test/e2e/visibility-routing.spec.ts` loads visibility, layer, ordering, and
-  depth routes and asserts submitted frames plus representative status fields.
-- `test/e2e/texture-routing.spec.ts` loads texture, sampler, and mixed material
-  routes and asserts submitted frames plus representative texture, sampler, and
-  pipeline status fields.
+Route smoke specs are additionally checked for shared route-helper usage. Specs
+ending in `-routing.spec.ts` should either call `loadMultiEntityScenarioStatus`
+directly or use a narrow shared route helper that does so.
+
+Route smoke specs cover broad scenario families without duplicating pixel,
+readback, or detailed diagnostic-body assertions:
+
+| Route guard spec                                | Scenario family                                                            | Guard scope                                                                               | Detailed specs                                                                                  |
+| ----------------------------------------------- | -------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| `test/e2e/primitive-routing.spec.ts`            | Built-in primitive routes                                                  | Submitted frame plus matching `geometry.primitive` status                                 | Individual primitive pixel/readback specs                                                       |
+| `test/e2e/camera-routing.spec.ts`               | Perspective and orthographic camera routes                                 | Submitted frame plus camera projection status                                             | `perspective-fov-camera.spec.ts`, `orthographic-camera.spec.ts`                                 |
+| `test/e2e/visibility-routing.spec.ts`           | Visibility, layer filtering, ordering, and depth routes                    | Submitted frame plus representative route status fields                                   | `render-layer-filter.spec.ts`, `disabled-visible-peer.spec.ts`, ordering/depth pixel specs      |
+| `test/e2e/texture-routing.spec.ts`              | Successful texture, sampler, shared texture, and mixed pipeline routes     | Submitted frame plus representative texture, sampler, pipeline, or material status fields | Texture, sampler, tint, multi-textured, shared-texture, and mixed-pipeline readback specs       |
+| `test/e2e/extraction-routing.spec.ts`           | Layer mismatch, disabled, missing asset, and mesh/material asset states    | `phase: "extract"`, scenario/reason identity, extraction counts, and zero draw submission | Focused extraction-failure specs such as layer, disabled, missing asset, and asset-status specs |
+| `test/e2e/texture-dependency-routing.spec.ts`   | Single texture/sampler dependency states and multi-textured missing assets | `phase: "extract"`, expected diagnostic code summary, extraction counts, and zero submits | `texture-dependency-asset-status.spec.ts` and multi-textured asset failure specs                |
+| `test/e2e/shared-texture-asset-routing.spec.ts` | Shared texture asset failure routes                                        | `phase: "extract"`, route status shape, extraction counts, and zero draw submission       | Shared texture sections in `multi-textured-unlit.spec.ts`                                       |
+| `test/e2e/shared-sampler-asset-routing.spec.ts` | Shared sampler asset failure routes                                        | `phase: "extract"`, route status shape, extraction counts, and zero draw submission       | Shared sampler sections in `multi-textured-unlit.spec.ts`                                       |
+| `test/e2e/resource-binding-routing.spec.ts`     | Missing renderer-side mesh/material resource routes                        | `phase: "resource-bindings"`, route identity, count summary, and zero draw submission     | `missing-resource.spec.ts` and `missing-mesh-resource.spec.ts`                                  |
+| `test/e2e/texture-resource-routing.spec.ts`     | Missing texture/sampler GPU resource routes                                | `phase: "resources"`, diagnostic code counts, resource count summary, and zero submission | `missing-texture-resource.spec.ts` owns resource-key and diagnostic-order assertions            |
+| `test/e2e/texture-upload-routing.spec.ts`       | Invalid texture upload routes                                              | `phase: "resources"`, upload diagnostic code, resource count summary, and zero submission | `invalid-texture-upload.spec.ts`                                                                |
+| `test/e2e/scenario-routing.spec.ts`             | Unsupported multi-entity scenario query values                             | `phase: "scenario"`, unknown-scenario reason, zero diagnostic counts, and zero submission | `unknown-scenario.spec.ts` owns detailed available-scenario assertions                          |
 
 Extraction failure statuses include `diagnosticCounts` with non-zero extraction
 counts and zero downstream resource, binding, draw, submission, and readback
@@ -480,6 +496,15 @@ stable keys, status fields, and diagnostics, not raw WebGPU handles.
 Browser specs should prefer the shared helpers in `test/e2e/webgpu-status.ts`
 when adding common status assertions:
 
+- Use `loadExampleStatus` for any example page that publishes
+  `window.__APERTURE_EXAMPLE_STATUS__`. It centralizes navigation, status
+  waiting, status attachment, and unsupported-WebGPU skips.
+- Use `loadMultiEntityScenarioStatus` for route specs that load
+  `/examples/multi-entity.html?scenario=...`, or the default multi-entity page
+  without a scenario query. It builds on `loadExampleStatus`.
+- Use `expectMultiEntityRouteFailureStatus` for shallow failure route specs that
+  only need to prove route identity, phase, reason, backend, diagnostic counts,
+  and no draw submission.
 - Use `expectedDiagnosticCounts` for `diagnosticCounts` expectations so omitted
   buckets default to zero consistently.
 - Use `expectNoDrawSubmissionStatus` for failure routes that must not submit
@@ -488,6 +513,23 @@ when adding common status assertions:
 - Use `expectStatusJsonSafeForGpu` on failure statuses that pass through
   texture, sampler, or resource diagnostics to keep raw WebGPU handles and
   creation calls out of JSON payloads.
+
+Route guards should stay shallow. They prove a URL reaches the intended status
+phase and representative summary fields. Detailed specs should continue to own
+pixel/readback assertions, resource-key checks, diagnostic body checks, and
+diagnostic ordering.
+
+Detailed scenario specs can still use `loadMultiEntityScenarioStatus` to avoid
+repeating route loading, status attachment, and unsupported-WebGPU skip logic.
+That reuse does not make a detailed spec a route smoke spec; the distinction is
+the assertion scope. Detailed specs remain the source of truth for deep
+diagnostic payloads, resource keys, registry diagnostics, and pixel/readback
+behavior.
+
+Unsupported-WebGPU tests are the exception. They intentionally use lower-level
+wait and attachment helpers because `loadExampleStatus` treats explicit
+unsupported-WebGPU statuses as environmental skips, while those tests need to
+assert the unsupported status payload itself.
 
 ## Diagnostic Count Phases
 

@@ -1,6 +1,5 @@
 import { expect, test } from "@playwright/test";
 
-import type { MultiEntityExampleStatus } from "./example-status-types.js";
 import {
   pixelDistance,
   readPngPixel,
@@ -11,8 +10,7 @@ import {
 import { sampleCanvasCenterPresentation } from "./webgpu-presentation.js";
 import {
   attachExampleStatus,
-  skipIfUnsupportedWebGpu,
-  waitForExampleStatus,
+  loadMultiEntityScenarioStatus,
 } from "./webgpu-status.js";
 
 const redMaterial: RgbaColor = { r: 1, g: 0.16, b: 0.06, a: 1 };
@@ -34,18 +32,15 @@ const regionSamplePoints = [
 test("ECS multi-entity example renders three colored regions when pixels are capturable", async ({
   page,
 }) => {
-  await page.goto("/examples/multi-entity.html");
-  const status = await waitForExampleStatus<MultiEntityExampleStatus>(page);
-
-  await attachExampleStatus("ecs-multi-entity-pixel-status", status);
-
-  expect(status, "example status should be published").toBeDefined();
+  const status = await loadMultiEntityScenarioStatus(
+    page,
+    undefined,
+    "ecs-multi-entity-pixel-status",
+  );
 
   if (status === undefined) {
     return;
   }
-
-  skipIfUnsupportedWebGpu(status);
 
   expect(status, JSON.stringify(status, null, 2)).toMatchObject({
     example: "ecs-multi-entity",

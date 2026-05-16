@@ -1,12 +1,9 @@
 import { expect, test } from "@playwright/test";
 
-import type { MultiEntityExampleStatus } from "./example-status-types.js";
 import { pixelDistance, rgbaColorToPixel } from "./png.js";
 import {
-  attachExampleStatus,
   expectedDiagnosticCounts,
-  skipIfUnsupportedWebGpu,
-  waitForExampleStatus,
+  loadMultiEntityScenarioStatus,
 } from "./webgpu-status.js";
 
 const material = { r: 0.2, g: 0.95, b: 0.75, a: 1 };
@@ -14,18 +11,15 @@ const material = { r: 0.2, g: 0.95, b: 0.75, a: 1 };
 test("ECS browser example renders primitive through orthographic camera", async ({
   page,
 }) => {
-  await page.goto("/examples/multi-entity.html?scenario=orthographic-camera");
-  const status = await waitForExampleStatus<MultiEntityExampleStatus>(page);
-
-  await attachExampleStatus("orthographic-camera-status", status);
-
-  expect(status, "example status should be published").toBeDefined();
+  const status = await loadMultiEntityScenarioStatus(
+    page,
+    "orthographic-camera",
+    "orthographic-camera-status",
+  );
 
   if (status === undefined) {
     return;
   }
-
-  skipIfUnsupportedWebGpu(status);
 
   expect(status, JSON.stringify(status, null, 2)).toMatchObject({
     example: "ecs-multi-entity",

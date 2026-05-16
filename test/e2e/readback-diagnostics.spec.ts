@@ -7,18 +7,18 @@ import {
   installMissingGpuMapModeOverride,
 } from "./browser-overrides.js";
 import type { ClearExampleStatus } from "./example-status-types.js";
-import {
-  attachExampleStatus,
-  skipIfUnsupportedWebGpu,
-  waitForExampleStatus,
-} from "./webgpu-status.js";
+import { loadExampleStatus } from "./webgpu-status.js";
 
 test("WebGPU clear example reports readback diagnostics when buffer usage flags are unavailable", async ({
   page,
 }) => {
   await installMissingGpuBufferUsageOverride(page);
 
-  await page.goto("/");
+  const status = await loadExampleStatus<ClearExampleStatus>(
+    page,
+    "/",
+    "webgpu-clear-readback-diagnostic-status",
+  );
 
   const overrideWorked = await didMissingGpuBufferUsageOverrideWork(page);
 
@@ -27,17 +27,9 @@ test("WebGPU clear example reports readback diagnostics when buffer usage flags 
     "The browser did not allow GPUBufferUsage to be overridden before example startup.",
   );
 
-  const status = await waitForExampleStatus<ClearExampleStatus>(page);
-
-  await attachExampleStatus("webgpu-clear-readback-diagnostic-status", status);
-
-  expect(status, "example status should be published").toBeDefined();
-
   if (status === undefined) {
     return;
   }
-
-  skipIfUnsupportedWebGpu(status);
 
   expect(status, JSON.stringify(status, null, 2)).toMatchObject({
     example: "webgpu-clear",
@@ -57,7 +49,11 @@ test("WebGPU clear example reports readback diagnostics when map mode flags are 
 }) => {
   await installMissingGpuMapModeOverride(page);
 
-  await page.goto("/");
+  const status = await loadExampleStatus<ClearExampleStatus>(
+    page,
+    "/",
+    "webgpu-clear-map-mode-diagnostic-status",
+  );
 
   const overrideWorked = await didMissingGpuMapModeOverrideWork(page);
 
@@ -66,17 +62,9 @@ test("WebGPU clear example reports readback diagnostics when map mode flags are 
     "The browser did not allow GPUMapMode to be overridden before example startup.",
   );
 
-  const status = await waitForExampleStatus<ClearExampleStatus>(page);
-
-  await attachExampleStatus("webgpu-clear-map-mode-diagnostic-status", status);
-
-  expect(status, "example status should be published").toBeDefined();
-
   if (status === undefined) {
     return;
   }
-
-  skipIfUnsupportedWebGpu(status);
 
   expect(status, JSON.stringify(status, null, 2)).toMatchObject({
     example: "webgpu-clear",

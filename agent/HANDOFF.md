@@ -4,24 +4,23 @@
 
 Completed this run:
 
-- `task-0340` through `task-0379`
+- `task-0380` through `task-0419`
 
-The next recommended task is `task-0380 — Add route smoke for extraction failure scenarios`.
+The next recommended task is `task-0420 — Use failure helper in resource route specs`.
 
 ## Run Summary
 
 Major changes:
 
-- Added shared browser e2e helpers:
-  - `expectStatusJsonSafeForGpu`
-  - `expectNoDrawSubmissionStatus`
-  - `expectedDiagnosticCounts`
-- Replaced repeated raw-GPU JSON-safety checks across texture/sampler asset, resource, route, and upload failure specs.
-- Added and normalized `diagnosticCounts` assertions across extraction, texture/sampler resource, texture upload, asset-state, route guard, success texture/material, primitive, camera, visibility, ordering, and depth browser specs.
-- Replaced the deep multi-entity scenario ternary with an explicit `scenarioRenderers` lookup table.
-- Split ordered scenario ids into `knownScenarioIds`, derived `knownScenarios`, and expanded the no-browser Vitest guard so literal e2e route URLs and fixture scenarios must stay registered.
-- Added lightweight Playwright route guards for resource-binding failures, invalid texture upload failures, primitive success routes, camera success routes, visibility/order/depth success routes, and texture/sampler success routes.
-- Documented diagnostic count phase semantics, shared e2e helper conventions, the static scenario route guard, and the new route smoke guard families.
+- Added lightweight route smoke specs for extraction failures, texture/sampler asset failures, texture/sampler GPU resource failures, and unknown-scenario dispatch.
+- Added shared e2e helpers in `test/e2e/webgpu-status.ts`:
+  - `loadExampleStatus`
+  - `loadMultiEntityScenarioStatus`
+  - `expectMultiEntityRouteFailureStatus`
+- Migrated multi-entity, clear, triangle, primitive, camera, visibility, ordering, depth, texture, resource, upload, and readback diagnostic specs to shared loaders where practical.
+- Kept the explicit unsupported-WebGPU spec on lower-level wait/attach helpers because the generic loader intentionally skips unsupported environments.
+- Added no-browser static guards for helper-call scenario registration, direct multi-entity navigation regressions, and route smoke helper usage.
+- Expanded `docs/BROWSER_E2E_RENDERING.md` with route guard coverage, helper conventions, detailed-spec reuse guidance, unsupported-WebGPU exception notes, and static guard behavior.
 
 Architecture boundaries remain intact:
 
@@ -32,64 +31,63 @@ Architecture boundaries remain intact:
 
 ## Files Touched This Run
 
-Browser example/docs:
+Docs/bookkeeping:
 
-- `examples/multi-entity.js`
 - `docs/BROWSER_E2E_RENDERING.md`
-
-E2E/helpers/tests:
-
-- `test/e2e/webgpu-status.ts`
-- `test/e2e/resource-binding-routing.spec.ts`
-- `test/e2e/texture-upload-routing.spec.ts`
-- `test/e2e/primitive-routing.spec.ts`
-- `test/e2e/camera-routing.spec.ts`
-- `test/e2e/visibility-routing.spec.ts`
-- `test/e2e/texture-routing.spec.ts`
-- `test/e2e/texture-asset-routing.ts`
-- `test/examples/multi-entity-scenarios.test.mjs`
-- Multiple existing `test/e2e/*.spec.ts` files updated to use shared helpers and assert diagnostic counts.
-
-Bookkeeping:
-
 - `agent/BACKLOG.md`
 - `agent/COMPLETED.md`
 - `agent/HANDOFF.md`
 - `agent/STATUS.json`
 
+E2E helpers/static tests:
+
+- `test/e2e/webgpu-status.ts`
+- `test/examples/multi-entity-scenarios.test.mjs`
+
+New route smoke specs:
+
+- `test/e2e/extraction-routing.spec.ts`
+- `test/e2e/texture-dependency-routing.spec.ts`
+- `test/e2e/texture-resource-routing.spec.ts`
+- `test/e2e/scenario-routing.spec.ts`
+
+Existing e2e specs migrated to shared loaders:
+
+- Multiple `test/e2e/*.spec.ts` files covering clear, triangle, multi-entity, primitives, cameras, visibility/order/depth, texture success, texture/resource failures, asset status, route guards, and readback diagnostics.
+
 ## Validation Run
 
 Passed:
 
-- `npm run check`
-  - TypeScript typecheck passed.
-  - Test typecheck passed.
-  - Example syntax check passed.
-  - ESLint passed.
-  - Prettier format check passed.
-  - Vitest passed: 129 files, 561 tests.
-- `npm run test:e2e`
-  - Playwright passed: 96 tests.
+- Targeted Vitest: `npm test -- test/examples/multi-entity-scenarios.test.mjs`
+- Consolidated route suite: `npm run test:e2e -- extraction-routing.spec.ts texture-dependency-routing.spec.ts texture-resource-routing.spec.ts primitive-routing.spec.ts camera-routing.spec.ts visibility-routing.spec.ts texture-routing.spec.ts resource-binding-routing.spec.ts texture-upload-routing.spec.ts shared-texture-asset-routing.spec.ts shared-sampler-asset-routing.spec.ts scenario-routing.spec.ts --reporter=line`
+  - Playwright passed: 57 tests.
+- Full browser e2e: `npm run test:e2e -- --reporter=line`
+  - Playwright passed: 123 tests.
+- Full standard check: `npm run check`
+  - TypeScript, test typecheck, example syntax, ESLint, Prettier, and Vitest passed.
+  - Vitest passed: 129 files, 563 tests.
 
 ## Known Issues
 
 - No known validation failures.
-- Browser helper cleanup touched many e2e specs, but the changes are mechanical and covered by full check/e2e validation.
+- The diff is broad across e2e specs, but changes are mechanical loader/helper migrations and covered by full check plus full Playwright validation.
+- Remaining direct wait/attach usage is intentional: helper internals, unsupported-WebGPU payload assertions, and secondary diagnostic artifact attachments.
 
 ## Backlog
 
 Completed tasks appended to `agent/COMPLETED.md`:
 
-- `task-0340` through `task-0379`
+- `task-0380` through `task-0419`
 
 Ready backlog now contains:
 
-- `task-0380 — Add route smoke for extraction failure scenarios`
-- `task-0381 — Add route smoke for texture asset failure scenarios`
-- `task-0382 — Extract shared multi-entity route loader helper`
-- `task-0383 — Add route smoke coverage table to docs`
-- `task-0384 — Add route smoke status attachments`
+- `task-0420 — Use failure helper in resource route specs`
+- `task-0421 — Use failure helper in texture resource routes`
+- `task-0422 — Use failure helper in scenario route guard`
+- `task-0423 — Document failure helper route coverage`
+- `task-0424 — Audit route helper docs and static guards`
 
 ## Recommended Next Task
 
-Start with `task-0380`. Keep it narrow: add a lightweight route/status Playwright loop for extraction-failure scenarios, use the shared no-submit/count helpers, and avoid duplicating detailed diagnostic body assertions from the existing focused specs.
+Start with `task-0420`. Keep it narrow: migrate resource-binding and texture-upload route guards to `expectMultiEntityRouteFailureStatus`, preserve their diagnostic-code assertions, and run targeted typecheck plus route Playwright coverage.

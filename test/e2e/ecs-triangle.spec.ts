@@ -3,27 +3,20 @@ import { expect, test } from "@playwright/test";
 import type { SingleDrawExampleStatus } from "./example-status-types.js";
 import { pixelDistance, rgbaColorToPixel } from "./png.js";
 import { sampleCanvasCenterPresentation } from "./webgpu-presentation.js";
-import {
-  attachExampleStatus,
-  skipIfUnsupportedWebGpu,
-  waitForExampleStatus,
-} from "./webgpu-status.js";
+import { attachExampleStatus, loadExampleStatus } from "./webgpu-status.js";
 
 test("ECS triangle example extracts, submits, and renders non-background pixels", async ({
   page,
 }) => {
-  await page.goto("/examples/triangle.html");
-  const status = await waitForExampleStatus<SingleDrawExampleStatus>(page);
-
-  await attachExampleStatus("ecs-triangle-status", status);
-
-  expect(status, "example status should be published").toBeDefined();
+  const status = await loadExampleStatus<SingleDrawExampleStatus>(
+    page,
+    "/examples/triangle.html",
+    "ecs-triangle-status",
+  );
 
   if (status === undefined) {
     return;
   }
-
-  skipIfUnsupportedWebGpu(status);
 
   expect(status, JSON.stringify(status, null, 2)).toMatchObject({
     example: "ecs-triangle",

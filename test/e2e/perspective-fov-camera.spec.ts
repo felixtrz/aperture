@@ -1,12 +1,9 @@
 import { expect, test } from "@playwright/test";
 
-import type { MultiEntityExampleStatus } from "./example-status-types.js";
 import { pixelDistance, rgbaColorToPixel } from "./png.js";
 import {
-  attachExampleStatus,
   expectedDiagnosticCounts,
-  skipIfUnsupportedWebGpu,
-  waitForExampleStatus,
+  loadMultiEntityScenarioStatus,
 } from "./webgpu-status.js";
 
 const material = { r: 0.72, g: 0.28, b: 1, a: 1 };
@@ -14,20 +11,15 @@ const material = { r: 0.72, g: 0.28, b: 1, a: 1 };
 test("ECS browser example renders primitive through non-default perspective FOV", async ({
   page,
 }) => {
-  await page.goto(
-    "/examples/multi-entity.html?scenario=perspective-fov-camera",
+  const status = await loadMultiEntityScenarioStatus(
+    page,
+    "perspective-fov-camera",
+    "perspective-fov-camera-status",
   );
-  const status = await waitForExampleStatus<MultiEntityExampleStatus>(page);
-
-  await attachExampleStatus("perspective-fov-camera-status", status);
-
-  expect(status, "example status should be published").toBeDefined();
 
   if (status === undefined) {
     return;
   }
-
-  skipIfUnsupportedWebGpu(status);
 
   expect(status, JSON.stringify(status, null, 2)).toMatchObject({
     example: "ecs-multi-entity",

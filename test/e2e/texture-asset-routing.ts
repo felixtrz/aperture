@@ -1,13 +1,10 @@
 import { expect, type Page } from "@playwright/test";
 
-import type { MultiEntityExampleStatus } from "./example-status-types.js";
 import {
-  attachExampleStatus,
   expectedDiagnosticCounts,
   expectNoDrawSubmissionStatus,
   expectStatusJsonSafeForGpu,
-  skipIfUnsupportedWebGpu,
-  waitForExampleStatus,
+  loadMultiEntityScenarioStatus,
 } from "./webgpu-status.js";
 
 export interface TextureAssetRouteFixture {
@@ -24,18 +21,15 @@ export async function expectTextureAssetRouteStatus(
   page: Page,
   fixture: TextureAssetRouteFixture,
 ): Promise<void> {
-  await page.goto(`/examples/multi-entity.html?scenario=${fixture.scenario}`);
-  const status = await waitForExampleStatus<MultiEntityExampleStatus>(page);
-
-  await attachExampleStatus(`${fixture.scenario}-routing-status`, status);
-
-  expect(status, "example status should be published").toBeDefined();
+  const status = await loadMultiEntityScenarioStatus(
+    page,
+    fixture.scenario,
+    `${fixture.scenario}-routing-status`,
+  );
 
   if (status === undefined) {
     return;
   }
-
-  skipIfUnsupportedWebGpu(status);
 
   expect(status, JSON.stringify(status, null, 2)).toMatchObject({
     example: "ecs-multi-entity",

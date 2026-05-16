@@ -33,6 +33,14 @@ describe("multi-entity example scenarios", () => {
       expect(knownScenarios.has(scenario), scenario).toBe(true);
     }
   });
+
+  it("keeps e2e specs on the shared multi-entity route loader", async () => {
+    await expect(findDirectMultiEntityNavigations()).resolves.toEqual([]);
+  });
+
+  it("keeps route smoke specs on shared multi-entity helpers", async () => {
+    await expect(findRouteSpecsWithoutSharedLoader()).resolves.toEqual([]);
+  });
 });
 
 async function readExampleScript() {
@@ -86,9 +94,66 @@ async function extractE2eScenarioReferences() {
         scenarios.push(match[1]);
       }
     }
+
+    for (const match of content.matchAll(
+      /loadMultiEntityScenarioStatus\(\s*[^,]+,\s*"([a-z0-9-]+)"/gu,
+    )) {
+      if (!intentionalUnknownScenarios.has(match[1])) {
+        scenarios.push(match[1]);
+      }
+    }
   }
 
   return scenarios;
+}
+
+async function findDirectMultiEntityNavigations() {
+  const e2eRoot = path.join(projectRoot, "test/e2e");
+  const entries = await readdir(e2eRoot, { withFileTypes: true });
+  const navigations = [];
+
+  for (const entry of entries) {
+    if (!entry.isFile() || !entry.name.endsWith(".ts")) {
+      continue;
+    }
+
+    const content = await readFile(path.join(e2eRoot, entry.name), "utf8");
+
+    for (const match of content.matchAll(
+      /page\.goto\(\s*(["'`])\/examples\/multi-entity\.html(?:\?scenario=[^"'`]*)?\1/gu,
+    )) {
+      navigations.push(`${entry.name}:${lineNumberAt(content, match.index)}`);
+    }
+  }
+
+  return navigations;
+}
+
+async function findRouteSpecsWithoutSharedLoader() {
+  const e2eRoot = path.join(projectRoot, "test/e2e");
+  const entries = await readdir(e2eRoot, { withFileTypes: true });
+  const missing = [];
+
+  for (const entry of entries) {
+    if (!entry.isFile() || !entry.name.endsWith("-routing.spec.ts")) {
+      continue;
+    }
+
+    const content = await readFile(path.join(e2eRoot, entry.name), "utf8");
+    const usesSharedRouteLoader =
+      content.includes("loadMultiEntityScenarioStatus") ||
+      content.includes("expectTextureAssetRouteStatus");
+
+    if (!usesSharedRouteLoader) {
+      missing.push(entry.name);
+    }
+  }
+
+  return missing;
+}
+
+function lineNumberAt(content, index) {
+  return content.slice(0, index).split(/\r?\n/u).length;
 }
 
 function extractBlock(script, pattern, label) {

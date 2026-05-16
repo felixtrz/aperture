@@ -8,25 +8,18 @@ import {
   expectClearReadbackStatus,
   expectSceneReadbackStatus,
 } from "./readback-status.js";
-import {
-  attachExampleStatus,
-  skipIfUnsupportedWebGpu,
-  waitForExampleStatus,
-} from "./webgpu-status.js";
+import { loadExampleStatus } from "./webgpu-status.js";
 
 test("WebGPU clear example publishes ready status", async ({ page }) => {
-  await page.goto("/");
-  const status = await waitForExampleStatus<ClearExampleStatus>(page);
-
-  await attachExampleStatus("webgpu-clear-status-only", status);
-
-  expect(status, "example status should be published").toBeDefined();
+  const status = await loadExampleStatus<ClearExampleStatus>(
+    page,
+    "/",
+    "webgpu-clear-status-only",
+  );
 
   if (status === undefined) {
     return;
   }
-
-  skipIfUnsupportedWebGpu(status);
 
   expect(status, JSON.stringify(status, null, 2)).toMatchObject({
     example: "webgpu-clear",
@@ -41,18 +34,15 @@ test("WebGPU clear example publishes ready status", async ({ page }) => {
 test("ECS triangle example publishes one-draw ready status", async ({
   page,
 }) => {
-  await page.goto("/examples/triangle.html");
-  const status = await waitForExampleStatus<SingleDrawExampleStatus>(page);
-
-  await attachExampleStatus("ecs-triangle-status-only", status);
-
-  expect(status, "example status should be published").toBeDefined();
+  const status = await loadExampleStatus<SingleDrawExampleStatus>(
+    page,
+    "/examples/triangle.html",
+    "ecs-triangle-status-only",
+  );
 
   if (status === undefined) {
     return;
   }
-
-  skipIfUnsupportedWebGpu(status);
 
   expect(status, JSON.stringify(status, null, 2)).toMatchObject({
     example: "ecs-triangle",
