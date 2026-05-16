@@ -27,6 +27,7 @@ Review:
 - `agent/COMPLETED.md`.
 - `docs/NORTH_STAR.md`.
 - `docs/ROADMAP.md`.
+- `docs/MEDIUM_LONG_TERM_GOALS.md`.
 - `docs/ARCHITECTURE.md`.
 
 ## Required Updates
@@ -61,7 +62,8 @@ Update `agent/STATUS.json`:
 
 ## Backlog Refill Policy
 
-Use `docs/NORTH_STAR.md` and `docs/ROADMAP.md` to decide what the next useful tasks are.
+Use `docs/NORTH_STAR.md`, `docs/ROADMAP.md`, and
+`docs/MEDIUM_LONG_TERM_GOALS.md` to decide what the next useful tasks are.
 
 New backlog tasks must:
 
@@ -83,4 +85,7 @@ Document:
 
 ## Final Requirement
 
-Leave the repository in a state where the next agent can continue without guessing.
+Leave the repository in a state where the next agent can continue without
+guessing. The configured stop hook is expected to checkpoint all changes and
+push the current branch; if that fails, document the failure and do not treat
+the run as cleanly finished.

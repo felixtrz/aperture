@@ -286,6 +286,7 @@ Aperture MVP needs:
 - `TextureHandle` and `SamplerHandle`.
 - Material kinds:
   - `UnlitMaterial`
+  - `MatcapMaterial` or equivalent normal/view-based matcap material
   - `StandardMaterial` metallic-roughness subset aligned with glTF
   - `DebugNormalMaterial` or equivalent diagnostic shader
 - Common fields:
@@ -325,7 +326,7 @@ Aperture binding:
 - Renderer resolves material data into pipeline keys, bind groups, and diagnostics.
 - Material schemas must be serializable and inspectable.
 - Material validation emits structured diagnostics for missing handles, unsupported texture formats/dimensions, color-space mismatches, invalid alpha cutoffs, unsupported stencil/custom shader requests, and unsupported pipeline feature combinations.
-- Defer physical material extensions, shader graph/chunk/plugin systems, arbitrary GLSL, advanced transparency, render-target/video/procedural textures, texture arrays/3D textures, stencil workflows, and line/point/sprite/depth-only material families.
+- Defer physical material extensions, shader graph/chunk/plugin systems, arbitrary GLSL, advanced transparency, render-target/video/procedural textures, texture arrays/3D textures, stencil workflows, and line/point/sprite/depth-only material families. A simple Lambert/Phong-style material may be considered later, but it should not outrank matcap or the StandardMaterial proof path.
 
 ### Cameras, Views, Layers, And Render Targets
 
@@ -461,7 +462,7 @@ Aperture MVP needs:
   - skins, morphs, and animation playback later
 - Clear asset validation errors.
 - Agent-readable asset manifest/report.
-- Explicit MVP exclusions for glTF 1.0, Draco/Meshopt compression, KTX/KTX2/Basis/WebP/AVIF textures, sparse accessors, non-triangle primitives, advanced glTF extensions, and non-glTF loader formats.
+- Explicit MVP exclusions for glTF 1.0, Draco/Meshopt compression, KTX/KTX2/Basis/WebP/AVIF textures, sparse accessors, non-triangle primitives, advanced glTF extensions, and non-glTF loader formats. Non-glTF 3D import formats should stay out of scope unless a later decision changes the import strategy.
 
 Aperture binding:
 

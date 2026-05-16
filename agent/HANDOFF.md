@@ -2,6 +2,82 @@
 
 ## Latest Run Update
 
+Added medium/long-term guidance for post-proof-point work and updated
+automation so stop-hook checkpoints are pushed upstream.
+
+What changed:
+
+- Added `docs/MEDIUM_LONG_TERM_GOALS.md` as the post-proof-point guidance doc.
+- Recorded the material-family direction: `UnlitMaterial`, `MatcapMaterial`,
+  `StandardMaterial`, `DebugNormalMaterial`, and optional simple lit material
+  later only if it proves useful.
+- Recorded the 3D import direction: focus on glTF 2.0 / GLB only; other 3D
+  import formats require a later decision.
+- Updated the roadmap, North Star, architecture, MVP concept map, wake prompts,
+  backlog maintenance rules, and stop-hook prompt to reference the new guidance.
+- Removed the older duplicate `scripts/CODEX_WAKE_PROMPT.md` and repointed the
+  example autonomous runner to `agent/WAKE.md`.
+- Updated `scripts/codex-stop-hook.sh` so it commits all changes and then pushes
+  the current branch to its configured upstream.
+- Enabled local Codex hooks in `.codex/config.toml`.
+
+Validation:
+
+- `pnpm run format:check` passed.
+- `bash -n scripts/codex-stop-hook.sh` passed.
+- `agent/STATUS.json` parses as valid JSON.
+
+Recommended next task:
+
+- `task-0540 — Add typed asset collection API over AssetRegistry`.
+
+Files touched in this latest update:
+
+- `.codex/config.toml`
+- `AGENTS.md`
+- `agent/BACKLOG.md`
+- `agent/HANDOFF.md`
+- `agent/STATUS.json`
+- `agent/WAKE.md`
+- `docs/ARCHITECTURE.md`
+- `docs/MEDIUM_LONG_TERM_GOALS.md`
+- `docs/MVP_3D_CONCEPTS.md`
+- `docs/NORTH_STAR.md`
+- `docs/ROADMAP.md`
+- `scripts/STOP_HOOK_PROMPT.md`
+- `scripts/CODEX_WAKE_PROMPT.md` (removed)
+- `scripts/codex-stop-hook.sh`
+- `scripts/codex_next_task_sh.md`
+
+## Previous Run Update
+
+Retargeted the ready backlog toward the near-term proof point: a user-facing
+WebGPU example that spawns ECS entities, uses typed mesh/material assets,
+renders a spinning cube with a StandardMaterial MVP, and verifies the lit output
+with Playwright.
+
+What changed:
+
+- Made `task-0540 — Add typed asset collection API over AssetRegistry` the
+  recommended next task.
+- Added a near-term proof-point track with explicit automation priority:
+  typed assets, render asset preparation, user-facing spawn/component API,
+  `createWebGpuApp` facade, StandardMaterial render contract, StandardMaterial
+  WebGPU preparation, direct-lit standard shader/pipeline, render selection
+  routing, lit spinning cube E2E, and post-proof-point audit.
+- Rewrote `task-0543` from an API sketch into an implementation task for the
+  minimal user-facing ECS spawn/component API.
+- Added new tasks `task-0558` through `task-0564` for the proof-point vertical
+  slice and follow-up audit.
+- Moved `task-0557`, `task-0542`, and metadata-only light shader tasks behind
+  the proof point unless they become direct blockers.
+
+Recommended next task:
+
+- `task-0540 — Add typed asset collection API over AssetRegistry`.
+
+## Previous Run Update
+
 Implemented the render pipeline reference follow-up sequence `task-0546`
 through `task-0550`, completed `task-0551` for the first hot-path allocation
 audit, added scratch-backed writers through `task-0554`, completed the
@@ -51,10 +127,6 @@ Validation completed so far:
   unlit, sampler routing, multi-entity, depth overlap, and disabled renderable
   coverage.
 
-Recommended next task:
-
-- `task-0557 — Add view-uniform pack scratch writer`.
-
 ## Current Status
 
 The render pipeline reference audit, its first implementation follow-ups, and
@@ -84,6 +156,10 @@ Latest workflow update:
     patterns to Aperture.
 - The backlog now includes recurring `audit-refactor` tasks to catch
   architecture drift every few implementation tasks or after boundary changes.
+- The immediate backlog priority is now the lit StandardMaterial spinning cube
+  proof point through user-facing ECS APIs. General render-pipeline cleanup
+  remains available but should not displace the proof-point path unless it is a
+  direct blocker.
 
 Previous audit context:
 
@@ -202,4 +278,4 @@ Docs/bookkeeping:
 
 ## Recommended Next Task
 
-Start with `task-0557 — Add view-uniform pack scratch writer`.
+Start with `task-0540 — Add typed asset collection API over AssetRegistry`.

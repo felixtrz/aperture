@@ -4,6 +4,11 @@ This roadmap is the medium-term execution plan. The North Star defines where the
 
 Agents should use this document to understand phase order, but should work from `agent/BACKLOG.md` for specific tasks.
 
+After the near-term lit spinning cube proof point, use
+[`MEDIUM_LONG_TERM_GOALS.md`](./MEDIUM_LONG_TERM_GOALS.md) to guide backlog
+creation. That document records the material-family direction, glTF/GLB-only 3D
+import focus, and the next high-level tracks after the proof point.
+
 ## Immediate Alignment Gate — Bevy ECS/Render Bridge
 
 As of 2026-05-16, Aperture should use the local Bevy checkout as the primary
@@ -234,8 +239,11 @@ Core work:
 - Material handles.
 - Material schemas.
 - Unlit material.
-- Matcap material.
-- Basic standard material later.
+- Matcap material for normal/view-based dimensional previews without scene
+  lighting.
+- Standard material as the main glTF-aligned metallic/roughness PBR path.
+- Optional simple Lambert/Phong-style material only if a later vertical slice
+  proves a real need.
 - Pipeline key generation.
 - Material validation.
 - Batching compatibility reporting.
@@ -260,7 +268,7 @@ Core work:
 - Stable asset IDs.
 - Mesh loading.
 - Texture loading.
-- Basic GLB/GLTF subset.
+- Basic glTF 2.0 / GLB subset as the only planned 3D model import path.
 - Asset metadata.
 - Asset validation.
 - Agent-readable asset manifest.

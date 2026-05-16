@@ -273,6 +273,7 @@ registry:
 
 - `Assets<MeshAsset>`
 - `Assets<UnlitMaterialAsset>`
+- `Assets<MatcapMaterialAsset>`
 - `Assets<StandardMaterialAsset>`
 - `Assets<TextureAsset>`
 - `Assets<SamplerAsset>`
@@ -375,6 +376,11 @@ The renderer resolves materials into:
 - batching compatibility
 
 Material diagnostics should explain performance costs where possible.
+
+Near-term material families should progress from unlit, to matcap/normal-view
+preview material, to glTF-aligned StandardMaterial. A cheaper Lambert/Phong-style
+material is optional later, not a prerequisite for the StandardMaterial proof
+path.
 
 ## Diagnostics
 

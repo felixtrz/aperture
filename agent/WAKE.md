@@ -11,6 +11,7 @@ Read:
 - `AGENTS.md`
 - `docs/NORTH_STAR.md`
 - `docs/ROADMAP.md`
+- `docs/MEDIUM_LONG_TERM_GOALS.md`
 - `docs/ARCHITECTURE.md`
 - `docs/DECISIONS.md`
 - `agent/STATUS.json`
@@ -156,6 +157,7 @@ Compare current implementation against:
 
 - `docs/NORTH_STAR.md`
 - `docs/ROADMAP.md`
+- `docs/MEDIUM_LONG_TERM_GOALS.md`
 - `docs/ARCHITECTURE.md`
 
 If more immediate work is needed, add small backlog tasks with acceptance criteria.
@@ -198,6 +200,10 @@ Before returning your final response, run:
 ```bash
 scripts/codex-stop-hook.sh
 ```
+
+The stop hook validates required state, checkpoints all repository changes, and
+pushes the current branch to its configured upstream. If the push fails, treat
+that as a stop-hook failure and document/fix it before stopping.
 
 If it returns a continuation request or records failures in `agent/logs`, address the failures if straightforward, update the handoff, and run it again.
 

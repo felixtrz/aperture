@@ -12,6 +12,7 @@ Before making changes, read:
 
 - `docs/NORTH_STAR.md`
 - `docs/ROADMAP.md`
+- `docs/MEDIUM_LONG_TERM_GOALS.md`
 - `docs/ARCHITECTURE.md`
 - `docs/DECISIONS.md`
 - `agent/BACKLOG.md`
@@ -61,6 +62,7 @@ At the end of a successful run, compare current state against:
 
 - `docs/NORTH_STAR.md`
 - `docs/ROADMAP.md`
+- `docs/MEDIUM_LONG_TERM_GOALS.md`
 - `docs/ARCHITECTURE.md`
 
 If the backlog is empty or nearly empty, add small next-step tasks that advance the roadmap.
@@ -93,6 +95,10 @@ When performing the end-of-run review:
 7. Recommend the next task.
 8. Update `agent/HANDOFF.md`.
 9. Ensure `agent/STATUS.json` is not left in `running` state.
+
+The configured stop hook checkpoints all repository changes and pushes the
+current branch to its configured upstream. A failed push is a stop-hook failure;
+document it and fix it when straightforward before treating the run as finished.
 
 ## Hard Constraints
 

@@ -91,6 +91,32 @@ commit_all_changes() {
   echo "Working tree is clean after checkpoint commit."
 }
 
+push_current_branch() {
+  local branch
+  branch="$(git branch --show-current)"
+
+  if [[ -z "$branch" ]]; then
+    fail "cannot auto-push from detached HEAD"
+    return
+  fi
+
+  local upstream
+  if ! upstream="$(git rev-parse --abbrev-ref --symbolic-full-name @{u} 2>/dev/null)"; then
+    fail "current branch '$branch' has no upstream; configure it before relying on auto-push"
+    return
+  fi
+
+  echo "Pushing current branch '$branch' to upstream '$upstream'."
+
+  if ! git push; then
+    fail "git push failed"
+    return
+  fi
+
+  echo "Push completed successfully."
+  git status --short --branch
+}
+
 echo "Aperture stop hook started at $(date -u +"%Y-%m-%dT%H:%M:%SZ")"
 echo "Repository: $ROOT"
 echo "Log file: $LOG_FILE"
@@ -108,6 +134,7 @@ required_files=(
   "AGENTS.md"
   "docs/NORTH_STAR.md"
   "docs/ROADMAP.md"
+  "docs/MEDIUM_LONG_TERM_GOALS.md"
   "docs/ARCHITECTURE.md"
   "docs/DECISIONS.md"
   "agent/BACKLOG.md"
@@ -148,7 +175,7 @@ function countReadyTasks(backlogPath) {
   let count = 0;
 
   for (const line of lines) {
-    if (/^##\s+Ready Tasks\s*$/.test(line)) {
+    if (/^##\s+Ready Tasks(?:\s+By Category)?\s*$/.test(line)) {
       inReadySection = true;
       continue;
     }
@@ -194,6 +221,10 @@ if ((failures > 0)); then
 fi
 
 commit_all_changes
+
+if ((failures == 0)); then
+  push_current_branch
+fi
 
 if ((failures > 0)); then
   echo "Aperture stop hook failed with $failures issue(s)."

@@ -12,7 +12,7 @@ cd "$ROOT"
 LOCK_FILE="agent/lock"
 STATUS_FILE="agent/STATUS.json"
 LOG_DIR="agent/logs"
-PROMPT_FILE="scripts/CODEX_WAKE_PROMPT.md"
+PROMPT_FILE="agent/WAKE.md"
 
 mkdir -p "$LOG_DIR"
 
@@ -109,6 +109,8 @@ if ! git diff --quiet || ! git diff --cached --quiet; then
 else
   LAST_COMMIT="$(git rev-parse --short HEAD)"
 fi
+
+git push
 
 cat > "$STATUS_FILE" <<EOF
 {

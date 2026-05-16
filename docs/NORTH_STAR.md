@@ -89,6 +89,8 @@ The system should eventually support most practical app/game needs covered by ma
 - Mesh rendering.
 - Instancing.
 - Materials.
+- Unlit, matcap, and glTF-aligned StandardMaterial families before broader
+  material experiments.
 - Textures.
 - Lighting.
 - Shadows.
@@ -104,6 +106,8 @@ The system should eventually support most practical app/game needs covered by ma
 - Typed asset collections.
 - Asset handles.
 - GLTF/GLB loading.
+- GLTF/GLB is the planned 3D model import path; other 3D import formats require
+  an explicit later decision.
 - Texture loading.
 - KTX2/Basis support eventually.
 - Mesh optimization.

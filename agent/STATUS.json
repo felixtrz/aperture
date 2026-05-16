@@ -5,6 +5,6 @@
   "lastResult": "success",
   "lastCommit": "c6d25ff",
   "activePid": null,
-  "notes": "Implemented task-0546 through task-0556 render pipeline follow-ups and hot-path scratch writers; next recommended task is task-0557 view-uniform pack scratch writer.",
-  "lastRunFinishedAt": "2026-05-16T17:36:42Z"
+  "notes": "Added medium/long-term goals, removed duplicate CODEX_WAKE_PROMPT.md in favor of agent/WAKE.md, and updated stop-hook automation to commit and push; next recommended task is task-0540 typed asset collections.",
+  "lastRunFinishedAt": "2026-05-16T18:00:38Z"
 }
