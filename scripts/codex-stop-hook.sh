@@ -141,15 +141,16 @@ if (status.lastRunStartedAt) {
     const elapsedMinutes = elapsedMs / 60000;
     console.log(`Recorded run elapsed time: ${elapsedMinutes.toFixed(1)} minute(s)`);
 
-    if (status.lastResult === "no-ready-tasks" && readyTaskCount > 0) {
-      throw new Error(`lastResult is no-ready-tasks, but ${readyTaskCount} ready task(s) remain in agent/BACKLOG.md`);
+    if (readyTaskCount === 0) {
+      throw new Error("agent/BACKLOG.md has zero ready tasks; add concrete North Star / Roadmap aligned tasks before stopping");
     }
 
-    if (
-      readyTaskCount > 0 &&
-      elapsedMs < 45 * 60000
-    ) {
-      throw new Error(`recorded run finished after ${elapsedMinutes.toFixed(1)} minute(s) with ${readyTaskCount} ready task(s) still available; keep working until 45 minutes elapse or no ready tasks remain`);
+    if (status.lastResult === "no-ready-tasks") {
+      throw new Error(`lastResult is no-ready-tasks, but the backlog must be refilled before stopping`);
+    }
+
+    if (elapsedMs < 45 * 60000) {
+      throw new Error(`recorded run finished after ${elapsedMinutes.toFixed(1)} minute(s) with ${readyTaskCount} ready task(s) available; keep working until 45 minutes elapse`);
     }
 
     if (status.lastResult === "success" && elapsedMs < 45 * 60000) {
