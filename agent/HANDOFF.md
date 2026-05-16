@@ -107,7 +107,10 @@ Passed:
 - `npm run typecheck:test`
 - `npm run format:check`
 
-The stop hook still needs to run after this handoff is finalized.
+- `scripts/codex-stop-hook.sh`
+  - Passed full stop-hook validation: `typecheck`, `typecheck:test`, `build`,
+    `test`, `lint`, and `format:check`.
+  - Checkpointed the main run changes in commit `84dd7f6`.
 
 ## Known Issues
 
