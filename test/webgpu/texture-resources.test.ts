@@ -85,6 +85,36 @@ describe("texture GPU resource creation", () => {
     ]);
   });
 
+  it("accepts padded rowsPerImage for single-layer texture uploads without requiring extra bytes", () => {
+    const writes: unknown[] = [];
+    const result = createTextureGpuResource({
+      device: {
+        createTexture: () => textureWithView({ label: "padded-rows-view" }),
+        queue: {
+          writeTexture: (destination, data, layout, size) => {
+            writes.push({ destination, data, layout, size });
+          },
+        },
+      },
+      resourceKey: "texture:padded-rows",
+      descriptor: textureDescriptor(),
+      upload: {
+        data: new Uint8Array(16),
+        bytesPerRow: 8,
+        rowsPerImage: 6,
+      },
+    });
+
+    expect(result.valid).toBe(true);
+    expect(result.diagnostics).toEqual([]);
+    expect(writes).toMatchObject([
+      {
+        layout: { bytesPerRow: 8, rowsPerImage: 6 },
+        size: [2, 2, 1],
+      },
+    ]);
+  });
+
   it("accepts valid layered texture upload layouts", () => {
     const writes: unknown[] = [];
     const result = createTextureGpuResource({
@@ -372,6 +402,39 @@ describe("texture GPU resource creation", () => {
     }
   });
 
+  it("diagnoses non-integer rowsPerImage with stable resource diagnostics", () => {
+    const writes: unknown[] = [];
+    const result = createTextureGpuResource({
+      device: {
+        createTexture: () => textureWithView({}),
+        queue: {
+          writeTexture: (destination, data, layout, size) => {
+            writes.push({ destination, data, layout, size });
+          },
+        },
+      },
+      resourceKey: "texture:fractional-rows",
+      descriptor: textureDescriptor(),
+      upload: {
+        data: new Uint8Array(16),
+        bytesPerRow: 8,
+        rowsPerImage: 2.5,
+      },
+    });
+
+    expect(result.valid).toBe(false);
+    expect(result.resource).toBeNull();
+    expect(result.diagnostics).toEqual([
+      {
+        code: "textureResource.invalidRowsPerImage",
+        resourceKey: "texture:fractional-rows",
+        message:
+          "Texture upload rowsPerImage for resource 'texture:fractional-rows' must be an integer at least 2 row(s).",
+      },
+    ]);
+    expect(writes).toEqual([]);
+  });
+
   it("reports missing upload support when explicit bytes are provided", () => {
     expect(
       createTextureGpuResource({
@@ -528,7 +591,47 @@ describe("sampler GPU resource creation", () => {
       diagnostics: [
         {
           code: "samplerResource.samplerCreationFailed",
+          resourceKey: "sampler:linear",
           message: "sampler denied",
+        },
+      ],
+    });
+  });
+
+  it("preserves sampler descriptor labels and stable failure diagnostics", () => {
+    const created: unknown[] = [];
+    const sampler = createSamplerAsset({ label: "ui-linear" });
+    const ready = createSamplerGpuResource({
+      device: {
+        createSampler: (descriptor) => {
+          created.push(descriptor);
+          return { handle: "raw-sampler-handle" };
+        },
+      },
+      resourceKey: "sampler:ui-linear",
+      sampler,
+    });
+    const failed = createSamplerGpuResource({
+      device: {
+        createSampler: () => {
+          throw new Error("sampler device rejected descriptor");
+        },
+      },
+      resourceKey: "sampler:ui-linear",
+      sampler,
+    });
+
+    expect(ready.valid).toBe(true);
+    expect(ready.resource?.descriptor.label).toBe("ui-linear");
+    expect(created).toEqual([expect.objectContaining({ label: "ui-linear" })]);
+    expect(failed).toEqual({
+      valid: false,
+      resource: null,
+      diagnostics: [
+        {
+          code: "samplerResource.samplerCreationFailed",
+          resourceKey: "sampler:ui-linear",
+          message: "sampler device rejected descriptor",
         },
       ],
     });

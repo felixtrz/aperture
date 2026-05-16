@@ -48,6 +48,11 @@ test("ECS browser example reports unknown query scenarios without submitting dra
       "textured-unlit",
       "sampler-filter-address",
       "multi-textured-unlit",
+      "multi-textured-missing-texture-asset",
+      "multi-textured-missing-sampler-asset",
+      "shared-texture-missing-texture-resource",
+      "shared-texture-missing-sampler-resource",
+      "multi-textured-missing-texture-sampler-resources",
       "invalid-texture-upload",
     ]),
   );

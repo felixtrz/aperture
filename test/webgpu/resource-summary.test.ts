@@ -79,6 +79,7 @@ describe("renderer resource summary report", () => {
       textureResources: [
         textureResource(true),
         textureUploadDiagnostic("textureResource.invalidBytesPerRow"),
+        textureUploadDiagnostic("textureResource.invalidRowsPerImage"),
         textureUploadDiagnostic("textureResource.uploadDataTooSmall"),
       ],
       samplerResources: [],
@@ -89,18 +90,26 @@ describe("renderer resource summary report", () => {
 
     expect(report.counts).toMatchObject({
       textures: 1,
-      warnings: 2,
+      warnings: 3,
       errors: 0,
     });
     expect(report.diagnostics).toEqual([
       {
         code: "textureResource.invalidBytesPerRow",
         message: "textureResource.invalidBytesPerRow failed",
+        resourceKey: "texture:upload",
+        severity: "warning",
+      },
+      {
+        code: "textureResource.invalidRowsPerImage",
+        message: "textureResource.invalidRowsPerImage failed",
+        resourceKey: "texture:upload",
         severity: "warning",
       },
       {
         code: "textureResource.uploadDataTooSmall",
         message: "textureResource.uploadDataTooSmall failed",
+        resourceKey: "texture:upload",
         severity: "warning",
       },
     ]);
@@ -200,6 +209,7 @@ function textureResource(valid: boolean): CreateTextureGpuResourceResult {
 function textureUploadDiagnostic(
   code:
     | "textureResource.invalidBytesPerRow"
+    | "textureResource.invalidRowsPerImage"
     | "textureResource.uploadDataTooSmall",
 ): CreateTextureGpuResourceResult {
   return {

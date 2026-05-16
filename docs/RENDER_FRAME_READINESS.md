@@ -8,6 +8,7 @@ Renderer assembly smoke report:
 
 - Checks that extracted render snapshot inspection, snapshot cloneability, draw package inspection, renderer resource summaries, and frame reports are present and ready.
 - Summarizes snapshot, package, resource, and frame counts without exposing renderer-owned GPU objects.
+- `renderResourceSummaryReportToJsonValue` and `renderResourceSummaryReportToJson` expose renderer resource counts plus stable diagnostic codes, messages, severities, and resource keys without raw GPU handles.
 
 Render pass assembly smoke report:
 
@@ -91,6 +92,7 @@ Use the smallest helper that matches the question:
 - Render-pass preparation: `renderPassAssemblySmokeReportToJsonValue` for data, `summarizeRenderPassAssemblyDiagnosticsBySection` for why it is not ready.
 - Frame-boundary execution: `frameExecutionReportToJsonValue` for data, `summarizeFrameExecutionDiagnosticsBySection` for missing execution, finish, submit, or source diagnostics.
 - Renderer assembly: `rendererAssemblySmokeReportToJsonValue` for data, `summarizeRendererAssemblyDiagnosticsBySection` for snapshot, package, resource, or frame issues.
+- Renderer resource summary: `renderResourceSummaryReportToJsonValue` for resource counts and stable diagnostic resource keys without buffers, textures, samplers, pipelines, or shader modules.
 - Renderer frame summary: `rendererFrameSummaryReportToJsonValue` for data, `summarizeRendererFrameSummaryDiagnosticsBySection` for summary sections.
 - Full injected frame runner: `injectedRenderFrameRunnerReportToJsonValue` for a JSON-safe cross-phase snapshot, `summarizeInjectedRenderFrameDiagnosticsByPhase` for phase grouping.
 - Draw-command injected frame runner: `injectedRenderFrameDrawCommandRunnerReportToJsonValue` for draw-list plus full-frame data, `summarizeInjectedRenderFrameDrawCommandDiagnosticsByPhase` for draw-list plus full-frame phase grouping.

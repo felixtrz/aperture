@@ -117,13 +117,16 @@ for (const fixture of [
       command: { commands: 0, drawCount: 0, indexedDrawCount: 0 },
       submission: { commandBuffers: 0, commands: 0, drawCalls: 0 },
     });
-    expect(status.diagnostics, JSON.stringify(status, null, 2)).toEqual([
-      expect.objectContaining({
+    expect(
+      assetDiagnosticPairs(status),
+      JSON.stringify(status, null, 2),
+    ).toEqual([
+      {
         code: fixture.diagnostic,
         assetKey: expect.stringMatching(
           fixture.dependencyKind === "texture" ? /^texture:/ : /^sampler:/,
         ),
-      }),
+      },
     ]);
     expect(
       status.textureDependency?.textureKey,
@@ -134,4 +137,18 @@ for (const fixture of [
       JSON.stringify(status, null, 2),
     ).toMatch(/^sampler:/);
   });
+}
+
+function assetDiagnosticPairs(status: MultiEntityExampleStatus):
+  | readonly {
+      readonly code: string;
+      readonly assetKey?: string;
+    }[]
+  | undefined {
+  return status.diagnostics?.map((diagnostic) => ({
+    code: diagnostic.code,
+    ...(diagnostic.assetKey === undefined
+      ? {}
+      : { assetKey: diagnostic.assetKey }),
+  }));
 }

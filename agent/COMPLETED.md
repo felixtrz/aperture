@@ -2973,3 +2973,261 @@ Summary:
 - Added `?scenario=shared-texture-tinted-unlit` for two materials sharing one texture/sampler pair with different tints.
 - Playwright verifies both multiplied readback colors and resource counts for one texture/one sampler.
 - Validation run: textured tint Playwright spec, build, typecheck, and example syntax checks pass.
+
+## task-0276 — Add texture upload validation JSON report coverage
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added `renderResourceSummaryReportToJsonValue` and `renderResourceSummaryReportToJson`.
+- Resource summaries now preserve diagnostic `resourceKey` values for JSON-safe diagnostics.
+- Added JSON coverage for invalid bytes-per-row, invalid rows-per-image, and too-small texture upload data.
+
+## task-0277 — Add multi-textured dependency browser status coverage
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added `?scenario=multi-textured-missing-texture-asset`.
+- Browser status reports `render.texture.missing` for one missing texture asset among two textured materials.
+- Playwright verifies extraction stops before resource creation and submission.
+
+## task-0278 — Add texture scenario status schema cleanup
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added shared test-side status interfaces for RGBA tuples, texture samples, material texture samples, tinted samples, and sampler behavior.
+- Reduced repeated texture/sampler status shapes in `test/e2e/example-status-types.ts`.
+- Validation run: test typecheck passes.
+
+## task-0279 — Add shared-texture missing sampler browser diagnostics
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added `?scenario=shared-texture-missing-sampler-resource`.
+- Browser status reports missing shared sampler resource diagnostics for two shared-texture tinted materials.
+- Focused Playwright coverage verifies no draw submission and no raw GPU handles.
+
+## task-0280 — Add texture upload validation unit coverage for `rowsPerImage` padding
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added unit coverage for `rowsPerImage > height` on single-layer uploads without requiring extra bytes.
+- Added stable non-integer `rowsPerImage` diagnostic coverage.
+- Clarified invalid `rowsPerImage` messages to require an integer minimum.
+
+## task-0281 — Add shared-texture missing texture browser diagnostics
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added `?scenario=shared-texture-missing-texture-resource`.
+- Browser status reports the shared missing texture resource key for two material bind groups.
+- Focused Playwright coverage verifies resource setup stops before submission.
+
+## task-0282 — Add multi-textured missing sampler browser diagnostics
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added `?scenario=multi-textured-missing-sampler-resource`.
+- Browser status reports one missing sampler GPU resource among two textured draws.
+- Focused Playwright coverage verifies stable diagnostics and no raw GPU handles.
+
+## task-0283 — Add multi-textured missing sampler asset extraction coverage
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added `?scenario=multi-textured-missing-sampler-asset`.
+- Browser status reports `render.sampler.missing` for one unregistered sampler asset among two textured materials.
+- Playwright verifies extraction stops before resource creation and submission.
+
+## task-0284 — Add texture resource diagnostic message browser assertions
+
+Completed: 2026-05-16
+
+Summary:
+
+- Strengthened invalid texture upload Playwright assertions to lock browser-visible diagnostic messages.
+- Covered invalid bytes-per-row, invalid rows-per-image, and too-small upload data messages.
+- Focused Playwright coverage for `test/e2e/invalid-texture-upload.spec.ts` passes.
+
+## task-0285 — Add texture resource failure status schema cleanup
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added shared test-side interfaces for missing texture resources, missing sampler resources, missing asset metadata, and upload validation metadata.
+- Updated multi-entity status typing to include resource-key diagnostics.
+- Validation run: test typecheck passes.
+
+## task-0286 — Add multi-textured missing texture and sampler resource diagnostics
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added `?scenario=multi-textured-missing-texture-sampler-resources`.
+- Browser status reports one material missing both texture and sampler GPU resources.
+- Focused Playwright coverage verifies both resource keys and no submission.
+
+## task-0287 — Add shared-texture missing texture and sampler resource diagnostics
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added `?scenario=shared-texture-missing-texture-sampler-resources`.
+- Browser status reports both shared texture and sampler resources missing across two material bind groups.
+- Focused Playwright coverage verifies all four stable diagnostics.
+
+## task-0288 — Add resource summary JSON coverage for sampler diagnostics
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added resource-summary JSON tests for missing sampler creation support and sampler creation failure.
+- JSON output preserves stable sampler resource keys and messages.
+- The JSON helper omits raw sampler handles.
+
+## task-0289 — Add texture dependency readiness shared-resource coverage
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added unit coverage for multiple materials sharing ready texture/sampler resource keys.
+- Added missing shared dependency coverage that reports one diagnostic per checked material.
+- Focused material dependency readiness tests pass.
+
+## task-0290 — Add texture scenario availability coverage
+
+Completed: 2026-05-16
+
+Summary:
+
+- Unknown-scenario Playwright coverage now advertises representative new texture/sampler asset and resource diagnostic scenarios.
+- The assertion remains partial rather than exact-list brittle.
+- Focused unknown-scenario Playwright coverage passes.
+
+## task-0291 — Add resource summary JSON coverage for buffer resource keys
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added resource-summary JSON coverage for mesh, material, and view-uniform diagnostics carrying resource keys.
+- JSON output includes codes, messages, severities, and resource keys without raw buffer handles.
+- Focused resource summary JSON tests pass.
+
+## task-0292 — Add resource summary merge resource-key coverage
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added merge coverage for texture and sampler diagnostics carrying resource keys.
+- Merged summaries preserve diagnostic order/resource keys and recompute warning totals.
+- Focused resource summary merge tests pass.
+
+## task-0293 — Document resource summary JSON helper
+
+Completed: 2026-05-16
+
+Summary:
+
+- Updated `docs/RENDER_FRAME_READINESS.md` for the resource summary JSON helper.
+- Documented stable diagnostic resource keys and the no-raw-GPU-handle boundary.
+
+## task-0294 — Add texture diagnostics assertion helper for Playwright tests
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added a local `diagnosticResourcePairs` helper in missing texture resource Playwright coverage.
+- Reused the helper for repeated texture/sampler resource-key diagnostic assertions.
+- Validation run: test typecheck passes.
+
+## task-0295 — Add sampler resource unit coverage for descriptor labels
+
+Completed: 2026-05-16
+
+Summary:
+
+- Expanded sampler GPU resource tests for descriptor label propagation.
+- Added stable creation-failure diagnostics with resource key and message assertions.
+- Focused texture resource tests pass.
+
+## task-0296 — Add shared-sampler missing sampler asset extraction coverage
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added `?scenario=shared-sampler-missing-sampler-asset`.
+- Browser status reports two `render.sampler.missing` diagnostics for two materials sharing one unregistered sampler asset.
+- Focused Playwright coverage verifies extraction stops before resource creation and submission.
+
+## task-0297 — Add shared-sampler missing sampler resource diagnostics
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added `?scenario=shared-sampler-missing-sampler-resource`.
+- Browser status reports the shared missing sampler GPU resource key for two material bind groups.
+- Focused Playwright coverage verifies resource setup stops before submission.
+
+## task-0298 — Add shared-sampler missing texture resource diagnostics
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added `?scenario=shared-sampler-missing-texture-resource`.
+- Browser status reports one missing texture GPU resource in a shared-sampler two-material scene.
+- Focused Playwright coverage verifies the affected texture key and no submission.
+
+## task-0299 — Add texture diagnostics matrix docs table
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added a texture/sampler diagnostic matrix to `docs/BROWSER_E2E_RENDERING.md`.
+- The matrix groups missing asset, missing GPU resource, and upload-validation scenarios by phase and primary diagnostic.
+
+## task-0300 — Add texture asset diagnostic assertion helper
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added a local asset diagnostic pair helper in texture dependency Playwright coverage.
+- Texture/sampler asset dependency tests now use the helper for code/asset-key assertions.
+- Focused texture dependency Playwright coverage passes.
+
+## task-0301 — Add shared-sampler missing texture and sampler resource diagnostics
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added `?scenario=shared-sampler-missing-texture-sampler-resources`.
+- Browser status reports one missing texture resource and the shared missing sampler resource without raw GPU handles.
+- Focused Playwright coverage verifies resource setup stops before submission.

@@ -198,6 +198,18 @@ Current checks:
   `?scenario=shared-texture-tinted-unlit`, renders two texture-backed unlit
   materials using one shared texture/sampler pair and different tints, and
   verifies both multiplied colors.
+- Shared-texture missing sampler resource smoke: loads the multi-entity page
+  with `?scenario=shared-texture-missing-sampler-resource`, withholds the
+  shared sampler GPU resource, and verifies both material bind groups report
+  the same missing sampler key before draw submission.
+- Shared-texture missing texture resource smoke: loads the multi-entity page
+  with `?scenario=shared-texture-missing-texture-resource`, withholds the
+  shared texture GPU resource, and verifies both material bind groups report
+  the same missing texture key before draw submission.
+- Shared-texture missing texture/sampler resource smoke: loads the multi-entity
+  page with `?scenario=shared-texture-missing-texture-sampler-resources`,
+  withholds both shared GPU resources, and verifies both material bind groups
+  report both missing resource keys before draw submission.
 - Mixed unlit pipeline smoke: loads the multi-entity page with
   `?scenario=mixed-unlit-pipelines`, renders factor-only and texture-backed
   unlit materials in one frame, verifies two distinct pipeline keys, and
@@ -205,12 +217,36 @@ Current checks:
 - Texture dependency status smoke: loads the multi-entity page with missing,
   loading, and failed texture/sampler dependency scenarios and verifies
   extraction stops before draw submission with stable asset-key diagnostics.
+- Multi-textured missing texture asset smoke: loads the multi-entity page with
+  two texture-backed materials and one unregistered texture asset, then verifies
+  extraction reports the missing texture asset key before resource creation.
+- Multi-textured missing sampler asset smoke: loads the multi-entity page with
+  two texture-backed materials and one unregistered sampler asset, then verifies
+  extraction reports the missing sampler asset key before resource creation.
+- Shared-sampler missing sampler asset smoke: loads the multi-entity page with
+  two texture-backed materials sharing one unregistered sampler asset, then
+  verifies extraction reports the shared sampler asset key twice before
+  resource creation.
+- Shared-sampler missing sampler resource smoke: loads the multi-entity page
+  with two texture-backed materials sharing one sampler asset, withholds the
+  shared sampler GPU resource, and verifies both material bind groups report the
+  same missing sampler key before draw submission.
+- Shared-sampler missing texture resource smoke: loads the multi-entity page
+  with two texture-backed materials sharing one sampler asset, withholds one
+  texture GPU resource, and verifies the affected material reports the missing
+  texture key before draw submission.
 - Missing texture/sampler resource smoke: loads the multi-entity page with a
   ready textured draw but intentionally withheld GPU texture/sampler resources,
   then verifies resource creation stops with JSON-safe diagnostics.
 - Multi-textured missing texture resource smoke: loads the multi-entity page
   with two textured draws and one withheld texture GPU resource, then verifies
   the missing texture resource key is reported before draw submission.
+- Multi-textured missing sampler resource smoke: loads the multi-entity page
+  with two textured draws and one withheld sampler GPU resource, then verifies
+  the missing sampler resource key is reported before draw submission.
+- Multi-textured missing texture/sampler resource smoke: loads the multi-entity
+  page with two textured draws and one material missing both texture and sampler
+  GPU resources, then verifies both resource keys before draw submission.
 - Invalid texture upload smoke: loads the multi-entity page with intentionally
   invalid texture upload row-stride, rows-per-image, and data-size scenarios,
   then verifies resource creation stops with JSON-safe texture diagnostics
@@ -239,18 +275,62 @@ Texture/sampler scenario index:
   sampler resource.
 - `shared-texture-tinted-unlit`: verifies one shared texture/sampler pair with
   two different material tints.
+- `shared-texture-missing-sampler-resource`: verifies one missing shared
+  sampler resource across two texture-backed materials.
+- `shared-texture-missing-texture-resource`: verifies one missing shared
+  texture resource across two texture-backed materials.
+- `shared-texture-missing-texture-sampler-resources`: verifies missing shared
+  texture and sampler resources across two texture-backed materials.
 - `mixed-unlit-pipelines`: verifies factor-only and texture-backed unlit
   pipeline variants in one frame.
 - `missing-texture-asset`, `loading-texture-asset`, `failed-texture-asset`,
   `missing-sampler-asset`, `loading-sampler-asset`,
   `failed-sampler-asset`: verify extraction-time asset dependency diagnostics.
+- `multi-textured-missing-texture-asset`: verifies one missing texture asset
+  among multiple texture-backed materials before resource creation.
+- `multi-textured-missing-sampler-asset`: verifies one missing sampler asset
+  among multiple texture-backed materials before resource creation.
+- `shared-sampler-missing-sampler-asset`: verifies one missing shared sampler
+  asset across two texture-backed materials before resource creation.
+- `shared-sampler-missing-sampler-resource`: verifies one missing shared sampler
+  resource across two texture-backed materials.
+- `shared-sampler-missing-texture-resource`: verifies one missing texture
+  resource in a shared-sampler two-material scene.
+- `shared-sampler-missing-texture-sampler-resources`: verifies one missing
+  texture resource plus the missing shared sampler resource in a shared-sampler
+  two-material scene.
 - `missing-texture-sampler-resources`: verifies missing renderer-owned texture
   and sampler resources.
 - `multi-textured-missing-texture-resource`: verifies one missing texture
   resource among multiple textured draws.
+- `multi-textured-missing-sampler-resource`: verifies one missing sampler
+  resource among multiple textured draws.
+- `multi-textured-missing-texture-sampler-resources`: verifies one draw missing
+  both texture and sampler resources among multiple textured draws.
 - `invalid-texture-upload`, `invalid-texture-rows-per-image`,
   `short-texture-upload`: verify texture upload layout and data-size
   diagnostics.
+
+Texture/sampler diagnostic matrix:
+
+| Category             | Scenario                                           | Phase       | Primary diagnostic                                                                                |
+| -------------------- | -------------------------------------------------- | ----------- | ------------------------------------------------------------------------------------------------- |
+| Missing asset        | `missing-texture-asset`                            | `extract`   | `render.texture.missing`                                                                          |
+| Missing asset        | `missing-sampler-asset`                            | `extract`   | `render.sampler.missing`                                                                          |
+| Missing asset        | `multi-textured-missing-texture-asset`             | `extract`   | `render.texture.missing`                                                                          |
+| Missing asset        | `multi-textured-missing-sampler-asset`             | `extract`   | `render.sampler.missing`                                                                          |
+| Missing asset        | `shared-sampler-missing-sampler-asset`             | `extract`   | `render.sampler.missing`                                                                          |
+| Missing GPU resource | `missing-texture-sampler-resources`                | `resources` | `unlitBindGroupResource.missingTextureResource` / `unlitBindGroupResource.missingSamplerResource` |
+| Missing GPU resource | `multi-textured-missing-texture-resource`          | `resources` | `unlitBindGroupResource.missingTextureResource`                                                   |
+| Missing GPU resource | `multi-textured-missing-sampler-resource`          | `resources` | `unlitBindGroupResource.missingSamplerResource`                                                   |
+| Missing GPU resource | `shared-texture-missing-texture-resource`          | `resources` | `unlitBindGroupResource.missingTextureResource`                                                   |
+| Missing GPU resource | `shared-texture-missing-sampler-resource`          | `resources` | `unlitBindGroupResource.missingSamplerResource`                                                   |
+| Missing GPU resource | `shared-sampler-missing-texture-resource`          | `resources` | `unlitBindGroupResource.missingTextureResource`                                                   |
+| Missing GPU resource | `shared-sampler-missing-sampler-resource`          | `resources` | `unlitBindGroupResource.missingSamplerResource`                                                   |
+| Missing GPU resource | `shared-sampler-missing-texture-sampler-resources` | `resources` | `unlitBindGroupResource.missingTextureResource` / `unlitBindGroupResource.missingSamplerResource` |
+| Upload validation    | `invalid-texture-upload`                           | `resources` | `textureResource.invalidBytesPerRow`                                                              |
+| Upload validation    | `invalid-texture-rows-per-image`                   | `resources` | `textureResource.invalidRowsPerImage`                                                             |
+| Upload validation    | `short-texture-upload`                             | `resources` | `textureResource.uploadDataTooSmall`                                                              |
 
 ## WebGPU Support And Skips
 

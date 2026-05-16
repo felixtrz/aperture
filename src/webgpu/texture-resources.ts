@@ -232,7 +232,7 @@ function validateTextureUploadLayout(
     return {
       code: "textureResource.invalidRowsPerImage",
       resourceKey,
-      message: `Texture upload rowsPerImage for resource '${resourceKey}' must be at least ${height} row(s).`,
+      message: `Texture upload rowsPerImage for resource '${resourceKey}' must be an integer at least ${height} row(s).`,
     };
   }
 

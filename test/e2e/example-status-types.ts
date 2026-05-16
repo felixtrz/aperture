@@ -1,5 +1,67 @@
 import type { RgbaColor, RgbaPixel } from "./png.js";
 
+export type RgbaTuple = readonly [number, number, number, number];
+
+export interface TextureSampleExpectation {
+  readonly sampleId: string;
+  readonly expectedColor: RgbaTuple;
+}
+
+export interface TextureMaterialSampleStatus extends TextureSampleExpectation {
+  readonly materialKey: string;
+  readonly textureKey: string;
+  readonly samplerKey: string;
+}
+
+export interface TintedMaterialSampleStatus extends TextureSampleExpectation {
+  readonly materialKey: string;
+  readonly tintFactor: RgbaTuple;
+}
+
+export interface SamplerBehaviorStatus {
+  readonly samplerKey: string;
+  readonly textureKey: string;
+  readonly addressModeU: string;
+  readonly addressModeV: string;
+  readonly addressModeW: string;
+  readonly magFilter: string;
+  readonly minFilter: string;
+  readonly mipmapFilter: string;
+  readonly expectedSampleIds: readonly string[];
+  readonly expectedColor: RgbaTuple;
+  readonly rejectedColors?: {
+    readonly nearestMirror?: RgbaTuple;
+    readonly repeatLinear?: RgbaTuple;
+    readonly clamp?: RgbaTuple;
+  };
+}
+
+export interface MissingTextureResourceStatus {
+  readonly textureKey: string;
+  readonly expectedDiagnostic: string;
+}
+
+export interface MissingSamplerResourceStatus {
+  readonly samplerKey: string;
+  readonly expectedDiagnostic: string;
+}
+
+export interface MissingTextureAssetStatus extends MissingTextureResourceStatus {
+  readonly materialKey: string;
+  readonly samplerKey: string;
+}
+
+export interface MissingSamplerAssetStatus extends MissingSamplerResourceStatus {
+  readonly materialKey: string;
+  readonly textureKey: string;
+}
+
+export interface TextureUploadValidationStatus extends MissingTextureResourceStatus {
+  readonly bytesPerRow: number;
+  readonly dataBytes?: number;
+  readonly rowsPerImage?: number;
+}
+
 export interface ExampleStatusBase {
   readonly example: string;
   readonly scenario?: string;
@@ -160,102 +222,40 @@ export interface MultiEntityExampleStatus extends ExampleStatusBase {
     readonly materialKey: string;
     readonly textureKey: string;
     readonly samplerKey: string;
-    readonly expectedLeftColor: readonly [number, number, number, number];
-    readonly expectedRightColor: readonly [number, number, number, number];
-    readonly expectedQuadrants?: readonly {
-      readonly sampleId: string;
-      readonly expectedColor: readonly [number, number, number, number];
-    }[];
+    readonly expectedLeftColor: RgbaTuple;
+    readonly expectedRightColor: RgbaTuple;
+    readonly expectedQuadrants?: readonly TextureSampleExpectation[];
   };
-  readonly sampler?: {
-    readonly samplerKey: string;
-    readonly textureKey: string;
-    readonly addressModeU: string;
-    readonly addressModeV: string;
-    readonly addressModeW: string;
-    readonly magFilter: string;
-    readonly minFilter: string;
-    readonly mipmapFilter: string;
-    readonly expectedSampleIds: readonly string[];
-    readonly expectedColor: readonly [number, number, number, number];
-    readonly rejectedColors?: {
-      readonly nearestMirror?: readonly [number, number, number, number];
-      readonly repeatLinear?: readonly [number, number, number, number];
-      readonly clamp?: readonly [number, number, number, number];
-    };
+  readonly sampler?: SamplerBehaviorStatus;
+  readonly texturedTint?: TextureMaterialSampleStatus & {
+    readonly textureColor: RgbaTuple;
+    readonly tintFactor: RgbaTuple;
   };
-  readonly texturedTint?: {
-    readonly materialKey: string;
-    readonly textureKey: string;
-    readonly samplerKey: string;
-    readonly sampleId: string;
-    readonly textureColor: readonly [number, number, number, number];
-    readonly tintFactor: readonly [number, number, number, number];
-    readonly expectedColor: readonly [number, number, number, number];
-  };
-  readonly samplerVAddress?: {
-    readonly samplerKey: string;
-    readonly textureKey: string;
-    readonly addressModeU: string;
-    readonly addressModeV: string;
-    readonly addressModeW: string;
-    readonly magFilter: string;
-    readonly minFilter: string;
-    readonly mipmapFilter: string;
-    readonly expectedSampleIds: readonly string[];
-    readonly expectedColor: readonly [number, number, number, number];
-    readonly rejectedColors?: {
-      readonly nearestMirror?: readonly [number, number, number, number];
-      readonly repeatLinear?: readonly [number, number, number, number];
-      readonly clamp?: readonly [number, number, number, number];
-    };
-  };
+  readonly samplerVAddress?: SamplerBehaviorStatus;
   readonly multiTextured?: {
     readonly sharedSamplerKey?: string;
-    readonly left: {
-      readonly sampleId: string;
-      readonly materialKey: string;
-      readonly textureKey: string;
-      readonly samplerKey: string;
-      readonly expectedColor: readonly [number, number, number, number];
-    };
-    readonly right: {
-      readonly sampleId: string;
-      readonly materialKey: string;
-      readonly textureKey: string;
-      readonly samplerKey: string;
-      readonly expectedColor: readonly [number, number, number, number];
-    };
+    readonly left: TextureMaterialSampleStatus;
+    readonly right: TextureMaterialSampleStatus;
   };
   readonly sharedTextureTinted?: {
     readonly textureKey: string;
     readonly samplerKey: string;
-    readonly textureColor: readonly [number, number, number, number];
-    readonly left: {
-      readonly sampleId: string;
-      readonly materialKey: string;
-      readonly tintFactor: readonly [number, number, number, number];
-      readonly expectedColor: readonly [number, number, number, number];
-    };
-    readonly right: {
-      readonly sampleId: string;
-      readonly materialKey: string;
-      readonly tintFactor: readonly [number, number, number, number];
-      readonly expectedColor: readonly [number, number, number, number];
-    };
+    readonly textureColor: RgbaTuple;
+    readonly left: TintedMaterialSampleStatus;
+    readonly right: TintedMaterialSampleStatus;
   };
   readonly mixedPipelines?: {
     readonly factorMaterialKey: string;
     readonly texturedMaterialKey: string;
-    readonly expectedFactorColor: readonly [number, number, number, number];
-    readonly expectedTexturedColor: readonly [number, number, number, number];
+    readonly expectedFactorColor: RgbaTuple;
+    readonly expectedTexturedColor: RgbaTuple;
   };
   readonly visibility?: {
     readonly authored: number;
     readonly extracted: number;
     readonly skipped: number;
     readonly hiddenMaterialKey: string;
-    readonly hiddenMaterialColor: readonly [number, number, number, number];
+    readonly hiddenMaterialColor: RgbaTuple;
     readonly diagnostics: readonly string[];
   };
   readonly layerFiltering?: {
@@ -264,7 +264,7 @@ export interface MultiEntityExampleStatus extends ExampleStatusBase {
     readonly visibleLayerMask?: number;
     readonly skippedLayerMask?: number;
     readonly skippedMaterialKey?: string;
-    readonly skippedMaterialColor?: readonly [number, number, number, number];
+    readonly skippedMaterialColor?: RgbaTuple;
     readonly extracted?: number;
     readonly skipped?: number;
     readonly diagnostics: readonly string[];
@@ -287,24 +287,19 @@ export interface MultiEntityExampleStatus extends ExampleStatusBase {
     readonly textureKey: string;
     readonly samplerKey: string;
   };
-  readonly invalidTextureUpload?: {
-    readonly textureKey: string;
-    readonly expectedDiagnostic: string;
-    readonly bytesPerRow: number;
-    readonly dataBytes?: number;
-    readonly rowsPerImage?: number;
-  };
-  readonly missingTextureResource?: {
-    readonly textureKey: string;
-    readonly expectedDiagnostic: string;
-  };
+  readonly invalidTextureUpload?: TextureUploadValidationStatus;
+  readonly missingTextureResource?: MissingTextureResourceStatus;
+  readonly missingSamplerResource?: MissingSamplerResourceStatus;
+  readonly missingTextureAsset?: MissingTextureAssetStatus;
+  readonly missingSamplerAsset?: MissingSamplerAssetStatus;
+  readonly missingSharedSamplerAsset?: MissingSamplerResourceStatus;
   readonly disabled?: {
     readonly authored: number;
     readonly enabled?: number;
     readonly disabled?: number;
     readonly extracted: number;
     readonly disabledMaterialKey?: string;
-    readonly disabledMaterialColor?: readonly [number, number, number, number];
+    readonly disabledMaterialColor?: RgbaTuple;
     readonly diagnostics: readonly string[];
   };
   readonly command?: {
@@ -332,6 +327,7 @@ export interface MultiEntityExampleStatus extends ExampleStatusBase {
     readonly message: string;
     readonly severity: string;
     readonly assetKey?: string;
+    readonly resourceKey?: string;
     readonly entity?: {
       readonly index: number;
       readonly generation: number;

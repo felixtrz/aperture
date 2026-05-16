@@ -4,90 +4,90 @@
 
 Completed this run:
 
-- `task-0254 — Add quadrant texture UV browser readback coverage`
-- `task-0255 — Add multi-pipeline render-frame planning unit coverage`
-- `task-0256 — Add sampler filter and address browser readback coverage`
-- `task-0257 — Add texture upload row-stride diagnostics coverage`
-- `task-0258 — Add textured unlit tint browser coverage`
-- `task-0259 — Add texture upload data-size diagnostics`
-- `task-0260 — Add texture format row-byte coverage`
-- `task-0261 — Add invalid texture upload browser diagnostics`
-- `task-0262 — Add vertical sampler address browser readback coverage`
-- `task-0263 — Add multi-textured unlit browser coverage`
-- `task-0264 — Add invalid texture upload data-size browser diagnostics`
-- `task-0265 — Add shared-sampler multi-textured browser coverage`
-- `task-0266 — Add layered texture upload validation coverage`
-- `task-0267 — Add texture resource summary diagnostics coverage`
-- `task-0268 — Add multi-textured resource-missing browser diagnostics`
-- `task-0269 — Add bind-group missing resource-key unit coverage`
-- `task-0270 — Add browser available-scenario coverage for texture cases`
-- `task-0271 — Add texture upload failure resource summary merge coverage`
-- `task-0272 — Add material texture dependency report coverage for multiple textures`
-- `task-0273 — Add browser texture scenario docs index`
-- `task-0274 — Add invalid rows-per-image browser diagnostics`
-- `task-0275 — Add shared-texture tinted materials browser coverage`
+- `task-0276 — Add texture upload validation JSON report coverage`
+- `task-0277 — Add multi-textured dependency browser status coverage`
+- `task-0278 — Add texture scenario status schema cleanup`
+- `task-0279 — Add shared-texture missing sampler browser diagnostics`
+- `task-0280 — Add texture upload validation unit coverage for rowsPerImage padding`
+- `task-0281 — Add shared-texture missing texture browser diagnostics`
+- `task-0282 — Add multi-textured missing sampler browser diagnostics`
+- `task-0283 — Add multi-textured missing sampler asset extraction coverage`
+- `task-0284 — Add texture resource diagnostic message browser assertions`
+- `task-0285 — Add texture resource failure status schema cleanup`
+- `task-0286 — Add multi-textured missing texture and sampler resource diagnostics`
+- `task-0287 — Add shared-texture missing texture and sampler resource diagnostics`
+- `task-0288 — Add resource summary JSON coverage for sampler diagnostics`
+- `task-0289 — Add texture dependency readiness shared-resource coverage`
+- `task-0290 — Add texture scenario availability coverage`
+- `task-0291 — Add resource summary JSON coverage for buffer resource keys`
+- `task-0292 — Add resource summary merge resource-key coverage`
+- `task-0293 — Document resource summary JSON helper`
+- `task-0294 — Add texture diagnostics assertion helper for Playwright tests`
+- `task-0295 — Add sampler resource unit coverage for descriptor labels`
+- `task-0296 — Add shared-sampler missing sampler asset extraction coverage`
+- `task-0297 — Add shared-sampler missing sampler resource diagnostics`
+- `task-0298 — Add shared-sampler missing texture resource diagnostics`
+- `task-0299 — Add texture diagnostics matrix docs table`
+- `task-0300 — Add texture asset diagnostic assertion helper`
+- `task-0301 — Add shared-sampler missing texture and sampler resource diagnostics`
 
-The next recommended task is `task-0276 — Add texture upload validation JSON report coverage`.
+The next recommended task is `task-0302 — Add shared-sampler missing texture asset extraction coverage`.
 
 ## Run Summary
 
 Major changes:
 
-- Expanded texture-backed unlit browser coverage:
-  - `?scenario=textured-unlit` now verifies all four 2x2 texture quadrants through readback.
-  - `?scenario=sampler-filter-address` verifies mirror-repeat U addressing plus linear filtering.
-  - `?scenario=sampler-v-address` verifies mirror-repeat V addressing plus linear filtering.
-  - `?scenario=textured-unlit-tint` verifies texture color multiplied by `baseColorFactor`.
-  - `?scenario=multi-textured-unlit` verifies two texture-backed unlit materials with distinct texture/sampler resources.
-  - `?scenario=shared-sampler-multi-textured` verifies two textures sharing one sampler.
-  - `?scenario=shared-texture-tinted-unlit` verifies one shared texture/sampler with two different material tints.
-- Expanded browser diagnostics:
-  - `?scenario=invalid-texture-upload` reports invalid `bytesPerRow`.
-  - `?scenario=invalid-texture-rows-per-image` reports invalid `rowsPerImage`.
-  - `?scenario=short-texture-upload` reports too-small upload data.
-  - `?scenario=multi-textured-missing-texture-resource` reports one missing texture GPU resource among two textured draws.
-- Texture GPU resource creation now validates:
-  - positive/integer and format-aware minimum `bytesPerRow`
-  - `rowsPerImage >= height`
-  - minimum upload data byte length for tight, padded, and layered uploads
-- Missing unlit bind-group resource diagnostics now carry structured `resourceKey` for buffers, texture views, and samplers.
-- Render-frame planning tests now cover mixed unlit pipeline keys and pipeline-scoped shared bind groups.
-- `docs/BROWSER_E2E_RENDERING.md` now includes a compact texture/sampler scenario index.
+- Added resource summary JSON helpers:
+  - `renderResourceSummaryReportToJsonValue`
+  - `renderResourceSummaryReportToJson`
+- Resource summary diagnostics now preserve optional `resourceKey` values.
+- Texture upload validation now reports `rowsPerImage` errors as requiring an integer minimum.
+- Added browser scenarios for multi-textured/shared-texture missing asset and resource cases:
+  - `multi-textured-missing-texture-asset`
+  - `multi-textured-missing-sampler-asset`
+  - `shared-texture-missing-texture-resource`
+  - `shared-texture-missing-sampler-resource`
+  - `multi-textured-missing-sampler-resource`
+  - `multi-textured-missing-texture-sampler-resources`
+  - `shared-texture-missing-texture-sampler-resources`
+  - `shared-sampler-missing-sampler-asset`
+  - `shared-sampler-missing-sampler-resource`
+  - `shared-sampler-missing-texture-resource`
+  - `shared-sampler-missing-texture-sampler-resources`
+- Strengthened invalid texture upload browser assertions with exact diagnostic messages.
+- Cleaned up test-side texture/sampler status types and repeated resource diagnostic assertions.
+- Updated browser/render-readiness docs, added a texture diagnostics matrix, and expanded available-scenario coverage for the new diagnostics.
 
 Architecture boundaries remain intact:
 
-- ECS stores handles/material data only.
-- GPU textures, texture views, and samplers stay renderer-owned.
-- Browser status payloads remain JSON-safe and avoid raw GPU handles.
+- ECS still owns authoring state and asset handles.
+- Renderer-owned GPU resources remain outside ECS and JSON status payloads.
+- Render extraction remains the asset-dependency boundary.
 - No scene graph, renderer-owned gameplay state, large dependency, or WebGL fallback was introduced.
 
 ## Files Touched This Run
 
 Core/rendering:
 
-- `src/webgpu/render-pass-draw-list.ts`
+- `src/webgpu/resource-summary.ts`
 - `src/webgpu/texture-resources.ts`
-- `src/webgpu/unlit-bind-group.ts`
 
 Browser/docs/tests:
 
 - `examples/multi-entity.js`
 - `docs/BROWSER_E2E_RENDERING.md`
+- `docs/RENDER_FRAME_READINESS.md`
 - `test/e2e/example-status-types.ts`
-- `test/e2e/textured-unlit.spec.ts`
-- `test/e2e/sampler-filter-address.spec.ts`
-- `test/e2e/sampler-v-address.spec.ts`
-- `test/e2e/textured-unlit-tint.spec.ts`
-- `test/e2e/multi-textured-unlit.spec.ts`
 - `test/e2e/invalid-texture-upload.spec.ts`
 - `test/e2e/missing-texture-resource.spec.ts`
+- `test/e2e/multi-textured-unlit.spec.ts`
+- `test/e2e/texture-dependency-asset-status.spec.ts`
 - `test/e2e/unknown-scenario.spec.ts`
-- `test/webgpu/render-frame-plan.test.ts`
-- `test/webgpu/texture-resources.test.ts`
-- `test/webgpu/unlit-bind-group.test.ts`
-- `test/webgpu/resource-summary.test.ts`
-- `test/webgpu/resource-summary-merge.test.ts`
 - `test/webgpu/material-dependency-readiness.test.ts`
+- `test/webgpu/resource-summary-json.test.ts`
+- `test/webgpu/resource-summary-merge.test.ts`
+- `test/webgpu/resource-summary.test.ts`
+- `test/webgpu/texture-resources.test.ts`
 
 Bookkeeping:
 
@@ -102,41 +102,42 @@ Passed:
 
 - `npm run format`
 - `npm run check`
-- Targeted Playwright texture suite:
-  - `test/e2e/textured-unlit.spec.ts`
-  - `test/e2e/sampler-filter-address.spec.ts`
-  - `test/e2e/sampler-v-address.spec.ts`
-  - `test/e2e/textured-unlit-tint.spec.ts`
-  - `test/e2e/multi-textured-unlit.spec.ts`
+- Targeted Playwright suite:
   - `test/e2e/invalid-texture-upload.spec.ts`
   - `test/e2e/missing-texture-resource.spec.ts`
+  - `test/e2e/multi-textured-unlit.spec.ts`
+  - `test/e2e/texture-dependency-asset-status.spec.ts`
   - `test/e2e/unknown-scenario.spec.ts`
+- Focused task-0301 Playwright grep:
+  - `test/e2e/missing-texture-resource.spec.ts -g "shared-sampler scene"`
 
 Current broad check result:
 
 - `npm run check` passes.
-- Vitest: 127 files, 541 tests passed.
-- Targeted Playwright texture suite: 13 passed.
+- Vitest: 128 files, 550 tests passed.
+- Targeted Playwright texture/sampler diagnostics suite: 24 passed.
+- Focused task-0301 Playwright coverage: 2 passed.
 
 ## Known Issues
 
 - No known validation failures.
-- The run produced a large but coherent texture/sampler browser coverage diff centered in `examples/multi-entity.js`.
+- The diff is large but coherent: it stays inside texture/sampler diagnostics, resource summary JSON, browser status coverage, docs, and agent bookkeeping.
 
 ## Backlog
 
 Completed tasks appended to `agent/COMPLETED.md`:
 
-- `task-0254` through `task-0275`
+- `task-0276` through `task-0295`
+- `task-0296` through `task-0301`
 
 Ready backlog now contains:
 
-- `task-0276 — Add texture upload validation JSON report coverage`
-- `task-0277 — Add multi-textured dependency browser status coverage`
-- `task-0278 — Add texture scenario status schema cleanup`
-- `task-0279 — Add shared-texture missing sampler browser diagnostics`
-- `task-0280 — Add texture upload validation unit coverage for rowsPerImage padding`
+- `task-0302 — Add shared-sampler missing texture asset extraction coverage`
+- `task-0303 — Add texture diagnostics availability coverage for shared-sampler cases`
+- `task-0304 — Add texture diagnostic matrix coverage for shared-sampler rows`
+- `task-0305 — Add multi-textured asset diagnostic assertion helper`
+- `task-0306 — Add combined shared-sampler availability coverage`
 
 ## Recommended Next Task
 
-Start with `task-0276`. Keep it narrow: add JSON/report coverage for the texture upload validation diagnostic codes without changing browser behavior.
+Start with `task-0302`. Keep it narrow: use the existing shared-sampler multi-textured scene shape, leave the right texture asset unregistered, and verify extraction reports `render.texture.missing` before resource creation or submission.

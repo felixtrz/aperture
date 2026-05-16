@@ -79,6 +79,46 @@ describe("renderer resource summary merge", () => {
       "textureResource.uploadDataTooSmall",
     ]);
   });
+
+  it("preserves diagnostic resource keys while merging", () => {
+    const merged = mergeRenderResourceSummaryReports([
+      summary({ warnings: 1 }, [
+        {
+          code: "textureResource.invalidBytesPerRow",
+          message: "invalid texture row",
+          resourceKey: "texture:albedo",
+          severity: "warning",
+        },
+      ]),
+      summary({ warnings: 1 }, [
+        {
+          code: "samplerResource.samplerCreationFailed",
+          message: "sampler failed",
+          resourceKey: "sampler:linear",
+          severity: "warning",
+        },
+      ]),
+    ]);
+
+    expect(merged.counts).toMatchObject({
+      warnings: 2,
+      errors: 0,
+    });
+    expect(merged.diagnostics).toEqual([
+      {
+        code: "textureResource.invalidBytesPerRow",
+        message: "invalid texture row",
+        resourceKey: "texture:albedo",
+        severity: "warning",
+      },
+      {
+        code: "samplerResource.samplerCreationFailed",
+        message: "sampler failed",
+        resourceKey: "sampler:linear",
+        severity: "warning",
+      },
+    ]);
+  });
 });
 
 function summary(

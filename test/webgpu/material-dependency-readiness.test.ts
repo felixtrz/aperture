@@ -104,4 +104,64 @@ describe("material texture dependency readiness", () => {
       },
     ]);
   });
+
+  it("accepts multiple materials sharing ready texture and sampler resources", () => {
+    const reports = [
+      dependencies("texture:shared", "sampler:shared"),
+      dependencies("texture:shared", "sampler:shared"),
+    ].map((materialDependencies) =>
+      checkMaterialDependencyReadiness({
+        dependencies: materialDependencies,
+        availableTextureKeys: new Set(["texture:shared"]),
+        availableSamplerKeys: new Set(["sampler:shared"]),
+      }),
+    );
+
+    expect(reports).toEqual([
+      { ready: true, diagnostics: [] },
+      { ready: true, diagnostics: [] },
+    ]);
+  });
+
+  it("reports a missing shared dependency for each checked material", () => {
+    const reports = [
+      dependencies("texture:shared-missing", "sampler:shared"),
+      dependencies("texture:shared-missing", "sampler:shared"),
+    ].map((materialDependencies) =>
+      checkMaterialDependencyReadiness({
+        dependencies: materialDependencies,
+        availableTextureKeys: new Set(),
+        availableSamplerKeys: new Set(["sampler:shared"]),
+      }),
+    );
+
+    expect(reports.map((report) => report.ready)).toEqual([false, false]);
+    expect(
+      reports.flatMap((report) =>
+        report.diagnostics.map((diagnostic) => ({
+          code: diagnostic.code,
+          resourceKey: diagnostic.resourceKey,
+          message: diagnostic.message,
+        })),
+      ),
+    ).toEqual([
+      {
+        code: "materialDependency.missingTextureResource",
+        resourceKey: "texture:shared-missing",
+        message: "Missing texture resource 'texture:shared-missing'.",
+      },
+      {
+        code: "materialDependency.missingTextureResource",
+        resourceKey: "texture:shared-missing",
+        message: "Missing texture resource 'texture:shared-missing'.",
+      },
+    ]);
+  });
 });
+
+function dependencies(
+  baseColorTextureKey: string,
+  baseColorSamplerKey: string,
+) {
+  return { baseColorTextureKey, baseColorSamplerKey };
+}

@@ -27,59 +27,59 @@ Keep implementation vertical, typed, and testable. Do not introduce a public mut
 
 ## Recommended Next Task
 
-Start with `task-0276`. Texture upload validation now has browser coverage for invalid row stride, rows-per-image, and byte size; the next useful slice is JSON report coverage for these diagnostics.
+Start with `task-0302`. Combined shared-sampler missing resource coverage is in place; the next useful slice is extraction-time coverage for one missing texture asset in a shared-sampler pair.
 
 ## Ready Tasks
 
-### task-0276 — Add texture upload validation JSON report coverage
+### task-0302 — Add shared-sampler missing texture asset extraction coverage
 
-Verify new texture upload diagnostics serialize cleanly through JSON report paths.
-
-Acceptance criteria:
-
-- Tests cover JSON serialization for `invalidBytesPerRow`, `invalidRowsPerImage`, and `uploadDataTooSmall`.
-- Serialized diagnostics include stable resource keys and messages.
-- No raw GPU handles are included.
-
-### task-0277 — Add multi-textured dependency browser status coverage
-
-Verify extraction diagnostics when one of multiple texture-backed materials references a missing texture asset.
+Verify extraction diagnostics when one material in a shared-sampler textured pair references an unregistered texture asset.
 
 Acceptance criteria:
 
-- A browser scenario authors two textured materials and leaves one texture asset unregistered.
+- A browser scenario authors two shared-sampler textured materials and leaves one texture asset unregistered.
 - Status reports the missing texture asset key and extraction diagnostic.
 - Playwright verifies no resource creation or draw submission is attempted.
 
-### task-0278 — Add texture scenario status schema cleanup
+### task-0303 — Add texture diagnostics availability coverage for shared-sampler cases
 
-Reduce duplication in test-side texture/sampler status types.
-
-Acceptance criteria:
-
-- Shared TypeScript interfaces cover repeated texture sample, sampler behavior, and multi-textured status shapes.
-- Existing Playwright status typechecks continue to pass.
-- No browser behavior changes.
-
-### task-0279 — Add shared-texture missing sampler browser diagnostics
-
-Verify diagnostics when shared-texture tinted materials are missing their renderer-owned sampler resource.
+Keep available-scenario reporting aligned with the new shared-sampler diagnostics scenarios.
 
 Acceptance criteria:
 
-- A browser scenario extracts two shared-texture tinted draws but withholds the shared sampler GPU resource.
-- Status reports the missing sampler resource key without raw GPU handles.
-- Playwright verifies resource creation stops before draw submission with a stable diagnostic.
+- Unknown-scenario Playwright coverage asserts representative shared-sampler asset/resource diagnostics scenarios are advertised.
+- Scenario availability assertions remain partial and stable.
+- Existing unknown-scenario behavior is unchanged.
 
-### task-0280 — Add texture upload validation unit coverage for `rowsPerImage` padding
+### task-0304 — Add texture diagnostic matrix coverage for shared-sampler rows
 
-Expand unit coverage around valid padded `rowsPerImage` values.
+Ensure the texture/sampler diagnostics matrix includes all shared-sampler asset/resource cases.
 
 Acceptance criteria:
 
-- Tests cover `rowsPerImage > height` for single-layer uploads.
-- Tests cover invalid non-integer `rowsPerImage` with stable diagnostics.
-- Existing texture upload validation tests continue to pass.
+- `docs/BROWSER_E2E_RENDERING.md` includes shared-sampler missing texture asset, missing sampler asset, missing texture resource, missing sampler resource, and combined resource rows.
+- Each row lists the expected phase and primary diagnostic.
+- No implementation behavior changes.
+
+### task-0305 — Add multi-textured asset diagnostic assertion helper
+
+Reduce repeated asset-key diagnostic assertions in multi-textured asset failure tests.
+
+Acceptance criteria:
+
+- A local helper maps status diagnostics to code/asset-key pairs.
+- Multi-textured missing texture/sampler asset tests use the helper where practical.
+- Existing Playwright typechecks continue to pass.
+
+### task-0306 — Add combined shared-sampler availability coverage
+
+Advertise the combined shared-sampler missing resource scenario through the unknown-scenario availability status.
+
+Acceptance criteria:
+
+- Unknown-scenario Playwright coverage asserts `shared-sampler-missing-texture-sampler-resources` is advertised.
+- Scenario availability assertions remain partial and stable.
+- Existing unknown-scenario behavior is unchanged.
 
 ## Post-Unlit E2E Verification Targets
 

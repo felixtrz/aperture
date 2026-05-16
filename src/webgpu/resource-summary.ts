@@ -14,6 +14,7 @@ export interface RenderResourceSummaryDiagnostic {
   readonly code: string;
   readonly message: string;
   readonly severity: RenderResourceSummarySeverity;
+  readonly resourceKey?: string;
 }
 
 export interface RenderResourceSummaryCounts {
@@ -46,6 +47,18 @@ export interface RenderResourceSummaryReport {
   readonly diagnostics: readonly RenderResourceSummaryDiagnostic[];
 }
 
+export interface RenderResourceSummaryDiagnosticJsonValue {
+  readonly code: string;
+  readonly message: string;
+  readonly severity: RenderResourceSummarySeverity;
+  readonly resourceKey?: string;
+}
+
+export interface RenderResourceSummaryReportJsonValue {
+  readonly counts: RenderResourceSummaryCounts;
+  readonly diagnostics: readonly RenderResourceSummaryDiagnosticJsonValue[];
+}
+
 export function createRenderResourceSummaryReport(
   input: RenderResourceSummaryInput,
 ): RenderResourceSummaryReport {
@@ -53,74 +66,62 @@ export function createRenderResourceSummaryReport(
 
   for (const result of input.meshResources) {
     diagnostics.push(
-      ...result.diagnostics.map((diagnostic) => ({
-        code: diagnostic.code,
-        message: diagnostic.message,
-        severity: "warning" as const,
-      })),
+      ...result.diagnostics.map((diagnostic) =>
+        resourceDiagnostic(diagnostic, "warning"),
+      ),
     );
   }
 
   for (const result of input.materialResources) {
     diagnostics.push(
-      ...result.diagnostics.map((diagnostic) => ({
-        code: diagnostic.code,
-        message: diagnostic.message,
-        severity: "warning" as const,
-      })),
+      ...result.diagnostics.map((diagnostic) =>
+        resourceDiagnostic(diagnostic, "warning"),
+      ),
     );
   }
 
   for (const result of input.textureResources ?? []) {
     diagnostics.push(
-      ...result.diagnostics.map((diagnostic) => ({
-        code: diagnostic.code,
-        message: diagnostic.message,
-        severity: "warning" as const,
-      })),
+      ...result.diagnostics.map((diagnostic) =>
+        resourceDiagnostic(diagnostic, "warning"),
+      ),
     );
   }
 
   for (const result of input.samplerResources ?? []) {
     diagnostics.push(
-      ...result.diagnostics.map((diagnostic) => ({
-        code: diagnostic.code,
-        message: diagnostic.message,
-        severity: "warning" as const,
-      })),
+      ...result.diagnostics.map((diagnostic) =>
+        resourceDiagnostic(diagnostic, "warning"),
+      ),
     );
   }
 
   for (const result of input.viewUniformResources) {
     diagnostics.push(
-      ...result.diagnostics.map((diagnostic) => ({
-        code: diagnostic.code,
-        message: diagnostic.message,
-        severity: "warning" as const,
-      })),
+      ...result.diagnostics.map((diagnostic) =>
+        resourceDiagnostic(diagnostic, "warning"),
+      ),
     );
   }
 
   for (const result of input.shaderResources) {
     diagnostics.push(
-      ...result.diagnostics.map((diagnostic) => ({
-        code: diagnostic.code,
-        message: diagnostic.message,
-        severity:
+      ...result.diagnostics.map((diagnostic) =>
+        resourceDiagnostic(
+          diagnostic,
           !result.valid || diagnostic.severity === "error"
-            ? ("error" as const)
-            : ("warning" as const),
-      })),
+            ? "error"
+            : "warning",
+        ),
+      ),
     );
   }
 
   for (const result of input.pipelines) {
     diagnostics.push(
-      ...result.diagnostics.map((diagnostic) => ({
-        code: diagnostic.code,
-        message: diagnostic.message,
-        severity: result.ok ? ("warning" as const) : ("error" as const),
-      })),
+      ...result.diagnostics.map((diagnostic) =>
+        resourceDiagnostic(diagnostic, result.ok ? "warning" : "error"),
+      ),
     );
   }
 
@@ -161,6 +162,28 @@ export function createRenderResourceSummaryReport(
     },
     diagnostics,
   };
+}
+
+export function renderResourceSummaryReportToJsonValue(
+  report: RenderResourceSummaryReport,
+): RenderResourceSummaryReportJsonValue {
+  return {
+    counts: { ...report.counts },
+    diagnostics: report.diagnostics.map((diagnostic) => ({
+      code: diagnostic.code,
+      message: diagnostic.message,
+      severity: diagnostic.severity,
+      ...(diagnostic.resourceKey === undefined
+        ? {}
+        : { resourceKey: diagnostic.resourceKey }),
+    })),
+  };
+}
+
+export function renderResourceSummaryReportToJson(
+  report: RenderResourceSummaryReport,
+): string {
+  return JSON.stringify(renderResourceSummaryReportToJsonValue(report));
 }
 
 export function mergeRenderResourceSummaryReports(
@@ -205,4 +228,22 @@ function sum(
   read: (report: RenderResourceSummaryReport) => number,
 ): number {
   return reports.reduce((total, report) => total + read(report), 0);
+}
+
+function resourceDiagnostic(
+  diagnostic: {
+    readonly code: string;
+    readonly message: string;
+    readonly resourceKey?: string;
+  },
+  severity: RenderResourceSummarySeverity,
+): RenderResourceSummaryDiagnostic {
+  return {
+    code: diagnostic.code,
+    message: diagnostic.message,
+    severity,
+    ...(diagnostic.resourceKey === undefined
+      ? {}
+      : { resourceKey: diagnostic.resourceKey }),
+  };
 }
