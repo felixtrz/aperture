@@ -97,6 +97,88 @@ Acceptance criteria:
 - Readback verifies the enabled color and absence of the disabled color.
 - The failure/diagnostic payload remains JSON-safe.
 
+### task-0235 — Add sphere primitive mesh builder
+
+Add a built-in `createSphereMeshAsset` primitive builder that follows the existing mesh asset schema and primitive vertex layout.
+
+Acceptance criteria:
+
+- `createSphereMeshAsset` emits interleaved `POSITION`, `NORMAL`, and `TEXCOORD_0` data.
+- The mesh uses `triangle-list` topology, an index buffer, one default submesh, one material slot, local AABB, and local bounding sphere.
+- Options cover at least radius, segment counts, label, and optional material handle.
+- Unit tests validate vertex/index counts, representative positions/normals/UVs, bounds, and `validateMeshAsset` success.
+- Existing plane and box primitive behavior remains unchanged.
+
+### task-0236 — Add cylinder and cone primitive mesh builders
+
+Add built-in cylinder and cone primitive builders using a shared implementation where practical.
+
+Acceptance criteria:
+
+- `createCylinderMeshAsset` and `createConeMeshAsset` emit interleaved `POSITION`, `NORMAL`, and `TEXCOORD_0` data.
+- Both builders produce indexed `triangle-list` meshes with caps, one default submesh, one material slot, local AABB, and local bounding sphere.
+- Options cover radius/radii, height, radial segments, height segments where useful, label, and optional material handle.
+- Unit tests validate representative vertices, index ranges, bounds, and `validateMeshAsset` success.
+- Degenerate or invalid segment/radius options are clamped or diagnosed consistently with existing primitive style.
+
+### task-0237 — Add capsule and torus primitive mesh builders
+
+Add the remaining MVP curved primitive builders after sphere/cylinder/cone coverage is in place.
+
+Acceptance criteria:
+
+- `createCapsuleMeshAsset` and `createTorusMeshAsset` emit interleaved `POSITION`, `NORMAL`, and `TEXCOORD_0` data.
+- Both builders produce indexed `triangle-list` meshes with one default submesh, one material slot, local AABB, and local bounding sphere.
+- Options cover dimensions, segment counts, label, and optional material handle.
+- Unit tests validate representative vertices, index ranges, bounds, and `validateMeshAsset` success.
+- The implementation does not add renderer-owned state or a scene graph convenience layer.
+
+### task-0238 — Add browser primitive readback coverage for curved primitives
+
+Render at least one newly added curved primitive through the existing ECS-to-WebGPU browser path.
+
+Acceptance criteria:
+
+- A multi-entity browser scenario renders a new built-in curved primitive, starting with `createSphereMeshAsset`.
+- Status reports primitive metadata, extraction counts, resource counts, draw counts, and readback samples.
+- Playwright verifies a non-clear pixel through GPU readback.
+- The example still authors ECS components and feeds WebGPU through extracted snapshots/render-world state.
+
+### task-0239 — Add depth-tested 3D overlap browser coverage
+
+Add a browser scenario that proves true 3D depth behavior rather than only 2D screen-space overlap/order behavior.
+
+Acceptance criteria:
+
+- The scenario renders at least two overlapping 3D mesh entities at different depths.
+- The render pass includes a depth attachment and an unlit pipeline descriptor with depth state.
+- Readback verifies the nearer object wins when render order would otherwise not guarantee that result.
+- Status reports depth format, draw counts, command counts, and JSON-safe diagnostics.
+- Existing render-order overlap coverage remains passing.
+
+### task-0240 — Add a narrow render-frame orchestration helper
+
+Create a small helper that packages the currently manual example path from snapshot/render-world inputs through draw planning.
+
+Acceptance criteria:
+
+- The helper accepts an extracted `RenderSnapshot`, a caller-owned `RenderWorld`, packed transforms, resource binding resolvers, mesh resources, pipelines, and bind groups.
+- The helper returns JSON-safe phase counts and diagnostics plus the render pass command plan.
+- It does not create or own ECS state, WebGPU device/context, or hidden scene graph state.
+- Unit tests cover success and missing-resource diagnostics.
+- At least one browser example uses the helper without changing its published status payload shape.
+
+### task-0241 — Add initial texture-backed unlit material design task
+
+Define the smallest texture-backed unlit rendering slice before implementing texture upload and sampling.
+
+Acceptance criteria:
+
+- Document the proposed ECS/asset/render-world boundary for texture and sampler handles in the unlit material path.
+- Identify the minimal WebGPU resources, bind group layout changes, diagnostics, and browser scenario needed.
+- Confirm how missing/loading/failed texture assets should appear in extraction or resource-binding diagnostics.
+- Add follow-up implementation tasks if the design is accepted.
+
 ## Post-Unlit E2E Verification Targets
 
 Do not start these until the unlit browser path above is working end-to-end and Playwright can verify real rendered pixels reliably. Once that foundation is stable, expand browser E2E coverage across the broader runtime surface:
