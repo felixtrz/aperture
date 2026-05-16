@@ -54,37 +54,15 @@ export function createUnlitBindGroupLayoutPlan(
       continue;
     }
 
-    if (
-      binding.resource !== "uniform-buffer" &&
-      binding.resource !== "read-only-storage-buffer"
-    ) {
-      diagnostics.push({
-        code: "unlitBindGroupLayout.unsupportedResource",
-        bindingId: binding.id,
-        message: `Unsupported unlit binding resource '${String(binding.resource)}'.`,
-      });
+    addBindingLayout(binding, layouts, diagnostics);
+  }
+
+  for (const binding of shader.bindings) {
+    if (required.includes(binding.id)) {
       continue;
     }
 
-    const current =
-      layouts.get(binding.group) ??
-      ({
-        group: binding.group,
-        label: `unlit/group-${binding.group}`,
-        entries: [],
-      } satisfies UnlitBindGroupLayoutDescriptor);
-
-    layouts.set(binding.group, {
-      ...current,
-      entries: [
-        ...current.entries,
-        {
-          binding: binding.binding,
-          label: binding.label,
-          resource: binding.resource,
-        },
-      ].sort((a, b) => a.binding - b.binding),
-    });
+    addBindingLayout(binding, layouts, diagnostics);
   }
 
   return {
@@ -92,4 +70,50 @@ export function createUnlitBindGroupLayoutPlan(
     layouts: [...layouts.values()].sort((a, b) => a.group - b.group),
     diagnostics,
   };
+}
+
+function addBindingLayout(
+  binding: BuiltInShaderBindingMetadata,
+  layouts: Map<number, UnlitBindGroupLayoutDescriptor>,
+  diagnostics: UnlitBindGroupLayoutDiagnostic[],
+): void {
+  if (!isSupportedBindGroupResource(binding.resource)) {
+    diagnostics.push({
+      code: "unlitBindGroupLayout.unsupportedResource",
+      bindingId: binding.id,
+      message: `Unsupported unlit binding resource '${String(binding.resource)}'.`,
+    });
+    return;
+  }
+
+  const current =
+    layouts.get(binding.group) ??
+    ({
+      group: binding.group,
+      label: `unlit/group-${binding.group}`,
+      entries: [],
+    } satisfies UnlitBindGroupLayoutDescriptor);
+
+  layouts.set(binding.group, {
+    ...current,
+    entries: [
+      ...current.entries,
+      {
+        binding: binding.binding,
+        label: binding.label,
+        resource: binding.resource,
+      },
+    ].sort((a, b) => a.binding - b.binding),
+  });
+}
+
+function isSupportedBindGroupResource(
+  resource: BuiltInShaderBindingMetadata["resource"],
+): boolean {
+  return (
+    resource === "uniform-buffer" ||
+    resource === "read-only-storage-buffer" ||
+    resource === "texture" ||
+    resource === "sampler"
+  );
 }

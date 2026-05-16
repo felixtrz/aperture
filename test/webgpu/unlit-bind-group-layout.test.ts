@@ -49,6 +49,51 @@ describe("unlit bind group layout descriptor planning", () => {
     });
   });
 
+  it("includes texture and sampler bindings when shader metadata declares them", () => {
+    const textured: BuiltInShaderSourceModule = {
+      ...UNLIT_MESH_SHADER,
+      bindings: [
+        ...UNLIT_MESH_SHADER.bindings,
+        {
+          id: "baseColorTexture",
+          label: "Base color texture",
+          group: 2,
+          binding: 1,
+          resource: "texture",
+        },
+        {
+          id: "baseColorSampler",
+          label: "Base color sampler",
+          group: 2,
+          binding: 2,
+          resource: "sampler",
+        },
+      ],
+    };
+
+    expect(createUnlitBindGroupLayoutPlan(textured).layouts.at(-1)).toEqual({
+      group: 2,
+      label: "unlit/group-2",
+      entries: [
+        {
+          binding: 0,
+          label: "Unlit material uniform",
+          resource: "uniform-buffer",
+        },
+        {
+          binding: 1,
+          label: "Base color texture",
+          resource: "texture",
+        },
+        {
+          binding: 2,
+          label: "Base color sampler",
+          resource: "sampler",
+        },
+      ],
+    });
+  });
+
   it("diagnoses missing metadata and unsupported resources", () => {
     const invalid: BuiltInShaderSourceModule = {
       ...UNLIT_MESH_SHADER,
@@ -58,7 +103,7 @@ describe("unlit bind group layout descriptor planning", () => {
           label: "bad",
           group: 0,
           binding: 0,
-          resource: "texture" as "uniform-buffer",
+          resource: "unsupported" as "uniform-buffer",
         },
       ],
     };

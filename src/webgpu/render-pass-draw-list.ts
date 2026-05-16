@@ -160,5 +160,9 @@ function findBindGroup(
     );
   }
 
-  return candidates[0];
+  return (
+    candidates.find((bindGroup) =>
+      bindGroup.entryResourceKeys.includes(command.pipelineKey),
+    ) ?? candidates[0]
+  );
 }

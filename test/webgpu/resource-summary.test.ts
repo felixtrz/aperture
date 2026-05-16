@@ -3,7 +3,9 @@ import { describe, expect, it } from "vitest";
 import {
   createRenderResourceSummaryReport,
   type CreateMeshGpuBuffersResult,
+  type CreateSamplerGpuResourceResult,
   type CreateShaderModuleResourceResult,
+  type CreateTextureGpuResourceResult,
   type CreateUnlitMaterialGpuBufferResult,
   type CreateViewUniformGpuBufferResult,
   type GetOrCreateRenderPipelineResult,
@@ -14,6 +16,8 @@ describe("renderer resource summary report", () => {
     const report = createRenderResourceSummaryReport({
       meshResources: [meshResource(true)],
       materialResources: [materialResource(true)],
+      textureResources: [textureResource(true)],
+      samplerResources: [samplerResource(true)],
       viewUniformResources: [viewResource(true)],
       shaderResources: [shaderResource(true)],
       pipelines: [pipeline("hit"), pipeline("miss")],
@@ -25,6 +29,8 @@ describe("renderer resource summary report", () => {
       meshVertexBuffers: 1,
       meshIndexBuffers: 1,
       materialBuffers: 1,
+      textures: 1,
+      samplers: 1,
       viewUniformBuffers: 1,
       shaderModules: 1,
       pipelineHits: 1,
@@ -38,6 +44,8 @@ describe("renderer resource summary report", () => {
     const report = createRenderResourceSummaryReport({
       meshResources: [meshResource(false)],
       materialResources: [materialResource(false)],
+      textureResources: [textureResource(false)],
+      samplerResources: [samplerResource(false)],
       viewUniformResources: [viewResource(false)],
       shaderResources: [shaderResource(false)],
       pipelines: [pipelineFailure()],
@@ -46,14 +54,18 @@ describe("renderer resource summary report", () => {
     expect(report.counts).toMatchObject({
       meshResources: 0,
       materialBuffers: 0,
+      textures: 0,
+      samplers: 0,
       viewUniformBuffers: 0,
       shaderModules: 0,
-      warnings: 3,
+      warnings: 5,
       errors: 2,
     });
     expect(report.diagnostics.map((diagnostic) => diagnostic.code)).toEqual([
       "meshGpuBuffer.vertexCreationFailed",
       "unlitMaterialGpuBuffer.creationFailed",
+      "textureResource.textureCreationFailed",
+      "samplerResource.samplerCreationFailed",
       "viewUniformGpuBuffer.creationFailed",
       "shaderResource.creationFailed",
       "pipelineCacheIntegration.pipelineCreationFailed",
@@ -75,6 +87,8 @@ describe("renderer resource summary report", () => {
         meshVertexBuffers: 0,
         meshIndexBuffers: 0,
         materialBuffers: 0,
+        textures: 0,
+        samplers: 0,
         viewUniformBuffers: 0,
         shaderModules: 0,
         pipelineHits: 0,
@@ -127,6 +141,38 @@ function materialResource(valid: boolean): CreateUnlitMaterialGpuBufferResult {
         diagnostics: [
           {
             code: "unlitMaterialGpuBuffer.creationFailed",
+            message: "failed",
+          },
+        ],
+      };
+}
+
+function textureResource(valid: boolean): CreateTextureGpuResourceResult {
+  return valid
+    ? { valid: true, resource: null, diagnostics: [] }
+    : {
+        valid: false,
+        resource: null,
+        diagnostics: [
+          {
+            code: "textureResource.textureCreationFailed",
+            resourceKey: "texture:failed",
+            message: "failed",
+          },
+        ],
+      };
+}
+
+function samplerResource(valid: boolean): CreateSamplerGpuResourceResult {
+  return valid
+    ? { valid: true, resource: null, diagnostics: [] }
+    : {
+        valid: false,
+        resource: null,
+        diagnostics: [
+          {
+            code: "samplerResource.samplerCreationFailed",
+            resourceKey: "sampler:failed",
             message: "failed",
           },
         ],

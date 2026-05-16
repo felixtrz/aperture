@@ -15,6 +15,10 @@ import {
   createMaterialHandle,
   createMeshHandle,
   createRenderTargetHandle,
+  createSamplerAsset,
+  createSamplerHandle,
+  createTextureAsset,
+  createTextureHandle,
   createRootTransform,
   createUnlitMaterialAsset,
   createWorld,
@@ -23,6 +27,7 @@ import {
   registerRenderAuthoringComponents,
   registerTransformComponents,
   type LightInput,
+  type MaterialAsset,
   type MeshAsset,
 } from "../../src/index.js";
 
@@ -243,6 +248,136 @@ describe("render extraction", () => {
     ).toEqual(["render.material.failed"]);
   });
 
+  it("extracts ready unlit texture dependencies into a textured batch key", () => {
+    const world = createRuntimeWorld();
+    const texture = createTextureHandle("albedo");
+    const sampler = createSamplerHandle("linear");
+    const assets = createReadyAssets({
+      materialAsset: createUnlitMaterialAsset({
+        baseColorTexture: { texture, sampler },
+      }),
+    });
+
+    assets.register(texture);
+    assets.register(sampler);
+    assets.markReady(
+      texture,
+      createTextureAsset({
+        label: "Albedo",
+        dimension: "2d",
+        width: 2,
+        height: 2,
+        format: "rgba8unorm",
+        colorSpace: "srgb",
+        semantic: "base-color",
+      }),
+    );
+    assets.markReady(sampler, createSamplerAsset({ label: "Linear" }));
+    createCameraEntity(world, { priority: 0, layerMask: 1 });
+    createMeshEntity(world, {
+      meshId: "mesh:cube",
+      materialId: "material:unlit",
+      layerMask: 1,
+    });
+
+    const snapshot = extractRenderSnapshot(world, assets);
+
+    expect(snapshot.diagnostics).toEqual([]);
+    expect(snapshot.meshDraws).toHaveLength(1);
+    expect(snapshot.meshDraws[0]?.batchKey.pipelineKey).toBe(
+      "unlit|baseColorTexture|opaque|back|less|none",
+    );
+  });
+
+  it("diagnoses missing unlit texture and sampler handles", () => {
+    const world = createRuntimeWorld();
+    const assets = createReadyAssets({
+      materialAsset: createUnlitMaterialAsset({
+        baseColorTexture: { texture: null, sampler: null },
+      }),
+    });
+
+    createCameraEntity(world, { priority: 0, layerMask: 1 });
+    createMeshEntity(world, {
+      meshId: "mesh:cube",
+      materialId: "material:unlit",
+      layerMask: 1,
+    });
+
+    const snapshot = extractRenderSnapshot(world, assets);
+
+    expect(snapshot.meshDraws).toEqual([]);
+    expect(snapshot.diagnostics).toMatchObject([
+      {
+        code: "render.material.missingTextureHandle",
+        assetKey: "material:unlit",
+      },
+      {
+        code: "render.material.missingSamplerHandle",
+        assetKey: "material:unlit",
+      },
+    ]);
+  });
+
+  it("diagnoses unregistered unlit texture and sampler assets", () => {
+    const world = createRuntimeWorld();
+    const assets = createReadyAssets({
+      materialAsset: createUnlitMaterialAsset({
+        baseColorTexture: {
+          texture: createTextureHandle("missing-albedo"),
+          sampler: createSamplerHandle("missing-linear"),
+        },
+      }),
+    });
+
+    createCameraEntity(world, { priority: 0, layerMask: 1 });
+    createMeshEntity(world, {
+      meshId: "mesh:cube",
+      materialId: "material:unlit",
+      layerMask: 1,
+    });
+
+    const snapshot = extractRenderSnapshot(world, assets);
+
+    expect(snapshot.meshDraws).toEqual([]);
+    expect(snapshot.diagnostics).toMatchObject([
+      { code: "render.texture.missing", assetKey: "texture:missing-albedo" },
+      { code: "render.sampler.missing", assetKey: "sampler:missing-linear" },
+    ]);
+  });
+
+  it("diagnoses loading and failed unlit texture dependency assets", () => {
+    const world = createRuntimeWorld();
+    const texture = createTextureHandle("loading-albedo");
+    const sampler = createSamplerHandle("failed-linear");
+    const assets = createReadyAssets({
+      materialAsset: createUnlitMaterialAsset({
+        baseColorTexture: { texture, sampler },
+      }),
+    });
+
+    assets.register(texture);
+    assets.register(sampler);
+    assets.markLoading(texture);
+    assets.markFailed(sampler, [
+      { code: "sampler.failed", message: "test", severity: "error" },
+    ]);
+    createCameraEntity(world, { priority: 0, layerMask: 1 });
+    createMeshEntity(world, {
+      meshId: "mesh:cube",
+      materialId: "material:unlit",
+      layerMask: 1,
+    });
+
+    const snapshot = extractRenderSnapshot(world, assets);
+
+    expect(snapshot.meshDraws).toEqual([]);
+    expect(snapshot.diagnostics).toMatchObject([
+      { code: "render.texture.loading", assetKey: "texture:loading-albedo" },
+      { code: "render.sampler.failed", assetKey: "sampler:failed-linear" },
+    ]);
+  });
+
   it("preserves mesh validation codes in render diagnostics", () => {
     const world = createRuntimeWorld();
     const invalidMesh = createBoxMeshAsset();
@@ -398,7 +533,10 @@ function createRuntimeWorld(): ReturnType<typeof createWorld> {
 }
 
 function createReadyAssets(
-  options: { readonly meshAsset?: MeshAsset } = {},
+  options: {
+    readonly meshAsset?: MeshAsset;
+    readonly materialAsset?: MaterialAsset;
+  } = {},
 ): AssetRegistry {
   const registry = new AssetRegistry();
   const mesh = createMeshHandle("cube");
@@ -407,7 +545,10 @@ function createReadyAssets(
   registry.register(mesh);
   registry.register(material);
   registry.markReady(mesh, options.meshAsset ?? createBoxMeshAsset());
-  registry.markReady(material, createUnlitMaterialAsset());
+  registry.markReady(
+    material,
+    options.materialAsset ?? createUnlitMaterialAsset(),
+  );
   return registry;
 }
 

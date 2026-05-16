@@ -14,11 +14,18 @@ describe("renderer resource summary merge", () => {
     expect(
       mergeRenderResourceSummaryReports([
         summary({ meshResources: 1, pipelineHits: 1 }),
-        summary({ materialBuffers: 2, pipelineMisses: 1 }),
+        summary({
+          materialBuffers: 2,
+          textures: 1,
+          samplers: 1,
+          pipelineMisses: 1,
+        }),
       ]).counts,
     ).toMatchObject({
       meshResources: 1,
       materialBuffers: 2,
+      textures: 1,
+      samplers: 1,
       pipelineHits: 1,
       pipelineMisses: 1,
       warnings: 0,
@@ -55,6 +62,8 @@ function summary(
       meshVertexBuffers: counts.meshVertexBuffers ?? 0,
       meshIndexBuffers: counts.meshIndexBuffers ?? 0,
       materialBuffers: counts.materialBuffers ?? 0,
+      textures: counts.textures ?? 0,
+      samplers: counts.samplers ?? 0,
       viewUniformBuffers: counts.viewUniformBuffers ?? 0,
       shaderModules: counts.shaderModules ?? 0,
       pipelineHits: counts.pipelineHits ?? 0,

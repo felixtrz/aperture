@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 
 import {
   UNLIT_MESH_SHADER,
+  UNLIT_TEXTURED_MESH_SHADER,
+  UNLIT_TEXTURED_MESH_WGSL,
   createUnlitMeshShaderModuleDescriptor,
   createWebGpuShaderModule,
   validateBuiltInShaderMetadata,
@@ -49,6 +51,35 @@ describe("built-in unlit mesh WGSL shader metadata", () => {
       ["worldTransforms", 1, 0, "read-only-storage-buffer"],
       ["unlitMaterial", 2, 0, "uniform-buffer"],
     ]);
+  });
+
+  it("exports a textured variant with base-color texture bindings", () => {
+    expect(validateBuiltInShaderMetadata(UNLIT_TEXTURED_MESH_SHADER)).toEqual({
+      valid: true,
+      diagnostics: [],
+    });
+    expect(UNLIT_TEXTURED_MESH_WGSL).toContain("textureSample");
+    expect(
+      UNLIT_TEXTURED_MESH_SHADER.bindings.map((binding) => [
+        binding.id,
+        binding.group,
+        binding.binding,
+        binding.resource,
+      ]),
+    ).toEqual([
+      ["viewProjection", 0, 0, "uniform-buffer"],
+      ["worldTransforms", 1, 0, "read-only-storage-buffer"],
+      ["unlitMaterial", 2, 0, "uniform-buffer"],
+      ["baseColorTexture", 2, 1, "texture"],
+      ["baseColorSampler", 2, 2, "sampler"],
+    ]);
+    expect(
+      createUnlitMeshShaderModuleDescriptor(UNLIT_TEXTURED_MESH_SHADER),
+    ).toMatchObject({
+      label: "aperture/unlit-mesh-textured",
+      code: UNLIT_TEXTURED_MESH_WGSL,
+      entryPoints: ["vs_main", "fs_main"],
+    });
   });
 
   it("diagnoses missing required shader metadata fields", () => {

@@ -16,6 +16,12 @@ const BATCH_KEY: BatchCompatibilityKey = {
   morphed: false,
 };
 
+const TEXTURED_BATCH_KEY: BatchCompatibilityKey = {
+  ...BATCH_KEY,
+  pipelineKey: "unlit|baseColorTexture|opaque|back|less|none",
+  materialKey: "material:textured",
+};
+
 describe("unlit pipeline descriptor planning", () => {
   it("creates descriptor-like data and a cache key for the MVP unlit pipeline", () => {
     const result = createUnlitPipelineDescriptorPlan({
@@ -53,6 +59,33 @@ describe("unlit pipeline descriptor planning", () => {
         batch: BATCH_KEY,
       },
     );
+  });
+
+  it("selects a textured shader and distinct cache key for base-color textures", () => {
+    const factorOnly = createUnlitPipelineDescriptorPlan({
+      colorFormat: "bgra8unorm",
+      batchKey: BATCH_KEY,
+    });
+    const textured = createUnlitPipelineDescriptorPlan({
+      colorFormat: "bgra8unorm",
+      batchKey: TEXTURED_BATCH_KEY,
+    });
+
+    expect(textured.diagnostics).toEqual([]);
+    expect(textured.plan?.descriptor).toMatchObject({
+      label: "aperture/unlit-mesh-textured:bgra8unorm:triangle-list",
+      vertex: { moduleLabel: "aperture/unlit-mesh-textured" },
+      fragment: { moduleLabel: "aperture/unlit-mesh-textured" },
+    });
+    expect(required(textured.plan).cacheKey).not.toBe(
+      required(factorOnly.plan).cacheKey,
+    );
+    expect(
+      JSON.parse(required(textured.plan).cacheKey) as unknown,
+    ).toMatchObject({
+      shaderLabel: "aperture/unlit-mesh-textured",
+      batch: TEXTURED_BATCH_KEY,
+    });
   });
 
   it("separates cache keys by format and topology", () => {

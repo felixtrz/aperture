@@ -141,6 +141,20 @@ Current checks:
 - Sphere primitive smoke: loads the multi-entity page with
   `?scenario=sphere-primitive`, renders a built-in `createSphereMeshAsset`
   mesh, and verifies a non-clear center pixel through readback.
+- Cylinder primitive smoke: loads the multi-entity page with
+  `?scenario=cylinder-primitive`, renders a built-in
+  `createCylinderMeshAsset` mesh, and verifies a non-clear center pixel through
+  readback.
+- Cone primitive smoke: loads the multi-entity page with
+  `?scenario=cone-primitive`, renders a built-in `createConeMeshAsset` mesh,
+  and verifies a non-clear center pixel through readback.
+- Capsule primitive smoke: loads the multi-entity page with
+  `?scenario=capsule-primitive`, renders a built-in
+  `createCapsuleMeshAsset` mesh, and verifies a non-clear center pixel through
+  readback.
+- Torus primitive smoke: loads the multi-entity page with
+  `?scenario=torus-primitive`, renders a built-in `createTorusMeshAsset` mesh,
+  and verifies a non-clear center pixel through readback.
 - Perspective FOV camera smoke: loads the multi-entity page with
   `?scenario=perspective-fov-camera`, authors a perspective ECS camera with a
   non-default vertical FOV, and verifies a primitive plane through readback.
@@ -158,6 +172,19 @@ Current checks:
   `?scenario=depth-overlap`, creates a depth attachment and depth-enabled
   unlit pipeline, then verifies the nearer 3D renderable wins even when the
   farther renderable is submitted later.
+- Textured unlit smoke: loads the multi-entity page with
+  `?scenario=textured-unlit`, uploads a 2x2 base-color texture plus sampler,
+  and verifies two UV-separated readback samples.
+- Mixed unlit pipeline smoke: loads the multi-entity page with
+  `?scenario=mixed-unlit-pipelines`, renders factor-only and texture-backed
+  unlit materials in one frame, verifies two distinct pipeline keys, and
+  checks both colors through readback.
+- Texture dependency status smoke: loads the multi-entity page with missing,
+  loading, and failed texture/sampler dependency scenarios and verifies
+  extraction stops before draw submission with stable asset-key diagnostics.
+- Missing texture/sampler resource smoke: loads the multi-entity page with a
+  ready textured draw but intentionally withheld GPU texture/sampler resources,
+  then verifies resource creation stops with JSON-safe diagnostics.
 - Unknown scenario smoke: loads the multi-entity page with an unsupported
   `scenario` query value and verifies the harness publishes an explicit
   zero-submission `unknown-scenario` diagnostic.

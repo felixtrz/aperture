@@ -27,64 +27,64 @@ Keep implementation vertical, typed, and testable. Do not introduce a public mut
 
 ## Recommended Next Task
 
-Start with `task-0243`. The unlit texture design is documented in `docs/UNLIT_TEXTURED_MATERIAL_PLAN.md`; the next useful slice is to extend unlit bind group planning for base-color textures while preserving the current factor-only path.
+Start with `task-0254`. Mixed factor-only/textured unlit pipeline planning now has browser coverage; the next useful slice is proving texture UV orientation across all four quadrants.
 
 ## Ready Tasks
 
-### task-0243 — Extend unlit bind group planning for base-color textures
+### task-0254 — Add quadrant texture UV browser readback coverage
 
-Add a textured unlit bind group layout/resource variant that includes material uniforms, a base-color texture view, and a sampler.
-
-Acceptance criteria:
-
-- Factor-only unlit materials continue to use the existing path.
-- Textured unlit materials require texture and sampler resource keys in group 2.
-- Missing texture/sampler resources produce draw-list or resource diagnostics.
-- Unit tests cover factor-only compatibility and textured resource requirements.
-
-### task-0244 — Add unlit texture shader feature and pipeline key
-
-Add the smallest shader/pipeline variant needed to sample `baseColorTexture` in the unlit material path.
+Expand the texture-backed unlit browser fixture to prove both U and V sampling orientation with four distinct 2x2 texture quadrants.
 
 Acceptance criteria:
 
-- `createMaterialPipelineKeyInput` includes a stable feature flag when an unlit material has a base-color texture.
-- The unlit shader has a textured variant or feature path that multiplies sampled color by `baseColorFactor`.
-- Pipeline descriptor/cache keys distinguish textured and factor-only unlit materials.
-- Unit tests cover pipeline key and descriptor differences.
+- A browser scenario renders a 2x2 texture with four distinct quadrant colors.
+- Readback samples cover left/right and upper/lower UV-separated pixels.
+- Status reports expected quadrant colors and sample ids without raw GPU handles.
+- Playwright verifies all four sampled pixels match their expected quadrant within tolerance.
 
-### task-0245 — Add extraction diagnostics for unlit texture asset states
+### task-0255 — Add multi-pipeline render-frame planning unit coverage
 
-Teach render extraction to validate texture and sampler handles referenced by ready unlit material assets.
-
-Acceptance criteria:
-
-- Missing texture and sampler handles produce extraction diagnostics before draw submission.
-- Loading and failed texture/sampler assets produce extraction diagnostics with safe asset keys.
-- Existing mesh/material extraction diagnostics remain unchanged.
-- Unit tests cover missing, loading, failed, and ready texture/sampler states.
-
-### task-0246 — Add texture-backed unlit browser readback coverage
-
-Render a textured unlit plane through the ECS-to-WebGPU browser path and verify sampled pixels.
+Add unit coverage for a render frame containing two unlit pipeline keys and pipeline-scoped shared bind groups.
 
 Acceptance criteria:
 
-- The scenario authors a ready texture-backed unlit material through asset handles.
-- Status reports texture/sampler resource counts, extraction counts, draw counts, and readback samples.
-- Readback verifies at least two UV-separated pixels so sampling is proven.
-- No raw WebGPU texture, view, sampler, bind group, or pipeline handles are serialized.
+- `planRenderFrameFromSnapshot` resolves two pipeline resources in one frame.
+- Shared group 0/1 bind groups remain associated with the matching pipeline key.
+- Material group 2 bind groups remain associated with the matching material key.
+- Tests cover a missing pipeline-scoped shared bind group diagnostic.
 
-### task-0247 — Add texture and sampler resource summary counts
+### task-0256 — Add sampler filter and address browser readback coverage
 
-Include renderer-owned texture and sampler resource creation results in JSON-safe resource summaries.
+Render a texture-backed unlit browser scenario that proves sampler settings affect sampled pixels.
 
 Acceptance criteria:
 
-- Resource summaries count texture and sampler resources separately from buffers and shaders.
-- Texture/sampler helper diagnostics are included without raw WebGPU handles.
-- Existing resource summary consumers continue to compile without requiring texture resources.
-- Unit tests cover valid resources, failed resources, and merged summary counts.
+- Add a browser scenario using a texture plus non-default sampler settings.
+- Status reports sampler key, filter/address settings, and expected sample ids.
+- Playwright verifies sampled pixels reflect the configured sampler behavior when readback is available.
+- Texture/sampler GPU resources remain renderer-owned and JSON-safe.
+
+### task-0257 — Add texture upload row-stride diagnostics coverage
+
+Add focused tests for texture upload descriptors with invalid or unsupported row-stride data.
+
+Acceptance criteria:
+
+- Texture GPU resource creation diagnoses invalid `bytesPerRow` and `rowsPerImage` inputs.
+- Diagnostics include resource keys and avoid raw GPU handles.
+- Valid tightly packed and padded uploads remain accepted.
+- Existing textured browser scenarios continue to pass.
+
+### task-0258 — Add textured unlit tint browser coverage
+
+Render a texture-backed unlit material with a non-white `baseColorFactor` to prove texture color is multiplied by material tint.
+
+Acceptance criteria:
+
+- Add a browser scenario with a texture-backed unlit material and non-white tint.
+- Status reports texture color, tint factor, and expected multiplied sample color.
+- Playwright verifies the tinted texture pixel through readback when available.
+- Existing texture-backed unlit scenarios continue to pass.
 
 ## Post-Unlit E2E Verification Targets
 

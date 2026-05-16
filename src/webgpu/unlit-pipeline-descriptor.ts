@@ -2,6 +2,7 @@ import type { MeshTopology } from "../mesh/index.js";
 import type { BatchCompatibilityKey } from "../rendering/index.js";
 import {
   UNLIT_MESH_SHADER,
+  UNLIT_TEXTURED_MESH_SHADER,
   validateBuiltInShaderMetadata,
   type BuiltInShaderSourceModule,
 } from "./unlit-shader.js";
@@ -10,6 +11,8 @@ import {
   type WebGpuRenderPipelineCreateDescriptor,
   type WebGpuRenderPipelineCacheKeyInput,
 } from "./pipeline-cache.js";
+
+export const UNLIT_BASE_COLOR_TEXTURE_FEATURE = "baseColorTexture";
 
 export type UnlitPipelineDescriptorDiagnosticCode =
   | "unlitPipeline.missingShaderMetadata"
@@ -47,9 +50,9 @@ export function createUnlitPipelineDescriptorPlan(
   input: UnlitPipelineDescriptorInput,
 ): UnlitPipelineDescriptorResult {
   const diagnostics: UnlitPipelineDescriptorDiagnostic[] = [];
-  const shader = input.shader ?? UNLIT_MESH_SHADER;
-  const metadata = validateBuiltInShaderMetadata(shader);
   const batchKey = input.batchKey as Partial<BatchCompatibilityKey> | null;
+  const shader = resolveUnlitShaderForBatchKey(batchKey, input.shader);
+  const metadata = validateBuiltInShaderMetadata(shader);
   const topology = input.topology ?? batchKey?.topology;
 
   for (const diagnostic of metadata.diagnostics) {
@@ -127,6 +130,28 @@ export function createUnlitPipelineDescriptorPlan(
   }
 
   return { valid: true, plan: { descriptor, keyInput, cacheKey }, diagnostics };
+}
+
+export function resolveUnlitShaderForBatchKey(
+  batchKey: Partial<BatchCompatibilityKey> | null,
+  shader?: BuiltInShaderSourceModule,
+): BuiltInShaderSourceModule {
+  if (shader !== undefined) {
+    return shader;
+  }
+
+  return hasBaseColorTextureFeature(batchKey)
+    ? UNLIT_TEXTURED_MESH_SHADER
+    : UNLIT_MESH_SHADER;
+}
+
+function hasBaseColorTextureFeature(
+  batchKey: Partial<BatchCompatibilityKey> | null,
+): boolean {
+  return (
+    typeof batchKey?.pipelineKey === "string" &&
+    batchKey.pipelineKey.split("|").includes(UNLIT_BASE_COLOR_TEXTURE_FEATURE)
+  );
 }
 
 function validateBatchKey(

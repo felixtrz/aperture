@@ -33,6 +33,19 @@ describe("material, texture, sampler, and render-state schemas", () => {
     });
   });
 
+  it("adds a stable unlit pipeline feature for base-color textures", () => {
+    const material = createUnlitMaterialAsset({
+      baseColorTexture: {
+        texture: createTextureHandle("albedo"),
+        sampler: createSamplerHandle("linear-repeat"),
+      },
+    });
+
+    expect(createMaterialPipelineKeyInput(material).features).toEqual([
+      "baseColorTexture",
+    ]);
+  });
+
   it("validates a standard metallic-roughness material and stable sampler keys", () => {
     const texture = createTextureHandle("albedo");
     const sampler = createSamplerHandle("linear-repeat");

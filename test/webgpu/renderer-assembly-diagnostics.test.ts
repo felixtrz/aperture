@@ -134,6 +134,8 @@ function resources(
       meshVertexBuffers: counts.meshVertexBuffers ?? 1,
       meshIndexBuffers: counts.meshIndexBuffers ?? 1,
       materialBuffers: counts.materialBuffers ?? 1,
+      textures: counts.textures ?? 0,
+      samplers: counts.samplers ?? 0,
       viewUniformBuffers: counts.viewUniformBuffers ?? 1,
       shaderModules: counts.shaderModules ?? 1,
       pipelineHits: counts.pipelineHits ?? 0,

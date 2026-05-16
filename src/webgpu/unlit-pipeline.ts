@@ -7,6 +7,7 @@ import {
 } from "./shader.js";
 import {
   createUnlitPipelineDescriptorPlan,
+  resolveUnlitShaderForBatchKey,
   type UnlitPipelineDescriptorDiagnostic,
 } from "./unlit-pipeline-descriptor.js";
 import {
@@ -78,7 +79,10 @@ export interface UnlitRenderPipelineDeviceLike
 export async function createUnlitRenderPipelineResource(
   options: CreateUnlitRenderPipelineResourceOptions,
 ): Promise<CreateUnlitRenderPipelineResourceResult> {
-  const shader = options.shader ?? UNLIT_MESH_SHADER;
+  const shader = resolveUnlitShaderForBatchKey(
+    options.batchKey,
+    options.shader,
+  );
   const descriptorPlan = createUnlitPipelineDescriptorPlan({
     shader,
     colorFormat: options.colorFormat,

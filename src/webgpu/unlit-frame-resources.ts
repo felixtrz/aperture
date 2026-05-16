@@ -23,7 +23,7 @@ import {
 } from "./mesh-buffer-descriptors.js";
 import {
   createUnlitBindGroupDescriptorPlan,
-  createUnlitBindGroupsFromBuffers,
+  createUnlitBindGroupsFromGpuResources,
   type CreateUnlitBindGroupsResult,
   type UnlitBindGroupDescriptorPlan,
   type UnlitBindGroupDescriptorEntry,
@@ -60,6 +60,10 @@ import {
   type WorldTransformGpuBufferResource,
 } from "./world-transform-buffer.js";
 import type { UnlitBindGroupDeviceLike } from "./unlit-bind-group.js";
+import type {
+  SamplerGpuResource,
+  TextureGpuResource,
+} from "./texture-resources.js";
 
 export type UnlitFrameGpuResourceDiagnosticCode =
   | "unlitFrameResources.missingMesh"
@@ -98,6 +102,8 @@ export interface CreateUnlitFrameGpuResourcesOptions {
   readonly worldTransforms: PackedSnapshotTransforms | null;
   readonly material: MaterialAsset | null;
   readonly layouts: readonly UnlitBindGroupLayoutResource[];
+  readonly textures?: readonly TextureGpuResource[];
+  readonly samplers?: readonly SamplerGpuResource[];
 }
 
 export interface CreateMultiMaterialUnlitFrameGpuResourcesOptions {
@@ -107,6 +113,11 @@ export interface CreateMultiMaterialUnlitFrameGpuResourcesOptions {
   readonly worldTransforms: PackedSnapshotTransforms | null;
   readonly materials: readonly (MaterialAsset | null)[] | null;
   readonly layouts: readonly UnlitBindGroupLayoutResource[];
+  readonly materialLayouts?:
+    | readonly (readonly UnlitBindGroupLayoutResource[])[]
+    | undefined;
+  readonly textures?: readonly TextureGpuResource[];
+  readonly samplers?: readonly SamplerGpuResource[];
 }
 
 export interface UnlitFrameGpuResources {
@@ -149,11 +160,15 @@ export function createUnlitFrameGpuResources(
     viewUniformResourceKey: viewUniform?.resourceKey ?? null,
     worldTransformResourceKey: worldTransforms?.resourceKey ?? null,
     materialResourceKey: material?.resourceKey ?? null,
+    baseColorTextureResourceKey:
+      material?.dependencies.baseColorTextureKey ?? null,
+    baseColorSamplerResourceKey:
+      material?.dependencies.baseColorSamplerKey ?? null,
   });
 
   diagnostics.push(...bindGroupPlan.diagnostics);
 
-  const bindGroups = createUnlitBindGroupsFromBuffers({
+  const bindGroups = createUnlitBindGroupsFromGpuResources({
     device: options.device,
     plan: bindGroupPlan,
     layouts: options.layouts,
@@ -171,6 +186,8 @@ export function createUnlitFrameGpuResources(
         ? null
         : { resourceKey: material.resourceKey, buffer: material.uniformBuffer },
     ]),
+    textures: options.textures,
+    samplers: options.samplers,
   });
 
   diagnostics.push(...bindGroups.diagnostics);
@@ -213,7 +230,7 @@ export function createMultiMaterialUnlitFrameGpuResources(
 
   diagnostics.push(...sharedBindGroupPlan.diagnostics);
 
-  const sharedBindGroups = createUnlitBindGroupsFromBuffers({
+  const sharedBindGroups = createUnlitBindGroupsFromGpuResources({
     device: options.device,
     plan: sharedBindGroupPlan,
     layouts: options.layouts,
@@ -228,6 +245,8 @@ export function createMultiMaterialUnlitFrameGpuResources(
             buffer: worldTransforms.buffer,
           },
     ]),
+    textures: options.textures,
+    samplers: options.samplers,
   });
 
   diagnostics.push(...sharedBindGroups.diagnostics);
@@ -450,6 +469,7 @@ function createSharedBindGroupDescriptorPlan(input: {
       group: 0,
       binding: 0,
       resourceKey: input.viewUniformResourceKey,
+      resourceKind: "buffer",
     });
   }
 
@@ -464,6 +484,7 @@ function createSharedBindGroupDescriptorPlan(input: {
       group: 1,
       binding: 0,
       resourceKey: input.worldTransformResourceKey,
+      resourceKind: "buffer",
     });
   }
 
@@ -482,21 +503,31 @@ function createMaterialBindGroups(
   const bindGroups: UnlitBindGroupResource[] = [];
   let valid = true;
 
-  for (const material of materials) {
-    const result = createUnlitBindGroupsFromBuffers({
+  for (const [index, material] of materials.entries()) {
+    const result = createUnlitBindGroupsFromGpuResources({
       device: options.device,
       plan: {
         valid: true,
-        entries: [{ group: 2, binding: 0, resourceKey: material.resourceKey }],
+        entries: [
+          {
+            group: 2,
+            binding: 0,
+            resourceKey: material.resourceKey,
+            resourceKind: "buffer",
+          },
+          ...texturedMaterialBindGroupEntries(material),
+        ],
         diagnostics: [],
       },
-      layouts: options.layouts,
+      layouts: options.materialLayouts?.[index] ?? options.layouts,
       buffers: [
         {
           resourceKey: material.resourceKey,
           buffer: material.uniformBuffer,
         },
       ],
+      textures: options.textures,
+      samplers: options.samplers,
     });
 
     diagnostics.push(...result.diagnostics);
@@ -505,6 +536,32 @@ function createMaterialBindGroups(
   }
 
   return { valid, bindGroups };
+}
+
+function texturedMaterialBindGroupEntries(
+  material: UnlitMaterialGpuBufferResource,
+): readonly UnlitBindGroupDescriptorEntry[] {
+  const entries: UnlitBindGroupDescriptorEntry[] = [];
+
+  if (material.dependencies.baseColorTextureKey !== null) {
+    entries.push({
+      group: 2,
+      binding: 1,
+      resourceKey: material.dependencies.baseColorTextureKey,
+      resourceKind: "texture-view",
+    });
+  }
+
+  if (material.dependencies.baseColorSamplerKey !== null) {
+    entries.push({
+      group: 2,
+      binding: 2,
+      resourceKey: material.dependencies.baseColorSamplerKey,
+      resourceKind: "sampler",
+    });
+  }
+
+  return entries;
 }
 
 function compactBufferResources(

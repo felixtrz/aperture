@@ -104,6 +104,8 @@ export interface MultiEntityExampleStatus extends ExampleStatusBase {
   };
   readonly resources?: {
     readonly materials: number;
+    readonly textures?: number;
+    readonly samplers?: number;
     readonly bindGroups: number;
     readonly missing?: string;
   };
@@ -128,6 +130,10 @@ export interface MultiEntityExampleStatus extends ExampleStatusBase {
     readonly resolved?: number;
     readonly renderIds?: readonly number[];
   };
+  readonly pipelines?: {
+    readonly count: number;
+    readonly keys: readonly string[];
+  };
   readonly geometry?: {
     readonly primitive: string;
     readonly meshLabel: string;
@@ -149,6 +155,19 @@ export interface MultiEntityExampleStatus extends ExampleStatusBase {
   };
   readonly depth?: {
     readonly format: string;
+  };
+  readonly texture?: {
+    readonly materialKey: string;
+    readonly textureKey: string;
+    readonly samplerKey: string;
+    readonly expectedLeftColor: readonly [number, number, number, number];
+    readonly expectedRightColor: readonly [number, number, number, number];
+  };
+  readonly mixedPipelines?: {
+    readonly factorMaterialKey: string;
+    readonly texturedMaterialKey: string;
+    readonly expectedFactorColor: readonly [number, number, number, number];
+    readonly expectedTexturedColor: readonly [number, number, number, number];
   };
   readonly visibility?: {
     readonly authored: number;
@@ -172,12 +191,20 @@ export interface MultiEntityExampleStatus extends ExampleStatusBase {
   readonly assetStatus?: {
     readonly mesh?: string;
     readonly material?: string;
+    readonly texture?: string;
+    readonly sampler?: string;
     readonly diagnostics: readonly string[];
     readonly registryDiagnostics?: readonly {
       readonly code: string;
       readonly message: string;
       readonly severity?: string;
     }[];
+  };
+  readonly textureDependency?: {
+    readonly dependencyKind: "texture" | "sampler";
+    readonly assetStatus: string;
+    readonly textureKey: string;
+    readonly samplerKey: string;
   };
   readonly disabled?: {
     readonly authored: number;

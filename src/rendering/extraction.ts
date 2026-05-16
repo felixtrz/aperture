@@ -3,10 +3,13 @@ import {
   createMaterialHandle,
   createMeshHandle,
   createRenderTargetHandle,
+  type AssetHandle,
   type AssetRegistry,
   type MaterialHandle,
   type MeshHandle,
   type RenderTargetHandle,
+  type SamplerHandle,
+  type TextureHandle,
 } from "../assets/index.js";
 import type { EcsWorld, Entity } from "../ecs/index.js";
 import {
@@ -17,7 +20,9 @@ import {
 } from "../transform/index.js";
 import {
   createMaterialPipelineKeyInput,
+  type SamplerAsset,
   type MaterialAsset,
+  type TextureAsset,
 } from "../materials/index.js";
 import { type MeshAsset, validateMeshAsset } from "../mesh/index.js";
 import {
@@ -373,6 +378,18 @@ function extractMeshDraws(
         continue;
       }
 
+      if (
+        !validateMaterialTextureDependencies(
+          materialEntry.asset,
+          materialHandle,
+          assets,
+          entity,
+          diagnostics,
+        )
+      ) {
+        continue;
+      }
+
       const queue = materialQueue(materialEntry.asset);
       const stableId =
         createStableRenderId(entityRef(entity)) + submesh.materialSlot;
@@ -414,6 +431,99 @@ function extractMeshDraws(
   }
 
   return draws;
+}
+
+function validateMaterialTextureDependencies(
+  material: MaterialAsset,
+  materialHandle: MaterialHandle,
+  assets: AssetRegistry,
+  entity: Entity,
+  diagnostics: RenderDiagnostic[],
+): boolean {
+  if (material.kind !== "unlit" || material.baseColorTexture === null) {
+    return true;
+  }
+
+  const binding = material.baseColorTexture;
+  let valid = true;
+
+  if (binding.texture === null) {
+    diagnostics.push(
+      diagnostic(
+        "render.material.missingTextureHandle",
+        entity,
+        materialHandle,
+      ),
+    );
+    valid = false;
+  } else {
+    valid =
+      validateTextureAssetState(binding.texture, assets, entity, diagnostics) &&
+      valid;
+  }
+
+  if (binding.sampler === null) {
+    diagnostics.push(
+      diagnostic(
+        "render.material.missingSamplerHandle",
+        entity,
+        materialHandle,
+      ),
+    );
+    valid = false;
+  } else {
+    valid =
+      validateSamplerAssetState(binding.sampler, assets, entity, diagnostics) &&
+      valid;
+  }
+
+  return valid;
+}
+
+function validateTextureAssetState(
+  handle: TextureHandle,
+  assets: AssetRegistry,
+  entity: Entity,
+  diagnostics: RenderDiagnostic[],
+): boolean {
+  const entry = assets.get<"texture", TextureAsset>(handle);
+
+  if (entry === undefined) {
+    diagnostics.push(diagnostic("render.texture.missing", entity, handle));
+    return false;
+  }
+
+  if (entry.status !== "ready" || entry.asset === null) {
+    diagnostics.push(
+      diagnostic(`render.texture.${entry.status}`, entity, handle),
+    );
+    return false;
+  }
+
+  return true;
+}
+
+function validateSamplerAssetState(
+  handle: SamplerHandle,
+  assets: AssetRegistry,
+  entity: Entity,
+  diagnostics: RenderDiagnostic[],
+): boolean {
+  const entry = assets.get<"sampler", SamplerAsset>(handle);
+
+  if (entry === undefined) {
+    diagnostics.push(diagnostic("render.sampler.missing", entity, handle));
+    return false;
+  }
+
+  if (entry.status !== "ready" || entry.asset === null) {
+    diagnostics.push(
+      diagnostic(`render.sampler.${entry.status}`, entity, handle),
+    );
+    return false;
+  }
+
+  return true;
 }
 
 function pushBounds(
@@ -584,7 +694,7 @@ function entityRef(entity: Entity): RenderEntityRef {
 function diagnostic(
   code: string,
   entity: Entity,
-  handle?: MeshHandle | MaterialHandle,
+  handle?: AssetHandle,
 ): RenderDiagnostic {
   const result: RenderDiagnostic = {
     code,

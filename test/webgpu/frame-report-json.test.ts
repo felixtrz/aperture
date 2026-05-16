@@ -43,6 +43,8 @@ function frameReport(ready: boolean): FrameReport {
       meshVertexBuffers: 1,
       meshIndexBuffers: 1,
       materialBuffers: 1,
+      textures: 0,
+      samplers: 0,
       viewUniformBuffers: 1,
       shaderModules: 1,
       pipelineHits: 1,

@@ -99,6 +99,8 @@ function resources(
       meshVertexBuffers: 0,
       meshIndexBuffers: 0,
       materialBuffers: 0,
+      textures: 0,
+      samplers: 0,
       viewUniformBuffers: 0,
       shaderModules: 0,
       pipelineHits: 0,

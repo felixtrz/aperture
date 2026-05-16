@@ -1,12 +1,16 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  createSamplerHandle,
   createPlaneMeshAsset,
+  createTextureHandle,
   createMultiMaterialUnlitFrameGpuResources,
   createUnlitFrameGpuResources,
   createUnlitMaterialAsset,
   type PackedSnapshotTransforms,
   type PackedSnapshotViewUniforms,
+  type SamplerGpuResource,
+  type TextureGpuResource,
   type UnlitBindGroupCreationDescriptor,
   type UnlitBindGroupLayoutResource,
   type UnlitFrameGpuResourceDeviceLike,
@@ -62,6 +66,73 @@ describe("unlit frame GPU resource upload", () => {
       { entries: [{ resource: { buffer: expect.any(Object) as unknown } }] },
       { entries: [{ resource: { buffer: expect.any(Object) as unknown } }] },
       { entries: [{ resource: { buffer: expect.any(Object) as unknown } }] },
+    ]);
+  });
+
+  it("uploads textured material bind groups with texture views and samplers", () => {
+    const writes: unknown[] = [];
+    const bindGroups: UnlitBindGroupCreationDescriptor[] = [];
+    const result = createUnlitFrameGpuResources({
+      device: deviceWithResources(writes, bindGroups),
+      mesh: createPlaneMeshAsset({ label: "Quad" }),
+      viewUniforms: packedViews(),
+      worldTransforms: packedTransforms(),
+      material: createUnlitMaterialAsset({
+        label: "Textured",
+        baseColorTexture: {
+          texture: createTextureHandle("albedo"),
+          sampler: createSamplerHandle("linear"),
+        },
+      }),
+      layouts: layoutResources(),
+      textures: [textureResource("texture:albedo", { label: "albedo-view" })],
+      samplers: [samplerResource("sampler:linear", { label: "linear" })],
+    });
+
+    expect(result.valid).toBe(true);
+    expect(result.diagnostics).toEqual([]);
+    expect(
+      result.resources?.bindGroups.find((group) => group.group === 2),
+    ).toMatchObject({
+      resourceKey:
+        "bind-group:unlit/group-2/0:material-buffer:Textured/uniform/1:texture:albedo/2:sampler:linear",
+      entryResourceKeys: [
+        "material-buffer:Textured/uniform",
+        "texture:albedo",
+        "sampler:linear",
+      ],
+    });
+    expect(bindGroups.at(-1)).toMatchObject({
+      label: "unlit/group-2",
+      entries: [
+        { binding: 0, resource: { buffer: expect.any(Object) as unknown } },
+        { binding: 1, resource: { label: "albedo-view" } },
+        { binding: 2, resource: { label: "linear" } },
+      ],
+    });
+  });
+
+  it("reports missing textured material GPU resources", () => {
+    const result = createUnlitFrameGpuResources({
+      device: deviceWithResources([], []),
+      mesh: createPlaneMeshAsset({ label: "Quad" }),
+      viewUniforms: packedViews(),
+      worldTransforms: packedTransforms(),
+      material: createUnlitMaterialAsset({
+        label: "Textured",
+        baseColorTexture: {
+          texture: createTextureHandle("missing-albedo"),
+          sampler: createSamplerHandle("missing-linear"),
+        },
+      }),
+      layouts: layoutResources(),
+    });
+
+    expect(result.valid).toBe(false);
+    expect(result.resources).toBeNull();
+    expect(result.diagnostics.map((diagnostic) => diagnostic.code)).toEqual([
+      "unlitBindGroupResource.missingTextureResource",
+      "unlitBindGroupResource.missingSamplerResource",
     ]);
   });
 
@@ -172,6 +243,44 @@ describe("unlit frame GPU resource upload", () => {
     );
   });
 });
+
+function textureResource(
+  resourceKey: string,
+  view: unknown,
+): TextureGpuResource {
+  return {
+    resourceKey,
+    texture: {},
+    view,
+    descriptor: {
+      size: [2, 2, 1],
+      format: "rgba8unorm",
+      usage: 1,
+    },
+  };
+}
+
+function samplerResource(
+  resourceKey: string,
+  sampler: unknown,
+): SamplerGpuResource {
+  return {
+    resourceKey,
+    sampler,
+    descriptor: {
+      label: "linear",
+      addressModeU: "repeat",
+      addressModeV: "repeat",
+      addressModeW: "repeat",
+      magFilter: "linear",
+      minFilter: "linear",
+      mipmapFilter: "linear",
+      lodMinClamp: 0,
+      lodMaxClamp: 32,
+      maxAnisotropy: 1,
+    },
+  };
+}
 
 function packedViews(): PackedSnapshotViewUniforms {
   return {

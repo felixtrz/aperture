@@ -20,6 +20,11 @@ const BATCH: BatchCompatibilityKey = {
   skinned: false,
   morphed: false,
 };
+const TEXTURED_BATCH: BatchCompatibilityKey = {
+  ...BATCH,
+  pipelineKey: "pipeline:unlit/baseColorTexture",
+  materialKey: "material:textured",
+};
 
 describe("render frame snapshot planning helper", () => {
   it("plans from snapshot through render pass commands", () => {
@@ -78,6 +83,85 @@ describe("render frame snapshot planning helper", () => {
       "renderDrawPackage.blockedDraw",
     ]);
   });
+
+  it("keeps textured unlit material bind groups associated with resolved draws", () => {
+    const result = planRenderFrameFromSnapshot({
+      snapshot: texturedSnapshot(),
+      renderWorld: new RenderWorld(),
+      transforms: texturedTransforms(),
+      resolveMeshResourceKey: () => "mesh:triangle",
+      resolveMaterialResourceKey: () => "material:textured",
+      meshResources: [mesh()],
+      pipelines: [texturedPipeline()],
+      bindGroups: texturedBindGroups(),
+    });
+
+    expect(result.summary.ready).toBe(true);
+    expect(result.summary.counts).toMatchObject({
+      binding: { planned: 1, applied: 1, ready: 1, blocked: 0 },
+      draw: { packages: 1, descriptors: 1, drawList: 1, resolved: 1 },
+      command: { drawCount: 1, nonIndexedDrawCount: 1 },
+    });
+    expect(result.drawList.draws[0]?.bindGroupKeys).toEqual([
+      "bind:0",
+      "bind:1",
+      "bind:2:textured",
+    ]);
+    expect(result.resources.draws[0]?.bindGroups).toMatchObject([
+      { group: 0, resourceKey: "bind:0" },
+      { group: 1, resourceKey: "bind:1" },
+      { group: 2, resourceKey: "bind:2:textured" },
+    ]);
+    expect(
+      result.commandPlan.commands
+        .filter((command) => command.kind === "setBindGroup")
+        .map((command) => ({
+          index: command.index,
+          resourceKey: command.resourceKey,
+        })),
+    ).toEqual([
+      { index: 0, resourceKey: "bind:0" },
+      { index: 1, resourceKey: "bind:1" },
+      { index: 2, resourceKey: "bind:2:textured" },
+    ]);
+  });
+
+  it("diagnoses missing textured unlit material bind group resources", () => {
+    const result = planRenderFrameFromSnapshot({
+      snapshot: texturedSnapshot(),
+      renderWorld: new RenderWorld(),
+      transforms: texturedTransforms(),
+      resolveMeshResourceKey: () => "mesh:triangle",
+      resolveMaterialResourceKey: () => "material:textured",
+      meshResources: [mesh()],
+      pipelines: [texturedPipeline()],
+      bindGroups: texturedBindGroups().filter((group) => group.group !== 2),
+    });
+
+    expect(result.summary.ready).toBe(false);
+    expect(result.summary.counts).toMatchObject({
+      binding: { planned: 1, applied: 1, ready: 1, blocked: 0 },
+      draw: { packages: 1, descriptors: 1, drawList: 0, resolved: 0 },
+      command: { drawCount: 0 },
+    });
+    expect(result.drawList.diagnostics).toMatchObject([
+      {
+        code: "renderPassDrawList.missingBindGroupResource",
+        renderId: 11,
+        bindGroup: {
+          group: 2,
+          materialResourceKey: "material:textured",
+        },
+      },
+    ]);
+    expect(result.summary.diagnostics).toMatchObject([
+      {
+        phase: "draw-list",
+        code: "renderPassDrawList.missingBindGroupResource",
+        renderId: 11,
+      },
+    ]);
+  });
 });
 
 function snapshot(): RenderSnapshot {
@@ -120,6 +204,39 @@ function packet(renderId: number, worldTransformOffset: number) {
   };
 }
 
+function texturedSnapshot(): RenderSnapshot {
+  return {
+    frame: 1,
+    views: [],
+    meshDraws: [texturedPacket()],
+    lights: [],
+    environments: [],
+    shadowRequests: [],
+    bounds: [],
+    transforms: new Float32Array(16),
+    viewMatrices: new Float32Array(),
+    diagnostics: [],
+    report: {
+      views: 0,
+      meshDraws: 1,
+      lights: 0,
+      environments: 0,
+      shadowRequests: 0,
+      bounds: 0,
+      diagnostics: 0,
+    },
+  } as unknown as RenderSnapshot;
+}
+
+function texturedPacket() {
+  return {
+    ...packet(11, 0),
+    material: { kind: "material", id: "textured" },
+    batchKey: TEXTURED_BATCH,
+    sortKey: texturedSortKey(),
+  };
+}
+
 function sortKey(stableId: number): RenderSortKey {
   return {
     queue: "opaque",
@@ -134,6 +251,14 @@ function sortKey(stableId: number): RenderSortKey {
   };
 }
 
+function texturedSortKey(): RenderSortKey {
+  return {
+    ...sortKey(11),
+    pipelineKey: "pipeline:unlit/baseColorTexture",
+    materialKey: "material:textured",
+  };
+}
+
 function transforms() {
   return {
     data: new Float32Array(32),
@@ -141,6 +266,14 @@ function transforms() {
       { renderId: 7, sourceOffset: 0, packedOffset: 0 },
       { renderId: 9, sourceOffset: 16, packedOffset: 16 },
     ],
+    diagnostics: [],
+  };
+}
+
+function texturedTransforms() {
+  return {
+    data: new Float32Array(16),
+    offsets: [{ renderId: 11, sourceOffset: 0, packedOffset: 0 }],
     diagnostics: [],
   };
 }
@@ -155,6 +288,16 @@ function pipeline(): GetOrCreateRenderPipelineResult {
   };
 }
 
+function texturedPipeline(): GetOrCreateRenderPipelineResult {
+  return {
+    ok: true,
+    status: "miss",
+    key: "pipeline:unlit/baseColorTexture",
+    pipeline: "pipeline-handle:textured",
+    diagnostics: [],
+  };
+}
+
 function bindGroups(): readonly UnlitBindGroupResource[] {
   return [0, 1, 2].map((group) => ({
     group,
@@ -163,6 +306,36 @@ function bindGroups(): readonly UnlitBindGroupResource[] {
     bindGroup: `bind-group:${group}`,
     entryResourceKeys: group === 2 ? ["material:red"] : [`resource:${group}`],
   }));
+}
+
+function texturedBindGroups(): readonly UnlitBindGroupResource[] {
+  return [
+    {
+      group: 0,
+      resourceKey: "bind:0",
+      layoutKey: "layout:0",
+      bindGroup: "bind-group:0",
+      entryResourceKeys: ["resource:0"],
+    },
+    {
+      group: 1,
+      resourceKey: "bind:1",
+      layoutKey: "layout:1",
+      bindGroup: "bind-group:1",
+      entryResourceKeys: ["resource:1"],
+    },
+    {
+      group: 2,
+      resourceKey: "bind:2:textured",
+      layoutKey: "layout:2",
+      bindGroup: "bind-group:2:textured",
+      entryResourceKeys: [
+        "material:textured",
+        "texture:base-color",
+        "sampler:base-color",
+      ],
+    },
+  ];
 }
 
 function mesh(): MeshGpuBufferResource {

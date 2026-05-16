@@ -24,15 +24,28 @@ const knownScenarios = new Set([
   "failed-mesh-asset",
   "loading-material-asset",
   "failed-material-asset",
+  "missing-texture-asset",
+  "missing-sampler-asset",
+  "loading-texture-asset",
+  "failed-texture-asset",
+  "loading-sampler-asset",
+  "failed-sampler-asset",
+  "missing-texture-sampler-resources",
   "disabled-renderable",
   "disabled-visible-peer",
   "box-primitive",
   "sphere-primitive",
+  "cylinder-primitive",
+  "cone-primitive",
+  "capsule-primitive",
+  "torus-primitive",
   "perspective-fov-camera",
   "orthographic-camera",
   "render-layer-filter",
   "render-order-overlap",
   "depth-overlap",
+  "textured-unlit",
+  "mixed-unlit-pipelines",
 ]);
 const readbackSamplePoints = [
   { id: "left-upper", x: 0.31, y: 0.48 },
@@ -147,109 +160,82 @@ try {
                                 },
                                 "failed",
                               )
-                            : scenario === "disabled-renderable"
-                              ? renderDisabledRenderableScene(
+                            : scenario === "missing-texture-asset"
+                              ? renderTextureDependencyAssetStatusScene(
                                   aperture,
                                   initialized,
                                   {
                                     width: canvas.width,
                                     height: canvas.height,
                                   },
+                                  "texture",
+                                  "missing",
                                 )
-                              : scenario === "disabled-visible-peer"
-                                ? await renderMultiEntityScene(
+                              : scenario === "missing-sampler-asset"
+                                ? renderTextureDependencyAssetStatusScene(
                                     aperture,
                                     initialized,
                                     {
                                       width: canvas.width,
                                       height: canvas.height,
                                     },
-                                    readbackUsage,
-                                    createDisabledVisiblePeerWorld(aperture, {
-                                      width: canvas.width,
-                                      height: canvas.height,
-                                    }),
+                                    "sampler",
+                                    "missing",
                                   )
-                                : scenario === "box-primitive"
-                                  ? await renderMultiEntityScene(
+                                : scenario === "loading-texture-asset"
+                                  ? renderTextureDependencyAssetStatusScene(
                                       aperture,
                                       initialized,
                                       {
                                         width: canvas.width,
                                         height: canvas.height,
                                       },
-                                      readbackUsage,
-                                      createBoxPrimitiveWorld(aperture, {
-                                        width: canvas.width,
-                                        height: canvas.height,
-                                      }),
+                                      "texture",
+                                      "loading",
                                     )
-                                  : scenario === "sphere-primitive"
-                                    ? await renderMultiEntityScene(
+                                  : scenario === "failed-texture-asset"
+                                    ? renderTextureDependencyAssetStatusScene(
                                         aperture,
                                         initialized,
                                         {
                                           width: canvas.width,
                                           height: canvas.height,
                                         },
-                                        readbackUsage,
-                                        createSpherePrimitiveWorld(aperture, {
-                                          width: canvas.width,
-                                          height: canvas.height,
-                                        }),
+                                        "texture",
+                                        "failed",
                                       )
-                                    : scenario === "perspective-fov-camera"
-                                      ? await renderMultiEntityScene(
+                                    : scenario === "loading-sampler-asset"
+                                      ? renderTextureDependencyAssetStatusScene(
                                           aperture,
                                           initialized,
                                           {
                                             width: canvas.width,
                                             height: canvas.height,
                                           },
-                                          readbackUsage,
-                                          createPerspectiveFovCameraWorld(
-                                            aperture,
-                                            {
-                                              width: canvas.width,
-                                              height: canvas.height,
-                                            },
-                                          ),
+                                          "sampler",
+                                          "loading",
                                         )
-                                      : scenario === "orthographic-camera"
-                                        ? await renderMultiEntityScene(
+                                      : scenario === "failed-sampler-asset"
+                                        ? renderTextureDependencyAssetStatusScene(
                                             aperture,
                                             initialized,
                                             {
                                               width: canvas.width,
                                               height: canvas.height,
                                             },
-                                            readbackUsage,
-                                            createOrthographicCameraWorld(
-                                              aperture,
-                                              {
-                                                width: canvas.width,
-                                                height: canvas.height,
-                                              },
-                                            ),
+                                            "sampler",
+                                            "failed",
                                           )
-                                        : scenario === "render-layer-filter"
-                                          ? await renderMultiEntityScene(
+                                        : scenario === "disabled-renderable"
+                                          ? renderDisabledRenderableScene(
                                               aperture,
                                               initialized,
                                               {
                                                 width: canvas.width,
                                                 height: canvas.height,
                                               },
-                                              readbackUsage,
-                                              createRenderLayerFilterWorld(
-                                                aperture,
-                                                {
-                                                  width: canvas.width,
-                                                  height: canvas.height,
-                                                },
-                                              ),
                                             )
-                                          : scenario === "render-order-overlap"
+                                          : scenario === "disabled-visible-peer"
                                             ? await renderMultiEntityScene(
                                                 aperture,
                                                 initialized,
@@ -258,7 +244,7 @@ try {
                                                   height: canvas.height,
                                                 },
                                                 readbackUsage,
-                                                createRenderOrderOverlapWorld(
+                                                createDisabledVisiblePeerWorld(
                                                   aperture,
                                                   {
                                                     width: canvas.width,
@@ -266,7 +252,7 @@ try {
                                                   },
                                                 ),
                                               )
-                                            : scenario === "depth-overlap"
+                                            : scenario === "box-primitive"
                                               ? await renderMultiEntityScene(
                                                   aperture,
                                                   initialized,
@@ -275,7 +261,7 @@ try {
                                                     height: canvas.height,
                                                   },
                                                   readbackUsage,
-                                                  createDepthOverlapWorld(
+                                                  createBoxPrimitiveWorld(
                                                     aperture,
                                                     {
                                                       width: canvas.width,
@@ -283,15 +269,258 @@ try {
                                                     },
                                                   ),
                                                 )
-                                              : await renderMultiEntityScene(
-                                                  aperture,
-                                                  initialized,
-                                                  {
-                                                    width: canvas.width,
-                                                    height: canvas.height,
-                                                  },
-                                                  readbackUsage,
-                                                ),
+                                              : scenario === "sphere-primitive"
+                                                ? await renderMultiEntityScene(
+                                                    aperture,
+                                                    initialized,
+                                                    {
+                                                      width: canvas.width,
+                                                      height: canvas.height,
+                                                    },
+                                                    readbackUsage,
+                                                    createSpherePrimitiveWorld(
+                                                      aperture,
+                                                      {
+                                                        width: canvas.width,
+                                                        height: canvas.height,
+                                                      },
+                                                    ),
+                                                  )
+                                                : scenario ===
+                                                    "cylinder-primitive"
+                                                  ? await renderMultiEntityScene(
+                                                      aperture,
+                                                      initialized,
+                                                      {
+                                                        width: canvas.width,
+                                                        height: canvas.height,
+                                                      },
+                                                      readbackUsage,
+                                                      createCylinderPrimitiveWorld(
+                                                        aperture,
+                                                        {
+                                                          width: canvas.width,
+                                                          height: canvas.height,
+                                                        },
+                                                      ),
+                                                    )
+                                                  : scenario ===
+                                                      "cone-primitive"
+                                                    ? await renderMultiEntityScene(
+                                                        aperture,
+                                                        initialized,
+                                                        {
+                                                          width: canvas.width,
+                                                          height: canvas.height,
+                                                        },
+                                                        readbackUsage,
+                                                        createConePrimitiveWorld(
+                                                          aperture,
+                                                          {
+                                                            width: canvas.width,
+                                                            height:
+                                                              canvas.height,
+                                                          },
+                                                        ),
+                                                      )
+                                                    : scenario ===
+                                                        "capsule-primitive"
+                                                      ? await renderMultiEntityScene(
+                                                          aperture,
+                                                          initialized,
+                                                          {
+                                                            width: canvas.width,
+                                                            height:
+                                                              canvas.height,
+                                                          },
+                                                          readbackUsage,
+                                                          createCapsulePrimitiveWorld(
+                                                            aperture,
+                                                            {
+                                                              width:
+                                                                canvas.width,
+                                                              height:
+                                                                canvas.height,
+                                                            },
+                                                          ),
+                                                        )
+                                                      : scenario ===
+                                                          "torus-primitive"
+                                                        ? await renderMultiEntityScene(
+                                                            aperture,
+                                                            initialized,
+                                                            {
+                                                              width:
+                                                                canvas.width,
+                                                              height:
+                                                                canvas.height,
+                                                            },
+                                                            readbackUsage,
+                                                            createTorusPrimitiveWorld(
+                                                              aperture,
+                                                              {
+                                                                width:
+                                                                  canvas.width,
+                                                                height:
+                                                                  canvas.height,
+                                                              },
+                                                            ),
+                                                          )
+                                                        : scenario ===
+                                                            "perspective-fov-camera"
+                                                          ? await renderMultiEntityScene(
+                                                              aperture,
+                                                              initialized,
+                                                              {
+                                                                width:
+                                                                  canvas.width,
+                                                                height:
+                                                                  canvas.height,
+                                                              },
+                                                              readbackUsage,
+                                                              createPerspectiveFovCameraWorld(
+                                                                aperture,
+                                                                {
+                                                                  width:
+                                                                    canvas.width,
+                                                                  height:
+                                                                    canvas.height,
+                                                                },
+                                                              ),
+                                                            )
+                                                          : scenario ===
+                                                              "orthographic-camera"
+                                                            ? await renderMultiEntityScene(
+                                                                aperture,
+                                                                initialized,
+                                                                {
+                                                                  width:
+                                                                    canvas.width,
+                                                                  height:
+                                                                    canvas.height,
+                                                                },
+                                                                readbackUsage,
+                                                                createOrthographicCameraWorld(
+                                                                  aperture,
+                                                                  {
+                                                                    width:
+                                                                      canvas.width,
+                                                                    height:
+                                                                      canvas.height,
+                                                                  },
+                                                                ),
+                                                              )
+                                                            : scenario ===
+                                                                "render-layer-filter"
+                                                              ? await renderMultiEntityScene(
+                                                                  aperture,
+                                                                  initialized,
+                                                                  {
+                                                                    width:
+                                                                      canvas.width,
+                                                                    height:
+                                                                      canvas.height,
+                                                                  },
+                                                                  readbackUsage,
+                                                                  createRenderLayerFilterWorld(
+                                                                    aperture,
+                                                                    {
+                                                                      width:
+                                                                        canvas.width,
+                                                                      height:
+                                                                        canvas.height,
+                                                                    },
+                                                                  ),
+                                                                )
+                                                              : scenario ===
+                                                                  "render-order-overlap"
+                                                                ? await renderMultiEntityScene(
+                                                                    aperture,
+                                                                    initialized,
+                                                                    {
+                                                                      width:
+                                                                        canvas.width,
+                                                                      height:
+                                                                        canvas.height,
+                                                                    },
+                                                                    readbackUsage,
+                                                                    createRenderOrderOverlapWorld(
+                                                                      aperture,
+                                                                      {
+                                                                        width:
+                                                                          canvas.width,
+                                                                        height:
+                                                                          canvas.height,
+                                                                      },
+                                                                    ),
+                                                                  )
+                                                                : scenario ===
+                                                                    "depth-overlap"
+                                                                  ? await renderMultiEntityScene(
+                                                                      aperture,
+                                                                      initialized,
+                                                                      {
+                                                                        width:
+                                                                          canvas.width,
+                                                                        height:
+                                                                          canvas.height,
+                                                                      },
+                                                                      readbackUsage,
+                                                                      createDepthOverlapWorld(
+                                                                        aperture,
+                                                                        {
+                                                                          width:
+                                                                            canvas.width,
+                                                                          height:
+                                                                            canvas.height,
+                                                                        },
+                                                                      ),
+                                                                    )
+                                                                  : await renderMultiEntityScene(
+                                                                      aperture,
+                                                                      initialized,
+                                                                      {
+                                                                        width:
+                                                                          canvas.width,
+                                                                        height:
+                                                                          canvas.height,
+                                                                      },
+                                                                      readbackUsage,
+                                                                      scenario ===
+                                                                        "textured-unlit"
+                                                                        ? createTexturedUnlitWorld(
+                                                                            aperture,
+                                                                            {
+                                                                              width:
+                                                                                canvas.width,
+                                                                              height:
+                                                                                canvas.height,
+                                                                            },
+                                                                          )
+                                                                        : scenario ===
+                                                                            "mixed-unlit-pipelines"
+                                                                          ? createMixedUnlitPipelineWorld(
+                                                                              aperture,
+                                                                              {
+                                                                                width:
+                                                                                  canvas.width,
+                                                                                height:
+                                                                                  canvas.height,
+                                                                              },
+                                                                            )
+                                                                          : scenario ===
+                                                                              "missing-texture-sampler-resources"
+                                                                            ? createMissingTextureSamplerResourceWorld(
+                                                                                aperture,
+                                                                                {
+                                                                                  width:
+                                                                                    canvas.width,
+                                                                                  height:
+                                                                                    canvas.height,
+                                                                                },
+                                                                              )
+                                                                            : undefined,
+                                                                    ),
       );
     }
   }
@@ -338,35 +567,78 @@ async function renderMultiEntityScene(
     };
   }
 
-  const pipelineResource = await aperture.createUnlitRenderPipelineResource({
-    device: initialized.device,
-    colorFormat: initialized.format,
-    ...(scene.depthFormat === undefined
-      ? {}
-      : { depthFormat: scene.depthFormat }),
-    batchKey: firstDraw.batchKey,
-  });
+  const pipelineResources = await createScenePipelineResources(
+    aperture,
+    initialized,
+    scene,
+    snapshot,
+  );
 
-  if (!pipelineResource.valid || pipelineResource.resource === null) {
+  if (!pipelineResources.valid || pipelineResources.resources.length === 0) {
     return {
       ...failure(
         "pipeline",
         "pipeline-unavailable",
         "The unlit render pipeline could not be created.",
       ),
-      diagnostics: pipelineResource.diagnostics,
+      diagnostics: pipelineResources.diagnostics,
       extraction: snapshotCounts(snapshot),
     };
   }
 
-  const pipeline = pipelineResource.resource.pipeline;
+  const pipelinesWithLayouts = pipelineResources.resources.map((resource) => ({
+    ...resource,
+    layouts: unlitPipelineLayouts(resource.pipeline),
+  }));
+  const pipelineLayoutUnavailable = pipelinesWithLayouts.some(
+    (resource) => resource.layouts === null,
+  );
 
-  if (typeof pipeline.getBindGroupLayout !== "function") {
+  if (pipelineLayoutUnavailable) {
     return failure(
       "pipeline-layouts",
       "pipeline-layouts-unavailable",
-      "The unlit pipeline does not expose bind group layouts.",
+      "An unlit pipeline does not expose bind group layouts.",
     );
+  }
+
+  const fallbackLayouts = pipelinesWithLayouts[0].layouts;
+  const pipelineLayoutsByKey = new Map(
+    pipelinesWithLayouts.map((resource) => [
+      resource.pipelineKey,
+      resource.layouts ?? [],
+    ]),
+  );
+  const materialPipelineKeys = new Map(
+    snapshot.meshDraws.map((draw) => [
+      aperture.assetHandleKey(draw.material),
+      draw.batchKey.pipelineKey,
+    ]),
+  );
+  const materialLayouts = scene.materials.map((entry) => {
+    const pipelineKey = materialPipelineKeys.get(
+      aperture.assetHandleKey(entry.handle),
+    );
+
+    return pipelineLayoutsByKey.get(pipelineKey) ?? fallbackLayouts ?? [];
+  });
+
+  const textureResources = createSceneTextureResources(
+    aperture,
+    initialized.device,
+    scene,
+  );
+
+  if (!textureResources.valid) {
+    return {
+      ...failure(
+        "resources",
+        "texture-resources-unavailable",
+        "The ECS multi-entity texture or sampler resources could not be uploaded.",
+      ),
+      diagnostics: textureResources.diagnostics,
+      extraction: snapshotCounts(snapshot),
+    };
   }
 
   const packedViews = aperture.packSnapshotViewUniforms(snapshot);
@@ -377,11 +649,10 @@ async function renderMultiEntityScene(
     viewUniforms: packedViews,
     worldTransforms: packedTransforms,
     materials: scene.materials.map((entry) => entry.asset),
-    layouts: [0, 1, 2].map((group) => ({
-      group,
-      layoutKey: `unlit/pipeline-layout-${group}`,
-      layout: pipeline.getBindGroupLayout(group),
-    })),
+    layouts: fallbackLayouts ?? [],
+    materialLayouts,
+    textures: textureResources.textures,
+    samplers: textureResources.samplers,
   });
 
   if (!frameResources.valid || frameResources.resources === null) {
@@ -391,10 +662,59 @@ async function renderMultiEntityScene(
         "frame-resources-unavailable",
         "The ECS multi-entity frame resources could not be uploaded.",
       ),
-      diagnostics: frameResources.diagnostics,
+      ...runtimeStatus(aperture, initialized),
+      clearColor,
+      diagnostics: [
+        ...textureResources.diagnostics,
+        ...frameResources.diagnostics,
+      ],
       extraction: snapshotCounts(snapshot),
+      resources: {
+        materials: 0,
+        textures: textureResources.textures.length,
+        samplers: textureResources.samplers.length,
+        bindGroups: 0,
+        missing: "texture/sampler",
+      },
+      ...(scene.texture === undefined ? {} : { texture: scene.texture }),
     };
   }
+
+  const sharedBindGroups = createPipelineScopedSharedBindGroups(
+    aperture,
+    initialized.device,
+    pipelinesWithLayouts,
+    frameResources.resources,
+  );
+
+  if (!sharedBindGroups.valid) {
+    return {
+      ...failure(
+        "resources",
+        "shared-bind-groups-unavailable",
+        "The ECS multi-entity shared bind groups could not be created for each pipeline layout.",
+      ),
+      ...runtimeStatus(aperture, initialized),
+      clearColor,
+      diagnostics: sharedBindGroups.diagnostics,
+      extraction: snapshotCounts(snapshot),
+      resources: {
+        materials: frameResources.resources.materials.length,
+        textures: textureResources.textures.length,
+        samplers: textureResources.samplers.length,
+        bindGroups: frameResources.resources.bindGroups.length,
+        missing: "bind-group",
+      },
+      ...(scene.texture === undefined ? {} : { texture: scene.texture }),
+    };
+  }
+
+  const bindGroups = [
+    ...sharedBindGroups.resources,
+    ...frameResources.resources.bindGroups.filter(
+      (bindGroup) => bindGroup.group === 2,
+    ),
+  ];
 
   const meshResourceKey = frameResources.resources.mesh.resourceKey;
   const materialResourceKeys = new Map(
@@ -403,13 +723,13 @@ async function renderMultiEntityScene(
       frameResources.resources.materials[index]?.resourceKey ?? null,
     ]),
   );
-  const pipelineResult = {
+  const pipelineResults = pipelineResources.resources.map((resource) => ({
     ok: true,
     status: "miss",
-    key: firstDraw.batchKey.pipelineKey,
-    pipeline,
+    key: resource.pipelineKey,
+    pipeline: resource.pipeline,
     diagnostics: [],
-  };
+  }));
   const renderWorld = new aperture.RenderWorld();
   const framePlan = aperture.planRenderFrameFromSnapshot({
     snapshot,
@@ -423,8 +743,8 @@ async function renderMultiEntityScene(
     resolveMaterialResourceKey: (draw) =>
       materialResourceKeys.get(aperture.assetHandleKey(draw.material)) ?? null,
     meshResources: [frameResources.resources.mesh],
-    pipelines: [pipelineResult],
-    bindGroups: frameResources.resources.bindGroups,
+    pipelines: pipelineResults,
+    bindGroups,
   });
   const {
     apply,
@@ -479,7 +799,9 @@ async function renderMultiEntityScene(
     extraction: snapshotCounts(snapshot),
     resources: {
       materials: frameResources.resources.materials.length,
-      bindGroups: frameResources.resources.bindGroups.length,
+      textures: textureResources.textures.length,
+      samplers: textureResources.samplers.length,
+      bindGroups: bindGroups.length,
     },
     binding: {
       planned: bindingPlan.bindings.length,
@@ -499,6 +821,10 @@ async function renderMultiEntityScene(
       resolved: resources.draws.length,
       renderIds: packages.packages.map((drawPackage) => drawPackage.renderId),
     },
+    pipelines: {
+      count: pipelineResults.length,
+      keys: pipelineResults.map((pipelineResult) => pipelineResult.key),
+    },
     geometry: primitiveMeshStatus(scene),
     ...(scene.camera === undefined ? {} : { camera: scene.camera }),
     ...(scene.renderOrder === undefined
@@ -507,6 +833,10 @@ async function renderMultiEntityScene(
     ...(scene.depthFormat === undefined
       ? {}
       : { depth: { format: scene.depthFormat } }),
+    ...(scene.texture === undefined ? {} : { texture: scene.texture }),
+    ...(scene.mixedPipelines === undefined
+      ? {}
+      : { mixedPipelines: scene.mixedPipelines }),
     ...(scene.layerFiltering === undefined
       ? {}
       : { layerFiltering: layerFilteringStatus(scene, snapshot) }),
@@ -530,7 +860,10 @@ async function renderMultiEntityScene(
     submission: submitted.summary,
     diagnosticCounts: {
       extraction: snapshot.diagnostics.length,
-      resources: frameResources.diagnostics.length,
+      resources:
+        textureResources.diagnostics.length +
+        frameResources.diagnostics.length +
+        sharedBindGroups.diagnostics.length,
       binding: bindingPlan.diagnostics.length,
       draw:
         packages.diagnostics.length +
@@ -595,6 +928,49 @@ function renderMaterialAssetStatusScene(
           scene.assets,
           scene.materialHandle,
         ),
+      },
+    },
+  });
+}
+
+function renderTextureDependencyAssetStatusScene(
+  aperture,
+  initialized,
+  canvasSize,
+  dependencyKind,
+  assetStatus,
+) {
+  const scene = createTextureDependencyAssetStatusWorld(
+    aperture,
+    canvasSize,
+    dependencyKind,
+    assetStatus,
+  );
+  const snapshot = aperture.extractRenderSnapshot(scene.world, scene.assets, {
+    frame: 1,
+  });
+
+  return extractionFailureStatus(aperture, initialized, {
+    snapshot,
+    reason: `${dependencyKind}-asset-${assetStatus}`,
+    message: `The ECS renderable intentionally references a ${assetStatus} ${dependencyKind} dependency; no draw submission was attempted.`,
+    missing: dependencyKind,
+    extra: {
+      assetStatus: {
+        [dependencyKind]: assetStatus,
+        diagnostics: diagnosticCodes(snapshot.diagnostics),
+        registryDiagnostics: assetRegistryDiagnostics(
+          scene.assets,
+          dependencyKind === "texture"
+            ? scene.textureHandle
+            : scene.samplerHandle,
+        ),
+      },
+      textureDependency: {
+        dependencyKind,
+        assetStatus,
+        textureKey: aperture.assetHandleKey(scene.textureHandle),
+        samplerKey: aperture.assetHandleKey(scene.samplerHandle),
       },
     },
   });
@@ -934,6 +1310,162 @@ function zeroSubmissionStatus() {
   };
 }
 
+async function createScenePipelineResources(
+  aperture,
+  initialized,
+  scene,
+  snapshot,
+) {
+  const batchKeysByPipelineKey = new Map(
+    snapshot.meshDraws.map((draw) => [
+      draw.batchKey.pipelineKey,
+      draw.batchKey,
+    ]),
+  );
+  const pipelineResults = await Promise.all(
+    [...batchKeysByPipelineKey.entries()].map(async ([pipelineKey, batchKey]) =>
+      aperture
+        .createUnlitRenderPipelineResource({
+          device: initialized.device,
+          colorFormat: initialized.format,
+          ...(scene.depthFormat === undefined
+            ? {}
+            : { depthFormat: scene.depthFormat }),
+          batchKey,
+        })
+        .then((result) => ({ pipelineKey, result })),
+    ),
+  );
+  const diagnostics = pipelineResults.flatMap(
+    (pipelineResult) => pipelineResult.result.diagnostics,
+  );
+  const resources = pipelineResults.flatMap((pipelineResult) =>
+    pipelineResult.result.resource === null
+      ? []
+      : [
+          {
+            pipelineKey: pipelineResult.pipelineKey,
+            pipeline: pipelineResult.result.resource.pipeline,
+          },
+        ],
+  );
+
+  return {
+    valid:
+      diagnostics.length === 0 && resources.length === pipelineResults.length,
+    resources,
+    diagnostics,
+  };
+}
+
+function unlitPipelineLayouts(pipeline) {
+  if (typeof pipeline.getBindGroupLayout !== "function") {
+    return null;
+  }
+
+  return [0, 1, 2].map((group) => ({
+    group,
+    layoutKey: `unlit/pipeline-layout-${group}`,
+    layout: pipeline.getBindGroupLayout(group),
+  }));
+}
+
+function createPipelineScopedSharedBindGroups(
+  aperture,
+  device,
+  pipelinesWithLayouts,
+  frameResources,
+) {
+  const results = pipelinesWithLayouts.map((pipelineResource) => {
+    const result = aperture.createUnlitBindGroupsFromGpuResources({
+      device,
+      plan: {
+        valid: true,
+        entries: [
+          {
+            group: 0,
+            binding: 0,
+            resourceKey: frameResources.viewUniform.resourceKey,
+            resourceKind: "buffer",
+          },
+          {
+            group: 1,
+            binding: 0,
+            resourceKey: frameResources.worldTransforms.resourceKey,
+            resourceKind: "buffer",
+          },
+        ],
+        diagnostics: [],
+      },
+      layouts: pipelineResource.layouts ?? [],
+      buffers: [
+        {
+          resourceKey: frameResources.viewUniform.resourceKey,
+          buffer: frameResources.viewUniform.buffer,
+        },
+        {
+          resourceKey: frameResources.worldTransforms.resourceKey,
+          buffer: frameResources.worldTransforms.buffer,
+        },
+      ],
+    });
+
+    return {
+      ...result,
+      resources: result.resources.map((resource) => ({
+        ...resource,
+        resourceKey: `${resource.resourceKey}/pipeline:${pipelineResource.pipelineKey}`,
+        entryResourceKeys: [
+          ...resource.entryResourceKeys,
+          pipelineResource.pipelineKey,
+        ],
+      })),
+    };
+  });
+  const diagnostics = results.flatMap((result) => result.diagnostics);
+
+  return {
+    valid: diagnostics.length === 0 && results.every((result) => result.valid),
+    resources: results.flatMap((result) => result.resources),
+    diagnostics,
+  };
+}
+
+function createSceneTextureResources(aperture, device, scene) {
+  const textureResults = (scene.textures ?? []).map((texture) =>
+    aperture.createTextureGpuResource({
+      device,
+      resourceKey: texture.resourceKey,
+      descriptor: texture.descriptor,
+      upload: texture.upload,
+    }),
+  );
+  const samplerResults = (scene.samplers ?? []).map((sampler) =>
+    aperture.createSamplerGpuResource({
+      device,
+      resourceKey: sampler.resourceKey,
+      sampler: sampler.asset,
+    }),
+  );
+  const textures = textureResults.flatMap((result) =>
+    result.resource === null ? [] : [result.resource],
+  );
+  const samplers = samplerResults.flatMap((result) =>
+    result.resource === null ? [] : [result.resource],
+  );
+  const diagnostics = [
+    ...textureResults.flatMap((result) => result.diagnostics),
+    ...samplerResults.flatMap((result) => result.diagnostics),
+  ];
+
+  return {
+    valid: diagnostics.length === 0,
+    textures,
+    samplers,
+    diagnostics,
+  };
+}
+
 async function submitMultiEntityFrame(
   aperture,
   initialized,
@@ -1256,6 +1788,120 @@ function createMaterialAssetStatusWorld(aperture, canvasSize, assetStatus) {
   addPrimitiveEntity(aperture, world, meshHandle, materialHandle, [0, 0, 0]);
 
   return { world, assets, materialHandle };
+}
+
+function createTextureDependencyAssetStatusWorld(
+  aperture,
+  canvasSize,
+  dependencyKind,
+  assetStatus,
+) {
+  const world = aperture.createWorld({ entityCapacity: 4 });
+  const assets = new aperture.AssetRegistry();
+  const meshHandle = aperture.createMeshHandle(
+    `${assetStatus}-${dependencyKind}-dependency-plane`,
+  );
+  const materialHandle = aperture.createMaterialHandle(
+    `${assetStatus}-${dependencyKind}-dependency-unlit`,
+  );
+  const textureHandle = aperture.createTextureHandle(
+    `${assetStatus}-dependency-albedo`,
+  );
+  const samplerHandle = aperture.createSamplerHandle(
+    `${assetStatus}-dependency-sampler`,
+  );
+  const mesh = aperture.createPlaneMeshAsset({
+    label: `${assetStatus}${dependencyKind}DependencyPlane`,
+    width: 0.85,
+    height: 0.85,
+  });
+  const material = aperture.createUnlitMaterialAsset({
+    label: `${assetStatus}${dependencyKind}DependencyMaterial`,
+    baseColorTexture: {
+      texture: textureHandle,
+      sampler: samplerHandle,
+    },
+  });
+
+  aperture.registerTransformComponents(world);
+  aperture.registerMetadataComponents(world);
+  aperture.registerRenderAuthoringComponents(world);
+  assets.register(meshHandle);
+  assets.register(materialHandle);
+  assets.markReady(meshHandle, mesh);
+  assets.markReady(materialHandle, material);
+
+  if (!(dependencyKind === "texture" && assetStatus === "missing")) {
+    assets.register(textureHandle);
+    if (dependencyKind === "texture" && assetStatus === "loading") {
+      assets.markLoading(textureHandle);
+    } else if (dependencyKind === "texture" && assetStatus === "failed") {
+      assets.markFailed(textureHandle, [
+        {
+          code: "browser.fixture.failedTexture",
+          message: "Intentional browser fixture failed texture asset.",
+          severity: "error",
+        },
+      ]);
+    } else {
+      assets.markReady(textureHandle, textureDependencyAsset(aperture));
+    }
+  }
+
+  if (!(dependencyKind === "sampler" && assetStatus === "missing")) {
+    assets.register(samplerHandle);
+    if (dependencyKind === "sampler" && assetStatus === "loading") {
+      assets.markLoading(samplerHandle);
+    } else if (dependencyKind === "sampler" && assetStatus === "failed") {
+      assets.markFailed(samplerHandle, [
+        {
+          code: "browser.fixture.failedSampler",
+          message: "Intentional browser fixture failed sampler asset.",
+          severity: "error",
+        },
+      ]);
+    } else {
+      assets.markReady(samplerHandle, aperture.createSamplerAsset());
+    }
+  }
+
+  const camera = world.createEntity();
+  const cameraTransform = aperture.createRootTransform({
+    translation: [0, 0, 2.5],
+  });
+
+  camera.addComponent(aperture.WorldTransform, cameraTransform.world);
+  camera.addComponent(
+    aperture.Camera,
+    aperture.createCamera({
+      aspect: canvasSize.width / canvasSize.height,
+      near: 0.1,
+      far: 100,
+      clearColor: [clearColor.r, clearColor.g, clearColor.b, clearColor.a],
+      layerMask: 1,
+    }),
+  );
+
+  addPrimitiveEntity(aperture, world, meshHandle, materialHandle, [0, 0, 0]);
+
+  return {
+    world,
+    assets,
+    textureHandle,
+    samplerHandle,
+  };
+}
+
+function textureDependencyAsset(aperture) {
+  return aperture.createTextureAsset({
+    label: "DependencyAlbedo",
+    dimension: "2d",
+    width: 2,
+    height: 2,
+    format: "rgba8unorm",
+    colorSpace: "srgb",
+    semantic: "base-color",
+  });
 }
 
 function createMeshAssetStatusWorld(aperture, canvasSize, assetStatus) {
@@ -1602,6 +2248,242 @@ function createSpherePrimitiveWorld(aperture, canvasSize) {
   };
 }
 
+function createCylinderPrimitiveWorld(aperture, canvasSize) {
+  const world = aperture.createWorld({ entityCapacity: 4 });
+  const assets = new aperture.AssetRegistry();
+  const meshHandle = aperture.createMeshHandle("cylinder-primitive");
+  const materialHandle = aperture.createMaterialHandle("cylinder-unlit");
+  const mesh = aperture.createCylinderMeshAsset({
+    label: "CylinderPrimitive",
+    radius: 0.72,
+    height: 1.25,
+    radialSegments: 8,
+    heightSegments: 2,
+  });
+  const material = aperture.createUnlitMaterialAsset({
+    label: "CylinderUnlitMaterial",
+    baseColorFactor: new Float32Array([0.12, 0.72, 0.9, 1]),
+  });
+
+  aperture.registerTransformComponents(world);
+  aperture.registerMetadataComponents(world);
+  aperture.registerRenderAuthoringComponents(world);
+  assets.register(meshHandle);
+  assets.register(materialHandle);
+  assets.markReady(meshHandle, mesh);
+  assets.markReady(materialHandle, material);
+
+  const camera = world.createEntity();
+  const cameraTransform = aperture.createRootTransform({
+    translation: [0, 0, 3],
+  });
+
+  camera.addComponent(aperture.WorldTransform, cameraTransform.world);
+  camera.addComponent(
+    aperture.Camera,
+    aperture.createCamera({
+      aspect: canvasSize.width / canvasSize.height,
+      near: 0.1,
+      far: 100,
+      clearColor: [clearColor.r, clearColor.g, clearColor.b, clearColor.a],
+      layerMask: 1,
+    }),
+  );
+
+  addPrimitiveEntity(aperture, world, meshHandle, materialHandle, [0, 0, 0]);
+
+  return {
+    world,
+    assets,
+    meshHandle,
+    mesh,
+    expectedDrawCount: 1,
+    readbackSamplePoints: boxReadbackSamplePoints,
+    geometry: {
+      primitive: "cylinder",
+      source: "aperture.createCylinderMeshAsset",
+    },
+    materials: [{ handle: materialHandle, asset: material }],
+  };
+}
+
+function createConePrimitiveWorld(aperture, canvasSize) {
+  const world = aperture.createWorld({ entityCapacity: 4 });
+  const assets = new aperture.AssetRegistry();
+  const meshHandle = aperture.createMeshHandle("cone-primitive");
+  const materialHandle = aperture.createMaterialHandle("cone-unlit");
+  const mesh = aperture.createConeMeshAsset({
+    label: "ConePrimitive",
+    radius: 0.82,
+    height: 1.35,
+    radialSegments: 8,
+    heightSegments: 2,
+  });
+  const material = aperture.createUnlitMaterialAsset({
+    label: "ConeUnlitMaterial",
+    baseColorFactor: new Float32Array([0.94, 0.42, 0.22, 1]),
+  });
+
+  aperture.registerTransformComponents(world);
+  aperture.registerMetadataComponents(world);
+  aperture.registerRenderAuthoringComponents(world);
+  assets.register(meshHandle);
+  assets.register(materialHandle);
+  assets.markReady(meshHandle, mesh);
+  assets.markReady(materialHandle, material);
+
+  const camera = world.createEntity();
+  const cameraTransform = aperture.createRootTransform({
+    translation: [0, 0, 3],
+  });
+
+  camera.addComponent(aperture.WorldTransform, cameraTransform.world);
+  camera.addComponent(
+    aperture.Camera,
+    aperture.createCamera({
+      aspect: canvasSize.width / canvasSize.height,
+      near: 0.1,
+      far: 100,
+      clearColor: [clearColor.r, clearColor.g, clearColor.b, clearColor.a],
+      layerMask: 1,
+    }),
+  );
+
+  addPrimitiveEntity(aperture, world, meshHandle, materialHandle, [0, 0, 0]);
+
+  return {
+    world,
+    assets,
+    meshHandle,
+    mesh,
+    expectedDrawCount: 1,
+    readbackSamplePoints: boxReadbackSamplePoints,
+    geometry: {
+      primitive: "cone",
+      source: "aperture.createConeMeshAsset",
+    },
+    materials: [{ handle: materialHandle, asset: material }],
+  };
+}
+
+function createCapsulePrimitiveWorld(aperture, canvasSize) {
+  const world = aperture.createWorld({ entityCapacity: 4 });
+  const assets = new aperture.AssetRegistry();
+  const meshHandle = aperture.createMeshHandle("capsule-primitive");
+  const materialHandle = aperture.createMaterialHandle("capsule-unlit");
+  const mesh = aperture.createCapsuleMeshAsset({
+    label: "CapsulePrimitive",
+    radius: 0.45,
+    height: 1.5,
+    radialSegments: 8,
+    capSegments: 4,
+  });
+  const material = aperture.createUnlitMaterialAsset({
+    label: "CapsuleUnlitMaterial",
+    baseColorFactor: new Float32Array([0.78, 0.86, 0.24, 1]),
+  });
+
+  aperture.registerTransformComponents(world);
+  aperture.registerMetadataComponents(world);
+  aperture.registerRenderAuthoringComponents(world);
+  assets.register(meshHandle);
+  assets.register(materialHandle);
+  assets.markReady(meshHandle, mesh);
+  assets.markReady(materialHandle, material);
+
+  const camera = world.createEntity();
+  const cameraTransform = aperture.createRootTransform({
+    translation: [0, 0, 3],
+  });
+
+  camera.addComponent(aperture.WorldTransform, cameraTransform.world);
+  camera.addComponent(
+    aperture.Camera,
+    aperture.createCamera({
+      aspect: canvasSize.width / canvasSize.height,
+      near: 0.1,
+      far: 100,
+      clearColor: [clearColor.r, clearColor.g, clearColor.b, clearColor.a],
+      layerMask: 1,
+    }),
+  );
+
+  addPrimitiveEntity(aperture, world, meshHandle, materialHandle, [0, 0, 0]);
+
+  return {
+    world,
+    assets,
+    meshHandle,
+    mesh,
+    expectedDrawCount: 1,
+    readbackSamplePoints: boxReadbackSamplePoints,
+    geometry: {
+      primitive: "capsule",
+      source: "aperture.createCapsuleMeshAsset",
+    },
+    materials: [{ handle: materialHandle, asset: material }],
+  };
+}
+
+function createTorusPrimitiveWorld(aperture, canvasSize) {
+  const world = aperture.createWorld({ entityCapacity: 4 });
+  const assets = new aperture.AssetRegistry();
+  const meshHandle = aperture.createMeshHandle("torus-primitive");
+  const materialHandle = aperture.createMaterialHandle("torus-unlit");
+  const mesh = aperture.createTorusMeshAsset({
+    label: "TorusPrimitive",
+    majorRadius: 0.55,
+    tubeRadius: 0.18,
+    radialSegments: 8,
+    tubeSegments: 4,
+  });
+  const material = aperture.createUnlitMaterialAsset({
+    label: "TorusUnlitMaterial",
+    baseColorFactor: new Float32Array([0.36, 0.52, 1, 1]),
+  });
+
+  aperture.registerTransformComponents(world);
+  aperture.registerMetadataComponents(world);
+  aperture.registerRenderAuthoringComponents(world);
+  assets.register(meshHandle);
+  assets.register(materialHandle);
+  assets.markReady(meshHandle, mesh);
+  assets.markReady(materialHandle, material);
+
+  const camera = world.createEntity();
+  const cameraTransform = aperture.createRootTransform({
+    translation: [0, 0, 3],
+  });
+
+  camera.addComponent(aperture.WorldTransform, cameraTransform.world);
+  camera.addComponent(
+    aperture.Camera,
+    aperture.createCamera({
+      aspect: canvasSize.width / canvasSize.height,
+      near: 0.1,
+      far: 100,
+      clearColor: [clearColor.r, clearColor.g, clearColor.b, clearColor.a],
+      layerMask: 1,
+    }),
+  );
+
+  addPrimitiveEntity(aperture, world, meshHandle, materialHandle, [0, 0, 0]);
+
+  return {
+    world,
+    assets,
+    meshHandle,
+    mesh,
+    expectedDrawCount: 1,
+    readbackSamplePoints: boxReadbackSamplePoints,
+    geometry: {
+      primitive: "torus",
+      source: "aperture.createTorusMeshAsset",
+    },
+    materials: [{ handle: materialHandle, asset: material }],
+  };
+}
+
 function createPerspectiveFovCameraWorld(aperture, canvasSize) {
   const world = aperture.createWorld({ entityCapacity: 4 });
   const assets = new aperture.AssetRegistry();
@@ -1727,6 +2609,277 @@ function createOrthographicCameraWorld(aperture, canvasSize) {
       orthographicHeight,
     },
     materials: [{ handle: materialHandle, asset: material }],
+  };
+}
+
+function createTexturedUnlitWorld(aperture, canvasSize) {
+  const world = aperture.createWorld({ entityCapacity: 4 });
+  const assets = new aperture.AssetRegistry();
+  const meshHandle = aperture.createMeshHandle("textured-unlit-plane");
+  const materialHandle = aperture.createMaterialHandle("textured-unlit");
+  const textureHandle = aperture.createTextureHandle("checker-albedo");
+  const samplerHandle = aperture.createSamplerHandle("nearest-clamp");
+  const textureKey = aperture.assetHandleKey(textureHandle);
+  const samplerKey = aperture.assetHandleKey(samplerHandle);
+  const mesh = aperture.createPlaneMeshAsset({
+    label: "TexturedUnlitPlane",
+    width: 1.75,
+    height: 1.05,
+  });
+  const material = aperture.createUnlitMaterialAsset({
+    label: "TexturedUnlitMaterial",
+    baseColorFactor: new Float32Array([1, 1, 1, 1]),
+    baseColorTexture: {
+      texture: textureHandle,
+      sampler: samplerHandle,
+    },
+  });
+  const textureAsset = aperture.createTextureAsset({
+    label: "CheckerAlbedo",
+    dimension: "2d",
+    width: 2,
+    height: 2,
+    format: "rgba8unorm",
+    colorSpace: "srgb",
+    semantic: "base-color",
+    usage: ["sampled", "copy-dst"],
+  });
+  const samplerAsset = aperture.createSamplerAsset({
+    label: "NearestClampSampler",
+    addressModeU: "clamp-to-edge",
+    addressModeV: "clamp-to-edge",
+    addressModeW: "clamp-to-edge",
+    magFilter: "nearest",
+    minFilter: "nearest",
+    mipmapFilter: "nearest",
+  });
+  const leftColor = [1, 0.125, 0.0625, 1];
+  const rightColor = [0.09375, 0.5, 1, 1];
+  const textureBytes = new Uint8Array([
+    255, 32, 16, 255, 24, 128, 255, 255, 255, 32, 16, 255, 24, 128, 255, 255,
+  ]);
+
+  aperture.registerTransformComponents(world);
+  aperture.registerMetadataComponents(world);
+  aperture.registerRenderAuthoringComponents(world);
+  assets.register(meshHandle);
+  assets.register(materialHandle);
+  assets.register(textureHandle);
+  assets.register(samplerHandle);
+  assets.markReady(meshHandle, mesh);
+  assets.markReady(materialHandle, material);
+  assets.markReady(textureHandle, textureAsset);
+  assets.markReady(samplerHandle, samplerAsset);
+
+  const camera = world.createEntity();
+  const cameraTransform = aperture.createRootTransform({
+    translation: [0, 0, 2.5],
+  });
+
+  camera.addComponent(aperture.WorldTransform, cameraTransform.world);
+  camera.addComponent(
+    aperture.Camera,
+    aperture.createCamera({
+      aspect: canvasSize.width / canvasSize.height,
+      near: 0.1,
+      far: 100,
+      clearColor: [clearColor.r, clearColor.g, clearColor.b, clearColor.a],
+      layerMask: 1,
+    }),
+  );
+
+  addPrimitiveEntity(aperture, world, meshHandle, materialHandle, [0, 0, 0]);
+
+  return {
+    world,
+    assets,
+    meshHandle,
+    mesh,
+    expectedDrawCount: 1,
+    readbackSamplePoints: [
+      { id: "left-red", x: 0.36, y: 0.5 },
+      { id: "right-blue", x: 0.64, y: 0.5 },
+    ],
+    geometry: {
+      primitive: "plane",
+      source: "aperture.createPlaneMeshAsset",
+    },
+    texture: {
+      materialKey: aperture.assetHandleKey(materialHandle),
+      textureKey,
+      samplerKey,
+      expectedLeftColor: leftColor,
+      expectedRightColor: rightColor,
+    },
+    textures: [
+      {
+        resourceKey: textureKey,
+        descriptor: {
+          label: "CheckerAlbedo",
+          size: [2, 2, 1],
+          format: "rgba8unorm",
+          usage:
+            (globalThis.GPUTextureUsage?.TEXTURE_BINDING ?? 0x04) |
+            (globalThis.GPUTextureUsage?.COPY_DST ?? 0x02),
+        },
+        upload: {
+          data: textureBytes,
+          bytesPerRow: 8,
+          rowsPerImage: 2,
+        },
+      },
+    ],
+    samplers: [{ resourceKey: samplerKey, asset: samplerAsset }],
+    materials: [{ handle: materialHandle, asset: material }],
+  };
+}
+
+function createMissingTextureSamplerResourceWorld(aperture, canvasSize) {
+  const scene = createTexturedUnlitWorld(aperture, canvasSize);
+
+  return {
+    ...scene,
+    textures: [],
+    samplers: [],
+  };
+}
+
+function createMixedUnlitPipelineWorld(aperture, canvasSize) {
+  const world = aperture.createWorld({ entityCapacity: 6 });
+  const assets = new aperture.AssetRegistry();
+  const meshHandle = aperture.createMeshHandle("mixed-unlit-plane");
+  const factorHandle = aperture.createMaterialHandle("mixed-factor-unlit");
+  const texturedHandle = aperture.createMaterialHandle("mixed-textured-unlit");
+  const textureHandle = aperture.createTextureHandle("mixed-checker-albedo");
+  const samplerHandle = aperture.createSamplerHandle("mixed-nearest-clamp");
+  const textureKey = aperture.assetHandleKey(textureHandle);
+  const samplerKey = aperture.assetHandleKey(samplerHandle);
+  const factorColor = [0.12, 0.88, 0.42, 1];
+  const texturedColor = [0.09375, 0.5, 1, 1];
+  const mesh = aperture.createPlaneMeshAsset({
+    label: "MixedUnlitPlane",
+    width: 0.78,
+    height: 0.9,
+  });
+  const factorMaterial = aperture.createUnlitMaterialAsset({
+    label: "MixedFactorUnlitMaterial",
+    baseColorFactor: new Float32Array(factorColor),
+  });
+  const texturedMaterial = aperture.createUnlitMaterialAsset({
+    label: "MixedTexturedUnlitMaterial",
+    baseColorFactor: new Float32Array([1, 1, 1, 1]),
+    baseColorTexture: {
+      texture: textureHandle,
+      sampler: samplerHandle,
+    },
+  });
+  const textureAsset = aperture.createTextureAsset({
+    label: "MixedCheckerAlbedo",
+    dimension: "2d",
+    width: 2,
+    height: 2,
+    format: "rgba8unorm",
+    colorSpace: "srgb",
+    semantic: "base-color",
+    usage: ["sampled", "copy-dst"],
+  });
+  const samplerAsset = aperture.createSamplerAsset({
+    label: "MixedNearestClampSampler",
+    addressModeU: "clamp-to-edge",
+    addressModeV: "clamp-to-edge",
+    addressModeW: "clamp-to-edge",
+    magFilter: "nearest",
+    minFilter: "nearest",
+    mipmapFilter: "nearest",
+  });
+  const textureBytes = new Uint8Array([
+    255, 32, 16, 255, 24, 128, 255, 255, 255, 32, 16, 255, 24, 128, 255, 255,
+  ]);
+
+  aperture.registerTransformComponents(world);
+  aperture.registerMetadataComponents(world);
+  aperture.registerRenderAuthoringComponents(world);
+  assets.register(meshHandle);
+  assets.register(factorHandle);
+  assets.register(texturedHandle);
+  assets.register(textureHandle);
+  assets.register(samplerHandle);
+  assets.markReady(meshHandle, mesh);
+  assets.markReady(factorHandle, factorMaterial);
+  assets.markReady(texturedHandle, texturedMaterial);
+  assets.markReady(textureHandle, textureAsset);
+  assets.markReady(samplerHandle, samplerAsset);
+
+  const camera = world.createEntity();
+  const cameraTransform = aperture.createRootTransform({
+    translation: [0, 0, 2.5],
+  });
+
+  camera.addComponent(aperture.WorldTransform, cameraTransform.world);
+  camera.addComponent(
+    aperture.Camera,
+    aperture.createCamera({
+      aspect: canvasSize.width / canvasSize.height,
+      near: 0.1,
+      far: 100,
+      clearColor: [clearColor.r, clearColor.g, clearColor.b, clearColor.a],
+      layerMask: 1,
+    }),
+  );
+
+  addPrimitiveEntity(aperture, world, meshHandle, factorHandle, [-0.52, 0, 0]);
+  addPrimitiveEntity(aperture, world, meshHandle, texturedHandle, [0.52, 0, 0]);
+
+  return {
+    world,
+    assets,
+    meshHandle,
+    mesh,
+    expectedDrawCount: 2,
+    readbackSamplePoints: [
+      { id: "factor-green", x: 0.34, y: 0.5 },
+      { id: "texture-blue", x: 0.62, y: 0.5 },
+    ],
+    geometry: {
+      primitive: "plane",
+      source: "aperture.createPlaneMeshAsset",
+    },
+    texture: {
+      materialKey: aperture.assetHandleKey(texturedHandle),
+      textureKey,
+      samplerKey,
+      expectedLeftColor: [1, 0.125, 0.0625, 1],
+      expectedRightColor: texturedColor,
+    },
+    mixedPipelines: {
+      factorMaterialKey: aperture.assetHandleKey(factorHandle),
+      texturedMaterialKey: aperture.assetHandleKey(texturedHandle),
+      expectedFactorColor: factorColor,
+      expectedTexturedColor: texturedColor,
+    },
+    textures: [
+      {
+        resourceKey: textureKey,
+        descriptor: {
+          label: "MixedCheckerAlbedo",
+          size: [2, 2, 1],
+          format: "rgba8unorm",
+          usage:
+            (globalThis.GPUTextureUsage?.TEXTURE_BINDING ?? 0x04) |
+            (globalThis.GPUTextureUsage?.COPY_DST ?? 0x02),
+        },
+        upload: {
+          data: textureBytes,
+          bytesPerRow: 8,
+          rowsPerImage: 2,
+        },
+      },
+    ],
+    samplers: [{ resourceKey: samplerKey, asset: samplerAsset }],
+    materials: [
+      { handle: factorHandle, asset: factorMaterial },
+      { handle: texturedHandle, asset: texturedMaterial },
+    ],
   };
 }
 

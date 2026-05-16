@@ -2631,3 +2631,125 @@ Summary:
 - Texture resources accept explicit descriptors plus optional byte uploads; sampler resources map `SamplerAsset` fields to WebGPU sampler descriptors.
 - Diagnostics stay JSON-safe and cover missing device support plus texture/sampler creation, upload, and view failures.
 - Validation run: targeted texture-resource Vitest coverage and `npm run check` pass.
+
+## task-0243 — Extend unlit bind group planning for base-color textures
+
+Completed: 2026-05-16
+
+Summary:
+
+- Extended unlit group-2 bind group planning so factor-only materials keep the material-buffer path while textured materials include material uniform, texture view, and sampler entries.
+- Added resource resolution diagnostics for missing texture and sampler GPU resources.
+- Threaded optional texture/sampler resources through unlit frame resource creation.
+- Validation run: focused bind-group/frame-resource tests and `npm run check` pass.
+
+## task-0244 — Add unlit texture shader feature and pipeline key
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added a textured unlit WGSL shader variant that samples `baseColorTexture` and multiplies by `baseColorFactor`.
+- Pipeline descriptor/resource creation now selects the textured shader when the batch pipeline key contains `baseColorTexture`.
+- Added tests for unlit material feature flags, shader metadata, pipeline descriptor/cache separation, and render pipeline resource creation.
+- Validation run: focused material/shader/pipeline tests and `npm run check` pass.
+
+## task-0245 — Add extraction diagnostics for unlit texture asset states
+
+Completed: 2026-05-16
+
+Summary:
+
+- Render extraction now validates ready unlit material texture and sampler dependencies before emitting draw packets.
+- Diagnostics cover missing handles, unregistered assets, loading assets, and failed assets with stable asset keys.
+- Ready texture/sampler dependencies extract textured draw packets with the expected batch feature key.
+- Validation run: focused extraction tests and `npm run check` pass.
+
+## task-0246 — Add texture-backed unlit browser readback coverage
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added `?scenario=textured-unlit` to the multi-entity browser example with a 2x2 uploaded texture and nearest sampler.
+- Browser status reports texture/sampler resource counts and JSON-safe texture metadata.
+- Added Playwright coverage that verifies two UV-separated readback samples, proving real texture sampling.
+- Validation run: targeted Playwright spec and `npm run check` pass.
+
+## task-0247 — Add texture and sampler resource summary counts
+
+Completed: 2026-05-16
+
+Summary:
+
+- Render resource summaries now optionally include texture and sampler resource creation results.
+- Summary counts report textures and samplers separately, and diagnostics stay JSON-safe.
+- Merge/report tests cover valid resources, failed resources, and backward-compatible callers that omit texture resources.
+- Validation run: focused resource summary tests and `npm run check` pass.
+
+## task-0248 — Add browser texture dependency asset-status scenarios
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added browser scenarios for missing, loading, and failed texture/sampler dependencies referenced by texture-backed unlit materials.
+- Status payloads include stable texture/sampler keys, dependency status, and JSON-safe extraction diagnostics.
+- Added Playwright status coverage for six no-submission scenarios.
+- Validation run: targeted Playwright spec passes.
+
+## task-0249 — Add browser missing texture resource-binding diagnostics
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added `?scenario=missing-texture-sampler-resources`, which extracts a valid textured draw and then withholds renderer-owned texture/sampler GPU resources.
+- The browser status reports texture/sampler resource counts, stable texture metadata, and JSON-safe missing resource diagnostics.
+- Added Playwright coverage that verifies no draw submission happens when texture/sampler GPU resources are missing.
+- Validation run: targeted Playwright spec passes.
+
+## task-0250 — Add cylinder and cone browser primitive readback coverage
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added `?scenario=cylinder-primitive` and `?scenario=cone-primitive` to the multi-entity browser example.
+- Browser status reports primitive source, mesh label, vertex/index counts, extraction counts, and draw/submission counts for both primitives.
+- Added Playwright coverage that verifies non-clear center pixels for cylinder and cone, and reran the existing box/sphere primitive browser specs.
+- Validation run: targeted Playwright specs pass.
+
+## task-0251 — Add capsule and torus browser primitive readback coverage
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added `?scenario=capsule-primitive` and `?scenario=torus-primitive` to the multi-entity browser example.
+- Browser status reports primitive source, mesh label, vertex/index counts, extraction counts, and draw/submission counts for both primitives.
+- Added Playwright coverage that verifies non-clear center pixels for capsule and torus, then reran all primitive browser specs together.
+- Validation run: targeted Playwright specs pass.
+
+## task-0252 — Add render-frame textured draw planning unit coverage
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added unit coverage proving `planRenderFrameFromSnapshot` accepts a textured unlit group-2 bind group whose entries include material, texture, and sampler resource keys.
+- Verified draw-list/resource resolution keeps the textured material bind group associated with the draw and command plan.
+- Added missing textured group-2 coverage for the existing JSON-safe `renderPassDrawList.missingBindGroupResource` diagnostic path.
+- Validation run: targeted Vitest coverage passes.
+
+## task-0253 — Add mixed unlit pipeline browser planning
+
+Completed: 2026-05-16
+
+Summary:
+
+- The multi-entity browser path now creates one unlit pipeline resource per distinct snapshot batch pipeline key.
+- Multi-material unlit frame resource creation can use per-material bind group layouts, allowing factor-only and texture-backed group-2 layouts in one frame.
+- Shared group 0/1 bind groups are created per pipeline layout with pipeline-scoped resource keys so auto-layout bind groups resolve to the matching pipeline.
+- Added `?scenario=mixed-unlit-pipelines` and Playwright coverage for factor-only plus texture-backed pixels in one frame.
+- Validation run: targeted render-pass draw-list/unit coverage and mixed-pipeline Playwright spec pass.

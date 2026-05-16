@@ -94,6 +94,33 @@ describe("render pass draw list planning", () => {
 
     expect(plan.draws.map((draw) => draw.renderId)).toEqual([3, 1, 2]);
   });
+
+  it("prefers pipeline-specific shared bind groups when present", () => {
+    const plan = planRenderPassDrawList({
+      drawCommands: [
+        drawCommand(1, { pipelineKey: "pipeline:factor" }),
+        drawCommand(2, { pipelineKey: "pipeline:textured" }),
+      ],
+      pipelines: [pipeline("pipeline:factor"), pipeline("pipeline:textured")],
+      bindGroups: [
+        ...pipelineScopedSharedBindGroups("pipeline:factor"),
+        ...pipelineScopedSharedBindGroups("pipeline:textured"),
+        bindGroups("material:white")[2] as UnlitBindGroupResource,
+      ],
+    });
+
+    expect(plan.valid).toBe(true);
+    expect(plan.draws.map((draw) => draw.bindGroupKeys.slice(0, 2))).toEqual([
+      [
+        "bind-group:view:pipeline:factor",
+        "bind-group:transforms:pipeline:factor",
+      ],
+      [
+        "bind-group:view:pipeline:textured",
+        "bind-group:transforms:pipeline:textured",
+      ],
+    ]);
+  });
 });
 
 function drawCommand(
@@ -146,6 +173,27 @@ function bindGroups(materialResourceKey: string): UnlitBindGroupResource[] {
       layoutKey: "layout:material",
       bindGroup: {},
       entryResourceKeys: [materialResourceKey],
+    },
+  ];
+}
+
+function pipelineScopedSharedBindGroups(
+  pipelineKey: string,
+): UnlitBindGroupResource[] {
+  return [
+    {
+      group: 0,
+      resourceKey: `bind-group:view:${pipelineKey}`,
+      layoutKey: `layout:view:${pipelineKey}`,
+      bindGroup: {},
+      entryResourceKeys: ["view-uniform-buffer:main", pipelineKey],
+    },
+    {
+      group: 1,
+      resourceKey: `bind-group:transforms:${pipelineKey}`,
+      layoutKey: `layout:transforms:${pipelineKey}`,
+      bindGroup: {},
+      entryResourceKeys: ["buffer:transforms", pipelineKey],
     },
   ];
 }

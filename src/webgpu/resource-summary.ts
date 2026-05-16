@@ -1,6 +1,10 @@
 import type { CreateMeshGpuBuffersResult } from "./mesh-buffer-resources.js";
 import type { GetOrCreateRenderPipelineResult } from "./pipeline-cache-integration.js";
 import type { CreateShaderModuleResourceResult } from "./shader-resource.js";
+import type {
+  CreateSamplerGpuResourceResult,
+  CreateTextureGpuResourceResult,
+} from "./texture-resources.js";
 import type { CreateUnlitMaterialGpuBufferResult } from "./unlit-material-buffer-resource.js";
 import type { CreateViewUniformGpuBufferResult } from "./view-uniform-buffer-resource.js";
 
@@ -17,6 +21,8 @@ export interface RenderResourceSummaryCounts {
   readonly meshVertexBuffers: number;
   readonly meshIndexBuffers: number;
   readonly materialBuffers: number;
+  readonly textures: number;
+  readonly samplers: number;
   readonly viewUniformBuffers: number;
   readonly shaderModules: number;
   readonly pipelineHits: number;
@@ -28,6 +34,8 @@ export interface RenderResourceSummaryCounts {
 export interface RenderResourceSummaryInput {
   readonly meshResources: readonly CreateMeshGpuBuffersResult[];
   readonly materialResources: readonly CreateUnlitMaterialGpuBufferResult[];
+  readonly textureResources?: readonly CreateTextureGpuResourceResult[];
+  readonly samplerResources?: readonly CreateSamplerGpuResourceResult[];
   readonly viewUniformResources: readonly CreateViewUniformGpuBufferResult[];
   readonly shaderResources: readonly CreateShaderModuleResourceResult[];
   readonly pipelines: readonly GetOrCreateRenderPipelineResult[];
@@ -54,6 +62,26 @@ export function createRenderResourceSummaryReport(
   }
 
   for (const result of input.materialResources) {
+    diagnostics.push(
+      ...result.diagnostics.map((diagnostic) => ({
+        code: diagnostic.code,
+        message: diagnostic.message,
+        severity: "warning" as const,
+      })),
+    );
+  }
+
+  for (const result of input.textureResources ?? []) {
+    diagnostics.push(
+      ...result.diagnostics.map((diagnostic) => ({
+        code: diagnostic.code,
+        message: diagnostic.message,
+        severity: "warning" as const,
+      })),
+    );
+  }
+
+  for (const result of input.samplerResources ?? []) {
     diagnostics.push(
       ...result.diagnostics.map((diagnostic) => ({
         code: diagnostic.code,
@@ -109,6 +137,10 @@ export function createRenderResourceSummaryReport(
       ).length,
       materialBuffers: input.materialResources.filter((result) => result.valid)
         .length,
+      textures: (input.textureResources ?? []).filter((result) => result.valid)
+        .length,
+      samplers: (input.samplerResources ?? []).filter((result) => result.valid)
+        .length,
       viewUniformBuffers: input.viewUniformResources.filter(
         (result) => result.valid,
       ).length,
@@ -148,6 +180,8 @@ export function mergeRenderResourceSummaryReports(
         (report) => report.counts.meshIndexBuffers,
       ),
       materialBuffers: sum(reports, (report) => report.counts.materialBuffers),
+      textures: sum(reports, (report) => report.counts.textures),
+      samplers: sum(reports, (report) => report.counts.samplers),
       viewUniformBuffers: sum(
         reports,
         (report) => report.counts.viewUniformBuffers,

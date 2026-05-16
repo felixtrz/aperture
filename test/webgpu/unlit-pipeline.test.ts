@@ -4,6 +4,7 @@ import {
   createBrowserUnlitRenderPipelineDescriptor,
   createUnlitRenderPipelineResource,
   UNLIT_MESH_WGSL,
+  UNLIT_TEXTURED_MESH_WGSL,
   UNLIT_PRIMITIVE_VERTEX_BUFFER_LAYOUT,
   type BatchCompatibilityKey,
   type WebGpuRenderPipelineCreateDescriptor,
@@ -18,6 +19,12 @@ const BATCH_KEY: BatchCompatibilityKey = {
   instanced: false,
   skinned: false,
   morphed: false,
+};
+
+const TEXTURED_BATCH_KEY: BatchCompatibilityKey = {
+  ...BATCH_KEY,
+  pipelineKey: "unlit|baseColorTexture|opaque|back|less|none",
+  materialKey: "material:textured",
 };
 
 describe("browser unlit pipeline bridge", () => {
@@ -105,6 +112,45 @@ describe("browser unlit pipeline bridge", () => {
         buffers: [UNLIT_PRIMITIVE_VERTEX_BUFFER_LAYOUT],
       },
       primitive: { topology: "triangle-list" },
+    });
+  });
+
+  it("creates the textured WGSL shader module when the batch key requires it", async () => {
+    const shaderDescriptors: WebGpuShaderCreateDescriptor[] = [];
+    const pipelineDescriptors: WebGpuRenderPipelineCreateDescriptor[] = [];
+    const device = {
+      createShaderModule(descriptor: WebGpuShaderCreateDescriptor) {
+        shaderDescriptors.push(descriptor);
+        return { compilationInfo: async () => ({ messages: [] }) };
+      },
+      createRenderPipeline(descriptor: WebGpuRenderPipelineCreateDescriptor) {
+        pipelineDescriptors.push(descriptor);
+        return { kind: "render-pipeline" };
+      },
+    };
+
+    const result = await createUnlitRenderPipelineResource({
+      device,
+      colorFormat: "bgra8unorm",
+      batchKey: TEXTURED_BATCH_KEY,
+    });
+
+    expect(result.diagnostics).toEqual([]);
+    expect(result.resource).toMatchObject({
+      cacheKey: expect.stringContaining("aperture/unlit-mesh-textured"),
+      descriptor: {
+        label: "aperture/unlit-mesh-textured:bgra8unorm:triangle-list",
+      },
+    });
+    expect(shaderDescriptors).toEqual([
+      {
+        label: "aperture/unlit-mesh-textured",
+        code: UNLIT_TEXTURED_MESH_WGSL,
+      },
+    ]);
+    expect(pipelineDescriptors[0]).toMatchObject({
+      vertex: { entryPoint: "vs_main" },
+      fragment: { entryPoint: "fs_main" },
     });
   });
 

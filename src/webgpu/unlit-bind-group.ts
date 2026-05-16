@@ -3,7 +3,9 @@ import { bindGroupResourceKey } from "./resource-keys.js";
 export type UnlitBindGroupDescriptorDiagnosticCode =
   | "unlitBindGroup.missingViewResource"
   | "unlitBindGroup.missingTransformResource"
-  | "unlitBindGroup.missingMaterialResource";
+  | "unlitBindGroup.missingMaterialResource"
+  | "unlitBindGroup.missingBaseColorTextureResource"
+  | "unlitBindGroup.missingBaseColorSamplerResource";
 
 export interface UnlitBindGroupDescriptorDiagnostic {
   readonly code: UnlitBindGroupDescriptorDiagnosticCode;
@@ -14,12 +16,17 @@ export interface UnlitBindGroupResourceInput {
   readonly viewUniformResourceKey: string | null;
   readonly worldTransformResourceKey: string | null;
   readonly materialResourceKey: string | null;
+  readonly baseColorTextureResourceKey?: string | null;
+  readonly baseColorSamplerResourceKey?: string | null;
 }
+
+export type UnlitBindGroupResourceKind = "buffer" | "texture-view" | "sampler";
 
 export interface UnlitBindGroupDescriptorEntry {
   readonly group: number;
   readonly binding: number;
   readonly resourceKey: string;
+  readonly resourceKind: UnlitBindGroupResourceKind;
 }
 
 export interface UnlitBindGroupDescriptorPlan {
@@ -33,7 +40,9 @@ export type UnlitBindGroupResourceDiagnosticCode =
   | "unlitBindGroupResource.invalidDescriptorPlan"
   | "unlitBindGroupResource.missingLayout"
   | "unlitBindGroupResource.missingDeviceSupport"
-  | "unlitBindGroupResource.missingBufferResource";
+  | "unlitBindGroupResource.missingBufferResource"
+  | "unlitBindGroupResource.missingTextureResource"
+  | "unlitBindGroupResource.missingSamplerResource";
 
 export interface UnlitBindGroupResourceDiagnostic {
   readonly code: UnlitBindGroupResourceDiagnosticCode;
@@ -49,13 +58,7 @@ export interface UnlitBindGroupLayoutResource {
 
 export interface UnlitBindGroupCreationEntry {
   readonly binding: number;
-  readonly resource:
-    | {
-        readonly resourceKey: string;
-      }
-    | {
-        readonly buffer: unknown;
-      };
+  readonly resource: unknown;
 }
 
 export interface UnlitBindGroupCreationDescriptor {
@@ -87,11 +90,26 @@ export interface UnlitBindGroupBufferResource {
   readonly buffer: unknown;
 }
 
+export interface UnlitBindGroupTextureResource {
+  readonly resourceKey: string;
+  readonly view: unknown;
+}
+
+export interface UnlitBindGroupSamplerResource {
+  readonly resourceKey: string;
+  readonly sampler: unknown;
+}
+
 export interface CreateUnlitBindGroupsFromBuffersOptions {
   readonly device: UnlitBindGroupDeviceLike;
   readonly plan: UnlitBindGroupDescriptorPlan | null;
   readonly layouts: readonly UnlitBindGroupLayoutResource[];
   readonly buffers: readonly UnlitBindGroupBufferResource[];
+}
+
+export interface CreateUnlitBindGroupsFromGpuResourcesOptions extends CreateUnlitBindGroupsFromBuffersOptions {
+  readonly textures?: readonly UnlitBindGroupTextureResource[] | undefined;
+  readonly samplers?: readonly UnlitBindGroupSamplerResource[] | undefined;
 }
 
 export interface CreateUnlitBindGroupsResult {
@@ -116,6 +134,7 @@ export function createUnlitBindGroupDescriptorPlan(
       group: 0,
       binding: 0,
       resourceKey: input.viewUniformResourceKey,
+      resourceKind: "buffer",
     });
   }
 
@@ -130,6 +149,7 @@ export function createUnlitBindGroupDescriptorPlan(
       group: 1,
       binding: 0,
       resourceKey: input.worldTransformResourceKey,
+      resourceKind: "buffer",
     });
   }
 
@@ -144,6 +164,41 @@ export function createUnlitBindGroupDescriptorPlan(
       group: 2,
       binding: 0,
       resourceKey: input.materialResourceKey,
+      resourceKind: "buffer",
+    });
+  }
+
+  const textured =
+    input.baseColorTextureResourceKey != null ||
+    input.baseColorSamplerResourceKey != null;
+
+  if (textured && input.baseColorTextureResourceKey == null) {
+    diagnostics.push({
+      code: "unlitBindGroup.missingBaseColorTextureResource",
+      message:
+        "Textured unlit bind group planning requires a base-color texture resource.",
+    });
+  } else if (input.baseColorTextureResourceKey != null) {
+    entries.push({
+      group: 2,
+      binding: 1,
+      resourceKey: input.baseColorTextureResourceKey,
+      resourceKind: "texture-view",
+    });
+  }
+
+  if (textured && input.baseColorSamplerResourceKey == null) {
+    diagnostics.push({
+      code: "unlitBindGroup.missingBaseColorSamplerResource",
+      message:
+        "Textured unlit bind group planning requires a base-color sampler resource.",
+    });
+  } else if (input.baseColorSamplerResourceKey != null) {
+    entries.push({
+      group: 2,
+      binding: 2,
+      resourceKey: input.baseColorSamplerResourceKey,
+      resourceKind: "sampler",
     });
   }
 
@@ -168,8 +223,26 @@ export function createUnlitBindGroups(
 export function createUnlitBindGroupsFromBuffers(
   options: CreateUnlitBindGroupsFromBuffersOptions,
 ): CreateUnlitBindGroupsResult {
+  return createUnlitBindGroupsFromGpuResources(options);
+}
+
+export function createUnlitBindGroupsFromGpuResources(
+  options: CreateUnlitBindGroupsFromGpuResourcesOptions,
+): CreateUnlitBindGroupsResult {
   const buffers = new Map(
     options.buffers.map((buffer) => [buffer.resourceKey, buffer.buffer]),
+  );
+  const textures = new Map(
+    (options.textures ?? []).map((texture) => [
+      texture.resourceKey,
+      texture.view,
+    ]),
+  );
+  const samplers = new Map(
+    (options.samplers ?? []).map((sampler) => [
+      sampler.resourceKey,
+      sampler.sampler,
+    ]),
   );
 
   return createUnlitBindGroupResources({
@@ -177,18 +250,50 @@ export function createUnlitBindGroupsFromBuffers(
     plan: options.plan,
     layouts: options.layouts,
     resolveResource: (entry, diagnostics) => {
-      const buffer = buffers.get(entry.resourceKey);
+      switch (entry.resourceKind) {
+        case "buffer": {
+          const buffer = buffers.get(entry.resourceKey);
 
-      if (buffer === undefined) {
-        diagnostics.push({
-          code: "unlitBindGroupResource.missingBufferResource",
-          group: entry.group,
-          message: `Missing GPU buffer resource '${entry.resourceKey}' for unlit group ${entry.group}.`,
-        });
-        return null;
+          if (buffer === undefined) {
+            diagnostics.push({
+              code: "unlitBindGroupResource.missingBufferResource",
+              group: entry.group,
+              message: `Missing GPU buffer resource '${entry.resourceKey}' for unlit group ${entry.group}.`,
+            });
+            return null;
+          }
+
+          return { buffer };
+        }
+        case "texture-view": {
+          const texture = textures.get(entry.resourceKey);
+
+          if (texture === undefined) {
+            diagnostics.push({
+              code: "unlitBindGroupResource.missingTextureResource",
+              group: entry.group,
+              message: `Missing GPU texture view resource '${entry.resourceKey}' for unlit group ${entry.group}.`,
+            });
+            return null;
+          }
+
+          return texture;
+        }
+        case "sampler": {
+          const sampler = samplers.get(entry.resourceKey);
+
+          if (sampler === undefined) {
+            diagnostics.push({
+              code: "unlitBindGroupResource.missingSamplerResource",
+              group: entry.group,
+              message: `Missing GPU sampler resource '${entry.resourceKey}' for unlit group ${entry.group}.`,
+            });
+            return null;
+          }
+
+          return sampler;
+        }
       }
-
-      return { buffer };
     },
   });
 }
