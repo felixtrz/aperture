@@ -8,6 +8,8 @@ import {
   resolveWorldTransforms,
   type EcsWorld,
   type Entity,
+  type SamplerHandle,
+  type TextureHandle,
   type TransformResolutionReport,
   type WorldOptions,
 } from "@aperture-engine/simulation";
@@ -30,7 +32,11 @@ import {
   type PackedSnapshotViewUniforms,
   type PackedSnapshotViewUniformsScratch,
   type RenderSnapshot,
+  type SamplerAsset,
   type StandardMaterialAsset,
+  type TextureAsset,
+  type TextureUsage,
+  type UnlitMaterialAsset,
 } from "@aperture-engine/render";
 import {
   assembleFrameBoundary,
@@ -64,6 +70,15 @@ import {
   createUnlitRenderPipelineResource,
   type CreateUnlitRenderPipelineResourceResult,
 } from "./unlit-pipeline.js";
+import {
+  WEBGPU_TEXTURE_USAGE_FLAGS,
+  createSamplerGpuResource,
+  createTextureGpuResource,
+  type SamplerGpuResource,
+  type TextureDescriptorInput,
+  type TextureGpuResource,
+  type TextureGpuResourceDiagnostic,
+} from "./texture-resources.js";
 import { createViewUniformBufferDescriptor } from "./view-uniform-buffer.js";
 import { createWorldTransformBufferDescriptor } from "./world-transform-buffer.js";
 import {
@@ -117,6 +132,10 @@ export interface WebGpuAppResourceReuseReport {
   meshBuffersReused: number;
   materialBuffersCreated: number;
   materialBuffersReused: number;
+  textureResourcesCreated: number;
+  textureResourcesReused: number;
+  samplerResourcesCreated: number;
+  samplerResourcesReused: number;
   bindGroupsCreated: number;
   bindGroupsReused: number;
   lightBuffersCreated: number;
@@ -153,6 +172,23 @@ export interface WebGpuAppRenderReport {
   readonly boundary: FrameBoundaryAssemblyReport | null;
 }
 
+export type WebGpuAppJsonValue =
+  | null
+  | boolean
+  | number
+  | string
+  | readonly WebGpuAppJsonValue[]
+  | { readonly [key: string]: WebGpuAppJsonValue };
+
+export interface WebGpuAppRenderReportJsonValue {
+  readonly ok: boolean;
+  readonly frame: number;
+  readonly counts: WebGpuAppRenderCounts;
+  readonly diagnostics: readonly WebGpuAppJsonValue[];
+  readonly resourceReuse: WebGpuAppResourceReuseReport;
+  readonly materialDependencyReadiness?: readonly MaterialAssetDependencyReadinessReportJsonValue[];
+}
+
 export type WebGpuAppPipelineResourceResult =
   | CreateUnlitRenderPipelineResourceResult
   | CreateStandardRenderPipelineResourceResult;
@@ -166,6 +202,8 @@ type WebGpuAppMaterialKind = "unlit" | "standard";
 interface WebGpuAppResourceCache {
   readonly pipelines: Map<string, WebGpuAppPipelineResourceResult>;
   readonly layouts: Map<string, WebGpuAppPipelineLayouts>;
+  readonly textures: Map<string, TextureGpuResource>;
+  readonly samplers: Map<string, SamplerGpuResource>;
   readonly frameScratch: WebGpuAppFrameScratch;
   unlitFrame: CachedUnlitFrameResources | null;
   standardFrame: CachedStandardFrameResources | null;
@@ -188,6 +226,8 @@ interface WebGpuAppPipelineLayouts {
 interface CachedUnlitFrameResources {
   readonly meshKey: string;
   readonly materialKey: string;
+  readonly textureKeys: readonly string[];
+  readonly samplerKeys: readonly string[];
   readonly viewByteLength: number;
   readonly worldTransformByteLength: number;
   result: CreateUnlitFrameGpuResourcesResult;
@@ -213,6 +253,28 @@ interface QueueWriteBufferDeviceLike {
       size?: number,
     ) => void;
   };
+}
+
+export interface WebGpuAppPreparedTextureSamplerDiagnostic {
+  readonly code:
+    | "webGpuApp.textureSourceNotReady"
+    | "webGpuApp.samplerSourceNotReady";
+  readonly message: string;
+  readonly resourceKey: string;
+  readonly status: string;
+}
+
+type WebGpuAppTextureSamplerPreparationDiagnostic =
+  | WebGpuAppPreparedTextureSamplerDiagnostic
+  | TextureGpuResourceDiagnostic;
+
+interface PreparedAppTextureSamplerResources {
+  readonly valid: boolean;
+  readonly textures: readonly TextureGpuResource[];
+  readonly samplers: readonly SamplerGpuResource[];
+  readonly textureKeys: readonly string[];
+  readonly samplerKeys: readonly string[];
+  readonly diagnostics: readonly WebGpuAppTextureSamplerPreparationDiagnostic[];
 }
 
 export interface WebGpuApp {
@@ -310,6 +372,8 @@ function createWebGpuAppResourceCache(): WebGpuAppResourceCache {
   return {
     pipelines: new Map(),
     layouts: new Map(),
+    textures: new Map(),
+    samplers: new Map(),
     frameScratch: createWebGpuAppFrameScratch(),
     unlitFrame: null,
     standardFrame: null,
@@ -459,6 +523,7 @@ function createOrReuseUnlitAppFrameResources(options: {
   readonly meshKey: string;
   readonly material: MaterialAsset | null;
   readonly materialKey: string;
+  readonly textures: PreparedAppTextureSamplerResources;
   readonly viewUniforms: PackedSnapshotViewUniforms;
   readonly worldTransforms: PackedSnapshotTransforms;
   readonly layouts: WebGpuAppPipelineLayouts;
@@ -476,6 +541,8 @@ function createOrReuseUnlitAppFrameResources(options: {
     cached !== null &&
     cached.meshKey === options.meshKey &&
     cached.materialKey === options.materialKey &&
+    sameStringList(cached.textureKeys, options.textures.textureKeys) &&
+    sameStringList(cached.samplerKeys, options.textures.samplerKeys) &&
     cached.result.resources !== null &&
     viewDescriptor.plan !== null &&
     transformDescriptor.plan !== null &&
@@ -528,6 +595,8 @@ function createOrReuseUnlitAppFrameResources(options: {
     viewUniforms: options.viewUniforms,
     worldTransforms: options.worldTransforms,
     layouts: options.layouts.sharedLayouts,
+    textures: options.textures.textures,
+    samplers: options.textures.samplers,
   });
 
   if (result.valid && result.resources !== null) {
@@ -537,6 +606,8 @@ function createOrReuseUnlitAppFrameResources(options: {
     options.cache.unlitFrame = {
       meshKey: options.meshKey,
       materialKey: options.materialKey,
+      textureKeys: [...options.textures.textureKeys],
+      samplerKeys: [...options.textures.samplerKeys],
       viewByteLength:
         viewDescriptor.plan?.source.byteLength ??
         options.viewUniforms.data.byteLength,
@@ -687,6 +758,229 @@ function createOrReuseStandardAppFrameResources(options: {
   }
 
   return result;
+}
+
+function prepareUnlitAppTextureSamplerResources(options: {
+  readonly app: WebGpuApp;
+  readonly cache: WebGpuAppResourceCache;
+  readonly material: UnlitMaterialAsset;
+  readonly reuse: WebGpuAppResourceReuseReport;
+}): PreparedAppTextureSamplerResources {
+  const binding = options.material.baseColorTexture;
+
+  if (binding === null) {
+    return emptyPreparedAppTextureSamplerResources();
+  }
+
+  const diagnostics: WebGpuAppTextureSamplerPreparationDiagnostic[] = [];
+  const textures: TextureGpuResource[] = [];
+  const samplers: SamplerGpuResource[] = [];
+  const textureKeys: string[] = [];
+  const samplerKeys: string[] = [];
+
+  if (binding.texture !== null) {
+    const texture = prepareAppTextureResource({
+      app: options.app,
+      cache: options.cache,
+      handle: binding.texture,
+      reuse: options.reuse,
+      diagnostics,
+    });
+
+    if (texture !== null) {
+      textures.push(texture.resource);
+      textureKeys.push(texture.cacheKey);
+    }
+  }
+
+  if (binding.sampler !== null) {
+    const sampler = prepareAppSamplerResource({
+      app: options.app,
+      cache: options.cache,
+      handle: binding.sampler,
+      reuse: options.reuse,
+      diagnostics,
+    });
+
+    if (sampler !== null) {
+      samplers.push(sampler.resource);
+      samplerKeys.push(sampler.cacheKey);
+    }
+  }
+
+  return {
+    valid:
+      diagnostics.length === 0 &&
+      binding.texture !== null &&
+      binding.sampler !== null &&
+      textures.length === 1 &&
+      samplers.length === 1,
+    textures,
+    samplers,
+    textureKeys,
+    samplerKeys,
+    diagnostics,
+  };
+}
+
+function emptyPreparedAppTextureSamplerResources(): PreparedAppTextureSamplerResources {
+  return {
+    valid: true,
+    textures: [],
+    samplers: [],
+    textureKeys: [],
+    samplerKeys: [],
+    diagnostics: [],
+  };
+}
+
+function prepareAppTextureResource(options: {
+  readonly app: WebGpuApp;
+  readonly cache: WebGpuAppResourceCache;
+  readonly handle: TextureHandle;
+  readonly reuse: WebGpuAppResourceReuseReport;
+  readonly diagnostics: WebGpuAppTextureSamplerPreparationDiagnostic[];
+}): {
+  readonly cacheKey: string;
+  readonly resource: TextureGpuResource;
+} | null {
+  const resourceKey = assetHandleKey(options.handle);
+  const entry = options.app.assets.get<"texture", TextureAsset>(options.handle);
+
+  if (entry === undefined || entry.status !== "ready" || entry.asset === null) {
+    options.diagnostics.push({
+      code: "webGpuApp.textureSourceNotReady",
+      resourceKey,
+      status: entry?.status ?? "missing",
+      message: `Texture source asset '${resourceKey}' is not ready for app rendering.`,
+    });
+    return null;
+  }
+
+  const cacheKey = sourceAssetCacheKey(options.handle, entry.version);
+  const cached = options.cache.textures.get(cacheKey);
+
+  if (cached !== undefined) {
+    options.reuse.textureResourcesReused += 1;
+    return { cacheKey, resource: cached };
+  }
+
+  const result = createTextureGpuResource({
+    device: options.app.initialization.device as Parameters<
+      typeof createTextureGpuResource
+    >[0]["device"],
+    resourceKey,
+    descriptor: textureDescriptorFromAsset(entry.asset),
+  });
+
+  options.diagnostics.push(...result.diagnostics);
+
+  if (!result.valid || result.resource === null) {
+    return null;
+  }
+
+  options.cache.textures.set(cacheKey, result.resource);
+  options.reuse.textureResourcesCreated += 1;
+  return { cacheKey, resource: result.resource };
+}
+
+function prepareAppSamplerResource(options: {
+  readonly app: WebGpuApp;
+  readonly cache: WebGpuAppResourceCache;
+  readonly handle: SamplerHandle;
+  readonly reuse: WebGpuAppResourceReuseReport;
+  readonly diagnostics: WebGpuAppTextureSamplerPreparationDiagnostic[];
+}): {
+  readonly cacheKey: string;
+  readonly resource: SamplerGpuResource;
+} | null {
+  const resourceKey = assetHandleKey(options.handle);
+  const entry = options.app.assets.get<"sampler", SamplerAsset>(options.handle);
+
+  if (entry === undefined || entry.status !== "ready" || entry.asset === null) {
+    options.diagnostics.push({
+      code: "webGpuApp.samplerSourceNotReady",
+      resourceKey,
+      status: entry?.status ?? "missing",
+      message: `Sampler source asset '${resourceKey}' is not ready for app rendering.`,
+    });
+    return null;
+  }
+
+  const cacheKey = sourceAssetCacheKey(options.handle, entry.version);
+  const cached = options.cache.samplers.get(cacheKey);
+
+  if (cached !== undefined) {
+    options.reuse.samplerResourcesReused += 1;
+    return { cacheKey, resource: cached };
+  }
+
+  const result = createSamplerGpuResource({
+    device: options.app.initialization.device as Parameters<
+      typeof createSamplerGpuResource
+    >[0]["device"],
+    resourceKey,
+    sampler: entry.asset,
+  });
+
+  options.diagnostics.push(...result.diagnostics);
+
+  if (!result.valid || result.resource === null) {
+    return null;
+  }
+
+  options.cache.samplers.set(cacheKey, result.resource);
+  options.reuse.samplerResourcesCreated += 1;
+  return { cacheKey, resource: result.resource };
+}
+
+function textureDescriptorFromAsset(
+  texture: TextureAsset,
+): TextureDescriptorInput {
+  return {
+    label: texture.label,
+    size: [texture.width, texture.height, texture.depthOrLayers],
+    format: texture.format,
+    mipLevelCount: texture.mipLevelCount,
+    usage: textureUsageFlags(texture.usage),
+  };
+}
+
+function textureUsageFlags(usages: readonly TextureUsage[]): number {
+  let flags = 0;
+
+  for (const usage of usages) {
+    switch (usage) {
+      case "sampled":
+        flags |= WEBGPU_TEXTURE_USAGE_FLAGS.TEXTURE_BINDING;
+        break;
+      case "copy-dst":
+        flags |= WEBGPU_TEXTURE_USAGE_FLAGS.COPY_DST;
+        break;
+      case "render-attachment":
+        flags |= WEBGPU_TEXTURE_USAGE_FLAGS.RENDER_ATTACHMENT;
+        break;
+    }
+  }
+
+  return flags === 0 ? WEBGPU_TEXTURE_USAGE_FLAGS.TEXTURE_BINDING : flags;
+}
+
+function sameStringList(
+  first: readonly string[],
+  second: readonly string[],
+): boolean {
+  if (first.length !== second.length) {
+    return false;
+  }
+
+  for (let index = 0; index < first.length; index += 1) {
+    if (first[index] !== second[index]) {
+      return false;
+    }
+  }
+
+  return true;
 }
 
 function sourceAssetCacheKey(
@@ -868,6 +1162,31 @@ async function renderWebGpuAppFrame(
     snapshot,
     resourceCache.frameScratch.worldTransforms,
   );
+  const preparedTextures =
+    materialKind === "unlit"
+      ? prepareUnlitAppTextureSamplerResources({
+          app,
+          cache: resourceCache,
+          material: material as UnlitMaterialAsset,
+          reuse,
+        })
+      : emptyPreparedAppTextureSamplerResources();
+
+  if (!preparedTextures.valid) {
+    return renderReport({
+      ok: false,
+      snapshot,
+      pipeline,
+      resourceReuse: reuse,
+      diagnostics: [
+        ...snapshot.diagnostics,
+        ...packedViews.diagnostics,
+        ...packedTransforms.diagnostics,
+        ...preparedTextures.diagnostics,
+      ],
+    });
+  }
+
   const resources =
     materialKind === "standard"
       ? createOrReuseStandardAppFrameResources({
@@ -902,6 +1221,7 @@ async function renderWebGpuAppFrame(
             firstDraw.material,
             materialEntry?.version ?? -1,
           ),
+          textures: preparedTextures,
           viewUniforms: packedViews,
           worldTransforms: packedTransforms,
           layouts,
@@ -1145,6 +1465,115 @@ function parseAppMaterialHandle(value: string) {
     : null;
 }
 
+export function webGpuAppRenderReportToJsonValue(
+  report: WebGpuAppRenderReport,
+): WebGpuAppRenderReportJsonValue {
+  const materialDependencyReadiness =
+    collectAppReportMaterialDependencyReadiness(report);
+
+  return {
+    ok: report.ok,
+    frame: report.frame,
+    counts: { ...report.counts },
+    diagnostics: report.diagnostics.map((diagnostic) =>
+      toWebGpuAppJsonValue(diagnostic),
+    ),
+    resourceReuse: { ...report.resourceReuse },
+    ...(materialDependencyReadiness.length === 0
+      ? {}
+      : { materialDependencyReadiness }),
+  };
+}
+
+export function webGpuAppRenderReportToJson(
+  report: WebGpuAppRenderReport,
+): string {
+  return JSON.stringify(webGpuAppRenderReportToJsonValue(report));
+}
+
+function collectAppReportMaterialDependencyReadiness(
+  report: WebGpuAppRenderReport,
+): MaterialAssetDependencyReadinessReportJsonValue[] {
+  const readiness: MaterialAssetDependencyReadinessReportJsonValue[] = [];
+
+  for (const diagnostic of report.diagnostics) {
+    if (!isWebGpuAppMaterialDependencyDiagnostic(diagnostic)) {
+      continue;
+    }
+
+    readiness.push(diagnostic.materialDependencyReadiness);
+  }
+
+  return readiness;
+}
+
+function isWebGpuAppMaterialDependencyDiagnostic(
+  diagnostic: unknown,
+): diagnostic is WebGpuAppMaterialDependencyDiagnostic {
+  if (typeof diagnostic !== "object" || diagnostic === null) {
+    return false;
+  }
+
+  const candidate = diagnostic as {
+    readonly code?: unknown;
+    readonly materialDependencyReadiness?: unknown;
+  };
+
+  return (
+    candidate.code === "webGpuApp.materialDependenciesNotReady" &&
+    typeof candidate.materialDependencyReadiness === "object" &&
+    candidate.materialDependencyReadiness !== null
+  );
+}
+
+function toWebGpuAppJsonValue(
+  value: unknown,
+  seen: WeakSet<object> = new WeakSet(),
+): WebGpuAppJsonValue {
+  if (
+    value === null ||
+    typeof value === "string" ||
+    typeof value === "boolean"
+  ) {
+    return value;
+  }
+
+  if (typeof value === "number") {
+    return Number.isFinite(value) ? value : null;
+  }
+
+  if (Array.isArray(value)) {
+    return value.map((entry) => toWebGpuAppJsonValue(entry, seen));
+  }
+
+  if (typeof value !== "object") {
+    return null;
+  }
+
+  if (seen.has(value)) {
+    return "[Circular]";
+  }
+
+  seen.add(value);
+
+  const result: Record<string, WebGpuAppJsonValue> = {};
+
+  for (const [key, entry] of Object.entries(value)) {
+    if (
+      entry === undefined ||
+      typeof entry === "function" ||
+      typeof entry === "symbol" ||
+      typeof entry === "bigint"
+    ) {
+      continue;
+    }
+
+    result[key] = toWebGpuAppJsonValue(entry, seen);
+  }
+
+  return result;
+}
+
 function renderReport(input: {
   readonly ok: boolean;
   readonly snapshot: RenderSnapshot;
@@ -1185,6 +1614,10 @@ function createWebGpuAppResourceReuseReport(): WebGpuAppResourceReuseReport {
     meshBuffersReused: 0,
     materialBuffersCreated: 0,
     materialBuffersReused: 0,
+    textureResourcesCreated: 0,
+    textureResourcesReused: 0,
+    samplerResourcesCreated: 0,
+    samplerResourcesReused: 0,
     bindGroupsCreated: 0,
     bindGroupsReused: 0,
     lightBuffersCreated: 0,

@@ -11,11 +11,14 @@ export type BuiltInShaderBindingId =
   | "viewProjection"
   | "worldTransforms"
   | "unlitMaterial"
+  | "matcapMaterial"
   | "standardMaterial"
   | "lightFloats"
   | "lightMetadata"
   | "baseColorTexture"
-  | "baseColorSampler";
+  | "baseColorSampler"
+  | "matcapTexture"
+  | "matcapSampler";
 
 export interface BuiltInShaderBindingMetadata {
   readonly id: BuiltInShaderBindingId;

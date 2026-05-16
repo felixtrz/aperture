@@ -13,12 +13,22 @@ describe("material pipeline selection", () => {
     expect(
       materialPipelineFamilyFromKey("standard|opaque|back|less|none"),
     ).toBe("standard");
+    expect(
+      materialPipelineFamilyFromKey(
+        "matcap|matcapTexture|opaque|back|less|none",
+      ),
+    ).toBe("matcap");
     expect(materialPipelineFamilyFromKey("pipeline:legacy")).toBeNull();
   });
 
   it("requires the light bind group only for standard material draws", () => {
     expect(
       requiredBindGroupGroupsForPipelineKey("unlit|opaque|back|less|none"),
+    ).toEqual([0, 1, 2]);
+    expect(
+      requiredBindGroupGroupsForPipelineKey(
+        "matcap|matcapTexture|opaque|back|less|none",
+      ),
     ).toEqual([0, 1, 2]);
     expect(
       requiredBindGroupGroupsForPipelineKey("standard|opaque|back|less|none"),

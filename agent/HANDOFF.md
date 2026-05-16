@@ -2,6 +2,132 @@
 
 ## Latest Run Update
 
+Completed the app diagnostics and Matcap WebGPU preparation sequence:
+
+- `task-0584` — `createWebGpuApp.render()` now prepares and caches ready unlit
+  base-color texture/sampler dependencies as WebGPU-owned resources keyed by
+  source handle and asset version.
+- `task-0585` — app `resourceReuse` reports now include texture/sampler
+  created/reused counters.
+- `task-0580` — added `WebGpuAppRenderReportJsonValue`,
+  `webGpuAppRenderReportToJsonValue()`, and `webGpuAppRenderReportToJson()`.
+  The helper omits snapshots, raw resource handles, bind groups, command
+  buffers, and browser/WebGPU objects.
+- `task-0581` — added Matcap WGSL shader metadata, pipeline-family selection,
+  and descriptor planning for `matcap`.
+- `task-0582` — added `examples/app-diagnostics.*` plus Playwright coverage for
+  mixed source-resource and material dependency readiness diagnostics.
+- `task-0587` — added Matcap material uniform packing, dependency key
+  extraction, buffer descriptors, and GPU material-buffer creation.
+- `task-0588` — added Matcap group-2 bind group layout metadata, descriptor
+  planning, resource-key creation, and bind group creation.
+- `task-0589` — added Matcap render pipeline resource creation from the Matcap
+  shader/descriptor contract.
+- `task-0590` — added Matcap frame GPU resource assembly for mesh, view/world
+  buffers, material buffer, prepared texture/sampler resources, and shared plus
+  material bind groups.
+- `task-0586` — audited the app diagnostics and Matcap WebGPU boundaries. No
+  ECS/render ownership drift was found.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec vitest run test/webgpu/texture-resources.test.ts test/webgpu/unlit-frame-resources.test.ts test/webgpu/webgpu-app.test.ts`
+- `pnpm run build`
+- `pnpm exec vitest run test/webgpu/matcap-shader.test.ts test/webgpu/matcap-pipeline-descriptor.test.ts test/webgpu/material-pipeline-selection.test.ts`
+- `pnpm exec playwright test test/e2e/app-diagnostics.spec.ts`
+- `pnpm exec vitest run test/webgpu/matcap-frame-resources.test.ts test/webgpu/matcap-material-buffer.test.ts test/webgpu/matcap-bind-group.test.ts test/webgpu/matcap-pipeline.test.ts test/webgpu/matcap-pipeline-descriptor.test.ts`
+- `pnpm run check` passed: 162 test files / 757 tests.
+- `pnpm run test:e2e` passed: 141 Playwright tests.
+
+Reference files/patterns inspected:
+
+- Bevy render asset preparation and material prepare/retry patterns:
+  `references/bevy/crates/bevy_render/src/render_asset.rs`,
+  `references/bevy/crates/bevy_pbr/src/material.rs`.
+- Three.js matcap shader/UV patterns:
+  `references/three.js/src/nodes/utils/MatcapUV.js` and
+  `references/three.js/src/renderers/shaders/ShaderLib/meshmatcap.glsl.js`.
+- PlayCanvas/WebGPU texture and sampler resource patterns:
+  `references/engine/src/platform/graphics/texture.js` and
+  `references/engine/src/platform/graphics/webgpu/webgpu-texture.js`.
+- Existing Aperture unlit/standard material buffer, bind group, frame resource,
+  pipeline, and resource summary helpers.
+- Project docs: `docs/NORTH_STAR.md`, `docs/ARCHITECTURE.md`,
+  `docs/DECISIONS.md`, `docs/MEDIUM_LONG_TERM_GOALS.md`.
+
+Recommended next task:
+
+- `task-0591 — Wire single-material Matcap app-facade rendering`.
+
+Preflight notes for `task-0591`:
+
+- The new Matcap pieces are intentionally independent:
+  `matcap-material-buffer.ts`, `matcap-material-buffer-resource.ts`,
+  `matcap-bind-group-layout.ts`, `matcap-bind-group.ts`,
+  `matcap-pipeline.ts`, and `matcap-frame-resources.ts`.
+- App activation should mirror the narrow standard/unlit app paths and reuse
+  the existing source-handle/version cache for Matcap texture/sampler
+  dependencies.
+- Keep mixed material/source-resource frames on the existing
+  `webGpuApp.additionalDrawResourceUnsupported` diagnostic until broader
+  batching exists.
+
+Known issues:
+
+- The three-material showcase is a direct WebGPU proof/demo, not an app-facade
+  multi-material implementation.
+- `createWebGpuApp.render()` still supports one source mesh/material resource
+  set per frame; mixed source-resource frames now fail clearly with
+  `webGpuApp.additionalDrawResourceUnsupported`.
+- MatcapMaterial now has WebGPU shader metadata, material buffer, bind group,
+  pipeline, and frame-resource helpers, but no app-facade activation, browser
+  example, or material-showcase route yet.
+- StandardMaterial remains an MVP: texture sampling, normal maps, IBL, and
+  shadows are still deferred.
+
+Files touched in this update:
+
+- `examples/app-diagnostics.html`
+- `examples/app-diagnostics.js`
+- `examples/index.html`
+- `examples/materials-showcase.html`
+- `examples/multi-entity.html`
+- `examples/spinning-cube.html`
+- `examples/triangle.html`
+- `package.json`
+- `packages/webgpu/src/webgpu/app.ts`
+- `packages/webgpu/src/webgpu/index.ts`
+- `packages/webgpu/src/webgpu/matcap-bind-group-layout.ts`
+- `packages/webgpu/src/webgpu/matcap-bind-group.ts`
+- `packages/webgpu/src/webgpu/matcap-frame-resources.ts`
+- `packages/webgpu/src/webgpu/matcap-material-buffer-resource.ts`
+- `packages/webgpu/src/webgpu/matcap-material-buffer.ts`
+- `packages/webgpu/src/webgpu/matcap-pipeline-descriptor.ts`
+- `packages/webgpu/src/webgpu/matcap-pipeline.ts`
+- `packages/webgpu/src/webgpu/matcap-shader.ts`
+- `packages/webgpu/src/webgpu/material-pipeline-selection.ts`
+- `packages/webgpu/src/webgpu/resource-summary.ts`
+- `packages/webgpu/src/webgpu/texture-resources.ts`
+- `packages/webgpu/src/webgpu/unlit-shader.ts`
+- `test/e2e/app-diagnostics.spec.ts`
+- `test/webgpu/matcap-bind-group.test.ts`
+- `test/webgpu/matcap-frame-resources.test.ts`
+- `test/webgpu/matcap-material-buffer.test.ts`
+- `test/webgpu/matcap-pipeline-descriptor.test.ts`
+- `test/webgpu/matcap-pipeline.test.ts`
+- `test/webgpu/matcap-shader.test.ts`
+- `test/webgpu/material-pipeline-selection.test.ts`
+- `test/webgpu/webgpu-app.test.ts`
+- `agent/BACKLOG.md`
+- `agent/COMPLETED.md`
+- `agent/HANDOFF.md`
+- `agent/STATUS.json`
+- `docs/research/APP_DIAGNOSTICS_AND_MATCAP_METADATA_AUDIT_2026_05_16.md`
+
+## Previous Run Update
+
 Completed a user-requested browser demo plus six follow-up backlog tasks:
 
 - Added `examples/materials-showcase.html` and

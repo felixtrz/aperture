@@ -11,6 +11,7 @@ import type {
   CreateSamplerGpuResourceResult,
   CreateTextureGpuResourceResult,
 } from "./texture-resources.js";
+import type { CreateMatcapMaterialGpuBufferResult } from "./matcap-material-buffer-resource.js";
 import type { CreateStandardMaterialGpuBufferResult } from "./standard-material-buffer-resource.js";
 import type { CreateUnlitMaterialGpuBufferResult } from "./unlit-material-buffer-resource.js";
 import type { CreateViewUniformGpuBufferResult } from "./view-uniform-buffer-resource.js";
@@ -50,6 +51,7 @@ export interface RenderResourceSummaryCounts {
 
 export type CreateMaterialGpuBufferResult =
   | CreateUnlitMaterialGpuBufferResult
+  | CreateMatcapMaterialGpuBufferResult
   | CreateStandardMaterialGpuBufferResult;
 
 export interface RenderResourceSummaryInput {

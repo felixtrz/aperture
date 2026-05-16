@@ -5,7 +5,9 @@ import {
   createBoxMeshAsset,
   createRenderAssetCollections,
   createSamplerHandle,
+  createSamplerAsset,
   createStandardMaterialAsset,
+  createTextureAsset,
   createTextureHandle,
   createUnlitMaterialAsset,
   LightKind,
@@ -17,7 +19,11 @@ import {
   withTransform,
   withVisibility,
 } from "@aperture-engine/core";
-import { createWebGpuApp } from "@aperture-engine/webgpu";
+import {
+  createWebGpuApp,
+  webGpuAppRenderReportToJson,
+  webGpuAppRenderReportToJsonValue,
+} from "@aperture-engine/webgpu";
 
 describe("WebGPU app facade", () => {
   it("initializes WebGPU and renders the existing unlit path from ECS-authored entities", async () => {
@@ -323,7 +329,143 @@ describe("WebGPU app facade", () => {
       },
     });
     expect(() => JSON.stringify(frame.diagnostics)).not.toThrow();
+    const value = webGpuAppRenderReportToJsonValue(frame);
+    const json = webGpuAppRenderReportToJson(frame);
+
+    expect(value).toMatchObject({
+      ok: false,
+      frame: 23,
+      counts: {
+        meshDraws: 0,
+        drawCalls: 0,
+      },
+      materialDependencyReadiness: [
+        {
+          ready: false,
+          materialKey: assetHandleKey(material),
+          slots: [
+            { handleKey: assetHandleKey(texture), status: "missing" },
+            { handleKey: assetHandleKey(sampler), status: "loading" },
+          ],
+        },
+      ],
+    });
+    expect(json).toBe(JSON.stringify(value));
+    expect(json).not.toContain("snapshot");
+    expect(json).not.toContain("commandBuffer");
     expect(events).not.toContain("queue:submit:1");
+  });
+
+  it("prepares and reuses app-facade texture and sampler resources for textured unlit materials", async () => {
+    const events: string[] = [];
+    const { canvas, environment } = webGpuHarness(events);
+    const created = await createWebGpuApp({
+      canvas,
+      environment,
+      worldOptions: { entityCapacity: 8 },
+    });
+
+    expect(created.ok).toBe(true);
+
+    if (!created.ok) {
+      return;
+    }
+
+    const app = created.app;
+    const assets = createRenderAssetCollections({ registry: app.assets });
+    const mesh = assets.meshes.add(
+      createBoxMeshAsset({ label: "TexturedCube" }),
+    );
+    const texture = createTextureHandle("app-albedo");
+    const sampler = createSamplerHandle("app-linear");
+
+    app.assets.register(texture);
+    app.assets.markReady(
+      texture,
+      createTextureAsset({
+        label: "AppAlbedo",
+        dimension: "2d",
+        width: 2,
+        height: 2,
+        format: "rgba8unorm-srgb",
+        colorSpace: "srgb",
+        semantic: "base-color",
+        usage: ["sampled"],
+      }),
+    );
+    app.assets.register(sampler);
+    app.assets.markReady(sampler, createSamplerAsset({ label: "AppLinear" }));
+
+    const material = assets.materials.unlit.add(
+      createUnlitMaterialAsset({
+        label: "TexturedApp",
+        baseColorTexture: { texture, sampler },
+      }),
+    );
+
+    app.spawn(
+      withTransform({ translation: [0, 0, 5] }),
+      withCamera({ priority: 0, layerMask: 1 }),
+    );
+    app.spawn(
+      withTransform(),
+      withMesh(mesh),
+      withMaterial(material),
+      withRenderLayer(1),
+      withVisibility(true),
+    );
+
+    const frame = await app.stepAndRender(1 / 60, 1, 24);
+
+    expect(frame.ok).toBe(true);
+    expect(frame.counts).toMatchObject({
+      views: 1,
+      meshDraws: 1,
+      drawPackages: 1,
+      drawCalls: 1,
+      diagnostics: 0,
+    });
+    expect(frame.resourceReuse).toMatchObject({
+      textureResourcesCreated: 1,
+      textureResourcesReused: 0,
+      samplerResourcesCreated: 1,
+      samplerResourcesReused: 0,
+    });
+    expect(events).toContain("device:texture:AppAlbedo");
+    expect(events).toContain("textureResource:view:AppAlbedo");
+    expect(events).toContain("device:sampler:AppLinear");
+    expect(
+      frame.resources?.resources?.bindGroups.find((group) => group.group === 2),
+    ).toMatchObject({
+      entryResourceKeys: [
+        "material-buffer:TexturedApp/uniform",
+        assetHandleKey(texture),
+        assetHandleKey(sampler),
+      ],
+    });
+
+    const firstResourceEvents = resourceEventCounts(events);
+    const firstResourceBindings = frame.resources?.resources;
+    const secondFrame = await app.stepAndRender(1 / 60, 2, 25);
+    const secondResourceBindings = secondFrame.resources?.resources;
+
+    expect(secondFrame.ok).toBe(true);
+    expect(secondFrame.resourceReuse).toMatchObject({
+      pipelineHits: 1,
+      pipelineMisses: 0,
+      meshBuffersReused: 1,
+      materialBuffersReused: 1,
+      textureResourcesCreated: 0,
+      textureResourcesReused: 1,
+      samplerResourcesCreated: 0,
+      samplerResourcesReused: 1,
+      bindGroupsReused: 3,
+      dynamicBufferWrites: 2,
+    });
+    expect(secondResourceBindings?.bindGroups).toBe(
+      firstResourceBindings?.bindGroups,
+    );
+    expect(resourceEventCounts(events)).toEqual(firstResourceEvents);
   });
 
   it("renders the standard material app path with extracted lights", async () => {
@@ -405,6 +547,31 @@ describe("WebGPU app facade", () => {
       lightBuffersCreated: 1,
       dynamicBufferWrites: 0,
     });
+    const value = webGpuAppRenderReportToJsonValue(frame);
+    const json = webGpuAppRenderReportToJson(frame);
+
+    expect(value).toMatchObject({
+      ok: true,
+      frame: 12,
+      counts: {
+        views: 1,
+        meshDraws: 1,
+        drawCalls: 1,
+        diagnostics: 0,
+      },
+      diagnostics: [],
+      resourceReuse: {
+        pipelineMisses: 1,
+        meshBuffersCreated: 1,
+        materialBuffersCreated: 1,
+        lightBuffersCreated: 1,
+      },
+    });
+    expect(value).not.toHaveProperty("materialDependencyReadiness");
+    expect(json).toBe(JSON.stringify(value));
+    expect(json).not.toContain("snapshot");
+    expect(json).not.toContain("commandBuffer");
+    expect(json).not.toContain("descriptor");
     expect(events).toContain("pass:bind:3");
     expect(events).toContain("queue:submit:1");
 
@@ -495,6 +662,22 @@ function webGpuHarness(events: string[]) {
       events.push(`device:buffer:${descriptor.label ?? "unlabeled"}`);
       return { descriptor };
     },
+    createTexture: (descriptor: { readonly label?: string }) => {
+      const label = descriptor.label ?? "unlabeled";
+
+      events.push(`device:texture:${label}`);
+      return {
+        descriptor,
+        createView: () => {
+          events.push(`textureResource:view:${label}`);
+          return { descriptor, label: `view:${label}` };
+        },
+      };
+    },
+    createSampler: (descriptor: { readonly label?: string }) => {
+      events.push(`device:sampler:${descriptor.label ?? "unlabeled"}`);
+      return { descriptor };
+    },
     createBindGroup: (descriptor: { readonly label?: string }) => {
       events.push(`device:bindGroup:${descriptor.label ?? "unlabeled"}`);
       return { descriptor };
@@ -565,6 +748,9 @@ function resourceEventCounts(events: readonly string[]) {
   return {
     pipelines: countEvents(events, "device:pipeline:"),
     buffers: countEvents(events, "device:buffer:"),
+    textures: countEvents(events, "device:texture:"),
+    textureViews: countEvents(events, "textureResource:view:"),
+    samplers: countEvents(events, "device:sampler:"),
     bindGroups: countEvents(events, "device:bindGroup:"),
   };
 }

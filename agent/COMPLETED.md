@@ -15,6 +15,178 @@ Summary:
 - Validation run.
 - Follow-up tasks added.
 
+## task-0590 — Add MatcapMaterial frame GPU resource assembly
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added Matcap frame GPU resource assembly for mesh buffers, view uniforms,
+  world transforms, Matcap material buffer, shared view/world bind groups, and
+  Matcap material texture/sampler bind group.
+- Missing mesh/view/world/material inputs and missing prepared texture/sampler
+  resources produce resource-key diagnostics without returning partial complete
+  resources.
+- No app-facade activation, browser example, or material showcase route was
+  introduced.
+- Important files: `packages/webgpu/src/webgpu/matcap-frame-resources.ts`,
+  `test/webgpu/matcap-frame-resources.test.ts`.
+- Validation run: focused Matcap frame-resource tests, `pnpm exec tsc --noEmit
+-p tsconfig.test.json`, and `pnpm run check` passed.
+
+## task-0589 — Add MatcapMaterial render pipeline resource creation
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added browser-facing Matcap render pipeline descriptor/resource creation from
+  the Matcap shader metadata and pipeline descriptor plan.
+- The helper creates the WGSL shader module and render pipeline through an
+  injected WebGPU-like device, returning cache keys and JSON-safe diagnostics.
+- No app-facade activation or render pass path was introduced.
+- Important files:
+  `packages/webgpu/src/webgpu/matcap-pipeline.ts`,
+  `test/webgpu/matcap-pipeline.test.ts`.
+- Validation run: focused Matcap WebGPU tests, `pnpm exec tsc --noEmit -p
+tsconfig.test.json`, and `pnpm run check` passed.
+
+## task-0588 — Add MatcapMaterial bind group resource creation
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added Matcap group-2 layout metadata, descriptor planning, stable bind group
+  keys, and bind group resource creation for material buffer, texture view, and
+  sampler bindings.
+- Missing material/texture/sampler resources report resource-key diagnostics
+  without creating fallback GPU state.
+- No app-facade activation or render pass path was introduced.
+- Important files:
+  `packages/webgpu/src/webgpu/matcap-bind-group-layout.ts`,
+  `packages/webgpu/src/webgpu/matcap-bind-group.ts`,
+  `test/webgpu/matcap-bind-group.test.ts`.
+- Validation run: focused Matcap WebGPU tests, `pnpm exec tsc --noEmit -p
+tsconfig.test.json`, and `pnpm run check` passed.
+
+## task-0587 — Add MatcapMaterial GPU material-buffer preparation
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added Matcap material uniform packing, texture/sampler dependency key
+  extraction, buffer descriptor planning, GPU buffer creation, and resource
+  summary participation.
+- The material buffer contains the shader's `baseColorFactor` layout and keeps
+  texture/sampler dependencies as stable resource keys only.
+- No app-facade activation or render pass path was introduced.
+- Important files:
+  `packages/webgpu/src/webgpu/matcap-material-buffer.ts`,
+  `packages/webgpu/src/webgpu/matcap-material-buffer-resource.ts`,
+  `packages/webgpu/src/webgpu/resource-summary.ts`,
+  `test/webgpu/matcap-material-buffer.test.ts`.
+- Validation run: focused Matcap WebGPU tests, `pnpm exec tsc --noEmit -p
+tsconfig.test.json`, and `pnpm run check` passed.
+
+## task-0586 — Audit app diagnostics and Matcap WebGPU boundaries
+
+Completed: 2026-05-16
+
+Summary:
+
+- Audited app texture/sampler prepared-resource caching, app report JSON,
+  browser diagnostic scenarios, and Matcap WebGPU material/pipeline contracts.
+- Confirmed WebGPU resources remain derived renderer-owned state and
+  `simulation`/`render` still expose source handles and metadata, not browser or
+  GPU objects.
+- Added next Matcap frame/app/example follow-up tasks.
+- Important files:
+  `docs/research/APP_DIAGNOSTICS_AND_MATCAP_METADATA_AUDIT_2026_05_16.md`,
+  `agent/BACKLOG.md`, `agent/COMPLETED.md`, `agent/HANDOFF.md`.
+- Validation run: audit covered code that passed `pnpm run check`.
+
+## task-0582 — Add browser-facing app diagnostics coverage for mixed materials
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added `examples/app-diagnostics.html` and
+  `examples/app-diagnostics.js` to publish browser-visible JSON-safe app
+  diagnostics for mixed source resources and blocked material dependencies.
+- Added Playwright coverage for
+  `webGpuApp.additionalDrawResourceUnsupported` and
+  `webGpuApp.materialDependenciesNotReady`.
+- Important files: `examples/app-diagnostics.html`,
+  `examples/app-diagnostics.js`, `test/e2e/app-diagnostics.spec.ts`,
+  `package.json`.
+- Validation run: focused Playwright app diagnostics test and `pnpm run check`
+  passed.
+
+## task-0581 — Add MatcapMaterial WebGPU shader metadata contracts
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added Matcap WGSL shader metadata, validation, material pipeline-family
+  selection, and descriptor planning for the `matcap` material family.
+- The metadata declares view, world transform, material, texture, and sampler
+  bindings but did not activate rendering by itself.
+- Important files: `packages/webgpu/src/webgpu/matcap-shader.ts`,
+  `packages/webgpu/src/webgpu/matcap-pipeline-descriptor.ts`,
+  `packages/webgpu/src/webgpu/material-pipeline-selection.ts`,
+  `test/webgpu/matcap-shader.test.ts`,
+  `test/webgpu/matcap-pipeline-descriptor.test.ts`,
+  `test/webgpu/material-pipeline-selection.test.ts`.
+- Validation run: focused Matcap WebGPU tests and `pnpm run check` passed.
+
+## task-0580 — Add WebGpuAppRenderReport JSON serialization helper
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added `WebGpuAppRenderReportJsonValue`,
+  `webGpuAppRenderReportToJsonValue()`, and
+  `webGpuAppRenderReportToJson()` for JSON-safe app render summaries.
+- The serializer includes counts, diagnostics, resource reuse, and optional
+  material dependency readiness while omitting snapshots and raw WebGPU/browser
+  objects.
+- Important files: `packages/webgpu/src/webgpu/app.ts`,
+  `test/webgpu/webgpu-app.test.ts`.
+- Validation run: focused app tests and `pnpm run check` passed.
+
+## task-0585 — Add texture/sampler resource reuse diagnostics for app reports
+
+Completed: 2026-05-16
+
+Summary:
+
+- Extended app resource reuse reports with texture and sampler created/reused
+  counters.
+- Reuse diagnostics are count/key based and avoid exposing raw GPU handles.
+- Important files: `packages/webgpu/src/webgpu/app.ts`,
+  `test/webgpu/webgpu-app.test.ts`.
+- Validation run: focused app tests and `pnpm run check` passed.
+
+## task-0584 — Add app-facade texture/sampler prepared-resource cache
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added app-facade preparation and caching for ready unlit base-color texture
+  and sampler source dependencies, keyed by source handle and asset version.
+- The app frame cache now includes versioned texture/sampler keys before reusing
+  bind groups, preventing stale resource reuse after source dependency changes.
+- Important files: `packages/webgpu/src/webgpu/app.ts`,
+  `packages/webgpu/src/webgpu/texture-resources.ts`,
+  `test/webgpu/webgpu-app.test.ts`.
+- Validation run: focused app/texture tests and `pnpm run check` passed.
+
 ## task-0577 — Add texture/sampler resource reuse diagnostics for app reports
 
 Completed: 2026-05-16

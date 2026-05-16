@@ -1,10 +1,10 @@
 {
   "state": "idle",
   "currentTaskId": null,
-  "lastRunStartedAt": "2026-05-16T20:24:06Z",
+  "lastRunStartedAt": "2026-05-16T22:02:35Z",
   "lastResult": "success",
   "lastCommit": "0b6a5ef",
   "activePid": null,
-  "notes": "Completed materials showcase demo plus tasks 0574, 0575, 0576, 0577, 0578, and 0579. Next recommended task is task-0584.",
-  "lastRunFinishedAt": "2026-05-16T21:45:14Z"
+  "notes": "Completed tasks 0584, 0585, 0580, 0581, 0582, 0586, 0587, 0588, 0589, and 0590. Next: task-0591 single-material Matcap app-facade rendering.",
+  "lastRunFinishedAt": "2026-05-16T22:42:06Z"
 }

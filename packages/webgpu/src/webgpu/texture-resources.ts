@@ -1,5 +1,13 @@
 import type { SamplerAsset } from "@aperture-engine/render";
 
+export const WEBGPU_TEXTURE_USAGE_FLAGS = {
+  COPY_SRC: 0x1,
+  COPY_DST: 0x2,
+  TEXTURE_BINDING: 0x4,
+  STORAGE_BINDING: 0x8,
+  RENDER_ATTACHMENT: 0x10,
+} as const;
+
 export type TextureGpuResourceDiagnosticCode =
   | "textureResource.createTextureUnavailable"
   | "textureResource.createViewUnavailable"
