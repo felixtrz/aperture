@@ -98,13 +98,14 @@ Passed:
 - `npm run typecheck`
 - `npm run typecheck:test`
 - `npm run format:check`
-
-Stop-hook validation is pending for this handoff and should be run before the
-final response.
+- `scripts/codex-stop-hook.sh`
+  - Passed full stop-hook validation: `typecheck`, `typecheck:test`, `build`,
+    `test`, `lint`, and `format:check`.
+  - Checkpointed the main run changes in commit `34a0c2c`.
 
 ## Known Issues
 
-- No known validation failures before stop-hook validation.
+- No known validation failures.
 - The WebGPU shader path remains unlit.
 - Light GPU buffers, layouts, bind groups, summaries, and shader readiness
   metadata now exist as renderer-side preparation/inspection surfaces only.
