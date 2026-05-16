@@ -60,6 +60,12 @@ The ECS multi-entity example is available at
 entities through the same snapshot, render-world binding, and WebGPU unlit draw
 path with distinct transforms and materials.
 
+The ECS spinning cube example is available at
+`http://127.0.0.1:4173/examples/spinning-cube.html`. It renders a textured
+unlit box mesh and updates the authoritative ECS transform every animation
+frame before writing the derived snapshot transform into the renderer-owned
+WebGPU buffer.
+
 Run browser verification:
 
 ```sh

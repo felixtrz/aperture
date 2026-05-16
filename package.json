@@ -23,7 +23,7 @@
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "typecheck:test": "tsc --noEmit -p tsconfig.test.json",
-    "check:examples": "node --check scripts/serve-examples.mjs && node --check examples/main.js && node --check examples/triangle.js && node --check examples/multi-entity.js && node --check examples/webgpu-readback.js",
+    "check:examples": "node --check scripts/serve-examples.mjs && node --check examples/main.js && node --check examples/triangle.js && node --check examples/multi-entity.js && node --check examples/spinning-cube.js && node --check examples/webgpu-readback.js",
     "lint": "eslint .",
     "test": "vitest run",
     "test:watch": "vitest",
