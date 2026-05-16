@@ -39,6 +39,7 @@ describe("runner JSON handle boundaries", () => {
     expect(json).not.toContain("material-buffer:Secret");
     expect(json).not.toContain("batch:secret");
     expect(json).not.toContain("mesh:secret");
+    expect(json).not.toContain("environment-map:secret");
     expect(json).toContain("packageCount");
   });
 });
@@ -62,7 +63,7 @@ function rendererWithHandles(): RendererAssemblySmokeReport {
         views: 1,
         meshDraws: 1,
         lights: 0,
-        environments: 0,
+        environments: 1,
         shadowRequests: 0,
         bounds: 0,
         transformFloats: 16,
@@ -73,6 +74,7 @@ function rendererWithHandles(): RendererAssemblySmokeReport {
         meshKeys: ["mesh:secret"],
         materialKeys: ["material:secret"],
         renderTargetKeys: [],
+        environmentMapKeys: ["environment-map:secret"],
       },
       diagnostics: [],
     },
@@ -94,6 +96,9 @@ function rendererWithHandles(): RendererAssemblySmokeReport {
         materialBuffers: 1,
         textures: 0,
         samplers: 0,
+        lightBuffers: 0,
+        lightGpuBuffers: 0,
+        environmentMaps: 0,
         viewUniformBuffers: 1,
         shaderModules: 1,
         pipelineHits: 0,
@@ -115,6 +120,9 @@ function rendererWithHandles(): RendererAssemblySmokeReport {
         materialBuffers: 1,
         textures: 0,
         samplers: 0,
+        lightBuffers: 0,
+        lightGpuBuffers: 0,
+        environmentMaps: 0,
         viewUniformBuffers: 1,
         shaderModules: 1,
         pipelineHits: 0,

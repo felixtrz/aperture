@@ -1,10 +1,10 @@
 {
   "state": "idle",
   "currentTaskId": null,
-  "lastRunStartedAt": "2026-05-16T12:01:39Z",
-  "lastRunFinishedAt": "2026-05-16T12:44:36Z",
+  "lastRunStartedAt": "2026-05-16T13:02:46Z",
   "lastResult": "success",
   "lastCommit": null,
   "activePid": null,
-  "notes": "Completed task-0420 through task-0464. Validation passed: npm run check and npm run test:e2e -- test/e2e/*-routing.spec.ts --reporter=line."
+  "notes": "Completed task-0465 through task-0494; next recommended task is task-0495.",
+  "lastRunFinishedAt": "2026-05-16T13:43:50Z"
 }

@@ -27,73 +27,65 @@ Keep implementation vertical, typed, and testable. Do not introduce a public mut
 
 ## Recommended Next Task
 
-Start with `task-0465`. Shadow request extraction and route coverage are now
-covered; the next MVP-aligned lighting slice is to connect environment authoring
-to stable environment-map asset handles while keeping GPU resources renderer-owned.
+Start with `task-0495`. Light GPU buffer resource creation and summary counts
+now exist; the next slice should add a JSON-safe inspection helper for those
+resource results before composing them into broader runner helpers.
 
 ## Ready Tasks
 
-### task-0465 — Add environment map handle authoring
+### task-0495 — Add light GPU buffer resource JSON helper
 
-Allow environment-light authoring to carry an optional environment-map asset
-handle without storing renderer-owned resources in ECS.
-
-Acceptance criteria:
-
-- Environment authoring accepts an optional stable environment-map handle.
-- `EnvironmentPacket.handle` reflects the authored handle or `null`.
-- Core extraction tests cover handle propagation and the existing transformless
-  environment path.
-
-### task-0466 — Validate environment map asset dependency
-
-Add extraction diagnostics for environment-map handles that are missing,
-loading, or failed in the asset registry.
+Add a JSON-safe helper for light GPU buffer creation results.
 
 Acceptance criteria:
 
-- Missing/loading/failed environment-map handles produce stable `render.environment.*`
-  diagnostics.
-- Invalid environment-map dependencies omit the environment packet without
-  blocking unrelated mesh extraction.
-- Targeted extraction tests cover all dependency states.
+- Helper serializes validity, stable resource keys, counts, and diagnostics.
+- Helper omits raw float and metadata GPU buffer handles.
+- Tests cover success, null-plan diagnostics, creation failure diagnostics, and
+  deterministic JSON output.
 
-### task-0467 — Add browser route for environment map diagnostics
+### task-0496 — Add snapshot light GPU buffer creation adapter
 
-Add browser status coverage for environment-map dependency diagnostics.
-
-Acceptance criteria:
-
-- Browser example has a routeable missing-environment-map scenario.
-- Status reports JSON-safe environment diagnostics and zero extracted
-  environment packets for the invalid dependency.
-- Targeted typecheck, example syntax, static scenario guard, and Playwright
-  coverage pass.
-
-### task-0468 — Add browser route for environment map handle extraction
-
-Add browser status coverage for a ready environment-map handle flowing into
-`EnvironmentPacket`.
+Compose snapshot-level lighting plans with injected light GPU buffer creation.
 
 Acceptance criteria:
 
-- Browser example has a routeable environment-map-handle scenario.
-- Status exposes the extracted environment handle key while the unlit mesh path
-  still submits.
-- Targeted typecheck, example syntax, and lighting route Playwright coverage
-  pass.
+- Adapter accepts a `RenderSnapshot` plus injected buffer device.
+- Empty snapshots produce a valid no-op result without diagnostics.
+- Non-empty light snapshots create renderer-owned light GPU buffers.
+- Descriptor-plan and buffer-creation diagnostics are preserved.
 
-### task-0469 — Document environment map handle boundary
+### task-0497 — Cover light GPU buffers in renderer assembly JSON
 
-Document environment-map handle extraction and the boundary between ECS asset
-references and renderer-owned texture resources.
+Extend renderer assembly or runner fixture coverage to include actual light GPU
+buffer resource counts without exposing raw handles.
 
 Acceptance criteria:
 
-- Architecture docs state that ECS stores only environment-map handles.
-- Browser e2e docs list environment-map success and diagnostic routes.
-- Docs explicitly defer environment texture GPU binding/shader consumption to a
-  renderer-owned resource slice.
+- A renderer assembly JSON test includes `lightGpuBuffers`.
+- The JSON output omits raw light buffer handles.
+- Existing unlit mesh submission and resource counts remain unchanged.
+
+### task-0498 — Document snapshot light GPU buffer creation
+
+Document the snapshot-to-light-GPU-buffer adapter boundary.
+
+Acceptance criteria:
+
+- Docs state the adapter derives renderer-owned buffers from `RenderSnapshot`.
+- Docs clarify that bind group, shader consumption, shadows, skybox, and IBL
+  remain deferred.
+- Format check passes.
+
+### task-0499 — Run consolidated light GPU buffer validation
+
+Run a broader validation pass after the light GPU buffer resource slices.
+
+Acceptance criteria:
+
+- `npm run check` passes.
+- Lighting route Playwright coverage passes.
+- Any validation failure is either fixed or documented in handoff.
 
 ## Post-Unlit E2E Verification Targets
 

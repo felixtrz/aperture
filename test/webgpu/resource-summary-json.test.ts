@@ -7,6 +7,7 @@ import {
   createTextureGpuResource,
   renderResourceSummaryReportToJson,
   renderResourceSummaryReportToJsonValue,
+  type CreateLightGpuBuffersResult,
   type CreateMeshGpuBuffersResult,
   type CreateSamplerGpuResourceResult,
   type CreateTextureGpuResourceResult,
@@ -141,6 +142,10 @@ describe("renderer resource summary JSON helpers", () => {
       materialResources: [materialFailure()],
       textureResources: [],
       samplerResources: [],
+      lightGpuBufferResources: [
+        validLightGpuBufferResourceWithRawHandles(),
+        lightGpuBufferFailure(),
+      ],
       viewUniformResources: [viewUniformFailure()],
       shaderResources: [],
       pipelines: [],
@@ -152,8 +157,9 @@ describe("renderer resource summary JSON helpers", () => {
     expect(value.counts).toMatchObject({
       meshResources: 0,
       materialBuffers: 0,
+      lightGpuBuffers: 1,
       viewUniformBuffers: 0,
-      warnings: 3,
+      warnings: 4,
       errors: 0,
     });
     expect(value.diagnostics).toEqual([
@@ -170,6 +176,12 @@ describe("renderer resource summary JSON helpers", () => {
         severity: "warning",
       },
       {
+        code: "lightGpuBuffer.creationFailed",
+        message: "light buffer failed",
+        resourceKey: "light-buffer:Main/floats",
+        severity: "warning",
+      },
+      {
         code: "viewUniformGpuBuffer.creationFailed",
         message: "view uniform buffer failed",
         resourceKey: "view-uniform-buffer:MainCamera/uniform",
@@ -178,6 +190,7 @@ describe("renderer resource summary JSON helpers", () => {
     ]);
     expect(JSON.parse(json) as unknown).toEqual(value);
     expect(json).not.toContain("raw-buffer-handle");
+    expect(json).not.toContain("raw-light-buffer-handle");
   });
 });
 
@@ -230,6 +243,35 @@ function validSamplerResourceWithRawHandle(): CreateSamplerGpuResourceResult {
       },
     },
     diagnostics: [],
+  };
+}
+
+function validLightGpuBufferResourceWithRawHandles(): CreateLightGpuBuffersResult {
+  return {
+    valid: true,
+    resource: {
+      resourceKey: "light-buffer:Main",
+      floatResourceKey: "light-buffer:Main/floats",
+      metadataResourceKey: "light-buffer:Main/metadata",
+      floatBuffer: { handle: "raw-light-buffer-handle" },
+      metadataBuffer: { handle: "raw-light-metadata-buffer-handle" },
+      count: 1,
+    },
+    diagnostics: [],
+  };
+}
+
+function lightGpuBufferFailure(): CreateLightGpuBuffersResult {
+  return {
+    valid: false,
+    resource: null,
+    diagnostics: [
+      {
+        code: "lightGpuBuffer.creationFailed",
+        message: "light buffer failed",
+        resourceKey: "light-buffer:Main/floats",
+      },
+    ],
   };
 }
 

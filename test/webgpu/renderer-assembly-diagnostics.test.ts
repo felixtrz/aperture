@@ -108,6 +108,7 @@ function snapshot(
       meshKeys: ["mesh:cube"],
       materialKeys: ["material:white"],
       renderTargetKeys: [],
+      environmentMapKeys: [],
     },
     diagnostics: [],
   };
@@ -136,6 +137,9 @@ function resources(
       materialBuffers: counts.materialBuffers ?? 1,
       textures: counts.textures ?? 0,
       samplers: counts.samplers ?? 0,
+      lightBuffers: counts.lightBuffers ?? 0,
+      lightGpuBuffers: counts.lightGpuBuffers ?? 0,
+      environmentMaps: counts.environmentMaps ?? 0,
       viewUniformBuffers: counts.viewUniformBuffers ?? 1,
       shaderModules: counts.shaderModules ?? 1,
       pipelineHits: counts.pipelineHits ?? 0,

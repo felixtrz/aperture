@@ -4319,3 +4319,63 @@ Summary:
 - Validation run: targeted `typecheck:test`, `check:examples`, static scenario
   guard tests, lighting route Playwright coverage, full `npm run check`, and
   full route smoke Playwright coverage passed.
+
+## task-0465 through task-0494 — Environment-map handles and lighting resource planning
+
+Completed: 2026-05-16
+
+Completed task ids:
+
+- `task-0465` — Add environment map handle authoring.
+- `task-0466` — Validate environment map asset dependency.
+- `task-0467` — Add browser route for environment map diagnostics.
+- `task-0468` — Add browser route for environment map handle extraction.
+- `task-0469` — Document environment map handle boundary.
+- `task-0470` — Add loading/failed environment-map browser diagnostics.
+- `task-0471` — Expose environment-map keys in snapshot inspection.
+- `task-0472` — Cover environment-map handles in snapshot cloneability.
+- `task-0473` — Document environment-map readiness diagnostics.
+- `task-0474` — Diagnose malformed environment-map handles.
+- `task-0475` — Add malformed environment-map browser diagnostics.
+- `task-0476` — Document complete environment-map route matrix.
+- `task-0477` — Expose diagnostic environment-map keys in browser status.
+- `task-0478` — Keep renderer assembly JSON handle-safe.
+- `task-0479` — Plan next renderer lighting resource slices.
+- `task-0480` — Add light packet packing helper.
+- `task-0481` — Add light buffer descriptor planning data.
+- `task-0482` — Add environment resource planning.
+- `task-0483` — Count light/environment resource planning summaries.
+- `task-0484` — Document light/environment planning boundary.
+- `task-0485` — Add snapshot lighting resource plan.
+- `task-0486` — Add snapshot lighting resource plan JSON helper.
+- `task-0487` — Adapt lighting plans into resource summary input.
+- `task-0488` — Add browser status for lighting resources.
+- `task-0489` — Document snapshot lighting resource plan.
+- `task-0490` — Run consolidated lighting resource validation.
+- `task-0491` — Add light buffer WebGPU descriptor plans.
+- `task-0492` — Add light buffer GPU resource creation.
+- `task-0493` — Count actual light GPU buffer resources.
+- `task-0494` — Document light GPU buffer resource boundary.
+
+Summary:
+
+- Added ECS environment-map handle authoring, extraction validation, malformed
+  handle diagnostics, cloneability coverage, snapshot inspection keys, and
+  browser routes for ready, missing, loading, failed, and malformed
+  environment-map handles.
+- Added browser status diagnostics for environment-map asset keys while keeping
+  renderer assembly JSON free of raw or secret handle payloads.
+- Added renderer-side light packet packing, light buffer descriptors, WebGPU
+  descriptor plans, and injected light GPU buffer resource creation for float
+  and metadata buffers.
+- Added environment resource planning and snapshot-level lighting resource
+  plans with JSON helpers and browser status summaries.
+- Extended renderer resource summaries to distinguish planned light buffers,
+  created light GPU buffers, and environment-map requirements.
+- Documented the light/environment resource boundary: derived from snapshots,
+  renderer-owned on the WebGPU side, and still deferring bind groups, shader
+  lighting consumption, skybox/IBL, and shadows.
+- Validation run: targeted component/extraction/cloneability/inspection tests,
+  static browser scenario tests, lighting Playwright route coverage, targeted
+  WebGPU resource tests, `typecheck`, `typecheck:test`, `format:check`, full
+  `npm run check`, and lighting route Playwright coverage passed during the run.

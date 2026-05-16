@@ -17,6 +17,7 @@ export interface RenderSnapshotInspectionHandles {
   readonly meshKeys: readonly string[];
   readonly materialKeys: readonly string[];
   readonly renderTargetKeys: readonly string[];
+  readonly environmentMapKeys: readonly string[];
 }
 
 export interface RenderSnapshotInspectionReport {
@@ -67,6 +68,13 @@ export function inspectRenderSnapshot(
       renderTargetKeys: uniqueSorted(
         snapshot.views.flatMap((view) =>
           view.renderTarget === null ? [] : [assetHandleKey(view.renderTarget)],
+        ),
+      ),
+      environmentMapKeys: uniqueSorted(
+        snapshot.environments.flatMap((environment) =>
+          environment.handle === null
+            ? []
+            : [assetHandleKey(environment.handle)],
         ),
       ),
     },

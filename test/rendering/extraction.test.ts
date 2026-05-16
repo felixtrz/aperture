@@ -12,6 +12,7 @@ import {
   WorldTransform,
   createBoxMeshAsset,
   createCamera,
+  createEnvironmentMapHandle,
   createLight,
   createLightShadowSettings,
   createMaterialHandle,
@@ -904,6 +905,128 @@ describe("render extraction", () => {
       "render.lightMissingTransform",
       "render.lightMissingTransform",
       "render.lightMissingTransform",
+    ]);
+  });
+
+  it("propagates authored environment map handles into environment packets", () => {
+    const world = createRuntimeWorld();
+    const assets = createReadyAssets();
+    const environmentMap = createEnvironmentMapHandle("studio");
+    const environmentLight = createTransformlessLightEntity(world, {
+      kind: LightKind.Environment,
+      intensity: 0.75,
+      layerMask: 0b0101,
+      environmentMap,
+    });
+
+    assets.register(environmentMap);
+    assets.markReady(environmentMap, { label: "Studio environment map" });
+
+    const snapshot = extractRenderSnapshot(world, assets);
+
+    expect(snapshot.environments).toEqual([
+      expect.objectContaining({
+        environmentId: createStableRenderId({
+          index: environmentLight.index,
+          generation: environmentLight.generation,
+        }),
+        handle: environmentMap,
+        intensity: 0.75,
+        layerMask: 0b0101,
+      }),
+    ]);
+    expect(snapshot.report).toMatchObject({
+      environments: 1,
+      diagnostics: 0,
+    });
+  });
+
+  it("diagnoses invalid environment map dependencies without blocking mesh extraction", () => {
+    const world = createRuntimeWorld();
+    const assets = createReadyAssets();
+    const missing = createEnvironmentMapHandle("missing-studio");
+    const loading = createEnvironmentMapHandle("loading-studio");
+    const failed = createEnvironmentMapHandle("failed-studio");
+
+    assets.register(loading);
+    assets.register(failed);
+    assets.markLoading(loading);
+    assets.markFailed(failed, [
+      {
+        code: "environment.failed",
+        message: "test environment map failure",
+        severity: "error",
+      },
+    ]);
+    createCameraEntity(world, { priority: 0, layerMask: 1 });
+    createMeshEntity(world, {
+      meshId: "mesh:cube",
+      materialId: "material:unlit",
+      layerMask: 1,
+    });
+    createTransformlessLightEntity(world, {
+      kind: LightKind.Environment,
+      environmentMap: missing,
+    });
+    createTransformlessLightEntity(world, {
+      kind: LightKind.Environment,
+      environmentMap: loading,
+    });
+    createTransformlessLightEntity(world, {
+      kind: LightKind.Environment,
+      environmentMap: failed,
+    });
+
+    const snapshot = extractRenderSnapshot(world, assets);
+
+    expect(snapshot.meshDraws).toHaveLength(1);
+    expect(snapshot.environments).toEqual([]);
+    expect(snapshot.report).toMatchObject({
+      meshDraws: 1,
+      environments: 0,
+      diagnostics: 3,
+    });
+    expect(diagnosticAssetPairs(snapshot)).toEqual([
+      {
+        code: "render.environment.missing",
+        assetKey: "environment-map:missing-studio",
+      },
+      {
+        code: "render.environment.loading",
+        assetKey: "environment-map:loading-studio",
+      },
+      {
+        code: "render.environment.failed",
+        assetKey: "environment-map:failed-studio",
+      },
+    ]);
+  });
+
+  it("diagnoses malformed environment map handle ids without blocking mesh extraction", () => {
+    const world = createRuntimeWorld();
+    const environmentLight = createTransformlessLightEntity(world, {
+      kind: LightKind.Environment,
+    });
+
+    environmentLight.setValue(Light, "environmentMapId", "texture:studio");
+    createCameraEntity(world, { priority: 0, layerMask: 1 });
+    createMeshEntity(world, {
+      meshId: "mesh:cube",
+      materialId: "material:unlit",
+      layerMask: 1,
+    });
+
+    const snapshot = extractRenderSnapshot(world, createReadyAssets());
+
+    expect(snapshot.meshDraws).toHaveLength(1);
+    expect(snapshot.environments).toEqual([]);
+    expect(snapshot.report).toMatchObject({
+      meshDraws: 1,
+      environments: 0,
+      diagnostics: 1,
+    });
+    expect(snapshot.diagnostics.map((diagnostic) => diagnostic.code)).toEqual([
+      "render.environment.invalidHandle",
     ]);
   });
 

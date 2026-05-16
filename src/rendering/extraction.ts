@@ -1,9 +1,11 @@
 import {
   assetHandleKey,
+  createEnvironmentMapHandle,
   createMaterialHandle,
   createMeshHandle,
   createRenderTargetHandle,
   type AssetHandle,
+  type EnvironmentMapHandle,
   type AssetRegistry,
   type MaterialHandle,
   type MeshHandle,
@@ -96,6 +98,7 @@ export function extractRenderSnapshot(
   const shadowRequests: ShadowRequestPacket[] = [];
   const lights = extractLights(
     world,
+    assets,
     transforms,
     diagnostics,
     environments,
@@ -226,6 +229,7 @@ function extractViews(
 
 function extractLights(
   world: EcsWorld,
+  assets: AssetRegistry,
   transforms: number[],
   diagnostics: RenderDiagnostic[],
   environments: EnvironmentPacket[],
@@ -257,9 +261,24 @@ function extractLights(
         shadowSettings,
         diagnostics,
       );
+      const handle = readEnvironmentMapHandle(entity, diagnostics);
+
+      if (
+        handle === undefined ||
+        (handle !== null &&
+          !validateEnvironmentMapAssetState(
+            handle,
+            assets,
+            entity,
+            diagnostics,
+          ))
+      ) {
+        continue;
+      }
+
       environments.push({
         environmentId: createStableRenderId(entityRef(entity)),
-        handle: null,
+        handle,
         color: Array.from(entity.getVectorView(Light, "color")) as [
           number,
           number,
@@ -654,6 +673,29 @@ function validateSamplerAssetState(
   return true;
 }
 
+function validateEnvironmentMapAssetState(
+  handle: EnvironmentMapHandle,
+  assets: AssetRegistry,
+  entity: Entity,
+  diagnostics: RenderDiagnostic[],
+): boolean {
+  const entry = assets.get<"environment-map">(handle);
+
+  if (entry === undefined) {
+    diagnostics.push(diagnostic("render.environment.missing", entity, handle));
+    return false;
+  }
+
+  if (entry.status !== "ready" || entry.asset === null) {
+    diagnostics.push(
+      diagnostic(`render.environment.${entry.status}`, entity, handle),
+    );
+    return false;
+  }
+
+  return true;
+}
+
 function pushBounds(
   bounds: BoundsPacket[],
   entity: Entity,
@@ -714,6 +756,26 @@ function readRenderTarget(
   }
 
   return createRenderTargetHandle(id);
+}
+
+function readEnvironmentMapHandle(
+  entity: Entity,
+  diagnostics: RenderDiagnostic[],
+): EnvironmentMapHandle | null | undefined {
+  const value = entity.getValue(Light, "environmentMapId") ?? "";
+
+  if (value === "") {
+    return null;
+  }
+
+  const id = parseAssetId(value, "environment-map");
+
+  if (id === null) {
+    diagnostics.push(diagnostic("render.environment.invalidHandle", entity));
+    return undefined;
+  }
+
+  return createEnvironmentMapHandle(id);
 }
 
 function cameraInput(entity: Entity): CameraInput {

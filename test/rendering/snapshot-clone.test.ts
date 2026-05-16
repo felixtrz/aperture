@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  createEnvironmentMapHandle,
   validateRenderSnapshotCloneability,
   type RenderSnapshot,
 } from "../../src/index.js";
@@ -10,6 +11,35 @@ describe("render snapshot cloneability validation", () => {
     expect(validateRenderSnapshotCloneability(snapshot())).toEqual({
       valid: true,
       diagnostics: [],
+    });
+  });
+
+  it("accepts environment packets with cloneable environment-map handles", () => {
+    const source: RenderSnapshot = {
+      ...snapshot(),
+      environments: [
+        {
+          environmentId: 1,
+          handle: createEnvironmentMapHandle("studio"),
+          color: [1, 1, 1, 1],
+          intensity: 1,
+          layerMask: 1,
+        },
+      ],
+      report: {
+        ...snapshot().report,
+        environments: 1,
+      },
+    };
+    const cloned = structuredClone(source) as RenderSnapshot;
+
+    expect(validateRenderSnapshotCloneability(source)).toEqual({
+      valid: true,
+      diagnostics: [],
+    });
+    expect(cloned.environments[0]?.handle).toMatchObject({
+      kind: "environment-map",
+      id: "studio",
     });
   });
 

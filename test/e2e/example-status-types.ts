@@ -180,6 +180,21 @@ export interface MultiEntityExampleStatus extends ExampleStatusBase {
     readonly bindGroups: number;
     readonly missing?: string;
   };
+  readonly lightingResources?: {
+    readonly lightBuffer: {
+      readonly resourceKey: string;
+      readonly usageIntent: string;
+      readonly count: number;
+      readonly byteLength: number;
+      readonly floatByteLength: number;
+      readonly metadataByteLength: number;
+    };
+    readonly environments: {
+      readonly environmentCount: number;
+      readonly nullHandleCount: number;
+      readonly resourceKeys: readonly string[];
+    };
+  };
   readonly binding?: {
     readonly planned?: number;
     readonly applied: number;
@@ -240,8 +255,11 @@ export interface MultiEntityExampleStatus extends ExampleStatusBase {
     readonly intensities: readonly number[];
     readonly layerMasks: readonly number[];
     readonly handles: readonly (unknown | null)[];
+    readonly handleKeys: readonly (string | null)[];
+    readonly expectedHandleKey?: string;
     readonly expectedDiagnostics: readonly string[];
     readonly diagnostics: readonly string[];
+    readonly diagnosticAssetKeys: readonly (string | null)[];
     readonly transformless?: boolean;
   };
   readonly shadow?: {

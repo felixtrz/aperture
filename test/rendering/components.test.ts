@@ -13,6 +13,7 @@ import {
   ShadowReceiver,
   Visibility,
   createCamera,
+  createEnvironmentMapHandle,
   createLight,
   createLightShadowSettings,
   createWorld,
@@ -62,6 +63,8 @@ describe("render authoring ECS components", () => {
     registerRenderAuthoringComponents(world);
     const camera = world.createEntity();
     const light = world.createEntity();
+    const environment = world.createEntity();
+    const environmentMap = createEnvironmentMapHandle("studio");
 
     camera.addComponent(
       Camera,
@@ -82,6 +85,13 @@ describe("render authoring ECS components", () => {
         range: 20,
       }),
     );
+    environment.addComponent(
+      Light,
+      createLight({
+        kind: LightKind.Environment,
+        environmentMap,
+      }),
+    );
 
     expect(camera.getValue(Camera, "projection")).toBe(
       CameraProjection.Orthographic,
@@ -96,6 +106,9 @@ describe("render authoring ECS components", () => {
     expect(light.getValue(Light, "intensity")).toBe(2);
     expect(light.getValue(Light, "range")).toBe(20);
     expectVector(light.getVectorView(Light, "color"), [1, 0.8, 0.5, 1]);
+    expect(environment.getValue(Light, "environmentMapId")).toBe(
+      "environment-map:studio",
+    );
   });
 
   it("validates invalid camera fields", () => {

@@ -129,6 +129,7 @@ function snapshot(): RenderSnapshotInspectionReport {
       meshKeys: ["mesh:cube"],
       materialKeys: ["material:white"],
       renderTargetKeys: [],
+      environmentMapKeys: [],
     },
     diagnostics: [],
   };
@@ -155,6 +156,9 @@ function resources(): RenderResourceSummaryReport {
       materialBuffers: 1,
       textures: 0,
       samplers: 0,
+      lightBuffers: 0,
+      lightGpuBuffers: 0,
+      environmentMaps: 0,
       viewUniformBuffers: 1,
       shaderModules: 1,
       pipelineHits: 0,

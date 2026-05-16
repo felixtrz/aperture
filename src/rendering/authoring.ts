@@ -4,6 +4,7 @@ import {
   type ComponentInitialData,
   type EcsWorld,
 } from "../ecs/index.js";
+import { assetHandleKey, type EnvironmentMapHandle } from "../assets/index.js";
 import type { Vec4Like } from "../math/index.js";
 
 export const CameraProjection = {
@@ -50,6 +51,7 @@ export interface LightInput {
   readonly innerConeAngle?: number;
   readonly outerConeAngle?: number;
   readonly layerMask?: number;
+  readonly environmentMap?: EnvironmentMapHandle | null;
 }
 
 export interface LightShadowSettingsInput {
@@ -161,6 +163,7 @@ export const Light = defineComponent(
     innerConeAngle: { type: EcsType.Float32, default: Math.PI / 8 },
     outerConeAngle: { type: EcsType.Float32, default: Math.PI / 6 },
     layerMask: { type: EcsType.Int32, default: 1 },
+    environmentMapId: { type: EcsType.String, default: "" },
   },
   "Renderer-independent light authoring component.",
 );
@@ -240,6 +243,10 @@ export function createLight(
     innerConeAngle: input.innerConeAngle ?? Math.PI / 8,
     outerConeAngle: input.outerConeAngle ?? Math.PI / 6,
     layerMask: input.layerMask ?? 1,
+    environmentMapId:
+      input.environmentMap === undefined || input.environmentMap === null
+        ? ""
+        : assetHandleKey(input.environmentMap),
   };
 }
 

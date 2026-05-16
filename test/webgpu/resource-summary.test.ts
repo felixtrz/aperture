@@ -1,7 +1,13 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  createEnvironmentMapHandle,
+  createLightBufferDescriptor,
+  createLightBufferDescriptorPlan,
+  createLightGpuBuffers,
   createRenderResourceSummaryReport,
+  planEnvironmentResources,
+  type CreateLightGpuBuffersResult,
   type CreateMeshGpuBuffersResult,
   type CreateSamplerGpuResourceResult,
   type CreateShaderModuleResourceResult,
@@ -9,6 +15,8 @@ import {
   type CreateUnlitMaterialGpuBufferResult,
   type CreateViewUniformGpuBufferResult,
   type GetOrCreateRenderPipelineResult,
+  type LightPacket,
+  type WebGpuBufferDeviceLike,
 } from "../../src/index.js";
 
 describe("renderer resource summary report", () => {
@@ -18,6 +26,9 @@ describe("renderer resource summary report", () => {
       materialResources: [materialResource(true)],
       textureResources: [textureResource(true)],
       samplerResources: [samplerResource(true)],
+      lightBuffers: [createLightBufferDescriptor([])],
+      lightGpuBufferResources: [lightGpuResource(true)],
+      environmentResources: [planEnvironmentResources([environment(1)])],
       viewUniformResources: [viewResource(true)],
       shaderResources: [shaderResource(true)],
       pipelines: [pipeline("hit"), pipeline("miss")],
@@ -31,6 +42,9 @@ describe("renderer resource summary report", () => {
       materialBuffers: 1,
       textures: 1,
       samplers: 1,
+      lightBuffers: 1,
+      lightGpuBuffers: 1,
+      environmentMaps: 1,
       viewUniformBuffers: 1,
       shaderModules: 1,
       pipelineHits: 1,
@@ -46,6 +60,7 @@ describe("renderer resource summary report", () => {
       materialResources: [materialResource(false)],
       textureResources: [textureResource(false)],
       samplerResources: [samplerResource(false)],
+      lightGpuBufferResources: [lightGpuResource(false)],
       viewUniformResources: [viewResource(false)],
       shaderResources: [shaderResource(false)],
       pipelines: [pipelineFailure()],
@@ -56,9 +71,10 @@ describe("renderer resource summary report", () => {
       materialBuffers: 0,
       textures: 0,
       samplers: 0,
+      lightGpuBuffers: 0,
       viewUniformBuffers: 0,
       shaderModules: 0,
-      warnings: 5,
+      warnings: 6,
       errors: 2,
     });
     expect(report.diagnostics.map((diagnostic) => diagnostic.code)).toEqual([
@@ -66,6 +82,7 @@ describe("renderer resource summary report", () => {
       "unlitMaterialGpuBuffer.creationFailed",
       "textureResource.textureCreationFailed",
       "samplerResource.samplerCreationFailed",
+      "lightGpuBuffer.creationFailed",
       "viewUniformGpuBuffer.creationFailed",
       "shaderResource.creationFailed",
       "pipelineCacheIntegration.pipelineCreationFailed",
@@ -132,6 +149,9 @@ describe("renderer resource summary report", () => {
         materialBuffers: 0,
         textures: 0,
         samplers: 0,
+        lightBuffers: 0,
+        lightGpuBuffers: 0,
+        environmentMaps: 0,
         viewUniformBuffers: 0,
         shaderModules: 0,
         pipelineHits: 0,
@@ -143,6 +163,16 @@ describe("renderer resource summary report", () => {
     });
   });
 });
+
+function environment(environmentId: number) {
+  return {
+    environmentId,
+    handle: createEnvironmentMapHandle("studio"),
+    color: [1, 1, 1, 1],
+    intensity: 1,
+    layerMask: 1,
+  };
+}
 
 function meshResource(valid: boolean): CreateMeshGpuBuffersResult {
   return valid
@@ -239,6 +269,57 @@ function samplerResource(valid: boolean): CreateSamplerGpuResourceResult {
           },
         ],
       };
+}
+
+function lightGpuResource(valid: boolean): CreateLightGpuBuffersResult {
+  if (!valid) {
+    return {
+      valid: false,
+      resource: null,
+      diagnostics: [
+        {
+          code: "lightGpuBuffer.creationFailed",
+          message: "failed",
+          resourceKey: "light-buffer:failed/floats",
+        },
+      ],
+    };
+  }
+
+  const plan = createLightBufferDescriptorPlan(
+    createLightBufferDescriptor([environmentLight()]),
+  ).plan;
+
+  if (plan === null) {
+    throw new Error("Expected light buffer descriptor plan.");
+  }
+
+  return createLightGpuBuffers({
+    device: lightBufferDevice(),
+    plan,
+  });
+}
+
+function lightBufferDevice(): WebGpuBufferDeviceLike {
+  return {
+    queue: { writeBuffer: () => {} },
+    createBuffer: (descriptor) => ({ descriptor }),
+  };
+}
+
+function environmentLight(): LightPacket {
+  return {
+    lightId: 1,
+    entity: { index: 1, generation: 0 },
+    kind: "directional" as const,
+    color: [1, 1, 1, 1],
+    intensity: 1,
+    range: 0,
+    innerConeAngle: 0,
+    outerConeAngle: 0,
+    worldTransformOffset: 0,
+    layerMask: 1,
+  };
 }
 
 function viewResource(valid: boolean): CreateViewUniformGpuBufferResult {

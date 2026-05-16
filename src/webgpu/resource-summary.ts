@@ -1,5 +1,10 @@
 import type { CreateMeshGpuBuffersResult } from "./mesh-buffer-resources.js";
 import type { GetOrCreateRenderPipelineResult } from "./pipeline-cache-integration.js";
+import type { EnvironmentResourcePlan } from "./environment-resource-planning.js";
+import type {
+  CreateLightGpuBuffersResult,
+  LightBufferDescriptor,
+} from "./light-packing.js";
 import type { CreateShaderModuleResourceResult } from "./shader-resource.js";
 import type {
   CreateSamplerGpuResourceResult,
@@ -24,6 +29,9 @@ export interface RenderResourceSummaryCounts {
   readonly materialBuffers: number;
   readonly textures: number;
   readonly samplers: number;
+  readonly lightBuffers: number;
+  readonly lightGpuBuffers: number;
+  readonly environmentMaps: number;
   readonly viewUniformBuffers: number;
   readonly shaderModules: number;
   readonly pipelineHits: number;
@@ -37,6 +45,9 @@ export interface RenderResourceSummaryInput {
   readonly materialResources: readonly CreateUnlitMaterialGpuBufferResult[];
   readonly textureResources?: readonly CreateTextureGpuResourceResult[];
   readonly samplerResources?: readonly CreateSamplerGpuResourceResult[];
+  readonly lightBuffers?: readonly LightBufferDescriptor[];
+  readonly lightGpuBufferResources?: readonly CreateLightGpuBuffersResult[];
+  readonly environmentResources?: readonly EnvironmentResourcePlan[];
   readonly viewUniformResources: readonly CreateViewUniformGpuBufferResult[];
   readonly shaderResources: readonly CreateShaderModuleResourceResult[];
   readonly pipelines: readonly GetOrCreateRenderPipelineResult[];
@@ -96,6 +107,14 @@ export function createRenderResourceSummaryReport(
     );
   }
 
+  for (const result of input.lightGpuBufferResources ?? []) {
+    diagnostics.push(
+      ...result.diagnostics.map((diagnostic) =>
+        resourceDiagnostic(diagnostic, "warning"),
+      ),
+    );
+  }
+
   for (const result of input.viewUniformResources) {
     diagnostics.push(
       ...result.diagnostics.map((diagnostic) =>
@@ -142,6 +161,14 @@ export function createRenderResourceSummaryReport(
         .length,
       samplers: (input.samplerResources ?? []).filter((result) => result.valid)
         .length,
+      lightBuffers: input.lightBuffers?.length ?? 0,
+      lightGpuBuffers: (input.lightGpuBufferResources ?? []).filter(
+        (result) => result.valid,
+      ).length,
+      environmentMaps: (input.environmentResources ?? []).reduce(
+        (sum, plan) => sum + plan.requirements.length,
+        0,
+      ),
       viewUniformBuffers: input.viewUniformResources.filter(
         (result) => result.valid,
       ).length,
@@ -205,6 +232,9 @@ export function mergeRenderResourceSummaryReports(
       materialBuffers: sum(reports, (report) => report.counts.materialBuffers),
       textures: sum(reports, (report) => report.counts.textures),
       samplers: sum(reports, (report) => report.counts.samplers),
+      lightBuffers: sum(reports, (report) => report.counts.lightBuffers),
+      lightGpuBuffers: sum(reports, (report) => report.counts.lightGpuBuffers),
+      environmentMaps: sum(reports, (report) => report.counts.environmentMaps),
       viewUniformBuffers: sum(
         reports,
         (report) => report.counts.viewUniformBuffers,

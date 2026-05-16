@@ -132,15 +132,34 @@ These are semantic app-facing components. They should not contain WebGPU-specifi
 Light and environment authoring follow the same ECS-owned rule as mesh and
 camera authoring. Ambient and environment inputs are global and can be extracted
 without a `WorldTransform`: ambient authoring emits a `LightPacket`, while
-environment authoring emits an `EnvironmentPacket`. Directional, point, and spot
-lights require `WorldTransform` because extraction derives their render-facing
-position and orientation from ECS transform data; missing transforms should
-produce diagnostics instead of renderer-owned fallback state.
+environment authoring emits an `EnvironmentPacket`. ECS environment authoring may
+store only a stable environment-map asset handle; renderer-owned texture views,
+samplers, bind groups, skybox state, and shader consumption remain outside ECS.
+Extraction validates authored environment-map handle readiness and copies the
+handle into `EnvironmentPacket.handle` when ready, or emits diagnostics and omits
+only the invalid environment packet. Directional, point, and spot lights require
+`WorldTransform` because extraction derives their render-facing position and
+orientation from ECS transform data; missing transforms should produce
+diagnostics instead of renderer-owned fallback state.
 
 Shadow settings are also ECS-owned authoring data. Extraction may emit a flat
 `ShadowRequestPacket` for supported lights or diagnostics for unsupported
 requests, but shadow maps, shadow cameras, atlases, passes, and GPU resources
 remain renderer-owned future work and must not be stored on ECS components.
+
+Renderer-side light/environment resource preparation is derived from extracted
+packets, not ECS. Light packet packing may produce typed arrays and buffer
+descriptors from `LightPacket`s, and environment planning may produce stable
+resource keys from `EnvironmentPacket.handle`. Actual light GPU buffers are
+created only on the renderer side from descriptor plans with an injected WebGPU
+device, and summary reports count them separately from planned light buffers.
+Environment texture binding, light bind groups, shader lighting consumption,
+skybox passes, shader IBL consumption, and shadow maps remain deferred
+renderer-owned work.
+Snapshot-level lighting resource plans are therefore inspection/readiness data:
+they can summarize planned light-buffer bytes and environment-map requirements
+from a `RenderSnapshot`, but they do not make ECS own GPU resources and do not
+mean lighting shaders, skybox rendering, IBL, or shadow rendering are active.
 
 ## Assets and Handles
 

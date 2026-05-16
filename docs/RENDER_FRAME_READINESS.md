@@ -110,6 +110,37 @@ Diagnostics are emitted per affected renderable, not only per shared asset. If t
 
 For one texture-backed material, extraction validates the texture dependency before the sampler dependency. When both are unavailable, diagnostics preserve that texture-then-sampler order for each affected renderable so reports remain deterministic and easy to compare.
 
+## Environment-Map Dependency Diagnostics
+
+Environment-map handles follow the same extraction-before-renderer-resource
+boundary. ECS light authoring may store a stable `environment-map:*` handle, but
+WebGPU texture views, samplers, bind groups, skybox passes, prefiltered radiance
+maps, and IBL shader consumption remain renderer-owned future work.
+
+Renderer-side light/environment planning now starts after extraction. Light
+packet packing consumes `LightPacket[]` or `RenderSnapshot.lights` and produces
+typed arrays plus a light-buffer descriptor. A separate renderer-side helper can
+turn a non-empty descriptor plan into float and metadata WebGPU buffers with an
+injected device; that helper still does not read ECS, update bind groups, or
+imply shader lighting is active. Environment resource planning consumes
+`EnvironmentPacket[]` or
+`RenderSnapshot.environments` and reports stable environment-map resource keys
+for non-null handles; null handles remain valid no-op environment inputs.
+`planSnapshotLightingResources` composes those derived plans from a full
+`RenderSnapshot`, and its JSON helper exposes light counts/byte lengths plus
+environment-map resource keys without serializing typed-array payloads or raw
+handles. Renderer resource summaries may count planned light buffers and
+created light GPU buffer resources separately, alongside environment-map
+requirements, but those counts are planning/readiness data, not WebGPU resource
+ownership by ECS. Light bind groups, shader consumption, shadows, skyboxes, and
+IBL remain outside the current unlit frame path.
+
+When an environment light references a missing, loading, or failed
+environment-map asset, extraction emits `render.environment.*` diagnostics with
+the stable asset key and omits only that `EnvironmentPacket`. Unrelated mesh
+draw extraction and unlit draw submission can still proceed because no renderer
+environment texture resource is required for the current unlit path.
+
 Test-only fixture chain:
 
 - `createInjectedRenderFrameSmokeFixture` delegates to `runInjectedRenderFrame` to provide one end-to-end smoke fixture for runner tests.

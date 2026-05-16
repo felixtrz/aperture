@@ -173,6 +173,30 @@ Current checks:
   without a `WorldTransform`, and verifies the submitted browser status reports
   one extracted environment packet and zero light packets without extraction
   diagnostics.
+- Missing environment-map smoke: loads the multi-entity page with
+  `?scenario=missing-environment-map`, authors an ECS environment light with an
+  unregistered environment-map handle, and verifies browser status reports
+  `render.environment.missing`, zero extracted environment packets, and an
+  otherwise submitted unlit mesh frame.
+- Loading environment-map smoke: loads the multi-entity page with
+  `?scenario=loading-environment-map`, authors an ECS environment light with a
+  loading environment-map handle, and verifies browser status reports
+  `render.environment.loading`, zero extracted environment packets, and an
+  otherwise submitted unlit mesh frame.
+- Failed environment-map smoke: loads the multi-entity page with
+  `?scenario=failed-environment-map`, authors an ECS environment light with a
+  failed environment-map handle, and verifies browser status reports
+  `render.environment.failed`, zero extracted environment packets, and an
+  otherwise submitted unlit mesh frame.
+- Malformed environment-map smoke: loads the multi-entity page with
+  `?scenario=malformed-environment-map`, authors a raw malformed
+  `environmentMapId`, and verifies browser status reports
+  `render.environment.invalidHandle`, zero extracted environment packets, and an
+  otherwise submitted unlit mesh frame.
+- Environment-map handle smoke: loads the multi-entity page with
+  `?scenario=environment-map-handle`, authors an ECS environment light with a
+  ready environment-map handle, and verifies browser status reports the
+  extracted `EnvironmentPacket.handle` key while the unlit mesh frame submits.
 - Point light extraction smoke: loads the multi-entity page with
   `?scenario=point-light-extraction`, authors an ECS point light, and verifies
   submitted browser status reports extracted intensity and range packet fields.
@@ -347,21 +371,21 @@ failure helper while preserving their fixture-specific render-world summaries.
 Route smoke specs cover broad scenario families without duplicating pixel,
 readback, or detailed diagnostic-body assertions:
 
-| Route guard spec                                | Scenario family                                                                            | Guard scope                                                                               | Detailed specs                                                                                  |
-| ----------------------------------------------- | ------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
-| `test/e2e/primitive-routing.spec.ts`            | Built-in primitive routes                                                                  | Submitted frame plus matching `geometry.primitive` status                                 | Individual primitive pixel/readback specs                                                       |
-| `test/e2e/camera-routing.spec.ts`               | Perspective and orthographic camera routes                                                 | Submitted frame plus camera projection status                                             | `perspective-fov-camera.spec.ts`, `orthographic-camera.spec.ts`                                 |
-| `test/e2e/lighting-routing.spec.ts`             | Directional, ambient, environment, point, and spot light extraction plus light diagnostics | Submitted frame plus extracted light counts, range/cone fields, or stable diagnostics     | Core render extraction light packet tests                                                       |
-| `test/e2e/visibility-routing.spec.ts`           | Visibility, layer filtering, ordering, and depth routes                                    | Submitted frame plus representative route status fields                                   | `render-layer-filter.spec.ts`, `disabled-visible-peer.spec.ts`, ordering/depth pixel specs      |
-| `test/e2e/texture-routing.spec.ts`              | Successful texture, sampler, shared texture, and mixed pipeline routes                     | Submitted frame plus representative texture, sampler, pipeline, or material status fields | Texture, sampler, tint, multi-textured, shared-texture, and mixed-pipeline readback specs       |
-| `test/e2e/extraction-routing.spec.ts`           | Layer mismatch, disabled, missing asset, and mesh/material asset states                    | `phase: "extract"`, scenario/reason identity, extraction counts, and zero draw submission | Focused extraction-failure specs such as layer, disabled, missing asset, and asset-status specs |
-| `test/e2e/texture-dependency-routing.spec.ts`   | Single texture/sampler dependency states and multi-textured missing assets                 | `phase: "extract"`, expected diagnostic code summary, extraction counts, and zero submits | `texture-dependency-asset-status.spec.ts` and multi-textured asset failure specs                |
-| `test/e2e/shared-texture-asset-routing.spec.ts` | Shared texture asset failure routes                                                        | `phase: "extract"`, route status shape, extraction counts, and zero draw submission       | Shared texture sections in `multi-textured-unlit.spec.ts`                                       |
-| `test/e2e/shared-sampler-asset-routing.spec.ts` | Shared sampler asset failure routes                                                        | `phase: "extract"`, route status shape, extraction counts, and zero draw submission       | Shared sampler sections in `multi-textured-unlit.spec.ts`                                       |
-| `test/e2e/resource-binding-routing.spec.ts`     | Missing renderer-side mesh/material resource routes                                        | `phase: "resource-bindings"`, route identity, count summary, and zero draw submission     | `missing-resource.spec.ts` and `missing-mesh-resource.spec.ts`                                  |
-| `test/e2e/texture-resource-routing.spec.ts`     | Missing texture/sampler GPU resource routes                                                | `phase: "resources"`, diagnostic code counts, resource count summary, and zero submission | `missing-texture-resource.spec.ts` owns resource-key and diagnostic-order assertions            |
-| `test/e2e/texture-upload-routing.spec.ts`       | Invalid texture upload routes                                                              | `phase: "resources"`, upload diagnostic code, resource count summary, and zero submission | `invalid-texture-upload.spec.ts`                                                                |
-| `test/e2e/scenario-routing.spec.ts`             | Unsupported multi-entity scenario query values                                             | `phase: "scenario"`, unknown-scenario reason, zero diagnostic counts, and zero submission | `unknown-scenario.spec.ts` owns detailed available-scenario assertions                          |
+| Route guard spec                                | Scenario family                                                                                 | Guard scope                                                                                                    | Detailed specs                                                                                  |
+| ----------------------------------------------- | ----------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| `test/e2e/primitive-routing.spec.ts`            | Built-in primitive routes                                                                       | Submitted frame plus matching `geometry.primitive` status                                                      | Individual primitive pixel/readback specs                                                       |
+| `test/e2e/camera-routing.spec.ts`               | Perspective and orthographic camera routes                                                      | Submitted frame plus camera projection status                                                                  | `perspective-fov-camera.spec.ts`, `orthographic-camera.spec.ts`                                 |
+| `test/e2e/lighting-routing.spec.ts`             | Directional, ambient, environment, environment-map, point, and spot extraction plus diagnostics | Submitted frame plus extracted light counts, environment handle keys, range/cone fields, or stable diagnostics | Core render extraction light and environment packet tests                                       |
+| `test/e2e/visibility-routing.spec.ts`           | Visibility, layer filtering, ordering, and depth routes                                         | Submitted frame plus representative route status fields                                                        | `render-layer-filter.spec.ts`, `disabled-visible-peer.spec.ts`, ordering/depth pixel specs      |
+| `test/e2e/texture-routing.spec.ts`              | Successful texture, sampler, shared texture, and mixed pipeline routes                          | Submitted frame plus representative texture, sampler, pipeline, or material status fields                      | Texture, sampler, tint, multi-textured, shared-texture, and mixed-pipeline readback specs       |
+| `test/e2e/extraction-routing.spec.ts`           | Layer mismatch, disabled, missing asset, and mesh/material asset states                         | `phase: "extract"`, scenario/reason identity, extraction counts, and zero draw submission                      | Focused extraction-failure specs such as layer, disabled, missing asset, and asset-status specs |
+| `test/e2e/texture-dependency-routing.spec.ts`   | Single texture/sampler dependency states and multi-textured missing assets                      | `phase: "extract"`, expected diagnostic code summary, extraction counts, and zero submits                      | `texture-dependency-asset-status.spec.ts` and multi-textured asset failure specs                |
+| `test/e2e/shared-texture-asset-routing.spec.ts` | Shared texture asset failure routes                                                             | `phase: "extract"`, route status shape, extraction counts, and zero draw submission                            | Shared texture sections in `multi-textured-unlit.spec.ts`                                       |
+| `test/e2e/shared-sampler-asset-routing.spec.ts` | Shared sampler asset failure routes                                                             | `phase: "extract"`, route status shape, extraction counts, and zero draw submission                            | Shared sampler sections in `multi-textured-unlit.spec.ts`                                       |
+| `test/e2e/resource-binding-routing.spec.ts`     | Missing renderer-side mesh/material resource routes                                             | `phase: "resource-bindings"`, route identity, count summary, and zero draw submission                          | `missing-resource.spec.ts` and `missing-mesh-resource.spec.ts`                                  |
+| `test/e2e/texture-resource-routing.spec.ts`     | Missing texture/sampler GPU resource routes                                                     | `phase: "resources"`, diagnostic code counts, resource count summary, and zero submission                      | `missing-texture-resource.spec.ts` owns resource-key and diagnostic-order assertions            |
+| `test/e2e/texture-upload-routing.spec.ts`       | Invalid texture upload routes                                                                   | `phase: "resources"`, upload diagnostic code, resource count summary, and zero submission                      | `invalid-texture-upload.spec.ts`                                                                |
+| `test/e2e/scenario-routing.spec.ts`             | Unsupported multi-entity scenario query values                                                  | `phase: "scenario"`, unknown-scenario reason, zero diagnostic counts, and zero submission                      | `unknown-scenario.spec.ts` owns detailed available-scenario assertions                          |
 
 Extraction failure statuses include `diagnosticCounts` with non-zero extraction
 counts and zero downstream resource, binding, draw, submission, and readback
@@ -634,11 +658,17 @@ when that path exists.
 
 Ambient and environment lights are global authoring data and may be authored
 without `WorldTransform`. Ambient authoring emits a `LightPacket`; environment
-authoring emits an `EnvironmentPacket` with `handle: null` until environment-map
-asset binding is added. Directional, point, and spot lights require
-`WorldTransform` so extraction can derive position and orientation; if it is
-missing, browser status should report `render.lightMissingTransform` and omit
-the light packet.
+authoring emits an `EnvironmentPacket` with `handle: null` when no environment
+map is authored, or with a stable `environment-map:*` handle when the asset is
+ready. Missing, loading, failed, or malformed environment-map handles remain
+extraction diagnostics such as `render.environment.missing`; they omit only the
+invalid environment packet and do not block unrelated mesh submission.
+Environment texture GPU binding, shader IBL/skybox consumption, prefiltered
+radiance maps, and related renderer resources remain deferred renderer-owned
+work.
+Directional, point, and spot lights require `WorldTransform` so extraction can
+derive position and orientation; if it is missing, browser status should report
+`render.lightMissingTransform` and omit the light packet.
 
 Shadow settings are ECS authoring data. Browser status may report extracted
 `shadowRequests` or unsupported-shadow diagnostics, but shadow maps, shadow

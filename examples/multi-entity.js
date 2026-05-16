@@ -54,6 +54,11 @@ const knownScenarioIds = [
   "directional-light-extraction",
   "ambient-light-extraction",
   "environment-light-extraction",
+  "missing-environment-map",
+  "loading-environment-map",
+  "failed-environment-map",
+  "malformed-environment-map",
+  "environment-map-handle",
   "point-light-extraction",
   "spot-light-extraction",
   "missing-light-transform",
@@ -176,6 +181,17 @@ const scenarioRenderers = {
   "directional-light-extraction": renderWorldScene(createDirectionalLightWorld),
   "ambient-light-extraction": renderWorldScene(createAmbientLightWorld),
   "environment-light-extraction": renderWorldScene(createEnvironmentLightWorld),
+  "missing-environment-map": renderWorldScene(createMissingEnvironmentMapWorld),
+  "loading-environment-map": renderWorldScene((aperture, canvasSize) =>
+    createEnvironmentMapAssetStatusWorld(aperture, canvasSize, "loading"),
+  ),
+  "failed-environment-map": renderWorldScene((aperture, canvasSize) =>
+    createEnvironmentMapAssetStatusWorld(aperture, canvasSize, "failed"),
+  ),
+  "malformed-environment-map": renderWorldScene(
+    createMalformedEnvironmentMapWorld,
+  ),
+  "environment-map-handle": renderWorldScene(createEnvironmentMapHandleWorld),
   "point-light-extraction": renderWorldScene(createPointLightWorld),
   "spot-light-extraction": renderWorldScene(createSpotLightWorld),
   "missing-light-transform": renderWorldScene(createMissingLightTransformWorld),
@@ -620,6 +636,10 @@ async function renderMultiEntityScene(
     };
   }
 
+  const lightingResources = aperture.snapshotLightingResourcePlanToJsonValue(
+    aperture.planSnapshotLightingResources(snapshot),
+  );
+
   return {
     ...baseStatus,
     ok: true,
@@ -635,6 +655,7 @@ async function renderMultiEntityScene(
       samplers: textureResources.samplers.length,
       bindGroups: bindGroups.length,
     },
+    lightingResources,
     binding: {
       planned: bindingPlan.bindings.length,
       applied: bindingResults.filter((result) => result.ok).length,
@@ -2984,6 +3005,128 @@ function createEnvironmentLightWorld(aperture, canvasSize) {
   };
 }
 
+function createMissingEnvironmentMapWorld(aperture, canvasSize) {
+  const scene = createEnvironmentLightWorld(aperture, canvasSize);
+  const environmentMap = aperture.createEnvironmentMapHandle("missing-studio");
+  const lightEntity = scene.lightEntity;
+
+  lightEntity.removeComponent(aperture.Light);
+  lightEntity.addComponent(
+    aperture.Light,
+    aperture.createLight({
+      kind: aperture.LightKind.Environment,
+      color: [0.6, 0.72, 1, 1],
+      intensity: 0.5,
+      layerMask: 1,
+      environmentMap,
+    }),
+  );
+
+  return {
+    ...scene,
+    environment: {
+      ...scene.environment,
+      expectedDiagnostics: ["render.environment.missing"],
+      expectedHandleKey: aperture.assetHandleKey(environmentMap),
+    },
+  };
+}
+
+function createEnvironmentMapHandleWorld(aperture, canvasSize) {
+  const scene = createEnvironmentLightWorld(aperture, canvasSize);
+  const environmentMap = aperture.createEnvironmentMapHandle("studio-ready");
+  const lightEntity = scene.lightEntity;
+
+  scene.assets.register(environmentMap);
+  scene.assets.markReady(environmentMap, {
+    label: "Ready studio environment map",
+  });
+  lightEntity.removeComponent(aperture.Light);
+  lightEntity.addComponent(
+    aperture.Light,
+    aperture.createLight({
+      kind: aperture.LightKind.Environment,
+      color: [0.6, 0.72, 1, 1],
+      intensity: 0.5,
+      layerMask: 1,
+      environmentMap,
+    }),
+  );
+
+  return {
+    ...scene,
+    environment: {
+      ...scene.environment,
+      expectedHandleKey: aperture.assetHandleKey(environmentMap),
+    },
+  };
+}
+
+function createEnvironmentMapAssetStatusWorld(
+  aperture,
+  canvasSize,
+  assetStatus,
+) {
+  const scene = createEnvironmentLightWorld(aperture, canvasSize);
+  const environmentMap = aperture.createEnvironmentMapHandle(
+    `${assetStatus}-studio`,
+  );
+  const lightEntity = scene.lightEntity;
+
+  scene.assets.register(environmentMap);
+
+  if (assetStatus === "loading") {
+    scene.assets.markLoading(environmentMap);
+  } else {
+    scene.assets.markFailed(environmentMap, [
+      {
+        code: "environment.failed",
+        message: "Environment map intentionally failed for browser routing.",
+        severity: "error",
+      },
+    ]);
+  }
+
+  lightEntity.removeComponent(aperture.Light);
+  lightEntity.addComponent(
+    aperture.Light,
+    aperture.createLight({
+      kind: aperture.LightKind.Environment,
+      color: [0.6, 0.72, 1, 1],
+      intensity: 0.5,
+      layerMask: 1,
+      environmentMap,
+    }),
+  );
+
+  return {
+    ...scene,
+    environment: {
+      ...scene.environment,
+      expectedDiagnostics: [`render.environment.${assetStatus}`],
+      expectedHandleKey: aperture.assetHandleKey(environmentMap),
+    },
+  };
+}
+
+function createMalformedEnvironmentMapWorld(aperture, canvasSize) {
+  const scene = createEnvironmentLightWorld(aperture, canvasSize);
+
+  scene.lightEntity.setValue(
+    aperture.Light,
+    "environmentMapId",
+    "texture:not-an-environment-map",
+  );
+
+  return {
+    ...scene,
+    environment: {
+      ...scene.environment,
+      expectedDiagnostics: ["render.environment.invalidHandle"],
+    },
+  };
+}
+
 function createSpotLightWorld(aperture, canvasSize) {
   const scene = createDirectionalLightWorld(aperture, canvasSize);
   const lightEntity = scene.lightEntity;
@@ -5078,8 +5221,19 @@ function environmentStatus(scene, snapshot) {
       (environment) => environment.layerMask,
     ),
     handles: snapshot.environments.map((environment) => environment.handle),
+    handleKeys: snapshot.environments.map((environment) =>
+      environment.handle === null
+        ? null
+        : `${environment.handle.kind}:${environment.handle.id}`,
+    ),
     expectedDiagnostics: scene.environment.expectedDiagnostics ?? [],
     diagnostics: diagnosticCodes(snapshot.diagnostics),
+    diagnosticAssetKeys: snapshot.diagnostics
+      .filter((diagnostic) => diagnostic.code.startsWith("render.environment."))
+      .map((diagnostic) => diagnostic.assetKey ?? null),
+    ...(scene.environment.expectedHandleKey === undefined
+      ? {}
+      : { expectedHandleKey: scene.environment.expectedHandleKey }),
     ...(scene.environment.transformless === undefined
       ? {}
       : { transformless: scene.environment.transformless }),
