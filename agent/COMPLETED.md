@@ -2322,3 +2322,168 @@ Summary:
 - Tests assert extraction, apply, binding, transform, readiness, package, descriptor, draw-list, frame execution, and summary counts.
 - Tests cover skipped invalid renderable diagnostics and submit failure while keeping production WebGPU code free of ECS queries.
 - Validation run: targeted ECS snapshot fixture tests, `npm run build`, `npm run lint`, `npm test`, and `npm run format:check` all pass.
+
+## task-0212 — Add built-in primitive geometry browser readback coverage
+
+Completed: 2026-05-16
+
+Summary:
+
+- Updated the multi-entity browser example to use Aperture's built-in `createPlaneMeshAsset` instead of inline triangle vertex data.
+- Status now reports primitive geometry metadata and diagnostic counts across extraction, resources, draw planning, submission, and readback.
+- Playwright asserts the primitive path and verifies rendered pixels through GPU readback.
+- Validation run: `npm run build`, `npm run check`, and full `npm run test:e2e -- --reporter=line` pass.
+
+## task-0213 — Add unlit material variant browser readback coverage
+
+Completed: 2026-05-16
+
+Summary:
+
+- Expanded the multi-entity scene to render three visible unlit material variants: red, green, and blue.
+- Status reports three materials, five bind groups, three extracted draws, three ready render-world objects, and nine readback sample points.
+- Playwright verifies each visible material color with readback tolerances and keeps screenshot fallback diagnostics.
+- Validation run: `npm run build`, `npm run check`, and full `npm run test:e2e -- --reporter=line` pass.
+
+## task-0214 — Add visibility and layer browser readback coverage
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added a fourth ECS-authored primitive renderable with a magenta material and `Visibility.visible = false`.
+- Status reports four authored renderables, three extracted draws, one skipped renderable, and the JSON-safe `render.invisible` diagnostic.
+- Playwright verifies the hidden magenta material is absent from readback samples while the visible colors still render.
+- Validation run: `npm run build`, `npm run check`, and full `npm run test:e2e -- --reporter=line` pass.
+
+## task-0215 — Add missing-resource browser diagnostic smoke
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added `?scenario=missing-resource` to the multi-entity browser page.
+- The scenario extracts a valid ECS renderable, intentionally withholds the renderer-side material resource binding, reports binding/readiness diagnostics, and submits no draws.
+- Added Playwright coverage for `renderFrameSnapshotBinding.missingMaterialResource` and `renderWorld.missingMaterialResource` JSON-safe payloads.
+- Validation run: `npm run build`, `npm run check`, and full `npm run test:e2e -- --reporter=line` pass.
+
+## task-0218 — Add layer-mismatch browser diagnostic scenario
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added `?scenario=layer-mismatch` to the multi-entity browser page.
+- The scenario authors a renderable on a layer outside the camera mask, reports `render.layerMismatch`, and performs no resource binding or draw submission.
+- Added Playwright coverage for the layer-filtering status payload and zero-submission counts.
+- Validation run: `npm run build`, `npm run check`, and full `npm run test:e2e -- --reporter=line` pass.
+
+## task-0219 — Add missing ECS mesh asset browser diagnostic scenario
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added `?scenario=missing-mesh-asset` to the multi-entity browser page.
+- The scenario authors a renderable with an unavailable mesh asset handle, reports `render.missingMeshHandle`, and performs no resource binding or draw submission.
+- Added Playwright coverage for the extraction failure status payload and zero-submission counts.
+- Validation run: `npm run build`, `npm run check`, and full `npm run test:e2e -- --reporter=line` pass.
+
+## task-0220 — Add box primitive browser readback coverage
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added `?scenario=box-primitive` to render a built-in `createBoxMeshAsset` through ECS extraction and WebGPU submission.
+- Status reports box geometry metadata with 24 vertices, 36 indices, resource counts, draw counts, and readback diagnostics.
+- Added Playwright readback coverage for the center box pixel.
+- Validation run: `npm run build`, `npm run check`, and full `npm run test:e2e -- --reporter=line` pass.
+
+## task-0221 — Add orthographic camera browser readback coverage
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added `?scenario=orthographic-camera` with an ECS-authored orthographic `Camera`.
+- Status reports camera projection details plus geometry/resource/draw/readback data.
+- Added Playwright readback coverage for the orthographic primitive center pixel.
+- Validation run: `npm run build`, `npm run check`, and full `npm run test:e2e -- --reporter=line` pass.
+
+## task-0222 — Add render-order overlap browser coverage
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added `?scenario=render-order-overlap` with two overlapping primitive planes and explicit `RenderOrder` values.
+- Status reports render-order metadata and the expected top material.
+- Added Playwright readback coverage for the overlap center pixel.
+- Validation run: `npm run build`, `npm run check`, and full `npm run test:e2e -- --reporter=line` pass.
+
+## task-0223 — Add missing mesh resource-binding smoke
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added `?scenario=missing-mesh-resource`.
+- The scenario extracts a valid ECS renderable, intentionally withholds the renderer-side mesh resource binding, reports binding/readiness diagnostics, and submits no draws.
+- Added Playwright coverage for `renderFrameSnapshotBinding.missingMeshResource` and `renderWorld.missingMeshResource` JSON-safe payloads.
+- Validation run: `npm run build`, `npm run check`, and full `npm run test:e2e -- --reporter=line` pass.
+
+## task-0224 — Add missing ECS material asset smoke
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added `?scenario=missing-material-asset`.
+- The scenario authors a ready mesh with an unavailable material asset handle, reports `render.missingMaterialHandle`, and submits no draws.
+- Added Playwright coverage for the extraction failure status payload and zero-submission counts.
+- Validation run: `npm run build`, `npm run check`, and full `npm run test:e2e -- --reporter=line` pass.
+
+## task-0225 — Add unknown browser scenario diagnostic
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added explicit unknown-scenario handling for unsupported multi-entity query modes.
+- Status reports `phase: "scenario"`, `reason: "unknown-scenario"`, accepted scenario ids, and zero extraction/resource/draw/submission counts.
+- Added Playwright coverage for the unknown scenario payload.
+- Validation run: `npm run build`, `npm run check`, and full `npm run test:e2e -- --reporter=line` pass.
+
+## task-0226 — Add loading and failed mesh asset browser diagnostics
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added `?scenario=loading-mesh-asset` and `?scenario=failed-mesh-asset`.
+- The scenarios author renderables with loading/failed mesh asset registry states, report `render.mesh.loading` / `render.mesh.failed`, and submit no draws.
+- Added Playwright coverage for both asset-state payloads.
+- Validation run: `npm run build`, `npm run check`, and full `npm run test:e2e -- --reporter=line` pass.
+
+## task-0227 — Add loading and failed material asset browser diagnostics
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added `?scenario=loading-material-asset` and `?scenario=failed-material-asset`.
+- The scenarios author renderables with loading/failed material asset registry states, report `render.material.loading` / `render.material.failed`, and submit no draws.
+- Added Playwright coverage for both asset-state payloads.
+- Validation run: `npm run build`, `npm run check`, and full `npm run test:e2e -- --reporter=line` pass.
+
+## task-0232 — Add disabled renderable browser diagnostic scenario
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added `?scenario=disabled-renderable`.
+- The scenario authors a ready renderable with `Enabled.value = false`, reports `render.disabled`, and submits no draws.
+- Added Playwright coverage for the disabled-renderable extraction payload and zero-submission counts.
+- Validation run: `npm run build`, `npm run check`, and full `npm run test:e2e -- --reporter=line` pass.

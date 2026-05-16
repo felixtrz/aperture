@@ -16,17 +16,22 @@ import {
 } from "./webgpu-status.js";
 
 const redMaterial: RgbaColor = { r: 1, g: 0.16, b: 0.06, a: 1 };
+const greenMaterial: RgbaColor = { r: 0.1, g: 0.9, b: 0.24, a: 1 };
 const blueMaterial: RgbaColor = { r: 0.05, g: 0.48, b: 1, a: 1 };
+const hiddenMaterial: RgbaColor = { r: 1, g: 0, b: 1, a: 1 };
 const regionSamplePoints = [
-  { x: 0.36, y: 0.48 },
-  { x: 0.39, y: 0.5 },
-  { x: 0.42, y: 0.52 },
-  { x: 0.58, y: 0.48 },
-  { x: 0.61, y: 0.5 },
-  { x: 0.64, y: 0.52 },
+  { x: 0.31, y: 0.48 },
+  { x: 0.34, y: 0.5 },
+  { x: 0.37, y: 0.52 },
+  { x: 0.48, y: 0.48 },
+  { x: 0.5, y: 0.5 },
+  { x: 0.52, y: 0.52 },
+  { x: 0.63, y: 0.48 },
+  { x: 0.66, y: 0.5 },
+  { x: 0.69, y: 0.52 },
 ];
 
-test("ECS multi-entity example renders two colored regions when pixels are capturable", async ({
+test("ECS multi-entity example renders three colored regions when pixels are capturable", async ({
   page,
 }) => {
   await page.goto("/examples/multi-entity.html");
@@ -47,10 +52,23 @@ test("ECS multi-entity example renders two colored regions when pixels are captu
     ok: true,
     phase: "submit",
     renderingBackend: "webgpu",
-    extraction: { views: 1, meshDraws: 2, diagnostics: 0 },
-    binding: { applied: 2, ready: 2, diagnostics: 0 },
-    draw: { packages: 2 },
-    submission: { drawCalls: 2 },
+    extraction: { views: 1, meshDraws: 3, diagnostics: 1 },
+    resources: { materials: 3 },
+    binding: { applied: 3, ready: 3, diagnostics: 0 },
+    draw: { packages: 3 },
+    geometry: {
+      primitive: "plane",
+      vertexCount: 4,
+      indexCount: 6,
+      source: "aperture.createPlaneMeshAsset",
+    },
+    visibility: {
+      authored: 4,
+      extracted: 3,
+      skipped: 1,
+      diagnostics: ["render.invisible"],
+    },
+    submission: { drawCalls: 3 },
   });
   expect(status.clearColor, JSON.stringify(status, null, 2)).toBeDefined();
 
@@ -63,9 +81,17 @@ test("ECS multi-entity example renders two colored regions when pixels are captu
   if (status.readback?.ok) {
     const samples = status.readback.samples.map((sample) => sample.pixel);
     const redDistance = nearestDistance(samples, rgbaColorToPixel(redMaterial));
+    const greenDistance = nearestDistance(
+      samples,
+      rgbaColorToPixel(greenMaterial),
+    );
     const blueDistance = nearestDistance(
       samples,
       rgbaColorToPixel(blueMaterial),
+    );
+    const hiddenDistance = nearestDistance(
+      samples,
+      rgbaColorToPixel(hiddenMaterial),
     );
     const clearDistances = samples.map((sample) =>
       pixelDistance(sample, clearPixel),
@@ -74,7 +100,9 @@ test("ECS multi-entity example renders two colored regions when pixels are captu
     await attachExampleStatus("ecs-multi-entity-readback-samples", {
       samples: status.readback.samples,
       redDistance,
+      greenDistance,
       blueDistance,
+      hiddenDistance,
       clearDistances,
     });
 
@@ -85,17 +113,29 @@ test("ECS multi-entity example renders two colored regions when pixels are captu
       )}`,
     ).toBeLessThan(90);
     expect(
+      greenDistance,
+      `expected one GPU readback sample to match green material; samples=${JSON.stringify(
+        status.readback.samples,
+      )}`,
+    ).toBeLessThan(90);
+    expect(
       blueDistance,
       `expected one GPU readback sample to match blue material; samples=${JSON.stringify(
         status.readback.samples,
       )}`,
     ).toBeLessThan(90);
     expect(
-      clearDistances.filter((distance) => distance > 40).length,
-      `expected at least two GPU readback samples to differ from clear color; samples=${JSON.stringify(
+      hiddenDistance,
+      `expected hidden material color to be absent from GPU readback samples; samples=${JSON.stringify(
         status.readback.samples,
       )}`,
-    ).toBeGreaterThanOrEqual(2);
+    ).toBeGreaterThan(120);
+    expect(
+      clearDistances.filter((distance) => distance > 40).length,
+      `expected at least three GPU readback samples to differ from clear color; samples=${JSON.stringify(
+        status.readback.samples,
+      )}`,
+    ).toBeGreaterThanOrEqual(3);
     return;
   }
 
@@ -110,7 +150,15 @@ test("ECS multi-entity example renders two colored regions when pixels are captu
     readPngPixel(screenshot, x, y),
   );
   const redDistance = nearestDistance(samples, rgbaColorToPixel(redMaterial));
+  const greenDistance = nearestDistance(
+    samples,
+    rgbaColorToPixel(greenMaterial),
+  );
   const blueDistance = nearestDistance(samples, rgbaColorToPixel(blueMaterial));
+  const hiddenDistance = nearestDistance(
+    samples,
+    rgbaColorToPixel(hiddenMaterial),
+  );
   const clearDistances = samples.map((sample) =>
     pixelDistance(sample, clearPixel),
   );
@@ -118,13 +166,27 @@ test("ECS multi-entity example renders two colored regions when pixels are captu
   await attachExampleStatus("ecs-multi-entity-pixel-samples", {
     samples,
     redDistance,
+    greenDistance,
     blueDistance,
+    hiddenDistance,
     clearDistances,
   });
 
   expect(
     redDistance,
     `expected one sampled region to match red material; samples=${JSON.stringify(
+      samples,
+    )}`,
+  ).toBeLessThan(90);
+  expect(
+    hiddenDistance,
+    `expected hidden material color to be absent from sampled regions; samples=${JSON.stringify(
+      samples,
+    )}`,
+  ).toBeGreaterThan(120);
+  expect(
+    greenDistance,
+    `expected one sampled region to match green material; samples=${JSON.stringify(
       samples,
     )}`,
   ).toBeLessThan(90);
@@ -136,10 +198,10 @@ test("ECS multi-entity example renders two colored regions when pixels are captu
   ).toBeLessThan(90);
   expect(
     clearDistances.filter((distance) => distance > 40).length,
-    `expected at least two sampled regions to differ from clear color; samples=${JSON.stringify(
+    `expected at least three sampled regions to differ from clear color; samples=${JSON.stringify(
       samples,
     )}`,
-  ).toBeGreaterThanOrEqual(2);
+  ).toBeGreaterThanOrEqual(3);
 });
 
 function nearestDistance(

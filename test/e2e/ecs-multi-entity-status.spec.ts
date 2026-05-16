@@ -8,7 +8,7 @@ import {
   waitForExampleStatus,
 } from "./webgpu-status.js";
 
-test("ECS multi-entity example publishes two-draw frame status", async ({
+test("ECS multi-entity example publishes three-draw frame status", async ({
   page,
 }) => {
   await page.goto("/examples/multi-entity.html");
@@ -29,13 +29,37 @@ test("ECS multi-entity example publishes two-draw frame status", async ({
     ok: true,
     phase: "submit",
     renderingBackend: "webgpu",
-    extraction: { views: 1, meshDraws: 2, diagnostics: 0 },
-    resources: { materials: 2, bindGroups: 4 },
-    binding: { planned: 2, applied: 2, ready: 2, diagnostics: 0 },
-    renderWorld: { active: 2, ready: 2, blocked: 0 },
-    draw: { packages: 2, descriptors: 2, drawList: 2, resolved: 2 },
-    command: { drawCount: 2, indexedDrawCount: 2 },
-    submission: { commandBuffers: 1, drawCalls: 2, indexedDrawCalls: 2 },
+    extraction: { views: 1, meshDraws: 3, diagnostics: 1 },
+    resources: { materials: 3, bindGroups: 5 },
+    binding: { planned: 3, applied: 3, ready: 3, diagnostics: 0 },
+    renderWorld: { active: 3, ready: 3, blocked: 0 },
+    draw: { packages: 3, descriptors: 3, drawList: 3, resolved: 3 },
+    geometry: {
+      primitive: "plane",
+      meshLabel: "SharedPrimitivePlane",
+      vertexStreams: 1,
+      vertexCount: 4,
+      indexCount: 6,
+      topology: "triangle-list",
+      source: "aperture.createPlaneMeshAsset",
+    },
+    visibility: {
+      authored: 4,
+      extracted: 3,
+      skipped: 1,
+      hiddenMaterialKey: "material:hidden-magenta-plane",
+      hiddenMaterialColor: [1, 0, 1, 1],
+      diagnostics: ["render.invisible"],
+    },
+    command: { drawCount: 3, indexedDrawCount: 3 },
+    submission: { commandBuffers: 1, drawCalls: 3, indexedDrawCalls: 3 },
+    diagnosticCounts: {
+      extraction: 1,
+      resources: 0,
+      binding: 0,
+      draw: 0,
+      submission: 0,
+    },
   });
   expect(
     status.command?.commands,
@@ -45,15 +69,15 @@ test("ECS multi-entity example publishes two-draw frame status", async ({
     status.command?.commands,
   );
   expect(status.draw?.renderIds, JSON.stringify(status, null, 2)).toHaveLength(
-    2,
+    3,
   );
   expect(
     [...(status.command?.firstInstances ?? [])].sort(),
     JSON.stringify(status, null, 2),
-  ).toEqual([0, 1]);
+  ).toEqual([0, 1, 2]);
   expectSceneReadbackStatus(
     status.readback,
-    6,
+    9,
     JSON.stringify(status, null, 2),
   );
 });

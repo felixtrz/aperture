@@ -27,53 +27,75 @@ Keep implementation vertical, typed, and testable. Do not introduce a public mut
 
 ## Recommended Next Task
 
-Start with `task-0212`. Browser E2E can now verify clear, triangle, and multi-entity pixels through JSON-safe WebGPU current-texture readback in this environment, with screenshot fallback diagnostics retained. The next useful slice is to expand from custom example triangles into built-in primitive geometry coverage.
+Start with `task-0228`. Browser E2E now verifies plane and box primitive rendering, orthographic camera rendering, unlit material variants, hidden and disabled renderable skipping, layer mismatch, render-order overlap, missing renderer resource bindings, missing/failed/loading mesh and material assets, and unknown scenario diagnostics through JSON-safe status payloads. The next useful slice is to lock render sort order preservation through the draw planning stages.
 
 ## Ready Tasks
 
-### task-0212 — Add built-in primitive geometry browser readback coverage
+### task-0228 — Preserve render sort order through draw planning
 
-Add a browser verification slice that renders at least one built-in primitive mesh through the ECS/render extraction/WebGPU path and verifies it with readback.
-
-Acceptance criteria:
-
-- The example uses primitive geometry from Aperture's mesh primitives rather than ad hoc inline vertex data.
-- Browser status includes extraction, resource, draw, submission, and readback diagnostics.
-- Playwright verifies at least one non-clear primitive pixel through readback.
-- Renderer ownership boundaries remain unchanged: ECS authors handles/components; WebGPU resources stay outside ECS.
-
-### task-0213 — Add unlit material variant browser readback coverage
-
-Expand browser material verification beyond the current red/blue multi-entity sample.
+Add focused unit coverage, and a fix if needed, so render-world package sort order is preserved through draw command descriptors, draw-list records, and render pass command planning.
 
 Acceptance criteria:
 
-- A browser example or existing example renders at least three distinct unlit material color variants.
-- Status reports material/resource counts and readback samples for each visible color region.
-- Playwright verifies each material color with readback tolerances.
-- Tests still publish precise diagnostics when readback is unavailable.
+- Tests cover a case where render sort order differs from render id order.
+- Draw command descriptors, draw-list records, and render pass commands preserve the intended render order or intentionally document a different ordering decision.
+- Existing diagnostics still report missing resources with stable render ids.
+- Browser render-order overlap coverage remains passing.
 
-### task-0214 — Add visibility and layer browser readback coverage
+### task-0229 — Refactor browser diagnostic scenario status builders
 
-Add a browser verification slice for hidden or layer-filtered renderables.
-
-Acceptance criteria:
-
-- The scene includes at least one visible renderable and one hidden or layer-mismatched renderable.
-- Status reports extraction/draw counts that explain why only the visible renderable submits draw calls.
-- Readback verifies the hidden renderable's color is absent from sampled regions.
-- Diagnostics remain JSON-safe and do not expose raw WebGPU handles.
-
-### task-0215 — Add missing-resource browser diagnostic smoke
-
-Add browser coverage for an ECS-authored renderable whose mesh or material resource is intentionally unavailable.
+Reduce duplication across zero-submission browser diagnostic scenarios without changing published payload shapes.
 
 Acceptance criteria:
 
-- The example/test creates a renderable with a missing mesh or material resource without mutating renderer-owned state into ECS.
-- Status reports the failed phase and actionable resource-binding diagnostics.
-- Playwright asserts no draw submission occurs for the missing resource.
-- The failure payload remains JSON-safe.
+- Shared helpers build extraction-failure and resource-binding-failure status payloads.
+- Existing e2e diagnostics for missing resources, layer mismatch, asset states, and unknown scenarios still pass.
+- The helpers do not serialize raw WebGPU handles.
+- The example module remains easy to inspect for future scenarios.
+
+### task-0230 — Add perspective camera FOV browser readback coverage
+
+Add browser coverage for a primitive renderable viewed through a non-default perspective FOV.
+
+Acceptance criteria:
+
+- The scenario authors a perspective `Camera` with a non-default `fovYRadians`.
+- Status reports projection type, FOV, extraction counts, draw counts, and readback samples.
+- Playwright verifies a non-clear pixel through readback.
+- The renderer still consumes extracted view packets and does not query ECS directly.
+
+### task-0231 — Add mesh asset failed-diagnostic payload coverage
+
+Expand failed asset browser diagnostics to verify asset registry diagnostic payloads remain inspectable.
+
+Acceptance criteria:
+
+- Failed mesh and material asset scenarios include safe asset diagnostic details from the registry.
+- Playwright asserts the diagnostic code/message are present and JSON-safe.
+- Extraction and submission counts remain unchanged.
+- No raw asset objects or WebGPU handles are serialized.
+
+### task-0233 — Add render layer positive/negative browser scenario
+
+Add browser coverage where one renderable matches the camera layer and another renderable is skipped for a layer mismatch in the same scene.
+
+Acceptance criteria:
+
+- The scene authors two renderables with different layer masks and a camera layer mask that matches only one.
+- Status reports one extracted draw, one `render.layerMismatch` diagnostic, resource/draw/submission counts for the visible renderable, and JSON-safe skipped-layer diagnostics.
+- Readback verifies the visible color and absence of the skipped color.
+- Renderer ownership boundaries remain unchanged.
+
+### task-0234 — Add disabled renderable with visible peer browser coverage
+
+Add browser coverage where one enabled renderable draws while a disabled peer is skipped.
+
+Acceptance criteria:
+
+- The scene authors one enabled renderable and one `Enabled.value = false` renderable.
+- Status reports one extracted draw, one `render.disabled` diagnostic, and draw/submission counts for the enabled renderable.
+- Readback verifies the enabled color and absence of the disabled color.
+- The failure/diagnostic payload remains JSON-safe.
 
 ## Post-Unlit E2E Verification Targets
 

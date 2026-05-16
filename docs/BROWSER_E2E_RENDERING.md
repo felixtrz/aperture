@@ -30,9 +30,10 @@ texture, waits for submitted work when the browser exposes
 The ECS triangle and ECS multi-entity examples author entities through ECS
 components, extract render snapshots, upload WebGPU resources outside ECS, apply
 snapshots to a caller-owned `RenderWorld`, and submit WebGPU commands from
-derived draw data. GPU devices, contexts, queues, pipelines, bind groups,
-buffers, and command encoders stay in the renderer/browser path, not in ECS
-components.
+derived draw data. The multi-entity example uses Aperture's built-in plane
+primitive mesh asset rather than inline browser-only vertex data. GPU devices,
+contexts, queues, pipelines, bind groups, buffers, and command encoders stay in
+the renderer/browser path, not in ECS components.
 
 ## Local Commands
 
@@ -90,11 +91,60 @@ Current checks:
   command planning, and submission counts in a status-only smoke test, then
   verifies non-clear pixels from GPU readback when available. Screenshot pixels
   remain as a fallback.
-- ECS multi-entity example: verifies status-only two-draw execution, including
-  two extracted mesh draws, two applied bindings, two ready render-world draws,
-  two draw packages, and two submitted draw calls.
-- ECS multi-entity pixel test: verifies two distinct colored regions from GPU
-  readback when available. Screenshot pixels remain as a fallback.
+- ECS multi-entity example: verifies status-only three-draw execution from four
+  authored renderables, including one intentionally hidden renderable, three
+  extracted mesh draws, three applied bindings, three ready render-world draws,
+  three draw packages, three submitted draw calls, and built-in primitive mesh
+  metadata.
+- ECS multi-entity pixel test: verifies three distinct colored regions from GPU
+  readback when available and verifies the hidden renderable's magenta material
+  is absent from sampled regions. Screenshot pixels remain as a fallback.
+- Missing-resource smoke: loads the multi-entity page with
+  `?scenario=missing-resource`, extracts a valid ECS-authored renderable, then
+  intentionally withholds its renderer-side material resource binding and
+  verifies that no draw submission occurs.
+- Missing mesh resource smoke: loads the multi-entity page with
+  `?scenario=missing-mesh-resource`, extracts a valid ECS-authored renderable,
+  then intentionally withholds its renderer-side mesh resource binding and
+  verifies that no draw submission occurs.
+- Layer-mismatch smoke: loads the multi-entity page with
+  `?scenario=layer-mismatch`, authors a renderable outside the camera layer
+  mask, and verifies extraction skips it before any resource binding or draw
+  submission.
+- Missing mesh asset smoke: loads the multi-entity page with
+  `?scenario=missing-mesh-asset`, authors a renderable with an unavailable mesh
+  asset handle, and verifies extraction reports the missing asset before any
+  resource binding or draw submission.
+- Missing material asset smoke: loads the multi-entity page with
+  `?scenario=missing-material-asset`, authors a renderable with a ready mesh and
+  unavailable material asset handle, and verifies extraction reports the missing
+  material before any resource binding or draw submission.
+- Mesh asset status smoke: loads the multi-entity page with
+  `?scenario=loading-mesh-asset` and `?scenario=failed-mesh-asset`, authors a
+  renderable with a loading or failed mesh asset, and verifies extraction
+  reports the asset state before any resource binding or draw submission.
+- Material asset status smoke: loads the multi-entity page with
+  `?scenario=loading-material-asset` and `?scenario=failed-material-asset`,
+  authors a renderable with a loading or failed material asset, and verifies
+  extraction reports the asset state before any resource binding or draw
+  submission.
+- Disabled renderable smoke: loads the multi-entity page with
+  `?scenario=disabled-renderable`, authors a renderable with
+  `Enabled.value = false`, and verifies extraction skips it before resource
+  binding or draw submission.
+- Box primitive smoke: loads the multi-entity page with
+  `?scenario=box-primitive`, renders a built-in `createBoxMeshAsset` mesh, and
+  verifies a non-clear center pixel through readback.
+- Orthographic camera smoke: loads the multi-entity page with
+  `?scenario=orthographic-camera`, authors an orthographic ECS camera, and
+  verifies a primitive plane through readback.
+- Render-order overlap smoke: loads the multi-entity page with
+  `?scenario=render-order-overlap`, authors two overlapping primitive planes
+  with explicit `RenderOrder` values, and verifies the expected top color
+  through readback.
+- Unknown scenario smoke: loads the multi-entity page with an unsupported
+  `scenario` query value and verifies the harness publishes an explicit
+  zero-submission `unknown-scenario` diagnostic.
 
 The multi-entity status test attaches the published status JSON to the
 Playwright report so failures show whether the blank or failed frame came from
@@ -188,6 +238,8 @@ Use the published status first:
 - `phase: "resources"` points to GPU upload or bind group creation.
 - `phase: "draw-plan"` points to draw packages, descriptors, draw-list
   resolution, or render pass command planning.
+- `phase: "resource-bindings"` points to missing renderer-side resource
+  bindings after ECS extraction has succeeded.
 - `phase: "submit"` with `ok: true` means the browser path submitted command
   buffers; any pixel skip after that is a presentation-capture limitation.
 
@@ -239,17 +291,139 @@ Triangle example status:
 
 Multi-entity example status:
 
-- `extraction.meshDraws: 2` proves two ECS mesh renderers extracted into
-  render packets.
-- `resources.materials: 2` and `resources.bindGroups: 4` describe uploaded
+- `extraction.meshDraws: 3` with `extraction.diagnostics: 1` proves three ECS
+  mesh renderers extracted into render packets while one hidden renderable was
+  skipped before draw submission.
+- `resources.materials: 3` and `resources.bindGroups: 5` describe uploaded
   renderer-owned unlit resources.
-- `binding.ready: 2`, `draw.packages: 2`, and `submission.drawCalls: 2` prove
-  the two-entity frame reached the derived render path.
+- `binding.ready: 3`, `draw.packages: 3`, and `submission.drawCalls: 3` prove
+  the three-entity frame reached the derived render path.
 - `draw.renderIds` and `command.firstInstances` expose stable diagnostics for
   draw ordering and transform-instance selection.
-- `readback.ok: true` includes copied samples from left and right regions so
-  tests can distinguish the red and blue material outputs without relying on
-  screenshots.
+- `geometry` reports that the browser path rendered the built-in
+  `createPlaneMeshAsset` primitive, including vertex/index counts and topology.
+- `visibility` reports four authored renderables, three extracted draw packets,
+  one skipped renderable, the hidden material key/color, and the JSON-safe
+  `render.invisible` diagnostic code.
+- `diagnosticCounts` summarizes extraction, resource, binding, draw,
+  submission, and readback diagnostics without serializing raw WebGPU handles.
+- `readback.ok: true` includes copied samples from left, center, and right
+  regions so tests can distinguish the red, green, and blue material outputs
+  without relying on screenshots.
+
+Missing-resource scenario status:
+
+- `scenario: "missing-resource"` uses the same browser page with a diagnostic
+  mode selected by URL query string.
+- `ok: false` and `phase: "resource-bindings"` are expected in this scenario:
+  ECS extraction succeeds, but a renderer-side material resource binding is
+  intentionally withheld.
+- `binding.diagnosticCodes` and `renderWorld.diagnostics` include JSON-safe
+  missing-resource codes, while `draw`, `command`, and `submission` counts stay
+  at zero.
+
+Missing mesh resource scenario status:
+
+- `scenario: "missing-mesh-resource"` uses the same browser page with a
+  diagnostic mode selected by URL query string.
+- `ok: false` and `phase: "resource-bindings"` are expected: ECS extraction
+  succeeds, but a renderer-side mesh resource binding is intentionally withheld.
+- `binding.diagnosticCodes` and `renderWorld.diagnostics` include JSON-safe
+  missing-mesh-resource codes, while `draw`, `command`, and `submission` counts
+  stay at zero.
+
+Layer-mismatch scenario status:
+
+- `scenario: "layer-mismatch"` uses the same browser page with a diagnostic
+  mode selected by URL query string.
+- `ok: false`, `phase: "extract"`, and `reason: "layer-mismatch"` are expected:
+  the ECS-authored renderable exists, but its layer mask does not intersect the
+  camera layer mask.
+- `layerFiltering` reports both masks and the `render.layerMismatch`
+  diagnostic, while resource binding and submission counts stay at zero.
+
+Missing mesh asset scenario status:
+
+- `scenario: "missing-mesh-asset"` uses the same browser page with a diagnostic
+  mode selected by URL query string.
+- `ok: false`, `phase: "extract"`, and `reason: "missing-mesh-asset"` are
+  expected: the ECS renderable stores only a mesh handle, and that mesh asset is
+  intentionally unavailable in the asset registry.
+- `diagnostics` includes `render.missingMeshHandle`, while resource binding and
+  submission counts stay at zero.
+
+Missing material asset scenario status:
+
+- `scenario: "missing-material-asset"` uses the same browser page with a
+  diagnostic mode selected by URL query string.
+- `ok: false`, `phase: "extract"`, and `reason: "missing-material-asset"` are
+  expected: the mesh asset is ready, but the material asset handle is
+  intentionally unavailable in the asset registry.
+- `diagnostics` includes `render.missingMaterialHandle`, while resource binding
+  and submission counts stay at zero.
+
+Mesh asset status scenario:
+
+- `scenario: "loading-mesh-asset"` and `scenario: "failed-mesh-asset"` use the
+  same browser page with asset-state diagnostic modes selected by URL query
+  string.
+- `assetStatus.mesh` reports the asset registry state and
+  `assetStatus.diagnostics` includes `render.mesh.loading` or
+  `render.mesh.failed`.
+- Resource binding and submission counts stay at zero.
+
+Material asset status scenario:
+
+- `scenario: "loading-material-asset"` and
+  `scenario: "failed-material-asset"` use the same browser page with
+  asset-state diagnostic modes selected by URL query string.
+- `assetStatus.material` reports the asset registry state and
+  `assetStatus.diagnostics` includes `render.material.loading` or
+  `render.material.failed`.
+- Resource binding and submission counts stay at zero.
+
+Disabled renderable scenario:
+
+- `scenario: "disabled-renderable"` uses the same browser page with a metadata
+  diagnostic mode selected by URL query string.
+- `disabled` reports the authored/extracted counts and the `render.disabled`
+  diagnostic.
+- Resource binding and submission counts stay at zero.
+
+Box primitive scenario status:
+
+- `scenario: "box-primitive"` uses the same browser page with a primitive
+  geometry mode selected by URL query string.
+- `geometry` reports the built-in box primitive, including 24 vertices, 36
+  indices, triangle-list topology, and the `createBoxMeshAsset` source.
+- `readback.ok: true` includes the center sample used to verify the box material
+  color without relying on screenshots.
+
+Orthographic camera scenario status:
+
+- `scenario: "orthographic-camera"` uses the same browser page with a camera
+  mode selected by URL query string.
+- `camera` reports the orthographic projection and height authored through the
+  ECS camera component.
+- `readback.ok: true` includes the center sample used to verify the
+  orthographic view rendered a non-clear primitive pixel.
+
+Render-order overlap scenario status:
+
+- `scenario: "render-order-overlap"` uses the same browser page with an overlap
+  mode selected by URL query string.
+- `renderOrder` reports the back/front order values and the expected top
+  material id.
+- `readback.ok: true` includes the center sample used to verify the expected
+  overlapping material color.
+
+Unknown scenario status:
+
+- Unknown multi-entity query scenarios publish `ok: false`,
+  `phase: "scenario"`, and `reason: "unknown-scenario"`.
+- `availableScenarios` lists the accepted scenario ids for agent-readable
+  diagnostics.
+- Extraction, resource, draw, command, and submission counts stay at zero.
 
 Status payloads are inspection surfaces. They must remain serializable and must
 not include raw WebGPU devices, contexts, buffers, textures, command encoders,

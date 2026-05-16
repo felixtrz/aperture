@@ -1,10 +1,10 @@
 {
   "state": "idle",
   "currentTaskId": null,
-  "lastRunStartedAt": "2026-05-16T03:02:58Z",
-  "lastRunFinishedAt": "2026-05-16T03:45:01Z",
+  "lastRunStartedAt": "2026-05-16T04:02:46Z",
+  "lastRunFinishedAt": "2026-05-16T04:39:32Z",
   "lastResult": "success",
   "lastCommit": null,
   "activePid": null,
-  "notes": "Completed GPU current-texture readback for clear/triangle/multi-entity browser examples, readback diagnostics, unsupported WebGPU smoke coverage, import-map parsing/consistency checks, server CLI smoke coverage, artifact docs, helper hardening, and backlog refill. npm run check and npm run test:e2e -- --reporter=line pass; browser pixel tests now pass via GPU readback in this environment."
+  "notes": "Completed browser primitive plane/box readback coverage, orthographic camera coverage, render-order overlap coverage, hidden/disabled renderable skip coverage, missing renderer resource binding smokes, missing/loading/failed mesh and material asset smokes, layer mismatch, and unknown scenario diagnostics. npm run build, npm run check, and npm run test:e2e -- --reporter=line pass with 23 e2e tests."
 }
