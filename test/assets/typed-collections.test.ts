@@ -9,10 +9,12 @@ import {
   createRenderAssetCollections,
   createSamplerHandle,
   createStandardMaterialAsset,
+  createTextureAsset,
   createTextureHandle,
   createTypedAssetCollection,
   createUnlitMaterialAsset,
   type AssetDiagnostic,
+  type TextureAsset,
 } from "@aperture-engine/core";
 
 describe("typed asset collections", () => {
@@ -137,6 +139,42 @@ describe("typed asset collections", () => {
       from: assetHandleKey(material),
       to: assetHandleKey(texture),
     });
+  });
+
+  it("preserves optional source texel data on texture assets", () => {
+    const assets = createRenderAssetCollections();
+    const textures = createTypedAssetCollection<"texture", TextureAsset>({
+      registry: assets.registry,
+      kind: "texture",
+      createHandle: createTextureHandle,
+      idPrefix: "texture",
+      label: (asset) => asset.label,
+    });
+    const sourceData = {
+      bytes: new Uint8Array([
+        255, 0, 0, 255, 0, 255, 0, 255, 0, 0, 255, 255, 255, 255, 255, 255,
+      ]),
+      bytesPerRow: 8,
+      rowsPerImage: 2,
+    };
+    const textureAsset = createTextureAsset({
+      label: "Uploaded Texels",
+      dimension: "2d",
+      width: 2,
+      height: 2,
+      format: "rgba8unorm",
+      colorSpace: "linear",
+      semantic: "data",
+      usage: ["sampled", "copy-dst"],
+      sourceData,
+    });
+    const texture = textures.add(textureAsset, {
+      id: "uploaded-texels",
+    });
+
+    expect(assetHandleKey(texture)).toBe("texture:uploaded-texels");
+    expect(textures.getAsset(texture)?.sourceData).toBe(sourceData);
+    expect(assets.registry.get(texture)?.asset).toBe(textureAsset);
   });
 
   it("adds matcap material assets and records matcap texture dependencies", () => {

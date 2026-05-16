@@ -85,6 +85,41 @@ body {
   color: #ffab91;
 }
 
+#example-state[data-state="paused"] {
+  color: #ffd27d;
+}
+
+.runtime-controls {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.runtime-controls button {
+  min-height: 34px;
+  border: 1px solid rgb(255 255 255 / 18%);
+  background: #202832;
+  color: #edf2f7;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.runtime-controls button:hover:not(:disabled) {
+  background: #2a3440;
+}
+
+.runtime-controls button:focus-visible {
+  outline: 2px solid #81d69d;
+  outline-offset: 3px;
+}
+
+.runtime-controls button:disabled {
+  color: #6f7a87;
+  cursor: default;
+}
+
 .example-links {
   display: flex;
   flex-wrap: wrap;

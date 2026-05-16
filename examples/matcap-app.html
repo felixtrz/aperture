@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Aperture App Diagnostics</title>
+    <title>Aperture Matcap App Path</title>
     <link rel="stylesheet" href="./styles.css" />
     <script type="importmap">
       {
@@ -22,25 +22,26 @@
   </head>
   <body>
     <main class="runtime-shell">
-      <section
-        class="viewport-panel"
-        aria-label="Aperture app diagnostics runtime"
-      >
+      <section class="viewport-panel" aria-label="Aperture Matcap app runtime">
         <canvas
           id="aperture-canvas"
           width="960"
           height="540"
-          aria-label="Aperture WebGPU app diagnostics canvas"
+          aria-label="Aperture WebGPU Matcap app canvas"
         ></canvas>
       </section>
       <aside class="status-panel" aria-label="Runtime status">
         <div class="status-row">
           <span>example</span>
-          <strong id="example-name">app diagnostics</strong>
+          <strong id="example-name">matcap app</strong>
         </div>
         <div class="status-row">
           <span>state</span>
           <strong id="example-state">loading</strong>
+        </div>
+        <div class="runtime-controls" aria-label="ECS execution controls">
+          <button id="matcap-play" type="button">Play</button>
+          <button id="matcap-pause" type="button">Pause</button>
         </div>
         <nav class="example-links" aria-label="Examples">
           <a href="/">clear</a>
@@ -54,6 +55,6 @@
         <pre id="example-json">{}</pre>
       </aside>
     </main>
-    <script type="module" src="./app-diagnostics.js"></script>
+    <script type="module" src="./matcap-app.js"></script>
   </body>
 </html>

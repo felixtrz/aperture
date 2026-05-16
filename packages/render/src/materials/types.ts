@@ -66,6 +66,12 @@ export interface MaterialTextureBinding {
   readonly texCoord?: number;
 }
 
+export interface TextureSourceData {
+  readonly bytes: Uint8Array;
+  readonly bytesPerRow: number;
+  readonly rowsPerImage?: number;
+}
+
 export interface BaseMaterialAsset {
   readonly kind: MaterialKind;
   readonly label: string;
@@ -124,6 +130,7 @@ export interface TextureAsset {
   readonly semantic: TextureSemantic;
   readonly mipLevelCount: number;
   readonly usage: readonly TextureUsage[];
+  readonly sourceData?: TextureSourceData;
 }
 
 export interface SamplerAsset {

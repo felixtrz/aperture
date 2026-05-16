@@ -87,12 +87,14 @@ async function runMixedMaterialScenario(aperture, canvasElement) {
     aperture.createUnlitMaterialAsset({ label: "DiagnosticWhite" }),
     { id: "diagnostic-white" },
   );
-  const secondMaterial = assets.materials.unlit.add(
-    aperture.createUnlitMaterialAsset({
-      label: "DiagnosticBlue",
+  const secondMaterial = assets.materials.standard.add(
+    aperture.createStandardMaterialAsset({
+      label: "DiagnosticStandard",
       baseColorFactor: new Float32Array([0.15, 0.4, 1, 1]),
+      metallicFactor: 0.1,
+      roughnessFactor: 0.65,
     }),
-    { id: "diagnostic-blue" },
+    { id: "diagnostic-standard" },
   );
 
   app.spawn(

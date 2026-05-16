@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   assetHandleKey,
   createBoxMeshAsset,
+  createMatcapMaterialAsset,
   createRenderAssetCollections,
   createSamplerHandle,
   createSamplerAsset,
@@ -21,6 +22,7 @@ import {
 } from "@aperture-engine/core";
 import {
   createWebGpuApp,
+  createWebGpuAppDrawResourceSetPlan,
   webGpuAppRenderReportToJson,
   webGpuAppRenderReportToJsonValue,
 } from "@aperture-engine/webgpu";
@@ -101,7 +103,9 @@ describe("WebGPU app facade", () => {
       dynamicBufferWrites: 2,
     });
     expect(secondResources?.mesh).toBe(firstResources?.mesh);
-    expect(secondResources?.material).toBe(firstResources?.material);
+    expect(singleMaterialResource(secondResources)).toBe(
+      singleMaterialResource(firstResources),
+    );
     expect(secondResources?.viewUniform.buffer).toBe(
       firstResources?.viewUniform.buffer,
     );
@@ -167,12 +171,23 @@ describe("WebGPU app facade", () => {
       drawCalls: 2,
       diagnostics: 0,
     });
+    expect(createWebGpuAppDrawResourceSetPlan(frame.snapshot)).toMatchObject({
+      drawCount: 2,
+      sets: [
+        {
+          index: 0,
+          meshKey: assetHandleKey(mesh),
+          materialKey: assetHandleKey(material),
+          drawIndices: [0, 1],
+        },
+      ],
+    });
     expect(
       events.filter((event) => event.startsWith("pass:draw")),
     ).toHaveLength(2);
   });
 
-  it("diagnoses multi-draw frames that need additional app resource sets", async () => {
+  it("renders multiple unlit app resource sets for a shared mesh", async () => {
     const events: string[] = [];
     const { canvas, environment } = webGpuHarness(events);
     const created = await createWebGpuApp({
@@ -218,21 +233,115 @@ describe("WebGPU app facade", () => {
 
     const frame = await app.stepAndRender(1 / 60, 1, 22);
 
+    expect(frame.ok).toBe(true);
+    expect(frame.counts).toMatchObject({
+      meshDraws: 2,
+      drawPackages: 2,
+      drawCalls: 2,
+      diagnostics: 0,
+    });
+    expect(frame.resourceReuse).toMatchObject({
+      pipelineMisses: 1,
+      meshBuffersCreated: 1,
+      materialBuffersCreated: 2,
+      bindGroupsCreated: 4,
+    });
+    expect(createWebGpuAppDrawResourceSetPlan(frame.snapshot)).toMatchObject({
+      drawCount: 2,
+      sets: [
+        {
+          index: 0,
+          meshKey: assetHandleKey(mesh),
+          materialKey: assetHandleKey(firstMaterial),
+          drawIndices: [0],
+        },
+        {
+          index: 1,
+          meshKey: assetHandleKey(mesh),
+          materialKey: assetHandleKey(secondMaterial),
+          drawIndices: [1],
+        },
+      ],
+    });
+    expect(
+      events.filter((event) => event.startsWith("pass:draw")),
+    ).toHaveLength(2);
+    expect(events.filter((event) => event === "pass:bind:2")).toHaveLength(2);
+    expect(events).toContain("queue:submit:1");
+  });
+
+  it("diagnoses mixed-family multi-draw frames that still need additional app resource sets", async () => {
+    const events: string[] = [];
+    const { canvas, environment } = webGpuHarness(events);
+    const created = await createWebGpuApp({
+      canvas,
+      environment,
+      worldOptions: { entityCapacity: 8 },
+    });
+
+    expect(created.ok).toBe(true);
+
+    if (!created.ok) {
+      return;
+    }
+
+    const app = created.app;
+    const assets = createRenderAssetCollections({ registry: app.assets });
+    const mesh = assets.meshes.add(createBoxMeshAsset({ label: "SharedCube" }));
+    const firstMaterial = assets.materials.unlit.add(
+      createUnlitMaterialAsset({ label: "FirstWhite" }),
+    );
+    const secondMaterial = assets.materials.standard.add(
+      createStandardMaterialAsset({ label: "SecondStandard" }),
+    );
+
+    app.spawn(
+      withTransform({ translation: [0, 0, 5] }),
+      withCamera({ priority: 0, layerMask: 1 }),
+    );
+    app.spawn(
+      withTransform({ translation: [-0.6, 0, 0] }),
+      withMesh(mesh),
+      withMaterial(firstMaterial),
+      withRenderLayer(1),
+      withVisibility(true),
+    );
+    app.spawn(
+      withTransform({ translation: [0.6, 0, 0] }),
+      withMesh(mesh),
+      withMaterial(secondMaterial),
+      withRenderLayer(1),
+      withVisibility(true),
+    );
+
+    const frame = await app.stepAndRender(1 / 60, 1, 22);
+
     expect(frame.ok).toBe(false);
     expect(frame.counts).toMatchObject({
       meshDraws: 2,
       drawCalls: 0,
       diagnostics: 1,
     });
-    expect(frame.diagnostics[0]).toMatchObject({
+    const diagnostic = frame.diagnostics[0] as {
+      readonly firstMaterialKey?: string;
+      readonly drawMaterialKey?: string;
+    };
+
+    expect(diagnostic).toMatchObject({
       code: "webGpuApp.additionalDrawResourceUnsupported",
+      resourceSetIndex: 1,
       drawIndex: 1,
-      firstMeshKey: assetHandleKey(mesh),
-      firstMaterialKey: assetHandleKey(firstMaterial),
       drawMeshKey: assetHandleKey(mesh),
-      drawMaterialKey: assetHandleKey(secondMaterial),
       message: expect.stringContaining("render-world resource cache"),
     });
+    expect([
+      assetHandleKey(firstMaterial),
+      assetHandleKey(secondMaterial),
+    ]).toContain(diagnostic.firstMaterialKey);
+    expect([
+      assetHandleKey(firstMaterial),
+      assetHandleKey(secondMaterial),
+    ]).toContain(diagnostic.drawMaterialKey);
     expect(() => JSON.stringify(frame.diagnostics)).not.toThrow();
     expect(events).not.toContain("queue:submit:1");
   });
@@ -468,6 +577,558 @@ describe("WebGPU app facade", () => {
     expect(resourceEventCounts(events)).toEqual(firstResourceEvents);
   });
 
+  it("surfaces app texture upload layout diagnostics without submitting", async () => {
+    const cases = [
+      {
+        id: "bad-row",
+        expectedCode: "textureResource.invalidBytesPerRow",
+        sourceData: {
+          bytes: new Uint8Array(16),
+          bytesPerRow: 4,
+          rowsPerImage: 2,
+        },
+      },
+      {
+        id: "too-small",
+        expectedCode: "textureResource.uploadDataTooSmall",
+        sourceData: {
+          bytes: new Uint8Array(4),
+          bytesPerRow: 8,
+          rowsPerImage: 2,
+        },
+      },
+    ] as const;
+
+    for (const testCase of cases) {
+      const events: string[] = [];
+      const { canvas, environment } = webGpuHarness(events);
+      const created = await createWebGpuApp({
+        canvas,
+        environment,
+        worldOptions: { entityCapacity: 8 },
+      });
+
+      expect(created.ok).toBe(true);
+
+      if (!created.ok) {
+        return;
+      }
+
+      const app = created.app;
+      const assets = createRenderAssetCollections({ registry: app.assets });
+      const mesh = assets.meshes.add(createBoxMeshAsset({ label: "Cube" }));
+      const texture = createTextureHandle(`upload-${testCase.id}`);
+      const sampler = createSamplerHandle(`upload-${testCase.id}-sampler`);
+
+      app.assets.register(texture);
+      app.assets.markReady(
+        texture,
+        createTextureAsset({
+          label: `Upload ${testCase.id}`,
+          dimension: "2d",
+          width: 2,
+          height: 2,
+          format: "rgba8unorm",
+          colorSpace: "linear",
+          semantic: "data",
+          usage: ["sampled", "copy-dst"],
+          sourceData: testCase.sourceData,
+        }),
+      );
+      app.assets.register(sampler);
+      app.assets.markReady(sampler, createSamplerAsset());
+
+      const material = assets.materials.unlit.add(
+        createUnlitMaterialAsset({
+          label: `Upload ${testCase.id}`,
+          baseColorTexture: { texture, sampler },
+        }),
+      );
+
+      app.spawn(
+        withTransform({ translation: [0, 0, 5] }),
+        withCamera({ priority: 0, layerMask: 1 }),
+      );
+      app.spawn(
+        withTransform(),
+        withMesh(mesh),
+        withMaterial(material),
+        withRenderLayer(1),
+        withVisibility(true),
+      );
+
+      const frame = await app.stepAndRender(1 / 60, 1, 29);
+      const diagnosticCodes = frame.diagnostics.map((diagnostic) =>
+        typeof diagnostic === "object" &&
+        diagnostic !== null &&
+        "code" in diagnostic
+          ? diagnostic.code
+          : null,
+      );
+      const json = webGpuAppRenderReportToJson(frame);
+
+      expect(frame.ok).toBe(false);
+      expect(diagnosticCodes).toContain(testCase.expectedCode);
+      expect(json).toContain(testCase.expectedCode);
+      expect(json).not.toContain("commandBuffer");
+      expect(events).not.toContain("queue:submit:1");
+    }
+  });
+
+  it("renders and reuses the single-material matcap app path", async () => {
+    const events: string[] = [];
+    const { canvas, environment } = webGpuHarness(events);
+    const created = await createWebGpuApp({
+      canvas,
+      environment,
+      worldOptions: { entityCapacity: 8 },
+    });
+
+    expect(created.ok).toBe(true);
+
+    if (!created.ok) {
+      return;
+    }
+
+    const app = created.app;
+    const assets = createRenderAssetCollections({ registry: app.assets });
+    const mesh = assets.meshes.add(createBoxMeshAsset({ label: "MatcapCube" }));
+    const texture = createTextureHandle("studio-matcap");
+    const sampler = createSamplerHandle("matcap-linear");
+
+    app.assets.register(texture);
+    app.assets.markReady(
+      texture,
+      createTextureAsset({
+        label: "StudioMatcap",
+        dimension: "2d",
+        width: 2,
+        height: 2,
+        format: "rgba8unorm",
+        colorSpace: "linear",
+        semantic: "data",
+        usage: ["sampled", "copy-dst"],
+        sourceData: {
+          bytes: new Uint8Array([
+            255, 220, 245, 255, 190, 230, 255, 255, 96, 128, 184, 255, 32, 48,
+            72, 255,
+          ]),
+          bytesPerRow: 8,
+          rowsPerImage: 2,
+        },
+      }),
+    );
+    app.assets.register(sampler);
+    app.assets.markReady(
+      sampler,
+      createSamplerAsset({ label: "MatcapLinear" }),
+    );
+
+    const material = assets.materials.matcap.add(
+      createMatcapMaterialAsset({
+        label: "Studio Matcap",
+        matcapTexture: { texture, sampler },
+      }),
+    );
+
+    app.spawn(
+      withTransform({ translation: [0, 0, 5] }),
+      withCamera({ priority: 0, layerMask: 1 }),
+    );
+    app.spawn(
+      withTransform(),
+      withMesh(mesh),
+      withMaterial(material),
+      withRenderLayer(1),
+      withVisibility(true),
+    );
+
+    const frame = await app.stepAndRender(1 / 60, 1, 26);
+
+    expect(frame.ok).toBe(true);
+    expect(frame.snapshot.meshDraws[0]?.batchKey.pipelineKey).toBe(
+      "matcap|matcapTexture|opaque|back|less|none",
+    );
+    expect(frame.counts).toMatchObject({
+      views: 1,
+      meshDraws: 1,
+      drawPackages: 1,
+      drawCalls: 1,
+      diagnostics: 0,
+    });
+    expect(frame.resourceReuse).toMatchObject({
+      pipelineHits: 0,
+      pipelineMisses: 1,
+      meshBuffersCreated: 1,
+      materialBuffersCreated: 1,
+      textureResourcesCreated: 1,
+      samplerResourcesCreated: 1,
+      bindGroupsCreated: 3,
+      dynamicBufferWrites: 0,
+    });
+    expect(events).toContain("device:texture:StudioMatcap");
+    expect(events).toContain("queue:writeTexture:16");
+    expect(events).toContain("device:sampler:MatcapLinear");
+    expect(events).toContain("pass:bind:2");
+    expect(events).toContain("queue:submit:1");
+    expect(
+      frame.resources?.resources?.bindGroups.find((group) => group.group === 2),
+    ).toMatchObject({
+      entryResourceKeys: [
+        "material-buffer:Studio Matcap/uniform",
+        assetHandleKey(texture),
+        assetHandleKey(sampler),
+      ],
+    });
+
+    const firstResourceEvents = resourceEventCounts(events);
+    const firstResources = frame.resources?.resources;
+    const secondFrame = await app.stepAndRender(1 / 60, 2, 27);
+    const secondResources = secondFrame.resources?.resources;
+
+    expect(secondFrame.ok).toBe(true);
+    expect(secondFrame.resourceReuse).toMatchObject({
+      pipelineHits: 1,
+      pipelineMisses: 0,
+      meshBuffersReused: 1,
+      materialBuffersReused: 1,
+      textureResourcesCreated: 0,
+      textureResourcesReused: 1,
+      samplerResourcesCreated: 0,
+      samplerResourcesReused: 1,
+      bindGroupsReused: 3,
+      dynamicBufferWrites: 2,
+    });
+    expect(secondResources?.mesh).toBe(firstResources?.mesh);
+    expect(singleMaterialResource(secondResources)).toBe(
+      singleMaterialResource(firstResources),
+    );
+    expect(secondResources?.bindGroups).toBe(firstResources?.bindGroups);
+    expect(resourceEventCounts(events)).toEqual(firstResourceEvents);
+  });
+
+  it("surfaces matcap material dependency readiness before app rendering", async () => {
+    const events: string[] = [];
+    const { canvas, environment } = webGpuHarness(events);
+    const created = await createWebGpuApp({
+      canvas,
+      environment,
+      worldOptions: { entityCapacity: 8 },
+    });
+
+    expect(created.ok).toBe(true);
+
+    if (!created.ok) {
+      return;
+    }
+
+    const app = created.app;
+    const assets = createRenderAssetCollections({ registry: app.assets });
+    const mesh = assets.meshes.add(createBoxMeshAsset({ label: "MatcapCube" }));
+    const texture = createTextureHandle("missing-matcap");
+    const sampler = createSamplerHandle("loading-matcap-sampler");
+
+    app.assets.register(sampler);
+    app.assets.markLoading(sampler);
+
+    const material = assets.materials.matcap.add(
+      createMatcapMaterialAsset({
+        label: "Blocked Matcap",
+        matcapTexture: { texture, sampler },
+      }),
+    );
+
+    app.spawn(
+      withTransform({ translation: [0, 0, 5] }),
+      withCamera({ priority: 0, layerMask: 1 }),
+    );
+    app.spawn(
+      withTransform(),
+      withMesh(mesh),
+      withMaterial(material),
+      withRenderLayer(1),
+      withVisibility(true),
+    );
+
+    const frame = await app.stepAndRender(1 / 60, 1, 28);
+
+    expect(frame.ok).toBe(false);
+    expect(frame.counts).toMatchObject({
+      meshDraws: 1,
+      drawCalls: 0,
+    });
+    const appDiagnostic = frame.diagnostics.find(
+      (diagnostic) =>
+        typeof diagnostic === "object" &&
+        diagnostic !== null &&
+        "code" in diagnostic &&
+        diagnostic.code === "webGpuApp.materialDependenciesNotReady",
+    );
+
+    expect(appDiagnostic).toMatchObject({
+      code: "webGpuApp.materialDependenciesNotReady",
+      materialDependencyReadiness: {
+        ready: false,
+        materialKey: assetHandleKey(material),
+        materialKind: "matcap",
+        slots: [
+          {
+            field: "matcapTexture",
+            dependencyKind: "texture",
+            handleKey: assetHandleKey(texture),
+            status: "missing",
+          },
+          {
+            field: "matcapTexture",
+            dependencyKind: "sampler",
+            handleKey: assetHandleKey(sampler),
+            status: "loading",
+          },
+        ],
+      },
+    });
+    expect(events).not.toContain("queue:submit:1");
+  });
+
+  it("renders mixed unlit and matcap app resource sets for a shared mesh", async () => {
+    const events: string[] = [];
+    const { canvas, environment } = webGpuHarness(events);
+    const created = await createWebGpuApp({
+      canvas,
+      environment,
+      worldOptions: { entityCapacity: 8 },
+    });
+
+    expect(created.ok).toBe(true);
+
+    if (!created.ok) {
+      return;
+    }
+
+    const app = created.app;
+    const assets = createRenderAssetCollections({ registry: app.assets });
+    const mesh = assets.meshes.add(
+      createBoxMeshAsset({ label: "MixedMaterialCube" }),
+    );
+    const unlitMaterial = assets.materials.unlit.add(
+      createUnlitMaterialAsset({ label: "Mixed Unlit" }),
+    );
+    const texture = createTextureHandle("mixed-studio-matcap");
+    const sampler = createSamplerHandle("mixed-matcap-linear");
+
+    app.assets.register(texture);
+    app.assets.markReady(
+      texture,
+      createTextureAsset({
+        label: "MixedStudioMatcap",
+        dimension: "2d",
+        width: 2,
+        height: 2,
+        format: "rgba8unorm",
+        colorSpace: "linear",
+        semantic: "data",
+        usage: ["sampled", "copy-dst"],
+        sourceData: {
+          bytes: new Uint8Array([
+            255, 220, 245, 255, 190, 230, 255, 255, 96, 128, 184, 255, 32, 48,
+            72, 255,
+          ]),
+          bytesPerRow: 8,
+          rowsPerImage: 2,
+        },
+      }),
+    );
+    app.assets.register(sampler);
+    app.assets.markReady(
+      sampler,
+      createSamplerAsset({ label: "MixedMatcapLinear" }),
+    );
+
+    const matcapMaterial = assets.materials.matcap.add(
+      createMatcapMaterialAsset({
+        label: "Mixed Matcap",
+        matcapTexture: { texture, sampler },
+      }),
+    );
+
+    app.spawn(
+      withTransform({ translation: [0, 0, 5] }),
+      withCamera({ priority: 0, layerMask: 1 }),
+    );
+    app.spawn(
+      withTransform({ translation: [-0.6, 0, 0] }),
+      withMesh(mesh),
+      withMaterial(unlitMaterial),
+      withRenderLayer(1),
+      withVisibility(true),
+    );
+    app.spawn(
+      withTransform({ translation: [0.6, 0, 0] }),
+      withMesh(mesh),
+      withMaterial(matcapMaterial),
+      withRenderLayer(1),
+      withVisibility(true),
+    );
+
+    const frame = await app.stepAndRender(1 / 60, 1, 30);
+
+    expect(frame.ok).toBe(true);
+    expect(
+      frame.snapshot.meshDraws.map((draw) => draw.batchKey.pipelineKey),
+    ).toEqual([
+      "matcap|matcapTexture|opaque|back|less|none",
+      "unlit|opaque|back|less|none",
+    ]);
+    expect(frame.counts).toMatchObject({
+      meshDraws: 2,
+      drawPackages: 2,
+      drawCalls: 2,
+      diagnostics: 0,
+    });
+    expect(createWebGpuAppDrawResourceSetPlan(frame.snapshot)).toMatchObject({
+      drawCount: 2,
+      sets: [
+        {
+          index: 0,
+          meshKey: assetHandleKey(mesh),
+          materialKey: assetHandleKey(matcapMaterial),
+          drawIndices: [0],
+        },
+        {
+          index: 1,
+          meshKey: assetHandleKey(mesh),
+          materialKey: assetHandleKey(unlitMaterial),
+          drawIndices: [1],
+        },
+      ],
+    });
+    expect(frame.resourceReuse).toMatchObject({
+      pipelineMisses: 2,
+      textureResourcesCreated: 1,
+      samplerResourcesCreated: 1,
+      materialBuffersCreated: 2,
+    });
+    expect(events).toContain("device:texture:MixedStudioMatcap");
+    expect(events).toContain("queue:writeTexture:16");
+    expect(events).toContain("device:sampler:MixedMatcapLinear");
+    expect(events.filter((event) => event === "pass:pipeline")).toHaveLength(2);
+    expect(events.filter((event) => event === "pass:bind:2")).toHaveLength(2);
+    expect(events).toContain("queue:submit:1");
+
+    const firstResourceEvents = resourceEventCounts(events);
+    const secondFrame = await app.stepAndRender(1 / 60, 2, 31);
+
+    expect(secondFrame.ok).toBe(true);
+    expect(secondFrame.counts.drawCalls).toBe(2);
+    expect(secondFrame.resourceReuse).toMatchObject({
+      pipelineHits: 2,
+      pipelineMisses: 0,
+      meshBuffersReused: 2,
+      materialBuffersReused: 2,
+      textureResourcesCreated: 0,
+      textureResourcesReused: 1,
+      samplerResourcesCreated: 0,
+      samplerResourcesReused: 1,
+      dynamicBufferWrites: 4,
+    });
+    expect(resourceEventCounts(events)).toEqual(firstResourceEvents);
+  });
+
+  it("blocks mixed unlit and matcap rendering when the matcap texture dependency is missing", async () => {
+    const events: string[] = [];
+    const { canvas, environment } = webGpuHarness(events);
+    const created = await createWebGpuApp({
+      canvas,
+      environment,
+      worldOptions: { entityCapacity: 8 },
+    });
+
+    expect(created.ok).toBe(true);
+
+    if (!created.ok) {
+      return;
+    }
+
+    const app = created.app;
+    const assets = createRenderAssetCollections({ registry: app.assets });
+    const mesh = assets.meshes.add(
+      createBoxMeshAsset({ label: "MixedBlockedCube" }),
+    );
+    const unlitMaterial = assets.materials.unlit.add(
+      createUnlitMaterialAsset({ label: "Mixed Ready Unlit" }),
+    );
+    const texture = createTextureHandle("missing-mixed-matcap");
+    const sampler = createSamplerHandle("ready-mixed-matcap-sampler");
+
+    app.assets.register(sampler);
+    app.assets.markReady(
+      sampler,
+      createSamplerAsset({ label: "ReadyMixedMatcapSampler" }),
+    );
+
+    const matcapMaterial = assets.materials.matcap.add(
+      createMatcapMaterialAsset({
+        label: "Mixed Blocked Matcap",
+        matcapTexture: { texture, sampler },
+      }),
+    );
+
+    app.spawn(
+      withTransform({ translation: [0, 0, 5] }),
+      withCamera({ priority: 0, layerMask: 1 }),
+    );
+    app.spawn(
+      withTransform({ translation: [-0.6, 0, 0] }),
+      withMesh(mesh),
+      withMaterial(unlitMaterial),
+      withRenderLayer(1),
+      withVisibility(true),
+    );
+    app.spawn(
+      withTransform({ translation: [0.6, 0, 0] }),
+      withMesh(mesh),
+      withMaterial(matcapMaterial),
+      withRenderLayer(1),
+      withVisibility(true),
+    );
+
+    const frame = await app.stepAndRender(1 / 60, 1, 32);
+    const appDiagnostic = frame.diagnostics.find(
+      (diagnostic) =>
+        typeof diagnostic === "object" &&
+        diagnostic !== null &&
+        "code" in diagnostic &&
+        diagnostic.code === "webGpuApp.materialDependenciesNotReady",
+    );
+
+    expect(frame.ok).toBe(false);
+    expect(frame.counts.drawCalls).toBe(0);
+    expect(appDiagnostic).toMatchObject({
+      code: "webGpuApp.materialDependenciesNotReady",
+      materialDependencyReadiness: {
+        ready: false,
+        materialKey: assetHandleKey(matcapMaterial),
+        materialKind: "matcap",
+        slots: [
+          {
+            field: "matcapTexture",
+            dependencyKind: "texture",
+            handleKey: assetHandleKey(texture),
+            status: "missing",
+          },
+          {
+            field: "matcapTexture",
+            dependencyKind: "sampler",
+            handleKey: assetHandleKey(sampler),
+            status: "ready",
+          },
+        ],
+      },
+    });
+    expect(() => JSON.stringify(frame.diagnostics)).not.toThrow();
+    expect(events).not.toContain("queue:submit:1");
+  });
+
   it("renders the standard material app path with extracted lights", async () => {
     const events: string[] = [];
     const { canvas, environment } = webGpuHarness(events);
@@ -594,7 +1255,9 @@ describe("WebGPU app facade", () => {
       dynamicBufferWrites: 4,
     });
     expect(secondResources?.mesh).toBe(firstResources?.mesh);
-    expect(secondResources?.material).toBe(firstResources?.material);
+    expect(singleMaterialResource(secondResources)).toBe(
+      singleMaterialResource(firstResources),
+    );
     expect(secondResources?.viewUniform.buffer).toBe(
       firstResources?.viewUniform.buffer,
     );
@@ -638,6 +1301,17 @@ function webGpuHarness(events: string[]) {
     queue: {
       writeBuffer: (buffer: unknown) => {
         events.push(`queue:writeBuffer:${bufferLabel(buffer)}`);
+      },
+      writeTexture: (
+        destination: unknown,
+        data: Uint8Array,
+        layout: unknown,
+        size: unknown,
+      ) => {
+        void destination;
+        void layout;
+        void size;
+        events.push(`queue:writeTexture:${data.byteLength}`);
       },
       submit: (buffers: readonly unknown[]) => {
         events.push(`queue:submit:${buffers.length}`);
@@ -757,4 +1431,14 @@ function resourceEventCounts(events: readonly string[]) {
 
 function countEvents(events: readonly string[], prefix: string): number {
   return events.filter((event) => event.startsWith(prefix)).length;
+}
+
+function singleMaterialResource(resources: unknown): unknown {
+  if (typeof resources !== "object" || resources === null) {
+    return undefined;
+  }
+
+  return "material" in resources
+    ? (resources as { readonly material: unknown }).material
+    : undefined;
 }

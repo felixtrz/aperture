@@ -15,6 +15,184 @@ Summary:
 - Validation run.
 - Follow-up tasks added.
 
+## task-0599 — Audit multi-resource app rendering boundaries
+
+Completed: 2026-05-16
+
+Summary:
+
+- Audited the app-facade multi-resource path after mixed unlit/Matcap support.
+- Confirmed `simulation`, `render`, and `runtime` still do not own WebGPU or
+  browser resources, and app routing keeps GPU preparation in `packages/webgpu`.
+- Recorded the audit in
+  `docs/research/MULTI_RESOURCE_APP_RENDERING_BOUNDARY_AUDIT_2026_05_16.md`.
+- Important files:
+  `docs/research/MULTI_RESOURCE_APP_RENDERING_BOUNDARY_AUDIT_2026_05_16.md`,
+  `agent/BACKLOG.md`, `agent/HANDOFF.md`.
+- Validation run: boundary search, `pnpm run check`, and
+  `pnpm run test:e2e` passed.
+
+## task-0598 — Render mixed unlit and Matcap app resource sets
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added a narrow mixed unlit/Matcap app-facade rendering path for two material
+  resource sets sharing a mesh.
+- Pipeline routing now provides both unlit and Matcap pipeline resources to the
+  render frame planner, while group-2 material bind groups resolve by material
+  resource key per draw.
+- Material dependency diagnostics now block whole-frame app submission when any
+  extracted entity reports an unresolved material texture/sampler dependency,
+  preventing partial mixed-frame submits.
+- Important files: `packages/webgpu/src/webgpu/app.ts`,
+  `test/webgpu/webgpu-app.test.ts`.
+- Validation run: focused WebGPU app tests, `pnpm run check`, and
+  `pnpm run test:e2e` passed.
+
+## task-0601 — Align architecture docs for texture source data
+
+Completed: 2026-05-16
+
+Summary:
+
+- Updated `docs/ARCHITECTURE.md` to state that texture source assets may carry
+  uploadable texel bytes and row-layout metadata as renderer-independent source
+  data.
+- Clarified that WebGPU turns that payload into `GPUQueue.writeTexture` work and
+  prepared texture views.
+- Important files: `docs/ARCHITECTURE.md`.
+- Validation run: `pnpm run check` passed.
+
+## task-0600 — Add app texture upload diagnostics to reports
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added app-facade tests proving invalid texture upload row layout and too-small
+  texture source data surface as JSON-safe render diagnostics.
+- Verified failed texture uploads do not submit a frame.
+- Important files: `test/webgpu/webgpu-app.test.ts`.
+- Validation run: focused app tests, `pnpm run check`, and focused Playwright
+  app diagnostics test passed.
+
+## task-0597 — Render multiple same-family unlit app resource sets
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added app-facade rendering for multiple unlit material resource sets sharing a
+  mesh in one frame.
+- Added draw resource-set resolution for multiple material resource keys and
+  kept mixed-family frames on `webGpuApp.additionalDrawResourceUnsupported`.
+- Updated the app diagnostics example so its unsupported scenario uses mixed
+  material families instead of two unlit materials.
+- Important files: `packages/webgpu/src/webgpu/app.ts`,
+  `test/webgpu/webgpu-app.test.ts`, `examples/app-diagnostics.js`.
+- Validation run: focused app tests, focused Playwright app diagnostics test,
+  and `pnpm run check` passed.
+
+## task-0596 — Plan app multi-resource draw sets
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added `createWebGpuAppDrawResourceSetPlan()` to group snapshot mesh draws by
+  source mesh/material keys.
+- Updated unsupported additional-resource diagnostics to use the resource-set
+  plan and include `resourceSetIndex`.
+- Tests cover same-set and mixed-set planning while keeping unsupported mixed
+  families diagnostic-only.
+- Important files: `packages/webgpu/src/webgpu/app.ts`,
+  `test/webgpu/webgpu-app.test.ts`.
+- Validation run: focused app tests and `pnpm run check` passed.
+
+## task-0595 — Add source texture upload data for Matcap app pixels
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added optional renderer-independent `TextureAsset.sourceData` with bytes and
+  row layout metadata.
+- `createWebGpuApp.render()` now passes ready texture source data to the
+  WebGPU-owned texture resource upload path.
+- The Matcap app example now supplies deterministic 2x2 texture bytes and uses
+  `copy-dst` texture usage for upload.
+- Important files: `packages/render/src/materials/types.ts`,
+  `packages/webgpu/src/webgpu/app.ts`, `examples/matcap-app.js`,
+  `test/assets/typed-collections.test.ts`, `test/webgpu/webgpu-app.test.ts`.
+- Validation run: focused typed asset/app tests, `pnpm run check`, and focused
+  Playwright Matcap app test passed.
+
+## task-0594 — Audit material-family activation boundaries
+
+Completed: 2026-05-16
+
+Summary:
+
+- Audited the Matcap app activation path, source/prepared resource ownership,
+  package dependency direction, app diagnostics, and browser status JSON.
+- Confirmed `simulation` and `render` remain free of WebGPU/browser-owned state.
+- Recorded the audit and the source texture upload follow-up/resolution.
+- Important files:
+  `docs/research/MATCAP_APP_ACTIVATION_BOUNDARY_AUDIT_2026_05_16.md`.
+- Validation run: boundary search, `pnpm run check`, and focused Playwright
+  Matcap app test passed.
+
+## task-0593 — Publish app report JSON helper output in examples
+
+Completed: 2026-05-16
+
+Summary:
+
+- The new Matcap app example publishes
+  `webGpuAppRenderReportToJsonValue()` output in browser status.
+- Playwright verifies the successful status remains JSON-safe and includes
+  report counts, diagnostics, and resource reuse.
+- Important files: `examples/matcap-app.js`,
+  `test/e2e/matcap-app.spec.ts`.
+- Validation run: `pnpm run check` and focused Playwright Matcap app test
+  passed.
+
+## task-0592 — Add browser Matcap app example coverage
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added `examples/matcap-app.html` and `examples/matcap-app.js` using
+  ECS-authored mesh/material/texture/sampler assets and `createWebGpuApp`.
+- Added nav links and example syntax coverage.
+- Added Playwright coverage for non-background Matcap pixels, animation,
+  resource reuse, and JSON-safe app report status.
+- Important files: `examples/matcap-app.html`,
+  `examples/matcap-app.js`, `test/e2e/matcap-app.spec.ts`, `package.json`.
+- Validation run: `pnpm run check`, focused Playwright Matcap app test, and
+  in-app browser verification passed.
+
+## task-0591 — Wire single-material Matcap app-facade rendering
+
+Completed: 2026-05-16
+
+Summary:
+
+- `createWebGpuApp.render()` now supports a narrow single-source-resource
+  MatcapMaterial path using the existing Matcap pipeline, frame-resource, and
+  texture/sampler prepared-resource helpers.
+- Matcap app texture/sampler resources use the same source-handle/version cache
+  pattern as unlit textures.
+- Mixed mesh/material source-resource frames still fail with
+  `webGpuApp.additionalDrawResourceUnsupported`.
+- Important files: `packages/webgpu/src/webgpu/app.ts`,
+  `test/webgpu/webgpu-app.test.ts`.
+- Validation run: focused WebGPU app/Matcap tests, `pnpm run check`, and
+  focused Playwright Matcap app test passed.
+
 ## task-0590 — Add MatcapMaterial frame GPU resource assembly
 
 Completed: 2026-05-16

@@ -10,7 +10,7 @@
     "build": "tsc -b packages/simulation packages/render packages/runtime packages/core packages/webgpu",
     "typecheck": "pnpm run build",
     "typecheck:test": "tsc --noEmit -p tsconfig.test.json",
-    "check:examples": "node --check scripts/serve-examples.mjs && node --check examples/main.js && node --check examples/triangle.js && node --check examples/multi-entity.js && node --check examples/spinning-cube.js && node --check examples/materials-showcase.js && node --check examples/app-diagnostics.js && node --check examples/webgpu-readback.js",
+    "check:examples": "node --check scripts/serve-examples.mjs && node --check examples/main.js && node --check examples/triangle.js && node --check examples/multi-entity.js && node --check examples/spinning-cube.js && node --check examples/matcap-app.js && node --check examples/materials-showcase.js && node --check examples/app-diagnostics.js && node --check examples/webgpu-readback.js",
     "lint": "eslint .",
     "test": "vitest run",
     "test:watch": "vitest",

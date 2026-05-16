@@ -1,10 +1,10 @@
 {
   "state": "idle",
   "currentTaskId": null,
-  "lastRunStartedAt": "2026-05-16T22:02:35Z",
+  "lastRunStartedAt": "2026-05-16T23:02:41Z",
   "lastResult": "success",
   "lastCommit": "0b6a5ef",
   "activePid": null,
-  "notes": "Completed tasks 0584, 0585, 0580, 0581, 0582, 0586, 0587, 0588, 0589, and 0590. Next: task-0591 single-material Matcap app-facade rendering.",
-  "lastRunFinishedAt": "2026-05-16T22:42:06Z"
+  "notes": "Completed tasks 0591 through 0599 plus 0600 and 0601; added Matcap demo ECS Play/Pause controls. Next: task-0602 StandardMaterial in mixed app resource sets.",
+  "lastRunFinishedAt": "2026-05-16T23:56:01Z"
 }

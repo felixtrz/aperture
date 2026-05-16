@@ -289,6 +289,11 @@ adapters. A render asset adapter maps a source asset and its version/dependency
 state into a prepared renderer resource such as uploaded mesh buffers, material
 bind data, texture views, samplers, or pipeline keys.
 
+Texture source assets may include uploadable texel bytes and row-layout metadata
+as renderer-independent source data. That source payload is not a GPU resource:
+the WebGPU backend is responsible for turning it into `GPUQueue.writeTexture`
+work and prepared texture views keyed by source handle/version.
+
 The current renderer-independent contract is documented in
 [`RENDER_ASSET_PREPARATION.md`](./RENDER_ASSET_PREPARATION.md). It defines
 typed prepare/unload adapters and prepared mesh/material stores without exposing
