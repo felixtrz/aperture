@@ -1,0 +1,116 @@
+import { describe, expect, it } from "vitest";
+
+import {
+  Camera,
+  Material,
+  Mesh,
+  RenderLayer,
+  Visibility,
+  WorldTransform,
+  assetHandleKey,
+  createBoxMeshAsset,
+  createCamera,
+  createRenderAssetCollections,
+  createRootTransform,
+  createStandardMaterialAsset,
+  createTextureHandle,
+  createWorld,
+  extractRenderSnapshot,
+  registerRenderAuthoringComponents,
+  registerTransformComponents,
+  validateStandardMaterialProofPoint,
+} from "@aperture-engine/core";
+
+describe("StandardMaterial proof-point contract", () => {
+  it("accepts the direct-lit scalar proof-point fields", () => {
+    const material = createStandardMaterialAsset({
+      label: "Proof Standard",
+      baseColorFactor: new Float32Array([0.8, 0.7, 0.6, 1]),
+      metallicFactor: 0.25,
+      roughnessFactor: 0.6,
+      emissiveFactor: [0.05, 0.04, 0.03],
+    });
+
+    const report = validateStandardMaterialProofPoint(material);
+
+    expect(report.valid).toBe(true);
+    expect(report.diagnostics).toEqual([]);
+    expect(report.supportedFeatures).toContain("directionalLight");
+    expect(report.deferredFeatures).toContain("imageBasedLighting");
+  });
+
+  it("distinguishes deferred texture features from invalid scalar inputs", () => {
+    const material = createStandardMaterialAsset({
+      metallicFactor: 1.4,
+      baseColorTexture: {
+        texture: createTextureHandle("albedo"),
+        sampler: null,
+      },
+      unsupportedFeatures: ["custom-shader"],
+    });
+
+    const report = validateStandardMaterialProofPoint(material);
+
+    expect(report.valid).toBe(false);
+    expect(report.diagnostics).toEqual([
+      {
+        code: "standardMaterial.invalidFactor",
+        field: "metallicFactor",
+        severity: "error",
+        message: "metallicFactor must be a finite value between 0 and 1.",
+      },
+      {
+        code: "standardMaterial.deferredFeature",
+        field: "baseColorTexture",
+        severity: "warning",
+        message:
+          "baseColorTexture is deferred for the StandardMaterial proof point.",
+      },
+      {
+        code: "standardMaterial.unsupportedFeature",
+        field: "custom-shader",
+        severity: "error",
+        message:
+          "StandardMaterial proof point does not support 'custom-shader'.",
+      },
+    ]);
+  });
+
+  it("extracts standard material draw metadata without WebGPU handles", () => {
+    const world = createWorld({ entityCapacity: 8 });
+    const assets = createRenderAssetCollections();
+    const mesh = assets.meshes.add(createBoxMeshAsset({ label: "Cube" }));
+    const material = assets.materials.standard.add(
+      createStandardMaterialAsset({ label: "Proof Standard" }),
+    );
+
+    registerTransformComponents(world);
+    registerRenderAuthoringComponents(world);
+
+    const camera = world.createEntity();
+    const cameraTransform = createRootTransform({ translation: [0, 0, 5] });
+
+    camera.addComponent(WorldTransform, cameraTransform.world);
+    camera.addComponent(Camera, createCamera({ layerMask: 1 }));
+
+    const cube = world.createEntity();
+    const cubeTransform = createRootTransform();
+
+    cube.addComponent(WorldTransform, cubeTransform.world);
+    cube.addComponent(Mesh, { meshId: assetHandleKey(mesh) });
+    cube.addComponent(Material, { materialId: assetHandleKey(material) });
+    cube.addComponent(RenderLayer, { mask: 1 });
+    cube.addComponent(Visibility);
+
+    const snapshot = extractRenderSnapshot(world, assets.registry, {
+      frame: 3,
+    });
+
+    expect(snapshot.meshDraws).toHaveLength(1);
+    expect(snapshot.meshDraws[0]?.material.kind).toBe("material");
+    expect(snapshot.meshDraws[0]?.batchKey.pipelineKey).toBe(
+      "standard|opaque|back|less|none",
+    );
+    expect(snapshot.diagnostics).toEqual([]);
+  });
+});

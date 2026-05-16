@@ -8,7 +8,11 @@ import type {
   WorldOptions,
 } from "elics";
 
-export { Types as EcsType, createComponent as defineComponent } from "elics";
+export {
+  Types as EcsType,
+  createComponent as defineComponent,
+  createSystem,
+} from "elics";
 export type {
   ComponentInitialData,
   DataType,

@@ -11,6 +11,7 @@ import type {
   CreateSamplerGpuResourceResult,
   CreateTextureGpuResourceResult,
 } from "./texture-resources.js";
+import type { CreateStandardMaterialGpuBufferResult } from "./standard-material-buffer-resource.js";
 import type { CreateUnlitMaterialGpuBufferResult } from "./unlit-material-buffer-resource.js";
 import type { CreateViewUniformGpuBufferResult } from "./view-uniform-buffer-resource.js";
 import type { RenderResourceInspectionReport } from "./resource-lifecycle.js";
@@ -47,9 +48,13 @@ export interface RenderResourceSummaryCounts {
   readonly errors: number;
 }
 
+export type CreateMaterialGpuBufferResult =
+  | CreateUnlitMaterialGpuBufferResult
+  | CreateStandardMaterialGpuBufferResult;
+
 export interface RenderResourceSummaryInput {
   readonly meshResources: readonly CreateMeshGpuBuffersResult[];
-  readonly materialResources: readonly CreateUnlitMaterialGpuBufferResult[];
+  readonly materialResources: readonly CreateMaterialGpuBufferResult[];
   readonly textureResources?: readonly CreateTextureGpuResourceResult[];
   readonly samplerResources?: readonly CreateSamplerGpuResourceResult[];
   readonly lightBuffers?: readonly LightBufferDescriptor[];

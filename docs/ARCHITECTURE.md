@@ -287,6 +287,11 @@ adapters. A render asset adapter maps a source asset and its version/dependency
 state into a prepared renderer resource such as uploaded mesh buffers, material
 bind data, texture views, samplers, or pipeline keys.
 
+The current renderer-independent contract is documented in
+[`RENDER_ASSET_PREPARATION.md`](./RENDER_ASSET_PREPARATION.md). It defines
+typed prepare/unload adapters and prepared mesh/material stores without exposing
+raw WebGPU handles.
+
 ## Frame Pipeline
 
 A typical single-threaded frame:

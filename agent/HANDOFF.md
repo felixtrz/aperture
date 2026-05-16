@@ -2,6 +2,180 @@
 
 ## Latest Run Update
 
+Completed `task-0560 — Prepare StandardMaterial GPU data and bind layout`, the
+next proof-point WebGPU slice after the typed asset/render-bridge/facade work in
+the previous update.
+
+What changed:
+
+- Added WebGPU StandardMaterial packing:
+  - 80-byte uniform layout for base color, emissive, metallic, roughness,
+    normal scale, occlusion strength, alpha cutoff, texture coordinates, and
+    feature flags.
+  - Texture dependency keys for base color, metallic-roughness, normal,
+    occlusion, and emissive bindings without raw handles.
+  - Proof-point validation integration so invalid scalar inputs stop packing
+    while deferred texture features stay visible as warnings.
+- Added StandardMaterial WebGPU preparation/resource helpers:
+  - uniform buffer descriptor planning.
+  - GPU buffer creation with stable `material-buffer:` keys.
+  - combined material preparation plan that emits the material buffer resource
+    key and group-2 bind descriptor entries.
+- Added StandardMaterial bind group metadata:
+  - group-2 layout metadata for the material uniform plus deferred texture /
+    sampler slots.
+  - validation for required material binding shape.
+  - stable `bind-group:standard/group-2/...` resource keys.
+- Updated resource summary typing so standard material GPU buffer results are
+  counted by the existing material-buffer readiness summary.
+
+Validation:
+
+- Targeted tests passed:
+  - `pnpm exec vitest run test/webgpu/standard-material-buffer.test.ts test/webgpu/standard-bind-group.test.ts test/webgpu/standard-bind-group-layout.test.ts test/webgpu/standard-material-buffer-resource.test.ts`
+- Full validation passed:
+  - `pnpm run check`
+  - 148 test files / 686 tests passed.
+
+Reference files/patterns inspected:
+
+- PlayCanvas-style material/bind resource patterns:
+  - `references/engine/src/scene/materials/standard-material.js`
+  - `references/engine/src/framework/parsers/material/json-standard-material.js`
+  - `references/engine/src/extras/exporters/gltf-exporter.js`
+  - `references/engine/src/platform/graphics/bind-group-format.js`
+  - `references/engine/src/platform/graphics/uniform-buffer-format.js`
+- Three.js StandardMaterial shader/material fields:
+  - `references/three.js/src/materials/MeshStandardMaterial.js`
+  - `references/three.js/src/renderers/shaders/ShaderLib/meshphysical.glsl.js`
+- Existing Aperture unlit material buffer, bind group, and resource summary
+  tests/helpers.
+
+Recommended next task:
+
+- `task-0561 — Add direct-lit StandardMaterial WGSL and pipeline`.
+
+Known issues:
+
+- The lit StandardMaterial shader/pipeline is still pending.
+- StandardMaterial draw selection/routing is still pending.
+- The user-facing lit spinning cube example and Playwright route are still
+  pending.
+
+Files touched in this update:
+
+- `agent/BACKLOG.md`
+- `agent/COMPLETED.md`
+- `agent/HANDOFF.md`
+- `agent/STATUS.json`
+- `packages/webgpu/src/webgpu/index.ts`
+- `packages/webgpu/src/webgpu/resource-summary.ts`
+- `packages/webgpu/src/webgpu/standard-bind-group-layout.ts`
+- `packages/webgpu/src/webgpu/standard-bind-group.ts`
+- `packages/webgpu/src/webgpu/standard-material-buffer-resource.ts`
+- `packages/webgpu/src/webgpu/standard-material-buffer.ts`
+- `test/webgpu/standard-bind-group-layout.test.ts`
+- `test/webgpu/standard-bind-group.test.ts`
+- `test/webgpu/standard-material-buffer-resource.test.ts`
+- `test/webgpu/standard-material-buffer.test.ts`
+
+## Previous Run Update
+
+Completed the next proof-point bridge sequence through the renderer-independent
+StandardMaterial contract, then ran a focused package-boundary audit.
+
+What changed:
+
+- Added typed asset collections:
+  - Generic `TypedAssetCollection` in `@aperture-engine/simulation`.
+  - Render-facing `createRenderAssetCollections()` with `assets.meshes.add(...)`
+    and `assets.materials.standard.add(...)`.
+  - Material collections derive texture/sampler dependencies into
+    `AssetRegistry`.
+- Added renderer-independent render asset preparation:
+  - `RenderAssetAdapter`.
+  - `PreparedRenderAssetStore`.
+  - mesh/material prepared metadata stores.
+  - deterministic prepare/update/retry/remove bookkeeping.
+  - docs in `docs/RENDER_ASSET_PREPARATION.md`.
+- Added minimal runtime authoring helpers:
+  - `app.spawn(...)` on simulation/extraction app facades.
+  - `withTransform`, `withMesh`, `withMaterial`, `withCamera`, `withLight`,
+    visibility/layer/metadata helpers.
+  - `Spin` and `SpinSystem` for proof-point examples/tests.
+- Added `createWebGpuApp` in `@aperture-engine/webgpu`:
+  - Initializes WebGPU from a canvas.
+  - Exposes world/assets/spawn/step/extract/render/stepAndRender.
+  - Renders the existing unlit path from extracted snapshots/render-world data.
+  - Does not import runtime/core.
+- Added StandardMaterial proof-point contract:
+  - Explicit supported/deferred feature scope.
+  - Validation distinguishes deferred texture/IBL/shadow features from invalid
+    scalar inputs.
+  - Extraction test proves StandardMaterial produces a distinct standard
+    pipeline key without raw WebGPU handles.
+- Completed package-boundary audit and recorded it in
+  `docs/research/BEVY_BRIDGE_PACKAGE_AUDIT_2026_05_16.md`.
+
+Validation:
+
+- `pnpm run check` passed.
+- Focused tests also passed during the run:
+  - `test/assets/typed-collections.test.ts`
+  - `test/assets/render-asset-preparation.test.ts`
+  - `test/runtime/runtime.test.ts`
+  - `test/webgpu/webgpu-app.test.ts`
+  - `test/materials/standard-proof-point.test.ts`
+
+Reference files/patterns inspected:
+
+- Bevy `crates/bevy_asset/src/assets.rs`
+- Bevy `crates/bevy_asset/src/render_asset.rs`
+- Bevy `crates/bevy_render/src/render_asset.rs`
+- Bevy `crates/bevy_mesh/src/components.rs`
+- Existing Aperture triangle/spinning-cube WebGPU setup and frame execution
+  helpers.
+
+Recommended next task:
+
+- `task-0560 — Prepare StandardMaterial GPU data and bind layout`.
+
+Known issues:
+
+- `createWebGpuApp` currently covers the existing unlit path only.
+- StandardMaterial GPU buffers, bind groups, WGSL, and draw routing are still
+  pending.
+- The lit spinning cube example and Playwright E2E are still pending.
+
+Files touched in this update:
+
+- `agent/BACKLOG.md`
+- `agent/COMPLETED.md`
+- `agent/HANDOFF.md`
+- `agent/STATUS.json`
+- `docs/ARCHITECTURE.md`
+- `docs/RENDER_ASSET_PREPARATION.md`
+- `docs/research/BEVY_BRIDGE_PACKAGE_AUDIT_2026_05_16.md`
+- `packages/simulation/src/assets/collections.ts`
+- `packages/simulation/src/assets/index.ts`
+- `packages/simulation/src/ecs/index.ts`
+- `packages/render/src/assets/collections.ts`
+- `packages/render/src/assets/index.ts`
+- `packages/render/src/assets/preparation.ts`
+- `packages/render/src/index.ts`
+- `packages/render/src/materials/index.ts`
+- `packages/render/src/materials/standard-proof-point.ts`
+- `packages/runtime/src/index.ts`
+- `packages/webgpu/src/webgpu/app.ts`
+- `packages/webgpu/src/webgpu/index.ts`
+- `test/assets/render-asset-preparation.test.ts`
+- `test/assets/typed-collections.test.ts`
+- `test/materials/standard-proof-point.test.ts`
+- `test/runtime/runtime.test.ts`
+- `test/webgpu/webgpu-app.test.ts`
+
+## Previous Run Update
+
 Added medium/long-term guidance for post-proof-point work and updated
 automation so stop-hook checkpoints are pushed upstream.
 

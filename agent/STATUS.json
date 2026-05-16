@@ -1,10 +1,10 @@
 {
   "state": "idle",
   "currentTaskId": null,
-  "lastRunStartedAt": "2026-05-16T17:05:01Z",
+  "lastRunStartedAt": "2026-05-16T18:04:53Z",
   "lastResult": "success",
-  "lastCommit": "c6d25ff",
+  "lastCommit": "0b6a5ef",
   "activePid": null,
-  "notes": "Added medium/long-term goals, removed duplicate CODEX_WAKE_PROMPT.md in favor of agent/WAKE.md, and updated stop-hook automation to commit and push; next recommended task is task-0540 typed asset collections.",
-  "lastRunFinishedAt": "2026-05-16T18:00:38Z"
+  "notes": "Completed task-0540, task-0541, task-0543, task-0558, task-0544, task-0559, and task-0560. Next recommended task is task-0561 direct-lit StandardMaterial WGSL and pipeline.",
+  "lastRunFinishedAt": "2026-05-16T18:39:53Z"
 }

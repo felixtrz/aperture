@@ -59,7 +59,7 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start with `task-0540`. The next automation runs should prioritize the
+Start with `task-0560`. The next automation runs should prioritize the
 user-facing lit spinning cube proof point over general render-pipeline cleanup.
 
 `task-0557` and the metadata-only light shader tasks remain useful, but they are
@@ -79,19 +79,14 @@ Target proof point:
 - `createWebGpuApp` or equivalent hides backend setup and frame-loop plumbing.
 - Playwright verifies rendered pixels and JSON-safe frame diagnostics.
 
-Automation priority order:
+Remaining automation priority order:
 
-1. `task-0540` — typed asset collections.
-2. `task-0541` — renderer-independent render asset preparation contract.
-3. `task-0543` — minimal user-facing ECS spawn/component API.
-4. `task-0558` — WebGPU app facade over the existing unlit path.
-5. `task-0559` — StandardMaterial proof-point render contract.
-6. `task-0560` — StandardMaterial GPU preparation and bind layout.
-7. `task-0561` — direct-lit StandardMaterial WGSL and pipeline.
-8. `task-0562` — route standard materials through extraction/render-world draw
+1. `task-0561` — direct-lit StandardMaterial WGSL and pipeline.
+2. `task-0562` — route standard materials through extraction/render-world draw
    selection.
-9. `task-0563` — user-facing lit spinning cube example and Playwright E2E.
-10. `task-0564` — proof-point architecture audit.
+3. `task-0563` — user-facing lit spinning cube example and Playwright E2E.
+4. `task-0564` — proof-point architecture audit.
+5. `task-0565` — standard material resource inspection records.
 
 Defer allocation-only cleanup and metadata-only shader-contract tasks unless
 they are a direct blocker for this track.
@@ -99,153 +94,6 @@ they are a direct blocker for this track.
 ## Ready Tasks By Category
 
 ### Proof Point Critical Path
-
-### task-0540 — Add typed asset collection API over AssetRegistry
-
-Category: `render-bridge`
-Package/write-scope: `packages/simulation/src/assets`, `packages/render/src`,
-targeted asset/render tests.
-Reference anchor: Bevy typed `Assets<T>` resources and asset handles in
-`/Users/felixz/Projects/aperture/references/bevy`.
-
-Add a small typed asset collection layer that returns stable handles without
-requiring callers to manually assemble kind/id pairs.
-
-Acceptance criteria:
-
-- Provide typed collections for meshes and materials first.
-- Common authoring supports `assets.meshes.add(createBoxMeshAsset(...))` and
-  `assets.materials.standard.add(createStandardMaterialAsset(...))` or a
-  similarly concise API.
-- Adding an asset registers it in the underlying `AssetRegistry`.
-- Updating asset readiness/status keeps existing registry diagnostics behavior.
-- Tests cover handle stability, duplicate detection, status transitions, and
-  dependency reporting through the underlying registry.
-- API remains usable in headless Node/worker contexts.
-
-### task-0541 — Define renderer-independent render asset preparation contract
-
-Category: `render-bridge`
-Package/write-scope: `packages/render/src`, docs, targeted render tests.
-Reference anchor: Bevy `RenderAsset` / prepared render asset pattern in
-`/Users/felixz/Projects/aperture/references/bevy`.
-
-Define the TypeScript contract for converting source assets into renderer-owned
-prepared resources without adding broad new GPU behavior.
-
-Acceptance criteria:
-
-- Add a `RenderAssetAdapter` or equivalent interface for source asset type,
-  prepared asset type, version/dependency state, prepare result, and unload.
-- Define prepared asset stores for at least mesh and material resource families.
-- The contract is sufficient for the StandardMaterial proof point: source
-  material data, dependency readiness, prepared material metadata, and removal.
-- Contract lives outside the WebGPU backend and exposes no raw GPU handles.
-- Tests cover deterministic prepare/update/remove bookkeeping with mock assets.
-- Docs map the contract to the Bevy `RenderAsset` pattern.
-
-### task-0543 — Implement minimal user-facing ECS spawn/component API
-
-Category: `runtime-orchestration`
-Package/write-scope: `packages/runtime/src`, `packages/core/src`, runtime tests,
-and focused docs/examples only if needed.
-Reference anchor: Bevy app/world/render-app orchestration concepts in
-`/Users/felixz/Projects/aperture/references/bevy`.
-
-Implement the smallest user-facing layer that makes ECS authoring feel like the
-intended end state while still returning/using real EliCS entities.
-
-Acceptance criteria:
-
-- Provide a `spawn` helper on the app or world facade that creates an entity and
-  attaches typed component initializers.
-- Provide concise component initializer helpers for transform, `Mesh`,
-  `Material`, camera, light, visibility/layer, and simple per-frame spin data
-  if needed for the proof-point example.
-- Preserve headless mode: the API works in `createSimulationApp` /
-  `createExtractionApp` without WebGPU or browser globals.
-- The returned entity remains inspectable and compatible with existing EliCS
-  component APIs.
-- Tests cover spawn, component attachment, a simple spin system, and extraction
-  from the authored entity.
-
-### task-0558 — Add WebGPU app facade over existing unlit render path
-
-Category: `runtime-orchestration`
-Package/write-scope: `packages/webgpu/src`, `packages/runtime/src` only if the
-facade needs shared types, examples, and Playwright/runtime tests.
-Reference anchor: Bevy app/render-app separation in
-`/Users/felixz/Projects/aperture/references/bevy`, plus WebGPU setup and frame
-execution patterns in `/Users/felixz/Projects/aperture/references/engine` and
-`/Users/felixz/Projects/aperture/references/three.js`.
-
-Create the first `createWebGpuApp`-style facade that hides device/context
-initialization and the current unlit render-frame plumbing.
-
-Acceptance criteria:
-
-- User code can create an app with a canvas, add systems/assets/entities, and
-  call `step`, `render`, or `run` without manually wiring WebGPU buffers,
-  pipelines, bind groups, or command encoders.
-- The facade consumes extracted snapshots/render-world data; it does not query
-  gameplay ECS directly from the backend.
-- Headless `createSimulationApp` / `createExtractionApp` remains usable without
-  importing or initializing WebGPU.
-- Existing unlit spinning cube behavior can be expressed through this facade or
-  an adapter route.
-- Playwright or browser tests verify the facade can render a nonblank unlit
-  cube/frame before PBR is added.
-
-### task-0559 — Add StandardMaterial proof-point render contract
-
-Category: `render-bridge`
-Package/write-scope: `packages/render/src/materials`,
-`packages/render/src/rendering`, targeted material/render tests, and docs if the
-contract shape changes.
-Reference anchor: Bevy material asset/render contract patterns in
-`/Users/felixz/Projects/aperture/references/bevy`.
-
-Define the renderer-independent contract for the MVP StandardMaterial path used
-by the proof point.
-
-Acceptance criteria:
-
-- The proof-point StandardMaterial scope is explicit: base color factor,
-  metallic factor, roughness factor, emissive factor if already present,
-  alpha/depth/cull state, ambient plus direct lights; no IBL, shadows, normal
-  maps, texture sampling, or transmission.
-- Material validation distinguishes unsupported deferred features from invalid
-  proof-point inputs.
-- Pipeline/material key inputs include enough information to choose standard vs
-  unlit rendering deterministically.
-- Tests cover StandardMaterial validation, pipeline key generation, and
-  extraction/render packet metadata needed to select the standard path.
-- No raw WebGPU handles are introduced in render package material data.
-
-### task-0560 — Prepare StandardMaterial GPU data and bind layout
-
-Category: `webgpu-render`
-Package/write-scope: `packages/webgpu/src/webgpu`, targeted WebGPU material,
-bind group, buffer, and resource-summary tests.
-Reference anchor: Compare material uniform/bind group preparation in
-`/Users/felixz/Projects/aperture/references/engine` and
-`/Users/felixz/Projects/aperture/references/three.js`.
-
-Prepare the MVP StandardMaterial data for WebGPU without activating the lit
-pipeline yet.
-
-Acceptance criteria:
-
-- Add a packed material uniform/storage layout for base color, metallic,
-  roughness, emissive, and feature flags needed by the proof point.
-- Add WebGPU bind group layout metadata and validation for the standard material
-  group.
-- Preparation consumes renderer-independent StandardMaterial data and produces
-  renderer-owned buffer/bind group resource descriptors.
-- Existing resource summary/inspection helpers can report standard material
-  readiness without raw GPU handles.
-- Tests cover packing layout, bind group metadata, missing resource diagnostics,
-  and stable cache/resource keys.
 
 ### task-0561 — Add direct-lit StandardMaterial WGSL and pipeline
 
@@ -324,31 +172,6 @@ Acceptance criteria:
 
 ### Audit / Refactor
 
-### task-0544 — Audit Bevy bridge and package-boundary drift
-
-Category: `audit-refactor`
-Package/write-scope: docs, package manifests, imports, tests; small corrective
-code changes only if directly tied to the audit findings.
-Reference anchor: `docs/NORTH_STAR.md`, `docs/ARCHITECTURE.md`,
-`docs/DECISIONS.md`, `docs/research/BEVY_ECS_RENDER_ALIGNMENT.md`, and relevant
-Bevy files under `/Users/felixz/Projects/aperture/references/bevy`.
-
-Run a focused audit after the typed assets / render asset preparation /
-runtime-orchestration bridge work starts landing. If the proof-point track is in
-progress, prefer running this after `task-0563` unless a boundary concern blocks
-implementation earlier.
-
-Acceptance criteria:
-
-- Verify package dependency directions still match `docs/ARCHITECTURE.md`.
-- Verify ECS remains authoritative and WebGPU does not import runtime or core.
-- Verify new public APIs still use `Mesh`/`Material` components and stable asset
-  handles rather than scene-node state.
-- Verify docs, backlog categories, and handoff describe the actual architecture.
-- Add concrete follow-up backlog items for any drift that is too large to fix
-  inside the audit task.
-- Run `pnpm run check`.
-
 ### task-0564 — Audit lit proof point against architecture and references
 
 Category: `audit-refactor`
@@ -373,6 +196,31 @@ Acceptance criteria:
   hot-path allocation work if the new frame facade introduced per-frame
   allocation risk.
 - Run `pnpm run check` and the lit cube Playwright route.
+
+### task-0565 — Add standard material resource inspection records
+
+Category: `webgpu-render`
+Package/write-scope: `packages/webgpu/src/webgpu`, resource-lifecycle/resource
+summary helpers, targeted WebGPU tests.
+Reference anchor: Existing Aperture `resource-lifecycle` and `resource-summary`
+helpers, plus material resource preparation patterns in
+`/Users/felixz/Projects/aperture/references/engine` and
+`/Users/felixz/Projects/aperture/references/three.js`.
+
+Expose StandardMaterial GPU preparation readiness through the same JSON-safe
+resource inspection path used by mesh, pipeline, and generic material resources.
+
+Acceptance criteria:
+
+- StandardMaterial buffer resources can be represented as inspection records
+  with asset key, resource key, version/expected-version, and missing/stale/live
+  status.
+- Resource summary diagnostics include standard material missing/stale records
+  without exposing raw GPU buffer handles.
+- The helper composes with existing unlit material inspection records rather
+  than adding a parallel diagnostics format.
+- Targeted tests cover live, missing, stale, and pending-destroy standard
+  material resources.
 
 ### Deferred Supporting Render Cleanup
 

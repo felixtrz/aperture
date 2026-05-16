@@ -6,6 +6,8 @@ import {
   Material,
   Mesh,
   RenderLayer,
+  Spin,
+  SpinSystem,
   Visibility,
   WorldTransform,
   assetHandleKey,
@@ -14,9 +16,17 @@ import {
   createExtractionApp,
   createMaterialHandle,
   createMeshHandle,
+  createRenderAssetCollections,
   createRootTransform,
   createSimulationApp,
   createUnlitMaterialAsset,
+  withCamera,
+  withMaterial,
+  withMesh,
+  withRenderLayer,
+  withSpin,
+  withTransform,
+  withVisibility,
 } from "@aperture-engine/core";
 
 describe("runtime facade", () => {
@@ -60,6 +70,45 @@ describe("runtime facade", () => {
     const snapshot = app.stepAndExtract(1 / 60, 1, 42);
 
     expect(snapshot.frame).toBe(42);
+    expect(snapshot.views).toHaveLength(1);
+    expect(snapshot.meshDraws).toHaveLength(1);
+    expect(snapshot.diagnostics).toEqual([]);
+  });
+
+  it("spawns authored entities with typed helpers, spin system data, and extraction", () => {
+    const app = createExtractionApp({ worldOptions: { entityCapacity: 8 } });
+    const assets = createRenderAssetCollections({ registry: app.assets });
+    const mesh = assets.meshes.add(createBoxMeshAsset({ label: "Cube" }));
+    const material = assets.materials.unlit.add(createUnlitMaterialAsset());
+
+    app.registerSystem(SpinSystem);
+
+    app.spawn(
+      withTransform({ translation: [0, 0, 5] }),
+      withCamera({ priority: 0, layerMask: 1 }),
+    );
+    const cube = app.spawn(
+      withTransform(),
+      withMesh(mesh),
+      withMaterial(material),
+      withRenderLayer(1),
+      withVisibility(true),
+      withSpin({ radiansPerSecond: Math.PI, axis: [0, 1, 0] }),
+    );
+
+    const snapshot = app.stepAndExtract(1 / 60, 1, 7);
+
+    expect(cube.hasComponent(Mesh)).toBe(true);
+    expect(cube.hasComponent(Material)).toBe(true);
+    expect(cube.hasComponent(Spin)).toBe(true);
+    expect(cube.getValue(Mesh, "meshId")).toBe(assetHandleKey(mesh));
+    expect(cube.getValue(Material, "materialId")).toBe(
+      assetHandleKey(material),
+    );
+    expect(
+      Array.from(cube.getVectorView(LocalTransform, "rotation")),
+    ).not.toEqual([0, 0, 0, 1]);
+    expect(snapshot.frame).toBe(7);
     expect(snapshot.views).toHaveLength(1);
     expect(snapshot.meshDraws).toHaveLength(1);
     expect(snapshot.diagnostics).toEqual([]);

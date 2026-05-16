@@ -15,6 +15,109 @@ Summary:
 - Validation run.
 - Follow-up tasks added.
 
+## task-0540 — Add typed asset collection API over AssetRegistry
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added generic `TypedAssetCollection` in simulation and render-facing mesh /
+  material collection helpers via `createRenderAssetCollections`.
+- Material typed collections derive texture/sampler dependencies into the
+  underlying `AssetRegistry`.
+- Important files: `packages/simulation/src/assets/collections.ts`,
+  `packages/render/src/assets/collections.ts`,
+  `test/assets/typed-collections.test.ts`.
+- Validation run: `pnpm run check` passed.
+
+## task-0541 — Define renderer-independent render asset preparation contract
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added `RenderAssetAdapter`, `PreparedRenderAssetStore`, prepare/unload
+  bookkeeping, mesh/material metadata stores, and metadata adapters outside the
+  WebGPU backend.
+- Documented the Bevy mapping in `docs/RENDER_ASSET_PREPARATION.md`.
+- Important files: `packages/render/src/assets/preparation.ts`,
+  `docs/RENDER_ASSET_PREPARATION.md`,
+  `test/assets/render-asset-preparation.test.ts`.
+- Validation run: `pnpm run check` passed.
+
+## task-0543 — Implement minimal user-facing ECS spawn/component API
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added `spawn` to simulation/extraction app facades, component initializer
+  helpers for transform, mesh, material, camera, light, visibility/layer, and
+  metadata, plus a small `Spin` component/system for proof-point examples.
+- Important files: `packages/runtime/src/index.ts`,
+  `packages/simulation/src/ecs/index.ts`, `test/runtime/runtime.test.ts`.
+- Validation run: `pnpm run check` passed.
+
+## task-0558 — Add WebGPU app facade over existing unlit render path
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added `createWebGpuApp` in the WebGPU package. It initializes WebGPU, exposes
+  world/assets/spawn/step/extract/render methods, and renders the existing
+  unlit path from extracted snapshots/render-world data.
+- The facade keeps WebGPU package imports limited to simulation/render and does
+  not import runtime or core.
+- Important files: `packages/webgpu/src/webgpu/app.ts`,
+  `test/webgpu/webgpu-app.test.ts`.
+- Validation run: `pnpm run check` passed.
+
+## task-0544 — Audit Bevy bridge and package-boundary drift
+
+Completed: 2026-05-16
+
+Summary:
+
+- Verified package dependency direction, ECS/render ownership, stable
+  mesh/material handle authoring, and the lack of scene-graph or WebGL drift
+  after the bridge/facade work.
+- Recorded the audit in
+  `docs/research/BEVY_BRIDGE_PACKAGE_AUDIT_2026_05_16.md`.
+- Validation run: `pnpm run check` passed.
+
+## task-0559 — Add StandardMaterial proof-point render contract
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added explicit StandardMaterial proof-point scope and validation that
+  distinguishes deferred texture/IBL/shadow features from invalid scalar inputs.
+- Added extraction coverage proving standard material packets carry a distinct
+  pipeline key without raw WebGPU handles in render package data.
+- Important files: `packages/render/src/materials/standard-proof-point.ts`,
+  `test/materials/standard-proof-point.test.ts`.
+- Validation run: `pnpm run check` passed.
+
+## task-0560 — Prepare StandardMaterial GPU data and bind layout
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added WebGPU StandardMaterial uniform packing for scalar proof-point fields,
+  feature flags, texture dependency keys, and 80-byte layout metadata.
+- Added standard material buffer descriptor/GPU resource creation, material
+  group bind descriptor/layout metadata, and resource summary support for
+  standard material buffers.
+- Important files: `packages/webgpu/src/webgpu/standard-material-buffer.ts`,
+  `packages/webgpu/src/webgpu/standard-bind-group.ts`,
+  `packages/webgpu/src/webgpu/standard-bind-group-layout.ts`,
+  `packages/webgpu/src/webgpu/standard-material-buffer-resource.ts`.
+- Validation run: targeted StandardMaterial WebGPU tests and `pnpm run check`
+  passed.
+
 ## task-0175 — Stabilize browser WebGPU pixel verification baseline
 
 Completed: 2026-05-16

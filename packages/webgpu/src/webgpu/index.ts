@@ -1,3 +1,4 @@
+export * from "./app.js";
 export * from "./buffer.js";
 export * from "./bind-group-layout-cache.js";
 export * from "./clear.js";
@@ -49,6 +50,10 @@ export * from "./render-pass-lifecycle.js";
 export * from "./render-pass-resources.js";
 export * from "./shader-resource.js";
 export * from "./shader.js";
+export * from "./standard-bind-group-layout.js";
+export * from "./standard-bind-group.js";
+export * from "./standard-material-buffer-resource.js";
+export * from "./standard-material-buffer.js";
 export * from "./texture-resources.js";
 export * from "./unlit-material-buffer.js";
 export * from "./unlit-material-buffer-resource.js";
