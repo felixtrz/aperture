@@ -10,7 +10,8 @@ export type RenderPassCommandKind =
 
 export type RenderPassCommandDiagnosticCode =
   | "renderPassCommand.invalidVertexCount"
-  | "renderPassCommand.invalidIndexCount";
+  | "renderPassCommand.invalidIndexCount"
+  | "renderPassCommand.invalidTransformOffset";
 
 export interface RenderPassCommandDiagnostic {
   readonly code: RenderPassCommandDiagnosticCode;
@@ -100,6 +101,19 @@ export function planRenderPassCommands(
   for (const draw of [...options.draws].sort(
     (a, b) => a.renderId - b.renderId,
   )) {
+    const firstInstance = transformPackedOffsetToInstance(
+      draw.transformPackedOffset,
+    );
+
+    if (firstInstance === null) {
+      diagnostics.push({
+        code: "renderPassCommand.invalidTransformOffset",
+        renderId: draw.renderId,
+        message: `Render id ${draw.renderId} has invalid transform packed offset '${String(draw.transformPackedOffset)}'.`,
+      });
+      continue;
+    }
+
     commands.push({
       kind: "setPipeline",
       renderId: draw.renderId,
@@ -156,7 +170,7 @@ export function planRenderPassCommands(
         instanceCount: draw.instanceCount,
         firstIndex: 0,
         baseVertex: 0,
-        firstInstance: 0,
+        firstInstance,
       });
       indexedDrawCount += 1;
       continue;
@@ -177,7 +191,7 @@ export function planRenderPassCommands(
       vertexCount: draw.vertexCount,
       instanceCount: draw.instanceCount,
       firstVertex: 0,
-      firstInstance: 0,
+      firstInstance,
     });
     nonIndexedDrawCount += 1;
   }
@@ -194,4 +208,12 @@ export function planRenderPassCommands(
 
 function isPositiveInteger(value: number): boolean {
   return Number.isInteger(value) && value > 0;
+}
+
+function transformPackedOffsetToInstance(offset: number): number | null {
+  if (!Number.isInteger(offset) || offset < 0 || offset % 16 !== 0) {
+    return null;
+  }
+
+  return offset / 16;
 }

@@ -4,7 +4,7 @@ const jsonElement = document.querySelector("#example-json");
 const clearColor = { r: 0.015, g: 0.025, b: 0.035, a: 1 };
 
 const baseStatus = {
-  example: "ecs-triangle",
+  example: "ecs-multi-entity",
   canvas: {
     width: canvas?.width ?? 0,
     height: canvas?.height ?? 0,
@@ -31,7 +31,7 @@ try {
       });
     } else {
       publishStatus(
-        await renderTriangleScene(aperture, initialized, {
+        await renderMultiEntityScene(aperture, initialized, {
           width: canvas.width,
           height: canvas.height,
         }),
@@ -50,21 +50,24 @@ try {
   );
 }
 
-async function renderTriangleScene(aperture, initialized, canvasSize) {
-  const { world, assets, mesh, material } = createTriangleWorld(
-    aperture,
-    canvasSize,
-  );
-  const snapshot = aperture.extractRenderSnapshot(world, assets, { frame: 1 });
+async function renderMultiEntityScene(aperture, initialized, canvasSize) {
+  const scene = createMultiEntityWorld(aperture, canvasSize);
+  const snapshot = aperture.extractRenderSnapshot(scene.world, scene.assets, {
+    frame: 1,
+  });
   const firstDraw = snapshot.meshDraws[0];
   const firstView = snapshot.views[0];
 
-  if (firstDraw === undefined || firstView === undefined) {
+  if (
+    firstDraw === undefined ||
+    firstView === undefined ||
+    snapshot.meshDraws.length !== 2
+  ) {
     return {
       ...failure(
         "extract",
-        "empty-snapshot",
-        "The ECS triangle scene did not extract a drawable view and mesh.",
+        "unexpected-snapshot",
+        "The ECS multi-entity scene did not extract exactly two drawable mesh packets.",
       ),
       extraction: snapshotCounts(snapshot),
       diagnostics: snapshot.diagnostics,
@@ -101,12 +104,12 @@ async function renderTriangleScene(aperture, initialized, canvasSize) {
 
   const packedViews = aperture.packSnapshotViewUniforms(snapshot);
   const packedTransforms = aperture.packSnapshotTransforms(snapshot);
-  const frameResources = aperture.createUnlitFrameGpuResources({
+  const frameResources = aperture.createMultiMaterialUnlitFrameGpuResources({
     device: initialized.device,
-    mesh,
+    mesh: scene.mesh,
     viewUniforms: packedViews,
     worldTransforms: packedTransforms,
-    material,
+    materials: scene.materials.map((entry) => entry.asset),
     layouts: [0, 1, 2].map((group) => ({
       group,
       layoutKey: `unlit/pipeline-layout-${group}`,
@@ -119,25 +122,31 @@ async function renderTriangleScene(aperture, initialized, canvasSize) {
       ...failure(
         "resources",
         "frame-resources-unavailable",
-        "The ECS triangle frame resources could not be uploaded.",
+        "The ECS multi-entity frame resources could not be uploaded.",
       ),
       diagnostics: frameResources.diagnostics,
       extraction: snapshotCounts(snapshot),
     };
   }
 
+  const meshResourceKey = frameResources.resources.mesh.resourceKey;
+  const materialResourceKeys = new Map(
+    scene.materials.map((entry, index) => [
+      aperture.assetHandleKey(entry.handle),
+      frameResources.resources.materials[index]?.resourceKey ?? null,
+    ]),
+  );
   const renderWorld = new aperture.RenderWorld();
   const apply = renderWorld.applySnapshot(snapshot);
   const bindingPlan = aperture.planInjectedRenderFrameSnapshotResourceBindings({
     snapshot,
     resolveMeshResourceKey: (draw) =>
-      draw.mesh.id === "triangle"
-        ? frameResources.resources.mesh.resourceKey
+      aperture.assetHandleKey(draw.mesh) ===
+      aperture.assetHandleKey(scene.meshHandle)
+        ? meshResourceKey
         : null,
     resolveMaterialResourceKey: (draw) =>
-      draw.material.id === "triangle"
-        ? frameResources.resources.material.resourceKey
-        : null,
+      materialResourceKeys.get(aperture.assetHandleKey(draw.material)) ?? null,
   });
   const bindingResults = bindingPlan.bindings.map((binding) =>
     renderWorld.updateResourceBindings(binding.renderId, binding.update),
@@ -177,13 +186,13 @@ async function renderTriangleScene(aperture, initialized, canvasSize) {
     !drawList.valid ||
     !resources.valid ||
     !commandPlan.valid ||
-    commandPlan.drawCount === 0
+    commandPlan.drawCount !== 2
   ) {
     return {
       ...failure(
         "draw-plan",
         "draw-plan-unavailable",
-        "The ECS triangle draw plan did not produce a drawable command stream.",
+        "The ECS multi-entity draw plan did not produce two drawable commands.",
       ),
       extraction: snapshotCounts(snapshot),
       diagnostics: [
@@ -196,7 +205,7 @@ async function renderTriangleScene(aperture, initialized, canvasSize) {
     };
   }
 
-  const submitted = await submitTriangleFrame(
+  const submitted = await submitMultiEntityFrame(
     aperture,
     initialized,
     commandPlan,
@@ -219,9 +228,14 @@ async function renderTriangleScene(aperture, initialized, canvasSize) {
     format: initialized.format,
     clearColor,
     extraction: snapshotCounts(snapshot),
+    resources: {
+      materials: frameResources.resources.materials.length,
+      bindGroups: frameResources.resources.bindGroups.length,
+    },
     binding: {
       planned: bindingPlan.bindings.length,
       applied: bindingResults.filter((result) => result.ok).length,
+      ready: readiness.ready.length,
       diagnostics: bindingPlan.diagnostics.length,
     },
     renderWorld: {
@@ -234,18 +248,24 @@ async function renderTriangleScene(aperture, initialized, canvasSize) {
       descriptors: drawCommands.descriptors.length,
       drawList: drawList.draws.length,
       resolved: resources.draws.length,
+      renderIds: packages.packages.map((drawPackage) => drawPackage.renderId),
     },
     command: {
       commands: commandPlan.commands.length,
       drawCount: commandPlan.drawCount,
       indexedDrawCount: commandPlan.indexedDrawCount,
       nonIndexedDrawCount: commandPlan.nonIndexedDrawCount,
+      firstInstances: commandPlan.commands.flatMap((command) =>
+        command.kind === "draw" || command.kind === "drawIndexed"
+          ? [command.firstInstance]
+          : [],
+      ),
     },
     submission: submitted.summary,
   };
 }
 
-async function submitTriangleFrame(aperture, initialized, commandPlan) {
+async function submitMultiEntityFrame(aperture, initialized, commandPlan) {
   const colorTarget = aperture.createCurrentTextureColorTarget({
     context: initialized.context,
     clearColor: [clearColor.r, clearColor.g, clearColor.b, clearColor.a],
@@ -275,7 +295,7 @@ async function submitTriangleFrame(aperture, initialized, commandPlan) {
 
   const encoderResource = aperture.createCommandEncoderResource({
     device: initialized.device,
-    label: "ecs-triangle",
+    label: "ecs-multi-entity",
   });
 
   if (!encoderResource.valid || encoderResource.resource === null) {
@@ -306,7 +326,7 @@ async function submitTriangleFrame(aperture, initialized, commandPlan) {
   const end = aperture.endPlannedRenderPass(begin.pass);
   const finished = aperture.finishCommandEncoder({
     encoder: encoderResource.resource.encoder,
-    label: "ecs-triangle",
+    label: "ecs-multi-entity",
   });
 
   if (!execution.valid || !end.valid || !finished.valid) {
@@ -343,24 +363,31 @@ async function submitTriangleFrame(aperture, initialized, commandPlan) {
   };
 }
 
-function createTriangleWorld(aperture, canvasSize) {
-  const world = aperture.createWorld({ entityCapacity: 8 });
+function createMultiEntityWorld(aperture, canvasSize) {
+  const world = aperture.createWorld({ entityCapacity: 12 });
   const assets = new aperture.AssetRegistry();
-  const meshHandle = aperture.createMeshHandle("triangle");
-  const materialHandle = aperture.createMaterialHandle("triangle");
-  const mesh = createTriangleMesh(aperture, materialHandle);
-  const material = aperture.createUnlitMaterialAsset({
-    label: "TriangleMaterial",
-    baseColorFactor: new Float32Array([1, 0.18, 0.09, 1]),
+  const meshHandle = aperture.createMeshHandle("shared-triangle");
+  const redHandle = aperture.createMaterialHandle("red-triangle");
+  const blueHandle = aperture.createMaterialHandle("blue-triangle");
+  const mesh = createTriangleMesh(aperture, meshHandle, redHandle);
+  const redMaterial = aperture.createUnlitMaterialAsset({
+    label: "RedTriangleMaterial",
+    baseColorFactor: new Float32Array([1, 0.16, 0.06, 1]),
+  });
+  const blueMaterial = aperture.createUnlitMaterialAsset({
+    label: "BlueTriangleMaterial",
+    baseColorFactor: new Float32Array([0.05, 0.48, 1, 1]),
   });
 
   aperture.registerTransformComponents(world);
   aperture.registerMetadataComponents(world);
   aperture.registerRenderAuthoringComponents(world);
   assets.register(meshHandle);
-  assets.register(materialHandle);
+  assets.register(redHandle);
+  assets.register(blueHandle);
   assets.markReady(meshHandle, mesh);
-  assets.markReady(materialHandle, material);
+  assets.markReady(redHandle, redMaterial);
+  assets.markReady(blueHandle, blueMaterial);
 
   const camera = world.createEntity();
   const cameraTransform = aperture.createRootTransform({
@@ -379,24 +406,44 @@ function createTriangleWorld(aperture, canvasSize) {
     }),
   );
 
-  const triangle = world.createEntity();
-  const triangleTransform = aperture.createRootTransform();
+  addTriangleEntity(aperture, world, meshHandle, redHandle, [-0.58, 0, 0]);
+  addTriangleEntity(aperture, world, meshHandle, blueHandle, [0.58, 0, 0]);
 
-  triangle.addComponent(aperture.WorldTransform, triangleTransform.world);
-  triangle.addComponent(aperture.MeshRenderer, {
+  return {
+    world,
+    assets,
+    meshHandle,
+    mesh,
+    materials: [
+      { handle: redHandle, asset: redMaterial },
+      { handle: blueHandle, asset: blueMaterial },
+    ],
+  };
+}
+
+function addTriangleEntity(
+  aperture,
+  world,
+  meshHandle,
+  materialHandle,
+  translation,
+) {
+  const entity = world.createEntity();
+  const transform = aperture.createRootTransform({ translation });
+
+  entity.addComponent(aperture.WorldTransform, transform.world);
+  entity.addComponent(aperture.MeshRenderer, {
     meshId: aperture.assetHandleKey(meshHandle),
     material0Id: aperture.assetHandleKey(materialHandle),
   });
-  triangle.addComponent(aperture.RenderLayer, { mask: 1 });
-  triangle.addComponent(aperture.Visibility);
-
-  return { world, assets, mesh, material };
+  entity.addComponent(aperture.RenderLayer, { mask: 1 });
+  entity.addComponent(aperture.Visibility);
 }
 
-function createTriangleMesh(aperture, materialHandle) {
+function createTriangleMesh(aperture, meshHandle, materialHandle) {
   return {
     kind: "mesh",
-    label: "Triangle",
+    label: "SharedTriangle",
     vertexStreams: [
       {
         id: "primitive-interleaved",
@@ -408,8 +455,8 @@ function createTriangleMesh(aperture, materialHandle) {
           { semantic: "TEXCOORD_0", format: "float32x2", offset: 24 },
         ],
         data: new Float32Array([
-          0, 0.72, 0, 0, 0, 1, 0.5, 0, -0.72, -0.55, 0, 0, 0, 1, 0, 1, 0.72,
-          -0.55, 0, 0, 0, 1, 1, 1,
+          0, 0.62, 0, 0, 0, 1, 0.5, 0, -0.62, -0.5, 0, 0, 0, 1, 0, 1, 0.62,
+          -0.5, 0, 0, 0, 1, 1, 1,
         ]),
       },
     ],
@@ -419,7 +466,7 @@ function createTriangleMesh(aperture, materialHandle) {
     },
     submeshes: [
       {
-        label: "default",
+        label: aperture.assetHandleKey(meshHandle),
         topology: "triangle-list",
         materialSlot: 0,
         vertexStart: 0,
@@ -429,8 +476,8 @@ function createTriangleMesh(aperture, materialHandle) {
       },
     ],
     materialSlots: [{ index: 0, label: "default", material: materialHandle }],
-    localAabb: { min: [-0.72, -0.55, 0], max: [0.72, 0.72, 0] },
-    localSphere: { center: [0, 0, 0], radius: 0.9 },
+    localAabb: { min: [-0.62, -0.5, 0], max: [0.62, 0.62, 0] },
+    localSphere: { center: [0, 0, 0], radius: 0.8 },
   };
 }
 

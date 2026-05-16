@@ -42,6 +42,10 @@ try {
         color: clearColor,
       });
 
+      if (cleared.ok) {
+        await waitForSubmittedWork(initialized.device);
+      }
+
       publishStatus(
         cleared.ok
           ? {
@@ -89,5 +93,11 @@ function publishStatus(status) {
 
   if (jsonElement !== null) {
     jsonElement.textContent = JSON.stringify(status, null, 2);
+  }
+}
+
+async function waitForSubmittedWork(device) {
+  if (typeof device.queue?.onSubmittedWorkDone === "function") {
+    await device.queue.onSubmittedWorkDone();
   }
 }

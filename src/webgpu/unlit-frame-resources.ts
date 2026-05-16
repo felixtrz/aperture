@@ -25,9 +25,12 @@ import {
   createUnlitBindGroupDescriptorPlan,
   createUnlitBindGroupsFromBuffers,
   type CreateUnlitBindGroupsResult,
+  type UnlitBindGroupDescriptorPlan,
+  type UnlitBindGroupDescriptorEntry,
   type UnlitBindGroupBufferResource,
   type UnlitBindGroupDescriptorDiagnostic,
   type UnlitBindGroupLayoutResource,
+  type UnlitBindGroupResource,
   type UnlitBindGroupResourceDiagnostic,
 } from "./unlit-bind-group.js";
 import {
@@ -62,6 +65,7 @@ export type UnlitFrameGpuResourceDiagnosticCode =
   | "unlitFrameResources.missingMesh"
   | "unlitFrameResources.missingViewUniforms"
   | "unlitFrameResources.missingWorldTransforms"
+  | "unlitFrameResources.missingMaterials"
   | "unlitFrameResources.missingMaterial";
 
 export interface UnlitFrameGpuResourceDiagnostic {
@@ -96,6 +100,15 @@ export interface CreateUnlitFrameGpuResourcesOptions {
   readonly layouts: readonly UnlitBindGroupLayoutResource[];
 }
 
+export interface CreateMultiMaterialUnlitFrameGpuResourcesOptions {
+  readonly device: UnlitFrameGpuResourceDeviceLike;
+  readonly mesh: MeshAsset | null;
+  readonly viewUniforms: PackedSnapshotViewUniforms | null;
+  readonly worldTransforms: PackedSnapshotTransforms | null;
+  readonly materials: readonly (MaterialAsset | null)[] | null;
+  readonly layouts: readonly UnlitBindGroupLayoutResource[];
+}
+
 export interface UnlitFrameGpuResources {
   readonly mesh: MeshGpuBufferResource;
   readonly viewUniform: ViewUniformGpuBufferResource;
@@ -104,9 +117,23 @@ export interface UnlitFrameGpuResources {
   readonly bindGroups: CreateUnlitBindGroupsResult["resources"];
 }
 
+export interface MultiMaterialUnlitFrameGpuResources {
+  readonly mesh: MeshGpuBufferResource;
+  readonly viewUniform: ViewUniformGpuBufferResource;
+  readonly worldTransforms: WorldTransformGpuBufferResource;
+  readonly materials: readonly UnlitMaterialGpuBufferResource[];
+  readonly bindGroups: CreateUnlitBindGroupsResult["resources"];
+}
+
 export interface CreateUnlitFrameGpuResourcesResult {
   readonly valid: boolean;
   readonly resources: UnlitFrameGpuResources | null;
+  readonly diagnostics: readonly CreateUnlitFrameGpuResourcesDiagnostic[];
+}
+
+export interface CreateMultiMaterialUnlitFrameGpuResourcesResult {
+  readonly valid: boolean;
+  readonly resources: MultiMaterialUnlitFrameGpuResources | null;
   readonly diagnostics: readonly CreateUnlitFrameGpuResourcesDiagnostic[];
 }
 
@@ -171,8 +198,77 @@ export function createUnlitFrameGpuResources(
   };
 }
 
+export function createMultiMaterialUnlitFrameGpuResources(
+  options: CreateMultiMaterialUnlitFrameGpuResourcesOptions,
+): CreateMultiMaterialUnlitFrameGpuResourcesResult {
+  const diagnostics: CreateUnlitFrameGpuResourcesDiagnostic[] = [];
+  const mesh = createMeshResource(options, diagnostics);
+  const viewUniform = createViewUniformResource(options, diagnostics);
+  const worldTransforms = createWorldTransformResource(options, diagnostics);
+  const materials = createMaterialResources(options, diagnostics);
+  const sharedBindGroupPlan = createSharedBindGroupDescriptorPlan({
+    viewUniformResourceKey: viewUniform?.resourceKey ?? null,
+    worldTransformResourceKey: worldTransforms?.resourceKey ?? null,
+  });
+
+  diagnostics.push(...sharedBindGroupPlan.diagnostics);
+
+  const sharedBindGroups = createUnlitBindGroupsFromBuffers({
+    device: options.device,
+    plan: sharedBindGroupPlan,
+    layouts: options.layouts,
+    buffers: compactBufferResources([
+      viewUniform === null
+        ? null
+        : { resourceKey: viewUniform.resourceKey, buffer: viewUniform.buffer },
+      worldTransforms === null
+        ? null
+        : {
+            resourceKey: worldTransforms.resourceKey,
+            buffer: worldTransforms.buffer,
+          },
+    ]),
+  });
+
+  diagnostics.push(...sharedBindGroups.diagnostics);
+
+  const materialBindGroups = createMaterialBindGroups(
+    options,
+    materials,
+    diagnostics,
+  );
+  const materialCount = options.materials?.length ?? 0;
+
+  if (
+    mesh === null ||
+    viewUniform === null ||
+    worldTransforms === null ||
+    materialCount === 0 ||
+    materials.length !== materialCount ||
+    !sharedBindGroups.valid ||
+    !materialBindGroups.valid
+  ) {
+    return { valid: false, resources: null, diagnostics };
+  }
+
+  return {
+    valid: true,
+    resources: {
+      mesh,
+      viewUniform,
+      worldTransforms,
+      materials,
+      bindGroups: [
+        ...sharedBindGroups.resources,
+        ...materialBindGroups.bindGroups,
+      ],
+    },
+    diagnostics,
+  };
+}
+
 function createMeshResource(
-  options: CreateUnlitFrameGpuResourcesOptions,
+  options: UnlitSharedFrameGpuResourceOptions,
   diagnostics: CreateUnlitFrameGpuResourcesDiagnostic[],
 ): MeshGpuBufferResource | null {
   if (options.mesh === null) {
@@ -202,7 +298,7 @@ function createMeshResource(
 }
 
 function createViewUniformResource(
-  options: CreateUnlitFrameGpuResourcesOptions,
+  options: UnlitSharedFrameGpuResourceOptions,
   diagnostics: CreateUnlitFrameGpuResourcesDiagnostic[],
 ): ViewUniformGpuBufferResource | null {
   if (options.viewUniforms === null) {
@@ -229,7 +325,7 @@ function createViewUniformResource(
 }
 
 function createWorldTransformResource(
-  options: CreateUnlitFrameGpuResourcesOptions,
+  options: UnlitSharedFrameGpuResourceOptions,
   diagnostics: CreateUnlitFrameGpuResourcesDiagnostic[],
 ): WorldTransformGpuBufferResource | null {
   if (options.worldTransforms === null) {
@@ -258,7 +354,7 @@ function createWorldTransformResource(
 }
 
 function createMaterialResource(
-  options: CreateUnlitFrameGpuResourcesOptions,
+  options: UnlitMaterialFrameGpuResourceOptions,
   diagnostics: CreateUnlitFrameGpuResourcesDiagnostic[],
 ): UnlitMaterialGpuBufferResource | null {
   if (options.material === null) {
@@ -287,6 +383,128 @@ function createMaterialResource(
   diagnostics.push(...resource.diagnostics);
 
   return resource.valid ? resource.resource : null;
+}
+
+interface UnlitSharedFrameGpuResourceOptions {
+  readonly device: UnlitFrameGpuResourceDeviceLike;
+  readonly mesh: MeshAsset | null;
+  readonly viewUniforms: PackedSnapshotViewUniforms | null;
+  readonly worldTransforms: PackedSnapshotTransforms | null;
+}
+
+interface UnlitMaterialFrameGpuResourceOptions {
+  readonly device: UnlitFrameGpuResourceDeviceLike;
+  readonly material: MaterialAsset | null;
+}
+
+interface CreateMaterialBindGroupsResult {
+  readonly valid: boolean;
+  readonly bindGroups: CreateUnlitBindGroupsResult["resources"];
+}
+
+function createMaterialResources(
+  options: CreateMultiMaterialUnlitFrameGpuResourcesOptions,
+  diagnostics: CreateUnlitFrameGpuResourcesDiagnostic[],
+): readonly UnlitMaterialGpuBufferResource[] {
+  if (options.materials === null || options.materials.length === 0) {
+    diagnostics.push({
+      code: "unlitFrameResources.missingMaterials",
+      message:
+        "Multi-material unlit frame GPU resource creation requires at least one material asset.",
+    });
+    return [];
+  }
+
+  return options.materials.flatMap((material, index) => {
+    if (material === null) {
+      diagnostics.push({
+        code: "unlitFrameResources.missingMaterial",
+        message: `Multi-material unlit frame GPU resource creation is missing material asset at index ${index}.`,
+      });
+      return [];
+    }
+
+    const resource = createMaterialResource(
+      { device: options.device, material },
+      diagnostics,
+    );
+
+    return resource === null ? [] : [resource];
+  });
+}
+
+function createSharedBindGroupDescriptorPlan(input: {
+  readonly viewUniformResourceKey: string | null;
+  readonly worldTransformResourceKey: string | null;
+}): UnlitBindGroupDescriptorPlan {
+  const diagnostics: UnlitBindGroupDescriptorDiagnostic[] = [];
+  const entries: UnlitBindGroupDescriptorEntry[] = [];
+
+  if (input.viewUniformResourceKey === null) {
+    diagnostics.push({
+      code: "unlitBindGroup.missingViewResource",
+      message: "Unlit bind group planning requires a view uniform resource.",
+    });
+  } else {
+    entries.push({
+      group: 0,
+      binding: 0,
+      resourceKey: input.viewUniformResourceKey,
+    });
+  }
+
+  if (input.worldTransformResourceKey === null) {
+    diagnostics.push({
+      code: "unlitBindGroup.missingTransformResource",
+      message:
+        "Unlit bind group planning requires a world transform buffer resource.",
+    });
+  } else {
+    entries.push({
+      group: 1,
+      binding: 0,
+      resourceKey: input.worldTransformResourceKey,
+    });
+  }
+
+  return {
+    valid: diagnostics.length === 0,
+    entries,
+    diagnostics,
+  };
+}
+
+function createMaterialBindGroups(
+  options: CreateMultiMaterialUnlitFrameGpuResourcesOptions,
+  materials: readonly UnlitMaterialGpuBufferResource[],
+  diagnostics: CreateUnlitFrameGpuResourcesDiagnostic[],
+): CreateMaterialBindGroupsResult {
+  const bindGroups: UnlitBindGroupResource[] = [];
+  let valid = true;
+
+  for (const material of materials) {
+    const result = createUnlitBindGroupsFromBuffers({
+      device: options.device,
+      plan: {
+        valid: true,
+        entries: [{ group: 2, binding: 0, resourceKey: material.resourceKey }],
+        diagnostics: [],
+      },
+      layouts: options.layouts,
+      buffers: [
+        {
+          resourceKey: material.resourceKey,
+          buffer: material.uniformBuffer,
+        },
+      ],
+    });
+
+    diagnostics.push(...result.diagnostics);
+    bindGroups.push(...result.resources);
+    valid = valid && result.valid;
+  }
+
+  return { valid, bindGroups };
 }
 
 function compactBufferResources(

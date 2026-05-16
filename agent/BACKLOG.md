@@ -27,20 +27,20 @@ Keep implementation vertical, typed, and testable. Do not introduce a public mut
 
 ## Recommended Next Task
 
-Start with `task-0170`. It extends the verified one-draw browser path toward a tiny multi-entity scene.
+Start with `task-0175`. Browser E2E now reaches the pages, but screenshot pixels still show the canvas CSS background instead of WebGPU-presented pixels, so stabilize the pixel baseline before adding more scene coverage.
 
 ## Ready Tasks
 
-### task-0170 — Render multi-entity simple scene in browser
+### task-0175 — Stabilize browser WebGPU pixel verification baseline
 
-Extend browser rendering from one mesh entity to a tiny simple scene.
+Make the existing clear and triangle E2E pixel checks either pass with real WebGPU-presented pixels or skip with a precise unsupported-presentation diagnostic.
 
 Acceptance criteria:
 
-- Example renders at least two ECS mesh entities with distinct transforms and unlit colors/materials.
-- Frame status reports two extracted draws, two ready bindings, two draw packages, and two draw calls.
-- Render order remains deterministic through the existing snapshot/draw planning path.
-- No mutable scene graph or renderer-owned gameplay state is introduced.
+- Root example assets load correctly from `/`.
+- Clear and triangle examples wait for submitted GPU work before publishing ready status.
+- `npm run test:e2e` no longer fails because screenshots sample the canvas CSS background.
+- If headless Chromium cannot expose presented WebGPU pixels, tests skip with an explicit diagnostic instead of asserting false pixel data.
 
 ### task-0171 — Add Playwright multi-entity scene verification
 
@@ -64,17 +64,6 @@ Acceptance criteria:
 - Explain WebGPU browser support expectations and skipped/unsupported behavior.
 - Keep architecture language explicit that ECS remains authoritative and rendering remains derived.
 
-### task-0173 — Add multi-material unlit resource helper
-
-Add a helper for the browser multi-entity path that uploads one shared mesh/view/transform set plus multiple unlit materials.
-
-Acceptance criteria:
-
-- Helper accepts packed view data, packed transform data, one mesh asset, and at least two unlit material assets.
-- Helper creates one shared mesh resource, one shared view buffer, one shared world-transform buffer, and one material buffer plus group-2 bind group per material.
-- Returned resource keys remain stable and compatible with render-world binding and draw-list planning.
-- Tests cover two materials, missing material data, and deterministic bind group ordering.
-
 ### task-0174 — Add static example server tests
 
 Add non-listening tests for the example server path and MIME behavior so harness regressions are caught without requiring a local TCP listener.
@@ -85,6 +74,17 @@ Acceptance criteria:
 - Tests cover `/`, `/examples/triangle.html`, `/dist/index.js`, and denied traversal paths.
 - Tests cover JavaScript, HTML, CSS, JSON/source-map, and fallback MIME types.
 - The server remains Node-built-in only and does not gain framework dependencies.
+
+### task-0176 — Add multi-entity browser status smoke test
+
+Add status-only browser coverage for the multi-entity example while pixel verification is being stabilized.
+
+Acceptance criteria:
+
+- Playwright visits `/examples/multi-entity.html` and waits for published status.
+- Test asserts two extracted draws, two applied bindings, two ready draws, two draw packages, and two draw calls.
+- Test records the published status on failure for blank-canvas and resource-binding diagnosis.
+- Pixel assertions remain in `task-0171` after the baseline pixel path is reliable.
 
 ## Post-Unlit E2E Verification Targets
 

@@ -1,10 +1,10 @@
 {
   "state": "idle",
   "currentTaskId": null,
-  "lastRunStartedAt": "2026-05-16T00:03:05Z",
-  "lastRunFinishedAt": "2026-05-16T00:20:32Z",
+  "lastRunStartedAt": "2026-05-16T01:01:30Z",
+  "lastRunFinishedAt": "2026-05-16T01:16:16Z",
   "lastResult": "validation-failed",
   "lastCommit": null,
   "activePid": null,
-  "notes": "Completed task-0163 through task-0169. Non-browser validation passes; npm run test:e2e is blocked by sandbox local listener EPERM on 127.0.0.1:4173."
+  "notes": "Completed task-0170 and task-0173 implementation. npm run check and npm run build pass. npm run test:e2e reaches ready browser statuses but fails pixel assertions because screenshots still sample the canvas CSS background instead of WebGPU-presented pixels."
 }

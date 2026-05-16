@@ -37,7 +37,7 @@ export interface WebGpuBufferDeviceLike {
     writeBuffer?: (
       buffer: unknown,
       bufferOffset: number,
-      data: ArrayBufferView,
+      data: ArrayBufferLike | ArrayBufferView,
       dataOffset?: number,
       size?: number,
     ) => void;
@@ -95,12 +95,14 @@ export function createWebGpuBuffer(
   const buffer = device.createBuffer(createDescriptor(descriptor));
 
   if (descriptor.initialData !== undefined) {
+    const upload = createInitialDataUpload(descriptor.initialData);
+
     device.queue?.writeBuffer?.(
       buffer,
       0,
-      descriptor.initialData,
-      descriptor.initialData.byteOffset,
-      descriptor.initialData.byteLength,
+      upload.data,
+      upload.dataOffset,
+      upload.size,
     );
   }
 
@@ -111,7 +113,7 @@ function createDescriptor(
   descriptor: WebGpuBufferDescriptor,
 ): WebGpuBufferCreateDescriptor {
   const result: WebGpuBufferCreateDescriptor = {
-    size: descriptor.size,
+    size: alignTo4(descriptor.size),
     usage: descriptor.usage,
     mappedAtCreation: descriptor.mappedAtCreation ?? false,
   };
@@ -121,6 +123,37 @@ function createDescriptor(
   }
 
   return result;
+}
+
+interface InitialDataUpload {
+  readonly data: ArrayBufferLike | ArrayBufferView;
+  readonly dataOffset: number;
+  readonly size: number;
+}
+
+function createInitialDataUpload(data: ArrayBufferView): InitialDataUpload {
+  const size = alignTo4(data.byteLength);
+
+  if (size === data.byteLength) {
+    return {
+      data: data.buffer,
+      dataOffset: data.byteOffset,
+      size,
+    };
+  }
+
+  const padded = new Uint8Array(size);
+  padded.set(new Uint8Array(data.buffer, data.byteOffset, data.byteLength));
+
+  return {
+    data: padded.buffer,
+    dataOffset: 0,
+    size,
+  };
+}
+
+function alignTo4(value: number): number {
+  return Math.ceil(value / 4) * 4;
 }
 
 function failure(

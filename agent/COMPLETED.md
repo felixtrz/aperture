@@ -98,6 +98,30 @@ Summary:
 - Validation run: `npm run typecheck:test`, `npm run lint`, `npm run format:check`, full `npm run check`, and `npm run build` pass; `npm run test:e2e` is blocked by sandbox local server `EPERM`.
 - Follow-up tasks added: none directly.
 
+## task-0170 — Render multi-entity simple scene in browser
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added `examples/multi-entity.html` and `examples/multi-entity.js`.
+- The example authors two ECS mesh entities sharing one mesh with distinct world transforms and unlit materials, extracts two draw packets, applies them to `RenderWorld`, uploads GPU resources, plans two draw packages/commands, and publishes JSON-safe frame status.
+- Updated draw command planning so packed transform offsets map to `firstInstance`, allowing the unlit shader to select the correct world transform per draw.
+- Fixed root browser harness asset URLs and made clear/triangle/multi examples wait for `queue.onSubmittedWorkDone()` when available before publishing ready status.
+- Validation run: `npm run check`, `npm run build`, and JS syntax checks pass. `npm run test:e2e` reaches the pages but fails because screenshots still sample the canvas CSS background rather than WebGPU-presented pixels; follow-up `task-0175` added.
+
+## task-0173 — Add multi-material unlit resource helper
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added `createMultiMaterialUnlitFrameGpuResources` for one shared mesh/view/world-transform resource set plus one material buffer and group-2 bind group per unlit material.
+- Preserved stable resource-key ordering: shared group 0/1 bind groups first, then material group-2 bind groups in input material order.
+- Added tests for two materials, missing material data, and deterministic bind group ordering.
+- Fixed the WebGPU buffer upload boundary to pass underlying buffers with byte offsets and pad unaligned initial data writes to 4-byte WebGPU alignment.
+- Validation run: `npm run check` and `npm run build` pass; `npm run test:e2e` still fails on pixel presentation baseline and is tracked by `task-0175`.
+
 ## task-0001 — Initialize TypeScript package
 
 Completed: 2026-05-15

@@ -34,7 +34,13 @@ describe("render pass command planning", () => {
         resourceKey: "mesh:1/index",
         format: "uint16",
       },
-      { kind: "drawIndexed", renderId: 1, indexCount: 6, instanceCount: 1 },
+      {
+        kind: "drawIndexed",
+        renderId: 1,
+        indexCount: 6,
+        instanceCount: 1,
+        firstInstance: 1,
+      },
     ]);
   });
 
@@ -51,6 +57,7 @@ describe("render pass command planning", () => {
       renderId: 1,
       vertexCount: 24,
       instanceCount: 1,
+      firstInstance: 1,
     });
   });
 
@@ -89,6 +96,19 @@ describe("render pass command planning", () => {
       "renderPassCommand.invalidVertexCount",
     ]);
   });
+
+  it("diagnoses transform offsets that cannot map to storage-buffer instances", () => {
+    const plan = planRenderPassCommands({
+      draws: [resolvedDraw(1, { transformPackedOffset: 10 })],
+    });
+
+    expect(plan.valid).toBe(false);
+    expect(plan.drawCount).toBe(0);
+    expect(plan.commands).toEqual([]);
+    expect(plan.diagnostics).toMatchObject([
+      { code: "renderPassCommand.invalidTransformOffset", renderId: 1 },
+    ]);
+  });
 });
 
 function resolvedDraw(
@@ -97,6 +117,7 @@ function resolvedDraw(
     readonly indexed?: boolean;
     readonly indexCount?: number | null;
     readonly vertexCount?: number;
+    readonly transformPackedOffset?: number;
   } = {},
 ): ResolvedRenderPassDraw {
   const indexed = options.indexed ?? true;
@@ -135,6 +156,6 @@ function resolvedDraw(
       : null,
     indexCount: indexed ? (options.indexCount ?? 6) : null,
     instanceCount: 1,
-    transformPackedOffset: renderId * 16,
+    transformPackedOffset: options.transformPackedOffset ?? renderId * 16,
   };
 }

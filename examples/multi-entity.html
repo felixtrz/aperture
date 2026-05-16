@@ -3,8 +3,8 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Aperture Browser Harness</title>
-    <link rel="stylesheet" href="/examples/styles.css" />
+    <title>Aperture ECS Multi-Entity Scene</title>
+    <link rel="stylesheet" href="./styles.css" />
     <script type="importmap">
       {
         "imports": {
@@ -17,18 +17,21 @@
   </head>
   <body>
     <main class="runtime-shell">
-      <section class="viewport-panel" aria-label="Aperture browser runtime">
+      <section
+        class="viewport-panel"
+        aria-label="Aperture ECS multi-entity runtime"
+      >
         <canvas
           id="aperture-canvas"
           width="960"
           height="540"
-          aria-label="Aperture WebGPU canvas"
+          aria-label="Aperture WebGPU multi-entity canvas"
         ></canvas>
       </section>
       <aside class="status-panel" aria-label="Runtime status">
         <div class="status-row">
           <span>example</span>
-          <strong id="example-name">webgpu clear</strong>
+          <strong id="example-name">ecs multi entity</strong>
         </div>
         <div class="status-row">
           <span>state</span>
@@ -37,6 +40,6 @@
         <pre id="example-json">{}</pre>
       </aside>
     </main>
-    <script type="module" src="/examples/main.js"></script>
+    <script type="module" src="./multi-entity.js"></script>
   </body>
 </html>

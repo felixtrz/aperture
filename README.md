@@ -53,6 +53,11 @@ The ECS triangle example is available at
 entity in ECS, extracts a render snapshot, uploads unlit GPU resources, and
 submits a WebGPU draw from derived render-world data.
 
+The ECS multi-entity example is available at
+`http://127.0.0.1:4173/examples/multi-entity.html`. It renders two ECS mesh
+entities through the same snapshot, render-world binding, and WebGPU unlit draw
+path with distinct transforms and materials.
+
 Run browser verification:
 
 ```sh

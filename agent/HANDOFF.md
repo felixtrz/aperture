@@ -2,81 +2,55 @@
 
 ## Current Status
 
-Completed `task-0163` through `task-0169`.
+Completed implementation for:
 
-This run moved Aperture from report/planning-only WebGPU slices into browser-facing examples and real unlit GPU resource creation:
+- `task-0170 — Render multi-entity simple scene in browser`
+- `task-0173 — Add multi-material unlit resource helper`
 
-```text
-ECS world
-  -> RenderSnapshot
-  -> RenderWorld resource bindings
-  -> mesh/view/transform/material GPU buffers
-  -> actual unlit bind groups
-  -> real unlit WebGPU pipeline
-  -> render pass commands
-  -> browser example status + Playwright pixel checks
-```
+Stopped on an explicit validation-failed condition: `npm run test:e2e` now reaches the browser pages, but screenshot pixel assertions still sample the canvas CSS background instead of WebGPU-presented pixels.
 
-The next recommended task is `task-0170 — Render multi-entity simple scene in browser`. Consider `task-0173 — Add multi-material unlit resource helper` first if the multi-entity example starts getting too much ad hoc material upload code.
+The next recommended task is `task-0175 — Stabilize browser WebGPU pixel verification baseline`.
 
 ## Run Summary
 
 Major changes:
 
-- Added `examples/` browser harness, import maps for local `dist` plus ESM dependencies, and `scripts/serve-examples.mjs`.
-- Added `examples:build` and `examples:serve` npm scripts.
-- Added root WebGPU clear smoke example with JSON-safe `window.__APERTURE_EXAMPLE_STATUS__`.
-- Added Playwright `webServer` config plus clear and ECS triangle E2E specs with screenshot pixel sampling.
-- Added `vitest.config.ts` so Vitest excludes Playwright specs.
-- Added real unlit WebGPU pipeline bridge in `src/webgpu/unlit-pipeline.ts`.
-- Added world-transform storage buffers, actual-buffer bind group creation, and `createUnlitFrameGpuResources`.
-- Added ECS-extracted triangle browser example at `/examples/triangle.html`.
-- Updated README with browser example and E2E instructions.
+- Added `examples/multi-entity.html` and `examples/multi-entity.js`.
+- The multi-entity example authors two ECS mesh entities with distinct transforms and unlit materials, extracts two draw packets, applies them to `RenderWorld`, uploads GPU resources, plans two draw packages/commands, and publishes frame status.
+- Added `createMultiMaterialUnlitFrameGpuResources` for one shared mesh/view/world-transform resource set plus per-material uniform buffers and group-2 bind groups.
+- Updated render pass command planning so `transformPackedOffset` maps to draw `firstInstance`, letting the unlit shader read the correct transform for each draw.
+- Fixed WebGPU buffer uploads to pass underlying buffers with byte offsets and pad unaligned writes to 4-byte alignment, which fixed the browser `writeBuffer` exceptions for indexed triangle data.
+- Fixed root example asset URLs and made browser examples wait for `queue.onSubmittedWorkDone()` before publishing ready status when available.
 
 Architecture boundaries remain intact:
 
 - ECS remains authoritative.
 - Rendering is still derived from `RenderSnapshot` and `RenderWorld`.
-- Browser examples consume snapshots/resource plans; production WebGPU helpers do not query ECS directly.
-- GPU buffers, pipelines, bind groups, and command submission remain WebGPU-only.
+- GPU resources remain in WebGPU helpers.
 - No scene graph, renderer-owned gameplay state, or WebGL fallback was introduced.
 
 ## Files Touched This Run
 
 Source:
 
-- `src/webgpu/index.ts`
-- `src/webgpu/mesh-buffer-descriptors.ts`
-- `src/webgpu/resource-keys.ts`
-- `src/webgpu/unlit-bind-group.ts`
+- `src/webgpu/buffer.ts`
+- `src/webgpu/render-pass-commands.ts`
 - `src/webgpu/unlit-frame-resources.ts`
-- `src/webgpu/unlit-pipeline.ts`
-- `src/webgpu/world-transform-buffer.ts`
 
-Examples and tooling:
+Examples and docs:
 
 - `examples/index.html`
 - `examples/main.js`
-- `examples/styles.css`
-- `examples/triangle.html`
 - `examples/triangle.js`
-- `scripts/serve-examples.mjs`
-- `playwright.config.ts`
-- `vitest.config.ts`
-- `eslint.config.js`
-- `tsconfig.test.json`
-- `package.json`
+- `examples/multi-entity.html`
+- `examples/multi-entity.js`
 - `README.md`
 
 Tests:
 
-- `test/e2e/ecs-triangle.spec.ts`
-- `test/e2e/png.ts`
-- `test/e2e/webgpu-clear.spec.ts`
-- `test/webgpu/unlit-bind-group.test.ts`
+- `test/webgpu/buffer.test.ts`
+- `test/webgpu/render-pass-commands.test.ts`
 - `test/webgpu/unlit-frame-resources.test.ts`
-- `test/webgpu/unlit-pipeline.test.ts`
-- `test/webgpu/world-transform-buffer.test.ts`
 
 Bookkeeping:
 
@@ -93,36 +67,39 @@ Passed:
 - `npm run build`
 - `node --check examples/main.js`
 - `node --check examples/triangle.js`
-- `node --check scripts/serve-examples.mjs`
-- Targeted Vitest runs for unlit pipeline and GPU resource helpers
+- `node --check examples/multi-entity.js`
 
-Blocked by sandbox:
+Failed:
 
-- `npm run test:e2e` failed before tests could run because Playwright's configured web server cannot bind `127.0.0.1:4173` in this environment:
-  `listen EPERM: operation not permitted 127.0.0.1:4173`.
+- `npm run test:e2e`
 
-The E2E specs and server wiring typecheck and lint, but browser pixel verification still needs to be run on a machine/session that allows a local listener.
+E2E details:
+
+- The local server now binds and both pages publish ready status.
+- The prior `writeBuffer` browser exceptions are fixed.
+- `webgpu-clear.spec.ts` fails because the sampled canvas pixel matches the CSS canvas background, not the WebGPU clear color.
+- `ecs-triangle.spec.ts` reaches successful frame status and records one draw call, but the sampled pixel still matches the CSS background closely enough that the non-background assertion fails.
 
 ## Known Issues
 
-- Browser examples were not visually verified in this sandbox due the local listener restriction.
-- `examples/triangle.js` currently supports one material resource path. The multi-entity scene will need either a small multi-material helper or careful manual creation of a second material buffer/group-2 bind group.
-- The root clear E2E and triangle E2E specs are ready, but `npm run test:e2e` is expected to fail in this sandbox until local server binding is available.
+- Browser pixel presentation in headless Chromium is not reliable yet. The next run should determine whether this is a test timing/capture problem, a Chromium WebGPU launch/configuration issue, or an unsupported presentation path that should skip with diagnostics.
+- Multi-entity status is implemented but does not yet have Playwright coverage.
 
 ## Backlog
 
 Completed tasks appended to `agent/COMPLETED.md`:
 
-- `task-0163` through `task-0169`
+- `task-0170`
+- `task-0173`
 
 Ready backlog now contains:
 
-- `task-0170 — Render multi-entity simple scene in browser`
+- `task-0175 — Stabilize browser WebGPU pixel verification baseline`
 - `task-0171 — Add Playwright multi-entity scene verification`
 - `task-0172 — Document browser E2E rendering workflow`
-- `task-0173 — Add multi-material unlit resource helper`
 - `task-0174 — Add static example server tests`
+- `task-0176 — Add multi-entity browser status smoke test`
 
 ## Recommended Next Task
 
-Start with `task-0170`. If multi-material resource handling becomes noisy inside the example, do `task-0173` first and then return to `task-0170`.
+Start with `task-0175`. Do not add more pixel-based scene assertions until the clear and triangle E2E baseline either passes with real WebGPU pixels or skips with a precise unsupported-presentation diagnostic.
