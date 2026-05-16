@@ -4906,3 +4906,56 @@ Summary:
   packing next.
 - Validation run: focused transform-pack, draw-package, and render-frame-plan
   tests passed with `pnpm run typecheck` and `pnpm run typecheck:test`.
+
+## task-0561 through task-0564 — Lit StandardMaterial proof point
+
+Completed: 2026-05-16
+
+Completed task ids:
+
+- `task-0561` — Add direct-lit StandardMaterial WGSL and pipeline.
+- `task-0562` — Route standard materials through render selection.
+- `task-0563` — Add user-facing lit spinning cube example and Playwright E2E.
+- `task-0564` — Audit lit proof point against architecture and references.
+
+Summary:
+
+- Added a direct-lit StandardMaterial WGSL shader and WebGPU pipeline path for a
+  narrow metallic/roughness MVP with ambient and directional light support.
+- Routed standard material draws through pipeline selection, required group-3
+  light bind groups, standard material bind group resources, and mixed
+  unlit/standard draw tests.
+- Extended `createWebGpuApp.render()` to support standard materials and added a
+  standard frame resource helper that prepares mesh, view, transform, material,
+  and light GPU resources from extracted snapshots.
+- Reworked `examples/spinning-cube.js` into a user-facing lit StandardMaterial
+  app facade example using typed asset collections, ECS entity authoring,
+  camera/light components, and `SpinSystem`.
+- Updated Playwright coverage to verify a nonblank lit cube, animation/frame
+  progress, and JSON-safe status for the route.
+- Audited package boundaries and example code against the North Star,
+  architecture docs, Bevy alignment notes, and StandardMaterial proof-point
+  scope; core/runtime remain headless and WebGPU objects remain backend-owned.
+- Added `docs/research/LIT_STANDARD_PROOF_POINT_AUDIT_2026_05_16.md` to record
+  the audit findings and follow-up.
+- Added `task-0566` to address the main audit follow-up: `createWebGpuApp` still
+  prepares pipelines/resources per frame and needs steady-state resource reuse.
+- Validation run: `pnpm run check` and
+  `pnpm exec playwright test test/e2e/spinning-cube.spec.ts` passed.
+
+## task-0565 — Standard material resource inspection records
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added StandardMaterial-specific inspection adapters that create generic
+  renderer resource inspection records for live, missing, stale, and
+  pending-destroy material buffer resources.
+- Kept the records JSON-safe by exposing stable asset/resource keys and version
+  metadata without raw GPU buffer handles.
+- Verified the records compose with the existing renderer resource summary
+  diagnostics as material inspection data rather than a parallel diagnostics
+  format.
+- Validation run: focused standard material resource inspection tests passed
+  with package/test typechecking.

@@ -25,10 +25,21 @@ import {
   type FrameBoundaryAssemblyReport,
 } from "./frame-boundary.js";
 import { createDrawCommandDescriptors } from "./draw-command.js";
+import { createLightBindGroupLayoutDescriptor } from "./light-bind-group-layout.js";
+import { createStandardMaterialBindGroupLayoutPlan } from "./standard-bind-group-layout.js";
+import {
+  createStandardFrameGpuResources,
+  type CreateStandardFrameGpuResourcesResult,
+} from "./standard-frame-resources.js";
+import {
+  createStandardRenderPipelineResource,
+  type CreateStandardRenderPipelineResourceResult,
+} from "./standard-pipeline.js";
 import {
   createUnlitFrameGpuResources,
   type CreateUnlitFrameGpuResourcesResult,
 } from "./unlit-frame-resources.js";
+import { createUnlitBindGroupLayoutMetadata } from "./unlit-bind-group.js";
 import {
   createUnlitRenderPipelineResource,
   type CreateUnlitRenderPipelineResourceResult,
@@ -82,10 +93,18 @@ export interface WebGpuAppRenderReport {
   readonly snapshot: RenderSnapshot;
   readonly counts: WebGpuAppRenderCounts;
   readonly diagnostics: readonly unknown[];
-  readonly pipeline: CreateUnlitRenderPipelineResourceResult | null;
-  readonly resources: CreateUnlitFrameGpuResourcesResult | null;
+  readonly pipeline: WebGpuAppPipelineResourceResult | null;
+  readonly resources: WebGpuAppFrameResourcesResult | null;
   readonly boundary: FrameBoundaryAssemblyReport | null;
 }
+
+export type WebGpuAppPipelineResourceResult =
+  | CreateUnlitRenderPipelineResourceResult
+  | CreateStandardRenderPipelineResourceResult;
+
+export type WebGpuAppFrameResourcesResult =
+  | CreateUnlitFrameGpuResourcesResult
+  | CreateStandardFrameGpuResourcesResult;
 
 export interface WebGpuApp {
   readonly world: EcsWorld;
@@ -218,13 +237,35 @@ async function renderWebGpuAppFrame(
     });
   }
 
-  const pipeline = await createUnlitRenderPipelineResource({
-    device: app.initialization.device as Parameters<
-      typeof createUnlitRenderPipelineResource
-    >[0]["device"],
-    colorFormat: app.initialization.format,
-    batchKey: firstDraw.batchKey,
-  });
+  if (material.kind !== "unlit" && material.kind !== "standard") {
+    return renderReport({
+      ok: false,
+      snapshot,
+      diagnostics: [
+        {
+          code: "webGpuApp.unsupportedMaterialKind",
+          message: `WebGPU app render supports unlit and standard materials, not '${material.kind}'.`,
+        },
+      ],
+    });
+  }
+
+  const pipeline =
+    material.kind === "standard"
+      ? await createStandardRenderPipelineResource({
+          device: app.initialization.device as Parameters<
+            typeof createStandardRenderPipelineResource
+          >[0]["device"],
+          colorFormat: app.initialization.format,
+          batchKey: firstDraw.batchKey,
+        })
+      : await createUnlitRenderPipelineResource({
+          device: app.initialization.device as Parameters<
+            typeof createUnlitRenderPipelineResource
+          >[0]["device"],
+          colorFormat: app.initialization.format,
+          batchKey: firstDraw.batchKey,
+        });
 
   if (!pipeline.valid || pipeline.resource === null) {
     return renderReport({
@@ -247,28 +288,69 @@ async function renderWebGpuAppFrame(
       diagnostics: [
         {
           code: "webGpuApp.missingPipelineLayouts",
-          message: "The unlit pipeline does not expose bind group layouts.",
+          message:
+            "The WebGPU app pipeline does not expose bind group layouts.",
         },
       ],
     });
   }
 
+  const getBindGroupLayout =
+    pipelineHandle.getBindGroupLayout.bind(pipelineHandle);
   const packedViews = packSnapshotViewUniforms(snapshot);
   const packedTransforms = packSnapshotTransforms(snapshot);
-  const resources = createUnlitFrameGpuResources({
-    device: app.initialization.device as Parameters<
-      typeof createUnlitFrameGpuResources
-    >[0]["device"],
-    mesh,
-    material,
-    viewUniforms: packedViews,
-    worldTransforms: packedTransforms,
-    layouts: [0, 1, 2].map((group) => ({
-      group,
-      layoutKey: `webgpu-app/unlit/group-${group}`,
-      layout: pipelineHandle.getBindGroupLayout?.(group),
-    })),
-  });
+  const resources =
+    material.kind === "standard"
+      ? createStandardFrameGpuResources({
+          device: app.initialization.device as Parameters<
+            typeof createStandardFrameGpuResources
+          >[0]["device"],
+          snapshot,
+          mesh,
+          material,
+          viewUniforms: packedViews,
+          worldTransforms: packedTransforms,
+          sharedLayouts: [0, 1].map((group) => ({
+            group,
+            layoutKey: `webgpu-app/standard/group-${group}`,
+            layout: getBindGroupLayout(group),
+            metadata: createUnlitBindGroupLayoutMetadata(
+              group,
+              `webgpu-app/standard/group-${group}`,
+            ),
+          })),
+          materialLayout: {
+            group: 2,
+            layoutKey: "webgpu-app/standard/group-2",
+            layout: getBindGroupLayout(2),
+            descriptor: createStandardMaterialBindGroupLayoutPlan(
+              "webgpu-app/standard/group-2",
+            ).layout,
+          },
+          lightLayout: {
+            group: 3,
+            layoutKey: "webgpu-app/standard/group-3",
+            layout: getBindGroupLayout(3),
+            descriptor: createLightBindGroupLayoutDescriptor({
+              group: 3,
+              label: "webgpu-app/standard/group-3",
+            }),
+          },
+        })
+      : createUnlitFrameGpuResources({
+          device: app.initialization.device as Parameters<
+            typeof createUnlitFrameGpuResources
+          >[0]["device"],
+          mesh,
+          material,
+          viewUniforms: packedViews,
+          worldTransforms: packedTransforms,
+          layouts: [0, 1, 2].map((group) => ({
+            group,
+            layoutKey: `webgpu-app/unlit/group-${group}`,
+            layout: getBindGroupLayout(group),
+          })),
+        });
 
   if (!resources.valid || resources.resources === null) {
     return renderReport({
@@ -383,8 +465,8 @@ function renderReport(input: {
   readonly ok: boolean;
   readonly snapshot: RenderSnapshot;
   readonly diagnostics: readonly unknown[];
-  readonly pipeline?: CreateUnlitRenderPipelineResourceResult | null;
-  readonly resources?: CreateUnlitFrameGpuResourcesResult | null;
+  readonly pipeline?: WebGpuAppPipelineResourceResult | null;
+  readonly resources?: WebGpuAppFrameResourcesResult | null;
   readonly boundary?: FrameBoundaryAssemblyReport | null;
   readonly drawPackages?: number;
   readonly drawCommands?: number;

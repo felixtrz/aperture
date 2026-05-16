@@ -10,6 +10,9 @@ export type BuiltInShaderBindingId =
   | "viewProjection"
   | "worldTransforms"
   | "unlitMaterial"
+  | "standardMaterial"
+  | "lightFloats"
+  | "lightMetadata"
   | "baseColorTexture"
   | "baseColorSampler";
 

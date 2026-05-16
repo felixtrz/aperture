@@ -1,8 +1,11 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  createStandardMaterialBindGroupResource,
   createStandardMaterialBindGroupDescriptorPlan,
+  createStandardMaterialBindGroupLayoutPlan,
   createStandardMaterialBindGroupResourceKey,
+  type StandardMaterialBindGroupCreationDescriptor,
   type StandardMaterialResourceDependencies,
 } from "@aperture-engine/webgpu";
 
@@ -139,6 +142,97 @@ describe("standard material bind group descriptor planning", () => {
     ).toBe(
       "bind-group:standard/group-2/0:material-buffer:base/1:texture:base/2:sampler:base",
     );
+  });
+
+  it("creates standard material bind groups from GPU resources", () => {
+    const bindGroups: StandardMaterialBindGroupCreationDescriptor[] = [];
+    const plan = createStandardMaterialBindGroupDescriptorPlan({
+      materialResourceKey: "material-buffer:StandardMaterial/Gold/uniform",
+      dependencies: emptyDependencies(),
+    });
+    const layoutPlan = createStandardMaterialBindGroupLayoutPlan();
+    const result = createStandardMaterialBindGroupResource({
+      device: {
+        createBindGroup(descriptor) {
+          bindGroups.push(descriptor);
+          return { kind: "standard-bind-group" };
+        },
+      },
+      plan,
+      layout: {
+        group: 2,
+        layoutKey: "standard/group-2",
+        layout: "raw-standard-layout",
+        descriptor: layoutPlan.layout,
+      },
+      buffers: [
+        {
+          resourceKey: "material-buffer:StandardMaterial/Gold/uniform",
+          buffer: { kind: "raw-standard-buffer" },
+        },
+      ],
+    });
+
+    expect(result.diagnostics).toEqual([]);
+    expect(result.resource).toEqual({
+      group: 2,
+      resourceKey:
+        "bind-group:standard/group-2/0:material-buffer:StandardMaterial/Gold/uniform",
+      layoutKey: "standard/group-2",
+      bindGroup: { kind: "standard-bind-group" },
+      entryResourceKeys: ["material-buffer:StandardMaterial/Gold/uniform"],
+    });
+    expect(bindGroups).toEqual([
+      {
+        label: "standard/group-2",
+        layout: "raw-standard-layout",
+        entries: [
+          {
+            binding: 0,
+            resource: { buffer: { kind: "raw-standard-buffer" } },
+          },
+        ],
+      },
+    ]);
+  });
+
+  it("reports missing standard material GPU resources without creating a fallback group", () => {
+    const plan = createStandardMaterialBindGroupDescriptorPlan({
+      materialResourceKey: "material-buffer:StandardMaterial/Missing/uniform",
+      dependencies: {
+        ...emptyDependencies(),
+        baseColor: {
+          textureKey: "texture:base",
+          samplerKey: "sampler:base",
+          texCoord: 0,
+        },
+      },
+    });
+    const result = createStandardMaterialBindGroupResource({
+      device: {
+        createBindGroup() {
+          return {};
+        },
+      },
+      plan,
+      layout: {
+        group: 2,
+        layoutKey: "standard/group-2",
+        layout: "raw-standard-layout",
+        descriptor: createStandardMaterialBindGroupLayoutPlan().layout,
+      },
+      buffers: [],
+      textures: [],
+      samplers: [],
+    });
+
+    expect(result.valid).toBe(false);
+    expect(result.resource).toBeNull();
+    expect(result.diagnostics.map((diagnostic) => diagnostic.code)).toEqual([
+      "standardMaterialBindGroupResource.missingBufferResource",
+      "standardMaterialBindGroupResource.missingTextureResource",
+      "standardMaterialBindGroupResource.missingSamplerResource",
+    ]);
   });
 });
 

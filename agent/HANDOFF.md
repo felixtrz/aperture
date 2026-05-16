@@ -2,65 +2,99 @@
 
 ## Latest Run Update
 
-Completed `task-0560 — Prepare StandardMaterial GPU data and bind layout`, the
-next proof-point WebGPU slice after the typed asset/render-bridge/facade work in
-the previous update.
+Completed the lit StandardMaterial proof-point sequence and the first resource
+inspection follow-up:
+
+- `task-0561` — direct-lit StandardMaterial WGSL and pipeline.
+- `task-0562` — standard material render selection.
+- `task-0563` — lit spinning cube app-facade example and Playwright E2E.
+- `task-0564` — post-proof-point architecture audit.
+- `task-0565` — standard material resource inspection records.
 
 What changed:
 
-- Added WebGPU StandardMaterial packing:
-  - 80-byte uniform layout for base color, emissive, metallic, roughness,
-    normal scale, occlusion strength, alpha cutoff, texture coordinates, and
-    feature flags.
-  - Texture dependency keys for base color, metallic-roughness, normal,
-    occlusion, and emissive bindings without raw handles.
-  - Proof-point validation integration so invalid scalar inputs stop packing
-    while deferred texture features stay visible as warnings.
-- Added StandardMaterial WebGPU preparation/resource helpers:
-  - uniform buffer descriptor planning.
-  - GPU buffer creation with stable `material-buffer:` keys.
-  - combined material preparation plan that emits the material buffer resource
-    key and group-2 bind descriptor entries.
-- Added StandardMaterial bind group metadata:
-  - group-2 layout metadata for the material uniform plus deferred texture /
-    sampler slots.
-  - validation for required material binding shape.
-  - stable `bind-group:standard/group-2/...` resource keys.
-- Updated resource summary typing so standard material GPU buffer results are
-  counted by the existing material-buffer readiness summary.
+- Added `STANDARD_MESH_WGSL` and StandardMaterial pipeline helpers for a narrow
+  direct-lit metallic/roughness MVP:
+  - consumes view/world transforms, StandardMaterial uniform data, normals, and
+    packed light buffers.
+  - supports ambient and directional lights.
+  - documents texture sampling, normal maps, IBL, and shadows as deferred.
+- Added material pipeline selection and draw-list routing so standard draws
+  require group 3 light bind groups and never silently fall back to unlit.
+- Added StandardMaterial group-2 bind group resource creation and standard frame
+  GPU resources for the app facade.
+- Extended `createWebGpuApp.render()` to render `standard` materials through the
+  new standard pipeline/resource path while preserving the existing unlit path.
+- Reworked `examples/spinning-cube.js` to use the user-facing app facade:
+  typed asset collections, ECS entity spawning, camera, ambient/directional
+  lights, `SpinSystem`, and `app.render()` instead of manual WebGPU setup.
+- Updated the spinning-cube Playwright spec to verify a nonblank lit cube,
+  animation/frame progress, and JSON-safe status.
+- Completed the architecture audit:
+  - `@aperture-engine/core` and `@aperture-engine/runtime` remain headless.
+  - StandardMaterial source data stays renderer-independent.
+  - WebGPU objects are still backend-owned.
+  - No scene graph or WebGL fallback was introduced.
+  - Main follow-up is app-facade hot-path allocation/resource reuse.
+- Added `docs/research/LIT_STANDARD_PROOF_POINT_AUDIT_2026_05_16.md` with the
+  audit findings and validation record.
+- Added `task-0566` for steady-state reuse of prepared WebGPU app resources
+  across frames.
+- Added StandardMaterial-specific resource inspection adapters that produce the
+  existing generic material inspection records for live, missing, stale, and
+  pending-destroy material buffer resources without exposing raw GPU handles.
 
 Validation:
 
-- Targeted tests passed:
-  - `pnpm exec vitest run test/webgpu/standard-material-buffer.test.ts test/webgpu/standard-bind-group.test.ts test/webgpu/standard-bind-group-layout.test.ts test/webgpu/standard-material-buffer-resource.test.ts`
-- Full validation passed:
-  - `pnpm run check`
-  - 148 test files / 686 tests passed.
+- `pnpm exec vitest run test/webgpu/standard-shader.test.ts test/webgpu/standard-pipeline-descriptor.test.ts test/webgpu/standard-pipeline.test.ts`
+- `pnpm exec vitest run test/webgpu/material-pipeline-selection.test.ts test/webgpu/render-pass-draw-list.test.ts test/webgpu/standard-bind-group.test.ts test/materials/standard-proof-point.test.ts`
+- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts test/examples/navigation.test.mjs`
+- `pnpm exec vitest run test/webgpu/standard-material-resource-inspection.test.ts`
+- `pnpm run build`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm run check` passed: 152 test files / 706 tests.
+- `pnpm exec playwright test test/e2e/spinning-cube.spec.ts` passed.
 
 Reference files/patterns inspected:
 
-- PlayCanvas-style material/bind resource patterns:
-  - `references/engine/src/scene/materials/standard-material.js`
-  - `references/engine/src/framework/parsers/material/json-standard-material.js`
-  - `references/engine/src/extras/exporters/gltf-exporter.js`
-  - `references/engine/src/platform/graphics/bind-group-format.js`
-  - `references/engine/src/platform/graphics/uniform-buffer-format.js`
-- Three.js StandardMaterial shader/material fields:
+- PlayCanvas/engine lit material and shader organization:
+  - `references/engine/src/scene/graphics/light-cube.js`
+  - `references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/pass-forward/litForwardBackend.js`
+  - `references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/pass-forward/litForwardDeclaration.js`
+  - `references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/metalnessModulate.js`
+  - `references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/lighting/lightFunctionLight.js`
+  - `references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/lighting/lightDeclaration.js`
+- Three.js material/shader/render routing:
   - `references/three.js/src/materials/MeshStandardMaterial.js`
-  - `references/three.js/src/renderers/shaders/ShaderLib/meshphysical.glsl.js`
-- Existing Aperture unlit material buffer, bind group, and resource summary
-  tests/helpers.
+  - `references/three.js/src/renderers/shaders/ShaderChunk/lights_pars_begin.glsl.js`
+  - `references/three.js/src/renderers/shaders/ShaderChunk/lights_physical_fragment.glsl.js`
+  - `references/three.js/src/renderers/common/RenderList.js`
+  - `references/three.js/src/renderers/common/Pipelines.js`
+- Bevy ECS/render/material bridge:
+  - `references/bevy/crates/bevy_pbr/src/material.rs`
+  - render phase/material queue patterns under `references/bevy/crates/bevy_render`
+- Project docs:
+  - `docs/NORTH_STAR.md`
+  - `docs/ARCHITECTURE.md`
+  - `docs/DECISIONS.md`
+  - `docs/research/BEVY_ECS_RENDER_ALIGNMENT.md`
+- Existing Aperture app facade, WebGPU frame planning, light resource, unlit
+  bind group, and browser E2E patterns.
 
 Recommended next task:
 
-- `task-0561 — Add direct-lit StandardMaterial WGSL and pipeline`.
+- `task-0566 — Reuse WebGPU app prepared resources across frames`.
 
 Known issues:
 
-- The lit StandardMaterial shader/pipeline is still pending.
-- StandardMaterial draw selection/routing is still pending.
-- The user-facing lit spinning cube example and Playwright route are still
-  pending.
+- `createWebGpuApp.render()` now proves the standard path but still creates
+  pipelines and GPU resources per rendered frame. This is acceptable for the
+  proof-point example, but it does not satisfy the frame hot-path allocation
+  discipline for a steady-state runtime loop.
+- StandardMaterial remains an MVP: texture sampling, normal maps, IBL, and
+  shadows are intentionally deferred.
+- Standard material resource inspection records now exist for material-buffer
+  inspection; broader app-facade resource reuse is still pending.
 
 Files touched in this update:
 
@@ -68,16 +102,30 @@ Files touched in this update:
 - `agent/COMPLETED.md`
 - `agent/HANDOFF.md`
 - `agent/STATUS.json`
+- `docs/research/LIT_STANDARD_PROOF_POINT_AUDIT_2026_05_16.md`
+- `examples/spinning-cube.js`
+- `packages/webgpu/src/webgpu/app.ts`
 - `packages/webgpu/src/webgpu/index.ts`
-- `packages/webgpu/src/webgpu/resource-summary.ts`
-- `packages/webgpu/src/webgpu/standard-bind-group-layout.ts`
+- `packages/webgpu/src/webgpu/material-pipeline-selection.ts`
+- `packages/webgpu/src/webgpu/render-pass-draw-list.ts`
 - `packages/webgpu/src/webgpu/standard-bind-group.ts`
-- `packages/webgpu/src/webgpu/standard-material-buffer-resource.ts`
-- `packages/webgpu/src/webgpu/standard-material-buffer.ts`
-- `test/webgpu/standard-bind-group-layout.test.ts`
+- `packages/webgpu/src/webgpu/standard-frame-resources.ts`
+- `packages/webgpu/src/webgpu/standard-material-resource-inspection.ts`
+- `packages/webgpu/src/webgpu/standard-pipeline-descriptor.ts`
+- `packages/webgpu/src/webgpu/standard-pipeline.ts`
+- `packages/webgpu/src/webgpu/standard-shader.ts`
+- `packages/webgpu/src/webgpu/unlit-shader.ts`
+- `test/e2e/spinning-cube.spec.ts`
+- `test/examples/navigation.test.mjs`
+- `test/materials/standard-proof-point.test.ts`
+- `test/webgpu/material-pipeline-selection.test.ts`
+- `test/webgpu/render-pass-draw-list.test.ts`
 - `test/webgpu/standard-bind-group.test.ts`
-- `test/webgpu/standard-material-buffer-resource.test.ts`
-- `test/webgpu/standard-material-buffer.test.ts`
+- `test/webgpu/standard-material-resource-inspection.test.ts`
+- `test/webgpu/standard-pipeline-descriptor.test.ts`
+- `test/webgpu/standard-pipeline.test.ts`
+- `test/webgpu/standard-shader.test.ts`
+- `test/webgpu/webgpu-app.test.ts`
 
 ## Previous Run Update
 

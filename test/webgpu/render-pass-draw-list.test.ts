@@ -124,6 +124,88 @@ describe("render pass draw list planning", () => {
     ]);
   });
 
+  it("requires light bind groups for standard material draw selection", () => {
+    const plan = planRenderPassDrawList({
+      drawCommands: [
+        drawCommand(1, {
+          pipelineKey: "standard|opaque|back|less|none",
+          materialResourceKey: "material-buffer:Standard/uniform",
+        }),
+      ],
+      pipelines: [pipeline("standard|opaque|back|less|none")],
+      bindGroups: [
+        ...bindGroups("material-buffer:Standard/uniform"),
+        lightBindGroup(),
+      ],
+    });
+
+    expect(plan.valid).toBe(true);
+    expect(plan.diagnostics).toEqual([]);
+    expect(plan.draws[0]?.bindGroupKeys).toEqual([
+      "bind-group:view",
+      "bind-group:transforms",
+      "bind-group:material-buffer:Standard/uniform",
+      "bind-group:lights",
+    ]);
+  });
+
+  it("diagnoses unprepared standard material lighting resources instead of falling back", () => {
+    const plan = planRenderPassDrawList({
+      drawCommands: [
+        drawCommand(1, {
+          pipelineKey: "standard|opaque|back|less|none",
+          materialResourceKey: "material-buffer:Standard/uniform",
+        }),
+      ],
+      pipelines: [pipeline("standard|opaque|back|less|none")],
+      bindGroups: bindGroups("material-buffer:Standard/uniform"),
+    });
+
+    expect(plan.valid).toBe(false);
+    expect(plan.draws).toEqual([]);
+    expect(plan.diagnostics).toMatchObject([
+      {
+        code: "renderPassDrawList.missingBindGroupResource",
+        renderId: 1,
+        bindGroup: { group: 3 },
+      },
+    ]);
+  });
+
+  it("preserves mixed unlit and standard draw ordering with distinct pipeline keys", () => {
+    const plan = planRenderPassDrawList({
+      drawCommands: [
+        drawCommand(2, {
+          pipelineKey: "standard|opaque|back|less|none",
+          materialResourceKey: "material-buffer:Standard/uniform",
+        }),
+        drawCommand(1, {
+          pipelineKey: "unlit|opaque|back|less|none",
+          materialResourceKey: "material-buffer:Unlit/uniform",
+        }),
+      ],
+      pipelines: [
+        pipeline("unlit|opaque|back|less|none"),
+        pipeline("standard|opaque|back|less|none"),
+      ],
+      bindGroups: [
+        ...bindGroups("material-buffer:Standard/uniform"),
+        {
+          ...materialBindGroup("material-buffer:Unlit/uniform"),
+          resourceKey: "bind-group:material-buffer:Unlit/uniform",
+        },
+        lightBindGroup(),
+      ],
+    });
+
+    expect(plan.valid).toBe(true);
+    expect(plan.draws.map((draw) => draw.renderId)).toEqual([2, 1]);
+    expect(plan.draws.map((draw) => draw.pipelineKey)).toEqual([
+      "standard|opaque|back|less|none",
+      "unlit|opaque|back|less|none",
+    ]);
+  });
+
   it("can reuse caller-owned draw-list scratch on the frame hot path", () => {
     const scratch = createRenderPassDrawListScratch(2);
     const options = {
@@ -196,14 +278,33 @@ function bindGroups(materialResourceKey: string): UnlitBindGroupResource[] {
       bindGroup: {},
       entryResourceKeys: ["buffer:transforms"],
     },
-    {
-      group: 2,
-      resourceKey: `bind-group:${materialResourceKey}`,
-      layoutKey: "layout:material",
-      bindGroup: {},
-      entryResourceKeys: [materialResourceKey],
-    },
+    materialBindGroup(materialResourceKey),
   ];
+}
+
+function materialBindGroup(
+  materialResourceKey: string,
+): UnlitBindGroupResource {
+  return {
+    group: 2,
+    resourceKey: `bind-group:${materialResourceKey}`,
+    layoutKey: "layout:material",
+    bindGroup: {},
+    entryResourceKeys: [materialResourceKey],
+  };
+}
+
+function lightBindGroup(): UnlitBindGroupResource {
+  return {
+    group: 3,
+    resourceKey: "bind-group:lights",
+    layoutKey: "layout:lights",
+    bindGroup: {},
+    entryResourceKeys: [
+      "light-buffer:main/floats",
+      "light-buffer:main/metadata",
+    ],
+  };
 }
 
 function pipelineScopedSharedBindGroups(

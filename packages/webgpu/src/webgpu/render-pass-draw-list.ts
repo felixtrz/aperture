@@ -4,6 +4,7 @@ import type {
 } from "./draw-command.js";
 import type { GetOrCreateRenderPipelineResult } from "./pipeline-cache-integration.js";
 import type { UnlitBindGroupResource } from "./unlit-bind-group.js";
+import { requiredBindGroupGroupsForPipelineKey } from "./material-pipeline-selection.js";
 
 export type RenderPassDrawListDiagnosticCode =
   | "renderPassDrawList.missingPipelineResource"
@@ -73,8 +74,6 @@ interface MutableRenderPassDrawListRecord {
   transformPackedOffset: number;
 }
 
-const DEFAULT_REQUIRED_BIND_GROUP_GROUPS = [0, 1, 2] as const;
-
 export function planRenderPassDrawList(
   options: RenderPassDrawListOptions,
 ): RenderPassDrawListPlan {
@@ -120,11 +119,11 @@ export function writeRenderPassDrawList(
     }
   }
 
-  const requiredGroups =
-    options.requiredBindGroupGroups ?? DEFAULT_REQUIRED_BIND_GROUP_GROUPS;
-
   for (const command of options.drawCommands) {
     let ready = true;
+    const requiredGroups =
+      options.requiredBindGroupGroups ??
+      requiredBindGroupGroupsForPipelineKey(command.pipelineKey);
 
     if (!scratch.pipelineKeys.has(command.pipelineKey)) {
       scratch.diagnostics.push({

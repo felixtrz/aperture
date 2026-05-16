@@ -113,12 +113,11 @@ describe("browser example navigation", () => {
     }
   });
 
-  it("keeps browser modules wired to the shared WebGPU readback helper", async () => {
+  it("keeps manual browser modules wired to the shared WebGPU readback helper", async () => {
     for (const file of [
       "examples/main.js",
       "examples/triangle.js",
       "examples/multi-entity.js",
-      "examples/spinning-cube.js",
     ]) {
       const script = await readExamplePage(file);
 

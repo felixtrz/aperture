@@ -1,15 +1,13 @@
-import { createCurrentTextureColorTargetWithTexture } from "./webgpu-readback.js";
-
 const canvas = document.querySelector("#aperture-canvas");
 const stateElement = document.querySelector("#example-state");
 const jsonElement = document.querySelector("#example-json");
-const clearColor = { r: 0.015, g: 0.025, b: 0.035, a: 1 };
-const depthFormat = "depth24plus";
+const clearColor = [0.015, 0.025, 0.035, 1];
 const spinAxis = [0.35, 1, 0.2];
 const spinRadiansPerSecond = 3;
 
 const baseStatus = {
   example: "ecs-spinning-cube",
+  materialModel: "standard-direct-lit",
   canvas: {
     width: canvas?.width ?? 0,
     height: canvas?.height ?? 0,
@@ -26,32 +24,24 @@ try {
   if (canvas === null) {
     publishStatus(failure("canvas", "canvas-unavailable", "Canvas missing."));
   } else {
-    const initialized = await aperture.initializeWebGpu({ canvas });
+    const created = await aperture.createWebGpuApp({
+      canvas,
+      worldOptions: { entityCapacity: 16 },
+    });
 
-    if (!initialized.ok) {
+    if (!created.ok) {
       publishStatus({
-        ...failure(
-          "initialize-webgpu",
-          initialized.reason,
-          initialized.message,
-        ),
+        ...failure("initialize-webgpu", created.reason, created.message),
         apertureVersion: aperture.APERTURE_VERSION,
         renderingBackend: aperture.APERTURE_IDENTITY.renderingBackend,
       });
     } else {
-      const canvasSize = { width: canvas.width, height: canvas.height };
-      const scene = createSpinningCubeWorld(aperture, canvasSize);
-      const setup = await createSpinningCubeRenderSetup(
-        aperture,
-        initialized,
-        scene,
-      );
+      const scene = createLitSpinningCubeScene(aperture, created.app, {
+        width: canvas.width,
+        height: canvas.height,
+      });
 
-      if (!setup.ok) {
-        publishStatus(setup.status);
-      } else {
-        startAnimation(aperture, initialized, scene, setup, canvasSize);
-      }
+      startAnimation(aperture, created.app, scene);
     }
   }
 } catch (error) {
@@ -66,615 +56,256 @@ try {
   );
 }
 
-async function createSpinningCubeRenderSetup(aperture, initialized, scene) {
-  const snapshot = aperture.extractRenderSnapshot(scene.world, scene.assets, {
-    frame: 0,
+function createLitSpinningCubeScene(aperture, app, canvasSize) {
+  const assets = aperture.createRenderAssetCollections({
+    registry: app.assets,
   });
-  const firstDraw = snapshot.meshDraws[0];
-  const firstView = snapshot.views[0];
-
-  if (firstDraw === undefined || firstView === undefined) {
-    return setupFailure({
-      ...failure(
-        "extract",
-        "empty-snapshot",
-        "The ECS spinning cube scene did not extract a drawable view and mesh.",
-      ),
-      extraction: snapshotCounts(snapshot),
-      diagnostics: snapshot.diagnostics,
-    });
-  }
-
-  const pipelineResource = await aperture.createUnlitRenderPipelineResource({
-    device: initialized.device,
-    colorFormat: initialized.format,
-    depthFormat,
-    batchKey: firstDraw.batchKey,
+  const mesh = assets.meshes.add(
+    aperture.createBoxMeshAsset({
+      label: "SpinningCube",
+      width: 1.45,
+      height: 1.45,
+      depth: 1.45,
+    }),
+    { id: "spinning-cube" },
+  );
+  const materialAsset = aperture.createStandardMaterialAsset({
+    label: "SpinningCubeStandard",
+    baseColorFactor: new Float32Array([1, 0.55, 0.25, 1]),
+    metallicFactor: 0.08,
+    roughnessFactor: 0.48,
+    emissiveFactor: [0.015, 0.01, 0.005],
+  });
+  const material = assets.materials.standard.add(materialAsset, {
+    id: "spinning-cube-standard",
   });
 
-  if (!pipelineResource.valid || pipelineResource.resource === null) {
-    return setupFailure({
-      ...failure(
-        "pipeline",
-        "pipeline-unavailable",
-        "The textured unlit render pipeline could not be created.",
-      ),
-      diagnostics: pipelineResource.diagnostics,
-      extraction: snapshotCounts(snapshot),
-    });
-  }
+  app.registerSystem(aperture.SpinSystem);
 
-  const pipeline = pipelineResource.resource.pipeline;
-
-  if (typeof pipeline.getBindGroupLayout !== "function") {
-    return setupFailure(
-      failure(
-        "pipeline-layouts",
-        "pipeline-layouts-unavailable",
-        "The unlit pipeline does not expose bind group layouts.",
-      ),
-    );
-  }
-
-  const textureResources = createSpinningCubeTextureResources(
-    aperture,
-    initialized.device,
-    scene,
+  app.spawn(
+    aperture.withTransform({ translation: [0, 0, 3.1] }),
+    aperture.withCamera({
+      aspect: canvasSize.width / canvasSize.height,
+      near: 0.1,
+      far: 100,
+      clearColor,
+      layerMask: 1,
+    }),
   );
 
-  if (!textureResources.valid) {
-    return setupFailure({
-      ...failure(
-        "resources",
-        "texture-resources-unavailable",
-        "The spinning cube texture or sampler resources could not be uploaded.",
-      ),
-      diagnostics: textureResources.diagnostics,
-      extraction: snapshotCounts(snapshot),
-    });
-  }
+  const cube = app.spawn(
+    aperture.withTransform(),
+    aperture.withMesh(mesh),
+    aperture.withMaterial(material),
+    aperture.withRenderLayer(1),
+    aperture.withVisibility(true),
+    aperture.withSpin({
+      radiansPerSecond: spinRadiansPerSecond,
+      axis: spinAxis,
+    }),
+  );
 
-  const packedViews = aperture.packSnapshotViewUniforms(snapshot);
-  const packedTransforms = aperture.packSnapshotTransforms(snapshot);
-  const frameResources = aperture.createUnlitFrameGpuResources({
-    device: initialized.device,
-    mesh: scene.mesh,
-    viewUniforms: packedViews,
-    worldTransforms: packedTransforms,
-    material: scene.material,
-    layouts: [0, 1, 2].map((group) => ({
-      group,
-      layoutKey: `unlit/pipeline-layout-${group}`,
-      layout: pipeline.getBindGroupLayout(group),
-    })),
-    textures: textureResources.textures,
-    samplers: textureResources.samplers,
-  });
+  app.spawn(
+    aperture.withLight({
+      kind: aperture.LightKind.Ambient,
+      color: [0.5, 0.56, 0.68, 1],
+      intensity: 0.42,
+      layerMask: 1,
+    }),
+  );
 
-  if (!frameResources.valid || frameResources.resources === null) {
-    return setupFailure({
-      ...failure(
-        "resources",
-        "frame-resources-unavailable",
-        "The spinning cube frame resources could not be uploaded.",
-      ),
-      diagnostics: frameResources.diagnostics,
-      extraction: snapshotCounts(snapshot),
-    });
-  }
-
-  const renderWorld = new aperture.RenderWorld();
-  const pipelineResult = {
-    ok: true,
-    status: "miss",
-    key: firstDraw.batchKey.pipelineKey,
-    pipeline,
-    diagnostics: [],
-  };
-  const framePlan = aperture.planRenderFrameFromSnapshot({
-    snapshot,
-    renderWorld,
-    transforms: packedTransforms,
-    resolveMeshResourceKey: (draw) =>
-      aperture.assetHandleKey(draw.mesh) === scene.meshKey
-        ? frameResources.resources.mesh.resourceKey
-        : null,
-    resolveMaterialResourceKey: (draw) =>
-      aperture.assetHandleKey(draw.material) === scene.materialKey
-        ? frameResources.resources.material.resourceKey
-        : null,
-    meshResources: [frameResources.resources.mesh],
-    pipelines: [pipelineResult],
-    bindGroups: frameResources.resources.bindGroups,
-  });
-
-  if (
-    !framePlan.summary.ready ||
-    framePlan.commandPlan.drawCount !== 1 ||
-    framePlan.commandPlan.indexedDrawCount !== 1
-  ) {
-    return setupFailure({
-      ...failure(
-        "draw-plan",
-        "draw-plan-unavailable",
-        "The spinning cube draw plan did not produce one indexed draw.",
-      ),
-      extraction: snapshotCounts(snapshot),
-      diagnostics: framePlan.summary.diagnostics,
-    });
-  }
+  app.spawn(
+    aperture.withTransform(),
+    aperture.withLight({
+      kind: aperture.LightKind.Directional,
+      color: [1, 0.94, 0.82, 1],
+      intensity: 2.8,
+      layerMask: 1,
+    }),
+  );
 
   return {
-    ok: true,
-    snapshot,
-    textureResources,
-    packedTransforms,
-    frameResources: frameResources.resources,
-    framePlan,
+    cube,
+    mesh,
+    material,
+    materialAsset,
+    authoredLights: 2,
   };
 }
 
-function startAnimation(aperture, initialized, scene, setup, canvasSize) {
+function startAnimation(aperture, app, scene) {
   let firstTimestamp = null;
+  let previousTimestamp = null;
   let frame = 0;
 
   const renderNextFrame = async (timestamp) => {
     if (firstTimestamp === null) {
       firstTimestamp = timestamp;
+      previousTimestamp = timestamp;
     }
 
     frame += 1;
 
     const elapsedSeconds = (timestamp - firstTimestamp) / 1000;
-    const rotationRadians = elapsedSeconds * spinRadiansPerSecond;
-    const transformUpdate = updateCubeTransform(
-      aperture,
-      initialized.device,
-      scene,
-      setup.frameResources,
-      rotationRadians,
+    const deltaSeconds =
+      previousTimestamp === null ? 0 : (timestamp - previousTimestamp) / 1000;
+
+    previousTimestamp = timestamp;
+
+    const step = app.step(deltaSeconds, elapsedSeconds);
+    const report = await app.render({
       frame,
-    );
-
-    if (!transformUpdate.ok) {
-      publishStatus(transformUpdate.status);
-      return;
-    }
-
-    const submitted = await submitSpinningCubeFrame(
-      aperture,
-      initialized,
-      setup.framePlan.commandPlan,
-      canvasSize,
-    );
-
-    if (!submitted.ok) {
-      publishStatus({
-        ...failure("submit", submitted.reason, submitted.message),
-        extraction: snapshotCounts(transformUpdate.snapshot),
-        diagnostics: submitted.diagnostics,
-      });
-      return;
-    }
-
-    publishStatus({
-      ...baseStatus,
-      ok: true,
-      phase: "animate",
-      apertureVersion: aperture.APERTURE_VERSION,
-      renderingBackend: aperture.APERTURE_IDENTITY.renderingBackend,
-      format: initialized.format,
       clearColor,
-      depth: { format: depthFormat },
-      extraction: snapshotCounts(transformUpdate.snapshot),
-      resources: {
-        materials: 1,
-        textures: setup.textureResources.textures.length,
-        samplers: setup.textureResources.samplers.length,
-        bindGroups: setup.frameResources.bindGroups.length,
-      },
-      binding: {
-        planned: setup.framePlan.bindingPlan.bindings.length,
-        applied: setup.framePlan.bindingResults.filter((result) => result.ok)
-          .length,
-        diagnostics: setup.framePlan.bindingPlan.diagnostics.length,
-      },
-      renderWorld: {
-        active: setup.framePlan.apply.active,
-        ready: setup.framePlan.readiness.ready.length,
-        blocked: setup.framePlan.readiness.blocked.length,
-      },
-      draw: {
-        packages: setup.framePlan.packages.packages.length,
-        descriptors: setup.framePlan.drawCommands.descriptors.length,
-        drawList: setup.framePlan.drawList.draws.length,
-        resolved: setup.framePlan.resources.draws.length,
-      },
-      command: {
-        commands: setup.framePlan.commandPlan.commands.length,
-        drawCount: setup.framePlan.commandPlan.drawCount,
-        indexedDrawCount: setup.framePlan.commandPlan.indexedDrawCount,
-      },
-      submission: submitted.summary,
-      animation: {
-        frames: frame,
-        elapsedSeconds: Number(elapsedSeconds.toFixed(4)),
-        rotationRadians: Number(rotationRadians.toFixed(4)),
-        radiansPerSecond: spinRadiansPerSecond,
-        spinAxis,
-        transformDiagnostics:
-          transformUpdate.transformReport.diagnostics.length,
-      },
-      diagnosticCounts: {
-        extraction: transformUpdate.snapshot.diagnostics.length,
-        transform: transformUpdate.transformReport.diagnostics.length,
-        submission: submitted.diagnosticCount,
-      },
+      label: "ecs-spinning-cube-lit",
     });
+    const status = createFrameStatus(
+      aperture,
+      app,
+      scene,
+      step,
+      report,
+      frame,
+      elapsedSeconds,
+    );
+
+    publishStatus(status);
+
+    if (!status.ok) {
+      return;
+    }
 
     requestAnimationFrame((nextTimestamp) => {
       void renderNextFrame(nextTimestamp).catch((error) => {
-        publishStatus(
-          failure(
-            "animate",
-            "animation-frame-failed",
-            error instanceof Error
-              ? error.message
-              : "The spinning cube animation frame failed.",
-          ),
-        );
+        publishStatus(animationFailure(error));
       });
     });
   };
 
   requestAnimationFrame((timestamp) => {
     void renderNextFrame(timestamp).catch((error) => {
-      publishStatus(
-        failure(
-          "animate",
-          "animation-frame-failed",
-          error instanceof Error
-            ? error.message
-            : "The spinning cube animation frame failed.",
-        ),
-      );
+      publishStatus(animationFailure(error));
     });
   });
 }
 
-function updateCubeTransform(
+function createFrameStatus(
   aperture,
-  device,
+  app,
   scene,
-  frameResources,
-  rotationRadians,
+  step,
+  report,
   frame,
+  elapsedSeconds,
 ) {
-  const rotation = aperture.quatFromAxisAngle(spinAxis, rotationRadians);
-
-  scene.cubeEntity
-    .getVectorView(aperture.LocalTransform, "rotation")
-    .set(rotation);
-
-  const transformReport = aperture.resolveWorldTransforms(scene.world);
-  const snapshot = aperture.extractRenderSnapshot(scene.world, scene.assets, {
-    frame,
-  });
-  const packedTransforms = aperture.packSnapshotTransforms(snapshot);
-
-  if (
-    transformReport.diagnostics.length > 0 ||
-    snapshot.diagnostics.length > 0 ||
-    packedTransforms.diagnostics.length > 0
-  ) {
-    return {
-      ok: false,
-      status: {
-        ...failure(
-          "transform",
-          "transform-update-failed",
-          "The spinning cube transform update produced diagnostics.",
-        ),
-        extraction: snapshotCounts(snapshot),
-        diagnostics: [
-          ...transformReport.diagnostics,
-          ...snapshot.diagnostics,
-          ...packedTransforms.diagnostics,
-        ],
-      },
-    };
-  }
-
-  device.queue.writeBuffer(
-    frameResources.worldTransforms.buffer,
-    0,
-    packedTransforms.data,
-  );
-
-  return { ok: true, snapshot, packedTransforms, transformReport };
-}
-
-async function submitSpinningCubeFrame(
-  aperture,
-  initialized,
-  commandPlan,
-  canvasSize,
-) {
-  const colorTarget = createCurrentTextureColorTargetWithTexture({
-    context: initialized.context,
-    clearColor: [clearColor.r, clearColor.g, clearColor.b, clearColor.a],
-  });
-
-  if (!colorTarget.valid || colorTarget.target === null) {
-    return stepFailure(
-      "current-texture-unavailable",
-      "The WebGPU context did not provide a current texture view.",
-      colorTarget.diagnostics,
-    );
-  }
-
-  const depthTarget = createDepthTarget(
-    initialized.device,
-    canvasSize,
-    depthFormat,
-  );
-  const attachments = aperture.createRenderPassAttachmentPlan({
-    colorTargets: [colorTarget.target],
-    ...(depthTarget === null
-      ? {}
-      : { depthTarget: { view: depthTarget.view, depthClearValue: 1 } }),
-  });
-
-  if (!attachments.valid || attachments.plan === null) {
-    return stepFailure(
-      "attachments-unavailable",
-      "The render pass attachments could not be planned.",
-      attachments.diagnostics,
-    );
-  }
-
-  const encoderResource = aperture.createCommandEncoderResource({
-    device: initialized.device,
-    label: "ecs-spinning-cube",
-  });
-
-  if (!encoderResource.valid || encoderResource.resource === null) {
-    return stepFailure(
-      "encoder-unavailable",
-      "The WebGPU command encoder could not be created.",
-      encoderResource.diagnostics,
-    );
-  }
-
-  const begin = aperture.beginPlannedRenderPass({
-    encoder: encoderResource.resource.encoder,
-    plan: attachments.plan,
-  });
-
-  if (!begin.valid || begin.pass === null) {
-    return stepFailure(
-      "render-pass-unavailable",
-      "The render pass could not begin.",
-      begin.diagnostics,
-    );
-  }
-
-  const execution = aperture.executeRenderPassCommands({
-    pass: begin.pass,
-    commands: commandPlan.commands,
-  });
-  const end = aperture.endPlannedRenderPass(begin.pass);
-  const finished = aperture.finishCommandEncoder({
-    encoder: encoderResource.resource.encoder,
-    label: "ecs-spinning-cube",
-  });
-
-  if (!execution.valid || !end.valid || !finished.valid) {
-    return stepFailure(
-      "commands-unavailable",
-      "The render pass commands could not be submitted.",
-      [...execution.diagnostics, ...end.diagnostics, ...finished.diagnostics],
-    );
-  }
-
-  const submitted = aperture.submitCommandBuffers({
-    queue: initialized.device.queue,
-    commandBuffers: [finished.resource],
-  });
-
-  if (!submitted.valid) {
-    return stepFailure(
-      "queue-submit-unavailable",
-      "The command buffer could not be submitted.",
-      submitted.diagnostics,
-    );
-  }
-
-  await waitForSubmittedWork(initialized.device);
-
-  return {
-    ok: true,
-    summary: {
-      commandBuffers: submitted.submitted,
-      commands: commandPlan.commands.length,
-      drawCalls: execution.drawCalls,
-      indexedDrawCalls: execution.indexedDrawCalls,
-    },
-    diagnosticCount:
-      attachments.diagnostics.length +
-      encoderResource.diagnostics.length +
-      begin.diagnostics.length +
-      execution.diagnostics.length +
-      end.diagnostics.length +
-      finished.diagnostics.length +
-      submitted.diagnostics.length,
-  };
-}
-
-function createSpinningCubeWorld(aperture, canvasSize) {
-  const world = aperture.createWorld({ entityCapacity: 8 });
-  const assets = new aperture.AssetRegistry();
-  const meshHandle = aperture.createMeshHandle("spinning-cube");
-  const materialHandle = aperture.createMaterialHandle("spinning-cube-unlit");
-  const textureHandle = aperture.createTextureHandle("spinning-cube-checker");
-  const samplerHandle = aperture.createSamplerHandle("spinning-cube-nearest");
-  const textureKey = aperture.assetHandleKey(textureHandle);
-  const samplerKey = aperture.assetHandleKey(samplerHandle);
-  const mesh = aperture.createBoxMeshAsset({
-    label: "SpinningCube",
-    width: 1.45,
-    height: 1.45,
-    depth: 1.45,
-  });
-  const textureAsset = aperture.createTextureAsset({
-    label: "Spinning Cube Checker",
-    dimension: "2d",
-    width: 4,
-    height: 4,
-    format: "rgba8unorm",
-    colorSpace: "srgb",
-    semantic: "base-color",
-  });
-  const samplerAsset = aperture.createSamplerAsset({
-    label: "Spinning Cube Nearest",
-    addressModeU: "repeat",
-    addressModeV: "repeat",
-    magFilter: "nearest",
-    minFilter: "nearest",
-    mipmapFilter: "nearest",
-  });
-  const material = aperture.createUnlitMaterialAsset({
-    label: "SpinningCubeTexturedUnlit",
-    baseColorFactor: new Float32Array([1, 1, 1, 1]),
-    baseColorTexture: {
-      texture: textureHandle,
-      sampler: samplerHandle,
-    },
-  });
-
-  aperture.registerTransformComponents(world);
-  aperture.registerMetadataComponents(world);
-  aperture.registerRenderAuthoringComponents(world);
-  assets.register(meshHandle);
-  assets.register(materialHandle, {
-    dependencies: [textureHandle, samplerHandle],
-  });
-  assets.register(textureHandle);
-  assets.register(samplerHandle);
-  assets.markReady(meshHandle, mesh);
-  assets.markReady(materialHandle, material);
-  assets.markReady(textureHandle, textureAsset);
-  assets.markReady(samplerHandle, samplerAsset);
-
-  const camera = world.createEntity();
-  const cameraTransform = aperture.createRootTransform({
-    translation: [0, 0, 3.1],
-  });
-
-  camera.addComponent(aperture.WorldTransform, cameraTransform.world);
-  camera.addComponent(
-    aperture.Camera,
-    aperture.createCamera({
-      aspect: canvasSize.width / canvasSize.height,
-      near: 0.1,
-      far: 100,
-      clearColor: [clearColor.r, clearColor.g, clearColor.b, clearColor.a],
-      layerMask: 1,
-    }),
-  );
-
-  const cubeEntity = world.createEntity();
-  const cubeTransform = aperture.createRootTransform();
-
-  cubeEntity.addComponent(aperture.LocalTransform, cubeTransform.local);
-  cubeEntity.addComponent(aperture.Parent, cubeTransform.parent);
-  cubeEntity.addComponent(aperture.WorldTransform, cubeTransform.world);
-  cubeEntity.addComponent(aperture.Mesh, {
-    meshId: aperture.assetHandleKey(meshHandle),
-  });
-  cubeEntity.addComponent(aperture.Material, {
-    materialId: aperture.assetHandleKey(materialHandle),
-  });
-  cubeEntity.addComponent(aperture.RenderLayer, { mask: 1 });
-  cubeEntity.addComponent(aperture.Visibility);
-
-  return {
-    world,
-    assets,
-    mesh,
-    material,
-    textureAsset,
-    samplerAsset,
-    cubeEntity,
-    meshKey: aperture.assetHandleKey(meshHandle),
-    materialKey: aperture.assetHandleKey(materialHandle),
-    textureKey,
-    samplerKey,
-  };
-}
-
-function createSpinningCubeTextureResources(aperture, device, scene) {
-  const textureResult = aperture.createTextureGpuResource({
-    device,
-    resourceKey: scene.textureKey,
-    descriptor: {
-      label: "SpinningCubeChecker",
-      size: [4, 4, 1],
-      format: "rgba8unorm",
-      usage:
-        (globalThis.GPUTextureUsage?.TEXTURE_BINDING ?? 0x04) |
-        (globalThis.GPUTextureUsage?.COPY_DST ?? 0x02),
-    },
-    upload: {
-      data: createCheckerTextureBytes(),
-      bytesPerRow: 16,
-      rowsPerImage: 4,
-    },
-  });
-  const samplerResult = aperture.createSamplerGpuResource({
-    device,
-    resourceKey: scene.samplerKey,
-    sampler: scene.samplerAsset,
-  });
+  const snapshot = report.snapshot;
+  const firstDraw = snapshot.meshDraws[0];
+  const resources = report.resources?.resources ?? null;
+  const boundary = report.boundary;
   const diagnostics = [
-    ...textureResult.diagnostics,
-    ...samplerResult.diagnostics,
-  ];
+    ...step.transform.diagnostics,
+    ...report.diagnostics,
+  ].map(diagnosticToJson);
+  const reason = firstFailureReason(report, firstDraw, resources);
 
   return {
-    valid:
-      diagnostics.length === 0 &&
-      textureResult.resource !== null &&
-      samplerResult.resource !== null,
-    textures: textureResult.resource === null ? [] : [textureResult.resource],
-    samplers: samplerResult.resource === null ? [] : [samplerResult.resource],
+    ...baseStatus,
+    ok: report.ok,
+    phase: report.ok ? "animate" : "render",
+    ...(reason === null ? {} : reason),
+    apertureVersion: aperture.APERTURE_VERSION,
+    renderingBackend: aperture.APERTURE_IDENTITY.renderingBackend,
+    format: app.initialization.format,
+    clearColor: {
+      r: clearColor[0],
+      g: clearColor[1],
+      b: clearColor[2],
+      a: clearColor[3],
+    },
+    extraction: snapshotCounts(snapshot),
+    material: {
+      kind: scene.materialAsset.kind,
+      key: aperture.assetHandleKey(scene.material),
+      baseColorFactor: Array.from(scene.materialAsset.baseColorFactor),
+      metallicFactor: scene.materialAsset.metallicFactor,
+      roughnessFactor: scene.materialAsset.roughnessFactor,
+    },
+    lighting: {
+      authored: scene.authoredLights,
+      extracted: snapshot.lights.length,
+      kinds: snapshot.lights.map((light) => light.kind),
+      gpuLights: resources?.lightGpuBuffers?.lightBuffer.count ?? 0,
+    },
+    pipeline: {
+      key: firstDraw?.batchKey.pipelineKey ?? null,
+      cacheKey: report.pipeline?.resource?.cacheKey ?? null,
+    },
+    resources: {
+      materials: 1,
+      bindGroups: resources?.bindGroups.length ?? 0,
+      lightBindGroup: resources?.lightBindGroup === undefined ? 0 : 1,
+    },
+    renderWorld: {
+      active: app.renderWorld.size,
+    },
+    draw: {
+      packages: report.counts.drawPackages,
+      commands: report.counts.drawCommands,
+      drawCalls: report.counts.drawCalls,
+    },
+    command: {
+      commands: boundary?.execution?.commandCount ?? 0,
+      drawCount: boundary?.execution?.drawCalls ?? 0,
+      indexedDrawCount: boundary?.execution?.indexedDrawCalls ?? 0,
+    },
+    submission: {
+      commandBuffers: boundary?.submit?.submitted ?? 0,
+      drawCalls: boundary?.execution?.drawCalls ?? 0,
+      indexedDrawCalls: boundary?.execution?.indexedDrawCalls ?? 0,
+    },
+    animation: {
+      frames: frame,
+      elapsedSeconds: Number(elapsedSeconds.toFixed(4)),
+      rotationRadians: Number(
+        (elapsedSeconds * spinRadiansPerSecond).toFixed(4),
+      ),
+      radiansPerSecond: spinRadiansPerSecond,
+      spinAxis,
+      transformDiagnostics: step.transform.diagnostics.length,
+    },
+    diagnosticCounts: {
+      extraction: snapshot.diagnostics.length,
+      transform: step.transform.diagnostics.length,
+      render: report.diagnostics.length,
+      total: diagnostics.length,
+    },
     diagnostics,
   };
 }
 
-function createCheckerTextureBytes() {
-  return new Uint8Array([
-    244, 80, 64, 255, 244, 80, 64, 255, 40, 190, 120, 255, 40, 190, 120, 255,
-    244, 80, 64, 255, 255, 228, 92, 255, 255, 228, 92, 255, 40, 190, 120, 255,
-    72, 135, 255, 255, 255, 228, 92, 255, 255, 228, 92, 255, 245, 245, 245, 255,
-    72, 135, 255, 255, 72, 135, 255, 255, 245, 245, 245, 255, 245, 245, 245,
-    255,
-  ]);
-}
-
-function createDepthTarget(device, canvasSize, format) {
-  if (typeof device.createTexture !== "function") {
+function firstFailureReason(report, firstDraw, resources) {
+  if (report.ok) {
     return null;
   }
 
-  const usage = globalThis.GPUTextureUsage?.RENDER_ATTACHMENT ?? 0x10;
-  const texture = device.createTexture({
-    size: [canvasSize.width, canvasSize.height, 1],
-    format,
-    usage,
-  });
+  if (firstDraw === undefined) {
+    return {
+      reason: "empty-snapshot",
+      message: "The lit spinning cube scene did not extract a drawable mesh.",
+    };
+  }
 
-  return { texture, view: texture.createView() };
+  if (resources === null) {
+    return {
+      reason: "standard-resources-unavailable",
+      message:
+        "The lit spinning cube standard material resources were not ready.",
+    };
+  }
+
+  return {
+    reason: "render-unavailable",
+    message: "The lit spinning cube frame could not be rendered.",
+  };
 }
 
 function snapshotCounts(snapshot) {
@@ -682,18 +313,41 @@ function snapshotCounts(snapshot) {
     frame: snapshot.frame,
     views: snapshot.views.length,
     meshDraws: snapshot.meshDraws.length,
+    lights: snapshot.lights.length,
     transforms: snapshot.transforms.length / 16,
     viewMatrices: snapshot.viewMatrices.length / 16,
     diagnostics: snapshot.diagnostics.length,
   };
 }
 
-function setupFailure(status) {
-  return { ok: false, status };
+function diagnosticToJson(diagnostic) {
+  if (diagnostic === null || typeof diagnostic !== "object") {
+    return {
+      code: "unknown",
+      message: String(diagnostic),
+    };
+  }
+
+  return {
+    code: typeof diagnostic.code === "string" ? diagnostic.code : "unknown",
+    message:
+      typeof diagnostic.message === "string"
+        ? diagnostic.message
+        : JSON.stringify(diagnostic),
+    ...(typeof diagnostic.severity === "string"
+      ? { severity: diagnostic.severity }
+      : {}),
+  };
 }
 
-function stepFailure(reason, message, diagnostics) {
-  return { ok: false, reason, message, diagnostics };
+function animationFailure(error) {
+  return failure(
+    "animate",
+    "animation-frame-failed",
+    error instanceof Error
+      ? error.message
+      : "The lit spinning cube animation frame failed.",
+  );
 }
 
 function failure(phase, reason, message) {
@@ -710,11 +364,5 @@ function publishStatus(status) {
 
   if (jsonElement !== null) {
     jsonElement.textContent = JSON.stringify(status, null, 2);
-  }
-}
-
-async function waitForSubmittedWork(device) {
-  if (typeof device.queue?.onSubmittedWorkDone === "function") {
-    await device.queue.onSubmittedWorkDone();
   }
 }

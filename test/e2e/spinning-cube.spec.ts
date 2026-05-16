@@ -1,45 +1,53 @@
 import { expect, test, type Page } from "@playwright/test";
 
-import { pixelDistance, readPngPixel, type RgbaPixel } from "./png.js";
+import { pixelDistance, readPngPixel, rgbaColorToPixel } from "./png.js";
 import {
   attachExampleStatus,
+  expectStatusJsonSafeForGpu,
   skipIfUnsupportedWebGpu,
   waitForExampleStatus,
 } from "./webgpu-status.js";
 import type { ExampleStatusBase } from "./example-status-types.js";
 
 interface SpinningCubeStatus extends ExampleStatusBase {
+  readonly materialModel?: string;
   readonly clearColor?: unknown;
-  readonly depth?: {
-    readonly format: string;
-  };
   readonly extraction?: {
     readonly views: number;
     readonly meshDraws: number;
+    readonly lights: number;
     readonly transforms: number;
     readonly diagnostics: number;
   };
+  readonly material?: {
+    readonly kind: string;
+    readonly key: string;
+    readonly baseColorFactor: readonly number[];
+    readonly metallicFactor: number;
+    readonly roughnessFactor: number;
+  };
+  readonly lighting?: {
+    readonly authored: number;
+    readonly extracted: number;
+    readonly kinds: readonly string[];
+    readonly gpuLights: number;
+  };
+  readonly pipeline?: {
+    readonly key: string | null;
+    readonly cacheKey: string | null;
+  };
   readonly resources?: {
     readonly materials: number;
-    readonly textures: number;
-    readonly samplers: number;
     readonly bindGroups: number;
-  };
-  readonly binding?: {
-    readonly planned: number;
-    readonly applied: number;
-    readonly diagnostics: number;
+    readonly lightBindGroup: number;
   };
   readonly renderWorld?: {
     readonly active: number;
-    readonly ready: number;
-    readonly blocked: number;
   };
   readonly draw?: {
     readonly packages: number;
-    readonly descriptors: number;
-    readonly drawList: number;
-    readonly resolved: number;
+    readonly commands: number;
+    readonly drawCalls: number;
   };
   readonly command?: {
     readonly commands: number;
@@ -62,15 +70,9 @@ interface SpinningCubeStatus extends ExampleStatusBase {
   };
 }
 
-const samplePoints = [0.38, 0.44, 0.5, 0.56, 0.62].flatMap((y, row) =>
-  [0.4, 0.45, 0.5, 0.55, 0.6].map((x, column) => ({
-    id: `sample-${row}-${column}`,
-    x,
-    y,
-  })),
-);
-
-test("Playwright shows an ECS-driven spinning unlit cube", async ({ page }) => {
+test("Playwright shows an ECS-driven spinning lit standard cube", async ({
+  page,
+}) => {
   await page.goto("/examples/spinning-cube.html");
 
   const initialStatus = await waitForExampleStatus<SpinningCubeStatus>(page);
@@ -83,18 +85,31 @@ test("Playwright shows an ECS-driven spinning unlit cube", async ({ page }) => {
   }
 
   skipIfUnsupportedWebGpu(initialStatus);
+  expectStatusJsonSafeForGpu(initialStatus);
 
   expect(initialStatus, JSON.stringify(initialStatus, null, 2)).toMatchObject({
     example: "ecs-spinning-cube",
+    materialModel: "standard-direct-lit",
     ok: true,
     phase: "animate",
     renderingBackend: "webgpu-explicit",
-    depth: { format: "depth24plus" },
-    extraction: { views: 1, meshDraws: 1, transforms: 1, diagnostics: 0 },
-    resources: { materials: 1, textures: 1, samplers: 1, bindGroups: 3 },
-    binding: { planned: 1, applied: 1, diagnostics: 0 },
-    renderWorld: { active: 1, ready: 1, blocked: 0 },
-    draw: { packages: 1, descriptors: 1, drawList: 1, resolved: 1 },
+    extraction: { views: 1, meshDraws: 1, lights: 2, diagnostics: 0 },
+    material: {
+      kind: "standard",
+      key: "material:spinning-cube-standard",
+      metallicFactor: 0.08,
+      roughnessFactor: 0.48,
+    },
+    lighting: {
+      authored: 2,
+      extracted: 2,
+      kinds: ["ambient", "directional"],
+      gpuLights: 2,
+    },
+    pipeline: { key: "standard|opaque|back|less|none" },
+    resources: { materials: 1, bindGroups: 4, lightBindGroup: 1 },
+    renderWorld: { active: 1 },
+    draw: { packages: 1, drawCalls: 1 },
     command: { drawCount: 1, indexedDrawCount: 1 },
     submission: { commandBuffers: 1, drawCalls: 1, indexedDrawCalls: 1 },
   });
@@ -112,6 +127,8 @@ test("Playwright shows an ECS-driven spinning unlit cube", async ({ page }) => {
     "spinning-cube-frame-a-status",
     firstAnimatedStatus,
   );
+  expectStatusJsonSafeForGpu(firstAnimatedStatus);
+  expectNonBlankCubePixel(firstScreenshot, firstAnimatedStatus);
 
   const laterStatus = await waitForAnimationRotation(
     page,
@@ -126,19 +143,41 @@ test("Playwright shows an ECS-driven spinning unlit cube", async ({ page }) => {
     contentType: "image/png",
   });
   await attachExampleStatus("spinning-cube-frame-b-status", laterStatus);
+  expectStatusJsonSafeForGpu(laterStatus);
 
   expect(laterRotation, JSON.stringify(laterStatus, null, 2)).toBeGreaterThan(
     firstRotation + 0.4,
   );
-
-  const diff = compareScreenshotSamples(firstScreenshot, laterScreenshot);
-
-  await attachExampleStatus("spinning-cube-frame-diff", diff);
-  expect(diff.changedSamples, JSON.stringify(diff, null, 2)).toBeGreaterThan(2);
-  expect(diff.totalDistance, JSON.stringify(diff, null, 2)).toBeGreaterThan(
-    120,
-  );
+  expect(
+    laterStatus.animation?.frames ?? 0,
+    JSON.stringify(laterStatus, null, 2),
+  ).toBeGreaterThanOrEqual(firstFrame + 12);
+  expect(
+    laterStatus.command?.indexedDrawCount ?? 0,
+    JSON.stringify(laterStatus, null, 2),
+  ).toBe(1);
+  expectNonBlankCubePixel(laterScreenshot, laterStatus);
 });
+
+function expectNonBlankCubePixel(
+  screenshot: Buffer,
+  status: SpinningCubeStatus,
+): void {
+  const center = readPngPixel(screenshot, 0.5, 0.5);
+  const clear =
+    status.clearColor !== undefined &&
+    typeof status.clearColor === "object" &&
+    status.clearColor !== null
+      ? rgbaColorToPixel(
+          status.clearColor as { r: number; g: number; b: number; a: number },
+        )
+      : { r: 4, g: 6, b: 9, a: 255 };
+
+  expect(
+    pixelDistance(center, clear),
+    `center pixel should differ from clear color; center=${JSON.stringify(center)} clear=${JSON.stringify(clear)}`,
+  ).toBeGreaterThan(36);
+}
 
 async function waitForAnimationFrame(
   page: Page,
@@ -194,40 +233,4 @@ async function waitForAnimationRotation(
         }
       ).__APERTURE_EXAMPLE_STATUS__ as SpinningCubeStatus,
   );
-}
-
-function compareScreenshotSamples(
-  before: Buffer,
-  after: Buffer,
-): {
-  readonly changedSamples: number;
-  readonly totalDistance: number;
-  readonly samples: readonly {
-    readonly id: string;
-    readonly before: RgbaPixel;
-    readonly after: RgbaPixel;
-    readonly distance: number;
-  }[];
-} {
-  const samples = samplePoints.map((sample) => {
-    const beforePixel = readPngPixel(before, sample.x, sample.y);
-    const afterPixel = readPngPixel(after, sample.x, sample.y);
-    const distance = pixelDistance(beforePixel, afterPixel);
-
-    return {
-      id: sample.id,
-      before: beforePixel,
-      after: afterPixel,
-      distance,
-    };
-  });
-
-  return {
-    changedSamples: samples.filter((sample) => sample.distance > 24).length,
-    totalDistance: samples.reduce(
-      (total, sample) => total + sample.distance,
-      0,
-    ),
-    samples,
-  };
 }

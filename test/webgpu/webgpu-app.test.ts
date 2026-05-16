@@ -3,8 +3,11 @@ import { describe, expect, it } from "vitest";
 import {
   createBoxMeshAsset,
   createRenderAssetCollections,
+  createStandardMaterialAsset,
   createUnlitMaterialAsset,
+  LightKind,
   withCamera,
+  withLight,
   withMaterial,
   withMesh,
   withRenderLayer,
@@ -62,6 +65,80 @@ describe("WebGPU app facade", () => {
     expect(events).toContain("context:configure:bgra8unorm");
     expect(events).toContain("queue:submit:1");
     expect(events.some((event) => event.startsWith("pass:draw"))).toBe(true);
+  });
+
+  it("renders the standard material app path with extracted lights", async () => {
+    const events: string[] = [];
+    const { canvas, environment } = webGpuHarness(events);
+    const created = await createWebGpuApp({
+      canvas,
+      environment,
+      worldOptions: { entityCapacity: 8 },
+    });
+
+    expect(created.ok).toBe(true);
+
+    if (!created.ok) {
+      return;
+    }
+
+    const app = created.app;
+    const assets = createRenderAssetCollections({ registry: app.assets });
+    const mesh = assets.meshes.add(createBoxMeshAsset({ label: "Cube" }));
+    const material = assets.materials.standard.add(
+      createStandardMaterialAsset({
+        label: "Lit",
+        metallicFactor: 0.1,
+        roughnessFactor: 0.5,
+      }),
+    );
+
+    app.spawn(
+      withTransform({ translation: [0, 0, 5] }),
+      withCamera({ priority: 0, layerMask: 1 }),
+    );
+    app.spawn(
+      withTransform(),
+      withMesh(mesh),
+      withMaterial(material),
+      withRenderLayer(1),
+      withVisibility(true),
+    );
+    app.spawn(
+      withLight({
+        kind: LightKind.Ambient,
+        intensity: 0.2,
+        layerMask: 1,
+      }),
+    );
+    app.spawn(
+      withTransform(),
+      withLight({
+        kind: LightKind.Directional,
+        intensity: 1.5,
+        layerMask: 1,
+      }),
+    );
+
+    const frame = await app.stepAndRender(1 / 60, 1, 12);
+
+    expect(frame.ok).toBe(true);
+    expect(frame.snapshot.lights.map((light) => light.kind)).toEqual([
+      "ambient",
+      "directional",
+    ]);
+    expect(frame.snapshot.meshDraws[0]?.batchKey.pipelineKey).toBe(
+      "standard|opaque|back|less|none",
+    );
+    expect(frame.counts).toMatchObject({
+      views: 1,
+      meshDraws: 1,
+      drawPackages: 1,
+      drawCalls: 1,
+      diagnostics: 0,
+    });
+    expect(events).toContain("pass:bind:3");
+    expect(events).toContain("queue:submit:1");
   });
 });
 

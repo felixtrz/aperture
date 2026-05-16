@@ -81,12 +81,12 @@ Target proof point:
 
 Remaining automation priority order:
 
-1. `task-0561` — direct-lit StandardMaterial WGSL and pipeline.
-2. `task-0562` — route standard materials through extraction/render-world draw
-   selection.
-3. `task-0563` — user-facing lit spinning cube example and Playwright E2E.
-4. `task-0564` — proof-point architecture audit.
-5. `task-0565` — standard material resource inspection records.
+1. `task-0566` — reuse WebGPU app prepared resources across frames.
+2. `task-0542` — split render frame planning into extract, prepare, queue,
+   sort phases.
+3. `task-0557` — add view-uniform pack scratch writer.
+4. `task-0534` — add light shader WGSL data contract.
+5. `task-0535` — add light shader declaration JSON helper.
 
 Defer allocation-only cleanup and metadata-only shader-contract tasks unless
 they are a direct blocker for this track.
@@ -95,132 +95,34 @@ they are a direct blocker for this track.
 
 ### Proof Point Critical Path
 
-### task-0561 — Add direct-lit StandardMaterial WGSL and pipeline
-
-Category: `webgpu-render`
-Package/write-scope: `packages/webgpu/src/webgpu`, WGSL/shader metadata,
-pipeline descriptors/cache tests, and focused browser rendering tests if
-available.
-Reference anchor: Compare direct lighting/PBR material shader organization in
-`/Users/felixz/Projects/aperture/references/engine` and
-`/Users/felixz/Projects/aperture/references/three.js`.
-
-Add the first lit standard-material shader path. This should be a narrow,
-PBR-shaped MVP rather than full production PBR.
-
-Acceptance criteria:
-
-- The standard shader consumes world/view transforms, vertex normals, packed
-  StandardMaterial data, and existing extracted light data.
-- Lighting supports ambient plus at least one directional light from ECS
-  authoring/extraction.
-- The BRDF is documented as an MVP direct-light metallic/roughness model; IBL,
-  shadows, normal maps, and texture sampling remain explicitly deferred.
-- Pipeline descriptors and cache keys distinguish unlit and standard variants.
-- Tests verify deterministic WGSL/metadata, pipeline key differences, and basic
-  light/material binding requirements.
-
-### task-0562 — Route standard materials through render selection
-
-Category: `render-bridge`
-Package/write-scope: `packages/render/src/rendering`,
-`packages/webgpu/src/webgpu`, targeted render/WebGPU tests.
-Reference anchor: Bevy queue/material specialization concepts in
-`/Users/felixz/Projects/aperture/references/bevy`, plus render queue patterns in
-the local Three.js and PlayCanvas references.
-
-Wire StandardMaterial draw selection end to end through extraction, render-world
-state, draw package planning, and WebGPU pipeline/bind-group selection.
-
-Acceptance criteria:
-
-- Draw planning can choose unlit or standard rendering from the material handle
-  / material asset kind without renderer-owned scene state.
-- Mixed unlit and standard materials produce deterministic draw ordering and
-  separate pipeline keys where needed.
-- Missing or unprepared standard material resources produce actionable
-  diagnostics instead of falling back silently.
-- Existing unlit routes continue to pass.
-- Targeted tests cover standard material draw selection and mixed-material
-  frames.
-
-### task-0563 — Add user-facing lit spinning cube example and Playwright E2E
-
-Category: `runtime-orchestration`
-Package/write-scope: `examples`, `test/playwright` or existing browser test
-fixtures, package exports only if needed.
-Reference anchor: Bevy-style ECS authoring from
-`/Users/felixz/Projects/aperture/references/bevy`; browser rendering validation
-patterns from existing Aperture Playwright routes.
-
-Build the near-term proof point: a spinning cube rendered with a StandardMaterial
-through the simple user-facing API.
-
-Acceptance criteria:
-
-- Example code creates a WebGPU app, registers a box mesh asset and standard
-  material asset through typed collections, spawns ECS entities for cube,
-  camera, ambient light, and directional light, adds a spin system, and runs the
-  frame loop.
-- Example code avoids manual backend setup, raw GPU resource wiring, and direct
-  render-pipeline calls.
-- Playwright verifies a nonblank lit cube, animation/frame progress, and
-  JSON-safe diagnostics/status for the route.
-- The route fails loudly if WebGPU is unavailable, extraction emits no drawable
-  mesh, or standard material resources are not ready.
-- Existing unlit examples and Playwright coverage continue to pass.
-
 ### Audit / Refactor
 
-### task-0564 — Audit lit proof point against architecture and references
+### task-0566 — Reuse WebGPU app prepared resources across frames
 
-Category: `audit-refactor`
-Package/write-scope: docs, package manifests/imports, examples, tests; small
-corrective code changes only if directly tied to audit findings.
-Reference anchor: `docs/NORTH_STAR.md`, `docs/ARCHITECTURE.md`,
-`docs/DECISIONS.md`, `docs/research/BEVY_ECS_RENDER_ALIGNMENT.md`, local Bevy
-material/extraction files, and the Three.js/PlayCanvas shader/render pipeline
-files relevant to the implemented standard path.
+Category: `runtime-orchestration`
+Package/write-scope: `packages/webgpu/src/webgpu/app.ts`, standard/unlit frame
+resource helpers, targeted WebGPU app tests.
+Reference anchor: `docs/ARCHITECTURE.md` frame hot path allocation discipline,
+Bevy render asset preparation/cache patterns in
+`/Users/felixz/Projects/aperture/references/bevy`, and the local app facade
+tests.
 
-Run the first post-proof-point architecture audit.
-
-Acceptance criteria:
-
-- Verify the lit cube example uses ECS entities/components and typed assets
-  rather than renderer-owned scene objects.
-- Verify headless simulation/extraction still works without importing WebGPU.
-- Verify StandardMaterial source data remains renderer-independent and GPU
-  resources remain WebGPU-owned.
-- Verify the direct-lit MVP is documented clearly as not full PBR/IBL/shadows.
-- Add follow-up backlog tasks for any drift or missing cleanup, including
-  hot-path allocation work if the new frame facade introduced per-frame
-  allocation risk.
-- Run `pnpm run check` and the lit cube Playwright route.
-
-### task-0565 — Add standard material resource inspection records
-
-Category: `webgpu-render`
-Package/write-scope: `packages/webgpu/src/webgpu`, resource-lifecycle/resource
-summary helpers, targeted WebGPU tests.
-Reference anchor: Existing Aperture `resource-lifecycle` and `resource-summary`
-helpers, plus material resource preparation patterns in
-`/Users/felixz/Projects/aperture/references/engine` and
-`/Users/felixz/Projects/aperture/references/three.js`.
-
-Expose StandardMaterial GPU preparation readiness through the same JSON-safe
-resource inspection path used by mesh, pipeline, and generic material resources.
+Turn the lit proof-point app facade from a setup-oriented renderer into a
+steady-state frame loop that reuses prepared renderer-owned resources where the
+source asset handles and pipeline layouts have not changed.
 
 Acceptance criteria:
 
-- StandardMaterial buffer resources can be represented as inspection records
-  with asset key, resource key, version/expected-version, and missing/stale/live
-  status.
-- Resource summary diagnostics include standard material missing/stale records
-  without exposing raw GPU buffer handles.
-- The helper composes with existing unlit material inspection records rather
-  than adding a parallel diagnostics format.
-- Targeted tests cover live, missing, stale, and pending-destroy standard
-  material resources.
+- `createWebGpuApp.render()` does not recreate the render pipeline, mesh GPU
+  buffers, material buffers, bind groups, or light bind group on every
+  successful unchanged frame.
+- The world-transform buffer is updated for animation without replacing all
+  prepared resources.
+- Tests prove the second lit cube frame submits a draw while avoiding duplicate
+  pipeline/material/mesh preparation events.
+- Existing unlit `createWebGpuApp` behavior remains covered and compatible.
+- Any remaining per-frame allocation convenience paths are documented as
+  examples-only or have a follow-up backlog item.
 
 ### Deferred Supporting Render Cleanup
 

@@ -1,10 +1,10 @@
 {
   "state": "idle",
   "currentTaskId": null,
-  "lastRunStartedAt": "2026-05-16T18:04:53Z",
+  "lastRunStartedAt": "2026-05-16T19:02:10Z",
   "lastResult": "success",
   "lastCommit": "0b6a5ef",
   "activePid": null,
-  "notes": "Completed task-0540, task-0541, task-0543, task-0558, task-0544, task-0559, and task-0560. Next recommended task is task-0561 direct-lit StandardMaterial WGSL and pipeline.",
-  "lastRunFinishedAt": "2026-05-16T18:39:53Z"
+  "notes": "Completed task-0561 through task-0565. Next recommended task is task-0566 app facade prepared resource reuse.",
+  "lastRunFinishedAt": "2026-05-16T19:37:23Z"
 }

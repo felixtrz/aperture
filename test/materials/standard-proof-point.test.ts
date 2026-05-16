@@ -14,6 +14,7 @@ import {
   createRootTransform,
   createStandardMaterialAsset,
   createTextureHandle,
+  createUnlitMaterialAsset,
   createWorld,
   extractRenderSnapshot,
   registerRenderAuthoringComponents,
@@ -111,6 +112,50 @@ describe("StandardMaterial proof-point contract", () => {
     expect(snapshot.meshDraws[0]?.batchKey.pipelineKey).toBe(
       "standard|opaque|back|less|none",
     );
+    expect(snapshot.diagnostics).toEqual([]);
+  });
+
+  it("keeps mixed unlit and standard material draw keys deterministic", () => {
+    const world = createWorld({ entityCapacity: 8 });
+    const assets = createRenderAssetCollections();
+    const mesh = assets.meshes.add(createBoxMeshAsset({ label: "Cube" }));
+    const unlit = assets.materials.unlit.add(
+      createUnlitMaterialAsset({ label: "Flat" }),
+    );
+    const standard = assets.materials.standard.add(
+      createStandardMaterialAsset({ label: "Proof Standard" }),
+    );
+
+    registerTransformComponents(world);
+    registerRenderAuthoringComponents(world);
+
+    const camera = world.createEntity();
+    const cameraTransform = createRootTransform({ translation: [0, 0, 5] });
+
+    camera.addComponent(WorldTransform, cameraTransform.world);
+    camera.addComponent(Camera, createCamera({ layerMask: 1 }));
+
+    for (const material of [standard, unlit]) {
+      const cube = world.createEntity();
+      const cubeTransform = createRootTransform();
+
+      cube.addComponent(WorldTransform, cubeTransform.world);
+      cube.addComponent(Mesh, { meshId: assetHandleKey(mesh) });
+      cube.addComponent(Material, { materialId: assetHandleKey(material) });
+      cube.addComponent(RenderLayer, { mask: 1 });
+      cube.addComponent(Visibility);
+    }
+
+    const snapshot = extractRenderSnapshot(world, assets.registry, {
+      frame: 4,
+    });
+
+    expect(snapshot.meshDraws.map((draw) => draw.batchKey.pipelineKey)).toEqual(
+      ["standard|opaque|back|less|none", "unlit|opaque|back|less|none"],
+    );
+    expect(
+      snapshot.meshDraws.map((draw) => assetHandleKey(draw.material)),
+    ).toEqual([assetHandleKey(standard), assetHandleKey(unlit)]);
     expect(snapshot.diagnostics).toEqual([]);
   });
 });
