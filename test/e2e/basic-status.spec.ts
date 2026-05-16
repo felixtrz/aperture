@@ -1,21 +1,45 @@
 import { expect, test } from "@playwright/test";
 
-import type { SingleDrawExampleStatus } from "./example-status-types.js";
-import { pixelDistance, rgbaColorToPixel } from "./png.js";
-import { sampleCanvasCenterPresentation } from "./webgpu-presentation.js";
+import type {
+  ClearExampleStatus,
+  SingleDrawExampleStatus,
+} from "./example-status-types.js";
 import {
   attachExampleStatus,
   skipIfUnsupportedWebGpu,
   waitForExampleStatus,
 } from "./webgpu-status.js";
 
-test("ECS triangle example extracts, submits, and renders non-background pixels", async ({
+test("WebGPU clear example publishes ready status", async ({ page }) => {
+  await page.goto("/");
+  const status = await waitForExampleStatus<ClearExampleStatus>(page);
+
+  await attachExampleStatus("webgpu-clear-status-only", status);
+
+  expect(status, "example status should be published").toBeDefined();
+
+  if (status === undefined) {
+    return;
+  }
+
+  skipIfUnsupportedWebGpu(status);
+
+  expect(status, JSON.stringify(status, null, 2)).toMatchObject({
+    example: "webgpu-clear",
+    ok: true,
+    phase: "clear",
+    renderingBackend: "webgpu",
+    clearColor: { r: 0.08, g: 0.28, b: 0.64, a: 1 },
+  });
+});
+
+test("ECS triangle example publishes one-draw ready status", async ({
   page,
 }) => {
   await page.goto("/examples/triangle.html");
   const status = await waitForExampleStatus<SingleDrawExampleStatus>(page);
 
-  await attachExampleStatus("ecs-triangle-status", status);
+  await attachExampleStatus("ecs-triangle-status-only", status);
 
   expect(status, "example status should be published").toBeDefined();
 
@@ -41,26 +65,4 @@ test("ECS triangle example extracts, submits, and renders non-background pixels"
     status.command?.commands,
     JSON.stringify(status, null, 2),
   ).toBeGreaterThan(0);
-  expect(status.clearColor, JSON.stringify(status, null, 2)).toBeDefined();
-
-  if (status.clearColor === undefined) {
-    return;
-  }
-
-  const presentation = await sampleCanvasCenterPresentation(
-    page.locator("#aperture-canvas"),
-  );
-  await attachExampleStatus("ecs-triangle-presentation", presentation);
-  test.skip(presentation.samplesCssBackground, presentation.diagnostic);
-  const centerPixel = presentation.centerPixel;
-  const clearPixel = rgbaColorToPixel(status.clearColor);
-
-  expect(
-    pixelDistance(centerPixel, clearPixel),
-    `center pixel should differ from clear color; status=${JSON.stringify(
-      status,
-      null,
-      2,
-    )}`,
-  ).toBeGreaterThan(40);
 });

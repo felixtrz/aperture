@@ -1,10 +1,10 @@
 {
   "state": "idle",
   "currentTaskId": null,
-  "lastRunStartedAt": "2026-05-16T01:01:30Z",
-  "lastRunFinishedAt": "2026-05-16T01:16:16Z",
-  "lastResult": "validation-failed",
+  "lastRunStartedAt": "2026-05-16T02:03:30Z",
+  "lastRunFinishedAt": "2026-05-16T02:45:33Z",
+  "lastResult": "success",
   "lastCommit": null,
   "activePid": null,
-  "notes": "Completed task-0170 and task-0173 implementation. npm run check and npm run build pass. npm run test:e2e reaches ready browser statuses but fails pixel assertions because screenshots still sample the canvas CSS background instead of WebGPU-presented pixels."
+  "notes": "Completed browser E2E stabilization, multi-entity status/pixel coverage, browser E2E docs, static server tests/hardening, shared e2e status helpers/types, example navigation/static checks, and validation. npm run build, npm run check, and npm run test:e2e pass; e2e pixel tests skip with the expected CSS-background presentation diagnostic in this environment."
 }

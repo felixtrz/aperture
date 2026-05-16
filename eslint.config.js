@@ -26,6 +26,24 @@ export default tseslint.config(
     },
   },
   {
+    files: ["scripts/**/*.mjs", "test/**/*.mjs"],
+    extends: [js.configs.recommended],
+    languageOptions: {
+      ecmaVersion: "latest",
+      sourceType: "module",
+      globals: globals.node,
+    },
+  },
+  {
+    files: ["examples/**/*.js"],
+    extends: [js.configs.recommended],
+    languageOptions: {
+      ecmaVersion: "latest",
+      sourceType: "module",
+      globals: globals.browser,
+    },
+  },
+  {
     files: [
       "src/**/*.ts",
       "test/**/*.ts",

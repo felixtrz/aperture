@@ -11,70 +11,27 @@ const projectRoot = path.resolve(
   "..",
 );
 const allowedTopLevelPaths = new Set(["dist", "examples", "node_modules"]);
-const port = parsePort(process.env.PORT ?? process.argv[2] ?? "4173");
 
-const server = createServer(async (request, response) => {
-  if (request.method !== "GET" && request.method !== "HEAD") {
-    response.writeHead(405, { allow: "GET, HEAD" });
-    response.end("Method not allowed");
-    return;
-  }
+export {
+  contentTypeFor,
+  createExamplesRequestHandler,
+  createExamplesServer,
+  parsePort,
+  projectRoot,
+};
 
-  const requestUrl = new URL(
-    request.url ?? "/",
-    `http://${request.headers.host ?? "localhost"}`,
-  );
-
-  if (requestUrl.pathname === "/examples") {
-    response.writeHead(308, { location: "/examples/" });
-    response.end();
-    return;
-  }
-
-  const filePath = resolveStaticPath(requestUrl.pathname);
-
-  if (filePath === null) {
-    response.writeHead(403);
-    response.end("Forbidden");
-    return;
-  }
-
-  const fileStat = await stat(filePath).catch(() => null);
-
-  if (fileStat === null || !fileStat.isFile()) {
-    response.writeHead(404);
-    response.end("Not found");
-    return;
-  }
-
-  response.writeHead(200, {
-    "content-length": fileStat.size,
-    "content-type": contentTypeFor(filePath),
-    "cross-origin-opener-policy": "same-origin",
-    "cross-origin-embedder-policy": "require-corp",
-  });
-
-  if (request.method === "HEAD") {
-    response.end();
-    return;
-  }
-
-  createReadStream(filePath).pipe(response);
-});
-
-server.on("error", (error) => {
-  console.error(`Aperture examples server failed: ${messageForError(error)}`);
-  process.exitCode = 1;
-});
-
-server.listen(port, "127.0.0.1", () => {
-  console.log(`Aperture examples: http://127.0.0.1:${port}/`);
-});
-
-function resolveStaticPath(pathname) {
+export function resolveStaticPath(pathname, root = projectRoot) {
   const decodedPathname = decodeURIComponent(pathname);
+  const decodedSegments = decodedPathname.split("/");
+
+  if (decodedSegments.includes("..")) {
+    return null;
+  }
+
   const normalizedPathname =
-    decodedPathname === "/" ? "/examples/index.html" : decodedPathname;
+    decodedPathname === "/" || decodedPathname === "/examples/"
+      ? "/examples/index.html"
+      : decodedPathname;
   const relativePath = normalizedPathname.replace(/^\/+/, "");
   const [topLevelPath] = relativePath.split("/");
 
@@ -82,17 +39,121 @@ function resolveStaticPath(pathname) {
     return null;
   }
 
-  const resolvedPath = path.resolve(projectRoot, relativePath);
+  const resolvedPath = path.resolve(root, relativePath);
+  const allowedRoot = path.resolve(root, topLevelPath);
 
-  if (!isWithinProjectRoot(resolvedPath)) {
+  if (!isWithinDirectory(resolvedPath, allowedRoot)) {
     return null;
   }
 
   return resolvedPath;
 }
 
-function isWithinProjectRoot(resolvedPath) {
-  const relativePath = path.relative(projectRoot, resolvedPath);
+function createExamplesServer(root = projectRoot) {
+  return createServer(createExamplesRequestHandler(root));
+}
+
+function createExamplesRequestHandler(root = projectRoot) {
+  return async (request, response) => {
+    if (request.method !== "GET" && request.method !== "HEAD") {
+      response.writeHead(405, { allow: "GET, HEAD" });
+      response.end("Method not allowed");
+      return;
+    }
+
+    const rawPathStatus = inspectRawRequestPath(request.url ?? "/");
+
+    if (rawPathStatus === "malformed-path") {
+      response.writeHead(400);
+      response.end("Bad request");
+      return;
+    }
+
+    if (rawPathStatus === "forbidden-path") {
+      response.writeHead(403);
+      response.end("Forbidden");
+      return;
+    }
+
+    const requestUrl = new URL(
+      request.url ?? "/",
+      `http://${request.headers.host ?? "localhost"}`,
+    );
+
+    if (requestUrl.pathname === "/examples") {
+      response.writeHead(308, { location: "/examples/" });
+      response.end();
+      return;
+    }
+
+    const filePath = safeResolveStaticPath(requestUrl.pathname, root);
+
+    if (filePath === "malformed-path") {
+      response.writeHead(400);
+      response.end("Bad request");
+      return;
+    }
+
+    if (filePath === null) {
+      response.writeHead(403);
+      response.end("Forbidden");
+      return;
+    }
+
+    const fileStat = await stat(filePath).catch(() => null);
+
+    if (fileStat === null || !fileStat.isFile()) {
+      response.writeHead(404);
+      response.end("Not found");
+      return;
+    }
+
+    response.writeHead(200, {
+      "content-length": fileStat.size,
+      "content-type": contentTypeFor(filePath),
+      "cross-origin-opener-policy": "same-origin",
+      "cross-origin-embedder-policy": "require-corp",
+    });
+
+    if (request.method === "HEAD") {
+      response.end();
+      return;
+    }
+
+    createReadStream(filePath).pipe(response);
+  };
+}
+
+function inspectRawRequestPath(url) {
+  const rawPathname = url.split(/[?#]/, 1)[0] ?? "/";
+
+  try {
+    return decodeURIComponent(rawPathname).split("/").includes("..")
+      ? "forbidden-path"
+      : "ok";
+  } catch (error) {
+    if (error instanceof URIError) {
+      return "malformed-path";
+    }
+
+    throw error;
+  }
+}
+
+function safeResolveStaticPath(pathname, root) {
+  try {
+    return resolveStaticPath(pathname, root);
+  } catch (error) {
+    if (error instanceof URIError) {
+      return "malformed-path";
+    }
+
+    throw error;
+  }
+}
+
+function isWithinDirectory(resolvedPath, directory) {
+  const relativePath = path.relative(directory, resolvedPath);
   return relativePath !== ".." && !relativePath.startsWith(`..${path.sep}`);
 }
 
@@ -128,4 +189,25 @@ function contentTypeFor(filePath) {
 
 function messageForError(error) {
   return error instanceof Error ? error.message : String(error);
+}
+
+if (isMainModule()) {
+  const port = parsePort(process.env.PORT ?? process.argv[2] ?? "4173");
+  const server = createExamplesServer(projectRoot);
+
+  server.on("error", (error) => {
+    console.error(`Aperture examples server failed: ${messageForError(error)}`);
+    process.exitCode = 1;
+  });
+
+  server.listen(port, "127.0.0.1", () => {
+    console.log(`Aperture examples: http://127.0.0.1:${port}/`);
+  });
+}
+
+function isMainModule() {
+  return (
+    process.argv[1] !== undefined &&
+    path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)
+  );
 }

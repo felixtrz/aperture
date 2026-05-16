@@ -27,13 +27,15 @@ npm install
 Run validation:
 
 ```sh
+npm run check
 npm run build
 npm test
 npm run lint
 npm run format:check
 ```
 
-Build output is emitted to `dist/`.
+`npm run check` runs TypeScript checks, browser harness syntax checks, lint,
+format checking, and the Vitest suite. Build output is emitted to `dist/`.
 
 Run browser examples:
 
@@ -68,6 +70,10 @@ The Playwright Chromium project passes `--enable-unsafe-webgpu` for local
 WebGPU execution. If Chromium cannot expose WebGPU on the current machine, the
 clear smoke test reports the unsupported WebGPU reason from Aperture's
 initialization helper.
+
+See [`docs/BROWSER_E2E_RENDERING.md`](docs/BROWSER_E2E_RENDERING.md) for the
+current ECS-to-WebGPU browser verification workflow, supported commands, and
+headless Chromium pixel-capture skip behavior.
 
 ## Constraints
 

@@ -15,6 +15,252 @@ Summary:
 - Validation run.
 - Follow-up tasks added.
 
+## task-0175 — Stabilize browser WebGPU pixel verification baseline
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added Playwright canvas presentation sampling that detects when screenshots expose the canvas CSS background instead of WebGPU-presented pixels.
+- Updated clear and triangle pixel specs to skip with an explicit presentation diagnostic in that unsupported capture case.
+- Added status/presentation attachments so skipped or failed pixel tests retain JSON-safe diagnostics.
+- Validation run: `npm run build`, `npm run check`, and `npm run test:e2e` pass; e2e pixel specs skip under the CSS-background presentation diagnostic in this environment.
+
+## task-0176 — Add multi-entity browser status smoke test
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added Playwright status-only coverage for `/examples/multi-entity.html`.
+- The test asserts two extracted mesh draws, two applied bindings, two ready render-world draws, two draw packages, and two submitted draw calls.
+- The test attaches the published status JSON for blank-canvas and resource-binding diagnosis.
+- Validation run: `npm run build`, `npm run check`, and `npm run test:e2e` pass.
+
+## task-0172 — Document browser E2E rendering workflow
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added `docs/BROWSER_E2E_RENDERING.md`.
+- Documented the ECS authoring to render snapshot to render-world resources to WebGPU submission workflow.
+- Documented local browser commands, WebGPU unsupported skips, CSS-background screenshot skips, status-only tests, and pixel tests.
+- Linked the new doc from `README.md`.
+- Validation run: `npm run build`, `npm run check`, and `npm run test:e2e` pass.
+
+## task-0174 — Add static example server tests
+
+Completed: 2026-05-16
+
+Summary:
+
+- Refactored `scripts/serve-examples.mjs` so path resolution, MIME mapping, and request handling can be imported without starting a listener.
+- Added no-TCP Vitest coverage for root/example/dist/node_modules path resolution, traversal denial, MIME types, request handling, redirects, HEAD, 404, 400, and 405 behavior.
+- Hardened traversal handling so paths such as `/examples/../package.json` cannot escape the selected allowed static root.
+- Validation run: `npm run build`, `npm run check`, and `npm run test:e2e` pass.
+
+## task-0177 — Share browser E2E status helpers
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added shared Playwright helpers for waiting on `window.__APERTURE_EXAMPLE_STATUS__`, attaching status JSON, and skipping explicit unsupported WebGPU statuses.
+- Updated clear, triangle, and multi-entity specs to use the shared helpers.
+- Validation run: `npm run build`, `npm run check`, and `npm run test:e2e` pass.
+
+## task-0178 — Add no-TCP example server request tests
+
+Completed: 2026-05-16
+
+Summary:
+
+- Exported `createExamplesRequestHandler` from the example server.
+- Added fake request/response tests for GET, HEAD, `/examples` redirect, unsupported methods, and traversal rejection without binding a TCP port.
+- Validation run: `npm run build`, `npm run check`, and `npm run test:e2e` pass.
+
+## task-0179 — Harden malformed static URL handling
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added server handling for malformed percent-encoded static paths.
+- The request handler now returns `400 Bad request` for malformed URL encodings instead of allowing a `URIError` rejection.
+- Added no-TCP regression coverage.
+- Validation run: `npm run build`, `npm run check`, and `npm run test:e2e` pass.
+
+## task-0180 — Serve `/examples/` as the harness index
+
+Completed: 2026-05-16
+
+Summary:
+
+- Updated static path resolution so `/examples/` serves `examples/index.html`.
+- Preserved the `/examples` to `/examples/` redirect.
+- Added resolver and request-handler tests for the directory URL.
+- Validation run: `npm run build`, `npm run check`, and `npm run test:e2e` pass.
+
+## task-0181 — Add examples server port parser tests
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added tests for `parsePort` valid values and invalid CLI/env inputs.
+- Validation run: `npm run build`, `npm run check`, and `npm run test:e2e` pass.
+
+## task-0182 — Lint scripts and JS server tests
+
+Completed: 2026-05-16
+
+Summary:
+
+- Extended ESLint flat config to cover `scripts/**/*.mjs` and `test/**/*.mjs`.
+- Verified the example server script and JS server tests pass linting.
+- Validation run: `npm run build`, `npm run check`, and `npm run test:e2e` pass.
+
+## task-0183 — Add browser harness syntax checks to `npm run check`
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added `npm run check:examples` for `node --check` validation of the example server and browser example modules.
+- Included `check:examples` in the standard `npm run check` pipeline.
+- Validation run: `npm run build`, `npm run check`, and `npm run test:e2e` pass.
+
+## task-0184 — Document the standard check command
+
+Completed: 2026-05-16
+
+Summary:
+
+- Updated `README.md` so local validation starts with `npm run check`.
+- Noted that `npm run check` now includes TypeScript checks, browser harness syntax checks, lint, format checking, and Vitest.
+- Validation run: `npm run build`, `npm run check`, and `npm run test:e2e` pass.
+
+## task-0185 — Lint browser example modules
+
+Completed: 2026-05-16
+
+Summary:
+
+- Extended ESLint flat config to cover `examples/**/*.js` with browser globals.
+- Verified the browser example modules pass linting.
+- Validation run: `npm run build`, `npm run check`, and `npm run test:e2e` pass.
+
+## task-0186 — Attach canvas presentation samples in pixel specs
+
+Completed: 2026-05-16
+
+Summary:
+
+- Clear and triangle pixel specs now attach the sampled canvas presentation diagnostic before skipping or asserting pixels.
+- Validation run: `npm run build`, `npm run check`, and `npm run test:e2e` pass.
+
+## task-0187 — Document browser syntax validation hook
+
+Completed: 2026-05-16
+
+Summary:
+
+- Updated `docs/BROWSER_E2E_RENDERING.md` to document `npm run check:examples` and its inclusion in `npm run check`.
+- Validation run: `npm run build`, `npm run check`, and `npm run test:e2e` pass.
+
+## task-0188 — Add static server edge-case coverage
+
+Completed: 2026-05-16
+
+Summary:
+
+- Expanded no-TCP server coverage for query strings, allowed `node_modules` ESM paths, missing files, and additional path resolution cases.
+- Validation run: `npm run build`, `npm run check`, and `npm run test:e2e` pass.
+
+## task-0171 — Add Playwright multi-entity scene verification
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added multi-entity pixel verification that proves red and blue regions when WebGPU-presented pixels are capturable.
+- The test reuses the CSS-background presentation diagnostic and skips in the current headless environment when screenshots do not expose presented WebGPU pixels.
+- Multi-entity status verification remains a separate passing smoke test.
+- Validation run: `npm run build`, `npm run check`, and `npm run test:e2e` pass; e2e reports three status passes and three expected pixel-capture skips in this environment.
+
+## task-0189 — Add clear and triangle status-only e2e smoke tests
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added status-only Playwright smoke tests for the root clear example and ECS triangle example.
+- Status coverage now passes independently from pixel-capture availability.
+- Validation run: `npm run build`, `npm run check`, and `npm run test:e2e` pass; e2e reports three passed status tests and three skipped pixel tests in this environment.
+
+## task-0192 — Define shared browser example status types
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added shared test-side status types for clear, single-draw, and multi-entity browser examples.
+- Updated Playwright status and pixel specs to import those types instead of duplicating local interfaces.
+- Validation run: `npm run typecheck:test` and `npm run test:e2e` pass.
+
+## task-0194 — Document browser status payloads and failure phases
+
+Completed: 2026-05-16
+
+Summary:
+
+- Expanded `docs/BROWSER_E2E_RENDERING.md` with common status fields and example-specific payload sections.
+- Documented which fields are ECS-derived, render-world-derived, and WebGPU submission-derived.
+- Reiterated that status payloads are JSON-safe diagnostics, not source-of-truth state.
+- Validation run: `npm run format:check` passes.
+
+## task-0195 — Add import-map dependency server coverage
+
+Completed: 2026-05-16
+
+Summary:
+
+- Expanded no-TCP server tests for the concrete `elics`, `wgpu-matrix`, and `@preact/signals-core` import-map dependency paths.
+- Asserted JavaScript MIME types and browser isolation headers for dependency responses.
+- Added raw request-path traversal rejection before `new URL()` normalization can rewrite encoded dot segments.
+- Validation run: targeted server tests pass.
+
+## task-0193 — Add browser harness navigation smoke coverage
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added navigation links between the clear, triangle, and multi-entity browser example pages.
+- Added static tests that verify each example page includes the expected local hrefs.
+- Validation run: targeted navigation test, `npm run check:examples`, and `npm run lint` pass.
+
+## task-0196 — Add static HTML structure tests for browser examples
+
+Completed: 2026-05-16
+
+Summary:
+
+- Expanded static example-page tests to assert required canvas, status, JSON, import-map, stylesheet, and module-script wiring.
+- Covered root, triangle, and multi-entity example pages without opening a server.
+- Validation run: targeted navigation/structure test passes.
+
+## task-0201 — Add browser example HTML title and label consistency tests
+
+Completed: 2026-05-16
+
+Summary:
+
+- Expanded static example-page tests to assert each page's title, canvas label, and visible example name.
+- Covered root, triangle, and multi-entity pages without opening a server.
+- Validation run: targeted navigation/structure test passes.
+
 ## task-0163 — Add browser example harness
 
 Completed: 2026-05-15

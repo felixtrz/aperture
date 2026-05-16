@@ -23,6 +23,7 @@
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "typecheck:test": "tsc --noEmit -p tsconfig.test.json",
+    "check:examples": "node --check scripts/serve-examples.mjs && node --check examples/main.js && node --check examples/triangle.js && node --check examples/multi-entity.js",
     "lint": "eslint .",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -31,7 +32,7 @@
     "test:e2e:install": "playwright install chromium",
     "examples:build": "npm run build",
     "examples:serve": "node scripts/serve-examples.mjs",
-    "check": "npm run typecheck && npm run typecheck:test && npm run lint && npm run format:check && npm test",
+    "check": "npm run typecheck && npm run typecheck:test && npm run check:examples && npm run lint && npm run format:check && npm test",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
   },

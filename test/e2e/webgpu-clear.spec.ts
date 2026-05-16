@@ -1,49 +1,21 @@
 import { expect, test } from "@playwright/test";
 
-import { colorChannelToByte, expectChannelClose, readPngPixel } from "./png.js";
-
-interface ExampleStatus {
-  readonly example: string;
-  readonly ok: boolean;
-  readonly phase?: string;
-  readonly reason?: string;
-  readonly message?: string;
-  readonly renderingBackend?: string;
-  readonly format?: string;
-  readonly clearColor?: ClearColor;
-}
-
-interface ClearColor {
-  readonly r: number;
-  readonly g: number;
-  readonly b: number;
-  readonly a: number;
-}
-
-type ExampleGlobal = typeof globalThis & {
-  readonly __APERTURE_EXAMPLE_STATUS__?: ExampleStatus;
-};
-
-const unsupportedWebGpuReasons = new Set<string>([
-  "navigator-gpu-unavailable",
-  "adapter-unavailable",
-  "device-request-failed",
-  "context-unavailable",
-  "device-lost",
-]);
+import type { ClearExampleStatus } from "./example-status-types.js";
+import { colorChannelToByte, expectChannelClose } from "./png.js";
+import { sampleCanvasCenterPresentation } from "./webgpu-presentation.js";
+import {
+  attachExampleStatus,
+  skipIfUnsupportedWebGpu,
+  waitForExampleStatus,
+} from "./webgpu-status.js";
 
 test("browser WebGPU clear example reports readiness and changes pixels", async ({
   page,
 }) => {
   await page.goto("/");
-  await page.waitForFunction(
-    () =>
-      (globalThis as ExampleGlobal).__APERTURE_EXAMPLE_STATUS__ !== undefined,
-  );
+  const status = await waitForExampleStatus<ClearExampleStatus>(page);
 
-  const status = await page.evaluate(
-    () => (globalThis as ExampleGlobal).__APERTURE_EXAMPLE_STATUS__,
-  );
+  await attachExampleStatus("webgpu-clear-status", status);
 
   expect(status, "example status should be published").toBeDefined();
 
@@ -51,19 +23,7 @@ test("browser WebGPU clear example reports readiness and changes pixels", async 
     return;
   }
 
-  if (
-    !status.ok &&
-    status.reason !== undefined &&
-    unsupportedWebGpuReasons.has(status.reason)
-  ) {
-    test.skip(
-      true,
-      `WebGPU unsupported in this browser: ${status.reason} - ${
-        status.message ?? "no message"
-      }`,
-    );
-    return;
-  }
+  skipIfUnsupportedWebGpu(status);
 
   expect(status, JSON.stringify(status, null, 2)).toMatchObject({
     example: "webgpu-clear",
@@ -82,8 +42,12 @@ test("browser WebGPU clear example reports readiness and changes pixels", async 
     return;
   }
 
-  const canvasScreenshot = await page.locator("#aperture-canvas").screenshot();
-  const centerPixel = readPngPixel(canvasScreenshot, 0.5, 0.5);
+  const presentation = await sampleCanvasCenterPresentation(
+    page.locator("#aperture-canvas"),
+  );
+  await attachExampleStatus("webgpu-clear-presentation", presentation);
+  test.skip(presentation.samplesCssBackground, presentation.diagnostic);
+  const centerPixel = presentation.centerPixel;
 
   expectChannelClose(
     "red",
