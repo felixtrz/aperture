@@ -5,6 +5,7 @@ import {
   CameraProjection,
   Light,
   LightKind,
+  LightShadowSettings,
   MeshRenderer,
   RenderLayer,
   RenderOrder,
@@ -13,9 +14,11 @@ import {
   Visibility,
   createCamera,
   createLight,
+  createLightShadowSettings,
   createWorld,
   registerRenderAuthoringComponents,
   validateCameraInput,
+  validateLightShadowSettingsInput,
   validateLightInput,
 } from "../../src/index.js";
 
@@ -128,6 +131,68 @@ describe("render authoring ECS components", () => {
       "light.invalidRange",
       "light.invalidSpotCone",
       "light.zeroLayerMask",
+    ]);
+  });
+
+  it("attaches and reads light shadow settings defaults and explicit values", () => {
+    const world = createWorld({ entityCapacity: 8 });
+    registerRenderAuthoringComponents(world);
+    const defaultLight = world.createEntity();
+    const explicitLight = world.createEntity();
+
+    defaultLight.addComponent(LightShadowSettings);
+    explicitLight.addComponent(LightShadowSettings, {
+      ...createLightShadowSettings({
+        enabled: true,
+        mapSize: 2048,
+        bias: 0.001,
+        normalBias: 0.02,
+        casterLayerMask: 0b0011,
+        receiverLayerMask: 0b0101,
+      }),
+    });
+
+    expect(defaultLight.getValue(LightShadowSettings, "enabled")).toBe(false);
+    expect(defaultLight.getValue(LightShadowSettings, "mapSize")).toBe(1024);
+    expect(defaultLight.getValue(LightShadowSettings, "bias")).toBe(0);
+    expect(defaultLight.getValue(LightShadowSettings, "normalBias")).toBe(0);
+    expect(defaultLight.getValue(LightShadowSettings, "casterLayerMask")).toBe(
+      -1,
+    );
+    expect(
+      defaultLight.getValue(LightShadowSettings, "receiverLayerMask"),
+    ).toBe(-1);
+
+    expect(explicitLight.getValue(LightShadowSettings, "enabled")).toBe(true);
+    expect(explicitLight.getValue(LightShadowSettings, "mapSize")).toBe(2048);
+    expect(explicitLight.getValue(LightShadowSettings, "bias")).toBeCloseTo(
+      0.001,
+      6,
+    );
+    expect(
+      explicitLight.getValue(LightShadowSettings, "normalBias"),
+    ).toBeCloseTo(0.02, 6);
+    expect(explicitLight.getValue(LightShadowSettings, "casterLayerMask")).toBe(
+      0b0011,
+    );
+    expect(
+      explicitLight.getValue(LightShadowSettings, "receiverLayerMask"),
+    ).toBe(0b0101);
+  });
+
+  it("validates invalid light shadow settings fields", () => {
+    const report = validateLightShadowSettingsInput({
+      mapSize: 0,
+      bias: -0.001,
+      normalBias: -0.02,
+      casterLayerMask: 0,
+      receiverLayerMask: 0,
+    });
+
+    expect(report.diagnostics.map((diagnostic) => diagnostic.code)).toEqual([
+      "shadow.invalidMapSize",
+      "shadow.invalidBias",
+      "shadow.zeroLayerMask",
     ]);
   });
 });

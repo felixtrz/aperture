@@ -51,6 +51,16 @@ const knownScenarioIds = [
   "torus-primitive",
   "perspective-fov-camera",
   "orthographic-camera",
+  "directional-light-extraction",
+  "ambient-light-extraction",
+  "environment-light-extraction",
+  "point-light-extraction",
+  "spot-light-extraction",
+  "missing-light-transform",
+  "invalid-light-extraction",
+  "directional-shadow-request",
+  "invalid-shadow-settings",
+  "unsupported-shadow-request",
   "render-layer-filter",
   "render-order-overlap",
   "depth-overlap",
@@ -163,6 +173,20 @@ const scenarioRenderers = {
   "torus-primitive": renderWorldScene(createTorusPrimitiveWorld),
   "perspective-fov-camera": renderWorldScene(createPerspectiveFovCameraWorld),
   "orthographic-camera": renderWorldScene(createOrthographicCameraWorld),
+  "directional-light-extraction": renderWorldScene(createDirectionalLightWorld),
+  "ambient-light-extraction": renderWorldScene(createAmbientLightWorld),
+  "environment-light-extraction": renderWorldScene(createEnvironmentLightWorld),
+  "point-light-extraction": renderWorldScene(createPointLightWorld),
+  "spot-light-extraction": renderWorldScene(createSpotLightWorld),
+  "missing-light-transform": renderWorldScene(createMissingLightTransformWorld),
+  "invalid-light-extraction": renderWorldScene(createInvalidLightWorld),
+  "directional-shadow-request": renderWorldScene(
+    createDirectionalShadowRequestWorld,
+  ),
+  "invalid-shadow-settings": renderWorldScene(createInvalidShadowSettingsWorld),
+  "unsupported-shadow-request": renderWorldScene(
+    createUnsupportedShadowRequestWorld,
+  ),
   "render-layer-filter": renderWorldScene(createRenderLayerFilterWorld),
   "render-order-overlap": renderWorldScene(createRenderOrderOverlapWorld),
   "depth-overlap": renderWorldScene(createDepthOverlapWorld),
@@ -635,6 +659,15 @@ async function renderMultiEntityScene(
     },
     geometry: primitiveMeshStatus(scene),
     ...(scene.camera === undefined ? {} : { camera: scene.camera }),
+    ...(scene.light === undefined
+      ? {}
+      : { light: lightStatus(scene, snapshot) }),
+    ...(scene.environment === undefined
+      ? {}
+      : { environment: environmentStatus(scene, snapshot) }),
+    ...(scene.shadow === undefined
+      ? {}
+      : { shadow: shadowStatus(scene, snapshot) }),
     ...(scene.renderOrder === undefined
       ? {}
       : { renderOrder: scene.renderOrder }),
@@ -695,6 +728,9 @@ async function renderMultiEntityScene(
       submission: submitted.diagnosticCount,
       readback: submitted.readback.ok ? 0 : 1,
     },
+    ...(snapshot.diagnostics.length === 0
+      ? {}
+      : { diagnostics: jsonSafeDiagnostics(snapshot.diagnostics) }),
     readback: submitted.readback,
   };
 }
@@ -2771,6 +2807,340 @@ function createOrthographicCameraWorld(aperture, canvasSize) {
   };
 }
 
+function createDirectionalLightWorld(aperture, canvasSize) {
+  const world = aperture.createWorld({ entityCapacity: 5 });
+  const assets = new aperture.AssetRegistry();
+  const meshHandle = aperture.createMeshHandle("directional-light-plane");
+  const materialHandle = aperture.createMaterialHandle(
+    "directional-light-unlit",
+  );
+  const mesh = aperture.createPlaneMeshAsset({
+    label: "DirectionalLightPlane",
+    width: 0.9,
+    height: 0.9,
+  });
+  const material = aperture.createUnlitMaterialAsset({
+    label: "DirectionalLightUnlitMaterial",
+    baseColorFactor: new Float32Array([0.96, 0.78, 0.18, 1]),
+  });
+  const light = {
+    authored: 1,
+    kind: "directional",
+    intensity: 1.75,
+    layerMask: 1,
+  };
+
+  aperture.registerTransformComponents(world);
+  aperture.registerMetadataComponents(world);
+  aperture.registerRenderAuthoringComponents(world);
+  assets.register(meshHandle);
+  assets.register(materialHandle);
+  assets.markReady(meshHandle, mesh);
+  assets.markReady(materialHandle, material);
+
+  const camera = world.createEntity();
+  const cameraTransform = aperture.createRootTransform({
+    translation: [0, 0, 2.25],
+  });
+
+  camera.addComponent(aperture.WorldTransform, cameraTransform.world);
+  camera.addComponent(
+    aperture.Camera,
+    aperture.createCamera({
+      aspect: canvasSize.width / canvasSize.height,
+      near: 0.1,
+      far: 100,
+      clearColor: [clearColor.r, clearColor.g, clearColor.b, clearColor.a],
+      layerMask: 1,
+    }),
+  );
+
+  const lightEntity = world.createEntity();
+  const lightTransform = aperture.createRootTransform({
+    translation: [-0.25, 0.75, 1.5],
+  });
+
+  lightEntity.addComponent(aperture.WorldTransform, lightTransform.world);
+  lightEntity.addComponent(
+    aperture.Light,
+    aperture.createLight({
+      kind: aperture.LightKind.Directional,
+      color: [1, 0.96, 0.72, 1],
+      intensity: light.intensity,
+      layerMask: light.layerMask,
+    }),
+  );
+
+  addPrimitiveEntity(aperture, world, meshHandle, materialHandle, [0, 0, 0]);
+
+  return {
+    world,
+    assets,
+    meshHandle,
+    mesh,
+    expectedDrawCount: 1,
+    readbackSamplePoints: boxReadbackSamplePoints,
+    geometry: {
+      primitive: "plane",
+      source: "aperture.createPlaneMeshAsset",
+    },
+    light,
+    lightEntity,
+    materials: [{ handle: materialHandle, asset: material }],
+  };
+}
+
+function createInvalidLightWorld(aperture, canvasSize) {
+  const scene = createDirectionalLightWorld(aperture, canvasSize);
+  const lightEntity = scene.lightEntity;
+
+  lightEntity.removeComponent(aperture.Light);
+  lightEntity.addComponent(
+    aperture.Light,
+    aperture.createLight({
+      kind: aperture.LightKind.Spot,
+      color: [1, 0.25, 0.1, 1],
+      intensity: -1,
+      range: 0,
+      innerConeAngle: 2,
+      outerConeAngle: 1,
+      layerMask: 0,
+    }),
+  );
+
+  return {
+    ...scene,
+    light: {
+      authored: 1,
+      kind: "spot",
+      intensity: -1,
+      layerMask: 0,
+      expectedDiagnostics: [
+        "render.light.invalidIntensity",
+        "render.light.invalidRange",
+        "render.light.invalidSpotCone",
+        "render.light.zeroLayerMask",
+      ],
+    },
+  };
+}
+
+function createAmbientLightWorld(aperture, canvasSize) {
+  const scene = createDirectionalLightWorld(aperture, canvasSize);
+  const lightEntity = scene.lightEntity;
+
+  lightEntity.removeComponent(aperture.WorldTransform);
+  lightEntity.removeComponent(aperture.Light);
+  lightEntity.addComponent(
+    aperture.Light,
+    aperture.createLight({
+      kind: aperture.LightKind.Ambient,
+      color: [0.8, 0.9, 1, 1],
+      intensity: 0.25,
+      layerMask: 1,
+    }),
+  );
+
+  return {
+    ...scene,
+    light: {
+      authored: 1,
+      kind: "ambient",
+      intensity: 0.25,
+      layerMask: 1,
+      expectedDiagnostics: [],
+      transformless: true,
+    },
+  };
+}
+
+function createEnvironmentLightWorld(aperture, canvasSize) {
+  const scene = createDirectionalLightWorld(aperture, canvasSize);
+  const lightEntity = scene.lightEntity;
+
+  lightEntity.removeComponent(aperture.WorldTransform);
+  lightEntity.removeComponent(aperture.Light);
+  lightEntity.addComponent(
+    aperture.Light,
+    aperture.createLight({
+      kind: aperture.LightKind.Environment,
+      color: [0.6, 0.72, 1, 1],
+      intensity: 0.5,
+      layerMask: 1,
+    }),
+  );
+
+  return {
+    ...scene,
+    light: undefined,
+    environment: {
+      authored: 1,
+      kind: "environment",
+      intensity: 0.5,
+      layerMask: 1,
+      expectedDiagnostics: [],
+      transformless: true,
+    },
+  };
+}
+
+function createSpotLightWorld(aperture, canvasSize) {
+  const scene = createDirectionalLightWorld(aperture, canvasSize);
+  const lightEntity = scene.lightEntity;
+
+  lightEntity.removeComponent(aperture.Light);
+  lightEntity.addComponent(
+    aperture.Light,
+    aperture.createLight({
+      kind: aperture.LightKind.Spot,
+      color: [1, 0.78, 0.42, 1],
+      intensity: 2.5,
+      range: 4,
+      innerConeAngle: 0.25,
+      outerConeAngle: 0.5,
+      layerMask: 1,
+    }),
+  );
+
+  return {
+    ...scene,
+    light: {
+      authored: 1,
+      kind: "spot",
+      intensity: 2.5,
+      range: 4,
+      innerConeAngle: 0.25,
+      outerConeAngle: 0.5,
+      layerMask: 1,
+      expectedDiagnostics: [],
+    },
+  };
+}
+
+function createPointLightWorld(aperture, canvasSize) {
+  const scene = createDirectionalLightWorld(aperture, canvasSize);
+  const lightEntity = scene.lightEntity;
+
+  lightEntity.removeComponent(aperture.Light);
+  lightEntity.addComponent(
+    aperture.Light,
+    aperture.createLight({
+      kind: aperture.LightKind.Point,
+      color: [0.4, 0.72, 1, 1],
+      intensity: 2,
+      range: 5,
+      layerMask: 1,
+    }),
+  );
+
+  return {
+    ...scene,
+    light: {
+      authored: 1,
+      kind: "point",
+      intensity: 2,
+      range: 5,
+      layerMask: 1,
+      expectedDiagnostics: [],
+    },
+  };
+}
+
+function createMissingLightTransformWorld(aperture, canvasSize) {
+  const scene = createDirectionalLightWorld(aperture, canvasSize);
+
+  scene.lightEntity.removeComponent(aperture.WorldTransform);
+
+  return {
+    ...scene,
+    light: {
+      authored: 1,
+      kind: "directional",
+      intensity: 1.75,
+      layerMask: 1,
+      expectedDiagnostics: ["render.lightMissingTransform"],
+      transformless: true,
+    },
+  };
+}
+
+function createUnsupportedShadowRequestWorld(aperture, canvasSize) {
+  const scene = createAmbientLightWorld(aperture, canvasSize);
+
+  scene.lightEntity.addComponent(
+    aperture.LightShadowSettings,
+    aperture.createLightShadowSettings({
+      enabled: true,
+      casterLayerMask: 1,
+      receiverLayerMask: 1,
+    }),
+  );
+
+  return {
+    ...scene,
+    shadow: {
+      expectedRequests: 0,
+      expectedDiagnostics: ["render.shadowUnsupportedLightKind.ambient"],
+    },
+  };
+}
+
+function createDirectionalShadowRequestWorld(aperture, canvasSize) {
+  const scene = createDirectionalLightWorld(aperture, canvasSize);
+
+  scene.lightEntity.addComponent(
+    aperture.LightShadowSettings,
+    aperture.createLightShadowSettings({
+      enabled: true,
+      mapSize: 2048,
+      bias: 0.001,
+      normalBias: 0.01,
+      casterLayerMask: 1,
+      receiverLayerMask: 1,
+    }),
+  );
+
+  return {
+    ...scene,
+    shadow: {
+      expectedRequests: 1,
+      expectedCasterLayerMasks: [1],
+      expectedReceiverLayerMasks: [1],
+      expectedDiagnostics: [],
+    },
+  };
+}
+
+function createInvalidShadowSettingsWorld(aperture, canvasSize) {
+  const scene = createDirectionalLightWorld(aperture, canvasSize);
+
+  scene.lightEntity.addComponent(
+    aperture.LightShadowSettings,
+    aperture.createLightShadowSettings({
+      enabled: true,
+      mapSize: 0,
+      bias: -0.001,
+      normalBias: -0.01,
+      casterLayerMask: 0,
+      receiverLayerMask: 0,
+    }),
+  );
+
+  return {
+    ...scene,
+    shadow: {
+      expectedRequests: 0,
+      expectedCasterLayerMasks: [],
+      expectedReceiverLayerMasks: [],
+      expectedDiagnostics: [
+        "render.shadow.invalidMapSize",
+        "render.shadow.invalidBias",
+        "render.shadow.zeroLayerMask",
+      ],
+    },
+  };
+}
+
 function createTexturedUnlitWorld(aperture, canvasSize) {
   const world = aperture.createWorld({ entityCapacity: 4 });
   const assets = new aperture.AssetRegistry();
@@ -4637,6 +5007,9 @@ function snapshotCounts(snapshot) {
     frame: snapshot.frame,
     views: snapshot.views.length,
     meshDraws: snapshot.meshDraws.length,
+    lights: snapshot.lights.length,
+    environments: snapshot.environments.length,
+    shadowRequests: snapshot.shadowRequests.length,
     transforms: snapshot.transforms.length / 16,
     viewMatrices: snapshot.viewMatrices.length / 16,
     diagnostics: snapshot.diagnostics.length,
@@ -4671,6 +5044,64 @@ function visibilityStatus(scene, snapshot) {
     hiddenMaterialKey: scene.hiddenMaterialKey,
     hiddenMaterialColor: scene.hiddenMaterialColor,
     diagnostics: skipped.map((diagnostic) => diagnostic.code),
+  };
+}
+
+function lightStatus(scene, snapshot) {
+  return {
+    authored: scene.light.authored,
+    extracted: snapshot.lights.length,
+    expectedKind: scene.light.kind,
+    kinds: snapshot.lights.map((light) => light.kind),
+    intensities: snapshot.lights.map((light) => light.intensity),
+    ranges: snapshot.lights.map((light) => light.range),
+    innerConeAngles: snapshot.lights.map((light) => light.innerConeAngle),
+    outerConeAngles: snapshot.lights.map((light) => light.outerConeAngle),
+    layerMasks: snapshot.lights.map((light) => light.layerMask),
+    expectedDiagnostics: scene.light.expectedDiagnostics ?? [],
+    diagnostics: diagnosticCodes(snapshot.diagnostics),
+    ...(scene.light.transformless === undefined
+      ? {}
+      : { transformless: scene.light.transformless }),
+  };
+}
+
+function environmentStatus(scene, snapshot) {
+  return {
+    authored: scene.environment.authored,
+    extracted: snapshot.environments.length,
+    expectedKind: scene.environment.kind,
+    intensities: snapshot.environments.map(
+      (environment) => environment.intensity,
+    ),
+    layerMasks: snapshot.environments.map(
+      (environment) => environment.layerMask,
+    ),
+    handles: snapshot.environments.map((environment) => environment.handle),
+    expectedDiagnostics: scene.environment.expectedDiagnostics ?? [],
+    diagnostics: diagnosticCodes(snapshot.diagnostics),
+    ...(scene.environment.transformless === undefined
+      ? {}
+      : { transformless: scene.environment.transformless }),
+  };
+}
+
+function shadowStatus(scene, snapshot) {
+  return {
+    expectedRequests: scene.shadow.expectedRequests,
+    requests: snapshot.shadowRequests.length,
+    shadowIds: snapshot.shadowRequests.map((request) => request.shadowId),
+    lightIds: snapshot.shadowRequests.map((request) => request.lightId),
+    casterLayerMasks: snapshot.shadowRequests.map(
+      (request) => request.casterLayerMask,
+    ),
+    receiverLayerMasks: snapshot.shadowRequests.map(
+      (request) => request.receiverLayerMask,
+    ),
+    expectedCasterLayerMasks: scene.shadow.expectedCasterLayerMasks ?? [],
+    expectedReceiverLayerMasks: scene.shadow.expectedReceiverLayerMasks ?? [],
+    expectedDiagnostics: scene.shadow.expectedDiagnostics ?? [],
+    diagnostics: diagnosticCodes(snapshot.diagnostics),
   };
 }
 

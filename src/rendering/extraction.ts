@@ -40,6 +40,7 @@ import {
 import {
   Camera,
   Light,
+  LightShadowSettings,
   MeshRenderer,
   RenderLayer,
   RenderOrder,
@@ -47,8 +48,10 @@ import {
   registerRenderAuthoringComponents,
   type CameraInput,
   type LightInput,
+  type LightShadowSettingsInput,
   validateCameraInput,
   validateLightInput,
+  validateLightShadowSettingsInput,
 } from "./index.js";
 import {
   compareRenderSortKeys,
@@ -56,12 +59,14 @@ import {
   createRenderSortKey,
   createStableRenderId,
   type BoundsPacket,
+  type EnvironmentPacket,
   type LightPacket,
   type MeshDrawPacket,
   type RenderDiagnostic,
   type RenderEntityRef,
   type RenderQueue,
   type RenderSnapshot,
+  type ShadowRequestPacket,
   type ViewPacket,
 } from "./snapshot.js";
 
@@ -87,7 +92,15 @@ export function extractRenderSnapshot(
     (mask, view) => mask | view.layerMask,
     0,
   );
-  const lights = extractLights(world, transforms, diagnostics);
+  const environments: EnvironmentPacket[] = [];
+  const shadowRequests: ShadowRequestPacket[] = [];
+  const lights = extractLights(
+    world,
+    transforms,
+    diagnostics,
+    environments,
+    shadowRequests,
+  );
   const meshDraws = extractMeshDraws(
     world,
     assets,
@@ -102,8 +115,8 @@ export function extractRenderSnapshot(
     views,
     meshDraws,
     lights,
-    environments: [],
-    shadowRequests: [],
+    environments,
+    shadowRequests,
     bounds,
     transforms: new Float32Array(transforms),
     viewMatrices: new Float32Array(viewMatrices),
@@ -112,8 +125,8 @@ export function extractRenderSnapshot(
       views: views.length,
       meshDraws: meshDraws.length,
       lights: lights.length,
-      environments: 0,
-      shadowRequests: 0,
+      environments: environments.length,
+      shadowRequests: shadowRequests.length,
       bounds: bounds.length,
       diagnostics: diagnostics.length,
     },
@@ -215,9 +228,11 @@ function extractLights(
   world: EcsWorld,
   transforms: number[],
   diagnostics: RenderDiagnostic[],
+  environments: EnvironmentPacket[],
+  shadowRequests: ShadowRequestPacket[],
 ): LightPacket[] {
   const query = world.queryManager.registerQuery({
-    required: [Light, WorldTransform],
+    required: [Light],
   });
   const lights: LightPacket[] = [];
 
@@ -231,16 +246,48 @@ function extractLights(
       continue;
     }
 
+    const kind = (entity.getValue(Light, "kind") ??
+      "directional") as LightPacket["kind"];
+    const shadowSettings = readShadowSettings(entity, diagnostics);
+
+    if (kind === "environment") {
+      diagnoseUnsupportedShadowRequest(
+        entity,
+        kind,
+        shadowSettings,
+        diagnostics,
+      );
+      environments.push({
+        environmentId: createStableRenderId(entityRef(entity)),
+        handle: null,
+        color: Array.from(entity.getVectorView(Light, "color")) as [
+          number,
+          number,
+          number,
+          number,
+        ],
+        intensity: entity.getValue(Light, "intensity") ?? 1,
+        layerMask: entity.getValue(Light, "layerMask") ?? 1,
+      });
+      continue;
+    }
+
+    const hasWorldTransform = entity.hasComponent(WorldTransform);
+
+    if (!hasWorldTransform && requiresLightTransform(kind)) {
+      diagnostics.push(diagnostic("render.lightMissingTransform", entity));
+      continue;
+    }
+
     const worldTransformOffset = pushMatrix(
       transforms,
-      readWorldMatrix(entity),
+      hasWorldTransform ? readWorldMatrix(entity) : identityMat4(),
     );
 
     lights.push({
       lightId: createStableRenderId(entityRef(entity)),
       entity: entityRef(entity),
-      kind: (entity.getValue(Light, "kind") ??
-        "directional") as LightPacket["kind"],
+      kind,
       color: Array.from(entity.getVectorView(Light, "color")) as [
         number,
         number,
@@ -254,9 +301,90 @@ function extractLights(
       worldTransformOffset,
       layerMask: entity.getValue(Light, "layerMask") ?? 1,
     });
+
+    appendShadowRequest(
+      entity,
+      kind,
+      shadowSettings,
+      shadowRequests,
+      diagnostics,
+    );
   }
 
   return lights;
+}
+
+function requiresLightTransform(kind: LightPacket["kind"]): boolean {
+  return kind !== "ambient" && kind !== "environment";
+}
+
+function readShadowSettings(
+  entity: Entity,
+  diagnostics: RenderDiagnostic[],
+): LightShadowSettingsInput | null {
+  if (!entity.hasComponent(LightShadowSettings)) {
+    return null;
+  }
+
+  const settings: LightShadowSettingsInput = {
+    enabled: entity.getValue(LightShadowSettings, "enabled") ?? false,
+    mapSize: entity.getValue(LightShadowSettings, "mapSize") ?? 1024,
+    bias: entity.getValue(LightShadowSettings, "bias") ?? 0,
+    normalBias: entity.getValue(LightShadowSettings, "normalBias") ?? 0,
+    casterLayerMask:
+      entity.getValue(LightShadowSettings, "casterLayerMask") ?? -1,
+    receiverLayerMask:
+      entity.getValue(LightShadowSettings, "receiverLayerMask") ?? -1,
+  };
+  const validation = validateLightShadowSettingsInput(settings);
+
+  if (!validation.valid) {
+    for (const shadowDiagnostic of validation.diagnostics) {
+      diagnostics.push(diagnostic(`render.${shadowDiagnostic.code}`, entity));
+    }
+    return null;
+  }
+
+  return settings;
+}
+
+function appendShadowRequest(
+  entity: Entity,
+  kind: LightPacket["kind"],
+  settings: LightShadowSettingsInput | null,
+  shadowRequests: ShadowRequestPacket[],
+  diagnostics: RenderDiagnostic[],
+): void {
+  if (settings?.enabled !== true) {
+    return;
+  }
+
+  if (kind !== "directional") {
+    diagnoseUnsupportedShadowRequest(entity, kind, settings, diagnostics);
+    return;
+  }
+
+  const lightId = createStableRenderId(entityRef(entity));
+
+  shadowRequests.push({
+    shadowId: lightId,
+    lightId,
+    casterLayerMask: settings.casterLayerMask ?? -1,
+    receiverLayerMask: settings.receiverLayerMask ?? -1,
+  });
+}
+
+function diagnoseUnsupportedShadowRequest(
+  entity: Entity,
+  kind: LightPacket["kind"],
+  settings: LightShadowSettingsInput | null,
+  diagnostics: RenderDiagnostic[],
+): void {
+  if (settings?.enabled === true) {
+    diagnostics.push(
+      diagnostic(`render.shadowUnsupportedLightKind.${kind}`, entity),
+    );
+  }
 }
 
 function extractMeshDraws(

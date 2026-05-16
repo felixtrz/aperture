@@ -132,6 +132,9 @@ export interface SingleDrawExampleStatus extends ExampleStatusBase {
   readonly extraction?: {
     readonly views: number;
     readonly meshDraws: number;
+    readonly lights?: number;
+    readonly environments?: number;
+    readonly shadowRequests?: number;
     readonly diagnostics: number;
   };
   readonly binding?: {
@@ -215,6 +218,43 @@ export interface MultiEntityExampleStatus extends ExampleStatusBase {
     readonly projection: string;
     readonly fovYRadians?: number;
     readonly orthographicHeight?: number;
+  };
+  readonly light?: {
+    readonly authored: number;
+    readonly extracted: number;
+    readonly expectedKind: string;
+    readonly kinds: readonly string[];
+    readonly intensities: readonly number[];
+    readonly ranges: readonly number[];
+    readonly innerConeAngles: readonly number[];
+    readonly outerConeAngles: readonly number[];
+    readonly layerMasks: readonly number[];
+    readonly expectedDiagnostics: readonly string[];
+    readonly diagnostics: readonly string[];
+    readonly transformless?: boolean;
+  };
+  readonly environment?: {
+    readonly authored: number;
+    readonly extracted: number;
+    readonly expectedKind: string;
+    readonly intensities: readonly number[];
+    readonly layerMasks: readonly number[];
+    readonly handles: readonly (unknown | null)[];
+    readonly expectedDiagnostics: readonly string[];
+    readonly diagnostics: readonly string[];
+    readonly transformless?: boolean;
+  };
+  readonly shadow?: {
+    readonly expectedRequests: number;
+    readonly requests: number;
+    readonly shadowIds: readonly number[];
+    readonly lightIds: readonly number[];
+    readonly casterLayerMasks: readonly number[];
+    readonly receiverLayerMasks: readonly number[];
+    readonly expectedCasterLayerMasks: readonly number[];
+    readonly expectedReceiverLayerMasks: readonly number[];
+    readonly expectedDiagnostics: readonly string[];
+    readonly diagnostics: readonly string[];
   };
   readonly renderOrder?: {
     readonly back: number;

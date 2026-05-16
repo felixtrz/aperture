@@ -31,6 +31,7 @@ interface MultiEntityRouteFailureExpectation {
   readonly phase: string;
   readonly reason: string;
   readonly diagnosticCounts?: Partial<DiagnosticCountSummary>;
+  readonly expectRenderingBackend?: boolean;
   readonly matchObject?: Readonly<Record<string, unknown>>;
 }
 
@@ -147,7 +148,9 @@ export function expectMultiEntityRouteFailureStatus(
     ok: false,
     phase: expected.phase,
     reason: expected.reason,
-    renderingBackend: "webgpu",
+    ...(expected.expectRenderingBackend === false
+      ? {}
+      : { renderingBackend: "webgpu" }),
     diagnosticCounts: expectedDiagnosticCounts(expected.diagnosticCounts ?? {}),
     ...(expected.matchObject ?? {}),
   });

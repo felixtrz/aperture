@@ -4067,3 +4067,255 @@ Summary:
 - Added no-browser static guards for helper-call scenario registration, direct multi-entity navigation regressions, and route smoke helper usage.
 - Expanded `docs/BROWSER_E2E_RENDERING.md` with a route guard coverage table, helper conventions, detailed-spec reuse notes, unsupported-WebGPU loader exception, and static guard behavior.
 - Validation run: targeted Playwright/Vitest throughout, consolidated route suite passed with 57 tests, full `npm run test:e2e -- --reporter=line` passed with 123 tests, and `npm run check` passed with 129 Vitest files / 563 tests.
+
+## task-0420 through task-0424 — Failure route helper cleanup
+
+Completed: 2026-05-16
+
+Completed task ids:
+
+- `task-0420` — Use failure helper in resource route specs.
+- `task-0421` — Use failure helper in texture resource routes.
+- `task-0422` — Use failure helper in scenario route guard.
+- `task-0423` — Document failure helper route coverage.
+- `task-0424` — Audit route helper docs and static guards.
+
+Summary:
+
+- Migrated resource-binding, texture-upload, texture-resource, and unknown
+  scenario route guards to `expectMultiEntityRouteFailureStatus`.
+- Added an explicit helper opt-out for early resource-upload failures that stop
+  before `renderingBackend` metadata is published.
+- Documented `expectMultiEntityRouteFailureStatus` as the standard shallow
+  failure route helper and clarified that route specs can keep count/code checks
+  while detailed specs own diagnostic bodies and ordering.
+- Audited the route-helper static guard behavior; the no-browser guard enforces
+  shared route loading for `*-routing.spec.ts`, while failure-helper usage is
+  still a follow-up task.
+- Validation run: targeted `typecheck:test`, Playwright route specs for the
+  migrated route families, `npm run format:check`, and
+  `npm test -- test/examples/multi-entity-scenarios.test.mjs` passed.
+
+## task-0425 through task-0429 — Failure helper guard and route-suite validation
+
+Completed: 2026-05-16
+
+Completed task ids:
+
+- `task-0425` — Use failure helper in texture asset route helper.
+- `task-0426` — Add static guard for failure route helpers.
+- `task-0427` — Document failure helper static guard.
+- `task-0428` — Run consolidated failure route suite.
+- `task-0429` — Run full route smoke suite.
+
+Summary:
+
+- Routed `expectTextureAssetRouteStatus` through
+  `expectMultiEntityRouteFailureStatus` while preserving shared asset
+  render-world/resource summary assertions.
+- Added a no-browser static guard that checks known shallow failure route specs
+  use the shared failure helper directly or through the approved texture asset
+  helper.
+- Documented the static guard behavior and intentional submitted-frame route
+  exceptions.
+- Validation run: targeted `typecheck:test`, shared asset route Playwright
+  coverage, static scenario guard tests, formatting validation, consolidated
+  failure route Playwright coverage with 37 tests, and full route smoke
+  Playwright coverage with 57 tests passed.
+
+## task-0430 through task-0434 — Browser light status coverage
+
+Completed: 2026-05-16
+
+Completed task ids:
+
+- `task-0430` — Add browser route smoke for light extraction.
+- `task-0431` — Add browser diagnostics for invalid light extraction.
+- `task-0432` — Document browser light status coverage.
+- `task-0433` — Add static scenario guard coverage for light routes.
+- `task-0434` — Run consolidated light browser checks.
+
+Summary:
+
+- Added `directional-light-extraction` and `invalid-light-extraction`
+  multi-entity browser scenarios.
+- Browser status now includes `extraction.lights` from the render snapshot and
+  a light summary for light-specific route assertions.
+- Successful submitted statuses now include JSON-safe extraction diagnostics
+  when extraction emits warnings before the unlit draw path still submits.
+- Added `test/e2e/lighting-routing.spec.ts` for valid directional light
+  extraction and invalid spot-light diagnostics.
+- Documented that current browser light coverage proves ECS-owned extraction
+  data only; the current WebGPU shader path remains unlit.
+- Validation run: targeted `typecheck:test`, `check:examples`, static scenario
+  guard tests, `format:check`, and light route Playwright coverage passed.
+
+## task-0435 through task-0439 — Transformless light extraction
+
+Completed: 2026-05-16
+
+Completed task ids:
+
+- `task-0435` — Extract transformless ambient lights.
+- `task-0436` — Add browser route for ambient light extraction.
+- `task-0437` — Add browser route for missing light transform diagnostics.
+- `task-0438` — Document transformless light extraction.
+- `task-0439` — Run consolidated light extraction validation.
+
+Summary:
+
+- Changed `extractRenderSnapshot` light extraction to query all ECS `Light`
+  entities instead of only lights with `WorldTransform`.
+- Ambient and environment lights now extract without `WorldTransform` using an
+  identity transform packet; directional, point, and spot lights without
+  `WorldTransform` emit `render.lightMissingTransform` and no light packet.
+- Added core extraction tests for transformless ambient/environment lights and
+  transformless directional/point/spot diagnostics.
+- Added `ambient-light-extraction` and `missing-light-transform` browser
+  scenarios and expanded `lighting-routing.spec.ts` to cover both.
+- Updated browser and architecture docs with the transformless global-light rule
+  and the transform-required directional/local-light diagnostic.
+- Validation run: `typecheck`, `typecheck:test`, `check:examples`, targeted
+  render extraction tests, static scenario guard tests, `format:check`, and
+  lighting route Playwright coverage passed.
+
+## task-0440 through task-0444 — Point and spot light extraction coverage
+
+Completed: 2026-05-16
+
+Completed task ids:
+
+- `task-0440` — Cover point and spot light packet fields.
+- `task-0441` — Add browser route for spot light extraction.
+- `task-0442` — Document point and spot light extraction coverage.
+- `task-0443` — Run consolidated lighting route suite.
+- `task-0444` — Refill next MVP verification slice.
+
+Summary:
+
+- Added core extraction coverage for valid point and spot light packet fields,
+  including entity-order stability, range, cone angles, intensity, and layer
+  masks.
+- Added `spot-light-extraction` to the browser multi-entity example and
+  verified spot kind/range/cone fields in `lighting-routing.spec.ts`.
+- Extended browser light status with range and cone-angle arrays from extracted
+  packets.
+- Documented spot-light route coverage while keeping shader lighting deferred.
+- Refilled the backlog with remaining light-kind route slices for environment
+  and point lights, followed by route-suite validation and next lighting
+  resource planning.
+- Validation run: targeted render extraction tests, `typecheck:test`,
+  `check:examples`, static scenario guard tests, `format:check`, and lighting
+  route Playwright coverage passed.
+
+## task-0445 through task-0449 — Full light-kind browser coverage
+
+Completed: 2026-05-16
+
+Completed task ids:
+
+- `task-0445` — Add browser route for environment light extraction.
+- `task-0446` — Add browser route for point light extraction.
+- `task-0447` — Document full light-kind route coverage.
+- `task-0448` — Run full route smoke after light additions.
+- `task-0449` — Plan next lighting resource slice.
+
+Summary:
+
+- Added `environment-light-extraction` and `point-light-extraction` browser
+  scenarios.
+- Expanded `lighting-routing.spec.ts` to cover directional, ambient,
+  environment, point, spot, missing-transform, and invalid-light scenarios.
+- Browser light status now exposes range and cone-angle arrays from extracted
+  packets for point/spot route assertions.
+- Updated browser e2e docs to list full light-kind route coverage while keeping
+  shader lighting deferred.
+- Refilled the backlog with the next environment-packet slice so environment
+  authoring can map to `RenderSnapshot.environments`.
+- Validation run: `typecheck:test`, `check:examples`, static scenario guard
+  tests, `format:check`, lighting route Playwright coverage with 7 tests, and
+  full route smoke Playwright coverage with 64 tests passed.
+
+## task-0450 through task-0454 — Environment packet extraction
+
+Completed: 2026-05-16
+
+Completed task ids:
+
+- `task-0450` — Promote environment light extraction to environment packets.
+- `task-0451` — Update browser environment light route status.
+- `task-0452` — Document environment packet extraction.
+- `task-0453` — Run consolidated environment/light validation.
+- `task-0454` — Plan next shadow schema slice.
+
+Summary:
+
+- Changed `LightKind.Environment` extraction to emit `EnvironmentPacket`
+  entries with stable ids, color, intensity, layer masks, and `handle: null`.
+- Environment authoring no longer increments `snapshot.lights`; browser status
+  now exposes `extraction.environments` and an `environment` summary.
+- Updated the environment browser route to expect zero light packets and one
+  environment packet.
+- Updated browser and architecture docs to distinguish ambient `LightPacket`
+  extraction from environment `EnvironmentPacket` extraction.
+- Refilled the backlog with shadow authoring schema and extraction tasks.
+- Validation run: `typecheck`, `typecheck:test`, `check:examples`, targeted
+  render extraction tests, static scenario guard tests, `format:check`, and
+  lighting route Playwright coverage passed.
+
+## task-0455 through task-0459 — Shadow authoring schema and diagnostics
+
+Completed: 2026-05-16
+
+Completed task ids:
+
+- `task-0455` — Add LightShadowSettings authoring schema.
+- `task-0456` — Validate LightShadowSettings inputs.
+- `task-0457` — Extract basic shadow request packets.
+- `task-0458` — Add browser route for shadow request diagnostics.
+- `task-0459` — Document shadow schema boundary.
+
+Summary:
+
+- Added renderer-independent ECS `LightShadowSettings` authoring with stable
+  defaults, validation, and render authoring registration.
+- Added extraction of flat `ShadowRequestPacket`s for enabled directional
+  lights and diagnostics for unsupported ambient/environment shadow requests.
+- Added browser status fields for `extraction.shadowRequests` and a `shadow`
+  summary.
+- Added the `unsupported-shadow-request` browser scenario and Playwright route
+  coverage for JSON-safe unsupported-shadow diagnostics.
+- Documented that shadow settings are ECS authoring data while shadow maps,
+  passes, cameras, atlases, and GPU resources remain renderer-owned future
+  work.
+- Validation run: `typecheck`, `typecheck:test`, `check:examples`, targeted
+  component and extraction tests, `format:check`, and lighting route Playwright
+  coverage passed.
+
+## task-0460 through task-0464 — Shadow browser route coverage
+
+Completed: 2026-05-16
+
+Completed task ids:
+
+- `task-0460` — Add browser route for directional shadow requests.
+- `task-0461` — Add invalid shadow settings browser diagnostics.
+- `task-0462` — Document supported shadow request routes.
+- `task-0463` — Run consolidated shadow route validation.
+- `task-0464` — Plan next environment-map handle slice.
+
+Summary:
+
+- Added `directional-shadow-request` browser scenario coverage for one
+  extracted `ShadowRequestPacket` with stable light/shadow ids and layer masks.
+- Added `invalid-shadow-settings` browser scenario coverage for
+  `render.shadow.invalidMapSize`, `render.shadow.invalidBias`, and
+  `render.shadow.zeroLayerMask` extraction diagnostics.
+- Extended browser shadow status with request ids and caster/receiver layer
+  masks.
+- Documented supported, invalid, and unsupported shadow route expectations while
+  keeping actual shadow rendering deferred.
+- Refilled the backlog with the next environment-map handle extraction slice.
+- Validation run: targeted `typecheck:test`, `check:examples`, static scenario
+  guard tests, lighting route Playwright coverage, full `npm run check`, and
+  full route smoke Playwright coverage passed.

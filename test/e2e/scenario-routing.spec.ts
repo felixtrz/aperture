@@ -1,8 +1,7 @@
-import { expect, test } from "@playwright/test";
+import { test } from "@playwright/test";
 
 import {
-  expectedDiagnosticCounts,
-  expectNoDrawSubmissionStatus,
+  expectMultiEntityRouteFailureStatus,
   loadMultiEntityScenarioStatus,
 } from "./webgpu-status.js";
 
@@ -19,15 +18,12 @@ test("ECS browser example routes unknown scenarios to scenario failure status", 
     return;
   }
 
-  expect(status, JSON.stringify(status, null, 2)).toMatchObject({
-    example: "ecs-multi-entity",
+  expectMultiEntityRouteFailureStatus(status, {
     scenario: "not-a-scenario",
-    ok: false,
     phase: "scenario",
     reason: "unknown-scenario",
-    renderingBackend: "webgpu",
-    extraction: { views: 0, meshDraws: 0, diagnostics: 0 },
-    diagnosticCounts: expectedDiagnosticCounts({}),
+    matchObject: {
+      extraction: { views: 0, meshDraws: 0, diagnostics: 0 },
+    },
   });
-  expectNoDrawSubmissionStatus(status);
 });

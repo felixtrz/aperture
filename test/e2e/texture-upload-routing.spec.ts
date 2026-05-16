@@ -1,8 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 import {
-  expectedDiagnosticCounts,
-  expectNoDrawSubmissionStatus,
+  expectMultiEntityRouteFailureStatus,
   expectStatusJsonSafeForGpu,
   loadMultiEntityScenarioStatus,
 } from "./webgpu-status.js";
@@ -34,24 +33,24 @@ for (const fixture of [
       return;
     }
 
-    expect(status, JSON.stringify(status, null, 2)).toMatchObject({
-      example: "ecs-multi-entity",
+    expectMultiEntityRouteFailureStatus(status, {
       scenario: fixture.scenario,
-      ok: false,
       phase: "resources",
       reason: "texture-resources-unavailable",
-      extraction: { views: 1, meshDraws: 1, diagnostics: 0 },
-      texture: {
-        materialKey: "material:textured-unlit",
-        textureKey: "texture:checker-albedo",
-        samplerKey: "sampler:nearest-clamp",
+      expectRenderingBackend: false,
+      diagnosticCounts: { resources: 1 },
+      matchObject: {
+        extraction: { views: 1, meshDraws: 1, diagnostics: 0 },
+        texture: {
+          materialKey: "material:textured-unlit",
+          textureKey: "texture:checker-albedo",
+          samplerKey: "sampler:nearest-clamp",
+        },
       },
-      diagnosticCounts: expectedDiagnosticCounts({ resources: 1 }),
     });
     expect(status.diagnostics, JSON.stringify(status, null, 2)).toEqual([
       expect.objectContaining({ code: fixture.diagnosticCode }),
     ]);
-    expectNoDrawSubmissionStatus(status);
     expect(status.submission).toBeUndefined();
     expect(status.command).toBeUndefined();
     expectStatusJsonSafeForGpu(status);

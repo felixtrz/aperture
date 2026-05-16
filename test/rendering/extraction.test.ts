@@ -5,6 +5,7 @@ import {
   Camera,
   Light,
   LightKind,
+  LightShadowSettings,
   MeshRenderer,
   RenderLayer,
   Visibility,
@@ -12,6 +13,7 @@ import {
   createBoxMeshAsset,
   createCamera,
   createLight,
+  createLightShadowSettings,
   createMaterialHandle,
   createMeshHandle,
   createRenderTargetHandle,
@@ -20,6 +22,7 @@ import {
   createTextureAsset,
   createTextureHandle,
   createRootTransform,
+  createStableRenderId,
   createUnlitMaterialAsset,
   createWorld,
   extractRenderSnapshot,
@@ -838,6 +841,187 @@ describe("render extraction", () => {
       "render.light.zeroLayerMask",
     ]);
   });
+
+  it("extracts transformless ambient lights and diagnoses transformless local lights", () => {
+    const world = createRuntimeWorld();
+    const ambientLight = createTransformlessLightEntity(world, {
+      kind: LightKind.Ambient,
+      intensity: 0.25,
+      layerMask: 1,
+    });
+    const environmentLight = createTransformlessLightEntity(world, {
+      kind: LightKind.Environment,
+      intensity: 0.5,
+      layerMask: 1,
+    });
+
+    createTransformlessLightEntity(world, {
+      kind: LightKind.Directional,
+      intensity: 1,
+      layerMask: 1,
+    });
+    createTransformlessLightEntity(world, {
+      kind: LightKind.Point,
+      intensity: 1,
+      range: 3,
+      layerMask: 1,
+    });
+    createTransformlessLightEntity(world, {
+      kind: LightKind.Spot,
+      intensity: 1,
+      range: 3,
+      innerConeAngle: 0.1,
+      outerConeAngle: 0.2,
+      layerMask: 1,
+    });
+
+    const snapshot = extractRenderSnapshot(world, createReadyAssets());
+
+    expect(snapshot.lights.map((light) => light.entity.index)).toEqual([
+      ambientLight.index,
+    ]);
+    expect(snapshot.lights.map((light) => light.kind)).toEqual([
+      LightKind.Ambient,
+    ]);
+    expect(snapshot.environments.map((environment) => environment)).toEqual([
+      expect.objectContaining({
+        environmentId: createStableRenderId({
+          index: environmentLight.index,
+          generation: environmentLight.generation,
+        }),
+        handle: null,
+        intensity: 0.5,
+        layerMask: 1,
+      }),
+    ]);
+    expect(snapshot.transforms).toHaveLength(16);
+    expect(snapshot.report).toMatchObject({
+      lights: 1,
+      environments: 1,
+      diagnostics: 3,
+    });
+    expect(snapshot.diagnostics.map((diagnostic) => diagnostic.code)).toEqual([
+      "render.lightMissingTransform",
+      "render.lightMissingTransform",
+      "render.lightMissingTransform",
+    ]);
+  });
+
+  it("extracts point and spot light packet fields in entity order", () => {
+    const world = createRuntimeWorld();
+    const pointLight = createLightEntity(world, {
+      kind: LightKind.Point,
+      intensity: 3,
+      range: 12,
+      innerConeAngle: 0.125,
+      outerConeAngle: 0.25,
+      layerMask: 0b0010,
+    });
+    const spotLight = createLightEntity(world, {
+      kind: LightKind.Spot,
+      intensity: 4,
+      range: 9,
+      innerConeAngle: 0.25,
+      outerConeAngle: 0.5,
+      layerMask: 0b0100,
+    });
+
+    const snapshot = extractRenderSnapshot(world, createReadyAssets());
+
+    expect(snapshot.lights.map((light) => light.entity.index)).toEqual([
+      pointLight.index,
+      spotLight.index,
+    ]);
+    expect(
+      snapshot.lights.map((light) => ({
+        kind: light.kind,
+        intensity: light.intensity,
+        range: light.range,
+        innerConeAngle: light.innerConeAngle,
+        outerConeAngle: light.outerConeAngle,
+        layerMask: light.layerMask,
+      })),
+    ).toEqual([
+      {
+        kind: LightKind.Point,
+        intensity: 3,
+        range: 12,
+        innerConeAngle: 0.125,
+        outerConeAngle: 0.25,
+        layerMask: 0b0010,
+      },
+      {
+        kind: LightKind.Spot,
+        intensity: 4,
+        range: 9,
+        innerConeAngle: 0.25,
+        outerConeAngle: 0.5,
+        layerMask: 0b0100,
+      },
+    ]);
+    expect(snapshot.diagnostics).toEqual([]);
+    expect(snapshot.report).toMatchObject({ lights: 2, diagnostics: 0 });
+  });
+
+  it("extracts directional shadow requests and diagnoses unsupported shadow light kinds", () => {
+    const world = createRuntimeWorld();
+    const directionalLight = createLightEntity(world, {
+      kind: LightKind.Directional,
+      intensity: 1,
+      layerMask: 1,
+    });
+    const ambientLight = createTransformlessLightEntity(world, {
+      kind: LightKind.Ambient,
+      intensity: 0.2,
+      layerMask: 1,
+    });
+    const pointLight = createLightEntity(world, {
+      kind: LightKind.Point,
+      intensity: 1,
+      range: 2,
+      layerMask: 1,
+    });
+
+    directionalLight.addComponent(
+      LightShadowSettings,
+      createLightShadowSettings({
+        enabled: true,
+        casterLayerMask: 0b0011,
+        receiverLayerMask: 0b0101,
+      }),
+    );
+    ambientLight.addComponent(
+      LightShadowSettings,
+      createLightShadowSettings({ enabled: true }),
+    );
+    pointLight.addComponent(
+      LightShadowSettings,
+      createLightShadowSettings({ enabled: false }),
+    );
+
+    const snapshot = extractRenderSnapshot(world, createReadyAssets());
+    const lightId = createStableRenderId({
+      index: directionalLight.index,
+      generation: directionalLight.generation,
+    });
+
+    expect(snapshot.shadowRequests).toEqual([
+      {
+        shadowId: lightId,
+        lightId,
+        casterLayerMask: 0b0011,
+        receiverLayerMask: 0b0101,
+      },
+    ]);
+    expect(snapshot.report).toMatchObject({
+      lights: 3,
+      shadowRequests: 1,
+      diagnostics: 1,
+    });
+    expect(snapshot.diagnostics.map((diagnostic) => diagnostic.code)).toEqual([
+      "render.shadowUnsupportedLightKind.ambient",
+    ]);
+  });
 });
 
 function createRuntimeWorld(): ReturnType<typeof createWorld> {
@@ -955,6 +1139,16 @@ function createLightEntity(
   const root = createRootTransform();
 
   entity.addComponent(WorldTransform, root.world);
+  entity.addComponent(Light, createLight(input));
+  return entity;
+}
+
+function createTransformlessLightEntity(
+  world: ReturnType<typeof createWorld>,
+  input: LightInput = {},
+) {
+  const entity = world.createEntity();
+
   entity.addComponent(Light, createLight(input));
   return entity;
 }

@@ -1,8 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 import {
-  expectedDiagnosticCounts,
-  expectNoDrawSubmissionStatus,
+  expectMultiEntityRouteFailureStatus,
   expectStatusJsonSafeForGpu,
   loadMultiEntityScenarioStatus,
 } from "./webgpu-status.js";
@@ -34,26 +33,24 @@ for (const fixture of [
       return;
     }
 
-    expect(status, JSON.stringify(status, null, 2)).toMatchObject({
-      example: "ecs-multi-entity",
+    expectMultiEntityRouteFailureStatus(status, {
       scenario: fixture.scenario,
-      ok: false,
       phase: "resource-bindings",
       reason: fixture.reason,
-      renderingBackend: "webgpu",
-      extraction: { views: 1, meshDraws: 1, diagnostics: 0 },
-      resources: { materials: 0, bindGroups: 0, missing: fixture.missing },
-      binding: {
-        planned: 1,
-        applied: 1,
-        ready: 0,
-        diagnostics: 1,
-        diagnosticCodes: [fixture.diagnosticCode],
+      diagnosticCounts: { binding: 1, draw: 1 },
+      matchObject: {
+        extraction: { views: 1, meshDraws: 1, diagnostics: 0 },
+        resources: { materials: 0, bindGroups: 0, missing: fixture.missing },
+        binding: {
+          planned: 1,
+          applied: 1,
+          ready: 0,
+          diagnostics: 1,
+          diagnosticCodes: [fixture.diagnosticCode],
+        },
+        renderWorld: { active: 1, ready: 0, blocked: 1 },
       },
-      renderWorld: { active: 1, ready: 0, blocked: 1 },
-      diagnosticCounts: expectedDiagnosticCounts({ binding: 1, draw: 1 }),
     });
-    expectNoDrawSubmissionStatus(status);
     expect(status.submission?.drawCalls, JSON.stringify(status, null, 2)).toBe(
       0,
     );

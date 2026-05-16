@@ -124,8 +124,23 @@ Initial ECS-facing render components may include:
 - `RenderLayer`
 - `Name`
 - `DebugMetadata`
+- `Light`
+- `LightShadowSettings`
 
 These are semantic app-facing components. They should not contain WebGPU-specific state.
+
+Light and environment authoring follow the same ECS-owned rule as mesh and
+camera authoring. Ambient and environment inputs are global and can be extracted
+without a `WorldTransform`: ambient authoring emits a `LightPacket`, while
+environment authoring emits an `EnvironmentPacket`. Directional, point, and spot
+lights require `WorldTransform` because extraction derives their render-facing
+position and orientation from ECS transform data; missing transforms should
+produce diagnostics instead of renderer-owned fallback state.
+
+Shadow settings are also ECS-owned authoring data. Extraction may emit a flat
+`ShadowRequestPacket` for supported lights or diagnostics for unsupported
+requests, but shadow maps, shadow cameras, atlases, passes, and GPU resources
+remain renderer-owned future work and must not be stored on ECS components.
 
 ## Assets and Handles
 

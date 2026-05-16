@@ -9,6 +9,19 @@ const projectRoot = path.resolve(
   "../..",
 );
 const intentionalUnknownScenarios = new Set(["not-a-scenario"]);
+const shallowFailureRouteHelpers = new Map([
+  ["extraction-routing.spec.ts", "expectMultiEntityRouteFailureStatus"],
+  ["texture-dependency-routing.spec.ts", "expectMultiEntityRouteFailureStatus"],
+  ["shared-texture-asset-routing.spec.ts", "expectTextureAssetRouteStatus"],
+  ["shared-sampler-asset-routing.spec.ts", "expectTextureAssetRouteStatus"],
+  ["resource-binding-routing.spec.ts", "expectMultiEntityRouteFailureStatus"],
+  ["texture-resource-routing.spec.ts", "expectMultiEntityRouteFailureStatus"],
+  ["texture-upload-routing.spec.ts", "expectMultiEntityRouteFailureStatus"],
+  ["scenario-routing.spec.ts", "expectMultiEntityRouteFailureStatus"],
+]);
+const sharedFailureRouteHelpers = new Map([
+  ["texture-asset-routing.ts", "expectMultiEntityRouteFailureStatus"],
+]);
 
 describe("multi-entity example scenarios", () => {
   it("keeps known scenarios aligned with the dispatch table", async () => {
@@ -40,6 +53,10 @@ describe("multi-entity example scenarios", () => {
 
   it("keeps route smoke specs on shared multi-entity helpers", async () => {
     await expect(findRouteSpecsWithoutSharedLoader()).resolves.toEqual([]);
+  });
+
+  it("keeps shallow failure route specs on shared failure helpers", async () => {
+    await expect(findFailureRoutesWithoutSharedHelper()).resolves.toEqual([]);
   });
 });
 
@@ -146,6 +163,32 @@ async function findRouteSpecsWithoutSharedLoader() {
 
     if (!usesSharedRouteLoader) {
       missing.push(entry.name);
+    }
+  }
+
+  return missing;
+}
+
+async function findFailureRoutesWithoutSharedHelper() {
+  const e2eRoot = path.join(projectRoot, "test/e2e");
+  const missing = [];
+
+  for (const [fileName, helperName] of [
+    ...shallowFailureRouteHelpers,
+    ...sharedFailureRouteHelpers,
+  ]) {
+    const filePath = path.join(e2eRoot, fileName);
+    let content;
+
+    try {
+      content = await readFile(filePath, "utf8");
+    } catch {
+      missing.push(`${fileName}:missing file`);
+      continue;
+    }
+
+    if (!content.includes(`${helperName}(`)) {
+      missing.push(`${fileName}:missing ${helperName}`);
     }
   }
 

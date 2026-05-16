@@ -52,6 +52,15 @@ export interface LightInput {
   readonly layerMask?: number;
 }
 
+export interface LightShadowSettingsInput {
+  readonly enabled?: boolean;
+  readonly mapSize?: number;
+  readonly bias?: number;
+  readonly normalBias?: number;
+  readonly casterLayerMask?: number;
+  readonly receiverLayerMask?: number;
+}
+
 export type RenderAuthoringDiagnosticCode =
   | "camera.invalidProjection"
   | "camera.invalidViewport"
@@ -60,7 +69,10 @@ export type RenderAuthoringDiagnosticCode =
   | "light.invalidIntensity"
   | "light.invalidRange"
   | "light.invalidSpotCone"
-  | "light.zeroLayerMask";
+  | "light.zeroLayerMask"
+  | "shadow.invalidMapSize"
+  | "shadow.invalidBias"
+  | "shadow.zeroLayerMask";
 
 export interface RenderAuthoringDiagnostic {
   readonly code: RenderAuthoringDiagnosticCode;
@@ -169,6 +181,19 @@ export const ShadowReceiver = defineComponent(
   "Marks an entity as eligible to receive shadows.",
 );
 
+export const LightShadowSettings = defineComponent(
+  "aperture.render.lightShadowSettings",
+  {
+    enabled: { type: EcsType.Boolean, default: false },
+    mapSize: { type: EcsType.Int32, default: 1024 },
+    bias: { type: EcsType.Float32, default: 0 },
+    normalBias: { type: EcsType.Float32, default: 0 },
+    casterLayerMask: { type: EcsType.Int32, default: -1 },
+    receiverLayerMask: { type: EcsType.Int32, default: -1 },
+  },
+  "Renderer-independent per-light shadow request authoring component.",
+);
+
 export function registerRenderAuthoringComponents(world: EcsWorld): EcsWorld {
   world.registerComponent(MeshRenderer);
   world.registerComponent(Camera);
@@ -178,6 +203,7 @@ export function registerRenderAuthoringComponents(world: EcsWorld): EcsWorld {
   world.registerComponent(Light);
   world.registerComponent(ShadowCaster);
   world.registerComponent(ShadowReceiver);
+  world.registerComponent(LightShadowSettings);
   return world;
 }
 
@@ -214,6 +240,19 @@ export function createLight(
     innerConeAngle: input.innerConeAngle ?? Math.PI / 8,
     outerConeAngle: input.outerConeAngle ?? Math.PI / 6,
     layerMask: input.layerMask ?? 1,
+  };
+}
+
+export function createLightShadowSettings(
+  input: LightShadowSettingsInput = {},
+): ComponentInitialData<typeof LightShadowSettings> {
+  return {
+    enabled: input.enabled ?? false,
+    mapSize: input.mapSize ?? 1024,
+    bias: input.bias ?? 0,
+    normalBias: input.normalBias ?? 0,
+    casterLayerMask: input.casterLayerMask ?? -1,
+    receiverLayerMask: input.receiverLayerMask ?? -1,
   };
 }
 
@@ -320,6 +359,44 @@ export function validateLightInput(
       code: "light.zeroLayerMask",
       field: "layerMask",
       message: "Light layerMask must not be zero.",
+    });
+  }
+
+  return { valid: diagnostics.length === 0, diagnostics };
+}
+
+export function validateLightShadowSettingsInput(
+  input: LightShadowSettingsInput,
+): RenderAuthoringValidationReport {
+  const settings = createLightShadowSettings(input);
+  const mapSize = settings.mapSize ?? 1024;
+  const bias = settings.bias ?? 0;
+  const normalBias = settings.normalBias ?? 0;
+  const casterLayerMask = settings.casterLayerMask ?? -1;
+  const receiverLayerMask = settings.receiverLayerMask ?? -1;
+  const diagnostics: RenderAuthoringDiagnostic[] = [];
+
+  if (!Number.isInteger(mapSize) || mapSize <= 0) {
+    diagnostics.push({
+      code: "shadow.invalidMapSize",
+      field: "mapSize",
+      message: "Light shadow mapSize must be a positive integer.",
+    });
+  }
+
+  if (bias < 0 || normalBias < 0) {
+    diagnostics.push({
+      code: "shadow.invalidBias",
+      field: "bias/normalBias",
+      message: "Light shadow bias and normalBias must be non-negative.",
+    });
+  }
+
+  if (casterLayerMask === 0 || receiverLayerMask === 0) {
+    diagnostics.push({
+      code: "shadow.zeroLayerMask",
+      field: "casterLayerMask/receiverLayerMask",
+      message: "Light shadow caster and receiver layer masks must not be zero.",
     });
   }
 

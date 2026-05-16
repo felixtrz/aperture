@@ -27,70 +27,73 @@ Keep implementation vertical, typed, and testable. Do not introduce a public mut
 
 ## Recommended Next Task
 
-Start with `task-0420`. Browser specs now use shared example loaders and static
-guards protect helper usage. The next useful slice is reducing repeated shallow
-failure-route assertions by applying `expectMultiEntityRouteFailureStatus` to
-the remaining route guard families.
+Start with `task-0465`. Shadow request extraction and route coverage are now
+covered; the next MVP-aligned lighting slice is to connect environment authoring
+to stable environment-map asset handles while keeping GPU resources renderer-owned.
 
 ## Ready Tasks
 
-### task-0420 — Use failure helper in resource route specs
+### task-0465 — Add environment map handle authoring
 
-Migrate resource-binding and texture-upload route guards to
-`expectMultiEntityRouteFailureStatus`.
-
-Acceptance criteria:
-
-- `resource-binding-routing.spec.ts` and `texture-upload-routing.spec.ts` use
-  the shared failure-route assertion helper where practical.
-- Diagnostic-code assertions remain focused and unchanged.
-- Targeted typecheck and route Playwright coverage pass.
-
-### task-0421 — Use failure helper in texture resource routes
-
-Migrate texture/sampler GPU resource route guards to
-`expectMultiEntityRouteFailureStatus`.
+Allow environment-light authoring to carry an optional environment-map asset
+handle without storing renderer-owned resources in ECS.
 
 Acceptance criteria:
 
-- `texture-resource-routing.spec.ts` uses the shared failure-route assertion
-  helper where practical.
-- Diagnostic code-count assertions remain unchanged.
-- Targeted typecheck and route Playwright coverage pass.
+- Environment authoring accepts an optional stable environment-map handle.
+- `EnvironmentPacket.handle` reflects the authored handle or `null`.
+- Core extraction tests cover handle propagation and the existing transformless
+  environment path.
 
-### task-0422 — Use failure helper in scenario route guard
+### task-0466 — Validate environment map asset dependency
 
-Migrate the unknown-scenario route guard to the shared failure-route assertion
-helper.
-
-Acceptance criteria:
-
-- `scenario-routing.spec.ts` uses `expectMultiEntityRouteFailureStatus`.
-- The test still avoids duplicating available-scenario list assertions.
-- Targeted typecheck and Playwright coverage pass.
-
-### task-0423 — Document failure helper route coverage
-
-Update browser e2e docs after route guard families consistently use the shared
-failure-route helper.
+Add extraction diagnostics for environment-map handles that are missing,
+loading, or failed in the asset registry.
 
 Acceptance criteria:
 
-- Docs mention `expectMultiEntityRouteFailureStatus` as the standard helper for
-  shallow failure route guards.
-- Docs distinguish count/code checks from detailed diagnostic body assertions.
-- Formatting validation passes.
+- Missing/loading/failed environment-map handles produce stable `render.environment.*`
+  diagnostics.
+- Invalid environment-map dependencies omit the environment packet without
+  blocking unrelated mesh extraction.
+- Targeted extraction tests cover all dependency states.
 
-### task-0424 — Audit route helper docs and static guards
+### task-0467 — Add browser route for environment map diagnostics
 
-Run a focused audit of route helper docs and static guard behavior after the
-failure-helper migration.
+Add browser status coverage for environment-map dependency diagnostics.
 
 Acceptance criteria:
 
-- Targeted static scenario guard tests pass.
-- Route helper docs remain accurate.
-- Handoff records any remaining intentional exceptions.
+- Browser example has a routeable missing-environment-map scenario.
+- Status reports JSON-safe environment diagnostics and zero extracted
+  environment packets for the invalid dependency.
+- Targeted typecheck, example syntax, static scenario guard, and Playwright
+  coverage pass.
+
+### task-0468 — Add browser route for environment map handle extraction
+
+Add browser status coverage for a ready environment-map handle flowing into
+`EnvironmentPacket`.
+
+Acceptance criteria:
+
+- Browser example has a routeable environment-map-handle scenario.
+- Status exposes the extracted environment handle key while the unlit mesh path
+  still submits.
+- Targeted typecheck, example syntax, and lighting route Playwright coverage
+  pass.
+
+### task-0469 — Document environment map handle boundary
+
+Document environment-map handle extraction and the boundary between ECS asset
+references and renderer-owned texture resources.
+
+Acceptance criteria:
+
+- Architecture docs state that ECS stores only environment-map handles.
+- Browser e2e docs list environment-map success and diagnostic routes.
+- Docs explicitly defer environment texture GPU binding/shader consumption to a
+  renderer-owned resource slice.
 
 ## Post-Unlit E2E Verification Targets
 
