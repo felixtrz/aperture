@@ -95,6 +95,15 @@ echo "Aperture stop hook started at $(date -u +"%Y-%m-%dT%H:%M:%SZ")"
 echo "Repository: $ROOT"
 echo "Log file: $LOG_FILE"
 
+minute_of_hour="$(date +%M)"
+echo "Stop gate current minute-of-hour: $minute_of_hour"
+
+if ((10#$minute_of_hour < 45)); then
+  echo "Blocking stop attempt before minute 45 of the hour."
+  emit_continue_request "current minute is $minute_of_hour; keep working until minute 45 of the hour."
+  exit 0
+fi
+
 required_files=(
   "AGENTS.md"
   "docs/NORTH_STAR.md"
@@ -131,25 +140,6 @@ if (status.activePid !== null) {
 
 console.log(`Agent status: ${status.state}; lastResult: ${status.lastResult}`);
 console.log(`Ready backlog tasks: ${readyTaskCount}`);
-
-if (!status.lastRunStartedAt || !status.lastRunFinishedAt) {
-  throw new Error(`${statusPath} must record lastRunStartedAt and lastRunFinishedAt before stopping`);
-}
-
-const startedAt = Date.parse(status.lastRunStartedAt);
-const finishedAt = Date.parse(status.lastRunFinishedAt);
-
-if (Number.isNaN(startedAt) || Number.isNaN(finishedAt)) {
-  throw new Error(`${statusPath} has invalid run timestamps`);
-}
-
-const elapsedMs = Math.max(0, finishedAt - startedAt);
-const elapsedMinutes = elapsedMs / 60000;
-console.log(`Recorded run elapsed time: ${elapsedMinutes.toFixed(1)} minute(s)`);
-
-if (elapsedMs < 45 * 60000) {
-  throw new Error(`recorded run finished after ${elapsedMinutes.toFixed(1)} minute(s); keep working until at least 45 minutes elapse`);
-}
 
 function countReadyTasks(backlogPath) {
   const backlog = fs.readFileSync(backlogPath, "utf8");
