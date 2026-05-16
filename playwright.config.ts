@@ -25,10 +25,12 @@ export default defineConfig({
   },
   projects: [
     {
-      name: "chromium-webgpu",
+      name: "chrome-webgpu-headed",
       use: {
         ...devices["Desktop Chrome"],
         browserName: "chromium",
+        channel: "chrome",
+        headless: false,
         launchOptions: {
           args: ["--enable-unsafe-webgpu"],
         },
