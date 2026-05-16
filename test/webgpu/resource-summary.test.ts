@@ -72,6 +72,40 @@ describe("renderer resource summary report", () => {
     ]);
   });
 
+  it("summarizes texture upload validation diagnostics", () => {
+    const report = createRenderResourceSummaryReport({
+      meshResources: [],
+      materialResources: [],
+      textureResources: [
+        textureResource(true),
+        textureUploadDiagnostic("textureResource.invalidBytesPerRow"),
+        textureUploadDiagnostic("textureResource.uploadDataTooSmall"),
+      ],
+      samplerResources: [],
+      viewUniformResources: [],
+      shaderResources: [],
+      pipelines: [],
+    });
+
+    expect(report.counts).toMatchObject({
+      textures: 1,
+      warnings: 2,
+      errors: 0,
+    });
+    expect(report.diagnostics).toEqual([
+      {
+        code: "textureResource.invalidBytesPerRow",
+        message: "textureResource.invalidBytesPerRow failed",
+        severity: "warning",
+      },
+      {
+        code: "textureResource.uploadDataTooSmall",
+        message: "textureResource.uploadDataTooSmall failed",
+        severity: "warning",
+      },
+    ]);
+  });
+
   it("reports empty resource inputs", () => {
     expect(
       createRenderResourceSummaryReport({
@@ -161,6 +195,24 @@ function textureResource(valid: boolean): CreateTextureGpuResourceResult {
           },
         ],
       };
+}
+
+function textureUploadDiagnostic(
+  code:
+    | "textureResource.invalidBytesPerRow"
+    | "textureResource.uploadDataTooSmall",
+): CreateTextureGpuResourceResult {
+  return {
+    valid: false,
+    resource: null,
+    diagnostics: [
+      {
+        code,
+        resourceKey: "texture:upload",
+        message: `${code} failed`,
+      },
+    ],
+  };
 }
 
 function samplerResource(valid: boolean): CreateSamplerGpuResourceResult {

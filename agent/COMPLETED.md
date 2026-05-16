@@ -2753,3 +2753,223 @@ Summary:
 - Shared group 0/1 bind groups are created per pipeline layout with pipeline-scoped resource keys so auto-layout bind groups resolve to the matching pipeline.
 - Added `?scenario=mixed-unlit-pipelines` and Playwright coverage for factor-only plus texture-backed pixels in one frame.
 - Validation run: targeted render-pass draw-list/unit coverage and mixed-pipeline Playwright spec pass.
+
+## task-0254 — Add quadrant texture UV browser readback coverage
+
+Completed: 2026-05-16
+
+Summary:
+
+- Expanded `?scenario=textured-unlit` to publish and read back four quadrant samples from a 2x2 texture.
+- Playwright now verifies upper/lower and left/right UV orientation with distinct colors.
+- Validation run: targeted textured-unlit Playwright spec, build, typecheck, and example syntax checks pass.
+
+## task-0255 — Add multi-pipeline render-frame planning unit coverage
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added `planRenderFrameFromSnapshot` coverage for factor-only and textured unlit pipeline keys in one frame.
+- Tightened shared bind group resolution so pipeline-scoped groups do not silently fall back to another pipeline.
+- Validation run: targeted render-frame-plan/render-pass-draw-list tests, build, and test typecheck pass.
+
+## task-0256 — Add sampler filter and address browser readback coverage
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added `?scenario=sampler-filter-address` with mirror-repeat U addressing and linear filtering.
+- Status reports sampler settings, expected sample ids, and comparison colors; Playwright verifies the blended pixel.
+- Validation run: targeted sampler Playwright spec, build, typecheck, and example syntax checks pass.
+
+## task-0257 — Add texture upload row-stride diagnostics coverage
+
+Completed: 2026-05-16
+
+Summary:
+
+- `createTextureGpuResource` now validates `bytesPerRow` and `rowsPerImage` before `queue.writeTexture`.
+- Added unit coverage for invalid row-stride inputs plus valid tightly packed and padded uploads.
+- Validation run: texture resource tests, texture browser specs, build, typecheck, and example syntax checks pass.
+
+## task-0258 — Add textured unlit tint browser coverage
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added `?scenario=textured-unlit-tint` for a texture-backed unlit material with non-white `baseColorFactor`.
+- Playwright verifies the rendered pixel matches texture color multiplied by tint.
+- Validation run: targeted texture Playwright specs, build, typecheck, and example syntax checks pass.
+
+## task-0259 — Add texture upload data-size diagnostics
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added `textureResource.uploadDataTooSmall` validation for upload data shorter than the required row/layer layout.
+- Unit tests cover tightly packed, padded, and layered minimum byte counts.
+- Validation run: texture resource tests, texture browser specs, build, typecheck, and example syntax checks pass.
+
+## task-0260 — Add texture format row-byte coverage
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added row-byte validation coverage for `r8unorm`, `rg8unorm`, `rgba8unorm`, `bgra8unorm`, and `rgba16float`.
+- Unknown formats still require positive integer `bytesPerRow` without false minimum-byte diagnostics.
+- Validation run: texture resource tests, build, and test typecheck pass.
+
+## task-0261 — Add invalid texture upload browser diagnostics
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added `?scenario=invalid-texture-upload` for invalid upload row stride.
+- Browser status reports `textureResource.invalidBytesPerRow` and no submission when resource creation fails.
+- Validation run: invalid texture upload Playwright spec, build, typecheck, and example syntax checks pass.
+
+## task-0262 — Add vertical sampler address browser readback coverage
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added `?scenario=sampler-v-address` with mirror-repeat V addressing and linear filtering.
+- Playwright verifies the vertical sampler behavior through readback against rejected clamp/repeat/nearest colors.
+- Validation run: sampler-v Playwright spec, build, typecheck, and example syntax checks pass.
+
+## task-0263 — Add multi-textured unlit browser coverage
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added `?scenario=multi-textured-unlit` for two texture-backed unlit draws with distinct textures and samplers.
+- Playwright verifies both readback colors and resource counts for two textures/two samplers.
+- Validation run: multi-textured Playwright spec, build, typecheck, and example syntax checks pass.
+
+## task-0264 — Add invalid texture upload data-size browser diagnostics
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added `?scenario=short-texture-upload` for intentionally short texture upload data.
+- Browser status reports `textureResource.uploadDataTooSmall`, expected/received byte counts, and no submission.
+- Validation run: invalid texture upload Playwright spec, build, typecheck, and example syntax checks pass.
+
+## task-0265 — Add shared-sampler multi-textured browser coverage
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added `?scenario=shared-sampler-multi-textured` using two textures and one shared sampler.
+- Playwright verifies both texture colors and resource counts for two textures/one sampler.
+- Validation run: multi-textured Playwright spec, build, typecheck, and example syntax checks pass.
+
+## task-0266 — Add layered texture upload validation coverage
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added valid layered texture upload coverage with padded `rowsPerImage`.
+- Existing invalid layered byte-count coverage verifies exact minimum bytes.
+- Validation run: texture resource tests, build, and test typecheck pass.
+
+## task-0267 — Add texture resource summary diagnostics coverage
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added resource summary coverage for texture upload validation diagnostics.
+- Counts now explicitly prove failed texture uploads do not increment valid texture totals.
+- Validation run: resource summary tests, build, and test typecheck pass.
+
+## task-0268 — Add multi-textured resource-missing browser diagnostics
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added `?scenario=multi-textured-missing-texture-resource` withholding one texture GPU resource from two textured draws.
+- Missing unlit bind group diagnostics now include structured `resourceKey`.
+- Validation run: missing texture resource Playwright spec, build, typecheck, and example syntax checks pass.
+
+## task-0269 — Add bind-group missing resource-key unit coverage
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added unit assertions that missing buffer, texture, and sampler bind-group diagnostics carry `resourceKey`.
+- Existing diagnostic code expectations continue to pass.
+- Validation run: unlit bind-group/frame-resource tests, build, and test typecheck pass.
+
+## task-0270 — Add browser available-scenario coverage for texture cases
+
+Completed: 2026-05-16
+
+Summary:
+
+- Unknown-scenario Playwright coverage now asserts representative texture scenarios appear in `availableScenarios`.
+- The assertion remains partial so the test is not brittle as scenarios grow.
+- Validation run: unknown-scenario Playwright spec and test typecheck pass.
+
+## task-0271 — Add texture upload failure resource summary merge coverage
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added resource summary merge coverage for texture upload validation diagnostic codes.
+- Merged warning counts and diagnostic ordering are covered.
+- Validation run: resource summary tests, build, and test typecheck pass.
+
+## task-0272 — Add material texture dependency report coverage for multiple textures
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added unit coverage for one ready textured material and one missing texture dependency in the same test flow.
+- Diagnostics identify only the missing texture resource key.
+- Validation run: material dependency readiness tests, build, and test typecheck pass.
+
+## task-0273 — Add browser texture scenario docs index
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added a compact texture/sampler scenario index to `docs/BROWSER_E2E_RENDERING.md`.
+- The index maps scenario query names to the readback or diagnostic behavior they verify.
+- Validation run: formatting pass completed.
+
+## task-0274 — Add invalid rows-per-image browser diagnostics
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added `?scenario=invalid-texture-rows-per-image` for invalid texture upload `rowsPerImage`.
+- Browser status reports `textureResource.invalidRowsPerImage`, the texture key, and no submission.
+- Validation run: invalid texture upload Playwright spec, build, typecheck, and example syntax checks pass.
+
+## task-0275 — Add shared-texture tinted materials browser coverage
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added `?scenario=shared-texture-tinted-unlit` for two materials sharing one texture/sampler pair with different tints.
+- Playwright verifies both multiplied readback colors and resource counts for one texture/one sampler.
+- Validation run: textured tint Playwright spec, build, typecheck, and example syntax checks pass.

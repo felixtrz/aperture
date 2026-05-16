@@ -31,6 +31,9 @@ const knownScenarios = new Set([
   "loading-sampler-asset",
   "failed-sampler-asset",
   "missing-texture-sampler-resources",
+  "invalid-texture-upload",
+  "short-texture-upload",
+  "invalid-texture-rows-per-image",
   "disabled-renderable",
   "disabled-visible-peer",
   "box-primitive",
@@ -45,6 +48,13 @@ const knownScenarios = new Set([
   "render-order-overlap",
   "depth-overlap",
   "textured-unlit",
+  "sampler-filter-address",
+  "textured-unlit-tint",
+  "sampler-v-address",
+  "multi-textured-unlit",
+  "shared-sampler-multi-textured",
+  "shared-texture-tinted-unlit",
+  "multi-textured-missing-texture-resource",
   "mixed-unlit-pipelines",
 ]);
 const readbackSamplePoints = [
@@ -498,8 +508,8 @@ try {
                                                                             },
                                                                           )
                                                                         : scenario ===
-                                                                            "mixed-unlit-pipelines"
-                                                                          ? createMixedUnlitPipelineWorld(
+                                                                            "sampler-filter-address"
+                                                                          ? createSamplerFilterAddressWorld(
                                                                               aperture,
                                                                               {
                                                                                 width:
@@ -509,8 +519,8 @@ try {
                                                                               },
                                                                             )
                                                                           : scenario ===
-                                                                              "missing-texture-sampler-resources"
-                                                                            ? createMissingTextureSamplerResourceWorld(
+                                                                              "textured-unlit-tint"
+                                                                            ? createTexturedUnlitTintWorld(
                                                                                 aperture,
                                                                                 {
                                                                                   width:
@@ -519,7 +529,120 @@ try {
                                                                                     canvas.height,
                                                                                 },
                                                                               )
-                                                                            : undefined,
+                                                                            : scenario ===
+                                                                                "sampler-v-address"
+                                                                              ? createSamplerVAddressWorld(
+                                                                                  aperture,
+                                                                                  {
+                                                                                    width:
+                                                                                      canvas.width,
+                                                                                    height:
+                                                                                      canvas.height,
+                                                                                  },
+                                                                                )
+                                                                              : scenario ===
+                                                                                  "multi-textured-unlit"
+                                                                                ? createMultiTexturedUnlitWorld(
+                                                                                    aperture,
+                                                                                    {
+                                                                                      width:
+                                                                                        canvas.width,
+                                                                                      height:
+                                                                                        canvas.height,
+                                                                                    },
+                                                                                  )
+                                                                                : scenario ===
+                                                                                    "shared-sampler-multi-textured"
+                                                                                  ? createMultiTexturedUnlitWorld(
+                                                                                      aperture,
+                                                                                      {
+                                                                                        width:
+                                                                                          canvas.width,
+                                                                                        height:
+                                                                                          canvas.height,
+                                                                                      },
+                                                                                      {
+                                                                                        sharedSampler: true,
+                                                                                      },
+                                                                                    )
+                                                                                  : scenario ===
+                                                                                      "shared-texture-tinted-unlit"
+                                                                                    ? createSharedTextureTintedWorld(
+                                                                                        aperture,
+                                                                                        {
+                                                                                          width:
+                                                                                            canvas.width,
+                                                                                          height:
+                                                                                            canvas.height,
+                                                                                        },
+                                                                                      )
+                                                                                    : scenario ===
+                                                                                        "multi-textured-missing-texture-resource"
+                                                                                      ? createMultiTexturedMissingTextureResourceWorld(
+                                                                                          aperture,
+                                                                                          {
+                                                                                            width:
+                                                                                              canvas.width,
+                                                                                            height:
+                                                                                              canvas.height,
+                                                                                          },
+                                                                                        )
+                                                                                      : scenario ===
+                                                                                          "mixed-unlit-pipelines"
+                                                                                        ? createMixedUnlitPipelineWorld(
+                                                                                            aperture,
+                                                                                            {
+                                                                                              width:
+                                                                                                canvas.width,
+                                                                                              height:
+                                                                                                canvas.height,
+                                                                                            },
+                                                                                          )
+                                                                                        : scenario ===
+                                                                                            "missing-texture-sampler-resources"
+                                                                                          ? createMissingTextureSamplerResourceWorld(
+                                                                                              aperture,
+                                                                                              {
+                                                                                                width:
+                                                                                                  canvas.width,
+                                                                                                height:
+                                                                                                  canvas.height,
+                                                                                              },
+                                                                                            )
+                                                                                          : scenario ===
+                                                                                              "invalid-texture-upload"
+                                                                                            ? createInvalidTextureUploadWorld(
+                                                                                                aperture,
+                                                                                                {
+                                                                                                  width:
+                                                                                                    canvas.width,
+                                                                                                  height:
+                                                                                                    canvas.height,
+                                                                                                },
+                                                                                              )
+                                                                                            : scenario ===
+                                                                                                "short-texture-upload"
+                                                                                              ? createShortTextureUploadWorld(
+                                                                                                  aperture,
+                                                                                                  {
+                                                                                                    width:
+                                                                                                      canvas.width,
+                                                                                                    height:
+                                                                                                      canvas.height,
+                                                                                                  },
+                                                                                                )
+                                                                                              : scenario ===
+                                                                                                  "invalid-texture-rows-per-image"
+                                                                                                ? createInvalidTextureRowsPerImageWorld(
+                                                                                                    aperture,
+                                                                                                    {
+                                                                                                      width:
+                                                                                                        canvas.width,
+                                                                                                      height:
+                                                                                                        canvas.height,
+                                                                                                    },
+                                                                                                  )
+                                                                                                : undefined,
                                                                     ),
       );
     }
@@ -638,6 +761,10 @@ async function renderMultiEntityScene(
       ),
       diagnostics: textureResources.diagnostics,
       extraction: snapshotCounts(snapshot),
+      ...(scene.texture === undefined ? {} : { texture: scene.texture }),
+      ...(scene.invalidTextureUpload === undefined
+        ? {}
+        : { invalidTextureUpload: scene.invalidTextureUpload }),
     };
   }
 
@@ -677,6 +804,12 @@ async function renderMultiEntityScene(
         missing: "texture/sampler",
       },
       ...(scene.texture === undefined ? {} : { texture: scene.texture }),
+      ...(scene.multiTextured === undefined
+        ? {}
+        : { multiTextured: scene.multiTextured }),
+      ...(scene.missingTextureResource === undefined
+        ? {}
+        : { missingTextureResource: scene.missingTextureResource }),
     };
   }
 
@@ -834,6 +967,19 @@ async function renderMultiEntityScene(
       ? {}
       : { depth: { format: scene.depthFormat } }),
     ...(scene.texture === undefined ? {} : { texture: scene.texture }),
+    ...(scene.sampler === undefined ? {} : { sampler: scene.sampler }),
+    ...(scene.texturedTint === undefined
+      ? {}
+      : { texturedTint: scene.texturedTint }),
+    ...(scene.samplerVAddress === undefined
+      ? {}
+      : { samplerVAddress: scene.samplerVAddress }),
+    ...(scene.multiTextured === undefined
+      ? {}
+      : { multiTextured: scene.multiTextured }),
+    ...(scene.sharedTextureTinted === undefined
+      ? {}
+      : { sharedTextureTinted: scene.sharedTextureTinted }),
     ...(scene.mixedPipelines === undefined
       ? {}
       : { mixedPipelines: scene.mixedPipelines }),
@@ -2653,10 +2799,18 @@ function createTexturedUnlitWorld(aperture, canvasSize) {
     minFilter: "nearest",
     mipmapFilter: "nearest",
   });
-  const leftColor = [1, 0.125, 0.0625, 1];
-  const rightColor = [0.09375, 0.5, 1, 1];
+  const lowerLeftColor = [1, 0.125, 0.0625, 1];
+  const lowerRightColor = [0.09375, 0.5, 1, 1];
+  const upperLeftColor = [0.09375, 0.875, 0.3125, 1];
+  const upperRightColor = [1, 0.90625, 0.09375, 1];
+  const expectedQuadrants = [
+    { sampleId: "upper-left-green", expectedColor: upperLeftColor },
+    { sampleId: "upper-right-yellow", expectedColor: upperRightColor },
+    { sampleId: "lower-left-red", expectedColor: lowerLeftColor },
+    { sampleId: "lower-right-blue", expectedColor: lowerRightColor },
+  ];
   const textureBytes = new Uint8Array([
-    255, 32, 16, 255, 24, 128, 255, 255, 255, 32, 16, 255, 24, 128, 255, 255,
+    255, 32, 16, 255, 24, 128, 255, 255, 24, 224, 80, 255, 255, 232, 24, 255,
   ]);
 
   aperture.registerTransformComponents(world);
@@ -2697,8 +2851,10 @@ function createTexturedUnlitWorld(aperture, canvasSize) {
     mesh,
     expectedDrawCount: 1,
     readbackSamplePoints: [
-      { id: "left-red", x: 0.36, y: 0.5 },
-      { id: "right-blue", x: 0.64, y: 0.5 },
+      { id: "upper-left-green", x: 0.38, y: 0.42 },
+      { id: "upper-right-yellow", x: 0.62, y: 0.42 },
+      { id: "lower-left-red", x: 0.38, y: 0.58 },
+      { id: "lower-right-blue", x: 0.62, y: 0.58 },
     ],
     geometry: {
       primitive: "plane",
@@ -2708,8 +2864,9 @@ function createTexturedUnlitWorld(aperture, canvasSize) {
       materialKey: aperture.assetHandleKey(materialHandle),
       textureKey,
       samplerKey,
-      expectedLeftColor: leftColor,
-      expectedRightColor: rightColor,
+      expectedLeftColor: lowerLeftColor,
+      expectedRightColor: lowerRightColor,
+      expectedQuadrants,
     },
     textures: [
       {
@@ -2741,6 +2898,832 @@ function createMissingTextureSamplerResourceWorld(aperture, canvasSize) {
     ...scene,
     textures: [],
     samplers: [],
+  };
+}
+
+function createInvalidTextureUploadWorld(aperture, canvasSize) {
+  const scene = createTexturedUnlitWorld(aperture, canvasSize);
+  const texture = scene.textures[0];
+
+  return {
+    ...scene,
+    textures:
+      texture === undefined
+        ? []
+        : [
+            {
+              ...texture,
+              upload: {
+                ...texture.upload,
+                bytesPerRow: 7,
+              },
+            },
+          ],
+    invalidTextureUpload: {
+      textureKey: scene.texture.textureKey,
+      expectedDiagnostic: "textureResource.invalidBytesPerRow",
+      bytesPerRow: 7,
+    },
+  };
+}
+
+function createShortTextureUploadWorld(aperture, canvasSize) {
+  const scene = createTexturedUnlitWorld(aperture, canvasSize);
+  const texture = scene.textures[0];
+
+  return {
+    ...scene,
+    textures:
+      texture === undefined
+        ? []
+        : [
+            {
+              ...texture,
+              upload: {
+                ...texture.upload,
+                data: texture.upload.data.slice(0, 15),
+              },
+            },
+          ],
+    invalidTextureUpload: {
+      textureKey: scene.texture.textureKey,
+      expectedDiagnostic: "textureResource.uploadDataTooSmall",
+      bytesPerRow: texture?.upload.bytesPerRow ?? 0,
+      dataBytes: 15,
+    },
+  };
+}
+
+function createInvalidTextureRowsPerImageWorld(aperture, canvasSize) {
+  const scene = createTexturedUnlitWorld(aperture, canvasSize);
+  const texture = scene.textures[0];
+
+  return {
+    ...scene,
+    textures:
+      texture === undefined
+        ? []
+        : [
+            {
+              ...texture,
+              upload: {
+                ...texture.upload,
+                rowsPerImage: 1,
+              },
+            },
+          ],
+    invalidTextureUpload: {
+      textureKey: scene.texture.textureKey,
+      expectedDiagnostic: "textureResource.invalidRowsPerImage",
+      bytesPerRow: texture?.upload.bytesPerRow ?? 0,
+      rowsPerImage: 1,
+    },
+  };
+}
+
+function createSamplerFilterAddressWorld(aperture, canvasSize) {
+  const world = aperture.createWorld({ entityCapacity: 4 });
+  const assets = new aperture.AssetRegistry();
+  const meshHandle = aperture.createMeshHandle("sampler-filter-plane");
+  const materialHandle = aperture.createMaterialHandle(
+    "sampler-filter-address-unlit",
+  );
+  const textureHandle = aperture.createTextureHandle(
+    "sampler-filter-address-strip",
+  );
+  const samplerHandle = aperture.createSamplerHandle("mirror-linear");
+  const textureKey = aperture.assetHandleKey(textureHandle);
+  const samplerKey = aperture.assetHandleKey(samplerHandle);
+  const expectedColor = [0.75, 0, 0.25, 1];
+  const mesh = createUvRangePlaneMeshAsset({
+    label: "SamplerFilterAddressPlane",
+    width: 1.75,
+    height: 1.05,
+    uMin: 1.25,
+    uMax: 2,
+    v: 0.5,
+  });
+  const material = aperture.createUnlitMaterialAsset({
+    label: "SamplerFilterAddressMaterial",
+    baseColorFactor: new Float32Array([1, 1, 1, 1]),
+    baseColorTexture: {
+      texture: textureHandle,
+      sampler: samplerHandle,
+    },
+  });
+  const textureAsset = aperture.createTextureAsset({
+    label: "SamplerFilterAddressStrip",
+    dimension: "2d",
+    width: 2,
+    height: 1,
+    format: "rgba8unorm",
+    colorSpace: "linear",
+    semantic: "base-color",
+    usage: ["sampled", "copy-dst"],
+  });
+  const samplerAsset = aperture.createSamplerAsset({
+    label: "MirrorLinearSampler",
+    addressModeU: "mirror-repeat",
+    addressModeV: "clamp-to-edge",
+    addressModeW: "clamp-to-edge",
+    magFilter: "linear",
+    minFilter: "linear",
+    mipmapFilter: "nearest",
+  });
+  const textureBytes = new Uint8Array([255, 0, 0, 255, 0, 0, 255, 255]);
+
+  aperture.registerTransformComponents(world);
+  aperture.registerMetadataComponents(world);
+  aperture.registerRenderAuthoringComponents(world);
+  assets.register(meshHandle);
+  assets.register(materialHandle);
+  assets.register(textureHandle);
+  assets.register(samplerHandle);
+  assets.markReady(meshHandle, mesh);
+  assets.markReady(materialHandle, material);
+  assets.markReady(textureHandle, textureAsset);
+  assets.markReady(samplerHandle, samplerAsset);
+
+  const camera = world.createEntity();
+  const cameraTransform = aperture.createRootTransform({
+    translation: [0, 0, 2.5],
+  });
+
+  camera.addComponent(aperture.WorldTransform, cameraTransform.world);
+  camera.addComponent(
+    aperture.Camera,
+    aperture.createCamera({
+      aspect: canvasSize.width / canvasSize.height,
+      near: 0.1,
+      far: 100,
+      clearColor: [clearColor.r, clearColor.g, clearColor.b, clearColor.a],
+      layerMask: 1,
+    }),
+  );
+
+  addPrimitiveEntity(aperture, world, meshHandle, materialHandle, [0, 0, 0]);
+
+  return {
+    world,
+    assets,
+    meshHandle,
+    mesh,
+    expectedDrawCount: 1,
+    readbackSamplePoints: [{ id: "mirror-linear-blend", x: 0.5, y: 0.5 }],
+    geometry: {
+      primitive: "plane",
+      source: "custom mirror-repeat UV plane",
+    },
+    texture: {
+      materialKey: aperture.assetHandleKey(materialHandle),
+      textureKey,
+      samplerKey,
+      expectedLeftColor: [1, 0, 0, 1],
+      expectedRightColor: [0, 0, 1, 1],
+    },
+    sampler: {
+      samplerKey,
+      textureKey,
+      addressModeU: samplerAsset.addressModeU,
+      addressModeV: samplerAsset.addressModeV,
+      addressModeW: samplerAsset.addressModeW,
+      magFilter: samplerAsset.magFilter,
+      minFilter: samplerAsset.minFilter,
+      mipmapFilter: samplerAsset.mipmapFilter,
+      expectedSampleIds: ["mirror-linear-blend"],
+      expectedColor,
+      rejectedColors: {
+        nearestMirror: [1, 0, 0, 1],
+        repeatLinear: [0.25, 0, 0.75, 1],
+        clamp: [0, 0, 1, 1],
+      },
+    },
+    textures: [
+      {
+        resourceKey: textureKey,
+        descriptor: {
+          label: "SamplerFilterAddressStrip",
+          size: [2, 1, 1],
+          format: "rgba8unorm",
+          usage:
+            (globalThis.GPUTextureUsage?.TEXTURE_BINDING ?? 0x04) |
+            (globalThis.GPUTextureUsage?.COPY_DST ?? 0x02),
+        },
+        upload: {
+          data: textureBytes,
+          bytesPerRow: 8,
+          rowsPerImage: 1,
+        },
+      },
+    ],
+    samplers: [{ resourceKey: samplerKey, asset: samplerAsset }],
+    materials: [{ handle: materialHandle, asset: material }],
+  };
+}
+
+function createTexturedUnlitTintWorld(aperture, canvasSize) {
+  const world = aperture.createWorld({ entityCapacity: 4 });
+  const assets = new aperture.AssetRegistry();
+  const meshHandle = aperture.createMeshHandle("textured-unlit-tint-plane");
+  const materialHandle = aperture.createMaterialHandle("textured-unlit-tint");
+  const textureHandle = aperture.createTextureHandle("tint-albedo");
+  const samplerHandle = aperture.createSamplerHandle("tint-nearest-clamp");
+  const textureKey = aperture.assetHandleKey(textureHandle);
+  const samplerKey = aperture.assetHandleKey(samplerHandle);
+  const textureColor = [0.8, 0.6, 0.4, 1];
+  const tintFactor = [0.5, 0.25, 0.75, 1];
+  const expectedColor = [0.4, 0.15, 0.3, 1];
+  const mesh = aperture.createPlaneMeshAsset({
+    label: "TexturedUnlitTintPlane",
+    width: 1.2,
+    height: 1.2,
+  });
+  const material = aperture.createUnlitMaterialAsset({
+    label: "TexturedUnlitTintMaterial",
+    baseColorFactor: new Float32Array(tintFactor),
+    baseColorTexture: {
+      texture: textureHandle,
+      sampler: samplerHandle,
+    },
+  });
+  const textureAsset = aperture.createTextureAsset({
+    label: "TintAlbedo",
+    dimension: "2d",
+    width: 2,
+    height: 2,
+    format: "rgba8unorm",
+    colorSpace: "linear",
+    semantic: "base-color",
+    usage: ["sampled", "copy-dst"],
+  });
+  const samplerAsset = aperture.createSamplerAsset({
+    label: "TintNearestClampSampler",
+    addressModeU: "clamp-to-edge",
+    addressModeV: "clamp-to-edge",
+    addressModeW: "clamp-to-edge",
+    magFilter: "nearest",
+    minFilter: "nearest",
+    mipmapFilter: "nearest",
+  });
+  const textureBytes = new Uint8Array([
+    204, 153, 102, 255, 204, 153, 102, 255, 204, 153, 102, 255, 204, 153, 102,
+    255,
+  ]);
+
+  aperture.registerTransformComponents(world);
+  aperture.registerMetadataComponents(world);
+  aperture.registerRenderAuthoringComponents(world);
+  assets.register(meshHandle);
+  assets.register(materialHandle);
+  assets.register(textureHandle);
+  assets.register(samplerHandle);
+  assets.markReady(meshHandle, mesh);
+  assets.markReady(materialHandle, material);
+  assets.markReady(textureHandle, textureAsset);
+  assets.markReady(samplerHandle, samplerAsset);
+
+  const camera = world.createEntity();
+  const cameraTransform = aperture.createRootTransform({
+    translation: [0, 0, 2.5],
+  });
+
+  camera.addComponent(aperture.WorldTransform, cameraTransform.world);
+  camera.addComponent(
+    aperture.Camera,
+    aperture.createCamera({
+      aspect: canvasSize.width / canvasSize.height,
+      near: 0.1,
+      far: 100,
+      clearColor: [clearColor.r, clearColor.g, clearColor.b, clearColor.a],
+      layerMask: 1,
+    }),
+  );
+
+  addPrimitiveEntity(aperture, world, meshHandle, materialHandle, [0, 0, 0]);
+
+  return {
+    world,
+    assets,
+    meshHandle,
+    mesh,
+    expectedDrawCount: 1,
+    readbackSamplePoints: [{ id: "tinted-texture", x: 0.5, y: 0.5 }],
+    geometry: {
+      primitive: "plane",
+      source: "aperture.createPlaneMeshAsset",
+    },
+    texture: {
+      materialKey: aperture.assetHandleKey(materialHandle),
+      textureKey,
+      samplerKey,
+      expectedLeftColor: textureColor,
+      expectedRightColor: textureColor,
+    },
+    texturedTint: {
+      materialKey: aperture.assetHandleKey(materialHandle),
+      textureKey,
+      samplerKey,
+      sampleId: "tinted-texture",
+      textureColor,
+      tintFactor,
+      expectedColor,
+    },
+    textures: [
+      {
+        resourceKey: textureKey,
+        descriptor: {
+          label: "TintAlbedo",
+          size: [2, 2, 1],
+          format: "rgba8unorm",
+          usage:
+            (globalThis.GPUTextureUsage?.TEXTURE_BINDING ?? 0x04) |
+            (globalThis.GPUTextureUsage?.COPY_DST ?? 0x02),
+        },
+        upload: {
+          data: textureBytes,
+          bytesPerRow: 8,
+          rowsPerImage: 2,
+        },
+      },
+    ],
+    samplers: [{ resourceKey: samplerKey, asset: samplerAsset }],
+    materials: [{ handle: materialHandle, asset: material }],
+  };
+}
+
+function createSamplerVAddressWorld(aperture, canvasSize) {
+  const world = aperture.createWorld({ entityCapacity: 4 });
+  const assets = new aperture.AssetRegistry();
+  const meshHandle = aperture.createMeshHandle("sampler-v-address-plane");
+  const materialHandle = aperture.createMaterialHandle(
+    "sampler-v-address-unlit",
+  );
+  const textureHandle = aperture.createTextureHandle("sampler-v-address-strip");
+  const samplerHandle = aperture.createSamplerHandle("mirror-v-linear");
+  const textureKey = aperture.assetHandleKey(textureHandle);
+  const samplerKey = aperture.assetHandleKey(samplerHandle);
+  const expectedColor = [0.75, 0, 0.25, 1];
+  const mesh = createUvRangePlaneMeshAsset({
+    label: "SamplerVAddressPlane",
+    width: 1.2,
+    height: 1.2,
+    uMin: 0.5,
+    uMax: 0.5,
+    vMin: 1.25,
+    vMax: 2,
+  });
+  const material = aperture.createUnlitMaterialAsset({
+    label: "SamplerVAddressMaterial",
+    baseColorFactor: new Float32Array([1, 1, 1, 1]),
+    baseColorTexture: {
+      texture: textureHandle,
+      sampler: samplerHandle,
+    },
+  });
+  const textureAsset = aperture.createTextureAsset({
+    label: "SamplerVAddressStrip",
+    dimension: "2d",
+    width: 2,
+    height: 2,
+    format: "rgba8unorm",
+    colorSpace: "linear",
+    semantic: "base-color",
+    usage: ["sampled", "copy-dst"],
+  });
+  const samplerAsset = aperture.createSamplerAsset({
+    label: "MirrorVLinearSampler",
+    addressModeU: "clamp-to-edge",
+    addressModeV: "mirror-repeat",
+    addressModeW: "clamp-to-edge",
+    magFilter: "linear",
+    minFilter: "linear",
+    mipmapFilter: "nearest",
+  });
+  const textureBytes = new Uint8Array([
+    255, 0, 0, 255, 255, 0, 0, 255, 0, 0, 255, 255, 0, 0, 255, 255,
+  ]);
+
+  aperture.registerTransformComponents(world);
+  aperture.registerMetadataComponents(world);
+  aperture.registerRenderAuthoringComponents(world);
+  assets.register(meshHandle);
+  assets.register(materialHandle);
+  assets.register(textureHandle);
+  assets.register(samplerHandle);
+  assets.markReady(meshHandle, mesh);
+  assets.markReady(materialHandle, material);
+  assets.markReady(textureHandle, textureAsset);
+  assets.markReady(samplerHandle, samplerAsset);
+
+  const camera = world.createEntity();
+  const cameraTransform = aperture.createRootTransform({
+    translation: [0, 0, 2.5],
+  });
+
+  camera.addComponent(aperture.WorldTransform, cameraTransform.world);
+  camera.addComponent(
+    aperture.Camera,
+    aperture.createCamera({
+      aspect: canvasSize.width / canvasSize.height,
+      near: 0.1,
+      far: 100,
+      clearColor: [clearColor.r, clearColor.g, clearColor.b, clearColor.a],
+      layerMask: 1,
+    }),
+  );
+
+  addPrimitiveEntity(aperture, world, meshHandle, materialHandle, [0, 0, 0]);
+
+  return {
+    world,
+    assets,
+    meshHandle,
+    mesh,
+    expectedDrawCount: 1,
+    readbackSamplePoints: [{ id: "mirror-v-linear-blend", x: 0.5, y: 0.5 }],
+    geometry: {
+      primitive: "plane",
+      source: "custom mirror-repeat V UV plane",
+    },
+    texture: {
+      materialKey: aperture.assetHandleKey(materialHandle),
+      textureKey,
+      samplerKey,
+      expectedLeftColor: [1, 0, 0, 1],
+      expectedRightColor: [0, 0, 1, 1],
+    },
+    samplerVAddress: {
+      samplerKey,
+      textureKey,
+      addressModeU: samplerAsset.addressModeU,
+      addressModeV: samplerAsset.addressModeV,
+      addressModeW: samplerAsset.addressModeW,
+      magFilter: samplerAsset.magFilter,
+      minFilter: samplerAsset.minFilter,
+      mipmapFilter: samplerAsset.mipmapFilter,
+      expectedSampleIds: ["mirror-v-linear-blend"],
+      expectedColor,
+      rejectedColors: {
+        nearestMirror: [1, 0, 0, 1],
+        repeatLinear: [0.25, 0, 0.75, 1],
+        clamp: [0, 0, 1, 1],
+      },
+    },
+    textures: [
+      {
+        resourceKey: textureKey,
+        descriptor: {
+          label: "SamplerVAddressStrip",
+          size: [2, 2, 1],
+          format: "rgba8unorm",
+          usage:
+            (globalThis.GPUTextureUsage?.TEXTURE_BINDING ?? 0x04) |
+            (globalThis.GPUTextureUsage?.COPY_DST ?? 0x02),
+        },
+        upload: {
+          data: textureBytes,
+          bytesPerRow: 8,
+          rowsPerImage: 2,
+        },
+      },
+    ],
+    samplers: [{ resourceKey: samplerKey, asset: samplerAsset }],
+    materials: [{ handle: materialHandle, asset: material }],
+  };
+}
+
+function createMultiTexturedUnlitWorld(aperture, canvasSize, options = {}) {
+  const sharedSampler = options.sharedSampler === true;
+  const world = aperture.createWorld({ entityCapacity: 6 });
+  const assets = new aperture.AssetRegistry();
+  const meshHandle = aperture.createMeshHandle("multi-textured-plane");
+  const leftMaterialHandle =
+    aperture.createMaterialHandle("multi-textured-red");
+  const rightMaterialHandle = aperture.createMaterialHandle(
+    "multi-textured-cyan",
+  );
+  const leftTextureHandle = aperture.createTextureHandle("multi-red-albedo");
+  const rightTextureHandle = aperture.createTextureHandle("multi-cyan-albedo");
+  const leftSamplerHandle = aperture.createSamplerHandle("multi-red-nearest");
+  const rightSamplerHandle = sharedSampler
+    ? leftSamplerHandle
+    : aperture.createSamplerHandle("multi-cyan-nearest");
+  const leftColor = [0.95, 0.1, 0.08, 1];
+  const rightColor = [0.05, 0.85, 0.95, 1];
+  const mesh = aperture.createPlaneMeshAsset({
+    label: "MultiTexturedPlane",
+    width: 0.78,
+    height: 0.9,
+  });
+  const leftMaterial = aperture.createUnlitMaterialAsset({
+    label: "MultiTexturedRedMaterial",
+    baseColorFactor: new Float32Array([1, 1, 1, 1]),
+    baseColorTexture: {
+      texture: leftTextureHandle,
+      sampler: leftSamplerHandle,
+    },
+  });
+  const rightMaterial = aperture.createUnlitMaterialAsset({
+    label: "MultiTexturedCyanMaterial",
+    baseColorFactor: new Float32Array([1, 1, 1, 1]),
+    baseColorTexture: {
+      texture: rightTextureHandle,
+      sampler: rightSamplerHandle,
+    },
+  });
+  const textureAsset = (label) =>
+    aperture.createTextureAsset({
+      label,
+      dimension: "2d",
+      width: 2,
+      height: 2,
+      format: "rgba8unorm",
+      colorSpace: "linear",
+      semantic: "base-color",
+      usage: ["sampled", "copy-dst"],
+    });
+  const samplerAsset = (label) =>
+    aperture.createSamplerAsset({
+      label,
+      addressModeU: "clamp-to-edge",
+      addressModeV: "clamp-to-edge",
+      addressModeW: "clamp-to-edge",
+      magFilter: "nearest",
+      minFilter: "nearest",
+      mipmapFilter: "nearest",
+    });
+  const leftSampler = samplerAsset("MultiRedNearestSampler");
+  const rightSampler = samplerAsset("MultiCyanNearestSampler");
+  const leftTextureBytes = solidTextureBytes([242, 26, 20, 255]);
+  const rightTextureBytes = solidTextureBytes([13, 217, 242, 255]);
+  const leftTextureKey = aperture.assetHandleKey(leftTextureHandle);
+  const rightTextureKey = aperture.assetHandleKey(rightTextureHandle);
+  const leftSamplerKey = aperture.assetHandleKey(leftSamplerHandle);
+  const rightSamplerKey = aperture.assetHandleKey(rightSamplerHandle);
+
+  aperture.registerTransformComponents(world);
+  aperture.registerMetadataComponents(world);
+  aperture.registerRenderAuthoringComponents(world);
+  assets.register(meshHandle);
+  assets.register(leftMaterialHandle);
+  assets.register(rightMaterialHandle);
+  assets.register(leftTextureHandle);
+  assets.register(rightTextureHandle);
+  assets.register(leftSamplerHandle);
+  if (!sharedSampler) {
+    assets.register(rightSamplerHandle);
+  }
+  assets.markReady(meshHandle, mesh);
+  assets.markReady(leftMaterialHandle, leftMaterial);
+  assets.markReady(rightMaterialHandle, rightMaterial);
+  assets.markReady(leftTextureHandle, textureAsset("MultiRedAlbedo"));
+  assets.markReady(rightTextureHandle, textureAsset("MultiCyanAlbedo"));
+  assets.markReady(leftSamplerHandle, leftSampler);
+  if (!sharedSampler) {
+    assets.markReady(rightSamplerHandle, rightSampler);
+  }
+
+  const camera = world.createEntity();
+  const cameraTransform = aperture.createRootTransform({
+    translation: [0, 0, 2.5],
+  });
+
+  camera.addComponent(aperture.WorldTransform, cameraTransform.world);
+  camera.addComponent(
+    aperture.Camera,
+    aperture.createCamera({
+      aspect: canvasSize.width / canvasSize.height,
+      near: 0.1,
+      far: 100,
+      clearColor: [clearColor.r, clearColor.g, clearColor.b, clearColor.a],
+      layerMask: 1,
+    }),
+  );
+
+  addPrimitiveEntity(
+    aperture,
+    world,
+    meshHandle,
+    leftMaterialHandle,
+    [-0.52, 0, 0],
+  );
+  addPrimitiveEntity(
+    aperture,
+    world,
+    meshHandle,
+    rightMaterialHandle,
+    [0.52, 0, 0],
+  );
+
+  return {
+    world,
+    assets,
+    meshHandle,
+    mesh,
+    expectedDrawCount: 2,
+    readbackSamplePoints: [
+      { id: "left-texture-red", x: 0.34, y: 0.5 },
+      { id: "right-texture-cyan", x: 0.66, y: 0.5 },
+    ],
+    geometry: {
+      primitive: "plane",
+      source: "aperture.createPlaneMeshAsset",
+    },
+    multiTextured: {
+      ...(sharedSampler ? { sharedSamplerKey: leftSamplerKey } : {}),
+      left: {
+        sampleId: "left-texture-red",
+        materialKey: aperture.assetHandleKey(leftMaterialHandle),
+        textureKey: leftTextureKey,
+        samplerKey: leftSamplerKey,
+        expectedColor: leftColor,
+      },
+      right: {
+        sampleId: "right-texture-cyan",
+        materialKey: aperture.assetHandleKey(rightMaterialHandle),
+        textureKey: rightTextureKey,
+        samplerKey: rightSamplerKey,
+        expectedColor: rightColor,
+      },
+    },
+    textures: [
+      textureUpload(leftTextureKey, "MultiRedAlbedo", leftTextureBytes),
+      textureUpload(rightTextureKey, "MultiCyanAlbedo", rightTextureBytes),
+    ],
+    samplers: [
+      { resourceKey: leftSamplerKey, asset: leftSampler },
+      ...(sharedSampler
+        ? []
+        : [{ resourceKey: rightSamplerKey, asset: rightSampler }]),
+    ],
+    materials: [
+      { handle: leftMaterialHandle, asset: leftMaterial },
+      { handle: rightMaterialHandle, asset: rightMaterial },
+    ],
+  };
+}
+
+function createMultiTexturedMissingTextureResourceWorld(aperture, canvasSize) {
+  const scene = createMultiTexturedUnlitWorld(aperture, canvasSize);
+  const missingTextureKey = scene.multiTextured.right.textureKey;
+
+  return {
+    ...scene,
+    textures: scene.textures.filter(
+      (texture) => texture.resourceKey !== missingTextureKey,
+    ),
+    missingTextureResource: {
+      textureKey: missingTextureKey,
+      expectedDiagnostic: "unlitBindGroupResource.missingTextureResource",
+    },
+  };
+}
+
+function createSharedTextureTintedWorld(aperture, canvasSize) {
+  const world = aperture.createWorld({ entityCapacity: 6 });
+  const assets = new aperture.AssetRegistry();
+  const meshHandle = aperture.createMeshHandle("shared-texture-tinted-plane");
+  const leftMaterialHandle = aperture.createMaterialHandle("shared-tint-warm");
+  const rightMaterialHandle = aperture.createMaterialHandle("shared-tint-cool");
+  const textureHandle = aperture.createTextureHandle("shared-tint-albedo");
+  const samplerHandle = aperture.createSamplerHandle("shared-tint-nearest");
+  const textureKey = aperture.assetHandleKey(textureHandle);
+  const samplerKey = aperture.assetHandleKey(samplerHandle);
+  const textureColor = [0.8, 0.6, 0.4, 1];
+  const leftTint = [1, 0.5, 0.5, 1];
+  const rightTint = [0.25, 1, 0.5, 1];
+  const mesh = aperture.createPlaneMeshAsset({
+    label: "SharedTextureTintedPlane",
+    width: 0.78,
+    height: 0.9,
+  });
+  const material = (label, tint) =>
+    aperture.createUnlitMaterialAsset({
+      label,
+      baseColorFactor: new Float32Array(tint),
+      baseColorTexture: { texture: textureHandle, sampler: samplerHandle },
+    });
+  const textureAsset = aperture.createTextureAsset({
+    label: "SharedTintAlbedo",
+    dimension: "2d",
+    width: 2,
+    height: 2,
+    format: "rgba8unorm",
+    colorSpace: "linear",
+    semantic: "base-color",
+    usage: ["sampled", "copy-dst"],
+  });
+  const samplerAsset = aperture.createSamplerAsset({
+    label: "SharedTintNearestSampler",
+    addressModeU: "clamp-to-edge",
+    addressModeV: "clamp-to-edge",
+    addressModeW: "clamp-to-edge",
+    magFilter: "nearest",
+    minFilter: "nearest",
+    mipmapFilter: "nearest",
+  });
+
+  aperture.registerTransformComponents(world);
+  aperture.registerMetadataComponents(world);
+  aperture.registerRenderAuthoringComponents(world);
+  assets.register(meshHandle);
+  assets.register(leftMaterialHandle);
+  assets.register(rightMaterialHandle);
+  assets.register(textureHandle);
+  assets.register(samplerHandle);
+  assets.markReady(meshHandle, mesh);
+  assets.markReady(
+    leftMaterialHandle,
+    material("SharedTintWarmMaterial", leftTint),
+  );
+  assets.markReady(
+    rightMaterialHandle,
+    material("SharedTintCoolMaterial", rightTint),
+  );
+  assets.markReady(textureHandle, textureAsset);
+  assets.markReady(samplerHandle, samplerAsset);
+
+  const camera = world.createEntity();
+  const cameraTransform = aperture.createRootTransform({
+    translation: [0, 0, 2.5],
+  });
+
+  camera.addComponent(aperture.WorldTransform, cameraTransform.world);
+  camera.addComponent(
+    aperture.Camera,
+    aperture.createCamera({
+      aspect: canvasSize.width / canvasSize.height,
+      near: 0.1,
+      far: 100,
+      clearColor: [clearColor.r, clearColor.g, clearColor.b, clearColor.a],
+      layerMask: 1,
+    }),
+  );
+
+  addPrimitiveEntity(
+    aperture,
+    world,
+    meshHandle,
+    leftMaterialHandle,
+    [-0.52, 0, 0],
+  );
+  addPrimitiveEntity(
+    aperture,
+    world,
+    meshHandle,
+    rightMaterialHandle,
+    [0.52, 0, 0],
+  );
+
+  return {
+    world,
+    assets,
+    meshHandle,
+    mesh,
+    expectedDrawCount: 2,
+    readbackSamplePoints: [
+      { id: "left-shared-tint", x: 0.34, y: 0.5 },
+      { id: "right-shared-tint", x: 0.66, y: 0.5 },
+    ],
+    geometry: {
+      primitive: "plane",
+      source: "aperture.createPlaneMeshAsset",
+    },
+    sharedTextureTinted: {
+      textureKey,
+      samplerKey,
+      textureColor,
+      left: {
+        sampleId: "left-shared-tint",
+        materialKey: aperture.assetHandleKey(leftMaterialHandle),
+        tintFactor: leftTint,
+        expectedColor: [0.8, 0.3, 0.2, 1],
+      },
+      right: {
+        sampleId: "right-shared-tint",
+        materialKey: aperture.assetHandleKey(rightMaterialHandle),
+        tintFactor: rightTint,
+        expectedColor: [0.2, 0.6, 0.2, 1],
+      },
+    },
+    textures: [
+      textureUpload(
+        textureKey,
+        "SharedTintAlbedo",
+        solidTextureBytes([204, 153, 102, 255]),
+      ),
+    ],
+    samplers: [{ resourceKey: samplerKey, asset: samplerAsset }],
+    materials: [
+      {
+        handle: leftMaterialHandle,
+        asset: material("SharedTintWarmMaterial", leftTint),
+      },
+      {
+        handle: rightMaterialHandle,
+        asset: material("SharedTintCoolMaterial", rightTint),
+      },
+    ],
   };
 }
 
@@ -3235,6 +4218,110 @@ function addPrimitiveEntity(
   entity.addComponent(aperture.Visibility, {
     visible: options.visible ?? true,
   });
+}
+
+function createUvRangePlaneMeshAsset(options) {
+  const width = options.width ?? 1;
+  const height = options.height ?? 1;
+  const hx = width * 0.5;
+  const hy = height * 0.5;
+  const uMin = options.uMin ?? 0;
+  const uMax = options.uMax ?? 1;
+  const vMin = options.vMin ?? options.v ?? 0.5;
+  const vMax = options.vMax ?? options.v ?? 0.5;
+  const vertices = new Float32Array([
+    -hx,
+    -hy,
+    0,
+    0,
+    0,
+    1,
+    uMin,
+    vMin,
+    hx,
+    -hy,
+    0,
+    0,
+    0,
+    1,
+    uMax,
+    vMin,
+    hx,
+    hy,
+    0,
+    0,
+    0,
+    1,
+    uMax,
+    vMax,
+    -hx,
+    hy,
+    0,
+    0,
+    0,
+    1,
+    uMin,
+    vMax,
+  ]);
+
+  return {
+    kind: "mesh",
+    label: options.label ?? "UvRangePlane",
+    vertexStreams: [
+      {
+        id: "primitive-interleaved",
+        arrayStride: 32,
+        vertexCount: 4,
+        attributes: [
+          { semantic: "POSITION", format: "float32x3", offset: 0 },
+          { semantic: "NORMAL", format: "float32x3", offset: 12 },
+          { semantic: "TEXCOORD_0", format: "float32x2", offset: 24 },
+        ],
+        data: vertices,
+      },
+    ],
+    indexBuffer: {
+      format: "uint16",
+      data: new Uint16Array([0, 1, 2, 0, 2, 3]),
+    },
+    submeshes: [
+      {
+        label: "default",
+        topology: "triangle-list",
+        materialSlot: 0,
+        vertexStart: 0,
+        vertexCount: 4,
+        indexStart: 0,
+        indexCount: 6,
+      },
+    ],
+    materialSlots: [{ index: 0, label: "default", material: null }],
+    localAabb: { min: [-hx, -hy, 0], max: [hx, hy, 0] },
+    localSphere: { center: [0, 0, 0], radius: Math.hypot(hx, hy) },
+  };
+}
+
+function solidTextureBytes(color) {
+  return new Uint8Array([...color, ...color, ...color, ...color]);
+}
+
+function textureUpload(resourceKey, label, data) {
+  return {
+    resourceKey,
+    descriptor: {
+      label,
+      size: [2, 2, 1],
+      format: "rgba8unorm",
+      usage:
+        (globalThis.GPUTextureUsage?.TEXTURE_BINDING ?? 0x04) |
+        (globalThis.GPUTextureUsage?.COPY_DST ?? 0x02),
+    },
+    upload: {
+      data,
+      bytesPerRow: 8,
+      rowsPerImage: 2,
+    },
+  };
 }
 
 function snapshotCounts(snapshot) {

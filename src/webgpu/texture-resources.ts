@@ -4,6 +4,9 @@ export type TextureGpuResourceDiagnosticCode =
   | "textureResource.createTextureUnavailable"
   | "textureResource.createViewUnavailable"
   | "textureResource.writeTextureUnavailable"
+  | "textureResource.invalidBytesPerRow"
+  | "textureResource.invalidRowsPerImage"
+  | "textureResource.uploadDataTooSmall"
   | "textureResource.textureCreationFailed"
   | "textureResource.textureViewCreationFailed"
   | "textureResource.textureUploadFailed"
@@ -138,6 +141,20 @@ export function createTextureGpuResource(
       );
     }
 
+    const uploadLayoutDiagnostic = validateTextureUploadLayout(
+      options.resourceKey,
+      options.descriptor,
+      options.upload,
+    );
+
+    if (uploadLayoutDiagnostic !== null) {
+      return {
+        valid: false,
+        resource: null,
+        diagnostics: [uploadLayoutDiagnostic],
+      };
+    }
+
     try {
       options.device.queue.writeTexture(
         { texture },
@@ -181,6 +198,80 @@ export function createTextureGpuResource(
     },
     diagnostics: [],
   };
+}
+
+function validateTextureUploadLayout(
+  resourceKey: string,
+  descriptor: TextureDescriptorInput,
+  upload: TextureUploadInput,
+): TextureGpuResourceDiagnostic | null {
+  const [width, height] = descriptor.size;
+  const bytesPerPixel = textureFormatBytesPerPixel(descriptor.format);
+  const minimumBytesPerRow =
+    bytesPerPixel === null ? null : width * bytesPerPixel;
+
+  if (
+    !Number.isInteger(upload.bytesPerRow) ||
+    upload.bytesPerRow <= 0 ||
+    (minimumBytesPerRow !== null && upload.bytesPerRow < minimumBytesPerRow)
+  ) {
+    return {
+      code: "textureResource.invalidBytesPerRow",
+      resourceKey,
+      message:
+        minimumBytesPerRow === null
+          ? `Texture upload bytesPerRow must be a positive integer for resource '${resourceKey}'.`
+          : `Texture upload bytesPerRow for resource '${resourceKey}' must be at least ${minimumBytesPerRow} bytes for ${width} texel(s) of '${descriptor.format}'.`,
+    };
+  }
+
+  if (
+    upload.rowsPerImage !== undefined &&
+    (!Number.isInteger(upload.rowsPerImage) || upload.rowsPerImage < height)
+  ) {
+    return {
+      code: "textureResource.invalidRowsPerImage",
+      resourceKey,
+      message: `Texture upload rowsPerImage for resource '${resourceKey}' must be at least ${height} row(s).`,
+    };
+  }
+
+  if (minimumBytesPerRow !== null) {
+    const rowsPerImage = upload.rowsPerImage ?? height;
+    const depthOrArrayLayers = descriptor.size[2];
+    const minimumByteLength =
+      ((depthOrArrayLayers - 1) * rowsPerImage + (height - 1)) *
+        upload.bytesPerRow +
+      minimumBytesPerRow;
+
+    if (upload.data.byteLength < minimumByteLength) {
+      return {
+        code: "textureResource.uploadDataTooSmall",
+        resourceKey,
+        message: `Texture upload data for resource '${resourceKey}' must contain at least ${minimumByteLength} byte(s); received ${upload.data.byteLength}.`,
+      };
+    }
+  }
+
+  return null;
+}
+
+function textureFormatBytesPerPixel(format: string): number | null {
+  switch (format) {
+    case "r8unorm":
+      return 1;
+    case "rg8unorm":
+      return 2;
+    case "rgba8unorm":
+    case "rgba8unorm-srgb":
+    case "bgra8unorm":
+    case "bgra8unorm-srgb":
+      return 4;
+    case "rgba16float":
+      return 8;
+    default:
+      return null;
+  }
 }
 
 export function createSamplerGpuResource(

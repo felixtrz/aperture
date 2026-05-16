@@ -162,6 +162,87 @@ export interface MultiEntityExampleStatus extends ExampleStatusBase {
     readonly samplerKey: string;
     readonly expectedLeftColor: readonly [number, number, number, number];
     readonly expectedRightColor: readonly [number, number, number, number];
+    readonly expectedQuadrants?: readonly {
+      readonly sampleId: string;
+      readonly expectedColor: readonly [number, number, number, number];
+    }[];
+  };
+  readonly sampler?: {
+    readonly samplerKey: string;
+    readonly textureKey: string;
+    readonly addressModeU: string;
+    readonly addressModeV: string;
+    readonly addressModeW: string;
+    readonly magFilter: string;
+    readonly minFilter: string;
+    readonly mipmapFilter: string;
+    readonly expectedSampleIds: readonly string[];
+    readonly expectedColor: readonly [number, number, number, number];
+    readonly rejectedColors?: {
+      readonly nearestMirror?: readonly [number, number, number, number];
+      readonly repeatLinear?: readonly [number, number, number, number];
+      readonly clamp?: readonly [number, number, number, number];
+    };
+  };
+  readonly texturedTint?: {
+    readonly materialKey: string;
+    readonly textureKey: string;
+    readonly samplerKey: string;
+    readonly sampleId: string;
+    readonly textureColor: readonly [number, number, number, number];
+    readonly tintFactor: readonly [number, number, number, number];
+    readonly expectedColor: readonly [number, number, number, number];
+  };
+  readonly samplerVAddress?: {
+    readonly samplerKey: string;
+    readonly textureKey: string;
+    readonly addressModeU: string;
+    readonly addressModeV: string;
+    readonly addressModeW: string;
+    readonly magFilter: string;
+    readonly minFilter: string;
+    readonly mipmapFilter: string;
+    readonly expectedSampleIds: readonly string[];
+    readonly expectedColor: readonly [number, number, number, number];
+    readonly rejectedColors?: {
+      readonly nearestMirror?: readonly [number, number, number, number];
+      readonly repeatLinear?: readonly [number, number, number, number];
+      readonly clamp?: readonly [number, number, number, number];
+    };
+  };
+  readonly multiTextured?: {
+    readonly sharedSamplerKey?: string;
+    readonly left: {
+      readonly sampleId: string;
+      readonly materialKey: string;
+      readonly textureKey: string;
+      readonly samplerKey: string;
+      readonly expectedColor: readonly [number, number, number, number];
+    };
+    readonly right: {
+      readonly sampleId: string;
+      readonly materialKey: string;
+      readonly textureKey: string;
+      readonly samplerKey: string;
+      readonly expectedColor: readonly [number, number, number, number];
+    };
+  };
+  readonly sharedTextureTinted?: {
+    readonly textureKey: string;
+    readonly samplerKey: string;
+    readonly textureColor: readonly [number, number, number, number];
+    readonly left: {
+      readonly sampleId: string;
+      readonly materialKey: string;
+      readonly tintFactor: readonly [number, number, number, number];
+      readonly expectedColor: readonly [number, number, number, number];
+    };
+    readonly right: {
+      readonly sampleId: string;
+      readonly materialKey: string;
+      readonly tintFactor: readonly [number, number, number, number];
+      readonly expectedColor: readonly [number, number, number, number];
+    };
   };
   readonly mixedPipelines?: {
     readonly factorMaterialKey: string;
@@ -205,6 +286,17 @@ export interface MultiEntityExampleStatus extends ExampleStatusBase {
     readonly assetStatus: string;
     readonly textureKey: string;
     readonly samplerKey: string;
+  };
+  readonly invalidTextureUpload?: {
+    readonly textureKey: string;
+    readonly expectedDiagnostic: string;
+    readonly bytesPerRow: number;
+    readonly dataBytes?: number;
+    readonly rowsPerImage?: number;
+  };
+  readonly missingTextureResource?: {
+    readonly textureKey: string;
+    readonly expectedDiagnostic: string;
   };
   readonly disabled?: {
     readonly authored: number;

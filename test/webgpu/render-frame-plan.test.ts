@@ -126,6 +126,119 @@ describe("render frame snapshot planning helper", () => {
     ]);
   });
 
+  it("keeps shared and material bind groups scoped to each pipeline in mixed frames", () => {
+    const result = planRenderFrameFromSnapshot({
+      snapshot: mixedPipelineSnapshot(),
+      renderWorld: new RenderWorld(),
+      transforms: mixedPipelineTransforms(),
+      resolveMeshResourceKey: () => "mesh:triangle",
+      resolveMaterialResourceKey: (draw) => draw.batchKey.materialKey,
+      meshResources: [mesh()],
+      pipelines: [pipeline(), texturedPipeline()],
+      bindGroups: multiPipelineBindGroups(),
+    });
+
+    expect(result.summary.ready).toBe(true);
+    expect(result.summary.counts).toMatchObject({
+      binding: { planned: 2, applied: 2, ready: 2, blocked: 0 },
+      draw: { packages: 2, descriptors: 2, drawList: 2, resolved: 2 },
+      command: { drawCount: 2, nonIndexedDrawCount: 2 },
+    });
+    expect(result.drawList.draws.map(drawPipelineAndBindGroups)).toEqual([
+      {
+        renderId: 7,
+        pipelineKey: "pipeline:unlit",
+        bindGroupKeys: [
+          "bind:0:pipeline:unlit",
+          "bind:1:pipeline:unlit",
+          "bind:2:material:red",
+        ],
+      },
+      {
+        renderId: 11,
+        pipelineKey: "pipeline:unlit/baseColorTexture",
+        bindGroupKeys: [
+          "bind:0:pipeline:unlit/baseColorTexture",
+          "bind:1:pipeline:unlit/baseColorTexture",
+          "bind:2:material:textured",
+        ],
+      },
+    ]);
+    expect(
+      result.resources.draws.map((draw) => ({
+        renderId: draw.renderId,
+        pipelineKey: draw.pipelineKey,
+        bindGroups: draw.bindGroups.map((bindGroup) => ({
+          group: bindGroup.group,
+          resourceKey: bindGroup.resourceKey,
+        })),
+      })),
+    ).toEqual([
+      {
+        renderId: 7,
+        pipelineKey: "pipeline:unlit",
+        bindGroups: [
+          { group: 0, resourceKey: "bind:0:pipeline:unlit" },
+          { group: 1, resourceKey: "bind:1:pipeline:unlit" },
+          { group: 2, resourceKey: "bind:2:material:red" },
+        ],
+      },
+      {
+        renderId: 11,
+        pipelineKey: "pipeline:unlit/baseColorTexture",
+        bindGroups: [
+          {
+            group: 0,
+            resourceKey: "bind:0:pipeline:unlit/baseColorTexture",
+          },
+          {
+            group: 1,
+            resourceKey: "bind:1:pipeline:unlit/baseColorTexture",
+          },
+          { group: 2, resourceKey: "bind:2:material:textured" },
+        ],
+      },
+    ]);
+  });
+
+  it("diagnoses missing pipeline-scoped shared bind groups in mixed frames", () => {
+    const result = planRenderFrameFromSnapshot({
+      snapshot: mixedPipelineSnapshot(),
+      renderWorld: new RenderWorld(),
+      transforms: mixedPipelineTransforms(),
+      resolveMeshResourceKey: () => "mesh:triangle",
+      resolveMaterialResourceKey: (draw) => draw.batchKey.materialKey,
+      meshResources: [mesh()],
+      pipelines: [pipeline(), texturedPipeline()],
+      bindGroups: multiPipelineBindGroups().filter(
+        (bindGroup) =>
+          bindGroup.resourceKey !== "bind:1:pipeline:unlit/baseColorTexture",
+      ),
+    });
+
+    expect(result.summary.ready).toBe(false);
+    expect(result.summary.counts).toMatchObject({
+      binding: { planned: 2, applied: 2, ready: 2, blocked: 0 },
+      draw: { packages: 2, descriptors: 2, drawList: 1, resolved: 1 },
+      command: { drawCount: 1, nonIndexedDrawCount: 1 },
+    });
+    expect(result.drawList.draws.map((draw) => draw.renderId)).toEqual([7]);
+    expect(result.drawList.diagnostics).toMatchObject([
+      {
+        code: "renderPassDrawList.missingBindGroupResource",
+        renderId: 11,
+        bindGroup: { group: 1 },
+      },
+    ]);
+    expect(result.summary.diagnostics).toMatchObject([
+      {
+        phase: "draw-list",
+        code: "renderPassDrawList.missingBindGroupResource",
+        renderId: 11,
+      },
+    ]);
+  });
+
   it("diagnoses missing textured unlit material bind group resources", () => {
     const result = planRenderFrameFromSnapshot({
       snapshot: texturedSnapshot(),
@@ -228,9 +341,33 @@ function texturedSnapshot(): RenderSnapshot {
   } as unknown as RenderSnapshot;
 }
 
-function texturedPacket() {
+function mixedPipelineSnapshot(): RenderSnapshot {
   return {
-    ...packet(11, 0),
+    frame: 1,
+    views: [],
+    meshDraws: [packet(7, 0), texturedPacket(16)],
+    lights: [],
+    environments: [],
+    shadowRequests: [],
+    bounds: [],
+    transforms: new Float32Array(32),
+    viewMatrices: new Float32Array(),
+    diagnostics: [],
+    report: {
+      views: 0,
+      meshDraws: 2,
+      lights: 0,
+      environments: 0,
+      shadowRequests: 0,
+      bounds: 0,
+      diagnostics: 0,
+    },
+  } as unknown as RenderSnapshot;
+}
+
+function texturedPacket(worldTransformOffset = 0) {
+  return {
+    ...packet(11, worldTransformOffset),
     material: { kind: "material", id: "textured" },
     batchKey: TEXTURED_BATCH,
     sortKey: texturedSortKey(),
@@ -274,6 +411,17 @@ function texturedTransforms() {
   return {
     data: new Float32Array(16),
     offsets: [{ renderId: 11, sourceOffset: 0, packedOffset: 0 }],
+    diagnostics: [],
+  };
+}
+
+function mixedPipelineTransforms() {
+  return {
+    data: new Float32Array(32),
+    offsets: [
+      { renderId: 7, sourceOffset: 0, packedOffset: 0 },
+      { renderId: 11, sourceOffset: 16, packedOffset: 16 },
+    ],
     diagnostics: [],
   };
 }
@@ -336,6 +484,54 @@ function texturedBindGroups(): readonly UnlitBindGroupResource[] {
       ],
     },
   ];
+}
+
+function multiPipelineBindGroups(): readonly UnlitBindGroupResource[] {
+  return [
+    pipelineScopedBindGroup(0, BATCH.pipelineKey),
+    pipelineScopedBindGroup(1, BATCH.pipelineKey),
+    materialBindGroup("material:red"),
+    pipelineScopedBindGroup(0, TEXTURED_BATCH.pipelineKey),
+    pipelineScopedBindGroup(1, TEXTURED_BATCH.pipelineKey),
+    materialBindGroup("material:textured"),
+  ];
+}
+
+function pipelineScopedBindGroup(
+  group: 0 | 1,
+  pipelineKey: string,
+): UnlitBindGroupResource {
+  return {
+    group,
+    resourceKey: `bind:${group}:${pipelineKey}`,
+    layoutKey: `layout:${group}:${pipelineKey}`,
+    bindGroup: `bind-group:${group}:${pipelineKey}`,
+    entryResourceKeys: [`resource:${group}`, pipelineKey],
+  };
+}
+
+function materialBindGroup(
+  materialResourceKey: string,
+): UnlitBindGroupResource {
+  return {
+    group: 2,
+    resourceKey: `bind:2:${materialResourceKey}`,
+    layoutKey: "layout:2",
+    bindGroup: `bind-group:2:${materialResourceKey}`,
+    entryResourceKeys: [materialResourceKey],
+  };
+}
+
+function drawPipelineAndBindGroups(draw: {
+  readonly renderId: number;
+  readonly pipelineKey: string;
+  readonly bindGroupKeys: readonly string[];
+}) {
+  return {
+    renderId: draw.renderId,
+    pipelineKey: draw.pipelineKey,
+    bindGroupKeys: draw.bindGroupKeys,
+  };
 }
 
 function mesh(): MeshGpuBufferResource {

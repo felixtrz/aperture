@@ -44,60 +44,89 @@ test("ECS browser example samples a texture-backed unlit material", async ({
     submission: { commandBuffers: 1, drawCalls: 1, indexedDrawCalls: 1 },
     diagnosticCounts: { extraction: 0, resources: 0, draw: 0, submission: 0 },
   });
+  expect(status.texture?.expectedQuadrants).toEqual([
+    {
+      sampleId: "upper-left-green",
+      expectedColor: [0.09375, 0.875, 0.3125, 1],
+    },
+    {
+      sampleId: "upper-right-yellow",
+      expectedColor: [1, 0.90625, 0.09375, 1],
+    },
+    {
+      sampleId: "lower-left-red",
+      expectedColor: [1, 0.125, 0.0625, 1],
+    },
+    {
+      sampleId: "lower-right-blue",
+      expectedColor: [0.09375, 0.5, 1, 1],
+    },
+  ]);
 
   if (status.texture === undefined || !status.readback?.ok) {
     test.skip(true, "Textured unlit pixel assertion requires readback.");
     return;
   }
 
-  const leftSample = status.readback.samples.find(
-    (sample) => sample.id === "left-red",
-  );
-  const rightSample = status.readback.samples.find(
-    (sample) => sample.id === "right-blue",
-  );
-  const leftPixel = rgbaColorToPixel({
-    r: status.texture.expectedLeftColor[0],
-    g: status.texture.expectedLeftColor[1],
-    b: status.texture.expectedLeftColor[2],
-    a: status.texture.expectedLeftColor[3],
-  });
-  const rightPixel = rgbaColorToPixel({
-    r: status.texture.expectedRightColor[0],
-    g: status.texture.expectedRightColor[1],
-    b: status.texture.expectedRightColor[2],
-    a: status.texture.expectedRightColor[3],
-  });
-
   expect(
-    leftSample,
-    `expected left texture sample; status=${JSON.stringify(status, null, 2)}`,
-  ).toBeDefined();
-  expect(
-    rightSample,
-    `expected right texture sample; status=${JSON.stringify(status, null, 2)}`,
-  ).toBeDefined();
+    status.texture.expectedQuadrants,
+    `expected texture quadrant metadata; status=${JSON.stringify(
+      status,
+      null,
+      2,
+    )}`,
+  ).toHaveLength(4);
 
-  if (leftSample === undefined || rightSample === undefined) {
+  const expectedQuadrants = status.texture.expectedQuadrants;
+
+  if (expectedQuadrants === undefined) {
     return;
   }
 
-  expect(
-    pixelDistance(leftSample.pixel, leftPixel),
-    `left sample should match texture left column; status=${JSON.stringify(
-      status,
-      null,
-      2,
-    )}`,
-  ).toBeLessThan(80);
-  expect(
-    pixelDistance(rightSample.pixel, rightPixel),
-    `right sample should match texture right column; status=${JSON.stringify(
-      status,
-      null,
-      2,
-    )}`,
-  ).toBeLessThan(80);
-  expect(pixelDistance(leftSample.pixel, rightPixel)).toBeGreaterThan(80);
-  expect(pixelDistance(rightSample.pixel, leftPixel)).toBeGreaterThan(80);
+  for (const quadrant of expectedQuadrants) {
+    const sample = status.readback.samples.find(
+      (entry) => entry.id === quadrant.sampleId,
+    );
+    const expectedPixel = rgbaTupleToPixel(quadrant.expectedColor);
+    const otherPixels = expectedQuadrants
+      .filter((entry) => entry.sampleId !== quadrant.sampleId)
+      .map((entry) => rgbaTupleToPixel(entry.expectedColor));
+
+    expect(
+      sample,
+      `expected ${quadrant.sampleId} texture sample; status=${JSON.stringify(
+        status,
+        null,
+        2,
+      )}`,
+    ).toBeDefined();
+
+    if (sample === undefined) {
+      continue;
+    }
+
+    expect(
+      pixelDistance(sample.pixel, expectedPixel),
+      `${quadrant.sampleId} should match its expected texture quadrant; status=${JSON.stringify(
+        status,
+        null,
+        2,
+      )}`,
+    ).toBeLessThan(80);
+
+    for (const otherPixel of otherPixels) {
+      expect(pixelDistance(sample.pixel, otherPixel)).toBeGreaterThan(80);
+    }
+  }
 });
+
+function rgbaTupleToPixel(
+  color: readonly [number, number, number, number],
+): ReturnType<typeof rgbaColorToPixel> {
+  return rgbaColorToPixel({
+    r: color[0],
+    g: color[1],
+    b: color[2],
+    a: color[3],
+  });
+}

@@ -305,6 +305,9 @@ describe("unlit bind group descriptor planning", () => {
       "unlitBindGroupResource.missingBufferResource",
       "unlitBindGroupResource.missingBufferResource",
     ]);
+    expect(
+      result.diagnostics.map((diagnostic) => diagnostic.resourceKey),
+    ).toEqual(["view", "transforms", "material"]);
   });
 
   it("diagnoses missing actual texture and sampler resources", () => {
@@ -331,6 +334,9 @@ describe("unlit bind group descriptor planning", () => {
       "unlitBindGroupResource.missingTextureResource",
       "unlitBindGroupResource.missingSamplerResource",
     ]);
+    expect(
+      result.diagnostics.map((diagnostic) => diagnostic.resourceKey),
+    ).toEqual(["texture:missing", "sampler:missing"]);
   });
 
   it("diagnoses null descriptor plans", () => {

@@ -68,4 +68,40 @@ describe("material texture dependency readiness", () => {
       }).diagnostics.map((diagnostic) => diagnostic.code),
     ).toEqual(["materialDependency.missingSamplerResource"]);
   });
+
+  it("isolates missing dependencies across multiple textured materials", () => {
+    const reports = [
+      checkMaterialDependencyReadiness({
+        dependencies: {
+          baseColorTextureKey: "texture:ready",
+          baseColorSamplerKey: "sampler:shared",
+        },
+        availableTextureKeys: new Set(["texture:ready"]),
+        availableSamplerKeys: new Set(["sampler:shared"]),
+      }),
+      checkMaterialDependencyReadiness({
+        dependencies: {
+          baseColorTextureKey: "texture:missing",
+          baseColorSamplerKey: "sampler:shared",
+        },
+        availableTextureKeys: new Set(["texture:ready"]),
+        availableSamplerKeys: new Set(["sampler:shared"]),
+      }),
+    ];
+
+    expect(reports.map((report) => report.ready)).toEqual([true, false]);
+    expect(
+      reports.flatMap((report) =>
+        report.diagnostics.map((diagnostic) => ({
+          code: diagnostic.code,
+          resourceKey: diagnostic.resourceKey,
+        })),
+      ),
+    ).toEqual([
+      {
+        code: "materialDependency.missingTextureResource",
+        resourceKey: "texture:missing",
+      },
+    ]);
+  });
 });

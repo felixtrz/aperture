@@ -79,6 +79,7 @@ export function planRenderPassDrawList(
       command,
       options.bindGroups,
       requiredGroups,
+      pipelineKeys,
       diagnostics,
     );
 
@@ -116,12 +117,13 @@ function resolveBindGroups(
   command: DrawCommandDescriptor,
   bindGroups: readonly UnlitBindGroupResource[],
   requiredGroups: readonly number[],
+  pipelineKeys: ReadonlySet<string>,
   diagnostics: RenderPassDrawListDiagnostic[],
 ): readonly UnlitBindGroupResource[] {
   const resolved: UnlitBindGroupResource[] = [];
 
   for (const group of requiredGroups) {
-    const bindGroup = findBindGroup(command, bindGroups, group);
+    const bindGroup = findBindGroup(command, bindGroups, group, pipelineKeys);
 
     if (bindGroup === undefined) {
       diagnostics.push({
@@ -149,6 +151,7 @@ function findBindGroup(
   command: DrawCommandDescriptor,
   bindGroups: readonly UnlitBindGroupResource[],
   group: number,
+  pipelineKeys: ReadonlySet<string>,
 ): UnlitBindGroupResource | undefined {
   const candidates = bindGroups.filter(
     (bindGroup) => bindGroup.group === group,
@@ -160,9 +163,17 @@ function findBindGroup(
     );
   }
 
-  return (
-    candidates.find((bindGroup) =>
-      bindGroup.entryResourceKeys.includes(command.pipelineKey),
-    ) ?? candidates[0]
+  const pipelineScopedCandidates = candidates.filter((bindGroup) =>
+    bindGroup.entryResourceKeys.some((resourceKey) =>
+      pipelineKeys.has(resourceKey),
+    ),
   );
+
+  if (pipelineScopedCandidates.length > 0) {
+    return pipelineScopedCandidates.find((bindGroup) =>
+      bindGroup.entryResourceKeys.includes(command.pipelineKey),
+    );
+  }
+
+  return candidates[0];
 }

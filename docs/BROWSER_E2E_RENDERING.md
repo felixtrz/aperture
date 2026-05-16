@@ -174,7 +174,30 @@ Current checks:
   farther renderable is submitted later.
 - Textured unlit smoke: loads the multi-entity page with
   `?scenario=textured-unlit`, uploads a 2x2 base-color texture plus sampler,
-  and verifies two UV-separated readback samples.
+  and verifies four UV-separated readback samples across all texture
+  quadrants.
+- Sampler filter/address smoke: loads the multi-entity page with
+  `?scenario=sampler-filter-address`, uploads a 2x1 texture, uses
+  mirror-repeat U addressing with linear filtering, and verifies the expected
+  blended readback sample.
+- Vertical sampler address smoke: loads the multi-entity page with
+  `?scenario=sampler-v-address`, uploads a two-row texture, uses mirror-repeat
+  V addressing with linear filtering, and verifies the expected blended
+  readback sample.
+- Textured unlit tint smoke: loads the multi-entity page with
+  `?scenario=textured-unlit-tint`, applies a non-white `baseColorFactor` to a
+  texture-backed unlit material, and verifies the multiplied readback color.
+- Multi-textured unlit smoke: loads the multi-entity page with
+  `?scenario=multi-textured-unlit`, renders two texture-backed unlit materials
+  with distinct texture/sampler resources, and verifies both readback colors.
+- Shared-sampler multi-textured smoke: loads the multi-entity page with
+  `?scenario=shared-sampler-multi-textured`, renders two texture-backed unlit
+  materials using distinct textures and one shared sampler, and verifies both
+  readback colors.
+- Shared-texture tinted smoke: loads the multi-entity page with
+  `?scenario=shared-texture-tinted-unlit`, renders two texture-backed unlit
+  materials using one shared texture/sampler pair and different tints, and
+  verifies both multiplied colors.
 - Mixed unlit pipeline smoke: loads the multi-entity page with
   `?scenario=mixed-unlit-pipelines`, renders factor-only and texture-backed
   unlit materials in one frame, verifies two distinct pipeline keys, and
@@ -185,6 +208,13 @@ Current checks:
 - Missing texture/sampler resource smoke: loads the multi-entity page with a
   ready textured draw but intentionally withheld GPU texture/sampler resources,
   then verifies resource creation stops with JSON-safe diagnostics.
+- Multi-textured missing texture resource smoke: loads the multi-entity page
+  with two textured draws and one withheld texture GPU resource, then verifies
+  the missing texture resource key is reported before draw submission.
+- Invalid texture upload smoke: loads the multi-entity page with intentionally
+  invalid texture upload row-stride, rows-per-image, and data-size scenarios,
+  then verifies resource creation stops with JSON-safe texture diagnostics
+  before draw submission.
 - Unknown scenario smoke: loads the multi-entity page with an unsupported
   `scenario` query value and verifies the harness publishes an explicit
   zero-submission `unknown-scenario` diagnostic.
@@ -193,6 +223,34 @@ The multi-entity status test attaches the published status JSON to the
 Playwright report so failures show whether the blank or failed frame came from
 extraction, resource binding, draw planning, command execution, or queue
 submission.
+
+Texture/sampler scenario index:
+
+- `textured-unlit`: four quadrant samples verify U/V texture orientation.
+- `sampler-filter-address`: mirror-repeat U plus linear filtering verifies
+  sampler behavior.
+- `sampler-v-address`: mirror-repeat V plus linear filtering verifies vertical
+  sampler behavior.
+- `textured-unlit-tint`: verifies texture color multiplied by
+  `baseColorFactor`.
+- `multi-textured-unlit`: verifies two distinct texture/sampler resources in
+  one frame.
+- `shared-sampler-multi-textured`: verifies two textures using one shared
+  sampler resource.
+- `shared-texture-tinted-unlit`: verifies one shared texture/sampler pair with
+  two different material tints.
+- `mixed-unlit-pipelines`: verifies factor-only and texture-backed unlit
+  pipeline variants in one frame.
+- `missing-texture-asset`, `loading-texture-asset`, `failed-texture-asset`,
+  `missing-sampler-asset`, `loading-sampler-asset`,
+  `failed-sampler-asset`: verify extraction-time asset dependency diagnostics.
+- `missing-texture-sampler-resources`: verifies missing renderer-owned texture
+  and sampler resources.
+- `multi-textured-missing-texture-resource`: verifies one missing texture
+  resource among multiple textured draws.
+- `invalid-texture-upload`, `invalid-texture-rows-per-image`,
+  `short-texture-upload`: verify texture upload layout and data-size
+  diagnostics.
 
 ## WebGPU Support And Skips
 

@@ -27,64 +27,59 @@ Keep implementation vertical, typed, and testable. Do not introduce a public mut
 
 ## Recommended Next Task
 
-Start with `task-0254`. Mixed factor-only/textured unlit pipeline planning now has browser coverage; the next useful slice is proving texture UV orientation across all four quadrants.
+Start with `task-0276`. Texture upload validation now has browser coverage for invalid row stride, rows-per-image, and byte size; the next useful slice is JSON report coverage for these diagnostics.
 
 ## Ready Tasks
 
-### task-0254 — Add quadrant texture UV browser readback coverage
+### task-0276 — Add texture upload validation JSON report coverage
 
-Expand the texture-backed unlit browser fixture to prove both U and V sampling orientation with four distinct 2x2 texture quadrants.
-
-Acceptance criteria:
-
-- A browser scenario renders a 2x2 texture with four distinct quadrant colors.
-- Readback samples cover left/right and upper/lower UV-separated pixels.
-- Status reports expected quadrant colors and sample ids without raw GPU handles.
-- Playwright verifies all four sampled pixels match their expected quadrant within tolerance.
-
-### task-0255 — Add multi-pipeline render-frame planning unit coverage
-
-Add unit coverage for a render frame containing two unlit pipeline keys and pipeline-scoped shared bind groups.
+Verify new texture upload diagnostics serialize cleanly through JSON report paths.
 
 Acceptance criteria:
 
-- `planRenderFrameFromSnapshot` resolves two pipeline resources in one frame.
-- Shared group 0/1 bind groups remain associated with the matching pipeline key.
-- Material group 2 bind groups remain associated with the matching material key.
-- Tests cover a missing pipeline-scoped shared bind group diagnostic.
+- Tests cover JSON serialization for `invalidBytesPerRow`, `invalidRowsPerImage`, and `uploadDataTooSmall`.
+- Serialized diagnostics include stable resource keys and messages.
+- No raw GPU handles are included.
 
-### task-0256 — Add sampler filter and address browser readback coverage
+### task-0277 — Add multi-textured dependency browser status coverage
 
-Render a texture-backed unlit browser scenario that proves sampler settings affect sampled pixels.
-
-Acceptance criteria:
-
-- Add a browser scenario using a texture plus non-default sampler settings.
-- Status reports sampler key, filter/address settings, and expected sample ids.
-- Playwright verifies sampled pixels reflect the configured sampler behavior when readback is available.
-- Texture/sampler GPU resources remain renderer-owned and JSON-safe.
-
-### task-0257 — Add texture upload row-stride diagnostics coverage
-
-Add focused tests for texture upload descriptors with invalid or unsupported row-stride data.
+Verify extraction diagnostics when one of multiple texture-backed materials references a missing texture asset.
 
 Acceptance criteria:
 
-- Texture GPU resource creation diagnoses invalid `bytesPerRow` and `rowsPerImage` inputs.
-- Diagnostics include resource keys and avoid raw GPU handles.
-- Valid tightly packed and padded uploads remain accepted.
-- Existing textured browser scenarios continue to pass.
+- A browser scenario authors two textured materials and leaves one texture asset unregistered.
+- Status reports the missing texture asset key and extraction diagnostic.
+- Playwright verifies no resource creation or draw submission is attempted.
 
-### task-0258 — Add textured unlit tint browser coverage
+### task-0278 — Add texture scenario status schema cleanup
 
-Render a texture-backed unlit material with a non-white `baseColorFactor` to prove texture color is multiplied by material tint.
+Reduce duplication in test-side texture/sampler status types.
 
 Acceptance criteria:
 
-- Add a browser scenario with a texture-backed unlit material and non-white tint.
-- Status reports texture color, tint factor, and expected multiplied sample color.
-- Playwright verifies the tinted texture pixel through readback when available.
-- Existing texture-backed unlit scenarios continue to pass.
+- Shared TypeScript interfaces cover repeated texture sample, sampler behavior, and multi-textured status shapes.
+- Existing Playwright status typechecks continue to pass.
+- No browser behavior changes.
+
+### task-0279 — Add shared-texture missing sampler browser diagnostics
+
+Verify diagnostics when shared-texture tinted materials are missing their renderer-owned sampler resource.
+
+Acceptance criteria:
+
+- A browser scenario extracts two shared-texture tinted draws but withholds the shared sampler GPU resource.
+- Status reports the missing sampler resource key without raw GPU handles.
+- Playwright verifies resource creation stops before draw submission with a stable diagnostic.
+
+### task-0280 — Add texture upload validation unit coverage for `rowsPerImage` padding
+
+Expand unit coverage around valid padded `rowsPerImage` values.
+
+Acceptance criteria:
+
+- Tests cover `rowsPerImage > height` for single-layer uploads.
+- Tests cover invalid non-integer `rowsPerImage` with stable diagnostics.
+- Existing texture upload validation tests continue to pass.
 
 ## Post-Unlit E2E Verification Targets
 

@@ -55,6 +55,66 @@ describe("texture GPU resource creation", () => {
     ]);
   });
 
+  it("accepts padded texture upload row strides", () => {
+    const writes: unknown[] = [];
+    const result = createTextureGpuResource({
+      device: {
+        createTexture: () => textureWithView({ label: "padded-view" }),
+        queue: {
+          writeTexture: (destination, data, layout, size) => {
+            writes.push({ destination, data, layout, size });
+          },
+        },
+      },
+      resourceKey: "texture:padded",
+      descriptor: textureDescriptor(),
+      upload: {
+        data: new Uint8Array(512),
+        bytesPerRow: 256,
+        rowsPerImage: 4,
+      },
+    });
+
+    expect(result.valid).toBe(true);
+    expect(result.diagnostics).toEqual([]);
+    expect(writes).toMatchObject([
+      {
+        layout: { bytesPerRow: 256, rowsPerImage: 4 },
+        size: [2, 2, 1],
+      },
+    ]);
+  });
+
+  it("accepts valid layered texture upload layouts", () => {
+    const writes: unknown[] = [];
+    const result = createTextureGpuResource({
+      device: {
+        createTexture: () => textureWithView({ label: "layered-view" }),
+        queue: {
+          writeTexture: (destination, data, layout, size) => {
+            writes.push({ destination, data, layout, size });
+          },
+        },
+      },
+      resourceKey: "texture:layered",
+      descriptor: textureDescriptor({ size: [2, 2, 2] }),
+      upload: {
+        data: new Uint8Array(1288),
+        bytesPerRow: 256,
+        rowsPerImage: 4,
+      },
+    });
+
+    expect(result.valid).toBe(true);
+    expect(result.diagnostics).toEqual([]);
+    expect(writes).toMatchObject([
+      {
+        layout: { bytesPerRow: 256, rowsPerImage: 4 },
+        size: [2, 2, 2],
+      },
+    ]);
+  });
+
   it("creates texture resources without uploads", () => {
     const result = createTextureGpuResource({
       device: { createTexture: () => textureWithView({ label: "view" }) },
@@ -95,6 +155,221 @@ describe("texture GPU resource creation", () => {
       resource: null,
       diagnostics: [{ code: "textureResource.createViewUnavailable" }],
     });
+  });
+
+  it("diagnoses invalid texture upload row-stride inputs safely", () => {
+    const cases = [
+      {
+        upload: { data: new Uint8Array(16), bytesPerRow: 0, rowsPerImage: 2 },
+        code: "textureResource.invalidBytesPerRow",
+      },
+      {
+        upload: { data: new Uint8Array(16), bytesPerRow: 7, rowsPerImage: 2 },
+        code: "textureResource.invalidBytesPerRow",
+      },
+      {
+        upload: { data: new Uint8Array(16), bytesPerRow: 8, rowsPerImage: 1 },
+        code: "textureResource.invalidRowsPerImage",
+      },
+      {
+        upload: {
+          data: new Uint8Array(16),
+          bytesPerRow: 8,
+          rowsPerImage: 1.5,
+        },
+        code: "textureResource.invalidRowsPerImage",
+      },
+    ] as const;
+
+    for (const fixture of cases) {
+      const writes: unknown[] = [];
+      const result = createTextureGpuResource({
+        device: {
+          createTexture: () => textureWithView({}),
+          queue: {
+            writeTexture: (destination, data, layout, size) => {
+              writes.push({ destination, data, layout, size });
+            },
+          },
+        },
+        resourceKey: "texture:invalid-upload",
+        descriptor: textureDescriptor(),
+        upload: fixture.upload,
+      });
+
+      expect(result.valid).toBe(false);
+      expect(result.resource).toBeNull();
+      expect(result.diagnostics).toEqual([
+        {
+          code: fixture.code,
+          resourceKey: "texture:invalid-upload",
+          message: expect.stringContaining("texture:invalid-upload"),
+        },
+      ]);
+      expect(writes).toEqual([]);
+    }
+  });
+
+  it("validates format-specific minimum bytes per upload row", () => {
+    const cases = [
+      { format: "r8unorm", invalidBytesPerRow: 1, expectedBytesPerRow: 2 },
+      { format: "rg8unorm", invalidBytesPerRow: 3, expectedBytesPerRow: 4 },
+      { format: "rgba8unorm", invalidBytesPerRow: 7, expectedBytesPerRow: 8 },
+      { format: "bgra8unorm", invalidBytesPerRow: 7, expectedBytesPerRow: 8 },
+      {
+        format: "rgba16float",
+        invalidBytesPerRow: 15,
+        expectedBytesPerRow: 16,
+      },
+    ] as const;
+
+    for (const fixture of cases) {
+      const writes: unknown[] = [];
+      const result = createTextureGpuResource({
+        device: {
+          createTexture: () => textureWithView({}),
+          queue: {
+            writeTexture: (destination, data, layout, size) => {
+              writes.push({ destination, data, layout, size });
+            },
+          },
+        },
+        resourceKey: `texture:${fixture.format}`,
+        descriptor: textureDescriptor({
+          format: fixture.format,
+          size: [2, 1, 1],
+        }),
+        upload: {
+          data: new Uint8Array(64),
+          bytesPerRow: fixture.invalidBytesPerRow,
+          rowsPerImage: 1,
+        },
+      });
+
+      expect(result.valid).toBe(false);
+      expect(result.resource).toBeNull();
+      expect(result.diagnostics).toEqual([
+        {
+          code: "textureResource.invalidBytesPerRow",
+          resourceKey: `texture:${fixture.format}`,
+          message: expect.stringContaining(
+            `at least ${fixture.expectedBytesPerRow} bytes`,
+          ),
+        },
+      ]);
+      expect(writes).toEqual([]);
+    }
+  });
+
+  it("keeps unknown texture formats on positive-integer row-stride validation", () => {
+    const writes: unknown[] = [];
+    const descriptor = textureDescriptor({
+      format: "implementation-format",
+      size: [2, 2, 1],
+    });
+    const valid = createTextureGpuResource({
+      device: {
+        createTexture: () => textureWithView({}),
+        queue: {
+          writeTexture: (destination, data, layout, size) => {
+            writes.push({ destination, data, layout, size });
+          },
+        },
+      },
+      resourceKey: "texture:implementation-format",
+      descriptor,
+      upload: {
+        data: new Uint8Array(2),
+        bytesPerRow: 1,
+        rowsPerImage: 2,
+      },
+    });
+    const invalid = createTextureGpuResource({
+      device: {
+        createTexture: () => textureWithView({}),
+        queue: { writeTexture: () => undefined },
+      },
+      resourceKey: "texture:implementation-format",
+      descriptor,
+      upload: {
+        data: new Uint8Array(2),
+        bytesPerRow: 0,
+        rowsPerImage: 2,
+      },
+    });
+
+    expect(valid.valid).toBe(true);
+    expect(valid.diagnostics).toEqual([]);
+    expect(writes).toMatchObject([
+      { layout: { bytesPerRow: 1, rowsPerImage: 2 } },
+    ]);
+    expect(invalid).toMatchObject({
+      valid: false,
+      resource: null,
+      diagnostics: [
+        {
+          code: "textureResource.invalidBytesPerRow",
+          resourceKey: "texture:implementation-format",
+        },
+      ],
+    });
+  });
+
+  it("diagnoses texture upload data that is too small safely", () => {
+    const cases = [
+      {
+        descriptor: textureDescriptor(),
+        upload: { bytesPerRow: 8, rowsPerImage: 2, actualBytes: 15 },
+        expectedBytes: 16,
+      },
+      {
+        descriptor: textureDescriptor(),
+        upload: { bytesPerRow: 256, rowsPerImage: 4, actualBytes: 263 },
+        expectedBytes: 264,
+      },
+      {
+        descriptor: textureDescriptor({ size: [2, 2, 2] }),
+        upload: { bytesPerRow: 256, rowsPerImage: 4, actualBytes: 1287 },
+        expectedBytes: 1288,
+      },
+    ] as const;
+
+    for (const fixture of cases) {
+      const writes: unknown[] = [];
+      const result = createTextureGpuResource({
+        device: {
+          createTexture: () => textureWithView({}),
+          queue: {
+            writeTexture: (destination, data, layout, size) => {
+              writes.push({ destination, data, layout, size });
+            },
+          },
+        },
+        resourceKey: "texture:short-upload",
+        descriptor: fixture.descriptor,
+        upload: {
+          data: new Uint8Array(fixture.upload.actualBytes),
+          bytesPerRow: fixture.upload.bytesPerRow,
+          rowsPerImage: fixture.upload.rowsPerImage,
+        },
+      });
+
+      expect(result.valid).toBe(false);
+      expect(result.resource).toBeNull();
+      expect(result.diagnostics).toEqual([
+        {
+          code: "textureResource.uploadDataTooSmall",
+          resourceKey: "texture:short-upload",
+          message: expect.stringContaining(
+            `at least ${fixture.expectedBytes} byte(s)`,
+          ),
+        },
+      ]);
+      expect(result.diagnostics[0]?.message).toContain(
+        `received ${fixture.upload.actualBytes}`,
+      );
+      expect(writes).toEqual([]);
+    }
   });
 
   it("reports missing upload support when explicit bytes are provided", () => {
@@ -149,7 +424,7 @@ describe("texture GPU resource creation", () => {
         },
         resourceKey: "texture:albedo",
         descriptor: textureDescriptor(),
-        upload: { data: new Uint8Array([255, 255, 255, 255]), bytesPerRow: 4 },
+        upload: { data: new Uint8Array(16), bytesPerRow: 8 },
       }),
     ).toMatchObject({
       valid: false,

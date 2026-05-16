@@ -45,6 +45,10 @@ test("ECS browser example reports unknown query scenarios without submitting dra
       "orthographic-camera",
       "render-order-overlap",
       "missing-resource",
+      "textured-unlit",
+      "sampler-filter-address",
+      "multi-textured-unlit",
+      "invalid-texture-upload",
     ]),
   );
 });

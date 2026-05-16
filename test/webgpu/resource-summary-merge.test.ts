@@ -50,6 +50,35 @@ describe("renderer resource summary merge", () => {
       "error",
     ]);
   });
+
+  it("preserves texture upload validation diagnostics while merging", () => {
+    const merged = mergeRenderResourceSummaryReports([
+      summary({ textures: 1, warnings: 1 }, [
+        {
+          code: "textureResource.invalidBytesPerRow",
+          message: "invalid row",
+          severity: "warning",
+        },
+      ]),
+      summary({ textures: 0, warnings: 1 }, [
+        {
+          code: "textureResource.uploadDataTooSmall",
+          message: "short data",
+          severity: "warning",
+        },
+      ]),
+    ]);
+
+    expect(merged.counts).toMatchObject({
+      textures: 1,
+      warnings: 2,
+      errors: 0,
+    });
+    expect(merged.diagnostics.map((diagnostic) => diagnostic.code)).toEqual([
+      "textureResource.invalidBytesPerRow",
+      "textureResource.uploadDataTooSmall",
+    ]);
+  });
 });
 
 function summary(

@@ -48,6 +48,7 @@ export interface UnlitBindGroupResourceDiagnostic {
   readonly code: UnlitBindGroupResourceDiagnosticCode;
   readonly message: string;
   readonly group?: number;
+  readonly resourceKey?: string;
 }
 
 export interface UnlitBindGroupLayoutResource {
@@ -257,6 +258,7 @@ export function createUnlitBindGroupsFromGpuResources(
           if (buffer === undefined) {
             diagnostics.push({
               code: "unlitBindGroupResource.missingBufferResource",
+              resourceKey: entry.resourceKey,
               group: entry.group,
               message: `Missing GPU buffer resource '${entry.resourceKey}' for unlit group ${entry.group}.`,
             });
@@ -271,6 +273,7 @@ export function createUnlitBindGroupsFromGpuResources(
           if (texture === undefined) {
             diagnostics.push({
               code: "unlitBindGroupResource.missingTextureResource",
+              resourceKey: entry.resourceKey,
               group: entry.group,
               message: `Missing GPU texture view resource '${entry.resourceKey}' for unlit group ${entry.group}.`,
             });
@@ -285,6 +288,7 @@ export function createUnlitBindGroupsFromGpuResources(
           if (sampler === undefined) {
             diagnostics.push({
               code: "unlitBindGroupResource.missingSamplerResource",
+              resourceKey: entry.resourceKey,
               group: entry.group,
               message: `Missing GPU sampler resource '${entry.resourceKey}' for unlit group ${entry.group}.`,
             });
