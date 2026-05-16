@@ -93,6 +93,7 @@ Use the smallest helper that matches the question:
 - Frame-boundary execution: `frameExecutionReportToJsonValue` for data, `summarizeFrameExecutionDiagnosticsBySection` for missing execution, finish, submit, or source diagnostics.
 - Renderer assembly: `rendererAssemblySmokeReportToJsonValue` for data, `summarizeRendererAssemblyDiagnosticsBySection` for snapshot, package, resource, or frame issues.
 - Renderer resource summary: `renderResourceSummaryReportToJsonValue` for resource counts and stable diagnostic resource keys without buffers, textures, samplers, pipelines, or shader modules.
+- Light shader readiness: `lightShaderResourceReadinessReportToJsonValue` for readiness sections and stable diagnostics, `lightShaderReadinessToResourceSummaryDiagnostics` when those readiness diagnostics should surface as renderer resource-summary warnings without changing resource counts.
 - Renderer frame summary: `rendererFrameSummaryReportToJsonValue` for data, `summarizeRendererFrameSummaryDiagnosticsBySection` for summary sections.
 - Full injected frame runner: `injectedRenderFrameRunnerReportToJsonValue` for a JSON-safe cross-phase snapshot, `summarizeInjectedRenderFrameDiagnosticsByPhase` for phase grouping.
 - Draw-command injected frame runner: `injectedRenderFrameDrawCommandRunnerReportToJsonValue` for draw-list plus full-frame data, `summarizeInjectedRenderFrameDrawCommandDiagnosticsByPhase` for draw-list plus full-frame phase grouping.
@@ -129,11 +130,40 @@ for non-null handles; null handles remain valid no-op environment inputs.
 `planSnapshotLightingResources` composes those derived plans from a full
 `RenderSnapshot`, and its JSON helper exposes light counts/byte lengths plus
 environment-map resource keys without serializing typed-array payloads or raw
-handles. Renderer resource summaries may count planned light buffers and
-created light GPU buffer resources separately, alongside environment-map
-requirements, but those counts are planning/readiness data, not WebGPU resource
-ownership by ECS. Light bind groups, shader consumption, shadows, skyboxes, and
-IBL remain outside the current unlit frame path.
+handles. `createSnapshotLightGpuBuffers` is the renderer-side adapter for the
+next step: it derives the light-buffer descriptor plan from `RenderSnapshot`,
+treats empty light snapshots as valid no-ops, and creates renderer-owned float
+and metadata WebGPU buffers only when the descriptor plan is non-empty. Renderer
+resource summaries may count planned light buffers and created light GPU buffer
+resources separately, alongside environment-map requirements, but those counts
+are planning/readiness data, not WebGPU resource ownership by ECS. Light bind
+group layout resources and descriptor plans are also renderer-owned: they derive
+from created light GPU buffer resources and stable layout keys, and their
+JSON-safe summaries expose only binding/resource keys rather than raw buffers.
+Light bind group resource creation consumes those renderer-owned layout and
+descriptor resources with an injected `createBindGroup` device and returns a
+stable bind group resource key without exposing raw bind group, layout, or buffer
+handles through JSON helpers. `createSnapshotLightBindGroupResources` composes
+the full derived path from a `RenderSnapshot`: packed light buffers, WebGPU light
+buffers, light bind group layout, descriptor plan, and bind group resource. Empty
+light snapshots remain valid no-ops and diagnostics from each phase are
+preserved for inspection. `snapshotLightBindGroupResourcesToSummaryInput`
+adapts that result into renderer resource summaries so reports can count planned
+light buffers, created light GPU buffers, and created light bind groups together
+without serializing raw handles. `createSnapshotLightResourceSummaryReport`
+wraps the same data into a standard `RenderResourceSummaryReport`, and
+`snapshotLightResourceSummaryReportToJson` exposes the standard JSON-safe
+summary for diagnostics, tests, and future browser status plumbing. Shader
+binding metadata now defines the future light float and metadata storage
+bindings, and readiness diagnostics can report whether light buffers, layout,
+bind group, and metadata validation are present. These metadata/readiness helpers
+are still inspection contracts only. `lightShaderResourceReadinessReportToJson`
+serializes readiness sections and stable diagnostics without raw buffers,
+layouts, bind groups, or shader modules, while
+`lightShaderReadinessToResourceSummaryDiagnostics` exposes the same readiness
+failures as resource-summary warnings without changing resource counts. Shader
+lighting consumption, shadows, skyboxes, and IBL remain outside the current unlit
+frame path.
 
 When an environment light references a missing, loading, or failed
 environment-map asset, extraction emits `render.environment.*` diagnostics with

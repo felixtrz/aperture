@@ -154,6 +154,7 @@ function resources(
       samplers: counts.samplers ?? 0,
       lightBuffers: counts.lightBuffers ?? 0,
       lightGpuBuffers: counts.lightGpuBuffers ?? 0,
+      lightBindGroups: counts.lightBindGroups ?? 0,
       environmentMaps: counts.environmentMaps ?? 0,
       viewUniformBuffers: counts.viewUniformBuffers ?? 1,
       shaderModules: counts.shaderModules ?? 1,

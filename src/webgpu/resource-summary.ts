@@ -5,6 +5,7 @@ import type {
   CreateLightGpuBuffersResult,
   LightBufferDescriptor,
 } from "./light-packing.js";
+import type { CreateLightBindGroupResourceResult } from "./light-bind-group.js";
 import type { CreateShaderModuleResourceResult } from "./shader-resource.js";
 import type {
   CreateSamplerGpuResourceResult,
@@ -31,6 +32,7 @@ export interface RenderResourceSummaryCounts {
   readonly samplers: number;
   readonly lightBuffers: number;
   readonly lightGpuBuffers: number;
+  readonly lightBindGroups: number;
   readonly environmentMaps: number;
   readonly viewUniformBuffers: number;
   readonly shaderModules: number;
@@ -47,6 +49,7 @@ export interface RenderResourceSummaryInput {
   readonly samplerResources?: readonly CreateSamplerGpuResourceResult[];
   readonly lightBuffers?: readonly LightBufferDescriptor[];
   readonly lightGpuBufferResources?: readonly CreateLightGpuBuffersResult[];
+  readonly lightBindGroupResources?: readonly CreateLightBindGroupResourceResult[];
   readonly environmentResources?: readonly EnvironmentResourcePlan[];
   readonly viewUniformResources: readonly CreateViewUniformGpuBufferResult[];
   readonly shaderResources: readonly CreateShaderModuleResourceResult[];
@@ -115,6 +118,14 @@ export function createRenderResourceSummaryReport(
     );
   }
 
+  for (const result of input.lightBindGroupResources ?? []) {
+    diagnostics.push(
+      ...result.diagnostics.map((diagnostic) =>
+        resourceDiagnostic(diagnostic, "warning"),
+      ),
+    );
+  }
+
   for (const result of input.viewUniformResources) {
     diagnostics.push(
       ...result.diagnostics.map((diagnostic) =>
@@ -163,6 +174,9 @@ export function createRenderResourceSummaryReport(
         .length,
       lightBuffers: input.lightBuffers?.length ?? 0,
       lightGpuBuffers: (input.lightGpuBufferResources ?? []).filter(
+        (result) => result.valid,
+      ).length,
+      lightBindGroups: (input.lightBindGroupResources ?? []).filter(
         (result) => result.valid,
       ).length,
       environmentMaps: (input.environmentResources ?? []).reduce(
@@ -234,6 +248,7 @@ export function mergeRenderResourceSummaryReports(
       samplers: sum(reports, (report) => report.counts.samplers),
       lightBuffers: sum(reports, (report) => report.counts.lightBuffers),
       lightGpuBuffers: sum(reports, (report) => report.counts.lightGpuBuffers),
+      lightBindGroups: sum(reports, (report) => report.counts.lightBindGroups),
       environmentMaps: sum(reports, (report) => report.counts.environmentMaps),
       viewUniformBuffers: sum(
         reports,

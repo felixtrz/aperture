@@ -7,6 +7,7 @@ import {
   createLightGpuBuffers,
   createRenderResourceSummaryReport,
   planEnvironmentResources,
+  type CreateLightBindGroupResourceResult,
   type CreateLightGpuBuffersResult,
   type CreateMeshGpuBuffersResult,
   type CreateSamplerGpuResourceResult,
@@ -28,6 +29,7 @@ describe("renderer resource summary report", () => {
       samplerResources: [samplerResource(true)],
       lightBuffers: [createLightBufferDescriptor([])],
       lightGpuBufferResources: [lightGpuResource(true)],
+      lightBindGroupResources: [lightBindGroupResource(true)],
       environmentResources: [planEnvironmentResources([environment(1)])],
       viewUniformResources: [viewResource(true)],
       shaderResources: [shaderResource(true)],
@@ -44,6 +46,7 @@ describe("renderer resource summary report", () => {
       samplers: 1,
       lightBuffers: 1,
       lightGpuBuffers: 1,
+      lightBindGroups: 1,
       environmentMaps: 1,
       viewUniformBuffers: 1,
       shaderModules: 1,
@@ -61,6 +64,7 @@ describe("renderer resource summary report", () => {
       textureResources: [textureResource(false)],
       samplerResources: [samplerResource(false)],
       lightGpuBufferResources: [lightGpuResource(false)],
+      lightBindGroupResources: [lightBindGroupResource(false)],
       viewUniformResources: [viewResource(false)],
       shaderResources: [shaderResource(false)],
       pipelines: [pipelineFailure()],
@@ -72,9 +76,10 @@ describe("renderer resource summary report", () => {
       textures: 0,
       samplers: 0,
       lightGpuBuffers: 0,
+      lightBindGroups: 0,
       viewUniformBuffers: 0,
       shaderModules: 0,
-      warnings: 6,
+      warnings: 7,
       errors: 2,
     });
     expect(report.diagnostics.map((diagnostic) => diagnostic.code)).toEqual([
@@ -83,6 +88,7 @@ describe("renderer resource summary report", () => {
       "textureResource.textureCreationFailed",
       "samplerResource.samplerCreationFailed",
       "lightGpuBuffer.creationFailed",
+      "lightBindGroupResource.creationFailed",
       "viewUniformGpuBuffer.creationFailed",
       "shaderResource.creationFailed",
       "pipelineCacheIntegration.pipelineCreationFailed",
@@ -151,6 +157,7 @@ describe("renderer resource summary report", () => {
         samplers: 0,
         lightBuffers: 0,
         lightGpuBuffers: 0,
+        lightBindGroups: 0,
         environmentMaps: 0,
         viewUniformBuffers: 0,
         shaderModules: 0,
@@ -298,6 +305,38 @@ function lightGpuResource(valid: boolean): CreateLightGpuBuffersResult {
     device: lightBufferDevice(),
     plan,
   });
+}
+
+function lightBindGroupResource(
+  valid: boolean,
+): CreateLightBindGroupResourceResult {
+  return valid
+    ? {
+        valid: true,
+        resource: {
+          group: 3,
+          resourceKey: "bind-group:lights/group-3/light-buffer:main",
+          layoutKey: "bind-group-layout:lights/group-3",
+          bindGroup: {},
+          entryResourceKeys: [
+            "light-buffer:main/floats",
+            "light-buffer:main/metadata",
+          ],
+        },
+        diagnostics: [],
+      }
+    : {
+        valid: false,
+        resource: null,
+        diagnostics: [
+          {
+            code: "lightBindGroupResource.creationFailed",
+            message: "failed",
+            resourceKey: "bind-group:lights/group-3/light-buffer:main",
+            layoutKey: "bind-group-layout:lights/group-3",
+          },
+        ],
+      };
 }
 
 function lightBufferDevice(): WebGpuBufferDeviceLike {

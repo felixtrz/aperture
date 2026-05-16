@@ -152,10 +152,30 @@ packets, not ECS. Light packet packing may produce typed arrays and buffer
 descriptors from `LightPacket`s, and environment planning may produce stable
 resource keys from `EnvironmentPacket.handle`. Actual light GPU buffers are
 created only on the renderer side from descriptor plans with an injected WebGPU
-device, and summary reports count them separately from planned light buffers.
-Environment texture binding, light bind groups, shader lighting consumption,
-skybox passes, shader IBL consumption, and shadow maps remain deferred
-renderer-owned work.
+device. The snapshot adapter derives those renderer-owned float and metadata
+buffers from `RenderSnapshot` data and treats empty light snapshots as valid
+no-ops. Summary reports count created light GPU buffers separately from planned
+light buffers. Light bind group layout resources and descriptor plans are
+derived from renderer-owned light GPU buffer resources and stable layout keys,
+not ECS state; their inspection helpers omit raw buffers. Light bind group
+resource creation consumes those renderer-owned layout/descriptor resources with
+an injected WebGPU-like device and returns stable resource keys while omitting
+raw bind group handles from JSON helpers. The snapshot composition adapter can
+derive packed light buffers, renderer-owned light GPU buffers, a light bind group
+layout, descriptor plan, and bind group resource from `RenderSnapshot` data
+without reading ECS or making the renderer authoritative. Its summary adapter
+feeds planned light buffers, created light GPU buffers, and created light bind
+groups into renderer resource summary reports as inspection/readiness data. The
+focused snapshot light resource summary helper returns a standard
+`RenderResourceSummaryReport`, and its JSON helper delegates to the same
+JSON-safe resource summary format used by broader renderer assembly reports.
+Light shader binding metadata and readiness diagnostics can validate the future
+light bind group contract against renderer-owned resources, but this does not
+activate shader lighting. Their JSON helper is an inspection surface for
+readiness sections and stable diagnostics only, and their resource-summary bridge
+reports readiness failures as warnings without changing resource counts.
+Environment texture binding, shader lighting consumption, skybox passes, shader
+IBL consumption, and shadow maps remain deferred renderer-owned work.
 Snapshot-level lighting resource plans are therefore inspection/readiness data:
 they can summarize planned light-buffer bytes and environment-map requirements
 from a `RenderSnapshot`, but they do not make ECS own GPU resources and do not

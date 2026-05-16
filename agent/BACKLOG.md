@@ -27,59 +27,67 @@ Keep implementation vertical, typed, and testable. Do not introduce a public mut
 
 ## Recommended Next Task
 
-Start with `task-0495`. Light GPU buffer resource creation and summary counts
-now exist; the next slice should add a JSON-safe inspection helper for those
-resource results before composing them into broader runner helpers.
+Start with `task-0534`. Keep the slice contract-only: define the WGSL light data
+layout expected by the future shader path without enabling lighting math or
+threading it into the render pipeline.
 
 ## Ready Tasks
 
-### task-0495 — Add light GPU buffer resource JSON helper
+### task-0534 — Add light shader WGSL data contract
 
-Add a JSON-safe helper for light GPU buffer creation results.
-
-Acceptance criteria:
-
-- Helper serializes validity, stable resource keys, counts, and diagnostics.
-- Helper omits raw float and metadata GPU buffer handles.
-- Tests cover success, null-plan diagnostics, creation failure diagnostics, and
-  deterministic JSON output.
-
-### task-0496 — Add snapshot light GPU buffer creation adapter
-
-Compose snapshot-level lighting plans with injected light GPU buffer creation.
+Define the WGSL struct/declaration contract for packed light float and metadata
+buffers.
 
 Acceptance criteria:
 
-- Adapter accepts a `RenderSnapshot` plus injected buffer device.
-- Empty snapshots produce a valid no-op result without diagnostics.
-- Non-empty light snapshots create renderer-owned light GPU buffers.
-- Descriptor-plan and buffer-creation diagnostics are preserved.
+- Contract names the float and metadata storage bindings from
+  `LIGHT_SHADER_BINDING_METADATA`.
+- WGSL struct/declaration text documents the existing packing strides and field
+  ordering.
+- Tests verify binding numbers, group index, buffer access mode, and deterministic
+  WGSL text.
+- No render pipeline consumes the WGSL contract yet.
 
-### task-0497 — Cover light GPU buffers in renderer assembly JSON
+### task-0535 — Add light shader declaration JSON helper
 
-Extend renderer assembly or runner fixture coverage to include actual light GPU
-buffer resource counts without exposing raw handles.
-
-Acceptance criteria:
-
-- A renderer assembly JSON test includes `lightGpuBuffers`.
-- The JSON output omits raw light buffer handles.
-- Existing unlit mesh submission and resource counts remain unchanged.
-
-### task-0498 — Document snapshot light GPU buffer creation
-
-Document the snapshot-to-light-GPU-buffer adapter boundary.
+Expose the WGSL light shader declaration contract through a JSON-safe inspection
+helper.
 
 Acceptance criteria:
 
-- Docs state the adapter derives renderer-owned buffers from `RenderSnapshot`.
-- Docs clarify that bind group, shader consumption, shadows, skybox, and IBL
-  remain deferred.
+- Helper serializes binding metadata and declaration text without shader modules
+  or GPU handles.
+- Tests cover deterministic JSON output and metadata/declaration consistency.
+- Helper remains renderer-side inspection data only.
+
+### task-0536 — Add unlit shader metadata variant with light bindings
+
+Define a metadata-only shader variant that combines existing unlit draw bindings
+with the future light bind group contract.
+
+Acceptance criteria:
+
+- Variant records required bind groups/bindings without changing shader
+  execution.
+- Tests validate the unlit bindings are preserved and light bindings are added
+  at the expected group.
+- No lighting math, shadows, skybox, IBL, or pipeline activation is introduced.
+
+### task-0537 — Document light shader WGSL contract boundary
+
+Document the light WGSL declaration and metadata-only shader variant.
+
+Acceptance criteria:
+
+- Docs explain the contract prepares shader integration but does not enable
+  lighting.
+- Docs name the JSON/debug surfaces and raw-handle omissions.
 - Format check passes.
 
-### task-0499 — Run consolidated light GPU buffer validation
+### task-0538 — Run consolidated light shader contract validation
 
-Run a broader validation pass after the light GPU buffer resource slices.
+Run broader validation after the WGSL contract and metadata-only shader variant
+slices.
 
 Acceptance criteria:
 

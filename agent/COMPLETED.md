@@ -4379,3 +4379,231 @@ Summary:
   static browser scenario tests, lighting Playwright route coverage, targeted
   WebGPU resource tests, `typecheck`, `typecheck:test`, `format:check`, full
   `npm run check`, and lighting route Playwright coverage passed during the run.
+
+## task-0495 through task-0499 — Light GPU buffer snapshot adapter
+
+Completed: 2026-05-16
+
+Completed task ids:
+
+- `task-0495` — Add light GPU buffer resource JSON helper.
+- `task-0496` — Add snapshot light GPU buffer creation adapter.
+- `task-0497` — Cover light GPU buffers in renderer assembly JSON.
+- `task-0498` — Document snapshot light GPU buffer creation.
+- `task-0499` — Run consolidated light GPU buffer validation.
+
+Summary:
+
+- Added JSON-safe serialization for light GPU buffer creation results, including
+  validity, stable resource keys, light/GPU-buffer counts, diagnostics, and no
+  raw GPU buffer handles.
+- Added `createSnapshotLightGpuBuffers` to derive light GPU buffers from
+  `RenderSnapshot` data with an injected device while treating empty light
+  snapshots as valid no-ops.
+- Preserved descriptor-plan diagnostics and buffer-creation diagnostics across
+  the snapshot adapter.
+- Extended renderer assembly JSON coverage so created light GPU buffer counts
+  are visible while raw light buffer handles remain omitted.
+- Documented that snapshot light GPU buffer creation derives renderer-owned
+  buffers from snapshots and still defers bind groups, shader lighting, shadows,
+  skybox, and IBL.
+- Validation run: targeted WebGPU tests, `typecheck`, `typecheck:test`,
+  `format:check`, full `npm run check`, and lighting route Playwright coverage
+  passed.
+
+## task-0500 through task-0504 — Snapshot light JSON and bind group planning
+
+Completed: 2026-05-16
+
+Completed task ids:
+
+- `task-0500` — Add snapshot light GPU buffer JSON helper.
+- `task-0501` — Adapt snapshot light GPU buffers into resource summaries.
+- `task-0502` — Add light bind group layout resource contract.
+- `task-0503` — Add light bind group descriptor planning.
+- `task-0504` — Document light bind group planning boundary.
+
+Summary:
+
+- Added JSON-safe serialization for snapshot light GPU buffer adapter results,
+  including planned counts, descriptor-plan status, created resource keys, and
+  diagnostics without raw buffers or packed typed arrays.
+- Added a summary-input adapter for snapshot-created light GPU buffers so
+  renderer resource summaries can count planned buffers and attempted GPU buffer
+  creation.
+- Added renderer-owned light bind group layout descriptor/resource creation for
+  two read-only storage buffer bindings.
+- Added light bind group descriptor planning from renderer-owned light GPU
+  buffer resources plus stable layout keys, with JSON-safe summaries that omit
+  raw buffers.
+- Documented that light bind group planning derives from renderer-owned
+  resources and still defers actual bind group creation, shader lighting,
+  shadows, skybox, and IBL.
+- Validation run: targeted WebGPU tests, `typecheck`, `typecheck:test`, and
+  `format:check` passed.
+
+## task-0505 through task-0509 — Light bind group resources and summaries
+
+Completed: 2026-05-16
+
+Completed task ids:
+
+- `task-0505` — Add light bind group resource creation.
+- `task-0506` — Add light bind group resource JSON helper.
+- `task-0507` — Count light bind group resources in summaries.
+- `task-0508` — Document light bind group resource creation.
+- `task-0509` — Run consolidated light bind group validation.
+
+Summary:
+
+- Added renderer-owned light bind group resource creation from descriptor plans,
+  layout resources, and injected `createBindGroup` devices.
+- Added diagnostics for null/invalid descriptor plans, missing layouts, missing
+  device support, and bind group creation failure.
+- Added JSON-safe inspection for light bind group resource creation results,
+  omitting raw bind group, layout, and buffer handles.
+- Extended renderer resource summaries and JSON output with `lightBindGroups`
+  counts and diagnostics while preserving existing resource counts.
+- Documented that light bind group resources derive from renderer-owned light
+  buffer/layout resources while shader lighting, shadows, skybox, and IBL remain
+  deferred.
+- Validation run: targeted WebGPU tests, `typecheck`, `typecheck:test`,
+  `format:check`, full `npm run check`, and lighting route Playwright coverage
+  passed.
+
+## task-0510 through task-0514 — Snapshot light bind group composition
+
+Completed: 2026-05-16
+
+Completed task ids:
+
+- `task-0510` — Add snapshot light bind group creation adapter.
+- `task-0511` — Add snapshot light bind group JSON helper.
+- `task-0512` — Cover snapshot light bind groups in renderer assembly JSON.
+- `task-0513` — Document snapshot light bind group creation.
+- `task-0514` — Run consolidated snapshot light bind group validation.
+
+Summary:
+
+- Added `createSnapshotLightBindGroupResources` to compose `RenderSnapshot`
+  light data into light GPU buffers, light bind group layout resources,
+  descriptor plans, and renderer-owned light bind group resources.
+- Preserved diagnostics across light GPU buffer creation, layout creation,
+  descriptor planning, and bind group creation while keeping empty light
+  snapshots valid no-ops.
+- Added JSON-safe inspection for snapshot light bind group composition results,
+  including phase readiness, stable resource keys, counts, and diagnostics
+  without raw buffers/layouts/bind groups or typed arrays.
+- Extended renderer assembly JSON coverage with light bind group counts while
+  keeping raw handles omitted.
+- Documented the snapshot-to-light-bind-group resource path and reiterated that
+  shader lighting, shadows, skybox, and IBL remain deferred.
+- Validation run: targeted WebGPU tests, `typecheck`, `typecheck:test`,
+  `format:check`, full `npm run check`, and lighting route Playwright coverage
+  passed.
+
+## task-0515 through task-0519 — Snapshot light resource summary adapters
+
+Completed: 2026-05-16
+
+Completed task ids:
+
+- `task-0515` — Adapt snapshot light bind groups into resource summaries.
+- `task-0516` — Add snapshot light bind group resource summary JSON coverage.
+- `task-0517` — Cover snapshot light bind group summaries in renderer assembly.
+- `task-0518` — Document snapshot light bind group summary adapter.
+- `task-0519` — Run consolidated light summary adapter validation.
+
+Summary:
+
+- Added `snapshotLightBindGroupResourcesToSummaryInput` so snapshot-derived
+  planned light buffers, created light GPU buffers, and light bind group
+  resources can feed standard renderer resource summaries.
+- Added resource summary JSON coverage using actual snapshot light bind group
+  creation results while keeping raw buffers, layouts, and bind groups omitted.
+- Updated renderer assembly JSON fixtures to derive light resource counts from
+  the snapshot summary adapter.
+- Documented the summary adapter as inspection/readiness data, with shader
+  lighting, shadows, skybox, and IBL still deferred.
+- Validation run: targeted WebGPU tests, `typecheck`, `typecheck:test`,
+  `format:check`, full `npm run check`, and lighting route Playwright coverage
+  passed.
+
+## task-0520 through task-0523 — Focused snapshot light summaries
+
+Completed: 2026-05-16
+
+Completed task ids:
+
+- `task-0520` — Add snapshot light resource summary report helper.
+- `task-0521` — Add snapshot light resource summary JSON helper.
+- `task-0522` — Document snapshot light resource summary helper.
+- `task-0523` — Plan next shader-lighting boundary tasks.
+
+Summary:
+
+- Added `createSnapshotLightResourceSummaryReport` to wrap snapshot light bind
+  group resource results in a standard `RenderResourceSummaryReport`.
+- Added `snapshotLightResourceSummaryReportToJsonValue` and
+  `snapshotLightResourceSummaryReportToJson`, delegating to the existing
+  JSON-safe renderer resource summary format.
+- Documented the focused summary helper as inspection/readiness plumbing for
+  diagnostics, tests, and future browser status work.
+- Refilled the ready backlog with small shader-lighting boundary tasks that do
+  not enable full lighting shaders in one step.
+- Validation run: targeted WebGPU tests, `typecheck`, `typecheck:test`, and
+  `format:check` passed.
+
+## task-0524 through task-0528 — Light shader binding readiness boundary
+
+Completed: 2026-05-16
+
+Completed task ids:
+
+- `task-0524` — Run consolidated snapshot light summary validation.
+- `task-0525` — Add light shader binding metadata contract.
+- `task-0526` — Validate light bind group layout against shader metadata.
+- `task-0527` — Add light shader resource readiness diagnostics.
+- `task-0528` — Document light shader binding boundary.
+
+Summary:
+
+- Ran consolidated validation after the snapshot light summary helpers.
+- Added stable metadata for the future light shader bind group: packed light
+  float storage at binding 0 and packed light metadata storage at binding 1.
+- Added validation that compares light bind group layout descriptors against the
+  light shader binding metadata.
+- Added light shader resource readiness diagnostics for light GPU buffers,
+  layout, bind group, and metadata validation.
+- Documented that metadata/readiness helpers are inspection contracts only and
+  do not activate shader lighting, shadows, skybox, or IBL.
+- Validation run: targeted WebGPU tests, `typecheck`, `typecheck:test`, and
+  `format:check` passed.
+
+## task-0529 through task-0533 — Light shader readiness reporting boundary
+
+Completed: 2026-05-16
+
+Completed task ids:
+
+- `task-0529` — Run consolidated light shader boundary validation.
+- `task-0530` — Add light shader readiness JSON helper.
+- `task-0531` — Add light shader readiness resource-summary bridge.
+- `task-0532` — Document light shader readiness JSON/reporting.
+- `task-0533` — Plan next minimal shader implementation tasks.
+
+Summary:
+
+- Ran consolidated validation after the light shader metadata/readiness slices.
+- Added JSON-safe serialization for light shader readiness reports, including
+  section readiness and stable diagnostics without raw buffers, layouts, bind
+  groups, or shader modules.
+- Added a resource-summary diagnostic bridge that exposes light shader readiness
+  failures as stable warnings without changing resource counts.
+- Documented the readiness JSON/reporting helpers as inspection surfaces only,
+  with shader lighting, shadows, skybox, and IBL still deferred.
+- Refilled the ready backlog with minimal WGSL/light shader contract tasks that
+  do not enable full lighting in one slice.
+- Validation run: full `npm run check`, lighting route Playwright coverage,
+  focused light shader metadata tests, `typecheck`, `typecheck:test`, and
+  `format:check` passed.

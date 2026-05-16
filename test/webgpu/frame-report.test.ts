@@ -103,6 +103,7 @@ function resources(
       samplers: 0,
       lightBuffers: 0,
       lightGpuBuffers: 0,
+      lightBindGroups: 0,
       environmentMaps: 0,
       viewUniformBuffers: 0,
       shaderModules: 0,

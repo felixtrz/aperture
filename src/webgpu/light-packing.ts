@@ -112,6 +112,31 @@ export interface CreateLightGpuBuffersResult {
   readonly diagnostics: readonly LightGpuBufferDiagnostic[];
 }
 
+export interface LightGpuBufferDiagnosticJsonValue {
+  readonly code: LightGpuBufferDiagnosticCode;
+  readonly message: string;
+  readonly reason?: WebGpuBufferFailureReason;
+  readonly resourceKey?: string;
+}
+
+export interface LightGpuBufferResourceJsonValue {
+  readonly resourceKey: string;
+  readonly floatResourceKey: string;
+  readonly metadataResourceKey: string;
+  readonly count: number;
+}
+
+export interface CreateLightGpuBuffersResultJsonValue {
+  readonly valid: boolean;
+  readonly resource: LightGpuBufferResourceJsonValue | null;
+  readonly counts: {
+    readonly lights: number;
+    readonly gpuBuffers: number;
+    readonly diagnostics: number;
+  };
+  readonly diagnostics: readonly LightGpuBufferDiagnosticJsonValue[];
+}
+
 export type PackLightPacketsInput =
   | readonly LightPacket[]
   | Pick<RenderSnapshot, "lights">;
@@ -299,6 +324,42 @@ export function createLightGpuBuffers(
     },
     diagnostics,
   };
+}
+
+export function createLightGpuBuffersResultToJsonValue(
+  result: CreateLightGpuBuffersResult,
+): CreateLightGpuBuffersResultJsonValue {
+  return {
+    valid: result.valid,
+    resource:
+      result.resource === null
+        ? null
+        : {
+            resourceKey: result.resource.resourceKey,
+            floatResourceKey: result.resource.floatResourceKey,
+            metadataResourceKey: result.resource.metadataResourceKey,
+            count: result.resource.count,
+          },
+    counts: {
+      lights: result.resource?.count ?? 0,
+      gpuBuffers: result.resource === null ? 0 : 2,
+      diagnostics: result.diagnostics.length,
+    },
+    diagnostics: result.diagnostics.map((diagnostic) => ({
+      code: diagnostic.code,
+      message: diagnostic.message,
+      ...(diagnostic.reason === undefined ? {} : { reason: diagnostic.reason }),
+      ...(diagnostic.resourceKey === undefined
+        ? {}
+        : { resourceKey: diagnostic.resourceKey }),
+    })),
+  };
+}
+
+export function createLightGpuBuffersResultToJson(
+  result: CreateLightGpuBuffersResult,
+): string {
+  return JSON.stringify(createLightGpuBuffersResultToJsonValue(result));
 }
 
 function isLightPacketArray(

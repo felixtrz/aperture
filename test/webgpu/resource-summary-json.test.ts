@@ -4,15 +4,21 @@ import {
   createRenderResourceSummaryReport,
   createSamplerAsset,
   createSamplerGpuResource,
+  createSnapshotLightBindGroupResources,
   createTextureGpuResource,
   renderResourceSummaryReportToJson,
   renderResourceSummaryReportToJsonValue,
+  snapshotLightBindGroupResourcesToSummaryInput,
+  type CreateLightBindGroupResourceResult,
   type CreateLightGpuBuffersResult,
   type CreateMeshGpuBuffersResult,
   type CreateSamplerGpuResourceResult,
   type CreateTextureGpuResourceResult,
   type CreateUnlitMaterialGpuBufferResult,
   type CreateViewUniformGpuBufferResult,
+  type LightPacket,
+  type RenderSnapshot,
+  type SnapshotLightBindGroupDeviceLike,
   type TextureDescriptorInput,
   type TextureGpuDeviceLike,
 } from "../../src/index.js";
@@ -146,6 +152,10 @@ describe("renderer resource summary JSON helpers", () => {
         validLightGpuBufferResourceWithRawHandles(),
         lightGpuBufferFailure(),
       ],
+      lightBindGroupResources: [
+        validLightBindGroupResourceWithRawHandles(),
+        lightBindGroupFailure(),
+      ],
       viewUniformResources: [viewUniformFailure()],
       shaderResources: [],
       pipelines: [],
@@ -158,8 +168,9 @@ describe("renderer resource summary JSON helpers", () => {
       meshResources: 0,
       materialBuffers: 0,
       lightGpuBuffers: 1,
+      lightBindGroups: 1,
       viewUniformBuffers: 0,
-      warnings: 4,
+      warnings: 5,
       errors: 0,
     });
     expect(value.diagnostics).toEqual([
@@ -182,6 +193,12 @@ describe("renderer resource summary JSON helpers", () => {
         severity: "warning",
       },
       {
+        code: "lightBindGroupResource.creationFailed",
+        message: "light bind group failed",
+        resourceKey: "bind-group:lights/group-3/light-buffer:Main",
+        severity: "warning",
+      },
+      {
         code: "viewUniformGpuBuffer.creationFailed",
         message: "view uniform buffer failed",
         resourceKey: "view-uniform-buffer:MainCamera/uniform",
@@ -191,6 +208,42 @@ describe("renderer resource summary JSON helpers", () => {
     expect(JSON.parse(json) as unknown).toEqual(value);
     expect(json).not.toContain("raw-buffer-handle");
     expect(json).not.toContain("raw-light-buffer-handle");
+    expect(json).not.toContain("raw-light-bind-group-handle");
+    expect(json).not.toContain("raw-light-layout-handle");
+  });
+
+  it("serializes snapshot-created light bind group summary counts without raw handles", () => {
+    const snapshotLightResources = createSnapshotLightBindGroupResources(
+      snapshot([light("directional", 1)]),
+      {
+        device: snapshotLightDevice(),
+        lightBuffer: { resourceKey: "light-buffer:summary-json" },
+      },
+    );
+    const report = createRenderResourceSummaryReport({
+      meshResources: [],
+      materialResources: [],
+      viewUniformResources: [],
+      shaderResources: [],
+      pipelines: [],
+      ...snapshotLightBindGroupResourcesToSummaryInput(snapshotLightResources),
+    });
+
+    const value = renderResourceSummaryReportToJsonValue(report);
+    const json = renderResourceSummaryReportToJson(report);
+
+    expect(value.counts).toMatchObject({
+      lightBuffers: 1,
+      lightGpuBuffers: 1,
+      lightBindGroups: 1,
+      warnings: 0,
+      errors: 0,
+    });
+    expect(value.diagnostics).toEqual([]);
+    expect(JSON.parse(json) as unknown).toEqual(value);
+    expect(json).not.toContain("raw-snapshot-light-buffer");
+    expect(json).not.toContain("raw-snapshot-light-layout");
+    expect(json).not.toContain("raw-snapshot-light-bind-group");
   });
 });
 
@@ -275,6 +328,38 @@ function lightGpuBufferFailure(): CreateLightGpuBuffersResult {
   };
 }
 
+function validLightBindGroupResourceWithRawHandles(): CreateLightBindGroupResourceResult {
+  return {
+    valid: true,
+    resource: {
+      group: 3,
+      resourceKey: "bind-group:lights/group-3/light-buffer:Main",
+      layoutKey: "bind-group-layout:lights/group-3",
+      bindGroup: { handle: "raw-light-bind-group-handle" },
+      entryResourceKeys: [
+        "light-buffer:Main/floats",
+        "light-buffer:Main/metadata",
+      ],
+    },
+    diagnostics: [],
+  };
+}
+
+function lightBindGroupFailure(): CreateLightBindGroupResourceResult {
+  return {
+    valid: false,
+    resource: null,
+    diagnostics: [
+      {
+        code: "lightBindGroupResource.creationFailed",
+        message: "light bind group failed",
+        resourceKey: "bind-group:lights/group-3/light-buffer:Main",
+        layoutKey: "bind-group-layout:lights/group-3",
+      },
+    ],
+  };
+}
+
 function meshFailure(): CreateMeshGpuBuffersResult {
   return {
     valid: false,
@@ -333,5 +418,59 @@ function device(): TextureGpuDeviceLike {
       createView: () => ({ handle: "raw-view-handle" }),
     }),
     queue: { writeTexture: () => undefined },
+  };
+}
+
+function snapshot(lights: readonly LightPacket[]): RenderSnapshot {
+  return {
+    frame: 1,
+    views: [],
+    meshDraws: [],
+    lights,
+    environments: [],
+    shadowRequests: [],
+    bounds: [],
+    transforms: new Float32Array(0),
+    viewMatrices: new Float32Array(0),
+    diagnostics: [],
+    report: {
+      views: 0,
+      meshDraws: 0,
+      lights: lights.length,
+      environments: 0,
+      shadowRequests: 0,
+      bounds: 0,
+      diagnostics: 0,
+    },
+  };
+}
+
+function light(kind: LightPacket["kind"], seed: number): LightPacket {
+  return {
+    lightId: 100 + seed,
+    entity: { index: seed, generation: 0 },
+    kind,
+    color: [1, 1, 1, 1],
+    intensity: seed,
+    range: 10,
+    innerConeAngle: 0,
+    outerConeAngle: 0,
+    worldTransformOffset: 16 * seed,
+    layerMask: 1,
+  };
+}
+
+function snapshotLightDevice(): SnapshotLightBindGroupDeviceLike {
+  return {
+    queue: {
+      writeBuffer: () => undefined,
+    },
+    createBuffer: () => ({ handle: "raw-snapshot-light-buffer" }),
+    createBindGroupLayout: () => ({
+      handle: "raw-snapshot-light-layout",
+    }),
+    createBindGroup: () => ({
+      handle: "raw-snapshot-light-bind-group",
+    }),
   };
 }

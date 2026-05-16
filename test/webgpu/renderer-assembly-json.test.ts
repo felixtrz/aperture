@@ -2,15 +2,21 @@ import { describe, expect, it } from "vitest";
 
 import {
   createRendererAssemblySmokeReport,
+  createRenderResourceSummaryReport,
+  createSnapshotLightBindGroupResources,
   rendererAssemblySmokeReportToJson,
   rendererAssemblySmokeReportToJsonValue,
+  snapshotLightBindGroupResourcesToSummaryInput,
   type DrawPackageBatchingReport,
   type FrameAssemblyReadinessReport,
   type FrameReport,
+  type LightPacket,
   type RenderPackageInspectionReport,
+  type RenderSnapshot,
   type RenderResourceSummaryReport,
   type RenderSnapshotCloneabilityResult,
   type RenderSnapshotInspectionReport,
+  type SnapshotLightBindGroupDeviceLike,
 } from "../../src/index.js";
 
 describe("renderer assembly smoke JSON helpers", () => {
@@ -44,7 +50,17 @@ describe("renderer assembly smoke JSON helpers", () => {
             byCode: {},
           },
         },
-        resources: { meshResources: 1, pipelineMisses: 1 },
+        resources: {
+          meshResources: 1,
+          meshVertexBuffers: 1,
+          meshIndexBuffers: 1,
+          materialBuffers: 1,
+          lightGpuBuffers: 1,
+          lightBindGroups: 1,
+          viewUniformBuffers: 1,
+          shaderModules: 1,
+          pipelineMisses: 1,
+        },
         frame: { frame: 1, ready: true, draws: 1, batches: 1 },
       },
       diagnostics: {
@@ -93,6 +109,11 @@ describe("renderer assembly smoke JSON helpers", () => {
     expect(json).not.toContain("material-buffer:White");
     expect(json).not.toContain("unlit|white|p3|triangle-list");
     expect(json).not.toContain("mesh:cube");
+    expect(json).not.toContain("raw-snapshot-light-buffer");
+    expect(json).not.toContain("raw-snapshot-light-layout");
+    expect(json).not.toContain("raw-snapshot-light-bind-group");
+    expect(json).toContain('"lightGpuBuffers":1');
+    expect(json).toContain('"lightBindGroups":1');
   });
 });
 
@@ -148,26 +169,71 @@ function packages(packageCount: number): RenderPackageInspectionReport {
 }
 
 function resources(): RenderResourceSummaryReport {
-  return {
-    counts: {
-      meshResources: 1,
-      meshVertexBuffers: 1,
-      meshIndexBuffers: 1,
-      materialBuffers: 1,
-      textures: 0,
-      samplers: 0,
-      lightBuffers: 0,
-      lightGpuBuffers: 0,
-      environmentMaps: 0,
-      viewUniformBuffers: 1,
-      shaderModules: 1,
-      pipelineHits: 0,
-      pipelineMisses: 1,
-      warnings: 0,
-      errors: 0,
+  const snapshotLightResources = createSnapshotLightBindGroupResources(
+    renderSnapshot([light("directional", 1)]),
+    {
+      device: snapshotLightDevice(),
+      lightBuffer: { resourceKey: "light-buffer:Main" },
     },
-    diagnostics: [],
-  };
+  );
+
+  return createRenderResourceSummaryReport({
+    meshResources: [
+      {
+        valid: true,
+        resource: {
+          resourceKey: "mesh-buffer:Cube",
+          vertexCount: 3,
+          vertexBuffers: [
+            {
+              streamId: "main",
+              resourceKey: "mesh-buffer:Cube/vertex:main",
+              buffer: { handle: "raw-vertex-buffer" },
+              vertexCount: 3,
+            },
+          ],
+          indexBuffer: {
+            resourceKey: "mesh-buffer:Cube/index",
+            buffer: { handle: "raw-index-buffer" },
+            format: "uint16",
+            indexCount: 3,
+          },
+        },
+        diagnostics: [],
+      },
+    ],
+    materialResources: [
+      {
+        valid: true,
+        resource: null,
+        diagnostics: [],
+      },
+    ],
+    viewUniformResources: [
+      {
+        valid: true,
+        resource: null,
+        diagnostics: [],
+      },
+    ],
+    shaderResources: [
+      {
+        valid: true,
+        resource: null,
+        diagnostics: [],
+      },
+    ],
+    pipelines: [
+      {
+        ok: true,
+        status: "miss",
+        key: "unlit|white|p3|triangle-list",
+        pipeline: { handle: "raw-pipeline" },
+        diagnostics: [],
+      },
+    ],
+    ...snapshotLightBindGroupResourcesToSummaryInput(snapshotLightResources),
+  });
 }
 
 function frame(): FrameReport {
@@ -204,5 +270,59 @@ function frame(): FrameReport {
       bySeverity: { info: 0, warning: 0, error: 0 },
       byCode: {},
     },
+  };
+}
+
+function renderSnapshot(lights: readonly LightPacket[]): RenderSnapshot {
+  return {
+    frame: 1,
+    views: [],
+    meshDraws: [],
+    lights,
+    environments: [],
+    shadowRequests: [],
+    bounds: [],
+    transforms: new Float32Array(0),
+    viewMatrices: new Float32Array(0),
+    diagnostics: [],
+    report: {
+      views: 0,
+      meshDraws: 0,
+      lights: lights.length,
+      environments: 0,
+      shadowRequests: 0,
+      bounds: 0,
+      diagnostics: 0,
+    },
+  };
+}
+
+function light(kind: LightPacket["kind"], seed: number): LightPacket {
+  return {
+    lightId: 100 + seed,
+    entity: { index: seed, generation: 0 },
+    kind,
+    color: [1, 1, 1, 1],
+    intensity: seed,
+    range: 10,
+    innerConeAngle: 0,
+    outerConeAngle: 0,
+    worldTransformOffset: 16 * seed,
+    layerMask: 1,
+  };
+}
+
+function snapshotLightDevice(): SnapshotLightBindGroupDeviceLike {
+  return {
+    queue: {
+      writeBuffer: () => undefined,
+    },
+    createBuffer: () => ({ handle: "raw-snapshot-light-buffer" }),
+    createBindGroupLayout: () => ({
+      handle: "raw-snapshot-light-layout",
+    }),
+    createBindGroup: () => ({
+      handle: "raw-snapshot-light-bind-group",
+    }),
   };
 }

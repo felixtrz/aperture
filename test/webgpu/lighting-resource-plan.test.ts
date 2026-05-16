@@ -4,13 +4,16 @@ import {
   PACKED_LIGHT_FLOAT_STRIDE,
   createEnvironmentMapHandle,
   createRenderResourceSummaryReport,
+  createSnapshotLightGpuBuffers,
   planSnapshotLightingResources,
+  snapshotLightGpuBuffersToSummaryInput,
   snapshotLightingResourcePlanToSummaryInput,
   snapshotLightingResourcePlanToJson,
   snapshotLightingResourcePlanToJsonValue,
   type EnvironmentPacket,
   type LightPacket,
   type RenderSnapshot,
+  type WebGpuBufferDeviceLike,
 } from "../../src/index.js";
 
 describe("snapshot lighting resource planning", () => {
@@ -107,6 +110,198 @@ describe("snapshot lighting resource planning", () => {
     });
     expect(report.diagnostics).toEqual([]);
   });
+
+  it("creates valid no-op light GPU buffer resources for empty snapshots", () => {
+    const created: unknown[] = [];
+    const result = createSnapshotLightGpuBuffers(snapshot({}), {
+      device: deviceWithBuffers(created),
+    });
+
+    expect(result).toMatchObject({
+      valid: true,
+      descriptorPlan: null,
+      resource: null,
+      diagnostics: [],
+    });
+    expect(result.lightBuffer).toMatchObject({
+      count: 0,
+      byteLength: 0,
+    });
+    expect(created).toEqual([]);
+  });
+
+  it("creates renderer-owned light GPU buffers from non-empty snapshots", () => {
+    const created: unknown[] = [];
+    const result = createSnapshotLightGpuBuffers(
+      snapshot({ lights: [light("directional", 1), light("point", 2)] }),
+      {
+        device: deviceWithBuffers(created),
+        lightBuffer: { resourceKey: "light-buffer:snapshot" },
+      },
+    );
+
+    expect(result.diagnostics).toEqual([]);
+    expect(result.lightBuffer.count).toBe(2);
+    expect(result.descriptorPlan).toMatchObject({
+      resourceKey: "light-buffer:snapshot",
+    });
+    expect(result.resource).toMatchObject({
+      resourceKey: "light-buffer:snapshot",
+      floatResourceKey: "light-buffer:snapshot/floats",
+      metadataResourceKey: "light-buffer:snapshot/metadata",
+      count: 2,
+    });
+    expect(created).toHaveLength(2);
+  });
+
+  it("preserves descriptor-plan diagnostics without creating buffers", () => {
+    const created: unknown[] = [];
+    const result = createSnapshotLightGpuBuffers(
+      snapshot({ lights: [light("spot", 3)] }),
+      {
+        device: deviceWithBuffers(created),
+        descriptorPlan: { usage: 0 },
+      },
+    );
+
+    expect(result).toMatchObject({
+      valid: false,
+      descriptorPlan: null,
+      resource: null,
+      diagnostics: [
+        {
+          code: "lightBufferDescriptor.invalidUsageFlags",
+          field: "usage",
+          message: "Light buffer usage flags must be a positive integer.",
+        },
+      ],
+    });
+    expect(created).toEqual([]);
+  });
+
+  it("preserves light GPU buffer creation diagnostics", () => {
+    const result = createSnapshotLightGpuBuffers(
+      snapshot({ lights: [light("spot", 4)] }),
+      {
+        device: deviceWithoutCreateBuffer(),
+        lightBuffer: { resourceKey: "light-buffer:no-device" },
+      },
+    );
+
+    expect(result.valid).toBe(false);
+    expect(result.resource).toBeNull();
+    expect(result.diagnostics).toEqual([
+      {
+        code: "lightGpuBuffer.creationFailed",
+        message:
+          "Failed to create light float buffer 'light-buffer:no-device/floats': WebGPU device cannot create buffers.",
+        reason: "create-buffer-unavailable",
+        resourceKey: "light-buffer:no-device/floats",
+      },
+      {
+        code: "lightGpuBuffer.creationFailed",
+        message:
+          "Failed to create light metadata buffer 'light-buffer:no-device/metadata': WebGPU device cannot create buffers.",
+        reason: "create-buffer-unavailable",
+        resourceKey: "light-buffer:no-device/metadata",
+      },
+    ]);
+  });
+
+  it("adapts successful snapshot light GPU buffers into resource summaries", () => {
+    const result = createSnapshotLightGpuBuffers(
+      snapshot({ lights: [light("directional", 5)] }),
+      {
+        device: deviceWithBuffers([]),
+        lightBuffer: { resourceKey: "light-buffer:summary" },
+      },
+    );
+    const report = createResourceSummary(
+      snapshotLightGpuBuffersToSummaryInput(result),
+    );
+
+    expect(report.counts).toMatchObject({
+      lightBuffers: 1,
+      lightGpuBuffers: 1,
+      warnings: 0,
+      errors: 0,
+    });
+    expect(report.diagnostics).toEqual([]);
+  });
+
+  it("adapts empty no-op snapshot light GPU buffers into deterministic summary counts", () => {
+    const result = createSnapshotLightGpuBuffers(snapshot({}), {
+      device: deviceWithBuffers([]),
+    });
+    const report = createResourceSummary(
+      snapshotLightGpuBuffersToSummaryInput(result),
+    );
+
+    expect(report.counts).toMatchObject({
+      lightBuffers: 1,
+      lightGpuBuffers: 0,
+      warnings: 0,
+      errors: 0,
+    });
+    expect(report.diagnostics).toEqual([]);
+  });
+
+  it("keeps descriptor-plan failures out of light GPU buffer resource summaries", () => {
+    const result = createSnapshotLightGpuBuffers(
+      snapshot({ lights: [light("spot", 6)] }),
+      {
+        device: deviceWithBuffers([]),
+        descriptorPlan: { usage: 0 },
+      },
+    );
+    const report = createResourceSummary(
+      snapshotLightGpuBuffersToSummaryInput(result),
+    );
+
+    expect(report.counts).toMatchObject({
+      lightBuffers: 1,
+      lightGpuBuffers: 0,
+      warnings: 0,
+      errors: 0,
+    });
+    expect(report.diagnostics).toEqual([]);
+  });
+
+  it("adapts light GPU buffer creation failures into resource summary diagnostics", () => {
+    const result = createSnapshotLightGpuBuffers(
+      snapshot({ lights: [light("point", 7)] }),
+      {
+        device: deviceWithoutCreateBuffer(),
+        lightBuffer: { resourceKey: "light-buffer:summary-failed" },
+      },
+    );
+    const report = createResourceSummary(
+      snapshotLightGpuBuffersToSummaryInput(result),
+    );
+
+    expect(report.counts).toMatchObject({
+      lightBuffers: 1,
+      lightGpuBuffers: 0,
+      warnings: 2,
+      errors: 0,
+    });
+    expect(report.diagnostics).toEqual([
+      {
+        code: "lightGpuBuffer.creationFailed",
+        message:
+          "Failed to create light float buffer 'light-buffer:summary-failed/floats': WebGPU device cannot create buffers.",
+        resourceKey: "light-buffer:summary-failed/floats",
+        severity: "warning",
+      },
+      {
+        code: "lightGpuBuffer.creationFailed",
+        message:
+          "Failed to create light metadata buffer 'light-buffer:summary-failed/metadata': WebGPU device cannot create buffers.",
+        resourceKey: "light-buffer:summary-failed/metadata",
+        severity: "warning",
+      },
+    ]);
+  });
 });
 
 function snapshot(input: {
@@ -162,4 +357,36 @@ function environment(
     intensity: 1,
     layerMask: 1,
   };
+}
+
+function deviceWithBuffers(created: unknown[]): WebGpuBufferDeviceLike {
+  return {
+    queue: {
+      writeBuffer: (buffer, bufferOffset, data, dataOffset, size) => {
+        created.push({ buffer, bufferOffset, data, dataOffset, size });
+      },
+    },
+    createBuffer: (descriptor) => ({ descriptor }),
+  };
+}
+
+function deviceWithoutCreateBuffer(): WebGpuBufferDeviceLike {
+  return {
+    queue: {
+      writeBuffer: () => undefined,
+    },
+  };
+}
+
+function createResourceSummary(
+  input: ReturnType<typeof snapshotLightGpuBuffersToSummaryInput>,
+) {
+  return createRenderResourceSummaryReport({
+    meshResources: [],
+    materialResources: [],
+    viewUniformResources: [],
+    shaderResources: [],
+    pipelines: [],
+    ...input,
+  });
 }
