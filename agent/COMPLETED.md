@@ -4659,3 +4659,147 @@ Summary:
   `task-0550`.
 - No render pipeline code was changed in this audit task.
 - Validation run: `pnpm run format:check`.
+
+## task-0546 through task-0550 — Render pipeline reference follow-ups
+
+Completed: 2026-05-16
+
+Completed task ids:
+
+- `task-0546` — Add render frame phase model and report.
+- `task-0547` — Expand WebGPU render pipeline cache keys.
+- `task-0548` — Add bind group layout metadata and validation.
+- `task-0549` — Introduce view/pass-scoped render queues.
+- `task-0550` — Add renderer resource lifetime and version inspection.
+
+Summary:
+
+- Added explicit render-frame phase reports for apply, prepare, queue, resolve,
+  command, and submit boundaries.
+- Expanded WebGPU pipeline cache keys to include shader family/variant, render
+  targets, vertex and bind group layouts, primitive/depth/blend state, material
+  variants, and batch compatibility fields.
+- Added unlit bind group layout metadata and validation for required groups,
+  duplicate bindings, missing required bindings, and resource kind mismatches.
+- Added renderer-independent view/pass queue records with reusable scratch and
+  record-pool APIs for allocation-conscious frame-loop use.
+- Added resource inspection records for live, missing, stale, and
+  pending-destroy renderer resources and bridged those diagnostics into resource
+  summaries.
+- Recorded the no steady-state render hot-path allocation rule in architecture
+  docs and decision 0009.
+- Validation run: focused render/WebGPU tests, `pnpm run typecheck`,
+  `pnpm run typecheck:test`, `pnpm run check`, and focused Playwright render
+  routes passed.
+
+## task-0551 — Audit frame hot-path allocations and scratch APIs
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added `docs/research/FRAME_HOT_PATH_ALLOCATION_AUDIT.md` to classify current
+  frame-loop helpers as hot-path, setup/preparation, or diagnostic/reporting
+  surfaces.
+- Added `createRenderWorldDrawPackageScratch` and
+  `writeRenderWorldDrawPackages` so draw package planning can reuse package
+  records, diagnostics, and its result shell.
+- Kept `planRenderWorldDrawPackages` as the allocation-friendly convenience
+  wrapper for tests and one-shot use.
+- Added tests proving draw package records and result object identity are reused
+  across repeated successful writes.
+- Recorded remaining allocation risks for transform packing, draw commands, draw
+  lists, resource resolution, command planning, and render-frame summaries.
+- Validation run: focused draw-package/render-queue tests passed.
+
+## task-0552 through task-0553 — Frame planner, draw command, and draw-list scratch writers
+
+Completed: 2026-05-16
+
+Completed task ids:
+
+- `task-0552` — Add non-allocating render-frame planner writer.
+- `task-0553` — Add draw command and draw-list scratch writers.
+
+Summary:
+
+- Added `createRenderFramePlanScratch` and
+  `writeRenderFramePlanFromSnapshot` so callers can reuse the top-level
+  frame-plan result shell and phase summary report shells.
+- Added `createDrawCommandDescriptorScratch` and `writeDrawCommandDescriptors`
+  so draw command descriptor planning can reuse mesh lookup, descriptor records,
+  and per-descriptor vertex-buffer key arrays.
+- Added `createRenderPassDrawListScratch` and `writeRenderPassDrawList` so draw
+  list planning can reuse pipeline key sets, resolved bind-group scratch, draw
+  records, and per-draw key arrays.
+- Updated `RenderFramePlanScratch` to own and reuse draw command and draw-list
+  scratch objects.
+- Updated the hot-path allocation audit with the new scratch-backed surfaces and
+  the remaining resource-resolution/command-planning gaps.
+- Validation run: focused render-frame-plan, draw-command, and draw-list tests
+  passed with `pnpm run typecheck` and `pnpm run typecheck:test`.
+
+## task-0554 — Resource-resolution and command-plan scratch writers
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added `createResolveRenderPassResourcesScratch` and
+  `writeResolveRenderPassResources` so resource resolution can reuse pipeline,
+  bind group, vertex-buffer, and index-buffer lookup maps plus resolved draw and
+  nested resource records.
+- Added `createRenderPassCommandScratch` and `writeRenderPassCommands` so
+  command planning can reuse command records, diagnostics, sorted bind-group
+  scratch, and its result shell.
+- Updated `RenderFramePlanScratch` to own draw-package, draw-command,
+  draw-list, resource-resolution, command-plan, and phase-summary scratch.
+- Updated the hot-path allocation audit to show the current WebGPU frame planner
+  now has scratch-backed writers for the obvious planning stages.
+- Validation run: focused render-pass-resources, render-pass-commands, and
+  render-frame-plan tests passed with `pnpm run typecheck` and
+  `pnpm run typecheck:test`.
+
+## task-0555 — Audit extraction and transform hot-path allocations
+
+Completed: 2026-05-16
+
+Summary:
+
+- Audited `extractRenderSnapshot`, `packSnapshotTransforms`,
+  `packSnapshotViewUniforms`, `planInjectedRenderFrameSnapshotResourceBindings`,
+  and `RenderWorld.applySnapshot` for remaining frame-cadence allocations.
+- Documented that snapshot creation is the explicit worker-friendly copy
+  boundary for now, but should later choose between reusable snapshot builders
+  and delta transport.
+- Identified `packSnapshotTransforms` as the smallest next code candidate for a
+  scratch writer because it currently allocates a `Map`, number array, offset
+  records, diagnostics, output `Float32Array`, and uses `slice`/spread for each
+  unique transform.
+- Updated `docs/research/FRAME_HOT_PATH_ALLOCATION_AUDIT.md` with extraction
+  and packing findings.
+- Replaced the next backlog item with `task-0556 — Add transform-pack scratch
+writer`.
+- Validation run: no behavior-changing code was added in this audit slice;
+  prior `pnpm run check` and focused Playwright render routes passed.
+
+## task-0556 — Transform-pack scratch writer
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added `createPackedSnapshotTransformsScratch` and
+  `writePackedSnapshotTransforms` to reuse source-offset lookup, offset records,
+  diagnostics, result shell, and backing transform storage.
+- Kept `packSnapshotTransforms` as the allocation-friendly convenience helper
+  and added `floatCount` to packed transform results so scratch-backed buffers
+  can expose used length without slicing.
+- Replaced `slice`/spread matrix copies in the writer with direct indexed
+  copies.
+- Added tests proving result identity, offset record identity, and backing
+  buffer reuse across repeated successful writes.
+- Updated the allocation audit and next backlog task to move view-uniform
+  packing next.
+- Validation run: focused transform-pack, draw-package, and render-frame-plan
+  tests passed with `pnpm run typecheck` and `pnpm run typecheck:test`.

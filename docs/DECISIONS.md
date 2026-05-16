@@ -223,3 +223,36 @@ Consequences:
 - Documentation and backlog tasks should reference
   `docs/research/BEVY_ECS_RENDER_ALIGNMENT.md` when changing render authoring,
   assets, materials, render extraction, or render-world behavior.
+
+## 0009 — No Steady-State Render Hot-Path Allocations
+
+Status: accepted
+
+Context:
+
+The render pipeline will eventually run continuously at frame cadence. As the
+pipeline grows from unlit MVP rendering toward PBR, multiple views, material
+specialization, and worker-friendly snapshots, accidental per-frame heap
+allocation would make performance harder to reason about and could hide design
+drift behind convenient report builders.
+
+Decision:
+
+Aperture render-pipeline APIs that are intended for frame-loop use must avoid
+new heap allocation on their steady-state success path. They should write into
+caller-owned scratch buffers, stable object pools, typed arrays, or preallocated
+result shells. Convenience helpers may allocate when they are clearly setup,
+diagnostic, test, or one-shot planning surfaces, but runtime paths need an
+allocation-conscious writer API.
+
+Consequences:
+
+- New render queue, draw-list, command, resource, and frame runner work should
+  identify which APIs are hot-path and which are diagnostic/setup-only.
+- Hot-path APIs should prefer explicit scratch objects over hidden internal
+  arrays, maps, or one-result-per-call objects.
+- Failure diagnostics may allocate when needed, but a valid frame should not
+  depend on producing fresh diagnostic wrappers.
+- Before adding PBR or larger frame orchestration, audit existing per-frame
+  helpers and add reusable scratch APIs where the current implementation still
+  allocates.

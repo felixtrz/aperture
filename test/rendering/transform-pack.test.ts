@@ -7,7 +7,9 @@ import {
   createMeshHandle,
   createRenderSortKey,
   createUnlitMaterialAsset,
+  createPackedSnapshotTransformsScratch,
   packSnapshotTransforms,
+  writePackedSnapshotTransforms,
   type MeshDrawPacket,
   type RenderSnapshot,
 } from "@aperture-engine/core";
@@ -63,6 +65,30 @@ describe("render snapshot transform packing", () => {
     expect(result.data).toEqual(new Float32Array(0));
     expect(result.offsets).toEqual([]);
     expect(result.diagnostics).toEqual([]);
+  });
+
+  it("can reuse caller-owned transform pack scratch on the frame hot path", () => {
+    const scratch = createPackedSnapshotTransformsScratch(32, 2);
+    const first = writePackedSnapshotTransforms(
+      snapshot([packet(1, 0), packet(2, 16)], matrices([1, 2])),
+      scratch,
+    );
+    const firstOffsets = [...first.offsets];
+    const firstData = first.data;
+    const second = writePackedSnapshotTransforms(
+      snapshot([packet(2, 16), packet(1, 0)], matrices([1, 2])),
+      scratch,
+    );
+
+    expect(second).toBe(first);
+    expect(second.data).toBe(firstData);
+    expect(second.floatCount).toBe(32);
+    expect(new Set(second.offsets)).toEqual(new Set(firstOffsets));
+    expect(second.offsets.map((offset) => offset.renderId)).toEqual([2, 1]);
+    expect(Array.from(second.data.subarray(0, second.floatCount))).toEqual([
+      ...matrix(2),
+      ...matrix(1),
+    ]);
   });
 });
 

@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  createDrawCommandDescriptorScratch,
   createDrawCommandDescriptors,
+  writeDrawCommandDescriptors,
   type BatchCompatibilityKey,
   type MeshGpuBufferResource,
   type RenderWorldDrawPackage,
@@ -67,6 +69,33 @@ describe("draw command descriptor planning", () => {
         resourceKey: "mesh:missing",
       },
     ]);
+  });
+
+  it("can reuse caller-owned descriptor scratch on the frame hot path", () => {
+    const scratch = createDrawCommandDescriptorScratch(2);
+    const packages = [drawPackage(1, "mesh:a"), drawPackage(2, "mesh:a")];
+    const resources = [meshResource("mesh:a", true)];
+    const first = writeDrawCommandDescriptors(packages, resources, scratch);
+    const firstDescriptors = [...first.descriptors];
+    const firstVertexKeys = first.descriptors.map(
+      (descriptor) => descriptor.vertexBufferKeys,
+    );
+    const second = writeDrawCommandDescriptors(
+      [drawPackage(2, "mesh:a"), drawPackage(1, "mesh:a")],
+      resources,
+      scratch,
+    );
+
+    expect(second).toBe(first);
+    expect(new Set(second.descriptors)).toEqual(new Set(firstDescriptors));
+    expect(second.descriptors.map((descriptor) => descriptor.renderId)).toEqual(
+      [2, 1],
+    );
+    expect(
+      second.descriptors.map((descriptor) => descriptor.vertexBufferKeys),
+    ).toEqual(firstVertexKeys);
+    expect(second.descriptors[0]?.vertexBufferKeys).toBe(firstVertexKeys[0]);
+    expect(second.descriptors[1]?.vertexBufferKeys).toBe(firstVertexKeys[1]);
   });
 });
 

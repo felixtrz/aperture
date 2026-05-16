@@ -8,7 +8,7 @@ import {
 
 describe("unlit bind group layout descriptor planning", () => {
   it("creates layout descriptors matching unlit shader binding metadata", () => {
-    expect(createUnlitBindGroupLayoutPlan()).toEqual({
+    expect(createUnlitBindGroupLayoutPlan()).toMatchObject({
       valid: true,
       diagnostics: [],
       layouts: [
@@ -22,6 +22,19 @@ describe("unlit bind group layout descriptor planning", () => {
               resource: "uniform-buffer",
             },
           ],
+          metadata: {
+            group: 0,
+            name: "view",
+            bindings: [
+              {
+                binding: 0,
+                name: "viewUniform",
+                resourceKind: "buffer",
+                visibility: ["vertex"],
+                required: true,
+              },
+            ],
+          },
         },
         {
           group: 1,
@@ -33,6 +46,19 @@ describe("unlit bind group layout descriptor planning", () => {
               resource: "read-only-storage-buffer",
             },
           ],
+          metadata: {
+            group: 1,
+            name: "worldTransforms",
+            bindings: [
+              {
+                binding: 0,
+                name: "worldTransforms",
+                resourceKind: "buffer",
+                visibility: ["vertex"],
+                required: true,
+              },
+            ],
+          },
         },
         {
           group: 2,
@@ -44,6 +70,33 @@ describe("unlit bind group layout descriptor planning", () => {
               resource: "uniform-buffer",
             },
           ],
+          metadata: {
+            group: 2,
+            name: "material",
+            bindings: [
+              {
+                binding: 0,
+                name: "unlitMaterial",
+                resourceKind: "buffer",
+                visibility: ["fragment"],
+                required: true,
+              },
+              {
+                binding: 1,
+                name: "baseColorTexture",
+                resourceKind: "texture-view",
+                visibility: ["fragment"],
+                required: false,
+              },
+              {
+                binding: 2,
+                name: "baseColorSampler",
+                resourceKind: "sampler",
+                visibility: ["fragment"],
+                required: false,
+              },
+            ],
+          },
         },
       ],
     });
@@ -71,7 +124,9 @@ describe("unlit bind group layout descriptor planning", () => {
       ],
     };
 
-    expect(createUnlitBindGroupLayoutPlan(textured).layouts.at(-1)).toEqual({
+    expect(
+      createUnlitBindGroupLayoutPlan(textured).layouts.at(-1),
+    ).toMatchObject({
       group: 2,
       label: "unlit/group-2",
       entries: [
@@ -91,6 +146,15 @@ describe("unlit bind group layout descriptor planning", () => {
           resource: "sampler",
         },
       ],
+      metadata: {
+        group: 2,
+        name: "material",
+        bindings: [
+          { binding: 0, resourceKind: "buffer", required: true },
+          { binding: 1, resourceKind: "texture-view", required: false },
+          { binding: 2, resourceKind: "sampler", required: false },
+        ],
+      },
     });
   });
 

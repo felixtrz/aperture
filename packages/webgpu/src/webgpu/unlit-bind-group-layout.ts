@@ -3,6 +3,10 @@ import {
   type BuiltInShaderBindingMetadata,
   type BuiltInShaderSourceModule,
 } from "./unlit-shader.js";
+import {
+  createUnlitBindGroupLayoutMetadata,
+  type UnlitBindGroupLayoutMetadata,
+} from "./unlit-bind-group.js";
 
 export type UnlitBindGroupLayoutDiagnosticCode =
   | "unlitBindGroupLayout.missingBinding"
@@ -24,6 +28,7 @@ export interface UnlitBindGroupLayoutDescriptor {
   readonly group: number;
   readonly label: string;
   readonly entries: readonly UnlitBindGroupLayoutEntry[];
+  readonly metadata: UnlitBindGroupLayoutMetadata;
 }
 
 export interface UnlitBindGroupLayoutPlan {
@@ -67,7 +72,15 @@ export function createUnlitBindGroupLayoutPlan(
 
   return {
     valid: diagnostics.length === 0,
-    layouts: [...layouts.values()].sort((a, b) => a.group - b.group),
+    layouts: [...layouts.values()]
+      .sort((a, b) => a.group - b.group)
+      .map((layout) => ({
+        ...layout,
+        metadata: createUnlitBindGroupLayoutMetadata(
+          layout.group,
+          layout.label,
+        ),
+      })),
     diagnostics,
   };
 }
@@ -92,6 +105,10 @@ function addBindingLayout(
       group: binding.group,
       label: `unlit/group-${binding.group}`,
       entries: [],
+      metadata: createUnlitBindGroupLayoutMetadata(
+        binding.group,
+        `unlit/group-${binding.group}`,
+      ),
     } satisfies UnlitBindGroupLayoutDescriptor);
 
   layouts.set(binding.group, {

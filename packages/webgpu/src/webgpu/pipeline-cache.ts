@@ -6,11 +6,47 @@ export type WebGpuRenderPipelineCacheFailureReason =
 
 export type WebGpuRenderPipelineCacheStatus = "hit" | "miss";
 
+export interface WebGpuRenderPipelinePrimitiveStateKey {
+  readonly topology?: MeshTopology;
+  readonly cullMode?: string;
+  readonly frontFace?: string;
+  readonly stripIndexFormat?: string | null;
+}
+
+export interface WebGpuRenderPipelineDepthStencilStateKey {
+  readonly format?: string | null;
+  readonly depthWriteEnabled?: boolean;
+  readonly depthCompare?: string;
+  readonly stencilReadMask?: number;
+  readonly stencilWriteMask?: number;
+}
+
+export interface WebGpuRenderPipelineColorTargetStateKey {
+  readonly format?: string;
+  readonly blend?: unknown;
+  readonly writeMask?: string | number;
+}
+
+export interface WebGpuRenderPipelineBlendStateKey {
+  readonly alphaToCoverageEnabled?: boolean;
+  readonly colorTargets?: readonly WebGpuRenderPipelineColorTargetStateKey[];
+}
+
 export interface WebGpuRenderPipelineCacheKeyInput {
   readonly shaderLabel: string;
+  readonly shaderFamily?: string;
+  readonly shaderVariantKey?: string;
   readonly colorFormats: readonly string[];
   readonly depthFormat?: string | null;
+  readonly stencilFormat?: string | null;
   readonly topology?: MeshTopology;
+  readonly vertexLayoutKey?: string;
+  readonly bindGroupLayoutKeys?: readonly string[];
+  readonly primitive?: WebGpuRenderPipelinePrimitiveStateKey;
+  readonly depthStencil?: WebGpuRenderPipelineDepthStencilStateKey;
+  readonly blend?: WebGpuRenderPipelineBlendStateKey;
+  readonly materialPipelineKey?: string;
+  readonly materialVariantKey?: string;
   readonly batchKey: BatchCompatibilityKey;
 }
 
@@ -93,11 +129,56 @@ export class WebGpuRenderPipelineCache {
 export function createWebGpuRenderPipelineCacheKey(
   input: WebGpuRenderPipelineCacheKeyInput,
 ): string {
+  const topology =
+    input.primitive?.topology ?? input.topology ?? input.batchKey.topology;
+  const depthFormat = input.depthStencil?.format ?? input.depthFormat ?? null;
+
   return JSON.stringify({
-    shaderLabel: input.shaderLabel,
-    colorFormats: [...input.colorFormats],
-    depthFormat: input.depthFormat ?? null,
-    topology: input.topology ?? input.batchKey.topology,
+    shader: {
+      label: input.shaderLabel,
+      family: input.shaderFamily ?? input.shaderLabel,
+      variantKey: input.shaderVariantKey ?? input.batchKey.pipelineKey,
+    },
+    targets: {
+      colorFormats: [...input.colorFormats],
+      depthFormat,
+      stencilFormat: input.stencilFormat ?? null,
+    },
+    layouts: {
+      vertex: input.vertexLayoutKey ?? input.batchKey.meshLayoutKey,
+      bindGroups: [...(input.bindGroupLayoutKeys ?? [])],
+    },
+    primitive: {
+      topology,
+      cullMode: input.primitive?.cullMode ?? "none",
+      frontFace: input.primitive?.frontFace ?? "ccw",
+      stripIndexFormat: input.primitive?.stripIndexFormat ?? null,
+    },
+    depthStencil: {
+      format: depthFormat,
+      depthWriteEnabled: input.depthStencil?.depthWriteEnabled ?? false,
+      depthCompare: input.depthStencil?.depthCompare ?? "always",
+      stencilReadMask: input.depthStencil?.stencilReadMask ?? 0,
+      stencilWriteMask: input.depthStencil?.stencilWriteMask ?? 0,
+    },
+    blend: {
+      alphaToCoverageEnabled: input.blend?.alphaToCoverageEnabled ?? false,
+      colorTargets:
+        input.blend?.colorTargets?.map((target) => ({
+          format: target.format ?? null,
+          blend: target.blend ?? null,
+          writeMask: target.writeMask ?? "all",
+        })) ??
+        input.colorFormats.map((format) => ({
+          format,
+          blend: null,
+          writeMask: "all",
+        })),
+    },
+    material: {
+      pipelineKey: input.materialPipelineKey ?? input.batchKey.pipelineKey,
+      variantKey: input.materialVariantKey ?? input.batchKey.materialKey,
+    },
     batch: {
       pipelineKey: input.batchKey.pipelineKey,
       materialKey: input.batchKey.materialKey,

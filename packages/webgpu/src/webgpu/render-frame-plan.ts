@@ -3,30 +3,48 @@ import type {
   PackedSnapshotTransforms,
   RenderDiagnostic,
   RenderSnapshot,
+  RenderWorldDrawPackagePlan,
+  RenderWorldDrawPackageScratch,
   RenderWorld,
 } from "@aperture-engine/render";
-import { planRenderWorldDrawPackages } from "@aperture-engine/render";
 import {
-  createDrawCommandDescriptors,
+  createRenderWorldDrawPackageScratch,
+  writeRenderWorldDrawPackages,
+} from "@aperture-engine/render";
+import {
+  createDrawCommandDescriptorScratch,
+  writeDrawCommandDescriptors,
   type DrawCommandDescriptorDiagnostic,
   type DrawCommandDescriptorPlan,
+  type DrawCommandDescriptorScratch,
 } from "./draw-command.js";
 import type { MeshGpuBufferResource } from "./mesh-buffer-resources.js";
 import type { GetOrCreateRenderPipelineResult } from "./pipeline-cache-integration.js";
 import {
-  planRenderPassCommands,
+  createRenderPassCommandScratch,
   type RenderPassCommandDiagnostic,
   type RenderPassCommandPlan,
+  type RenderPassCommandScratch,
+  writeRenderPassCommands,
 } from "./render-pass-commands.js";
 import {
-  planRenderPassDrawList,
+  createRenderPassDrawListScratch,
   type RenderPassDrawListDiagnostic,
   type RenderPassDrawListPlan,
+  type RenderPassDrawListScratch,
+  writeRenderPassDrawList,
 } from "./render-pass-draw-list.js";
 import {
-  resolveRenderPassResources,
+  RENDER_FRAME_PHASES,
+  type RenderFramePhase,
+  type RenderFramePhaseReports,
+} from "./render-frame-phases.js";
+import {
+  createResolveRenderPassResourcesScratch,
   type RenderPassResourceDiagnostic,
   type ResolveRenderPassResourcesResult,
+  type ResolveRenderPassResourcesScratch,
+  writeResolveRenderPassResources,
 } from "./render-pass-resources.js";
 import {
   planInjectedRenderFrameSnapshotResourceBindings,
@@ -47,6 +65,7 @@ export interface PlanRenderFrameFromSnapshotInput {
   readonly pipelines: readonly GetOrCreateRenderPipelineResult[];
   readonly bindGroups: readonly UnlitBindGroupResource[];
   readonly requiredBindGroupGroups?: readonly number[];
+  readonly summaryScratch?: RenderFramePlanSummaryScratch;
 }
 
 export interface RenderFramePlanCounts {
@@ -77,7 +96,8 @@ export interface RenderFramePlanCounts {
 }
 
 export interface RenderFramePlanDiagnostic {
-  readonly phase: string;
+  readonly phase: RenderFramePhase;
+  readonly source?: string;
   readonly code: string;
   readonly message: string;
   readonly renderId?: number;
@@ -88,8 +108,25 @@ export interface RenderFramePlanDiagnostic {
 
 export interface RenderFramePlanSummary {
   readonly ready: boolean;
+  readonly phaseOrder: readonly RenderFramePhase[];
+  readonly phases: RenderFramePhaseReports<RenderFramePlanDiagnostic>;
   readonly counts: RenderFramePlanCounts;
   readonly diagnostics: readonly RenderFramePlanDiagnostic[];
+}
+
+export interface RenderFramePlanSummaryScratch {
+  readonly applyDiagnostics: RenderFramePlanDiagnostic[];
+  readonly prepareDiagnostics: RenderFramePlanDiagnostic[];
+  readonly queueDiagnostics: RenderFramePlanDiagnostic[];
+  readonly resolveDiagnostics: RenderFramePlanDiagnostic[];
+  readonly commandDiagnostics: RenderFramePlanDiagnostic[];
+  readonly submitDiagnostics: RenderFramePlanDiagnostic[];
+  readonly diagnostics: RenderFramePlanDiagnostic[];
+  readonly counts: RenderFramePlanCounts;
+  readonly queueCounts: RenderFramePhaseReports<RenderFramePlanDiagnostic>["queue"]["counts"];
+  readonly submitCounts: RenderFramePhaseReports<RenderFramePlanDiagnostic>["submit"]["counts"];
+  readonly phases: RenderFramePhaseReports<RenderFramePlanDiagnostic>;
+  readonly summary: RenderFramePlanSummary;
 }
 
 export interface PlanRenderFrameFromSnapshotResult {
@@ -99,7 +136,7 @@ export interface PlanRenderFrameFromSnapshotResult {
     RenderWorld["updateResourceBindings"]
   >[];
   readonly readiness: ReturnType<RenderWorld["createDrawReadinessReport"]>;
-  readonly packages: ReturnType<typeof planRenderWorldDrawPackages>;
+  readonly packages: RenderWorldDrawPackagePlan;
   readonly drawCommands: DrawCommandDescriptorPlan;
   readonly drawList: RenderPassDrawListPlan;
   readonly resources: ResolveRenderPassResourcesResult;
@@ -107,8 +144,59 @@ export interface PlanRenderFrameFromSnapshotResult {
   readonly summary: RenderFramePlanSummary;
 }
 
+export interface RenderFramePlanScratch {
+  readonly summaryScratch: RenderFramePlanSummaryScratch;
+  readonly drawPackageScratch: RenderWorldDrawPackageScratch;
+  readonly drawCommandScratch: DrawCommandDescriptorScratch;
+  readonly drawListScratch: RenderPassDrawListScratch;
+  readonly resourcesScratch: ResolveRenderPassResourcesScratch;
+  readonly commandScratch: RenderPassCommandScratch;
+  readonly result: PlanRenderFrameFromSnapshotResult;
+}
+
+export type WriteRenderFrameFromSnapshotInput =
+  PlanRenderFrameFromSnapshotInput & {
+    readonly scratch: RenderFramePlanScratch;
+  };
+
 export function planRenderFrameFromSnapshot(
   input: PlanRenderFrameFromSnapshotInput,
+): PlanRenderFrameFromSnapshotResult {
+  const scratch = createRenderFramePlanScratch(input.summaryScratch);
+
+  return writeRenderFramePlanFromSnapshot({ ...input, scratch });
+}
+
+export function createRenderFramePlanScratch(
+  summaryScratch = createRenderFramePlanSummaryScratch(),
+): RenderFramePlanScratch {
+  return {
+    summaryScratch,
+    drawPackageScratch: createRenderWorldDrawPackageScratch(),
+    drawCommandScratch: createDrawCommandDescriptorScratch(),
+    drawListScratch: createRenderPassDrawListScratch(),
+    resourcesScratch: createResolveRenderPassResourcesScratch(),
+    commandScratch: createRenderPassCommandScratch(),
+    result: {
+      apply: null as unknown as ReturnType<RenderWorld["applySnapshot"]>,
+      bindingPlan:
+        null as unknown as InjectedRenderFrameSnapshotResourceBindingPlan,
+      bindingResults: [],
+      readiness: null as unknown as ReturnType<
+        RenderWorld["createDrawReadinessReport"]
+      >,
+      packages: null as unknown as RenderWorldDrawPackagePlan,
+      drawCommands: null as unknown as DrawCommandDescriptorPlan,
+      drawList: null as unknown as RenderPassDrawListPlan,
+      resources: null as unknown as ResolveRenderPassResourcesResult,
+      commandPlan: null as unknown as RenderPassCommandPlan,
+      summary: summaryScratch.summary,
+    },
+  };
+}
+
+export function writeRenderFramePlanFromSnapshot(
+  input: WriteRenderFrameFromSnapshotInput,
 ): PlanRenderFrameFromSnapshotResult {
   const apply = input.renderWorld.applySnapshot(input.snapshot);
   const bindingPlan = planInjectedRenderFrameSnapshotResourceBindings({
@@ -120,125 +208,396 @@ export function planRenderFrameFromSnapshot(
     input.renderWorld.updateResourceBindings(binding.renderId, binding.update),
   );
   const readiness = input.renderWorld.createDrawReadinessReport();
-  const packages = planRenderWorldDrawPackages(readiness, input.transforms);
-  const drawCommands = createDrawCommandDescriptors(
+  const packages = writeRenderWorldDrawPackages(
+    readiness,
+    input.transforms,
+    input.scratch.drawPackageScratch,
+  );
+  const drawCommands = writeDrawCommandDescriptors(
     packages.packages,
     input.meshResources,
+    input.scratch.drawCommandScratch,
   );
-  const drawList = planRenderPassDrawList({
-    drawCommands: drawCommands.descriptors,
-    pipelines: input.pipelines,
-    bindGroups: input.bindGroups,
-    ...(input.requiredBindGroupGroups === undefined
-      ? {}
-      : { requiredBindGroupGroups: input.requiredBindGroupGroups }),
-  });
-  const resources = resolveRenderPassResources({
-    drawList: drawList.draws,
-    pipelines: input.pipelines,
-    bindGroups: input.bindGroups,
-    meshResources: input.meshResources,
-  });
-  const commandPlan = planRenderPassCommands({ draws: resources.draws });
-  const summary = summarizeRenderFramePlan({
-    apply,
-    bindingPlan,
-    bindingResults,
-    readiness,
-    packages,
-    drawCommands,
-    drawList,
-    resources,
-    commandPlan,
-  });
+  const drawList = writeRenderPassDrawList(
+    {
+      drawCommands: drawCommands.descriptors,
+      pipelines: input.pipelines,
+      bindGroups: input.bindGroups,
+      ...(input.requiredBindGroupGroups === undefined
+        ? {}
+        : { requiredBindGroupGroups: input.requiredBindGroupGroups }),
+    },
+    input.scratch.drawListScratch,
+  );
+  const resources = writeResolveRenderPassResources(
+    {
+      drawList: drawList.draws,
+      pipelines: input.pipelines,
+      bindGroups: input.bindGroups,
+      meshResources: input.meshResources,
+    },
+    input.scratch.resourcesScratch,
+  );
+  const commandPlan = writeRenderPassCommands(
+    { draws: resources.draws },
+    input.scratch.commandScratch,
+  );
+  const summary = summarizeRenderFramePlan(
+    {
+      apply,
+      bindingPlan,
+      bindingResults,
+      readiness,
+      packages,
+      drawCommands,
+      drawList,
+      resources,
+      commandPlan,
+    },
+    input.scratch.summaryScratch,
+  );
+  const result = input.scratch
+    .result as MutablePlanRenderFrameFromSnapshotResult;
+
+  result.apply = apply;
+  result.bindingPlan = bindingPlan;
+  result.bindingResults = bindingResults;
+  result.readiness = readiness;
+  result.packages = packages;
+  result.drawCommands = drawCommands;
+  result.drawList = drawList;
+  result.resources = resources;
+  result.commandPlan = commandPlan;
+  result.summary = summary;
+
+  return input.scratch.result;
+}
+
+export function createRenderFramePlanSummaryScratch(): RenderFramePlanSummaryScratch {
+  const applyDiagnostics: RenderFramePlanDiagnostic[] = [];
+  const prepareDiagnostics: RenderFramePlanDiagnostic[] = [];
+  const queueDiagnostics: RenderFramePlanDiagnostic[] = [];
+  const resolveDiagnostics: RenderFramePlanDiagnostic[] = [];
+  const commandDiagnostics: RenderFramePlanDiagnostic[] = [];
+  const submitDiagnostics: RenderFramePlanDiagnostic[] = [];
+  const diagnostics: RenderFramePlanDiagnostic[] = [];
+  const counts: MutableRenderFramePlanCounts = {
+    apply: {
+      active: 0,
+      created: 0,
+      updated: 0,
+      removed: 0,
+    },
+    binding: {
+      planned: 0,
+      applied: 0,
+      ready: 0,
+      blocked: 0,
+    },
+    draw: {
+      packages: 0,
+      descriptors: 0,
+      drawList: 0,
+      resolved: 0,
+    },
+    command: {
+      commands: 0,
+      drawCount: 0,
+      indexedDrawCount: 0,
+      nonIndexedDrawCount: 0,
+    },
+  };
+  const queueCounts: MutableRenderFramePhaseCounts = {
+    ready: 0,
+    blocked: 0,
+    packages: 0,
+  };
+  const submitCounts: MutableRenderFramePhaseCounts = {
+    submitted: 0,
+    plannedCommands: 0,
+    plannedDraws: 0,
+  };
+  const phases: MutableRenderFramePhaseReports<RenderFramePlanDiagnostic> = {
+    apply: {
+      phase: "apply",
+      ready: true,
+      counts: counts.apply,
+      diagnostics: applyDiagnostics,
+    },
+    prepare: {
+      phase: "prepare",
+      ready: true,
+      counts: counts.binding,
+      diagnostics: prepareDiagnostics,
+    },
+    queue: {
+      phase: "queue",
+      ready: true,
+      counts: queueCounts,
+      diagnostics: queueDiagnostics,
+    },
+    resolve: {
+      phase: "resolve",
+      ready: true,
+      counts: counts.draw,
+      diagnostics: resolveDiagnostics,
+    },
+    command: {
+      phase: "command",
+      ready: true,
+      counts: counts.command,
+      diagnostics: commandDiagnostics,
+    },
+    submit: {
+      phase: "submit",
+      ready: true,
+      counts: submitCounts,
+      diagnostics: submitDiagnostics,
+    },
+  };
+  const summary: MutableRenderFramePlanSummary = {
+    ready: true,
+    phaseOrder: RENDER_FRAME_PHASES,
+    phases,
+    counts,
+    diagnostics,
+  };
 
   return {
-    apply,
-    bindingPlan,
-    bindingResults,
-    readiness,
-    packages,
-    drawCommands,
-    drawList,
-    resources,
-    commandPlan,
+    applyDiagnostics,
+    prepareDiagnostics,
+    queueDiagnostics,
+    resolveDiagnostics,
+    commandDiagnostics,
+    submitDiagnostics,
+    diagnostics,
+    counts,
+    queueCounts,
+    submitCounts,
+    phases,
     summary,
   };
 }
 
 function summarizeRenderFramePlan(
   result: Omit<PlanRenderFrameFromSnapshotResult, "summary">,
+  scratch = createRenderFramePlanSummaryScratch(),
 ): RenderFramePlanSummary {
-  const diagnostics = [
-    ...result.apply.diagnostics.map((diagnostic) =>
-      renderDiagnostic("apply", diagnostic),
-    ),
-    ...result.bindingPlan.diagnostics.map((diagnostic) =>
-      renderDiagnostic("binding", diagnostic),
-    ),
-    ...result.readiness.diagnostics.map((diagnostic) =>
-      renderDiagnostic("readiness", diagnostic),
-    ),
-    ...result.packages.diagnostics.map((diagnostic) =>
-      renderDiagnostic("packages", diagnostic),
-    ),
-    ...result.drawCommands.diagnostics.map((diagnostic) =>
-      drawDiagnostic("descriptors", diagnostic),
-    ),
-    ...result.drawList.diagnostics.map((diagnostic) =>
-      drawDiagnostic("draw-list", diagnostic),
-    ),
-    ...result.resources.diagnostics.map((diagnostic) =>
-      drawDiagnostic("resources", diagnostic),
-    ),
-    ...result.commandPlan.diagnostics.map((diagnostic) =>
-      drawDiagnostic("commands", diagnostic),
-    ),
-  ];
-  const counts: RenderFramePlanCounts = {
-    apply: {
-      active: result.apply.active,
-      created: result.apply.created,
-      updated: result.apply.updated,
-      removed: result.apply.removed,
-    },
-    binding: {
-      planned: result.bindingPlan.bindings.length,
-      applied: result.bindingResults.filter((binding) => binding.ok).length,
-      ready: result.readiness.ready.length,
-      blocked: result.readiness.blocked.length,
-    },
-    draw: {
-      packages: result.packages.packages.length,
-      descriptors: result.drawCommands.descriptors.length,
-      drawList: result.drawList.draws.length,
-      resolved: result.resources.draws.length,
-    },
-    command: {
-      commands: result.commandPlan.commands.length,
-      drawCount: result.commandPlan.drawCount,
-      indexedDrawCount: result.commandPlan.indexedDrawCount,
-      nonIndexedDrawCount: result.commandPlan.nonIndexedDrawCount,
-    },
-  };
+  resetRenderFramePlanSummaryScratch(scratch);
 
-  return {
-    ready:
-      diagnostics.length === 0 &&
-      result.drawList.valid &&
-      result.resources.valid &&
-      result.commandPlan.valid,
-    counts,
-    diagnostics,
+  pushRenderDiagnostics(
+    scratch.applyDiagnostics,
+    "apply",
+    "applySnapshot",
+    result.apply.diagnostics,
+  );
+  pushRenderDiagnostics(
+    scratch.prepareDiagnostics,
+    "prepare",
+    "resourceBindings",
+    result.bindingPlan.diagnostics,
+  );
+
+  for (const binding of result.bindingResults) {
+    if (!binding.ok) {
+      pushRenderDiagnostics(
+        scratch.prepareDiagnostics,
+        "prepare",
+        "resourceBindingUpdate",
+        binding.diagnostics,
+      );
+    }
+  }
+
+  pushRenderDiagnostics(
+    scratch.queueDiagnostics,
+    "queue",
+    "drawReadiness",
+    result.readiness.diagnostics,
+  );
+  pushRenderDiagnostics(
+    scratch.queueDiagnostics,
+    "queue",
+    "drawPackages",
+    result.packages.diagnostics,
+  );
+  pushDrawDiagnostics(
+    scratch.resolveDiagnostics,
+    "resolve",
+    "descriptors",
+    result.drawCommands.diagnostics,
+  );
+  pushDrawDiagnostics(
+    scratch.resolveDiagnostics,
+    "resolve",
+    "draw-list",
+    result.drawList.diagnostics,
+  );
+  pushDrawDiagnostics(
+    scratch.resolveDiagnostics,
+    "resolve",
+    "resources",
+    result.resources.diagnostics,
+  );
+  pushDrawDiagnostics(
+    scratch.commandDiagnostics,
+    "command",
+    "commands",
+    result.commandPlan.diagnostics,
+  );
+  appendDiagnostics(scratch.diagnostics, scratch.applyDiagnostics);
+  appendDiagnostics(scratch.diagnostics, scratch.prepareDiagnostics);
+  appendDiagnostics(scratch.diagnostics, scratch.queueDiagnostics);
+  appendDiagnostics(scratch.diagnostics, scratch.resolveDiagnostics);
+  appendDiagnostics(scratch.diagnostics, scratch.commandDiagnostics);
+  appendDiagnostics(scratch.diagnostics, scratch.submitDiagnostics);
+
+  const counts = scratch.counts as MutableRenderFramePlanCounts;
+  const queueCounts = scratch.queueCounts as MutableRenderFramePhaseCounts;
+  const submitCounts = scratch.submitCounts as MutableRenderFramePhaseCounts;
+  const phases =
+    scratch.phases as MutableRenderFramePhaseReports<RenderFramePlanDiagnostic>;
+  const summary = scratch.summary as MutableRenderFramePlanSummary;
+  const appliedBindings = countAppliedBindings(result.bindingResults);
+
+  counts.apply.active = result.apply.active;
+  counts.apply.created = result.apply.created;
+  counts.apply.updated = result.apply.updated;
+  counts.apply.removed = result.apply.removed;
+  counts.binding.planned = result.bindingPlan.bindings.length;
+  counts.binding.applied = appliedBindings;
+  counts.binding.ready = result.readiness.ready.length;
+  counts.binding.blocked = result.readiness.blocked.length;
+  counts.draw.packages = result.packages.packages.length;
+  counts.draw.descriptors = result.drawCommands.descriptors.length;
+  counts.draw.drawList = result.drawList.draws.length;
+  counts.draw.resolved = result.resources.draws.length;
+  counts.command.commands = result.commandPlan.commands.length;
+  counts.command.drawCount = result.commandPlan.drawCount;
+  counts.command.indexedDrawCount = result.commandPlan.indexedDrawCount;
+  counts.command.nonIndexedDrawCount = result.commandPlan.nonIndexedDrawCount;
+  queueCounts.ready = result.readiness.ready.length;
+  queueCounts.blocked = result.readiness.blocked.length;
+  queueCounts.packages = result.packages.packages.length;
+  submitCounts.submitted = 0;
+  submitCounts.plannedCommands = result.commandPlan.commands.length;
+  submitCounts.plannedDraws = result.commandPlan.drawCount;
+
+  phases.apply.ready = scratch.applyDiagnostics.length === 0;
+  phases.prepare.ready = scratch.prepareDiagnostics.length === 0;
+  phases.queue.ready = scratch.queueDiagnostics.length === 0;
+  phases.resolve.ready =
+    scratch.resolveDiagnostics.length === 0 &&
+    result.drawList.valid &&
+    result.resources.valid;
+  phases.command.ready =
+    scratch.commandDiagnostics.length === 0 && result.commandPlan.valid;
+  phases.submit.ready =
+    scratch.submitDiagnostics.length === 0 && result.commandPlan.valid;
+  summary.ready =
+    scratch.diagnostics.length === 0 &&
+    result.drawList.valid &&
+    result.resources.valid &&
+    result.commandPlan.valid;
+
+  return scratch.summary;
+}
+
+type MutableRenderFramePlanCounts = {
+  readonly [Key in keyof RenderFramePlanCounts]: {
+    -readonly [CountKey in keyof RenderFramePlanCounts[Key]]: RenderFramePlanCounts[Key][CountKey];
   };
+};
+
+type MutableRenderFramePhaseCounts = Record<string, number>;
+
+type MutableRenderFramePhaseReport<Diagnostic> = {
+  -readonly [Key in keyof RenderFramePhaseReports<Diagnostic>[RenderFramePhase]]: RenderFramePhaseReports<Diagnostic>[RenderFramePhase][Key];
+};
+
+type MutableRenderFramePhaseReports<Diagnostic> = {
+  readonly [Phase in RenderFramePhase]: MutableRenderFramePhaseReport<Diagnostic>;
+};
+
+type MutableRenderFramePlanSummary = {
+  -readonly [Key in keyof RenderFramePlanSummary]: RenderFramePlanSummary[Key];
+};
+
+type MutablePlanRenderFrameFromSnapshotResult = {
+  -readonly [Key in keyof PlanRenderFrameFromSnapshotResult]: PlanRenderFrameFromSnapshotResult[Key];
+};
+
+function resetRenderFramePlanSummaryScratch(
+  scratch: RenderFramePlanSummaryScratch,
+): void {
+  scratch.applyDiagnostics.length = 0;
+  scratch.prepareDiagnostics.length = 0;
+  scratch.queueDiagnostics.length = 0;
+  scratch.resolveDiagnostics.length = 0;
+  scratch.commandDiagnostics.length = 0;
+  scratch.submitDiagnostics.length = 0;
+  scratch.diagnostics.length = 0;
+}
+
+function countAppliedBindings(
+  bindings: readonly ReturnType<RenderWorld["updateResourceBindings"]>[],
+): number {
+  let applied = 0;
+
+  for (const binding of bindings) {
+    if (binding.ok) {
+      applied += 1;
+    }
+  }
+
+  return applied;
+}
+
+function appendDiagnostics(
+  output: RenderFramePlanDiagnostic[],
+  diagnostics: readonly RenderFramePlanDiagnostic[],
+): void {
+  for (const diagnostic of diagnostics) {
+    output.push(diagnostic);
+  }
+}
+
+function pushRenderDiagnostics(
+  output: RenderFramePlanDiagnostic[],
+  phase: RenderFramePhase,
+  source: string,
+  diagnostics: readonly RenderDiagnostic[],
+): void {
+  for (const diagnostic of diagnostics) {
+    output.push(renderDiagnostic(phase, source, diagnostic));
+  }
+}
+
+function pushDrawDiagnostics(
+  output: RenderFramePlanDiagnostic[],
+  phase: RenderFramePhase,
+  source: string,
+  diagnostics: readonly (
+    | DrawCommandDescriptorDiagnostic
+    | RenderPassDrawListDiagnostic
+    | RenderPassResourceDiagnostic
+    | RenderPassCommandDiagnostic
+    | UnlitBindGroupResourceDiagnostic
+  )[],
+): void {
+  for (const diagnostic of diagnostics) {
+    output.push(drawDiagnostic(phase, source, diagnostic));
+  }
 }
 
 function renderDiagnostic(
-  phase: string,
+  phase: RenderFramePhase,
+  source: string,
   diagnostic: RenderDiagnostic,
 ): RenderFramePlanDiagnostic {
   return {
     phase,
+    source,
     code: diagnostic.code,
     message: diagnostic.message,
     ...(diagnostic.assetKey === undefined
@@ -249,7 +608,8 @@ function renderDiagnostic(
 }
 
 function drawDiagnostic(
-  phase: string,
+  phase: RenderFramePhase,
+  source: string,
   diagnostic:
     | DrawCommandDescriptorDiagnostic
     | RenderPassDrawListDiagnostic
@@ -259,6 +619,7 @@ function drawDiagnostic(
 ): RenderFramePlanDiagnostic {
   return {
     phase,
+    source,
     code: diagnostic.code,
     message: diagnostic.message,
     ...("renderId" in diagnostic ? { renderId: diagnostic.renderId } : {}),

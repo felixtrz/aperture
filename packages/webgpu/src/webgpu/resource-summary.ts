@@ -13,6 +13,7 @@ import type {
 } from "./texture-resources.js";
 import type { CreateUnlitMaterialGpuBufferResult } from "./unlit-material-buffer-resource.js";
 import type { CreateViewUniformGpuBufferResult } from "./view-uniform-buffer-resource.js";
+import type { RenderResourceInspectionReport } from "./resource-lifecycle.js";
 
 export type RenderResourceSummarySeverity = "warning" | "error";
 
@@ -38,6 +39,10 @@ export interface RenderResourceSummaryCounts {
   readonly shaderModules: number;
   readonly pipelineHits: number;
   readonly pipelineMisses: number;
+  readonly inspectedResources: number;
+  readonly staleResources: number;
+  readonly missingResources: number;
+  readonly pendingDestroyResources: number;
   readonly warnings: number;
   readonly errors: number;
 }
@@ -54,6 +59,7 @@ export interface RenderResourceSummaryInput {
   readonly viewUniformResources: readonly CreateViewUniformGpuBufferResult[];
   readonly shaderResources: readonly CreateShaderModuleResourceResult[];
   readonly pipelines: readonly GetOrCreateRenderPipelineResult[];
+  readonly resourceInspection?: RenderResourceInspectionReport;
 }
 
 export interface RenderResourceSummaryReport {
@@ -155,6 +161,19 @@ export function createRenderResourceSummaryReport(
     );
   }
 
+  if (input.resourceInspection !== undefined) {
+    diagnostics.push(
+      ...input.resourceInspection.diagnostics.map((diagnostic) =>
+        resourceDiagnostic(
+          diagnostic,
+          diagnostic.code === "renderResourceInspection.missingResource"
+            ? "error"
+            : "warning",
+        ),
+      ),
+    );
+  }
+
   return {
     counts: {
       meshResources: input.meshResources.filter((result) => result.valid)
@@ -194,6 +213,11 @@ export function createRenderResourceSummaryReport(
       pipelineMisses: input.pipelines.filter(
         (result) => result.ok && result.status === "miss",
       ).length,
+      inspectedResources: input.resourceInspection?.counts.total ?? 0,
+      staleResources: input.resourceInspection?.counts.stale ?? 0,
+      missingResources: input.resourceInspection?.counts.missing ?? 0,
+      pendingDestroyResources:
+        input.resourceInspection?.counts.pendingDestroy ?? 0,
       warnings: diagnostics.filter(
         (diagnostic) => diagnostic.severity === "warning",
       ).length,
@@ -257,6 +281,19 @@ export function mergeRenderResourceSummaryReports(
       shaderModules: sum(reports, (report) => report.counts.shaderModules),
       pipelineHits: sum(reports, (report) => report.counts.pipelineHits),
       pipelineMisses: sum(reports, (report) => report.counts.pipelineMisses),
+      inspectedResources: sum(
+        reports,
+        (report) => report.counts.inspectedResources,
+      ),
+      staleResources: sum(reports, (report) => report.counts.staleResources),
+      missingResources: sum(
+        reports,
+        (report) => report.counts.missingResources,
+      ),
+      pendingDestroyResources: sum(
+        reports,
+        (report) => report.counts.pendingDestroyResources,
+      ),
       warnings: diagnostics.filter(
         (diagnostic) => diagnostic.severity === "warning",
       ).length,

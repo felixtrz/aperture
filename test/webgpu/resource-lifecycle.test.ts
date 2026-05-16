@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  createRenderResourceInspectionReport,
   createRenderResourceLifecycleReport,
   type RenderResourceLifecycleKeySets,
 } from "@aperture-engine/webgpu";
@@ -110,6 +111,60 @@ describe("renderer resource lifecycle report", () => {
       created: ["render-pipeline:new"],
       removed: [],
     });
+  });
+
+  it("inspects live, stale, missing, and pending-destroy resources", () => {
+    const report = createRenderResourceInspectionReport([
+      {
+        kind: "mesh",
+        assetKey: "mesh:Cube",
+        resourceKey: "mesh-buffer:Cube",
+        version: 2,
+        expectedVersion: 2,
+        status: "live",
+        pendingDestroy: false,
+      },
+      {
+        kind: "material",
+        assetKey: "material:Old",
+        resourceKey: "material-buffer:Old",
+        version: 1,
+        expectedVersion: 2,
+        status: "stale",
+        pendingDestroy: false,
+      },
+      {
+        kind: "view",
+        resourceKey: "view-uniform-buffer:Missing",
+        status: "missing",
+        pendingDestroy: false,
+      },
+      {
+        kind: "pipeline",
+        resourceKey: "pipeline:old",
+        status: "pending-destroy",
+        pendingDestroy: true,
+      },
+    ]);
+
+    expect(report.counts).toEqual({
+      total: 4,
+      live: 1,
+      missing: 1,
+      stale: 1,
+      pendingDestroy: 1,
+    });
+    expect(report.diagnostics.map((diagnostic) => diagnostic.code)).toEqual([
+      "renderResourceInspection.staleResource",
+      "renderResourceInspection.missingResource",
+      "renderResourceInspection.pendingDestroy",
+    ]);
+    expect(report.records.map((record) => record.resourceKey)).toEqual([
+      "mesh-buffer:Cube",
+      "material-buffer:Old",
+      "view-uniform-buffer:Missing",
+      "pipeline:old",
+    ]);
   });
 });
 

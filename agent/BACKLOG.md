@@ -59,119 +59,36 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start with `task-0546`. The render pipeline reference audit is complete, and
-the next implementation step is to make Aperture's phase vocabulary explicit
-before changing pipeline cache, bind group, queue, or resource lifetime behavior.
+Start with `task-0557`. Transform packing now has a scratch writer. View-uniform
+packing is the next compact allocation-heavy packer to bring under the same
+discipline.
 
 ## Ready Tasks By Category
 
-### Render Pipeline Reference Follow-Ups
+### Render Pipeline Follow-Ups
 
-### task-0546 — Add render frame phase model and report
-
-Category: `render-bridge`
-Package/write-scope: `packages/render/src/rendering`,
-`packages/webgpu/src/webgpu`, targeted render/WebGPU tests.
-Reference anchor: `docs/research/RENDER_PIPELINE_REFERENCE_AUDIT.md`, Three.js
-render list/render object managers, and PlayCanvas render actions/frame graph.
-
-Add an explicit phase model for the current render pipeline without changing
-runtime behavior.
-
-Acceptance criteria:
-
-- Define stable phase names for snapshot apply, asset/resource preparation,
-  queue/package creation, draw-list/resource resolution, command planning, and
-  submission/reporting.
-- Existing `planRenderFrameFromSnapshot` summary reports counts and diagnostics
-  under the phase names.
-- Tests cover deterministic phase ordering, count aggregation, and diagnostic
-  grouping.
-- No PBR, lighting shader activation, frame graph, or browser behavior change is
-  introduced.
-
-### task-0547 — Expand WebGPU render pipeline cache keys
-
-Category: `webgpu-render`
-Package/write-scope: `packages/webgpu/src/webgpu/pipeline-cache.ts`,
-pipeline-cache integration tests.
-Reference anchor: PlayCanvas `webgpu-render-pipeline.js` pipeline hash and
-Three.js `Pipelines` / `RenderObject` cache-key patterns.
-
-Make Aperture's WebGPU pipeline cache key account for the dimensions that
-matter before PBR and multiple passes land.
-
-Acceptance criteria:
-
-- Pipeline keys include shader family/label, color formats, depth/stencil
-  formats, primitive topology, vertex layout key, bind group layout keys,
-  blend/depth/stencil/cull/front-face state, material pipeline key, and material
-  variant key.
-- Key generation remains deterministic and JSON-safe.
-- Existing unlit pipeline keys remain understandable in diagnostics.
-- Tests cover key differences for render target, bind group layout, vertex
-  layout, and render-state changes.
-
-### task-0548 — Add bind group layout metadata and validation
-
-Category: `webgpu-render`
-Package/write-scope: `packages/webgpu/src/webgpu`, unlit bind group layout tests.
-Reference anchor: PlayCanvas `BindGroupFormat` / `WebgpuBindGroup` and Three.js
-`Bindings`.
-
-Make bind group layout contracts explicit instead of implicit in unlit helper
-code.
-
-Acceptance criteria:
-
-- Define JSON-safe metadata for each bind group: group index, name, binding
-  slots, resource type, visibility, and required/optional status.
-- Validate skipped groups, duplicate slots, missing required entries, and
-  resource type mismatches before bind group creation.
-- Existing unlit layouts expose this metadata.
-- Tests cover valid unlit layouts and failure diagnostics without raw GPU
-  handles.
-
-### task-0549 — Introduce view/pass-scoped render queues
+### task-0557 — Add view-uniform pack scratch writer
 
 Category: `render-bridge`
-Package/write-scope: `packages/render/src/rendering`, targeted render package
-and extraction tests.
-Reference anchor: Three.js `RenderList` opaque/transparent lists and PlayCanvas
-`RenderAction` layer/camera pass model.
+Package/write-scope: `packages/render/src/rendering/view-pack.ts`, targeted
+view-pack and WebGPU view-uniform tests.
+Reference anchor: `docs/DECISIONS.md` decision 0009 and
+`docs/research/FRAME_HOT_PATH_ALLOCATION_AUDIT.md`.
 
-Add an intermediate queue record between render-world readiness and draw package
-creation.
-
-Acceptance criteria:
-
-- Queue records include render id, view id or default view scope, pass id,
-  queue kind, material/pipeline grouping keys, and stable sort key.
-- Current unlit mesh draws still produce the same draw package order.
-- Opaque queue behavior is implemented; transparent queue fields can be
-  reserved but must not activate incomplete transparency rendering.
-- Tests cover stable sorting and view/pass grouping without changing browser
-  output.
-
-### task-0550 — Add renderer resource lifetime and version inspection
-
-Category: `webgpu-render`
-Package/write-scope: `packages/webgpu/src/webgpu`, resource summary/frame report
-tests.
-Reference anchor: Three.js resource manager/version invalidation patterns and
-PlayCanvas WebGPU submit-version/deferred-destroy discipline.
-
-Expose resource lifetime and version state as diagnostics/readiness data before
-advanced materials and PBR expand GPU resource counts.
+Make view-uniform packing usable from a steady-state frame loop without
+allocating fresh sets, valid-view arrays, view records, diagnostics, and output
+buffers on successful frames.
 
 Acceptance criteria:
 
-- Renderer-owned resource records can report asset key, resource key, version or
-  generation, status, and pending-destroy state without raw GPU handles.
-- Resource summaries include cache counts and stale/missing resource diagnostics.
-- Existing mesh/material/texture/light resource summaries keep their current
-  JSON-safe behavior.
-- Tests cover stale version, missing resource, and pending-destroy reporting.
+- Add a `PackedSnapshotViewUniformsScratch` or equivalent object with reusable
+  duplicate-view tracking, view records, diagnostics, and `Float32Array`
+  storage.
+- Keep `packSnapshotViewUniforms` as the allocation-friendly convenience helper.
+- Avoid intermediate valid-view arrays in the writer.
+- Tests prove view record/result identity and backing buffer reuse across
+  repeated successful writes.
+- Existing WebGPU view-uniform tests continue to pass.
 
 ### Render Bridge / ECS Binding
 

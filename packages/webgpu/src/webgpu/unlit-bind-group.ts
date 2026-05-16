@@ -21,6 +21,22 @@ export interface UnlitBindGroupResourceInput {
 }
 
 export type UnlitBindGroupResourceKind = "buffer" | "texture-view" | "sampler";
+export type UnlitBindGroupShaderVisibility = "vertex" | "fragment" | "compute";
+
+export interface UnlitBindGroupLayoutBindingMetadata {
+  readonly binding: number;
+  readonly name: string;
+  readonly resourceKind: UnlitBindGroupResourceKind;
+  readonly visibility: readonly UnlitBindGroupShaderVisibility[];
+  readonly required: boolean;
+}
+
+export interface UnlitBindGroupLayoutMetadata {
+  readonly group: number;
+  readonly name: string;
+  readonly layoutKey: string;
+  readonly bindings: readonly UnlitBindGroupLayoutBindingMetadata[];
+}
 
 export interface UnlitBindGroupDescriptorEntry {
   readonly group: number;
@@ -39,6 +55,10 @@ export type UnlitBindGroupResourceDiagnosticCode =
   | "unlitBindGroupResource.nullDescriptorPlan"
   | "unlitBindGroupResource.invalidDescriptorPlan"
   | "unlitBindGroupResource.missingLayout"
+  | "unlitBindGroupResource.skippedRequiredGroup"
+  | "unlitBindGroupResource.duplicateBinding"
+  | "unlitBindGroupResource.missingRequiredBinding"
+  | "unlitBindGroupResource.resourceKindMismatch"
   | "unlitBindGroupResource.missingDeviceSupport"
   | "unlitBindGroupResource.missingBufferResource"
   | "unlitBindGroupResource.missingTextureResource"
@@ -48,6 +68,7 @@ export interface UnlitBindGroupResourceDiagnostic {
   readonly code: UnlitBindGroupResourceDiagnosticCode;
   readonly message: string;
   readonly group?: number;
+  readonly binding?: number;
   readonly resourceKey?: string;
 }
 
@@ -55,6 +76,7 @@ export interface UnlitBindGroupLayoutResource {
   readonly group: number;
   readonly layoutKey: string;
   readonly layout: unknown;
+  readonly metadata?: UnlitBindGroupLayoutMetadata;
 }
 
 export interface UnlitBindGroupCreationEntry {
@@ -84,6 +106,7 @@ export interface CreateUnlitBindGroupsOptions {
   readonly device: UnlitBindGroupDeviceLike;
   readonly plan: UnlitBindGroupDescriptorPlan | null;
   readonly layouts: readonly UnlitBindGroupLayoutResource[];
+  readonly requiredGroups?: readonly number[];
 }
 
 export interface UnlitBindGroupBufferResource {
@@ -106,6 +129,7 @@ export interface CreateUnlitBindGroupsFromBuffersOptions {
   readonly plan: UnlitBindGroupDescriptorPlan | null;
   readonly layouts: readonly UnlitBindGroupLayoutResource[];
   readonly buffers: readonly UnlitBindGroupBufferResource[];
+  readonly requiredGroups?: readonly number[];
 }
 
 export interface CreateUnlitBindGroupsFromGpuResourcesOptions extends CreateUnlitBindGroupsFromBuffersOptions {
@@ -217,6 +241,9 @@ export function createUnlitBindGroups(
     device: options.device,
     plan: options.plan,
     layouts: options.layouts,
+    ...(options.requiredGroups === undefined
+      ? {}
+      : { requiredGroups: options.requiredGroups }),
     resolveResource: (entry) => ({ resourceKey: entry.resourceKey }),
   });
 }
@@ -250,6 +277,9 @@ export function createUnlitBindGroupsFromGpuResources(
     device: options.device,
     plan: options.plan,
     layouts: options.layouts,
+    ...(options.requiredGroups === undefined
+      ? {}
+      : { requiredGroups: options.requiredGroups }),
     resolveResource: (entry, diagnostics) => {
       switch (entry.resourceKind) {
         case "buffer": {
@@ -306,6 +336,7 @@ interface CreateUnlitBindGroupResourcesOptions {
   readonly device: UnlitBindGroupDeviceLike;
   readonly plan: UnlitBindGroupDescriptorPlan | null;
   readonly layouts: readonly UnlitBindGroupLayoutResource[];
+  readonly requiredGroups?: readonly number[];
   readonly resolveResource: (
     entry: UnlitBindGroupDescriptorEntry,
     diagnostics: UnlitBindGroupResourceDiagnostic[],
@@ -357,8 +388,16 @@ function createUnlitBindGroupResources(
     options.layouts.map((layout) => [layout.group, layout]),
   );
   const resources: UnlitBindGroupResource[] = [];
+  const entriesByGroup = groupPlanEntries(options.plan.entries);
 
-  for (const [group, entries] of groupPlanEntries(options.plan.entries)) {
+  diagnostics.push(
+    ...validateRequiredBindGroupSequence(
+      entriesByGroup,
+      options.requiredGroups,
+    ),
+  );
+
+  for (const [group, entries] of entriesByGroup) {
     const layout = layoutByGroup.get(group);
 
     if (layout === undefined) {
@@ -369,6 +408,8 @@ function createUnlitBindGroupResources(
       });
       continue;
     }
+
+    diagnostics.push(...validateBindGroupEntries(group, entries, layout));
 
     const descriptor = createBindGroupDescriptor(
       group,
@@ -398,6 +439,162 @@ function createUnlitBindGroupResources(
     resources,
     diagnostics,
   };
+}
+
+export function createUnlitBindGroupLayoutMetadata(
+  group: number,
+  layoutKey = `unlit/group-${group}`,
+): UnlitBindGroupLayoutMetadata {
+  switch (group) {
+    case 0:
+      return {
+        group,
+        name: "view",
+        layoutKey,
+        bindings: [
+          {
+            binding: 0,
+            name: "viewUniform",
+            resourceKind: "buffer",
+            visibility: ["vertex"],
+            required: true,
+          },
+        ],
+      };
+    case 1:
+      return {
+        group,
+        name: "worldTransforms",
+        layoutKey,
+        bindings: [
+          {
+            binding: 0,
+            name: "worldTransforms",
+            resourceKind: "buffer",
+            visibility: ["vertex"],
+            required: true,
+          },
+        ],
+      };
+    case 2:
+      return {
+        group,
+        name: "material",
+        layoutKey,
+        bindings: [
+          {
+            binding: 0,
+            name: "unlitMaterial",
+            resourceKind: "buffer",
+            visibility: ["fragment"],
+            required: true,
+          },
+          {
+            binding: 1,
+            name: "baseColorTexture",
+            resourceKind: "texture-view",
+            visibility: ["fragment"],
+            required: false,
+          },
+          {
+            binding: 2,
+            name: "baseColorSampler",
+            resourceKind: "sampler",
+            visibility: ["fragment"],
+            required: false,
+          },
+        ],
+      };
+    default:
+      return {
+        group,
+        name: `group-${group}`,
+        layoutKey,
+        bindings: [],
+      };
+  }
+}
+
+function validateRequiredBindGroupSequence(
+  entriesByGroup: ReadonlyMap<number, readonly UnlitBindGroupDescriptorEntry[]>,
+  requiredGroups: readonly number[] | undefined,
+): readonly UnlitBindGroupResourceDiagnostic[] {
+  if (requiredGroups === undefined) {
+    return [];
+  }
+
+  return requiredGroups.flatMap((group) =>
+    entriesByGroup.has(group)
+      ? []
+      : [
+          {
+            code: "unlitBindGroupResource.skippedRequiredGroup",
+            group,
+            message: `Required unlit bind group ${group} has no descriptor entries.`,
+          } satisfies UnlitBindGroupResourceDiagnostic,
+        ],
+  );
+}
+
+function validateBindGroupEntries(
+  group: number,
+  entries: readonly UnlitBindGroupDescriptorEntry[],
+  layout: UnlitBindGroupLayoutResource,
+): readonly UnlitBindGroupResourceDiagnostic[] {
+  const diagnostics: UnlitBindGroupResourceDiagnostic[] = [];
+  const seen = new Set<number>();
+  const metadata =
+    layout.metadata ??
+    createUnlitBindGroupLayoutMetadata(group, layout.layoutKey);
+  const metadataByBinding = new Map(
+    metadata.bindings.map((binding) => [binding.binding, binding]),
+  );
+  const entryByBinding = new Map(
+    entries.map((entry) => [entry.binding, entry]),
+  );
+
+  for (const entry of entries) {
+    if (seen.has(entry.binding)) {
+      diagnostics.push({
+        code: "unlitBindGroupResource.duplicateBinding",
+        group,
+        binding: entry.binding,
+        resourceKey: entry.resourceKey,
+        message: `Duplicate unlit bind group binding ${entry.binding} in group ${group}.`,
+      });
+      continue;
+    }
+
+    seen.add(entry.binding);
+
+    const expected = metadataByBinding.get(entry.binding);
+
+    if (
+      expected !== undefined &&
+      expected.resourceKind !== entry.resourceKind
+    ) {
+      diagnostics.push({
+        code: "unlitBindGroupResource.resourceKindMismatch",
+        group,
+        binding: entry.binding,
+        resourceKey: entry.resourceKey,
+        message: `Unlit bind group ${group} binding ${entry.binding} expects ${expected.resourceKind}, received ${entry.resourceKind}.`,
+      });
+    }
+  }
+
+  for (const binding of metadata.bindings) {
+    if (binding.required && !entryByBinding.has(binding.binding)) {
+      diagnostics.push({
+        code: "unlitBindGroupResource.missingRequiredBinding",
+        group,
+        binding: binding.binding,
+        message: `Unlit bind group ${group} is missing required binding ${binding.binding} (${binding.name}).`,
+      });
+    }
+  }
+
+  return diagnostics;
 }
 
 function groupPlanEntries(

@@ -96,6 +96,9 @@ The Aperture-specific version should be:
 - Package-safe: renderer-independent contracts live in `@aperture-engine/render`;
   raw WebGPU handles stay in `@aperture-engine/webgpu`.
 - Data-first: phase outputs are serializable or JSON-inspectable where possible.
+- Allocation-conscious: frame-loop APIs should write into reusable scratch
+  buffers or stable pools; allocating report builders should remain diagnostic
+  or setup surfaces.
 - Incremental: add typed contracts and diagnostics before introducing a full
   frame graph, transparency system, or PBR shaders.
 

@@ -21,6 +21,7 @@ export * from "./frame-execution-report.js";
 export * from "./frame-submission-smoke.js";
 export * from "./frame-report.js";
 export * from "./render-frame-plan.js";
+export * from "./render-frame-phases.js";
 export * from "./frame-readiness.js";
 export * from "./material-dependency-readiness.js";
 export * from "./light-bind-group.js";

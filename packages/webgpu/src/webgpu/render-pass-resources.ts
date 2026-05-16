@@ -71,54 +71,138 @@ export interface ResolveRenderPassResourcesResult {
   )[];
 }
 
+export interface ResolveRenderPassResourcesScratch {
+  readonly draws: ResolvedRenderPassDraw[];
+  readonly diagnostics: RenderPassResourceDiagnostic[];
+  readonly drawPool: ResolvedRenderPassDraw[];
+  readonly bindGroupPool: ResolvedRenderPassBindGroup[];
+  readonly vertexBufferPool: ResolvedRenderPassVertexBuffer[];
+  readonly indexBufferPool: ResolvedRenderPassIndexBuffer[];
+  readonly pipelines: Map<string, unknown>;
+  readonly bindGroups: Map<string, UnlitBindGroupResource>;
+  readonly vertexBuffers: Map<
+    string,
+    MeshGpuBufferResource["vertexBuffers"][number]
+  >;
+  readonly indexBuffers: Map<
+    string,
+    NonNullable<MeshGpuBufferResource["indexBuffer"]>
+  >;
+  readonly plan: ResolveRenderPassResourcesResult;
+  bindGroupCursor: number;
+  vertexBufferCursor: number;
+  indexBufferCursor: number;
+}
+
+interface MutableResolvedRenderPassDraw {
+  renderId: number;
+  pipelineKey: string;
+  pipeline: unknown;
+  bindGroups: ResolvedRenderPassBindGroup[];
+  vertexBuffers: ResolvedRenderPassVertexBuffer[];
+  vertexCount: number;
+  indexBuffer: ResolvedRenderPassIndexBuffer | null;
+  indexCount: number | null;
+  instanceCount: number;
+  transformPackedOffset: number;
+}
+
+interface MutableResolvedRenderPassBindGroup {
+  group: number;
+  resourceKey: string;
+  bindGroup: unknown;
+}
+
+interface MutableResolvedRenderPassVertexBuffer {
+  resourceKey: string;
+  buffer: unknown;
+  vertexCount: number;
+}
+
+interface MutableResolvedRenderPassIndexBuffer {
+  resourceKey: string;
+  buffer: unknown;
+  format: string;
+  indexCount: number;
+}
+
 export function resolveRenderPassResources(
   options: ResolveRenderPassResourcesOptions,
 ): ResolveRenderPassResourcesResult {
-  const pipelines = new Map(
-    options.pipelines.flatMap((pipeline) =>
-      pipeline.ok ? [[pipeline.key, pipeline.pipeline] as const] : [],
-    ),
-  );
-  const bindGroups = new Map(
-    options.bindGroups.map((bindGroup) => [bindGroup.resourceKey, bindGroup]),
-  );
-  const vertexBuffers = new Map(
-    options.meshResources.flatMap((mesh) =>
-      mesh.vertexBuffers.map((buffer) => [buffer.resourceKey, buffer] as const),
-    ),
-  );
-  const indexBuffers = new Map(
-    options.meshResources.flatMap((mesh) =>
-      mesh.indexBuffer === undefined
-        ? []
-        : [[mesh.indexBuffer.resourceKey, mesh.indexBuffer] as const],
-    ),
-  );
-  const diagnostics: RenderPassResourceDiagnostic[] = [];
+  const scratch = createResolveRenderPassResourcesScratch();
+
+  writeResolveRenderPassResources(options, scratch);
+
+  return scratch.plan;
+}
+
+export function createResolveRenderPassResourcesScratch(
+  capacity = 0,
+): ResolveRenderPassResourcesScratch {
   const draws: ResolvedRenderPassDraw[] = [];
+  const diagnostics: RenderPassResourceDiagnostic[] = [];
+  const drawPool: ResolvedRenderPassDraw[] = [];
+
+  for (let i = 0; i < capacity; i += 1) {
+    drawPool.push(createEmptyResolvedDraw());
+  }
+
+  return {
+    draws,
+    diagnostics,
+    drawPool,
+    bindGroupPool: [],
+    vertexBufferPool: [],
+    indexBufferPool: [],
+    pipelines: new Map(),
+    bindGroups: new Map(),
+    vertexBuffers: new Map(),
+    indexBuffers: new Map(),
+    plan: { valid: true, draws, diagnostics },
+    bindGroupCursor: 0,
+    vertexBufferCursor: 0,
+    indexBufferCursor: 0,
+  };
+}
+
+export function writeResolveRenderPassResources(
+  options: ResolveRenderPassResourcesOptions,
+  scratch: ResolveRenderPassResourcesScratch,
+): ResolveRenderPassResourcesResult {
+  resetResolveScratch(scratch);
+  indexResources(options, scratch);
 
   for (const draw of options.drawList) {
-    const pipeline = pipelines.get(draw.pipelineKey);
-    const resolvedBindGroups = resolveBindGroups(draw, bindGroups, diagnostics);
-    const resolvedVertexBuffers = resolveVertexBuffers(
+    const pipeline = scratch.pipelines.get(draw.pipelineKey);
+    const resolvedDraw = resolvedDrawAt(scratch, scratch.draws.length);
+
+    resolvedDraw.renderId = draw.renderId;
+    resolvedDraw.pipelineKey = draw.pipelineKey;
+    resolvedDraw.pipeline = pipeline;
+    resolvedDraw.bindGroups.length = 0;
+    resolvedDraw.vertexBuffers.length = 0;
+    resolvedDraw.vertexCount = draw.vertexCount;
+    resolvedDraw.indexBuffer = null;
+    resolvedDraw.indexCount = draw.indexCount;
+    resolvedDraw.instanceCount = draw.instanceCount;
+    resolvedDraw.transformPackedOffset = draw.transformPackedOffset;
+
+    const bindGroupsReady = resolveBindGroups(draw, scratch, resolvedDraw);
+    const vertexBuffersReady = resolveVertexBuffers(
       draw,
-      vertexBuffers,
-      diagnostics,
+      scratch,
+      resolvedDraw,
     );
-    const resolvedIndexBuffer = resolveIndexBuffer(
-      draw,
-      indexBuffers,
-      diagnostics,
-    );
+    const resolvedIndexBuffer = resolveIndexBuffer(draw, scratch);
 
     if (
       pipeline === undefined ||
-      resolvedBindGroups.length !== draw.bindGroupKeys.length ||
-      resolvedVertexBuffers.length !== draw.vertexBufferKeys.length ||
+      !bindGroupsReady ||
+      !vertexBuffersReady ||
       (draw.indexBufferKey !== null && resolvedIndexBuffer === null)
     ) {
       if (pipeline === undefined) {
-        diagnostics.push({
+        scratch.diagnostics.push({
           code: "renderPassResource.missingPipeline",
           renderId: draw.renderId,
           resourceKey: draw.pipelineKey,
@@ -129,102 +213,86 @@ export function resolveRenderPassResources(
       continue;
     }
 
-    draws.push({
-      renderId: draw.renderId,
-      pipelineKey: draw.pipelineKey,
-      pipeline,
-      bindGroups: resolvedBindGroups,
-      vertexBuffers: resolvedVertexBuffers,
-      vertexCount: draw.vertexCount,
-      indexBuffer: resolvedIndexBuffer,
-      indexCount: draw.indexCount,
-      instanceCount: draw.instanceCount,
-      transformPackedOffset: draw.transformPackedOffset,
-    });
+    resolvedDraw.indexBuffer = resolvedIndexBuffer;
+    scratch.draws.push(resolvedDraw);
   }
 
-  return {
-    valid: diagnostics.length === 0,
-    draws,
-    diagnostics,
-  };
+  (scratch.plan as MutableResolveRenderPassResourcesResult).valid =
+    scratch.diagnostics.length === 0;
+
+  return scratch.plan;
 }
 
 function resolveBindGroups(
   draw: RenderPassDrawListRecord,
-  bindGroups: ReadonlyMap<string, UnlitBindGroupResource>,
-  diagnostics: RenderPassResourceDiagnostic[],
-): readonly ResolvedRenderPassBindGroup[] {
-  return draw.bindGroupKeys.flatMap((resourceKey) => {
-    const bindGroup = bindGroups.get(resourceKey);
+  scratch: ResolveRenderPassResourcesScratch,
+  resolvedDraw: MutableResolvedRenderPassDraw,
+): boolean {
+  for (const resourceKey of draw.bindGroupKeys) {
+    const bindGroup = scratch.bindGroups.get(resourceKey);
 
     if (bindGroup === undefined) {
-      diagnostics.push({
+      scratch.diagnostics.push({
         code: "renderPassResource.missingBindGroup",
         renderId: draw.renderId,
         resourceKey,
         message: `Missing bind group handle '${resourceKey}' for render id ${draw.renderId}.`,
       });
-      return [];
+      continue;
     }
 
-    return [
-      {
-        group: bindGroup.group,
-        resourceKey: bindGroup.resourceKey,
-        bindGroup: bindGroup.bindGroup,
-      },
-    ];
-  });
+    const resolved = bindGroupAt(scratch);
+
+    resolved.group = bindGroup.group;
+    resolved.resourceKey = bindGroup.resourceKey;
+    resolved.bindGroup = bindGroup.bindGroup;
+    resolvedDraw.bindGroups.push(resolved);
+  }
+
+  return resolvedDraw.bindGroups.length === draw.bindGroupKeys.length;
 }
 
 function resolveVertexBuffers(
   draw: RenderPassDrawListRecord,
-  vertexBuffers: ReadonlyMap<
-    string,
-    MeshGpuBufferResource["vertexBuffers"][number]
-  >,
-  diagnostics: RenderPassResourceDiagnostic[],
-): readonly ResolvedRenderPassVertexBuffer[] {
-  return draw.vertexBufferKeys.flatMap((resourceKey) => {
-    const vertexBuffer = vertexBuffers.get(resourceKey);
+  scratch: ResolveRenderPassResourcesScratch,
+  resolvedDraw: MutableResolvedRenderPassDraw,
+): boolean {
+  for (const resourceKey of draw.vertexBufferKeys) {
+    const vertexBuffer = scratch.vertexBuffers.get(resourceKey);
 
     if (vertexBuffer === undefined) {
-      diagnostics.push({
+      scratch.diagnostics.push({
         code: "renderPassResource.missingVertexBuffer",
         renderId: draw.renderId,
         resourceKey,
         message: `Missing vertex buffer handle '${resourceKey}' for render id ${draw.renderId}.`,
       });
-      return [];
+      continue;
     }
 
-    return [
-      {
-        resourceKey: vertexBuffer.resourceKey,
-        buffer: vertexBuffer.buffer,
-        vertexCount: vertexBuffer.vertexCount,
-      },
-    ];
-  });
+    const resolved = vertexBufferAt(scratch);
+
+    resolved.resourceKey = vertexBuffer.resourceKey;
+    resolved.buffer = vertexBuffer.buffer;
+    resolved.vertexCount = vertexBuffer.vertexCount;
+    resolvedDraw.vertexBuffers.push(resolved);
+  }
+
+  return resolvedDraw.vertexBuffers.length === draw.vertexBufferKeys.length;
 }
 
 function resolveIndexBuffer(
   draw: RenderPassDrawListRecord,
-  indexBuffers: ReadonlyMap<
-    string,
-    NonNullable<MeshGpuBufferResource["indexBuffer"]>
-  >,
-  diagnostics: RenderPassResourceDiagnostic[],
+  scratch: ResolveRenderPassResourcesScratch,
 ): ResolvedRenderPassIndexBuffer | null {
   if (draw.indexBufferKey === null) {
     return null;
   }
 
-  const indexBuffer = indexBuffers.get(draw.indexBufferKey);
+  const indexBuffer = scratch.indexBuffers.get(draw.indexBufferKey);
 
   if (indexBuffer === undefined) {
-    diagnostics.push({
+    scratch.diagnostics.push({
       code: "renderPassResource.missingIndexBuffer",
       renderId: draw.renderId,
       resourceKey: draw.indexBufferKey,
@@ -233,10 +301,148 @@ function resolveIndexBuffer(
     return null;
   }
 
+  const resolved = indexBufferAt(scratch);
+
+  resolved.resourceKey = indexBuffer.resourceKey;
+  resolved.buffer = indexBuffer.buffer;
+  resolved.format = indexBuffer.format;
+  resolved.indexCount = indexBuffer.indexCount;
+
+  return resolved;
+}
+
+function resetResolveScratch(scratch: ResolveRenderPassResourcesScratch): void {
+  scratch.draws.length = 0;
+  scratch.diagnostics.length = 0;
+  scratch.pipelines.clear();
+  scratch.bindGroups.clear();
+  scratch.vertexBuffers.clear();
+  scratch.indexBuffers.clear();
+  scratch.bindGroupCursor = 0;
+  scratch.vertexBufferCursor = 0;
+  scratch.indexBufferCursor = 0;
+}
+
+function indexResources(
+  options: ResolveRenderPassResourcesOptions,
+  scratch: ResolveRenderPassResourcesScratch,
+): void {
+  for (const pipeline of options.pipelines) {
+    if (pipeline.ok) {
+      scratch.pipelines.set(pipeline.key, pipeline.pipeline);
+    }
+  }
+
+  for (const bindGroup of options.bindGroups) {
+    scratch.bindGroups.set(bindGroup.resourceKey, bindGroup);
+  }
+
+  for (const mesh of options.meshResources) {
+    for (const buffer of mesh.vertexBuffers) {
+      scratch.vertexBuffers.set(buffer.resourceKey, buffer);
+    }
+
+    if (mesh.indexBuffer !== undefined) {
+      scratch.indexBuffers.set(mesh.indexBuffer.resourceKey, mesh.indexBuffer);
+    }
+  }
+}
+
+function resolvedDrawAt(
+  scratch: ResolveRenderPassResourcesScratch,
+  index: number,
+): MutableResolvedRenderPassDraw {
+  const existing = scratch.drawPool[index] as
+    | MutableResolvedRenderPassDraw
+    | undefined;
+
+  if (existing !== undefined) {
+    return existing;
+  }
+
+  const draw = createEmptyResolvedDraw();
+
+  scratch.drawPool.push(draw);
+  return draw;
+}
+
+function bindGroupAt(
+  scratch: ResolveRenderPassResourcesScratch,
+): MutableResolvedRenderPassBindGroup {
+  const existing = scratch.bindGroupPool[scratch.bindGroupCursor] as
+    | MutableResolvedRenderPassBindGroup
+    | undefined;
+
+  scratch.bindGroupCursor += 1;
+
+  if (existing !== undefined) {
+    return existing;
+  }
+
+  const bindGroup = { group: 0, resourceKey: "", bindGroup: null };
+
+  scratch.bindGroupPool.push(bindGroup);
+  return bindGroup;
+}
+
+function vertexBufferAt(
+  scratch: ResolveRenderPassResourcesScratch,
+): MutableResolvedRenderPassVertexBuffer {
+  const existing = scratch.vertexBufferPool[scratch.vertexBufferCursor] as
+    | MutableResolvedRenderPassVertexBuffer
+    | undefined;
+
+  scratch.vertexBufferCursor += 1;
+
+  if (existing !== undefined) {
+    return existing;
+  }
+
+  const vertexBuffer = { resourceKey: "", buffer: null, vertexCount: 0 };
+
+  scratch.vertexBufferPool.push(vertexBuffer);
+  return vertexBuffer;
+}
+
+function indexBufferAt(
+  scratch: ResolveRenderPassResourcesScratch,
+): MutableResolvedRenderPassIndexBuffer {
+  const existing = scratch.indexBufferPool[scratch.indexBufferCursor] as
+    | MutableResolvedRenderPassIndexBuffer
+    | undefined;
+
+  scratch.indexBufferCursor += 1;
+
+  if (existing !== undefined) {
+    return existing;
+  }
+
+  const indexBuffer = {
+    resourceKey: "",
+    buffer: null,
+    format: "",
+    indexCount: 0,
+  };
+
+  scratch.indexBufferPool.push(indexBuffer);
+  return indexBuffer;
+}
+
+function createEmptyResolvedDraw(): MutableResolvedRenderPassDraw {
   return {
-    resourceKey: indexBuffer.resourceKey,
-    buffer: indexBuffer.buffer,
-    format: indexBuffer.format,
-    indexCount: indexBuffer.indexCount,
+    renderId: 0,
+    pipelineKey: "",
+    pipeline: null,
+    bindGroups: [],
+    vertexBuffers: [],
+    vertexCount: 0,
+    indexBuffer: null,
+    indexCount: null,
+    instanceCount: 1,
+    transformPackedOffset: 0,
   };
 }
+
+type MutableResolveRenderPassResourcesResult = {
+  -readonly [Key in keyof ResolveRenderPassResourcesResult]: ResolveRenderPassResourcesResult[Key];
+};

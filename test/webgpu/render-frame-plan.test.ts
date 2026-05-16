@@ -2,7 +2,9 @@ import { describe, expect, it } from "vitest";
 
 import {
   RenderWorld,
+  createRenderFramePlanScratch,
   planRenderFrameFromSnapshot,
+  writeRenderFramePlanFromSnapshot,
   type BatchCompatibilityKey,
   type GetOrCreateRenderPipelineResult,
   type MeshGpuBufferResource,
@@ -40,6 +42,22 @@ describe("render frame snapshot planning helper", () => {
     });
 
     expect(result.summary.ready).toBe(true);
+    expect(result.summary.phaseOrder).toEqual([
+      "apply",
+      "prepare",
+      "queue",
+      "resolve",
+      "command",
+      "submit",
+    ]);
+    expect(result.summary.phases).toMatchObject({
+      apply: { ready: true, counts: { active: 2, created: 2 } },
+      prepare: { ready: true, counts: { planned: 2, applied: 2 } },
+      queue: { ready: true, counts: { ready: 2, blocked: 0, packages: 2 } },
+      resolve: { ready: true, counts: { descriptors: 2, resolved: 2 } },
+      command: { ready: true, counts: { drawCount: 2 } },
+      submit: { ready: true, counts: { submitted: 0, plannedDraws: 2 } },
+    });
     expect(result.summary.counts).toMatchObject({
       apply: { active: 2, created: 2 },
       binding: { planned: 2, applied: 2, ready: 2, blocked: 0 },
@@ -52,6 +70,23 @@ describe("render frame snapshot planning helper", () => {
         .filter((command) => command.kind === "draw")
         .map((command) => command.renderId),
     ).toEqual([7, 9]);
+  });
+
+  it("can reuse caller-owned summary scratch across frame plans", () => {
+    const scratch = createRenderFramePlanScratch();
+    const first = writeReadyFrameWithScratch(scratch);
+    const firstResult = first;
+    const firstSummary = first.summary;
+    const firstApplyPhase = first.summary.phases.apply;
+    const firstDiagnostics = first.summary.diagnostics;
+    const second = writeReadyFrameWithScratch(scratch);
+
+    expect(second).toBe(firstResult);
+    expect(second.summary).toBe(firstSummary);
+    expect(second.summary.phases.apply).toBe(firstApplyPhase);
+    expect(second.summary.diagnostics).toBe(firstDiagnostics);
+    expect(second.summary.ready).toBe(true);
+    expect(second.summary.counts.draw.packages).toBe(2);
   });
 
   it("summarizes missing resource binding diagnostics without planning draws", () => {
@@ -82,6 +117,9 @@ describe("render frame snapshot planning helper", () => {
       "renderDrawPackage.blockedDraw",
       "renderDrawPackage.blockedDraw",
     ]);
+    expect(
+      result.summary.diagnostics.map((diagnostic) => diagnostic.phase),
+    ).toEqual(["prepare", "prepare", "queue", "queue", "queue", "queue"]);
   });
 
   it("keeps textured unlit material bind groups associated with resolved draws", () => {
@@ -232,7 +270,8 @@ describe("render frame snapshot planning helper", () => {
     ]);
     expect(result.summary.diagnostics).toMatchObject([
       {
-        phase: "draw-list",
+        phase: "resolve",
+        source: "draw-list",
         code: "renderPassDrawList.missingBindGroupResource",
         renderId: 11,
       },
@@ -269,13 +308,30 @@ describe("render frame snapshot planning helper", () => {
     ]);
     expect(result.summary.diagnostics).toMatchObject([
       {
-        phase: "draw-list",
+        phase: "resolve",
+        source: "draw-list",
         code: "renderPassDrawList.missingBindGroupResource",
         renderId: 11,
       },
     ]);
   });
 });
+
+function writeReadyFrameWithScratch(
+  scratch: ReturnType<typeof createRenderFramePlanScratch>,
+) {
+  return writeRenderFramePlanFromSnapshot({
+    snapshot: snapshot(),
+    renderWorld: new RenderWorld(),
+    transforms: transforms(),
+    resolveMeshResourceKey: () => "mesh:triangle",
+    resolveMaterialResourceKey: () => "material:red",
+    meshResources: [mesh()],
+    pipelines: [pipeline()],
+    bindGroups: bindGroups(),
+    scratch,
+  });
+}
 
 function snapshot(): RenderSnapshot {
   return {

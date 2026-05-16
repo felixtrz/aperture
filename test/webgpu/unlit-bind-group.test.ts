@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  createUnlitBindGroupLayoutMetadata,
   createUnlitBindGroupDescriptorPlan,
   createUnlitBindGroups,
   createUnlitBindGroupsFromBuffers,
@@ -368,6 +369,103 @@ describe("unlit bind group descriptor planning", () => {
     expect(result.resources.map((resource) => resource.group)).toEqual([0, 2]);
     expect(result.diagnostics).toMatchObject([
       { code: "unlitBindGroupResource.missingLayout", group: 1 },
+    ]);
+  });
+
+  it("diagnoses bind group layout metadata mismatches", () => {
+    const result = createUnlitBindGroups({
+      device: { createBindGroup: () => ({}) },
+      plan: {
+        valid: true,
+        diagnostics: [],
+        entries: [
+          {
+            group: 2,
+            binding: 0,
+            resourceKey: "material",
+            resourceKind: "texture-view",
+          },
+          {
+            group: 2,
+            binding: 0,
+            resourceKey: "material:duplicate",
+            resourceKind: "buffer",
+          },
+        ],
+      },
+      layouts: [
+        {
+          group: 2,
+          layoutKey: "layout:2",
+          layout: { group: 2 },
+          metadata: createUnlitBindGroupLayoutMetadata(2, "layout:2"),
+        },
+      ],
+    });
+
+    expect(result.valid).toBe(false);
+    expect(result.diagnostics.map((diagnostic) => diagnostic.code)).toEqual([
+      "unlitBindGroupResource.resourceKindMismatch",
+      "unlitBindGroupResource.duplicateBinding",
+    ]);
+  });
+
+  it("diagnoses missing required layout bindings", () => {
+    const result = createUnlitBindGroups({
+      device: { createBindGroup: () => ({}) },
+      plan: {
+        valid: true,
+        diagnostics: [],
+        entries: [
+          {
+            group: 2,
+            binding: 1,
+            resourceKey: "texture:albedo",
+            resourceKind: "texture-view",
+          },
+        ],
+      },
+      layouts: [
+        {
+          group: 2,
+          layoutKey: "layout:2",
+          layout: { group: 2 },
+          metadata: createUnlitBindGroupLayoutMetadata(2, "layout:2"),
+        },
+      ],
+    });
+
+    expect(result.valid).toBe(false);
+    expect(result.diagnostics.map((diagnostic) => diagnostic.code)).toEqual([
+      "unlitBindGroupResource.missingRequiredBinding",
+    ]);
+    expect(result.diagnostics[0]).toMatchObject({ group: 2, binding: 0 });
+  });
+
+  it("diagnoses skipped required groups before creation", () => {
+    const result = createUnlitBindGroups({
+      device: { createBindGroup: () => ({}) },
+      plan: {
+        valid: true,
+        diagnostics: [],
+        entries: [
+          {
+            group: 2,
+            binding: 0,
+            resourceKey: "material",
+            resourceKind: "buffer",
+          },
+        ],
+      },
+      layouts: layoutResources(),
+      requiredGroups: [0, 1, 2],
+    });
+
+    expect(result.valid).toBe(false);
+    expect(result.resources.map((resource) => resource.group)).toEqual([2]);
+    expect(result.diagnostics.map((diagnostic) => diagnostic.code)).toEqual([
+      "unlitBindGroupResource.skippedRequiredGroup",
+      "unlitBindGroupResource.skippedRequiredGroup",
     ]);
   });
 

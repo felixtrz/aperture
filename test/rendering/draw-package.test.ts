@@ -5,10 +5,12 @@ import {
   createMaterialHandle,
   createMaterialPipelineKeyInput,
   createMeshHandle,
+  createRenderWorldDrawPackageScratch,
   createRenderSortKey,
   createStableRenderId,
   createUnlitMaterialAsset,
   planRenderWorldDrawPackages,
+  writeRenderWorldDrawPackages,
   type MeshDrawPacket,
   type PackedSnapshotTransforms,
   type RenderWorldDrawReadinessReport,
@@ -92,6 +94,34 @@ describe("render-world draw package planning", () => {
     expect(result.diagnostics.map((diagnostic) => diagnostic.code)).toEqual([
       "renderTransformPack.missingTransform",
       "renderDrawPackage.missingPackedTransform",
+    ]);
+  });
+
+  it("can reuse caller-owned scratch packages on the frame hot path", () => {
+    const scratch = createRenderWorldDrawPackageScratch(2);
+    const first = writeRenderWorldDrawPackages(
+      readiness({ ready: [readyDraw(1), readyDraw(2)] }),
+      transforms([
+        [readyDraw(1).renderId, 0],
+        [readyDraw(2).renderId, 16],
+      ]),
+      scratch,
+    );
+    const firstPackages = [...first.packages];
+    const second = writeRenderWorldDrawPackages(
+      readiness({ ready: [readyDraw(2), readyDraw(1)] }),
+      transforms([
+        [readyDraw(1).renderId, 0],
+        [readyDraw(2).renderId, 16],
+      ]),
+      scratch,
+    );
+
+    expect(second).toBe(first);
+    expect(new Set(second.packages)).toEqual(new Set(firstPackages));
+    expect(second.packages.map((drawPackage) => drawPackage.renderId)).toEqual([
+      readyDraw(1).renderId,
+      readyDraw(2).renderId,
     ]);
   });
 });

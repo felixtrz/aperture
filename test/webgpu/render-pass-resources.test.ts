@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  createResolveRenderPassResourcesScratch,
   resolveRenderPassResources,
+  writeResolveRenderPassResources,
   type GetOrCreateRenderPipelineResult,
   type MeshGpuBufferResource,
   type RenderPassDrawListRecord,
@@ -138,6 +140,32 @@ describe("render pass resource resolution", () => {
         resourceKey: "mesh:1/index",
       },
     ]);
+  });
+
+  it("can reuse caller-owned resource scratch on the frame hot path", () => {
+    const scratch = createResolveRenderPassResourcesScratch(2);
+    const options = {
+      drawList: [drawListRecord(1), drawListRecord(2)],
+      pipelines: [pipeline("pipeline:unlit")],
+      bindGroups: bindGroups(),
+      meshResources: [meshResource(1), meshResource(2)],
+    };
+    const first = writeResolveRenderPassResources(options, scratch);
+    const firstDraws = [...first.draws];
+    const firstBindGroups = first.draws.map((draw) => draw.bindGroups);
+    const firstVertexBuffers = first.draws.map((draw) => draw.vertexBuffers);
+    const firstIndexBuffers = first.draws.map((draw) => draw.indexBuffer);
+    const second = writeResolveRenderPassResources(
+      { ...options, drawList: [drawListRecord(2), drawListRecord(1)] },
+      scratch,
+    );
+
+    expect(second).toBe(first);
+    expect(new Set(second.draws)).toEqual(new Set(firstDraws));
+    expect(second.draws.map((draw) => draw.renderId)).toEqual([2, 1]);
+    expect(second.draws[0]?.bindGroups).toBe(firstBindGroups[0]);
+    expect(second.draws[1]?.vertexBuffers).toBe(firstVertexBuffers[1]);
+    expect(second.draws[0]?.indexBuffer).toBe(firstIndexBuffers[0]);
   });
 });
 

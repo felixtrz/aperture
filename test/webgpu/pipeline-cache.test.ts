@@ -35,10 +35,41 @@ describe("WebGPU render pipeline cache", () => {
 
     expect(first).toBe(second);
     expect(JSON.parse(first) as unknown).toEqual({
-      shaderLabel: "aperture/unlit",
-      colorFormats: ["bgra8unorm"],
-      depthFormat: "depth24plus",
-      topology: "triangle-list",
+      shader: {
+        label: "aperture/unlit",
+        family: "aperture/unlit",
+        variantKey: BATCH_KEY.pipelineKey,
+      },
+      targets: {
+        colorFormats: ["bgra8unorm"],
+        depthFormat: "depth24plus",
+        stencilFormat: null,
+      },
+      layouts: {
+        vertex: "primitive-interleaved",
+        bindGroups: [],
+      },
+      primitive: {
+        topology: "triangle-list",
+        cullMode: "none",
+        frontFace: "ccw",
+        stripIndexFormat: null,
+      },
+      depthStencil: {
+        format: "depth24plus",
+        depthWriteEnabled: false,
+        depthCompare: "always",
+        stencilReadMask: 0,
+        stencilWriteMask: 0,
+      },
+      blend: {
+        alphaToCoverageEnabled: false,
+        colorTargets: [{ format: "bgra8unorm", blend: null, writeMask: "all" }],
+      },
+      material: {
+        pipelineKey: BATCH_KEY.pipelineKey,
+        variantKey: BATCH_KEY.materialKey,
+      },
       batch: BATCH_KEY,
     });
   });
@@ -95,6 +126,37 @@ describe("WebGPU render pipeline cache", () => {
 
     expect(bgra).not.toBe(rgba);
     expect(bgra).not.toBe(lines);
+  });
+
+  it("separates keys by layout, render state, and material variant", () => {
+    const base = {
+      shaderLabel: "aperture/unlit",
+      colorFormats: ["bgra8unorm"],
+      depthFormat: "depth24plus",
+      batchKey: BATCH_KEY,
+    };
+    const baseline = createWebGpuRenderPipelineCacheKey(base);
+    const vertexLayout = createWebGpuRenderPipelineCacheKey({
+      ...base,
+      vertexLayoutKey: "mesh-layout:skinned",
+    });
+    const bindGroupLayout = createWebGpuRenderPipelineCacheKey({
+      ...base,
+      bindGroupLayoutKeys: ["group-0", "group-1", "group-2:textured"],
+    });
+    const cullMode = createWebGpuRenderPipelineCacheKey({
+      ...base,
+      primitive: { cullMode: "back" },
+    });
+    const materialVariant = createWebGpuRenderPipelineCacheKey({
+      ...base,
+      materialVariantKey: "material:white|alpha-cutout",
+    });
+
+    expect(baseline).not.toBe(vertexLayout);
+    expect(baseline).not.toBe(bindGroupLayout);
+    expect(baseline).not.toBe(cullMode);
+    expect(baseline).not.toBe(materialVariant);
   });
 
   it("reports missing createRenderPipeline support on cache misses", () => {

@@ -147,6 +147,19 @@ Owns:
 
 WebGPU code should be isolated from ECS logic.
 
+### Frame Hot Path Allocation Discipline
+
+Render-pipeline code that runs every frame should avoid steady-state heap
+allocation. Per-frame stages may write into caller-owned scratch buffers,
+stable pools, typed arrays, or prebuilt report shells, but they should not build
+fresh arrays, maps, closures, descriptor objects, or diagnostic wrappers on the
+success path.
+
+Allocation is acceptable for setup, asset preparation, pipeline creation,
+one-shot planning helpers, tests, examples, and failure diagnostics. If a helper
+allocates for convenience, it should either stay outside the frame loop or be
+paired with a reusable writer/scratch API for runtime use.
+
 ## Transform Ownership
 
 Transforms belong to the ECS layer.

@@ -5,6 +5,7 @@ import {
   createLightBufferDescriptor,
   createLightBufferDescriptorPlan,
   createLightGpuBuffers,
+  createRenderResourceInspectionReport,
   createRenderResourceSummaryReport,
   planEnvironmentResources,
   type CreateLightBindGroupResourceResult,
@@ -52,6 +53,10 @@ describe("renderer resource summary report", () => {
       shaderModules: 1,
       pipelineHits: 1,
       pipelineMisses: 1,
+      inspectedResources: 0,
+      staleResources: 0,
+      missingResources: 0,
+      pendingDestroyResources: 0,
       warnings: 0,
       errors: 0,
     });
@@ -163,11 +168,62 @@ describe("renderer resource summary report", () => {
         shaderModules: 0,
         pipelineHits: 0,
         pipelineMisses: 0,
+        inspectedResources: 0,
+        staleResources: 0,
+        missingResources: 0,
+        pendingDestroyResources: 0,
         warnings: 0,
         errors: 0,
       },
       diagnostics: [],
     });
+  });
+
+  it("includes resource inspection diagnostics and counts", () => {
+    const report = createRenderResourceSummaryReport({
+      meshResources: [],
+      materialResources: [],
+      viewUniformResources: [],
+      shaderResources: [],
+      pipelines: [],
+      resourceInspection: createRenderResourceInspectionReport([
+        {
+          kind: "mesh",
+          assetKey: "mesh:Cube",
+          resourceKey: "mesh-buffer:Cube",
+          version: 1,
+          expectedVersion: 2,
+          status: "stale",
+          pendingDestroy: false,
+        },
+        {
+          kind: "pipeline",
+          resourceKey: "pipeline:old",
+          status: "pending-destroy",
+          pendingDestroy: true,
+        },
+        {
+          kind: "material",
+          resourceKey: "material-buffer:Missing",
+          status: "missing",
+          pendingDestroy: false,
+        },
+      ]),
+    });
+
+    expect(report.counts).toMatchObject({
+      inspectedResources: 3,
+      staleResources: 1,
+      missingResources: 1,
+      pendingDestroyResources: 1,
+      warnings: 2,
+      errors: 1,
+    });
+    expect(report.diagnostics.map((diagnostic) => diagnostic.code)).toEqual([
+      "renderResourceInspection.staleResource",
+      "renderResourceInspection.missingResource",
+      "renderResourceInspection.pendingDestroy",
+    ]);
   });
 });
 

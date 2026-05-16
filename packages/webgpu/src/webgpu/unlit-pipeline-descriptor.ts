@@ -86,11 +86,49 @@ export function createUnlitPipelineDescriptorPlan(
   }
 
   const resolvedTopology = topology ?? batchKey.topology;
+  const depthStencil =
+    input.depthFormat === undefined || input.depthFormat === null
+      ? {
+          format: null,
+          depthWriteEnabled: false,
+          depthCompare: "always",
+        }
+      : {
+          format: input.depthFormat,
+          depthWriteEnabled: true,
+          depthCompare: "less",
+        };
   const keyInput: WebGpuRenderPipelineCacheKeyInput = {
     shaderLabel: shader.label,
+    shaderFamily: "unlit",
+    shaderVariantKey: hasBaseColorTextureFeature(batchKey)
+      ? UNLIT_BASE_COLOR_TEXTURE_FEATURE
+      : "baseColorFactor",
     colorFormats: [input.colorFormat],
     depthFormat: input.depthFormat ?? null,
+    stencilFormat: null,
     topology: resolvedTopology,
+    vertexLayoutKey: batchKey.meshLayoutKey,
+    bindGroupLayoutKeys: unlitBindGroupLayoutKeys(batchKey),
+    primitive: {
+      topology: resolvedTopology,
+      cullMode: "none",
+      frontFace: "ccw",
+      stripIndexFormat: null,
+    },
+    depthStencil,
+    blend: {
+      alphaToCoverageEnabled: false,
+      colorTargets: [
+        {
+          format: input.colorFormat,
+          blend: null,
+          writeMask: "all",
+        },
+      ],
+    },
+    materialPipelineKey: batchKey.pipelineKey,
+    materialVariantKey: batchKey.materialKey,
     batchKey,
   };
   const cacheKey = createWebGpuRenderPipelineCacheKey(keyInput);
@@ -130,6 +168,18 @@ export function createUnlitPipelineDescriptorPlan(
   }
 
   return { valid: true, plan: { descriptor, keyInput, cacheKey }, diagnostics };
+}
+
+function unlitBindGroupLayoutKeys(
+  batchKey: BatchCompatibilityKey,
+): readonly string[] {
+  return [
+    "unlit/group-0:view-uniform@0",
+    "unlit/group-1:world-transforms@0",
+    hasBaseColorTextureFeature(batchKey)
+      ? "unlit/group-2:material-textured@0,1,2"
+      : "unlit/group-2:material@0",
+  ];
 }
 
 export function resolveUnlitShaderForBatchKey(

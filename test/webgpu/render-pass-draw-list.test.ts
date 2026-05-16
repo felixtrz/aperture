@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  createRenderPassDrawListScratch,
   planRenderPassDrawList,
+  writeRenderPassDrawList,
   type DrawCommandDescriptor,
   type GetOrCreateRenderPipelineResult,
   type UnlitBindGroupResource,
@@ -120,6 +122,33 @@ describe("render pass draw list planning", () => {
         "bind-group:transforms:pipeline:textured",
       ],
     ]);
+  });
+
+  it("can reuse caller-owned draw-list scratch on the frame hot path", () => {
+    const scratch = createRenderPassDrawListScratch(2);
+    const options = {
+      drawCommands: [drawCommand(1), drawCommand(2)],
+      pipelines: [pipeline("pipeline:unlit")],
+      bindGroups: bindGroups("material:white"),
+    };
+    const first = writeRenderPassDrawList(options, scratch);
+    const firstDraws = [...first.draws];
+    const firstBindGroupKeys = first.draws.map((draw) => draw.bindGroupKeys);
+    const firstVertexBufferKeys = first.draws.map(
+      (draw) => draw.vertexBufferKeys,
+    );
+    const second = writeRenderPassDrawList(
+      { ...options, drawCommands: [drawCommand(2), drawCommand(1)] },
+      scratch,
+    );
+
+    expect(second).toBe(first);
+    expect(new Set(second.draws)).toEqual(new Set(firstDraws));
+    expect(second.draws.map((draw) => draw.renderId)).toEqual([2, 1]);
+    expect(second.draws[0]?.bindGroupKeys).toBe(firstBindGroupKeys[0]);
+    expect(second.draws[1]?.bindGroupKeys).toBe(firstBindGroupKeys[1]);
+    expect(second.draws[0]?.vertexBufferKeys).toBe(firstVertexBufferKeys[0]);
+    expect(second.draws[1]?.vertexBufferKeys).toBe(firstVertexBufferKeys[1]);
   });
 });
 

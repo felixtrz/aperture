@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  createRenderPassCommandScratch,
   planRenderPassCommands,
+  writeRenderPassCommands,
   type ResolvedRenderPassDraw,
 } from "@aperture-engine/webgpu";
 
@@ -108,6 +110,27 @@ describe("render pass command planning", () => {
     expect(plan.diagnostics).toMatchObject([
       { code: "renderPassCommand.invalidTransformOffset", renderId: 1 },
     ]);
+  });
+
+  it("can reuse caller-owned command scratch on the frame hot path", () => {
+    const scratch = createRenderPassCommandScratch(12);
+    const first = writeRenderPassCommands(
+      { draws: [resolvedDraw(1), resolvedDraw(2)] },
+      scratch,
+    );
+    const firstCommands = [...first.commands];
+    const second = writeRenderPassCommands(
+      { draws: [resolvedDraw(2), resolvedDraw(1)] },
+      scratch,
+    );
+
+    expect(second).toBe(first);
+    expect(new Set(second.commands)).toEqual(new Set(firstCommands));
+    expect(
+      second.commands
+        .filter((command) => command.kind === "drawIndexed")
+        .map((command) => command.renderId),
+    ).toEqual([2, 1]);
   });
 });
 

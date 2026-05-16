@@ -29,21 +29,76 @@ export interface DrawCommandDescriptorPlan {
   readonly diagnostics: readonly DrawCommandDescriptorDiagnostic[];
 }
 
+export interface DrawCommandDescriptorScratch {
+  readonly descriptors: DrawCommandDescriptor[];
+  readonly diagnostics: DrawCommandDescriptorDiagnostic[];
+  readonly descriptorPool: DrawCommandDescriptor[];
+  readonly meshByResourceKey: Map<string, MeshGpuBufferResource>;
+  readonly plan: DrawCommandDescriptorPlan;
+}
+
+interface MutableDrawCommandDescriptor {
+  renderId: number;
+  pipelineKey: string;
+  topology: RenderWorldDrawPackage["batchKey"]["topology"];
+  meshResourceKey: string;
+  materialResourceKey: string;
+  vertexBufferKeys: string[];
+  vertexCount: number;
+  indexBufferKey: string | null;
+  indexCount: number | null;
+  transformPackedOffset: number;
+}
+
 export function createDrawCommandDescriptors(
   packages: readonly RenderWorldDrawPackage[],
   meshResources: readonly MeshGpuBufferResource[],
 ): DrawCommandDescriptorPlan {
-  const meshes = new Map(
-    meshResources.map((resource) => [resource.resourceKey, resource]),
-  );
-  const diagnostics: DrawCommandDescriptorDiagnostic[] = [];
+  const scratch = createDrawCommandDescriptorScratch();
+
+  writeDrawCommandDescriptors(packages, meshResources, scratch);
+
+  return scratch.plan;
+}
+
+export function createDrawCommandDescriptorScratch(
+  capacity = 0,
+): DrawCommandDescriptorScratch {
   const descriptors: DrawCommandDescriptor[] = [];
+  const diagnostics: DrawCommandDescriptorDiagnostic[] = [];
+  const descriptorPool: DrawCommandDescriptor[] = [];
+
+  for (let i = 0; i < capacity; i += 1) {
+    descriptorPool.push(createEmptyDescriptor());
+  }
+
+  return {
+    descriptors,
+    diagnostics,
+    descriptorPool,
+    meshByResourceKey: new Map(),
+    plan: { descriptors, diagnostics },
+  };
+}
+
+export function writeDrawCommandDescriptors(
+  packages: readonly RenderWorldDrawPackage[],
+  meshResources: readonly MeshGpuBufferResource[],
+  scratch: DrawCommandDescriptorScratch,
+): DrawCommandDescriptorPlan {
+  scratch.descriptors.length = 0;
+  scratch.diagnostics.length = 0;
+  scratch.meshByResourceKey.clear();
+
+  for (const resource of meshResources) {
+    scratch.meshByResourceKey.set(resource.resourceKey, resource);
+  }
 
   for (const drawPackage of packages) {
-    const mesh = meshes.get(drawPackage.meshResourceKey);
+    const mesh = scratch.meshByResourceKey.get(drawPackage.meshResourceKey);
 
     if (mesh === undefined) {
-      diagnostics.push({
+      scratch.diagnostics.push({
         code: "drawCommand.missingMeshResource",
         renderId: drawPackage.renderId,
         resourceKey: drawPackage.meshResourceKey,
@@ -52,19 +107,58 @@ export function createDrawCommandDescriptors(
       continue;
     }
 
-    descriptors.push({
-      renderId: drawPackage.renderId,
-      pipelineKey: drawPackage.batchKey.pipelineKey,
-      topology: drawPackage.batchKey.topology,
-      meshResourceKey: drawPackage.meshResourceKey,
-      materialResourceKey: drawPackage.materialResourceKey,
-      vertexBufferKeys: mesh.vertexBuffers.map((buffer) => buffer.resourceKey),
-      vertexCount: mesh.vertexCount,
-      indexBufferKey: mesh.indexBuffer?.resourceKey ?? null,
-      indexCount: mesh.indexBuffer?.indexCount ?? null,
-      transformPackedOffset: drawPackage.transformPackedOffset,
-    });
+    const descriptor = descriptorAt(scratch, scratch.descriptors.length);
+
+    descriptor.renderId = drawPackage.renderId;
+    descriptor.pipelineKey = drawPackage.batchKey.pipelineKey;
+    descriptor.topology = drawPackage.batchKey.topology;
+    descriptor.meshResourceKey = drawPackage.meshResourceKey;
+    descriptor.materialResourceKey = drawPackage.materialResourceKey;
+    descriptor.vertexBufferKeys.length = 0;
+
+    for (const buffer of mesh.vertexBuffers) {
+      descriptor.vertexBufferKeys.push(buffer.resourceKey);
+    }
+
+    descriptor.vertexCount = mesh.vertexCount;
+    descriptor.indexBufferKey = mesh.indexBuffer?.resourceKey ?? null;
+    descriptor.indexCount = mesh.indexBuffer?.indexCount ?? null;
+    descriptor.transformPackedOffset = drawPackage.transformPackedOffset;
+    scratch.descriptors.push(descriptor);
   }
 
-  return { descriptors, diagnostics };
+  return scratch.plan;
+}
+
+function descriptorAt(
+  scratch: DrawCommandDescriptorScratch,
+  index: number,
+): MutableDrawCommandDescriptor {
+  const existing = scratch.descriptorPool[index] as
+    | MutableDrawCommandDescriptor
+    | undefined;
+
+  if (existing !== undefined) {
+    return existing;
+  }
+
+  const descriptor = createEmptyDescriptor();
+
+  scratch.descriptorPool.push(descriptor);
+  return descriptor;
+}
+
+function createEmptyDescriptor(): MutableDrawCommandDescriptor {
+  return {
+    renderId: 0,
+    pipelineKey: "",
+    topology: "triangle-list",
+    meshResourceKey: "",
+    materialResourceKey: "",
+    vertexBufferKeys: [],
+    vertexCount: 0,
+    indexBufferKey: null,
+    indexCount: null,
+    transformPackedOffset: 0,
+  };
 }

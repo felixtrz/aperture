@@ -52,10 +52,39 @@ describe("unlit pipeline descriptor planning", () => {
     });
     expect(JSON.parse(required(result.plan).cacheKey) as unknown).toMatchObject(
       {
-        shaderLabel: "aperture/unlit-mesh",
-        colorFormats: ["bgra8unorm"],
-        depthFormat: "depth24plus",
-        topology: "triangle-list",
+        shader: {
+          label: "aperture/unlit-mesh",
+          family: "unlit",
+          variantKey: "baseColorFactor",
+        },
+        targets: {
+          colorFormats: ["bgra8unorm"],
+          depthFormat: "depth24plus",
+          stencilFormat: null,
+        },
+        layouts: {
+          vertex: "primitive-interleaved",
+          bindGroups: [
+            "unlit/group-0:view-uniform@0",
+            "unlit/group-1:world-transforms@0",
+            "unlit/group-2:material@0",
+          ],
+        },
+        primitive: {
+          topology: "triangle-list",
+          cullMode: "none",
+          frontFace: "ccw",
+          stripIndexFormat: null,
+        },
+        depthStencil: {
+          format: "depth24plus",
+          depthWriteEnabled: true,
+          depthCompare: "less",
+        },
+        material: {
+          pipelineKey: "unlit|opaque|back|less|none",
+          variantKey: "material:white",
+        },
         batch: BATCH_KEY,
       },
     );
@@ -83,7 +112,18 @@ describe("unlit pipeline descriptor planning", () => {
     expect(
       JSON.parse(required(textured.plan).cacheKey) as unknown,
     ).toMatchObject({
-      shaderLabel: "aperture/unlit-mesh-textured",
+      shader: {
+        label: "aperture/unlit-mesh-textured",
+        family: "unlit",
+        variantKey: "baseColorTexture",
+      },
+      layouts: {
+        bindGroups: [
+          "unlit/group-0:view-uniform@0",
+          "unlit/group-1:world-transforms@0",
+          "unlit/group-2:material-textured@0,1,2",
+        ],
+      },
       batch: TEXTURED_BATCH_KEY,
     });
   });

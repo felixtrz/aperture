@@ -3,6 +3,7 @@ export * from "./batching-report.js";
 export * from "./draw-package.js";
 export * from "./extraction.js";
 export * from "./package-inspection.js";
+export * from "./render-queue.js";
 export * from "./render-world.js";
 export * from "./snapshot.js";
 export * from "./snapshot-clone.js";
