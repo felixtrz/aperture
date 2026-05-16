@@ -1,9 +1,12 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  assetHandleKey,
   createBoxMeshAsset,
   createRenderAssetCollections,
+  createSamplerHandle,
   createStandardMaterialAsset,
+  createTextureHandle,
   createUnlitMaterialAsset,
   LightKind,
   withCamera,
@@ -106,6 +109,221 @@ describe("WebGPU app facade", () => {
     );
     expect(secondEvents).toContain("queue:writeBuffer:WorldTransforms/storage");
     expect(resourceEventCounts(events)).toEqual(firstResourceEvents);
+  });
+
+  it("renders same-resource multi-draw frames through the current app resource set", async () => {
+    const events: string[] = [];
+    const { canvas, environment } = webGpuHarness(events);
+    const created = await createWebGpuApp({
+      canvas,
+      environment,
+      worldOptions: { entityCapacity: 8 },
+    });
+
+    expect(created.ok).toBe(true);
+
+    if (!created.ok) {
+      return;
+    }
+
+    const app = created.app;
+    const assets = createRenderAssetCollections({ registry: app.assets });
+    const mesh = assets.meshes.add(createBoxMeshAsset({ label: "SharedCube" }));
+    const material = assets.materials.unlit.add(
+      createUnlitMaterialAsset({ label: "SharedWhite" }),
+    );
+
+    app.spawn(
+      withTransform({ translation: [0, 0, 5] }),
+      withCamera({ priority: 0, layerMask: 1 }),
+    );
+    app.spawn(
+      withTransform({ translation: [-0.6, 0, 0] }),
+      withMesh(mesh),
+      withMaterial(material),
+      withRenderLayer(1),
+      withVisibility(true),
+    );
+    app.spawn(
+      withTransform({ translation: [0.6, 0, 0] }),
+      withMesh(mesh),
+      withMaterial(material),
+      withRenderLayer(1),
+      withVisibility(true),
+    );
+
+    const frame = await app.stepAndRender(1 / 60, 1, 21);
+
+    expect(frame.ok).toBe(true);
+    expect(frame.counts).toMatchObject({
+      meshDraws: 2,
+      drawPackages: 2,
+      drawCalls: 2,
+      diagnostics: 0,
+    });
+    expect(
+      events.filter((event) => event.startsWith("pass:draw")),
+    ).toHaveLength(2);
+  });
+
+  it("diagnoses multi-draw frames that need additional app resource sets", async () => {
+    const events: string[] = [];
+    const { canvas, environment } = webGpuHarness(events);
+    const created = await createWebGpuApp({
+      canvas,
+      environment,
+      worldOptions: { entityCapacity: 8 },
+    });
+
+    expect(created.ok).toBe(true);
+
+    if (!created.ok) {
+      return;
+    }
+
+    const app = created.app;
+    const assets = createRenderAssetCollections({ registry: app.assets });
+    const mesh = assets.meshes.add(createBoxMeshAsset({ label: "SharedCube" }));
+    const firstMaterial = assets.materials.unlit.add(
+      createUnlitMaterialAsset({ label: "FirstWhite" }),
+    );
+    const secondMaterial = assets.materials.unlit.add(
+      createUnlitMaterialAsset({ label: "SecondBlue" }),
+    );
+
+    app.spawn(
+      withTransform({ translation: [0, 0, 5] }),
+      withCamera({ priority: 0, layerMask: 1 }),
+    );
+    app.spawn(
+      withTransform({ translation: [-0.6, 0, 0] }),
+      withMesh(mesh),
+      withMaterial(firstMaterial),
+      withRenderLayer(1),
+      withVisibility(true),
+    );
+    app.spawn(
+      withTransform({ translation: [0.6, 0, 0] }),
+      withMesh(mesh),
+      withMaterial(secondMaterial),
+      withRenderLayer(1),
+      withVisibility(true),
+    );
+
+    const frame = await app.stepAndRender(1 / 60, 1, 22);
+
+    expect(frame.ok).toBe(false);
+    expect(frame.counts).toMatchObject({
+      meshDraws: 2,
+      drawCalls: 0,
+      diagnostics: 1,
+    });
+    expect(frame.diagnostics[0]).toMatchObject({
+      code: "webGpuApp.additionalDrawResourceUnsupported",
+      drawIndex: 1,
+      firstMeshKey: assetHandleKey(mesh),
+      firstMaterialKey: assetHandleKey(firstMaterial),
+      drawMeshKey: assetHandleKey(mesh),
+      drawMaterialKey: assetHandleKey(secondMaterial),
+      message: expect.stringContaining("render-world resource cache"),
+    });
+    expect(() => JSON.stringify(frame.diagnostics)).not.toThrow();
+    expect(events).not.toContain("queue:submit:1");
+  });
+
+  it("surfaces material source dependency readiness before app rendering", async () => {
+    const events: string[] = [];
+    const { canvas, environment } = webGpuHarness(events);
+    const created = await createWebGpuApp({
+      canvas,
+      environment,
+      worldOptions: { entityCapacity: 8 },
+    });
+
+    expect(created.ok).toBe(true);
+
+    if (!created.ok) {
+      return;
+    }
+
+    const app = created.app;
+    const assets = createRenderAssetCollections({ registry: app.assets });
+    const mesh = assets.meshes.add(createBoxMeshAsset({ label: "Cube" }));
+    const texture = createTextureHandle("not-registered");
+    const sampler = createSamplerHandle("loading-sampler");
+
+    app.assets.register(sampler);
+    app.assets.markLoading(sampler);
+
+    const material = assets.materials.unlit.add(
+      createUnlitMaterialAsset({
+        label: "BlockedTexture",
+        baseColorTexture: { texture, sampler },
+      }),
+    );
+
+    app.spawn(
+      withTransform({ translation: [0, 0, 5] }),
+      withCamera({ priority: 0, layerMask: 1 }),
+    );
+    app.spawn(
+      withTransform(),
+      withMesh(mesh),
+      withMaterial(material),
+      withRenderLayer(1),
+      withVisibility(true),
+    );
+
+    const frame = await app.stepAndRender(1 / 60, 1, 23);
+
+    expect(frame.ok).toBe(false);
+    expect(frame.counts).toMatchObject({
+      meshDraws: 0,
+      drawCalls: 0,
+    });
+    const appDiagnostic = frame.diagnostics.find(
+      (diagnostic) =>
+        typeof diagnostic === "object" &&
+        diagnostic !== null &&
+        "code" in diagnostic &&
+        diagnostic.code === "webGpuApp.materialDependenciesNotReady",
+    );
+
+    expect(appDiagnostic).toMatchObject({
+      code: "webGpuApp.materialDependenciesNotReady",
+      materialDependencyReadiness: {
+        ready: false,
+        materialKey: assetHandleKey(material),
+        slots: [
+          {
+            field: "baseColorTexture",
+            dependencyKind: "texture",
+            handleKey: assetHandleKey(texture),
+            status: "missing",
+          },
+          {
+            field: "baseColorTexture",
+            dependencyKind: "sampler",
+            handleKey: assetHandleKey(sampler),
+            status: "loading",
+          },
+        ],
+        diagnostics: [
+          {
+            code: "materialDependency.dependencyMissing",
+            field: "baseColorTexture",
+            dependencyKey: assetHandleKey(texture),
+          },
+          {
+            code: "materialDependency.dependencyLoading",
+            field: "baseColorTexture",
+            dependencyKey: assetHandleKey(sampler),
+          },
+        ],
+      },
+    });
+    expect(() => JSON.stringify(frame.diagnostics)).not.toThrow();
+    expect(events).not.toContain("queue:submit:1");
   });
 
   it("renders the standard material app path with extracted lights", async () => {

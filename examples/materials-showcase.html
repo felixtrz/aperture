@@ -3,40 +3,31 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Aperture ECS Triangle</title>
+    <title>Aperture Material Showcase</title>
     <link rel="stylesheet" href="./styles.css" />
-    <script type="importmap">
-      {
-        "imports": {
-          "@aperture-engine/core": "/packages/core/dist/index.js",
-          "@aperture-engine/render": "/packages/render/dist/index.js",
-          "@aperture-engine/runtime": "/packages/runtime/dist/index.js",
-          "@aperture-engine/simulation": "/packages/simulation/dist/index.js",
-          "@aperture-engine/webgpu": "/packages/webgpu/dist/index.js",
-          "elics": "/node_modules/elics/lib/index.js",
-          "wgpu-matrix": "/node_modules/wgpu-matrix/dist/3.x/wgpu-matrix.module.js",
-          "@preact/signals-core": "/node_modules/@preact/signals-core/dist/signals-core.mjs"
-        }
-      }
-    </script>
   </head>
   <body>
     <main class="runtime-shell">
       <section
-        class="viewport-panel"
-        aria-label="Aperture ECS triangle runtime"
+        class="viewport-panel material-showcase-panel"
+        aria-label="Aperture material showcase"
       >
         <canvas
           id="aperture-canvas"
-          width="960"
-          height="540"
-          aria-label="Aperture WebGPU triangle canvas"
+          width="1280"
+          height="720"
+          aria-label="Aperture WebGPU material showcase canvas"
         ></canvas>
+        <div class="material-legend" aria-label="Materials">
+          <span>Unlit</span>
+          <span>Standard PBR</span>
+          <span>Matcap</span>
+        </div>
       </section>
       <aside class="status-panel" aria-label="Runtime status">
         <div class="status-row">
           <span>example</span>
-          <strong id="example-name">ecs triangle</strong>
+          <strong id="example-name">material showcase</strong>
         </div>
         <div class="status-row">
           <span>state</span>
@@ -52,6 +43,6 @@
         <pre id="example-json">{}</pre>
       </aside>
     </main>
-    <script type="module" src="./triangle.js"></script>
+    <script type="module" src="./materials-showcase.js"></script>
   </body>
 </html>

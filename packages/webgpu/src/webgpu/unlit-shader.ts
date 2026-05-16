@@ -57,6 +57,7 @@ export interface BuiltInShaderMetadataValidationReport {
 export const UNLIT_MESH_WGSL = `
 struct ViewProjectionUniform {
   viewProjection: mat4x4f,
+  cameraPosition: vec4f,
 };
 
 struct UnlitMaterialUniform {
@@ -98,6 +99,7 @@ fn fs_main(input: VertexOutput) -> @location(0) vec4f {
 export const UNLIT_TEXTURED_MESH_WGSL = `
 struct ViewProjectionUniform {
   viewProjection: mat4x4f,
+  cameraPosition: vec4f,
 };
 
 struct UnlitMaterialUniform {

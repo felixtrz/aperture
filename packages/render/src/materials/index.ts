@@ -2,6 +2,7 @@ export * from "./types.js";
 export * from "./factories.js";
 export * from "./validation.js";
 export * from "./dependency-readiness.js";
+export * from "./matcap-preparation.js";
 export * from "./pipeline-key.js";
 export * from "./unlit-packing.js";
 export * from "./standard-proof-point.js";

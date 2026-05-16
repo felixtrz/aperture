@@ -8,6 +8,7 @@ import {
   type PackedSnapshotViewUniforms,
   type RenderWorldDrawPackagePlan,
 } from "@aperture-engine/webgpu";
+import { PACKED_VIEW_UNIFORM_FLOAT_STRIDE } from "@aperture-engine/core";
 
 describe("frame assembly readiness report", () => {
   it("reports all-ready frame assembly inputs", () => {
@@ -117,11 +118,11 @@ function drawPackages(count: number): RenderWorldDrawPackagePlan {
 
 function viewUniforms(count: number): PackedSnapshotViewUniforms {
   return {
-    data: new Float32Array(count * 16),
+    data: new Float32Array(count * PACKED_VIEW_UNIFORM_FLOAT_STRIDE),
     views: Array.from({ length: count }, (_, index) => ({
       viewId: index,
-      sourceOffset: index * 16,
-      packedOffset: index * 16,
+      sourceOffset: index * PACKED_VIEW_UNIFORM_FLOAT_STRIDE,
+      packedOffset: index * PACKED_VIEW_UNIFORM_FLOAT_STRIDE,
     })),
     diagnostics: [],
   };

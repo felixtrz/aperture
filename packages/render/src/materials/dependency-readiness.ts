@@ -55,6 +55,35 @@ export interface MaterialAssetDependencyReadinessReport {
   readonly diagnostics: readonly MaterialAssetDependencyReadinessDiagnostic[];
 }
 
+export interface MaterialAssetDependencyReadinessDiagnosticJsonValue {
+  readonly code: MaterialAssetDependencyReadinessDiagnosticCode;
+  readonly message: string;
+  readonly materialKey: string;
+  readonly field?: string;
+  readonly dependencyKind?: MaterialDependencyKind;
+  readonly dependencyKey?: string;
+  readonly status?: MaterialAssetDependencyReadinessStatus;
+}
+
+export interface MaterialAssetDependencySlotReadinessJsonValue {
+  readonly field: string;
+  readonly dependency: MaterialDependencyKind;
+  readonly dependencyKind: MaterialDependencyKind;
+  readonly handleKey: string | null;
+  readonly status: MaterialAssetDependencyReadinessStatus;
+  readonly ready: boolean;
+}
+
+export interface MaterialAssetDependencyReadinessReportJsonValue {
+  readonly ready: boolean;
+  readonly materialKey: string;
+  readonly materialStatus: AssetStatus | "missing";
+  readonly materialKind?: MaterialKind;
+  readonly dependencies: readonly MaterialAssetDependencySlotReadinessJsonValue[];
+  readonly slots: readonly MaterialAssetDependencySlotReadinessJsonValue[];
+  readonly diagnostics: readonly MaterialAssetDependencyReadinessDiagnosticJsonValue[];
+}
+
 export interface MaterialAssetDependencyReadinessOptions {
   readonly registry: AssetRegistry;
   readonly material: MaterialHandle;
@@ -139,6 +168,44 @@ export function createMaterialDependencyReadinessReport(
   options: MaterialAssetDependencyReadinessOptions,
 ): MaterialAssetDependencyReadinessReport {
   return createMaterialAssetDependencyReadinessReport(options);
+}
+
+export function materialAssetDependencyReadinessReportToJsonValue(
+  report: MaterialAssetDependencyReadinessReport,
+): MaterialAssetDependencyReadinessReportJsonValue {
+  const slots = report.slots.map((slot) => ({ ...slot }));
+
+  return {
+    ready: report.ready,
+    materialKey: report.materialKey,
+    materialStatus: report.materialStatus,
+    ...(report.materialKind === undefined
+      ? {}
+      : { materialKind: report.materialKind }),
+    dependencies: slots,
+    slots,
+    diagnostics: report.diagnostics.map((diagnostic) => ({ ...diagnostic })),
+  };
+}
+
+export function materialDependencyReadinessReportToJsonValue(
+  report: MaterialAssetDependencyReadinessReport,
+): MaterialAssetDependencyReadinessReportJsonValue {
+  return materialAssetDependencyReadinessReportToJsonValue(report);
+}
+
+export function materialAssetDependencyReadinessReportToJson(
+  report: MaterialAssetDependencyReadinessReport,
+): string {
+  return JSON.stringify(
+    materialAssetDependencyReadinessReportToJsonValue(report),
+  );
+}
+
+export function materialDependencyReadinessReportToJson(
+  report: MaterialAssetDependencyReadinessReport,
+): string {
+  return materialAssetDependencyReadinessReportToJson(report);
 }
 
 function inspectDependencySlot(input: {

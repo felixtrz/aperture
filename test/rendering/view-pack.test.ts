@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  PACKED_VIEW_UNIFORM_FLOAT_STRIDE,
   createPackedSnapshotViewUniformsScratch,
   packSnapshotViewUniforms,
   writePackedSnapshotViewUniforms,
@@ -22,7 +23,8 @@ describe("snapshot view uniform packing", () => {
     expect(result.views).toEqual([
       { viewId: 3, sourceOffset: 0, packedOffset: 0 },
     ]);
-    expect(Array.from(result.data)).toEqual(Array.from(matrix));
+    expect(result.data.length).toBe(PACKED_VIEW_UNIFORM_FLOAT_STRIDE);
+    expect(Array.from(result.data.slice(0, 16))).toEqual(Array.from(matrix));
   });
 
   it("packs multiple views in snapshot order", () => {
@@ -38,10 +40,38 @@ describe("snapshot view uniform packing", () => {
 
     expect(result.views).toEqual([
       { viewId: 8, sourceOffset: 16, packedOffset: 0 },
-      { viewId: 2, sourceOffset: 0, packedOffset: 16 },
+      {
+        viewId: 2,
+        sourceOffset: 0,
+        packedOffset: PACKED_VIEW_UNIFORM_FLOAT_STRIDE,
+      },
     ]);
     expect(Array.from(result.data.slice(0, 16))).toEqual(Array.from(second));
-    expect(Array.from(result.data.slice(16, 32))).toEqual(Array.from(first));
+    expect(
+      Array.from(
+        result.data.slice(
+          PACKED_VIEW_UNIFORM_FLOAT_STRIDE,
+          PACKED_VIEW_UNIFORM_FLOAT_STRIDE + 16,
+        ),
+      ),
+    ).toEqual(Array.from(first));
+  });
+
+  it("packs camera world position after the view-projection matrix", () => {
+    const viewMatrix = viewMatrixForCamera(2, 3, 4);
+    const viewProjection = matrixValues(100);
+    const result = packSnapshotViewUniforms(
+      snapshot({
+        views: [view(12, 16, 0)],
+        viewMatrices: new Float32Array([...viewMatrix, ...viewProjection]),
+      }),
+    );
+
+    expect(result.diagnostics).toEqual([]);
+    expect(Array.from(result.data.slice(0, 16))).toEqual(
+      Array.from(viewProjection),
+    );
+    expect(Array.from(result.data.slice(16, 20))).toEqual([2, 3, 4, 1]);
   });
 
   it("diagnoses missing and out-of-range matrix data", () => {
@@ -109,24 +139,33 @@ describe("snapshot view uniform packing", () => {
     expect(second).toBe(first);
     expect(second.data).toBe(firstData);
     expect(new Set(second.views)).toEqual(new Set(firstViews));
-    expect(second.floatCount).toBe(32);
+    expect(second.floatCount).toBe(2 * PACKED_VIEW_UNIFORM_FLOAT_STRIDE);
     expect(second.views.map((record) => record.viewId)).toEqual([2, 8]);
     expect(Array.from(second.data.slice(0, 16))).toEqual(
       Array.from(firstMatrix),
     );
-    expect(Array.from(second.data.slice(16, 32))).toEqual(
-      Array.from(secondMatrix),
-    );
+    expect(
+      Array.from(
+        second.data.slice(
+          PACKED_VIEW_UNIFORM_FLOAT_STRIDE,
+          PACKED_VIEW_UNIFORM_FLOAT_STRIDE + 16,
+        ),
+      ),
+    ).toEqual(Array.from(secondMatrix));
   });
 });
 
-function view(viewId: number, viewProjectionMatrixOffset: number): ViewPacket {
+function view(
+  viewId: number,
+  viewProjectionMatrixOffset: number,
+  viewMatrixOffset = viewProjectionMatrixOffset,
+): ViewPacket {
   return {
     viewId,
     camera: { index: viewId, generation: 0 },
     priority: 0,
     layerMask: 1,
-    viewMatrixOffset: viewProjectionMatrixOffset,
+    viewMatrixOffset,
     projectionMatrixOffset: viewProjectionMatrixOffset,
     viewProjectionMatrixOffset,
     viewport: [0, 0, 1, 1],
@@ -167,4 +206,8 @@ function snapshot(input: {
 
 function matrixValues(start: number): Float32Array {
   return Float32Array.from({ length: 16 }, (_, index) => start + index);
+}
+
+function viewMatrixForCamera(x: number, y: number, z: number): Float32Array {
+  return new Float32Array([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, -x, -y, -z, 1]);
 }

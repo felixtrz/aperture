@@ -7,6 +7,7 @@ import {
   type ViewUniformBufferDescriptorPlan,
   type WebGpuBufferDeviceLike,
 } from "@aperture-engine/webgpu";
+import { PACKED_VIEW_UNIFORM_FLOAT_STRIDE } from "@aperture-engine/core";
 
 describe("view uniform GPU buffer resource creation", () => {
   it("creates view uniform buffer resources", () => {
@@ -22,7 +23,11 @@ describe("view uniform GPU buffer resource creation", () => {
       resourceKey: "view-uniform-buffer:ViewUniforms/uniform",
       views: [
         { viewId: 0, sourceOffset: 0, packedOffset: 0 },
-        { viewId: 1, sourceOffset: 16, packedOffset: 16 },
+        {
+          viewId: 1,
+          sourceOffset: PACKED_VIEW_UNIFORM_FLOAT_STRIDE,
+          packedOffset: PACKED_VIEW_UNIFORM_FLOAT_STRIDE,
+        },
       ],
     });
     expect(created).toHaveLength(1);
@@ -61,11 +66,11 @@ function descriptorPlan(
 
 function packedViews(count: number): PackedSnapshotViewUniforms {
   return {
-    data: new Float32Array(count * 16),
+    data: new Float32Array(count * PACKED_VIEW_UNIFORM_FLOAT_STRIDE),
     views: Array.from({ length: count }, (_, index) => ({
       viewId: index,
-      sourceOffset: index * 16,
-      packedOffset: index * 16,
+      sourceOffset: index * PACKED_VIEW_UNIFORM_FLOAT_STRIDE,
+      packedOffset: index * PACKED_VIEW_UNIFORM_FLOAT_STRIDE,
     })),
     diagnostics: [],
   };

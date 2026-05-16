@@ -1,6 +1,7 @@
 import {
   AssetRegistry,
   assetHandleKey,
+  createMaterialHandle,
   createWorld,
   registerMetadataComponents,
   registerTransformComponents,
@@ -14,10 +15,14 @@ import {
   RenderWorld,
   createPackedSnapshotTransformsScratch,
   createPackedSnapshotViewUniformsScratch,
+  createMaterialDependencyReadinessReport,
   extractRenderSnapshot,
+  Material,
+  materialDependencyReadinessReportToJsonValue,
   registerRenderAuthoringComponents,
   writePackedSnapshotTransforms,
   writePackedSnapshotViewUniforms,
+  type MaterialAssetDependencyReadinessReportJsonValue,
   type MaterialAsset,
   type MeshAsset,
   type PackedSnapshotTransforms,
@@ -117,6 +122,23 @@ export interface WebGpuAppResourceReuseReport {
   lightBuffersCreated: number;
   lightBuffersReused: number;
   dynamicBufferWrites: number;
+}
+
+export interface WebGpuAppSingleResourceSetDiagnostic {
+  readonly code: "webGpuApp.additionalDrawResourceUnsupported";
+  readonly message: string;
+  readonly drawIndex: number;
+  readonly renderId: number;
+  readonly firstMeshKey: string;
+  readonly firstMaterialKey: string;
+  readonly drawMeshKey: string;
+  readonly drawMaterialKey: string;
+}
+
+export interface WebGpuAppMaterialDependencyDiagnostic {
+  readonly code: "webGpuApp.materialDependenciesNotReady";
+  readonly message: string;
+  readonly materialDependencyReadiness: MaterialAssetDependencyReadinessReportJsonValue;
 }
 
 export interface WebGpuAppRenderReport {
@@ -515,8 +537,12 @@ function createOrReuseUnlitAppFrameResources(options: {
     options.cache.unlitFrame = {
       meshKey: options.meshKey,
       materialKey: options.materialKey,
-      viewByteLength: options.viewUniforms.data.byteLength,
-      worldTransformByteLength: options.worldTransforms.data.byteLength,
+      viewByteLength:
+        viewDescriptor.plan?.source.byteLength ??
+        options.viewUniforms.data.byteLength,
+      worldTransformByteLength:
+        transformDescriptor.plan?.source.byteLength ??
+        options.worldTransforms.data.byteLength,
       result,
     };
   }
@@ -644,8 +670,12 @@ function createOrReuseStandardAppFrameResources(options: {
     options.cache.standardFrame = {
       meshKey: options.meshKey,
       materialKey: options.materialKey,
-      viewByteLength: options.viewUniforms.data.byteLength,
-      worldTransformByteLength: options.worldTransforms.data.byteLength,
+      viewByteLength:
+        viewDescriptor.plan?.source.byteLength ??
+        options.viewUniforms.data.byteLength,
+      worldTransformByteLength:
+        transformDescriptor.plan?.source.byteLength ??
+        options.worldTransforms.data.byteLength,
       lightFloatByteLength:
         result.resources.lightGpuBuffers.descriptorPlan.source.floats
           .byteLength,
@@ -692,17 +722,38 @@ async function renderWebGpuAppFrame(
   const firstView = snapshot.views[0];
 
   if (firstDraw === undefined || firstView === undefined) {
+    const materialDependencyDiagnostics = diagnoseSnapshotMaterialDependencies(
+      app,
+      snapshot,
+    );
+
     return renderReport({
       ok: false,
       snapshot,
       resourceReuse: reuse,
       diagnostics: [
         ...snapshot.diagnostics,
+        ...materialDependencyDiagnostics,
         {
           code: "webGpuApp.emptySnapshot",
           message:
             "WebGPU app render requires at least one view and one mesh draw.",
         },
+      ],
+    });
+  }
+
+  const unsupportedDrawResourceDiagnostics =
+    diagnoseUnsupportedAdditionalDrawResources(snapshot, firstDraw);
+
+  if (unsupportedDrawResourceDiagnostics.length > 0) {
+    return renderReport({
+      ok: false,
+      snapshot,
+      resourceReuse: reuse,
+      diagnostics: [
+        ...snapshot.diagnostics,
+        ...unsupportedDrawResourceDiagnostics,
       ],
     });
   }
@@ -724,6 +775,25 @@ async function renderWebGpuAppFrame(
           code: "webGpuApp.missingSourceAsset",
           message: "WebGPU app render requires ready mesh and material assets.",
         },
+      ],
+    });
+  }
+
+  const materialDependencyReadiness = createMaterialDependencyReadinessReport({
+    registry: app.assets,
+    material: firstDraw.material,
+  });
+
+  if (!materialDependencyReadiness.ready) {
+    return renderReport({
+      ok: false,
+      snapshot,
+      resourceReuse: reuse,
+      diagnostics: [
+        ...snapshot.diagnostics,
+        createWebGpuAppMaterialDependencyDiagnostic(
+          materialDependencyReadiness,
+        ),
       ],
     });
   }
@@ -931,6 +1001,148 @@ async function renderWebGpuAppFrame(
       ...(boundary.submit?.diagnostics ?? []),
     ],
   });
+}
+
+function diagnoseUnsupportedAdditionalDrawResources(
+  snapshot: RenderSnapshot,
+  firstDraw: RenderSnapshot["meshDraws"][number],
+): WebGpuAppSingleResourceSetDiagnostic[] {
+  const firstMeshKey = assetHandleKey(firstDraw.mesh);
+  const firstMaterialKey = assetHandleKey(firstDraw.material);
+  const diagnostics: WebGpuAppSingleResourceSetDiagnostic[] = [];
+
+  for (let index = 1; index < snapshot.meshDraws.length; index += 1) {
+    const draw = snapshot.meshDraws[index];
+
+    if (draw === undefined) {
+      continue;
+    }
+
+    const drawMeshKey = assetHandleKey(draw.mesh);
+    const drawMaterialKey = assetHandleKey(draw.material);
+
+    if (drawMeshKey === firstMeshKey && drawMaterialKey === firstMaterialKey) {
+      continue;
+    }
+
+    diagnostics.push({
+      code: "webGpuApp.additionalDrawResourceUnsupported",
+      drawIndex: index,
+      renderId: draw.renderId,
+      firstMeshKey,
+      firstMaterialKey,
+      drawMeshKey,
+      drawMaterialKey,
+      message:
+        `WebGPU app render currently supports one source mesh/material resource set per frame. ` +
+        `Draw ${index} requires mesh '${drawMeshKey}' and material '${drawMaterialKey}', ` +
+        `while the first draw uses mesh '${firstMeshKey}' and material '${firstMaterialKey}'. ` +
+        "A broader render-world resource cache is future work.",
+    });
+  }
+
+  return diagnostics;
+}
+
+function diagnoseSnapshotMaterialDependencies(
+  app: WebGpuApp,
+  snapshot: RenderSnapshot,
+): WebGpuAppMaterialDependencyDiagnostic[] {
+  const blockedEntities = new Set(
+    snapshot.diagnostics
+      .filter((diagnostic) => isMaterialDependencyRenderDiagnostic(diagnostic))
+      .map((diagnostic) => renderEntityRefKey(diagnostic.entity))
+      .filter((key) => key !== null),
+  );
+
+  if (blockedEntities.size === 0) {
+    return [];
+  }
+
+  const query = app.world.queryManager.registerQuery({ required: [Material] });
+  const diagnostics: WebGpuAppMaterialDependencyDiagnostic[] = [];
+  const seenMaterialKeys = new Set<string>();
+
+  for (const entity of query.entities) {
+    const entityKey = `${entity.index}:${entity.generation}`;
+
+    if (!blockedEntities.has(entityKey)) {
+      continue;
+    }
+
+    const material = parseAppMaterialHandle(
+      entity.getValue(Material, "materialId") ?? "",
+    );
+
+    if (material === null) {
+      continue;
+    }
+
+    const report = createMaterialDependencyReadinessReport({
+      registry: app.assets,
+      material,
+    });
+
+    if (report.ready || seenMaterialKeys.has(report.materialKey)) {
+      continue;
+    }
+
+    seenMaterialKeys.add(report.materialKey);
+    diagnostics.push(createWebGpuAppMaterialDependencyDiagnostic(report));
+  }
+
+  return diagnostics;
+}
+
+function createWebGpuAppMaterialDependencyDiagnostic(
+  materialDependencyReadiness: Parameters<
+    typeof materialDependencyReadinessReportToJsonValue
+  >[0],
+): WebGpuAppMaterialDependencyDiagnostic {
+  const json = materialDependencyReadinessReportToJsonValue(
+    materialDependencyReadiness,
+  );
+
+  return {
+    code: "webGpuApp.materialDependenciesNotReady",
+    materialDependencyReadiness: json,
+    message: `Material '${json.materialKey}' has source asset dependencies that are not ready for app rendering.`,
+  };
+}
+
+function isMaterialDependencyRenderDiagnostic(
+  diagnostic: unknown,
+): diagnostic is {
+  readonly code: string;
+  readonly entity?: { readonly index: number; readonly generation: number };
+} {
+  if (typeof diagnostic !== "object" || diagnostic === null) {
+    return false;
+  }
+
+  const code = (diagnostic as { readonly code?: unknown }).code;
+
+  return (
+    typeof code === "string" &&
+    (code === "render.material.missingTextureHandle" ||
+      code === "render.material.missingSamplerHandle" ||
+      code.startsWith("render.texture.") ||
+      code.startsWith("render.sampler."))
+  );
+}
+
+function renderEntityRefKey(
+  entity: { readonly index: number; readonly generation: number } | undefined,
+): string | null {
+  return entity === undefined ? null : `${entity.index}:${entity.generation}`;
+}
+
+function parseAppMaterialHandle(value: string) {
+  const prefix = "material:";
+
+  return value.startsWith(prefix) && value.length > prefix.length
+    ? createMaterialHandle(value.slice(prefix.length))
+    : null;
 }
 
 function renderReport(input: {

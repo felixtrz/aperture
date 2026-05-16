@@ -15,6 +15,119 @@ Summary:
 - Validation run.
 - Follow-up tasks added.
 
+## task-0577 — Add texture/sampler resource reuse diagnostics for app reports
+
+Completed: 2026-05-16
+
+Summary:
+
+- Checked whether texture/sampler resource reuse diagnostics can be reported by
+  the app facade today.
+- Found the app facade does not yet prepare or cache texture/sampler GPU
+  resources from source material dependencies, even though lower-level unlit
+  frame resources can bind prepared texture/sampler resources.
+- Recorded the blocker in
+  `docs/research/APP_TEXTURE_SAMPLER_REUSE_BLOCKER_2026_05_16.md`.
+- Added enabling `task-0584` for the app-facade prepared-resource cache and
+  follow-up `task-0585` for the actual reuse counters.
+- Important files:
+  `docs/research/APP_TEXTURE_SAMPLER_REUSE_BLOCKER_2026_05_16.md`,
+  `agent/BACKLOG.md`, `agent/COMPLETED.md`, `agent/HANDOFF.md`.
+- Validation run: documentation/backlog blocker resolution only; no code
+  validation needed beyond the earlier successful `pnpm run check` and browser
+  E2E validation.
+
+## task-0579 — Audit material showcase, view uniforms, and app diagnostics
+
+Completed: 2026-05-16
+
+Summary:
+
+- Audited the direct WebGPU material showcase, camera-position view uniform
+  layout, built-in unlit/standard shader alignment, app material dependency
+  diagnostics, mixed source-resource draw diagnostics, and MatcapMaterial
+  preparation metadata.
+- Confirmed render/source contracts remain GPU-free outside
+  `@aperture-engine/webgpu`, app diagnostics are JSON-safe, and the showcase's
+  local shader is a temporary demo path rather than a replacement for built-in
+  material shaders.
+- Added follow-up `task-0583` to promote the showcase onto built-in
+  material/app-facade paths once multi-material rendering and matcap WebGPU
+  support exist.
+- Important files:
+  `docs/research/MATERIAL_SHOWCASE_BOUNDARY_AUDIT_2026_05_16.md`,
+  `agent/BACKLOG.md`, `agent/COMPLETED.md`, `agent/HANDOFF.md`.
+- Validation run: audit-only docs/backlog update; earlier `pnpm run check`,
+  focused Playwright, and full `pnpm run test:e2e` passed for the audited code.
+
+## task-0578 — Add material readiness report JSON serialization helper
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added `MaterialAssetDependencyReadinessReportJsonValue` plus JSON value/string
+  helpers for material dependency readiness reports.
+- Updated app material dependency diagnostics to embed the serialized JSON-safe
+  readiness value instead of the raw report type.
+- Important files:
+  `packages/render/src/materials/dependency-readiness.ts`,
+  `packages/webgpu/src/webgpu/app.ts`,
+  `test/materials/material-dependency-readiness.test.ts`,
+  `test/webgpu/webgpu-app.test.ts`.
+- Validation run: focused material/app tests, `pnpm run check`, focused
+  Playwright showcase/spinning-cube tests, and `pnpm run test:e2e` passed.
+
+## task-0576 — Diagnose app facade single-draw resource limitation
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added an early app-facade diagnostic for multi-draw frames that require
+  additional source mesh/material resource sets beyond the first draw.
+- Same mesh/material multi-draw frames continue rendering through the current
+  app resource set.
+- Important files: `packages/webgpu/src/webgpu/app.ts`,
+  `test/webgpu/webgpu-app.test.ts`.
+- Validation run: focused app tests, `pnpm run check`, focused Playwright
+  showcase/spinning-cube tests, and `pnpm run test:e2e` passed.
+
+## task-0575 — Add MatcapMaterial render-preparation metadata plan
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added a renderer-independent MatcapMaterial preparation metadata plan with
+  material key, texture/sampler dependency keys, render state, pipeline key, and
+  dependency readiness JSON.
+- Blocked matcap dependencies report the existing material dependency readiness
+  diagnostics.
+- No WGSL, WebGPU resource creation, bind groups, pipelines, or active matcap
+  rendering path was introduced.
+- Important files: `packages/render/src/materials/matcap-preparation.ts`,
+  `packages/render/src/materials/index.ts`,
+  `test/materials/matcap-preparation.test.ts`.
+- Validation run: focused matcap/material/app tests, `pnpm run check`, focused
+  Playwright showcase/spinning-cube tests, and `pnpm run test:e2e` passed.
+
+## task-0574 — Surface material asset dependency readiness in app render failures
+
+Completed: 2026-05-16
+
+Summary:
+
+- `WebGpuAppRenderReport` now includes JSON-safe material dependency readiness
+  diagnostics when app rendering is blocked by missing/loading/failed material
+  texture or sampler source dependencies.
+- App render failures preserve material field names, dependency handle keys, and
+  readiness statuses without exposing raw WebGPU handles.
+- Important files: `packages/webgpu/src/webgpu/app.ts`,
+  `test/webgpu/webgpu-app.test.ts`.
+- Validation run: focused app/material tests, `pnpm run check`, focused
+  Playwright showcase/spinning-cube tests, and `pnpm run test:e2e` passed.
+
 ## task-0573 — Audit post-cleanup diagnostics and material-source boundaries
 
 Completed: 2026-05-16

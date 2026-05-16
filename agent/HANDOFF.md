@@ -2,6 +2,150 @@
 
 ## Latest Run Update
 
+Completed a user-requested browser demo plus six follow-up backlog tasks:
+
+- Added `examples/materials-showcase.html` and
+  `examples/materials-showcase.js`, visible at
+  `http://127.0.0.1:4173/examples/materials-showcase.html`. It renders three
+  spinning cubes side by side: unlit, standard PBR, and matcap. The page uses a
+  focused direct WebGPU showcase shader because the high-level app facade still
+  cannot bind multiple material families/resource sets in one frame.
+- Fixed the PBR black-spot artifact in the showcase by using the camera
+  position when computing `viewDir`.
+- Fixed the built-in StandardMaterial shader path the same way: packed view
+  uniforms now include `cameraPosition`, and the standard shader uses
+  `view.cameraPosition.xyz - input.worldPosition`. Unlit shaders accept the
+  expanded view uniform layout.
+- Fixed app resource-cache reuse to store logical descriptor source byte lengths
+  instead of scratch-buffer backing-array byte lengths.
+- `task-0576` — `createWebGpuApp.render()` now diagnoses mixed source
+  mesh/material resource sets instead of silently binding first-draw resources
+  for all draws. Same-resource multi-draw frames still render.
+- `task-0574` — app render failures now surface JSON-safe material dependency
+  readiness when material texture/sampler source dependencies are
+  missing/loading/failed.
+- `task-0578` — material dependency readiness reports now have explicit JSON
+  value/string helpers, and app diagnostics embed that serialized contract.
+- `task-0575` — added a renderer-independent MatcapMaterial preparation
+  metadata plan. It carries material key, matcap texture/sampler keys, render
+  state, pipeline key, and dependency readiness JSON. This is metadata only; no
+  Matcap WebGPU rendering path was activated.
+- `task-0579` — audited the material showcase, expanded view-uniform layout,
+  app diagnostics, mixed source-resource handling, and MatcapMaterial
+  preparation metadata. No ownership drift was found. Added `task-0583` to
+  promote the showcase onto built-in material/app-facade paths once
+  multi-material app rendering and matcap WebGPU support exist.
+- `task-0577` — checked texture/sampler reuse diagnostics. The app facade does
+  not yet prepare or cache texture/sampler GPU resources from source material
+  dependencies, so reuse counters would be misleading. Recorded the blocker and
+  added `task-0584` for the prepared-resource cache plus `task-0585` for the
+  actual reuse counters.
+
+Validation:
+
+- `pnpm exec vitest run test/e2e/materials-showcase.spec.ts` passed earlier in
+  the run after the syntax fix and browser verification.
+- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts`
+- `pnpm exec vitest run test/materials/matcap-preparation.test.ts test/materials/material-dependency-readiness.test.ts test/webgpu/webgpu-app.test.ts`
+- `pnpm run check` passed: 156 test files / 733 tests.
+- `pnpm exec playwright test test/e2e/materials-showcase.spec.ts test/e2e/spinning-cube.spec.ts` passed.
+- `pnpm run test:e2e` passed: 140 Playwright tests.
+- In-app browser was refreshed and showed the material showcase status `ready`.
+- `task-0579` was audit-only; no additional code validation was needed after the
+  docs/backlog update.
+- `task-0577` resolved as a documented blocker; no code validation was needed
+  for the blocker note/backlog update.
+
+Reference files/patterns inspected:
+
+- Three.js render-list/material routing and WebGPU pipeline state patterns:
+  `references/three.js/src/renderers/WebGLRenderer.js`,
+  `references/three.js/src/renderers/webgpu/WebGPUBackend.js`,
+  `references/three.js/src/renderers/webgpu/utils/WebGPUPipelineUtils.js`.
+- PlayCanvas/engine layer/material sorting, frame graph, and shader chunk
+  patterns under `references/engine/src/scene` and
+  `references/engine/src/platform/graphics`.
+- Bevy render asset preparation and material prepare/retry patterns:
+  `references/bevy/crates/bevy_render/src/render_asset.rs`,
+  `references/bevy/crates/bevy_pbr/src/material.rs`.
+- Texture/sampler resource summary helpers and lower-level unlit textured frame
+  resource tests in `packages/webgpu/src/webgpu/resource-summary.ts`,
+  `packages/webgpu/src/webgpu/unlit-frame-resources.ts`, and
+  `test/webgpu/unlit-frame-resources.test.ts`.
+- Project docs: `docs/NORTH_STAR.md`, `docs/ARCHITECTURE.md`,
+  `docs/DECISIONS.md`, `docs/MEDIUM_LONG_TERM_GOALS.md`.
+
+Recommended next task:
+
+- `task-0584 — Add app-facade texture/sampler prepared-resource cache`.
+
+Preflight notes for `task-0584`:
+
+- The lower-level path is already ready for prepared resources:
+  `createUnlitFrameGpuResources()` accepts `textures` and `samplers`, and
+  `test/webgpu/unlit-frame-resources.test.ts` verifies textured bind groups.
+- Extraction already blocks unready unlit texture dependencies before snapshots
+  are rendered. The app facade should therefore prepare resources only for ready
+  source asset dependencies on the first material in the current
+  single-resource-set path.
+- Use `assetHandleKey(handle)@entry.version` as the cache key pattern, matching
+  existing mesh/material app-frame cache keys.
+- First implementation slice can target unlit `baseColorTexture` only. Standard
+  material texture sampling is still deferred in the built-in shader.
+- Tests should extend `test/webgpu/webgpu-app.test.ts` with fake
+  `device.createTexture`, `texture.createView`, `device.createSampler`, and
+  queue upload/write events.
+
+Known issues:
+
+- The three-material showcase is a direct WebGPU proof/demo, not an app-facade
+  multi-material implementation.
+- `createWebGpuApp.render()` still supports one source mesh/material resource
+  set per frame; mixed source-resource frames now fail clearly with
+  `webGpuApp.additionalDrawResourceUnsupported`.
+- MatcapMaterial has source asset and preparation metadata contracts, but no
+  active WebGPU matcap shader/pipeline/bind-group/app path yet.
+- Texture/sampler GPU resource reuse counts are still not active in app reports.
+  `task-0584` must first add the prepared-resource cache, then `task-0585` can
+  add the counters.
+- StandardMaterial remains an MVP: texture sampling, normal maps, IBL, and
+  shadows are still deferred.
+
+Files touched in this update:
+
+- `examples/materials-showcase.html`
+- `examples/materials-showcase.js`
+- `examples/index.html`
+- `examples/multi-entity.html`
+- `examples/spinning-cube.html`
+- `examples/triangle.html`
+- `examples/styles.css`
+- `package.json`
+- `packages/render/src/materials/dependency-readiness.ts`
+- `packages/render/src/materials/index.ts`
+- `packages/render/src/materials/matcap-preparation.ts`
+- `packages/render/src/rendering/view-pack.ts`
+- `packages/webgpu/src/webgpu/app.ts`
+- `packages/webgpu/src/webgpu/standard-shader.ts`
+- `packages/webgpu/src/webgpu/unlit-shader.ts`
+- `test/e2e/materials-showcase.spec.ts`
+- `test/materials/material-dependency-readiness.test.ts`
+- `test/materials/matcap-preparation.test.ts`
+- `test/rendering/view-pack.test.ts`
+- `test/webgpu/frame-readiness.test.ts`
+- `test/webgpu/standard-shader.test.ts`
+- `test/webgpu/unlit-frame-resources.test.ts`
+- `test/webgpu/view-uniform-buffer-resource.test.ts`
+- `test/webgpu/view-uniform-buffer.test.ts`
+- `test/webgpu/webgpu-app.test.ts`
+- `agent/BACKLOG.md`
+- `agent/COMPLETED.md`
+- `agent/HANDOFF.md`
+- `docs/research/MATERIAL_SHOWCASE_BOUNDARY_AUDIT_2026_05_16.md`
+- `docs/research/APP_TEXTURE_SAMPLER_REUSE_BLOCKER_2026_05_16.md`
+
+## Previous Run Update
+
 Completed the stop-hook continuation sequence through the remaining ready tasks:
 
 - `task-0567` — audited post-proof-point resource reuse and shader metadata

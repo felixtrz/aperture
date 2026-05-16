@@ -35,6 +35,7 @@ export const STANDARD_MESH_WGSL = `
 // normal maps, image-based lighting, and shadows are deferred.
 struct ViewProjectionUniform {
   viewProjection: mat4x4f,
+  cameraPosition: vec4f,
 };
 
 struct StandardMaterialUniform {
@@ -200,7 +201,7 @@ fn fs_main(input: VertexOutput) -> @location(0) vec4f {
   }
 
   let normal = normalize(input.worldNormal);
-  let viewDir = normalize(-input.worldPosition);
+  let viewDir = normalize(view.cameraPosition.xyz - input.worldPosition);
   let metallic = clamp(material.metallicFactor, 0.0, 1.0);
   let roughness = clamp(material.roughnessFactor, 0.045, 1.0);
   var ambient = vec3f(0.0);

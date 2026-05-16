@@ -9,6 +9,8 @@ import {
   createStandardMaterialAsset,
   createTextureHandle,
   createUnlitMaterialAsset,
+  materialDependencyReadinessReportToJson,
+  materialDependencyReadinessReportToJsonValue,
 } from "@aperture-engine/core";
 
 describe("material dependency readiness reports", () => {
@@ -177,5 +179,68 @@ describe("material dependency readiness reports", () => {
         },
       ],
     });
+  });
+
+  it("serializes readiness reports as stable JSON-safe values", () => {
+    const registry = new AssetRegistry();
+    const material = createMaterialHandle("standard");
+    const missingTexture = createTextureHandle("missing");
+    const loadingSampler = createSamplerHandle("loading");
+
+    registry.register(loadingSampler);
+    registry.markLoading(loadingSampler);
+    registry.register(material);
+    registry.markReady(
+      material,
+      createStandardMaterialAsset({
+        baseColorTexture: {
+          texture: missingTexture,
+          sampler: loadingSampler,
+        },
+      }),
+    );
+
+    const report = createMaterialDependencyReadinessReport({
+      registry,
+      material,
+    });
+    const value = materialDependencyReadinessReportToJsonValue(report);
+    const json = materialDependencyReadinessReportToJson(report);
+
+    expect(value).toMatchObject({
+      ready: false,
+      materialKey: "material:standard",
+      materialStatus: "ready",
+      materialKind: "standard",
+      slots: [
+        {
+          field: "baseColorTexture",
+          dependencyKind: "texture",
+          handleKey: "texture:missing",
+          status: "missing",
+        },
+        {
+          field: "baseColorTexture",
+          dependencyKind: "sampler",
+          handleKey: "sampler:loading",
+          status: "loading",
+        },
+      ],
+      diagnostics: [
+        {
+          code: "materialDependency.dependencyMissing",
+          dependencyKey: "texture:missing",
+        },
+        {
+          code: "materialDependency.dependencyLoading",
+          dependencyKey: "sampler:loading",
+        },
+      ],
+    });
+    expect(value.dependencies).toEqual(value.slots);
+    expect(JSON.parse(json) as unknown).toEqual(value);
+    expect(json).toBe(materialDependencyReadinessReportToJson(report));
+    expect(json).not.toContain('"texture":{"');
+    expect(json).not.toContain('"sampler":{"');
   });
 });

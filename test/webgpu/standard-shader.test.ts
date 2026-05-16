@@ -70,6 +70,10 @@ describe("built-in standard material WGSL shader metadata", () => {
     });
     expect(STANDARD_MESH_WGSL).toContain("distributionGGX");
     expect(STANDARD_MESH_WGSL).toContain("fresnelSchlick");
+    expect(STANDARD_MESH_WGSL).toContain("cameraPosition: vec4f");
+    expect(STANDARD_MESH_WGSL).toContain(
+      "normalize(view.cameraPosition.xyz - input.worldPosition)",
+    );
     expect(STANDARD_MESH_WGSL).toContain(
       `const PACKED_LIGHT_FLOAT_STRIDE: u32 = ${PACKED_LIGHT_FLOAT_STRIDE}u;`,
     );

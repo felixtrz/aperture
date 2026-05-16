@@ -5,6 +5,7 @@ import {
   createViewUniformBufferDescriptor,
   type PackedSnapshotViewUniforms,
 } from "@aperture-engine/webgpu";
+import { PACKED_VIEW_UNIFORM_FLOAT_STRIDE } from "@aperture-engine/core";
 
 describe("view uniform buffer descriptor planning", () => {
   it("maps one packed view to a uniform buffer descriptor", () => {
@@ -15,7 +16,7 @@ describe("view uniform buffer descriptor planning", () => {
     expect(result.plan).toMatchObject({
       descriptor: {
         label: "ViewUniforms/uniform",
-        size: 16 * 4,
+        size: PACKED_VIEW_UNIFORM_FLOAT_STRIDE * 4,
         usage: DEFAULT_UNLIT_MATERIAL_BUFFER_USAGE,
       },
       views: [{ viewId: 0, sourceOffset: 0, packedOffset: 0 }],
@@ -33,12 +34,16 @@ describe("view uniform buffer descriptor planning", () => {
     expect(result.valid).toBe(true);
     expect(result.plan?.descriptor).toMatchObject({
       label: "Frame/view-uniforms",
-      size: 32 * 4,
+      size: 2 * PACKED_VIEW_UNIFORM_FLOAT_STRIDE * 4,
       usage: 321,
     });
     expect(result.plan?.views).toEqual([
       { viewId: 0, sourceOffset: 0, packedOffset: 0 },
-      { viewId: 1, sourceOffset: 16, packedOffset: 16 },
+      {
+        viewId: 1,
+        sourceOffset: PACKED_VIEW_UNIFORM_FLOAT_STRIDE,
+        packedOffset: PACKED_VIEW_UNIFORM_FLOAT_STRIDE,
+      },
     ]);
   });
 
@@ -46,13 +51,17 @@ describe("view uniform buffer descriptor planning", () => {
     const packed = {
       ...packedViews(2),
       data: new Float32Array(64),
-      floatCount: 32,
+      floatCount: 2 * PACKED_VIEW_UNIFORM_FLOAT_STRIDE,
     };
     const result = createViewUniformBufferDescriptor(packed);
 
     expect(result.valid).toBe(true);
-    expect(result.plan?.descriptor.size).toBe(32 * 4);
-    expect(result.plan?.source.byteLength).toBe(32 * 4);
+    expect(result.plan?.descriptor.size).toBe(
+      2 * PACKED_VIEW_UNIFORM_FLOAT_STRIDE * 4,
+    );
+    expect(result.plan?.source.byteLength).toBe(
+      2 * PACKED_VIEW_UNIFORM_FLOAT_STRIDE * 4,
+    );
     expect(result.plan?.descriptor.initialData).toBe(result.plan?.source);
   });
 
@@ -83,11 +92,11 @@ describe("view uniform buffer descriptor planning", () => {
 
 function packedViews(count: number): PackedSnapshotViewUniforms {
   return {
-    data: new Float32Array(count * 16),
+    data: new Float32Array(count * PACKED_VIEW_UNIFORM_FLOAT_STRIDE),
     views: Array.from({ length: count }, (_, index) => ({
       viewId: index,
-      sourceOffset: index * 16,
-      packedOffset: index * 16,
+      sourceOffset: index * PACKED_VIEW_UNIFORM_FLOAT_STRIDE,
+      packedOffset: index * PACKED_VIEW_UNIFORM_FLOAT_STRIDE,
     })),
     diagnostics: [],
   };

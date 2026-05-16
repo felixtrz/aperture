@@ -59,11 +59,10 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start with `task-0574`. The lit StandardMaterial proof point, resource reuse,
-scratch-backed app frame planning, MatcapMaterial source contract, app reuse
-diagnostics, material asset dependency readiness report, and follow-up boundary
-audit are complete. The next run should surface material dependency readiness
-through app render failures.
+Start with `task-0584`. Texture/sampler resource reuse diagnostics were checked,
+but the app facade does not yet prepare or cache texture/sampler GPU resources
+from source asset dependencies. Add that enabling bridge before adding reuse
+counters.
 
 ## Near-Term Proof Point Track
 
@@ -80,14 +79,15 @@ Target proof point:
 
 Remaining automation priority order:
 
-1. `task-0574` — surface material asset dependency readiness in app render
-   failures.
-2. `task-0575` — add MatcapMaterial render-preparation metadata plan.
-3. `task-0576` — diagnose the app facade's current single-draw resource
-   limitation.
-4. `task-0577` — add texture/sampler resource reuse diagnostics for app
+1. `task-0584` — add app-facade texture/sampler prepared-resource cache.
+2. `task-0585` — add texture/sampler resource reuse diagnostics for app
    reports.
-5. `task-0578` — add material readiness report JSON serialization helper.
+3. `task-0580` — add a JSON serializer for `WebGpuAppRenderReport`.
+4. `task-0581` — add MatcapMaterial WebGPU shader/pipeline metadata contracts.
+5. `task-0582` — add browser-facing app diagnostics coverage for mixed
+   material app frames.
+6. `task-0583` — promote the material showcase onto built-in material paths
+   once support exists.
 
 Defer allocation-only cleanup and metadata-only shader-contract tasks unless
 they are a direct blocker for this track.
@@ -100,76 +100,40 @@ they are a direct blocker for this track.
 
 ### Runtime / Diagnostics
 
-### task-0574 — Surface material asset dependency readiness in app render failures
-
-Category: `runtime-orchestration`
-Package/write-scope: `packages/webgpu/src/webgpu/app.ts` and targeted app
-tests, no new WebGPU resource types.
-Reference anchor: `docs/ARCHITECTURE.md` diagnostics requirements and Bevy
-material dependency readiness patterns.
-
-Use the renderer-independent material asset dependency readiness report when
-the app facade fails or blocks on texture/sampler source dependencies.
-
-Acceptance criteria:
-
-- `WebGpuAppRenderReport` can include JSON-safe material dependency readiness
-  when a material references missing/loading/failed texture or sampler handles.
-- Missing dependency diagnostics identify the material field and dependency
-  handle key.
-- Existing successful untextured unlit and standard app paths stay unchanged.
-- No raw WebGPU handles are included in dependency readiness JSON.
-
-### task-0575 — Add MatcapMaterial render-preparation metadata plan
-
-Category: `render-bridge`
-Package/write-scope: `packages/render/src/materials` or
-`packages/render/src/assets`, tests only; no WebGPU shader activation.
-Reference anchor: Bevy material prepare contracts and
-`docs/MEDIUM_LONG_TERM_GOALS.md`.
-
-Add renderer-independent preparation metadata for MatcapMaterial so later WebGPU
-work has a typed dependency/render-state contract to consume.
-
-Acceptance criteria:
-
-- Define a MatcapMaterial prepare-plan data shape with material key, dependency
-  handles, render state, and pipeline-key input.
-- Plan reports missing texture/sampler source dependencies using existing
-  material dependency readiness data.
-- Tests cover ready and blocked MatcapMaterial prepare plans.
-- No WGSL, WebGPU buffers, bind groups, pipelines, or active rendering are
-  introduced.
-
-### task-0576 — Diagnose app facade single-draw resource limitation
-
-Category: `webgpu-render`
-Package/write-scope: `packages/webgpu/src/webgpu/app.ts` and app tests.
-Reference anchor: render-world readiness diagnostics and the North Star's
-agent-readable diagnostics requirement.
-
-Make the current `createWebGpuApp.render()` first-draw resource limitation
-explicit instead of silently binding only the first draw's resources.
-
-Acceptance criteria:
-
-- Multi-draw snapshots whose draws reference unsupported additional source
-  mesh/material handles produce a JSON-safe diagnostic.
-- Single-draw and same-resource multi-draw snapshots keep passing.
-- The diagnostic explains that a broader render-world resource cache is future
-  work.
-- No attempt is made to implement full multi-asset caching in this task.
-
-### task-0577 — Add texture/sampler resource reuse diagnostics for app reports
+### task-0584 — Add app-facade texture/sampler prepared-resource cache
 
 Category: `webgpu-render`
 Package/write-scope: `packages/webgpu/src/webgpu/app.ts`,
 `packages/webgpu/src/webgpu/texture-resources.ts` if needed, and targeted tests.
+Reference anchor:
+`docs/research/APP_TEXTURE_SAMPLER_REUSE_BLOCKER_2026_05_16.md`, Bevy render
+asset preparation, and existing texture/sampler resource summary helpers.
+
+Prepare and cache WebGPU texture/sampler resources for app-facade unlit material
+dependencies before adding reuse counters.
+
+Acceptance criteria:
+
+- `createWebGpuApp.render()` can prepare ready unlit base-color texture/sampler
+  dependencies into backend-owned GPU resources.
+- Prepared texture/sampler resources are cached by stable source handle and
+  source asset version.
+- Prepared resources are passed into `createUnlitFrameGpuResources()` for the
+  current single-resource-set app path.
+- Diagnostics remain JSON-safe and use resource keys/statuses, not raw GPU
+  handles.
+- Tests cover first-frame preparation and second-frame reuse on a textured
+  unlit app path.
+
+### task-0585 — Add texture/sampler resource reuse diagnostics for app reports
+
+Category: `webgpu-render`
+Package/write-scope: `packages/webgpu/src/webgpu/app.ts` and targeted tests.
 Reference anchor: WebGPU resource summary helpers and Bevy prepared asset cache
 reporting patterns.
 
-Extend app resource reuse reporting to texture and sampler GPU resources once
-textured app paths are active.
+Extend app resource reuse reporting to texture and sampler GPU resources after
+`task-0584` activates the app prepared-resource cache.
 
 Acceptance criteria:
 
@@ -178,28 +142,91 @@ Acceptance criteria:
 - Reports use stable resource keys and counts only, not raw GPU handles.
 - Tests cover first-frame creation and second-frame reuse on a textured unlit
   app path.
-- If texture/sampler GPU resource reuse is not active yet, document the blocker
-  and add the narrower enabling task.
 
-### task-0578 — Add material readiness report JSON serialization helper
+### task-0580 — Add WebGpuAppRenderReport JSON serialization helper
 
-Category: `render-bridge`
-Package/write-scope: `packages/render/src/materials` and targeted material
-tests.
-Reference anchor: Existing JSON-safe light shader metadata helpers and
+Category: `webgpu-render`
+Package/write-scope: `packages/webgpu/src/webgpu/app.ts` or a focused app JSON
+module plus targeted tests.
+Reference anchor: Existing WebGPU report JSON helpers and
 `docs/ARCHITECTURE.md` diagnostics requirements.
 
-Add an explicit JSON value helper for material dependency readiness reports so
-app-facing diagnostics can depend on a stable serialized contract.
+Add an explicit JSON value helper for `WebGpuAppRenderReport` so examples and
+agent diagnostics can publish stable app render summaries without raw GPU
+objects.
 
 Acceptance criteria:
 
-- Define a `MaterialAssetDependencyReadinessReportJsonValue` shape.
-- Add a serializer for material dependency readiness reports that preserves
-  material key/status/kind, dependency slot statuses, and diagnostics.
-- Serialized values use handle keys and strings only, not raw asset or GPU
-  objects.
-- Tests cover ready unlit and blocked standard material reports.
+- Define a `WebGpuAppRenderReportJsonValue` shape with counts, diagnostics,
+  resource reuse, and optional material dependency readiness diagnostics.
+- Serializer omits `snapshot`, raw pipeline handles, raw resource handles, and
+  browser/WebGPU objects.
+- Tests cover successful standard app render and material dependency failure.
+- Existing examples can continue publishing their current status shape.
+
+### task-0581 — Add MatcapMaterial WebGPU shader metadata contracts
+
+Category: `webgpu-render`
+Package/write-scope: `packages/webgpu/src/webgpu`, shader metadata tests only;
+no active app rendering path.
+Reference anchor: Three.js matcap material shader pattern, PlayCanvas material
+shader chunks, and Aperture's unlit/standard shader metadata helpers.
+
+Define the WebGPU-side shader metadata and pipeline descriptor planning contract
+for MatcapMaterial without wiring it into `createWebGpuApp.render()`.
+
+Acceptance criteria:
+
+- A matcap WGSL source module and metadata contract exist with view, transform,
+  material, texture, and sampler bindings.
+- Pipeline descriptor planning accepts the `matcap` material pipeline family.
+- Tests cover metadata validation and descriptor planning diagnostics.
+- No render pass, bind group resource creation, or app facade activation is
+  introduced.
+
+### task-0582 — Add browser-facing app diagnostics coverage for mixed materials
+
+Category: `runtime-orchestration`
+Package/write-scope: examples and Playwright tests; avoid new WebGPU resource
+types.
+Reference anchor: Existing app facade examples, app render diagnostics, and
+`docs/NORTH_STAR.md` agent-readable diagnostics requirements.
+
+Add a small browser-visible app-facade scenario that demonstrates the current
+mixed source-resource limitation and material dependency readiness diagnostics.
+
+Acceptance criteria:
+
+- Example status includes `webGpuApp.additionalDrawResourceUnsupported` for a
+  mixed-material app frame.
+- Example status includes `webGpuApp.materialDependenciesNotReady` for a
+  blocked material dependency frame.
+- Playwright verifies both statuses are JSON-safe and explain the failure.
+- The scenario is clearly diagnostic-only and does not imply multi-material app
+  rendering is implemented.
+
+### task-0583 — Promote material showcase onto built-in material paths
+
+Category: `runtime-orchestration`
+Package/write-scope: `examples/materials-showcase.*`, app facade examples, and
+Playwright tests after multi-material app rendering and matcap WebGPU support
+exist.
+Reference anchor: Built-in unlit/standard/matcap shader contracts, Bevy
+material routing, and `docs/research/MATERIAL_SHOWCASE_BOUNDARY_AUDIT_2026_05_16.md`.
+
+Replace or supplement the direct WebGPU showcase shader with a browser showcase
+that exercises Aperture's built-in material/app-facade path for unlit,
+StandardMaterial, and MatcapMaterial.
+
+Acceptance criteria:
+
+- The showcase uses built-in material shader/resource contracts rather than a
+  local demo-only PBR/matcap shader for supported materials.
+- The example still shows three spinning cubes side by side.
+- Playwright verifies the three material families render and the frame status
+  is JSON-safe.
+- Any remaining direct WebGPU fallback is explicitly labeled as temporary test
+  coverage, not the preferred app-facing material path.
 
 ## Post-Unlit E2E Verification Targets
 

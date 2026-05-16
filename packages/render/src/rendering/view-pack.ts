@@ -1,5 +1,9 @@
 import type { RenderSnapshot, ViewPacket } from "./snapshot.js";
 
+const VIEW_PROJECTION_FLOAT_COUNT = 16;
+const VIEW_CAMERA_POSITION_FLOAT_OFFSET = 16;
+export const PACKED_VIEW_UNIFORM_FLOAT_STRIDE = 20;
+
 export type SnapshotViewUniformPackDiagnosticCode =
   | "viewUniform.emptySnapshot"
   | "viewUniform.duplicateViewId"
@@ -88,7 +92,7 @@ export function packSnapshotViewUniforms(
       continue;
     }
 
-    if (sourceOffset < 0 || sourceOffset + 16 > snapshot.viewMatrices.length) {
+    if (!hasMatrixRange(snapshot.viewMatrices, sourceOffset)) {
       diagnostics.push({
         code: "viewUniform.matrixOutOfRange",
         viewId: view.viewId,
@@ -98,18 +102,39 @@ export function packSnapshotViewUniforms(
       continue;
     }
 
+    if (!hasMatrixRange(snapshot.viewMatrices, view.viewMatrixOffset)) {
+      diagnostics.push({
+        code: "viewUniform.matrixOutOfRange",
+        viewId: view.viewId,
+        sourceOffset: view.viewMatrixOffset,
+        message: `View ${view.viewId} view matrix offset ${view.viewMatrixOffset} is outside snapshot view matrix data.`,
+      });
+      continue;
+    }
+
     validViews.push(view);
   }
 
-  const data = new Float32Array(validViews.length * 16);
+  const data = new Float32Array(
+    validViews.length * PACKED_VIEW_UNIFORM_FLOAT_STRIDE,
+  );
 
   validViews.forEach((view, index) => {
     const sourceOffset = view.viewProjectionMatrixOffset;
-    const packedOffset = index * 16;
+    const packedOffset = index * PACKED_VIEW_UNIFORM_FLOAT_STRIDE;
 
     data.set(
-      snapshot.viewMatrices.subarray(sourceOffset, sourceOffset + 16),
+      snapshot.viewMatrices.subarray(
+        sourceOffset,
+        sourceOffset + VIEW_PROJECTION_FLOAT_COUNT,
+      ),
       packedOffset,
+    );
+    writeCameraPosition(
+      data,
+      packedOffset + VIEW_CAMERA_POSITION_FLOAT_OFFSET,
+      snapshot.viewMatrices,
+      view.viewMatrixOffset,
     );
     views.push({
       viewId: view.viewId,
@@ -188,7 +213,7 @@ export function writePackedSnapshotViewUniforms(
       continue;
     }
 
-    if (sourceOffset < 0 || sourceOffset + 16 > snapshot.viewMatrices.length) {
+    if (!hasMatrixRange(snapshot.viewMatrices, sourceOffset)) {
       scratch.diagnostics.push({
         code: "viewUniform.matrixOutOfRange",
         viewId: view.viewId,
@@ -198,14 +223,33 @@ export function writePackedSnapshotViewUniforms(
       continue;
     }
 
+    if (!hasMatrixRange(snapshot.viewMatrices, view.viewMatrixOffset)) {
+      scratch.diagnostics.push({
+        code: "viewUniform.matrixOutOfRange",
+        viewId: view.viewId,
+        sourceOffset: view.viewMatrixOffset,
+        message: `View ${view.viewId} view matrix offset ${view.viewMatrixOffset} is outside snapshot view matrix data.`,
+      });
+      continue;
+    }
+
     const packedOffset = result.floatCount;
 
-    ensureViewUniformDataCapacity(scratch, result.floatCount + 16);
+    ensureViewUniformDataCapacity(
+      scratch,
+      result.floatCount + PACKED_VIEW_UNIFORM_FLOAT_STRIDE,
+    );
 
-    for (let index = 0; index < 16; index += 1) {
+    for (let index = 0; index < VIEW_PROJECTION_FLOAT_COUNT; index += 1) {
       scratch.data[result.floatCount + index] =
         snapshot.viewMatrices[sourceOffset + index] ?? 0;
     }
+    writeCameraPosition(
+      scratch.data,
+      result.floatCount + VIEW_CAMERA_POSITION_FLOAT_OFFSET,
+      snapshot.viewMatrices,
+      view.viewMatrixOffset,
+    );
 
     const record = viewRecordAt(scratch, scratch.views.length);
 
@@ -213,11 +257,46 @@ export function writePackedSnapshotViewUniforms(
     record.sourceOffset = sourceOffset;
     record.packedOffset = packedOffset;
     scratch.views.push(record);
-    result.floatCount += 16;
+    result.floatCount += PACKED_VIEW_UNIFORM_FLOAT_STRIDE;
   }
 
   result.data = scratch.data;
   return scratch.result;
+}
+
+function hasMatrixRange(values: Float32Array, sourceOffset: number): boolean {
+  return (
+    sourceOffset >= 0 &&
+    sourceOffset + VIEW_PROJECTION_FLOAT_COUNT <= values.length
+  );
+}
+
+function writeCameraPosition(
+  target: Float32Array,
+  targetOffset: number,
+  viewMatrices: Float32Array,
+  viewMatrixOffset: number,
+): void {
+  const tx = viewMatrices[viewMatrixOffset + 12] ?? 0;
+  const ty = viewMatrices[viewMatrixOffset + 13] ?? 0;
+  const tz = viewMatrices[viewMatrixOffset + 14] ?? 0;
+
+  target[targetOffset] = -(
+    (viewMatrices[viewMatrixOffset] ?? 1) * tx +
+    (viewMatrices[viewMatrixOffset + 1] ?? 0) * ty +
+    (viewMatrices[viewMatrixOffset + 2] ?? 0) * tz
+  );
+  target[targetOffset + 1] = -(
+    (viewMatrices[viewMatrixOffset + 4] ?? 0) * tx +
+    (viewMatrices[viewMatrixOffset + 5] ?? 1) * ty +
+    (viewMatrices[viewMatrixOffset + 6] ?? 0) * tz
+  );
+  target[targetOffset + 2] = -(
+    (viewMatrices[viewMatrixOffset + 8] ?? 0) * tx +
+    (viewMatrices[viewMatrixOffset + 9] ?? 0) * ty +
+    (viewMatrices[viewMatrixOffset + 10] ?? 1) * tz
+  );
+  target[targetOffset + 3] = 1;
 }
 
 function ensureViewUniformDataCapacity(

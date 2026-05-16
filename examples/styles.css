@@ -33,6 +33,7 @@ body {
 }
 
 .viewport-panel {
+  position: relative;
   display: grid;
   min-height: 360px;
   border: 1px solid rgb(255 255 255 / 14%);
@@ -99,6 +100,33 @@ body {
 .example-links a:focus-visible {
   outline: 2px solid #81d69d;
   outline-offset: 3px;
+}
+
+.material-showcase-panel {
+  overflow: hidden;
+}
+
+.material-legend {
+  position: absolute;
+  right: 20px;
+  bottom: 18px;
+  left: 20px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  pointer-events: none;
+}
+
+.material-legend span {
+  min-width: 0;
+  padding: 8px 10px;
+  border: 1px solid rgb(255 255 255 / 16%);
+  background: rgb(13 16 20 / 78%);
+  color: #edf2f7;
+  font-size: 13px;
+  font-weight: 650;
+  text-align: center;
+  backdrop-filter: blur(8px);
 }
 
 #example-json {

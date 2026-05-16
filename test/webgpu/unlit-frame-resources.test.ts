@@ -15,6 +15,7 @@ import {
   type UnlitBindGroupLayoutResource,
   type UnlitFrameGpuResourceDeviceLike,
 } from "@aperture-engine/webgpu";
+import { PACKED_VIEW_UNIFORM_FLOAT_STRIDE } from "@aperture-engine/core";
 
 describe("unlit frame GPU resource upload", () => {
   it("uploads mesh, frame buffers, material buffers, and actual bind groups", () => {
@@ -284,7 +285,7 @@ function samplerResource(
 
 function packedViews(): PackedSnapshotViewUniforms {
   return {
-    data: identityMatrices(1),
+    data: identityViewUniforms(1),
     views: [{ viewId: 1, sourceOffset: 0, packedOffset: 0 }],
     diagnostics: [],
   };
@@ -303,6 +304,19 @@ function identityMatrices(count: number): Float32Array {
 
   for (let index = 0; index < count; index += 1) {
     data.set([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1], index * 16);
+  }
+
+  return data;
+}
+
+function identityViewUniforms(count: number): Float32Array {
+  const data = new Float32Array(count * PACKED_VIEW_UNIFORM_FLOAT_STRIDE);
+
+  for (let index = 0; index < count; index += 1) {
+    const offset = index * PACKED_VIEW_UNIFORM_FLOAT_STRIDE;
+
+    data.set([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1], offset);
+    data.set([0, 0, 0, 1], offset + 16);
   }
 
   return data;
