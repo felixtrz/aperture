@@ -25,15 +25,163 @@ The MVP 3D concept coverage gate is complete. Ready tasks are now implementation
 
 Keep implementation vertical, typed, and testable. Do not introduce a public mutable scene graph, renderer-owned ECS/game state, or WebGL fallback.
 
+## Task Categories
+
+Every ready task must declare one primary category:
+
+- `simulation`: ECS, assets, math, diagnostics, transforms, headless systems.
+- `render-bridge`: render authoring components, extraction, snapshots, render
+  world contracts, prepared-asset contracts.
+- `webgpu-render`: GPU resources, WGSL, pipelines, bind groups, render passes,
+  command encoding, submission, GPU diagnostics.
+- `runtime-orchestration`: app facades, frame loop policy, examples, headless vs
+  WebGPU mode selection.
+- `docs-tooling`: docs, scripts, tests, validation, agent workflow.
+- `audit-refactor`: architecture drift checks and small corrective refactors.
+
+Reference anchors:
+
+- `simulation`, `render-bridge`, and `runtime-orchestration` work should inspect
+  `/Users/felixz/Projects/aperture/references/bevy` for ECS, assets, extraction,
+  render app, material, and render-asset preparation patterns before
+  implementation.
+- `webgpu-render` work should inspect both
+  `/Users/felixz/Projects/aperture/references/engine` and
+  `/Users/felixz/Projects/aperture/references/three.js`, compare common render
+  pipeline patterns, and adapt the best Aperture-specific version without
+  copying code.
+- `audit-refactor` work should compare implementation against the North Star,
+  Architecture, Decisions, package boundaries, and the relevant reference
+  anchors for the audited area.
+
+Every few implementation tasks, keep an `audit-refactor` task in the ready queue
+to catch drift before it compounds.
+
 ## Recommended Next Task
 
-Start with `task-0540`. The monorepo split and first Bevy-style authoring pass
-are in place, so the next bridge gap is a typed asset collection API over the
-generic registry.
+Start with `task-0546`. The render pipeline reference audit is complete, and
+the next implementation step is to make Aperture's phase vocabulary explicit
+before changing pipeline cache, bind group, queue, or resource lifetime behavior.
 
-## Ready Tasks
+## Ready Tasks By Category
+
+### Render Pipeline Reference Follow-Ups
+
+### task-0546 — Add render frame phase model and report
+
+Category: `render-bridge`
+Package/write-scope: `packages/render/src/rendering`,
+`packages/webgpu/src/webgpu`, targeted render/WebGPU tests.
+Reference anchor: `docs/research/RENDER_PIPELINE_REFERENCE_AUDIT.md`, Three.js
+render list/render object managers, and PlayCanvas render actions/frame graph.
+
+Add an explicit phase model for the current render pipeline without changing
+runtime behavior.
+
+Acceptance criteria:
+
+- Define stable phase names for snapshot apply, asset/resource preparation,
+  queue/package creation, draw-list/resource resolution, command planning, and
+  submission/reporting.
+- Existing `planRenderFrameFromSnapshot` summary reports counts and diagnostics
+  under the phase names.
+- Tests cover deterministic phase ordering, count aggregation, and diagnostic
+  grouping.
+- No PBR, lighting shader activation, frame graph, or browser behavior change is
+  introduced.
+
+### task-0547 — Expand WebGPU render pipeline cache keys
+
+Category: `webgpu-render`
+Package/write-scope: `packages/webgpu/src/webgpu/pipeline-cache.ts`,
+pipeline-cache integration tests.
+Reference anchor: PlayCanvas `webgpu-render-pipeline.js` pipeline hash and
+Three.js `Pipelines` / `RenderObject` cache-key patterns.
+
+Make Aperture's WebGPU pipeline cache key account for the dimensions that
+matter before PBR and multiple passes land.
+
+Acceptance criteria:
+
+- Pipeline keys include shader family/label, color formats, depth/stencil
+  formats, primitive topology, vertex layout key, bind group layout keys,
+  blend/depth/stencil/cull/front-face state, material pipeline key, and material
+  variant key.
+- Key generation remains deterministic and JSON-safe.
+- Existing unlit pipeline keys remain understandable in diagnostics.
+- Tests cover key differences for render target, bind group layout, vertex
+  layout, and render-state changes.
+
+### task-0548 — Add bind group layout metadata and validation
+
+Category: `webgpu-render`
+Package/write-scope: `packages/webgpu/src/webgpu`, unlit bind group layout tests.
+Reference anchor: PlayCanvas `BindGroupFormat` / `WebgpuBindGroup` and Three.js
+`Bindings`.
+
+Make bind group layout contracts explicit instead of implicit in unlit helper
+code.
+
+Acceptance criteria:
+
+- Define JSON-safe metadata for each bind group: group index, name, binding
+  slots, resource type, visibility, and required/optional status.
+- Validate skipped groups, duplicate slots, missing required entries, and
+  resource type mismatches before bind group creation.
+- Existing unlit layouts expose this metadata.
+- Tests cover valid unlit layouts and failure diagnostics without raw GPU
+  handles.
+
+### task-0549 — Introduce view/pass-scoped render queues
+
+Category: `render-bridge`
+Package/write-scope: `packages/render/src/rendering`, targeted render package
+and extraction tests.
+Reference anchor: Three.js `RenderList` opaque/transparent lists and PlayCanvas
+`RenderAction` layer/camera pass model.
+
+Add an intermediate queue record between render-world readiness and draw package
+creation.
+
+Acceptance criteria:
+
+- Queue records include render id, view id or default view scope, pass id,
+  queue kind, material/pipeline grouping keys, and stable sort key.
+- Current unlit mesh draws still produce the same draw package order.
+- Opaque queue behavior is implemented; transparent queue fields can be
+  reserved but must not activate incomplete transparency rendering.
+- Tests cover stable sorting and view/pass grouping without changing browser
+  output.
+
+### task-0550 — Add renderer resource lifetime and version inspection
+
+Category: `webgpu-render`
+Package/write-scope: `packages/webgpu/src/webgpu`, resource summary/frame report
+tests.
+Reference anchor: Three.js resource manager/version invalidation patterns and
+PlayCanvas WebGPU submit-version/deferred-destroy discipline.
+
+Expose resource lifetime and version state as diagnostics/readiness data before
+advanced materials and PBR expand GPU resource counts.
+
+Acceptance criteria:
+
+- Renderer-owned resource records can report asset key, resource key, version or
+  generation, status, and pending-destroy state without raw GPU handles.
+- Resource summaries include cache counts and stale/missing resource diagnostics.
+- Existing mesh/material/texture/light resource summaries keep their current
+  JSON-safe behavior.
+- Tests cover stale version, missing resource, and pending-destroy reporting.
+
+### Render Bridge / ECS Binding
 
 ### task-0540 — Add typed asset collection API over AssetRegistry
+
+Category: `render-bridge`
+Package/write-scope: `packages/simulation/src/assets`, `packages/render/src`,
+targeted asset/render tests.
+Reference anchor: Bevy typed `Assets<T>` resources and asset handles in
+`/Users/felixz/Projects/aperture/references/bevy`.
 
 Add a small typed asset collection layer that returns stable handles without
 requiring callers to manually assemble kind/id pairs.
@@ -49,6 +197,11 @@ Acceptance criteria:
 
 ### task-0541 — Define renderer-independent render asset preparation contract
 
+Category: `render-bridge`
+Package/write-scope: `packages/render/src`, docs, targeted render tests.
+Reference anchor: Bevy `RenderAsset` / prepared render asset pattern in
+`/Users/felixz/Projects/aperture/references/bevy`.
+
 Define the TypeScript contract for converting source assets into renderer-owned
 prepared resources without adding new GPU behavior.
 
@@ -63,6 +216,12 @@ Acceptance criteria:
 
 ### task-0542 — Split render frame planning into extract, prepare, queue, sort phases
 
+Category: `render-bridge`
+Package/write-scope: `packages/render/src`, `packages/webgpu/src/webgpu` only if
+needed for naming adapters, targeted render/WebGPU tests.
+Reference anchor: Bevy render schedules and phase queue/sort concepts in
+`/Users/felixz/Projects/aperture/references/bevy`.
+
 Make the current render-frame planning vocabulary match the Bevy-inspired stage
 model without rewriting the renderer.
 
@@ -75,7 +234,15 @@ Acceptance criteria:
   the named phase helpers.
 - No PBR lighting math or shader activation is introduced.
 
+### Runtime / Orchestration
+
 ### task-0543 — Add Bevy-aligned runtime API sketch and example target
+
+Category: `runtime-orchestration`
+Package/write-scope: `packages/runtime/src`, examples, runtime/browser tests as
+needed.
+Reference anchor: Bevy app/world/render-app orchestration concepts in
+`/Users/felixz/Projects/aperture/references/bevy`.
 
 Create a minimal API plan or vertical slice for declaring an ECS cube using
 typed assets, mesh/material components, and a system that spins it.
@@ -89,7 +256,40 @@ Acceptance criteria:
   collections.
 - Validation covers either the runnable example or the documented API contract.
 
+### Audit / Refactor
+
+### task-0544 — Audit Bevy bridge and package-boundary drift
+
+Category: `audit-refactor`
+Package/write-scope: docs, package manifests, imports, tests; small corrective
+code changes only if directly tied to the audit findings.
+Reference anchor: `docs/NORTH_STAR.md`, `docs/ARCHITECTURE.md`,
+`docs/DECISIONS.md`, `docs/research/BEVY_ECS_RENDER_ALIGNMENT.md`, and relevant
+Bevy files under `/Users/felixz/Projects/aperture/references/bevy`.
+
+Run a focused audit after the typed assets / render asset preparation /
+runtime-orchestration bridge work starts landing.
+
+Acceptance criteria:
+
+- Verify package dependency directions still match `docs/ARCHITECTURE.md`.
+- Verify ECS remains authoritative and WebGPU does not import runtime or core.
+- Verify new public APIs still use `Mesh`/`Material` components and stable asset
+  handles rather than scene-node state.
+- Verify docs, backlog categories, and handoff describe the actual architecture.
+- Add concrete follow-up backlog items for any drift that is too large to fix
+  inside the audit task.
+- Run `pnpm run check`.
+
+### WebGPU / Render Pipeline
+
 ### task-0534 — Add light shader WGSL data contract
+
+Category: `webgpu-render`
+Package/write-scope: `packages/webgpu/src/webgpu`, targeted WebGPU shader/tests.
+Reference anchor: Compare light/uniform/storage binding and shader declaration
+patterns in `/Users/felixz/Projects/aperture/references/engine` and
+`/Users/felixz/Projects/aperture/references/three.js`.
 
 Define the WGSL struct/declaration contract for packed light float and metadata
 buffers.
@@ -106,6 +306,12 @@ Acceptance criteria:
 
 ### task-0535 — Add light shader declaration JSON helper
 
+Category: `webgpu-render`
+Package/write-scope: `packages/webgpu/src/webgpu`, targeted WebGPU JSON/tests.
+Reference anchor: Compare shader metadata/debug inspection patterns in
+`/Users/felixz/Projects/aperture/references/engine` and
+`/Users/felixz/Projects/aperture/references/three.js`.
+
 Expose the WGSL light shader declaration contract through a JSON-safe inspection
 helper.
 
@@ -117,6 +323,13 @@ Acceptance criteria:
 - Helper remains renderer-side inspection data only.
 
 ### task-0536 — Add unlit shader metadata variant with light bindings
+
+Category: `webgpu-render`
+Package/write-scope: `packages/webgpu/src/webgpu`, targeted shader metadata
+tests.
+Reference anchor: Compare pipeline/material binding layouts in
+`/Users/felixz/Projects/aperture/references/engine` and
+`/Users/felixz/Projects/aperture/references/three.js`.
 
 Define a metadata-only shader variant that combines existing unlit draw bindings
 with the future light bind group contract.
@@ -131,6 +344,12 @@ Acceptance criteria:
 
 ### task-0537 — Document light shader WGSL contract boundary
 
+Category: `docs-tooling`
+Package/write-scope: docs and package-level references only.
+Reference anchor: The WebGPU shader contract implemented in `packages/webgpu`
+plus the engine/three.js patterns inspected by the preceding `webgpu-render`
+tasks.
+
 Document the light WGSL declaration and metadata-only shader variant.
 
 Acceptance criteria:
@@ -142,12 +361,17 @@ Acceptance criteria:
 
 ### task-0538 — Run consolidated light shader contract validation
 
+Category: `webgpu-render`
+Package/write-scope: validation and focused fixes in `packages/webgpu` only.
+Reference anchor: Existing WebGPU shader/resource tests and the engine/three.js
+patterns documented by `task-0534` through `task-0536`.
+
 Run broader validation after the WGSL contract and metadata-only shader variant
 slices.
 
 Acceptance criteria:
 
-- `npm run check` passes.
+- `pnpm run check` passes.
 - Lighting route Playwright coverage passes.
 - Any validation failure is either fixed or documented in handoff.
 
@@ -189,5 +413,8 @@ At the end of a run:
 - Mark completed task(s).
 - Add new tasks if the backlog has fewer than five ready tasks.
 - New tasks must align with roadmap and the MVP feature contract.
-- New tasks must have acceptance criteria.
+- New tasks must include category, package/write-scope, reference anchor, and
+  acceptance criteria.
 - Prefer vertical slices that preserve the ECS/render-extraction boundary.
+- Keep a focused `audit-refactor` task in the queue after every three to five
+  implementation tasks or any major package/API/render-pipeline boundary change.

@@ -3,8 +3,8 @@
   "currentTaskId": null,
   "lastRunStartedAt": "2026-05-16T14:02:07Z",
   "lastResult": "success",
-  "lastCommit": null,
+  "lastCommit": "c636726",
   "activePid": null,
-  "notes": "Implemented pnpm workspace package split and completed task-0539: MeshRenderer replaced by Mesh plus Material components; next task is task-0540 typed asset collections.",
-  "lastRunFinishedAt": "2026-05-16T16:15:02Z"
+  "notes": "Render pipeline reference audit complete; docs/research/RENDER_PIPELINE_REFERENCE_AUDIT.md added and next task is task-0546 render frame phase model/report.",
+  "lastRunFinishedAt": "2026-05-16T16:51:05Z"
 }

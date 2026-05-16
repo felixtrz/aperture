@@ -2,32 +2,68 @@
 
 ## Current Status
 
-The pnpm monorepo/package-boundary refactor is implemented.
+The render pipeline reference audit is complete.
+
+Recent architecture state:
+
+- The pnpm monorepo/package-boundary refactor is implemented.
+- Active packages are `@aperture-engine/simulation`,
+  `@aperture-engine/render`, `@aperture-engine/webgpu`,
+  `@aperture-engine/runtime`, and `@aperture-engine/core`.
+- The active render authoring model uses separate `Mesh` and `Material`
+  components rather than `MeshRenderer`.
+
+Latest workflow update:
+
+- `agent/WAKE.md` now requires categorizing selected tasks before
+  implementation.
+- Ready backlog tasks now include category, package/write-scope, and reference
+  anchor metadata.
+- Reference policy is explicit:
+  - ECS binding, render bridge, assets, and orchestration should anchor on
+    `/Users/felixz/Projects/aperture/references/bevy`.
+  - WebGPU/render-pipeline work should compare
+    `/Users/felixz/Projects/aperture/references/engine` and
+    `/Users/felixz/Projects/aperture/references/three.js`, then adapt the common
+    patterns to Aperture.
+- The backlog now includes recurring `audit-refactor` tasks to catch
+  architecture drift every few implementation tasks or after boundary changes.
 
 Completed in this run:
 
-- Converted the repo to a pnpm workspace.
-- Added packages:
-  - `@aperture-engine/simulation`
-  - `@aperture-engine/render`
-  - `@aperture-engine/webgpu`
-  - `@aperture-engine/runtime`
-  - `@aperture-engine/core`
-- Moved implementation code from `src/*` into package-scoped source trees.
-- Removed the old root `src/index.ts`.
-- Removed `package-lock.json` and generated `pnpm-lock.yaml`.
-- Replaced active `MeshRenderer` authoring with separate `Mesh` and `Material`
-  ECS components.
-- Updated extraction, examples, fixtures, and tests to use `Mesh` plus
-  `Material`.
-- Decoupled primitive mesh builders from material handles.
-- Added a first headless runtime facade:
-  - `createSimulationApp`
-  - `createExtractionApp`
-- Made `@aperture-engine/core` headless-safe; it exports simulation, render, and
-  runtime only.
-- Made `@aperture-engine/webgpu` the explicit backend import; it re-exports only
-  simulation/render contracts plus WebGPU backend APIs.
+- Added `docs/research/RENDER_PIPELINE_REFERENCE_AUDIT.md`.
+- Confirmed `/Users/felixz/Projects/aperture/references/engine` is the
+  PlayCanvas engine checkout and used it as the canonical PlayCanvas reference.
+- Compared Aperture's current render pipeline against local Three.js and
+  PlayCanvas renderer implementations.
+- Documented the current Aperture pipeline:
+  `RenderSnapshot -> RenderWorld.applySnapshot -> resource binding updates ->
+draw readiness report -> RenderWorldDrawPackage plan -> DrawCommandDescriptor
+plan -> RenderPassDrawList plan -> render pass resource resolution ->
+RenderPassCommand plan -> command execution/frame report`.
+- Added prioritized follow-up tasks `task-0546` through `task-0550` for render
+  phases, pipeline cache keys, bind group layout metadata, view/pass queues, and
+  resource lifetime/version inspection.
+
+Reference files inspected for the audit:
+
+- Three.js `src/renderers/common/RenderLists.js`
+- Three.js `src/renderers/common/RenderList.js`
+- Three.js `src/renderers/common/RenderObjects.js`
+- Three.js `src/renderers/common/RenderObject.js`
+- Three.js `src/renderers/common/Pipelines.js`
+- Three.js `src/renderers/common/Bindings.js`
+- Three.js `src/renderers/webgpu/WebGPUBackend.js`
+- PlayCanvas `src/scene/frame-graph.js`
+- PlayCanvas `src/scene/composition/render-action.js`
+- PlayCanvas `src/scene/renderer/render-pass-forward.js`
+- PlayCanvas `src/scene/renderer/forward-renderer.js`
+- PlayCanvas `src/platform/graphics/bind-group-format.js`
+- PlayCanvas `src/platform/graphics/webgpu/webgpu-render-pipeline.js`
+- PlayCanvas `src/platform/graphics/webgpu/webgpu-pipeline.js`
+- PlayCanvas `src/platform/graphics/webgpu/webgpu-bind-group.js`
+- PlayCanvas `src/platform/graphics/webgpu/webgpu-draw-commands.js`
+- PlayCanvas `src/platform/graphics/webgpu/webgpu-graphics-device.js`
 
 ## Architecture Notes
 
@@ -40,83 +76,29 @@ Completed in this run:
 - `@aperture-engine/webgpu` does not import runtime or core.
 - WebGPU examples import `@aperture-engine/core` and
   `@aperture-engine/webgpu` explicitly.
+- The renderer pipeline should now evolve in the order captured by
+  `docs/research/RENDER_PIPELINE_REFERENCE_AUDIT.md`: explicit phase model,
+  expanded pipeline keys, bind group layout metadata, view/pass render queues,
+  then resource lifetime/version diagnostics.
 
 ## Files Touched
 
-Package/workspace structure:
-
-- `package.json`
-- `pnpm-workspace.yaml`
-- `pnpm-lock.yaml`
-- `tsconfig.base.json`
-- `tsconfig.json`
-- `tsconfig.test.json`
-- `packages/*/package.json`
-- `packages/*/tsconfig.json`
-- `packages/*/src/**`
-
 Docs/bookkeeping:
 
-- `docs/ARCHITECTURE.md`
-- `docs/DECISIONS.md`
-- `docs/MVP_3D_CONCEPTS.md`
-- `docs/NORTH_STAR.md`
-- `docs/ROADMAP.md`
-- `docs/UNLIT_TEXTURED_MATERIAL_PLAN.md`
-- `docs/PNPM_MONOREPO_REFACTOR_PLAN.md`
-- `docs/research/BEVY_ECS_RENDER_ALIGNMENT.md`
-- `docs/research/MATERIAL_TEXTURE_RENDER_STATE_COVERAGE.md`
-- `docs/research/MESH_GEOMETRY_COVERAGE.md`
+- `docs/research/RENDER_PIPELINE_REFERENCE_AUDIT.md`
 - `agent/BACKLOG.md`
 - `agent/COMPLETED.md`
 - `agent/HANDOFF.md`
 - `agent/STATUS.json`
 
-Examples/scripts/config:
-
-- `examples/*.html`
-- `examples/main.js`
-- `examples/triangle.js`
-- `examples/multi-entity.js`
-- `examples/spinning-cube.js`
-- `scripts/serve-examples.mjs`
-- `playwright.config.ts`
-- `eslint.config.js`
-- `vitest.config.ts`
-
-Tests:
-
-- Updated package imports across unit tests.
-- Updated render authoring/extraction tests for `Mesh` plus `Material`.
-- Added `test/runtime/runtime.test.ts`.
-- Updated browser E2E expected backend identity to `webgpu-explicit`.
-
 ## Validation Run
 
-Passed:
-
-- `pnpm install`
-- `pnpm run check`
-  - build/typecheck
-  - test typecheck
-  - example syntax checks
-  - ESLint
-  - Prettier check
-  - Vitest: 139 files, 643 tests
-- `pnpm run test:e2e -- spinning-cube.spec.ts primitive-routing.spec.ts --reporter=line`
-  - 7 browser tests passed.
-- `pnpm exec playwright test --reporter=line`
-  - 139 browser tests passed.
-
-One attempted command was invalid:
-
-- `pnpm run test:e2e -- --reporter=line` passed an extra `--` through to
-  Playwright and produced "No tests found"; reran as
-  `pnpm exec playwright test --reporter=line`, which passed.
+- `pnpm exec prettier --write docs/research/RENDER_PIPELINE_REFERENCE_AUDIT.md agent/BACKLOG.md agent/COMPLETED.md agent/HANDOFF.md agent/STATUS.json agent/WAKE.md`
+  completed.
+- `pnpm run format:check` passed.
 
 ## Known Issues
 
-- No known validation failures.
 - Typed asset collections are still not implemented; callers still use
   `AssetRegistry` directly.
 - Render asset preparation is still spread across render/WebGPU helpers and
@@ -125,8 +107,13 @@ One attempted command was invalid:
   contain backend setup code.
 - PBR remains blocked on typed assets, material-family contracts, and render
   asset preparation.
+- The audit identified render pipeline drift risks that should be handled before
+  deeper shader/PBR work: mixed stage vocabulary, narrow pipeline cache keys,
+  implicit bind group layout contracts, no view/pass queue model, and no formal
+  resource lifetime/version inspection.
 
 ## Recommended Next Task
 
-Start with `task-0540 — Add typed asset collection API over AssetRegistry`.
-That is the next Bevy-aligned bridge gap before deeper material/PBR work.
+Start with `task-0546 — Add render frame phase model and report`. This should
+make the current pipeline stage vocabulary explicit before changing cache keys,
+bind groups, render queues, or resource lifetime behavior.

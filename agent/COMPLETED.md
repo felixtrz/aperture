@@ -4639,3 +4639,23 @@ Summary:
   reflect the implemented package boundaries and authoring model.
 - Validation run: `pnpm run check`, focused spinning cube/primitive Playwright
   slice, and full `pnpm exec playwright test --reporter=line` all pass.
+
+## task-0545 — Audit render pipeline against Three.js and PlayCanvas
+
+Completed: 2026-05-16
+
+Summary:
+
+- Used `/Users/felixz/Projects/aperture/references/engine` as the canonical
+  local PlayCanvas reference and
+  `/Users/felixz/Projects/aperture/references/three.js` as the local Three.js
+  reference.
+- Added `docs/research/RENDER_PIPELINE_REFERENCE_AUDIT.md`.
+- Compared Aperture's current render pipeline against reference patterns for
+  render object identity, render lists/queues, pipeline caching, bind group
+  contracts, render passes/frame graph, resource lifetime, draw command
+  execution, and diagnostics.
+- Refilled the ready backlog with follow-up tasks `task-0546` through
+  `task-0550`.
+- No render pipeline code was changed in this audit task.
+- Validation run: `pnpm run format:check`.
