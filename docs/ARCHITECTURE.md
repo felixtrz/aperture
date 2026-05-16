@@ -20,6 +20,50 @@ The ECS world is authoritative. Rendering is a derived view of ECS state.
 
 There is no public three.js-style mutable scene graph as the central world model.
 
+## Package Boundaries
+
+Aperture is organized as a pnpm workspace with package boundaries that mirror
+the runtime architecture:
+
+- `@aperture-engine/simulation`: headless ECS, assets, diagnostics, math, and
+  transform ownership. It must not import render, runtime, WebGPU, or browser
+  globals.
+- `@aperture-engine/render`: renderer-independent authoring components, mesh
+  and material asset contracts, render extraction, snapshots, render world data,
+  and diagnostics. It may import simulation, but not WebGPU.
+- `@aperture-engine/webgpu`: the explicit WebGPU backend. It consumes render
+  snapshots/render-world data and owns GPU resources, render passes, pipelines,
+  bind groups, command encoding, and submission.
+- `@aperture-engine/runtime`: headless simulation and extraction app facades.
+  It currently composes simulation and render only; WebGPU app orchestration
+  should remain an optional future layer.
+- `@aperture-engine/core`: headless-safe umbrella API for common user code. It
+  re-exports simulation, render, and runtime, but intentionally does not export
+  WebGPU backend APIs.
+
+Users who need GPU presentation should import `@aperture-engine/webgpu`
+explicitly alongside `@aperture-engine/core` or focused package imports.
+
+## Bevy-Inspired Bridge
+
+Aperture should use Bevy as the primary conceptual reference for the
+ECS-to-render bridge:
+
+- Main/simulation ECS state is authoritative.
+- An entity becomes renderable only by adding render-facing components.
+- Meshes, materials, textures, samplers, and environment maps are assets
+  referenced by stable handles from components.
+- Render extraction copies only render-relevant ECS data into a derived render
+  representation.
+- Render asset preparation turns source assets into renderer-owned GPU-ready
+  resources.
+- Draw queueing, phase sorting, and WebGPU command submission happen after
+  extraction and preparation.
+
+Aperture keeps a serializable `RenderSnapshot` as its worker-ready boundary. A
+future render world may look more like a Bevy render app internally, but it must
+not become authoritative gameplay state.
+
 ## Primary Layers
 
 ### ECS / Simulation Layer
@@ -74,7 +118,11 @@ Main-thread/render-thread representation of renderable state.
 Owns:
 
 - Render objects.
+- Prepared mesh assets.
+- Prepared material assets.
+- Prepared texture and sampler resources.
 - GPU-facing resource references.
+- Draw queues / phase items.
 - Material/pipeline grouping.
 - Draw sorting state.
 - Batching state.
@@ -118,7 +166,8 @@ The renderer should never compute gameplay hierarchy itself.
 
 Initial ECS-facing render components may include:
 
-- `MeshRenderer`
+- `Mesh`
+- `Material`
 - `Camera`
 - `Visibility`
 - `RenderLayer`
@@ -128,6 +177,18 @@ Initial ECS-facing render components may include:
 - `LightShadowSettings`
 
 These are semantic app-facing components. They should not contain WebGPU-specific state.
+
+The preferred mesh authoring direction follows Bevy conceptually, but drops the
+`3d` suffix because Aperture is a 3D-only runtime: store mesh and material
+handles in separate components. The early combined `MeshRenderer` component has
+been removed from the active API.
+
+- `Mesh`: stable `MeshHandle`.
+- `Material`: stable material handle for the entity's primary mesh material.
+- `MaterialSlots` or separate primitive entities later for multi-material meshes.
+
+This keeps the entity as logic identity and makes renderability opt-in through
+components rather than through renderer-owned objects.
 
 Light and environment authoring follow the same ECS-owned rule as mesh and
 camera authoring. Ambient and environment inputs are global and can be extracted
@@ -194,6 +255,24 @@ Examples:
 
 GPU objects are created and owned by the renderer/asset backend, not by ECS components.
 
+Common authoring should move toward typed asset collections over the generic
+registry:
+
+- `Assets<MeshAsset>`
+- `Assets<UnlitMaterialAsset>`
+- `Assets<StandardMaterialAsset>`
+- `Assets<TextureAsset>`
+- `Assets<SamplerAsset>`
+
+The generic `AssetRegistry` can remain the manifest, status, dependency, and
+diagnostic substrate. Typed collections should be the ergonomic API for adding,
+updating, and looking up source assets.
+
+Renderer-owned prepared assets should be produced by explicit render asset
+adapters. A render asset adapter maps a source asset and its version/dependency
+state into a prepared renderer resource such as uploaded mesh buffers, material
+bind data, texture views, samplers, or pipeline keys.
+
 ## Frame Pipeline
 
 A typical single-threaded frame:
@@ -205,10 +284,13 @@ A typical single-threaded frame:
 4. Simulation systems
 5. Transform resolution
 6. Render extraction
-7. Render world update
-8. WebGPU render graph execution
-9. GPU submit
-10. Cleanup
+7. Render asset extraction / change collection
+8. Render asset preparation
+9. Draw queueing
+10. Phase sorting
+11. WebGPU render graph execution
+12. GPU submit
+13. Cleanup
 ```
 
 A future split-thread frame:
@@ -225,8 +307,10 @@ Main:
   1. Collect input
   2. Write input command stream
   3. Read latest complete render snapshot
-  4. Update render world
-  5. Render via WebGPU
+  4. Apply render snapshot to render world
+  5. Prepare changed render assets
+  6. Queue and sort draw items
+  7. Render via WebGPU
 ```
 
 ## Multithreading Design Direction

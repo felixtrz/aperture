@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   runInjectedFrameExecution,
   type RenderPassCommand,
-} from "../../src/index.js";
+} from "@aperture-engine/webgpu";
 
 type FailurePoint = "texture" | "execute" | "finish" | "submit";
 

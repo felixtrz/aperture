@@ -5,7 +5,7 @@ import {
   type BatchCompatibilityKey,
   type MeshGpuBufferResource,
   type RenderWorldDrawPackage,
-} from "../../src/index.js";
+} from "@aperture-engine/webgpu";
 
 const BATCH: BatchCompatibilityKey = {
   pipelineKey: "unlit",

@@ -21,7 +21,7 @@ import {
   type SnapshotLightBindGroupDeviceLike,
   type TextureDescriptorInput,
   type TextureGpuDeviceLike,
-} from "../../src/index.js";
+} from "@aperture-engine/webgpu";
 
 describe("renderer resource summary JSON helpers", () => {
   it("serializes texture upload validation diagnostics with stable resource keys", () => {

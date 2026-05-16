@@ -10,10 +10,12 @@ export default tseslint.config(
   {
     ignores: [
       "dist/**",
+      "packages/*/dist/**",
       "node_modules/**",
       "coverage/**",
       "agent/logs/**",
       ".codex/**",
+      "references/**",
     ],
   },
   {
@@ -45,7 +47,7 @@ export default tseslint.config(
   },
   {
     files: [
-      "src/**/*.ts",
+      "packages/**/*.ts",
       "test/**/*.ts",
       "playwright.config.ts",
       "vitest.config.ts",

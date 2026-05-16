@@ -5,7 +5,7 @@ import {
   createWebGpuRenderPipelineCacheKey,
   type BatchCompatibilityKey,
   type WebGpuRenderPipelineDeviceLike,
-} from "../../src/index.js";
+} from "@aperture-engine/webgpu";
 
 const BATCH_KEY: BatchCompatibilityKey = {
   pipelineKey: "unlit|opaque|back|less|none",

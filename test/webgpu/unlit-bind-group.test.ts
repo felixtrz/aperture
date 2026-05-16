@@ -7,7 +7,7 @@ import {
   createUnlitBindGroupsFromGpuResources,
   type UnlitBindGroupCreationDescriptor,
   type UnlitBindGroupLayoutResource,
-} from "../../src/index.js";
+} from "@aperture-engine/webgpu";
 
 describe("unlit bind group descriptor planning", () => {
   it("creates descriptor entries for all required resources", () => {

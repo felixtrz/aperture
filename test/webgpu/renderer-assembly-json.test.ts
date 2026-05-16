@@ -17,7 +17,7 @@ import {
   type RenderSnapshotCloneabilityResult,
   type RenderSnapshotInspectionReport,
   type SnapshotLightBindGroupDeviceLike,
-} from "../../src/index.js";
+} from "@aperture-engine/webgpu";
 
 describe("renderer assembly smoke JSON helpers", () => {
   it("creates JSON-safe values for ready renderer assembly reports", () => {

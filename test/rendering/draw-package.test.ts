@@ -13,7 +13,7 @@ import {
   type PackedSnapshotTransforms,
   type RenderWorldDrawReadinessReport,
   type RenderWorldReadyDraw,
-} from "../../src/index.js";
+} from "@aperture-engine/core";
 
 describe("render-world draw package planning", () => {
   it("creates packages for ready draws and preserves resource keys", () => {

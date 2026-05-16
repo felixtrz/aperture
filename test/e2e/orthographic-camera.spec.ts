@@ -26,7 +26,7 @@ test("ECS browser example renders primitive through orthographic camera", async 
     scenario: "orthographic-camera",
     ok: true,
     phase: "submit",
-    renderingBackend: "webgpu",
+    renderingBackend: "webgpu-explicit",
     extraction: { views: 1, meshDraws: 1, diagnostics: 0 },
     resources: { materials: 1, bindGroups: 3 },
     binding: { planned: 1, applied: 1, ready: 1, diagnostics: 0 },

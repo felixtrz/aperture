@@ -4,7 +4,7 @@ import {
   createShaderModuleResource,
   createUnlitMeshShaderModuleDescriptor,
   type WebGpuShaderDeviceLike,
-} from "../../src/index.js";
+} from "@aperture-engine/webgpu";
 
 describe("shader module resource creation", () => {
   it("creates shader module resources for the built-in unlit shader", async () => {

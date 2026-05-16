@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   summarizeInjectedRenderFrameDiagnosticsByPhase,
   type InjectedRenderFrameRunnerReport,
-} from "../../src/index.js";
+} from "@aperture-engine/webgpu";
 import { createInjectedRenderFrameSmokeFixture } from "./fixtures/injected-render-frame.js";
 
 describe("injected render frame diagnostics by phase", () => {

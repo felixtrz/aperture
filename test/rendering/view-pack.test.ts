@@ -4,7 +4,7 @@ import {
   packSnapshotViewUniforms,
   type RenderSnapshot,
   type ViewPacket,
-} from "../../src/index.js";
+} from "@aperture-engine/core";
 
 describe("snapshot view uniform packing", () => {
   it("packs one view-projection matrix", () => {

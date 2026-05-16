@@ -4,7 +4,7 @@ import {
   inspectRenderPackages,
   type BatchCompatibilityKey,
   type RenderWorldDrawPackage,
-} from "../../src/index.js";
+} from "@aperture-engine/core";
 
 const BATCH: BatchCompatibilityKey = {
   pipelineKey: "unlit",

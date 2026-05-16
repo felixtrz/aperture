@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { createClearCompatibilityReport } from "../../src/index.js";
+import { createClearCompatibilityReport } from "@aperture-engine/webgpu";
 import { frameBoundaryFixture } from "./fixtures/frame-boundary.js";
 
 describe("clear helper compatibility report", () => {

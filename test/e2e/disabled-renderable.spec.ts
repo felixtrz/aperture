@@ -25,7 +25,7 @@ test("ECS browser example reports disabled renderable without submitting draws",
     ok: false,
     phase: "extract",
     reason: "disabled-renderable",
-    renderingBackend: "webgpu",
+    renderingBackend: "webgpu-explicit",
     extraction: { views: 1, meshDraws: 0, diagnostics: 1 },
     disabled: {
       authored: 1,

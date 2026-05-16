@@ -27,7 +27,7 @@ test("ECS browser example applies sampler filter and address settings", async ({
     scenario: "sampler-filter-address",
     ok: true,
     phase: "submit",
-    renderingBackend: "webgpu",
+    renderingBackend: "webgpu-explicit",
     extraction: { views: 1, meshDraws: 1, diagnostics: 0 },
     resources: { materials: 1, textures: 1, samplers: 1, bindGroups: 3 },
     binding: { planned: 1, applied: 1, ready: 1, diagnostics: 0 },

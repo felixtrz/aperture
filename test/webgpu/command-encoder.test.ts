@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { createCommandEncoderResource } from "../../src/index.js";
+import { createCommandEncoderResource } from "@aperture-engine/webgpu";
 
 describe("command encoder creation helper", () => {
   it("creates renderer-owned command encoder records through injected devices", () => {

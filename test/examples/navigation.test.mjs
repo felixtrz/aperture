@@ -32,14 +32,27 @@ const examplePages = [
     canvasLabel: "Aperture WebGPU multi-entity canvas",
     exampleName: "ecs multi entity",
   },
+  {
+    file: "examples/spinning-cube.html",
+    script: "./spinning-cube.js",
+    title: "Aperture ECS Spinning Cube",
+    canvasLabel: "Aperture WebGPU spinning cube canvas",
+    exampleName: "ecs spinning cube",
+  },
 ];
 const expectedHrefs = [
   'href="/"',
   'href="/examples/triangle.html"',
   'href="/examples/multi-entity.html"',
+  'href="/examples/spinning-cube.html"',
 ];
 const readbackHelperImport = 'from "./webgpu-readback.js"';
 const expectedImports = {
+  "@aperture-engine/core": "/packages/core/dist/index.js",
+  "@aperture-engine/render": "/packages/render/dist/index.js",
+  "@aperture-engine/runtime": "/packages/runtime/dist/index.js",
+  "@aperture-engine/simulation": "/packages/simulation/dist/index.js",
+  "@aperture-engine/webgpu": "/packages/webgpu/dist/index.js",
   elics: "/node_modules/elics/lib/index.js",
   "wgpu-matrix": "/node_modules/wgpu-matrix/dist/3.x/wgpu-matrix.module.js",
   "@preact/signals-core":
@@ -105,6 +118,7 @@ describe("browser example navigation", () => {
       "examples/main.js",
       "examples/triangle.js",
       "examples/multi-entity.js",
+      "examples/spinning-cube.js",
     ]) {
       const script = await readExamplePage(file);
 

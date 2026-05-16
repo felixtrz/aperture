@@ -6,7 +6,7 @@ import {
   type PackedSnapshotViewUniforms,
   type ViewUniformBufferDescriptorPlan,
   type WebGpuBufferDeviceLike,
-} from "../../src/index.js";
+} from "@aperture-engine/webgpu";
 
 describe("view uniform GPU buffer resource creation", () => {
   it("creates view uniform buffer resources", () => {

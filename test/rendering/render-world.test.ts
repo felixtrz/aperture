@@ -11,7 +11,7 @@ import {
   createUnlitMaterialAsset,
   type MeshDrawPacket,
   type RenderSnapshot,
-} from "../../src/index.js";
+} from "@aperture-engine/core";
 
 describe("render world lifecycle", () => {
   it("creates, updates, and removes render objects by stable render id", () => {

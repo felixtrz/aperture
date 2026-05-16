@@ -88,7 +88,7 @@ test("Playwright shows an ECS-driven spinning unlit cube", async ({ page }) => {
     example: "ecs-spinning-cube",
     ok: true,
     phase: "animate",
-    renderingBackend: "webgpu",
+    renderingBackend: "webgpu-explicit",
     depth: { format: "depth24plus" },
     extraction: { views: 1, meshDraws: 1, transforms: 1, diagnostics: 0 },
     resources: { materials: 1, textures: 1, samplers: 1, bindGroups: 3 },

@@ -10,7 +10,7 @@ import {
   packSnapshotTransforms,
   type MeshDrawPacket,
   type RenderSnapshot,
-} from "../../src/index.js";
+} from "@aperture-engine/core";
 
 describe("render snapshot transform packing", () => {
   it("packs mesh draw transforms in stable draw order", () => {

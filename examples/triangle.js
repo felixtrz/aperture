@@ -20,7 +20,11 @@ const baseStatus = {
 };
 
 try {
-  const aperture = await import("/dist/index.js");
+  const [core, webgpu] = await Promise.all([
+    import("@aperture-engine/core"),
+    import("@aperture-engine/webgpu"),
+  ]);
+  const aperture = { ...core, ...webgpu };
 
   if (canvas === null) {
     publishStatus(failure("canvas", "canvas-unavailable", "Canvas missing."));
@@ -62,7 +66,7 @@ try {
       "dist-import-failed",
       error instanceof Error
         ? error.message
-        : "The built Aperture package could not be imported from /dist.",
+        : "The built Aperture workspace packages could not be imported.",
     ),
   );
 }
@@ -392,7 +396,7 @@ function createTriangleWorld(aperture, canvasSize) {
   const assets = new aperture.AssetRegistry();
   const meshHandle = aperture.createMeshHandle("triangle");
   const materialHandle = aperture.createMaterialHandle("triangle");
-  const mesh = createTriangleMesh(aperture, materialHandle);
+  const mesh = createTriangleMesh();
   const material = aperture.createUnlitMaterialAsset({
     label: "TriangleMaterial",
     baseColorFactor: new Float32Array([1, 0.18, 0.09, 1]),
@@ -427,9 +431,11 @@ function createTriangleWorld(aperture, canvasSize) {
   const triangleTransform = aperture.createRootTransform();
 
   triangle.addComponent(aperture.WorldTransform, triangleTransform.world);
-  triangle.addComponent(aperture.MeshRenderer, {
+  triangle.addComponent(aperture.Mesh, {
     meshId: aperture.assetHandleKey(meshHandle),
-    material0Id: aperture.assetHandleKey(materialHandle),
+  });
+  triangle.addComponent(aperture.Material, {
+    materialId: aperture.assetHandleKey(materialHandle),
   });
   triangle.addComponent(aperture.RenderLayer, { mask: 1 });
   triangle.addComponent(aperture.Visibility);
@@ -437,7 +443,7 @@ function createTriangleWorld(aperture, canvasSize) {
   return { world, assets, mesh, material };
 }
 
-function createTriangleMesh(aperture, materialHandle) {
+function createTriangleMesh() {
   return {
     kind: "mesh",
     label: "Triangle",
@@ -472,7 +478,7 @@ function createTriangleMesh(aperture, materialHandle) {
         indexCount: 3,
       },
     ],
-    materialSlots: [{ index: 0, label: "default", material: materialHandle }],
+    materialSlots: [{ index: 0, label: "default" }],
     localAabb: { min: [-0.72, -0.55, 0], max: [0.72, 0.72, 0] },
     localSphere: { center: [0, 0, 0], radius: 0.9 },
   };

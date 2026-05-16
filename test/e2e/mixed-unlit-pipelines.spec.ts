@@ -24,7 +24,7 @@ test("ECS browser example renders factor-only and textured unlit pipeline varian
     scenario: "mixed-unlit-pipelines",
     ok: true,
     phase: "submit",
-    renderingBackend: "webgpu",
+    renderingBackend: "webgpu-explicit",
     extraction: { views: 1, meshDraws: 2, diagnostics: 0 },
     resources: { materials: 2, textures: 1, samplers: 1, bindGroups: 6 },
     binding: { planned: 2, applied: 2, ready: 2, diagnostics: 0 },

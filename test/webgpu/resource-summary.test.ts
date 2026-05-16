@@ -18,7 +18,7 @@ import {
   type GetOrCreateRenderPipelineResult,
   type LightPacket,
   type WebGpuBufferDeviceLike,
-} from "../../src/index.js";
+} from "@aperture-engine/webgpu";
 
 describe("renderer resource summary report", () => {
   it("counts all-ready renderer resources", () => {

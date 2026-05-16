@@ -1,0 +1,25 @@
+{
+  "name": "@aperture-engine/simulation",
+  "version": "0.0.0",
+  "description": "Headless ECS, assets, math, diagnostics, and transform foundation for Aperture.",
+  "type": "module",
+  "license": "UNLICENSED",
+  "private": true,
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "elics": "^3.4.2",
+    "wgpu-matrix": "^3.4.2"
+  }
+}

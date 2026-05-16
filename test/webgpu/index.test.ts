@@ -7,7 +7,7 @@ import {
   type WebGpuCanvasContextLike,
   type WebGpuDeviceLike,
   type WebGpuLike,
-} from "../../src/index.js";
+} from "@aperture-engine/webgpu";
 
 describe("WebGPU support boundary", () => {
   it("reports missing navigator.gpu distinctly", () => {

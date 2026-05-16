@@ -25,7 +25,7 @@ test("ECS browser example reports unknown query scenarios without submitting dra
     ok: false,
     phase: "scenario",
     reason: "unknown-scenario",
-    renderingBackend: "webgpu",
+    renderingBackend: "webgpu-explicit",
     extraction: { views: 0, meshDraws: 0, diagnostics: 0 },
     resources: { materials: 0, bindGroups: 0, missing: "none" },
     binding: { planned: 0, applied: 0, ready: 0, diagnostics: 0 },

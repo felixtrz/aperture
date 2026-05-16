@@ -25,7 +25,7 @@ test("ECS browser example reports layer mismatch without submitting draws", asyn
     ok: false,
     phase: "extract",
     reason: "layer-mismatch",
-    renderingBackend: "webgpu",
+    renderingBackend: "webgpu-explicit",
     extraction: { views: 1, meshDraws: 0, diagnostics: 1 },
     layerFiltering: {
       cameraLayerMask: 1,

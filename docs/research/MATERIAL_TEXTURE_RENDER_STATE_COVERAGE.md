@@ -124,7 +124,10 @@ type TextureHandle = ResourceHandle<"texture">;
 type SamplerHandle = ResourceHandle<"sampler">;
 ```
 
-`MeshRenderer` should keep material references as handles or material-slot bindings. It should not embed material data, GPU resources, shader instances, or render-state objects.
+The ECS `Material` component should keep material references as handles. A
+future `MaterialSlots` component may bind submesh slots to material handles. ECS
+components must not embed material data, GPU resources, shader instances, or
+render-state objects.
 
 ### Material Assets
 
@@ -267,7 +270,8 @@ Material validation should emit structured diagnostics that include material han
 - `alphaMode: "mask"` with invalid `alphaCutoff`.
 - Blend material requesting depth write without an explicit override.
 - Normal texture used with a mesh that has no normals or no tangent fallback plan.
-- Material slot referenced by `MeshRenderer` but not present on the mesh submesh list.
+- Material slot referenced by `MaterialSlots` but not present on the mesh submesh
+  list.
 - Stencil state requested before stencil support exists.
 - Custom shader language/source requested before the custom WGSL material path exists.
 - Too many sampled textures for the current bind group layout.

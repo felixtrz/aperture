@@ -5,8 +5,8 @@ Aperture's ECS/render boundary.
 
 ## Boundary
 
-- ECS render authoring continues to store only asset handles through
-  `MeshRenderer` material ids.
+- ECS render authoring stores only asset handles through the `Mesh` and
+  `Material` components.
 - `UnlitMaterialAsset.baseColorTexture` remains material data, not GPU state.
   It may reference a `TextureHandle` and `SamplerHandle`.
 - `TextureAsset` and `SamplerAsset` live in the asset registry with normal

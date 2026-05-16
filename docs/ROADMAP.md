@@ -4,6 +4,44 @@ This roadmap is the medium-term execution plan. The North Star defines where the
 
 Agents should use this document to understand phase order, but should work from `agent/BACKLOG.md` for specific tasks.
 
+## Immediate Alignment Gate — Bevy ECS/Render Bridge
+
+As of 2026-05-16, Aperture should use the local Bevy checkout as the primary
+conceptual anchor for ECS-to-render architecture before adding deeper PBR or
+lighting features.
+
+Reason:
+
+- Bevy has proven patterns for ECS-authored renderability, typed assets,
+  material handles, render-world extraction, render asset preparation, and draw
+  queue phases.
+- Aperture's North Star already matches those principles. The initial bridge
+  alignment has replaced the combined `MeshRenderer` authoring model with
+  separate `Mesh` and `Material` components, but typed asset collections,
+  render-asset preparation, and higher-level app orchestration still need more
+  work.
+- Aperture is 3D-only, so Bevy's `Mesh3d`/`MeshMaterial3d` idea should become
+  unsuffixed `Mesh`/`Material` components here.
+- PBR material work should not proceed as shader work alone; it needs the
+  material asset, dependency, preparation, and queueing architecture first.
+
+Current Bevy reference checkout:
+
+- Bevy: `/Users/felixz/Projects/aperture/references/bevy`, branch `main`,
+  commit `370be1b02`
+
+Alignment gate exit criteria:
+
+- `docs/research/BEVY_ECS_RENDER_ALIGNMENT.md` records the borrowed patterns and
+  Aperture-specific constraints.
+- Render authoring has a Bevy-style mesh/material component split.
+- Asset authoring has typed collection APIs or an accepted implementation plan
+  for them.
+- Render asset preparation has an explicit source-asset to prepared-resource
+  contract or an accepted implementation plan for it.
+- Backlog prioritizes this bridge alignment ahead of broad PBR/lighting feature
+  expansion.
+
 ## Immediate Planning Gate — Reference Engine Coverage
 
 As of 2026-05-15, more implementation should pause until Aperture has a thorough MVP concept map based on local reference research into three.js, Babylon.js, and PlayCanvas.
@@ -19,6 +57,7 @@ Current reference checkouts:
 - three.js: `/Users/felixz/Projects/aperture-reference-libs/three.js`
 - Babylon.js: `/Users/felixz/Projects/aperture-reference-libs/Babylon.js`
 - PlayCanvas engine: `/Users/felixz/Projects/aperture-reference-libs/playcanvas-engine`
+- Bevy: `/Users/felixz/Projects/aperture/references/bevy`
 - gl-matrix: `/Users/felixz/Projects/aperture-reference-libs/gl-matrix`
 - wgpu-matrix: `/Users/felixz/Projects/aperture-reference-libs/wgpu-matrix`
 
@@ -102,7 +141,9 @@ Goal: define the ECS-facing render authoring model.
 
 Core work:
 
-- `MeshRenderer`.
+- `Mesh` mesh handle component.
+- `Material` material handle component.
+- Remove the combined `MeshRenderer` authoring model.
 - `Camera`.
 - `Visibility`.
 - `RenderLayer`.
@@ -113,6 +154,7 @@ Core work:
 Exit criteria:
 
 - Users can author renderable entities through ECS components.
+- Mesh and material handles are separate ECS components in the preferred API.
 - No public mutable scene graph exists.
 - Tests cover render component storage and queries.
 
@@ -188,6 +230,7 @@ Goal: introduce data-driven material system.
 Core work:
 
 - Material registry.
+- Material family registration.
 - Material handles.
 - Material schemas.
 - Unlit material.
@@ -202,6 +245,8 @@ Exit criteria:
 - Materials are data objects.
 - Render packets reference material handles.
 - Renderer resolves material handles into GPU state.
+- Material families define shader, bind group, render-state, dependency, and
+  pipeline-key contracts.
 - Diagnostics explain material/pipeline implications.
 
 ## Phase 8 — Asset System
@@ -211,6 +256,7 @@ Goal: make assets first-class.
 Core work:
 
 - Asset registry.
+- Typed asset collections.
 - Stable asset IDs.
 - Mesh loading.
 - Texture loading.
@@ -233,6 +279,9 @@ Core work:
 
 - `RenderWorld`.
 - Apply snapshots to render world.
+- Prepare source assets into renderer-owned resources.
+- Queue draw items from prepared assets and extracted packets.
+- Sort render phases.
 - Create/update/destroy render objects.
 - Snapshot diffing.
 - Render object lifecycle.

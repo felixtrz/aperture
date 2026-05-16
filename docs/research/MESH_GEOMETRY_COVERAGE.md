@@ -258,7 +258,9 @@ type MeshPrimitiveTopology =
 
 Rules:
 
-- `materialSlot` indexes the `MeshRenderer.materials` array.
+- `materialSlot` indexes a future `MaterialSlots` component when per-submesh
+  materials are needed. MVP entities can use the primary `Material` component
+  for all submeshes.
 - `slot` is the stable submesh ordinal for diagnostics and extraction.
 - Triangle mesh MVP should support `triangle-list` first.
 - `line-list`, `line-strip`, and `point-list` should be represented in the schema but can be deferred until line/point materials exist.
@@ -369,25 +371,28 @@ Rules:
 
 ## ECS Binding Plan
 
-### MeshRenderer Component
+### Mesh And Material Components
 
 Recommended EliCS-style authoring data:
 
 ```ts
-const MeshRenderer = defineComponent("aperture.render.meshRenderer", {
-  mesh: { type: EcsType.String, default: "" },
-  material0: { type: EcsType.String, default: "" },
-  material1: { type: EcsType.String, default: "" },
-  material2: { type: EcsType.String, default: "" },
-  material3: { type: EcsType.String, default: "" },
+const Mesh = defineComponent("aperture.render.mesh", {
+  meshId: { type: EcsType.String, default: "" },
+});
+
+const Material = defineComponent("aperture.render.material", {
+  materialId: { type: EcsType.String, default: "" },
 });
 ```
 
 Notes:
 
 - Exact handle storage should be finalized with the asset task. If EliCS lacks a handle scalar type, string IDs are acceptable for MVP.
-- A fixed small number of material slots is acceptable initially because it keeps component storage typed and serializable. A material-slot asset/resource table can follow for meshes with many slots.
-- No GPU buffers or material objects belong in `MeshRenderer`.
+- The primary `Material` component can apply to all submeshes for the MVP.
+- A separate `MaterialSlots` component can follow when slot-specific materials
+  are needed.
+- No GPU buffers or material objects belong in ECS mesh/material authoring
+  components.
 
 ### MeshBounds Component
 
@@ -413,7 +418,8 @@ Mesh extraction should read:
 
 - ECS entity identity.
 - `WorldTransform`.
-- `MeshRenderer`.
+- `Mesh`.
+- `Material` or future `MaterialSlots`.
 - `Visibility`.
 - `RenderLayer`.
 - optional `RenderOrder`.
@@ -494,7 +500,8 @@ Mesh asset validation should emit actionable diagnostics for:
 - index value outside `vertexCount`.
 - empty submesh list.
 - submesh range outside index/vertex buffer.
-- material slot referenced by a submesh but not provided by `MeshRenderer`.
+- material slot referenced by a submesh but not provided by `Material` or
+  `MaterialSlots`.
 - missing or invalid local bounds.
 - unsupported topology for the active renderer path.
 - morph target vertex count mismatch.
@@ -509,8 +516,8 @@ Mesh asset validation should emit actionable diagnostics for:
 4. Mesh validation rejects a submesh range outside the index buffer range and reports the submesh slot.
 5. Box, plane, sphere, cylinder, cone, capsule, and torus builders produce positions, normals, UV0, indices, local AABB, local sphere, and at least one submesh.
 6. Box builder material grouping produces stable submesh material slots for face groups when requested.
-7. A `MeshRenderer` with a valid mesh and enough material slots extracts one `MeshDrawPacket` per submesh.
-8. Extraction skips and diagnoses a `MeshRenderer` whose mesh handle is missing from the asset registry.
+7. An entity with valid `Mesh` and `Material` components extracts one `MeshDrawPacket` per submesh.
+8. Extraction skips and diagnoses an entity whose `Mesh` handle is missing from the asset registry.
 9. Extraction skips and diagnoses a mesh submesh whose material slot is not provided by the entity.
 10. Extraction marks line and point topologies as unsupported until line/point renderer paths are implemented.
 11. Instancing compatibility groups packets with matching mesh, submesh, material, vertex layout, topology, layer, render state, and no skin/morph state.
@@ -525,7 +532,7 @@ After the planning gate closes, implement mesh support in this order:
 1. Asset handle shape and in-memory mesh registry.
 2. Mesh asset descriptor and validation.
 3. MVP primitive builders returning mesh descriptors.
-4. `MeshRenderer` authoring component with fixed initial material slots.
+4. `Mesh` and `Material` authoring components.
 5. Extraction of one packet per submesh with diagnostics.
 6. Later renderer upload path from mesh asset handles to WebGPU buffers.
 

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { finishCommandEncoder } from "../../src/index.js";
+import { finishCommandEncoder } from "@aperture-engine/webgpu";
 
 describe("command buffer finish helper", () => {
   it("finishes command encoders into renderer-owned command buffer resources", () => {

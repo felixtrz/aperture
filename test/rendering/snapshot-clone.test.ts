@@ -4,7 +4,7 @@ import {
   createEnvironmentMapHandle,
   validateRenderSnapshotCloneability,
   type RenderSnapshot,
-} from "../../src/index.js";
+} from "@aperture-engine/core";
 
 describe("render snapshot cloneability validation", () => {
   it("accepts structured-clone-friendly snapshots", () => {

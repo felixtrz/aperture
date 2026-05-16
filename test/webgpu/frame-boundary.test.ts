@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   assembleFrameBoundary,
   type RenderPassCommand,
-} from "../../src/index.js";
+} from "@aperture-engine/webgpu";
 
 describe("frame boundary assembly helper", () => {
   it("assembles an all-ready injected frame boundary", () => {

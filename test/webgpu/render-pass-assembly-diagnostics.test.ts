@@ -8,7 +8,7 @@ import {
   type RenderPassDrawListRecord,
   type RenderPassEncoderLike,
   type UnlitBindGroupResource,
-} from "../../src/index.js";
+} from "@aperture-engine/webgpu";
 
 describe("render pass assembly diagnostics by section", () => {
   it("groups missing resources", () => {

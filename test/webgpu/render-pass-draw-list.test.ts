@@ -5,7 +5,7 @@ import {
   type DrawCommandDescriptor,
   type GetOrCreateRenderPipelineResult,
   type UnlitBindGroupResource,
-} from "../../src/index.js";
+} from "@aperture-engine/webgpu";
 
 describe("render pass draw list planning", () => {
   it("combines ready draw commands, pipelines, and bind groups", () => {

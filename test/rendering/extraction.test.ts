@@ -6,7 +6,8 @@ import {
   Light,
   LightKind,
   LightShadowSettings,
-  MeshRenderer,
+  Material,
+  Mesh,
   RenderLayer,
   Visibility,
   WorldTransform,
@@ -33,7 +34,7 @@ import {
   type LightInput,
   type MaterialAsset,
   type MeshAsset,
-} from "../../src/index.js";
+} from "@aperture-engine/core";
 
 describe("render extraction", () => {
   it("extracts sorted views, mesh draws, bounds, and report counts", () => {
@@ -727,19 +728,18 @@ describe("render extraction", () => {
     ).toEqual(["render.mesh.invalidSubmeshRange"]);
   });
 
-  it("diagnoses material slots outside the MVP MeshRenderer fields", () => {
+  it("uses the primary Material component for any mesh material slot", () => {
     const world = createRuntimeWorld();
     const mesh = createBoxMeshAsset();
-    const material = createMaterialHandle("unlit");
     const assets = createReadyAssets({
       meshAsset: {
         ...mesh,
         materialSlots: [
           ...mesh.materialSlots,
-          { index: 1, label: "slot1", material },
-          { index: 2, label: "slot2", material },
-          { index: 3, label: "slot3", material },
-          { index: 4, label: "slot4", material },
+          { index: 1, label: "slot1" },
+          { index: 2, label: "slot2" },
+          { index: 3, label: "slot3" },
+          { index: 4, label: "slot4" },
         ],
         submeshes: [
           {
@@ -757,11 +757,12 @@ describe("render extraction", () => {
       layerMask: 1,
     });
 
-    expect(
-      extractRenderSnapshot(world, assets).diagnostics.map(
-        (diagnostic) => diagnostic.code,
-      ),
-    ).toEqual(["render.unsupportedMaterialSlot"]);
+    const snapshot = extractRenderSnapshot(world, assets);
+
+    expect(snapshot.diagnostics).toEqual([]);
+    expect(snapshot.meshDraws).toMatchObject([
+      { materialSlot: 4, material: createMaterialHandle("unlit") },
+    ]);
   });
 
   it("skips invalid cameras without blocking mesh extraction", () => {
@@ -1245,9 +1246,11 @@ function createMeshEntity(
   const root = createRootTransform();
 
   entity.addComponent(WorldTransform, root.world);
-  entity.addComponent(MeshRenderer, {
+  entity.addComponent(Mesh, {
     meshId: input.meshId,
-    material0Id: input.materialId,
+  });
+  entity.addComponent(Material, {
+    materialId: input.materialId,
   });
   entity.addComponent(RenderLayer, { mask: input.layerMask });
   entity.addComponent(Visibility);

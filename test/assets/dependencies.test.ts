@@ -5,7 +5,7 @@ import {
   createMaterialHandle,
   createMeshHandle,
   createTextureHandle,
-} from "../../src/index.js";
+} from "@aperture-engine/core";
 
 describe("asset dependency diagnostics and manifests", () => {
   it("reports ready dependency chains without diagnostics", () => {

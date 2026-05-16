@@ -10,7 +10,7 @@ const projectRoot = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
   "..",
 );
-const allowedTopLevelPaths = new Set(["dist", "examples", "node_modules"]);
+const allowedTopLevelPaths = new Set(["examples", "node_modules", "packages"]);
 
 export {
   contentTypeFor,

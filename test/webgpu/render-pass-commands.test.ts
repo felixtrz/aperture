@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   planRenderPassCommands,
   type ResolvedRenderPassDraw,
-} from "../../src/index.js";
+} from "@aperture-engine/webgpu";
 
 describe("render pass command planning", () => {
   it("plans indexed render pass commands", () => {

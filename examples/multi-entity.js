@@ -250,7 +250,11 @@ const scenarioRenderers = {
 };
 
 try {
-  const aperture = await import("/dist/index.js");
+  const [core, webgpu] = await Promise.all([
+    import("@aperture-engine/core"),
+    import("@aperture-engine/webgpu"),
+  ]);
+  const aperture = { ...core, ...webgpu };
 
   if (canvas === null) {
     publishStatus(failure("canvas", "canvas-unavailable", "Canvas missing."));
@@ -294,7 +298,7 @@ try {
       "dist-import-failed",
       error instanceof Error
         ? error.message
-        : "The built Aperture package could not be imported from /dist.",
+        : "The built Aperture workspace packages could not be imported.",
     ),
   );
 }
@@ -5025,9 +5029,11 @@ function addPrimitiveEntity(
   const transform = aperture.createRootTransform({ translation });
 
   entity.addComponent(aperture.WorldTransform, transform.world);
-  entity.addComponent(aperture.MeshRenderer, {
+  entity.addComponent(aperture.Mesh, {
     meshId: aperture.assetHandleKey(meshHandle),
-    material0Id: aperture.assetHandleKey(materialHandle),
+  });
+  entity.addComponent(aperture.Material, {
+    materialId: aperture.assetHandleKey(materialHandle),
   });
   if (options.enabled !== undefined) {
     entity.addComponent(aperture.Enabled, { value: options.enabled });
@@ -5116,7 +5122,7 @@ function createUvRangePlaneMeshAsset(options) {
         indexCount: 6,
       },
     ],
-    materialSlots: [{ index: 0, label: "default", material: null }],
+    materialSlots: [{ index: 0, label: "default" }],
     localAabb: { min: [-hx, -hy, 0], max: [hx, hy, 0] },
     localSphere: { center: [0, 0, 0], radius: Math.hypot(hx, hy) },
   };

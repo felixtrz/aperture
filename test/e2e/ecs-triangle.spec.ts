@@ -22,7 +22,7 @@ test("ECS triangle example extracts, submits, and renders non-background pixels"
     example: "ecs-triangle",
     ok: true,
     phase: "submit",
-    renderingBackend: "webgpu",
+    renderingBackend: "webgpu-explicit",
     extraction: { views: 1, meshDraws: 1, diagnostics: 0 },
     binding: { planned: 1, applied: 1, diagnostics: 0 },
     renderWorld: { active: 1, ready: 1, blocked: 0 },

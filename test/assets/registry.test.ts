@@ -18,7 +18,7 @@ import {
   deserializeAssetHandle,
   serializeAssetHandle,
   type AssetDiagnostic,
-} from "../../src/index.js";
+} from "@aperture-engine/core";
 
 describe("asset handles and registry", () => {
   it("creates branded handles for every MVP asset kind", () => {

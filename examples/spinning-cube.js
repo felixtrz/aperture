@@ -17,7 +17,11 @@ const baseStatus = {
 };
 
 try {
-  const aperture = await import("/dist/index.js");
+  const [core, webgpu] = await Promise.all([
+    import("@aperture-engine/core"),
+    import("@aperture-engine/webgpu"),
+  ]);
+  const aperture = { ...core, ...webgpu };
 
   if (canvas === null) {
     publishStatus(failure("canvas", "canvas-unavailable", "Canvas missing."));
@@ -57,7 +61,7 @@ try {
       "dist-import-failed",
       error instanceof Error
         ? error.message
-        : "The built Aperture package could not be imported from /dist.",
+        : "The built Aperture workspace packages could not be imported.",
     ),
   );
 }
@@ -585,9 +589,11 @@ function createSpinningCubeWorld(aperture, canvasSize) {
   cubeEntity.addComponent(aperture.LocalTransform, cubeTransform.local);
   cubeEntity.addComponent(aperture.Parent, cubeTransform.parent);
   cubeEntity.addComponent(aperture.WorldTransform, cubeTransform.world);
-  cubeEntity.addComponent(aperture.MeshRenderer, {
+  cubeEntity.addComponent(aperture.Mesh, {
     meshId: aperture.assetHandleKey(meshHandle),
-    material0Id: aperture.assetHandleKey(materialHandle),
+  });
+  cubeEntity.addComponent(aperture.Material, {
+    materialId: aperture.assetHandleKey(materialHandle),
   });
   cubeEntity.addComponent(aperture.RenderLayer, { mask: 1 });
   cubeEntity.addComponent(aperture.Visibility);

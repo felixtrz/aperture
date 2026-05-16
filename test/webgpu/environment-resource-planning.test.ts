@@ -4,7 +4,7 @@ import {
   createEnvironmentMapHandle,
   planEnvironmentResources,
   type EnvironmentPacket,
-} from "../../src/index.js";
+} from "@aperture-engine/webgpu";
 
 describe("environment resource planning", () => {
   it("plans unique environment-map resource keys in stable order", () => {

@@ -584,7 +584,7 @@ when adding common status assertions:
 - Use `expectMultiEntityRouteFailureStatus` for shallow failure route specs that
   only need to prove route identity, phase, reason, backend when expected,
   diagnostic counts, and no draw submission. It defaults to requiring
-  `renderingBackend: "webgpu"`; pass `expectRenderingBackend: false` only for
+  `renderingBackend: "webgpu-explicit"`; pass `expectRenderingBackend: false` only for
   early failure statuses that stop before backend metadata is published.
 - Use `expectedDiagnosticCounts` for `diagnosticCounts` expectations so omitted
   buckets default to zero consistently.

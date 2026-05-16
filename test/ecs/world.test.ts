@@ -5,7 +5,7 @@ import {
   createWorld,
   defineComponent,
   type Entity,
-} from "../../src/index.js";
+} from "@aperture-engine/core";
 
 let nextComponentId = 0;
 

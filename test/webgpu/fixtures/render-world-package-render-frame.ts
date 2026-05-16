@@ -10,7 +10,7 @@ import {
   type RenderSortKey,
   type RenderWorldDrawReadinessReport,
   type UnlitBindGroupResource,
-} from "../../../src/index.js";
+} from "@aperture-engine/webgpu";
 
 export type RenderWorldPackageFrameFailurePoint =
   | "blocked"

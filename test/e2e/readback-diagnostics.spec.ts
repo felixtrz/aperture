@@ -35,7 +35,7 @@ test("WebGPU clear example reports readback diagnostics when buffer usage flags 
     example: "webgpu-clear",
     ok: true,
     phase: "clear",
-    renderingBackend: "webgpu",
+    renderingBackend: "webgpu-explicit",
     readback: {
       ok: false,
       reason: "buffer-usage-unavailable",
@@ -70,7 +70,7 @@ test("WebGPU clear example reports readback diagnostics when map mode flags are 
     example: "webgpu-clear",
     ok: true,
     phase: "clear",
-    renderingBackend: "webgpu",
+    renderingBackend: "webgpu-explicit",
     readback: {
       ok: false,
       reason: "map-mode-unavailable",

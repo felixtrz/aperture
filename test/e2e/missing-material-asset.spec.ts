@@ -25,7 +25,7 @@ test("ECS browser example reports missing material asset without submitting draw
     ok: false,
     phase: "extract",
     reason: "missing-material-asset",
-    renderingBackend: "webgpu",
+    renderingBackend: "webgpu-explicit",
     extraction: { views: 1, meshDraws: 0, diagnostics: 1 },
     resources: { materials: 0, bindGroups: 0, missing: "material" },
     binding: { planned: 0, applied: 0, ready: 0, diagnostics: 0 },

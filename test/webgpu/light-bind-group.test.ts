@@ -11,7 +11,7 @@ import {
   type LightBindGroupCreationDescriptor,
   type LightBindGroupLayoutResource,
   type LightGpuBufferResource,
-} from "../../src/index.js";
+} from "@aperture-engine/webgpu";
 
 describe("light bind group descriptor planning", () => {
   it("plans stable entries from renderer-owned light GPU buffer resources", () => {

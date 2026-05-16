@@ -9,7 +9,7 @@ import {
   createUnlitMaterialBufferDescriptor,
   packUnlitMaterial,
   type PackedUnlitMaterial,
-} from "../../src/index.js";
+} from "@aperture-engine/webgpu";
 
 describe("unlit material buffer descriptor planning", () => {
   it("maps default packed unlit material data to a uniform buffer descriptor", () => {

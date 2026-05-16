@@ -32,7 +32,7 @@ test("ECS browser example reports missing texture and sampler GPU resources", as
     ok: false,
     phase: "resources",
     reason: "frame-resources-unavailable",
-    renderingBackend: "webgpu",
+    renderingBackend: "webgpu-explicit",
     extraction: { views: 1, meshDraws: 1, diagnostics: 0 },
     resources: {
       materials: 0,
@@ -78,7 +78,7 @@ test("ECS browser example reports one missing texture resource among multiple te
     ok: false,
     phase: "resources",
     reason: "frame-resources-unavailable",
-    renderingBackend: "webgpu",
+    renderingBackend: "webgpu-explicit",
     extraction: { views: 1, meshDraws: 2, diagnostics: 0 },
     resources: {
       materials: 0,
@@ -125,7 +125,7 @@ test("ECS browser example reports a missing shared sampler resource", async ({
     ok: false,
     phase: "resources",
     reason: "frame-resources-unavailable",
-    renderingBackend: "webgpu",
+    renderingBackend: "webgpu-explicit",
     extraction: { views: 1, meshDraws: 2, diagnostics: 0 },
     resources: {
       materials: 0,
@@ -180,7 +180,7 @@ test("ECS browser example reports a missing shared texture resource", async ({
     ok: false,
     phase: "resources",
     reason: "frame-resources-unavailable",
-    renderingBackend: "webgpu",
+    renderingBackend: "webgpu-explicit",
     extraction: { views: 1, meshDraws: 2, diagnostics: 0 },
     resources: {
       materials: 0,
@@ -235,7 +235,7 @@ test("ECS browser example reports one missing sampler resource among multiple te
     ok: false,
     phase: "resources",
     reason: "frame-resources-unavailable",
-    renderingBackend: "webgpu",
+    renderingBackend: "webgpu-explicit",
     extraction: { views: 1, meshDraws: 2, diagnostics: 0 },
     resources: {
       materials: 0,
@@ -286,7 +286,7 @@ test("ECS browser example reports missing texture and sampler resources for one 
     ok: false,
     phase: "resources",
     reason: "frame-resources-unavailable",
-    renderingBackend: "webgpu",
+    renderingBackend: "webgpu-explicit",
     extraction: { views: 1, meshDraws: 2, diagnostics: 0 },
     resources: {
       materials: 0,
@@ -348,7 +348,7 @@ test("ECS browser example reports missing shared texture and sampler resources",
     ok: false,
     phase: "resources",
     reason: "frame-resources-unavailable",
-    renderingBackend: "webgpu",
+    renderingBackend: "webgpu-explicit",
     extraction: { views: 1, meshDraws: 2, diagnostics: 0 },
     resources: {
       materials: 0,
@@ -415,7 +415,7 @@ test("ECS browser example reports a missing shared sampler resource across two t
     ok: false,
     phase: "resources",
     reason: "frame-resources-unavailable",
-    renderingBackend: "webgpu",
+    renderingBackend: "webgpu-explicit",
     extraction: { views: 1, meshDraws: 2, diagnostics: 0 },
     resources: {
       materials: 0,
@@ -471,7 +471,7 @@ test("ECS browser example reports one missing texture resource in a shared-sampl
     ok: false,
     phase: "resources",
     reason: "frame-resources-unavailable",
-    renderingBackend: "webgpu",
+    renderingBackend: "webgpu-explicit",
     extraction: { views: 1, meshDraws: 2, diagnostics: 0 },
     resources: {
       materials: 0,
@@ -525,7 +525,7 @@ test("ECS browser example reports missing texture and shared sampler resources i
     ok: false,
     phase: "resources",
     reason: "frame-resources-unavailable",
-    renderingBackend: "webgpu",
+    renderingBackend: "webgpu-explicit",
     extraction: { views: 1, meshDraws: 2, diagnostics: 0 },
     resources: {
       materials: 0,

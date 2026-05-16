@@ -25,7 +25,7 @@ test("ECS browser example reports missing renderer mesh resource without submitt
     ok: false,
     phase: "resource-bindings",
     reason: "missing-mesh-resource",
-    renderingBackend: "webgpu",
+    renderingBackend: "webgpu-explicit",
     extraction: { views: 1, meshDraws: 1, diagnostics: 0 },
     resources: { materials: 0, bindGroups: 0, missing: "mesh" },
     binding: {

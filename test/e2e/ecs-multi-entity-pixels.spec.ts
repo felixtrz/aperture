@@ -46,7 +46,7 @@ test("ECS multi-entity example renders three colored regions when pixels are cap
     example: "ecs-multi-entity",
     ok: true,
     phase: "submit",
-    renderingBackend: "webgpu",
+    renderingBackend: "webgpu-explicit",
     extraction: { views: 1, meshDraws: 3, diagnostics: 1 },
     resources: { materials: 3 },
     binding: { applied: 3, ready: 3, diagnostics: 0 },

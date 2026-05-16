@@ -6,7 +6,7 @@ import {
   createTextureGpuResource,
   type TextureDescriptorInput,
   type TextureGpuDeviceLike,
-} from "../../src/index.js";
+} from "@aperture-engine/webgpu";
 
 describe("texture GPU resource creation", () => {
   it("creates texture resources and uploads explicit bytes", () => {

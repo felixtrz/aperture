@@ -63,7 +63,7 @@ for (const fixture of [
       scenario: fixture.scenario,
       ok: true,
       phase: "submit",
-      renderingBackend: "webgpu",
+      renderingBackend: "webgpu-explicit",
       ...fixture.expected,
     });
   });

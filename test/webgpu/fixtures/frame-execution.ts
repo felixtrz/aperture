@@ -6,7 +6,7 @@ import {
   type FrameBoundarySmokeReport,
   type FrameSubmissionSmokeReport,
   type RenderPassCommand,
-} from "../../../src/index.js";
+} from "@aperture-engine/webgpu";
 
 export type FrameExecutionFailurePoint =
   | "texture"

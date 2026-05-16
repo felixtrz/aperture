@@ -6,7 +6,8 @@ import {
   Light,
   LightKind,
   LightShadowSettings,
-  MeshRenderer,
+  Material,
+  Mesh,
   RenderLayer,
   RenderOrder,
   ShadowCaster,
@@ -21,20 +22,22 @@ import {
   validateCameraInput,
   validateLightShadowSettingsInput,
   validateLightInput,
-} from "../../src/index.js";
+} from "@aperture-engine/core";
 
 describe("render authoring ECS components", () => {
   it("attaches, reads, updates, removes, and queries mesh render authoring data", () => {
     const world = createWorld({ entityCapacity: 8 });
     registerRenderAuthoringComponents(world);
     const query = world.queryManager.registerQuery({
-      required: [MeshRenderer, Visibility, RenderLayer],
+      required: [Mesh, Material, Visibility, RenderLayer],
     });
     const entity = world.createEntity();
 
-    entity.addComponent(MeshRenderer, {
+    entity.addComponent(Mesh, {
       meshId: "mesh:cube",
-      material0Id: "material:debug",
+    });
+    entity.addComponent(Material, {
+      materialId: "material:debug",
     });
     entity.addComponent(Visibility);
     entity.addComponent(RenderLayer, { mask: 0b101 });
@@ -43,8 +46,8 @@ describe("render authoring ECS components", () => {
     entity.addComponent(ShadowReceiver);
 
     expect(query.entities.has(entity)).toBe(true);
-    expect(entity.getValue(MeshRenderer, "meshId")).toBe("mesh:cube");
-    expect(entity.getValue(MeshRenderer, "material0Id")).toBe("material:debug");
+    expect(entity.getValue(Mesh, "meshId")).toBe("mesh:cube");
+    expect(entity.getValue(Material, "materialId")).toBe("material:debug");
     expect(entity.getValue(Visibility, "visible")).toBe(true);
     expect(entity.getValue(RenderLayer, "mask")).toBe(0b101);
     expect(entity.getValue(RenderOrder, "value")).toBe(12);

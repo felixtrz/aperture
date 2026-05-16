@@ -5,7 +5,7 @@ import {
   createMeshGpuUploadPlan,
   createPlaneMeshAsset,
   type MeshAsset,
-} from "../../src/index.js";
+} from "@aperture-engine/core";
 
 describe("mesh GPU upload planning descriptors", () => {
   it("plans box mesh vertex and index uploads with stable labels", () => {

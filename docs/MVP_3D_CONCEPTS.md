@@ -11,6 +11,7 @@ Local reference clones are persisted outside this repository to avoid vendoring 
 - three.js: `/Users/felixz/Projects/aperture-reference-libs/three.js`, branch `dev`, commit `2ccd00a`
 - Babylon.js: `/Users/felixz/Projects/aperture-reference-libs/Babylon.js`, branch `master`, commit `67395c0`
 - PlayCanvas engine: `/Users/felixz/Projects/aperture-reference-libs/playcanvas-engine`, branch `main`, commit `c3cd1f9`
+- Bevy: `/Users/felixz/Projects/aperture/references/bevy`, branch `main`, commit `370be1b02`
 - gl-matrix: `/Users/felixz/Projects/aperture-reference-libs/gl-matrix`, commit `accefb6`
 - wgpu-matrix: `/Users/felixz/Projects/aperture-reference-libs/wgpu-matrix`, commit `3dba901`
 
@@ -19,6 +20,13 @@ Primary inspected areas:
 - three.js: `src/core`, `src/math`, `src/geometries`, `src/objects`, `src/materials`, `src/textures`, `src/cameras`, `src/lights`, `src/loaders`, `src/animation`, `src/renderers/webgpu`, and example loaders.
 - Babylon.js: `packages/dev/core/src/Meshes`, `Materials`, `Cameras`, `Lights`, `Culling`, `Collisions`, `Animations`, `Bones`, `Morph`, `Engines/WebGPU`, `FrameGraph`, and `packages/dev/loaders/src`.
 - PlayCanvas: `src/framework/components`, `src/framework/asset`, `src/framework/handlers`, `src/framework/parsers`, `src/scene`, `src/scene/geometry`, `src/scene/materials`, `src/scene/renderer`, `src/scene/lighting`, `src/scene/animation`, `src/scene/particle-system`, and `src/core/shape`.
+- Bevy: `crates/bevy_ecs`, `crates/bevy_asset`, `crates/bevy_mesh`, `crates/bevy_pbr`, `crates/bevy_render`, `crates/bevy_material`, `crates/bevy_camera`, `crates/bevy_light`, and `crates/bevy_transform`.
+
+Bevy is the primary architectural anchor for the ECS/render bridge. The other
+engines remain coverage references for practical runtime features, but Bevy is
+the closest match for how Aperture should connect ECS authoring, assets,
+materials, extraction, render-world preparation, and draw queueing. See
+`docs/research/BEVY_ECS_RENDER_ALIGNMENT.md`.
 
 ## MVP Boundary
 
@@ -74,14 +82,14 @@ Required MVP concepts:
 - EliCS-backed ECS world, entities, components, resources, systems, frame-local events, and deterministic commands.
 - Array-first math module using `wgpu-matrix` behind Aperture-owned helpers for vectors, quaternions, matrices, colors, rays, bounds, planes, and frustums.
 - ECS-owned transforms: `LocalTransform`, `Parent`, `WorldTransform`, optional hierarchy index, cycle rejection, and deterministic transform resolution.
-- ECS render authoring components: `Enabled`, `Visibility`, `RenderLayer`, `RenderOrder`, `Name`, `DebugMetadata`, `MeshRenderer`, `Camera`, `Light`, `Pickable`, `Collider`, and future-compatible animation/collider schemas.
-- Stable handles and registries for meshes, materials, textures, samplers, render targets, scenes/prefabs, animation clips, skins, morph target sets, and environment maps.
+- ECS render authoring components: `Enabled`, `Visibility`, `RenderLayer`, `RenderOrder`, `Name`, `DebugMetadata`, `Mesh`, `Material`, `Camera`, `Light`, `Pickable`, `Collider`, and future-compatible animation/collider schemas.
+- Stable handles and typed asset collections backed by registries for meshes, materials, textures, samplers, render targets, scenes/prefabs, animation clips, skins, morph target sets, and environment maps.
 - Mesh assets with vertex streams, required `POSITION`, optional normal/tangent/UV/color/skin/morph fields, index buffers, submeshes, material slots, bounds, and primitive builders for box, plane, sphere, cylinder, cone, capsule, and torus.
 - Material assets for unlit, glTF-style metallic-roughness, and debug normals, plus texture/sampler descriptors and explicit render state.
 - Perspective and orthographic cameras, normalized viewport/scissor, clear state, layer masks, priority sorting, and fixed-size 2D render-target descriptors.
 - Ambient/environment, directional, point, and spot light schemas with flat extraction packets; shadow authoring schema can exist before shadow rendering.
 - `RenderSnapshot` extraction containing view packets, mesh draw packets, light packets, environment packets, shadow requests, bounds, skin/morph packet slots, diagnostics, and report data.
-- Renderer-owned `RenderWorld` for WebGPU device/context, GPU buffers/textures/samplers, render targets, pipelines, bind groups, pass descriptors, command encoders, timing, and cache metrics.
+- Renderer-owned `RenderWorld` for prepared assets, draw queues, phase items, WebGPU device/context, GPU buffers/textures/samplers, render targets, pipelines, bind groups, pass descriptors, command encoders, timing, and cache metrics.
 - Input/picking schemas for frame-local input events, rays, pick queries/reports, and bounds picking without coupling to renderer-owned scene state.
 - First-class diagnostics and reports for assets, extraction, visibility, material/pipeline compatibility, WebGPU availability/device state, and skipped renderables.
 
@@ -102,7 +110,7 @@ ECS component/resource list:
 
 - Core: `Enabled`, `Name`, `DebugMetadata`, optional `Tags`.
 - Transform: `LocalTransform`, `Parent`, `WorldTransform`, optional `HierarchyIndex` resource.
-- Rendering: `MeshRenderer`, `Camera`, `Visibility`, `RenderLayer`, `RenderOrder`, `Light`, `ShadowCaster`, `ShadowReceiver`.
+- Rendering: `Mesh`, `Material`, `Camera`, `Visibility`, `RenderLayer`, `RenderOrder`, `Light`, `ShadowCaster`, `ShadowReceiver`.
 - Interaction/future physics: `Pickable`, `Collider`, `RigidBody` boundary schema.
 - Animation/deformation: `AnimationPlayer`, `SkinnedMeshBinding`, `MorphWeights`.
 - Resources: `AssetRegistry`, `EnvironmentLighting`, `InputFrame`, `CommandBuffer`, `EventQueue`, `RenderSnapshot` output, `FrameReport`.
@@ -127,7 +135,7 @@ Validation and diagnostics list:
 
 Examples that prove MVP completeness:
 
-- Static cubes: create multiple ECS entities with `LocalTransform`, `MeshRenderer`, material handles, one camera, and one directional light; extraction emits deterministic packets and WebGPU renders distinct transforms.
+- Static cubes: create multiple ECS entities with `LocalTransform`, `Mesh`, `Material`, one camera, and one directional light; extraction emits deterministic packets and WebGPU renders distinct transforms.
 - Missing asset diagnostics: author a renderable with a missing mesh/material handle; extraction emits skip diagnostics and a report without renderer crashes.
 - Camera/layer filtering: two cameras and two layers produce separate `ViewPacket` data and only matching draw packets per view.
 - Primitive builder path: create a box or sphere mesh asset through an Aperture builder, register it, render it, and inspect its bounds.

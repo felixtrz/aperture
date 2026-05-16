@@ -5,7 +5,7 @@ import {
   frameExecutionReportToJson,
   frameExecutionReportToJsonValue,
   type FrameExecutionReport,
-} from "../../src/index.js";
+} from "@aperture-engine/webgpu";
 import { createFrameExecutionSmokeFixture } from "./fixtures/frame-execution.js";
 
 describe("frame execution report JSON helpers", () => {

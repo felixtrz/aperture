@@ -29,7 +29,7 @@ test("ECS browser example renders two texture-backed unlit materials", async ({
     scenario: "multi-textured-unlit",
     ok: true,
     phase: "submit",
-    renderingBackend: "webgpu",
+    renderingBackend: "webgpu-explicit",
     extraction: { views: 1, meshDraws: 2, diagnostics: 0 },
     resources: { materials: 2, textures: 2, samplers: 2, bindGroups: 4 },
     binding: { planned: 2, applied: 2, ready: 2, diagnostics: 0 },
@@ -106,7 +106,7 @@ test("ECS browser example renders two textures with one shared sampler", async (
     scenario: "shared-sampler-multi-textured",
     ok: true,
     phase: "submit",
-    renderingBackend: "webgpu",
+    renderingBackend: "webgpu-explicit",
     extraction: { views: 1, meshDraws: 2, diagnostics: 0 },
     resources: { materials: 2, textures: 2, samplers: 1, bindGroups: 4 },
     binding: { planned: 2, applied: 2, ready: 2, diagnostics: 0 },
@@ -185,7 +185,7 @@ test("ECS browser example reports one missing texture asset among multiple textu
     ok: false,
     phase: "extract",
     reason: "multi-textured-missing-texture-asset",
-    renderingBackend: "webgpu",
+    renderingBackend: "webgpu-explicit",
     extraction: { views: 1, meshDraws: 1, diagnostics: 1 },
     assetStatus: {
       texture: "missing",
@@ -257,7 +257,7 @@ test("ECS browser example reports one missing sampler asset among multiple textu
     ok: false,
     phase: "extract",
     reason: "multi-textured-missing-sampler-asset",
-    renderingBackend: "webgpu",
+    renderingBackend: "webgpu-explicit",
     extraction: { views: 1, meshDraws: 1, diagnostics: 1 },
     assetStatus: {
       sampler: "missing",
@@ -329,7 +329,7 @@ test("ECS browser example reports one missing texture asset with a shared sample
     ok: false,
     phase: "extract",
     reason: "shared-sampler-missing-texture-asset",
-    renderingBackend: "webgpu",
+    renderingBackend: "webgpu-explicit",
     extraction: { views: 1, meshDraws: 1, diagnostics: 1 },
     assetStatus: {
       texture: "missing",
@@ -403,7 +403,7 @@ test("ECS browser example reports a missing shared sampler asset", async ({
     ok: false,
     phase: "extract",
     reason: "shared-sampler-missing-sampler-asset",
-    renderingBackend: "webgpu",
+    renderingBackend: "webgpu-explicit",
     extraction: { views: 1, meshDraws: 0, diagnostics: 2 },
     assetStatus: {
       sampler: "missing",
@@ -472,7 +472,7 @@ test("ECS browser example reports a missing shared texture asset", async ({
     ok: false,
     phase: "extract",
     reason: "shared-texture-missing-texture-asset",
-    renderingBackend: "webgpu",
+    renderingBackend: "webgpu-explicit",
     extraction: { views: 1, meshDraws: 0, diagnostics: 2 },
     assetStatus: {
       texture: "missing",
@@ -545,7 +545,7 @@ test("ECS browser example reports a missing shared texture sampler asset", async
     ok: false,
     phase: "extract",
     reason: "shared-texture-missing-sampler-asset",
-    renderingBackend: "webgpu",
+    renderingBackend: "webgpu-explicit",
     extraction: { views: 1, meshDraws: 0, diagnostics: 2 },
     assetStatus: {
       sampler: "missing",
@@ -614,7 +614,7 @@ test("ECS browser example reports missing shared texture and sampler assets", as
     ok: false,
     phase: "extract",
     reason: "shared-texture-missing-texture-sampler-assets",
-    renderingBackend: "webgpu",
+    renderingBackend: "webgpu-explicit",
     extraction: { views: 1, meshDraws: 0, diagnostics: 4 },
     assetStatus: {
       texture: "missing",

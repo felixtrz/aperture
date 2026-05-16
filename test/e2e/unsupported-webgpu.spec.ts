@@ -33,7 +33,7 @@ test("WebGPU clear example reports missing navigator.gpu", async ({ page }) => {
     example: "webgpu-clear",
     ok: false,
     phase: "initialize-webgpu",
-    renderingBackend: "webgpu",
+    renderingBackend: "webgpu-explicit",
     reason: "navigator-gpu-unavailable",
   });
 });

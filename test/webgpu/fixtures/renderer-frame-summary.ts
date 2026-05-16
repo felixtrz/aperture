@@ -7,7 +7,7 @@ import {
   type RendererFrameSummaryReportJsonValue,
   type RenderPassAssemblySmokeReport,
   type RendererAssemblySmokeReport,
-} from "../../../src/index.js";
+} from "@aperture-engine/webgpu";
 import {
   createFrameExecutionSmokeFixture,
   type FrameExecutionFailurePoint,

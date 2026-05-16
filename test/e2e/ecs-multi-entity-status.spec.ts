@@ -23,7 +23,7 @@ test("ECS multi-entity example publishes three-draw frame status", async ({
     example: "ecs-multi-entity",
     ok: true,
     phase: "submit",
-    renderingBackend: "webgpu",
+    renderingBackend: "webgpu-explicit",
     extraction: { views: 1, meshDraws: 3, diagnostics: 1 },
     resources: { materials: 3, bindGroups: 5 },
     binding: { planned: 3, applied: 3, ready: 3, diagnostics: 0 },

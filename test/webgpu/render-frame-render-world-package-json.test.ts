@@ -13,7 +13,7 @@ import {
   type RenderSortKey,
   type RenderWorldDrawReadinessReport,
   type UnlitBindGroupResource,
-} from "../../src/index.js";
+} from "@aperture-engine/webgpu";
 
 type FailurePoint = "blocked" | "submit";
 

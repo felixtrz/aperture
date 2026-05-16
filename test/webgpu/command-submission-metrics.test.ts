@@ -5,7 +5,7 @@ import {
   type FinishCommandEncoderResult,
   type RenderPassCommandExecutionReport,
   type SubmitCommandBuffersReport,
-} from "../../src/index.js";
+} from "@aperture-engine/webgpu";
 
 describe("command submission metrics report", () => {
   it("reports all-ready command submission metrics", () => {

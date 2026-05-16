@@ -1,14 +1,23 @@
 {
-  "extends": "./tsconfig.json",
+  "extends": "./tsconfig.base.json",
   "compilerOptions": {
     "noEmit": true,
-    "rootDir": ".",
-    "types": ["vitest", "node"]
+    "baseUrl": ".",
+    "ignoreDeprecations": "6.0",
+    "types": ["vitest", "node"],
+    "paths": {
+      "@aperture-engine/core": ["packages/core/src/index.ts"],
+      "@aperture-engine/render": ["packages/render/src/index.ts"],
+      "@aperture-engine/runtime": ["packages/runtime/src/index.ts"],
+      "@aperture-engine/simulation": ["packages/simulation/src/index.ts"],
+      "@aperture-engine/webgpu": ["packages/webgpu/src/index.ts"]
+    }
   },
   "include": [
-    "src/**/*.ts",
+    "packages/**/*.ts",
     "test/**/*.ts",
     "playwright.config.ts",
     "vitest.config.ts"
-  ]
+  ],
+  "exclude": ["packages/*/dist", "node_modules", "dist"]
 }

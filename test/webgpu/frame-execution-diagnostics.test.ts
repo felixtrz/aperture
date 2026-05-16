@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   createFrameExecutionReport,
   summarizeFrameExecutionDiagnosticsBySection,
-} from "../../src/index.js";
+} from "@aperture-engine/webgpu";
 import { createFrameExecutionSmokeFixture } from "./fixtures/frame-execution.js";
 
 describe("frame execution diagnostics by section", () => {

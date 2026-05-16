@@ -11,7 +11,7 @@ import {
   type RenderWorldDrawReadinessReport,
   type UnlitBindGroupResource,
   type GetOrCreateRenderPipelineResult,
-} from "../../src/index.js";
+} from "@aperture-engine/webgpu";
 
 type FailurePoint = "blocked" | "missingTransform" | "missingMesh" | "submit";
 

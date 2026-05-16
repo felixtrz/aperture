@@ -9,7 +9,7 @@ import {
   type RenderPackageInspectionReport,
   type RenderResourceSummaryReport,
   type RenderSnapshotInspectionReport,
-} from "../../src/index.js";
+} from "@aperture-engine/webgpu";
 
 describe("renderer assembly diagnostics by section", () => {
   it("groups missing sections", () => {

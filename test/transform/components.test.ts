@@ -14,7 +14,7 @@ import {
   quatFromAxisAngle,
   registerMetadataComponents,
   registerTransformComponents,
-} from "../../src/index.js";
+} from "@aperture-engine/core";
 
 describe("transform and metadata ECS components", () => {
   it("attaches, reads, updates, removes, and queries transform components", () => {

@@ -150,7 +150,7 @@ export function expectMultiEntityRouteFailureStatus(
     reason: expected.reason,
     ...(expected.expectRenderingBackend === false
       ? {}
-      : { renderingBackend: "webgpu" }),
+      : { renderingBackend: "webgpu-explicit" }),
     diagnosticCounts: expectedDiagnosticCounts(expected.diagnosticCounts ?? {}),
     ...(expected.matchObject ?? {}),
   });

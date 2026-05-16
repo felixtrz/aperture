@@ -6,7 +6,7 @@ import {
   type MeshGpuBufferResource,
   type RenderPassDrawListRecord,
   type UnlitBindGroupResource,
-} from "../../src/index.js";
+} from "@aperture-engine/webgpu";
 
 describe("render pass resource resolution", () => {
   it("resolves indexed draw list records into encoder-ready resources", () => {

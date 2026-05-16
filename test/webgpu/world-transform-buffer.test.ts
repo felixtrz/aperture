@@ -7,7 +7,7 @@ import {
   type PackedSnapshotTransforms,
   type WebGpuBufferDeviceLike,
   type WorldTransformBufferDescriptorPlan,
-} from "../../src/index.js";
+} from "@aperture-engine/webgpu";
 
 describe("world transform GPU buffer resources", () => {
   it("creates storage buffer descriptors and resources for packed transforms", () => {

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { createCurrentTextureColorTarget } from "../../src/index.js";
+import { createCurrentTextureColorTarget } from "@aperture-engine/webgpu";
 
 describe("current texture view acquisition", () => {
   it("creates color attachment target inputs from current texture views", () => {

@@ -9,7 +9,7 @@ import {
   type RenderResourceSummaryReport,
   type RenderSnapshotCloneabilityResult,
   type RenderSnapshotInspectionReport,
-} from "../../src/index.js";
+} from "@aperture-engine/webgpu";
 
 describe("renderer assembly smoke report", () => {
   it("reports ready when all renderer data path sections are present", () => {

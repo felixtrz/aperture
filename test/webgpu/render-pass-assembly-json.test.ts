@@ -9,7 +9,7 @@ import {
   type RenderPassDrawListRecord,
   type RenderPassEncoderLike,
   type UnlitBindGroupResource,
-} from "../../src/index.js";
+} from "@aperture-engine/webgpu";
 
 describe("render pass assembly smoke JSON helpers", () => {
   it("creates JSON-safe values for ready render-pass assembly reports", () => {

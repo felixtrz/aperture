@@ -18,7 +18,7 @@ export default defineConfig({
     viewport: { width: 960, height: 640 },
   },
   webServer: {
-    command: "npm run examples:build && npm run examples:serve",
+    command: "pnpm run examples:build && pnpm run examples:serve",
     url: "http://127.0.0.1:4173/",
     reuseExistingServer: process.env.CI !== "true",
     timeout: 120000,

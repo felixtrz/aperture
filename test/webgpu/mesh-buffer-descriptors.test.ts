@@ -7,7 +7,7 @@ import {
   createMeshUploadBufferDescriptors,
   createPlaneMeshAsset,
   type MeshGpuUploadPlan,
-} from "../../src/index.js";
+} from "@aperture-engine/webgpu";
 
 describe("mesh upload buffer descriptor planning", () => {
   it("maps box mesh upload plans to vertex and index buffer descriptors", () => {

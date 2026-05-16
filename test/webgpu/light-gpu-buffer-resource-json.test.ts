@@ -8,7 +8,7 @@ import {
   createLightGpuBuffersResultToJsonValue,
   type LightPacket,
   type WebGpuBufferDeviceLike,
-} from "../../src/index.js";
+} from "@aperture-engine/webgpu";
 
 describe("light GPU buffer resource JSON helpers", () => {
   it("serializes valid light GPU buffer resources without raw handles", () => {

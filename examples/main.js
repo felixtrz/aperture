@@ -14,7 +14,11 @@ const baseStatus = {
 };
 
 try {
-  const aperture = await import("/dist/index.js");
+  const [core, webgpu] = await Promise.all([
+    import("@aperture-engine/core"),
+    import("@aperture-engine/webgpu"),
+  ]);
+  const aperture = { ...core, ...webgpu };
 
   if (canvas === null) {
     publishStatus({
@@ -88,7 +92,7 @@ try {
     message:
       error instanceof Error
         ? error.message
-        : "The built Aperture package could not be imported from /dist.",
+        : "The built Aperture workspace packages could not be imported.",
   });
 }
 

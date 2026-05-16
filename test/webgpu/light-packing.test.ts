@@ -14,7 +14,7 @@ import {
   type LightPacket,
   type RenderSnapshot,
   type WebGpuBufferDeviceLike,
-} from "../../src/index.js";
+} from "@aperture-engine/webgpu";
 
 describe("light packet packing", () => {
   it("packs light packet float and metadata fields in packet order", () => {

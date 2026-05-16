@@ -31,7 +31,7 @@ for (const fixture of [
       scenario: fixture.scenario,
       ok: true,
       phase: "submit",
-      renderingBackend: "webgpu",
+      renderingBackend: "webgpu-explicit",
       extraction: { views: 1, meshDraws: 1, diagnostics: 0 },
       renderWorld: { active: 1, ready: 1, blocked: 0 },
       geometry: { primitive: fixture.primitive },

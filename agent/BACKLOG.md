@@ -27,11 +27,67 @@ Keep implementation vertical, typed, and testable. Do not introduce a public mut
 
 ## Recommended Next Task
 
-Start with `task-0534`. Keep the slice contract-only: define the WGSL light data
-layout expected by the future shader path without enabling lighting math or
-threading it into the render pipeline.
+Start with `task-0540`. The monorepo split and first Bevy-style authoring pass
+are in place, so the next bridge gap is a typed asset collection API over the
+generic registry.
 
 ## Ready Tasks
+
+### task-0540 — Add typed asset collection API over AssetRegistry
+
+Add a small typed asset collection layer that returns stable handles without
+requiring callers to manually assemble kind/id pairs.
+
+Acceptance criteria:
+
+- Provide typed collections for meshes and materials first.
+- Adding an asset registers it in the underlying `AssetRegistry`.
+- Updating asset readiness/status keeps existing registry diagnostics behavior.
+- Tests cover handle stability, duplicate detection, status transitions, and
+  dependency reporting through the underlying registry.
+- API remains usable in headless Node/worker contexts.
+
+### task-0541 — Define renderer-independent render asset preparation contract
+
+Define the TypeScript contract for converting source assets into renderer-owned
+prepared resources without adding new GPU behavior.
+
+Acceptance criteria:
+
+- Add a `RenderAssetAdapter` or equivalent interface for source asset type,
+  prepared asset type, version/dependency state, prepare result, and unload.
+- Define prepared asset stores for at least mesh and material resource families.
+- Contract lives outside the WebGPU backend and exposes no raw GPU handles.
+- Tests cover deterministic prepare/update/remove bookkeeping with mock assets.
+- Docs map the contract to the Bevy `RenderAsset` pattern.
+
+### task-0542 — Split render frame planning into extract, prepare, queue, sort phases
+
+Make the current render-frame planning vocabulary match the Bevy-inspired stage
+model without rewriting the renderer.
+
+Acceptance criteria:
+
+- Name and document extract, asset-change collection, prepare, queue, sort, and
+  submit boundaries in render code or planning helpers.
+- Existing unlit examples continue to render.
+- Tests verify that the current draw packets can be queued and sorted through
+  the named phase helpers.
+- No PBR lighting math or shader activation is introduced.
+
+### task-0543 — Add Bevy-aligned runtime API sketch and example target
+
+Create a minimal API plan or vertical slice for declaring an ECS cube using
+typed assets, mesh/material components, and a system that spins it.
+
+Acceptance criteria:
+
+- Target API shows headless simulation and WebGPU presentation can be selected
+  separately.
+- Example setup avoids direct WebGPU plumbing in user code.
+- The plan or implementation references the mesh/material split and typed asset
+  collections.
+- Validation covers either the runnable example or the documented API contract.
 
 ### task-0534 — Add light shader WGSL data contract
 

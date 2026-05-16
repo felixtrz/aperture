@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   mergeDrawPackageBatchingReports,
   type DrawPackageBatchingReport,
-} from "../../src/index.js";
+} from "@aperture-engine/core";
 
 describe("draw package batching report merge", () => {
   it("merges empty inputs", () => {

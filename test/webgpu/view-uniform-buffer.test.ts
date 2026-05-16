@@ -4,7 +4,7 @@ import {
   DEFAULT_UNLIT_MATERIAL_BUFFER_USAGE,
   createViewUniformBufferDescriptor,
   type PackedSnapshotViewUniforms,
-} from "../../src/index.js";
+} from "@aperture-engine/webgpu";
 
 describe("view uniform buffer descriptor planning", () => {
   it("maps one packed view to a uniform buffer descriptor", () => {

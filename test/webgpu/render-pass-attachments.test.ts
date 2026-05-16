@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { createRenderPassAttachmentPlan } from "../../src/index.js";
+import { createRenderPassAttachmentPlan } from "@aperture-engine/webgpu";
 
 describe("render pass attachment descriptor planning", () => {
   it("plans color-only attachments", () => {

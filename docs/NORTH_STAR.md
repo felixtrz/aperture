@@ -24,6 +24,24 @@ The long-term goal is broad practical feature parity with major web/game 3D fram
 
 This is not a low-level WebGPU wrapper and not a clone of three.js. It is a modern ECS-first 3D runtime.
 
+## Architectural Anchor
+
+Bevy is the closest current architecture reference for Aperture's ECS/render
+bridge. Aperture should borrow Bevy's proven patterns conceptually:
+
+- Entities are logic identities until render-facing components are added.
+- Meshes, materials, cameras, lights, and visibility are ECS components or
+  resources, not renderer-owned scene nodes.
+- Meshes and materials are assets stored in typed collections and referenced by
+  stable handles from components.
+- Rendering runs from extracted ECS state, renderer-owned prepared assets, draw
+  queues, and explicit render stages.
+- Materials are asset families with shader, bind group, render-state, and
+  pipeline specialization contracts.
+
+Aperture should not mechanically copy Bevy names or Rust API shapes. The runtime
+must remain TypeScript-first, WebGPU-only, and worker-snapshot-friendly.
+
 ## Strategic Bet
 
 In an AI-agentic coding era, users may care less about which rendering framework is underneath if the system can reliably deliver the experience they want.
@@ -83,6 +101,7 @@ The system should eventually support most practical app/game needs covered by ma
 ### Assets
 
 - Asset registry.
+- Typed asset collections.
 - Asset handles.
 - GLTF/GLB loading.
 - Texture loading.
@@ -184,6 +203,8 @@ The correct early path is small vertical slices that preserve the architecture.
 13. Prefer data-oriented structures where they improve clarity or performance.
 14. Prefer small, testable vertical slices over broad unfinished scaffolding.
 15. Every major decision should be recorded.
+16. Prefer Bevy-proven ECS/render/asset patterns when they preserve
+    Aperture's TypeScript and worker-boundary constraints.
 
 ## Success Criteria
 

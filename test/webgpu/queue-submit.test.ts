@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   submitCommandBuffers,
   type CommandBufferResource,
-} from "../../src/index.js";
+} from "@aperture-engine/webgpu";
 
 describe("queue command buffer submission helper", () => {
   it("submits command buffers in stable input order", () => {

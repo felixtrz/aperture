@@ -7,7 +7,7 @@ import {
   type GetOrCreateRenderPipelineResult,
   type PackedSnapshotViewUniforms,
   type RenderWorldDrawPackagePlan,
-} from "../../src/index.js";
+} from "@aperture-engine/webgpu";
 
 describe("frame assembly readiness report", () => {
   it("reports all-ready frame assembly inputs", () => {

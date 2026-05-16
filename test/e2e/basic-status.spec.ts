@@ -25,7 +25,7 @@ test("WebGPU clear example publishes ready status", async ({ page }) => {
     example: "webgpu-clear",
     ok: true,
     phase: "clear",
-    renderingBackend: "webgpu",
+    renderingBackend: "webgpu-explicit",
     clearColor: { r: 0.08, g: 0.28, b: 0.64, a: 1 },
   });
   expectClearReadbackStatus(status.readback, JSON.stringify(status, null, 2));
@@ -48,7 +48,7 @@ test("ECS triangle example publishes one-draw ready status", async ({
     example: "ecs-triangle",
     ok: true,
     phase: "submit",
-    renderingBackend: "webgpu",
+    renderingBackend: "webgpu-explicit",
     extraction: { views: 1, meshDraws: 1, diagnostics: 0 },
     binding: { planned: 1, applied: 1, diagnostics: 0 },
     renderWorld: { active: 1, ready: 1, blocked: 0 },

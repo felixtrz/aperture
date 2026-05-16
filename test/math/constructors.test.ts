@@ -17,7 +17,7 @@ import {
   vec3,
   vec4,
   type Mat4Like,
-} from "../../src/index.js";
+} from "@aperture-engine/core";
 
 describe("Aperture math constructors", () => {
   it("wraps wgpu-matrix vector, quaternion, and color constructors", () => {

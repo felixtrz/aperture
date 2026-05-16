@@ -10,7 +10,7 @@ import {
   createTorusMeshAsset,
   validateMeshAsset,
   type MeshAsset,
-} from "../../src/index.js";
+} from "@aperture-engine/core";
 
 describe("mesh asset schema and primitive builders", () => {
   it("builds box mesh data with interleaved attributes, indices, submesh, and bounds", () => {

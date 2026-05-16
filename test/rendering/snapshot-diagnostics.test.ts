@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   summarizeRenderSnapshotDiagnostics,
   type RenderSnapshot,
-} from "../../src/index.js";
+} from "@aperture-engine/core";
 
 describe("render snapshot diagnostic summary", () => {
   it("summarizes snapshots without diagnostics", () => {

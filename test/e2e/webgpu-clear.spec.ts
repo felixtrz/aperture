@@ -22,7 +22,7 @@ test("browser WebGPU clear example reports readiness and changes pixels", async 
     example: "webgpu-clear",
     ok: true,
     phase: "clear",
-    renderingBackend: "webgpu",
+    renderingBackend: "webgpu-explicit",
   });
   expect(status.clearColor, JSON.stringify(status, null, 2)).toEqual({
     r: 0.08,

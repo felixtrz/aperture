@@ -1,0 +1,25 @@
+{
+  "name": "@aperture-engine/runtime",
+  "version": "0.0.0",
+  "description": "Headless simulation and render extraction runtime facade for Aperture.",
+  "type": "module",
+  "license": "UNLICENSED",
+  "private": true,
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@aperture-engine/render": "workspace:*",
+    "@aperture-engine/simulation": "workspace:*"
+  }
+}

@@ -6,7 +6,7 @@ import {
   type WebGpuClearReadbackBufferLike,
   type WebGpuClearReadbackDeviceLike,
   type WebGpuReadbackCommandEncoderLike,
-} from "../../src/index.js";
+} from "@aperture-engine/webgpu";
 
 describe("WebGPU clear readback", () => {
   it("creates canvas texture usage flags for readback-capable presentation", () => {

@@ -12,7 +12,7 @@ import {
   samplerPipelineKey,
   validateMaterialAsset,
   validateTextureAsset,
-} from "../../src/index.js";
+} from "@aperture-engine/core";
 
 describe("material, texture, sampler, and render-state schemas", () => {
   it("validates a simple unlit material", () => {

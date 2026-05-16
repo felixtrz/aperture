@@ -4,7 +4,7 @@ import {
   beginPlannedRenderPass,
   endPlannedRenderPass,
   type RenderPassAttachmentDescriptorPlan,
-} from "../../src/index.js";
+} from "@aperture-engine/webgpu";
 
 describe("render pass lifecycle helpers", () => {
   it("begins render passes through an injected command encoder", () => {

@@ -1,7 +1,8 @@
 import {
   AssetRegistry,
   Camera,
-  MeshRenderer,
+  Material,
+  Mesh,
   RenderLayer,
   RenderWorld,
   Visibility,
@@ -28,7 +29,7 @@ import {
   type RenderSnapshot,
   type RendererAssemblySmokeReport,
   type UnlitBindGroupResource,
-} from "../../../src/index.js";
+} from "@aperture-engine/webgpu";
 
 export type EcsSnapshotRenderFrameFailurePoint = "invalidRenderable" | "submit";
 
@@ -131,9 +132,11 @@ function createMeshEntity(
   const root = createRootTransform({ translation: [order * 2, 0, 0] });
 
   entity.addComponent(WorldTransform, root.world);
-  entity.addComponent(MeshRenderer, {
+  entity.addComponent(Mesh, {
     meshId: options.meshId ?? "mesh:cube",
-    material0Id: "material:unlit",
+  });
+  entity.addComponent(Material, {
+    materialId: "material:unlit",
   });
   entity.addComponent(RenderLayer, { mask: 1 });
   entity.addComponent(Visibility);

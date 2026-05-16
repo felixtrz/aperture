@@ -10,7 +10,7 @@ import {
   type RenderSnapshot,
   type RenderSortKey,
   type UnlitBindGroupResource,
-} from "../../../src/index.js";
+} from "@aperture-engine/webgpu";
 
 export type SnapshotRenderFrameFailurePoint =
   | "duplicateRenderIds"

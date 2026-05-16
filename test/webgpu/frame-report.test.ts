@@ -5,7 +5,7 @@ import {
   type DrawPackageBatchingReport,
   type FrameAssemblyReadinessReport,
   type RenderResourceSummaryReport,
-} from "../../src/index.js";
+} from "@aperture-engine/webgpu";
 
 describe("frame report", () => {
   it("combines ready frame counts", () => {

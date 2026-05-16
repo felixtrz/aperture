@@ -14,7 +14,7 @@ import {
   type UnlitBindGroupCreationDescriptor,
   type UnlitBindGroupLayoutResource,
   type UnlitFrameGpuResourceDeviceLike,
-} from "../../src/index.js";
+} from "@aperture-engine/webgpu";
 
 describe("unlit frame GPU resource upload", () => {
   it("uploads mesh, frame buffers, material buffers, and actual bind groups", () => {

@@ -3,8 +3,8 @@
   "currentTaskId": null,
   "lastRunStartedAt": "2026-05-16T14:02:07Z",
   "lastResult": "success",
-  "lastCommit": "abd481c",
+  "lastCommit": null,
   "activePid": null,
-  "notes": "Completed task-0495 through task-0533; next recommended task is task-0534.",
-  "lastRunFinishedAt": "2026-05-16T14:46:10Z"
+  "notes": "Implemented pnpm workspace package split and completed task-0539: MeshRenderer replaced by Mesh plus Material components; next task is task-0540 typed asset collections.",
+  "lastRunFinishedAt": "2026-05-16T16:15:02Z"
 }

@@ -9,7 +9,7 @@ import {
   validateBuiltInShaderMetadata,
   type BuiltInShaderSourceModule,
   type WebGpuShaderDeviceLike,
-} from "../../src/index.js";
+} from "@aperture-engine/webgpu";
 
 describe("built-in unlit mesh WGSL shader metadata", () => {
   it("exports expected entry points and validates through the shader helper", async () => {

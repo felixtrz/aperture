@@ -1,27 +1,14 @@
 {
-  "name": "aperture",
+  "name": "@aperture-engine/workspace",
   "version": "0.0.0",
   "description": "WebGPU-only, ECS-native 3D runtime where simulation is authoritative and rendering is a derived view.",
   "type": "module",
   "license": "UNLICENSED",
   "private": true,
-  "sideEffects": false,
-  "files": [
-    "dist",
-    "README.md",
-    "docs"
-  ],
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
-    }
-  },
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "packageManager": "pnpm@10.12.1",
   "scripts": {
-    "build": "tsc -p tsconfig.json",
-    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "build": "tsc -b packages/simulation packages/render packages/runtime packages/core packages/webgpu",
+    "typecheck": "pnpm run build",
     "typecheck:test": "tsc --noEmit -p tsconfig.test.json",
     "check:examples": "node --check scripts/serve-examples.mjs && node --check examples/main.js && node --check examples/triangle.js && node --check examples/multi-entity.js && node --check examples/spinning-cube.js && node --check examples/webgpu-readback.js",
     "lint": "eslint .",
@@ -30,14 +17,19 @@
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:install": "playwright install chrome",
-    "examples:build": "npm run build",
+    "examples:build": "pnpm run build",
     "examples:serve": "node scripts/serve-examples.mjs",
-    "check": "npm run typecheck && npm run typecheck:test && npm run check:examples && npm run lint && npm run format:check && npm test",
+    "check": "pnpm run typecheck && pnpm run typecheck:test && pnpm run check:examples && pnpm run lint && pnpm run format:check && pnpm test",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
   },
   "engines": {
     "node": ">=20"
+  },
+  "dependencies": {
+    "@preact/signals-core": "^1.8.0",
+    "elics": "^3.4.2",
+    "wgpu-matrix": "^3.4.2"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
@@ -49,9 +41,5 @@
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.59.3",
     "vitest": "^4.1.6"
-  },
-  "dependencies": {
-    "elics": "^3.4.2",
-    "wgpu-matrix": "^3.4.2"
   }
 }

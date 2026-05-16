@@ -4,7 +4,7 @@ import {
   clearParityReportToJson,
   clearParityReportToJsonValue,
   type ClearParityReport,
-} from "../../src/index.js";
+} from "@aperture-engine/webgpu";
 
 describe("clear parity JSON helpers", () => {
   it("creates JSON-safe values for matching success", () => {

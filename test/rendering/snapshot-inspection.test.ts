@@ -14,7 +14,7 @@ import {
   type EnvironmentPacket,
   type MeshDrawPacket,
   type RenderSnapshot,
-} from "../../src/index.js";
+} from "@aperture-engine/core";
 
 describe("render snapshot inspection report", () => {
   it("summarizes populated snapshot packet counts and unique handles", () => {

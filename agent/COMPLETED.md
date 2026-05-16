@@ -4607,3 +4607,35 @@ Summary:
 - Validation run: full `npm run check`, lighting route Playwright coverage,
   focused light shader metadata tests, `typecheck`, `typecheck:test`, and
   `format:check` passed.
+
+## task-0539 plus pnpm package split — Mesh/Material authoring and workspace boundaries
+
+Completed: 2026-05-16
+
+Completed task ids:
+
+- `task-0539` — Replace MeshRenderer with mesh/material components.
+
+Summary:
+
+- Converted the repository to a pnpm workspace with
+  `@aperture-engine/simulation`, `@aperture-engine/render`,
+  `@aperture-engine/webgpu`, `@aperture-engine/runtime`, and
+  `@aperture-engine/core`.
+- Moved simulation, render-contract, and WebGPU implementation code under
+  package-scoped `src` directories and updated tests/examples to import through
+  package names.
+- Made `@aperture-engine/core` the headless-safe umbrella package that excludes
+  WebGPU APIs; `@aperture-engine/webgpu` is now the explicit backend import.
+- Replaced the combined `MeshRenderer` authoring component with separate `Mesh`
+  and `Material` ECS components and updated extraction, examples, fixtures, and
+  tests.
+- Decoupled primitive mesh asset builders from material handles; primitives now
+  expose material slot labels only, while ECS `Material` selects the material
+  asset for a renderable entity.
+- Added the first runtime facade for headless simulation and extraction:
+  `createSimulationApp` and `createExtractionApp`.
+- Updated architecture, roadmap, Bevy-alignment, and monorepo-plan docs to
+  reflect the implemented package boundaries and authoring model.
+- Validation run: `pnpm run check`, focused spinning cube/primitive Playwright
+  slice, and full `pnpm exec playwright test --reporter=line` all pass.

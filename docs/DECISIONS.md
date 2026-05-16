@@ -170,3 +170,56 @@ Consequences:
 - `gl-matrix` remains the fallback if `wgpu-matrix` fails a required performance, correctness, or maintenance criterion.
 - The public API can be made ergonomic through helper functions, but not by making object-oriented math classes the ECS storage model.
 - Tests must lock projection depth range, transform composition order, quaternion ordering, and allocation-conscious destination usage.
+
+## 0008 — Bevy-Inspired ECS/Render Bridge
+
+Status: accepted
+
+Context:
+
+Aperture's North Star already says ECS is authoritative, rendering is derived,
+assets are referenced by stable handles, GPU resources are renderer-owned, and
+future worker-thread simulation must remain possible. The local Bevy checkout
+provides a mature architecture that closely matches those goals:
+
+- Mesh renderability is authored through ECS components such as a mesh handle
+  component and a material handle component.
+- Assets live in typed collections and are referenced from components by
+  handles.
+- Rendering runs in a separate render world with explicit extraction and render
+  schedules.
+- Render assets are extracted from source assets and prepared into GPU-ready
+  resources.
+- Materials are asset families that define shader, bind group, render-state,
+  dependency, queueing, and pipeline specialization behavior.
+
+Decision:
+
+Aperture will use Bevy as the primary conceptual reference for the ECS/render
+bridge and asset/material authoring model, while preserving Aperture-specific
+constraints:
+
+- TypeScript-first APIs.
+- WebGPU-only backend.
+- Serializable `RenderSnapshot` as the worker-friendly boundary.
+- 3D-only naming; Bevy's dimensional suffixes should become unsuffixed
+  Aperture components such as `Mesh` and `Material`.
+- No public mutable scene graph as the source of truth.
+- No mechanical copying of Bevy names, Rust trait shapes, or plugin complexity
+  when a smaller TypeScript shape is clearer.
+
+Consequences:
+
+- The preferred render authoring API should move from a combined `MeshRenderer`
+  component to separate `Mesh` and `Material` handle components.
+- Because this is an early prototype, `MeshRenderer` does not need to be kept
+  for backward compatibility.
+- The asset layer should expose typed asset collections over the generic
+  registry/status substrate.
+- Renderer work should be organized around extraction, render asset preparation,
+  draw queueing, phase sorting, and WebGPU submission.
+- PBR work should wait for the material asset and render asset preparation
+  contracts instead of being treated as a shader-only task.
+- Documentation and backlog tasks should reference
+  `docs/research/BEVY_ECS_RENDER_ALIGNMENT.md` when changing render authoring,
+  assets, materials, render extraction, or render-world behavior.

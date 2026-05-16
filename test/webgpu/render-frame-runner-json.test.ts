@@ -4,7 +4,7 @@ import {
   injectedRenderFrameRunnerReportToJson,
   injectedRenderFrameRunnerReportToJsonValue,
   type InjectedRenderFrameRunnerReport,
-} from "../../src/index.js";
+} from "@aperture-engine/webgpu";
 import { createInjectedRenderFrameSmokeFixture } from "./fixtures/injected-render-frame.js";
 
 describe("injected render frame runner JSON helpers", () => {

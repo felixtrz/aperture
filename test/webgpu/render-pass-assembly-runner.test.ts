@@ -7,7 +7,7 @@ import {
   type RenderPassDrawListRecord,
   type RenderPassEncoderLike,
   type UnlitBindGroupResource,
-} from "../../src/index.js";
+} from "@aperture-engine/webgpu";
 
 describe("injected render pass assembly runner", () => {
   it("resolves resources, plans commands, executes, and derives smoke output", () => {

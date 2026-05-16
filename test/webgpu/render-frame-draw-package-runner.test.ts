@@ -9,7 +9,7 @@ import {
   type RendererAssemblySmokeReport,
   type RenderWorldDrawPackage,
   type UnlitBindGroupResource,
-} from "../../src/index.js";
+} from "@aperture-engine/webgpu";
 
 type FailurePoint = "missingMesh" | "bindGroup" | "commandExecution" | "submit";
 

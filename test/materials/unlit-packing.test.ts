@@ -7,7 +7,7 @@ import {
   createTextureHandle,
   createUnlitMaterialAsset,
   packUnlitMaterial,
-} from "../../src/index.js";
+} from "@aperture-engine/core";
 
 describe("unlit material uniform packing", () => {
   it("packs default unlit color into the documented uniform layout", () => {

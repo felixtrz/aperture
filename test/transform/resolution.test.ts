@@ -14,7 +14,7 @@ import {
   resolveWorldTransforms,
   type Entity,
   type TransformResolutionReport,
-} from "../../src/index.js";
+} from "@aperture-engine/core";
 
 describe("transform resolution", () => {
   it("resolves root world transforms from local transforms on system update", () => {

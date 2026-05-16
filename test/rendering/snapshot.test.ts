@@ -8,7 +8,7 @@ import {
   createStableRenderId,
   createUnlitMaterialAsset,
   type RenderSnapshot,
-} from "../../src/index.js";
+} from "@aperture-engine/core";
 
 type HasNoGpuKeys<T> =
   Extract<

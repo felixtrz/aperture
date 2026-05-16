@@ -4,7 +4,7 @@ import {
   createClearParityReport,
   type ClearCompatibilityReport,
   type WebGpuClearResult,
-} from "../../src/index.js";
+} from "@aperture-engine/webgpu";
 
 describe("clear helper parity report", () => {
   it("reports ready when clear and frame-boundary compatibility both succeed", () => {

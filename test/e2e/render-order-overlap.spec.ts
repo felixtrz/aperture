@@ -26,7 +26,7 @@ test("ECS browser example renders overlapping primitives in explicit order", asy
     scenario: "render-order-overlap",
     ok: true,
     phase: "submit",
-    renderingBackend: "webgpu",
+    renderingBackend: "webgpu-explicit",
     extraction: { views: 1, meshDraws: 2, diagnostics: 0 },
     resources: { materials: 2, bindGroups: 4 },
     binding: { planned: 2, applied: 2, ready: 2, diagnostics: 0 },

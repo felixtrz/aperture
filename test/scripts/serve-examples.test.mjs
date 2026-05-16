@@ -16,7 +16,7 @@ import {
 } from "../../scripts/serve-examples.mjs";
 
 describe("examples static server helpers", () => {
-  it("resolves allowed example, dist, and root paths without listening", () => {
+  it("resolves allowed example, package, and root paths without listening", () => {
     expect(resolveStaticPath("/")).toBe(
       path.resolve(projectRoot, "examples/index.html"),
     );
@@ -26,8 +26,8 @@ describe("examples static server helpers", () => {
     expect(resolveStaticPath("/examples/triangle.html")).toBe(
       path.resolve(projectRoot, "examples/triangle.html"),
     );
-    expect(resolveStaticPath("/dist/index.js")).toBe(
-      path.resolve(projectRoot, "dist/index.js"),
+    expect(resolveStaticPath("/packages/core/dist/index.js")).toBe(
+      path.resolve(projectRoot, "packages/core/dist/index.js"),
     );
     expect(resolveStaticPath("/node_modules/elics/lib/index.js")).toBe(
       path.resolve(projectRoot, "node_modules/elics/lib/index.js"),
@@ -49,7 +49,7 @@ describe("examples static server helpers", () => {
     expect(resolveStaticPath("/docs/ARCHITECTURE.md")).toBeNull();
     expect(resolveStaticPath("/examples/../package.json")).toBeNull();
     expect(resolveStaticPath("/examples/%2e%2e/package.json")).toBeNull();
-    expect(resolveStaticPath("/dist/../examples/index.html")).toBeNull();
+    expect(resolveStaticPath("/packages/../examples/index.html")).toBeNull();
   });
 
   it("maps common browser artifact extensions to content types", () => {
@@ -130,7 +130,13 @@ describe("examples static server request handler", () => {
       path.join(tempRoot, "examples/webgpu-readback.js"),
       "export const readback = true;",
     );
-    await writeFile(path.join(tempRoot, "dist/index.js"), "export {};");
+    await mkdir(path.join(tempRoot, "packages/core/dist"), {
+      recursive: true,
+    });
+    await writeFile(
+      path.join(tempRoot, "packages/core/dist/index.js"),
+      "export {};",
+    );
     await writeFile(
       path.join(tempRoot, "node_modules/elics/lib/index.js"),
       "export const elics = true;",
@@ -175,7 +181,7 @@ describe("examples static server request handler", () => {
     const response = await requestExample({
       root: tempRoot,
       method: "HEAD",
-      url: "/dist/index.js",
+      url: "/packages/core/dist/index.js",
     });
 
     expect(response.statusCode).toBe(200);

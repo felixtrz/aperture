@@ -23,7 +23,7 @@ test("ECS browser example routes directional-light-extraction to light submit st
     scenario: "directional-light-extraction",
     ok: true,
     phase: "submit",
-    renderingBackend: "webgpu",
+    renderingBackend: "webgpu-explicit",
     extraction: { views: 1, meshDraws: 1, lights: 1, diagnostics: 0 },
     lightingResources: {
       lightBuffer: {
@@ -69,7 +69,7 @@ test("ECS browser example routes ambient-light-extraction to transformless light
     scenario: "ambient-light-extraction",
     ok: true,
     phase: "submit",
-    renderingBackend: "webgpu",
+    renderingBackend: "webgpu-explicit",
     extraction: { views: 1, meshDraws: 1, lights: 1, diagnostics: 0 },
     renderWorld: { active: 1, ready: 1, blocked: 0 },
     light: {
@@ -105,7 +105,7 @@ test("ECS browser example routes environment-light-extraction to transformless l
     scenario: "environment-light-extraction",
     ok: true,
     phase: "submit",
-    renderingBackend: "webgpu",
+    renderingBackend: "webgpu-explicit",
     extraction: {
       views: 1,
       meshDraws: 1,
@@ -160,7 +160,7 @@ test("ECS browser example routes missing-environment-map to environment diagnost
     scenario: "missing-environment-map",
     ok: true,
     phase: "submit",
-    renderingBackend: "webgpu",
+    renderingBackend: "webgpu-explicit",
     extraction: {
       views: 1,
       meshDraws: 1,
@@ -211,7 +211,7 @@ test("ECS browser example routes loading-environment-map to environment diagnost
     scenario: "loading-environment-map",
     ok: true,
     phase: "submit",
-    renderingBackend: "webgpu",
+    renderingBackend: "webgpu-explicit",
     extraction: {
       views: 1,
       meshDraws: 1,
@@ -261,7 +261,7 @@ test("ECS browser example routes failed-environment-map to environment diagnosti
     scenario: "failed-environment-map",
     ok: true,
     phase: "submit",
-    renderingBackend: "webgpu",
+    renderingBackend: "webgpu-explicit",
     extraction: {
       views: 1,
       meshDraws: 1,
@@ -311,7 +311,7 @@ test("ECS browser example routes malformed-environment-map to environment diagno
     scenario: "malformed-environment-map",
     ok: true,
     phase: "submit",
-    renderingBackend: "webgpu",
+    renderingBackend: "webgpu-explicit",
     extraction: {
       views: 1,
       meshDraws: 1,
@@ -355,7 +355,7 @@ test("ECS browser example routes environment-map-handle to extracted handle stat
     scenario: "environment-map-handle",
     ok: true,
     phase: "submit",
-    renderingBackend: "webgpu",
+    renderingBackend: "webgpu-explicit",
     extraction: {
       views: 1,
       meshDraws: 1,
@@ -410,7 +410,7 @@ test("ECS browser example routes point-light-extraction to point light status", 
     scenario: "point-light-extraction",
     ok: true,
     phase: "submit",
-    renderingBackend: "webgpu",
+    renderingBackend: "webgpu-explicit",
     extraction: { views: 1, meshDraws: 1, lights: 1, diagnostics: 0 },
     renderWorld: { active: 1, ready: 1, blocked: 0 },
     light: {
@@ -446,7 +446,7 @@ test("ECS browser example routes spot-light-extraction to spot light status", as
     scenario: "spot-light-extraction",
     ok: true,
     phase: "submit",
-    renderingBackend: "webgpu",
+    renderingBackend: "webgpu-explicit",
     extraction: { views: 1, meshDraws: 1, lights: 1, diagnostics: 0 },
     renderWorld: { active: 1, ready: 1, blocked: 0 },
     light: {
@@ -486,7 +486,7 @@ test("ECS browser example routes missing-light-transform to light diagnostic sta
     scenario: "missing-light-transform",
     ok: true,
     phase: "submit",
-    renderingBackend: "webgpu",
+    renderingBackend: "webgpu-explicit",
     extraction: { views: 1, meshDraws: 1, lights: 0, diagnostics: 1 },
     renderWorld: { active: 1, ready: 1, blocked: 0 },
     light: {
@@ -532,7 +532,7 @@ test("ECS browser example routes invalid-light-extraction to light diagnostic st
     scenario: "invalid-light-extraction",
     ok: true,
     phase: "submit",
-    renderingBackend: "webgpu",
+    renderingBackend: "webgpu-explicit",
     extraction: { views: 1, meshDraws: 1, lights: 0, diagnostics: 4 },
     renderWorld: { active: 1, ready: 1, blocked: 0 },
     light: {
@@ -570,7 +570,7 @@ test("ECS browser example routes directional-shadow-request to shadow request st
     scenario: "directional-shadow-request",
     ok: true,
     phase: "submit",
-    renderingBackend: "webgpu",
+    renderingBackend: "webgpu-explicit",
     extraction: {
       views: 1,
       meshDraws: 1,
@@ -621,7 +621,7 @@ test("ECS browser example routes invalid-shadow-settings to shadow diagnostic st
     scenario: "invalid-shadow-settings",
     ok: true,
     phase: "submit",
-    renderingBackend: "webgpu",
+    renderingBackend: "webgpu-explicit",
     extraction: {
       views: 1,
       meshDraws: 1,
@@ -670,7 +670,7 @@ test("ECS browser example routes unsupported-shadow-request to shadow diagnostic
     scenario: "unsupported-shadow-request",
     ok: true,
     phase: "submit",
-    renderingBackend: "webgpu",
+    renderingBackend: "webgpu-explicit",
     extraction: {
       views: 1,
       meshDraws: 1,

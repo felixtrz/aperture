@@ -6,7 +6,7 @@ import {
   type RenderPassCommandPlan,
   type RenderPassDrawListPlan,
   type ResolveRenderPassResourcesResult,
-} from "../../src/index.js";
+} from "@aperture-engine/webgpu";
 
 describe("render pass assembly smoke report", () => {
   it("reports ready when all render pass assembly sections are ready", () => {

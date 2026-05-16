@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { checkMaterialDependencyReadiness } from "../../src/index.js";
+import { checkMaterialDependencyReadiness } from "@aperture-engine/webgpu";
 
 describe("material texture dependency readiness", () => {
   it("treats materials without texture dependencies as ready", () => {

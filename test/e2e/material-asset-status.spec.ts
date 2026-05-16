@@ -45,7 +45,7 @@ for (const fixture of [
       ok: false,
       phase: "extract",
       reason: fixture.reason,
-      renderingBackend: "webgpu",
+      renderingBackend: "webgpu-explicit",
       extraction: { views: 1, meshDraws: 0, diagnostics: 1 },
       assetStatus: {
         material: fixture.status,

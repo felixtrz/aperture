@@ -8,7 +8,7 @@ import {
   transformPoint,
   type Mat4Like,
   type Vec3Like,
-} from "../../src/index.js";
+} from "@aperture-engine/core";
 
 const CLOSE_TO = 5;
 

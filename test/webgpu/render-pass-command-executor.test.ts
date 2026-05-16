@@ -4,7 +4,7 @@ import {
   executeRenderPassCommands,
   type RenderPassCommand,
   type RenderPassEncoderLike,
-} from "../../src/index.js";
+} from "@aperture-engine/webgpu";
 
 describe("render pass command executor", () => {
   it("executes indexed command records through an injected pass encoder", () => {

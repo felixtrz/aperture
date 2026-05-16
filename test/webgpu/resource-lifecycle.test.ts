@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   createRenderResourceLifecycleReport,
   type RenderResourceLifecycleKeySets,
-} from "../../src/index.js";
+} from "@aperture-engine/webgpu";
 
 describe("renderer resource lifecycle report", () => {
   it("reports retained resources when key sets do not change", () => {
