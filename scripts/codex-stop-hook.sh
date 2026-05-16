@@ -147,10 +147,9 @@ if (status.lastRunStartedAt) {
 
     if (
       readyTaskCount > 0 &&
-      elapsedMs < 45 * 60000 &&
-      !isExplicitStopCondition(status.lastResult)
+      elapsedMs < 45 * 60000
     ) {
-      throw new Error(`recorded run finished after ${elapsedMinutes.toFixed(1)} minute(s) with ${readyTaskCount} ready task(s) still available, below the 45-minute minimum`);
+      throw new Error(`recorded run finished after ${elapsedMinutes.toFixed(1)} minute(s) with ${readyTaskCount} ready task(s) still available; keep working until 45 minutes elapse or no ready tasks remain`);
     }
 
     if (status.lastResult === "success" && elapsedMs < 45 * 60000) {
@@ -181,16 +180,6 @@ function countReadyTasks(backlogPath) {
   }
 
   return count;
-}
-
-function isExplicitStopCondition(lastResult) {
-  return new Set([
-    "blocked",
-    "stop-condition",
-    "unsafe",
-    "tests-failed",
-    "validation-failed",
-  ]).has(lastResult);
 }
 NODE
   fail "agent/STATUS.json is invalid or not finalized"
