@@ -261,6 +261,192 @@ Summary:
 - Covered root, triangle, and multi-entity pages without opening a server.
 - Validation run: targeted navigation/structure test passes.
 
+## task-0190 — Prototype WebGPU current-texture readback for clear pixels
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added `clearWebGpuCanvasWithReadback` and canvas `textureUsage` initialization support.
+- The clear browser example now opts into `COPY_SRC` when available and publishes JSON-safe current-texture readback pixels or explicit diagnostics.
+- Added injected tests for success, missing usage flags, map failures, mapped-range failures, RGBA/BGRA decoding, and invalid origins.
+- Validation run: `npm run check` and full `npm run test:e2e -- --reporter=line` pass.
+
+## task-0191 — Use GPU readback in triangle and multi-entity pixel tests
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added shared browser readback helpers for examples.
+- Triangle and multi-entity examples now publish optional current-texture readback samples after render pass commands and before command submission.
+- Pixel specs prefer readback samples and retain screenshot fallback diagnostics when readback is unavailable.
+- Validation run: `npm run check` and full `npm run test:e2e -- --reporter=line` pass.
+
+## task-0202 — Add browser example import-map parsing helper
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added `test/examples/import-map.mjs`.
+- Static example tests now parse import-map JSON and assert exact imports for root, triangle, and multi-entity pages.
+- Parser tests cover missing, duplicate, invalid JSON, and invalid `imports` cases.
+- Validation run: `npm run check` passes.
+
+## task-0197 — Add unsupported WebGPU status smoke coverage
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added a Playwright smoke test that removes `navigator.gpu` before example startup.
+- The clear example now has coverage for publishing `navigator-gpu-unavailable` with `ok: false`.
+- Shared browser override helpers keep controlled environment overrides reusable.
+- Validation run: full `npm run test:e2e -- --reporter=line` passes.
+
+## task-0198 — Add example server invalid-port CLI smoke test
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added a child-process server test for invalid CLI port input.
+- The test verifies the process exits non-zero and prints the actionable invalid-port message without binding a TCP port.
+- Validation run: `npm run check` passes.
+
+## task-0199 — Add import-map consistency checks
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added explicit consistency checks across parsed root, triangle, and multi-entity import maps.
+- The tests assert `elics`, `wgpu-matrix`, and `@preact/signals-core` remain mapped to the same server paths.
+- Validation run: `npm run check` passes.
+
+## task-0200 — Add browser e2e artifact guide
+
+Completed: 2026-05-16
+
+Summary:
+
+- Expanded `docs/BROWSER_E2E_RENDERING.md` with artifact locations, status attachments, presentation samples, screenshots, videos, traces, and trace-opening commands.
+- Documented readback payload shape and reiterated that raw WebGPU handles must not be serialized.
+- Validation run: `npm run check` passes.
+
+## task-0203 — Add readback buffer-usage diagnostic smoke
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added Playwright coverage for missing `GPUBufferUsage`.
+- The clear example still reaches `ok: true` while publishing `readback.reason: "buffer-usage-unavailable"`.
+- Validation run: full `npm run test:e2e -- --reporter=line` passes.
+
+## task-0204 — Add static coverage for the browser readback helper module
+
+Completed: 2026-05-16
+
+Summary:
+
+- Static tests now assert example modules import `examples/webgpu-readback.js`.
+- Server tests now verify the shared helper module is served with JavaScript MIME type.
+- `npm run check:examples` syntax-checks the helper module.
+- Validation run: `npm run check` passes.
+
+## task-0205 — Share controlled browser override helpers
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added `test/e2e/browser-overrides.ts` for reusable `navigator.gpu`, `GPUBufferUsage`, and `GPUMapMode` overrides.
+- Updated readback diagnostic and unsupported-WebGPU e2e specs to use the shared helpers.
+- Validation run: full `npm run test:e2e -- --reporter=line` passes.
+
+## task-0206 — Document readback status payload fields
+
+Completed: 2026-05-16
+
+Summary:
+
+- Updated the browser e2e guide's status payload section with clear, triangle, and multi-entity `readback` fields.
+- Clarified that readback data is copied JSON-safe pixel bytes, not raw GPU state.
+- Validation run: `npm run check` passes.
+
+## task-0207 — Add browser readback helper unit coverage
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added Vitest coverage for `examples/webgpu-readback.js`.
+- Tests cover COPY_SRC initialization fallback, sample copy planning, JSON-safe mapped pixels, missing buffer usage, and readback failure marking.
+- Validation run: `npm run check` passes.
+
+## task-0208 — Add status-only readback shape assertions
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added shared e2e assertions for clear and scene readback status shapes.
+- Status-only clear, triangle, and multi-entity tests now verify readback payloads or explicit readback diagnostics.
+- Validation run: full `npm run test:e2e -- --reporter=line` passes.
+
+## task-0209 — Add import-map parser edge coverage
+
+Completed: 2026-05-16
+
+Summary:
+
+- Expanded parser tests for duplicate import maps and invalid `imports` payloads.
+- Preserved parse error causes for invalid JSON.
+- Validation run: `npm run check` passes.
+
+## task-0210 — Add clear-readback helper edge coverage
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added TypeScript helper tests for RGBA byte decoding and invalid readback origins.
+- Verified invalid origins keep the clear submission while reporting `texture-size-invalid`.
+- Validation run: `npm run check` passes.
+
+## task-0211 — Add readback map-mode diagnostic smoke
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added Playwright coverage for missing `GPUMapMode`.
+- The clear example still reaches `ok: true` while publishing `readback.reason: "map-mode-unavailable"`.
+- Validation run: full `npm run test:e2e -- --reporter=line` passes.
+
+## task-0216 — Add readback diagnostics for command-copy failure modes
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added helper tests for missing and throwing `copyTextureToBuffer` paths.
+- Verified the TypeScript clear-readback helper preserves clear submission while reporting `copy-texture-to-buffer-unavailable`.
+- Verified the browser example helper reports the same diagnostic without production behavior changes.
+- Validation run: targeted readback helper tests pass.
+
+## task-0217 — Add browser artifact guide links from failure output docs
+
+Completed: 2026-05-16
+
+Summary:
+
+- Updated `README.md` to make the browser E2E artifact guide discoverable.
+- The link text now mentions Playwright artifacts, readback diagnostics, screenshots, videos, and traces.
+- Validation run: `npm run format:check` passes.
+
 ## task-0163 — Add browser example harness
 
 Completed: 2026-05-15

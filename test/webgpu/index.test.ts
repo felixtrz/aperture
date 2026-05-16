@@ -77,11 +77,34 @@ describe("WebGPU support boundary", () => {
     const result = await initializeWebGpu({
       environment: { navigator: { gpu } },
       context,
+      textureUsage: 17,
     });
 
     expect(result).toMatchObject({ ok: true, format: "rgba8unorm" });
     expect(configured).toHaveLength(1);
-    expect(configured[0]).toMatchObject({ device, format: "rgba8unorm" });
+    expect(configured[0]).toMatchObject({
+      device,
+      format: "rgba8unorm",
+      usage: 17,
+    });
+  });
+
+  it("reports canvas configuration failures distinctly", async () => {
+    const gpu = fakeGpu(fakeAdapter());
+
+    await expect(
+      initializeWebGpu({
+        environment: { navigator: { gpu } },
+        context: fakeContext(() => {
+          throw new Error("usage denied");
+        }),
+        textureUsage: 17,
+      }),
+    ).resolves.toMatchObject({
+      ok: false,
+      reason: "context-configure-failed",
+      message: "WebGPU canvas context configuration failed.",
+    });
   });
 
   it("exposes a device-loss result promise when the device reports loss", async () => {

@@ -1,7 +1,23 @@
+import {
+  copyCurrentTextureReadbackSamples,
+  createCurrentTextureColorTargetWithTexture,
+  initializeWebGpuWithOptionalReadbackUsage,
+  mapCurrentTextureReadbackSamples,
+  markReadbackClearOk,
+} from "./webgpu-readback.js";
+
 const canvas = document.querySelector("#aperture-canvas");
 const stateElement = document.querySelector("#example-state");
 const jsonElement = document.querySelector("#example-json");
 const clearColor = { r: 0.015, g: 0.025, b: 0.035, a: 1 };
+const readbackSamplePoints = [
+  { id: "left-upper", x: 0.36, y: 0.48 },
+  { id: "left-center", x: 0.39, y: 0.5 },
+  { id: "left-lower", x: 0.42, y: 0.52 },
+  { id: "right-upper", x: 0.58, y: 0.48 },
+  { id: "right-center", x: 0.61, y: 0.5 },
+  { id: "right-lower", x: 0.64, y: 0.52 },
+];
 
 const baseStatus = {
   example: "ecs-multi-entity",
@@ -17,7 +33,11 @@ try {
   if (canvas === null) {
     publishStatus(failure("canvas", "canvas-unavailable", "Canvas missing."));
   } else {
-    const initialized = await aperture.initializeWebGpu({ canvas });
+    const initialization = await initializeWebGpuWithOptionalReadbackUsage({
+      aperture,
+      canvas,
+    });
+    const { initialized, readbackUsage } = initialization;
 
     if (!initialized.ok) {
       publishStatus({
@@ -31,10 +51,15 @@ try {
       });
     } else {
       publishStatus(
-        await renderMultiEntityScene(aperture, initialized, {
-          width: canvas.width,
-          height: canvas.height,
-        }),
+        await renderMultiEntityScene(
+          aperture,
+          initialized,
+          {
+            width: canvas.width,
+            height: canvas.height,
+          },
+          readbackUsage,
+        ),
       );
     }
   }
@@ -50,7 +75,12 @@ try {
   );
 }
 
-async function renderMultiEntityScene(aperture, initialized, canvasSize) {
+async function renderMultiEntityScene(
+  aperture,
+  initialized,
+  canvasSize,
+  readbackUsage,
+) {
   const scene = createMultiEntityWorld(aperture, canvasSize);
   const snapshot = aperture.extractRenderSnapshot(scene.world, scene.assets, {
     frame: 1,
@@ -209,6 +239,8 @@ async function renderMultiEntityScene(aperture, initialized, canvasSize) {
     aperture,
     initialized,
     commandPlan,
+    canvasSize,
+    readbackUsage,
   );
 
   if (!submitted.ok) {
@@ -262,15 +294,20 @@ async function renderMultiEntityScene(aperture, initialized, canvasSize) {
       ),
     },
     submission: submitted.summary,
+    readback: submitted.readback,
   };
 }
 
-async function submitMultiEntityFrame(aperture, initialized, commandPlan) {
-  const colorTarget = aperture.createCurrentTextureColorTarget({
+async function submitMultiEntityFrame(
+  aperture,
+  initialized,
+  commandPlan,
+  canvasSize,
+  readbackUsage,
+) {
+  const colorTarget = createCurrentTextureColorTargetWithTexture({
     context: initialized.context,
     clearColor: [clearColor.r, clearColor.g, clearColor.b, clearColor.a],
-    loadOp: "clear",
-    storeOp: "store",
   });
 
   if (!colorTarget.valid || colorTarget.target === null) {
@@ -324,6 +361,17 @@ async function submitMultiEntityFrame(aperture, initialized, commandPlan) {
     commands: commandPlan.commands,
   });
   const end = aperture.endPlannedRenderPass(begin.pass);
+  const readbackPlan = readbackUsage.ok
+    ? copyCurrentTextureReadbackSamples({
+        device: initialized.device,
+        encoder: encoderResource.resource.encoder,
+        texture: colorTarget.texture,
+        format: initialized.format,
+        width: canvasSize.width,
+        height: canvasSize.height,
+        samples: readbackSamplePoints,
+      })
+    : readbackUsage;
   const finished = aperture.finishCommandEncoder({
     encoder: encoderResource.resource.encoder,
     label: "ecs-multi-entity",
@@ -351,6 +399,9 @@ async function submitMultiEntityFrame(aperture, initialized, commandPlan) {
   }
 
   await waitForSubmittedWork(initialized.device);
+  const readback = readbackPlan.ok
+    ? await mapCurrentTextureReadbackSamples(readbackPlan)
+    : markReadbackClearOk(readbackPlan, true);
 
   return {
     ok: true,
@@ -360,6 +411,7 @@ async function submitMultiEntityFrame(aperture, initialized, commandPlan) {
       drawCalls: execution.drawCalls,
       indexedDrawCalls: execution.indexedDrawCalls,
     },
+    readback,
   };
 }
 

@@ -27,88 +27,53 @@ Keep implementation vertical, typed, and testable. Do not introduce a public mut
 
 ## Recommended Next Task
 
-Start with `task-0190`. Browser E2E now has status-only coverage for clear, triangle, and multi-entity examples, and pixel specs skip with a precise CSS-background presentation diagnostic when headless Chromium cannot expose WebGPU-presented screenshot pixels. The next useful slice is a GPU readback proof so pixel verification can become deterministic without depending on screenshot capture.
+Start with `task-0212`. Browser E2E can now verify clear, triangle, and multi-entity pixels through JSON-safe WebGPU current-texture readback in this environment, with screenshot fallback diagnostics retained. The next useful slice is to expand from custom example triangles into built-in primitive geometry coverage.
 
 ## Ready Tasks
 
-### task-0190 — Prototype WebGPU current-texture readback for clear pixels
+### task-0212 — Add built-in primitive geometry browser readback coverage
 
-Add a narrow browser proof that can read one pixel from WebGPU-rendered output when the canvas/current texture supports copy-source usage.
-
-Acceptance criteria:
-
-- The clear example can opt into any required WebGPU canvas texture usage without changing ECS/render ownership boundaries.
-- A JSON-safe clear readback result is published when GPU readback succeeds.
-- Unsupported copy-source, map, or browser capability failures are reported as explicit diagnostics.
-- Existing screenshot pixel tests continue to skip with the current presentation diagnostic if readback is unavailable.
-- Unit or injected tests cover the readback helper's failure modes where practical.
-
-### task-0191 — Use GPU readback in triangle and multi-entity pixel tests
-
-Apply the clear readback proof to scene pixel verification so triangle and multi-entity tests can assert rendered colors when browser screenshot capture only exposes CSS pixels.
+Add a browser verification slice that renders at least one built-in primitive mesh through the ECS/render extraction/WebGPU path and verifies it with readback.
 
 Acceptance criteria:
 
-- Triangle status includes an optional JSON-safe readback sample or explicit readback diagnostic.
-- Multi-entity status includes enough optional readback samples to distinguish the red and blue regions.
-- Playwright prefers GPU readback samples for pixel assertions and falls back to screenshot assertions only when readback is unavailable.
-- Pixel tests still skip with precise diagnostics rather than failing on CSS-background screenshots.
+- The example uses primitive geometry from Aperture's mesh primitives rather than ad hoc inline vertex data.
+- Browser status includes extraction, resource, draw, submission, and readback diagnostics.
+- Playwright verifies at least one non-clear primitive pixel through readback.
+- Renderer ownership boundaries remain unchanged: ECS authors handles/components; WebGPU resources stay outside ECS.
 
-### task-0202 — Add browser example import-map parsing helper
+### task-0213 — Add unlit material variant browser readback coverage
 
-Replace ad hoc import-map string checks with a small test-side parser that extracts and validates import-map JSON from each example page.
-
-Acceptance criteria:
-
-- Root, triangle, and multi-entity pages are covered.
-- The parser returns actionable errors for missing or invalid import maps.
-- Tests assert all expected imports from parsed JSON rather than broad string matching.
-- No production code or new dependency is added.
-- Existing static navigation/structure tests keep passing.
-
-### task-0197 — Add unsupported WebGPU status smoke coverage
-
-Add browser coverage for the unsupported WebGPU path without depending on the host browser actually lacking WebGPU.
+Expand browser material verification beyond the current red/blue multi-entity sample.
 
 Acceptance criteria:
 
-- Playwright injects a controlled missing-`navigator.gpu` environment before example scripts run.
-- Clear example publishes `navigator-gpu-unavailable` with `ok: false`.
-- The test attaches status JSON and skips only when the setup cannot override the browser environment.
-- No production WebGPU support behavior changes.
+- A browser example or existing example renders at least three distinct unlit material color variants.
+- Status reports material/resource counts and readback samples for each visible color region.
+- Playwright verifies each material color with readback tolerances.
+- Tests still publish precise diagnostics when readback is unavailable.
 
-### task-0198 — Add example server invalid-port CLI smoke test
+### task-0214 — Add visibility and layer browser readback coverage
 
-Cover invalid examples-server CLI input without opening a listening server.
-
-Acceptance criteria:
-
-- A Node built-in child-process test runs `scripts/serve-examples.mjs` with an invalid port.
-- The process exits non-zero and reports the actionable invalid-port message.
-- The test does not bind a TCP port.
-- Valid CLI startup remains covered by existing Playwright/server usage.
-
-### task-0199 — Add import-map consistency checks
-
-Ensure all browser example pages keep their import maps in sync.
+Add a browser verification slice for hidden or layer-filtered renderables.
 
 Acceptance criteria:
 
-- Static tests parse or inspect root, triangle, and multi-entity import maps.
-- Tests assert each page maps `elics`, `wgpu-matrix`, and `@preact/signals-core` to the same server paths.
-- Tests fail with clear page/path messages when maps drift.
-- No new parser dependency is added.
+- The scene includes at least one visible renderable and one hidden or layer-mismatched renderable.
+- Status reports extraction/draw counts that explain why only the visible renderable submits draw calls.
+- Readback verifies the hidden renderable's color is absent from sampled regions.
+- Diagnostics remain JSON-safe and do not expose raw WebGPU handles.
 
-### task-0200 — Add browser e2e artifact guide
+### task-0215 — Add missing-resource browser diagnostic smoke
 
-Document how to inspect Playwright status, presentation, screenshot, video, and trace artifacts from browser rendering failures.
+Add browser coverage for an ECS-authored renderable whose mesh or material resource is intentionally unavailable.
 
 Acceptance criteria:
 
-- `docs/BROWSER_E2E_RENDERING.md` explains where Playwright writes failure artifacts.
-- The doc explains the difference between status attachments, presentation samples, screenshots, videos, and traces.
-- The doc includes commands for running a single e2e spec and opening a retained trace.
-- The doc reiterates that raw WebGPU handles must not be serialized into artifacts.
+- The example/test creates a renderable with a missing mesh or material resource without mutating renderer-owned state into ECS.
+- Status reports the failed phase and actionable resource-binding diagnostics.
+- Playwright asserts no draw submission occurs for the missing resource.
+- The failure payload remains JSON-safe.
 
 ## Post-Unlit E2E Verification Targets
 

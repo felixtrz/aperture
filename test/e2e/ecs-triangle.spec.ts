@@ -47,13 +47,43 @@ test("ECS triangle example extracts, submits, and renders non-background pixels"
     return;
   }
 
+  const clearPixel = rgbaColorToPixel(status.clearColor);
+
+  if (status.readback?.ok) {
+    const centerSample = status.readback.samples.find(
+      (sample) => sample.id === "center",
+    );
+
+    expect(
+      centerSample,
+      `expected center GPU readback sample; status=${JSON.stringify(
+        status,
+        null,
+        2,
+      )}`,
+    ).toBeDefined();
+
+    if (centerSample === undefined) {
+      return;
+    }
+
+    expect(
+      pixelDistance(centerSample.pixel, clearPixel),
+      `center GPU readback sample should differ from clear color; status=${JSON.stringify(
+        status,
+        null,
+        2,
+      )}`,
+    ).toBeGreaterThan(40);
+    return;
+  }
+
   const presentation = await sampleCanvasCenterPresentation(
     page.locator("#aperture-canvas"),
   );
   await attachExampleStatus("ecs-triangle-presentation", presentation);
   test.skip(presentation.samplesCssBackground, presentation.diagnostic);
   const centerPixel = presentation.centerPixel;
-  const clearPixel = rgbaColorToPixel(status.clearColor);
 
   expect(
     pixelDistance(centerPixel, clearPixel),

@@ -1,6 +1,7 @@
 export * from "./buffer.js";
 export * from "./bind-group-layout-cache.js";
 export * from "./clear.js";
+export * from "./clear-readback.js";
 export * from "./clear-compatibility.js";
 export * from "./clear-parity.js";
 export * from "./clear-parity-json.js";
@@ -57,6 +58,7 @@ export type WebGpuFailureReason =
   | "adapter-unavailable"
   | "device-request-failed"
   | "context-unavailable"
+  | "context-configure-failed"
   | "device-lost";
 
 export interface WebGpuFailure {
@@ -122,6 +124,7 @@ export interface WebGpuCanvasContextLike {
     readonly device: WebGpuDeviceLike;
     readonly format: string;
     readonly alphaMode?: "opaque" | "premultiplied";
+    readonly usage?: number;
   }): void;
 }
 
@@ -132,6 +135,7 @@ export interface InitializeWebGpuOptions {
   readonly adapterOptions?: unknown;
   readonly deviceDescriptor?: unknown;
   readonly alphaMode?: "opaque" | "premultiplied";
+  readonly textureUsage?: number;
 }
 
 export const WEBGPU_FAILURE_MESSAGES: Record<WebGpuFailureReason, string> = {
@@ -140,6 +144,7 @@ export const WEBGPU_FAILURE_MESSAGES: Record<WebGpuFailureReason, string> = {
   "adapter-unavailable": "WebGPU adapter request returned no adapter.",
   "device-request-failed": "WebGPU device request failed.",
   "context-unavailable": "WebGPU canvas context is unavailable.",
+  "context-configure-failed": "WebGPU canvas context configuration failed.",
   "device-lost": "WebGPU device was lost.",
 };
 
@@ -187,11 +192,18 @@ export async function initializeWebGpu(
 
   const format = support.gpu.getPreferredCanvasFormat?.() ?? "bgra8unorm";
 
-  context.configure({
-    device,
-    format,
-    alphaMode: options.alphaMode ?? "opaque",
-  });
+  try {
+    context.configure({
+      device,
+      format,
+      alphaMode: options.alphaMode ?? "opaque",
+      ...(options.textureUsage === undefined
+        ? {}
+        : { usage: options.textureUsage }),
+    });
+  } catch (cause) {
+    return failure("context-configure-failed", cause);
+  }
 
   return {
     ok: true,

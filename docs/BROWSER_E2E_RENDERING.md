@@ -84,17 +84,17 @@ The e2e tests wait for each page to publish
 Current checks:
 
 - Root clear example: verifies WebGPU initialization and clear status in a
-  status-only smoke test, then verifies the canvas screenshot in a separate
-  pixel test if Chromium exposes presented WebGPU pixels.
+  status-only smoke test, then verifies the clear color from GPU readback when
+  available. Screenshot pixels remain as a fallback.
 - ECS triangle example: verifies extraction, binding, render-world readiness,
   command planning, and submission counts in a status-only smoke test, then
-  verifies non-clear pixels in a separate pixel test if Chromium exposes
-  presented WebGPU pixels.
+  verifies non-clear pixels from GPU readback when available. Screenshot pixels
+  remain as a fallback.
 - ECS multi-entity example: verifies status-only two-draw execution, including
   two extracted mesh draws, two applied bindings, two ready render-world draws,
   two draw packages, and two submitted draw calls.
-- ECS multi-entity pixel test: verifies two distinct colored regions if
-  Chromium exposes presented WebGPU pixels.
+- ECS multi-entity pixel test: verifies two distinct colored regions from GPU
+  readback when available. Screenshot pixels remain as a fallback.
 
 The multi-entity status test attaches the published status JSON to the
 Playwright report so failures show whether the blank or failed frame came from
@@ -112,16 +112,70 @@ available, tests skip only for explicit Aperture initialization reasons:
 - `context-unavailable`
 - `device-lost`
 
+The browser examples opt the canvas texture into `COPY_SRC` usage when the
+browser exposes WebGPU texture usage flags. Pixel tests prefer JSON-safe GPU
+readback samples copied from the current texture before presentation. If
+readback setup, copy, map, or format support is unavailable, the status payload
+includes an explicit `readback` diagnostic and tests fall back to screenshot
+sampling.
+
 Some headless Chromium environments execute WebGPU work and publish successful
 frame status, but screenshots of the canvas still expose the canvas CSS
-background instead of the presented WebGPU texture. Pixel tests detect this by
-comparing the screenshot center pixel with the computed canvas CSS background.
-When they match, the test skips with a diagnostic that includes both pixels.
+background instead of the presented WebGPU texture. Fallback pixel tests detect
+this by comparing the screenshot center pixel with the computed canvas CSS
+background. When they match, the test skips with a diagnostic that includes both
+pixels.
 
-That skip means the renderer path reached ready browser status, but the current
-browser capture path cannot prove presented pixels. New pixel-based scene tests
-should wait until the clear and triangle screenshots expose real WebGPU pixels
-in the target browser environment.
+That skip means the renderer path reached ready browser status, but the fallback
+browser capture path cannot prove presented pixels. Prefer adding GPU readback
+samples before adding new screenshot-only assertions.
+
+The unsupported-path smoke test removes `navigator.gpu` before example startup
+and verifies the clear example publishes `navigator-gpu-unavailable`.
+
+## Playwright Artifacts
+
+Playwright writes browser artifacts under `test-results/playwright/` and the
+HTML report under `playwright-report/`.
+
+Artifact types:
+
+- Status attachments are JSON files written by `attachExampleStatus`. They are
+  the first place to inspect because they show the example phase, failure
+  reason, counts, diagnostics, and optional readback samples.
+- Presentation samples are JSON attachments created by screenshot fallback
+  helpers. They compare sampled screenshot pixels with the computed canvas CSS
+  background and explain presentation-capture skips.
+- Screenshots are retained on failure by Playwright. They show what Chromium's
+  screenshot API captured, which may be CSS background rather than presented
+  WebGPU pixels in some headless environments.
+- Videos are retained on failure and show page-level behavior around the failed
+  assertion.
+- Traces are retained on failure and include the browser timeline, console
+  output, network activity, screenshots, and attachments.
+
+Run one e2e spec:
+
+```sh
+npm run test:e2e -- test/e2e/ecs-multi-entity-pixels.spec.ts --reporter=line
+```
+
+Open the HTML report:
+
+```sh
+npx playwright show-report playwright-report
+```
+
+Open a retained trace from a failure directory:
+
+```sh
+npx playwright show-trace test-results/playwright/<failure-directory>/trace.zip
+```
+
+Do not serialize raw WebGPU devices, contexts, textures, buffers, command
+encoders, command buffers, pass encoders, pipelines, bind groups, or views into
+status payloads or artifacts. Use JSON-safe counts, stable keys, diagnostics,
+and copied pixel bytes instead.
 
 ## Failure Triage
 
@@ -154,6 +208,10 @@ Common fields:
 - `apertureVersion` and `renderingBackend`: package identity and backend.
 - `format`: WebGPU canvas format when initialization succeeds.
 - `clearColor`: color used to clear the WebGPU render target.
+- `readback`: optional current-texture readback result. Success values contain
+  copied pixel bytes and texture origins. Failure values contain `reason`,
+  `message`, and `clearOk` so tests can distinguish render success from
+  readback capability limits.
 
 Clear example status:
 
@@ -161,6 +219,9 @@ Clear example status:
   submitted work was awaited when the browser exposed `queue.onSubmittedWorkDone`.
 - `clearColor` is WebGPU submission-derived diagnostic data. It is not ECS
   state.
+- `readback.ok: true` includes one copied current-texture pixel from the clear
+  target. `readback.ok: false` keeps the clear status usable while explaining
+  why readback was unavailable.
 
 Triangle example status:
 
@@ -172,6 +233,9 @@ Triangle example status:
   derived from the extracted snapshot plus explicit resource bindings.
 - `draw`, `command`, and `submission` report renderer/WebGPU planning and
   queue-submission counts.
+- `readback.ok: true` includes the copied center pixel used by the pixel e2e
+  assertion. A failure value is diagnostic only and does not make ECS state
+  renderer-owned.
 
 Multi-entity example status:
 
@@ -183,6 +247,9 @@ Multi-entity example status:
   the two-entity frame reached the derived render path.
 - `draw.renderIds` and `command.firstInstances` expose stable diagnostics for
   draw ordering and transform-instance selection.
+- `readback.ok: true` includes copied samples from left and right regions so
+  tests can distinguish the red and blue material outputs without relying on
+  screenshots.
 
 Status payloads are inspection surfaces. They must remain serializable and must
 not include raw WebGPU devices, contexts, buffers, textures, command encoders,

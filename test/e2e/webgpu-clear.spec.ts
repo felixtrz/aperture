@@ -42,6 +42,30 @@ test("browser WebGPU clear example reports readiness and changes pixels", async 
     return;
   }
 
+  if (status.readback?.ok) {
+    expectChannelClose(
+      "readback red",
+      status.readback.pixel.r,
+      colorChannelToByte(status.clearColor.r),
+    );
+    expectChannelClose(
+      "readback green",
+      status.readback.pixel.g,
+      colorChannelToByte(status.clearColor.g),
+    );
+    expectChannelClose(
+      "readback blue",
+      status.readback.pixel.b,
+      colorChannelToByte(status.clearColor.b),
+    );
+    expectChannelClose(
+      "readback alpha",
+      status.readback.pixel.a,
+      colorChannelToByte(status.clearColor.a),
+    );
+    return;
+  }
+
   const presentation = await sampleCanvasCenterPresentation(
     page.locator("#aperture-canvas"),
   );

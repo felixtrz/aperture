@@ -1,10 +1,10 @@
 {
   "state": "idle",
   "currentTaskId": null,
-  "lastRunStartedAt": "2026-05-16T02:03:30Z",
-  "lastRunFinishedAt": "2026-05-16T02:45:33Z",
+  "lastRunStartedAt": "2026-05-16T03:02:58Z",
+  "lastRunFinishedAt": "2026-05-16T03:45:01Z",
   "lastResult": "success",
   "lastCommit": null,
   "activePid": null,
-  "notes": "Completed browser E2E stabilization, multi-entity status/pixel coverage, browser E2E docs, static server tests/hardening, shared e2e status helpers/types, example navigation/static checks, and validation. npm run build, npm run check, and npm run test:e2e pass; e2e pixel tests skip with the expected CSS-background presentation diagnostic in this environment."
+  "notes": "Completed GPU current-texture readback for clear/triangle/multi-entity browser examples, readback diagnostics, unsupported WebGPU smoke coverage, import-map parsing/consistency checks, server CLI smoke coverage, artifact docs, helper hardening, and backlog refill. npm run check and npm run test:e2e -- --reporter=line pass; browser pixel tests now pass via GPU readback in this environment."
 }

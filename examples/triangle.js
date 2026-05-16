@@ -1,3 +1,11 @@
+import {
+  copyCurrentTextureReadbackSamples,
+  createCurrentTextureColorTargetWithTexture,
+  initializeWebGpuWithOptionalReadbackUsage,
+  mapCurrentTextureReadbackSamples,
+  markReadbackClearOk,
+} from "./webgpu-readback.js";
+
 const canvas = document.querySelector("#aperture-canvas");
 const stateElement = document.querySelector("#example-state");
 const jsonElement = document.querySelector("#example-json");
@@ -17,7 +25,11 @@ try {
   if (canvas === null) {
     publishStatus(failure("canvas", "canvas-unavailable", "Canvas missing."));
   } else {
-    const initialized = await aperture.initializeWebGpu({ canvas });
+    const initialization = await initializeWebGpuWithOptionalReadbackUsage({
+      aperture,
+      canvas,
+    });
+    const { initialized, readbackUsage } = initialization;
 
     if (!initialized.ok) {
       publishStatus({
@@ -31,10 +43,15 @@ try {
       });
     } else {
       publishStatus(
-        await renderTriangleScene(aperture, initialized, {
-          width: canvas.width,
-          height: canvas.height,
-        }),
+        await renderTriangleScene(
+          aperture,
+          initialized,
+          {
+            width: canvas.width,
+            height: canvas.height,
+          },
+          readbackUsage,
+        ),
       );
     }
   }
@@ -50,7 +67,12 @@ try {
   );
 }
 
-async function renderTriangleScene(aperture, initialized, canvasSize) {
+async function renderTriangleScene(
+  aperture,
+  initialized,
+  canvasSize,
+  readbackUsage,
+) {
   const { world, assets, mesh, material } = createTriangleWorld(
     aperture,
     canvasSize,
@@ -200,6 +222,8 @@ async function renderTriangleScene(aperture, initialized, canvasSize) {
     aperture,
     initialized,
     commandPlan,
+    canvasSize,
+    readbackUsage,
   );
 
   if (!submitted.ok) {
@@ -242,15 +266,20 @@ async function renderTriangleScene(aperture, initialized, canvasSize) {
       nonIndexedDrawCount: commandPlan.nonIndexedDrawCount,
     },
     submission: submitted.summary,
+    readback: submitted.readback,
   };
 }
 
-async function submitTriangleFrame(aperture, initialized, commandPlan) {
-  const colorTarget = aperture.createCurrentTextureColorTarget({
+async function submitTriangleFrame(
+  aperture,
+  initialized,
+  commandPlan,
+  canvasSize,
+  readbackUsage,
+) {
+  const colorTarget = createCurrentTextureColorTargetWithTexture({
     context: initialized.context,
     clearColor: [clearColor.r, clearColor.g, clearColor.b, clearColor.a],
-    loadOp: "clear",
-    storeOp: "store",
   });
 
   if (!colorTarget.valid || colorTarget.target === null) {
@@ -304,6 +333,17 @@ async function submitTriangleFrame(aperture, initialized, commandPlan) {
     commands: commandPlan.commands,
   });
   const end = aperture.endPlannedRenderPass(begin.pass);
+  const readbackPlan = readbackUsage.ok
+    ? copyCurrentTextureReadbackSamples({
+        device: initialized.device,
+        encoder: encoderResource.resource.encoder,
+        texture: colorTarget.texture,
+        format: initialized.format,
+        width: canvasSize.width,
+        height: canvasSize.height,
+        samples: [{ id: "center", x: 0.5, y: 0.5 }],
+      })
+    : readbackUsage;
   const finished = aperture.finishCommandEncoder({
     encoder: encoderResource.resource.encoder,
     label: "ecs-triangle",
@@ -331,6 +371,9 @@ async function submitTriangleFrame(aperture, initialized, commandPlan) {
   }
 
   await waitForSubmittedWork(initialized.device);
+  const readback = readbackPlan.ok
+    ? await mapCurrentTextureReadbackSamples(readbackPlan)
+    : markReadbackClearOk(readbackPlan, true);
 
   return {
     ok: true,
@@ -340,6 +383,7 @@ async function submitTriangleFrame(aperture, initialized, commandPlan) {
       drawCalls: execution.drawCalls,
       indexedDrawCalls: execution.indexedDrawCalls,
     },
+    readback,
   };
 }
 

@@ -4,6 +4,8 @@ import { fileURLToPath } from "node:url";
 
 import { describe, expect, it } from "vitest";
 
+import { parseImportMapFromHtml } from "./import-map.mjs";
+
 const projectRoot = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
   "../..",
@@ -36,6 +38,13 @@ const expectedHrefs = [
   'href="/examples/triangle.html"',
   'href="/examples/multi-entity.html"',
 ];
+const readbackHelperImport = 'from "./webgpu-readback.js"';
+const expectedImports = {
+  elics: "/node_modules/elics/lib/index.js",
+  "wgpu-matrix": "/node_modules/wgpu-matrix/dist/3.x/wgpu-matrix.module.js",
+  "@preact/signals-core":
+    "/node_modules/@preact/signals-core/dist/signals-core.mjs",
+};
 
 describe("browser example navigation", () => {
   it("links every example page to the available browser examples", async () => {
@@ -63,9 +72,9 @@ describe("browser example navigation", () => {
       expect(html, `${page.file} should include status JSON`).toContain(
         'id="example-json"',
       );
-      expect(html, `${page.file} should include an import map`).toContain(
-        '<script type="importmap">',
-      );
+      expect(() =>
+        parseImportMapFromHtml(html, { file: page.file }),
+      ).not.toThrow();
       expect(html, `${page.file} should load styles`).toContain(
         'rel="stylesheet"',
       );
@@ -89,6 +98,91 @@ describe("browser example navigation", () => {
         `<strong id="example-name">${page.exampleName}</strong>`,
       );
     }
+  });
+
+  it("keeps browser modules wired to the shared WebGPU readback helper", async () => {
+    for (const file of [
+      "examples/main.js",
+      "examples/triangle.js",
+      "examples/multi-entity.js",
+    ]) {
+      const script = await readExamplePage(file);
+
+      expect(script, `${file} should import readback helper`).toContain(
+        readbackHelperImport,
+      );
+    }
+
+    const helper = await readExamplePage("examples/webgpu-readback.js");
+
+    expect(helper).toContain(
+      "export async function initializeWebGpuWithOptionalReadbackUsage",
+    );
+    expect(helper).toContain(
+      "export function copyCurrentTextureReadbackSamples",
+    );
+  });
+
+  it("keeps example import maps parseable and complete", async () => {
+    for (const page of examplePages) {
+      const html = await readExamplePage(page.file);
+      const importMap = parseImportMapFromHtml(html, { file: page.file });
+
+      expect(importMap.imports, `${page.file} imports`).toEqual(
+        expectedImports,
+      );
+    }
+  });
+
+  it("keeps browser example import maps consistent across pages", async () => {
+    const [baseline, ...others] = await Promise.all(
+      examplePages.map(async (page) => ({
+        page,
+        importMap: parseImportMapFromHtml(await readExamplePage(page.file), {
+          file: page.file,
+        }),
+      })),
+    );
+
+    for (const entry of others) {
+      expect(
+        entry.importMap.imports,
+        `${entry.page.file} imports should match ${baseline.page.file}`,
+      ).toEqual(baseline.importMap.imports);
+    }
+  });
+
+  it("reports actionable import-map parser errors", () => {
+    expect(() =>
+      parseImportMapFromHtml("<html></html>", { file: "missing.html" }),
+    ).toThrow('missing.html is missing a <script type="importmap"> block.');
+
+    expect(() =>
+      parseImportMapFromHtml(
+        [
+          '<script type="importmap">{"imports": {}}</script>',
+          '<script type="importmap">{"imports": {}}</script>',
+        ].join(""),
+        { file: "duplicate.html" },
+      ),
+    ).toThrow("duplicate.html has multiple import map blocks.");
+
+    expect(() =>
+      parseImportMapFromHtml('<script type="importmap">{ bad json }</script>', {
+        file: "invalid.html",
+      }),
+    ).toThrow("invalid.html has invalid import map JSON");
+
+    expect(() =>
+      parseImportMapFromHtml(
+        '<script type="importmap">{"imports":[]}</script>',
+        {
+          file: "invalid-imports.html",
+        },
+      ),
+    ).toThrow(
+      "invalid-imports.html import map must contain an object 'imports' map.",
+    );
   });
 });
 

@@ -1,4 +1,4 @@
-import type { RgbaColor } from "./png.js";
+import type { RgbaColor, RgbaPixel } from "./png.js";
 
 export interface ExampleStatusBase {
   readonly example: string;
@@ -12,10 +12,53 @@ export interface ExampleStatusBase {
 export interface ClearExampleStatus extends ExampleStatusBase {
   readonly format?: string;
   readonly clearColor?: RgbaColor;
+  readonly readback?: ClearReadbackStatus;
 }
+
+export type ClearReadbackStatus =
+  | {
+      readonly ok: true;
+      readonly source: "current-texture";
+      readonly format: string;
+      readonly origin: {
+        readonly x: number;
+        readonly y: number;
+      };
+      readonly bytesPerRow: number;
+      readonly pixel: RgbaPixel;
+    }
+  | {
+      readonly ok: false;
+      readonly reason: string;
+      readonly message: string;
+      readonly clearOk: boolean;
+    };
+
+export type SceneReadbackStatus =
+  | {
+      readonly ok: true;
+      readonly source: "current-texture";
+      readonly format: string;
+      readonly bytesPerRow: number;
+      readonly samples: readonly {
+        readonly id: string;
+        readonly origin: {
+          readonly x: number;
+          readonly y: number;
+        };
+        readonly pixel: RgbaPixel;
+      }[];
+    }
+  | {
+      readonly ok: false;
+      readonly reason: string;
+      readonly message: string;
+      readonly clearOk: boolean;
+    };
 
 export interface SingleDrawExampleStatus extends ExampleStatusBase {
   readonly clearColor?: RgbaColor;
+  readonly readback?: SceneReadbackStatus;
   readonly extraction?: {
     readonly views: number;
     readonly meshDraws: number;
@@ -51,6 +94,7 @@ export interface SingleDrawExampleStatus extends ExampleStatusBase {
 
 export interface MultiEntityExampleStatus extends ExampleStatusBase {
   readonly clearColor?: RgbaColor;
+  readonly readback?: SceneReadbackStatus;
   readonly extraction?: {
     readonly views: number;
     readonly meshDraws: number;

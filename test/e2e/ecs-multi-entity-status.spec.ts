@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 import type { MultiEntityExampleStatus } from "./example-status-types.js";
+import { expectSceneReadbackStatus } from "./readback-status.js";
 import {
   attachExampleStatus,
   skipIfUnsupportedWebGpu,
@@ -50,4 +51,9 @@ test("ECS multi-entity example publishes two-draw frame status", async ({
     [...(status.command?.firstInstances ?? [])].sort(),
     JSON.stringify(status, null, 2),
   ).toEqual([0, 1]);
+  expectSceneReadbackStatus(
+    status.readback,
+    6,
+    JSON.stringify(status, null, 2),
+  );
 });

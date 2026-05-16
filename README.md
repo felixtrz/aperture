@@ -73,7 +73,8 @@ initialization helper.
 
 See [`docs/BROWSER_E2E_RENDERING.md`](docs/BROWSER_E2E_RENDERING.md) for the
 current ECS-to-WebGPU browser verification workflow, supported commands, and
-headless Chromium pixel-capture skip behavior.
+Playwright artifacts for browser rendering failures, including status
+attachments, readback diagnostics, screenshots, videos, and traces.
 
 ## Constraints
 

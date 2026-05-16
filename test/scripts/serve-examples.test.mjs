@@ -1,4 +1,5 @@
 import { once } from "node:events";
+import { spawnSync } from "node:child_process";
 import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
@@ -85,6 +86,23 @@ describe("examples static server helpers", () => {
       );
     }
   });
+
+  it("exits non-zero for invalid CLI port input without listening", () => {
+    const result = spawnSync(
+      process.execPath,
+      [path.join(projectRoot, "scripts/serve-examples.mjs"), "not-a-port"],
+      {
+        cwd: projectRoot,
+        encoding: "utf8",
+        env: withoutPortEnv(),
+      },
+    );
+
+    expect(result.status).not.toBe(0);
+    expect(`${result.stdout}${result.stderr}`).toContain(
+      "Invalid examples server port: not-a-port",
+    );
+  });
 });
 
 describe("examples static server request handler", () => {
@@ -108,6 +126,10 @@ describe("examples static server request handler", () => {
       "<!doctype html>",
     );
     await writeFile(path.join(tempRoot, "examples/styles.css"), "body {}");
+    await writeFile(
+      path.join(tempRoot, "examples/webgpu-readback.js"),
+      "export const readback = true;",
+    );
     await writeFile(path.join(tempRoot, "dist/index.js"), "export {};");
     await writeFile(
       path.join(tempRoot, "node_modules/elics/lib/index.js"),
@@ -186,6 +208,20 @@ describe("examples static server request handler", () => {
     expect(response.statusCode).toBe(200);
     expect(response.headers["content-type"]).toBe("text/html; charset=utf-8");
     expect(response.text()).toBe("<!doctype html>");
+  });
+
+  it("serves shared browser example helper modules", async () => {
+    const response = await requestExample({
+      root: tempRoot,
+      method: "GET",
+      url: "/examples/webgpu-readback.js",
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.headers["content-type"]).toBe(
+      "text/javascript; charset=utf-8",
+    );
+    expect(response.text()).toBe("export const readback = true;");
   });
 
   it("ignores query strings when resolving static files", async () => {
@@ -327,4 +363,10 @@ class CaptureResponse extends Writable {
   text() {
     return Buffer.concat(this.chunks).toString("utf8");
   }
+}
+
+function withoutPortEnv() {
+  const env = { ...process.env };
+  delete env.PORT;
+  return env;
 }

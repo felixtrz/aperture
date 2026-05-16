@@ -58,6 +58,47 @@ test("ECS multi-entity example renders two colored regions when pixels are captu
     return;
   }
 
+  const clearPixel = rgbaColorToPixel(status.clearColor);
+
+  if (status.readback?.ok) {
+    const samples = status.readback.samples.map((sample) => sample.pixel);
+    const redDistance = nearestDistance(samples, rgbaColorToPixel(redMaterial));
+    const blueDistance = nearestDistance(
+      samples,
+      rgbaColorToPixel(blueMaterial),
+    );
+    const clearDistances = samples.map((sample) =>
+      pixelDistance(sample, clearPixel),
+    );
+
+    await attachExampleStatus("ecs-multi-entity-readback-samples", {
+      samples: status.readback.samples,
+      redDistance,
+      blueDistance,
+      clearDistances,
+    });
+
+    expect(
+      redDistance,
+      `expected one GPU readback sample to match red material; samples=${JSON.stringify(
+        status.readback.samples,
+      )}`,
+    ).toBeLessThan(90);
+    expect(
+      blueDistance,
+      `expected one GPU readback sample to match blue material; samples=${JSON.stringify(
+        status.readback.samples,
+      )}`,
+    ).toBeLessThan(90);
+    expect(
+      clearDistances.filter((distance) => distance > 40).length,
+      `expected at least two GPU readback samples to differ from clear color; samples=${JSON.stringify(
+        status.readback.samples,
+      )}`,
+    ).toBeGreaterThanOrEqual(2);
+    return;
+  }
+
   const canvas = page.locator("#aperture-canvas");
   const presentation = await sampleCanvasCenterPresentation(canvas);
 
@@ -68,7 +109,6 @@ test("ECS multi-entity example renders two colored regions when pixels are captu
   const samples = regionSamplePoints.map(({ x, y }) =>
     readPngPixel(screenshot, x, y),
   );
-  const clearPixel = rgbaColorToPixel(status.clearColor);
   const redDistance = nearestDistance(samples, rgbaColorToPixel(redMaterial));
   const blueDistance = nearestDistance(samples, rgbaColorToPixel(blueMaterial));
   const clearDistances = samples.map((sample) =>

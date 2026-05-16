@@ -1,3 +1,5 @@
+import { initializeWebGpuWithOptionalReadbackUsage } from "./webgpu-readback.js";
+
 const canvas = document.querySelector("#aperture-canvas");
 const stateElement = document.querySelector("#example-state");
 const jsonElement = document.querySelector("#example-json");
@@ -23,7 +25,11 @@ try {
       message: "The Aperture example canvas is missing.",
     });
   } else {
-    const initialized = await aperture.initializeWebGpu({ canvas });
+    const initialization = await initializeWebGpuWithOptionalReadbackUsage({
+      aperture,
+      canvas,
+    });
+    const { initialized, readbackUsage } = initialization;
 
     if (!initialized.ok) {
       publishStatus({
@@ -36,11 +42,12 @@ try {
         message: initialized.message,
       });
     } else {
-      const cleared = aperture.clearWebGpuCanvas({
-        device: initialized.device,
-        context: initialized.context,
-        color: clearColor,
+      const clearReport = await clearCanvasWithOptionalReadback({
+        aperture,
+        initialized,
+        readbackUsage,
       });
+      const cleared = clearReport.clear;
 
       if (cleared.ok) {
         await waitForSubmittedWork(initialized.device);
@@ -56,6 +63,7 @@ try {
               renderingBackend: aperture.APERTURE_IDENTITY.renderingBackend,
               format: initialized.format,
               clearColor,
+              readback: clearReport.readback,
             }
           : {
               ...baseStatus,
@@ -67,6 +75,7 @@ try {
               reason: cleared.reason,
               message: cleared.message,
               clearColor,
+              readback: clearReport.readback,
             },
       );
     }
@@ -100,4 +109,35 @@ async function waitForSubmittedWork(device) {
   if (typeof device.queue?.onSubmittedWorkDone === "function") {
     await device.queue.onSubmittedWorkDone();
   }
+}
+
+async function clearCanvasWithOptionalReadback({
+  aperture,
+  initialized,
+  readbackUsage,
+}) {
+  if (!readbackUsage.ok) {
+    const clear = aperture.clearWebGpuCanvas({
+      device: initialized.device,
+      context: initialized.context,
+      color: clearColor,
+    });
+
+    return {
+      clear,
+      readback: {
+        ...readbackUsage,
+        clearOk: clear.ok,
+      },
+    };
+  }
+
+  return aperture.clearWebGpuCanvasWithReadback({
+    device: initialized.device,
+    context: initialized.context,
+    format: initialized.format,
+    width: canvas.width,
+    height: canvas.height,
+    color: clearColor,
+  });
 }

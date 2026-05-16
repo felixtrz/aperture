@@ -5,6 +5,10 @@ import type {
   SingleDrawExampleStatus,
 } from "./example-status-types.js";
 import {
+  expectClearReadbackStatus,
+  expectSceneReadbackStatus,
+} from "./readback-status.js";
+import {
   attachExampleStatus,
   skipIfUnsupportedWebGpu,
   waitForExampleStatus,
@@ -31,6 +35,7 @@ test("WebGPU clear example publishes ready status", async ({ page }) => {
     renderingBackend: "webgpu",
     clearColor: { r: 0.08, g: 0.28, b: 0.64, a: 1 },
   });
+  expectClearReadbackStatus(status.readback, JSON.stringify(status, null, 2));
 });
 
 test("ECS triangle example publishes one-draw ready status", async ({
@@ -65,4 +70,9 @@ test("ECS triangle example publishes one-draw ready status", async ({
     status.command?.commands,
     JSON.stringify(status, null, 2),
   ).toBeGreaterThan(0);
+  expectSceneReadbackStatus(
+    status.readback,
+    1,
+    JSON.stringify(status, null, 2),
+  );
 });
