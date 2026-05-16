@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, type Page } from "@playwright/test";
 
 import type { MultiEntityExampleStatus } from "./example-status-types.js";
 import {
@@ -7,13 +7,24 @@ import {
   waitForExampleStatus,
 } from "./webgpu-status.js";
 
-test("ECS browser example reports layer mismatch without submitting draws", async ({
-  page,
-}) => {
-  await page.goto("/examples/multi-entity.html?scenario=layer-mismatch");
+export interface TextureAssetRouteFixture {
+  readonly scenario: string;
+  readonly missing: string;
+  readonly diagnostics: number;
+  readonly meshDraws: number;
+  readonly active: number;
+  readonly blocked: number;
+  readonly renderWorldDiagnostics: readonly string[];
+}
+
+export async function expectTextureAssetRouteStatus(
+  page: Page,
+  fixture: TextureAssetRouteFixture,
+): Promise<void> {
+  await page.goto(`/examples/multi-entity.html?scenario=${fixture.scenario}`);
   const status = await waitForExampleStatus<MultiEntityExampleStatus>(page);
 
-  await attachExampleStatus("layer-mismatch-status", status);
+  await attachExampleStatus(`${fixture.scenario}-routing-status`, status);
 
   expect(status, "example status should be published").toBeDefined();
 
@@ -25,30 +36,29 @@ test("ECS browser example reports layer mismatch without submitting draws", asyn
 
   expect(status, JSON.stringify(status, null, 2)).toMatchObject({
     example: "ecs-multi-entity",
-    scenario: "layer-mismatch",
+    scenario: fixture.scenario,
     ok: false,
     phase: "extract",
-    reason: "layer-mismatch",
+    reason: fixture.scenario,
     renderingBackend: "webgpu",
-    extraction: { views: 1, meshDraws: 0, diagnostics: 1 },
-    layerFiltering: {
-      cameraLayerMask: 1,
-      renderableLayerMask: 2,
-      diagnostics: ["render.layerMismatch"],
+    extraction: {
+      views: 1,
+      meshDraws: fixture.meshDraws,
+      diagnostics: fixture.diagnostics,
     },
-    resources: { materials: 0, bindGroups: 0, missing: "none" },
+    resources: { materials: 0, bindGroups: 0, missing: fixture.missing },
     binding: { planned: 0, applied: 0, ready: 0, diagnostics: 0 },
     renderWorld: {
-      active: 0,
+      active: fixture.active,
       ready: 0,
-      blocked: 0,
-      diagnostics: ["renderWorld.empty"],
+      blocked: fixture.blocked,
+      diagnostics: fixture.renderWorldDiagnostics,
     },
     draw: { packages: 0, descriptors: 0, drawList: 0, resolved: 0 },
     command: { commands: 0, drawCount: 0, indexedDrawCount: 0 },
     submission: { commandBuffers: 0, commands: 0, drawCalls: 0 },
     diagnosticCounts: {
-      extraction: 1,
+      extraction: fixture.diagnostics,
       resources: 0,
       binding: 0,
       draw: 0,
@@ -56,9 +66,4 @@ test("ECS browser example reports layer mismatch without submitting draws", asyn
       readback: 0,
     },
   });
-  expect(status.diagnostics, JSON.stringify(status, null, 2)).toEqual([
-    expect.objectContaining({
-      code: "render.layerMismatch",
-    }),
-  ]);
-});
+}

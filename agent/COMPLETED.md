@@ -3231,3 +3231,383 @@ Summary:
 - Added `?scenario=shared-sampler-missing-texture-sampler-resources`.
 - Browser status reports one missing texture resource and the shared missing sampler resource without raw GPU handles.
 - Focused Playwright coverage verifies resource setup stops before submission.
+
+## task-0302 — Add shared-sampler missing texture asset extraction coverage
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added `?scenario=shared-sampler-missing-texture-asset`.
+- Browser status reports `render.texture.missing` for the missing right texture asset while both materials share one sampler asset.
+- Focused Playwright coverage verifies extraction stops before GPU resource creation or draw submission.
+
+## task-0303 — Add texture diagnostics availability coverage for shared-sampler cases
+
+Completed: 2026-05-16
+
+Summary:
+
+- Unknown-scenario Playwright coverage now advertises representative shared-sampler asset and resource diagnostics scenarios.
+- The assertion remains partial and stable.
+- Focused unknown-scenario Playwright coverage passes.
+
+## task-0304 — Add texture diagnostic matrix coverage for shared-sampler rows
+
+Completed: 2026-05-16
+
+Summary:
+
+- Updated `docs/BROWSER_E2E_RENDERING.md` to include the shared-sampler missing texture asset scenario.
+- The texture/sampler diagnostic matrix now includes shared-sampler missing texture asset, missing sampler asset, missing texture resource, missing sampler resource, and combined resource rows.
+- Formatting validation passes.
+
+## task-0305 — Add multi-textured asset diagnostic assertion helper
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added a local `assetDiagnosticPairs` helper in multi-textured Playwright coverage.
+- Multi-textured and shared-sampler missing asset assertions now compare stable code/asset-key pairs.
+- The affected Playwright file passes.
+
+## task-0306 — Add combined shared-sampler availability coverage
+
+Completed: 2026-05-16
+
+Summary:
+
+- Unknown-scenario Playwright coverage now advertises `shared-sampler-missing-texture-sampler-resources`.
+- Scenario availability assertions remain partial.
+- Focused unknown-scenario Playwright coverage passes.
+
+## task-0307 — Add shared-texture missing texture asset extraction coverage
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added `?scenario=shared-texture-missing-texture-asset`.
+- Browser status reports two `render.texture.missing` diagnostics for two materials sharing one unregistered texture asset.
+- Focused Playwright coverage verifies extraction stops before GPU resource creation or draw submission.
+
+## task-0308 — Add shared-texture missing sampler asset extraction coverage
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added `?scenario=shared-texture-missing-sampler-asset`.
+- Browser status reports two `render.sampler.missing` diagnostics for two materials sharing one unregistered sampler asset.
+- Focused Playwright coverage verifies extraction stops before GPU resource creation or draw submission.
+
+## task-0309 — Add shared-texture combined missing asset extraction coverage
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added `?scenario=shared-texture-missing-texture-sampler-assets`.
+- Browser status reports texture-then-sampler diagnostics for each renderable sharing the missing texture/sampler pair.
+- Focused Playwright coverage verifies no resource creation or draw submission.
+
+## task-0310 — Add shared-texture asset diagnostics availability coverage
+
+Completed: 2026-05-16
+
+Summary:
+
+- Unknown-scenario Playwright coverage now advertises the shared-texture missing asset scenarios.
+- Scenario availability assertions remain partial.
+- Focused unknown-scenario Playwright coverage passes.
+
+## task-0311 — Add shared-texture asset diagnostic docs
+
+Completed: 2026-05-16
+
+Summary:
+
+- Updated browser E2E docs with shared-texture missing asset smokes, scenario index entries, and diagnostic matrix rows.
+- Documented that shared texture/sampler assets fail during extraction before renderer resource creation.
+- Formatting validation passes.
+
+## task-0312 — Add shared-texture asset status typing
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added test-side status types for missing shared texture and shared sampler asset metadata.
+- Multi-entity status typing now exposes `missingSharedTextureAsset` and `missingSharedSamplerAsset`.
+- Test typechecking passes.
+
+## task-0313 — Add shared dependency missing texture extraction unit coverage
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added render extraction unit coverage for two renderables sharing a missing texture dependency.
+- Assertions verify no mesh draws, per-renderable diagnostics, and report diagnostic counts.
+- Focused render extraction tests pass.
+
+## task-0314 — Add shared dependency missing sampler extraction unit coverage
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added render extraction unit coverage for two renderables sharing a missing sampler dependency.
+- Assertions verify stable diagnostic order and report diagnostic counts.
+- Focused render extraction tests pass.
+
+## task-0315 — Add shared dependency combined missing extraction unit coverage
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added extraction coverage for two renderables sharing both missing texture and sampler dependencies.
+- Diagnostics are asserted texture-before-sampler per affected renderable.
+- Focused render extraction tests pass.
+
+## task-0316 — Add shared dependency loading texture extraction coverage
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added extraction coverage for two renderables sharing a loading texture dependency.
+- Assertions verify blocked draws and per-renderable `render.texture.loading` diagnostics.
+- Focused render extraction tests pass.
+
+## task-0317 — Add shared dependency failed sampler extraction coverage
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added extraction coverage for two renderables sharing a failed sampler dependency.
+- Assertions verify blocked draws and per-renderable `render.sampler.failed` diagnostics.
+- Focused render extraction tests pass.
+
+## task-0318 — Add shared dependency mixed texture/sampler asset-state coverage
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added extraction coverage for shared loading texture plus failed sampler dependencies.
+- Assertions verify deterministic texture-before-sampler diagnostics per renderable.
+- Focused render extraction tests pass.
+
+## task-0319 — Add shared dependency failed texture extraction coverage
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added extraction coverage for two renderables sharing a failed texture dependency.
+- Assertions verify per-renderable `render.texture.failed` diagnostics and report counts.
+- Focused render extraction tests pass.
+
+## task-0320 — Add shared dependency loading sampler extraction coverage
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added extraction coverage for two renderables sharing a loading sampler dependency.
+- Assertions verify per-renderable `render.sampler.loading` diagnostics and report counts.
+- Focused render extraction tests pass.
+
+## task-0321 — Add shared dependency failed texture/loading sampler coverage
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added extraction coverage for shared failed texture plus loading sampler dependencies.
+- Assertions verify deterministic diagnostic order and report counts.
+- Focused render extraction tests pass.
+
+## task-0322 — Add shared dependency fixture helper
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added a render extraction fixture helper for two renderables sharing texture/sampler dependencies.
+- Reused the helper across shared dependency asset-state tests.
+- Focused render extraction tests pass.
+
+## task-0323 — Add shared dependency diagnostic pair helper
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added a unit-test helper that maps extraction diagnostics to code/asset-key pairs.
+- Shared dependency tests now assert compact diagnostic order without duplicating full diagnostic objects.
+- Focused render extraction tests pass.
+
+## task-0324 — Add shared dependency report count assertions
+
+Completed: 2026-05-16
+
+Summary:
+
+- Shared dependency extraction tests now assert `snapshot.report.diagnostics`.
+- The report count matches the number of emitted extraction diagnostics.
+- Focused render extraction tests pass.
+
+## task-0325 — Document texture dependency extraction diagnostic order
+
+Completed: 2026-05-16
+
+Summary:
+
+- Updated render-frame readiness docs to state texture validation runs before sampler validation for texture-backed materials.
+- The note is scoped to extraction diagnostics and does not prescribe renderer behavior.
+- Formatting validation passes.
+
+## task-0326 — Add shared texture browser diagnostic helper coverage
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added repeated per-renderable asset diagnostic assertions for shared texture browser statuses.
+- Shared texture asset Playwright coverage verifies stable duplicated asset-key diagnostics.
+- The affected Playwright file passes.
+
+## task-0327 — Add blocked texture dependency assertion helper
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added a local helper that asserts blocked dependency snapshots have no mesh draws, expected diagnostic pairs, and matching report counts.
+- Shared texture/sampler dependency unit tests use the helper where practical.
+- Targeted render extraction tests pass.
+
+## task-0328 — Add single dependency report count assertions
+
+Completed: 2026-05-16
+
+Summary:
+
+- Existing single-renderable texture/sampler dependency tests now assert `snapshot.report.diagnostics`.
+- Assertions use local helpers where practical.
+- Targeted render extraction tests pass.
+
+## task-0329 — Add extraction dependency diagnostic order docs
+
+Completed: 2026-05-16
+
+Summary:
+
+- Render readiness docs now document texture-before-sampler diagnostic order for texture-backed material extraction.
+- The note stays tied to extraction diagnostics and does not change implementation behavior.
+- Formatting validation passes.
+
+## task-0330 — Add browser status assertion for shared texture combined asset diagnostic order
+
+Completed: 2026-05-16
+
+Summary:
+
+- The combined shared-texture missing asset Playwright test now asserts texture-then-sampler diagnostic order per renderable.
+- The assertion uses the repeated per-renderable diagnostic helper.
+- The affected Playwright file passes.
+
+## task-0331 — Add route coverage for shared texture asset scenarios
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added lightweight Playwright route coverage for shared-texture missing asset scenarios.
+- The tests assert `phase: "extract"`, zero draw submission, and focused status shape.
+- Targeted route coverage passes.
+
+## task-0332 — Add route coverage for shared sampler asset scenarios
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added lightweight Playwright route coverage for shared-sampler missing asset scenarios.
+- The tests assert extraction-phase status and no draw submission.
+- Targeted route coverage passes.
+
+## task-0333 — Add browser E2E route coverage documentation
+
+Completed: 2026-05-16
+
+Summary:
+
+- Documented that shared texture/sampler route specs are narrow URL dispatch guards.
+- Clarified that deeper multi-textured tests own duplicate diagnostic order assertions.
+- Formatting validation passes.
+
+## task-0334 — Add shared asset route assertion helper
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added a shared Playwright helper for texture/sampler asset route status assertions.
+- Shared texture and shared sampler route specs now use the helper.
+- Targeted route coverage passes.
+
+## task-0335 — Add extraction failure diagnostic count status
+
+Completed: 2026-05-16
+
+Summary:
+
+- Extraction failure browser statuses now include `diagnosticCounts`.
+- Route helper coverage asserts non-zero extraction counts and zero downstream counts.
+- Targeted route coverage passes.
+
+## task-0336 — Add extraction failure diagnostic count documentation
+
+Completed: 2026-05-16
+
+Summary:
+
+- Browser E2E docs now describe extraction-failure diagnostic count summaries.
+- The note keeps failed-route summaries comparable with successful frame summaries.
+- Formatting validation passes.
+
+## task-0337 — Add unknown scenario diagnostic count status
+
+Completed: 2026-05-16
+
+Summary:
+
+- Unknown scenario browser statuses now include zeroed `diagnosticCounts`.
+- Unknown-scenario Playwright coverage asserts the zero-count summary.
+- Targeted unknown-scenario coverage passes.
+
+## task-0338 — Add resource-binding failure diagnostic counts
+
+Completed: 2026-05-16
+
+Summary:
+
+- Resource-binding failure browser statuses now include `diagnosticCounts`.
+- Missing mesh/material resource Playwright coverage asserts binding-plan and readiness diagnostic buckets.
+- `npm run check` and full Playwright coverage pass.
+
+## task-0339 — Add extraction diagnostic count assertions for non-texture failures
+
+Completed: 2026-05-16
+
+Summary:
+
+- Missing mesh asset, missing material asset, layer mismatch, and disabled renderable Playwright tests now assert extraction-failure `diagnosticCounts`.
+- Assertions stay focused on status shape and downstream zero counts.
+- `npm run check` and full Playwright coverage pass.

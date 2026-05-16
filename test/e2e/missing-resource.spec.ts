@@ -49,6 +49,14 @@ test("ECS browser example reports missing renderer resource without submitting d
     draw: { packages: 0, descriptors: 0, drawList: 0, resolved: 0 },
     command: { commands: 0, drawCount: 0, indexedDrawCount: 0 },
     submission: { commandBuffers: 0, commands: 0, drawCalls: 0 },
+    diagnosticCounts: {
+      extraction: 0,
+      resources: 0,
+      binding: 1,
+      draw: 1,
+      submission: 0,
+      readback: 0,
+    },
   });
   expect(status.diagnostics, JSON.stringify(status, null, 2)).toEqual(
     expect.arrayContaining([

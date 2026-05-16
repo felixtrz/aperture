@@ -56,6 +56,12 @@ export interface MissingSamplerAssetStatus extends MissingSamplerResourceStatus 
   readonly textureKey: string;
 }
 
+export interface MissingSharedTextureAssetStatus extends MissingTextureResourceStatus {
+  readonly samplerKey: string;
+}
+
+export type MissingSharedSamplerAssetStatus = MissingSamplerResourceStatus;
+
 export interface TextureUploadValidationStatus extends MissingTextureResourceStatus {
   readonly bytesPerRow: number;
   readonly dataBytes?: number;
@@ -292,7 +298,8 @@ export interface MultiEntityExampleStatus extends ExampleStatusBase {
   readonly missingSamplerResource?: MissingSamplerResourceStatus;
   readonly missingTextureAsset?: MissingTextureAssetStatus;
   readonly missingSamplerAsset?: MissingSamplerAssetStatus;
-  readonly missingSharedSamplerAsset?: MissingSamplerResourceStatus;
+  readonly missingSharedTextureAsset?: MissingSharedTextureAssetStatus;
+  readonly missingSharedSamplerAsset?: MissingSharedSamplerAssetStatus;
   readonly disabled?: {
     readonly authored: number;
     readonly enabled?: number;

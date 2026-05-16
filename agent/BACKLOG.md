@@ -27,59 +27,59 @@ Keep implementation vertical, typed, and testable. Do not introduce a public mut
 
 ## Recommended Next Task
 
-Start with `task-0302`. Combined shared-sampler missing resource coverage is in place; the next useful slice is extraction-time coverage for one missing texture asset in a shared-sampler pair.
+Start with `task-0340`. Browser failure statuses now carry diagnostic counts across extraction, scenario, and resource-binding failures; the next useful slice is reducing repeated JSON-safe status assertions in texture failure tests.
 
 ## Ready Tasks
 
-### task-0302 — Add shared-sampler missing texture asset extraction coverage
+### task-0340 — Add no-raw-GPU assertion helper for texture failures
 
-Verify extraction diagnostics when one material in a shared-sampler textured pair references an unregistered texture asset.
-
-Acceptance criteria:
-
-- A browser scenario authors two shared-sampler textured materials and leaves one texture asset unregistered.
-- Status reports the missing texture asset key and extraction diagnostic.
-- Playwright verifies no resource creation or draw submission is attempted.
-
-### task-0303 — Add texture diagnostics availability coverage for shared-sampler cases
-
-Keep available-scenario reporting aligned with the new shared-sampler diagnostics scenarios.
+Reduce repeated JSON-safe status checks across texture/sampler failure specs.
 
 Acceptance criteria:
 
-- Unknown-scenario Playwright coverage asserts representative shared-sampler asset/resource diagnostics scenarios are advertised.
-- Scenario availability assertions remain partial and stable.
-- Existing unknown-scenario behavior is unchanged.
+- A shared test helper asserts status JSON does not expose raw GPU handles or WebGPU creation calls.
+- Texture/sampler asset and resource failure specs use the helper where practical.
+- Targeted Playwright coverage continues to pass.
 
-### task-0304 — Add texture diagnostic matrix coverage for shared-sampler rows
+### task-0341 — Split multi-entity scenario dispatch into a lookup table
 
-Ensure the texture/sampler diagnostics matrix includes all shared-sampler asset/resource cases.
+Replace the deeply nested scenario ternary in `examples/multi-entity.js` with a small explicit dispatch table.
 
 Acceptance criteria:
 
-- `docs/BROWSER_E2E_RENDERING.md` includes shared-sampler missing texture asset, missing sampler asset, missing texture resource, missing sampler resource, and combined resource rows.
-- Each row lists the expected phase and primary diagnostic.
+- Scenario behavior and `knownScenarios` remain unchanged.
+- The dispatch table does not move ECS state into renderer-owned structures.
+- `npm run check:examples` and full Playwright coverage continue to pass.
+
+### task-0342 — Document browser diagnostic count phases
+
+Clarify how `diagnosticCounts` should be interpreted across successful, extraction-failure, and future resource-binding-failure statuses.
+
+Acceptance criteria:
+
+- `docs/BROWSER_E2E_RENDERING.md` describes the count buckets and phase limitations.
+- The note preserves ECS/render extraction ownership boundaries.
 - No implementation behavior changes.
 
-### task-0305 — Add multi-textured asset diagnostic assertion helper
+### task-0343 — Add route guard coverage for resource-binding scenarios
 
-Reduce repeated asset-key diagnostic assertions in multi-textured asset failure tests.
-
-Acceptance criteria:
-
-- A local helper maps status diagnostics to code/asset-key pairs.
-- Multi-textured missing texture/sampler asset tests use the helper where practical.
-- Existing Playwright typechecks continue to pass.
-
-### task-0306 — Add combined shared-sampler availability coverage
-
-Advertise the combined shared-sampler missing resource scenario through the unknown-scenario availability status.
+Prevent missing renderer resource scenarios from falling through to the default browser scene.
 
 Acceptance criteria:
 
-- Unknown-scenario Playwright coverage asserts `shared-sampler-missing-texture-sampler-resources` is advertised.
-- Scenario availability assertions remain partial and stable.
-- Existing unknown-scenario behavior is unchanged.
+- A lightweight Playwright test loads missing mesh/material resource scenarios and asserts `phase: "resource-bindings"`.
+- The test remains focused on route/status shape, not full duplicate diagnostics.
+- Existing Playwright coverage continues to pass.
+
+### task-0344 — Add diagnostic count assertions for asset-state failures
+
+Lock diagnostic count summaries for loading and failed mesh/material asset statuses.
+
+Acceptance criteria:
+
+- Mesh and material asset status Playwright tests assert `diagnosticCounts`.
+- Assertions cover loading and failed asset states without duplicating registry diagnostic bodies.
+- Targeted Playwright coverage continues to pass.
 
 ## Post-Unlit E2E Verification Targets
 

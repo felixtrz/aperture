@@ -4,59 +4,24 @@
 
 Completed this run:
 
-- `task-0276 — Add texture upload validation JSON report coverage`
-- `task-0277 — Add multi-textured dependency browser status coverage`
-- `task-0278 — Add texture scenario status schema cleanup`
-- `task-0279 — Add shared-texture missing sampler browser diagnostics`
-- `task-0280 — Add texture upload validation unit coverage for rowsPerImage padding`
-- `task-0281 — Add shared-texture missing texture browser diagnostics`
-- `task-0282 — Add multi-textured missing sampler browser diagnostics`
-- `task-0283 — Add multi-textured missing sampler asset extraction coverage`
-- `task-0284 — Add texture resource diagnostic message browser assertions`
-- `task-0285 — Add texture resource failure status schema cleanup`
-- `task-0286 — Add multi-textured missing texture and sampler resource diagnostics`
-- `task-0287 — Add shared-texture missing texture and sampler resource diagnostics`
-- `task-0288 — Add resource summary JSON coverage for sampler diagnostics`
-- `task-0289 — Add texture dependency readiness shared-resource coverage`
-- `task-0290 — Add texture scenario availability coverage`
-- `task-0291 — Add resource summary JSON coverage for buffer resource keys`
-- `task-0292 — Add resource summary merge resource-key coverage`
-- `task-0293 — Document resource summary JSON helper`
-- `task-0294 — Add texture diagnostics assertion helper for Playwright tests`
-- `task-0295 — Add sampler resource unit coverage for descriptor labels`
-- `task-0296 — Add shared-sampler missing sampler asset extraction coverage`
-- `task-0297 — Add shared-sampler missing sampler resource diagnostics`
-- `task-0298 — Add shared-sampler missing texture resource diagnostics`
-- `task-0299 — Add texture diagnostics matrix docs table`
-- `task-0300 — Add texture asset diagnostic assertion helper`
-- `task-0301 — Add shared-sampler missing texture and sampler resource diagnostics`
+- `task-0302` through `task-0339`
 
-The next recommended task is `task-0302 — Add shared-sampler missing texture asset extraction coverage`.
+The next recommended task is `task-0340 — Add no-raw-GPU assertion helper for texture failures`.
 
 ## Run Summary
 
 Major changes:
 
-- Added resource summary JSON helpers:
-  - `renderResourceSummaryReportToJsonValue`
-  - `renderResourceSummaryReportToJson`
-- Resource summary diagnostics now preserve optional `resourceKey` values.
-- Texture upload validation now reports `rowsPerImage` errors as requiring an integer minimum.
-- Added browser scenarios for multi-textured/shared-texture missing asset and resource cases:
-  - `multi-textured-missing-texture-asset`
-  - `multi-textured-missing-sampler-asset`
-  - `shared-texture-missing-texture-resource`
-  - `shared-texture-missing-sampler-resource`
-  - `multi-textured-missing-sampler-resource`
-  - `multi-textured-missing-texture-sampler-resources`
-  - `shared-texture-missing-texture-sampler-resources`
-  - `shared-sampler-missing-sampler-asset`
-  - `shared-sampler-missing-sampler-resource`
-  - `shared-sampler-missing-texture-resource`
-  - `shared-sampler-missing-texture-sampler-resources`
-- Strengthened invalid texture upload browser assertions with exact diagnostic messages.
-- Cleaned up test-side texture/sampler status types and repeated resource diagnostic assertions.
-- Updated browser/render-readiness docs, added a texture diagnostics matrix, and expanded available-scenario coverage for the new diagnostics.
+- Added shared-sampler and shared-texture browser asset-failure scenarios for missing texture assets, missing sampler assets, and the shared-texture combined missing texture/sampler asset case.
+- Added Playwright coverage for those scenarios, including stable code/asset-key diagnostics, duplicated per-renderable diagnostics for shared dependencies, route/status guard specs, and no-submission assertions.
+- Added shared route assertion coverage in `test/e2e/texture-asset-routing.ts`.
+- Added shared texture/sampler status typing for missing shared asset metadata.
+- Expanded render extraction unit coverage for two renderables sharing texture/sampler dependencies across missing, loading, and failed asset states.
+- Added extraction diagnostic helpers and report count assertions for blocked dependency snapshots.
+- Added `diagnosticCounts` to extraction-failure browser statuses and zeroed counts to unknown-scenario statuses.
+- Added `diagnosticCounts` to resource-binding failure browser statuses, with missing mesh/material resource coverage asserting binding and readiness diagnostic buckets.
+- Added non-texture extraction-failure diagnostic count assertions for missing mesh asset, missing material asset, layer mismatch, and disabled renderable scenarios.
+- Updated browser and render-readiness docs for shared dependency diagnostics, route guards, and texture-before-sampler diagnostic order.
 
 Architecture boundaries remain intact:
 
@@ -67,27 +32,24 @@ Architecture boundaries remain intact:
 
 ## Files Touched This Run
 
-Core/rendering:
-
-- `src/webgpu/resource-summary.ts`
-- `src/webgpu/texture-resources.ts`
-
 Browser/docs/tests:
 
 - `examples/multi-entity.js`
 - `docs/BROWSER_E2E_RENDERING.md`
 - `docs/RENDER_FRAME_READINESS.md`
+- `test/e2e/disabled-renderable.spec.ts`
 - `test/e2e/example-status-types.ts`
-- `test/e2e/invalid-texture-upload.spec.ts`
-- `test/e2e/missing-texture-resource.spec.ts`
+- `test/e2e/layer-mismatch.spec.ts`
+- `test/e2e/missing-material-asset.spec.ts`
+- `test/e2e/missing-mesh-asset.spec.ts`
+- `test/e2e/missing-mesh-resource.spec.ts`
+- `test/e2e/missing-resource.spec.ts`
 - `test/e2e/multi-textured-unlit.spec.ts`
-- `test/e2e/texture-dependency-asset-status.spec.ts`
+- `test/e2e/shared-sampler-asset-routing.spec.ts`
+- `test/e2e/shared-texture-asset-routing.spec.ts`
+- `test/e2e/texture-asset-routing.ts`
 - `test/e2e/unknown-scenario.spec.ts`
-- `test/webgpu/material-dependency-readiness.test.ts`
-- `test/webgpu/resource-summary-json.test.ts`
-- `test/webgpu/resource-summary-merge.test.ts`
-- `test/webgpu/resource-summary.test.ts`
-- `test/webgpu/texture-resources.test.ts`
+- `test/rendering/extraction.test.ts`
 
 Bookkeeping:
 
@@ -100,44 +62,42 @@ Bookkeeping:
 
 Passed:
 
-- `npm run format`
+- `npm run build`
+- `npm run typecheck:test`
+- `npm run check:examples`
+- `npx playwright test test/e2e/multi-textured-unlit.spec.ts -g "missing texture asset with a shared sampler"`
+- `npx playwright test test/e2e/unknown-scenario.spec.ts`
+- `npx playwright test test/e2e/multi-textured-unlit.spec.ts`
+- `npx playwright test test/e2e/shared-texture-asset-routing.spec.ts`
+- `npx playwright test test/e2e/shared-sampler-asset-routing.spec.ts`
+- `npx playwright test test/e2e/shared-sampler-asset-routing.spec.ts test/e2e/shared-texture-asset-routing.spec.ts`
 - `npm run check`
-- Targeted Playwright suite:
-  - `test/e2e/invalid-texture-upload.spec.ts`
-  - `test/e2e/missing-texture-resource.spec.ts`
-  - `test/e2e/multi-textured-unlit.spec.ts`
-  - `test/e2e/texture-dependency-asset-status.spec.ts`
-  - `test/e2e/unknown-scenario.spec.ts`
-- Focused task-0301 Playwright grep:
-  - `test/e2e/missing-texture-resource.spec.ts -g "shared-sampler scene"`
+- `npm run test:e2e`
 
-Current broad check result:
+Latest broad validation:
 
-- `npm run check` passes.
-- Vitest: 128 files, 550 tests passed.
-- Targeted Playwright texture/sampler diagnostics suite: 24 passed.
-- Focused task-0301 Playwright coverage: 2 passed.
+- `npm run check` passes: 128 Vitest files, 559 tests.
+- `npm run test:e2e` passes: 71 Playwright tests.
 
 ## Known Issues
 
 - No known validation failures.
-- The diff is large but coherent: it stays inside texture/sampler diagnostics, resource summary JSON, browser status coverage, docs, and agent bookkeeping.
+- `examples/multi-entity.js` still has a noisy diff because new scenario branches landed in the existing nested ternary. `task-0341` is queued to replace that dispatch with an explicit lookup table.
 
 ## Backlog
 
 Completed tasks appended to `agent/COMPLETED.md`:
 
-- `task-0276` through `task-0295`
-- `task-0296` through `task-0301`
+- `task-0302` through `task-0339`
 
 Ready backlog now contains:
 
-- `task-0302 — Add shared-sampler missing texture asset extraction coverage`
-- `task-0303 — Add texture diagnostics availability coverage for shared-sampler cases`
-- `task-0304 — Add texture diagnostic matrix coverage for shared-sampler rows`
-- `task-0305 — Add multi-textured asset diagnostic assertion helper`
-- `task-0306 — Add combined shared-sampler availability coverage`
+- `task-0340 — Add no-raw-GPU assertion helper for texture failures`
+- `task-0341 — Split multi-entity scenario dispatch into a lookup table`
+- `task-0342 — Document browser diagnostic count phases`
+- `task-0343 — Add route guard coverage for resource-binding scenarios`
+- `task-0344 — Add diagnostic count assertions for asset-state failures`
 
 ## Recommended Next Task
 
-Start with `task-0302`. Keep it narrow: use the existing shared-sampler multi-textured scene shape, leave the right texture asset unregistered, and verify extraction reports `render.texture.missing` before resource creation or submission.
+Start with `task-0340`. Keep it narrow: add a shared no-raw-GPU status assertion helper and use it in texture/sampler asset and resource failure specs.

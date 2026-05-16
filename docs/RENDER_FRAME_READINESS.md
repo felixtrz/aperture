@@ -102,6 +102,14 @@ Use the smallest helper that matches the question:
 
 These JSON and diagnostic helpers are derived inspection surfaces. They do not store ECS/game state, do not become renderer-owned source of truth, and should remain serializable across future worker/main-thread boundaries.
 
+## Texture Dependency Diagnostics
+
+Render extraction validates texture and sampler asset handles while material data is still ECS-derived and before any WebGPU texture, sampler, bind group, or material buffer resource is created. A texture-backed material with a missing, loading, or failed dependency is skipped at extraction and emits `render.texture.*` or `render.sampler.*` diagnostics with the stable asset key.
+
+Diagnostics are emitted per affected renderable, not only per shared asset. If two renderables reference materials that share one missing, loading, or failed texture or sampler handle, extraction reports one diagnostic for each blocked renderable. This preserves entity context for inspection while keeping renderer-owned GPU resource creation out of failed extraction paths.
+
+For one texture-backed material, extraction validates the texture dependency before the sampler dependency. When both are unavailable, diagnostics preserve that texture-then-sampler order for each affected renderable so reports remain deterministic and easy to compare.
+
 Test-only fixture chain:
 
 - `createInjectedRenderFrameSmokeFixture` delegates to `runInjectedRenderFrame` to provide one end-to-end smoke fixture for runner tests.

@@ -238,12 +238,14 @@ test("ECS browser example reports one missing texture asset among multiple textu
     command: { commands: 0, drawCount: 0, indexedDrawCount: 0 },
     submission: { commandBuffers: 0, commands: 0, drawCalls: 0 },
   });
-  expect(status.diagnostics, JSON.stringify(status, null, 2)).toEqual([
-    expect.objectContaining({
-      code: "render.texture.missing",
-      assetKey: "texture:multi-cyan-albedo",
-    }),
-  ]);
+  expect(assetDiagnosticPairs(status), JSON.stringify(status, null, 2)).toEqual(
+    [
+      {
+        code: "render.texture.missing",
+        assetKey: "texture:multi-cyan-albedo",
+      },
+    ],
+  );
   expect(status.resources?.textures).toBeUndefined();
   expect(status.resources?.samplers).toBeUndefined();
   expect(
@@ -317,12 +319,97 @@ test("ECS browser example reports one missing sampler asset among multiple textu
     command: { commands: 0, drawCount: 0, indexedDrawCount: 0 },
     submission: { commandBuffers: 0, commands: 0, drawCalls: 0 },
   });
-  expect(status.diagnostics, JSON.stringify(status, null, 2)).toEqual([
-    expect.objectContaining({
-      code: "render.sampler.missing",
-      assetKey: "sampler:multi-cyan-nearest",
-    }),
-  ]);
+  expect(assetDiagnosticPairs(status), JSON.stringify(status, null, 2)).toEqual(
+    [
+      {
+        code: "render.sampler.missing",
+        assetKey: "sampler:multi-cyan-nearest",
+      },
+    ],
+  );
+  expect(status.resources?.textures).toBeUndefined();
+  expect(status.resources?.samplers).toBeUndefined();
+  expect(
+    JSON.stringify(status),
+    "status must not expose raw GPU handles",
+  ).not.toMatch(/GPUTexture|GPUTextureView|GPUSampler|createBindGroup/);
+});
+
+test("ECS browser example reports one missing texture asset with a shared sampler", async ({
+  page,
+}) => {
+  await page.goto(
+    "/examples/multi-entity.html?scenario=shared-sampler-missing-texture-asset",
+  );
+  const status = await waitForExampleStatus<MultiEntityExampleStatus>(page);
+
+  await attachExampleStatus("shared-sampler-missing-texture-asset", status);
+
+  expect(status, "example status should be published").toBeDefined();
+
+  if (status === undefined) {
+    return;
+  }
+
+  skipIfUnsupportedWebGpu(status);
+
+  expect(status, JSON.stringify(status, null, 2)).toMatchObject({
+    example: "ecs-multi-entity",
+    scenario: "shared-sampler-missing-texture-asset",
+    ok: false,
+    phase: "extract",
+    reason: "shared-sampler-missing-texture-asset",
+    renderingBackend: "webgpu",
+    extraction: { views: 1, meshDraws: 1, diagnostics: 1 },
+    assetStatus: {
+      texture: "missing",
+      diagnostics: ["render.texture.missing"],
+      registryDiagnostics: [],
+    },
+    textureDependency: {
+      dependencyKind: "texture",
+      assetStatus: "missing",
+      textureKey: "texture:multi-cyan-albedo",
+      samplerKey: "sampler:multi-red-nearest",
+    },
+    multiTextured: {
+      sharedSamplerKey: "sampler:multi-red-nearest",
+      left: { samplerKey: "sampler:multi-red-nearest" },
+      right: {
+        materialKey: "material:multi-textured-cyan",
+        textureKey: "texture:multi-cyan-albedo",
+        samplerKey: "sampler:multi-red-nearest",
+      },
+    },
+    missingTextureAsset: {
+      materialKey: "material:multi-textured-cyan",
+      textureKey: "texture:multi-cyan-albedo",
+      samplerKey: "sampler:multi-red-nearest",
+      expectedDiagnostic: "render.texture.missing",
+    },
+    resources: { materials: 0, bindGroups: 0, missing: "texture" },
+    binding: { planned: 0, applied: 0, ready: 0, diagnostics: 0 },
+    renderWorld: {
+      active: 1,
+      ready: 0,
+      blocked: 1,
+      diagnostics: [
+        "renderWorld.missingMeshResource",
+        "renderWorld.missingMaterialResource",
+      ],
+    },
+    draw: { packages: 0, descriptors: 0, drawList: 0, resolved: 0 },
+    command: { commands: 0, drawCount: 0, indexedDrawCount: 0 },
+    submission: { commandBuffers: 0, commands: 0, drawCalls: 0 },
+  });
+  expect(assetDiagnosticPairs(status), JSON.stringify(status, null, 2)).toEqual(
+    [
+      {
+        code: "render.texture.missing",
+        assetKey: "texture:multi-cyan-albedo",
+      },
+    ],
+  );
   expect(status.resources?.textures).toBeUndefined();
   expect(status.resources?.samplers).toBeUndefined();
   expect(
@@ -389,22 +476,271 @@ test("ECS browser example reports a missing shared sampler asset", async ({
     command: { commands: 0, drawCount: 0, indexedDrawCount: 0 },
     submission: { commandBuffers: 0, commands: 0, drawCalls: 0 },
   });
+  expect(assetDiagnosticPairs(status), JSON.stringify(status, null, 2)).toEqual(
+    [
+      {
+        code: "render.sampler.missing",
+        assetKey: "sampler:multi-red-nearest",
+      },
+      {
+        code: "render.sampler.missing",
+        assetKey: "sampler:multi-red-nearest",
+      },
+    ],
+  );
+  expect(status.resources?.textures).toBeUndefined();
+  expect(status.resources?.samplers).toBeUndefined();
   expect(
-    status.diagnostics?.map((diagnostic) => ({
-      code: diagnostic.code,
-      assetKey: diagnostic.assetKey,
-    })),
-    JSON.stringify(status, null, 2),
-  ).toEqual([
-    {
-      code: "render.sampler.missing",
-      assetKey: "sampler:multi-red-nearest",
+    JSON.stringify(status),
+    "status must not expose raw GPU handles",
+  ).not.toMatch(/GPUTexture|GPUTextureView|GPUSampler|createBindGroup/);
+});
+
+test("ECS browser example reports a missing shared texture asset", async ({
+  page,
+}) => {
+  await page.goto(
+    "/examples/multi-entity.html?scenario=shared-texture-missing-texture-asset",
+  );
+  const status = await waitForExampleStatus<MultiEntityExampleStatus>(page);
+
+  await attachExampleStatus("shared-texture-missing-texture-asset", status);
+
+  expect(status, "example status should be published").toBeDefined();
+
+  if (status === undefined) {
+    return;
+  }
+
+  skipIfUnsupportedWebGpu(status);
+
+  expect(status, JSON.stringify(status, null, 2)).toMatchObject({
+    example: "ecs-multi-entity",
+    scenario: "shared-texture-missing-texture-asset",
+    ok: false,
+    phase: "extract",
+    reason: "shared-texture-missing-texture-asset",
+    renderingBackend: "webgpu",
+    extraction: { views: 1, meshDraws: 0, diagnostics: 2 },
+    assetStatus: {
+      texture: "missing",
+      diagnostics: ["render.texture.missing", "render.texture.missing"],
+      registryDiagnostics: [],
     },
-    {
-      code: "render.sampler.missing",
-      assetKey: "sampler:multi-red-nearest",
+    textureDependency: {
+      dependencyKind: "texture",
+      assetStatus: "missing",
+      textureKey: "texture:shared-tint-albedo",
+      samplerKey: "sampler:shared-tint-nearest",
     },
-  ]);
+    sharedTextureTinted: {
+      textureKey: "texture:shared-tint-albedo",
+      samplerKey: "sampler:shared-tint-nearest",
+      left: { materialKey: "material:shared-tint-warm" },
+      right: { materialKey: "material:shared-tint-cool" },
+    },
+    missingSharedTextureAsset: {
+      textureKey: "texture:shared-tint-albedo",
+      samplerKey: "sampler:shared-tint-nearest",
+      expectedDiagnostic: "render.texture.missing",
+    },
+    resources: { materials: 0, bindGroups: 0, missing: "texture" },
+    binding: { planned: 0, applied: 0, ready: 0, diagnostics: 0 },
+    renderWorld: {
+      active: 0,
+      ready: 0,
+      blocked: 0,
+      diagnostics: ["renderWorld.empty"],
+    },
+    draw: { packages: 0, descriptors: 0, drawList: 0, resolved: 0 },
+    command: { commands: 0, drawCount: 0, indexedDrawCount: 0 },
+    submission: { commandBuffers: 0, commands: 0, drawCalls: 0 },
+  });
+  expect(status.missingSharedTextureAsset?.textureKey).toBe(
+    "texture:shared-tint-albedo",
+  );
+  expect(status.missingSharedTextureAsset?.samplerKey).toBe(
+    "sampler:shared-tint-nearest",
+  );
+  expect(assetDiagnosticPairs(status), JSON.stringify(status, null, 2)).toEqual(
+    repeatedPerRenderableAssetDiagnostics([
+      {
+        code: "render.texture.missing",
+        assetKey: "texture:shared-tint-albedo",
+      },
+    ]),
+  );
+  expect(status.resources?.textures).toBeUndefined();
+  expect(status.resources?.samplers).toBeUndefined();
+  expect(
+    JSON.stringify(status),
+    "status must not expose raw GPU handles",
+  ).not.toMatch(/GPUTexture|GPUTextureView|GPUSampler|createBindGroup/);
+});
+
+test("ECS browser example reports a missing shared texture sampler asset", async ({
+  page,
+}) => {
+  await page.goto(
+    "/examples/multi-entity.html?scenario=shared-texture-missing-sampler-asset",
+  );
+  const status = await waitForExampleStatus<MultiEntityExampleStatus>(page);
+
+  await attachExampleStatus("shared-texture-missing-sampler-asset", status);
+
+  expect(status, "example status should be published").toBeDefined();
+
+  if (status === undefined) {
+    return;
+  }
+
+  skipIfUnsupportedWebGpu(status);
+
+  expect(status, JSON.stringify(status, null, 2)).toMatchObject({
+    example: "ecs-multi-entity",
+    scenario: "shared-texture-missing-sampler-asset",
+    ok: false,
+    phase: "extract",
+    reason: "shared-texture-missing-sampler-asset",
+    renderingBackend: "webgpu",
+    extraction: { views: 1, meshDraws: 0, diagnostics: 2 },
+    assetStatus: {
+      sampler: "missing",
+      diagnostics: ["render.sampler.missing", "render.sampler.missing"],
+      registryDiagnostics: [],
+    },
+    textureDependency: {
+      dependencyKind: "sampler",
+      assetStatus: "missing",
+      textureKey: "texture:shared-tint-albedo",
+      samplerKey: "sampler:shared-tint-nearest",
+    },
+    sharedTextureTinted: {
+      textureKey: "texture:shared-tint-albedo",
+      samplerKey: "sampler:shared-tint-nearest",
+      left: { materialKey: "material:shared-tint-warm" },
+      right: { materialKey: "material:shared-tint-cool" },
+    },
+    missingSharedSamplerAsset: {
+      samplerKey: "sampler:shared-tint-nearest",
+      expectedDiagnostic: "render.sampler.missing",
+    },
+    resources: { materials: 0, bindGroups: 0, missing: "sampler" },
+    binding: { planned: 0, applied: 0, ready: 0, diagnostics: 0 },
+    renderWorld: {
+      active: 0,
+      ready: 0,
+      blocked: 0,
+      diagnostics: ["renderWorld.empty"],
+    },
+    draw: { packages: 0, descriptors: 0, drawList: 0, resolved: 0 },
+    command: { commands: 0, drawCount: 0, indexedDrawCount: 0 },
+    submission: { commandBuffers: 0, commands: 0, drawCalls: 0 },
+  });
+  expect(status.missingSharedSamplerAsset?.samplerKey).toBe(
+    "sampler:shared-tint-nearest",
+  );
+  expect(assetDiagnosticPairs(status), JSON.stringify(status, null, 2)).toEqual(
+    repeatedPerRenderableAssetDiagnostics([
+      {
+        code: "render.sampler.missing",
+        assetKey: "sampler:shared-tint-nearest",
+      },
+    ]),
+  );
+  expect(status.resources?.textures).toBeUndefined();
+  expect(status.resources?.samplers).toBeUndefined();
+  expect(
+    JSON.stringify(status),
+    "status must not expose raw GPU handles",
+  ).not.toMatch(/GPUTexture|GPUTextureView|GPUSampler|createBindGroup/);
+});
+
+test("ECS browser example reports missing shared texture and sampler assets", async ({
+  page,
+}) => {
+  await page.goto(
+    "/examples/multi-entity.html?scenario=shared-texture-missing-texture-sampler-assets",
+  );
+  const status = await waitForExampleStatus<MultiEntityExampleStatus>(page);
+
+  await attachExampleStatus(
+    "shared-texture-missing-texture-sampler-assets",
+    status,
+  );
+
+  expect(status, "example status should be published").toBeDefined();
+
+  if (status === undefined) {
+    return;
+  }
+
+  skipIfUnsupportedWebGpu(status);
+
+  expect(status, JSON.stringify(status, null, 2)).toMatchObject({
+    example: "ecs-multi-entity",
+    scenario: "shared-texture-missing-texture-sampler-assets",
+    ok: false,
+    phase: "extract",
+    reason: "shared-texture-missing-texture-sampler-assets",
+    renderingBackend: "webgpu",
+    extraction: { views: 1, meshDraws: 0, diagnostics: 4 },
+    assetStatus: {
+      texture: "missing",
+      sampler: "missing",
+      diagnostics: [
+        "render.texture.missing",
+        "render.sampler.missing",
+        "render.texture.missing",
+        "render.sampler.missing",
+      ],
+      registryDiagnostics: [],
+    },
+    sharedTextureTinted: {
+      textureKey: "texture:shared-tint-albedo",
+      samplerKey: "sampler:shared-tint-nearest",
+      left: { materialKey: "material:shared-tint-warm" },
+      right: { materialKey: "material:shared-tint-cool" },
+    },
+    missingSharedTextureAsset: {
+      textureKey: "texture:shared-tint-albedo",
+      samplerKey: "sampler:shared-tint-nearest",
+      expectedDiagnostic: "render.texture.missing",
+    },
+    missingSharedSamplerAsset: {
+      samplerKey: "sampler:shared-tint-nearest",
+      expectedDiagnostic: "render.sampler.missing",
+    },
+    resources: { materials: 0, bindGroups: 0, missing: "texture/sampler" },
+    binding: { planned: 0, applied: 0, ready: 0, diagnostics: 0 },
+    renderWorld: {
+      active: 0,
+      ready: 0,
+      blocked: 0,
+      diagnostics: ["renderWorld.empty"],
+    },
+    draw: { packages: 0, descriptors: 0, drawList: 0, resolved: 0 },
+    command: { commands: 0, drawCount: 0, indexedDrawCount: 0 },
+    submission: { commandBuffers: 0, commands: 0, drawCalls: 0 },
+  });
+  expect(status.missingSharedTextureAsset?.textureKey).toBe(
+    "texture:shared-tint-albedo",
+  );
+  expect(status.missingSharedSamplerAsset?.samplerKey).toBe(
+    "sampler:shared-tint-nearest",
+  );
+  expect(assetDiagnosticPairs(status), JSON.stringify(status, null, 2)).toEqual(
+    repeatedPerRenderableAssetDiagnostics([
+      {
+        code: "render.texture.missing",
+        assetKey: "texture:shared-tint-albedo",
+      },
+      {
+        code: "render.sampler.missing",
+        assetKey: "sampler:shared-tint-nearest",
+      },
+    ]),
+  );
   expect(status.resources?.textures).toBeUndefined();
   expect(status.resources?.samplers).toBeUndefined();
   expect(
@@ -422,4 +758,31 @@ function rgbaTupleToPixel(
     b: color[2],
     a: color[3],
   });
+}
+
+function assetDiagnosticPairs(status: MultiEntityExampleStatus):
+  | readonly {
+      readonly code: string;
+      readonly assetKey?: string;
+    }[]
+  | undefined {
+  return status.diagnostics?.map((diagnostic) => ({
+    code: diagnostic.code,
+    ...(diagnostic.assetKey === undefined
+      ? {}
+      : { assetKey: diagnostic.assetKey }),
+  }));
+}
+
+function repeatedPerRenderableAssetDiagnostics(
+  diagnostics: readonly {
+    readonly code: string;
+    readonly assetKey: string;
+  }[],
+  renderableCount = 2,
+): readonly {
+  readonly code: string;
+  readonly assetKey: string;
+}[] {
+  return Array.from({ length: renderableCount }).flatMap(() => diagnostics);
 }

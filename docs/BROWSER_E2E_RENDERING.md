@@ -223,10 +223,18 @@ Current checks:
 - Multi-textured missing sampler asset smoke: loads the multi-entity page with
   two texture-backed materials and one unregistered sampler asset, then verifies
   extraction reports the missing sampler asset key before resource creation.
+- Shared-sampler missing texture asset smoke: loads the multi-entity page with
+  two texture-backed materials sharing one sampler asset and one unregistered
+  texture asset, then verifies extraction reports the missing texture asset key
+  before resource creation.
 - Shared-sampler missing sampler asset smoke: loads the multi-entity page with
   two texture-backed materials sharing one unregistered sampler asset, then
   verifies extraction reports the shared sampler asset key twice before
   resource creation.
+- Shared-texture missing asset smokes: load the multi-entity page with two
+  texture-backed materials sharing one texture/sampler pair, leave the shared
+  texture asset, shared sampler asset, or both assets unregistered, then verify
+  extraction reports the shared asset keys before resource creation.
 - Shared-sampler missing sampler resource smoke: loads the multi-entity page
   with two texture-backed materials sharing one sampler asset, withholds the
   shared sampler GPU resource, and verifies both material bind groups report the
@@ -260,6 +268,16 @@ Playwright report so failures show whether the blank or failed frame came from
 extraction, resource binding, draw planning, command execution, or queue
 submission.
 
+The shared-sampler and shared-texture asset route specs are lightweight guards:
+they verify URL scenarios reach `phase: "extract"` and stay at zero submitted
+draws. The deeper multi-textured tests continue to own duplicate diagnostic
+order and asset-key assertions for those same scenarios.
+
+Extraction failure statuses include `diagnosticCounts` with non-zero extraction
+counts and zero downstream resource, binding, draw, submission, and readback
+counts. This keeps failed-route summaries comparable with successful frame
+summaries while preserving the extraction boundary.
+
 Texture/sampler scenario index:
 
 - `textured-unlit`: four quadrant samples verify U/V texture orientation.
@@ -290,8 +308,17 @@ Texture/sampler scenario index:
   among multiple texture-backed materials before resource creation.
 - `multi-textured-missing-sampler-asset`: verifies one missing sampler asset
   among multiple texture-backed materials before resource creation.
+- `shared-sampler-missing-texture-asset`: verifies one missing texture asset in a
+  shared-sampler two-material scene before resource creation.
 - `shared-sampler-missing-sampler-asset`: verifies one missing shared sampler
   asset across two texture-backed materials before resource creation.
+- `shared-texture-missing-texture-asset`: verifies one missing shared texture
+  asset across two texture-backed materials before resource creation.
+- `shared-texture-missing-sampler-asset`: verifies one missing shared sampler
+  asset across two texture-backed materials before resource creation.
+- `shared-texture-missing-texture-sampler-assets`: verifies missing shared
+  texture and sampler assets across two texture-backed materials before resource
+  creation.
 - `shared-sampler-missing-sampler-resource`: verifies one missing shared sampler
   resource across two texture-backed materials.
 - `shared-sampler-missing-texture-resource`: verifies one missing texture
@@ -319,7 +346,11 @@ Texture/sampler diagnostic matrix:
 | Missing asset        | `missing-sampler-asset`                            | `extract`   | `render.sampler.missing`                                                                          |
 | Missing asset        | `multi-textured-missing-texture-asset`             | `extract`   | `render.texture.missing`                                                                          |
 | Missing asset        | `multi-textured-missing-sampler-asset`             | `extract`   | `render.sampler.missing`                                                                          |
+| Missing asset        | `shared-sampler-missing-texture-asset`             | `extract`   | `render.texture.missing`                                                                          |
 | Missing asset        | `shared-sampler-missing-sampler-asset`             | `extract`   | `render.sampler.missing`                                                                          |
+| Missing asset        | `shared-texture-missing-texture-asset`             | `extract`   | `render.texture.missing`                                                                          |
+| Missing asset        | `shared-texture-missing-sampler-asset`             | `extract`   | `render.sampler.missing`                                                                          |
+| Missing asset        | `shared-texture-missing-texture-sampler-assets`    | `extract`   | `render.texture.missing` / `render.sampler.missing`                                               |
 | Missing GPU resource | `missing-texture-sampler-resources`                | `resources` | `unlitBindGroupResource.missingTextureResource` / `unlitBindGroupResource.missingSamplerResource` |
 | Missing GPU resource | `multi-textured-missing-texture-resource`          | `resources` | `unlitBindGroupResource.missingTextureResource`                                                   |
 | Missing GPU resource | `multi-textured-missing-sampler-resource`          | `resources` | `unlitBindGroupResource.missingSamplerResource`                                                   |

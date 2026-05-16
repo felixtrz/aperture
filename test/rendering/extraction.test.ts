@@ -339,10 +339,327 @@ describe("render extraction", () => {
 
     const snapshot = extractRenderSnapshot(world, assets);
 
-    expect(snapshot.meshDraws).toEqual([]);
-    expect(snapshot.diagnostics).toMatchObject([
+    expectBlockedTextureDependencySnapshot(snapshot, [
       { code: "render.texture.missing", assetKey: "texture:missing-albedo" },
       { code: "render.sampler.missing", assetKey: "sampler:missing-linear" },
+    ]);
+  });
+
+  it("diagnoses a shared missing texture asset once per renderable", () => {
+    const texture = createTextureHandle("shared-missing-albedo");
+    const sampler = createSamplerHandle("shared-ready-linear");
+    const { assets, world } = createTwoRenderableTextureDependencyFixture(
+      texture,
+      sampler,
+    );
+
+    assets.register(sampler);
+    assets.markReady(sampler, createSamplerAsset({ label: "SharedReady" }));
+
+    const snapshot = extractRenderSnapshot(world, assets);
+
+    expectBlockedTextureDependencySnapshot(snapshot, [
+      {
+        code: "render.texture.missing",
+        assetKey: "texture:shared-missing-albedo",
+      },
+      {
+        code: "render.texture.missing",
+        assetKey: "texture:shared-missing-albedo",
+      },
+    ]);
+  });
+
+  it("diagnoses a shared missing sampler asset once per renderable", () => {
+    const texture = createTextureHandle("shared-ready-albedo");
+    const sampler = createSamplerHandle("shared-missing-linear");
+    const { assets, world } = createTwoRenderableTextureDependencyFixture(
+      texture,
+      sampler,
+    );
+
+    assets.register(texture);
+    assets.markReady(
+      texture,
+      createTextureAsset({
+        label: "SharedReadyAlbedo",
+        dimension: "2d",
+        width: 1,
+        height: 1,
+        format: "rgba8unorm",
+        colorSpace: "linear",
+        semantic: "base-color",
+        usage: ["sampled"],
+      }),
+    );
+
+    const snapshot = extractRenderSnapshot(world, assets);
+
+    expectBlockedTextureDependencySnapshot(snapshot, [
+      {
+        code: "render.sampler.missing",
+        assetKey: "sampler:shared-missing-linear",
+      },
+      {
+        code: "render.sampler.missing",
+        assetKey: "sampler:shared-missing-linear",
+      },
+    ]);
+  });
+
+  it("diagnoses shared missing texture and sampler assets once per renderable", () => {
+    const texture = createTextureHandle("shared-missing-albedo");
+    const sampler = createSamplerHandle("shared-missing-linear");
+    const { assets, world } = createTwoRenderableTextureDependencyFixture(
+      texture,
+      sampler,
+    );
+
+    const snapshot = extractRenderSnapshot(world, assets);
+
+    expectBlockedTextureDependencySnapshot(snapshot, [
+      {
+        code: "render.texture.missing",
+        assetKey: "texture:shared-missing-albedo",
+      },
+      {
+        code: "render.sampler.missing",
+        assetKey: "sampler:shared-missing-linear",
+      },
+      {
+        code: "render.texture.missing",
+        assetKey: "texture:shared-missing-albedo",
+      },
+      {
+        code: "render.sampler.missing",
+        assetKey: "sampler:shared-missing-linear",
+      },
+    ]);
+  });
+
+  it("diagnoses a shared loading texture asset once per renderable", () => {
+    const texture = createTextureHandle("shared-loading-albedo");
+    const sampler = createSamplerHandle("shared-ready-linear");
+    const { assets, world } = createTwoRenderableTextureDependencyFixture(
+      texture,
+      sampler,
+    );
+
+    assets.register(texture);
+    assets.register(sampler);
+    assets.markLoading(texture);
+    assets.markReady(sampler, createSamplerAsset({ label: "SharedReady" }));
+
+    const snapshot = extractRenderSnapshot(world, assets);
+
+    expectBlockedTextureDependencySnapshot(snapshot, [
+      {
+        code: "render.texture.loading",
+        assetKey: "texture:shared-loading-albedo",
+      },
+      {
+        code: "render.texture.loading",
+        assetKey: "texture:shared-loading-albedo",
+      },
+    ]);
+  });
+
+  it("diagnoses a shared failed texture asset once per renderable", () => {
+    const texture = createTextureHandle("shared-failed-albedo");
+    const sampler = createSamplerHandle("shared-ready-linear");
+    const { assets, world } = createTwoRenderableTextureDependencyFixture(
+      texture,
+      sampler,
+    );
+
+    assets.register(texture);
+    assets.register(sampler);
+    assets.markFailed(texture, [
+      {
+        code: "shared.texture.failed",
+        message: "Shared texture intentionally failed.",
+        severity: "error",
+      },
+    ]);
+    assets.markReady(sampler, createSamplerAsset({ label: "SharedReady" }));
+
+    const snapshot = extractRenderSnapshot(world, assets);
+
+    expectBlockedTextureDependencySnapshot(snapshot, [
+      {
+        code: "render.texture.failed",
+        assetKey: "texture:shared-failed-albedo",
+      },
+      {
+        code: "render.texture.failed",
+        assetKey: "texture:shared-failed-albedo",
+      },
+    ]);
+  });
+
+  it("diagnoses a shared failed sampler asset once per renderable", () => {
+    const texture = createTextureHandle("shared-ready-albedo");
+    const sampler = createSamplerHandle("shared-failed-linear");
+    const { assets, world } = createTwoRenderableTextureDependencyFixture(
+      texture,
+      sampler,
+    );
+
+    assets.register(texture);
+    assets.register(sampler);
+    assets.markReady(
+      texture,
+      createTextureAsset({
+        label: "SharedReadyAlbedo",
+        dimension: "2d",
+        width: 1,
+        height: 1,
+        format: "rgba8unorm",
+        colorSpace: "linear",
+        semantic: "base-color",
+        usage: ["sampled"],
+      }),
+    );
+    assets.markFailed(sampler, [
+      {
+        code: "shared.sampler.failed",
+        message: "Shared sampler intentionally failed.",
+        severity: "error",
+      },
+    ]);
+
+    const snapshot = extractRenderSnapshot(world, assets);
+
+    expectBlockedTextureDependencySnapshot(snapshot, [
+      {
+        code: "render.sampler.failed",
+        assetKey: "sampler:shared-failed-linear",
+      },
+      {
+        code: "render.sampler.failed",
+        assetKey: "sampler:shared-failed-linear",
+      },
+    ]);
+  });
+
+  it("diagnoses a shared loading sampler asset once per renderable", () => {
+    const texture = createTextureHandle("shared-ready-albedo");
+    const sampler = createSamplerHandle("shared-loading-linear");
+    const { assets, world } = createTwoRenderableTextureDependencyFixture(
+      texture,
+      sampler,
+    );
+
+    assets.register(texture);
+    assets.register(sampler);
+    assets.markReady(
+      texture,
+      createTextureAsset({
+        label: "SharedReadyAlbedo",
+        dimension: "2d",
+        width: 1,
+        height: 1,
+        format: "rgba8unorm",
+        colorSpace: "linear",
+        semantic: "base-color",
+        usage: ["sampled"],
+      }),
+    );
+    assets.markLoading(sampler);
+
+    const snapshot = extractRenderSnapshot(world, assets);
+
+    expectBlockedTextureDependencySnapshot(snapshot, [
+      {
+        code: "render.sampler.loading",
+        assetKey: "sampler:shared-loading-linear",
+      },
+      {
+        code: "render.sampler.loading",
+        assetKey: "sampler:shared-loading-linear",
+      },
+    ]);
+  });
+
+  it("diagnoses shared loading texture and failed sampler assets once per renderable", () => {
+    const texture = createTextureHandle("shared-loading-albedo");
+    const sampler = createSamplerHandle("shared-failed-linear");
+    const { assets, world } = createTwoRenderableTextureDependencyFixture(
+      texture,
+      sampler,
+    );
+
+    assets.register(texture);
+    assets.register(sampler);
+    assets.markLoading(texture);
+    assets.markFailed(sampler, [
+      {
+        code: "shared.sampler.failed",
+        message: "Shared sampler intentionally failed.",
+        severity: "error",
+      },
+    ]);
+
+    const snapshot = extractRenderSnapshot(world, assets);
+
+    expectBlockedTextureDependencySnapshot(snapshot, [
+      {
+        code: "render.texture.loading",
+        assetKey: "texture:shared-loading-albedo",
+      },
+      {
+        code: "render.sampler.failed",
+        assetKey: "sampler:shared-failed-linear",
+      },
+      {
+        code: "render.texture.loading",
+        assetKey: "texture:shared-loading-albedo",
+      },
+      {
+        code: "render.sampler.failed",
+        assetKey: "sampler:shared-failed-linear",
+      },
+    ]);
+  });
+
+  it("diagnoses shared failed texture and loading sampler assets once per renderable", () => {
+    const texture = createTextureHandle("shared-failed-albedo");
+    const sampler = createSamplerHandle("shared-loading-linear");
+    const { assets, world } = createTwoRenderableTextureDependencyFixture(
+      texture,
+      sampler,
+    );
+
+    assets.register(texture);
+    assets.register(sampler);
+    assets.markFailed(texture, [
+      {
+        code: "shared.texture.failed",
+        message: "Shared texture intentionally failed.",
+        severity: "error",
+      },
+    ]);
+    assets.markLoading(sampler);
+
+    const snapshot = extractRenderSnapshot(world, assets);
+
+    expectBlockedTextureDependencySnapshot(snapshot, [
+      {
+        code: "render.texture.failed",
+        assetKey: "texture:shared-failed-albedo",
+      },
+      {
+        code: "render.sampler.loading",
+        assetKey: "sampler:shared-loading-linear",
+      },
+      {
+        code: "render.texture.failed",
+        assetKey: "texture:shared-failed-albedo",
+      },
+      {
+        code: "render.sampler.loading",
+        assetKey: "sampler:shared-loading-linear",
+      },
     ]);
   });
 
@@ -371,8 +688,7 @@ describe("render extraction", () => {
 
     const snapshot = extractRenderSnapshot(world, assets);
 
-    expect(snapshot.meshDraws).toEqual([]);
-    expect(snapshot.diagnostics).toMatchObject([
+    expectBlockedTextureDependencySnapshot(snapshot, [
       { code: "render.texture.loading", assetKey: "texture:loading-albedo" },
       { code: "render.sampler.failed", assetKey: "sampler:failed-linear" },
     ]);
@@ -552,6 +868,35 @@ function createReadyAssets(
   return registry;
 }
 
+function createTwoRenderableTextureDependencyFixture(
+  texture: ReturnType<typeof createTextureHandle>,
+  sampler: ReturnType<typeof createSamplerHandle>,
+): {
+  readonly assets: AssetRegistry;
+  readonly world: ReturnType<typeof createWorld>;
+} {
+  const world = createRuntimeWorld();
+  const assets = createReadyAssets({
+    materialAsset: createUnlitMaterialAsset({
+      baseColorTexture: { texture, sampler },
+    }),
+  });
+
+  createCameraEntity(world, { priority: 0, layerMask: 1 });
+  createMeshEntity(world, {
+    meshId: "mesh:cube",
+    materialId: "material:unlit",
+    layerMask: 1,
+  });
+  createMeshEntity(world, {
+    meshId: "mesh:cube",
+    materialId: "material:unlit",
+    layerMask: 1,
+  });
+
+  return { assets, world };
+}
+
 function createCameraEntity(
   world: ReturnType<typeof createWorld>,
   input: {
@@ -620,6 +965,32 @@ function matrixAt(values: Float32Array, offset: number | undefined): number[] {
   }
 
   return Array.from(values.slice(offset, offset + 16));
+}
+
+function diagnosticAssetPairs(
+  snapshot: ReturnType<typeof extractRenderSnapshot>,
+): {
+  readonly code: string;
+  readonly assetKey?: string;
+}[] {
+  return snapshot.diagnostics.map((diagnostic) => ({
+    code: diagnostic.code,
+    ...(diagnostic.assetKey === undefined
+      ? {}
+      : { assetKey: diagnostic.assetKey }),
+  }));
+}
+
+function expectBlockedTextureDependencySnapshot(
+  snapshot: ReturnType<typeof extractRenderSnapshot>,
+  expectedDiagnostics: readonly {
+    readonly code: string;
+    readonly assetKey: string;
+  }[],
+): void {
+  expect(snapshot.meshDraws).toEqual([]);
+  expect(snapshot.report.diagnostics).toBe(expectedDiagnostics.length);
+  expect(diagnosticAssetPairs(snapshot)).toEqual(expectedDiagnostics);
 }
 
 function required<T>(value: T | undefined): T {
