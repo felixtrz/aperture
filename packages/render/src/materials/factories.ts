@@ -1,6 +1,7 @@
 import type {
   DebugNormalMaterialAsset,
   MaterialUnsupportedFeature,
+  MatcapMaterialAsset,
   RenderStateDescriptor,
   SamplerAsset,
   StandardMaterialAsset,
@@ -38,6 +39,24 @@ export function createUnlitMaterialAsset(
     renderState: createDefaultRenderState(input.renderState),
     baseColorFactor: input.baseColorFactor ?? new Float32Array([1, 1, 1, 1]),
     baseColorTexture: input.baseColorTexture ?? null,
+    unsupportedFeatures: input.unsupportedFeatures ?? [],
+  };
+}
+
+export function createMatcapMaterialAsset(
+  input: Partial<
+    Omit<MatcapMaterialAsset, "kind" | "label" | "renderState">
+  > & {
+    readonly label?: string;
+    readonly renderState?: Partial<RenderStateDescriptor>;
+  } = {},
+): MatcapMaterialAsset {
+  return {
+    kind: "matcap",
+    label: input.label ?? "Matcap Material",
+    renderState: createDefaultRenderState(input.renderState),
+    baseColorFactor: input.baseColorFactor ?? new Float32Array([1, 1, 1, 1]),
+    matcapTexture: input.matcapTexture ?? null,
     unsupportedFeatures: input.unsupportedFeatures ?? [],
   };
 }

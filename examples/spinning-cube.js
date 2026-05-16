@@ -243,6 +243,7 @@ function createFrameStatus(
       materials: 1,
       bindGroups: resources?.bindGroups.length ?? 0,
       lightBindGroup: resources?.lightBindGroup === undefined ? 0 : 1,
+      reuse: report.resourceReuse,
     },
     renderWorld: {
       active: app.renderWorld.size,

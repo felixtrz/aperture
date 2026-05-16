@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   UNLIT_MESH_SHADER,
+  UNLIT_MESH_WITH_LIGHT_BINDINGS_SHADER,
   UNLIT_TEXTURED_MESH_SHADER,
   UNLIT_TEXTURED_MESH_WGSL,
   createUnlitMeshShaderModuleDescriptor,
@@ -80,6 +81,32 @@ describe("built-in unlit mesh WGSL shader metadata", () => {
       code: UNLIT_TEXTURED_MESH_WGSL,
       entryPoints: ["vs_main", "fs_main"],
     });
+  });
+
+  it("exports a metadata-only variant with future light bindings", () => {
+    expect(
+      validateBuiltInShaderMetadata(UNLIT_MESH_WITH_LIGHT_BINDINGS_SHADER),
+    ).toEqual({
+      valid: true,
+      diagnostics: [],
+    });
+    expect(UNLIT_MESH_WITH_LIGHT_BINDINGS_SHADER.code).toBe(
+      UNLIT_MESH_SHADER.code,
+    );
+    expect(
+      UNLIT_MESH_WITH_LIGHT_BINDINGS_SHADER.bindings.map((binding) => [
+        binding.id,
+        binding.group,
+        binding.binding,
+        binding.resource,
+      ]),
+    ).toEqual([
+      ["viewProjection", 0, 0, "uniform-buffer"],
+      ["worldTransforms", 1, 0, "read-only-storage-buffer"],
+      ["unlitMaterial", 2, 0, "uniform-buffer"],
+      ["lightFloats", 3, 0, "read-only-storage-buffer"],
+      ["lightMetadata", 3, 1, "read-only-storage-buffer"],
+    ]);
   });
 
   it("diagnoses missing required shader metadata fields", () => {

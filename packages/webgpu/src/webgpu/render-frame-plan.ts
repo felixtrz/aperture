@@ -47,7 +47,9 @@ import {
   writeResolveRenderPassResources,
 } from "./render-pass-resources.js";
 import {
-  planInjectedRenderFrameSnapshotResourceBindings,
+  createInjectedRenderFrameSnapshotResourceBindingPlanScratch,
+  writeInjectedRenderFrameSnapshotResourceBindings,
+  type InjectedRenderFrameSnapshotResourceBindingPlanScratch,
   type InjectedRenderFrameSnapshotResourceBindingPlan,
 } from "./renderer-frame-summary.js";
 import type {
@@ -146,6 +148,7 @@ export interface PlanRenderFrameFromSnapshotResult {
 
 export interface RenderFramePlanScratch {
   readonly summaryScratch: RenderFramePlanSummaryScratch;
+  readonly bindingScratch: InjectedRenderFrameSnapshotResourceBindingPlanScratch;
   readonly drawPackageScratch: RenderWorldDrawPackageScratch;
   readonly drawCommandScratch: DrawCommandDescriptorScratch;
   readonly drawListScratch: RenderPassDrawListScratch;
@@ -172,6 +175,8 @@ export function createRenderFramePlanScratch(
 ): RenderFramePlanScratch {
   return {
     summaryScratch,
+    bindingScratch:
+      createInjectedRenderFrameSnapshotResourceBindingPlanScratch(),
     drawPackageScratch: createRenderWorldDrawPackageScratch(),
     drawCommandScratch: createDrawCommandDescriptorScratch(),
     drawListScratch: createRenderPassDrawListScratch(),
@@ -199,11 +204,14 @@ export function writeRenderFramePlanFromSnapshot(
   input: WriteRenderFrameFromSnapshotInput,
 ): PlanRenderFrameFromSnapshotResult {
   const apply = input.renderWorld.applySnapshot(input.snapshot);
-  const bindingPlan = planInjectedRenderFrameSnapshotResourceBindings({
-    snapshot: input.snapshot,
-    resolveMeshResourceKey: input.resolveMeshResourceKey,
-    resolveMaterialResourceKey: input.resolveMaterialResourceKey,
-  });
+  const bindingPlan = writeInjectedRenderFrameSnapshotResourceBindings(
+    {
+      snapshot: input.snapshot,
+      resolveMeshResourceKey: input.resolveMeshResourceKey,
+      resolveMaterialResourceKey: input.resolveMaterialResourceKey,
+    },
+    input.scratch.bindingScratch,
+  );
   const bindingResults = bindingPlan.bindings.map((binding) =>
     input.renderWorld.updateResourceBindings(binding.renderId, binding.update),
   );

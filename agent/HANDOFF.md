@@ -2,6 +2,144 @@
 
 ## Latest Run Update
 
+Completed the stop-hook continuation sequence through the remaining ready tasks:
+
+- `task-0567` — audited post-proof-point resource reuse and shader metadata
+  boundaries.
+- `task-0568` — moved the app facade onto reusable frame scratch for packing
+  and planning where scratch APIs already existed.
+- `task-0569` — added scratch-backed snapshot resource binding planning.
+- `task-0570` — added the renderer-independent MatcapMaterial source asset
+  contract and validation.
+- `task-0571` — added JSON-safe app resource reuse diagnostics.
+- `task-0572` — added renderer-independent material asset dependency readiness
+  reports.
+- `task-0573` — audited the new diagnostics and material-source boundaries.
+
+What changed:
+
+- Added `docs/research/POST_PROOF_POINT_BOUNDARY_AUDIT_2026_05_16.md` and
+  corrected stale README text for the current early engine foundation and lit
+  StandardMaterial spinning cube.
+- `createWebGpuApp` now owns a reusable app-frame scratch object for packed
+  view uniforms, packed transforms, render-world package planning, draw command
+  descriptors, draw-list planning, render-pass resource resolution, and
+  render-pass command planning.
+- Added a scratch-backed writer for injected snapshot resource bindings. The
+  existing convenience planner remains for tests and one-shot diagnostics.
+- Added `MatcapMaterialAsset`, `createMatcapMaterialAsset()`, validation,
+  pipeline-feature participation, and `assets.materials.matcap`. This is source
+  asset data only; no Matcap WebGPU shader/pipeline/bind-group path was added.
+- `WebGpuAppRenderReport.resourceReuse` now reports JSON-safe counts for
+  pipeline hits/misses, mesh/material buffer creation and reuse, bind group
+  creation and reuse, light buffer creation and reuse, and dynamic buffer
+  writes. The spinning cube status includes this report.
+- Added renderer-independent material asset dependency readiness reports for
+  texture/sampler slots. They accept a material handle plus `AssetRegistry`,
+  distinguish missing/registered/loading/failed/ready dependencies, and omit
+  WebGPU resources.
+- Refilled the backlog with the next audit and follow-up diagnostics/material
+  tasks.
+- Added `docs/research/POST_CLEANUP_DIAGNOSTICS_AUDIT_2026_05_16.md`; no
+  additional architecture fixes were needed after the type-name collision fix
+  caught by validation.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts`
+- `pnpm exec vitest run test/webgpu/render-frame-snapshot-binding-planner.test.ts test/webgpu/webgpu-app.test.ts`
+- `pnpm exec vitest run test/webgpu/render-frame-plan.test.ts test/webgpu/render-frame-runner.test.ts test/webgpu/render-frame-runner-diagnostics.test.ts`
+- `pnpm exec vitest run test/materials/materials.test.ts test/assets/typed-collections.test.ts`
+- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts test/webgpu/render-frame-snapshot-binding-planner.test.ts test/materials/materials.test.ts test/assets/typed-collections.test.ts`
+- `pnpm exec vitest run test/materials/material-dependency-readiness.test.ts test/materials/materials.test.ts test/assets/typed-collections.test.ts`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm run check` passed: 155 test files / 725 tests.
+- `pnpm exec playwright test test/e2e/spinning-cube.spec.ts` passed after the
+  app status/reuse-report change.
+- `pnpm run test:e2e` passed: 139 Playwright tests.
+
+Reference files/patterns inspected:
+
+- Bevy render schedules and phase queue/sort:
+  - `references/bevy/crates/bevy_render/src/lib.rs`
+  - `references/bevy/crates/bevy_render/src/render_phase/mod.rs`
+  - `references/bevy/crates/bevy_pbr/src/material.rs`
+- Bevy render asset preparation/cache:
+  - `references/bevy/crates/bevy_render/src/render_asset.rs`
+  - `references/bevy/crates/bevy_pbr/src/medium.rs`
+- Three.js light uniform/shader update patterns:
+  - `references/three.js/src/renderers/shaders/UniformsLib.js`
+  - `references/three.js/src/renderers/WebGLRenderer.js`
+  - `references/three.js/src/renderers/webgl/WebGLProgram.js`
+- PlayCanvas/engine light/layer/render organization search under
+  `references/engine/src`.
+- Project docs:
+  - `docs/NORTH_STAR.md`
+  - `docs/ARCHITECTURE.md`
+  - `docs/DECISIONS.md`
+  - `docs/MEDIUM_LONG_TERM_GOALS.md`
+- `docs/research/FRAME_HOT_PATH_ALLOCATION_AUDIT.md`
+
+Recommended next task:
+
+- `task-0574 — Surface material asset dependency readiness in app render failures`.
+
+Known issues:
+
+- `createWebGpuApp.render()` still has a narrow single-resource-set app facade
+  path. It binds resources derived from the first draw and should now diagnose
+  unsupported additional draw resource sets before a broader render-world cache
+  is implemented.
+- The app resource cache is intentionally narrow: it caches the current unlit or
+  standard frame resource set per app path, not a multi-asset render-world cache.
+- Texture/sampler GPU resource reuse counts are not active yet because the app
+  facade textured-resource reuse path is still limited.
+- StandardMaterial remains an MVP: texture sampling, normal maps, IBL, and
+  shadows are still deferred.
+- MatcapMaterial is source asset data only; no active Matcap rendering exists.
+
+Files touched in this update:
+
+- `agent/BACKLOG.md`
+- `agent/COMPLETED.md`
+- `agent/HANDOFF.md`
+- `agent/STATUS.json`
+- `docs/ARCHITECTURE.md`
+- `docs/LIGHT_SHADER_WGSL_CONTRACT.md`
+- `docs/research/POST_CLEANUP_DIAGNOSTICS_AUDIT_2026_05_16.md`
+- `docs/research/POST_PROOF_POINT_BOUNDARY_AUDIT_2026_05_16.md`
+- `examples/spinning-cube.js`
+- `packages/render/src/assets/collections.ts`
+- `packages/render/src/materials/bindings.ts`
+- `packages/render/src/materials/dependency-readiness.ts`
+- `packages/render/src/materials/factories.ts`
+- `packages/render/src/materials/index.ts`
+- `packages/render/src/materials/types.ts`
+- `packages/render/src/rendering/index.ts`
+- `packages/render/src/rendering/render-frame-phases.ts`
+- `packages/render/src/rendering/render-queue.ts`
+- `packages/render/src/rendering/view-pack.ts`
+- `packages/webgpu/src/webgpu/app.ts`
+- `packages/webgpu/src/webgpu/light-shader-metadata.ts`
+- `packages/webgpu/src/webgpu/render-frame-plan.ts`
+- `packages/webgpu/src/webgpu/renderer-frame-summary.ts`
+- `packages/webgpu/src/webgpu/unlit-shader.ts`
+- `packages/webgpu/src/webgpu/view-uniform-buffer.ts`
+- `README.md`
+- `test/assets/typed-collections.test.ts`
+- `test/e2e/spinning-cube.spec.ts`
+- `test/materials/material-dependency-readiness.test.ts`
+- `test/materials/materials.test.ts`
+- `test/rendering/render-frame-phases.test.ts`
+- `test/rendering/view-pack.test.ts`
+- `test/webgpu/light-shader-metadata.test.ts`
+- `test/webgpu/render-frame-snapshot-binding-planner.test.ts`
+- `test/webgpu/unlit-shader.test.ts`
+- `test/webgpu/view-uniform-buffer.test.ts`
+- `test/webgpu/webgpu-app.test.ts`
+
+## Previous Run Update
+
 Completed the lit StandardMaterial proof-point sequence and the first resource
 inspection follow-up:
 

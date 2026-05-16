@@ -1,4 +1,5 @@
 import type { WebGpuShaderModuleDescriptor } from "./shader.js";
+import { LIGHT_SHADER_BINDING_METADATA } from "./light-shader-metadata.js";
 
 export type BuiltInShaderBindingResource =
   | "uniform-buffer"
@@ -193,6 +194,23 @@ export const UNLIT_TEXTURED_MESH_SHADER: BuiltInShaderSourceModule = {
     },
   ],
 };
+
+export const UNLIT_MESH_WITH_LIGHT_BINDINGS_SHADER: BuiltInShaderSourceModule =
+  {
+    label: "aperture/unlit-mesh-light-bindings-metadata",
+    code: UNLIT_MESH_WGSL,
+    entryPoints: UNLIT_MESH_SHADER.entryPoints,
+    bindings: [
+      ...UNLIT_MESH_SHADER.bindings,
+      ...LIGHT_SHADER_BINDING_METADATA.bindings.map((binding) => ({
+        id: binding.id,
+        label: binding.label,
+        group: binding.group,
+        binding: binding.binding,
+        resource: binding.resource,
+      })),
+    ],
+  };
 
 export function createUnlitMeshShaderModuleDescriptor(
   shader: BuiltInShaderSourceModule = UNLIT_MESH_SHADER,

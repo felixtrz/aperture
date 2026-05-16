@@ -15,6 +15,260 @@ Summary:
 - Validation run.
 - Follow-up tasks added.
 
+## task-0573 — Audit post-cleanup diagnostics and material-source boundaries
+
+Completed: 2026-05-16
+
+Summary:
+
+- Audited app scratch/cache/reuse diagnostics, MatcapMaterial source contracts,
+  and material dependency readiness reports after the post-proof-point cleanup
+  sequence.
+- Verified WebGPU-owned resource caches remain derived renderer state, render
+  material readiness remains source-asset diagnostics, and MatcapMaterial does
+  not imply active shader support.
+- Recorded findings in
+  `docs/research/POST_CLEANUP_DIAGNOSTICS_AUDIT_2026_05_16.md`.
+- Important files:
+  `docs/research/POST_CLEANUP_DIAGNOSTICS_AUDIT_2026_05_16.md`,
+  `agent/BACKLOG.md`, `agent/COMPLETED.md`, `agent/HANDOFF.md`.
+- Validation run: `pnpm run check` and `pnpm run test:e2e` passed.
+
+## task-0567 — Audit post-proof-point resource reuse and shader metadata boundaries
+
+Completed: 2026-05-16
+
+Summary:
+
+- Audited package boundaries, app resource cache ownership, render-frame phase
+  boundaries, scratch-backed view packing, and light shader JSON/raw-handle
+  boundaries after the proof-point follow-ups.
+- Recorded findings in
+  `docs/research/POST_PROOF_POINT_BOUNDARY_AUDIT_2026_05_16.md`.
+- Corrected stale README text that still described the project as
+  identity-only and the spinning cube as textured unlit.
+- Important files:
+  `docs/research/POST_PROOF_POINT_BOUNDARY_AUDIT_2026_05_16.md`,
+  `README.md`, `agent/BACKLOG.md`, `agent/COMPLETED.md`,
+  `agent/HANDOFF.md`.
+- Validation run: `pnpm run check`; preceding spinning-cube Playwright route
+  passed.
+
+## task-0568 — Add WebGPU app frame scratch object for packing and planning
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added a reusable app-frame scratch object owned by `createWebGpuApp`.
+- The app facade now uses scratch-backed view-uniform packing, transform
+  packing, render-world package planning, draw command descriptors, draw-list
+  planning, render-pass resource resolution, and render-pass command planning.
+- Existing public `app.render()` and `app.stepAndRender()` APIs are unchanged.
+- Important files: `packages/webgpu/src/webgpu/app.ts`,
+  `test/webgpu/webgpu-app.test.ts`.
+- Validation run: focused app tests, test typecheck, `pnpm run check`, and the
+  spinning-cube Playwright route passed.
+
+## task-0569 — Add scratch-backed app resource binding planner
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added `createInjectedRenderFrameSnapshotResourceBindingPlanScratch()` and
+  `writeInjectedRenderFrameSnapshotResourceBindings()`.
+- Render-frame planning now uses the writer, reusing duplicate-id tracking,
+  binding records, update records, diagnostics, and the plan shell.
+- Kept the allocation-friendly planner for tests and one-shot diagnostics.
+- Important files:
+  `packages/webgpu/src/webgpu/renderer-frame-summary.ts`,
+  `packages/webgpu/src/webgpu/render-frame-plan.ts`,
+  `test/webgpu/render-frame-snapshot-binding-planner.test.ts`.
+- Validation run: focused planner/app/frame-plan tests, test typecheck,
+  `pnpm run check`, and the spinning-cube Playwright route passed.
+
+## task-0570 — Add MatcapMaterial source asset contract and validation
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added renderer-independent `MatcapMaterialAsset` with label, base color
+  factor, required matcap texture/sampler binding, unsupported-feature list,
+  and render state.
+- Added `createMatcapMaterialAsset()`, material validation coverage, pipeline
+  feature participation, and `assets.materials.matcap`.
+- No WebGPU shader, pipeline, bind group, or active rendering path was added.
+- Important files: `packages/render/src/materials/*`,
+  `packages/render/src/assets/collections.ts`,
+  `test/materials/materials.test.ts`,
+  `test/assets/typed-collections.test.ts`.
+- Validation run: focused material/collection tests, test typecheck,
+  `pnpm run check`, and the spinning-cube Playwright route passed.
+
+## task-0571 — Add app-facade resource reuse diagnostics
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added JSON-safe `WebGpuAppResourceReuseReport` counters to
+  `WebGpuAppRenderReport`.
+- Reports now count pipeline hits/misses, mesh/material buffer creation and
+  reuse, bind group creation and reuse, light buffer creation and reuse, and
+  dynamic buffer writes.
+- The spinning cube example status includes the reuse report, and the E2E test
+  verifies it remains JSON-safe.
+- Important files: `packages/webgpu/src/webgpu/app.ts`,
+  `examples/spinning-cube.js`, `test/webgpu/webgpu-app.test.ts`,
+  `test/e2e/spinning-cube.spec.ts`.
+- Validation run: focused app tests, test typecheck, `pnpm run check`, and the
+  spinning-cube Playwright route passed.
+
+## task-0572 — Add material dependency readiness report for app rendering
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added a renderer-independent source-asset dependency readiness report for
+  material texture/sampler slots.
+- The report accepts a material handle plus `AssetRegistry`, distinguishes
+  missing, registered, loading, failed, and ready dependencies, and omits
+  WebGPU resources.
+- Covered unlit, standard, and matcap material dependency states in tests.
+- Important files:
+  `packages/render/src/materials/dependency-readiness.ts`,
+  `packages/render/src/materials/index.ts`,
+  `test/materials/material-dependency-readiness.test.ts`,
+  `test/materials/materials.test.ts`.
+- Validation run: focused material readiness tests and `pnpm run check` passed.
+
+## task-0566 — Reuse WebGPU app prepared resources across frames
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added a private `createWebGpuApp` resource cache that reuses unlit/standard
+  pipelines, bind group layouts, mesh buffers, material buffers, bind groups,
+  and standard light bind groups on unchanged frames.
+- Dynamic view, world-transform, and light buffers are refreshed with
+  `queue.writeBuffer` while preserving renderer-owned GPU resources.
+- Important files: `packages/webgpu/src/webgpu/app.ts`,
+  `test/webgpu/webgpu-app.test.ts`.
+- Validation run: focused WebGPU app tests, `pnpm run check`, and the spinning
+  cube Playwright route passed.
+- Follow-up tasks added: `task-0567`, `task-0568`, `task-0569`,
+  `task-0570`, `task-0571`.
+
+## task-0542 — Split render frame planning into extract, prepare, queue, sort phases
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added render-frame phase descriptors for extract, asset-change collection,
+  prepare, queue, sort, and submit.
+- Split queue record writing so callers can write unsorted queue records and
+  run an explicit sort phase while preserving existing sorted convenience
+  behavior.
+- Important files: `packages/render/src/rendering/render-frame-phases.ts`,
+  `packages/render/src/rendering/render-queue.ts`,
+  `test/rendering/render-frame-phases.test.ts`.
+- Validation run: focused render queue/phase tests and `pnpm run check` passed.
+
+## task-0557 — Add view-uniform pack scratch writer
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added `PackedSnapshotViewUniformsScratch` and
+  `writePackedSnapshotViewUniforms` to reuse duplicate-view tracking, view
+  records, diagnostics, result shell, and typed backing storage.
+- Kept `packSnapshotViewUniforms` as the allocation-friendly convenience helper.
+- Updated WebGPU view-uniform buffer descriptors to respect scratch-backed
+  logical `floatCount`.
+- Important files: `packages/render/src/rendering/view-pack.ts`,
+  `packages/webgpu/src/webgpu/view-uniform-buffer.ts`,
+  `test/rendering/view-pack.test.ts`,
+  `test/webgpu/view-uniform-buffer.test.ts`.
+- Validation run: focused view-pack/view-uniform tests and `pnpm run check`
+  passed.
+
+## task-0534 — Add light shader WGSL data contract
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added `LIGHT_SHADER_WGSL_DECLARATION` and
+  `createLightShaderWgslDeclarationContract()` for packed light float/metadata
+  storage bindings.
+- The declaration records group/binding numbers, read-only storage access,
+  packing strides, and field order.
+- Important files: `packages/webgpu/src/webgpu/light-shader-metadata.ts`,
+  `test/webgpu/light-shader-metadata.test.ts`.
+- Validation run: focused light/standard shader tests and `pnpm run check`
+  passed.
+
+## task-0535 — Add light shader declaration JSON helper
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added JSON-safe serialization helpers for the light shader WGSL declaration
+  contract.
+- The helper serializes metadata, declaration text, and strides without shader
+  modules, pipelines, buffers, or bind groups.
+- Important files: `packages/webgpu/src/webgpu/light-shader-metadata.ts`,
+  `test/webgpu/light-shader-metadata.test.ts`.
+- Validation run: focused light shader metadata tests and `pnpm run check`
+  passed.
+
+## task-0536 — Add unlit shader metadata variant with light bindings
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added `UNLIT_MESH_WITH_LIGHT_BINDINGS_SHADER` as a metadata-only unlit
+  variant that preserves unlit WGSL source while recording group-3 light buffer
+  bindings.
+- Important files: `packages/webgpu/src/webgpu/unlit-shader.ts`,
+  `test/webgpu/unlit-shader.test.ts`.
+- Validation run: focused unlit/light shader metadata tests and `pnpm run check`
+  passed.
+
+## task-0537 — Document light shader WGSL contract boundary
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added `docs/LIGHT_SHADER_WGSL_CONTRACT.md` and linked it from architecture.
+- Documented that the declaration and JSON helpers are inspection metadata, do
+  not expose raw GPU handles, and do not activate new lighting paths.
+- Important files: `docs/LIGHT_SHADER_WGSL_CONTRACT.md`,
+  `docs/ARCHITECTURE.md`.
+- Validation run: `pnpm run check` passed.
+
+## task-0538 — Run consolidated light shader contract validation
+
+Completed: 2026-05-16
+
+Summary:
+
+- Ran the consolidated validation after the light shader contract and metadata
+  variant slices.
+- Fixed a browser-only `GPUQueue.writeBuffer` invocation issue found by the
+  spinning cube Playwright route.
+- Validation run: `pnpm run check` passed; `pnpm exec playwright test
+test/e2e/spinning-cube.spec.ts` passed.
+
 ## task-0540 — Add typed asset collection API over AssetRegistry
 
 Completed: 2026-05-16

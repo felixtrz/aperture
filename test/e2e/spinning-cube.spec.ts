@@ -40,6 +40,19 @@ interface SpinningCubeStatus extends ExampleStatusBase {
     readonly materials: number;
     readonly bindGroups: number;
     readonly lightBindGroup: number;
+    readonly reuse?: {
+      readonly pipelineHits: number;
+      readonly pipelineMisses: number;
+      readonly meshBuffersCreated: number;
+      readonly meshBuffersReused: number;
+      readonly materialBuffersCreated: number;
+      readonly materialBuffersReused: number;
+      readonly bindGroupsCreated: number;
+      readonly bindGroupsReused: number;
+      readonly lightBuffersCreated: number;
+      readonly lightBuffersReused: number;
+      readonly dynamicBufferWrites: number;
+    };
   };
   readonly renderWorld?: {
     readonly active: number;
@@ -113,6 +126,7 @@ test("Playwright shows an ECS-driven spinning lit standard cube", async ({
     command: { drawCount: 1, indexedDrawCount: 1 },
     submission: { commandBuffers: 1, drawCalls: 1, indexedDrawCalls: 1 },
   });
+  expect(initialStatus.resources?.reuse).toBeDefined();
 
   const firstAnimatedStatus = await waitForAnimationFrame(page, 3);
   const firstFrame = firstAnimatedStatus.animation?.frames ?? 0;
@@ -154,6 +168,14 @@ test("Playwright shows an ECS-driven spinning lit standard cube", async ({
   ).toBeGreaterThanOrEqual(firstFrame + 12);
   expect(
     laterStatus.command?.indexedDrawCount ?? 0,
+    JSON.stringify(laterStatus, null, 2),
+  ).toBe(1);
+  expect(
+    laterStatus.resources?.reuse?.pipelineHits ?? 0,
+    JSON.stringify(laterStatus, null, 2),
+  ).toBe(1);
+  expect(
+    laterStatus.resources?.reuse?.lightBuffersReused ?? 0,
     JSON.stringify(laterStatus, null, 2),
   ).toBe(1);
   expectNonBlankCubePixel(laterScreenshot, laterStatus);

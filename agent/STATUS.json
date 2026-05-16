@@ -1,10 +1,10 @@
 {
   "state": "idle",
   "currentTaskId": null,
-  "lastRunStartedAt": "2026-05-16T19:02:10Z",
+  "lastRunStartedAt": "2026-05-16T20:24:06Z",
   "lastResult": "success",
   "lastCommit": "0b6a5ef",
   "activePid": null,
-  "notes": "Completed task-0561 through task-0565. Next recommended task is task-0566 app facade prepared resource reuse.",
-  "lastRunFinishedAt": "2026-05-16T19:37:23Z"
+  "notes": "Completed tasks 0567 through 0573 after stop-hook continuation. Next recommended task is task-0574.",
+  "lastRunFinishedAt": "2026-05-16T20:40:13Z"
 }

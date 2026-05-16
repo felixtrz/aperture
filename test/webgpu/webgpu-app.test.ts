@@ -62,9 +62,50 @@ describe("WebGPU app facade", () => {
       drawCalls: 1,
       diagnostics: 0,
     });
+    expect(frame.resourceReuse).toMatchObject({
+      pipelineHits: 0,
+      pipelineMisses: 1,
+      meshBuffersCreated: 1,
+      materialBuffersCreated: 1,
+      bindGroupsCreated: 3,
+      dynamicBufferWrites: 0,
+    });
     expect(events).toContain("context:configure:bgra8unorm");
     expect(events).toContain("queue:submit:1");
     expect(events.some((event) => event.startsWith("pass:draw"))).toBe(true);
+
+    const firstResourceEvents = resourceEventCounts(events);
+    const firstEventCount = events.length;
+    const secondFrame = await app.stepAndRender(1 / 60, 2, 12);
+    const secondEvents = events.slice(firstEventCount);
+    const firstResources = frame.resources?.resources;
+    const secondResources = secondFrame.resources?.resources;
+
+    expect(secondFrame.ok).toBe(true);
+    expect(secondFrame.counts.drawCalls).toBe(1);
+    expect(secondFrame.resourceReuse).toMatchObject({
+      pipelineHits: 1,
+      pipelineMisses: 0,
+      meshBuffersReused: 1,
+      materialBuffersReused: 1,
+      bindGroupsReused: 3,
+      dynamicBufferWrites: 2,
+    });
+    expect(secondResources?.mesh).toBe(firstResources?.mesh);
+    expect(secondResources?.material).toBe(firstResources?.material);
+    expect(secondResources?.viewUniform.buffer).toBe(
+      firstResources?.viewUniform.buffer,
+    );
+    expect(secondResources?.worldTransforms.buffer).toBe(
+      firstResources?.worldTransforms.buffer,
+    );
+    expect(secondResources?.bindGroups).toBe(firstResources?.bindGroups);
+    expect(secondEvents).toContain("queue:submit:1");
+    expect(secondEvents.some((event) => event.startsWith("pass:draw"))).toBe(
+      true,
+    );
+    expect(secondEvents).toContain("queue:writeBuffer:WorldTransforms/storage");
+    expect(resourceEventCounts(events)).toEqual(firstResourceEvents);
   });
 
   it("renders the standard material app path with extracted lights", async () => {
@@ -137,16 +178,81 @@ describe("WebGPU app facade", () => {
       drawCalls: 1,
       diagnostics: 0,
     });
+    expect(frame.resourceReuse).toMatchObject({
+      pipelineHits: 0,
+      pipelineMisses: 1,
+      meshBuffersCreated: 1,
+      materialBuffersCreated: 1,
+      bindGroupsCreated: 4,
+      lightBuffersCreated: 1,
+      dynamicBufferWrites: 0,
+    });
     expect(events).toContain("pass:bind:3");
     expect(events).toContain("queue:submit:1");
+
+    const firstResourceEvents = resourceEventCounts(events);
+    const firstEventCount = events.length;
+    const secondFrame = await app.stepAndRender(1 / 60, 2, 13);
+    const secondEvents = events.slice(firstEventCount);
+    const firstResources = frame.resources?.resources;
+    const secondResources = secondFrame.resources?.resources;
+
+    expect(secondFrame.ok).toBe(true);
+    expect(secondFrame.counts.drawCalls).toBe(1);
+    expect(secondFrame.resourceReuse).toMatchObject({
+      pipelineHits: 1,
+      pipelineMisses: 0,
+      meshBuffersReused: 1,
+      materialBuffersReused: 1,
+      bindGroupsReused: 4,
+      lightBuffersReused: 1,
+      dynamicBufferWrites: 4,
+    });
+    expect(secondResources?.mesh).toBe(firstResources?.mesh);
+    expect(secondResources?.material).toBe(firstResources?.material);
+    expect(secondResources?.viewUniform.buffer).toBe(
+      firstResources?.viewUniform.buffer,
+    );
+    expect(secondResources?.worldTransforms.buffer).toBe(
+      firstResources?.worldTransforms.buffer,
+    );
+    expect(secondResources?.bindGroups).toBe(firstResources?.bindGroups);
+
+    if (
+      firstResources !== undefined &&
+      firstResources !== null &&
+      secondResources !== undefined &&
+      secondResources !== null &&
+      "lightBindGroup" in firstResources &&
+      "lightBindGroup" in secondResources
+    ) {
+      expect(secondResources.materialBindGroup).toBe(
+        firstResources.materialBindGroup,
+      );
+      expect(secondResources.lightBindGroup).toBe(
+        firstResources.lightBindGroup,
+      );
+      expect(secondResources.lightGpuBuffers.resource).toBe(
+        firstResources.lightGpuBuffers.resource,
+      );
+    } else {
+      expect.unreachable("Expected standard frame resources.");
+    }
+
+    expect(secondEvents).toContain("queue:submit:1");
+    expect(secondEvents.some((event) => event.startsWith("pass:draw"))).toBe(
+      true,
+    );
+    expect(secondEvents).toContain("queue:writeBuffer:WorldTransforms/storage");
+    expect(resourceEventCounts(events)).toEqual(firstResourceEvents);
   });
 });
 
 function webGpuHarness(events: string[]) {
   const device = {
     queue: {
-      writeBuffer: () => {
-        events.push("queue:writeBuffer");
+      writeBuffer: (buffer: unknown) => {
+        events.push(`queue:writeBuffer:${bufferLabel(buffer)}`);
       },
       submit: (buffers: readonly unknown[]) => {
         events.push(`queue:submit:${buffers.length}`);
@@ -160,19 +266,19 @@ function webGpuHarness(events: string[]) {
       events.push("device:shader");
       return { descriptor, compilationInfo: async () => ({ messages: [] }) };
     },
-    createRenderPipeline: (descriptor: unknown) => {
-      events.push("device:pipeline");
+    createRenderPipeline: (descriptor: { readonly label?: string }) => {
+      events.push(`device:pipeline:${descriptor.label ?? "unlabeled"}`);
       return {
         descriptor,
         getBindGroupLayout: (group: number) => ({ group }),
       };
     },
-    createBuffer: (descriptor: unknown) => {
-      events.push("device:buffer");
+    createBuffer: (descriptor: { readonly label?: string }) => {
+      events.push(`device:buffer:${descriptor.label ?? "unlabeled"}`);
       return { descriptor };
     },
-    createBindGroup: (descriptor: unknown) => {
-      events.push("device:bindGroup");
+    createBindGroup: (descriptor: { readonly label?: string }) => {
+      events.push(`device:bindGroup:${descriptor.label ?? "unlabeled"}`);
       return { descriptor };
     },
     createCommandEncoder: () => {
@@ -228,4 +334,23 @@ function webGpuHarness(events: string[]) {
   };
 
   return { canvas, environment };
+}
+
+function bufferLabel(buffer: unknown): string {
+  return (
+    (buffer as { readonly descriptor?: { readonly label?: string } }).descriptor
+      ?.label ?? "unlabeled"
+  );
+}
+
+function resourceEventCounts(events: readonly string[]) {
+  return {
+    pipelines: countEvents(events, "device:pipeline:"),
+    buffers: countEvents(events, "device:buffer:"),
+    bindGroups: countEvents(events, "device:bindGroup:"),
+  };
+}
+
+function countEvents(events: readonly string[], prefix: string): number {
+  return events.filter((event) => event.startsWith(prefix)).length;
 }

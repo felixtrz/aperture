@@ -191,6 +191,14 @@ export interface InjectedRenderFrameSnapshotResourceBindingPlan {
   readonly diagnostics: readonly RenderDiagnostic[];
 }
 
+export interface InjectedRenderFrameSnapshotResourceBindingPlanScratch {
+  readonly bindings: InjectedRenderFrameSnapshotResourceBinding[];
+  readonly diagnostics: RenderDiagnostic[];
+  readonly bindingPool: InjectedRenderFrameSnapshotResourceBinding[];
+  readonly seenRenderIds: Set<number>;
+  readonly plan: InjectedRenderFrameSnapshotResourceBindingPlan;
+}
+
 export interface InjectedRenderFrameSnapshotRunnerInput {
   readonly renderer: RendererAssemblySmokeReport | null;
   readonly renderWorld: RenderWorld;
@@ -725,13 +733,42 @@ export function runInjectedRenderFrameFromSnapshot(
 export function planInjectedRenderFrameSnapshotResourceBindings(
   input: InjectedRenderFrameSnapshotResourceBindingPlanInput,
 ): InjectedRenderFrameSnapshotResourceBindingPlan {
-  const diagnostics: RenderDiagnostic[] = [];
+  const scratch = createInjectedRenderFrameSnapshotResourceBindingPlanScratch();
+
+  return writeInjectedRenderFrameSnapshotResourceBindings(input, scratch);
+}
+
+export function createInjectedRenderFrameSnapshotResourceBindingPlanScratch(
+  capacity = 0,
+): InjectedRenderFrameSnapshotResourceBindingPlanScratch {
   const bindings: InjectedRenderFrameSnapshotResourceBinding[] = [];
-  const seen = new Set<number>();
+  const diagnostics: RenderDiagnostic[] = [];
+  const bindingPool: InjectedRenderFrameSnapshotResourceBinding[] = [];
+
+  for (let index = 0; index < capacity; index += 1) {
+    bindingPool.push(createEmptySnapshotResourceBinding());
+  }
+
+  return {
+    bindings,
+    diagnostics,
+    bindingPool,
+    seenRenderIds: new Set(),
+    plan: { bindings, diagnostics },
+  };
+}
+
+export function writeInjectedRenderFrameSnapshotResourceBindings(
+  input: InjectedRenderFrameSnapshotResourceBindingPlanInput,
+  scratch: InjectedRenderFrameSnapshotResourceBindingPlanScratch,
+): InjectedRenderFrameSnapshotResourceBindingPlan {
+  scratch.bindings.length = 0;
+  scratch.diagnostics.length = 0;
+  scratch.seenRenderIds.clear();
 
   for (const draw of input.snapshot.meshDraws) {
-    if (seen.has(draw.renderId)) {
-      diagnostics.push({
+    if (scratch.seenRenderIds.has(draw.renderId)) {
+      scratch.diagnostics.push({
         code: "renderFrameSnapshotBinding.duplicateRenderId",
         message: `Duplicate render id ${draw.renderId} while planning snapshot resource bindings.`,
         severity: "error",
@@ -740,13 +777,13 @@ export function planInjectedRenderFrameSnapshotResourceBindings(
       continue;
     }
 
-    seen.add(draw.renderId);
+    scratch.seenRenderIds.add(draw.renderId);
 
     const meshResourceKey = input.resolveMeshResourceKey(draw);
     const materialResourceKey = input.resolveMaterialResourceKey(draw);
 
     if (meshResourceKey == null) {
-      diagnostics.push({
+      scratch.diagnostics.push({
         code: "renderFrameSnapshotBinding.missingMeshResource",
         message: `No mesh resource binding was resolved for render id ${draw.renderId}.`,
         severity: "warning",
@@ -756,7 +793,7 @@ export function planInjectedRenderFrameSnapshotResourceBindings(
     }
 
     if (materialResourceKey == null) {
-      diagnostics.push({
+      scratch.diagnostics.push({
         code: "renderFrameSnapshotBinding.missingMaterialResource",
         message: `No material resource binding was resolved for render id ${draw.renderId}.`,
         severity: "warning",
@@ -765,18 +802,68 @@ export function planInjectedRenderFrameSnapshotResourceBindings(
       });
     }
 
-    bindings.push({
-      renderId: draw.renderId,
-      update: {
-        ...(meshResourceKey == null ? {} : { meshResourceKey }),
-        ...(materialResourceKey == null ? {} : { materialResourceKey }),
-      },
-    });
+    const binding = snapshotResourceBindingAt(scratch, scratch.bindings.length);
+
+    binding.renderId = draw.renderId;
+    const update = binding.update as MutableResourceBindingUpdate;
+
+    if (meshResourceKey == null) {
+      delete update.meshResourceKey;
+    } else {
+      update.meshResourceKey = meshResourceKey;
+    }
+
+    if (materialResourceKey == null) {
+      delete update.materialResourceKey;
+    } else {
+      update.materialResourceKey = materialResourceKey;
+    }
+
+    scratch.bindings.push(binding);
   }
 
-  bindings.sort((a, b) => a.renderId - b.renderId);
+  scratch.bindings.sort((a, b) => a.renderId - b.renderId);
 
-  return { bindings, diagnostics };
+  return scratch.plan;
+}
+
+type MutableSnapshotResourceBinding = {
+  -readonly [Key in keyof InjectedRenderFrameSnapshotResourceBinding]: InjectedRenderFrameSnapshotResourceBinding[Key];
+};
+
+type MutableResourceBindingUpdate = {
+  -readonly [Key in keyof RenderWorldResourceBindingUpdate]: RenderWorldResourceBindingUpdate[Key];
+};
+
+function snapshotResourceBindingAt(
+  scratch: InjectedRenderFrameSnapshotResourceBindingPlanScratch,
+  index: number,
+): MutableSnapshotResourceBinding & {
+  readonly update: MutableResourceBindingUpdate;
+} {
+  const existing = scratch.bindingPool[index] as
+    | (MutableSnapshotResourceBinding & {
+        readonly update: MutableResourceBindingUpdate;
+      })
+    | undefined;
+
+  if (existing !== undefined) {
+    return existing;
+  }
+
+  const binding = createEmptySnapshotResourceBinding();
+
+  scratch.bindingPool.push(binding);
+  return binding;
+}
+
+function createEmptySnapshotResourceBinding(): MutableSnapshotResourceBinding & {
+  readonly update: MutableResourceBindingUpdate;
+} {
+  return {
+    renderId: 0,
+    update: {},
+  };
 }
 
 export function injectedRenderFrameSnapshotRunnerReportToJsonValue(

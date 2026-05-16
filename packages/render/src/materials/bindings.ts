@@ -8,6 +8,13 @@ export function materialTextureBindings(
       return optionalBindings([
         ["baseColorTexture", material.baseColorTexture],
       ]);
+    case "matcap":
+      return [
+        [
+          "matcapTexture",
+          material.matcapTexture ?? { texture: null, sampler: null },
+        ],
+      ];
     case "standard":
       return optionalBindings([
         ["baseColorTexture", material.baseColorTexture],

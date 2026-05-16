@@ -16,6 +16,7 @@ import { materialTextureBindings } from "../materials/bindings.js";
 import type {
   DebugNormalMaterialAsset,
   MaterialAsset,
+  MatcapMaterialAsset,
   StandardMaterialAsset,
   UnlitMaterialAsset,
 } from "../materials/types.js";
@@ -35,6 +36,7 @@ export class MaterialAssetCollections {
   readonly #all: TypedAssetCollection<"material", MaterialAsset>;
 
   readonly unlit: TypedAssetCollection<"material", UnlitMaterialAsset>;
+  readonly matcap: TypedAssetCollection<"material", MatcapMaterialAsset>;
   readonly standard: TypedAssetCollection<"material", StandardMaterialAsset>;
   readonly debugNormal: TypedAssetCollection<
     "material",
@@ -55,6 +57,14 @@ export class MaterialAssetCollections {
       kind: "material",
       createHandle: createMaterialHandle,
       idPrefix: "unlit-material",
+      label: (asset) => asset.label,
+      dependencies: materialAssetDependencies,
+    });
+    this.matcap = new TypedAssetCollection<"material", MatcapMaterialAsset>({
+      registry,
+      kind: "material",
+      createHandle: createMaterialHandle,
+      idPrefix: "matcap-material",
       label: (asset) => asset.label,
       dependencies: materialAssetDependencies,
     });
@@ -199,6 +209,10 @@ export type MaterialAssetCollection = TypedAssetCollection<
 export type UnlitMaterialAssetCollection = TypedAssetCollection<
   "material",
   UnlitMaterialAsset
+>;
+export type MatcapMaterialAssetCollection = TypedAssetCollection<
+  "material",
+  MatcapMaterialAsset
 >;
 export type StandardMaterialAssetCollection = TypedAssetCollection<
   "material",

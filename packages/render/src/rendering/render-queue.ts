@@ -100,6 +100,18 @@ export function writeRenderQueueRecords(
   scratch: RenderQueueScratch,
   options?: PlanRenderQueueOptions,
 ): RenderQueuePlan {
+  writeUnsortedRenderQueueRecords(readiness, transforms, scratch, options);
+  sortRenderQueueRecords(scratch.records);
+
+  return scratch.plan;
+}
+
+export function writeUnsortedRenderQueueRecords(
+  readiness: RenderWorldDrawReadinessReport,
+  transforms: PackedSnapshotTransforms,
+  scratch: RenderQueueScratch,
+  options?: PlanRenderQueueOptions,
+): RenderQueuePlan {
   const viewId = options?.scope?.viewId ?? DEFAULT_RENDER_QUEUE_VIEW_ID;
   const passId = options?.scope?.passId ?? DEFAULT_RENDER_QUEUE_PASS_ID;
   const queueKind = options?.scope?.queueKind ?? "opaque";
@@ -154,9 +166,14 @@ export function writeRenderQueueRecords(
     scratch.records.push(record);
   }
 
-  scratch.records.sort((a, b) => compareRenderSortKeys(a.sortKey, b.sortKey));
-
   return scratch.plan;
+}
+
+export function sortRenderQueueRecords(
+  records: RenderQueueRecord[],
+): RenderQueueRecord[] {
+  records.sort((a, b) => compareRenderSortKeys(a.sortKey, b.sortKey));
+  return records;
 }
 
 function findPackedTransformOffset(

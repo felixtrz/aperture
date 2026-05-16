@@ -14,7 +14,10 @@ ECS World
 -> GPU Submission
 ```
 
-This repository is currently in its foundation phase. The public entrypoint only exposes minimal project identity metadata; ECS and renderer implementation work starts in later backlog tasks.
+This repository is currently an early engine foundation with working ECS
+authoring, render extraction, WebGPU submission, and browser examples. The
+public headless entrypoint is `@aperture-engine/core`; GPU presentation is
+available explicitly through `@aperture-engine/webgpu`.
 
 ## Development
 
@@ -61,10 +64,10 @@ entities through the same snapshot, render-world binding, and WebGPU unlit draw
 path with distinct transforms and materials.
 
 The ECS spinning cube example is available at
-`http://127.0.0.1:4173/examples/spinning-cube.html`. It renders a textured
-unlit box mesh and updates the authoritative ECS transform every animation
-frame before writing the derived snapshot transform into the renderer-owned
-WebGPU buffer.
+`http://127.0.0.1:4173/examples/spinning-cube.html`. It renders a lit
+`StandardMaterial` box mesh through `createWebGpuApp`, extracts ambient and
+directional lights from ECS, and updates the authoritative ECS transform every
+animation frame before WebGPU consumes the derived render snapshot.
 
 Run browser verification:
 

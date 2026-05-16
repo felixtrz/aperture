@@ -1,9 +1,11 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  createInjectedRenderFrameSnapshotResourceBindingPlanScratch,
   createMaterialHandle,
   createMeshHandle,
   planInjectedRenderFrameSnapshotResourceBindings,
+  writeInjectedRenderFrameSnapshotResourceBindings,
   type BatchCompatibilityKey,
   type MeshDrawPacket,
   type RenderSnapshot,
@@ -118,6 +120,64 @@ describe("snapshot render frame resource binding planner", () => {
       },
     });
   });
+
+  it("reuses scratch result, binding records, update records, and duplicate-id tracking", () => {
+    const scratch =
+      createInjectedRenderFrameSnapshotResourceBindingPlanScratch(2);
+    const first = writePlan(snapshot([packet(9), packet(7)]), scratch);
+    const firstBindings = [...first.bindings];
+    const firstUpdates = firstBindings.map((binding) => binding.update);
+    const firstSeen = scratch.seenRenderIds;
+    const second = writePlan(snapshot([packet(7), packet(9)]), scratch);
+
+    expect(second).toBe(first);
+    expect(scratch.seenRenderIds).toBe(firstSeen);
+    expect(new Set(second.bindings)).toEqual(new Set(firstBindings));
+    expect(new Set(second.bindings.map((binding) => binding.update))).toEqual(
+      new Set(firstUpdates),
+    );
+    expect(second.diagnostics).toBe(first.diagnostics);
+    expect(second.bindings).toEqual([
+      {
+        renderId: 7,
+        update: {
+          meshResourceKey: "mesh:triangle-7",
+          materialResourceKey: "material:red-7",
+        },
+      },
+      {
+        renderId: 9,
+        update: {
+          meshResourceKey: "mesh:triangle-9",
+          materialResourceKey: "material:red-9",
+        },
+      },
+    ]);
+  });
+
+  it("clears stale optional resource keys when reusing scratch binding records", () => {
+    const scratch =
+      createInjectedRenderFrameSnapshotResourceBindingPlanScratch(1);
+
+    writePlan(snapshot([packet(9)]), scratch);
+    const missingMesh = writeInjectedRenderFrameSnapshotResourceBindings(
+      {
+        snapshot: snapshot([packet(9)]),
+        resolveMeshResourceKey: () => null,
+        resolveMaterialResourceKey: (draw) => `material:${draw.material.id}`,
+      },
+      scratch,
+    );
+
+    expect(missingMesh.bindings).toEqual([
+      {
+        renderId: 9,
+        update: {
+          materialResourceKey: "material:red-9",
+        },
+      },
+    ]);
+  });
 });
 
 function plan(snapshotValue: RenderSnapshot, missing?: MissingResource) {
@@ -130,6 +190,22 @@ function plan(snapshotValue: RenderSnapshot, missing?: MissingResource) {
         ? null
         : `material:${draw.material.id}`,
   });
+}
+
+function writePlan(
+  snapshotValue: RenderSnapshot,
+  scratch: ReturnType<
+    typeof createInjectedRenderFrameSnapshotResourceBindingPlanScratch
+  >,
+) {
+  return writeInjectedRenderFrameSnapshotResourceBindings(
+    {
+      snapshot: snapshotValue,
+      resolveMeshResourceKey: (draw) => `mesh:${draw.mesh.id}`,
+      resolveMaterialResourceKey: (draw) => `material:${draw.material.id}`,
+    },
+    scratch,
+  );
 }
 
 function packet(renderId: number): MeshDrawPacket {

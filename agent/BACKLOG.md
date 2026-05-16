@@ -59,12 +59,11 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start with `task-0560`. The next automation runs should prioritize the
-user-facing lit spinning cube proof point over general render-pipeline cleanup.
-
-`task-0557` and the metadata-only light shader tasks remain useful, but they are
-not the critical path unless an implementation task proves they are blocking the
-proof point.
+Start with `task-0574`. The lit StandardMaterial proof point, resource reuse,
+scratch-backed app frame planning, MatcapMaterial source contract, app reuse
+diagnostics, material asset dependency readiness report, and follow-up boundary
+audit are complete. The next run should surface material dependency readiness
+through app render failures.
 
 ## Near-Term Proof Point Track
 
@@ -81,12 +80,14 @@ Target proof point:
 
 Remaining automation priority order:
 
-1. `task-0566` — reuse WebGPU app prepared resources across frames.
-2. `task-0542` — split render frame planning into extract, prepare, queue,
-   sort phases.
-3. `task-0557` — add view-uniform pack scratch writer.
-4. `task-0534` — add light shader WGSL data contract.
-5. `task-0535` — add light shader declaration JSON helper.
+1. `task-0574` — surface material asset dependency readiness in app render
+   failures.
+2. `task-0575` — add MatcapMaterial render-preparation metadata plan.
+3. `task-0576` — diagnose the app facade's current single-draw resource
+   limitation.
+4. `task-0577` — add texture/sampler resource reuse diagnostics for app
+   reports.
+5. `task-0578` — add material readiness report JSON serialization helper.
 
 Defer allocation-only cleanup and metadata-only shader-contract tasks unless
 they are a direct blocker for this track.
@@ -97,178 +98,108 @@ they are a direct blocker for this track.
 
 ### Audit / Refactor
 
-### task-0566 — Reuse WebGPU app prepared resources across frames
+### Runtime / Diagnostics
+
+### task-0574 — Surface material asset dependency readiness in app render failures
 
 Category: `runtime-orchestration`
-Package/write-scope: `packages/webgpu/src/webgpu/app.ts`, standard/unlit frame
-resource helpers, targeted WebGPU app tests.
-Reference anchor: `docs/ARCHITECTURE.md` frame hot path allocation discipline,
-Bevy render asset preparation/cache patterns in
-`/Users/felixz/Projects/aperture/references/bevy`, and the local app facade
-tests.
+Package/write-scope: `packages/webgpu/src/webgpu/app.ts` and targeted app
+tests, no new WebGPU resource types.
+Reference anchor: `docs/ARCHITECTURE.md` diagnostics requirements and Bevy
+material dependency readiness patterns.
 
-Turn the lit proof-point app facade from a setup-oriented renderer into a
-steady-state frame loop that reuses prepared renderer-owned resources where the
-source asset handles and pipeline layouts have not changed.
+Use the renderer-independent material asset dependency readiness report when
+the app facade fails or blocks on texture/sampler source dependencies.
 
 Acceptance criteria:
 
-- `createWebGpuApp.render()` does not recreate the render pipeline, mesh GPU
-  buffers, material buffers, bind groups, or light bind group on every
-  successful unchanged frame.
-- The world-transform buffer is updated for animation without replacing all
-  prepared resources.
-- Tests prove the second lit cube frame submits a draw while avoiding duplicate
-  pipeline/material/mesh preparation events.
-- Existing unlit `createWebGpuApp` behavior remains covered and compatible.
-- Any remaining per-frame allocation convenience paths are documented as
-  examples-only or have a follow-up backlog item.
+- `WebGpuAppRenderReport` can include JSON-safe material dependency readiness
+  when a material references missing/loading/failed texture or sampler handles.
+- Missing dependency diagnostics identify the material field and dependency
+  handle key.
+- Existing successful untextured unlit and standard app paths stay unchanged.
+- No raw WebGPU handles are included in dependency readiness JSON.
 
-### Deferred Supporting Render Cleanup
-
-Only select these before the proof-point track if an active implementation task
-shows they are a direct blocker.
-
-### task-0542 — Split render frame planning into extract, prepare, queue, sort phases
+### task-0575 — Add MatcapMaterial render-preparation metadata plan
 
 Category: `render-bridge`
-Package/write-scope: `packages/render/src`, `packages/webgpu/src/webgpu` only if
-needed for naming adapters, targeted render/WebGPU tests.
-Reference anchor: Bevy render schedules and phase queue/sort concepts in
-`/Users/felixz/Projects/aperture/references/bevy`.
+Package/write-scope: `packages/render/src/materials` or
+`packages/render/src/assets`, tests only; no WebGPU shader activation.
+Reference anchor: Bevy material prepare contracts and
+`docs/MEDIUM_LONG_TERM_GOALS.md`.
 
-Make the current render-frame planning vocabulary match the Bevy-inspired stage
-model without rewriting the renderer.
+Add renderer-independent preparation metadata for MatcapMaterial so later WebGPU
+work has a typed dependency/render-state contract to consume.
 
 Acceptance criteria:
 
-- Name and document extract, asset-change collection, prepare, queue, sort, and
-  submit boundaries in render code or planning helpers.
-- Existing unlit examples continue to render.
-- Tests verify that the current draw packets can be queued and sorted through
-  the named phase helpers.
-- No PBR lighting math or shader activation is introduced.
+- Define a MatcapMaterial prepare-plan data shape with material key, dependency
+  handles, render state, and pipeline-key input.
+- Plan reports missing texture/sampler source dependencies using existing
+  material dependency readiness data.
+- Tests cover ready and blocked MatcapMaterial prepare plans.
+- No WGSL, WebGPU buffers, bind groups, pipelines, or active rendering are
+  introduced.
 
-### task-0557 — Add view-uniform pack scratch writer
+### task-0576 — Diagnose app facade single-draw resource limitation
+
+Category: `webgpu-render`
+Package/write-scope: `packages/webgpu/src/webgpu/app.ts` and app tests.
+Reference anchor: render-world readiness diagnostics and the North Star's
+agent-readable diagnostics requirement.
+
+Make the current `createWebGpuApp.render()` first-draw resource limitation
+explicit instead of silently binding only the first draw's resources.
+
+Acceptance criteria:
+
+- Multi-draw snapshots whose draws reference unsupported additional source
+  mesh/material handles produce a JSON-safe diagnostic.
+- Single-draw and same-resource multi-draw snapshots keep passing.
+- The diagnostic explains that a broader render-world resource cache is future
+  work.
+- No attempt is made to implement full multi-asset caching in this task.
+
+### task-0577 — Add texture/sampler resource reuse diagnostics for app reports
+
+Category: `webgpu-render`
+Package/write-scope: `packages/webgpu/src/webgpu/app.ts`,
+`packages/webgpu/src/webgpu/texture-resources.ts` if needed, and targeted tests.
+Reference anchor: WebGPU resource summary helpers and Bevy prepared asset cache
+reporting patterns.
+
+Extend app resource reuse reporting to texture and sampler GPU resources once
+textured app paths are active.
+
+Acceptance criteria:
+
+- Reuse reports distinguish created/reused texture resources and sampler
+  resources.
+- Reports use stable resource keys and counts only, not raw GPU handles.
+- Tests cover first-frame creation and second-frame reuse on a textured unlit
+  app path.
+- If texture/sampler GPU resource reuse is not active yet, document the blocker
+  and add the narrower enabling task.
+
+### task-0578 — Add material readiness report JSON serialization helper
 
 Category: `render-bridge`
-Package/write-scope: `packages/render/src/rendering/view-pack.ts`, targeted
-view-pack and WebGPU view-uniform tests.
-Reference anchor: `docs/DECISIONS.md` decision 0009 and
-`docs/research/FRAME_HOT_PATH_ALLOCATION_AUDIT.md`.
-
-Make view-uniform packing usable from a steady-state frame loop without
-allocating fresh sets, valid-view arrays, view records, diagnostics, and output
-buffers on successful frames.
-
-Acceptance criteria:
-
-- Add a `PackedSnapshotViewUniformsScratch` or equivalent object with reusable
-  duplicate-view tracking, view records, diagnostics, and `Float32Array`
-  storage.
-- Keep `packSnapshotViewUniforms` as the allocation-friendly convenience helper.
-- Avoid intermediate valid-view arrays in the writer.
-- Tests prove view record/result identity and backing buffer reuse across
-  repeated successful writes.
-- Existing WebGPU view-uniform tests continue to pass.
-
-### Deferred WebGPU / Render Pipeline Follow-Ups
-
-The following metadata-only tasks are useful after the proof-point path, or if a
-standard-material implementation chooses to reuse them directly. Do not select
-them ahead of `task-0540` through `task-0563` unless they are blocking.
-
-### task-0534 — Add light shader WGSL data contract
-
-Category: `webgpu-render`
-Package/write-scope: `packages/webgpu/src/webgpu`, targeted WebGPU shader/tests.
-Reference anchor: Compare light/uniform/storage binding and shader declaration
-patterns in `/Users/felixz/Projects/aperture/references/engine` and
-`/Users/felixz/Projects/aperture/references/three.js`.
-
-Define the WGSL struct/declaration contract for packed light float and metadata
-buffers.
-
-Acceptance criteria:
-
-- Contract names the float and metadata storage bindings from
-  `LIGHT_SHADER_BINDING_METADATA`.
-- WGSL struct/declaration text documents the existing packing strides and field
-  ordering.
-- Tests verify binding numbers, group index, buffer access mode, and deterministic
-  WGSL text.
-- No render pipeline consumes the WGSL contract yet.
-
-### task-0535 — Add light shader declaration JSON helper
-
-Category: `webgpu-render`
-Package/write-scope: `packages/webgpu/src/webgpu`, targeted WebGPU JSON/tests.
-Reference anchor: Compare shader metadata/debug inspection patterns in
-`/Users/felixz/Projects/aperture/references/engine` and
-`/Users/felixz/Projects/aperture/references/three.js`.
-
-Expose the WGSL light shader declaration contract through a JSON-safe inspection
-helper.
-
-Acceptance criteria:
-
-- Helper serializes binding metadata and declaration text without shader modules
-  or GPU handles.
-- Tests cover deterministic JSON output and metadata/declaration consistency.
-- Helper remains renderer-side inspection data only.
-
-### task-0536 — Add unlit shader metadata variant with light bindings
-
-Category: `webgpu-render`
-Package/write-scope: `packages/webgpu/src/webgpu`, targeted shader metadata
+Package/write-scope: `packages/render/src/materials` and targeted material
 tests.
-Reference anchor: Compare pipeline/material binding layouts in
-`/Users/felixz/Projects/aperture/references/engine` and
-`/Users/felixz/Projects/aperture/references/three.js`.
+Reference anchor: Existing JSON-safe light shader metadata helpers and
+`docs/ARCHITECTURE.md` diagnostics requirements.
 
-Define a metadata-only shader variant that combines existing unlit draw bindings
-with the future light bind group contract.
-
-Acceptance criteria:
-
-- Variant records required bind groups/bindings without changing shader
-  execution.
-- Tests validate the unlit bindings are preserved and light bindings are added
-  at the expected group.
-- No lighting math, shadows, skybox, IBL, or pipeline activation is introduced.
-
-### task-0537 — Document light shader WGSL contract boundary
-
-Category: `docs-tooling`
-Package/write-scope: docs and package-level references only.
-Reference anchor: The WebGPU shader contract implemented in `packages/webgpu`
-plus the engine/three.js patterns inspected by the preceding `webgpu-render`
-tasks.
-
-Document the light WGSL declaration and metadata-only shader variant.
+Add an explicit JSON value helper for material dependency readiness reports so
+app-facing diagnostics can depend on a stable serialized contract.
 
 Acceptance criteria:
 
-- Docs explain the contract prepares shader integration but does not enable
-  lighting.
-- Docs name the JSON/debug surfaces and raw-handle omissions.
-- Format check passes.
-
-### task-0538 — Run consolidated light shader contract validation
-
-Category: `webgpu-render`
-Package/write-scope: validation and focused fixes in `packages/webgpu` only.
-Reference anchor: Existing WebGPU shader/resource tests and the engine/three.js
-patterns documented by `task-0534` through `task-0536`.
-
-Run broader validation after the WGSL contract and metadata-only shader variant
-slices.
-
-Acceptance criteria:
-
-- `pnpm run check` passes.
-- Lighting route Playwright coverage passes.
-- Any validation failure is either fixed or documented in handoff.
+- Define a `MaterialAssetDependencyReadinessReportJsonValue` shape.
+- Add a serializer for material dependency readiness reports that preserves
+  material key/status/kind, dependency slot statuses, and diagnostics.
+- Serialized values use handle keys and strings only, not raw asset or GPU
+  objects.
+- Tests cover ready unlit and blocked standard material reports.
 
 ## Post-Unlit E2E Verification Targets
 

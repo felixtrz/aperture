@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  createPackedSnapshotViewUniformsScratch,
   packSnapshotViewUniforms,
+  writePackedSnapshotViewUniforms,
   type RenderSnapshot,
   type ViewPacket,
 } from "@aperture-engine/core";
@@ -80,6 +82,41 @@ describe("snapshot view uniform packing", () => {
         message: "Render snapshot has no views to pack.",
       },
     ]);
+  });
+
+  it("reuses scratch result, view records, and backing data across successful writes", () => {
+    const firstMatrix = matrixValues(1);
+    const secondMatrix = matrixValues(100);
+    const viewMatrices = new Float32Array([...firstMatrix, ...secondMatrix]);
+    const scratch = createPackedSnapshotViewUniformsScratch(32, 2);
+    const first = writePackedSnapshotViewUniforms(
+      snapshot({
+        views: [view(8, 16), view(2, 0)],
+        viewMatrices,
+      }),
+      scratch,
+    );
+    const firstData = first.data;
+    const firstViews = [...first.views];
+    const second = writePackedSnapshotViewUniforms(
+      snapshot({
+        views: [view(2, 0), view(8, 16)],
+        viewMatrices,
+      }),
+      scratch,
+    );
+
+    expect(second).toBe(first);
+    expect(second.data).toBe(firstData);
+    expect(new Set(second.views)).toEqual(new Set(firstViews));
+    expect(second.floatCount).toBe(32);
+    expect(second.views.map((record) => record.viewId)).toEqual([2, 8]);
+    expect(Array.from(second.data.slice(0, 16))).toEqual(
+      Array.from(firstMatrix),
+    );
+    expect(Array.from(second.data.slice(16, 32))).toEqual(
+      Array.from(secondMatrix),
+    );
   });
 });
 

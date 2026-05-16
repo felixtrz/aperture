@@ -54,7 +54,13 @@ export function createViewUniformBufferDescriptor(
     });
   }
 
-  if (packed.data.byteLength === 0 || packed.views.length === 0) {
+  const floatCount = packed.floatCount ?? packed.data.length;
+  const source =
+    floatCount === packed.data.length
+      ? packed.data
+      : packed.data.subarray(0, floatCount);
+
+  if (source.byteLength === 0 || packed.views.length === 0) {
     diagnostics.push({
       code: "viewUniformBuffer.emptyData",
       field: "data",
@@ -70,13 +76,13 @@ export function createViewUniformBufferDescriptor(
   return {
     valid: true,
     plan: {
-      source: packed.data,
+      source,
       views: packed.views,
       descriptor: {
         label: options.label ?? "ViewUniforms/uniform",
-        size: packed.data.byteLength,
+        size: source.byteLength,
         usage,
-        initialData: packed.data,
+        initialData: source,
       },
     },
     diagnostics,

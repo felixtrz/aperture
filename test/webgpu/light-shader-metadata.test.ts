@@ -2,8 +2,12 @@ import { describe, expect, it } from "vitest";
 
 import {
   LIGHT_SHADER_BINDING_METADATA,
+  LIGHT_SHADER_WGSL_DECLARATION,
   createLightShaderResourceReadinessReport,
   createLightBindGroupLayoutDescriptor,
+  createLightShaderWgslDeclarationContract,
+  lightShaderWgslDeclarationContractToJson,
+  lightShaderWgslDeclarationContractToJsonValue,
   lightShaderResourceReadinessReportToJson,
   lightShaderResourceReadinessReportToJsonValue,
   lightShaderReadinessToResourceSummaryDiagnostics,
@@ -58,6 +62,77 @@ describe("light shader binding metadata", () => {
         buffer: { type: "read-only-storage" },
       },
     ]);
+  });
+
+  it("declares deterministic WGSL storage bindings for packed light buffers", () => {
+    expect(LIGHT_SHADER_WGSL_DECLARATION).toMatchObject({
+      group: 3,
+      floatStride: 8,
+      metadataStride: 6,
+      bindings: [
+        {
+          id: "lightFloats",
+          group: 3,
+          binding: 0,
+          addressSpace: "storage",
+          accessMode: "read",
+          elementType: "f32",
+        },
+        {
+          id: "lightMetadata",
+          group: 3,
+          binding: 1,
+          addressSpace: "storage",
+          accessMode: "read",
+          elementType: "i32",
+        },
+      ],
+    });
+    expect(LIGHT_SHADER_WGSL_DECLARATION.source).toContain(
+      "@group(3) @binding(0) var<storage, read> lightFloats: array<f32>;",
+    );
+    expect(LIGHT_SHADER_WGSL_DECLARATION.source).toContain(
+      "@group(3) @binding(1) var<storage, read> lightMetadata: array<i32>;",
+    );
+    expect(LIGHT_SHADER_WGSL_DECLARATION.source).toContain(
+      "0 color.r, 1 color.g, 2 color.b, 3 color.a, 4 intensity, 5 range, 6 innerConeAngle, 7 outerConeAngle.",
+    );
+    expect(createLightShaderWgslDeclarationContract().source).toBe(
+      LIGHT_SHADER_WGSL_DECLARATION.source,
+    );
+  });
+
+  it("serializes the light shader WGSL declaration contract as JSON-safe data", () => {
+    const value = lightShaderWgslDeclarationContractToJsonValue();
+    const json = lightShaderWgslDeclarationContractToJson();
+
+    expect(value).toMatchObject({
+      group: 3,
+      strides: {
+        floats: 8,
+        metadata: 6,
+      },
+      bindings: [
+        {
+          id: "lightFloats",
+          group: 3,
+          binding: 0,
+          addressSpace: "storage",
+          accessMode: "read",
+          elementType: "f32",
+        },
+        {
+          id: "lightMetadata",
+          group: 3,
+          binding: 1,
+          addressSpace: "storage",
+          accessMode: "read",
+          elementType: "i32",
+        },
+      ],
+    });
+    expect(value.source).toBe(LIGHT_SHADER_WGSL_DECLARATION.source);
+    expect(JSON.parse(json)).toEqual(value);
   });
 
   it("validates light bind group layout metadata", () => {

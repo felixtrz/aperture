@@ -4,6 +4,7 @@ import {
   AssetRegistry,
   assetHandleKey,
   createBoxMeshAsset,
+  createMatcapMaterialAsset,
   createMeshHandle,
   createRenderAssetCollections,
   createSamplerHandle,
@@ -136,6 +137,32 @@ describe("typed asset collections", () => {
       from: assetHandleKey(material),
       to: assetHandleKey(texture),
     });
+  });
+
+  it("adds matcap material assets and records matcap texture dependencies", () => {
+    const assets = createRenderAssetCollections();
+    const texture = createTextureHandle("studio-matcap");
+    const sampler = createSamplerHandle("linear-clamp");
+
+    const material = assets.materials.matcap.add(
+      createMatcapMaterialAsset({
+        label: "Studio Matcap",
+        matcapTexture: { texture, sampler },
+      }),
+    );
+
+    expect(assetHandleKey(material)).toBe("material:matcap-material-1");
+    expect(assets.registry.get(material)).toMatchObject({
+      handle: material,
+      kind: "material",
+      label: "Studio Matcap",
+      status: "ready",
+      version: 1,
+    });
+    expect(assets.registry.get(material)?.dependencies).toEqual([
+      texture,
+      sampler,
+    ]);
   });
 
   it("supports headless generic typed collections over a shared registry", () => {

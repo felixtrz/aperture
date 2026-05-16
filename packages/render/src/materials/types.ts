@@ -1,7 +1,7 @@
 import type { SamplerHandle, TextureHandle } from "@aperture-engine/simulation";
 import type { Color } from "@aperture-engine/simulation";
 
-export type MaterialKind = "unlit" | "standard" | "debug-normal";
+export type MaterialKind = "unlit" | "matcap" | "standard" | "debug-normal";
 export type MaterialAlphaMode = "opaque" | "mask" | "blend";
 export type MaterialCullMode = "back" | "front" | "none";
 export type MaterialFrontFace = "ccw" | "cw";
@@ -81,6 +81,12 @@ export interface UnlitMaterialAsset extends BaseMaterialAsset {
   readonly baseColorTexture: MaterialTextureBinding | null;
 }
 
+export interface MatcapMaterialAsset extends BaseMaterialAsset {
+  readonly kind: "matcap";
+  readonly baseColorFactor: Color;
+  readonly matcapTexture: MaterialTextureBinding | null;
+}
+
 export interface StandardMaterialAsset extends BaseMaterialAsset {
   readonly kind: "standard";
   readonly baseColorFactor: Color;
@@ -102,6 +108,7 @@ export interface DebugNormalMaterialAsset extends BaseMaterialAsset {
 
 export type MaterialAsset =
   | UnlitMaterialAsset
+  | MatcapMaterialAsset
   | StandardMaterialAsset
   | DebugNormalMaterialAsset;
 

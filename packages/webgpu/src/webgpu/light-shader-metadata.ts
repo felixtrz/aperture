@@ -1,5 +1,9 @@
 import type { BuiltInShaderBindingResource } from "./unlit-shader.js";
 import { DEFAULT_LIGHT_BIND_GROUP } from "./light-bind-group-layout.js";
+import {
+  PACKED_LIGHT_FLOAT_STRIDE,
+  PACKED_LIGHT_METADATA_STRIDE,
+} from "./light-packing.js";
 import type { WebGpuBindGroupLayoutDescriptor } from "./bind-group-layout-cache.js";
 import type { RenderResourceSummaryDiagnostic } from "./resource-summary.js";
 
@@ -16,6 +20,33 @@ export interface LightShaderBindingMetadata {
 export interface LightShaderBindingMetadataContract {
   readonly group: number;
   readonly bindings: readonly LightShaderBindingMetadata[];
+}
+
+export interface LightShaderWgslStorageBinding {
+  readonly id: LightShaderBindingId;
+  readonly group: number;
+  readonly binding: number;
+  readonly addressSpace: "storage";
+  readonly accessMode: "read";
+  readonly elementType: "f32" | "i32";
+}
+
+export interface LightShaderWgslDeclarationContract {
+  readonly group: number;
+  readonly floatStride: number;
+  readonly metadataStride: number;
+  readonly bindings: readonly LightShaderWgslStorageBinding[];
+  readonly source: string;
+}
+
+export interface LightShaderWgslDeclarationContractJsonValue {
+  readonly group: number;
+  readonly strides: {
+    readonly floats: number;
+    readonly metadata: number;
+  };
+  readonly bindings: readonly LightShaderWgslStorageBinding[];
+  readonly source: string;
 }
 
 export const LIGHT_SHADER_BINDING_METADATA: LightShaderBindingMetadataContract =
@@ -38,6 +69,64 @@ export const LIGHT_SHADER_BINDING_METADATA: LightShaderBindingMetadataContract =
       },
     ],
   };
+
+export const LIGHT_SHADER_WGSL_DECLARATION =
+  createLightShaderWgslDeclarationContract();
+
+export function createLightShaderWgslDeclarationContract(
+  metadata: LightShaderBindingMetadataContract = LIGHT_SHADER_BINDING_METADATA,
+): LightShaderWgslDeclarationContract {
+  const floatBinding = requireLightBinding(metadata, "lightFloats");
+  const metadataBinding = requireLightBinding(metadata, "lightMetadata");
+  const bindings: readonly LightShaderWgslStorageBinding[] = [
+    {
+      id: "lightFloats",
+      group: floatBinding.group,
+      binding: floatBinding.binding,
+      addressSpace: "storage",
+      accessMode: "read",
+      elementType: "f32",
+    },
+    {
+      id: "lightMetadata",
+      group: metadataBinding.group,
+      binding: metadataBinding.binding,
+      addressSpace: "storage",
+      accessMode: "read",
+      elementType: "i32",
+    },
+  ];
+
+  return {
+    group: metadata.group,
+    floatStride: PACKED_LIGHT_FLOAT_STRIDE,
+    metadataStride: PACKED_LIGHT_METADATA_STRIDE,
+    bindings,
+    source: createLightShaderWgslSource(floatBinding, metadataBinding),
+  };
+}
+
+export function lightShaderWgslDeclarationContractToJsonValue(
+  contract: LightShaderWgslDeclarationContract = LIGHT_SHADER_WGSL_DECLARATION,
+): LightShaderWgslDeclarationContractJsonValue {
+  return {
+    group: contract.group,
+    strides: {
+      floats: contract.floatStride,
+      metadata: contract.metadataStride,
+    },
+    bindings: contract.bindings.map((binding) => ({ ...binding })),
+    source: contract.source,
+  };
+}
+
+export function lightShaderWgslDeclarationContractToJson(
+  contract: LightShaderWgslDeclarationContract = LIGHT_SHADER_WGSL_DECLARATION,
+): string {
+  return JSON.stringify(
+    lightShaderWgslDeclarationContractToJsonValue(contract),
+  );
+}
 
 export type LightShaderBindingValidationDiagnosticCode =
   | "lightShaderBinding.missingBinding"
@@ -225,4 +314,52 @@ function layoutEntryResource(
   }
 
   return "unsupported";
+}
+
+function requireLightBinding(
+  metadata: LightShaderBindingMetadataContract,
+  id: LightShaderBindingId,
+): LightShaderBindingMetadata {
+  const binding = metadata.bindings.find((candidate) => candidate.id === id);
+
+  if (binding === undefined) {
+    throw new Error(`Light shader metadata is missing '${id}'.`);
+  }
+
+  return binding;
+}
+
+function createLightShaderWgslSource(
+  floatBinding: LightShaderBindingMetadata,
+  metadataBinding: LightShaderBindingMetadata,
+): string {
+  return `
+// Aperture packed light buffer contract.
+// lightFloats field order per light:
+// 0 color.r, 1 color.g, 2 color.b, 3 color.a, 4 intensity, 5 range, 6 innerConeAngle, 7 outerConeAngle.
+// lightMetadata field order per light:
+// 0 kind, 1 worldTransformOffset, 2 layerMask, 3 lightId, 4 entity.index, 5 entity.generation.
+const PACKED_LIGHT_FLOAT_STRIDE: u32 = ${PACKED_LIGHT_FLOAT_STRIDE}u;
+const PACKED_LIGHT_METADATA_STRIDE: u32 = ${PACKED_LIGHT_METADATA_STRIDE}u;
+
+struct PackedLightFloatFields {
+  color: vec4f,
+  intensity: f32,
+  range: f32,
+  innerConeAngle: f32,
+  outerConeAngle: f32,
+};
+
+struct PackedLightMetadataFields {
+  kind: i32,
+  worldTransformOffset: i32,
+  layerMask: i32,
+  lightId: i32,
+  entityIndex: i32,
+  entityGeneration: i32,
+};
+
+@group(${floatBinding.group}) @binding(${floatBinding.binding}) var<storage, read> lightFloats: array<f32>;
+@group(${metadataBinding.group}) @binding(${metadataBinding.binding}) var<storage, read> lightMetadata: array<i32>;
+`.trim();
 }

@@ -42,6 +42,20 @@ describe("view uniform buffer descriptor planning", () => {
     ]);
   });
 
+  it("uses the logical float count from scratch-backed packed views", () => {
+    const packed = {
+      ...packedViews(2),
+      data: new Float32Array(64),
+      floatCount: 32,
+    };
+    const result = createViewUniformBufferDescriptor(packed);
+
+    expect(result.valid).toBe(true);
+    expect(result.plan?.descriptor.size).toBe(32 * 4);
+    expect(result.plan?.source.byteLength).toBe(32 * 4);
+    expect(result.plan?.descriptor.initialData).toBe(result.plan?.source);
+  });
+
   it("reports empty data, invalid usage flags, and carried pack diagnostics", () => {
     const result = createViewUniformBufferDescriptor(
       {

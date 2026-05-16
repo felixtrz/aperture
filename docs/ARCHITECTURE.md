@@ -254,6 +254,8 @@ Snapshot-level lighting resource plans are therefore inspection/readiness data:
 they can summarize planned light-buffer bytes and environment-map requirements
 from a `RenderSnapshot`, but they do not make ECS own GPU resources and do not
 mean lighting shaders, skybox rendering, IBL, or shadow rendering are active.
+The packed-light WGSL declaration and JSON-safe shader inspection surfaces are
+documented in [`LIGHT_SHADER_WGSL_CONTRACT.md`](./LIGHT_SHADER_WGSL_CONTRACT.md).
 
 ## Assets and Handles
 

@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   createMaterialPipelineKeyInput,
   createMaterialHandle,
+  createMatcapMaterialAsset,
   createSamplerAsset,
   createSamplerHandle,
   createStandardMaterialAsset,
@@ -44,6 +45,26 @@ describe("material, texture, sampler, and render-state schemas", () => {
     expect(createMaterialPipelineKeyInput(material).features).toEqual([
       "baseColorTexture",
     ]);
+  });
+
+  it("validates matcap source material dependencies without WebGPU resources", () => {
+    const texture = createTextureHandle("studio-matcap");
+    const sampler = createSamplerHandle("linear-clamp");
+    const material = createMatcapMaterialAsset({
+      label: "Studio Matcap",
+      baseColorFactor: new Float32Array([0.9, 0.95, 1, 1]),
+      matcapTexture: { texture, sampler },
+    });
+
+    expect(validateMaterialAsset(material)).toEqual({
+      valid: true,
+      diagnostics: [],
+    });
+    expect(createMaterialPipelineKeyInput(material)).toMatchObject({
+      shaderFamily: "matcap",
+      features: ["matcapTexture"],
+      alphaMode: "opaque",
+    });
   });
 
   it("validates a standard metallic-roughness material and stable sampler keys", () => {
@@ -113,6 +134,31 @@ describe("material, texture, sampler, and render-state schemas", () => {
       "material.unsupportedFeature",
       "material.missingTextureHandle",
       "material.missingSamplerHandle",
+    ]);
+  });
+
+  it("reports incomplete matcap texture bindings", () => {
+    const missing = createMatcapMaterialAsset();
+    const incomplete = createMatcapMaterialAsset({
+      matcapTexture: {
+        texture: createTextureHandle("studio-matcap"),
+        sampler: null,
+      },
+    });
+
+    expect(
+      validateMaterialAsset(missing).diagnostics.map(
+        (diagnostic) => diagnostic.code,
+      ),
+    ).toEqual([
+      "material.missingTextureHandle",
+      "material.missingSamplerHandle",
+    ]);
+    expect(validateMaterialAsset(incomplete).diagnostics).toMatchObject([
+      {
+        code: "material.missingSamplerHandle",
+        field: "matcapTexture",
+      },
     ]);
   });
 });
