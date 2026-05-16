@@ -44,10 +44,13 @@ export * from "./unlit-material-buffer.js";
 export * from "./unlit-material-buffer-resource.js";
 export * from "./unlit-bind-group-layout.js";
 export * from "./unlit-bind-group.js";
+export * from "./unlit-frame-resources.js";
+export * from "./unlit-pipeline.js";
 export * from "./unlit-pipeline-descriptor.js";
 export * from "./unlit-shader.js";
 export * from "./view-uniform-buffer.js";
 export * from "./view-uniform-buffer-resource.js";
+export * from "./world-transform-buffer.js";
 
 export type WebGpuFailureReason =
   | "navigator-gpu-unavailable"

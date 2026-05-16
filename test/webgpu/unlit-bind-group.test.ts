@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   createUnlitBindGroupDescriptorPlan,
   createUnlitBindGroups,
+  createUnlitBindGroupsFromBuffers,
   type UnlitBindGroupCreationDescriptor,
   type UnlitBindGroupLayoutResource,
 } from "../../src/index.js";
@@ -102,6 +103,76 @@ describe("unlit bind group descriptor planning", () => {
           { binding: 0, resource: { resourceKey: "material-buffer:white" } },
         ],
       },
+    ]);
+  });
+
+  it("creates bind groups from actual GPU buffer binding resources", () => {
+    const descriptors: UnlitBindGroupCreationDescriptor[] = [];
+    const buffers = [
+      { resourceKey: "view-uniform-buffer:main", buffer: { label: "view" } },
+      {
+        resourceKey: "world-transform-buffer:frame",
+        buffer: { label: "transforms" },
+      },
+      {
+        resourceKey: "material-buffer:white",
+        buffer: { label: "material" },
+      },
+    ];
+    const result = createUnlitBindGroupsFromBuffers({
+      device: {
+        createBindGroup: (descriptor: UnlitBindGroupCreationDescriptor) => {
+          descriptors.push(descriptor);
+          return { label: descriptor.label };
+        },
+      },
+      plan: createUnlitBindGroupDescriptorPlan({
+        viewUniformResourceKey: buffers[0]?.resourceKey ?? null,
+        worldTransformResourceKey: buffers[1]?.resourceKey ?? null,
+        materialResourceKey: buffers[2]?.resourceKey ?? null,
+      }),
+      layouts: layoutResources(),
+      buffers,
+    });
+
+    expect(result.valid).toBe(true);
+    expect(result.diagnostics).toEqual([]);
+    expect(descriptors).toMatchObject([
+      {
+        label: "unlit/group-0",
+        entries: [{ binding: 0, resource: { buffer: { label: "view" } } }],
+      },
+      {
+        label: "unlit/group-1",
+        entries: [
+          { binding: 0, resource: { buffer: { label: "transforms" } } },
+        ],
+      },
+      {
+        label: "unlit/group-2",
+        entries: [{ binding: 0, resource: { buffer: { label: "material" } } }],
+      },
+    ]);
+  });
+
+  it("diagnoses missing actual GPU buffer resources", () => {
+    const result = createUnlitBindGroupsFromBuffers({
+      device: { createBindGroup: () => ({}) },
+      plan: createUnlitBindGroupDescriptorPlan({
+        viewUniformResourceKey: "view",
+        worldTransformResourceKey: "transforms",
+        materialResourceKey: "material",
+      }),
+      layouts: layoutResources(),
+      buffers: [],
+    });
+
+    expect(result.valid).toBe(false);
+    expect(result.resources).toEqual([]);
+    expect(result.diagnostics.map((diagnostic) => diagnostic.code)).toEqual([
+      "unlitBindGroupResource.missingBufferResource",
+      "unlitBindGroupResource.missingBufferResource",
+      "unlitBindGroupResource.missingBufferResource",
     ]);
   });
 

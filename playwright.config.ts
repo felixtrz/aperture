@@ -11,10 +11,17 @@ export default defineConfig({
     ["html", { open: "never", outputFolder: "playwright-report" }],
   ],
   use: {
+    baseURL: "http://127.0.0.1:4173",
     trace: "retain-on-failure",
     screenshot: "only-on-failure",
     video: "retain-on-failure",
     viewport: { width: 960, height: 640 },
+  },
+  webServer: {
+    command: "npm run examples:build && npm run examples:serve",
+    url: "http://127.0.0.1:4173/",
+    reuseExistingServer: process.env.CI !== "true",
+    timeout: 120000,
   },
   projects: [
     {

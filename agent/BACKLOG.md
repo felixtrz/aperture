@@ -27,91 +27,9 @@ Keep implementation vertical, typed, and testable. Do not introduce a public mut
 
 ## Recommended Next Task
 
-Start with `task-0163`. It creates the browser example harness needed for real WebGPU verification.
+Start with `task-0170`. It extends the verified one-draw browser path toward a tiny multi-entity scene.
 
 ## Ready Tasks
-
-### task-0163 — Add browser example harness
-
-Add the minimal browser-facing example structure needed to run Aperture examples outside Vitest.
-
-Acceptance criteria:
-
-- Add an `examples/` browser entry that can import the built Aperture package from `dist`.
-- Add a tiny static server script using Node built-ins, not a framework dependency.
-- Add npm scripts for building and serving browser examples.
-- Document how to run the example locally.
-- Keep the page focused on an actual canvas/runtime surface, not a marketing page.
-
-### task-0164 — Add browser WebGPU clear smoke example
-
-Add the first real browser WebGPU example using the existing device initialization and clear helpers.
-
-Acceptance criteria:
-
-- Example initializes WebGPU against a canvas and clears to a distinctive non-black color.
-- Example writes a small JSON-safe status object on `window.__APERTURE_EXAMPLE_STATUS__`.
-- Unsupported WebGPU paths show the existing actionable error reason.
-- The example does not query ECS or introduce renderer-owned scene state.
-
-### task-0165 — Add Playwright browser smoke verification
-
-Add the first Playwright-based verification for the browser clear example. Playwright dependencies, Chromium browser install, config, and npm scripts are already in place.
-
-Acceptance criteria:
-
-- Use the existing `playwright.config.ts` and `npm run test:e2e` script.
-- Test launches the clear example, waits for the status object, and asserts readiness.
-- Test samples canvas pixels or screenshot data to prove the canvas changed to the expected clear color.
-- If WebGPU is unavailable in the local browser, the test reports a clear skipped/unsupported state rather than a vague failure.
-- Document any browser flags needed for local Chromium/WebGPU execution.
-
-### task-0166 — Create real unlit WebGPU pipeline bridge
-
-Turn the existing unlit shader and pipeline plans into browser-valid WebGPU pipeline creation.
-
-Acceptance criteria:
-
-- Create a real `GPUShaderModule` from `UNLIT_MESH_WGSL`.
-- Build a browser-valid unlit `GPURenderPipeline` descriptor with explicit vertex layouts for the current mesh upload shape.
-- Keep pipeline creation behind typed helpers and diagnostics.
-- Tests cover descriptor correctness with injected device/pipeline handles.
-- No WebGL fallback or three.js-style scene object is introduced.
-
-### task-0167 — Upload simple mesh and frame GPU resources
-
-Add the resource upload bridge needed for one unlit draw from extracted snapshot data.
-
-Acceptance criteria:
-
-- Upload a simple mesh asset into real vertex/index `GPUBuffer` resources.
-- Upload view projection, packed transform, and unlit material buffers.
-- Create real bind groups using actual `{ buffer: GPUBuffer }` resources, not placeholder resource-key objects.
-- Return stable resource keys for use by the existing snapshot binding planner and draw pipeline.
-- Tests cover missing buffers, successful resource creation with injected devices, and stable keys.
-
-### task-0168 — Render ECS-extracted triangle scene in browser
-
-Add the first end-to-end rendered scene example from ECS authoring through WebGPU submission.
-
-Acceptance criteria:
-
-- Example creates an ECS world with a camera and at least one mesh-renderer entity.
-- Example extracts a `RenderSnapshot`, applies it to a `RenderWorld`, plans bindings, uploads GPU resources, and submits a real unlit render pass.
-- Example exposes JSON-safe frame status with extraction, binding, draw, command, and submission counts.
-- The canvas visibly contains non-background rendered geometry.
-- Production WebGPU code still consumes snapshots/resource plans rather than querying ECS directly.
-
-### task-0169 — Add Playwright triangle scene pixel verification
-
-Verify the ECS-extracted triangle scene in a real browser.
-
-Acceptance criteria:
-
-- Playwright opens the triangle example and waits for a successful frame status.
-- Test asserts extraction, binding, draw, command, and submission counts from the page status.
-- Test samples pixels or screenshots the canvas to verify rendered geometry differs from the clear color.
-- Failure output includes the page status and enough diagnostics to explain missing WebGPU, missing resources, or blank canvas.
 
 ### task-0170 — Render multi-entity simple scene in browser
 
@@ -145,6 +63,28 @@ Acceptance criteria:
 - Document local commands for build, serve, and browser tests.
 - Explain WebGPU browser support expectations and skipped/unsupported behavior.
 - Keep architecture language explicit that ECS remains authoritative and rendering remains derived.
+
+### task-0173 — Add multi-material unlit resource helper
+
+Add a helper for the browser multi-entity path that uploads one shared mesh/view/transform set plus multiple unlit materials.
+
+Acceptance criteria:
+
+- Helper accepts packed view data, packed transform data, one mesh asset, and at least two unlit material assets.
+- Helper creates one shared mesh resource, one shared view buffer, one shared world-transform buffer, and one material buffer plus group-2 bind group per material.
+- Returned resource keys remain stable and compatible with render-world binding and draw-list planning.
+- Tests cover two materials, missing material data, and deterministic bind group ordering.
+
+### task-0174 — Add static example server tests
+
+Add non-listening tests for the example server path and MIME behavior so harness regressions are caught without requiring a local TCP listener.
+
+Acceptance criteria:
+
+- Server path resolution can be tested without opening a port.
+- Tests cover `/`, `/examples/triangle.html`, `/dist/index.js`, and denied traversal paths.
+- Tests cover JavaScript, HTML, CSS, JSON/source-map, and fallback MIME types.
+- The server remains Node-built-in only and does not gain framework dependencies.
 
 ## Post-Unlit E2E Verification Targets
 

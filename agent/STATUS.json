@@ -1,10 +1,10 @@
 {
   "state": "idle",
   "currentTaskId": null,
-  "lastRunStartedAt": "2026-05-15T23:02:23Z",
-  "lastRunFinishedAt": "2026-05-15T23:11:02Z",
-  "lastResult": "no-ready-tasks",
+  "lastRunStartedAt": "2026-05-16T00:03:05Z",
+  "lastRunFinishedAt": "2026-05-16T00:20:32Z",
+  "lastResult": "validation-failed",
   "lastCommit": null,
   "activePid": null,
-  "notes": "Completed task-0158 through task-0162 with full validation; next recommended task is task-0163."
+  "notes": "Completed task-0163 through task-0169. Non-browser validation passes; npm run test:e2e is blocked by sandbox local listener EPERM on 127.0.0.1:4173."
 }

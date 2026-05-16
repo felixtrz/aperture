@@ -4,6 +4,7 @@ export type WebGpuResourceKeyKind =
   | "mesh-index-buffer"
   | "material-buffer"
   | "view-uniform-buffer"
+  | "world-transform-buffer"
   | "shader-module"
   | "render-pipeline"
   | "bind-group"
@@ -47,6 +48,10 @@ export function materialUniformBufferResourceKey(label: string): string {
 
 export function viewUniformBufferResourceKey(label: string): string {
   return webGpuResourceKey("view-uniform-buffer", label);
+}
+
+export function worldTransformBufferResourceKey(label: string): string {
+  return webGpuResourceKey("world-transform-buffer", label);
 }
 
 export function shaderModuleResourceKey(label: string): string {

@@ -32,7 +32,8 @@ export type UnlitBindGroupResourceDiagnosticCode =
   | "unlitBindGroupResource.nullDescriptorPlan"
   | "unlitBindGroupResource.invalidDescriptorPlan"
   | "unlitBindGroupResource.missingLayout"
-  | "unlitBindGroupResource.missingDeviceSupport";
+  | "unlitBindGroupResource.missingDeviceSupport"
+  | "unlitBindGroupResource.missingBufferResource";
 
 export interface UnlitBindGroupResourceDiagnostic {
   readonly code: UnlitBindGroupResourceDiagnosticCode;
@@ -48,9 +49,13 @@ export interface UnlitBindGroupLayoutResource {
 
 export interface UnlitBindGroupCreationEntry {
   readonly binding: number;
-  readonly resource: {
-    readonly resourceKey: string;
-  };
+  readonly resource:
+    | {
+        readonly resourceKey: string;
+      }
+    | {
+        readonly buffer: unknown;
+      };
 }
 
 export interface UnlitBindGroupCreationDescriptor {
@@ -75,6 +80,18 @@ export interface CreateUnlitBindGroupsOptions {
   readonly device: UnlitBindGroupDeviceLike;
   readonly plan: UnlitBindGroupDescriptorPlan | null;
   readonly layouts: readonly UnlitBindGroupLayoutResource[];
+}
+
+export interface UnlitBindGroupBufferResource {
+  readonly resourceKey: string;
+  readonly buffer: unknown;
+}
+
+export interface CreateUnlitBindGroupsFromBuffersOptions {
+  readonly device: UnlitBindGroupDeviceLike;
+  readonly plan: UnlitBindGroupDescriptorPlan | null;
+  readonly layouts: readonly UnlitBindGroupLayoutResource[];
+  readonly buffers: readonly UnlitBindGroupBufferResource[];
 }
 
 export interface CreateUnlitBindGroupsResult {
@@ -140,6 +157,55 @@ export function createUnlitBindGroupDescriptorPlan(
 export function createUnlitBindGroups(
   options: CreateUnlitBindGroupsOptions,
 ): CreateUnlitBindGroupsResult {
+  return createUnlitBindGroupResources({
+    device: options.device,
+    plan: options.plan,
+    layouts: options.layouts,
+    resolveResource: (entry) => ({ resourceKey: entry.resourceKey }),
+  });
+}
+
+export function createUnlitBindGroupsFromBuffers(
+  options: CreateUnlitBindGroupsFromBuffersOptions,
+): CreateUnlitBindGroupsResult {
+  const buffers = new Map(
+    options.buffers.map((buffer) => [buffer.resourceKey, buffer.buffer]),
+  );
+
+  return createUnlitBindGroupResources({
+    device: options.device,
+    plan: options.plan,
+    layouts: options.layouts,
+    resolveResource: (entry, diagnostics) => {
+      const buffer = buffers.get(entry.resourceKey);
+
+      if (buffer === undefined) {
+        diagnostics.push({
+          code: "unlitBindGroupResource.missingBufferResource",
+          group: entry.group,
+          message: `Missing GPU buffer resource '${entry.resourceKey}' for unlit group ${entry.group}.`,
+        });
+        return null;
+      }
+
+      return { buffer };
+    },
+  });
+}
+
+interface CreateUnlitBindGroupResourcesOptions {
+  readonly device: UnlitBindGroupDeviceLike;
+  readonly plan: UnlitBindGroupDescriptorPlan | null;
+  readonly layouts: readonly UnlitBindGroupLayoutResource[];
+  readonly resolveResource: (
+    entry: UnlitBindGroupDescriptorEntry,
+    diagnostics: UnlitBindGroupResourceDiagnostic[],
+  ) => UnlitBindGroupCreationEntry["resource"] | null;
+}
+
+function createUnlitBindGroupResources(
+  options: CreateUnlitBindGroupResourcesOptions,
+): CreateUnlitBindGroupsResult {
   if (options.plan === null) {
     return {
       valid: false,
@@ -195,7 +261,18 @@ export function createUnlitBindGroups(
       continue;
     }
 
-    const descriptor = createBindGroupDescriptor(group, entries, layout.layout);
+    const descriptor = createBindGroupDescriptor(
+      group,
+      entries,
+      layout.layout,
+      options.resolveResource,
+      diagnostics,
+    );
+
+    if (descriptor === null) {
+      continue;
+    }
+
     const bindGroup = options.device.createBindGroup(descriptor);
 
     resources.push({
@@ -240,14 +317,27 @@ function createBindGroupDescriptor(
   group: number,
   entries: readonly UnlitBindGroupDescriptorEntry[],
   layout: unknown,
-): UnlitBindGroupCreationDescriptor {
+  resolveResource: CreateUnlitBindGroupResourcesOptions["resolveResource"],
+  diagnostics: UnlitBindGroupResourceDiagnostic[],
+): UnlitBindGroupCreationDescriptor | null {
+  const resolvedEntries = entries.flatMap((entry) => {
+    const resource = resolveResource(entry, diagnostics);
+
+    if (resource === null) {
+      return [];
+    }
+
+    return [{ binding: entry.binding, resource }];
+  });
+
+  if (resolvedEntries.length !== entries.length) {
+    return null;
+  }
+
   return {
     label: `unlit/group-${group}`,
     layout,
-    entries: entries.map((entry) => ({
-      binding: entry.binding,
-      resource: { resourceKey: entry.resourceKey },
-    })),
+    entries: resolvedEntries,
   };
 }
 

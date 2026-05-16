@@ -10,6 +10,7 @@ export const WEBGPU_BUFFER_USAGE_FLAGS = {
   INDEX: 0x10,
   VERTEX: 0x20,
   UNIFORM: 0x40,
+  STORAGE: 0x80,
 } as const;
 
 export interface MeshUploadBufferUsageConfig {

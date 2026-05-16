@@ -2,68 +2,84 @@
 
 ## Current Status
 
-Completed `task-0158` through `task-0162` in one validated automation run.
+Completed `task-0163` through `task-0169`.
 
-The run finished the snapshot-driven injected render frame sequence:
+This run moved Aperture from report/planning-only WebGPU slices into browser-facing examples and real unlit GPU resource creation:
 
 ```text
-RenderSnapshot
-  -> snapshot resource binding planner
-  -> RenderWorld.applySnapshot
-  -> resource binding updates
-  -> packed transforms
-  -> draw readiness
-  -> render-world draw packages
-  -> draw-command descriptors
-  -> render pass assembly
-  -> frame execution
-  -> renderer frame summary
+ECS world
+  -> RenderSnapshot
+  -> RenderWorld resource bindings
+  -> mesh/view/transform/material GPU buffers
+  -> actual unlit bind groups
+  -> real unlit WebGPU pipeline
+  -> render pass commands
+  -> browser example status + Playwright pixel checks
 ```
 
-The next recommended task is `task-0163 — Add browser example harness`.
+The next recommended task is `task-0170 — Render multi-entity simple scene in browser`. Consider `task-0173 — Add multi-material unlit resource helper` first if the multi-entity example starts getting too much ad hoc material upload code.
 
 ## Run Summary
 
 Major changes:
 
-- Added `summarizeInjectedRenderFrameSnapshotDiagnosticsByPhase`.
-- Added `createSnapshotRenderFrameFixture` with ready, duplicate render id, missing binding, missing transform, and submit-failure coverage.
-- Updated `docs/RENDER_FRAME_READINESS.md` for the snapshot runner and its relationship to render worlds, bindings, packed transforms, and lower-level runners.
-- Added `planInjectedRenderFrameSnapshotResourceBindings`, which derives ordered binding updates from snapshots and mesh/material resource-key resolvers without mutating `RenderWorld`.
-- Added `createEcsSnapshotRenderFrameFixture`, which builds ECS camera/mesh entities, extracts a snapshot, plans bindings, and runs the snapshot injected frame helper.
-- Refilled the ready backlog with resolver-map, binding-plan JSON/diagnostics, fixture refactor, and docs follow-up tasks.
-- User then redirected the next work toward browser end-to-end verification. The ready backlog was rewritten to prioritize a browser example harness, WebGPU clear smoke test, Playwright verification, real unlit GPU resources, and ECS-extracted scene rendering.
-- User then asked to stabilize dependencies and validation tooling before automated browser work. Installed all npm dependencies from a clean lockfile path, added ESLint, split typecheck/lint scripts, and added a combined `npm run check`.
-- User then asked to install Playwright dependencies before the next session. Added `@playwright/test`, `@types/node`, Chromium via `npx playwright install chromium`, baseline Playwright config, and E2E npm scripts.
-- User also asked to record the next phase after unlit E2E works: expand browser/Playwright verification across geometries, materials, textures, lighting, cameras/render targets, visibility/sorting, and diagnostics.
+- Added `examples/` browser harness, import maps for local `dist` plus ESM dependencies, and `scripts/serve-examples.mjs`.
+- Added `examples:build` and `examples:serve` npm scripts.
+- Added root WebGPU clear smoke example with JSON-safe `window.__APERTURE_EXAMPLE_STATUS__`.
+- Added Playwright `webServer` config plus clear and ECS triangle E2E specs with screenshot pixel sampling.
+- Added `vitest.config.ts` so Vitest excludes Playwright specs.
+- Added real unlit WebGPU pipeline bridge in `src/webgpu/unlit-pipeline.ts`.
+- Added world-transform storage buffers, actual-buffer bind group creation, and `createUnlitFrameGpuResources`.
+- Added ECS-extracted triangle browser example at `/examples/triangle.html`.
+- Updated README with browser example and E2E instructions.
 
 Architecture boundaries remain intact:
 
 - ECS remains authoritative.
-- Rendering remains a derived view of snapshots/render-world state.
-- Snapshot helpers do not query ECS directly.
-- JSON and diagnostics helpers expose counts, ids, and diagnostic summaries, not raw GPU handles or injected WebGPU objects.
-- The ECS fixture lives under tests; production WebGPU helpers still consume snapshots/resource plans and do not query ECS directly.
-- No scene graph, renderer-owned ECS/game state, WebGL fallback, or new dependency was introduced.
+- Rendering is still derived from `RenderSnapshot` and `RenderWorld`.
+- Browser examples consume snapshots/resource plans; production WebGPU helpers do not query ECS directly.
+- GPU buffers, pipelines, bind groups, and command submission remain WebGPU-only.
+- No scene graph, renderer-owned gameplay state, or WebGL fallback was introduced.
 
 ## Files Touched This Run
 
 Source:
 
-- `src/webgpu/renderer-frame-summary.ts`
+- `src/webgpu/index.ts`
+- `src/webgpu/mesh-buffer-descriptors.ts`
+- `src/webgpu/resource-keys.ts`
+- `src/webgpu/unlit-bind-group.ts`
+- `src/webgpu/unlit-frame-resources.ts`
+- `src/webgpu/unlit-pipeline.ts`
+- `src/webgpu/world-transform-buffer.ts`
+
+Examples and tooling:
+
+- `examples/index.html`
+- `examples/main.js`
+- `examples/styles.css`
+- `examples/triangle.html`
+- `examples/triangle.js`
+- `scripts/serve-examples.mjs`
+- `playwright.config.ts`
+- `vitest.config.ts`
+- `eslint.config.js`
+- `tsconfig.test.json`
+- `package.json`
+- `README.md`
 
 Tests:
 
-- `test/webgpu/fixtures/ecs-snapshot-render-frame.ts`
-- `test/webgpu/fixtures/ecs-snapshot-render-frame.test.ts`
-- `test/webgpu/fixtures/snapshot-render-frame.ts`
-- `test/webgpu/fixtures/snapshot-render-frame.test.ts`
-- `test/webgpu/render-frame-snapshot-binding-planner.test.ts`
-- `test/webgpu/render-frame-snapshot-diagnostics.test.ts`
+- `test/e2e/ecs-triangle.spec.ts`
+- `test/e2e/png.ts`
+- `test/e2e/webgpu-clear.spec.ts`
+- `test/webgpu/unlit-bind-group.test.ts`
+- `test/webgpu/unlit-frame-resources.test.ts`
+- `test/webgpu/unlit-pipeline.test.ts`
+- `test/webgpu/world-transform-buffer.test.ts`
 
-Docs and bookkeeping:
+Bookkeeping:
 
-- `docs/RENDER_FRAME_READINESS.md`
 - `agent/BACKLOG.md`
 - `agent/COMPLETED.md`
 - `agent/HANDOFF.md`
@@ -71,55 +87,42 @@ Docs and bookkeeping:
 
 ## Validation Run
 
-Final validation:
+Passed:
 
-- `npm run build` — passed
-- `npm run lint` — passed
-- `npm test` — passed, 118 test files / 443 tests
-- `npm run format:check` — passed
+- `npm run check`
+- `npm run build`
+- `node --check examples/main.js`
+- `node --check examples/triangle.js`
+- `node --check scripts/serve-examples.mjs`
+- Targeted Vitest runs for unlit pipeline and GPU resource helpers
 
-Targeted validation was also run for snapshot diagnostics, snapshot fixture, binding planner, and ECS snapshot fixture tests before full validation.
+Blocked by sandbox:
+
+- `npm run test:e2e` failed before tests could run because Playwright's configured web server cannot bind `127.0.0.1:4173` in this environment:
+  `listen EPERM: operation not permitted 127.0.0.1:4173`.
+
+The E2E specs and server wiring typecheck and lint, but browser pixel verification still needs to be run on a machine/session that allows a local listener.
 
 ## Known Issues
 
-- The previous resolver-map and binding-plan polish tasks were deferred in favor of browser E2E rendering.
-- There is no browser example harness, static server, or real WebGPU scene test yet.
-- Playwright is installed and configured, but no E2E tests exist yet.
-- The renderer path is still report/planning-heavy and does not yet execute a complete user-facing WebGPU frame from real GPU resources.
-- The stop-hook fix in `scripts/codex-stop-hook.sh` is intentionally uncheckpointed because the corrected hook now blocks the current under-45-minute status while ready tasks remain. It now also runs `typecheck` and `typecheck:test` when those scripts exist.
+- Browser examples were not visually verified in this sandbox due the local listener restriction.
+- `examples/triangle.js` currently supports one material resource path. The multi-entity scene will need either a small multi-material helper or careful manual creation of a second material buffer/group-2 bind group.
+- The root clear E2E and triangle E2E specs are ready, but `npm run test:e2e` is expected to fail in this sandbox until local server binding is available.
 
 ## Backlog
 
 Completed tasks appended to `agent/COMPLETED.md`:
 
-- `task-0158` through `task-0162`
+- `task-0163` through `task-0169`
 
 Ready backlog now contains:
 
-- `task-0163 — Add browser example harness`
-- `task-0164 — Add browser WebGPU clear smoke example`
-- `task-0165 — Add Playwright browser smoke verification`
-- `task-0166 — Create real unlit WebGPU pipeline bridge`
-- `task-0167 — Upload simple mesh and frame GPU resources`
-- `task-0168 — Render ECS-extracted triangle scene in browser`
-- `task-0169 — Add Playwright triangle scene pixel verification`
 - `task-0170 — Render multi-entity simple scene in browser`
 - `task-0171 — Add Playwright multi-entity scene verification`
 - `task-0172 — Document browser E2E rendering workflow`
-
-After those unlit/browser verification tasks are complete and stable, use the new "Post-Unlit E2E Verification Targets" section in `agent/BACKLOG.md` to expand coverage across geometry, material, texture, lighting, camera/render-target, visibility/sorting, and diagnostics paths.
+- `task-0173 — Add multi-material unlit resource helper`
+- `task-0174 — Add static example server tests`
 
 ## Recommended Next Task
 
-Start `task-0163 — Add browser example harness`.
-
-## Tooling Note
-
-Current uncheckpointed tooling changes:
-
-- `npm ci` succeeds and installs the lockfile dependency set.
-- `eslint.config.js` adds ESLint flat config for source and tests.
-- `package.json` scripts now separate `typecheck`, `typecheck:test`, `lint`, `format:check`, `test`, and combined `check`.
-- `playwright.config.ts` is present; `npm run test:e2e`, `npm run test:e2e:ui`, and `npm run test:e2e:install` are available.
-- Chromium for Playwright was installed with `npx playwright install chromium`.
-- Validation passed: `npm run check`, `npm run build`, `bash -n scripts/codex-stop-hook.sh`, and `git diff --check`.
+Start with `task-0170`. If multi-material resource handling becomes noisy inside the example, do `task-0173` first and then return to `task-0170`.

@@ -35,6 +35,35 @@ npm run format:check
 
 Build output is emitted to `dist/`.
 
+Run browser examples:
+
+```sh
+npm run examples:build
+npm run examples:serve
+```
+
+Then open `http://127.0.0.1:4173/`. The local server uses Node built-ins
+only and serves the browser harness from `examples/` plus the built package
+from `dist/`. The initial example imports Aperture from `dist/`, initializes
+WebGPU against a canvas, and clears it to a distinctive color when the browser
+supports WebGPU.
+
+The ECS triangle example is available at
+`http://127.0.0.1:4173/examples/triangle.html`. It authors a camera and mesh
+entity in ECS, extracts a render snapshot, uploads unlit GPU resources, and
+submits a WebGPU draw from derived render-world data.
+
+Run browser verification:
+
+```sh
+npm run test:e2e
+```
+
+The Playwright Chromium project passes `--enable-unsafe-webgpu` for local
+WebGPU execution. If Chromium cannot expose WebGPU on the current machine, the
+clear smoke test reports the unsupported WebGPU reason from Aperture's
+initialization helper.
+
 ## Constraints
 
 - ECS is the source of truth.

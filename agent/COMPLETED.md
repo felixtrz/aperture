@@ -15,6 +15,89 @@ Summary:
 - Validation run.
 - Follow-up tasks added.
 
+## task-0163 — Add browser example harness
+
+Completed: 2026-05-15
+
+Summary:
+
+- Added `examples/` browser harness files that import the built package from `dist`.
+- Added `scripts/serve-examples.mjs`, a Node-built-in static server for `examples/`, `dist/`, and local ESM dependency paths.
+- Added `examples:build` and `examples:serve` npm scripts plus README run instructions.
+- Validation run: `npm run build`, `npm run lint`, `npm run format:check`, `node --check scripts/serve-examples.mjs`, and `node --check examples/main.js` pass.
+- Follow-up tasks added: none directly.
+
+## task-0164 — Add browser WebGPU clear smoke example
+
+Completed: 2026-05-15
+
+Summary:
+
+- Updated the browser harness to initialize WebGPU against a canvas and clear to a distinctive color through `initializeWebGpu` and `clearWebGpuCanvas`.
+- Exposes JSON-safe status on `window.__APERTURE_EXAMPLE_STATUS__`, including unsupported WebGPU reasons from existing initialization diagnostics.
+- Validation run: covered by full `npm run check`, `npm run build`, and JS syntax checks.
+- Follow-up tasks added: none directly.
+
+## task-0165 — Add Playwright browser smoke verification
+
+Completed: 2026-05-15
+
+Summary:
+
+- Added Playwright web-server config and the clear smoke E2E spec.
+- Added a PNG screenshot sampler to verify clear pixels without adding dependencies.
+- Added `vitest.config.ts` so Vitest excludes Playwright specs from `npm test`.
+- Validation run: full non-browser validation passes; `npm run test:e2e` could not run in this sandbox because local server binding fails with `listen EPERM: operation not permitted 127.0.0.1:4173`.
+- Follow-up tasks added: `task-0174` for non-listening static server tests.
+
+## task-0166 — Create real unlit WebGPU pipeline bridge
+
+Completed: 2026-05-15
+
+Summary:
+
+- Added `src/webgpu/unlit-pipeline.ts` to create `UNLIT_MESH_WGSL` shader modules and browser-valid unlit render pipeline descriptors with explicit primitive interleaved vertex layouts.
+- Added injected-device tests for shader module creation, pipeline descriptor shape, pipeline creation, and missing pipeline support diagnostics.
+- Validation run: targeted unlit pipeline tests pass and full `npm run check` / `npm run build` pass.
+- Follow-up tasks added: none directly.
+
+## task-0167 — Upload simple mesh and frame GPU resources
+
+Completed: 2026-05-15
+
+Summary:
+
+- Added world-transform storage buffer descriptors/resources.
+- Added actual-buffer unlit bind group creation using `{ buffer }` resources while preserving placeholder resource-key bind group planning.
+- Added `createUnlitFrameGpuResources` for one mesh, packed views, packed transforms, one unlit material, and unlit bind groups.
+- Added tests for missing buffers, successful resource creation, and stable resource keys.
+- Validation run: focused WebGPU resource tests pass and full `npm run check` / `npm run build` pass.
+- Follow-up tasks added: `task-0173` for a multi-material unlit resource helper.
+
+## task-0168 — Render ECS-extracted triangle scene in browser
+
+Completed: 2026-05-15
+
+Summary:
+
+- Added `examples/triangle.html` and `examples/triangle.js`.
+- The example authors camera and mesh entities in ECS, extracts a `RenderSnapshot`, applies it to `RenderWorld`, plans bindings, uploads unlit GPU resources, creates a real unlit pipeline, plans draw commands, and submits a WebGPU render pass.
+- The example exposes JSON-safe frame status for extraction, binding, render-world readiness, draw planning, commands, and submission counts.
+- Validation run: JS syntax, full `npm run check`, and `npm run build` pass; browser execution could not be verified in this sandbox due local listener `EPERM`.
+- Follow-up tasks added: none directly.
+
+## task-0169 — Add Playwright triangle scene pixel verification
+
+Completed: 2026-05-15
+
+Summary:
+
+- Added `test/e2e/ecs-triangle.spec.ts` to verify triangle frame status counts and non-background canvas pixels.
+- Shared the PNG screenshot sampler across clear and triangle E2E tests.
+- Failure assertions include serialized page status to help explain blank canvas, missing resources, or unsupported WebGPU.
+- Validation run: `npm run typecheck:test`, `npm run lint`, `npm run format:check`, full `npm run check`, and `npm run build` pass; `npm run test:e2e` is blocked by sandbox local server `EPERM`.
+- Follow-up tasks added: none directly.
+
 ## task-0001 — Initialize TypeScript package
 
 Completed: 2026-05-15
