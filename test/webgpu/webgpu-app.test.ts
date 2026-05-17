@@ -2191,7 +2191,7 @@ describe("WebGPU app facade", () => {
     expect(events).not.toContain("queue:submit:1");
   });
 
-  it("diagnoses unsupported non-opaque material queue phases without submitting", async () => {
+  it("diagnoses unsupported alpha-test material queue families without submitting", async () => {
     const events: string[] = [];
     const { canvas, environment } = webGpuHarness(events);
     const created = await createWebGpuApp({
@@ -2249,10 +2249,97 @@ describe("WebGPU app facade", () => {
     });
     expect(frame.diagnostics).toMatchObject([
       expect.objectContaining({
-        code: "webGpuApp.unsupportedMaterialQueuePhase",
+        code: "webGpuApp.unsupportedMaterialQueueAlphaTestFamily",
         renderPhase: "alpha-test",
+        materialFamily: "unlit",
       }),
     ]);
+    expect(() => JSON.stringify(frame.diagnostics)).not.toThrow();
+    expect(events).not.toContain("queue:submit:1");
+  });
+
+  it("diagnoses unsupported transparent material queue families and blend presets without submitting", async () => {
+    const events: string[] = [];
+    const { canvas, environment } = webGpuHarness(events);
+    const created = await createWebGpuApp({
+      canvas,
+      environment,
+      worldOptions: { entityCapacity: 8 },
+    });
+
+    expect(created.ok).toBe(true);
+
+    if (!created.ok) {
+      return;
+    }
+
+    const app = created.app;
+    const assets = createRenderAssetCollections({ registry: app.assets });
+    const mesh = assets.meshes.add(
+      createBoxMeshAsset({ label: "UnsupportedTransparentQueueCube" }),
+    );
+    const transparentUnlit = assets.materials.unlit.add(
+      createUnlitMaterialAsset({
+        label: "Transparent Unlit",
+        renderState: {
+          alphaMode: "blend",
+          depth: { test: true, write: false, compare: "less" },
+          blend: { preset: "alpha" },
+        },
+      }),
+    );
+    const additiveStandard = assets.materials.standard.add(
+      createStandardMaterialAsset({
+        label: "Additive Transparent Standard",
+        renderState: {
+          alphaMode: "blend",
+          depth: { test: true, write: false, compare: "less" },
+          blend: { preset: "additive" },
+        },
+      }),
+    );
+
+    app.spawn(
+      withTransform({ translation: [0, 0, 5] }),
+      withCamera({ priority: 0, layerMask: 1 }),
+    );
+    app.spawn(
+      withTransform({ translation: [-0.5, 0, 0] }),
+      withMesh(mesh),
+      withMaterial(transparentUnlit),
+      withRenderLayer(1),
+      withVisibility(true),
+    );
+    app.spawn(
+      withTransform({ translation: [0.5, 0, 0] }),
+      withMesh(mesh),
+      withMaterial(additiveStandard),
+      withRenderLayer(1),
+      withVisibility(true),
+    );
+
+    const frame = await app.stepAndRender(1 / 60, 1, 45);
+
+    expect(frame.ok).toBe(false);
+    expect(frame.counts).toMatchObject({
+      meshDraws: 2,
+      drawCalls: 0,
+    });
+    expect(frame.diagnostics).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          code: "webGpuApp.unsupportedMaterialQueueTransparentFamily",
+          renderPhase: "transparent",
+          materialFamily: "unlit",
+        }),
+        expect.objectContaining({
+          code: "webGpuApp.unsupportedMaterialQueueBlendPreset",
+          renderPhase: "transparent",
+          materialFamily: "standard",
+          blendPreset: "additive",
+        }),
+      ]),
+    );
     expect(() => JSON.stringify(frame.diagnostics)).not.toThrow();
     expect(events).not.toContain("queue:submit:1");
   });
@@ -2537,6 +2624,299 @@ describe("WebGPU app facade", () => {
     );
     expect(secondEvents).toContain("queue:writeBuffer:WorldTransforms/storage");
     expect(resourceEventCounts(events)).toEqual(firstResourceEvents);
+  });
+
+  it("renders mixed opaque and alpha-test StandardMaterial queue items", async () => {
+    const events: string[] = [];
+    const { canvas, environment } = webGpuHarness(events);
+    const created = await createWebGpuApp({
+      canvas,
+      environment,
+      worldOptions: { entityCapacity: 8 },
+    });
+
+    expect(created.ok).toBe(true);
+
+    if (!created.ok) {
+      return;
+    }
+
+    const app = created.app;
+    const assets = createRenderAssetCollections({ registry: app.assets });
+    const mesh = assets.meshes.add(
+      createBoxMeshAsset({ label: "AlphaTestStandardCube" }),
+    );
+    const opaqueMaterial = assets.materials.standard.add(
+      createStandardMaterialAsset({
+        label: "Opaque Standard",
+        baseColorFactor: new Float32Array([0.2, 0.6, 1, 1]),
+      }),
+    );
+    const alphaTestMaterial = assets.materials.standard.add(
+      createStandardMaterialAsset({
+        label: "Alpha Test Standard",
+        baseColorFactor: new Float32Array([1, 0.4, 0.1, 0.4]),
+        renderState: { alphaMode: "mask", alphaCutoff: 0.5 },
+      }),
+    );
+
+    app.spawn(
+      withTransform({ translation: [0, 0, 5] }),
+      withCamera({ priority: 0, layerMask: 1 }),
+    );
+    app.spawn(
+      withTransform({ translation: [-0.5, 0, 0] }),
+      withMesh(mesh),
+      withMaterial(opaqueMaterial),
+      withRenderLayer(1),
+      withVisibility(true),
+    );
+    app.spawn(
+      withTransform({ translation: [0.5, 0, 0] }),
+      withMesh(mesh),
+      withMaterial(alphaTestMaterial),
+      withRenderLayer(1),
+      withVisibility(true),
+    );
+    app.spawn(
+      withLight({
+        kind: LightKind.Ambient,
+        intensity: 0.25,
+        layerMask: 1,
+      }),
+    );
+    app.spawn(
+      withTransform(),
+      withLight({
+        kind: LightKind.Directional,
+        intensity: 1.25,
+        layerMask: 1,
+      }),
+    );
+
+    const frame = await app.stepAndRender(1 / 60, 1, 52);
+
+    expect(frame.ok).toBe(true);
+    expect(
+      frame.snapshot.meshDraws.map((draw) => ({
+        queue: draw.sortKey.queue,
+        pipelineKey: draw.batchKey.pipelineKey,
+      })),
+    ).toEqual([
+      { queue: "opaque", pipelineKey: "standard|opaque|back|less|none" },
+      { queue: "alpha-test", pipelineKey: "standard|mask|back|less|none" },
+    ]);
+    expect(frame.counts).toMatchObject({
+      meshDraws: 2,
+      drawPackages: 2,
+      drawCalls: 2,
+      diagnostics: 0,
+    });
+    expect(frame.resourceReuse).toMatchObject({
+      pipelineHits: 0,
+      pipelineMisses: 2,
+      materialBuffersCreated: 2,
+      bindGroupsCreated: 8,
+      lightBuffersCreated: 2,
+    });
+    expect(
+      queuedFamilyResourceCount(frame.resources?.resources, "standard"),
+    ).toBe(2);
+    expect(queuedMeshResourceCount(frame.resources?.resources)).toBe(1);
+    expect(queuedBindGroupResourceKeys(frame.resources?.resources, 3)).toEqual([
+      expect.stringContaining(
+        "|pipeline:standard|opaque|back|less|none",
+      ) as string,
+      expect.stringContaining(
+        "|pipeline:standard|mask|back|less|none",
+      ) as string,
+    ]);
+    expect(events).toContain("queue:submit:1");
+
+    const firstResources = frame.resources?.resources;
+    const secondFrame = await app.stepAndRender(1 / 60, 2, 53);
+    const secondResources = secondFrame.resources?.resources;
+
+    expect(secondFrame.ok).toBe(true);
+    expect(secondFrame.counts.drawCalls).toBe(2);
+    expect(secondFrame.resourceReuse).toMatchObject({
+      pipelineHits: 2,
+      pipelineMisses: 0,
+    });
+    expect(queuedMaterialResources(secondResources, "standard").length).toBe(2);
+    expect(
+      queuedMaterialResources(secondResources, "standard")[0]?.material,
+    ).toBe(queuedMaterialResources(firstResources, "standard")[0]?.material);
+    expect(
+      queuedMaterialResources(secondResources, "standard")[1]?.material,
+    ).toBe(queuedMaterialResources(firstResources, "standard")[1]?.material);
+  });
+
+  it("renders transparent StandardMaterial alpha-blend queue items after opaque phases", async () => {
+    const events: string[] = [];
+    const { canvas, environment } = webGpuHarness(events);
+    const created = await createWebGpuApp({
+      canvas,
+      environment,
+      worldOptions: { entityCapacity: 10 },
+    });
+
+    expect(created.ok).toBe(true);
+
+    if (!created.ok) {
+      return;
+    }
+
+    const app = created.app;
+    const assets = createRenderAssetCollections({ registry: app.assets });
+    const mesh = assets.meshes.add(
+      createBoxMeshAsset({ label: "TransparentStandardCube" }),
+    );
+    const opaqueMaterial = assets.materials.standard.add(
+      createStandardMaterialAsset({ label: "Transparent Route Opaque" }),
+    );
+    const alphaTestMaterial = assets.materials.standard.add(
+      createStandardMaterialAsset({
+        label: "Transparent Route Mask",
+        baseColorFactor: new Float32Array([1, 1, 1, 0.4]),
+        renderState: { alphaMode: "mask", alphaCutoff: 0.5 },
+      }),
+    );
+    const transparentA = assets.materials.standard.add(
+      createStandardMaterialAsset({
+        label: "Transparent Route A",
+        baseColorFactor: new Float32Array([0.1, 0.6, 1, 0.35]),
+        renderState: {
+          alphaMode: "blend",
+          depth: { test: true, write: false, compare: "less" },
+          blend: { preset: "alpha" },
+        },
+      }),
+    );
+    const transparentB = assets.materials.standard.add(
+      createStandardMaterialAsset({
+        label: "Transparent Route B",
+        baseColorFactor: new Float32Array([1, 0.2, 0.1, 0.45]),
+        renderState: {
+          alphaMode: "blend",
+          depth: { test: true, write: false, compare: "less" },
+          blend: { preset: "alpha" },
+        },
+      }),
+    );
+
+    app.spawn(
+      withTransform({ translation: [0, 0, 5] }),
+      withCamera({ priority: 0, layerMask: 1 }),
+    );
+    app.spawn(
+      withTransform({ translation: [-0.75, 0, 0] }),
+      withMesh(mesh),
+      withMaterial(opaqueMaterial),
+      withRenderLayer(1),
+      withVisibility(true),
+    );
+    app.spawn(
+      withTransform({ translation: [-0.25, 0, 0] }),
+      withMesh(mesh),
+      withMaterial(alphaTestMaterial),
+      withRenderLayer(1),
+      withVisibility(true),
+    );
+    app.spawn(
+      withTransform({ translation: [0.25, 0, 0] }),
+      withMesh(mesh),
+      withMaterial(transparentA),
+      withRenderLayer(1),
+      withVisibility(true),
+    );
+    app.spawn(
+      withTransform({ translation: [0.75, 0, 0] }),
+      withMesh(mesh),
+      withMaterial(transparentB),
+      withRenderLayer(1),
+      withVisibility(true),
+    );
+    app.spawn(
+      withLight({
+        kind: LightKind.Ambient,
+        intensity: 0.25,
+        layerMask: 1,
+      }),
+    );
+    app.spawn(
+      withTransform(),
+      withLight({
+        kind: LightKind.Directional,
+        intensity: 1.25,
+        layerMask: 1,
+      }),
+    );
+
+    const frame = await app.stepAndRender(1 / 60, 1, 54);
+
+    expect(frame.ok).toBe(true);
+    expect(
+      frame.snapshot.meshDraws.map((draw) => ({
+        queue: draw.sortKey.queue,
+        materialKey: draw.batchKey.materialKey,
+        pipelineKey: draw.batchKey.pipelineKey,
+      })),
+    ).toEqual([
+      {
+        queue: "opaque",
+        materialKey: assetHandleKey(opaqueMaterial),
+        pipelineKey: "standard|opaque|back|less|none",
+      },
+      {
+        queue: "alpha-test",
+        materialKey: assetHandleKey(alphaTestMaterial),
+        pipelineKey: "standard|mask|back|less|none",
+      },
+      {
+        queue: "transparent",
+        materialKey: assetHandleKey(transparentA),
+        pipelineKey: "standard|blend|back|less|alpha",
+      },
+      {
+        queue: "transparent",
+        materialKey: assetHandleKey(transparentB),
+        pipelineKey: "standard|blend|back|less|alpha",
+      },
+    ]);
+    expect(frame.counts).toMatchObject({
+      meshDraws: 4,
+      drawPackages: 4,
+      drawCalls: 4,
+      diagnostics: 0,
+    });
+    expect(
+      queuedFamilyResourceCount(frame.resources?.resources, "standard"),
+    ).toBe(4);
+    expect(queuedBindGroupResourceKeys(frame.resources?.resources, 3)).toEqual([
+      expect.stringContaining(
+        "|pipeline:standard|opaque|back|less|none",
+      ) as string,
+      expect.stringContaining(
+        "|pipeline:standard|mask|back|less|none",
+      ) as string,
+      expect.stringContaining(
+        "|pipeline:standard|blend|back|less|alpha",
+      ) as string,
+      expect.stringContaining(
+        "|pipeline:standard|blend|back|less|alpha",
+      ) as string,
+    ]);
+    expect(events).toContain("queue:submit:1");
+
+    const secondFrame = await app.stepAndRender(1 / 60, 2, 55);
+
+    expect(secondFrame.ok).toBe(true);
+    expect(secondFrame.counts.drawCalls).toBe(4);
+    expect(secondFrame.resourceReuse).toMatchObject({
+      pipelineHits: 4,
+      pipelineMisses: 0,
+    });
   });
 
   it("renders and reuses StandardMaterial base-color texture resources", async () => {
@@ -3538,6 +3918,37 @@ function queuedFamilyResourceCount(
   family: "unlit" | "matcap" | "standard",
 ): number {
   return queuedMaterialResources(resources, family).length;
+}
+
+function queuedBindGroupResourceKeys(
+  resources: unknown,
+  group: number,
+): readonly string[] {
+  if (typeof resources !== "object" || resources === null) {
+    return [];
+  }
+
+  const value = (resources as { readonly bindGroups?: unknown }).bindGroups;
+
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.flatMap((bindGroup) => {
+    if (typeof bindGroup !== "object" || bindGroup === null) {
+      return [];
+    }
+
+    const candidate = bindGroup as {
+      readonly group?: unknown;
+      readonly resourceKey?: unknown;
+    };
+
+    return candidate.group === group &&
+      typeof candidate.resourceKey === "string"
+      ? [candidate.resourceKey]
+      : [];
+  });
 }
 
 function queuedMaterialResources(

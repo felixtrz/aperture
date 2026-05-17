@@ -23,6 +23,19 @@ const STANDARD_BATCH_KEY: BatchCompatibilityKey = {
   morphed: false,
 };
 
+const ALPHA_BLEND_STATE = {
+  color: {
+    srcFactor: "src-alpha",
+    dstFactor: "one-minus-src-alpha",
+    operation: "add",
+  },
+  alpha: {
+    srcFactor: "one",
+    dstFactor: "one-minus-src-alpha",
+    operation: "add",
+  },
+};
+
 describe("browser standard material pipeline bridge", () => {
   it("builds a browser-valid standard pipeline descriptor with primitive vertex layout", () => {
     const shaderModule = {
@@ -106,6 +119,59 @@ describe("browser standard material pipeline bridge", () => {
       module: shaderModule,
       entryPoint: "vs_main",
       buffers: [STANDARD_TEXCOORD1_PRIMITIVE_VERTEX_BUFFER_LAYOUT],
+    });
+  });
+
+  it("builds browser descriptors for opaque, mask, and alpha-blend standard render states", () => {
+    const shaderModule = {
+      compilationInfo: async () => ({ messages: [] }),
+    };
+    const opaque = createBrowserStandardRenderPipelineDescriptor({
+      shaderModule,
+      colorFormat: "bgra8unorm",
+      depthFormat: "depth24plus",
+      batchKey: STANDARD_BATCH_KEY,
+    });
+    const mask = createBrowserStandardRenderPipelineDescriptor({
+      shaderModule,
+      colorFormat: "bgra8unorm",
+      depthFormat: "depth24plus",
+      batchKey: {
+        ...STANDARD_BATCH_KEY,
+        pipelineKey: "standard|mask|front|less-equal|none",
+        materialKey: "material:standard-cutout",
+      },
+    });
+    const alphaBlend = createBrowserStandardRenderPipelineDescriptor({
+      shaderModule,
+      colorFormat: "bgra8unorm",
+      depthFormat: "depth24plus",
+      batchKey: {
+        ...STANDARD_BATCH_KEY,
+        pipelineKey: "standard|blend|none|less|alpha",
+        materialKey: "material:standard-glass",
+      },
+    });
+
+    expect(opaque).toMatchObject({
+      fragment: { targets: [{ format: "bgra8unorm" }] },
+      primitive: { cullMode: "back" },
+      depthStencil: { depthWriteEnabled: true, depthCompare: "less" },
+    });
+    expect(mask).toMatchObject({
+      fragment: { targets: [{ format: "bgra8unorm" }] },
+      primitive: { cullMode: "front" },
+      depthStencil: {
+        depthWriteEnabled: true,
+        depthCompare: "less-equal",
+      },
+    });
+    expect(alphaBlend).toMatchObject({
+      fragment: {
+        targets: [{ format: "bgra8unorm", blend: ALPHA_BLEND_STATE }],
+      },
+      primitive: { cullMode: "none" },
+      depthStencil: { depthWriteEnabled: false, depthCompare: "less" },
     });
   });
 

@@ -28,6 +28,19 @@ const UNLIT_BATCH_KEY: BatchCompatibilityKey = {
   materialKey: "material:white",
 };
 
+const ALPHA_BLEND_STATE = {
+  color: {
+    srcFactor: "src-alpha",
+    dstFactor: "one-minus-src-alpha",
+    operation: "add",
+  },
+  alpha: {
+    srcFactor: "one",
+    dstFactor: "one-minus-src-alpha",
+    operation: "add",
+  },
+};
+
 describe("standard material pipeline descriptor planning", () => {
   it("creates descriptor-like data and a cache key for the direct-lit standard pipeline", () => {
     const result = createStandardPipelineDescriptorPlan({
@@ -119,6 +132,83 @@ describe("standard material pipeline descriptor planning", () => {
     });
     expect(JSON.parse(unlit.cacheKey) as unknown).toMatchObject({
       shader: { family: "unlit" },
+    });
+  });
+
+  it("derives cache keys and descriptor render state from standard alpha, depth, and cull tokens", () => {
+    const opaque = required(
+      createStandardPipelineDescriptorPlan({
+        colorFormat: "bgra8unorm",
+        depthFormat: "depth24plus",
+        batchKey: STANDARD_BATCH_KEY,
+      }).plan,
+    );
+    const maskBatchKey: BatchCompatibilityKey = {
+      ...STANDARD_BATCH_KEY,
+      pipelineKey: "standard|mask|front|less-equal|none",
+      materialKey: "material:standard-cutout",
+    };
+    const mask = required(
+      createStandardPipelineDescriptorPlan({
+        colorFormat: "bgra8unorm",
+        depthFormat: "depth24plus",
+        batchKey: maskBatchKey,
+      }).plan,
+    );
+    const alphaBlendBatchKey: BatchCompatibilityKey = {
+      ...STANDARD_BATCH_KEY,
+      pipelineKey: "standard|blend|none|less|alpha",
+      materialKey: "material:standard-glass",
+    };
+    const alphaBlend = required(
+      createStandardPipelineDescriptorPlan({
+        colorFormat: "bgra8unorm",
+        depthFormat: "depth24plus",
+        batchKey: alphaBlendBatchKey,
+      }).plan,
+    );
+
+    expect(opaque.cacheKey).not.toBe(mask.cacheKey);
+    expect(mask.cacheKey).not.toBe(alphaBlend.cacheKey);
+    expect(opaque.descriptor).toMatchObject({
+      fragment: { targets: [{ format: "bgra8unorm" }] },
+      primitive: { cullMode: "back" },
+      depthStencil: { depthWriteEnabled: true, depthCompare: "less" },
+    });
+    expect(JSON.parse(opaque.cacheKey) as unknown).toMatchObject({
+      primitive: { cullMode: "back" },
+      depthStencil: { depthWriteEnabled: true, depthCompare: "less" },
+      blend: { colorTargets: [{ blend: null }] },
+    });
+
+    expect(mask.descriptor).toMatchObject({
+      fragment: { targets: [{ format: "bgra8unorm" }] },
+      primitive: { cullMode: "front" },
+      depthStencil: {
+        depthWriteEnabled: true,
+        depthCompare: "less-equal",
+      },
+    });
+    expect(JSON.parse(mask.cacheKey) as unknown).toMatchObject({
+      primitive: { cullMode: "front" },
+      depthStencil: {
+        depthWriteEnabled: true,
+        depthCompare: "less-equal",
+      },
+      blend: { colorTargets: [{ blend: null }] },
+    });
+
+    expect(alphaBlend.descriptor).toMatchObject({
+      fragment: {
+        targets: [{ format: "bgra8unorm", blend: ALPHA_BLEND_STATE }],
+      },
+      primitive: { cullMode: "none" },
+      depthStencil: { depthWriteEnabled: false, depthCompare: "less" },
+    });
+    expect(JSON.parse(alphaBlend.cacheKey) as unknown).toMatchObject({
+      primitive: { cullMode: "none" },
+      depthStencil: { depthWriteEnabled: false, depthCompare: "less" },
+      blend: { colorTargets: [{ blend: ALPHA_BLEND_STATE }] },
     });
   });
 

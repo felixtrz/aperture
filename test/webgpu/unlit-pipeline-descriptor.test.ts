@@ -72,7 +72,7 @@ describe("unlit pipeline descriptor planning", () => {
         },
         primitive: {
           topology: "triangle-list",
-          cullMode: "none",
+          cullMode: "back",
           frontFace: "ccw",
           stripIndexFormat: null,
         },

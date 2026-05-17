@@ -53,10 +53,10 @@ Task categories:
 - `docs-tooling`: docs, scripts, tests, validation, agent workflow.
 - `audit-refactor`: architecture drift checks and small corrective refactors.
 
-This run has a 45-minute work window. Completing one task before the 45-minute mark is not a reason to stop. After each coherent task and its relevant validation, check elapsed time:
+This run has a 55-minute work window. Completing one task before the 55-minute mark is not a reason to stop. After each coherent task and its relevant validation, check elapsed time:
 
-- If less than 45 minutes have elapsed and no stop condition applies, select the next highest-priority ready task and keep working.
-- If 45 minutes or more have elapsed, no ready task remains, or a stop condition applies, proceed to the end-of-run review.
+- If less than 55 minutes have elapsed and no stop condition applies, select the next highest-priority ready task and keep working.
+- If 55 minutes or more have elapsed, no ready task remains, or a stop condition applies, proceed to the end-of-run review.
 
 Do not start broad refactors except for explicitly scoped `audit-refactor`
 tasks.
@@ -140,7 +140,7 @@ corrective refactors, but should not become broad rewrites.
 
 ## 8. End-of-Run Review
 
-Only perform the end-of-run review when the 45-minute work window has elapsed, no ready task remains, or a stop condition applies.
+Only perform the end-of-run review when the 55-minute work window has elapsed, no ready task remains, or a stop condition applies.
 
 Before stopping:
 
@@ -207,6 +207,6 @@ that as a stop-hook failure and document/fix it before stopping.
 
 If it returns a continuation request or records failures in `agent/logs`, address the failures if straightforward, update the handoff, and run it again.
 
-Stop after the 45-minute work window, an explicit stop condition, or exhausting ready work, then complete the handoff update and stop-hook verification.
+Stop after the 55-minute work window, an explicit stop condition, or exhausting ready work, then complete the handoff update and stop-hook verification.
 
 The next agent run should be able to continue from your handoff.

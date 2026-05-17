@@ -61,6 +61,7 @@ import {
   createMatcapRenderPipelineResource,
   type CreateMatcapRenderPipelineResourceResult,
 } from "./matcap-pipeline.js";
+import { parseMaterialPipelineRenderStateTokens } from "./material-render-state.js";
 import {
   createLightBufferDescriptor,
   createLightBufferDescriptorPlan,
@@ -169,6 +170,9 @@ export interface WebGpuAppUnsupportedMaterialQueueDiagnostic {
   readonly code:
     | "webGpuApp.unsupportedMaterialQueueFamily"
     | "webGpuApp.unsupportedMaterialQueuePhase"
+    | "webGpuApp.unsupportedMaterialQueueAlphaTestFamily"
+    | "webGpuApp.unsupportedMaterialQueueTransparentFamily"
+    | "webGpuApp.unsupportedMaterialQueueBlendPreset"
     | "webGpuApp.materialQueueAssetMismatch";
   readonly message: string;
   readonly renderId: number;
@@ -176,6 +180,7 @@ export interface WebGpuAppUnsupportedMaterialQueueDiagnostic {
   readonly materialFamily?: string;
   readonly materialKind?: string;
   readonly renderPhase?: string;
+  readonly blendPreset?: string | null;
   readonly entity?: MeshDrawPacket["entity"];
 }
 
@@ -1585,7 +1590,7 @@ function collectMultiUnlitAppResourceSet(options: {
   };
 }
 
-function collectQueuedOpaqueBuiltInAppResourceSet(options: {
+function collectQueuedBuiltInAppResourceSet(options: {
   readonly app: WebGpuApp;
   readonly snapshot: RenderSnapshot;
   readonly frameScratch: WebGpuAppFrameScratch;
@@ -1622,15 +1627,11 @@ function collectQueuedOpaqueBuiltInAppResourceSet(options: {
       continue;
     }
 
-    if (queueItem.renderPhase !== "opaque") {
-      diagnostics.push({
-        code: "webGpuApp.unsupportedMaterialQueuePhase",
-        renderId: queueItem.renderId,
-        drawIndex: queueItem.drawIndex,
-        renderPhase: queueItem.renderPhase,
-        entity: queueItem.entity,
-        message: `WebGPU app material queue routing currently supports opaque draws, not '${queueItem.renderPhase}'.`,
-      } satisfies WebGpuAppUnsupportedMaterialQueueDiagnostic);
+    const unsupportedPhaseDiagnostic =
+      createUnsupportedQueuedBuiltInPhaseDiagnostic(queueItem);
+
+    if (unsupportedPhaseDiagnostic !== null) {
+      diagnostics.push(unsupportedPhaseDiagnostic);
       continue;
     }
 
@@ -1689,6 +1690,79 @@ function collectQueuedOpaqueBuiltInAppResourceSet(options: {
         ? { items }
         : null,
     diagnostics,
+  };
+}
+
+function createUnsupportedQueuedBuiltInPhaseDiagnostic(
+  queueItem: MaterialQueueItem,
+): WebGpuAppUnsupportedMaterialQueueDiagnostic | null {
+  if (queueItem.renderPhase === "opaque") {
+    return null;
+  }
+
+  if (
+    queueItem.renderPhase === "alpha-test" &&
+    queueItem.materialFamily === "standard"
+  ) {
+    return null;
+  }
+
+  if (queueItem.renderPhase === "alpha-test") {
+    return {
+      code: "webGpuApp.unsupportedMaterialQueueAlphaTestFamily",
+      renderId: queueItem.renderId,
+      drawIndex: queueItem.drawIndex,
+      renderPhase: queueItem.renderPhase,
+      materialFamily: queueItem.materialFamily,
+      entity: queueItem.entity,
+      message: `WebGPU app material queue routing supports alpha-test draws for StandardMaterial, not '${queueItem.materialFamily}'.`,
+    };
+  }
+
+  if (
+    queueItem.renderPhase === "transparent" &&
+    queueItem.materialFamily === "standard"
+  ) {
+    const tokens = parseMaterialPipelineRenderStateTokens(
+      queueItem.pipelineKey,
+    );
+
+    if (tokens.blendPreset === "alpha") {
+      return null;
+    }
+
+    return {
+      code: "webGpuApp.unsupportedMaterialQueueBlendPreset",
+      renderId: queueItem.renderId,
+      drawIndex: queueItem.drawIndex,
+      renderPhase: queueItem.renderPhase,
+      materialFamily: queueItem.materialFamily,
+      blendPreset: tokens.blendPreset,
+      entity: queueItem.entity,
+      message: `WebGPU app material queue routing supports StandardMaterial transparent draws with alpha blending, not blend preset '${String(tokens.blendPreset)}'.`,
+    };
+  }
+
+  if (queueItem.renderPhase === "transparent") {
+    return {
+      code: "webGpuApp.unsupportedMaterialQueueTransparentFamily",
+      renderId: queueItem.renderId,
+      drawIndex: queueItem.drawIndex,
+      renderPhase: queueItem.renderPhase,
+      materialFamily: queueItem.materialFamily,
+      entity: queueItem.entity,
+      message: `WebGPU app material queue routing supports transparent draws for StandardMaterial, not '${queueItem.materialFamily}'.`,
+    };
+  }
+
+  return {
+    code: "webGpuApp.unsupportedMaterialQueuePhase",
+    renderId: queueItem.renderId,
+    drawIndex: queueItem.drawIndex,
+    renderPhase: queueItem.renderPhase,
+    materialFamily: queueItem.materialFamily,
+    entity: queueItem.entity,
+    message: `WebGPU app material queue routing currently supports opaque and StandardMaterial alpha-test draws, not '${queueItem.renderPhase}'.`,
   };
 }
 
@@ -1764,7 +1838,7 @@ function isQueuedBuiltInMaterialAsset(
   return isWebGpuAppMaterialKind(material.kind);
 }
 
-async function renderQueuedOpaqueBuiltInWebGpuAppFrame(options: {
+async function renderQueuedBuiltInWebGpuAppFrame(options: {
   readonly app: WebGpuApp;
   readonly cache: WebGpuAppResourceCache;
   readonly snapshot: RenderSnapshot;
@@ -1781,7 +1855,7 @@ async function renderQueuedOpaqueBuiltInWebGpuAppFrame(options: {
     options.snapshot,
     options.cache.frameScratch.worldTransforms,
   );
-  const prepared = await prepareQueuedOpaqueBuiltInFrameResources({
+  const prepared = await prepareQueuedBuiltInFrameResources({
     ...options,
     viewUniforms: packedViews,
     worldTransforms: packedTransforms,
@@ -1898,7 +1972,7 @@ async function renderQueuedOpaqueBuiltInWebGpuAppFrame(options: {
   });
 }
 
-async function prepareQueuedOpaqueBuiltInFrameResources(options: {
+async function prepareQueuedBuiltInFrameResources(options: {
   readonly app: WebGpuApp;
   readonly cache: WebGpuAppResourceCache;
   readonly snapshot: RenderSnapshot;
@@ -2211,7 +2285,7 @@ function pipelineScopedBindGroups(
   pipelineKey: string,
 ): UnlitFrameGpuResources["bindGroups"][number][] {
   return bindGroups.map((bindGroup) =>
-    bindGroup.group === 0 || bindGroup.group === 1
+    bindGroup.group !== 2
       ? {
           ...bindGroup,
           resourceKey: `${bindGroup.resourceKey}|pipeline:${pipelineKey}`,
@@ -2334,7 +2408,7 @@ async function renderWebGpuAppFrame(
   const queuedBuiltIn =
     multiUnlit === null &&
     (firstMaterialKindSupported || resourceSetPlan.sets.length > 1)
-      ? collectQueuedOpaqueBuiltInAppResourceSet({
+      ? collectQueuedBuiltInAppResourceSet({
           app,
           snapshot,
           frameScratch: resourceCache.frameScratch,
@@ -2351,7 +2425,7 @@ async function renderWebGpuAppFrame(
   }
 
   if (queuedBuiltIn !== null && queuedBuiltIn.resourceSet !== null) {
-    return renderQueuedOpaqueBuiltInWebGpuAppFrame({
+    return renderQueuedBuiltInWebGpuAppFrame({
       app,
       cache: resourceCache,
       snapshot,

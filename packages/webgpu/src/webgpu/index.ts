@@ -27,6 +27,7 @@ export * from "./render-frame-plan.js";
 export * from "./render-frame-phases.js";
 export * from "./frame-readiness.js";
 export * from "./material-dependency-readiness.js";
+export * from "./material-render-state.js";
 export * from "./matcap-bind-group.js";
 export * from "./matcap-bind-group-layout.js";
 export * from "./matcap-frame-resources.js";

@@ -2,100 +2,93 @@
 
 ## Latest Run Update
 
-Completed `task-0625`, `task-0632`, `task-0634`, `task-0635`, `task-0631`,
-and `task-0630` in this automation run:
+Completed `task-0636`, `task-0637`, `task-0638`, `task-0639`, `task-0640`,
+`task-0641`, and `task-0642` in this automation run:
 
-- `task-0625` — Added renderer-independent prepared material resource
-  descriptors in `packages/render`. Built-in unlit, MatcapMaterial,
-  StandardMaterial, and DebugNormalMaterial helpers now produce JSON-safe
-  prepared descriptors with source material key, material family/kind,
-  pipeline key input, stable pipeline key, material/bind-group resource keys,
-  dependencies, texture bindings, and dependency readiness. Render-asset
-  preparation now passes the asset registry into adapters and material metadata
-  preparation returns the richer descriptor shape.
-- `task-0632` — Added StandardMaterial semantic/color-space readiness
-  diagnostics for base-color, emissive, metallic-roughness, normal, and
-  occlusion textures. Extraction now blocks invalid texture metadata before
-  WebGPU resource preparation and reports JSON-safe material key, texture key,
-  field, expected values, and actual values.
-- `task-0634` — Added StandardMaterial UV-set readiness diagnostics. After
-  `task-0635`, `TEXCOORD_0` and `TEXCOORD_1` are supported; `texCoord > 1`
-  remains blocked with JSON-safe diagnostics that include the supported UV set
-  list.
-- `task-0635` — Added StandardMaterial `TEXCOORD_1` shader variants. Pipeline
-  keys now include `uv1` when any StandardMaterial texture binding samples UV1;
-  extraction requires mesh `TEXCOORD_1` metadata for those variants; browser
-  StandardMaterial pipeline creation has UV1-only and tangent+UV1 primitive
-  layouts.
-- `task-0631` — Added
-  `docs/research/ALPHA_TRANSPARENT_QUEUE_CONSUMPTION_PLAN_2026_05_17.md`.
-  The plan keeps phase consumption queue-driven and identifies the safe order:
-  render-state-aware built-in WebGPU descriptors first, then StandardMaterial
-  alpha-test queue items, then StandardMaterial transparent alpha-blend items,
-  then browser pixel coverage and an audit.
-- `task-0630` — Supported single-family unlit, MatcapMaterial, and
-  StandardMaterial app frames now use the same material queue route as mixed
-  built-in frames. The optimized multi-unlit shared-mesh path remains
-  preserved, and same-resource multi-draw frames now prove the queue route still
-  reuses stable prepared mesh/material resources.
-- Browser example status code now understands queued family resources, so
-  Matcap and StandardMaterial examples continue reporting material/light
-  bind-group readiness after the app route change.
-- Backlog was refilled with `task-0636` through `task-0640` for render-state
-  descriptors, alpha-test consumption, transparent consumption, browser pixel
-  coverage, and the follow-up audit.
+- `task-0636` — Built-in WebGPU pipeline descriptor plans and browser
+  descriptors now derive cull mode, depth compare/write behavior, and blend
+  target state from material render-state pipeline-key tokens. Added shared
+  helpers in `packages/webgpu/src/webgpu/material-render-state.ts` and exported
+  them from the WebGPU package.
+- `task-0637` — The WebGPU app queue route now accepts StandardMaterial
+  `alpha-test` items after opaque items. Unsupported alpha-test material
+  families remain diagnostic-only and JSON-safe.
+- `task-0638` — The WebGPU app queue route now accepts StandardMaterial
+  transparent alpha-blend items when the blend preset is `alpha` and depth
+  writes are disabled. Transparent snapshot sorting now prioritizes
+  back-to-front depth before pipeline/material grouping.
+- `task-0639` — Added `examples/standard-queue-phases.html` and Playwright
+  coverage proving opaque, alpha-test, and transparent StandardMaterial queue
+  phases render through `createWebGpuApp` with deterministic pixels and
+  JSON-safe frame diagnostics.
+- `task-0640` — Audited the expanded phase route. The route remains
+  snapshot-derived and queue-driven with WebGPU-owned resources. The audit
+  found and fixed a browser WebGPU auto-layout issue: StandardMaterial light
+  bind groups are now scoped per pipeline key so opaque/mask/blend pipelines do
+  not reuse group-3 bind groups created from another pipeline layout.
+- `task-0641` — Added a focused Playwright console guard to the Standard queue
+  phase spec so WebGPU command-buffer and auto-layout validation warnings fail
+  the browser test before pixel assertions.
+- `task-0642` — Added
+  `docs/research/GENERIC_MATERIAL_FAMILY_QUEUE_CONTRACT_PLAN_2026_05_17.md`,
+  defining the smallest internal adapter contract for generic material-family
+  queue routing while keeping `RenderSnapshot` as the boundary and GPU handles
+  inside `packages/webgpu`.
+- Corrected the automation work-window documentation and stop-hook continuation
+  reason to the actual 55-minute gate. The hook's conditional already blocked
+  before minute 55; the emitted JSON reason and local agent prompts were stale.
+- Backlog was corrected and refilled with `task-0643` through `task-0647`,
+  avoiding duplicate PBR texture work already completed in earlier runs.
 
 Validation:
 
-- `pnpm exec vitest run test/materials/prepared-material-resource.test.ts test/assets/render-asset-preparation.test.ts`
-- `pnpm exec tsc --noEmit -p tsconfig.test.json`
-- `pnpm exec vitest run test/materials/standard-texture-readiness.test.ts test/rendering/extraction.test.ts`
-- `pnpm exec vitest run test/materials/standard-texture-readiness.test.ts test/rendering/extraction.test.ts test/webgpu/standard-shader.test.ts test/webgpu/standard-pipeline-descriptor.test.ts test/webgpu/standard-pipeline.test.ts`
+- `pnpm exec vitest run test/webgpu/standard-pipeline-descriptor.test.ts test/webgpu/standard-pipeline.test.ts test/webgpu/unlit-pipeline-descriptor.test.ts test/webgpu/unlit-pipeline.test.ts test/webgpu/matcap-pipeline-descriptor.test.ts test/webgpu/matcap-pipeline.test.ts test/webgpu/debug-normal-pipeline-descriptor.test.ts`
 - `pnpm exec vitest run test/webgpu/webgpu-app.test.ts`
-- `pnpm exec vitest run test/materials/prepared-material-resource.test.ts test/assets/render-asset-preparation.test.ts test/materials/standard-texture-readiness.test.ts test/rendering/extraction.test.ts test/webgpu/standard-shader.test.ts test/webgpu/standard-pipeline-descriptor.test.ts test/webgpu/standard-pipeline.test.ts test/webgpu/webgpu-app.test.ts`
-- `pnpm exec playwright test test/e2e/app-diagnostics.spec.ts test/e2e/matcap-app.spec.ts test/e2e/spinning-cube.spec.ts`
-- `pnpm run test:e2e` passed: 142 tests.
-- Final `pnpm run check` passed: 171 test files / 831 tests.
+- `pnpm exec vitest run test/rendering/snapshot.test.ts test/rendering/material-queue.test.ts test/webgpu/webgpu-app.test.ts`
+- `pnpm exec playwright test test/e2e/standard-queue-phases.spec.ts`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json` after the browser warning
+  guard
+- `pnpm run build`
+- `pnpm run check:examples`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm run lint`
+- `pnpm run format:check`
+- `pnpm run format:check` after the generic queue contract plan
+- `bash -n scripts/codex-stop-hook.sh`
+- `pnpm run check:boundaries`
+- Final `pnpm run check` passed: 171 test files / 837 tests.
 
 Reference files/patterns inspected:
 
-- Prepared/material extraction anchors:
-  `docs/RENDER_ASSET_PREPARATION.md`,
-  `packages/render/src/assets/preparation.ts`,
-  `packages/render/src/materials/pipeline-key.ts`, and Bevy render-asset
-  preparation/material specialization patterns.
-- StandardMaterial glTF texture and UV-set patterns:
-  `references/three.js/examples/jsm/loaders/GLTFLoader.js`,
-  `references/engine/src/framework/parsers/glb-parser.js`,
-  `references/bevy/crates/bevy_gltf/src/loader/mod.rs`,
-  `references/bevy/crates/bevy_pbr/src/pbr_material.rs`.
-- StandardMaterial shader/pipeline anchors:
-  `packages/webgpu/src/webgpu/standard-shader.ts`,
-  `packages/webgpu/src/webgpu/standard-pipeline-descriptor.ts`,
-  `packages/webgpu/src/webgpu/standard-pipeline.ts`.
-- Alpha/transparent queue phase patterns:
-  `references/bevy/crates/bevy_render/src/render_phase/mod.rs`,
-  `references/bevy/crates/bevy_pbr/src/render/mesh.rs`,
-  `references/three.js/src/renderers/common/RenderList.js`,
-  `references/three.js/src/renderers/WebGLRenderer.js`,
-  `references/engine/src/scene/layer.js`,
-  `references/engine/src/scene/mesh-instance.js`,
-  `references/engine/src/scene/materials/material.js`.
+- `docs/research/ALPHA_TRANSPARENT_QUEUE_CONSUMPTION_PLAN_2026_05_17.md`.
+- Bevy `references/bevy/crates/bevy_pbr/src/pbr_material.rs` and render phase
+  queue/sort patterns.
+- three.js `references/three.js/src/renderers/webgpu/utils/WebGPUPipelineUtils.js`,
+  `references/three.js/src/renderers/common/Renderer.js`, and
+  `references/three.js/src/renderers/common/RenderList.js`.
+- PlayCanvas `references/engine/src/platform/graphics/webgpu/webgpu-render-pipeline.js`
+  and `references/engine/src/scene/mesh-instance.js`.
+- Aperture anchors:
+  `docs/NORTH_STAR.md`, `docs/ARCHITECTURE.md`, `docs/DECISIONS.md`,
+  `packages/render/src/rendering/material-queue.ts`,
+  `packages/render/src/rendering/snapshot.ts`,
+  `packages/webgpu/src/webgpu/app.ts`.
 
 Recommended next task:
 
-- `task-0636 — Make built-in WebGPU pipelines render-state aware`.
+- `task-0643 — Add generic queued material resource adapter contract`.
 
 Known issues / follow-ups:
 
-- Alpha-test and transparent queue items are still diagnosed rather than
-  consumed. The new plan says to land render-state-aware built-in pipeline
-  descriptors (`task-0636`) before accepting non-opaque queue phases.
-- GLB material mapping remains deferred until sampler import policy and texture
-  transform support/diagnostics are explicit.
-- `UnlitMaterial`, `MatcapMaterial`, and `DebugNormalMaterial` non-opaque phase
-  consumption remains intentionally deferred until each family has defined
-  shader behavior and browser pixel coverage.
+- Non-opaque phase consumption remains intentionally limited to
+  StandardMaterial. Unlit, MatcapMaterial, and DebugNormalMaterial alpha/transparent
+  phases should stay diagnostic-only until each family has defined shader
+  behavior and browser pixel coverage.
+- Generic material-family queue routing is still future work; the current app
+  route remains built-in-family specific.
+- StandardMaterial PBR texture paths have prior browser coverage from earlier
+  runs, but the next audit should still compare current behavior against glTF
+  expectations before GLB material mapping expands.
 
 Files touched in this update:
 
@@ -103,29 +96,32 @@ Files touched in this update:
 - `agent/COMPLETED.md`
 - `agent/HANDOFF.md`
 - `agent/STATUS.json`
-- `docs/RENDER_ASSET_PREPARATION.md`
+- `AGENTS.md`
 - `docs/research/ALPHA_TRANSPARENT_QUEUE_CONSUMPTION_PLAN_2026_05_17.md`
-- `examples/matcap-app.js`
-- `examples/spinning-cube.js`
-- `packages/render/src/assets/preparation.ts`
-- `packages/render/src/materials/index.ts`
-- `packages/render/src/materials/pipeline-key.ts`
-- `packages/render/src/materials/prepared-resource.ts`
-- `packages/render/src/materials/standard-texture-readiness.ts`
-- `packages/render/src/rendering/extraction.ts`
+- `docs/research/GENERIC_MATERIAL_FAMILY_QUEUE_CONTRACT_PLAN_2026_05_17.md`
+- `agent/STOP_CONDITIONS.md`
+- `agent/WAKE.md`
+- `examples/standard-queue-phases.html`
+- `examples/standard-queue-phases.js`
+- `package.json`
 - `packages/render/src/rendering/snapshot.ts`
 - `packages/webgpu/src/webgpu/app.ts`
+- `packages/webgpu/src/webgpu/debug-normal-pipeline-descriptor.ts`
+- `packages/webgpu/src/webgpu/index.ts`
+- `packages/webgpu/src/webgpu/material-render-state.ts`
+- `packages/webgpu/src/webgpu/matcap-pipeline-descriptor.ts`
+- `packages/webgpu/src/webgpu/matcap-pipeline.ts`
 - `packages/webgpu/src/webgpu/standard-pipeline-descriptor.ts`
 - `packages/webgpu/src/webgpu/standard-pipeline.ts`
-- `packages/webgpu/src/webgpu/standard-shader.ts`
-- `test/assets/render-asset-preparation.test.ts`
-- `test/e2e/app-diagnostics.spec.ts`
-- `test/materials/prepared-material-resource.test.ts`
-- `test/materials/standard-texture-readiness.test.ts`
-- `test/rendering/extraction.test.ts`
+- `packages/webgpu/src/webgpu/unlit-pipeline-descriptor.ts`
+- `packages/webgpu/src/webgpu/unlit-pipeline.ts`
+- `scripts/STOP_HOOK_PROMPT.md`
+- `scripts/codex-stop-hook.sh`
+- `test/e2e/standard-queue-phases.spec.ts`
+- `test/rendering/snapshot.test.ts`
 - `test/webgpu/standard-pipeline-descriptor.test.ts`
 - `test/webgpu/standard-pipeline.test.ts`
-- `test/webgpu/standard-shader.test.ts`
+- `test/webgpu/unlit-pipeline-descriptor.test.ts`
 - `test/webgpu/webgpu-app.test.ts`
 
 ## Previous Run Update

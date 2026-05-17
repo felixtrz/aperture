@@ -59,6 +59,45 @@ describe("render snapshot packet helpers", () => {
     ).toEqual([opaqueNear, opaqueFar, transparentFar, transparentNear]);
   });
 
+  it("sorts transparent depth before pipeline and material grouping", () => {
+    const transparentNearMaterialA = createRenderSortKey({
+      queue: "transparent",
+      depth: 1,
+      pipelineKey: "standard|blend|back|less|alpha",
+      materialKey: "material:a",
+      meshKey: "mesh:a",
+      stableId: 1,
+    });
+    const transparentFarMaterialZ = createRenderSortKey({
+      queue: "transparent",
+      depth: 10,
+      pipelineKey: "standard|normalTexture|blend|back|less|alpha",
+      materialKey: "material:z",
+      meshKey: "mesh:z",
+      stableId: 2,
+    });
+    const transparentFarTie = createRenderSortKey({
+      queue: "transparent",
+      depth: 10,
+      pipelineKey: "standard|blend|back|less|alpha",
+      materialKey: "material:a",
+      meshKey: "mesh:a",
+      stableId: 3,
+    });
+
+    expect(
+      [
+        transparentNearMaterialA,
+        transparentFarTie,
+        transparentFarMaterialZ,
+      ].sort(compareRenderSortKeys),
+    ).toEqual([
+      transparentFarMaterialZ,
+      transparentFarTie,
+      transparentNearMaterialA,
+    ]);
+  });
+
   it("creates batch compatibility keys from material pipeline inputs without GPU objects", () => {
     const material = createUnlitMaterialAsset({
       renderState: { alphaMode: "mask" },

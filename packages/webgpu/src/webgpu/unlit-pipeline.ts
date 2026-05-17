@@ -15,6 +15,11 @@ import {
   UNLIT_MESH_SHADER,
   type BuiltInShaderSourceModule,
 } from "./unlit-shader.js";
+import {
+  createWebGpuColorTargetDescriptor,
+  createWebGpuDepthStencilDescriptor,
+  resolveWebGpuPipelineRenderState,
+} from "./material-render-state.js";
 import type {
   WebGpuRenderPipelineCreateDescriptor,
   WebGpuRenderPipelineDeviceLike,
@@ -50,6 +55,7 @@ export interface BrowserUnlitRenderPipelineDescriptorInput {
   readonly shader?: BuiltInShaderSourceModule;
   readonly colorFormat: string;
   readonly depthFormat?: string | null;
+  readonly batchKey?: BatchCompatibilityKey;
 }
 
 export interface CreateUnlitRenderPipelineResourceOptions {
@@ -139,6 +145,7 @@ export async function createUnlitRenderPipelineResource(
     shader,
     shaderModule: shaderModule.module,
     colorFormat: options.colorFormat,
+    batchKey: options.batchKey,
     ...(options.depthFormat === undefined
       ? {}
       : { depthFormat: options.depthFormat }),
@@ -177,6 +184,14 @@ export function createBrowserUnlitRenderPipelineDescriptor(
   input: BrowserUnlitRenderPipelineDescriptorInput,
 ): WebGpuRenderPipelineCreateDescriptor {
   const shader = input.shader ?? UNLIT_MESH_SHADER;
+  const renderState = resolveWebGpuPipelineRenderState(
+    input.batchKey?.pipelineKey,
+    input.depthFormat,
+  );
+  const colorTarget = createWebGpuColorTargetDescriptor(
+    input.colorFormat,
+    renderState,
+  );
   const descriptor: WebGpuRenderPipelineCreateDescriptor = {
     label: `${shader.label}:${input.colorFormat}:triangle-list`,
     layout: "auto",
@@ -188,26 +203,26 @@ export function createBrowserUnlitRenderPipelineDescriptor(
     fragment: {
       module: input.shaderModule,
       entryPoint: shader.entryPoints.fragment,
-      targets: [{ format: input.colorFormat }],
+      targets: [colorTarget],
     },
     primitive: {
       topology: "triangle-list",
       frontFace: "ccw",
-      cullMode: "back",
+      cullMode: renderState.cullMode,
     },
   };
+  const depthStencil = createWebGpuDepthStencilDescriptor(
+    input.depthFormat,
+    renderState,
+  );
 
-  if (input.depthFormat === undefined || input.depthFormat === null) {
+  if (depthStencil === null) {
     return descriptor;
   }
 
   return {
     ...descriptor,
-    depthStencil: {
-      format: input.depthFormat,
-      depthWriteEnabled: true,
-      depthCompare: "less",
-    },
+    depthStencil,
   };
 }
 

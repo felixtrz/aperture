@@ -15,6 +15,145 @@ Summary:
 - Validation run.
 - Follow-up tasks added.
 
+## task-0642 — Plan generic material-family queue contract
+
+Completed: 2026-05-17
+
+Summary:
+
+- Added a focused plan for moving the WebGPU app queue route from
+  family-specific preparation branches toward an internal queued material-family
+  adapter contract.
+- The plan preserves `RenderSnapshot`/`MaterialQueueItem` as the boundary,
+  keeps GPU handles in `packages/webgpu`, and avoids adding new material
+  behavior in the same implementation slice.
+- Important files:
+  `docs/research/GENERIC_MATERIAL_FAMILY_QUEUE_CONTRACT_PLAN_2026_05_17.md`,
+  `agent/BACKLOG.md`.
+- Validation run: `pnpm run format:check` passed after the documentation edit.
+- Follow-up tasks added: `task-0647`; next recommended task is `task-0643`.
+
+## task-0641 — Add Standard queue-phase WebGPU validation warning guard
+
+Completed: 2026-05-17
+
+Summary:
+
+- Added a focused Playwright console guard to the StandardMaterial queue-phase
+  browser test so WebGPU command-buffer and auto-layout validation warnings fail
+  the spec before pixel assertions.
+- This protects against the browser-only bind-group layout issue found during
+  `task-0640`, where Aperture's synchronous diagnostics reported success while
+  Chrome invalidated the command buffer.
+- Important files: `test/e2e/standard-queue-phases.spec.ts`.
+- Validation run: `pnpm exec playwright test
+test/e2e/standard-queue-phases.spec.ts` and
+  `pnpm exec tsc --noEmit -p tsconfig.test.json` passed.
+- Follow-up tasks added: backlog corrected to avoid duplicate PBR texture work;
+  next recommended task is `task-0642`.
+
+## task-0640 — Audit expanded queue phase consumption
+
+Completed: 2026-05-17
+
+Summary:
+
+- Audited the expanded StandardMaterial opaque, alpha-test, and transparent
+  queue route against the North Star and architecture constraints.
+- Confirmed phase consumption remains `RenderSnapshot`/`MaterialQueueItem`
+  driven, with no renderer-owned scene graph and no WebGL fallback.
+- Found and fixed one browser-only WebGPU drift: StandardMaterial light bind
+  groups now get pipeline-scoped resource keys so auto-layout pipelines do not
+  reuse bind groups created from another pipeline's group-3 layout.
+- Important files: `packages/webgpu/src/webgpu/app.ts`,
+  `test/webgpu/webgpu-app.test.ts`,
+  `docs/research/ALPHA_TRANSPARENT_QUEUE_CONSUMPTION_PLAN_2026_05_17.md`.
+- Validation run: `pnpm run check:boundaries`, focused WebGPU app tests,
+  Standard queue-phase Playwright spec, and final `pnpm run check` passed.
+- Follow-up tasks added: `task-0641` through `task-0645`.
+
+## task-0639 — Add browser pixel coverage for StandardMaterial queue phases
+
+Completed: 2026-05-17
+
+Summary:
+
+- Added a browser example that renders overlapping StandardMaterial opaque,
+  alpha-test, and transparent alpha-blend queue phases through `createWebGpuApp`.
+- Added Playwright pixel coverage for the alpha-test cutout and transparent
+  blend regions, plus JSON-safe status checks for queues, pipeline keys, and
+  draw counts.
+- Included the new example in `check:examples`.
+- Important files: `examples/standard-queue-phases.html`,
+  `examples/standard-queue-phases.js`,
+  `test/e2e/standard-queue-phases.spec.ts`, `package.json`.
+- Validation run: `pnpm exec playwright test
+test/e2e/standard-queue-phases.spec.ts`, `pnpm run check:examples`,
+  targeted WebGPU tests, and final `pnpm run check` passed.
+- Follow-up tasks added: none directly; continued into `task-0640`.
+
+## task-0638 — Consume StandardMaterial transparent alpha-blend queue items
+
+Completed: 2026-05-17
+
+Summary:
+
+- Allowed the WebGPU app queue route to consume StandardMaterial transparent
+  items when the material uses alpha blending without depth writes.
+- Preserved opaque, alpha-test, then transparent order and changed transparent
+  snapshot sorting so depth ordering wins before pipeline/material grouping.
+- Added JSON-safe diagnostics for unsupported transparent material families and
+  unsupported transparent blend presets.
+- Important files: `packages/webgpu/src/webgpu/app.ts`,
+  `packages/render/src/rendering/snapshot.ts`,
+  `test/rendering/snapshot.test.ts`, `test/webgpu/webgpu-app.test.ts`.
+- Validation run: focused render snapshot/material queue/WebGPU app tests,
+  `pnpm exec tsc --noEmit -p tsconfig.test.json`, and final
+  `pnpm run check` passed.
+- Follow-up tasks added: none directly; continued into `task-0639`.
+
+## task-0637 — Consume StandardMaterial alpha-test queue items
+
+Completed: 2026-05-17
+
+Summary:
+
+- Allowed the WebGPU app queue route to consume StandardMaterial `alpha-test`
+  items after opaque items.
+- Kept unsupported alpha-test material families diagnostic-only and
+  JSON-safe without submitting partial frames.
+- Added focused app tests for mixed opaque plus alpha-test StandardMaterial
+  frames and pipeline/resource reuse across frames.
+- Important files: `packages/webgpu/src/webgpu/app.ts`,
+  `test/webgpu/webgpu-app.test.ts`.
+- Validation run: focused WebGPU app tests,
+  `pnpm exec tsc --noEmit -p packages/webgpu/tsconfig.json`, and final
+  `pnpm run check` passed.
+- Follow-up tasks added: none directly; continued into `task-0638`.
+
+## task-0636 — Make built-in WebGPU pipelines render-state aware
+
+Completed: 2026-05-17
+
+Summary:
+
+- Added shared WebGPU material render-state helpers that parse built-in material
+  pipeline keys into depth, cull, and blend descriptor state.
+- Updated StandardMaterial, UnlitMaterial, MatcapMaterial, and debug-normal
+  descriptor plans/browser pipeline descriptors to derive cull mode, depth
+  compare/write behavior, and alpha blend targets from render-state tokens.
+- Added focused cache-key and browser-descriptor tests for opaque, mask, and
+  alpha-blend StandardMaterial keys.
+- Important files: `packages/webgpu/src/webgpu/material-render-state.ts`,
+  `packages/webgpu/src/webgpu/standard-pipeline-descriptor.ts`,
+  `packages/webgpu/src/webgpu/standard-pipeline.ts`,
+  `packages/webgpu/src/webgpu/unlit-pipeline-descriptor.ts`,
+  `packages/webgpu/src/webgpu/matcap-pipeline-descriptor.ts`.
+- Validation run: focused pipeline descriptor/resource tests,
+  `pnpm exec tsc --noEmit -p packages/webgpu/tsconfig.json`, and final
+  `pnpm run check` passed.
+- Follow-up tasks added: none directly; continued into `task-0637`.
+
 ## task-0630 — Route single-family app frames through material queue
 
 Completed: 2026-05-17

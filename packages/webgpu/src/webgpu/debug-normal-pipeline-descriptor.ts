@@ -12,6 +12,13 @@ import {
   type WebGpuRenderPipelineCacheKeyInput,
   type WebGpuRenderPipelineCreateDescriptor,
 } from "./pipeline-cache.js";
+import {
+  createWebGpuColorTargetDescriptor,
+  createWebGpuColorTargetStateKey,
+  createWebGpuDepthStencilDescriptor,
+  createWebGpuDepthStencilStateKey,
+  resolveWebGpuPipelineRenderState,
+} from "./material-render-state.js";
 import type { BuiltInShaderSourceModule } from "./unlit-shader.js";
 
 export type DebugNormalPipelineDescriptorDiagnosticCode =
@@ -102,18 +109,18 @@ export function createDebugNormalPipelineDescriptorPlan(
   }
 
   const resolvedTopology = topology ?? batchKey.topology;
-  const depthStencil =
-    input.depthFormat === undefined || input.depthFormat === null
-      ? {
-          format: null,
-          depthWriteEnabled: false,
-          depthCompare: "always",
-        }
-      : {
-          format: input.depthFormat,
-          depthWriteEnabled: true,
-          depthCompare: tokens.depthCompare ?? "less",
-        };
+  const renderState = resolveWebGpuPipelineRenderState(
+    batchKey.pipelineKey,
+    input.depthFormat,
+  );
+  const depthStencil = createWebGpuDepthStencilStateKey(
+    input.depthFormat,
+    renderState,
+  );
+  const colorTarget = createWebGpuColorTargetDescriptor(
+    input.colorFormat,
+    renderState,
+  );
   const keyInput: WebGpuRenderPipelineCacheKeyInput = {
     shaderLabel: shader.label,
     shaderFamily: "debug-normal",
@@ -126,7 +133,7 @@ export function createDebugNormalPipelineDescriptorPlan(
     bindGroupLayoutKeys: debugNormalBindGroupLayoutKeys(),
     primitive: {
       topology: resolvedTopology,
-      cullMode: tokens.cullMode ?? "back",
+      cullMode: renderState.cullMode,
       frontFace: "ccw",
       stripIndexFormat: null,
     },
@@ -134,11 +141,7 @@ export function createDebugNormalPipelineDescriptorPlan(
     blend: {
       alphaToCoverageEnabled: false,
       colorTargets: [
-        {
-          format: input.colorFormat,
-          blend: tokens.blendPreset === "none" ? null : tokens.blendPreset,
-          writeMask: "all",
-        },
+        createWebGpuColorTargetStateKey(input.colorFormat, renderState),
       ],
     },
     materialPipelineKey: batchKey.pipelineKey,
@@ -157,16 +160,20 @@ export function createDebugNormalPipelineDescriptorPlan(
     fragment: {
       moduleLabel: shader.label,
       entryPoint: shader.entryPoints.fragment,
-      targets: [{ format: input.colorFormat }],
+      targets: [colorTarget],
     },
     primitive: {
       topology: resolvedTopology,
-      cullMode: tokens.cullMode ?? "back",
+      cullMode: renderState.cullMode,
       frontFace: "ccw",
     },
   };
+  const depthStencilDescriptor = createWebGpuDepthStencilDescriptor(
+    input.depthFormat,
+    renderState,
+  );
 
-  if (input.depthFormat !== undefined && input.depthFormat !== null) {
+  if (depthStencilDescriptor !== null) {
     return {
       valid: true,
       plan: {
@@ -174,11 +181,7 @@ export function createDebugNormalPipelineDescriptorPlan(
         keyInput,
         descriptor: {
           ...descriptor,
-          depthStencil: {
-            format: input.depthFormat,
-            depthWriteEnabled: true,
-            depthCompare: tokens.depthCompare ?? "less",
-          },
+          depthStencil: depthStencilDescriptor,
         },
       },
       diagnostics,

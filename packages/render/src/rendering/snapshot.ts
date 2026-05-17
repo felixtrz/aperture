@@ -207,11 +207,27 @@ export function compareRenderSortKeys(
   a: RenderSortKey,
   b: RenderSortKey,
 ): number {
-  return (
+  const baseOrder =
     queueRank(a.queue) - queueRank(b.queue) ||
     a.viewId - b.viewId ||
     a.layer - b.layer ||
-    a.order - b.order ||
+    a.order - b.order;
+
+  if (baseOrder !== 0) {
+    return baseOrder;
+  }
+
+  if (a.queue === "transparent" && b.queue === "transparent") {
+    return (
+      compareDepth(a, b) ||
+      a.stableId - b.stableId ||
+      compareStrings(a.pipelineKey, b.pipelineKey) ||
+      compareStrings(a.materialKey, b.materialKey) ||
+      compareStrings(a.meshKey, b.meshKey)
+    );
+  }
+
+  return (
     compareStrings(a.pipelineKey, b.pipelineKey) ||
     compareStrings(a.materialKey, b.materialKey) ||
     compareStrings(a.meshKey, b.meshKey) ||

@@ -2,9 +2,9 @@
 
 This file contains immediate executable tasks.
 
-Agents should work on one task at a time, but should continue into the next ready task when the current task finishes before the 45-minute run window has elapsed.
+Agents should work on one task at a time, but should continue into the next ready task when the current task finishes before the 55-minute run window has elapsed.
 
-Do not stop merely because one task is complete. Stop only when the 45-minute work window has elapsed, no ready task remains, or a stop condition applies.
+Do not stop merely because one task is complete. Stop only when the 55-minute work window has elapsed, no ready task remains, or a stop condition applies.
 
 When tasks are completed, move them to `agent/COMPLETED.md` or mark them complete here and summarize in handoff.
 
@@ -59,11 +59,11 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start with `task-0636`. Generic prepared material descriptors, StandardMaterial
-texture readiness diagnostics, `TEXCOORD_1` shader variants, alpha/transparent
-phase-consumption planning, and single-family queue app routing have landed, so
-the next slice should make built-in WebGPU pipeline descriptors render-state
-aware before accepting non-opaque queue phases.
+Start with `task-0643`. StandardMaterial opaque, alpha-test, and transparent
+queue phases now render through the WebGPU app route, and the generic
+material-family queue contract has been planned. The next slice should wrap the
+current built-in family preparation branches behind a narrow internal adapter
+contract without adding new material behavior.
 
 ## Near-Term Proof Point Track
 
@@ -80,11 +80,11 @@ Target proof point:
 
 Remaining automation priority order:
 
-1. `task-0636` — make built-in WebGPU pipelines render-state aware.
-2. `task-0637` — consume StandardMaterial alpha-test queue items.
-3. `task-0638` — consume StandardMaterial transparent alpha-blend queue items.
-4. `task-0639` — add browser pixel coverage for StandardMaterial queue phases.
-5. `task-0640` — audit expanded queue phase consumption.
+1. `task-0643` — add a generic queued material resource adapter contract.
+2. `task-0644` — tighten StandardMaterial texture dependency diagnostics.
+3. `task-0645` — audit StandardMaterial PBR texture expectations.
+4. `task-0646` — promote WebGPU validation warning guards to shared E2E helpers.
+5. `task-0647` — audit queued material adapter integration.
 
 Defer allocation-only cleanup and metadata-only shader-contract tasks unless
 they are a direct blocker for this track.
@@ -123,110 +123,97 @@ viewer/material mapping should not outrun the material and queue architecture.
 
 ### Audit / Refactor
 
-### task-0636 — Make built-in WebGPU pipelines render-state aware
+### task-0643 — Add generic queued material resource adapter contract
 
 Category: `webgpu-render`
-Package/write-scope: `packages/webgpu/src/webgpu/*-pipeline-descriptor.ts`,
-`packages/webgpu/src/webgpu/*-pipeline.ts`, and focused pipeline descriptor
+Package/write-scope: `packages/webgpu/src/webgpu/app.ts`, narrow helper modules
+under `packages/webgpu/src/webgpu`, and focused WebGPU app tests.
+Reference anchor:
+`docs/research/GENERIC_MATERIAL_FAMILY_QUEUE_CONTRACT_PLAN_2026_05_17.md`,
+Bevy render-asset preparation, and the current unlit/Matcap/Standard
+frame-resource branches.
+
+Acceptance criteria:
+
+- Queue item resource preparation is dispatched through a typed adapter contract
+  instead of open-coded family switches where practical.
+- The adapter contract keeps WebGPU resources backend-owned and does not move
+  GPU handles into `packages/render`.
+- Existing unlit, MatcapMaterial, and StandardMaterial queue tests keep passing.
+- The change is narrow enough to avoid broad renderer rewrites.
+
+### task-0644 — Tighten StandardMaterial texture dependency diagnostics
+
+Category: `render-bridge`
+Package/write-scope: `packages/render/src/materials`,
+`packages/render/src/rendering/extraction.ts`, and focused readiness/extraction
 tests.
-Reference anchor:
-`docs/research/ALPHA_TRANSPARENT_QUEUE_CONSUMPTION_PLAN_2026_05_17.md`, Bevy
-mesh pipeline alpha/depth state selection, three.js material transparency
-routing, and PlayCanvas material blend/depth state.
+Reference anchor: Bevy material extraction diagnostics and glTF texture-channel
+validation patterns from three.js and PlayCanvas.
 
 Acceptance criteria:
 
-- Built-in descriptor plans and browser pipeline descriptors derive depth write,
-  depth compare, cull mode, and blend target state from material pipeline
-  render-state tokens.
-- `mask` keys keep replacement rendering semantics: no blend and depth writes
-  enabled when a depth format is present.
-- `blend|alpha` keys produce WebGPU alpha blending and disable depth writes
-  while preserving depth tests.
-- Tests cover cache-key and browser-descriptor differences for opaque, mask,
-  and alpha-blend StandardMaterial keys.
+- StandardMaterial dependency diagnostics clearly identify missing/loading/failed
+  texture and sampler handles for every supported PBR texture channel.
+- Diagnostics include material key, field, texture key or sampler key when
+  available, and remain JSON-safe.
+- Extraction blocks invalid texture dependencies before WebGPU preparation.
+- Focused readiness and extraction tests cover at least one missing sampler and
+  one failed texture path.
 
-### task-0637 — Consume StandardMaterial alpha-test queue items
+### task-0645 — Audit StandardMaterial PBR texture expectations
 
-Category: `webgpu-render`
-Package/write-scope: `packages/webgpu/src/webgpu/app.ts`,
-`packages/webgpu/src/webgpu/standard-*`, and focused app/render-frame tests.
-Reference anchor:
-`docs/research/ALPHA_TRANSPARENT_QUEUE_CONSUMPTION_PLAN_2026_05_17.md`, Bevy
-`AlphaMask3d` binned phase, and existing StandardMaterial alpha-cutoff shader
-support.
+Category: `audit-refactor`
+Package/write-scope: `docs/research`, `agent/BACKLOG.md`, and narrow tests/docs
+only if drift is found.
+Reference anchor: `docs/NORTH_STAR.md`, `docs/ARCHITECTURE.md`, three.js
+GLTFLoader material mapping, PlayCanvas GLB parser, and Bevy glTF material
+loading.
 
 Acceptance criteria:
 
-- The queue app route accepts `StandardMaterial` items in the `alpha-test`
-  phase and submits them after opaque queue items.
-- Unsupported alpha-test material families still emit JSON-safe diagnostics
-  without submitting a partial frame.
-- StandardMaterial alpha-test items reuse prepared mesh/material resource keys
-  and pipeline cache entries across frames.
-- Focused app tests cover mixed opaque plus alpha-test StandardMaterial frames.
+- Audit compares current StandardMaterial texture behavior against glTF
+  metallic-roughness expectations.
+- Audit confirms ECS/render extraction boundaries and WebGPU resource ownership
+  remain intact.
+- Any drift is fixed with scoped edits or captured as concrete follow-up tasks.
+- Validation includes package boundary checks and focused StandardMaterial tests.
 
-### task-0638 — Consume StandardMaterial transparent alpha-blend queue items
+### task-0646 — Promote WebGPU validation warning guards to shared E2E helpers
 
-Category: `webgpu-render`
-Package/write-scope: `packages/webgpu/src/webgpu/app.ts`,
-`packages/webgpu/src/webgpu/standard-*`, and focused app/render-frame tests.
-Reference anchor:
-`docs/research/ALPHA_TRANSPARENT_QUEUE_CONSUMPTION_PLAN_2026_05_17.md`,
-three.js transparent render-list sorting, PlayCanvas back-to-front transparent
-sorting, and Bevy `Transparent3d` sorted phase.
+Category: `docs-tooling`
+Package/write-scope: `test/e2e` helpers and selected WebGPU browser specs.
+Reference anchor: existing `test/e2e/webgpu-status.ts`,
+`test/e2e/standard-queue-phases.spec.ts`, and browser validation warnings
+observed during `task-0640`.
 
 Acceptance criteria:
 
-- The queue app route accepts `StandardMaterial` items in the `transparent`
-  phase when `alphaMode` is `blend`, `depth.write` is false, and
-  `blend.preset` is `alpha`.
-- Transparent queue order remains back-to-front and comes after opaque and
-  alpha-test items.
-- Unsupported transparent material families or blend presets emit JSON-safe
-  diagnostics with render id, draw index, material family, phase, and entity.
-- Focused app tests cover two overlapping transparent StandardMaterial queue
-  items with stable sorted order.
+- A shared helper records WebGPU validation warnings/errors from Playwright
+  console messages.
+- At least the Standard queue-phase and material showcase specs assert that no
+  WebGPU command-buffer or auto-layout validation warnings were emitted.
+- The helper ignores unrelated browser noise such as missing favicon requests.
+- Focused Playwright specs pass with the guard enabled.
 
-### task-0639 — Add browser pixel coverage for StandardMaterial queue phases
-
-Category: `webgpu-render`
-Package/write-scope: `examples`, `test/e2e`, and any narrow WebGPU app fixture
-helpers needed for deterministic pixels.
-Reference anchor:
-`docs/research/ALPHA_TRANSPARENT_QUEUE_CONSUMPTION_PLAN_2026_05_17.md`,
-existing materials-showcase Playwright coverage, and three.js/PlayCanvas
-opaque-before-transparent render order.
-
-Acceptance criteria:
-
-- A browser path renders overlapping opaque, alpha-test StandardMaterial, and
-  transparent StandardMaterial draws through the queue route.
-- Playwright verifies deterministic non-background pixels for the alpha-test
-  cutout and transparent blend regions.
-- Frame diagnostics stay JSON-safe and report the expected draw count and no
-  unsupported phase diagnostics.
-- The test does not rely on WebGL fallback or renderer-owned scene state.
-
-### task-0640 — Audit expanded queue phase consumption
+### task-0647 — Audit queued material adapter integration
 
 Category: `audit-refactor`
 Package/write-scope: `docs/research`, `agent/BACKLOG.md`, and narrow tests or
 docs only if drift is found.
 Reference anchor:
-`docs/research/ALPHA_TRANSPARENT_QUEUE_CONSUMPTION_PLAN_2026_05_17.md`,
-`docs/NORTH_STAR.md`, `docs/ARCHITECTURE.md`, Bevy render phases, three.js
-render lists, and PlayCanvas layer sorting.
+`docs/research/GENERIC_MATERIAL_FAMILY_QUEUE_CONTRACT_PLAN_2026_05_17.md`,
+`docs/NORTH_STAR.md`, `docs/ARCHITECTURE.md`, package boundaries, and focused
+queue/app tests.
 
 Acceptance criteria:
 
-- Audit confirms alpha-test and transparent consumption remains snapshot-derived
-  and queue-driven with no hidden mutable scene graph.
-- Audit confirms WebGPU resources remain backend-owned and package boundaries
-  still pass.
-- Any drift in render-state validation, phase ordering, or diagnostics is
-  corrected with small scoped edits or captured as follow-up backlog tasks.
-- Validation includes package boundary checks and the focused queue/app tests.
+- Audit confirms any queued material adapter implementation keeps
+  `RenderSnapshot` as the boundary and WebGPU resources inside `packages/webgpu`.
+- Audit confirms optimized multi-unlit reuse and StandardMaterial queue-phase
+  browser coverage still pass.
+- Any drift is fixed with scoped edits or captured as concrete follow-up tasks.
+- Validation includes package boundary checks and focused queue/app tests.
 
 ## Post-Unlit E2E Verification Targets
 

@@ -126,7 +126,7 @@ echo "Stop gate current minute-of-hour: $minute_of_hour"
 
 if ((10#$minute_of_hour < 55)); then
   echo "Blocking stop attempt before minute 55 of the hour."
-  emit_continue_request "current minute is $minute_of_hour; keep working until minute 45 of the hour."
+  emit_continue_request "current minute is $minute_of_hour; keep working until minute 55 of the hour."
   exit 0
 fi
 

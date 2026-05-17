@@ -10,12 +10,12 @@ Before performing final stop updates, check elapsed time for this run using `age
 
 If all of the following are true, do not stop yet:
 
-- Less than 45 minutes have elapsed.
+- Less than 55 minutes have elapsed.
 - At least one ready task remains in `agent/BACKLOG.md`.
 - No stop condition or safety issue applies.
 - Continuing would not mix unrelated changes into an incoherent diff.
 
-When the continuation gate says not to stop, select the next ready task and keep working. Defer final handoff/backlog/completed/status updates until the 45-minute window has elapsed, no ready task remains, or a stop condition applies.
+When the continuation gate says not to stop, select the next ready task and keep working. Defer final handoff/backlog/completed/status updates until the 55-minute window has elapsed, no ready task remains, or a stop condition applies.
 
 ## Required Review
 

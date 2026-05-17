@@ -136,3 +136,14 @@ The follow-up tasks should land in this order:
 4. Add Playwright pixel coverage for the StandardMaterial alpha-test and
    transparent queue route.
 5. Audit the expanded phase route before broadening support to unlit or matcap.
+
+## Audit Result
+
+The `task-0640` audit found the phase route still snapshot-derived and
+queue-driven, with WebGPU resources owned by `packages/webgpu`. The one drift
+found in browser validation was WebGPU auto-layout bind-group ownership:
+StandardMaterial light bind groups must be scoped per pipeline just like shared
+view/transform bind groups, because `layout: "auto"` creates pipeline-owned
+layouts. The app route now scopes non-material bind groups by pipeline key, and
+Playwright verifies opaque, alpha-test, and transparent StandardMaterial phases
+with deterministic pixels.
