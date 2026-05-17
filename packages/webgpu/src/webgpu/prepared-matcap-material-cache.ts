@@ -84,6 +84,7 @@ export interface PreparedMatcapMaterialResource {
   readonly cacheKey: string;
   readonly sourceMaterialKey: string;
   readonly sourceVersion: number;
+  lastUsedFrame: number;
   readonly pipelineKey: string;
   readonly layoutKey: string;
   readonly dependencyCacheKeySegments: readonly string[];
@@ -123,6 +124,7 @@ export interface PrepareMatcapMaterialResourceOptions {
   readonly handle: MaterialHandle;
   readonly material: MatcapMaterialAsset;
   readonly sourceVersion: number;
+  readonly frame?: number | undefined;
   readonly pipelineKey: string;
   readonly layout: MatcapMaterialBindGroupLayoutResource | null;
   readonly textures: readonly TextureGpuResource[];
@@ -258,6 +260,8 @@ export function prepareMatcapMaterialResource(
   const cached = options.cache.resources.get(cacheKey);
 
   if (cached !== undefined) {
+    cached.lastUsedFrame = options.frame ?? 0;
+
     return {
       valid: true,
       status: "reused",
@@ -336,6 +340,7 @@ export function prepareMatcapMaterialResource(
     cacheKey,
     sourceMaterialKey,
     sourceVersion: options.sourceVersion,
+    lastUsedFrame: options.frame ?? 0,
     pipelineKey: options.pipelineKey,
     layoutKey: options.layout.layoutKey,
     dependencyCacheKeySegments: dependencyResult.dependencies.cacheKeySegments,

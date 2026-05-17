@@ -16,6 +16,7 @@ import {
   LightKind,
   LocalTransform,
   Material,
+  Visibility,
   withCamera,
   withLight,
   withMaterial,
@@ -99,6 +100,11 @@ describe("WebGPU app facade", () => {
       bindGroupsCreated: 3,
       dynamicBufferWrites: 0,
     });
+    expectPreparedMaterialFacadeSummary(frame, {
+      unlit: 1,
+      matcap: 0,
+      standard: 0,
+    });
     expect(queuedFamilyResourceCount(frame.resources?.resources, "unlit")).toBe(
       1,
     );
@@ -139,6 +145,11 @@ describe("WebGPU app facade", () => {
       },
       bindGroupsReused: 3,
       dynamicBufferWrites: 2,
+    });
+    expectPreparedMaterialFacadeSummary(secondFrame, {
+      unlit: 1,
+      matcap: 0,
+      standard: 0,
     });
     expect(secondResources?.mesh).toBe(firstResources?.mesh);
     expect(singleMaterialResource(secondResources)).toBe(
@@ -617,6 +628,105 @@ describe("WebGPU app facade", () => {
     ).toHaveLength(2);
     expect(events.filter((event) => event === "pass:bind:2")).toHaveLength(2);
     expect(events).toContain("queue:submit:1");
+  });
+
+  it("prunes stale prepared material facade entries without evicting backend caches", async () => {
+    const events: string[] = [];
+    const { canvas, environment } = webGpuHarness(events);
+    const created = await createWebGpuApp({
+      canvas,
+      environment,
+      worldOptions: { entityCapacity: 8 },
+    });
+
+    expect(created.ok).toBe(true);
+
+    if (!created.ok) {
+      return;
+    }
+
+    const app = created.app;
+    const assets = createRenderAssetCollections({ registry: app.assets });
+    const mesh = assets.meshes.add(
+      createBoxMeshAsset({ label: "FacadePruneCube" }),
+    );
+    const firstMaterial = assets.materials.unlit.add(
+      createUnlitMaterialAsset({ label: "Facade Retained White" }),
+    );
+    const secondMaterial = assets.materials.standard.add(
+      createStandardMaterialAsset({ label: "Facade Pruned Standard" }),
+    );
+
+    app.spawn(
+      withTransform({ translation: [0, 0, 5] }),
+      withCamera({ priority: 0, layerMask: 1 }),
+    );
+    app.spawn(
+      withTransform({ translation: [-0.45, 0, 0] }),
+      withMesh(mesh),
+      withMaterial(firstMaterial),
+      withRenderLayer(1),
+      withVisibility(true),
+    );
+    const prunedEntity = app.spawn(
+      withTransform({ translation: [0.45, 0, 0] }),
+      withMesh(mesh),
+      withMaterial(secondMaterial),
+      withRenderLayer(1),
+      withVisibility(true),
+    );
+    app.spawn(
+      withLight({
+        kind: LightKind.Ambient,
+        intensity: 0.2,
+        layerMask: 1,
+      }),
+    );
+    app.spawn(
+      withTransform(),
+      withLight({
+        kind: LightKind.Directional,
+        intensity: 1.5,
+        layerMask: 1,
+      }),
+    );
+
+    const firstFrame = await app.stepAndRender(1 / 60, 1, 76);
+
+    prunedEntity.setValue(Visibility, "visible", false);
+
+    const secondFrame = await app.stepAndRender(1 / 60, 2, 77);
+
+    expect(firstFrame.ok).toBe(true);
+    expect(firstFrame.counts.drawCalls).toBe(2);
+    expectPreparedMaterialCacheSummary(firstFrame, {
+      unlit: 1,
+      matcap: 0,
+      standard: 1,
+    });
+    expectPreparedMaterialFacadeSummary(firstFrame, {
+      unlit: 1,
+      matcap: 0,
+      standard: 1,
+    });
+    expect(secondFrame.ok).toBe(true);
+    expect(secondFrame.counts.drawCalls).toBe(1);
+    expectPreparedMaterialCacheSummary(secondFrame, {
+      unlit: 1,
+      matcap: 0,
+      standard: 1,
+    });
+    expectPreparedMaterialFacadeSummary(secondFrame, {
+      unlit: 1,
+      matcap: 0,
+      standard: 0,
+    });
+    expectPreparedMaterialFacadeResourceKeys(secondFrame, [
+      assetHandleKey(firstMaterial),
+    ]);
+    expect(JSON.stringify(secondFrame.resourceReuse)).not.toContain(
+      "Facade Pruned Standard",
+    );
   });
 
   it("renders mixed unlit and standard app resource sets for a shared mesh", async () => {
@@ -1120,6 +1230,11 @@ describe("WebGPU app facade", () => {
       matcap: 0,
       standard: 0,
     });
+    expectPreparedMaterialFacadeSummary(firstFrame, {
+      unlit: 1,
+      matcap: 0,
+      standard: 0,
+    });
     expect(textureVersionFrame.ok).toBe(true);
     expect(textureVersionFrame.resourceReuse).toMatchObject({
       pipelineHits: 1,
@@ -1140,6 +1255,11 @@ describe("WebGPU app facade", () => {
       matcap: 0,
       standard: 0,
     });
+    expectPreparedMaterialFacadeSummary(textureVersionFrame, {
+      unlit: 1,
+      matcap: 0,
+      standard: 0,
+    });
     expect(samplerVersionFrame.ok).toBe(true);
     expect(samplerVersionFrame.resourceReuse).toMatchObject({
       pipelineHits: 1,
@@ -1157,6 +1277,11 @@ describe("WebGPU app facade", () => {
     });
     expectPreparedMaterialCacheSummary(samplerVersionFrame, {
       unlit: 3,
+      matcap: 0,
+      standard: 0,
+    });
+    expectPreparedMaterialFacadeSummary(samplerVersionFrame, {
+      unlit: 1,
       matcap: 0,
       standard: 0,
     });
@@ -2548,7 +2673,7 @@ describe("WebGPU app facade", () => {
       withTransform({ translation: [0, 0, 5] }),
       withCamera({ priority: 0, layerMask: 1 }),
     );
-    app.spawn(
+    const unlitEntity = app.spawn(
       withTransform({ translation: [-0.8, 0, 0] }),
       withMesh(mesh),
       withMaterial(unlitMaterial),
@@ -2569,7 +2694,7 @@ describe("WebGPU app facade", () => {
       withRenderLayer(1),
       withVisibility(true),
     );
-    app.spawn(
+    const ambientLight = app.spawn(
       withLight({
         kind: LightKind.Ambient,
         intensity: 0.2,
@@ -2606,6 +2731,21 @@ describe("WebGPU app facade", () => {
       bindGroupsCreated: 10,
       lightBuffersCreated: 1,
     });
+    expectPreparedMaterialCacheSummary(frame, {
+      unlit: 1,
+      matcap: 1,
+      standard: 1,
+    });
+    expectPreparedMaterialFacadeSummary(frame, {
+      unlit: 1,
+      matcap: 1,
+      standard: 1,
+    });
+    expectPreparedMaterialFacadeResourceKeys(frame, [
+      assetHandleKey(unlitMaterial),
+      assetHandleKey(matcapMaterial),
+      assetHandleKey(standardMaterial),
+    ]);
     expect(events.filter((event) => event === "pass:pipeline")).toHaveLength(3);
     expect(events.filter((event) => event === "pass:bind:2")).toHaveLength(3);
     expect(events).toContain("pass:bind:3");
@@ -2669,6 +2809,16 @@ describe("WebGPU app facade", () => {
       lightBuffersReused: 1,
       dynamicBufferWrites: 8,
     });
+    expectPreparedMaterialCacheSummary(secondFrame, {
+      unlit: 1,
+      matcap: 1,
+      standard: 1,
+    });
+    expectPreparedMaterialFacadeSummary(secondFrame, {
+      unlit: 1,
+      matcap: 1,
+      standard: 1,
+    });
     expect(queuedFamilyResourceCount(secondResources, "unlit")).toBe(1);
     expect(queuedFamilyResourceCount(secondResources, "matcap")).toBe(1);
     expect(queuedFamilyResourceCount(secondResources, "standard")).toBe(1);
@@ -2689,6 +2839,36 @@ describe("WebGPU app facade", () => {
     }
 
     expect(resourceEventCounts(events)).toEqual(firstResourceEvents);
+
+    unlitEntity.getVectorView(LocalTransform, "translation").set([-1, 0, 0]);
+    ambientLight.setValue(Light, "intensity", 0.35);
+
+    const transformLightFrame = await app.stepAndRender(1 / 60, 3, 40);
+
+    expect(transformLightFrame.ok).toBe(true);
+    expect(transformLightFrame.resourceReuse).toMatchObject({
+      pipelineHits: 3,
+      pipelineMisses: 0,
+      preparedMaterialBuffersCreated: 0,
+      preparedMaterialBindGroupsCreated: 0,
+      lightBuffersReused: 1,
+    });
+    expectPreparedMaterialCacheSummary(transformLightFrame, {
+      unlit: 1,
+      matcap: 1,
+      standard: 1,
+    });
+    expectPreparedMaterialFacadeSummary(transformLightFrame, {
+      unlit: 1,
+      matcap: 1,
+      standard: 1,
+    });
+    expect(
+      JSON.stringify(
+        webGpuAppRenderReportToJsonValue(transformLightFrame).resourceReuse
+          .preparedMaterialCache,
+      ),
+    ).not.toContain("prepared-material");
   });
 
   it("routes scalar and textured StandardMaterial queue items with unlit and matcap draws", async () => {
@@ -2865,6 +3045,22 @@ describe("WebGPU app facade", () => {
       bindGroupsCreated: 14,
       lightBuffersCreated: 2,
     });
+    expectPreparedMaterialCacheSummary(frame, {
+      unlit: 1,
+      matcap: 1,
+      standard: 2,
+    });
+    expectPreparedMaterialFacadeSummary(frame, {
+      unlit: 1,
+      matcap: 1,
+      standard: 2,
+    });
+    expectPreparedMaterialFacadeResourceKeys(frame, [
+      assetHandleKey(unlitMaterial),
+      assetHandleKey(scalarStandardMaterial),
+      assetHandleKey(texturedStandardMaterial),
+      assetHandleKey(matcapMaterial),
+    ]);
     expect(
       new Set(
         frame.snapshot.meshDraws.map((draw) => draw.batchKey.pipelineKey),
@@ -2901,6 +3097,22 @@ describe("WebGPU app facade", () => {
       samplerResourcesCreated: 0,
       samplerResourcesReused: 2,
     });
+    expectPreparedMaterialCacheSummary(secondFrame, {
+      unlit: 1,
+      matcap: 1,
+      standard: 2,
+    });
+    expectPreparedMaterialFacadeSummary(secondFrame, {
+      unlit: 1,
+      matcap: 1,
+      standard: 2,
+    });
+    expect(
+      JSON.stringify(
+        webGpuAppRenderReportToJsonValue(secondFrame).resourceReuse
+          .preparedMaterialCache,
+      ),
+    ).not.toContain("GPU");
   });
 
   it("diagnoses unsupported material queue families without submitting", async () => {
@@ -4043,6 +4255,11 @@ describe("WebGPU app facade", () => {
       matcap: 0,
       standard: 1,
     });
+    expectPreparedMaterialFacadeSummary(firstFrame, {
+      unlit: 0,
+      matcap: 0,
+      standard: 1,
+    });
     expect(materialVersionFrame.ok).toBe(true);
     expect(materialVersionFrame.resourceReuse).toMatchObject({
       pipelineHits: 1,
@@ -4065,6 +4282,11 @@ describe("WebGPU app facade", () => {
       unlit: 0,
       matcap: 0,
       standard: 2,
+    });
+    expectPreparedMaterialFacadeSummary(materialVersionFrame, {
+      unlit: 0,
+      matcap: 0,
+      standard: 1,
     });
     expect(cacheHitFrame.ok).toBe(true);
     expect(cacheHitFrame.resourceReuse).toMatchObject({
@@ -4089,6 +4311,11 @@ describe("WebGPU app facade", () => {
       unlit: 0,
       matcap: 0,
       standard: 2,
+    });
+    expectPreparedMaterialFacadeSummary(cacheHitFrame, {
+      unlit: 0,
+      matcap: 0,
+      standard: 1,
     });
     expect(
       webGpuAppRenderReportToJsonValue(materialVersionFrame).resourceReuse,
@@ -4502,6 +4729,11 @@ describe("WebGPU app facade", () => {
       bindGroupsCreated: 4,
       lightBuffersCreated: 1,
     });
+    expectPreparedMaterialFacadeSummary(frame, {
+      unlit: 0,
+      matcap: 0,
+      standard: 1,
+    });
     expect(events).toContain(
       "device:pipeline:aperture/standard-mesh-base-color-textured:bgra8unorm:triangle-list",
     );
@@ -4536,6 +4768,11 @@ describe("WebGPU app facade", () => {
       bindGroupsReused: 4,
       lightBuffersReused: 1,
       dynamicBufferWrites: 4,
+    });
+    expectPreparedMaterialFacadeSummary(secondFrame, {
+      unlit: 0,
+      matcap: 0,
+      standard: 1,
     });
     expect(secondResources?.bindGroups).toBe(firstResources?.bindGroups);
     expect(resourceEventCounts(events)).toEqual(firstResourceEvents);
@@ -4573,6 +4810,11 @@ describe("WebGPU app facade", () => {
       bindGroupsReused: 2,
       lightBuffersCreated: 2,
       dynamicBufferWrites: 0,
+    });
+    expectPreparedMaterialFacadeSummary(thirdFrame, {
+      unlit: 0,
+      matcap: 0,
+      standard: 1,
     });
     expect(
       webGpuAppRenderReportToJsonValue(thirdFrame).resourceReuse,
@@ -4630,6 +4872,11 @@ describe("WebGPU app facade", () => {
       lightBuffersCreated: 2,
       dynamicBufferWrites: 0,
     });
+    expectPreparedMaterialFacadeSummary(textureVersionFrame, {
+      unlit: 0,
+      matcap: 0,
+      standard: 1,
+    });
     expect(
       webGpuAppRenderReportToJsonValue(textureVersionFrame).resourceReuse,
     ).toMatchObject({
@@ -4668,6 +4915,11 @@ describe("WebGPU app facade", () => {
       bindGroupsReused: 1,
       lightBuffersCreated: 2,
       dynamicBufferWrites: 0,
+    });
+    expectPreparedMaterialFacadeSummary(samplerVersionFrame, {
+      unlit: 0,
+      matcap: 0,
+      standard: 1,
     });
     expect(
       webGpuAppRenderReportToJsonValue(samplerVersionFrame).resourceReuse,
@@ -6030,6 +6282,56 @@ function expectPreparedMaterialCacheSummary(
       },
     },
   });
+}
+
+function expectPreparedMaterialFacadeSummary(
+  report: Parameters<typeof webGpuAppRenderReportToJsonValue>[0],
+  expected: {
+    readonly unlit: number;
+    readonly matcap: number;
+    readonly standard: number;
+    readonly debugNormal?: number;
+  },
+): void {
+  const debugNormal = expected.debugNormal ?? 0;
+  const summary =
+    webGpuAppRenderReportToJsonValue(report).resourceReuse
+      .preparedMaterialFacade;
+
+  expect(summary).toMatchObject({
+    totalEntries:
+      expected.unlit + expected.matcap + expected.standard + debugNormal,
+    families: {
+      unlit: { entries: expected.unlit },
+      matcap: { entries: expected.matcap },
+      standard: { entries: expected.standard },
+      "debug-normal": { entries: debugNormal },
+    },
+  });
+
+  const json = JSON.stringify(summary);
+
+  expect(json).not.toContain("Map");
+  expect(json).not.toContain("GPU");
+  expect(json).not.toContain("baseColorFactor");
+}
+
+function expectPreparedMaterialFacadeResourceKeys(
+  report: Parameters<typeof webGpuAppRenderReportToJsonValue>[0],
+  sourceMaterialKeys: readonly string[],
+): void {
+  const entries =
+    webGpuAppRenderReportToJsonValue(report).resourceReuse
+      .preparedMaterialFacade.entries;
+
+  expect(entries.map((entry) => entry.materialResourceKey).sort()).toEqual(
+    sourceMaterialKeys.map((key) => `prepared-material:${key}`).sort(),
+  );
+  expect(
+    entries
+      .map((entry) => entry.bindGroupResourceKey)
+      .every((key) => key.startsWith("prepared-material-bind-group:")),
+  ).toBe(true);
 }
 
 function queuedMeshResourceCount(resources: unknown): number {

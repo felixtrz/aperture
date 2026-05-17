@@ -44,6 +44,7 @@ describe("scalar StandardMaterial prepared material cache", () => {
       handle,
       material,
       sourceVersion: 1,
+      frame: 30,
       pipelineKey: "standard|opaque|back|less|none",
       layout: materialLayout(),
     });
@@ -53,6 +54,7 @@ describe("scalar StandardMaterial prepared material cache", () => {
       handle,
       material,
       sourceVersion: 1,
+      frame: 31,
       pipelineKey: "standard|opaque|back|less|none",
       layout: materialLayout(),
     });
@@ -62,6 +64,7 @@ describe("scalar StandardMaterial prepared material cache", () => {
       handle,
       material,
       sourceVersion: 2,
+      frame: 32,
       pipelineKey: "standard|opaque|back|less|none",
       layout: materialLayout(),
     });
@@ -80,9 +83,11 @@ describe("scalar StandardMaterial prepared material cache", () => {
     ]);
     expect(second.status).toBe("reused");
     expect(second.resource).toBe(first.resource);
+    expect(second.resource?.lastUsedFrame).toBe(31);
     expect(third.status).toBe("created");
     expect(third.resource).not.toBe(first.resource);
     expect(third.resource?.sourceVersion).toBe(2);
+    expect(third.resource?.lastUsedFrame).toBe(32);
     expect(createdBuffers).toHaveLength(2);
     expect(createdBindGroups).toHaveLength(2);
   });

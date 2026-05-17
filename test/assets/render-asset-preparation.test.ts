@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   AssetRegistry,
   PreparedRenderAssetStore,
+  createMatcapMaterialAsset,
   createMaterialMetadataRenderAssetAdapter,
   createMeshHandle,
   createPreparedMaterialStore,
@@ -11,6 +12,8 @@ import {
   createSamplerHandle,
   createStandardMaterialAsset,
   createTextureHandle,
+  createUnlitMaterialAsset,
+  preparedMaterialStoreSummaryToJsonValue,
   RenderWorld,
   prepareRenderAsset,
   unloadPreparedRenderAsset,
@@ -333,6 +336,76 @@ describe("render asset preparation contract", () => {
       materialResourceKey: "prepared-material:material:standard-material-1",
     });
     expect(JSON.stringify(renderWorld.listObjects())).not.toContain("buffer");
+  });
+
+  it("summarizes prepared material facade entries without source assets or backend handles", () => {
+    const assets = createRenderAssetCollections();
+    const matcapTexture = createTextureHandle("summary-matcap");
+    const matcapSampler = createSamplerHandle("summary-matcap-sampler");
+
+    assets.registry.register(matcapTexture);
+    assets.registry.register(matcapSampler);
+    assets.registry.markReady(matcapTexture, {});
+    assets.registry.markReady(matcapSampler, {});
+
+    const unlit = assets.materials.unlit.add(
+      createUnlitMaterialAsset({
+        label: "Summary Unlit",
+        baseColorFactor: [0.25, 0.5, 0.75, 1],
+      }),
+    );
+    const matcap = assets.materials.matcap.add(
+      createMatcapMaterialAsset({
+        label: "Summary Matcap",
+        matcapTexture: { texture: matcapTexture, sampler: matcapSampler },
+      }),
+    );
+    const standard = assets.materials.standard.add(
+      createStandardMaterialAsset({ label: "Summary Standard" }),
+    );
+    const store = createPreparedMaterialStore();
+
+    store.prepare({ registry: assets.registry, handle: unlit });
+    store.prepare({ registry: assets.registry, handle: matcap });
+    store.prepare({ registry: assets.registry, handle: standard });
+
+    const summary = preparedMaterialStoreSummaryToJsonValue(store);
+    const json = JSON.stringify(summary);
+
+    expect(summary).toMatchObject({
+      totalEntries: 3,
+      families: {
+        unlit: { entries: 1 },
+        matcap: { entries: 1 },
+        standard: { entries: 1 },
+        "debug-normal": { entries: 0 },
+      },
+    });
+    expect(summary.entries).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          label: "Summary Unlit",
+          materialFamily: "unlit",
+          dependencyCount: 0,
+          textureBindingCount: 0,
+        }),
+        expect.objectContaining({
+          label: "Summary Matcap",
+          materialFamily: "matcap",
+          dependencyCount: 2,
+          textureBindingCount: 1,
+        }),
+        expect.objectContaining({
+          label: "Summary Standard",
+          materialFamily: "standard",
+          dependencyCount: 0,
+          textureBindingCount: 0,
+        }),
+      ]),
+    );
+    expect(json).not.toContain("Map");
+    expect(json).not.toContain("baseColorFactor");
+    expect(json).not.toContain("GPU");
   });
 });
 

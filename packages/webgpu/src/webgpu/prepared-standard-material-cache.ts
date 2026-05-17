@@ -45,6 +45,7 @@ export interface PreparedScalarStandardMaterialResource {
   readonly cacheKey: string;
   readonly sourceMaterialKey: string;
   readonly sourceVersion: number;
+  lastUsedFrame: number;
   readonly pipelineKey: string;
   readonly layoutKey: string;
   readonly materialResourceKey: string;
@@ -275,6 +276,7 @@ export interface PrepareScalarStandardMaterialResourceOptions {
   readonly handle: MaterialHandle;
   readonly material: StandardMaterialAsset;
   readonly sourceVersion: number;
+  readonly frame?: number | undefined;
   readonly pipelineKey: string;
   readonly layout: StandardMaterialBindGroupLayoutResource | null;
 }
@@ -293,6 +295,7 @@ export interface PrepareBaseColorTexturedStandardMaterialResourceOptions {
   readonly handle: MaterialHandle;
   readonly material: StandardMaterialAsset;
   readonly sourceVersion: number;
+  readonly frame?: number | undefined;
   readonly pipelineKey: string;
   readonly layout: StandardMaterialBindGroupLayoutResource | null;
   readonly textures: readonly TextureGpuResource[];
@@ -313,6 +316,7 @@ export interface PrepareMetallicRoughnessTexturedStandardMaterialResourceOptions
   readonly handle: MaterialHandle;
   readonly material: StandardMaterialAsset;
   readonly sourceVersion: number;
+  readonly frame?: number | undefined;
   readonly pipelineKey: string;
   readonly layout: StandardMaterialBindGroupLayoutResource | null;
   readonly textures: readonly TextureGpuResource[];
@@ -333,6 +337,7 @@ export interface PrepareNormalTexturedStandardMaterialResourceOptions {
   readonly handle: MaterialHandle;
   readonly material: StandardMaterialAsset;
   readonly sourceVersion: number;
+  readonly frame?: number | undefined;
   readonly pipelineKey: string;
   readonly layout: StandardMaterialBindGroupLayoutResource | null;
   readonly textures: readonly TextureGpuResource[];
@@ -353,6 +358,7 @@ export interface PrepareOcclusionEmissiveTexturedStandardMaterialResourceOptions
   readonly handle: MaterialHandle;
   readonly material: StandardMaterialAsset;
   readonly sourceVersion: number;
+  readonly frame?: number | undefined;
   readonly pipelineKey: string;
   readonly layout: StandardMaterialBindGroupLayoutResource | null;
   readonly textures: readonly TextureGpuResource[];
@@ -571,6 +577,8 @@ export function prepareScalarStandardMaterialResource(
   const cached = options.cache.resources.get(cacheKey);
 
   if (cached !== undefined) {
+    cached.lastUsedFrame = options.frame ?? 0;
+
     return {
       valid: true,
       status: "reused",
@@ -643,6 +651,7 @@ export function prepareScalarStandardMaterialResource(
     cacheKey,
     sourceMaterialKey,
     sourceVersion: options.sourceVersion,
+    lastUsedFrame: options.frame ?? 0,
     pipelineKey: options.pipelineKey,
     layoutKey: options.layout.layoutKey,
     materialResourceKey: material.resource.resourceKey,
@@ -810,6 +819,7 @@ interface PrepareSingleTexturedStandardMaterialResourceOptions {
   readonly handle: MaterialHandle;
   readonly material: StandardMaterialAsset;
   readonly sourceVersion: number;
+  readonly frame?: number | undefined;
   readonly pipelineKey: string;
   readonly layout: StandardMaterialBindGroupLayoutResource | null;
   readonly textures: readonly TextureGpuResource[];
@@ -969,6 +979,8 @@ function prepareTextureSetTexturedStandardMaterialResource(
     | undefined;
 
   if (cached !== undefined) {
+    cached.lastUsedFrame = options.frame ?? 0;
+
     return {
       valid: true,
       status: "reused",
@@ -1049,6 +1061,7 @@ function prepareTextureSetTexturedStandardMaterialResource(
     cacheKey,
     sourceMaterialKey,
     sourceVersion: options.sourceVersion,
+    lastUsedFrame: options.frame ?? 0,
     pipelineKey: options.pipelineKey,
     layoutKey: options.layout.layoutKey,
     dependencyCacheKeySegments: dependencyResult.dependencies.cacheKeySegments,

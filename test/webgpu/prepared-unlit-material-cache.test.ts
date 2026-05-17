@@ -42,6 +42,7 @@ describe("scalar unlit prepared material cache", () => {
       handle,
       material: required(firstEntry.asset),
       sourceVersion: firstEntry.version,
+      frame: 10,
       pipelineKey: "unlit|opaque|back|less|none",
       layout: materialLayout(),
     });
@@ -52,6 +53,7 @@ describe("scalar unlit prepared material cache", () => {
       handle,
       material: required(firstEntry.asset),
       sourceVersion: firstEntry.version,
+      frame: 11,
       pipelineKey: "unlit|opaque|back|less|none",
       layout: materialLayout(),
     });
@@ -66,6 +68,7 @@ describe("scalar unlit prepared material cache", () => {
       handle,
       material: required(updatedEntry.asset),
       sourceVersion: updatedEntry.version,
+      frame: 12,
       pipelineKey: "unlit|opaque|back|less|none",
       layout: materialLayout(),
     });
@@ -77,9 +80,11 @@ describe("scalar unlit prepared material cache", () => {
     );
     expect(second.status).toBe("reused");
     expect(second.resource).toBe(first.resource);
+    expect(second.resource?.lastUsedFrame).toBe(11);
     expect(third.status).toBe("created");
     expect(third.resource).not.toBe(first.resource);
     expect(third.resource?.sourceVersion).toBe(updatedEntry.version);
+    expect(third.resource?.lastUsedFrame).toBe(12);
     expect(createdBuffers).toHaveLength(2);
     expect(createdBindGroups).toHaveLength(2);
   });

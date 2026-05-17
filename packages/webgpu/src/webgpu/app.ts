@@ -13,6 +13,8 @@ import {
 } from "@aperture-engine/simulation";
 import {
   RenderWorld,
+  createPreparedMaterialStore,
+  createPreparedMaterialQueueResourceKeyResolver,
   createMaterialQueueScratch,
   createPackedSnapshotTransformsScratch,
   createPackedSnapshotViewUniformsScratch,
@@ -20,6 +22,8 @@ import {
   extractRenderSnapshot,
   Material,
   materialDependencyReadinessReportToJsonValue,
+  prepareSnapshotMaterials,
+  preparedMaterialStoreSummaryToJsonValue,
   writeMaterialQueueFromSnapshot,
   registerRenderAuthoringComponents,
   writePackedSnapshotTransforms,
@@ -35,6 +39,8 @@ import {
   type PackedSnapshotTransformsScratch,
   type PackedSnapshotViewUniforms,
   type PackedSnapshotViewUniformsScratch,
+  type PreparedMaterialStore,
+  type PreparedMaterialStoreJsonValue,
   type RenderSnapshot,
   type StandardMaterialAsset,
   type UnlitMaterialAsset,
@@ -45,8 +51,11 @@ import {
   prepareUnlitAppTextureSamplerResources,
   emptyPreparedAppTextureSamplerResources,
   sourceAssetCacheKey,
-  type PreparedAppTextureSamplerResources,
 } from "./app-texture-sampler-resources.js";
+import {
+  createPreparedMaterialTextureSamplerDependencies,
+  type PreparedMaterialTextureSamplerDependencies,
+} from "./prepared-material-texture-sampler-dependencies.js";
 import {
   createPreparedBuiltInMaterialStore,
   writePreparedBuiltInMaterialStoreSummary,
@@ -200,6 +209,7 @@ export interface WebGpuAppResourceReuseReport {
   preparedMaterialBindGroupsCreated: number;
   preparedMaterialBindGroupsReused: number;
   preparedMaterialCache: PreparedAppMaterialCacheSummary;
+  preparedMaterialFacade: PreparedMaterialStoreJsonValue;
   textureResourcesCreated: number;
   textureResourcesReused: number;
   samplerResourcesCreated: number;
@@ -304,6 +314,7 @@ interface WebGpuAppResourceCache {
   readonly samplers: Map<string, SamplerGpuResource>;
   readonly preparedMeshes: PreparedMeshGpuResourceCache;
   readonly preparedMaterials: PreparedBuiltInMaterialStore;
+  readonly preparedMaterialFacade: PreparedMaterialStore;
   readonly frameScratch: WebGpuAppFrameScratch;
   readonly unlitFrame: UnlitAppFrameResourceCacheSlot;
   readonly matcapFrame: MatcapAppFrameResourceCacheSlot;
@@ -416,7 +427,7 @@ interface QueuedBuiltInFrameResourcePreparationOptions {
   readonly preparedMaterials: PreparedBuiltInMaterialStore;
   readonly snapshot: RenderSnapshot;
   readonly item: QueuedBuiltInAppResourceItem;
-  readonly textures: PreparedAppTextureSamplerResources;
+  readonly textureSamplerDependencies: PreparedMaterialTextureSamplerDependencies;
   readonly viewUniforms: PackedSnapshotViewUniforms;
   readonly worldTransforms: PackedSnapshotTransforms;
   readonly layouts: WebGpuAppPipelineLayouts;
@@ -525,6 +536,16 @@ export async function createWebGpuApp(
         renderOptions,
       );
 
+      prepareSnapshotMaterials({
+        registry: assets,
+        snapshot: report.snapshot,
+        materials: resourceCache.preparedMaterialFacade,
+        pruneUnreferenced: true,
+      });
+      report.resourceReuse.preparedMaterialFacade =
+        preparedMaterialStoreSummaryToJsonValue(
+          resourceCache.preparedMaterialFacade,
+        );
       writeWebGpuAppPreparedMaterialCacheSummary(
         report.resourceReuse.preparedMaterialCache,
         resourceCache,
@@ -549,6 +570,7 @@ function createWebGpuAppResourceCache(): WebGpuAppResourceCache {
     samplers: new Map(),
     preparedMeshes: createPreparedMeshGpuResourceCache(),
     preparedMaterials: createPreparedBuiltInMaterialStore(),
+    preparedMaterialFacade: createPreparedMaterialStore(),
     frameScratch: createWebGpuAppFrameScratch(),
     unlitFrame:
       createWebGpuAppFrameResourceCacheSlot<CachedUnlitAppFrameResources>(),
@@ -924,6 +946,7 @@ function collectQueuedBuiltInAppResourceSet(options: {
   readonly app: WebGpuApp;
   readonly snapshot: RenderSnapshot;
   readonly frameScratch: WebGpuAppFrameScratch;
+  readonly materials: PreparedMaterialStore;
 }): {
   readonly valid: boolean;
   readonly resourceSet: QueuedBuiltInAppResourceSet | null;
@@ -931,6 +954,8 @@ function collectQueuedBuiltInAppResourceSet(options: {
 } {
   const meshAssets = options.frameScratch.queueRoute.sourceMeshAssets;
   const materialAssets = options.frameScratch.queueRoute.sourceMaterialAssets;
+  const resolvePreparedMaterialResourceKey =
+    createPreparedMaterialQueueResourceKeyResolver(options.materials);
 
   indexQueuedSourceAssets(options.app, options.snapshot, {
     meshAssets,
@@ -942,8 +967,7 @@ function collectQueuedBuiltInAppResourceSet(options: {
     {
       meshResourceKey: (input) =>
         meshAssets.get(input.meshKey)?.resourceKey ?? null,
-      materialResourceKey: (input) =>
-        materialAssets.get(input.materialKey)?.resourceKey ?? null,
+      materialResourceKey: resolvePreparedMaterialResourceKey,
     },
     options.frameScratch.materialQueue,
   );
@@ -1278,11 +1302,12 @@ const QUEUED_BUILT_IN_MATERIAL_ADAPTERS =
           materialHandle: options.item.draw.material,
           materialKey: options.item.materialKey,
           sourceMaterialKey: options.item.sourceMaterialKey,
+          frame: options.snapshot.frame,
           pipelineKey: options.item.draw.batchKey.pipelineKey,
           preparedMeshes: options.cache.preparedMeshes,
           preparedScalarMaterials: options.preparedMaterials.unlit,
           assets: options.app.assets,
-          textures: options.textures,
+          textureSamplerDependencies: options.textureSamplerDependencies,
           viewUniforms: options.viewUniforms,
           worldTransforms: options.worldTransforms,
           layouts: options.layouts.sharedLayouts,
@@ -1299,9 +1324,10 @@ const QUEUED_BUILT_IN_MATERIAL_ADAPTERS =
           materialHandle: options.item.draw.material,
           materialKey: options.item.materialKey,
           sourceMaterialKey: options.item.sourceMaterialKey,
+          frame: options.snapshot.frame,
           pipelineKey: options.item.draw.batchKey.pipelineKey,
           assets: options.app.assets,
-          textures: options.textures,
+          textureSamplerDependencies: options.textureSamplerDependencies,
           viewUniforms: options.viewUniforms,
           worldTransforms: options.worldTransforms,
           sharedLayouts: options.layouts.sharedLayouts,
@@ -1325,7 +1351,7 @@ const QUEUED_BUILT_IN_MATERIAL_ADAPTERS =
           sourceMaterialKey: options.item.sourceMaterialKey,
           pipelineKey: options.item.draw.batchKey.pipelineKey,
           assets: options.app.assets,
-          textures: options.textures,
+          textureSamplerDependencies: options.textureSamplerDependencies,
           viewUniforms: options.viewUniforms,
           worldTransforms: options.worldTransforms,
           sharedLayouts: options.layouts.sharedLayouts,
@@ -1570,15 +1596,18 @@ async function prepareQueuedBuiltInFrameResources(options: {
       getBindGroupLayout:
         pipelineHandle.getBindGroupLayout.bind(pipelineHandle),
     });
-    const textures = adapter.prepareTextureSamplerResources({
-      app: options.app,
-      cache: options.cache,
-      item,
-      reuse: options.reuse,
-    });
+    const textureSamplerDependencies =
+      createPreparedMaterialTextureSamplerDependencies(
+        adapter.prepareTextureSamplerResources({
+          app: options.app,
+          cache: options.cache,
+          item,
+          reuse: options.reuse,
+        }),
+      );
 
-    if (!textures.valid) {
-      diagnostics.push(...textures.diagnostics);
+    if (!textureSamplerDependencies.valid) {
+      diagnostics.push(...textureSamplerDependencies.diagnostics);
       continue;
     }
 
@@ -1588,7 +1617,7 @@ async function prepareQueuedBuiltInFrameResources(options: {
       preparedMaterials: options.cache.preparedMaterials,
       snapshot: options.snapshot,
       item,
-      textures,
+      textureSamplerDependencies,
       viewUniforms: options.viewUniforms,
       worldTransforms: options.worldTransforms,
       layouts,
@@ -1798,15 +1827,26 @@ async function renderWebGpuAppFrame(
     plan: resourceSetPlan,
     firstDraw,
   });
-  const queuedBuiltIn =
+  const shouldUseQueuedBuiltInRoute =
     multiUnlit === null &&
-    (firstMaterialKindSupported || resourceSetPlan.sets.length > 1)
-      ? collectQueuedBuiltInAppResourceSet({
-          app,
-          snapshot,
-          frameScratch: resourceCache.frameScratch,
-        })
-      : null;
+    (firstMaterialKindSupported || resourceSetPlan.sets.length > 1);
+
+  if (shouldUseQueuedBuiltInRoute) {
+    prepareSnapshotMaterials({
+      registry: app.assets,
+      snapshot,
+      materials: resourceCache.preparedMaterialFacade,
+    });
+  }
+
+  const queuedBuiltIn = shouldUseQueuedBuiltInRoute
+    ? collectQueuedBuiltInAppResourceSet({
+        app,
+        snapshot,
+        frameScratch: resourceCache.frameScratch,
+        materials: resourceCache.preparedMaterialFacade,
+      })
+    : null;
 
   if (queuedBuiltIn !== null && !queuedBuiltIn.valid) {
     return renderReport({
@@ -1975,13 +2015,16 @@ async function renderWebGpuAppFrame(
       });
     }
 
+    const textureSamplerDependencies =
+      createPreparedMaterialTextureSamplerDependencies(preparedTextures);
+
     resources = item.adapter.createFrameResources({
       app,
       cache: resourceCache,
       preparedMaterials: resourceCache.preparedMaterials,
       snapshot,
       item,
-      textures: preparedTextures,
+      textureSamplerDependencies,
       viewUniforms: packedViews,
       worldTransforms: packedTransforms,
       layouts,
@@ -2421,6 +2464,9 @@ function createWebGpuAppResourceReuseReport(): WebGpuAppResourceReuseReport {
     preparedMaterialBindGroupsCreated: 0,
     preparedMaterialBindGroupsReused: 0,
     preparedMaterialCache: createPreparedAppMaterialCacheSummary(),
+    preparedMaterialFacade: preparedMaterialStoreSummaryToJsonValue(
+      createPreparedMaterialStore(),
+    ),
     textureResourcesCreated: 0,
     textureResourcesReused: 0,
     samplerResourcesCreated: 0,

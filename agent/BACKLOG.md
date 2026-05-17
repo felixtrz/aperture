@@ -59,9 +59,10 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start with `task-0867`. The render-world prepared material binding integration
-plan is complete. The next slice should implement the helper that binds
-prepared material facade keys into `RenderWorld`.
+Start with `task-0886`. The WebGPU app now routes queued material keys through
+prepared material facade descriptors, prunes stale facade entries for reports,
+tracks backend cache last-used frames, and has a prepared mesh facade handoff
+plan.
 
 ## Near-Term Proof Point Track
 
@@ -78,11 +79,11 @@ Target proof point:
 
 Remaining automation priority order:
 
-1. `task-0867` — bind prepared material resource keys into render world.
-2. `task-0863` — add prepared material store app summary regression matrix.
-3. `task-0864` — extract prepared material texture/sampler dependency input.
-4. `task-0865` — add prepared material facade JSON report helper.
-5. `task-0866` — audit prepared material texture/sampler dependency input.
+1. `task-0886` — audit backend cache last-used metadata boundary.
+2. `task-0887` — add prepared material backend cache stale-entry tests.
+3. `task-0888` — add renderer-independent prepared mesh store facade.
+4. `task-0889` — resolve first queue mesh keys from prepared mesh facade.
+5. `task-0890` — audit prepared mesh facade queue-key handoff.
 
 Defer allocation-only cleanup and metadata-only shader-contract tasks unless
 they are a direct blocker for this track.
@@ -148,95 +149,93 @@ viewer/material mapping should not outrun the material and queue architecture.
 
 ### Proof Point Critical Path
 
-### task-0867 — Bind prepared material resource keys into render world
-
-Category: `render-bridge`
-Package/write-scope: `packages/render`, focused tests.
-Reference anchor:
-`docs/research/RENDER_WORLD_PREPARED_MATERIAL_BINDING_INTEGRATION_PLAN_2026_05_17.md`,
-prepared material store facade, render-world resource binding placeholders, and
-Bevy render-world prepared asset lookup patterns.
-
-Acceptance criteria:
-
-- A render package helper updates `RenderWorldObject.gpu.materialResourceKey`
-  from prepared material facade entries.
-- Tests prove blocked draws become ready through string resource keys once mesh
-  and material bindings are present.
-- `RenderSnapshot` remains immutable and WebGPU resources stay out of render
-  world ownership.
-
-### task-0863 — Add prepared material store app summary regression matrix
-
-Category: `webgpu-render`
-Package/write-scope: WebGPU app report tests and minimal runtime fixes only if
-the matrix exposes inconsistent summary behavior.
-Reference anchor:
-prepared built-in material store summary tests, existing WebGPU app reuse tests,
-`docs/research/PREPARED_BUILT_IN_MATERIAL_STORE_BOUNDARY_AUDIT_2026_05_17.md`,
-and PlayCanvas/three.js resource summary patterns.
-
-Acceptance criteria:
-
-- App tests cover prepared material cache summary counts across mixed unlit,
-  Matcap, and Standard queue frames.
-- Tests verify summary counts remain stable across frame-resource cache hits and
-  transform/light-only changes.
-- Public reports stay JSON-safe and do not expose raw GPU handles or store keys.
-
-### task-0864 — Extract prepared material texture/sampler dependency input
-
-Category: `webgpu-render`
-Package/write-scope: WebGPU material app-frame helpers and focused tests.
-Reference anchor:
-`docs/research/PREPARED_TEXTURE_SAMPLER_DEPENDENCY_STORE_BOUNDARY_PLAN_2026_05_17.md`,
-current app texture/sampler resource preparation, prepared material dependency
-key helpers, and Bevy material/image preparation retry pattern.
-
-Acceptance criteria:
-
-- Material preparation helpers consume an explicitly named texture/sampler
-  dependency input instead of treating those resources as material store fields.
-- Tests prove source texture/sampler version changes affect material cache keys
-  while texture/sampler cache summaries remain separate.
-- Diagnostics remain JSON-safe and do not expose raw GPU handles.
-
-### task-0865 — Add prepared material facade JSON report helper
-
-Category: `render-bridge`
-Package/write-scope: `packages/render`, focused tests.
-Reference anchor:
-prepared material store facade from `task-0860`,
-`docs/research/GENERIC_RENDER_WORLD_PREPARED_MATERIAL_STORE_API_PLAN_2026_05_17.md`,
-current render asset preparation reports, and JSON-safe app report patterns.
-
-Acceptance criteria:
-
-- Render package exposes a JSON-safe summary helper for prepared material facade
-  entries and counts by material family.
-- Tests prove the helper omits source asset objects, raw backend handles, and
-  internal map state.
-- The helper remains renderer-independent and does not import WebGPU.
-
-### task-0866 — Audit prepared material texture/sampler dependency input
+### task-0886 — Audit backend cache last-used metadata boundary
 
 Category: `audit-refactor`
 Package/write-scope: `docs/research`, `agent/BACKLOG.md`, and narrow follow-up
 task edits only.
 Reference anchor:
-`docs/research/PREPARED_TEXTURE_SAMPLER_DEPENDENCY_STORE_BOUNDARY_PLAN_2026_05_17.md`,
-the dependency input from `task-0864`, WebGPU app texture/sampler resource
-preparation, prepared material caches, and Bevy material/image preparation retry
-patterns.
+`WEBGPU_PREPARED_MATERIAL_BACKEND_CACHE_EVICTION_PLAN_2026_05_17.md`,
+prepared material cache entries, `docs/ARCHITECTURE.md`, and Bevy render asset
+removal patterns.
 
 Acceptance criteria:
 
-- Audit verifies prepared material helpers depend on texture/sampler resources
-  without owning their caches or GPU lifetimes.
-- Audit verifies diagnostics and summaries remain JSON-safe and separate from
-  texture/sampler cache reports.
-- Follow-up backlog wording is tightened if the dependency input creates
-  ownership or public API drift.
+- Audit verifies `lastUsedFrame` metadata stays WebGPU-private and does not
+  leak into renderer-independent facade summaries.
+- Audit verifies backend cache counts, facade pruning, and texture/sampler
+  counters remain separate.
+- Follow-up backlog wording is tightened if eviction ownership is ambiguous.
+
+### task-0887 — Add prepared material backend cache stale-entry tests
+
+Category: `webgpu-render`
+Package/write-scope: WebGPU app report tests and focused prepared material cache
+tests.
+Reference anchor:
+`WEBGPU_PREPARED_MATERIAL_BACKEND_CACHE_EVICTION_PLAN_2026_05_17.md`, app
+prepared material cache summary tests, and facade stale cleanup tests.
+
+Acceptance criteria:
+
+- Tests cover source material and dependency version changes creating stale
+  backend entries with older `lastUsedFrame` values.
+- Tests verify facade summaries stay snapshot-scoped while backend cache entries
+  remain retained before eviction.
+- Tests do not require actual GPU resource destruction.
+
+### task-0888 — Add renderer-independent prepared mesh store facade
+
+Category: `render-bridge`
+Package/write-scope: `packages/render` and focused tests.
+Reference anchor:
+`docs/research/PREPARED_MESH_FACADE_QUEUE_KEY_HANDOFF_PLAN_2026_05_17.md`,
+`PreparedRenderAssetStore`, `PreparedMeshAssetMetadata`, and Bevy
+`RenderAssets<RenderMesh>` patterns.
+
+Acceptance criteria:
+
+- `PreparedMeshStore` can prepare, list, remove, and clear mesh metadata
+  entries.
+- A JSON-safe prepared mesh summary omits source asset objects and backend
+  buffers.
+- Tests cover create/update/remove/clear and invalid mesh diagnostics.
+
+### task-0889 — Resolve first queue mesh keys from prepared mesh facade
+
+Category: `webgpu-render`
+Package/write-scope: WebGPU app queue collection and focused material queue/app
+tests.
+Reference anchor:
+`docs/research/PREPARED_MESH_FACADE_QUEUE_KEY_HANDOFF_PLAN_2026_05_17.md`,
+`createPreparedMeshQueueResourceKeyResolver`, and current prepared material
+facade queue-key route.
+
+Acceptance criteria:
+
+- The first WebGPU app queue pass resolves mesh and material resource keys from
+  renderer-independent prepared facades.
+- WebGPU vertex/index buffers remain backend-owned and are still resolved before
+  frame-plan assembly.
+- Tests prove backend mesh buffer counters remain separate from facade
+  summaries.
+
+### task-0890 — Audit prepared mesh facade queue-key handoff
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research`, `agent/BACKLOG.md`, and narrow follow-up
+task edits only.
+Reference anchor:
+Prepared mesh facade queue route, prepared material facade queue route,
+`docs/ARCHITECTURE.md`, and Bevy `RenderAssets<RenderMesh>` lookup patterns.
+
+Acceptance criteria:
+
+- Audit verifies the render package does not own WebGPU mesh buffers.
+- Audit verifies material and mesh facade summaries remain JSON-safe and
+  renderer-independent.
+- Follow-up backlog wording is tightened if mesh resource ownership is
+  ambiguous.
 
 ## Post-Unlit E2E Verification Targets
 

@@ -4,6 +4,7 @@ import * as webgpu from "@aperture-engine/webgpu";
 import { createPreparedAppMaterialCacheSummary } from "../../packages/webgpu/src/webgpu/prepared-app-material-resource.js";
 import {
   createPreparedBuiltInMaterialStore,
+  evictPreparedBuiltInMaterialStoreEntries,
   writePreparedBuiltInMaterialStoreSummary,
 } from "../../packages/webgpu/src/webgpu/prepared-built-in-material-store.js";
 
@@ -61,8 +62,43 @@ describe("prepared built-in material store", () => {
     expect(JSON.stringify(summary)).not.toContain("Map");
   });
 
+  it("reports and removes stale backend cache entries without touching retained entries", () => {
+    const store = createPreparedBuiltInMaterialStore();
+
+    store.unlit.resources.set("unlit:current", { lastUsedFrame: 20 } as never);
+    store.unlit.resources.set("unlit:stale", { lastUsedFrame: 14 } as never);
+    store.matcap.resources.set("matcap:retained", {
+      lastUsedFrame: 18,
+    } as never);
+    store.standard.resources.set("standard:stale", {
+      lastUsedFrame: 16,
+    } as never);
+
+    const report = evictPreparedBuiltInMaterialStoreEntries(store, {
+      currentFrame: 20,
+      maxUnusedFrames: 3,
+    });
+
+    expect(report).toEqual({
+      checked: 4,
+      retained: 1,
+      evicted: 2,
+      skippedInUse: 1,
+      families: {
+        unlit: { checked: 2, retained: 0, evicted: 1, skippedInUse: 1 },
+        matcap: { checked: 1, retained: 1, evicted: 0, skippedInUse: 0 },
+        standard: { checked: 1, retained: 0, evicted: 1, skippedInUse: 0 },
+      },
+    });
+    expect([...store.unlit.resources.keys()]).toEqual(["unlit:current"]);
+    expect([...store.matcap.resources.keys()]).toEqual(["matcap:retained"]);
+    expect([...store.standard.resources.keys()]).toEqual([]);
+    expect(JSON.stringify(report)).not.toContain("Map");
+  });
+
   it("keeps the store container off the public WebGPU package surface", () => {
     expect("createPreparedBuiltInMaterialStore" in webgpu).toBe(false);
     expect("writePreparedBuiltInMaterialStoreSummary" in webgpu).toBe(false);
+    expect("evictPreparedBuiltInMaterialStoreEntries" in webgpu).toBe(false);
   });
 });

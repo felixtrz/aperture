@@ -130,6 +130,7 @@ describe("Matcap prepared material cache", () => {
       handle,
       material: required(materialEntry.asset),
       sourceVersion: materialEntry.version,
+      frame: 20,
       pipelineKey: "matcap|matcapTexture|opaque|back|less|none",
       layout: materialLayout(),
       textures: [textureResource("texture:studio")],
@@ -142,6 +143,7 @@ describe("Matcap prepared material cache", () => {
       handle,
       material: required(materialEntry.asset),
       sourceVersion: materialEntry.version,
+      frame: 21,
       pipelineKey: "matcap|matcapTexture|opaque|back|less|none",
       layout: materialLayout(),
       textures: [textureResource("texture:studio")],
@@ -161,6 +163,7 @@ describe("Matcap prepared material cache", () => {
       handle,
       material: required(updatedMaterialEntry.asset),
       sourceVersion: updatedMaterialEntry.version,
+      frame: 22,
       pipelineKey: "matcap|matcapTexture|opaque|back|less|none",
       layout: materialLayout(),
       textures: [textureResource("texture:studio")],
@@ -209,9 +212,11 @@ describe("Matcap prepared material cache", () => {
     ]);
     expect(second.status).toBe("reused");
     expect(second.resource).toBe(first.resource);
+    expect(second.resource?.lastUsedFrame).toBe(21);
     expect(third.status).toBe("created");
     expect(third.resource).not.toBe(first.resource);
     expect(third.resource?.sourceVersion).toBe(updatedMaterialEntry.version);
+    expect(third.resource?.lastUsedFrame).toBe(22);
     expect(fourth.status).toBe("created");
     expect(fourth.resource).not.toBe(third.resource);
     expect(fourth.resource?.dependencyCacheKeySegments).toEqual([

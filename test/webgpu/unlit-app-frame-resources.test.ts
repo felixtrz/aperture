@@ -54,7 +54,7 @@ describe("unlit app frame-resource fallback diagnostics", () => {
       preparedMeshes: createPreparedMeshGpuResourceCache(),
       preparedScalarMaterials: createPreparedScalarUnlitMaterialCache(),
       assets: registry,
-      textures: emptyTextures(),
+      textureSamplerDependencies: emptyTextureSamplerDependencies(),
       viewUniforms: emptyViewUniforms(),
       worldTransforms: emptyTransforms(),
       layouts: [],
@@ -118,7 +118,7 @@ describe("unlit app frame-resource fallback diagnostics", () => {
       preparedMeshes: createPreparedMeshGpuResourceCache(),
       preparedScalarMaterials: createPreparedScalarUnlitMaterialCache(),
       assets: registry,
-      textures: emptyTextures(),
+      textureSamplerDependencies: emptyTextureSamplerDependencies(),
       viewUniforms: emptyViewUniforms(),
       worldTransforms: emptyTransforms(),
       layouts: [materialLayout()],
@@ -173,7 +173,7 @@ describe("unlit app frame-resource fallback diagnostics", () => {
       sourceMaterialKey: assetHandleKey(material),
       pipelineKey: "matcap|matcapTexture|opaque|back|less|none",
       assets: registry,
-      textures: emptyTextures(),
+      textureSamplerDependencies: emptyTextureSamplerDependencies(),
       viewUniforms: emptyViewUniforms(),
       worldTransforms: emptyTransforms(),
       sharedLayouts: [],
@@ -227,7 +227,7 @@ describe("unlit app frame-resource fallback diagnostics", () => {
       sourceMaterialKey: assetHandleKey(material),
       pipelineKey: "matcap|matcapTexture|opaque|back|less|none",
       assets: registry,
-      textures: emptyTextures(),
+      textureSamplerDependencies: emptyTextureSamplerDependencies(),
       viewUniforms: emptyViewUniforms(),
       worldTransforms: emptyTransforms(),
       sharedLayouts: [],
@@ -274,7 +274,7 @@ describe("unlit app frame-resource fallback diagnostics", () => {
       sourceMaterialKey: assetHandleKey(material),
       pipelineKey: "standard|opaque|back|less|none",
       assets: registry,
-      textures: emptyTextures(),
+      textureSamplerDependencies: emptyTextureSamplerDependencies(),
       viewUniforms: emptyViewUniforms(),
       worldTransforms: emptyTransforms(),
       sharedLayouts: [],
@@ -330,7 +330,7 @@ describe("unlit app frame-resource fallback diagnostics", () => {
       sourceMaterialKey: assetHandleKey(material),
       pipelineKey: "standard|baseColorTexture|opaque|back|less|none",
       assets: registry,
-      textures: emptyTextures(),
+      textureSamplerDependencies: emptyTextureSamplerDependencies(),
       viewUniforms: emptyViewUniforms(),
       worldTransforms: emptyTransforms(),
       sharedLayouts: [],
@@ -360,7 +360,7 @@ describe("unlit app frame-resource fallback diagnostics", () => {
   });
 });
 
-function emptyTextures() {
+function emptyTextureSamplerDependencies() {
   return {
     valid: true,
     textures: [],

@@ -10,6 +10,7 @@ import {
 import {
   createPreparedMaterialResourceDescriptor,
   type MaterialAsset,
+  type MaterialKind,
   type PreparedMaterialResourceDescriptor,
 } from "../materials/index.js";
 import { type MeshAsset, validateMeshAsset } from "../mesh/index.js";
@@ -413,6 +414,33 @@ export interface PreparedMaterialStorePrepareOptions {
   readonly handle: MaterialHandle;
 }
 
+export interface PreparedMaterialStoreFamilyJsonSummary {
+  readonly entries: number;
+}
+
+export interface PreparedMaterialStoreEntryJsonValue {
+  readonly assetKey: string;
+  readonly sourceVersion: number;
+  readonly label: string;
+  readonly materialFamily: MaterialKind;
+  readonly materialKind: MaterialKind;
+  readonly pipelineKey: string;
+  readonly materialResourceKey: string;
+  readonly bindGroupResourceKey: string;
+  readonly dependencyCount: number;
+  readonly textureBindingCount: number;
+  readonly diagnosticCount: number;
+}
+
+export interface PreparedMaterialStoreJsonValue {
+  readonly totalEntries: number;
+  readonly families: Record<
+    MaterialKind,
+    PreparedMaterialStoreFamilyJsonSummary
+  >;
+  readonly entries: readonly PreparedMaterialStoreEntryJsonValue[];
+}
+
 export function createPreparedMaterialStore(
   options: {
     readonly entries?: PreparedMaterialAssetStore;
@@ -443,6 +471,27 @@ export function createPreparedMaterialStore(
     clear() {
       entries.clear();
     },
+  };
+}
+
+export function preparedMaterialStoreSummaryToJsonValue(
+  store: PreparedMaterialStore,
+): PreparedMaterialStoreJsonValue {
+  const entries = store
+    .list()
+    .map((entry) => preparedMaterialStoreEntryToJsonValue(entry));
+  const families = createEmptyPreparedMaterialFamilySummary();
+
+  for (const entry of entries) {
+    families[entry.materialFamily] = {
+      entries: families[entry.materialFamily].entries + 1,
+    };
+  }
+
+  return {
+    totalEntries: entries.length,
+    families,
+    entries,
   };
 }
 
@@ -480,6 +529,36 @@ export function createMeshMetadataRenderAssetAdapter(): RenderAssetAdapter<
         },
       };
     },
+  };
+}
+
+function createEmptyPreparedMaterialFamilySummary(): Record<
+  MaterialKind,
+  PreparedMaterialStoreFamilyJsonSummary
+> {
+  return {
+    unlit: { entries: 0 },
+    matcap: { entries: 0 },
+    standard: { entries: 0 },
+    "debug-normal": { entries: 0 },
+  };
+}
+
+function preparedMaterialStoreEntryToJsonValue(
+  entry: PreparedRenderAssetEntry<"material", PreparedMaterialAssetMetadata>,
+): PreparedMaterialStoreEntryJsonValue {
+  return {
+    assetKey: entry.assetKey,
+    sourceVersion: entry.sourceVersion,
+    label: entry.prepared.label,
+    materialFamily: entry.prepared.materialFamily,
+    materialKind: entry.prepared.materialKind,
+    pipelineKey: entry.prepared.pipelineKey,
+    materialResourceKey: entry.prepared.materialResourceKey,
+    bindGroupResourceKey: entry.prepared.bindGroupResourceKey,
+    dependencyCount: entry.prepared.dependencies.length,
+    textureBindingCount: entry.prepared.textureBindings.length,
+    diagnosticCount: entry.diagnostics.length,
   };
 }
 

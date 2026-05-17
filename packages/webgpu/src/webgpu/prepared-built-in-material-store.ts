@@ -21,6 +21,29 @@ export interface PreparedBuiltInMaterialStore {
   readonly standard: PreparedScalarStandardMaterialCache;
 }
 
+export interface PreparedBuiltInMaterialCacheEvictionOptions {
+  readonly currentFrame: number;
+  readonly maxUnusedFrames: number;
+}
+
+export interface PreparedBuiltInMaterialCacheEvictionFamilyReport {
+  readonly checked: number;
+  readonly retained: number;
+  readonly evicted: number;
+  readonly skippedInUse: number;
+}
+
+export interface PreparedBuiltInMaterialCacheEvictionReport {
+  readonly checked: number;
+  readonly retained: number;
+  readonly evicted: number;
+  readonly skippedInUse: number;
+  readonly families: Record<
+    "unlit" | "matcap" | "standard",
+    PreparedBuiltInMaterialCacheEvictionFamilyReport
+  >;
+}
+
 export function createPreparedBuiltInMaterialStore(): PreparedBuiltInMaterialStore {
   return {
     unlit: createPreparedScalarUnlitMaterialCache(),
@@ -34,4 +57,69 @@ export function writePreparedBuiltInMaterialStoreSummary(
   store: PreparedBuiltInMaterialStore,
 ): PreparedAppMaterialCacheSummary {
   return writePreparedAppMaterialCacheSummary(summary, store);
+}
+
+export function evictPreparedBuiltInMaterialStoreEntries(
+  store: PreparedBuiltInMaterialStore,
+  options: PreparedBuiltInMaterialCacheEvictionOptions,
+): PreparedBuiltInMaterialCacheEvictionReport {
+  const families = {
+    unlit: evictPreparedMaterialCacheEntries(store.unlit.resources, options),
+    matcap: evictPreparedMaterialCacheEntries(store.matcap.resources, options),
+    standard: evictPreparedMaterialCacheEntries(
+      store.standard.resources,
+      options,
+    ),
+  };
+
+  return {
+    checked:
+      families.unlit.checked +
+      families.matcap.checked +
+      families.standard.checked,
+    retained:
+      families.unlit.retained +
+      families.matcap.retained +
+      families.standard.retained,
+    evicted:
+      families.unlit.evicted +
+      families.matcap.evicted +
+      families.standard.evicted,
+    skippedInUse:
+      families.unlit.skippedInUse +
+      families.matcap.skippedInUse +
+      families.standard.skippedInUse,
+    families,
+  };
+}
+
+function evictPreparedMaterialCacheEntries<
+  TEntry extends { readonly lastUsedFrame: number },
+>(
+  entries: Map<string, TEntry>,
+  options: PreparedBuiltInMaterialCacheEvictionOptions,
+): PreparedBuiltInMaterialCacheEvictionFamilyReport {
+  let checked = 0;
+  let retained = 0;
+  let evicted = 0;
+  let skippedInUse = 0;
+
+  for (const [key, entry] of entries) {
+    checked += 1;
+
+    if (entry.lastUsedFrame >= options.currentFrame) {
+      skippedInUse += 1;
+      continue;
+    }
+
+    if (options.currentFrame - entry.lastUsedFrame <= options.maxUnusedFrames) {
+      retained += 1;
+      continue;
+    }
+
+    entries.delete(key);
+    evicted += 1;
+  }
+
+  return { checked, retained, evicted, skippedInUse };
 }

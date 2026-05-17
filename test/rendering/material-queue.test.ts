@@ -1,11 +1,15 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  AssetRegistry,
   buildMaterialQueueFromSnapshot,
   createMaterialHandle,
   createMaterialQueueScratch,
   createMeshHandle,
+  createPreparedMaterialQueueResourceKeyResolver,
+  createPreparedMaterialStore,
   createRenderSortKey,
+  createUnlitMaterialAsset,
   materialQueueFamilyFromPipelineKey,
   writeMaterialQueueFromSnapshot,
   type BatchCompatibilityKey,
@@ -251,6 +255,70 @@ describe("material family render queue", () => {
         assetKey: "material:missing",
       },
     ]);
+  });
+
+  it("resolves material resource keys from prepared material facade entries", () => {
+    const registry = new AssetRegistry();
+    const material = createMaterialHandle("white");
+    const materials = createPreparedMaterialStore();
+
+    registry.register(material);
+    registry.markReady(
+      material,
+      createUnlitMaterialAsset({ label: "Queued Facade White" }),
+    );
+    materials.prepare({ registry, handle: material });
+
+    const plan = buildMaterialQueueFromSnapshot(
+      renderSnapshot([
+        drawPacket({
+          renderId: 6,
+          materialFamily: "unlit",
+          meshId: "cube",
+          materialId: "white",
+        }),
+      ]),
+      {
+        meshResourceKey: (input) => `gpu-mesh:${input.meshKey}`,
+        materialResourceKey:
+          createPreparedMaterialQueueResourceKeyResolver(materials),
+      },
+    );
+
+    expect(plan.diagnostics).toEqual([]);
+    expect(plan.items[0]).toMatchObject({
+      materialKey: "material:white",
+      materialResourceKey: "prepared-material:material:white",
+    });
+    expect(JSON.stringify(plan)).not.toContain("Map");
+  });
+
+  it("returns null for missing prepared material facade entries", () => {
+    const materials = createPreparedMaterialStore();
+    const plan = buildMaterialQueueFromSnapshot(
+      renderSnapshot([
+        drawPacket({
+          renderId: 7,
+          materialFamily: "unlit",
+          meshId: "cube",
+          materialId: "missing",
+        }),
+      ]),
+      {
+        meshResourceKey: (input) => `gpu-mesh:${input.meshKey}`,
+        materialResourceKey:
+          createPreparedMaterialQueueResourceKeyResolver(materials),
+      },
+    );
+
+    expect(plan.items).toEqual([]);
+    expect(plan.diagnostics).toMatchObject([
+      {
+        code: "materialQueue.missingPreparedResource",
+        assetKey: "material:missing",
+      },
+    ]);
+    expect(JSON.stringify(plan.diagnostics)).not.toContain("GPU");
   });
 
   it("diagnoses unknown material family tokens before resolving resources", () => {

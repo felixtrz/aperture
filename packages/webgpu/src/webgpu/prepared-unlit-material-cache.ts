@@ -87,6 +87,7 @@ export interface PreparedScalarUnlitMaterialResource {
   readonly cacheKey: string;
   readonly sourceMaterialKey: string;
   readonly sourceVersion: number;
+  lastUsedFrame: number;
   readonly pipelineKey: string;
   readonly layoutKey: string;
   readonly dependencyCacheKeySegments?: readonly string[];
@@ -149,6 +150,7 @@ export interface PrepareScalarUnlitMaterialResourceOptions {
   readonly handle: MaterialHandle;
   readonly material: UnlitMaterialAsset;
   readonly sourceVersion: number;
+  readonly frame?: number | undefined;
   readonly pipelineKey: string;
   readonly layout: UnlitBindGroupLayoutResource | null;
 }
@@ -167,6 +169,7 @@ export interface PrepareTexturedUnlitMaterialResourceOptions {
   readonly handle: MaterialHandle;
   readonly material: UnlitMaterialAsset;
   readonly sourceVersion: number;
+  readonly frame?: number | undefined;
   readonly pipelineKey: string;
   readonly layout: UnlitBindGroupLayoutResource | null;
   readonly textures: readonly TextureGpuResource[];
@@ -309,6 +312,8 @@ export function prepareScalarUnlitMaterialResource(
   const cached = options.cache.resources.get(cacheKey);
 
   if (cached !== undefined) {
+    cached.lastUsedFrame = options.frame ?? 0;
+
     return {
       valid: true,
       status: "reused",
@@ -390,6 +395,7 @@ export function prepareScalarUnlitMaterialResource(
     cacheKey,
     sourceMaterialKey,
     sourceVersion: options.sourceVersion,
+    lastUsedFrame: options.frame ?? 0,
     pipelineKey: options.pipelineKey,
     layoutKey: options.layout.layoutKey,
     materialResourceKey: descriptor.materialResourceKey,
@@ -486,6 +492,8 @@ export function prepareTexturedUnlitMaterialResource(
     | undefined;
 
   if (cached !== undefined) {
+    cached.lastUsedFrame = options.frame ?? 0;
+
     return {
       valid: true,
       status: "reused",
@@ -581,6 +589,7 @@ export function prepareTexturedUnlitMaterialResource(
     cacheKey,
     sourceMaterialKey,
     sourceVersion: options.sourceVersion,
+    lastUsedFrame: options.frame ?? 0,
     pipelineKey: options.pipelineKey,
     layoutKey: options.layout.layoutKey,
     dependencyCacheKeySegments: dependencyResult.dependencies.cacheKeySegments,

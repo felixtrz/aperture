@@ -12,13 +12,13 @@ import type {
   StandardMaterialAsset,
 } from "@aperture-engine/render";
 import { sameStringList, writeBufferData } from "./app-frame-resource-utils.js";
-import type { PreparedAppTextureSamplerResources } from "./app-texture-sampler-resources.js";
 import {
   createPreparedAppMaterialFallbackDiagnostic,
   recordPreparedAppMaterialResourceUse,
   type PreparedAppMaterialFallbackDiagnostic,
   type PreparedAppMaterialResourceUse,
 } from "./prepared-app-material-resource.js";
+import type { PreparedMaterialTextureSamplerDependencies } from "./prepared-material-texture-sampler-dependencies.js";
 import type { LightBindGroupLayoutResource } from "./light-bind-group-layout.js";
 import {
   createLightBufferDescriptorPlanScratch,
@@ -124,7 +124,7 @@ export function createOrReuseStandardAppFrameResources(options: {
   readonly sourceMaterialKey: string;
   readonly pipelineKey: string;
   readonly assets: AssetRegistry;
-  readonly textures: PreparedAppTextureSamplerResources;
+  readonly textureSamplerDependencies: PreparedMaterialTextureSamplerDependencies;
   readonly viewUniforms: PackedSnapshotViewUniforms;
   readonly worldTransforms: PackedSnapshotTransforms;
   readonly sharedLayouts: readonly UnlitBindGroupLayoutResource[];
@@ -167,8 +167,14 @@ export function createOrReuseStandardAppFrameResources(options: {
     cached !== null &&
     cached.meshKey === options.meshKey &&
     cached.materialKey === options.materialKey &&
-    sameStringList(cached.textureKeys, options.textures.textureKeys) &&
-    sameStringList(cached.samplerKeys, options.textures.samplerKeys) &&
+    sameStringList(
+      cached.textureKeys,
+      options.textureSamplerDependencies.textureKeys,
+    ) &&
+    sameStringList(
+      cached.samplerKeys,
+      options.textureSamplerDependencies.samplerKeys,
+    ) &&
     cached.result.resources !== null &&
     cached.result.resources.lightGpuBuffers.resource !== null &&
     viewDescriptor.plan !== null &&
@@ -239,7 +245,7 @@ export function createOrReuseStandardAppFrameResources(options: {
     [];
   const preparedMesh = preparePreparedStandardMesh(options);
   const preparedMaterial = preparePreparedStandardMaterial(
-    options,
+    { ...options, frame: options.snapshot.frame },
     preparedMaterialFallbackDiagnostics,
   );
   const result = createStandardFrameGpuResources({
@@ -260,8 +266,8 @@ export function createOrReuseStandardAppFrameResources(options: {
     sharedLayouts: options.sharedLayouts,
     materialLayout: options.materialLayout,
     lightLayout: options.lightLayout,
-    textures: options.textures.textures,
-    samplers: options.textures.samplers,
+    textures: options.textureSamplerDependencies.textures,
+    samplers: options.textureSamplerDependencies.samplers,
   });
 
   if (
@@ -294,8 +300,8 @@ export function createOrReuseStandardAppFrameResources(options: {
     options.cache.current = {
       meshKey: options.meshKey,
       materialKey: options.materialKey,
-      textureKeys: [...options.textures.textureKeys],
-      samplerKeys: [...options.textures.samplerKeys],
+      textureKeys: [...options.textureSamplerDependencies.textureKeys],
+      samplerKeys: [...options.textureSamplerDependencies.samplerKeys],
       viewByteLength:
         viewDescriptor.plan?.source.byteLength ??
         options.viewUniforms.data.byteLength,
@@ -359,10 +365,11 @@ function preparePreparedStandardMaterial(
     readonly material: StandardMaterialAsset | null;
     readonly materialKey: string;
     readonly sourceMaterialKey: string;
+    readonly frame?: number | undefined;
     readonly pipelineKey: string;
     readonly assets: AssetRegistry;
     readonly materialLayout: StandardMaterialBindGroupLayoutResource | null;
-    readonly textures: PreparedAppTextureSamplerResources;
+    readonly textureSamplerDependencies: PreparedMaterialTextureSamplerDependencies;
   },
   fallbackDiagnostics: PreparedAppMaterialFallbackDiagnostic[],
 ): PreparedStandardMaterialUse | null {
@@ -390,10 +397,11 @@ function preparePreparedStandardMaterial(
           handle: options.materialHandle,
           material: options.material,
           sourceVersion,
+          frame: options.frame,
           pipelineKey: options.pipelineKey,
           layout: options.materialLayout,
-          textures: options.textures.textures,
-          samplers: options.textures.samplers,
+          textures: options.textureSamplerDependencies.textures,
+          samplers: options.textureSamplerDependencies.samplers,
         })
       : options.material.metallicRoughnessTexture !== null
         ? prepareMetallicRoughnessTexturedStandardMaterialResource({
@@ -405,10 +413,11 @@ function preparePreparedStandardMaterial(
             handle: options.materialHandle,
             material: options.material,
             sourceVersion,
+            frame: options.frame,
             pipelineKey: options.pipelineKey,
             layout: options.materialLayout,
-            textures: options.textures.textures,
-            samplers: options.textures.samplers,
+            textures: options.textureSamplerDependencies.textures,
+            samplers: options.textureSamplerDependencies.samplers,
           })
         : options.material.normalTexture !== null
           ? prepareNormalTexturedStandardMaterialResource({
@@ -420,10 +429,11 @@ function preparePreparedStandardMaterial(
               handle: options.materialHandle,
               material: options.material,
               sourceVersion,
+              frame: options.frame,
               pipelineKey: options.pipelineKey,
               layout: options.materialLayout,
-              textures: options.textures.textures,
-              samplers: options.textures.samplers,
+              textures: options.textureSamplerDependencies.textures,
+              samplers: options.textureSamplerDependencies.samplers,
             })
           : options.material.occlusionTexture !== null ||
               options.material.emissiveTexture !== null
@@ -436,10 +446,11 @@ function preparePreparedStandardMaterial(
                 handle: options.materialHandle,
                 material: options.material,
                 sourceVersion,
+                frame: options.frame,
                 pipelineKey: options.pipelineKey,
                 layout: options.materialLayout,
-                textures: options.textures.textures,
-                samplers: options.textures.samplers,
+                textures: options.textureSamplerDependencies.textures,
+                samplers: options.textureSamplerDependencies.samplers,
               })
             : prepareScalarStandardMaterialResource({
                 device: options.device as Parameters<
@@ -449,6 +460,7 @@ function preparePreparedStandardMaterial(
                 handle: options.materialHandle,
                 material: options.material,
                 sourceVersion,
+                frame: options.frame,
                 pipelineKey: options.pipelineKey,
                 layout: options.materialLayout,
               });

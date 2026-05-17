@@ -2,6 +2,99 @@
 
 ## Latest Run Update
 
+Completed the prepared material facade and backend cache handoff run after the
+user explicitly instructed the automation to ignore `.mcp.json` and unrelated
+working-tree files.
+
+Completed task ids:
+
+- `task-0863` through `task-0885`.
+
+Highlights:
+
+- Added renderer-independent prepared material facade reporting, snapshot
+  preparation, render-world binding, queue resource key resolution, and combined
+  prepare/apply/bind helpers.
+- Routed the first WebGPU app material queue pass through prepared material
+  facade keys while keeping WebGPU buffers, bind groups, textures, samplers,
+  pipelines, and light resources backend-owned.
+- Added snapshot-scoped prepared material facade pruning and app regressions
+  proving facade summaries drop hidden/unreferenced materials while backend
+  prepared material cache counts remain retained.
+- Added WebGPU-private `lastUsedFrame` metadata to prepared material backend
+  cache entries plus an internal eviction report/helper that removes stale
+  backend cache map entries by family.
+- Added plans/audits for WebGPU facade summaries, queue-key handoff, stale
+  facade cleanup, backend cache eviction, and prepared mesh facade queue-key
+  handoff.
+- Refilled the ready backlog with `task-0886` through `task-0890`; recommended
+  next task is `task-0886`.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/prepared-built-in-material-store.test.ts test/webgpu/prepared-unlit-material-cache.test.ts test/webgpu/prepared-matcap-material-cache.test.ts test/webgpu/prepared-standard-material-cache.test.ts`
+- `pnpm exec vitest run test/webgpu/prepared-unlit-material-cache.test.ts test/webgpu/prepared-matcap-material-cache.test.ts test/webgpu/prepared-standard-material-cache.test.ts test/webgpu/webgpu-app.test.ts`
+- `pnpm exec vitest run test/rendering/snapshot-prepared-materials.test.ts test/webgpu/webgpu-app.test.ts test/rendering/material-queue.test.ts`
+- `pnpm exec tsc --noEmit -p packages/render/tsconfig.json`
+- `pnpm exec tsc --noEmit -p packages/webgpu/tsconfig.json`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm run check` passed, including 230 test files / 1082 tests.
+- `pnpm test` passed separately before the final broad check: 230 files / 1082
+  tests.
+- `pnpm exec prettier --check ...` passed for all files touched by this run.
+
+Reference files/patterns inspected:
+
+- Aperture docs: `docs/NORTH_STAR.md`, `docs/ARCHITECTURE.md`,
+  `docs/DECISIONS.md`, prior prepared material plans/audits.
+- Bevy: `references/bevy/crates/bevy_render/src/render_asset.rs`,
+  `references/bevy/crates/bevy_pbr/src/material.rs`, and mesh queue lookup
+  patterns.
+- WebGPU-render anchors: PlayCanvas bind-group/WebGPU bind-group management and
+  three.js common bindings/render object cache patterns.
+
+Known issues / follow-ups:
+
+- `.mcp.json` and `docs/render-pipeline-comparison.html` remain unrelated,
+  untracked, locally ignored for stop-hook staging, and listed in
+  `.prettierignore` per the user's instruction to ignore unrelated files.
+- Next task: `task-0886` audit backend cache `lastUsedFrame` metadata boundary.
+
+## Previous Run Update
+
+Stopped during the required safety check before implementation.
+
+Reason:
+
+- `agent/STATUS.json` is idle and does not indicate an active run.
+- `git status --short` reported an unexpected untracked repository file:
+  `.mcp.json`.
+- Per `agent/STOP_CONDITIONS.md` and the wake prompt safety check, unexpected
+  uncommitted changes require updating this handoff and stopping before
+  selecting or implementing a task.
+
+No backlog task was started. The recommended next task remains `task-0867` once
+the working tree is made safe by deciding whether `.mcp.json` should be kept,
+ignored, committed, or removed.
+
+Validation:
+
+- Safety/readiness checks only: required docs were read, `agent/STATUS.json`
+  was inspected, and `git status --short` was checked.
+- No build, tests, or lint were run because implementation did not begin.
+- `scripts/codex-stop-hook.sh` was run at 2026-05-17T15:03:00Z and returned
+  a continuation block: current minute was 03 and the hook requested continuing
+  until minute 55. This was not actionable because continuing would violate the
+  earlier unexpected-change safety stop.
+
+Known issues / follow-ups:
+
+- Resolve the untracked `.mcp.json` before the next autonomous implementation
+  run.
+- After the tree is safe, continue with `task-0867`.
+
+## Latest Run Update
+
 Completed `task-0845`, `task-0847` through `task-0862` in this automation run.
 This moved built-in material preparation behind the internal adapter table,
 added JSON-safe prepared material cache summaries and fallback diagnostics,

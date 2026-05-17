@@ -8498,3 +8498,55 @@ Summary:
 - Validation run: focused prepared Standard and WebGPU app tests, WebGPU package
   typecheck, test typecheck, package boundary checks, and final `pnpm run check`
   passed.
+
+## task-0863 through task-0885 — Prepared material facade and backend cache handoff
+
+Completed: 2026-05-17
+
+Completed task ids:
+
+- `task-0863` — Add prepared material store app summary regression matrix.
+- `task-0864` — Extract prepared material texture/sampler dependency input.
+- `task-0865` — Add prepared material facade JSON report helper.
+- `task-0866` — Audit prepared material texture/sampler dependency input.
+- `task-0867` — Bind prepared material resource keys into render world.
+- `task-0868` — Prepare material facade entries from snapshots.
+- `task-0869` — Add prepared material facade queue resource resolver.
+- `task-0870` — Combine snapshot preparation and render-world material binding.
+- `task-0871` — Plan WebGPU prepared material facade summary handoff.
+- `task-0872` — Audit prepared material facade snapshot and queue helpers.
+- `task-0873` — Add WebGPU app prepared material facade summary.
+- `task-0874` — Add prepared material facade summary invalidation matrix.
+- `task-0875` — Plan WebGPU app queue handoff to prepared material facade keys.
+- `task-0876` — Audit WebGPU prepared material facade summary boundary.
+- `task-0877` — Add prepared material facade stale-entry cleanup plan.
+- `task-0878` — Route app material queue through prepared facade keys.
+- `task-0879` — Prune snapshot-stale prepared material facade entries.
+- `task-0880` — Add facade stale-cleanup app summary regression.
+- `task-0881` — Audit prepared facade queue-key handoff boundary.
+- `task-0882` — Plan WebGPU prepared material backend cache eviction.
+- `task-0883` — Track last-used frames for prepared material backend caches.
+- `task-0884` — Add prepared material backend cache eviction report.
+- `task-0885` — Plan prepared mesh facade queue-key handoff.
+
+Summary:
+
+- Added renderer-independent prepared material facade summaries, snapshot
+  preparation, render-world binding, material queue resource key resolution, and
+  combined prepare/apply/bind helpers.
+- Routed the first WebGPU app material queue pass through prepared material
+  facade keys while keeping concrete buffers, bind groups, textures, samplers,
+  pipelines, and lights WebGPU-owned.
+- Added snapshot-scoped facade pruning and an app regression proving facade
+  summaries prune hidden materials while backend prepared material caches remain
+  retained.
+- Added WebGPU-private `lastUsedFrame` metadata for prepared material backend
+  cache entries and an internal eviction report/helper that removes stale cache
+  map entries by family.
+- Added plans/audits for facade summaries, queue-key handoff, stale facade
+  cleanup, backend cache eviction, and prepared mesh facade queue-key handoff.
+- Validation run: focused render/WebGPU tests passed, full `pnpm test` passed
+  with 230 files / 1082 tests, and broad `pnpm run check` passed after the
+  unrelated `.mcp.json` and `docs/render-pipeline-comparison.html` files were
+  added to `.prettierignore` per the user's instruction to ignore unrelated
+  files.

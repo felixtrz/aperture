@@ -10,7 +10,6 @@ import type {
   PackedSnapshotTransforms,
   PackedSnapshotViewUniforms,
 } from "@aperture-engine/render";
-import type { PreparedAppTextureSamplerResources } from "./app-texture-sampler-resources.js";
 import { sameStringList, writeBufferData } from "./app-frame-resource-utils.js";
 import {
   createPreparedAppMaterialFallbackDiagnostic,
@@ -28,6 +27,7 @@ import {
   type PreparedMatcapMaterialCache,
   type PreparedMatcapMaterialResource,
 } from "./prepared-matcap-material-cache.js";
+import type { PreparedMaterialTextureSamplerDependencies } from "./prepared-material-texture-sampler-dependencies.js";
 import {
   prepareAppMeshResource,
   type PreparedAppMeshResourceUse,
@@ -97,9 +97,10 @@ export function createOrReuseMatcapAppFrameResources(options: {
   readonly materialHandle: MaterialHandle;
   readonly materialKey: string;
   readonly sourceMaterialKey: string;
+  readonly frame?: number | undefined;
   readonly pipelineKey: string;
   readonly assets: AssetRegistry;
-  readonly textures: PreparedAppTextureSamplerResources;
+  readonly textureSamplerDependencies: PreparedMaterialTextureSamplerDependencies;
   readonly viewUniforms: PackedSnapshotViewUniforms;
   readonly worldTransforms: PackedSnapshotTransforms;
   readonly sharedLayouts: readonly UnlitBindGroupLayoutResource[];
@@ -127,8 +128,14 @@ export function createOrReuseMatcapAppFrameResources(options: {
     cached !== null &&
     cached.meshKey === options.meshKey &&
     cached.materialKey === options.materialKey &&
-    sameStringList(cached.textureKeys, options.textures.textureKeys) &&
-    sameStringList(cached.samplerKeys, options.textures.samplerKeys) &&
+    sameStringList(
+      cached.textureKeys,
+      options.textureSamplerDependencies.textureKeys,
+    ) &&
+    sameStringList(
+      cached.samplerKeys,
+      options.textureSamplerDependencies.samplerKeys,
+    ) &&
     cached.result.resources !== null &&
     viewDescriptor.plan !== null &&
     transformDescriptor.plan !== null &&
@@ -190,8 +197,8 @@ export function createOrReuseMatcapAppFrameResources(options: {
     worldTransforms: options.worldTransforms,
     sharedLayouts: options.sharedLayouts,
     materialLayout: options.materialLayout,
-    textures: options.textures.textures,
-    samplers: options.textures.samplers,
+    textures: options.textureSamplerDependencies.textures,
+    samplers: options.textureSamplerDependencies.samplers,
   });
 
   if (result.valid && result.resources !== null) {
@@ -219,8 +226,8 @@ export function createOrReuseMatcapAppFrameResources(options: {
     options.cache.current = {
       meshKey: options.meshKey,
       materialKey: options.materialKey,
-      textureKeys: [...options.textures.textureKeys],
-      samplerKeys: [...options.textures.samplerKeys],
+      textureKeys: [...options.textureSamplerDependencies.textureKeys],
+      samplerKeys: [...options.textureSamplerDependencies.samplerKeys],
       viewByteLength:
         viewDescriptor.plan?.source.byteLength ??
         options.viewUniforms.data.byteLength,
@@ -267,10 +274,11 @@ function preparePreparedMatcapMaterial(
     readonly materialHandle: MaterialHandle;
     readonly sourceMaterialKey: string;
     readonly materialKey: string;
+    readonly frame?: number | undefined;
     readonly pipelineKey: string;
     readonly materialLayout: MatcapMaterialBindGroupLayoutResource | null;
     readonly assets: AssetRegistry;
-    readonly textures: PreparedAppTextureSamplerResources;
+    readonly textureSamplerDependencies: PreparedMaterialTextureSamplerDependencies;
     readonly preparedMatcapMaterials: PreparedMatcapMaterialCache;
   },
   fallbackDiagnostics: PreparedAppMaterialFallbackDiagnostic[],
@@ -297,10 +305,11 @@ function preparePreparedMatcapMaterial(
     handle: options.materialHandle,
     material: options.material,
     sourceVersion,
+    frame: options.frame,
     pipelineKey: options.pipelineKey,
     layout: options.materialLayout,
-    textures: options.textures.textures,
-    samplers: options.textures.samplers,
+    textures: options.textureSamplerDependencies.textures,
+    samplers: options.textureSamplerDependencies.samplers,
   });
 
   if (
