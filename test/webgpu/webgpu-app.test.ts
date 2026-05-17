@@ -3965,6 +3965,29 @@ describe("WebGPU app facade", () => {
       drawCalls: 0,
     });
     expect(diagnosticCodes).toContain("standardFrameResources.missingLights");
+    expect(frame.diagnostics).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          code: "webGpuApp.frameResourceRoute",
+          route: expect.objectContaining({
+            valid: false,
+            status: "failed",
+            family: "standard",
+            facadeMeshResourceKey: expect.any(String),
+            facadeMaterialResourceKey: expect.any(String),
+            backendMeshKey: expect.stringContaining("@"),
+            backendMaterialKey: expect.stringContaining("@"),
+            diagnostics: expect.arrayContaining([
+              expect.objectContaining({
+                code: "standardFrameResources.missingLights",
+              }),
+            ]),
+          }),
+        }),
+      ]),
+    );
+    expect(JSON.stringify(frame.diagnostics)).not.toContain("GPUBuffer");
+    expect(JSON.stringify(frame.diagnostics)).not.toContain("GPUBindGroup");
     expect(events).not.toContain("queue:submit:1");
   });
 

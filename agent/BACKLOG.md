@@ -59,10 +59,9 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start with `task-0966`. The UV1 and alpha/cull diagnostics slices are complete;
-the next renderer-spine step is to plan the generic material-family
-queue-to-prepare handoff so future material families do not require bespoke app
-routes.
+Start with `task-0969`. Successful-frame route shells are intentionally omitted
+for now and the policy boundary audit passed. The next step is to resume
+StandardMaterial texture fidelity diagnostics planning.
 
 ## Near-Term Proof Point Track
 
@@ -79,11 +78,11 @@ Target proof point:
 
 Remaining automation priority order:
 
-1. `task-0966` — plan generic material-family queue-to-prepare handoff.
-2. `task-0967` — add generic material-family route contract tests/helper.
-3. `task-0968` — audit generic material-family route contract boundaries.
-4. `task-0969` — plan StandardMaterial texture fidelity diagnostics slice.
-5. `task-0970` — add progress tracker freshness validation.
+1. `task-0969` — plan StandardMaterial texture fidelity diagnostics slice.
+2. `task-0982` — audit StandardMaterial texture fidelity plan boundaries.
+3. `task-0983` — add StandardMaterial texture fidelity diagnostics coverage.
+4. `task-0970` — add progress tracker freshness validation.
+5. `task-0973` — document public progress tracker workflow.
 
 Defer allocation-only cleanup and metadata-only shader-contract tasks unless
 they are a direct blocker for this track.
@@ -149,57 +148,40 @@ viewer/material mapping should not outrun the material and queue architecture.
 
 ### Proof Point Critical Path
 
-### task-0966 — Plan generic material-family queue-to-prepare handoff
-
-Category: `docs-tooling`
-Package/write-scope: `docs/research`, `agent/BACKLOG.md`, and progress tracker
-status if render-pipeline estimates change.
-Reference anchor:
-Bevy material queue/preparation concepts, existing built-in material adapter
-routes, and `docs/ARCHITECTURE.md` render world ownership rules.
-
-Acceptance criteria:
-
-- Plan identifies the smallest handoff from material-family queue item to
-  prepared resource lookup without family-specific app branching.
-- Plan preserves renderer-owned GPU resources and renderer-independent source
-  assets.
-- Plan adds or confirms a focused implementation follow-up.
-
-### task-0967 — Add generic material-family route contract coverage
-
-Category: `webgpu-render`
-Package/write-scope: `packages/webgpu/src/webgpu`, `test/webgpu`, and
-`docs/index.html` / `docs/render-pipeline-comparison.html` if estimates change.
-Reference anchor:
-Generic material-family queue-to-prepare handoff plan from `task-0966`,
-existing built-in material queue adapter tests, and WebGPU resource ownership
-docs.
-
-Acceptance criteria:
-
-- Tests/helper describe a generic route contract for built-in material families
-  without exposing raw GPU handles.
-- Existing unlit, Matcap, Standard opaque, alpha-test, and transparent route
-  behavior remains unchanged.
-- Targeted tests and TypeScript validation pass.
-
-### task-0968 — Audit generic material-family route contract boundaries
+### task-0982 — Audit StandardMaterial texture fidelity plan boundaries
 
 Category: `audit-refactor`
-Package/write-scope: `docs/research`, `agent/BACKLOG.md`, and narrow tracker
-status updates if needed.
+Package/write-scope: `docs/research`, `agent/BACKLOG.md`, and tracker files if
+material/render-pipeline estimates change.
 Reference anchor:
-Generic material-family route contract changes from `task-0967`,
-`docs/ARCHITECTURE.md`, package dependency boundaries, and built-in route tests.
+StandardMaterial texture fidelity diagnostics plan from `task-0969`,
+`docs/ARCHITECTURE.md`, `docs/MEDIUM_LONG_TERM_GOALS.md`, and existing
+StandardMaterial texture readiness tests.
 
 Acceptance criteria:
 
-- Audit verifies the generic route contract does not make the app facade own GPU
-  resources or source material state.
-- Audit verifies queue diagnostics remain JSON-safe and separate from retained
-  backend cache summaries.
-- Follow-up backlog wording is tightened if ownership remains ambiguous.
+- Audit verifies the texture fidelity plan stays out of IBL, shadows, and broad
+  PBR shader rewrites.
+- Audit verifies diagnostics remain renderer-owned and JSON-safe.
+- Follow-up backlog wording is tightened if implementation scope is ambiguous.
+
+### task-0983 — Add StandardMaterial texture fidelity diagnostics coverage
+
+Category: `webgpu-render`
+Package/write-scope: `packages/webgpu/src/webgpu`, `test/webgpu`, and tracker
+files if material/render-pipeline estimates change.
+Reference anchor:
+StandardMaterial texture fidelity diagnostics plan from `task-0969`, audit from
+`task-0982`, current StandardMaterial texture readiness tests, and
+PlayCanvas/three.js texture channel handling.
+
+Acceptance criteria:
+
+- Focused tests cover the first sampler/color-space/texture-field fidelity gap
+  selected by `task-0969`.
+- Diagnostics remain JSON-safe and do not claim unsupported PBR features are
+  rendered.
+- Targeted tests and WebGPU TypeScript validation pass.
 
 ### task-0969 — Plan StandardMaterial texture fidelity diagnostics slice
 
@@ -234,6 +216,23 @@ Acceptance criteria:
 - The check avoids network requirements and does not block ordinary docs edits
   on exact percentage values.
 - Validation command is documented for future agents.
+
+### task-0973 — Document public progress tracker workflow
+
+Category: `docs-tooling`
+Package/write-scope: `README.md`, `docs/index.html`, and agent workflow docs if
+needed.
+Reference anchor:
+GitHub Pages `main` `/docs` configuration, public progress tracker instruction
+in `AGENTS.md`, and `docs/render-pipeline-comparison.html` update rule.
+
+Acceptance criteria:
+
+- README or project docs link to the public progress tracker and explain that it
+  is generated from `docs/index.html`.
+- Workflow wording states render-pipeline changes must update both the overview
+  tracker and detailed comparison page.
+- Docs validation or format check passes.
 
 ## Post-Unlit E2E Verification Targets
 

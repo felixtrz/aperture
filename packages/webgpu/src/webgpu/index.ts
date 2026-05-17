@@ -63,6 +63,8 @@ export * from "./prepared-standard-material-cache.js";
 export * from "./prepared-unlit-material-cache.js";
 export * from "./queued-built-in-resource-set-summary.js";
 export * from "./queued-material-adapter.js";
+export * from "./queued-material-frame-resource-route.js";
+export * from "./queued-material-prepare-route.js";
 export * from "./queue-submit.js";
 export * from "./resource-lifecycle.js";
 export * from "./resource-keys.js";

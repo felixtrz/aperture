@@ -1,6 +1,6 @@
 # Completed Tasks
 
-## task-0961 through task-0965 — StandardMaterial UV1 coverage, alpha/cull diagnostics, and public progress tracker
+## task-0961 through task-0981 — StandardMaterial UV1 coverage, alpha/cull diagnostics, public progress tracker, and generic material route contract
 
 Completed: 2026-05-17
 
@@ -11,6 +11,19 @@ Completed task ids:
 - `task-0963` — Plan StandardMaterial alpha/cull diagnostics slice.
 - `task-0964` — Add StandardMaterial alpha/cull diagnostics helper/tests.
 - `task-0965` — Audit StandardMaterial alpha/cull diagnostics boundaries.
+- `task-0966` — Plan generic material-family queue-to-prepare handoff.
+- `task-0967` — Add generic material-family route contract coverage.
+- `task-0968` — Audit generic material-family route contract boundaries.
+- `task-0971` — Wire generic prepare route into built-in app route reporting.
+- `task-0972` — Audit generic app route reporting boundaries.
+- `task-0974` — Plan generic app frame resource adapter migration.
+- `task-0975` — Add generic frame-resource adapter shell coverage.
+- `task-0976` — Audit generic frame-resource adapter shell boundaries.
+- `task-0977` — Plan frame-resource route shell app integration.
+- `task-0978` — Wire frame-resource route shell into app diagnostics.
+- `task-0979` — Audit frame-resource route shell app diagnostics boundaries.
+- `task-0980` — Plan successful-frame route shell reporting policy.
+- `task-0981` — Audit successful-frame route shell policy boundaries.
 
 Summary:
 
@@ -31,6 +44,55 @@ Summary:
   render-pipeline work keeps the public tracker current.
 - Enabled GitHub Pages for `main` `/docs` at
   `https://felixtrz.github.io/aperture/`.
+- Added
+  `docs/research/GENERIC_MATERIAL_FAMILY_QUEUE_PREPARE_HANDOFF_PLAN_2026_05_17.md`
+  to define the smallest next generic route contract around existing built-in
+  material adapters, without moving GPU resource ownership or changing app
+  behavior yet.
+- Refreshed `docs/index.html` and `docs/render-pipeline-comparison.html` so the
+  public tracker points at `task-0968` and records the generic route contract
+  as landed while app resource wiring remains.
+- Added `queued-material-prepare-route.ts` with the generic queued material
+  prepare route context/result/adapter contract and
+  `routeQueuedMaterialPrepare()` helper.
+- Extended built-in material queue route adapters to implement the generic
+  route contract while preserving existing built-in phase/blend validation.
+- Added tests for successful built-in route shells, missing adapters, material
+  mismatches, unsupported phases, and unsupported StandardMaterial blend
+  presets without exposing raw GPU handles.
+- Audited the generic route contract boundary and confirmed it does not make the
+  app facade own source material state or GPU resources, and that route
+  diagnostics remain JSON-safe and separate from retained backend cache
+  summaries.
+- Wired WebGPU app route collection through `routeQueuedMaterialPrepare()`
+  before built-in family resource preparation, while preserving existing
+  app-facing unsupported-family, mismatch, phase, and blend diagnostic codes.
+- Kept source-version backend preparation keys separate from facade queue
+  resource keys so successful frame output and cache reuse counts remain
+  unchanged.
+- Audited app route reporting and documented the key split, diagnostic
+  compatibility, and retained cache summary separation.
+- Planned the next generic frame-resource adapter shell and explicitly preserved
+  source-version backend cache keys separately from facade queue resource keys.
+- Added `createQueuedMaterialFrameResourceRouteShell()` to expose a JSON-safe
+  status/key/diagnostic shell around frame resource preparation without copying
+  raw GPU resource handles.
+- Audited the frame-resource route shell and confirmed it remains a
+  reporting-only boundary that keeps facade keys, backend keys, diagnostics, and
+  retained cache summaries separate.
+- Planned the first app integration point for the frame-resource route shell as
+  failure diagnostics after `adapter.createFrameResources()`, without adding a
+  successful-frame report surface yet.
+- Added `webGpuApp.frameResourceRoute` diagnostics for failed queued built-in
+  frame resource preparation, exposing facade/backend key split and route status
+  without raw GPU handles.
+- Audited the new frame-resource route diagnostic and confirmed it is
+  failure-only, JSON-safe, and separate from retained cache reports.
+- Planned to keep successful-frame route shells omitted for now unless a later
+  optional diagnostics/report flag justifies the report-shape and allocation
+  cost.
+- Audited that policy and confirmed successful-frame route shells should remain
+  omitted by default to avoid hidden valid-frame diagnostics allocation.
 
 Validation run:
 
@@ -40,6 +102,12 @@ Validation run:
 - `pnpm exec tsc --noEmit -p packages/webgpu/tsconfig.json`
 - Browser smoke checks for `http://127.0.0.1:4173/index.html` and
   `http://127.0.0.1:4173/render-pipeline-comparison.html`.
+- GitHub Pages status/build checks and cache-busted HTTP 200 verification for
+  `https://felixtrz.github.io/aperture/`.
+- `pnpm exec vitest run test/webgpu/queued-material-prepare-route.test.ts test/webgpu/built-in-material-queue-adapter.test.ts test/webgpu/built-in-material-app-resource-adapter.test.ts test/webgpu/queued-material-adapter.test.ts`
+- `pnpm exec vitest run test/webgpu/queued-material-prepare-route.test.ts test/webgpu/built-in-material-queue-adapter.test.ts test/webgpu/built-in-material-app-resource-adapter.test.ts test/webgpu/webgpu-app.test.ts --testNamePattern "queued material prepare route contract|built-in material queue route adapter factory|built-in material app resource adapter factory|routes scalar and textured StandardMaterial queue items with unlit and matcap draws|diagnoses unsupported material queue families without submitting|diagnoses unsupported alpha-test material queue families without submitting|diagnoses unsupported transparent material queue families and blend presets without submitting|includes asset mismatch details in material queue route reports|resets material queue route report shell state across failed frames|renders mixed opaque and alpha-test StandardMaterial queue items|renders transparent StandardMaterial alpha-blend queue items after opaque phases"`
+- `pnpm exec vitest run test/webgpu/queued-material-frame-resource-route.test.ts test/webgpu/queued-material-prepare-route.test.ts test/webgpu/built-in-material-app-resource-adapter.test.ts test/webgpu/webgpu-app.test.ts --testNamePattern "queued material frame resource route shell|queued material prepare route contract|built-in material app resource adapter factory|routes scalar and textured StandardMaterial queue items with unlit and matcap draws|diagnoses unsupported material queue families without submitting|includes asset mismatch details in material queue route reports"`
+- `pnpm exec tsc --noEmit -p packages/webgpu/tsconfig.json`
 - `pnpm run check` passed, including package boundaries, build/typecheck, test
   typecheck, examples syntax, lint, format check, and 238 Vitest files / 1128
   tests.

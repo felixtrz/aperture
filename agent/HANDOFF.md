@@ -2,12 +2,15 @@
 
 ## Latest Run Update
 
-Completed `task-0961` through `task-0965` and converted the local render
-pipeline comparison into a public GitHub Pages-ready project tracker.
+Completed `task-0961` through `task-0981`, converted the local render pipeline
+comparison into a public GitHub Pages-ready project tracker, and verified the
+public root URL no longer returns 404 after push.
 
 Completed task ids:
 
-- `task-0961` through `task-0965`.
+- `task-0961` through `task-0968`.
+- `task-0971` through `task-0972`.
+- `task-0974` through `task-0981`.
 
 Highlights:
 
@@ -29,12 +32,75 @@ Highlights:
 - Updated `docs/render-pipeline-comparison.html` with an upfront status band for
   all six render phases, rough completion estimates, and concrete missing
   pieces.
+- Planned the generic material-family queue-to-prepare handoff in
+  `docs/research/GENERIC_MATERIAL_FAMILY_QUEUE_PREPARE_HANDOFF_PLAN_2026_05_17.md`.
+  The plan established the route-contract slice that landed in `task-0967`
+  before any app resource preparation rewiring.
+- Added/exported `queued-material-prepare-route.ts`, which defines the generic
+  queued material prepare route context/result/adapter contract and
+  `routeQueuedMaterialPrepare()`. The helper returns only JSON-safe strings,
+  versions, frame numbers, and diagnostics; it does not expose GPU handles or
+  move app resource preparation yet.
+- Extended built-in queue route adapters with the generic route contract while
+  preserving the existing `isMaterialAsset()` and phase/blend validation
+  behavior.
+- Audited the generic route contract boundary in
+  `docs/research/GENERIC_MATERIAL_ROUTE_CONTRACT_BOUNDARY_AUDIT_2026_05_17.md`.
+  The audit found no ECS/source ownership drift, no raw GPU handle exposure, and
+  no overlap with retained backend cache summaries.
+- Wired WebGPU app route reporting through `routeQueuedMaterialPrepare()` before
+  built-in family resource preparation. Existing app-facing unsupported-family,
+  material-mismatch, phase, and blend diagnostics remain JSON-safe and retain
+  their existing codes.
+- Preserved the distinction between facade queue resource keys and
+  source-version backend preparation keys after a targeted app regression caught
+  the risk; successful frame output and reuse counts remain unchanged.
+- Audited the app route reporting boundary in
+  `docs/research/GENERIC_APP_ROUTE_REPORTING_BOUNDARY_AUDIT_2026_05_17.md`.
+  The audit records the facade-key/backend-key split and confirms route
+  diagnostics remain separate from retained cache summaries.
+- Planned the next generic app frame-resource adapter migration in
+  `docs/research/GENERIC_APP_FRAME_RESOURCE_ADAPTER_MIGRATION_PLAN_2026_05_17.md`.
+  The plan keeps current family helpers intact and scopes the next slice to a
+  shell that preserves source-version backend keys.
+- Added/exported `queued-material-frame-resource-route.ts`, a JSON-safe shell
+  that records facade queue keys, backend source-version keys, pipeline key,
+  frame/version, status, and diagnostics without copying the actual GPU resource
+  result.
+- Audited the frame-resource route shell boundary in
+  `docs/research/GENERIC_FRAME_RESOURCE_ROUTE_SHELL_BOUNDARY_AUDIT_2026_05_17.md`.
+  The audit confirms the shell is reporting-only, keeps key families distinct,
+  and does not touch retained cache summaries.
+- Planned app integration for the frame-resource route shell in
+  `docs/research/FRAME_RESOURCE_ROUTE_SHELL_APP_INTEGRATION_PLAN_2026_05_17.md`.
+  The plan scopes the first wiring to failure diagnostics after
+  `adapter.createFrameResources()`, preserving successful frame output.
+- Wired failure diagnostics for frame-resource route shells into
+  `prepareQueuedBuiltInFrameResources()`. Failed frame resource preparation now
+  emits `webGpuApp.frameResourceRoute` with facade keys, backend keys,
+  pipeline/frame/version, status, and diagnostics, without raw GPU handles.
+- Audited the frame-resource route shell app diagnostics boundary in
+  `docs/research/FRAME_RESOURCE_ROUTE_SHELL_APP_DIAGNOSTICS_BOUNDARY_AUDIT_2026_05_17.md`.
+  The audit confirms the diagnostic is failure-only and does not change
+  successful frame output or retained cache reports.
+- Planned successful-frame route shell reporting policy in
+  `docs/research/SUCCESSFUL_FRAME_ROUTE_SHELL_REPORTING_POLICY_PLAN_2026_05_17.md`.
+  The policy keeps successful-frame shells omitted for now to preserve report
+  shape and valid-frame allocation discipline.
+- Audited the successful-frame route shell policy in
+  `docs/research/SUCCESSFUL_FRAME_ROUTE_SHELL_POLICY_BOUNDARY_AUDIT_2026_05_17.md`.
+  The audit confirms the policy avoids hidden valid-frame diagnostic allocation
+  and keeps retained cache summaries separate.
 - Updated `AGENTS.md` and `agent/WAKE.md` so future project-status updates touch
   `docs/index.html`, and render-pipeline work also updates
   `docs/render-pipeline-comparison.html`.
 - Enabled GitHub Pages for `main` `/docs`. The public URL is
   `https://felixtrz.github.io/aperture/`; it returned 404 before this run's
-  files were pushed because `docs/index.html` was still local.
+  files were pushed because `docs/index.html` was still local. A cache-busted
+  request for the pushed commit returned HTTP 200.
+- Updated `docs/index.html` and `docs/render-pipeline-comparison.html` again
+  after `task-0981` so the public tracker now lists `task-0969` as the
+  recommended next step and records the queue phase at roughly 68% complete.
 - Refilled the ready backlog with `task-0966` through `task-0970`; recommended
   next task is `task-0966`.
 
@@ -42,6 +108,17 @@ Validation:
 
 - Targeted Vitest passed for StandardMaterial UV1 readiness/pipeline coverage
   and render-state summaries.
+- Targeted Vitest passed for queued material prepare routes and existing
+  built-in route/app-resource adapter behavior.
+- Targeted WebGPU app route tests passed for successful mixed-family routing,
+  unsupported families, unsupported alpha-test/transparent routes, asset
+  mismatch route reports, route shell reset, Standard alpha-test, and Standard
+  transparent alpha-blend paths.
+- Targeted frame-resource route shell tests passed for source-version backend
+  key preservation and no raw handle leakage in JSON output.
+- Targeted app diagnostics tests passed for the failure-only
+  `webGpuApp.frameResourceRoute` diagnostic and unchanged successful route
+  behavior.
 - `pnpm exec tsc --noEmit -p packages/webgpu/tsconfig.json` passed.
 - Browser smoke checks passed for `http://127.0.0.1:4173/index.html` and
   `http://127.0.0.1:4173/render-pipeline-comparison.html`.
@@ -62,17 +139,24 @@ Reference files/patterns inspected:
   `packages/webgpu/src/webgpu/material-render-state.ts`,
   `packages/webgpu/src/webgpu/standard-pipeline-descriptor.ts`, and
   `packages/webgpu/src/webgpu/standard-material-buffer.ts`.
+- Generic material handoff anchors:
+  `packages/webgpu/src/webgpu/queued-material-adapter.ts`,
+  `packages/webgpu/src/webgpu/queued-material-prepare-route.ts`,
+  `packages/webgpu/src/webgpu/built-in-material-queue-adapter.ts`,
+  `packages/webgpu/src/webgpu/built-in-material-app-resource-adapter.ts`,
+  `packages/render/src/rendering/material-queue.ts`,
+  `references/bevy/crates/bevy_pbr/src/material.rs`, and
+  `references/bevy/crates/bevy_render/src/render_phase/mod.rs`.
 
 Known issues / follow-ups:
 
-- The public Pages site will serve the new dashboard only after the final commit
-  is pushed and GitHub Pages rebuilds. If `https://felixtrz.github.io/aperture/`
-  still shows 404 immediately after push, wait for the Pages build/cache or
-  check the Pages status in GitHub.
+- The public Pages site is configured from `main` `/docs`; if
+  `https://felixtrz.github.io/aperture/` appears stale immediately after a push,
+  wait for the Pages rebuild/cache or check the Pages build status in GitHub.
 - `docs/render-pipeline-comparison.html` remains intentionally listed in
   `.prettierignore`; update it manually when render-pipeline state changes.
-- Next task: `task-0966` plan the generic material-family queue-to-prepare
-  handoff.
+- Next task: `task-0969` plan StandardMaterial texture fidelity diagnostics
+  slice.
 
 ## Previous Run Update
 

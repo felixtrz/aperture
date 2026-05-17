@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-05-17T17:02:16Z",
   "lastResult": "success",
-  "lastCommit": "07da00c",
+  "lastCommit": "779f3f1",
   "activePid": null,
-  "notes": "Completed task-0961 through task-0965 plus the public GitHub Pages progress tracker. Final validation passed with pnpm run check. GitHub Pages is configured for main /docs; next recommended task is task-0966.",
-  "lastRunFinishedAt": "2026-05-17T18:19:26Z"
+  "notes": "Completed task-0961 through task-0981, published and verified the GitHub Pages tracker, and recommends task-0969 next.",
+  "lastRunFinishedAt": "2026-05-17T18:55:11Z"
 }

@@ -174,6 +174,15 @@ import {
   type ReusableRouteCollector,
 } from "./reusable-route-collector.js";
 import {
+  createQueuedMaterialFrameResourceRouteShell,
+  type QueuedMaterialFrameResourceRouteShell,
+} from "./queued-material-frame-resource-route.js";
+import {
+  createQueuedMaterialPrepareRouteResult,
+  routeQueuedMaterialPrepare,
+  type QueuedMaterialPrepareRouteResult,
+} from "./queued-material-prepare-route.js";
+import {
   initializeWebGpu,
   type InitializeWebGpuOptions,
   type WebGpuCanvasLike,
@@ -263,6 +272,12 @@ export interface WebGpuAppMaterialQueueRouteReportDiagnostic {
   readonly code: "webGpuApp.materialQueueRouteReport";
   readonly message: string;
   readonly report: WebGpuAppMaterialQueueRouteReportJsonValue;
+}
+
+export interface WebGpuAppFrameResourceRouteDiagnostic {
+  readonly code: "webGpuApp.frameResourceRoute";
+  readonly message: string;
+  readonly route: QueuedMaterialFrameResourceRouteShell;
 }
 
 export interface WebGpuAppMaterialDependencyDiagnostic {
@@ -374,6 +389,7 @@ interface MultiUnlitAppResourceSet {
 
 interface QueuedBuiltInAppResourceItem {
   readonly queueItem: MaterialQueueItem;
+  readonly prepareRoute: QueuedMaterialPrepareRouteResult;
   readonly adapter: QueuedBuiltInMaterialAdapter;
   readonly draw: MeshDrawPacket;
   readonly mesh: MeshAsset;
@@ -397,6 +413,7 @@ interface QueuedSourceMaterialAsset {
   readonly asset: MaterialAsset;
   readonly kind: string;
   readonly resourceKey: string;
+  readonly sourceVersion: number;
 }
 
 interface WebGpuAppPipelinePlanResult {
@@ -939,6 +956,8 @@ function createSingleBuiltInAppResourceItem(options: {
   readonly meshKey: string;
   readonly material: MaterialAsset;
   readonly materialKey: string;
+  readonly materialVersion: number;
+  readonly frame: number;
 }): QueuedBuiltInAppResourceItem | null {
   const adapter = QUEUED_BUILT_IN_MATERIAL_ADAPTERS.get(options.material.kind);
 
@@ -948,35 +967,42 @@ function createSingleBuiltInAppResourceItem(options: {
 
   const sourceMeshKey = assetHandleKey(options.draw.mesh);
   const sourceMaterialKey = assetHandleKey(options.draw.material);
+  const queueItem: MaterialQueueItem = {
+    renderId: options.draw.renderId,
+    drawIndex: options.drawIndex,
+    entity: options.draw.entity,
+    renderPhase: options.draw.sortKey.queue,
+    materialFamily: adapter.kind,
+    pipelineKey: options.draw.batchKey.pipelineKey,
+    meshKey: sourceMeshKey,
+    materialKey: sourceMaterialKey,
+    meshResourceKey: options.meshKey,
+    materialResourceKey: options.materialKey,
+    meshLayoutKey: options.draw.batchKey.meshLayoutKey,
+    topology: options.draw.batchKey.topology,
+    depth: options.draw.sortKey.depth,
+    sortKey: {
+      renderPhase: options.draw.sortKey.queue,
+      viewId: options.draw.sortKey.viewId,
+      layer: options.draw.sortKey.layer,
+      order: options.draw.sortKey.order,
+      pipelineKey: options.draw.batchKey.pipelineKey,
+      materialResourceKey: options.materialKey,
+      meshResourceKey: options.meshKey,
+      depth: options.draw.sortKey.depth,
+      stableId: options.draw.sortKey.stableId,
+      drawIndex: options.drawIndex,
+    },
+  };
 
   return {
-    queueItem: {
-      renderId: options.draw.renderId,
-      drawIndex: options.drawIndex,
-      entity: options.draw.entity,
-      renderPhase: options.draw.sortKey.queue,
-      materialFamily: adapter.kind,
-      pipelineKey: options.draw.batchKey.pipelineKey,
-      meshKey: sourceMeshKey,
-      materialKey: sourceMaterialKey,
-      meshResourceKey: options.meshKey,
-      materialResourceKey: options.materialKey,
-      meshLayoutKey: options.draw.batchKey.meshLayoutKey,
-      topology: options.draw.batchKey.topology,
-      depth: options.draw.sortKey.depth,
-      sortKey: {
-        renderPhase: options.draw.sortKey.queue,
-        viewId: options.draw.sortKey.viewId,
-        layer: options.draw.sortKey.layer,
-        order: options.draw.sortKey.order,
-        pipelineKey: options.draw.batchKey.pipelineKey,
-        materialResourceKey: options.materialKey,
-        meshResourceKey: options.meshKey,
-        depth: options.draw.sortKey.depth,
-        stableId: options.draw.sortKey.stableId,
-        drawIndex: options.drawIndex,
-      },
-    },
+    queueItem,
+    prepareRoute: createQueuedMaterialPrepareRouteResult({
+      queueItem,
+      material: options.material as BuiltInMaterialAsset,
+      sourceVersion: options.materialVersion,
+      frame: options.frame,
+    }),
     adapter,
     draw: options.draw,
     mesh: options.mesh,
@@ -1034,29 +1060,6 @@ function collectQueuedBuiltInAppResourceSet(options: {
       continue;
     }
 
-    const adapter = QUEUED_BUILT_IN_MATERIAL_ADAPTERS.get(
-      queueItem.materialFamily,
-    );
-
-    if (adapter === null) {
-      diagnostics.push({
-        code: "webGpuApp.unsupportedMaterialQueueFamily",
-        renderId: queueItem.renderId,
-        drawIndex: queueItem.drawIndex,
-        materialFamily: queueItem.materialFamily,
-        entity: queueItem.entity,
-        message: `WebGPU app material queue routing supports unlit, matcap, and standard materials, not '${queueItem.materialFamily}'.`,
-      } satisfies WebGpuAppUnsupportedMaterialQueueDiagnostic);
-      continue;
-    }
-
-    const unsupportedPhaseDiagnostic = adapter.validateQueueItem(queueItem);
-
-    if (unsupportedPhaseDiagnostic !== null) {
-      diagnostics.push(unsupportedPhaseDiagnostic);
-      continue;
-    }
-
     const mesh = meshAssets.get(queueItem.meshKey);
     const material = materialAssets.get(queueItem.materialKey);
 
@@ -1064,24 +1067,40 @@ function collectQueuedBuiltInAppResourceSet(options: {
       continue;
     }
 
-    if (
-      material.kind !== adapter.kind ||
-      !adapter.isMaterialAsset(material.asset)
-    ) {
-      diagnostics.push({
-        code: "webGpuApp.materialQueueAssetMismatch",
-        renderId: queueItem.renderId,
-        drawIndex: queueItem.drawIndex,
-        materialFamily: queueItem.materialFamily,
-        materialKind: material.kind,
-        entity: queueItem.entity,
-        message: `Render object ${queueItem.renderId} pipeline family '${queueItem.materialFamily}' does not match material asset kind '${material.kind}'.`,
-      } satisfies WebGpuAppUnsupportedMaterialQueueDiagnostic);
+    const route = routeQueuedMaterialPrepare(
+      QUEUED_BUILT_IN_MATERIAL_ADAPTERS,
+      {
+        queueItem,
+        material: material.asset,
+        sourceVersion: material.sourceVersion,
+        frame: options.snapshot.frame,
+      },
+    );
+
+    if (!route.valid) {
+      diagnostics.push(
+        ...route.diagnostics.map((diagnostic) =>
+          queuedPrepareRouteDiagnosticToAppDiagnostic(diagnostic, queueItem),
+        ),
+      );
+      continue;
+    }
+
+    if (route.meshResourceKey === null || route.materialResourceKey === null) {
+      continue;
+    }
+
+    const adapter = QUEUED_BUILT_IN_MATERIAL_ADAPTERS.get(
+      queueItem.materialFamily,
+    );
+
+    if (adapter === null || !adapter.isMaterialAsset(material.asset)) {
       continue;
     }
 
     items.push({
       queueItem,
+      prepareRoute: route,
       adapter,
       draw,
       mesh: mesh.asset,
@@ -1135,6 +1154,16 @@ function createWebGpuAppMaterialQueueRouteReportDiagnostic(input: {
   };
 }
 
+function createWebGpuAppFrameResourceRouteDiagnostic(
+  route: QueuedMaterialFrameResourceRouteShell,
+): WebGpuAppFrameResourceRouteDiagnostic {
+  return {
+    code: "webGpuApp.frameResourceRoute",
+    message: `WebGPU app frame resource preparation failed for '${route.family}' material route.`,
+    route,
+  };
+}
+
 function materialQueueItemToRouteQueueItem(
   item: MaterialQueueItem,
 ): WebGpuAppMaterialQueueRouteQueueItem {
@@ -1156,6 +1185,45 @@ function resourceItemToRouteRoutedItem(
     materialFamily: item.queueItem.materialFamily,
     renderPhase: item.queueItem.renderPhase,
   };
+}
+
+function queuedPrepareRouteDiagnosticToAppDiagnostic(
+  diagnostic: unknown,
+  queueItem: MaterialQueueItem,
+): unknown {
+  if (typeof diagnostic !== "object" || diagnostic === null) {
+    return diagnostic;
+  }
+
+  const candidate = diagnostic as {
+    readonly code?: unknown;
+    readonly materialKind?: unknown;
+  };
+
+  if (candidate.code === "queuedMaterialPrepareRoute.missingAdapter") {
+    return {
+      code: "webGpuApp.unsupportedMaterialQueueFamily",
+      renderId: queueItem.renderId,
+      drawIndex: queueItem.drawIndex,
+      materialFamily: queueItem.materialFamily,
+      entity: queueItem.entity,
+      message: `WebGPU app material queue routing supports unlit, matcap, and standard materials, not '${queueItem.materialFamily}'.`,
+    } satisfies WebGpuAppUnsupportedMaterialQueueDiagnostic;
+  }
+
+  if (candidate.code === "queuedMaterialPrepareRoute.materialMismatch") {
+    return {
+      code: "webGpuApp.materialQueueAssetMismatch",
+      renderId: queueItem.renderId,
+      drawIndex: queueItem.drawIndex,
+      materialFamily: queueItem.materialFamily,
+      ...optionalString("materialKind", candidate.materialKind),
+      entity: queueItem.entity,
+      message: `Render object ${queueItem.renderId} pipeline family '${queueItem.materialFamily}' does not match material asset kind '${String(candidate.materialKind)}'.`,
+    } satisfies WebGpuAppUnsupportedMaterialQueueDiagnostic;
+  }
+
+  return diagnostic;
 }
 
 function unknownToRouteDiagnostic(
@@ -1310,6 +1378,7 @@ function indexQueuedSourceAssets(
       asset: material,
       kind: material.kind,
       resourceKey: sourceAssetCacheKey(draw.material, materialEntry.version),
+      sourceVersion: materialEntry.version,
     });
   }
 }
@@ -1676,9 +1745,21 @@ async function prepareQueuedBuiltInFrameResources(options: {
       layouts,
       reuse: options.reuse,
     });
+    const frameResourceRoute = createQueuedMaterialFrameResourceRouteShell({
+      prepareRoute: item.prepareRoute,
+      backendMeshKey: item.meshKey,
+      backendMaterialKey: item.materialKey,
+      frameResources: resources as {
+        readonly valid: boolean;
+        readonly diagnostics: readonly unknown[];
+      },
+    });
 
     if (!resources.valid || resources.resources === null) {
       diagnostics.push(...resources.diagnostics);
+      diagnostics.push(
+        createWebGpuAppFrameResourceRouteDiagnostic(frameResourceRoute),
+      );
       continue;
     }
 
@@ -2001,6 +2082,8 @@ async function renderWebGpuAppFrame(
           meshKey,
           material,
           materialKey,
+          materialVersion: materialEntry?.version ?? -1,
+          frame: snapshot.frame,
         })
       : null;
 
