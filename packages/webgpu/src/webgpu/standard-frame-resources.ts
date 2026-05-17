@@ -119,9 +119,13 @@ export interface CreateStandardFrameGpuResourcesOptions {
   readonly device: StandardFrameGpuResourceDeviceLike;
   readonly snapshot: RenderSnapshot;
   readonly mesh: MeshAsset | null;
+  readonly preparedMesh?: MeshGpuBufferResource | undefined;
   readonly viewUniforms: PackedSnapshotViewUniforms | null;
   readonly worldTransforms: PackedSnapshotTransforms | null;
   readonly material: StandardMaterialAsset | null;
+  readonly preparedMaterial?:
+    | PreparedStandardFrameMaterialResources
+    | undefined;
   readonly sharedLayouts: readonly UnlitBindGroupLayoutResource[];
   readonly materialLayout: StandardMaterialBindGroupLayoutResource | null;
   readonly lightLayout: LightBindGroupLayoutResource | null;
@@ -140,6 +144,11 @@ export interface StandardFrameGpuResources {
   readonly bindGroups: readonly UnlitBindGroupResource[];
 }
 
+export interface PreparedStandardFrameMaterialResources {
+  readonly material: StandardMaterialGpuBufferResource;
+  readonly bindGroup: StandardMaterialBindGroupResource;
+}
+
 export interface CreateStandardFrameGpuResourcesResult {
   readonly valid: boolean;
   readonly resources: StandardFrameGpuResources | null;
@@ -153,18 +162,18 @@ export function createStandardFrameGpuResources(
   const mesh = createMeshResource(options, diagnostics);
   const viewUniform = createViewUniformResource(options, diagnostics);
   const worldTransforms = createWorldTransformResource(options, diagnostics);
-  const material = createMaterialResource(options, diagnostics);
+  const material =
+    options.preparedMaterial?.material ??
+    createMaterialResource(options, diagnostics);
   const sharedBindGroups = createSharedBindGroups(
     options,
     viewUniform,
     worldTransforms,
     diagnostics,
   );
-  const materialBindGroup = createMaterialBindGroup(
-    options,
-    material,
-    diagnostics,
-  );
+  const materialBindGroup =
+    options.preparedMaterial?.bindGroup ??
+    createMaterialBindGroup(options, material, diagnostics);
   const lightGpuBuffers = createSnapshotLightGpuBuffers(options.snapshot, {
     device: options.device,
   });
@@ -220,9 +229,16 @@ export function createStandardFrameGpuResources(
 }
 
 function createMeshResource(
-  options: Pick<CreateStandardFrameGpuResourcesOptions, "device" | "mesh">,
+  options: Pick<
+    CreateStandardFrameGpuResourcesOptions,
+    "device" | "mesh" | "preparedMesh"
+  >,
   diagnostics: CreateStandardFrameGpuResourcesDiagnostic[],
 ): MeshGpuBufferResource | null {
+  if (options.preparedMesh !== undefined) {
+    return options.preparedMesh;
+  }
+
   if (options.mesh === null) {
     diagnostics.push({
       code: "standardFrameResources.missingMesh",

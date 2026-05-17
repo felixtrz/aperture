@@ -59,12 +59,13 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start with `task-0810`. The app-local material resource path has been audited,
-descriptor/light scratch writers are in place, frame-resource cache-hit shells
-are reused, scalar and textured unlit prepared material cache helpers have
-landed, and a direct prepared mesh cache helper is available. The next slice
-should wire the prepared mesh cache into the scalar unlit app route before
-expanding to textured app-route integration.
+Start with `task-0830`. Prepared mesh caching now covers scalar unlit, Matcap,
+and Standard app routes; scalar and textured unlit prepared material resources
+are app-routed; scalar Standard and base-color textured Standard prepared
+material resources are app-routed; and Standard texture dependency keys cover
+all current texture families. The next slice should add direct
+metallic-roughness textured Standard prepared resources before app-route
+integration.
 
 ## Near-Term Proof Point Track
 
@@ -81,11 +82,14 @@ Target proof point:
 
 Remaining automation priority order:
 
-1. `task-0810` — wire prepared mesh cache into scalar unlit app route.
-2. `task-0812` — wire textured unlit prepared cache into the app route.
-3. `task-0811` — audit textured unlit and mesh cache boundaries.
-4. `task-0813` — add prepared cache app-route invalidation counters.
-5. `task-0814` — extend prepared mesh cache to the Matcap app route.
+1. `task-0830` — add metallic-roughness textured Standard prepared helper.
+2. `task-0831` — wire metallic-roughness Standard prepared cache into the app
+   route.
+3. `task-0832` — add metallic-roughness Standard prepared app-route
+   invalidation tests.
+4. `task-0833` — audit Standard textured-family prepared route expansion.
+5. `task-0834` — plan normal/occlusion/emissive Standard prepared cache
+   expansion.
 
 Defer allocation-only cleanup and metadata-only shader-contract tasks unless
 they are a direct blocker for this track.
@@ -151,94 +155,103 @@ viewer/material mapping should not outrun the material and queue architecture.
 
 ### Proof Point Critical Path
 
-### task-0810 — Wire prepared mesh cache into scalar unlit app route
+### task-0830 — Add metallic-roughness textured Standard prepared helper
 
 Category: `webgpu-render`
-Package/write-scope: `packages/webgpu/src/webgpu/app.ts`, unlit app
-frame-resource helpers, prepared mesh cache helper, and focused app tests.
+Package/write-scope: prepared Standard material cache helper and direct tests.
 Reference anchor:
-`docs/research/PREPARED_MESH_CACHE_HANDOFF_PLAN_2026_05_17.md`, scalar unlit
-prepared material cache implementation, and current app cache-slot tests.
+`docs/research/STANDARD_TEXTURED_PREPARED_DEPENDENCY_HANDOFF_PLAN_2026_05_17.md`,
+current base-color textured Standard prepared helper, all-family Standard
+dependency key helper, Standard material buffer dependencies, Standard bind
+group binding order, and textured unlit prepared material helper.
 
 Acceptance criteria:
 
-- Scalar unlit app frames can consume prepared mesh resources when source mesh
-  versions and upload layout keys are unchanged.
-- A frame-resource cache miss reuses prepared mesh buffers without changing
-  public app APIs.
-- App reports distinguish frame-resource reuse from prepared mesh reuse.
+- Metallic-roughness-only StandardMaterial assets can create and reuse prepared
+  group-2 material buffer/bind-group resources when texture and sampler
+  dependencies are supplied.
+- Source material, metallic-roughness texture, or metallic-roughness sampler
+  version changes produce distinct direct cache entries.
+- Base-color prepared helper behavior remains unchanged, and group-3 light
+  resources are not included in the material cache key.
 
-### task-0811 — Audit textured unlit and mesh cache boundaries
+### task-0831 — Wire metallic-roughness Standard prepared cache into app route
+
+Category: `webgpu-render`
+Package/write-scope: Standard app frame-resource helper, app resource cache, and
+focused WebGPU app tests.
+Reference anchor:
+metallic-roughness prepared helper from `task-0830`, base-color Standard
+app-route integration, `packages/webgpu/src/webgpu/app-texture-sampler-resources.ts`,
+and current WebGPU app reuse counters.
+
+Acceptance criteria:
+
+- Metallic-roughness-only StandardMaterial app frame-resource misses can consume
+  prepared group-2 material resources when source material, texture, sampler,
+  pipeline, and layout keys are unchanged.
+- Base-color and scalar Standard prepared routes continue to pass existing app
+  tests.
+- App reports distinguish texture/sampler resource reuse, prepared Standard
+  material reuse, and full frame-resource cache hits without exposing raw GPU
+  handles.
+
+### task-0832 — Add metallic-roughness Standard prepared app-route invalidation tests
+
+Category: `webgpu-render`
+Package/write-scope: WebGPU app report/tests only.
+Reference anchor:
+metallic-roughness Standard app-route integration from `task-0831`, all-family
+Standard dependency key helper, texture/sampler app resources, current WebGPU
+app reuse counters, and `docs/RENDER_ASSET_PREPARATION.md`.
+
+Acceptance criteria:
+
+- Changing only metallic-roughness texture source version creates a new
+  prepared Standard material resource while reusing prepared mesh resources.
+- Changing only metallic-roughness sampler source version creates a new prepared
+  Standard material resource while reusing prepared texture resources where
+  appropriate.
+- Public reports remain JSON-safe and distinguish prepared material reuse from
+  full frame-resource cache hits.
+
+### task-0833 — Audit Standard textured-family prepared route expansion
 
 Category: `audit-refactor`
 Package/write-scope: `docs/research`, `agent/BACKLOG.md`, and narrow follow-up
 task edits only.
 Reference anchor:
 `docs/ARCHITECTURE.md`, `docs/RENDER_ASSET_PREPARATION.md`,
-`docs/research/TEXTURED_UNLIT_PREPARED_DEPENDENCY_HANDOFF_PLAN_2026_05_17.md`,
-prepared unlit cache implementation, and prepared mesh cache implementation.
+`docs/research/STANDARD_TEXTURED_PREPARED_DEPENDENCY_HANDOFF_PLAN_2026_05_17.md`,
+base-color and metallic-roughness Standard prepared helpers, Standard app
+frame-resource helper, texture/sampler app resources, and WebGPU app
+reuse-counter tests.
 
 Acceptance criteria:
 
-- Audit verifies texture/sampler and mesh prepared resources stay WebGPU-owned
-  and renderer-derived.
-- Audit checks ECS/source assets remain authoritative and raw GPU handles do not
-  leak through public or render-layer keys.
-- Follow-up task wording is tightened if drift or missing coverage is found.
+- Audit verifies expanded textured Standard prepared material resources stay
+  WebGPU-owned and renderer-derived.
+- Audit checks texture/sampler GPU resources remain separate dependencies and
+  group-3 light resources remain frame-derived.
+- Follow-up task wording is tightened if normal, occlusion, or emissive work
+  needs extra guardrails.
 
-### task-0812 — Wire textured unlit prepared cache into the app route
+### task-0834 — Plan normal/occlusion/emissive Standard prepared cache expansion
 
-Category: `webgpu-render`
-Package/write-scope: `packages/webgpu/src/webgpu/app.ts`, unlit app
-frame-resource helpers, prepared unlit cache helper, and focused app tests.
+Category: `docs-tooling`
+Package/write-scope: `docs/research`, `agent/BACKLOG.md`, and no runtime code.
 Reference anchor:
-`docs/research/TEXTURED_UNLIT_PREPARED_DEPENDENCY_HANDOFF_PLAN_2026_05_17.md`,
-`packages/webgpu/src/webgpu/prepared-unlit-material-cache.ts`, and current
-textured unlit app texture/sampler resource path.
+Standard shader/bind-group binding order, all-family Standard dependency key
+helper, base-color and metallic-roughness prepared routes, Standard texture app
+tests, and `docs/RENDER_ASSET_PREPARATION.md`.
 
 Acceptance criteria:
 
-- Textured unlit app frames can consume prepared group-2 material resources
-  when texture and sampler dependencies are ready.
-- The app route reuses textured prepared resources when material, texture,
-  sampler, pipeline, and layout keys are unchanged.
-- Existing texture/sampler GPU resource preparation remains WebGPU-owned and
-  raw GPU handles do not enter render-layer descriptors.
-
-### task-0813 — Add prepared cache app-route invalidation counters
-
-Category: `webgpu-render`
-Package/write-scope: WebGPU app reports/tests only.
-Reference anchor:
-prepared scalar/textured unlit cache helpers, prepared mesh cache helper,
-current WebGPU app reuse counters, and `docs/RENDER_ASSET_PREPARATION.md`.
-
-Acceptance criteria:
-
-- App tests distinguish frame-resource cache misses from prepared material and
-  prepared mesh cache reuse.
-- Changing only texture, sampler, material, or mesh source versions produces
-  clear JSON-safe reuse/creation counters.
-- Public reports do not expose mutable cache internals or raw GPU handles.
-
-### task-0814 — Extend prepared mesh cache to the Matcap app route
-
-Category: `webgpu-render`
-Package/write-scope: Matcap app frame-resource helper, app route wiring, and
-focused WebGPU app tests.
-Reference anchor:
-`docs/research/PREPARED_MESH_CACHE_HANDOFF_PLAN_2026_05_17.md`,
-`packages/webgpu/src/webgpu/prepared-mesh-cache.ts`, and current Matcap
-frame-resource helper.
-
-Acceptance criteria:
-
-- Matcap app frames can consume prepared mesh resources when mesh source
-  versions and upload layout keys are unchanged.
-- Mesh cache reuse does not change Matcap material texture/sampler resource
-  behavior.
-- Tests cover first-frame create and second-frame prepared mesh reuse through
-  public app diagnostics.
+- Plan identifies whether normal, occlusion, and emissive prepared routes should
+  land independently or as one coherent multi-family slice.
+- Plan lists required direct helper and app-route tests for each family.
+- Plan keeps tangent/normal-map vertex requirements and group-3 light resources
+  outside material cache ownership.
 
 ## Post-Unlit E2E Verification Targets
 

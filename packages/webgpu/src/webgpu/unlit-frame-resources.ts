@@ -98,6 +98,7 @@ export interface UnlitFrameGpuResourceDeviceLike
 export interface CreateUnlitFrameGpuResourcesOptions {
   readonly device: UnlitFrameGpuResourceDeviceLike;
   readonly mesh: MeshAsset | null;
+  readonly preparedMesh?: MeshGpuBufferResource | undefined;
   readonly viewUniforms: PackedSnapshotViewUniforms | null;
   readonly worldTransforms: PackedSnapshotTransforms | null;
   readonly material: MaterialAsset | null;
@@ -367,6 +368,10 @@ function createMeshResource(
   options: UnlitSharedFrameGpuResourceOptions,
   diagnostics: CreateUnlitFrameGpuResourcesDiagnostic[],
 ): MeshGpuBufferResource | null {
+  if (options.preparedMesh !== undefined) {
+    return options.preparedMesh;
+  }
+
   if (options.mesh === null) {
     diagnostics.push({
       code: "unlitFrameResources.missingMesh",
@@ -484,6 +489,7 @@ function createMaterialResource(
 interface UnlitSharedFrameGpuResourceOptions {
   readonly device: UnlitFrameGpuResourceDeviceLike;
   readonly mesh: MeshAsset | null;
+  readonly preparedMesh?: MeshGpuBufferResource | undefined;
   readonly viewUniforms: PackedSnapshotViewUniforms | null;
   readonly worldTransforms: PackedSnapshotTransforms | null;
 }

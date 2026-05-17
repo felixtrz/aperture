@@ -1,6 +1,7 @@
 import type {
   AssetRegistry,
   MaterialHandle,
+  MeshHandle,
 } from "@aperture-engine/simulation";
 import type {
   MaterialAsset,
@@ -16,10 +17,17 @@ import {
 } from "./unlit-frame-resources.js";
 import {
   prepareScalarUnlitMaterialResource,
+  prepareTexturedUnlitMaterialResource,
   type PreparedScalarUnlitMaterialCacheStatus,
   type PreparedScalarUnlitMaterialCache,
   type PreparedScalarUnlitMaterialResource,
+  type PreparedTexturedUnlitMaterialResource,
 } from "./prepared-unlit-material-cache.js";
+import {
+  prepareAppMeshResource,
+  type PreparedAppMeshResourceUse,
+  type PreparedMeshGpuResourceCache,
+} from "./prepared-app-mesh-resource.js";
 import type { UnlitBindGroupLayoutResource } from "./unlit-bind-group.js";
 import {
   createViewUniformBufferDescriptorScratch,
@@ -51,8 +59,14 @@ export interface UnlitAppFrameResourceCacheSlot {
 export interface UnlitAppFrameResourceReuseReport {
   meshBuffersCreated: number;
   meshBuffersReused: number;
+  preparedMeshBuffersCreated: number;
+  preparedMeshBuffersReused: number;
   materialBuffersCreated: number;
   materialBuffersReused: number;
+  preparedMaterialBuffersCreated: number;
+  preparedMaterialBuffersReused: number;
+  preparedMaterialBindGroupsCreated: number;
+  preparedMaterialBindGroupsReused: number;
   bindGroupsCreated: number;
   bindGroupsReused: number;
   dynamicBufferWrites: number;
@@ -62,12 +76,14 @@ export function createOrReuseUnlitAppFrameResources(options: {
   readonly device: unknown;
   readonly cache: UnlitAppFrameResourceCacheSlot;
   readonly mesh: MeshAsset | null;
+  readonly meshHandle: MeshHandle;
   readonly meshKey: string;
   readonly material: MaterialAsset | null;
   readonly materialHandle: MaterialHandle;
   readonly materialKey: string;
   readonly sourceMaterialKey: string;
   readonly pipelineKey: string;
+  readonly preparedMeshes: PreparedMeshGpuResourceCache;
   readonly preparedScalarMaterials: PreparedScalarUnlitMaterialCache;
   readonly assets: AssetRegistry;
   readonly textures: PreparedAppTextureSamplerResources;
@@ -135,12 +151,16 @@ export function createOrReuseUnlitAppFrameResources(options: {
     return cached.result;
   }
 
-  const preparedMaterial = preparePreparedScalarMaterial(options);
+  const preparedMesh = preparePreparedScalarUnlitMesh(options);
+  const preparedMaterial = preparePreparedUnlitMaterial(options);
   const result = createUnlitFrameGpuResources({
     device: options.device as Parameters<
       typeof createUnlitFrameGpuResources
     >[0]["device"],
     mesh: options.mesh,
+    ...(preparedMesh === null
+      ? {}
+      : { preparedMesh: preparedMesh.resource.mesh }),
     material: options.material,
     ...(preparedMaterial === null
       ? {}
@@ -153,7 +173,15 @@ export function createOrReuseUnlitAppFrameResources(options: {
   });
 
   if (result.valid && result.resources !== null) {
-    options.reuse.meshBuffersCreated += 1;
+    if (preparedMesh === null) {
+      options.reuse.meshBuffersCreated += 1;
+    } else if (preparedMesh.status === "reused") {
+      options.reuse.meshBuffersReused += 1;
+      options.reuse.preparedMeshBuffersReused += 1;
+    } else {
+      options.reuse.meshBuffersCreated += 1;
+      options.reuse.preparedMeshBuffersCreated += 1;
+    }
 
     if (preparedMaterial === null) {
       options.reuse.materialBuffersCreated += 1;
@@ -162,9 +190,13 @@ export function createOrReuseUnlitAppFrameResources(options: {
       if (preparedMaterial.status === "reused") {
         options.reuse.materialBuffersReused += 1;
         options.reuse.bindGroupsReused += 1;
+        options.reuse.preparedMaterialBuffersReused += 1;
+        options.reuse.preparedMaterialBindGroupsReused += 1;
       } else {
         options.reuse.materialBuffersCreated += 1;
         options.reuse.bindGroupsCreated += 1;
+        options.reuse.preparedMaterialBuffersCreated += 1;
+        options.reuse.preparedMaterialBindGroupsCreated += 1;
       }
 
       options.reuse.bindGroupsCreated += Math.max(
@@ -198,10 +230,38 @@ interface PreparedScalarMaterialUse {
     PreparedScalarUnlitMaterialCacheStatus,
     "created" | "reused"
   >;
-  readonly resource: PreparedScalarUnlitMaterialResource;
+  readonly resource:
+    | PreparedScalarUnlitMaterialResource
+    | PreparedTexturedUnlitMaterialResource;
 }
 
-function preparePreparedScalarMaterial(options: {
+function preparePreparedScalarUnlitMesh(options: {
+  readonly device: unknown;
+  readonly mesh: MeshAsset | null;
+  readonly meshHandle: MeshHandle;
+  readonly meshKey: string;
+  readonly material: MaterialAsset | null;
+  readonly preparedMeshes: PreparedMeshGpuResourceCache;
+}): PreparedAppMeshResourceUse | null {
+  if (
+    options.mesh === null ||
+    options.material === null ||
+    options.material.kind !== "unlit" ||
+    options.material.baseColorTexture !== null
+  ) {
+    return null;
+  }
+
+  return prepareAppMeshResource({
+    device: options.device,
+    mesh: options.mesh,
+    meshHandle: options.meshHandle,
+    meshKey: options.meshKey,
+    preparedMeshes: options.preparedMeshes,
+  });
+}
+
+function preparePreparedUnlitMaterial(options: {
   readonly device: unknown;
   readonly assets: AssetRegistry;
   readonly preparedScalarMaterials: PreparedScalarUnlitMaterialCache;
@@ -211,16 +271,13 @@ function preparePreparedScalarMaterial(options: {
   readonly sourceMaterialKey: string;
   readonly pipelineKey: string;
   readonly layouts: readonly UnlitBindGroupLayoutResource[];
+  readonly textures: PreparedAppTextureSamplerResources;
 }): PreparedScalarMaterialUse | null {
-  if (
-    options.material === null ||
-    options.material.kind !== "unlit" ||
-    options.material.baseColorTexture !== null
-  ) {
+  if (options.material === null || options.material.kind !== "unlit") {
     return null;
   }
 
-  const sourceVersion = sourceVersionFromMaterialKey(
+  const sourceVersion = sourceVersionFromAssetKey(
     options.materialKey,
     options.sourceMaterialKey,
   );
@@ -229,18 +286,36 @@ function preparePreparedScalarMaterial(options: {
     return null;
   }
 
-  const result = prepareScalarUnlitMaterialResource({
-    registry: options.assets,
-    device: options.device as Parameters<
-      typeof prepareScalarUnlitMaterialResource
-    >[0]["device"],
-    cache: options.preparedScalarMaterials,
-    handle: options.materialHandle,
-    material: options.material,
-    sourceVersion,
-    pipelineKey: options.pipelineKey,
-    layout: options.layouts.find((layout) => layout.group === 2) ?? null,
-  });
+  const layout =
+    options.layouts.find((candidate) => candidate.group === 2) ?? null;
+  const result =
+    options.material.baseColorTexture === null
+      ? prepareScalarUnlitMaterialResource({
+          registry: options.assets,
+          device: options.device as Parameters<
+            typeof prepareScalarUnlitMaterialResource
+          >[0]["device"],
+          cache: options.preparedScalarMaterials,
+          handle: options.materialHandle,
+          material: options.material,
+          sourceVersion,
+          pipelineKey: options.pipelineKey,
+          layout,
+        })
+      : prepareTexturedUnlitMaterialResource({
+          registry: options.assets,
+          device: options.device as Parameters<
+            typeof prepareTexturedUnlitMaterialResource
+          >[0]["device"],
+          cache: options.preparedScalarMaterials,
+          handle: options.materialHandle,
+          material: options.material,
+          sourceVersion,
+          pipelineKey: options.pipelineKey,
+          layout,
+          textures: options.textures.textures,
+          samplers: options.textures.samplers,
+        });
 
   return result.valid &&
     result.resource !== null &&
@@ -249,17 +324,17 @@ function preparePreparedScalarMaterial(options: {
     : null;
 }
 
-function sourceVersionFromMaterialKey(
-  materialKey: string,
-  sourceMaterialKey: string,
+function sourceVersionFromAssetKey(
+  assetKey: string,
+  sourceAssetKey: string,
 ): number | null {
-  const prefix = `${sourceMaterialKey}@`;
+  const prefix = `${sourceAssetKey}@`;
 
-  if (!materialKey.startsWith(prefix)) {
+  if (!assetKey.startsWith(prefix)) {
     return null;
   }
 
-  const version = Number.parseInt(materialKey.slice(prefix.length), 10);
+  const version = Number.parseInt(assetKey.slice(prefix.length), 10);
 
   return Number.isFinite(version) ? version : null;
 }

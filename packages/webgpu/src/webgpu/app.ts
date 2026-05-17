@@ -51,6 +51,14 @@ import {
   type PreparedScalarUnlitMaterialCache,
 } from "./prepared-unlit-material-cache.js";
 import {
+  createPreparedScalarStandardMaterialCache,
+  type PreparedScalarStandardMaterialCache,
+} from "./prepared-standard-material-cache.js";
+import {
+  createPreparedMeshGpuResourceCache,
+  type PreparedMeshGpuResourceCache,
+} from "./prepared-mesh-cache.js";
+import {
   assembleFrameBoundary,
   type FrameBoundaryAssemblyReport,
 } from "./frame-boundary.js";
@@ -184,8 +192,14 @@ export interface WebGpuAppResourceReuseReport {
   pipelineMisses: number;
   meshBuffersCreated: number;
   meshBuffersReused: number;
+  preparedMeshBuffersCreated: number;
+  preparedMeshBuffersReused: number;
   materialBuffersCreated: number;
   materialBuffersReused: number;
+  preparedMaterialBuffersCreated: number;
+  preparedMaterialBuffersReused: number;
+  preparedMaterialBindGroupsCreated: number;
+  preparedMaterialBindGroupsReused: number;
   textureResourcesCreated: number;
   textureResourcesReused: number;
   samplerResourcesCreated: number;
@@ -288,7 +302,9 @@ interface WebGpuAppResourceCache {
   readonly layouts: Map<string, WebGpuAppPipelineLayouts>;
   readonly textures: Map<string, TextureGpuResource>;
   readonly samplers: Map<string, SamplerGpuResource>;
+  readonly preparedMeshes: PreparedMeshGpuResourceCache;
   readonly scalarUnlitMaterials: PreparedScalarUnlitMaterialCache;
+  readonly scalarStandardMaterials: PreparedScalarStandardMaterialCache;
   readonly frameScratch: WebGpuAppFrameScratch;
   readonly unlitFrame: UnlitAppFrameResourceCacheSlot;
   readonly matcapFrame: MatcapAppFrameResourceCacheSlot;
@@ -515,7 +531,9 @@ function createWebGpuAppResourceCache(): WebGpuAppResourceCache {
     layouts: new Map(),
     textures: new Map(),
     samplers: new Map(),
+    preparedMeshes: createPreparedMeshGpuResourceCache(),
     scalarUnlitMaterials: createPreparedScalarUnlitMaterialCache(),
+    scalarStandardMaterials: createPreparedScalarStandardMaterialCache(),
     frameScratch: createWebGpuAppFrameScratch(),
     unlitFrame:
       createWebGpuAppFrameResourceCacheSlot<CachedUnlitAppFrameResources>(),
@@ -1182,12 +1200,14 @@ const QUEUED_BUILT_IN_MATERIAL_ADAPTERS =
         device: options.app.initialization.device,
         cache: options.cache.unlitFrame,
         mesh: options.item.mesh,
+        meshHandle: options.item.draw.mesh,
         meshKey: options.item.meshKey,
         material: options.item.material as UnlitMaterialAsset,
         materialHandle: options.item.draw.material,
         materialKey: options.item.materialKey,
         sourceMaterialKey: options.item.sourceMaterialKey,
         pipelineKey: options.item.draw.batchKey.pipelineKey,
+        preparedMeshes: options.cache.preparedMeshes,
         preparedScalarMaterials: options.cache.scalarUnlitMaterials,
         assets: options.app.assets,
         textures: options.textures,
@@ -1201,6 +1221,7 @@ const QUEUED_BUILT_IN_MATERIAL_ADAPTERS =
         device: options.app.initialization.device,
         cache: options.cache.matcapFrame,
         mesh: options.item.mesh,
+        meshHandle: options.item.draw.mesh,
         meshKey: options.item.meshKey,
         material: options.item.material as MatcapMaterialAsset,
         materialKey: options.item.materialKey,
@@ -1210,6 +1231,7 @@ const QUEUED_BUILT_IN_MATERIAL_ADAPTERS =
         sharedLayouts: options.layouts.sharedLayouts,
         materialLayout: options.layouts
           .materialLayout as MatcapMaterialBindGroupLayoutResource | null,
+        preparedMeshes: options.cache.preparedMeshes,
         reuse: options.reuse,
       }),
     createStandardFrameResources: (options) =>
@@ -1218,9 +1240,14 @@ const QUEUED_BUILT_IN_MATERIAL_ADAPTERS =
         cache: options.cache.standardFrame,
         snapshot: options.snapshot,
         mesh: options.item.mesh,
+        meshHandle: options.item.draw.mesh,
         meshKey: options.item.meshKey,
         material: options.item.material as StandardMaterialAsset,
+        materialHandle: options.item.draw.material,
         materialKey: options.item.materialKey,
+        sourceMaterialKey: options.item.sourceMaterialKey,
+        pipelineKey: options.item.draw.batchKey.pipelineKey,
+        assets: options.app.assets,
         textures: options.textures,
         viewUniforms: options.viewUniforms,
         worldTransforms: options.worldTransforms,
@@ -1228,6 +1255,8 @@ const QUEUED_BUILT_IN_MATERIAL_ADAPTERS =
         materialLayout: options.layouts
           .materialLayout as StandardMaterialBindGroupLayoutResource | null,
         lightLayout: options.layouts.lightLayout,
+        preparedMeshes: options.cache.preparedMeshes,
+        preparedScalarMaterials: options.cache.scalarStandardMaterials,
         reuse: options.reuse,
       }),
   });
@@ -1842,9 +1871,14 @@ async function renderWebGpuAppFrame(
             cache: resourceCache.standardFrame,
             snapshot,
             mesh,
+            meshHandle: firstDraw.mesh,
             meshKey,
             material: material as StandardMaterialAsset,
+            materialHandle: firstDraw.material,
             materialKey,
+            sourceMaterialKey: assetHandleKey(firstDraw.material),
+            pipelineKey: firstDraw.batchKey.pipelineKey,
+            assets: app.assets,
             textures: preparedTextures,
             viewUniforms: packedViews,
             worldTransforms: packedTransforms,
@@ -1852,6 +1886,8 @@ async function renderWebGpuAppFrame(
             materialLayout:
               layouts.materialLayout as StandardMaterialBindGroupLayoutResource | null,
             lightLayout: layouts.lightLayout,
+            preparedMeshes: resourceCache.preparedMeshes,
+            preparedScalarMaterials: resourceCache.scalarStandardMaterials,
             reuse,
           })
         : materialKind === "matcap"
@@ -1859,6 +1895,7 @@ async function renderWebGpuAppFrame(
               device: app.initialization.device,
               cache: resourceCache.matcapFrame,
               mesh,
+              meshHandle: firstDraw.mesh,
               meshKey,
               material: material as MatcapMaterialAsset,
               materialKey,
@@ -1868,18 +1905,21 @@ async function renderWebGpuAppFrame(
               sharedLayouts: layouts.sharedLayouts,
               materialLayout:
                 layouts.materialLayout as MatcapMaterialBindGroupLayoutResource | null,
+              preparedMeshes: resourceCache.preparedMeshes,
               reuse,
             })
           : createOrReuseUnlitAppFrameResources({
               device: app.initialization.device,
               cache: resourceCache.unlitFrame,
               mesh,
+              meshHandle: firstDraw.mesh,
               meshKey,
               material,
               materialHandle: firstDraw.material,
               materialKey,
               sourceMaterialKey: assetHandleKey(firstDraw.material),
               pipelineKey: firstDraw.batchKey.pipelineKey,
+              preparedMeshes: resourceCache.preparedMeshes,
               preparedScalarMaterials: resourceCache.scalarUnlitMaterials,
               assets: app.assets,
               textures: preparedTextures,
@@ -2312,8 +2352,14 @@ function createWebGpuAppResourceReuseReport(): WebGpuAppResourceReuseReport {
     pipelineMisses: 0,
     meshBuffersCreated: 0,
     meshBuffersReused: 0,
+    preparedMeshBuffersCreated: 0,
+    preparedMeshBuffersReused: 0,
     materialBuffersCreated: 0,
     materialBuffersReused: 0,
+    preparedMaterialBuffersCreated: 0,
+    preparedMaterialBuffersReused: 0,
+    preparedMaterialBindGroupsCreated: 0,
+    preparedMaterialBindGroupsReused: 0,
     textureResourcesCreated: 0,
     textureResourcesReused: 0,
     samplerResourcesCreated: 0,

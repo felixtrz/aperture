@@ -56,6 +56,7 @@ export * from "./pipeline-cache.js";
 export * from "./pipeline-cache-integration.js";
 export * from "./pipeline-scoped-bind-groups.js";
 export * from "./prepared-mesh-cache.js";
+export * from "./prepared-standard-material-cache.js";
 export * from "./prepared-unlit-material-cache.js";
 export * from "./queued-material-adapter.js";
 export * from "./queue-submit.js";

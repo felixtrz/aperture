@@ -100,6 +100,7 @@ export interface MatcapFrameGpuResourceDeviceLike extends WebGpuBufferDeviceLike
 export interface CreateMatcapFrameGpuResourcesOptions {
   readonly device: MatcapFrameGpuResourceDeviceLike;
   readonly mesh: MeshAsset | null;
+  readonly preparedMesh?: MeshGpuBufferResource | undefined;
   readonly viewUniforms: PackedSnapshotViewUniforms | null;
   readonly worldTransforms: PackedSnapshotTransforms | null;
   readonly material: MatcapMaterialAsset | null;
@@ -173,9 +174,16 @@ export function createMatcapFrameGpuResources(
 }
 
 function createMeshResource(
-  options: Pick<CreateMatcapFrameGpuResourcesOptions, "device" | "mesh">,
+  options: Pick<
+    CreateMatcapFrameGpuResourcesOptions,
+    "device" | "mesh" | "preparedMesh"
+  >,
   diagnostics: CreateMatcapFrameGpuResourcesDiagnostic[],
 ): MeshGpuBufferResource | null {
+  if (options.preparedMesh !== undefined) {
+    return options.preparedMesh;
+  }
+
   if (options.mesh === null) {
     diagnostics.push({
       code: "matcapFrameResources.missingMesh",

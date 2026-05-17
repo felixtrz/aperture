@@ -8046,3 +8046,106 @@ Summary:
   format.
 - Validation run: focused standard material resource inspection tests passed
   with package/test typechecking.
+
+## task-0810 through task-0814 — Prepared mesh/material app-route cache handoff
+
+Completed: 2026-05-17
+
+Completed task ids:
+
+- `task-0810` — Wire prepared mesh cache into scalar unlit app route.
+- `task-0811` — Audit textured unlit and mesh cache boundaries.
+- `task-0812` — Wire textured unlit prepared cache into the app route.
+- `task-0813` — Add prepared cache app-route invalidation counters.
+- `task-0814` — Extend prepared mesh cache to the Matcap app route.
+
+Summary:
+
+- Wired WebGPU-private prepared mesh resources into scalar unlit and Matcap app
+  frame-resource misses while preserving public ECS/source-asset authoring APIs.
+- Routed textured unlit group-2 material buffer/bind-group resources through the
+  existing prepared unlit material cache once texture and sampler dependencies
+  are ready.
+- Added JSON-safe prepared mesh/material and prepared material bind-group reuse
+  counters to app render reports.
+- Added app regressions for frame-resource misses, source mesh/material version
+  invalidation, texture/sampler dependency version invalidation, and Matcap
+  prepared mesh reuse.
+- Added
+  `docs/research/TEXTURED_UNLIT_AND_MESH_CACHE_BOUNDARY_AUDIT_2026_05_17.md`;
+  no boundary drift was found.
+- Validation run: focused WebGPU app/prepared-cache tests, WebGPU package
+  typecheck, test typecheck, and package boundary checks passed. Final
+  `pnpm run check` passed.
+
+## task-0815 through task-0824 — Standard prepared material cache handoff
+
+Completed: 2026-05-17
+
+Completed task ids:
+
+- `task-0815` — Audit prepared route counters and ownership boundaries.
+- `task-0816` — Wire prepared mesh cache into StandardMaterial app route.
+- `task-0817` — Extract shared prepared mesh app-route helper.
+- `task-0818` — Plan StandardMaterial scalar prepared material cache handoff.
+- `task-0819` — Add StandardMaterial scalar prepared material cache helper.
+- `task-0820` — Wire scalar StandardMaterial prepared cache into app route.
+- `task-0821` — Audit scalar Standard prepared material app-route boundary.
+- `task-0822` — Add Standard prepared material app-route invalidation tests.
+- `task-0823` — Plan textured Standard prepared dependency key handoff.
+- `task-0824` — Add Standard base-color texture dependency key helper.
+
+Summary:
+
+- Wired WebGPU-private prepared mesh resources into the StandardMaterial app
+  frame-resource route and extracted the shared prepared app mesh helper used by
+  unlit, Matcap, and Standard routes.
+- Added a scalar StandardMaterial prepared material cache helper and routed
+  scalar Standard app frame-resource misses through prepared group-2 material
+  buffer/bind-group resources.
+- Added JSON-safe app report coverage for scalar Standard prepared material
+  reuse, source material version invalidation, and full frame-resource cache
+  hits after transform/light-only changes.
+- Added boundary audits for prepared route counters and scalar Standard prepared
+  app-route ownership.
+- Added textured Standard dependency planning and a direct base-color
+  texture/sampler source-version key helper with ready, version-changed,
+  missing texture, and loading sampler coverage.
+- Validation run: focused WebGPU app/prepared-cache tests, WebGPU package
+  typecheck, test typecheck, package boundary checks, and final `pnpm run check`
+  passed.
+
+## task-0825 through task-0829 — Textured Standard base-color prepared route
+
+Completed: 2026-05-17
+
+Completed task ids:
+
+- `task-0825` — Extend Standard texture dependency keys to all texture
+  families.
+- `task-0826` — Add base-color textured Standard prepared material cache
+  helper.
+- `task-0827` — Wire base-color Standard prepared cache into the app route.
+- `task-0828` — Audit textured Standard base-color prepared boundaries.
+- `task-0829` — Add base-color Standard prepared app-route invalidation tests.
+
+Summary:
+
+- Extended Standard texture dependency key derivation to base-color,
+  metallic-roughness, normal, occlusion, and emissive texture families with
+  stable binding-order cache segments and JSON-safe diagnostics.
+- Added direct base-color textured Standard prepared material resources that
+  create/reuse group-2 material buffers and bind groups from ready source
+  material, texture, and sampler versions.
+- Wired base-color textured Standard app frame-resource misses through prepared
+  material resources while keeping other textured Standard variants on the
+  existing frame-resource path.
+- Added app regressions for base-color prepared material reuse across
+  frame-resource misses and for texture/sampler source-version invalidation.
+- Added
+  `docs/research/TEXTURED_STANDARD_BASE_COLOR_PREPARED_BOUNDARY_AUDIT_2026_05_17.md`;
+  no source-asset ownership, texture/sampler ownership, or light-resource drift
+  was found.
+- Validation run: focused prepared Standard and WebGPU app tests, WebGPU package
+  typecheck, test typecheck, package boundary checks, and final `pnpm run check`
+  passed.

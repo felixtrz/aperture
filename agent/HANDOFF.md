@@ -2,6 +2,170 @@
 
 ## Latest Run Update
 
+Completed `task-0815` through `task-0829` in this automation run. This moved
+the StandardMaterial path from prepared mesh consumption through scalar prepared
+material app-route reuse and into base-color textured Standard prepared material
+app-route reuse.
+
+Highlights:
+
+- Added
+  `docs/research/PREPARED_ROUTE_COUNTER_BOUNDARY_AUDIT_2026_05_17.md`; the
+  audit found no ownership drift in prepared app-route counters.
+- Wired prepared mesh resources into the StandardMaterial app route and
+  extracted `prepared-app-mesh-resource.ts` so unlit, Matcap, and Standard share
+  source-version prepared mesh lookup behavior.
+- Added
+  `docs/research/STANDARD_SCALAR_PREPARED_MATERIAL_CACHE_PLAN_2026_05_17.md`
+  and implemented `prepared-standard-material-cache.ts` for scalar Standard
+  group-2 material buffer/bind-group reuse.
+- Routed scalar Standard app frame-resource misses through the prepared
+  Standard material cache, including JSON-safe reuse counters and app tests for
+  source material version invalidation plus transform/light-only cache hits.
+- Added
+  `docs/research/SCALAR_STANDARD_PREPARED_APP_ROUTE_BOUNDARY_AUDIT_2026_05_17.md`;
+  Standard textures and group-3 light resources remain outside the scalar
+  prepared cache.
+- Added
+  `docs/research/STANDARD_TEXTURED_PREPARED_DEPENDENCY_HANDOFF_PLAN_2026_05_17.md`
+  and the first base-color Standard texture/sampler dependency key helper with
+  direct tests.
+- Extended Standard texture dependency key derivation to base-color,
+  metallic-roughness, normal, occlusion, and emissive texture families.
+- Added direct base-color textured Standard prepared material resources, wired
+  them into the app route, and added app regressions for frame-resource misses
+  plus base-color texture/sampler source-version invalidation.
+- Added
+  `docs/research/TEXTURED_STANDARD_BASE_COLOR_PREPARED_BOUNDARY_AUDIT_2026_05_17.md`;
+  no texture/sampler ownership or group-3 light-resource drift was found.
+- Refilled the ready backlog with `task-0830` through `task-0834`; next
+  recommended task is `task-0830`.
+
+Validation:
+
+- `pnpm exec tsc --noEmit -p packages/webgpu/tsconfig.json`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec vitest run test/webgpu/prepared-standard-material-cache.test.ts`
+- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts`
+- `pnpm run check:boundaries`
+- Final `pnpm run check` passed, including 224 Vitest files / 1040 tests.
+
+Reference files/patterns inspected:
+
+- Aperture anchors: `docs/NORTH_STAR.md`, `docs/ARCHITECTURE.md`,
+  `docs/DECISIONS.md`, `docs/RENDER_ASSET_PREPARATION.md`, prepared mesh and
+  material cache helpers, Standard frame-resource helpers, app texture/sampler
+  resources, Standard material buffer/bind-group helpers, and WebGPU app reuse
+  tests.
+- Reference anchors required for WebGPU work: PlayCanvas/engine vertex/index
+  buffer and WebGPU buffer lifetime patterns, plus three.js WebGPU attribute
+  buffer creation/layout and draw-time vertex-buffer binding patterns.
+
+Known issues / follow-ups:
+
+- Metallic-roughness Standard prepared material resources are not app-routed
+  yet. `task-0830` should add direct metallic-roughness prepared resources
+  before app-route integration in `task-0831`.
+- Normal, occlusion, and emissive prepared-resource work still needs a scoped
+  plan after the metallic-roughness route lands.
+- Group-3 light resources should remain frame-derived and outside material cache
+  keys.
+
+Files touched in this update include:
+
+- `agent/BACKLOG.md`
+- `agent/COMPLETED.md`
+- `agent/HANDOFF.md`
+- `agent/STATUS.json`
+- `docs/research/PREPARED_ROUTE_COUNTER_BOUNDARY_AUDIT_2026_05_17.md`
+- `docs/research/SCALAR_STANDARD_PREPARED_APP_ROUTE_BOUNDARY_AUDIT_2026_05_17.md`
+- `docs/research/STANDARD_SCALAR_PREPARED_MATERIAL_CACHE_PLAN_2026_05_17.md`
+- `docs/research/STANDARD_TEXTURED_PREPARED_DEPENDENCY_HANDOFF_PLAN_2026_05_17.md`
+- `docs/research/TEXTURED_STANDARD_BASE_COLOR_PREPARED_BOUNDARY_AUDIT_2026_05_17.md`
+- `packages/webgpu/src/webgpu/app.ts`
+- `packages/webgpu/src/webgpu/index.ts`
+- `packages/webgpu/src/webgpu/matcap-app-frame-resources.ts`
+- `packages/webgpu/src/webgpu/matcap-frame-resources.ts`
+- `packages/webgpu/src/webgpu/prepared-app-mesh-resource.ts`
+- `packages/webgpu/src/webgpu/prepared-standard-material-cache.ts`
+- `packages/webgpu/src/webgpu/standard-app-frame-resources.ts`
+- `packages/webgpu/src/webgpu/standard-frame-resources.ts`
+- `packages/webgpu/src/webgpu/unlit-app-frame-resources.ts`
+- `packages/webgpu/src/webgpu/unlit-frame-resources.ts`
+- `test/webgpu/prepared-standard-material-cache.test.ts`
+- `test/webgpu/webgpu-app.test.ts`
+
+## Previous Run Update
+
+Completed `task-0810` through `task-0814` in this automation run. This moved
+prepared mesh/material cache groundwork into app-route usage for scalar unlit,
+textured unlit, and Matcap paths.
+
+Highlights:
+
+- Wired WebGPU-private prepared mesh resources into scalar unlit app
+  frame-resource misses.
+- Added
+  `docs/research/TEXTURED_UNLIT_AND_MESH_CACHE_BOUNDARY_AUDIT_2026_05_17.md`;
+  the audit found no source-asset ownership or raw GPU handle leakage.
+- Routed textured unlit group-2 material buffer/bind-group resources through the
+  prepared unlit material cache when texture and sampler dependencies are ready.
+- Added JSON-safe prepared mesh/material and prepared material bind-group reuse
+  counters to `WebGpuAppResourceReuseReport`.
+- Added app regressions for frame-resource misses, source mesh/material version
+  invalidation, texture/sampler version invalidation, and Matcap prepared mesh
+  reuse.
+- Extended prepared mesh cache consumption to the Matcap app route.
+- Refilled the ready backlog with `task-0815` through `task-0819`; next
+  recommended task is `task-0815`.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts test/webgpu/prepared-unlit-material-cache.test.ts test/webgpu/prepared-mesh-cache.test.ts`
+- `pnpm exec tsc --noEmit -p packages/webgpu/tsconfig.json`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm run check:boundaries`
+- Final `pnpm run check` passed.
+
+Reference files/patterns inspected:
+
+- Aperture anchors: `docs/NORTH_STAR.md`, `docs/ARCHITECTURE.md`,
+  `docs/DECISIONS.md`, `docs/RENDER_ASSET_PREPARATION.md`,
+  `docs/research/PREPARED_MESH_CACHE_HANDOFF_PLAN_2026_05_17.md`,
+  `docs/research/TEXTURED_UNLIT_PREPARED_DEPENDENCY_HANDOFF_PLAN_2026_05_17.md`,
+  current WebGPU app frame-resource helpers, prepared mesh cache, prepared unlit
+  cache, texture/sampler resources, and mesh buffer resources.
+- Reference anchors required for WebGPU work: PlayCanvas/engine vertex/index
+  buffer and WebGPU buffer lifetime patterns, plus three.js WebGPU attribute
+  buffer creation/layout and draw-time vertex-buffer binding patterns.
+
+Known issues / follow-ups:
+
+- StandardMaterial still creates mesh buffers inside its app frame-resource
+  helper. `task-0816` should wire prepared mesh resources into the Standard app
+  route next.
+- Prepared mesh helper logic is duplicated between unlit and Matcap helpers for
+  now. `task-0817` should extract one shared WebGPU-private helper after
+  Standard is wired.
+- StandardMaterial prepared material caching is not implemented yet.
+  `task-0818` and `task-0819` cover the plan and first scalar helper.
+
+Files touched in this update include:
+
+- `agent/BACKLOG.md`
+- `agent/COMPLETED.md`
+- `agent/HANDOFF.md`
+- `agent/STATUS.json`
+- `docs/research/TEXTURED_UNLIT_AND_MESH_CACHE_BOUNDARY_AUDIT_2026_05_17.md`
+- `packages/webgpu/src/webgpu/app.ts`
+- `packages/webgpu/src/webgpu/matcap-app-frame-resources.ts`
+- `packages/webgpu/src/webgpu/matcap-frame-resources.ts`
+- `packages/webgpu/src/webgpu/unlit-app-frame-resources.ts`
+- `packages/webgpu/src/webgpu/unlit-frame-resources.ts`
+- `test/webgpu/webgpu-app.test.ts`
+
+## Previous Run Update
+
 Completed `task-0796` through `task-0809` in this automation run. This moved
 the WebGPU resource path from app-local material/frame-resource cleanup into
 direct prepared material and prepared mesh cache groundwork.

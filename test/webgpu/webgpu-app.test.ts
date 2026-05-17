@@ -12,7 +12,10 @@ import {
   createTextureAsset,
   createTextureHandle,
   createUnlitMaterialAsset,
+  Light,
   LightKind,
+  LocalTransform,
+  Material,
   withCamera,
   withLight,
   withMaterial,
@@ -81,7 +84,10 @@ describe("WebGPU app facade", () => {
       pipelineHits: 0,
       pipelineMisses: 1,
       meshBuffersCreated: 1,
+      preparedMeshBuffersCreated: 1,
       materialBuffersCreated: 1,
+      preparedMaterialBuffersCreated: 1,
+      preparedMaterialBindGroupsCreated: 1,
       bindGroupsCreated: 3,
       dynamicBufferWrites: 0,
     });
@@ -112,7 +118,9 @@ describe("WebGPU app facade", () => {
       pipelineHits: 1,
       pipelineMisses: 0,
       meshBuffersReused: 1,
+      preparedMeshBuffersReused: 0,
       materialBuffersReused: 1,
+      preparedMaterialBuffersReused: 0,
       bindGroupsReused: 3,
       dynamicBufferWrites: 2,
     });
@@ -133,6 +141,184 @@ describe("WebGPU app facade", () => {
     );
     expect(secondEvents).toContain("queue:writeBuffer:WorldTransforms/storage");
     expect(resourceEventCounts(events)).toEqual(firstResourceEvents);
+  });
+
+  it("reuses prepared scalar unlit mesh buffers across frame-resource misses", async () => {
+    const events: string[] = [];
+    const { canvas, environment } = webGpuHarness(events);
+    const created = await createWebGpuApp({
+      canvas,
+      environment,
+      worldOptions: { entityCapacity: 8 },
+    });
+
+    expect(created.ok).toBe(true);
+
+    if (!created.ok) {
+      return;
+    }
+
+    const app = created.app;
+    const assets = createRenderAssetCollections({ registry: app.assets });
+    const mesh = assets.meshes.add(
+      createBoxMeshAsset({ label: "PreparedMeshCube" }),
+    );
+    const firstMaterial = assets.materials.unlit.add(
+      createUnlitMaterialAsset({ label: "Prepared Mesh White" }),
+    );
+    const secondMaterial = assets.materials.unlit.add(
+      createUnlitMaterialAsset({ label: "Prepared Mesh Blue" }),
+    );
+
+    app.spawn(
+      withTransform({ translation: [0, 0, 5] }),
+      withCamera({ priority: 0, layerMask: 1 }),
+    );
+    const cube = app.spawn(
+      withTransform(),
+      withMesh(mesh),
+      withMaterial(firstMaterial),
+      withRenderLayer(1),
+      withVisibility(true),
+    );
+
+    const firstFrame = await app.stepAndRender(1 / 60, 1, 60);
+    const firstResources = firstFrame.resources?.resources;
+    const firstMeshResource = firstResources?.mesh;
+    const firstMaterialResource = singleMaterialResource(firstResources);
+    const firstEventCounts = resourceEventCounts(events);
+
+    cube.removeComponent(Material);
+    cube.addComponent(Material, { materialId: assetHandleKey(secondMaterial) });
+
+    const secondFrame = await app.stepAndRender(1 / 60, 2, 61);
+    const secondResources = secondFrame.resources?.resources;
+
+    expect(firstFrame.ok).toBe(true);
+    expect(firstFrame.resourceReuse).toMatchObject({
+      meshBuffersCreated: 1,
+      preparedMeshBuffersCreated: 1,
+      materialBuffersCreated: 1,
+      preparedMaterialBuffersCreated: 1,
+    });
+    expect(secondFrame.ok).toBe(true);
+    expect(secondFrame.resourceReuse).toMatchObject({
+      pipelineHits: 1,
+      pipelineMisses: 0,
+      meshBuffersCreated: 0,
+      meshBuffersReused: 1,
+      preparedMeshBuffersCreated: 0,
+      preparedMeshBuffersReused: 1,
+      materialBuffersCreated: 1,
+      materialBuffersReused: 0,
+      preparedMaterialBuffersCreated: 1,
+      preparedMaterialBuffersReused: 0,
+      preparedMaterialBindGroupsCreated: 1,
+      preparedMaterialBindGroupsReused: 0,
+      bindGroupsCreated: 3,
+      dynamicBufferWrites: 0,
+    });
+    expect(secondResources?.mesh).toBe(firstMeshResource);
+    expect(singleMaterialResource(secondResources)).not.toBe(
+      firstMaterialResource,
+    );
+    expect(resourceEventCounts(events).buffers).toBe(
+      firstEventCounts.buffers + 3,
+    );
+  });
+
+  it("reports scalar unlit prepared mesh and material source-version invalidation", async () => {
+    const events: string[] = [];
+    const { canvas, environment } = webGpuHarness(events);
+    const created = await createWebGpuApp({
+      canvas,
+      environment,
+      worldOptions: { entityCapacity: 8 },
+    });
+
+    expect(created.ok).toBe(true);
+
+    if (!created.ok) {
+      return;
+    }
+
+    const app = created.app;
+    const assets = createRenderAssetCollections({ registry: app.assets });
+    const mesh = assets.meshes.add(
+      createBoxMeshAsset({ label: "VersionedMeshA" }),
+    );
+    const material = assets.materials.unlit.add(
+      createUnlitMaterialAsset({ label: "VersionedMaterialA" }),
+    );
+
+    app.spawn(
+      withTransform({ translation: [0, 0, 5] }),
+      withCamera({ priority: 0, layerMask: 1 }),
+    );
+    app.spawn(
+      withTransform(),
+      withMesh(mesh),
+      withMaterial(material),
+      withRenderLayer(1),
+      withVisibility(true),
+    );
+
+    const firstFrame = await app.stepAndRender(1 / 60, 1, 62);
+
+    assets.meshes.markReady(
+      mesh,
+      createBoxMeshAsset({ label: "VersionedMeshB" }),
+    );
+
+    const meshVersionFrame = await app.stepAndRender(1 / 60, 2, 63);
+
+    assets.materials.unlit.markReady(
+      material,
+      createUnlitMaterialAsset({ label: "VersionedMaterialB" }),
+    );
+
+    const materialVersionFrame = await app.stepAndRender(1 / 60, 3, 64);
+
+    expect(firstFrame.ok).toBe(true);
+    expect(firstFrame.resourceReuse).toMatchObject({
+      preparedMeshBuffersCreated: 1,
+      preparedMaterialBuffersCreated: 1,
+      preparedMaterialBindGroupsCreated: 1,
+    });
+    expect(meshVersionFrame.ok).toBe(true);
+    expect(meshVersionFrame.resourceReuse).toMatchObject({
+      pipelineHits: 1,
+      meshBuffersCreated: 1,
+      preparedMeshBuffersCreated: 1,
+      preparedMeshBuffersReused: 0,
+      materialBuffersReused: 1,
+      preparedMaterialBuffersReused: 1,
+      preparedMaterialBindGroupsReused: 1,
+      dynamicBufferWrites: 0,
+    });
+    expect(materialVersionFrame.ok).toBe(true);
+    expect(materialVersionFrame.resourceReuse).toMatchObject({
+      pipelineHits: 1,
+      meshBuffersReused: 1,
+      preparedMeshBuffersCreated: 0,
+      preparedMeshBuffersReused: 1,
+      materialBuffersCreated: 1,
+      preparedMaterialBuffersCreated: 1,
+      preparedMaterialBuffersReused: 0,
+      preparedMaterialBindGroupsCreated: 1,
+      preparedMaterialBindGroupsReused: 0,
+      dynamicBufferWrites: 0,
+    });
+    expect(
+      webGpuAppRenderReportToJsonValue(materialVersionFrame).resourceReuse,
+    ).toMatchObject({
+      preparedMeshBuffersReused: 1,
+      preparedMaterialBuffersCreated: 1,
+      preparedMaterialBindGroupsCreated: 1,
+    });
+    expect(JSON.stringify(materialVersionFrame.resourceReuse)).not.toContain(
+      "descriptor",
+    );
   });
 
   it("renders same-resource multi-draw frames through the material queue resource set", async () => {
@@ -290,10 +476,16 @@ describe("WebGPU app facade", () => {
     expect(secondFrame.resourceReuse).toMatchObject({
       pipelineHits: 2,
       pipelineMisses: 0,
-      meshBuffersCreated: 2,
-      meshBuffersReused: 0,
+      meshBuffersCreated: 1,
+      meshBuffersReused: 1,
+      preparedMeshBuffersCreated: 1,
+      preparedMeshBuffersReused: 1,
       materialBuffersCreated: 0,
       materialBuffersReused: 2,
+      preparedMaterialBuffersCreated: 0,
+      preparedMaterialBuffersReused: 2,
+      preparedMaterialBindGroupsCreated: 0,
+      preparedMaterialBindGroupsReused: 2,
       bindGroupsCreated: 4,
       bindGroupsReused: 2,
       dynamicBufferWrites: 0,
@@ -481,7 +673,10 @@ describe("WebGPU app facade", () => {
     });
     expect(frame.resourceReuse).toMatchObject({
       pipelineMisses: 2,
-      meshBuffersCreated: 2,
+      meshBuffersCreated: 1,
+      meshBuffersReused: 1,
+      preparedMeshBuffersCreated: 1,
+      preparedMeshBuffersReused: 1,
       materialBuffersCreated: 2,
       bindGroupsCreated: 7,
       lightBuffersCreated: 1,
@@ -627,7 +822,7 @@ describe("WebGPU app facade", () => {
     expect(events).not.toContain("queue:submit:1");
   });
 
-  it("prepares and reuses app-facade texture and sampler resources for textured unlit materials", async () => {
+  it("prepares and reuses textured unlit app material resources", async () => {
     const events: string[] = [];
     const { canvas, environment } = webGpuHarness(events);
     const created = await createWebGpuApp({
@@ -646,6 +841,9 @@ describe("WebGPU app facade", () => {
     const assets = createRenderAssetCollections({ registry: app.assets });
     const mesh = assets.meshes.add(
       createBoxMeshAsset({ label: "TexturedCube" }),
+    );
+    const secondMesh = assets.meshes.add(
+      createBoxMeshAsset({ label: "TexturedCubeSecond" }),
     );
     const texture = createTextureHandle("app-albedo");
     const sampler = createSamplerHandle("app-linear");
@@ -697,10 +895,14 @@ describe("WebGPU app facade", () => {
       diagnostics: 0,
     });
     expect(frame.resourceReuse).toMatchObject({
+      materialBuffersCreated: 1,
+      preparedMaterialBuffersCreated: 1,
+      preparedMaterialBindGroupsCreated: 1,
       textureResourcesCreated: 1,
       textureResourcesReused: 0,
       samplerResourcesCreated: 1,
       samplerResourcesReused: 0,
+      bindGroupsCreated: 3,
     });
     expect(events).toContain("device:texture:AppAlbedo");
     expect(events).toContain("textureResource:view:AppAlbedo");
@@ -709,34 +911,220 @@ describe("WebGPU app facade", () => {
       frame.resources?.resources?.bindGroups.find((group) => group.group === 2),
     ).toMatchObject({
       entryResourceKeys: [
-        "material-buffer:TexturedApp/uniform",
+        `material-buffer:prepared-material:${assetHandleKey(material)}`,
         assetHandleKey(texture),
         assetHandleKey(sampler),
       ],
     });
 
     const firstResourceEvents = resourceEventCounts(events);
-    const firstResourceBindings = frame.resources?.resources;
+    const firstUnlitResource = queuedMaterialResources(
+      frame.resources?.resources,
+      "unlit",
+    )[0];
+    const firstMaterialResource = firstUnlitResource?.material;
+    const firstMaterialBindGroup = firstUnlitResource?.bindGroups?.find(
+      (bindGroup) => bindGroup.group === 2,
+    );
+    app.spawn(
+      withTransform({ translation: [0.7, 0, 0] }),
+      withMesh(secondMesh),
+      withMaterial(material),
+      withRenderLayer(1),
+      withVisibility(true),
+    );
     const secondFrame = await app.stepAndRender(1 / 60, 2, 25);
-    const secondResourceBindings = secondFrame.resources?.resources;
+    const secondUnlitResources = queuedMaterialResources(
+      secondFrame.resources?.resources,
+      "unlit",
+    );
 
     expect(secondFrame.ok).toBe(true);
+    expect(secondFrame.counts.drawCalls).toBe(2);
     expect(secondFrame.resourceReuse).toMatchObject({
-      pipelineHits: 1,
+      pipelineHits: 2,
       pipelineMisses: 0,
-      meshBuffersReused: 1,
-      materialBuffersReused: 1,
+      meshBuffersCreated: 2,
+      materialBuffersCreated: 0,
+      materialBuffersReused: 2,
+      preparedMaterialBuffersCreated: 0,
+      preparedMaterialBuffersReused: 2,
+      preparedMaterialBindGroupsCreated: 0,
+      preparedMaterialBindGroupsReused: 2,
       textureResourcesCreated: 0,
-      textureResourcesReused: 1,
+      textureResourcesReused: 2,
+      samplerResourcesCreated: 0,
+      samplerResourcesReused: 2,
+      bindGroupsCreated: 4,
+      bindGroupsReused: 2,
+      dynamicBufferWrites: 0,
+    });
+    expect(secondUnlitResources).toHaveLength(2);
+    expect(secondUnlitResources[0]?.material).toBe(firstMaterialResource);
+    expect(secondUnlitResources[1]?.material).toBe(firstMaterialResource);
+    expect(
+      secondUnlitResources[0]?.bindGroups?.find(
+        (bindGroup) => bindGroup.group === 2,
+      ),
+    ).toBe(firstMaterialBindGroup);
+    expect(
+      secondUnlitResources[1]?.bindGroups?.find(
+        (bindGroup) => bindGroup.group === 2,
+      ),
+    ).toBe(firstMaterialBindGroup);
+    expect(resourceEventCounts(events)).toMatchObject({
+      textures: firstResourceEvents.textures,
+      textureViews: firstResourceEvents.textureViews,
+      samplers: firstResourceEvents.samplers,
+      buffers: firstResourceEvents.buffers + 8,
+      bindGroups: firstResourceEvents.bindGroups + 4,
+    });
+    expect(
+      webGpuAppRenderReportToJsonValue(secondFrame).resourceReuse,
+    ).toMatchObject({
+      materialBuffersReused: 2,
+      preparedMaterialBuffersReused: 2,
+      preparedMaterialBindGroupsReused: 2,
+      textureResourcesReused: 2,
+      samplerResourcesReused: 2,
+    });
+  });
+
+  it("reports textured unlit texture and sampler source-version invalidation", async () => {
+    const events: string[] = [];
+    const { canvas, environment } = webGpuHarness(events);
+    const created = await createWebGpuApp({
+      canvas,
+      environment,
+      worldOptions: { entityCapacity: 8 },
+    });
+
+    expect(created.ok).toBe(true);
+
+    if (!created.ok) {
+      return;
+    }
+
+    const app = created.app;
+    const assets = createRenderAssetCollections({ registry: app.assets });
+    const mesh = assets.meshes.add(
+      createBoxMeshAsset({ label: "VersionedTextureCube" }),
+    );
+    const texture = createTextureHandle("versioned-unlit-albedo");
+    const sampler = createSamplerHandle("versioned-unlit-sampler");
+
+    app.assets.register(texture);
+    app.assets.markReady(
+      texture,
+      createTextureAsset({
+        label: "VersionedUnlitAlbedoA",
+        dimension: "2d",
+        width: 2,
+        height: 2,
+        format: "rgba8unorm",
+        colorSpace: "linear",
+        semantic: "base-color",
+        usage: ["sampled"],
+      }),
+    );
+    app.assets.register(sampler);
+    app.assets.markReady(
+      sampler,
+      createSamplerAsset({ label: "VersionedUnlitSamplerA" }),
+    );
+
+    const material = assets.materials.unlit.add(
+      createUnlitMaterialAsset({
+        label: "VersionedTexturedUnlit",
+        baseColorTexture: { texture, sampler },
+      }),
+    );
+
+    app.spawn(
+      withTransform({ translation: [0, 0, 5] }),
+      withCamera({ priority: 0, layerMask: 1 }),
+    );
+    app.spawn(
+      withTransform(),
+      withMesh(mesh),
+      withMaterial(material),
+      withRenderLayer(1),
+      withVisibility(true),
+    );
+
+    const firstFrame = await app.stepAndRender(1 / 60, 1, 65);
+
+    app.assets.markReady(
+      texture,
+      createTextureAsset({
+        label: "VersionedUnlitAlbedoB",
+        dimension: "2d",
+        width: 2,
+        height: 2,
+        format: "rgba8unorm",
+        colorSpace: "linear",
+        semantic: "base-color",
+        usage: ["sampled"],
+      }),
+    );
+
+    const textureVersionFrame = await app.stepAndRender(1 / 60, 2, 66);
+
+    app.assets.markReady(
+      sampler,
+      createSamplerAsset({ label: "VersionedUnlitSamplerB" }),
+    );
+
+    const samplerVersionFrame = await app.stepAndRender(1 / 60, 3, 67);
+
+    expect(firstFrame.ok).toBe(true);
+    expect(firstFrame.resourceReuse).toMatchObject({
+      textureResourcesCreated: 1,
+      samplerResourcesCreated: 1,
+      preparedMaterialBuffersCreated: 1,
+      preparedMaterialBindGroupsCreated: 1,
+    });
+    expect(textureVersionFrame.ok).toBe(true);
+    expect(textureVersionFrame.resourceReuse).toMatchObject({
+      pipelineHits: 1,
+      meshBuffersCreated: 1,
+      textureResourcesCreated: 1,
+      textureResourcesReused: 0,
       samplerResourcesCreated: 0,
       samplerResourcesReused: 1,
-      bindGroupsReused: 3,
-      dynamicBufferWrites: 2,
+      materialBuffersCreated: 1,
+      preparedMaterialBuffersCreated: 1,
+      preparedMaterialBuffersReused: 0,
+      preparedMaterialBindGroupsCreated: 1,
+      preparedMaterialBindGroupsReused: 0,
+      dynamicBufferWrites: 0,
     });
-    expect(secondResourceBindings?.bindGroups).toBe(
-      firstResourceBindings?.bindGroups,
+    expect(samplerVersionFrame.ok).toBe(true);
+    expect(samplerVersionFrame.resourceReuse).toMatchObject({
+      pipelineHits: 1,
+      meshBuffersCreated: 1,
+      textureResourcesCreated: 0,
+      textureResourcesReused: 1,
+      samplerResourcesCreated: 1,
+      samplerResourcesReused: 0,
+      materialBuffersCreated: 1,
+      preparedMaterialBuffersCreated: 1,
+      preparedMaterialBuffersReused: 0,
+      preparedMaterialBindGroupsCreated: 1,
+      preparedMaterialBindGroupsReused: 0,
+      dynamicBufferWrites: 0,
+    });
+    expect(
+      webGpuAppRenderReportToJsonValue(samplerVersionFrame).resourceReuse,
+    ).toMatchObject({
+      textureResourcesReused: 1,
+      samplerResourcesCreated: 1,
+      preparedMaterialBuffersCreated: 1,
+      preparedMaterialBindGroupsCreated: 1,
+    });
+    expect(JSON.stringify(samplerVersionFrame.resourceReuse)).not.toContain(
+      "descriptor",
     );
-    expect(resourceEventCounts(events)).toEqual(firstResourceEvents);
   });
 
   it("surfaces app texture upload layout diagnostics without submitting", async () => {
@@ -922,6 +1310,7 @@ describe("WebGPU app facade", () => {
       pipelineHits: 0,
       pipelineMisses: 1,
       meshBuffersCreated: 1,
+      preparedMeshBuffersCreated: 1,
       materialBuffersCreated: 1,
       textureResourcesCreated: 1,
       samplerResourcesCreated: 1,
@@ -963,6 +1352,7 @@ describe("WebGPU app facade", () => {
       pipelineHits: 1,
       pipelineMisses: 0,
       meshBuffersReused: 1,
+      preparedMeshBuffersReused: 0,
       materialBuffersReused: 1,
       textureResourcesCreated: 0,
       textureResourcesReused: 1,
@@ -977,6 +1367,115 @@ describe("WebGPU app facade", () => {
     );
     expect(secondResources?.bindGroups).toBe(firstResources?.bindGroups);
     expect(resourceEventCounts(events)).toEqual(firstResourceEvents);
+  });
+
+  it("reuses prepared matcap mesh buffers across frame-resource misses", async () => {
+    const events: string[] = [];
+    const { canvas, environment } = webGpuHarness(events);
+    const created = await createWebGpuApp({
+      canvas,
+      environment,
+      worldOptions: { entityCapacity: 8 },
+    });
+
+    expect(created.ok).toBe(true);
+
+    if (!created.ok) {
+      return;
+    }
+
+    const app = created.app;
+    const assets = createRenderAssetCollections({ registry: app.assets });
+    const mesh = assets.meshes.add(
+      createBoxMeshAsset({ label: "PreparedMatcapCube" }),
+    );
+    const texture = createTextureHandle("prepared-matcap");
+    const sampler = createSamplerHandle("prepared-matcap-sampler");
+
+    app.assets.register(texture);
+    app.assets.markReady(
+      texture,
+      createTextureAsset({
+        label: "PreparedMatcapA",
+        dimension: "2d",
+        width: 2,
+        height: 2,
+        format: "rgba8unorm",
+        colorSpace: "linear",
+        semantic: "data",
+        usage: ["sampled"],
+      }),
+    );
+    app.assets.register(sampler);
+    app.assets.markReady(
+      sampler,
+      createSamplerAsset({ label: "PreparedMatcapSampler" }),
+    );
+
+    const material = assets.materials.matcap.add(
+      createMatcapMaterialAsset({
+        label: "Prepared Matcap",
+        matcapTexture: { texture, sampler },
+      }),
+    );
+
+    app.spawn(
+      withTransform({ translation: [0, 0, 5] }),
+      withCamera({ priority: 0, layerMask: 1 }),
+    );
+    app.spawn(
+      withTransform(),
+      withMesh(mesh),
+      withMaterial(material),
+      withRenderLayer(1),
+      withVisibility(true),
+    );
+
+    const firstFrame = await app.stepAndRender(1 / 60, 1, 68);
+
+    app.assets.markReady(
+      texture,
+      createTextureAsset({
+        label: "PreparedMatcapB",
+        dimension: "2d",
+        width: 2,
+        height: 2,
+        format: "rgba8unorm",
+        colorSpace: "linear",
+        semantic: "data",
+        usage: ["sampled"],
+      }),
+    );
+
+    const secondFrame = await app.stepAndRender(1 / 60, 2, 69);
+
+    expect(firstFrame.ok).toBe(true);
+    expect(firstFrame.resourceReuse).toMatchObject({
+      meshBuffersCreated: 1,
+      preparedMeshBuffersCreated: 1,
+      textureResourcesCreated: 1,
+      samplerResourcesCreated: 1,
+    });
+    expect(secondFrame.ok).toBe(true);
+    expect(secondFrame.resourceReuse).toMatchObject({
+      pipelineHits: 1,
+      meshBuffersCreated: 0,
+      meshBuffersReused: 1,
+      preparedMeshBuffersCreated: 0,
+      preparedMeshBuffersReused: 1,
+      textureResourcesCreated: 1,
+      samplerResourcesReused: 1,
+      materialBuffersCreated: 1,
+      bindGroupsCreated: 3,
+      dynamicBufferWrites: 0,
+    });
+    expect(
+      webGpuAppRenderReportToJsonValue(secondFrame).resourceReuse,
+    ).toMatchObject({
+      preparedMeshBuffersReused: 1,
+      textureResourcesCreated: 1,
+      samplerResourcesReused: 1,
+    });
   });
 
   it("surfaces matcap material dependency readiness before app rendering", async () => {
@@ -1993,7 +2492,10 @@ describe("WebGPU app facade", () => {
     });
     expect(frame.resourceReuse).toMatchObject({
       pipelineMisses: 3,
-      meshBuffersCreated: 3,
+      meshBuffersCreated: 1,
+      meshBuffersReused: 2,
+      preparedMeshBuffersCreated: 1,
+      preparedMeshBuffersReused: 2,
       materialBuffersCreated: 3,
       textureResourcesCreated: 1,
       samplerResourcesCreated: 1,
@@ -2249,7 +2751,10 @@ describe("WebGPU app facade", () => {
     expectNoMaterialQueueRouteReport(frame);
     expect(frame.resourceReuse).toMatchObject({
       pipelineMisses: 4,
-      meshBuffersCreated: 4,
+      meshBuffersCreated: 1,
+      meshBuffersReused: 3,
+      preparedMeshBuffersCreated: 1,
+      preparedMeshBuffersReused: 3,
       materialBuffersCreated: 4,
       textureResourcesCreated: 2,
       samplerResourcesCreated: 2,
@@ -3135,6 +3640,7 @@ describe("WebGPU app facade", () => {
       pipelineHits: 0,
       pipelineMisses: 1,
       meshBuffersCreated: 1,
+      preparedMeshBuffersCreated: 1,
       materialBuffersCreated: 1,
       bindGroupsCreated: 4,
       lightBuffersCreated: 1,
@@ -3166,6 +3672,7 @@ describe("WebGPU app facade", () => {
       resourceReuse: {
         pipelineMisses: 1,
         meshBuffersCreated: 1,
+        preparedMeshBuffersCreated: 1,
         materialBuffersCreated: 1,
         lightBuffersCreated: 1,
       },
@@ -3196,6 +3703,7 @@ describe("WebGPU app facade", () => {
       pipelineHits: 1,
       pipelineMisses: 0,
       meshBuffersReused: 1,
+      preparedMeshBuffersReused: 0,
       materialBuffersReused: 1,
       bindGroupsReused: 4,
       lightBuffersReused: 1,
@@ -3236,6 +3744,235 @@ describe("WebGPU app facade", () => {
     );
     expect(secondEvents).toContain("queue:writeBuffer:WorldTransforms/storage");
     expect(resourceEventCounts(events)).toEqual(firstResourceEvents);
+  });
+
+  it("reuses prepared StandardMaterial mesh buffers across frame-resource misses", async () => {
+    const events: string[] = [];
+    const { canvas, environment } = webGpuHarness(events);
+    const created = await createWebGpuApp({
+      canvas,
+      environment,
+      worldOptions: { entityCapacity: 8 },
+    });
+
+    expect(created.ok).toBe(true);
+
+    if (!created.ok) {
+      return;
+    }
+
+    const app = created.app;
+    const assets = createRenderAssetCollections({ registry: app.assets });
+    const mesh = assets.meshes.add(
+      createBoxMeshAsset({ label: "PreparedStandardCube" }),
+    );
+    const secondMesh = assets.meshes.add(
+      createBoxMeshAsset({ label: "PreparedStandardCubeSecond" }),
+    );
+    const material = assets.materials.standard.add(
+      createStandardMaterialAsset({ label: "Prepared Standard A" }),
+    );
+
+    app.spawn(
+      withTransform({ translation: [0, 0, 5] }),
+      withCamera({ priority: 0, layerMask: 1 }),
+    );
+    app.spawn(
+      withTransform(),
+      withMesh(mesh),
+      withMaterial(material),
+      withRenderLayer(1),
+      withVisibility(true),
+    );
+    app.spawn(
+      withLight({
+        kind: LightKind.Ambient,
+        intensity: 0.2,
+        layerMask: 1,
+      }),
+    );
+    app.spawn(
+      withTransform(),
+      withLight({
+        kind: LightKind.Directional,
+        intensity: 1.5,
+        layerMask: 1,
+      }),
+    );
+
+    const firstFrame = await app.stepAndRender(1 / 60, 1, 70);
+
+    app.spawn(
+      withTransform({ translation: [0.8, 0, 0] }),
+      withMesh(secondMesh),
+      withMaterial(material),
+      withRenderLayer(1),
+      withVisibility(true),
+    );
+
+    const secondFrame = await app.stepAndRender(1 / 60, 2, 71);
+
+    expect(firstFrame.ok).toBe(true);
+    expect(firstFrame.resourceReuse).toMatchObject({
+      meshBuffersCreated: 1,
+      preparedMeshBuffersCreated: 1,
+      materialBuffersCreated: 1,
+      preparedMaterialBuffersCreated: 1,
+      preparedMaterialBindGroupsCreated: 1,
+      lightBuffersCreated: 1,
+    });
+    expect(secondFrame.ok).toBe(true);
+    expect(secondFrame.counts.drawCalls).toBe(2);
+    expect(secondFrame.resourceReuse).toMatchObject({
+      pipelineHits: 2,
+      meshBuffersCreated: 1,
+      meshBuffersReused: 1,
+      preparedMeshBuffersCreated: 1,
+      preparedMeshBuffersReused: 1,
+      materialBuffersCreated: 0,
+      materialBuffersReused: 2,
+      preparedMaterialBuffersCreated: 0,
+      preparedMaterialBuffersReused: 2,
+      preparedMaterialBindGroupsCreated: 0,
+      preparedMaterialBindGroupsReused: 2,
+      bindGroupsCreated: 6,
+      bindGroupsReused: 2,
+      lightBuffersCreated: 2,
+      dynamicBufferWrites: 0,
+    });
+    expect(
+      webGpuAppRenderReportToJsonValue(secondFrame).resourceReuse,
+    ).toMatchObject({
+      preparedMeshBuffersCreated: 1,
+      preparedMeshBuffersReused: 1,
+      preparedMaterialBuffersReused: 2,
+      preparedMaterialBindGroupsReused: 2,
+    });
+  });
+
+  it("reports scalar StandardMaterial prepared material source-version invalidation", async () => {
+    const events: string[] = [];
+    const { canvas, environment } = webGpuHarness(events);
+    const created = await createWebGpuApp({
+      canvas,
+      environment,
+      worldOptions: { entityCapacity: 8 },
+    });
+
+    expect(created.ok).toBe(true);
+
+    if (!created.ok) {
+      return;
+    }
+
+    const app = created.app;
+    const assets = createRenderAssetCollections({ registry: app.assets });
+    const mesh = assets.meshes.add(
+      createBoxMeshAsset({ label: "VersionedStandardCube" }),
+    );
+    const material = assets.materials.standard.add(
+      createStandardMaterialAsset({ label: "Versioned Standard A" }),
+    );
+
+    app.spawn(
+      withTransform({ translation: [0, 0, 5] }),
+      withCamera({ priority: 0, layerMask: 1 }),
+    );
+    const standardEntity = app.spawn(
+      withTransform(),
+      withMesh(mesh),
+      withMaterial(material),
+      withRenderLayer(1),
+      withVisibility(true),
+    );
+    const ambientLight = app.spawn(
+      withLight({
+        kind: LightKind.Ambient,
+        intensity: 0.2,
+        layerMask: 1,
+      }),
+    );
+    app.spawn(
+      withTransform(),
+      withLight({
+        kind: LightKind.Directional,
+        intensity: 1.5,
+        layerMask: 1,
+      }),
+    );
+
+    const firstFrame = await app.stepAndRender(1 / 60, 1, 72);
+
+    assets.materials.standard.markReady(
+      material,
+      createStandardMaterialAsset({ label: "Versioned Standard B" }),
+    );
+
+    const materialVersionFrame = await app.stepAndRender(1 / 60, 2, 73);
+
+    standardEntity
+      .getVectorView(LocalTransform, "translation")
+      .set([0.25, 0, 0]);
+    ambientLight.setValue(Light, "intensity", 0.35);
+
+    const cacheHitFrame = await app.stepAndRender(1 / 60, 3, 74);
+
+    expect(firstFrame.ok).toBe(true);
+    expect(firstFrame.resourceReuse).toMatchObject({
+      meshBuffersCreated: 1,
+      preparedMeshBuffersCreated: 1,
+      materialBuffersCreated: 1,
+      preparedMaterialBuffersCreated: 1,
+      preparedMaterialBindGroupsCreated: 1,
+      lightBuffersCreated: 1,
+    });
+    expect(materialVersionFrame.ok).toBe(true);
+    expect(materialVersionFrame.resourceReuse).toMatchObject({
+      pipelineHits: 1,
+      meshBuffersCreated: 0,
+      meshBuffersReused: 1,
+      preparedMeshBuffersCreated: 0,
+      preparedMeshBuffersReused: 1,
+      materialBuffersCreated: 1,
+      materialBuffersReused: 0,
+      preparedMaterialBuffersCreated: 1,
+      preparedMaterialBuffersReused: 0,
+      preparedMaterialBindGroupsCreated: 1,
+      preparedMaterialBindGroupsReused: 0,
+      bindGroupsCreated: 4,
+      bindGroupsReused: 0,
+      lightBuffersCreated: 1,
+      dynamicBufferWrites: 0,
+    });
+    expect(cacheHitFrame.ok).toBe(true);
+    expect(cacheHitFrame.resourceReuse).toMatchObject({
+      pipelineHits: 1,
+      meshBuffersCreated: 0,
+      meshBuffersReused: 1,
+      preparedMeshBuffersCreated: 0,
+      preparedMeshBuffersReused: 0,
+      materialBuffersCreated: 0,
+      materialBuffersReused: 1,
+      preparedMaterialBuffersCreated: 0,
+      preparedMaterialBuffersReused: 0,
+      preparedMaterialBindGroupsCreated: 0,
+      preparedMaterialBindGroupsReused: 0,
+      bindGroupsCreated: 0,
+      bindGroupsReused: 4,
+      lightBuffersCreated: 0,
+      lightBuffersReused: 1,
+      dynamicBufferWrites: 4,
+    });
+    expect(
+      webGpuAppRenderReportToJsonValue(materialVersionFrame).resourceReuse,
+    ).toMatchObject({
+      preparedMeshBuffersReused: 1,
+      preparedMaterialBuffersCreated: 1,
+      preparedMaterialBindGroupsCreated: 1,
+    });
+    expect(JSON.stringify(cacheHitFrame.resourceReuse)).not.toContain(
+      "descriptor",
+    );
   });
 
   it("renders mixed opaque and alpha-test StandardMaterial queue items", async () => {
@@ -3551,6 +4288,9 @@ describe("WebGPU app facade", () => {
     const mesh = assets.meshes.add(
       createBoxMeshAsset({ label: "TexturedStandardCube" }),
     );
+    const secondMesh = assets.meshes.add(
+      createBoxMeshAsset({ label: "TexturedStandardCubeSecond" }),
+    );
     const texture = createTextureHandle("standard-base-color");
     const sampler = createSamplerHandle("standard-base-color-sampler");
 
@@ -3627,6 +4367,9 @@ describe("WebGPU app facade", () => {
     expect(frame.resourceReuse).toMatchObject({
       pipelineHits: 0,
       pipelineMisses: 1,
+      materialBuffersCreated: 1,
+      preparedMaterialBuffersCreated: 1,
+      preparedMaterialBindGroupsCreated: 1,
       textureResourcesCreated: 1,
       samplerResourcesCreated: 1,
       bindGroupsCreated: 4,
@@ -3642,7 +4385,7 @@ describe("WebGPU app facade", () => {
       frame.resources?.resources?.bindGroups.find((group) => group.group === 2),
     ).toMatchObject({
       entryResourceKeys: [
-        "material-buffer:Textured Standard/uniform",
+        `material-buffer:prepared-material:${assetHandleKey(material)}`,
         assetHandleKey(texture),
         assetHandleKey(sampler),
       ],
@@ -3669,6 +4412,144 @@ describe("WebGPU app facade", () => {
     });
     expect(secondResources?.bindGroups).toBe(firstResources?.bindGroups);
     expect(resourceEventCounts(events)).toEqual(firstResourceEvents);
+
+    app.spawn(
+      withTransform({ translation: [0.65, 0, 0] }),
+      withMesh(secondMesh),
+      withMaterial(material),
+      withRenderLayer(1),
+      withVisibility(true),
+    );
+
+    const thirdFrame = await app.stepAndRender(1 / 60, 3, 46);
+
+    expect(thirdFrame.ok).toBe(true);
+    expect(thirdFrame.counts.drawCalls).toBe(2);
+    expect(thirdFrame.resourceReuse).toMatchObject({
+      pipelineHits: 2,
+      pipelineMisses: 0,
+      meshBuffersCreated: 1,
+      meshBuffersReused: 1,
+      preparedMeshBuffersCreated: 1,
+      preparedMeshBuffersReused: 1,
+      materialBuffersCreated: 0,
+      materialBuffersReused: 2,
+      preparedMaterialBuffersCreated: 0,
+      preparedMaterialBuffersReused: 2,
+      preparedMaterialBindGroupsCreated: 0,
+      preparedMaterialBindGroupsReused: 2,
+      textureResourcesCreated: 0,
+      textureResourcesReused: 2,
+      samplerResourcesCreated: 0,
+      samplerResourcesReused: 2,
+      bindGroupsCreated: 6,
+      bindGroupsReused: 2,
+      lightBuffersCreated: 2,
+      dynamicBufferWrites: 0,
+    });
+    expect(
+      webGpuAppRenderReportToJsonValue(thirdFrame).resourceReuse,
+    ).toMatchObject({
+      preparedMeshBuffersReused: 1,
+      preparedMaterialBuffersReused: 2,
+      preparedMaterialBindGroupsReused: 2,
+      textureResourcesReused: 2,
+      samplerResourcesReused: 2,
+    });
+
+    app.assets.markReady(
+      texture,
+      createTextureAsset({
+        label: "StandardBaseColorV2",
+        dimension: "2d",
+        width: 2,
+        height: 2,
+        format: "rgba8unorm-srgb",
+        colorSpace: "srgb",
+        semantic: "base-color",
+        usage: ["sampled", "copy-dst"],
+        sourceData: {
+          bytes: new Uint8Array([
+            64, 64, 255, 255, 255, 64, 64, 255, 64, 255, 64, 255, 255, 255, 64,
+            255,
+          ]),
+          bytesPerRow: 8,
+          rowsPerImage: 2,
+        },
+      }),
+    );
+
+    const textureVersionFrame = await app.stepAndRender(1 / 60, 4, 47);
+
+    expect(textureVersionFrame.ok).toBe(true);
+    expect(textureVersionFrame.resourceReuse).toMatchObject({
+      pipelineHits: 2,
+      meshBuffersCreated: 0,
+      meshBuffersReused: 2,
+      preparedMeshBuffersCreated: 0,
+      preparedMeshBuffersReused: 2,
+      materialBuffersCreated: 1,
+      materialBuffersReused: 1,
+      preparedMaterialBuffersCreated: 1,
+      preparedMaterialBuffersReused: 1,
+      preparedMaterialBindGroupsCreated: 1,
+      preparedMaterialBindGroupsReused: 1,
+      textureResourcesCreated: 1,
+      textureResourcesReused: 1,
+      samplerResourcesCreated: 0,
+      samplerResourcesReused: 2,
+      bindGroupsCreated: 7,
+      bindGroupsReused: 1,
+      lightBuffersCreated: 2,
+      dynamicBufferWrites: 0,
+    });
+    expect(
+      webGpuAppRenderReportToJsonValue(textureVersionFrame).resourceReuse,
+    ).toMatchObject({
+      preparedMeshBuffersReused: 2,
+      preparedMaterialBuffersCreated: 1,
+      preparedMaterialBuffersReused: 1,
+      textureResourcesCreated: 1,
+      samplerResourcesReused: 2,
+    });
+
+    app.assets.markReady(
+      sampler,
+      createSamplerAsset({ label: "StandardBaseColorSamplerV2" }),
+    );
+
+    const samplerVersionFrame = await app.stepAndRender(1 / 60, 5, 48);
+
+    expect(samplerVersionFrame.ok).toBe(true);
+    expect(samplerVersionFrame.resourceReuse).toMatchObject({
+      pipelineHits: 2,
+      meshBuffersCreated: 0,
+      meshBuffersReused: 2,
+      preparedMeshBuffersCreated: 0,
+      preparedMeshBuffersReused: 2,
+      materialBuffersCreated: 1,
+      materialBuffersReused: 1,
+      preparedMaterialBuffersCreated: 1,
+      preparedMaterialBuffersReused: 1,
+      preparedMaterialBindGroupsCreated: 1,
+      preparedMaterialBindGroupsReused: 1,
+      textureResourcesCreated: 0,
+      textureResourcesReused: 2,
+      samplerResourcesCreated: 1,
+      samplerResourcesReused: 1,
+      bindGroupsCreated: 7,
+      bindGroupsReused: 1,
+      lightBuffersCreated: 2,
+      dynamicBufferWrites: 0,
+    });
+    expect(
+      webGpuAppRenderReportToJsonValue(samplerVersionFrame).resourceReuse,
+    ).toMatchObject({
+      preparedMaterialBuffersCreated: 1,
+      preparedMaterialBuffersReused: 1,
+      textureResourcesReused: 2,
+      samplerResourcesCreated: 1,
+    });
   });
 
   it("renders and reuses StandardMaterial metallic-roughness texture resources", async () => {

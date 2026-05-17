@@ -1,3 +1,4 @@
+import type { MeshHandle } from "@aperture-engine/simulation";
 import type {
   MatcapMaterialAsset,
   MeshAsset,
@@ -11,6 +12,11 @@ import {
   type CreateMatcapFrameGpuResourcesResult,
 } from "./matcap-frame-resources.js";
 import type { MatcapMaterialBindGroupLayoutResource } from "./matcap-bind-group.js";
+import {
+  prepareAppMeshResource,
+  type PreparedAppMeshResourceUse,
+  type PreparedMeshGpuResourceCache,
+} from "./prepared-app-mesh-resource.js";
 import type { UnlitBindGroupLayoutResource } from "./unlit-bind-group.js";
 import {
   createViewUniformBufferDescriptorScratch,
@@ -42,6 +48,8 @@ export interface MatcapAppFrameResourceCacheSlot {
 export interface MatcapAppFrameResourceReuseReport {
   meshBuffersCreated: number;
   meshBuffersReused: number;
+  preparedMeshBuffersCreated: number;
+  preparedMeshBuffersReused: number;
   materialBuffersCreated: number;
   materialBuffersReused: number;
   bindGroupsCreated: number;
@@ -53,6 +61,7 @@ export function createOrReuseMatcapAppFrameResources(options: {
   readonly device: unknown;
   readonly cache: MatcapAppFrameResourceCacheSlot;
   readonly mesh: MeshAsset | null;
+  readonly meshHandle: MeshHandle;
   readonly meshKey: string;
   readonly material: MatcapMaterialAsset | null;
   readonly materialKey: string;
@@ -61,6 +70,7 @@ export function createOrReuseMatcapAppFrameResources(options: {
   readonly worldTransforms: PackedSnapshotTransforms;
   readonly sharedLayouts: readonly UnlitBindGroupLayoutResource[];
   readonly materialLayout: MatcapMaterialBindGroupLayoutResource | null;
+  readonly preparedMeshes: PreparedMeshGpuResourceCache;
   readonly reuse: MatcapAppFrameResourceReuseReport;
 }): CreateMatcapFrameGpuResourcesResult {
   const cached = options.cache.current;
@@ -122,11 +132,15 @@ export function createOrReuseMatcapAppFrameResources(options: {
     return cached.result;
   }
 
+  const preparedMesh = preparePreparedMatcapMesh(options);
   const result = createMatcapFrameGpuResources({
     device: options.device as Parameters<
       typeof createMatcapFrameGpuResources
     >[0]["device"],
     mesh: options.mesh,
+    ...(preparedMesh === null
+      ? {}
+      : { preparedMesh: preparedMesh.resource.mesh }),
     material: options.material,
     viewUniforms: options.viewUniforms,
     worldTransforms: options.worldTransforms,
@@ -137,7 +151,16 @@ export function createOrReuseMatcapAppFrameResources(options: {
   });
 
   if (result.valid && result.resources !== null) {
-    options.reuse.meshBuffersCreated += 1;
+    if (preparedMesh === null) {
+      options.reuse.meshBuffersCreated += 1;
+    } else if (preparedMesh.status === "reused") {
+      options.reuse.meshBuffersReused += 1;
+      options.reuse.preparedMeshBuffersReused += 1;
+    } else {
+      options.reuse.meshBuffersCreated += 1;
+      options.reuse.preparedMeshBuffersCreated += 1;
+    }
+
     options.reuse.materialBuffersCreated += 1;
     options.reuse.bindGroupsCreated += result.resources.bindGroups.length;
     options.cache.current = {
@@ -158,4 +181,25 @@ export function createOrReuseMatcapAppFrameResources(options: {
   }
 
   return result;
+}
+
+function preparePreparedMatcapMesh(options: {
+  readonly device: unknown;
+  readonly mesh: MeshAsset | null;
+  readonly meshHandle: MeshHandle;
+  readonly meshKey: string;
+  readonly material: MatcapMaterialAsset | null;
+  readonly preparedMeshes: PreparedMeshGpuResourceCache;
+}): PreparedAppMeshResourceUse | null {
+  if (options.mesh === null || options.material === null) {
+    return null;
+  }
+
+  return prepareAppMeshResource({
+    device: options.device,
+    mesh: options.mesh,
+    meshHandle: options.meshHandle,
+    meshKey: options.meshKey,
+    preparedMeshes: options.preparedMeshes,
+  });
 }

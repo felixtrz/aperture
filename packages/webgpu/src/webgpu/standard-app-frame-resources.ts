@@ -1,4 +1,9 @@
 import type {
+  AssetRegistry,
+  MaterialHandle,
+  MeshHandle,
+} from "@aperture-engine/simulation";
+import type {
   MeshAsset,
   PackedSnapshotTransforms,
   PackedSnapshotViewUniforms,
@@ -16,6 +21,19 @@ import {
   type LightBufferDescriptorPlanScratch,
   type LightBufferDescriptorScratch,
 } from "./light-packing.js";
+import {
+  prepareAppMeshResource,
+  type PreparedAppMeshResourceUse,
+  type PreparedMeshGpuResourceCache,
+} from "./prepared-app-mesh-resource.js";
+import {
+  prepareBaseColorTexturedStandardMaterialResource,
+  prepareScalarStandardMaterialResource,
+  type PreparedBaseColorTexturedStandardMaterialResource,
+  type PreparedScalarStandardMaterialCache,
+  type PreparedScalarStandardMaterialCacheStatus,
+  type PreparedScalarStandardMaterialResource,
+} from "./prepared-standard-material-cache.js";
 import type { StandardMaterialBindGroupLayoutResource } from "./standard-bind-group.js";
 import {
   createStandardFrameGpuResources,
@@ -56,8 +74,14 @@ export interface StandardAppFrameResourceCacheSlot {
 export interface StandardAppFrameResourceReuseReport {
   meshBuffersCreated: number;
   meshBuffersReused: number;
+  preparedMeshBuffersCreated: number;
+  preparedMeshBuffersReused: number;
   materialBuffersCreated: number;
   materialBuffersReused: number;
+  preparedMaterialBuffersCreated: number;
+  preparedMaterialBuffersReused: number;
+  preparedMaterialBindGroupsCreated: number;
+  preparedMaterialBindGroupsReused: number;
   bindGroupsCreated: number;
   bindGroupsReused: number;
   lightBuffersCreated: number;
@@ -70,15 +94,22 @@ export function createOrReuseStandardAppFrameResources(options: {
   readonly cache: StandardAppFrameResourceCacheSlot;
   readonly snapshot: RenderSnapshot;
   readonly mesh: MeshAsset | null;
+  readonly meshHandle: MeshHandle;
   readonly meshKey: string;
   readonly material: StandardMaterialAsset | null;
+  readonly materialHandle: MaterialHandle;
   readonly materialKey: string;
+  readonly sourceMaterialKey: string;
+  readonly pipelineKey: string;
+  readonly assets: AssetRegistry;
   readonly textures: PreparedAppTextureSamplerResources;
   readonly viewUniforms: PackedSnapshotViewUniforms;
   readonly worldTransforms: PackedSnapshotTransforms;
   readonly sharedLayouts: readonly UnlitBindGroupLayoutResource[];
   readonly materialLayout: StandardMaterialBindGroupLayoutResource | null;
   readonly lightLayout: LightBindGroupLayoutResource | null;
+  readonly preparedMeshes: PreparedMeshGpuResourceCache;
+  readonly preparedScalarMaterials: PreparedScalarStandardMaterialCache;
   readonly reuse: StandardAppFrameResourceReuseReport;
 }): CreateStandardFrameGpuResourcesResult {
   const cached = options.cache.current;
@@ -182,13 +213,21 @@ export function createOrReuseStandardAppFrameResources(options: {
     return cached.result;
   }
 
+  const preparedMesh = preparePreparedStandardMesh(options);
+  const preparedMaterial = preparePreparedStandardMaterial(options);
   const result = createStandardFrameGpuResources({
     device: options.device as Parameters<
       typeof createStandardFrameGpuResources
     >[0]["device"],
     snapshot: options.snapshot,
     mesh: options.mesh,
+    ...(preparedMesh === null
+      ? {}
+      : { preparedMesh: preparedMesh.resource.mesh }),
     material: options.material,
+    ...(preparedMaterial === null
+      ? {}
+      : { preparedMaterial: preparedMaterial.resource }),
     viewUniforms: options.viewUniforms,
     worldTransforms: options.worldTransforms,
     sharedLayouts: options.sharedLayouts,
@@ -203,9 +242,38 @@ export function createOrReuseStandardAppFrameResources(options: {
     result.resources !== null &&
     result.resources.lightGpuBuffers.descriptorPlan !== null
   ) {
-    options.reuse.meshBuffersCreated += 1;
-    options.reuse.materialBuffersCreated += 1;
-    options.reuse.bindGroupsCreated += result.resources.bindGroups.length;
+    if (preparedMesh === null) {
+      options.reuse.meshBuffersCreated += 1;
+    } else if (preparedMesh.status === "reused") {
+      options.reuse.meshBuffersReused += 1;
+      options.reuse.preparedMeshBuffersReused += 1;
+    } else {
+      options.reuse.meshBuffersCreated += 1;
+      options.reuse.preparedMeshBuffersCreated += 1;
+    }
+
+    if (preparedMaterial === null) {
+      options.reuse.materialBuffersCreated += 1;
+      options.reuse.bindGroupsCreated += result.resources.bindGroups.length;
+    } else {
+      if (preparedMaterial.status === "reused") {
+        options.reuse.materialBuffersReused += 1;
+        options.reuse.bindGroupsReused += 1;
+        options.reuse.preparedMaterialBuffersReused += 1;
+        options.reuse.preparedMaterialBindGroupsReused += 1;
+      } else {
+        options.reuse.materialBuffersCreated += 1;
+        options.reuse.bindGroupsCreated += 1;
+        options.reuse.preparedMaterialBuffersCreated += 1;
+        options.reuse.preparedMaterialBindGroupsCreated += 1;
+      }
+
+      options.reuse.bindGroupsCreated += Math.max(
+        0,
+        result.resources.bindGroups.length - 1,
+      );
+    }
+
     options.reuse.lightBuffersCreated += 1;
     options.cache.current = {
       meshKey: options.meshKey,
@@ -233,4 +301,110 @@ export function createOrReuseStandardAppFrameResources(options: {
   }
 
   return result;
+}
+
+interface PreparedStandardMaterialUse {
+  readonly status: Extract<
+    PreparedScalarStandardMaterialCacheStatus,
+    "created" | "reused"
+  >;
+  readonly resource:
+    | PreparedScalarStandardMaterialResource
+    | PreparedBaseColorTexturedStandardMaterialResource;
+}
+
+function preparePreparedStandardMesh(options: {
+  readonly device: unknown;
+  readonly mesh: MeshAsset | null;
+  readonly meshHandle: MeshHandle;
+  readonly meshKey: string;
+  readonly material: StandardMaterialAsset | null;
+  readonly preparedMeshes: PreparedMeshGpuResourceCache;
+}): PreparedAppMeshResourceUse | null {
+  if (options.mesh === null || options.material === null) {
+    return null;
+  }
+
+  return prepareAppMeshResource({
+    device: options.device,
+    mesh: options.mesh,
+    meshHandle: options.meshHandle,
+    meshKey: options.meshKey,
+    preparedMeshes: options.preparedMeshes,
+  });
+}
+
+function preparePreparedStandardMaterial(options: {
+  readonly device: unknown;
+  readonly preparedScalarMaterials: PreparedScalarStandardMaterialCache;
+  readonly materialHandle: MaterialHandle;
+  readonly material: StandardMaterialAsset | null;
+  readonly materialKey: string;
+  readonly sourceMaterialKey: string;
+  readonly pipelineKey: string;
+  readonly assets: AssetRegistry;
+  readonly materialLayout: StandardMaterialBindGroupLayoutResource | null;
+  readonly textures: PreparedAppTextureSamplerResources;
+}): PreparedStandardMaterialUse | null {
+  if (options.material === null) {
+    return null;
+  }
+
+  const sourceVersion = sourceVersionFromAssetKey(
+    options.materialKey,
+    options.sourceMaterialKey,
+  );
+
+  if (sourceVersion === null) {
+    return null;
+  }
+
+  const result =
+    options.material.baseColorTexture === null
+      ? prepareScalarStandardMaterialResource({
+          device: options.device as Parameters<
+            typeof prepareScalarStandardMaterialResource
+          >[0]["device"],
+          cache: options.preparedScalarMaterials,
+          handle: options.materialHandle,
+          material: options.material,
+          sourceVersion,
+          pipelineKey: options.pipelineKey,
+          layout: options.materialLayout,
+        })
+      : prepareBaseColorTexturedStandardMaterialResource({
+          registry: options.assets,
+          device: options.device as Parameters<
+            typeof prepareBaseColorTexturedStandardMaterialResource
+          >[0]["device"],
+          cache: options.preparedScalarMaterials,
+          handle: options.materialHandle,
+          material: options.material,
+          sourceVersion,
+          pipelineKey: options.pipelineKey,
+          layout: options.materialLayout,
+          textures: options.textures.textures,
+          samplers: options.textures.samplers,
+        });
+
+  return result.valid &&
+    result.resource !== null &&
+    (result.status === "created" || result.status === "reused")
+    ? { status: result.status, resource: result.resource }
+    : null;
+}
+
+function sourceVersionFromAssetKey(
+  assetKey: string,
+  sourceAssetKey: string,
+): number | null {
+  const prefix = `${sourceAssetKey}@`;
+
+  if (!assetKey.startsWith(prefix)) {
+    return null;
+  }
+
+  const version = Number.parseInt(assetKey.slice(prefix.length), 10);
+
+  return Number.isFinite(version) ? version : null;
 }
