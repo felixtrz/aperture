@@ -97,6 +97,11 @@ async function extractE2eScenarioReferences() {
     }
 
     const content = await readFile(path.join(e2eRoot, entry.name), "utf8");
+    const referencesMultiEntity =
+      content.includes("/examples/multi-entity.html") ||
+      content.includes("loadMultiEntityScenarioStatus") ||
+      content.includes("expectMultiEntityRouteFailureStatus") ||
+      content.includes("expectTextureAssetRouteStatus");
 
     for (const match of content.matchAll(
       /\/examples\/multi-entity\.html\?scenario=([a-z0-9-]+)/gu,
@@ -106,9 +111,11 @@ async function extractE2eScenarioReferences() {
       }
     }
 
-    for (const match of content.matchAll(/\bscenario:\s*"([a-z0-9-]+)"/gu)) {
-      if (!intentionalUnknownScenarios.has(match[1])) {
-        scenarios.push(match[1]);
+    if (referencesMultiEntity) {
+      for (const match of content.matchAll(/\bscenario:\s*"([a-z0-9-]+)"/gu)) {
+        if (!intentionalUnknownScenarios.has(match[1])) {
+          scenarios.push(match[1]);
+        }
       }
     }
 

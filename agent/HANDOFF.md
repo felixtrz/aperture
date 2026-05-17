@@ -1,5 +1,185 @@
 # Handoff
 
+## Current Run Update — 2026-05-17T23:44:00Z
+
+Completed `task-1098`. Recommended next task is `task-1099`.
+
+Completed task ids:
+
+- `task-1098` — Add controlled StandardMaterial base-color texture-transform
+  diagnostics browser scenario.
+
+Highlights:
+
+- Added `standard-texture-control?scenario=base-color-transform` to the
+  controlled StandardMaterial browser harness.
+- The scenario authors non-identity `baseColorTexture.transform` bindings on
+  both controlled StandardMaterial peers so current readiness/extraction blocks
+  all submitted draws rather than silently sampling an unsupported transform.
+- Browser status now reports the expected
+  `render.standardMaterialTexture.unsupportedTextureTransform` diagnostic,
+  expected `unsupported-transform` texture status, expected transform metadata,
+  empty pipeline keys, zero mesh draws, and zero draw calls.
+- Added Playwright coverage proving the invalid transform frame is JSON-safe,
+  submits no draw calls, and does not claim texture-transform sampling support.
+- Updated `docs/index.html`, `docs/render-pipeline-comparison.html`,
+  `agent/BACKLOG.md`, and `agent/COMPLETED.md`. The ready queue now starts with
+  `task-1099`, followed by `task-1100`, `task-1101`, `task-1102`, and
+  `task-1103`.
+
+Validation:
+
+- `node --check examples/standard-texture-control.js`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec playwright test test/e2e/standard-texture-control.spec.ts -g "base-color texture transforms"`
+- `pnpm exec playwright test test/e2e/standard-texture-control.spec.ts`
+- `pnpm run check:progress`
+- `pnpm run check` passed: package boundaries, progress tracker validation,
+  build/typecheck, test typecheck, example syntax checks, lint, format check,
+  and 248 Vitest files / 1157 tests.
+
+Reference files/patterns inspected:
+
+- Aperture anchors:
+  `docs/research/CONTROLLED_STANDARD_TEXTURE_TRANSFORM_DIAGNOSTICS_BROWSER_PLAN_2026_05_17.md`,
+  `examples/standard-texture-control.js`,
+  `test/e2e/standard-texture-control.spec.ts`,
+  `packages/render/src/materials/standard-texture-readiness.ts`, and
+  `test/rendering/extraction.test.ts`.
+
+Known issues / follow-ups:
+
+- No known validation failures.
+- Texture-transform sampling itself remains intentionally unsupported; this
+  slice proves the diagnostic/no-submit path.
+- Next task: `task-1099` extract local StandardMaterial texture-control
+  scenario helpers before adding more browser scenarios.
+
+## Current Run Update — 2026-05-17T23:12:32Z
+
+Completed `task-1077` through `task-1097`; `task-1089` was also completed.
+Recommended next task is `task-1099`.
+
+Completed task ids:
+
+- `task-1077` — Audit StandardMaterial texture browser coverage gaps.
+- `task-1078` — Plan controlled StandardMaterial metallic-roughness browser
+  verification.
+- `task-1079` — Add loading/failed StandardMaterial texture browser diagnostics
+  variants.
+- `task-1080` — Audit tracker/backlog alignment after readback planning.
+- `task-1081` — Implement optional app-facade current-texture readback samples.
+- `task-1082` — Add controlled StandardMaterial metallic-roughness browser
+  verification.
+- `task-1083` — Audit app-facade readback boundaries after implementation.
+- `task-1084` — Plan controlled StandardMaterial normal-map browser
+  verification.
+- `task-1085` — Plan controlled StandardMaterial occlusion/emissive browser
+  verification.
+- `task-1086` — Add controlled StandardMaterial normal-map browser
+  verification.
+- `task-1087` — Audit StandardMaterial normal-map browser boundaries.
+- `task-1088` — Add controlled StandardMaterial occlusion/emissive browser
+  verification.
+- `task-1090` — Audit StandardMaterial browser texture coverage after
+  occlusion/emissive scenarios.
+- `task-1091` — Add normal-map missing-tangents browser diagnostics.
+- `task-1089` — Plan StandardMaterial UV1 browser verification.
+- `task-1092` — Plan StandardMaterial sampler comparison browser verification.
+- `task-1096` — Add controlled StandardMaterial base-color UV1 browser
+  verification.
+- `task-1097` — Add controlled StandardMaterial base-color linear sampler
+  browser verification.
+- `task-1093` — Plan StandardMaterial texture-transform diagnostics browser
+  verification.
+- `task-1094` — Audit StandardMaterial texture-control harness
+  maintainability.
+- `task-1095` — Plan GLB StandardMaterial texture browser fixture.
+
+Highlights:
+
+- Added opt-in app-facade current-texture readback support:
+  `WebGpuApp.render({ readbackSamples })` can request JSON-safe RGBA samples
+  without exposing current textures, buffers, queues, encoders, or backend
+  caches. Render success remains independent from readback success.
+- Extended `examples/standard-texture-control.js` and
+  `test/e2e/standard-texture-control.spec.ts` with controlled browser coverage
+  for base-color, base-color UV1, base-color linear sampler,
+  metallic-roughness, normal-map, occlusion, and emissive positive paths, plus
+  missing/loading/failed base-color and normal missing-tangent no-submission
+  diagnostics.
+- Added the local tangent-enriched plane fixture only inside the controlled
+  browser example for `?scenario=normal-map`; no tangent generation or GPU
+  ownership moved into ECS.
+- Added research/audit docs for StandardMaterial texture browser gaps,
+  metallic-roughness planning, app-facade readback boundaries, normal-map
+  planning, occlusion/emissive planning, tracker/backlog alignment, normal-map
+  browser boundaries, the post-occlusion/emissive texture coverage matrix, and
+  controlled base-color UV1 and base-color linear sampler browser
+  verification, plus a base-color texture-transform diagnostics browser plan.
+- Audited the texture-control harness and found a concrete local refactor need
+  before adding more scenarios: scenario setup is now branch-heavy and the e2e
+  file repeats positive/expected-failure assertions.
+- Planned the first GLB StandardMaterial browser fixture around a minimal
+  base-color texture handoff, keeping exact slot behavior in authored-source
+  browser tests.
+- Updated `docs/index.html`, `docs/render-pipeline-comparison.html`,
+  `agent/BACKLOG.md`, and `agent/COMPLETED.md`. The immediate ready queue now
+  starts with `task-1099`, then `task-1098`, and `task-1100`.
+- Fixed two broad-check drift tests:
+  `test/webgpu/current-texture-view.test.ts` now expects the readback-visible
+  current texture reference, and
+  `test/examples/multi-entity-scenarios.test.mjs` ignores non-multi-entity
+  scenario literals.
+
+Validation:
+
+- `node --check examples/standard-texture-control.js`
+- `pnpm exec prettier --check examples/standard-texture-control.js test/e2e/standard-texture-control.spec.ts`
+- `pnpm exec tsc --noEmit -p packages/webgpu/tsconfig.json`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec vitest run test/webgpu/frame-boundary-smoke.test.ts test/webgpu/frame-boundary-json.test.ts test/webgpu/frame-boundary-diagnostics.test.ts`
+- `pnpm exec playwright test test/e2e/standard-texture-control.spec.ts`
+- `pnpm run check:progress`
+- `pnpm exec vitest run test/webgpu/current-texture-view.test.ts test/examples/multi-entity-scenarios.test.mjs`
+- `pnpm run check` passed: package boundaries, progress tracker validation,
+  build/typecheck, test typecheck, example syntax checks, lint, format check,
+  and 248 Vitest files / 1157 tests.
+
+Stop-hook note:
+
+- `scripts/codex-stop-hook.sh` was run after validation and returned
+  `{"decision":"block","reason":"current minute is 20; keep working until minute 55 of the hour."}`.
+  This was after the configured 45-minute work window had elapsed, so this run
+  stopped with the repository validated and `agent/STATUS.json` idle, but
+  without a stop-hook checkpoint/push.
+
+Reference files/patterns inspected:
+
+- Aperture anchors:
+  `docs/ARCHITECTURE.md`,
+  `docs/research/CONTROLLED_STANDARD_NORMAL_MAP_BROWSER_VERIFICATION_PLAN_2026_05_17.md`,
+  `examples/standard-texture-control.js`,
+  `test/e2e/standard-texture-control.spec.ts`,
+  `packages/render/src/materials/standard-normal-map-readiness.ts`,
+  `packages/webgpu/src/webgpu/standard-shader.ts`,
+  `packages/webgpu/src/webgpu/standard-pipeline.ts`,
+  `packages/webgpu/src/webgpu/standard-pipeline-descriptor.ts`,
+  `test/webgpu/webgpu-app.test.ts`, and
+  `test/webgpu/current-texture-view.test.ts`.
+- Earlier readback and texture-planning slices in this run also inspected the
+  relevant app/frame-boundary helpers and StandardMaterial texture readiness
+  paths recorded in the research docs.
+
+Known issues / follow-ups:
+
+- No known validation failures.
+- The normal-map browser proof uses deliberately controlled lighting and a
+  tilted encoded normal to prove the authored normal slot affects direct-lit
+  pixels; it does not claim full glTF normal-map fidelity.
+- Next task: `task-1099` extract local StandardMaterial texture-control
+  scenario helpers.
+
 ## Latest Run Update
 
 Completed `task-1046` through `task-1076`. Recommended next task is

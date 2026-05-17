@@ -5,10 +5,11 @@ import { createCurrentTextureColorTarget } from "@aperture-engine/webgpu";
 describe("current texture view acquisition", () => {
   it("creates color attachment target inputs from current texture views", () => {
     const view = { label: "view" };
+    const texture = { createView: () => view };
 
     expect(
       createCurrentTextureColorTarget({
-        context: { getCurrentTexture: () => ({ createView: () => view }) },
+        context: { getCurrentTexture: () => texture },
         clearColor: [0, 0, 0, 1],
         loadOp: "clear",
       }),
@@ -19,6 +20,7 @@ describe("current texture view acquisition", () => {
         clearColor: [0, 0, 0, 1],
         loadOp: "clear",
       },
+      texture,
       diagnostics: [],
     });
   });

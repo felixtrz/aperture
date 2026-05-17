@@ -30,6 +30,7 @@ export interface CreateCurrentTextureColorTargetOptions {
 
 export interface CreateCurrentTextureColorTargetResult {
   readonly valid: boolean;
+  readonly texture?: CurrentTextureLike | null;
   readonly target: RenderPassColorAttachmentInput | null;
   readonly diagnostics: readonly CurrentTextureViewDiagnostic[];
 }
@@ -42,6 +43,7 @@ export function createCurrentTextureColorTarget(
   if (texture === null) {
     return {
       valid: false,
+      texture: null,
       target: null,
       diagnostics: [
         {
@@ -57,6 +59,7 @@ export function createCurrentTextureColorTarget(
   if (view === undefined) {
     return {
       valid: false,
+      texture,
       target: null,
       diagnostics: [
         {
@@ -71,6 +74,7 @@ export function createCurrentTextureColorTarget(
 
   return {
     valid: true,
+    texture,
     target: {
       ...target,
       ...(options.clearColor === undefined

@@ -393,13 +393,13 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-17 14:36 PDT</dd>
+            <dd>2026-05-17 16:44 PDT</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
-            <dd>StandardMaterial texture browser diagnostics added</dd>
+            <dd>StandardMaterial texture-transform diagnostics covered</dd>
             <dt>Next focus</dt>
-            <dd>task-1077 StandardMaterial texture browser gap audit</dd>
+            <dd>task-1099 texture-control harness helper extraction</dd>
           </dl>
         </aside>
       </header>
@@ -449,23 +449,26 @@
           </article>
           <article class="card metric">
             <div class="label">material system</div>
-            <div class="value">51%</div>
-            <div class="bar" aria-label="51 percent complete">
-              <span style="width: 51%"></span>
+            <div class="value">53%</div>
+            <div class="bar" aria-label="53 percent complete">
+              <span style="width: 53%"></span>
             </div>
             <p>
               Unlit, Matcap, DebugNormal, and direct-lit StandardMaterial paths
               are present, with aggregate texture/sampler fidelity diagnostics
               and extraction-level texture semantic/color-space details now
-              covered. Controlled browser base-color texture verification is now
-              present; broader PBR texture slots remain.
+              covered. Controlled browser texture verification now covers
+              base-color, base-color UV1, base-color linear sampler,
+              metallic-roughness, normal-map, occlusion, and emissive positive
+              paths plus missing, loading, and failed base-color states and
+              normal missing-tangent and base-color transform diagnostics.
             </p>
           </article>
           <article class="card metric">
             <div class="label">diagnostics</div>
-            <div class="value">72%</div>
-            <div class="bar" aria-label="72 percent complete">
-              <span style="width: 72%"></span>
+            <div class="value">73%</div>
+            <div class="bar" aria-label="73 percent complete">
+              <span style="width: 73%"></span>
             </div>
             <p>
               JSON-safe reports now cover extraction, queues, app summaries,
@@ -475,8 +478,9 @@
               route shell summary policy, prepared/app reuse alignment, grouped
               route health, tracker freshness validation, extraction-level
               StandardMaterial texture semantic/color-space details, controlled
-              StandardMaterial texture browser status, and example-level texture
-              fidelity summary usage.
+              StandardMaterial texture browser status, loading/failed browser
+              texture diagnostics, opt-in app-facade readback samples, and
+              example-level texture fidelity summary usage.
             </p>
           </article>
         </div>
@@ -1153,18 +1157,104 @@
                 <span class="badge green">task-1076</span> Planned opt-in
                 app-facade current-texture readback support.
               </li>
+              <li>
+                <span class="badge green">task-1077</span> Audited
+                StandardMaterial texture browser coverage gaps by slot.
+              </li>
+              <li>
+                <span class="badge green">task-1078</span> Planned controlled
+                StandardMaterial metallic-roughness browser verification.
+              </li>
+              <li>
+                <span class="badge green">task-1079</span> Added loading and
+                failed base-color texture no-submission browser diagnostics.
+              </li>
+              <li>
+                <span class="badge green">task-1080</span> Audited tracker and
+                backlog alignment after readback and texture-browser planning.
+              </li>
+              <li>
+                <span class="badge green">task-1081</span> Implemented opt-in
+                app-facade current-texture readback samples.
+              </li>
+              <li>
+                <span class="badge green">task-1082</span> Added controlled
+                StandardMaterial metallic-roughness browser verification.
+              </li>
+              <li>
+                <span class="badge green">task-1083</span> Audited app-facade
+                readback boundaries.
+              </li>
+              <li>
+                <span class="badge green">task-1084</span> Planned controlled
+                StandardMaterial normal-map browser verification.
+              </li>
+              <li>
+                <span class="badge green">task-1085</span> Planned controlled
+                StandardMaterial occlusion/emissive browser verification.
+              </li>
+              <li>
+                <span class="badge green">task-1086</span> Added controlled
+                StandardMaterial normal-map browser verification.
+              </li>
+              <li>
+                <span class="badge green">task-1087</span> Audited
+                StandardMaterial normal-map browser boundaries.
+              </li>
+              <li>
+                <span class="badge green">task-1088</span> Added controlled
+                StandardMaterial occlusion/emissive browser verification.
+              </li>
+              <li>
+                <span class="badge green">task-1090</span> Audited
+                StandardMaterial browser texture coverage after
+                occlusion/emissive scenarios.
+              </li>
+              <li>
+                <span class="badge green">task-1091</span> Added normal-map
+                missing-tangents browser diagnostics.
+              </li>
+              <li>
+                <span class="badge green">task-1089</span> Planned
+                StandardMaterial UV1 browser verification.
+              </li>
+              <li>
+                <span class="badge green">task-1092</span> Planned
+                StandardMaterial sampler browser verification.
+              </li>
+              <li>
+                <span class="badge green">task-1096</span> Added controlled
+                StandardMaterial base-color UV1 browser verification.
+              </li>
+              <li>
+                <span class="badge green">task-1097</span> Added controlled
+                StandardMaterial base-color linear sampler browser verification.
+              </li>
+              <li>
+                <span class="badge green">task-1093</span> Planned
+                StandardMaterial texture-transform diagnostics browser
+                verification.
+              </li>
+              <li>
+                <span class="badge green">task-1094</span> Audited
+                StandardMaterial texture-control harness maintainability.
+              </li>
+              <li>
+                <span class="badge green">task-1095</span> Planned a minimal GLB
+                StandardMaterial base-color browser fixture.
+              </li>
+              <li>
+                <span class="badge green">task-1098</span> Added controlled
+                StandardMaterial base-color texture-transform diagnostics.
+              </li>
             </ul>
           </article>
           <article class="card task-list">
             <h3>Recommended next tasks</h3>
             <ul>
               <li>
-                <span class="badge amber">task-1077</span> Audit remaining
-                StandardMaterial texture browser coverage gaps.
-              </li>
-              <li>
-                <span class="badge amber">task-1078</span> Plan controlled
-                StandardMaterial metallic-roughness browser verification.
+                <span class="badge amber">task-1099</span> Extract local
+                StandardMaterial texture-control scenario helpers.
               </li>
               <li>
                 Keep this tracker updated after render-pipeline or

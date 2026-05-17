@@ -83,7 +83,10 @@ import {
 } from "./prepared-mesh-cache.js";
 import {
   assembleFrameBoundary,
+  mapFrameBoundaryReadbackSamples,
   type FrameBoundaryAssemblyReport,
+  type FrameBoundaryReadbackResult,
+  type FrameBoundaryReadbackSampleRequest,
 } from "./frame-boundary.js";
 import { createLightBindGroupLayoutDescriptor } from "./light-bind-group-layout.js";
 import type { LightBindGroupLayoutResource } from "./light-bind-group-layout.js";
@@ -212,6 +215,7 @@ export interface WebGpuAppRenderOptions {
   readonly snapshot?: RenderSnapshot;
   readonly clearColor?: readonly number[];
   readonly label?: string;
+  readonly readbackSamples?: readonly FrameBoundaryReadbackSampleRequest[];
 }
 
 export interface WebGpuAppRenderCounts {
@@ -311,6 +315,7 @@ export interface WebGpuAppRenderReport {
   readonly pipeline: WebGpuAppPipelineResourceResult | null;
   readonly resources: WebGpuAppFrameResourcesResult | null;
   readonly boundary: FrameBoundaryAssemblyReport | null;
+  readonly readback?: FrameBoundaryReadbackResult;
 }
 
 export type WebGpuAppJsonValue =
@@ -327,6 +332,7 @@ export interface WebGpuAppRenderReportJsonValue {
   readonly counts: WebGpuAppRenderCounts;
   readonly diagnostics: readonly WebGpuAppJsonValue[];
   readonly resourceReuse: WebGpuAppResourceReuseReport;
+  readonly readback?: WebGpuAppJsonValue;
   readonly materialDependencyReadiness?: readonly MaterialAssetDependencyReadinessReportJsonValue[];
 }
 
@@ -497,6 +503,7 @@ interface CreateQueuedBuiltInFrameResourcesResult {
 export interface WebGpuApp {
   readonly world: EcsWorld;
   readonly assets: AssetRegistry;
+  readonly canvas: WebGpuCanvasLike;
   readonly initialization: WebGpuInitializationSuccess;
   readonly renderWorld: RenderWorld;
   spawn(...initializers: WebGpuAppEntityInitializer[]): Entity;
@@ -550,6 +557,7 @@ export async function createWebGpuApp(
   const app: WebGpuApp = {
     world,
     assets,
+    canvas: options.canvas,
     initialization,
     renderWorld,
     spawn(...initializers) {
@@ -1509,6 +1517,7 @@ async function renderQueuedBuiltInWebGpuAppFrame(options: {
   readonly reuse: WebGpuAppResourceReuseReport;
   readonly clearColor?: readonly number[];
   readonly label?: string;
+  readonly readbackSamples?: readonly FrameBoundaryReadbackSampleRequest[];
 }): Promise<WebGpuAppRenderReport> {
   const packedViews = writePackedSnapshotViewUniforms(
     options.snapshot,
@@ -1592,24 +1601,39 @@ async function renderQueuedBuiltInWebGpuAppFrame(options: {
     commands: framePlan.commandPlan.commands,
     label: options.label ?? "aperture-webgpu-app",
     clearColor: options.clearColor ?? [0, 0, 0, 1],
+    ...(options.readbackSamples === undefined
+      ? {}
+      : {
+          readback: {
+            format: options.app.initialization.format,
+            ...webGpuAppCanvasDimensions(options.app.canvas),
+            samples: options.readbackSamples,
+          },
+        }),
   });
 
   await waitForSubmittedWork(options.app.initialization.device);
+  const frameOk =
+    framePlan.apply.diagnostics.length === 0 &&
+    framePlan.bindingPlan.diagnostics.length === 0 &&
+    framePlan.packages.diagnostics.length === 0 &&
+    framePlan.drawCommands.diagnostics.length === 0 &&
+    framePlan.drawList.valid &&
+    framePlan.resources.valid &&
+    framePlan.commandPlan.valid &&
+    boundary.valid;
+  const readback = await mapFrameBoundaryReadbackSamples(
+    boundary.readback,
+    frameOk,
+  );
 
   return renderReport({
-    ok:
-      framePlan.apply.diagnostics.length === 0 &&
-      framePlan.bindingPlan.diagnostics.length === 0 &&
-      framePlan.packages.diagnostics.length === 0 &&
-      framePlan.drawCommands.diagnostics.length === 0 &&
-      framePlan.drawList.valid &&
-      framePlan.resources.valid &&
-      framePlan.commandPlan.valid &&
-      boundary.valid,
+    ok: frameOk,
     snapshot: options.snapshot,
     pipeline: prepared.firstPipeline,
     resources: prepared.resourcesResult,
     boundary,
+    ...(readback === undefined ? {} : { readback }),
     resourceReuse: options.reuse,
     drawPackages: framePlan.packages.packages.length,
     drawCommands: framePlan.commandPlan.commands.length,
@@ -2066,6 +2090,9 @@ async function renderWebGpuAppFrame(
         ? {}
         : { clearColor: options.clearColor }),
       ...(options.label === undefined ? {} : { label: options.label }),
+      ...(options.readbackSamples === undefined
+        ? {}
+        : { readbackSamples: options.readbackSamples }),
     });
   }
 
@@ -2307,24 +2334,39 @@ async function renderWebGpuAppFrame(
     commands: framePlan.commandPlan.commands,
     label: options.label ?? "aperture-webgpu-app",
     clearColor: options.clearColor ?? [0, 0, 0, 1],
+    ...(options.readbackSamples === undefined
+      ? {}
+      : {
+          readback: {
+            format: app.initialization.format,
+            ...webGpuAppCanvasDimensions(app.canvas),
+            samples: options.readbackSamples,
+          },
+        }),
   });
 
   await waitForSubmittedWork(app.initialization.device);
+  const frameOk =
+    framePlan.apply.diagnostics.length === 0 &&
+    framePlan.bindingPlan.diagnostics.length === 0 &&
+    framePlan.packages.diagnostics.length === 0 &&
+    framePlan.drawCommands.diagnostics.length === 0 &&
+    framePlan.drawList.valid &&
+    framePlan.resources.valid &&
+    framePlan.commandPlan.valid &&
+    boundary.valid;
+  const readback = await mapFrameBoundaryReadbackSamples(
+    boundary.readback,
+    frameOk,
+  );
 
   return renderReport({
-    ok:
-      framePlan.apply.diagnostics.length === 0 &&
-      framePlan.bindingPlan.diagnostics.length === 0 &&
-      framePlan.packages.diagnostics.length === 0 &&
-      framePlan.drawCommands.diagnostics.length === 0 &&
-      framePlan.drawList.valid &&
-      framePlan.resources.valid &&
-      framePlan.commandPlan.valid &&
-      boundary.valid,
+    ok: frameOk,
     snapshot,
     pipeline,
     resources,
     boundary,
+    ...(readback === undefined ? {} : { readback }),
     resourceReuse: reuse,
     drawPackages: framePlan.packages.packages.length,
     drawCommands: framePlan.commandPlan.commands.length,
@@ -2522,6 +2564,9 @@ export function webGpuAppRenderReportToJsonValue(
       toWebGpuAppJsonValue(diagnostic),
     ),
     resourceReuse: { ...report.resourceReuse },
+    ...(report.readback === undefined
+      ? {}
+      : { readback: toWebGpuAppJsonValue(report.readback) }),
     ...(materialDependencyReadiness.length === 0
       ? {}
       : { materialDependencyReadiness }),
@@ -2625,6 +2670,7 @@ function renderReport(input: {
   readonly pipeline?: WebGpuAppPipelineResourceResult | null;
   readonly resources?: WebGpuAppFrameResourcesResult | null;
   readonly boundary?: FrameBoundaryAssemblyReport | null;
+  readonly readback?: FrameBoundaryReadbackResult;
   readonly drawPackages?: number;
   readonly drawCommands?: number;
   readonly drawCalls?: number;
@@ -2646,7 +2692,22 @@ function renderReport(input: {
     pipeline: input.pipeline ?? null,
     resources: input.resources ?? null,
     boundary: input.boundary ?? null,
+    ...(input.readback === undefined ? {} : { readback: input.readback }),
   };
+}
+
+function webGpuAppCanvasDimensions(canvas: WebGpuCanvasLike): {
+  readonly width: number;
+  readonly height: number;
+} {
+  const dimensions = canvas as {
+    readonly width?: unknown;
+    readonly height?: unknown;
+  };
+  const width = typeof dimensions.width === "number" ? dimensions.width : 0;
+  const height = typeof dimensions.height === "number" ? dimensions.height : 0;
+
+  return { width, height };
 }
 
 function createWebGpuAppResourceReuseReport(): WebGpuAppResourceReuseReport {
