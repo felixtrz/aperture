@@ -3,6 +3,7 @@ import type {
   MaterialHandle,
   MeshHandle,
 } from "@aperture-engine/simulation";
+import { assetHandleKey } from "@aperture-engine/simulation";
 import type {
   MeshAsset,
   PackedSnapshotTransforms,
@@ -13,7 +14,9 @@ import type {
 import { sameStringList, writeBufferData } from "./app-frame-resource-utils.js";
 import type { PreparedAppTextureSamplerResources } from "./app-texture-sampler-resources.js";
 import {
+  createPreparedAppMaterialFallbackDiagnostic,
   recordPreparedAppMaterialResourceUse,
+  type PreparedAppMaterialFallbackDiagnostic,
   type PreparedAppMaterialResourceUse,
 } from "./prepared-app-material-resource.js";
 import type { LightBindGroupLayoutResource } from "./light-bind-group-layout.js";
@@ -98,6 +101,16 @@ export interface StandardAppFrameResourceReuseReport {
   dynamicBufferWrites: number;
 }
 
+export type CreateStandardAppFrameResourcesDiagnostic =
+  | CreateStandardFrameGpuResourcesResult["diagnostics"][number]
+  | PreparedAppMaterialFallbackDiagnostic;
+
+export interface CreateStandardAppFrameResourcesResult {
+  readonly valid: boolean;
+  readonly resources: CreateStandardFrameGpuResourcesResult["resources"];
+  readonly diagnostics: readonly CreateStandardAppFrameResourcesDiagnostic[];
+}
+
 export function createOrReuseStandardAppFrameResources(options: {
   readonly device: unknown;
   readonly cache: StandardAppFrameResourceCacheSlot;
@@ -120,7 +133,7 @@ export function createOrReuseStandardAppFrameResources(options: {
   readonly preparedMeshes: PreparedMeshGpuResourceCache;
   readonly preparedScalarMaterials: PreparedScalarStandardMaterialCache;
   readonly reuse: StandardAppFrameResourceReuseReport;
-}): CreateStandardFrameGpuResourcesResult {
+}): CreateStandardAppFrameResourcesResult {
   const cached = options.cache.current;
   const viewDescriptorScratch =
     cached?.viewDescriptorScratch ?? createViewUniformBufferDescriptorScratch();
@@ -222,8 +235,13 @@ export function createOrReuseStandardAppFrameResources(options: {
     return cached.result;
   }
 
+  const preparedMaterialFallbackDiagnostics: PreparedAppMaterialFallbackDiagnostic[] =
+    [];
   const preparedMesh = preparePreparedStandardMesh(options);
-  const preparedMaterial = preparePreparedStandardMaterial(options);
+  const preparedMaterial = preparePreparedStandardMaterial(
+    options,
+    preparedMaterialFallbackDiagnostics,
+  );
   const result = createStandardFrameGpuResources({
     device: options.device as Parameters<
       typeof createStandardFrameGpuResources
@@ -298,7 +316,10 @@ export function createOrReuseStandardAppFrameResources(options: {
     };
   }
 
-  return result;
+  return appendPreparedMaterialFallbackDiagnostics(
+    result,
+    preparedMaterialFallbackDiagnostics,
+  );
 }
 
 type PreparedStandardMaterialUse = PreparedAppMaterialResourceUse<
@@ -330,18 +351,21 @@ function preparePreparedStandardMesh(options: {
   });
 }
 
-function preparePreparedStandardMaterial(options: {
-  readonly device: unknown;
-  readonly preparedScalarMaterials: PreparedScalarStandardMaterialCache;
-  readonly materialHandle: MaterialHandle;
-  readonly material: StandardMaterialAsset | null;
-  readonly materialKey: string;
-  readonly sourceMaterialKey: string;
-  readonly pipelineKey: string;
-  readonly assets: AssetRegistry;
-  readonly materialLayout: StandardMaterialBindGroupLayoutResource | null;
-  readonly textures: PreparedAppTextureSamplerResources;
-}): PreparedStandardMaterialUse | null {
+function preparePreparedStandardMaterial(
+  options: {
+    readonly device: unknown;
+    readonly preparedScalarMaterials: PreparedScalarStandardMaterialCache;
+    readonly materialHandle: MaterialHandle;
+    readonly material: StandardMaterialAsset | null;
+    readonly materialKey: string;
+    readonly sourceMaterialKey: string;
+    readonly pipelineKey: string;
+    readonly assets: AssetRegistry;
+    readonly materialLayout: StandardMaterialBindGroupLayoutResource | null;
+    readonly textures: PreparedAppTextureSamplerResources;
+  },
+  fallbackDiagnostics: PreparedAppMaterialFallbackDiagnostic[],
+): PreparedStandardMaterialUse | null {
   if (options.material === null) {
     return null;
   }
@@ -429,11 +453,38 @@ function preparePreparedStandardMaterial(options: {
                 layout: options.materialLayout,
               });
 
-  return result.valid &&
+  if (
+    result.valid &&
     result.resource !== null &&
     (result.status === "created" || result.status === "reused")
-    ? { status: result.status, resource: result.resource }
-    : null;
+  ) {
+    return { status: result.status, resource: result.resource };
+  }
+
+  const diagnostic = createPreparedAppMaterialFallbackDiagnostic({
+    materialFamily: "standard",
+    materialKey: assetHandleKey(options.materialHandle),
+    status: result.status,
+    diagnostics: result.diagnostics,
+  });
+
+  if (diagnostic !== null) {
+    fallbackDiagnostics.push(diagnostic);
+  }
+
+  return null;
+}
+
+function appendPreparedMaterialFallbackDiagnostics(
+  result: CreateStandardFrameGpuResourcesResult,
+  diagnostics: readonly PreparedAppMaterialFallbackDiagnostic[],
+): CreateStandardAppFrameResourcesResult {
+  return diagnostics.length === 0
+    ? result
+    : {
+        ...result,
+        diagnostics: [...result.diagnostics, ...diagnostics],
+      };
 }
 
 function sourceVersionFromAssetKey(

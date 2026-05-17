@@ -5,14 +5,19 @@ import {
   PreparedRenderAssetStore,
   createMaterialMetadataRenderAssetAdapter,
   createMeshHandle,
+  createPreparedMaterialStore,
   createPreparedMaterialAssetStore,
   createRenderAssetCollections,
   createSamplerHandle,
   createStandardMaterialAsset,
   createTextureHandle,
+  RenderWorld,
   prepareRenderAsset,
   unloadPreparedRenderAsset,
+  type MaterialHandle,
+  type MeshHandle,
   type RenderAssetAdapter,
+  type RenderSnapshot,
 } from "@aperture-engine/core";
 
 describe("render asset preparation contract", () => {
@@ -221,4 +226,171 @@ describe("render asset preparation contract", () => {
         "prepared-material-bind-group:material:standard-material-1|pipeline:standard|baseColorTexture|opaque|back|less|none",
     });
   });
+
+  it("prepares, updates, removes, and clears material descriptors through the facade", () => {
+    const assets = createRenderAssetCollections();
+    const material = assets.materials.standard.add(
+      createStandardMaterialAsset({ label: "Facade Standard A" }),
+    );
+    const store = createPreparedMaterialStore();
+
+    const created = store.prepare({
+      registry: assets.registry,
+      handle: material,
+    });
+    const unchanged = store.prepare({
+      registry: assets.registry,
+      handle: material,
+    });
+
+    assets.materials.standard.markReady(
+      material,
+      createStandardMaterialAsset({ label: "Facade Standard B" }),
+    );
+
+    const updated = store.prepare({
+      registry: assets.registry,
+      handle: material,
+    });
+    const removed = store.remove(material);
+
+    store.prepare({
+      registry: assets.registry,
+      handle: material,
+    });
+    store.clear();
+
+    expect(created).toMatchObject({
+      outcome: "prepared",
+      action: "created",
+      assetKey: "material:standard-material-1",
+    });
+    expect(unchanged).toMatchObject({
+      outcome: "unchanged",
+      assetKey: "material:standard-material-1",
+    });
+    expect(updated).toMatchObject({
+      outcome: "prepared",
+      action: "updated",
+      assetKey: "material:standard-material-1",
+    });
+    expect(updated.entry?.prepared).toMatchObject({
+      resourceFamily: "material",
+      label: "Facade Standard B",
+      materialFamily: "standard",
+      materialResourceKey: "prepared-material:material:standard-material-1",
+    });
+    expect(store.list().length).toBe(0);
+    expect(removed).toMatchObject({
+      removed: true,
+      entry: {
+        assetKey: "material:standard-material-1",
+      },
+    });
+    expect(JSON.stringify(updated.entry)).not.toContain("GPU");
+  });
+
+  it("uses facade material resource keys as render-world string bindings", () => {
+    const assets = createRenderAssetCollections();
+    const mesh = createMeshHandle("facade-mesh");
+    const material = assets.materials.standard.add(
+      createStandardMaterialAsset({ label: "Facade Bound Standard" }),
+    );
+    const store = createPreparedMaterialStore();
+    const prepared = store.prepare({
+      registry: assets.registry,
+      handle: material,
+    });
+    const renderWorld = new RenderWorld();
+
+    renderWorld.applySnapshot(snapshotWithDraw(mesh, material));
+
+    const blocked = renderWorld.createDrawReadinessReport();
+    const materialResourceKey = prepared.entry?.prepared.materialResourceKey;
+
+    expect(materialResourceKey).toBe(
+      "prepared-material:material:standard-material-1",
+    );
+
+    if (materialResourceKey === undefined) {
+      throw new Error("Expected material facade to prepare a resource key.");
+    }
+
+    renderWorld.updateResourceBindings(1, {
+      meshResourceKey: "prepared-mesh:mesh:facade-mesh",
+      materialResourceKey,
+    });
+
+    const ready = renderWorld.createDrawReadinessReport();
+
+    expect(blocked.blocked[0]?.missing).toEqual([
+      "missing-mesh-resource",
+      "missing-material-resource",
+    ]);
+    expect(ready.ready[0]).toMatchObject({
+      renderId: 1,
+      meshResourceKey: "prepared-mesh:mesh:facade-mesh",
+      materialResourceKey: "prepared-material:material:standard-material-1",
+    });
+    expect(JSON.stringify(renderWorld.listObjects())).not.toContain("buffer");
+  });
 });
+
+function snapshotWithDraw(
+  mesh: MeshHandle,
+  material: MaterialHandle,
+): RenderSnapshot {
+  return {
+    frame: 1,
+    views: [],
+    meshDraws: [
+      {
+        renderId: 1,
+        entity: { index: 1, generation: 1 },
+        mesh,
+        material,
+        submesh: 0,
+        materialSlot: 0,
+        worldTransformOffset: 0,
+        boundsIndex: -1,
+        layerMask: 1,
+        sortKey: {
+          queue: "opaque",
+          viewId: 0,
+          layer: 1,
+          order: 0,
+          pipelineKey: "standard|opaque|back|less|none",
+          materialKey: "material:standard-material-1",
+          meshKey: "mesh:facade-mesh",
+          depth: 0,
+          stableId: 1,
+        },
+        batchKey: {
+          pipelineKey: "standard|opaque|back|less|none",
+          materialKey: "material:standard-material-1",
+          meshLayoutKey: "mesh-layout:position-normal-uv",
+          topology: "triangle-list",
+          instanced: false,
+          skinned: false,
+          morphed: false,
+        },
+      },
+    ],
+    lights: [],
+    environments: [],
+    shadowRequests: [],
+    bounds: [],
+    transforms: new Float32Array(0),
+    viewMatrices: new Float32Array(0),
+    diagnostics: [],
+    report: {
+      views: 0,
+      meshDraws: 1,
+      lights: 0,
+      environments: 0,
+      shadowRequests: 0,
+      bounds: 0,
+      diagnostics: 0,
+    },
+  };
+}

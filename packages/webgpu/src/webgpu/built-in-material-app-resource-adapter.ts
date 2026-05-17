@@ -4,18 +4,12 @@ import {
   type BuiltInMaterialQueueRouteAdapter,
 } from "./built-in-material-queue-adapter.js";
 import type { PreparedAppTextureSamplerResources } from "./app-texture-sampler-resources.js";
-import type {
-  CreateMatcapFrameGpuResourcesResult,
-  MatcapFrameGpuResources,
-} from "./matcap-frame-resources.js";
-import type {
-  CreateStandardFrameGpuResourcesResult,
-  StandardFrameGpuResources,
-} from "./standard-frame-resources.js";
-import type {
-  CreateUnlitFrameGpuResourcesResult,
-  UnlitFrameGpuResources,
-} from "./unlit-frame-resources.js";
+import type { MatcapFrameGpuResources } from "./matcap-frame-resources.js";
+import type { StandardFrameGpuResources } from "./standard-frame-resources.js";
+import type { UnlitFrameGpuResources } from "./unlit-frame-resources.js";
+import type { CreateMatcapAppFrameResourcesResult } from "./matcap-app-frame-resources.js";
+import type { CreateStandardAppFrameResourcesResult } from "./standard-app-frame-resources.js";
+import type { CreateUnlitAppFrameResourcesResult } from "./unlit-app-frame-resources.js";
 import {
   createQueuedMaterialAdapterRegistry,
   type QueuedMaterialAdapterRegistration,
@@ -28,9 +22,9 @@ export type QueuedBuiltInFrameResource =
   | StandardFrameGpuResources;
 
 export type CreateQueuedBuiltInFamilyFrameResourcesResult =
-  | CreateUnlitFrameGpuResourcesResult
-  | CreateMatcapFrameGpuResourcesResult
-  | CreateStandardFrameGpuResourcesResult;
+  | CreateUnlitAppFrameResourcesResult
+  | CreateMatcapAppFrameResourcesResult
+  | CreateStandardAppFrameResourcesResult;
 
 export interface QueuedBuiltInFrameResourceBuckets {
   readonly unlit: UnlitFrameGpuResources[];
@@ -55,7 +49,33 @@ export interface QueuedBuiltInAppResourceAdapter<TextureOptions, FrameOptions>
   ): void;
 }
 
-export interface QueuedBuiltInAppResourceAdapterFactoryOptions<
+export interface QueuedBuiltInAppResourceFamilyAdapter<
+  TextureOptions,
+  FrameOptions,
+> {
+  prepareTextureSamplerResources(
+    options: TextureOptions,
+  ): PreparedAppTextureSamplerResources;
+  createFrameResources(
+    options: FrameOptions,
+  ): CreateQueuedBuiltInFamilyFrameResourcesResult;
+  appendFrameResource(
+    resource: QueuedBuiltInFrameResource,
+    buckets: QueuedBuiltInFrameResourceBuckets,
+  ): void;
+}
+
+export type QueuedBuiltInAppResourceFamilyAdapterTable<
+  TextureOptions,
+  FrameOptions,
+> = {
+  readonly [Family in BuiltInMaterialQueueFamily]: QueuedBuiltInAppResourceFamilyAdapter<
+    TextureOptions,
+    FrameOptions
+  >;
+};
+
+export interface QueuedBuiltInAppResourceAdapterCallbacks<
   TextureOptions,
   FrameOptions,
 > {
@@ -70,13 +90,67 @@ export interface QueuedBuiltInAppResourceAdapterFactoryOptions<
   ): PreparedAppTextureSamplerResources;
   createUnlitFrameResources(
     options: FrameOptions,
-  ): CreateUnlitFrameGpuResourcesResult;
+  ): CreateUnlitAppFrameResourcesResult;
   createMatcapFrameResources(
     options: FrameOptions,
-  ): CreateMatcapFrameGpuResourcesResult;
+  ): CreateMatcapAppFrameResourcesResult;
   createStandardFrameResources(
     options: FrameOptions,
-  ): CreateStandardFrameGpuResourcesResult;
+  ): CreateStandardAppFrameResourcesResult;
+}
+
+export interface QueuedBuiltInAppResourceAdapterTableOptions<
+  TextureOptions,
+  FrameOptions,
+> {
+  readonly families: QueuedBuiltInAppResourceFamilyAdapterTable<
+    TextureOptions,
+    FrameOptions
+  >;
+}
+
+export type QueuedBuiltInAppResourceAdapterFactoryOptions<
+  TextureOptions,
+  FrameOptions,
+> =
+  | QueuedBuiltInAppResourceAdapterCallbacks<TextureOptions, FrameOptions>
+  | QueuedBuiltInAppResourceAdapterTableOptions<TextureOptions, FrameOptions>;
+
+export function createQueuedBuiltInAppResourceFamilyAdapterTable<
+  TextureOptions,
+  FrameOptions,
+>(
+  options: QueuedBuiltInAppResourceAdapterCallbacks<
+    TextureOptions,
+    FrameOptions
+  >,
+): QueuedBuiltInAppResourceFamilyAdapterTable<TextureOptions, FrameOptions> {
+  return {
+    unlit: {
+      prepareTextureSamplerResources:
+        options.prepareUnlitTextureSamplerResources,
+      createFrameResources: options.createUnlitFrameResources,
+      appendFrameResource: (resource, buckets) => {
+        buckets.unlit.push(resource as UnlitFrameGpuResources);
+      },
+    },
+    matcap: {
+      prepareTextureSamplerResources:
+        options.prepareMatcapTextureSamplerResources,
+      createFrameResources: options.createMatcapFrameResources,
+      appendFrameResource: (resource, buckets) => {
+        buckets.matcap.push(resource as MatcapFrameGpuResources);
+      },
+    },
+    standard: {
+      prepareTextureSamplerResources:
+        options.prepareStandardTextureSamplerResources,
+      createFrameResources: options.createStandardFrameResources,
+      appendFrameResource: (resource, buckets) => {
+        buckets.standard.push(resource as StandardFrameGpuResources);
+      },
+    },
+  };
 }
 
 export function createQueuedBuiltInAppResourceAdapterRegistry<
@@ -90,51 +164,40 @@ export function createQueuedBuiltInAppResourceAdapterRegistry<
 ): QueuedMaterialAdapterRegistry<
   QueuedBuiltInAppResourceAdapter<TextureOptions, FrameOptions>
 > {
+  const familyAdapters =
+    resolveQueuedBuiltInAppResourceFamilyAdapterTable(options);
+
   return createQueuedMaterialAdapterRegistry(
     createBuiltInMaterialQueueRouteAdapterRegistry().adapters.map(
       (routeAdapter) =>
-        createQueuedBuiltInAppResourceAdapter(routeAdapter, options),
+        createQueuedBuiltInAppResourceAdapter(routeAdapter, familyAdapters),
     ),
   );
 }
 
-function createQueuedBuiltInAppResourceAdapter<TextureOptions, FrameOptions>(
-  routeAdapter: BuiltInMaterialQueueRouteAdapter,
+function resolveQueuedBuiltInAppResourceFamilyAdapterTable<
+  TextureOptions,
+  FrameOptions,
+>(
   options: QueuedBuiltInAppResourceAdapterFactoryOptions<
     TextureOptions,
     FrameOptions
   >,
+): QueuedBuiltInAppResourceFamilyAdapterTable<TextureOptions, FrameOptions> {
+  return "families" in options
+    ? options.families
+    : createQueuedBuiltInAppResourceFamilyAdapterTable(options);
+}
+
+function createQueuedBuiltInAppResourceAdapter<TextureOptions, FrameOptions>(
+  routeAdapter: BuiltInMaterialQueueRouteAdapter,
+  familyAdapters: QueuedBuiltInAppResourceFamilyAdapterTable<
+    TextureOptions,
+    FrameOptions
+  >,
 ): QueuedBuiltInAppResourceAdapter<TextureOptions, FrameOptions> {
-  switch (routeAdapter.kind) {
-    case "unlit":
-      return {
-        ...routeAdapter,
-        prepareTextureSamplerResources:
-          options.prepareUnlitTextureSamplerResources,
-        createFrameResources: options.createUnlitFrameResources,
-        appendFrameResource: (resource, buckets) => {
-          buckets.unlit.push(resource as UnlitFrameGpuResources);
-        },
-      };
-    case "matcap":
-      return {
-        ...routeAdapter,
-        prepareTextureSamplerResources:
-          options.prepareMatcapTextureSamplerResources,
-        createFrameResources: options.createMatcapFrameResources,
-        appendFrameResource: (resource, buckets) => {
-          buckets.matcap.push(resource as MatcapFrameGpuResources);
-        },
-      };
-    case "standard":
-      return {
-        ...routeAdapter,
-        prepareTextureSamplerResources:
-          options.prepareStandardTextureSamplerResources,
-        createFrameResources: options.createStandardFrameResources,
-        appendFrameResource: (resource, buckets) => {
-          buckets.standard.push(resource as StandardFrameGpuResources);
-        },
-      };
-  }
+  return {
+    ...routeAdapter,
+    ...familyAdapters[routeAdapter.kind],
+  };
 }

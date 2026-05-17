@@ -2,10 +2,10 @@
   "state": "idle",
   "currentTaskId": null,
   "currentRunStartedAt": null,
-  "lastRunStartedAt": "2026-05-17T13:00:50Z",
+  "lastRunStartedAt": "2026-05-17T14:02:10Z",
   "lastResult": "success",
   "lastCommit": "30a5864",
   "activePid": null,
-  "notes": "Completed tasks 0830-0844 and 0846; next recommended task is task-0845.",
-  "lastRunFinishedAt": "2026-05-17T13:48:10Z"
+  "notes": "Completed task-0845 and tasks 0847 through 0862. Next recommended task: task-0867 bind prepared material resource keys into render world.",
+  "lastRunFinishedAt": "2026-05-17T14:52:02Z"
 }

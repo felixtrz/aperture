@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   createQueuedBuiltInAppResourceAdapterRegistry,
+  createQueuedBuiltInAppResourceFamilyAdapterTable,
   type PreparedAppTextureSamplerResources,
   type QueuedBuiltInFrameResource,
 } from "@aperture-engine/webgpu";
@@ -9,7 +10,7 @@ import {
 describe("built-in material app resource adapter factory", () => {
   it("composes route adapters with caller-provided resource callbacks", () => {
     const calls: string[] = [];
-    const registry = createQueuedBuiltInAppResourceAdapterRegistry<
+    const families = createQueuedBuiltInAppResourceFamilyAdapterTable<
       { readonly token: string },
       { readonly token: string }
     >({
@@ -37,6 +38,9 @@ describe("built-in material app resource adapter factory", () => {
         calls.push(`frame:standard:${options.token}`);
         return frameResult();
       },
+    });
+    const registry = createQueuedBuiltInAppResourceAdapterRegistry({
+      families,
     });
 
     expect(registry.adapters.map((adapter) => adapter.kind)).toEqual([

@@ -3,6 +3,7 @@ import type {
   MaterialHandle,
   MeshHandle,
 } from "@aperture-engine/simulation";
+import { assetHandleKey } from "@aperture-engine/simulation";
 import type {
   MatcapMaterialAsset,
   MeshAsset,
@@ -12,7 +13,9 @@ import type {
 import type { PreparedAppTextureSamplerResources } from "./app-texture-sampler-resources.js";
 import { sameStringList, writeBufferData } from "./app-frame-resource-utils.js";
 import {
+  createPreparedAppMaterialFallbackDiagnostic,
   recordPreparedAppMaterialResourceUse,
+  type PreparedAppMaterialFallbackDiagnostic,
   type PreparedAppMaterialResourceUse,
 } from "./prepared-app-material-resource.js";
 import {
@@ -74,6 +77,16 @@ export interface MatcapAppFrameResourceReuseReport {
   dynamicBufferWrites: number;
 }
 
+export type CreateMatcapAppFrameResourcesDiagnostic =
+  | CreateMatcapFrameGpuResourcesResult["diagnostics"][number]
+  | PreparedAppMaterialFallbackDiagnostic;
+
+export interface CreateMatcapAppFrameResourcesResult {
+  readonly valid: boolean;
+  readonly resources: CreateMatcapFrameGpuResourcesResult["resources"];
+  readonly diagnostics: readonly CreateMatcapAppFrameResourcesDiagnostic[];
+}
+
 export function createOrReuseMatcapAppFrameResources(options: {
   readonly device: unknown;
   readonly cache: MatcapAppFrameResourceCacheSlot;
@@ -94,7 +107,7 @@ export function createOrReuseMatcapAppFrameResources(options: {
   readonly preparedMeshes: PreparedMeshGpuResourceCache;
   readonly preparedMatcapMaterials: PreparedMatcapMaterialCache;
   readonly reuse: MatcapAppFrameResourceReuseReport;
-}): CreateMatcapFrameGpuResourcesResult {
+}): CreateMatcapAppFrameResourcesResult {
   const cached = options.cache.current;
   const viewDescriptorScratch =
     cached?.viewDescriptorScratch ?? createViewUniformBufferDescriptorScratch();
@@ -154,8 +167,13 @@ export function createOrReuseMatcapAppFrameResources(options: {
     return cached.result;
   }
 
+  const preparedMaterialFallbackDiagnostics: PreparedAppMaterialFallbackDiagnostic[] =
+    [];
   const preparedMesh = preparePreparedMatcapMesh(options);
-  const preparedMaterial = preparePreparedMatcapMaterial(options);
+  const preparedMaterial = preparePreparedMatcapMaterial(
+    options,
+    preparedMaterialFallbackDiagnostics,
+  );
   const result = createMatcapFrameGpuResources({
     device: options.device as Parameters<
       typeof createMatcapFrameGpuResources
@@ -215,7 +233,10 @@ export function createOrReuseMatcapAppFrameResources(options: {
     };
   }
 
-  return result;
+  return appendPreparedMaterialFallbackDiagnostics(
+    result,
+    preparedMaterialFallbackDiagnostics,
+  );
 }
 
 function preparePreparedMatcapMesh(options: {
@@ -239,18 +260,21 @@ function preparePreparedMatcapMesh(options: {
   });
 }
 
-function preparePreparedMatcapMaterial(options: {
-  readonly device: unknown;
-  readonly material: MatcapMaterialAsset | null;
-  readonly materialHandle: MaterialHandle;
-  readonly sourceMaterialKey: string;
-  readonly materialKey: string;
-  readonly pipelineKey: string;
-  readonly materialLayout: MatcapMaterialBindGroupLayoutResource | null;
-  readonly assets: AssetRegistry;
-  readonly textures: PreparedAppTextureSamplerResources;
-  readonly preparedMatcapMaterials: PreparedMatcapMaterialCache;
-}): PreparedMatcapAppMaterialResourceUse | null {
+function preparePreparedMatcapMaterial(
+  options: {
+    readonly device: unknown;
+    readonly material: MatcapMaterialAsset | null;
+    readonly materialHandle: MaterialHandle;
+    readonly sourceMaterialKey: string;
+    readonly materialKey: string;
+    readonly pipelineKey: string;
+    readonly materialLayout: MatcapMaterialBindGroupLayoutResource | null;
+    readonly assets: AssetRegistry;
+    readonly textures: PreparedAppTextureSamplerResources;
+    readonly preparedMatcapMaterials: PreparedMatcapMaterialCache;
+  },
+  fallbackDiagnostics: PreparedAppMaterialFallbackDiagnostic[],
+): PreparedMatcapAppMaterialResourceUse | null {
   if (options.material === null) {
     return null;
   }
@@ -279,15 +303,42 @@ function preparePreparedMatcapMaterial(options: {
     samplers: options.textures.samplers,
   });
 
-  return result.valid &&
+  if (
+    result.valid &&
     result.resource !== null &&
     (result.status === "created" || result.status === "reused")
-    ? { status: result.status, resource: result.resource }
-    : null;
+  ) {
+    return { status: result.status, resource: result.resource };
+  }
+
+  const diagnostic = createPreparedAppMaterialFallbackDiagnostic({
+    materialFamily: "matcap",
+    materialKey: assetHandleKey(options.materialHandle),
+    status: result.status,
+    diagnostics: result.diagnostics,
+  });
+
+  if (diagnostic !== null) {
+    fallbackDiagnostics.push(diagnostic);
+  }
+
+  return null;
 }
 
 type PreparedMatcapAppMaterialResourceUse =
   PreparedAppMaterialResourceUse<PreparedMatcapMaterialResource>;
+
+function appendPreparedMaterialFallbackDiagnostics(
+  result: CreateMatcapFrameGpuResourcesResult,
+  diagnostics: readonly PreparedAppMaterialFallbackDiagnostic[],
+): CreateMatcapAppFrameResourcesResult {
+  return diagnostics.length === 0
+    ? result
+    : {
+        ...result,
+        diagnostics: [...result.diagnostics, ...diagnostics],
+      };
+}
 
 function parseSourceAssetVersion(
   resourceKey: string,

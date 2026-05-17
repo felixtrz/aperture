@@ -3,6 +3,7 @@ import type {
   MaterialHandle,
   MeshHandle,
 } from "@aperture-engine/simulation";
+import { assetHandleKey } from "@aperture-engine/simulation";
 import type {
   MaterialAsset,
   MeshAsset,
@@ -12,7 +13,9 @@ import type {
 import type { PreparedAppTextureSamplerResources } from "./app-texture-sampler-resources.js";
 import { sameStringList, writeBufferData } from "./app-frame-resource-utils.js";
 import {
+  createPreparedAppMaterialFallbackDiagnostic,
   recordPreparedAppMaterialResourceUse,
+  type PreparedAppMaterialFallbackDiagnostic,
   type PreparedAppMaterialResourceUse,
 } from "./prepared-app-material-resource.js";
 import {
@@ -75,6 +78,16 @@ export interface UnlitAppFrameResourceReuseReport {
   dynamicBufferWrites: number;
 }
 
+export type CreateUnlitAppFrameResourcesDiagnostic =
+  | CreateUnlitFrameGpuResourcesResult["diagnostics"][number]
+  | PreparedAppMaterialFallbackDiagnostic;
+
+export interface CreateUnlitAppFrameResourcesResult {
+  readonly valid: boolean;
+  readonly resources: CreateUnlitFrameGpuResourcesResult["resources"];
+  readonly diagnostics: readonly CreateUnlitAppFrameResourcesDiagnostic[];
+}
+
 export function createOrReuseUnlitAppFrameResources(options: {
   readonly device: unknown;
   readonly cache: UnlitAppFrameResourceCacheSlot;
@@ -94,7 +107,7 @@ export function createOrReuseUnlitAppFrameResources(options: {
   readonly worldTransforms: PackedSnapshotTransforms;
   readonly layouts: readonly UnlitBindGroupLayoutResource[];
   readonly reuse: UnlitAppFrameResourceReuseReport;
-}): CreateUnlitFrameGpuResourcesResult {
+}): CreateUnlitAppFrameResourcesResult {
   const cached = options.cache.current;
   const viewDescriptorScratch =
     cached?.viewDescriptorScratch ?? createViewUniformBufferDescriptorScratch();
@@ -154,8 +167,13 @@ export function createOrReuseUnlitAppFrameResources(options: {
     return cached.result;
   }
 
+  const preparedMaterialFallbackDiagnostics: PreparedAppMaterialFallbackDiagnostic[] =
+    [];
   const preparedMesh = preparePreparedScalarUnlitMesh(options);
-  const preparedMaterial = preparePreparedUnlitMaterial(options);
+  const preparedMaterial = preparePreparedUnlitMaterial(
+    options,
+    preparedMaterialFallbackDiagnostics,
+  );
   const result = createUnlitFrameGpuResources({
     device: options.device as Parameters<
       typeof createUnlitFrameGpuResources
@@ -214,7 +232,10 @@ export function createOrReuseUnlitAppFrameResources(options: {
     };
   }
 
-  return result;
+  return appendPreparedMaterialFallbackDiagnostics(
+    result,
+    preparedMaterialFallbackDiagnostics,
+  );
 }
 
 type PreparedScalarMaterialUse = PreparedAppMaterialResourceUse<
@@ -247,18 +268,21 @@ function preparePreparedScalarUnlitMesh(options: {
   });
 }
 
-function preparePreparedUnlitMaterial(options: {
-  readonly device: unknown;
-  readonly assets: AssetRegistry;
-  readonly preparedScalarMaterials: PreparedScalarUnlitMaterialCache;
-  readonly materialHandle: MaterialHandle;
-  readonly material: MaterialAsset | null;
-  readonly materialKey: string;
-  readonly sourceMaterialKey: string;
-  readonly pipelineKey: string;
-  readonly layouts: readonly UnlitBindGroupLayoutResource[];
-  readonly textures: PreparedAppTextureSamplerResources;
-}): PreparedScalarMaterialUse | null {
+function preparePreparedUnlitMaterial(
+  options: {
+    readonly device: unknown;
+    readonly assets: AssetRegistry;
+    readonly preparedScalarMaterials: PreparedScalarUnlitMaterialCache;
+    readonly materialHandle: MaterialHandle;
+    readonly material: MaterialAsset | null;
+    readonly materialKey: string;
+    readonly sourceMaterialKey: string;
+    readonly pipelineKey: string;
+    readonly layouts: readonly UnlitBindGroupLayoutResource[];
+    readonly textures: PreparedAppTextureSamplerResources;
+  },
+  fallbackDiagnostics: PreparedAppMaterialFallbackDiagnostic[],
+): PreparedScalarMaterialUse | null {
   if (options.material === null || options.material.kind !== "unlit") {
     return null;
   }
@@ -303,11 +327,38 @@ function preparePreparedUnlitMaterial(options: {
           samplers: options.textures.samplers,
         });
 
-  return result.valid &&
+  if (
+    result.valid &&
     result.resource !== null &&
     (result.status === "created" || result.status === "reused")
-    ? { status: result.status, resource: result.resource }
-    : null;
+  ) {
+    return { status: result.status, resource: result.resource };
+  }
+
+  const diagnostic = createPreparedAppMaterialFallbackDiagnostic({
+    materialFamily: "unlit",
+    materialKey: assetHandleKey(options.materialHandle),
+    status: result.status,
+    diagnostics: result.diagnostics,
+  });
+
+  if (diagnostic !== null) {
+    fallbackDiagnostics.push(diagnostic);
+  }
+
+  return null;
+}
+
+function appendPreparedMaterialFallbackDiagnostics(
+  result: CreateUnlitFrameGpuResourcesResult,
+  diagnostics: readonly PreparedAppMaterialFallbackDiagnostic[],
+): CreateUnlitAppFrameResourcesResult {
+  return diagnostics.length === 0
+    ? result
+    : {
+        ...result,
+        diagnostics: [...result.diagnostics, ...diagnostics],
+      };
 }
 
 function sourceVersionFromAssetKey(

@@ -43,21 +43,19 @@ import {
   prepareMatcapAppTextureSamplerResources,
   prepareStandardAppTextureSamplerResources,
   prepareUnlitAppTextureSamplerResources,
+  emptyPreparedAppTextureSamplerResources,
   sourceAssetCacheKey,
   type PreparedAppTextureSamplerResources,
 } from "./app-texture-sampler-resources.js";
 import {
-  createPreparedScalarUnlitMaterialCache,
-  type PreparedScalarUnlitMaterialCache,
-} from "./prepared-unlit-material-cache.js";
+  createPreparedBuiltInMaterialStore,
+  writePreparedBuiltInMaterialStoreSummary,
+  type PreparedBuiltInMaterialStore,
+} from "./prepared-built-in-material-store.js";
 import {
-  createPreparedScalarStandardMaterialCache,
-  type PreparedScalarStandardMaterialCache,
-} from "./prepared-standard-material-cache.js";
-import {
-  createPreparedMatcapMaterialCache,
-  type PreparedMatcapMaterialCache,
-} from "./prepared-matcap-material-cache.js";
+  createPreparedAppMaterialCacheSummary,
+  type PreparedAppMaterialCacheSummary,
+} from "./prepared-app-material-resource.js";
 import {
   createPreparedMeshGpuResourceCache,
   type PreparedMeshGpuResourceCache,
@@ -68,13 +66,11 @@ import {
 } from "./frame-boundary.js";
 import { createLightBindGroupLayoutDescriptor } from "./light-bind-group-layout.js";
 import type { LightBindGroupLayoutResource } from "./light-bind-group-layout.js";
-import {
-  type CreateMatcapFrameGpuResourcesResult,
-  type MatcapFrameGpuResources,
-} from "./matcap-frame-resources.js";
+import { type MatcapFrameGpuResources } from "./matcap-frame-resources.js";
 import {
   createOrReuseMatcapAppFrameResources,
   type CachedMatcapAppFrameResources,
+  type CreateMatcapAppFrameResourcesResult,
   type MatcapAppFrameResourceCacheSlot,
 } from "./matcap-app-frame-resources.js";
 import { type MatcapMaterialBindGroupLayoutResource } from "./matcap-bind-group.js";
@@ -90,6 +86,7 @@ import {
 import type { BuiltInMaterialAsset } from "./built-in-material-queue-adapter.js";
 import {
   createQueuedBuiltInAppResourceAdapterRegistry,
+  createQueuedBuiltInAppResourceFamilyAdapterTable,
   type QueuedBuiltInAppResourceAdapter,
 } from "./built-in-material-app-resource-adapter.js";
 import {
@@ -105,13 +102,11 @@ import {
 } from "./material-queue-route-report.js";
 import { createStandardMaterialBindGroupLayoutPlan } from "./standard-bind-group-layout.js";
 import type { StandardMaterialBindGroupLayoutResource } from "./standard-bind-group.js";
-import {
-  type CreateStandardFrameGpuResourcesResult,
-  type StandardFrameGpuResources,
-} from "./standard-frame-resources.js";
+import { type StandardFrameGpuResources } from "./standard-frame-resources.js";
 import {
   createOrReuseStandardAppFrameResources,
   type CachedStandardAppFrameResources,
+  type CreateStandardAppFrameResourcesResult,
   type StandardAppFrameResourceCacheSlot,
 } from "./standard-app-frame-resources.js";
 import {
@@ -121,12 +116,12 @@ import {
 import {
   createMultiMaterialUnlitFrameGpuResources,
   type CreateMultiMaterialUnlitFrameGpuResourcesResult,
-  type CreateUnlitFrameGpuResourcesResult,
   type UnlitFrameGpuResources,
 } from "./unlit-frame-resources.js";
 import {
   createOrReuseUnlitAppFrameResources,
   type CachedUnlitAppFrameResources,
+  type CreateUnlitAppFrameResourcesResult,
   type UnlitAppFrameResourceCacheSlot,
 } from "./unlit-app-frame-resources.js";
 import {
@@ -204,6 +199,7 @@ export interface WebGpuAppResourceReuseReport {
   preparedMaterialBuffersReused: number;
   preparedMaterialBindGroupsCreated: number;
   preparedMaterialBindGroupsReused: number;
+  preparedMaterialCache: PreparedAppMaterialCacheSummary;
   textureResourcesCreated: number;
   textureResourcesReused: number;
   samplerResourcesCreated: number;
@@ -293,10 +289,10 @@ export type WebGpuAppPipelineResourceResult =
   | CreateStandardRenderPipelineResourceResult;
 
 export type WebGpuAppFrameResourcesResult =
-  | CreateUnlitFrameGpuResourcesResult
+  | CreateUnlitAppFrameResourcesResult
   | CreateMultiMaterialUnlitFrameGpuResourcesResult
-  | CreateMatcapFrameGpuResourcesResult
-  | CreateStandardFrameGpuResourcesResult
+  | CreateMatcapAppFrameResourcesResult
+  | CreateStandardAppFrameResourcesResult
   | CreateQueuedBuiltInFrameResourcesResult;
 
 type WebGpuAppMaterialKind = BuiltInMaterialQueueFamily;
@@ -307,9 +303,7 @@ interface WebGpuAppResourceCache {
   readonly textures: Map<string, TextureGpuResource>;
   readonly samplers: Map<string, SamplerGpuResource>;
   readonly preparedMeshes: PreparedMeshGpuResourceCache;
-  readonly scalarUnlitMaterials: PreparedScalarUnlitMaterialCache;
-  readonly matcapMaterials: PreparedMatcapMaterialCache;
-  readonly scalarStandardMaterials: PreparedScalarStandardMaterialCache;
+  readonly preparedMaterials: PreparedBuiltInMaterialStore;
   readonly frameScratch: WebGpuAppFrameScratch;
   readonly unlitFrame: UnlitAppFrameResourceCacheSlot;
   readonly matcapFrame: MatcapAppFrameResourceCacheSlot;
@@ -411,14 +405,15 @@ interface QueuedBuiltInFrameResources {
 
 interface QueuedBuiltInTextureSamplerPreparationOptions {
   readonly app: WebGpuApp;
-  readonly cache: WebGpuAppResourceCache;
+  readonly cache: QueuedBuiltInAppResourcePreparationCache;
   readonly item: QueuedBuiltInAppResourceItem;
   readonly reuse: WebGpuAppResourceReuseReport;
 }
 
 interface QueuedBuiltInFrameResourcePreparationOptions {
   readonly app: WebGpuApp;
-  readonly cache: WebGpuAppResourceCache;
+  readonly cache: QueuedBuiltInAppResourcePreparationCache;
+  readonly preparedMaterials: PreparedBuiltInMaterialStore;
   readonly snapshot: RenderSnapshot;
   readonly item: QueuedBuiltInAppResourceItem;
   readonly textures: PreparedAppTextureSamplerResources;
@@ -427,6 +422,11 @@ interface QueuedBuiltInFrameResourcePreparationOptions {
   readonly layouts: WebGpuAppPipelineLayouts;
   readonly reuse: WebGpuAppResourceReuseReport;
 }
+
+type QueuedBuiltInAppResourcePreparationCache = Omit<
+  WebGpuAppResourceCache,
+  "preparedMaterials"
+>;
 
 type QueuedBuiltInMaterialAdapter = QueuedBuiltInAppResourceAdapter<
   QueuedBuiltInTextureSamplerPreparationOptions,
@@ -519,7 +519,18 @@ export async function createWebGpuApp(
       return extractRenderSnapshot(world, assets, { frame });
     },
     async render(renderOptions = {}) {
-      return renderWebGpuAppFrame(app, resourceCache, renderOptions);
+      const report = await renderWebGpuAppFrame(
+        app,
+        resourceCache,
+        renderOptions,
+      );
+
+      writeWebGpuAppPreparedMaterialCacheSummary(
+        report.resourceReuse.preparedMaterialCache,
+        resourceCache,
+      );
+
+      return report;
     },
     async stepAndRender(delta = 0, time = 0, frame = 0) {
       this.step(delta, time);
@@ -537,9 +548,7 @@ function createWebGpuAppResourceCache(): WebGpuAppResourceCache {
     textures: new Map(),
     samplers: new Map(),
     preparedMeshes: createPreparedMeshGpuResourceCache(),
-    scalarUnlitMaterials: createPreparedScalarUnlitMaterialCache(),
-    matcapMaterials: createPreparedMatcapMaterialCache(),
-    scalarStandardMaterials: createPreparedScalarStandardMaterialCache(),
+    preparedMaterials: createPreparedBuiltInMaterialStore(),
     frameScratch: createWebGpuAppFrameScratch(),
     unlitFrame:
       createWebGpuAppFrameResourceCacheSlot<CachedUnlitAppFrameResources>(),
@@ -852,6 +861,62 @@ function collectMultiUnlitAppResourceSet(options: {
     meshKey: sourceAssetCacheKey(options.firstDraw.mesh, meshEntry.version),
     materials,
     materialKeys,
+  };
+}
+
+function createSingleBuiltInAppResourceItem(options: {
+  readonly draw: MeshDrawPacket;
+  readonly drawIndex: number;
+  readonly mesh: MeshAsset;
+  readonly meshKey: string;
+  readonly material: MaterialAsset;
+  readonly materialKey: string;
+}): QueuedBuiltInAppResourceItem | null {
+  const adapter = QUEUED_BUILT_IN_MATERIAL_ADAPTERS.get(options.material.kind);
+
+  if (adapter === null || !adapter.isMaterialAsset(options.material)) {
+    return null;
+  }
+
+  const sourceMeshKey = assetHandleKey(options.draw.mesh);
+  const sourceMaterialKey = assetHandleKey(options.draw.material);
+
+  return {
+    queueItem: {
+      renderId: options.draw.renderId,
+      drawIndex: options.drawIndex,
+      entity: options.draw.entity,
+      renderPhase: options.draw.sortKey.queue,
+      materialFamily: adapter.kind,
+      pipelineKey: options.draw.batchKey.pipelineKey,
+      meshKey: sourceMeshKey,
+      materialKey: sourceMaterialKey,
+      meshResourceKey: options.meshKey,
+      materialResourceKey: options.materialKey,
+      meshLayoutKey: options.draw.batchKey.meshLayoutKey,
+      topology: options.draw.batchKey.topology,
+      depth: options.draw.sortKey.depth,
+      sortKey: {
+        renderPhase: options.draw.sortKey.queue,
+        viewId: options.draw.sortKey.viewId,
+        layer: options.draw.sortKey.layer,
+        order: options.draw.sortKey.order,
+        pipelineKey: options.draw.batchKey.pipelineKey,
+        materialResourceKey: options.materialKey,
+        meshResourceKey: options.meshKey,
+        depth: options.draw.sortKey.depth,
+        stableId: options.draw.sortKey.stableId,
+        drawIndex: options.drawIndex,
+      },
+    },
+    adapter,
+    draw: options.draw,
+    mesh: options.mesh,
+    meshKey: options.meshKey,
+    sourceMeshKey,
+    material: options.material,
+    materialKey: options.materialKey,
+    sourceMaterialKey,
   };
 }
 
@@ -1177,99 +1242,101 @@ const QUEUED_BUILT_IN_MATERIAL_ADAPTERS =
     QueuedBuiltInTextureSamplerPreparationOptions,
     QueuedBuiltInFrameResourcePreparationOptions
   >({
-    prepareUnlitTextureSamplerResources: (options) =>
-      prepareUnlitAppTextureSamplerResources({
-        assets: options.app.assets,
-        device: options.app.initialization.device,
-        cache: options.cache,
-        material: options.item.material as UnlitMaterialAsset,
-        reuse: options.reuse,
-      }),
-    prepareMatcapTextureSamplerResources: (options) =>
-      prepareMatcapAppTextureSamplerResources({
-        assets: options.app.assets,
-        device: options.app.initialization.device,
-        cache: options.cache,
-        material: options.item.material as MatcapMaterialAsset,
-        reuse: options.reuse,
-      }),
-    prepareStandardTextureSamplerResources: (options) =>
-      prepareStandardAppTextureSamplerResources({
-        assets: options.app.assets,
-        device: options.app.initialization.device,
-        cache: options.cache,
-        material: options.item.material as StandardMaterialAsset,
-        reuse: options.reuse,
-      }),
-    createUnlitFrameResources: (options) =>
-      createOrReuseUnlitAppFrameResources({
-        device: options.app.initialization.device,
-        cache: options.cache.unlitFrame,
-        mesh: options.item.mesh,
-        meshHandle: options.item.draw.mesh,
-        meshKey: options.item.meshKey,
-        material: options.item.material as UnlitMaterialAsset,
-        materialHandle: options.item.draw.material,
-        materialKey: options.item.materialKey,
-        sourceMaterialKey: options.item.sourceMaterialKey,
-        pipelineKey: options.item.draw.batchKey.pipelineKey,
-        preparedMeshes: options.cache.preparedMeshes,
-        preparedScalarMaterials: options.cache.scalarUnlitMaterials,
-        assets: options.app.assets,
-        textures: options.textures,
-        viewUniforms: options.viewUniforms,
-        worldTransforms: options.worldTransforms,
-        layouts: options.layouts.sharedLayouts,
-        reuse: options.reuse,
-      }),
-    createMatcapFrameResources: (options) =>
-      createOrReuseMatcapAppFrameResources({
-        device: options.app.initialization.device,
-        cache: options.cache.matcapFrame,
-        mesh: options.item.mesh,
-        meshHandle: options.item.draw.mesh,
-        meshKey: options.item.meshKey,
-        material: options.item.material as MatcapMaterialAsset,
-        materialHandle: options.item.draw.material,
-        materialKey: options.item.materialKey,
-        sourceMaterialKey: options.item.sourceMaterialKey,
-        pipelineKey: options.item.draw.batchKey.pipelineKey,
-        assets: options.app.assets,
-        textures: options.textures,
-        viewUniforms: options.viewUniforms,
-        worldTransforms: options.worldTransforms,
-        sharedLayouts: options.layouts.sharedLayouts,
-        materialLayout: options.layouts
-          .materialLayout as MatcapMaterialBindGroupLayoutResource | null,
-        preparedMeshes: options.cache.preparedMeshes,
-        preparedMatcapMaterials: options.cache.matcapMaterials,
-        reuse: options.reuse,
-      }),
-    createStandardFrameResources: (options) =>
-      createOrReuseStandardAppFrameResources({
-        device: options.app.initialization.device,
-        cache: options.cache.standardFrame,
-        snapshot: options.snapshot,
-        mesh: options.item.mesh,
-        meshHandle: options.item.draw.mesh,
-        meshKey: options.item.meshKey,
-        material: options.item.material as StandardMaterialAsset,
-        materialHandle: options.item.draw.material,
-        materialKey: options.item.materialKey,
-        sourceMaterialKey: options.item.sourceMaterialKey,
-        pipelineKey: options.item.draw.batchKey.pipelineKey,
-        assets: options.app.assets,
-        textures: options.textures,
-        viewUniforms: options.viewUniforms,
-        worldTransforms: options.worldTransforms,
-        sharedLayouts: options.layouts.sharedLayouts,
-        materialLayout: options.layouts
-          .materialLayout as StandardMaterialBindGroupLayoutResource | null,
-        lightLayout: options.layouts.lightLayout,
-        preparedMeshes: options.cache.preparedMeshes,
-        preparedScalarMaterials: options.cache.scalarStandardMaterials,
-        reuse: options.reuse,
-      }),
+    families: createQueuedBuiltInAppResourceFamilyAdapterTable({
+      prepareUnlitTextureSamplerResources: (options) =>
+        prepareUnlitAppTextureSamplerResources({
+          assets: options.app.assets,
+          device: options.app.initialization.device,
+          cache: options.cache,
+          material: options.item.material as UnlitMaterialAsset,
+          reuse: options.reuse,
+        }),
+      prepareMatcapTextureSamplerResources: (options) =>
+        prepareMatcapAppTextureSamplerResources({
+          assets: options.app.assets,
+          device: options.app.initialization.device,
+          cache: options.cache,
+          material: options.item.material as MatcapMaterialAsset,
+          reuse: options.reuse,
+        }),
+      prepareStandardTextureSamplerResources: (options) =>
+        prepareStandardAppTextureSamplerResources({
+          assets: options.app.assets,
+          device: options.app.initialization.device,
+          cache: options.cache,
+          material: options.item.material as StandardMaterialAsset,
+          reuse: options.reuse,
+        }),
+      createUnlitFrameResources: (options) =>
+        createOrReuseUnlitAppFrameResources({
+          device: options.app.initialization.device,
+          cache: options.cache.unlitFrame,
+          mesh: options.item.mesh,
+          meshHandle: options.item.draw.mesh,
+          meshKey: options.item.meshKey,
+          material: options.item.material as UnlitMaterialAsset,
+          materialHandle: options.item.draw.material,
+          materialKey: options.item.materialKey,
+          sourceMaterialKey: options.item.sourceMaterialKey,
+          pipelineKey: options.item.draw.batchKey.pipelineKey,
+          preparedMeshes: options.cache.preparedMeshes,
+          preparedScalarMaterials: options.preparedMaterials.unlit,
+          assets: options.app.assets,
+          textures: options.textures,
+          viewUniforms: options.viewUniforms,
+          worldTransforms: options.worldTransforms,
+          layouts: options.layouts.sharedLayouts,
+          reuse: options.reuse,
+        }),
+      createMatcapFrameResources: (options) =>
+        createOrReuseMatcapAppFrameResources({
+          device: options.app.initialization.device,
+          cache: options.cache.matcapFrame,
+          mesh: options.item.mesh,
+          meshHandle: options.item.draw.mesh,
+          meshKey: options.item.meshKey,
+          material: options.item.material as MatcapMaterialAsset,
+          materialHandle: options.item.draw.material,
+          materialKey: options.item.materialKey,
+          sourceMaterialKey: options.item.sourceMaterialKey,
+          pipelineKey: options.item.draw.batchKey.pipelineKey,
+          assets: options.app.assets,
+          textures: options.textures,
+          viewUniforms: options.viewUniforms,
+          worldTransforms: options.worldTransforms,
+          sharedLayouts: options.layouts.sharedLayouts,
+          materialLayout: options.layouts
+            .materialLayout as MatcapMaterialBindGroupLayoutResource | null,
+          preparedMeshes: options.cache.preparedMeshes,
+          preparedMatcapMaterials: options.preparedMaterials.matcap,
+          reuse: options.reuse,
+        }),
+      createStandardFrameResources: (options) =>
+        createOrReuseStandardAppFrameResources({
+          device: options.app.initialization.device,
+          cache: options.cache.standardFrame,
+          snapshot: options.snapshot,
+          mesh: options.item.mesh,
+          meshHandle: options.item.draw.mesh,
+          meshKey: options.item.meshKey,
+          material: options.item.material as StandardMaterialAsset,
+          materialHandle: options.item.draw.material,
+          materialKey: options.item.materialKey,
+          sourceMaterialKey: options.item.sourceMaterialKey,
+          pipelineKey: options.item.draw.batchKey.pipelineKey,
+          assets: options.app.assets,
+          textures: options.textures,
+          viewUniforms: options.viewUniforms,
+          worldTransforms: options.worldTransforms,
+          sharedLayouts: options.layouts.sharedLayouts,
+          materialLayout: options.layouts
+            .materialLayout as StandardMaterialBindGroupLayoutResource | null,
+          lightLayout: options.layouts.lightLayout,
+          preparedMeshes: options.cache.preparedMeshes,
+          preparedScalarMaterials: options.preparedMaterials.standard,
+          reuse: options.reuse,
+        }),
+    }),
   });
 
 async function renderQueuedBuiltInWebGpuAppFrame(options: {
@@ -1518,6 +1585,7 @@ async function prepareQueuedBuiltInFrameResources(options: {
     const resources = adapter.createFrameResources({
       app: options.app,
       cache: options.cache,
+      preparedMaterials: options.cache.preparedMaterials,
       snapshot: options.snapshot,
       item,
       textures,
@@ -1820,30 +1888,47 @@ async function renderWebGpuAppFrame(
     snapshot,
     resourceCache.frameScratch.worldTransforms,
   );
-  const preparedTextures =
-    materialKind === "unlit"
-      ? prepareUnlitAppTextureSamplerResources({
-          assets: app.assets,
-          device: app.initialization.device,
-          cache: resourceCache,
-          material: material as UnlitMaterialAsset,
-          reuse,
+  const meshKey = sourceAssetCacheKey(firstDraw.mesh, meshEntry?.version ?? -1);
+  const materialKey = sourceAssetCacheKey(
+    firstDraw.material,
+    materialEntry?.version ?? -1,
+  );
+  const singleBuiltInItem =
+    multiUnlit === null
+      ? createSingleBuiltInAppResourceItem({
+          draw: firstDraw,
+          drawIndex: 0,
+          mesh,
+          meshKey,
+          material,
+          materialKey,
         })
-      : materialKind === "matcap"
-        ? prepareMatcapAppTextureSamplerResources({
-            assets: app.assets,
-            device: app.initialization.device,
-            cache: resourceCache,
-            material: material as MatcapMaterialAsset,
-            reuse,
-          })
-        : prepareStandardAppTextureSamplerResources({
-            assets: app.assets,
-            device: app.initialization.device,
-            cache: resourceCache,
-            material: material as StandardMaterialAsset,
-            reuse,
-          });
+      : null;
+
+  if (multiUnlit === null && singleBuiltInItem === null) {
+    return renderReport({
+      ok: false,
+      snapshot,
+      pipeline,
+      resourceReuse: reuse,
+      diagnostics: [
+        {
+          code: "webGpuApp.unsupportedMaterialKind",
+          message: `WebGPU app render supports unlit, matcap, and standard materials, not '${material.kind}'.`,
+        },
+      ],
+    });
+  }
+
+  const preparedTextures =
+    singleBuiltInItem === null
+      ? emptyPreparedAppTextureSamplerResources()
+      : singleBuiltInItem.adapter.prepareTextureSamplerResources({
+          app,
+          cache: resourceCache,
+          item: singleBuiltInItem,
+          reuse,
+        });
 
   if (!preparedTextures.valid) {
     return renderReport({
@@ -1860,90 +1945,49 @@ async function renderWebGpuAppFrame(
     });
   }
 
-  const meshKey = sourceAssetCacheKey(firstDraw.mesh, meshEntry?.version ?? -1);
-  const materialKey = sourceAssetCacheKey(
-    firstDraw.material,
-    materialEntry?.version ?? -1,
-  );
-  const resources =
-    multiUnlit !== null
-      ? createMultiUnlitAppFrameResources({
-          app,
-          mesh: multiUnlit.mesh,
-          materials: multiUnlit.materials,
-          viewUniforms: packedViews,
-          worldTransforms: packedTransforms,
-          layouts,
-          reuse,
-        })
-      : materialKind === "standard"
-        ? createOrReuseStandardAppFrameResources({
-            device: app.initialization.device,
-            cache: resourceCache.standardFrame,
-            snapshot,
-            mesh,
-            meshHandle: firstDraw.mesh,
-            meshKey,
-            material: material as StandardMaterialAsset,
-            materialHandle: firstDraw.material,
-            materialKey,
-            sourceMaterialKey: assetHandleKey(firstDraw.material),
-            pipelineKey: firstDraw.batchKey.pipelineKey,
-            assets: app.assets,
-            textures: preparedTextures,
-            viewUniforms: packedViews,
-            worldTransforms: packedTransforms,
-            sharedLayouts: layouts.sharedLayouts,
-            materialLayout:
-              layouts.materialLayout as StandardMaterialBindGroupLayoutResource | null,
-            lightLayout: layouts.lightLayout,
-            preparedMeshes: resourceCache.preparedMeshes,
-            preparedScalarMaterials: resourceCache.scalarStandardMaterials,
-            reuse,
-          })
-        : materialKind === "matcap"
-          ? createOrReuseMatcapAppFrameResources({
-              device: app.initialization.device,
-              cache: resourceCache.matcapFrame,
-              mesh,
-              meshHandle: firstDraw.mesh,
-              meshKey,
-              material: material as MatcapMaterialAsset,
-              materialHandle: firstDraw.material,
-              materialKey,
-              sourceMaterialKey: assetHandleKey(firstDraw.material),
-              pipelineKey: firstDraw.batchKey.pipelineKey,
-              assets: app.assets,
-              textures: preparedTextures,
-              viewUniforms: packedViews,
-              worldTransforms: packedTransforms,
-              sharedLayouts: layouts.sharedLayouts,
-              materialLayout:
-                layouts.materialLayout as MatcapMaterialBindGroupLayoutResource | null,
-              preparedMeshes: resourceCache.preparedMeshes,
-              preparedMatcapMaterials: resourceCache.matcapMaterials,
-              reuse,
-            })
-          : createOrReuseUnlitAppFrameResources({
-              device: app.initialization.device,
-              cache: resourceCache.unlitFrame,
-              mesh,
-              meshHandle: firstDraw.mesh,
-              meshKey,
-              material,
-              materialHandle: firstDraw.material,
-              materialKey,
-              sourceMaterialKey: assetHandleKey(firstDraw.material),
-              pipelineKey: firstDraw.batchKey.pipelineKey,
-              preparedMeshes: resourceCache.preparedMeshes,
-              preparedScalarMaterials: resourceCache.scalarUnlitMaterials,
-              assets: app.assets,
-              textures: preparedTextures,
-              viewUniforms: packedViews,
-              worldTransforms: packedTransforms,
-              layouts: layouts.sharedLayouts,
-              reuse,
-            });
+  let resources: WebGpuAppFrameResourcesResult;
+
+  if (multiUnlit !== null) {
+    resources = createMultiUnlitAppFrameResources({
+      app,
+      mesh: multiUnlit.mesh,
+      materials: multiUnlit.materials,
+      viewUniforms: packedViews,
+      worldTransforms: packedTransforms,
+      layouts,
+      reuse,
+    });
+  } else {
+    const item = singleBuiltInItem;
+
+    if (item === null) {
+      return renderReport({
+        ok: false,
+        snapshot,
+        pipeline,
+        resourceReuse: reuse,
+        diagnostics: [
+          {
+            code: "webGpuApp.unsupportedMaterialKind",
+            message: `WebGPU app render supports unlit, matcap, and standard materials, not '${material.kind}'.`,
+          },
+        ],
+      });
+    }
+
+    resources = item.adapter.createFrameResources({
+      app,
+      cache: resourceCache,
+      preparedMaterials: resourceCache.preparedMaterials,
+      snapshot,
+      item,
+      textures: preparedTextures,
+      viewUniforms: packedViews,
+      worldTransforms: packedTransforms,
+      layouts,
+      reuse,
+    });
+  }
 
   if (!resources.valid || resources.resources === null) {
     return renderReport({
@@ -2376,6 +2420,7 @@ function createWebGpuAppResourceReuseReport(): WebGpuAppResourceReuseReport {
     preparedMaterialBuffersReused: 0,
     preparedMaterialBindGroupsCreated: 0,
     preparedMaterialBindGroupsReused: 0,
+    preparedMaterialCache: createPreparedAppMaterialCacheSummary(),
     textureResourcesCreated: 0,
     textureResourcesReused: 0,
     samplerResourcesCreated: 0,
@@ -2386,6 +2431,16 @@ function createWebGpuAppResourceReuseReport(): WebGpuAppResourceReuseReport {
     lightBuffersReused: 0,
     dynamicBufferWrites: 0,
   };
+}
+
+function writeWebGpuAppPreparedMaterialCacheSummary(
+  summary: PreparedAppMaterialCacheSummary,
+  cache: WebGpuAppResourceCache,
+): PreparedAppMaterialCacheSummary {
+  return writePreparedBuiltInMaterialStoreSummary(
+    summary,
+    cache.preparedMaterials,
+  );
 }
 
 async function waitForSubmittedWork(device: unknown): Promise<void> {

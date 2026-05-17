@@ -59,10 +59,9 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start with `task-0845`. Unlit, Matcap, and all current covered Standard
-prepared material routes now share a common internal prepared-material use
-shape. The next slice should move built-in material preparation selection behind
-the existing adapter registry without changing public app reports.
+Start with `task-0867`. The render-world prepared material binding integration
+plan is complete. The next slice should implement the helper that binds
+prepared material facade keys into `RenderWorld`.
 
 ## Near-Term Proof Point Track
 
@@ -79,11 +78,11 @@ Target proof point:
 
 Remaining automation priority order:
 
-1. `task-0845` — move built-in material preparation behind adapter registry.
-2. `task-0847` — add prepared material cache summary counters.
-3. `task-0848` — plan render-world prepared material store handoff.
-4. `task-0849` — audit post-adapter built-in material preparation route.
-5. `task-0850` — add prepared-material fallback diagnostics.
+1. `task-0867` — bind prepared material resource keys into render world.
+2. `task-0863` — add prepared material store app summary regression matrix.
+3. `task-0864` — extract prepared material texture/sampler dependency input.
+4. `task-0865` — add prepared material facade JSON report helper.
+5. `task-0866` — audit prepared material texture/sampler dependency input.
 
 Defer allocation-only cleanup and metadata-only shader-contract tasks unless
 they are a direct blocker for this track.
@@ -149,101 +148,95 @@ viewer/material mapping should not outrun the material and queue architecture.
 
 ### Proof Point Critical Path
 
-### task-0845 — Move built-in material preparation behind adapter registry
+### task-0867 — Bind prepared material resource keys into render world
+
+Category: `render-bridge`
+Package/write-scope: `packages/render`, focused tests.
+Reference anchor:
+`docs/research/RENDER_WORLD_PREPARED_MATERIAL_BINDING_INTEGRATION_PLAN_2026_05_17.md`,
+prepared material store facade, render-world resource binding placeholders, and
+Bevy render-world prepared asset lookup patterns.
+
+Acceptance criteria:
+
+- A render package helper updates `RenderWorldObject.gpu.materialResourceKey`
+  from prepared material facade entries.
+- Tests prove blocked draws become ready through string resource keys once mesh
+  and material bindings are present.
+- `RenderSnapshot` remains immutable and WebGPU resources stay out of render
+  world ownership.
+
+### task-0863 — Add prepared material store app summary regression matrix
 
 Category: `webgpu-render`
-Package/write-scope: built-in material app resource adapter, app
-frame-resource routing, and focused tests.
+Package/write-scope: WebGPU app report tests and minimal runtime fixes only if
+the matrix exposes inconsistent summary behavior.
 Reference anchor:
-`docs/research/GENERIC_MATERIAL_FAMILY_PREPARATION_HANDOFF_PLAN_2026_05_17.md`,
-built-in material app resource adapter, normalized prepared material use result
-from `task-0843`, and Bevy material preparation patterns.
+prepared built-in material store summary tests, existing WebGPU app reuse tests,
+`docs/research/PREPARED_BUILT_IN_MATERIAL_STORE_BOUNDARY_AUDIT_2026_05_17.md`,
+and PlayCanvas/three.js resource summary patterns.
 
 Acceptance criteria:
 
-- Built-in queue adapter selects material preparation through a family adapter
-  table instead of direct Standard/Matcap/unlit branching in the app
-  frame-resource path.
-- Existing app route reports and reuse counters remain JSON-safe and unchanged.
-- Source assets, render snapshots, texture/sampler resources, and Standard
-  group-3 light resources remain outside material cache ownership.
+- App tests cover prepared material cache summary counts across mixed unlit,
+  Matcap, and Standard queue frames.
+- Tests verify summary counts remain stable across frame-resource cache hits and
+  transform/light-only changes.
+- Public reports stay JSON-safe and do not expose raw GPU handles or store keys.
 
-### task-0847 — Add prepared material cache summary counters
+### task-0864 — Extract prepared material texture/sampler dependency input
 
 Category: `webgpu-render`
-Package/write-scope: WebGPU app resource reuse report, material app-frame
-helpers, and focused tests.
+Package/write-scope: WebGPU material app-frame helpers and focused tests.
 Reference anchor:
-`docs/research/GENERIC_MATERIAL_FAMILY_PREPARATION_HANDOFF_PLAN_2026_05_17.md`,
-normalized prepared material use helper, current JSON-safe app resource reuse
-counters, and prepared material cache helpers.
+`docs/research/PREPARED_TEXTURE_SAMPLER_DEPENDENCY_STORE_BOUNDARY_PLAN_2026_05_17.md`,
+current app texture/sampler resource preparation, prepared material dependency
+key helpers, and Bevy material/image preparation retry pattern.
 
 Acceptance criteria:
 
-- App reports expose JSON-safe prepared material cache summary counts without
-  exposing raw GPU handles or cache internals.
-- Unlit, Matcap, and Standard prepared material routes populate the summary
-  consistently.
-- Existing frame-cache hit counters and prepared material created/reused
-  counters retain their current meanings.
+- Material preparation helpers consume an explicitly named texture/sampler
+  dependency input instead of treating those resources as material store fields.
+- Tests prove source texture/sampler version changes affect material cache keys
+  while texture/sampler cache summaries remain separate.
+- Diagnostics remain JSON-safe and do not expose raw GPU handles.
 
-### task-0848 — Plan render-world prepared material store handoff
+### task-0865 — Add prepared material facade JSON report helper
 
-Category: `docs-tooling`
-Package/write-scope: `docs/research`, `agent/BACKLOG.md`, and no runtime code.
+Category: `render-bridge`
+Package/write-scope: `packages/render`, focused tests.
 Reference anchor:
-`docs/RENDER_ASSET_PREPARATION.md`,
-`docs/research/GENERIC_MATERIAL_FAMILY_PREPARATION_HANDOFF_PLAN_2026_05_17.md`,
-current app-local prepared material caches, render-world docs, and Bevy
-`RenderAssets` preparation pattern.
+prepared material store facade from `task-0860`,
+`docs/research/GENERIC_RENDER_WORLD_PREPARED_MATERIAL_STORE_API_PLAN_2026_05_17.md`,
+current render asset preparation reports, and JSON-safe app report patterns.
 
 Acceptance criteria:
 
-- Plan identifies the smallest vertical slice for moving app-local prepared
-  material caches toward render-world/prepared-asset ownership.
-- Plan distinguishes renderer-independent prepared material metadata from
-  WebGPU-owned buffers and bind groups.
-- Plan lists tests needed to prove ECS/source assets remain authoritative and
-  `RenderSnapshot` remains the frame boundary.
+- Render package exposes a JSON-safe summary helper for prepared material facade
+  entries and counts by material family.
+- Tests prove the helper omits source asset objects, raw backend handles, and
+  internal map state.
+- The helper remains renderer-independent and does not import WebGPU.
 
-### task-0849 — Audit post-adapter built-in material preparation route
+### task-0866 — Audit prepared material texture/sampler dependency input
 
 Category: `audit-refactor`
 Package/write-scope: `docs/research`, `agent/BACKLOG.md`, and narrow follow-up
 task edits only.
 Reference anchor:
-`docs/ARCHITECTURE.md`, `docs/RENDER_ASSET_PREPARATION.md`,
-`docs/research/GENERIC_BUILT_IN_MATERIAL_PREPARATION_BOUNDARY_AUDIT_2026_05_17.md`,
-built-in material preparation adapter registry from `task-0845`, and WebGPU app
-resource reuse tests.
+`docs/research/PREPARED_TEXTURE_SAMPLER_DEPENDENCY_STORE_BOUNDARY_PLAN_2026_05_17.md`,
+the dependency input from `task-0864`, WebGPU app texture/sampler resource
+preparation, prepared material caches, and Bevy material/image preparation retry
+patterns.
 
 Acceptance criteria:
 
-- Audit verifies adapter-driven preparation keeps source assets authoritative,
-  render snapshots immutable, and WebGPU resources backend-owned.
-- Audit checks texture/sampler preparation and Standard group-3 light resources
-  remain outside material cache ownership.
-- Follow-up backlog wording is tightened if adapter-driven preparation creates
-  route coupling or public API drift.
-
-### task-0850 — Add prepared-material fallback diagnostics
-
-Category: `webgpu-render`
-Package/write-scope: built-in material app frame-resource helpers, app report
-diagnostics, and focused tests.
-Reference anchor:
-`docs/research/BUILT_IN_PREPARED_MATERIAL_FALLBACK_DIAGNOSTICS_PLAN_2026_05_17.md`,
-prepared unlit/Matcap/Standard helper failure behavior, and app JSON report
-conversion.
-
-Acceptance criteria:
-
-- Unexpected prepared material helper failures emit JSON-safe app diagnostics
-  while expected skipped routes remain silent.
-- Missing group-2 layout and missing prepared texture/sampler GPU resources are
-  covered by focused tests.
-- Diagnostics expose material family, material key, sanitized helper
-  diagnostics, and no raw GPU handles.
+- Audit verifies prepared material helpers depend on texture/sampler resources
+  without owning their caches or GPU lifetimes.
+- Audit verifies diagnostics and summaries remain JSON-safe and separate from
+  texture/sampler cache reports.
+- Follow-up backlog wording is tightened if the dependency input creates
+  ownership or public API drift.
 
 ## Post-Unlit E2E Verification Targets
 

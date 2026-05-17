@@ -5,6 +5,7 @@ import {
   type AssetKind,
   type AssetRegistry,
   type AssetRegistryEntry,
+  type MaterialHandle,
 } from "@aperture-engine/simulation";
 import {
   createPreparedMaterialResourceDescriptor,
@@ -388,6 +389,61 @@ export function createPreparedMaterialAssetStore(): PreparedMaterialAssetStore {
     "material",
     PreparedMaterialAssetMetadata
   >();
+}
+
+export interface PreparedMaterialStore {
+  readonly entries: PreparedMaterialAssetStore;
+  get(
+    handle: MaterialHandle,
+  ):
+    | PreparedRenderAssetEntry<"material", PreparedMaterialAssetMetadata>
+    | undefined;
+  list(): PreparedRenderAssetEntry<"material", PreparedMaterialAssetMetadata>[];
+  prepare(
+    options: PreparedMaterialStorePrepareOptions,
+  ): RenderAssetPreparationReport<"material", PreparedMaterialAssetMetadata>;
+  remove(
+    handle: MaterialHandle,
+  ): PreparedRenderAssetStoreRemoval<"material", PreparedMaterialAssetMetadata>;
+  clear(): void;
+}
+
+export interface PreparedMaterialStorePrepareOptions {
+  readonly registry: AssetRegistry;
+  readonly handle: MaterialHandle;
+}
+
+export function createPreparedMaterialStore(
+  options: {
+    readonly entries?: PreparedMaterialAssetStore;
+  } = {},
+): PreparedMaterialStore {
+  const entries = options.entries ?? createPreparedMaterialAssetStore();
+  const adapter = createMaterialMetadataRenderAssetAdapter();
+
+  return {
+    entries,
+    get(handle) {
+      return entries.get(handle);
+    },
+    list() {
+      return entries.list();
+    },
+    prepare(prepareOptions) {
+      return prepareRenderAsset({
+        registry: prepareOptions.registry,
+        adapter,
+        store: entries,
+        handle: prepareOptions.handle,
+      });
+    },
+    remove(handle) {
+      return entries.remove(handle);
+    },
+    clear() {
+      entries.clear();
+    },
+  };
 }
 
 export function createMeshMetadataRenderAssetAdapter(): RenderAssetAdapter<

@@ -88,6 +88,14 @@ describe("WebGPU app facade", () => {
       materialBuffersCreated: 1,
       preparedMaterialBuffersCreated: 1,
       preparedMaterialBindGroupsCreated: 1,
+      preparedMaterialCache: {
+        totalEntries: 1,
+        families: {
+          unlit: { entries: 1 },
+          matcap: { entries: 0 },
+          standard: { entries: 0 },
+        },
+      },
       bindGroupsCreated: 3,
       dynamicBufferWrites: 0,
     });
@@ -121,6 +129,14 @@ describe("WebGPU app facade", () => {
       preparedMeshBuffersReused: 0,
       materialBuffersReused: 1,
       preparedMaterialBuffersReused: 0,
+      preparedMaterialCache: {
+        totalEntries: 1,
+        families: {
+          unlit: { entries: 1 },
+          matcap: { entries: 0 },
+          standard: { entries: 0 },
+        },
+      },
       bindGroupsReused: 3,
       dynamicBufferWrites: 2,
     });
@@ -285,6 +301,11 @@ describe("WebGPU app facade", () => {
       preparedMaterialBuffersCreated: 1,
       preparedMaterialBindGroupsCreated: 1,
     });
+    expectPreparedMaterialCacheSummary(firstFrame, {
+      unlit: 1,
+      matcap: 0,
+      standard: 0,
+    });
     expect(meshVersionFrame.ok).toBe(true);
     expect(meshVersionFrame.resourceReuse).toMatchObject({
       pipelineHits: 1,
@@ -295,6 +316,11 @@ describe("WebGPU app facade", () => {
       preparedMaterialBuffersReused: 1,
       preparedMaterialBindGroupsReused: 1,
       dynamicBufferWrites: 0,
+    });
+    expectPreparedMaterialCacheSummary(meshVersionFrame, {
+      unlit: 1,
+      matcap: 0,
+      standard: 0,
     });
     expect(materialVersionFrame.ok).toBe(true);
     expect(materialVersionFrame.resourceReuse).toMatchObject({
@@ -308,6 +334,11 @@ describe("WebGPU app facade", () => {
       preparedMaterialBindGroupsCreated: 1,
       preparedMaterialBindGroupsReused: 0,
       dynamicBufferWrites: 0,
+    });
+    expectPreparedMaterialCacheSummary(materialVersionFrame, {
+      unlit: 2,
+      matcap: 0,
+      standard: 0,
     });
     expect(
       webGpuAppRenderReportToJsonValue(materialVersionFrame).resourceReuse,
@@ -1084,6 +1115,11 @@ describe("WebGPU app facade", () => {
       preparedMaterialBuffersCreated: 1,
       preparedMaterialBindGroupsCreated: 1,
     });
+    expectPreparedMaterialCacheSummary(firstFrame, {
+      unlit: 1,
+      matcap: 0,
+      standard: 0,
+    });
     expect(textureVersionFrame.ok).toBe(true);
     expect(textureVersionFrame.resourceReuse).toMatchObject({
       pipelineHits: 1,
@@ -1099,6 +1135,11 @@ describe("WebGPU app facade", () => {
       preparedMaterialBindGroupsReused: 0,
       dynamicBufferWrites: 0,
     });
+    expectPreparedMaterialCacheSummary(textureVersionFrame, {
+      unlit: 2,
+      matcap: 0,
+      standard: 0,
+    });
     expect(samplerVersionFrame.ok).toBe(true);
     expect(samplerVersionFrame.resourceReuse).toMatchObject({
       pipelineHits: 1,
@@ -1113,6 +1154,11 @@ describe("WebGPU app facade", () => {
       preparedMaterialBindGroupsCreated: 1,
       preparedMaterialBindGroupsReused: 0,
       dynamicBufferWrites: 0,
+    });
+    expectPreparedMaterialCacheSummary(samplerVersionFrame, {
+      unlit: 3,
+      matcap: 0,
+      standard: 0,
     });
     expect(
       webGpuAppRenderReportToJsonValue(samplerVersionFrame).resourceReuse,
@@ -1312,6 +1358,14 @@ describe("WebGPU app facade", () => {
       meshBuffersCreated: 1,
       preparedMeshBuffersCreated: 1,
       materialBuffersCreated: 1,
+      preparedMaterialCache: {
+        totalEntries: 1,
+        families: {
+          unlit: { entries: 0 },
+          matcap: { entries: 1 },
+          standard: { entries: 0 },
+        },
+      },
       textureResourcesCreated: 1,
       samplerResourcesCreated: 1,
       bindGroupsCreated: 3,
@@ -1354,6 +1408,14 @@ describe("WebGPU app facade", () => {
       meshBuffersReused: 1,
       preparedMeshBuffersReused: 0,
       materialBuffersReused: 1,
+      preparedMaterialCache: {
+        totalEntries: 1,
+        families: {
+          unlit: { entries: 0 },
+          matcap: { entries: 1 },
+          standard: { entries: 0 },
+        },
+      },
       textureResourcesCreated: 0,
       textureResourcesReused: 1,
       samplerResourcesCreated: 0,
@@ -1463,6 +1525,11 @@ describe("WebGPU app facade", () => {
       textureResourcesCreated: 1,
       samplerResourcesCreated: 1,
     });
+    expectPreparedMaterialCacheSummary(firstFrame, {
+      unlit: 0,
+      matcap: 1,
+      standard: 0,
+    });
     expect(secondFrame.ok).toBe(true);
     expect(secondFrame.resourceReuse).toMatchObject({
       pipelineHits: 1,
@@ -1477,6 +1544,11 @@ describe("WebGPU app facade", () => {
       preparedMaterialBindGroupsCreated: 1,
       bindGroupsCreated: 3,
       dynamicBufferWrites: 0,
+    });
+    expectPreparedMaterialCacheSummary(secondFrame, {
+      unlit: 0,
+      matcap: 2,
+      standard: 0,
     });
     expect(
       webGpuAppRenderReportToJsonValue(secondFrame).resourceReuse,
@@ -1502,6 +1574,11 @@ describe("WebGPU app facade", () => {
       preparedMaterialBindGroupsCreated: 1,
       bindGroupsCreated: 3,
       dynamicBufferWrites: 0,
+    });
+    expectPreparedMaterialCacheSummary(thirdFrame, {
+      unlit: 0,
+      matcap: 3,
+      standard: 0,
     });
   });
 
@@ -3701,6 +3778,14 @@ describe("WebGPU app facade", () => {
         meshBuffersCreated: 1,
         preparedMeshBuffersCreated: 1,
         materialBuffersCreated: 1,
+        preparedMaterialCache: {
+          totalEntries: 1,
+          families: {
+            unlit: { entries: 0 },
+            matcap: { entries: 0 },
+            standard: { entries: 1 },
+          },
+        },
         lightBuffersCreated: 1,
       },
     });
@@ -3953,6 +4038,11 @@ describe("WebGPU app facade", () => {
       preparedMaterialBindGroupsCreated: 1,
       lightBuffersCreated: 1,
     });
+    expectPreparedMaterialCacheSummary(firstFrame, {
+      unlit: 0,
+      matcap: 0,
+      standard: 1,
+    });
     expect(materialVersionFrame.ok).toBe(true);
     expect(materialVersionFrame.resourceReuse).toMatchObject({
       pipelineHits: 1,
@@ -3970,6 +4060,11 @@ describe("WebGPU app facade", () => {
       bindGroupsReused: 0,
       lightBuffersCreated: 1,
       dynamicBufferWrites: 0,
+    });
+    expectPreparedMaterialCacheSummary(materialVersionFrame, {
+      unlit: 0,
+      matcap: 0,
+      standard: 2,
     });
     expect(cacheHitFrame.ok).toBe(true);
     expect(cacheHitFrame.resourceReuse).toMatchObject({
@@ -3989,6 +4084,11 @@ describe("WebGPU app facade", () => {
       lightBuffersCreated: 0,
       lightBuffersReused: 1,
       dynamicBufferWrites: 4,
+    });
+    expectPreparedMaterialCacheSummary(cacheHitFrame, {
+      unlit: 0,
+      matcap: 0,
+      standard: 2,
     });
     expect(
       webGpuAppRenderReportToJsonValue(materialVersionFrame).resourceReuse,
@@ -5910,6 +6010,26 @@ function singleMaterialResource(resources: unknown): unknown {
   }
 
   return undefined;
+}
+
+function expectPreparedMaterialCacheSummary(
+  report: Parameters<typeof webGpuAppRenderReportToJsonValue>[0],
+  expected: {
+    readonly unlit: number;
+    readonly matcap: number;
+    readonly standard: number;
+  },
+): void {
+  expect(webGpuAppRenderReportToJsonValue(report).resourceReuse).toMatchObject({
+    preparedMaterialCache: {
+      totalEntries: expected.unlit + expected.matcap + expected.standard,
+      families: {
+        unlit: { entries: expected.unlit },
+        matcap: { entries: expected.matcap },
+        standard: { entries: expected.standard },
+      },
+    },
+  });
 }
 
 function queuedMeshResourceCount(resources: unknown): number {

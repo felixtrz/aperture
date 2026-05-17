@@ -1,5 +1,255 @@
 # Completed Tasks
 
+## task-0862 — Add render-world prepared material binding integration plan
+
+Completed: 2026-05-17
+
+Summary:
+
+- Added
+  `docs/research/RENDER_WORLD_PREPARED_MATERIAL_BINDING_INTEGRATION_PLAN_2026_05_17.md`
+  to define the smallest render-world binding integration slice for prepared
+  material facade entries.
+- Planned a render package helper that updates
+  `RenderWorldObject.gpu.materialResourceKey` from prepared material metadata
+  string keys without mutating `RenderSnapshot` or storing WebGPU resources.
+- Added `task-0867` as the implementation follow-up.
+
+Validation run:
+
+- `pnpm exec prettier --write docs/research/RENDER_WORLD_PREPARED_MATERIAL_BINDING_INTEGRATION_PLAN_2026_05_17.md`
+
+## task-0861 — Audit render prepared material store facade boundaries
+
+Completed: 2026-05-17
+
+Summary:
+
+- Added
+  `docs/research/RENDER_PREPARED_MATERIAL_STORE_FACADE_BOUNDARY_AUDIT_2026_05_17.md`
+  to verify the render package facade remains renderer-independent.
+- Confirmed the facade does not import WebGPU, expose backend handles, mutate
+  source asset authority, or make `RenderWorld` own prepared entries.
+- Confirmed render-world binding tests use string material resource keys and
+  leave `RenderSnapshot` unchanged.
+
+Validation run:
+
+- `pnpm exec prettier --write docs/research/RENDER_PREPARED_MATERIAL_STORE_FACADE_BOUNDARY_AUDIT_2026_05_17.md`
+
+## task-0860 — Add render prepared material store facade
+
+Completed: 2026-05-17
+
+Summary:
+
+- Added a renderer-independent `PreparedMaterialStore` facade in
+  `packages/render/src/assets/preparation.ts`, backed by
+  `PreparedRenderAssetStore<"material", PreparedMaterialAssetMetadata>`.
+- The facade exposes prepare, get, list, remove, clear, and `entries` access
+  without importing WebGPU or exposing backend handles.
+- Added focused tests for prepare/update/unchanged/remove/clear behavior and
+  render-world material resource key binding through string placeholders.
+- Added `task-0865` as a follow-up for a JSON-safe prepared material facade
+  summary helper.
+
+Validation run:
+
+- `pnpm exec prettier --write packages/render/src/assets/preparation.ts test/assets/render-asset-preparation.test.ts`
+- `pnpm exec tsc --noEmit -p packages/render/tsconfig.json`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec vitest run test/assets/render-asset-preparation.test.ts`
+
+## task-0859 — Plan prepared texture/sampler dependency store boundary
+
+Completed: 2026-05-17
+
+Summary:
+
+- Added
+  `docs/research/PREPARED_TEXTURE_SAMPLER_DEPENDENCY_STORE_BOUNDARY_PLAN_2026_05_17.md`
+  to define how prepared material stores should depend on texture/sampler GPU
+  resources without owning them.
+- Documented boundary rules for source version keys, prepared texture/sampler
+  inputs, separate texture/sampler cache ownership, and JSON-safe diagnostics.
+- Added `task-0864` as the implementation follow-up for an explicitly named
+  prepared material texture/sampler dependency input.
+
+Validation run:
+
+- `pnpm exec prettier --write docs/research/PREPARED_TEXTURE_SAMPLER_DEPENDENCY_STORE_BOUNDARY_PLAN_2026_05_17.md`
+
+## task-0858 — Add prepared built-in material store unload summary coverage
+
+Completed: 2026-05-17
+
+Summary:
+
+- Added a focused prepared built-in material store test proving JSON-safe
+  summary counts update after removing and clearing family cache entries.
+- Confirmed no new public unload API was needed for this coverage slice.
+- Kept texture/sampler resources and Standard light resources outside prepared
+  material store ownership.
+
+Validation run:
+
+- `pnpm exec prettier --write test/webgpu/prepared-built-in-material-store.test.ts`
+- `pnpm exec vitest run test/webgpu/prepared-built-in-material-store.test.ts`
+
+## task-0857 — Audit store-aware built-in material adapter context
+
+Completed: 2026-05-17
+
+Summary:
+
+- Added
+  `docs/research/STORE_AWARE_BUILT_IN_MATERIAL_ADAPTER_CONTEXT_AUDIT_2026_05_17.md`
+  to verify the explicit prepared material store context did not change source
+  asset authority, `RenderSnapshot` semantics, adjacent resource ownership, or
+  public app report shape.
+- Confirmed adapter callbacks now receive `preparedMaterials` explicitly while
+  the callback cache view omits the prepared material store field.
+- Confirmed texture/sampler GPU resources, Standard group-3 light resources,
+  pipelines, frame-resource caches, and command submission remain outside
+  prepared material store ownership.
+
+Validation run:
+
+- `pnpm exec prettier --write docs/research/STORE_AWARE_BUILT_IN_MATERIAL_ADAPTER_CONTEXT_AUDIT_2026_05_17.md`
+
+## task-0856 — Add fallback diagnostics coverage for Matcap and Standard app helpers
+
+Completed: 2026-05-17
+
+Summary:
+
+- Extended the app frame-resource fallback diagnostics test file beyond unlit
+  to cover Matcap and Standard helper failures.
+- Added missing group-2 material layout coverage for Matcap and scalar Standard
+  prepared material fallback diagnostics.
+- Added missing prepared texture/sampler GPU resource coverage for Matcap and
+  base-color textured Standard fallback diagnostics.
+- Verified diagnostics expose material family, material key, fallback reason,
+  sanitized helper diagnostics, and no raw GPU handles.
+
+Validation run:
+
+- `pnpm exec prettier --write test/webgpu/unlit-app-frame-resources.test.ts`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec vitest run test/webgpu/unlit-app-frame-resources.test.ts`
+
+## task-0855 — Plan generic render-world prepared material store API
+
+Completed: 2026-05-17
+
+Summary:
+
+- Added
+  `docs/research/GENERIC_RENDER_WORLD_PREPARED_MATERIAL_STORE_API_PLAN_2026_05_17.md`
+  to define the smallest renderer-independent prepared material store facade for
+  `@aperture-engine/render`.
+- Planned a facade backed by `PreparedRenderAssetStore<"material",
+PreparedMaterialResourceDescriptor>` with prepare, get, list, remove, and
+  clear behavior.
+- Distinguished renderer-independent material metadata from WebGPU-owned
+  buffers, bind groups, texture/sampler GPU resources, and Standard light
+  resources.
+- Added `task-0860` as the implementation follow-up.
+
+Validation run:
+
+- `pnpm exec prettier --write docs/research/GENERIC_RENDER_WORLD_PREPARED_MATERIAL_STORE_API_PLAN_2026_05_17.md`
+
+## task-0853 through task-0854 — Store-aware adapter context and summary invalidation coverage
+
+Completed: 2026-05-17
+
+Completed task ids:
+
+- `task-0853` — Move built-in material adapter table into store-aware
+  preparation context.
+- `task-0854` — Add prepared material store invalidation summary tests.
+
+Summary:
+
+- Updated queued and single-material built-in material adapter frame preparation
+  options to receive an explicit `preparedMaterials` store context.
+- Hid `preparedMaterials` from the adapter callback cache view so callbacks use
+  the store context instead of reaching through app cache internals for material
+  buckets.
+- Added app-level assertions proving prepared material cache summary counts
+  update across source material, texture, and sampler source-version changes
+  while remaining JSON-safe.
+
+Validation run:
+
+- `pnpm exec tsc --noEmit -p packages/webgpu/tsconfig.json`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec vitest run test/webgpu/built-in-material-app-resource-adapter.test.ts test/webgpu/prepared-built-in-material-store.test.ts test/webgpu/webgpu-app.test.ts`
+
+## task-0852 — Audit prepared built-in material store boundary
+
+Completed: 2026-05-17
+
+Summary:
+
+- Added
+  `docs/research/PREPARED_BUILT_IN_MATERIAL_STORE_BOUNDARY_AUDIT_2026_05_17.md`
+  to verify the WebGPU-private prepared built-in material store does not change
+  ECS/source asset authority, `RenderSnapshot` semantics, public API shape, or
+  ownership of texture/sampler and Standard light resources.
+- Confirmed the store is not exported from the public WebGPU package surface
+  and only feeds JSON-safe prepared material summary counts.
+- Kept `task-0853` as the next implementation step and added `task-0857` as the
+  follow-up audit for the store-aware adapter context.
+
+Validation run:
+
+- `pnpm exec prettier --check docs/research/PREPARED_BUILT_IN_MATERIAL_STORE_BOUNDARY_AUDIT_2026_05_17.md agent/BACKLOG.md agent/COMPLETED.md`
+
+## task-0845 and task-0847 through task-0851 — Adapter-driven prepared material store and diagnostics
+
+Completed: 2026-05-17
+
+Completed task ids:
+
+- `task-0845` — Move built-in material preparation behind adapter registry.
+- `task-0847` — Add prepared material cache summary counters.
+- `task-0848` — Plan render-world prepared material store handoff.
+- `task-0849` — Audit post-adapter built-in material preparation route.
+- `task-0850` — Add prepared-material fallback diagnostics.
+- `task-0851` — Add WebGPU prepared built-in material store container.
+
+Summary:
+
+- Moved single built-in material app-frame resource preparation through the
+  internal queued built-in material family adapter table while preserving public
+  app reports and reuse counters.
+- Added JSON-safe prepared material cache summaries to WebGPU app resource reuse
+  reports without exposing raw GPU handles or cache internals.
+- Added
+  `docs/research/RENDER_WORLD_PREPARED_MATERIAL_STORE_HANDOFF_PLAN_2026_05_17.md`
+  to define the smallest next handoff from app-local prepared caches toward
+  render-world/prepared-asset ownership.
+- Added
+  `docs/research/POST_ADAPTER_BUILT_IN_MATERIAL_PREPARATION_ROUTE_AUDIT_2026_05_17.md`;
+  the audit found no source-asset, render-snapshot, texture/sampler, Standard
+  light, app report, or package-boundary drift.
+- Added sanitized prepared-material fallback diagnostics for unexpected helper
+  failures while keeping expected skipped routes silent.
+- Added a WebGPU-private prepared built-in material store that owns unlit,
+  Matcap, and Standard prepared material cache buckets and feeds the existing
+  summary report path.
+
+Validation run:
+
+- `pnpm exec tsc --noEmit -p packages/webgpu/tsconfig.json`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec vitest run test/webgpu/built-in-material-app-resource-adapter.test.ts test/webgpu/webgpu-app.test.ts`
+- `pnpm exec vitest run test/webgpu/prepared-app-material-resource.test.ts test/webgpu/unlit-app-frame-resources.test.ts test/webgpu/webgpu-app.test.ts`
+- `pnpm exec vitest run test/webgpu/prepared-built-in-material-store.test.ts test/webgpu/prepared-app-material-resource.test.ts test/webgpu/unlit-app-frame-resources.test.ts test/webgpu/built-in-material-app-resource-adapter.test.ts test/webgpu/webgpu-app.test.ts`
+- Final `pnpm run check` passed, including 228 Vitest files / 1063 tests.
+
 ## task-0846 — Built-in prepared-material fallback diagnostics plan
 
 Completed: 2026-05-17
