@@ -37,6 +37,11 @@ Completed `task-0636`, `task-0637`, `task-0638`, `task-0639`, `task-0640`,
 - Corrected the automation work-window documentation and stop-hook continuation
   reason to the actual 55-minute gate. The hook's conditional already blocked
   before minute 55; the emitted JSON reason and local agent prompts were stale.
+- Updated `agent/BACKLOG.md` to make the next higher-level focus explicit:
+  finish the generic renderer/material architecture spine before prioritizing
+  IBL, shadows, or GLB viewer work. The backlog now estimates roughly 18-24
+  focused tasks for a credible lit glTF render pipeline, plus another 6-10 if
+  "complete" includes environment-lit and shadowed PBR.
 - Backlog was corrected and refilled with `task-0643` through `task-0647`,
   avoiding duplicate PBR texture work already completed in earlier runs.
 

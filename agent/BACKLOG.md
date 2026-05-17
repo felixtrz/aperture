@@ -89,29 +89,58 @@ Remaining automation priority order:
 Defer allocation-only cleanup and metadata-only shader-contract tasks unless
 they are a direct blocker for this track.
 
-## Post-Queue Direction
+## Strategic Focus
 
-After the current ready queue, steer backlog refill toward full StandardMaterial
-PBR support and then a generic render pipeline/material queue. The near-term
-goal is not to add unrelated engine features; it is to turn the current
-specialized material proof path into the normal renderer architecture.
+The next focus area is the renderer/material architecture spine:
+
+```text
+source material asset
+  -> readiness diagnostics
+  -> render queue item
+  -> prepared WebGPU resources
+  -> pipeline and bind groups
+  -> draw submission
+```
+
+Do not prioritize IBL, shadows, a GLB viewer, or broader feature work until this
+spine is generic enough that new material families do not require another
+family-specific app route. The current renderer can already prove the ECS-to-
+WebGPU path with lit StandardMaterial content; the main risk now is letting the
+specialized proof path become permanent architecture.
 
 Preferred refill order after the current ready queue:
 
-1. StandardMaterial metallic-roughness texture rendering.
-2. StandardMaterial emissive and occlusion texture support.
-3. Color-space, UV-set, sampler, and material dependency diagnostics for the
-   above texture paths.
-4. Audit the expanded StandardMaterial path against glTF metallic-roughness
-   expectations.
-5. Replace narrow mixed-family app routing with a generic material-family render
-   queue.
-6. Add opaque phase queueing/sorting by pipeline, material, mesh, and depth.
-7. Add transparent phase sorting and render-state validation.
-8. Add render-world/prepared-asset contracts that make material preparation
-   generic instead of family-specific app branches.
-9. Add IBL/environment lighting for StandardMaterial.
-10. Add shadow-map passes and StandardMaterial shadow sampling.
+1. Finish generic material-family queue and preparation contracts inside the
+   existing WebGPU app/render-world path.
+2. Tighten StandardMaterial glTF metallic-roughness fidelity: texture
+   dependency diagnostics, sampler/color-space/UV behavior, alpha modes,
+   double-sided/cull behavior, and compatibility audits.
+3. Mature render-world/prepared-asset lifetime, cache reports, resource
+   invalidation, and hot-path allocation discipline for the material queue.
+4. Add IBL/environment lighting for StandardMaterial once source material and
+   prepared-resource contracts are stable.
+5. Add shadow-map passes and StandardMaterial shadow sampling after IBL or when
+   a focused proof point requires shadows.
+6. Bring GLB material mapping and viewer work forward only when it can target
+   real `StandardMaterial` and `UnlitMaterial` behavior without pretending
+   unsupported PBR features are rendered.
+
+Estimated remaining runway to a credible lit glTF render pipeline:
+
+- About 18-24 focused automation tasks for a production-shaped pipeline that can
+  load/map simple GLB materials and render lit metallic-roughness content with
+  honest diagnostics, assuming no major redesign is found.
+- About 10-14 of those tasks are renderer/material architecture work: generic
+  queue adapters, render-world prepared resources, phase sorting, resource
+  lifetime/cache reporting, warning guards, and audits.
+- About 5-7 tasks are StandardMaterial/glTF fidelity work: final dependency
+  diagnostics, sampler/color-space/UV/alpha/double-sided behavior, and browser
+  verification.
+- About 3-5 tasks are minimal GLB material mapping/viewer integration once the
+  above contracts are stable.
+- IBL and shadows can add another 6-10 tasks if "complete" means physically
+  plausible environment-lit and shadowed PBR rather than direct-lit glTF
+  metallic-roughness rendering.
 
 Keep GLB work narrow until StandardMaterial PBR is ready enough to map glTF
 materials honestly. GLB container parsing and diagnostics are fine, but GLB
