@@ -393,13 +393,15 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-17 12:23 PDT</dd>
+            <dd>2026-05-17 13:55 PDT</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
-            <dd>Frame-resource contract and texture fidelity example landed</dd>
+            <dd>
+              Diagnostics example summaries and route helper audits updated
+            </dd>
             <dt>Next focus</dt>
-            <dd>task-1002 prepared resource summary alignment plan</dd>
+            <dd>task-1046 route summary consumer plan</dd>
           </dl>
         </aside>
       </header>
@@ -422,9 +424,9 @@
         <div class="grid metrics">
           <article class="card metric">
             <div class="label">overall foundation</div>
-            <div class="value">42%</div>
-            <div class="bar" aria-label="42 percent complete">
-              <span style="width: 42%"></span>
+            <div class="value">43%</div>
+            <div class="bar" aria-label="43 percent complete">
+              <span style="width: 43%"></span>
             </div>
             <p>
               ECS, transforms, extraction, typed assets, diagnostics, and basic
@@ -441,8 +443,9 @@
             <p>
               The ECS-to-WebGPU spine is usable, app route reporting runs
               through the generic contract, and failed frame preparation now
-              reports key/status shells. Successful-frame reporting, richer
-              passes, and resource lifetime policy remain.
+              reports key/status shells. Prepared facade summaries now align
+              with render-world binding readiness. Richer passes and resource
+              lifetime policy remain.
             </p>
           </article>
           <article class="card metric">
@@ -453,21 +456,24 @@
             </div>
             <p>
               Unlit, Matcap, DebugNormal, and direct-lit StandardMaterial paths
-              are present, with aggregate texture fidelity diagnostics now
-              covered. glTF PBR texture fidelity is still incomplete.
+              are present, with aggregate texture and sampler fidelity
+              diagnostics now covered. glTF PBR texture fidelity is still
+              incomplete.
             </p>
           </article>
           <article class="card metric">
             <div class="label">diagnostics</div>
-            <div class="value">67%</div>
-            <div class="bar" aria-label="67 percent complete">
-              <span style="width: 67%"></span>
+            <div class="value">68%</div>
+            <div class="bar" aria-label="68 percent complete">
+              <span style="width: 68%"></span>
             </div>
             <p>
               JSON-safe reports now cover extraction, queues, app summaries,
               dependency readiness, texture fidelity, resource reuse,
-              render-state inspection, tracker freshness validation, and
-              example-level texture fidelity summary usage.
+              render-state inspection, prepared facade readiness, sampler
+              fidelity warnings and summaries, lifetime alignment summaries,
+              tracker freshness validation, and example-level texture fidelity
+              summary usage.
             </p>
           </article>
         </div>
@@ -499,12 +505,13 @@
                 <div class="label">render bridge</div>
                 <h3>extraction and snapshots</h3>
               </div>
-              <span class="percent">68%</span>
+              <span class="percent">69%</span>
             </div>
-            <div class="bar"><span style="width: 68%"></span></div>
+            <div class="bar"><span style="width: 69%"></span></div>
             <p>
               Snapshots, draw packets, lights, environments, bounds,
-              diagnostics, and render-world facade work are active.
+              diagnostics, and render-world prepared facade summaries are
+              active.
             </p>
           </article>
           <article class="card track">
@@ -623,13 +630,14 @@
           <article class="phase">
             <div class="topline">
               <h3>3. prepare</h3>
-              <span class="percent">69%</span>
+              <span class="percent">70%</span>
             </div>
-            <div class="bar"><span style="width: 69%"></span></div>
+            <div class="bar"><span style="width: 70%"></span></div>
             <p>
               Prepared mesh/material facades and WebGPU-private backend caches
-              exist for built-in material families, with texture fidelity
-              summaries now covered for StandardMaterial readiness data.
+              exist for built-in material families, with compact render-world
+              prepared resource summaries and StandardMaterial texture/sampler
+              fidelity diagnostics covered.
             </p>
             <ul>
               <li>Missing generic material-family preparation contract.</li>
@@ -891,22 +899,198 @@
                 <span class="badge green">task-1001</span> Audited texture
                 fidelity example usage boundaries.
               </li>
+              <li>
+                <span class="badge green">task-1002</span> Planned render-world
+                prepared resource summary alignment.
+              </li>
+              <li>
+                <span class="badge green">task-1003</span> Added prepared
+                resource summary coverage for render-world facade state.
+              </li>
+              <li>
+                <span class="badge green">task-1004</span> Audited prepared
+                resource summary boundaries.
+              </li>
+              <li>
+                <span class="badge green">task-1005</span> Planned
+                StandardMaterial sampler fidelity diagnostics.
+              </li>
+              <li>
+                <span class="badge green">task-1006</span> Audited diagnostics,
+                tracker, and backlog alignment.
+              </li>
+              <li>
+                <span class="badge green">task-1007</span> Added the
+                StandardMaterial sampler fidelity report.
+              </li>
+              <li>
+                <span class="badge green">task-1008</span> Documented sampler
+                fidelity diagnostics boundaries.
+              </li>
+              <li>
+                <span class="badge green">task-1009</span> Audited sampler
+                fidelity diagnostics boundaries.
+              </li>
+              <li>
+                <span class="badge green">task-1010</span> Planned generic
+                material-family preparation handoff implementation.
+              </li>
+              <li>
+                <span class="badge green">task-1011</span> Added generic
+                built-in frame-resource adapter helper coverage.
+              </li>
+              <li>
+                <span class="badge green">task-1012</span> Audited generic
+                material-family handoff boundaries.
+              </li>
+              <li>
+                <span class="badge green">task-1013</span> Planned prepared
+                resource lifetime summary cleanup.
+              </li>
+              <li>
+                <span class="badge green">task-1014</span> Added prepared
+                resource lifetime alignment summary coverage.
+              </li>
+              <li>
+                <span class="badge green">task-1015</span> Audited prepared
+                resource lifetime alignment boundaries.
+              </li>
+              <li>
+                <span class="badge green">task-1016</span> Planned generic
+                helper app integration.
+              </li>
+              <li>
+                <span class="badge green">task-1017</span> Wired app resource
+                append through the generic helper.
+              </li>
+              <li>
+                <span class="badge green">task-1018</span> Audited generic
+                helper app integration boundaries.
+              </li>
+              <li>
+                <span class="badge green">task-1019</span> Documented prepared
+                lifetime alignment summary boundaries.
+              </li>
+              <li>
+                <span class="badge green">task-1020</span> Planned sampler
+                fidelity summary aggregation.
+              </li>
+              <li>
+                <span class="badge green">task-1021</span> Added sampler
+                fidelity summary aggregation.
+              </li>
+              <li>
+                <span class="badge green">task-1022</span> Audited sampler
+                fidelity summary boundaries.
+              </li>
+              <li>
+                <span class="badge green">task-1023</span> Planned sampler
+                fidelity example usage.
+              </li>
+              <li>
+                <span class="badge green">task-1024</span> Added sampler
+                fidelity example summary usage.
+              </li>
+              <li>
+                <span class="badge green">task-1025</span> Audited sampler
+                fidelity example boundaries.
+              </li>
+              <li>
+                <span class="badge green">task-1026</span> Planned next generic
+                material-family app route migration.
+              </li>
+              <li>
+                <span class="badge green">task-1027</span> Audited tracker and
+                backlog completion estimates.
+              </li>
+              <li>
+                <span class="badge green">task-1028</span> Extracted queued
+                built-in frame-resource option helper.
+              </li>
+              <li>
+                <span class="badge green">task-1029</span> Audited
+                frame-resource option helper boundaries.
+              </li>
+              <li>
+                <span class="badge green">task-1030</span> Planned
+                texture/sampler dependency helper extraction.
+              </li>
+              <li>
+                <span class="badge green">task-1031</span> Extracted
+                texture/sampler dependency preparation helper.
+              </li>
+              <li>
+                <span class="badge green">task-1032</span> Audited
+                texture/sampler dependency helper boundaries.
+              </li>
+              <li>
+                <span class="badge green">task-1033</span> Planned final queued
+                built-in route helper composition.
+              </li>
+              <li>
+                <span class="badge green">task-1034</span> Added queued built-in
+                helper composition regression coverage.
+              </li>
+              <li>
+                <span class="badge green">task-1035</span> Audited queued
+                built-in helper composition boundaries.
+              </li>
+              <li>
+                <span class="badge green">task-1036</span> Planned
+                prepared/sampler diagnostics example consolidation.
+              </li>
+              <li>
+                <span class="badge green">task-1037</span> Added
+                prepared/lifetime diagnostics example summaries.
+              </li>
+              <li>
+                <span class="badge green">task-1038</span> Audited diagnostics
+                example summary boundaries.
+              </li>
+              <li>
+                <span class="badge green">task-1039</span> Planned next generic
+                material-family route contract slice.
+              </li>
+              <li>
+                <span class="badge green">task-1040</span> Audited tracker and
+                backlog alignment after diagnostics examples.
+              </li>
+              <li>
+                <span class="badge green">task-1041</span> Added compact
+                frame-resource route shell summary coverage.
+              </li>
+              <li>
+                <span class="badge green">task-1042</span> Audited
+                frame-resource route shell summary boundaries.
+              </li>
+              <li>
+                <span class="badge green">task-1043</span> Planned
+                StandardMaterial sampler readiness alignment follow-up.
+              </li>
+              <li>
+                <span class="badge green">task-1044</span> Added
+                StandardMaterial texture/sampler alignment summary coverage.
+              </li>
+              <li>
+                <span class="badge green">task-1045</span> Audited
+                StandardMaterial texture/sampler alignment boundaries.
+              </li>
             </ul>
           </article>
           <article class="card task-list">
             <h3>Recommended next tasks</h3>
             <ul>
               <li>
-                <span class="badge amber">task-1002</span> Plan render-world
-                prepared resource summary alignment.
+                <span class="badge amber">task-1046</span> Plan frame-resource
+                route summary diagnostics consumer.
               </li>
               <li>
-                <span class="badge amber">task-1003</span> Add render-world
-                prepared resource summary alignment coverage.
+                <span class="badge amber">task-1047</span> Audit route summary
+                diagnostics consumer boundaries.
               </li>
               <li>
-                <span class="badge amber">task-1004</span> Audit render-world
-                prepared resource summary boundaries.
+                Keep prepared, lifetime, texture, and sampler summaries opt-in
+                and outside default successful app-frame reports.
               </li>
               <li>
                 Keep this tracker updated after render-pipeline or

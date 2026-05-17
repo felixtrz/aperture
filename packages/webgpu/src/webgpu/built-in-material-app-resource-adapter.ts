@@ -46,6 +46,20 @@ export interface QueuedBuiltInFrameResourceBuckets {
   readonly standard: StandardFrameGpuResources[];
 }
 
+export type QueuedBuiltInFrameResourceAdapterStatus =
+  | "appended"
+  | "skipped"
+  | "failed";
+
+export interface QueuedBuiltInFrameResourceAdapterReport<
+  TDiagnostic = unknown,
+> {
+  readonly valid: boolean;
+  readonly status: QueuedBuiltInFrameResourceAdapterStatus;
+  readonly family: BuiltInMaterialQueueFamily;
+  readonly diagnostics: readonly TDiagnostic[];
+}
+
 export interface QueuedBuiltInAppResourceAdapter<TextureOptions, FrameOptions>
   extends
     BuiltInMaterialQueueRouteAdapter,
@@ -164,6 +178,63 @@ export function createQueuedBuiltInAppResourceFamilyAdapterTable<
         buckets.standard.push(resource as StandardFrameGpuResources);
       },
     },
+  };
+}
+
+export function createQueuedBuiltInFrameResourceViaAdapter<
+  FrameOptions,
+>(input: {
+  readonly adapter: Pick<
+    QueuedBuiltInAppResourceAdapter<unknown, FrameOptions>,
+    "kind" | "createFrameResources" | "appendFrameResource"
+  >;
+  readonly frameOptions: FrameOptions;
+  readonly buckets: QueuedBuiltInFrameResourceBuckets;
+}): QueuedBuiltInFrameResourceAdapterReport {
+  const result = input.adapter.createFrameResources(input.frameOptions);
+
+  return appendQueuedBuiltInFrameResourceViaAdapter({
+    adapter: input.adapter,
+    result,
+    buckets: input.buckets,
+  });
+}
+
+export function appendQueuedBuiltInFrameResourceViaAdapter(input: {
+  readonly adapter: Pick<
+    QueuedBuiltInAppResourceAdapter<unknown, unknown>,
+    "kind" | "appendFrameResource"
+  >;
+  readonly result: CreateQueuedBuiltInFamilyFrameResourcesResult;
+  readonly buckets: QueuedBuiltInFrameResourceBuckets;
+}): QueuedBuiltInFrameResourceAdapterReport {
+  const result = input.result;
+
+  if (!result.valid) {
+    return {
+      valid: false,
+      status: "failed",
+      family: input.adapter.kind,
+      diagnostics: result.diagnostics,
+    };
+  }
+
+  if (result.resources === null) {
+    return {
+      valid: true,
+      status: "skipped",
+      family: input.adapter.kind,
+      diagnostics: result.diagnostics,
+    };
+  }
+
+  input.adapter.appendFrameResource(result.resources, input.buckets);
+
+  return {
+    valid: true,
+    status: "appended",
+    family: input.adapter.kind,
+    diagnostics: result.diagnostics,
   };
 }
 

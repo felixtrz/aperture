@@ -1,5 +1,130 @@
 # Completed Tasks
 
+## task-1016 through task-1045 — Generic app route helpers, diagnostics examples, and helper-composition regression
+
+Completed: 2026-05-17
+
+Completed task ids:
+
+- `task-1016` — Plan generic built-in frame-resource helper app integration.
+- `task-1017` — Wire app resource append through the generic helper.
+- `task-1018` — Audit generic helper app integration boundaries.
+- `task-1019` — Confirm prepared lifetime alignment summary docs coverage.
+- `task-1020` — Plan sampler fidelity summary aggregation.
+- `task-1021` — Add sampler fidelity summary aggregation.
+- `task-1022` — Audit sampler fidelity summary boundaries.
+- `task-1023` — Plan sampler fidelity example usage.
+- `task-1024` — Add sampler fidelity example summary usage.
+- `task-1025` — Audit sampler fidelity example boundaries.
+- `task-1026` — Plan next generic material-family app route migration.
+- `task-1027` — Audit tracker and backlog completion estimates.
+- `task-1028` — Extract queued built-in frame-resource option helper.
+- `task-1029` — Audit frame-resource option helper boundaries.
+- `task-1030` — Plan texture/sampler dependency preparation helper extraction.
+- `task-1031` — Add texture/sampler dependency preparation helper coverage.
+- `task-1032` — Audit texture/sampler dependency preparation helper
+  boundaries.
+- `task-1033` — Plan final queued built-in app route helper composition.
+- `task-1034` — Add queued built-in helper composition regression.
+- `task-1035` — Audit queued built-in helper composition regression.
+- `task-1036` — Plan prepared/sampler diagnostics example consolidation.
+- `task-1037` — Add prepared/lifetime diagnostics example summary coverage.
+- `task-1038` — Audit diagnostics example summary boundaries.
+- `task-1039` — Plan next generic material-family route contract slice.
+- `task-1040` — Audit tracker/backlog alignment after diagnostics examples.
+- `task-1041` — Add next generic material-family route contract coverage.
+- `task-1042` — Audit next generic route contract boundaries.
+- `task-1043` — Plan StandardMaterial sampler readiness alignment follow-up.
+- `task-1044` — Add StandardMaterial sampler readiness alignment coverage.
+- `task-1045` — Audit StandardMaterial sampler readiness alignment boundaries.
+
+Summary:
+
+- Routed successful queued built-in frame resource appending through the generic
+  built-in adapter helper while preserving family buckets, failure diagnostics,
+  and successful-frame report shape.
+- Added `createStandardMaterialSamplerFidelitySummary()` in the WebGPU package
+  and exposed example-only sampler fidelity summary output in
+  `examples/app-diagnostics.js`.
+- Added `createPreparedResourceLifetimeAlignmentSummary()` and documented the
+  prepared facade/backend lifetime comparison boundary.
+- Extracted small named helpers for queued built-in frame-resource option
+  assembly and texture/sampler dependency preparation inside
+  `packages/webgpu/src/webgpu/app.ts`.
+- Added a mixed built-in WebGPU app regression proving successful helper-composed
+  frames omit route diagnostics while preserving creation and reuse counts.
+- Added example-owned prepared resource and prepared lifetime summaries to the
+  app diagnostics example with Playwright assertions for compact counts and
+  handle/GPU omission.
+- Planned the next generic route contract slice around a compact JSON-safe
+  frame-resource route shell summary helper and audited tracker/backlog
+  alignment.
+- Added the compact frame-resource route shell summary helper and tests proving
+  it omits facade/backend keys, raw diagnostics, and GPU handles.
+- Planned a render-package texture/sampler alignment summary helper that keeps
+  blocking readiness diagnostics separate from non-blocking sampler fidelity
+  warnings.
+- Added `createStandardMaterialTextureSamplerAlignmentSummary()` with tests and
+  diagnostics docs coverage.
+- Added implementation plans and boundary audits for each helper slice, keeping
+  ECS/source asset ownership separate from WebGPU prepared resources and cache
+  summaries.
+
+Validation run:
+
+- `pnpm exec vitest run test/rendering/render-world-prepared-resource-summary.test.ts test/materials/standard-sampler-fidelity.test.ts test/webgpu/built-in-material-app-resource-adapter.test.ts test/webgpu/prepared-resource-lifetime-alignment-summary.test.ts`
+- `pnpm exec vitest run test/webgpu/standard-material-sampler-fidelity-summary.test.ts`
+- `pnpm exec vitest run test/webgpu/built-in-material-app-resource-adapter.test.ts`
+- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts --testNamePattern "reuses unlit, standard, and matcap app resource cache slots|standardFrameResources.missingLights|routes scalar and textured StandardMaterial queue items"`
+- `pnpm exec playwright test test/e2e/app-diagnostics.spec.ts`
+- `node --check examples/app-diagnostics.js`
+- `pnpm exec tsc --noEmit -p packages/render/tsconfig.json`
+- `pnpm exec tsc --noEmit -p packages/webgpu/tsconfig.json`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm run check:examples`
+- `pnpm exec vitest run test/webgpu/queued-material-frame-resource-route.test.ts`
+- `pnpm exec vitest run test/materials/standard-texture-sampler-alignment.test.ts`
+
+## task-1002 through task-1015 — Prepared summaries, sampler fidelity, and generic adapter helpers
+
+Completed: 2026-05-17
+
+Completed task ids:
+
+- `task-1002` — Plan render-world prepared resource summary alignment.
+- `task-1003` — Add render-world prepared resource summary alignment coverage.
+- `task-1004` — Audit render-world prepared resource summary boundaries.
+- `task-1005` — Plan StandardMaterial sampler fidelity diagnostics coverage.
+- `task-1006` — Audit latest diagnostics/example tracker alignment.
+- `task-1007` — Add StandardMaterial sampler fidelity report.
+- `task-1008` — Document StandardMaterial sampler fidelity diagnostics.
+- `task-1009` — Audit StandardMaterial sampler fidelity boundaries.
+- `task-1010` — Plan generic material-family preparation handoff
+  implementation.
+- `task-1011` — Add generic material-family preparation handoff coverage.
+- `task-1012` — Audit generic material-family preparation handoff boundaries.
+- `task-1013` — Plan prepared resource lifetime summary cleanup.
+- `task-1014` — Add prepared resource lifetime alignment summary.
+- `task-1015` — Audit prepared resource lifetime alignment boundaries.
+
+Summary:
+
+- Added compact render-world prepared resource summaries in the render package,
+  keeping prepared facade counts separate from WebGPU backend cache summaries.
+- Added StandardMaterial sampler fidelity diagnostics for mip filtering, LOD
+  range, and anisotropy warnings without changing texture upload or app report
+  behavior.
+- Added a generic built-in frame-resource adapter helper that appends valid
+  family resources through adapter callbacks and returns a compact report shell
+  without raw resources.
+- Added prepared resource lifetime alignment summaries in the WebGPU package to
+  compare facade prepared counts with backend stale/missing/pending-destroy
+  resource counts.
+- Updated diagnostics docs, public trackers, backlog, and boundary audits.
+- Validation run: targeted render/material/WebGPU tests, render and WebGPU
+  package typechecks, test typecheck, progress tracker validation, and final
+  `pnpm run check` passed with 244 Vitest files / 1147 tests.
+
 ## task-0969, task-0970, task-0973, and task-0982 through task-1001 — Texture fidelity summaries, progress tracker validation, and frame-resource contracts
 
 Completed: 2026-05-17

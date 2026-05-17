@@ -59,9 +59,15 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start with `task-1002`. The generic frame-resource adapter result contract and
-texture fidelity example coverage are in place; the next step is to plan a
-small render-world prepared resource summary alignment slice.
+Start with `task-1046`. The latest run completed prepared facade summaries,
+sampler fidelity diagnostics/summaries/example usage, generic adapter helper app
+integration, lifetime alignment summaries, queued built-in app route helper
+extractions, helper-composition regression coverage, and tracker/backlog
+alignment. It also added example-owned prepared resource and lifetime alignment
+summaries to the diagnostics example and planned the next generic route contract
+slice. It then added compact frame-resource route shell summary coverage. The
+next step is deciding whether the new route shell summary needs a diagnostics
+consumer now.
 
 ## Near-Term Proof Point Track
 
@@ -78,11 +84,11 @@ Target proof point:
 
 Remaining automation priority order:
 
-1. `task-1002` — plan render-world prepared resource summary alignment.
-2. `task-1003` — add render-world prepared resource summary alignment coverage.
-3. `task-1004` — audit render-world prepared resource summary boundaries.
-4. `task-1005` — plan StandardMaterial sampler fidelity diagnostics coverage.
-5. `task-1006` — audit latest diagnostics/example tracker alignment.
+1. `task-1046` — plan frame-resource route summary diagnostics consumer.
+2. `task-1047` — audit route summary diagnostics consumer boundaries.
+3. `task-1048` — plan render-world prepared summary consumer shape.
+4. `task-1049` — add render-world prepared summary consumer coverage.
+5. `task-1050` — audit render-world prepared summary consumer boundaries.
 
 Defer allocation-only cleanup and metadata-only shader-contract tasks unless
 they are a direct blocker for this track.
@@ -148,89 +154,87 @@ viewer/material mapping should not outrun the material and queue architecture.
 
 ### Proof Point Critical Path
 
-### task-1002 — Plan render-world prepared resource summary alignment
+### task-1046 — Plan frame-resource route summary diagnostics consumer
 
 Category: `docs-tooling`
-Package/write-scope: `docs/research`, `agent/BACKLOG.md`, and tracker files if
-render-pipeline estimates change.
+Package/write-scope: `docs/research`, app diagnostics docs if needed, and
+backlog updates.
 Reference anchor:
-`packages/render/src/rendering`, `packages/webgpu/src/webgpu/resource-summary.ts`,
-current prepared mesh/material cache summaries, and Bevy render asset
-preparation patterns.
+`createQueuedMaterialFrameResourceRouteShellSummary()`,
+`webGpuApp.frameResourceRoute` failure diagnostics, and existing diagnostics
+example summary patterns.
 
 Acceptance criteria:
 
-- Plan identifies the smallest alignment slice between render-world prepared
-  resource summaries and WebGPU app resource summaries.
-- Plan keeps retained backend cache summaries separate from renderer-independent
-  prepared facade summaries.
-- Plan adds or confirms a focused implementation follow-up.
+- Plan decides whether the new route shell summary needs an example/test
+  consumer now or should remain helper-only.
+- Plan preserves successful app report shape and avoids default successful route
+  summaries.
+- Plan adds or defers a focused implementation follow-up.
 
-### task-1003 — Add render-world prepared resource summary alignment coverage
-
-Category: `webgpu-render`
-Package/write-scope: `packages/render`, `packages/webgpu/src/webgpu`, targeted
-tests, and tracker files if render-pipeline estimates change.
-Reference anchor:
-Plan from `task-1002`, existing prepared mesh/material facade summaries, and
-WebGPU resource summary helpers.
-
-Acceptance criteria:
-
-- Focused helper or tests align render-world prepared facade summary fields with
-  app resource summary expectations.
-- JSON output remains handle-safe and keeps backend cache data separate.
-- Targeted tests and relevant TypeScript validation pass.
-
-### task-1004 — Audit render-world prepared resource summary boundaries
+### task-1047 — Audit route summary diagnostics consumer boundaries
 
 Category: `audit-refactor`
-Package/write-scope: `docs/research`, `agent/BACKLOG.md`, and tracker files if
-render-pipeline estimates change.
+Package/write-scope: `docs/research`, tracker/backlog docs if needed, and
+targeted validation.
 Reference anchor:
-Implementation from `task-1003`, `docs/ARCHITECTURE.md`, `docs/DECISIONS.md`,
-and prepared resource summary tests.
+Implementation or deferral from `task-1046`, `docs/ARCHITECTURE.md`, and route
+summary tests.
 
 Acceptance criteria:
 
-- Audit verifies renderer-independent prepared summaries do not expose WebGPU
-  handles.
-- Audit verifies retained backend cache summaries remain separate.
-- Audit verifies no ECS/source ownership drift.
+- Audit verifies route summary consumption remains opt-in and JSON-safe.
+- Audit verifies no raw frame resources or backend cache maps enter app/example
+  reports.
+- Audit updates tracker/backlog status if route summary exposure changes.
 
-### task-1005 — Plan StandardMaterial sampler fidelity diagnostics coverage
+### task-1048 — Plan render-world prepared summary consumer shape
 
 Category: `docs-tooling`
-Package/write-scope: `docs/research`, `agent/BACKLOG.md`, and tracker files if
-diagnostics status changes.
+Package/write-scope: `docs/research`, diagnostics docs if needed, and backlog
+updates.
 Reference anchor:
-`packages/render/src/materials/gltf-sampler.ts`,
-`packages/render/src/materials/standard-texture-readiness.ts`,
-`docs/MEDIUM_LONG_TERM_GOALS.md`, and PlayCanvas/three.js sampler handling.
+`createRenderWorldPreparedResourceSummary()`, app diagnostics prepared summary
+usage, render-world binding helpers, and Bevy render asset preparation reports.
 
 Acceptance criteria:
 
-- Plan identifies the next narrow sampler fidelity gap, if any, after current
-  summary/example coverage.
-- Plan keeps scope out of texture upload, IBL, shadows, and broad PBR rewrites.
-- Plan adds, defers, or closes a concrete implementation follow-up.
+- Plan decides whether render-world prepared summaries need a reusable consumer
+  helper or should remain directly composed by examples/tests.
+- Plan keeps prepared facade summaries separate from WebGPU backend cache
+  summaries.
+- Plan adds or defers one concrete follow-up task.
 
-### task-1006 — Audit latest diagnostics/example tracker alignment
+### task-1049 — Add render-world prepared summary consumer coverage
+
+Category: `render-bridge`
+Package/write-scope: `packages/render`, diagnostics docs/examples if needed, and
+targeted tests.
+Reference anchor:
+Plan from `task-1048`, `createRenderWorldPreparedResourceSummary()`, and
+render-world binding/readiness helpers.
+
+Acceptance criteria:
+
+- Implements only the consumer shape selected in `task-1048`.
+- Prepared facade summaries remain separate from backend cache summaries.
+- Targeted tests and render package typecheck pass.
+
+### task-1050 — Audit render-world prepared summary consumer boundaries
 
 Category: `audit-refactor`
-Package/write-scope: `docs/research`, `docs/index.html`,
-`docs/render-pipeline-comparison.html`, `docs/DIAGNOSTICS_SUMMARIES.md`, and
-agent docs/backlog if needed.
+Package/write-scope: `docs/research`, tracker/backlog docs if needed, and
+targeted validation.
 Reference anchor:
-Latest diagnostics/example changes, progress tracker workflow, `docs/ARCHITECTURE.md`,
-and `docs/DECISIONS.md`.
+Implementation from `task-1049`, `docs/ARCHITECTURE.md`, and prepared resource
+summary tests.
 
 Acceptance criteria:
 
-- Audit verifies trackers, diagnostics docs, and backlog agree on the next
-  material/render direction.
-- Audit verifies no public app report behavior is overstated.
-- Any stale tracker wording is corrected.
+- Audit verifies no WebGPU backend cache state moved into render package
+  summaries.
+- Audit verifies summaries remain compact and JSON-safe.
+- Audit records the next concrete render-world/prepared-resource follow-up.
 
 ## Post-Unlit E2E Verification Targets
 

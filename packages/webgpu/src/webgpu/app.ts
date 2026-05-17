@@ -106,6 +106,7 @@ import {
 } from "./built-in-material-queue-family.js";
 import type { BuiltInMaterialAsset } from "./built-in-material-queue-adapter.js";
 import {
+  appendQueuedBuiltInFrameResourceViaAdapter,
   createQueuedBuiltInAppResourceAdapterRegistry,
   createQueuedBuiltInAppResourceFamilyAdapterTable,
   type QueuedBuiltInAppResourceAdapter,
@@ -1732,32 +1733,32 @@ async function prepareQueuedBuiltInFrameResources(options: {
         pipelineHandle.getBindGroupLayout.bind(pipelineHandle),
     });
     const textureSamplerDependencies =
-      createPreparedMaterialTextureSamplerDependencies(
-        adapter.prepareTextureSamplerResources({
-          app: options.app,
-          cache: options.cache,
-          item,
-          reuse: options.reuse,
-        }),
-      );
+      prepareQueuedBuiltInTextureSamplerDependencies({
+        adapter,
+        app: options.app,
+        cache: options.cache,
+        item,
+        reuse: options.reuse,
+      });
 
     if (!textureSamplerDependencies.valid) {
       diagnostics.push(...textureSamplerDependencies.diagnostics);
       continue;
     }
 
-    const resources = adapter.createFrameResources({
-      app: options.app,
-      cache: options.cache,
-      preparedMaterials: options.cache.preparedMaterials,
-      snapshot: options.snapshot,
-      item,
-      textureSamplerDependencies,
-      viewUniforms: options.viewUniforms,
-      worldTransforms: options.worldTransforms,
-      layouts,
-      reuse: options.reuse,
-    });
+    const resources = adapter.createFrameResources(
+      createQueuedBuiltInFrameResourceOptions({
+        app: options.app,
+        cache: options.cache,
+        snapshot: options.snapshot,
+        item,
+        textureSamplerDependencies,
+        viewUniforms: options.viewUniforms,
+        worldTransforms: options.worldTransforms,
+        layouts,
+        reuse: options.reuse,
+      }),
+    );
     const frameResourceRoute = createQueuedBuiltInFrameResourceRouteShell({
       item,
       resources: resources as {
@@ -1775,10 +1776,14 @@ async function prepareQueuedBuiltInFrameResources(options: {
     }
 
     firstResources ??= resources.resources;
-    adapter.appendFrameResource(resources.resources, {
-      unlit,
-      matcap,
-      standard,
+    appendQueuedBuiltInFrameResourceViaAdapter({
+      adapter,
+      result: resources,
+      buckets: {
+        unlit,
+        matcap,
+        standard,
+      },
     });
 
     if (!meshResources.has(resources.resources.mesh.resourceKey)) {
@@ -1838,6 +1843,48 @@ async function prepareQueuedBuiltInFrameResources(options: {
     firstPipeline,
     meshResourceKeys,
     materialResourceKeys,
+  };
+}
+
+function prepareQueuedBuiltInTextureSamplerDependencies(input: {
+  readonly adapter: QueuedBuiltInMaterialAdapter;
+  readonly app: WebGpuApp;
+  readonly cache: WebGpuAppResourceCache;
+  readonly item: QueuedBuiltInAppResourceItem;
+  readonly reuse: WebGpuAppResourceReuseReport;
+}): PreparedMaterialTextureSamplerDependencies {
+  return createPreparedMaterialTextureSamplerDependencies(
+    input.adapter.prepareTextureSamplerResources({
+      app: input.app,
+      cache: input.cache,
+      item: input.item,
+      reuse: input.reuse,
+    }),
+  );
+}
+
+function createQueuedBuiltInFrameResourceOptions(input: {
+  readonly app: WebGpuApp;
+  readonly cache: WebGpuAppResourceCache;
+  readonly snapshot: RenderSnapshot;
+  readonly item: QueuedBuiltInAppResourceItem;
+  readonly textureSamplerDependencies: PreparedMaterialTextureSamplerDependencies;
+  readonly viewUniforms: PackedSnapshotViewUniforms;
+  readonly worldTransforms: PackedSnapshotTransforms;
+  readonly layouts: WebGpuAppPipelineLayouts;
+  readonly reuse: WebGpuAppResourceReuseReport;
+}): QueuedBuiltInFrameResourcePreparationOptions {
+  return {
+    app: input.app,
+    cache: input.cache,
+    preparedMaterials: input.cache.preparedMaterials,
+    snapshot: input.snapshot,
+    item: input.item,
+    textureSamplerDependencies: input.textureSamplerDependencies,
+    viewUniforms: input.viewUniforms,
+    worldTransforms: input.worldTransforms,
+    layouts: input.layouts,
+    reuse: input.reuse,
   };
 }
 

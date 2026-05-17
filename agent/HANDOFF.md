@@ -2,6 +2,212 @@
 
 ## Latest Run Update
 
+Completed `task-1016` through `task-1045`. Recommended next task is
+`task-1046`.
+
+Completed task ids:
+
+- `task-1016` through `task-1045`
+
+Highlights:
+
+- Planned, implemented, and audited generic built-in frame-resource helper app
+  integration:
+  - Added `appendQueuedBuiltInFrameResourceViaAdapter()` in
+    `packages/webgpu/src/webgpu/built-in-material-app-resource-adapter.ts`.
+  - Updated the queued built-in app path to append valid unlit, matcap, and
+    StandardMaterial frame resources through the generic adapter helper while
+    preserving the existing `adapter.createFrameResources()` call site and
+    failure route diagnostics.
+- Added StandardMaterial sampler fidelity summary aggregation:
+  - Added `createStandardMaterialSamplerFidelitySummary()` in
+    `packages/webgpu/src/webgpu/standard-material-sampler-fidelity-summary.ts`.
+  - The helper aggregates sampler fidelity warning reports by field and issue
+    code without material, texture, sampler, or GPU handles.
+- Extended `examples/app-diagnostics.js` and Playwright coverage so the example
+  publishes example-owned sampler fidelity summary JSON while keeping app
+  reports unchanged.
+- Extracted small named helpers in `packages/webgpu/src/webgpu/app.ts` for
+  queued built-in frame-resource option assembly and texture/sampler dependency
+  preparation.
+- Planned final queued built-in app route helper composition and intentionally
+  deferred a larger composition helper until a concrete diagnostics or
+  allocation need appears.
+- Tightened mixed built-in WebGPU app regression coverage so successful
+  helper-composed frames still omit `webGpuApp.frameResourceRoute` and
+  `webGpuApp.materialQueueRouteReport` diagnostics while preserving creation and
+  reuse counts.
+- Planned, implemented, and audited app diagnostics example prepared/lifetime
+  summaries:
+  - The successful mixed-material scenario now exposes example-owned
+    `preparedResourceSummary` and `preparedLifetimeSummary` fields.
+  - Playwright verifies compact prepared/lifetime counts and omission of raw
+    handles/GPU strings.
+- Planned the next generic material-family route contract slice:
+  - The next implementation should add a compact JSON-safe frame-resource route
+    shell summary helper.
+  - A larger `prepareQueuedBuiltInFrameResources()` orchestration extraction was
+    explicitly deferred.
+- Audited tracker/backlog alignment after diagnostics example updates.
+- Added and audited `createQueuedMaterialFrameResourceRouteShellSummary()`:
+  - The helper summarizes frame-resource route shells using validity, status,
+    key-presence booleans, pipeline/frame facts, and diagnostic code counts.
+  - Tests prove the summary omits facade keys, backend keys, raw diagnostic
+    messages/resource keys, and GPU handles.
+- Planned StandardMaterial sampler readiness alignment:
+  - Keep sampler fidelity warnings separate from texture readiness blockers for
+    now.
+  - Next implementation should add a compact texture/sampler alignment summary
+    that consumes existing JSON-safe reports without changing rendering.
+- Added and audited `createStandardMaterialTextureSamplerAlignmentSummary()`:
+  - It pairs texture readiness and sampler fidelity report JSON.
+  - Tests verify deterministic field ordering and omission of texture/sampler
+    handles and GPU strings.
+- Added boundary audits for the helper app integration, sampler summary, sampler
+  example usage, option helper, dependency helper, final composition plan, and
+  helper-composition regression, plus the prepared/lifetime example summaries.
+- Updated `docs/index.html`, `docs/render-pipeline-comparison.html`,
+  `agent/BACKLOG.md`, and `agent/COMPLETED.md` with the latest completed work
+  and next ready tasks.
+
+Validation:
+
+- `pnpm exec vitest run test/rendering/render-world-prepared-resource-summary.test.ts test/materials/standard-sampler-fidelity.test.ts test/webgpu/built-in-material-app-resource-adapter.test.ts test/webgpu/prepared-resource-lifetime-alignment-summary.test.ts`
+- `pnpm exec vitest run test/webgpu/standard-material-sampler-fidelity-summary.test.ts`
+- `pnpm exec vitest run test/webgpu/built-in-material-app-resource-adapter.test.ts`
+- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts --testNamePattern "reuses unlit, standard, and matcap app resource cache slots|standardFrameResources.missingLights|routes scalar and textured StandardMaterial queue items"`
+- `pnpm exec playwright test test/e2e/app-diagnostics.spec.ts`
+- `node --check examples/app-diagnostics.js`
+- `pnpm exec vitest run test/webgpu/queued-material-frame-resource-route.test.ts`
+- `pnpm exec vitest run test/materials/standard-texture-sampler-alignment.test.ts`
+- `pnpm exec tsc --noEmit -p packages/render/tsconfig.json`
+- `pnpm exec tsc --noEmit -p packages/webgpu/tsconfig.json`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm run check:examples`
+
+- `pnpm run check` passed: package boundaries, progress tracker validation,
+  build/typecheck, test typecheck, examples syntax, lint, format check, and 245
+  Vitest files / 1149 tests.
+
+Reference files/patterns inspected:
+
+- Aperture anchors:
+  `packages/webgpu/src/webgpu/app.ts`,
+  `packages/webgpu/src/webgpu/built-in-material-app-resource-adapter.ts`,
+  `packages/webgpu/src/webgpu/queued-material-frame-resource-route.ts`,
+  `packages/webgpu/src/webgpu/queued-material-prepare-route.ts`,
+  `packages/render/src/rendering/render-world-prepared-resources.ts`,
+  `packages/render/src/materials/standard-sampler-fidelity.ts`,
+  `examples/app-diagnostics.js`, and `test/webgpu/webgpu-app.test.ts`.
+- Bevy anchors:
+  `references/bevy/crates/bevy_render/src/render_asset.rs`,
+  `references/bevy/crates/bevy_render/src/render_phase/mod.rs`,
+  `references/bevy/crates/bevy_pbr/src/material.rs`, and
+  `references/bevy/crates/bevy_pbr/src/material_bind_groups.rs`.
+
+Known issues / follow-ups:
+
+- No known validation failures so far.
+- Next task: `task-1046` plan frame-resource route summary diagnostics
+  consumer.
+- Keep prepared/lifetime/texture/sampler summaries opt-in and outside default
+  successful app-frame reports unless a future decision records a new app report
+  surface.
+
+## Previous Run Update
+
+Completed `task-1002` through `task-1015`. Recommended next task is
+`task-1016`.
+
+Completed task ids:
+
+- `task-1002` through `task-1015`
+
+Highlights:
+
+- Planned, implemented, and audited render-world prepared resource summary
+  alignment:
+  - Added `createRenderWorldPreparedResourceSummary()` in
+    `packages/render/src/rendering/render-world-prepared-resource-summary.ts`.
+  - The helper reports compact prepared mesh/material facade counts,
+    render-world binding counts, draw-readiness counts, and diagnostic severity
+    totals without backend cache state or GPU handles.
+- Planned, implemented, documented, and audited StandardMaterial sampler
+  fidelity diagnostics:
+  - Added `createStandardMaterialSamplerFidelityReport()` in
+    `packages/render/src/materials/standard-sampler-fidelity.ts`.
+  - It warns for mip filtering on single-mip textures, `lodMaxClamp` values
+    outside the texture mip range, and authored anisotropy that is not yet
+    reflected in StandardMaterial readiness diagnostics.
+- Planned, implemented, and audited the next generic material-family preparation
+  handoff slice:
+  - Added `createQueuedBuiltInFrameResourceViaAdapter()` in
+    `packages/webgpu/src/webgpu/built-in-material-app-resource-adapter.ts`.
+  - The helper creates frame resources through the generic built-in adapter,
+    appends valid resources into family buckets, and returns a compact report
+    shell without raw resources.
+- Planned, implemented, documented, and audited prepared resource lifetime
+  alignment summaries:
+  - Added `createPreparedResourceLifetimeAlignmentSummary()` in
+    `packages/webgpu/src/webgpu/prepared-resource-lifetime-alignment-summary.ts`.
+  - The helper compares prepared facade counts with backend resource summary
+    stale/missing/pending-destroy counts without merging ownership.
+- Updated `docs/DIAGNOSTICS_SUMMARIES.md`, `docs/index.html`, and
+  `docs/render-pipeline-comparison.html` for the new helpers and current next
+  task.
+- Refilled the ready backlog with `task-1016` through `task-1020`.
+
+Validation:
+
+- `pnpm exec vitest run test/rendering/render-world-prepared-resource-summary.test.ts test/materials/standard-sampler-fidelity.test.ts test/webgpu/built-in-material-app-resource-adapter.test.ts test/webgpu/prepared-resource-lifetime-alignment-summary.test.ts`
+- `pnpm exec tsc --noEmit -p packages/render/tsconfig.json`
+- `pnpm exec tsc --noEmit -p packages/webgpu/tsconfig.json`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm run check:progress`
+- `pnpm run check` passed: package boundaries, progress tracker validation,
+  build/typecheck, test typecheck, examples syntax, lint, format check, and 244
+  Vitest files / 1147 tests.
+
+Reference files/patterns inspected:
+
+- Aperture anchors:
+  `packages/render/src/rendering/render-world-prepared-resources.ts`,
+  `packages/render/src/rendering/render-world-prepared-meshes.ts`,
+  `packages/render/src/rendering/render-world-prepared-materials.ts`,
+  `packages/render/src/assets/preparation.ts`,
+  `packages/render/src/materials/gltf-sampler.ts`,
+  `packages/render/src/materials/standard-texture-readiness.ts`,
+  `packages/render/src/rendering/material-queue.ts`,
+  `packages/webgpu/src/webgpu/resource-summary.ts`,
+  `packages/webgpu/src/webgpu/resource-lifecycle.ts`,
+  `packages/webgpu/src/webgpu/built-in-material-app-resource-adapter.ts`, and
+  `packages/webgpu/src/webgpu/queued-material-prepare-route.ts`.
+- Bevy anchors:
+  `references/bevy/crates/bevy_render/src/render_asset.rs`,
+  `references/bevy/crates/bevy_render/src/render_phase/mod.rs`,
+  `references/bevy/crates/bevy_render/src/render_resource/bind_group.rs`,
+  `references/bevy/crates/bevy_pbr/src/material.rs`,
+  `references/bevy/crates/bevy_pbr/src/material_bind_groups.rs`, and
+  `references/bevy/crates/bevy_pbr/src/render/mesh.rs`.
+- three.js/PlayCanvas sampler anchors:
+  `references/three.js/examples/jsm/loaders/GLTFLoader.js`,
+  `references/three.js/src/textures/Texture.js`,
+  `references/three.js/src/renderers/webgl/WebGLTextures.js`,
+  `references/engine/src/framework/parsers/glb-parser.js`,
+  `references/engine/src/platform/graphics/texture.js`, and
+  `references/engine/src/scene/shader-lib/programs/standard.js`.
+
+Known issues / follow-ups:
+
+- No known validation failures.
+- Next task: `task-1016` plan generic built-in frame-resource helper app
+  integration.
+- The new lifetime alignment helper intentionally accepts a compact structural
+  facade summary shape so WebGPU typechecking is not coupled to fresh render
+  package declarations.
+
+## Previous Run Update
+
 Completed `task-0969`, `task-0970`, `task-0973`, and `task-0982` through
 `task-1001`. Recommended next task is `task-1002`.
 

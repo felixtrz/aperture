@@ -20,6 +20,7 @@ interface AppDiagnosticsStatus extends ExampleStatusBase {
     readonly mixedMaterialSuccess?: AppDiagnosticScenarioStatus;
   };
   readonly textureFidelitySummary?: AppDiagnosticTextureFidelitySummary;
+  readonly samplerFidelitySummary?: AppDiagnosticSamplerFidelitySummary;
 }
 
 interface AppDiagnosticScenarioStatus {
@@ -35,6 +36,8 @@ interface AppDiagnosticScenarioStatus {
   readonly failedResourceKeys?: readonly string[];
   readonly diagnosticCodes: readonly string[];
   readonly message: string;
+  readonly preparedResourceSummary?: AppDiagnosticPreparedResourceSummary;
+  readonly preparedLifetimeSummary?: AppDiagnosticPreparedLifetimeSummary;
   readonly report: {
     readonly ok: boolean;
     readonly counts: {
@@ -101,6 +104,65 @@ interface AppDiagnosticTextureFidelitySummary {
   readonly semanticIssueCount: number;
   readonly texCoordIssueCount: number;
   readonly transformIssueCount: number;
+}
+
+interface AppDiagnosticSamplerFidelitySummary {
+  readonly materialCount: number;
+  readonly readyMaterialCount: number;
+  readonly blockedMaterialCount: number;
+  readonly slotCount: number;
+  readonly warningCount: number;
+  readonly byField: readonly {
+    readonly field: string;
+    readonly slotCount: number;
+    readonly warningCount: number;
+  }[];
+  readonly byIssue: readonly {
+    readonly code: string;
+    readonly count: number;
+  }[];
+  readonly mipmapIssueCount: number;
+  readonly lodIssueCount: number;
+  readonly anisotropyIssueCount: number;
+}
+
+interface AppDiagnosticPreparedResourceSummary {
+  readonly preparedMeshes: { readonly totalEntries: number };
+  readonly preparedMaterials: {
+    readonly totalEntries: number;
+    readonly families: Record<string, { readonly entries: number }>;
+  };
+  readonly bindings: {
+    readonly meshes: { readonly present: boolean };
+    readonly materials: { readonly present: boolean };
+  };
+  readonly drawReadiness: {
+    readonly present: boolean;
+    readonly ready: number;
+    readonly blocked: number;
+  };
+  readonly diagnostics: {
+    readonly total: number;
+    readonly warnings: number;
+    readonly errors: number;
+  };
+}
+
+interface AppDiagnosticPreparedLifetimeSummary {
+  readonly facade: {
+    readonly preparedMeshes: number;
+    readonly preparedMaterials: number;
+    readonly readyDraws: number;
+    readonly blockedDraws: number;
+  };
+  readonly backend: {
+    readonly meshResources: number;
+    readonly materialBuffers: number;
+    readonly staleResources: number;
+    readonly missingResources: number;
+    readonly pendingDestroyResources: number;
+  };
+  readonly diagnostics: readonly unknown[];
 }
 
 test("app diagnostics example exposes app-facade failure reports", async ({
@@ -237,8 +299,14 @@ test("app diagnostics example exposes app-facade failure reports", async ({
     },
   });
   expect(success?.diagnosticCodes).toEqual([]);
+  expectPreparedResourceSummary(success?.preparedResourceSummary);
+  expectPreparedResourceSummaryOmitsHandles(success?.preparedResourceSummary);
+  expectPreparedLifetimeSummary(success?.preparedLifetimeSummary);
+  expectPreparedLifetimeSummaryOmitsHandles(success?.preparedLifetimeSummary);
   expectTextureFidelitySummary(status.textureFidelitySummary);
   expectTextureFidelitySummaryOmitsHandles(status.textureFidelitySummary);
+  expectSamplerFidelitySummary(status.samplerFidelitySummary);
+  expectSamplerFidelitySummaryOmitsHandles(status.samplerFidelitySummary);
 
   await page.waitForTimeout(100);
 
@@ -353,6 +421,126 @@ function expectTextureFidelitySummaryOmitsHandles(
     "example-normal",
     "example-emissive",
     "sampler:",
+    "GPU",
+  ]) {
+    expect(serialized).not.toContain(substring);
+  }
+}
+
+function expectSamplerFidelitySummary(
+  summary: AppDiagnosticSamplerFidelitySummary | undefined,
+): void {
+  expect(summary).toMatchObject({
+    materialCount: 1,
+    readyMaterialCount: 1,
+    blockedMaterialCount: 0,
+    slotCount: 2,
+    warningCount: 3,
+    mipmapIssueCount: 1,
+    lodIssueCount: 1,
+    anisotropyIssueCount: 1,
+  });
+  expect(summary?.byField).toEqual([
+    { field: "baseColorTexture", slotCount: 1, warningCount: 2 },
+    { field: "normalTexture", slotCount: 1, warningCount: 1 },
+  ]);
+  expect(summary?.byIssue.map((issue) => issue.code)).toEqual([
+    "standardMaterialSampler.anisotropyNotReported",
+    "standardMaterialSampler.lodMaxExceedsMipRange",
+    "standardMaterialSampler.mipmapFilterWithoutMips",
+  ]);
+}
+
+function expectSamplerFidelitySummaryOmitsHandles(
+  summary: AppDiagnosticSamplerFidelitySummary | undefined,
+): void {
+  const serialized = JSON.stringify(summary);
+
+  for (const substring of [
+    "example-standard-sampler-fidelity",
+    "texture:",
+    "sampler:",
+    "GPU",
+  ]) {
+    expect(serialized).not.toContain(substring);
+  }
+}
+
+function expectPreparedResourceSummary(
+  summary: AppDiagnosticPreparedResourceSummary | undefined,
+): void {
+  expect(summary).toMatchObject({
+    preparedMeshes: { totalEntries: 1 },
+    preparedMaterials: {
+      totalEntries: 2,
+      families: {
+        unlit: { entries: 1 },
+        matcap: { entries: 1 },
+        standard: { entries: 0 },
+      },
+    },
+    bindings: {
+      meshes: { present: false },
+      materials: { present: false },
+    },
+    drawReadiness: {
+      present: true,
+      ready: 2,
+      blocked: 0,
+    },
+    diagnostics: {
+      total: 0,
+      warnings: 0,
+      errors: 0,
+    },
+  });
+}
+
+function expectPreparedResourceSummaryOmitsHandles(
+  summary: AppDiagnosticPreparedResourceSummary | undefined,
+): void {
+  const serialized = JSON.stringify(summary);
+
+  for (const substring of [
+    "diagnostic-mixed-success-cube",
+    "diagnostic-success-unlit",
+    "diagnostic-success-matcap",
+    "GPU",
+  ]) {
+    expect(serialized).not.toContain(substring);
+  }
+}
+
+function expectPreparedLifetimeSummary(
+  summary: AppDiagnosticPreparedLifetimeSummary | undefined,
+): void {
+  expect(summary).toEqual({
+    facade: {
+      preparedMeshes: 1,
+      preparedMaterials: 2,
+      readyDraws: 2,
+      blockedDraws: 0,
+    },
+    backend: {
+      meshResources: 1,
+      materialBuffers: 2,
+      staleResources: 0,
+      missingResources: 0,
+      pendingDestroyResources: 0,
+    },
+    diagnostics: [],
+  });
+}
+
+function expectPreparedLifetimeSummaryOmitsHandles(
+  summary: AppDiagnosticPreparedLifetimeSummary | undefined,
+): void {
+  const serialized = JSON.stringify(summary);
+
+  for (const substring of [
+    "diagnostic-mixed-success-cube",
+    "diagnostic-success-unlit",
+    "diagnostic-success-matcap",
     "GPU",
   ]) {
     expect(serialized).not.toContain(substring);

@@ -2691,7 +2691,7 @@ describe("WebGPU app facade", () => {
     expect(events).not.toContain("queue:submit:1");
   });
 
-  it("reuses unlit, standard, and matcap app resource cache slots in one shared-mesh frame", async () => {
+  it("reuses unlit, standard, and matcap app resource cache slots without successful route diagnostics", async () => {
     const events: string[] = [];
     const { canvas, environment } = webGpuHarness(events);
     const created = await createWebGpuApp({
@@ -2805,6 +2805,8 @@ describe("WebGPU app facade", () => {
       drawCalls: 3,
       diagnostics: 0,
     });
+    expectNoMaterialQueueRouteReport(frame);
+    expectNoFrameResourceRouteDiagnostic(frame);
     expect(frame.resourceReuse).toMatchObject({
       pipelineMisses: 3,
       meshBuffersCreated: 1,
@@ -2884,6 +2886,13 @@ describe("WebGPU app facade", () => {
     )[0];
 
     expect(secondFrame.ok).toBe(true);
+    expect(secondFrame.counts).toMatchObject({
+      meshDraws: 3,
+      drawCalls: 3,
+      diagnostics: 0,
+    });
+    expectNoMaterialQueueRouteReport(secondFrame);
+    expectNoFrameResourceRouteDiagnostic(secondFrame);
     expect(secondFrame.resourceReuse).toMatchObject({
       pipelineHits: 3,
       pipelineMisses: 0,
@@ -2932,6 +2941,13 @@ describe("WebGPU app facade", () => {
     const transformLightFrame = await app.stepAndRender(1 / 60, 3, 40);
 
     expect(transformLightFrame.ok).toBe(true);
+    expect(transformLightFrame.counts).toMatchObject({
+      meshDraws: 3,
+      drawCalls: 3,
+      diagnostics: 0,
+    });
+    expectNoMaterialQueueRouteReport(transformLightFrame);
+    expectNoFrameResourceRouteDiagnostic(transformLightFrame);
     expect(transformLightFrame.resourceReuse).toMatchObject({
       pipelineHits: 3,
       pipelineMisses: 0,

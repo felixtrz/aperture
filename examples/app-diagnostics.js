@@ -65,6 +65,8 @@ try {
               },
               textureFidelitySummary:
                 createExampleTextureFidelitySummary(aperture),
+              samplerFidelitySummary:
+                createExampleSamplerFidelitySummary(aperture),
               diagnosticCodes: [
                 ...mixedMaterials.status.diagnosticCodes,
                 ...materialDependencies.status.diagnosticCodes,
@@ -252,10 +254,19 @@ async function runMixedMaterialSuccessScenario(aperture, canvasElement) {
     clearColor,
     label: "app-diagnostics-mixed-material-success",
   });
+  const preparedSummaries = createExamplePreparedResourceSummaries(aperture, {
+    registry: app.assets,
+    mesh,
+    materials: [unlitMaterial, matcapMaterial],
+    report,
+  });
 
   return {
     ready: true,
-    status: successScenarioStatus(aperture, "mixed-material-success", report),
+    status: successScenarioStatus(aperture, "mixed-material-success", report, {
+      preparedResourceSummary: preparedSummaries.preparedResourceSummary,
+      preparedLifetimeSummary: preparedSummaries.preparedLifetimeSummary,
+    }),
   };
 }
 
@@ -466,7 +477,7 @@ function scenarioStatus(aperture, caseId, expectedDiagnostic, report) {
   };
 }
 
-function successScenarioStatus(aperture, caseId, report) {
+function successScenarioStatus(aperture, caseId, report, summaries = {}) {
   const reportJson = aperture.webGpuAppRenderReportToJsonValue(report);
   const diagnosticCodes = reportJson.diagnostics
     .map((diagnostic) =>
@@ -487,7 +498,76 @@ function successScenarioStatus(aperture, caseId, report) {
     message: report.ok
       ? "Mixed material-family app rendering submitted successfully."
       : "Mixed material-family app rendering did not submit.",
+    ...summaries,
     report: reportJson,
+  };
+}
+
+function createExamplePreparedResourceSummaries(
+  aperture,
+  { registry, mesh, materials, report },
+) {
+  const preparedMeshes = aperture.createPreparedMeshStore();
+  const preparedMaterials = aperture.createPreparedMaterialStore();
+
+  preparedMeshes.prepare({ registry, handle: mesh });
+
+  for (const material of materials) {
+    preparedMaterials.prepare({ registry, handle: material });
+  }
+
+  const preparedResourceSummary =
+    aperture.createRenderWorldPreparedResourceSummary({
+      meshes: preparedMeshes,
+      materials: preparedMaterials,
+      drawReadiness: {
+        ready: report.ok ? report.snapshot.meshDraws : [],
+        blocked: report.ok ? [] : report.snapshot.meshDraws,
+        diagnostics: [],
+      },
+    });
+  const preparedLifetimeSummary =
+    aperture.createPreparedResourceLifetimeAlignmentSummary({
+      facade: preparedResourceSummary,
+      backend: createExampleBackendResourceSummary(
+        aperture.webGpuAppRenderReportToJsonValue(report),
+        preparedResourceSummary,
+      ),
+    });
+
+  return {
+    preparedResourceSummary,
+    preparedLifetimeSummary,
+  };
+}
+
+function createExampleBackendResourceSummary(reportJson, preparedSummary) {
+  const reuse = reportJson.resourceReuse ?? {};
+
+  return {
+    counts: {
+      meshResources: preparedSummary.preparedMeshes.totalEntries,
+      meshVertexBuffers: preparedSummary.preparedMeshes.totalEntries,
+      meshIndexBuffers: preparedSummary.preparedMeshes.totalEntries,
+      materialBuffers: preparedSummary.preparedMaterials.totalEntries,
+      textures: reuse.textureResourcesCreated ?? 0,
+      samplers: reuse.samplerResourcesCreated ?? 0,
+      lightBuffers: reuse.lightBuffersCreated ?? 0,
+      lightGpuBuffers: reuse.lightBuffersCreated ?? 0,
+      lightBindGroups: 0,
+      environmentMaps: 0,
+      viewUniformBuffers: 1,
+      shaderModules: 0,
+      pipelineHits: reuse.pipelineHits ?? 0,
+      pipelineMisses: reuse.pipelineMisses ?? 0,
+      inspectedResources: 0,
+      staleResources: 0,
+      missingResources: 0,
+      pendingDestroyResources: 0,
+      warnings: 0,
+      errors: 0,
+    },
+    diagnostics: [],
   };
 }
 
@@ -561,6 +641,63 @@ function textureFidelityDiagnostic(code, field) {
     textureKey: `texture:${field}`,
     samplerKey: `sampler:${field}`,
     message: `${field} produced a texture fidelity issue.`,
+  };
+}
+
+function createExampleSamplerFidelitySummary(aperture) {
+  return aperture.createStandardMaterialSamplerFidelitySummary([
+    {
+      ready: true,
+      materialKey: "material:example-standard-sampler-fidelity",
+      materialStatus: "ready",
+      materialKind: "standard",
+      slots: [
+        samplerFidelitySlot("baseColorTexture", 2),
+        samplerFidelitySlot("normalTexture", 1),
+      ],
+      diagnostics: [
+        samplerFidelityDiagnostic(
+          "standardMaterialSampler.mipmapFilterWithoutMips",
+          "baseColorTexture",
+        ),
+        samplerFidelityDiagnostic(
+          "standardMaterialSampler.lodMaxExceedsMipRange",
+          "baseColorTexture",
+        ),
+        samplerFidelityDiagnostic(
+          "standardMaterialSampler.anisotropyNotReported",
+          "normalTexture",
+        ),
+      ],
+    },
+  ]);
+}
+
+function samplerFidelitySlot(field, warningCount) {
+  return {
+    field,
+    textureKey: `texture:${field}`,
+    samplerKey: `sampler:${field}`,
+    mipLevelCount: 1,
+    magFilter: "linear",
+    minFilter: "linear",
+    mipmapFilter: "linear",
+    lodMinClamp: 0,
+    lodMaxClamp: 32,
+    maxAnisotropy: field === "normalTexture" ? 8 : 1,
+    warningCount,
+  };
+}
+
+function samplerFidelityDiagnostic(code, field) {
+  return {
+    code,
+    severity: "warning",
+    materialKey: "material:example-standard-sampler-fidelity",
+    field,
+    textureKey: `texture:${field}`,
+    samplerKey: `sampler:${field}`,
+    message: `${field} produced a sampler fidelity issue.`,
   };
 }
 
