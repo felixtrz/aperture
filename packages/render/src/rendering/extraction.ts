@@ -22,6 +22,7 @@ import {
 } from "@aperture-engine/simulation";
 import {
   createMaterialPipelineKeyInput,
+  createStandardMaterialNormalMapTangentReadinessReport,
   type SamplerAsset,
   type MaterialAsset,
   type TextureAsset,
@@ -536,6 +537,18 @@ function extractMeshDraws(
         createStableRenderId(entityRef(entity)) + submesh.materialSlot;
       const materialKey = assetHandleKey(materialHandle);
       const meshKey = assetHandleKey(meshHandle);
+      const normalMapReadiness = validateStandardNormalMapReadiness({
+        mesh: meshEntry.asset,
+        material: materialEntry.asset,
+        meshKey,
+        materialKey,
+        entity,
+        diagnostics,
+      });
+
+      if (!normalMapReadiness) {
+        continue;
+      }
 
       draws.push({
         renderId: stableId,
@@ -572,6 +585,42 @@ function extractMeshDraws(
   }
 
   return draws;
+}
+
+function validateStandardNormalMapReadiness(input: {
+  readonly mesh: MeshAsset;
+  readonly material: MaterialAsset;
+  readonly meshKey: string;
+  readonly materialKey: string;
+  readonly entity: Entity;
+  readonly diagnostics: RenderDiagnostic[];
+}): boolean {
+  if (input.material.kind !== "standard") {
+    return true;
+  }
+
+  const report = createStandardMaterialNormalMapTangentReadinessReport({
+    mesh: input.mesh,
+    material: input.material,
+    meshKey: input.meshKey,
+    materialKey: input.materialKey,
+  });
+
+  if (report.ready) {
+    return true;
+  }
+
+  for (const readinessDiagnostic of report.diagnostics) {
+    input.diagnostics.push({
+      code: `render.${readinessDiagnostic.code}`,
+      severity: readinessDiagnostic.severity,
+      entity: entityRef(input.entity),
+      assetKey: input.materialKey,
+      message: readinessDiagnostic.message,
+    });
+  }
+
+  return false;
 }
 
 function validateMaterialTextureDependencies(

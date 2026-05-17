@@ -18,6 +18,12 @@ export type BuiltInShaderBindingId =
   | "lightMetadata"
   | "baseColorTexture"
   | "baseColorSampler"
+  | "metallicRoughnessTexture"
+  | "metallicRoughnessSampler"
+  | "occlusionTexture"
+  | "occlusionSampler"
+  | "emissiveTexture"
+  | "emissiveSampler"
   | "matcapTexture"
   | "matcapSampler";
 

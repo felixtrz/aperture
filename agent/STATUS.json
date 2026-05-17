@@ -1,10 +1,10 @@
 {
   "state": "idle",
   "currentTaskId": null,
-  "lastRunStartedAt": "2026-05-17T00:02:16Z",
+  "lastRunStartedAt": "2026-05-17T02:03:11Z",
   "lastResult": "success",
   "lastCommit": "0b6a5ef",
   "activePid": null,
-  "notes": "Completed tasks 0610-0616. Next ready task is task-0617: render StandardMaterial metallic-roughness textures.",
-  "lastRunFinishedAt": "2026-05-17T01:45:24Z"
+  "notes": "Completed task-0617 through task-0620 plus audit task-0622 and queue sort coverage task-0623. Next recommended task: task-0621 integrate opaque material queue app routing.",
+  "lastRunFinishedAt": "2026-05-17T02:45:36Z"
 }

@@ -7,3 +7,4 @@ export * from "./matcap-preparation.js";
 export * from "./pipeline-key.js";
 export * from "./unlit-packing.js";
 export * from "./standard-proof-point.js";
+export * from "./standard-normal-map-readiness.js";

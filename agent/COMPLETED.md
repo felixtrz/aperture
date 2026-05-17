@@ -15,6 +15,147 @@ Summary:
 - Validation run.
 - Follow-up tasks added.
 
+## task-0623 — Add transparent material queue sorting
+
+Completed: 2026-05-17
+
+Summary:
+
+- Added focused material-queue coverage proving phase ordering keeps opaque
+  first, alpha-test second, and transparent last.
+- Locked transparent ordering to back-to-front depth sorting while preserving
+  input order for otherwise identical transparent sort keys.
+- Confirmed the existing opaque grouping behavior from `task-0619` remains
+  unchanged.
+- Important files: `test/rendering/material-queue.test.ts`.
+- Validation run: `pnpm exec vitest run test/rendering/material-queue.test.ts`
+  and `pnpm exec tsc --noEmit -p tsconfig.test.json` passed.
+- Follow-up task added: none.
+
+## task-0622 — Audit material queue and PBR texture drift
+
+Completed: 2026-05-17
+
+Summary:
+
+- Audited the new material-family queue contract and StandardMaterial
+  emissive/occlusion texture path against the North Star, architecture,
+  decision log, and Bevy/three.js/PlayCanvas reference patterns.
+- Confirmed queue items remain snapshot-derived and JSON-safe, with no WebGPU
+  handles, renderer-owned gameplay state, or hidden scene graph ownership.
+- Confirmed StandardMaterial emissive/occlusion support stays in
+  `@aperture-engine/webgpu`; renderer-independent packages expose only source
+  handles, dependency data, and serializable diagnostics.
+- Important files:
+  `docs/research/MATERIAL_QUEUE_PBR_TEXTURE_AUDIT_2026_05_17.md`,
+  `agent/BACKLOG.md`.
+- Validation run: `pnpm run check:boundaries` passed; full `pnpm run check`
+  passed after `task-0620`.
+- Follow-up tasks added: `task-0623`, `task-0624`, `task-0625`, and
+  `task-0626`.
+
+## task-0620 — Render StandardMaterial emissive and occlusion textures
+
+Completed: 2026-05-17
+
+Summary:
+
+- Promoted StandardMaterial emissive and occlusion textures from deferred proof
+  point features to supported WebGPU-rendered features.
+- Added shader generation, binding metadata, pipeline/cache-key layout
+  specialization, app texture/sampler preparation, resource reuse tests, and
+  blocked dependency diagnostics for emissive and occlusion textures.
+- Updated the material showcase Standard cube to use base-color,
+  metallic-roughness, occlusion, and emissive textures, giving the browser app
+  path Playwright pixel coverage.
+- Important files: `packages/webgpu/src/webgpu/standard-shader.ts`,
+  `packages/webgpu/src/webgpu/standard-pipeline-descriptor.ts`,
+  `packages/webgpu/src/webgpu/app.ts`,
+  `packages/render/src/materials/standard-proof-point.ts`,
+  `examples/materials-showcase.js`, `test/webgpu/webgpu-app.test.ts`,
+  `test/e2e/materials-showcase.spec.ts`.
+- Validation run: focused StandardMaterial/WebGPU app tests,
+  `pnpm run check:examples`,
+  `pnpm exec playwright test test/e2e/materials-showcase.spec.ts`,
+  `pnpm run build`, `pnpm run lint`, `pnpm run format:check`, and
+  `pnpm run check` passed: 169 test files / 811 tests.
+- Follow-up tasks added: none directly; continue with `task-0621`.
+
+## task-0619 — Add a generic material-family render queue contract
+
+Completed: 2026-05-17
+
+Summary:
+
+- Added a snapshot-level material queue contract in `@aperture-engine/render`
+  that identifies material family, pipeline key, mesh/material source keys,
+  prepared resource keys, phase, draw index, depth, and sort data without
+  carrying WebGPU handles.
+- Queue building consumes `RenderSnapshot.meshDraws` plus prepared
+  resource-key resolvers and emits JSON-safe diagnostics for unknown material
+  families and missing prepared resources.
+- Added stable opaque sorting by pipeline, material resource, mesh resource,
+  depth, stable ID, and draw index.
+- Important files:
+  `packages/render/src/rendering/material-queue.ts`,
+  `packages/render/src/rendering/index.ts`,
+  `test/rendering/material-queue.test.ts`.
+- Validation run: focused material queue tests, `pnpm exec tsc --noEmit -p
+tsconfig.test.json`, `pnpm run build`, `pnpm run lint`,
+  `pnpm run format:check`, and `pnpm run check` passed.
+- Follow-up tasks added: `task-0621`.
+
+## task-0618 — Add StandardMaterial normal-map tangent diagnostics
+
+Completed: 2026-05-17
+
+Summary:
+
+- Added renderer-independent StandardMaterial normal-map tangent readiness
+  reporting with JSON helpers and diagnostics for authored normal maps on
+  meshes without tangent data.
+- Render extraction now blocks StandardMaterial normal-map draws that lack
+  required tangents and emits JSON-safe render diagnostics.
+- StandardMaterial pipeline planning records the normal-map specialization key
+  while keeping actual normal-map rendering deferred.
+- Important files:
+  `packages/render/src/materials/standard-normal-map-readiness.ts`,
+  `packages/render/src/rendering/extraction.ts`,
+  `packages/webgpu/src/webgpu/standard-pipeline-descriptor.ts`,
+  `test/materials/standard-normal-map-readiness.test.ts`,
+  `test/rendering/extraction.test.ts`.
+- Validation run: focused readiness/extraction/pipeline tests,
+  `pnpm run build`, `pnpm exec tsc --noEmit -p tsconfig.test.json`, and
+  `pnpm run check` passed: 168 test files / 800 tests.
+- Follow-up task added: `task-0624`.
+
+## task-0617 — Render StandardMaterial metallic-roughness textures
+
+Completed: 2026-05-17
+
+Summary:
+
+- Added StandardMaterial metallic-roughness texture sampling using roughness
+  from the green channel and metallic from the blue channel, multiplied by
+  authored scalar factors.
+- Added factor-only/base-color/metallic-roughness/base+metallic-roughness
+  shader and pipeline specialization, group-2 binding/layout keys, app
+  texture/sampler preparation, and dependency diagnostics.
+- Updated the material showcase Standard cube and Playwright expectations for
+  the metallic-roughness texture path.
+- Important files: `packages/webgpu/src/webgpu/standard-shader.ts`,
+  `packages/webgpu/src/webgpu/standard-pipeline-descriptor.ts`,
+  `packages/webgpu/src/webgpu/app.ts`,
+  `packages/render/src/materials/standard-proof-point.ts`,
+  `examples/materials-showcase.js`,
+  `test/webgpu/webgpu-app.test.ts`.
+- Validation run: focused StandardMaterial/WebGPU app tests,
+  `pnpm run build`, `pnpm run check:examples`, `pnpm run lint`,
+  `pnpm run format:check`,
+  `pnpm exec playwright test test/e2e/materials-showcase.spec.ts`, and
+  `pnpm run check` passed: 167 test files / 795 tests.
+- Follow-up task added: none; continued into `task-0618`.
+
 ## task-0616 — Implement GLB container parser diagnostics
 
 Completed: 2026-05-16

@@ -5,7 +5,10 @@ export type StandardMaterialProofPointFeature =
   | "baseColorTexture"
   | "metallicFactor"
   | "roughnessFactor"
+  | "metallicRoughnessTexture"
   | "emissiveFactor"
+  | "occlusionTexture"
+  | "emissiveTexture"
   | "alphaMode"
   | "depthState"
   | "cullState"
@@ -13,10 +16,7 @@ export type StandardMaterialProofPointFeature =
   | "directionalLight";
 
 export type DeferredStandardMaterialFeature =
-  | "metallicRoughnessTexture"
   | "normalTexture"
-  | "occlusionTexture"
-  | "emissiveTexture"
   | "imageBasedLighting"
   | "shadows"
   | "transmission"
@@ -28,7 +28,10 @@ export const STANDARD_MATERIAL_PROOF_POINT_SCOPE = {
     "baseColorTexture",
     "metallicFactor",
     "roughnessFactor",
+    "metallicRoughnessTexture",
     "emissiveFactor",
+    "occlusionTexture",
+    "emissiveTexture",
     "alphaMode",
     "depthState",
     "cullState",
@@ -36,10 +39,7 @@ export const STANDARD_MATERIAL_PROOF_POINT_SCOPE = {
     "directionalLight",
   ],
   deferred: [
-    "metallicRoughnessTexture",
     "normalTexture",
-    "occlusionTexture",
-    "emissiveTexture",
     "imageBasedLighting",
     "shadows",
     "transmission",
@@ -80,20 +80,8 @@ export function validateStandardMaterialProofPoint(
   validateUnitFactor(material.metallicFactor, "metallicFactor", diagnostics);
   validateUnitFactor(material.roughnessFactor, "roughnessFactor", diagnostics);
 
-  if (material.metallicRoughnessTexture !== null) {
-    deferred("metallicRoughnessTexture", diagnostics);
-  }
-
   if (material.normalTexture !== null) {
     deferred("normalTexture", diagnostics);
-  }
-
-  if (material.occlusionTexture !== null) {
-    deferred("occlusionTexture", diagnostics);
-  }
-
-  if (material.emissiveTexture !== null) {
-    deferred("emissiveTexture", diagnostics);
   }
 
   for (const feature of material.unsupportedFeatures) {

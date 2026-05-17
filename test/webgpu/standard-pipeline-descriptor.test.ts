@@ -1,9 +1,12 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  STANDARD_BASE_COLOR_METALLIC_ROUGHNESS_TEXTURE_SHADER_VARIANT,
   STANDARD_BASE_COLOR_TEXTURE_SHADER_VARIANT,
   STANDARD_DIRECT_LIGHT_SHADER_VARIANT,
+  STANDARD_METALLIC_ROUGHNESS_TEXTURE_SHADER_VARIANT,
   createStandardPipelineDescriptorPlan,
+  createStandardPipelineShaderFeaturePlan,
   createUnlitPipelineDescriptorPlan,
   type BatchCompatibilityKey,
   type BuiltInShaderSourceModule,
@@ -119,7 +122,7 @@ describe("standard material pipeline descriptor planning", () => {
     });
   });
 
-  it("rejects deferred texture features for the direct-lit MVP", () => {
+  it("specializes standard texture pipeline variants", () => {
     const baseColor = createStandardPipelineDescriptorPlan({
       colorFormat: "bgra8unorm",
       batchKey: {
@@ -127,11 +130,19 @@ describe("standard material pipeline descriptor planning", () => {
         pipelineKey: "standard|baseColorTexture|opaque|back|less|none",
       },
     });
-    const result = createStandardPipelineDescriptorPlan({
+    const metallicRoughness = createStandardPipelineDescriptorPlan({
       colorFormat: "bgra8unorm",
       batchKey: {
         ...STANDARD_BATCH_KEY,
         pipelineKey: "standard|metallicRoughnessTexture|opaque|back|less|none",
+      },
+    });
+    const combined = createStandardPipelineDescriptorPlan({
+      colorFormat: "bgra8unorm",
+      batchKey: {
+        ...STANDARD_BATCH_KEY,
+        pipelineKey:
+          "standard|baseColorTexture|metallicRoughnessTexture|opaque|back|less|none",
       },
     });
 
@@ -157,13 +168,140 @@ describe("standard material pipeline descriptor planning", () => {
         ],
       },
     });
-    expect(result.plan).toBeNull();
-    expect(result.diagnostics).toEqual([
+
+    expect(metallicRoughness.diagnostics).toEqual([]);
+    expect(metallicRoughness.plan?.descriptor).toMatchObject({
+      label:
+        "aperture/standard-mesh-metallic-roughness-textured:bgra8unorm:triangle-list",
+      vertex: {
+        moduleLabel: "aperture/standard-mesh-metallic-roughness-textured",
+      },
+      fragment: {
+        moduleLabel: "aperture/standard-mesh-metallic-roughness-textured",
+      },
+    });
+    expect(
+      JSON.parse(required(metallicRoughness.plan).cacheKey) as unknown,
+    ).toMatchObject({
+      shader: {
+        variantKey: STANDARD_METALLIC_ROUGHNESS_TEXTURE_SHADER_VARIANT,
+      },
+      layouts: {
+        bindGroups: [
+          "standard/group-0:view-uniform@0",
+          "standard/group-1:world-transforms@0",
+          "standard/group-2:material-metallic-roughness-texture@0,3,4",
+          "lights/group-3:light-floats@0,light-metadata@1",
+        ],
+      },
+    });
+
+    expect(combined.diagnostics).toEqual([]);
+    expect(combined.plan?.descriptor).toMatchObject({
+      label:
+        "aperture/standard-mesh-base-color-metallic-roughness-textured:bgra8unorm:triangle-list",
+      vertex: {
+        moduleLabel:
+          "aperture/standard-mesh-base-color-metallic-roughness-textured",
+      },
+      fragment: {
+        moduleLabel:
+          "aperture/standard-mesh-base-color-metallic-roughness-textured",
+      },
+    });
+    expect(
+      JSON.parse(required(combined.plan).cacheKey) as unknown,
+    ).toMatchObject({
+      shader: {
+        variantKey:
+          STANDARD_BASE_COLOR_METALLIC_ROUGHNESS_TEXTURE_SHADER_VARIANT,
+      },
+      layouts: {
+        bindGroups: [
+          "standard/group-0:view-uniform@0",
+          "standard/group-1:world-transforms@0",
+          "standard/group-2:material-base-color-metallic-roughness-texture@0,1,2,3,4",
+          "lights/group-3:light-floats@0,light-metadata@1",
+        ],
+      },
+    });
+  });
+
+  it("specializes emissive and occlusion texture variants without deferring them", () => {
+    const result = createStandardPipelineDescriptorPlan({
+      colorFormat: "bgra8unorm",
+      batchKey: {
+        ...STANDARD_BATCH_KEY,
+        pipelineKey:
+          "standard|baseColorTexture|emissiveTexture|metallicRoughnessTexture|occlusionTexture|opaque|back|less|none",
+      },
+    });
+
+    expect(result.diagnostics).toEqual([]);
+    expect(result.plan?.descriptor).toMatchObject({
+      label:
+        "aperture/standard-mesh-base-color-metallic-roughness-occlusion-emissive-textured:bgra8unorm:triangle-list",
+      vertex: {
+        moduleLabel:
+          "aperture/standard-mesh-base-color-metallic-roughness-occlusion-emissive-textured",
+      },
+      fragment: {
+        moduleLabel:
+          "aperture/standard-mesh-base-color-metallic-roughness-occlusion-emissive-textured",
+      },
+    });
+    expect(JSON.parse(required(result.plan).cacheKey) as unknown).toMatchObject(
+      {
+        shader: {
+          variantKey:
+            "direct-lit-metallic-roughness-base-color-metallic-roughness-occlusion-emissive-texture",
+        },
+        layouts: {
+          bindGroups: [
+            "standard/group-0:view-uniform@0",
+            "standard/group-1:world-transforms@0",
+            "standard/group-2:material-base-color-metallic-roughness-occlusion-emissive-texture@0,1,2,3,4,7,8,9,10",
+            "lights/group-3:light-floats@0,light-metadata@1",
+          ],
+        },
+      },
+    );
+  });
+
+  it("records the deferred normal-map specialization key without changing the shader module", () => {
+    const featurePlan = createStandardPipelineShaderFeaturePlan({
+      ...STANDARD_BATCH_KEY,
+      pipelineKey: "standard|normalTexture|opaque|back|less|none",
+    });
+    const descriptor = createStandardPipelineDescriptorPlan({
+      colorFormat: "bgra8unorm",
+      batchKey: {
+        ...STANDARD_BATCH_KEY,
+        pipelineKey: "standard|normalTexture|opaque|back|less|none",
+      },
+    });
+
+    expect(featurePlan).toMatchObject({
+      variantKey: `${STANDARD_DIRECT_LIGHT_SHADER_VARIANT}-normal-map-texture`,
+      shader: { label: "aperture/standard-mesh" },
+      features: {
+        baseColorTexture: false,
+        metallicRoughnessTexture: false,
+        normalTexture: true,
+      },
+      normalMap: {
+        authored: true,
+        requiresTangents: true,
+        output: "unchanged-until-tangent-space-normal-mapping",
+      },
+    });
+    expect(descriptor.plan).toBeNull();
+    expect(descriptor.diagnostics).toEqual([
       {
         code: "standardPipeline.deferredFeature",
-        field: "batchKey.pipelineKey.metallicRoughnessTexture",
+        field: "batchKey.pipelineKey.normalTexture",
         message:
-          "metallicRoughnessTexture is deferred for the direct-lit StandardMaterial MVP pipeline.",
+          "normalTexture is deferred for the direct-lit StandardMaterial MVP pipeline.",
       },
     ]);
   });

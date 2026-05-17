@@ -1,9 +1,15 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  STANDARD_BASE_COLOR_METALLIC_ROUGHNESS_TEXTURED_MESH_SHADER,
+  STANDARD_BASE_COLOR_METALLIC_ROUGHNESS_TEXTURED_MESH_WGSL,
+  STANDARD_BASE_COLOR_METALLIC_ROUGHNESS_TEXTURE_SHADER_VARIANT,
   STANDARD_BASE_COLOR_TEXTURED_MESH_SHADER,
   STANDARD_BASE_COLOR_TEXTURED_MESH_WGSL,
   STANDARD_BASE_COLOR_TEXTURE_SHADER_VARIANT,
+  STANDARD_METALLIC_ROUGHNESS_TEXTURED_MESH_SHADER,
+  STANDARD_METALLIC_ROUGHNESS_TEXTURED_MESH_WGSL,
+  STANDARD_METALLIC_ROUGHNESS_TEXTURE_SHADER_VARIANT,
   PACKED_LIGHT_FLOAT_STRIDE,
   PACKED_LIGHT_METADATA_STRIDE,
   PackedLightKindId,
@@ -11,6 +17,8 @@ import {
   STANDARD_MESH_SHADER,
   STANDARD_MESH_WGSL,
   createStandardMeshShaderModuleDescriptor,
+  createStandardTextureShaderVariantKey,
+  createStandardTextureVariantShader,
   createWebGpuShaderModule,
   validateStandardShaderMetadata,
   type BuiltInShaderSourceModule,
@@ -66,12 +74,20 @@ describe("built-in standard material WGSL shader metadata", () => {
       variant: "direct-lit-metallic-roughness",
       supported: expect.arrayContaining(["ambientLight", "directionalLight"]),
       deferred: expect.arrayContaining([
-        "metallicRoughnessTexture",
         "normalMaps",
         "imageBasedLighting",
         "shadows",
       ]),
     });
+    expect(STANDARD_MATERIAL_MVP_LIGHTING_MODEL.supported).toContain(
+      "metallicRoughnessTexture",
+    );
+    expect(STANDARD_MATERIAL_MVP_LIGHTING_MODEL.supported).toContain(
+      "emissiveTexture",
+    );
+    expect(STANDARD_MATERIAL_MVP_LIGHTING_MODEL.supported).toContain(
+      "occlusionTexture",
+    );
     expect(STANDARD_MESH_WGSL).toContain("distributionGGX");
     expect(STANDARD_MESH_WGSL).toContain("fresnelSchlick");
     expect(STANDARD_MESH_WGSL).toContain("cameraPosition: vec4f");
@@ -117,6 +133,134 @@ describe("built-in standard material WGSL shader metadata", () => {
       ["lightMetadata", 3, 1, "read-only-storage-buffer"],
       ["baseColorTexture", 2, 1, "texture"],
       ["baseColorSampler", 2, 2, "sampler"],
+    ]);
+  });
+
+  it("declares metallic-roughness texture sampling for the PBR texture variant", () => {
+    expect(
+      validateStandardShaderMetadata(
+        STANDARD_METALLIC_ROUGHNESS_TEXTURED_MESH_SHADER,
+      ),
+    ).toEqual({ valid: true, diagnostics: [] });
+    expect(STANDARD_METALLIC_ROUGHNESS_TEXTURE_SHADER_VARIANT).toBe(
+      "direct-lit-metallic-roughness-texture",
+    );
+    expect(STANDARD_METALLIC_ROUGHNESS_TEXTURED_MESH_WGSL).toContain(
+      "metallicRoughnessSample.b",
+    );
+    expect(STANDARD_METALLIC_ROUGHNESS_TEXTURED_MESH_WGSL).toContain(
+      "metallicRoughnessSample.g",
+    );
+    expect(
+      STANDARD_METALLIC_ROUGHNESS_TEXTURED_MESH_SHADER.bindings.map(
+        (binding) => [
+          binding.id,
+          binding.group,
+          binding.binding,
+          binding.resource,
+        ],
+      ),
+    ).toEqual([
+      ["viewProjection", 0, 0, "uniform-buffer"],
+      ["worldTransforms", 1, 0, "read-only-storage-buffer"],
+      ["standardMaterial", 2, 0, "uniform-buffer"],
+      ["lightFloats", 3, 0, "read-only-storage-buffer"],
+      ["lightMetadata", 3, 1, "read-only-storage-buffer"],
+      ["metallicRoughnessTexture", 2, 3, "texture"],
+      ["metallicRoughnessSampler", 2, 4, "sampler"],
+    ]);
+  });
+
+  it("declares combined base-color and metallic-roughness texture bindings", () => {
+    expect(
+      validateStandardShaderMetadata(
+        STANDARD_BASE_COLOR_METALLIC_ROUGHNESS_TEXTURED_MESH_SHADER,
+      ),
+    ).toEqual({ valid: true, diagnostics: [] });
+    expect(STANDARD_BASE_COLOR_METALLIC_ROUGHNESS_TEXTURE_SHADER_VARIANT).toBe(
+      "direct-lit-metallic-roughness-base-color-metallic-roughness-texture",
+    );
+    expect(STANDARD_BASE_COLOR_METALLIC_ROUGHNESS_TEXTURED_MESH_WGSL).toContain(
+      "baseColorSample.rgb * material.baseColorFactor.rgb",
+    );
+    expect(STANDARD_BASE_COLOR_METALLIC_ROUGHNESS_TEXTURED_MESH_WGSL).toContain(
+      "metallicRoughnessSample.b",
+    );
+    expect(
+      STANDARD_BASE_COLOR_METALLIC_ROUGHNESS_TEXTURED_MESH_SHADER.bindings.map(
+        (binding) => [
+          binding.id,
+          binding.group,
+          binding.binding,
+          binding.resource,
+        ],
+      ),
+    ).toEqual([
+      ["viewProjection", 0, 0, "uniform-buffer"],
+      ["worldTransforms", 1, 0, "read-only-storage-buffer"],
+      ["standardMaterial", 2, 0, "uniform-buffer"],
+      ["lightFloats", 3, 0, "read-only-storage-buffer"],
+      ["lightMetadata", 3, 1, "read-only-storage-buffer"],
+      ["baseColorTexture", 2, 1, "texture"],
+      ["baseColorSampler", 2, 2, "sampler"],
+      ["metallicRoughnessTexture", 2, 3, "texture"],
+      ["metallicRoughnessSampler", 2, 4, "sampler"],
+    ]);
+  });
+
+  it("generates emissive and occlusion texture variants for StandardMaterial", () => {
+    const shader = createStandardTextureVariantShader({
+      baseColorTexture: true,
+      metallicRoughnessTexture: true,
+      occlusionTexture: true,
+      emissiveTexture: true,
+    });
+
+    expect(validateStandardShaderMetadata(shader)).toEqual({
+      valid: true,
+      diagnostics: [],
+    });
+    expect(
+      createStandardTextureShaderVariantKey({
+        baseColorTexture: true,
+        metallicRoughnessTexture: true,
+        occlusionTexture: true,
+        emissiveTexture: true,
+      }),
+    ).toBe(
+      "direct-lit-metallic-roughness-base-color-metallic-roughness-occlusion-emissive-texture",
+    );
+    expect(shader.code).toContain("occlusionSample.r");
+    expect(shader.code).toContain(
+      "mix(1.0, occlusionSample.r, clamp(material.occlusionStrength, 0.0, 1.0))",
+    );
+    expect(shader.code).toContain(
+      "material.emissiveFactor * emissiveSample.rgb",
+    );
+    expect(shader.code).toContain(
+      "ambient * baseColor * (1.0 - metallic) * occlusion",
+    );
+    expect(
+      shader.bindings.map((binding) => [
+        binding.id,
+        binding.group,
+        binding.binding,
+        binding.resource,
+      ]),
+    ).toEqual([
+      ["viewProjection", 0, 0, "uniform-buffer"],
+      ["worldTransforms", 1, 0, "read-only-storage-buffer"],
+      ["standardMaterial", 2, 0, "uniform-buffer"],
+      ["lightFloats", 3, 0, "read-only-storage-buffer"],
+      ["lightMetadata", 3, 1, "read-only-storage-buffer"],
+      ["baseColorTexture", 2, 1, "texture"],
+      ["baseColorSampler", 2, 2, "sampler"],
+      ["metallicRoughnessTexture", 2, 3, "texture"],
+      ["metallicRoughnessSampler", 2, 4, "sampler"],
+      ["occlusionTexture", 2, 7, "texture"],
+      ["occlusionSampler", 2, 8, "sampler"],
+      ["emissiveTexture", 2, 9, "texture"],
+      ["emissiveSampler", 2, 10, "sampler"],
     ]);
   });
 

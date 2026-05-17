@@ -8,20 +8,14 @@ import {
   type WebGpuRenderPipelineCreateDescriptor,
 } from "./pipeline-cache.js";
 import {
-  STANDARD_BASE_COLOR_TEXTURED_MESH_SHADER,
-  STANDARD_BASE_COLOR_TEXTURE_SHADER_VARIANT,
-  STANDARD_DIRECT_LIGHT_SHADER_VARIANT,
-  STANDARD_MESH_SHADER,
+  createStandardTextureShaderVariantKey,
+  createStandardTextureVariantShader,
   validateStandardShaderMetadata,
+  type StandardTextureShaderFeatures,
 } from "./standard-shader.js";
 import type { BuiltInShaderSourceModule } from "./unlit-shader.js";
 
-export const STANDARD_DEFERRED_PIPELINE_FEATURES = [
-  "metallicRoughnessTexture",
-  "normalTexture",
-  "occlusionTexture",
-  "emissiveTexture",
-] as const;
+export const STANDARD_DEFERRED_PIPELINE_FEATURES = ["normalTexture"] as const;
 
 export type StandardDeferredPipelineFeature =
   (typeof STANDARD_DEFERRED_PIPELINE_FEATURES)[number];
@@ -69,12 +63,33 @@ interface StandardPipelineTokens {
   readonly blendPreset: string | null;
 }
 
+export interface StandardPipelineShaderFeaturePlan {
+  readonly shader: BuiltInShaderSourceModule;
+  readonly variantKey: string;
+  readonly features: {
+    readonly baseColorTexture: boolean;
+    readonly metallicRoughnessTexture: boolean;
+    readonly normalTexture: boolean;
+    readonly occlusionTexture: boolean;
+    readonly emissiveTexture: boolean;
+  };
+  readonly normalMap: {
+    readonly authored: boolean;
+    readonly requiresTangents: boolean;
+    readonly output: "unchanged-until-tangent-space-normal-mapping";
+  };
+}
+
 export function createStandardPipelineDescriptorPlan(
   input: StandardPipelineDescriptorInput,
 ): StandardPipelineDescriptorResult {
   const diagnostics: StandardPipelineDescriptorDiagnostic[] = [];
   const batchKey = input.batchKey as Partial<BatchCompatibilityKey> | null;
-  const shader = resolveStandardShaderForBatchKey(batchKey, input.shader);
+  const shaderFeaturePlan = createStandardPipelineShaderFeaturePlan(
+    batchKey,
+    input.shader,
+  );
+  const shader = shaderFeaturePlan.shader;
   const metadata = validateStandardShaderMetadata(shader);
   const topology = input.topology ?? batchKey?.topology;
   const tokens = parsePipelineTokens(batchKey?.pipelineKey);
@@ -126,9 +141,7 @@ export function createStandardPipelineDescriptorPlan(
   const keyInput: WebGpuRenderPipelineCacheKeyInput = {
     shaderLabel: shader.label,
     shaderFamily: "standard",
-    shaderVariantKey: hasBaseColorTextureFeature(batchKey)
-      ? STANDARD_BASE_COLOR_TEXTURE_SHADER_VARIANT
-      : STANDARD_DIRECT_LIGHT_SHADER_VARIANT,
+    shaderVariantKey: shaderFeaturePlan.variantKey,
     colorFormats: [input.colorFormat],
     depthFormat: input.depthFormat ?? null,
     stencilFormat: null,
@@ -199,15 +212,33 @@ export function createStandardPipelineDescriptorPlan(
   return { valid: true, plan: { descriptor, keyInput, cacheKey }, diagnostics };
 }
 
+export function createStandardPipelineShaderFeaturePlan(
+  batchKey: Partial<BatchCompatibilityKey> | null,
+  shader?: BuiltInShaderSourceModule,
+): StandardPipelineShaderFeaturePlan {
+  const features = standardTextureFeatures(batchKey);
+
+  return {
+    shader: resolveStandardShaderForBatchKey(batchKey, shader),
+    variantKey: standardShaderVariantKey(batchKey),
+    features,
+    normalMap: {
+      authored: features.normalTexture,
+      requiresTangents: features.normalTexture,
+      output: "unchanged-until-tangent-space-normal-mapping",
+    },
+  };
+}
+
 function standardBindGroupLayoutKeys(
   batchKey: BatchCompatibilityKey,
 ): readonly string[] {
+  const features = standardTextureFeatures(batchKey);
+
   return [
     "standard/group-0:view-uniform@0",
     "standard/group-1:world-transforms@0",
-    hasBaseColorTextureFeature(batchKey)
-      ? "standard/group-2:material-base-color-texture@0,1,2"
-      : "standard/group-2:material@0",
+    standardMaterialLayoutKey(features),
     "lights/group-3:light-floats@0,light-metadata@1",
   ];
 }
@@ -220,18 +251,114 @@ export function resolveStandardShaderForBatchKey(
     return shader;
   }
 
-  return hasBaseColorTextureFeature(batchKey)
-    ? STANDARD_BASE_COLOR_TEXTURED_MESH_SHADER
-    : STANDARD_MESH_SHADER;
+  const features = standardTextureFeatures(batchKey);
+
+  return createStandardTextureVariantShader(features);
 }
 
-function hasBaseColorTextureFeature(
+function standardTextureFeatures(
   batchKey: Partial<BatchCompatibilityKey> | null,
-): boolean {
-  return (
+): StandardTextureShaderFeatures & {
+  readonly normalTexture: boolean;
+} {
+  const tokens =
     typeof batchKey?.pipelineKey === "string" &&
-    batchKey.pipelineKey.split("|").includes("baseColorTexture")
+    batchKey.pipelineKey.trim().length > 0
+      ? batchKey.pipelineKey.split("|")
+      : [];
+
+  return {
+    baseColorTexture: tokens.includes("baseColorTexture"),
+    metallicRoughnessTexture: tokens.includes("metallicRoughnessTexture"),
+    normalTexture: tokens.includes("normalTexture"),
+    occlusionTexture: tokens.includes("occlusionTexture"),
+    emissiveTexture: tokens.includes("emissiveTexture"),
+  };
+}
+
+function standardShaderVariantKey(
+  batchKey: Partial<BatchCompatibilityKey> | null,
+): string {
+  const features = standardTextureFeatures(batchKey);
+
+  return appendNormalMapVariant(
+    createStandardTextureShaderVariantKey(features),
+    features,
   );
+}
+
+function appendNormalMapVariant(
+  variantKey: string,
+  features: ReturnType<typeof standardTextureFeatures>,
+): string {
+  return features.normalTexture
+    ? `${variantKey}-normal-map-texture`
+    : variantKey;
+}
+
+function standardMaterialLayoutKey(features: {
+  readonly baseColorTexture: boolean;
+  readonly metallicRoughnessTexture: boolean;
+  readonly occlusionTexture: boolean;
+  readonly emissiveTexture: boolean;
+}): string {
+  if (
+    features.baseColorTexture &&
+    features.metallicRoughnessTexture &&
+    !features.occlusionTexture &&
+    !features.emissiveTexture
+  ) {
+    return "standard/group-2:material-base-color-metallic-roughness-texture@0,1,2,3,4";
+  }
+
+  if (
+    features.baseColorTexture &&
+    !features.metallicRoughnessTexture &&
+    !features.occlusionTexture &&
+    !features.emissiveTexture
+  ) {
+    return "standard/group-2:material-base-color-texture@0,1,2";
+  }
+
+  if (
+    features.metallicRoughnessTexture &&
+    !features.baseColorTexture &&
+    !features.occlusionTexture &&
+    !features.emissiveTexture
+  ) {
+    return "standard/group-2:material-metallic-roughness-texture@0,3,4";
+  }
+
+  if (features.occlusionTexture || features.emissiveTexture) {
+    const names: string[] = [];
+    const bindings = [0];
+
+    if (features.baseColorTexture) {
+      names.push("base-color");
+      bindings.push(1, 2);
+    }
+
+    if (features.metallicRoughnessTexture) {
+      names.push("metallic-roughness");
+      bindings.push(3, 4);
+    }
+
+    if (features.occlusionTexture) {
+      names.push("occlusion");
+      bindings.push(7, 8);
+    }
+
+    if (features.emissiveTexture) {
+      names.push("emissive");
+      bindings.push(9, 10);
+    }
+
+    return `standard/group-2:material-${names.join("-")}-texture@${bindings.join(
+      ",",
+    )}`;
+  }
+
+  return "standard/group-2:material@0";
 }
 
 function validateStandardPipelineTokens(

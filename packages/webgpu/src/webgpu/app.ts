@@ -1262,9 +1262,16 @@ function prepareStandardAppTextureSamplerResources(options: {
   readonly material: StandardMaterialAsset;
   readonly reuse: WebGpuAppResourceReuseReport;
 }): PreparedAppTextureSamplerResources {
-  const binding = options.material.baseColorTexture;
+  const bindings = [
+    options.material.baseColorTexture,
+    options.material.metallicRoughnessTexture,
+    options.material.occlusionTexture,
+    options.material.emissiveTexture,
+  ].filter(
+    (binding): binding is NonNullable<typeof binding> => binding !== null,
+  );
 
-  if (binding === null) {
+  if (bindings.length === 0) {
     return emptyPreparedAppTextureSamplerResources();
   }
 
@@ -1274,43 +1281,46 @@ function prepareStandardAppTextureSamplerResources(options: {
   const textureKeys: string[] = [];
   const samplerKeys: string[] = [];
 
-  if (binding.texture !== null) {
-    const texture = prepareAppTextureResource({
-      app: options.app,
-      cache: options.cache,
-      handle: binding.texture,
-      reuse: options.reuse,
-      diagnostics,
-    });
+  for (const binding of bindings) {
+    if (binding.texture !== null) {
+      const texture = prepareAppTextureResource({
+        app: options.app,
+        cache: options.cache,
+        handle: binding.texture,
+        reuse: options.reuse,
+        diagnostics,
+      });
 
-    if (texture !== null) {
-      textures.push(texture.resource);
-      textureKeys.push(texture.cacheKey);
+      if (texture !== null) {
+        textures.push(texture.resource);
+        textureKeys.push(texture.cacheKey);
+      }
     }
-  }
 
-  if (binding.sampler !== null) {
-    const sampler = prepareAppSamplerResource({
-      app: options.app,
-      cache: options.cache,
-      handle: binding.sampler,
-      reuse: options.reuse,
-      diagnostics,
-    });
+    if (binding.sampler !== null) {
+      const sampler = prepareAppSamplerResource({
+        app: options.app,
+        cache: options.cache,
+        handle: binding.sampler,
+        reuse: options.reuse,
+        diagnostics,
+      });
 
-    if (sampler !== null) {
-      samplers.push(sampler.resource);
-      samplerKeys.push(sampler.cacheKey);
+      if (sampler !== null) {
+        samplers.push(sampler.resource);
+        samplerKeys.push(sampler.cacheKey);
+      }
     }
   }
 
   return {
     valid:
       diagnostics.length === 0 &&
-      binding.texture !== null &&
-      binding.sampler !== null &&
-      textures.length === 1 &&
-      samplers.length === 1,
+      bindings.every(
+        (binding) => binding.texture !== null && binding.sampler !== null,
+      ) &&
+      textures.length === bindings.length &&
+      samplers.length === bindings.length,
     textures,
     samplers,
     textureKeys,

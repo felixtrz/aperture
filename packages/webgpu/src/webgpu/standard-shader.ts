@@ -16,6 +16,17 @@ export const STANDARD_DIRECT_LIGHT_SHADER_VARIANT =
   "direct-lit-metallic-roughness";
 export const STANDARD_BASE_COLOR_TEXTURE_SHADER_VARIANT =
   "direct-lit-metallic-roughness-base-color-texture";
+export const STANDARD_METALLIC_ROUGHNESS_TEXTURE_SHADER_VARIANT =
+  "direct-lit-metallic-roughness-texture";
+export const STANDARD_BASE_COLOR_METALLIC_ROUGHNESS_TEXTURE_SHADER_VARIANT =
+  "direct-lit-metallic-roughness-base-color-metallic-roughness-texture";
+
+export interface StandardTextureShaderFeatures {
+  readonly baseColorTexture: boolean;
+  readonly metallicRoughnessTexture: boolean;
+  readonly occlusionTexture: boolean;
+  readonly emissiveTexture: boolean;
+}
 
 export const STANDARD_MATERIAL_MVP_LIGHTING_MODEL = {
   variant: STANDARD_DIRECT_LIGHT_SHADER_VARIANT,
@@ -25,16 +36,14 @@ export const STANDARD_MATERIAL_MVP_LIGHTING_MODEL = {
     "baseColorTexture",
     "metallicFactor",
     "roughnessFactor",
+    "metallicRoughnessTexture",
     "emissiveFactor",
+    "emissiveTexture",
+    "occlusionTexture",
     "ambientLight",
     "directionalLight",
   ],
-  deferred: [
-    "metallicRoughnessTexture",
-    "normalMaps",
-    "imageBasedLighting",
-    "shadows",
-  ],
+  deferred: ["normalMaps", "imageBasedLighting", "shadows"],
 } as const;
 
 export const STANDARD_MESH_WGSL = `
@@ -242,27 +251,28 @@ fn fs_main(input: VertexOutput) -> @location(0) vec4f {
 `.trim();
 
 export const STANDARD_BASE_COLOR_TEXTURED_MESH_WGSL =
-  STANDARD_MESH_WGSL.replace(
-    `// Direct lights use a small metallic/roughness GGX BRDF. Texture sampling,
-// normal maps, image-based lighting, and shadows are deferred.`,
-    `// Direct lights use a small metallic/roughness GGX BRDF. Base-color texture
-// sampling is active; normal maps, image-based lighting, and shadows are deferred.`,
-  )
-    .replace(
-      `@group(2) @binding(0) var<uniform> material: StandardMaterialUniform;
-@group(3) @binding(0) var<storage, read> lightFloats: array<f32>;`,
-      `@group(2) @binding(0) var<uniform> material: StandardMaterialUniform;
-@group(2) @binding(1) var baseColorTexture: texture_2d<f32>;
-@group(2) @binding(2) var baseColorSampler: sampler;
-@group(3) @binding(0) var<storage, read> lightFloats: array<f32>;`,
-    )
-    .replace(
-      `  let baseColor = material.baseColorFactor.rgb;
-  let alpha = material.baseColorFactor.a;`,
-      `  let baseColorSample = textureSample(baseColorTexture, baseColorSampler, input.uv);
-  let baseColor = baseColorSample.rgb * material.baseColorFactor.rgb;
-  let alpha = baseColorSample.a * material.baseColorFactor.a;`,
-    );
+  createStandardTextureVariantWgsl({
+    baseColorTexture: true,
+    metallicRoughnessTexture: false,
+    occlusionTexture: false,
+    emissiveTexture: false,
+  });
+
+export const STANDARD_METALLIC_ROUGHNESS_TEXTURED_MESH_WGSL =
+  createStandardTextureVariantWgsl({
+    baseColorTexture: false,
+    metallicRoughnessTexture: true,
+    occlusionTexture: false,
+    emissiveTexture: false,
+  });
+
+export const STANDARD_BASE_COLOR_METALLIC_ROUGHNESS_TEXTURED_MESH_WGSL =
+  createStandardTextureVariantWgsl({
+    baseColorTexture: true,
+    metallicRoughnessTexture: true,
+    occlusionTexture: false,
+    emissiveTexture: false,
+  });
 
 export const STANDARD_MESH_SHADER: BuiltInShaderSourceModule = {
   label: "aperture/standard-mesh",
@@ -311,28 +321,28 @@ export const STANDARD_MESH_SHADER: BuiltInShaderSourceModule = {
 };
 
 export const STANDARD_BASE_COLOR_TEXTURED_MESH_SHADER: BuiltInShaderSourceModule =
-  {
-    label: "aperture/standard-mesh-base-color-textured",
-    code: STANDARD_BASE_COLOR_TEXTURED_MESH_WGSL,
-    entryPoints: STANDARD_MESH_SHADER.entryPoints,
-    bindings: [
-      ...STANDARD_MESH_SHADER.bindings,
-      {
-        id: "baseColorTexture",
-        label: "Base color texture",
-        group: 2,
-        binding: 1,
-        resource: "texture",
-      },
-      {
-        id: "baseColorSampler",
-        label: "Base color sampler",
-        group: 2,
-        binding: 2,
-        resource: "sampler",
-      },
-    ],
-  };
+  createStandardTextureVariantShader({
+    baseColorTexture: true,
+    metallicRoughnessTexture: false,
+    occlusionTexture: false,
+    emissiveTexture: false,
+  });
+
+export const STANDARD_METALLIC_ROUGHNESS_TEXTURED_MESH_SHADER: BuiltInShaderSourceModule =
+  createStandardTextureVariantShader({
+    baseColorTexture: false,
+    metallicRoughnessTexture: true,
+    occlusionTexture: false,
+    emissiveTexture: false,
+  });
+
+export const STANDARD_BASE_COLOR_METALLIC_ROUGHNESS_TEXTURED_MESH_SHADER: BuiltInShaderSourceModule =
+  createStandardTextureVariantShader({
+    baseColorTexture: true,
+    metallicRoughnessTexture: true,
+    occlusionTexture: false,
+    emissiveTexture: false,
+  });
 
 export function createStandardMeshShaderModuleDescriptor(
   shader: BuiltInShaderSourceModule = STANDARD_MESH_SHADER,
@@ -405,4 +415,325 @@ function hasBinding(
   id: BuiltInShaderBindingId,
 ): boolean {
   return bindings.some((binding) => binding.id === id);
+}
+
+export function createStandardTextureVariantShader(
+  features: StandardTextureShaderFeatures,
+): BuiltInShaderSourceModule {
+  if (!hasAnyStandardTextureFeature(features)) {
+    return STANDARD_MESH_SHADER;
+  }
+
+  return {
+    label: standardTextureVariantShaderLabel(features),
+    code: createStandardTextureVariantWgsl(features),
+    entryPoints: STANDARD_MESH_SHADER.entryPoints,
+    bindings: [
+      ...STANDARD_MESH_SHADER.bindings,
+      ...standardTextureVariantBindings(features),
+    ],
+  };
+}
+
+export function createStandardTextureShaderVariantKey(
+  features: StandardTextureShaderFeatures,
+): string {
+  if (!hasAnyStandardTextureFeature(features)) {
+    return STANDARD_DIRECT_LIGHT_SHADER_VARIANT;
+  }
+
+  if (
+    features.metallicRoughnessTexture &&
+    !features.baseColorTexture &&
+    !features.occlusionTexture &&
+    !features.emissiveTexture
+  ) {
+    return STANDARD_METALLIC_ROUGHNESS_TEXTURE_SHADER_VARIANT;
+  }
+
+  const names: string[] = [];
+
+  if (features.baseColorTexture) {
+    names.push("base-color");
+  }
+
+  if (features.metallicRoughnessTexture) {
+    names.push("metallic-roughness");
+  }
+
+  if (features.occlusionTexture) {
+    names.push("occlusion");
+  }
+
+  if (features.emissiveTexture) {
+    names.push("emissive");
+  }
+
+  return `${STANDARD_DIRECT_LIGHT_SHADER_VARIANT}-${names.join("-")}-texture`;
+}
+
+function createStandardTextureVariantWgsl(
+  features: StandardTextureShaderFeatures,
+): string {
+  let code = STANDARD_MESH_WGSL.replace(
+    `// Direct lights use a small metallic/roughness GGX BRDF. Texture sampling,
+// normal maps, image-based lighting, and shadows are deferred.`,
+    standardTextureVariantComment(features),
+  ).replace(
+    `@group(2) @binding(0) var<uniform> material: StandardMaterialUniform;
+@group(3) @binding(0) var<storage, read> lightFloats: array<f32>;`,
+    standardTextureVariantDeclaration(features),
+  );
+
+  if (features.baseColorTexture) {
+    code = code.replace(
+      `  let baseColor = material.baseColorFactor.rgb;
+  let alpha = material.baseColorFactor.a;`,
+      `  let baseColorSample = textureSample(baseColorTexture, baseColorSampler, input.uv);
+  let baseColor = baseColorSample.rgb * material.baseColorFactor.rgb;
+  let alpha = baseColorSample.a * material.baseColorFactor.a;`,
+    );
+  }
+
+  if (features.metallicRoughnessTexture) {
+    code = code.replace(
+      `  let metallic = clamp(material.metallicFactor, 0.0, 1.0);
+  let roughness = clamp(material.roughnessFactor, 0.045, 1.0);`,
+      `  let metallicRoughnessSample = textureSample(
+    metallicRoughnessTexture,
+    metallicRoughnessSampler,
+    input.uv,
+  );
+  let metallic = clamp(material.metallicFactor * metallicRoughnessSample.b, 0.0, 1.0);
+  let roughness = clamp(material.roughnessFactor * metallicRoughnessSample.g, 0.045, 1.0);`,
+    );
+  }
+
+  if (features.occlusionTexture || features.emissiveTexture) {
+    const occlusion = features.occlusionTexture
+      ? `  let occlusionSample = textureSample(occlusionTexture, occlusionSampler, input.uv);
+  let occlusion = mix(1.0, occlusionSample.r, clamp(material.occlusionStrength, 0.0, 1.0));`
+      : `  let occlusion = 1.0;`;
+    const emissive = features.emissiveTexture
+      ? `  let emissiveSample = textureSample(emissiveTexture, emissiveSampler, input.uv);
+  let emissive = material.emissiveFactor * emissiveSample.rgb;`
+      : `  let emissive = material.emissiveFactor;`;
+
+    code = code.replace(
+      `  let ambientDiffuse = ambient * baseColor * (1.0 - metallic);
+  let color = ambientDiffuse + direct + material.emissiveFactor;`,
+      `${occlusion}
+${emissive}
+  let ambientDiffuse = ambient * baseColor * (1.0 - metallic) * occlusion;
+  let color = ambientDiffuse + direct + emissive;`,
+    );
+  }
+
+  return code;
+}
+
+function standardTextureVariantComment(
+  features: StandardTextureShaderFeatures,
+): string {
+  const active = standardTextureFeatureNames(features);
+
+  return `// Direct lights use a small metallic/roughness GGX BRDF. ${active.join(
+    ", ",
+  )} texture sampling is active; normal maps, image-based lighting, and shadows are deferred.`;
+}
+
+function standardTextureVariantDeclaration(
+  features: StandardTextureShaderFeatures,
+): string {
+  const declarations = [
+    "@group(2) @binding(0) var<uniform> material: StandardMaterialUniform;",
+  ];
+
+  if (features.baseColorTexture) {
+    declarations.push(
+      "@group(2) @binding(1) var baseColorTexture: texture_2d<f32>;",
+      "@group(2) @binding(2) var baseColorSampler: sampler;",
+    );
+  }
+
+  if (features.metallicRoughnessTexture) {
+    declarations.push(
+      "@group(2) @binding(3) var metallicRoughnessTexture: texture_2d<f32>;",
+      "@group(2) @binding(4) var metallicRoughnessSampler: sampler;",
+    );
+  }
+
+  if (features.occlusionTexture) {
+    declarations.push(
+      "@group(2) @binding(7) var occlusionTexture: texture_2d<f32>;",
+      "@group(2) @binding(8) var occlusionSampler: sampler;",
+    );
+  }
+
+  if (features.emissiveTexture) {
+    declarations.push(
+      "@group(2) @binding(9) var emissiveTexture: texture_2d<f32>;",
+      "@group(2) @binding(10) var emissiveSampler: sampler;",
+    );
+  }
+
+  declarations.push(
+    "@group(3) @binding(0) var<storage, read> lightFloats: array<f32>;",
+  );
+
+  return declarations.join("\n");
+}
+
+function standardTextureVariantBindings(
+  features: StandardTextureShaderFeatures,
+): BuiltInShaderBindingMetadata[] {
+  const bindings: BuiltInShaderBindingMetadata[] = [];
+
+  if (features.baseColorTexture) {
+    bindings.push(
+      {
+        id: "baseColorTexture",
+        label: "Base color texture",
+        group: 2,
+        binding: 1,
+        resource: "texture",
+      },
+      {
+        id: "baseColorSampler",
+        label: "Base color sampler",
+        group: 2,
+        binding: 2,
+        resource: "sampler",
+      },
+    );
+  }
+
+  if (features.metallicRoughnessTexture) {
+    bindings.push(
+      {
+        id: "metallicRoughnessTexture",
+        label: "Metallic roughness texture",
+        group: 2,
+        binding: 3,
+        resource: "texture",
+      },
+      {
+        id: "metallicRoughnessSampler",
+        label: "Metallic roughness sampler",
+        group: 2,
+        binding: 4,
+        resource: "sampler",
+      },
+    );
+  }
+
+  if (features.occlusionTexture) {
+    bindings.push(
+      {
+        id: "occlusionTexture",
+        label: "Occlusion texture",
+        group: 2,
+        binding: 7,
+        resource: "texture",
+      },
+      {
+        id: "occlusionSampler",
+        label: "Occlusion sampler",
+        group: 2,
+        binding: 8,
+        resource: "sampler",
+      },
+    );
+  }
+
+  if (features.emissiveTexture) {
+    bindings.push(
+      {
+        id: "emissiveTexture",
+        label: "Emissive texture",
+        group: 2,
+        binding: 9,
+        resource: "texture",
+      },
+      {
+        id: "emissiveSampler",
+        label: "Emissive sampler",
+        group: 2,
+        binding: 10,
+        resource: "sampler",
+      },
+    );
+  }
+
+  return bindings;
+}
+
+function standardTextureVariantShaderLabel(
+  features: StandardTextureShaderFeatures,
+): string {
+  if (
+    features.baseColorTexture &&
+    !features.metallicRoughnessTexture &&
+    !features.occlusionTexture &&
+    !features.emissiveTexture
+  ) {
+    return "aperture/standard-mesh-base-color-textured";
+  }
+
+  if (
+    features.metallicRoughnessTexture &&
+    !features.baseColorTexture &&
+    !features.occlusionTexture &&
+    !features.emissiveTexture
+  ) {
+    return "aperture/standard-mesh-metallic-roughness-textured";
+  }
+
+  if (
+    features.baseColorTexture &&
+    features.metallicRoughnessTexture &&
+    !features.occlusionTexture &&
+    !features.emissiveTexture
+  ) {
+    return "aperture/standard-mesh-base-color-metallic-roughness-textured";
+  }
+
+  return `aperture/standard-mesh-${standardTextureFeatureNames(features).join(
+    "-",
+  )}-textured`;
+}
+
+function standardTextureFeatureNames(
+  features: StandardTextureShaderFeatures,
+): string[] {
+  const names: string[] = [];
+
+  if (features.baseColorTexture) {
+    names.push("base-color");
+  }
+
+  if (features.metallicRoughnessTexture) {
+    names.push("metallic-roughness");
+  }
+
+  if (features.occlusionTexture) {
+    names.push("occlusion");
+  }
+
+  if (features.emissiveTexture) {
+    names.push("emissive");
+  }
+
+  return names;
+}
+
+function hasAnyStandardTextureFeature(
+  features: StandardTextureShaderFeatures,
+): boolean {
+  return (
+    features.baseColorTexture ||
+    features.metallicRoughnessTexture ||
+    features.occlusionTexture ||
+    features.emissiveTexture
+  );
 }

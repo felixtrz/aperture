@@ -21,6 +21,7 @@ import {
   createRenderTargetHandle,
   createSamplerAsset,
   createSamplerHandle,
+  createStandardMaterialAsset,
   createTextureAsset,
   createTextureHandle,
   createRootTransform,
@@ -697,6 +698,52 @@ describe("render extraction", () => {
       { code: "render.texture.loading", assetKey: "texture:loading-albedo" },
       { code: "render.sampler.failed", assetKey: "sampler:failed-linear" },
     ]);
+  });
+
+  it("blocks StandardMaterial normal maps when mesh tangents are missing", () => {
+    const world = createRuntimeWorld();
+    const texture = createTextureHandle("ready-normal");
+    const sampler = createSamplerHandle("ready-normal-linear");
+    const assets = createReadyAssets({
+      materialAsset: createStandardMaterialAsset({
+        normalTexture: { texture, sampler },
+      }),
+    });
+
+    assets.register(texture);
+    assets.markReady(
+      texture,
+      createTextureAsset({
+        label: "ReadyNormal",
+        dimension: "2d",
+        width: 1,
+        height: 1,
+        format: "rgba8unorm",
+        colorSpace: "data",
+        semantic: "normal",
+        usage: ["sampled"],
+      }),
+    );
+    assets.register(sampler);
+    assets.markReady(sampler, createSamplerAsset());
+
+    createCameraEntity(world, { priority: 0, layerMask: 1 });
+    createMeshEntity(world, {
+      meshId: "mesh:cube",
+      materialId: "material:unlit",
+      layerMask: 1,
+    });
+
+    const snapshot = extractRenderSnapshot(world, assets);
+
+    expect(snapshot.meshDraws).toEqual([]);
+    expect(snapshot.diagnostics).toMatchObject([
+      {
+        code: "render.standardNormalMap.missingTangents",
+        assetKey: "material:unlit",
+      },
+    ]);
+    expect(() => JSON.stringify(snapshot.diagnostics)).not.toThrow();
   });
 
   it("preserves mesh validation codes in render diagnostics", () => {

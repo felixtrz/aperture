@@ -2,6 +2,125 @@
 
 ## Latest Run Update
 
+Completed `task-0617`, `task-0618`, `task-0619`, `task-0620`, `task-0622`,
+and `task-0623` in this automation run:
+
+- `task-0617` — StandardMaterial now supports metallic-roughness textures in
+  WebGPU shaders and pipeline specialization. Roughness uses the green channel,
+  metallic uses the blue channel, and both multiply authored scalar factors.
+- `task-0618` — StandardMaterial normal maps now have renderer-independent
+  tangent readiness diagnostics. Extraction blocks authored normal-map draws
+  without required tangent metadata, while actual normal-map shading remains
+  deferred.
+- `task-0619` — Added a generic material-family queue contract in
+  `@aperture-engine/render`. Queue items are plain snapshot-derived data with
+  material family, pipeline/resource keys, phase, draw index, and sort data; no
+  WebGPU handles are carried.
+- `task-0620` — StandardMaterial now supports emissive and occlusion textures.
+  Emissive textures multiply `emissiveFactor`; occlusion textures use red
+  channel plus `occlusionStrength` to affect ambient/indirect contribution
+  without changing direct light math.
+- `task-0622` — Audited the queue/PBR texture work and recorded the result in
+  `docs/research/MATERIAL_QUEUE_PBR_TEXTURE_AUDIT_2026_05_17.md`.
+- `task-0623` — Added focused material queue tests proving opaque, alpha-test,
+  and transparent phase ordering, including back-to-front transparent sorting
+  and stable order for identical transparent keys.
+- Added ready follow-up `task-0627` so the backlog remains above five ready
+  tasks and captures a glTF PBR texture expectation audit before GLB material
+  mapping resumes.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/standard-shader.test.ts test/webgpu/standard-pipeline-descriptor.test.ts test/webgpu/standard-material-buffer.test.ts test/webgpu/standard-bind-group.test.ts test/webgpu/webgpu-app.test.ts test/materials/standard-proof-point.test.ts`
+- `pnpm exec vitest run test/materials/standard-normal-map-readiness.test.ts test/rendering/extraction.test.ts test/webgpu/standard-pipeline-descriptor.test.ts test/webgpu/standard-material-buffer.test.ts`
+- `pnpm exec vitest run test/rendering/material-queue.test.ts`
+- `pnpm exec vitest run test/webgpu/standard-shader.test.ts test/webgpu/standard-pipeline-descriptor.test.ts test/webgpu/standard-material-buffer.test.ts test/materials/standard-proof-point.test.ts test/webgpu/webgpu-app.test.ts test/rendering/material-queue.test.ts`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm run build`
+- `pnpm run check:examples`
+- `pnpm run check:boundaries`
+- `pnpm run lint`
+- `pnpm run format:check`
+- `pnpm exec playwright test test/e2e/materials-showcase.spec.ts`
+- `pnpm run check` passed after `task-0619`: 169 test files / 807 tests.
+- `pnpm run check` passed after `task-0620`: 169 test files / 811 tests.
+- `pnpm run test:e2e` passed after the stop-hook continuation: 142 Playwright
+  tests.
+
+Reference files/patterns inspected:
+
+- Bevy render phase queue/sort:
+  `references/bevy/crates/bevy_render/src/render_phase/mod.rs`.
+- Bevy StandardMaterial/PBR texture handling:
+  `references/bevy/crates/bevy_pbr/src/pbr_material.rs`,
+  `references/bevy/crates/bevy_pbr/src/render/pbr_bindings.wgsl`,
+  `references/bevy/crates/bevy_pbr/src/render/pbr_fragment.wgsl`.
+- three.js and PlayCanvas PBR texture handling:
+  `references/three.js/src/renderers/shaders/ShaderChunk/metalnessmap_fragment.glsl.js`,
+  `references/three.js/src/renderers/shaders/ShaderChunk/roughnessmap_fragment.glsl.js`,
+  `references/three.js/src/renderers/shaders/ShaderChunk/emissivemap_fragment.glsl.js`,
+  `references/engine/src/framework/parsers/glb-parser.js`,
+  `references/engine/src/scene/materials/standard-material.js`,
+  `references/engine/src/scene/shader-lib/wgsl/chunks/standard/frag/normalMap.js`.
+- Aperture audit anchors:
+  `docs/NORTH_STAR.md`, `docs/ARCHITECTURE.md`, `docs/DECISIONS.md`,
+  `docs/research/POST_SHOWCASE_MATERIAL_ROUTE_AUDIT_2026_05_16.md`.
+
+Recommended next task:
+
+- `task-0621 — Integrate opaque material queue app routing`.
+
+Task 0621 prep notes:
+
+- The new queue contract is in `packages/render/src/rendering/material-queue.ts`
+  and exported through `packages/render/src/rendering/index.ts`.
+- App routing is still narrow and branch-shaped in `packages/webgpu/src/webgpu/app.ts`.
+  Do not add more pairwise material-family branches. Replace opaque unlit,
+  MatcapMaterial, and StandardMaterial routing with queue-driven resource
+  resolution/consumption.
+- Existing showcase coverage now exercises StandardMaterial base-color,
+  metallic-roughness, occlusion, and emissive texture bindings through
+  `createWebGpuApp`.
+
+Known issues:
+
+- `task-0621` is still pending. Mixed material app routing remains a temporary
+  bridge until queue consumption replaces the branch-specific paths.
+- StandardMaterial normal maps are still diagnostic-only. Tangent-space normal
+  shading should wait for `task-0624`.
+- Transparent queue sort coverage is now in place; transparent render-state
+  validation and app consumption are still future work.
+
+Files touched in this update:
+
+- `agent/BACKLOG.md`
+- `agent/COMPLETED.md`
+- `agent/HANDOFF.md`
+- `agent/STATUS.json`
+- `docs/research/MATERIAL_QUEUE_PBR_TEXTURE_AUDIT_2026_05_17.md`
+- `examples/materials-showcase.js`
+- `packages/render/src/materials/index.ts`
+- `packages/render/src/materials/standard-normal-map-readiness.ts`
+- `packages/render/src/materials/standard-proof-point.ts`
+- `packages/render/src/rendering/extraction.ts`
+- `packages/render/src/rendering/index.ts`
+- `packages/render/src/rendering/material-queue.ts`
+- `packages/webgpu/src/webgpu/app.ts`
+- `packages/webgpu/src/webgpu/standard-pipeline-descriptor.ts`
+- `packages/webgpu/src/webgpu/standard-shader.ts`
+- `packages/webgpu/src/webgpu/unlit-shader.ts`
+- `test/e2e/materials-showcase.spec.ts`
+- `test/materials/standard-normal-map-readiness.test.ts`
+- `test/materials/standard-proof-point.test.ts`
+- `test/rendering/extraction.test.ts`
+- `test/rendering/material-queue.test.ts`
+- `test/webgpu/standard-material-buffer.test.ts`
+- `test/webgpu/standard-pipeline-descriptor.test.ts`
+- `test/webgpu/standard-shader.test.ts`
+- `test/webgpu/webgpu-app.test.ts`
+
+## Previous Run Update
+
 Completed the mixed built-in material app route and promoted the material
 showcase onto the app facade:
 

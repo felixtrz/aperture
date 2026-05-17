@@ -63,6 +63,24 @@ function createScene(aperture, app, targetCanvas) {
   const standardBaseColorSampler = aperture.createSamplerHandle(
     "showcase-standard-base-color-linear",
   );
+  const standardMetallicRoughnessTexture = aperture.createTextureHandle(
+    "showcase-standard-metallic-roughness",
+  );
+  const standardMetallicRoughnessSampler = aperture.createSamplerHandle(
+    "showcase-standard-metallic-roughness-linear",
+  );
+  const standardOcclusionTexture = aperture.createTextureHandle(
+    "showcase-standard-occlusion",
+  );
+  const standardOcclusionSampler = aperture.createSamplerHandle(
+    "showcase-standard-occlusion-linear",
+  );
+  const standardEmissiveTexture = aperture.createTextureHandle(
+    "showcase-standard-emissive",
+  );
+  const standardEmissiveSampler = aperture.createSamplerHandle(
+    "showcase-standard-emissive-linear",
+  );
 
   app.assets.register(standardBaseColorTexture);
   app.assets.markReady(
@@ -91,6 +109,91 @@ function createScene(aperture, app, targetCanvas) {
     standardBaseColorSampler,
     aperture.createSamplerAsset({ label: "ShowcaseStandardBaseColorSampler" }),
   );
+  app.assets.register(standardMetallicRoughnessTexture);
+  app.assets.markReady(
+    standardMetallicRoughnessTexture,
+    aperture.createTextureAsset({
+      label: "ShowcaseStandardMetallicRoughnessTexture",
+      dimension: "2d",
+      width: 2,
+      height: 2,
+      format: "rgba8unorm",
+      colorSpace: "data",
+      semantic: "metallic-roughness",
+      usage: ["sampled", "copy-dst"],
+      sourceData: {
+        bytes: new Uint8Array([
+          0, 48, 230, 255, 0, 196, 72, 255, 0, 96, 180, 255, 0, 224, 96, 255,
+        ]),
+        bytesPerRow: 8,
+        rowsPerImage: 2,
+      },
+    }),
+  );
+  app.assets.register(standardMetallicRoughnessSampler);
+  app.assets.markReady(
+    standardMetallicRoughnessSampler,
+    aperture.createSamplerAsset({
+      label: "ShowcaseStandardMetallicRoughnessSampler",
+    }),
+  );
+  app.assets.register(standardOcclusionTexture);
+  app.assets.markReady(
+    standardOcclusionTexture,
+    aperture.createTextureAsset({
+      label: "ShowcaseStandardOcclusionTexture",
+      dimension: "2d",
+      width: 2,
+      height: 2,
+      format: "rgba8unorm",
+      colorSpace: "data",
+      semantic: "occlusion",
+      usage: ["sampled", "copy-dst"],
+      sourceData: {
+        bytes: new Uint8Array([
+          255, 0, 0, 255, 128, 0, 0, 255, 192, 0, 0, 255, 96, 0, 0, 255,
+        ]),
+        bytesPerRow: 8,
+        rowsPerImage: 2,
+      },
+    }),
+  );
+  app.assets.register(standardOcclusionSampler);
+  app.assets.markReady(
+    standardOcclusionSampler,
+    aperture.createSamplerAsset({
+      label: "ShowcaseStandardOcclusionSampler",
+    }),
+  );
+  app.assets.register(standardEmissiveTexture);
+  app.assets.markReady(
+    standardEmissiveTexture,
+    aperture.createTextureAsset({
+      label: "ShowcaseStandardEmissiveTexture",
+      dimension: "2d",
+      width: 2,
+      height: 2,
+      format: "rgba8unorm-srgb",
+      colorSpace: "srgb",
+      semantic: "emissive",
+      usage: ["sampled", "copy-dst"],
+      sourceData: {
+        bytes: new Uint8Array([
+          40, 255, 110, 255, 20, 160, 255, 255, 190, 255, 90, 255, 80, 120, 255,
+          255,
+        ]),
+        bytesPerRow: 8,
+        rowsPerImage: 2,
+      },
+    }),
+  );
+  app.assets.register(standardEmissiveSampler);
+  app.assets.markReady(
+    standardEmissiveSampler,
+    aperture.createSamplerAsset({
+      label: "ShowcaseStandardEmissiveSampler",
+    }),
+  );
 
   const standard = assets.materials.standard.add(
     aperture.createStandardMaterialAsset({
@@ -100,9 +203,22 @@ function createScene(aperture, app, targetCanvas) {
         texture: standardBaseColorTexture,
         sampler: standardBaseColorSampler,
       },
+      metallicRoughnessTexture: {
+        texture: standardMetallicRoughnessTexture,
+        sampler: standardMetallicRoughnessSampler,
+      },
+      occlusionTexture: {
+        texture: standardOcclusionTexture,
+        sampler: standardOcclusionSampler,
+      },
+      emissiveTexture: {
+        texture: standardEmissiveTexture,
+        sampler: standardEmissiveSampler,
+      },
       metallicFactor: 0.18,
       roughnessFactor: 0.36,
-      emissiveFactor: [0.01, 0.035, 0.018],
+      occlusionStrength: 0.72,
+      emissiveFactor: [0.12, 0.2, 0.16],
     }),
     { id: "showcase-standard" },
   );
@@ -189,6 +305,12 @@ function createScene(aperture, app, targetCanvas) {
     materials: { unlit, standard, matcap },
     standardBaseColorTexture,
     standardBaseColorSampler,
+    standardMetallicRoughnessTexture,
+    standardMetallicRoughnessSampler,
+    standardOcclusionTexture,
+    standardOcclusionSampler,
+    standardEmissiveTexture,
+    standardEmissiveSampler,
     matcapTexture,
     matcapSampler,
   };
@@ -270,6 +392,12 @@ function publishFrameStatus(
     },
     resources: {
       materials: scene.cubes.length,
+      standardTextureFeatures: [
+        "baseColorTexture",
+        "metallicRoughnessTexture",
+        "occlusionTexture",
+        "emissiveTexture",
+      ],
       bindGroups:
         report.resources?.resources === null ||
         report.resources?.resources === undefined

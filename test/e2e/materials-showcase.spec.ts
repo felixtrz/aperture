@@ -21,6 +21,9 @@ interface MaterialShowcaseStatus extends ExampleStatusBase {
     readonly indexedDrawCalls: number;
     readonly indexCount: number;
   };
+  readonly resources?: {
+    readonly standardTextureFeatures?: readonly string[];
+  };
 }
 
 test("Playwright shows three spinning material showcase cubes", async ({
@@ -51,6 +54,14 @@ test("Playwright shows three spinning material showcase cubes", async ({
     materialModels: ["unlit", "standard-pbr", "matcap"],
     animation: { spinningCubes: 3 },
     draw: { cubes: 3, indexedDrawCalls: 3, indexCount: 36 },
+    resources: {
+      standardTextureFeatures: [
+        "baseColorTexture",
+        "metallicRoughnessTexture",
+        "occlusionTexture",
+        "emissiveTexture",
+      ],
+    },
   });
 
   const firstFrame = initialStatus.frame ?? 0;

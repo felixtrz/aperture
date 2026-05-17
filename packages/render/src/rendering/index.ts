@@ -2,6 +2,7 @@ export * from "./authoring.js";
 export * from "./batching-report.js";
 export * from "./draw-package.js";
 export * from "./extraction.js";
+export * from "./material-queue.js";
 export * from "./package-inspection.js";
 export * from "./render-frame-phases.js";
 export * from "./render-queue.js";
