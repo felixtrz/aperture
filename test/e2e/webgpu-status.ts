@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type ConsoleMessage, type Page } from "@playwright/test";
 
 import type {
   ExampleStatusBase,
@@ -35,6 +35,11 @@ interface MultiEntityRouteFailureExpectation {
   readonly matchObject?: Readonly<Record<string, unknown>>;
 }
 
+export interface WebGpuValidationConsoleGuard {
+  readonly messages: readonly string[];
+  expectNoWarnings(): void;
+}
+
 const unsupportedWebGpuReasons = new Set<string>([
   "navigator-gpu-unavailable",
   "adapter-unavailable",
@@ -45,6 +50,30 @@ const unsupportedWebGpuReasons = new Set<string>([
 
 const rawGpuStatusJsonPattern =
   /\b(?:GPU[A-Z][A-Za-z0-9]*|create(?:Texture(?:View)?|Sampler|Buffer|BindGroup|CommandEncoder|RenderPipeline|ShaderModule|PipelineLayout)|request(?:Adapter|Device))\b/u;
+
+export function attachWebGpuValidationConsoleGuard(
+  page: Page,
+): WebGpuValidationConsoleGuard {
+  const messages: string[] = [];
+
+  page.on("console", (message) => {
+    if (isWebGpuValidationConsoleMessage(message)) {
+      messages.push(message.text());
+    }
+  });
+
+  return {
+    messages,
+    expectNoWarnings: () => {
+      expect(
+        messages,
+        `WebGPU validation warnings should not be emitted:\n${messages.join(
+          "\n\n",
+        )}`,
+      ).toEqual([]);
+    },
+  };
+}
 
 export async function waitForExampleStatus<T>(
   page: Page,
@@ -126,6 +155,24 @@ export function expectStatusJsonSafeForGpu(status: unknown): void {
     JSON.stringify(status ?? null, null, 2),
     "status JSON must not expose raw GPU handles or WebGPU creation calls",
   ).not.toMatch(rawGpuStatusJsonPattern);
+}
+
+export function isWebGpuValidationConsoleMessage(
+  message: ConsoleMessage,
+): boolean {
+  if (message.type() !== "warning" && message.type() !== "error") {
+    return false;
+  }
+
+  const text = message.text();
+
+  return (
+    text.includes("Invalid CommandBuffer") ||
+    text.includes("created with a default layout") ||
+    text.includes("While encoding [RenderPassEncoder") ||
+    text.includes("While calling [Queue].Submit") ||
+    (text.includes("WebGPU") && text.includes("validation"))
+  );
 }
 
 export function expectNoDrawSubmissionStatus(

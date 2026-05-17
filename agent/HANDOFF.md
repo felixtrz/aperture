@@ -2,6 +2,199 @@
 
 ## Latest Run Update
 
+Completed `task-0643` through `task-0674` in this automation run:
+
+- `task-0643` — Added an internal queued built-in material adapter contract in
+  the WebGPU app route. Texture/sampler preparation, frame-resource creation,
+  and family bucket insertion now dispatch through adapters for unlit,
+  MatcapMaterial, and StandardMaterial.
+- `task-0644` — Tightened material dependency diagnostics so texture and sampler
+  readiness include dependency kind, texture/sampler keys, and status. Standard
+  extraction now blocks failed textures and missing samplers before queuing.
+- `task-0645` — Audited StandardMaterial PBR texture expectations against
+  glTF/three.js, PlayCanvas, and Bevy. The audit confirmed no ownership drift
+  and identified sampler conversion and texture-transform preservation as the
+  next GLB blockers.
+- `task-0646` — Promoted WebGPU validation warning/error console guards into a
+  shared E2E helper and applied it to Standard queue phase and material showcase
+  browser specs.
+- `task-0647` — Audited queued material adapter integration and confirmed the
+  route remains `RenderSnapshot`/`MaterialQueueItem` driven with WebGPU-owned
+  resources.
+- `task-0648` — Extracted the queued material adapter registry into
+  `packages/webgpu/src/webgpu/queued-material-adapter.ts`.
+- `task-0649` — Added optional `MaterialTextureTransform` metadata, Standard
+  readiness diagnostics for non-identity texture transforms, and extraction
+  blocking before WebGPU preparation.
+- `task-0650` — Added glTF sampler enum mapping into `SamplerAsset` source data
+  with JSON-safe diagnostics for malformed wrap/filter values.
+- `task-0651` — Added
+  `docs/research/MINIMAL_GLB_MATERIAL_MAPPING_PLAN_2026_05_17.md`, defining the
+  smallest renderer-independent GLB material mapper contract.
+- `task-0652` — Added `createMaterialAssetFromGltfMaterial`, a
+  renderer-independent mapper from glTF-like material JSON into
+  `StandardMaterialAsset` or `UnlitMaterialAsset` using caller-provided
+  texture/sampler handle resolution.
+- `task-0653` — Audited GLB sampler/material/texture-transform readiness.
+  Fixed malformed `extensions` and `pbrMetallicRoughness` values so they now
+  emit `gltfMaterial.invalidField` diagnostics instead of silently defaulting.
+- `task-0654` — Added GLB material alpha/cull edge coverage and tightened
+  `alphaCutoff` validation.
+- `task-0655` — Extended the material texture resolver contract so
+  resolver-provided diagnostics distinguish missing texture vs sampler
+  dependencies.
+- `task-0656` — Planned minimal GLB texture/image mapping, keeping image
+  decoding, URI fetching, registry mutation, ECS authoring, and WebGPU upload
+  out of scope.
+- `task-0657` — Added `createTextureAssetFromGltfTexture`, a source-data helper
+  for glTF texture/image/sampler metadata with caller-owned decoded image data.
+- `task-0658` — Audited GLB material/texture helper boundaries; no drift found.
+- `task-0659` — Added a test-only fixture that feeds texture mapping reports
+  into material resolver results without registering assets.
+- `task-0660` — Added `validateGltfRootForAssetMapping` for glTF 2.0 root
+  validation, mapper array shape checks, and unsupported required root
+  extension diagnostics.
+- `task-0661` — Documented how root, texture, sampler, and material diagnostics
+  compose before registry mutation.
+- `task-0662` — Added JSON fixture tests for material, sampler, and texture
+  helper reports.
+- `task-0663` — Audited the root/material/texture helper set; no boundary drift
+  found.
+- `task-0664` — Planned the minimal GLB asset mapping orchestration report.
+- `task-0665` — Added `createGltfAssetMappingReport`, which validates root JSON,
+  maps material-referenced textures, plans deterministic source-asset handle
+  keys, and maps materials through the resolver boundary.
+- `task-0666` — Added orchestration report JSON tests and ensured nested texture
+  payloads are summarized rather than embedded as raw bytes.
+- `task-0667` — Documented orchestration report diagnostics and the later
+  registry handoff point.
+- `task-0668` — Audited the orchestration report boundary; no registry, ECS, or
+  WebGPU drift found.
+- `task-0669` — Planned the GLB source asset registry registration contract,
+  including write order, duplicate-key behavior, partial failures, material
+  dependency edges, handle normalization, and JSON report expectations.
+- `task-0670` — Added `registerGltfSourceAssetsFromMappingReport`, which writes
+  successful texture, sampler, and material source assets from a
+  `GltfAssetMappingReport` into an `AssetRegistry` as ready source assets.
+- `task-0671` — Added JSON fixture coverage for GLB source asset registration
+  reports, including written/skipped handle keys, duplicate diagnostics, and
+  raw-byte omission.
+- `task-0674` — Added dependency edge coverage proving material registry entries
+  depend on texture/sampler handles, pre-existing duplicates can satisfy those
+  dependencies, and missing dependencies skip material registration.
+- `task-0672` — Planned the GLB ECS authoring command handoff and explicitly
+  blocked implementation until mesh handles, node traversal, transform mapping,
+  and primitive/material resolution exist.
+- `task-0673` — Audited the source asset registry handoff; no ECS, WebGPU,
+  image decode, or renderer ownership drift found.
+
+Validation:
+
+- `pnpm exec tsc --noEmit -p packages/webgpu/tsconfig.json`
+- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts`
+- `pnpm exec playwright test test/e2e/standard-queue-phases.spec.ts test/e2e/materials-showcase.spec.ts`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec vitest run test/materials/gltf-sampler.test.ts test/materials/gltf-material.test.ts test/materials/material-dependency-readiness.test.ts test/materials/standard-texture-readiness.test.ts test/rendering/extraction.test.ts test/webgpu/webgpu-app.test.ts`
+- `pnpm exec vitest run test/assets/gltf-asset-mapping-json.test.ts test/assets/gltf-asset-mapping.test.ts test/assets/gltf-root.test.ts test/materials/gltf-report-json.test.ts test/materials/gltf-material-texture-integration.test.ts test/materials/gltf-texture.test.ts test/materials/gltf-material.test.ts test/materials/gltf-sampler.test.ts`
+- `pnpm run check:boundaries`
+- `pnpm run format:check`
+- `pnpm run build`
+- `pnpm run lint`
+- `pnpm exec vitest run test/assets/gltf-source-registration.test.ts test/assets/gltf-source-registration-json.test.ts test/assets/gltf-source-registration-dependencies.test.ts`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm run check:boundaries`
+- `pnpm run check` passed, including 182 Vitest files / 880 tests.
+
+Reference files/patterns inspected:
+
+- three.js `GLTFLoader` sampler, `KHR_materials_unlit`, material mapping, alpha,
+  and texture-transform handling.
+- PlayCanvas `glb-parser` sampler/material/texture-transform mapping.
+- Bevy glTF material loading, `ImageSamplerDescriptor`, texture sampler mapping,
+  material cull-mode behavior, image loading, asset-source pattern, and
+  sub-asset labeling.
+- three.js/PlayCanvas/Bevy dependency orchestration patterns for texture,
+  sampler, material, and asset planning.
+- Aperture anchors:
+  `docs/NORTH_STAR.md`, `docs/ARCHITECTURE.md`,
+  `docs/MEDIUM_LONG_TERM_GOALS.md`,
+  `docs/research/STANDARD_MATERIAL_PBR_TEXTURE_EXPECTATIONS_AUDIT_2026_05_17.md`,
+  `docs/research/MINIMAL_GLB_MATERIAL_MAPPING_PLAN_2026_05_17.md`,
+  `docs/research/GLB_SOURCE_ASSET_REGISTRY_REGISTRATION_CONTRACT_PLAN_2026_05_17.md`,
+  `docs/research/GLB_ECS_AUTHORING_COMMAND_HANDOFF_PLAN_2026_05_17.md`.
+
+Recommended next task:
+
+- `task-0675 — Plan minimal GLB mesh primitive source asset mapping`.
+
+Known issues / follow-ups:
+
+- Texture-transform metadata is preserved and diagnosed, but current material
+  shaders do not render non-identity transforms.
+- GLB material mapping depends on caller-provided texture/sampler handle
+  resolution; texture/image asset mapping is still a future slice.
+- GLB helpers must stay renderer-independent until broader asset loading,
+  ECS authoring, and WebGPU preparation each have explicit contracts.
+- Source asset registration is now implemented for material-referenced texture,
+  sampler, and material plans, but mesh handles do not exist yet.
+- ECS authoring remains blocked on mesh primitive source mapping, scene/node
+  traversal diagnostics, and transform mapping.
+
+Files touched in this update:
+
+- `agent/BACKLOG.md`
+- `agent/COMPLETED.md`
+- `agent/HANDOFF.md`
+- `agent/STATUS.json`
+- `docs/research/GLB_SAMPLER_TEXTURE_TRANSFORM_READINESS_AUDIT_2026_05_17.md`
+- `docs/research/GLB_MATERIAL_TEXTURE_HELPER_BOUNDARY_AUDIT_2026_05_17.md`
+- `docs/research/GLB_MATERIAL_TEXTURE_INTEGRATION_DIAGNOSTICS_2026_05_17.md`
+- `docs/research/GLB_ORCHESTRATION_REPORT_BOUNDARY_AUDIT_2026_05_17.md`
+- `docs/research/GLB_ORCHESTRATION_REPORT_DIAGNOSTICS_2026_05_17.md`
+- `docs/research/GLB_ECS_AUTHORING_COMMAND_HANDOFF_PLAN_2026_05_17.md`
+- `docs/research/GLB_REGISTRY_HANDOFF_BOUNDARY_AUDIT_2026_05_17.md`
+- `docs/research/GLB_ROOT_MATERIAL_TEXTURE_HELPER_BOUNDARY_AUDIT_2026_05_17.md`
+- `docs/research/GLB_SOURCE_ASSET_REGISTRY_REGISTRATION_CONTRACT_PLAN_2026_05_17.md`
+- `docs/research/MINIMAL_GLB_ASSET_MAPPING_ORCHESTRATION_REPORT_PLAN_2026_05_17.md`
+- `docs/research/MINIMAL_GLB_MATERIAL_MAPPING_PLAN_2026_05_17.md`
+- `docs/research/MINIMAL_GLB_TEXTURE_IMAGE_MAPPING_PLAN_2026_05_17.md`
+- `docs/research/QUEUED_MATERIAL_ADAPTER_INTEGRATION_AUDIT_2026_05_17.md`
+- `docs/research/STANDARD_MATERIAL_PBR_TEXTURE_EXPECTATIONS_AUDIT_2026_05_17.md`
+- `packages/render/src/assets/gltf-asset-mapping.ts`
+- `packages/render/src/assets/gltf-root.ts`
+- `packages/render/src/assets/gltf-source-registration.ts`
+- `packages/render/src/assets/index.ts`
+- `packages/render/src/materials/dependency-readiness.ts`
+- `packages/render/src/materials/gltf-material.ts`
+- `packages/render/src/materials/gltf-sampler.ts`
+- `packages/render/src/materials/gltf-texture.ts`
+- `packages/render/src/materials/index.ts`
+- `packages/render/src/materials/standard-texture-readiness.ts`
+- `packages/render/src/materials/types.ts`
+- `packages/render/src/rendering/extraction.ts`
+- `packages/render/src/rendering/snapshot.ts`
+- `packages/webgpu/src/webgpu/app.ts`
+- `packages/webgpu/src/webgpu/queued-material-adapter.ts`
+- `test/assets/gltf-asset-mapping-json.test.ts`
+- `test/assets/gltf-asset-mapping.test.ts`
+- `test/assets/gltf-root.test.ts`
+- `test/assets/gltf-source-registration-dependencies.test.ts`
+- `test/assets/gltf-source-registration-json.test.ts`
+- `test/assets/gltf-source-registration.test.ts`
+- `test/e2e/materials-showcase.spec.ts`
+- `test/e2e/standard-queue-phases.spec.ts`
+- `test/e2e/webgpu-status.ts`
+- `test/materials/gltf-material-texture-integration.test.ts`
+- `test/materials/gltf-material.test.ts`
+- `test/materials/gltf-report-json.test.ts`
+- `test/materials/gltf-sampler.test.ts`
+- `test/materials/gltf-texture.test.ts`
+- `test/materials/material-dependency-readiness.test.ts`
+- `test/materials/standard-texture-readiness.test.ts`
+- `test/rendering/extraction.test.ts`
+
+## Previous Run Update
+
 Completed `task-0636`, `task-0637`, `task-0638`, `task-0639`, `task-0640`,
 `task-0641`, and `task-0642` in this automation run:
 

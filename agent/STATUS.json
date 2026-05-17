@@ -1,10 +1,10 @@
 {
   "state": "idle",
   "currentTaskId": null,
-  "lastRunStartedAt": "2026-05-17T05:01:43Z",
+  "lastRunStartedAt": "2026-05-17T06:01:19Z",
   "lastResult": "success",
   "lastCommit": "0b6a5ef",
   "activePid": null,
-  "notes": "Completed task-0636 through task-0642 and corrected automation work-window docs/hook messaging to the actual 55-minute gate. Next recommended task: task-0643.",
-  "lastRunFinishedAt": "2026-05-17T05:44:47Z"
+  "notes": "Completed tasks 0643-0674; next recommended task is task-0675 minimal GLB mesh primitive source asset mapping.",
+  "lastRunFinishedAt": "2026-05-17T06:52:40Z"
 }

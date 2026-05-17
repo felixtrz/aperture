@@ -678,9 +678,18 @@ function validateStandardMaterialTextureReadiness(input: {
       ...(readinessDiagnostic.textureKey === undefined
         ? {}
         : { textureKey: readinessDiagnostic.textureKey }),
+      ...(readinessDiagnostic.samplerKey === undefined
+        ? {}
+        : { samplerKey: readinessDiagnostic.samplerKey }),
       ...(readinessDiagnostic.field === undefined
         ? {}
         : { field: readinessDiagnostic.field }),
+      ...(readinessDiagnostic.dependencyKind === undefined
+        ? {}
+        : { dependencyKind: readinessDiagnostic.dependencyKind }),
+      ...(readinessDiagnostic.status === undefined
+        ? {}
+        : { status: readinessDiagnostic.status }),
       ...(readinessDiagnostic.texCoord === undefined
         ? {}
         : { texCoord: readinessDiagnostic.texCoord }),
@@ -688,6 +697,29 @@ function validateStandardMaterialTextureReadiness(input: {
         ? {}
         : {
             supportedTexCoords: [...readinessDiagnostic.supportedTexCoords],
+          }),
+      ...(readinessDiagnostic.textureTransform === undefined
+        ? {}
+        : {
+            textureTransform: {
+              ...readinessDiagnostic.textureTransform,
+              ...(readinessDiagnostic.textureTransform.offset === undefined
+                ? {}
+                : {
+                    offset: [
+                      readinessDiagnostic.textureTransform.offset[0],
+                      readinessDiagnostic.textureTransform.offset[1],
+                    ],
+                  }),
+              ...(readinessDiagnostic.textureTransform.scale === undefined
+                ? {}
+                : {
+                    scale: [
+                      readinessDiagnostic.textureTransform.scale[0],
+                      readinessDiagnostic.textureTransform.scale[1],
+                    ],
+                  }),
+            },
           }),
       message: readinessDiagnostic.message,
     });

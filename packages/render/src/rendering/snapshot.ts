@@ -11,6 +11,7 @@ import type {
 } from "@aperture-engine/simulation";
 import {
   materialPipelineKeyInputToKey,
+  type MaterialTextureTransform,
   type MaterialPipelineKeyInput,
 } from "../materials/index.js";
 import type { MeshTopology } from "../mesh/index.js";
@@ -122,9 +123,13 @@ export interface RenderDiagnostic {
   readonly materialKey?: string;
   readonly meshKey?: string;
   readonly textureKey?: string;
+  readonly samplerKey?: string;
+  readonly dependencyKind?: string;
+  readonly status?: string;
   readonly field?: string;
   readonly texCoord?: number;
   readonly supportedTexCoords?: readonly number[];
+  readonly textureTransform?: MaterialTextureTransform;
 }
 
 export interface RenderSnapshotReport {

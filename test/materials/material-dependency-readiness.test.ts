@@ -124,6 +124,29 @@ describe("material dependency readiness reports", () => {
       "materialDependency.dependencyFailed",
       "materialDependency.dependencyMissing",
     ]);
+    expect(report.diagnostics).toMatchObject([
+      {
+        field: "baseColorTexture",
+        dependencyKind: "texture",
+        dependencyKey: "texture:loading",
+        textureKey: "texture:loading",
+        samplerKey: "sampler:failed",
+      },
+      {
+        field: "baseColorTexture",
+        dependencyKind: "sampler",
+        dependencyKey: "sampler:failed",
+        textureKey: "texture:loading",
+        samplerKey: "sampler:failed",
+      },
+      {
+        field: "normalTexture",
+        dependencyKind: "texture",
+        dependencyKey: "texture:missing",
+        textureKey: "texture:missing",
+        samplerKey: "sampler:ready",
+      },
+    ]);
   });
 
   it("reports missing matcap texture and sampler handles", () => {
@@ -230,10 +253,14 @@ describe("material dependency readiness reports", () => {
         {
           code: "materialDependency.dependencyMissing",
           dependencyKey: "texture:missing",
+          textureKey: "texture:missing",
+          samplerKey: "sampler:loading",
         },
         {
           code: "materialDependency.dependencyLoading",
           dependencyKey: "sampler:loading",
+          textureKey: "texture:missing",
+          samplerKey: "sampler:loading",
         },
       ],
     });

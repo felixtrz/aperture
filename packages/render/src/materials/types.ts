@@ -64,6 +64,13 @@ export interface MaterialTextureBinding {
   readonly texture: TextureHandle | null;
   readonly sampler: SamplerHandle | null;
   readonly texCoord?: number;
+  readonly transform?: MaterialTextureTransform;
+}
+
+export interface MaterialTextureTransform {
+  readonly offset?: readonly [number, number];
+  readonly scale?: readonly [number, number];
+  readonly rotation?: number;
 }
 
 export interface TextureSourceData {

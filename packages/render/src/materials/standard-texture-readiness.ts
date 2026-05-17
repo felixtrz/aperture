@@ -8,6 +8,8 @@ import type {
   MaterialAsset,
   MaterialKind,
   MaterialTextureBinding,
+  MaterialTextureTransform,
+  SamplerAsset,
   StandardMaterialAsset,
   TextureAsset,
   TextureColorSpace,
@@ -26,8 +28,11 @@ export type StandardMaterialTextureReadinessDiagnosticCode =
   | "standardMaterialTexture.materialNotReady"
   | "standardMaterialTexture.unsupportedMaterialKind"
   | "standardMaterialTexture.missingTextureHandle"
+  | "standardMaterialTexture.missingSamplerHandle"
   | "standardMaterialTexture.textureNotReady"
+  | "standardMaterialTexture.samplerNotReady"
   | "standardMaterialTexture.unsupportedTexCoord"
+  | "standardMaterialTexture.unsupportedTextureTransform"
   | "standardMaterialTexture.invalidSemantic"
   | "standardMaterialTexture.invalidColorSpace";
 
@@ -37,7 +42,9 @@ export interface StandardMaterialTextureReadinessDiagnostic {
   readonly severity: "warning" | "error";
   readonly materialKey: string;
   readonly textureKey?: string;
+  readonly samplerKey?: string;
   readonly field?: StandardMaterialTextureField;
+  readonly dependencyKind?: "texture" | "sampler";
   readonly status?: AssetStatus | "missing";
   readonly expectedSemantic?: TextureSemantic;
   readonly actualSemantic?: TextureSemantic;
@@ -45,6 +52,7 @@ export interface StandardMaterialTextureReadinessDiagnostic {
   readonly actualColorSpace?: TextureColorSpace;
   readonly texCoord?: number;
   readonly supportedTexCoords?: readonly number[];
+  readonly textureTransform?: MaterialTextureTransform;
 }
 
 export interface StandardMaterialTextureReadinessSlot {
@@ -196,6 +204,13 @@ export function standardMaterialTextureReadinessReportToJsonValue(
       ...(diagnostic.supportedTexCoords === undefined
         ? {}
         : { supportedTexCoords: [...diagnostic.supportedTexCoords] }),
+      ...(diagnostic.textureTransform === undefined
+        ? {}
+        : {
+            textureTransform: cloneTextureTransform(
+              diagnostic.textureTransform,
+            ),
+          }),
     })),
   };
 }
@@ -251,6 +266,32 @@ function inspectTextureBinding(input: {
 
   const texCoord = input.binding.texCoord ?? 0;
   const texCoordReady = isSupportedStandardTexCoord(texCoord);
+  const textureKey =
+    input.binding.texture === null
+      ? undefined
+      : assetHandleKey(input.binding.texture);
+  const samplerKey =
+    input.binding.sampler === null
+      ? undefined
+      : assetHandleKey(input.binding.sampler);
+
+  if (
+    input.binding.transform !== undefined &&
+    !isIdentityTextureTransform(input.binding.transform)
+  ) {
+    input.diagnostics.push({
+      code: "standardMaterialTexture.unsupportedTextureTransform",
+      severity: "warning",
+      materialKey: input.materialKey,
+      ...(textureKey === undefined ? {} : { textureKey }),
+      ...(samplerKey === undefined ? {} : { samplerKey }),
+      field: input.expectation.field,
+      expectedSemantic: input.expectation.semantic,
+      expectedColorSpaces: input.expectation.colorSpaces,
+      textureTransform: cloneTextureTransform(input.binding.transform),
+      message: `StandardMaterial ${input.expectation.field} uses a texture transform, but StandardMaterial shaders do not support texture transforms yet.`,
+    });
+  }
 
   if (input.binding.texture === null) {
     if (!texCoordReady) {
@@ -268,19 +309,19 @@ function inspectTextureBinding(input: {
       severity: "warning",
       materialKey: input.materialKey,
       field: input.expectation.field,
+      dependencyKind: "texture",
+      status: "missing",
+      ...(samplerKey === undefined ? {} : { samplerKey }),
       expectedSemantic: input.expectation.semantic,
       expectedColorSpaces: input.expectation.colorSpaces,
       message: `StandardMaterial ${input.expectation.field} is missing a texture handle.`,
     });
-    return;
-  }
+  } else if (!texCoordReady) {
+    const readyTextureKey = assetHandleKey(input.binding.texture);
 
-  const textureKey = assetHandleKey(input.binding.texture);
-
-  if (!texCoordReady) {
     pushUnsupportedTexCoordDiagnostic({
       materialKey: input.materialKey,
-      textureKey,
+      textureKey: readyTextureKey,
       field: input.expectation.field,
       expectation: input.expectation,
       texCoord,
@@ -288,35 +329,77 @@ function inspectTextureBinding(input: {
     });
   }
 
-  const textureEntry = input.registry.get<"texture", TextureAsset>(
-    input.binding.texture,
-  );
-  const textureStatus = textureEntry?.status ?? "missing";
+  if (input.binding.texture !== null) {
+    const readyTextureKey = assetHandleKey(input.binding.texture);
+    const textureEntry = input.registry.get<"texture", TextureAsset>(
+      input.binding.texture,
+    );
+    const textureStatus = textureEntry?.status ?? "missing";
 
-  if (textureEntry === undefined || textureEntry.asset === null) {
+    if (textureEntry === undefined || textureEntry.asset === null) {
+      input.diagnostics.push({
+        code: "standardMaterialTexture.textureNotReady",
+        severity: textureStatus === "failed" ? "error" : "warning",
+        materialKey: input.materialKey,
+        textureKey: readyTextureKey,
+        ...(samplerKey === undefined ? {} : { samplerKey }),
+        field: input.expectation.field,
+        dependencyKind: "texture",
+        status: textureStatus,
+        expectedSemantic: input.expectation.semantic,
+        expectedColorSpaces: input.expectation.colorSpaces,
+        message: `StandardMaterial ${input.expectation.field} texture '${readyTextureKey}' is '${textureStatus}', not ready.`,
+      });
+    } else {
+      inspectReadyTexture({
+        materialKey: input.materialKey,
+        textureKey: readyTextureKey,
+        texture: textureEntry.asset,
+        expectation: input.expectation,
+        texCoord,
+        slots: input.slots,
+        diagnostics: input.diagnostics,
+      });
+    }
+  }
+
+  if (input.binding.sampler === null) {
     input.diagnostics.push({
-      code: "standardMaterialTexture.textureNotReady",
-      severity: textureStatus === "failed" ? "error" : "warning",
+      code: "standardMaterialTexture.missingSamplerHandle",
+      severity: "warning",
       materialKey: input.materialKey,
-      textureKey,
+      ...(textureKey === undefined ? {} : { textureKey }),
       field: input.expectation.field,
-      status: textureStatus,
+      dependencyKind: "sampler",
+      status: "missing",
       expectedSemantic: input.expectation.semantic,
       expectedColorSpaces: input.expectation.colorSpaces,
-      message: `StandardMaterial ${input.expectation.field} texture '${textureKey}' is '${textureStatus}', not ready.`,
+      message: `StandardMaterial ${input.expectation.field} is missing a sampler handle.`,
     });
     return;
   }
 
-  inspectReadyTexture({
-    materialKey: input.materialKey,
-    textureKey,
-    texture: textureEntry.asset,
-    expectation: input.expectation,
-    texCoord,
-    slots: input.slots,
-    diagnostics: input.diagnostics,
-  });
+  const readySamplerKey = assetHandleKey(input.binding.sampler);
+  const samplerEntry = input.registry.get<"sampler", SamplerAsset>(
+    input.binding.sampler,
+  );
+  const samplerStatus = samplerEntry?.status ?? "missing";
+
+  if (samplerEntry === undefined || samplerEntry.asset === null) {
+    input.diagnostics.push({
+      code: "standardMaterialTexture.samplerNotReady",
+      severity: samplerStatus === "failed" ? "error" : "warning",
+      materialKey: input.materialKey,
+      ...(textureKey === undefined ? {} : { textureKey }),
+      samplerKey: readySamplerKey,
+      field: input.expectation.field,
+      dependencyKind: "sampler",
+      status: samplerStatus,
+      expectedSemantic: input.expectation.semantic,
+      expectedColorSpaces: input.expectation.colorSpaces,
+      message: `StandardMaterial ${input.expectation.field} sampler '${readySamplerKey}' is '${samplerStatus}', not ready.`,
+    });
+  }
 }
 
 function inspectReadyTexture(input: {
@@ -404,4 +487,36 @@ function isSupportedStandardTexCoord(texCoord: number): boolean {
   return SUPPORTED_STANDARD_TEXCOORDS.includes(
     texCoord as (typeof SUPPORTED_STANDARD_TEXCOORDS)[number],
   );
+}
+
+function isIdentityTextureTransform(
+  transform: MaterialTextureTransform,
+): boolean {
+  const offset = transform.offset ?? [0, 0];
+  const scale = transform.scale ?? [1, 1];
+  const rotation = transform.rotation ?? 0;
+
+  return (
+    offset[0] === 0 &&
+    offset[1] === 0 &&
+    scale[0] === 1 &&
+    scale[1] === 1 &&
+    rotation === 0
+  );
+}
+
+function cloneTextureTransform(
+  transform: MaterialTextureTransform,
+): MaterialTextureTransform {
+  return {
+    ...(transform.offset === undefined
+      ? {}
+      : { offset: [transform.offset[0], transform.offset[1]] }),
+    ...(transform.scale === undefined
+      ? {}
+      : { scale: [transform.scale[0], transform.scale[1]] }),
+    ...(transform.rotation === undefined
+      ? {}
+      : { rotation: transform.rotation }),
+  };
 }

@@ -10,3 +10,6 @@ export * from "./unlit-packing.js";
 export * from "./standard-proof-point.js";
 export * from "./standard-normal-map-readiness.js";
 export * from "./standard-texture-readiness.js";
+export * from "./gltf-sampler.js";
+export * from "./gltf-material.js";
+export * from "./gltf-texture.js";

@@ -2,6 +2,7 @@ import { expect, test, type Page } from "@playwright/test";
 
 import { pixelDistance, readPngPixel } from "./png.js";
 import {
+  attachWebGpuValidationConsoleGuard,
   attachExampleStatus,
   expectStatusJsonSafeForGpu,
   skipIfUnsupportedWebGpu,
@@ -29,6 +30,8 @@ interface MaterialShowcaseStatus extends ExampleStatusBase {
 test("Playwright shows three spinning material showcase cubes", async ({
   page,
 }) => {
+  const webGpuValidation = attachWebGpuValidationConsoleGuard(page);
+
   await page.goto("/examples/materials-showcase.html");
 
   const initialStatus =
@@ -78,6 +81,7 @@ test("Playwright shows three spinning material showcase cubes", async ({
     contentType: "image/png",
   });
   expectStatusJsonSafeForGpu(laterStatus);
+  webGpuValidation.expectNoWarnings();
   expect(laterStatus.frame ?? 0).toBeGreaterThanOrEqual(firstFrame + 12);
   expectVisibleMaterialRegions(laterScreenshot);
 });

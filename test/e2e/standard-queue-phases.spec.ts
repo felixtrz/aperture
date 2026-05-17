@@ -1,7 +1,8 @@
-import { expect, test, type ConsoleMessage, type Page } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 
 import { pixelDistance, readPngPixel, rgbaColorToPixel } from "./png.js";
 import {
+  attachWebGpuValidationConsoleGuard,
   attachExampleStatus,
   expectStatusJsonSafeForGpu,
   skipIfUnsupportedWebGpu,
@@ -33,13 +34,7 @@ interface StandardQueuePhasesStatus extends ExampleStatusBase {
 test("browser renders StandardMaterial opaque, alpha-test, and transparent queue phases", async ({
   page,
 }) => {
-  const webGpuValidationWarnings: string[] = [];
-
-  page.on("console", (message) => {
-    if (isWebGpuValidationWarning(message)) {
-      webGpuValidationWarnings.push(message.text());
-    }
-  });
+  const webGpuValidation = attachWebGpuValidationConsoleGuard(page);
 
   await page.goto("/examples/standard-queue-phases.html");
 
@@ -82,12 +77,7 @@ test("browser renders StandardMaterial opaque, alpha-test, and transparent queue
     renderedStatus,
   );
   expectStatusJsonSafeForGpu(renderedStatus);
-  expect(
-    webGpuValidationWarnings,
-    `WebGPU validation warnings should not be emitted:\n${webGpuValidationWarnings.join(
-      "\n\n",
-    )}`,
-  ).toEqual([]);
+  webGpuValidation.expectNoWarnings();
 
   const screenshot = await page.locator("#aperture-canvas").screenshot();
 
@@ -170,21 +160,6 @@ function strongestRegionSample(
   }
 
   return strongest;
-}
-
-function isWebGpuValidationWarning(message: ConsoleMessage): boolean {
-  if (message.type() !== "warning" && message.type() !== "error") {
-    return false;
-  }
-
-  const text = message.text();
-
-  return (
-    text.includes("Invalid CommandBuffer") ||
-    text.includes("created with a default layout") ||
-    text.includes("While encoding [RenderPassEncoder") ||
-    text.includes("While calling [Queue].Submit")
-  );
 }
 
 async function waitForQueuePhaseFrame(

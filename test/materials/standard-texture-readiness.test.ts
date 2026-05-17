@@ -242,6 +242,148 @@ describe("StandardMaterial texture semantic and color-space readiness", () => {
     expect(() => JSON.stringify(report)).not.toThrow();
   });
 
+  it("diagnoses StandardMaterial texture and sampler dependency states by channel", () => {
+    const registry = new AssetRegistry();
+    const material = createMaterialHandle("standard");
+    const failedBase = createTextureHandle("failed-base");
+    const loadingBaseSampler = createSamplerHandle("loading-base-sampler");
+    const missingMr = createTextureHandle("missing-mr");
+    const missingMrSampler = createSamplerHandle("missing-mr-sampler");
+    const normal = createTextureHandle("normal-ready");
+    const failedOcclusionSampler = createSamplerHandle("failed-occlusion");
+    const loadingEmissive = createTextureHandle("loading-emissive");
+    const readyEmissiveSampler = createSamplerHandle("ready-emissive");
+
+    registry.register(failedBase);
+    registry.markFailed(failedBase, [
+      { code: "texture.failed", message: "base failed", severity: "error" },
+    ]);
+    registry.register(loadingBaseSampler);
+    registry.markLoading(loadingBaseSampler);
+    readyTexture(registry, normal, "normal", "linear");
+    registry.register(failedOcclusionSampler);
+    registry.markFailed(failedOcclusionSampler, [
+      {
+        code: "sampler.failed",
+        message: "occlusion failed",
+        severity: "error",
+      },
+    ]);
+    registry.register(loadingEmissive);
+    registry.markLoading(loadingEmissive);
+    registry.register(readyEmissiveSampler);
+    registry.markReady(readyEmissiveSampler, createSamplerAsset());
+    registry.register(material);
+    registry.markReady(
+      material,
+      createStandardMaterialAsset({
+        baseColorTexture: {
+          texture: failedBase,
+          sampler: loadingBaseSampler,
+        },
+        metallicRoughnessTexture: {
+          texture: missingMr,
+          sampler: missingMrSampler,
+        },
+        normalTexture: {
+          texture: normal,
+          sampler: null,
+        },
+        occlusionTexture: {
+          texture: null,
+          sampler: failedOcclusionSampler,
+        },
+        emissiveTexture: {
+          texture: loadingEmissive,
+          sampler: readyEmissiveSampler,
+        },
+      }),
+    );
+
+    const report = createStandardMaterialTextureReadinessReport({
+      registry,
+      material,
+    });
+
+    expect(report.ready).toBe(false);
+    expect(
+      report.diagnostics.map((diagnostic) => ({
+        code: diagnostic.code,
+        field: diagnostic.field,
+        dependencyKind: diagnostic.dependencyKind,
+        textureKey: diagnostic.textureKey,
+        samplerKey: diagnostic.samplerKey,
+        status: diagnostic.status,
+      })),
+    ).toEqual([
+      {
+        code: "standardMaterialTexture.textureNotReady",
+        field: "baseColorTexture",
+        dependencyKind: "texture",
+        textureKey: "texture:failed-base",
+        samplerKey: "sampler:loading-base-sampler",
+        status: "failed",
+      },
+      {
+        code: "standardMaterialTexture.samplerNotReady",
+        field: "baseColorTexture",
+        dependencyKind: "sampler",
+        textureKey: "texture:failed-base",
+        samplerKey: "sampler:loading-base-sampler",
+        status: "loading",
+      },
+      {
+        code: "standardMaterialTexture.textureNotReady",
+        field: "metallicRoughnessTexture",
+        dependencyKind: "texture",
+        textureKey: "texture:missing-mr",
+        samplerKey: "sampler:missing-mr-sampler",
+        status: "missing",
+      },
+      {
+        code: "standardMaterialTexture.samplerNotReady",
+        field: "metallicRoughnessTexture",
+        dependencyKind: "sampler",
+        textureKey: "texture:missing-mr",
+        samplerKey: "sampler:missing-mr-sampler",
+        status: "missing",
+      },
+      {
+        code: "standardMaterialTexture.missingSamplerHandle",
+        field: "normalTexture",
+        dependencyKind: "sampler",
+        textureKey: "texture:normal-ready",
+        samplerKey: undefined,
+        status: "missing",
+      },
+      {
+        code: "standardMaterialTexture.missingTextureHandle",
+        field: "occlusionTexture",
+        dependencyKind: "texture",
+        textureKey: undefined,
+        samplerKey: "sampler:failed-occlusion",
+        status: "missing",
+      },
+      {
+        code: "standardMaterialTexture.samplerNotReady",
+        field: "occlusionTexture",
+        dependencyKind: "sampler",
+        textureKey: undefined,
+        samplerKey: "sampler:failed-occlusion",
+        status: "failed",
+      },
+      {
+        code: "standardMaterialTexture.textureNotReady",
+        field: "emissiveTexture",
+        dependencyKind: "texture",
+        textureKey: "texture:loading-emissive",
+        samplerKey: "sampler:ready-emissive",
+        status: "loading",
+      },
+    ]);
+    expect(() => JSON.stringify(report)).not.toThrow();
+  });
+
   it("diagnoses unsupported StandardMaterial texture UV sets", () => {
     const registry = new AssetRegistry();
     const material = createMaterialHandle("standard");
@@ -283,6 +425,62 @@ describe("StandardMaterial texture semantic and color-space readiness", () => {
         supportedTexCoords: [0, 1],
       },
     ]);
+  });
+
+  it("diagnoses unsupported StandardMaterial texture transforms", () => {
+    const registry = new AssetRegistry();
+    const material = createMaterialHandle("standard");
+    const texture = createTextureHandle("base-color-transform");
+    const sampler = createSamplerHandle("linear");
+
+    registry.register(sampler);
+    registry.markReady(sampler, createSamplerAsset());
+    readyTexture(registry, texture, "base-color", "srgb");
+    registry.register(material);
+    registry.markReady(
+      material,
+      createStandardMaterialAsset({
+        baseColorTexture: {
+          texture,
+          sampler,
+          transform: {
+            offset: [0.25, 0.5],
+            scale: [0.5, 0.5],
+            rotation: 0.125,
+          },
+        },
+      }),
+    );
+
+    const report = createStandardMaterialTextureReadinessReport({
+      registry,
+      material,
+    });
+    const json = standardMaterialTextureReadinessReportToJsonValue(report);
+
+    expect(report.ready).toBe(false);
+    expect(report.diagnostics).toMatchObject([
+      {
+        code: "standardMaterialTexture.unsupportedTextureTransform",
+        materialKey: "material:standard",
+        textureKey: "texture:base-color-transform",
+        samplerKey: "sampler:linear",
+        field: "baseColorTexture",
+        textureTransform: {
+          offset: [0.25, 0.5],
+          scale: [0.5, 0.5],
+          rotation: 0.125,
+        },
+      },
+    ]);
+    expect(json.diagnostics[0]?.textureTransform).toEqual({
+      offset: [0.25, 0.5],
+      scale: [0.5, 0.5],
+      rotation: 0.125,
+    });
+    expect(
+      JSON.parse(standardMaterialTextureReadinessReportToJson(report)),
+    ).toEqual(json);
   });
 });
 

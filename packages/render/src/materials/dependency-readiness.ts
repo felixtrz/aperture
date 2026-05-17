@@ -33,6 +33,8 @@ export interface MaterialAssetDependencyReadinessDiagnostic {
   readonly field?: string;
   readonly dependencyKind?: MaterialDependencyKind;
   readonly dependencyKey?: string;
+  readonly textureKey?: string;
+  readonly samplerKey?: string;
   readonly status?: MaterialAssetDependencyReadinessStatus;
 }
 
@@ -62,6 +64,8 @@ export interface MaterialAssetDependencyReadinessDiagnosticJsonValue {
   readonly field?: string;
   readonly dependencyKind?: MaterialDependencyKind;
   readonly dependencyKey?: string;
+  readonly textureKey?: string;
+  readonly samplerKey?: string;
   readonly status?: MaterialAssetDependencyReadinessStatus;
 }
 
@@ -133,12 +137,19 @@ export function createMaterialAssetDependencyReadinessReport(
   }
 
   for (const [field, binding] of materialTextureBindings(materialEntry.asset)) {
+    const textureKey =
+      binding.texture === null ? undefined : assetHandleKey(binding.texture);
+    const samplerKey =
+      binding.sampler === null ? undefined : assetHandleKey(binding.sampler);
+
     inspectDependencySlot({
       registry: options.registry,
       materialKey,
       field,
       dependencyKind: "texture",
       handle: binding.texture,
+      textureKey,
+      samplerKey,
       slots,
       diagnostics,
     });
@@ -148,6 +159,8 @@ export function createMaterialAssetDependencyReadinessReport(
       field,
       dependencyKind: "sampler",
       handle: binding.sampler,
+      textureKey,
+      samplerKey,
       slots,
       diagnostics,
     });
@@ -214,6 +227,8 @@ function inspectDependencySlot(input: {
   readonly field: string;
   readonly dependencyKind: MaterialDependencyKind;
   readonly handle: AssetHandle | null;
+  readonly textureKey: string | undefined;
+  readonly samplerKey: string | undefined;
   readonly slots: MaterialAssetDependencySlotReadiness[];
   readonly diagnostics: MaterialAssetDependencyReadinessDiagnostic[];
 }): void {
@@ -234,6 +249,12 @@ function inspectDependencySlot(input: {
       materialKey: input.materialKey,
       field: input.field,
       dependencyKind: input.dependencyKind,
+      ...(input.textureKey === undefined
+        ? {}
+        : { textureKey: input.textureKey }),
+      ...(input.samplerKey === undefined
+        ? {}
+        : { samplerKey: input.samplerKey }),
       status: "missing",
       message: `${input.field} is missing a ${input.dependencyKind} handle.`,
     });
@@ -263,6 +284,8 @@ function inspectDependencySlot(input: {
     field: input.field,
     dependencyKind: input.dependencyKind,
     dependencyKey,
+    ...(input.textureKey === undefined ? {} : { textureKey: input.textureKey }),
+    ...(input.samplerKey === undefined ? {} : { samplerKey: input.samplerKey }),
     status,
     message: `${input.field} ${input.dependencyKind} dependency '${dependencyKey}' is '${status}'.`,
   });

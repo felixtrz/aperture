@@ -802,6 +802,57 @@ describe("render extraction", () => {
     expect(() => JSON.stringify(snapshot.diagnostics)).not.toThrow();
   });
 
+  it("diagnoses StandardMaterial failed textures and missing samplers before extraction queues a draw", () => {
+    const world = createRuntimeWorld();
+    const texture = createTextureHandle("failed-standard-base");
+    const assets = createReadyAssets({
+      materialAsset: createStandardMaterialAsset({
+        baseColorTexture: { texture, sampler: null },
+      }),
+    });
+
+    assets.register(texture);
+    assets.markFailed(texture, [
+      {
+        code: "texture.failed",
+        message: "standard base texture failed",
+        severity: "error",
+      },
+    ]);
+
+    createCameraEntity(world, { priority: 0, layerMask: 1 });
+    createMeshEntity(world, {
+      meshId: "mesh:cube",
+      materialId: "material:unlit",
+      layerMask: 1,
+    });
+
+    const snapshot = extractRenderSnapshot(world, assets);
+
+    expect(snapshot.meshDraws).toEqual([]);
+    expect(snapshot.diagnostics).toMatchObject([
+      {
+        code: "render.standardMaterialTexture.textureNotReady",
+        assetKey: "material:unlit",
+        materialKey: "material:unlit",
+        textureKey: "texture:failed-standard-base",
+        field: "baseColorTexture",
+        dependencyKind: "texture",
+        status: "failed",
+      },
+      {
+        code: "render.standardMaterialTexture.missingSamplerHandle",
+        assetKey: "material:unlit",
+        materialKey: "material:unlit",
+        textureKey: "texture:failed-standard-base",
+        field: "baseColorTexture",
+        dependencyKind: "sampler",
+        status: "missing",
+      },
+    ]);
+    expect(() => JSON.stringify(snapshot.diagnostics)).not.toThrow();
+  });
+
   it("diagnoses unsupported StandardMaterial texture UV sets before extraction queues a draw", () => {
     const world = createRuntimeWorld();
     const texture = createTextureHandle("standard-base-uv2");
@@ -848,6 +899,67 @@ describe("render extraction", () => {
         field: "baseColorTexture",
         texCoord: 2,
         supportedTexCoords: [0, 1],
+      },
+    ]);
+    expect(() => JSON.stringify(snapshot.diagnostics)).not.toThrow();
+  });
+
+  it("diagnoses unsupported StandardMaterial texture transforms before extraction queues a draw", () => {
+    const world = createRuntimeWorld();
+    const texture = createTextureHandle("standard-base-transform");
+    const sampler = createSamplerHandle("standard-base-linear");
+    const assets = createReadyAssets({
+      materialAsset: createStandardMaterialAsset({
+        baseColorTexture: {
+          texture,
+          sampler,
+          transform: {
+            offset: [0.1, 0.2],
+            scale: [0.75, 0.5],
+          },
+        },
+      }),
+    });
+
+    assets.register(texture);
+    assets.markReady(
+      texture,
+      createTextureAsset({
+        label: "StandardBaseTransform",
+        dimension: "2d",
+        width: 1,
+        height: 1,
+        format: "rgba8unorm-srgb",
+        colorSpace: "srgb",
+        semantic: "base-color",
+        usage: ["sampled"],
+      }),
+    );
+    assets.register(sampler);
+    assets.markReady(sampler, createSamplerAsset());
+
+    createCameraEntity(world, { priority: 0, layerMask: 1 });
+    createMeshEntity(world, {
+      meshId: "mesh:cube",
+      materialId: "material:unlit",
+      layerMask: 1,
+    });
+
+    const snapshot = extractRenderSnapshot(world, assets);
+
+    expect(snapshot.meshDraws).toEqual([]);
+    expect(snapshot.diagnostics).toMatchObject([
+      {
+        code: "render.standardMaterialTexture.unsupportedTextureTransform",
+        assetKey: "material:unlit",
+        materialKey: "material:unlit",
+        textureKey: "texture:standard-base-transform",
+        samplerKey: "sampler:standard-base-linear",
+        field: "baseColorTexture",
+        textureTransform: {
+          offset: [0.1, 0.2],
+          scale: [0.75, 0.5],
+        },
       },
     ]);
     expect(() => JSON.stringify(snapshot.diagnostics)).not.toThrow();

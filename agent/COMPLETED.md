@@ -15,6 +15,560 @@ Summary:
 - Validation run.
 - Follow-up tasks added.
 
+## task-0674 — Add GLB registration dependency edge coverage
+
+Completed: 2026-05-17
+
+Summary:
+
+- Added focused coverage proving registered GLB material entries create
+  `AssetRegistry` dependency edges to texture and sampler handles.
+- Covered duplicate pre-existing texture/sampler entries as satisfied
+  dependencies and missing dependency skips with diagnostics.
+- Important files:
+  `test/assets/gltf-source-registration-dependencies.test.ts`.
+- Validation run: focused GLB source registration tests and
+  `pnpm exec tsc --noEmit -p tsconfig.test.json` passed.
+- Follow-up tasks added: none directly; continued into `task-0672`.
+
+## task-0673 — Audit GLB registry handoff boundaries
+
+Completed: 2026-05-17
+
+Summary:
+
+- Audited the GLB source asset registry handoff after implementation.
+- Confirmed registry writes stay source-asset-only, duplicate handling avoids
+  overwrites, partial failures are report-backed, and no ECS/WebGPU/image decode
+  boundary drift was introduced.
+- Important files:
+  `docs/research/GLB_REGISTRY_HANDOFF_BOUNDARY_AUDIT_2026_05_17.md`.
+- Validation run: `pnpm run check:boundaries`, focused GLB source registration
+  tests, and `pnpm exec tsc --noEmit -p tsconfig.test.json` passed.
+- Follow-up tasks added: `task-0675` through `task-0679`.
+
+## task-0672 — Plan GLB ECS authoring command handoff
+
+Completed: 2026-05-17
+
+Summary:
+
+- Planned the serializable ECS authoring command report that should follow
+  source asset registration.
+- Defined scene/node/primitive entity-key strategy, component command shape,
+  registration boundaries, and mesh/node/transform prerequisites before any ECS
+  command helper is implemented.
+- Important files:
+  `docs/research/GLB_ECS_AUTHORING_COMMAND_HANDOFF_PLAN_2026_05_17.md`.
+- Validation run: documentation formatting to be covered by final validation.
+- Follow-up tasks added: mesh primitive and scene traversal planning tasks.
+
+## task-0671 — Add GLB registration report JSON tests
+
+Completed: 2026-05-17
+
+Summary:
+
+- Added JSON fixture coverage for GLB source asset registration reports.
+- Confirmed written/skipped handle keys and duplicate diagnostics are preserved
+  and raw texture byte arrays/source data are not embedded in JSON output.
+- Important files: `test/assets/gltf-source-registration-json.test.ts`.
+- Validation run: focused GLB source registration tests and
+  `pnpm exec tsc --noEmit -p tsconfig.test.json` passed.
+- Follow-up tasks added: none directly; continued into `task-0674`.
+
+## task-0670 — Add GLB source asset registration report skeleton
+
+Completed: 2026-05-17
+
+Summary:
+
+- Added `registerGltfSourceAssetsFromMappingReport`, which promotes successful
+  `GltfAssetMappingReport` texture, sampler, and material plans into ready
+  `AssetRegistry` source assets.
+- The helper returns JSON-safe written/skipped/diagnostic reports, skips
+  duplicates without overwriting, preserves material dependency handles, and
+  avoids ECS/WebGPU/image decode work.
+- Important files: `packages/render/src/assets/gltf-source-registration.ts`,
+  `packages/render/src/assets/index.ts`,
+  `test/assets/gltf-source-registration.test.ts`.
+- Validation run: focused GLB source registration tests and
+  `pnpm exec tsc --noEmit -p tsconfig.test.json` passed.
+- Follow-up tasks added: none directly; continued into `task-0671`.
+
+## task-0669 — Plan GLB source asset registry registration contract
+
+Completed: 2026-05-17
+
+Summary:
+
+- Planned the source-asset-only handoff from `GltfAssetMappingReport` to
+  `AssetRegistry` registration.
+- Defined deterministic write order, ready-state registration semantics,
+  duplicate-key behavior, partial-failure behavior, handle normalization,
+  material dependency edges, JSON report expectations, and non-goals.
+- Important files:
+  `docs/research/GLB_SOURCE_ASSET_REGISTRY_REGISTRATION_CONTRACT_PLAN_2026_05_17.md`,
+  `agent/BACKLOG.md`.
+- Validation run: documentation/backlog formatting to be covered by the final
+  run validation.
+- Follow-up tasks added: `task-0674` dependency edge coverage.
+
+## task-0668 — Audit GLB orchestration report boundaries
+
+Completed: 2026-05-17
+
+Summary:
+
+- Audited the GLB orchestration report helper against package boundaries and
+  ECS/WebGPU ownership rules.
+- Confirmed the helper only plans source assets and deterministic handle keys;
+  it does not mutate registries, author ECS, decode images, or touch WebGPU.
+- Important files:
+  `docs/research/GLB_ORCHESTRATION_REPORT_BOUNDARY_AUDIT_2026_05_17.md`.
+- Validation run: `pnpm run check:boundaries` and focused GLB orchestration
+  tests passed.
+- Follow-up tasks added: `task-0669` through `task-0673`.
+
+## task-0667 — Add GLB orchestration report diagnostics docs
+
+Completed: 2026-05-17
+
+Summary:
+
+- Documented the `GltfAssetMappingReport` lifecycle, valid planned-handle flow,
+  failed texture decode diagnostics, unsupported required extension diagnostics,
+  and the later registry handoff point.
+- Important files:
+  `docs/research/GLB_ORCHESTRATION_REPORT_DIAGNOSTICS_2026_05_17.md`.
+- Validation run: `pnpm run format:check` passed after documentation formatting.
+- Follow-up tasks added: none directly; continued into `task-0668`.
+
+## task-0666 — Add GLB asset mapping report JSON tests
+
+Completed: 2026-05-17
+
+Summary:
+
+- Added JSON fixture tests for `GltfAssetMappingReport`.
+- Updated orchestration report JSON conversion to summarize nested texture
+  payloads through JSON-safe helper values instead of embedding raw
+  `Uint8Array` data.
+- Important files: `packages/render/src/assets/gltf-asset-mapping.ts`,
+  `test/assets/gltf-asset-mapping-json.test.ts`.
+- Validation run: focused GLB asset mapping tests and
+  `pnpm exec tsc --noEmit -p tsconfig.test.json` passed.
+- Follow-up tasks added: none directly; continued into `task-0667`.
+
+## task-0665 — Add GLB asset mapping report skeleton
+
+Completed: 2026-05-17
+
+Summary:
+
+- Added `createGltfAssetMappingReport`, a renderer-independent orchestration
+  report that validates root JSON, maps material-referenced textures, plans
+  deterministic source asset handle keys, and maps materials through the
+  texture-binding resolver boundary.
+- The helper preserves root, texture, and material diagnostics with source
+  context and does not register assets.
+- Important files: `packages/render/src/assets/gltf-asset-mapping.ts`,
+  `test/assets/gltf-asset-mapping.test.ts`.
+- Validation run: focused GLB asset mapping tests and
+  `pnpm exec tsc --noEmit -p tsconfig.test.json` passed.
+- Follow-up tasks added: none directly; continued into `task-0666`.
+
+## task-0664 — Plan minimal GLB asset mapping orchestration report
+
+Completed: 2026-05-17
+
+Summary:
+
+- Planned a renderer-independent orchestration report that collects root,
+  texture, sampler, and material mapping outputs and deterministic planned
+  handle keys before any registry mutation.
+- Important files:
+  `docs/research/MINIMAL_GLB_ASSET_MAPPING_ORCHESTRATION_REPORT_PLAN_2026_05_17.md`.
+- Validation run: `pnpm run format:check` passed after documentation formatting.
+- Follow-up tasks added: `task-0669` through `task-0673`.
+
+## task-0663 — Audit GLB root/material/texture helper boundaries
+
+Completed: 2026-05-17
+
+Summary:
+
+- Audited root, material, sampler, texture, integration, and JSON helper tests.
+- Confirmed the helpers remain renderer-independent and avoid parsing, decoding,
+  registry mutation, ECS authoring, and WebGPU preparation.
+- Important files:
+  `docs/research/GLB_ROOT_MATERIAL_TEXTURE_HELPER_BOUNDARY_AUDIT_2026_05_17.md`.
+- Validation run: `pnpm run check:boundaries` and focused GLB helper tests
+  passed.
+- Follow-up tasks added: `task-0664` through `task-0668`.
+
+## task-0662 — Add GLB helper report JSON fixture tests
+
+Completed: 2026-05-17
+
+Summary:
+
+- Added JSON fixture tests for material, sampler, and texture helper reports.
+- Confirmed texture report JSON summarizes binary payloads by byte length and
+  row stride, and material diagnostics preserve dependency kind, texture index,
+  sampler index, slot, and severity.
+- Important files: `test/materials/gltf-report-json.test.ts`.
+- Validation run: focused GLB helper tests and
+  `pnpm exec tsc --noEmit -p tsconfig.test.json` passed.
+- Follow-up tasks added: none directly; continued into `task-0663`.
+
+## task-0661 — Add GLB material/texture integration diagnostics docs
+
+Completed: 2026-05-17
+
+Summary:
+
+- Documented how root, texture, sampler, and material helper reports compose
+  without registry mutation.
+- Added examples for successful planned handles, missing texture diagnostics,
+  and missing sampler diagnostics.
+- Important files:
+  `docs/research/GLB_MATERIAL_TEXTURE_INTEGRATION_DIAGNOSTICS_2026_05_17.md`.
+- Validation run: `pnpm run format:check` passed after documentation formatting.
+- Follow-up tasks added: none directly; continued into `task-0662`.
+
+## task-0660 — Add glTF JSON root validation helper
+
+Completed: 2026-05-17
+
+Summary:
+
+- Added `validateGltfRootForAssetMapping`, a renderer-independent root helper
+  that validates `asset.version === "2.0"`, mapper array shapes, and required
+  unsupported root extensions.
+- Important files: `packages/render/src/assets/gltf-root.ts`,
+  `test/assets/gltf-root.test.ts`, `packages/render/src/assets/index.ts`.
+- Validation run: focused GLB root/helper tests and
+  `pnpm exec tsc --noEmit -p tsconfig.test.json` passed.
+- Follow-up tasks added: none directly; continued into `task-0661`.
+
+## task-0659 — Connect GLB texture reports to material resolver results
+
+Completed: 2026-05-17
+
+Summary:
+
+- Added a test-only fixture that maps `GltfTextureMappingReport` outputs into
+  material resolver results.
+- Successful texture reports produce material texture/sampler handle bindings;
+  failed texture reports produce material diagnostics distinguishing texture vs
+  sampler failures.
+- Important files:
+  `test/materials/gltf-material-texture-integration.test.ts`,
+  `packages/render/src/materials/gltf-texture.ts`.
+- Validation run: focused GLB integration tests and
+  `pnpm exec tsc --noEmit -p tsconfig.test.json` passed.
+- Follow-up tasks added: none directly; continued into `task-0660`.
+
+## task-0658 — Audit GLB material and texture helper boundaries
+
+Completed: 2026-05-17
+
+Summary:
+
+- Audited GLB material, sampler, and texture/image helper modules.
+- Confirmed they produce source assets and diagnostics only, with image decoding
+  and texture/sampler handle resolution caller-owned.
+- Important files:
+  `docs/research/GLB_MATERIAL_TEXTURE_HELPER_BOUNDARY_AUDIT_2026_05_17.md`.
+- Validation run: `pnpm run check:boundaries` and focused GLB helper tests
+  passed.
+- Follow-up tasks added: `task-0659` through `task-0663`.
+
+## task-0657 — Add GLB texture asset mapping skeleton
+
+Completed: 2026-05-17
+
+Summary:
+
+- Added `createTextureAssetFromGltfTexture`, a renderer-independent helper that
+  validates glTF texture/image/sampler metadata, calls a decoded-image resolver,
+  and returns `TextureAsset`/`SamplerAsset` source data plus JSON-safe
+  diagnostics.
+- Report JSON summarizes source bytes by byte length and stride rather than raw
+  binary payloads.
+- Important files: `packages/render/src/materials/gltf-texture.ts`,
+  `test/materials/gltf-texture.test.ts`,
+  `packages/render/src/materials/index.ts`.
+- Validation run: focused GLB texture tests and
+  `pnpm exec tsc --noEmit -p tsconfig.test.json` passed.
+- Follow-up tasks added: none directly; continued into `task-0658`.
+
+## task-0656 — Plan minimal GLB texture/image asset mapping
+
+Completed: 2026-05-17
+
+Summary:
+
+- Planned the first GLB texture/image mapping helper, keeping image decoding,
+  fetching, registry mutation, ECS authoring, and WebGPU upload out of scope.
+- The plan defines slot-to-semantic/color-space mapping and resolver-owned
+  decoded image inputs.
+- Important files:
+  `docs/research/MINIMAL_GLB_TEXTURE_IMAGE_MAPPING_PLAN_2026_05_17.md`.
+- Validation run: `pnpm run format:check` passed after documentation formatting.
+- Follow-up tasks added: `task-0659` through `task-0663`.
+
+## task-0655 — Add GLB material texture resolver diagnostic results
+
+Completed: 2026-05-17
+
+Summary:
+
+- Expanded the GLB material texture resolver contract so resolver-provided
+  diagnostics can be propagated alongside successful bindings.
+- Missing texture and missing sampler resolver failures can now be distinguished
+  through `dependencyKind`, `textureIndex`, and `samplerIndex`.
+- Important files: `packages/render/src/materials/gltf-material.ts`,
+  `test/materials/gltf-material.test.ts`.
+- Validation run: focused GLB material tests and
+  `pnpm exec tsc --noEmit -p tsconfig.test.json` passed.
+- Follow-up tasks added: none directly; continued into `task-0656`.
+
+## task-0654 — Add GLB material alpha/cull mapping edge coverage
+
+Completed: 2026-05-17
+
+Summary:
+
+- Added focused coverage for `OPAQUE`, `MASK`, `BLEND`, `doubleSided`, and
+  invalid alpha/cull fields in the GLB material mapper.
+- Tightened `alphaCutoff` validation to require a finite value between 0 and 1.
+- Important files: `packages/render/src/materials/gltf-material.ts`,
+  `test/materials/gltf-material.test.ts`.
+- Validation run: focused GLB material tests and
+  `pnpm exec tsc --noEmit -p tsconfig.test.json` passed.
+- Follow-up tasks added: none directly; continued into `task-0655`.
+
+## task-0653 — Audit GLB sampler and texture-transform readiness
+
+Completed: 2026-05-17
+
+Summary:
+
+- Audited the GLB sampler, texture-transform, and material-mapping helpers
+  against architecture/package boundaries and reference material-loader
+  patterns.
+- Confirmed the helpers remain renderer-independent, JSON-safe, and free of
+  WebGPU resources, ECS authoring, image decoding, and asset registry mutation.
+- Fixed one audit finding: malformed `extensions` and `pbrMetallicRoughness`
+  objects now produce `gltfMaterial.invalidField` diagnostics instead of
+  silently defaulting.
+- Important files:
+  `docs/research/GLB_SAMPLER_TEXTURE_TRANSFORM_READINESS_AUDIT_2026_05_17.md`,
+  `packages/render/src/materials/gltf-material.ts`,
+  `test/materials/gltf-material.test.ts`.
+- Validation run: `pnpm exec tsc --noEmit -p tsconfig.test.json`,
+  `pnpm exec vitest run test/materials/gltf-sampler.test.ts
+test/materials/gltf-material.test.ts`, `pnpm run check:boundaries`, and
+  `pnpm run format:check` passed.
+- Follow-up tasks added: `task-0654` through `task-0658`.
+
+## task-0652 — Add GLB material mapping skeleton
+
+Completed: 2026-05-17
+
+Summary:
+
+- Added a renderer-independent glTF material mapper that returns
+  `StandardMaterialAsset` or `UnlitMaterialAsset` source data from plain
+  glTF-like material JSON.
+- Texture/sampler handles are supplied by a caller resolver; the mapper does not
+  create GPU resources, ECS entities, or asset-registry entries.
+- Added JSON-safe diagnostics for unsupported required/optional material
+  extensions, malformed material fields, unresolved texture bindings, and
+  unsupported texture transforms.
+- Important files: `packages/render/src/materials/gltf-material.ts`,
+  `test/materials/gltf-material.test.ts`,
+  `packages/render/src/materials/index.ts`.
+- Validation run: focused GLB material tests and
+  `pnpm exec tsc --noEmit -p tsconfig.test.json` passed.
+- Follow-up tasks added: none directly; continued into `task-0653`.
+
+## task-0651 — Plan minimal GLB material mapping
+
+Completed: 2026-05-17
+
+Summary:
+
+- Added a focused plan for mapping glTF material JSON into Aperture
+  `UnlitMaterialAsset` and `StandardMaterialAsset` source assets.
+- The plan defines resolver inputs for texture/sampler handles, unsupported
+  extension diagnostics, alpha/double-sided render-state rules, and explicit
+  non-goals around WebGPU, ECS, image decoding, and asset registry mutation.
+- Important files:
+  `docs/research/MINIMAL_GLB_MATERIAL_MAPPING_PLAN_2026_05_17.md`.
+- Validation run: `pnpm run format:check` passed after the documentation edit.
+- Follow-up tasks added: `task-0654` through `task-0658`.
+
+## task-0650 — Add glTF sampler-to-SamplerAsset mapping helpers
+
+Completed: 2026-05-17
+
+Summary:
+
+- Added a renderer-independent glTF sampler helper that maps wrap/filter enum
+  values into Aperture `SamplerAsset` source data.
+- Missing sampler fields use Aperture's documented linear/repeat defaults,
+  while malformed enum values produce JSON-safe diagnostics.
+- Tests cover default sampler data, repeat/linear mapping, nearest/mirror/clamp
+  mapping, min/mipmap filter splitting, and invalid enum diagnostics.
+- Important files: `packages/render/src/materials/gltf-sampler.ts`,
+  `test/materials/gltf-sampler.test.ts`,
+  `packages/render/src/materials/index.ts`.
+- Validation run: focused GLB sampler tests and
+  `pnpm exec tsc --noEmit -p tsconfig.test.json` passed.
+- Follow-up tasks added: none directly; continued into `task-0651`.
+
+## task-0649 — Add StandardMaterial texture-transform diagnostics
+
+Completed: 2026-05-17
+
+Summary:
+
+- Added `MaterialTextureTransform` metadata to material texture bindings.
+- StandardMaterial texture readiness now emits JSON-safe diagnostics for
+  non-identity texture transforms and extraction blocks those draws before
+  WebGPU preparation.
+- Diagnostics preserve material key, field, texture key, and authored transform
+  values.
+- Important files: `packages/render/src/materials/types.ts`,
+  `packages/render/src/materials/standard-texture-readiness.ts`,
+  `packages/render/src/rendering/extraction.ts`,
+  `packages/render/src/rendering/snapshot.ts`,
+  `test/materials/standard-texture-readiness.test.ts`,
+  `test/rendering/extraction.test.ts`.
+- Validation run: focused StandardMaterial readiness/extraction tests and
+  `pnpm exec tsc --noEmit -p tsconfig.test.json` passed.
+- Follow-up tasks added: none directly; continued into `task-0650`.
+
+## task-0648 — Extract queued material adapter helpers
+
+Completed: 2026-05-17
+
+Summary:
+
+- Moved the queued built-in material adapter registry contract out of the main
+  WebGPU app file into a narrow internal helper module.
+- The app route still starts from `RenderSnapshot`/`MaterialQueueItem` data and
+  keeps texture, sampler, bind group, and pipeline resources inside
+  `packages/webgpu`.
+- Existing built-in material queue behavior remains unchanged.
+- Important files: `packages/webgpu/src/webgpu/queued-material-adapter.ts`,
+  `packages/webgpu/src/webgpu/app.ts`.
+- Validation run: `pnpm exec tsc --noEmit -p packages/webgpu/tsconfig.json`
+  and `pnpm exec vitest run test/webgpu/webgpu-app.test.ts` passed.
+- Follow-up tasks added: none directly; continued into `task-0649`.
+
+## task-0647 — Audit queued material adapter integration
+
+Completed: 2026-05-17
+
+Summary:
+
+- Audited the queued built-in material adapter integration against the generic
+  queue contract plan, package boundaries, and focused app/browser tests.
+- Confirmed `RenderSnapshot`/`MaterialQueueItem` remains the route input and
+  WebGPU resources remain inside `packages/webgpu`.
+- Important files:
+  `docs/research/QUEUED_MATERIAL_ADAPTER_INTEGRATION_AUDIT_2026_05_17.md`.
+- Validation run: `pnpm exec vitest run test/webgpu/webgpu-app.test.ts`,
+  `pnpm exec playwright test test/e2e/standard-queue-phases.spec.ts
+test/e2e/materials-showcase.spec.ts`, `pnpm run check:boundaries`,
+  `pnpm exec tsc --noEmit -p tsconfig.test.json`, and
+  `pnpm run format:check` passed.
+- Follow-up tasks added: `task-0648` through `task-0653`.
+
+## task-0646 — Promote WebGPU validation warning guards to shared E2E helpers
+
+Completed: 2026-05-17
+
+Summary:
+
+- Moved the focused WebGPU console warning/error guard into
+  `test/e2e/webgpu-status.ts`.
+- Applied the shared guard to both the StandardMaterial queue-phase browser
+  spec and the material showcase browser spec.
+- Important files: `test/e2e/webgpu-status.ts`,
+  `test/e2e/standard-queue-phases.spec.ts`,
+  `test/e2e/materials-showcase.spec.ts`.
+- Validation run: `pnpm exec playwright test
+test/e2e/standard-queue-phases.spec.ts test/e2e/materials-showcase.spec.ts`,
+  `pnpm exec tsc --noEmit -p tsconfig.test.json`, and
+  `pnpm run format:check` passed.
+- Follow-up tasks added: none directly; continued into `task-0647`.
+
+## task-0645 — Audit StandardMaterial PBR texture expectations
+
+Completed: 2026-05-17
+
+Summary:
+
+- Audited current StandardMaterial texture behavior against glTF
+  metallic-roughness expectations from three.js, PlayCanvas, and Bevy.
+- Confirmed the ECS/render extraction boundary and WebGPU resource ownership
+  remain intact.
+- Recorded remaining GLB material mapping gaps around texture transforms,
+  sampler import conversion, IBL, and shadows.
+- Important files:
+  `docs/research/STANDARD_MATERIAL_PBR_TEXTURE_EXPECTATIONS_AUDIT_2026_05_17.md`.
+- Validation run: `pnpm run check:boundaries`, focused StandardMaterial
+  readiness/extraction tests, and `pnpm run format:check` passed.
+- Follow-up tasks added: `task-0648` through `task-0653`.
+
+## task-0644 — Tighten StandardMaterial texture dependency diagnostics
+
+Completed: 2026-05-17
+
+Summary:
+
+- StandardMaterial texture readiness now validates both texture and sampler
+  handles/statuses for all supported PBR texture channels.
+- Dependency diagnostics now include material key, field, dependency kind,
+  texture key and/or sampler key when available, and status.
+- Extraction now blocks StandardMaterial failed texture and missing sampler
+  dependencies before queuing a draw.
+- Important files:
+  `packages/render/src/materials/dependency-readiness.ts`,
+  `packages/render/src/materials/standard-texture-readiness.ts`,
+  `packages/render/src/rendering/extraction.ts`,
+  `packages/render/src/rendering/snapshot.ts`,
+  `test/materials/material-dependency-readiness.test.ts`,
+  `test/materials/standard-texture-readiness.test.ts`,
+  `test/rendering/extraction.test.ts`.
+- Validation run: focused material readiness/extraction tests and
+  `pnpm exec tsc --noEmit -p tsconfig.test.json` passed.
+- Follow-up tasks added: none directly; continued into `task-0645`.
+
+## task-0643 — Add generic queued material resource adapter contract
+
+Completed: 2026-05-17
+
+Summary:
+
+- Added an internal queued built-in material adapter contract in the WebGPU app
+  route.
+- Queue item resource preparation now dispatches texture/sampler preparation,
+  frame-resource creation, and family bucket insertion through adapters for
+  unlit, MatcapMaterial, and StandardMaterial.
+- The contract remains internal to `packages/webgpu` and does not move GPU
+  handles into `packages/render`.
+- Important files: `packages/webgpu/src/webgpu/app.ts`.
+- Validation run: `pnpm exec tsc --noEmit -p packages/webgpu/tsconfig.json`,
+  `pnpm exec vitest run test/webgpu/webgpu-app.test.ts`,
+  `pnpm run check:boundaries`, and `pnpm run format:check` passed.
+- Follow-up tasks added: none directly; continued into `task-0644`.
+
 ## task-0642 — Plan generic material-family queue contract
 
 Completed: 2026-05-17

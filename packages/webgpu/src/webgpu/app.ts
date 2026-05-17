@@ -110,6 +110,10 @@ import {
   type RenderFramePlanScratch,
 } from "./render-frame-plan.js";
 import {
+  createQueuedMaterialAdapterRegistry,
+  type QueuedMaterialAdapterRegistration,
+} from "./queued-material-adapter.js";
+import {
   initializeWebGpu,
   type InitializeWebGpuOptions,
   type WebGpuCanvasLike,
@@ -322,8 +326,8 @@ type QueuedBuiltInMaterialAsset =
 
 interface QueuedBuiltInAppResourceItem {
   readonly queueItem: MaterialQueueItem;
+  readonly adapter: QueuedBuiltInMaterialAdapter;
   readonly draw: MeshDrawPacket;
-  readonly materialKind: WebGpuAppMaterialKind;
   readonly mesh: MeshAsset;
   readonly meshKey: string;
   readonly sourceMeshKey: string;
@@ -379,6 +383,61 @@ interface QueuedBuiltInFrameResources {
   readonly matcap: readonly MatcapFrameGpuResources[];
   readonly standard: readonly StandardFrameGpuResources[];
   readonly bindGroups: readonly UnlitFrameGpuResources["bindGroups"][number][];
+}
+
+type QueuedBuiltInFrameResource =
+  | UnlitFrameGpuResources
+  | MatcapFrameGpuResources
+  | StandardFrameGpuResources;
+
+type CreateQueuedBuiltInFamilyFrameResourcesResult =
+  | CreateUnlitFrameGpuResourcesResult
+  | CreateMatcapFrameGpuResourcesResult
+  | CreateStandardFrameGpuResourcesResult;
+
+interface QueuedBuiltInFrameResourceBuckets {
+  readonly unlit: UnlitFrameGpuResources[];
+  readonly matcap: MatcapFrameGpuResources[];
+  readonly standard: StandardFrameGpuResources[];
+}
+
+interface QueuedBuiltInTextureSamplerPreparationOptions {
+  readonly app: WebGpuApp;
+  readonly cache: WebGpuAppResourceCache;
+  readonly item: QueuedBuiltInAppResourceItem;
+  readonly reuse: WebGpuAppResourceReuseReport;
+}
+
+interface QueuedBuiltInFrameResourcePreparationOptions {
+  readonly app: WebGpuApp;
+  readonly cache: WebGpuAppResourceCache;
+  readonly snapshot: RenderSnapshot;
+  readonly item: QueuedBuiltInAppResourceItem;
+  readonly textures: PreparedAppTextureSamplerResources;
+  readonly viewUniforms: PackedSnapshotViewUniforms;
+  readonly worldTransforms: PackedSnapshotTransforms;
+  readonly layouts: WebGpuAppPipelineLayouts;
+  readonly reuse: WebGpuAppResourceReuseReport;
+}
+
+interface QueuedBuiltInMaterialAdapter extends QueuedMaterialAdapterRegistration<WebGpuAppMaterialKind> {
+  readonly kind: WebGpuAppMaterialKind;
+  isMaterialAsset(
+    material: MaterialAsset,
+  ): material is QueuedBuiltInMaterialAsset;
+  validateQueueItem(
+    queueItem: MaterialQueueItem,
+  ): WebGpuAppUnsupportedMaterialQueueDiagnostic | null;
+  prepareTextureSamplerResources(
+    options: QueuedBuiltInTextureSamplerPreparationOptions,
+  ): PreparedAppTextureSamplerResources;
+  createFrameResources(
+    options: QueuedBuiltInFrameResourcePreparationOptions,
+  ): CreateQueuedBuiltInFamilyFrameResourcesResult;
+  appendFrameResource(
+    resource: QueuedBuiltInFrameResource,
+    buckets: QueuedBuiltInFrameResourceBuckets,
+  ): void;
 }
 
 interface CreateQueuedBuiltInFrameResourcesResult {
@@ -1627,15 +1686,11 @@ function collectQueuedBuiltInAppResourceSet(options: {
       continue;
     }
 
-    const unsupportedPhaseDiagnostic =
-      createUnsupportedQueuedBuiltInPhaseDiagnostic(queueItem);
+    const adapter = QUEUED_BUILT_IN_MATERIAL_ADAPTERS.get(
+      queueItem.materialFamily,
+    );
 
-    if (unsupportedPhaseDiagnostic !== null) {
-      diagnostics.push(unsupportedPhaseDiagnostic);
-      continue;
-    }
-
-    if (!isWebGpuAppMaterialKind(queueItem.materialFamily)) {
+    if (adapter === null) {
       diagnostics.push({
         code: "webGpuApp.unsupportedMaterialQueueFamily",
         renderId: queueItem.renderId,
@@ -1647,6 +1702,13 @@ function collectQueuedBuiltInAppResourceSet(options: {
       continue;
     }
 
+    const unsupportedPhaseDiagnostic = adapter.validateQueueItem(queueItem);
+
+    if (unsupportedPhaseDiagnostic !== null) {
+      diagnostics.push(unsupportedPhaseDiagnostic);
+      continue;
+    }
+
     const mesh = meshAssets.get(queueItem.meshKey);
     const material = materialAssets.get(queueItem.materialKey);
 
@@ -1655,8 +1717,8 @@ function collectQueuedBuiltInAppResourceSet(options: {
     }
 
     if (
-      material.kind !== queueItem.materialFamily ||
-      !isQueuedBuiltInMaterialAsset(material.asset)
+      material.kind !== adapter.kind ||
+      !adapter.isMaterialAsset(material.asset)
     ) {
       diagnostics.push({
         code: "webGpuApp.materialQueueAssetMismatch",
@@ -1672,8 +1734,8 @@ function collectQueuedBuiltInAppResourceSet(options: {
 
     items.push({
       queueItem,
+      adapter,
       draw,
-      materialKind: material.kind,
       mesh: mesh.asset,
       meshKey: mesh.resourceKey,
       sourceMeshKey: queueItem.meshKey,
@@ -1832,11 +1894,100 @@ function isWebGpuAppMaterialKind(
   );
 }
 
-function isQueuedBuiltInMaterialAsset(
-  material: MaterialAsset,
-): material is QueuedBuiltInMaterialAsset {
-  return isWebGpuAppMaterialKind(material.kind);
-}
+const QUEUED_BUILT_IN_MATERIAL_ADAPTERS =
+  createQueuedMaterialAdapterRegistry<QueuedBuiltInMaterialAdapter>([
+    {
+      kind: "unlit",
+      isMaterialAsset: (material): material is UnlitMaterialAsset =>
+        material.kind === "unlit",
+      validateQueueItem: createUnsupportedQueuedBuiltInPhaseDiagnostic,
+      prepareTextureSamplerResources: (options) =>
+        prepareUnlitAppTextureSamplerResources({
+          app: options.app,
+          cache: options.cache,
+          material: options.item.material as UnlitMaterialAsset,
+          reuse: options.reuse,
+        }),
+      createFrameResources: (options) =>
+        createOrReuseUnlitAppFrameResources({
+          app: options.app,
+          cache: options.cache,
+          mesh: options.item.mesh,
+          meshKey: options.item.meshKey,
+          material: options.item.material,
+          materialKey: options.item.materialKey,
+          textures: options.textures,
+          viewUniforms: options.viewUniforms,
+          worldTransforms: options.worldTransforms,
+          layouts: options.layouts,
+          reuse: options.reuse,
+        }),
+      appendFrameResource: (resource, buckets) => {
+        buckets.unlit.push(resource as UnlitFrameGpuResources);
+      },
+    },
+    {
+      kind: "matcap",
+      isMaterialAsset: (material): material is MatcapMaterialAsset =>
+        material.kind === "matcap",
+      validateQueueItem: createUnsupportedQueuedBuiltInPhaseDiagnostic,
+      prepareTextureSamplerResources: (options) =>
+        prepareMatcapAppTextureSamplerResources({
+          app: options.app,
+          cache: options.cache,
+          material: options.item.material as MatcapMaterialAsset,
+          reuse: options.reuse,
+        }),
+      createFrameResources: (options) =>
+        createOrReuseMatcapAppFrameResources({
+          app: options.app,
+          cache: options.cache,
+          mesh: options.item.mesh,
+          meshKey: options.item.meshKey,
+          material: options.item.material as MatcapMaterialAsset,
+          materialKey: options.item.materialKey,
+          textures: options.textures,
+          viewUniforms: options.viewUniforms,
+          worldTransforms: options.worldTransforms,
+          layouts: options.layouts,
+          reuse: options.reuse,
+        }),
+      appendFrameResource: (resource, buckets) => {
+        buckets.matcap.push(resource as MatcapFrameGpuResources);
+      },
+    },
+    {
+      kind: "standard",
+      isMaterialAsset: (material): material is StandardMaterialAsset =>
+        material.kind === "standard",
+      validateQueueItem: createUnsupportedQueuedBuiltInPhaseDiagnostic,
+      prepareTextureSamplerResources: (options) =>
+        prepareStandardAppTextureSamplerResources({
+          app: options.app,
+          cache: options.cache,
+          material: options.item.material as StandardMaterialAsset,
+          reuse: options.reuse,
+        }),
+      createFrameResources: (options) =>
+        createOrReuseStandardAppFrameResources({
+          app: options.app,
+          cache: options.cache,
+          snapshot: options.snapshot,
+          mesh: options.item.mesh,
+          meshKey: options.item.meshKey,
+          material: options.item.material as StandardMaterialAsset,
+          materialKey: options.item.materialKey,
+          textures: options.textures,
+          viewUniforms: options.viewUniforms,
+          worldTransforms: options.worldTransforms,
+          layouts: options.layouts,
+          reuse: options.reuse,
+        }),
+      appendFrameResource: (resource, buckets) => {
+        buckets.standard.push(resource as StandardFrameGpuResources);
+      },
+    },
+  ]);
 
 async function renderQueuedBuiltInWebGpuAppFrame(options: {
   readonly app: WebGpuApp;
@@ -2021,11 +2172,12 @@ async function prepareQueuedBuiltInFrameResources(options: {
   standard.length = 0;
 
   for (const item of options.resourceSet.items) {
+    const adapter = item.adapter;
     const pipeline = await getOrCreateWebGpuAppPipeline({
       app: options.app,
       cache: options.cache,
       reuse: options.reuse,
-      kind: item.materialKind,
+      kind: adapter.kind,
       pipelineKey: item.draw.batchKey.pipelineKey,
       batchKey: item.draw.batchKey,
     });
@@ -2061,12 +2213,12 @@ async function prepareQueuedBuiltInFrameResources(options: {
 
     const layouts = getWebGpuAppPipelineLayouts({
       cache: options.cache,
-      kind: item.materialKind,
+      kind: adapter.kind,
       pipeline,
       getBindGroupLayout:
         pipelineHandle.getBindGroupLayout.bind(pipelineHandle),
     });
-    const textures = prepareQueuedAppTextureSamplerResources({
+    const textures = adapter.prepareTextureSamplerResources({
       app: options.app,
       cache: options.cache,
       item,
@@ -2078,7 +2230,7 @@ async function prepareQueuedBuiltInFrameResources(options: {
       continue;
     }
 
-    const resources = createQueuedAppFrameResources({
+    const resources = adapter.createFrameResources({
       app: options.app,
       cache: options.cache,
       snapshot: options.snapshot,
@@ -2096,18 +2248,11 @@ async function prepareQueuedBuiltInFrameResources(options: {
     }
 
     firstResources ??= resources.resources;
-
-    switch (item.materialKind) {
-      case "unlit":
-        unlit.push(resources.resources as UnlitFrameGpuResources);
-        break;
-      case "matcap":
-        matcap.push(resources.resources as MatcapFrameGpuResources);
-        break;
-      case "standard":
-        standard.push(resources.resources as StandardFrameGpuResources);
-        break;
-    }
+    adapter.appendFrameResource(resources.resources, {
+      unlit,
+      matcap,
+      standard,
+    });
 
     if (!meshResources.has(resources.resources.mesh.resourceKey)) {
       meshResources.set(
@@ -2167,98 +2312,6 @@ async function prepareQueuedBuiltInFrameResources(options: {
     meshResourceKeys,
     materialResourceKeys,
   };
-}
-
-function prepareQueuedAppTextureSamplerResources(options: {
-  readonly app: WebGpuApp;
-  readonly cache: WebGpuAppResourceCache;
-  readonly item: QueuedBuiltInAppResourceItem;
-  readonly reuse: WebGpuAppResourceReuseReport;
-}): PreparedAppTextureSamplerResources {
-  switch (options.item.materialKind) {
-    case "standard":
-      return prepareStandardAppTextureSamplerResources({
-        app: options.app,
-        cache: options.cache,
-        material: options.item.material as StandardMaterialAsset,
-        reuse: options.reuse,
-      });
-    case "matcap":
-      return prepareMatcapAppTextureSamplerResources({
-        app: options.app,
-        cache: options.cache,
-        material: options.item.material as MatcapMaterialAsset,
-        reuse: options.reuse,
-      });
-    case "unlit":
-      return prepareUnlitAppTextureSamplerResources({
-        app: options.app,
-        cache: options.cache,
-        material: options.item.material as UnlitMaterialAsset,
-        reuse: options.reuse,
-      });
-  }
-}
-
-function createQueuedAppFrameResources(options: {
-  readonly app: WebGpuApp;
-  readonly cache: WebGpuAppResourceCache;
-  readonly snapshot: RenderSnapshot;
-  readonly item: QueuedBuiltInAppResourceItem;
-  readonly textures: PreparedAppTextureSamplerResources;
-  readonly viewUniforms: PackedSnapshotViewUniforms;
-  readonly worldTransforms: PackedSnapshotTransforms;
-  readonly layouts: WebGpuAppPipelineLayouts;
-  readonly reuse: WebGpuAppResourceReuseReport;
-}):
-  | CreateUnlitFrameGpuResourcesResult
-  | CreateMatcapFrameGpuResourcesResult
-  | CreateStandardFrameGpuResourcesResult {
-  switch (options.item.materialKind) {
-    case "standard":
-      return createOrReuseStandardAppFrameResources({
-        app: options.app,
-        cache: options.cache,
-        snapshot: options.snapshot,
-        mesh: options.item.mesh,
-        meshKey: options.item.meshKey,
-        material: options.item.material as StandardMaterialAsset,
-        materialKey: options.item.materialKey,
-        textures: options.textures,
-        viewUniforms: options.viewUniforms,
-        worldTransforms: options.worldTransforms,
-        layouts: options.layouts,
-        reuse: options.reuse,
-      });
-    case "matcap":
-      return createOrReuseMatcapAppFrameResources({
-        app: options.app,
-        cache: options.cache,
-        mesh: options.item.mesh,
-        meshKey: options.item.meshKey,
-        material: options.item.material as MatcapMaterialAsset,
-        materialKey: options.item.materialKey,
-        textures: options.textures,
-        viewUniforms: options.viewUniforms,
-        worldTransforms: options.worldTransforms,
-        layouts: options.layouts,
-        reuse: options.reuse,
-      });
-    case "unlit":
-      return createOrReuseUnlitAppFrameResources({
-        app: options.app,
-        cache: options.cache,
-        mesh: options.item.mesh,
-        meshKey: options.item.meshKey,
-        material: options.item.material,
-        materialKey: options.item.materialKey,
-        textures: options.textures,
-        viewUniforms: options.viewUniforms,
-        worldTransforms: options.worldTransforms,
-        layouts: options.layouts,
-        reuse: options.reuse,
-      });
-  }
 }
 
 function createWebGpuAppPipelinePlanResult(

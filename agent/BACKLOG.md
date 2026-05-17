@@ -59,11 +59,9 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start with `task-0643`. StandardMaterial opaque, alpha-test, and transparent
-queue phases now render through the WebGPU app route, and the generic
-material-family queue contract has been planned. The next slice should wrap the
-current built-in family preparation branches behind a narrow internal adapter
-contract without adding new material behavior.
+Start with `task-0675`. Source asset registration is now implemented and
+audited. The next slice should plan minimal GLB mesh primitive source asset
+mapping before any ECS authoring helper is implemented.
 
 ## Near-Term Proof Point Track
 
@@ -80,11 +78,11 @@ Target proof point:
 
 Remaining automation priority order:
 
-1. `task-0643` — add a generic queued material resource adapter contract.
-2. `task-0644` — tighten StandardMaterial texture dependency diagnostics.
-3. `task-0645` — audit StandardMaterial PBR texture expectations.
-4. `task-0646` — promote WebGPU validation warning guards to shared E2E helpers.
-5. `task-0647` — audit queued material adapter integration.
+1. `task-0675` — plan minimal GLB mesh primitive source asset mapping.
+2. `task-0676` — add GLB mesh primitive mapping report skeleton.
+3. `task-0677` — add GLB mesh primitive mapping JSON tests.
+4. `task-0678` — plan GLB scene and node traversal diagnostics.
+5. `task-0679` — audit GLB mesh mapping boundaries.
 
 Defer allocation-only cleanup and metadata-only shader-contract tasks unless
 they are a direct blocker for this track.
@@ -150,99 +148,100 @@ viewer/material mapping should not outrun the material and queue architecture.
 
 ### Proof Point Critical Path
 
-### Audit / Refactor
+### task-0675 — Plan minimal GLB mesh primitive source asset mapping
 
-### task-0643 — Add generic queued material resource adapter contract
-
-Category: `webgpu-render`
-Package/write-scope: `packages/webgpu/src/webgpu/app.ts`, narrow helper modules
-under `packages/webgpu/src/webgpu`, and focused WebGPU app tests.
+Category: `docs-tooling`
+Package/write-scope: `docs/research` and `agent/BACKLOG.md`.
 Reference anchor:
-`docs/research/GENERIC_MATERIAL_FAMILY_QUEUE_CONTRACT_PLAN_2026_05_17.md`,
-Bevy render-asset preparation, and the current unlit/Matcap/Standard
-frame-resource branches.
+`docs/research/ASSET_LOADER_SCENE_IMPORT_COVERAGE.md`,
+`docs/research/GLB_CONTAINER_SLICE_PLAN_2026_05_16.md`,
+`docs/research/GLB_ECS_AUTHORING_COMMAND_HANDOFF_PLAN_2026_05_17.md`,
+`docs/ARCHITECTURE.md`, Bevy glTF primitive loading, three.js `GLTFLoader`
+primitive geometry mapping, and PlayCanvas `glb-parser` mesh creation.
 
 Acceptance criteria:
 
-- Queue item resource preparation is dispatched through a typed adapter contract
-  instead of open-coded family switches where practical.
-- The adapter contract keeps WebGPU resources backend-owned and does not move
-  GPU handles into `packages/render`.
-- Existing unlit, MatcapMaterial, and StandardMaterial queue tests keep passing.
-- The change is narrow enough to avoid broad renderer rewrites.
+- The plan defines the smallest mesh primitive report that can produce
+  deterministic mesh handle ids.
+- The plan distinguishes reference validation from accessor/buffer decoding.
+- The plan covers required `POSITION`, optional `NORMAL`, optional
+  `TEXCOORD_0`, optional indices, and unsupported primitive modes.
+- The plan explicitly keeps ECS authoring, material registration, image decode,
+  and WebGPU preparation out of scope.
 
-### task-0644 — Tighten StandardMaterial texture dependency diagnostics
+### task-0676 — Add GLB mesh primitive mapping report skeleton
 
 Category: `render-bridge`
-Package/write-scope: `packages/render/src/materials`,
-`packages/render/src/rendering/extraction.ts`, and focused readiness/extraction
-tests.
-Reference anchor: Bevy material extraction diagnostics and glTF texture-channel
-validation patterns from three.js and PlayCanvas.
+Package/write-scope: narrow helper module under `packages/render/src/assets`,
+focused tests, and no ECS/WebGPU files.
+Reference anchor: the `task-0675` mesh primitive source mapping plan, Aperture
+`MeshAsset` contracts, and Bevy glTF primitive asset labels.
 
 Acceptance criteria:
 
-- StandardMaterial dependency diagnostics clearly identify missing/loading/failed
-  texture and sampler handles for every supported PBR texture channel.
-- Diagnostics include material key, field, texture key or sampler key when
-  available, and remain JSON-safe.
-- Extraction blocks invalid texture dependencies before WebGPU preparation.
-- Focused readiness and extraction tests cover at least one missing sampler and
-  one failed texture path.
+- A helper validates glTF mesh/primitive references and emits deterministic
+  planned mesh handle keys.
+- The helper returns JSON-safe diagnostics for missing meshes, missing
+  primitives, missing `POSITION`, unsupported primitive mode, and unresolved
+  accessor data.
+- The helper does not decode buffers or create ECS commands.
+- Focused tests cover a valid primitive plan and at least two invalid reference
+  cases.
 
-### task-0645 — Audit StandardMaterial PBR texture expectations
+### task-0677 — Add GLB mesh primitive mapping JSON tests
+
+Category: `render-bridge`
+Package/write-scope: focused tests and narrow JSON helper fixes if needed.
+Reference anchor: `task-0676` helper shape, current GLB report JSON functions,
+and `docs/ARCHITECTURE.md`.
+
+Acceptance criteria:
+
+- Tests assert mesh primitive mapping report JSON is stable and JSON-safe.
+- Planned mesh handle keys, primitive source indices, attribute references, and
+  diagnostics are preserved.
+- Raw buffer or accessor byte arrays are not embedded in the report JSON.
+- No runtime behavior changes beyond serialization stability fixes.
+
+### task-0678 — Plan GLB scene and node traversal diagnostics
+
+Category: `docs-tooling`
+Package/write-scope: `docs/research`.
+Reference anchor:
+`docs/research/GLB_ECS_AUTHORING_COMMAND_HANDOFF_PLAN_2026_05_17.md`,
+`docs/research/ASSET_LOADER_SCENE_IMPORT_COVERAGE.md`, Bevy glTF scene/node
+loading, and Aperture transform authoring components.
+
+Acceptance criteria:
+
+- The plan defines scene selection, root node traversal, node parent
+  relationships, and deterministic entity keys.
+- The plan defines diagnostics for invalid scene indices, invalid node indices,
+  cycles, malformed transforms, and unsupported matrix decomposition.
+- The plan separates traversal diagnostics from ECS world mutation.
+- No implementation changes are required.
+
+### Audit / Refactor
+
+### task-0679 — Audit GLB mesh mapping boundaries
 
 Category: `audit-refactor`
 Package/write-scope: `docs/research`, `agent/BACKLOG.md`, and narrow tests/docs
 only if drift is found.
-Reference anchor: `docs/NORTH_STAR.md`, `docs/ARCHITECTURE.md`, three.js
-GLTFLoader material mapping, PlayCanvas GLB parser, and Bevy glTF material
-loading.
-
-Acceptance criteria:
-
-- Audit compares current StandardMaterial texture behavior against glTF
-  metallic-roughness expectations.
-- Audit confirms ECS/render extraction boundaries and WebGPU resource ownership
-  remain intact.
-- Any drift is fixed with scoped edits or captured as concrete follow-up tasks.
-- Validation includes package boundary checks and focused StandardMaterial tests.
-
-### task-0646 — Promote WebGPU validation warning guards to shared E2E helpers
-
-Category: `docs-tooling`
-Package/write-scope: `test/e2e` helpers and selected WebGPU browser specs.
-Reference anchor: existing `test/e2e/webgpu-status.ts`,
-`test/e2e/standard-queue-phases.spec.ts`, and browser validation warnings
-observed during `task-0640`.
-
-Acceptance criteria:
-
-- A shared helper records WebGPU validation warnings/errors from Playwright
-  console messages.
-- At least the Standard queue-phase and material showcase specs assert that no
-  WebGPU command-buffer or auto-layout validation warnings were emitted.
-- The helper ignores unrelated browser noise such as missing favicon requests.
-- Focused Playwright specs pass with the guard enabled.
-
-### task-0647 — Audit queued material adapter integration
-
-Category: `audit-refactor`
-Package/write-scope: `docs/research`, `agent/BACKLOG.md`, and narrow tests or
-docs only if drift is found.
 Reference anchor:
-`docs/research/GENERIC_MATERIAL_FAMILY_QUEUE_CONTRACT_PLAN_2026_05_17.md`,
-`docs/NORTH_STAR.md`, `docs/ARCHITECTURE.md`, package boundaries, and focused
-queue/app tests.
+`docs/NORTH_STAR.md`, `docs/ARCHITECTURE.md`,
+`docs/research/GLB_ECS_AUTHORING_COMMAND_HANDOFF_PLAN_2026_05_17.md`, package
+boundaries, Aperture mesh asset contracts, Bevy glTF primitive loading, and
+PlayCanvas mesh resource creation.
 
 Acceptance criteria:
 
-- Audit confirms any queued material adapter implementation keeps
-  `RenderSnapshot` as the boundary and WebGPU resources inside `packages/webgpu`.
-- Audit confirms optimized multi-unlit reuse and StandardMaterial queue-phase
-  browser coverage still pass.
+- Audit confirms GLB mesh mapping does not author ECS or touch WebGPU.
+- Audit confirms any mesh report remains source-data/report-only and does not
+  decode buffers unless a prior task explicitly added that scope.
 - Any drift is fixed with scoped edits or captured as concrete follow-up tasks.
-- Validation includes package boundary checks and focused queue/app tests.
+- Validation includes package boundary checks and focused GLB mesh mapping
+  tests.
 
 ## Post-Unlit E2E Verification Targets
 
