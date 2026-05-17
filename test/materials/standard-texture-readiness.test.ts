@@ -91,6 +91,90 @@ describe("StandardMaterial texture semantic and color-space readiness", () => {
     ).toEqual(json);
   });
 
+  it("accepts TEXCOORD_1 for every rendered StandardMaterial texture field", () => {
+    const registry = new AssetRegistry();
+    const material = createMaterialHandle("standard");
+    const sampler = createSamplerHandle("linear");
+    const baseColor = createTextureHandle("base-color-uv1");
+    const metallicRoughness = createTextureHandle("metallic-roughness-uv1");
+    const normal = createTextureHandle("normal-uv1");
+    const occlusion = createTextureHandle("occlusion-uv1");
+    const emissive = createTextureHandle("emissive-uv1");
+
+    registry.register(sampler);
+    registry.markReady(sampler, createSamplerAsset());
+    readyTexture(registry, baseColor, "base-color", "srgb");
+    readyTexture(registry, metallicRoughness, "metallic-roughness", "data");
+    readyTexture(registry, normal, "normal", "linear");
+    readyTexture(registry, occlusion, "occlusion", "data");
+    readyTexture(registry, emissive, "emissive", "srgb");
+    registry.register(material);
+    registry.markReady(
+      material,
+      createStandardMaterialAsset({
+        baseColorTexture: { texture: baseColor, sampler, texCoord: 1 },
+        metallicRoughnessTexture: {
+          texture: metallicRoughness,
+          sampler,
+          texCoord: 1,
+        },
+        normalTexture: { texture: normal, sampler, texCoord: 1 },
+        occlusionTexture: { texture: occlusion, sampler, texCoord: 1 },
+        emissiveTexture: { texture: emissive, sampler, texCoord: 1 },
+      }),
+    );
+
+    const report = createStandardMaterialTextureReadinessReport({
+      registry,
+      material,
+    });
+
+    expect(report.ready).toBe(true);
+    expect(report.diagnostics).toEqual([]);
+    expect(
+      report.slots.map((slot) => ({
+        field: slot.field,
+        textureKey: slot.textureKey,
+        texCoord: slot.texCoord,
+        ready: slot.ready,
+      })),
+    ).toEqual([
+      {
+        field: "baseColorTexture",
+        textureKey: "texture:base-color-uv1",
+        texCoord: 1,
+        ready: true,
+      },
+      {
+        field: "metallicRoughnessTexture",
+        textureKey: "texture:metallic-roughness-uv1",
+        texCoord: 1,
+        ready: true,
+      },
+      {
+        field: "normalTexture",
+        textureKey: "texture:normal-uv1",
+        texCoord: 1,
+        ready: true,
+      },
+      {
+        field: "occlusionTexture",
+        textureKey: "texture:occlusion-uv1",
+        texCoord: 1,
+        ready: true,
+      },
+      {
+        field: "emissiveTexture",
+        textureKey: "texture:emissive-uv1",
+        texCoord: 1,
+        ready: true,
+      },
+    ]);
+    expect(
+      JSON.parse(standardMaterialTextureReadinessReportToJson(report)),
+    ).toEqual(standardMaterialTextureReadinessReportToJsonValue(report));
+  });
+
   it("diagnoses mismatched StandardMaterial texture semantics and color spaces", () => {
     const registry = new AssetRegistry();
     const material = createMaterialHandle("standard");

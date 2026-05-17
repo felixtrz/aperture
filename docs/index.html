@@ -1,0 +1,872 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Aperture Project Progress</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f3f6f8;
+        --panel: #ffffff;
+        --panel-soft: #f8fafb;
+        --ink: #172026;
+        --muted: #5d6972;
+        --quiet: #8a949c;
+        --line: #d9e0e5;
+        --blue: #256d96;
+        --blue-soft: #e7f2f7;
+        --green: #2d7a54;
+        --green-soft: #e8f5ee;
+        --amber: #9a6a12;
+        --amber-soft: #fbf1db;
+        --red: #a8463c;
+        --red-soft: #f8e9e6;
+        --slate: #26343d;
+        --mono:
+          "JetBrains Mono", "IBM Plex Mono", "SF Mono", Menlo, Consolas,
+          monospace;
+        --sans:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font-family: var(--sans);
+        font-size: 15px;
+        line-height: 1.5;
+      }
+
+      a {
+        color: var(--blue);
+        text-decoration: none;
+      }
+
+      a:hover {
+        text-decoration: underline;
+      }
+
+      .shell {
+        max-width: 1440px;
+        margin: 0 auto;
+        padding: 28px;
+      }
+
+      header {
+        display: grid;
+        grid-template-columns: minmax(0, 1.5fr) minmax(280px, 0.7fr);
+        gap: 24px;
+        align-items: end;
+        padding: 24px 0 22px;
+      }
+
+      h1 {
+        margin: 0;
+        font-family: var(--mono);
+        font-size: clamp(28px, 4vw, 48px);
+        line-height: 1.05;
+        letter-spacing: 0;
+      }
+
+      .lede {
+        max-width: 780px;
+        margin: 14px 0 0;
+        color: var(--muted);
+        font-size: 17px;
+      }
+
+      .status-panel {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 18px;
+      }
+
+      .status-panel dl {
+        display: grid;
+        grid-template-columns: 110px 1fr;
+        gap: 8px 14px;
+        margin: 0;
+        font-family: var(--mono);
+        font-size: 12px;
+      }
+
+      dt {
+        color: var(--quiet);
+      }
+
+      dd {
+        margin: 0;
+        color: var(--ink);
+      }
+
+      nav {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin: 0 0 24px;
+      }
+
+      nav a {
+        display: inline-flex;
+        align-items: center;
+        min-height: 36px;
+        padding: 0 12px;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        background: var(--panel);
+        font-family: var(--mono);
+        font-size: 12px;
+      }
+
+      section {
+        margin: 22px 0;
+      }
+
+      .section-title {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 16px;
+        margin: 0 0 12px;
+      }
+
+      h2 {
+        margin: 0;
+        font-family: var(--mono);
+        font-size: 18px;
+        letter-spacing: 0;
+      }
+
+      .section-note {
+        margin: 0;
+        color: var(--quiet);
+        font-family: var(--mono);
+        font-size: 12px;
+      }
+
+      .grid {
+        display: grid;
+        gap: 14px;
+      }
+
+      .grid.metrics {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+      }
+
+      .grid.tracks {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .grid.tasks {
+        grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+      }
+
+      .card {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 16px;
+        min-width: 0;
+      }
+
+      .metric .label,
+      .track .label {
+        color: var(--quiet);
+        font-family: var(--mono);
+        font-size: 11px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .metric .value {
+        margin: 6px 0 4px;
+        font-family: var(--mono);
+        font-size: 30px;
+        line-height: 1;
+      }
+
+      .metric p,
+      .track p,
+      .phase p,
+      .task-list p {
+        margin: 8px 0 0;
+        color: var(--muted);
+      }
+
+      .bar {
+        height: 10px;
+        overflow: hidden;
+        border-radius: 999px;
+        background: #e7ecef;
+      }
+
+      .bar > span {
+        display: block;
+        height: 100%;
+        border-radius: inherit;
+        background: linear-gradient(90deg, var(--green), var(--blue));
+      }
+
+      .track .topline,
+      .phase .topline {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
+      .percent {
+        font-family: var(--mono);
+        font-size: 20px;
+        font-weight: 700;
+      }
+
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        min-height: 24px;
+        padding: 0 8px;
+        border-radius: 999px;
+        font-family: var(--mono);
+        font-size: 11px;
+        color: var(--ink);
+        background: var(--blue-soft);
+      }
+
+      .badge.green {
+        background: var(--green-soft);
+        color: var(--green);
+      }
+
+      .badge.amber {
+        background: var(--amber-soft);
+        color: var(--amber);
+      }
+
+      .badge.red {
+        background: var(--red-soft);
+        color: var(--red);
+      }
+
+      .phase-board {
+        display: grid;
+        grid-template-columns: repeat(6, minmax(190px, 1fr));
+        gap: 12px;
+        overflow-x: auto;
+        padding-bottom: 2px;
+      }
+
+      .phase {
+        min-width: 190px;
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-top: 4px solid var(--blue);
+        border-radius: 8px;
+        padding: 14px;
+      }
+
+      .phase h3,
+      .task-list h3 {
+        margin: 0;
+        font-family: var(--mono);
+        font-size: 14px;
+      }
+
+      .phase ul,
+      .task-list ul {
+        margin: 10px 0 0;
+        padding-left: 19px;
+      }
+
+      .phase li,
+      .task-list li {
+        margin: 5px 0;
+        color: var(--muted);
+      }
+
+      .timeline {
+        display: grid;
+        gap: 10px;
+      }
+
+      .timeline-item {
+        display: grid;
+        grid-template-columns: 132px 1fr;
+        gap: 14px;
+        align-items: start;
+        padding: 13px 0;
+        border-top: 1px solid var(--line);
+      }
+
+      .timeline-item:first-child {
+        border-top: 0;
+        padding-top: 0;
+      }
+
+      .task-id {
+        font-family: var(--mono);
+        font-size: 12px;
+        color: var(--blue);
+      }
+
+      .timeline-item strong {
+        display: block;
+        margin-bottom: 4px;
+      }
+
+      .site-map {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 14px;
+      }
+
+      .link-card {
+        display: block;
+        min-height: 120px;
+        padding: 16px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--panel);
+      }
+
+      .link-card strong {
+        display: block;
+        margin-bottom: 6px;
+        color: var(--ink);
+        font-family: var(--mono);
+      }
+
+      .link-card span {
+        color: var(--muted);
+      }
+
+      footer {
+        padding: 28px 0 12px;
+        color: var(--quiet);
+        font-family: var(--mono);
+        font-size: 12px;
+        text-align: center;
+      }
+
+      @media (max-width: 980px) {
+        .shell {
+          padding: 18px;
+        }
+
+        header,
+        .grid.metrics,
+        .grid.tracks,
+        .grid.tasks,
+        .site-map {
+          grid-template-columns: 1fr;
+        }
+
+        .section-title {
+          display: block;
+        }
+
+        .section-note {
+          margin-top: 4px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <header>
+        <div>
+          <h1>Aperture Progress Tracker</h1>
+          <p class="lede">
+            Public project dashboard for the WebGPU-only, ECS-first 3D runtime.
+            It tracks what has landed, what is next, and where the render
+            pipeline still needs work.
+          </p>
+        </div>
+        <aside class="status-panel" aria-label="Current project status">
+          <dl>
+            <dt>Updated</dt>
+            <dd>2026-05-17 11:20 PDT</dd>
+            <dt>Branch</dt>
+            <dd>main</dd>
+            <dt>Run state</dt>
+            <dd>Pages dashboard ready; validation passing</dd>
+            <dt>Next focus</dt>
+            <dd>task-0966 generic material-family handoff plan</dd>
+          </dl>
+        </aside>
+      </header>
+
+      <nav aria-label="Dashboard sections">
+        <a href="#overview">overview</a>
+        <a href="#render-pipeline">render pipeline</a>
+        <a href="#tasks">tasks</a>
+        <a href="#completed">completed</a>
+        <a href="#links">reference pages</a>
+      </nav>
+
+      <section id="overview">
+        <div class="section-title">
+          <h2>At A Glance</h2>
+          <p class="section-note">
+            Estimates are directional, not release gates.
+          </p>
+        </div>
+        <div class="grid metrics">
+          <article class="card metric">
+            <div class="label">overall foundation</div>
+            <div class="value">42%</div>
+            <div class="bar" aria-label="42 percent complete">
+              <span style="width: 42%"></span>
+            </div>
+            <p>
+              ECS, transforms, extraction, typed assets, diagnostics, and basic
+              WebGPU app orchestration exist. Broad engine features are still
+              early.
+            </p>
+          </article>
+          <article class="card metric">
+            <div class="label">render pipeline</div>
+            <div class="value">66%</div>
+            <div class="bar" aria-label="66 percent complete">
+              <span style="width: 66%"></span>
+            </div>
+            <p>
+              The ECS-to-WebGPU spine is usable, but generic material-family
+              preparation, richer passes, and resource lifetime policy remain.
+            </p>
+          </article>
+          <article class="card metric">
+            <div class="label">material system</div>
+            <div class="value">48%</div>
+            <div class="bar" aria-label="48 percent complete">
+              <span style="width: 48%"></span>
+            </div>
+            <p>
+              Unlit, Matcap, DebugNormal, and direct-lit StandardMaterial paths
+              are present. glTF PBR texture fidelity is still incomplete.
+            </p>
+          </article>
+          <article class="card metric">
+            <div class="label">diagnostics</div>
+            <div class="value">64%</div>
+            <div class="bar" aria-label="64 percent complete">
+              <span style="width: 64%"></span>
+            </div>
+            <p>
+              JSON-safe reports now cover extraction, queues, app summaries,
+              dependency readiness, resource reuse, and render-state inspection.
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <section>
+        <div class="section-title">
+          <h2>Project Tracks</h2>
+          <p class="section-note">North Star alignment by subsystem.</p>
+        </div>
+        <div class="grid tracks">
+          <article class="card track">
+            <div class="topline">
+              <div>
+                <div class="label">simulation</div>
+                <h3>ECS, transforms, assets</h3>
+              </div>
+              <span class="percent">55%</span>
+            </div>
+            <div class="bar"><span style="width: 55%"></span></div>
+            <p>
+              EliCS-backed world, transform ownership, asset handles, and typed
+              collections are in place.
+            </p>
+          </article>
+          <article class="card track">
+            <div class="topline">
+              <div>
+                <div class="label">render bridge</div>
+                <h3>extraction and snapshots</h3>
+              </div>
+              <span class="percent">68%</span>
+            </div>
+            <div class="bar"><span style="width: 68%"></span></div>
+            <p>
+              Snapshots, draw packets, lights, environments, bounds,
+              diagnostics, and render-world facade work are active.
+            </p>
+          </article>
+          <article class="card track">
+            <div class="topline">
+              <div>
+                <div class="label">webgpu-render</div>
+                <h3>backend resources</h3>
+              </div>
+              <span class="percent">57%</span>
+            </div>
+            <div class="bar"><span style="width: 57%"></span></div>
+            <p>
+              Backend buffers, pipelines, bind groups, queues, and app facade
+              exist, with pass graph and profiling still deferred.
+            </p>
+          </article>
+          <article class="card track">
+            <div class="topline">
+              <div>
+                <div class="label">asset import</div>
+                <h3>GLB/glTF path</h3>
+              </div>
+              <span class="percent">38%</span>
+            </div>
+            <div class="bar"><span style="width: 38%"></span></div>
+            <p>
+              Container parsing, diagnostics, source registration, material
+              mapping, and mesh source planning have landed; viewer path is
+              later.
+            </p>
+          </article>
+          <article class="card track">
+            <div class="topline">
+              <div>
+                <div class="label">examples/e2e</div>
+                <h3>browser proof points</h3>
+              </div>
+              <span class="percent">46%</span>
+            </div>
+            <div class="bar"><span style="width: 46%"></span></div>
+            <p>
+              Spinning cube, material showcase, diagnostics, queue phases, and
+              WebGPU readback examples exist with Playwright coverage.
+            </p>
+          </article>
+          <article class="card track">
+            <div class="topline">
+              <div>
+                <div class="label">future tracks</div>
+                <h3>worker, XR, physics</h3>
+              </div>
+              <span class="percent">8%</span>
+            </div>
+            <div class="bar"><span style="width: 8%"></span></div>
+            <p>
+              Architecture preserves the boundary, but worker simulation, WebXR,
+              physics, animation, and editor tooling are not active yet.
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <section id="render-pipeline">
+        <div class="section-title">
+          <h2>Render Pipeline State</h2>
+          <p class="section-note">
+            Detailed comparison:
+            <a href="render-pipeline-comparison.html"
+              >render-pipeline-comparison.html</a
+            >
+          </p>
+        </div>
+        <div
+          class="phase-board"
+          aria-label="Render pipeline phase completion estimates"
+        >
+          <article class="phase">
+            <div class="topline">
+              <h3>1. extract</h3>
+              <span class="percent">78%</span>
+            </div>
+            <div class="bar"><span style="width: 78%"></span></div>
+            <p>
+              ECS state produces serializable render snapshots with draw, view,
+              light, environment, shadow request, bounds, and diagnostic
+              packets.
+            </p>
+            <ul>
+              <li>Missing richer visibility/culling explanations.</li>
+              <li>Missing snapshot diffing and worker transport validation.</li>
+              <li>
+                Missing multi-view render-target coverage beyond current
+                foundations.
+              </li>
+            </ul>
+          </article>
+          <article class="phase">
+            <div class="topline">
+              <h3>2. collect</h3>
+              <span class="percent">72%</span>
+            </div>
+            <div class="bar"><span style="width: 72%"></span></div>
+            <p>
+              Asset readiness and source-version dependency summaries exist for
+              meshes, materials, textures, and samplers.
+            </p>
+            <ul>
+              <li>
+                Missing one generic change-set scheduler across all prepared
+                assets.
+              </li>
+              <li>Missing complete GLB texture/sampler dependency handoff.</li>
+              <li>Missing automatic unload policy integration.</li>
+            </ul>
+          </article>
+          <article class="phase">
+            <div class="topline">
+              <h3>3. prepare</h3>
+              <span class="percent">68%</span>
+            </div>
+            <div class="bar"><span style="width: 68%"></span></div>
+            <p>
+              Prepared mesh/material facades and WebGPU-private backend caches
+              exist for built-in material families.
+            </p>
+            <ul>
+              <li>Missing generic material-family preparation contract.</li>
+              <li>
+                Missing full StandardMaterial PBR texture/resource coverage.
+              </li>
+              <li>
+                Missing IBL, shadow, render-target, and hot-path scratch polish.
+              </li>
+            </ul>
+          </article>
+          <article class="phase">
+            <div class="topline">
+              <h3>4. queue</h3>
+              <span class="percent">63%</span>
+            </div>
+            <div class="bar"><span style="width: 63%"></span></div>
+            <p>
+              Material-family queueing, route diagnostics, resource key
+              resolution, and Standard transparent phases are implemented.
+            </p>
+            <ul>
+              <li>Missing fully generic material adapter registry.</li>
+              <li>
+                Missing instancing, batching, and multi-material primitive queue
+                rules.
+              </li>
+              <li>
+                Missing mature queue diagnostics for all future material
+                families.
+              </li>
+            </ul>
+          </article>
+          <article class="phase">
+            <div class="topline">
+              <h3>5. sort</h3>
+              <span class="percent">58%</span>
+            </div>
+            <div class="bar"><span style="width: 58%"></span></div>
+            <p>
+              Opaque queue sorting is stable and deterministic; alpha-test and
+              transparent phase placement exists.
+            </p>
+            <ul>
+              <li>
+                Missing complete transparent ordering policy and tie-break
+                diagnostics.
+              </li>
+              <li>Missing phase-specialized sorting reports.</li>
+              <li>Missing batching and pipeline pressure summaries.</li>
+            </ul>
+          </article>
+          <article class="phase">
+            <div class="topline">
+              <h3>6. submit</h3>
+              <span class="percent">55%</span>
+            </div>
+            <div class="bar"><span style="width: 55%"></span></div>
+            <p>
+              WebGPU command submission renders the current proof paths with
+              pipeline, bind group, transform, light, mesh, and material
+              resources.
+            </p>
+            <ul>
+              <li>Missing render graph and multi-pass architecture.</li>
+              <li>
+                Missing IBL, shadow, post-processing, and render-target passes.
+              </li>
+              <li>Missing GPU timing and submission reuse diagnostics.</li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <section id="tasks">
+        <div class="section-title">
+          <h2>Current And Next Work</h2>
+          <p class="section-note">
+            Derived from agent status and ready backlog.
+          </p>
+        </div>
+        <div class="grid tasks">
+          <article class="card task-list">
+            <h3>Latest work in this update</h3>
+            <ul>
+              <li>
+                <span class="badge green">task-0961</span> Added
+                StandardMaterial UV1 per-field readiness and shader feature
+                tests.
+              </li>
+              <li>
+                <span class="badge green">task-0962</span> Audited UV1 coverage
+                boundaries; no production behavior changed.
+              </li>
+              <li>
+                <span class="badge green">task-0963</span> Planned
+                StandardMaterial alpha/cull diagnostics.
+              </li>
+              <li>
+                <span class="badge green">task-0964</span> Added
+                StandardMaterial render-state summary coverage.
+              </li>
+              <li>
+                <span class="badge green">task-0965</span> Audited alpha/cull
+                diagnostics and public tracker boundaries.
+              </li>
+              <li>
+                <span class="badge amber">site</span> Converted the tracker into
+                a GitHub Pages-ready dashboard.
+              </li>
+            </ul>
+          </article>
+          <article class="card task-list">
+            <h3>Recommended next tasks</h3>
+            <ul>
+              <li>
+                <span class="badge amber">task-0966</span> Plan generic
+                material-family queue-to-prepare handoff.
+              </li>
+              <li>
+                Refill the ready backlog with the next material-family
+                queue/preparation slices.
+              </li>
+              <li>
+                Keep this tracker updated after render-pipeline or
+                project-status changes.
+              </li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <section id="completed">
+        <div class="section-title">
+          <h2>Recently Completed Task Groups</h2>
+          <p class="section-note">Condensed from agent/COMPLETED.md.</p>
+        </div>
+        <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-0924-0960</div>
+            <div>
+              <strong
+                >Diagnostics summaries, app diagnostics aggregation, docs, and
+                UV audit.</strong
+              >
+              <span
+                >Added JSON-safe summaries across material queue, draw package
+                scratch, frame queue diagnostics, queued resources, app
+                diagnostics, and material dependencies.</span
+              >
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="task-id">task-0901-0923</div>
+            <div>
+              <strong
+                >Render-world binding, cache lifetime reporting, and stable
+                material queue ordering.</strong
+              >
+              <span
+                >Added combined prepared-resource binding helpers, cache
+                summaries, backend lifetime reporting, and non-mutating
+                queue-order regressions.</span
+              >
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="task-id">task-0886-0900</div>
+            <div>
+              <strong
+                >Prepared mesh/material facade and backend cache
+                handoff.</strong
+              >
+              <span
+                >Routed queued mesh/material keys through renderer-independent
+                facades while keeping WebGPU resources backend-owned.</span
+              >
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="task-id">task-0830-0885</div>
+            <div>
+              <strong
+                >Built-in prepared material stores, adapters, and Standard
+                texture routes.</strong
+              >
+              <span
+                >Expanded unlit, Matcap, and StandardMaterial prepared resource
+                paths and route diagnostics.</span
+              >
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="task-id">task-0651-0772</div>
+            <div>
+              <strong
+                >GLB/glTF material, mesh, source registration, orchestration,
+                and queue reporting groundwork.</strong
+              >
+              <span
+                >Built the current narrow GLB import and diagnostics foundation
+                while deferring full viewer fidelity.</span
+              >
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <section id="links">
+        <div class="section-title">
+          <h2>Reference Pages</h2>
+          <p class="section-note">Static files served from GitHub Pages.</p>
+        </div>
+        <div class="site-map">
+          <a class="link-card" href="render-pipeline-comparison.html">
+            <strong>Render Pipeline Comparison</strong>
+            <span
+              >Detailed phase-by-phase comparison of Aperture, three.js WebGPU,
+              and PlayCanvas WebGPU.</span
+            >
+          </a>
+          <a class="link-card" href="DIAGNOSTICS_SUMMARIES.md">
+            <strong>Diagnostics Summaries</strong>
+            <span
+              >JSON-safe diagnostics summary surface and reporting
+              conventions.</span
+            >
+          </a>
+          <a class="link-card" href="ARCHITECTURE.md">
+            <strong>Architecture</strong>
+            <span
+              >ECS-first, WebGPU-only architecture and package ownership
+              boundaries.</span
+            >
+          </a>
+        </div>
+      </section>
+
+      <footer>
+        Aperture is ECS-authoritative, WebGPU-only, and render-snapshot driven.
+        Update this page whenever project status or render-pipeline state
+        changes.
+      </footer>
+    </div>
+  </body>
+</html>

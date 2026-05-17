@@ -1,5 +1,49 @@
 # Completed Tasks
 
+## task-0961 through task-0965 — StandardMaterial UV1 coverage, alpha/cull diagnostics, and public progress tracker
+
+Completed: 2026-05-17
+
+Completed task ids:
+
+- `task-0961` — Add StandardMaterial UV1 per-field coverage.
+- `task-0962` — Audit StandardMaterial UV1 per-field coverage boundaries.
+- `task-0963` — Plan StandardMaterial alpha/cull diagnostics slice.
+- `task-0964` — Add StandardMaterial alpha/cull diagnostics helper/tests.
+- `task-0965` — Audit StandardMaterial alpha/cull diagnostics boundaries.
+
+Summary:
+
+- Added StandardMaterial `TEXCOORD_1` readiness coverage for base color,
+  metallic-roughness, normal, occlusion, and emissive texture fields.
+- Added WebGPU pipeline/shader feature coverage proving every StandardMaterial
+  texture field can select a `uv1` shader variant and matching vertex layout.
+- Planned and implemented `createStandardMaterialRenderStateSummary()` as a
+  JSON-safe WebGPU inspection helper for alpha mode, alpha cutoff, blend,
+  depth-write, cull, double-sided flags, pipeline tokens, and mismatch
+  diagnostics.
+- Audited the UV1 and alpha/cull diagnostics boundaries; no runtime queue,
+  pipeline descriptor, shader, or source material behavior changed.
+- Added a public GitHub Pages-ready dashboard at `docs/index.html` and updated
+  `docs/render-pipeline-comparison.html` with phase completion estimates and
+  concrete missing pieces.
+- Updated `AGENTS.md` and `agent/WAKE.md` so future project-status and
+  render-pipeline work keeps the public tracker current.
+- Enabled GitHub Pages for `main` `/docs` at
+  `https://felixtrz.github.io/aperture/`.
+
+Validation run:
+
+- `pnpm exec vitest run test/materials/standard-texture-readiness.test.ts test/webgpu/standard-pipeline-descriptor.test.ts`
+- `pnpm exec vitest run test/webgpu/standard-render-state-summary.test.ts test/webgpu/standard-pipeline-descriptor.test.ts test/materials/standard-texture-readiness.test.ts`
+- `pnpm exec vitest run test/webgpu/standard-render-state-summary.test.ts test/webgpu/built-in-material-queue-phase.test.ts test/webgpu/standard-pipeline-descriptor.test.ts test/webgpu/standard-material-buffer.test.ts`
+- `pnpm exec tsc --noEmit -p packages/webgpu/tsconfig.json`
+- Browser smoke checks for `http://127.0.0.1:4173/index.html` and
+  `http://127.0.0.1:4173/render-pipeline-comparison.html`.
+- `pnpm run check` passed, including package boundaries, build/typecheck, test
+  typecheck, examples syntax, lint, format check, and 238 Vitest files / 1128
+  tests.
+
 ## task-0924 through task-0960 — Diagnostics summaries, app diagnostics example aggregation, docs, and UV audit
 
 Completed: 2026-05-17

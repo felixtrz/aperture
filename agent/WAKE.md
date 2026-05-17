@@ -107,6 +107,11 @@ Rules:
 - Do not create a central mutable scene graph.
 - Do not make the renderer own ECS/game state.
 - Do not implement WebGL fallback.
+- Update `docs/index.html` when project status, completed work, next tasks, or
+  completion estimates materially change.
+- If work touches the render pipeline, also update
+  `docs/render-pipeline-comparison.html` with current phase completion
+  estimates and concrete missing pieces.
 
 ## 6. Validate
 

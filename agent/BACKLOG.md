@@ -59,9 +59,10 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start with `task-0961`. The UV support audit found a test coverage gap rather
-than a production bug; the next renderer-spine step is focused UV1 per-field
-coverage for StandardMaterial textures.
+Start with `task-0966`. The UV1 and alpha/cull diagnostics slices are complete;
+the next renderer-spine step is to plan the generic material-family
+queue-to-prepare handoff so future material families do not require bespoke app
+routes.
 
 ## Near-Term Proof Point Track
 
@@ -78,11 +79,11 @@ Target proof point:
 
 Remaining automation priority order:
 
-1. `task-0961` — add StandardMaterial UV1 per-field coverage.
-2. `task-0962` — audit StandardMaterial UV1 per-field coverage boundaries.
-3. `task-0963` — plan StandardMaterial alpha/cull diagnostics slice.
-4. `task-0964` — add StandardMaterial alpha/cull diagnostics helper or tests.
-5. `task-0965` — audit StandardMaterial alpha/cull diagnostics boundaries.
+1. `task-0966` — plan generic material-family queue-to-prepare handoff.
+2. `task-0967` — add generic material-family route contract tests/helper.
+3. `task-0968` — audit generic material-family route contract boundaries.
+4. `task-0969` — plan StandardMaterial texture fidelity diagnostics slice.
+5. `task-0970` — add progress tracker freshness validation.
 
 Defer allocation-only cleanup and metadata-only shader-contract tasks unless
 they are a direct blocker for this track.
@@ -148,86 +149,91 @@ viewer/material mapping should not outrun the material and queue architecture.
 
 ### Proof Point Critical Path
 
-### task-0961 — Add StandardMaterial UV1 per-field coverage
-
-Category: `webgpu-render`
-Package/write-scope: `test/materials`, `test/webgpu`, and no production code
-unless tests expose a bug.
-Reference anchor:
-StandardMaterial UV coordinate support audit from `task-0960`, shader `uv1`
-feature selection, and material buffer texCoord packing.
-
-Acceptance criteria:
-
-- Tests cover `texCoord: 1` readiness for base color, metallic-roughness,
-  normal, occlusion, and emissive texture fields.
-- Tests cover pipeline key or shader feature selection for `uv1`.
-- Existing behavior remains unchanged.
-
-### task-0962 — Audit StandardMaterial UV1 per-field coverage boundaries
-
-Category: `audit-refactor`
-Package/write-scope: `docs/research`, `agent/BACKLOG.md`, and narrow follow-up
-task edits only.
-Reference anchor:
-StandardMaterial UV1 tests from `task-0961`, `docs/ARCHITECTURE.md`, and
-StandardMaterial shader/material buffer boundaries.
-
-Acceptance criteria:
-
-- Audit verifies UV1 tests do not introduce shader behavior changes or source
-  asset mutation.
-- Audit verifies unsupported `TEXCOORD_2+` behavior remains diagnostic-only.
-- Follow-up backlog wording is tightened if coverage remains incomplete.
-
-### task-0963 — Plan StandardMaterial alpha/cull diagnostics slice
+### task-0966 — Plan generic material-family queue-to-prepare handoff
 
 Category: `docs-tooling`
-Package/write-scope: `docs/research` and `agent/BACKLOG.md`.
+Package/write-scope: `docs/research`, `agent/BACKLOG.md`, and progress tracker
+status if render-pipeline estimates change.
 Reference anchor:
-StandardMaterial render-state helpers, material queue phase tests, and glTF
-material alpha/double-sided expectations.
+Bevy material queue/preparation concepts, existing built-in material adapter
+routes, and `docs/ARCHITECTURE.md` render world ownership rules.
 
 Acceptance criteria:
 
-- Plan defines a narrow diagnostics/test slice for alpha mode and double-sided
-  cull behavior.
-- Plan keeps scope out of broad PBR shader changes.
+- Plan identifies the smallest handoff from material-family queue item to
+  prepared resource lookup without family-specific app branching.
+- Plan preserves renderer-owned GPU resources and renderer-independent source
+  assets.
 - Plan adds or confirms a focused implementation follow-up.
 
-### task-0964 — Add StandardMaterial alpha/cull diagnostics helper or tests
+### task-0967 — Add generic material-family route contract coverage
 
 Category: `webgpu-render`
-Package/write-scope: `packages/webgpu/src/webgpu` and focused StandardMaterial
-render-state/material queue tests.
+Package/write-scope: `packages/webgpu/src/webgpu`, `test/webgpu`, and
+`docs/index.html` / `docs/render-pipeline-comparison.html` if estimates change.
 Reference anchor:
-StandardMaterial alpha/cull diagnostics plan from `task-0963` and existing
-StandardMaterial alpha-test/transparent route tests.
+Generic material-family queue-to-prepare handoff plan from `task-0966`,
+existing built-in material queue adapter tests, and WebGPU resource ownership
+docs.
 
 Acceptance criteria:
 
-- Helper/tests expose alpha mode and double-sided cull diagnostics without raw
-  GPU handles.
-- Existing StandardMaterial opaque, alpha-test, and transparent route behavior
-  remains unchanged.
+- Tests/helper describe a generic route contract for built-in material families
+  without exposing raw GPU handles.
+- Existing unlit, Matcap, Standard opaque, alpha-test, and transparent route
+  behavior remains unchanged.
 - Targeted tests and TypeScript validation pass.
 
-### task-0965 — Audit StandardMaterial alpha/cull diagnostics boundaries
+### task-0968 — Audit generic material-family route contract boundaries
 
 Category: `audit-refactor`
-Package/write-scope: `docs/research`, `agent/BACKLOG.md`, and narrow follow-up
-task edits only.
+Package/write-scope: `docs/research`, `agent/BACKLOG.md`, and narrow tracker
+status updates if needed.
 Reference anchor:
-StandardMaterial alpha/cull diagnostics changes from `task-0964`,
-`docs/ARCHITECTURE.md`, and WebGPU material route tests.
+Generic material-family route contract changes from `task-0967`,
+`docs/ARCHITECTURE.md`, package dependency boundaries, and built-in route tests.
 
 Acceptance criteria:
 
-- Audit verifies alpha/cull diagnostics do not mutate source material assets or
-  hide renderer state.
-- Audit verifies diagnostics remain separate from retained pipeline/cache
-  summaries.
+- Audit verifies the generic route contract does not make the app facade own GPU
+  resources or source material state.
+- Audit verifies queue diagnostics remain JSON-safe and separate from retained
+  backend cache summaries.
 - Follow-up backlog wording is tightened if ownership remains ambiguous.
+
+### task-0969 — Plan StandardMaterial texture fidelity diagnostics slice
+
+Category: `docs-tooling`
+Package/write-scope: `docs/research`, `agent/BACKLOG.md`, and progress tracker
+status if material/pipeline estimates change.
+Reference anchor:
+StandardMaterial texture readiness, glTF metallic-roughness expectations,
+PlayCanvas/three.js texture channel handling, and
+`docs/MEDIUM_LONG_TERM_GOALS.md`.
+
+Acceptance criteria:
+
+- Plan defines a narrow diagnostics/test slice for sampler, color-space, and
+  texture-field fidelity gaps.
+- Plan keeps scope out of IBL, shadows, and broad PBR shader rewrites.
+- Plan adds or confirms a focused implementation follow-up.
+
+### task-0970 — Add progress tracker freshness validation
+
+Category: `docs-tooling`
+Package/write-scope: `scripts`, `docs/index.html`,
+`docs/render-pipeline-comparison.html`, and targeted tests/checks.
+Reference anchor:
+Public progress tracker instruction in `AGENTS.md`, GitHub Pages `docs/`
+source configuration, and current stop-hook validation flow.
+
+Acceptance criteria:
+
+- A lightweight check or script verifies the progress tracker has a recent
+  updated date and render-pipeline phase status entries.
+- The check avoids network requirements and does not block ordinary docs edits
+  on exact percentage values.
+- Validation command is documented for future agents.
 
 ## Post-Unlit E2E Verification Targets
 

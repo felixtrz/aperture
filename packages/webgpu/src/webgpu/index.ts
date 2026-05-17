@@ -87,6 +87,7 @@ export * from "./standard-material-buffer.js";
 export * from "./standard-material-resource-inspection.js";
 export * from "./standard-pipeline-descriptor.js";
 export * from "./standard-pipeline.js";
+export * from "./standard-render-state-summary.js";
 export * from "./standard-shader.js";
 export * from "./texture-resources.js";
 export * from "./unlit-material-buffer.js";

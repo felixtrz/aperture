@@ -1,0 +1,1265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Render Pipeline · Aperture's 6 phases vs three.js &amp; PlayCanvas (WebGPU)</title>
+<style>
+  :root {
+    --bg:        #f5f7fa;
+    --surface:   #ffffff;
+    --apt-tint:  #f5fafd;
+    --ink:       #1a1a1a;
+    --muted:     #5a5a5a;
+    --faint:     #888;
+    --accent:    #4a9fd8;
+    --accent-dk: #2d7ab8;
+    --border:    #d8dce1;
+    --code-bg:   #f1f3f6;
+    --code-bg-apt: #ecf4fa;
+    --mono: 'JetBrains Mono','IBM Plex Mono','SF Mono',Menlo,Consolas,monospace;
+    --sans: -apple-system,BlinkMacSystemFont,'Inter',system-ui,sans-serif;
+  }
+
+  *,*::before,*::after { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 14px;
+    line-height: 1.55;
+  }
+
+  header.page {
+    padding: 36px 40px 24px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+  }
+  header.page h1 {
+    margin: 0 0 10px;
+    font-family: var(--mono);
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+  header.page p.lede {
+    margin: 0 0 14px;
+    color: var(--muted);
+    max-width: 110ch;
+    font-size: 14.5px;
+  }
+  header.page p.lede b { color: var(--accent-dk); }
+  header.page nav {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--faint);
+  }
+  header.page nav a {
+    color: var(--accent-dk);
+    text-decoration: none;
+    margin-right: 16px;
+  }
+  header.page nav a:hover { text-decoration: underline; }
+
+  /* Framing strip explaining the 6-phase contract */
+  .framing {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 22px 40px 26px;
+  }
+  .framing h2 {
+    font-family: var(--mono);
+    font-size: 14px;
+    letter-spacing: 0.08em;
+    margin: 0 0 12px;
+    color: var(--accent-dk);
+  }
+  .phase-strip {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 12px;
+  }
+  .phase-strip .ps {
+    padding: 12px 14px;
+    background: var(--code-bg-apt);
+    border-left: 3px solid var(--accent);
+    font-family: var(--mono);
+  }
+  .phase-strip .ps .n {
+    font-size: 10px;
+    color: var(--accent-dk);
+    letter-spacing: 0.15em;
+    font-weight: 700;
+  }
+  .phase-strip .ps .nm {
+    font-size: 13px;
+    font-weight: 700;
+    margin: 4px 0 6px;
+  }
+  .phase-strip .ps .io {
+    font-size: 10.5px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+  .phase-strip .ps .io b { color: var(--ink); font-weight: 600; }
+
+  /* Main comparison grid */
+  .grid {
+    display: grid;
+    grid-template-columns: 1.45fr 1fr 1fr;
+    gap: 0;
+    max-width: 2600px;
+    margin: 0 auto;
+    padding: 0 40px;
+  }
+  .col-header {
+    background: var(--ink);
+    color: #fff;
+    padding: 14px 20px;
+    font-family: var(--mono);
+    font-weight: 700;
+    font-size: 15px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    border-right: 1px solid #333;
+  }
+  .col-header.apt {
+    background: linear-gradient(90deg, var(--accent-dk), var(--ink) 80%);
+  }
+  .col-header.pc { border-right: none; }
+  .col-header .sub {
+    font-weight: 400;
+    color: #ccc;
+    font-size: 11px;
+    margin-left: 8px;
+  }
+
+  .phase-band {
+    grid-column: 1 / -1;
+    background: #2d2d2d;
+    color: #fff;
+    padding: 14px 20px;
+    margin-top: 16px;
+    font-family: var(--mono);
+    position: sticky;
+    top: 48px;
+    z-index: 9;
+  }
+  .phase-band .n {
+    font-size: 11px;
+    color: #888;
+    letter-spacing: 0.15em;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+  .phase-band .nm {
+    font-size: 18px;
+    font-weight: 700;
+    margin: 2px 0 4px;
+    letter-spacing: 0.04em;
+  }
+  .phase-band .io {
+    font-size: 12px;
+    color: #bbb;
+    font-family: var(--mono);
+  }
+  .phase-band .io b { color: var(--accent); font-weight: 600; }
+  .phase-band .io .arrow { color: #666; margin: 0 8px; }
+
+  .stage { display: contents; }
+
+  .cell {
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    border-right: 1px solid var(--border);
+    padding: 18px 22px;
+    font-family: var(--sans);
+    font-size: 13px;
+    line-height: 1.6;
+    min-width: 0;
+  }
+  .cell.apt {
+    background: var(--apt-tint);
+    border-left: 3px solid var(--accent);
+    border-top: 2px solid var(--accent);
+    border-bottom: 2px solid var(--accent);
+  }
+  .cell.tjs, .cell.pc {
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+  .cell.pc { border-right: 1px solid var(--border); }
+
+  /* engine label tag at top of cell */
+  .engine-tag {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    font-weight: 700;
+    color: var(--faint);
+    text-transform: uppercase;
+    padding: 2px 8px;
+    background: #f0f0f0;
+    border-radius: 2px;
+    margin-bottom: 12px;
+  }
+  .cell.apt .engine-tag {
+    background: var(--accent);
+    color: #fff;
+  }
+
+  /* meta block: file / input / output / scratch */
+  .meta {
+    background: #fff;
+    border: 1px solid var(--border);
+    padding: 8px 12px;
+    margin: 6px 0 14px;
+    font-family: var(--mono);
+    font-size: 11.5px;
+    line-height: 1.7;
+  }
+  .cell.apt .meta { background: #fff; border-color: var(--accent); }
+  .meta .row { display: flex; gap: 10px; }
+  .meta .row .k {
+    color: var(--accent-dk);
+    font-weight: 600;
+    flex: 0 0 80px;
+    text-align: right;
+  }
+  .meta .row .v { color: var(--ink); flex: 1; word-break: break-word; }
+
+  .cell h3 {
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    margin: 18px 0 8px;
+    color: var(--ink);
+  }
+  .cell h3:first-of-type { margin-top: 4px; }
+  .cell h3 + pre, .cell h3 + p, .cell h3 + ol, .cell h3 + ul { margin-top: 0; }
+
+  .cell pre {
+    margin: 0 0 6px;
+    padding: 10px 12px;
+    background: var(--code-bg);
+    border-left: 3px solid #c8cdd4;
+    font-family: var(--mono);
+    font-size: 12px;
+    line-height: 1.55;
+    white-space: pre-wrap;
+    word-break: normal;
+    overflow-wrap: break-word;
+  }
+  .cell.apt pre { background: var(--code-bg-apt); border-left-color: var(--accent); }
+
+  .cell ol, .cell ul {
+    margin: 8px 0;
+    padding-left: 22px;
+    font-family: var(--sans);
+    font-size: 13px;
+    color: var(--ink);
+    line-height: 1.55;
+  }
+  .cell li { margin: 4px 0; }
+  .cell li code {
+    font-family: var(--mono);
+    font-size: 12px;
+    background: var(--code-bg);
+    padding: 1px 4px;
+    border-radius: 2px;
+  }
+  .cell.apt li code { background: var(--code-bg-apt); }
+
+  .cell p {
+    margin: 8px 0;
+    font-family: var(--sans);
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .cell p code, .cell .meta code { font-family: var(--mono); }
+  .cell p.note {
+    font-style: italic;
+    color: var(--muted);
+    border-left: 3px solid var(--accent);
+    padding: 4px 10px;
+    margin: 12px 0;
+    background: #fff;
+  }
+
+  .cell .k  { color: var(--accent-dk); font-weight: 600; }
+  .cell .c  { color: var(--faint); }
+  .cell .b  { font-weight: 700; }
+  .cell .no { color: #b6444e; font-weight: 700; }
+
+  .diag {
+    margin-top: 10px;
+    padding: 10px 12px;
+    background: #fdf2f3;
+    border-left: 3px solid #d28080;
+    font-family: var(--mono);
+    font-size: 11.5px;
+    line-height: 1.55;
+    color: #6a3a3e;
+  }
+  .diag .label {
+    color: #b6444e;
+    font-weight: 700;
+    margin-right: 6px;
+  }
+
+  .downstream {
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top: 1px dashed var(--border);
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--faint);
+  }
+  .downstream .label {
+    color: var(--accent-dk);
+    font-weight: 700;
+    margin-right: 6px;
+  }
+
+  .progress-status {
+    max-width: 2600px;
+    margin: 24px auto 8px;
+    padding: 0 40px;
+  }
+  .progress-status .status-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 18px;
+    align-items: baseline;
+    padding: 16px 18px;
+    background: var(--ink);
+    color: #fff;
+    font-family: var(--mono);
+  }
+  .progress-status .status-head h2 {
+    margin: 0;
+    font-size: 15px;
+    letter-spacing: 0.04em;
+  }
+  .progress-status .status-head a {
+    color: #b8ddf2;
+    text-decoration: none;
+    font-size: 12px;
+  }
+  .phase-status-grid {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(190px, 1fr));
+    gap: 0;
+    overflow-x: auto;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-top: 0;
+  }
+  .phase-status {
+    min-width: 190px;
+    padding: 14px;
+    border-right: 1px solid var(--border);
+  }
+  .phase-status:last-child { border-right: 0; }
+  .phase-status .top {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+    font-family: var(--mono);
+  }
+  .phase-status .top b { font-size: 13px; }
+  .phase-status .pct {
+    color: var(--accent-dk);
+    font-weight: 800;
+  }
+  .phase-status .bar {
+    height: 8px;
+    margin: 9px 0;
+    overflow: hidden;
+    border-radius: 999px;
+    background: #e4e8ed;
+  }
+  .phase-status .bar span {
+    display: block;
+    height: 100%;
+    background: var(--accent);
+  }
+  .phase-status p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.5;
+  }
+
+  /* Bottom divergence callouts */
+  section.divergences {
+    max-width: 2600px;
+    margin: 32px auto 48px;
+    padding: 0 40px;
+  }
+  section.divergences h2 {
+    background: var(--accent);
+    color: #fff;
+    padding: 16px 22px;
+    margin: 0;
+    font-family: var(--mono);
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+  }
+  .div-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-top: 0;
+  }
+  .div-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-top: none;
+    padding: 20px 22px 22px;
+  }
+  .div-card h3 {
+    font-family: var(--mono);
+    font-size: 14px;
+    font-weight: 700;
+    margin: 0 0 10px;
+    line-height: 1.3;
+  }
+  .div-card .num { color: var(--accent-dk); font-weight: 800; }
+  .div-card p {
+    margin: 8px 0 0;
+    font-family: var(--sans);
+    font-size: 12.5px;
+    line-height: 1.6;
+    color: var(--muted);
+  }
+  .div-card p .who {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    color: var(--accent-dk);
+    display: block;
+    margin-bottom: 2px;
+  }
+  .div-card p .who.tjs, .div-card p .who.pc { color: var(--ink); }
+
+  footer {
+    text-align: center;
+    padding: 24px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--faint);
+  }
+
+  @media (max-width: 1400px) {
+    body { font-size: 12.5px; }
+    .grid, section.divergences, header.page, .framing, .progress-status { padding-left: 20px; padding-right: 20px; }
+    .div-grid { grid-template-columns: repeat(2, 1fr); }
+    .phase-strip { grid-template-columns: repeat(3, 1fr); }
+  }
+</style>
+</head>
+<body>
+
+<header class="page">
+  <h1>Render Pipeline · Aperture's 6 phases vs three.js &amp; PlayCanvas (WebGPU)</h1>
+  <p class="lede">
+    Aperture organizes its render pipeline into six explicit, named phases —
+    <b>extract → asset-change-collection → prepare → queue → sort → submit</b> —
+    each with a typed input/output contract and pooled scratch state. This document maps
+    those six phases against the equivalent work in three.js's <code>WebGPURenderer</code>
+    and PlayCanvas's WebGPU graphics backend, showing where the other engines
+    <b>bundle, interleave, or skip</b> the same conceptual stages.
+  </p>
+  <nav>
+    JUMP TO:
+    <a href="#p-extract">1 · extract</a>
+    <a href="#p-asset">2 · asset-change-collection</a>
+    <a href="#p-prepare">3 · prepare</a>
+    <a href="#p-queue">4 · queue</a>
+    <a href="#p-sort">5 · sort</a>
+    <a href="#p-submit">6 · submit</a>
+    <a href="#divergences">★ Divergences</a>
+  </nav>
+</header>
+
+<div class="framing">
+  <h2>★ APERTURE'S 6-PHASE CONTRACT &nbsp; <span style="color:#888;font-weight:400">— packages/render/src/rendering/render-frame-phases.ts</span></h2>
+  <div class="phase-strip">
+    <div class="ps">
+      <div class="n">PHASE 01</div>
+      <div class="nm">extract</div>
+      <div class="io"><b>in</b>: EcsWorld, AssetRegistry<br><b>out</b>: RenderSnapshot</div>
+    </div>
+    <div class="ps">
+      <div class="n">PHASE 02</div>
+      <div class="nm">asset-change-collection</div>
+      <div class="io"><b>in</b>: RenderSnapshot, AssetRegistry<br><b>out</b>: source asset change set</div>
+    </div>
+    <div class="ps">
+      <div class="n">PHASE 03</div>
+      <div class="nm">prepare</div>
+      <div class="io"><b>in</b>: change set, RenderSnapshot<br><b>out</b>: prepared render resources</div>
+    </div>
+    <div class="ps">
+      <div class="n">PHASE 04</div>
+      <div class="nm">queue</div>
+      <div class="io"><b>in</b>: draw readiness, packed transforms<br><b>out</b>: unsorted queue records</div>
+    </div>
+    <div class="ps">
+      <div class="n">PHASE 05</div>
+      <div class="nm">sort</div>
+      <div class="io"><b>in</b>: unsorted queue records<br><b>out</b>: sorted queue records</div>
+    </div>
+    <div class="ps">
+      <div class="n">PHASE 06</div>
+      <div class="nm">submit</div>
+      <div class="io"><b>in</b>: sorted records, prepared resources<br><b>out</b>: GPU command submission</div>
+    </div>
+  </div>
+</div>
+
+<section class="progress-status" aria-label="Aperture render pipeline status">
+  <div class="status-head">
+    <h2>Current Aperture Render Pipeline Status · Updated 2026-05-17</h2>
+    <a href="index.html">Back to project tracker</a>
+  </div>
+  <div class="phase-status-grid">
+    <div class="phase-status">
+      <div class="top"><b>1 · extract</b><span class="pct">78%</span></div>
+      <div class="bar"><span style="width:78%"></span></div>
+      <p>Working: ECS to snapshot packets. Missing: richer visibility explanations, snapshot diffing, worker transport validation.</p>
+    </div>
+    <div class="phase-status">
+      <div class="top"><b>2 · collect</b><span class="pct">72%</span></div>
+      <div class="bar"><span style="width:72%"></span></div>
+      <p>Working: source readiness/version summaries. Missing: one generic change-set scheduler and unload integration.</p>
+    </div>
+    <div class="phase-status">
+      <div class="top"><b>3 · prepare</b><span class="pct">68%</span></div>
+      <div class="bar"><span style="width:68%"></span></div>
+      <p>Working: prepared mesh/material facades and backend caches. Missing: generic material-family preparation and full PBR resources.</p>
+    </div>
+    <div class="phase-status">
+      <div class="top"><b>4 · queue</b><span class="pct">63%</span></div>
+      <div class="bar"><span style="width:63%"></span></div>
+      <p>Working: built-in family queue routing and diagnostics. Missing: instancing, batching, multi-material primitive rules.</p>
+    </div>
+    <div class="phase-status">
+      <div class="top"><b>5 · sort</b><span class="pct">58%</span></div>
+      <div class="bar"><span style="width:58%"></span></div>
+      <p>Working: stable opaque ordering and phase placement. Missing: transparent policy, phase reports, batching pressure summaries.</p>
+    </div>
+    <div class="phase-status">
+      <div class="top"><b>6 · submit</b><span class="pct">55%</span></div>
+      <div class="bar"><span style="width:55%"></span></div>
+      <p>Working: current proof paths submit through WebGPU. Missing: render graph, multi-pass, IBL, shadows, render targets, GPU timings.</p>
+    </div>
+  </div>
+</section>
+
+<div class="grid">
+
+  <div class="col-header apt">APERTURE <span class="sub">/ packages/render + packages/webgpu</span></div>
+  <div class="col-header tjs">THREE.JS (WebGPURenderer) <span class="sub">/ src/renderers/common + renderers/webgpu</span></div>
+  <div class="col-header pc">PLAYCANVAS (WebGPU) <span class="sub">/ src/scene/renderer + platform/graphics/webgpu</span></div>
+
+  <!-- ====================================================================
+       PHASE 1: EXTRACT
+       ==================================================================== -->
+  <div class="phase-band" id="p-extract">
+    <div class="n">Phase 01</div>
+    <div class="nm">extract</div>
+    <div class="io"><b>ECS world &amp; AssetRegistry</b> <span class="arrow">→</span> <b>RenderSnapshot</b> (typed, structured-clone-friendly)</div>
+  </div>
+
+  <div class="stage">
+    <!-- APERTURE -->
+    <div class="cell apt">
+      <div class="engine-tag">Aperture · render-package</div>
+
+      <div class="meta">
+        <div class="row"><div class="k">FILE</div><div class="v">packages/render/src/rendering/extraction.ts</div></div>
+        <div class="row"><div class="k">FN</div><div class="v">extractRenderSnapshot(world, assets, options?)</div></div>
+        <div class="row"><div class="k">IN</div><div class="v">EcsWorld, AssetRegistry, { frame? }</div></div>
+        <div class="row"><div class="k">OUT</div><div class="v">RenderSnapshot</div></div>
+        <div class="row"><div class="k">SCRATCH</div><div class="v"><span class="c">— (one-shot; produces fresh snapshot)</span></div></div>
+      </div>
+
+      <h3>OUTPUT SHAPE</h3>
+<pre>interface RenderSnapshot {
+  frame: number;
+  views:           ViewPacket[];
+  meshDraws:       MeshDrawPacket[];   <span class="c">// per-submesh renderables w/ sortKey + batchKey</span>
+  lights:          LightPacket[];
+  environments:    EnvironmentPacket[];
+  shadowRequests:  ShadowRequestPacket[];
+  bounds:          BoundsPacket[];
+  transforms:      Float32Array;        <span class="c">// packed mat4s, 16 floats each</span>
+  viewMatrices:    Float32Array;        <span class="c">// packed view + projection</span>
+  diagnostics:     RenderDiagnostic[];
+  report:          RenderSnapshotReport;
+}</pre>
+
+      <h3>SUB-STEPS</h3>
+      <ol>
+        <li>Register Camera / Light / Mesh / Material authoring components with ECS query manager</li>
+        <li><span class="b">extractViews</span> — query <code>[Camera]</code>; validate <code>WorldTransform</code>; compose view/proj/viewProj matrices; populate <code>ViewPacket</code></li>
+        <li><span class="b">extractLights</span> — query <code>[Light]</code>; classify (ambient/directional/point/spot/environment); emit <code>LightPacket</code>, <code>EnvironmentPacket</code>, <code>ShadowRequestPacket</code></li>
+        <li><span class="b">extractMeshDraws</span> — query <code>[Mesh, Material]</code>; run 11 validation gates; for each submesh emit <code>MeshDrawPacket</code> with computed <code>renderId</code>, <code>sortKey</code>, <code>batchKey</code></li>
+        <li>Push every world matrix into the snapshot's packed <code>transforms: Float32Array</code></li>
+        <li>Sort <code>meshDraws</code> by initial sortKey (deterministic order before phase 5)</li>
+      </ol>
+
+      <div class="diag">
+        <span class="label">DIAGNOSTICS</span><span class="c">all prefixed </span><code>render.*</code><br>
+        cameraMissingTransform · lightMissingTransform · missingWorldTransform · disabled · invisible · zeroLayerMask · layerMismatch · missingMeshHandle · mesh.{status} · missingMaterialHandle · material.{status} · texture.{status} · sampler.{status} · standardMaterialTexture.missingTexCoord1 · shadowUnsupportedLightKind.{kind}
+      </div>
+
+      <div class="downstream">
+        <span class="label">DOWNSTREAM</span>
+        snapshot ships to <span class="k">asset-change-collection</span> (handles + versions) &nbsp;·&nbsp;
+        <span class="k">prepare</span> (consumes asset readiness) &nbsp;·&nbsp;
+        <span class="k">RenderWorld.applySnapshot</span> on the webgpu side
+      </div>
+    </div>
+
+    <!-- THREE.JS -->
+    <div class="cell tjs">
+      <div class="engine-tag">three.js · WebGPURenderer</div>
+      <p class="note"><span class="no">NO DIRECT EQUIVALENT.</span> three.js does not snapshot scene state. It reads <b>live JS object references</b> through the rest of the pipeline. The closest analogue is <code>RenderContext</code> setup at the top of <code>_renderScene()</code>.</p>
+
+      <div class="meta">
+        <div class="row"><div class="k">FILE</div><div class="v">src/renderers/common/Renderer.js</div></div>
+        <div class="row"><div class="k">ENTRY</div><div class="v">render(scene, camera) <span class="c">line 1323</span></div></div>
+        <div class="row"><div class="k">DOES</div><div class="v">→ _renderScene(...) <span class="c">line 1480</span></div></div>
+      </div>
+
+      <h3>WHAT HAPPENS BEFORE THE WALK</h3>
+      <ol>
+        <li>Update camera coordinate system / depth reversal flag (WebGPU vs WebGL)</li>
+        <li>Fetch or build <code>RenderContext</code> for this (camera, renderTarget) pair — viewport, scissor, clear values, depth/stencil state</li>
+        <li>Fetch or build <code>RenderList</code> for this (scene, camera) pair (cached across frames)</li>
+      </ol>
+      <p>No serializable snapshot exists; the renderer holds live refs to <code>Scene</code>, <code>Camera</code>, and every <code>Mesh</code>/<code>Geometry</code>/<code>Material</code> for the rest of the frame.</p>
+
+      <div class="downstream">
+        <span class="label">EQUIVALENT</span> bundled into Phase 4 (scene walk pushes into RenderList directly from live refs)
+      </div>
+    </div>
+
+    <!-- PLAYCANVAS -->
+    <div class="cell pc">
+      <div class="engine-tag">PlayCanvas · WebGPU</div>
+      <p class="note"><span class="no">NO DIRECT EQUIVALENT.</span> PlayCanvas reads live <code>LayerComposition</code> &amp; <code>MeshInstance</code> refs each frame. The closest analogue is the <code>renderer.update(comp)</code> step which culls but doesn't snapshot.</p>
+
+      <div class="meta">
+        <div class="row"><div class="k">FILE</div><div class="v">src/framework/app-base.js, src/scene/renderer/forward-renderer.js</div></div>
+        <div class="row"><div class="k">ENTRY</div><div class="v">app.render() → renderComposition()</div></div>
+        <div class="row"><div class="k">DOES</div><div class="v">graphicsDevice.frameStart() then ForwardRenderer.update(comp)</div></div>
+      </div>
+
+      <h3>WHAT HAPPENS BEFORE THE WALK</h3>
+      <ol>
+        <li><code>root.syncHierarchy()</code> — propagate transforms top-down</li>
+        <li><code>_batcher.updateAll()</code> — refresh dynamic batches</li>
+        <li><code>renderer.update(comp)</code> → <code>cullComposition(comp)</code> walks layers, frustum-culls per camera, and writes into <code>CulledInstances { opaque, transparent }</code> on the layer</li>
+      </ol>
+      <p>The culled instance lists are <b>mutations on live layer state</b>, not copies. Cleared and rewritten each frame.</p>
+
+      <div class="downstream">
+        <span class="label">EQUIVALENT</span> partial — culling is done up-front here, which Aperture defers to extract+gates; but state still references live MeshInstances
+      </div>
+    </div>
+  </div>
+
+  <!-- ====================================================================
+       PHASE 2: ASSET-CHANGE-COLLECTION
+       ==================================================================== -->
+  <div class="phase-band" id="p-asset">
+    <div class="n">Phase 02</div>
+    <div class="nm">asset-change-collection</div>
+    <div class="io"><b>RenderSnapshot &amp; AssetRegistry</b> <span class="arrow">→</span> <b>source asset change set</b> (which handles need prep, and which deps are ready)</div>
+  </div>
+
+  <div class="stage">
+    <!-- APERTURE -->
+    <div class="cell apt">
+      <div class="engine-tag">Aperture · render-package</div>
+
+      <div class="meta">
+        <div class="row"><div class="k">FILES</div><div class="v">packages/render/src/materials/dependency-readiness.ts<br>packages/render/src/assets/preparation.ts <span class="c">(adapter contract)</span></div></div>
+        <div class="row"><div class="k">FN</div><div class="v">createMaterialAssetDependencyReadinessReport(registry, handle)</div></div>
+        <div class="row"><div class="k">IN</div><div class="v">RenderSnapshot (handles + versions), AssetRegistry</div></div>
+        <div class="row"><div class="k">OUT</div><div class="v">per-asset readiness records (status, version, dependency slots)</div></div>
+      </div>
+
+      <h3>SUB-STEPS</h3>
+      <ol>
+        <li>For every mesh handle referenced in <code>snapshot.meshDraws</code>: read registry entry — status ∈ <code>{ ready, loading, failed, registered, missing }</code> — and stored version</li>
+        <li>For every material handle: enumerate texture &amp; sampler bindings (<code>baseColorTexture</code>, <code>normalTexture</code>, <code>metallicRoughnessTexture</code>, …)</li>
+        <li>For each binding: resolve handle → asset registry entry → record <code>{ handle, status, ready: boolean }</code></li>
+        <li>Aggregate per-material readiness: <code>ready</code> iff material entry ready <b>and</b> every dependency ready</li>
+        <li>Compare current <code>sourceVersion</code> to previously-prepared version → produces the <i>change set</i> (new, dirty, removed, unchanged)</li>
+        <li>Emit dependency diagnostics for warnings/failures</li>
+      </ol>
+
+      <div class="diag">
+        <span class="label">DIAGNOSTICS</span><span class="c">prefixed </span><code>materialDependency.*</code><br>
+        missingMaterial · materialNotReady · missingTextureHandle · missingSamplerHandle · dependencyMissing · dependencyRegistered · dependencyLoading · dependencyFailed
+      </div>
+
+      <div class="downstream">
+        <span class="label">DOWNSTREAM</span> readiness gates feed the <span class="k">prepare</span> phase — only assets whose deps are <code>ready</code> get adapter.prepare() called this frame
+      </div>
+    </div>
+
+    <!-- THREE.JS -->
+    <div class="cell tjs">
+      <div class="engine-tag">three.js · WebGPURenderer</div>
+      <p class="note"><span class="no">NOT A PHASE — distributed dirty-flag checks.</span> Three.js detects changes via <code>.version</code> counters and <code>.needsUpdate</code> flags <b>inline during the draw loop</b>, not in a dedicated collection pass.</p>
+
+      <div class="meta">
+        <div class="row"><div class="k">FILES</div><div class="v">renderers/common/Attributes.js<br>renderers/common/Textures.js<br>renderers/common/RenderObjects.js</div></div>
+        <div class="row"><div class="k">CHECKED</div><div class="v">BufferAttribute.version, Texture.needsUpdate, Material.version, Material.needsUpdate</div></div>
+      </div>
+
+      <h3>WHERE THE CHECKS LIVE</h3>
+      <ol>
+        <li><code>Attributes.update(attr, type)</code> compares <code>data.version &lt; bufferAttribute.version</code> → triggers <code>backend.createAttribute</code> / <code>updateAttribute</code></li>
+        <li><code>Textures.get()</code> reads <code>Texture.needsUpdate</code> — uploads if true</li>
+        <li><code>Renderer._renderObjectDirect()</code> (line 3578) gates everything on <code>RenderObject.needsRefresh()</code></li>
+      </ol>
+      <p>Result: dirty checks are <b>scattered through Phase 3</b>. A user has to mutate <code>.version++</code> or set <code>.needsUpdate = true</code> by hand to invalidate the cache.</p>
+
+      <div class="downstream">
+        <span class="label">EQUIVALENT</span> merged into Phase 3 — there is no &ldquo;change set&rdquo; data structure to inspect
+      </div>
+    </div>
+
+    <!-- PLAYCANVAS -->
+    <div class="cell pc">
+      <div class="engine-tag">PlayCanvas · WebGPU</div>
+      <p class="note"><span class="no">NOT A PHASE — dirty flags read inline.</span> PlayCanvas tracks dirty state via boolean flags read inside <code>renderForwardPrepareMaterials()</code> as part of Phase 3.</p>
+
+      <div class="meta">
+        <div class="row"><div class="k">FILES</div><div class="v">src/scene/materials/material.js<br>src/scene/mesh.js (GeometryData)</div></div>
+        <div class="row"><div class="k">FLAGS</div><div class="v">Material._dirtyShader, _definesDirty<br>GeometryData.vertexStreamsUpdated, indexStreamUpdated, recreate</div></div>
+      </div>
+
+      <h3>WHERE THE CHECKS LIVE</h3>
+      <ol>
+        <li><code>Material.update()</code> — explicit user call; sets <code>_dirtyShader</code> based on changed properties</li>
+        <li><code>Material.updateUniforms(device, scene)</code> reads <code>_dirtyShader</code> and calls <code>clearVariants()</code></li>
+        <li><code>Mesh.update()</code> — uploads vertex/index buffers if <code>vertexStreamsUpdated</code> / <code>indexStreamUpdated</code> set</li>
+        <li><code>ForwardRenderer.renderForwardPrepareMaterials()</code> (line 490) reads <code>material.dirty</code> per drawCall and triggers shader variant rebuild</li>
+      </ol>
+      <p>No global change set is produced; checks fire as the renderer walks the per-layer draw list.</p>
+
+      <div class="downstream">
+        <span class="label">EQUIVALENT</span> merged into Phase 3 — checks fire lazily inside the per-drawCall loop
+      </div>
+    </div>
+  </div>
+
+  <!-- ====================================================================
+       PHASE 3: PREPARE
+       ==================================================================== -->
+  <div class="phase-band" id="p-prepare">
+    <div class="n">Phase 03</div>
+    <div class="nm">prepare</div>
+    <div class="io"><b>change set + RenderSnapshot</b> <span class="arrow">→</span> <b>prepared render resources</b> (renderer-owned GPU resources keyed by handle+version)</div>
+  </div>
+
+  <div class="stage">
+    <!-- APERTURE -->
+    <div class="cell apt">
+      <div class="engine-tag">Aperture · render-package + webgpu-backend</div>
+
+      <div class="meta">
+        <div class="row"><div class="k">CONTRACT</div><div class="v">packages/render/src/assets/preparation.ts <span class="c">(RenderAssetAdapter)</span></div></div>
+        <div class="row"><div class="k">WEBGPU</div><div class="v">packages/webgpu/src/webgpu/render-frame-plan.ts <span class="c">(applySnapshot + binding plan)</span></div></div>
+        <div class="row"><div class="k">IN</div><div class="v">change set, RenderSnapshot, previous PreparedRenderAssetStore</div></div>
+        <div class="row"><div class="k">OUT</div><div class="v">PreparedRenderAssetStore&lt;'material'|'mesh', TPrepared&gt;</div></div>
+      </div>
+
+      <h3>ADAPTER CONTRACT</h3>
+<pre>interface RenderAssetAdapter&lt;family, TSource, TPrepared&gt; {
+  prepare(input: {
+    handle, sourceVersion, dependencyState,
+    previous: PreparedEntry&lt;TPrepared&gt; | null,
+  }): { status: 'prepared', prepared: TPrepared }
+   | { status: 'retry',    diagnostics: RenderDiagnostic[] }
+   | { status: 'failed',   diagnostics: RenderDiagnostic[] };
+
+  unload?(input: { handle, previous: PreparedEntry }): void;
+}</pre>
+
+      <h3>SUB-STEPS (per ready handle)</h3>
+      <ol>
+        <li>Look up previously prepared entry by handle → version-compare against current <code>sourceVersion</code></li>
+        <li>If unchanged: reuse, increment reuse counter</li>
+        <li>If dirty/new: invoke <code>adapter.prepare(...)</code> with the latest dependency state</li>
+        <li>On <code>prepared</code>: upsert into <code>PreparedMaterialStore</code> with new version stamp</li>
+        <li>On <code>retry</code>: append diagnostics, retain old entry, try again next frame</li>
+        <li>On <code>failed</code>: append diagnostics, evict prepared entry</li>
+        <li>For removed handles: call optional <code>adapter.unload(...)</code> to release GPU resources</li>
+      </ol>
+
+      <h3>WEBGPU PHASE: <span class="k">APPLY</span> + <span class="k">PREPARE</span></h3>
+      <p>On the backend side, <code>writeRenderFramePlanFromSnapshot()</code> runs:</p>
+      <ol>
+        <li><b>apply</b>: <code>renderWorld.applySnapshot(snapshot)</code> diffs into <code>Map&lt;renderId, RenderWorldObject&gt;</code> — tracks created/updated/removed across frames</li>
+        <li><b>prepare</b>: <code>writeInjectedRenderFrameSnapshotResourceBindings()</code> calls <code>resolveMeshResourceKey()</code> &amp; <code>resolveMaterialResourceKey()</code> per draw → stamps GPU resource keys onto each <code>RenderWorldObject</code></li>
+      </ol>
+
+      <div class="downstream">
+        <span class="label">DOWNSTREAM</span> prepared resource keys are read by Phase 4 (queue) and Phase 6 (submit). Reuse counters surface in <code>WebGpuAppResourceReuseReport</code>.
+      </div>
+    </div>
+
+    <!-- THREE.JS -->
+    <div class="cell tjs">
+      <div class="engine-tag">three.js · WebGPURenderer</div>
+      <p class="note">Lazy and <b>per-object</b>, fired from inside Phase 6 (submit). Three.js's strength here is the <b>node-material system</b> that compiles WGSL on demand.</p>
+
+      <div class="meta">
+        <div class="row"><div class="k">FILES</div><div class="v">renderers/common/Pipelines.js<br>renderers/common/Bindings.js<br>renderers/common/nodes/NodeManager.js<br>renderers/webgpu/WebGPUBackend.js</div></div>
+        <div class="row"><div class="k">TRIGGER</div><div class="v">RenderObject.needsRefresh inside _renderObjectDirect()</div></div>
+      </div>
+
+      <h3>WHAT GETS PREPARED</h3>
+      <ol>
+        <li><b>Geometry</b>: <code>backend.createAttribute(attr)</code> → <code>device.createBuffer</code> + <code>queue.writeBuffer</code>; cached in a <code>DataMap</code> keyed by the CPU object</li>
+        <li><b>Textures</b>: <code>backend.createTexture(tex)</code> via <code>WebGPUTextureUtils</code></li>
+        <li><b>Pipeline</b>: <code>Pipelines.getForRender()</code> hashes (material, render-context format, geometry layout) → cache miss compiles via <code>NodeManager</code> → <code>WGSLNodeBuilder</code> emits WGSL → <code>device.createRenderPipeline</code></li>
+        <li><b>Bind groups</b>: <code>Bindings.getForRender()</code> wraps uniform buffers, samplers, sampled textures into a <code>GPUBindGroup</code></li>
+      </ol>
+      <p>Pipelines are cached <b>per unique material state</b>. Adding a normal map = new pipeline.</p>
+
+      <div class="downstream">
+        <span class="label">BOUNDARY</span> fired lazily inside Phase 6's per-draw loop; no separate "prepare pass"
+      </div>
+    </div>
+
+    <!-- PLAYCANVAS -->
+    <div class="cell pc">
+      <div class="engine-tag">PlayCanvas · WebGPU</div>
+      <p class="note">Lazy. <code>renderForwardPrepareMaterials()</code> builds a per-layer prepared draw list immediately before the inner submit loop.</p>
+
+      <div class="meta">
+        <div class="row"><div class="k">FILES</div><div class="v">src/scene/renderer/forward-renderer.js (490–575)<br>src/platform/graphics/webgpu/webgpu-render-pipeline.js<br>src/platform/graphics/webgpu/webgpu-shader.js</div></div>
+        <div class="row"><div class="k">TRIGGER</div><div class="v">renderForwardPrepareMaterials() — once per layer per camera</div></div>
+      </div>
+
+      <h3>WHAT GETS PREPARED</h3>
+      <ol>
+        <li>For each <code>drawCall</code> in the sorted layer list: ensure material exists, read <code>material.dirty</code>, call <code>material.updateUniforms(device, scene)</code></li>
+        <li>Call <code>drawCall.getShaderInstance(pass, lightHash, ...)</code> — returns/compiles a shader variant for current pass + light setup</li>
+        <li>WGSL is generated and <code>device.createShaderModule</code> fires (async)</li>
+        <li><b>Pipelines are NOT created here</b> — they're built per-draw in Phase 6 via <code>WebgpuRenderPipeline.get(...)</code></li>
+        <li>Vertex / index buffers were already uploaded in their own paths (mesh load or <code>mesh.update()</code>)</li>
+      </ol>
+      <p>Builds the transient <code>_drawCallList = { drawCalls, shaderInstances, isNewMaterial, lightMaskChanged }</code></p>
+
+      <div class="downstream">
+        <span class="label">BOUNDARY</span> merged with Phase 4 (queue) — same loop
+      </div>
+    </div>
+  </div>
+
+  <!-- ====================================================================
+       PHASE 4: QUEUE
+       ==================================================================== -->
+  <div class="phase-band" id="p-queue">
+    <div class="n">Phase 04</div>
+    <div class="nm">queue</div>
+    <div class="io"><b>draw readiness + packed transforms</b> <span class="arrow">→</span> <b>unsorted view/pass-scoped queue records</b></div>
+  </div>
+
+  <div class="stage">
+    <!-- APERTURE -->
+    <div class="cell apt">
+      <div class="engine-tag">Aperture · render-package</div>
+
+      <div class="meta">
+        <div class="row"><div class="k">FILE</div><div class="v">packages/render/src/rendering/render-queue.ts</div></div>
+        <div class="row"><div class="k">FN</div><div class="v">writeUnsortedRenderQueueRecords(readiness, transforms, scratch, options?)</div></div>
+        <div class="row"><div class="k">IN</div><div class="v">RenderWorldDrawReadinessReport, PackedSnapshotTransforms</div></div>
+        <div class="row"><div class="k">OUT</div><div class="v">RenderQueuePlan { records: RenderQueueRecord[], diagnostics }</div></div>
+        <div class="row"><div class="k">SCRATCH</div><div class="v"><b>RenderQueueScratch</b> with <code>recordPool</code> — zero-alloc hot path</div></div>
+      </div>
+
+      <h3>SCRATCH SHAPE</h3>
+<pre>interface RenderQueueScratch {
+  records:     RenderQueueRecord[];   <span class="c">// mutable working array</span>
+  diagnostics: RenderDiagnostic[];
+  recordPool:  RenderQueueRecord[];   <span class="c">// object pool — records reused frame-to-frame</span>
+  plan:        { records, diagnostics };
+}</pre>
+
+      <h3>SUB-STEPS</h3>
+      <ol>
+        <li>Reset scratch arrays (length=0; keep pool)</li>
+        <li>Copy transform-pack diagnostics into queue diagnostics</li>
+        <li>For each <code>blocked</code> draw (from <code>RenderWorld.createDrawReadinessReport()</code>): emit <code>renderDrawPackage.blockedDraw</code> with missing-resource reasons</li>
+        <li>For each <code>ready</code> draw: look up <code>transformPackedOffset</code> in <code>transforms.offsets</code> (by renderId)</li>
+        <li>If offset missing: emit <code>renderDrawPackage.missingPackedTransform</code>, skip</li>
+        <li>Allocate a <code>RenderQueueRecord</code> from <code>recordPool</code> (or expand pool) — <b>no <code>new</code></b></li>
+        <li>Populate the record (renderId, viewId, passId, queueKind, resourceKeys, batchKey, sortKey, transformPackedOffset) and push to <code>records</code></li>
+      </ol>
+
+      <h3>QUEUE RECORD SHAPE</h3>
+<pre>interface RenderQueueRecord {
+  renderId, viewId, passId;
+  queueKind:            'opaque' | 'transparent';
+  packet:               MeshDrawPacket;
+  meshResourceKey, materialResourceKey: string;
+  pipelineKey, materialKey, meshLayoutKey: string;
+  batchKey:             BatchCompatibilityKey;
+  sortKey:              RenderSortKey;
+  transformPackedOffset: number;
+}</pre>
+
+      <div class="downstream">
+        <span class="label">DOWNSTREAM</span> records fed directly to Phase 5 (sort); Phase 6 (submit) reads sorted records and prepared resources together
+      </div>
+    </div>
+
+    <!-- THREE.JS -->
+    <div class="cell tjs">
+      <div class="engine-tag">three.js · WebGPURenderer</div>
+
+      <div class="meta">
+        <div class="row"><div class="k">FILE</div><div class="v">src/renderers/common/RenderList.js<br>src/renderers/common/Renderer.js (_projectObject)</div></div>
+        <div class="row"><div class="k">FN</div><div class="v">_projectObject(object, camera, ...) <span class="c">line 3111</span></div></div>
+      </div>
+
+      <h3>SUB-STEPS</h3>
+      <ol>
+        <li>Recursively walk scene graph</li>
+        <li>Visibility test (<code>object.visible</code>, <code>camera.layers.test</code>)</li>
+        <li>For meshes/lines/points: frustum cull (unless <code>frustumCulled === false</code>)</li>
+        <li>Project bounding sphere → screen-space z (for sorting)</li>
+        <li><code>renderList.push(object, geometry, material, groupOrder, z, group, clippingContext)</code></li>
+      </ol>
+
+      <h3>RENDER ITEM SHAPE</h3>
+<pre>{ object, geometry, material,   <span class="c">// live JS refs</span>
+  groupOrder, renderOrder,
+  z, id, group, clippingContext }</pre>
+      <p>The per-(scene, camera) <code>RenderList</code> is fetched from <code>_renderLists</code> cache and can be reused if nothing changed.</p>
+
+      <div class="downstream">
+        <span class="label">BOUNDARY</span> own phase. Output is per-view <code>RenderList.opaque</code> / <code>.transparent</code> arrays of live-ref render items.
+      </div>
+    </div>
+
+    <!-- PLAYCANVAS -->
+    <div class="cell pc">
+      <div class="engine-tag">PlayCanvas · WebGPU</div>
+      <p class="note">Queue building is interleaved with Phase 3 (prepare) — both run in <code>renderForwardPrepareMaterials()</code> as a single loop.</p>
+
+      <div class="meta">
+        <div class="row"><div class="k">FILES</div><div class="v">src/scene/renderer/forward-renderer.js (490–575)<br>src/scene/composition/render-action.js</div></div>
+        <div class="row"><div class="k">FN</div><div class="v">renderForwardLayer() → renderForward() → renderForwardPrepareMaterials()</div></div>
+      </div>
+
+      <h3>SUB-STEPS</h3>
+      <ol>
+        <li><code>FrameGraph</code> iterates <code>RenderPass</code> instances (shadows, forward, post)</li>
+        <li>For each <code>RenderPassForward</code>: iterate <code>RenderAction[]</code> (each = camera × layer × transparency)</li>
+        <li>Per RenderAction: <code>layer.sortVisible(camera, transparent)</code> sorts the pre-culled list</li>
+        <li><code>renderForwardPrepareMaterials</code> walks the sorted draws, prepares materials, and writes into the transient <code>_drawCallList</code></li>
+      </ol>
+
+      <h3>DRAW LIST SHAPE</h3>
+<pre>_drawCallList = {
+  drawCalls:       MeshInstance[],
+  shaderInstances: ShaderInstance[],
+  isNewMaterial:   boolean[],
+  lightMaskChanged: boolean[],
+}</pre>
+
+      <div class="downstream">
+        <span class="label">BOUNDARY</span> bundled with Phase 3 + Phase 6 — list is consumed immediately by <code>renderForwardInternal()</code>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====================================================================
+       PHASE 5: SORT
+       ==================================================================== -->
+  <div class="phase-band" id="p-sort">
+    <div class="n">Phase 05</div>
+    <div class="nm">sort</div>
+    <div class="io"><b>unsorted queue records</b> <span class="arrow">→</span> <b>sorted records</b> (deterministic, opaque front→back, transparent back→front)</div>
+  </div>
+
+  <div class="stage">
+    <!-- APERTURE -->
+    <div class="cell apt">
+      <div class="engine-tag">Aperture · render-package</div>
+
+      <div class="meta">
+        <div class="row"><div class="k">FILE</div><div class="v">packages/render/src/rendering/render-queue.ts<br>packages/render/src/rendering/snapshot.ts (compareRenderSortKeys)</div></div>
+        <div class="row"><div class="k">FN</div><div class="v">sortRenderQueueRecords(records)</div></div>
+        <div class="row"><div class="k">IN/OUT</div><div class="v">RenderQueueRecord[] — sorted in place</div></div>
+      </div>
+
+      <h3>SORT KEY SHAPE</h3>
+<pre>interface RenderSortKey {
+  queue:        'opaque' | 'alpha-test' | 'transparent';
+  viewId, layer, order: number;
+  pipelineKey, materialKey, meshKey: string;
+  depth:        number;   <span class="c">// camera-space Z</span>
+  stableId:     number;
+}</pre>
+
+      <h3>COMPARATOR PRIORITY</h3>
+      <ol>
+        <li><b>queueRank</b>: opaque(0) &lt; alpha-test(1) &lt; transparent(2)</li>
+        <li><code>viewId, layer, order</code></li>
+        <li>Opaque path: <code>pipelineKey → materialKey → meshKey → depth</code> (group by state, then front→back)</li>
+        <li>Transparent path: <code>depth (back→front) → stableId</code> (correct alpha compositing)</li>
+        <li>Final tiebreaker: <code>stableId</code> — frame-to-frame stability</li>
+      </ol>
+      <p class="note">Sort key is computed at <b>extract</b> time and travels through the snapshot, so queue+sort can run on the snapshot side of the worker boundary.</p>
+
+      <div class="downstream">
+        <span class="label">DOWNSTREAM</span> sorted records fed to Phase 6; same array, in-place
+      </div>
+    </div>
+
+    <!-- THREE.JS -->
+    <div class="cell tjs">
+      <div class="engine-tag">three.js · WebGPURenderer</div>
+
+      <div class="meta">
+        <div class="row"><div class="k">FILE</div><div class="v">src/renderers/common/RenderList.js</div></div>
+        <div class="row"><div class="k">FNS</div><div class="v">painterSortStable (line 12) — opaque<br>reversePainterSortStable (line 43) — transparent</div></div>
+        <div class="row"><div class="k">TRIGGER</div><div class="v">RenderList.sort() — called in _renderScene() ~line 1712</div></div>
+      </div>
+
+      <h3>COMPARATORS</h3>
+<pre>painterSortStable(a, b):
+  return a.groupOrder    - b.groupOrder
+      || a.renderOrder   - b.renderOrder
+      || a.material.id   - b.material.id   <span class="c">// rough grouping</span>
+      || a.z             - b.z             <span class="c">// front → back</span>
+      || a.id            - b.id;           <span class="c">// stable fallback</span>
+
+reversePainterSortStable(a, b):
+  <span class="c">// same, but (b.z - a.z) for back → front</span></pre>
+
+      <p>Three buckets: <code>.opaque</code>, <code>.transmissive</code> (transmission materials), <code>.transparent</code>.</p>
+      <p><code>material.id</code> is allocation order — roughly stable but not derived from real pipeline state, so two materials sharing a pipeline can still trigger unnecessary switches.</p>
+
+      <div class="downstream">
+        <span class="label">BOUNDARY</span> own phase
+      </div>
+    </div>
+
+    <!-- PLAYCANVAS -->
+    <div class="cell pc">
+      <div class="engine-tag">PlayCanvas · WebGPU</div>
+
+      <div class="meta">
+        <div class="row"><div class="k">FILE</div><div class="v">src/scene/layer.js (sortVisible, 968–998)</div></div>
+        <div class="row"><div class="k">FN</div><div class="v">layer.sortVisible(camera, transparent)</div></div>
+      </div>
+
+      <h3>SORT MODES (per layer)</h3>
+      <ul>
+        <li><code>SORTMODE_NONE</code> — skip sorting</li>
+        <li><code>SORTMODE_BACK2FRONT</code> — distance from camera, back→front</li>
+        <li><code>SORTMODE_FRONT2BACK</code> — distance from camera, front→back</li>
+        <li><code>SORTMODE_CUSTOM</code> — user callback comparator</li>
+        <li><code>SORTMODE_MANUAL</code> — user-ordered, no sort</li>
+      </ul>
+
+      <h3>WHEN</h3>
+      <p>Called per-(layer, camera, transparency) just before <code>renderForward()</code>. Opaque and transparent lists were already separated by transparency during Phase 1's <code>cullComposition</code>; sort operates on the appropriate bucket.</p>
+
+      <div class="downstream">
+        <span class="label">BOUNDARY</span> own phase, per-layer
+      </div>
+    </div>
+  </div>
+
+  <!-- ====================================================================
+       PHASE 6: SUBMIT
+       ==================================================================== -->
+  <div class="phase-band" id="p-submit">
+    <div class="n">Phase 06</div>
+    <div class="nm">submit</div>
+    <div class="io"><b>sorted records + prepared resources</b> <span class="arrow">→</span> <b>GPU command submission</b> (encoder → render pass → queue.submit)</div>
+  </div>
+
+  <div class="stage">
+    <!-- APERTURE -->
+    <div class="cell apt">
+      <div class="engine-tag">Aperture · webgpu-backend</div>
+
+      <div class="meta">
+        <div class="row"><div class="k">FILE</div><div class="v">packages/webgpu/src/webgpu/render-pass-commands.ts <span class="c">(typed command list)</span><br>packages/webgpu/src/webgpu/frame-boundary.ts <span class="c">(encoder driver)</span></div></div>
+        <div class="row"><div class="k">FNS</div><div class="v">writeRenderPassCommands(scratch)<br>assembleFrameBoundary(opts)</div></div>
+        <div class="row"><div class="k">SCRATCH</div><div class="v"><b>RenderPassCommandScratch</b> with <code>commandPool</code> — zero-alloc</div></div>
+      </div>
+
+      <h3>STEP A — BUILD TYPED COMMAND STREAM <span class="c">(separate from execution)</span></h3>
+<pre>type RenderPassCommand =
+  | SetPipelineCommand
+  | SetBindGroupCommand
+  | SetVertexBufferCommand
+  | SetIndexBufferCommand
+  | DrawCommand
+  | DrawIndexedCommand;
+
+writeRenderPassCommands({ draws }, scratch) →
+  for each resolved draw:
+    [setPipeline][setBindGroup×N][setVertexBuffer]
+    [setIndexBuffer?][draw | drawIndexed]
+  → RenderPassCommandPlan { commands, drawCount, ... }</pre>
+      <p>Commands are <b>typed JS values in a pooled array</b> — inspectable, loggable, replayable, worker-shippable. The encoder is not touched here.</p>
+
+      <h3>STEP B — DRIVE THE ENCODER</h3>
+      <p>The WebGPU app then runs <code>assembleFrameBoundary({ commands, context, device, queue })</code>:</p>
+      <ol>
+        <li><code>createCurrentTextureColorTarget(context)</code> — <code>getCurrentTexture().createView()</code></li>
+        <li><code>createRenderPassAttachmentPlan(...)</code> — color + optional depth/stencil</li>
+        <li><code>device.createCommandEncoder({ label })</code></li>
+        <li><code>encoder.beginRenderPass(plan)</code> → <code>pass</code></li>
+        <li><code>executeRenderPassCommands(pass, commands)</code> — replay the typed list onto the encoder (<code>pass.setPipeline</code>, <code>pass.setBindGroup</code>, …, <code>pass.drawIndexed</code>)</li>
+        <li><code>pass.end()</code> + <code>encoder.finish({ label })</code> → <code>GPUCommandBuffer</code></li>
+        <li><code>queue.submit([commandBuffer])</code> — single submit per frame</li>
+      </ol>
+
+      <p class="note"><b>Distinguishing trick</b>: <code>drawIndexed.firstInstance</code> encodes the transform matrix offset (<code>txPackedOffset / 16</code>). The vertex shader does <code>worldTransforms[instance_index]</code> — no per-draw uniform rewrite needed.</p>
+
+      <div class="downstream">
+        <span class="label">REPORT</span> returns <code>WebGpuAppRenderReport { counts, diagnostics, resourceReuse }</code> — fully inspectable from JS
+      </div>
+    </div>
+
+    <!-- THREE.JS -->
+    <div class="cell tjs">
+      <div class="engine-tag">three.js · WebGPURenderer</div>
+
+      <div class="meta">
+        <div class="row"><div class="k">FILE</div><div class="v">src/renderers/webgpu/WebGPUBackend.js</div></div>
+        <div class="row"><div class="k">FNS</div><div class="v">beginRender (line 775)<br>_draw (line 1710), draw (line 1873)<br>finishRender (line 1157)</div></div>
+        <div class="row"><div class="k">CACHE</div><div class="v">currentSets — avoids redundant setPipeline / setBindGroup</div></div>
+      </div>
+
+      <h3>FLOW</h3>
+      <ol>
+        <li><code>beginRender(renderContext)</code> — <code>device.createCommandEncoder()</code> → <code>encoder.beginRenderPass(descriptor)</code> → stash <code>pass</code> in <code>renderContextData</code></li>
+        <li>Per-object in <code>_renderObjects()</code>: <code>_renderObjectDirect</code> triggers Phase 3 prep if needed, then calls <code>backend.draw()</code></li>
+        <li><code>WebGPUBackend._draw()</code> emits GPU calls inline:
+<pre>pass.setPipeline(gpuPipeline);
+for each bind group:
+  pass.setBindGroup(i, group);
+for each vertex buf:
+  pass.setVertexBuffer(slot, buffer);
+if indexed:
+  pass.setIndexBuffer(buf, fmt);
+  pass.drawIndexed(count, instances, ...);
+else:
+  pass.draw(count, instances, ...);</pre></li>
+        <li><code>finishRender(...)</code>: <code>pass.end()</code> → <code>encoder.finish()</code> → <code>device.queue.submit([cb])</code></li>
+      </ol>
+
+      <p class="note">There is <b>no intermediate command list in JS</b>. Encoder calls happen as the per-draw loop walks the sorted RenderList. Can't inspect/replay the command stream.</p>
+
+      <div class="downstream">
+        <span class="label">SUBMIT GRANULARITY</span> typically one <code>queue.submit</code> per render pass; multiple per frame if rendering shadow maps / post-processing / multi-target
+      </div>
+    </div>
+
+    <!-- PLAYCANVAS -->
+    <div class="cell pc">
+      <div class="engine-tag">PlayCanvas · WebGPU</div>
+
+      <div class="meta">
+        <div class="row"><div class="k">FILES</div><div class="v">src/scene/renderer/forward-renderer.js (577–710)<br>src/platform/graphics/webgpu/webgpu-graphics-device.js (818–890, 1000–1060, 1213–1235)</div></div>
+        <div class="row"><div class="k">FNS</div><div class="v">renderForwardInternal()<br>device.startRenderPass / draw / endRenderPass / submit</div></div>
+      </div>
+
+      <h3>FLOW</h3>
+      <ol>
+        <li>Frame start: <code>graphicsDevice.frameStart()</code> creates <b>one</b> <code>GPUCommandEncoder</code> for the whole frame</li>
+        <li>Per render pass: <code>device.startRenderPass(renderPass)</code> → <code>commandEncoder.beginRenderPass(...)</code> → store as <code>this.passEncoder</code></li>
+        <li><code>renderForwardInternal()</code> walks the prepared <code>_drawCallList</code> and for each drawCall:
+<pre>device.setShader(...);
+device.setBlendState(...);
+device.setDepthState(...);
+device.setStencilState(...);
+device.setVertexBuffer(...);
+device.setBindGroup(...);
+device.draw(primitive, indexBuffer, numInstances, drawCommands);
+  → renderPipeline.get(...)         <span class="c">// cached / created lazily</span>
+  → passEncoder.setPipeline(p)
+  → passEncoder.drawIndexed(...)
+    OR passEncoder.drawIndirect(...) <span class="c">// indirect supported</span></pre></li>
+        <li><code>device.endRenderPass()</code> — <code>passEncoder.end()</code></li>
+        <li>Frame end: <code>graphicsDevice.frameEnd()</code> → <code>this.submit()</code> → <code>commandEncoder.finish()</code> → <code>wgpu.queue.submit(commandBuffers)</code> — <b>one batched submit per frame</b></li>
+      </ol>
+
+      <div class="downstream">
+        <span class="label">SUBMIT GRANULARITY</span> one <code>queue.submit</code> per frame, even with many render passes — pipelines cached in <code>WebgpuRenderPipeline.cache</code> keyed by hash(shader, blend, depth, stencil, VB format, RT format, BG layout)
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<section class="divergences" id="divergences">
+  <h2>★ Where Aperture's Phase Model Pulls Away From The Others</h2>
+  <div class="div-grid">
+    <div class="div-card">
+      <h3><span class="num">1.</span>&nbsp; Explicit, named phases with typed I/O</h3>
+      <p><span class="who">APERTURE</span>Six phases declared in code (<code>RENDER_FRAME_PHASE_ORDER</code>), each with a <code>RenderFramePhaseDescriptor</code> stating what it consumes and produces. The pipeline is data, not just a call sequence.</p>
+      <p><span class="who tjs">THREE.JS</span>Phases are call-site conventions inside <code>_renderScene()</code> — not addressable from outside the renderer. You can't ask &ldquo;what's the queue look like right now?&rdquo;</p>
+      <p><span class="who pc">PLAYCANVAS</span><code>FrameGraph</code> + <code>RenderPass</code> abstractions exist, but the inner work (prepare / queue / sort) is bundled inside <code>renderForwardPrepareMaterials</code> + <code>renderForwardInternal</code>.</p>
+    </div>
+
+    <div class="div-card">
+      <h3><span class="num">2.</span>&nbsp; Snapshot is the worker boundary</h3>
+      <p><span class="who">APERTURE</span><code>RenderSnapshot</code> is typed and structured-clone-friendly — phases 2–5 can run on the snapshot, which means they can run on a worker without the renderer ever touching live ECS state.</p>
+      <p><span class="who tjs">THREE.JS</span>Lives on live JS object refs (Mesh, Geometry, Material). Renderer must run on the thread that owns the scene.</p>
+      <p><span class="who pc">PLAYCANVAS</span>Same — culling and queue building mutate live <code>Layer</code> state. Workerizing the renderer would require shipping the scene graph.</p>
+    </div>
+
+    <div class="div-card">
+      <h3><span class="num">3.</span>&nbsp; Inspectable command stream before submit</h3>
+      <p><span class="who">APERTURE</span><code>writeRenderPassCommands</code> emits a <b>typed JS command list</b> into pooled scratch before <code>assembleFrameBoundary</code> drives the encoder. You can log, diff, count, or replay the stream — it's data.</p>
+      <p><span class="who tjs">THREE.JS</span>Per-draw, <code>WebGPUBackend._draw</code> calls <code>pass.setPipeline</code> / <code>setBindGroup</code> / <code>drawIndexed</code> directly. No intermediate list — only side-effects on the encoder.</p>
+      <p><span class="who pc">PLAYCANVAS</span>Same as three.js for emission — <code>device.draw()</code> hits <code>passEncoder</code> directly inside <code>renderForwardInternal()</code>.</p>
+    </div>
+
+    <div class="div-card">
+      <h3><span class="num">4.</span>&nbsp; Zero-alloc scratch on the hot path</h3>
+      <p><span class="who">APERTURE</span>Every per-frame producer writes into a named scratch (<code>RenderQueueScratch.recordPool</code>, <code>RenderPassCommandScratch.commandPool</code>, transform-pack scratch, …). Steady-state frames don't allocate JS objects.</p>
+      <p><span class="who tjs">THREE.JS</span>Per-frame object literals in render items, sort comparators, frustum math; <code>WeakMap</code> caches grow with scene. GC pressure visible at scale.</p>
+      <p><span class="who pc">PLAYCANVAS</span><code>_drawCallList</code> is rebuilt per layer; <code>RenderAction</code> objects allocated per camera-layer-transparency combo per frame.</p>
+    </div>
+  </div>
+</section>
+
+<footer>
+  packages/render/src/rendering/ &nbsp;·&nbsp; packages/webgpu/src/webgpu/ &nbsp;·&nbsp;
+  references/three.js/src/renderers/{common,webgpu} &nbsp;·&nbsp;
+  references/engine/src/{scene/renderer,platform/graphics/webgpu}
+</footer>
+
+</body>
+</html>

@@ -458,6 +458,89 @@ describe("standard material pipeline descriptor planning", () => {
     });
   });
 
+  it("selects UV1 shader features for every StandardMaterial texture field", () => {
+    const cases = [
+      {
+        token: "baseColorTexture",
+        feature: "baseColorTexture",
+        uniformField: "baseColor",
+        variantKey: "direct-lit-metallic-roughness-base-color-uv1-texture",
+        label: "aperture/standard-mesh-base-color-uv1-textured",
+        buffers: ["POSITION", "NORMAL", "TEXCOORD_0", "TEXCOORD_1"],
+      },
+      {
+        token: "metallicRoughnessTexture",
+        feature: "metallicRoughnessTexture",
+        uniformField: "metallicRoughness",
+        variantKey:
+          "direct-lit-metallic-roughness-metallic-roughness-uv1-texture",
+        label: "aperture/standard-mesh-metallic-roughness-uv1-textured",
+        buffers: ["POSITION", "NORMAL", "TEXCOORD_0", "TEXCOORD_1"],
+      },
+      {
+        token: "normalTexture",
+        feature: "normalTexture",
+        uniformField: "normal",
+        variantKey: "direct-lit-metallic-roughness-normal-map-uv1-texture",
+        label: "aperture/standard-mesh-normal-map-uv1-textured",
+        buffers: ["POSITION", "NORMAL", "TEXCOORD_0", "TANGENT", "TEXCOORD_1"],
+      },
+      {
+        token: "occlusionTexture",
+        feature: "occlusionTexture",
+        uniformField: "occlusion",
+        variantKey: "direct-lit-metallic-roughness-occlusion-uv1-texture",
+        label: "aperture/standard-mesh-occlusion-uv1-textured",
+        buffers: ["POSITION", "NORMAL", "TEXCOORD_0", "TEXCOORD_1"],
+      },
+      {
+        token: "emissiveTexture",
+        feature: "emissiveTexture",
+        uniformField: "emissive",
+        variantKey: "direct-lit-metallic-roughness-emissive-uv1-texture",
+        label: "aperture/standard-mesh-emissive-uv1-textured",
+        buffers: ["POSITION", "NORMAL", "TEXCOORD_0", "TEXCOORD_1"],
+      },
+    ] as const;
+
+    for (const variant of cases) {
+      const pipelineKey = `standard|${variant.token}|uv1|opaque|back|less|none`;
+      const featurePlan = createStandardPipelineShaderFeaturePlan({
+        ...STANDARD_BATCH_KEY,
+        pipelineKey,
+      });
+      const descriptor = createStandardPipelineDescriptorPlan({
+        colorFormat: "bgra8unorm",
+        batchKey: {
+          ...STANDARD_BATCH_KEY,
+          pipelineKey,
+          meshLayoutKey: variant.buffers.join(","),
+        },
+      });
+
+      expect(featurePlan.variantKey).toBe(variant.variantKey);
+      expect(featurePlan.shader.label).toBe(variant.label);
+      expect(featurePlan.features).toMatchObject({
+        [variant.feature]: true,
+        texCoord1: true,
+      });
+      expect(featurePlan.shader.code).toContain(
+        `standardTextureUv(material.${variant.uniformField}TexCoord, input.uv, input.uv1)`,
+      );
+      expect(descriptor.diagnostics).toEqual([]);
+      expect(descriptor.plan?.descriptor).toMatchObject({
+        vertex: { buffers: variant.buffers },
+      });
+      expect(
+        JSON.parse(required(descriptor.plan).cacheKey) as unknown,
+      ).toMatchObject({
+        shader: { variantKey: variant.variantKey },
+        layouts: { vertex: variant.buffers.join(",") },
+        material: { pipelineKey },
+      });
+    }
+  });
+
   it("diagnoses invalid metadata, missing color format, and non-standard batch keys", () => {
     const invalidShader: BuiltInShaderSourceModule = {
       label: "",

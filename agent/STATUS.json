@@ -6,6 +6,6 @@
   "lastResult": "success",
   "lastCommit": "07da00c",
   "activePid": null,
-  "notes": "Completed task-0924 through task-0960. Final validation passed with pnpm run check and targeted app-diagnostics Playwright. Next recommended task is task-0961.",
-  "lastRunFinishedAt": "2026-05-17T17:44:56Z"
+  "notes": "Completed task-0961 through task-0965 plus the public GitHub Pages progress tracker. Final validation passed with pnpm run check. GitHub Pages is configured for main /docs; next recommended task is task-0966.",
+  "lastRunFinishedAt": "2026-05-17T18:19:26Z"
 }

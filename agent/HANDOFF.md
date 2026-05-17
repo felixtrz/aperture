@@ -2,6 +2,80 @@
 
 ## Latest Run Update
 
+Completed `task-0961` through `task-0965` and converted the local render
+pipeline comparison into a public GitHub Pages-ready project tracker.
+
+Completed task ids:
+
+- `task-0961` through `task-0965`.
+
+Highlights:
+
+- Added StandardMaterial `TEXCOORD_1` per-field coverage for base color,
+  metallic-roughness, normal, occlusion, and emissive texture readiness.
+- Added WebGPU StandardMaterial pipeline/shader coverage proving every rendered
+  texture field can select the `uv1` variant and matching vertex layout.
+- Added `createStandardMaterialRenderStateSummary()` in
+  `packages/webgpu/src/webgpu/standard-render-state-summary.ts` with JSON-safe
+  source render-state, flags, pipeline-token, resolved-state, validation, and
+  mismatch diagnostics.
+- Planned and audited the UV1 and alpha/cull diagnostics boundaries. The helper
+  is inspection-only: it does not mutate source material assets, own renderer
+  state, expose raw GPU handles, prepare resources, or change queue/pipeline
+  behavior.
+- Added `docs/index.html` as a static project dashboard for GitHub Pages,
+  covering overall progress, current/next tasks, recent completed groups, and
+  render-pipeline phase status.
+- Updated `docs/render-pipeline-comparison.html` with an upfront status band for
+  all six render phases, rough completion estimates, and concrete missing
+  pieces.
+- Updated `AGENTS.md` and `agent/WAKE.md` so future project-status updates touch
+  `docs/index.html`, and render-pipeline work also updates
+  `docs/render-pipeline-comparison.html`.
+- Enabled GitHub Pages for `main` `/docs`. The public URL is
+  `https://felixtrz.github.io/aperture/`; it returned 404 before this run's
+  files were pushed because `docs/index.html` was still local.
+- Refilled the ready backlog with `task-0966` through `task-0970`; recommended
+  next task is `task-0966`.
+
+Validation:
+
+- Targeted Vitest passed for StandardMaterial UV1 readiness/pipeline coverage
+  and render-state summaries.
+- `pnpm exec tsc --noEmit -p packages/webgpu/tsconfig.json` passed.
+- Browser smoke checks passed for `http://127.0.0.1:4173/index.html` and
+  `http://127.0.0.1:4173/render-pipeline-comparison.html`.
+- `pnpm run check` passed: package boundaries, build/typecheck, test typecheck,
+  examples syntax, lint, format check, and 238 Vitest files / 1128 tests.
+
+Reference files/patterns inspected:
+
+- WebGPU/render anchors:
+  `references/engine/src/framework/parsers/glb-parser.js`,
+  `references/engine/src/scene/shader-lib/programs/standard.js`,
+  `references/three.js/src/textures/Texture.js`, and
+  `references/three.js/src/renderers/webgl/WebGLProgram.js`.
+- Aperture docs and local boundaries:
+  `docs/NORTH_STAR.md`, `docs/ARCHITECTURE.md`, `docs/DECISIONS.md`,
+  `docs/research/STANDARD_MATERIAL_UV_COORDINATE_SUPPORT_BOUNDARY_AUDIT_2026_05_17.md`,
+  `docs/research/STANDARD_MATERIAL_ALPHA_CULL_DIAGNOSTICS_PLAN_2026_05_17.md`,
+  `packages/webgpu/src/webgpu/material-render-state.ts`,
+  `packages/webgpu/src/webgpu/standard-pipeline-descriptor.ts`, and
+  `packages/webgpu/src/webgpu/standard-material-buffer.ts`.
+
+Known issues / follow-ups:
+
+- The public Pages site will serve the new dashboard only after the final commit
+  is pushed and GitHub Pages rebuilds. If `https://felixtrz.github.io/aperture/`
+  still shows 404 immediately after push, wait for the Pages build/cache or
+  check the Pages status in GitHub.
+- `docs/render-pipeline-comparison.html` remains intentionally listed in
+  `.prettierignore`; update it manually when render-pipeline state changes.
+- Next task: `task-0966` plan the generic material-family queue-to-prepare
+  handoff.
+
+## Previous Run Update
+
 Completed the diagnostics summary and StandardMaterial UV audit run from
 `task-0924` through `task-0960`.
 

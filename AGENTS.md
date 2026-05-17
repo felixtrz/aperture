@@ -56,6 +56,24 @@ When you start:
 
 Completing one task is not, by itself, a reason to stop before the 55-minute work window has elapsed. Continue into the next ready task unless doing so would violate a stop condition, mix unrelated changes into an incoherent diff, or leave too little time to validate and hand off cleanly.
 
+## Public Progress Tracker
+
+This repository publishes a static project dashboard from `docs/index.html`
+through GitHub Pages. Keep it useful for quick status checks:
+
+- Update `docs/index.html` whenever a run changes project status, completes
+  notable backlog work, changes the recommended next task, or materially changes
+  overall completion estimates.
+- If a task touches the render pipeline, also update
+  `docs/render-pipeline-comparison.html` so the phase estimates and missing
+  pieces reflect the latest state.
+- Render pipeline status should list each phase, a rough completion percentage,
+  and concrete missing implementation pieces.
+- Do not treat percentages as release promises. They are quick-read estimates
+  for project orientation.
+- Keep the dashboard static and GitHub Pages friendly unless a future decision
+  records a more complex publishing path.
+
 ## Backlog Expansion Protocol
 
 At the end of a successful run, compare current state against:
