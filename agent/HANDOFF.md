@@ -2,55 +2,68 @@
 
 ## Latest Run Update
 
-Completed the stop-hook continuation work after `task-0900`. The hook requested
-continuing until minute 55, so the run continued through `task-0923`.
+Completed the diagnostics summary and StandardMaterial UV audit run from
+`task-0924` through `task-0960`.
 
 Completed task ids:
 
-- `task-0901` through `task-0923`.
+- `task-0924` through `task-0960`.
 
 Highlights:
 
-- Added
-  `docs/research/COMBINED_RENDER_WORLD_PREPARED_RESOURCE_BINDING_PLAN_2026_05_17.md`
-  and implemented `prepareAndBindSnapshotPreparedResourcesToRenderWorld()` in
-  `packages/render/src/rendering/render-world-prepared-resources.ts`.
-- Added render-world combined helper tests proving one snapshot apply, combined
-  mesh/material logical resource binding, distinct missing-resource diagnostics,
-  and no snapshot mutation.
-- Added prepared mesh backend cache `lastUsedFrame` metadata, threaded frame
-  context from app mesh preparation paths, and added manual backend cache
-  eviction reporting.
-- Added plans/audits for mesh cache last-used metadata, eviction reporting,
-  manual/internal app policy, and eviction boundaries.
-- Added texture/sampler retained backend cache summary helpers and app
-  `textureSamplerCache` report integration, separate from prepared material
-  cache ownership and per-frame texture/sampler counters.
-- Added retained backend cache grouping plan/audit and a cross-family app JSON
-  regression covering mesh, material, texture, and sampler retained summaries.
-- Added stable material queue ordering plan/audit and a regression proving
-  sorting derived queue items does not mutate `RenderSnapshot.meshDraws`.
-- Refilled the ready backlog with `task-0924` through `task-0928`; recommended
-  next task is `task-0924`.
+- Added `createMaterialQueuePhaseSummary()` in
+  `packages/render/src/rendering/material-queue.ts` with tests for empty,
+  mixed phase/family, and JSON-safe summaries.
+- Added `RenderWorldDrawPackageScratchSummary` to draw package planning with
+  package-pool reuse counts, missing packed transform counts, and diagnostic
+  code totals.
+- Added reusable queued route collector arrays for the WebGPU app material
+  queue route path.
+- Added `createRenderFrameQueueDiagnosticsSummary()`,
+  `createQueuedBuiltInResourceSetSummary()`,
+  `createWebGpuAppDiagnosticsSummary()`, and
+  `createMaterialDependencyDiagnosticsSummary()` with focused tests.
+- Updated `examples/app-diagnostics.js` to publish an aggregate
+  `dependencySummary` for failure scenarios and expanded
+  `test/e2e/app-diagnostics.spec.ts` to verify it in browser status output.
+- Added `docs/DIAGNOSTICS_SUMMARIES.md`, README wording for aggregate
+  dependency summaries, and plans/audits for each new diagnostics surface.
+- Planned and audited StandardMaterial UV coordinate support; current behavior
+  supports `TEXCOORD_0`/`TEXCOORD_1`, diagnoses `TEXCOORD_2+`, and needs
+  focused per-field `uv1` test coverage.
+- Refilled the ready backlog with `task-0961` through `task-0965`; recommended
+  next task is `task-0961`.
 
 Validation:
 
-- Focused Vitest runs passed for render-world prepared resources, prepared mesh
-  cache/app reports, texture/sampler cache summaries/app reports, and material
-  queue ordering.
-- Focused typechecks passed for `packages/render`, `packages/webgpu`, and
-  `tsconfig.test.json`.
-- Final `pnpm run check` passed: package boundaries, build/typecheck, test
-  typecheck, examples syntax, lint, format check, and 233 Vitest files / 1103
-  tests.
+- Targeted Vitest runs passed for material queue, draw packages/frame readiness,
+  reusable route collector, render-frame plan summaries, queued resource-set
+  summaries, app diagnostics summaries, and material dependency diagnostics
+  summaries.
+- Targeted Playwright passed:
+  `pnpm exec playwright test test/e2e/app-diagnostics.spec.ts`.
+- `pnpm run check` passed: package boundaries, build/typecheck, test typecheck,
+  examples syntax, lint, format check, and 237 Vitest files / 1121 tests.
+
+Reference files/patterns inspected:
+
+- Bevy anchors:
+  `references/bevy/crates/bevy_render/src/render_phase/mod.rs` and
+  `references/bevy/crates/bevy_pbr/src/material.rs`.
+- WebGPU/render diagnostics anchors:
+  `references/three.js/src/renderers/webgl/WebGLInfo.js` and
+  `references/engine/src/extras/mini-stats/mini-stats.js`.
+- Aperture docs and local boundaries:
+  `docs/NORTH_STAR.md`, `docs/ARCHITECTURE.md`, `docs/DECISIONS.md`,
+  `packages/webgpu/src/webgpu/app.ts`, and app report JSON tests.
 
 Known issues / follow-ups:
 
-- `.mcp.json` and `docs/render-pipeline-comparison.html` remain unrelated,
-  ignored local files from prior user direction.
-- No automatic app cache eviction policy was introduced. Mesh eviction remains
-  a backend helper until a broader app cache-lifetime policy is accepted.
-- Next task: `task-0924` plan queued draw package cache diagnostics.
+- No known validation failures.
+- New diagnostics summary helpers are intentionally inspection helpers. Do not
+  wire the allocating helpers into every successful frame without adding
+  scratch/stable result shells.
+- Next task: `task-0961` add StandardMaterial UV1 per-field coverage.
 
 ## Previous Run Update
 

@@ -19,12 +19,31 @@ export interface RenderWorldDrawPackage {
 export interface RenderWorldDrawPackagePlan {
   readonly packages: readonly RenderWorldDrawPackage[];
   readonly diagnostics: readonly RenderDiagnostic[];
+  readonly summary: RenderWorldDrawPackageScratchSummary;
+}
+
+export interface RenderWorldDrawPackageDiagnosticSummary {
+  readonly total: number;
+  readonly byCode: Readonly<Record<string, number>>;
+}
+
+export interface RenderWorldDrawPackageScratchSummary {
+  readonly readyDrawCount: number;
+  readonly blockedDrawCount: number;
+  readonly packageCount: number;
+  readonly packagePoolSize: number;
+  readonly packagePoolSizeBeforeWrite: number;
+  readonly packageSlotsReused: number;
+  readonly packageSlotsCreated: number;
+  readonly missingPackedTransformCount: number;
+  readonly diagnostics: RenderWorldDrawPackageDiagnosticSummary;
 }
 
 export interface RenderWorldDrawPackageScratch {
   readonly packages: RenderWorldDrawPackage[];
   readonly diagnostics: RenderDiagnostic[];
   readonly packagePool: RenderWorldDrawPackage[];
+  readonly summary: RenderWorldDrawPackageScratchSummary;
   readonly plan: RenderWorldDrawPackagePlan;
 }
 
@@ -36,6 +55,23 @@ interface MutableRenderWorldDrawPackage {
   batchKey: RenderWorldReadyDraw["batchKey"];
   sortKey: RenderWorldReadyDraw["packet"]["sortKey"];
   transformPackedOffset: number;
+}
+
+interface MutableRenderWorldDrawPackageDiagnosticSummary {
+  total: number;
+  readonly byCode: Record<string, number>;
+}
+
+interface MutableRenderWorldDrawPackageScratchSummary {
+  readyDrawCount: number;
+  blockedDrawCount: number;
+  packageCount: number;
+  packagePoolSize: number;
+  packagePoolSizeBeforeWrite: number;
+  packageSlotsReused: number;
+  packageSlotsCreated: number;
+  missingPackedTransformCount: number;
+  readonly diagnostics: MutableRenderWorldDrawPackageDiagnosticSummary;
 }
 
 export function planRenderWorldDrawPackages(
@@ -55,6 +91,7 @@ export function createRenderWorldDrawPackageScratch(
   const packagePool: RenderWorldDrawPackage[] = [];
   const packages: RenderWorldDrawPackage[] = [];
   const diagnostics: RenderDiagnostic[] = [];
+  const summary = createEmptySummary();
 
   for (let i = 0; i < capacity; i += 1) {
     packagePool.push(createEmptyPackage());
@@ -64,7 +101,8 @@ export function createRenderWorldDrawPackageScratch(
     packages,
     diagnostics,
     packagePool,
-    plan: { packages, diagnostics },
+    summary,
+    plan: { packages, diagnostics, summary },
   };
 }
 
@@ -73,6 +111,8 @@ export function writeRenderWorldDrawPackages(
   transforms: PackedSnapshotTransforms,
   scratch: RenderWorldDrawPackageScratch,
 ): RenderWorldDrawPackagePlan {
+  const packagePoolSizeBeforeWrite = scratch.packagePool.length;
+
   scratch.packages.length = 0;
   scratch.diagnostics.length = 0;
 
@@ -118,6 +158,7 @@ export function writeRenderWorldDrawPackages(
   }
 
   scratch.packages.sort((a, b) => compareRenderSortKeys(a.sortKey, b.sortKey));
+  writeScratchSummary(readiness, scratch, packagePoolSizeBeforeWrite);
 
   return scratch.plan;
 }
@@ -163,4 +204,61 @@ function createEmptyPackage(): MutableRenderWorldDrawPackage {
     sortKey: null as unknown as RenderWorldReadyDraw["packet"]["sortKey"],
     transformPackedOffset: 0,
   };
+}
+
+function createEmptySummary(): MutableRenderWorldDrawPackageScratchSummary {
+  return {
+    readyDrawCount: 0,
+    blockedDrawCount: 0,
+    packageCount: 0,
+    packagePoolSize: 0,
+    packagePoolSizeBeforeWrite: 0,
+    packageSlotsReused: 0,
+    packageSlotsCreated: 0,
+    missingPackedTransformCount: 0,
+    diagnostics: {
+      total: 0,
+      byCode: {},
+    },
+  };
+}
+
+function writeScratchSummary(
+  readiness: RenderWorldDrawReadinessReport,
+  scratch: RenderWorldDrawPackageScratch,
+  packagePoolSizeBeforeWrite: number,
+): void {
+  const summary =
+    scratch.summary as MutableRenderWorldDrawPackageScratchSummary;
+  const diagnostics =
+    summary.diagnostics as MutableRenderWorldDrawPackageDiagnosticSummary;
+
+  summary.readyDrawCount = readiness.ready.length;
+  summary.blockedDrawCount = readiness.blocked.length;
+  summary.packageCount = scratch.packages.length;
+  summary.packagePoolSize = scratch.packagePool.length;
+  summary.packagePoolSizeBeforeWrite = packagePoolSizeBeforeWrite;
+  summary.packageSlotsReused = Math.min(
+    scratch.packages.length,
+    packagePoolSizeBeforeWrite,
+  );
+  summary.packageSlotsCreated = Math.max(
+    0,
+    scratch.packagePool.length - packagePoolSizeBeforeWrite,
+  );
+  summary.missingPackedTransformCount = 0;
+  diagnostics.total = scratch.diagnostics.length;
+
+  for (const code in diagnostics.byCode) {
+    delete diagnostics.byCode[code];
+  }
+
+  for (const diagnostic of scratch.diagnostics) {
+    diagnostics.byCode[diagnostic.code] =
+      (diagnostics.byCode[diagnostic.code] ?? 0) + 1;
+
+    if (diagnostic.code === "renderDrawPackage.missingPackedTransform") {
+      summary.missingPackedTransformCount += 1;
+    }
+  }
 }

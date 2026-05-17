@@ -59,8 +59,9 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start with `task-0924`. Material queue ordering is covered; the next
-renderer-spine step is to plan queued draw package cache diagnostics.
+Start with `task-0961`. The UV support audit found a test coverage gap rather
+than a production bug; the next renderer-spine step is focused UV1 per-field
+coverage for StandardMaterial textures.
 
 ## Near-Term Proof Point Track
 
@@ -77,11 +78,11 @@ Target proof point:
 
 Remaining automation priority order:
 
-1. `task-0924` — plan queued draw package cache diagnostics.
-2. `task-0925` — audit queued material route allocation/report shape.
-3. `task-0926` — plan material queue phase summary helper.
-4. `task-0927` — add material queue phase summary helper.
-5. `task-0928` — audit material queue phase summary boundaries.
+1. `task-0961` — add StandardMaterial UV1 per-field coverage.
+2. `task-0962` — audit StandardMaterial UV1 per-field coverage boundaries.
+3. `task-0963` — plan StandardMaterial alpha/cull diagnostics slice.
+4. `task-0964` — add StandardMaterial alpha/cull diagnostics helper or tests.
+5. `task-0965` — audit StandardMaterial alpha/cull diagnostics boundaries.
 
 Defer allocation-only cleanup and metadata-only shader-contract tasks unless
 they are a direct blocker for this track.
@@ -147,83 +148,86 @@ viewer/material mapping should not outrun the material and queue architecture.
 
 ### Proof Point Critical Path
 
-### task-0924 — Plan queued draw package cache diagnostics
+### task-0961 — Add StandardMaterial UV1 per-field coverage
 
-Category: `docs-tooling`
-Package/write-scope: `docs/research` and `agent/BACKLOG.md`.
+Category: `webgpu-render`
+Package/write-scope: `test/materials`, `test/webgpu`, and no production code
+unless tests expose a bug.
 Reference anchor:
-Queued material route reports, retained backend cache summaries, and
-`WebGpuAppResourceReuseReport`.
+StandardMaterial UV coordinate support audit from `task-0960`, shader `uv1`
+feature selection, and material buffer texCoord packing.
 
 Acceptance criteria:
 
-- Plan defines diagnostics/report fields for queued draw package cache behavior
-  without exposing GPU handles.
-- Plan distinguishes draw package counts from resource cache summaries.
-- Plan adds or confirms focused implementation follow-ups.
+- Tests cover `texCoord: 1` readiness for base color, metallic-roughness,
+  normal, occlusion, and emissive texture fields.
+- Tests cover pipeline key or shader feature selection for `uv1`.
+- Existing behavior remains unchanged.
 
-### task-0925 — Audit queued material route allocation/report shape
+### task-0962 — Audit StandardMaterial UV1 per-field coverage boundaries
 
 Category: `audit-refactor`
 Package/write-scope: `docs/research`, `agent/BACKLOG.md`, and narrow follow-up
 task edits only.
 Reference anchor:
-Queued material route report code/tests, frame hot-path allocation guidance in
-`docs/ARCHITECTURE.md`, and app report JSON tests.
+StandardMaterial UV1 tests from `task-0961`, `docs/ARCHITECTURE.md`, and
+StandardMaterial shader/material buffer boundaries.
 
 Acceptance criteria:
 
-- Audit identifies any queued material report allocations that are risky for the
-  frame hot path.
-- Audit verifies report JSON remains source/GPU payload free.
-- Follow-up backlog wording is tightened if report ownership is ambiguous.
+- Audit verifies UV1 tests do not introduce shader behavior changes or source
+  asset mutation.
+- Audit verifies unsupported `TEXCOORD_2+` behavior remains diagnostic-only.
+- Follow-up backlog wording is tightened if coverage remains incomplete.
 
-### task-0926 — Plan material queue phase summary helper
+### task-0963 — Plan StandardMaterial alpha/cull diagnostics slice
 
 Category: `docs-tooling`
 Package/write-scope: `docs/research` and `agent/BACKLOG.md`.
 Reference anchor:
-`material-queue.ts`, material queue ordering tests, queued material route
-reports, and Bevy render phase summary patterns.
+StandardMaterial render-state helpers, material queue phase tests, and glTF
+material alpha/double-sided expectations.
 
 Acceptance criteria:
 
-- Plan defines a JSON-safe summary of queued material items by render phase and
-  material family.
-- Plan keeps queue summaries separate from backend cache summaries and app
-  resource reuse counters.
+- Plan defines a narrow diagnostics/test slice for alpha mode and double-sided
+  cull behavior.
+- Plan keeps scope out of broad PBR shader changes.
 - Plan adds or confirms a focused implementation follow-up.
 
-### task-0927 — Add material queue phase summary helper
+### task-0964 — Add StandardMaterial alpha/cull diagnostics helper or tests
 
-Category: `render-bridge`
-Package/write-scope: `packages/render/src/rendering` and focused material queue
-tests.
+Category: `webgpu-render`
+Package/write-scope: `packages/webgpu/src/webgpu` and focused StandardMaterial
+render-state/material queue tests.
 Reference anchor:
-Material queue phase summary plan from `task-0926`, `material-queue.ts`, and
-existing material queue JSON tests.
+StandardMaterial alpha/cull diagnostics plan from `task-0963` and existing
+StandardMaterial alpha-test/transparent route tests.
 
 Acceptance criteria:
 
-- Helper reports queued item counts by render phase and material family.
-- Summary is JSON-safe and does not expose source assets or GPU handles.
-- Tests cover empty, mixed-phase, and mixed-family queues.
+- Helper/tests expose alpha mode and double-sided cull diagnostics without raw
+  GPU handles.
+- Existing StandardMaterial opaque, alpha-test, and transparent route behavior
+  remains unchanged.
+- Targeted tests and TypeScript validation pass.
 
-### task-0928 — Audit material queue phase summary boundaries
+### task-0965 — Audit StandardMaterial alpha/cull diagnostics boundaries
 
 Category: `audit-refactor`
 Package/write-scope: `docs/research`, `agent/BACKLOG.md`, and narrow follow-up
 task edits only.
 Reference anchor:
-Material queue phase summary helper from `task-0927`, `docs/ARCHITECTURE.md`,
-and retained backend cache summary audits.
+StandardMaterial alpha/cull diagnostics changes from `task-0964`,
+`docs/ARCHITECTURE.md`, and WebGPU material route tests.
 
 Acceptance criteria:
 
-- Audit verifies queue summaries describe derived queue items, not backend cache
-  resources.
-- Audit verifies summaries do not mutate snapshots or ECS state.
-- Follow-up backlog wording is tightened if report ownership is ambiguous.
+- Audit verifies alpha/cull diagnostics do not mutate source material assets or
+  hide renderer state.
+- Audit verifies diagnostics remain separate from retained pipeline/cache
+  summaries.
+- Follow-up backlog wording is tightened if ownership remains ambiguous.
 
 ## Post-Unlit E2E Verification Targets
 

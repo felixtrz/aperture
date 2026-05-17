@@ -41,6 +41,39 @@ describe("render-world draw package planning", () => {
       batchKey: second.batchKey,
       transformPackedOffset: 0,
     });
+    expect(result.summary).toMatchObject({
+      readyDrawCount: 2,
+      blockedDrawCount: 0,
+      packageCount: 2,
+      packagePoolSizeBeforeWrite: 0,
+      packagePoolSize: 2,
+      packageSlotsReused: 0,
+      packageSlotsCreated: 2,
+      missingPackedTransformCount: 0,
+      diagnostics: { total: 0, byCode: {} },
+    });
+  });
+
+  it("summarizes empty draw package writes", () => {
+    const scratch = createRenderWorldDrawPackageScratch();
+    const result = writeRenderWorldDrawPackages(
+      readiness({ ready: [] }),
+      transforms([]),
+      scratch,
+    );
+
+    expect(result.summary).toBe(scratch.summary);
+    expect(result.summary).toEqual({
+      readyDrawCount: 0,
+      blockedDrawCount: 0,
+      packageCount: 0,
+      packagePoolSize: 0,
+      packagePoolSizeBeforeWrite: 0,
+      packageSlotsReused: 0,
+      packageSlotsCreated: 0,
+      missingPackedTransformCount: 0,
+      diagnostics: { total: 0, byCode: {} },
+    });
   });
 
   it("diagnoses ready draws missing packed transform offsets", () => {
@@ -54,6 +87,18 @@ describe("render-world draw package planning", () => {
     expect(result.diagnostics.map((diagnostic) => diagnostic.code)).toEqual([
       "renderDrawPackage.missingPackedTransform",
     ]);
+    expect(result.summary).toMatchObject({
+      readyDrawCount: 1,
+      blockedDrawCount: 0,
+      packageCount: 0,
+      missingPackedTransformCount: 1,
+      diagnostics: {
+        total: 1,
+        byCode: { "renderDrawPackage.missingPackedTransform": 1 },
+      },
+    });
+    expect(JSON.stringify(result.summary)).not.toContain("packet");
+    expect(JSON.stringify(result.summary)).not.toContain("GPU");
   });
 
   it("diagnoses blocked draw inputs", () => {
@@ -75,6 +120,15 @@ describe("render-world draw package planning", () => {
     expect(result.diagnostics).toMatchObject([
       { code: "renderDrawPackage.blockedDraw" },
     ]);
+    expect(result.summary).toMatchObject({
+      readyDrawCount: 0,
+      blockedDrawCount: 1,
+      packageCount: 0,
+      diagnostics: {
+        total: 1,
+        byCode: { "renderDrawPackage.blockedDraw": 1 },
+      },
+    });
   });
 
   it("preserves transform pack diagnostics", () => {
@@ -118,11 +172,42 @@ describe("render-world draw package planning", () => {
     );
 
     expect(second).toBe(first);
+    expect(second.summary).toBe(first.summary);
+    expect(second.summary).toMatchObject({
+      readyDrawCount: 2,
+      packageCount: 2,
+      packagePoolSizeBeforeWrite: 2,
+      packagePoolSize: 2,
+      packageSlotsReused: 2,
+      packageSlotsCreated: 0,
+    });
     expect(new Set(second.packages)).toEqual(new Set(firstPackages));
     expect(second.packages.map((drawPackage) => drawPackage.renderId)).toEqual([
       readyDraw(1).renderId,
       readyDraw(2).renderId,
     ]);
+  });
+
+  it("summarizes package pool growth on caller-owned scratch", () => {
+    const scratch = createRenderWorldDrawPackageScratch(1);
+    const result = writeRenderWorldDrawPackages(
+      readiness({ ready: [readyDraw(1), readyDraw(2), readyDraw(3)] }),
+      transforms([
+        [readyDraw(1).renderId, 0],
+        [readyDraw(2).renderId, 16],
+        [readyDraw(3).renderId, 32],
+      ]),
+      scratch,
+    );
+
+    expect(result.summary).toMatchObject({
+      readyDrawCount: 3,
+      packageCount: 3,
+      packagePoolSizeBeforeWrite: 1,
+      packagePoolSize: 3,
+      packageSlotsReused: 1,
+      packageSlotsCreated: 2,
+    });
   });
 });
 

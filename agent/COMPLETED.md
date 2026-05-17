@@ -1,5 +1,88 @@
 # Completed Tasks
 
+## task-0924 through task-0960 — Diagnostics summaries, app diagnostics example aggregation, docs, and UV audit
+
+Completed: 2026-05-17
+
+Completed task ids:
+
+- `task-0924` — Plan queued draw package cache diagnostics.
+- `task-0925` — Audit queued material route allocation/report shape.
+- `task-0926` — Plan material queue phase summary helper.
+- `task-0927` — Add material queue phase summary helper.
+- `task-0928` — Audit material queue phase summary boundaries.
+- `task-0929` — Add draw package scratch summary helper.
+- `task-0930` — Reuse queued material route collector arrays.
+- `task-0931` — Audit queued material route collector reuse boundaries.
+- `task-0932` — Audit draw package scratch summary boundaries.
+- `task-0933` — Plan render frame queue diagnostics placement.
+- `task-0934` — Add render frame queue diagnostics summary helper.
+- `task-0935` — Audit render frame queue diagnostics summary boundaries.
+- `task-0936` — Plan queued built-in resource set summary helper.
+- `task-0937` — Add queued built-in resource set summary helper.
+- `task-0938` — Audit queued built-in resource set summary boundaries.
+- `task-0939` — Plan app diagnostics summary grouping.
+- `task-0940` — Add app diagnostics summary helper.
+- `task-0941` — Audit app diagnostics summary boundaries.
+- `task-0942` — Plan StandardMaterial dependency diagnostics summary.
+- `task-0943` — Add StandardMaterial dependency diagnostics summary helper.
+- `task-0944` — Audit StandardMaterial dependency diagnostics summary
+  boundaries.
+- `task-0945` — Plan app diagnostics example summary usage.
+- `task-0946` — Add app diagnostics dependency summary usage.
+- `task-0947` — Audit app diagnostics dependency summary boundaries.
+- `task-0948` — Plan diagnostics summary scratch reuse.
+- `task-0949` — Plan app diagnostics dependency summary browser validation.
+- `task-0950` — Add app diagnostics dependency summary Playwright assertions.
+- `task-0951` — Audit app diagnostics dependency summary browser boundaries.
+- `task-0952` — Plan README diagnostics summary note.
+- `task-0953` — Add README diagnostics summary note.
+- `task-0954` — Audit README diagnostics summary note boundaries.
+- `task-0955` — Plan diagnostics summaries index doc.
+- `task-0956` — Add diagnostics summaries index doc.
+- `task-0957` — Audit diagnostics summaries index boundaries.
+- `task-0958` — Plan optional app report diagnostics summary flag.
+- `task-0959` — Plan StandardMaterial UV coordinate support audit.
+- `task-0960` — Audit StandardMaterial UV coordinate support boundaries.
+
+Summary:
+
+- Added renderer-side and WebGPU-side JSON-safe diagnostics summaries for
+  material queue phases, draw package scratch/pool behavior, render-frame queue
+  diagnostics, queued built-in resource sets, app diagnostics grouping, and
+  material dependency readiness aggregation.
+- Reused queued built-in route collector arrays so valid resource-set wrapping
+  no longer allocates fresh route arrays on each reset.
+- Kept current-frame diagnostics summaries separate from retained backend cache
+  reports and app `resourceReuse`.
+- Updated the app diagnostics example to publish aggregate
+  `dependencySummary` data for failure scenarios, and added Playwright
+  assertions proving aggregate counts are present while detailed failure handles
+  remain separate.
+- Added `docs/DIAGNOSTICS_SUMMARIES.md` and README wording for public
+  diagnostics summary usage.
+- Planned and audited StandardMaterial UV coordinate support; current behavior
+  supports `TEXCOORD_0`/`TEXCOORD_1`, diagnoses higher coordinate sets, and
+  needs per-field UV1 test coverage.
+- Refilled the ready backlog with `task-0961` through `task-0965`; recommended
+  next task is `task-0961`.
+
+Validation run:
+
+- `pnpm exec vitest run test/rendering/material-queue.test.ts`
+- `pnpm exec vitest run test/rendering/draw-package.test.ts test/webgpu/frame-readiness.test.ts`
+- `pnpm exec vitest run test/webgpu/reusable-route-collector.test.ts test/webgpu/webgpu-app.test.ts --testNamePattern "reusable route collector|routes scalar and textured StandardMaterial queue items with unlit and matcap draws|unsupported material queue families|unsupported alpha-test material queue families|unsupported transparent material queue families|material queue route report shell|includes asset mismatch details"`
+- `pnpm exec vitest run test/webgpu/render-frame-plan.test.ts`
+- `pnpm exec vitest run test/webgpu/queued-built-in-resource-set-summary.test.ts`
+- `pnpm exec vitest run test/webgpu/app-diagnostics-summary.test.ts`
+- `pnpm exec vitest run test/webgpu/material-dependency-diagnostics-summary.test.ts`
+- `pnpm exec playwright test test/e2e/app-diagnostics.spec.ts`
+- Focused TypeScript checks for `packages/render`, `packages/webgpu`, and
+  `tsconfig.test.json`.
+- `pnpm run check` passed, including package boundaries, build/typecheck,
+  test typecheck, examples syntax, lint, format check, and 237 Vitest files /
+  1121 tests.
+
 ## task-0901 through task-0923 — Render-world binding, cache lifetime reporting, and material queue ordering follow-up
 
 Completed: 2026-05-17

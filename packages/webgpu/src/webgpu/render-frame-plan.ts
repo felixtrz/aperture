@@ -116,6 +116,23 @@ export interface RenderFramePlanSummary {
   readonly diagnostics: readonly RenderFramePlanDiagnostic[];
 }
 
+export interface RenderFrameQueueDiagnosticSummary {
+  readonly total: number;
+  readonly byCode: Readonly<Record<string, number>>;
+}
+
+export interface RenderFrameQueueDiagnosticsSummary {
+  readonly ready: boolean;
+  readonly readyDrawCount: number;
+  readonly blockedDrawCount: number;
+  readonly packageCount: number;
+  readonly packagePoolSize: number;
+  readonly packageSlotsReused: number;
+  readonly packageSlotsCreated: number;
+  readonly missingPackedTransformCount: number;
+  readonly diagnostics: RenderFrameQueueDiagnosticSummary;
+}
+
 export interface RenderFramePlanSummaryScratch {
   readonly applyDiagnostics: RenderFramePlanDiagnostic[];
   readonly prepareDiagnostics: RenderFramePlanDiagnostic[];
@@ -279,6 +296,32 @@ export function writeRenderFramePlanFromSnapshot(
   result.summary = summary;
 
   return input.scratch.result;
+}
+
+export function createRenderFrameQueueDiagnosticsSummary(
+  input: Pick<PlanRenderFrameFromSnapshotResult, "readiness" | "packages">,
+): RenderFrameQueueDiagnosticsSummary {
+  const byCode: Record<string, number> = {};
+  let total = 0;
+
+  total += summarizeDiagnosticCodes(input.readiness.diagnostics, byCode);
+  total += summarizeDiagnosticCodes(input.packages.diagnostics, byCode);
+
+  return {
+    ready: input.readiness.blocked.length === 0 && total === 0,
+    readyDrawCount: input.readiness.ready.length,
+    blockedDrawCount: input.readiness.blocked.length,
+    packageCount: input.packages.summary.packageCount,
+    packagePoolSize: input.packages.summary.packagePoolSize,
+    packageSlotsReused: input.packages.summary.packageSlotsReused,
+    packageSlotsCreated: input.packages.summary.packageSlotsCreated,
+    missingPackedTransformCount:
+      input.packages.summary.missingPackedTransformCount,
+    diagnostics: {
+      total,
+      byCode,
+    },
+  };
 }
 
 export function createRenderFramePlanSummaryScratch(): RenderFramePlanSummaryScratch {
@@ -568,6 +611,17 @@ function appendDiagnostics(
   for (const diagnostic of diagnostics) {
     output.push(diagnostic);
   }
+}
+
+function summarizeDiagnosticCodes(
+  diagnostics: readonly { readonly code: string }[],
+  byCode: Record<string, number>,
+): number {
+  for (const diagnostic of diagnostics) {
+    byCode[diagnostic.code] = (byCode[diagnostic.code] ?? 0) + 1;
+  }
+
+  return diagnostics.length;
 }
 
 function pushRenderDiagnostics(

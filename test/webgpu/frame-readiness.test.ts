@@ -113,6 +113,17 @@ function drawPackages(count: number): RenderWorldDrawPackagePlan {
       renderId: index + 1,
     })) as unknown as RenderWorldDrawPackagePlan["packages"],
     diagnostics: [],
+    summary: {
+      readyDrawCount: count,
+      blockedDrawCount: 0,
+      packageCount: count,
+      packagePoolSize: count,
+      packagePoolSizeBeforeWrite: count,
+      packageSlotsReused: count,
+      packageSlotsCreated: 0,
+      missingPackedTransformCount: 0,
+      diagnostics: { total: 0, byCode: {} },
+    },
   };
 }
 

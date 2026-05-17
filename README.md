@@ -85,7 +85,10 @@ ECS-authored mesh/material entities and publishes JSON-safe app render reports.
 The app diagnostics example is available at
 `http://127.0.0.1:4173/examples/app-diagnostics.html`. It demonstrates how app
 render failures report material dependency readiness, missing resources, and
-submission state without exposing raw WebGPU/browser objects.
+submission state without exposing raw WebGPU/browser objects. It also publishes
+aggregate dependency summary counts for failure scenarios so tests and tooling
+can inspect readiness by material kind, dependency kind, status, and diagnostic
+code without parsing source asset handles.
 
 Run browser verification:
 

@@ -169,6 +169,11 @@ import {
   type PipelineScopedBindGroupScratch,
 } from "./pipeline-scoped-bind-groups.js";
 import {
+  createReusableRouteCollector,
+  resetReusableRouteCollector,
+  type ReusableRouteCollector,
+} from "./reusable-route-collector.js";
+import {
   initializeWebGpu,
   type InitializeWebGpuOptions,
   type WebGpuCanvasLike,
@@ -416,6 +421,10 @@ interface QueuedBuiltInAppRouteScratch {
   readonly unlit: UnlitFrameGpuResources[];
   readonly matcap: MatcapFrameGpuResources[];
   readonly standard: StandardFrameGpuResources[];
+  readonly routeCollector: ReusableRouteCollector<
+    QueuedBuiltInAppResourceItem,
+    unknown
+  >;
   readonly routeReport: WebGpuAppMaterialQueueRouteReportShell;
 }
 
@@ -645,6 +654,10 @@ function createQueuedBuiltInAppRouteScratch(): QueuedBuiltInAppRouteScratch {
     unlit: [],
     matcap: [],
     standard: [],
+    routeCollector: createReusableRouteCollector<
+      QueuedBuiltInAppResourceItem,
+      unknown
+    >(),
     routeReport: createWebGpuAppMaterialQueueRouteReportShell(),
   };
 }
@@ -988,6 +1001,9 @@ function collectQueuedBuiltInAppResourceSet(options: {
 } {
   const meshAssets = options.frameScratch.queueRoute.sourceMeshAssets;
   const materialAssets = options.frameScratch.queueRoute.sourceMaterialAssets;
+  const routeCollector = resetReusableRouteCollector(
+    options.frameScratch.queueRoute.routeCollector,
+  );
   const resolvePreparedMeshResourceKey =
     createPreparedMeshQueueResourceKeyResolver(options.meshes);
   const resolvePreparedMaterialResourceKey =
@@ -1006,8 +1022,10 @@ function collectQueuedBuiltInAppResourceSet(options: {
     },
     options.frameScratch.materialQueue,
   );
-  const diagnostics: unknown[] = [...queue.diagnostics];
-  const items: QueuedBuiltInAppResourceItem[] = [];
+  const diagnostics = routeCollector.diagnostics;
+  const items = routeCollector.items;
+
+  diagnostics.push(...queue.diagnostics);
 
   for (const queueItem of queue.items) {
     const draw = options.snapshot.meshDraws[queueItem.drawIndex];
@@ -1090,7 +1108,7 @@ function collectQueuedBuiltInAppResourceSet(options: {
 
   return {
     valid,
-    resourceSet: valid ? { items } : null,
+    resourceSet: valid ? routeCollector.resourceSet : null,
     diagnostics,
   };
 }

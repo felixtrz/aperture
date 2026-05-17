@@ -63,6 +63,29 @@ export interface MaterialQueuePlan {
   readonly diagnostics: readonly RenderDiagnostic[];
 }
 
+export interface MaterialQueuePhaseBucketSummary {
+  readonly phase: RenderQueue;
+  readonly itemCount: number;
+}
+
+export interface MaterialQueueFamilyBucketSummary {
+  readonly family: MaterialQueueFamily;
+  readonly itemCount: number;
+}
+
+export interface MaterialQueuePhaseFamilyBucketSummary {
+  readonly phase: RenderQueue;
+  readonly family: MaterialQueueFamily;
+  readonly itemCount: number;
+}
+
+export interface MaterialQueuePhaseSummary {
+  readonly itemCount: number;
+  readonly byPhase: readonly MaterialQueuePhaseBucketSummary[];
+  readonly byFamily: readonly MaterialQueueFamilyBucketSummary[];
+  readonly byPhaseAndFamily: readonly MaterialQueuePhaseFamilyBucketSummary[];
+}
+
 export interface MaterialQueueScratch {
   readonly items: MaterialQueueItem[];
   readonly diagnostics: RenderDiagnostic[];
@@ -236,6 +259,60 @@ export function sortMaterialQueueItems(
   return items;
 }
 
+export function createMaterialQueuePhaseSummary(
+  items: readonly MaterialQueueItem[],
+): MaterialQueuePhaseSummary {
+  const phaseCounts = new Map<RenderQueue, number>();
+  const familyCounts = new Map<MaterialQueueFamily, number>();
+  const phaseFamilyCounts = new Map<
+    string,
+    { phase: RenderQueue; family: MaterialQueueFamily; itemCount: number }
+  >();
+
+  for (const item of items) {
+    phaseCounts.set(
+      item.renderPhase,
+      (phaseCounts.get(item.renderPhase) ?? 0) + 1,
+    );
+    familyCounts.set(
+      item.materialFamily,
+      (familyCounts.get(item.materialFamily) ?? 0) + 1,
+    );
+
+    const phaseFamilyKey = `${item.renderPhase}|${item.materialFamily}`;
+    const phaseFamilyCount = phaseFamilyCounts.get(phaseFamilyKey);
+
+    if (phaseFamilyCount === undefined) {
+      phaseFamilyCounts.set(phaseFamilyKey, {
+        phase: item.renderPhase,
+        family: item.materialFamily,
+        itemCount: 1,
+      });
+    } else {
+      phaseFamilyCount.itemCount += 1;
+    }
+  }
+
+  return {
+    itemCount: items.length,
+    byPhase: MATERIAL_QUEUE_PHASE_ORDER.flatMap((phase) => {
+      const itemCount = phaseCounts.get(phase);
+
+      return itemCount === undefined ? [] : [{ phase, itemCount }];
+    }),
+    byFamily: [...familyCounts.entries()]
+      .sort(([a], [b]) => compareStrings(a, b))
+      .map(([family, itemCount]) => ({ family, itemCount })),
+    byPhaseAndFamily: [...phaseFamilyCounts.values()]
+      .sort(
+        (a, b) =>
+          materialQueuePhaseRank(a.phase) - materialQueuePhaseRank(b.phase) ||
+          compareStrings(a.family, b.family),
+      )
+      .map(({ phase, family, itemCount }) => ({ phase, family, itemCount })),
+  };
+}
+
 export function materialQueueFamilyFromPipelineKey(
   pipelineKey: string,
 ): MaterialQueueFamily | null {
@@ -298,6 +375,12 @@ function materialQueuePhaseRank(phase: RenderQueue): number {
       return 2;
   }
 }
+
+const MATERIAL_QUEUE_PHASE_ORDER: readonly RenderQueue[] = [
+  "opaque",
+  "alpha-test",
+  "transparent",
+];
 
 function compareStrings(a: string, b: string): number {
   return a < b ? -1 : a > b ? 1 : 0;

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   RenderWorld,
+  createRenderFrameQueueDiagnosticsSummary,
   createRenderFramePlanScratch,
   planRenderFrameFromSnapshot,
   writeRenderFramePlanFromSnapshot,
@@ -89,6 +90,66 @@ describe("render frame snapshot planning helper", () => {
     expect(second.summary.counts.draw.packages).toBe(2);
   });
 
+  it("summarizes an empty render-world queue without exposing frame payloads", () => {
+    const result = planRenderFrameFromSnapshot({
+      snapshot: emptySnapshot(),
+      renderWorld: new RenderWorld(),
+      transforms: emptyTransforms(),
+      resolveMeshResourceKey: () => "mesh:triangle",
+      resolveMaterialResourceKey: () => "material:red",
+      meshResources: [mesh()],
+      pipelines: [pipeline()],
+      bindGroups: bindGroups(),
+    });
+    const summary = createRenderFrameQueueDiagnosticsSummary(result);
+
+    expect(summary).toEqual({
+      ready: false,
+      readyDrawCount: 0,
+      blockedDrawCount: 0,
+      packageCount: 0,
+      packagePoolSize: 0,
+      packageSlotsReused: 0,
+      packageSlotsCreated: 0,
+      missingPackedTransformCount: 0,
+      diagnostics: {
+        total: 1,
+        byCode: {
+          "renderWorld.empty": 1,
+        },
+      },
+    });
+    expect(JSON.stringify(summary)).not.toContain("meshDraws");
+  });
+
+  it("summarizes ready queue package reuse as scalar counts", () => {
+    const scratch = createRenderFramePlanScratch();
+
+    writeReadyFrameWithScratch(scratch);
+    const result = writeReadyFrameWithScratch(scratch);
+    const summary = createRenderFrameQueueDiagnosticsSummary(result);
+
+    expect(summary).toEqual({
+      ready: true,
+      readyDrawCount: 2,
+      blockedDrawCount: 0,
+      packageCount: 2,
+      packagePoolSize: 2,
+      packageSlotsReused: 2,
+      packageSlotsCreated: 0,
+      missingPackedTransformCount: 0,
+      diagnostics: {
+        total: 0,
+        byCode: {},
+      },
+    });
+    const serialized = JSON.stringify(summary);
+
+    expect(serialized).not.toContain("packet");
+    expect(serialized).not.toContain("pipeline-handle");
+    expect(serialized).not.toContain("bind-group");
+  });
+
   it("summarizes missing resource binding diagnostics without planning draws", () => {
     const result = planRenderFrameFromSnapshot({
       snapshot: snapshot(),
@@ -120,6 +181,63 @@ describe("render frame snapshot planning helper", () => {
     expect(
       result.summary.diagnostics.map((diagnostic) => diagnostic.phase),
     ).toEqual(["prepare", "prepare", "queue", "queue", "queue", "queue"]);
+  });
+
+  it("summarizes blocked queue diagnostics separately from prepare failures", () => {
+    const result = planRenderFrameFromSnapshot({
+      snapshot: snapshot(),
+      renderWorld: new RenderWorld(),
+      transforms: transforms(),
+      resolveMeshResourceKey: () => null,
+      resolveMaterialResourceKey: () => "material:red",
+      meshResources: [mesh()],
+      pipelines: [pipeline()],
+      bindGroups: bindGroups(),
+    });
+    const summary = createRenderFrameQueueDiagnosticsSummary(result);
+
+    expect(summary).toMatchObject({
+      ready: false,
+      readyDrawCount: 0,
+      blockedDrawCount: 2,
+      packageCount: 0,
+      missingPackedTransformCount: 0,
+      diagnostics: {
+        total: 4,
+        byCode: {
+          "renderWorld.missingMeshResource": 2,
+          "renderDrawPackage.blockedDraw": 2,
+        },
+      },
+    });
+  });
+
+  it("summarizes missing packed transform package diagnostics", () => {
+    const result = planRenderFrameFromSnapshot({
+      snapshot: snapshot(),
+      renderWorld: new RenderWorld(),
+      transforms: missingPackedTransforms(),
+      resolveMeshResourceKey: () => "mesh:triangle",
+      resolveMaterialResourceKey: () => "material:red",
+      meshResources: [mesh()],
+      pipelines: [pipeline()],
+      bindGroups: bindGroups(),
+    });
+    const summary = createRenderFrameQueueDiagnosticsSummary(result);
+
+    expect(summary).toMatchObject({
+      ready: false,
+      readyDrawCount: 2,
+      blockedDrawCount: 0,
+      packageCount: 0,
+      missingPackedTransformCount: 2,
+      diagnostics: {
+        total: 2,
+        byCode: {
+          "renderDrawPackage.missingPackedTransform": 2,
+        },
+      },
+    });
   });
 
   it("keeps textured unlit material bind groups associated with resolved draws", () => {
@@ -333,6 +451,30 @@ function writeReadyFrameWithScratch(
   });
 }
 
+function emptySnapshot(): RenderSnapshot {
+  return {
+    frame: 1,
+    views: [],
+    meshDraws: [],
+    lights: [],
+    environments: [],
+    shadowRequests: [],
+    bounds: [],
+    transforms: new Float32Array(),
+    viewMatrices: new Float32Array(),
+    diagnostics: [],
+    report: {
+      views: 0,
+      meshDraws: 0,
+      lights: 0,
+      environments: 0,
+      shadowRequests: 0,
+      bounds: 0,
+      diagnostics: 0,
+    },
+  } as unknown as RenderSnapshot;
+}
+
 function snapshot(): RenderSnapshot {
   return {
     frame: 1,
@@ -459,6 +601,22 @@ function transforms() {
       { renderId: 7, sourceOffset: 0, packedOffset: 0 },
       { renderId: 9, sourceOffset: 16, packedOffset: 16 },
     ],
+    diagnostics: [],
+  };
+}
+
+function emptyTransforms() {
+  return {
+    data: new Float32Array(),
+    offsets: [],
+    diagnostics: [],
+  };
+}
+
+function missingPackedTransforms() {
+  return {
+    data: new Float32Array(32),
+    offsets: [],
     diagnostics: [],
   };
 }

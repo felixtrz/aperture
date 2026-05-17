@@ -27,6 +27,7 @@ interface AppDiagnosticScenarioStatus {
   readonly expectedFailure: boolean;
   readonly expectedDiagnostic?: string;
   readonly submitted: boolean;
+  readonly dependencySummary?: AppDiagnosticDependencySummary;
   readonly failedMaterialKind?: string;
   readonly failedMaterialKey?: string;
   readonly failedDependencyFields?: readonly string[];
@@ -45,6 +46,35 @@ interface AppDiagnosticScenarioStatus {
       readonly message?: string;
     }[];
     readonly materialDependencyReadiness?: readonly unknown[];
+  };
+}
+
+interface AppDiagnosticDependencySummary {
+  readonly materialCount: number;
+  readonly readyMaterialCount: number;
+  readonly blockedMaterialCount: number;
+  readonly slotCount: number;
+  readonly readySlotCount: number;
+  readonly blockedSlotCount: number;
+  readonly byMaterialKind: readonly {
+    readonly materialKind: string;
+    readonly materialCount: number;
+    readonly readyMaterialCount: number;
+    readonly blockedMaterialCount: number;
+  }[];
+  readonly byDependencyKind: readonly {
+    readonly dependencyKind: string;
+    readonly slotCount: number;
+    readonly readySlotCount: number;
+    readonly blockedSlotCount: number;
+  }[];
+  readonly byStatus: readonly {
+    readonly status: string;
+    readonly slotCount: number;
+  }[];
+  readonly diagnostics: {
+    readonly total: number;
+    readonly byCode: Record<string, number>;
   };
 }
 
@@ -102,6 +132,11 @@ test("app diagnostics example exposes app-facade failure reports", async ({
       "sampler:diagnostic-loading-matcap",
     ]),
   );
+  expectDependencySummary(mixed?.dependencySummary, "matcap");
+  expectDependencySummaryOmitsHandles(mixed?.dependencySummary, [
+    "diagnostic-missing-matcap",
+    "diagnostic-loading-matcap",
+  ]);
   expect(mixed?.message).toContain("source asset dependencies");
 
   expect(dependencies, JSON.stringify(status, null, 2)).toMatchObject({
@@ -124,6 +159,11 @@ test("app diagnostics example exposes app-facade failure reports", async ({
   );
   expect(dependencies?.message).toContain("source asset dependencies");
   expect(dependencies?.report.materialDependencyReadiness).toHaveLength(1);
+  expectDependencySummary(dependencies?.dependencySummary, "unlit");
+  expectDependencySummaryOmitsHandles(dependencies?.dependencySummary, [
+    "dependency-missing-texture",
+    "dependency-loading-sampler",
+  ]);
 
   expect(standardDependencies, JSON.stringify(status, null, 2)).toMatchObject({
     caseId: "standard-material-dependencies",
@@ -153,6 +193,11 @@ test("app diagnostics example exposes app-facade failure reports", async ({
   expect(standardDependencies?.report.materialDependencyReadiness).toHaveLength(
     1,
   );
+  expectDependencySummary(standardDependencies?.dependencySummary, "standard");
+  expectDependencySummaryOmitsHandles(standardDependencies?.dependencySummary, [
+    "standard-missing-base-color",
+    "standard-loading-base-color",
+  ]);
   expect(standardDependencies?.message).toContain("source asset dependencies");
 
   expect(success, JSON.stringify(status, null, 2)).toMatchObject({
@@ -178,6 +223,64 @@ test("app diagnostics example exposes app-facade failure reports", async ({
   });
   expectVisibleMixedMaterialPixels(screenshot, status);
 });
+
+function expectDependencySummary(
+  summary: AppDiagnosticDependencySummary | undefined,
+  materialKind: string,
+): void {
+  expect(summary).toMatchObject({
+    materialCount: 1,
+    readyMaterialCount: 0,
+    blockedMaterialCount: 1,
+    slotCount: 2,
+    readySlotCount: 0,
+    blockedSlotCount: 2,
+    byMaterialKind: [
+      {
+        materialKind,
+        materialCount: 1,
+        readyMaterialCount: 0,
+        blockedMaterialCount: 1,
+      },
+    ],
+    byDependencyKind: [
+      {
+        dependencyKind: "texture",
+        slotCount: 1,
+        readySlotCount: 0,
+        blockedSlotCount: 1,
+      },
+      {
+        dependencyKind: "sampler",
+        slotCount: 1,
+        readySlotCount: 0,
+        blockedSlotCount: 1,
+      },
+    ],
+    byStatus: [
+      { status: "missing", slotCount: 1 },
+      { status: "loading", slotCount: 1 },
+    ],
+    diagnostics: {
+      total: 2,
+      byCode: {
+        "materialDependency.dependencyMissing": 1,
+        "materialDependency.dependencyLoading": 1,
+      },
+    },
+  });
+}
+
+function expectDependencySummaryOmitsHandles(
+  summary: AppDiagnosticDependencySummary | undefined,
+  substrings: readonly string[],
+): void {
+  const serialized = JSON.stringify(summary);
+
+  for (const substring of substrings) {
+    expect(serialized).not.toContain(substring);
+  }
+}
 
 function expectVisibleMixedMaterialPixels(
   screenshot: Buffer,

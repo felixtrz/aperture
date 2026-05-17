@@ -2,10 +2,10 @@
   "state": "idle",
   "currentTaskId": null,
   "currentRunStartedAt": null,
-  "lastRunStartedAt": "2026-05-17T16:02:52Z",
+  "lastRunStartedAt": "2026-05-17T17:02:16Z",
   "lastResult": "success",
-  "lastCommit": "30a5864",
+  "lastCommit": "07da00c",
   "activePid": null,
-  "notes": "Completed task-0886 through task-0923. Final validation passed with pnpm run check. Next recommended task is task-0924. Unrelated .mcp.json and docs/render-pipeline-comparison.html remain locally/prettier ignored per user instruction.",
-  "lastRunFinishedAt": "2026-05-17T16:54:33Z"
+  "notes": "Completed task-0924 through task-0960. Final validation passed with pnpm run check and targeted app-diagnostics Playwright. Next recommended task is task-0961.",
+  "lastRunFinishedAt": "2026-05-17T17:44:56Z"
 }

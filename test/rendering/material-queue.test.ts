@@ -5,6 +5,7 @@ import {
   buildMaterialQueueFromSnapshot,
   createBoxMeshAsset,
   createMaterialHandle,
+  createMaterialQueuePhaseSummary,
   createMaterialQueueScratch,
   createMeshHandle,
   createPreparedMeshQueueResourceKeyResolver,
@@ -439,6 +440,94 @@ describe("material family render queue", () => {
 
     expect(new Set(second.items)).toEqual(new Set(firstItems));
     expect(second.items.map((item) => item.renderId)).toEqual([3, 4]);
+  });
+
+  it("summarizes empty material queues", () => {
+    expect(createMaterialQueuePhaseSummary([])).toEqual({
+      itemCount: 0,
+      byPhase: [],
+      byFamily: [],
+      byPhaseAndFamily: [],
+    });
+  });
+
+  it("summarizes material queue items by phase and family", () => {
+    const plan = buildMaterialQueueFromSnapshot(
+      renderSnapshot([
+        drawPacket({
+          renderId: 1,
+          materialFamily: "unlit",
+          queue: "transparent",
+        }),
+        drawPacket({
+          renderId: 2,
+          materialFamily: "standard",
+          queue: "opaque",
+        }),
+        drawPacket({
+          renderId: 3,
+          materialFamily: "matcap",
+          queue: "transparent",
+        }),
+        drawPacket({
+          renderId: 4,
+          materialFamily: "standard",
+          queue: "alpha-test",
+        }),
+        drawPacket({
+          renderId: 5,
+          materialFamily: "unlit",
+          queue: "opaque",
+        }),
+      ]),
+      resourceResolvers(),
+    );
+
+    expect(createMaterialQueuePhaseSummary(plan.items)).toEqual({
+      itemCount: 5,
+      byPhase: [
+        { phase: "opaque", itemCount: 2 },
+        { phase: "alpha-test", itemCount: 1 },
+        { phase: "transparent", itemCount: 2 },
+      ],
+      byFamily: [
+        { family: "matcap", itemCount: 1 },
+        { family: "standard", itemCount: 2 },
+        { family: "unlit", itemCount: 2 },
+      ],
+      byPhaseAndFamily: [
+        { phase: "opaque", family: "standard", itemCount: 1 },
+        { phase: "opaque", family: "unlit", itemCount: 1 },
+        { phase: "alpha-test", family: "standard", itemCount: 1 },
+        { phase: "transparent", family: "matcap", itemCount: 1 },
+        { phase: "transparent", family: "unlit", itemCount: 1 },
+      ],
+    });
+  });
+
+  it("keeps material queue phase summaries JSON-safe", () => {
+    const plan = buildMaterialQueueFromSnapshot(
+      renderSnapshot([
+        drawPacket({
+          renderId: 6,
+          materialFamily: "standard",
+          meshId: "sphere",
+          materialId: "brushed-metal",
+          queue: "opaque",
+        }),
+      ]),
+      resourceResolvers(),
+    );
+    const summary = createMaterialQueuePhaseSummary(plan.items);
+    const serialized = JSON.stringify(summary);
+
+    expect(JSON.parse(serialized)).toEqual(summary);
+    expect(serialized).not.toContain("mesh:");
+    expect(serialized).not.toContain("material:");
+    expect(serialized).not.toContain("gpu-");
+    expect(serialized).not.toContain("renderId");
+    expect(serialized).not.toContain("entity");
+    expect(serialized).not.toContain("GPU");
   });
 
   it("extracts known material family tokens from pipeline keys", () => {

@@ -413,6 +413,9 @@ async function runStandardMaterialDependencyScenario(aperture, canvasElement) {
 
 function scenarioStatus(aperture, caseId, expectedDiagnostic, report) {
   const reportJson = aperture.webGpuAppRenderReportToJsonValue(report);
+  const dependencySummary = aperture.createMaterialDependencyDiagnosticsSummary(
+    reportJson.materialDependencyReadiness ?? [],
+  );
   const diagnosticCodes = reportJson.diagnostics
     .map((diagnostic) =>
       diagnostic !== null &&
@@ -437,6 +440,7 @@ function scenarioStatus(aperture, caseId, expectedDiagnostic, report) {
     expectedDiagnostic,
     submitted: report.boundary?.submit?.valid === true,
     diagnosticCodes,
+    dependencySummary,
     ...(materialDependency === null
       ? {}
       : {
