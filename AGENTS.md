@@ -67,6 +67,8 @@ through GitHub Pages. Keep it useful for quick status checks:
 - If a task touches the render pipeline, also update
   `docs/render-pipeline-comparison.html` so the phase estimates and missing
   pieces reflect the latest state.
+- Run `pnpm run check:progress` after tracker edits to verify both public
+  tracker pages have fresh update dates and six phase-status entries.
 - Render pipeline status should list each phase, a rough completion percentage,
   and concrete missing implementation pieces.
 - Do not treat percentages as release promises. They are quick-read estimates

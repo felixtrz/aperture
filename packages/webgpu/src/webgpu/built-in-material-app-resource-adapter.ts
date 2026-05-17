@@ -21,6 +21,20 @@ export type QueuedBuiltInFrameResource =
   | MatcapFrameGpuResources
   | StandardFrameGpuResources;
 
+export interface QueuedMaterialFrameResourceAdapterResult<
+  TResources = unknown,
+  TDiagnostic = unknown,
+> {
+  readonly valid: boolean;
+  readonly resources: TResources | null;
+  readonly diagnostics: readonly TDiagnostic[];
+}
+
+export interface QueuedMaterialFrameResourceAdapterContext<TItem, TOptions> {
+  readonly item: TItem;
+  readonly options: TOptions;
+}
+
 export type CreateQueuedBuiltInFamilyFrameResourcesResult =
   | CreateUnlitAppFrameResourcesResult
   | CreateMatcapAppFrameResourcesResult

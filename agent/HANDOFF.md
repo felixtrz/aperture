@@ -2,6 +2,116 @@
 
 ## Latest Run Update
 
+Completed `task-0969`, `task-0970`, `task-0973`, and `task-0982` through
+`task-1001`. Recommended next task is `task-1002`.
+
+Completed task ids:
+
+- `task-0969`
+- `task-0970`
+- `task-0973`
+- `task-0982` through `task-1001`
+
+Highlights:
+
+- Planned and audited the StandardMaterial texture fidelity diagnostics slice in
+  `docs/research/STANDARD_MATERIAL_TEXTURE_FIDELITY_DIAGNOSTICS_PLAN_2026_05_17.md`
+  and
+  `docs/research/STANDARD_MATERIAL_TEXTURE_FIDELITY_PLAN_BOUNDARY_AUDIT_2026_05_17.md`.
+- Added `createStandardMaterialTextureFidelitySummary()` in
+  `packages/webgpu/src/webgpu/standard-material-texture-fidelity-summary.ts`
+  and exported it from the WebGPU package.
+- Added tests proving the summary counts ready fields plus sampler,
+  color-space, semantic, UV, and transform issues without leaking material,
+  texture, sampler, or GPU handles.
+- Added `scripts/check-progress-tracker.mjs`, `pnpm run check:progress`, and
+  wired it into `pnpm run check`. The check verifies local tracker freshness and
+  six render-pipeline phase-status entries without network access or exact
+  percentage coupling.
+- Documented the public tracker workflow in `README.md`, `AGENTS.md`, and
+  `docs/index.html`.
+- Planned and audited the generic frame-resource success-path migration in
+  `docs/research/GENERIC_FRAME_RESOURCE_SUCCESS_PATH_MIGRATION_PLAN_2026_05_17.md`
+  and
+  `docs/research/GENERIC_FRAME_RESOURCE_SUCCESS_PATH_PLAN_BOUNDARY_AUDIT_2026_05_17.md`.
+- Added a successful mixed-family app regression proving valid frames continue
+  to omit `webGpuApp.frameResourceRoute` diagnostics by default, then audited
+  that test-only slice in
+  `docs/research/SUCCESSFUL_FRAME_ROUTE_SHELL_OMISSION_REGRESSION_AUDIT_2026_05_17.md`.
+- Extracted frame-resource route shell creation into
+  `createQueuedBuiltInFrameResourceRouteShell()` inside `app.ts`, preserving the
+  existing failure diagnostic and successful-report behavior.
+- Audited that internal wrapper in
+  `docs/research/INTERNAL_FRAME_RESOURCE_ROUTE_SHELL_BOUNDARY_AUDIT_2026_05_17.md`.
+- Documented `createStandardMaterialTextureFidelitySummary()` in
+  `docs/DIAGNOSTICS_SUMMARIES.md`, planned to keep app exposure manual/opt-in
+  in
+  `docs/research/OPTIONAL_TEXTURE_FIDELITY_APP_DIAGNOSTICS_PLAN_2026_05_17.md`,
+  and audited the docs boundary in
+  `docs/research/TEXTURE_FIDELITY_SUMMARY_DOCS_BOUNDARY_AUDIT_2026_05_17.md`.
+- Audited the tracker validation workflow in
+  `docs/research/PROGRESS_TRACKER_VALIDATION_WORKFLOW_AUDIT_2026_05_17.md`.
+- Planned and added a generic frame-resource adapter result/context contract in
+  `packages/webgpu/src/webgpu/built-in-material-app-resource-adapter.ts`, with
+  test coverage in `test/webgpu/built-in-material-app-resource-adapter.test.ts`.
+- Planned and added example-only StandardMaterial texture fidelity summary usage
+  in `examples/app-diagnostics.js`; Playwright now verifies the summary counts
+  sampler, color-space, semantic, UV, and transform issues without exposing
+  handles.
+- Audited that example boundary in
+  `docs/research/STANDARD_TEXTURE_FIDELITY_EXAMPLE_USAGE_BOUNDARY_AUDIT_2026_05_17.md`.
+- Updated `docs/index.html` and `docs/render-pipeline-comparison.html` to
+  reflect the new diagnostics helper, tracker validation, route-shell wrapper,
+  frame-resource contract, example coverage, docs/audits, and next task.
+- Refilled the ready backlog with `task-1002` through `task-1006`.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/standard-material-texture-fidelity-summary.test.ts`
+- `pnpm exec tsc --noEmit -p packages/webgpu/tsconfig.json`
+- `pnpm run check:progress`
+- `node --check scripts/check-progress-tracker.mjs`
+- `pnpm exec prettier --check README.md docs/index.html scripts/check-progress-tracker.mjs package.json AGENTS.md test/webgpu/standard-material-texture-fidelity-summary.test.ts packages/webgpu/src/webgpu/standard-material-texture-fidelity-summary.ts`
+- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts --testNamePattern "routes scalar and textured StandardMaterial queue items with unlit and matcap draws"`
+- `pnpm exec vitest run test/webgpu/queued-material-frame-resource-route.test.ts`
+- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts --testNamePattern "frameResourceRoute|routes scalar and textured StandardMaterial queue items with unlit and matcap draws"`
+- `pnpm run check` passed: package boundaries, progress tracker validation,
+  build/typecheck, test typecheck, examples syntax, lint, format check, and 241
+  Vitest files / 1138 tests.
+- `pnpm exec vitest run test/webgpu/built-in-material-app-resource-adapter.test.ts`
+- `pnpm run check:examples`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm run build`
+- `pnpm exec playwright test test/e2e/app-diagnostics.spec.ts`
+
+Reference files/patterns inspected:
+
+- PlayCanvas/engine anchors:
+  `references/engine/src/framework/parsers/glb-parser.js`,
+  `references/engine/src/platform/graphics/texture.js`, and
+  `references/engine/src/scene/shader-lib/programs/standard.js`.
+- three.js anchors:
+  `references/three.js/examples/jsm/loaders/GLTFLoader.js`,
+  `references/three.js/src/materials/MeshStandardMaterial.js`,
+  `references/three.js/src/textures/Texture.js`, and
+  `references/three.js/src/renderers/webgl/WebGLTextures.js`.
+- Bevy/render anchors:
+  `references/bevy/crates/bevy_render/src/render_phase/mod.rs`.
+- Aperture local anchors:
+  `packages/render/src/materials/standard-texture-readiness.ts`,
+  `packages/render/src/materials/gltf-sampler.ts`,
+  `packages/render/src/rendering/extraction.ts`,
+  `packages/webgpu/src/webgpu/app.ts`,
+  `packages/webgpu/src/webgpu/queued-material-frame-resource-route.ts`, and
+  `packages/webgpu/src/webgpu/standard-shader.ts`.
+
+Known issues / follow-ups:
+
+- No known validation failures.
+- Next task: `task-1002` plan render-world prepared resource summary alignment.
+
+## Previous Run Update
+
 Completed `task-0961` through `task-0981`, converted the local render pipeline
 comparison into a public GitHub Pages-ready project tracker, and verified the
 public root URL no longer returns 404 after push.

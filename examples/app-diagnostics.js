@@ -63,6 +63,8 @@ try {
                   standardMaterialDependencies.status,
                 mixedMaterialSuccess: mixedMaterialSuccess.status,
               },
+              textureFidelitySummary:
+                createExampleTextureFidelitySummary(aperture),
               diagnosticCodes: [
                 ...mixedMaterials.status.diagnosticCodes,
                 ...materialDependencies.status.diagnosticCodes,
@@ -486,6 +488,79 @@ function successScenarioStatus(aperture, caseId, report) {
       ? "Mixed material-family app rendering submitted successfully."
       : "Mixed material-family app rendering did not submit.",
     report: reportJson,
+  };
+}
+
+function createExampleTextureFidelitySummary(aperture) {
+  return aperture.createStandardMaterialTextureFidelitySummary([
+    {
+      ready: false,
+      materialKey: "material:example-standard-texture-fidelity",
+      materialStatus: "ready",
+      materialKind: "standard",
+      slots: [
+        textureFidelitySlot("baseColorTexture", "texture:example-base", false),
+        textureFidelitySlot("normalTexture", "texture:example-normal", true),
+        textureFidelitySlot(
+          "emissiveTexture",
+          "texture:example-emissive",
+          true,
+        ),
+      ],
+      diagnostics: [
+        textureFidelityDiagnostic(
+          "standardMaterialTexture.invalidColorSpace",
+          "baseColorTexture",
+        ),
+        textureFidelityDiagnostic(
+          "standardMaterialTexture.invalidSemantic",
+          "baseColorTexture",
+        ),
+        textureFidelityDiagnostic(
+          "standardMaterialTexture.missingSamplerHandle",
+          "normalTexture",
+        ),
+        textureFidelityDiagnostic(
+          "standardMaterialTexture.samplerNotReady",
+          "emissiveTexture",
+        ),
+        textureFidelityDiagnostic(
+          "standardMaterialTexture.unsupportedTexCoord",
+          "occlusionTexture",
+        ),
+        textureFidelityDiagnostic(
+          "standardMaterialTexture.unsupportedTextureTransform",
+          "metallicRoughnessTexture",
+        ),
+      ],
+    },
+  ]);
+}
+
+function textureFidelitySlot(field, textureKey, ready) {
+  const baseColor = field === "baseColorTexture";
+
+  return {
+    field,
+    textureKey,
+    expectedSemantic: baseColor ? "base-color" : "metallic-roughness",
+    actualSemantic: baseColor ? "base-color" : "metallic-roughness",
+    expectedColorSpaces: baseColor ? ["srgb"] : ["linear", "data"],
+    actualColorSpace: baseColor ? "srgb" : "data",
+    texCoord: 0,
+    ready,
+  };
+}
+
+function textureFidelityDiagnostic(code, field) {
+  return {
+    code,
+    severity: "warning",
+    materialKey: "material:example-standard-texture-fidelity",
+    field,
+    textureKey: `texture:${field}`,
+    samplerKey: `sampler:${field}`,
+    message: `${field} produced a texture fidelity issue.`,
   };
 }
 

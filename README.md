@@ -45,8 +45,30 @@ npm run lint
 npm run format:check
 ```
 
-`npm run check` runs TypeScript checks, browser harness syntax checks, lint,
-format checking, and the Vitest suite. Build output is emitted to `dist/`.
+`npm run check` runs package boundary checks, progress tracker freshness
+validation, TypeScript checks, browser harness syntax checks, lint, format
+checking, and the Vitest suite. Build output is emitted to `dist/`.
+
+## Public Progress Tracker
+
+The static project dashboard is published from
+[`docs/index.html`](docs/index.html) through GitHub Pages at
+[`https://felixtrz.github.io/aperture/`](https://felixtrz.github.io/aperture/).
+
+Update `docs/index.html` whenever a run changes project status, completes
+notable backlog work, changes the recommended next task, or materially changes
+overall completion estimates. Render-pipeline work should also update
+[`docs/render-pipeline-comparison.html`](docs/render-pipeline-comparison.html)
+so phase estimates and concrete missing pieces stay aligned.
+
+Run tracker validation after edits:
+
+```sh
+npm run check:progress
+```
+
+The check is local-only. It verifies recent update dates and six phase-status
+entries without requiring network access or exact percentage values.
 
 Run browser examples:
 

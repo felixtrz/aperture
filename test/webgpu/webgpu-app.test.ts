@@ -3119,6 +3119,7 @@ describe("WebGPU app facade", () => {
       diagnostics: 0,
     });
     expectNoMaterialQueueRouteReport(frame);
+    expectNoFrameResourceRouteDiagnostic(frame);
     expect(frame.resourceReuse).toMatchObject({
       pipelineMisses: 4,
       meshBuffersCreated: 1,
@@ -3175,6 +3176,7 @@ describe("WebGPU app facade", () => {
       diagnostics: 0,
     });
     expectNoMaterialQueueRouteReport(secondFrame);
+    expectNoFrameResourceRouteDiagnostic(secondFrame);
     expect(secondFrame.resourceReuse).toMatchObject({
       pipelineHits: 4,
       pipelineMisses: 0,
@@ -6333,6 +6335,18 @@ function expectNoMaterialQueueRouteReport(report: {
     expect.arrayContaining([
       expect.objectContaining({
         code: "webGpuApp.materialQueueRouteReport",
+      }),
+    ]),
+  );
+}
+
+function expectNoFrameResourceRouteDiagnostic(report: {
+  readonly diagnostics: readonly unknown[];
+}): void {
+  expect(report.diagnostics).not.toEqual(
+    expect.arrayContaining([
+      expect.objectContaining({
+        code: "webGpuApp.frameResourceRoute",
       }),
     ]),
   );

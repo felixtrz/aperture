@@ -19,6 +19,7 @@ interface AppDiagnosticsStatus extends ExampleStatusBase {
     readonly standardMaterialDependencies?: AppDiagnosticScenarioStatus;
     readonly mixedMaterialSuccess?: AppDiagnosticScenarioStatus;
   };
+  readonly textureFidelitySummary?: AppDiagnosticTextureFidelitySummary;
 }
 
 interface AppDiagnosticScenarioStatus {
@@ -76,6 +77,30 @@ interface AppDiagnosticDependencySummary {
     readonly total: number;
     readonly byCode: Record<string, number>;
   };
+}
+
+interface AppDiagnosticTextureFidelitySummary {
+  readonly materialCount: number;
+  readonly readyMaterialCount: number;
+  readonly blockedMaterialCount: number;
+  readonly slotCount: number;
+  readonly readySlotCount: number;
+  readonly blockedSlotCount: number;
+  readonly byField: readonly {
+    readonly field: string;
+    readonly slotCount: number;
+    readonly readySlotCount: number;
+    readonly blockedSlotCount: number;
+  }[];
+  readonly byIssue: readonly {
+    readonly code: string;
+    readonly count: number;
+  }[];
+  readonly samplerIssueCount: number;
+  readonly colorSpaceIssueCount: number;
+  readonly semanticIssueCount: number;
+  readonly texCoordIssueCount: number;
+  readonly transformIssueCount: number;
 }
 
 test("app diagnostics example exposes app-facade failure reports", async ({
@@ -212,6 +237,8 @@ test("app diagnostics example exposes app-facade failure reports", async ({
     },
   });
   expect(success?.diagnosticCodes).toEqual([]);
+  expectTextureFidelitySummary(status.textureFidelitySummary);
+  expectTextureFidelitySummaryOmitsHandles(status.textureFidelitySummary);
 
   await page.waitForTimeout(100);
 
@@ -278,6 +305,56 @@ function expectDependencySummaryOmitsHandles(
   const serialized = JSON.stringify(summary);
 
   for (const substring of substrings) {
+    expect(serialized).not.toContain(substring);
+  }
+}
+
+function expectTextureFidelitySummary(
+  summary: AppDiagnosticTextureFidelitySummary | undefined,
+): void {
+  expect(summary).toMatchObject({
+    materialCount: 1,
+    readyMaterialCount: 0,
+    blockedMaterialCount: 1,
+    slotCount: 5,
+    readySlotCount: 0,
+    blockedSlotCount: 5,
+    samplerIssueCount: 2,
+    colorSpaceIssueCount: 1,
+    semanticIssueCount: 1,
+    texCoordIssueCount: 1,
+    transformIssueCount: 1,
+  });
+  expect(summary?.byField.map((field) => field.field)).toEqual([
+    "baseColorTexture",
+    "metallicRoughnessTexture",
+    "normalTexture",
+    "occlusionTexture",
+    "emissiveTexture",
+  ]);
+  expect(summary?.byIssue.map((issue) => issue.code)).toEqual([
+    "standardMaterialTexture.invalidColorSpace",
+    "standardMaterialTexture.invalidSemantic",
+    "standardMaterialTexture.missingSamplerHandle",
+    "standardMaterialTexture.samplerNotReady",
+    "standardMaterialTexture.unsupportedTexCoord",
+    "standardMaterialTexture.unsupportedTextureTransform",
+  ]);
+}
+
+function expectTextureFidelitySummaryOmitsHandles(
+  summary: AppDiagnosticTextureFidelitySummary | undefined,
+): void {
+  const serialized = JSON.stringify(summary);
+
+  for (const substring of [
+    "example-standard-texture-fidelity",
+    "example-base",
+    "example-normal",
+    "example-emissive",
+    "sampler:",
+    "GPU",
+  ]) {
     expect(serialized).not.toContain(substring);
   }
 }

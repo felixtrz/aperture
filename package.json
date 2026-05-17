@@ -11,6 +11,7 @@
     "typecheck": "pnpm run build",
     "typecheck:test": "tsc --noEmit -p tsconfig.test.json",
     "check:boundaries": "node scripts/check-package-boundaries.mjs",
+    "check:progress": "node scripts/check-progress-tracker.mjs",
     "check:examples": "node --check scripts/serve-examples.mjs && node --check examples/main.js && node --check examples/triangle.js && node --check examples/multi-entity.js && node --check examples/spinning-cube.js && node --check examples/matcap-app.js && node --check examples/materials-showcase.js && node --check examples/app-diagnostics.js && node --check examples/standard-queue-phases.js && node --check examples/webgpu-readback.js",
     "lint": "eslint .",
     "test": "vitest run",
@@ -20,7 +21,7 @@
     "test:e2e:install": "playwright install chrome",
     "examples:build": "pnpm run build",
     "examples:serve": "node scripts/serve-examples.mjs",
-    "check": "pnpm run check:boundaries && pnpm run typecheck && pnpm run typecheck:test && pnpm run check:examples && pnpm run lint && pnpm run format:check && pnpm test",
+    "check": "pnpm run check:boundaries && pnpm run check:progress && pnpm run typecheck && pnpm run typecheck:test && pnpm run check:examples && pnpm run lint && pnpm run format:check && pnpm test",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
   },

@@ -59,9 +59,9 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start with `task-0969`. Successful-frame route shells are intentionally omitted
-for now and the policy boundary audit passed. The next step is to resume
-StandardMaterial texture fidelity diagnostics planning.
+Start with `task-1002`. The generic frame-resource adapter result contract and
+texture fidelity example coverage are in place; the next step is to plan a
+small render-world prepared resource summary alignment slice.
 
 ## Near-Term Proof Point Track
 
@@ -78,11 +78,11 @@ Target proof point:
 
 Remaining automation priority order:
 
-1. `task-0969` — plan StandardMaterial texture fidelity diagnostics slice.
-2. `task-0982` — audit StandardMaterial texture fidelity plan boundaries.
-3. `task-0983` — add StandardMaterial texture fidelity diagnostics coverage.
-4. `task-0970` — add progress tracker freshness validation.
-5. `task-0973` — document public progress tracker workflow.
+1. `task-1002` — plan render-world prepared resource summary alignment.
+2. `task-1003` — add render-world prepared resource summary alignment coverage.
+3. `task-1004` — audit render-world prepared resource summary boundaries.
+4. `task-1005` — plan StandardMaterial sampler fidelity diagnostics coverage.
+5. `task-1006` — audit latest diagnostics/example tracker alignment.
 
 Defer allocation-only cleanup and metadata-only shader-contract tasks unless
 they are a direct blocker for this track.
@@ -148,91 +148,89 @@ viewer/material mapping should not outrun the material and queue architecture.
 
 ### Proof Point Critical Path
 
-### task-0982 — Audit StandardMaterial texture fidelity plan boundaries
+### task-1002 — Plan render-world prepared resource summary alignment
+
+Category: `docs-tooling`
+Package/write-scope: `docs/research`, `agent/BACKLOG.md`, and tracker files if
+render-pipeline estimates change.
+Reference anchor:
+`packages/render/src/rendering`, `packages/webgpu/src/webgpu/resource-summary.ts`,
+current prepared mesh/material cache summaries, and Bevy render asset
+preparation patterns.
+
+Acceptance criteria:
+
+- Plan identifies the smallest alignment slice between render-world prepared
+  resource summaries and WebGPU app resource summaries.
+- Plan keeps retained backend cache summaries separate from renderer-independent
+  prepared facade summaries.
+- Plan adds or confirms a focused implementation follow-up.
+
+### task-1003 — Add render-world prepared resource summary alignment coverage
+
+Category: `webgpu-render`
+Package/write-scope: `packages/render`, `packages/webgpu/src/webgpu`, targeted
+tests, and tracker files if render-pipeline estimates change.
+Reference anchor:
+Plan from `task-1002`, existing prepared mesh/material facade summaries, and
+WebGPU resource summary helpers.
+
+Acceptance criteria:
+
+- Focused helper or tests align render-world prepared facade summary fields with
+  app resource summary expectations.
+- JSON output remains handle-safe and keeps backend cache data separate.
+- Targeted tests and relevant TypeScript validation pass.
+
+### task-1004 — Audit render-world prepared resource summary boundaries
 
 Category: `audit-refactor`
 Package/write-scope: `docs/research`, `agent/BACKLOG.md`, and tracker files if
-material/render-pipeline estimates change.
+render-pipeline estimates change.
 Reference anchor:
-StandardMaterial texture fidelity diagnostics plan from `task-0969`,
-`docs/ARCHITECTURE.md`, `docs/MEDIUM_LONG_TERM_GOALS.md`, and existing
-StandardMaterial texture readiness tests.
+Implementation from `task-1003`, `docs/ARCHITECTURE.md`, `docs/DECISIONS.md`,
+and prepared resource summary tests.
 
 Acceptance criteria:
 
-- Audit verifies the texture fidelity plan stays out of IBL, shadows, and broad
-  PBR shader rewrites.
-- Audit verifies diagnostics remain renderer-owned and JSON-safe.
-- Follow-up backlog wording is tightened if implementation scope is ambiguous.
+- Audit verifies renderer-independent prepared summaries do not expose WebGPU
+  handles.
+- Audit verifies retained backend cache summaries remain separate.
+- Audit verifies no ECS/source ownership drift.
 
-### task-0983 — Add StandardMaterial texture fidelity diagnostics coverage
-
-Category: `webgpu-render`
-Package/write-scope: `packages/webgpu/src/webgpu`, `test/webgpu`, and tracker
-files if material/render-pipeline estimates change.
-Reference anchor:
-StandardMaterial texture fidelity diagnostics plan from `task-0969`, audit from
-`task-0982`, current StandardMaterial texture readiness tests, and
-PlayCanvas/three.js texture channel handling.
-
-Acceptance criteria:
-
-- Focused tests cover the first sampler/color-space/texture-field fidelity gap
-  selected by `task-0969`.
-- Diagnostics remain JSON-safe and do not claim unsupported PBR features are
-  rendered.
-- Targeted tests and WebGPU TypeScript validation pass.
-
-### task-0969 — Plan StandardMaterial texture fidelity diagnostics slice
+### task-1005 — Plan StandardMaterial sampler fidelity diagnostics coverage
 
 Category: `docs-tooling`
-Package/write-scope: `docs/research`, `agent/BACKLOG.md`, and progress tracker
-status if material/pipeline estimates change.
+Package/write-scope: `docs/research`, `agent/BACKLOG.md`, and tracker files if
+diagnostics status changes.
 Reference anchor:
-StandardMaterial texture readiness, glTF metallic-roughness expectations,
-PlayCanvas/three.js texture channel handling, and
-`docs/MEDIUM_LONG_TERM_GOALS.md`.
+`packages/render/src/materials/gltf-sampler.ts`,
+`packages/render/src/materials/standard-texture-readiness.ts`,
+`docs/MEDIUM_LONG_TERM_GOALS.md`, and PlayCanvas/three.js sampler handling.
 
 Acceptance criteria:
 
-- Plan defines a narrow diagnostics/test slice for sampler, color-space, and
-  texture-field fidelity gaps.
-- Plan keeps scope out of IBL, shadows, and broad PBR shader rewrites.
-- Plan adds or confirms a focused implementation follow-up.
+- Plan identifies the next narrow sampler fidelity gap, if any, after current
+  summary/example coverage.
+- Plan keeps scope out of texture upload, IBL, shadows, and broad PBR rewrites.
+- Plan adds, defers, or closes a concrete implementation follow-up.
 
-### task-0970 — Add progress tracker freshness validation
+### task-1006 — Audit latest diagnostics/example tracker alignment
 
-Category: `docs-tooling`
-Package/write-scope: `scripts`, `docs/index.html`,
-`docs/render-pipeline-comparison.html`, and targeted tests/checks.
+Category: `audit-refactor`
+Package/write-scope: `docs/research`, `docs/index.html`,
+`docs/render-pipeline-comparison.html`, `docs/DIAGNOSTICS_SUMMARIES.md`, and
+agent docs/backlog if needed.
 Reference anchor:
-Public progress tracker instruction in `AGENTS.md`, GitHub Pages `docs/`
-source configuration, and current stop-hook validation flow.
+Latest diagnostics/example changes, progress tracker workflow, `docs/ARCHITECTURE.md`,
+and `docs/DECISIONS.md`.
 
 Acceptance criteria:
 
-- A lightweight check or script verifies the progress tracker has a recent
-  updated date and render-pipeline phase status entries.
-- The check avoids network requirements and does not block ordinary docs edits
-  on exact percentage values.
-- Validation command is documented for future agents.
-
-### task-0973 — Document public progress tracker workflow
-
-Category: `docs-tooling`
-Package/write-scope: `README.md`, `docs/index.html`, and agent workflow docs if
-needed.
-Reference anchor:
-GitHub Pages `main` `/docs` configuration, public progress tracker instruction
-in `AGENTS.md`, and `docs/render-pipeline-comparison.html` update rule.
-
-Acceptance criteria:
-
-- README or project docs link to the public progress tracker and explain that it
-  is generated from `docs/index.html`.
-- Workflow wording states render-pipeline changes must update both the overview
-  tracker and detailed comparison page.
-- Docs validation or format check passes.
+- Audit verifies trackers, diagnostics docs, and backlog agree on the next
+  material/render direction.
+- Audit verifies no public app report behavior is overstated.
+- Any stale tracker wording is corrected.
 
 ## Post-Unlit E2E Verification Targets
 

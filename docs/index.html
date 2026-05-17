@@ -393,13 +393,13 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-17 11:52 PDT</dd>
+            <dd>2026-05-17 12:23 PDT</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
-            <dd>Pages dashboard live; successful-shell policy audited</dd>
+            <dd>Frame-resource contract and texture fidelity example landed</dd>
             <dt>Next focus</dt>
-            <dd>task-0969 StandardMaterial texture fidelity plan</dd>
+            <dd>task-1002 prepared resource summary alignment plan</dd>
           </dl>
         </aside>
       </header>
@@ -447,24 +447,27 @@
           </article>
           <article class="card metric">
             <div class="label">material system</div>
-            <div class="value">48%</div>
-            <div class="bar" aria-label="48 percent complete">
-              <span style="width: 48%"></span>
+            <div class="value">49%</div>
+            <div class="bar" aria-label="49 percent complete">
+              <span style="width: 49%"></span>
             </div>
             <p>
               Unlit, Matcap, DebugNormal, and direct-lit StandardMaterial paths
-              are present. glTF PBR texture fidelity is still incomplete.
+              are present, with aggregate texture fidelity diagnostics now
+              covered. glTF PBR texture fidelity is still incomplete.
             </p>
           </article>
           <article class="card metric">
             <div class="label">diagnostics</div>
-            <div class="value">65%</div>
-            <div class="bar" aria-label="65 percent complete">
-              <span style="width: 65%"></span>
+            <div class="value">67%</div>
+            <div class="bar" aria-label="67 percent complete">
+              <span style="width: 67%"></span>
             </div>
             <p>
               JSON-safe reports now cover extraction, queues, app summaries,
-              dependency readiness, resource reuse, and render-state inspection.
+              dependency readiness, texture fidelity, resource reuse,
+              render-state inspection, tracker freshness validation, and
+              example-level texture fidelity summary usage.
             </p>
           </article>
         </div>
@@ -620,12 +623,13 @@
           <article class="phase">
             <div class="topline">
               <h3>3. prepare</h3>
-              <span class="percent">68%</span>
+              <span class="percent">69%</span>
             </div>
-            <div class="bar"><span style="width: 68%"></span></div>
+            <div class="bar"><span style="width: 69%"></span></div>
             <p>
               Prepared mesh/material facades and WebGPU-private backend caches
-              exist for built-in material families.
+              exist for built-in material families, with texture fidelity
+              summaries now covered for StandardMaterial readiness data.
             </p>
             <ul>
               <li>Missing generic material-family preparation contract.</li>
@@ -640,14 +644,15 @@
           <article class="phase">
             <div class="topline">
               <h3>4. queue</h3>
-              <span class="percent">68%</span>
+              <span class="percent">69%</span>
             </div>
-            <div class="bar"><span style="width: 68%"></span></div>
+            <div class="bar"><span style="width: 69%"></span></div>
             <p>
               Material-family queueing, route diagnostics, resource key
               resolution, Standard transparent phases, app route reporting, and
               failure diagnostics for frame-resource route shells are
-              implemented.
+              implemented; successful frames now route through an internal shell
+              wrapper with omission regression coverage.
             </p>
             <ul>
               <li>
@@ -793,18 +798,115 @@
                 <span class="badge green">task-0981</span> Audited the
                 successful route shell reporting policy.
               </li>
+              <li>
+                <span class="badge green">task-0969</span> Planned
+                StandardMaterial texture fidelity diagnostics.
+              </li>
+              <li>
+                <span class="badge green">task-0982</span> Audited the texture
+                fidelity plan boundary.
+              </li>
+              <li>
+                <span class="badge green">task-0983</span> Added the
+                StandardMaterial texture fidelity summary helper and tests.
+              </li>
+              <li>
+                <span class="badge green">task-0970</span> Added local progress
+                tracker freshness validation.
+              </li>
+              <li>
+                <span class="badge green">task-0973</span> Documented the public
+                tracker workflow.
+              </li>
+              <li>
+                <span class="badge green">task-0984</span> Audited the texture
+                fidelity summary boundary.
+              </li>
+              <li>
+                <span class="badge green">task-0985</span> Planned the generic
+                frame-resource success-path migration.
+              </li>
+              <li>
+                <span class="badge green">task-0986</span> Audited the generic
+                frame-resource success-path plan.
+              </li>
+              <li>
+                <span class="badge green">task-0987</span> Added a successful
+                frame route-shell omission regression.
+              </li>
+              <li>
+                <span class="badge green">task-0988</span> Audited the
+                route-shell omission regression.
+              </li>
+              <li>
+                <span class="badge green">task-0989</span> Wrapped
+                frame-resource route shell creation in a named internal app
+                helper.
+              </li>
+              <li>
+                <span class="badge green">task-0990</span> Audited the internal
+                frame-resource route shell boundary.
+              </li>
+              <li>
+                <span class="badge green">task-0991</span> Documented the
+                StandardMaterial texture fidelity summary helper.
+              </li>
+              <li>
+                <span class="badge green">task-0992</span> Planned optional app
+                diagnostics exposure for texture fidelity summaries.
+              </li>
+              <li>
+                <span class="badge green">task-0993</span> Audited progress
+                tracker validation and workflow boundaries.
+              </li>
+              <li>
+                <span class="badge green">task-0994</span> Added manual texture
+                fidelity summary usage guidance.
+              </li>
+              <li>
+                <span class="badge green">task-0995</span> Audited the texture
+                fidelity summary docs boundary.
+              </li>
+              <li>
+                <span class="badge green">task-0996</span> Planned generic
+                frame-resource adapter contract extraction.
+              </li>
+              <li>
+                <span class="badge green">task-0997</span> Added generic
+                frame-resource adapter result contract coverage.
+              </li>
+              <li>
+                <span class="badge green">task-0998</span> Audited the generic
+                frame-resource adapter contract boundary.
+              </li>
+              <li>
+                <span class="badge green">task-0999</span> Planned texture
+                fidelity example usage.
+              </li>
+              <li>
+                <span class="badge green">task-1000</span> Added app diagnostics
+                example and Playwright coverage for texture fidelity summaries.
+              </li>
+              <li>
+                <span class="badge green">task-1001</span> Audited texture
+                fidelity example usage boundaries.
+              </li>
             </ul>
           </article>
           <article class="card task-list">
             <h3>Recommended next tasks</h3>
             <ul>
               <li>
-                <span class="badge amber">task-0969</span> Plan StandardMaterial
-                texture fidelity diagnostics.
+                <span class="badge amber">task-1002</span> Plan render-world
+                prepared resource summary alignment.
               </li>
               <li>
-                <span class="badge amber">task-0982</span> Audit
-                StandardMaterial texture fidelity plan boundaries.
+                <span class="badge amber">task-1003</span> Add render-world
+                prepared resource summary alignment coverage.
+              </li>
+              <li>
+                <span class="badge amber">task-1004</span> Audit render-world
+                prepared resource summary boundaries.
               </li>
               <li>
                 Keep this tracker updated after render-pipeline or
@@ -924,7 +1026,7 @@
       <footer>
         Aperture is ECS-authoritative, WebGPU-only, and render-snapshot driven.
         Update this page whenever project status or render-pipeline state
-        changes.
+        changes; run <code>pnpm run check:progress</code> after tracker edits.
       </footer>
     </div>
   </body>

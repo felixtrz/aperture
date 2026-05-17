@@ -5,6 +5,7 @@ import {
   createQueuedBuiltInAppResourceFamilyAdapterTable,
   type PreparedAppTextureSamplerResources,
   type QueuedBuiltInFrameResource,
+  type QueuedMaterialFrameResourceAdapterResult,
 } from "@aperture-engine/webgpu";
 
 describe("built-in material app resource adapter factory", () => {
@@ -53,9 +54,15 @@ describe("built-in material app resource adapter factory", () => {
     registry.get("unlit")?.prepareTextureSamplerResources({ token: "a" });
     registry.get("matcap")?.prepareTextureSamplerResources({ token: "b" });
     registry.get("standard")?.prepareTextureSamplerResources({ token: "c" });
-    registry.get("unlit")?.createFrameResources({ token: "d" });
-    registry.get("matcap")?.createFrameResources({ token: "e" });
-    registry.get("standard")?.createFrameResources({ token: "f" });
+    const unlitFrameResources: QueuedMaterialFrameResourceAdapterResult =
+      registry.get("unlit")?.createFrameResources({ token: "d" }) ??
+      frameResult();
+    const matcapFrameResources: QueuedMaterialFrameResourceAdapterResult =
+      registry.get("matcap")?.createFrameResources({ token: "e" }) ??
+      frameResult();
+    const standardFrameResources: QueuedMaterialFrameResourceAdapterResult =
+      registry.get("standard")?.createFrameResources({ token: "f" }) ??
+      frameResult();
 
     expect(calls).toEqual([
       "texture:unlit:a",
@@ -65,6 +72,11 @@ describe("built-in material app resource adapter factory", () => {
       "frame:matcap:e",
       "frame:standard:f",
     ]);
+    expect([
+      unlitFrameResources,
+      matcapFrameResources,
+      standardFrameResources,
+    ]).toEqual([frameResult(), frameResult(), frameResult()]);
   });
 
   it("appends created frame resources into the matching family buckets", () => {

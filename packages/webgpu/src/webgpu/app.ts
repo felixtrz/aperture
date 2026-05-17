@@ -175,6 +175,7 @@ import {
 } from "./reusable-route-collector.js";
 import {
   createQueuedMaterialFrameResourceRouteShell,
+  type QueuedMaterialFrameResourceResultLike,
   type QueuedMaterialFrameResourceRouteShell,
 } from "./queued-material-frame-resource-route.js";
 import {
@@ -1164,6 +1165,18 @@ function createWebGpuAppFrameResourceRouteDiagnostic(
   };
 }
 
+function createQueuedBuiltInFrameResourceRouteShell(input: {
+  readonly item: QueuedBuiltInAppResourceItem;
+  readonly resources: QueuedMaterialFrameResourceResultLike<unknown>;
+}): QueuedMaterialFrameResourceRouteShell {
+  return createQueuedMaterialFrameResourceRouteShell({
+    prepareRoute: input.item.prepareRoute,
+    backendMeshKey: input.item.meshKey,
+    backendMaterialKey: input.item.materialKey,
+    frameResources: input.resources,
+  });
+}
+
 function materialQueueItemToRouteQueueItem(
   item: MaterialQueueItem,
 ): WebGpuAppMaterialQueueRouteQueueItem {
@@ -1745,11 +1758,9 @@ async function prepareQueuedBuiltInFrameResources(options: {
       layouts,
       reuse: options.reuse,
     });
-    const frameResourceRoute = createQueuedMaterialFrameResourceRouteShell({
-      prepareRoute: item.prepareRoute,
-      backendMeshKey: item.meshKey,
-      backendMaterialKey: item.materialKey,
-      frameResources: resources as {
+    const frameResourceRoute = createQueuedBuiltInFrameResourceRouteShell({
+      item,
+      resources: resources as {
         readonly valid: boolean;
         readonly diagnostics: readonly unknown[];
       },

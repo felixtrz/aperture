@@ -1,5 +1,92 @@
 # Completed Tasks
 
+## task-0969, task-0970, task-0973, and task-0982 through task-1001 — Texture fidelity summaries, progress tracker validation, and frame-resource contracts
+
+Completed: 2026-05-17
+
+Completed task ids:
+
+- `task-0969` — Plan StandardMaterial texture fidelity diagnostics slice.
+- `task-0982` — Audit StandardMaterial texture fidelity plan boundaries.
+- `task-0983` — Add StandardMaterial texture fidelity summary coverage.
+- `task-0970` — Add progress tracker freshness validation.
+- `task-0973` — Document public progress tracker workflow.
+- `task-0984` — Audit StandardMaterial texture fidelity summary boundaries.
+- `task-0985` — Plan generic frame-resource success-path migration.
+- `task-0986` — Audit generic frame-resource success-path plan boundaries.
+- `task-0987` — Add successful-frame route-shell omission regression.
+- `task-0988` — Audit successful-frame route-shell omission regression.
+- `task-0989` — Wrap frame-resource preparation through the route shell
+  internally.
+- `task-0990` — Audit internal frame-resource route shell boundaries.
+- `task-0991` — Document StandardMaterial texture fidelity summary helper.
+- `task-0992` — Plan optional app diagnostics exposure for texture fidelity
+  summaries.
+- `task-0993` — Audit progress tracker validation and workflow boundaries.
+- `task-0994` — Add StandardMaterial texture fidelity manual usage guidance.
+- `task-0995` — Audit texture fidelity summary docs boundaries.
+- `task-0996` — Plan generic frame-resource adapter contract extraction.
+- `task-0997` — Add generic frame-resource adapter contract coverage.
+- `task-0998` — Audit generic frame-resource adapter contract boundaries.
+- `task-0999` — Plan StandardMaterial texture fidelity example usage.
+- `task-1000` — Add StandardMaterial texture fidelity example/test coverage.
+- `task-1001` — Audit StandardMaterial texture fidelity example usage
+  boundaries.
+
+Summary:
+
+- Planned and audited a narrow StandardMaterial texture fidelity diagnostics
+  slice that stays out of IBL, shadows, shader rewrites, texture uploads, and
+  app report wiring.
+- Added `createStandardMaterialTextureFidelitySummary()` in
+  `packages/webgpu/src/webgpu/standard-material-texture-fidelity-summary.ts`.
+  It summarizes existing StandardMaterial texture readiness JSON by field and
+  issue code while omitting material, texture, sampler, and GPU handles.
+- Added focused tests for ready fields, sampler issues, color-space issues,
+  semantic issues, UV issues, transform issues, deterministic ordering, and JSON
+  safety.
+- Added `scripts/check-progress-tracker.mjs`, wired `pnpm run check:progress`
+  into `pnpm run check`, and documented the public tracker workflow in
+  `README.md`, `AGENTS.md`, and `docs/index.html`.
+- Planned and audited the next generic frame-resource success-path migration:
+  internally wrap successful and failed built-in frame-resource preparation
+  through the generic shell while keeping successful reports unchanged.
+- Added a WebGPU app regression proving successful mixed-family frames do not
+  emit `webGpuApp.frameResourceRoute` diagnostics by default.
+- Extracted frame-resource route shell creation into a named internal app helper
+  while preserving successful app report shape and failure diagnostics.
+- Documented the StandardMaterial texture fidelity summary helper in
+  `docs/DIAGNOSTICS_SUMMARIES.md`, planned against default app report wiring,
+  and added manual usage guidance.
+- Audited progress tracker validation/workflow boundaries and texture fidelity
+  docs boundaries.
+- Planned and added a small generic frame-resource adapter result/context
+  contract with built-in adapter test coverage.
+- Added example-only texture fidelity summary output to
+  `examples/app-diagnostics.js` and Playwright assertions proving aggregate
+  counts and handle omission.
+- Updated `docs/index.html` and `docs/render-pipeline-comparison.html` with the
+  latest status, phase estimates, and recommended next task.
+
+Validation run:
+
+- `pnpm exec vitest run test/webgpu/standard-material-texture-fidelity-summary.test.ts`
+- `pnpm exec tsc --noEmit -p packages/webgpu/tsconfig.json`
+- `pnpm run check:progress`
+- `node --check scripts/check-progress-tracker.mjs`
+- `pnpm exec prettier --check README.md docs/index.html scripts/check-progress-tracker.mjs package.json AGENTS.md test/webgpu/standard-material-texture-fidelity-summary.test.ts packages/webgpu/src/webgpu/standard-material-texture-fidelity-summary.ts`
+- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts --testNamePattern "routes scalar and textured StandardMaterial queue items with unlit and matcap draws"`
+- `pnpm exec vitest run test/webgpu/queued-material-frame-resource-route.test.ts`
+- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts --testNamePattern "frameResourceRoute|routes scalar and textured StandardMaterial queue items with unlit and matcap draws"`
+- `pnpm run check` passed, including package boundaries, progress tracker
+  validation, build/typecheck, test typecheck, examples syntax, lint, format
+  check, and 241 Vitest files / 1138 tests.
+- `pnpm exec vitest run test/webgpu/built-in-material-app-resource-adapter.test.ts`
+- `pnpm run check:examples`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm run build`
+- `pnpm exec playwright test test/e2e/app-diagnostics.spec.ts`
+
 ## task-0961 through task-0981 — StandardMaterial UV1 coverage, alpha/cull diagnostics, public progress tracker, and generic material route contract
 
 Completed: 2026-05-17
