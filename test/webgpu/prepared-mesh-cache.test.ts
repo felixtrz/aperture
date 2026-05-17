@@ -3,8 +3,12 @@ import { describe, expect, it } from "vitest";
 import {
   createBoxMeshAsset,
   createMeshHandle,
+  createPlaneMeshAsset,
+  evictPreparedMeshGpuResourceCacheEntries,
+  createPreparedMeshGpuResourceCacheSummary,
   createPreparedMeshGpuResourceCache,
   prepareMeshGpuResource,
+  writePreparedMeshGpuResourceCacheSummary,
   type WebGpuBufferDeviceLike,
 } from "@aperture-engine/webgpu";
 
@@ -44,6 +48,7 @@ describe("prepared mesh GPU resource cache", () => {
     expect(first.resource).toMatchObject({
       sourceMeshKey: "mesh:cube",
       sourceVersion: 1,
+      lastUsedFrame: 0,
     });
     expect(first.resource?.layoutKey).toContain("mesh-upload-layout");
     expect(first.resource?.mesh.vertexBuffers.length).toBeGreaterThan(0);
@@ -54,6 +59,49 @@ describe("prepared mesh GPU resource cache", () => {
     expect(third.resource).not.toBe(first.resource);
     expect(third.resource?.sourceVersion).toBe(2);
     expect(createdBuffers.length).toBeGreaterThan(buffersAfterFirst);
+  });
+
+  it("tracks last-used frames for prepared mesh backend cache entries", () => {
+    const cache = createPreparedMeshGpuResourceCache();
+    const handle = createMeshHandle("cube");
+    const mesh = createBoxMeshAsset({ label: "Cube" });
+    const device = deviceWithBuffers([]);
+
+    const first = prepareMeshGpuResource({
+      device,
+      cache,
+      handle,
+      mesh,
+      sourceVersion: 1,
+      frame: 10,
+    });
+    const second = prepareMeshGpuResource({
+      device,
+      cache,
+      handle,
+      mesh,
+      sourceVersion: 1,
+      frame: 12,
+    });
+    const third = prepareMeshGpuResource({
+      device,
+      cache,
+      handle,
+      mesh,
+      sourceVersion: 2,
+      frame: 14,
+    });
+
+    expect(first.status).toBe("created");
+    expect(second.status).toBe("reused");
+    expect(second.resource).toBe(first.resource);
+    expect(first.resource?.lastUsedFrame).toBe(12);
+    expect(third.status).toBe("created");
+    expect(third.resource).not.toBe(first.resource);
+    expect(third.resource?.lastUsedFrame).toBe(14);
+    expect(
+      [...cache.resources.values()].map((entry) => entry.lastUsedFrame),
+    ).toEqual([12, 14]);
   });
 
   it("keeps prepared mesh resources scoped to mesh buffers only", () => {
@@ -70,6 +118,155 @@ describe("prepared mesh GPU resource cache", () => {
     expect(result.resource).not.toHaveProperty("bindGroup");
     expect(result.resource).not.toHaveProperty("worldTransforms");
     expect(result.resource).not.toHaveProperty("viewUniforms");
+  });
+
+  it("summarizes an empty prepared mesh backend cache", () => {
+    const cache = createPreparedMeshGpuResourceCache();
+    const summary = createPreparedMeshGpuResourceCacheSummary();
+    const result = writePreparedMeshGpuResourceCacheSummary(summary, cache);
+
+    expect(result).toBe(summary);
+    expect(summary).toEqual({ totalEntries: 0, layouts: [] });
+  });
+
+  it("summarizes prepared mesh backend cache entries by layout", () => {
+    const cache = createPreparedMeshGpuResourceCache();
+    const device = deviceWithBuffers([]);
+    const cube = createMeshHandle("cube");
+    const plane = createMeshHandle("plane");
+
+    prepareMeshGpuResource({
+      device,
+      cache,
+      handle: cube,
+      mesh: createBoxMeshAsset({ label: "Cube" }),
+      sourceVersion: 1,
+    });
+    prepareMeshGpuResource({
+      device,
+      cache,
+      handle: cube,
+      mesh: createBoxMeshAsset({ label: "Cube Updated" }),
+      sourceVersion: 2,
+    });
+    prepareMeshGpuResource({
+      device,
+      cache,
+      handle: plane,
+      mesh: createPlaneMeshAsset({ label: "Plane" }),
+      sourceVersion: 1,
+    });
+
+    const summary = writePreparedMeshGpuResourceCacheSummary(
+      createPreparedMeshGpuResourceCacheSummary(),
+      cache,
+    );
+
+    expect(summary.totalEntries).toBe(3);
+    expect(summary.layouts).toHaveLength(2);
+    expect(summary.layouts.map((layout) => layout.entries).sort()).toEqual([
+      1, 2,
+    ]);
+    expect(summary.layouts.map((layout) => layout.layoutKey)).toEqual(
+      [...summary.layouts.map((layout) => layout.layoutKey)].sort(),
+    );
+
+    const json = JSON.stringify(summary);
+
+    expect(json).toContain("mesh-upload-layout");
+    expect(json).not.toContain("GPU");
+    expect(json).not.toContain("ArrayBuffer");
+    expect(json).not.toContain("data");
+    expect(json).not.toContain("lastUsedFrame");
+  });
+
+  it("clears stale layout summary rows when the backend cache is cleared", () => {
+    const cache = createPreparedMeshGpuResourceCache();
+    const summary = createPreparedMeshGpuResourceCacheSummary();
+
+    prepareMeshGpuResource({
+      device: deviceWithBuffers([]),
+      cache,
+      handle: createMeshHandle("cube"),
+      mesh: createBoxMeshAsset({ label: "Cube" }),
+      sourceVersion: 1,
+    });
+
+    writePreparedMeshGpuResourceCacheSummary(summary, cache);
+    expect(summary.totalEntries).toBe(1);
+    expect(summary.layouts).toHaveLength(1);
+
+    cache.resources.clear();
+
+    const result = writePreparedMeshGpuResourceCacheSummary(summary, cache);
+
+    expect(result).toBe(summary);
+    expect(summary).toEqual({ totalEntries: 0, layouts: [] });
+  });
+
+  it("evicts prepared mesh backend cache entries by last-used frame", () => {
+    const cache = createPreparedMeshGpuResourceCache();
+    const device = deviceWithBuffers([]);
+
+    prepareMeshGpuResource({
+      device,
+      cache,
+      handle: createMeshHandle("in-use"),
+      mesh: createBoxMeshAsset({ label: "In Use" }),
+      sourceVersion: 1,
+      frame: 20,
+    });
+    prepareMeshGpuResource({
+      device,
+      cache,
+      handle: createMeshHandle("retained"),
+      mesh: createBoxMeshAsset({ label: "Retained" }),
+      sourceVersion: 1,
+      frame: 17,
+    });
+    prepareMeshGpuResource({
+      device,
+      cache,
+      handle: createMeshHandle("evicted"),
+      mesh: createBoxMeshAsset({ label: "Evicted" }),
+      sourceVersion: 1,
+      frame: 16,
+    });
+
+    const report = evictPreparedMeshGpuResourceCacheEntries(cache, {
+      currentFrame: 20,
+      maxUnusedFrames: 3,
+    });
+
+    expect(report).toEqual({
+      checked: 3,
+      retained: 1,
+      evicted: 1,
+      skippedInUse: 1,
+    });
+    expect(cache.resources.size).toBe(2);
+    expect(
+      [...cache.resources.values()].map((entry) => entry.sourceMeshKey).sort(),
+    ).toEqual(["mesh:in-use", "mesh:retained"]);
+    expect(JSON.stringify(report)).not.toContain("GPU");
+    expect(JSON.stringify(report)).not.toContain("Float32Array");
+  });
+
+  it("reports zero counts when evicting an empty prepared mesh backend cache", () => {
+    const report = evictPreparedMeshGpuResourceCacheEntries(
+      createPreparedMeshGpuResourceCache(),
+      {
+        currentFrame: 1,
+        maxUnusedFrames: 0,
+      },
+    );
+
+    expect(report).toEqual({
+      checked: 0,
+      retained: 0,
+      evicted: 0,
+      skippedInUse: 0,
+    });
   });
 });
 

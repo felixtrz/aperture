@@ -501,6 +501,7 @@ describe("base-color textured StandardMaterial prepared material cache", () => {
       handle,
       material: firstMaterial,
       sourceVersion: firstMaterialEntry.version,
+      frame: 60,
       pipelineKey: "standard|baseColorTexture|opaque|back|less|none",
       layout: materialLayout(),
       textures: [textureGpuResource(texture)],
@@ -513,6 +514,7 @@ describe("base-color textured StandardMaterial prepared material cache", () => {
       handle,
       material: firstMaterial,
       sourceVersion: firstMaterialEntry.version,
+      frame: 61,
       pipelineKey: "standard|baseColorTexture|opaque|back|less|none",
       layout: materialLayout(),
       textures: [textureGpuResource(texture)],
@@ -531,6 +533,7 @@ describe("base-color textured StandardMaterial prepared material cache", () => {
       handle,
       material: secondMaterial,
       sourceVersion: secondMaterialEntry.version,
+      frame: 62,
       pipelineKey: "standard|baseColorTexture|opaque|back|less|none",
       layout: materialLayout(),
       textures: [textureGpuResource(texture)],
@@ -545,6 +548,7 @@ describe("base-color textured StandardMaterial prepared material cache", () => {
       handle,
       material: secondMaterial,
       sourceVersion: secondMaterialEntry.version,
+      frame: 63,
       pipelineKey: "standard|baseColorTexture|opaque|back|less|none",
       layout: materialLayout(),
       textures: [textureGpuResource(texture)],
@@ -559,6 +563,7 @@ describe("base-color textured StandardMaterial prepared material cache", () => {
       handle,
       material: secondMaterial,
       sourceVersion: secondMaterialEntry.version,
+      frame: 64,
       pipelineKey: "standard|baseColorTexture|opaque|back|less|none",
       layout: materialLayout(),
       textures: [textureGpuResource(texture)],
@@ -584,17 +589,64 @@ describe("base-color textured StandardMaterial prepared material cache", () => {
     ]);
     expect(second.status).toBe("reused");
     expect(second.resource).toBe(first.resource);
+    expect(second.resource?.lastUsedFrame).toBe(61);
     expect(materialVersion.status).toBe("created");
     expect(materialVersion.resource).not.toBe(first.resource);
+    expect(materialVersion.resource?.lastUsedFrame).toBe(62);
     expect(textureVersion.status).toBe("created");
     expect(textureVersion.resource?.dependencyCacheKeySegments).toEqual([
       "baseColorTexture:texture:texture:standard-base-color@2",
       "baseColorTexture:sampler:sampler:standard-base-color-sampler@1",
     ]);
+    expect(textureVersion.resource?.lastUsedFrame).toBe(63);
     expect(samplerVersion.status).toBe("created");
     expect(samplerVersion.resource?.dependencyCacheKeySegments).toEqual([
       "baseColorTexture:texture:texture:standard-base-color@2",
       "baseColorTexture:sampler:sampler:standard-base-color-sampler@2",
+    ]);
+    expect(samplerVersion.resource?.lastUsedFrame).toBe(64);
+    expect(
+      [...cache.resources.values()].map((resource) => ({
+        sourceVersion: resource.sourceVersion,
+        lastUsedFrame: resource.lastUsedFrame,
+        dependencyCacheKeySegments:
+          "dependencyCacheKeySegments" in resource
+            ? resource.dependencyCacheKeySegments
+            : [],
+      })),
+    ).toEqual([
+      {
+        sourceVersion: firstMaterialEntry.version,
+        lastUsedFrame: 61,
+        dependencyCacheKeySegments: [
+          "baseColorTexture:texture:texture:standard-base-color@1",
+          "baseColorTexture:sampler:sampler:standard-base-color-sampler@1",
+        ],
+      },
+      {
+        sourceVersion: secondMaterialEntry.version,
+        lastUsedFrame: 62,
+        dependencyCacheKeySegments: [
+          "baseColorTexture:texture:texture:standard-base-color@1",
+          "baseColorTexture:sampler:sampler:standard-base-color-sampler@1",
+        ],
+      },
+      {
+        sourceVersion: secondMaterialEntry.version,
+        lastUsedFrame: 63,
+        dependencyCacheKeySegments: [
+          "baseColorTexture:texture:texture:standard-base-color@2",
+          "baseColorTexture:sampler:sampler:standard-base-color-sampler@1",
+        ],
+      },
+      {
+        sourceVersion: secondMaterialEntry.version,
+        lastUsedFrame: 64,
+        dependencyCacheKeySegments: [
+          "baseColorTexture:texture:texture:standard-base-color@2",
+          "baseColorTexture:sampler:sampler:standard-base-color-sampler@2",
+        ],
+      },
     ]);
     expect(createdBuffers).toHaveLength(4);
     expect(createdBindGroups).toHaveLength(4);

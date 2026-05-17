@@ -2,6 +2,160 @@
 
 ## Latest Run Update
 
+Completed the stop-hook continuation work after `task-0900`. The hook requested
+continuing until minute 55, so the run continued through `task-0923`.
+
+Completed task ids:
+
+- `task-0901` through `task-0923`.
+
+Highlights:
+
+- Added
+  `docs/research/COMBINED_RENDER_WORLD_PREPARED_RESOURCE_BINDING_PLAN_2026_05_17.md`
+  and implemented `prepareAndBindSnapshotPreparedResourcesToRenderWorld()` in
+  `packages/render/src/rendering/render-world-prepared-resources.ts`.
+- Added render-world combined helper tests proving one snapshot apply, combined
+  mesh/material logical resource binding, distinct missing-resource diagnostics,
+  and no snapshot mutation.
+- Added prepared mesh backend cache `lastUsedFrame` metadata, threaded frame
+  context from app mesh preparation paths, and added manual backend cache
+  eviction reporting.
+- Added plans/audits for mesh cache last-used metadata, eviction reporting,
+  manual/internal app policy, and eviction boundaries.
+- Added texture/sampler retained backend cache summary helpers and app
+  `textureSamplerCache` report integration, separate from prepared material
+  cache ownership and per-frame texture/sampler counters.
+- Added retained backend cache grouping plan/audit and a cross-family app JSON
+  regression covering mesh, material, texture, and sampler retained summaries.
+- Added stable material queue ordering plan/audit and a regression proving
+  sorting derived queue items does not mutate `RenderSnapshot.meshDraws`.
+- Refilled the ready backlog with `task-0924` through `task-0928`; recommended
+  next task is `task-0924`.
+
+Validation:
+
+- Focused Vitest runs passed for render-world prepared resources, prepared mesh
+  cache/app reports, texture/sampler cache summaries/app reports, and material
+  queue ordering.
+- Focused typechecks passed for `packages/render`, `packages/webgpu`, and
+  `tsconfig.test.json`.
+- Final `pnpm run check` passed: package boundaries, build/typecheck, test
+  typecheck, examples syntax, lint, format check, and 233 Vitest files / 1103
+  tests.
+
+Known issues / follow-ups:
+
+- `.mcp.json` and `docs/render-pipeline-comparison.html` remain unrelated,
+  ignored local files from prior user direction.
+- No automatic app cache eviction policy was introduced. Mesh eviction remains
+  a backend helper until a broader app cache-lifetime policy is accepted.
+- Next task: `task-0924` plan queued draw package cache diagnostics.
+
+## Previous Run Update
+
+Completed `task-0886` through `task-0900` in this automation run. This moved
+prepared mesh metadata through the render facade/render-world/app-report path
+and added WebGPU-private prepared mesh backend cache reporting while preserving
+the facade/backend ownership split.
+
+Completed task ids:
+
+- `task-0886` through `task-0900`.
+
+Highlights:
+
+- Added backend prepared material cache `lastUsedFrame` boundary audit and
+  stale-cache regressions for unlit, Matcap, Standard, and app facade behavior.
+- Added renderer-independent `PreparedMeshStore` facade metadata and JSON-safe
+  summaries in `@aperture-engine/render`.
+- Routed queued built-in app mesh resource keys through prepared mesh facade
+  descriptors while keeping source-version mesh keys for WebGPU backend buffer
+  preparation.
+- Added snapshot mesh preparation/pruning and render-world prepared mesh
+  binding helpers. `RenderWorld` receives logical string mesh keys only and
+  clears stale keys on missing prepared mesh entries.
+- Added app regressions proving snapshot-pruned prepared mesh/material facades
+  can shrink while backend prepared material and prepared mesh caches remain
+  retained.
+- Added `PreparedMeshGpuResourceCacheSummary` plus `preparedMeshCache` in app
+  `resourceReuse`, separate from `preparedMeshFacade`, material cache counts,
+  texture/sampler counters, light counters, and pipeline counters.
+- Added plans/audits for generic prepared-resource report shape and prepared
+  mesh backend cache summary boundaries.
+- Refilled the ready backlog with `task-0901` through `task-0905`; recommended
+  next task is `task-0901`.
+
+Validation:
+
+- Focused Vitest runs for prepared material caches, render asset preparation,
+  material queue/snapshot preparation, render-world prepared mesh/material
+  binding, prepared mesh cache, and WebGPU app regressions.
+- Focused typechecks: `packages/render`, `packages/webgpu`, and
+  `tsconfig.test.json`.
+- `pnpm --filter @aperture-engine/render build`.
+- Final `pnpm run check` passed: package boundaries, build/typecheck, test
+  typecheck, examples syntax, lint, format check, and 231 Vitest files / 1094
+  tests.
+
+Reference files/patterns inspected:
+
+- Aperture docs: `docs/NORTH_STAR.md`, `docs/ROADMAP.md`,
+  `docs/MEDIUM_LONG_TERM_GOALS.md`, `docs/ARCHITECTURE.md`,
+  `docs/DECISIONS.md`.
+- Bevy mesh/render asset anchors:
+  `references/bevy/crates/bevy_render/src/erased_render_asset.rs`,
+  `references/bevy/crates/bevy_render/src/mesh/mod.rs`, and
+  `references/bevy/crates/bevy_render/src/mesh/allocator.rs`.
+- WebGPU-render anchors:
+  `references/engine/src/scene/materials/material.js`,
+  `references/three.js/src/renderers/webgl/WebGLPrograms.js`, and
+  `references/three.js/src/renderers/WebGLRenderer.js`.
+
+Known issues / follow-ups:
+
+- `.mcp.json` and `docs/render-pipeline-comparison.html` remain unrelated,
+  ignored local files from prior user direction.
+- A transient `packages/webgpu` typecheck failure occurred mid-run because
+  `@aperture-engine/render` declarations were stale after adding render exports;
+  running `pnpm --filter @aperture-engine/render build` fixed it and all later
+  typechecks passed.
+- Next task: `task-0901` plan the combined render-world prepared resource
+  binding helper.
+
+Files touched in this update include:
+
+- `agent/BACKLOG.md`
+- `agent/COMPLETED.md`
+- `agent/HANDOFF.md`
+- `agent/STATUS.json`
+- `docs/research/APP_PREPARED_FACADE_REPORT_SHAPE_AUDIT_2026_05_17.md`
+- `docs/research/BACKEND_PREPARED_MATERIAL_LAST_USED_BOUNDARY_AUDIT_2026_05_17.md`
+- `docs/research/GENERIC_QUEUED_PREPARED_RESOURCE_REPORT_PLAN_2026_05_17.md`
+- `docs/research/PREPARED_MESH_BACKEND_CACHE_SUMMARY_BOUNDARY_AUDIT_2026_05_17.md`
+- `docs/research/PREPARED_MESH_BACKEND_CACHE_SUMMARY_PLAN_2026_05_17.md`
+- `docs/research/PREPARED_MESH_FACADE_QUEUE_KEY_HANDOFF_AUDIT_2026_05_17.md`
+- `docs/research/RENDER_WORLD_PREPARED_MESH_BINDING_AUDIT_2026_05_17.md`
+- `docs/research/RENDER_WORLD_PREPARED_MESH_BINDING_PLAN_2026_05_17.md`
+- `packages/render/src/assets/preparation.ts`
+- `packages/render/src/rendering/index.ts`
+- `packages/render/src/rendering/prepared-mesh-queue-resolver.ts`
+- `packages/render/src/rendering/render-world-prepared-meshes.ts`
+- `packages/render/src/rendering/snapshot-prepared-meshes.ts`
+- `packages/webgpu/src/webgpu/app.ts`
+- `packages/webgpu/src/webgpu/prepared-mesh-cache.ts`
+- `test/assets/render-asset-preparation.test.ts`
+- `test/rendering/material-queue.test.ts`
+- `test/rendering/render-world-prepared-meshes.test.ts`
+- `test/rendering/snapshot-prepared-materials.test.ts`
+- `test/webgpu/prepared-matcap-material-cache.test.ts`
+- `test/webgpu/prepared-mesh-cache.test.ts`
+- `test/webgpu/prepared-standard-material-cache.test.ts`
+- `test/webgpu/prepared-unlit-material-cache.test.ts`
+- `test/webgpu/webgpu-app.test.ts`
+
+## Previous Run Update
+
 Completed the prepared material facade and backend cache handoff run after the
 user explicitly instructed the automation to ignore `.mcp.json` and unrelated
 working-tree files.

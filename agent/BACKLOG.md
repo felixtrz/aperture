@@ -59,10 +59,8 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start with `task-0886`. The WebGPU app now routes queued material keys through
-prepared material facade descriptors, prunes stale facade entries for reports,
-tracks backend cache last-used frames, and has a prepared mesh facade handoff
-plan.
+Start with `task-0924`. Material queue ordering is covered; the next
+renderer-spine step is to plan queued draw package cache diagnostics.
 
 ## Near-Term Proof Point Track
 
@@ -79,11 +77,11 @@ Target proof point:
 
 Remaining automation priority order:
 
-1. `task-0886` — audit backend cache last-used metadata boundary.
-2. `task-0887` — add prepared material backend cache stale-entry tests.
-3. `task-0888` — add renderer-independent prepared mesh store facade.
-4. `task-0889` — resolve first queue mesh keys from prepared mesh facade.
-5. `task-0890` — audit prepared mesh facade queue-key handoff.
+1. `task-0924` — plan queued draw package cache diagnostics.
+2. `task-0925` — audit queued material route allocation/report shape.
+3. `task-0926` — plan material queue phase summary helper.
+4. `task-0927` — add material queue phase summary helper.
+5. `task-0928` — audit material queue phase summary boundaries.
 
 Defer allocation-only cleanup and metadata-only shader-contract tasks unless
 they are a direct blocker for this track.
@@ -149,93 +147,83 @@ viewer/material mapping should not outrun the material and queue architecture.
 
 ### Proof Point Critical Path
 
-### task-0886 — Audit backend cache last-used metadata boundary
+### task-0924 — Plan queued draw package cache diagnostics
+
+Category: `docs-tooling`
+Package/write-scope: `docs/research` and `agent/BACKLOG.md`.
+Reference anchor:
+Queued material route reports, retained backend cache summaries, and
+`WebGpuAppResourceReuseReport`.
+
+Acceptance criteria:
+
+- Plan defines diagnostics/report fields for queued draw package cache behavior
+  without exposing GPU handles.
+- Plan distinguishes draw package counts from resource cache summaries.
+- Plan adds or confirms focused implementation follow-ups.
+
+### task-0925 — Audit queued material route allocation/report shape
 
 Category: `audit-refactor`
 Package/write-scope: `docs/research`, `agent/BACKLOG.md`, and narrow follow-up
 task edits only.
 Reference anchor:
-`WEBGPU_PREPARED_MATERIAL_BACKEND_CACHE_EVICTION_PLAN_2026_05_17.md`,
-prepared material cache entries, `docs/ARCHITECTURE.md`, and Bevy render asset
-removal patterns.
+Queued material route report code/tests, frame hot-path allocation guidance in
+`docs/ARCHITECTURE.md`, and app report JSON tests.
 
 Acceptance criteria:
 
-- Audit verifies `lastUsedFrame` metadata stays WebGPU-private and does not
-  leak into renderer-independent facade summaries.
-- Audit verifies backend cache counts, facade pruning, and texture/sampler
-  counters remain separate.
-- Follow-up backlog wording is tightened if eviction ownership is ambiguous.
+- Audit identifies any queued material report allocations that are risky for the
+  frame hot path.
+- Audit verifies report JSON remains source/GPU payload free.
+- Follow-up backlog wording is tightened if report ownership is ambiguous.
 
-### task-0887 — Add prepared material backend cache stale-entry tests
+### task-0926 — Plan material queue phase summary helper
 
-Category: `webgpu-render`
-Package/write-scope: WebGPU app report tests and focused prepared material cache
-tests.
+Category: `docs-tooling`
+Package/write-scope: `docs/research` and `agent/BACKLOG.md`.
 Reference anchor:
-`WEBGPU_PREPARED_MATERIAL_BACKEND_CACHE_EVICTION_PLAN_2026_05_17.md`, app
-prepared material cache summary tests, and facade stale cleanup tests.
+`material-queue.ts`, material queue ordering tests, queued material route
+reports, and Bevy render phase summary patterns.
 
 Acceptance criteria:
 
-- Tests cover source material and dependency version changes creating stale
-  backend entries with older `lastUsedFrame` values.
-- Tests verify facade summaries stay snapshot-scoped while backend cache entries
-  remain retained before eviction.
-- Tests do not require actual GPU resource destruction.
+- Plan defines a JSON-safe summary of queued material items by render phase and
+  material family.
+- Plan keeps queue summaries separate from backend cache summaries and app
+  resource reuse counters.
+- Plan adds or confirms a focused implementation follow-up.
 
-### task-0888 — Add renderer-independent prepared mesh store facade
+### task-0927 — Add material queue phase summary helper
 
 Category: `render-bridge`
-Package/write-scope: `packages/render` and focused tests.
-Reference anchor:
-`docs/research/PREPARED_MESH_FACADE_QUEUE_KEY_HANDOFF_PLAN_2026_05_17.md`,
-`PreparedRenderAssetStore`, `PreparedMeshAssetMetadata`, and Bevy
-`RenderAssets<RenderMesh>` patterns.
-
-Acceptance criteria:
-
-- `PreparedMeshStore` can prepare, list, remove, and clear mesh metadata
-  entries.
-- A JSON-safe prepared mesh summary omits source asset objects and backend
-  buffers.
-- Tests cover create/update/remove/clear and invalid mesh diagnostics.
-
-### task-0889 — Resolve first queue mesh keys from prepared mesh facade
-
-Category: `webgpu-render`
-Package/write-scope: WebGPU app queue collection and focused material queue/app
+Package/write-scope: `packages/render/src/rendering` and focused material queue
 tests.
 Reference anchor:
-`docs/research/PREPARED_MESH_FACADE_QUEUE_KEY_HANDOFF_PLAN_2026_05_17.md`,
-`createPreparedMeshQueueResourceKeyResolver`, and current prepared material
-facade queue-key route.
+Material queue phase summary plan from `task-0926`, `material-queue.ts`, and
+existing material queue JSON tests.
 
 Acceptance criteria:
 
-- The first WebGPU app queue pass resolves mesh and material resource keys from
-  renderer-independent prepared facades.
-- WebGPU vertex/index buffers remain backend-owned and are still resolved before
-  frame-plan assembly.
-- Tests prove backend mesh buffer counters remain separate from facade
-  summaries.
+- Helper reports queued item counts by render phase and material family.
+- Summary is JSON-safe and does not expose source assets or GPU handles.
+- Tests cover empty, mixed-phase, and mixed-family queues.
 
-### task-0890 — Audit prepared mesh facade queue-key handoff
+### task-0928 — Audit material queue phase summary boundaries
 
 Category: `audit-refactor`
 Package/write-scope: `docs/research`, `agent/BACKLOG.md`, and narrow follow-up
 task edits only.
 Reference anchor:
-Prepared mesh facade queue route, prepared material facade queue route,
-`docs/ARCHITECTURE.md`, and Bevy `RenderAssets<RenderMesh>` lookup patterns.
+Material queue phase summary helper from `task-0927`, `docs/ARCHITECTURE.md`,
+and retained backend cache summary audits.
 
 Acceptance criteria:
 
-- Audit verifies the render package does not own WebGPU mesh buffers.
-- Audit verifies material and mesh facade summaries remain JSON-safe and
-  renderer-independent.
-- Follow-up backlog wording is tightened if mesh resource ownership is
-  ambiguous.
+- Audit verifies queue summaries describe derived queue items, not backend cache
+  resources.
+- Audit verifies summaries do not mutate snapshots or ECS state.
+- Follow-up backlog wording is tightened if report ownership is ambiguous.
 
 ## Post-Unlit E2E Verification Targets
 

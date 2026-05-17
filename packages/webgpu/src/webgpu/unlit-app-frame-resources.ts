@@ -254,6 +254,7 @@ function preparePreparedScalarUnlitMesh(options: {
   readonly mesh: MeshAsset | null;
   readonly meshHandle: MeshHandle;
   readonly meshKey: string;
+  readonly frame?: number | undefined;
   readonly material: MaterialAsset | null;
   readonly preparedMeshes: PreparedMeshGpuResourceCache;
 }): PreparedAppMeshResourceUse | null {
@@ -271,6 +272,7 @@ function preparePreparedScalarUnlitMesh(options: {
     mesh: options.mesh,
     meshHandle: options.meshHandle,
     meshKey: options.meshKey,
+    frame: options.frame,
     preparedMeshes: options.preparedMeshes,
   });
 }

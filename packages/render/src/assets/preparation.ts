@@ -6,6 +6,7 @@ import {
   type AssetRegistry,
   type AssetRegistryEntry,
   type MaterialHandle,
+  type MeshHandle,
 } from "@aperture-engine/simulation";
 import {
   createPreparedMaterialResourceDescriptor,
@@ -350,6 +351,8 @@ export function unloadPreparedRenderAsset<TKind extends AssetKind, TPrepared>(
 
 export interface PreparedMeshAssetMetadata {
   readonly resourceFamily: "mesh";
+  readonly sourceMeshKey: string;
+  readonly meshResourceKey: string;
   readonly label: string;
   readonly vertexStreams: number;
   readonly submeshes: number;
@@ -390,6 +393,42 @@ export function createPreparedMaterialAssetStore(): PreparedMaterialAssetStore {
     "material",
     PreparedMaterialAssetMetadata
   >();
+}
+
+export interface PreparedMeshStore {
+  readonly entries: PreparedMeshAssetStore;
+  get(
+    handle: MeshHandle,
+  ): PreparedRenderAssetEntry<"mesh", PreparedMeshAssetMetadata> | undefined;
+  list(): PreparedRenderAssetEntry<"mesh", PreparedMeshAssetMetadata>[];
+  prepare(
+    options: PreparedMeshStorePrepareOptions,
+  ): RenderAssetPreparationReport<"mesh", PreparedMeshAssetMetadata>;
+  remove(
+    handle: MeshHandle,
+  ): PreparedRenderAssetStoreRemoval<"mesh", PreparedMeshAssetMetadata>;
+  clear(): void;
+}
+
+export interface PreparedMeshStorePrepareOptions {
+  readonly registry: AssetRegistry;
+  readonly handle: MeshHandle;
+}
+
+export interface PreparedMeshStoreEntryJsonValue {
+  readonly assetKey: string;
+  readonly sourceVersion: number;
+  readonly label: string;
+  readonly meshResourceKey: string;
+  readonly vertexStreams: number;
+  readonly submeshes: number;
+  readonly hasIndexBuffer: boolean;
+  readonly diagnosticCount: number;
+}
+
+export interface PreparedMeshStoreJsonValue {
+  readonly totalEntries: number;
+  readonly entries: readonly PreparedMeshStoreEntryJsonValue[];
 }
 
 export interface PreparedMaterialStore {
@@ -441,6 +480,39 @@ export interface PreparedMaterialStoreJsonValue {
   readonly entries: readonly PreparedMaterialStoreEntryJsonValue[];
 }
 
+export function createPreparedMeshStore(
+  options: {
+    readonly entries?: PreparedMeshAssetStore;
+  } = {},
+): PreparedMeshStore {
+  const entries = options.entries ?? createPreparedMeshAssetStore();
+  const adapter = createMeshMetadataRenderAssetAdapter();
+
+  return {
+    entries,
+    get(handle) {
+      return entries.get(handle);
+    },
+    list() {
+      return entries.list();
+    },
+    prepare(prepareOptions) {
+      return prepareRenderAsset({
+        registry: prepareOptions.registry,
+        adapter,
+        store: entries,
+        handle: prepareOptions.handle,
+      });
+    },
+    remove(handle) {
+      return entries.remove(handle);
+    },
+    clear() {
+      entries.clear();
+    },
+  };
+}
+
 export function createPreparedMaterialStore(
   options: {
     readonly entries?: PreparedMaterialAssetStore;
@@ -471,6 +543,17 @@ export function createPreparedMaterialStore(
     clear() {
       entries.clear();
     },
+  };
+}
+
+export function preparedMeshStoreSummaryToJsonValue(
+  store: PreparedMeshStore,
+): PreparedMeshStoreJsonValue {
+  return {
+    totalEntries: store.entries.size,
+    entries: store
+      .list()
+      .map((entry) => preparedMeshStoreEntryToJsonValue(entry)),
   };
 }
 
@@ -522,6 +605,8 @@ export function createMeshMetadataRenderAssetAdapter(): RenderAssetAdapter<
         status: "prepared",
         prepared: {
           resourceFamily: "mesh",
+          sourceMeshKey: input.assetKey,
+          meshResourceKey: `prepared-mesh:${input.assetKey}`,
           label: input.source.label,
           vertexStreams: input.source.vertexStreams.length,
           submeshes: input.source.submeshes.length,
@@ -529,6 +614,21 @@ export function createMeshMetadataRenderAssetAdapter(): RenderAssetAdapter<
         },
       };
     },
+  };
+}
+
+function preparedMeshStoreEntryToJsonValue(
+  entry: PreparedRenderAssetEntry<"mesh", PreparedMeshAssetMetadata>,
+): PreparedMeshStoreEntryJsonValue {
+  return {
+    assetKey: entry.assetKey,
+    sourceVersion: entry.sourceVersion,
+    label: entry.prepared.label,
+    meshResourceKey: entry.prepared.meshResourceKey,
+    vertexStreams: entry.prepared.vertexStreams,
+    submeshes: entry.prepared.submeshes,
+    hasIndexBuffer: entry.prepared.hasIndexBuffer,
+    diagnosticCount: entry.diagnostics.length,
   };
 }
 

@@ -50,6 +50,12 @@ export interface AppTextureSamplerResourceCache {
   readonly samplers: Map<string, SamplerGpuResource>;
 }
 
+export interface AppTextureSamplerResourceCacheSummary {
+  textureEntries: number;
+  samplerEntries: number;
+  totalEntries: number;
+}
+
 export interface AppTextureSamplerResourceReuseReport {
   textureResourcesCreated: number;
   textureResourcesReused: number;
@@ -285,6 +291,21 @@ export function emptyPreparedAppTextureSamplerResources(): PreparedAppTextureSam
     samplerKeys: [],
     diagnostics: [],
   };
+}
+
+export function createAppTextureSamplerResourceCacheSummary(): AppTextureSamplerResourceCacheSummary {
+  return { textureEntries: 0, samplerEntries: 0, totalEntries: 0 };
+}
+
+export function writeAppTextureSamplerResourceCacheSummary(
+  summary: AppTextureSamplerResourceCacheSummary,
+  cache: AppTextureSamplerResourceCache,
+): AppTextureSamplerResourceCacheSummary {
+  summary.textureEntries = cache.textures.size;
+  summary.samplerEntries = cache.samplers.size;
+  summary.totalEntries = summary.textureEntries + summary.samplerEntries;
+
+  return summary;
 }
 
 export function sourceAssetCacheKey(

@@ -179,6 +179,7 @@ describe("Matcap prepared material cache", () => {
       handle,
       material: required(updatedMaterialEntry.asset),
       sourceVersion: updatedMaterialEntry.version,
+      frame: 23,
       pipelineKey: "matcap|matcapTexture|opaque|back|less|none",
       layout: materialLayout(),
       textures: [textureResource("texture:studio")],
@@ -194,6 +195,7 @@ describe("Matcap prepared material cache", () => {
       handle,
       material: required(updatedMaterialEntry.asset),
       sourceVersion: updatedMaterialEntry.version,
+      frame: 24,
       pipelineKey: "matcap|matcapTexture|opaque|back|less|none",
       layout: materialLayout(),
       textures: [textureResource("texture:studio")],
@@ -223,11 +225,53 @@ describe("Matcap prepared material cache", () => {
       "matcapTexture:texture:texture:studio@2",
       "matcapTexture:sampler:sampler:linear@1",
     ]);
+    expect(fourth.resource?.lastUsedFrame).toBe(23);
     expect(fifth.status).toBe("created");
     expect(fifth.resource).not.toBe(fourth.resource);
     expect(fifth.resource?.dependencyCacheKeySegments).toEqual([
       "matcapTexture:texture:texture:studio@2",
       "matcapTexture:sampler:sampler:linear@2",
+    ]);
+    expect(fifth.resource?.lastUsedFrame).toBe(24);
+    expect(
+      [...cache.resources.values()].map((resource) => ({
+        sourceVersion: resource.sourceVersion,
+        lastUsedFrame: resource.lastUsedFrame,
+        dependencyCacheKeySegments: resource.dependencyCacheKeySegments,
+      })),
+    ).toEqual([
+      {
+        sourceVersion: materialEntry.version,
+        lastUsedFrame: 21,
+        dependencyCacheKeySegments: [
+          "matcapTexture:texture:texture:studio@1",
+          "matcapTexture:sampler:sampler:linear@1",
+        ],
+      },
+      {
+        sourceVersion: updatedMaterialEntry.version,
+        lastUsedFrame: 22,
+        dependencyCacheKeySegments: [
+          "matcapTexture:texture:texture:studio@1",
+          "matcapTexture:sampler:sampler:linear@1",
+        ],
+      },
+      {
+        sourceVersion: updatedMaterialEntry.version,
+        lastUsedFrame: 23,
+        dependencyCacheKeySegments: [
+          "matcapTexture:texture:texture:studio@2",
+          "matcapTexture:sampler:sampler:linear@1",
+        ],
+      },
+      {
+        sourceVersion: updatedMaterialEntry.version,
+        lastUsedFrame: 24,
+        dependencyCacheKeySegments: [
+          "matcapTexture:texture:texture:studio@2",
+          "matcapTexture:sampler:sampler:linear@2",
+        ],
+      },
     ]);
     expect(createdBuffers).toHaveLength(4);
     expect(createdBindGroups).toHaveLength(4);

@@ -13,6 +13,8 @@ import {
 } from "@aperture-engine/simulation";
 import {
   RenderWorld,
+  createPreparedMeshStore,
+  createPreparedMeshQueueResourceKeyResolver,
   createPreparedMaterialStore,
   createPreparedMaterialQueueResourceKeyResolver,
   createMaterialQueueScratch,
@@ -22,7 +24,9 @@ import {
   extractRenderSnapshot,
   Material,
   materialDependencyReadinessReportToJsonValue,
+  prepareSnapshotMeshes,
   prepareSnapshotMaterials,
+  preparedMeshStoreSummaryToJsonValue,
   preparedMaterialStoreSummaryToJsonValue,
   writeMaterialQueueFromSnapshot,
   registerRenderAuthoringComponents,
@@ -41,16 +45,21 @@ import {
   type PackedSnapshotViewUniformsScratch,
   type PreparedMaterialStore,
   type PreparedMaterialStoreJsonValue,
+  type PreparedMeshStore,
+  type PreparedMeshStoreJsonValue,
   type RenderSnapshot,
   type StandardMaterialAsset,
   type UnlitMaterialAsset,
 } from "@aperture-engine/render";
 import {
+  createAppTextureSamplerResourceCacheSummary,
   prepareMatcapAppTextureSamplerResources,
   prepareStandardAppTextureSamplerResources,
   prepareUnlitAppTextureSamplerResources,
   emptyPreparedAppTextureSamplerResources,
   sourceAssetCacheKey,
+  writeAppTextureSamplerResourceCacheSummary,
+  type AppTextureSamplerResourceCacheSummary,
 } from "./app-texture-sampler-resources.js";
 import {
   createPreparedMaterialTextureSamplerDependencies,
@@ -67,7 +76,10 @@ import {
 } from "./prepared-app-material-resource.js";
 import {
   createPreparedMeshGpuResourceCache,
+  createPreparedMeshGpuResourceCacheSummary,
+  writePreparedMeshGpuResourceCacheSummary,
   type PreparedMeshGpuResourceCache,
+  type PreparedMeshGpuResourceCacheSummary,
 } from "./prepared-mesh-cache.js";
 import {
   assembleFrameBoundary,
@@ -202,6 +214,8 @@ export interface WebGpuAppResourceReuseReport {
   meshBuffersReused: number;
   preparedMeshBuffersCreated: number;
   preparedMeshBuffersReused: number;
+  preparedMeshCache: PreparedMeshGpuResourceCacheSummary;
+  preparedMeshFacade: PreparedMeshStoreJsonValue;
   materialBuffersCreated: number;
   materialBuffersReused: number;
   preparedMaterialBuffersCreated: number;
@@ -212,6 +226,7 @@ export interface WebGpuAppResourceReuseReport {
   preparedMaterialFacade: PreparedMaterialStoreJsonValue;
   textureResourcesCreated: number;
   textureResourcesReused: number;
+  textureSamplerCache: AppTextureSamplerResourceCacheSummary;
   samplerResourcesCreated: number;
   samplerResourcesReused: number;
   bindGroupsCreated: number;
@@ -313,6 +328,7 @@ interface WebGpuAppResourceCache {
   readonly textures: Map<string, TextureGpuResource>;
   readonly samplers: Map<string, SamplerGpuResource>;
   readonly preparedMeshes: PreparedMeshGpuResourceCache;
+  readonly preparedMeshFacade: PreparedMeshStore;
   readonly preparedMaterials: PreparedBuiltInMaterialStore;
   readonly preparedMaterialFacade: PreparedMaterialStore;
   readonly frameScratch: WebGpuAppFrameScratch;
@@ -536,6 +552,18 @@ export async function createWebGpuApp(
         renderOptions,
       );
 
+      prepareSnapshotMeshes({
+        registry: assets,
+        snapshot: report.snapshot,
+        meshes: resourceCache.preparedMeshFacade,
+        pruneUnreferenced: true,
+      });
+      report.resourceReuse.preparedMeshFacade =
+        preparedMeshStoreSummaryToJsonValue(resourceCache.preparedMeshFacade);
+      writeWebGpuAppPreparedMeshCacheSummary(
+        report.resourceReuse.preparedMeshCache,
+        resourceCache,
+      );
       prepareSnapshotMaterials({
         registry: assets,
         snapshot: report.snapshot,
@@ -548,6 +576,10 @@ export async function createWebGpuApp(
         );
       writeWebGpuAppPreparedMaterialCacheSummary(
         report.resourceReuse.preparedMaterialCache,
+        resourceCache,
+      );
+      writeWebGpuAppTextureSamplerCacheSummary(
+        report.resourceReuse.textureSamplerCache,
         resourceCache,
       );
 
@@ -569,6 +601,7 @@ function createWebGpuAppResourceCache(): WebGpuAppResourceCache {
     textures: new Map(),
     samplers: new Map(),
     preparedMeshes: createPreparedMeshGpuResourceCache(),
+    preparedMeshFacade: createPreparedMeshStore(),
     preparedMaterials: createPreparedBuiltInMaterialStore(),
     preparedMaterialFacade: createPreparedMaterialStore(),
     frameScratch: createWebGpuAppFrameScratch(),
@@ -946,6 +979,7 @@ function collectQueuedBuiltInAppResourceSet(options: {
   readonly app: WebGpuApp;
   readonly snapshot: RenderSnapshot;
   readonly frameScratch: WebGpuAppFrameScratch;
+  readonly meshes: PreparedMeshStore;
   readonly materials: PreparedMaterialStore;
 }): {
   readonly valid: boolean;
@@ -954,6 +988,8 @@ function collectQueuedBuiltInAppResourceSet(options: {
 } {
   const meshAssets = options.frameScratch.queueRoute.sourceMeshAssets;
   const materialAssets = options.frameScratch.queueRoute.sourceMaterialAssets;
+  const resolvePreparedMeshResourceKey =
+    createPreparedMeshQueueResourceKeyResolver(options.meshes);
   const resolvePreparedMaterialResourceKey =
     createPreparedMaterialQueueResourceKeyResolver(options.materials);
 
@@ -965,8 +1001,7 @@ function collectQueuedBuiltInAppResourceSet(options: {
   const queue = writeMaterialQueueFromSnapshot(
     { meshDraws: options.snapshot.meshDraws, diagnostics: [] },
     {
-      meshResourceKey: (input) =>
-        meshAssets.get(input.meshKey)?.resourceKey ?? null,
+      meshResourceKey: resolvePreparedMeshResourceKey,
       materialResourceKey: resolvePreparedMaterialResourceKey,
     },
     options.frameScratch.materialQueue,
@@ -1832,6 +1867,11 @@ async function renderWebGpuAppFrame(
     (firstMaterialKindSupported || resourceSetPlan.sets.length > 1);
 
   if (shouldUseQueuedBuiltInRoute) {
+    prepareSnapshotMeshes({
+      registry: app.assets,
+      snapshot,
+      meshes: resourceCache.preparedMeshFacade,
+    });
     prepareSnapshotMaterials({
       registry: app.assets,
       snapshot,
@@ -1844,6 +1884,7 @@ async function renderWebGpuAppFrame(
         app,
         snapshot,
         frameScratch: resourceCache.frameScratch,
+        meshes: resourceCache.preparedMeshFacade,
         materials: resourceCache.preparedMaterialFacade,
       })
     : null;
@@ -2457,6 +2498,10 @@ function createWebGpuAppResourceReuseReport(): WebGpuAppResourceReuseReport {
     meshBuffersReused: 0,
     preparedMeshBuffersCreated: 0,
     preparedMeshBuffersReused: 0,
+    preparedMeshCache: createPreparedMeshGpuResourceCacheSummary(),
+    preparedMeshFacade: preparedMeshStoreSummaryToJsonValue(
+      createPreparedMeshStore(),
+    ),
     materialBuffersCreated: 0,
     materialBuffersReused: 0,
     preparedMaterialBuffersCreated: 0,
@@ -2469,6 +2514,7 @@ function createWebGpuAppResourceReuseReport(): WebGpuAppResourceReuseReport {
     ),
     textureResourcesCreated: 0,
     textureResourcesReused: 0,
+    textureSamplerCache: createAppTextureSamplerResourceCacheSummary(),
     samplerResourcesCreated: 0,
     samplerResourcesReused: 0,
     bindGroupsCreated: 0,
@@ -2487,6 +2533,23 @@ function writeWebGpuAppPreparedMaterialCacheSummary(
     summary,
     cache.preparedMaterials,
   );
+}
+
+function writeWebGpuAppPreparedMeshCacheSummary(
+  summary: PreparedMeshGpuResourceCacheSummary,
+  cache: WebGpuAppResourceCache,
+): PreparedMeshGpuResourceCacheSummary {
+  return writePreparedMeshGpuResourceCacheSummary(
+    summary,
+    cache.preparedMeshes,
+  );
+}
+
+function writeWebGpuAppTextureSamplerCacheSummary(
+  summary: AppTextureSamplerResourceCacheSummary,
+  cache: WebGpuAppResourceCache,
+): AppTextureSamplerResourceCacheSummary {
+  return writeAppTextureSamplerResourceCacheSummary(summary, cache);
 }
 
 async function waitForSubmittedWork(device: unknown): Promise<void> {

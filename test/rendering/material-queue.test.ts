@@ -3,9 +3,12 @@ import { describe, expect, it } from "vitest";
 import {
   AssetRegistry,
   buildMaterialQueueFromSnapshot,
+  createBoxMeshAsset,
   createMaterialHandle,
   createMaterialQueueScratch,
   createMeshHandle,
+  createPreparedMeshQueueResourceKeyResolver,
+  createPreparedMeshStore,
   createPreparedMaterialQueueResourceKeyResolver,
   createPreparedMaterialStore,
   createRenderSortKey,
@@ -174,6 +177,30 @@ describe("material family render queue", () => {
     expect(plan.items.map((item) => item.renderId)).toEqual([11, 12]);
   });
 
+  it("sorts derived queue items without mutating the source snapshot", () => {
+    const snapshot = renderSnapshot([
+      drawPacket({
+        renderId: 21,
+        materialFamily: "unlit",
+        meshId: "mesh-b",
+        materialId: "material-b",
+      }),
+      drawPacket({
+        renderId: 22,
+        materialFamily: "standard",
+        meshId: "mesh-a",
+        materialId: "material-a",
+      }),
+    ]);
+    const before = JSON.stringify(snapshot.meshDraws);
+    const plan = buildMaterialQueueFromSnapshot(snapshot, resourceResolvers());
+
+    expect(plan.items.map((item) => item.renderId)).toEqual([22, 21]);
+    expect(JSON.stringify(snapshot.meshDraws)).toBe(before);
+    expect("meshResourceKey" in snapshot.meshDraws[0]!).toBe(false);
+    expect("materialResourceKey" in snapshot.meshDraws[0]!).toBe(false);
+  });
+
   it("orders opaque and alpha-test phases before back-to-front transparent items", () => {
     const snapshot = renderSnapshot([
       drawPacket({
@@ -291,6 +318,54 @@ describe("material family render queue", () => {
       materialResourceKey: "prepared-material:material:white",
     });
     expect(JSON.stringify(plan)).not.toContain("Map");
+  });
+
+  it("resolves mesh and material resource keys from prepared facade entries", () => {
+    const registry = new AssetRegistry();
+    const mesh = createMeshHandle("cube");
+    const material = createMaterialHandle("white");
+    const meshes = createPreparedMeshStore();
+    const materials = createPreparedMaterialStore();
+
+    registry.register(mesh);
+    registry.register(material);
+    registry.markReady(mesh, createBoxMeshAsset({ label: "Queued Cube" }));
+    registry.markReady(
+      material,
+      createUnlitMaterialAsset({ label: "Queued Facade White" }),
+    );
+    meshes.prepare({ registry, handle: mesh });
+    materials.prepare({ registry, handle: material });
+
+    const plan = buildMaterialQueueFromSnapshot(
+      renderSnapshot([
+        drawPacket({
+          renderId: 8,
+          materialFamily: "unlit",
+          meshId: "cube",
+          materialId: "white",
+        }),
+      ]),
+      {
+        meshResourceKey: createPreparedMeshQueueResourceKeyResolver(meshes),
+        materialResourceKey:
+          createPreparedMaterialQueueResourceKeyResolver(materials),
+      },
+    );
+
+    expect(plan.diagnostics).toEqual([]);
+    expect(plan.items[0]).toMatchObject({
+      meshKey: "mesh:cube",
+      materialKey: "material:white",
+      meshResourceKey: "prepared-mesh:mesh:cube",
+      materialResourceKey: "prepared-material:material:white",
+      sortKey: {
+        meshResourceKey: "prepared-mesh:mesh:cube",
+        materialResourceKey: "prepared-material:material:white",
+      },
+    });
+    expect(JSON.stringify(plan)).not.toContain("Float32Array");
+    expect(JSON.stringify(plan)).not.toContain("GPU");
   });
 
   it("returns null for missing prepared material facade entries", () => {

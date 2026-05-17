@@ -105,6 +105,7 @@ describe("WebGPU app facade", () => {
       matcap: 0,
       standard: 0,
     });
+    expectPreparedMeshFacadeSummary(frame, { totalEntries: 1 });
     expect(queuedFamilyResourceCount(frame.resources?.resources, "unlit")).toBe(
       1,
     );
@@ -168,6 +169,36 @@ describe("WebGPU app facade", () => {
     );
     expect(secondEvents).toContain("queue:writeBuffer:WorldTransforms/storage");
     expect(resourceEventCounts(events)).toEqual(firstResourceEvents);
+
+    app.assets.markReady(
+      material,
+      createUnlitMaterialAsset({
+        label: "White Updated",
+        baseColorFactor: [0.8, 0.85, 1, 1],
+      }),
+    );
+
+    const sourceVersionFrame = await app.stepAndRender(1 / 60, 3, 13);
+
+    expect(sourceVersionFrame.ok).toBe(true);
+    expect(sourceVersionFrame.resourceReuse).toMatchObject({
+      pipelineHits: 1,
+      pipelineMisses: 0,
+      materialBuffersCreated: 1,
+      preparedMaterialBuffersCreated: 1,
+      preparedMaterialBindGroupsCreated: 1,
+    });
+    expectPreparedMaterialCacheSummary(sourceVersionFrame, {
+      unlit: 2,
+      matcap: 0,
+      standard: 0,
+    });
+    expectPreparedMaterialFacadeSummary(sourceVersionFrame, {
+      unlit: 1,
+      matcap: 0,
+      standard: 0,
+    });
+    expectPreparedMeshFacadeSummary(sourceVersionFrame, { totalEntries: 1 });
   });
 
   it("reuses prepared scalar unlit mesh buffers across frame-resource misses", async () => {
@@ -647,8 +678,11 @@ describe("WebGPU app facade", () => {
 
     const app = created.app;
     const assets = createRenderAssetCollections({ registry: app.assets });
-    const mesh = assets.meshes.add(
-      createBoxMeshAsset({ label: "FacadePruneCube" }),
+    const firstMesh = assets.meshes.add(
+      createBoxMeshAsset({ label: "FacadeRetainedCube" }),
+    );
+    const secondMesh = assets.meshes.add(
+      createBoxMeshAsset({ label: "FacadePrunedCube" }),
     );
     const firstMaterial = assets.materials.unlit.add(
       createUnlitMaterialAsset({ label: "Facade Retained White" }),
@@ -663,14 +697,14 @@ describe("WebGPU app facade", () => {
     );
     app.spawn(
       withTransform({ translation: [-0.45, 0, 0] }),
-      withMesh(mesh),
+      withMesh(firstMesh),
       withMaterial(firstMaterial),
       withRenderLayer(1),
       withVisibility(true),
     );
     const prunedEntity = app.spawn(
       withTransform({ translation: [0.45, 0, 0] }),
-      withMesh(mesh),
+      withMesh(secondMesh),
       withMaterial(secondMaterial),
       withRenderLayer(1),
       withVisibility(true),
@@ -699,6 +733,21 @@ describe("WebGPU app facade", () => {
 
     expect(firstFrame.ok).toBe(true);
     expect(firstFrame.counts.drawCalls).toBe(2);
+    expect(firstFrame.resourceReuse).toMatchObject({
+      preparedMeshBuffersCreated: 2,
+      preparedMeshBuffersReused: 0,
+    });
+    expectPreparedMeshCacheSummary(firstFrame, {
+      totalEntries: 2,
+      layoutEntryCounts: [2],
+    });
+    expectPreparedMeshFacadeSummary(firstFrame, {
+      totalEntries: 2,
+      meshResourceKeys: [
+        `prepared-mesh:${assetHandleKey(firstMesh)}`,
+        `prepared-mesh:${assetHandleKey(secondMesh)}`,
+      ],
+    });
     expectPreparedMaterialCacheSummary(firstFrame, {
       unlit: 1,
       matcap: 0,
@@ -711,6 +760,18 @@ describe("WebGPU app facade", () => {
     });
     expect(secondFrame.ok).toBe(true);
     expect(secondFrame.counts.drawCalls).toBe(1);
+    expect(secondFrame.resourceReuse).toMatchObject({
+      preparedMeshBuffersCreated: 0,
+      preparedMeshBuffersReused: 1,
+    });
+    expectPreparedMeshCacheSummary(secondFrame, {
+      totalEntries: 2,
+      layoutEntryCounts: [2],
+    });
+    expectPreparedMeshFacadeSummary(secondFrame, {
+      totalEntries: 1,
+      meshResourceKeys: [`prepared-mesh:${assetHandleKey(firstMesh)}`],
+    });
     expectPreparedMaterialCacheSummary(secondFrame, {
       unlit: 1,
       matcap: 0,
@@ -1045,6 +1106,15 @@ describe("WebGPU app facade", () => {
       samplerResourcesReused: 0,
       bindGroupsCreated: 3,
     });
+    expectPreparedMaterialCacheSummary(frame, {
+      unlit: 1,
+      matcap: 0,
+      standard: 0,
+    });
+    expectTextureSamplerCacheSummary(frame, {
+      textureEntries: 1,
+      samplerEntries: 1,
+    });
     expect(events).toContain("device:texture:AppAlbedo");
     expect(events).toContain("textureResource:view:AppAlbedo");
     expect(events).toContain("device:sampler:AppLinear");
@@ -1099,6 +1169,10 @@ describe("WebGPU app facade", () => {
       bindGroupsCreated: 4,
       bindGroupsReused: 2,
       dynamicBufferWrites: 0,
+    });
+    expectTextureSamplerCacheSummary(secondFrame, {
+      textureEntries: 1,
+      samplerEntries: 1,
     });
     expect(secondUnlitResources).toHaveLength(2);
     expect(secondUnlitResources[0]?.material).toBe(firstMaterialResource);
@@ -1225,6 +1299,10 @@ describe("WebGPU app facade", () => {
       preparedMaterialBuffersCreated: 1,
       preparedMaterialBindGroupsCreated: 1,
     });
+    expectTextureSamplerCacheSummary(firstFrame, {
+      textureEntries: 1,
+      samplerEntries: 1,
+    });
     expectPreparedMaterialCacheSummary(firstFrame, {
       unlit: 1,
       matcap: 0,
@@ -1250,6 +1328,10 @@ describe("WebGPU app facade", () => {
       preparedMaterialBindGroupsReused: 0,
       dynamicBufferWrites: 0,
     });
+    expectTextureSamplerCacheSummary(textureVersionFrame, {
+      textureEntries: 2,
+      samplerEntries: 1,
+    });
     expectPreparedMaterialCacheSummary(textureVersionFrame, {
       unlit: 2,
       matcap: 0,
@@ -1274,6 +1356,10 @@ describe("WebGPU app facade", () => {
       preparedMaterialBindGroupsCreated: 1,
       preparedMaterialBindGroupsReused: 0,
       dynamicBufferWrites: 0,
+    });
+    expectTextureSamplerCacheSummary(samplerVersionFrame, {
+      textureEntries: 2,
+      samplerEntries: 2,
     });
     expectPreparedMaterialCacheSummary(samplerVersionFrame, {
       unlit: 3,
@@ -4734,6 +4820,11 @@ describe("WebGPU app facade", () => {
       matcap: 0,
       standard: 1,
     });
+    expectPreparedMaterialCacheSummary(frame, {
+      unlit: 0,
+      matcap: 0,
+      standard: 1,
+    });
     expect(events).toContain(
       "device:pipeline:aperture/standard-mesh-base-color-textured:bgra8unorm:triangle-list",
     );
@@ -4770,6 +4861,11 @@ describe("WebGPU app facade", () => {
       dynamicBufferWrites: 4,
     });
     expectPreparedMaterialFacadeSummary(secondFrame, {
+      unlit: 0,
+      matcap: 0,
+      standard: 1,
+    });
+    expectPreparedMaterialCacheSummary(secondFrame, {
       unlit: 0,
       matcap: 0,
       standard: 1,
@@ -4816,6 +4912,25 @@ describe("WebGPU app facade", () => {
       matcap: 0,
       standard: 1,
     });
+    expectPreparedMaterialCacheSummary(thirdFrame, {
+      unlit: 0,
+      matcap: 0,
+      standard: 1,
+    });
+    expect(
+      webGpuAppRenderReportToJsonValue(thirdFrame).resourceReuse
+        .preparedMeshCache.totalEntries,
+    ).toBeGreaterThan(0);
+    expectTextureSamplerCacheSummary(thirdFrame, {
+      textureEntries: 1,
+      samplerEntries: 1,
+    });
+    expectRetainedBackendCacheSummariesAreJsonSafe(thirdFrame, [
+      "TexturedStandardCube",
+      "Textured Standard",
+      "StandardBaseColor",
+      "StandardBaseColorSampler",
+    ]);
     expect(
       webGpuAppRenderReportToJsonValue(thirdFrame).resourceReuse,
     ).toMatchObject({
@@ -4877,6 +4992,12 @@ describe("WebGPU app facade", () => {
       matcap: 0,
       standard: 1,
     });
+    expectPreparedMaterialCacheSummary(textureVersionFrame, {
+      unlit: 0,
+      matcap: 0,
+      standard: 2,
+    });
+    expectPreparedMeshFacadeSummary(textureVersionFrame, { totalEntries: 2 });
     expect(
       webGpuAppRenderReportToJsonValue(textureVersionFrame).resourceReuse,
     ).toMatchObject({
@@ -4921,6 +5042,12 @@ describe("WebGPU app facade", () => {
       matcap: 0,
       standard: 1,
     });
+    expectPreparedMaterialCacheSummary(samplerVersionFrame, {
+      unlit: 0,
+      matcap: 0,
+      standard: 3,
+    });
+    expectPreparedMeshFacadeSummary(samplerVersionFrame, { totalEntries: 2 });
     expect(
       webGpuAppRenderReportToJsonValue(samplerVersionFrame).resourceReuse,
     ).toMatchObject({
@@ -6282,6 +6409,108 @@ function expectPreparedMaterialCacheSummary(
       },
     },
   });
+}
+
+function expectTextureSamplerCacheSummary(
+  report: Parameters<typeof webGpuAppRenderReportToJsonValue>[0],
+  expected: {
+    readonly textureEntries: number;
+    readonly samplerEntries: number;
+  },
+): void {
+  const summary =
+    webGpuAppRenderReportToJsonValue(report).resourceReuse.textureSamplerCache;
+
+  expect(summary).toEqual({
+    textureEntries: expected.textureEntries,
+    samplerEntries: expected.samplerEntries,
+    totalEntries: expected.textureEntries + expected.samplerEntries,
+  });
+
+  const json = JSON.stringify(summary);
+
+  expect(json).not.toContain("Map");
+  expect(json).not.toContain("GPU");
+  expect(json).not.toContain("descriptor");
+  expect(json).not.toContain("VersionedUnlitAlbedo");
+  expect(json).not.toContain("VersionedUnlitSampler");
+}
+
+function expectRetainedBackendCacheSummariesAreJsonSafe(
+  report: Parameters<typeof webGpuAppRenderReportToJsonValue>[0],
+  absentMarkers: readonly string[],
+): void {
+  const resourceReuse = webGpuAppRenderReportToJsonValue(report).resourceReuse;
+  const retainedBackendCaches = {
+    preparedMeshCache: resourceReuse.preparedMeshCache,
+    preparedMaterialCache: resourceReuse.preparedMaterialCache,
+    textureSamplerCache: resourceReuse.textureSamplerCache,
+  };
+  const json = JSON.stringify(retainedBackendCaches);
+
+  expect(retainedBackendCaches).toMatchObject({
+    preparedMeshCache: { totalEntries: expect.any(Number) },
+    preparedMaterialCache: { totalEntries: expect.any(Number) },
+    textureSamplerCache: { totalEntries: expect.any(Number) },
+  });
+  expect(json).not.toContain("GPU");
+  expect(json).not.toContain("Float32Array");
+  expect(json).not.toContain("descriptor");
+
+  for (const marker of absentMarkers) {
+    expect(json).not.toContain(marker);
+  }
+}
+
+function expectPreparedMeshCacheSummary(
+  report: Parameters<typeof webGpuAppRenderReportToJsonValue>[0],
+  expected: {
+    readonly totalEntries: number;
+    readonly layoutEntryCounts: readonly number[];
+  },
+): void {
+  const summary =
+    webGpuAppRenderReportToJsonValue(report).resourceReuse.preparedMeshCache;
+
+  expect(summary.totalEntries).toBe(expected.totalEntries);
+  expect(summary.layouts.map((layout) => layout.entries).sort()).toEqual(
+    [...expected.layoutEntryCounts].sort(),
+  );
+
+  const json = JSON.stringify(summary);
+
+  expect(json).not.toContain("Map");
+  expect(json).not.toContain("GPU");
+  expect(json).not.toContain("Float32Array");
+  expect(json).not.toContain("FacadeRetainedCube");
+  expect(json).not.toContain("FacadePrunedCube");
+  expect(json).not.toContain("lastUsedFrame");
+}
+
+function expectPreparedMeshFacadeSummary(
+  report: Parameters<typeof webGpuAppRenderReportToJsonValue>[0],
+  expected: {
+    readonly totalEntries: number;
+    readonly meshResourceKeys?: readonly string[];
+  },
+): void {
+  const summary =
+    webGpuAppRenderReportToJsonValue(report).resourceReuse.preparedMeshFacade;
+
+  expect(summary.totalEntries).toBe(expected.totalEntries);
+
+  if (expected.meshResourceKeys !== undefined) {
+    expect(
+      summary.entries.map((entry) => entry.meshResourceKey).sort(),
+    ).toEqual([...expected.meshResourceKeys].sort());
+  }
+
+  const json = JSON.stringify(summary);
+
+  expect(json).not.toContain("Map");
+  expect(json).not.toContain("GPU");
+  expect(json).not.toContain("Float32Array");
+  expect(json).not.toContain("data");
 }
 
 function expectPreparedMaterialFacadeSummary(

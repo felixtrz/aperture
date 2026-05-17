@@ -3,9 +3,11 @@ import { describe, expect, it } from "vitest";
 import {
   AssetRegistry,
   PreparedRenderAssetStore,
+  createBoxMeshAsset,
   createMatcapMaterialAsset,
   createMaterialMetadataRenderAssetAdapter,
   createMeshHandle,
+  createPreparedMeshStore,
   createPreparedMaterialStore,
   createPreparedMaterialAssetStore,
   createRenderAssetCollections,
@@ -13,11 +15,13 @@ import {
   createStandardMaterialAsset,
   createTextureHandle,
   createUnlitMaterialAsset,
+  preparedMeshStoreSummaryToJsonValue,
   preparedMaterialStoreSummaryToJsonValue,
   RenderWorld,
   prepareRenderAsset,
   unloadPreparedRenderAsset,
   type MaterialHandle,
+  type MeshAsset,
   type MeshHandle,
   type RenderAssetAdapter,
   type RenderSnapshot,
@@ -230,6 +234,109 @@ describe("render asset preparation contract", () => {
     });
   });
 
+  it("prepares, updates, removes, and clears mesh metadata through the facade", () => {
+    const assets = createRenderAssetCollections();
+    const mesh = assets.meshes.add(
+      createBoxMeshAsset({ label: "Facade Mesh A" }),
+    );
+    const store = createPreparedMeshStore();
+
+    const created = store.prepare({
+      registry: assets.registry,
+      handle: mesh,
+    });
+    const unchanged = store.prepare({
+      registry: assets.registry,
+      handle: mesh,
+    });
+
+    assets.meshes.markReady(
+      mesh,
+      createBoxMeshAsset({ label: "Facade Mesh B" }),
+    );
+
+    const updated = store.prepare({
+      registry: assets.registry,
+      handle: mesh,
+    });
+    const removed = store.remove(mesh);
+
+    store.prepare({
+      registry: assets.registry,
+      handle: mesh,
+    });
+    store.clear();
+
+    expect(created).toMatchObject({
+      outcome: "prepared",
+      action: "created",
+      assetKey: "mesh:mesh-1",
+    });
+    expect(created.entry?.prepared).toMatchObject({
+      resourceFamily: "mesh",
+      sourceMeshKey: "mesh:mesh-1",
+      meshResourceKey: "prepared-mesh:mesh:mesh-1",
+      label: "Facade Mesh A",
+      vertexStreams: 1,
+      submeshes: 1,
+      hasIndexBuffer: true,
+    });
+    expect(unchanged).toMatchObject({
+      outcome: "unchanged",
+      assetKey: "mesh:mesh-1",
+    });
+    expect(updated).toMatchObject({
+      outcome: "prepared",
+      action: "updated",
+      assetKey: "mesh:mesh-1",
+    });
+    expect(updated.entry?.prepared).toMatchObject({
+      resourceFamily: "mesh",
+      sourceMeshKey: "mesh:mesh-1",
+      meshResourceKey: "prepared-mesh:mesh:mesh-1",
+      label: "Facade Mesh B",
+      vertexStreams: 1,
+      submeshes: 1,
+      hasIndexBuffer: true,
+    });
+    expect(store.list().length).toBe(0);
+    expect(removed).toMatchObject({
+      removed: true,
+      entry: {
+        assetKey: "mesh:mesh-1",
+      },
+    });
+    expect(JSON.stringify(updated.entry)).not.toContain("GPU");
+    expect(JSON.stringify(updated.entry)).not.toContain("Float32Array");
+  });
+
+  it("removes invalid mesh facade entries with validation diagnostics", () => {
+    const assets = createRenderAssetCollections();
+    const mesh = assets.meshes.add(
+      createBoxMeshAsset({ label: "Initially Valid Mesh" }),
+    );
+    const store = createPreparedMeshStore();
+
+    store.prepare({ registry: assets.registry, handle: mesh });
+
+    assets.meshes.markReady(mesh, invalidMeshAsset());
+
+    const failed = store.prepare({
+      registry: assets.registry,
+      handle: mesh,
+    });
+
+    expect(failed).toMatchObject({
+      outcome: "failed",
+      assetKey: "mesh:mesh-1",
+    });
+    expect(failed.diagnostics.map((diagnostic) => diagnostic.code)).toEqual([
+      "renderAsset.mesh.missingPosition",
+      "renderAsset.mesh.missingBounds",
+    ]);
+    expect(store.get(mesh)).toBeUndefined();
+  });
+
   it("prepares, updates, removes, and clears material descriptors through the facade", () => {
     const assets = createRenderAssetCollections();
     const material = assets.materials.standard.add(
@@ -336,6 +443,40 @@ describe("render asset preparation contract", () => {
       materialResourceKey: "prepared-material:material:standard-material-1",
     });
     expect(JSON.stringify(renderWorld.listObjects())).not.toContain("buffer");
+  });
+
+  it("summarizes prepared mesh facade entries without source assets or backend buffers", () => {
+    const assets = createRenderAssetCollections();
+    const mesh = assets.meshes.add(
+      createBoxMeshAsset({ label: "Summary Mesh" }),
+    );
+    const store = createPreparedMeshStore();
+
+    store.prepare({ registry: assets.registry, handle: mesh });
+
+    const summary = preparedMeshStoreSummaryToJsonValue(store);
+    const json = JSON.stringify(summary);
+
+    expect(summary).toEqual({
+      totalEntries: 1,
+      entries: [
+        {
+          assetKey: "mesh:mesh-1",
+          sourceVersion: 1,
+          label: "Summary Mesh",
+          meshResourceKey: "prepared-mesh:mesh:mesh-1",
+          vertexStreams: 1,
+          submeshes: 1,
+          hasIndexBuffer: true,
+          diagnosticCount: 0,
+        },
+      ],
+    });
+    expect(json).not.toContain("Map");
+    expect(json).not.toContain("Float32Array");
+    expect(json).not.toContain("data");
+    expect(json).not.toContain("GPU");
+    expect(json).not.toContain("buffer");
   });
 
   it("summarizes prepared material facade entries without source assets or backend handles", () => {
@@ -465,5 +606,15 @@ function snapshotWithDraw(
       bounds: 0,
       diagnostics: 0,
     },
+  };
+}
+
+function invalidMeshAsset(): MeshAsset {
+  return {
+    kind: "mesh",
+    label: "Invalid Mesh",
+    vertexStreams: [],
+    submeshes: [],
+    materialSlots: [],
   };
 }

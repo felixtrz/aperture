@@ -251,6 +251,7 @@ function preparePreparedMatcapMesh(options: {
   readonly mesh: MeshAsset | null;
   readonly meshHandle: MeshHandle;
   readonly meshKey: string;
+  readonly frame?: number | undefined;
   readonly material: MatcapMaterialAsset | null;
   readonly preparedMeshes: PreparedMeshGpuResourceCache;
 }): PreparedAppMeshResourceUse | null {
@@ -263,6 +264,7 @@ function preparePreparedMatcapMesh(options: {
     mesh: options.mesh,
     meshHandle: options.meshHandle,
     meshKey: options.meshKey,
+    frame: options.frame,
     preparedMeshes: options.preparedMeshes,
   });
 }

@@ -85,6 +85,15 @@ describe("scalar unlit prepared material cache", () => {
     expect(third.resource).not.toBe(first.resource);
     expect(third.resource?.sourceVersion).toBe(updatedEntry.version);
     expect(third.resource?.lastUsedFrame).toBe(12);
+    expect(
+      [...cache.resources.values()].map((resource) => ({
+        sourceVersion: resource.sourceVersion,
+        lastUsedFrame: resource.lastUsedFrame,
+      })),
+    ).toEqual([
+      { sourceVersion: firstEntry.version, lastUsedFrame: 11 },
+      { sourceVersion: updatedEntry.version, lastUsedFrame: 12 },
+    ]);
     expect(createdBuffers).toHaveLength(2);
     expect(createdBindGroups).toHaveLength(2);
   });

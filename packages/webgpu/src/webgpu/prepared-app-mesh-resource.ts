@@ -22,6 +22,7 @@ export interface PrepareAppMeshResourceOptions {
   readonly mesh: MeshAsset | null;
   readonly meshHandle: MeshHandle;
   readonly meshKey: string;
+  readonly frame?: number | undefined;
   readonly preparedMeshes: PreparedMeshGpuResourceCache;
 }
 
@@ -49,6 +50,7 @@ export function prepareAppMeshResource(
     handle: options.meshHandle,
     mesh: options.mesh,
     sourceVersion,
+    frame: options.frame,
   });
 
   return result.valid &&

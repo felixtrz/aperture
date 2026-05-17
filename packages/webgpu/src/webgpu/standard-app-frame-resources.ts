@@ -341,6 +341,7 @@ function preparePreparedStandardMesh(options: {
   readonly mesh: MeshAsset | null;
   readonly meshHandle: MeshHandle;
   readonly meshKey: string;
+  readonly frame?: number | undefined;
   readonly material: StandardMaterialAsset | null;
   readonly preparedMeshes: PreparedMeshGpuResourceCache;
 }): PreparedAppMeshResourceUse | null {
@@ -353,6 +354,7 @@ function preparePreparedStandardMesh(options: {
     mesh: options.mesh,
     meshHandle: options.meshHandle,
     meshKey: options.meshKey,
+    frame: options.frame,
     preparedMeshes: options.preparedMeshes,
   });
 }

@@ -1,5 +1,127 @@
 # Completed Tasks
 
+## task-0901 through task-0923 — Render-world binding, cache lifetime reporting, and material queue ordering follow-up
+
+Completed: 2026-05-17
+
+Completed task ids:
+
+- `task-0901` — Plan combined render-world prepared resource binding helper.
+- `task-0902` — Add combined render-world prepared resource binding helper.
+- `task-0903` — Audit combined render-world prepared resource binding helper.
+- `task-0904` — Plan prepared mesh backend cache last-used tracking.
+- `task-0905` — Add prepared mesh backend cache last-used tracking.
+- `task-0906` — Audit prepared mesh backend cache last-used boundary.
+- `task-0907` — Plan prepared mesh backend cache eviction report.
+- `task-0908` — Add prepared mesh backend cache eviction helper.
+- `task-0909` — Plan prepared mesh backend eviction app policy.
+- `task-0910` — Audit prepared mesh backend cache eviction boundaries.
+- `task-0911` — Plan generic app cache-lifetime policy surface.
+- `task-0912` — Audit app resource reuse report cache-lifetime readiness.
+- `task-0913` — Plan prepared texture/sampler cache summary boundary.
+- `task-0914` — Add prepared texture/sampler cache summary helpers.
+- `task-0915` — Audit prepared texture/sampler cache summary boundaries.
+- `task-0916` — Expose texture/sampler cache summary in app reports.
+- `task-0917` — Audit app texture/sampler cache summary report boundaries.
+- `task-0918` — Plan generic retained backend cache summary grouping.
+- `task-0919` — Add retained backend cache summary JSON regression.
+- `task-0920` — Audit retained backend cache summary grouping boundaries.
+- `task-0921` — Plan stable material queue ordering.
+- `task-0922` — Add stable material queue ordering regression coverage.
+- `task-0923` — Audit stable material queue ordering boundaries.
+
+Summary:
+
+- Added a combined render-world prepared resource helper that applies a
+  snapshot once, prepares mesh/material facades, and binds both logical resource
+  key families.
+- Added prepared mesh backend cache `lastUsedFrame` metadata, manual eviction
+  reporting, and audits/plans proving the metadata stays WebGPU-private.
+- Added texture/sampler retained backend cache summaries and exposed
+  `textureSamplerCache` in app `resourceReuse` separately from
+  `preparedMaterialCache`.
+- Added app JSON regression coverage for retained mesh/material/texture/sampler
+  cache summaries together.
+- Audited retained backend cache summary grouping and kept flat report fields.
+- Added material queue ordering plan/audit plus a regression proving sorting
+  derived queue items does not mutate source snapshots.
+- Refilled the ready backlog with `task-0924` through `task-0928`; recommended
+  next task is `task-0924`.
+
+Validation run:
+
+- `pnpm exec vitest run test/rendering/render-world-prepared-resources.test.ts test/rendering/render-world-prepared-meshes.test.ts test/rendering/render-world-prepared-materials.test.ts`
+- `pnpm exec vitest run test/webgpu/prepared-mesh-cache.test.ts test/webgpu/webgpu-app.test.ts`
+- `pnpm exec vitest run test/webgpu/app-texture-sampler-resources.test.ts test/webgpu/webgpu-app.test.ts`
+- `pnpm exec vitest run test/rendering/material-queue.test.ts`
+- `pnpm exec tsc --noEmit -p packages/render/tsconfig.json`
+- `pnpm exec tsc --noEmit -p packages/webgpu/tsconfig.json`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm run check` passed, including package boundaries, build/typecheck,
+  test typecheck, examples syntax, lint, format check, and 233 Vitest files /
+  1103 tests.
+
+## task-0886 through task-0900 — Prepared mesh/material facade and backend cache reporting handoff
+
+Completed: 2026-05-17
+
+Completed task ids:
+
+- `task-0886` — Audit backend cache `lastUsedFrame` metadata boundary.
+- `task-0887` — Add stale backend prepared material cache tests.
+- `task-0888` — Add prepared mesh store facade.
+- `task-0889` — Route first queue mesh keys from the prepared mesh facade.
+- `task-0890` — Audit prepared mesh facade queue-key handoff.
+- `task-0891` — Plan render-world prepared mesh binding helper.
+- `task-0892` — Bind prepared mesh facade keys into render world.
+- `task-0893` — Audit render-world prepared mesh binding helper.
+- `task-0894` — Add prepared mesh facade stale-pruning app regressions.
+- `task-0895` — Plan generic queued prepared-resource report shape.
+- `task-0896` — Audit app prepared facade report shape.
+- `task-0897` — Plan prepared mesh backend cache summary.
+- `task-0898` — Add prepared mesh backend cache summary helper.
+- `task-0899` — Expose prepared mesh backend cache summary in app reports.
+- `task-0900` — Audit prepared mesh backend cache summary boundaries.
+
+Summary:
+
+- Added audits and plans for prepared material backend cache `lastUsedFrame`
+  metadata, prepared mesh facade queue-key handoff, render-world mesh binding,
+  generic prepared-resource report shape, and prepared mesh backend cache
+  summaries.
+- Expanded prepared material backend cache tests to prove stale retained entries
+  keep older `lastUsedFrame` metadata across source/dependency version changes.
+- Added renderer-independent `PreparedMeshStore` facade metadata and JSON-safe
+  summaries.
+- Routed queued built-in mesh resource keys through the prepared mesh facade
+  while keeping WebGPU mesh buffer cache ownership in the backend.
+- Added render-world helpers that bind prepared mesh facade keys into
+  `RenderWorldObject.gpu.meshResourceKey` strings without mutating snapshots or
+  storing WebGPU resources.
+- Added app regressions proving snapshot-pruned prepared mesh/material facades
+  can shrink while backend prepared material and mesh caches remain retained.
+- Added WebGPU prepared mesh backend cache summaries and exposed
+  `preparedMeshCache` in app resource reuse reports separately from
+  `preparedMeshFacade`.
+- Refilled the ready backlog with `task-0901` through `task-0905`; recommended
+  next task is `task-0901`.
+
+Validation run:
+
+- `pnpm exec vitest run test/webgpu/prepared-unlit-material-cache.test.ts test/webgpu/prepared-matcap-material-cache.test.ts test/webgpu/prepared-standard-material-cache.test.ts test/webgpu/webgpu-app.test.ts`
+- `pnpm exec vitest run test/assets/render-asset-preparation.test.ts`
+- `pnpm exec vitest run test/rendering/material-queue.test.ts test/rendering/snapshot-prepared-materials.test.ts test/assets/render-asset-preparation.test.ts test/webgpu/webgpu-app.test.ts`
+- `pnpm exec vitest run test/rendering/render-world-prepared-meshes.test.ts test/rendering/render-world-prepared-materials.test.ts test/rendering/snapshot-prepared-materials.test.ts test/rendering/material-queue.test.ts`
+- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts test/rendering/snapshot-prepared-materials.test.ts`
+- `pnpm exec vitest run test/webgpu/prepared-mesh-cache.test.ts test/webgpu/webgpu-app.test.ts`
+- `pnpm exec tsc --noEmit -p packages/render/tsconfig.json`
+- `pnpm --filter @aperture-engine/render build`
+- `pnpm exec tsc --noEmit -p packages/webgpu/tsconfig.json`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm run check` passed, including package boundaries, build/typecheck,
+  test typecheck, examples syntax, lint, format check, and 231 Vitest files /
+  1094 tests.
+
 ## task-0862 — Add render-world prepared material binding integration plan
 
 Completed: 2026-05-17
