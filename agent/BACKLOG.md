@@ -59,11 +59,9 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start with `task-0621`. StandardMaterial base-color, metallic-roughness,
-emissive, and occlusion texture rendering are now in place, and the generic
-material-family queue contract has been audited. Replace the remaining narrow
-mixed-family app branches with queue-driven opaque routing before expanding the
-renderer to another material family or transparent phase.
+Start with `task-0625`. StandardMaterial normal-map shader support and the
+glTF PBR texture audit have landed, so the next implementation slice should
+make prepared material resource contracts renderer-independent.
 
 ## Near-Term Proof Point Track
 
@@ -80,11 +78,12 @@ Target proof point:
 
 Remaining automation priority order:
 
-1. `task-0621` — integrate opaque material queue app routing.
-2. `task-0624` — add StandardMaterial normal-map shader support.
-3. `task-0625` — add generic prepared material resource contracts.
-4. `task-0626` — audit queue-driven app routing.
-5. `task-0627` — audit StandardMaterial glTF PBR texture expectations.
+1. `task-0625` — add generic prepared material resource contracts.
+2. `task-0632` — add StandardMaterial texture semantic/color-space diagnostics.
+3. `task-0634` — diagnose unsupported StandardMaterial texture UV sets.
+4. `task-0635` — add StandardMaterial TEXCOORD_1 shader variants.
+5. `task-0630` — route single-family app frames through material queue.
+6. `task-0631` — plan alpha-test and transparent app queue consumption.
 
 Defer allocation-only cleanup and metadata-only shader-contract tasks unless
 they are a direct blocker for this track.
@@ -99,20 +98,19 @@ specialized material proof path into the normal renderer architecture.
 Preferred refill order after the current ready queue:
 
 1. StandardMaterial metallic-roughness texture rendering.
-2. StandardMaterial normal map and tangent/bitangent support.
-3. StandardMaterial emissive and occlusion texture support.
-4. Color-space, UV-set, sampler, and material dependency diagnostics for the
+2. StandardMaterial emissive and occlusion texture support.
+3. Color-space, UV-set, sampler, and material dependency diagnostics for the
    above texture paths.
-5. Audit the expanded StandardMaterial path against glTF metallic-roughness
+4. Audit the expanded StandardMaterial path against glTF metallic-roughness
    expectations.
-6. Replace narrow mixed-family app routing with a generic material-family render
+5. Replace narrow mixed-family app routing with a generic material-family render
    queue.
-7. Add opaque phase queueing/sorting by pipeline, material, mesh, and depth.
-8. Add transparent phase sorting and render-state validation.
-9. Add render-world/prepared-asset contracts that make material preparation
+6. Add opaque phase queueing/sorting by pipeline, material, mesh, and depth.
+7. Add transparent phase sorting and render-state validation.
+8. Add render-world/prepared-asset contracts that make material preparation
    generic instead of family-specific app branches.
-10. Add IBL/environment lighting for StandardMaterial.
-11. Add shadow-map passes and StandardMaterial shadow sampling.
+9. Add IBL/environment lighting for StandardMaterial.
+10. Add shadow-map passes and StandardMaterial shadow sampling.
 
 Keep GLB work narrow until StandardMaterial PBR is ready enough to map glTF
 materials honestly. GLB container parsing and diagnostics are fine, but GLB
@@ -123,50 +121,6 @@ viewer/material mapping should not outrun the material and queue architecture.
 ### Proof Point Critical Path
 
 ### Audit / Refactor
-
-### task-0621 — Integrate opaque material queue app routing
-
-Category: `webgpu-render`
-Package/write-scope: `packages/render`, `packages/webgpu/src/webgpu`, focused
-mixed-material app tests, and render-frame plan tests.
-Reference anchor: task-0619 generic material-family queue contract, Bevy render
-phase queue/sort patterns, and existing Aperture render-frame plan contracts.
-
-Use the generic material-family queue to replace the current narrow pairwise
-and three-family app routing for opaque built-in material frames.
-
-Acceptance criteria:
-
-- `createWebGpuApp.render()` can route mixed opaque unlit, MatcapMaterial, and
-  StandardMaterial frames from generic queue items rather than hard-coded
-  material-family branch shapes.
-- Queue consumption preserves stable grouping by pipeline/material/mesh and
-  emits JSON-safe diagnostics for unsupported material families or missing
-  prepared resources.
-- Existing material showcase and app diagnostics examples still render through
-  the app facade without renderer-owned ECS/game state.
-- Tests cover scalar and textured StandardMaterial queue items alongside unlit
-  and MatcapMaterial items.
-
-### task-0624 — Add StandardMaterial normal-map shader support
-
-Category: `webgpu-render`
-Package/write-scope: `packages/webgpu/src/webgpu`,
-`packages/render/src/materials`, focused StandardMaterial shader/pipeline/app
-tests, and browser coverage if practical.
-Reference anchor: task-0618 tangent readiness diagnostics, Bevy tangent-gated
-normal maps, three.js/PlayCanvas tangent-space normal-map sampling.
-
-Acceptance criteria:
-
-- StandardMaterial WGSL samples an optional normal texture only for draws whose
-  mesh metadata includes required tangent data.
-- Pipeline keys and shader metadata specialize normal-map variants without
-  regressing factor/base-color/metallic-roughness/emissive/occlusion variants.
-- Missing tangent or texture/sampler dependencies block rendering with
-  JSON-safe diagnostics.
-- Tests cover ready tangent-space rendering metadata and blocked dependency
-  paths.
 
 ### task-0625 — Add generic prepared material resource contracts
 
@@ -187,44 +141,105 @@ Acceptance criteria:
   resolution.
 - Tests cover all built-in material families and invalid source material kinds.
 
-### task-0626 — Audit queue-driven app routing
+### task-0632 — Add StandardMaterial texture semantic/color-space diagnostics
 
-Category: `audit-refactor`
-Package/write-scope: `docs/research`, package-boundary validation, and small
-corrective refactors only if needed.
-Reference anchor: `docs/NORTH_STAR.md`, `docs/ARCHITECTURE.md`,
-`docs/DECISIONS.md`, task-0621 queue app routing, Bevy render phase queue/sort
-patterns.
-
-Acceptance criteria:
-
-- The audit verifies queue-driven app routing does not reintroduce pairwise
-  branch growth, renderer-owned gameplay state, or hidden scene graph behavior.
-- The audit verifies render snapshots and material queue diagnostics remain
-  JSON-safe.
-- Package-boundary validation passes or failures are documented with concrete
-  follow-ups.
-- Backlog is updated with any queue or material-preparation follow-ups.
-
-### task-0627 — Audit StandardMaterial glTF PBR texture expectations
-
-Category: `audit-refactor`
-Package/write-scope: `docs/research`, focused StandardMaterial tests only if a
-small corrective issue is found.
-Reference anchor: glTF metallic-roughness material expectations, three.js
-`GLTFLoader`/PBR shader chunks, PlayCanvas GLB parser material mapping, Bevy
-StandardMaterial texture channel docs, and Aperture StandardMaterial proof-point
-contracts.
+Category: `render-bridge`
+Package/write-scope: `packages/render/src/materials`,
+`packages/render/src/rendering`, and focused material/extraction tests.
+Reference anchor:
+`docs/research/STANDARD_MATERIAL_GLTF_PBR_TEXTURE_AUDIT_2026_05_17.md`,
+three.js `GLTFLoader` color-space assignment, Bevy StandardMaterial texture
+channel docs, and existing material dependency readiness reports.
 
 Acceptance criteria:
 
-- The audit compares Aperture StandardMaterial base-color,
-  metallic-roughness, emissive, occlusion, and normal-map behavior against glTF
-  channel/color-space expectations.
-- Any mismatch is either fixed if small or captured as a concrete backlog task.
-- The audit confirms GLB material mapping should remain deferred until the
-  remaining mismatches are addressed.
-- Package-boundary and JSON-safety concerns are documented if found.
+- StandardMaterial readiness can diagnose base-color/emissive textures that are
+  not authored as color/sRGB data.
+- StandardMaterial readiness can diagnose metallic-roughness, normal, and
+  occlusion textures that are not authored as data/linear maps.
+- Diagnostics are JSON-safe and include material key, texture key, field, and
+  expected semantic/color-space hints.
+- Existing valid StandardMaterial texture tests continue to pass.
+
+### task-0634 — Diagnose unsupported StandardMaterial texture UV sets
+
+Category: `render-bridge`
+Package/write-scope: `packages/render/src/materials`,
+`packages/render/src/rendering`, and focused material/extraction tests.
+Reference anchor:
+`docs/research/STANDARD_MATERIAL_UV_TEXTURE_TRANSFORM_PLAN_2026_05_17.md`,
+Bevy glTF UV channel mapping, three.js `GLTFLoader` texture channel handling,
+and existing StandardMaterial dependency/readiness diagnostics.
+
+Acceptance criteria:
+
+- StandardMaterial readiness diagnoses any texture binding with `texCoord > 0`
+  until a shader variant can consume `TEXCOORD_1`.
+- Diagnostics are JSON-safe and include material key, field, texture key when
+  present, and the unsupported `texCoord`.
+- Existing `TEXCOORD_0`/undefined texture bindings remain valid.
+- Extraction/app diagnostics surface the unsupported UV-set reason before
+  WebGPU resource preparation.
+
+### task-0635 — Add StandardMaterial TEXCOORD_1 shader variants
+
+Category: `webgpu-render`
+Package/write-scope: `packages/webgpu/src/webgpu`,
+`packages/render/src/rendering`, focused StandardMaterial shader/pipeline/app
+tests, and browser coverage if practical.
+Reference anchor:
+`docs/research/STANDARD_MATERIAL_UV_TEXTURE_TRANSFORM_PLAN_2026_05_17.md`,
+three.js texture channel selection, Bevy UV channel material keys, and existing
+StandardMaterial texture shader specialization.
+
+Acceptance criteria:
+
+- StandardMaterial shader variants can sample texture bindings from
+  `TEXCOORD_1` when mesh metadata provides that attribute.
+- Pipeline keys/layout metadata distinguish `TEXCOORD_0` and `TEXCOORD_1`
+  variants without encoding raw material handles.
+- Missing `TEXCOORD_1` mesh attributes block rendering with JSON-safe
+  diagnostics.
+- Tests cover at least one ready `TEXCOORD_1` texture path and one missing-UV
+  blocked path.
+
+### task-0630 — Route single-family app frames through material queue
+
+Category: `webgpu-render`
+Package/write-scope: `packages/webgpu/src/webgpu/app.ts` and focused app tests.
+Reference anchor: task-0621 queue-driven app routing, task-0628 reusable queue
+scratch, Bevy render phase queue/sort patterns.
+
+Acceptance criteria:
+
+- Single-family unlit, MatcapMaterial, and StandardMaterial app frames can use
+  the queue route without regressing existing resource reuse and diagnostics
+  tests.
+- Same-resource multi-draw frames continue to render through stable prepared
+  mesh/material resource keys.
+- The optimized multi-unlit path is either preserved as an explicit fast path or
+  replaced only if tests prove equivalent cache/reuse behavior.
+- No pairwise mixed-material app branches are reintroduced.
+
+### task-0631 — Plan alpha-test and transparent app queue consumption
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research`, backlog updates, and small diagnostics
+test adjustments only if needed.
+Reference anchor: task-0623 transparent queue sort coverage, task-0629
+unsupported phase diagnostics, three.js/PlayCanvas transparent sorting
+patterns, Bevy render phase split.
+
+Acceptance criteria:
+
+- The plan identifies the smallest app/render-frame changes needed to consume
+  alpha-test and transparent queue items rather than only diagnosing them.
+- The plan covers render-state validation, phase ordering, depth/write/blend
+  behavior, and JSON-safe diagnostics.
+- The plan confirms which material families should be supported first and which
+  tests should prove browser pixel behavior.
+- Backlog receives concrete implementation slices if the plan finds safe next
+  steps.
 
 ## Post-Unlit E2E Verification Targets
 

@@ -15,6 +15,162 @@ Summary:
 - Validation run.
 - Follow-up tasks added.
 
+## task-0633 — Plan StandardMaterial UV-set and texture-transform handling
+
+Completed: 2026-05-17
+
+Summary:
+
+- Added a focused plan for handling `MaterialTextureBinding.texCoord` and
+  future texture transform metadata without letting GLB import silently sample
+  the wrong UV coordinates.
+- The plan recommends renderer-independent metadata/diagnostics first, then
+  separate `TEXCOORD_1` shader variants, and only later transform uniform
+  support.
+- Important files:
+  `docs/research/STANDARD_MATERIAL_UV_TEXTURE_TRANSFORM_PLAN_2026_05_17.md`,
+  `agent/BACKLOG.md`.
+- Validation run: `pnpm run format:check`, `pnpm exec tsc --noEmit -p
+tsconfig.test.json`, final `pnpm run check`, and `pnpm run test:e2e` passed.
+- Follow-up tasks added: `task-0634` and `task-0635`.
+
+## task-0627 — Audit StandardMaterial glTF PBR texture expectations
+
+Completed: 2026-05-17
+
+Summary:
+
+- Audited Aperture's StandardMaterial base-color, metallic-roughness, normal,
+  occlusion, and emissive texture behavior against glTF expectations from
+  three.js, PlayCanvas, and Bevy reference implementations.
+- Confirmed the current renderer now covers the main texture channels, while
+  GLB material mapping should remain deferred until UV-set selection, texture
+  transforms, sampler import policy, and texture semantic/color-space
+  diagnostics are explicit.
+- Important files:
+  `docs/research/STANDARD_MATERIAL_GLTF_PBR_TEXTURE_AUDIT_2026_05_17.md`,
+  `agent/BACKLOG.md`.
+- Validation run: `pnpm run check:boundaries`, focused StandardMaterial/WebGPU
+  app tests, and full workspace validation listed in the latest handoff passed.
+- Follow-up tasks added: `task-0632` and `task-0633`.
+
+## task-0624 — Add StandardMaterial normal-map shader support
+
+Completed: 2026-05-17
+
+Summary:
+
+- Added tangent-space StandardMaterial normal-map shader specialization,
+  including normal texture/sampler binding metadata, normal-map variant keys,
+  group-2 layout keys, tangent vertex-buffer metadata, and browser pipeline
+  layout selection.
+- Updated WebGPU app StandardMaterial texture preparation so normal maps create
+  and reuse texture/sampler GPU resources.
+- Promoted `normalTexture` from deferred proof-point metadata to supported
+  StandardMaterial proof scope while keeping extraction tangent-readiness
+  diagnostics as the renderer-independent gate.
+- Added focused shader, pipeline, app, proof-point, dependency, and extraction
+  tests covering ready tangent-space rendering metadata/resource reuse and
+  blocked readiness paths.
+- Important files: `packages/webgpu/src/webgpu/standard-shader.ts`,
+  `packages/webgpu/src/webgpu/standard-pipeline-descriptor.ts`,
+  `packages/webgpu/src/webgpu/standard-pipeline.ts`,
+  `packages/webgpu/src/webgpu/app.ts`,
+  `packages/render/src/materials/standard-proof-point.ts`,
+  `test/webgpu/webgpu-app.test.ts`.
+- Validation run: focused StandardMaterial/WebGPU app tests,
+  `pnpm exec tsc --noEmit -p tsconfig.test.json`, and full workspace
+  validation listed in the latest handoff passed.
+- Follow-up tasks added: none directly; continued into `task-0627`.
+
+## task-0629 — Add queue app routing unsupported-family diagnostics tests
+
+Completed: 2026-05-17
+
+Summary:
+
+- Added app-level coverage for unsupported material queue families using a
+  mixed unlit/DebugNormalMaterial frame.
+- Added app-level coverage for unsupported non-opaque queue phases using a
+  mixed opaque/alpha-test unlit frame.
+- Verified both cases return JSON-safe diagnostics and do not submit WebGPU
+  command buffers.
+- Important files: `test/webgpu/webgpu-app.test.ts`,
+  `packages/webgpu/src/webgpu/app.ts`.
+- Validation run: `pnpm exec vitest run test/webgpu/webgpu-app.test.ts`
+  passed.
+- Follow-up tasks added: none directly; transparent/alpha-test consumption
+  planning is captured in `task-0631`.
+
+## task-0628 — Add reusable queue app routing scratch state
+
+Completed: 2026-05-17
+
+Summary:
+
+- Added reusable queue-route scratch maps and arrays to `WebGpuAppFrameScratch`
+  for source asset lookup, prepared resource keys, pipeline results, mesh
+  resources, bind groups, and per-family frame resources.
+- Updated queue-driven app routing to clear and reuse scratch state across
+  frames instead of allocating fresh collector maps/arrays on the successful
+  multi-resource path.
+- Extended the mixed queue app test to render a second frame, verifying scratch
+  reuse does not leak stale resource keys and still reuses pipelines,
+  textures, and samplers.
+- Important files: `packages/webgpu/src/webgpu/app.ts`,
+  `test/webgpu/webgpu-app.test.ts`.
+- Validation run: `pnpm exec vitest run test/webgpu/webgpu-app.test.ts`
+  passed.
+- Follow-up tasks added: `task-0630` and `task-0631`.
+
+## task-0626 — Audit queue-driven app routing
+
+Completed: 2026-05-17
+
+Summary:
+
+- Audited the queue-driven WebGPU app routing added for `task-0621` against the
+  North Star, architecture, decision log, package boundaries, and Bevy-style
+  render phase queue/sort patterns.
+- Confirmed mixed built-in app routing now uses one queue consumer instead of
+  pairwise/three-family branches, keeps ECS authoritative, keeps WebGPU
+  resources backend-owned, and emits JSON-safe diagnostics.
+- Recorded follow-ups for reusable app-frame queue scratch, generic prepared
+  material descriptors, and deferred transparent/alpha-test app routing.
+- Important files:
+  `docs/research/QUEUE_DRIVEN_APP_ROUTING_AUDIT_2026_05_17.md`,
+  `agent/BACKLOG.md`.
+- Validation run: focused material queue/render-frame/app tests,
+  `pnpm exec tsc --noEmit -p tsconfig.test.json`, `pnpm run build`,
+  `pnpm run check:examples`, `pnpm run check:boundaries`, `pnpm run lint`, and
+  `pnpm run format:check` passed. Full `pnpm run check` passed: 169 test files
+  / 813 tests.
+- Follow-up tasks added: `task-0628` and `task-0629`.
+
+## task-0621 — Integrate opaque material queue app routing
+
+Completed: 2026-05-17
+
+Summary:
+
+- Replaced the narrow mixed unlit/Matcap/StandardMaterial app routing branches
+  with one opaque built-in material queue consumer in `createWebGpuApp.render()`.
+- The route consumes snapshot-derived material queue items, prepares per-family
+  WebGPU resources, resolves prepared mesh/material resource keys, and feeds
+  the existing render-frame plan without moving GPU resources into
+  renderer-independent packages.
+- Added app coverage for a shared frame containing unlit, MatcapMaterial,
+  scalar StandardMaterial, and textured StandardMaterial queue items.
+- Important files:
+  `packages/webgpu/src/webgpu/app.ts`,
+  `test/webgpu/webgpu-app.test.ts`.
+- Validation run: focused material queue/render-frame/app tests,
+  `pnpm exec tsc --noEmit -p tsconfig.test.json`, `pnpm run build`,
+  `pnpm run check:examples`, `pnpm run check:boundaries`, `pnpm run lint`, and
+  `pnpm run format:check` passed. Full `pnpm run check` passed: 169 test files
+  / 813 tests.
+- Follow-up tasks added: none directly; continued into `task-0626`.
+
 ## task-0623 — Add transparent material queue sorting
 
 Completed: 2026-05-17

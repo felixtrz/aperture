@@ -38,6 +38,7 @@ describe("StandardMaterial proof-point contract", () => {
     expect(report.diagnostics).toEqual([]);
     expect(report.supportedFeatures).toContain("baseColorTexture");
     expect(report.supportedFeatures).toContain("metallicRoughnessTexture");
+    expect(report.supportedFeatures).toContain("normalTexture");
     expect(report.supportedFeatures).toContain("occlusionTexture");
     expect(report.supportedFeatures).toContain("emissiveTexture");
     expect(report.supportedFeatures).toContain("directionalLight");

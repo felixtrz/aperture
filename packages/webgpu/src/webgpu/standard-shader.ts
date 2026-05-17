@@ -24,6 +24,7 @@ export const STANDARD_BASE_COLOR_METALLIC_ROUGHNESS_TEXTURE_SHADER_VARIANT =
 export interface StandardTextureShaderFeatures {
   readonly baseColorTexture: boolean;
   readonly metallicRoughnessTexture: boolean;
+  readonly normalTexture: boolean;
   readonly occlusionTexture: boolean;
   readonly emissiveTexture: boolean;
 }
@@ -37,19 +38,20 @@ export const STANDARD_MATERIAL_MVP_LIGHTING_MODEL = {
     "metallicFactor",
     "roughnessFactor",
     "metallicRoughnessTexture",
+    "normalTexture",
     "emissiveFactor",
     "emissiveTexture",
     "occlusionTexture",
     "ambientLight",
     "directionalLight",
   ],
-  deferred: ["normalMaps", "imageBasedLighting", "shadows"],
+  deferred: ["imageBasedLighting", "shadows"],
 } as const;
 
 export const STANDARD_MESH_WGSL = `
 // StandardMaterial MVP shader.
 // Direct lights use a small metallic/roughness GGX BRDF. Texture sampling,
-// normal maps, image-based lighting, and shadows are deferred.
+// image-based lighting, and shadows are deferred.
 struct ViewProjectionUniform {
   viewProjection: mat4x4f,
   cameraPosition: vec4f,
@@ -254,6 +256,7 @@ export const STANDARD_BASE_COLOR_TEXTURED_MESH_WGSL =
   createStandardTextureVariantWgsl({
     baseColorTexture: true,
     metallicRoughnessTexture: false,
+    normalTexture: false,
     occlusionTexture: false,
     emissiveTexture: false,
   });
@@ -262,6 +265,7 @@ export const STANDARD_METALLIC_ROUGHNESS_TEXTURED_MESH_WGSL =
   createStandardTextureVariantWgsl({
     baseColorTexture: false,
     metallicRoughnessTexture: true,
+    normalTexture: false,
     occlusionTexture: false,
     emissiveTexture: false,
   });
@@ -270,6 +274,7 @@ export const STANDARD_BASE_COLOR_METALLIC_ROUGHNESS_TEXTURED_MESH_WGSL =
   createStandardTextureVariantWgsl({
     baseColorTexture: true,
     metallicRoughnessTexture: true,
+    normalTexture: false,
     occlusionTexture: false,
     emissiveTexture: false,
   });
@@ -324,6 +329,7 @@ export const STANDARD_BASE_COLOR_TEXTURED_MESH_SHADER: BuiltInShaderSourceModule
   createStandardTextureVariantShader({
     baseColorTexture: true,
     metallicRoughnessTexture: false,
+    normalTexture: false,
     occlusionTexture: false,
     emissiveTexture: false,
   });
@@ -332,6 +338,7 @@ export const STANDARD_METALLIC_ROUGHNESS_TEXTURED_MESH_SHADER: BuiltInShaderSour
   createStandardTextureVariantShader({
     baseColorTexture: false,
     metallicRoughnessTexture: true,
+    normalTexture: false,
     occlusionTexture: false,
     emissiveTexture: false,
   });
@@ -340,6 +347,7 @@ export const STANDARD_BASE_COLOR_METALLIC_ROUGHNESS_TEXTURED_MESH_SHADER: BuiltI
   createStandardTextureVariantShader({
     baseColorTexture: true,
     metallicRoughnessTexture: true,
+    normalTexture: false,
     occlusionTexture: false,
     emissiveTexture: false,
   });
@@ -445,6 +453,7 @@ export function createStandardTextureShaderVariantKey(
   if (
     features.metallicRoughnessTexture &&
     !features.baseColorTexture &&
+    !features.normalTexture &&
     !features.occlusionTexture &&
     !features.emissiveTexture
   ) {
@@ -459,6 +468,10 @@ export function createStandardTextureShaderVariantKey(
 
   if (features.metallicRoughnessTexture) {
     names.push("metallic-roughness");
+  }
+
+  if (features.normalTexture) {
+    names.push("normal-map");
   }
 
   if (features.occlusionTexture) {
@@ -477,13 +490,80 @@ function createStandardTextureVariantWgsl(
 ): string {
   let code = STANDARD_MESH_WGSL.replace(
     `// Direct lights use a small metallic/roughness GGX BRDF. Texture sampling,
-// normal maps, image-based lighting, and shadows are deferred.`,
+// image-based lighting, and shadows are deferred.`,
     standardTextureVariantComment(features),
   ).replace(
     `@group(2) @binding(0) var<uniform> material: StandardMaterialUniform;
 @group(3) @binding(0) var<storage, read> lightFloats: array<f32>;`,
     standardTextureVariantDeclaration(features),
   );
+
+  if (features.normalTexture) {
+    code = code
+      .replace(
+        `struct VertexInput {
+  @location(0) position: vec3f,
+  @location(1) normal: vec3f,
+  @location(2) uv: vec2f,
+  @builtin(instance_index) instanceIndex: u32,
+};`,
+        `struct VertexInput {
+  @location(0) position: vec3f,
+  @location(1) normal: vec3f,
+  @location(2) uv: vec2f,
+  @location(3) tangent: vec4f,
+  @builtin(instance_index) instanceIndex: u32,
+};`,
+      )
+      .replace(
+        `struct VertexOutput {
+  @builtin(position) position: vec4f,
+  @location(0) worldPosition: vec3f,
+  @location(1) worldNormal: vec3f,
+  @location(2) uv: vec2f,
+};`,
+        `struct VertexOutput {
+  @builtin(position) position: vec4f,
+  @location(0) worldPosition: vec3f,
+  @location(1) worldNormal: vec3f,
+  @location(2) uv: vec2f,
+  @location(3) worldTangent: vec3f,
+  @location(4) tangentSign: f32,
+};`,
+      )
+      .replace(
+        `  output.worldNormal = normalize((world * vec4f(input.normal, 0.0)).xyz);
+  output.uv = input.uv;`,
+        `  output.worldNormal = normalize((world * vec4f(input.normal, 0.0)).xyz);
+  output.worldTangent = normalize((world * vec4f(input.tangent.xyz, 0.0)).xyz);
+  output.tangentSign = input.tangent.w;
+  output.uv = input.uv;`,
+      )
+      .replace(
+        `fn evaluateDirectLight(
+  normal: vec3f,`,
+        `fn sampleTangentSpaceNormal(input: VertexOutput) -> vec3f {
+  var tangentNormal = textureSample(normalTexture, normalSampler, input.uv).xyz * 2.0 - vec3f(1.0);
+  tangentNormal = normalize(vec3f(
+    tangentNormal.xy * material.normalScale,
+    tangentNormal.z,
+  ));
+  let normal = normalize(input.worldNormal);
+  let tangent = normalize(input.worldTangent - normal * dot(input.worldTangent, normal));
+  let bitangent = normalize(cross(normal, tangent) * input.tangentSign);
+  return normalize(mat3x3f(tangent, bitangent, normal) * tangentNormal);
+}
+
+fn evaluateDirectLight(
+  normal: vec3f,`,
+      )
+      .replace(
+        `  let normal = normalize(input.worldNormal);
+  let viewDir = normalize(view.cameraPosition.xyz - input.worldPosition);`,
+        `  let normal = sampleTangentSpaceNormal(input);
+  let viewDir = normalize(view.cameraPosition.xyz - input.worldPosition);`,
+      );
+  }
 
   if (features.baseColorTexture) {
     code = code.replace(
@@ -539,7 +619,7 @@ function standardTextureVariantComment(
 
   return `// Direct lights use a small metallic/roughness GGX BRDF. ${active.join(
     ", ",
-  )} texture sampling is active; normal maps, image-based lighting, and shadows are deferred.`;
+  )} texture sampling is active; image-based lighting and shadows are deferred.`;
 }
 
 function standardTextureVariantDeclaration(
@@ -560,6 +640,13 @@ function standardTextureVariantDeclaration(
     declarations.push(
       "@group(2) @binding(3) var metallicRoughnessTexture: texture_2d<f32>;",
       "@group(2) @binding(4) var metallicRoughnessSampler: sampler;",
+    );
+  }
+
+  if (features.normalTexture) {
+    declarations.push(
+      "@group(2) @binding(5) var normalTexture: texture_2d<f32>;",
+      "@group(2) @binding(6) var normalSampler: sampler;",
     );
   }
 
@@ -627,6 +714,25 @@ function standardTextureVariantBindings(
     );
   }
 
+  if (features.normalTexture) {
+    bindings.push(
+      {
+        id: "normalTexture",
+        label: "Normal texture",
+        group: 2,
+        binding: 5,
+        resource: "texture",
+      },
+      {
+        id: "normalSampler",
+        label: "Normal sampler",
+        group: 2,
+        binding: 6,
+        resource: "sampler",
+      },
+    );
+  }
+
   if (features.occlusionTexture) {
     bindings.push(
       {
@@ -674,6 +780,7 @@ function standardTextureVariantShaderLabel(
   if (
     features.baseColorTexture &&
     !features.metallicRoughnessTexture &&
+    !features.normalTexture &&
     !features.occlusionTexture &&
     !features.emissiveTexture
   ) {
@@ -683,6 +790,7 @@ function standardTextureVariantShaderLabel(
   if (
     features.metallicRoughnessTexture &&
     !features.baseColorTexture &&
+    !features.normalTexture &&
     !features.occlusionTexture &&
     !features.emissiveTexture
   ) {
@@ -692,6 +800,7 @@ function standardTextureVariantShaderLabel(
   if (
     features.baseColorTexture &&
     features.metallicRoughnessTexture &&
+    !features.normalTexture &&
     !features.occlusionTexture &&
     !features.emissiveTexture
   ) {
@@ -716,6 +825,10 @@ function standardTextureFeatureNames(
     names.push("metallic-roughness");
   }
 
+  if (features.normalTexture) {
+    names.push("normal-map");
+  }
+
   if (features.occlusionTexture) {
     names.push("occlusion");
   }
@@ -733,6 +846,7 @@ function hasAnyStandardTextureFeature(
   return (
     features.baseColorTexture ||
     features.metallicRoughnessTexture ||
+    features.normalTexture ||
     features.occlusionTexture ||
     features.emissiveTexture
   );

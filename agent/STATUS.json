@@ -1,10 +1,10 @@
 {
   "state": "idle",
   "currentTaskId": null,
-  "lastRunStartedAt": "2026-05-17T02:03:11Z",
+  "lastRunStartedAt": "2026-05-17T03:01:40Z",
   "lastResult": "success",
   "lastCommit": "0b6a5ef",
   "activePid": null,
-  "notes": "Completed task-0617 through task-0620 plus audit task-0622 and queue sort coverage task-0623. Next recommended task: task-0621 integrate opaque material queue app routing.",
-  "lastRunFinishedAt": "2026-05-17T02:45:36Z"
+  "notes": "Completed task-0624 normal-map shader support, task-0627 glTF PBR texture audit, and task-0633 UV/texture-transform plan. Next recommended task: task-0625.",
+  "lastRunFinishedAt": "2026-05-17T03:55:19Z"
 }

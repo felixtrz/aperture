@@ -15,7 +15,7 @@ import {
 } from "./standard-shader.js";
 import type { BuiltInShaderSourceModule } from "./unlit-shader.js";
 
-export const STANDARD_DEFERRED_PIPELINE_FEATURES = ["normalTexture"] as const;
+export const STANDARD_DEFERRED_PIPELINE_FEATURES = [] as const;
 
 export type StandardDeferredPipelineFeature =
   (typeof STANDARD_DEFERRED_PIPELINE_FEATURES)[number];
@@ -76,7 +76,7 @@ export interface StandardPipelineShaderFeaturePlan {
   readonly normalMap: {
     readonly authored: boolean;
     readonly requiresTangents: boolean;
-    readonly output: "unchanged-until-tangent-space-normal-mapping";
+    readonly output: "tangent-space-normal-mapping" | "unchanged";
   };
 }
 
@@ -176,7 +176,9 @@ export function createStandardPipelineDescriptorPlan(
     vertex: {
       moduleLabel: shader.label,
       entryPoint: shader.entryPoints.vertex,
-      buffers: ["POSITION", "NORMAL", "TEXCOORD_0"],
+      buffers: shaderFeaturePlan.features.normalTexture
+        ? ["POSITION", "NORMAL", "TEXCOORD_0", "TANGENT"]
+        : ["POSITION", "NORMAL", "TEXCOORD_0"],
     },
     fragment: {
       moduleLabel: shader.label,
@@ -225,7 +227,9 @@ export function createStandardPipelineShaderFeaturePlan(
     normalMap: {
       authored: features.normalTexture,
       requiresTangents: features.normalTexture,
-      output: "unchanged-until-tangent-space-normal-mapping",
+      output: features.normalTexture
+        ? "tangent-space-normal-mapping"
+        : "unchanged",
     },
   };
 }
@@ -258,9 +262,7 @@ export function resolveStandardShaderForBatchKey(
 
 function standardTextureFeatures(
   batchKey: Partial<BatchCompatibilityKey> | null,
-): StandardTextureShaderFeatures & {
-  readonly normalTexture: boolean;
-} {
+): StandardTextureShaderFeatures {
   const tokens =
     typeof batchKey?.pipelineKey === "string" &&
     batchKey.pipelineKey.trim().length > 0
@@ -281,30 +283,20 @@ function standardShaderVariantKey(
 ): string {
   const features = standardTextureFeatures(batchKey);
 
-  return appendNormalMapVariant(
-    createStandardTextureShaderVariantKey(features),
-    features,
-  );
-}
-
-function appendNormalMapVariant(
-  variantKey: string,
-  features: ReturnType<typeof standardTextureFeatures>,
-): string {
-  return features.normalTexture
-    ? `${variantKey}-normal-map-texture`
-    : variantKey;
+  return createStandardTextureShaderVariantKey(features);
 }
 
 function standardMaterialLayoutKey(features: {
   readonly baseColorTexture: boolean;
   readonly metallicRoughnessTexture: boolean;
+  readonly normalTexture: boolean;
   readonly occlusionTexture: boolean;
   readonly emissiveTexture: boolean;
 }): string {
   if (
     features.baseColorTexture &&
     features.metallicRoughnessTexture &&
+    !features.normalTexture &&
     !features.occlusionTexture &&
     !features.emissiveTexture
   ) {
@@ -314,6 +306,7 @@ function standardMaterialLayoutKey(features: {
   if (
     features.baseColorTexture &&
     !features.metallicRoughnessTexture &&
+    !features.normalTexture &&
     !features.occlusionTexture &&
     !features.emissiveTexture
   ) {
@@ -323,13 +316,20 @@ function standardMaterialLayoutKey(features: {
   if (
     features.metallicRoughnessTexture &&
     !features.baseColorTexture &&
+    !features.normalTexture &&
     !features.occlusionTexture &&
     !features.emissiveTexture
   ) {
     return "standard/group-2:material-metallic-roughness-texture@0,3,4";
   }
 
-  if (features.occlusionTexture || features.emissiveTexture) {
+  if (
+    features.baseColorTexture ||
+    features.metallicRoughnessTexture ||
+    features.normalTexture ||
+    features.occlusionTexture ||
+    features.emissiveTexture
+  ) {
     const names: string[] = [];
     const bindings = [0];
 
@@ -341,6 +341,11 @@ function standardMaterialLayoutKey(features: {
     if (features.metallicRoughnessTexture) {
       names.push("metallic-roughness");
       bindings.push(3, 4);
+    }
+
+    if (features.normalTexture) {
+      names.push("normal-map");
+      bindings.push(5, 6);
     }
 
     if (features.occlusionTexture) {

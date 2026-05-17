@@ -21,6 +21,17 @@ import {
 import { UNLIT_PRIMITIVE_VERTEX_BUFFER_LAYOUT } from "./unlit-pipeline.js";
 import type { BuiltInShaderSourceModule } from "./unlit-shader.js";
 
+export const STANDARD_TANGENT_PRIMITIVE_VERTEX_BUFFER_LAYOUT = {
+  arrayStride: 48,
+  stepMode: "vertex",
+  attributes: [
+    { shaderLocation: 0, offset: 0, format: "float32x3" },
+    { shaderLocation: 1, offset: 12, format: "float32x3" },
+    { shaderLocation: 2, offset: 24, format: "float32x2" },
+    { shaderLocation: 3, offset: 32, format: "float32x4" },
+  ],
+} as const;
+
 export type StandardRenderPipelineDiagnosticCode =
   | "standardRenderPipeline.shaderDiagnostic"
   | "standardRenderPipeline.shaderCreationFailed"
@@ -174,7 +185,7 @@ export function createBrowserStandardRenderPipelineDescriptor(
     vertex: {
       module: input.shaderModule,
       entryPoint: shader.entryPoints.vertex,
-      buffers: [UNLIT_PRIMITIVE_VERTEX_BUFFER_LAYOUT],
+      buffers: [standardPrimitiveVertexBufferLayout(shader)],
     },
     fragment: {
       module: input.shaderModule,
@@ -200,6 +211,16 @@ export function createBrowserStandardRenderPipelineDescriptor(
       depthCompare: "less",
     },
   };
+}
+
+function standardPrimitiveVertexBufferLayout(
+  shader: BuiltInShaderSourceModule,
+):
+  | typeof UNLIT_PRIMITIVE_VERTEX_BUFFER_LAYOUT
+  | typeof STANDARD_TANGENT_PRIMITIVE_VERTEX_BUFFER_LAYOUT {
+  return shader.bindings.some((binding) => binding.id === "normalTexture")
+    ? STANDARD_TANGENT_PRIMITIVE_VERTEX_BUFFER_LAYOUT
+    : UNLIT_PRIMITIVE_VERTEX_BUFFER_LAYOUT;
 }
 
 function mapShaderDiagnostic(

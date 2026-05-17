@@ -268,7 +268,7 @@ describe("standard material pipeline descriptor planning", () => {
     );
   });
 
-  it("records the deferred normal-map specialization key without changing the shader module", () => {
+  it("specializes normal-map variants with tangent vertex attributes", () => {
     const featurePlan = createStandardPipelineShaderFeaturePlan({
       ...STANDARD_BATCH_KEY,
       pipelineKey: "standard|normalTexture|opaque|back|less|none",
@@ -283,7 +283,7 @@ describe("standard material pipeline descriptor planning", () => {
 
     expect(featurePlan).toMatchObject({
       variantKey: `${STANDARD_DIRECT_LIGHT_SHADER_VARIANT}-normal-map-texture`,
-      shader: { label: "aperture/standard-mesh" },
+      shader: { label: "aperture/standard-mesh-normal-map-textured" },
       features: {
         baseColorTexture: false,
         metallicRoughnessTexture: false,
@@ -292,18 +292,36 @@ describe("standard material pipeline descriptor planning", () => {
       normalMap: {
         authored: true,
         requiresTangents: true,
-        output: "unchanged-until-tangent-space-normal-mapping",
+        output: "tangent-space-normal-mapping",
       },
     });
-    expect(descriptor.plan).toBeNull();
-    expect(descriptor.diagnostics).toEqual([
-      {
-        code: "standardPipeline.deferredFeature",
-        field: "batchKey.pipelineKey.normalTexture",
-        message:
-          "normalTexture is deferred for the direct-lit StandardMaterial MVP pipeline.",
+    expect(descriptor.diagnostics).toEqual([]);
+    expect(descriptor.plan?.descriptor).toMatchObject({
+      label:
+        "aperture/standard-mesh-normal-map-textured:bgra8unorm:triangle-list",
+      vertex: {
+        moduleLabel: "aperture/standard-mesh-normal-map-textured",
+        buffers: ["POSITION", "NORMAL", "TEXCOORD_0", "TANGENT"],
       },
-    ]);
+      fragment: {
+        moduleLabel: "aperture/standard-mesh-normal-map-textured",
+      },
+    });
+    expect(
+      JSON.parse(required(descriptor.plan).cacheKey) as unknown,
+    ).toMatchObject({
+      shader: {
+        variantKey: `${STANDARD_DIRECT_LIGHT_SHADER_VARIANT}-normal-map-texture`,
+      },
+      layouts: {
+        bindGroups: [
+          "standard/group-0:view-uniform@0",
+          "standard/group-1:world-transforms@0",
+          "standard/group-2:material-normal-map-texture@0,5,6",
+          "lights/group-3:light-floats@0,light-metadata@1",
+        ],
+      },
+    });
   });
 
   it("diagnoses invalid metadata, missing color format, and non-standard batch keys", () => {

@@ -2,6 +2,209 @@
 
 ## Latest Run Update
 
+Completed `task-0624`, `task-0627`, and `task-0633` after the queue-routing
+continuation work from this automation run:
+
+- `task-0624` — StandardMaterial normal maps are now rendered through
+  tangent-space WGSL specialization instead of being a deferred proof-point
+  feature. The shader variant declares normal texture/sampler bindings, consumes
+  `@location(3)` tangents, builds a TBN matrix, applies `normalScale`, and uses
+  the sampled normal for direct lighting.
+- Pipeline descriptor/cache-key planning now specializes normal-map variants,
+  includes the `TANGENT` vertex semantic when `normalTexture` is active, and
+  includes normal texture/sampler bindings in the StandardMaterial group-2
+  layout key.
+- Browser StandardMaterial pipeline creation selects a 48-byte primitive vertex
+  layout for normal-map shaders, while non-normal variants keep the existing
+  32-byte primitive layout.
+- `createWebGpuApp` now prepares StandardMaterial normal texture/sampler GPU
+  resources. App coverage renders a tangent-bearing normal-mapped cube twice
+  and verifies pipeline, texture, sampler, bind-group, and reuse behavior.
+- `normalTexture` moved from deferred to supported StandardMaterial proof-point
+  metadata. Existing renderer-independent extraction diagnostics still block
+  normal-mapped StandardMaterial draws when mesh tangents are missing.
+- `task-0627` — audited StandardMaterial glTF PBR texture expectations in
+  `docs/research/STANDARD_MATERIAL_GLTF_PBR_TEXTURE_AUDIT_2026_05_17.md`.
+  The audit confirms base-color, metallic-roughness, normal, occlusion, and
+  emissive channels now have real renderer coverage, but GLB material mapping
+  should remain deferred until UV-set selection, texture transforms, sampler
+  import policy, and texture semantic/color-space diagnostics are explicit.
+- Added ready follow-ups `task-0632` and `task-0633`.
+- Stop hook requested continuation before minute 45, so a small docs-only
+  `task-0633` slice was completed:
+  `docs/research/STANDARD_MATERIAL_UV_TEXTURE_TRANSFORM_PLAN_2026_05_17.md`
+  now defines the safe path for `MaterialTextureBinding.texCoord`,
+  `TEXCOORD_1` shader variants, and future texture-transform metadata.
+- Added ready follow-ups `task-0634` and `task-0635`.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/standard-shader.test.ts test/webgpu/standard-pipeline-descriptor.test.ts test/webgpu/standard-pipeline.test.ts test/webgpu/standard-material-buffer.test.ts test/webgpu/webgpu-app.test.ts test/materials/standard-proof-point.test.ts test/materials/standard-normal-map-readiness.test.ts test/materials/material-dependency-readiness.test.ts test/rendering/extraction.test.ts`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm run build`
+- `pnpm run check:examples`
+- `pnpm run check:boundaries`
+- `pnpm run lint`
+- `pnpm run format:check`
+- `pnpm run check` passed: 169 test files / 818 tests.
+- After `task-0633`: `pnpm run format:check` and
+  `pnpm exec tsc --noEmit -p tsconfig.test.json` passed.
+- After `task-0633`: `pnpm run test:e2e` passed: 142 Playwright tests.
+- Final `pnpm run check` passed after all updates: 169 test files / 818 tests.
+
+Reference files/patterns inspected:
+
+- Normal-map shader/TBN patterns:
+  `references/three.js/src/renderers/shaders/ShaderChunk/normal_pars_vertex.glsl.js`,
+  `references/three.js/src/renderers/shaders/ShaderChunk/normal_vertex.glsl.js`,
+  `references/three.js/src/renderers/shaders/ShaderChunk/normal_fragment_maps.glsl.js`,
+  `references/engine/src/scene/shader-lib/wgsl/chunks/lit/vert/litMain.js`,
+  `references/engine/src/scene/shader-lib/wgsl/chunks/standard/frag/normalMap.js`.
+- glTF PBR material mapping patterns:
+  `references/three.js/examples/jsm/loaders/GLTFLoader.js`,
+  `references/engine/src/framework/parsers/glb-parser.js`,
+  `references/bevy/crates/bevy_gltf/src/loader/mod.rs`,
+  `references/bevy/crates/bevy_pbr/src/pbr_material.rs`.
+- UV/texture-transform planning:
+  `references/three.js/examples/jsm/loaders/GLTFLoader.js`,
+  `references/engine/src/framework/parsers/glb-parser.js`,
+  `references/bevy/crates/bevy_gltf/src/loader/mod.rs`,
+  `references/bevy/crates/bevy_gltf/src/lib.rs`.
+- Aperture anchors:
+  `docs/MEDIUM_LONG_TERM_GOALS.md`,
+  `docs/research/MATERIAL_TEXTURE_RENDER_STATE_COVERAGE.md`,
+  `packages/render/src/materials/standard-normal-map-readiness.ts`,
+  `packages/webgpu/src/webgpu/standard-shader.ts`,
+  `packages/webgpu/src/webgpu/standard-pipeline-descriptor.ts`.
+
+Recommended next task:
+
+- `task-0625 — Add generic prepared material resource contracts`.
+
+Known issues / follow-ups:
+
+- GLB material mapping remains deferred. The current blockers are tracked in
+  `task-0632` for texture semantic/color-space diagnostics, `task-0634` for
+  unsupported UV-set diagnostics, and `task-0635` for `TEXCOORD_1` shader
+  variants.
+- Single-family app frames still have legacy route paths; `task-0630` tracks
+  routing them through the material queue without cache regressions.
+- Alpha-test and transparent queue items are still diagnosed rather than
+  consumed; `task-0631` tracks the plan for phase consumption.
+
+Files touched in this update:
+
+- `agent/BACKLOG.md`
+- `agent/COMPLETED.md`
+- `agent/HANDOFF.md`
+- `agent/STATUS.json`
+- `docs/research/QUEUE_DRIVEN_APP_ROUTING_AUDIT_2026_05_17.md`
+- `docs/research/STANDARD_MATERIAL_GLTF_PBR_TEXTURE_AUDIT_2026_05_17.md`
+- `docs/research/STANDARD_MATERIAL_UV_TEXTURE_TRANSFORM_PLAN_2026_05_17.md`
+- `packages/render/src/materials/standard-proof-point.ts`
+- `packages/webgpu/src/webgpu/app.ts`
+- `packages/webgpu/src/webgpu/standard-pipeline-descriptor.ts`
+- `packages/webgpu/src/webgpu/standard-pipeline.ts`
+- `packages/webgpu/src/webgpu/standard-shader.ts`
+- `packages/webgpu/src/webgpu/unlit-shader.ts`
+- `test/materials/standard-proof-point.test.ts`
+- `test/webgpu/standard-material-buffer.test.ts`
+- `test/webgpu/standard-pipeline-descriptor.test.ts`
+- `test/webgpu/standard-pipeline.test.ts`
+- `test/webgpu/standard-shader.test.ts`
+- `test/webgpu/webgpu-app.test.ts`
+
+## Previous Run Update
+
+Completed `task-0621`, `task-0626`, `task-0629`, and `task-0628` in this
+automation run:
+
+- `task-0621` — `createWebGpuApp.render()` now routes multi-resource opaque
+  built-in material frames through the generic material queue instead of the
+  previous pairwise/three-family mixed route branches. The optimized multi-unlit
+  fallback remains for same-mesh unlit materials, while mixed unlit, Matcap, and
+  StandardMaterial frames now consume queue items, prepare WebGPU-owned
+  resources per family, resolve prepared mesh/material resource keys, and feed
+  the existing render-frame plan.
+- Added focused app coverage for a single frame containing unlit,
+  MatcapMaterial, scalar StandardMaterial, and textured StandardMaterial queue
+  items.
+- `task-0626` — audited the queue-driven app route in
+  `docs/research/QUEUE_DRIVEN_APP_ROUTING_AUDIT_2026_05_17.md`. The audit
+  confirms the route stays ECS-authoritative, snapshot-derived, WebGPU-owned
+  for GPU resources, JSON-safe, and free of hidden scene graph behavior.
+- Added ready follow-ups `task-0628` and `task-0629` so the backlog remains
+  above five ready tasks and captures queue-route scratch reuse plus explicit
+  unsupported-family/phase diagnostics coverage.
+- `task-0629` — Added app-level tests for unsupported material queue families
+  and unsupported non-opaque queue phases. Both cases produce JSON-safe
+  diagnostics and avoid WebGPU submission.
+- `task-0628` — Added reusable queue-route scratch maps/arrays to
+  `WebGpuAppFrameScratch` and extended the queued mixed-material app test to
+  render a second frame, proving scratch reuse does not leak stale resource
+  keys.
+- Added ready follow-ups `task-0630` and `task-0631` to keep queue-route cleanup
+  and future alpha-test/transparent phase consumption explicit.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts`
+- `pnpm exec vitest run test/rendering/material-queue.test.ts test/webgpu/render-frame-plan.test.ts test/webgpu/webgpu-app.test.ts`
+- `pnpm exec tsc --noEmit -p packages/webgpu/tsconfig.json`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm run build`
+- `pnpm run check:examples`
+- `pnpm run check:boundaries`
+- `pnpm run lint`
+- `pnpm run format:check`
+- `pnpm run check` passed: 169 test files / 813 tests.
+- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts` passed after
+  `task-0628`/`task-0629`: 27 tests.
+
+Reference files/patterns inspected:
+
+- Bevy render phase queue/sort:
+  `references/bevy/crates/bevy_render/src/render_phase/mod.rs`.
+- three.js render list sorting:
+  `references/three.js/src/renderers/common/RenderList.js`,
+  `references/three.js/src/renderers/WebGLRenderer.js`.
+- PlayCanvas layer/material sorting:
+  `references/engine/src/scene/layer.js`,
+  `references/engine/src/scene/constants.js`,
+  `references/engine/src/scene/mesh-instance.js`.
+- Aperture anchors:
+  `docs/NORTH_STAR.md`, `docs/ARCHITECTURE.md`, `docs/DECISIONS.md`,
+  `docs/research/OPAQUE_MATERIAL_QUEUE_APP_ROUTING_PLAN_2026_05_17.md`,
+  `packages/render/src/rendering/material-queue.ts`,
+  `packages/webgpu/src/webgpu/render-frame-plan.ts`.
+
+Recommended next task:
+
+- `task-0624 — Add StandardMaterial normal-map shader support`.
+
+Known issues / follow-ups:
+
+- StandardMaterial normal maps are still diagnostic-only. `task-0624` should
+  implement tangent-space sampling without regressing existing texture variants.
+- Generic prepared material descriptors remain future work in `task-0625`.
+- Single-family app frames still use the existing single-family/multi-unlit
+  paths. `task-0630` tracks routing them through the material queue without
+  cache regressions.
+- Alpha-test and transparent app queue items are diagnosed, not consumed.
+  `task-0631` tracks the implementation plan for phase consumption.
+
+Files touched in this update:
+
+- `agent/BACKLOG.md`
+- `agent/COMPLETED.md`
+- `agent/HANDOFF.md`
+- `agent/STATUS.json`
+- `docs/research/QUEUE_DRIVEN_APP_ROUTING_AUDIT_2026_05_17.md`
+- `packages/webgpu/src/webgpu/app.ts`
+- `test/webgpu/webgpu-app.test.ts`
+
+## Previous Run Update
+
 Completed `task-0617`, `task-0618`, `task-0619`, `task-0620`, `task-0622`,
 and `task-0623` in this automation run:
 

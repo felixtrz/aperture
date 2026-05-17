@@ -6,6 +6,7 @@ export type StandardMaterialProofPointFeature =
   | "metallicFactor"
   | "roughnessFactor"
   | "metallicRoughnessTexture"
+  | "normalTexture"
   | "emissiveFactor"
   | "occlusionTexture"
   | "emissiveTexture"
@@ -16,7 +17,6 @@ export type StandardMaterialProofPointFeature =
   | "directionalLight";
 
 export type DeferredStandardMaterialFeature =
-  | "normalTexture"
   | "imageBasedLighting"
   | "shadows"
   | "transmission"
@@ -29,6 +29,7 @@ export const STANDARD_MATERIAL_PROOF_POINT_SCOPE = {
     "metallicFactor",
     "roughnessFactor",
     "metallicRoughnessTexture",
+    "normalTexture",
     "emissiveFactor",
     "occlusionTexture",
     "emissiveTexture",
@@ -38,13 +39,7 @@ export const STANDARD_MATERIAL_PROOF_POINT_SCOPE = {
     "ambientLight",
     "directionalLight",
   ],
-  deferred: [
-    "normalTexture",
-    "imageBasedLighting",
-    "shadows",
-    "transmission",
-    "clearcoat",
-  ],
+  deferred: ["imageBasedLighting", "shadows", "transmission", "clearcoat"],
 } as const satisfies {
   readonly supported: readonly StandardMaterialProofPointFeature[];
   readonly deferred: readonly DeferredStandardMaterialFeature[];
@@ -79,10 +74,6 @@ export function validateStandardMaterialProofPoint(
   validateColor([...material.emissiveFactor, 1], "emissiveFactor", diagnostics);
   validateUnitFactor(material.metallicFactor, "metallicFactor", diagnostics);
   validateUnitFactor(material.roughnessFactor, "roughnessFactor", diagnostics);
-
-  if (material.normalTexture !== null) {
-    deferred("normalTexture", diagnostics);
-  }
 
   for (const feature of material.unsupportedFeatures) {
     diagnostics.push({
@@ -134,16 +125,4 @@ function validateColor(
       return;
     }
   }
-}
-
-function deferred(
-  field: DeferredStandardMaterialFeature,
-  diagnostics: StandardMaterialProofPointDiagnostic[],
-): void {
-  diagnostics.push({
-    code: "standardMaterial.deferredFeature",
-    field,
-    severity: "warning",
-    message: `${field} is deferred for the StandardMaterial proof point.`,
-  });
 }

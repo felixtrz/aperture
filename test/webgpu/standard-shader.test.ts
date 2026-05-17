@@ -73,14 +73,13 @@ describe("built-in standard material WGSL shader metadata", () => {
     expect(STANDARD_MATERIAL_MVP_LIGHTING_MODEL).toMatchObject({
       variant: "direct-lit-metallic-roughness",
       supported: expect.arrayContaining(["ambientLight", "directionalLight"]),
-      deferred: expect.arrayContaining([
-        "normalMaps",
-        "imageBasedLighting",
-        "shadows",
-      ]),
+      deferred: expect.arrayContaining(["imageBasedLighting", "shadows"]),
     });
     expect(STANDARD_MATERIAL_MVP_LIGHTING_MODEL.supported).toContain(
       "metallicRoughnessTexture",
+    );
+    expect(STANDARD_MATERIAL_MVP_LIGHTING_MODEL.supported).toContain(
+      "normalTexture",
     );
     expect(STANDARD_MATERIAL_MVP_LIGHTING_MODEL.supported).toContain(
       "emissiveTexture",
@@ -212,6 +211,7 @@ describe("built-in standard material WGSL shader metadata", () => {
     const shader = createStandardTextureVariantShader({
       baseColorTexture: true,
       metallicRoughnessTexture: true,
+      normalTexture: false,
       occlusionTexture: true,
       emissiveTexture: true,
     });
@@ -224,6 +224,7 @@ describe("built-in standard material WGSL shader metadata", () => {
       createStandardTextureShaderVariantKey({
         baseColorTexture: true,
         metallicRoughnessTexture: true,
+        normalTexture: false,
         occlusionTexture: true,
         emissiveTexture: true,
       }),
@@ -261,6 +262,52 @@ describe("built-in standard material WGSL shader metadata", () => {
       ["occlusionSampler", 2, 8, "sampler"],
       ["emissiveTexture", 2, 9, "texture"],
       ["emissiveSampler", 2, 10, "sampler"],
+    ]);
+  });
+
+  it("generates a tangent-space normal-map variant for StandardMaterial", () => {
+    const shader = createStandardTextureVariantShader({
+      baseColorTexture: false,
+      metallicRoughnessTexture: false,
+      normalTexture: true,
+      occlusionTexture: false,
+      emissiveTexture: false,
+    });
+
+    expect(validateStandardShaderMetadata(shader)).toEqual({
+      valid: true,
+      diagnostics: [],
+    });
+    expect(
+      createStandardTextureShaderVariantKey({
+        baseColorTexture: false,
+        metallicRoughnessTexture: false,
+        normalTexture: true,
+        occlusionTexture: false,
+        emissiveTexture: false,
+      }),
+    ).toBe("direct-lit-metallic-roughness-normal-map-texture");
+    expect(shader.label).toBe("aperture/standard-mesh-normal-map-textured");
+    expect(shader.code).toContain("@location(3) tangent: vec4f");
+    expect(shader.code).toContain("sampleTangentSpaceNormal");
+    expect(shader.code).toContain("textureSample(normalTexture, normalSampler");
+    expect(shader.code).toContain("tangentNormal.xy * material.normalScale");
+    expect(shader.code).toContain("mat3x3f(tangent, bitangent, normal)");
+    expect(
+      shader.bindings.map((binding) => [
+        binding.id,
+        binding.group,
+        binding.binding,
+        binding.resource,
+      ]),
+    ).toEqual([
+      ["viewProjection", 0, 0, "uniform-buffer"],
+      ["worldTransforms", 1, 0, "read-only-storage-buffer"],
+      ["standardMaterial", 2, 0, "uniform-buffer"],
+      ["lightFloats", 3, 0, "read-only-storage-buffer"],
+      ["lightMetadata", 3, 1, "read-only-storage-buffer"],
+      ["normalTexture", 2, 5, "texture"],
+      ["normalSampler", 2, 6, "sampler"],
     ]);
   });
 

@@ -2,9 +2,11 @@ import { describe, expect, it } from "vitest";
 
 import {
   STANDARD_MESH_WGSL,
+  STANDARD_TANGENT_PRIMITIVE_VERTEX_BUFFER_LAYOUT,
   UNLIT_PRIMITIVE_VERTEX_BUFFER_LAYOUT,
   createBrowserStandardRenderPipelineDescriptor,
   createStandardRenderPipelineResource,
+  createStandardTextureVariantShader,
   type BatchCompatibilityKey,
   type WebGpuRenderPipelineCreateDescriptor,
   type WebGpuShaderCreateDescriptor,
@@ -54,6 +56,30 @@ describe("browser standard material pipeline bridge", () => {
         depthWriteEnabled: true,
         depthCompare: "less",
       },
+    });
+  });
+
+  it("uses a tangent primitive vertex layout for normal-map standard shaders", () => {
+    const shaderModule = {
+      compilationInfo: async () => ({ messages: [] }),
+    };
+    const shader = createStandardTextureVariantShader({
+      baseColorTexture: false,
+      metallicRoughnessTexture: false,
+      normalTexture: true,
+      occlusionTexture: false,
+      emissiveTexture: false,
+    });
+    const descriptor = createBrowserStandardRenderPipelineDescriptor({
+      shader,
+      shaderModule,
+      colorFormat: "bgra8unorm",
+    });
+
+    expect(descriptor.vertex).toMatchObject({
+      module: shaderModule,
+      entryPoint: "vs_main",
+      buffers: [STANDARD_TANGENT_PRIMITIVE_VERTEX_BUFFER_LAYOUT],
     });
   });
 
