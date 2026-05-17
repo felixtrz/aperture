@@ -2,91 +2,77 @@
 
 ## Latest Run Update
 
-Completed `task-0702` through `task-0737` in this automation run. This moved
-the GLB path from constructed mesh source assets through registry registration,
-serializable ECS command planning, explicit ECS replay, orchestration summaries,
-and a report-driven import facade that can create pure root/traversal,
-material/texture mapping, and mesh construction reports. The latest
-continuation slice planned explicit source-registration orchestration as the next
-AssetRegistry mutation surface.
+Completed `task-0743` through `task-0772` in this automation run. This advanced
+two tracks: GLB combined fixture diagnostics and the WebGPU material queue route
+reporting/adapter-helper boundary.
 
 Highlights:
 
-- Added `registerGltfMeshSourceAssetsFromConstructionReport` under
-  `packages/render/src/assets`, with ready mesh asset registration, duplicate
-  and invalid-plan skips, handle normalization, diagnostics, and JSON-safe
-  report helpers.
-- Added focused primitive material resolution edge tests for custom key prefixes,
-  duplicate-but-unavailable materials, default material handles from registration
-  reports, and unregistered indexed materials.
+- Added combined GLB fixture JSON coverage and unresolved-material diagnostics
+  coverage without crossing into render extraction or WebGPU.
 - Added
-  `docs/research/GLB_ECS_AUTHORING_FROM_SOURCE_REPORTS_PLAN_2026_05_17.md`,
-  then implemented `createGltfEcsAuthoringCommandPlan`. It emits serializable
-  scene, node, and primitive commands from traversal/mesh/material reports,
-  keeps parent references as `parentEntityKey`, uses node-scoped primitive
-  entity keys, and reports missing mesh/material readiness.
-- Added
-  `docs/research/GLB_ECS_COMMAND_REPLAY_BOUNDARY_PLAN_2026_05_17.md`, then
-  implemented `replayGltfEcsAuthoringCommands`. Replay mutates only a
-  caller-provided `EcsWorld`, registers known components by default, creates
-  entities, resolves parents in a second pass, applies known components, and
-  exposes JSON-safe replay reports that omit raw ECS entities.
-- Added boundary audits for mesh source registration, ECS command planning, and
-  ECS command replay. No drift was found.
-- Hardened ECS command replay with invalid component-name and malformed value
-  diagnostics.
-- Added `createGltfLoaderOrchestrationReport`, with stage status, side-effect
-  classification, prerequisite diagnostics, stage counts, and JSON-safe
-  projection.
-- Added `createGltfReportDrivenImportReport`, which creates root validation and
-  scene traversal reports from glTF JSON, accepts caller-provided reports, and
-  produces orchestration.
-- Extended the import facade with optional pure material/texture asset mapping
-  and optional pure mesh primitive/accessor/mesh-construction report creation.
-- Added boundary audits for orchestration, orchestration diagnostics,
-  report-driven import, optional material mapping, and optional mesh mapping.
-- Added
-  `docs/research/GLB_EXPLICIT_SOURCE_REGISTRATION_ORCHESTRATION_PLAN_2026_05_17.md`,
-  defining the planned helper that composes material/texture/sampler and mesh
-  registration from already-produced reports while keeping `AssetRegistry`
-  mutation explicit.
-- Refilled the ready backlog with `task-0738` through `task-0742`; next
-  recommended task is `task-0738 — Add source registration orchestration
-skeleton`.
+  `docs/research/GLB_COMBINED_FIXTURE_DIAGNOSTICS_BOUNDARY_AUDIT_2026_05_17.md`;
+  no boundary drift was found in the combined fixture diagnostics.
+- Planned the generic material-family queue contract, then added/exported the
+  queued material adapter registry helper with duplicate-family diagnostics and
+  JSON-safe inspection helpers.
+- Added `createWebGpuAppMaterialQueueRouteReport`, JSON helpers, and diagnostic
+  aggregation for queued/routed/skipped counts by material family and render
+  phase.
+- Extracted built-in material queue family and phase diagnostics helpers, then
+  updated `createWebGpuApp` to use the shared helpers without changing the
+  supported family/phase matrix.
+- Wired failure-only `webGpuApp.materialQueueRouteReport` diagnostics into
+  queued built-in app routing. Existing specific diagnostics remain first; the
+  aggregate report is appended only on route failure.
+- Added successful queued unlit/matcap/StandardMaterial assertions proving route
+  reports are not emitted by default on successful renders.
+- Tightened route report JSON projection so omitted optional fields stay
+  omitted and `null` blend presets remain explicit.
+- Added a reusable material queue route report shell writer/reset API, then
+  updated app failure projection to use the shell stored in queued route scratch.
+- Added app coverage for `webGpuApp.materialQueueAssetMismatch` route reports
+  using a crafted snapshot that keeps ECS-authored assets real while forcing a
+  mismatched pipeline family.
+- Planned the route-only built-in material adapter registry factory extraction.
+- Added audits/plans for queued material adapter boundaries, route report
+  boundaries, built-in helper boundaries, failure-only app report wiring, app
+  integration, and a future reusable route report shell.
+- Refilled the ready backlog with `task-0773` through `task-0777`; next
+  recommended task is `task-0773 — Add built-in material route adapter factory`.
 
 Validation:
 
-- Focused Vitest runs for mesh source registration, primitive material
-  resolution, ECS command planning/replay, orchestration, and report-driven
-  import all passed.
+- Focused Vitest runs passed for GLB combined fixture JSON/unresolved-material
+  coverage.
+- Focused Vitest runs passed for queued material adapter helpers/JSON helpers.
+- Focused Vitest runs passed for material queue route reports, route report JSON
+  projection, diagnostic aggregation, shell reuse, built-in material queue
+  helpers, and WebGPU app route diagnostics/successful queued paths.
 - `pnpm exec tsc --noEmit -p tsconfig.test.json`
 - `pnpm run check:boundaries`
-- Final `pnpm run check` passed, including 204 Vitest files / 964 tests.
-- Post-`task-0737` `pnpm run format:check` passed.
+- `pnpm run format:check`
+- Final `pnpm run check` passed, including 217 Vitest files / 997 tests.
 
 Reference files/patterns inspected:
 
-- Bevy glTF sub-asset loading and per-node primitive scene spawning in
-  `references/bevy/crates/bevy_gltf/src/loader/mod.rs`.
-- Bevy primitive topology helper in
-  `references/bevy/crates/bevy_gltf/src/loader/gltf_ext/mesh.rs`.
 - Aperture anchors: `docs/NORTH_STAR.md`, `docs/ARCHITECTURE.md`,
-  `docs/DECISIONS.md`,
-  `docs/research/GLB_MESH_SOURCE_ASSET_REGISTRATION_PLAN_2026_05_17.md`,
-  `docs/research/GLB_SCENE_NODE_TRAVERSAL_DIAGNOSTICS_PLAN_2026_05_17.md`,
-  `docs/research/GLB_PRIMITIVE_MATERIAL_RESOLUTION_HANDOFF_PLAN_2026_05_17.md`,
-  existing `AssetRegistry`, transform components, render authoring components,
-  and GLB source-registration helpers.
+  `docs/DECISIONS.md`, `docs/MEDIUM_LONG_TERM_GOALS.md`, current WebGPU app
+  material queue routing, route report helpers, and GLB fixture helpers.
+- Bevy glTF sub-asset loading and per-node primitive scene spawning from the
+  earlier GLB fixture track.
+- three.js `WebGLRenderLists` reusable render item/phase bucket pattern.
+- PlayCanvas `Layer` opaque/transparent culled list and sort-mode pattern.
 
 Known issues / follow-ups:
 
-- Source registration orchestration is still explicit future work; the next task
-  should implement the planned helper to compose material/texture/sampler and
-  mesh registration without hiding `AssetRegistry` mutation.
-- The import facade creates pure reports only; source registration and ECS replay
-  remain opt-in downstream stages.
-- Replay intentionally does not run transform resolution, render extraction, or
-  WebGPU preparation.
+- Route report success-path summaries are still intentionally absent. Add an
+  explicit diagnostics option before exposing successful route summaries.
+- Built-in adapter extraction has been started with family/phase helpers and a
+  route-only registry factory plan. GPU resource preparation closures still
+  belong in `app.ts`; `task-0773` should add the route-only factory first.
+- Combined GLB fixture work remains pre-render: it does not run transform
+  resolution, render extraction, render-world preparation, or WebGPU.
 
 Files touched in this update include:
 
@@ -94,20 +80,20 @@ Files touched in this update include:
 - `agent/COMPLETED.md`
 - `agent/HANDOFF.md`
 - `agent/STATUS.json`
-- `docs/research/GLB_*_2026_05_17.md`
-- `docs/research/GLB_EXPLICIT_SOURCE_REGISTRATION_ORCHESTRATION_PLAN_2026_05_17.md`
-- `packages/render/src/assets/gltf-mesh-source-registration.ts`
-- `packages/render/src/assets/gltf-ecs-authoring-command-plan.ts`
-- `packages/render/src/assets/gltf-ecs-command-replay.ts`
-- `packages/render/src/assets/gltf-loader-orchestration.ts`
-- `packages/render/src/assets/gltf-report-driven-import.ts`
+- `docs/research/*QUEUE*2026_05_17.md`
+- `docs/research/*ROUTE*2026_05_17.md`
+- `docs/research/GLB_COMBINED_FIXTURE_DIAGNOSTICS_BOUNDARY_AUDIT_2026_05_17.md`
+- `packages/render/src/assets/gltf-source-registration-orchestration.ts`
 - `packages/render/src/assets/index.ts`
-- `test/assets/gltf-mesh-source-registration*.test.ts`
-- `test/assets/gltf-primitive-material-resolution.test.ts`
-- `test/assets/gltf-ecs-authoring-command-plan*.test.ts`
-- `test/assets/gltf-ecs-command-replay*.test.ts`
-- `test/assets/gltf-loader-orchestration*.test.ts`
-- `test/assets/gltf-report-driven-import*.test.ts`
+- `packages/webgpu/src/webgpu/app.ts`
+- `packages/webgpu/src/webgpu/built-in-material-queue-family.ts`
+- `packages/webgpu/src/webgpu/built-in-material-queue-phase.ts`
+- `packages/webgpu/src/webgpu/material-queue-route-report.ts`
+- `packages/webgpu/src/webgpu/queued-material-adapter.ts`
+- `test/assets/gltf-combined-import-*.test.ts`
+- `test/assets/gltf-source-registration-orchestration*.test.ts`
+- `test/webgpu/*material-queue*.test.ts`
+- `test/webgpu/webgpu-app.test.ts`
 
 ## Previous Run Update
 

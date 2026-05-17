@@ -59,10 +59,9 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start with `task-0738`. The explicit source registration orchestration boundary
-is now planned. The next slice should implement the helper that composes
-material/texture/sampler and mesh registration while keeping `AssetRegistry`
-mutation explicit.
+Start with `task-0773`. Route report shelling and failure diagnostics are now
+covered. The next slice should add the route-only built-in adapter registry
+factory before pairing it with app-local resource closures.
 
 ## Near-Term Proof Point Track
 
@@ -79,11 +78,11 @@ Target proof point:
 
 Remaining automation priority order:
 
-1. `task-0738` — add source registration orchestration skeleton.
-2. `task-0739` — add source registration orchestration JSON tests.
-3. `task-0740` — audit source registration orchestration boundaries.
-4. `task-0741` — add combined import facade fixture coverage.
-5. `task-0742` — audit combined GLB import fixture boundaries.
+1. `task-0773` — add built-in material route adapter factory.
+2. `task-0774` — use route-only adapter factory in app routing.
+3. `task-0775` — audit built-in adapter factory boundaries.
+4. `task-0776` — plan app-local resource adapter split.
+5. `task-0777` — add route report shell app reuse regression test.
 
 Defer allocation-only cleanup and metadata-only shader-contract tasks unless
 they are a direct blocker for this track.
@@ -149,95 +148,107 @@ viewer/material mapping should not outrun the material and queue architecture.
 
 ### Proof Point Critical Path
 
-### task-0738 — Add source registration orchestration skeleton
+### task-0773 — Add built-in material route adapter factory
 
-Category: `render-bridge`
-Package/write-scope: `packages/render/src/assets`, focused tests, and exports.
+Category: `webgpu-render`
+Package/write-scope: `packages/webgpu/src/webgpu`, focused route adapter tests,
+and exports.
 Reference anchor:
-`task-0737` registration orchestration plan,
-`packages/render/src/assets/gltf-source-registration.ts`,
-`packages/render/src/assets/gltf-mesh-source-registration.ts`, and
-`packages/simulation/src/assets/registry.ts`.
+`docs/research/BUILT_IN_MATERIAL_ADAPTER_REGISTRY_FACTORY_PLAN_2026_05_17.md`,
+`packages/webgpu/src/webgpu/built-in-material-queue-family.ts`,
+`packages/webgpu/src/webgpu/built-in-material-queue-phase.ts`,
+`packages/webgpu/src/webgpu/queued-material-adapter.ts`, `references/engine`,
+and `references/three.js`.
 
 Acceptance criteria:
 
-- A helper accepts an `AssetRegistry`, optional asset mapping report, and
-  optional mesh construction report.
-- It invokes existing source registration helpers and returns a combined report.
-- Tests cover material/texture/sampler registration, mesh registration, and a
-  partial missing-input path.
-- The helper does not replay ECS, run extraction, or touch WebGPU.
+- A new WebGPU module exports a route-only built-in material adapter registry
+  factory.
+- The route adapters include built-in family names, material asset type guards,
+  and phase/blend validators only.
+- The module does not import `WebGpuApp`, app caches, frame resources, pipelines,
+  bind groups, devices, or browser globals.
+- Tests cover family list, asset type guards, duplicate-family diagnostics, and
+  phase validation through the factory.
+- No `app.ts` integration is added yet.
 
-### task-0739 — Add source registration orchestration JSON tests
+### task-0774 — Use route-only adapter factory in app routing
 
-Category: `render-bridge`
-Package/write-scope: focused JSON tests and narrow helper fixes if needed.
+Category: `webgpu-render`
+Package/write-scope: `packages/webgpu/src/webgpu/app.ts`, built-in adapter
+module, and focused WebGPU app tests.
 Reference anchor:
-`task-0738` combined source registration report and existing GLB JSON helpers.
+`task-0773` route-only adapter factory,
+`docs/research/BUILT_IN_MATERIAL_ADAPTER_REGISTRY_FACTORY_PLAN_2026_05_17.md`,
+and current `QUEUED_BUILT_IN_MATERIAL_ADAPTERS` in `app.ts`.
 
 Acceptance criteria:
 
-- Tests assert combined source registration reports are JSON-stable.
-- Nested material/texture/sampler and mesh registration summaries are preserved.
-- Raw asset payloads, ECS entities, render packets, and GPU handles are omitted.
-- No runtime behavior changes beyond serialization stability fixes.
+- `app.ts` imports the route-only adapter registry factory for family/type/phase
+  validation.
+- App-local resource preparation closures remain in `app.ts`.
+- Unsupported family, unsupported phase/blend, asset-mismatch, and successful
+  queued built-in app tests remain unchanged.
+- Type-checking and package boundary checks pass.
 
-### task-0740 — Audit source registration orchestration boundaries
+### task-0775 — Audit built-in adapter factory boundaries
 
 Category: `audit-refactor`
-Package/write-scope: `docs/research`, `agent/BACKLOG.md`, and narrow tests/docs
-only if drift is found.
-Reference anchor:
-`docs/NORTH_STAR.md`, `docs/ARCHITECTURE.md`, `task-0737` registration
-orchestration plan, source registration helper/tests, and `AssetRegistry`.
-
-Acceptance criteria:
-
-- Audit confirms the helper mutates only `AssetRegistry` and only through
-  existing source registration helpers.
-- Audit confirms ECS replay, render extraction, render-world preparation, and
-  WebGPU remain downstream.
-- Any drift is fixed with scoped edits or captured as concrete follow-up tasks.
-- Validation includes package boundary checks and focused source registration
-  orchestration tests.
-
-### task-0741 — Add combined import facade fixture coverage
-
-Category: `render-bridge`
-Package/write-scope: focused tests and narrow helper fixes if needed.
-Reference anchor:
-current report-driven import facade, source registration orchestration plan, and
-GLB command planning/replay helpers.
-
-Acceptance criteria:
-
-- Tests compose root/traversal, asset mapping, mesh construction, source
-  registration, primitive material resolution, command planning, and replay
-  from a tiny in-memory glTF fixture.
-- The fixture remains renderer-independent and does not run render extraction or
-  WebGPU.
-- Diagnostics explain any intentionally missing stage.
-- This is test-only unless a narrow helper fix is required.
-
-### task-0742 — Audit combined GLB import fixture boundaries
-
-Category: `audit-refactor`
-Package/write-scope: `docs/research`, `agent/BACKLOG.md`, and narrow
-test/helper fixes only if drift is found.
+Package/write-scope: `docs/research`, `agent/BACKLOG.md`, and narrow test/app
+fixes only if drift is found.
 Reference anchor:
 `docs/NORTH_STAR.md`, `docs/ARCHITECTURE.md`, `docs/DECISIONS.md`,
-`task-0737` source registration orchestration plan, source registration
-orchestration helper/tests, and combined import facade fixture tests.
+`docs/research/BUILT_IN_MATERIAL_ADAPTER_REGISTRY_FACTORY_PLAN_2026_05_17.md`,
+built-in adapter factory/tests, and app route integration if present.
 
 Acceptance criteria:
 
-- Audit confirms source registration and ECS replay remain explicit caller
-  choices in the combined fixture path.
-- Audit confirms render extraction, render-world preparation, and WebGPU remain
-  out of scope.
+- Audit confirms the route adapter factory contains only family/type/phase route
+  metadata and does not own GPU resource preparation.
+- Audit confirms supported family and phase behavior remains unchanged.
+- Audit confirms app-local resource closures remain in the WebGPU app facade.
 - Any drift is fixed with scoped edits or captured as concrete follow-up tasks.
-- Validation includes package boundary checks and focused combined import/source
-  registration tests.
+- Validation includes adapter factory tests, focused app route tests,
+  type-checking, and package boundary checks.
+
+### task-0776 — Plan app-local resource adapter split
+
+Category: `webgpu-render`
+Package/write-scope: `docs/research`, with read-only inspection of current app
+resource closures.
+Reference anchor:
+current app-local texture/sampler/frame-resource closures in `app.ts`,
+`docs/ARCHITECTURE.md` frame hot-path allocation guidance,
+`references/engine`, and `references/three.js`.
+
+Acceptance criteria:
+
+- A research note defines whether and how to split app-local resource closures
+  from the large app facade without hiding GPU ownership.
+- The plan identifies cache/scratch ownership, bind group/layout dependencies,
+  and validation required before extraction.
+- The plan preserves WebGPU-only backend ownership and avoids a material plugin
+  API.
+- No implementation is added.
+
+### task-0777 — Add route report shell app reuse regression test
+
+Category: `webgpu-render`
+Package/write-scope: focused WebGPU app tests and minimal test harness
+instrumentation if needed.
+Reference anchor:
+`docs/research/WEBGPU_ROUTE_REPORT_SHELL_BOUNDARY_AUDIT_2026_05_17.md`,
+route report shell tests, and current app route report failure path.
+
+Acceptance criteria:
+
+- A focused app test triggers two separate route failures across frames and
+  verifies stale family/phase/diagnostic counts do not leak between reports.
+- The test uses normal app scratch reuse and does not expose mutable shell
+  internals as public API.
+- Existing unsupported-family and asset-mismatch report assertions remain
+  stable.
+- Focused app tests and type-checking pass.
 
 ## Post-Unlit E2E Verification Targets
 

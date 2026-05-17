@@ -2082,6 +2082,7 @@ describe("WebGPU app facade", () => {
       drawCalls: 4,
       diagnostics: 0,
     });
+    expectNoMaterialQueueRouteReport(frame);
     expect(frame.resourceReuse).toMatchObject({
       pipelineMisses: 4,
       meshBuffersCreated: 4,
@@ -2118,6 +2119,7 @@ describe("WebGPU app facade", () => {
       drawCalls: 4,
       diagnostics: 0,
     });
+    expectNoMaterialQueueRouteReport(secondFrame);
     expect(secondFrame.resourceReuse).toMatchObject({
       pipelineHits: 4,
       pipelineMisses: 0,
@@ -2181,13 +2183,67 @@ describe("WebGPU app facade", () => {
       meshDraws: 2,
       drawCalls: 0,
     });
-    expect(frame.diagnostics).toMatchObject([
+    expect(frame.diagnostics).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          code: "webGpuApp.unsupportedMaterialQueueFamily",
+          materialFamily: "debug-normal",
+        }),
+      ]),
+    );
+    expect(JSON.parse(JSON.stringify(frame.diagnostics))).toEqual([
       expect.objectContaining({
         code: "webGpuApp.unsupportedMaterialQueueFamily",
+        renderId: expect.any(Number),
+        drawIndex: expect.any(Number),
         materialFamily: "debug-normal",
+        entity: expect.objectContaining({
+          index: expect.any(Number),
+          generation: expect.any(Number),
+        }),
+      }),
+      expect.objectContaining({
+        code: "webGpuApp.materialQueueRouteReport",
+        report: expect.objectContaining({
+          valid: false,
+          queueItemCount: 2,
+          routedItemCount: 1,
+          skippedItemCount: 1,
+          byFamily: expect.arrayContaining([
+            expect.objectContaining({
+              key: "unlit",
+              queuedCount: 1,
+              routedCount: 1,
+              skippedCount: 0,
+            }),
+            expect.objectContaining({
+              key: "debug-normal",
+              queuedCount: 1,
+              routedCount: 0,
+              skippedCount: 1,
+            }),
+          ]),
+          byPhase: expect.arrayContaining([
+            expect.objectContaining({
+              key: "opaque",
+              queuedCount: 2,
+              routedCount: 1,
+              skippedCount: 1,
+            }),
+          ]),
+          diagnosticSummary: expect.objectContaining({
+            total: 1,
+            bySeverity: expect.objectContaining({ error: 1 }),
+          }),
+          diagnostics: [
+            expect.objectContaining({
+              code: "webGpuApp.unsupportedMaterialQueueFamily",
+              materialFamily: "debug-normal",
+            }),
+          ],
+        }),
       }),
     ]);
-    expect(() => JSON.stringify(frame.diagnostics)).not.toThrow();
     expect(events).not.toContain("queue:submit:1");
   });
 
@@ -2247,14 +2303,70 @@ describe("WebGPU app facade", () => {
       meshDraws: 2,
       drawCalls: 0,
     });
-    expect(frame.diagnostics).toMatchObject([
+    expect(frame.diagnostics).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          code: "webGpuApp.unsupportedMaterialQueueAlphaTestFamily",
+          renderPhase: "alpha-test",
+          materialFamily: "unlit",
+        }),
+      ]),
+    );
+    expect(JSON.parse(JSON.stringify(frame.diagnostics))).toEqual([
       expect.objectContaining({
         code: "webGpuApp.unsupportedMaterialQueueAlphaTestFamily",
+        renderId: expect.any(Number),
+        drawIndex: expect.any(Number),
         renderPhase: "alpha-test",
         materialFamily: "unlit",
+        entity: expect.objectContaining({
+          index: expect.any(Number),
+          generation: expect.any(Number),
+        }),
+      }),
+      expect.objectContaining({
+        code: "webGpuApp.materialQueueRouteReport",
+        report: expect.objectContaining({
+          valid: false,
+          queueItemCount: 2,
+          routedItemCount: 1,
+          skippedItemCount: 1,
+          byFamily: expect.arrayContaining([
+            expect.objectContaining({
+              key: "unlit",
+              queuedCount: 2,
+              routedCount: 1,
+              skippedCount: 1,
+            }),
+          ]),
+          byPhase: expect.arrayContaining([
+            expect.objectContaining({
+              key: "opaque",
+              queuedCount: 1,
+              routedCount: 1,
+              skippedCount: 0,
+            }),
+            expect.objectContaining({
+              key: "alpha-test",
+              queuedCount: 1,
+              routedCount: 0,
+              skippedCount: 1,
+            }),
+          ]),
+          diagnosticSummary: expect.objectContaining({
+            total: 1,
+            bySeverity: expect.objectContaining({ error: 1 }),
+          }),
+          diagnostics: [
+            expect.objectContaining({
+              code: "webGpuApp.unsupportedMaterialQueueAlphaTestFamily",
+              materialFamily: "unlit",
+              renderPhase: "alpha-test",
+            }),
+          ],
+        }),
       }),
     ]);
-    expect(() => JSON.stringify(frame.diagnostics)).not.toThrow();
     expect(events).not.toContain("queue:submit:1");
   });
 
@@ -2340,7 +2452,207 @@ describe("WebGPU app facade", () => {
         }),
       ]),
     );
-    expect(() => JSON.stringify(frame.diagnostics)).not.toThrow();
+    expect(JSON.parse(JSON.stringify(frame.diagnostics))).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          code: "webGpuApp.unsupportedMaterialQueueTransparentFamily",
+          renderId: expect.any(Number),
+          drawIndex: expect.any(Number),
+          renderPhase: "transparent",
+          materialFamily: "unlit",
+          entity: expect.objectContaining({
+            index: expect.any(Number),
+            generation: expect.any(Number),
+          }),
+        }),
+        expect.objectContaining({
+          code: "webGpuApp.unsupportedMaterialQueueBlendPreset",
+          renderId: expect.any(Number),
+          drawIndex: expect.any(Number),
+          renderPhase: "transparent",
+          materialFamily: "standard",
+          blendPreset: "additive",
+          entity: expect.objectContaining({
+            index: expect.any(Number),
+            generation: expect.any(Number),
+          }),
+        }),
+        expect.objectContaining({
+          code: "webGpuApp.materialQueueRouteReport",
+          report: expect.objectContaining({
+            valid: false,
+            queueItemCount: 2,
+            routedItemCount: 0,
+            skippedItemCount: 2,
+            byFamily: expect.arrayContaining([
+              expect.objectContaining({
+                key: "unlit",
+                queuedCount: 1,
+                routedCount: 0,
+                skippedCount: 1,
+              }),
+              expect.objectContaining({
+                key: "standard",
+                queuedCount: 1,
+                routedCount: 0,
+                skippedCount: 1,
+              }),
+            ]),
+            byPhase: expect.arrayContaining([
+              expect.objectContaining({
+                key: "transparent",
+                queuedCount: 2,
+                routedCount: 0,
+                skippedCount: 2,
+              }),
+            ]),
+            diagnosticSummary: expect.objectContaining({
+              total: 2,
+              bySeverity: expect.objectContaining({ error: 2 }),
+            }),
+            diagnostics: expect.arrayContaining([
+              expect.objectContaining({
+                code: "webGpuApp.unsupportedMaterialQueueTransparentFamily",
+                materialFamily: "unlit",
+                renderPhase: "transparent",
+              }),
+              expect.objectContaining({
+                code: "webGpuApp.unsupportedMaterialQueueBlendPreset",
+                materialFamily: "standard",
+                renderPhase: "transparent",
+                blendPreset: "additive",
+              }),
+            ]),
+          }),
+        }),
+      ]),
+    );
+    expect(events).not.toContain("queue:submit:1");
+  });
+
+  it("includes asset mismatch details in material queue route reports", async () => {
+    const events: string[] = [];
+    const { canvas, environment } = webGpuHarness(events);
+    const created = await createWebGpuApp({
+      canvas,
+      environment,
+      worldOptions: { entityCapacity: 8 },
+    });
+
+    expect(created.ok).toBe(true);
+
+    if (!created.ok) {
+      return;
+    }
+
+    const app = created.app;
+    const assets = createRenderAssetCollections({ registry: app.assets });
+    const mesh = assets.meshes.add(
+      createBoxMeshAsset({ label: "AssetMismatchRouteCube" }),
+    );
+    const firstMaterial = assets.materials.unlit.add(
+      createUnlitMaterialAsset({ label: "Asset Mismatch First Unlit" }),
+    );
+    const secondMaterial = assets.materials.unlit.add(
+      createUnlitMaterialAsset({ label: "Asset Mismatch Second Unlit" }),
+    );
+
+    app.spawn(
+      withTransform({ translation: [0, 0, 5] }),
+      withCamera({ priority: 0, layerMask: 1 }),
+    );
+    app.spawn(
+      withTransform({ translation: [-0.5, 0, 0] }),
+      withMesh(mesh),
+      withMaterial(firstMaterial),
+      withRenderLayer(1),
+      withVisibility(true),
+    );
+    app.spawn(
+      withTransform({ translation: [0.5, 0, 0] }),
+      withMesh(mesh),
+      withMaterial(secondMaterial),
+      withRenderLayer(1),
+      withVisibility(true),
+    );
+
+    app.step(1 / 60, 1);
+    const snapshot = app.extract(46);
+    const [firstDraw, secondDraw] = snapshot.meshDraws;
+
+    expect(firstDraw).toBeDefined();
+    expect(secondDraw).toBeDefined();
+
+    if (firstDraw === undefined || secondDraw === undefined) {
+      return;
+    }
+
+    const mismatchedSnapshot = {
+      ...snapshot,
+      meshDraws: [
+        firstDraw,
+        {
+          ...secondDraw,
+          sortKey: {
+            ...secondDraw.sortKey,
+            pipelineKey: "standard|opaque|back|less|none",
+          },
+          batchKey: {
+            ...secondDraw.batchKey,
+            pipelineKey: "standard|opaque|back|less|none",
+          },
+        },
+      ],
+    };
+
+    const frame = await app.render({ snapshot: mismatchedSnapshot });
+
+    expect(frame.ok).toBe(false);
+    expect(frame.diagnostics).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          code: "webGpuApp.materialQueueAssetMismatch",
+          materialFamily: "standard",
+          materialKind: "unlit",
+        }),
+      ]),
+    );
+    expect(JSON.parse(JSON.stringify(frame.diagnostics))).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          code: "webGpuApp.materialQueueRouteReport",
+          report: expect.objectContaining({
+            valid: false,
+            queueItemCount: 2,
+            routedItemCount: 1,
+            skippedItemCount: 1,
+            byFamily: expect.arrayContaining([
+              expect.objectContaining({
+                key: "standard",
+                queuedCount: 1,
+                routedCount: 0,
+                skippedCount: 1,
+              }),
+            ]),
+            diagnosticSummary: expect.objectContaining({
+              total: 1,
+              byCode: expect.objectContaining({
+                "webGpuApp.materialQueueAssetMismatch": 1,
+              }),
+            }),
+            diagnostics: [
+              expect.objectContaining({
+                code: "webGpuApp.materialQueueAssetMismatch",
+                materialFamily: "standard",
+                materialKind: "unlit",
+              }),
+            ],
+          }),
+        }),
+      ]),
+    );
+    expect(JSON.stringify(frame.diagnostics)).not.toContain("sourceAsset");
+    expect(JSON.stringify(frame.diagnostics)).not.toContain("gpu-resource");
     expect(events).not.toContain("queue:submit:1");
   });
 
@@ -3880,6 +4192,18 @@ function resourceEventCounts(events: readonly string[]) {
 
 function countEvents(events: readonly string[], prefix: string): number {
   return events.filter((event) => event.startsWith(prefix)).length;
+}
+
+function expectNoMaterialQueueRouteReport(report: {
+  readonly diagnostics: readonly unknown[];
+}): void {
+  expect(report.diagnostics).not.toEqual(
+    expect.arrayContaining([
+      expect.objectContaining({
+        code: "webGpuApp.materialQueueRouteReport",
+      }),
+    ]),
+  );
 }
 
 function singleMaterialResource(resources: unknown): unknown {

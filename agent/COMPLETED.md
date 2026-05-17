@@ -1,5 +1,121 @@
 # Completed Tasks
 
+## task-0743 through task-0772 — GLB fixture diagnostics and material queue route reporting
+
+Completed: 2026-05-17
+
+Completed task ids:
+
+- `task-0743` — Add combined GLB fixture JSON coverage.
+- `task-0744` — Add combined GLB unresolved material fixture.
+- `task-0745` — Audit combined GLB fixture diagnostics boundaries.
+- `task-0746` — Plan generic material-family queue contract.
+- `task-0747` — Export queued material adapter helper and tests.
+- `task-0748` — Add queued material adapter registry diagnostics.
+- `task-0749` — Add queued material adapter registry JSON helpers.
+- `task-0750` — Audit queued material adapter registry boundaries.
+- `task-0751` — Plan WebGPU app material queue route report.
+- `task-0752` — Tighten existing WebGPU app route diagnostic JSON assertions.
+- `task-0753` — Add material queue route report helper.
+- `task-0754` — Add material queue route report JSON helpers.
+- `task-0755` — Add material queue route diagnostic aggregation.
+- `task-0756` — Audit material queue route report boundaries.
+- `task-0757` — Plan built-in material adapter route extraction.
+- `task-0758` — Add built-in material queue family helper.
+- `task-0759` — Use built-in material queue family helper in app route.
+- `task-0760` — Add built-in material queue phase diagnostic helper tests.
+- `task-0761` — Audit built-in material queue helper boundaries.
+- `task-0762` — Plan material queue route report app integration.
+- `task-0763` — Emit failure-only material queue route reports.
+- `task-0764` — Add successful queued built-in route absence checks.
+- `task-0765` — Audit failure-only route report wiring.
+- `task-0766` — Plan reusable route report shell.
+- `task-0767` — Tighten queued route diagnostic JSON shape.
+- `task-0768` — Add reusable material queue route report shell.
+- `task-0769` — Use route report shell for failure projection.
+- `task-0770` — Audit route report shell and app projection boundaries.
+- `task-0771` — Plan built-in adapter registry factory extraction.
+- `task-0772` — Add material queue asset-mismatch route report coverage.
+
+Summary:
+
+- Extended the combined GLB fixture coverage with JSON stability and unresolved
+  material diagnostics while keeping it pure import/source-registration/ECS
+  replay coverage.
+- Planned and added a queued material adapter registry surface with duplicate
+  family diagnostics plus JSON-safe inspection helpers.
+- Added a pure WebGPU material queue route report helper that summarizes queued,
+  routed, and skipped route items by family/phase and aggregates diagnostics by
+  severity/code.
+- Added built-in material queue family and phase helpers, then updated
+  `createWebGpuApp` to use them without changing supported family or phase
+  behavior.
+- Wired failure-only `webGpuApp.materialQueueRouteReport` diagnostics into the
+  queued built-in app route while preserving existing specific diagnostics and
+  keeping successful queued renders report-free by default.
+- Tightened route report JSON projection so absent optional diagnostic fields are
+  omitted while `null` blend presets remain explicit.
+- Added a reusable route report shell writer/reset API that reuses its bucket
+  maps, diagnostics array, diagnostic summary, and routed-key set across writes.
+- Updated app failure projection to use the route report shell stored in queued
+  route scratch.
+- Added asset-mismatch route report coverage with a crafted snapshot that keeps
+  ECS-authored assets real while forcing a mismatched pipeline family.
+- Planned the route-only built-in material adapter registry factory extraction.
+- Added audits and plans for helper boundaries, route report integration, and a
+  future reusable route report shell.
+- Refilled the ready backlog with `task-0773` through `task-0777`.
+
+Validation run:
+
+- Focused Vitest runs for GLB fixture JSON/unresolved-material tests.
+- Focused Vitest runs for queued material adapter helpers and JSON helpers.
+- Focused Vitest runs for material queue route report, JSON, diagnostics, shell
+  reuse, and WebGPU app route diagnostics/successful queued paths.
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm run check:boundaries`
+- `pnpm run format:check`
+- Final `pnpm run check` passed, including 217 Vitest files / 997 tests.
+
+## task-0738 through task-0742 — GLB source registration orchestration and combined fixture
+
+Completed: 2026-05-17
+
+Completed task ids:
+
+- `task-0738` — Add source registration orchestration skeleton.
+- `task-0739` — Add source registration orchestration JSON tests.
+- `task-0740` — Audit source registration orchestration boundaries.
+- `task-0741` — Add combined import facade fixture coverage.
+- `task-0742` — Audit combined GLB import fixture boundaries.
+
+Summary:
+
+- Added `registerGltfSourceAssetsFromReports`, a narrow helper that accepts a
+  caller-owned `AssetRegistry` plus optional already-produced asset mapping and
+  mesh construction reports.
+- The helper invokes the existing material/texture/sampler and mesh source
+  registration helpers, preserves nested reports, emits deterministic stage
+  summaries, and reports missing input or failed nested stages.
+- Added JSON coverage proving combined registration reports preserve nested
+  summaries while omitting raw source payloads, ECS data, render packets,
+  snapshots, and GPU handles.
+- Added a tiny in-memory GLB fixture test that composes report-driven import,
+  source registration, primitive material resolution, ECS command planning, ECS
+  replay, and loader orchestration without running render extraction or WebGPU.
+- Added boundary audits for source registration orchestration and combined GLB
+  fixture composition. No corrective refactors were needed.
+- Refilled the ready backlog with `task-0743` through `task-0747`.
+
+Validation run:
+
+- `pnpm exec vitest run test/assets/gltf-source-registration-orchestration.test.ts`
+- `pnpm exec vitest run test/assets/gltf-source-registration-orchestration.test.ts test/assets/gltf-source-registration-orchestration-json.test.ts`
+- `pnpm exec vitest run test/assets/gltf-combined-import-fixture.test.ts`
+- `pnpm exec vitest run test/assets/gltf-source-registration-orchestration.test.ts test/assets/gltf-source-registration-orchestration-json.test.ts test/assets/gltf-combined-import-fixture.test.ts`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm run check:boundaries`
+
 ## task-0737 — Plan explicit source registration orchestration helper
 
 Completed: 2026-05-17

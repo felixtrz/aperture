@@ -61,11 +61,26 @@ import {
   createMatcapRenderPipelineResource,
   type CreateMatcapRenderPipelineResourceResult,
 } from "./matcap-pipeline.js";
-import { parseMaterialPipelineRenderStateTokens } from "./material-render-state.js";
 import {
   createLightBufferDescriptor,
   createLightBufferDescriptorPlan,
 } from "./light-packing.js";
+import {
+  isBuiltInMaterialQueueFamily,
+  type BuiltInMaterialQueueFamily,
+} from "./built-in-material-queue-family.js";
+import { createUnsupportedBuiltInMaterialQueuePhaseDiagnostic } from "./built-in-material-queue-phase.js";
+import {
+  createWebGpuAppMaterialQueueRouteReportShell,
+  webGpuAppMaterialQueueRouteReportShellToJsonValue,
+  writeWebGpuAppMaterialQueueRouteReportShell,
+  type WebGpuAppMaterialQueueRouteDiagnostic,
+  type WebGpuAppMaterialQueueRouteDiagnosticSeverity,
+  type WebGpuAppMaterialQueueRouteQueueItem,
+  type WebGpuAppMaterialQueueRouteReportJsonValue,
+  type WebGpuAppMaterialQueueRouteReportShell,
+  type WebGpuAppMaterialQueueRouteRoutedItem,
+} from "./material-queue-route-report.js";
 import { createStandardMaterialBindGroupLayoutPlan } from "./standard-bind-group-layout.js";
 import type { StandardMaterialBindGroupLayoutResource } from "./standard-bind-group.js";
 import {
@@ -188,6 +203,12 @@ export interface WebGpuAppUnsupportedMaterialQueueDiagnostic {
   readonly entity?: MeshDrawPacket["entity"];
 }
 
+export interface WebGpuAppMaterialQueueRouteReportDiagnostic {
+  readonly code: "webGpuApp.materialQueueRouteReport";
+  readonly message: string;
+  readonly report: WebGpuAppMaterialQueueRouteReportJsonValue;
+}
+
 export interface WebGpuAppMaterialDependencyDiagnostic {
   readonly code: "webGpuApp.materialDependenciesNotReady";
   readonly message: string;
@@ -248,7 +269,7 @@ export type WebGpuAppFrameResourcesResult =
   | CreateStandardFrameGpuResourcesResult
   | CreateQueuedBuiltInFrameResourcesResult;
 
-type WebGpuAppMaterialKind = "unlit" | "matcap" | "standard";
+type WebGpuAppMaterialKind = BuiltInMaterialQueueFamily;
 
 interface WebGpuAppResourceCache {
   readonly pipelines: Map<string, WebGpuAppPipelineResourceResult>;
@@ -372,6 +393,7 @@ interface QueuedBuiltInAppRouteScratch {
   readonly unlit: UnlitFrameGpuResources[];
   readonly matcap: MatcapFrameGpuResources[];
   readonly standard: StandardFrameGpuResources[];
+  readonly routeReport: WebGpuAppMaterialQueueRouteReportShell;
 }
 
 interface QueuedBuiltInFrameResources {
@@ -608,6 +630,7 @@ function createQueuedBuiltInAppRouteScratch(): QueuedBuiltInAppRouteScratch {
     unlit: [],
     matcap: [],
     standard: [],
+    routeReport: createWebGpuAppMaterialQueueRouteReportShell(),
   };
 }
 
@@ -1745,87 +1768,169 @@ function collectQueuedBuiltInAppResourceSet(options: {
     });
   }
 
+  const valid = diagnostics.length === 0 && items.length === queue.items.length;
+
+  if (!valid) {
+    diagnostics.push(
+      createWebGpuAppMaterialQueueRouteReportDiagnostic({
+        queueItems: queue.items,
+        routedItems: items,
+        diagnostics,
+        shell: options.frameScratch.queueRoute.routeReport,
+      }),
+    );
+  }
+
   return {
-    valid: diagnostics.length === 0 && items.length === queue.items.length,
-    resourceSet:
-      diagnostics.length === 0 && items.length === queue.items.length
-        ? { items }
-        : null,
+    valid,
+    resourceSet: valid ? { items } : null,
     diagnostics,
   };
 }
 
-function createUnsupportedQueuedBuiltInPhaseDiagnostic(
-  queueItem: MaterialQueueItem,
-): WebGpuAppUnsupportedMaterialQueueDiagnostic | null {
-  if (queueItem.renderPhase === "opaque") {
-    return null;
-  }
-
-  if (
-    queueItem.renderPhase === "alpha-test" &&
-    queueItem.materialFamily === "standard"
-  ) {
-    return null;
-  }
-
-  if (queueItem.renderPhase === "alpha-test") {
-    return {
-      code: "webGpuApp.unsupportedMaterialQueueAlphaTestFamily",
-      renderId: queueItem.renderId,
-      drawIndex: queueItem.drawIndex,
-      renderPhase: queueItem.renderPhase,
-      materialFamily: queueItem.materialFamily,
-      entity: queueItem.entity,
-      message: `WebGPU app material queue routing supports alpha-test draws for StandardMaterial, not '${queueItem.materialFamily}'.`,
-    };
-  }
-
-  if (
-    queueItem.renderPhase === "transparent" &&
-    queueItem.materialFamily === "standard"
-  ) {
-    const tokens = parseMaterialPipelineRenderStateTokens(
-      queueItem.pipelineKey,
-    );
-
-    if (tokens.blendPreset === "alpha") {
-      return null;
-    }
-
-    return {
-      code: "webGpuApp.unsupportedMaterialQueueBlendPreset",
-      renderId: queueItem.renderId,
-      drawIndex: queueItem.drawIndex,
-      renderPhase: queueItem.renderPhase,
-      materialFamily: queueItem.materialFamily,
-      blendPreset: tokens.blendPreset,
-      entity: queueItem.entity,
-      message: `WebGPU app material queue routing supports StandardMaterial transparent draws with alpha blending, not blend preset '${String(tokens.blendPreset)}'.`,
-    };
-  }
-
-  if (queueItem.renderPhase === "transparent") {
-    return {
-      code: "webGpuApp.unsupportedMaterialQueueTransparentFamily",
-      renderId: queueItem.renderId,
-      drawIndex: queueItem.drawIndex,
-      renderPhase: queueItem.renderPhase,
-      materialFamily: queueItem.materialFamily,
-      entity: queueItem.entity,
-      message: `WebGPU app material queue routing supports transparent draws for StandardMaterial, not '${queueItem.materialFamily}'.`,
-    };
-  }
+function createWebGpuAppMaterialQueueRouteReportDiagnostic(input: {
+  readonly queueItems: readonly MaterialQueueItem[];
+  readonly routedItems: readonly QueuedBuiltInAppResourceItem[];
+  readonly diagnostics: readonly unknown[];
+  readonly shell: WebGpuAppMaterialQueueRouteReportShell;
+}): WebGpuAppMaterialQueueRouteReportDiagnostic {
+  writeWebGpuAppMaterialQueueRouteReportShell(
+    {
+      queueItems: input.queueItems.map(materialQueueItemToRouteQueueItem),
+      routedItems: input.routedItems.map(resourceItemToRouteRoutedItem),
+      diagnostics: input.diagnostics.flatMap(unknownToRouteDiagnostic),
+    },
+    input.shell,
+  );
 
   return {
-    code: "webGpuApp.unsupportedMaterialQueuePhase",
-    renderId: queueItem.renderId,
-    drawIndex: queueItem.drawIndex,
-    renderPhase: queueItem.renderPhase,
-    materialFamily: queueItem.materialFamily,
-    entity: queueItem.entity,
-    message: `WebGPU app material queue routing currently supports opaque and StandardMaterial alpha-test draws, not '${queueItem.renderPhase}'.`,
+    code: "webGpuApp.materialQueueRouteReport",
+    message: "WebGPU app material queue routing failed.",
+    report: webGpuAppMaterialQueueRouteReportShellToJsonValue(input.shell),
   };
+}
+
+function materialQueueItemToRouteQueueItem(
+  item: MaterialQueueItem,
+): WebGpuAppMaterialQueueRouteQueueItem {
+  return {
+    renderId: item.renderId,
+    drawIndex: item.drawIndex,
+    materialFamily: item.materialFamily,
+    renderPhase: item.renderPhase,
+    entity: item.entity,
+  };
+}
+
+function resourceItemToRouteRoutedItem(
+  item: QueuedBuiltInAppResourceItem,
+): WebGpuAppMaterialQueueRouteRoutedItem {
+  return {
+    renderId: item.queueItem.renderId,
+    drawIndex: item.queueItem.drawIndex,
+    materialFamily: item.queueItem.materialFamily,
+    renderPhase: item.queueItem.renderPhase,
+  };
+}
+
+function unknownToRouteDiagnostic(
+  diagnostic: unknown,
+): WebGpuAppMaterialQueueRouteDiagnostic[] {
+  if (typeof diagnostic !== "object" || diagnostic === null) {
+    return [];
+  }
+
+  const candidate = diagnostic as {
+    readonly code?: unknown;
+    readonly message?: unknown;
+    readonly severity?: unknown;
+    readonly renderId?: unknown;
+    readonly drawIndex?: unknown;
+    readonly materialFamily?: unknown;
+    readonly materialKind?: unknown;
+    readonly renderPhase?: unknown;
+    readonly blendPreset?: unknown;
+    readonly entity?: unknown;
+  };
+
+  if (typeof candidate.code !== "string") {
+    return [];
+  }
+
+  return [
+    {
+      code: candidate.code,
+      message: typeof candidate.message === "string" ? candidate.message : "",
+      ...optionalRouteSeverity(candidate.severity),
+      ...optionalNumber("renderId", candidate.renderId),
+      ...optionalNumber("drawIndex", candidate.drawIndex),
+      ...optionalString("materialFamily", candidate.materialFamily),
+      ...optionalString("materialKind", candidate.materialKind),
+      ...optionalString("renderPhase", candidate.renderPhase),
+      ...optionalBlendPreset(candidate.blendPreset),
+      ...optionalRouteEntity(candidate.entity),
+    },
+  ];
+}
+
+function optionalRouteSeverity(value: unknown): {
+  readonly severity?: WebGpuAppMaterialQueueRouteDiagnosticSeverity;
+} {
+  return value === "info" || value === "warning" || value === "error"
+    ? { severity: value }
+    : {};
+}
+
+function optionalNumber<Key extends "renderId" | "drawIndex">(
+  key: Key,
+  value: unknown,
+): { readonly [Property in Key]?: number } {
+  return typeof value === "number" && Number.isFinite(value)
+    ? ({ [key]: value } as { readonly [Property in Key]?: number })
+    : {};
+}
+
+function optionalString<
+  Key extends "materialFamily" | "materialKind" | "renderPhase",
+>(key: Key, value: unknown): { readonly [Property in Key]?: string } {
+  return typeof value === "string"
+    ? ({ [key]: value } as { readonly [Property in Key]?: string })
+    : {};
+}
+
+function optionalBlendPreset(value: unknown): {
+  readonly blendPreset?: string | null;
+} {
+  return typeof value === "string" || value === null
+    ? { blendPreset: value }
+    : {};
+}
+
+function optionalRouteEntity(value: unknown): {
+  readonly entity?: NonNullable<
+    WebGpuAppMaterialQueueRouteDiagnostic["entity"]
+  >;
+} {
+  if (typeof value !== "object" || value === null) {
+    return {};
+  }
+
+  const entity = value as {
+    readonly index?: unknown;
+    readonly generation?: unknown;
+  };
+
+  return typeof entity.index === "number" &&
+    Number.isFinite(entity.index) &&
+    typeof entity.generation === "number" &&
+    Number.isFinite(entity.generation)
+    ? {
+        entity: {
+          index: entity.index,
+          generation: entity.generation,
+        },
+      }
+    : {};
 }
 
 function indexQueuedSourceAssets(
@@ -1884,23 +1989,13 @@ function indexQueuedSourceAssets(
   }
 }
 
-function isWebGpuAppMaterialKind(
-  materialKind: string,
-): materialKind is WebGpuAppMaterialKind {
-  return (
-    materialKind === "unlit" ||
-    materialKind === "matcap" ||
-    materialKind === "standard"
-  );
-}
-
 const QUEUED_BUILT_IN_MATERIAL_ADAPTERS =
   createQueuedMaterialAdapterRegistry<QueuedBuiltInMaterialAdapter>([
     {
       kind: "unlit",
       isMaterialAsset: (material): material is UnlitMaterialAsset =>
         material.kind === "unlit",
-      validateQueueItem: createUnsupportedQueuedBuiltInPhaseDiagnostic,
+      validateQueueItem: createUnsupportedBuiltInMaterialQueuePhaseDiagnostic,
       prepareTextureSamplerResources: (options) =>
         prepareUnlitAppTextureSamplerResources({
           app: options.app,
@@ -1930,7 +2025,7 @@ const QUEUED_BUILT_IN_MATERIAL_ADAPTERS =
       kind: "matcap",
       isMaterialAsset: (material): material is MatcapMaterialAsset =>
         material.kind === "matcap",
-      validateQueueItem: createUnsupportedQueuedBuiltInPhaseDiagnostic,
+      validateQueueItem: createUnsupportedBuiltInMaterialQueuePhaseDiagnostic,
       prepareTextureSamplerResources: (options) =>
         prepareMatcapAppTextureSamplerResources({
           app: options.app,
@@ -1960,7 +2055,7 @@ const QUEUED_BUILT_IN_MATERIAL_ADAPTERS =
       kind: "standard",
       isMaterialAsset: (material): material is StandardMaterialAsset =>
         material.kind === "standard",
-      validateQueueItem: createUnsupportedQueuedBuiltInPhaseDiagnostic,
+      validateQueueItem: createUnsupportedBuiltInMaterialQueuePhaseDiagnostic,
       prepareTextureSamplerResources: (options) =>
         prepareStandardAppTextureSamplerResources({
           app: options.app,
@@ -2436,7 +2531,9 @@ async function renderWebGpuAppFrame(
     });
   }
 
-  const firstMaterialKindSupported = isWebGpuAppMaterialKind(material.kind);
+  const firstMaterialKindSupported = isBuiltInMaterialQueueFamily(
+    material.kind,
+  );
 
   if (!firstMaterialKindSupported && resourceSetPlan.sets.length <= 1) {
     return renderReport({

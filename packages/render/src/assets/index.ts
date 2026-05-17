@@ -12,6 +12,7 @@ export * from "./gltf-report-driven-import.js";
 export * from "./gltf-primitive-material-resolution.js";
 export * from "./gltf-scene-traversal.js";
 export * from "./gltf-source-registration.js";
+export * from "./gltf-source-registration-orchestration.js";
 export * from "./glb-container.js";
 export * from "./gltf-root.js";
 export * from "./preparation.js";
