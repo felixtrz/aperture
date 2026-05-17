@@ -1336,7 +1336,7 @@ describe("WebGPU app facade", () => {
       frame.resources?.resources?.bindGroups.find((group) => group.group === 2),
     ).toMatchObject({
       entryResourceKeys: [
-        "material-buffer:Studio Matcap/uniform",
+        `material-buffer:prepared-material:${assetHandleKey(material)}`,
         assetHandleKey(texture),
         assetHandleKey(sampler),
       ],
@@ -1449,6 +1449,13 @@ describe("WebGPU app facade", () => {
 
     const secondFrame = await app.stepAndRender(1 / 60, 2, 69);
 
+    app.assets.markReady(
+      sampler,
+      createSamplerAsset({ label: "PreparedMatcapSamplerB" }),
+    );
+
+    const thirdFrame = await app.stepAndRender(1 / 60, 3, 70);
+
     expect(firstFrame.ok).toBe(true);
     expect(firstFrame.resourceReuse).toMatchObject({
       meshBuffersCreated: 1,
@@ -1466,6 +1473,8 @@ describe("WebGPU app facade", () => {
       textureResourcesCreated: 1,
       samplerResourcesReused: 1,
       materialBuffersCreated: 1,
+      preparedMaterialBuffersCreated: 1,
+      preparedMaterialBindGroupsCreated: 1,
       bindGroupsCreated: 3,
       dynamicBufferWrites: 0,
     });
@@ -1475,6 +1484,24 @@ describe("WebGPU app facade", () => {
       preparedMeshBuffersReused: 1,
       textureResourcesCreated: 1,
       samplerResourcesReused: 1,
+      preparedMaterialBuffersCreated: 1,
+      preparedMaterialBindGroupsCreated: 1,
+    });
+    expect(thirdFrame.ok).toBe(true);
+    expect(thirdFrame.resourceReuse).toMatchObject({
+      pipelineHits: 1,
+      meshBuffersCreated: 0,
+      meshBuffersReused: 1,
+      preparedMeshBuffersCreated: 0,
+      preparedMeshBuffersReused: 1,
+      textureResourcesCreated: 0,
+      textureResourcesReused: 1,
+      samplerResourcesCreated: 1,
+      materialBuffersCreated: 1,
+      preparedMaterialBuffersCreated: 1,
+      preparedMaterialBindGroupsCreated: 1,
+      bindGroupsCreated: 3,
+      dynamicBufferWrites: 0,
     });
   });
 
@@ -4572,6 +4599,9 @@ describe("WebGPU app facade", () => {
     const mesh = assets.meshes.add(
       createBoxMeshAsset({ label: "MetallicRoughnessCube" }),
     );
+    const secondMesh = assets.meshes.add(
+      createBoxMeshAsset({ label: "MetallicRoughnessCubeSecond" }),
+    );
     const texture = createTextureHandle("standard-metallic-roughness");
     const sampler = createSamplerHandle("standard-metallic-roughness-sampler");
 
@@ -4648,6 +4678,9 @@ describe("WebGPU app facade", () => {
     expect(frame.resourceReuse).toMatchObject({
       pipelineHits: 0,
       pipelineMisses: 1,
+      materialBuffersCreated: 1,
+      preparedMaterialBuffersCreated: 1,
+      preparedMaterialBindGroupsCreated: 1,
       textureResourcesCreated: 1,
       samplerResourcesCreated: 1,
       bindGroupsCreated: 4,
@@ -4663,7 +4696,7 @@ describe("WebGPU app facade", () => {
       frame.resources?.resources?.bindGroups.find((group) => group.group === 2),
     ).toMatchObject({
       entryResourceKeys: [
-        "material-buffer:Metallic Roughness Standard/uniform",
+        `material-buffer:prepared-material:${assetHandleKey(material)}`,
         assetHandleKey(texture),
         assetHandleKey(sampler),
       ],
@@ -4690,6 +4723,146 @@ describe("WebGPU app facade", () => {
     });
     expect(secondResources?.bindGroups).toBe(firstResources?.bindGroups);
     expect(resourceEventCounts(events)).toEqual(firstResourceEvents);
+
+    app.spawn(
+      withTransform({ translation: [0.65, 0, 0] }),
+      withMesh(secondMesh),
+      withMaterial(material),
+      withRenderLayer(1),
+      withVisibility(true),
+    );
+
+    const thirdFrame = await app.stepAndRender(1 / 60, 3, 48);
+
+    expect(thirdFrame.ok).toBe(true);
+    expect(thirdFrame.counts.drawCalls).toBe(2);
+    expect(thirdFrame.resourceReuse).toMatchObject({
+      pipelineHits: 2,
+      pipelineMisses: 0,
+      meshBuffersCreated: 1,
+      meshBuffersReused: 1,
+      preparedMeshBuffersCreated: 1,
+      preparedMeshBuffersReused: 1,
+      materialBuffersCreated: 0,
+      materialBuffersReused: 2,
+      preparedMaterialBuffersCreated: 0,
+      preparedMaterialBuffersReused: 2,
+      preparedMaterialBindGroupsCreated: 0,
+      preparedMaterialBindGroupsReused: 2,
+      textureResourcesCreated: 0,
+      textureResourcesReused: 2,
+      samplerResourcesCreated: 0,
+      samplerResourcesReused: 2,
+      bindGroupsCreated: 6,
+      bindGroupsReused: 2,
+      lightBuffersCreated: 2,
+      dynamicBufferWrites: 0,
+    });
+    expect(
+      webGpuAppRenderReportToJsonValue(thirdFrame).resourceReuse,
+    ).toMatchObject({
+      preparedMeshBuffersReused: 1,
+      preparedMaterialBuffersReused: 2,
+      preparedMaterialBindGroupsReused: 2,
+      textureResourcesReused: 2,
+      samplerResourcesReused: 2,
+    });
+
+    app.assets.markReady(
+      texture,
+      createTextureAsset({
+        label: "StandardMetallicRoughnessV2",
+        dimension: "2d",
+        width: 2,
+        height: 2,
+        format: "rgba8unorm",
+        colorSpace: "data",
+        semantic: "metallic-roughness",
+        usage: ["sampled", "copy-dst"],
+        sourceData: {
+          bytes: new Uint8Array([
+            0, 220, 48, 255, 0, 144, 180, 255, 0, 72, 224, 255, 0, 200, 96, 255,
+          ]),
+          bytesPerRow: 8,
+          rowsPerImage: 2,
+        },
+      }),
+    );
+
+    const textureVersionFrame = await app.stepAndRender(1 / 60, 4, 49);
+
+    expect(textureVersionFrame.ok).toBe(true);
+    expect(textureVersionFrame.resourceReuse).toMatchObject({
+      pipelineHits: 2,
+      meshBuffersCreated: 0,
+      meshBuffersReused: 2,
+      preparedMeshBuffersCreated: 0,
+      preparedMeshBuffersReused: 2,
+      materialBuffersCreated: 1,
+      materialBuffersReused: 1,
+      preparedMaterialBuffersCreated: 1,
+      preparedMaterialBuffersReused: 1,
+      preparedMaterialBindGroupsCreated: 1,
+      preparedMaterialBindGroupsReused: 1,
+      textureResourcesCreated: 1,
+      textureResourcesReused: 1,
+      samplerResourcesCreated: 0,
+      samplerResourcesReused: 2,
+      bindGroupsCreated: 7,
+      bindGroupsReused: 1,
+      lightBuffersCreated: 2,
+      dynamicBufferWrites: 0,
+    });
+    expect(
+      webGpuAppRenderReportToJsonValue(textureVersionFrame).resourceReuse,
+    ).toMatchObject({
+      preparedMeshBuffersReused: 2,
+      preparedMaterialBuffersCreated: 1,
+      preparedMaterialBuffersReused: 1,
+      textureResourcesCreated: 1,
+      samplerResourcesReused: 2,
+    });
+
+    app.assets.markReady(
+      sampler,
+      createSamplerAsset({ label: "StandardMetallicRoughnessSamplerV2" }),
+    );
+
+    const samplerVersionFrame = await app.stepAndRender(1 / 60, 5, 50);
+
+    expect(samplerVersionFrame.ok).toBe(true);
+    expect(samplerVersionFrame.resourceReuse).toMatchObject({
+      pipelineHits: 2,
+      meshBuffersCreated: 0,
+      meshBuffersReused: 2,
+      preparedMeshBuffersCreated: 0,
+      preparedMeshBuffersReused: 2,
+      materialBuffersCreated: 1,
+      materialBuffersReused: 1,
+      preparedMaterialBuffersCreated: 1,
+      preparedMaterialBuffersReused: 1,
+      preparedMaterialBindGroupsCreated: 1,
+      preparedMaterialBindGroupsReused: 1,
+      textureResourcesCreated: 0,
+      textureResourcesReused: 2,
+      samplerResourcesCreated: 1,
+      samplerResourcesReused: 1,
+      bindGroupsCreated: 7,
+      bindGroupsReused: 1,
+      lightBuffersCreated: 2,
+      dynamicBufferWrites: 0,
+    });
+    expect(
+      webGpuAppRenderReportToJsonValue(samplerVersionFrame).resourceReuse,
+    ).toMatchObject({
+      preparedMaterialBuffersCreated: 1,
+      preparedMaterialBuffersReused: 1,
+      textureResourcesReused: 2,
+      samplerResourcesCreated: 1,
+    });
+    expect(JSON.stringify(samplerVersionFrame.resourceReuse)).not.toContain(
+      "descriptor",
+    );
   });
 
   it("renders and reuses StandardMaterial emissive and occlusion texture resources", async () => {
@@ -4711,6 +4884,9 @@ describe("WebGPU app facade", () => {
     const assets = createRenderAssetCollections({ registry: app.assets });
     const mesh = assets.meshes.add(
       createBoxMeshAsset({ label: "EmissiveOcclusionCube" }),
+    );
+    const secondMesh = assets.meshes.add(
+      createBoxMeshAsset({ label: "EmissiveOcclusionCubeSecond" }),
     );
     const occlusionTexture = createTextureHandle("standard-occlusion");
     const occlusionSampler = createSamplerHandle("standard-occlusion-sampler");
@@ -4821,6 +4997,9 @@ describe("WebGPU app facade", () => {
     expect(frame.resourceReuse).toMatchObject({
       pipelineHits: 0,
       pipelineMisses: 1,
+      materialBuffersCreated: 1,
+      preparedMaterialBuffersCreated: 1,
+      preparedMaterialBindGroupsCreated: 1,
       textureResourcesCreated: 2,
       samplerResourcesCreated: 2,
       bindGroupsCreated: 4,
@@ -4837,7 +5016,7 @@ describe("WebGPU app facade", () => {
       frame.resources?.resources?.bindGroups.find((group) => group.group === 2),
     ).toMatchObject({
       entryResourceKeys: [
-        "material-buffer:Emissive Occlusion Standard/uniform",
+        `material-buffer:prepared-material:${assetHandleKey(material)}`,
         assetHandleKey(occlusionTexture),
         assetHandleKey(occlusionSampler),
         assetHandleKey(emissiveTexture),
@@ -4866,6 +5045,129 @@ describe("WebGPU app facade", () => {
     });
     expect(secondResources?.bindGroups).toBe(firstResources?.bindGroups);
     expect(resourceEventCounts(events)).toEqual(firstResourceEvents);
+
+    app.spawn(
+      withTransform({ translation: [0.65, 0, 0] }),
+      withMesh(secondMesh),
+      withMaterial(material),
+      withRenderLayer(1),
+      withVisibility(true),
+    );
+
+    const thirdFrame = await app.stepAndRender(1 / 60, 3, 50);
+
+    expect(thirdFrame.ok).toBe(true);
+    expect(thirdFrame.counts.drawCalls).toBe(2);
+    expect(thirdFrame.resourceReuse).toMatchObject({
+      pipelineHits: 2,
+      pipelineMisses: 0,
+      meshBuffersCreated: 1,
+      meshBuffersReused: 1,
+      preparedMeshBuffersCreated: 1,
+      preparedMeshBuffersReused: 1,
+      materialBuffersCreated: 0,
+      materialBuffersReused: 2,
+      preparedMaterialBuffersCreated: 0,
+      preparedMaterialBuffersReused: 2,
+      preparedMaterialBindGroupsCreated: 0,
+      preparedMaterialBindGroupsReused: 2,
+      textureResourcesCreated: 0,
+      textureResourcesReused: 4,
+      samplerResourcesCreated: 0,
+      samplerResourcesReused: 4,
+      bindGroupsCreated: 6,
+      bindGroupsReused: 2,
+      lightBuffersCreated: 2,
+      dynamicBufferWrites: 0,
+    });
+    expect(
+      webGpuAppRenderReportToJsonValue(thirdFrame).resourceReuse,
+    ).toMatchObject({
+      preparedMeshBuffersReused: 1,
+      preparedMaterialBuffersReused: 2,
+      preparedMaterialBindGroupsReused: 2,
+      textureResourcesReused: 4,
+      samplerResourcesReused: 4,
+    });
+
+    app.assets.markReady(
+      occlusionTexture,
+      createTextureAsset({
+        label: "StandardOcclusionV2",
+        dimension: "2d",
+        width: 2,
+        height: 2,
+        format: "rgba8unorm",
+        colorSpace: "data",
+        semantic: "occlusion",
+        usage: ["sampled", "copy-dst"],
+        sourceData: {
+          bytes: new Uint8Array([
+            128, 0, 0, 255, 224, 0, 0, 255, 96, 0, 0, 255, 192, 0, 0, 255,
+          ]),
+          bytesPerRow: 8,
+          rowsPerImage: 2,
+        },
+      }),
+    );
+
+    const textureVersionFrame = await app.stepAndRender(1 / 60, 4, 51);
+
+    expect(textureVersionFrame.ok).toBe(true);
+    expect(textureVersionFrame.resourceReuse).toMatchObject({
+      pipelineHits: 2,
+      meshBuffersCreated: 0,
+      meshBuffersReused: 2,
+      preparedMeshBuffersCreated: 0,
+      preparedMeshBuffersReused: 2,
+      materialBuffersCreated: 1,
+      materialBuffersReused: 1,
+      preparedMaterialBuffersCreated: 1,
+      preparedMaterialBuffersReused: 1,
+      preparedMaterialBindGroupsCreated: 1,
+      preparedMaterialBindGroupsReused: 1,
+      textureResourcesCreated: 1,
+      textureResourcesReused: 3,
+      samplerResourcesCreated: 0,
+      samplerResourcesReused: 4,
+      bindGroupsCreated: 7,
+      bindGroupsReused: 1,
+      lightBuffersCreated: 2,
+      dynamicBufferWrites: 0,
+    });
+
+    app.assets.markReady(
+      emissiveSampler,
+      createSamplerAsset({ label: "StandardEmissiveSamplerV2" }),
+    );
+
+    const samplerVersionFrame = await app.stepAndRender(1 / 60, 5, 52);
+
+    expect(samplerVersionFrame.ok).toBe(true);
+    expect(samplerVersionFrame.resourceReuse).toMatchObject({
+      pipelineHits: 2,
+      meshBuffersCreated: 0,
+      meshBuffersReused: 2,
+      preparedMeshBuffersCreated: 0,
+      preparedMeshBuffersReused: 2,
+      materialBuffersCreated: 1,
+      materialBuffersReused: 1,
+      preparedMaterialBuffersCreated: 1,
+      preparedMaterialBuffersReused: 1,
+      preparedMaterialBindGroupsCreated: 1,
+      preparedMaterialBindGroupsReused: 1,
+      textureResourcesCreated: 0,
+      textureResourcesReused: 4,
+      samplerResourcesCreated: 1,
+      samplerResourcesReused: 3,
+      bindGroupsCreated: 7,
+      bindGroupsReused: 1,
+      lightBuffersCreated: 2,
+      dynamicBufferWrites: 0,
+    });
+    expect(JSON.stringify(samplerVersionFrame.resourceReuse)).not.toContain(
+      "descriptor",
+    );
   });
 
   it("renders and reuses StandardMaterial tangent-space normal-map resources", async () => {
@@ -4887,6 +5189,9 @@ describe("WebGPU app facade", () => {
     const assets = createRenderAssetCollections({ registry: app.assets });
     const mesh = assets.meshes.add(
       createTangentBoxMeshAsset({ label: "NormalMappedCube" }),
+    );
+    const secondMesh = assets.meshes.add(
+      createTangentBoxMeshAsset({ label: "NormalMappedCubeSecond" }),
     );
     const texture = createTextureHandle("standard-normal");
     const sampler = createSamplerHandle("standard-normal-sampler");
@@ -4964,6 +5269,9 @@ describe("WebGPU app facade", () => {
     expect(frame.resourceReuse).toMatchObject({
       pipelineHits: 0,
       pipelineMisses: 1,
+      materialBuffersCreated: 1,
+      preparedMaterialBuffersCreated: 1,
+      preparedMaterialBindGroupsCreated: 1,
       textureResourcesCreated: 1,
       samplerResourcesCreated: 1,
       bindGroupsCreated: 4,
@@ -4978,7 +5286,7 @@ describe("WebGPU app facade", () => {
       frame.resources?.resources?.bindGroups.find((group) => group.group === 2),
     ).toMatchObject({
       entryResourceKeys: [
-        "material-buffer:Normal Mapped Standard/uniform",
+        `material-buffer:prepared-material:${assetHandleKey(material)}`,
         assetHandleKey(texture),
         assetHandleKey(sampler),
       ],
@@ -5005,6 +5313,147 @@ describe("WebGPU app facade", () => {
     });
     expect(secondResources?.bindGroups).toBe(firstResources?.bindGroups);
     expect(resourceEventCounts(events)).toEqual(firstResourceEvents);
+
+    app.spawn(
+      withTransform({ translation: [0.65, 0, 0] }),
+      withMesh(secondMesh),
+      withMaterial(material),
+      withRenderLayer(1),
+      withVisibility(true),
+    );
+
+    const thirdFrame = await app.stepAndRender(1 / 60, 3, 52);
+
+    expect(thirdFrame.ok).toBe(true);
+    expect(thirdFrame.counts.drawCalls).toBe(2);
+    expect(thirdFrame.resourceReuse).toMatchObject({
+      pipelineHits: 2,
+      pipelineMisses: 0,
+      meshBuffersCreated: 1,
+      meshBuffersReused: 1,
+      preparedMeshBuffersCreated: 1,
+      preparedMeshBuffersReused: 1,
+      materialBuffersCreated: 0,
+      materialBuffersReused: 2,
+      preparedMaterialBuffersCreated: 0,
+      preparedMaterialBuffersReused: 2,
+      preparedMaterialBindGroupsCreated: 0,
+      preparedMaterialBindGroupsReused: 2,
+      textureResourcesCreated: 0,
+      textureResourcesReused: 2,
+      samplerResourcesCreated: 0,
+      samplerResourcesReused: 2,
+      bindGroupsCreated: 6,
+      bindGroupsReused: 2,
+      lightBuffersCreated: 2,
+      dynamicBufferWrites: 0,
+    });
+    expect(
+      webGpuAppRenderReportToJsonValue(thirdFrame).resourceReuse,
+    ).toMatchObject({
+      preparedMeshBuffersReused: 1,
+      preparedMaterialBuffersReused: 2,
+      preparedMaterialBindGroupsReused: 2,
+      textureResourcesReused: 2,
+      samplerResourcesReused: 2,
+    });
+
+    app.assets.markReady(
+      texture,
+      createTextureAsset({
+        label: "StandardNormalV2",
+        dimension: "2d",
+        width: 2,
+        height: 2,
+        format: "rgba8unorm",
+        colorSpace: "data",
+        semantic: "normal",
+        usage: ["sampled", "copy-dst"],
+        sourceData: {
+          bytes: new Uint8Array([
+            128, 128, 255, 255, 96, 128, 255, 255, 160, 128, 255, 255, 128, 160,
+            255, 255,
+          ]),
+          bytesPerRow: 8,
+          rowsPerImage: 2,
+        },
+      }),
+    );
+
+    const textureVersionFrame = await app.stepAndRender(1 / 60, 4, 53);
+
+    expect(textureVersionFrame.ok).toBe(true);
+    expect(textureVersionFrame.resourceReuse).toMatchObject({
+      pipelineHits: 2,
+      meshBuffersCreated: 0,
+      meshBuffersReused: 2,
+      preparedMeshBuffersCreated: 0,
+      preparedMeshBuffersReused: 2,
+      materialBuffersCreated: 1,
+      materialBuffersReused: 1,
+      preparedMaterialBuffersCreated: 1,
+      preparedMaterialBuffersReused: 1,
+      preparedMaterialBindGroupsCreated: 1,
+      preparedMaterialBindGroupsReused: 1,
+      textureResourcesCreated: 1,
+      textureResourcesReused: 1,
+      samplerResourcesCreated: 0,
+      samplerResourcesReused: 2,
+      bindGroupsCreated: 7,
+      bindGroupsReused: 1,
+      lightBuffersCreated: 2,
+      dynamicBufferWrites: 0,
+    });
+    expect(
+      webGpuAppRenderReportToJsonValue(textureVersionFrame).resourceReuse,
+    ).toMatchObject({
+      preparedMeshBuffersReused: 2,
+      preparedMaterialBuffersCreated: 1,
+      preparedMaterialBuffersReused: 1,
+      textureResourcesCreated: 1,
+      samplerResourcesReused: 2,
+    });
+
+    app.assets.markReady(
+      sampler,
+      createSamplerAsset({ label: "StandardNormalSamplerV2" }),
+    );
+
+    const samplerVersionFrame = await app.stepAndRender(1 / 60, 5, 54);
+
+    expect(samplerVersionFrame.ok).toBe(true);
+    expect(samplerVersionFrame.resourceReuse).toMatchObject({
+      pipelineHits: 2,
+      meshBuffersCreated: 0,
+      meshBuffersReused: 2,
+      preparedMeshBuffersCreated: 0,
+      preparedMeshBuffersReused: 2,
+      materialBuffersCreated: 1,
+      materialBuffersReused: 1,
+      preparedMaterialBuffersCreated: 1,
+      preparedMaterialBuffersReused: 1,
+      preparedMaterialBindGroupsCreated: 1,
+      preparedMaterialBindGroupsReused: 1,
+      textureResourcesCreated: 0,
+      textureResourcesReused: 2,
+      samplerResourcesCreated: 1,
+      samplerResourcesReused: 1,
+      bindGroupsCreated: 7,
+      bindGroupsReused: 1,
+      lightBuffersCreated: 2,
+      dynamicBufferWrites: 0,
+    });
+    expect(
+      webGpuAppRenderReportToJsonValue(samplerVersionFrame).resourceReuse,
+    ).toMatchObject({
+      preparedMaterialBuffersCreated: 1,
+      preparedMaterialBuffersReused: 1,
+      textureResourcesReused: 2,
+      samplerResourcesCreated: 1,
+    });
+    expect(JSON.stringify(samplerVersionFrame.resourceReuse)).not.toContain(
+      "descriptor",
+    );
   });
 
   it("blocks StandardMaterial metallic-roughness rendering when texture dependencies are not ready", async () => {

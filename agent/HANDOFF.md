@@ -2,6 +2,118 @@
 
 ## Latest Run Update
 
+Completed `task-0830` through `task-0844`, plus docs task `task-0846`, in this automation run. This expanded
+StandardMaterial prepared material coverage across all current texture-family
+routes, added the Matcap prepared material cache/app route, normalized built-in
+prepared material use handling, and audited the generic preparation boundary.
+
+Highlights:
+
+- Added metallic-roughness Standard prepared material resources with direct
+  cache tests for source material, texture, and sampler source-version
+  invalidation.
+- Wired metallic-roughness Standard app frame-resource misses through prepared
+  group-2 material resources and added app-route invalidation coverage.
+- Added
+  `docs/research/STANDARD_TEXTURED_FAMILY_PREPARED_ROUTE_AUDIT_2026_05_17.md`;
+  the audit found no source-asset ownership, texture/sampler ownership, or
+  Standard group-3 light-resource drift.
+- Added
+  `docs/research/STANDARD_NORMAL_OCCLUSION_EMISSIVE_PREPARED_CACHE_PLAN_2026_05_17.md`
+  and used it to extract a generic Standard textured helper before adding more
+  family-specific wrappers.
+- Added normal-map and occlusion/emissive prepared Standard resources and
+  routed those app paths through prepared material reuse.
+- Added
+  `docs/research/GENERIC_TEXTURED_STANDARD_PREPARED_ROUTE_AUDIT_2026_05_17.md`
+  and
+  `docs/research/GENERIC_MATERIAL_FAMILY_PREPARATION_HANDOFF_PLAN_2026_05_17.md`
+  to define the next Matcap/generic material-family preparation sequence.
+- Consolidated Standard textured prepared helper internals so base-color,
+  metallic-roughness, normal, and occlusion/emissive wrappers share one
+  texture-set resource assembly path.
+- Added `prepared-matcap-material-cache.ts` with Matcap texture/sampler
+  source-version dependency keys and direct tests for source material, texture,
+  and sampler invalidation.
+- Wired Matcap app frame-resource misses through prepared group-2 material
+  resources, including app coverage for texture and sampler source-version
+  invalidation while prepared mesh resources are reused.
+- Added `prepared-app-material-resource.ts` so unlit, Matcap, and Standard
+  helpers use the same internal prepared material status/resource shape and
+  counter path.
+- Added
+  `docs/research/GENERIC_BUILT_IN_MATERIAL_PREPARATION_BOUNDARY_AUDIT_2026_05_17.md`;
+  no source-asset ownership, render snapshot, texture/sampler, Standard light,
+  app report, or package-boundary drift was found.
+- Added
+  `docs/research/BUILT_IN_PREPARED_MATERIAL_FALLBACK_DIAGNOSTICS_PLAN_2026_05_17.md`
+  and a follow-up implementation task for sanitized prepared-material fallback
+  diagnostics.
+- Refilled the ready backlog with `task-0845` plus `task-0847` through
+  `task-0850`; next
+  recommended task is `task-0845`.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/prepared-standard-material-cache.test.ts`
+- `pnpm exec vitest run test/webgpu/prepared-matcap-material-cache.test.ts`
+- `pnpm exec vitest run test/webgpu/prepared-app-material-resource.test.ts test/webgpu/prepared-matcap-material-cache.test.ts test/webgpu/webgpu-app.test.ts`
+- `pnpm exec tsc --noEmit -p packages/webgpu/tsconfig.json`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- Final `pnpm run check` passed, including 226 Vitest files / 1054 tests.
+- `task-0846` was documentation-only and landed after the final full check.
+
+Reference files/patterns inspected:
+
+- Aperture anchors: `docs/NORTH_STAR.md`, `docs/ARCHITECTURE.md`,
+  `docs/DECISIONS.md`, `docs/RENDER_ASSET_PREPARATION.md`,
+  `docs/research/STANDARD_TEXTURED_PREPARED_DEPENDENCY_HANDOFF_PLAN_2026_05_17.md`,
+  existing Standard audits/plans, generic material-family preparation plans,
+  prepared material cache helpers, app frame-resource helpers, texture/sampler
+  app resources, and WebGPU app reuse tests.
+- WebGPU-render anchors: PlayCanvas/engine Standard material, WebGPU bind-group,
+  and WebGPU texture resource patterns; three.js binding preparation patterns.
+- Bevy anchors for the generic handoff plan: render asset preparation,
+  material specialization/preparation, and mesh material queue concepts.
+
+Known issues / follow-ups:
+
+- `task-0845` should move built-in material preparation selection behind the
+  existing adapter registry without changing public app reports.
+- Occlusion-only and emissive-only variants are covered by direct helper tests;
+  the app-route regression covers the combined occlusion/emissive route.
+- Standard group-3 light resources, source assets, render snapshots, and
+  texture/sampler GPU resources remain outside prepared material cache
+  ownership.
+
+Files touched in this update include:
+
+- `agent/BACKLOG.md`
+- `agent/COMPLETED.md`
+- `agent/HANDOFF.md`
+- `agent/STATUS.json`
+- `docs/research/GENERIC_MATERIAL_FAMILY_PREPARATION_HANDOFF_PLAN_2026_05_17.md`
+- `docs/research/BUILT_IN_PREPARED_MATERIAL_FALLBACK_DIAGNOSTICS_PLAN_2026_05_17.md`
+- `docs/research/GENERIC_BUILT_IN_MATERIAL_PREPARATION_BOUNDARY_AUDIT_2026_05_17.md`
+- `docs/research/GENERIC_TEXTURED_STANDARD_PREPARED_ROUTE_AUDIT_2026_05_17.md`
+- `docs/research/STANDARD_NORMAL_OCCLUSION_EMISSIVE_PREPARED_CACHE_PLAN_2026_05_17.md`
+- `docs/research/STANDARD_TEXTURED_FAMILY_PREPARED_ROUTE_AUDIT_2026_05_17.md`
+- `packages/webgpu/src/webgpu/app.ts`
+- `packages/webgpu/src/webgpu/matcap-app-frame-resources.ts`
+- `packages/webgpu/src/webgpu/matcap-frame-resources.ts`
+- `packages/webgpu/src/webgpu/prepared-app-material-resource.ts`
+- `packages/webgpu/src/webgpu/prepared-matcap-material-cache.ts`
+- `packages/webgpu/src/webgpu/prepared-standard-material-cache.ts`
+- `packages/webgpu/src/webgpu/standard-app-frame-resources.ts`
+- `packages/webgpu/src/webgpu/unlit-app-frame-resources.ts`
+- `packages/webgpu/src/webgpu/index.ts`
+- `test/webgpu/prepared-app-material-resource.test.ts`
+- `test/webgpu/prepared-matcap-material-cache.test.ts`
+- `test/webgpu/prepared-standard-material-cache.test.ts`
+- `test/webgpu/webgpu-app.test.ts`
+
+## Previous Run Update
+
 Completed `task-0815` through `task-0829` in this automation run. This moved
 the StandardMaterial path from prepared mesh consumption through scalar prepared
 material app-route reuse and into base-color textured Standard prepared material

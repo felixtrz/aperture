@@ -1,5 +1,104 @@
 # Completed Tasks
 
+## task-0846 — Built-in prepared-material fallback diagnostics plan
+
+Completed: 2026-05-17
+
+Summary:
+
+- Added
+  `docs/research/BUILT_IN_PREPARED_MATERIAL_FALLBACK_DIAGNOSTICS_PLAN_2026_05_17.md`
+  to define when prepared material helper failures should remain silent
+  fallbacks versus when they should emit JSON-safe app diagnostics.
+- Added `task-0850` as the implementation follow-up for sanitized
+  prepared-material fallback diagnostics.
+
+Validation run:
+
+- Documentation-only task. Previous final `pnpm run check` passed in this run.
+
+## task-0841 through task-0844 — Matcap prepared cache and generic preparation cleanup
+
+Completed: 2026-05-17
+
+Completed task ids:
+
+- `task-0841` — Add Matcap prepared material cache helper.
+- `task-0842` — Wire Matcap app route through prepared material cache.
+- `task-0843` — Normalize built-in prepared material use results.
+- `task-0844` — Audit generic built-in material preparation boundary.
+
+Summary:
+
+- Added a WebGPU-private Matcap prepared material cache helper with
+  texture/sampler dependency source-version keys and direct tests for material,
+  texture, and sampler invalidation.
+- Routed Matcap app frame-resource misses through prepared group-2 material
+  resources while keeping texture/sampler GPU resources external to the material
+  cache.
+- Added app regressions for Matcap prepared material reuse and texture/sampler
+  source-version invalidation while prepared mesh resources are reused.
+- Added a shared internal `PreparedAppMaterialResourceUse<T>` shape and counter
+  helper used by unlit, Matcap, and Standard app-frame helpers.
+- Added
+  `docs/research/GENERIC_BUILT_IN_MATERIAL_PREPARATION_BOUNDARY_AUDIT_2026_05_17.md`;
+  no source-asset ownership, snapshot, texture/sampler, Standard light, public
+  report, or package-boundary drift was found.
+
+Validation run:
+
+- `pnpm exec vitest run test/webgpu/prepared-matcap-material-cache.test.ts`
+- `pnpm exec vitest run test/webgpu/prepared-app-material-resource.test.ts test/webgpu/prepared-matcap-material-cache.test.ts test/webgpu/webgpu-app.test.ts`
+- `pnpm exec tsc --noEmit -p packages/webgpu/tsconfig.json`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- Final `pnpm run check` passed, including 226 Vitest files / 1054 tests.
+
+## task-0830 through task-0840 — Textured Standard prepared material routes
+
+Completed: 2026-05-17
+
+Completed task ids:
+
+- `task-0830` — Add metallic-roughness textured Standard prepared helper.
+- `task-0831` — Wire metallic-roughness Standard prepared cache into app
+  route.
+- `task-0832` — Add metallic-roughness Standard prepared app-route
+  invalidation tests.
+- `task-0833` — Audit Standard textured-family prepared route expansion.
+- `task-0834` — Plan normal/occlusion/emissive Standard prepared cache
+  expansion.
+- `task-0835` — Extract generic textured Standard prepared helper.
+- `task-0836` — Add normal-map Standard prepared app route.
+- `task-0837` — Add occlusion/emissive Standard prepared app route.
+- `task-0838` — Audit generic textured Standard prepared route.
+- `task-0839` — Plan generic material-family preparation handoff.
+- `task-0840` — Consolidate Standard textured prepared helper internals.
+
+Summary:
+
+- Added metallic-roughness, normal, and occlusion/emissive Standard prepared
+  material helpers with texture/sampler dependency keys and direct cache reuse
+  coverage.
+- Routed metallic-roughness, normal, and occlusion/emissive Standard app
+  frame-resource misses through prepared group-2 material resources while
+  keeping group-3 light resources frame-derived.
+- Added app regressions for prepared material reuse and texture/sampler
+  source-version invalidation across the expanded Standard textured routes.
+- Added audits and plans for Standard textured prepared route boundaries,
+  normal/occlusion/emissive expansion, and the next generic material-family
+  preparation handoff.
+- Consolidated Standard textured prepared helper internals so base-color,
+  metallic-roughness, normal, and occlusion/emissive wrappers share one
+  texture-set resource assembly path.
+
+Validation run:
+
+- `pnpm exec vitest run test/webgpu/prepared-standard-material-cache.test.ts`
+- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts`
+- `pnpm exec tsc --noEmit -p packages/webgpu/tsconfig.json`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- Final `pnpm run check` passed, including 224 Vitest files / 1048 tests.
+
 ## task-0796 through task-0809 — Prepared material and mesh cache groundwork
 
 Completed: 2026-05-17

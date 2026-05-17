@@ -12,13 +12,16 @@ import type {
 import type { PreparedAppTextureSamplerResources } from "./app-texture-sampler-resources.js";
 import { sameStringList, writeBufferData } from "./app-frame-resource-utils.js";
 import {
+  recordPreparedAppMaterialResourceUse,
+  type PreparedAppMaterialResourceUse,
+} from "./prepared-app-material-resource.js";
+import {
   createUnlitFrameGpuResources,
   type CreateUnlitFrameGpuResourcesResult,
 } from "./unlit-frame-resources.js";
 import {
   prepareScalarUnlitMaterialResource,
   prepareTexturedUnlitMaterialResource,
-  type PreparedScalarUnlitMaterialCacheStatus,
   type PreparedScalarUnlitMaterialCache,
   type PreparedScalarUnlitMaterialResource,
   type PreparedTexturedUnlitMaterialResource,
@@ -187,21 +190,10 @@ export function createOrReuseUnlitAppFrameResources(options: {
       options.reuse.materialBuffersCreated += 1;
       options.reuse.bindGroupsCreated += result.resources.bindGroups.length;
     } else {
-      if (preparedMaterial.status === "reused") {
-        options.reuse.materialBuffersReused += 1;
-        options.reuse.bindGroupsReused += 1;
-        options.reuse.preparedMaterialBuffersReused += 1;
-        options.reuse.preparedMaterialBindGroupsReused += 1;
-      } else {
-        options.reuse.materialBuffersCreated += 1;
-        options.reuse.bindGroupsCreated += 1;
-        options.reuse.preparedMaterialBuffersCreated += 1;
-        options.reuse.preparedMaterialBindGroupsCreated += 1;
-      }
-
-      options.reuse.bindGroupsCreated += Math.max(
-        0,
-        result.resources.bindGroups.length - 1,
+      recordPreparedAppMaterialResourceUse(
+        options.reuse,
+        preparedMaterial,
+        result.resources.bindGroups.length,
       );
     }
 
@@ -225,15 +217,9 @@ export function createOrReuseUnlitAppFrameResources(options: {
   return result;
 }
 
-interface PreparedScalarMaterialUse {
-  readonly status: Extract<
-    PreparedScalarUnlitMaterialCacheStatus,
-    "created" | "reused"
-  >;
-  readonly resource:
-    | PreparedScalarUnlitMaterialResource
-    | PreparedTexturedUnlitMaterialResource;
-}
+type PreparedScalarMaterialUse = PreparedAppMaterialResourceUse<
+  PreparedScalarUnlitMaterialResource | PreparedTexturedUnlitMaterialResource
+>;
 
 function preparePreparedScalarUnlitMesh(options: {
   readonly device: unknown;

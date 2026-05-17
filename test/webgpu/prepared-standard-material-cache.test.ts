@@ -6,6 +6,8 @@ import {
   createMaterialHandle,
   createPreparedScalarStandardMaterialCache,
   createPreparedStandardBaseColorTextureDependencyKeys,
+  createPreparedStandardMetallicRoughnessTextureDependencyKeys,
+  createPreparedStandardNormalTextureDependencyKeys,
   createPreparedStandardTextureDependencyKeys,
   createSamplerAsset,
   createSamplerHandle,
@@ -14,6 +16,9 @@ import {
   createTextureAsset,
   createTextureHandle,
   prepareBaseColorTexturedStandardMaterialResource,
+  prepareMetallicRoughnessTexturedStandardMaterialResource,
+  prepareNormalTexturedStandardMaterialResource,
+  prepareOcclusionEmissiveTexturedStandardMaterialResource,
   prepareScalarStandardMaterialResource,
   type SamplerGpuResource,
   type StandardFrameGpuResourceDeviceLike,
@@ -202,6 +207,112 @@ describe("StandardMaterial prepared texture dependency keys", () => {
       "emissiveTexture:texture:texture:emissive@1",
       "emissiveTexture:sampler:sampler:emissive-sampler@1",
     ]);
+  });
+
+  it("derives ready metallic-roughness texture and sampler handle/version keys", () => {
+    const registry = new AssetRegistry();
+    const texture = createTextureHandle("standard-metallic-roughness");
+    const sampler = createSamplerHandle("standard-metallic-roughness-sampler");
+
+    registry.register(texture);
+    registry.register(sampler);
+    const textureEntry = registry.markReady(
+      texture,
+      textureAsset({
+        label: "standard-metallic-roughness",
+        colorSpace: "data",
+        semantic: "metallic-roughness",
+      }),
+    );
+    const samplerEntry = registry.markReady(
+      sampler,
+      createSamplerAsset({ label: "linear" }),
+    );
+
+    const result = createPreparedStandardMetallicRoughnessTextureDependencyKeys(
+      {
+        registry,
+        material: createStandardMaterialAsset({
+          metallicRoughnessTexture: { texture, sampler },
+        }),
+      },
+    );
+
+    expect(result.valid).toBe(true);
+    expect(result.diagnostics).toEqual([]);
+    expect(result.dependencies).toEqual({
+      field: "metallicRoughnessTexture",
+      texture: {
+        field: "metallicRoughnessTexture",
+        kind: "texture",
+        handleKey: "texture:standard-metallic-roughness",
+        version: textureEntry.version,
+        versionKey: "texture:standard-metallic-roughness@1",
+      },
+      sampler: {
+        field: "metallicRoughnessTexture",
+        kind: "sampler",
+        handleKey: "sampler:standard-metallic-roughness-sampler",
+        version: samplerEntry.version,
+        versionKey: "sampler:standard-metallic-roughness-sampler@1",
+      },
+      cacheKeySegments: [
+        "metallicRoughnessTexture:texture:texture:standard-metallic-roughness@1",
+        "metallicRoughnessTexture:sampler:sampler:standard-metallic-roughness-sampler@1",
+      ],
+    });
+  });
+
+  it("derives ready normal texture and sampler handle/version keys", () => {
+    const registry = new AssetRegistry();
+    const texture = createTextureHandle("standard-normal");
+    const sampler = createSamplerHandle("standard-normal-sampler");
+
+    registry.register(texture);
+    registry.register(sampler);
+    const textureEntry = registry.markReady(
+      texture,
+      textureAsset({
+        label: "standard-normal",
+        colorSpace: "data",
+        semantic: "normal",
+      }),
+    );
+    const samplerEntry = registry.markReady(
+      sampler,
+      createSamplerAsset({ label: "linear" }),
+    );
+
+    const result = createPreparedStandardNormalTextureDependencyKeys({
+      registry,
+      material: createStandardMaterialAsset({
+        normalTexture: { texture, sampler },
+      }),
+    });
+
+    expect(result.valid).toBe(true);
+    expect(result.diagnostics).toEqual([]);
+    expect(result.dependencies).toEqual({
+      field: "normalTexture",
+      texture: {
+        field: "normalTexture",
+        kind: "texture",
+        handleKey: "texture:standard-normal",
+        version: textureEntry.version,
+        versionKey: "texture:standard-normal@1",
+      },
+      sampler: {
+        field: "normalTexture",
+        kind: "sampler",
+        handleKey: "sampler:standard-normal-sampler",
+        version: samplerEntry.version,
+        versionKey: "sampler:standard-normal-sampler@1",
+      },
+      cacheKeySegments: [
+        "normalTexture:texture:texture:standard-normal@1",
+        "normalTexture:sampler:sampler:standard-normal-sampler@1",
+      ],
+    });
   });
 
   it("updates base-color dependency keys when source asset versions change", () => {
@@ -532,6 +643,653 @@ describe("base-color textured StandardMaterial prepared material cache", () => {
       expect.objectContaining({
         code: "preparedBaseColorTexturedStandardMaterial.notBaseColorTextured",
         materialKey: "material:multi-texture",
+      }),
+    ]);
+  });
+});
+
+describe("metallic-roughness textured StandardMaterial prepared material cache", () => {
+  it("creates, reuses, and invalidates metallic-roughness group-2 prepared resources", () => {
+    const createdBuffers: unknown[] = [];
+    const createdBindGroups: StandardMaterialBindGroupCreationDescriptor[] = [];
+    const registry = new AssetRegistry();
+    const cache = createPreparedScalarStandardMaterialCache();
+    const handle = createMaterialHandle("metallic-standard");
+    const texture = createTextureHandle("standard-metallic-roughness");
+    const sampler = createSamplerHandle("standard-metallic-roughness-sampler");
+    const device = deviceWithResources(createdBuffers, createdBindGroups);
+
+    registry.register(texture);
+    registry.register(sampler);
+    registry.register(handle);
+    registry.markReady(
+      texture,
+      textureAsset({
+        label: "texture-v1",
+        colorSpace: "data",
+        semantic: "metallic-roughness",
+      }),
+    );
+    registry.markReady(sampler, createSamplerAsset({ label: "sampler-v1" }));
+    const firstMaterial = createStandardMaterialAsset({
+      label: "Metallic Roughness Standard",
+      metallicRoughnessTexture: { texture, sampler },
+    });
+    const firstMaterialEntry = registry.markReady(handle, firstMaterial);
+
+    const first = prepareMetallicRoughnessTexturedStandardMaterialResource({
+      registry,
+      device,
+      cache,
+      handle,
+      material: firstMaterial,
+      sourceVersion: firstMaterialEntry.version,
+      pipelineKey: "standard|metallicRoughnessTexture|opaque|back|less|none",
+      layout: materialLayout(),
+      textures: [textureGpuResource(texture)],
+      samplers: [samplerGpuResource(sampler)],
+    });
+    const second = prepareMetallicRoughnessTexturedStandardMaterialResource({
+      registry,
+      device,
+      cache,
+      handle,
+      material: firstMaterial,
+      sourceVersion: firstMaterialEntry.version,
+      pipelineKey: "standard|metallicRoughnessTexture|opaque|back|less|none",
+      layout: materialLayout(),
+      textures: [textureGpuResource(texture)],
+      samplers: [samplerGpuResource(sampler)],
+    });
+    const secondMaterial = createStandardMaterialAsset({
+      label: "Metallic Roughness Standard Updated",
+      roughnessFactor: 0.42,
+      metallicRoughnessTexture: { texture, sampler },
+    });
+    const secondMaterialEntry = registry.markReady(handle, secondMaterial);
+    const materialVersion =
+      prepareMetallicRoughnessTexturedStandardMaterialResource({
+        registry,
+        device,
+        cache,
+        handle,
+        material: secondMaterial,
+        sourceVersion: secondMaterialEntry.version,
+        pipelineKey: "standard|metallicRoughnessTexture|opaque|back|less|none",
+        layout: materialLayout(),
+        textures: [textureGpuResource(texture)],
+        samplers: [samplerGpuResource(sampler)],
+      });
+
+    registry.markReady(
+      texture,
+      textureAsset({
+        label: "texture-v2",
+        colorSpace: "data",
+        semantic: "metallic-roughness",
+      }),
+    );
+    const textureVersion =
+      prepareMetallicRoughnessTexturedStandardMaterialResource({
+        registry,
+        device,
+        cache,
+        handle,
+        material: secondMaterial,
+        sourceVersion: secondMaterialEntry.version,
+        pipelineKey: "standard|metallicRoughnessTexture|opaque|back|less|none",
+        layout: materialLayout(),
+        textures: [textureGpuResource(texture)],
+        samplers: [samplerGpuResource(sampler)],
+      });
+
+    registry.markReady(sampler, createSamplerAsset({ label: "sampler-v2" }));
+    const samplerVersion =
+      prepareMetallicRoughnessTexturedStandardMaterialResource({
+        registry,
+        device,
+        cache,
+        handle,
+        material: secondMaterial,
+        sourceVersion: secondMaterialEntry.version,
+        pipelineKey: "standard|metallicRoughnessTexture|opaque|back|less|none",
+        layout: materialLayout(),
+        textures: [textureGpuResource(texture)],
+        samplers: [samplerGpuResource(sampler)],
+      });
+
+    expect(first.status).toBe("created");
+    expect(first.resource).toMatchObject({
+      sourceMaterialKey: "material:metallic-standard",
+      sourceVersion: firstMaterialEntry.version,
+      pipelineKey: "standard|metallicRoughnessTexture|opaque|back|less|none",
+      dependencyCacheKeySegments: [
+        "metallicRoughnessTexture:texture:texture:standard-metallic-roughness@1",
+        "metallicRoughnessTexture:sampler:sampler:standard-metallic-roughness-sampler@1",
+      ],
+      textureResourceKey: "texture:standard-metallic-roughness",
+      samplerResourceKey: "sampler:standard-metallic-roughness-sampler",
+    });
+    expect(first.resource?.bindGroup.entryResourceKeys).toEqual([
+      "material-buffer:prepared-material:material:metallic-standard",
+      "texture:standard-metallic-roughness",
+      "sampler:standard-metallic-roughness-sampler",
+    ]);
+    expect(second.status).toBe("reused");
+    expect(second.resource).toBe(first.resource);
+    expect(materialVersion.status).toBe("created");
+    expect(materialVersion.resource).not.toBe(first.resource);
+    expect(textureVersion.status).toBe("created");
+    expect(textureVersion.resource?.dependencyCacheKeySegments).toEqual([
+      "metallicRoughnessTexture:texture:texture:standard-metallic-roughness@2",
+      "metallicRoughnessTexture:sampler:sampler:standard-metallic-roughness-sampler@1",
+    ]);
+    expect(samplerVersion.status).toBe("created");
+    expect(samplerVersion.resource?.dependencyCacheKeySegments).toEqual([
+      "metallicRoughnessTexture:texture:texture:standard-metallic-roughness@2",
+      "metallicRoughnessTexture:sampler:sampler:standard-metallic-roughness-sampler@2",
+    ]);
+    expect(createdBuffers).toHaveLength(4);
+    expect(createdBindGroups).toHaveLength(4);
+  });
+
+  it("keeps scalar, base-color, and multi-texture StandardMaterial variants out of the metallic-roughness cache", () => {
+    const baseColorTexture = createTextureHandle("base-color");
+    const baseColorSampler = createSamplerHandle("base-color-sampler");
+    const metallicRoughnessTexture = createTextureHandle("metallic-roughness");
+    const metallicRoughnessSampler = createSamplerHandle(
+      "metallic-roughness-sampler",
+    );
+    const cache = createPreparedScalarStandardMaterialCache();
+
+    const scalar = prepareMetallicRoughnessTexturedStandardMaterialResource({
+      registry: new AssetRegistry(),
+      device: deviceWithResources([], []),
+      cache,
+      handle: createMaterialHandle("scalar"),
+      material: createStandardMaterialAsset(),
+      sourceVersion: 1,
+      pipelineKey: "standard|opaque|back|less|none",
+      layout: materialLayout(),
+      textures: [],
+      samplers: [],
+    });
+    const baseColorOnly =
+      prepareMetallicRoughnessTexturedStandardMaterialResource({
+        registry: new AssetRegistry(),
+        device: deviceWithResources([], []),
+        cache,
+        handle: createMaterialHandle("base-color"),
+        material: createStandardMaterialAsset({
+          baseColorTexture: {
+            texture: baseColorTexture,
+            sampler: baseColorSampler,
+          },
+        }),
+        sourceVersion: 1,
+        pipelineKey: "standard|baseColorTexture|opaque|back|less|none",
+        layout: materialLayout(),
+        textures: [],
+        samplers: [],
+      });
+    const multiTexture =
+      prepareMetallicRoughnessTexturedStandardMaterialResource({
+        registry: new AssetRegistry(),
+        device: deviceWithResources([], []),
+        cache,
+        handle: createMaterialHandle("multi-texture"),
+        material: createStandardMaterialAsset({
+          baseColorTexture: {
+            texture: baseColorTexture,
+            sampler: baseColorSampler,
+          },
+          metallicRoughnessTexture: {
+            texture: metallicRoughnessTexture,
+            sampler: metallicRoughnessSampler,
+          },
+        }),
+        sourceVersion: 1,
+        pipelineKey:
+          "standard|baseColorTexture|metallicRoughnessTexture|opaque|back|less|none",
+        layout: materialLayout(),
+        textures: [],
+        samplers: [],
+      });
+
+    expect(scalar.status).toBe("skipped");
+    expect(scalar.diagnostics).toEqual([
+      expect.objectContaining({
+        code: "preparedMetallicRoughnessTexturedStandardMaterial.notMetallicRoughnessTextured",
+        materialKey: "material:scalar",
+      }),
+    ]);
+    expect(baseColorOnly.status).toBe("skipped");
+    expect(baseColorOnly.diagnostics).toEqual([
+      expect.objectContaining({
+        code: "preparedMetallicRoughnessTexturedStandardMaterial.notMetallicRoughnessTextured",
+        materialKey: "material:base-color",
+      }),
+    ]);
+    expect(multiTexture.status).toBe("skipped");
+    expect(multiTexture.diagnostics).toEqual([
+      expect.objectContaining({
+        code: "preparedMetallicRoughnessTexturedStandardMaterial.notMetallicRoughnessTextured",
+        materialKey: "material:multi-texture",
+      }),
+    ]);
+  });
+});
+
+describe("normal textured StandardMaterial prepared material cache", () => {
+  it("creates, reuses, and invalidates normal group-2 prepared resources", () => {
+    const createdBuffers: unknown[] = [];
+    const createdBindGroups: StandardMaterialBindGroupCreationDescriptor[] = [];
+    const registry = new AssetRegistry();
+    const cache = createPreparedScalarStandardMaterialCache();
+    const handle = createMaterialHandle("normal-standard");
+    const texture = createTextureHandle("standard-normal");
+    const sampler = createSamplerHandle("standard-normal-sampler");
+    const device = deviceWithResources(createdBuffers, createdBindGroups);
+
+    registry.register(texture);
+    registry.register(sampler);
+    registry.register(handle);
+    registry.markReady(
+      texture,
+      textureAsset({
+        label: "texture-v1",
+        colorSpace: "data",
+        semantic: "normal",
+      }),
+    );
+    registry.markReady(sampler, createSamplerAsset({ label: "sampler-v1" }));
+    const firstMaterial = createStandardMaterialAsset({
+      label: "Normal Standard",
+      normalTexture: { texture, sampler },
+    });
+    const firstMaterialEntry = registry.markReady(handle, firstMaterial);
+
+    const first = prepareNormalTexturedStandardMaterialResource({
+      registry,
+      device,
+      cache,
+      handle,
+      material: firstMaterial,
+      sourceVersion: firstMaterialEntry.version,
+      pipelineKey: "standard|normalTexture|opaque|back|less|none",
+      layout: materialLayout(),
+      textures: [textureGpuResource(texture)],
+      samplers: [samplerGpuResource(sampler)],
+    });
+    const second = prepareNormalTexturedStandardMaterialResource({
+      registry,
+      device,
+      cache,
+      handle,
+      material: firstMaterial,
+      sourceVersion: firstMaterialEntry.version,
+      pipelineKey: "standard|normalTexture|opaque|back|less|none",
+      layout: materialLayout(),
+      textures: [textureGpuResource(texture)],
+      samplers: [samplerGpuResource(sampler)],
+    });
+    const secondMaterial = createStandardMaterialAsset({
+      label: "Normal Standard Updated",
+      normalScale: 0.5,
+      normalTexture: { texture, sampler },
+    });
+    const secondMaterialEntry = registry.markReady(handle, secondMaterial);
+    const materialVersion = prepareNormalTexturedStandardMaterialResource({
+      registry,
+      device,
+      cache,
+      handle,
+      material: secondMaterial,
+      sourceVersion: secondMaterialEntry.version,
+      pipelineKey: "standard|normalTexture|opaque|back|less|none",
+      layout: materialLayout(),
+      textures: [textureGpuResource(texture)],
+      samplers: [samplerGpuResource(sampler)],
+    });
+
+    registry.markReady(
+      texture,
+      textureAsset({
+        label: "texture-v2",
+        colorSpace: "data",
+        semantic: "normal",
+      }),
+    );
+    const textureVersion = prepareNormalTexturedStandardMaterialResource({
+      registry,
+      device,
+      cache,
+      handle,
+      material: secondMaterial,
+      sourceVersion: secondMaterialEntry.version,
+      pipelineKey: "standard|normalTexture|opaque|back|less|none",
+      layout: materialLayout(),
+      textures: [textureGpuResource(texture)],
+      samplers: [samplerGpuResource(sampler)],
+    });
+
+    registry.markReady(sampler, createSamplerAsset({ label: "sampler-v2" }));
+    const samplerVersion = prepareNormalTexturedStandardMaterialResource({
+      registry,
+      device,
+      cache,
+      handle,
+      material: secondMaterial,
+      sourceVersion: secondMaterialEntry.version,
+      pipelineKey: "standard|normalTexture|opaque|back|less|none",
+      layout: materialLayout(),
+      textures: [textureGpuResource(texture)],
+      samplers: [samplerGpuResource(sampler)],
+    });
+
+    expect(first.status).toBe("created");
+    expect(first.resource).toMatchObject({
+      sourceMaterialKey: "material:normal-standard",
+      sourceVersion: firstMaterialEntry.version,
+      pipelineKey: "standard|normalTexture|opaque|back|less|none",
+      dependencyCacheKeySegments: [
+        "normalTexture:texture:texture:standard-normal@1",
+        "normalTexture:sampler:sampler:standard-normal-sampler@1",
+      ],
+      textureResourceKey: "texture:standard-normal",
+      samplerResourceKey: "sampler:standard-normal-sampler",
+    });
+    expect(first.resource?.bindGroup.entryResourceKeys).toEqual([
+      "material-buffer:prepared-material:material:normal-standard",
+      "texture:standard-normal",
+      "sampler:standard-normal-sampler",
+    ]);
+    expect(second.status).toBe("reused");
+    expect(second.resource).toBe(first.resource);
+    expect(materialVersion.status).toBe("created");
+    expect(materialVersion.resource).not.toBe(first.resource);
+    expect(textureVersion.status).toBe("created");
+    expect(textureVersion.resource?.dependencyCacheKeySegments).toEqual([
+      "normalTexture:texture:texture:standard-normal@2",
+      "normalTexture:sampler:sampler:standard-normal-sampler@1",
+    ]);
+    expect(samplerVersion.status).toBe("created");
+    expect(samplerVersion.resource?.dependencyCacheKeySegments).toEqual([
+      "normalTexture:texture:texture:standard-normal@2",
+      "normalTexture:sampler:sampler:standard-normal-sampler@2",
+    ]);
+    expect(createdBuffers).toHaveLength(4);
+    expect(createdBindGroups).toHaveLength(4);
+  });
+
+  it("keeps scalar and multi-texture StandardMaterial variants out of the normal cache", () => {
+    const normalTexture = createTextureHandle("normal");
+    const normalSampler = createSamplerHandle("normal-sampler");
+    const emissiveTexture = createTextureHandle("emissive");
+    const emissiveSampler = createSamplerHandle("emissive-sampler");
+    const cache = createPreparedScalarStandardMaterialCache();
+
+    const scalar = prepareNormalTexturedStandardMaterialResource({
+      registry: new AssetRegistry(),
+      device: deviceWithResources([], []),
+      cache,
+      handle: createMaterialHandle("scalar"),
+      material: createStandardMaterialAsset(),
+      sourceVersion: 1,
+      pipelineKey: "standard|opaque|back|less|none",
+      layout: materialLayout(),
+      textures: [],
+      samplers: [],
+    });
+    const multiTexture = prepareNormalTexturedStandardMaterialResource({
+      registry: new AssetRegistry(),
+      device: deviceWithResources([], []),
+      cache,
+      handle: createMaterialHandle("multi-texture"),
+      material: createStandardMaterialAsset({
+        normalTexture: { texture: normalTexture, sampler: normalSampler },
+        emissiveTexture: { texture: emissiveTexture, sampler: emissiveSampler },
+      }),
+      sourceVersion: 1,
+      pipelineKey:
+        "standard|normalTexture|emissiveTexture|opaque|back|less|none",
+      layout: materialLayout(),
+      textures: [],
+      samplers: [],
+    });
+
+    expect(scalar.status).toBe("skipped");
+    expect(scalar.diagnostics).toEqual([
+      expect.objectContaining({
+        code: "preparedNormalTexturedStandardMaterial.notNormalTextured",
+        materialKey: "material:scalar",
+      }),
+    ]);
+    expect(multiTexture.status).toBe("skipped");
+    expect(multiTexture.diagnostics).toEqual([
+      expect.objectContaining({
+        code: "preparedNormalTexturedStandardMaterial.notNormalTextured",
+        materialKey: "material:multi-texture",
+      }),
+    ]);
+  });
+});
+
+describe("occlusion/emissive textured StandardMaterial prepared material cache", () => {
+  it("creates and reuses occlusion-only, emissive-only, and combined group-2 prepared resources", () => {
+    const createdBuffers: unknown[] = [];
+    const createdBindGroups: StandardMaterialBindGroupCreationDescriptor[] = [];
+    const registry = new AssetRegistry();
+    const cache = createPreparedScalarStandardMaterialCache();
+    const occlusionHandle = createMaterialHandle("occlusion-standard");
+    const emissiveHandle = createMaterialHandle("emissive-standard");
+    const combinedHandle = createMaterialHandle("occlusion-emissive-standard");
+    const occlusionTexture = createTextureHandle("standard-occlusion");
+    const occlusionSampler = createSamplerHandle("standard-occlusion-sampler");
+    const emissiveTexture = createTextureHandle("standard-emissive");
+    const emissiveSampler = createSamplerHandle("standard-emissive-sampler");
+    const device = deviceWithResources(createdBuffers, createdBindGroups);
+
+    registry.register(occlusionTexture);
+    registry.register(occlusionSampler);
+    registry.register(emissiveTexture);
+    registry.register(emissiveSampler);
+    registry.markReady(
+      occlusionTexture,
+      textureAsset({
+        label: "occlusion",
+        colorSpace: "data",
+        semantic: "occlusion",
+      }),
+    );
+    registry.markReady(
+      occlusionSampler,
+      createSamplerAsset({ label: "occlusion-sampler" }),
+    );
+    registry.markReady(
+      emissiveTexture,
+      textureAsset({
+        label: "emissive",
+        semantic: "emissive",
+      }),
+    );
+    registry.markReady(
+      emissiveSampler,
+      createSamplerAsset({ label: "emissive-sampler" }),
+    );
+
+    const occlusionMaterial = createStandardMaterialAsset({
+      label: "Occlusion Standard",
+      occlusionTexture: {
+        texture: occlusionTexture,
+        sampler: occlusionSampler,
+      },
+    });
+    const emissiveMaterial = createStandardMaterialAsset({
+      label: "Emissive Standard",
+      emissiveTexture: { texture: emissiveTexture, sampler: emissiveSampler },
+    });
+    const combinedMaterial = createStandardMaterialAsset({
+      label: "Occlusion Emissive Standard",
+      occlusionTexture: {
+        texture: occlusionTexture,
+        sampler: occlusionSampler,
+      },
+      emissiveTexture: { texture: emissiveTexture, sampler: emissiveSampler },
+    });
+    registry.register(occlusionHandle);
+    registry.register(emissiveHandle);
+    registry.register(combinedHandle);
+    const occlusionEntry = registry.markReady(
+      occlusionHandle,
+      occlusionMaterial,
+    );
+    const emissiveEntry = registry.markReady(emissiveHandle, emissiveMaterial);
+    const combinedEntry = registry.markReady(combinedHandle, combinedMaterial);
+
+    const occlusion = prepareOcclusionEmissiveTexturedStandardMaterialResource({
+      registry,
+      device,
+      cache,
+      handle: occlusionHandle,
+      material: occlusionMaterial,
+      sourceVersion: occlusionEntry.version,
+      pipelineKey: "standard|occlusionTexture|opaque|back|less|none",
+      layout: materialLayout(),
+      textures: [textureGpuResource(occlusionTexture)],
+      samplers: [samplerGpuResource(occlusionSampler)],
+    });
+    const emissive = prepareOcclusionEmissiveTexturedStandardMaterialResource({
+      registry,
+      device,
+      cache,
+      handle: emissiveHandle,
+      material: emissiveMaterial,
+      sourceVersion: emissiveEntry.version,
+      pipelineKey: "standard|emissiveTexture|opaque|back|less|none",
+      layout: materialLayout(),
+      textures: [textureGpuResource(emissiveTexture)],
+      samplers: [samplerGpuResource(emissiveSampler)],
+    });
+    const combined = prepareOcclusionEmissiveTexturedStandardMaterialResource({
+      registry,
+      device,
+      cache,
+      handle: combinedHandle,
+      material: combinedMaterial,
+      sourceVersion: combinedEntry.version,
+      pipelineKey:
+        "standard|emissiveTexture|occlusionTexture|opaque|back|less|none",
+      layout: materialLayout(),
+      textures: [
+        textureGpuResource(occlusionTexture),
+        textureGpuResource(emissiveTexture),
+      ],
+      samplers: [
+        samplerGpuResource(occlusionSampler),
+        samplerGpuResource(emissiveSampler),
+      ],
+    });
+    const combinedAgain =
+      prepareOcclusionEmissiveTexturedStandardMaterialResource({
+        registry,
+        device,
+        cache,
+        handle: combinedHandle,
+        material: combinedMaterial,
+        sourceVersion: combinedEntry.version,
+        pipelineKey:
+          "standard|emissiveTexture|occlusionTexture|opaque|back|less|none",
+        layout: materialLayout(),
+        textures: [
+          textureGpuResource(occlusionTexture),
+          textureGpuResource(emissiveTexture),
+        ],
+        samplers: [
+          samplerGpuResource(occlusionSampler),
+          samplerGpuResource(emissiveSampler),
+        ],
+      });
+
+    expect(occlusion.status).toBe("created");
+    expect(occlusion.resource?.textureResourceKeys).toEqual([
+      "texture:standard-occlusion",
+    ]);
+    expect(emissive.status).toBe("created");
+    expect(emissive.resource?.textureResourceKeys).toEqual([
+      "texture:standard-emissive",
+    ]);
+    expect(combined.status).toBe("created");
+    expect(combined.resource?.dependencyCacheKeySegments).toEqual([
+      "occlusionTexture:texture:texture:standard-occlusion@1",
+      "occlusionTexture:sampler:sampler:standard-occlusion-sampler@1",
+      "emissiveTexture:texture:texture:standard-emissive@1",
+      "emissiveTexture:sampler:sampler:standard-emissive-sampler@1",
+    ]);
+    expect(combined.resource?.bindGroup.entryResourceKeys).toEqual([
+      "material-buffer:prepared-material:material:occlusion-emissive-standard",
+      "texture:standard-occlusion",
+      "sampler:standard-occlusion-sampler",
+      "texture:standard-emissive",
+      "sampler:standard-emissive-sampler",
+    ]);
+    expect(combinedAgain.status).toBe("reused");
+    expect(combinedAgain.resource).toBe(combined.resource);
+    expect(createdBuffers).toHaveLength(3);
+    expect(createdBindGroups).toHaveLength(3);
+  });
+
+  it("keeps scalar and non-occlusion/emissive StandardMaterial variants out of the occlusion/emissive cache", () => {
+    const normalTexture = createTextureHandle("normal");
+    const normalSampler = createSamplerHandle("normal-sampler");
+    const occlusionTexture = createTextureHandle("occlusion");
+    const occlusionSampler = createSamplerHandle("occlusion-sampler");
+    const cache = createPreparedScalarStandardMaterialCache();
+
+    const scalar = prepareOcclusionEmissiveTexturedStandardMaterialResource({
+      registry: new AssetRegistry(),
+      device: deviceWithResources([], []),
+      cache,
+      handle: createMaterialHandle("scalar"),
+      material: createStandardMaterialAsset(),
+      sourceVersion: 1,
+      pipelineKey: "standard|opaque|back|less|none",
+      layout: materialLayout(),
+      textures: [],
+      samplers: [],
+    });
+    const mixed = prepareOcclusionEmissiveTexturedStandardMaterialResource({
+      registry: new AssetRegistry(),
+      device: deviceWithResources([], []),
+      cache,
+      handle: createMaterialHandle("mixed"),
+      material: createStandardMaterialAsset({
+        normalTexture: { texture: normalTexture, sampler: normalSampler },
+        occlusionTexture: {
+          texture: occlusionTexture,
+          sampler: occlusionSampler,
+        },
+      }),
+      sourceVersion: 1,
+      pipelineKey:
+        "standard|normalTexture|occlusionTexture|opaque|back|less|none",
+      layout: materialLayout(),
+      textures: [],
+      samplers: [],
+    });
+
+    expect(scalar.status).toBe("skipped");
+    expect(scalar.diagnostics).toEqual([
+      expect.objectContaining({
+        code: "preparedOcclusionEmissiveTexturedStandardMaterial.notOcclusionEmissiveTextured",
+        materialKey: "material:scalar",
+      }),
+    ]);
+    expect(mixed.status).toBe("skipped");
+    expect(mixed.diagnostics).toEqual([
+      expect.objectContaining({
+        code: "preparedOcclusionEmissiveTexturedStandardMaterial.notOcclusionEmissiveTextured",
+        materialKey: "material:mixed",
       }),
     ]);
   });

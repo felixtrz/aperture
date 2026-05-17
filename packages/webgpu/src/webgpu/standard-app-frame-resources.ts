@@ -12,6 +12,10 @@ import type {
 } from "@aperture-engine/render";
 import { sameStringList, writeBufferData } from "./app-frame-resource-utils.js";
 import type { PreparedAppTextureSamplerResources } from "./app-texture-sampler-resources.js";
+import {
+  recordPreparedAppMaterialResourceUse,
+  type PreparedAppMaterialResourceUse,
+} from "./prepared-app-material-resource.js";
 import type { LightBindGroupLayoutResource } from "./light-bind-group-layout.js";
 import {
   createLightBufferDescriptorPlanScratch,
@@ -28,10 +32,15 @@ import {
 } from "./prepared-app-mesh-resource.js";
 import {
   prepareBaseColorTexturedStandardMaterialResource,
+  prepareMetallicRoughnessTexturedStandardMaterialResource,
+  prepareNormalTexturedStandardMaterialResource,
+  prepareOcclusionEmissiveTexturedStandardMaterialResource,
   prepareScalarStandardMaterialResource,
   type PreparedBaseColorTexturedStandardMaterialResource,
+  type PreparedMetallicRoughnessTexturedStandardMaterialResource,
+  type PreparedNormalTexturedStandardMaterialResource,
+  type PreparedOcclusionEmissiveTexturedStandardMaterialResource,
   type PreparedScalarStandardMaterialCache,
-  type PreparedScalarStandardMaterialCacheStatus,
   type PreparedScalarStandardMaterialResource,
 } from "./prepared-standard-material-cache.js";
 import type { StandardMaterialBindGroupLayoutResource } from "./standard-bind-group.js";
@@ -256,21 +265,10 @@ export function createOrReuseStandardAppFrameResources(options: {
       options.reuse.materialBuffersCreated += 1;
       options.reuse.bindGroupsCreated += result.resources.bindGroups.length;
     } else {
-      if (preparedMaterial.status === "reused") {
-        options.reuse.materialBuffersReused += 1;
-        options.reuse.bindGroupsReused += 1;
-        options.reuse.preparedMaterialBuffersReused += 1;
-        options.reuse.preparedMaterialBindGroupsReused += 1;
-      } else {
-        options.reuse.materialBuffersCreated += 1;
-        options.reuse.bindGroupsCreated += 1;
-        options.reuse.preparedMaterialBuffersCreated += 1;
-        options.reuse.preparedMaterialBindGroupsCreated += 1;
-      }
-
-      options.reuse.bindGroupsCreated += Math.max(
-        0,
-        result.resources.bindGroups.length - 1,
+      recordPreparedAppMaterialResourceUse(
+        options.reuse,
+        preparedMaterial,
+        result.resources.bindGroups.length,
       );
     }
 
@@ -303,15 +301,13 @@ export function createOrReuseStandardAppFrameResources(options: {
   return result;
 }
 
-interface PreparedStandardMaterialUse {
-  readonly status: Extract<
-    PreparedScalarStandardMaterialCacheStatus,
-    "created" | "reused"
-  >;
-  readonly resource:
-    | PreparedScalarStandardMaterialResource
-    | PreparedBaseColorTexturedStandardMaterialResource;
-}
+type PreparedStandardMaterialUse = PreparedAppMaterialResourceUse<
+  | PreparedScalarStandardMaterialResource
+  | PreparedBaseColorTexturedStandardMaterialResource
+  | PreparedMetallicRoughnessTexturedStandardMaterialResource
+  | PreparedNormalTexturedStandardMaterialResource
+  | PreparedOcclusionEmissiveTexturedStandardMaterialResource
+>;
 
 function preparePreparedStandardMesh(options: {
   readonly device: unknown;
@@ -360,19 +356,8 @@ function preparePreparedStandardMaterial(options: {
   }
 
   const result =
-    options.material.baseColorTexture === null
-      ? prepareScalarStandardMaterialResource({
-          device: options.device as Parameters<
-            typeof prepareScalarStandardMaterialResource
-          >[0]["device"],
-          cache: options.preparedScalarMaterials,
-          handle: options.materialHandle,
-          material: options.material,
-          sourceVersion,
-          pipelineKey: options.pipelineKey,
-          layout: options.materialLayout,
-        })
-      : prepareBaseColorTexturedStandardMaterialResource({
+    options.material.baseColorTexture !== null
+      ? prepareBaseColorTexturedStandardMaterialResource({
           registry: options.assets,
           device: options.device as Parameters<
             typeof prepareBaseColorTexturedStandardMaterialResource
@@ -385,7 +370,64 @@ function preparePreparedStandardMaterial(options: {
           layout: options.materialLayout,
           textures: options.textures.textures,
           samplers: options.textures.samplers,
-        });
+        })
+      : options.material.metallicRoughnessTexture !== null
+        ? prepareMetallicRoughnessTexturedStandardMaterialResource({
+            registry: options.assets,
+            device: options.device as Parameters<
+              typeof prepareMetallicRoughnessTexturedStandardMaterialResource
+            >[0]["device"],
+            cache: options.preparedScalarMaterials,
+            handle: options.materialHandle,
+            material: options.material,
+            sourceVersion,
+            pipelineKey: options.pipelineKey,
+            layout: options.materialLayout,
+            textures: options.textures.textures,
+            samplers: options.textures.samplers,
+          })
+        : options.material.normalTexture !== null
+          ? prepareNormalTexturedStandardMaterialResource({
+              registry: options.assets,
+              device: options.device as Parameters<
+                typeof prepareNormalTexturedStandardMaterialResource
+              >[0]["device"],
+              cache: options.preparedScalarMaterials,
+              handle: options.materialHandle,
+              material: options.material,
+              sourceVersion,
+              pipelineKey: options.pipelineKey,
+              layout: options.materialLayout,
+              textures: options.textures.textures,
+              samplers: options.textures.samplers,
+            })
+          : options.material.occlusionTexture !== null ||
+              options.material.emissiveTexture !== null
+            ? prepareOcclusionEmissiveTexturedStandardMaterialResource({
+                registry: options.assets,
+                device: options.device as Parameters<
+                  typeof prepareOcclusionEmissiveTexturedStandardMaterialResource
+                >[0]["device"],
+                cache: options.preparedScalarMaterials,
+                handle: options.materialHandle,
+                material: options.material,
+                sourceVersion,
+                pipelineKey: options.pipelineKey,
+                layout: options.materialLayout,
+                textures: options.textures.textures,
+                samplers: options.textures.samplers,
+              })
+            : prepareScalarStandardMaterialResource({
+                device: options.device as Parameters<
+                  typeof prepareScalarStandardMaterialResource
+                >[0]["device"],
+                cache: options.preparedScalarMaterials,
+                handle: options.materialHandle,
+                material: options.material,
+                sourceVersion,
+                pipelineKey: options.pipelineKey,
+                layout: options.materialLayout,
+              });
 
   return result.valid &&
     result.resource !== null &&

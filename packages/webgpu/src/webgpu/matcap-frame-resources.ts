@@ -104,6 +104,7 @@ export interface CreateMatcapFrameGpuResourcesOptions {
   readonly viewUniforms: PackedSnapshotViewUniforms | null;
   readonly worldTransforms: PackedSnapshotTransforms | null;
   readonly material: MatcapMaterialAsset | null;
+  readonly preparedMaterial?: PreparedMatcapFrameMaterialResources | undefined;
   readonly sharedLayouts: readonly UnlitBindGroupLayoutResource[];
   readonly materialLayout: MatcapMaterialBindGroupLayoutResource | null;
   readonly textures: readonly TextureGpuResource[];
@@ -122,6 +123,11 @@ export interface MatcapFrameGpuResources {
   )[];
 }
 
+export interface PreparedMatcapFrameMaterialResources {
+  readonly material: MatcapMaterialGpuBufferResource;
+  readonly bindGroup: MatcapMaterialBindGroupResource;
+}
+
 export interface CreateMatcapFrameGpuResourcesResult {
   readonly valid: boolean;
   readonly resources: MatcapFrameGpuResources | null;
@@ -135,18 +141,18 @@ export function createMatcapFrameGpuResources(
   const mesh = createMeshResource(options, diagnostics);
   const viewUniform = createViewUniformResource(options, diagnostics);
   const worldTransforms = createWorldTransformResource(options, diagnostics);
-  const material = createMaterialResource(options, diagnostics);
+  const material =
+    options.preparedMaterial?.material ??
+    createMaterialResource(options, diagnostics);
   const sharedBindGroups = createSharedBindGroups(
     options,
     viewUniform,
     worldTransforms,
     diagnostics,
   );
-  const materialBindGroup = createMaterialBindGroup(
-    options,
-    material,
-    diagnostics,
-  );
+  const materialBindGroup =
+    options.preparedMaterial?.bindGroup ??
+    createMaterialBindGroup(options, material, diagnostics);
 
   if (
     mesh === null ||
