@@ -5,6 +5,7 @@ import type {
 } from "./pipeline-cache.js";
 import {
   createStandardPipelineDescriptorPlan,
+  resolveStandardShaderForBatchKey,
   type StandardPipelineDescriptorDiagnostic,
 } from "./standard-pipeline-descriptor.js";
 import {
@@ -69,7 +70,10 @@ export interface StandardRenderPipelineDeviceLike
 export async function createStandardRenderPipelineResource(
   options: CreateStandardRenderPipelineResourceOptions,
 ): Promise<CreateStandardRenderPipelineResourceResult> {
-  const shader = options.shader ?? STANDARD_MESH_SHADER;
+  const shader = resolveStandardShaderForBatchKey(
+    options.batchKey,
+    options.shader,
+  );
   const descriptorPlan = createStandardPipelineDescriptorPlan({
     shader,
     colorFormat: options.colorFormat,

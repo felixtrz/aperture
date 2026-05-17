@@ -18,6 +18,9 @@ describe("material pipeline selection", () => {
         "matcap|matcapTexture|opaque|back|less|none",
       ),
     ).toBe("matcap");
+    expect(
+      materialPipelineFamilyFromKey("debug-normal|opaque|back|less|none"),
+    ).toBe("debug-normal");
     expect(materialPipelineFamilyFromKey("pipeline:legacy")).toBeNull();
   });
 
@@ -28,6 +31,11 @@ describe("material pipeline selection", () => {
     expect(
       requiredBindGroupGroupsForPipelineKey(
         "matcap|matcapTexture|opaque|back|less|none",
+      ),
+    ).toEqual([0, 1, 2]);
+    expect(
+      requiredBindGroupGroupsForPipelineKey(
+        "debug-normal|opaque|back|less|none",
       ),
     ).toEqual([0, 1, 2]);
     expect(

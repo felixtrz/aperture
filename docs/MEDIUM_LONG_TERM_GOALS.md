@@ -11,6 +11,26 @@ The goal after that proof point is to turn a proven vertical slice into a
 practical engine foundation without drifting into a scene-graph renderer or a
 grab bag of isolated WebGPU demos.
 
+## Current Steering
+
+After the current documentation, audit, guardrail, GLB-container planning, and
+DebugNormal metadata queue, prioritize full StandardMaterial PBR support and the
+proper render pipeline architecture.
+
+The desired sequence is:
+
+1. Expand StandardMaterial from the current direct-lit scalar MVP to glTF-style
+   metallic-roughness coverage: base-color texture, metallic-roughness texture,
+   normal map/tangents, emissive, occlusion, UV set handling, sampler behavior,
+   color-space rules, and structured diagnostics.
+2. Replace the current narrow mixed-material app routing with a generic
+   material-family render queue, phase sorting, and prepared-asset contracts.
+3. Add IBL/environment lighting and shadows once StandardMaterial texture paths
+   and queueing are stable.
+4. Bring GLB material mapping forward only when it can map into real
+   StandardMaterial and UnlitMaterial support without pretending unsupported PBR
+   features are rendered.
+
 ## Post-Proof-Point Priority
 
 1. Audit and tighten the proof point.
@@ -34,18 +54,18 @@ grab bag of isolated WebGPU demos.
      bind group layout metadata, diagnostics, and Playwright coverage when they
      affect pixels.
 
-4. Build the glTF/GLB asset path.
+4. Mature the render pipeline.
+   - Prepare assets in the render world.
+   - Queue, sort, and specialize draws by material/pipeline.
+   - Improve resource lifetime, cache reporting, batching, instancing, and
+     hot-path allocation discipline.
+
+5. Build the glTF/GLB asset path.
    - Aperture should focus 3D model import on glTF 2.0 / GLB.
    - Do not add OBJ, FBX, STL, USD, or other 3D import formats without a new
      decision record.
    - Unsupported glTF extensions should produce structured diagnostics rather
      than silent fallbacks.
-
-5. Mature the render pipeline.
-   - Prepare assets in the render world.
-   - Queue, sort, and specialize draws by material/pipeline.
-   - Improve resource lifetime, cache reporting, batching, instancing, and
-     hot-path allocation discipline.
 
 6. Improve diagnostics and agent tooling.
    - Explain why an entity did not render.

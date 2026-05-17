@@ -81,7 +81,6 @@ describe("standard material WebGPU uniform packing", () => {
       "standardMaterial.deferredFeature",
       "standardMaterial.deferredFeature",
       "standardMaterial.deferredFeature",
-      "standardMaterial.deferredFeature",
     ]);
     expect(result.packed?.featureFlags).toBe(
       STANDARD_MATERIAL_FEATURE_FLAGS.BASE_COLOR_TEXTURE |
@@ -172,7 +171,6 @@ describe("standard material WebGPU uniform packing", () => {
         }),
       ).diagnostics.map((diagnostic) => diagnostic.code),
     ).toEqual([
-      "standardMaterial.deferredFeature",
       "standardMaterialPack.missingTextureHandle",
       "standardMaterialPack.missingSamplerHandle",
     ]);

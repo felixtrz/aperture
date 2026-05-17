@@ -5,6 +5,6 @@
   "lastResult": "success",
   "lastCommit": "0b6a5ef",
   "activePid": null,
-  "notes": "Completed tasks 0602, 0603, 0604, 0606, 0607, 0583, 0605, 0608, and 0609. Next recommended task: task-0610 document app facade as default example path.",
-  "lastRunFinishedAt": "2026-05-17T00:51:38Z"
+  "notes": "Completed tasks 0610-0616. Next ready task is task-0617: render StandardMaterial metallic-roughness textures.",
+  "lastRunFinishedAt": "2026-05-17T01:45:24Z"
 }

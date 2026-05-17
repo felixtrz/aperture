@@ -59,11 +59,10 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start with `task-0610`. The material showcase now proves the ECS-authored
-app-facade path for unlit, StandardMaterial, and MatcapMaterial in one browser
-example, StandardMaterial source texture dependencies now have app/browser
-diagnostics, and DebugNormalMaterial has renderer-independent preparation
-metadata.
+Start with `task-0617`. StandardMaterial base-color texture rendering and the
+narrow GLB container parser are now in place. Continue into deeper
+StandardMaterial PBR texture slices, then the generic material queue/sorter
+work.
 
 ## Near-Term Proof Point Track
 
@@ -80,129 +79,172 @@ Target proof point:
 
 Remaining automation priority order:
 
-1. `task-0610` — document the app facade as the default example path.
-2. `task-0611` — plan the first renderer-independent GLB container slice.
-3. `task-0612` — audit post-showcase material route specialization.
-4. `task-0613` — add package-boundary import guard coverage.
-5. `task-0614` — add DebugNormalMaterial WebGPU shader metadata contracts.
+1. `task-0617` — render StandardMaterial metallic-roughness textures.
+2. `task-0618` — add StandardMaterial normal-map tangent diagnostics.
+3. `task-0619` — add a generic material-family render queue contract.
+4. `task-0620` — render StandardMaterial emissive and occlusion textures.
+5. `task-0621` — integrate opaque material queue app routing.
 
 Defer allocation-only cleanup and metadata-only shader-contract tasks unless
 they are a direct blocker for this track.
+
+## Post-Queue Direction
+
+After the current ready queue, steer backlog refill toward full StandardMaterial
+PBR support and then a generic render pipeline/material queue. The near-term
+goal is not to add unrelated engine features; it is to turn the current
+specialized material proof path into the normal renderer architecture.
+
+Preferred refill order after the current ready queue:
+
+1. StandardMaterial metallic-roughness texture rendering.
+2. StandardMaterial normal map and tangent/bitangent support.
+3. StandardMaterial emissive and occlusion texture support.
+4. Color-space, UV-set, sampler, and material dependency diagnostics for the
+   above texture paths.
+5. Audit the expanded StandardMaterial path against glTF metallic-roughness
+   expectations.
+6. Replace narrow mixed-family app routing with a generic material-family render
+   queue.
+7. Add opaque phase queueing/sorting by pipeline, material, mesh, and depth.
+8. Add transparent phase sorting and render-state validation.
+9. Add render-world/prepared-asset contracts that make material preparation
+   generic instead of family-specific app branches.
+10. Add IBL/environment lighting for StandardMaterial.
+11. Add shadow-map passes and StandardMaterial shadow sampling.
+
+Keep GLB work narrow until StandardMaterial PBR is ready enough to map glTF
+materials honestly. GLB container parsing and diagnostics are fine, but GLB
+viewer/material mapping should not outrun the material and queue architecture.
 
 ## Ready Tasks By Category
 
 ### Proof Point Critical Path
 
-### task-0610 — Document app facade as the default example path
-
-Category: `docs-tooling`
-Package/write-scope: `README.md`, `docs/ARCHITECTURE.md`, and example-facing
-documentation only.
-Reference anchor: `docs/NORTH_STAR.md`, `docs/MEDIUM_LONG_TERM_GOALS.md`, and
-the app-facade examples (`spinning-cube`, `matcap-app`,
-`materials-showcase`).
-
-Update project-facing docs so new work starts from ECS-authored app-facade
-examples instead of direct WebGPU demo snippets.
-
-Acceptance criteria:
-
-- Docs identify `createWebGpuApp`, typed assets, ECS components, and systems as
-  the preferred browser example shape.
-- Direct WebGPU helpers are described as backend/test surfaces, not the default
-  user API.
-- The docs preserve the package-boundary rule that `@aperture-engine/core` stays
-  headless-safe and WebGPU is imported explicitly.
-- Documentation changes do not add new architectural commitments beyond
-  existing decisions.
-
-### task-0611 — Plan the first renderer-independent GLB container slice
-
-Category: `docs-tooling`
-Package/write-scope: `docs/research`, `agent/BACKLOG.md`, and no runtime code
-unless a tiny type stub is needed.
-Reference anchor: `docs/MEDIUM_LONG_TERM_GOALS.md`, glTF 2.0 GLB container
-structure, and local reference engine loader patterns.
-
-Create a concrete implementation plan for a narrow GLB-only loader foundation
-that preserves typed source assets and structured diagnostics.
-
-Acceptance criteria:
-
-- The research note defines the first GLB slice: header/chunk validation, JSON
-  chunk extraction, binary chunk bounds, and JSON-safe diagnostics.
-- The plan explicitly excludes OBJ/FBX/STL/USD and advanced glTF extensions.
-- Follow-up backlog tasks are added for parser tests and typed asset mapping if
-  needed.
-- No renderer-owned GPU resources or browser APIs are introduced into
-  simulation/render packages.
-
 ### Audit / Refactor
 
-### task-0612 — Audit post-showcase material route specialization
-
-Category: `audit-refactor`
-Package/write-scope: docs/research audit note, backlog/handoff updates, and
-small corrective refactors if needed.
-Reference anchor: `docs/NORTH_STAR.md`, `docs/ARCHITECTURE.md`,
-`docs/DECISIONS.md`, Bevy material route/prepare patterns, and
-`packages/webgpu/src/webgpu/app.ts`.
-
-Audit the now-working mixed material app routes before expanding StandardMaterial
-textures or DebugNormalMaterial rendering.
-
-Acceptance criteria:
-
-- Audit checks whether the current pairwise/three-family app route helpers are
-  still a safe narrow bridge or need a generic material-family queue task.
-- Audit verifies pipeline-scoped bind groups, material resource-key resolution,
-  and resource reuse reports remain JSON-safe.
-- Any package-boundary or hidden-scene-graph drift is corrected or captured as a
-  small follow-up.
-- Handoff records the inspected reference files and recommended next task.
-
-### task-0613 — Add package-boundary import guard coverage
-
-Category: `docs-tooling`
-Package/write-scope: architecture test or script plus targeted test coverage.
-Reference anchor: `docs/ARCHITECTURE.md`, `docs/DECISIONS.md`, and current
-workspace package dependency manifests.
-
-Add automated coverage for the package-boundary invariant that WebGPU/browser
-backend APIs stay out of headless packages.
-
-Acceptance criteria:
-
-- The guard fails if `packages/simulation`, `packages/render`,
-  `packages/runtime`, or `packages/core` imports `@aperture-engine/webgpu` or
-  direct browser WebGPU globals in source files.
-- The guard allows `packages/webgpu`, browser examples, and WebGPU tests to use
-  backend APIs.
-- The check runs under the existing test/check workflow without adding a large
-  dependency.
-- Failure output names the offending file and forbidden import/global.
-
-### task-0614 — Add DebugNormalMaterial WebGPU shader metadata contracts
+### task-0617 — Render StandardMaterial metallic-roughness textures
 
 Category: `webgpu-render`
-Package/write-scope: `packages/webgpu/src/webgpu`, public WebGPU exports, and
-targeted shader/descriptor tests only.
-Reference anchor: local unlit/Matcap shader metadata contracts,
-`references/engine` debug/normal visualization shader patterns, and
-`references/three.js` normal material shader behavior.
+Package/write-scope: `packages/webgpu/src/webgpu`, StandardMaterial shader/
+buffer/bind-group/frame-resource tests, and focused app/browser coverage.
+Reference anchor: task-0615 StandardMaterial base-color texture path, Bevy
+material preparation patterns, three.js/PlayCanvas PBR metallic-roughness
+texture handling, and glTF metallic-roughness channel expectations.
 
-Define the WebGPU-side shader metadata and pipeline descriptor plan for
-DebugNormalMaterial without activating app-facade rendering.
+Extend StandardMaterial from scalar metallic/roughness factors to optional
+metallic-roughness texture sampling.
 
 Acceptance criteria:
 
-- DebugNormalMaterial has WGSL shader metadata declaring view/world/material
-  binding requirements appropriate for normal visualization.
-- Pipeline descriptor planning uses the renderer-independent material pipeline
-  key and rejects unsupported topology/layout inputs with JSON-safe diagnostics.
-- No frame-resource creation, bind group creation, or browser example activation
-  is introduced in this task.
-- Tests cover shader metadata, descriptor planning, and public exports.
+- StandardMaterial WGSL samples an optional metallic-roughness texture using
+  roughness from the green channel and metallic from the blue channel, multiplied
+  by the authored scalar factors.
+- Prepared texture/sampler resources are cached and reported with JSON-safe
+  reuse diagnostics.
+- Pipeline keys specialize factor-only, base-color-textured, and
+  metallic-roughness-textured StandardMaterial variants without breaking scalar
+  lit StandardMaterial rendering.
+- App/browser or focused WebGPU tests verify textured metallic/roughness pixels
+  and blocked texture/sampler dependencies.
+
+### task-0618 — Add StandardMaterial normal-map tangent diagnostics
+
+Category: `webgpu-render`
+Package/write-scope: `packages/render` mesh/material contracts,
+`packages/webgpu/src/webgpu` StandardMaterial planning/shader tests, and focused
+diagnostics coverage.
+Reference anchor: Bevy mesh attribute/material preparation patterns, three.js
+normal material/PBR normal-map behavior, and PlayCanvas tangent-space normal-map
+handling.
+
+Prepare the StandardMaterial normal-map slice by making tangent requirements
+explicit before treating normal maps as supported PBR rendering.
+
+Acceptance criteria:
+
+- Mesh/material contracts can express whether tangent data required by a
+  StandardMaterial normal map is available for a draw.
+- StandardMaterial dependency/readiness diagnostics clearly block normal-map
+  rendering when a normal texture is authored but required tangent data is
+  missing.
+- The WebGPU StandardMaterial pipeline/shader plan records the normal-map
+  specialization key without changing factor-only or base-color texture output.
+- Tests cover ready tangent metadata, missing tangent diagnostics, and JSON-safe
+  report output.
+
+### task-0619 — Add a generic material-family render queue contract
+
+Category: `render-bridge`
+Package/write-scope: `packages/render`, `packages/webgpu/src/webgpu`, targeted
+queue/sort tests, and docs/research notes if needed.
+Reference anchor: `docs/research/POST_SHOWCASE_MATERIAL_ROUTE_AUDIT_2026_05_16.md`,
+Bevy render phase queue/sort patterns, and existing Aperture render-frame plan
+contracts.
+
+Introduce the first generic queue contract that can replace pairwise
+mixed-family app routing after the near-term StandardMaterial texture slices.
+
+Acceptance criteria:
+
+- A plain, serializable material queue item can identify material family,
+  pipeline key, mesh key, material resource key, render phase, draw index, and
+  depth/sort data without carrying WebGPU handles.
+- Queue building works from `RenderSnapshot` data plus prepared resource-key
+  resolvers, not direct ECS state or renderer-owned gameplay state.
+- Opaque queue sort order is stable and groups by pipeline/material/mesh before
+  depth where appropriate for the initial contract.
+- Tests cover mixed unlit, MatcapMaterial, and StandardMaterial queue items and
+  prove the output is JSON-safe.
+
+### task-0620 — Render StandardMaterial emissive and occlusion textures
+
+Category: `webgpu-render`
+Package/write-scope: `packages/webgpu/src/webgpu`, StandardMaterial shader/
+bind-group/frame-resource tests, and focused app/browser coverage.
+Reference anchor: task-0615 and task-0617 StandardMaterial texture paths,
+three.js/PlayCanvas glTF PBR texture handling, and Bevy material preparation
+patterns.
+
+Extend StandardMaterial PBR texture support beyond base color and
+metallic-roughness by sampling emissive and occlusion textures.
+
+Acceptance criteria:
+
+- StandardMaterial WGSL samples an optional emissive texture and combines it
+  with `emissiveFactor`.
+- StandardMaterial WGSL samples an optional occlusion texture and applies
+  `occlusionStrength` to ambient/indirect contribution without changing direct
+  light math.
+- Prepared texture/sampler resources, bind group entries, and pipeline keys
+  specialize emissive and occlusion texture variants without breaking scalar,
+  base-color, or metallic-roughness paths.
+- Tests cover resource reuse, missing texture/sampler dependencies, shader
+  metadata, and at least one browser/app pixel route.
+
+### task-0621 — Integrate opaque material queue app routing
+
+Category: `webgpu-render`
+Package/write-scope: `packages/render`, `packages/webgpu/src/webgpu`, focused
+mixed-material app tests, and render-frame plan tests.
+Reference anchor: task-0619 generic material-family queue contract, Bevy render
+phase queue/sort patterns, and existing Aperture render-frame plan contracts.
+
+Use the generic material-family queue to replace the current narrow pairwise
+and three-family app routing for opaque built-in material frames.
+
+Acceptance criteria:
+
+- `createWebGpuApp.render()` can route mixed opaque unlit, MatcapMaterial, and
+  StandardMaterial frames from generic queue items rather than hard-coded
+  material-family branch shapes.
+- Queue consumption preserves stable grouping by pipeline/material/mesh and
+  emits JSON-safe diagnostics for unsupported material families or missing
+  prepared resources.
+- Existing material showcase and app diagnostics examples still render through
+  the app facade without renderer-owned ECS/game state.
+- Tests cover scalar and textured StandardMaterial queue items alongside unlit
+  and MatcapMaterial items.
 
 ## Post-Unlit E2E Verification Targets
 

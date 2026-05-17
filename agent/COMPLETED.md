@@ -15,6 +15,172 @@ Summary:
 - Validation run.
 - Follow-up tasks added.
 
+## task-0616 — Implement GLB container parser diagnostics
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added a renderer-independent GLB 2.0 container parser in
+  `@aperture-engine/render` that accepts `ArrayBuffer` or `Uint8Array` source
+  data.
+- Validates header magic/version/length, JSON-first chunk order, chunk header
+  bounds, chunk byte ranges, empty JSON, UTF-8/JSON decoding, and non-object
+  JSON roots without throwing on malformed user content.
+- Returns plain source data only: parsed JSON object/text, optional BIN
+  `Uint8Array`, chunk metadata, and JSON-safe diagnostics with stable codes,
+  severity, offsets, lengths, and chunk type.
+- Preserves unknown chunks as metadata and warning diagnostics without creating
+  WebGPU resources, image decoders, ECS authoring commands, or scene/material
+  mapping.
+- Important files:
+  `packages/render/src/assets/glb-container.ts`,
+  `packages/render/src/assets/index.ts`,
+  `test/assets/glb-container.test.ts`.
+- Validation run: focused GLB/assets tests, `pnpm run build`,
+  `pnpm exec tsc --noEmit -p tsconfig.test.json`, `pnpm run format:check`, and
+  `pnpm run check` passed.
+- Follow-up task added: none; continue with `task-0617`.
+
+## task-0615 — Render StandardMaterial base-color textures
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added a base-color-textured StandardMaterial WGSL variant that samples the
+  prepared texture/sampler and multiplies it by `baseColorFactor`.
+- Specialized StandardMaterial pipeline descriptor selection so factor-only and
+  base-color-textured variants use distinct shader variants, bind group layout
+  keys, and pipeline cache keys.
+- Routed StandardMaterial base-color texture/sampler preparation through the
+  WebGPU app resource cache for single-family and mixed built-in material
+  frames, including JSON-safe reuse counters and dependency diagnostics.
+- Updated the material showcase so the browser StandardMaterial cube uses a
+  real base-color texture, giving the path Playwright pixel coverage alongside
+  app-level resource tests.
+- Moved `baseColorTexture` from deferred to supported StandardMaterial proof
+  point metadata while leaving metallic-roughness, normal maps, IBL, and shadows
+  deferred.
+- Important files:
+  `packages/webgpu/src/webgpu/standard-shader.ts`,
+  `packages/webgpu/src/webgpu/standard-pipeline-descriptor.ts`,
+  `packages/webgpu/src/webgpu/standard-pipeline.ts`,
+  `packages/webgpu/src/webgpu/app.ts`,
+  `packages/render/src/materials/standard-proof-point.ts`,
+  `examples/materials-showcase.js`,
+  `test/webgpu/webgpu-app.test.ts`.
+- Validation run: focused StandardMaterial/WebGPU app tests,
+  `pnpm exec tsc --noEmit -p tsconfig.test.json`, `pnpm run lint`,
+  `pnpm run format:check`,
+  `pnpm exec playwright test test/e2e/materials-showcase.spec.ts`, and
+  `pnpm run check` passed.
+- Follow-up task added: none; continue with `task-0616`, then `task-0617`.
+
+## task-0614 — Add DebugNormalMaterial WebGPU shader metadata contracts
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added DebugNormalMaterial WGSL metadata that declares view, world-transform,
+  and material uniform bindings and visualizes world-space normals as RGB.
+- Added a descriptor planner/cache-key contract for the debug-normal material
+  family that uses renderer-independent batch/material pipeline keys and rejects
+  unsupported topology, missing vertex attributes, unsupported families, and
+  unsupported features with JSON-safe diagnostics.
+- Added public WebGPU exports and pipeline-family selection metadata without
+  creating frame resources, bind groups, or app-facade activation.
+- Important files:
+  `packages/webgpu/src/webgpu/debug-normal-shader.ts`,
+  `packages/webgpu/src/webgpu/debug-normal-pipeline-descriptor.ts`,
+  `packages/webgpu/src/webgpu/material-pipeline-selection.ts`,
+  `test/webgpu/debug-normal-shader.test.ts`,
+  `test/webgpu/debug-normal-pipeline-descriptor.test.ts`.
+- Validation run: focused DebugNormal shader/descriptor tests,
+  `pnpm exec tsc --noEmit -p tsconfig.test.json`, and `pnpm run lint` passed.
+- Follow-up task added: none.
+
+## task-0613 — Add package-boundary import guard coverage
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added a dependency-free package-boundary guard script that scans headless
+  package source and package manifests for forbidden WebGPU backend imports,
+  package dependencies, browser WebGPU globals, and `navigator.gpu`.
+- Wired the guard into `pnpm run check` through the new
+  `pnpm run check:boundaries` script.
+- Added focused Vitest coverage proving headless violations fail while
+  `packages/webgpu` usage is allowed.
+- Important files: `scripts/check-package-boundaries.mjs`, `package.json`,
+  `test/tooling/package-boundary-guard.test.mjs`.
+- Validation run: `pnpm run check:boundaries`,
+  `pnpm exec vitest run test/tooling/package-boundary-guard.test.mjs`, and
+  `pnpm run lint` passed.
+- Follow-up task added: none.
+
+## task-0612 — Audit post-showcase material route specialization
+
+Completed: 2026-05-16
+
+Summary:
+
+- Audited the app-facade mixed material routing after the material showcase
+  promotion and confirmed the current branches remain a safe narrow bridge.
+- Verified package-boundary search, pipeline-scoped shared bind groups,
+  material resource-key resolution, resource reuse reports, and app report JSON
+  safety.
+- Captured the drift risk that additional mixed-family branch shapes should be
+  replaced by a generic material-family render queue after the next
+  StandardMaterial PBR slices.
+- Important files:
+  `docs/research/POST_SHOWCASE_MATERIAL_ROUTE_AUDIT_2026_05_16.md`,
+  `agent/BACKLOG.md`.
+- Validation run: documentation/task-log update; `pnpm run format:check` should
+  cover final formatting before stop.
+- Follow-up tasks added: `task-0617`, `task-0618`, and `task-0619`.
+
+## task-0611 — Plan the first renderer-independent GLB container slice
+
+Completed: 2026-05-16
+
+Summary:
+
+- Planned a narrow GLB 2.0 container parser slice covering header validation,
+  JSON/BIN chunk extraction, chunk bounds, JSON-safe diagnostics, and explicit
+  non-goals.
+- Kept GLB material mapping and viewer work deferred until StandardMaterial PBR
+  and the generic material queue are stronger.
+- Recorded local reference patterns from PlayCanvas, three.js, Bevy, and the
+  existing Aperture asset-loader coverage note.
+- Important files:
+  `docs/research/GLB_CONTAINER_SLICE_PLAN_2026_05_16.md`,
+  `agent/BACKLOG.md`.
+- Validation run: documentation planning only; `pnpm run format:check` should
+  cover final formatting before stop.
+- Follow-up task added: `task-0616`.
+
+## task-0610 — Document app facade as the default example path
+
+Completed: 2026-05-16
+
+Summary:
+
+- Updated README development/example guidance to identify `createWebGpuApp`,
+  ECS-authored entities, typed assets, and systems as the preferred browser
+  application path.
+- Clarified that direct WebGPU helpers are backend/test surfaces, not the
+  default user API.
+- Updated architecture package-boundary text so WebGPU app orchestration belongs
+  in `@aperture-engine/webgpu` while `@aperture-engine/core` remains
+  headless-safe.
+- Important files: `README.md`, `docs/ARCHITECTURE.md`.
+- Validation run: `pnpm run format:check` and `pnpm run check:examples`
+  passed.
+- Follow-up task added: `task-0615`.
+
 ## task-0609 — Add DebugNormalMaterial source/preparation contracts
 
 Completed: 2026-05-16

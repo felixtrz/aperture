@@ -287,6 +287,8 @@ interface CachedMatcapFrameResources {
 interface CachedStandardFrameResources {
   readonly meshKey: string;
   readonly materialKey: string;
+  readonly textureKeys: readonly string[];
+  readonly samplerKeys: readonly string[];
   readonly viewByteLength: number;
   readonly worldTransformByteLength: number;
   readonly lightFloatByteLength: number;
@@ -980,6 +982,7 @@ function createOrReuseStandardAppFrameResources(options: {
   readonly meshKey: string;
   readonly material: StandardMaterialAsset | null;
   readonly materialKey: string;
+  readonly textures: PreparedAppTextureSamplerResources;
   readonly viewUniforms: PackedSnapshotViewUniforms;
   readonly worldTransforms: PackedSnapshotTransforms;
   readonly layouts: WebGpuAppPipelineLayouts;
@@ -999,6 +1002,8 @@ function createOrReuseStandardAppFrameResources(options: {
     cached !== null &&
     cached.meshKey === options.meshKey &&
     cached.materialKey === options.materialKey &&
+    sameStringList(cached.textureKeys, options.textures.textureKeys) &&
+    sameStringList(cached.samplerKeys, options.textures.samplerKeys) &&
     cached.result.resources !== null &&
     cached.result.resources.lightGpuBuffers.resource !== null &&
     viewDescriptor.plan !== null &&
@@ -1079,6 +1084,8 @@ function createOrReuseStandardAppFrameResources(options: {
     materialLayout: options.layouts
       .materialLayout as StandardMaterialBindGroupLayoutResource | null,
     lightLayout: options.layouts.lightLayout,
+    textures: options.textures.textures,
+    samplers: options.textures.samplers,
   });
 
   if (
@@ -1093,6 +1100,8 @@ function createOrReuseStandardAppFrameResources(options: {
     options.cache.standardFrame = {
       meshKey: options.meshKey,
       materialKey: options.materialKey,
+      textureKeys: [...options.textures.textureKeys],
+      samplerKeys: [...options.textures.samplerKeys],
       viewByteLength:
         viewDescriptor.plan?.source.byteLength ??
         options.viewUniforms.data.byteLength,
@@ -1237,6 +1246,69 @@ function prepareMatcapAppTextureSamplerResources(options: {
   return {
     valid:
       diagnostics.length === 0 &&
+      textures.length === 1 &&
+      samplers.length === 1,
+    textures,
+    samplers,
+    textureKeys,
+    samplerKeys,
+    diagnostics,
+  };
+}
+
+function prepareStandardAppTextureSamplerResources(options: {
+  readonly app: WebGpuApp;
+  readonly cache: WebGpuAppResourceCache;
+  readonly material: StandardMaterialAsset;
+  readonly reuse: WebGpuAppResourceReuseReport;
+}): PreparedAppTextureSamplerResources {
+  const binding = options.material.baseColorTexture;
+
+  if (binding === null) {
+    return emptyPreparedAppTextureSamplerResources();
+  }
+
+  const diagnostics: WebGpuAppTextureSamplerPreparationDiagnostic[] = [];
+  const textures: TextureGpuResource[] = [];
+  const samplers: SamplerGpuResource[] = [];
+  const textureKeys: string[] = [];
+  const samplerKeys: string[] = [];
+
+  if (binding.texture !== null) {
+    const texture = prepareAppTextureResource({
+      app: options.app,
+      cache: options.cache,
+      handle: binding.texture,
+      reuse: options.reuse,
+      diagnostics,
+    });
+
+    if (texture !== null) {
+      textures.push(texture.resource);
+      textureKeys.push(texture.cacheKey);
+    }
+  }
+
+  if (binding.sampler !== null) {
+    const sampler = prepareAppSamplerResource({
+      app: options.app,
+      cache: options.cache,
+      handle: binding.sampler,
+      reuse: options.reuse,
+      diagnostics,
+    });
+
+    if (sampler !== null) {
+      samplers.push(sampler.resource);
+      samplerKeys.push(sampler.cacheKey);
+    }
+  }
+
+  return {
+    valid:
+      diagnostics.length === 0 &&
+      binding.texture !== null &&
+      binding.sampler !== null &&
       textures.length === 1 &&
       samplers.length === 1,
     textures,
@@ -2247,6 +2319,12 @@ async function renderMixedStandardWebGpuAppFrame(options: {
     options.snapshot,
     options.cache.frameScratch.worldTransforms,
   );
+  const standardTextures = prepareStandardAppTextureSamplerResources({
+    app: options.app,
+    cache: options.cache,
+    material: options.resourceSet.standard.material,
+    reuse: options.reuse,
+  });
   const otherTextures =
     options.resourceSet.other.kind === "matcap"
       ? prepareMatcapAppTextureSamplerResources({
@@ -2262,7 +2340,7 @@ async function renderMixedStandardWebGpuAppFrame(options: {
           reuse: options.reuse,
         });
 
-  if (!otherTextures.valid) {
+  if (!standardTextures.valid || !otherTextures.valid) {
     return renderReport({
       ok: false,
       snapshot: options.snapshot,
@@ -2272,6 +2350,7 @@ async function renderMixedStandardWebGpuAppFrame(options: {
         ...options.snapshot.diagnostics,
         ...packedViews.diagnostics,
         ...packedTransforms.diagnostics,
+        ...standardTextures.diagnostics,
         ...otherTextures.diagnostics,
       ],
     });
@@ -2285,6 +2364,7 @@ async function renderMixedStandardWebGpuAppFrame(options: {
     meshKey: options.resourceSet.meshKey,
     material: options.resourceSet.standard.material,
     materialKey: options.resourceSet.standard.materialKey,
+    textures: standardTextures,
     viewUniforms: packedViews,
     worldTransforms: packedTransforms,
     layouts: standardLayouts,
@@ -2607,8 +2687,18 @@ async function renderMixedAllBuiltInWebGpuAppFrame(options: {
     material: options.resourceSet.matcap.material,
     reuse: options.reuse,
   });
+  const standardTextures = prepareStandardAppTextureSamplerResources({
+    app: options.app,
+    cache: options.cache,
+    material: options.resourceSet.standard.material,
+    reuse: options.reuse,
+  });
 
-  if (!unlitTextures.valid || !matcapTextures.valid) {
+  if (
+    !unlitTextures.valid ||
+    !matcapTextures.valid ||
+    !standardTextures.valid
+  ) {
     return renderReport({
       ok: false,
       snapshot: options.snapshot,
@@ -2620,6 +2710,7 @@ async function renderMixedAllBuiltInWebGpuAppFrame(options: {
         ...packedTransforms.diagnostics,
         ...unlitTextures.diagnostics,
         ...matcapTextures.diagnostics,
+        ...standardTextures.diagnostics,
       ],
     });
   }
@@ -2658,6 +2749,7 @@ async function renderMixedAllBuiltInWebGpuAppFrame(options: {
     meshKey: options.resourceSet.meshKey,
     material: options.resourceSet.standard.material,
     materialKey: options.resourceSet.standard.materialKey,
+    textures: standardTextures,
     viewUniforms: packedViews,
     worldTransforms: packedTransforms,
     layouts: standardLayouts,
@@ -3150,7 +3242,12 @@ async function renderWebGpuAppFrame(
             material: material as MatcapMaterialAsset,
             reuse,
           })
-        : emptyPreparedAppTextureSamplerResources();
+        : prepareStandardAppTextureSamplerResources({
+            app,
+            cache: resourceCache,
+            material: material as StandardMaterialAsset,
+            reuse,
+          });
 
   if (!preparedTextures.valid) {
     return renderReport({
@@ -3192,6 +3289,7 @@ async function renderWebGpuAppFrame(
             meshKey,
             material: material as StandardMaterialAsset,
             materialKey,
+            textures: preparedTextures,
             viewUniforms: packedViews,
             worldTransforms: packedTransforms,
             layouts,

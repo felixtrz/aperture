@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  STANDARD_BASE_COLOR_TEXTURED_MESH_SHADER,
+  STANDARD_BASE_COLOR_TEXTURED_MESH_WGSL,
+  STANDARD_BASE_COLOR_TEXTURE_SHADER_VARIANT,
   PACKED_LIGHT_FLOAT_STRIDE,
   PACKED_LIGHT_METADATA_STRIDE,
   PackedLightKindId,
@@ -63,7 +66,8 @@ describe("built-in standard material WGSL shader metadata", () => {
       variant: "direct-lit-metallic-roughness",
       supported: expect.arrayContaining(["ambientLight", "directionalLight"]),
       deferred: expect.arrayContaining([
-        "textureSampling",
+        "metallicRoughnessTexture",
+        "normalMaps",
         "imageBasedLighting",
         "shadows",
       ]),
@@ -85,6 +89,35 @@ describe("built-in standard material WGSL shader metadata", () => {
     );
     expect(STANDARD_MESH_WGSL).toContain("LIGHT_KIND_AMBIENT");
     expect(STANDARD_MESH_WGSL).not.toContain("textureSample");
+  });
+
+  it("declares base-color texture bindings for the textured StandardMaterial variant", () => {
+    expect(
+      validateStandardShaderMetadata(STANDARD_BASE_COLOR_TEXTURED_MESH_SHADER),
+    ).toEqual({ valid: true, diagnostics: [] });
+    expect(STANDARD_BASE_COLOR_TEXTURE_SHADER_VARIANT).toBe(
+      "direct-lit-metallic-roughness-base-color-texture",
+    );
+    expect(STANDARD_BASE_COLOR_TEXTURED_MESH_WGSL).toContain("textureSample");
+    expect(STANDARD_BASE_COLOR_TEXTURED_MESH_WGSL).toContain(
+      "baseColorSample.rgb * material.baseColorFactor.rgb",
+    );
+    expect(
+      STANDARD_BASE_COLOR_TEXTURED_MESH_SHADER.bindings.map((binding) => [
+        binding.id,
+        binding.group,
+        binding.binding,
+        binding.resource,
+      ]),
+    ).toEqual([
+      ["viewProjection", 0, 0, "uniform-buffer"],
+      ["worldTransforms", 1, 0, "read-only-storage-buffer"],
+      ["standardMaterial", 2, 0, "uniform-buffer"],
+      ["lightFloats", 3, 0, "read-only-storage-buffer"],
+      ["lightMetadata", 3, 1, "read-only-storage-buffer"],
+      ["baseColorTexture", 2, 1, "texture"],
+      ["baseColorSampler", 2, 2, "sampler"],
+    ]);
   });
 
   it("diagnoses missing required standard shader metadata fields", () => {

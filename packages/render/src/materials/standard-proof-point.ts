@@ -2,6 +2,7 @@ import type { StandardMaterialAsset } from "./types.js";
 
 export type StandardMaterialProofPointFeature =
   | "baseColorFactor"
+  | "baseColorTexture"
   | "metallicFactor"
   | "roughnessFactor"
   | "emissiveFactor"
@@ -12,7 +13,6 @@ export type StandardMaterialProofPointFeature =
   | "directionalLight";
 
 export type DeferredStandardMaterialFeature =
-  | "baseColorTexture"
   | "metallicRoughnessTexture"
   | "normalTexture"
   | "occlusionTexture"
@@ -25,6 +25,7 @@ export type DeferredStandardMaterialFeature =
 export const STANDARD_MATERIAL_PROOF_POINT_SCOPE = {
   supported: [
     "baseColorFactor",
+    "baseColorTexture",
     "metallicFactor",
     "roughnessFactor",
     "emissiveFactor",
@@ -35,7 +36,6 @@ export const STANDARD_MATERIAL_PROOF_POINT_SCOPE = {
     "directionalLight",
   ],
   deferred: [
-    "baseColorTexture",
     "metallicRoughnessTexture",
     "normalTexture",
     "occlusionTexture",
@@ -79,10 +79,6 @@ export function validateStandardMaterialProofPoint(
   validateColor([...material.emissiveFactor, 1], "emissiveFactor", diagnostics);
   validateUnitFactor(material.metallicFactor, "metallicFactor", diagnostics);
   validateUnitFactor(material.roughnessFactor, "roughnessFactor", diagnostics);
-
-  if (material.baseColorTexture !== null) {
-    deferred("baseColorTexture", diagnostics);
-  }
 
   if (material.metallicRoughnessTexture !== null) {
     deferred("metallicRoughnessTexture", diagnostics);

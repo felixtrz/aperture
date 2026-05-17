@@ -28,6 +28,32 @@ showcase onto the app facade:
 - `task-0609` — added renderer-independent DebugNormalMaterial preparation
   metadata with stable material/pipeline keys, JSON-safe dependency readiness,
   and render-state validation.
+- `task-0610` — documented `createWebGpuApp`, ECS-authored entities, typed
+  assets, and systems as the default browser application path while keeping
+  direct WebGPU helpers as backend/test surfaces.
+- `task-0611` — planned the first renderer-independent GLB container slice and
+  explicitly deferred GLB material mapping/viewer work until StandardMaterial
+  PBR and the generic material queue are ready.
+- `task-0612` — audited the post-showcase material app route and confirmed the
+  current pairwise/three-family helpers are still a safe narrow bridge, but
+  should be replaced by a generic material-family queue after the near-term
+  StandardMaterial PBR texture slices.
+- `task-0613` — added a package-boundary guard script that fails if headless
+  packages import `@aperture-engine/webgpu`, declare it as a dependency, or
+  reference browser WebGPU globals in source files.
+- `task-0614` — added DebugNormalMaterial WebGPU shader metadata and descriptor
+  planning contracts, including normal-to-RGB WGSL, view/world/material binding
+  metadata, pipeline cache-key planning, and JSON-safe diagnostics for invalid
+  topology/layout inputs.
+- `task-0615` — added StandardMaterial base-color texture rendering through a
+  specialized WebGPU shader/pipeline variant, app texture/sampler preparation,
+  pipeline cache-key specialization, and focused tests for resource reuse and
+  group-2 texture/sampler binding. The material showcase Standard cube now uses
+  a base-color texture, and Playwright verifies the textured browser path with
+  real pixels.
+- `task-0616` — added a renderer-independent GLB 2.0 container parser with
+  JSON-safe diagnostics, JSON/BIN chunk extraction, unknown chunk warnings, and
+  no WebGPU, image decoding, ECS authoring, or glTF material/scene mapping.
 - Corrective detail: mixed-family frames now scope shared group-0/group-1 bind
   groups by pipeline key before render-frame resource planning. This prevents
   one material family's view/world bind group from satisfying another pipeline's
@@ -39,12 +65,31 @@ Validation:
 - `pnpm run check:examples`
 - `pnpm exec playwright test test/e2e/app-diagnostics.spec.ts`
 - `pnpm exec playwright test test/e2e/materials-showcase.spec.ts`
+- `pnpm exec playwright test test/e2e/app-diagnostics.spec.ts`
 - `pnpm exec playwright test test/e2e/app-diagnostics.spec.ts test/e2e/materials-showcase.spec.ts`
 - `pnpm run check` passed: 162 test files / 771 tests after `task-0608`.
 - `pnpm run test:e2e` passed after `task-0608`: 142 Playwright tests.
 - `pnpm exec vitest run test/materials/debug-normal-preparation.test.ts test/materials/materials.test.ts`
 - `pnpm exec tsc --noEmit -p tsconfig.test.json`
 - `pnpm run check` passed after `task-0609`: 163 test files / 775 tests.
+- `pnpm run format:check`
+- `pnpm run check:examples`
+- `pnpm exec vitest run test/tooling/package-boundary-guard.test.mjs`
+- `pnpm run check:boundaries`
+- `pnpm run lint`
+- `pnpm exec vitest run test/webgpu/debug-normal-shader.test.ts test/webgpu/debug-normal-pipeline-descriptor.test.ts test/webgpu/material-pipeline-selection.test.ts`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec vitest run test/webgpu/standard-shader.test.ts test/webgpu/standard-pipeline-descriptor.test.ts test/webgpu/standard-material-buffer.test.ts test/webgpu/standard-bind-group.test.ts test/webgpu/webgpu-app.test.ts test/materials/standard-proof-point.test.ts`
+- `pnpm run lint`
+- `pnpm run format:check`
+- `pnpm run check` passed after `task-0615`: 166 test files / 786 tests.
+- `pnpm exec playwright test test/e2e/materials-showcase.spec.ts`
+- `pnpm run test:e2e` passed after the showcase base-color texture update: 142
+  Playwright tests.
+- `pnpm exec vitest run test/assets/glb-container.test.ts`
+- `pnpm exec vitest run test/assets/glb-container.test.ts test/assets/render-asset-preparation.test.ts test/assets/dependencies.test.ts test/assets/registry.test.ts test/assets/typed-collections.test.ts`
+- `pnpm run build`
+- `pnpm run check` passed after `task-0616`: 167 test files / 791 tests.
 
 Reference files/patterns inspected:
 
@@ -62,20 +107,100 @@ Reference files/patterns inspected:
   `test/e2e/materials-showcase.spec.ts`, `test/webgpu/webgpu-app.test.ts`.
 - Project docs: `docs/NORTH_STAR.md`, `docs/ARCHITECTURE.md`,
   `docs/DECISIONS.md`, `docs/MEDIUM_LONG_TERM_GOALS.md`.
+- GLB planning references:
+  `docs/research/ASSET_LOADER_SCENE_IMPORT_COVERAGE.md`,
+  `references/engine/src/framework/parsers/glb-parser.js`,
+  `references/engine/src/framework/parsers/glb-container-parser.js`,
+  `references/three.js/examples/jsm/loaders/GLTFLoader.js`,
+  `references/bevy/crates/bevy_gltf/src/loader/mod.rs`.
+- Post-showcase material route audit:
+  `docs/research/MIXED_MATERIAL_APP_ROUTING_AUDIT_2026_05_16.md`,
+  `docs/research/MATERIAL_SHOWCASE_APP_PATH_AUDIT_2026_05_16.md`,
+  `packages/webgpu/src/webgpu/app.ts`, `test/webgpu/webgpu-app.test.ts`,
+  `references/bevy/crates/bevy_pbr/src/material.rs`,
+  `references/bevy/crates/bevy_render/src/render_asset.rs`,
+  `references/bevy/crates/bevy_render/src/render_phase/mod.rs`.
+- Package-boundary guard:
+  `docs/ARCHITECTURE.md`, `docs/DECISIONS.md`, root and package
+  `package.json` manifests, and source trees for `packages/simulation`,
+  `packages/render`, `packages/runtime`, and `packages/core`.
+- DebugNormalMaterial shader/descriptor contracts:
+  `packages/webgpu/src/webgpu/unlit-shader.ts`,
+  `packages/webgpu/src/webgpu/matcap-shader.ts`,
+  `packages/webgpu/src/webgpu/standard-shader.ts`,
+  `packages/webgpu/src/webgpu/matcap-pipeline-descriptor.ts`,
+  `packages/webgpu/src/webgpu/standard-pipeline-descriptor.ts`,
+  `packages/render/src/materials/debug-normal-preparation.ts`,
+  `references/three.js/src/materials/MeshNormalMaterial.js`,
+  `references/three.js/src/renderers/shaders/ShaderLib/meshnormal.glsl.js`,
+  `references/engine/src/scene/shader-lib/wgsl/chunks/common/vert/normalCore.js`,
+  `references/engine/src/scene/shader-lib/wgsl/chunks/standard/frag/normalMap.js`.
+- StandardMaterial base-color texture path:
+  `packages/render/src/materials/standard-proof-point.ts`,
+  `packages/webgpu/src/webgpu/standard-shader.ts`,
+  `packages/webgpu/src/webgpu/standard-pipeline-descriptor.ts`,
+  `packages/webgpu/src/webgpu/app.ts`,
+  `packages/webgpu/src/webgpu/unlit-frame-resources.ts`,
+  `references/bevy/crates/bevy_pbr/src/material.rs`,
+  `references/bevy/crates/bevy_render/src/render_asset.rs`,
+  `references/three.js/src/renderers/shaders/ShaderLib/meshphysical.glsl.js`,
+  `references/engine/src/scene/shader-lib/wgsl/chunks/standard/frag/diffuse.js`.
+- GLB container parser:
+  `docs/research/GLB_CONTAINER_SLICE_PLAN_2026_05_16.md`,
+  `references/engine/src/framework/parsers/glb-parser.js`,
+  `references/three.js/examples/jsm/loaders/GLTFLoader.js`,
+  `references/bevy/crates/bevy_gltf/src/loader/mod.rs`,
+  `packages/render/src/assets/index.ts`,
+  `test/assets/render-asset-preparation.test.ts`.
 
 Recommended next task:
 
-- `task-0610 — Document app facade as the default example path`.
+- `task-0617 — Render StandardMaterial metallic-roughness textures`.
+
+Task 0617 prep notes:
+
+- The base-color texture slice established the shader/descriptor/app pattern:
+  `STANDARD_BASE_COLOR_TEXTURED_MESH_WGSL`, `resolveStandardShaderForBatchKey`,
+  `standard/group-2:material-base-color-texture@0,1,2`, and
+  `prepareStandardAppTextureSamplerResources()`.
+- Standard material packing and bind-group planning already collect
+  `metallicRoughnessTexture` dependencies and reserve group-2 bindings 3/4, but
+  `prepareStandardAppTextureSamplerResources()` currently only prepares
+  `baseColorTexture`.
+- `standard-pipeline-descriptor.ts` still treats `metallicRoughnessTexture` as a
+  deferred feature. The next slice should move that feature to a supported
+  shader/pipeline variant and keep any unsupported normal/occlusion/emissive
+  paths deferred.
+- Reference channel convention for glTF metallic-roughness remains roughness in
+  G and metallic in B, multiplied by authored scalar factors.
+
+Steering note:
+
+- The user wants the backlog after the current ready queue to focus on full
+  StandardMaterial PBR support first, then the proper render pipeline/material
+  queue sorter. `agent/BACKLOG.md` now has a `Post-Queue Direction` section and
+  `docs/MEDIUM_LONG_TERM_GOALS.md` now makes that priority explicit.
+- `task-0612` added concrete follow-ups for StandardMaterial
+  metallic-roughness textures, StandardMaterial normal-map/tangent diagnostics,
+  and the generic material-family queue contract.
+- StandardMaterial base-color texture rendering and the narrow GLB container
+  parser are now supported. Next work should return to metallic-roughness and
+  normal-map PBR texture support, then the generic material queue.
+- Added ready follow-ups `task-0620` and `task-0621` so the queue stays above
+  five ready tasks and remains pointed at PBR texture completion plus
+  queue-driven app routing.
 
 Known issues:
 
 - Mixed material app routing is still implemented as narrow pairwise and
-  three-family helpers, not a generic material-family queue. `task-0612`
-  captures a focused audit before further expansion.
-- StandardMaterial remains an MVP: texture sampling, normal maps, IBL, shadows,
-  and advanced glTF PBR extensions are still deferred.
+  three-family helpers, not a generic material-family queue. The audit found
+  this safe only as a temporary bridge through the next StandardMaterial PBR
+  texture slices.
+- StandardMaterial remains an MVP: base-color textures are supported, but
+  metallic-roughness textures, normal maps, IBL, shadows, and advanced glTF PBR
+  extensions are still deferred.
 - DebugNormalMaterial now has source/preparation contracts, but does not yet
-  have WebGPU shader metadata, frame resources, or app activation.
+  have frame resources, bind groups, or app activation.
 
 Files touched in this update:
 
@@ -83,17 +208,42 @@ Files touched in this update:
 - `agent/COMPLETED.md`
 - `agent/HANDOFF.md`
 - `agent/STATUS.json`
+- `README.md`
+- `docs/ARCHITECTURE.md`
+- `docs/research/GLB_CONTAINER_SLICE_PLAN_2026_05_16.md`
+- `docs/research/POST_SHOWCASE_MATERIAL_ROUTE_AUDIT_2026_05_16.md`
 - `docs/research/MATERIAL_SHOWCASE_APP_PATH_AUDIT_2026_05_16.md`
 - `docs/research/MIXED_MATERIAL_APP_ROUTING_AUDIT_2026_05_16.md`
 - `examples/app-diagnostics.js`
 - `examples/materials-showcase.html`
 - `examples/materials-showcase.js`
+- `package.json`
 - `packages/webgpu/src/webgpu/app.ts`
+- `packages/webgpu/src/webgpu/debug-normal-pipeline-descriptor.ts`
+- `packages/webgpu/src/webgpu/debug-normal-shader.ts`
+- `packages/webgpu/src/webgpu/index.ts`
+- `packages/webgpu/src/webgpu/material-pipeline-selection.ts`
+- `packages/webgpu/src/webgpu/standard-pipeline-descriptor.ts`
+- `packages/webgpu/src/webgpu/standard-pipeline.ts`
+- `packages/webgpu/src/webgpu/standard-shader.ts`
+- `packages/webgpu/src/webgpu/unlit-shader.ts`
 - `packages/render/src/materials/debug-normal-preparation.ts`
+- `packages/render/src/assets/glb-container.ts`
+- `packages/render/src/assets/index.ts`
 - `packages/render/src/materials/index.ts`
+- `packages/render/src/materials/standard-proof-point.ts`
+- `scripts/check-package-boundaries.mjs`
 - `test/e2e/app-diagnostics.spec.ts`
 - `test/e2e/materials-showcase.spec.ts`
 - `test/materials/debug-normal-preparation.test.ts`
+- `test/tooling/package-boundary-guard.test.mjs`
+- `test/assets/glb-container.test.ts`
+- `test/webgpu/debug-normal-pipeline-descriptor.test.ts`
+- `test/webgpu/debug-normal-shader.test.ts`
+- `test/webgpu/material-pipeline-selection.test.ts`
+- `test/webgpu/standard-material-buffer.test.ts`
+- `test/webgpu/standard-pipeline-descriptor.test.ts`
+- `test/webgpu/standard-shader.test.ts`
 - `test/webgpu/webgpu-app.test.ts`
 
 ## Previous Run Update

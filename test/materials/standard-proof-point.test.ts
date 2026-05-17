@@ -36,11 +36,12 @@ describe("StandardMaterial proof-point contract", () => {
 
     expect(report.valid).toBe(true);
     expect(report.diagnostics).toEqual([]);
+    expect(report.supportedFeatures).toContain("baseColorTexture");
     expect(report.supportedFeatures).toContain("directionalLight");
     expect(report.deferredFeatures).toContain("imageBasedLighting");
   });
 
-  it("distinguishes deferred texture features from invalid scalar inputs", () => {
+  it("distinguishes supported base-color texture fields from invalid scalar inputs", () => {
     const material = createStandardMaterialAsset({
       metallicFactor: 1.4,
       baseColorTexture: {
@@ -59,13 +60,6 @@ describe("StandardMaterial proof-point contract", () => {
         field: "metallicFactor",
         severity: "error",
         message: "metallicFactor must be a finite value between 0 and 1.",
-      },
-      {
-        code: "standardMaterial.deferredFeature",
-        field: "baseColorTexture",
-        severity: "warning",
-        message:
-          "baseColorTexture is deferred for the StandardMaterial proof point.",
       },
       {
         code: "standardMaterial.unsupportedFeature",

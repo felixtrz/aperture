@@ -3,44 +3,33 @@ import type {
   MeshTopology,
 } from "@aperture-engine/render";
 import {
+  DEBUG_NORMAL_MESH_SHADER,
+  DEBUG_NORMAL_SHADER_VARIANT,
+  validateDebugNormalShaderMetadata,
+} from "./debug-normal-shader.js";
+import {
   createWebGpuRenderPipelineCacheKey,
   type WebGpuRenderPipelineCacheKeyInput,
   type WebGpuRenderPipelineCreateDescriptor,
 } from "./pipeline-cache.js";
-import {
-  STANDARD_BASE_COLOR_TEXTURED_MESH_SHADER,
-  STANDARD_BASE_COLOR_TEXTURE_SHADER_VARIANT,
-  STANDARD_DIRECT_LIGHT_SHADER_VARIANT,
-  STANDARD_MESH_SHADER,
-  validateStandardShaderMetadata,
-} from "./standard-shader.js";
 import type { BuiltInShaderSourceModule } from "./unlit-shader.js";
 
-export const STANDARD_DEFERRED_PIPELINE_FEATURES = [
-  "metallicRoughnessTexture",
-  "normalTexture",
-  "occlusionTexture",
-  "emissiveTexture",
-] as const;
+export type DebugNormalPipelineDescriptorDiagnosticCode =
+  | "debugNormalPipeline.missingShaderMetadata"
+  | "debugNormalPipeline.missingColorFormat"
+  | "debugNormalPipeline.unsupportedTopology"
+  | "debugNormalPipeline.missingBatchKeyField"
+  | "debugNormalPipeline.unsupportedShaderFamily"
+  | "debugNormalPipeline.unsupportedFeature"
+  | "debugNormalPipeline.missingVertexAttribute";
 
-export type StandardDeferredPipelineFeature =
-  (typeof STANDARD_DEFERRED_PIPELINE_FEATURES)[number];
-
-export type StandardPipelineDescriptorDiagnosticCode =
-  | "standardPipeline.missingShaderMetadata"
-  | "standardPipeline.missingColorFormat"
-  | "standardPipeline.unsupportedTopology"
-  | "standardPipeline.missingBatchKeyField"
-  | "standardPipeline.unsupportedShaderFamily"
-  | "standardPipeline.deferredFeature";
-
-export interface StandardPipelineDescriptorDiagnostic {
-  readonly code: StandardPipelineDescriptorDiagnosticCode;
+export interface DebugNormalPipelineDescriptorDiagnostic {
+  readonly code: DebugNormalPipelineDescriptorDiagnosticCode;
   readonly message: string;
   readonly field?: string;
 }
 
-export interface StandardPipelineDescriptorInput {
+export interface DebugNormalPipelineDescriptorInput {
   readonly shader?: BuiltInShaderSourceModule;
   readonly colorFormat: string;
   readonly depthFormat?: string | null;
@@ -48,19 +37,19 @@ export interface StandardPipelineDescriptorInput {
   readonly batchKey: BatchCompatibilityKey;
 }
 
-export interface StandardPipelineDescriptorPlan {
+export interface DebugNormalPipelineDescriptorPlan {
   readonly descriptor: WebGpuRenderPipelineCreateDescriptor;
   readonly keyInput: WebGpuRenderPipelineCacheKeyInput;
   readonly cacheKey: string;
 }
 
-export interface StandardPipelineDescriptorResult {
+export interface DebugNormalPipelineDescriptorResult {
   readonly valid: boolean;
-  readonly plan: StandardPipelineDescriptorPlan | null;
-  readonly diagnostics: readonly StandardPipelineDescriptorDiagnostic[];
+  readonly plan: DebugNormalPipelineDescriptorPlan | null;
+  readonly diagnostics: readonly DebugNormalPipelineDescriptorDiagnostic[];
 }
 
-interface StandardPipelineTokens {
+interface DebugNormalPipelineTokens {
   readonly family: string | null;
   readonly features: readonly string[];
   readonly alphaMode: string | null;
@@ -69,19 +58,19 @@ interface StandardPipelineTokens {
   readonly blendPreset: string | null;
 }
 
-export function createStandardPipelineDescriptorPlan(
-  input: StandardPipelineDescriptorInput,
-): StandardPipelineDescriptorResult {
-  const diagnostics: StandardPipelineDescriptorDiagnostic[] = [];
+export function createDebugNormalPipelineDescriptorPlan(
+  input: DebugNormalPipelineDescriptorInput,
+): DebugNormalPipelineDescriptorResult {
+  const diagnostics: DebugNormalPipelineDescriptorDiagnostic[] = [];
   const batchKey = input.batchKey as Partial<BatchCompatibilityKey> | null;
-  const shader = resolveStandardShaderForBatchKey(batchKey, input.shader);
-  const metadata = validateStandardShaderMetadata(shader);
+  const shader = input.shader ?? DEBUG_NORMAL_MESH_SHADER;
+  const metadata = validateDebugNormalShaderMetadata(shader);
   const topology = input.topology ?? batchKey?.topology;
   const tokens = parsePipelineTokens(batchKey?.pipelineKey);
 
   for (const diagnostic of metadata.diagnostics) {
     diagnostics.push({
-      code: "standardPipeline.missingShaderMetadata",
+      code: "debugNormalPipeline.missingShaderMetadata",
       message: diagnostic.message,
       ...(diagnostic.field === undefined ? {} : { field: diagnostic.field }),
     });
@@ -89,22 +78,24 @@ export function createStandardPipelineDescriptorPlan(
 
   if (input.colorFormat.trim().length === 0) {
     diagnostics.push({
-      code: "standardPipeline.missingColorFormat",
+      code: "debugNormalPipeline.missingColorFormat",
       field: "colorFormat",
-      message: "Standard pipeline descriptor planning requires a color format.",
+      message:
+        "DebugNormalMaterial pipeline descriptor planning requires a color format.",
     });
   }
 
   if (topology !== "triangle-list") {
     diagnostics.push({
-      code: "standardPipeline.unsupportedTopology",
+      code: "debugNormalPipeline.unsupportedTopology",
       field: "topology",
-      message: `StandardMaterial MVP pipeline supports triangle-list topology, not '${String(topology)}'.`,
+      message: `DebugNormalMaterial pipeline supports triangle-list topology, not '${String(topology)}'.`,
     });
   }
 
   validateBatchKey(batchKey, diagnostics);
-  validateStandardPipelineTokens(tokens, diagnostics);
+  validateDebugNormalPipelineTokens(tokens, diagnostics);
+  validateDebugNormalVertexLayout(batchKey, diagnostics);
 
   if (diagnostics.length > 0 || !isCompleteBatchKey(batchKey)) {
     return { valid: false, plan: null, diagnostics };
@@ -125,16 +116,14 @@ export function createStandardPipelineDescriptorPlan(
         };
   const keyInput: WebGpuRenderPipelineCacheKeyInput = {
     shaderLabel: shader.label,
-    shaderFamily: "standard",
-    shaderVariantKey: hasBaseColorTextureFeature(batchKey)
-      ? STANDARD_BASE_COLOR_TEXTURE_SHADER_VARIANT
-      : STANDARD_DIRECT_LIGHT_SHADER_VARIANT,
+    shaderFamily: "debug-normal",
+    shaderVariantKey: DEBUG_NORMAL_SHADER_VARIANT,
     colorFormats: [input.colorFormat],
     depthFormat: input.depthFormat ?? null,
     stencilFormat: null,
     topology: resolvedTopology,
     vertexLayoutKey: batchKey.meshLayoutKey,
-    bindGroupLayoutKeys: standardBindGroupLayoutKeys(batchKey),
+    bindGroupLayoutKeys: debugNormalBindGroupLayoutKeys(),
     primitive: {
       topology: resolvedTopology,
       cullMode: tokens.cullMode ?? "back",
@@ -163,7 +152,7 @@ export function createStandardPipelineDescriptorPlan(
     vertex: {
       moduleLabel: shader.label,
       entryPoint: shader.entryPoints.vertex,
-      buffers: ["POSITION", "NORMAL", "TEXCOORD_0"],
+      buffers: ["POSITION", "NORMAL"],
     },
     fragment: {
       moduleLabel: shader.label,
@@ -199,59 +188,53 @@ export function createStandardPipelineDescriptorPlan(
   return { valid: true, plan: { descriptor, keyInput, cacheKey }, diagnostics };
 }
 
-function standardBindGroupLayoutKeys(
-  batchKey: BatchCompatibilityKey,
-): readonly string[] {
+function debugNormalBindGroupLayoutKeys(): readonly string[] {
   return [
-    "standard/group-0:view-uniform@0",
-    "standard/group-1:world-transforms@0",
-    hasBaseColorTextureFeature(batchKey)
-      ? "standard/group-2:material-base-color-texture@0,1,2"
-      : "standard/group-2:material@0",
-    "lights/group-3:light-floats@0,light-metadata@1",
+    "debug-normal/group-0:view-uniform@0",
+    "debug-normal/group-1:world-transforms@0",
+    "debug-normal/group-2:material@0",
   ];
 }
 
-export function resolveStandardShaderForBatchKey(
-  batchKey: Partial<BatchCompatibilityKey> | null,
-  shader?: BuiltInShaderSourceModule,
-): BuiltInShaderSourceModule {
-  if (shader !== undefined) {
-    return shader;
-  }
-
-  return hasBaseColorTextureFeature(batchKey)
-    ? STANDARD_BASE_COLOR_TEXTURED_MESH_SHADER
-    : STANDARD_MESH_SHADER;
-}
-
-function hasBaseColorTextureFeature(
-  batchKey: Partial<BatchCompatibilityKey> | null,
-): boolean {
-  return (
-    typeof batchKey?.pipelineKey === "string" &&
-    batchKey.pipelineKey.split("|").includes("baseColorTexture")
-  );
-}
-
-function validateStandardPipelineTokens(
-  tokens: StandardPipelineTokens,
-  diagnostics: StandardPipelineDescriptorDiagnostic[],
+function validateDebugNormalPipelineTokens(
+  tokens: DebugNormalPipelineTokens,
+  diagnostics: DebugNormalPipelineDescriptorDiagnostic[],
 ): void {
-  if (tokens.family !== null && tokens.family !== "standard") {
+  if (tokens.family !== null && tokens.family !== "debug-normal") {
     diagnostics.push({
-      code: "standardPipeline.unsupportedShaderFamily",
+      code: "debugNormalPipeline.unsupportedShaderFamily",
       field: "batchKey.pipelineKey",
-      message: `Standard pipeline descriptor planning requires a 'standard' material pipeline key, not '${tokens.family}'.`,
+      message: `DebugNormalMaterial pipeline descriptor planning requires a 'debug-normal' material pipeline key, not '${tokens.family}'.`,
     });
   }
 
   for (const feature of tokens.features) {
-    if (isDeferredPipelineFeature(feature)) {
+    diagnostics.push({
+      code: "debugNormalPipeline.unsupportedFeature",
+      field: `batchKey.pipelineKey.${feature}`,
+      message: `DebugNormalMaterial pipeline does not support feature '${feature}'.`,
+    });
+  }
+}
+
+function validateDebugNormalVertexLayout(
+  batchKey: Partial<BatchCompatibilityKey> | null,
+  diagnostics: DebugNormalPipelineDescriptorDiagnostic[],
+): void {
+  const layout = batchKey?.meshLayoutKey;
+
+  if (typeof layout !== "string" || layout.trim().length === 0) {
+    return;
+  }
+
+  const attributes = new Set(layout.split(",").filter((part) => part !== ""));
+
+  for (const semantic of ["POSITION", "NORMAL"] as const) {
+    if (!attributes.has(semantic)) {
       diagnostics.push({
-        code: "standardPipeline.deferredFeature",
-        field: `batchKey.pipelineKey.${feature}`,
-        message: `${feature} is deferred for the direct-lit StandardMaterial MVP pipeline.`,
+        code: "debugNormalPipeline.missingVertexAttribute",
+        field: `batchKey.meshLayoutKey.${semantic}`,
+        message: `DebugNormalMaterial pipeline requires '${semantic}' vertex attribute data.`,
       });
     }
   }
@@ -259,7 +242,7 @@ function validateStandardPipelineTokens(
 
 function parsePipelineTokens(
   pipelineKey: string | undefined,
-): StandardPipelineTokens {
+): DebugNormalPipelineTokens {
   if (pipelineKey === undefined || pipelineKey.trim().length === 0) {
     return {
       family: null,
@@ -284,23 +267,16 @@ function parsePipelineTokens(
   };
 }
 
-function isDeferredPipelineFeature(
-  feature: string,
-): feature is StandardDeferredPipelineFeature {
-  return STANDARD_DEFERRED_PIPELINE_FEATURES.includes(
-    feature as StandardDeferredPipelineFeature,
-  );
-}
-
 function validateBatchKey(
   batchKey: Partial<BatchCompatibilityKey> | null,
-  diagnostics: StandardPipelineDescriptorDiagnostic[],
+  diagnostics: DebugNormalPipelineDescriptorDiagnostic[],
 ): void {
   if (batchKey === null) {
     diagnostics.push({
-      code: "standardPipeline.missingBatchKeyField",
+      code: "debugNormalPipeline.missingBatchKeyField",
       field: "batchKey",
-      message: "Standard pipeline descriptor planning requires a batch key.",
+      message:
+        "DebugNormalMaterial pipeline descriptor planning requires a batch key.",
     });
     return;
   }
@@ -314,19 +290,19 @@ function validateBatchKey(
 
     if (typeof value !== "string" || value.trim().length === 0) {
       diagnostics.push({
-        code: "standardPipeline.missingBatchKeyField",
+        code: "debugNormalPipeline.missingBatchKeyField",
         field: `batchKey.${field}`,
-        message: `Standard pipeline descriptor planning requires batchKey.${field}.`,
+        message: `DebugNormalMaterial pipeline descriptor planning requires batchKey.${field}.`,
       });
     }
   }
 
   if (batchKey.topology === undefined) {
     diagnostics.push({
-      code: "standardPipeline.missingBatchKeyField",
+      code: "debugNormalPipeline.missingBatchKeyField",
       field: "batchKey.topology",
       message:
-        "Standard pipeline descriptor planning requires batchKey.topology.",
+        "DebugNormalMaterial pipeline descriptor planning requires batchKey.topology.",
     });
   }
 }

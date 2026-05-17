@@ -57,10 +57,49 @@ function createScene(aperture, app, targetCanvas) {
     }),
     { id: "showcase-unlit" },
   );
+  const standardBaseColorTexture = aperture.createTextureHandle(
+    "showcase-standard-base-color",
+  );
+  const standardBaseColorSampler = aperture.createSamplerHandle(
+    "showcase-standard-base-color-linear",
+  );
+
+  app.assets.register(standardBaseColorTexture);
+  app.assets.markReady(
+    standardBaseColorTexture,
+    aperture.createTextureAsset({
+      label: "ShowcaseStandardBaseColorTexture",
+      dimension: "2d",
+      width: 2,
+      height: 2,
+      format: "rgba8unorm",
+      colorSpace: "srgb",
+      semantic: "base-color",
+      usage: ["sampled", "copy-dst"],
+      sourceData: {
+        bytes: new Uint8Array([
+          92, 255, 148, 255, 30, 204, 220, 255, 190, 255, 116, 255, 42, 124,
+          255, 255,
+        ]),
+        bytesPerRow: 8,
+        rowsPerImage: 2,
+      },
+    }),
+  );
+  app.assets.register(standardBaseColorSampler);
+  app.assets.markReady(
+    standardBaseColorSampler,
+    aperture.createSamplerAsset({ label: "ShowcaseStandardBaseColorSampler" }),
+  );
+
   const standard = assets.materials.standard.add(
     aperture.createStandardMaterialAsset({
       label: "ShowcaseStandard",
-      baseColorFactor: new Float32Array([0.35, 1, 0.58, 1]),
+      baseColorFactor: new Float32Array([0.85, 1, 0.9, 1]),
+      baseColorTexture: {
+        texture: standardBaseColorTexture,
+        sampler: standardBaseColorSampler,
+      },
       metallicFactor: 0.18,
       roughnessFactor: 0.36,
       emissiveFactor: [0.01, 0.035, 0.018],
@@ -148,6 +187,8 @@ function createScene(aperture, app, targetCanvas) {
     cubes,
     mesh,
     materials: { unlit, standard, matcap },
+    standardBaseColorTexture,
+    standardBaseColorSampler,
     matcapTexture,
     matcapSampler,
   };

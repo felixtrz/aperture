@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  STANDARD_BASE_COLOR_TEXTURE_SHADER_VARIANT,
   STANDARD_DIRECT_LIGHT_SHADER_VARIANT,
   createStandardPipelineDescriptorPlan,
   createUnlitPipelineDescriptorPlan,
@@ -119,21 +120,50 @@ describe("standard material pipeline descriptor planning", () => {
   });
 
   it("rejects deferred texture features for the direct-lit MVP", () => {
-    const result = createStandardPipelineDescriptorPlan({
+    const baseColor = createStandardPipelineDescriptorPlan({
       colorFormat: "bgra8unorm",
       batchKey: {
         ...STANDARD_BATCH_KEY,
         pipelineKey: "standard|baseColorTexture|opaque|back|less|none",
       },
     });
+    const result = createStandardPipelineDescriptorPlan({
+      colorFormat: "bgra8unorm",
+      batchKey: {
+        ...STANDARD_BATCH_KEY,
+        pipelineKey: "standard|metallicRoughnessTexture|opaque|back|less|none",
+      },
+    });
 
+    expect(baseColor.diagnostics).toEqual([]);
+    expect(baseColor.plan?.descriptor).toMatchObject({
+      label:
+        "aperture/standard-mesh-base-color-textured:bgra8unorm:triangle-list",
+      vertex: { moduleLabel: "aperture/standard-mesh-base-color-textured" },
+      fragment: { moduleLabel: "aperture/standard-mesh-base-color-textured" },
+    });
+    expect(
+      JSON.parse(required(baseColor.plan).cacheKey) as unknown,
+    ).toMatchObject({
+      shader: {
+        variantKey: STANDARD_BASE_COLOR_TEXTURE_SHADER_VARIANT,
+      },
+      layouts: {
+        bindGroups: [
+          "standard/group-0:view-uniform@0",
+          "standard/group-1:world-transforms@0",
+          "standard/group-2:material-base-color-texture@0,1,2",
+          "lights/group-3:light-floats@0,light-metadata@1",
+        ],
+      },
+    });
     expect(result.plan).toBeNull();
     expect(result.diagnostics).toEqual([
       {
         code: "standardPipeline.deferredFeature",
-        field: "batchKey.pipelineKey.baseColorTexture",
+        field: "batchKey.pipelineKey.metallicRoughnessTexture",
         message:
-          "baseColorTexture is deferred for the direct-lit StandardMaterial MVP pipeline.",
+          "metallicRoughnessTexture is deferred for the direct-lit StandardMaterial MVP pipeline.",
       },
     ]);
   });

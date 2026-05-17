@@ -31,18 +31,26 @@ the runtime architecture:
 - `@aperture-engine/render`: renderer-independent authoring components, mesh
   and material asset contracts, render extraction, snapshots, render world data,
   and diagnostics. It may import simulation, but not WebGPU.
-- `@aperture-engine/webgpu`: the explicit WebGPU backend. It consumes render
-  snapshots/render-world data and owns GPU resources, render passes, pipelines,
-  bind groups, command encoding, and submission.
+- `@aperture-engine/webgpu`: the explicit WebGPU backend and browser app
+  facade. It consumes render snapshots/render-world data and owns GPU resources,
+  render passes, pipelines, bind groups, command encoding, and submission.
 - `@aperture-engine/runtime`: headless simulation and extraction app facades.
-  It currently composes simulation and render only; WebGPU app orchestration
-  should remain an optional future layer.
+  It composes simulation and render only; WebGPU app orchestration belongs in
+  `@aperture-engine/webgpu`.
 - `@aperture-engine/core`: headless-safe umbrella API for common user code. It
   re-exports simulation, render, and runtime, but intentionally does not export
   WebGPU backend APIs.
 
 Users who need GPU presentation should import `@aperture-engine/webgpu`
 explicitly alongside `@aperture-engine/core` or focused package imports.
+
+The default browser application shape is `createWebGpuApp` from
+`@aperture-engine/webgpu`. User code should author ECS entities and typed source
+assets, register systems, and call the app facade to step/extract/render. The
+facade is convenience orchestration over the same ECS/render-extraction/WebGPU
+boundary; it must not become a hidden scene graph or make WebGPU state part of
+the authoritative ECS world. Lower-level WebGPU helpers remain backend and test
+surfaces.
 
 ## Bevy-Inspired Bridge
 

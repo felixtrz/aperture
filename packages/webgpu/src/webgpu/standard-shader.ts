@@ -14,19 +14,27 @@ import type {
 
 export const STANDARD_DIRECT_LIGHT_SHADER_VARIANT =
   "direct-lit-metallic-roughness";
+export const STANDARD_BASE_COLOR_TEXTURE_SHADER_VARIANT =
+  "direct-lit-metallic-roughness-base-color-texture";
 
 export const STANDARD_MATERIAL_MVP_LIGHTING_MODEL = {
   variant: STANDARD_DIRECT_LIGHT_SHADER_VARIANT,
   brdf: "Cook-Torrance GGX direct lighting with Schlick Fresnel and Lambert diffuse.",
   supported: [
     "baseColorFactor",
+    "baseColorTexture",
     "metallicFactor",
     "roughnessFactor",
     "emissiveFactor",
     "ambientLight",
     "directionalLight",
   ],
-  deferred: ["textureSampling", "normalMaps", "imageBasedLighting", "shadows"],
+  deferred: [
+    "metallicRoughnessTexture",
+    "normalMaps",
+    "imageBasedLighting",
+    "shadows",
+  ],
 } as const;
 
 export const STANDARD_MESH_WGSL = `
@@ -233,6 +241,29 @@ fn fs_main(input: VertexOutput) -> @location(0) vec4f {
 }
 `.trim();
 
+export const STANDARD_BASE_COLOR_TEXTURED_MESH_WGSL =
+  STANDARD_MESH_WGSL.replace(
+    `// Direct lights use a small metallic/roughness GGX BRDF. Texture sampling,
+// normal maps, image-based lighting, and shadows are deferred.`,
+    `// Direct lights use a small metallic/roughness GGX BRDF. Base-color texture
+// sampling is active; normal maps, image-based lighting, and shadows are deferred.`,
+  )
+    .replace(
+      `@group(2) @binding(0) var<uniform> material: StandardMaterialUniform;
+@group(3) @binding(0) var<storage, read> lightFloats: array<f32>;`,
+      `@group(2) @binding(0) var<uniform> material: StandardMaterialUniform;
+@group(2) @binding(1) var baseColorTexture: texture_2d<f32>;
+@group(2) @binding(2) var baseColorSampler: sampler;
+@group(3) @binding(0) var<storage, read> lightFloats: array<f32>;`,
+    )
+    .replace(
+      `  let baseColor = material.baseColorFactor.rgb;
+  let alpha = material.baseColorFactor.a;`,
+      `  let baseColorSample = textureSample(baseColorTexture, baseColorSampler, input.uv);
+  let baseColor = baseColorSample.rgb * material.baseColorFactor.rgb;
+  let alpha = baseColorSample.a * material.baseColorFactor.a;`,
+    );
+
 export const STANDARD_MESH_SHADER: BuiltInShaderSourceModule = {
   label: "aperture/standard-mesh",
   code: STANDARD_MESH_WGSL,
@@ -278,6 +309,30 @@ export const STANDARD_MESH_SHADER: BuiltInShaderSourceModule = {
     },
   ],
 };
+
+export const STANDARD_BASE_COLOR_TEXTURED_MESH_SHADER: BuiltInShaderSourceModule =
+  {
+    label: "aperture/standard-mesh-base-color-textured",
+    code: STANDARD_BASE_COLOR_TEXTURED_MESH_WGSL,
+    entryPoints: STANDARD_MESH_SHADER.entryPoints,
+    bindings: [
+      ...STANDARD_MESH_SHADER.bindings,
+      {
+        id: "baseColorTexture",
+        label: "Base color texture",
+        group: 2,
+        binding: 1,
+        resource: "texture",
+      },
+      {
+        id: "baseColorSampler",
+        label: "Base color sampler",
+        group: 2,
+        binding: 2,
+        resource: "sampler",
+      },
+    ],
+  };
 
 export function createStandardMeshShaderModuleDescriptor(
   shader: BuiltInShaderSourceModule = STANDARD_MESH_SHADER,

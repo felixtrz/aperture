@@ -13,6 +13,7 @@ export type BuiltInShaderBindingId =
   | "unlitMaterial"
   | "matcapMaterial"
   | "standardMaterial"
+  | "debugNormalMaterial"
   | "lightFloats"
   | "lightMetadata"
   | "baseColorTexture"

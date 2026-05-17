@@ -2157,6 +2157,146 @@ describe("WebGPU app facade", () => {
     expect(secondEvents).toContain("queue:writeBuffer:WorldTransforms/storage");
     expect(resourceEventCounts(events)).toEqual(firstResourceEvents);
   });
+
+  it("renders and reuses StandardMaterial base-color texture resources", async () => {
+    const events: string[] = [];
+    const { canvas, environment } = webGpuHarness(events);
+    const created = await createWebGpuApp({
+      canvas,
+      environment,
+      worldOptions: { entityCapacity: 8 },
+    });
+
+    expect(created.ok).toBe(true);
+
+    if (!created.ok) {
+      return;
+    }
+
+    const app = created.app;
+    const assets = createRenderAssetCollections({ registry: app.assets });
+    const mesh = assets.meshes.add(
+      createBoxMeshAsset({ label: "TexturedStandardCube" }),
+    );
+    const texture = createTextureHandle("standard-base-color");
+    const sampler = createSamplerHandle("standard-base-color-sampler");
+
+    app.assets.register(texture);
+    app.assets.markReady(
+      texture,
+      createTextureAsset({
+        label: "StandardBaseColor",
+        dimension: "2d",
+        width: 2,
+        height: 2,
+        format: "rgba8unorm-srgb",
+        colorSpace: "srgb",
+        semantic: "base-color",
+        usage: ["sampled", "copy-dst"],
+        sourceData: {
+          bytes: new Uint8Array([
+            255, 64, 64, 255, 64, 255, 64, 255, 64, 64, 255, 255, 255, 255, 64,
+            255,
+          ]),
+          bytesPerRow: 8,
+          rowsPerImage: 2,
+        },
+      }),
+    );
+    app.assets.register(sampler);
+    app.assets.markReady(
+      sampler,
+      createSamplerAsset({ label: "StandardBaseColorSampler" }),
+    );
+
+    const material = assets.materials.standard.add(
+      createStandardMaterialAsset({
+        label: "Textured Standard",
+        baseColorTexture: { texture, sampler },
+        metallicFactor: 0,
+        roughnessFactor: 0.6,
+      }),
+    );
+
+    app.spawn(
+      withTransform({ translation: [0, 0, 5] }),
+      withCamera({ priority: 0, layerMask: 1 }),
+    );
+    app.spawn(
+      withTransform(),
+      withMesh(mesh),
+      withMaterial(material),
+      withRenderLayer(1),
+      withVisibility(true),
+    );
+    app.spawn(
+      withLight({
+        kind: LightKind.Ambient,
+        intensity: 0.35,
+        layerMask: 1,
+      }),
+    );
+    app.spawn(
+      withTransform(),
+      withLight({
+        kind: LightKind.Directional,
+        intensity: 1.25,
+        layerMask: 1,
+      }),
+    );
+
+    const frame = await app.stepAndRender(1 / 60, 1, 44);
+
+    expect(frame.ok).toBe(true);
+    expect(frame.snapshot.meshDraws[0]?.batchKey.pipelineKey).toBe(
+      "standard|baseColorTexture|opaque|back|less|none",
+    );
+    expect(frame.resourceReuse).toMatchObject({
+      pipelineHits: 0,
+      pipelineMisses: 1,
+      textureResourcesCreated: 1,
+      samplerResourcesCreated: 1,
+      bindGroupsCreated: 4,
+      lightBuffersCreated: 1,
+    });
+    expect(events).toContain(
+      "device:pipeline:aperture/standard-mesh-base-color-textured:bgra8unorm:triangle-list",
+    );
+    expect(events).toContain("device:texture:StandardBaseColor");
+    expect(events).toContain("queue:writeTexture:16");
+    expect(events).toContain("device:sampler:StandardBaseColorSampler");
+    expect(
+      frame.resources?.resources?.bindGroups.find((group) => group.group === 2),
+    ).toMatchObject({
+      entryResourceKeys: [
+        "material-buffer:Textured Standard/uniform",
+        assetHandleKey(texture),
+        assetHandleKey(sampler),
+      ],
+    });
+
+    const firstResourceEvents = resourceEventCounts(events);
+    const firstResources = frame.resources?.resources;
+    const secondFrame = await app.stepAndRender(1 / 60, 2, 45);
+    const secondResources = secondFrame.resources?.resources;
+
+    expect(secondFrame.ok).toBe(true);
+    expect(secondFrame.resourceReuse).toMatchObject({
+      pipelineHits: 1,
+      pipelineMisses: 0,
+      meshBuffersReused: 1,
+      materialBuffersReused: 1,
+      textureResourcesCreated: 0,
+      textureResourcesReused: 1,
+      samplerResourcesCreated: 0,
+      samplerResourcesReused: 1,
+      bindGroupsReused: 4,
+      lightBuffersReused: 1,
+      dynamicBufferWrites: 4,
+    });
+    expect(secondResources?.bindGroups).toBe(firstResources?.bindGroups);
+    expect(resourceEventCounts(events)).toEqual(firstResourceEvents);
+  });
 });
 
 function webGpuHarness(events: string[]) {
