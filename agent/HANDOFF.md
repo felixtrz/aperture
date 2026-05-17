@@ -2,6 +2,115 @@
 
 ## Latest Run Update
 
+Completed `task-0702` through `task-0737` in this automation run. This moved
+the GLB path from constructed mesh source assets through registry registration,
+serializable ECS command planning, explicit ECS replay, orchestration summaries,
+and a report-driven import facade that can create pure root/traversal,
+material/texture mapping, and mesh construction reports. The latest
+continuation slice planned explicit source-registration orchestration as the next
+AssetRegistry mutation surface.
+
+Highlights:
+
+- Added `registerGltfMeshSourceAssetsFromConstructionReport` under
+  `packages/render/src/assets`, with ready mesh asset registration, duplicate
+  and invalid-plan skips, handle normalization, diagnostics, and JSON-safe
+  report helpers.
+- Added focused primitive material resolution edge tests for custom key prefixes,
+  duplicate-but-unavailable materials, default material handles from registration
+  reports, and unregistered indexed materials.
+- Added
+  `docs/research/GLB_ECS_AUTHORING_FROM_SOURCE_REPORTS_PLAN_2026_05_17.md`,
+  then implemented `createGltfEcsAuthoringCommandPlan`. It emits serializable
+  scene, node, and primitive commands from traversal/mesh/material reports,
+  keeps parent references as `parentEntityKey`, uses node-scoped primitive
+  entity keys, and reports missing mesh/material readiness.
+- Added
+  `docs/research/GLB_ECS_COMMAND_REPLAY_BOUNDARY_PLAN_2026_05_17.md`, then
+  implemented `replayGltfEcsAuthoringCommands`. Replay mutates only a
+  caller-provided `EcsWorld`, registers known components by default, creates
+  entities, resolves parents in a second pass, applies known components, and
+  exposes JSON-safe replay reports that omit raw ECS entities.
+- Added boundary audits for mesh source registration, ECS command planning, and
+  ECS command replay. No drift was found.
+- Hardened ECS command replay with invalid component-name and malformed value
+  diagnostics.
+- Added `createGltfLoaderOrchestrationReport`, with stage status, side-effect
+  classification, prerequisite diagnostics, stage counts, and JSON-safe
+  projection.
+- Added `createGltfReportDrivenImportReport`, which creates root validation and
+  scene traversal reports from glTF JSON, accepts caller-provided reports, and
+  produces orchestration.
+- Extended the import facade with optional pure material/texture asset mapping
+  and optional pure mesh primitive/accessor/mesh-construction report creation.
+- Added boundary audits for orchestration, orchestration diagnostics,
+  report-driven import, optional material mapping, and optional mesh mapping.
+- Added
+  `docs/research/GLB_EXPLICIT_SOURCE_REGISTRATION_ORCHESTRATION_PLAN_2026_05_17.md`,
+  defining the planned helper that composes material/texture/sampler and mesh
+  registration from already-produced reports while keeping `AssetRegistry`
+  mutation explicit.
+- Refilled the ready backlog with `task-0738` through `task-0742`; next
+  recommended task is `task-0738 — Add source registration orchestration
+skeleton`.
+
+Validation:
+
+- Focused Vitest runs for mesh source registration, primitive material
+  resolution, ECS command planning/replay, orchestration, and report-driven
+  import all passed.
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm run check:boundaries`
+- Final `pnpm run check` passed, including 204 Vitest files / 964 tests.
+- Post-`task-0737` `pnpm run format:check` passed.
+
+Reference files/patterns inspected:
+
+- Bevy glTF sub-asset loading and per-node primitive scene spawning in
+  `references/bevy/crates/bevy_gltf/src/loader/mod.rs`.
+- Bevy primitive topology helper in
+  `references/bevy/crates/bevy_gltf/src/loader/gltf_ext/mesh.rs`.
+- Aperture anchors: `docs/NORTH_STAR.md`, `docs/ARCHITECTURE.md`,
+  `docs/DECISIONS.md`,
+  `docs/research/GLB_MESH_SOURCE_ASSET_REGISTRATION_PLAN_2026_05_17.md`,
+  `docs/research/GLB_SCENE_NODE_TRAVERSAL_DIAGNOSTICS_PLAN_2026_05_17.md`,
+  `docs/research/GLB_PRIMITIVE_MATERIAL_RESOLUTION_HANDOFF_PLAN_2026_05_17.md`,
+  existing `AssetRegistry`, transform components, render authoring components,
+  and GLB source-registration helpers.
+
+Known issues / follow-ups:
+
+- Source registration orchestration is still explicit future work; the next task
+  should implement the planned helper to compose material/texture/sampler and
+  mesh registration without hiding `AssetRegistry` mutation.
+- The import facade creates pure reports only; source registration and ECS replay
+  remain opt-in downstream stages.
+- Replay intentionally does not run transform resolution, render extraction, or
+  WebGPU preparation.
+
+Files touched in this update include:
+
+- `agent/BACKLOG.md`
+- `agent/COMPLETED.md`
+- `agent/HANDOFF.md`
+- `agent/STATUS.json`
+- `docs/research/GLB_*_2026_05_17.md`
+- `docs/research/GLB_EXPLICIT_SOURCE_REGISTRATION_ORCHESTRATION_PLAN_2026_05_17.md`
+- `packages/render/src/assets/gltf-mesh-source-registration.ts`
+- `packages/render/src/assets/gltf-ecs-authoring-command-plan.ts`
+- `packages/render/src/assets/gltf-ecs-command-replay.ts`
+- `packages/render/src/assets/gltf-loader-orchestration.ts`
+- `packages/render/src/assets/gltf-report-driven-import.ts`
+- `packages/render/src/assets/index.ts`
+- `test/assets/gltf-mesh-source-registration*.test.ts`
+- `test/assets/gltf-primitive-material-resolution.test.ts`
+- `test/assets/gltf-ecs-authoring-command-plan*.test.ts`
+- `test/assets/gltf-ecs-command-replay*.test.ts`
+- `test/assets/gltf-loader-orchestration*.test.ts`
+- `test/assets/gltf-report-driven-import*.test.ts`
+
+## Previous Run Update
+
 Completed `task-0675` through `task-0701` in this automation run. The latest
 slice advanced the GLB mesh/material source pipeline from planning through
 primitive mapping, scene traversal, accessor validation, typed-array decoding,

@@ -1,5 +1,132 @@
 # Completed Tasks
 
+## task-0737 — Plan explicit source registration orchestration helper
+
+Completed: 2026-05-17
+
+Summary:
+
+- Added
+  `docs/research/GLB_EXPLICIT_SOURCE_REGISTRATION_ORCHESTRATION_PLAN_2026_05_17.md`.
+- Defined a narrow helper shape that accepts a caller-provided `AssetRegistry`
+  plus already-produced asset mapping and mesh construction reports.
+- Planned deterministic composition of existing material/texture/sampler and
+  mesh registration helpers, compact stage summaries, missing/failed input
+  diagnostics, JSON expectations, and duplicate-key/partial-failure tests.
+- Kept ECS replay, render extraction, render-world preparation, and WebGPU
+  explicitly out of scope.
+- Follow-up tasks: `task-0738` through `task-0742`.
+
+Validation run:
+
+- `pnpm run format:check`
+
+## task-0702 through task-0716 — GLB mesh registration, ECS command planning, and replay
+
+Completed: 2026-05-17
+
+Completed task ids:
+
+- `task-0702` — Add GLB mesh source asset registration helper.
+- `task-0703` — Add GLB mesh source asset registration JSON tests.
+- `task-0704` — Audit GLB mesh source registration boundaries.
+- `task-0705` — Plan GLB ECS authoring command integration from source reports.
+- `task-0706` — Add GLB primitive material resolution edge-case tests.
+- `task-0707` — Add GLB ECS authoring command plan scene/node skeleton.
+- `task-0708` — Add GLB ECS primitive renderable command planning.
+- `task-0709` — Add GLB ECS authoring command JSON tests.
+- `task-0710` — Audit GLB ECS authoring command boundaries.
+- `task-0711` — Add repeated mesh reference entity-key tests.
+- `task-0712` — Plan GLB ECS authoring command replay boundary.
+- `task-0713` — Add GLB ECS authoring command replay helper.
+- `task-0714` — Add GLB ECS command replay JSON/report tests.
+- `task-0715` — Audit GLB ECS command replay boundaries.
+- `task-0716` — Add GLB command replay duplicate-key tests.
+
+Summary:
+
+- Added `registerGltfMeshSourceAssetsFromConstructionReport`, which writes
+  constructed GLB `MeshAsset` source data into `AssetRegistry` as ready `mesh`
+  assets, skips duplicate/invalid plans, preserves handle normalization, and
+  exposes JSON-safe registration reports.
+- Added GLB primitive material resolution edge coverage for custom key prefixes,
+  duplicate materials that are not available, default materials from
+  registration reports, and unregistered indexed materials.
+- Planned and implemented `createGltfEcsAuthoringCommandPlan`, a serializable
+  report-driven bridge from scene traversal, mesh registration, and primitive
+  material resolution reports into ECS authoring commands.
+- The command planner emits scene/node/primitive commands with node-scoped
+  primitive entity keys, `parentEntityKey` relationships, mesh/material handle
+  ids, dependencies, skipped entries, diagnostics, and JSON-safe projections.
+- Planned and implemented `replayGltfEcsAuthoringCommands`, the first explicit
+  ECS mutation stage for GLB authoring commands. It registers known components
+  by default, creates entities, resolves parent keys in a second pass, applies
+  known components, returns raw entity mappings for runtime use, and exposes a
+  JSON helper that omits raw ECS entities.
+- Added boundary audits for mesh source registration, ECS command planning, and
+  ECS command replay. No corrective refactors were needed.
+- Refilled the ready backlog with `task-0717` through `task-0721`.
+
+Validation run:
+
+- Focused Vitest runs for mesh source registration, primitive material
+  resolution, ECS command planning, and ECS command replay.
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm run check:boundaries`
+- Final `pnpm run check` passed, including 200 Vitest files / 942 tests.
+
+## task-0717 through task-0736 — GLB import facade orchestration and optional mapping
+
+Completed: 2026-05-17
+
+Completed task ids:
+
+- `task-0717` — Add GLB command replay invalid-component tests.
+- `task-0718` — Plan GLB loader orchestration facade boundary.
+- `task-0719` — Add GLB loader orchestration report skeleton.
+- `task-0720` — Add GLB loader orchestration JSON tests.
+- `task-0721` — Audit GLB loader orchestration boundaries.
+- `task-0722` — Add GLB orchestration prerequisite diagnostic tests.
+- `task-0723` — Add GLB orchestration stage-count edge tests.
+- `task-0724` — Audit GLB orchestration diagnostics boundaries.
+- `task-0725` — Plan minimal GLB report-driven import facade.
+- `task-0726` — Add GLB report-driven import facade skeleton.
+- `task-0727` — Add GLB report-driven import JSON tests.
+- `task-0728` — Audit GLB report-driven import facade boundaries.
+- `task-0729` — Plan optional GLB material mapping in import facade.
+- `task-0730` — Add report-driven import material mapping composition.
+- `task-0731` — Add report-driven import material mapping JSON tests.
+- `task-0732` — Audit report-driven import material mapping boundary.
+- `task-0733` — Plan optional GLB mesh mapping in import facade.
+- `task-0734` — Add report-driven import mesh mapping composition.
+- `task-0735` — Add report-driven import mesh mapping JSON tests.
+- `task-0736` — Audit report-driven import mesh mapping boundary.
+
+Summary:
+
+- Hardened ECS command replay with invalid component-name and malformed
+  component-value diagnostics.
+- Added a report-only GLB loader orchestration summary with stage status,
+  side-effect classification, prerequisite diagnostics, stage counts, and
+  JSON-safe projection.
+- Added a minimal report-driven import facade that creates root validation and
+  scene traversal reports from glTF JSON, accepts caller-provided stage reports,
+  and returns orchestration.
+- Extended the import facade with optional pure material/texture asset mapping
+  and optional pure mesh primitive/accessor/mesh-construction report creation.
+- Added JSON coverage proving image bytes, mesh typed arrays, registry entries,
+  ECS entities, render packets, and GPU handles stay out of serialized facade
+  reports.
+- Added boundary audits for orchestration, orchestration diagnostics,
+  report-driven import, optional material mapping, and optional mesh mapping.
+- Refilled the ready backlog with `task-0737` through `task-0741`.
+
+Validation run:
+
+- Focused Vitest runs for command replay and import/orchestration helpers.
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm run check:boundaries`
+
 Move or summarize completed backlog tasks here.
 
 Format:

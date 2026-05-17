@@ -59,10 +59,10 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start with `task-0702`. Mesh source asset construction now exposes both the
-planned mesh id and the full registered mesh handle key, so the next slice can
-write constructed mesh source assets into `AssetRegistry` without
-double-prefixing `mesh:` keys.
+Start with `task-0738`. The explicit source registration orchestration boundary
+is now planned. The next slice should implement the helper that composes
+material/texture/sampler and mesh registration while keeping `AssetRegistry`
+mutation explicit.
 
 ## Near-Term Proof Point Track
 
@@ -79,11 +79,11 @@ Target proof point:
 
 Remaining automation priority order:
 
-1. `task-0702` — add GLB mesh source asset registration helper.
-2. `task-0703` — add GLB mesh source asset registration JSON tests.
-3. `task-0704` — audit GLB mesh source registration boundaries.
-4. `task-0705` — plan GLB ECS authoring command integration from source reports.
-5. `task-0706` — add GLB primitive material resolution edge-case tests.
+1. `task-0738` — add source registration orchestration skeleton.
+2. `task-0739` — add source registration orchestration JSON tests.
+3. `task-0740` — audit source registration orchestration boundaries.
+4. `task-0741` — add combined import facade fixture coverage.
+5. `task-0742` — audit combined GLB import fixture boundaries.
 
 Defer allocation-only cleanup and metadata-only shader-contract tasks unless
 they are a direct blocker for this track.
@@ -149,107 +149,95 @@ viewer/material mapping should not outrun the material and queue architecture.
 
 ### Proof Point Critical Path
 
-### task-0702 — Add GLB mesh source asset registration helper
+### task-0738 — Add source registration orchestration skeleton
 
 Category: `render-bridge`
-Package/write-scope: a narrow helper under `packages/render/src/assets`, exports,
-and focused tests.
+Package/write-scope: `packages/render/src/assets`, focused tests, and exports.
 Reference anchor:
-`docs/research/GLB_MESH_SOURCE_ASSET_REGISTRATION_PLAN_2026_05_17.md`,
+`task-0737` registration orchestration plan,
 `packages/render/src/assets/gltf-source-registration.ts`,
-`packages/simulation/src/assets/registry.ts`, and Aperture `MeshAsset`
-contracts.
+`packages/render/src/assets/gltf-mesh-source-registration.ts`, and
+`packages/simulation/src/assets/registry.ts`.
 
 Acceptance criteria:
 
-- A helper registers successful constructed GLB mesh source assets into
-  `AssetRegistry` as ready `mesh` assets.
-- Duplicate mesh keys are skipped without overwriting existing assets.
-- Null or invalid planned mesh entries are skipped without registry mutation.
-- Tests cover successful registration, duplicates, invalid planned entries, and
-  handle normalization.
-- The helper does not author ECS, create render packets, prepare render-world
-  resources, or upload WebGPU buffers.
+- A helper accepts an `AssetRegistry`, optional asset mapping report, and
+  optional mesh construction report.
+- It invokes existing source registration helpers and returns a combined report.
+- Tests cover material/texture/sampler registration, mesh registration, and a
+  partial missing-input path.
+- The helper does not replay ECS, run extraction, or touch WebGPU.
 
-### task-0703 — Add GLB mesh source asset registration JSON tests
+### task-0739 — Add source registration orchestration JSON tests
 
 Category: `render-bridge`
-Package/write-scope: focused tests and narrow JSON helper fixes if needed.
+Package/write-scope: focused JSON tests and narrow helper fixes if needed.
 Reference anchor:
-`docs/research/GLB_MESH_SOURCE_ASSET_REGISTRATION_PLAN_2026_05_17.md`,
-`task-0702` helper shape, and current source asset registration JSON tests.
+`task-0738` combined source registration report and existing GLB JSON helpers.
 
 Acceptance criteria:
 
-- Tests assert mesh source asset registration reports are JSON-stable.
-- Written/skipped mesh handle keys, mesh/primitive indices, reasons, and
-  diagnostics are preserved.
-- Raw `MeshAsset` vertex/index typed arrays, registry entries, ECS data, and GPU
-  handles are not embedded.
+- Tests assert combined source registration reports are JSON-stable.
+- Nested material/texture/sampler and mesh registration summaries are preserved.
+- Raw asset payloads, ECS entities, render packets, and GPU handles are omitted.
 - No runtime behavior changes beyond serialization stability fixes.
 
-### Audit / Refactor
-
-### task-0704 — Audit GLB mesh source registration boundaries
+### task-0740 — Audit source registration orchestration boundaries
 
 Category: `audit-refactor`
 Package/write-scope: `docs/research`, `agent/BACKLOG.md`, and narrow tests/docs
 only if drift is found.
 Reference anchor:
-`docs/NORTH_STAR.md`, `docs/ARCHITECTURE.md`,
-`docs/research/GLB_MESH_SOURCE_ASSET_REGISTRATION_PLAN_2026_05_17.md`, package
-boundaries, current mesh registration helper/tests, and source asset registry
-contracts.
+`docs/NORTH_STAR.md`, `docs/ARCHITECTURE.md`, `task-0737` registration
+orchestration plan, source registration helper/tests, and `AssetRegistry`.
 
 Acceptance criteria:
 
-- Audit confirms mesh source registration mutates only `AssetRegistry` source
-  asset state and does not author ECS, create render packets, prepare WebGPU
-  resources, or decode GLB data.
-- Audit confirms reports remain JSON-safe and do not embed raw `MeshAsset`
-  buffers.
+- Audit confirms the helper mutates only `AssetRegistry` and only through
+  existing source registration helpers.
+- Audit confirms ECS replay, render extraction, render-world preparation, and
+  WebGPU remain downstream.
 - Any drift is fixed with scoped edits or captured as concrete follow-up tasks.
-- Validation includes package boundary checks and focused mesh registration
-  tests.
+- Validation includes package boundary checks and focused source registration
+  orchestration tests.
 
-### task-0705 — Plan GLB ECS authoring command integration from source reports
-
-Category: `docs-tooling`
-Package/write-scope: `docs/research` and backlog follow-up notes if needed.
-Reference anchor:
-`docs/research/GLB_ECS_AUTHORING_COMMAND_HANDOFF_PLAN_2026_05_17.md`,
-`docs/research/GLB_SCENE_NODE_TRAVERSAL_DIAGNOSTICS_PLAN_2026_05_17.md`,
-`docs/research/GLB_MESH_SOURCE_ASSET_REGISTRATION_PLAN_2026_05_17.md`,
-`docs/research/GLB_PRIMITIVE_MATERIAL_RESOLUTION_HANDOFF_PLAN_2026_05_17.md`,
-and Bevy glTF scene/entity spawning patterns.
-
-Acceptance criteria:
-
-- The plan defines how scene traversal, registered mesh handles, and resolved
-  material handles become serializable ECS authoring commands.
-- The plan includes entity-key to component-command mapping for transform,
-  parent, mesh, and material components.
-- The plan defines diagnostics for missing mesh registrations, unresolved
-  materials, skipped nodes, and deferred matrix decomposition.
-- The plan keeps registry mutation, WebGPU upload, render extraction, and actual
-  ECS mutation out of scope.
-
-### task-0706 — Add GLB primitive material resolution edge-case tests
+### task-0741 — Add combined import facade fixture coverage
 
 Category: `render-bridge`
-Package/write-scope: focused tests and narrow resolver fixes if needed.
+Package/write-scope: focused tests and narrow helper fixes if needed.
 Reference anchor:
-`docs/research/GLB_PRIMITIVE_MATERIAL_RESOLUTION_HANDOFF_PLAN_2026_05_17.md`,
-`packages/render/src/assets/gltf-primitive-material-resolution.ts`, current
-registration report tests, and three.js/Bevy default-material behavior.
+current report-driven import facade, source registration orchestration plan, and
+GLB command planning/replay helpers.
 
 Acceptance criteria:
 
-- Tests cover custom `keyPrefix` material keys.
-- Tests cover duplicate material registrations that are not listed as available.
-- Tests cover a default material handle resolved from a registration report.
-- Tests cover an unregistered indexed material with stable diagnostics.
-- No registry writes, ECS authoring, render extraction, or WebGPU work is added.
+- Tests compose root/traversal, asset mapping, mesh construction, source
+  registration, primitive material resolution, command planning, and replay
+  from a tiny in-memory glTF fixture.
+- The fixture remains renderer-independent and does not run render extraction or
+  WebGPU.
+- Diagnostics explain any intentionally missing stage.
+- This is test-only unless a narrow helper fix is required.
+
+### task-0742 — Audit combined GLB import fixture boundaries
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research`, `agent/BACKLOG.md`, and narrow
+test/helper fixes only if drift is found.
+Reference anchor:
+`docs/NORTH_STAR.md`, `docs/ARCHITECTURE.md`, `docs/DECISIONS.md`,
+`task-0737` source registration orchestration plan, source registration
+orchestration helper/tests, and combined import facade fixture tests.
+
+Acceptance criteria:
+
+- Audit confirms source registration and ECS replay remain explicit caller
+  choices in the combined fixture path.
+- Audit confirms render extraction, render-world preparation, and WebGPU remain
+  out of scope.
+- Any drift is fixed with scoped edits or captured as concrete follow-up tasks.
+- Validation includes package boundary checks and focused combined import/source
+  registration tests.
 
 ## Post-Unlit E2E Verification Targets
 

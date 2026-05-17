@@ -1,10 +1,10 @@
 {
   "state": "idle",
   "currentTaskId": null,
-  "lastRunStartedAt": "2026-05-17T07:01:47Z",
+  "lastRunStartedAt": "2026-05-17T08:01:40Z",
   "lastResult": "success",
   "lastCommit": "0b6a5ef",
   "activePid": null,
-  "notes": "Automation aperture-dev completed tasks 0675 through 0701. Next task: task-0702 add GLB mesh source asset registration helper.",
-  "lastRunFinishedAt": "2026-05-17T07:52:39Z"
+  "notes": "Automation aperture-dev completed tasks 0702 through 0737. Next task: task-0738 add source registration orchestration skeleton.",
+  "lastRunFinishedAt": "2026-05-17T08:52:47Z"
 }

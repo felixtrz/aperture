@@ -131,6 +131,152 @@ describe("glTF primitive material resolution", () => {
       },
     ]);
   });
+
+  it("resolves material indices with a custom key prefix", () => {
+    const primitiveReport = createGltfMeshPrimitiveMappingReport({
+      root: {
+        asset: { version: "2.0" },
+        accessors: [{}],
+        meshes: [
+          {
+            primitives: [{ attributes: { POSITION: 0 }, material: 4 }],
+          },
+        ],
+      },
+      keyPrefix: "assetA",
+    });
+    const report = createGltfPrimitiveMaterialResolutionReport({
+      primitiveReport,
+      registrationReport: registrationFixture({
+        writtenMaterialKeys: ["material:assetA:material:4"],
+      }),
+      keyPrefix: "assetA",
+    });
+
+    expect(report.valid).toBe(true);
+    expect(report.resolved).toEqual([
+      {
+        meshHandleKey: "mesh:assetA:mesh:0:primitive:0",
+        meshIndex: 0,
+        primitiveIndex: 0,
+        materialIndex: 4,
+        materialHandleKey: "material:assetA:material:4",
+        source: "registered",
+      },
+    ]);
+  });
+
+  it("reports duplicate material registrations that are not marked available", () => {
+    const primitiveReport = createGltfMeshPrimitiveMappingReport({
+      root: {
+        asset: { version: "2.0" },
+        accessors: [{}],
+        meshes: [
+          {
+            primitives: [{ attributes: { POSITION: 0 }, material: 1 }],
+          },
+        ],
+      },
+    });
+    const report = createGltfPrimitiveMaterialResolutionReport({
+      primitiveReport,
+      registrationReport: registrationFixture({
+        skippedMaterialKey: "material:gltf:material:1",
+        skippedReason: "gltfRegistration.duplicateAssetKey",
+      }),
+    });
+
+    expect(report.valid).toBe(false);
+    expect(report.resolved).toEqual([]);
+    expect(report.unresolved).toMatchObject([
+      {
+        meshHandleKey: "mesh:gltf:mesh:0:primitive:0",
+        materialHandleKey: "material:gltf:material:1",
+        reason: "gltfPrimitiveMaterial.duplicateMaterialUnavailable",
+        diagnostics: [
+          {
+            code: "gltfPrimitiveMaterial.duplicateMaterialUnavailable",
+            registrationReason: "gltfRegistration.duplicateAssetKey",
+          },
+        ],
+      },
+    ]);
+  });
+
+  it("resolves caller-provided default materials from registration reports", () => {
+    const primitiveReport = createGltfMeshPrimitiveMappingReport({
+      root: {
+        asset: { version: "2.0" },
+        accessors: [{}],
+        meshes: [{ primitives: [{ attributes: { POSITION: 0 } }] }],
+      },
+    });
+    const report = createGltfPrimitiveMaterialResolutionReport({
+      primitiveReport,
+      registrationReport: registrationFixture({
+        writtenMaterialKeys: ["material:gltf:default"],
+      }),
+      defaultMaterialHandleKey: "material:gltf:default",
+    });
+
+    expect(report.valid).toBe(true);
+    expect(report.unresolved).toEqual([]);
+    expect(report.resolved).toEqual([
+      {
+        meshHandleKey: "mesh:gltf:mesh:0:primitive:0",
+        meshIndex: 0,
+        primitiveIndex: 0,
+        materialIndex: null,
+        materialHandleKey: "material:gltf:default",
+        source: "default",
+      },
+    ]);
+  });
+
+  it("reports unregistered indexed materials with stable diagnostics", () => {
+    const primitiveReport = createGltfMeshPrimitiveMappingReport({
+      root: {
+        asset: { version: "2.0" },
+        accessors: [{}],
+        meshes: [
+          {
+            primitives: [{ attributes: { POSITION: 0 }, material: 7 }],
+          },
+        ],
+      },
+    });
+    const report = createGltfPrimitiveMaterialResolutionReport({
+      primitiveReport,
+      registrationReport: registrationFixture({}),
+    });
+
+    expect(report.valid).toBe(false);
+    expect(report.resolved).toEqual([]);
+    expect(report.unresolved).toEqual([
+      {
+        meshHandleKey: "mesh:gltf:mesh:0:primitive:0",
+        meshIndex: 0,
+        primitiveIndex: 0,
+        materialIndex: 7,
+        materialHandleKey: "material:gltf:material:7",
+        reason: "gltfPrimitiveMaterial.unregisteredMaterial",
+        diagnostics: [
+          {
+            code: "gltfPrimitiveMaterial.unregisteredMaterial",
+            severity: "error",
+            message:
+              "glTF mesh 0 primitive 0 references material 'material:gltf:material:7' but it was not registered or provided as available.",
+            meshHandleKey: "mesh:gltf:mesh:0:primitive:0",
+            meshIndex: 0,
+            primitiveIndex: 0,
+            materialIndex: 7,
+            materialHandleKey: "material:gltf:material:7",
+          },
+        ],
+      },
+    ]);
+    expect(report.diagnostics).toEqual(report.unresolved[0]?.diagnostics);
+  });
 });
 
 function registrationFixture(input: {
