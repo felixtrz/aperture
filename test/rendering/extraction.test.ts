@@ -790,6 +790,10 @@ describe("render extraction", () => {
         materialKey: "material:unlit",
         textureKey: "texture:wrong-standard-base",
         field: "baseColorTexture",
+        expectedSemantic: "base-color",
+        actualSemantic: "normal",
+        expectedColorSpaces: ["srgb"],
+        actualColorSpace: "linear",
       },
       {
         code: "render.standardMaterialTexture.invalidColorSpace",
@@ -797,6 +801,10 @@ describe("render extraction", () => {
         materialKey: "material:unlit",
         textureKey: "texture:wrong-standard-base",
         field: "baseColorTexture",
+        expectedSemantic: "base-color",
+        actualSemantic: "normal",
+        expectedColorSpaces: ["srgb"],
+        actualColorSpace: "linear",
       },
     ]);
     expect(() => JSON.stringify(snapshot.diagnostics)).not.toThrow();

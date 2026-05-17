@@ -16,6 +16,7 @@ failure diagnostics.
 | `RenderWorldDrawPackageScratchSummary`                   | `@aperture-engine/render` | Draw package counts, package-pool reuse, missing packed transforms, and package diagnostics.                         | Draw packets, snapshots, ECS worlds, or GPU handles.                                                            | Updated inside caller-owned draw-package scratch. |
 | `createRenderFrameQueueDiagnosticsSummary()`             | `@aperture-engine/webgpu` | Render-frame queue readiness, draw-package counts, package scratch reuse, and queue diagnostic code counts.          | Backend cache state, frame resources, command buffers, snapshots, or WebGPU handles.                            | Allocating inspection helper.                     |
 | `createQueuedBuiltInResourceSetSummary()`                | `@aperture-engine/webgpu` | Current-frame routed built-in app resource items by material family and pipeline key.                                | Source mesh/material assets, adapters, prepared resources, or GPU handles.                                      | Allocating inspection helper.                     |
+| `createQueuedMaterialRouteSummaryGroup()`                | `@aperture-engine/webgpu` | Compact grouped health for queued material prepare-route and frame-resource-route summary stages.                    | Raw route keys, material keys, resource keys, raw diagnostics, frame resources, backend cache maps, or handles. | Allocating inspection helper.                     |
 | `createWebGpuAppDiagnosticsSummary()`                    | `@aperture-engine/webgpu` | Optional grouping for existing material queue, routed resource-set, and render-frame queue summaries.                | App report schema ownership, resource reuse reports, snapshots, or raw frame resources.                         | Allocating grouping helper.                       |
 | `createMaterialDependencyDiagnosticsSummary()`           | `@aperture-engine/webgpu` | Aggregate material dependency readiness counts by material kind, dependency kind, status, and diagnostic code.       | Material/texture/sampler/dependency handles, source assets, prepared resources, or GPU handles.                 | Allocating inspection helper.                     |
 | `createStandardMaterialTextureFidelitySummary()`         | `@aperture-engine/webgpu` | Aggregate StandardMaterial texture readiness counts by field and issue code.                                         | Material/texture/sampler handles, full readiness reports, source assets, prepared resources, or GPU handles.    | Allocating inspection helper.                     |
@@ -24,6 +25,7 @@ failure diagnostics.
 | `createStandardMaterialSamplerFidelitySummary()`         | `@aperture-engine/webgpu` | Aggregate sampler fidelity warning counts by texture field and diagnostic code.                                      | Material/texture/sampler handles, raw sampler reports, source assets, prepared resources, or GPU handles.       | Allocating inspection helper.                     |
 | `createStandardMaterialTextureSamplerAlignmentSummary()` | `@aperture-engine/render` | Compact alignment of blocking StandardMaterial texture readiness and non-blocking sampler fidelity warnings.         | Registry state, source assets, texture/sampler handles, prepared resources, app reports, or GPU handles.        | Allocating inspection helper.                     |
 | `createPreparedResourceLifetimeAlignmentSummary()`       | `@aperture-engine/webgpu` | Compact comparison of prepared facade counts against backend resource inspection counts.                             | Facade ownership, backend cache maps, raw resources, app report schema, or GPU handles.                         | Allocating inspection helper.                     |
+| `createPreparedResourceAppReuseAlignmentSummary()`       | `@aperture-engine/webgpu` | Compact comparison of render prepared facade counts against WebGPU app reuse prepared facade and resource counters.  | Render-package ownership, backend cache maps, raw resources, default app report fields, or GPU handles.         | Allocating inspection helper.                     |
 
 ## StandardMaterial Texture Fidelity
 
@@ -91,12 +93,30 @@ The example still exposes detailed failure fields and full report JSON for
 debugging. Those detailed fields may contain material, texture, sampler, or
 dependency handle keys. The aggregate `dependencySummary` should not.
 
+## Queued Material Route Summaries
+
+`createQueuedMaterialPrepareRouteSummary()` and
+`createQueuedMaterialRouteSummaryGroup()` provide compact route health for
+explicit diagnostics consumers. The prepare summary mirrors the frame-resource
+route shell summary boundary: validity, status, family, resource-key presence
+booleans, pipeline/frame facts, and diagnostic code counts.
+
+The grouped summary combines prepare-route and frame-resource-route summary
+counts by stage. It does not replace failure diagnostics and is not emitted by
+default on successful app frames.
+
 ## Render-World Prepared Resource Summary
 
 `createRenderWorldPreparedResourceSummary()` is a renderer-independent summary
 for prepared facade state. It is useful when comparing source-side prepared mesh
 and material entries with render-world resource-key binding readiness before
 looking at WebGPU backend cache summaries.
+
+`createRenderWorldPreparedResourceSummaryFromReport()` is the matching consumer
+helper for the standard render-package
+`prepareAndBindSnapshotPreparedResourcesToRenderWorld()` report shape. It
+delegates to the same compact summary while counting apply/preparation,
+binding, draw-readiness, and caller diagnostics once.
 
 The helper reports compact counts only: prepared mesh entries, prepared material
 entries by family, optional binding updated/missing counts, optional
@@ -119,6 +139,15 @@ The helper lives in `@aperture-engine/webgpu` because it consumes backend
 resource summary counts. It does not mutate caches, alter eviction policy, pull
 backend cache maps into render-package summaries, expose raw resources, or add a
 default successful-frame app report field.
+
+`createPreparedResourceAppReuseAlignmentSummary()` compares the render-package
+prepared summary's compact facade counts with the WebGPU app reuse report's
+prepared facade counts and creation/reuse counters. Use it when a diagnostics
+consumer needs to confirm that render prepared counts and app report prepared
+facade counts agree without inspecting backend cache maps.
+
+The helper intentionally lives in `@aperture-engine/webgpu`, remains opt-in, and
+does not add a default successful-frame app report field.
 
 ## Resource Reuse Boundary
 

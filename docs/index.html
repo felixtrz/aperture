@@ -393,15 +393,13 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-17 13:55 PDT</dd>
+            <dd>2026-05-17 14:36 PDT</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
-            <dd>
-              Diagnostics example summaries and route helper audits updated
-            </dd>
+            <dd>StandardMaterial texture browser diagnostics added</dd>
             <dt>Next focus</dt>
-            <dd>task-1046 route summary consumer plan</dd>
+            <dd>task-1077 StandardMaterial texture browser gap audit</dd>
           </dl>
         </aside>
       </header>
@@ -424,9 +422,9 @@
         <div class="grid metrics">
           <article class="card metric">
             <div class="label">overall foundation</div>
-            <div class="value">43%</div>
-            <div class="bar" aria-label="43 percent complete">
-              <span style="width: 43%"></span>
+            <div class="value">44%</div>
+            <div class="bar" aria-label="44 percent complete">
+              <span style="width: 44%"></span>
             </div>
             <p>
               ECS, transforms, extraction, typed assets, diagnostics, and basic
@@ -436,44 +434,49 @@
           </article>
           <article class="card metric">
             <div class="label">render pipeline</div>
-            <div class="value">70%</div>
-            <div class="bar" aria-label="70 percent complete">
-              <span style="width: 70%"></span>
+            <div class="value">72%</div>
+            <div class="bar" aria-label="72 percent complete">
+              <span style="width: 72%"></span>
             </div>
             <p>
               The ECS-to-WebGPU spine is usable, app route reporting runs
               through the generic contract, and failed frame preparation now
               reports key/status shells. Prepared facade summaries now align
-              with render-world binding readiness. Richer passes and resource
-              lifetime policy remain.
+              with render-world binding readiness through a reusable report
+              adapter, with route summary grouping available for explicit
+              diagnostics. Richer passes and resource lifetime policy remain.
             </p>
           </article>
           <article class="card metric">
             <div class="label">material system</div>
-            <div class="value">49%</div>
-            <div class="bar" aria-label="49 percent complete">
-              <span style="width: 49%"></span>
+            <div class="value">51%</div>
+            <div class="bar" aria-label="51 percent complete">
+              <span style="width: 51%"></span>
             </div>
             <p>
               Unlit, Matcap, DebugNormal, and direct-lit StandardMaterial paths
-              are present, with aggregate texture and sampler fidelity
-              diagnostics now covered. glTF PBR texture fidelity is still
-              incomplete.
+              are present, with aggregate texture/sampler fidelity diagnostics
+              and extraction-level texture semantic/color-space details now
+              covered. Controlled browser base-color texture verification is now
+              present; broader PBR texture slots remain.
             </p>
           </article>
           <article class="card metric">
             <div class="label">diagnostics</div>
-            <div class="value">68%</div>
-            <div class="bar" aria-label="68 percent complete">
-              <span style="width: 68%"></span>
+            <div class="value">72%</div>
+            <div class="bar" aria-label="72 percent complete">
+              <span style="width: 72%"></span>
             </div>
             <p>
               JSON-safe reports now cover extraction, queues, app summaries,
               dependency readiness, texture fidelity, resource reuse,
               render-state inspection, prepared facade readiness, sampler
               fidelity warnings and summaries, lifetime alignment summaries,
-              tracker freshness validation, and example-level texture fidelity
-              summary usage.
+              route shell summary policy, prepared/app reuse alignment, grouped
+              route health, tracker freshness validation, extraction-level
+              StandardMaterial texture semantic/color-space details, controlled
+              StandardMaterial texture browser status, and example-level texture
+              fidelity summary usage.
             </p>
           </article>
         </div>
@@ -510,8 +513,8 @@
             <div class="bar"><span style="width: 69%"></span></div>
             <p>
               Snapshots, draw packets, lights, environments, bounds,
-              diagnostics, and render-world prepared facade summaries are
-              active.
+              diagnostics, and render-world prepared facade summaries with a
+              prepare-and-bind report adapter are active.
             </p>
           </article>
           <article class="card track">
@@ -630,14 +633,14 @@
           <article class="phase">
             <div class="topline">
               <h3>3. prepare</h3>
-              <span class="percent">70%</span>
+              <span class="percent">71%</span>
             </div>
-            <div class="bar"><span style="width: 70%"></span></div>
+            <div class="bar"><span style="width: 71%"></span></div>
             <p>
               Prepared mesh/material facades and WebGPU-private backend caches
               exist for built-in material families, with compact render-world
-              prepared resource summaries and StandardMaterial texture/sampler
-              fidelity diagnostics covered.
+              prepared resource summaries, prepare-and-bind summary consumers,
+              and StandardMaterial texture/sampler fidelity diagnostics covered.
             </p>
             <ul>
               <li>Missing generic material-family preparation contract.</li>
@@ -1075,22 +1078,93 @@
                 <span class="badge green">task-1045</span> Audited
                 StandardMaterial texture/sampler alignment boundaries.
               </li>
+              <li>
+                <span class="badge green">task-1046</span> Planned route shell
+                summary consumer policy.
+              </li>
+              <li>
+                <span class="badge green">task-1047</span> Audited route shell
+                summary consumer boundaries.
+              </li>
+              <li>
+                <span class="badge green">task-1048</span> Planned render-world
+                prepared summary consumer shape.
+              </li>
+              <li>
+                <span class="badge green">task-1049</span> Added prepared
+                summary report-adapter coverage.
+              </li>
+              <li>
+                <span class="badge green">task-1050</span> Audited prepared
+                summary consumer boundaries.
+              </li>
+              <li>
+                <span class="badge green">task-1051-1053</span> Added and
+                audited prepared/app reuse alignment summaries.
+              </li>
+              <li>
+                <span class="badge green">task-1054-1056</span> Added and
+                audited grouped queued material route summaries.
+              </li>
+              <li>
+                <span class="badge green">task-1057-1059</span> Added
+                prepared/app reuse alignment to the diagnostics example.
+              </li>
+              <li>
+                <span class="badge green">task-1060</span> Deferred broader
+                route helper extraction until a concrete need appears.
+              </li>
+              <li>
+                <span class="badge green">task-1061-1063</span> Added and
+                audited glTF alpha/double-sided mapping coverage.
+              </li>
+              <li>
+                <span class="badge green">task-1064</span> Planned controlled
+                StandardMaterial texture browser coverage.
+              </li>
+              <li>
+                <span class="badge green">task-1066-1068</span> Preserved and
+                audited StandardMaterial texture semantic/color-space details on
+                extracted render diagnostics.
+              </li>
+              <li>
+                <span class="badge green">task-1069-1070</span> Planned and
+                audited the controlled StandardMaterial browser texture harness.
+              </li>
+              <li>
+                <span class="badge green">task-1071-1072</span> Added and
+                audited the dedicated StandardMaterial base-color texture
+                browser proof.
+              </li>
+              <li>
+                <span class="badge green">task-1073</span> Planned the focused
+                missing-texture StandardMaterial browser diagnostics scenario.
+              </li>
+              <li>
+                <span class="badge green">task-1074</span> Added the
+                missing-texture StandardMaterial no-submission browser
+                diagnostic path.
+              </li>
+              <li>
+                <span class="badge green">task-1075</span> Audited tracker and
+                backlog alignment after browser texture coverage.
+              </li>
+              <li>
+                <span class="badge green">task-1076</span> Planned opt-in
+                app-facade current-texture readback support.
+              </li>
             </ul>
           </article>
           <article class="card task-list">
             <h3>Recommended next tasks</h3>
             <ul>
               <li>
-                <span class="badge amber">task-1046</span> Plan frame-resource
-                route summary diagnostics consumer.
+                <span class="badge amber">task-1077</span> Audit remaining
+                StandardMaterial texture browser coverage gaps.
               </li>
               <li>
-                <span class="badge amber">task-1047</span> Audit route summary
-                diagnostics consumer boundaries.
-              </li>
-              <li>
-                Keep prepared, lifetime, texture, and sampler summaries opt-in
-                and outside default successful app-frame reports.
+                <span class="badge amber">task-1078</span> Plan controlled
+                StandardMaterial metallic-roughness browser verification.
               </li>
               <li>
                 Keep this tracker updated after render-pipeline or
@@ -1107,6 +1181,47 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-1051-1065</div>
+            <div>
+              <strong
+                >Prepared/app reuse alignment, route summary grouping, and glTF
+                render-state coverage.</strong
+              >
+              <span
+                >Added opt-in diagnostics helpers and example coverage, locked
+                glTF alpha/double-sided mapping, and planned the next
+                StandardMaterial texture-readiness slice.</span
+              >
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="task-id">task-1046-1050</div>
+            <div>
+              <strong
+                >Route summary policy and prepared summary consumer.</strong
+              >
+              <span
+                >Kept route shell summaries helper-only by default, added a
+                render-package prepared summary report adapter, and audited
+                backend-cache separation.</span
+              >
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="task-id">task-1016-1045</div>
+            <div>
+              <strong
+                >Generic app route helpers, diagnostics examples, and summary
+                alignment.</strong
+              >
+              <span
+                >Added sampler summaries, prepared/lifetime diagnostics example
+                output, generic frame-resource helper integration, and compact
+                route shell summary coverage.</span
+              >
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-0924-0960</div>
             <div>

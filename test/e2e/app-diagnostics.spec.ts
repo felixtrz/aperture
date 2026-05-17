@@ -38,6 +38,7 @@ interface AppDiagnosticScenarioStatus {
   readonly message: string;
   readonly preparedResourceSummary?: AppDiagnosticPreparedResourceSummary;
   readonly preparedLifetimeSummary?: AppDiagnosticPreparedLifetimeSummary;
+  readonly preparedAppReuseSummary?: AppDiagnosticPreparedAppReuseSummary;
   readonly report: {
     readonly ok: boolean;
     readonly counts: {
@@ -161,6 +162,33 @@ interface AppDiagnosticPreparedLifetimeSummary {
     readonly staleResources: number;
     readonly missingResources: number;
     readonly pendingDestroyResources: number;
+  };
+  readonly diagnostics: readonly unknown[];
+}
+
+interface AppDiagnosticPreparedAppReuseSummary {
+  readonly facade: {
+    readonly preparedMeshes: number;
+    readonly preparedMaterials: number;
+    readonly readyDraws: number;
+    readonly blockedDraws: number;
+  };
+  readonly appFacade: {
+    readonly preparedMeshes: number;
+    readonly preparedMaterials: number;
+  };
+  readonly reuse: {
+    readonly preparedMeshBuffersCreated: number;
+    readonly preparedMeshBuffersReused: number;
+    readonly preparedMaterialBuffersCreated: number;
+    readonly preparedMaterialBuffersReused: number;
+    readonly preparedMaterialBindGroupsCreated: number;
+    readonly preparedMaterialBindGroupsReused: number;
+    readonly textureResourcesCreated: number;
+    readonly textureResourcesReused: number;
+    readonly samplerResourcesCreated: number;
+    readonly samplerResourcesReused: number;
+    readonly dynamicBufferWrites: number;
   };
   readonly diagnostics: readonly unknown[];
 }
@@ -303,6 +331,8 @@ test("app diagnostics example exposes app-facade failure reports", async ({
   expectPreparedResourceSummaryOmitsHandles(success?.preparedResourceSummary);
   expectPreparedLifetimeSummary(success?.preparedLifetimeSummary);
   expectPreparedLifetimeSummaryOmitsHandles(success?.preparedLifetimeSummary);
+  expectPreparedAppReuseSummary(success?.preparedAppReuseSummary);
+  expectPreparedAppReuseSummaryOmitsHandles(success?.preparedAppReuseSummary);
   expectTextureFidelitySummary(status.textureFidelitySummary);
   expectTextureFidelitySummaryOmitsHandles(status.textureFidelitySummary);
   expectSamplerFidelitySummary(status.samplerFidelitySummary);
@@ -541,6 +571,53 @@ function expectPreparedLifetimeSummaryOmitsHandles(
     "diagnostic-mixed-success-cube",
     "diagnostic-success-unlit",
     "diagnostic-success-matcap",
+    "GPU",
+  ]) {
+    expect(serialized).not.toContain(substring);
+  }
+}
+
+function expectPreparedAppReuseSummary(
+  summary: AppDiagnosticPreparedAppReuseSummary | undefined,
+): void {
+  expect(summary).toEqual({
+    facade: {
+      preparedMeshes: 1,
+      preparedMaterials: 2,
+      readyDraws: 2,
+      blockedDraws: 0,
+    },
+    appFacade: {
+      preparedMeshes: 1,
+      preparedMaterials: 2,
+    },
+    reuse: {
+      preparedMeshBuffersCreated: 1,
+      preparedMeshBuffersReused: 1,
+      preparedMaterialBuffersCreated: 2,
+      preparedMaterialBuffersReused: 0,
+      preparedMaterialBindGroupsCreated: 2,
+      preparedMaterialBindGroupsReused: 0,
+      textureResourcesCreated: 1,
+      textureResourcesReused: 0,
+      samplerResourcesCreated: 1,
+      samplerResourcesReused: 0,
+      dynamicBufferWrites: 0,
+    },
+    diagnostics: [],
+  });
+}
+
+function expectPreparedAppReuseSummaryOmitsHandles(
+  summary: AppDiagnosticPreparedAppReuseSummary | undefined,
+): void {
+  const serialized = JSON.stringify(summary);
+
+  for (const substring of [
+    "diagnostic-mixed-success-cube",
+    "diagnostic-success-unlit",
+    "diagnostic-success-matcap",
+    "resourceKey",
     "GPU",
   ]) {
     expect(serialized).not.toContain(substring);

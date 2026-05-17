@@ -690,6 +690,20 @@ function validateStandardMaterialTextureReadiness(input: {
       ...(readinessDiagnostic.status === undefined
         ? {}
         : { status: readinessDiagnostic.status }),
+      ...(readinessDiagnostic.expectedSemantic === undefined
+        ? {}
+        : { expectedSemantic: readinessDiagnostic.expectedSemantic }),
+      ...(readinessDiagnostic.actualSemantic === undefined
+        ? {}
+        : { actualSemantic: readinessDiagnostic.actualSemantic }),
+      ...(readinessDiagnostic.expectedColorSpaces === undefined
+        ? {}
+        : {
+            expectedColorSpaces: [...readinessDiagnostic.expectedColorSpaces],
+          }),
+      ...(readinessDiagnostic.actualColorSpace === undefined
+        ? {}
+        : { actualColorSpace: readinessDiagnostic.actualColorSpace }),
       ...(readinessDiagnostic.texCoord === undefined
         ? {}
         : { texCoord: readinessDiagnostic.texCoord }),

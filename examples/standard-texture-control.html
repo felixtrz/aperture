@@ -3,7 +3,8 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Aperture Material Showcase</title>
+    <title>Aperture Standard Texture Control</title>
+    <link rel="icon" href="data:," />
     <link rel="stylesheet" href="./styles.css" />
     <script type="importmap">
       {
@@ -22,26 +23,18 @@
   </head>
   <body>
     <main class="runtime-shell">
-      <section
-        class="viewport-panel material-showcase-panel"
-        aria-label="Aperture material showcase"
-      >
+      <section class="viewport-panel" aria-label="Standard texture control">
         <canvas
           id="aperture-canvas"
-          width="1280"
-          height="720"
-          aria-label="Aperture WebGPU material showcase canvas"
+          width="960"
+          height="540"
+          aria-label="Aperture StandardMaterial texture control canvas"
         ></canvas>
-        <div class="material-legend" aria-label="Materials">
-          <span>Unlit</span>
-          <span>Standard PBR</span>
-          <span>Matcap</span>
-        </div>
       </section>
       <aside class="status-panel" aria-label="Runtime status">
         <div class="status-row">
           <span>example</span>
-          <strong id="example-name">material showcase</strong>
+          <strong id="example-name">standard texture control</strong>
         </div>
         <div class="status-row">
           <span>state</span>
@@ -60,6 +53,6 @@
         <pre id="example-json">{}</pre>
       </aside>
     </main>
-    <script type="module" src="./materials-showcase.js"></script>
+    <script type="module" src="./standard-texture-control.js"></script>
   </body>
 </html>

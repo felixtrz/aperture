@@ -15,6 +15,7 @@ import {
   createRenderAssetCollections,
   createRenderSortKey,
   createRenderWorldPreparedResourceSummary,
+  createRenderWorldPreparedResourceSummaryFromReport,
   createStableRenderId,
   createStandardMaterialAsset,
   createUnlitMaterialAsset,
@@ -151,6 +152,73 @@ describe("render world prepared resource summary", () => {
       meshResourceKey: `prepared-mesh:${assetHandleKey(readyMesh)}`,
       materialResourceKey: `prepared-material:${assetHandleKey(readyMaterial)}`,
     });
+    expect(
+      JSON.stringify(renderWorldPreparedResourceSummaryToJsonValue(summary)),
+    ).not.toContain("GPU");
+  });
+
+  it("adapts prepare-and-bind reports without double-counting diagnostics", () => {
+    const assets = createRenderAssetCollections();
+    const readyMesh = assets.meshes.add(
+      createBoxMeshAsset({ label: "Ready Report Box" }),
+    );
+    const readyMaterial = assets.materials.standard.add(
+      createStandardMaterialAsset({ label: "Ready Report Standard" }),
+    );
+    const missingMesh = createMeshHandle("missing-report-box");
+    const missingMaterial = createMaterialHandle("missing-report-standard");
+    const preparedMeshes = createPreparedMeshStore();
+    const preparedMaterials = createPreparedMaterialStore();
+    const world = new RenderWorld();
+
+    const report = prepareAndBindSnapshotPreparedResourcesToRenderWorld({
+      registry: assets.registry,
+      snapshot: snapshot([
+        packet({ renderId: 1, mesh: readyMesh, material: readyMaterial }),
+        packet({ renderId: 2, mesh: missingMesh, material: missingMaterial }),
+      ]),
+      renderWorld: world,
+      meshes: preparedMeshes,
+      materials: preparedMaterials,
+    });
+    const drawReadiness = world.createDrawReadinessReport();
+    const summary = createRenderWorldPreparedResourceSummaryFromReport({
+      meshes: preparedMeshes,
+      materials: preparedMaterials,
+      report,
+      drawReadiness,
+      diagnostics: [
+        {
+          code: "test.explicitError",
+          message: "Explicit summary error.",
+          severity: "error",
+        },
+      ],
+    });
+
+    expect(summary).toMatchObject({
+      preparedMeshes: { totalEntries: 1 },
+      preparedMaterials: {
+        totalEntries: 1,
+        families: {
+          unlit: { entries: 0 },
+          matcap: { entries: 0 },
+          standard: { entries: 1 },
+          "debug-normal": { entries: 0 },
+        },
+      },
+      bindings: {
+        meshes: { present: true, updated: 1, missing: 1 },
+        materials: { present: true, updated: 1, missing: 1 },
+      },
+      drawReadiness: { present: true, ready: 1, blocked: 1 },
+      diagnostics: { total: 7, info: 0, warnings: 6, errors: 1 },
+    });
+    expect(report.diagnostics).toHaveLength(4);
+    expect(drawReadiness.diagnostics).toHaveLength(2);
+    expect(
+      JSON.stringify(renderWorldPreparedResourceSummaryToJsonValue(summary)),
+    ).not.toContain("missing-report");
     expect(
       JSON.stringify(renderWorldPreparedResourceSummaryToJsonValue(summary)),
     ).not.toContain("GPU");

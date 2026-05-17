@@ -59,15 +59,17 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start with `task-1046`. The latest run completed prepared facade summaries,
-sampler fidelity diagnostics/summaries/example usage, generic adapter helper app
-integration, lifetime alignment summaries, queued built-in app route helper
-extractions, helper-composition regression coverage, and tracker/backlog
-alignment. It also added example-owned prepared resource and lifetime alignment
-summaries to the diagnostics example and planned the next generic route contract
-slice. It then added compact frame-resource route shell summary coverage. The
-next step is deciding whether the new route shell summary needs a diagnostics
-consumer now.
+Start with `task-1077`. The latest run kept frame-resource route shell
+summaries helper-only for now, added prepared summary report adapters, added
+prepared/app reuse alignment summaries, added grouped queued material route
+summary coverage, exposed prepared/app reuse alignment in the diagnostics
+example, deferred broader route orchestration extraction, locked glTF
+alpha/double-sided material mapping coverage, preserved StandardMaterial
+texture semantic/color-space details on extracted render diagnostics, and
+added and audited a dedicated controlled StandardMaterial base-color texture
+browser example, added the matching missing-texture browser diagnostics path,
+audited tracker/backlog alignment after browser texture coverage, and planned
+app-facade current-texture readback support.
 
 ## Near-Term Proof Point Track
 
@@ -84,11 +86,11 @@ Target proof point:
 
 Remaining automation priority order:
 
-1. `task-1046` — plan frame-resource route summary diagnostics consumer.
-2. `task-1047` — audit route summary diagnostics consumer boundaries.
-3. `task-1048` — plan render-world prepared summary consumer shape.
-4. `task-1049` — add render-world prepared summary consumer coverage.
-5. `task-1050` — audit render-world prepared summary consumer boundaries.
+1. `task-1077` — audit StandardMaterial texture browser coverage gaps.
+2. `task-1078` — plan controlled StandardMaterial metallic-roughness browser verification.
+3. `task-1079` — add loading/failed StandardMaterial texture browser diagnostics variants.
+4. `task-1080` — audit tracker/backlog alignment after readback planning.
+5. `task-1081` — implement optional app-facade current-texture readback samples.
 
 Defer allocation-only cleanup and metadata-only shader-contract tasks unless
 they are a direct blocker for this track.
@@ -154,87 +156,87 @@ viewer/material mapping should not outrun the material and queue architecture.
 
 ### Proof Point Critical Path
 
-### task-1046 — Plan frame-resource route summary diagnostics consumer
-
-Category: `docs-tooling`
-Package/write-scope: `docs/research`, app diagnostics docs if needed, and
-backlog updates.
-Reference anchor:
-`createQueuedMaterialFrameResourceRouteShellSummary()`,
-`webGpuApp.frameResourceRoute` failure diagnostics, and existing diagnostics
-example summary patterns.
-
-Acceptance criteria:
-
-- Plan decides whether the new route shell summary needs an example/test
-  consumer now or should remain helper-only.
-- Plan preserves successful app report shape and avoids default successful route
-  summaries.
-- Plan adds or defers a focused implementation follow-up.
-
-### task-1047 — Audit route summary diagnostics consumer boundaries
+### task-1077 — Audit StandardMaterial texture browser coverage gaps
 
 Category: `audit-refactor`
 Package/write-scope: `docs/research`, tracker/backlog docs if needed, and
 targeted validation.
 Reference anchor:
-Implementation or deferral from `task-1046`, `docs/ARCHITECTURE.md`, and route
-summary tests.
+Controlled StandardMaterial base-color browser coverage, materials showcase,
+`docs/MEDIUM_LONG_TERM_GOALS.md`, and StandardMaterial texture resource tests.
 
 Acceptance criteria:
 
-- Audit verifies route summary consumption remains opt-in and JSON-safe.
-- Audit verifies no raw frame resources or backend cache maps enter app/example
-  reports.
-- Audit updates tracker/backlog status if route summary exposure changes.
+- Audit lists remaining browser-visible texture gaps by StandardMaterial slot.
+- Audit distinguishes base-color coverage from metallic-roughness, occlusion,
+  emissive, normal, sampler, UV, and transform coverage.
+- Audit records the next concrete browser or diagnostics follow-up.
 
-### task-1048 — Plan render-world prepared summary consumer shape
+### task-1078 — Plan controlled StandardMaterial metallic-roughness browser verification
 
 Category: `docs-tooling`
-Package/write-scope: `docs/research`, diagnostics docs if needed, and backlog
-updates.
+Package/write-scope: `docs/research`, e2e planning docs, and backlog updates.
 Reference anchor:
-`createRenderWorldPreparedResourceSummary()`, app diagnostics prepared summary
-usage, render-world binding helpers, and Bevy render asset preparation reports.
+Controlled base-color StandardMaterial browser example, materials showcase,
+StandardMaterial shader tests, and glTF metallic-roughness texture conventions.
 
 Acceptance criteria:
 
-- Plan decides whether render-world prepared summaries need a reusable consumer
-  helper or should remain directly composed by examples/tests.
-- Plan keeps prepared facade summaries separate from WebGPU backend cache
-  summaries.
-- Plan adds or defers one concrete follow-up task.
+- Plan selects a controlled browser-visible metallic-roughness assertion that
+  does not overclaim full glTF PBR fidelity.
+- Plan keeps IBL, shadows, GLB import, and texture transforms deferred.
+- Plan adds or defers one concrete implementation follow-up.
 
-### task-1049 — Add render-world prepared summary consumer coverage
+### task-1079 — Add loading/failed StandardMaterial texture browser diagnostics variants
 
-Category: `render-bridge`
-Package/write-scope: `packages/render`, diagnostics docs/examples if needed, and
-targeted tests.
+Category: `runtime-orchestration`
+Package/write-scope: `examples/standard-texture-control.js`,
+`test/e2e/standard-texture-control.spec.ts`, and status types if needed.
 Reference anchor:
-Plan from `task-1048`, `createRenderWorldPreparedResourceSummary()`, and
-render-world binding/readiness helpers.
+Missing-texture scenario from `task-1074`, StandardMaterial texture readiness
+diagnostics, app diagnostics StandardMaterial dependency coverage, and texture
+dependency routing tests.
 
 Acceptance criteria:
 
-- Implements only the consumer shape selected in `task-1048`.
-- Prepared facade summaries remain separate from backend cache summaries.
-- Targeted tests and render package typecheck pass.
+- Browser scenarios cover loading and failed base-color texture dependencies for
+  StandardMaterial.
+- Status remains JSON-safe and reports expected diagnostic codes/statuses.
+- Focused Playwright coverage verifies no draw submission for both variants.
 
-### task-1050 — Audit render-world prepared summary consumer boundaries
+### task-1080 — Audit tracker/backlog alignment after readback planning
 
 Category: `audit-refactor`
-Package/write-scope: `docs/research`, tracker/backlog docs if needed, and
-targeted validation.
+Package/write-scope: `docs/research`, `docs/index.html`,
+`docs/render-pipeline-comparison.html`, and backlog/completed docs if needed.
 Reference anchor:
-Implementation from `task-1049`, `docs/ARCHITECTURE.md`, and prepared resource
-summary tests.
+Current completed tasks, app-facade readback plan, `docs/MEDIUM_LONG_TERM_GOALS.md`,
+and progress tracker validation script.
 
 Acceptance criteria:
 
-- Audit verifies no WebGPU backend cache state moved into render package
-  summaries.
-- Audit verifies summaries remain compact and JSON-safe.
-- Audit records the next concrete render-world/prepared-resource follow-up.
+- Audit verifies tracker and backlog reflect app-facade readback planning and
+  the next StandardMaterial browser focus.
+- Audit updates tracker pages if needed and runs `pnpm run check:progress`.
+- Audit records any mismatch as a concrete follow-up task.
+
+### task-1081 — Implement optional app-facade current-texture readback samples
+
+Category: `webgpu-render`
+Package/write-scope: `packages/webgpu/src/webgpu/app.ts`, frame-boundary or
+readback helpers, examples/tests that explicitly opt in.
+Reference anchor:
+`docs/research/APP_FACADE_CURRENT_TEXTURE_READBACK_PLAN_2026_05_17.md`,
+`examples/webgpu-readback.js`, `packages/webgpu/src/webgpu/frame-boundary.ts`,
+and clear-readback helpers.
+
+Acceptance criteria:
+
+- `WebGpuApp.render()` can optionally return JSON-safe current-texture readback
+  samples without exposing GPU handles.
+- Existing app report behavior is unchanged when readback is not requested.
+- Focused unit/browser coverage verifies success and graceful unsupported
+  readback behavior.
 
 ## Post-Unlit E2E Verification Targets
 

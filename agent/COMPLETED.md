@@ -1,5 +1,246 @@
 # Completed Tasks
 
+## task-1076 — Plan app-facade current-texture readback support
+
+Completed: 2026-05-17
+
+Summary:
+
+- Added
+  `docs/research/APP_FACADE_CURRENT_TEXTURE_READBACK_PLAN_2026_05_17.md`.
+- Selected an opt-in app render option for future current-texture readback
+  samples rather than exposing textures, command encoders, queues, or other
+  WebGPU objects from `WebGpuApp`.
+- Kept screenshots as the current fallback for controlled examples and deferred
+  implementation to `task-1081`.
+
+Validation run:
+
+- Documentation-only planning slice; run `pnpm run check:progress` after
+  tracker updates.
+
+## task-1075 — Audit tracker/backlog alignment after browser texture coverage
+
+Completed: 2026-05-17
+
+Summary:
+
+- Added
+  `docs/research/TRACKER_BACKLOG_ALIGNMENT_AFTER_BROWSER_TEXTURE_COVERAGE_AUDIT_2026_05_17.md`.
+- Verified the public tracker, render-pipeline comparison page, backlog, and
+  completed-task log reflect the StandardMaterial browser texture proof and
+  missing-texture diagnostics path.
+- Moved the recommended next task to `task-1076`, planning app-facade
+  current-texture readback support for controlled examples.
+
+Validation run:
+
+- `pnpm run check:progress`
+- `pnpm run check`
+
+## task-1074 — Add StandardMaterial missing/not-ready browser texture diagnostics coverage
+
+Completed: 2026-05-17
+
+Summary:
+
+- Extended `examples/standard-texture-control.js` with
+  `?scenario=missing-texture`.
+- The missing-texture scenario keeps the scalar StandardMaterial peer ready,
+  authors the textured StandardMaterial with a missing base-color texture and
+  ready sampler, and publishes an expected-failure status with JSON-safe
+  diagnostic codes.
+- Extended `test/e2e/standard-texture-control.spec.ts` to verify the
+  no-submission missing-texture path and
+  `render.standardMaterialTexture.textureNotReady`.
+
+Validation run:
+
+- `node --check examples/standard-texture-control.js`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec playwright test test/e2e/standard-texture-control.spec.ts`
+
+## task-1073 — Plan StandardMaterial missing/not-ready browser texture diagnostics
+
+Completed: 2026-05-17
+
+Summary:
+
+- Added
+  `docs/research/STANDARD_TEXTURE_NEGATIVE_BROWSER_DIAGNOSTICS_PLAN_2026_05_17.md`.
+- Selected a `standard-texture-control?scenario=missing-texture` follow-up so
+  the positive StandardMaterial browser texture proof has a matching focused
+  no-submission diagnostics path.
+- Kept loading/failed variants, resource-withheld failures, app-facade readback,
+  and GLB material import deferred.
+
+Validation run:
+
+- Documentation-only planning slice; covered by the latest `pnpm run check`
+  before this task and by formatting/progress checks after tracker updates.
+
+## task-1071 and task-1072 — Controlled StandardMaterial browser texture proof
+
+Completed: 2026-05-17
+
+Completed task ids:
+
+- `task-1071` — Add dedicated controlled StandardMaterial texture browser
+  example.
+- `task-1072` — Audit controlled StandardMaterial texture browser boundaries.
+
+Summary:
+
+- Added `examples/standard-texture-control.html` and
+  `examples/standard-texture-control.js`, a fixed app-facade browser example
+  with a scalar StandardMaterial baseline and a base-color textured
+  StandardMaterial sample.
+- Added Playwright coverage that verifies the textured StandardMaterial
+  pipeline key, texture/sampler resource creation, draw submission, JSON-safe
+  status, and visually distinct screenshot samples.
+- Added the example to the browser harness links and `check:examples`.
+- Audited that the example stays ECS-authored and app-facade driven, without a
+  GLB viewer, hidden scene graph, raw GPU handles, or source texture payloads in
+  status JSON.
+
+Validation run:
+
+- `node --check examples/standard-texture-control.js`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec playwright test test/e2e/standard-texture-control.spec.ts`
+
+## task-1066 through task-1070 — Texture readiness promotion and browser verification planning
+
+Completed: 2026-05-17
+
+Completed task ids:
+
+- `task-1066` — Plan StandardMaterial texture semantic/color-space readiness
+  diagnostics.
+- `task-1067` — Add StandardMaterial texture semantic/color-space readiness
+  diagnostics.
+- `task-1068` — Audit StandardMaterial texture semantic/color-space readiness
+  boundaries.
+- `task-1069` — Plan controlled StandardMaterial texture browser verification.
+- `task-1070` — Audit tracker/backlog alignment after texture readiness
+  planning.
+
+Summary:
+
+- Confirmed StandardMaterial readiness already validates slot semantic and
+  color-space expectations, then identified the narrow missing bridge: extracted
+  render diagnostics were dropping the expected/actual semantic and color-space
+  fields.
+- Added optional semantic/color-space fields to `RenderDiagnostic` and copied
+  those values from StandardMaterial texture readiness diagnostics during
+  extraction.
+- Added focused extraction assertions proving blocked render diagnostics carry
+  expected/actual texture semantic and color-space values while remaining
+  JSON-safe.
+- Audited that the change does not mutate assets, create WebGPU resources, or
+  change app report defaults.
+- Planned controlled StandardMaterial browser texture verification, then audited
+  the browser harness and chose a dedicated app-style example because the
+  multi-entity readback path still uses unlit frame-resource preparation.
+- Updated the public tracker and backlog so the next ready task is the
+  controlled StandardMaterial browser texture scenario.
+
+Validation run:
+
+- `pnpm exec vitest run test/rendering/extraction.test.ts test/materials/standard-texture-readiness.test.ts`
+- `pnpm exec tsc --noEmit -p packages/render/tsconfig.json`
+
+## task-1051 through task-1065 — Prepared/app alignment, route grouping, diagnostics example, and glTF render-state coverage
+
+Completed: 2026-05-17
+
+Completed task ids:
+
+- `task-1051` — Plan prepared/app resource reuse alignment summary.
+- `task-1052` — Add prepared/app resource reuse alignment coverage.
+- `task-1053` — Audit prepared/app resource reuse alignment boundaries.
+- `task-1054` — Plan route summary grouping consumer shape.
+- `task-1055` — Add route summary grouping consumer coverage.
+- `task-1056` — Audit route summary grouping boundaries.
+- `task-1057` — Plan prepared/app reuse diagnostics example usage.
+- `task-1058` — Add prepared/app reuse diagnostics example coverage.
+- `task-1059` — Audit prepared/app reuse diagnostics example boundaries.
+- `task-1060` — Plan generic material-family route helper consolidation.
+- `task-1061` — Plan glTF alpha/double-sided mapping verification.
+- `task-1062` — Add glTF alpha/double-sided mapping coverage.
+- `task-1063` — Audit glTF alpha/double-sided mapping boundaries.
+- `task-1064` — Plan StandardMaterial metallic-roughness texture browser coverage.
+- `task-1065` — Audit tracker/backlog alignment after diagnostics and glTF
+  plans.
+
+Summary:
+
+- Added `createPreparedResourceAppReuseAlignmentSummary()` in the WebGPU
+  package to compare render prepared facade counts with app reuse prepared
+  facade and resource counters without exposing backend cache maps.
+- Added `createQueuedMaterialPrepareRouteSummary()` and
+  `createQueuedMaterialRouteSummaryGroup()` to compactly group prepare-route and
+  frame-resource-route health for explicit diagnostics consumers.
+- Extended `examples/app-diagnostics.js` and Playwright coverage with an
+  example-owned `preparedAppReuseSummary`, keeping the WebGPU app report shape
+  unchanged.
+- Deferred broader route orchestration extraction until a concrete duplication,
+  allocation, or diagnostics need appears.
+- Added glTF asset-mapping tests for `OPAQUE`, `MASK`, `BLEND`,
+  `alphaCutoff`, and `doubleSided` mapping into StandardMaterial render state.
+- Planned the next StandardMaterial browser/fidelity work around controlled
+  texture verification and semantic/color-space readiness diagnostics.
+
+Validation run:
+
+- `pnpm exec vitest run test/webgpu/prepared-resource-app-reuse-alignment-summary.test.ts test/webgpu/prepared-resource-lifetime-alignment-summary.test.ts`
+- `pnpm exec vitest run test/webgpu/queued-material-route-summary-group.test.ts test/webgpu/queued-material-frame-resource-route.test.ts test/webgpu/material-queue-route-report.test.ts`
+- `node --check examples/app-diagnostics.js`
+- `pnpm exec playwright test test/e2e/app-diagnostics.spec.ts`
+- `pnpm exec vitest run test/assets/gltf-asset-mapping.test.ts test/assets/gltf-asset-mapping-json.test.ts test/webgpu/standard-render-state-summary.test.ts`
+- `pnpm exec playwright test test/e2e/materials-showcase.spec.ts`
+- `pnpm exec tsc --noEmit -p packages/render/tsconfig.json`
+- `pnpm exec tsc --noEmit -p packages/webgpu/tsconfig.json`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+
+## task-1046 through task-1050 — Route summary policy and prepared summary consumer
+
+Completed: 2026-05-17
+
+Completed task ids:
+
+- `task-1046` — Plan frame-resource route summary diagnostics consumer.
+- `task-1047` — Audit route summary diagnostics consumer boundaries.
+- `task-1048` — Plan render-world prepared summary consumer shape.
+- `task-1049` — Add render-world prepared summary consumer coverage.
+- `task-1050` — Audit render-world prepared summary consumer boundaries.
+
+Summary:
+
+- Decided to keep `createQueuedMaterialFrameResourceRouteShellSummary()`
+  helper-only for now. Successful app frames still omit route summaries by
+  default, and failed frame-resource preparation still uses
+  `webGpuApp.frameResourceRoute`.
+- Audited that deferral against JSON safety, app report shape, ownership
+  separation, and allocation discipline.
+- Planned and added
+  `createRenderWorldPreparedResourceSummaryFromReport()` in the render package
+  to adapt `prepareAndBindSnapshotPreparedResourcesToRenderWorld()` reports into
+  the existing compact prepared resource summary shape.
+- Added targeted render summary coverage proving apply/preparation, binding,
+  draw-readiness, and explicit diagnostics are counted once without exposing
+  missing asset keys or GPU/backend details.
+- Documented the new prepared summary consumer helper in
+  `docs/DIAGNOSTICS_SUMMARIES.md`.
+- Audited that no WebGPU backend cache state moved into render-package
+  summaries.
+
+Validation run:
+
+- `pnpm exec vitest run test/webgpu/queued-material-frame-resource-route.test.ts`
+- `pnpm exec vitest run test/rendering/render-world-prepared-resource-summary.test.ts`
+- `pnpm exec tsc --noEmit -p packages/render/tsconfig.json`
+
 ## task-1016 through task-1045 — Generic app route helpers, diagnostics examples, and helper-composition regression
 
 Completed: 2026-05-17

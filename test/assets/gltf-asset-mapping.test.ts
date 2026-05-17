@@ -79,6 +79,88 @@ describe("glTF asset mapping orchestration report", () => {
     });
   });
 
+  it("maps glTF alpha mode and double-sided flags into material render state", () => {
+    const report = createGltfAssetMappingReport({
+      root: {
+        asset: { version: "2.0" },
+        materials: [
+          {},
+          { alphaMode: "MASK", alphaCutoff: 0.25 },
+          { alphaMode: "MASK" },
+          { alphaMode: "BLEND" },
+          { doubleSided: true },
+        ],
+      },
+      resolveImageData: () => decodedImage,
+    });
+
+    expect(report.valid).toBe(true);
+    expect(report.diagnostics).toEqual([]);
+    expect(report.materials).toMatchObject([
+      {
+        materialIndex: 0,
+        material: {
+          kind: "standard",
+          renderState: {
+            alphaMode: "opaque",
+            alphaCutoff: 0.5,
+            cullMode: "back",
+            depth: { test: true, write: true, compare: "less" },
+            blend: { preset: "none" },
+          },
+        },
+      },
+      {
+        materialIndex: 1,
+        material: {
+          kind: "standard",
+          renderState: {
+            alphaMode: "mask",
+            alphaCutoff: 0.25,
+            cullMode: "back",
+            depth: { test: true, write: true, compare: "less" },
+            blend: { preset: "none" },
+          },
+        },
+      },
+      {
+        materialIndex: 2,
+        material: {
+          kind: "standard",
+          renderState: {
+            alphaMode: "mask",
+            alphaCutoff: 0.5,
+            cullMode: "back",
+          },
+        },
+      },
+      {
+        materialIndex: 3,
+        material: {
+          kind: "standard",
+          renderState: {
+            alphaMode: "blend",
+            alphaCutoff: 0.5,
+            cullMode: "back",
+            depth: { test: true, write: false, compare: "less" },
+            blend: { preset: "alpha" },
+          },
+        },
+      },
+      {
+        materialIndex: 4,
+        material: {
+          kind: "standard",
+          renderState: {
+            alphaMode: "opaque",
+            alphaCutoff: 0.5,
+            cullMode: "none",
+          },
+        },
+      },
+    ]);
+  });
+
   it("preserves root, texture, and material diagnostics with source context", () => {
     const report = createGltfAssetMappingReport({
       root: {

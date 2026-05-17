@@ -13,6 +13,8 @@ import {
   materialPipelineKeyInputToKey,
   type MaterialTextureTransform,
   type MaterialPipelineKeyInput,
+  type TextureColorSpace,
+  type TextureSemantic,
 } from "../materials/index.js";
 import type { MeshTopology } from "../mesh/index.js";
 import type { LightKind } from "./authoring.js";
@@ -127,6 +129,10 @@ export interface RenderDiagnostic {
   readonly dependencyKind?: string;
   readonly status?: string;
   readonly field?: string;
+  readonly expectedSemantic?: TextureSemantic;
+  readonly actualSemantic?: TextureSemantic;
+  readonly expectedColorSpaces?: readonly TextureColorSpace[];
+  readonly actualColorSpace?: TextureColorSpace;
   readonly texCoord?: number;
   readonly supportedTexCoords?: readonly number[];
   readonly textureTransform?: MaterialTextureTransform;

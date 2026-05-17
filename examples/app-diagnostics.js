@@ -266,6 +266,7 @@ async function runMixedMaterialSuccessScenario(aperture, canvasElement) {
     status: successScenarioStatus(aperture, "mixed-material-success", report, {
       preparedResourceSummary: preparedSummaries.preparedResourceSummary,
       preparedLifetimeSummary: preparedSummaries.preparedLifetimeSummary,
+      preparedAppReuseSummary: preparedSummaries.preparedAppReuseSummary,
     }),
   };
 }
@@ -526,18 +527,25 @@ function createExamplePreparedResourceSummaries(
         diagnostics: [],
       },
     });
+  const reportJson = aperture.webGpuAppRenderReportToJsonValue(report);
   const preparedLifetimeSummary =
     aperture.createPreparedResourceLifetimeAlignmentSummary({
       facade: preparedResourceSummary,
       backend: createExampleBackendResourceSummary(
-        aperture.webGpuAppRenderReportToJsonValue(report),
+        reportJson,
         preparedResourceSummary,
       ),
+    });
+  const preparedAppReuseSummary =
+    aperture.createPreparedResourceAppReuseAlignmentSummary({
+      facade: preparedResourceSummary,
+      reuse: reportJson.resourceReuse,
     });
 
   return {
     preparedResourceSummary,
     preparedLifetimeSummary,
+    preparedAppReuseSummary,
   };
 }
 
