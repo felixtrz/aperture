@@ -270,7 +270,7 @@ describe("WebGPU app facade", () => {
     expect(events).toContain("queue:submit:1");
   });
 
-  it("diagnoses mixed-family multi-draw frames that still need additional app resource sets", async () => {
+  it("renders mixed unlit and standard app resource sets for a shared mesh", async () => {
     const events: string[] = [];
     const { canvas, environment } = webGpuHarness(events);
     const created = await createWebGpuApp({
@@ -313,37 +313,73 @@ describe("WebGPU app facade", () => {
       withRenderLayer(1),
       withVisibility(true),
     );
+    app.spawn(
+      withLight({
+        kind: LightKind.Ambient,
+        intensity: 0.2,
+        layerMask: 1,
+      }),
+    );
+    app.spawn(
+      withTransform(),
+      withLight({
+        kind: LightKind.Directional,
+        intensity: 1.5,
+        layerMask: 1,
+      }),
+    );
 
     const frame = await app.stepAndRender(1 / 60, 1, 22);
 
-    expect(frame.ok).toBe(false);
+    expect(frame.ok).toBe(true);
     expect(frame.counts).toMatchObject({
       meshDraws: 2,
-      drawCalls: 0,
-      diagnostics: 1,
+      drawPackages: 2,
+      drawCalls: 2,
+      diagnostics: 0,
     });
-    const diagnostic = frame.diagnostics[0] as {
-      readonly firstMaterialKey?: string;
-      readonly drawMaterialKey?: string;
-    };
+    expect(createWebGpuAppDrawResourceSetPlan(frame.snapshot)).toMatchObject({
+      drawCount: 2,
+      sets: expect.arrayContaining([
+        expect.objectContaining({
+          meshKey: assetHandleKey(mesh),
+          materialKey: assetHandleKey(firstMaterial),
+          drawIndices: [expect.any(Number)],
+        }),
+        expect.objectContaining({
+          meshKey: assetHandleKey(mesh),
+          materialKey: assetHandleKey(secondMaterial),
+          drawIndices: [expect.any(Number)],
+        }),
+      ]),
+    });
+    expect(frame.resourceReuse).toMatchObject({
+      pipelineMisses: 2,
+      meshBuffersCreated: 2,
+      materialBuffersCreated: 2,
+      bindGroupsCreated: 7,
+      lightBuffersCreated: 1,
+    });
+    expect(events.filter((event) => event === "pass:pipeline")).toHaveLength(2);
+    expect(events.filter((event) => event === "pass:bind:2")).toHaveLength(2);
+    expect(events).toContain("pass:bind:3");
+    expect(events).toContain("queue:submit:1");
 
-    expect(diagnostic).toMatchObject({
-      code: "webGpuApp.additionalDrawResourceUnsupported",
-      resourceSetIndex: 1,
-      drawIndex: 1,
-      drawMeshKey: assetHandleKey(mesh),
-      message: expect.stringContaining("render-world resource cache"),
+    const firstResourceEvents = resourceEventCounts(events);
+    const secondFrame = await app.stepAndRender(1 / 60, 2, 23);
+
+    expect(secondFrame.ok).toBe(true);
+    expect(secondFrame.counts.drawCalls).toBe(2);
+    expect(secondFrame.resourceReuse).toMatchObject({
+      pipelineHits: 2,
+      pipelineMisses: 0,
+      meshBuffersReused: 2,
+      materialBuffersReused: 2,
+      bindGroupsReused: 7,
+      lightBuffersReused: 1,
+      dynamicBufferWrites: 6,
     });
-    expect([
-      assetHandleKey(firstMaterial),
-      assetHandleKey(secondMaterial),
-    ]).toContain(diagnostic.firstMaterialKey);
-    expect([
-      assetHandleKey(firstMaterial),
-      assetHandleKey(secondMaterial),
-    ]).toContain(diagnostic.drawMaterialKey);
-    expect(() => JSON.stringify(frame.diagnostics)).not.toThrow();
-    expect(events).not.toContain("queue:submit:1");
+    expect(resourceEventCounts(events)).toEqual(firstResourceEvents);
   });
 
   it("surfaces material source dependency readiness before app rendering", async () => {
@@ -1034,6 +1070,157 @@ describe("WebGPU app facade", () => {
     expect(resourceEventCounts(events)).toEqual(firstResourceEvents);
   });
 
+  it("renders mixed textured unlit and matcap app resource sets for a shared mesh", async () => {
+    const events: string[] = [];
+    const { canvas, environment } = webGpuHarness(events);
+    const created = await createWebGpuApp({
+      canvas,
+      environment,
+      worldOptions: { entityCapacity: 8 },
+    });
+
+    expect(created.ok).toBe(true);
+
+    if (!created.ok) {
+      return;
+    }
+
+    const app = created.app;
+    const assets = createRenderAssetCollections({ registry: app.assets });
+    const mesh = assets.meshes.add(
+      createBoxMeshAsset({ label: "MixedTexturedCube" }),
+    );
+    const unlitTexture = createTextureHandle("mixed-unlit-albedo");
+    const unlitSampler = createSamplerHandle("mixed-unlit-nearest");
+    const matcapTexture = createTextureHandle("mixed-textured-studio-matcap");
+    const matcapSampler = createSamplerHandle("mixed-textured-matcap-linear");
+
+    app.assets.register(unlitTexture);
+    app.assets.markReady(
+      unlitTexture,
+      createTextureAsset({
+        label: "MixedUnlitAlbedo",
+        dimension: "2d",
+        width: 2,
+        height: 2,
+        format: "rgba8unorm",
+        colorSpace: "linear",
+        semantic: "base-color",
+        usage: ["sampled", "copy-dst"],
+        sourceData: {
+          bytes: new Uint8Array([
+            255, 64, 32, 255, 255, 128, 32, 255, 128, 32, 255, 255, 32, 255,
+            128, 255,
+          ]),
+          bytesPerRow: 8,
+          rowsPerImage: 2,
+        },
+      }),
+    );
+    app.assets.register(unlitSampler);
+    app.assets.markReady(
+      unlitSampler,
+      createSamplerAsset({ label: "MixedUnlitNearest" }),
+    );
+    app.assets.register(matcapTexture);
+    app.assets.markReady(
+      matcapTexture,
+      createTextureAsset({
+        label: "MixedTexturedStudioMatcap",
+        dimension: "2d",
+        width: 2,
+        height: 2,
+        format: "rgba8unorm",
+        colorSpace: "linear",
+        semantic: "data",
+        usage: ["sampled", "copy-dst"],
+        sourceData: {
+          bytes: new Uint8Array([
+            255, 220, 245, 255, 190, 230, 255, 255, 96, 128, 184, 255, 32, 48,
+            72, 255,
+          ]),
+          bytesPerRow: 8,
+          rowsPerImage: 2,
+        },
+      }),
+    );
+    app.assets.register(matcapSampler);
+    app.assets.markReady(
+      matcapSampler,
+      createSamplerAsset({ label: "MixedTexturedMatcapLinear" }),
+    );
+
+    const unlitMaterial = assets.materials.unlit.add(
+      createUnlitMaterialAsset({
+        label: "Mixed Textured Unlit",
+        baseColorTexture: { texture: unlitTexture, sampler: unlitSampler },
+      }),
+    );
+    const matcapMaterial = assets.materials.matcap.add(
+      createMatcapMaterialAsset({
+        label: "Mixed Textured Matcap",
+        matcapTexture: { texture: matcapTexture, sampler: matcapSampler },
+      }),
+    );
+
+    app.spawn(
+      withTransform({ translation: [0, 0, 5] }),
+      withCamera({ priority: 0, layerMask: 1 }),
+    );
+    app.spawn(
+      withTransform({ translation: [-0.6, 0, 0] }),
+      withMesh(mesh),
+      withMaterial(unlitMaterial),
+      withRenderLayer(1),
+      withVisibility(true),
+    );
+    app.spawn(
+      withTransform({ translation: [0.6, 0, 0] }),
+      withMesh(mesh),
+      withMaterial(matcapMaterial),
+      withRenderLayer(1),
+      withVisibility(true),
+    );
+
+    const frame = await app.stepAndRender(1 / 60, 1, 35);
+
+    expect(frame.ok).toBe(true);
+    expect(frame.counts).toMatchObject({
+      meshDraws: 2,
+      drawPackages: 2,
+      drawCalls: 2,
+      diagnostics: 0,
+    });
+    expect(frame.resourceReuse).toMatchObject({
+      pipelineMisses: 2,
+      textureResourcesCreated: 2,
+      samplerResourcesCreated: 2,
+      materialBuffersCreated: 2,
+    });
+    expect(events).toContain("device:texture:MixedUnlitAlbedo");
+    expect(events).toContain("device:texture:MixedTexturedStudioMatcap");
+    expect(
+      events.filter((event) => event === "queue:writeTexture:16"),
+    ).toHaveLength(2);
+    expect(events.filter((event) => event === "pass:bind:2")).toHaveLength(2);
+    expect(events).toContain("queue:submit:1");
+
+    const firstResourceEvents = resourceEventCounts(events);
+    const secondFrame = await app.stepAndRender(1 / 60, 2, 36);
+
+    expect(secondFrame.ok).toBe(true);
+    expect(secondFrame.resourceReuse).toMatchObject({
+      pipelineHits: 2,
+      pipelineMisses: 0,
+      textureResourcesCreated: 0,
+      textureResourcesReused: 2,
+      samplerResourcesCreated: 0,
+      samplerResourcesReused: 2,
+      dynamicBufferWrites: 4,
+    });
+    expect(resourceEventCounts(events)).toEqual(firstResourceEvents);
+  });
+
   it("blocks mixed unlit and matcap rendering when the matcap texture dependency is missing", async () => {
     const events: string[] = [];
     const { canvas, environment } = webGpuHarness(events);
@@ -1126,6 +1313,682 @@ describe("WebGPU app facade", () => {
       },
     });
     expect(() => JSON.stringify(frame.diagnostics)).not.toThrow();
+    expect(events).not.toContain("queue:submit:1");
+  });
+
+  it("blocks mixed textured unlit and matcap rendering when the unlit texture dependency is missing", async () => {
+    const events: string[] = [];
+    const { canvas, environment } = webGpuHarness(events);
+    const created = await createWebGpuApp({
+      canvas,
+      environment,
+      worldOptions: { entityCapacity: 8 },
+    });
+
+    expect(created.ok).toBe(true);
+
+    if (!created.ok) {
+      return;
+    }
+
+    const app = created.app;
+    const assets = createRenderAssetCollections({ registry: app.assets });
+    const mesh = assets.meshes.add(
+      createBoxMeshAsset({ label: "MixedBlockedTexturedCube" }),
+    );
+    const unlitTexture = createTextureHandle("missing-mixed-unlit-albedo");
+    const unlitSampler = createSamplerHandle("ready-mixed-unlit-sampler");
+    const matcapTexture = createTextureHandle("ready-mixed-matcap");
+    const matcapSampler = createSamplerHandle("ready-mixed-matcap-sampler");
+
+    app.assets.register(unlitSampler);
+    app.assets.markReady(
+      unlitSampler,
+      createSamplerAsset({ label: "ReadyMixedUnlitSampler" }),
+    );
+    app.assets.register(matcapTexture);
+    app.assets.markReady(
+      matcapTexture,
+      createTextureAsset({
+        label: "ReadyMixedMatcap",
+        dimension: "2d",
+        width: 2,
+        height: 2,
+        format: "rgba8unorm",
+        colorSpace: "linear",
+        semantic: "data",
+        usage: ["sampled", "copy-dst"],
+        sourceData: {
+          bytes: new Uint8Array([
+            255, 220, 245, 255, 190, 230, 255, 255, 96, 128, 184, 255, 32, 48,
+            72, 255,
+          ]),
+          bytesPerRow: 8,
+          rowsPerImage: 2,
+        },
+      }),
+    );
+    app.assets.register(matcapSampler);
+    app.assets.markReady(
+      matcapSampler,
+      createSamplerAsset({ label: "ReadyMixedMatcapSampler" }),
+    );
+
+    const unlitMaterial = assets.materials.unlit.add(
+      createUnlitMaterialAsset({
+        label: "Mixed Blocked Textured Unlit",
+        baseColorTexture: { texture: unlitTexture, sampler: unlitSampler },
+      }),
+    );
+    const matcapMaterial = assets.materials.matcap.add(
+      createMatcapMaterialAsset({
+        label: "Mixed Ready Matcap",
+        matcapTexture: { texture: matcapTexture, sampler: matcapSampler },
+      }),
+    );
+
+    app.spawn(
+      withTransform({ translation: [0, 0, 5] }),
+      withCamera({ priority: 0, layerMask: 1 }),
+    );
+    app.spawn(
+      withTransform({ translation: [-0.6, 0, 0] }),
+      withMesh(mesh),
+      withMaterial(unlitMaterial),
+      withRenderLayer(1),
+      withVisibility(true),
+    );
+    app.spawn(
+      withTransform({ translation: [0.6, 0, 0] }),
+      withMesh(mesh),
+      withMaterial(matcapMaterial),
+      withRenderLayer(1),
+      withVisibility(true),
+    );
+
+    const frame = await app.stepAndRender(1 / 60, 1, 37);
+    const appDiagnostic = frame.diagnostics.find(
+      (diagnostic) =>
+        typeof diagnostic === "object" &&
+        diagnostic !== null &&
+        "code" in diagnostic &&
+        diagnostic.code === "webGpuApp.materialDependenciesNotReady",
+    );
+
+    expect(frame.ok).toBe(false);
+    expect(frame.counts.drawCalls).toBe(0);
+    expect(appDiagnostic).toMatchObject({
+      code: "webGpuApp.materialDependenciesNotReady",
+      materialDependencyReadiness: {
+        ready: false,
+        materialKey: assetHandleKey(unlitMaterial),
+        materialKind: "unlit",
+        slots: [
+          {
+            field: "baseColorTexture",
+            dependencyKind: "texture",
+            handleKey: assetHandleKey(unlitTexture),
+            status: "missing",
+          },
+          {
+            field: "baseColorTexture",
+            dependencyKind: "sampler",
+            handleKey: assetHandleKey(unlitSampler),
+            status: "ready",
+          },
+        ],
+      },
+    });
+    expect(() => JSON.stringify(frame.diagnostics)).not.toThrow();
+    expect(events).not.toContain("queue:submit:1");
+  });
+
+  it("renders mixed standard and matcap app resource sets for a shared mesh", async () => {
+    const events: string[] = [];
+    const { canvas, environment } = webGpuHarness(events);
+    const created = await createWebGpuApp({
+      canvas,
+      environment,
+      worldOptions: { entityCapacity: 8 },
+    });
+
+    expect(created.ok).toBe(true);
+
+    if (!created.ok) {
+      return;
+    }
+
+    const app = created.app;
+    const assets = createRenderAssetCollections({ registry: app.assets });
+    const mesh = assets.meshes.add(
+      createBoxMeshAsset({ label: "StandardMatcapCube" }),
+    );
+    const standardMaterial = assets.materials.standard.add(
+      createStandardMaterialAsset({
+        label: "Mixed Standard",
+        metallicFactor: 0.35,
+        roughnessFactor: 0.45,
+      }),
+    );
+    const texture = createTextureHandle("standard-mixed-studio-matcap");
+    const sampler = createSamplerHandle("standard-mixed-matcap-linear");
+
+    app.assets.register(texture);
+    app.assets.markReady(
+      texture,
+      createTextureAsset({
+        label: "StandardMixedStudioMatcap",
+        dimension: "2d",
+        width: 2,
+        height: 2,
+        format: "rgba8unorm",
+        colorSpace: "linear",
+        semantic: "data",
+        usage: ["sampled", "copy-dst"],
+        sourceData: {
+          bytes: new Uint8Array([
+            255, 220, 245, 255, 190, 230, 255, 255, 96, 128, 184, 255, 32, 48,
+            72, 255,
+          ]),
+          bytesPerRow: 8,
+          rowsPerImage: 2,
+        },
+      }),
+    );
+    app.assets.register(sampler);
+    app.assets.markReady(
+      sampler,
+      createSamplerAsset({ label: "StandardMixedMatcapLinear" }),
+    );
+
+    const matcapMaterial = assets.materials.matcap.add(
+      createMatcapMaterialAsset({
+        label: "Standard Mixed Matcap",
+        matcapTexture: { texture, sampler },
+      }),
+    );
+
+    app.spawn(
+      withTransform({ translation: [0, 0, 5] }),
+      withCamera({ priority: 0, layerMask: 1 }),
+    );
+    app.spawn(
+      withTransform({ translation: [-0.6, 0, 0] }),
+      withMesh(mesh),
+      withMaterial(standardMaterial),
+      withRenderLayer(1),
+      withVisibility(true),
+    );
+    app.spawn(
+      withTransform({ translation: [0.6, 0, 0] }),
+      withMesh(mesh),
+      withMaterial(matcapMaterial),
+      withRenderLayer(1),
+      withVisibility(true),
+    );
+    app.spawn(
+      withLight({
+        kind: LightKind.Ambient,
+        intensity: 0.2,
+        layerMask: 1,
+      }),
+    );
+    app.spawn(
+      withTransform(),
+      withLight({
+        kind: LightKind.Directional,
+        intensity: 1.5,
+        layerMask: 1,
+      }),
+    );
+
+    const frame = await app.stepAndRender(1 / 60, 1, 33);
+
+    expect(frame.ok).toBe(true);
+    expect(frame.counts).toMatchObject({
+      meshDraws: 2,
+      drawPackages: 2,
+      drawCalls: 2,
+      diagnostics: 0,
+    });
+    expect(
+      new Set(frame.snapshot.meshDraws.map((draw) => draw.material)),
+    ).toEqual(new Set([standardMaterial, matcapMaterial]));
+    expect(frame.resourceReuse).toMatchObject({
+      pipelineMisses: 2,
+      textureResourcesCreated: 1,
+      samplerResourcesCreated: 1,
+      materialBuffersCreated: 2,
+      lightBuffersCreated: 1,
+    });
+    expect(events).toContain("device:texture:StandardMixedStudioMatcap");
+    expect(events).toContain("queue:writeTexture:16");
+    expect(events).toContain("pass:bind:3");
+    expect(events.filter((event) => event === "pass:bind:2")).toHaveLength(2);
+    expect(events).toContain("queue:submit:1");
+  });
+
+  it("blocks mixed standard rendering when extracted lights are missing", async () => {
+    const events: string[] = [];
+    const { canvas, environment } = webGpuHarness(events);
+    const created = await createWebGpuApp({
+      canvas,
+      environment,
+      worldOptions: { entityCapacity: 8 },
+    });
+
+    expect(created.ok).toBe(true);
+
+    if (!created.ok) {
+      return;
+    }
+
+    const app = created.app;
+    const assets = createRenderAssetCollections({ registry: app.assets });
+    const mesh = assets.meshes.add(createBoxMeshAsset({ label: "BlockedLit" }));
+    const unlitMaterial = assets.materials.unlit.add(
+      createUnlitMaterialAsset({ label: "Ready Unlit" }),
+    );
+    const standardMaterial = assets.materials.standard.add(
+      createStandardMaterialAsset({ label: "No Lights Standard" }),
+    );
+
+    app.spawn(
+      withTransform({ translation: [0, 0, 5] }),
+      withCamera({ priority: 0, layerMask: 1 }),
+    );
+    app.spawn(
+      withTransform({ translation: [-0.6, 0, 0] }),
+      withMesh(mesh),
+      withMaterial(unlitMaterial),
+      withRenderLayer(1),
+      withVisibility(true),
+    );
+    app.spawn(
+      withTransform({ translation: [0.6, 0, 0] }),
+      withMesh(mesh),
+      withMaterial(standardMaterial),
+      withRenderLayer(1),
+      withVisibility(true),
+    );
+
+    const frame = await app.stepAndRender(1 / 60, 1, 34);
+    const diagnosticCodes = frame.diagnostics.map((diagnostic) =>
+      typeof diagnostic === "object" &&
+      diagnostic !== null &&
+      "code" in diagnostic
+        ? diagnostic.code
+        : null,
+    );
+
+    expect(frame.ok).toBe(false);
+    expect(frame.counts).toMatchObject({
+      meshDraws: 2,
+      drawCalls: 0,
+    });
+    expect(diagnosticCodes).toContain("standardFrameResources.missingLights");
+    expect(() => JSON.stringify(frame.diagnostics)).not.toThrow();
+    expect(events).not.toContain("queue:submit:1");
+  });
+
+  it("blocks mixed standard rendering when StandardMaterial texture dependencies are not ready", async () => {
+    const events: string[] = [];
+    const { canvas, environment } = webGpuHarness(events);
+    const created = await createWebGpuApp({
+      canvas,
+      environment,
+      worldOptions: { entityCapacity: 8 },
+    });
+
+    expect(created.ok).toBe(true);
+
+    if (!created.ok) {
+      return;
+    }
+
+    const app = created.app;
+    const assets = createRenderAssetCollections({ registry: app.assets });
+    const mesh = assets.meshes.add(
+      createBoxMeshAsset({ label: "BlockedStandardTexture" }),
+    );
+    const unlitMaterial = assets.materials.unlit.add(
+      createUnlitMaterialAsset({ label: "Ready Standard Peer Unlit" }),
+    );
+    const texture = createTextureHandle("missing-standard-base-color");
+    const sampler = createSamplerHandle("loading-standard-base-color");
+
+    app.assets.register(sampler);
+    app.assets.markLoading(sampler);
+
+    const standardMaterial = assets.materials.standard.add(
+      createStandardMaterialAsset({
+        label: "Blocked Texture Standard",
+        baseColorTexture: { texture, sampler },
+      }),
+    );
+
+    app.spawn(
+      withTransform({ translation: [0, 0, 5] }),
+      withCamera({ priority: 0, layerMask: 1 }),
+    );
+    app.spawn(
+      withTransform({ translation: [-0.6, 0, 0] }),
+      withMesh(mesh),
+      withMaterial(unlitMaterial),
+      withRenderLayer(1),
+      withVisibility(true),
+    );
+    app.spawn(
+      withTransform({ translation: [0.6, 0, 0] }),
+      withMesh(mesh),
+      withMaterial(standardMaterial),
+      withRenderLayer(1),
+      withVisibility(true),
+    );
+    app.spawn(
+      withLight({
+        kind: LightKind.Ambient,
+        intensity: 0.2,
+        layerMask: 1,
+      }),
+    );
+    app.spawn(
+      withTransform(),
+      withLight({
+        kind: LightKind.Directional,
+        intensity: 1.5,
+        layerMask: 1,
+      }),
+    );
+
+    const frame = await app.stepAndRender(1 / 60, 1, 41);
+    const appDiagnostic = frame.diagnostics.find(
+      (diagnostic) =>
+        typeof diagnostic === "object" &&
+        diagnostic !== null &&
+        "code" in diagnostic &&
+        diagnostic.code === "webGpuApp.materialDependenciesNotReady",
+    );
+
+    expect(frame.ok).toBe(false);
+    expect(frame.counts).toMatchObject({
+      meshDraws: 2,
+      drawCalls: 0,
+    });
+    expect(appDiagnostic).toMatchObject({
+      code: "webGpuApp.materialDependenciesNotReady",
+      materialDependencyReadiness: {
+        ready: false,
+        materialKey: assetHandleKey(standardMaterial),
+        materialKind: "standard",
+        slots: [
+          {
+            field: "baseColorTexture",
+            dependencyKind: "texture",
+            handleKey: assetHandleKey(texture),
+            status: "missing",
+          },
+          {
+            field: "baseColorTexture",
+            dependencyKind: "sampler",
+            handleKey: assetHandleKey(sampler),
+            status: "loading",
+          },
+        ],
+      },
+    });
+    expect(() => JSON.stringify(frame.diagnostics)).not.toThrow();
+    expect(events).not.toContain("queue:submit:1");
+  });
+
+  it("renders unlit, standard, and matcap app resource sets in one shared-mesh frame", async () => {
+    const events: string[] = [];
+    const { canvas, environment } = webGpuHarness(events);
+    const created = await createWebGpuApp({
+      canvas,
+      environment,
+      worldOptions: { entityCapacity: 8 },
+    });
+
+    expect(created.ok).toBe(true);
+
+    if (!created.ok) {
+      return;
+    }
+
+    const app = created.app;
+    const assets = createRenderAssetCollections({ registry: app.assets });
+    const mesh = assets.meshes.add(
+      createBoxMeshAsset({ label: "ThreeFamilyCube" }),
+    );
+    const unlitMaterial = assets.materials.unlit.add(
+      createUnlitMaterialAsset({ label: "Three Family Unlit" }),
+    );
+    const standardMaterial = assets.materials.standard.add(
+      createStandardMaterialAsset({ label: "Three Family Standard" }),
+    );
+    const texture = createTextureHandle("three-family-matcap");
+    const sampler = createSamplerHandle("three-family-matcap-sampler");
+
+    app.assets.register(texture);
+    app.assets.markReady(
+      texture,
+      createTextureAsset({
+        label: "ThreeFamilyMatcap",
+        dimension: "2d",
+        width: 2,
+        height: 2,
+        format: "rgba8unorm",
+        colorSpace: "linear",
+        semantic: "data",
+        usage: ["sampled", "copy-dst"],
+        sourceData: {
+          bytes: new Uint8Array([
+            255, 220, 245, 255, 190, 230, 255, 255, 96, 128, 184, 255, 32, 48,
+            72, 255,
+          ]),
+          bytesPerRow: 8,
+          rowsPerImage: 2,
+        },
+      }),
+    );
+    app.assets.register(sampler);
+    app.assets.markReady(
+      sampler,
+      createSamplerAsset({ label: "ThreeFamilyMatcapSampler" }),
+    );
+
+    const matcapMaterial = assets.materials.matcap.add(
+      createMatcapMaterialAsset({
+        label: "Three Family Matcap",
+        matcapTexture: { texture, sampler },
+      }),
+    );
+
+    app.spawn(
+      withTransform({ translation: [0, 0, 5] }),
+      withCamera({ priority: 0, layerMask: 1 }),
+    );
+    app.spawn(
+      withTransform({ translation: [-0.8, 0, 0] }),
+      withMesh(mesh),
+      withMaterial(unlitMaterial),
+      withRenderLayer(1),
+      withVisibility(true),
+    );
+    app.spawn(
+      withTransform(),
+      withMesh(mesh),
+      withMaterial(standardMaterial),
+      withRenderLayer(1),
+      withVisibility(true),
+    );
+    app.spawn(
+      withTransform({ translation: [0.8, 0, 0] }),
+      withMesh(mesh),
+      withMaterial(matcapMaterial),
+      withRenderLayer(1),
+      withVisibility(true),
+    );
+    app.spawn(
+      withLight({
+        kind: LightKind.Ambient,
+        intensity: 0.2,
+        layerMask: 1,
+      }),
+    );
+    app.spawn(
+      withTransform(),
+      withLight({
+        kind: LightKind.Directional,
+        intensity: 1.5,
+        layerMask: 1,
+      }),
+    );
+
+    const frame = await app.stepAndRender(1 / 60, 1, 38);
+
+    expect(frame.ok).toBe(true);
+    expect(frame.counts).toMatchObject({
+      meshDraws: 3,
+      drawPackages: 3,
+      drawCalls: 3,
+      diagnostics: 0,
+    });
+    expect(frame.resourceReuse).toMatchObject({
+      pipelineMisses: 3,
+      meshBuffersCreated: 3,
+      materialBuffersCreated: 3,
+      textureResourcesCreated: 1,
+      samplerResourcesCreated: 1,
+      bindGroupsCreated: 10,
+      lightBuffersCreated: 1,
+    });
+    expect(events.filter((event) => event === "pass:pipeline")).toHaveLength(3);
+    expect(events.filter((event) => event === "pass:bind:2")).toHaveLength(3);
+    expect(events).toContain("pass:bind:3");
+    expect(events).toContain("queue:submit:1");
+
+    const firstResourceEvents = resourceEventCounts(events);
+    const secondFrame = await app.stepAndRender(1 / 60, 2, 39);
+
+    expect(secondFrame.ok).toBe(true);
+    expect(secondFrame.resourceReuse).toMatchObject({
+      pipelineHits: 3,
+      pipelineMisses: 0,
+      meshBuffersReused: 3,
+      materialBuffersReused: 3,
+      textureResourcesReused: 1,
+      samplerResourcesReused: 1,
+      bindGroupsReused: 10,
+      lightBuffersReused: 1,
+      dynamicBufferWrites: 8,
+    });
+    expect(resourceEventCounts(events)).toEqual(firstResourceEvents);
+  });
+
+  it("blocks three-family app rendering when StandardMaterial lights are missing", async () => {
+    const events: string[] = [];
+    const { canvas, environment } = webGpuHarness(events);
+    const created = await createWebGpuApp({
+      canvas,
+      environment,
+      worldOptions: { entityCapacity: 8 },
+    });
+
+    expect(created.ok).toBe(true);
+
+    if (!created.ok) {
+      return;
+    }
+
+    const app = created.app;
+    const assets = createRenderAssetCollections({ registry: app.assets });
+    const mesh = assets.meshes.add(
+      createBoxMeshAsset({ label: "ThreeFamilyBlockedCube" }),
+    );
+    const unlitMaterial = assets.materials.unlit.add(
+      createUnlitMaterialAsset({ label: "Three Family Ready Unlit" }),
+    );
+    const standardMaterial = assets.materials.standard.add(
+      createStandardMaterialAsset({ label: "Three Family No Lights" }),
+    );
+    const texture = createTextureHandle("three-family-ready-matcap");
+    const sampler = createSamplerHandle("three-family-ready-matcap-sampler");
+
+    app.assets.register(texture);
+    app.assets.markReady(
+      texture,
+      createTextureAsset({
+        label: "ThreeFamilyReadyMatcap",
+        dimension: "2d",
+        width: 2,
+        height: 2,
+        format: "rgba8unorm",
+        colorSpace: "linear",
+        semantic: "data",
+        usage: ["sampled", "copy-dst"],
+        sourceData: {
+          bytes: new Uint8Array([
+            255, 220, 245, 255, 190, 230, 255, 255, 96, 128, 184, 255, 32, 48,
+            72, 255,
+          ]),
+          bytesPerRow: 8,
+          rowsPerImage: 2,
+        },
+      }),
+    );
+    app.assets.register(sampler);
+    app.assets.markReady(sampler, createSamplerAsset());
+
+    const matcapMaterial = assets.materials.matcap.add(
+      createMatcapMaterialAsset({
+        label: "Three Family Ready Matcap",
+        matcapTexture: { texture, sampler },
+      }),
+    );
+
+    app.spawn(
+      withTransform({ translation: [0, 0, 5] }),
+      withCamera({ priority: 0, layerMask: 1 }),
+    );
+    app.spawn(
+      withTransform({ translation: [-0.8, 0, 0] }),
+      withMesh(mesh),
+      withMaterial(unlitMaterial),
+      withRenderLayer(1),
+      withVisibility(true),
+    );
+    app.spawn(
+      withTransform(),
+      withMesh(mesh),
+      withMaterial(standardMaterial),
+      withRenderLayer(1),
+      withVisibility(true),
+    );
+    app.spawn(
+      withTransform({ translation: [0.8, 0, 0] }),
+      withMesh(mesh),
+      withMaterial(matcapMaterial),
+      withRenderLayer(1),
+      withVisibility(true),
+    );
+
+    const frame = await app.stepAndRender(1 / 60, 1, 40);
+    const diagnosticCodes = frame.diagnostics.map((diagnostic) =>
+      typeof diagnostic === "object" &&
+      diagnostic !== null &&
+      "code" in diagnostic
+        ? diagnostic.code
+        : null,
+    );
+
+    expect(frame.ok).toBe(false);
+    expect(frame.counts).toMatchObject({
+      meshDraws: 3,
+      drawCalls: 0,
+    });
+    expect(diagnosticCodes).toContain("standardFrameResources.missingLights");
     expect(events).not.toContain("queue:submit:1");
   });
 

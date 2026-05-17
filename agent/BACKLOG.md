@@ -59,9 +59,11 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start with `task-0602`. The multi-resource app rendering boundary has been
-audited after mixed unlit/Matcap support, and StandardMaterial is the next
-blocker before the material showcase can move onto built-in material paths.
+Start with `task-0610`. The material showcase now proves the ECS-authored
+app-facade path for unlit, StandardMaterial, and MatcapMaterial in one browser
+example, StandardMaterial source texture dependencies now have app/browser
+diagnostics, and DebugNormalMaterial has renderer-independent preparation
+metadata.
 
 ## Near-Term Proof Point Track
 
@@ -78,12 +80,11 @@ Target proof point:
 
 Remaining automation priority order:
 
-1. `task-0602` — render StandardMaterial in mixed app resource sets.
-2. `task-0603` — add mixed material-family browser diagnostics coverage.
-3. `task-0583` — promote the material showcase onto built-in material paths
-   once app support exists.
-4. `task-0604` — support textured unlit in mixed unlit/Matcap app frames.
-5. `task-0605` — audit material showcase app-path promotion.
+1. `task-0610` — document the app facade as the default example path.
+2. `task-0611` — plan the first renderer-independent GLB container slice.
+3. `task-0612` — audit post-showcase material route specialization.
+4. `task-0613` — add package-boundary import guard coverage.
+5. `task-0614` — add DebugNormalMaterial WebGPU shader metadata contracts.
 
 Defer allocation-only cleanup and metadata-only shader-contract tasks unless
 they are a direct blocker for this track.
@@ -92,118 +93,116 @@ they are a direct blocker for this track.
 
 ### Proof Point Critical Path
 
+### task-0610 — Document app facade as the default example path
+
+Category: `docs-tooling`
+Package/write-scope: `README.md`, `docs/ARCHITECTURE.md`, and example-facing
+documentation only.
+Reference anchor: `docs/NORTH_STAR.md`, `docs/MEDIUM_LONG_TERM_GOALS.md`, and
+the app-facade examples (`spinning-cube`, `matcap-app`,
+`materials-showcase`).
+
+Update project-facing docs so new work starts from ECS-authored app-facade
+examples instead of direct WebGPU demo snippets.
+
+Acceptance criteria:
+
+- Docs identify `createWebGpuApp`, typed assets, ECS components, and systems as
+  the preferred browser example shape.
+- Direct WebGPU helpers are described as backend/test surfaces, not the default
+  user API.
+- The docs preserve the package-boundary rule that `@aperture-engine/core` stays
+  headless-safe and WebGPU is imported explicitly.
+- Documentation changes do not add new architectural commitments beyond
+  existing decisions.
+
+### task-0611 — Plan the first renderer-independent GLB container slice
+
+Category: `docs-tooling`
+Package/write-scope: `docs/research`, `agent/BACKLOG.md`, and no runtime code
+unless a tiny type stub is needed.
+Reference anchor: `docs/MEDIUM_LONG_TERM_GOALS.md`, glTF 2.0 GLB container
+structure, and local reference engine loader patterns.
+
+Create a concrete implementation plan for a narrow GLB-only loader foundation
+that preserves typed source assets and structured diagnostics.
+
+Acceptance criteria:
+
+- The research note defines the first GLB slice: header/chunk validation, JSON
+  chunk extraction, binary chunk bounds, and JSON-safe diagnostics.
+- The plan explicitly excludes OBJ/FBX/STL/USD and advanced glTF extensions.
+- Follow-up backlog tasks are added for parser tests and typed asset mapping if
+  needed.
+- No renderer-owned GPU resources or browser APIs are introduced into
+  simulation/render packages.
+
 ### Audit / Refactor
 
-### Runtime / Diagnostics
-
-### task-0602 — Render StandardMaterial in mixed app resource sets
-
-Category: `runtime-orchestration`
-Package/write-scope: `packages/webgpu/src/webgpu/app.ts`, StandardMaterial
-frame-resource/app tests, and app diagnostics.
-Reference anchor: Bevy material routing/preparation patterns, local
-StandardMaterial, unlit, and Matcap frame-resource helpers, and `task-0598`.
-
-Extend app-facade multi-resource rendering so StandardMaterial can participate
-in mixed material-family frames after the unlit/Matcap route exists.
-
-Acceptance criteria:
-
-- A StandardMaterial draw and either an unlit or Matcap draw can render in one
-  app frame when all source dependencies are ready.
-- Pipeline and bind group routing selects the correct material family per draw
-  without reordering snapshot draw order.
-- StandardMaterial readiness/resource failures remain diagnostic and do not
-  submit partial frames.
-- Tests cover success, a missing StandardMaterial dependency/resource, and
-  resource reuse across frames.
-
-### task-0603 — Add mixed material-family browser diagnostics coverage
-
-Category: `runtime-orchestration`
-Package/write-scope: `examples/app-diagnostics.*`, `test/e2e`, and app report
-assertions.
-Reference anchor: Bevy material prepare/retry diagnostics, local app report JSON
-helpers, and mixed material-family app rendering from `task-0598`/`task-0602`.
-
-Add browser-facing coverage for mixed material-family success and failure
-reports once the app facade can render multiple built-in material families.
-
-Acceptance criteria:
-
-- The app diagnostics example includes a mixed material-family route that fails
-  because of a missing texture/sampler dependency, not because mixed families
-  are unsupported.
-- Browser status JSON identifies the failing material family and resource key
-  while keeping `submitted` false.
-- Playwright covers the JSON-safe failure report and a mixed-family success
-  route with non-background pixels.
-
-### task-0583 — Promote material showcase onto built-in material paths
-
-Category: `runtime-orchestration`
-Package/write-scope: `examples/materials-showcase.*`, app facade examples, and
-Playwright tests after multi-material app rendering and matcap WebGPU support
-exist.
-Reference anchor: Built-in unlit/standard/matcap shader contracts, Bevy
-material routing, and `docs/research/MATERIAL_SHOWCASE_BOUNDARY_AUDIT_2026_05_16.md`.
-
-Replace or supplement the direct WebGPU showcase shader with a browser showcase
-that exercises Aperture's built-in material/app-facade path for unlit,
-StandardMaterial, and MatcapMaterial.
-
-Acceptance criteria:
-
-- The showcase uses built-in material shader/resource contracts rather than a
-  local demo-only PBR/matcap shader for supported materials.
-- The example still shows three spinning cubes side by side.
-- Playwright verifies the three material families render and the frame status
-  is JSON-safe.
-- Any remaining direct WebGPU fallback is explicitly labeled as temporary test
-  coverage, not the preferred app-facing material path.
-
-### task-0604 — Support textured unlit in mixed unlit/Matcap app frames
-
-Category: `runtime-orchestration`
-Package/write-scope: `packages/webgpu/src/webgpu/app.ts`, app resource tests,
-and texture dependency diagnostics.
-Reference anchor: Bevy material prepare/dependency retry patterns, local
-textured unlit frame resources, local Matcap frame resources, and `task-0598`.
-
-Extend the mixed unlit/Matcap app path so the unlit side may use a base-color
-texture and sampler instead of being limited to factor-only materials.
-
-Acceptance criteria:
-
-- One textured unlit draw and one Matcap draw can render in one app frame when
-  all texture/sampler dependencies are ready.
-- Distinct unlit and Matcap texture/sampler resources route to the correct
-  group-2 material bind group per draw.
-- A missing unlit or Matcap texture/sampler dependency blocks the whole app
-  frame without submission.
-- Tests cover success, missing dependency diagnostics, and texture/sampler
-  resource reuse.
-
-### task-0605 — Audit material showcase app-path promotion
+### task-0612 — Audit post-showcase material route specialization
 
 Category: `audit-refactor`
 Package/write-scope: docs/research audit note, backlog/handoff updates, and
 small corrective refactors if needed.
 Reference anchor: `docs/NORTH_STAR.md`, `docs/ARCHITECTURE.md`,
-`docs/DECISIONS.md`, built-in material contracts, and the promoted material
-showcase implementation.
+`docs/DECISIONS.md`, Bevy material route/prepare patterns, and
+`packages/webgpu/src/webgpu/app.ts`.
 
-Audit the material showcase after it moves from direct WebGPU demo code onto the
-built-in material/app-facade path.
+Audit the now-working mixed material app routes before expanding StandardMaterial
+textures or DebugNormalMaterial rendering.
 
 Acceptance criteria:
 
-- Audit confirms the showcase uses ECS-authored assets and app-facade material
-  routing rather than a hidden scene graph or demo-only material pipeline.
-- Audit checks app status JSON, Playwright coverage, and package dependency
-  direction.
-- Any drift is captured as small follow-up backlog tasks or corrected in scope.
-- The handoff records reference files/patterns inspected.
+- Audit checks whether the current pairwise/three-family app route helpers are
+  still a safe narrow bridge or need a generic material-family queue task.
+- Audit verifies pipeline-scoped bind groups, material resource-key resolution,
+  and resource reuse reports remain JSON-safe.
+- Any package-boundary or hidden-scene-graph drift is corrected or captured as a
+  small follow-up.
+- Handoff records the inspected reference files and recommended next task.
+
+### task-0613 — Add package-boundary import guard coverage
+
+Category: `docs-tooling`
+Package/write-scope: architecture test or script plus targeted test coverage.
+Reference anchor: `docs/ARCHITECTURE.md`, `docs/DECISIONS.md`, and current
+workspace package dependency manifests.
+
+Add automated coverage for the package-boundary invariant that WebGPU/browser
+backend APIs stay out of headless packages.
+
+Acceptance criteria:
+
+- The guard fails if `packages/simulation`, `packages/render`,
+  `packages/runtime`, or `packages/core` imports `@aperture-engine/webgpu` or
+  direct browser WebGPU globals in source files.
+- The guard allows `packages/webgpu`, browser examples, and WebGPU tests to use
+  backend APIs.
+- The check runs under the existing test/check workflow without adding a large
+  dependency.
+- Failure output names the offending file and forbidden import/global.
+
+### task-0614 — Add DebugNormalMaterial WebGPU shader metadata contracts
+
+Category: `webgpu-render`
+Package/write-scope: `packages/webgpu/src/webgpu`, public WebGPU exports, and
+targeted shader/descriptor tests only.
+Reference anchor: local unlit/Matcap shader metadata contracts,
+`references/engine` debug/normal visualization shader patterns, and
+`references/three.js` normal material shader behavior.
+
+Define the WebGPU-side shader metadata and pipeline descriptor plan for
+DebugNormalMaterial without activating app-facade rendering.
+
+Acceptance criteria:
+
+- DebugNormalMaterial has WGSL shader metadata declaring view/world/material
+  binding requirements appropriate for normal visualization.
+- Pipeline descriptor planning uses the renderer-independent material pipeline
+  key and rejects unsupported topology/layout inputs with JSON-safe diagnostics.
+- No frame-resource creation, bind group creation, or browser example activation
+  is introduced in this task.
+- Tests cover shader metadata, descriptor planning, and public exports.
 
 ## Post-Unlit E2E Verification Targets
 

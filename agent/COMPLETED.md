@@ -15,6 +15,170 @@ Summary:
 - Validation run.
 - Follow-up tasks added.
 
+## task-0609 — Add DebugNormalMaterial source/preparation contracts
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added `createDebugNormalMaterialPreparationPlan()` for renderer-independent
+  DebugNormalMaterial preparation metadata.
+- The plan includes material key, label, material kind, render state, stable
+  pipeline key input, and JSON-safe dependency readiness with no WebGPU/browser
+  objects.
+- Preparation rejects non-debug-normal materials and incompatible render states
+  using the existing material validation rules.
+- Important files:
+  `packages/render/src/materials/debug-normal-preparation.ts`,
+  `packages/render/src/materials/index.ts`,
+  `test/materials/debug-normal-preparation.test.ts`.
+- Validation run: focused DebugNormal/material tests and
+  `pnpm exec tsc --noEmit -p tsconfig.test.json` passed.
+- Follow-up task added: `task-0614`.
+
+## task-0608 — Add StandardMaterial texture dependency app diagnostics
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added app-facade coverage proving StandardMaterial base-color texture/sampler
+  source dependencies block mixed-material app rendering before command
+  submission.
+- Extended the app diagnostics browser example with a
+  `standard-material-dependencies` scenario that publishes failed material kind,
+  failed dependency fields, failed resource keys, and JSON-safe report data.
+- Important files: `examples/app-diagnostics.js`,
+  `test/e2e/app-diagnostics.spec.ts`, `test/webgpu/webgpu-app.test.ts`.
+- Validation run: focused WebGPU app tests, focused Playwright app diagnostics
+  test, and `pnpm run check` passed.
+- Follow-up task added: `task-0613`.
+
+## task-0605 — Audit material showcase app-path promotion
+
+Completed: 2026-05-16
+
+Summary:
+
+- Audited the promoted material showcase against the North Star, architecture
+  package boundaries, built-in material contracts, and Bevy material/render-asset
+  patterns.
+- Confirmed the showcase now uses ECS-authored entities/components, typed source
+  assets, and `createWebGpuApp`, with WebGPU resources remaining in
+  `@aperture-engine/webgpu`.
+- Tightened the Playwright material-region sampler to the app-facade cube
+  positions after the promotion changed the CSS-space layout.
+- Recorded the audit in
+  `docs/research/MATERIAL_SHOWCASE_APP_PATH_AUDIT_2026_05_16.md`.
+- Important files:
+  `docs/research/MATERIAL_SHOWCASE_APP_PATH_AUDIT_2026_05_16.md`,
+  `test/e2e/materials-showcase.spec.ts`.
+- Validation run: focused app tests, focused browser diagnostics/materials
+  showcase tests, `pnpm run check`, and `pnpm run test:e2e` passed.
+- Follow-up tasks added: `task-0608`, `task-0609`, `task-0610`, `task-0611`,
+  and `task-0612`.
+
+## task-0583 — Promote material showcase onto built-in material paths
+
+Completed: 2026-05-16
+
+Summary:
+
+- Replaced the direct WebGPU material showcase shader with an app-facade example
+  that renders unlit, StandardMaterial, and MatcapMaterial cubes from
+  ECS-authored mesh/material entities.
+- The example now creates typed mesh/material/texture/sampler source assets,
+  registers `SpinSystem`, uses ECS cameras/lights, and publishes JSON-safe app
+  render reports.
+- Playwright verifies all three material families, draw counts, animation, and
+  visible non-clear material regions.
+- Important files: `examples/materials-showcase.html`,
+  `examples/materials-showcase.js`, `test/e2e/materials-showcase.spec.ts`.
+- Validation run: `pnpm run check`, focused Playwright material showcase test,
+  and full `pnpm run test:e2e` passed.
+
+## task-0607 — Render all three built-in material families in one app frame
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added a three-family app-facade route that renders one unlit,
+  one StandardMaterial, and one MatcapMaterial draw in one shared-mesh frame.
+- Shared view/world bind groups are now scoped by pipeline key for mixed-family
+  frames so render-frame resource lookup does not reuse the wrong pipeline's
+  bind group.
+- Tests cover successful three-family rendering, missing Standard lights, and
+  resource reuse across frames.
+- Important files: `packages/webgpu/src/webgpu/app.ts`,
+  `test/webgpu/webgpu-app.test.ts`.
+- Validation run: focused WebGPU app tests, `pnpm run check`, focused
+  Playwright diagnostics/materials tests, and full `pnpm run test:e2e` passed.
+
+## task-0606 — Audit mixed material app routing
+
+Completed: 2026-05-16
+
+Summary:
+
+- Audited mixed built-in app material routing after StandardMaterial,
+  MatcapMaterial, and textured UnlitMaterial routes were added.
+- Confirmed source assets remain ECS/render-owned inputs while GPU resources,
+  pipelines, bind groups, and submission stay in `@aperture-engine/webgpu`.
+- Captured the pipeline-scoped shared bind group correction and follow-up
+  showcase audit direction.
+- Important files:
+  `docs/research/MIXED_MATERIAL_APP_ROUTING_AUDIT_2026_05_16.md`,
+  `packages/webgpu/src/webgpu/app.ts`.
+- Validation run: focused WebGPU app tests, focused Playwright app diagnostics
+  test, and `pnpm run check` passed.
+
+## task-0604 — Support textured unlit in mixed unlit/Matcap frames
+
+Completed: 2026-05-16
+
+Summary:
+
+- Relaxed the mixed unlit/Matcap route so textured unlit materials can
+  participate when their texture and sampler source dependencies are ready.
+- Browser diagnostics now cover blocked textured unlit dependencies and a
+  successful mixed textured-unlit/Matcap frame.
+- Important files: `packages/webgpu/src/webgpu/app.ts`,
+  `examples/app-diagnostics.js`, `test/e2e/app-diagnostics.spec.ts`,
+  `test/webgpu/webgpu-app.test.ts`.
+- Validation run: focused WebGPU app tests, focused Playwright app diagnostics
+  test, `pnpm run check`, and full `pnpm run test:e2e` passed.
+
+## task-0603 — Add app diagnostics coverage for mixed material-family rendering
+
+Completed: 2026-05-16
+
+Summary:
+
+- Updated the app diagnostics browser example from unsupported mixed-family
+  routing to material dependency readiness failures and success paths.
+- Playwright verifies JSON-safe diagnostics for blocked mixed material
+  dependencies and verifies successful mixed material pixels.
+- Important files: `examples/app-diagnostics.js`,
+  `test/e2e/app-diagnostics.spec.ts`.
+- Validation run: focused Playwright app diagnostics test, `pnpm run check`,
+  and full `pnpm run test:e2e` passed.
+
+## task-0602 — Render StandardMaterial in mixed app resource sets
+
+Completed: 2026-05-16
+
+Summary:
+
+- Added mixed StandardMaterial app resource routes for Standard plus unlit and
+  Standard plus Matcap shared-mesh frames.
+- StandardMaterial frames now fail clearly without required light resources and
+  reuse prepared mesh/material resources across frames.
+- Important files: `packages/webgpu/src/webgpu/app.ts`,
+  `test/webgpu/webgpu-app.test.ts`.
+- Validation run: focused WebGPU app tests, `pnpm run check`, focused
+  Playwright diagnostics/materials tests, and full `pnpm run test:e2e` passed.
+
 ## task-0599 — Audit multi-resource app rendering boundaries
 
 Completed: 2026-05-16

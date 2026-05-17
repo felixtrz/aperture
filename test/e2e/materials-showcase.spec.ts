@@ -74,9 +74,9 @@ test("Playwright shows three spinning material showcase cubes", async ({
 function expectVisibleMaterialRegions(screenshot: Buffer): void {
   const clear = { r: 4, g: 5, b: 7, a: 255 };
   const samples = {
-    unlit: strongestRegionSample(screenshot, 0.16, 0.34, 0.35, 0.62),
-    standard: strongestRegionSample(screenshot, 0.39, 0.33, 0.61, 0.62),
-    matcap: strongestRegionSample(screenshot, 0.65, 0.33, 0.86, 0.62),
+    unlit: strongestRegionSample(screenshot, 0.28, 0.43, 0.41, 0.65),
+    standard: strongestRegionSample(screenshot, 0.43, 0.43, 0.57, 0.65),
+    matcap: strongestRegionSample(screenshot, 0.57, 0.43, 0.73, 0.65),
   };
 
   for (const [name, sample] of Object.entries(samples)) {

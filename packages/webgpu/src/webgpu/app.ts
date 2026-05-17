@@ -65,6 +65,7 @@ import type { StandardMaterialBindGroupLayoutResource } from "./standard-bind-gr
 import {
   createStandardFrameGpuResources,
   type CreateStandardFrameGpuResourcesResult,
+  type StandardFrameGpuResources,
 } from "./standard-frame-resources.js";
 import {
   createStandardRenderPipelineResource,
@@ -229,7 +230,9 @@ export type WebGpuAppFrameResourcesResult =
   | CreateMultiMaterialUnlitFrameGpuResourcesResult
   | CreateMatcapFrameGpuResourcesResult
   | CreateStandardFrameGpuResourcesResult
-  | CreateMixedUnlitMatcapFrameResourcesResult;
+  | CreateMixedUnlitMatcapFrameResourcesResult
+  | CreateMixedStandardFrameResourcesResult
+  | CreateMixedAllBuiltInFrameResourcesResult;
 
 type WebGpuAppMaterialKind = "unlit" | "matcap" | "standard";
 
@@ -315,6 +318,57 @@ interface MixedUnlitMatcapAppResourceSet {
   };
 }
 
+type MixedStandardOtherAppResourceSet =
+  | {
+      readonly kind: "unlit";
+      readonly draw: RenderSnapshot["meshDraws"][number];
+      readonly material: UnlitMaterialAsset;
+      readonly materialKey: string;
+      readonly sourceMaterialKey: string;
+    }
+  | {
+      readonly kind: "matcap";
+      readonly draw: RenderSnapshot["meshDraws"][number];
+      readonly material: MatcapMaterialAsset;
+      readonly materialKey: string;
+      readonly sourceMaterialKey: string;
+    };
+
+interface MixedStandardAppResourceSet {
+  readonly mesh: MeshAsset;
+  readonly meshKey: string;
+  readonly standard: {
+    readonly draw: RenderSnapshot["meshDraws"][number];
+    readonly material: StandardMaterialAsset;
+    readonly materialKey: string;
+    readonly sourceMaterialKey: string;
+  };
+  readonly other: MixedStandardOtherAppResourceSet;
+}
+
+interface MixedAllBuiltInAppResourceSet {
+  readonly mesh: MeshAsset;
+  readonly meshKey: string;
+  readonly unlit: {
+    readonly draw: RenderSnapshot["meshDraws"][number];
+    readonly material: UnlitMaterialAsset;
+    readonly materialKey: string;
+    readonly sourceMaterialKey: string;
+  };
+  readonly matcap: {
+    readonly draw: RenderSnapshot["meshDraws"][number];
+    readonly material: MatcapMaterialAsset;
+    readonly materialKey: string;
+    readonly sourceMaterialKey: string;
+  };
+  readonly standard: {
+    readonly draw: RenderSnapshot["meshDraws"][number];
+    readonly material: StandardMaterialAsset;
+    readonly materialKey: string;
+    readonly sourceMaterialKey: string;
+  };
+}
+
 interface MixedUnlitMatcapFrameResources {
   readonly mesh: UnlitFrameGpuResources["mesh"];
   readonly viewUniform: UnlitFrameGpuResources["viewUniform"];
@@ -327,6 +381,38 @@ interface MixedUnlitMatcapFrameResources {
 interface CreateMixedUnlitMatcapFrameResourcesResult {
   readonly valid: boolean;
   readonly resources: MixedUnlitMatcapFrameResources | null;
+  readonly diagnostics: readonly unknown[];
+}
+
+interface MixedStandardFrameResources {
+  readonly mesh: UnlitFrameGpuResources["mesh"];
+  readonly viewUniform: UnlitFrameGpuResources["viewUniform"];
+  readonly worldTransforms: UnlitFrameGpuResources["worldTransforms"];
+  readonly standard: StandardFrameGpuResources;
+  readonly unlit?: UnlitFrameGpuResources;
+  readonly matcap?: MatcapFrameGpuResources;
+  readonly bindGroups: readonly UnlitFrameGpuResources["bindGroups"][number][];
+}
+
+interface CreateMixedStandardFrameResourcesResult {
+  readonly valid: boolean;
+  readonly resources: MixedStandardFrameResources | null;
+  readonly diagnostics: readonly unknown[];
+}
+
+interface MixedAllBuiltInFrameResources {
+  readonly mesh: UnlitFrameGpuResources["mesh"];
+  readonly viewUniform: UnlitFrameGpuResources["viewUniform"];
+  readonly worldTransforms: UnlitFrameGpuResources["worldTransforms"];
+  readonly unlit: UnlitFrameGpuResources;
+  readonly matcap: MatcapFrameGpuResources;
+  readonly standard: StandardFrameGpuResources;
+  readonly bindGroups: readonly UnlitFrameGpuResources["bindGroups"][number][];
+}
+
+interface CreateMixedAllBuiltInFrameResourcesResult {
+  readonly valid: boolean;
+  readonly resources: MixedAllBuiltInFrameResources | null;
   readonly diagnostics: readonly unknown[];
 }
 
@@ -1479,7 +1565,7 @@ function collectMixedUnlitMatcapAppResourceSet(options: {
       return null;
     }
 
-    if (entry.asset.kind === "unlit" && entry.asset.baseColorTexture === null) {
+    if (entry.asset.kind === "unlit") {
       if (unlit !== null) {
         return null;
       }
@@ -1529,6 +1615,237 @@ function collectMixedUnlitMatcapAppResourceSet(options: {
     meshKey: sourceAssetCacheKey(options.firstDraw.mesh, meshEntry.version),
     unlit,
     matcap,
+  };
+}
+
+function collectMixedStandardAppResourceSet(options: {
+  readonly app: WebGpuApp;
+  readonly snapshot: RenderSnapshot;
+  readonly plan: WebGpuAppDrawResourceSetPlan;
+  readonly firstDraw: RenderSnapshot["meshDraws"][number];
+}): MixedStandardAppResourceSet | null {
+  if (options.plan.sets.length !== 2) {
+    return null;
+  }
+
+  const meshKey = options.plan.sets[0]?.meshKey;
+
+  if (meshKey === undefined) {
+    return null;
+  }
+
+  let standard: MixedStandardAppResourceSet["standard"] | null = null;
+  let other: MixedStandardOtherAppResourceSet | null = null;
+
+  for (const set of options.plan.sets) {
+    if (set.meshKey !== meshKey) {
+      return null;
+    }
+
+    const firstDrawIndex = set.drawIndices[0];
+    const draw =
+      firstDrawIndex === undefined
+        ? undefined
+        : options.snapshot.meshDraws[firstDrawIndex];
+
+    if (draw === undefined) {
+      return null;
+    }
+
+    const entry = options.app.assets.get<"material", MaterialAsset>(
+      draw.material,
+    );
+
+    if (
+      entry === undefined ||
+      entry.status !== "ready" ||
+      entry.asset === null
+    ) {
+      return null;
+    }
+
+    if (entry.asset.kind === "standard") {
+      if (standard !== null) {
+        return null;
+      }
+
+      standard = {
+        draw,
+        material: entry.asset,
+        materialKey: sourceAssetCacheKey(draw.material, entry.version),
+        sourceMaterialKey: assetHandleKey(draw.material),
+      };
+      continue;
+    }
+
+    if (entry.asset.kind === "unlit" && entry.asset.baseColorTexture === null) {
+      if (other !== null) {
+        return null;
+      }
+
+      other = {
+        kind: "unlit",
+        draw,
+        material: entry.asset,
+        materialKey: sourceAssetCacheKey(draw.material, entry.version),
+        sourceMaterialKey: assetHandleKey(draw.material),
+      };
+      continue;
+    }
+
+    if (entry.asset.kind === "matcap") {
+      if (other !== null) {
+        return null;
+      }
+
+      other = {
+        kind: "matcap",
+        draw,
+        material: entry.asset,
+        materialKey: sourceAssetCacheKey(draw.material, entry.version),
+        sourceMaterialKey: assetHandleKey(draw.material),
+      };
+      continue;
+    }
+
+    return null;
+  }
+
+  const meshEntry = options.app.assets.get<"mesh", MeshAsset>(
+    options.firstDraw.mesh,
+  );
+
+  if (
+    meshEntry === undefined ||
+    meshEntry.status !== "ready" ||
+    meshEntry.asset === null ||
+    standard === null ||
+    other === null
+  ) {
+    return null;
+  }
+
+  return {
+    mesh: meshEntry.asset,
+    meshKey: sourceAssetCacheKey(options.firstDraw.mesh, meshEntry.version),
+    standard,
+    other,
+  };
+}
+
+function collectMixedAllBuiltInAppResourceSet(options: {
+  readonly app: WebGpuApp;
+  readonly snapshot: RenderSnapshot;
+  readonly plan: WebGpuAppDrawResourceSetPlan;
+  readonly firstDraw: RenderSnapshot["meshDraws"][number];
+}): MixedAllBuiltInAppResourceSet | null {
+  if (options.plan.sets.length !== 3) {
+    return null;
+  }
+
+  const meshKey = options.plan.sets[0]?.meshKey;
+
+  if (meshKey === undefined) {
+    return null;
+  }
+
+  let unlit: MixedAllBuiltInAppResourceSet["unlit"] | null = null;
+  let matcap: MixedAllBuiltInAppResourceSet["matcap"] | null = null;
+  let standard: MixedAllBuiltInAppResourceSet["standard"] | null = null;
+
+  for (const set of options.plan.sets) {
+    if (set.meshKey !== meshKey) {
+      return null;
+    }
+
+    const firstDrawIndex = set.drawIndices[0];
+    const draw =
+      firstDrawIndex === undefined
+        ? undefined
+        : options.snapshot.meshDraws[firstDrawIndex];
+
+    if (draw === undefined) {
+      return null;
+    }
+
+    const entry = options.app.assets.get<"material", MaterialAsset>(
+      draw.material,
+    );
+
+    if (
+      entry === undefined ||
+      entry.status !== "ready" ||
+      entry.asset === null
+    ) {
+      return null;
+    }
+
+    switch (entry.asset.kind) {
+      case "unlit": {
+        if (unlit !== null) {
+          return null;
+        }
+
+        unlit = {
+          draw,
+          material: entry.asset,
+          materialKey: sourceAssetCacheKey(draw.material, entry.version),
+          sourceMaterialKey: assetHandleKey(draw.material),
+        };
+        break;
+      }
+      case "matcap": {
+        if (matcap !== null) {
+          return null;
+        }
+
+        matcap = {
+          draw,
+          material: entry.asset,
+          materialKey: sourceAssetCacheKey(draw.material, entry.version),
+          sourceMaterialKey: assetHandleKey(draw.material),
+        };
+        break;
+      }
+      case "standard": {
+        if (standard !== null) {
+          return null;
+        }
+
+        standard = {
+          draw,
+          material: entry.asset,
+          materialKey: sourceAssetCacheKey(draw.material, entry.version),
+          sourceMaterialKey: assetHandleKey(draw.material),
+        };
+        break;
+      }
+      default:
+        return null;
+    }
+  }
+
+  const meshEntry = options.app.assets.get<"mesh", MeshAsset>(
+    options.firstDraw.mesh,
+  );
+
+  if (
+    meshEntry === undefined ||
+    meshEntry.status !== "ready" ||
+    meshEntry.asset === null ||
+    unlit === null ||
+    matcap === null ||
+    standard === null
+  ) {
+    return null;
+  }
+
+  return {
+    mesh: meshEntry.asset,
+    meshKey: sourceAssetCacheKey(options.firstDraw.mesh, meshEntry.version),
+    unlit,
+    matcap,
+    standard,
   };
 }
 
@@ -1717,8 +2034,14 @@ async function renderMixedUnlitMatcapWebGpuAppFrame(options: {
       unlit: unlitResources.resources,
       matcap: matcapResources.resources,
       bindGroups: [
-        ...unlitResources.resources.bindGroups,
-        matcapResources.resources.materialBindGroup,
+        ...pipelineScopedBindGroups(
+          unlitResources.resources.bindGroups,
+          options.resourceSet.unlit.draw.batchKey.pipelineKey,
+        ),
+        ...pipelineScopedBindGroups(
+          matcapResources.resources.bindGroups,
+          options.resourceSet.matcap.draw.batchKey.pipelineKey,
+        ),
       ],
     },
     diagnostics: [],
@@ -1827,6 +2150,691 @@ async function renderMixedUnlitMatcapWebGpuAppFrame(options: {
   });
 }
 
+async function renderMixedStandardWebGpuAppFrame(options: {
+  readonly app: WebGpuApp;
+  readonly cache: WebGpuAppResourceCache;
+  readonly snapshot: RenderSnapshot;
+  readonly firstDraw: RenderSnapshot["meshDraws"][number];
+  readonly resourceSet: MixedStandardAppResourceSet;
+  readonly reuse: WebGpuAppResourceReuseReport;
+  readonly clearColor?: readonly number[];
+  readonly label?: string;
+}): Promise<WebGpuAppRenderReport> {
+  const standardPipeline = await getOrCreateWebGpuAppPipeline({
+    app: options.app,
+    cache: options.cache,
+    reuse: options.reuse,
+    kind: "standard",
+    pipelineKey: options.resourceSet.standard.draw.batchKey.pipelineKey,
+    batchKey: options.resourceSet.standard.draw.batchKey,
+  });
+  const otherPipeline = await getOrCreateWebGpuAppPipeline({
+    app: options.app,
+    cache: options.cache,
+    reuse: options.reuse,
+    kind: options.resourceSet.other.kind,
+    pipelineKey: options.resourceSet.other.draw.batchKey.pipelineKey,
+    batchKey: options.resourceSet.other.draw.batchKey,
+  });
+
+  if (
+    !standardPipeline.valid ||
+    standardPipeline.resource === null ||
+    !otherPipeline.valid ||
+    otherPipeline.resource === null
+  ) {
+    return renderReport({
+      ok: false,
+      snapshot: options.snapshot,
+      pipeline: standardPipeline.valid ? otherPipeline : standardPipeline,
+      resourceReuse: options.reuse,
+      diagnostics: [
+        ...standardPipeline.diagnostics,
+        ...otherPipeline.diagnostics,
+      ],
+    });
+  }
+
+  const standardPipelineHandle = standardPipeline.resource.pipeline as {
+    getBindGroupLayout?: (group: number) => unknown;
+  };
+  const otherPipelineHandle = otherPipeline.resource.pipeline as {
+    getBindGroupLayout?: (group: number) => unknown;
+  };
+
+  if (
+    standardPipelineHandle.getBindGroupLayout === undefined ||
+    otherPipelineHandle.getBindGroupLayout === undefined
+  ) {
+    return renderReport({
+      ok: false,
+      snapshot: options.snapshot,
+      pipeline:
+        standardPipelineHandle.getBindGroupLayout === undefined
+          ? standardPipeline
+          : otherPipeline,
+      resourceReuse: options.reuse,
+      diagnostics: [
+        {
+          code: "webGpuApp.missingPipelineLayouts",
+          message:
+            "The WebGPU app pipeline does not expose bind group layouts.",
+        },
+      ],
+    });
+  }
+
+  const standardLayouts = getWebGpuAppPipelineLayouts({
+    cache: options.cache,
+    kind: "standard",
+    pipeline: standardPipeline,
+    getBindGroupLayout: standardPipelineHandle.getBindGroupLayout.bind(
+      standardPipelineHandle,
+    ),
+  });
+  const otherLayouts = getWebGpuAppPipelineLayouts({
+    cache: options.cache,
+    kind: options.resourceSet.other.kind,
+    pipeline: otherPipeline,
+    getBindGroupLayout:
+      otherPipelineHandle.getBindGroupLayout.bind(otherPipelineHandle),
+  });
+  const packedViews = writePackedSnapshotViewUniforms(
+    options.snapshot,
+    options.cache.frameScratch.viewUniforms,
+  );
+  const packedTransforms = writePackedSnapshotTransforms(
+    options.snapshot,
+    options.cache.frameScratch.worldTransforms,
+  );
+  const otherTextures =
+    options.resourceSet.other.kind === "matcap"
+      ? prepareMatcapAppTextureSamplerResources({
+          app: options.app,
+          cache: options.cache,
+          material: options.resourceSet.other.material,
+          reuse: options.reuse,
+        })
+      : prepareUnlitAppTextureSamplerResources({
+          app: options.app,
+          cache: options.cache,
+          material: options.resourceSet.other.material,
+          reuse: options.reuse,
+        });
+
+  if (!otherTextures.valid) {
+    return renderReport({
+      ok: false,
+      snapshot: options.snapshot,
+      pipeline: standardPipeline,
+      resourceReuse: options.reuse,
+      diagnostics: [
+        ...options.snapshot.diagnostics,
+        ...packedViews.diagnostics,
+        ...packedTransforms.diagnostics,
+        ...otherTextures.diagnostics,
+      ],
+    });
+  }
+
+  const standardResources = createOrReuseStandardAppFrameResources({
+    app: options.app,
+    cache: options.cache,
+    snapshot: options.snapshot,
+    mesh: options.resourceSet.mesh,
+    meshKey: options.resourceSet.meshKey,
+    material: options.resourceSet.standard.material,
+    materialKey: options.resourceSet.standard.materialKey,
+    viewUniforms: packedViews,
+    worldTransforms: packedTransforms,
+    layouts: standardLayouts,
+    reuse: options.reuse,
+  });
+  const otherResources =
+    options.resourceSet.other.kind === "matcap"
+      ? createOrReuseMatcapAppFrameResources({
+          app: options.app,
+          cache: options.cache,
+          mesh: options.resourceSet.mesh,
+          meshKey: options.resourceSet.meshKey,
+          material: options.resourceSet.other.material,
+          materialKey: options.resourceSet.other.materialKey,
+          textures: otherTextures,
+          viewUniforms: packedViews,
+          worldTransforms: packedTransforms,
+          layouts: otherLayouts,
+          reuse: options.reuse,
+        })
+      : createOrReuseUnlitAppFrameResources({
+          app: options.app,
+          cache: options.cache,
+          mesh: options.resourceSet.mesh,
+          meshKey: options.resourceSet.meshKey,
+          material: options.resourceSet.other.material,
+          materialKey: options.resourceSet.other.materialKey,
+          textures: otherTextures,
+          viewUniforms: packedViews,
+          worldTransforms: packedTransforms,
+          layouts: otherLayouts,
+          reuse: options.reuse,
+        });
+
+  if (
+    !standardResources.valid ||
+    standardResources.resources === null ||
+    !otherResources.valid ||
+    otherResources.resources === null
+  ) {
+    return renderReport({
+      ok: false,
+      snapshot: options.snapshot,
+      pipeline: standardPipeline,
+      resources:
+        standardResources.valid && standardResources.resources !== null
+          ? otherResources
+          : standardResources,
+      resourceReuse: options.reuse,
+      diagnostics: [
+        ...packedViews.diagnostics,
+        ...packedTransforms.diagnostics,
+        ...standardResources.diagnostics,
+        ...otherResources.diagnostics,
+      ],
+    });
+  }
+
+  const resources: CreateMixedStandardFrameResourcesResult = {
+    valid: true,
+    resources: {
+      mesh: otherResources.resources.mesh,
+      viewUniform: otherResources.resources.viewUniform,
+      worldTransforms: otherResources.resources.worldTransforms,
+      standard: standardResources.resources,
+      ...(options.resourceSet.other.kind === "matcap"
+        ? { matcap: otherResources.resources as MatcapFrameGpuResources }
+        : { unlit: otherResources.resources as UnlitFrameGpuResources }),
+      bindGroups: [
+        ...pipelineScopedBindGroups(
+          otherResources.resources.bindGroups,
+          options.resourceSet.other.draw.batchKey.pipelineKey,
+        ),
+        ...pipelineScopedBindGroups(
+          standardResources.resources.bindGroups,
+          options.resourceSet.standard.draw.batchKey.pipelineKey,
+        ),
+      ],
+    },
+    diagnostics: [],
+  };
+  const mixedResources = resources.resources;
+
+  if (mixedResources === null) {
+    throw new Error("Mixed StandardMaterial app resources were not assembled.");
+  }
+
+  const meshResourceKeys = new Map<string, string>([
+    [
+      assetHandleKey(options.resourceSet.standard.draw.mesh),
+      otherResources.resources.mesh.resourceKey,
+    ],
+    [
+      assetHandleKey(options.resourceSet.other.draw.mesh),
+      otherResources.resources.mesh.resourceKey,
+    ],
+  ]);
+  const materialResourceKeys = new Map<string, string>([
+    [
+      options.resourceSet.standard.sourceMaterialKey,
+      standardResources.resources.material.resourceKey,
+    ],
+    [
+      options.resourceSet.other.sourceMaterialKey,
+      otherResources.resources.material.resourceKey,
+    ],
+  ]);
+  const pipelineResults = [
+    createWebGpuAppPipelinePlanResult(
+      options.resourceSet.standard.draw,
+      standardPipeline,
+    ),
+    createWebGpuAppPipelinePlanResult(
+      options.resourceSet.other.draw,
+      otherPipeline,
+    ),
+  ];
+  const framePlan = writeRenderFramePlanFromSnapshot({
+    snapshot: options.snapshot,
+    renderWorld: options.app.renderWorld,
+    transforms: packedTransforms,
+    resolveMeshResourceKey: (draw) =>
+      meshResourceKeys.get(assetHandleKey(draw.mesh)) ?? null,
+    resolveMaterialResourceKey: (draw) =>
+      materialResourceKeys.get(assetHandleKey(draw.material)) ?? null,
+    meshResources: [otherResources.resources.mesh],
+    pipelines: pipelineResults,
+    bindGroups: mixedResources.bindGroups,
+    scratch: options.cache.frameScratch.framePlan,
+  });
+  const boundary = assembleFrameBoundary({
+    context: options.app.initialization.context as Parameters<
+      typeof assembleFrameBoundary
+    >[0]["context"],
+    device: options.app.initialization.device as Parameters<
+      typeof assembleFrameBoundary
+    >[0]["device"],
+    queue: (options.app.initialization.device as { readonly queue: unknown })
+      .queue as Parameters<typeof assembleFrameBoundary>[0]["queue"],
+    commands: framePlan.commandPlan.commands,
+    label: options.label ?? "aperture-webgpu-app",
+    clearColor: options.clearColor ?? [0, 0, 0, 1],
+  });
+
+  await waitForSubmittedWork(options.app.initialization.device);
+
+  return renderReport({
+    ok:
+      framePlan.apply.diagnostics.length === 0 &&
+      framePlan.bindingPlan.diagnostics.length === 0 &&
+      framePlan.packages.diagnostics.length === 0 &&
+      framePlan.drawCommands.diagnostics.length === 0 &&
+      framePlan.drawList.valid &&
+      framePlan.resources.valid &&
+      framePlan.commandPlan.valid &&
+      boundary.valid,
+    snapshot: options.snapshot,
+    pipeline: standardPipeline,
+    resources,
+    boundary,
+    resourceReuse: options.reuse,
+    drawPackages: framePlan.packages.packages.length,
+    drawCommands: framePlan.commandPlan.commands.length,
+    drawCalls: framePlan.commandPlan.drawCount,
+    diagnostics: [
+      ...options.snapshot.diagnostics,
+      ...framePlan.bindingPlan.diagnostics,
+      ...framePlan.readiness.diagnostics,
+      ...framePlan.packages.diagnostics,
+      ...framePlan.drawCommands.diagnostics,
+      ...framePlan.drawList.diagnostics,
+      ...framePlan.resources.diagnostics,
+      ...framePlan.commandPlan.diagnostics,
+      ...boundary.texture.diagnostics,
+      ...(boundary.attachments?.diagnostics ?? []),
+      ...(boundary.encoder?.diagnostics ?? []),
+      ...(boundary.begin?.diagnostics ?? []),
+      ...(boundary.execution?.diagnostics ?? []),
+      ...(boundary.end?.diagnostics ?? []),
+      ...(boundary.finish?.diagnostics ?? []),
+      ...(boundary.submit?.diagnostics ?? []),
+    ],
+  });
+}
+
+async function renderMixedAllBuiltInWebGpuAppFrame(options: {
+  readonly app: WebGpuApp;
+  readonly cache: WebGpuAppResourceCache;
+  readonly snapshot: RenderSnapshot;
+  readonly firstDraw: RenderSnapshot["meshDraws"][number];
+  readonly resourceSet: MixedAllBuiltInAppResourceSet;
+  readonly reuse: WebGpuAppResourceReuseReport;
+  readonly clearColor?: readonly number[];
+  readonly label?: string;
+}): Promise<WebGpuAppRenderReport> {
+  const unlitPipeline = await getOrCreateWebGpuAppPipeline({
+    app: options.app,
+    cache: options.cache,
+    reuse: options.reuse,
+    kind: "unlit",
+    pipelineKey: options.resourceSet.unlit.draw.batchKey.pipelineKey,
+    batchKey: options.resourceSet.unlit.draw.batchKey,
+  });
+  const matcapPipeline = await getOrCreateWebGpuAppPipeline({
+    app: options.app,
+    cache: options.cache,
+    reuse: options.reuse,
+    kind: "matcap",
+    pipelineKey: options.resourceSet.matcap.draw.batchKey.pipelineKey,
+    batchKey: options.resourceSet.matcap.draw.batchKey,
+  });
+  const standardPipeline = await getOrCreateWebGpuAppPipeline({
+    app: options.app,
+    cache: options.cache,
+    reuse: options.reuse,
+    kind: "standard",
+    pipelineKey: options.resourceSet.standard.draw.batchKey.pipelineKey,
+    batchKey: options.resourceSet.standard.draw.batchKey,
+  });
+
+  if (
+    !unlitPipeline.valid ||
+    unlitPipeline.resource === null ||
+    !matcapPipeline.valid ||
+    matcapPipeline.resource === null ||
+    !standardPipeline.valid ||
+    standardPipeline.resource === null
+  ) {
+    return renderReport({
+      ok: false,
+      snapshot: options.snapshot,
+      pipeline: !unlitPipeline.valid
+        ? unlitPipeline
+        : !matcapPipeline.valid
+          ? matcapPipeline
+          : standardPipeline,
+      resourceReuse: options.reuse,
+      diagnostics: [
+        ...unlitPipeline.diagnostics,
+        ...matcapPipeline.diagnostics,
+        ...standardPipeline.diagnostics,
+      ],
+    });
+  }
+
+  const unlitPipelineHandle = unlitPipeline.resource.pipeline as {
+    getBindGroupLayout?: (group: number) => unknown;
+  };
+  const matcapPipelineHandle = matcapPipeline.resource.pipeline as {
+    getBindGroupLayout?: (group: number) => unknown;
+  };
+  const standardPipelineHandle = standardPipeline.resource.pipeline as {
+    getBindGroupLayout?: (group: number) => unknown;
+  };
+
+  if (
+    unlitPipelineHandle.getBindGroupLayout === undefined ||
+    matcapPipelineHandle.getBindGroupLayout === undefined ||
+    standardPipelineHandle.getBindGroupLayout === undefined
+  ) {
+    return renderReport({
+      ok: false,
+      snapshot: options.snapshot,
+      pipeline:
+        unlitPipelineHandle.getBindGroupLayout === undefined
+          ? unlitPipeline
+          : matcapPipelineHandle.getBindGroupLayout === undefined
+            ? matcapPipeline
+            : standardPipeline,
+      resourceReuse: options.reuse,
+      diagnostics: [
+        {
+          code: "webGpuApp.missingPipelineLayouts",
+          message:
+            "The WebGPU app pipeline does not expose bind group layouts.",
+        },
+      ],
+    });
+  }
+
+  const unlitLayouts = getWebGpuAppPipelineLayouts({
+    cache: options.cache,
+    kind: "unlit",
+    pipeline: unlitPipeline,
+    getBindGroupLayout:
+      unlitPipelineHandle.getBindGroupLayout.bind(unlitPipelineHandle),
+  });
+  const matcapLayouts = getWebGpuAppPipelineLayouts({
+    cache: options.cache,
+    kind: "matcap",
+    pipeline: matcapPipeline,
+    getBindGroupLayout:
+      matcapPipelineHandle.getBindGroupLayout.bind(matcapPipelineHandle),
+  });
+  const standardLayouts = getWebGpuAppPipelineLayouts({
+    cache: options.cache,
+    kind: "standard",
+    pipeline: standardPipeline,
+    getBindGroupLayout: standardPipelineHandle.getBindGroupLayout.bind(
+      standardPipelineHandle,
+    ),
+  });
+  const packedViews = writePackedSnapshotViewUniforms(
+    options.snapshot,
+    options.cache.frameScratch.viewUniforms,
+  );
+  const packedTransforms = writePackedSnapshotTransforms(
+    options.snapshot,
+    options.cache.frameScratch.worldTransforms,
+  );
+  const unlitTextures = prepareUnlitAppTextureSamplerResources({
+    app: options.app,
+    cache: options.cache,
+    material: options.resourceSet.unlit.material,
+    reuse: options.reuse,
+  });
+  const matcapTextures = prepareMatcapAppTextureSamplerResources({
+    app: options.app,
+    cache: options.cache,
+    material: options.resourceSet.matcap.material,
+    reuse: options.reuse,
+  });
+
+  if (!unlitTextures.valid || !matcapTextures.valid) {
+    return renderReport({
+      ok: false,
+      snapshot: options.snapshot,
+      pipeline: unlitPipeline,
+      resourceReuse: options.reuse,
+      diagnostics: [
+        ...options.snapshot.diagnostics,
+        ...packedViews.diagnostics,
+        ...packedTransforms.diagnostics,
+        ...unlitTextures.diagnostics,
+        ...matcapTextures.diagnostics,
+      ],
+    });
+  }
+
+  const unlitResources = createOrReuseUnlitAppFrameResources({
+    app: options.app,
+    cache: options.cache,
+    mesh: options.resourceSet.mesh,
+    meshKey: options.resourceSet.meshKey,
+    material: options.resourceSet.unlit.material,
+    materialKey: options.resourceSet.unlit.materialKey,
+    textures: unlitTextures,
+    viewUniforms: packedViews,
+    worldTransforms: packedTransforms,
+    layouts: unlitLayouts,
+    reuse: options.reuse,
+  });
+  const matcapResources = createOrReuseMatcapAppFrameResources({
+    app: options.app,
+    cache: options.cache,
+    mesh: options.resourceSet.mesh,
+    meshKey: options.resourceSet.meshKey,
+    material: options.resourceSet.matcap.material,
+    materialKey: options.resourceSet.matcap.materialKey,
+    textures: matcapTextures,
+    viewUniforms: packedViews,
+    worldTransforms: packedTransforms,
+    layouts: matcapLayouts,
+    reuse: options.reuse,
+  });
+  const standardResources = createOrReuseStandardAppFrameResources({
+    app: options.app,
+    cache: options.cache,
+    snapshot: options.snapshot,
+    mesh: options.resourceSet.mesh,
+    meshKey: options.resourceSet.meshKey,
+    material: options.resourceSet.standard.material,
+    materialKey: options.resourceSet.standard.materialKey,
+    viewUniforms: packedViews,
+    worldTransforms: packedTransforms,
+    layouts: standardLayouts,
+    reuse: options.reuse,
+  });
+
+  if (
+    !unlitResources.valid ||
+    unlitResources.resources === null ||
+    !matcapResources.valid ||
+    matcapResources.resources === null ||
+    !standardResources.valid ||
+    standardResources.resources === null
+  ) {
+    return renderReport({
+      ok: false,
+      snapshot: options.snapshot,
+      pipeline: unlitPipeline,
+      resources:
+        unlitResources.valid && unlitResources.resources !== null
+          ? matcapResources.valid && matcapResources.resources !== null
+            ? standardResources
+            : matcapResources
+          : unlitResources,
+      resourceReuse: options.reuse,
+      diagnostics: [
+        ...packedViews.diagnostics,
+        ...packedTransforms.diagnostics,
+        ...unlitResources.diagnostics,
+        ...matcapResources.diagnostics,
+        ...standardResources.diagnostics,
+      ],
+    });
+  }
+
+  const resources: CreateMixedAllBuiltInFrameResourcesResult = {
+    valid: true,
+    resources: {
+      mesh: unlitResources.resources.mesh,
+      viewUniform: unlitResources.resources.viewUniform,
+      worldTransforms: unlitResources.resources.worldTransforms,
+      unlit: unlitResources.resources,
+      matcap: matcapResources.resources,
+      standard: standardResources.resources,
+      bindGroups: [
+        ...pipelineScopedBindGroups(
+          unlitResources.resources.bindGroups,
+          options.resourceSet.unlit.draw.batchKey.pipelineKey,
+        ),
+        ...pipelineScopedBindGroups(
+          matcapResources.resources.bindGroups,
+          options.resourceSet.matcap.draw.batchKey.pipelineKey,
+        ),
+        ...pipelineScopedBindGroups(
+          standardResources.resources.bindGroups,
+          options.resourceSet.standard.draw.batchKey.pipelineKey,
+        ),
+      ],
+    },
+    diagnostics: [],
+  };
+  const mixedResources = resources.resources;
+
+  if (mixedResources === null) {
+    throw new Error("Mixed built-in app resources were not assembled.");
+  }
+
+  const meshResourceKeys = new Map<string, string>([
+    [
+      assetHandleKey(options.resourceSet.unlit.draw.mesh),
+      unlitResources.resources.mesh.resourceKey,
+    ],
+    [
+      assetHandleKey(options.resourceSet.matcap.draw.mesh),
+      unlitResources.resources.mesh.resourceKey,
+    ],
+    [
+      assetHandleKey(options.resourceSet.standard.draw.mesh),
+      unlitResources.resources.mesh.resourceKey,
+    ],
+  ]);
+  const materialResourceKeys = new Map<string, string>([
+    [
+      options.resourceSet.unlit.sourceMaterialKey,
+      unlitResources.resources.material.resourceKey,
+    ],
+    [
+      options.resourceSet.matcap.sourceMaterialKey,
+      matcapResources.resources.material.resourceKey,
+    ],
+    [
+      options.resourceSet.standard.sourceMaterialKey,
+      standardResources.resources.material.resourceKey,
+    ],
+  ]);
+  const pipelineResults = [
+    createWebGpuAppPipelinePlanResult(
+      options.resourceSet.unlit.draw,
+      unlitPipeline,
+    ),
+    createWebGpuAppPipelinePlanResult(
+      options.resourceSet.matcap.draw,
+      matcapPipeline,
+    ),
+    createWebGpuAppPipelinePlanResult(
+      options.resourceSet.standard.draw,
+      standardPipeline,
+    ),
+  ];
+  const framePlan = writeRenderFramePlanFromSnapshot({
+    snapshot: options.snapshot,
+    renderWorld: options.app.renderWorld,
+    transforms: packedTransforms,
+    resolveMeshResourceKey: (draw) =>
+      meshResourceKeys.get(assetHandleKey(draw.mesh)) ?? null,
+    resolveMaterialResourceKey: (draw) =>
+      materialResourceKeys.get(assetHandleKey(draw.material)) ?? null,
+    meshResources: [unlitResources.resources.mesh],
+    pipelines: pipelineResults,
+    bindGroups: mixedResources.bindGroups,
+    scratch: options.cache.frameScratch.framePlan,
+  });
+  const boundary = assembleFrameBoundary({
+    context: options.app.initialization.context as Parameters<
+      typeof assembleFrameBoundary
+    >[0]["context"],
+    device: options.app.initialization.device as Parameters<
+      typeof assembleFrameBoundary
+    >[0]["device"],
+    queue: (options.app.initialization.device as { readonly queue: unknown })
+      .queue as Parameters<typeof assembleFrameBoundary>[0]["queue"],
+    commands: framePlan.commandPlan.commands,
+    label: options.label ?? "aperture-webgpu-app",
+    clearColor: options.clearColor ?? [0, 0, 0, 1],
+  });
+
+  await waitForSubmittedWork(options.app.initialization.device);
+
+  return renderReport({
+    ok:
+      framePlan.apply.diagnostics.length === 0 &&
+      framePlan.bindingPlan.diagnostics.length === 0 &&
+      framePlan.packages.diagnostics.length === 0 &&
+      framePlan.drawCommands.diagnostics.length === 0 &&
+      framePlan.drawList.valid &&
+      framePlan.resources.valid &&
+      framePlan.commandPlan.valid &&
+      boundary.valid,
+    snapshot: options.snapshot,
+    pipeline: unlitPipeline,
+    resources,
+    boundary,
+    resourceReuse: options.reuse,
+    drawPackages: framePlan.packages.packages.length,
+    drawCommands: framePlan.commandPlan.commands.length,
+    drawCalls: framePlan.commandPlan.drawCount,
+    diagnostics: [
+      ...options.snapshot.diagnostics,
+      ...framePlan.bindingPlan.diagnostics,
+      ...framePlan.readiness.diagnostics,
+      ...framePlan.packages.diagnostics,
+      ...framePlan.drawCommands.diagnostics,
+      ...framePlan.drawList.diagnostics,
+      ...framePlan.resources.diagnostics,
+      ...framePlan.commandPlan.diagnostics,
+      ...boundary.texture.diagnostics,
+      ...(boundary.attachments?.diagnostics ?? []),
+      ...(boundary.encoder?.diagnostics ?? []),
+      ...(boundary.begin?.diagnostics ?? []),
+      ...(boundary.execution?.diagnostics ?? []),
+      ...(boundary.end?.diagnostics ?? []),
+      ...(boundary.finish?.diagnostics ?? []),
+      ...(boundary.submit?.diagnostics ?? []),
+    ],
+  });
+}
+
 function createWebGpuAppPipelinePlanResult(
   draw: RenderSnapshot["meshDraws"][number],
   pipeline: WebGpuAppPipelineResourceResult,
@@ -1850,6 +2858,21 @@ function createWebGpuAppPipelinePlanResult(
     pipeline: pipeline.resource.pipeline,
     diagnostics: [],
   };
+}
+
+function pipelineScopedBindGroups(
+  bindGroups: readonly UnlitFrameGpuResources["bindGroups"][number][],
+  pipelineKey: string,
+): UnlitFrameGpuResources["bindGroups"][number][] {
+  return bindGroups.map((bindGroup) =>
+    bindGroup.group === 0 || bindGroup.group === 1
+      ? {
+          ...bindGroup,
+          resourceKey: `${bindGroup.resourceKey}|pipeline:${pipelineKey}`,
+          entryResourceKeys: [...bindGroup.entryResourceKeys, pipelineKey],
+        }
+      : bindGroup,
+  );
 }
 
 async function renderWebGpuAppFrame(
@@ -1973,8 +2996,29 @@ async function renderWebGpuAppFrame(
           firstDraw,
         })
       : null;
-  const unsupportedDrawResourceDiagnostics =
+  const mixedStandard =
     multiUnlit === null && mixedUnlitMatcap === null
+      ? collectMixedStandardAppResourceSet({
+          app,
+          snapshot,
+          plan: resourceSetPlan,
+          firstDraw,
+        })
+      : null;
+  const mixedAllBuiltIn =
+    multiUnlit === null && mixedUnlitMatcap === null && mixedStandard === null
+      ? collectMixedAllBuiltInAppResourceSet({
+          app,
+          snapshot,
+          plan: resourceSetPlan,
+          firstDraw,
+        })
+      : null;
+  const unsupportedDrawResourceDiagnostics =
+    multiUnlit === null &&
+    mixedUnlitMatcap === null &&
+    mixedStandard === null &&
+    mixedAllBuiltIn === null
       ? diagnoseUnsupportedAdditionalDrawResources(snapshot, firstDraw)
       : [];
 
@@ -1997,6 +3041,36 @@ async function renderWebGpuAppFrame(
       snapshot,
       firstDraw,
       resourceSet: mixedUnlitMatcap,
+      reuse,
+      ...(options.clearColor === undefined
+        ? {}
+        : { clearColor: options.clearColor }),
+      ...(options.label === undefined ? {} : { label: options.label }),
+    });
+  }
+
+  if (mixedStandard !== null) {
+    return renderMixedStandardWebGpuAppFrame({
+      app,
+      cache: resourceCache,
+      snapshot,
+      firstDraw,
+      resourceSet: mixedStandard,
+      reuse,
+      ...(options.clearColor === undefined
+        ? {}
+        : { clearColor: options.clearColor }),
+      ...(options.label === undefined ? {} : { label: options.label }),
+    });
+  }
+
+  if (mixedAllBuiltIn !== null) {
+    return renderMixedAllBuiltInWebGpuAppFrame({
+      app,
+      cache: resourceCache,
+      snapshot,
+      firstDraw,
+      resourceSet: mixedAllBuiltIn,
       reuse,
       ...(options.clearColor === undefined
         ? {}

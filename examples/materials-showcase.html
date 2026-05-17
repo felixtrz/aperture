@@ -5,6 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Aperture Material Showcase</title>
     <link rel="stylesheet" href="./styles.css" />
+    <script type="importmap">
+      {
+        "imports": {
+          "@aperture-engine/core": "/packages/core/dist/index.js",
+          "@aperture-engine/render": "/packages/render/dist/index.js",
+          "@aperture-engine/runtime": "/packages/runtime/dist/index.js",
+          "@aperture-engine/simulation": "/packages/simulation/dist/index.js",
+          "@aperture-engine/webgpu": "/packages/webgpu/dist/index.js",
+          "elics": "/node_modules/elics/lib/index.js",
+          "wgpu-matrix": "/node_modules/wgpu-matrix/dist/3.x/wgpu-matrix.module.js",
+          "@preact/signals-core": "/node_modules/@preact/signals-core/dist/signals-core.mjs"
+        }
+      }
+    </script>
   </head>
   <body>
     <main class="runtime-shell">

@@ -2,72 +2,49 @@
 
 ## Latest Run Update
 
-Completed the Matcap app-facade activation and first multi-resource app
-rendering sequence:
+Completed the mixed built-in material app route and promoted the material
+showcase onto the app facade:
 
-- `task-0591` — `createWebGpuApp.render()` now supports a narrow
-  single-source-resource MatcapMaterial path. It uses the Matcap render
-  pipeline, group-2 material bind group layout, Matcap frame-resource assembly,
-  and source-handle/version cached texture/sampler resources.
-- `task-0592` — added `examples/matcap-app.html` and
-  `examples/matcap-app.js`. The example uses ECS-authored mesh/material,
-  texture, and sampler assets through `createWebGpuApp`, not a local direct
-  WebGPU shader.
-- `task-0593` — the Matcap app example publishes
-  `webGpuAppRenderReportToJsonValue()` output in its browser status.
-- `task-0594` — audited material-family activation boundaries and recorded
-  results in
-  `docs/research/MATCAP_APP_ACTIVATION_BOUNDARY_AUDIT_2026_05_16.md`.
-- `task-0595` — added optional renderer-independent `TextureAsset.sourceData`
-  and mapped it to WebGPU-owned `queue.writeTexture` upload only inside the app
-  facade. The Matcap app now supplies deterministic 2x2 source texels.
-- `task-0596` — added `createWebGpuAppDrawResourceSetPlan()` and updated
-  unsupported additional-resource diagnostics to include `resourceSetIndex`.
-- `task-0597` — `createWebGpuApp.render()` can now render multiple unlit
-  material resource sets sharing a mesh in one frame. Mixed material families
-  still fail with `webGpuApp.additionalDrawResourceUnsupported`.
-- `task-0600` — app-facade texture upload layout failures are covered by tests
-  and surface JSON-safe diagnostics without frame submission.
-- `task-0601` — documented texture source texel data as renderer-independent
-  source asset data in `docs/ARCHITECTURE.md`.
-- Refilled the near-term backlog with `task-0602` for mixed StandardMaterial
-  app resource sets and `task-0603` for browser diagnostics coverage after
-  mixed material-family rendering lands.
-- `task-0598` — `createWebGpuApp.render()` can now render a mixed unlit/Matcap
-  app frame for two material resource sets sharing a mesh. The app passes both
-  material-family pipelines to render-frame planning, resolves group-2 material
-  bind groups per draw, and blocks whole-frame submission when any material
-  dependency diagnostic is present.
-- `task-0599` — audited the multi-resource app rendering boundary and recorded
-  results in
-  `docs/research/MULTI_RESOURCE_APP_RENDERING_BOUNDARY_AUDIT_2026_05_16.md`.
-  No ECS/render/runtime WebGPU ownership drift was found.
-- Refilled the backlog with `task-0604` for textured unlit materials in mixed
-  unlit/Matcap frames and `task-0605` for auditing the material showcase
-  app-path promotion.
-- User-requested demo polish: `examples/matcap-app.html` now has Play/Pause
-  buttons for ECS execution. Pause stops scheduling ECS `step()` frames and
-  freezes the frame/rotation counters; Play resumes without applying a large
-  catch-up delta. The already-open in-app browser demo was reloaded and verified
-  with the controls.
+- `task-0602` — `createWebGpuApp.render()` now supports mixed StandardMaterial
+  frames with either unlit or Matcap materials when source dependencies and
+  Standard lights are ready.
+- `task-0603` — the app diagnostics example now covers mixed material
+  dependency readiness failures and a successful mixed material render with
+  JSON-safe browser status.
+- `task-0604` — textured unlit materials can participate in mixed unlit/Matcap
+  app frames when texture and sampler source dependencies are ready.
+- `task-0606` — audited mixed material app routing and recorded the findings in
+  `docs/research/MIXED_MATERIAL_APP_ROUTING_AUDIT_2026_05_16.md`.
+- `task-0607` — added the three-family mixed route for one unlit, one
+  StandardMaterial, and one MatcapMaterial draw in a shared-mesh app frame.
+- `task-0583` — replaced the direct WebGPU material showcase shader with an
+  ECS-authored `createWebGpuApp` example using typed mesh/material/texture/
+  sampler assets, camera/lights, `SpinSystem`, and app render reports.
+- `task-0605` — audited the promoted showcase and recorded the findings in
+  `docs/research/MATERIAL_SHOWCASE_APP_PATH_AUDIT_2026_05_16.md`.
+- `task-0608` — added StandardMaterial base-color texture dependency app
+  diagnostics in mixed-material frames and exposed the same path in the browser
+  diagnostics example.
+- `task-0609` — added renderer-independent DebugNormalMaterial preparation
+  metadata with stable material/pipeline keys, JSON-safe dependency readiness,
+  and render-state validation.
+- Corrective detail: mixed-family frames now scope shared group-0/group-1 bind
+  groups by pipeline key before render-frame resource planning. This prevents
+  one material family's view/world bind group from satisfying another pipeline's
+  resource key and was necessary for real browser pixels.
 
 Validation:
 
 - `pnpm exec vitest run test/webgpu/webgpu-app.test.ts`
-- `pnpm exec tsc --noEmit -p tsconfig.test.json`
-- `pnpm exec vitest run test/webgpu/matcap-frame-resources.test.ts test/webgpu/matcap-bind-group.test.ts test/webgpu/matcap-pipeline.test.ts test/webgpu/matcap-pipeline-descriptor.test.ts test/webgpu/matcap-material-buffer.test.ts`
-- `pnpm run build`
 - `pnpm run check:examples`
-- `pnpm exec playwright test test/e2e/matcap-app.spec.ts`
 - `pnpm exec playwright test test/e2e/app-diagnostics.spec.ts`
-- In-app browser verification at
-  `http://127.0.0.1:4173/examples/matcap-app.html` showed status `animating`
-  with the Matcap pipeline and JSON-safe report output.
-- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts`
-- `pnpm run check` passed: 162 test files / 764 tests.
-- `pnpm run test:e2e` passed: 142 Playwright tests.
-- `pnpm exec playwright test test/e2e/matcap-app.spec.ts` passed after adding
-  Play/Pause control coverage.
+- `pnpm exec playwright test test/e2e/materials-showcase.spec.ts`
+- `pnpm exec playwright test test/e2e/app-diagnostics.spec.ts test/e2e/materials-showcase.spec.ts`
+- `pnpm run check` passed: 162 test files / 771 tests after `task-0608`.
+- `pnpm run test:e2e` passed after `task-0608`: 142 Playwright tests.
+- `pnpm exec vitest run test/materials/debug-normal-preparation.test.ts test/materials/materials.test.ts`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm run check` passed after `task-0609`: 163 test files / 775 tests.
 
 Reference files/patterns inspected:
 
@@ -76,30 +53,29 @@ Reference files/patterns inspected:
   `references/bevy/crates/bevy_render/src/render_asset.rs`.
 - Existing Aperture app/material paths:
   `packages/webgpu/src/webgpu/app.ts`,
-  `packages/webgpu/src/webgpu/matcap-frame-resources.ts`,
-  `packages/webgpu/src/webgpu/matcap-bind-group.ts`,
-  `packages/webgpu/src/webgpu/matcap-pipeline.ts`.
-- Texture upload patterns:
-  `references/engine/src/platform/graphics/webgpu/webgpu-texture.js`,
-  `references/three.js/src/renderers/webgpu/utils/WebGPUTextureUtils.js`.
+  `packages/render/src/materials/types.ts`,
+  `packages/render/src/materials/dependency-readiness.ts`,
+  `packages/render/src/materials/debug-normal-preparation.ts`.
+- Promoted examples/tests:
+  `examples/app-diagnostics.js`, `examples/materials-showcase.html`,
+  `examples/materials-showcase.js`, `test/e2e/app-diagnostics.spec.ts`,
+  `test/e2e/materials-showcase.spec.ts`, `test/webgpu/webgpu-app.test.ts`.
 - Project docs: `docs/NORTH_STAR.md`, `docs/ARCHITECTURE.md`,
   `docs/DECISIONS.md`, `docs/MEDIUM_LONG_TERM_GOALS.md`.
 
 Recommended next task:
 
-- `task-0602 — Render StandardMaterial in mixed app resource sets`.
+- `task-0610 — Document app facade as the default example path`.
 
 Known issues:
 
-- Mixed unlit/Matcap app rendering is intentionally narrow: shared mesh,
-  factor-only unlit material, and one Matcap material. Broader material-family
-  mixing is captured by follow-up tasks.
-- `task-0583` remains blocked until StandardMaterial can participate in mixed
-  app frames and the material showcase can move onto built-in material paths.
-- StandardMaterial cannot yet participate in mixed-family app frames; this is
-  captured by `task-0602`.
-- StandardMaterial remains an MVP: texture sampling, normal maps, IBL, and
-  shadows are still deferred.
+- Mixed material app routing is still implemented as narrow pairwise and
+  three-family helpers, not a generic material-family queue. `task-0612`
+  captures a focused audit before further expansion.
+- StandardMaterial remains an MVP: texture sampling, normal maps, IBL, shadows,
+  and advanced glTF PBR extensions are still deferred.
+- DebugNormalMaterial now has source/preparation contracts, but does not yet
+  have WebGPU shader metadata, frame resources, or app activation.
 
 Files touched in this update:
 
@@ -107,24 +83,17 @@ Files touched in this update:
 - `agent/COMPLETED.md`
 - `agent/HANDOFF.md`
 - `agent/STATUS.json`
-- `docs/research/MATCAP_APP_ACTIVATION_BOUNDARY_AUDIT_2026_05_16.md`
-- `docs/research/MULTI_RESOURCE_APP_RENDERING_BOUNDARY_AUDIT_2026_05_16.md`
-- `docs/ARCHITECTURE.md`
+- `docs/research/MATERIAL_SHOWCASE_APP_PATH_AUDIT_2026_05_16.md`
+- `docs/research/MIXED_MATERIAL_APP_ROUTING_AUDIT_2026_05_16.md`
 - `examples/app-diagnostics.js`
-- `examples/app-diagnostics.html`
-- `examples/index.html`
 - `examples/materials-showcase.html`
-- `examples/matcap-app.html`
-- `examples/matcap-app.js`
-- `examples/multi-entity.html`
-- `examples/spinning-cube.html`
-- `examples/styles.css`
-- `examples/triangle.html`
-- `package.json`
-- `packages/render/src/materials/types.ts`
+- `examples/materials-showcase.js`
 - `packages/webgpu/src/webgpu/app.ts`
-- `test/assets/typed-collections.test.ts`
-- `test/e2e/matcap-app.spec.ts`
+- `packages/render/src/materials/debug-normal-preparation.ts`
+- `packages/render/src/materials/index.ts`
+- `test/e2e/app-diagnostics.spec.ts`
+- `test/e2e/materials-showcase.spec.ts`
+- `test/materials/debug-normal-preparation.test.ts`
 - `test/webgpu/webgpu-app.test.ts`
 
 ## Previous Run Update
