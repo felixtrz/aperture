@@ -2,6 +2,113 @@
 
 ## Latest Run Update
 
+Completed `task-0773` through `task-0795` and one utility
+follow-up in this automation run. This advanced the WebGPU material queue route
+and app-local resource helper boundary from route-only adapters through
+texture/sampler preparation, frame-resource cache slots, per-family
+frame-resource helpers, shared private utilities, cache-slot regression
+coverage, allocation cleanup planning, direct utility coverage, and
+prepared-resource handoff planning.
+
+Highlights:
+
+- Added `built-in-material-queue-adapter.ts`, a route-only built-in material
+  adapter factory with family/type/phase validation and focused tests.
+- Updated `app.ts` to compose queued built-in routing from the route-only
+  factory while keeping app-owned GPU resource closures local.
+- Added a route report shell regression test that triggers two failed frames and
+  verifies stale family/phase/diagnostic counts do not leak.
+- Extracted app texture/sampler preparation into
+  `app-texture-sampler-resources.ts` with explicit assets/device/cache/reuse
+  inputs.
+- Added `built-in-material-app-resource-adapter.ts`, an internal shell that
+  composes route adapters with caller-provided resource callbacks.
+- Replaced nullable per-family frame caches with explicit cache slots, then
+  extracted unlit, Matcap, and Standard app frame-resource create/reuse helpers
+  into separate WebGPU modules.
+- Extracted private `app-frame-resource-utils.ts` for `sameStringList` and
+  `writeBufferData`.
+- Tightened the three-family app reuse regression so unlit, Matcap, and
+  Standard resource cache hits are verified through second-frame app reports
+  without exposing cache internals.
+- Added
+  `docs/research/APP_FRAME_RESOURCE_HOT_PATH_ALLOCATION_PLAN_2026_05_17.md`
+  to identify remaining steady-state helper allocations and concrete cleanup
+  slices.
+- Added direct tests for private app frame-resource utilities while confirming
+  they remain absent from the public WebGPU package surface.
+- Added
+  `docs/research/PREPARED_MATERIAL_RESOURCE_CACHE_HANDOFF_PLAN_2026_05_17.md`
+  to define the staged handoff from app-local material frame resources toward a
+  WebGPU-owned prepared material resource cache.
+- Added plans/audits for app-local resource splitting, texture/sampler
+  boundaries, frame-resource reuse, unlit/Standard boundaries, shared utilities,
+  hot-path allocation cleanup, prepared material resource handoff, and the full
+  frame-resource extraction sequence.
+- Refilled the ready backlog with `task-0796` through `task-0801`; next
+  recommended task is `task-0796`.
+
+Validation:
+
+- Focused Vitest runs for built-in route adapter, app resource adapter, WebGPU
+  app route/reuse/cache-slot tests, and app frame-resource utility tests.
+- `pnpm exec tsc --noEmit -p packages/webgpu/tsconfig.json`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm run check:boundaries`
+- `pnpm run lint`
+- `pnpm run format:check`
+- Final `pnpm run check` passed, including 220 Vitest files / 1008 tests.
+
+Reference files/patterns inspected:
+
+- Aperture anchors: `docs/NORTH_STAR.md`, `docs/ARCHITECTURE.md`,
+  `docs/DECISIONS.md`, `docs/MEDIUM_LONG_TERM_GOALS.md`,
+  `docs/RENDER_ASSET_PREPARATION.md`, and current WebGPU app material queue /
+  frame-resource helpers.
+- three.js `WebGLRenderLists` reusable render item/list pattern.
+- PlayCanvas `Layer` visible opaque/transparent list and sort-mode pattern.
+
+Known issues / follow-ups:
+
+- The extracted frame-resource helpers still allocate descriptor/result wrappers
+  on cache-hit success paths. `task-0797` through `task-0799` split that cleanup
+  into descriptor scratch, light-pack scratch, and reusable success-result
+  shells.
+- The app facade still owns queued resource-set assembly and pipeline/layout
+  selection. That is acceptable for the proof point, and `task-0795` documented
+  the handoff toward render-world/prepared-material resource contracts.
+  `task-0796` should audit the current path before the implementation follow-ups
+  start.
+
+Files touched in this update include:
+
+- `agent/BACKLOG.md`
+- `agent/COMPLETED.md`
+- `agent/HANDOFF.md`
+- `agent/STATUS.json`
+- `docs/research/APP_*RESOURCE*2026_05_17.md`
+- `docs/research/APP_FRAME_RESOURCE_HOT_PATH_ALLOCATION_PLAN_2026_05_17.md`
+- `docs/research/BUILT_IN_MATERIAL_ADAPTER_FACTORY_BOUNDARY_AUDIT_2026_05_17.md`
+- `docs/research/FRAME_RESOURCE_REUSE_HELPER_EXTRACTION_PLAN_2026_05_17.md`
+- `docs/research/PREPARED_MATERIAL_RESOURCE_CACHE_HANDOFF_PLAN_2026_05_17.md`
+- `docs/research/STANDARD_APP_FRAME_RESOURCE_*2026_05_17.md`
+- `docs/research/UNLIT_APP_FRAME_RESOURCE_BOUNDARY_AUDIT_2026_05_17.md`
+- `packages/webgpu/src/webgpu/app.ts`
+- `packages/webgpu/src/webgpu/index.ts`
+- `packages/webgpu/src/webgpu/app-frame-resource-utils.ts`
+- `packages/webgpu/src/webgpu/app-texture-sampler-resources.ts`
+- `packages/webgpu/src/webgpu/built-in-material-app-resource-adapter.ts`
+- `packages/webgpu/src/webgpu/built-in-material-queue-adapter.ts`
+- `packages/webgpu/src/webgpu/unlit-app-frame-resources.ts`
+- `packages/webgpu/src/webgpu/matcap-app-frame-resources.ts`
+- `packages/webgpu/src/webgpu/standard-app-frame-resources.ts`
+- `test/webgpu/built-in-material-app-resource-adapter.test.ts`
+- `test/webgpu/built-in-material-queue-adapter.test.ts`
+- `test/webgpu/app-frame-resource-utils.test.ts`
+- `test/webgpu/webgpu-app.test.ts`
+
+## Previous Run Update
+
 Completed `task-0743` through `task-0772` in this automation run. This advanced
 two tracks: GLB combined fixture diagnostics and the WebGPU material queue route
 reporting/adapter-helper boundary.

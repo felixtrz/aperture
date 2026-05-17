@@ -1,5 +1,199 @@
 # Completed Tasks
 
+## task-0794 through task-0795 — Utility coverage and prepared-resource handoff plan
+
+Completed: 2026-05-17
+
+Completed task ids:
+
+- `task-0794` — Add app frame-resource utility tests.
+- `task-0795` — Plan generic prepared material resource cache handoff.
+
+Summary:
+
+- Added focused tests for private app frame-resource utilities, covering
+  ordered string-list equality/mismatch behavior, successful WebGPU-like queue
+  writes, missing queue write support, and absence from the public WebGPU
+  package surface.
+- Added
+  `docs/research/PREPARED_MATERIAL_RESOURCE_CACHE_HANDOFF_PLAN_2026_05_17.md`
+  to define the staged handoff from app-local material frame resources toward a
+  WebGPU-owned prepared material resource cache backed by render-layer material
+  preparation descriptors.
+- Refilled the ready backlog with unlit scalar prepared material cache planning
+  and implementation follow-ups.
+
+Validation run:
+
+- `pnpm exec vitest run test/webgpu/app-frame-resource-utils.test.ts`
+
+## task-0791 and task-0793 — Cache-slot regression and allocation cleanup plan
+
+Completed: 2026-05-17
+
+Completed task ids:
+
+- `task-0791` — Add focused app frame-resource cache slot regression tests.
+- `task-0793` — Plan app frame-resource hot-path allocation cleanup.
+
+Summary:
+
+- Tightened the three-family WebGPU app reuse regression so it captures first
+  frame unlit, Matcap, and Standard resources, then proves the second frame
+  reuses per-family material resources and Standard light resources through the
+  app facade.
+- Kept the regression focused on public app reports and resource reuse counters
+  rather than exposing cache internals.
+- Added
+  `docs/research/APP_FRAME_RESOURCE_HOT_PATH_ALLOCATION_PLAN_2026_05_17.md` to
+  distinguish steady-state success-path allocations from setup/cache-miss
+  allocation and adjacent queued-route scratch work.
+- Refilled the ready backlog with descriptor-plan, Standard light-pack, and
+  success-result-shell allocation cleanup tasks.
+
+Validation run:
+
+- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts`
+
+## task-0788 through utility follow-up — Standard helper and shared frame utilities
+
+Completed: 2026-05-17
+
+Completed task ids:
+
+- `task-0788` — Extract StandardMaterial app frame-resource reuse helper.
+- `task-0789` — Audit StandardMaterial frame-resource helper boundaries.
+- `task-0790` — Plan shared app frame-resource utility extraction.
+- `task-0792` — Audit app frame-resource extraction sequence.
+- Follow-up utility slice — Extract and audit shared app frame-resource
+  utilities.
+
+Summary:
+
+- Extracted StandardMaterial app frame-resource create/reuse behavior into
+  `standard-app-frame-resources.ts` with explicit device/cache/snapshot/layout
+  inputs and snapshot-derived light buffer reuse.
+- Added a Standard helper boundary audit confirming app route orchestration,
+  pipeline selection, frame planning, and submission remain outside the helper.
+- Planned and performed a narrow extraction of duplicated non-allocating helper
+  utilities into private `app-frame-resource-utils.ts`.
+- Added a boundary audit confirming the shared utilities remain private,
+  mechanical helpers with no app/render ownership.
+- Added an overall extraction-sequence audit confirming app lifecycle, pipeline
+  selection, frame planning, and submission remain app-owned.
+
+Validation run:
+
+- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts`
+- `pnpm exec tsc --noEmit -p packages/webgpu/tsconfig.json`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm run check:boundaries`
+- `pnpm run check`
+
+## task-0783 through task-0787 — Frame-resource cache slots and unlit/Matcap helper extraction
+
+Completed: 2026-05-17
+
+Completed task ids:
+
+- `task-0783` — Add explicit app frame-resource cache slots.
+- `task-0784` — Extract unlit app frame-resource reuse helper.
+- `task-0785` — Audit unlit frame-resource helper boundaries.
+- `task-0786` — Extract Matcap app frame-resource reuse helper.
+- `task-0787` — Plan StandardMaterial frame-resource reuse extraction.
+
+Summary:
+
+- Replaced nullable per-family app frame-resource cache fields with explicit
+  mutable cache slots.
+- Extracted unlit app frame-resource create/reuse behavior into
+  `unlit-app-frame-resources.ts` with explicit device/cache/layout inputs.
+- Added an unlit helper boundary audit confirming app-owned routing, pipeline
+  selection, frame planning, and submission remain outside the helper.
+- Extracted Matcap app frame-resource create/reuse behavior into
+  `matcap-app-frame-resources.ts` using the same explicit input pattern.
+- Planned StandardMaterial app frame-resource extraction with specific attention
+  to snapshot-derived light buffer ownership and dynamic light buffer writes.
+
+Validation run:
+
+- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts`
+- `pnpm exec tsc --noEmit -p packages/webgpu/tsconfig.json`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm run check:boundaries`
+
+## task-0778 through task-0782 — App resource helper extraction and adapter shell
+
+Completed: 2026-05-17
+
+Completed task ids:
+
+- `task-0778` — Extract app texture/sampler resource helpers.
+- `task-0779` — Audit app texture/sampler helper boundaries.
+- `task-0780` — Plan frame resource reuse helper extraction.
+- `task-0781` — Add app resource adapter construction shell.
+- `task-0782` — Audit app resource adapter construction boundaries.
+
+Summary:
+
+- Extracted app texture/sampler preparation into
+  `app-texture-sampler-resources.ts` with explicit assets/device/cache/reuse
+  dependencies.
+- Updated `app.ts` to use the extracted helpers while preserving material queue
+  route behavior.
+- Added a boundary audit confirming the helper does not own app frame caches,
+  render snapshots, pipeline layouts, frame planning, or submission.
+- Planned the frame-resource reuse extraction and cache-slot boundary.
+- Added `built-in-material-app-resource-adapter.ts`, a small internal shell that
+  composes route adapters with caller-provided texture/sampler and
+  frame-resource callbacks.
+- Added focused adapter construction tests and a boundary audit confirming the
+  shell is not a public material plugin API.
+
+Validation run:
+
+- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts test/webgpu/built-in-material-queue-adapter.test.ts`
+- `pnpm exec vitest run test/webgpu/built-in-material-app-resource-adapter.test.ts test/webgpu/webgpu-app.test.ts`
+- `pnpm exec tsc --noEmit -p packages/webgpu/tsconfig.json`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm run check:boundaries`
+
+## task-0773 through task-0777 — Built-in material route adapter extraction and shell reuse
+
+Completed: 2026-05-17
+
+Completed task ids:
+
+- `task-0773` — Add built-in material route adapter factory.
+- `task-0774` — Use route-only adapter factory in app routing.
+- `task-0775` — Audit built-in adapter factory boundaries.
+- `task-0776` — Plan app-local resource adapter split.
+- `task-0777` — Add route report shell app reuse regression test.
+
+Summary:
+
+- Added a route-only built-in material queue adapter factory for `unlit`,
+  `matcap`, and `standard` families.
+- Covered factory family list, material asset type guards, duplicate-family
+  diagnostics, and phase/blend validation.
+- Updated `app.ts` to compose app-local resource closures from route adapters
+  while leaving texture/sampler preparation, frame-resource creation, and bucket
+  appends inside the app route.
+- Added a boundary audit confirming the route adapter factory does not own GPU
+  resources or app state.
+- Planned the next app-local resource adapter split.
+- Added an app regression test proving the reused route report shell resets
+  across two failed frames.
+
+Validation run:
+
+- `pnpm exec vitest run test/webgpu/built-in-material-queue-adapter.test.ts`
+- `pnpm exec vitest run test/webgpu/built-in-material-queue-adapter.test.ts test/webgpu/webgpu-app.test.ts`
+- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts`
+- `pnpm exec tsc --noEmit -p packages/webgpu/tsconfig.json`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm run check:boundaries`
+
 ## task-0743 through task-0772 — GLB fixture diagnostics and material queue route reporting
 
 Completed: 2026-05-17

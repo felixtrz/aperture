@@ -8,8 +8,6 @@ import {
   resolveWorldTransforms,
   type EcsWorld,
   type Entity,
-  type SamplerHandle,
-  type TextureHandle,
   type TransformResolutionReport,
   type WorldOptions,
 } from "@aperture-engine/simulation";
@@ -38,12 +36,16 @@ import {
   type PackedSnapshotViewUniforms,
   type PackedSnapshotViewUniformsScratch,
   type RenderSnapshot,
-  type SamplerAsset,
   type StandardMaterialAsset,
-  type TextureAsset,
-  type TextureUsage,
   type UnlitMaterialAsset,
 } from "@aperture-engine/render";
+import {
+  prepareMatcapAppTextureSamplerResources,
+  prepareStandardAppTextureSamplerResources,
+  prepareUnlitAppTextureSamplerResources,
+  sourceAssetCacheKey,
+  type PreparedAppTextureSamplerResources,
+} from "./app-texture-sampler-resources.js";
 import {
   assembleFrameBoundary,
   type FrameBoundaryAssemblyReport,
@@ -51,10 +53,14 @@ import {
 import { createLightBindGroupLayoutDescriptor } from "./light-bind-group-layout.js";
 import type { LightBindGroupLayoutResource } from "./light-bind-group-layout.js";
 import {
-  createMatcapFrameGpuResources,
   type CreateMatcapFrameGpuResourcesResult,
   type MatcapFrameGpuResources,
 } from "./matcap-frame-resources.js";
+import {
+  createOrReuseMatcapAppFrameResources,
+  type CachedMatcapAppFrameResources,
+  type MatcapAppFrameResourceCacheSlot,
+} from "./matcap-app-frame-resources.js";
 import { type MatcapMaterialBindGroupLayoutResource } from "./matcap-bind-group.js";
 import { createMatcapMaterialBindGroupLayoutPlan } from "./matcap-bind-group-layout.js";
 import {
@@ -62,14 +68,14 @@ import {
   type CreateMatcapRenderPipelineResourceResult,
 } from "./matcap-pipeline.js";
 import {
-  createLightBufferDescriptor,
-  createLightBufferDescriptorPlan,
-} from "./light-packing.js";
-import {
   isBuiltInMaterialQueueFamily,
   type BuiltInMaterialQueueFamily,
 } from "./built-in-material-queue-family.js";
-import { createUnsupportedBuiltInMaterialQueuePhaseDiagnostic } from "./built-in-material-queue-phase.js";
+import type { BuiltInMaterialAsset } from "./built-in-material-queue-adapter.js";
+import {
+  createQueuedBuiltInAppResourceAdapterRegistry,
+  type QueuedBuiltInAppResourceAdapter,
+} from "./built-in-material-app-resource-adapter.js";
 import {
   createWebGpuAppMaterialQueueRouteReportShell,
   webGpuAppMaterialQueueRouteReportShellToJsonValue,
@@ -84,21 +90,29 @@ import {
 import { createStandardMaterialBindGroupLayoutPlan } from "./standard-bind-group-layout.js";
 import type { StandardMaterialBindGroupLayoutResource } from "./standard-bind-group.js";
 import {
-  createStandardFrameGpuResources,
   type CreateStandardFrameGpuResourcesResult,
   type StandardFrameGpuResources,
 } from "./standard-frame-resources.js";
+import {
+  createOrReuseStandardAppFrameResources,
+  type CachedStandardAppFrameResources,
+  type StandardAppFrameResourceCacheSlot,
+} from "./standard-app-frame-resources.js";
 import {
   createStandardRenderPipelineResource,
   type CreateStandardRenderPipelineResourceResult,
 } from "./standard-pipeline.js";
 import {
   createMultiMaterialUnlitFrameGpuResources,
-  createUnlitFrameGpuResources,
   type CreateMultiMaterialUnlitFrameGpuResourcesResult,
   type CreateUnlitFrameGpuResourcesResult,
   type UnlitFrameGpuResources,
 } from "./unlit-frame-resources.js";
+import {
+  createOrReuseUnlitAppFrameResources,
+  type CachedUnlitAppFrameResources,
+  type UnlitAppFrameResourceCacheSlot,
+} from "./unlit-app-frame-resources.js";
 import {
   createUnlitBindGroupLayoutMetadata,
   type UnlitBindGroupLayoutResource,
@@ -108,26 +122,14 @@ import {
   type CreateUnlitRenderPipelineResourceResult,
 } from "./unlit-pipeline.js";
 import {
-  WEBGPU_TEXTURE_USAGE_FLAGS,
-  createSamplerGpuResource,
-  createTextureGpuResource,
   type SamplerGpuResource,
-  type TextureDescriptorInput,
   type TextureGpuResource,
-  type TextureGpuResourceDiagnostic,
-  type TextureUploadInput,
 } from "./texture-resources.js";
-import { createViewUniformBufferDescriptor } from "./view-uniform-buffer.js";
-import { createWorldTransformBufferDescriptor } from "./world-transform-buffer.js";
 import {
   createRenderFramePlanScratch,
   writeRenderFramePlanFromSnapshot,
   type RenderFramePlanScratch,
 } from "./render-frame-plan.js";
-import {
-  createQueuedMaterialAdapterRegistry,
-  type QueuedMaterialAdapterRegistration,
-} from "./queued-material-adapter.js";
 import {
   initializeWebGpu,
   type InitializeWebGpuOptions,
@@ -277,9 +279,9 @@ interface WebGpuAppResourceCache {
   readonly textures: Map<string, TextureGpuResource>;
   readonly samplers: Map<string, SamplerGpuResource>;
   readonly frameScratch: WebGpuAppFrameScratch;
-  unlitFrame: CachedUnlitFrameResources | null;
-  matcapFrame: CachedMatcapFrameResources | null;
-  standardFrame: CachedStandardFrameResources | null;
+  readonly unlitFrame: UnlitAppFrameResourceCacheSlot;
+  readonly matcapFrame: MatcapAppFrameResourceCacheSlot;
+  readonly standardFrame: StandardAppFrameResourceCacheSlot;
 }
 
 interface WebGpuAppFrameScratch {
@@ -301,36 +303,8 @@ interface WebGpuAppPipelineLayouts {
   readonly lightLayout: LightBindGroupLayoutResource | null;
 }
 
-interface CachedUnlitFrameResources {
-  readonly meshKey: string;
-  readonly materialKey: string;
-  readonly textureKeys: readonly string[];
-  readonly samplerKeys: readonly string[];
-  readonly viewByteLength: number;
-  readonly worldTransformByteLength: number;
-  result: CreateUnlitFrameGpuResourcesResult;
-}
-
-interface CachedMatcapFrameResources {
-  readonly meshKey: string;
-  readonly materialKey: string;
-  readonly textureKeys: readonly string[];
-  readonly samplerKeys: readonly string[];
-  readonly viewByteLength: number;
-  readonly worldTransformByteLength: number;
-  result: CreateMatcapFrameGpuResourcesResult;
-}
-
-interface CachedStandardFrameResources {
-  readonly meshKey: string;
-  readonly materialKey: string;
-  readonly textureKeys: readonly string[];
-  readonly samplerKeys: readonly string[];
-  readonly viewByteLength: number;
-  readonly worldTransformByteLength: number;
-  readonly lightFloatByteLength: number;
-  readonly lightMetadataByteLength: number;
-  result: CreateStandardFrameGpuResourcesResult;
+interface WebGpuAppFrameResourceCacheSlot<TCachedFrameResources> {
+  current: TCachedFrameResources | null;
 }
 
 interface MultiUnlitAppResourceSet {
@@ -340,11 +314,6 @@ interface MultiUnlitAppResourceSet {
   readonly materialKeys: readonly string[];
 }
 
-type QueuedBuiltInMaterialAsset =
-  | UnlitMaterialAsset
-  | MatcapMaterialAsset
-  | StandardMaterialAsset;
-
 interface QueuedBuiltInAppResourceItem {
   readonly queueItem: MaterialQueueItem;
   readonly adapter: QueuedBuiltInMaterialAdapter;
@@ -352,7 +321,7 @@ interface QueuedBuiltInAppResourceItem {
   readonly mesh: MeshAsset;
   readonly meshKey: string;
   readonly sourceMeshKey: string;
-  readonly material: QueuedBuiltInMaterialAsset;
+  readonly material: BuiltInMaterialAsset;
   readonly materialKey: string;
   readonly sourceMaterialKey: string;
 }
@@ -407,22 +376,6 @@ interface QueuedBuiltInFrameResources {
   readonly bindGroups: readonly UnlitFrameGpuResources["bindGroups"][number][];
 }
 
-type QueuedBuiltInFrameResource =
-  | UnlitFrameGpuResources
-  | MatcapFrameGpuResources
-  | StandardFrameGpuResources;
-
-type CreateQueuedBuiltInFamilyFrameResourcesResult =
-  | CreateUnlitFrameGpuResourcesResult
-  | CreateMatcapFrameGpuResourcesResult
-  | CreateStandardFrameGpuResourcesResult;
-
-interface QueuedBuiltInFrameResourceBuckets {
-  readonly unlit: UnlitFrameGpuResources[];
-  readonly matcap: MatcapFrameGpuResources[];
-  readonly standard: StandardFrameGpuResources[];
-}
-
 interface QueuedBuiltInTextureSamplerPreparationOptions {
   readonly app: WebGpuApp;
   readonly cache: WebGpuAppResourceCache;
@@ -442,64 +395,15 @@ interface QueuedBuiltInFrameResourcePreparationOptions {
   readonly reuse: WebGpuAppResourceReuseReport;
 }
 
-interface QueuedBuiltInMaterialAdapter extends QueuedMaterialAdapterRegistration<WebGpuAppMaterialKind> {
-  readonly kind: WebGpuAppMaterialKind;
-  isMaterialAsset(
-    material: MaterialAsset,
-  ): material is QueuedBuiltInMaterialAsset;
-  validateQueueItem(
-    queueItem: MaterialQueueItem,
-  ): WebGpuAppUnsupportedMaterialQueueDiagnostic | null;
-  prepareTextureSamplerResources(
-    options: QueuedBuiltInTextureSamplerPreparationOptions,
-  ): PreparedAppTextureSamplerResources;
-  createFrameResources(
-    options: QueuedBuiltInFrameResourcePreparationOptions,
-  ): CreateQueuedBuiltInFamilyFrameResourcesResult;
-  appendFrameResource(
-    resource: QueuedBuiltInFrameResource,
-    buckets: QueuedBuiltInFrameResourceBuckets,
-  ): void;
-}
+type QueuedBuiltInMaterialAdapter = QueuedBuiltInAppResourceAdapter<
+  QueuedBuiltInTextureSamplerPreparationOptions,
+  QueuedBuiltInFrameResourcePreparationOptions
+>;
 
 interface CreateQueuedBuiltInFrameResourcesResult {
   readonly valid: boolean;
   readonly resources: QueuedBuiltInFrameResources | null;
   readonly diagnostics: readonly unknown[];
-}
-
-interface QueueWriteBufferDeviceLike {
-  readonly queue?: {
-    writeBuffer?: (
-      buffer: unknown,
-      bufferOffset: number,
-      data: ArrayBufferLike | ArrayBufferView,
-      dataOffset?: number,
-      size?: number,
-    ) => void;
-  };
-}
-
-export interface WebGpuAppPreparedTextureSamplerDiagnostic {
-  readonly code:
-    | "webGpuApp.textureSourceNotReady"
-    | "webGpuApp.samplerSourceNotReady";
-  readonly message: string;
-  readonly resourceKey: string;
-  readonly status: string;
-}
-
-type WebGpuAppTextureSamplerPreparationDiagnostic =
-  | WebGpuAppPreparedTextureSamplerDiagnostic
-  | TextureGpuResourceDiagnostic;
-
-interface PreparedAppTextureSamplerResources {
-  readonly valid: boolean;
-  readonly textures: readonly TextureGpuResource[];
-  readonly samplers: readonly SamplerGpuResource[];
-  readonly textureKeys: readonly string[];
-  readonly samplerKeys: readonly string[];
-  readonly diagnostics: readonly WebGpuAppTextureSamplerPreparationDiagnostic[];
 }
 
 export interface WebGpuApp {
@@ -600,10 +504,19 @@ function createWebGpuAppResourceCache(): WebGpuAppResourceCache {
     textures: new Map(),
     samplers: new Map(),
     frameScratch: createWebGpuAppFrameScratch(),
-    unlitFrame: null,
-    matcapFrame: null,
-    standardFrame: null,
+    unlitFrame:
+      createWebGpuAppFrameResourceCacheSlot<CachedUnlitAppFrameResources>(),
+    matcapFrame:
+      createWebGpuAppFrameResourceCacheSlot<CachedMatcapAppFrameResources>(),
+    standardFrame:
+      createWebGpuAppFrameResourceCacheSlot<CachedStandardAppFrameResources>(),
   };
+}
+
+function createWebGpuAppFrameResourceCacheSlot<
+  TCachedFrameResources,
+>(): WebGpuAppFrameResourceCacheSlot<TCachedFrameResources> {
+  return { current: null };
 }
 
 function createWebGpuAppFrameScratch(): WebGpuAppFrameScratch {
@@ -803,111 +716,6 @@ function createMatcapAppPipelineLayouts(
   };
 }
 
-function createOrReuseUnlitAppFrameResources(options: {
-  readonly app: WebGpuApp;
-  readonly cache: WebGpuAppResourceCache;
-  readonly mesh: MeshAsset | null;
-  readonly meshKey: string;
-  readonly material: MaterialAsset | null;
-  readonly materialKey: string;
-  readonly textures: PreparedAppTextureSamplerResources;
-  readonly viewUniforms: PackedSnapshotViewUniforms;
-  readonly worldTransforms: PackedSnapshotTransforms;
-  readonly layouts: WebGpuAppPipelineLayouts;
-  readonly reuse: WebGpuAppResourceReuseReport;
-}): CreateUnlitFrameGpuResourcesResult {
-  const viewDescriptor = createViewUniformBufferDescriptor(
-    options.viewUniforms,
-  );
-  const transformDescriptor = createWorldTransformBufferDescriptor(
-    options.worldTransforms,
-  );
-  const cached = options.cache.unlitFrame;
-
-  if (
-    cached !== null &&
-    cached.meshKey === options.meshKey &&
-    cached.materialKey === options.materialKey &&
-    sameStringList(cached.textureKeys, options.textures.textureKeys) &&
-    sameStringList(cached.samplerKeys, options.textures.samplerKeys) &&
-    cached.result.resources !== null &&
-    viewDescriptor.plan !== null &&
-    transformDescriptor.plan !== null &&
-    cached.viewByteLength === viewDescriptor.plan.source.byteLength &&
-    cached.worldTransformByteLength ===
-      transformDescriptor.plan.source.byteLength &&
-    writeBufferData(
-      options.app.initialization.device,
-      cached.result.resources.viewUniform.buffer,
-      viewDescriptor.plan.source,
-    ) &&
-    writeBufferData(
-      options.app.initialization.device,
-      cached.result.resources.worldTransforms.buffer,
-      transformDescriptor.plan.source,
-    )
-  ) {
-    options.reuse.meshBuffersReused += 1;
-    options.reuse.materialBuffersReused += 1;
-    options.reuse.bindGroupsReused += cached.result.resources.bindGroups.length;
-    options.reuse.dynamicBufferWrites += 2;
-
-    const resources = cached.result.resources;
-    const result: CreateUnlitFrameGpuResourcesResult = {
-      valid: true,
-      resources: {
-        ...resources,
-        viewUniform: {
-          ...resources.viewUniform,
-          views: viewDescriptor.plan.views,
-        },
-        worldTransforms: {
-          ...resources.worldTransforms,
-          offsets: transformDescriptor.plan.offsets,
-        },
-      },
-      diagnostics: [],
-    };
-
-    cached.result = result;
-    return result;
-  }
-
-  const result = createUnlitFrameGpuResources({
-    device: options.app.initialization.device as Parameters<
-      typeof createUnlitFrameGpuResources
-    >[0]["device"],
-    mesh: options.mesh,
-    material: options.material,
-    viewUniforms: options.viewUniforms,
-    worldTransforms: options.worldTransforms,
-    layouts: options.layouts.sharedLayouts,
-    textures: options.textures.textures,
-    samplers: options.textures.samplers,
-  });
-
-  if (result.valid && result.resources !== null) {
-    options.reuse.meshBuffersCreated += 1;
-    options.reuse.materialBuffersCreated += 1;
-    options.reuse.bindGroupsCreated += result.resources.bindGroups.length;
-    options.cache.unlitFrame = {
-      meshKey: options.meshKey,
-      materialKey: options.materialKey,
-      textureKeys: [...options.textures.textureKeys],
-      samplerKeys: [...options.textures.samplerKeys],
-      viewByteLength:
-        viewDescriptor.plan?.source.byteLength ??
-        options.viewUniforms.data.byteLength,
-      worldTransformByteLength:
-        transformDescriptor.plan?.source.byteLength ??
-        options.worldTransforms.data.byteLength,
-      result,
-    };
-  }
-
-  return result;
-}
-
 function createMultiUnlitAppFrameResources(options: {
   readonly app: WebGpuApp;
   readonly mesh: MeshAsset | null;
@@ -935,669 +743,6 @@ function createMultiUnlitAppFrameResources(options: {
   }
 
   return result;
-}
-
-function createOrReuseMatcapAppFrameResources(options: {
-  readonly app: WebGpuApp;
-  readonly cache: WebGpuAppResourceCache;
-  readonly mesh: MeshAsset | null;
-  readonly meshKey: string;
-  readonly material: MatcapMaterialAsset | null;
-  readonly materialKey: string;
-  readonly textures: PreparedAppTextureSamplerResources;
-  readonly viewUniforms: PackedSnapshotViewUniforms;
-  readonly worldTransforms: PackedSnapshotTransforms;
-  readonly layouts: WebGpuAppPipelineLayouts;
-  readonly reuse: WebGpuAppResourceReuseReport;
-}): CreateMatcapFrameGpuResourcesResult {
-  const viewDescriptor = createViewUniformBufferDescriptor(
-    options.viewUniforms,
-  );
-  const transformDescriptor = createWorldTransformBufferDescriptor(
-    options.worldTransforms,
-  );
-  const cached = options.cache.matcapFrame;
-
-  if (
-    cached !== null &&
-    cached.meshKey === options.meshKey &&
-    cached.materialKey === options.materialKey &&
-    sameStringList(cached.textureKeys, options.textures.textureKeys) &&
-    sameStringList(cached.samplerKeys, options.textures.samplerKeys) &&
-    cached.result.resources !== null &&
-    viewDescriptor.plan !== null &&
-    transformDescriptor.plan !== null &&
-    cached.viewByteLength === viewDescriptor.plan.source.byteLength &&
-    cached.worldTransformByteLength ===
-      transformDescriptor.plan.source.byteLength &&
-    writeBufferData(
-      options.app.initialization.device,
-      cached.result.resources.viewUniform.buffer,
-      viewDescriptor.plan.source,
-    ) &&
-    writeBufferData(
-      options.app.initialization.device,
-      cached.result.resources.worldTransforms.buffer,
-      transformDescriptor.plan.source,
-    )
-  ) {
-    options.reuse.meshBuffersReused += 1;
-    options.reuse.materialBuffersReused += 1;
-    options.reuse.bindGroupsReused += cached.result.resources.bindGroups.length;
-    options.reuse.dynamicBufferWrites += 2;
-
-    const resources = cached.result.resources;
-    const result: CreateMatcapFrameGpuResourcesResult = {
-      valid: true,
-      resources: {
-        ...resources,
-        viewUniform: {
-          ...resources.viewUniform,
-          views: viewDescriptor.plan.views,
-        },
-        worldTransforms: {
-          ...resources.worldTransforms,
-          offsets: transformDescriptor.plan.offsets,
-        },
-      },
-      diagnostics: [],
-    };
-
-    cached.result = result;
-    return result;
-  }
-
-  const result = createMatcapFrameGpuResources({
-    device: options.app.initialization.device as Parameters<
-      typeof createMatcapFrameGpuResources
-    >[0]["device"],
-    mesh: options.mesh,
-    material: options.material,
-    viewUniforms: options.viewUniforms,
-    worldTransforms: options.worldTransforms,
-    sharedLayouts: options.layouts.sharedLayouts,
-    materialLayout: options.layouts
-      .materialLayout as MatcapMaterialBindGroupLayoutResource | null,
-    textures: options.textures.textures,
-    samplers: options.textures.samplers,
-  });
-
-  if (result.valid && result.resources !== null) {
-    options.reuse.meshBuffersCreated += 1;
-    options.reuse.materialBuffersCreated += 1;
-    options.reuse.bindGroupsCreated += result.resources.bindGroups.length;
-    options.cache.matcapFrame = {
-      meshKey: options.meshKey,
-      materialKey: options.materialKey,
-      textureKeys: [...options.textures.textureKeys],
-      samplerKeys: [...options.textures.samplerKeys],
-      viewByteLength:
-        viewDescriptor.plan?.source.byteLength ??
-        options.viewUniforms.data.byteLength,
-      worldTransformByteLength:
-        transformDescriptor.plan?.source.byteLength ??
-        options.worldTransforms.data.byteLength,
-      result,
-    };
-  }
-
-  return result;
-}
-
-function createOrReuseStandardAppFrameResources(options: {
-  readonly app: WebGpuApp;
-  readonly cache: WebGpuAppResourceCache;
-  readonly snapshot: RenderSnapshot;
-  readonly mesh: MeshAsset | null;
-  readonly meshKey: string;
-  readonly material: StandardMaterialAsset | null;
-  readonly materialKey: string;
-  readonly textures: PreparedAppTextureSamplerResources;
-  readonly viewUniforms: PackedSnapshotViewUniforms;
-  readonly worldTransforms: PackedSnapshotTransforms;
-  readonly layouts: WebGpuAppPipelineLayouts;
-  readonly reuse: WebGpuAppResourceReuseReport;
-}): CreateStandardFrameGpuResourcesResult {
-  const viewDescriptor = createViewUniformBufferDescriptor(
-    options.viewUniforms,
-  );
-  const transformDescriptor = createWorldTransformBufferDescriptor(
-    options.worldTransforms,
-  );
-  const lightBuffer = createLightBufferDescriptor(options.snapshot);
-  const lightDescriptor = createLightBufferDescriptorPlan(lightBuffer);
-  const cached = options.cache.standardFrame;
-
-  if (
-    cached !== null &&
-    cached.meshKey === options.meshKey &&
-    cached.materialKey === options.materialKey &&
-    sameStringList(cached.textureKeys, options.textures.textureKeys) &&
-    sameStringList(cached.samplerKeys, options.textures.samplerKeys) &&
-    cached.result.resources !== null &&
-    cached.result.resources.lightGpuBuffers.resource !== null &&
-    viewDescriptor.plan !== null &&
-    transformDescriptor.plan !== null &&
-    lightDescriptor.plan !== null &&
-    cached.viewByteLength === viewDescriptor.plan.source.byteLength &&
-    cached.worldTransformByteLength ===
-      transformDescriptor.plan.source.byteLength &&
-    cached.lightFloatByteLength ===
-      lightDescriptor.plan.source.floats.byteLength &&
-    cached.lightMetadataByteLength ===
-      lightDescriptor.plan.source.metadata.byteLength &&
-    writeBufferData(
-      options.app.initialization.device,
-      cached.result.resources.viewUniform.buffer,
-      viewDescriptor.plan.source,
-    ) &&
-    writeBufferData(
-      options.app.initialization.device,
-      cached.result.resources.worldTransforms.buffer,
-      transformDescriptor.plan.source,
-    ) &&
-    writeBufferData(
-      options.app.initialization.device,
-      cached.result.resources.lightGpuBuffers.resource.floatBuffer,
-      lightDescriptor.plan.source.floats,
-    ) &&
-    writeBufferData(
-      options.app.initialization.device,
-      cached.result.resources.lightGpuBuffers.resource.metadataBuffer,
-      lightDescriptor.plan.source.metadata,
-    )
-  ) {
-    options.reuse.meshBuffersReused += 1;
-    options.reuse.materialBuffersReused += 1;
-    options.reuse.bindGroupsReused += cached.result.resources.bindGroups.length;
-    options.reuse.lightBuffersReused += 1;
-    options.reuse.dynamicBufferWrites += 4;
-
-    const resources = cached.result.resources;
-    const result: CreateStandardFrameGpuResourcesResult = {
-      valid: true,
-      resources: {
-        ...resources,
-        viewUniform: {
-          ...resources.viewUniform,
-          views: viewDescriptor.plan.views,
-        },
-        worldTransforms: {
-          ...resources.worldTransforms,
-          offsets: transformDescriptor.plan.offsets,
-        },
-        lightGpuBuffers: {
-          valid: true,
-          lightBuffer,
-          descriptorPlan: lightDescriptor.plan,
-          resource: resources.lightGpuBuffers.resource,
-          diagnostics: [],
-        },
-      },
-      diagnostics: [],
-    };
-
-    cached.result = result;
-    return result;
-  }
-
-  const result = createStandardFrameGpuResources({
-    device: options.app.initialization.device as Parameters<
-      typeof createStandardFrameGpuResources
-    >[0]["device"],
-    snapshot: options.snapshot,
-    mesh: options.mesh,
-    material: options.material,
-    viewUniforms: options.viewUniforms,
-    worldTransforms: options.worldTransforms,
-    sharedLayouts: options.layouts.sharedLayouts,
-    materialLayout: options.layouts
-      .materialLayout as StandardMaterialBindGroupLayoutResource | null,
-    lightLayout: options.layouts.lightLayout,
-    textures: options.textures.textures,
-    samplers: options.textures.samplers,
-  });
-
-  if (
-    result.valid &&
-    result.resources !== null &&
-    result.resources.lightGpuBuffers.descriptorPlan !== null
-  ) {
-    options.reuse.meshBuffersCreated += 1;
-    options.reuse.materialBuffersCreated += 1;
-    options.reuse.bindGroupsCreated += result.resources.bindGroups.length;
-    options.reuse.lightBuffersCreated += 1;
-    options.cache.standardFrame = {
-      meshKey: options.meshKey,
-      materialKey: options.materialKey,
-      textureKeys: [...options.textures.textureKeys],
-      samplerKeys: [...options.textures.samplerKeys],
-      viewByteLength:
-        viewDescriptor.plan?.source.byteLength ??
-        options.viewUniforms.data.byteLength,
-      worldTransformByteLength:
-        transformDescriptor.plan?.source.byteLength ??
-        options.worldTransforms.data.byteLength,
-      lightFloatByteLength:
-        result.resources.lightGpuBuffers.descriptorPlan.source.floats
-          .byteLength,
-      lightMetadataByteLength:
-        result.resources.lightGpuBuffers.descriptorPlan.source.metadata
-          .byteLength,
-      result,
-    };
-  }
-
-  return result;
-}
-
-function prepareUnlitAppTextureSamplerResources(options: {
-  readonly app: WebGpuApp;
-  readonly cache: WebGpuAppResourceCache;
-  readonly material: UnlitMaterialAsset;
-  readonly reuse: WebGpuAppResourceReuseReport;
-}): PreparedAppTextureSamplerResources {
-  const binding = options.material.baseColorTexture;
-
-  if (binding === null) {
-    return emptyPreparedAppTextureSamplerResources();
-  }
-
-  const diagnostics: WebGpuAppTextureSamplerPreparationDiagnostic[] = [];
-  const textures: TextureGpuResource[] = [];
-  const samplers: SamplerGpuResource[] = [];
-  const textureKeys: string[] = [];
-  const samplerKeys: string[] = [];
-
-  if (binding.texture !== null) {
-    const texture = prepareAppTextureResource({
-      app: options.app,
-      cache: options.cache,
-      handle: binding.texture,
-      reuse: options.reuse,
-      diagnostics,
-    });
-
-    if (texture !== null) {
-      textures.push(texture.resource);
-      textureKeys.push(texture.cacheKey);
-    }
-  }
-
-  if (binding.sampler !== null) {
-    const sampler = prepareAppSamplerResource({
-      app: options.app,
-      cache: options.cache,
-      handle: binding.sampler,
-      reuse: options.reuse,
-      diagnostics,
-    });
-
-    if (sampler !== null) {
-      samplers.push(sampler.resource);
-      samplerKeys.push(sampler.cacheKey);
-    }
-  }
-
-  return {
-    valid:
-      diagnostics.length === 0 &&
-      binding.texture !== null &&
-      binding.sampler !== null &&
-      textures.length === 1 &&
-      samplers.length === 1,
-    textures,
-    samplers,
-    textureKeys,
-    samplerKeys,
-    diagnostics,
-  };
-}
-
-function prepareMatcapAppTextureSamplerResources(options: {
-  readonly app: WebGpuApp;
-  readonly cache: WebGpuAppResourceCache;
-  readonly material: MatcapMaterialAsset;
-  readonly reuse: WebGpuAppResourceReuseReport;
-}): PreparedAppTextureSamplerResources {
-  const binding = options.material.matcapTexture;
-  const diagnostics: WebGpuAppTextureSamplerPreparationDiagnostic[] = [];
-  const textures: TextureGpuResource[] = [];
-  const samplers: SamplerGpuResource[] = [];
-  const textureKeys: string[] = [];
-  const samplerKeys: string[] = [];
-
-  if (binding === null || binding.texture === null) {
-    diagnostics.push({
-      code: "webGpuApp.textureSourceNotReady",
-      resourceKey: "matcapTexture.texture",
-      status: "missing",
-      message:
-        "Matcap app rendering requires a ready matcap texture source asset.",
-    });
-  } else {
-    const texture = prepareAppTextureResource({
-      app: options.app,
-      cache: options.cache,
-      handle: binding.texture,
-      reuse: options.reuse,
-      diagnostics,
-    });
-
-    if (texture !== null) {
-      textures.push(texture.resource);
-      textureKeys.push(texture.cacheKey);
-    }
-  }
-
-  if (binding === null || binding.sampler === null) {
-    diagnostics.push({
-      code: "webGpuApp.samplerSourceNotReady",
-      resourceKey: "matcapTexture.sampler",
-      status: "missing",
-      message:
-        "Matcap app rendering requires a ready matcap sampler source asset.",
-    });
-  } else {
-    const sampler = prepareAppSamplerResource({
-      app: options.app,
-      cache: options.cache,
-      handle: binding.sampler,
-      reuse: options.reuse,
-      diagnostics,
-    });
-
-    if (sampler !== null) {
-      samplers.push(sampler.resource);
-      samplerKeys.push(sampler.cacheKey);
-    }
-  }
-
-  return {
-    valid:
-      diagnostics.length === 0 &&
-      textures.length === 1 &&
-      samplers.length === 1,
-    textures,
-    samplers,
-    textureKeys,
-    samplerKeys,
-    diagnostics,
-  };
-}
-
-function prepareStandardAppTextureSamplerResources(options: {
-  readonly app: WebGpuApp;
-  readonly cache: WebGpuAppResourceCache;
-  readonly material: StandardMaterialAsset;
-  readonly reuse: WebGpuAppResourceReuseReport;
-}): PreparedAppTextureSamplerResources {
-  const bindings = [
-    options.material.baseColorTexture,
-    options.material.metallicRoughnessTexture,
-    options.material.normalTexture,
-    options.material.occlusionTexture,
-    options.material.emissiveTexture,
-  ].filter(
-    (binding): binding is NonNullable<typeof binding> => binding !== null,
-  );
-
-  if (bindings.length === 0) {
-    return emptyPreparedAppTextureSamplerResources();
-  }
-
-  const diagnostics: WebGpuAppTextureSamplerPreparationDiagnostic[] = [];
-  const textures: TextureGpuResource[] = [];
-  const samplers: SamplerGpuResource[] = [];
-  const textureKeys: string[] = [];
-  const samplerKeys: string[] = [];
-
-  for (const binding of bindings) {
-    if (binding.texture !== null) {
-      const texture = prepareAppTextureResource({
-        app: options.app,
-        cache: options.cache,
-        handle: binding.texture,
-        reuse: options.reuse,
-        diagnostics,
-      });
-
-      if (texture !== null) {
-        textures.push(texture.resource);
-        textureKeys.push(texture.cacheKey);
-      }
-    }
-
-    if (binding.sampler !== null) {
-      const sampler = prepareAppSamplerResource({
-        app: options.app,
-        cache: options.cache,
-        handle: binding.sampler,
-        reuse: options.reuse,
-        diagnostics,
-      });
-
-      if (sampler !== null) {
-        samplers.push(sampler.resource);
-        samplerKeys.push(sampler.cacheKey);
-      }
-    }
-  }
-
-  return {
-    valid:
-      diagnostics.length === 0 &&
-      bindings.every(
-        (binding) => binding.texture !== null && binding.sampler !== null,
-      ) &&
-      textures.length === bindings.length &&
-      samplers.length === bindings.length,
-    textures,
-    samplers,
-    textureKeys,
-    samplerKeys,
-    diagnostics,
-  };
-}
-
-function emptyPreparedAppTextureSamplerResources(): PreparedAppTextureSamplerResources {
-  return {
-    valid: true,
-    textures: [],
-    samplers: [],
-    textureKeys: [],
-    samplerKeys: [],
-    diagnostics: [],
-  };
-}
-
-function prepareAppTextureResource(options: {
-  readonly app: WebGpuApp;
-  readonly cache: WebGpuAppResourceCache;
-  readonly handle: TextureHandle;
-  readonly reuse: WebGpuAppResourceReuseReport;
-  readonly diagnostics: WebGpuAppTextureSamplerPreparationDiagnostic[];
-}): {
-  readonly cacheKey: string;
-  readonly resource: TextureGpuResource;
-} | null {
-  const resourceKey = assetHandleKey(options.handle);
-  const entry = options.app.assets.get<"texture", TextureAsset>(options.handle);
-
-  if (entry === undefined || entry.status !== "ready" || entry.asset === null) {
-    options.diagnostics.push({
-      code: "webGpuApp.textureSourceNotReady",
-      resourceKey,
-      status: entry?.status ?? "missing",
-      message: `Texture source asset '${resourceKey}' is not ready for app rendering.`,
-    });
-    return null;
-  }
-
-  const cacheKey = sourceAssetCacheKey(options.handle, entry.version);
-  const cached = options.cache.textures.get(cacheKey);
-
-  if (cached !== undefined) {
-    options.reuse.textureResourcesReused += 1;
-    return { cacheKey, resource: cached };
-  }
-
-  const upload = textureUploadFromAsset(entry.asset);
-  const result = createTextureGpuResource({
-    device: options.app.initialization.device as Parameters<
-      typeof createTextureGpuResource
-    >[0]["device"],
-    resourceKey,
-    descriptor: textureDescriptorFromAsset(entry.asset),
-    ...(upload === null ? {} : { upload }),
-  });
-
-  options.diagnostics.push(...result.diagnostics);
-
-  if (!result.valid || result.resource === null) {
-    return null;
-  }
-
-  options.cache.textures.set(cacheKey, result.resource);
-  options.reuse.textureResourcesCreated += 1;
-  return { cacheKey, resource: result.resource };
-}
-
-function prepareAppSamplerResource(options: {
-  readonly app: WebGpuApp;
-  readonly cache: WebGpuAppResourceCache;
-  readonly handle: SamplerHandle;
-  readonly reuse: WebGpuAppResourceReuseReport;
-  readonly diagnostics: WebGpuAppTextureSamplerPreparationDiagnostic[];
-}): {
-  readonly cacheKey: string;
-  readonly resource: SamplerGpuResource;
-} | null {
-  const resourceKey = assetHandleKey(options.handle);
-  const entry = options.app.assets.get<"sampler", SamplerAsset>(options.handle);
-
-  if (entry === undefined || entry.status !== "ready" || entry.asset === null) {
-    options.diagnostics.push({
-      code: "webGpuApp.samplerSourceNotReady",
-      resourceKey,
-      status: entry?.status ?? "missing",
-      message: `Sampler source asset '${resourceKey}' is not ready for app rendering.`,
-    });
-    return null;
-  }
-
-  const cacheKey = sourceAssetCacheKey(options.handle, entry.version);
-  const cached = options.cache.samplers.get(cacheKey);
-
-  if (cached !== undefined) {
-    options.reuse.samplerResourcesReused += 1;
-    return { cacheKey, resource: cached };
-  }
-
-  const result = createSamplerGpuResource({
-    device: options.app.initialization.device as Parameters<
-      typeof createSamplerGpuResource
-    >[0]["device"],
-    resourceKey,
-    sampler: entry.asset,
-  });
-
-  options.diagnostics.push(...result.diagnostics);
-
-  if (!result.valid || result.resource === null) {
-    return null;
-  }
-
-  options.cache.samplers.set(cacheKey, result.resource);
-  options.reuse.samplerResourcesCreated += 1;
-  return { cacheKey, resource: result.resource };
-}
-
-function textureDescriptorFromAsset(
-  texture: TextureAsset,
-): TextureDescriptorInput {
-  return {
-    label: texture.label,
-    size: [texture.width, texture.height, texture.depthOrLayers],
-    format: texture.format,
-    mipLevelCount: texture.mipLevelCount,
-    usage: textureUsageFlags(texture.usage),
-  };
-}
-
-function textureUploadFromAsset(
-  texture: TextureAsset,
-): TextureUploadInput | null {
-  if (texture.sourceData === undefined) {
-    return null;
-  }
-
-  return {
-    data: texture.sourceData.bytes,
-    bytesPerRow: texture.sourceData.bytesPerRow,
-    ...(texture.sourceData.rowsPerImage === undefined
-      ? {}
-      : { rowsPerImage: texture.sourceData.rowsPerImage }),
-  };
-}
-
-function textureUsageFlags(usages: readonly TextureUsage[]): number {
-  let flags = 0;
-
-  for (const usage of usages) {
-    switch (usage) {
-      case "sampled":
-        flags |= WEBGPU_TEXTURE_USAGE_FLAGS.TEXTURE_BINDING;
-        break;
-      case "copy-dst":
-        flags |= WEBGPU_TEXTURE_USAGE_FLAGS.COPY_DST;
-        break;
-      case "render-attachment":
-        flags |= WEBGPU_TEXTURE_USAGE_FLAGS.RENDER_ATTACHMENT;
-        break;
-    }
-  }
-
-  return flags === 0 ? WEBGPU_TEXTURE_USAGE_FLAGS.TEXTURE_BINDING : flags;
-}
-
-function sameStringList(
-  first: readonly string[],
-  second: readonly string[],
-): boolean {
-  if (first.length !== second.length) {
-    return false;
-  }
-
-  for (let index = 0; index < first.length; index += 1) {
-    if (first[index] !== second[index]) {
-      return false;
-    }
-  }
-
-  return true;
-}
-
-function sourceAssetCacheKey(
-  handle: Parameters<typeof assetHandleKey>[0],
-  version: number,
-): string {
-  return `${assetHandleKey(handle)}@${version}`;
-}
-
-function writeBufferData(
-  device: unknown,
-  buffer: unknown,
-  data: ArrayBufferView,
-): boolean {
-  const queue = (device as QueueWriteBufferDeviceLike).queue;
-
-  if (queue?.writeBuffer === undefined) {
-    return false;
-  }
-
-  queue.writeBuffer(buffer, 0, data.buffer, data.byteOffset, data.byteLength);
-  return true;
 }
 
 function collectMultiUnlitAppResourceSet(options: {
@@ -1990,99 +1135,83 @@ function indexQueuedSourceAssets(
 }
 
 const QUEUED_BUILT_IN_MATERIAL_ADAPTERS =
-  createQueuedMaterialAdapterRegistry<QueuedBuiltInMaterialAdapter>([
-    {
-      kind: "unlit",
-      isMaterialAsset: (material): material is UnlitMaterialAsset =>
-        material.kind === "unlit",
-      validateQueueItem: createUnsupportedBuiltInMaterialQueuePhaseDiagnostic,
-      prepareTextureSamplerResources: (options) =>
-        prepareUnlitAppTextureSamplerResources({
-          app: options.app,
-          cache: options.cache,
-          material: options.item.material as UnlitMaterialAsset,
-          reuse: options.reuse,
-        }),
-      createFrameResources: (options) =>
-        createOrReuseUnlitAppFrameResources({
-          app: options.app,
-          cache: options.cache,
-          mesh: options.item.mesh,
-          meshKey: options.item.meshKey,
-          material: options.item.material,
-          materialKey: options.item.materialKey,
-          textures: options.textures,
-          viewUniforms: options.viewUniforms,
-          worldTransforms: options.worldTransforms,
-          layouts: options.layouts,
-          reuse: options.reuse,
-        }),
-      appendFrameResource: (resource, buckets) => {
-        buckets.unlit.push(resource as UnlitFrameGpuResources);
-      },
-    },
-    {
-      kind: "matcap",
-      isMaterialAsset: (material): material is MatcapMaterialAsset =>
-        material.kind === "matcap",
-      validateQueueItem: createUnsupportedBuiltInMaterialQueuePhaseDiagnostic,
-      prepareTextureSamplerResources: (options) =>
-        prepareMatcapAppTextureSamplerResources({
-          app: options.app,
-          cache: options.cache,
-          material: options.item.material as MatcapMaterialAsset,
-          reuse: options.reuse,
-        }),
-      createFrameResources: (options) =>
-        createOrReuseMatcapAppFrameResources({
-          app: options.app,
-          cache: options.cache,
-          mesh: options.item.mesh,
-          meshKey: options.item.meshKey,
-          material: options.item.material as MatcapMaterialAsset,
-          materialKey: options.item.materialKey,
-          textures: options.textures,
-          viewUniforms: options.viewUniforms,
-          worldTransforms: options.worldTransforms,
-          layouts: options.layouts,
-          reuse: options.reuse,
-        }),
-      appendFrameResource: (resource, buckets) => {
-        buckets.matcap.push(resource as MatcapFrameGpuResources);
-      },
-    },
-    {
-      kind: "standard",
-      isMaterialAsset: (material): material is StandardMaterialAsset =>
-        material.kind === "standard",
-      validateQueueItem: createUnsupportedBuiltInMaterialQueuePhaseDiagnostic,
-      prepareTextureSamplerResources: (options) =>
-        prepareStandardAppTextureSamplerResources({
-          app: options.app,
-          cache: options.cache,
-          material: options.item.material as StandardMaterialAsset,
-          reuse: options.reuse,
-        }),
-      createFrameResources: (options) =>
-        createOrReuseStandardAppFrameResources({
-          app: options.app,
-          cache: options.cache,
-          snapshot: options.snapshot,
-          mesh: options.item.mesh,
-          meshKey: options.item.meshKey,
-          material: options.item.material as StandardMaterialAsset,
-          materialKey: options.item.materialKey,
-          textures: options.textures,
-          viewUniforms: options.viewUniforms,
-          worldTransforms: options.worldTransforms,
-          layouts: options.layouts,
-          reuse: options.reuse,
-        }),
-      appendFrameResource: (resource, buckets) => {
-        buckets.standard.push(resource as StandardFrameGpuResources);
-      },
-    },
-  ]);
+  createQueuedBuiltInAppResourceAdapterRegistry<
+    QueuedBuiltInTextureSamplerPreparationOptions,
+    QueuedBuiltInFrameResourcePreparationOptions
+  >({
+    prepareUnlitTextureSamplerResources: (options) =>
+      prepareUnlitAppTextureSamplerResources({
+        assets: options.app.assets,
+        device: options.app.initialization.device,
+        cache: options.cache,
+        material: options.item.material as UnlitMaterialAsset,
+        reuse: options.reuse,
+      }),
+    prepareMatcapTextureSamplerResources: (options) =>
+      prepareMatcapAppTextureSamplerResources({
+        assets: options.app.assets,
+        device: options.app.initialization.device,
+        cache: options.cache,
+        material: options.item.material as MatcapMaterialAsset,
+        reuse: options.reuse,
+      }),
+    prepareStandardTextureSamplerResources: (options) =>
+      prepareStandardAppTextureSamplerResources({
+        assets: options.app.assets,
+        device: options.app.initialization.device,
+        cache: options.cache,
+        material: options.item.material as StandardMaterialAsset,
+        reuse: options.reuse,
+      }),
+    createUnlitFrameResources: (options) =>
+      createOrReuseUnlitAppFrameResources({
+        device: options.app.initialization.device,
+        cache: options.cache.unlitFrame,
+        mesh: options.item.mesh,
+        meshKey: options.item.meshKey,
+        material: options.item.material as UnlitMaterialAsset,
+        materialKey: options.item.materialKey,
+        textures: options.textures,
+        viewUniforms: options.viewUniforms,
+        worldTransforms: options.worldTransforms,
+        layouts: options.layouts.sharedLayouts,
+        reuse: options.reuse,
+      }),
+    createMatcapFrameResources: (options) =>
+      createOrReuseMatcapAppFrameResources({
+        device: options.app.initialization.device,
+        cache: options.cache.matcapFrame,
+        mesh: options.item.mesh,
+        meshKey: options.item.meshKey,
+        material: options.item.material as MatcapMaterialAsset,
+        materialKey: options.item.materialKey,
+        textures: options.textures,
+        viewUniforms: options.viewUniforms,
+        worldTransforms: options.worldTransforms,
+        sharedLayouts: options.layouts.sharedLayouts,
+        materialLayout: options.layouts
+          .materialLayout as MatcapMaterialBindGroupLayoutResource | null,
+        reuse: options.reuse,
+      }),
+    createStandardFrameResources: (options) =>
+      createOrReuseStandardAppFrameResources({
+        device: options.app.initialization.device,
+        cache: options.cache.standardFrame,
+        snapshot: options.snapshot,
+        mesh: options.item.mesh,
+        meshKey: options.item.meshKey,
+        material: options.item.material as StandardMaterialAsset,
+        materialKey: options.item.materialKey,
+        textures: options.textures,
+        viewUniforms: options.viewUniforms,
+        worldTransforms: options.worldTransforms,
+        sharedLayouts: options.layouts.sharedLayouts,
+        materialLayout: options.layouts
+          .materialLayout as StandardMaterialBindGroupLayoutResource | null,
+        lightLayout: options.layouts.lightLayout,
+        reuse: options.reuse,
+      }),
+  });
 
 async function renderQueuedBuiltInWebGpuAppFrame(options: {
   readonly app: WebGpuApp;
@@ -2648,20 +1777,23 @@ async function renderWebGpuAppFrame(
   const preparedTextures =
     materialKind === "unlit"
       ? prepareUnlitAppTextureSamplerResources({
-          app,
+          assets: app.assets,
+          device: app.initialization.device,
           cache: resourceCache,
           material: material as UnlitMaterialAsset,
           reuse,
         })
       : materialKind === "matcap"
         ? prepareMatcapAppTextureSamplerResources({
-            app,
+            assets: app.assets,
+            device: app.initialization.device,
             cache: resourceCache,
             material: material as MatcapMaterialAsset,
             reuse,
           })
         : prepareStandardAppTextureSamplerResources({
-            app,
+            assets: app.assets,
+            device: app.initialization.device,
             cache: resourceCache,
             material: material as StandardMaterialAsset,
             reuse,
@@ -2700,8 +1832,8 @@ async function renderWebGpuAppFrame(
         })
       : materialKind === "standard"
         ? createOrReuseStandardAppFrameResources({
-            app,
-            cache: resourceCache,
+            device: app.initialization.device,
+            cache: resourceCache.standardFrame,
             snapshot,
             mesh,
             meshKey,
@@ -2710,13 +1842,16 @@ async function renderWebGpuAppFrame(
             textures: preparedTextures,
             viewUniforms: packedViews,
             worldTransforms: packedTransforms,
-            layouts,
+            sharedLayouts: layouts.sharedLayouts,
+            materialLayout:
+              layouts.materialLayout as StandardMaterialBindGroupLayoutResource | null,
+            lightLayout: layouts.lightLayout,
             reuse,
           })
         : materialKind === "matcap"
           ? createOrReuseMatcapAppFrameResources({
-              app,
-              cache: resourceCache,
+              device: app.initialization.device,
+              cache: resourceCache.matcapFrame,
               mesh,
               meshKey,
               material: material as MatcapMaterialAsset,
@@ -2724,12 +1859,14 @@ async function renderWebGpuAppFrame(
               textures: preparedTextures,
               viewUniforms: packedViews,
               worldTransforms: packedTransforms,
-              layouts,
+              sharedLayouts: layouts.sharedLayouts,
+              materialLayout:
+                layouts.materialLayout as MatcapMaterialBindGroupLayoutResource | null,
               reuse,
             })
           : createOrReuseUnlitAppFrameResources({
-              app,
-              cache: resourceCache,
+              device: app.initialization.device,
+              cache: resourceCache.unlitFrame,
               mesh,
               meshKey,
               material,
@@ -2737,7 +1874,7 @@ async function renderWebGpuAppFrame(
               textures: preparedTextures,
               viewUniforms: packedViews,
               worldTransforms: packedTransforms,
-              layouts,
+              layouts: layouts.sharedLayouts,
               reuse,
             });
 

@@ -21,6 +21,8 @@ import {
   withTransform,
   withVisibility,
   type MeshAsset,
+  type MeshDrawPacket,
+  type RenderSnapshot,
 } from "@aperture-engine/core";
 import {
   createWebGpuApp,
@@ -1775,7 +1777,7 @@ describe("WebGPU app facade", () => {
     expect(events).not.toContain("queue:submit:1");
   });
 
-  it("renders unlit, standard, and matcap app resource sets in one shared-mesh frame", async () => {
+  it("reuses unlit, standard, and matcap app resource cache slots in one shared-mesh frame", async () => {
     const events: string[] = [];
     const { canvas, environment } = webGpuHarness(events);
     const created = await createWebGpuApp({
@@ -1903,8 +1905,51 @@ describe("WebGPU app facade", () => {
     expect(events).toContain("pass:bind:3");
     expect(events).toContain("queue:submit:1");
 
+    const firstResources = frame.resources?.resources;
+    const firstUnlitResource = queuedMaterialResources(
+      firstResources,
+      "unlit",
+    )[0];
+    const firstMatcapResource = queuedMaterialResources(
+      firstResources,
+      "matcap",
+    )[0];
+    const firstStandardResource = queuedMaterialResources(
+      firstResources,
+      "standard",
+    )[0];
+
+    expect(queuedFamilyResourceCount(firstResources, "unlit")).toBe(1);
+    expect(queuedFamilyResourceCount(firstResources, "matcap")).toBe(1);
+    expect(queuedFamilyResourceCount(firstResources, "standard")).toBe(1);
+    expect(firstUnlitResource?.material).toBeDefined();
+    expect(firstMatcapResource?.material).toBeDefined();
+    expect(firstStandardResource?.material).toBeDefined();
+    expect(hasStandardLightResources(firstStandardResource)).toBe(true);
+
+    const firstUnlitMaterialResource = firstUnlitResource?.material;
+    const firstMatcapMaterialResource = firstMatcapResource?.material;
+    const firstStandardMaterialResource = firstStandardResource?.material;
+    const firstStandardLightResource = hasStandardLightResources(
+      firstStandardResource,
+    )
+      ? firstStandardResource.lightGpuBuffers.resource
+      : null;
     const firstResourceEvents = resourceEventCounts(events);
     const secondFrame = await app.stepAndRender(1 / 60, 2, 39);
+    const secondResources = secondFrame.resources?.resources;
+    const secondUnlitResource = queuedMaterialResources(
+      secondResources,
+      "unlit",
+    )[0];
+    const secondMatcapResource = queuedMaterialResources(
+      secondResources,
+      "matcap",
+    )[0];
+    const secondStandardResource = queuedMaterialResources(
+      secondResources,
+      "standard",
+    )[0];
 
     expect(secondFrame.ok).toBe(true);
     expect(secondFrame.resourceReuse).toMatchObject({
@@ -1918,6 +1963,22 @@ describe("WebGPU app facade", () => {
       lightBuffersReused: 1,
       dynamicBufferWrites: 8,
     });
+    expect(queuedFamilyResourceCount(secondResources, "unlit")).toBe(1);
+    expect(queuedFamilyResourceCount(secondResources, "matcap")).toBe(1);
+    expect(queuedFamilyResourceCount(secondResources, "standard")).toBe(1);
+    expect(secondUnlitResource?.material).toBe(firstUnlitMaterialResource);
+    expect(secondMatcapResource?.material).toBe(firstMatcapMaterialResource);
+    expect(secondStandardResource?.material).toBe(
+      firstStandardMaterialResource,
+    );
+    expect(hasStandardLightResources(secondStandardResource)).toBe(true);
+
+    if (hasStandardLightResources(secondStandardResource)) {
+      expect(secondStandardResource.lightGpuBuffers.resource).toBe(
+        firstStandardLightResource,
+      );
+    }
+
     expect(resourceEventCounts(events)).toEqual(firstResourceEvents);
   });
 
@@ -2653,6 +2714,142 @@ describe("WebGPU app facade", () => {
     );
     expect(JSON.stringify(frame.diagnostics)).not.toContain("sourceAsset");
     expect(JSON.stringify(frame.diagnostics)).not.toContain("gpu-resource");
+    expect(events).not.toContain("queue:submit:1");
+  });
+
+  it("resets material queue route report shell state across failed frames", async () => {
+    const events: string[] = [];
+    const { canvas, environment } = webGpuHarness(events);
+    const created = await createWebGpuApp({
+      canvas,
+      environment,
+      worldOptions: { entityCapacity: 8 },
+    });
+
+    expect(created.ok).toBe(true);
+
+    if (!created.ok) {
+      return;
+    }
+
+    const app = created.app;
+    const assets = createRenderAssetCollections({ registry: app.assets });
+    const mesh = assets.meshes.add(
+      createBoxMeshAsset({ label: "RouteShellReuseCube" }),
+    );
+    const unlitMaterial = assets.materials.unlit.add(
+      createUnlitMaterialAsset({ label: "Route Shell Supported Unlit" }),
+    );
+    const debugNormalMaterial = assets.materials.debugNormal.add(
+      createDebugNormalMaterialAsset({ label: "Route Shell Debug Normal" }),
+    );
+    const additiveStandard = assets.materials.standard.add(
+      createStandardMaterialAsset({
+        label: "Route Shell Additive Standard",
+        renderState: {
+          alphaMode: "blend",
+          depth: { test: true, write: false, compare: "less" },
+          blend: { preset: "additive" },
+        },
+      }),
+    );
+
+    app.spawn(
+      withTransform({ translation: [0, 0, 5] }),
+      withCamera({ priority: 0, layerMask: 1 }),
+    );
+    app.spawn(
+      withTransform({ translation: [-0.75, 0, 0] }),
+      withMesh(mesh),
+      withMaterial(unlitMaterial),
+      withRenderLayer(1),
+      withVisibility(true),
+    );
+    app.spawn(
+      withTransform(),
+      withMesh(mesh),
+      withMaterial(debugNormalMaterial),
+      withRenderLayer(1),
+      withVisibility(true),
+    );
+    app.spawn(
+      withTransform({ translation: [0.75, 0, 0] }),
+      withMesh(mesh),
+      withMaterial(additiveStandard),
+      withRenderLayer(1),
+      withVisibility(true),
+    );
+
+    app.step(1 / 60, 1);
+    const snapshot = app.extract(47);
+    const firstFrame = await app.render({
+      snapshot: renderSnapshotWithDraws(snapshot, 47, [
+        drawForMaterial(snapshot, unlitMaterial),
+        drawForMaterial(snapshot, debugNormalMaterial),
+      ]),
+    });
+    const secondFrame = await app.render({
+      snapshot: renderSnapshotWithDraws(snapshot, 48, [
+        drawForMaterial(snapshot, additiveStandard),
+      ]),
+    });
+
+    expect(firstFrame.ok).toBe(false);
+    expect(secondFrame.ok).toBe(false);
+
+    const firstReport = materialQueueRouteReport(firstFrame);
+    const secondReport = materialQueueRouteReport(secondFrame);
+
+    expect(firstReport).toMatchObject({
+      valid: false,
+      queueItemCount: 2,
+      routedItemCount: 1,
+      skippedItemCount: 1,
+      byFamily: expect.arrayContaining([
+        { key: "unlit", queuedCount: 1, routedCount: 1, skippedCount: 0 },
+        {
+          key: "debug-normal",
+          queuedCount: 1,
+          routedCount: 0,
+          skippedCount: 1,
+        },
+      ]),
+      byPhase: [
+        { key: "opaque", queuedCount: 2, routedCount: 1, skippedCount: 1 },
+      ],
+      diagnosticSummary: expect.objectContaining({
+        total: 1,
+        byCode: { "webGpuApp.unsupportedMaterialQueueFamily": 1 },
+      }),
+    });
+    expect(secondReport).toMatchObject({
+      valid: false,
+      queueItemCount: 1,
+      routedItemCount: 0,
+      skippedItemCount: 1,
+      byFamily: [
+        {
+          key: "standard",
+          queuedCount: 1,
+          routedCount: 0,
+          skippedCount: 1,
+        },
+      ],
+      byPhase: [
+        {
+          key: "transparent",
+          queuedCount: 1,
+          routedCount: 0,
+          skippedCount: 1,
+        },
+      ],
+      diagnosticSummary: expect.objectContaining({
+        total: 1,
+        byCode: { "webGpuApp.unsupportedMaterialQueueBlendPreset": 1 },
+      }),
+    });
+    expect(JSON.stringify(secondReport)).not.toContain("debug-normal");
+    expect(JSON.stringify(secondReport)).not.toContain("unlit");
     expect(events).not.toContain("queue:submit:1");
   });
 
@@ -4204,6 +4401,62 @@ function expectNoMaterialQueueRouteReport(report: {
       }),
     ]),
   );
+}
+
+function materialQueueRouteReport(report: {
+  readonly diagnostics: readonly unknown[];
+}) {
+  const diagnostic = report.diagnostics.find(
+    (
+      entry,
+    ): entry is {
+      readonly code: "webGpuApp.materialQueueRouteReport";
+      readonly report: unknown;
+    } =>
+      typeof entry === "object" &&
+      entry !== null &&
+      "code" in entry &&
+      entry.code === "webGpuApp.materialQueueRouteReport" &&
+      "report" in entry,
+  );
+
+  if (diagnostic === undefined) {
+    throw new Error("Expected a material queue route report diagnostic.");
+  }
+
+  return diagnostic.report;
+}
+
+function renderSnapshotWithDraws(
+  snapshot: RenderSnapshot,
+  frame: number,
+  meshDraws: readonly MeshDrawPacket[],
+): RenderSnapshot {
+  return {
+    ...snapshot,
+    frame,
+    meshDraws,
+    report: {
+      ...snapshot.report,
+      meshDraws: meshDraws.length,
+    },
+  };
+}
+
+function drawForMaterial(
+  snapshot: RenderSnapshot,
+  material: RenderSnapshot["meshDraws"][number]["material"],
+): MeshDrawPacket {
+  const materialKey = assetHandleKey(material);
+  const draw = snapshot.meshDraws.find(
+    (candidate) => assetHandleKey(candidate.material) === materialKey,
+  );
+
+  if (draw === undefined) {
+    throw new Error(`Expected snapshot draw for material '${materialKey}'.`);
+  }
+
+  return draw;
 }
 
 function singleMaterialResource(resources: unknown): unknown {

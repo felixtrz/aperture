@@ -59,9 +59,12 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start with `task-0773`. Route report shelling and failure diagnostics are now
-covered. The next slice should add the route-only built-in adapter registry
-factory before pairing it with app-local resource closures.
+Start with `task-0796`. Built-in route adapters, app texture/sampler helpers,
+frame-resource cache slots, unlit/Matcap/Standard frame-resource helpers, and
+shared frame-resource utilities are extracted, audited, and covered by a
+focused app cache-slot reuse regression plus direct utility tests. The next
+slice should audit the current app-local material resource path against the
+render-world prepared-resource direction before implementation cleanup resumes.
 
 ## Near-Term Proof Point Track
 
@@ -78,11 +81,12 @@ Target proof point:
 
 Remaining automation priority order:
 
-1. `task-0773` — add built-in material route adapter factory.
-2. `task-0774` — use route-only adapter factory in app routing.
-3. `task-0775` — audit built-in adapter factory boundaries.
-4. `task-0776` — plan app-local resource adapter split.
-5. `task-0777` — add route report shell app reuse regression test.
+1. `task-0796` — audit app-local material resource path against render-world goals.
+2. `task-0797` — add app descriptor-plan scratch writers.
+3. `task-0798` — add Standard light-pack scratch writer.
+4. `task-0799` — reuse app frame-resource success result shells.
+5. `task-0800` — plan unlit scalar prepared material cache slice.
+6. `task-0801` — add internal prepared material cache for scalar unlit.
 
 Defer allocation-only cleanup and metadata-only shader-contract tasks unless
 they are a direct blocker for this track.
@@ -148,107 +152,106 @@ viewer/material mapping should not outrun the material and queue architecture.
 
 ### Proof Point Critical Path
 
-### task-0773 — Add built-in material route adapter factory
-
-Category: `webgpu-render`
-Package/write-scope: `packages/webgpu/src/webgpu`, focused route adapter tests,
-and exports.
-Reference anchor:
-`docs/research/BUILT_IN_MATERIAL_ADAPTER_REGISTRY_FACTORY_PLAN_2026_05_17.md`,
-`packages/webgpu/src/webgpu/built-in-material-queue-family.ts`,
-`packages/webgpu/src/webgpu/built-in-material-queue-phase.ts`,
-`packages/webgpu/src/webgpu/queued-material-adapter.ts`, `references/engine`,
-and `references/three.js`.
-
-Acceptance criteria:
-
-- A new WebGPU module exports a route-only built-in material adapter registry
-  factory.
-- The route adapters include built-in family names, material asset type guards,
-  and phase/blend validators only.
-- The module does not import `WebGpuApp`, app caches, frame resources, pipelines,
-  bind groups, devices, or browser globals.
-- Tests cover family list, asset type guards, duplicate-family diagnostics, and
-  phase validation through the factory.
-- No `app.ts` integration is added yet.
-
-### task-0774 — Use route-only adapter factory in app routing
-
-Category: `webgpu-render`
-Package/write-scope: `packages/webgpu/src/webgpu/app.ts`, built-in adapter
-module, and focused WebGPU app tests.
-Reference anchor:
-`task-0773` route-only adapter factory,
-`docs/research/BUILT_IN_MATERIAL_ADAPTER_REGISTRY_FACTORY_PLAN_2026_05_17.md`,
-and current `QUEUED_BUILT_IN_MATERIAL_ADAPTERS` in `app.ts`.
-
-Acceptance criteria:
-
-- `app.ts` imports the route-only adapter registry factory for family/type/phase
-  validation.
-- App-local resource preparation closures remain in `app.ts`.
-- Unsupported family, unsupported phase/blend, asset-mismatch, and successful
-  queued built-in app tests remain unchanged.
-- Type-checking and package boundary checks pass.
-
-### task-0775 — Audit built-in adapter factory boundaries
+### task-0796 — Audit app-local material resource path against render-world goals
 
 Category: `audit-refactor`
-Package/write-scope: `docs/research`, `agent/BACKLOG.md`, and narrow test/app
-fixes only if drift is found.
+Package/write-scope: `docs/research`, `agent/BACKLOG.md`, and narrow follow-up
+task edits only.
 Reference anchor:
-`docs/NORTH_STAR.md`, `docs/ARCHITECTURE.md`, `docs/DECISIONS.md`,
-`docs/research/BUILT_IN_MATERIAL_ADAPTER_REGISTRY_FACTORY_PLAN_2026_05_17.md`,
-built-in adapter factory/tests, and app route integration if present.
-
-Acceptance criteria:
-
-- Audit confirms the route adapter factory contains only family/type/phase route
-  metadata and does not own GPU resource preparation.
-- Audit confirms supported family and phase behavior remains unchanged.
-- Audit confirms app-local resource closures remain in the WebGPU app facade.
-- Any drift is fixed with scoped edits or captured as concrete follow-up tasks.
-- Validation includes adapter factory tests, focused app route tests,
-  type-checking, and package boundary checks.
-
-### task-0776 — Plan app-local resource adapter split
-
-Category: `webgpu-render`
-Package/write-scope: `docs/research`, with read-only inspection of current app
-resource closures.
-Reference anchor:
-current app-local texture/sampler/frame-resource closures in `app.ts`,
-`docs/ARCHITECTURE.md` frame hot-path allocation guidance,
+`docs/ARCHITECTURE.md`, `docs/RENDER_ASSET_PREPARATION.md`,
+`docs/MEDIUM_LONG_TERM_GOALS.md`, extracted app resource helper modules,
 `references/engine`, and `references/three.js`.
 
 Acceptance criteria:
 
-- A research note defines whether and how to split app-local resource closures
-  from the large app facade without hiding GPU ownership.
-- The plan identifies cache/scratch ownership, bind group/layout dependencies,
-  and validation required before extraction.
-- The plan preserves WebGPU-only backend ownership and avoids a material plugin
-  API.
-- No implementation is added.
+- Audit compares the current app-local material resource path against the
+  longer-term render-world prepared-resource direction.
+- Audit identifies which pieces should stay app-local for the proof point and
+  which should move toward render-world/prepared-asset contracts.
+- Follow-up tasks are concrete and do not propose a public material plugin API.
 
-### task-0777 — Add route report shell app reuse regression test
+### task-0797 — Add app descriptor-plan scratch writers
 
 Category: `webgpu-render`
-Package/write-scope: focused WebGPU app tests and minimal test harness
-instrumentation if needed.
+Package/write-scope: `packages/webgpu/src/webgpu`, targeted tests.
 Reference anchor:
-`docs/research/WEBGPU_ROUTE_REPORT_SHELL_BOUNDARY_AUDIT_2026_05_17.md`,
-route report shell tests, and current app route report failure path.
+`docs/research/APP_FRAME_RESOURCE_HOT_PATH_ALLOCATION_PLAN_2026_05_17.md`,
+existing view/world descriptor helpers, extracted app frame-resource helpers,
+and the three.js render-list record reuse pattern.
 
 Acceptance criteria:
 
-- A focused app test triggers two separate route failures across frames and
-  verifies stale family/phase/diagnostic counts do not leak between reports.
-- The test uses normal app scratch reuse and does not expose mutable shell
-  internals as public API.
-- Existing unsupported-family and asset-mismatch report assertions remain
-  stable.
-- Focused app tests and type-checking pass.
+- View uniform and world transform descriptor planning have scratch-backed
+  writer APIs.
+- Existing create helpers remain as convenience wrappers.
+- Tests prove result/plan/descriptor object identity is reused across repeated
+  successful writes.
+
+### task-0798 — Add Standard light-pack scratch writer
+
+Category: `webgpu-render`
+Package/write-scope: `packages/webgpu/src/webgpu/light-packing.ts`, targeted
+tests.
+Reference anchor:
+`docs/research/APP_FRAME_RESOURCE_HOT_PATH_ALLOCATION_PLAN_2026_05_17.md`,
+Standard app frame-resource helper, and existing transform packing scratch APIs.
+
+Acceptance criteria:
+
+- Light packet packing can reuse caller-owned typed arrays when capacity fits.
+- Light descriptor planning can reuse result/descriptor shells.
+- Existing one-shot helpers remain available for tests and setup.
+
+### task-0799 — Reuse app frame-resource success result shells
+
+Category: `webgpu-render`
+Package/write-scope: extracted app frame-resource helper modules and focused
+WebGPU app tests.
+Reference anchor:
+`docs/research/APP_FRAME_RESOURCE_HOT_PATH_ALLOCATION_PLAN_2026_05_17.md` and
+current app cache-slot reuse tests.
+
+Acceptance criteria:
+
+- Unlit, Matcap, and Standard cache-hit paths update cached result shells in
+  place.
+- Second-frame app tests still prove resource reuse counters and dynamic buffer
+  write counts.
+- Public app report shapes remain JSON-safe and do not expose mutable scratch
+  as API.
+
+### task-0800 — Plan unlit scalar prepared material cache slice
+
+Category: `webgpu-render`
+Package/write-scope: `docs/research`, with read-only inspection of unlit
+material buffer/bind group helpers and app frame-resource helpers.
+Reference anchor:
+`docs/research/PREPARED_MATERIAL_RESOURCE_CACHE_HANDOFF_PLAN_2026_05_17.md`,
+`docs/RENDER_ASSET_PREPARATION.md`, and
+`packages/render/src/materials/prepared-resource.ts`.
+
+Acceptance criteria:
+
+- The plan defines the smallest unlit scalar prepared material cache contract.
+- The plan identifies invalidation keys and report fields.
+- The plan keeps view/transform buffers frame-owned.
+
+### task-0801 — Add internal prepared material cache for scalar unlit
+
+Category: `webgpu-render`
+Package/write-scope: `packages/webgpu/src/webgpu`, focused WebGPU app tests.
+Reference anchor:
+the unlit scalar prepared cache plan, existing unlit material buffer/bind group
+helpers, and current app cache-slot tests.
+
+Acceptance criteria:
+
+- Scalar unlit material buffer and bind group preparation can be cached by
+  source material version and pipeline key.
+- The app route consumes the prepared material resource without changing public
+  app APIs.
+- Tests cover first-frame create, second-frame reuse, and source material
+  invalidation.
 
 ## Post-Unlit E2E Verification Targets
 
