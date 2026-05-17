@@ -15,6 +15,439 @@ Summary:
 - Validation run.
 - Follow-up tasks added.
 
+## task-0701 — Normalize GLB mesh construction handle keys before registration
+
+Completed: 2026-05-17
+
+Summary:
+
+- Updated mesh source asset construction reports to expose normalized planned
+  mesh ids as `handleKey` and full registered mesh handle keys as
+  `registeredHandleKey`.
+- Added focused tests proving `mesh:gltf:mesh:0:primitive:0` can be derived
+  without double-prefixing `mesh:`.
+- Important files:
+  `packages/render/src/assets/gltf-mesh-asset-construction.ts`,
+  `test/assets/gltf-mesh-asset-construction.test.ts`,
+  `test/assets/gltf-mesh-asset-construction-json.test.ts`,
+  `docs/research/GLB_MESH_SOURCE_ASSET_REGISTRATION_PLAN_2026_05_17.md`.
+- Validation run: focused mesh construction tests and
+  `pnpm exec tsc --noEmit -p tsconfig.test.json` passed; final
+  `pnpm run check` covered the full workspace.
+- Follow-up tasks added: next ready task is `task-0702`.
+
+## task-0700 — Audit GLB primitive material resolution boundaries
+
+Completed: 2026-05-17
+
+Summary:
+
+- Audited the primitive material resolver and JSON tests against ECS, registry,
+  and WebGPU ownership boundaries.
+- Confirmed the helper stays report-driven and does not mutate registries,
+  create default materials, author ECS, or touch WebGPU/browser APIs.
+- Important files:
+  `docs/research/GLB_PRIMITIVE_MATERIAL_RESOLUTION_BOUNDARY_AUDIT_2026_05_17.md`.
+- Validation run: ownership scan, `pnpm run check:boundaries`, focused material
+  resolution tests, and `pnpm exec tsc --noEmit -p tsconfig.test.json` passed.
+- Follow-up tasks added: `task-0701` through `task-0705`.
+
+## task-0699 — Add GLB primitive material resolution JSON tests
+
+Completed: 2026-05-17
+
+Summary:
+
+- Added JSON stability coverage for primitive material resolution reports.
+- Confirmed resolved/unresolved primitive material entries and skipped
+  dependency diagnostics remain JSON-safe without registry, mesh buffer, ECS, or
+  GPU payloads.
+- Important files:
+  `test/assets/gltf-primitive-material-resolution-json.test.ts`.
+- Validation run: focused primitive material resolution tests and
+  `pnpm exec tsc --noEmit -p tsconfig.test.json` passed.
+- Follow-up tasks added: none directly; continued into the boundary audit.
+
+## task-0698 — Add GLB primitive material resolution report skeleton
+
+Completed: 2026-05-17
+
+Summary:
+
+- Added `createGltfPrimitiveMaterialResolutionReport`, a renderer-independent
+  helper that resolves primitive material indices from registration reports,
+  caller-provided available material handles, and optional default material
+  handles.
+- Covered registered, duplicate/pre-existing, skipped dependency, and missing
+  default material cases.
+- Important files:
+  `packages/render/src/assets/gltf-primitive-material-resolution.ts`,
+  `packages/render/src/assets/index.ts`,
+  `test/assets/gltf-primitive-material-resolution.test.ts`.
+- Validation run: focused primitive material resolution tests and
+  `pnpm exec tsc --noEmit -p tsconfig.test.json` passed.
+- Follow-up tasks added: `task-0699` and `task-0700`.
+
+## task-0697 — Plan GLB mesh source asset registry registration
+
+Completed: 2026-05-17
+
+Summary:
+
+- Planned the mesh source asset registration handoff from constructed
+  `MeshAsset`s into `AssetRegistry`.
+- Captured the handle-key normalization hazard where construction reports carry
+  a full registered mesh key through a field named `handleKey`.
+- Important files:
+  `docs/research/GLB_MESH_SOURCE_ASSET_REGISTRATION_PLAN_2026_05_17.md`.
+- Validation run: formatting covered by final validation.
+- Follow-up tasks added: `task-0701` through `task-0705`.
+
+## task-0696 — Audit GLB mesh source asset construction boundaries
+
+Completed: 2026-05-17
+
+Summary:
+
+- Audited mesh source asset construction and JSON projection boundaries.
+- Confirmed construction returns plain `MeshAsset` source data and does not
+  register assets, author ECS, create render packets, or touch WebGPU/browser
+  APIs.
+- Important files:
+  `docs/research/GLB_MESH_SOURCE_ASSET_CONSTRUCTION_BOUNDARY_AUDIT_2026_05_17.md`.
+- Validation run: ownership scan, `pnpm run check:boundaries`, focused mesh
+  construction tests, and `pnpm exec tsc --noEmit -p tsconfig.test.json`
+  passed.
+- Follow-up tasks added: mesh source registration planning and implementation
+  tasks.
+
+## task-0695 — Add GLB mesh source asset construction JSON tests
+
+Completed: 2026-05-17
+
+Summary:
+
+- Added JSON helpers and tests for GLB mesh source asset construction reports.
+- Summarized vertex/index typed arrays by constructor and length while
+  preserving stream, submesh, material slot, and bounds metadata.
+- Important files:
+  `packages/render/src/assets/gltf-mesh-asset-construction.ts`,
+  `test/assets/gltf-mesh-asset-construction-json.test.ts`.
+- Validation run: focused mesh construction tests and
+  `pnpm exec tsc --noEmit -p tsconfig.test.json` passed.
+- Follow-up tasks added: none directly; continued into the boundary audit.
+
+## task-0694 — Add GLB mesh source asset construction skeleton
+
+Completed: 2026-05-17
+
+Summary:
+
+- Added `createMeshAssetsFromGltfDecodedAccessors`, which builds a
+  renderer-independent `MeshAsset` from decoded GLB primitive arrays.
+- The helper packs supported attributes into one vertex stream, creates an
+  optional index buffer, emits one submesh/material slot, computes local bounds,
+  and reports mismatched attributes or invalid indices.
+- Important files:
+  `packages/render/src/assets/gltf-mesh-asset-construction.ts`,
+  `packages/render/src/assets/index.ts`,
+  `test/assets/gltf-mesh-asset-construction.test.ts`.
+- Validation run: focused mesh construction tests and
+  `pnpm exec tsc --noEmit -p tsconfig.test.json` passed.
+- Follow-up tasks added: JSON tests and boundary audit.
+
+## task-0693 — Audit GLB typed-array decoding boundaries
+
+Completed: 2026-05-17
+
+Summary:
+
+- Audited the typed-array decoding helper and JSON tests against source asset,
+  ECS, registry, and WebGPU boundaries.
+- Confirmed decoding consumes caller-provided buffer bytes and returns
+  renderer-independent typed arrays without constructing `MeshAsset`s or
+  touching registries/WebGPU.
+- Important files:
+  `docs/research/GLB_TYPED_ARRAY_DECODING_BOUNDARY_AUDIT_2026_05_17.md`.
+- Validation run: ownership scan, `pnpm run check:boundaries`, focused decoding
+  tests, and `pnpm run format:check` passed.
+- Follow-up tasks added: mesh source asset construction planning and
+  implementation tasks.
+
+## task-0691 — Add GLB typed-array decoding JSON tests
+
+Completed: 2026-05-17
+
+Summary:
+
+- Added JSON coverage for typed-array decoding reports.
+- Confirmed decoded arrays are summarized by constructor and length, with raw
+  buffer bytes omitted.
+- Important files: `test/assets/gltf-accessor-decoding-json.test.ts`.
+- Validation run: focused decoding tests and
+  `pnpm exec tsc --noEmit -p tsconfig.test.json` passed.
+- Follow-up tasks added: none directly; continued into the boundary audit.
+
+## task-0690 — Add GLB typed-array decoding report skeleton
+
+Completed: 2026-05-17
+
+Summary:
+
+- Added `decodeGltfPrimitiveAccessors`, which decodes validated accessor ranges
+  into renderer-independent typed arrays using caller-provided buffer bytes.
+- Covered tight and strided float attributes, index decoding, and `uint8` to
+  `uint16` index canonicalization.
+- Important files: `packages/render/src/assets/gltf-accessor-decoding.ts`,
+  `packages/render/src/assets/index.ts`,
+  `test/assets/gltf-accessor-decoding.test.ts`.
+- Validation run: focused decoding tests and
+  `pnpm exec tsc --noEmit -p tsconfig.test.json` passed.
+- Follow-up tasks added: JSON tests and boundary audit.
+
+## task-0689 — Plan GLB mesh source asset construction handoff
+
+Completed: 2026-05-17
+
+Summary:
+
+- Planned how decoded GLB primitive arrays should become renderer-independent
+  `MeshAsset` source data.
+- Defined vertex stream, optional index buffer, one submesh, material slot,
+  bounds, diagnostics, and non-goals for registry/ECS/WebGPU work.
+- Important files:
+  `docs/research/GLB_MESH_SOURCE_ASSET_CONSTRUCTION_HANDOFF_PLAN_2026_05_17.md`.
+- Validation run: formatting covered by final validation.
+- Follow-up tasks added: mesh construction implementation and audit tasks.
+
+## task-0688 — Audit GLB accessor validation boundaries
+
+Completed: 2026-05-17
+
+Summary:
+
+- Audited accessor validation reports and JSON tests.
+- Confirmed validation remains byte-range/format metadata only and does not
+  decode buffers, allocate typed arrays, construct `MeshAsset`s, author ECS, or
+  touch WebGPU.
+- Important files:
+  `docs/research/GLB_ACCESSOR_VALIDATION_BOUNDARY_AUDIT_2026_05_17.md`.
+- Validation run: ownership scan, `pnpm run check:boundaries`, focused accessor
+  validation tests, and `pnpm run format:check` passed.
+- Follow-up tasks added: typed-array decoding and mesh construction slices.
+
+## task-0687 — Plan GLB typed-array decoding report
+
+Completed: 2026-05-17
+
+Summary:
+
+- Planned the typed-array decoding layer after accessor/buffer validation.
+- Covered strided bufferViews, tightly packed accessors, optional indices,
+  `uint8` index canonicalization, and deferred sparse/quantized/normalized
+  diagnostics.
+- Important files:
+  `docs/research/GLB_TYPED_ARRAY_DECODING_REPORT_PLAN_2026_05_17.md`.
+- Validation run: formatting covered by final validation.
+- Follow-up tasks added: typed-array decoding implementation and JSON tests.
+
+## task-0686 — Add GLB accessor validation JSON tests
+
+Completed: 2026-05-17
+
+Summary:
+
+- Added JSON coverage for accessor/buffer validation reports.
+- Confirmed buffer, bufferView, accessor, semantic, byte-range, and
+  expected-format metadata is preserved without raw bytes, typed arrays, mesh
+  assets, ECS, or GPU handles.
+- Important files: `test/assets/gltf-accessor-validation-json.test.ts`.
+- Validation run: focused accessor validation tests and
+  `pnpm exec tsc --noEmit -p tsconfig.test.json` passed.
+- Follow-up tasks added: none directly; continued into typed-array planning.
+
+## task-0685 — Add GLB accessor/buffer reference validation report skeleton
+
+Completed: 2026-05-17
+
+Summary:
+
+- Added `validateGltfPrimitiveAccessorReferences`, a metadata-only validation
+  layer between mesh primitive mapping and typed-array decoding.
+- The helper validates buffers, bufferViews, accessors, byte ranges, semantic
+  formats, sparse deferral, and zero-fill deferral without decoding bytes.
+- Important files: `packages/render/src/assets/gltf-accessor-validation.ts`,
+  `packages/render/src/assets/index.ts`,
+  `test/assets/gltf-accessor-validation.test.ts`.
+- Validation run: focused accessor validation tests and
+  `pnpm exec tsc --noEmit -p tsconfig.test.json` passed.
+- Follow-up tasks added: JSON tests and decoding planning.
+
+## task-0684 — Plan GLB primitive material resolution handoff
+
+Completed: 2026-05-17
+
+Summary:
+
+- Planned how GLB primitive `material` indices should resolve to registered or
+  already-available Aperture material handles before ECS authoring.
+- Defined default material behavior, skipped/duplicate/missing dependency
+  diagnostics, report shape, and non-goals that keep registry mutation out of
+  the resolver.
+- Important files:
+  `docs/research/GLB_PRIMITIVE_MATERIAL_RESOLUTION_HANDOFF_PLAN_2026_05_17.md`.
+- Validation run: formatting covered by final validation.
+- Follow-up tasks added: none directly; backlog refilled with accessor and mesh
+  construction slices.
+
+## task-0683 — Audit GLB scene traversal boundaries
+
+Completed: 2026-05-17
+
+Summary:
+
+- Audited the scene traversal helper and JSON tests against ECS/WebGPU ownership
+  boundaries.
+- Confirmed traversal uses serializable scene/node keys and transform payloads,
+  does not mutate ECS or registries, and does not touch WebGPU/browser APIs.
+- Important files:
+  `docs/research/GLB_SCENE_TRAVERSAL_BOUNDARY_AUDIT_2026_05_17.md`.
+- Validation run: ownership scan, `pnpm run check:boundaries`, focused scene
+  traversal tests, and `pnpm run format:check` passed.
+- Follow-up tasks added: `task-0685` through `task-0689`.
+
+## task-0682 — Plan GLB accessor and buffer reference validation
+
+Completed: 2026-05-17
+
+Summary:
+
+- Planned the accessor/buffer reference validation layer between mesh primitive
+  mapping and later typed-array decoding.
+- Defined buffer, bufferView, accessor, semantic, byte-range, sparse deferral,
+  and `uint8` index canonicalization policy while keeping decoding and
+  `MeshAsset` construction out of scope.
+- Important files:
+  `docs/research/GLB_ACCESSOR_BUFFER_REFERENCE_VALIDATION_PLAN_2026_05_17.md`.
+- Validation run: formatting covered by final validation.
+- Follow-up tasks added: `task-0685` through `task-0689`.
+
+## task-0681 — Add GLB scene traversal JSON tests
+
+Completed: 2026-05-17
+
+Summary:
+
+- Added JSON fixture coverage for GLB scene traversal reports.
+- Confirmed scene keys, node keys, parent relationships, transform payloads,
+  matrix decomposition warnings, and cycle diagnostics are JSON-safe.
+- Important files: `test/assets/gltf-scene-traversal-json.test.ts`.
+- Validation run: focused scene traversal tests and
+  `pnpm exec tsc --noEmit -p tsconfig.test.json` passed.
+- Follow-up tasks added: none directly; continued into `task-0682`.
+
+## task-0680 — Add GLB scene traversal diagnostics report skeleton
+
+Completed: 2026-05-17
+
+Summary:
+
+- Added `createGltfSceneTraversalReport`, a renderer-independent helper for
+  scene selection, root/node traversal, deterministic scene/node entity keys,
+  transform payload validation, cycle diagnostics, and matrix transform
+  deferral.
+- The helper does not create ECS entities, register assets, decode meshes, or
+  touch WebGPU.
+- Important files: `packages/render/src/assets/gltf-scene-traversal.ts`,
+  `packages/render/src/assets/index.ts`,
+  `test/assets/gltf-scene-traversal.test.ts`.
+- Validation run: focused scene traversal tests and
+  `pnpm exec tsc --noEmit -p tsconfig.test.json` passed.
+- Follow-up tasks added: none directly; continued into `task-0681`.
+
+## task-0679 — Audit GLB mesh mapping boundaries
+
+Completed: 2026-05-17
+
+Summary:
+
+- Audited the GLB mesh primitive mapper and JSON helper against package
+  boundaries, ECS ownership, and WebGPU ownership rules.
+- Confirmed the helper stays source-report-only, leaves mesh decoding
+  unresolved, and does not author ECS or touch WebGPU/browser APIs.
+- Important files:
+  `docs/research/GLB_MESH_MAPPING_BOUNDARY_AUDIT_2026_05_17.md`.
+- Validation run: ownership scan, `pnpm run check:boundaries`, focused GLB mesh
+  mapping tests, and `pnpm run format:check` passed.
+- Follow-up tasks added: `task-0680` through `task-0684`.
+
+## task-0678 — Plan GLB scene and node traversal diagnostics
+
+Completed: 2026-05-17
+
+Summary:
+
+- Planned a renderer-independent scene/node traversal diagnostics report before
+  ECS authoring commands.
+- Defined scene selection, deterministic scene/node entity keys, parent
+  relationships, transform payload validation, cycle diagnostics, and matrix
+  decomposition deferral.
+- Important files:
+  `docs/research/GLB_SCENE_NODE_TRAVERSAL_DIAGNOSTICS_PLAN_2026_05_17.md`.
+- Validation run: `pnpm run format:check` passed during final validation.
+- Follow-up tasks added: `task-0680`, `task-0681`, and `task-0683`.
+
+## task-0677 — Add GLB mesh primitive mapping JSON tests
+
+Completed: 2026-05-17
+
+Summary:
+
+- Added JSON fixture coverage for GLB mesh primitive mapping reports.
+- Confirmed planned handle keys, primitive source indices, attribute/index
+  references, diagnostics, and mesh summaries are JSON-safe and raw typed arrays
+  are not embedded.
+- Important files: `test/assets/gltf-mesh-primitive-json.test.ts`.
+- Validation run: focused GLB mesh mapping tests and
+  `pnpm exec tsc --noEmit -p tsconfig.test.json` passed.
+- Follow-up tasks added: none directly; continued into `task-0678`.
+
+## task-0676 — Add GLB mesh primitive mapping report skeleton
+
+Completed: 2026-05-17
+
+Summary:
+
+- Added `createGltfMeshPrimitiveMappingReport`, a renderer-independent helper
+  that validates glTF mesh/primitive references and emits deterministic planned
+  mesh handle keys.
+- The helper reports missing meshes, missing primitives, missing `POSITION`,
+  unsupported primitive modes, invalid accessor references, compressed primitive
+  extensions, and unresolved accessor data without decoding buffers or creating
+  ECS commands.
+- Important files: `packages/render/src/assets/gltf-mesh-primitive.ts`,
+  `packages/render/src/assets/index.ts`,
+  `test/assets/gltf-mesh-primitive.test.ts`.
+- Validation run: focused GLB mesh mapping tests and
+  `pnpm exec tsc --noEmit -p tsconfig.test.json` passed.
+- Follow-up tasks added: none directly; continued into `task-0677`.
+
+## task-0675 — Plan minimal GLB mesh primitive source asset mapping
+
+Completed: 2026-05-17
+
+Summary:
+
+- Planned the minimal GLB mesh primitive source mapping report.
+- Defined deterministic mesh handle ids, reference validation vs accessor
+  decoding separation, supported `POSITION`/`NORMAL`/`TEXCOORD_0`/indices
+  scope, unsupported primitive diagnostics, JSON expectations, and non-goals.
+- Important files:
+  `docs/research/MINIMAL_GLB_MESH_PRIMITIVE_SOURCE_MAPPING_PLAN_2026_05_17.md`.
+- Validation run: `pnpm run format:check` passed after the plan was added.
+- Follow-up tasks added: implementation and JSON coverage continued in
+  `task-0676` and `task-0677`.
+
 ## task-0674 — Add GLB registration dependency edge coverage
 
 Completed: 2026-05-17

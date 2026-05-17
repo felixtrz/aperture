@@ -1,10 +1,10 @@
 {
   "state": "idle",
   "currentTaskId": null,
-  "lastRunStartedAt": "2026-05-17T06:01:19Z",
+  "lastRunStartedAt": "2026-05-17T07:01:47Z",
   "lastResult": "success",
   "lastCommit": "0b6a5ef",
   "activePid": null,
-  "notes": "Completed tasks 0643-0674; next recommended task is task-0675 minimal GLB mesh primitive source asset mapping.",
-  "lastRunFinishedAt": "2026-05-17T06:52:40Z"
+  "notes": "Automation aperture-dev completed tasks 0675 through 0701. Next task: task-0702 add GLB mesh source asset registration helper.",
+  "lastRunFinishedAt": "2026-05-17T07:52:39Z"
 }

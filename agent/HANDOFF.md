@@ -2,6 +2,164 @@
 
 ## Latest Run Update
 
+Completed `task-0675` through `task-0701` in this automation run. The latest
+slice advanced the GLB mesh/material source pipeline from planning through
+primitive mapping, scene traversal, accessor validation, typed-array decoding,
+mesh source asset construction, primitive material resolution, JSON coverage,
+boundary audits, and mesh handle-key normalization for upcoming registration.
+
+Highlights:
+
+- Added GLB mesh primitive mapping, scene traversal diagnostics, accessor/buffer
+  validation, typed-array decoding, mesh source asset construction, and
+  primitive material resolution helpers under `packages/render/src/assets`.
+- Added JSON-safe report projections/tests for mesh primitive mapping, scene
+  traversal, accessor validation, accessor decoding, mesh construction, and
+  primitive material resolution.
+- Added focused audits for mesh mapping, scene traversal, accessor validation,
+  accessor decoding, mesh construction, and material resolution boundaries.
+- Planned the next mesh source asset registration step and normalized mesh
+  construction reports so `handleKey` is the planned mesh id while
+  `registeredHandleKey` is the full `mesh:` handle key.
+- Refilled the ready backlog with `task-0702` through `task-0706`.
+
+Validation:
+
+- Focused Vitest runs for each new GLB helper/test slice.
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm run check:boundaries`
+- `pnpm run format:check`
+- Final `pnpm run check` passed, including 194 Vitest files / 913 tests.
+
+Reference files/patterns inspected:
+
+- Bevy glTF primitive, node/scene, and sub-asset loading patterns in
+  `references/bevy/crates/bevy_gltf/src/loader/mod.rs`,
+  `references/bevy/crates/bevy_gltf/src/loader/gltf_ext/mesh.rs`,
+  `references/bevy/crates/bevy_gltf/src/loader/gltf_ext/scene.rs`, and
+  `references/bevy/crates/bevy_gltf/src/vertex_attributes.rs`.
+- three.js `GLTFLoader` accessor/geometry/material/default-material loading
+  patterns.
+- PlayCanvas `glb-parser` accessor flattening, primitive creation, and index
+  handling patterns.
+- Aperture anchors: `docs/NORTH_STAR.md`, `docs/ARCHITECTURE.md`,
+  `docs/DECISIONS.md`, `docs/research/MESH_GEOMETRY_COVERAGE.md`, existing
+  `MeshAsset` contracts, and source asset registration helpers.
+
+Known issues / follow-ups:
+
+- Next recommended task: `task-0702 — Add GLB mesh source asset registration
+helper`.
+- Mesh source asset construction is source-data-only; mesh assets are not yet
+  registered.
+- Primitive material resolution is report-driven; it does not create default
+  materials or inspect the registry directly.
+- ECS authoring remains blocked until mesh source asset registration and stable
+  mesh/material handle resolution are both available.
+- Matrix node transforms remain diagnostic/preserved data until Aperture has a
+  tested matrix decomposition helper.
+
+Files touched in this update include:
+
+- `agent/BACKLOG.md`
+- `agent/COMPLETED.md`
+- `agent/HANDOFF.md`
+- `agent/STATUS.json`
+- `docs/research/*GLB*2026_05_17.md`
+- `packages/render/src/assets/gltf-accessor-decoding.ts`
+- `packages/render/src/assets/gltf-accessor-validation.ts`
+- `packages/render/src/assets/gltf-mesh-asset-construction.ts`
+- `packages/render/src/assets/gltf-mesh-primitive.ts`
+- `packages/render/src/assets/gltf-primitive-material-resolution.ts`
+- `packages/render/src/assets/gltf-scene-traversal.ts`
+- `packages/render/src/assets/index.ts`
+- `test/assets/gltf-*-json.test.ts`
+- `test/assets/gltf-*.test.ts`
+
+## Previous Run Update
+
+Completed `task-0675` through `task-0679` in this automation run:
+
+- `task-0675` — Added
+  `docs/research/MINIMAL_GLB_MESH_PRIMITIVE_SOURCE_MAPPING_PLAN_2026_05_17.md`,
+  defining the smallest GLB mesh primitive mapping report, deterministic mesh
+  handle ids, reference-validation vs decoding boundaries, supported
+  `POSITION`/`NORMAL`/`TEXCOORD_0`/indices scope, unsupported primitive modes,
+  JSON expectations, and non-goals.
+- `task-0676` — Added `createGltfMeshPrimitiveMappingReport` in
+  `packages/render/src/assets/gltf-mesh-primitive.ts`. The helper validates
+  glTF mesh/primitive references, emits deterministic planned mesh handle keys,
+  reports missing/invalid primitive data, leaves unresolved accessor data as a
+  warning with `mesh: null`, and does not decode buffers or create ECS commands.
+- `task-0677` — Added JSON fixture coverage for GLB mesh primitive mapping
+  reports, including future `MeshAsset` summary behavior so typed arrays are not
+  embedded in JSON output.
+- `task-0678` — Added
+  `docs/research/GLB_SCENE_NODE_TRAVERSAL_DIAGNOSTICS_PLAN_2026_05_17.md`,
+  defining scene selection, deterministic scene/node entity keys, parent
+  relationships, transform payload validation, cycle diagnostics, and matrix
+  decomposition deferral before ECS authoring.
+- `task-0679` — Added
+  `docs/research/GLB_MESH_MAPPING_BOUNDARY_AUDIT_2026_05_17.md`. The audit
+  found no ECS/WebGPU/browser ownership drift in the new mesh mapping work.
+- Refilled the ready backlog with `task-0680` through `task-0684`; next
+  recommended task is `task-0680 — Add GLB scene traversal diagnostics report
+skeleton`.
+
+Validation:
+
+- `pnpm run format:check`
+- `pnpm exec vitest run test/assets/gltf-mesh-primitive.test.ts`
+- `pnpm exec vitest run test/assets/gltf-mesh-primitive.test.ts test/assets/gltf-mesh-primitive-json.test.ts`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm run check:boundaries`
+- Final `pnpm run check` passed, including 184 Vitest files / 886 tests.
+
+Reference files/patterns inspected:
+
+- Bevy glTF primitive sub-asset loading, node asset loading, cycle checks, scene
+  world spawning, and primitive topology mapping in
+  `references/bevy/crates/bevy_gltf/src/loader/mod.rs` and
+  `references/bevy/crates/bevy_gltf/src/loader/gltf_ext/mesh.rs`.
+- Bevy scene transform helpers in
+  `references/bevy/crates/bevy_gltf/src/loader/gltf_ext/scene.rs`.
+- three.js `GLTFLoader` primitive geometry loading, primitive mode handling,
+  attribute/index dependency loading, and bounds behavior.
+- PlayCanvas `glb-parser` mesh primitive creation, primitive mode handling, and
+  index format behavior.
+- Aperture anchors: `docs/NORTH_STAR.md`, `docs/ARCHITECTURE.md`,
+  `docs/DECISIONS.md`,
+  `docs/research/GLB_ECS_AUTHORING_COMMAND_HANDOFF_PLAN_2026_05_17.md`,
+  `docs/research/MESH_GEOMETRY_COVERAGE.md`, and
+  `packages/simulation/src/transform/components.ts`.
+
+Known issues / follow-ups:
+
+- GLB mesh primitive mapping is reference-only for now. It does not decode
+  accessors or construct ready `MeshAsset`s.
+- Scene/node traversal is planned but not yet implemented.
+- ECS authoring remains blocked on scene traversal diagnostics, accessor/buffer
+  validation, mesh source registration, material resolution, and transform
+  command planning.
+- Matrix node transforms should remain diagnostic/preserved data until Aperture
+  has a tested matrix decomposition helper.
+
+Files touched in this update:
+
+- `agent/BACKLOG.md`
+- `agent/COMPLETED.md`
+- `agent/HANDOFF.md`
+- `agent/STATUS.json`
+- `docs/research/MINIMAL_GLB_MESH_PRIMITIVE_SOURCE_MAPPING_PLAN_2026_05_17.md`
+- `docs/research/GLB_SCENE_NODE_TRAVERSAL_DIAGNOSTICS_PLAN_2026_05_17.md`
+- `docs/research/GLB_MESH_MAPPING_BOUNDARY_AUDIT_2026_05_17.md`
+- `packages/render/src/assets/gltf-mesh-primitive.ts`
+- `packages/render/src/assets/index.ts`
+- `test/assets/gltf-mesh-primitive.test.ts`
+- `test/assets/gltf-mesh-primitive-json.test.ts`
+
+## Previous Run Update
+
 Completed `task-0643` through `task-0674` in this automation run:
 
 - `task-0643` — Added an internal queued built-in material adapter contract in

@@ -59,9 +59,10 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start with `task-0675`. Source asset registration is now implemented and
-audited. The next slice should plan minimal GLB mesh primitive source asset
-mapping before any ECS authoring helper is implemented.
+Start with `task-0702`. Mesh source asset construction now exposes both the
+planned mesh id and the full registered mesh handle key, so the next slice can
+write constructed mesh source assets into `AssetRegistry` without
+double-prefixing `mesh:` keys.
 
 ## Near-Term Proof Point Track
 
@@ -78,11 +79,11 @@ Target proof point:
 
 Remaining automation priority order:
 
-1. `task-0675` — plan minimal GLB mesh primitive source asset mapping.
-2. `task-0676` — add GLB mesh primitive mapping report skeleton.
-3. `task-0677` — add GLB mesh primitive mapping JSON tests.
-4. `task-0678` — plan GLB scene and node traversal diagnostics.
-5. `task-0679` — audit GLB mesh mapping boundaries.
+1. `task-0702` — add GLB mesh source asset registration helper.
+2. `task-0703` — add GLB mesh source asset registration JSON tests.
+3. `task-0704` — audit GLB mesh source registration boundaries.
+4. `task-0705` — plan GLB ECS authoring command integration from source reports.
+5. `task-0706` — add GLB primitive material resolution edge-case tests.
 
 Defer allocation-only cleanup and metadata-only shader-contract tasks unless
 they are a direct blocker for this track.
@@ -148,100 +149,107 @@ viewer/material mapping should not outrun the material and queue architecture.
 
 ### Proof Point Critical Path
 
-### task-0675 — Plan minimal GLB mesh primitive source asset mapping
-
-Category: `docs-tooling`
-Package/write-scope: `docs/research` and `agent/BACKLOG.md`.
-Reference anchor:
-`docs/research/ASSET_LOADER_SCENE_IMPORT_COVERAGE.md`,
-`docs/research/GLB_CONTAINER_SLICE_PLAN_2026_05_16.md`,
-`docs/research/GLB_ECS_AUTHORING_COMMAND_HANDOFF_PLAN_2026_05_17.md`,
-`docs/ARCHITECTURE.md`, Bevy glTF primitive loading, three.js `GLTFLoader`
-primitive geometry mapping, and PlayCanvas `glb-parser` mesh creation.
-
-Acceptance criteria:
-
-- The plan defines the smallest mesh primitive report that can produce
-  deterministic mesh handle ids.
-- The plan distinguishes reference validation from accessor/buffer decoding.
-- The plan covers required `POSITION`, optional `NORMAL`, optional
-  `TEXCOORD_0`, optional indices, and unsupported primitive modes.
-- The plan explicitly keeps ECS authoring, material registration, image decode,
-  and WebGPU preparation out of scope.
-
-### task-0676 — Add GLB mesh primitive mapping report skeleton
+### task-0702 — Add GLB mesh source asset registration helper
 
 Category: `render-bridge`
-Package/write-scope: narrow helper module under `packages/render/src/assets`,
-focused tests, and no ECS/WebGPU files.
-Reference anchor: the `task-0675` mesh primitive source mapping plan, Aperture
-`MeshAsset` contracts, and Bevy glTF primitive asset labels.
+Package/write-scope: a narrow helper under `packages/render/src/assets`, exports,
+and focused tests.
+Reference anchor:
+`docs/research/GLB_MESH_SOURCE_ASSET_REGISTRATION_PLAN_2026_05_17.md`,
+`packages/render/src/assets/gltf-source-registration.ts`,
+`packages/simulation/src/assets/registry.ts`, and Aperture `MeshAsset`
+contracts.
 
 Acceptance criteria:
 
-- A helper validates glTF mesh/primitive references and emits deterministic
-  planned mesh handle keys.
-- The helper returns JSON-safe diagnostics for missing meshes, missing
-  primitives, missing `POSITION`, unsupported primitive mode, and unresolved
-  accessor data.
-- The helper does not decode buffers or create ECS commands.
-- Focused tests cover a valid primitive plan and at least two invalid reference
-  cases.
+- A helper registers successful constructed GLB mesh source assets into
+  `AssetRegistry` as ready `mesh` assets.
+- Duplicate mesh keys are skipped without overwriting existing assets.
+- Null or invalid planned mesh entries are skipped without registry mutation.
+- Tests cover successful registration, duplicates, invalid planned entries, and
+  handle normalization.
+- The helper does not author ECS, create render packets, prepare render-world
+  resources, or upload WebGPU buffers.
 
-### task-0677 — Add GLB mesh primitive mapping JSON tests
+### task-0703 — Add GLB mesh source asset registration JSON tests
 
 Category: `render-bridge`
 Package/write-scope: focused tests and narrow JSON helper fixes if needed.
-Reference anchor: `task-0676` helper shape, current GLB report JSON functions,
-and `docs/ARCHITECTURE.md`.
-
-Acceptance criteria:
-
-- Tests assert mesh primitive mapping report JSON is stable and JSON-safe.
-- Planned mesh handle keys, primitive source indices, attribute references, and
-  diagnostics are preserved.
-- Raw buffer or accessor byte arrays are not embedded in the report JSON.
-- No runtime behavior changes beyond serialization stability fixes.
-
-### task-0678 — Plan GLB scene and node traversal diagnostics
-
-Category: `docs-tooling`
-Package/write-scope: `docs/research`.
 Reference anchor:
-`docs/research/GLB_ECS_AUTHORING_COMMAND_HANDOFF_PLAN_2026_05_17.md`,
-`docs/research/ASSET_LOADER_SCENE_IMPORT_COVERAGE.md`, Bevy glTF scene/node
-loading, and Aperture transform authoring components.
+`docs/research/GLB_MESH_SOURCE_ASSET_REGISTRATION_PLAN_2026_05_17.md`,
+`task-0702` helper shape, and current source asset registration JSON tests.
 
 Acceptance criteria:
 
-- The plan defines scene selection, root node traversal, node parent
-  relationships, and deterministic entity keys.
-- The plan defines diagnostics for invalid scene indices, invalid node indices,
-  cycles, malformed transforms, and unsupported matrix decomposition.
-- The plan separates traversal diagnostics from ECS world mutation.
-- No implementation changes are required.
+- Tests assert mesh source asset registration reports are JSON-stable.
+- Written/skipped mesh handle keys, mesh/primitive indices, reasons, and
+  diagnostics are preserved.
+- Raw `MeshAsset` vertex/index typed arrays, registry entries, ECS data, and GPU
+  handles are not embedded.
+- No runtime behavior changes beyond serialization stability fixes.
 
 ### Audit / Refactor
 
-### task-0679 — Audit GLB mesh mapping boundaries
+### task-0704 — Audit GLB mesh source registration boundaries
 
 Category: `audit-refactor`
 Package/write-scope: `docs/research`, `agent/BACKLOG.md`, and narrow tests/docs
 only if drift is found.
 Reference anchor:
 `docs/NORTH_STAR.md`, `docs/ARCHITECTURE.md`,
-`docs/research/GLB_ECS_AUTHORING_COMMAND_HANDOFF_PLAN_2026_05_17.md`, package
-boundaries, Aperture mesh asset contracts, Bevy glTF primitive loading, and
-PlayCanvas mesh resource creation.
+`docs/research/GLB_MESH_SOURCE_ASSET_REGISTRATION_PLAN_2026_05_17.md`, package
+boundaries, current mesh registration helper/tests, and source asset registry
+contracts.
 
 Acceptance criteria:
 
-- Audit confirms GLB mesh mapping does not author ECS or touch WebGPU.
-- Audit confirms any mesh report remains source-data/report-only and does not
-  decode buffers unless a prior task explicitly added that scope.
+- Audit confirms mesh source registration mutates only `AssetRegistry` source
+  asset state and does not author ECS, create render packets, prepare WebGPU
+  resources, or decode GLB data.
+- Audit confirms reports remain JSON-safe and do not embed raw `MeshAsset`
+  buffers.
 - Any drift is fixed with scoped edits or captured as concrete follow-up tasks.
-- Validation includes package boundary checks and focused GLB mesh mapping
+- Validation includes package boundary checks and focused mesh registration
   tests.
+
+### task-0705 — Plan GLB ECS authoring command integration from source reports
+
+Category: `docs-tooling`
+Package/write-scope: `docs/research` and backlog follow-up notes if needed.
+Reference anchor:
+`docs/research/GLB_ECS_AUTHORING_COMMAND_HANDOFF_PLAN_2026_05_17.md`,
+`docs/research/GLB_SCENE_NODE_TRAVERSAL_DIAGNOSTICS_PLAN_2026_05_17.md`,
+`docs/research/GLB_MESH_SOURCE_ASSET_REGISTRATION_PLAN_2026_05_17.md`,
+`docs/research/GLB_PRIMITIVE_MATERIAL_RESOLUTION_HANDOFF_PLAN_2026_05_17.md`,
+and Bevy glTF scene/entity spawning patterns.
+
+Acceptance criteria:
+
+- The plan defines how scene traversal, registered mesh handles, and resolved
+  material handles become serializable ECS authoring commands.
+- The plan includes entity-key to component-command mapping for transform,
+  parent, mesh, and material components.
+- The plan defines diagnostics for missing mesh registrations, unresolved
+  materials, skipped nodes, and deferred matrix decomposition.
+- The plan keeps registry mutation, WebGPU upload, render extraction, and actual
+  ECS mutation out of scope.
+
+### task-0706 — Add GLB primitive material resolution edge-case tests
+
+Category: `render-bridge`
+Package/write-scope: focused tests and narrow resolver fixes if needed.
+Reference anchor:
+`docs/research/GLB_PRIMITIVE_MATERIAL_RESOLUTION_HANDOFF_PLAN_2026_05_17.md`,
+`packages/render/src/assets/gltf-primitive-material-resolution.ts`, current
+registration report tests, and three.js/Bevy default-material behavior.
+
+Acceptance criteria:
+
+- Tests cover custom `keyPrefix` material keys.
+- Tests cover duplicate material registrations that are not listed as available.
+- Tests cover a default material handle resolved from a registration report.
+- Tests cover an unregistered indexed material with stable diagnostics.
+- No registry writes, ECS authoring, render extraction, or WebGPU work is added.
 
 ## Post-Unlit E2E Verification Targets
 
