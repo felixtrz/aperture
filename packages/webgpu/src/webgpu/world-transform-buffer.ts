@@ -37,6 +37,28 @@ export interface WorldTransformBufferDescriptorResult {
   readonly diagnostics: readonly WorldTransformBufferDescriptorDiagnostic[];
 }
 
+export interface WorldTransformBufferDescriptorScratch {
+  source: Float32Array;
+  readonly descriptor: {
+    label?: string;
+    size: number;
+    usage: number;
+    mappedAtCreation?: boolean;
+    initialData?: ArrayBufferView;
+  };
+  readonly plan: {
+    descriptor: WebGpuBufferDescriptor;
+    source: Float32Array;
+    offsets: PackedSnapshotTransforms["offsets"];
+  };
+  readonly diagnostics: WorldTransformBufferDescriptorDiagnostic[];
+  readonly result: {
+    valid: boolean;
+    plan: WorldTransformBufferDescriptorPlan | null;
+    diagnostics: readonly WorldTransformBufferDescriptorDiagnostic[];
+  };
+}
+
 export type WorldTransformGpuBufferDiagnosticCode =
   | "worldTransformGpuBuffer.nullDescriptorPlan"
   | "worldTransformGpuBuffer.creationFailed";
@@ -68,16 +90,44 @@ export interface CreateWorldTransformGpuBufferResult {
 export const DEFAULT_WORLD_TRANSFORM_BUFFER_USAGE =
   WEBGPU_BUFFER_USAGE_FLAGS.STORAGE | WEBGPU_BUFFER_USAGE_FLAGS.COPY_DST;
 
-export function createWorldTransformBufferDescriptor(
+export function createWorldTransformBufferDescriptorScratch(): WorldTransformBufferDescriptorScratch {
+  const descriptor = {
+    size: 0,
+    usage: DEFAULT_WORLD_TRANSFORM_BUFFER_USAGE,
+  };
+  const plan = {
+    descriptor,
+    source: new Float32Array(0),
+    offsets: [],
+  };
+  const diagnostics: WorldTransformBufferDescriptorDiagnostic[] = [];
+
+  return {
+    source: new Float32Array(0),
+    descriptor,
+    plan,
+    diagnostics,
+    result: { valid: false, plan: null, diagnostics },
+  };
+}
+
+export function writeWorldTransformBufferDescriptor(
   packed: PackedSnapshotTransforms,
+  scratch: WorldTransformBufferDescriptorScratch,
   options: CreateWorldTransformBufferDescriptorOptions = {},
 ): WorldTransformBufferDescriptorResult {
-  const diagnostics: WorldTransformBufferDescriptorDiagnostic[] =
-    packed.diagnostics.map((diagnostic) => ({
+  const diagnostics = scratch.diagnostics;
+
+  diagnostics.length = 0;
+
+  for (const diagnostic of packed.diagnostics) {
+    diagnostics.push({
       code: "worldTransformBuffer.packDiagnostic",
       sourceCode: diagnostic.code,
       message: diagnostic.message,
-    }));
+    });
+  }
+
   const usage = options.usage ?? DEFAULT_WORLD_TRANSFORM_BUFFER_USAGE;
 
   if (!Number.isInteger(usage) || usage <= 0) {
@@ -89,7 +139,10 @@ export function createWorldTransformBufferDescriptor(
     });
   }
 
-  if (packed.data.byteLength === 0 || packed.offsets.length === 0) {
+  const floatCount = packed.floatCount ?? packed.data.length;
+  const source = sourceViewFor(scratch, packed.data, floatCount);
+
+  if (source.byteLength === 0 || packed.offsets.length === 0) {
     diagnostics.push({
       code: "worldTransformBuffer.emptyData",
       field: "data",
@@ -99,23 +152,32 @@ export function createWorldTransformBufferDescriptor(
   }
 
   if (diagnostics.length > 0) {
-    return { valid: false, plan: null, diagnostics };
+    scratch.result.valid = false;
+    scratch.result.plan = null;
+    return scratch.result;
   }
 
-  return {
-    valid: true,
-    plan: {
-      source: packed.data,
-      offsets: packed.offsets,
-      descriptor: {
-        label: options.label ?? "WorldTransforms/storage",
-        size: packed.data.byteLength,
-        usage,
-        initialData: packed.data,
-      },
-    },
-    diagnostics,
-  };
+  scratch.descriptor.label = options.label ?? "WorldTransforms/storage";
+  scratch.descriptor.size = source.byteLength;
+  scratch.descriptor.usage = usage;
+  scratch.descriptor.initialData = source;
+  scratch.plan.source = source;
+  scratch.plan.offsets = packed.offsets;
+  scratch.result.valid = true;
+  scratch.result.plan = scratch.plan;
+
+  return scratch.result;
+}
+
+export function createWorldTransformBufferDescriptor(
+  packed: PackedSnapshotTransforms,
+  options: CreateWorldTransformBufferDescriptorOptions = {},
+): WorldTransformBufferDescriptorResult {
+  return writeWorldTransformBufferDescriptor(
+    packed,
+    createWorldTransformBufferDescriptorScratch(),
+    options,
+  );
 }
 
 export function createWorldTransformGpuBuffer(
@@ -167,4 +229,25 @@ export function createWorldTransformGpuBuffer(
     },
     diagnostics: [],
   };
+}
+
+function sourceViewFor(
+  scratch: WorldTransformBufferDescriptorScratch,
+  data: Float32Array,
+  floatCount: number,
+): Float32Array {
+  if (floatCount === data.length) {
+    scratch.source = data;
+    return data;
+  }
+
+  if (
+    scratch.source.buffer !== data.buffer ||
+    scratch.source.byteOffset !== data.byteOffset ||
+    scratch.source.length !== floatCount
+  ) {
+    scratch.source = data.subarray(0, floatCount);
+  }
+
+  return scratch.source;
 }

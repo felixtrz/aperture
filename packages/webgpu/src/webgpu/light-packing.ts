@@ -33,6 +33,20 @@ export interface PackedLightPackets {
   readonly metadata: Int32Array;
 }
 
+export interface LightPacketPackingScratch {
+  floats: Float32Array;
+  metadata: Int32Array;
+  floatView: Float32Array;
+  metadataView: Int32Array;
+  readonly packed: {
+    count: number;
+    readonly floatStride: typeof PACKED_LIGHT_FLOAT_STRIDE;
+    readonly metadataStride: typeof PACKED_LIGHT_METADATA_STRIDE;
+    floats: Float32Array;
+    metadata: Int32Array;
+  };
+}
+
 export const DEFAULT_LIGHT_BUFFER_RESOURCE_KEY = "light-buffer:main";
 
 export type LightBufferUsageIntent = "read-only-storage";
@@ -45,6 +59,19 @@ export interface LightBufferDescriptor {
   readonly floatByteLength: number;
   readonly metadataByteLength: number;
   readonly packed: PackedLightPackets;
+}
+
+export interface LightBufferDescriptorScratch {
+  readonly packing: LightPacketPackingScratch;
+  readonly descriptor: {
+    resourceKey: string;
+    usageIntent: LightBufferUsageIntent;
+    count: number;
+    byteLength: number;
+    floatByteLength: number;
+    metadataByteLength: number;
+    packed: PackedLightPackets;
+  };
 }
 
 export interface CreateLightBufferDescriptorOptions {
@@ -79,6 +106,35 @@ export interface CreateLightBufferDescriptorPlanResult {
   readonly valid: boolean;
   readonly plan: LightBufferDescriptorPlan | null;
   readonly diagnostics: readonly LightBufferDescriptorPlanDiagnostic[];
+}
+
+export interface LightBufferDescriptorPlanScratch {
+  readonly floatDescriptor: {
+    label?: string;
+    size: number;
+    usage: number;
+    mappedAtCreation?: boolean;
+    initialData?: ArrayBufferView;
+  };
+  readonly metadataDescriptor: {
+    label?: string;
+    size: number;
+    usage: number;
+    mappedAtCreation?: boolean;
+    initialData?: ArrayBufferView;
+  };
+  readonly plan: {
+    resourceKey: string;
+    source: PackedLightPackets;
+    floatDescriptor: WebGpuBufferDescriptor;
+    metadataDescriptor: WebGpuBufferDescriptor;
+  };
+  readonly diagnostics: LightBufferDescriptorPlanDiagnostic[];
+  readonly result: {
+    valid: boolean;
+    plan: LightBufferDescriptorPlan | null;
+    diagnostics: readonly LightBufferDescriptorPlanDiagnostic[];
+  };
 }
 
 export type LightGpuBufferDiagnosticCode =
@@ -148,15 +204,50 @@ export type CreateLightBufferDescriptorInput =
 export function packLightPackets(
   input: PackLightPacketsInput,
 ): PackedLightPackets {
-  const lights = isLightPacketArray(input) ? input : input.lights;
-  const floats = new Float32Array(lights.length * PACKED_LIGHT_FLOAT_STRIDE);
-  const metadata = new Int32Array(lights.length * PACKED_LIGHT_METADATA_STRIDE);
+  return writePackedLightPackets(input, createLightPacketPackingScratch());
+}
 
-  lights.forEach((light, index) => {
+export function createLightPacketPackingScratch(
+  lightCapacity = 0,
+): LightPacketPackingScratch {
+  const floats = new Float32Array(lightCapacity * PACKED_LIGHT_FLOAT_STRIDE);
+  const metadata = new Int32Array(lightCapacity * PACKED_LIGHT_METADATA_STRIDE);
+  const packed: LightPacketPackingScratch["packed"] = {
+    count: 0,
+    floatStride: PACKED_LIGHT_FLOAT_STRIDE,
+    metadataStride: PACKED_LIGHT_METADATA_STRIDE,
+    floats,
+    metadata,
+  };
+
+  return {
+    floats,
+    metadata,
+    floatView: floats,
+    metadataView: metadata,
+    packed,
+  };
+}
+
+export function writePackedLightPackets(
+  input: PackLightPacketsInput,
+  scratch: LightPacketPackingScratch,
+): PackedLightPackets {
+  const lights = isLightPacketArray(input) ? input : input.lights;
+
+  ensureLightPacketCapacity(scratch, lights.length);
+
+  for (let index = 0; index < lights.length; index += 1) {
+    const light = lights[index];
+
+    if (light === undefined) {
+      continue;
+    }
+
     const floatOffset = index * PACKED_LIGHT_FLOAT_STRIDE;
     const metadataOffset = index * PACKED_LIGHT_METADATA_STRIDE;
 
-    floats.set(
+    scratch.floats.set(
       [
         light.color[0] ?? 0,
         light.color[1] ?? 0,
@@ -169,7 +260,7 @@ export function packLightPackets(
       ],
       floatOffset,
     );
-    metadata.set(
+    scratch.metadata.set(
       [
         packedLightKindId(light.kind),
         light.worldTransformOffset,
@@ -180,41 +271,111 @@ export function packLightPackets(
       ],
       metadataOffset,
     );
-  });
+  }
 
-  return {
-    count: lights.length,
-    floatStride: PACKED_LIGHT_FLOAT_STRIDE,
-    metadataStride: PACKED_LIGHT_METADATA_STRIDE,
-    floats,
-    metadata,
-  };
+  scratch.packed.count = lights.length;
+  scratch.packed.floats = lightFloatView(scratch, lights.length);
+  scratch.packed.metadata = lightMetadataView(scratch, lights.length);
+
+  return scratch.packed;
 }
 
 export function createLightBufferDescriptor(
   input: CreateLightBufferDescriptorInput,
   options: CreateLightBufferDescriptorOptions = {},
 ): LightBufferDescriptor {
-  const packed = isPackedLightPackets(input) ? input : packLightPackets(input);
+  return writeLightBufferDescriptor(
+    input,
+    createLightBufferDescriptorScratch(),
+    options,
+  );
+}
+
+export function createLightBufferDescriptorScratch(
+  lightCapacity = 0,
+): LightBufferDescriptorScratch {
+  const packing = createLightPacketPackingScratch(lightCapacity);
+  const descriptor = {
+    resourceKey: DEFAULT_LIGHT_BUFFER_RESOURCE_KEY,
+    usageIntent: "read-only-storage" as const,
+    count: 0,
+    byteLength: 0,
+    floatByteLength: 0,
+    metadataByteLength: 0,
+    packed: packing.packed,
+  };
+
+  return { packing, descriptor };
+}
+
+export function writeLightBufferDescriptor(
+  input: CreateLightBufferDescriptorInput,
+  scratch: LightBufferDescriptorScratch,
+  options: CreateLightBufferDescriptorOptions = {},
+): LightBufferDescriptor {
+  const packed = isPackedLightPackets(input)
+    ? input
+    : writePackedLightPackets(input, scratch.packing);
   const floatByteLength = packed.floats.byteLength;
   const metadataByteLength = packed.metadata.byteLength;
 
-  return {
-    resourceKey: options.resourceKey ?? DEFAULT_LIGHT_BUFFER_RESOURCE_KEY,
-    usageIntent: "read-only-storage",
-    count: packed.count,
-    byteLength: floatByteLength + metadataByteLength,
-    floatByteLength,
-    metadataByteLength,
-    packed,
-  };
+  scratch.descriptor.resourceKey =
+    options.resourceKey ?? DEFAULT_LIGHT_BUFFER_RESOURCE_KEY;
+  scratch.descriptor.count = packed.count;
+  scratch.descriptor.byteLength = floatByteLength + metadataByteLength;
+  scratch.descriptor.floatByteLength = floatByteLength;
+  scratch.descriptor.metadataByteLength = metadataByteLength;
+  scratch.descriptor.packed = packed;
+
+  return scratch.descriptor;
 }
 
 export function createLightBufferDescriptorPlan(
   descriptor: LightBufferDescriptor,
   options: CreateLightBufferDescriptorPlanOptions = {},
 ): CreateLightBufferDescriptorPlanResult {
+  return writeLightBufferDescriptorPlan(
+    descriptor,
+    createLightBufferDescriptorPlanScratch(),
+    options,
+  );
+}
+
+export function createLightBufferDescriptorPlanScratch(): LightBufferDescriptorPlanScratch {
+  const floatDescriptor = {
+    size: 0,
+    usage: DEFAULT_LIGHT_BUFFER_USAGE,
+  };
+  const metadataDescriptor = {
+    size: 0,
+    usage: DEFAULT_LIGHT_BUFFER_USAGE,
+  };
+  const plan = {
+    resourceKey: DEFAULT_LIGHT_BUFFER_RESOURCE_KEY,
+    source: createLightPacketPackingScratch().packed,
+    floatDescriptor,
+    metadataDescriptor,
+  };
   const diagnostics: LightBufferDescriptorPlanDiagnostic[] = [];
+
+  return {
+    floatDescriptor,
+    metadataDescriptor,
+    plan,
+    diagnostics,
+    result: { valid: false, plan: null, diagnostics },
+  };
+}
+
+export function writeLightBufferDescriptorPlan(
+  descriptor: LightBufferDescriptor,
+  scratch: LightBufferDescriptorPlanScratch,
+  options: CreateLightBufferDescriptorPlanOptions = {},
+): CreateLightBufferDescriptorPlanResult {
+  const diagnostics = scratch.diagnostics;
+
+  diagnostics.length = 0;
+
   const usage = options.usage ?? DEFAULT_LIGHT_BUFFER_USAGE;
 
   if (!Number.isInteger(usage) || usage <= 0) {
@@ -226,39 +387,33 @@ export function createLightBufferDescriptorPlan(
   }
 
   if (descriptor.count === 0 || descriptor.byteLength === 0) {
-    return {
-      valid: diagnostics.length === 0,
-      plan: null,
-      diagnostics,
-    };
+    scratch.result.valid = diagnostics.length === 0;
+    scratch.result.plan = null;
+    return scratch.result;
   }
 
   if (diagnostics.length > 0) {
-    return { valid: false, plan: null, diagnostics };
+    scratch.result.valid = false;
+    scratch.result.plan = null;
+    return scratch.result;
   }
 
   const label = options.label ?? descriptor.resourceKey;
 
-  return {
-    valid: true,
-    plan: {
-      resourceKey: descriptor.resourceKey,
-      source: descriptor.packed,
-      floatDescriptor: {
-        label: `${label}/floats`,
-        size: descriptor.floatByteLength,
-        usage,
-        initialData: descriptor.packed.floats,
-      },
-      metadataDescriptor: {
-        label: `${label}/metadata`,
-        size: descriptor.metadataByteLength,
-        usage,
-        initialData: descriptor.packed.metadata,
-      },
-    },
-    diagnostics,
-  };
+  scratch.floatDescriptor.label = `${label}/floats`;
+  scratch.floatDescriptor.size = descriptor.floatByteLength;
+  scratch.floatDescriptor.usage = usage;
+  scratch.floatDescriptor.initialData = descriptor.packed.floats;
+  scratch.metadataDescriptor.label = `${label}/metadata`;
+  scratch.metadataDescriptor.size = descriptor.metadataByteLength;
+  scratch.metadataDescriptor.usage = usage;
+  scratch.metadataDescriptor.initialData = descriptor.packed.metadata;
+  scratch.plan.resourceKey = descriptor.resourceKey;
+  scratch.plan.source = descriptor.packed;
+  scratch.result.valid = true;
+  scratch.result.plan = scratch.plan;
+
+  return scratch.result;
 }
 
 export function createLightGpuBuffers(
@@ -379,6 +534,81 @@ function isPackedLightPackets(
     "floatStride" in input &&
     "metadataStride" in input
   );
+}
+
+function ensureLightPacketCapacity(
+  scratch: LightPacketPackingScratch,
+  lightCount: number,
+): void {
+  const floatCount = lightCount * PACKED_LIGHT_FLOAT_STRIDE;
+  const metadataCount = lightCount * PACKED_LIGHT_METADATA_STRIDE;
+
+  if (scratch.floats.length < floatCount) {
+    let capacity = Math.max(PACKED_LIGHT_FLOAT_STRIDE, scratch.floats.length);
+
+    while (capacity < floatCount) {
+      capacity *= 2;
+    }
+
+    scratch.floats = new Float32Array(capacity);
+  }
+
+  if (scratch.metadata.length < metadataCount) {
+    let capacity = Math.max(
+      PACKED_LIGHT_METADATA_STRIDE,
+      scratch.metadata.length,
+    );
+
+    while (capacity < metadataCount) {
+      capacity *= 2;
+    }
+
+    scratch.metadata = new Int32Array(capacity);
+  }
+}
+
+function lightFloatView(
+  scratch: LightPacketPackingScratch,
+  lightCount: number,
+): Float32Array {
+  const floatCount = lightCount * PACKED_LIGHT_FLOAT_STRIDE;
+
+  if (floatCount === scratch.floats.length) {
+    scratch.floatView = scratch.floats;
+    return scratch.floats;
+  }
+
+  if (
+    scratch.floatView.buffer !== scratch.floats.buffer ||
+    scratch.floatView.byteOffset !== scratch.floats.byteOffset ||
+    scratch.floatView.length !== floatCount
+  ) {
+    scratch.floatView = scratch.floats.subarray(0, floatCount);
+  }
+
+  return scratch.floatView;
+}
+
+function lightMetadataView(
+  scratch: LightPacketPackingScratch,
+  lightCount: number,
+): Int32Array {
+  const metadataCount = lightCount * PACKED_LIGHT_METADATA_STRIDE;
+
+  if (metadataCount === scratch.metadata.length) {
+    scratch.metadataView = scratch.metadata;
+    return scratch.metadata;
+  }
+
+  if (
+    scratch.metadataView.buffer !== scratch.metadata.buffer ||
+    scratch.metadataView.byteOffset !== scratch.metadata.byteOffset ||
+    scratch.metadataView.length !== metadataCount
+  ) {
+    scratch.metadataView = scratch.metadata.subarray(0, metadataCount);
+  }
+
+  return scratch.metadataView;
 }
 
 export function packedLightKindId(kind: LightKind): PackedLightKindId {

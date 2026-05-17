@@ -213,6 +213,106 @@ describe("WebGPU app facade", () => {
     ).toHaveLength(2);
   });
 
+  it("reuses scalar unlit prepared material resources across frame-resource cache misses", async () => {
+    const events: string[] = [];
+    const { canvas, environment } = webGpuHarness(events);
+    const created = await createWebGpuApp({
+      canvas,
+      environment,
+      worldOptions: { entityCapacity: 8 },
+    });
+
+    expect(created.ok).toBe(true);
+
+    if (!created.ok) {
+      return;
+    }
+
+    const app = created.app;
+    const assets = createRenderAssetCollections({ registry: app.assets });
+    const firstMesh = assets.meshes.add(
+      createBoxMeshAsset({ label: "PreparedUnlitFirst" }),
+    );
+    const secondMesh = assets.meshes.add(
+      createBoxMeshAsset({ label: "PreparedUnlitSecond" }),
+    );
+    const material = assets.materials.unlit.add(
+      createUnlitMaterialAsset({ label: "Prepared Unlit White" }),
+    );
+
+    app.spawn(
+      withTransform({ translation: [0, 0, 5] }),
+      withCamera({ priority: 0, layerMask: 1 }),
+    );
+    app.spawn(
+      withTransform({ translation: [-0.5, 0, 0] }),
+      withMesh(firstMesh),
+      withMaterial(material),
+      withRenderLayer(1),
+      withVisibility(true),
+    );
+
+    const frame = await app.stepAndRender(1 / 60, 1, 14);
+    const firstUnlitResource = queuedMaterialResources(
+      frame.resources?.resources,
+      "unlit",
+    )[0];
+    const firstMaterialResource = firstUnlitResource?.material;
+    const firstMaterialBindGroup = firstUnlitResource?.bindGroups?.find(
+      (bindGroup) => bindGroup.group === 2,
+    );
+
+    expect(frame.ok).toBe(true);
+    expect(frame.resourceReuse).toMatchObject({
+      meshBuffersCreated: 1,
+      materialBuffersCreated: 1,
+      bindGroupsCreated: 3,
+    });
+    expect(firstMaterialResource).toBeDefined();
+    expect(firstMaterialBindGroup).toBeDefined();
+
+    app.spawn(
+      withTransform({ translation: [0.5, 0, 0] }),
+      withMesh(secondMesh),
+      withMaterial(material),
+      withRenderLayer(1),
+      withVisibility(true),
+    );
+
+    const secondFrame = await app.stepAndRender(1 / 60, 2, 15);
+    const secondUnlitResources = queuedMaterialResources(
+      secondFrame.resources?.resources,
+      "unlit",
+    );
+
+    expect(secondFrame.ok).toBe(true);
+    expect(secondFrame.counts.drawCalls).toBe(2);
+    expect(secondFrame.resourceReuse).toMatchObject({
+      pipelineHits: 2,
+      pipelineMisses: 0,
+      meshBuffersCreated: 2,
+      meshBuffersReused: 0,
+      materialBuffersCreated: 0,
+      materialBuffersReused: 2,
+      bindGroupsCreated: 4,
+      bindGroupsReused: 2,
+      dynamicBufferWrites: 0,
+    });
+    expect(secondUnlitResources).toHaveLength(2);
+    expect(secondUnlitResources[0]?.material).toBe(firstMaterialResource);
+    expect(secondUnlitResources[1]?.material).toBe(firstMaterialResource);
+    expect(
+      secondUnlitResources[0]?.bindGroups?.find(
+        (bindGroup) => bindGroup.group === 2,
+      ),
+    ).toBe(firstMaterialBindGroup);
+    expect(
+      secondUnlitResources[1]?.bindGroups?.find(
+        (bindGroup) => bindGroup.group === 2,
+      ),
+    ).toBe(firstMaterialBindGroup);
+  });
+
   it("renders multiple unlit app resource sets for a shared mesh", async () => {
     const events: string[] = [];
     const { canvas, environment } = webGpuHarness(events);
@@ -1966,6 +2066,9 @@ describe("WebGPU app facade", () => {
     expect(queuedFamilyResourceCount(secondResources, "unlit")).toBe(1);
     expect(queuedFamilyResourceCount(secondResources, "matcap")).toBe(1);
     expect(queuedFamilyResourceCount(secondResources, "standard")).toBe(1);
+    expect(secondUnlitResource).toBe(firstUnlitResource);
+    expect(secondMatcapResource).toBe(firstMatcapResource);
+    expect(secondStandardResource).toBe(firstStandardResource);
     expect(secondUnlitResource?.material).toBe(firstUnlitMaterialResource);
     expect(secondMatcapResource?.material).toBe(firstMatcapMaterialResource);
     expect(secondStandardResource?.material).toBe(
@@ -4531,7 +4634,10 @@ function queuedBindGroupResourceKeys(
 function queuedMaterialResources(
   resources: unknown,
   family: "unlit" | "matcap" | "standard",
-): readonly { readonly material?: unknown }[] {
+): readonly {
+  readonly material?: unknown;
+  readonly bindGroups?: readonly { readonly group?: unknown }[];
+}[] {
   if (typeof resources !== "object" || resources === null) {
     return [];
   }
@@ -4543,8 +4649,12 @@ function queuedMaterialResources(
   }
 
   return value.filter(
-    (resource): resource is { readonly material?: unknown } =>
-      typeof resource === "object" && resource !== null,
+    (
+      resource,
+    ): resource is {
+      readonly material?: unknown;
+      readonly bindGroups?: readonly { readonly group?: unknown }[];
+    } => typeof resource === "object" && resource !== null,
   );
 }
 

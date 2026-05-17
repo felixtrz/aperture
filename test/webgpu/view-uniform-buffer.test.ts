@@ -2,7 +2,9 @@ import { describe, expect, it } from "vitest";
 
 import {
   DEFAULT_UNLIT_MATERIAL_BUFFER_USAGE,
+  createViewUniformBufferDescriptorScratch,
   createViewUniformBufferDescriptor,
+  writeViewUniformBufferDescriptor,
   type PackedSnapshotViewUniforms,
 } from "@aperture-engine/webgpu";
 import { PACKED_VIEW_UNIFORM_FLOAT_STRIDE } from "@aperture-engine/core";
@@ -63,6 +65,30 @@ describe("view uniform buffer descriptor planning", () => {
       2 * PACKED_VIEW_UNIFORM_FLOAT_STRIDE * 4,
     );
     expect(result.plan?.descriptor.initialData).toBe(result.plan?.source);
+  });
+
+  it("reuses caller-owned descriptor scratch across successful writes", () => {
+    const scratch = createViewUniformBufferDescriptorScratch();
+    const packed = {
+      ...packedViews(2),
+      data: new Float32Array(64),
+      floatCount: 2 * PACKED_VIEW_UNIFORM_FLOAT_STRIDE,
+    };
+    const first = writeViewUniformBufferDescriptor(packed, scratch);
+    const firstPlan = first.plan;
+    const firstDescriptor = first.plan?.descriptor;
+    const firstSource = first.plan?.source;
+    const firstDiagnostics = first.diagnostics;
+    const second = writeViewUniformBufferDescriptor(packed, scratch);
+
+    expect(second).toBe(first);
+    expect(second.plan).toBe(firstPlan);
+    expect(second.plan?.descriptor).toBe(firstDescriptor);
+    expect(second.plan?.source).toBe(firstSource);
+    expect(second.diagnostics).toBe(firstDiagnostics);
+    expect(second.plan?.descriptor.size).toBe(
+      2 * PACKED_VIEW_UNIFORM_FLOAT_STRIDE * 4,
+    );
   });
 
   it("reports empty data, invalid usage flags, and carried pack diagnostics", () => {

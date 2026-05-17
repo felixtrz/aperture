@@ -47,6 +47,10 @@ import {
   type PreparedAppTextureSamplerResources,
 } from "./app-texture-sampler-resources.js";
 import {
+  createPreparedScalarUnlitMaterialCache,
+  type PreparedScalarUnlitMaterialCache,
+} from "./prepared-unlit-material-cache.js";
+import {
   assembleFrameBoundary,
   type FrameBoundaryAssemblyReport,
 } from "./frame-boundary.js";
@@ -130,6 +134,12 @@ import {
   writeRenderFramePlanFromSnapshot,
   type RenderFramePlanScratch,
 } from "./render-frame-plan.js";
+import {
+  appendPipelineScopedBindGroups,
+  createPipelineScopedBindGroupScratch,
+  resetPipelineScopedBindGroupScratch,
+  type PipelineScopedBindGroupScratch,
+} from "./pipeline-scoped-bind-groups.js";
 import {
   initializeWebGpu,
   type InitializeWebGpuOptions,
@@ -278,6 +288,7 @@ interface WebGpuAppResourceCache {
   readonly layouts: Map<string, WebGpuAppPipelineLayouts>;
   readonly textures: Map<string, TextureGpuResource>;
   readonly samplers: Map<string, SamplerGpuResource>;
+  readonly scalarUnlitMaterials: PreparedScalarUnlitMaterialCache;
   readonly frameScratch: WebGpuAppFrameScratch;
   readonly unlitFrame: UnlitAppFrameResourceCacheSlot;
   readonly matcapFrame: MatcapAppFrameResourceCacheSlot;
@@ -359,6 +370,7 @@ interface QueuedBuiltInAppRouteScratch {
   readonly meshResourceKeys: Map<string, string>;
   readonly materialResourceKeys: Map<string, string>;
   readonly bindGroups: UnlitFrameGpuResources["bindGroups"][number][];
+  readonly pipelineScopedBindGroups: PipelineScopedBindGroupScratch;
   readonly unlit: UnlitFrameGpuResources[];
   readonly matcap: MatcapFrameGpuResources[];
   readonly standard: StandardFrameGpuResources[];
@@ -503,6 +515,7 @@ function createWebGpuAppResourceCache(): WebGpuAppResourceCache {
     layouts: new Map(),
     textures: new Map(),
     samplers: new Map(),
+    scalarUnlitMaterials: createPreparedScalarUnlitMaterialCache(),
     frameScratch: createWebGpuAppFrameScratch(),
     unlitFrame:
       createWebGpuAppFrameResourceCacheSlot<CachedUnlitAppFrameResources>(),
@@ -540,6 +553,7 @@ function createQueuedBuiltInAppRouteScratch(): QueuedBuiltInAppRouteScratch {
     meshResourceKeys: new Map(),
     materialResourceKeys: new Map(),
     bindGroups: [],
+    pipelineScopedBindGroups: createPipelineScopedBindGroupScratch(),
     unlit: [],
     matcap: [],
     standard: [],
@@ -1170,7 +1184,12 @@ const QUEUED_BUILT_IN_MATERIAL_ADAPTERS =
         mesh: options.item.mesh,
         meshKey: options.item.meshKey,
         material: options.item.material as UnlitMaterialAsset,
+        materialHandle: options.item.draw.material,
         materialKey: options.item.materialKey,
+        sourceMaterialKey: options.item.sourceMaterialKey,
+        pipelineKey: options.item.draw.batchKey.pipelineKey,
+        preparedScalarMaterials: options.cache.scalarUnlitMaterials,
+        assets: options.app.assets,
         textures: options.textures,
         viewUniforms: options.viewUniforms,
         worldTransforms: options.worldTransforms,
@@ -1374,6 +1393,7 @@ async function prepareQueuedBuiltInFrameResources(options: {
   const meshResourceKeys = scratch.meshResourceKeys;
   const materialResourceKeys = scratch.materialResourceKeys;
   const bindGroups = scratch.bindGroups;
+  const scopedBindGroups = scratch.pipelineScopedBindGroups;
   const unlit = scratch.unlit;
   const matcap = scratch.matcap;
   const standard = scratch.standard;
@@ -1391,6 +1411,7 @@ async function prepareQueuedBuiltInFrameResources(options: {
   meshResourceKeys.clear();
   materialResourceKeys.clear();
   bindGroups.length = 0;
+  resetPipelineScopedBindGroupScratch(scopedBindGroups);
   unlit.length = 0;
   matcap.length = 0;
   standard.length = 0;
@@ -1493,11 +1514,11 @@ async function prepareQueuedBuiltInFrameResources(options: {
       item.sourceMaterialKey,
       resources.resources.material.resourceKey,
     );
-    bindGroups.push(
-      ...pipelineScopedBindGroups(
-        resources.resources.bindGroups,
-        item.draw.batchKey.pipelineKey,
-      ),
+    appendPipelineScopedBindGroups(
+      resources.resources.bindGroups,
+      item.draw.batchKey.pipelineKey,
+      bindGroups,
+      scopedBindGroups,
     );
   }
 
@@ -1555,21 +1576,6 @@ function createWebGpuAppPipelinePlanResult(
     pipeline: pipeline.resource.pipeline,
     diagnostics: [],
   };
-}
-
-function pipelineScopedBindGroups(
-  bindGroups: readonly UnlitFrameGpuResources["bindGroups"][number][],
-  pipelineKey: string,
-): UnlitFrameGpuResources["bindGroups"][number][] {
-  return bindGroups.map((bindGroup) =>
-    bindGroup.group !== 2
-      ? {
-          ...bindGroup,
-          resourceKey: `${bindGroup.resourceKey}|pipeline:${pipelineKey}`,
-          entryResourceKeys: [...bindGroup.entryResourceKeys, pipelineKey],
-        }
-      : bindGroup,
-  );
 }
 
 async function renderWebGpuAppFrame(
@@ -1870,7 +1876,12 @@ async function renderWebGpuAppFrame(
               mesh,
               meshKey,
               material,
+              materialHandle: firstDraw.material,
               materialKey,
+              sourceMaterialKey: assetHandleKey(firstDraw.material),
+              pipelineKey: firstDraw.batchKey.pipelineKey,
+              preparedScalarMaterials: resourceCache.scalarUnlitMaterials,
+              assets: app.assets,
               textures: preparedTextures,
               viewUniforms: packedViews,
               worldTransforms: packedTransforms,

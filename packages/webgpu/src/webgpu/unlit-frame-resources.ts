@@ -102,6 +102,7 @@ export interface CreateUnlitFrameGpuResourcesOptions {
   readonly worldTransforms: PackedSnapshotTransforms | null;
   readonly material: MaterialAsset | null;
   readonly layouts: readonly UnlitBindGroupLayoutResource[];
+  readonly preparedMaterial?: PreparedUnlitFrameMaterialResources | undefined;
   readonly textures?: readonly TextureGpuResource[];
   readonly samplers?: readonly SamplerGpuResource[];
 }
@@ -126,6 +127,11 @@ export interface UnlitFrameGpuResources {
   readonly worldTransforms: WorldTransformGpuBufferResource;
   readonly material: UnlitMaterialGpuBufferResource;
   readonly bindGroups: CreateUnlitBindGroupsResult["resources"];
+}
+
+export interface PreparedUnlitFrameMaterialResources {
+  readonly material: UnlitMaterialGpuBufferResource;
+  readonly bindGroup: UnlitBindGroupResource;
 }
 
 export interface MultiMaterialUnlitFrameGpuResources {
@@ -155,40 +161,60 @@ export function createUnlitFrameGpuResources(
   const mesh = createMeshResource(options, diagnostics);
   const viewUniform = createViewUniformResource(options, diagnostics);
   const worldTransforms = createWorldTransformResource(options, diagnostics);
-  const material = createMaterialResource(options, diagnostics);
-  const bindGroupPlan = createUnlitBindGroupDescriptorPlan({
-    viewUniformResourceKey: viewUniform?.resourceKey ?? null,
-    worldTransformResourceKey: worldTransforms?.resourceKey ?? null,
-    materialResourceKey: material?.resourceKey ?? null,
-    baseColorTextureResourceKey:
-      material?.dependencies.baseColorTextureKey ?? null,
-    baseColorSamplerResourceKey:
-      material?.dependencies.baseColorSamplerKey ?? null,
-  });
+  const material =
+    options.preparedMaterial?.material ??
+    createMaterialResource(options, diagnostics);
+  let bindGroups: CreateUnlitFrameBindGroupsResult;
 
-  diagnostics.push(...bindGroupPlan.diagnostics);
+  if (options.preparedMaterial === undefined) {
+    const bindGroupPlan = createUnlitBindGroupDescriptorPlan({
+      viewUniformResourceKey: viewUniform?.resourceKey ?? null,
+      worldTransformResourceKey: worldTransforms?.resourceKey ?? null,
+      materialResourceKey: material?.resourceKey ?? null,
+      baseColorTextureResourceKey:
+        material?.dependencies.baseColorTextureKey ?? null,
+      baseColorSamplerResourceKey:
+        material?.dependencies.baseColorSamplerKey ?? null,
+    });
 
-  const bindGroups = createUnlitBindGroupsFromGpuResources({
-    device: options.device,
-    plan: bindGroupPlan,
-    layouts: options.layouts,
-    buffers: compactBufferResources([
-      viewUniform === null
-        ? null
-        : { resourceKey: viewUniform.resourceKey, buffer: viewUniform.buffer },
-      worldTransforms === null
-        ? null
-        : {
-            resourceKey: worldTransforms.resourceKey,
-            buffer: worldTransforms.buffer,
-          },
-      material === null
-        ? null
-        : { resourceKey: material.resourceKey, buffer: material.uniformBuffer },
-    ]),
-    textures: options.textures,
-    samplers: options.samplers,
-  });
+    diagnostics.push(...bindGroupPlan.diagnostics);
+
+    bindGroups = createUnlitBindGroupsFromGpuResources({
+      device: options.device,
+      plan: bindGroupPlan,
+      layouts: options.layouts,
+      buffers: compactBufferResources([
+        viewUniform === null
+          ? null
+          : {
+              resourceKey: viewUniform.resourceKey,
+              buffer: viewUniform.buffer,
+            },
+        worldTransforms === null
+          ? null
+          : {
+              resourceKey: worldTransforms.resourceKey,
+              buffer: worldTransforms.buffer,
+            },
+        material === null
+          ? null
+          : {
+              resourceKey: material.resourceKey,
+              buffer: material.uniformBuffer,
+            },
+      ]),
+      textures: options.textures,
+      samplers: options.samplers,
+    });
+  } else {
+    bindGroups = createUnlitFrameBindGroupsFromPreparedMaterial({
+      device: options.device,
+      viewUniform,
+      worldTransforms,
+      layouts: options.layouts,
+      preparedMaterial: options.preparedMaterial,
+    });
+  }
 
   diagnostics.push(...bindGroups.diagnostics);
 
@@ -213,6 +239,57 @@ export function createUnlitFrameGpuResources(
     },
     diagnostics,
   };
+}
+
+function createUnlitFrameBindGroupsFromPreparedMaterial(options: {
+  readonly device: UnlitFrameGpuResourceDeviceLike;
+  readonly viewUniform: ViewUniformGpuBufferResource | null;
+  readonly worldTransforms: WorldTransformGpuBufferResource | null;
+  readonly layouts: readonly UnlitBindGroupLayoutResource[];
+  readonly preparedMaterial: PreparedUnlitFrameMaterialResources;
+}): CreateUnlitFrameBindGroupsResult {
+  const sharedBindGroupPlan = createSharedBindGroupDescriptorPlan({
+    viewUniformResourceKey: options.viewUniform?.resourceKey ?? null,
+    worldTransformResourceKey: options.worldTransforms?.resourceKey ?? null,
+  });
+  const sharedBindGroups = createUnlitBindGroupsFromGpuResources({
+    device: options.device,
+    plan: sharedBindGroupPlan,
+    layouts: options.layouts,
+    buffers: compactBufferResources([
+      options.viewUniform === null
+        ? null
+        : {
+            resourceKey: options.viewUniform.resourceKey,
+            buffer: options.viewUniform.buffer,
+          },
+      options.worldTransforms === null
+        ? null
+        : {
+            resourceKey: options.worldTransforms.resourceKey,
+            buffer: options.worldTransforms.buffer,
+          },
+    ]),
+    requiredGroups: [0, 1],
+  });
+
+  return {
+    valid: sharedBindGroupPlan.valid && sharedBindGroups.valid,
+    resources: [
+      ...sharedBindGroups.resources,
+      options.preparedMaterial.bindGroup,
+    ],
+    diagnostics: [
+      ...sharedBindGroupPlan.diagnostics,
+      ...sharedBindGroups.diagnostics,
+    ],
+  };
+}
+
+interface CreateUnlitFrameBindGroupsResult {
+  readonly valid: boolean;
+  readonly resources: CreateUnlitBindGroupsResult["resources"];
+  readonly diagnostics: readonly CreateUnlitFrameGpuResourcesDiagnostic[];
 }
 
 export function createMultiMaterialUnlitFrameGpuResources(

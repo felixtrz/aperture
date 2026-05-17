@@ -2,6 +2,105 @@
 
 ## Latest Run Update
 
+Completed `task-0796` through `task-0809` in this automation run. This moved
+the WebGPU resource path from app-local material/frame-resource cleanup into
+direct prepared material and prepared mesh cache groundwork.
+
+Highlights:
+
+- Added
+  `docs/research/APP_LOCAL_MATERIAL_RESOURCE_RENDER_WORLD_AUDIT_2026_05_17.md`,
+  confirming proof-point app-local helpers can stay temporarily while material
+  buffers, bind groups, texture/sampler dependencies, and mesh buffers move
+  toward WebGPU-owned prepared resources.
+- Added scratch-backed view uniform, world transform, light-packing, light
+  descriptor, and queued scoped bind-group writer APIs.
+- Updated unlit, Matcap, and Standard app frame-resource cache-hit paths to
+  mutate cached success result shells instead of creating fresh wrappers.
+- Added
+  `docs/research/UNLIT_SCALAR_PREPARED_MATERIAL_CACHE_PLAN_2026_05_17.md`,
+  `docs/research/SCALAR_UNLIT_PREPARED_CACHE_BOUNDARY_AUDIT_2026_05_17.md`,
+  `docs/research/TEXTURED_UNLIT_PREPARED_DEPENDENCY_HANDOFF_PLAN_2026_05_17.md`,
+  and
+  `docs/research/PREPARED_MESH_CACHE_HANDOFF_PLAN_2026_05_17.md`.
+- Added `prepared-unlit-material-cache.ts` with scalar prepared unlit material
+  caching, texture/sampler dependency key derivation, and direct textured unlit
+  prepared group-2 bind-group support.
+- Wired scalar unlit app frames to consume prepared scalar material resources
+  without changing public app authoring APIs.
+- Added a scalar unlit frame-resource miss regression proving prepared material
+  resources are reused when only frame-owned view/world buffers change.
+- Added `pipeline-scoped-bind-groups.ts` and routed queued app bind-group
+  scoping through caller-owned scratch records.
+- Added `prepared-mesh-cache.ts`, a WebGPU-private prepared mesh cache helper
+  keyed by source mesh handle/version plus upload layout signature.
+- Refilled the ready backlog with `task-0810` through `task-0814`; next
+  recommended task is `task-0810`.
+
+Validation:
+
+- Focused Vitest runs for view/world descriptor scratch writers, light packing,
+  prepared unlit material cache, prepared mesh cache, scoped bind groups, and
+  WebGPU app cache/reuse regressions.
+- `pnpm exec tsc --noEmit -p packages/webgpu/tsconfig.json`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- Final `pnpm run check` passed, including 223 Vitest files / 1024 tests.
+
+Reference files/patterns inspected:
+
+- Aperture anchors: `docs/NORTH_STAR.md`, `docs/ARCHITECTURE.md`,
+  `docs/DECISIONS.md`, `docs/MEDIUM_LONG_TERM_GOALS.md`,
+  `docs/RENDER_ASSET_PREPARATION.md`, current WebGPU app resource helpers,
+  unlit bind-group/material-buffer helpers, texture/sampler resource helpers,
+  mesh upload/buffer helpers, and render asset preparation contracts.
+- three.js render-list/scoped record reuse pattern for scratch writer shape.
+- PlayCanvas/engine resource preparation patterns for WebGPU-owned texture,
+  sampler, and mesh resource lifetime boundaries.
+
+Known issues / follow-ups:
+
+- Textured unlit prepared resources are supported by the direct cache helper but
+  are not yet wired into the app route. `task-0812` covers that.
+- Prepared mesh resources are supported by a direct cache helper but are not yet
+  consumed by app frame-resource helpers. `task-0810` should wire scalar unlit
+  first.
+- App report counters still mostly describe frame-resource creation/reuse.
+  `task-0813` should tighten prepared material/mesh reuse counters after route
+  integration.
+
+Files touched in this update include:
+
+- `agent/BACKLOG.md`
+- `agent/COMPLETED.md`
+- `agent/HANDOFF.md`
+- `agent/STATUS.json`
+- `docs/research/APP_LOCAL_MATERIAL_RESOURCE_RENDER_WORLD_AUDIT_2026_05_17.md`
+- `docs/research/PREPARED_MESH_CACHE_HANDOFF_PLAN_2026_05_17.md`
+- `docs/research/SCALAR_UNLIT_PREPARED_CACHE_BOUNDARY_AUDIT_2026_05_17.md`
+- `docs/research/TEXTURED_UNLIT_PREPARED_DEPENDENCY_HANDOFF_PLAN_2026_05_17.md`
+- `docs/research/UNLIT_SCALAR_PREPARED_MATERIAL_CACHE_PLAN_2026_05_17.md`
+- `packages/webgpu/src/webgpu/app.ts`
+- `packages/webgpu/src/webgpu/index.ts`
+- `packages/webgpu/src/webgpu/light-packing.ts`
+- `packages/webgpu/src/webgpu/matcap-app-frame-resources.ts`
+- `packages/webgpu/src/webgpu/pipeline-scoped-bind-groups.ts`
+- `packages/webgpu/src/webgpu/prepared-mesh-cache.ts`
+- `packages/webgpu/src/webgpu/prepared-unlit-material-cache.ts`
+- `packages/webgpu/src/webgpu/standard-app-frame-resources.ts`
+- `packages/webgpu/src/webgpu/unlit-app-frame-resources.ts`
+- `packages/webgpu/src/webgpu/unlit-frame-resources.ts`
+- `packages/webgpu/src/webgpu/view-uniform-buffer.ts`
+- `packages/webgpu/src/webgpu/world-transform-buffer.ts`
+- `test/webgpu/light-packing.test.ts`
+- `test/webgpu/pipeline-scoped-bind-groups.test.ts`
+- `test/webgpu/prepared-mesh-cache.test.ts`
+- `test/webgpu/prepared-unlit-material-cache.test.ts`
+- `test/webgpu/view-uniform-buffer.test.ts`
+- `test/webgpu/webgpu-app.test.ts`
+- `test/webgpu/world-transform-buffer.test.ts`
+
+## Previous Run Update
+
 Completed `task-0773` through `task-0795` and one utility
 follow-up in this automation run. This advanced the WebGPU material queue route
 and app-local resource helper boundary from route-only adapters through

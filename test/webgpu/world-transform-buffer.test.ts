@@ -1,9 +1,11 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  createWorldTransformBufferDescriptorScratch,
   createWorldTransformBufferDescriptor,
   createWorldTransformGpuBuffer,
   DEFAULT_WORLD_TRANSFORM_BUFFER_USAGE,
+  writeWorldTransformBufferDescriptor,
   type PackedSnapshotTransforms,
   type WebGpuBufferDeviceLike,
   type WorldTransformBufferDescriptorPlan,
@@ -35,6 +37,29 @@ describe("world transform GPU buffer resources", () => {
       offsets: packed.offsets,
     });
     expect(created).toHaveLength(1);
+  });
+
+  it("uses logical float count and reuses caller-owned descriptor scratch", () => {
+    const scratch = createWorldTransformBufferDescriptorScratch();
+    const packed = {
+      ...packedTransforms(2),
+      data: new Float32Array(64),
+      floatCount: 32,
+    };
+    const first = writeWorldTransformBufferDescriptor(packed, scratch);
+    const firstPlan = first.plan;
+    const firstDescriptor = first.plan?.descriptor;
+    const firstSource = first.plan?.source;
+    const firstDiagnostics = first.diagnostics;
+    const second = writeWorldTransformBufferDescriptor(packed, scratch);
+
+    expect(first.plan?.descriptor.size).toBe(32 * 4);
+    expect(first.plan?.source.byteLength).toBe(32 * 4);
+    expect(second).toBe(first);
+    expect(second.plan).toBe(firstPlan);
+    expect(second.plan?.descriptor).toBe(firstDescriptor);
+    expect(second.plan?.source).toBe(firstSource);
+    expect(second.diagnostics).toBe(firstDiagnostics);
   });
 
   it("reports empty transform data and buffer creation failures", () => {

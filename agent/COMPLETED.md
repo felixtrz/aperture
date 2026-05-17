@@ -1,5 +1,55 @@
 # Completed Tasks
 
+## task-0796 through task-0809 — Prepared material and mesh cache groundwork
+
+Completed: 2026-05-17
+
+Completed task ids:
+
+- `task-0796` — Audit app-local material resource path against render-world
+  goals.
+- `task-0797` — Add app descriptor-plan scratch writers.
+- `task-0798` — Add Standard light-pack scratch writer.
+- `task-0799` — Reuse app frame-resource success result shells.
+- `task-0800` — Plan unlit scalar prepared material cache slice.
+- `task-0801` — Add internal prepared material cache for scalar unlit.
+- `task-0802` — Audit scalar unlit prepared material cache boundaries.
+- `task-0803` — Add scalar unlit prepared-cache frame-miss regression.
+- `task-0804` — Plan textured unlit prepared dependency handoff.
+- `task-0805` — Add queued scoped bind-group scratch writer.
+- `task-0806` — Plan prepared mesh cache handoff.
+- `task-0807` — Add unlit prepared texture dependency key helper.
+- `task-0808` — Extend unlit prepared cache for textured bindings.
+- `task-0809` — Add direct prepared mesh cache helper.
+
+Summary:
+
+- Added audits/plans for app-local material resource ownership, scalar unlit
+  prepared material caching, textured unlit dependency handoff, scalar cache
+  boundaries, and prepared mesh cache handoff.
+- Added scratch-backed writer APIs for view uniform, world transform, light
+  packet, light descriptor, and queued scoped bind-group planning.
+- Updated unlit, Matcap, and Standard app frame-resource helpers to reuse
+  success result shells on cache hits.
+- Added a WebGPU-private scalar unlit prepared material cache and wired scalar
+  unlit app frames to consume prepared group-2 material resources.
+- Added a scalar prepared-cache frame-miss app regression proving prepared
+  material reuse survives frame-resource cache misses.
+- Added texture/sampler handle-version dependency key derivation and direct
+  textured unlit prepared-cache support for group-2 material bindings.
+- Added a WebGPU-private prepared mesh cache helper keyed by source mesh
+  handle/version and upload layout signature.
+
+Validation run:
+
+- `pnpm exec vitest run test/webgpu/view-uniform-buffer.test.ts test/webgpu/world-transform-buffer.test.ts test/webgpu/webgpu-app.test.ts`
+- `pnpm exec vitest run test/webgpu/light-packing.test.ts test/webgpu/webgpu-app.test.ts`
+- `pnpm exec vitest run test/webgpu/prepared-unlit-material-cache.test.ts test/webgpu/webgpu-app.test.ts test/webgpu/unlit-bind-group.test.ts test/webgpu/unlit-material-buffer-resource.test.ts`
+- `pnpm exec vitest run test/webgpu/pipeline-scoped-bind-groups.test.ts test/webgpu/webgpu-app.test.ts`
+- `pnpm exec vitest run test/webgpu/prepared-mesh-cache.test.ts test/webgpu/prepared-unlit-material-cache.test.ts`
+- `pnpm exec tsc --noEmit -p packages/webgpu/tsconfig.json`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+
 ## task-0794 through task-0795 — Utility coverage and prepared-resource handoff plan
 
 Completed: 2026-05-17

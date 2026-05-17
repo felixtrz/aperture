@@ -7,10 +7,16 @@ import {
   DEFAULT_LIGHT_BUFFER_USAGE,
   PackedLightKindId,
   createLightBufferDescriptor,
+  createLightBufferDescriptorPlanScratch,
   createLightBufferDescriptorPlan,
+  createLightBufferDescriptorScratch,
   createLightGpuBuffers,
+  createLightPacketPackingScratch,
   packLightPackets,
   packedLightKindId,
+  writeLightBufferDescriptor,
+  writeLightBufferDescriptorPlan,
+  writePackedLightPackets,
   type LightPacket,
   type RenderSnapshot,
   type WebGpuBufferDeviceLike,
@@ -66,6 +72,32 @@ describe("light packet packing", () => {
     expect(packed.metadata).toBeInstanceOf(Int32Array);
     expect(packed.floats).toHaveLength(0);
     expect(packed.metadata).toHaveLength(0);
+  });
+
+  it("reuses caller-owned light packet scratch when capacity fits", () => {
+    const scratch = createLightPacketPackingScratch(4);
+    const first = writePackedLightPackets(
+      [light("directional", 1), light("point", 2)],
+      scratch,
+    );
+    const firstFloats = first.floats;
+    const firstMetadata = first.metadata;
+    const backingFloats = scratch.floats;
+    const backingMetadata = scratch.metadata;
+    const second = writePackedLightPackets(
+      [light("spot", 3), light("ambient", 4)],
+      scratch,
+    );
+
+    expect(second).toBe(first);
+    expect(second.floats).toBe(firstFloats);
+    expect(second.metadata).toBe(firstMetadata);
+    expect(scratch.floats).toBe(backingFloats);
+    expect(scratch.metadata).toBe(backingMetadata);
+    expect(Array.from(metadataColumn(second.metadata, 0))).toEqual([
+      PackedLightKindId.Spot,
+      PackedLightKindId.Ambient,
+    ]);
   });
 
   it("creates renderer-owned light buffer descriptors without GPU buffers", () => {
@@ -128,6 +160,50 @@ describe("light packet packing", () => {
     );
     expect(result.plan?.metadataDescriptor.initialData).toBe(
       descriptor.packed.metadata,
+    );
+  });
+
+  it("reuses light buffer descriptor and plan scratch shells", () => {
+    const descriptorScratch = createLightBufferDescriptorScratch(2);
+    const planScratch = createLightBufferDescriptorPlanScratch();
+    const firstDescriptor = writeLightBufferDescriptor(
+      [light("directional", 1), light("point", 2)],
+      descriptorScratch,
+      { resourceKey: "light-buffer:test" },
+    );
+    const firstPlanResult = writeLightBufferDescriptorPlan(
+      firstDescriptor,
+      planScratch,
+      { label: "TestLights" },
+    );
+    const firstPlan = firstPlanResult.plan;
+    const firstFloatDescriptor = firstPlanResult.plan?.floatDescriptor;
+    const firstMetadataDescriptor = firstPlanResult.plan?.metadataDescriptor;
+    const firstDiagnostics = firstPlanResult.diagnostics;
+    const secondDescriptor = writeLightBufferDescriptor(
+      [light("spot", 3), light("ambient", 4)],
+      descriptorScratch,
+      { resourceKey: "light-buffer:test" },
+    );
+    const secondPlanResult = writeLightBufferDescriptorPlan(
+      secondDescriptor,
+      planScratch,
+      { label: "TestLights" },
+    );
+
+    expect(secondDescriptor).toBe(firstDescriptor);
+    expect(secondPlanResult).toBe(firstPlanResult);
+    expect(secondPlanResult.plan).toBe(firstPlan);
+    expect(secondPlanResult.plan?.floatDescriptor).toBe(firstFloatDescriptor);
+    expect(secondPlanResult.plan?.metadataDescriptor).toBe(
+      firstMetadataDescriptor,
+    );
+    expect(secondPlanResult.diagnostics).toBe(firstDiagnostics);
+    expect(secondPlanResult.plan?.floatDescriptor.initialData).toBe(
+      secondDescriptor.packed.floats,
+    );
+    expect(secondPlanResult.plan?.metadataDescriptor.initialData).toBe(
+      secondDescriptor.packed.metadata,
     );
   });
 

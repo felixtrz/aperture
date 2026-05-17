@@ -9,8 +9,12 @@ import { sameStringList, writeBufferData } from "./app-frame-resource-utils.js";
 import type { PreparedAppTextureSamplerResources } from "./app-texture-sampler-resources.js";
 import type { LightBindGroupLayoutResource } from "./light-bind-group-layout.js";
 import {
-  createLightBufferDescriptor,
-  createLightBufferDescriptorPlan,
+  createLightBufferDescriptorPlanScratch,
+  createLightBufferDescriptorScratch,
+  writeLightBufferDescriptor,
+  writeLightBufferDescriptorPlan,
+  type LightBufferDescriptorPlanScratch,
+  type LightBufferDescriptorScratch,
 } from "./light-packing.js";
 import type { StandardMaterialBindGroupLayoutResource } from "./standard-bind-group.js";
 import {
@@ -18,8 +22,16 @@ import {
   type CreateStandardFrameGpuResourcesResult,
 } from "./standard-frame-resources.js";
 import type { UnlitBindGroupLayoutResource } from "./unlit-bind-group.js";
-import { createViewUniformBufferDescriptor } from "./view-uniform-buffer.js";
-import { createWorldTransformBufferDescriptor } from "./world-transform-buffer.js";
+import {
+  createViewUniformBufferDescriptorScratch,
+  writeViewUniformBufferDescriptor,
+  type ViewUniformBufferDescriptorScratch,
+} from "./view-uniform-buffer.js";
+import {
+  createWorldTransformBufferDescriptorScratch,
+  writeWorldTransformBufferDescriptor,
+  type WorldTransformBufferDescriptorScratch,
+} from "./world-transform-buffer.js";
 
 export interface CachedStandardAppFrameResources {
   readonly meshKey: string;
@@ -30,6 +42,10 @@ export interface CachedStandardAppFrameResources {
   readonly worldTransformByteLength: number;
   readonly lightFloatByteLength: number;
   readonly lightMetadataByteLength: number;
+  readonly viewDescriptorScratch: ViewUniformBufferDescriptorScratch;
+  readonly worldTransformDescriptorScratch: WorldTransformBufferDescriptorScratch;
+  readonly lightBufferDescriptorScratch: LightBufferDescriptorScratch;
+  readonly lightBufferDescriptorPlanScratch: LightBufferDescriptorPlanScratch;
   result: CreateStandardFrameGpuResourcesResult;
 }
 
@@ -65,15 +81,34 @@ export function createOrReuseStandardAppFrameResources(options: {
   readonly lightLayout: LightBindGroupLayoutResource | null;
   readonly reuse: StandardAppFrameResourceReuseReport;
 }): CreateStandardFrameGpuResourcesResult {
-  const viewDescriptor = createViewUniformBufferDescriptor(
-    options.viewUniforms,
-  );
-  const transformDescriptor = createWorldTransformBufferDescriptor(
-    options.worldTransforms,
-  );
-  const lightBuffer = createLightBufferDescriptor(options.snapshot);
-  const lightDescriptor = createLightBufferDescriptorPlan(lightBuffer);
   const cached = options.cache.current;
+  const viewDescriptorScratch =
+    cached?.viewDescriptorScratch ?? createViewUniformBufferDescriptorScratch();
+  const worldTransformDescriptorScratch =
+    cached?.worldTransformDescriptorScratch ??
+    createWorldTransformBufferDescriptorScratch();
+  const lightBufferDescriptorScratch =
+    cached?.lightBufferDescriptorScratch ??
+    createLightBufferDescriptorScratch();
+  const lightBufferDescriptorPlanScratch =
+    cached?.lightBufferDescriptorPlanScratch ??
+    createLightBufferDescriptorPlanScratch();
+  const viewDescriptor = writeViewUniformBufferDescriptor(
+    options.viewUniforms,
+    viewDescriptorScratch,
+  );
+  const transformDescriptor = writeWorldTransformBufferDescriptor(
+    options.worldTransforms,
+    worldTransformDescriptorScratch,
+  );
+  const lightBuffer = writeLightBufferDescriptor(
+    options.snapshot,
+    lightBufferDescriptorScratch,
+  );
+  const lightDescriptor = writeLightBufferDescriptorPlan(
+    lightBuffer,
+    lightBufferDescriptorPlanScratch,
+  );
 
   if (
     cached !== null &&
@@ -121,31 +156,30 @@ export function createOrReuseStandardAppFrameResources(options: {
     options.reuse.dynamicBufferWrites += 4;
 
     const resources = cached.result.resources;
-    const result: CreateStandardFrameGpuResourcesResult = {
-      valid: true,
-      resources: {
-        ...resources,
-        viewUniform: {
-          ...resources.viewUniform,
-          views: viewDescriptor.plan.views,
-        },
-        worldTransforms: {
-          ...resources.worldTransforms,
-          offsets: transformDescriptor.plan.offsets,
-        },
-        lightGpuBuffers: {
-          valid: true,
-          lightBuffer,
-          descriptorPlan: lightDescriptor.plan,
-          resource: resources.lightGpuBuffers.resource,
-          diagnostics: [],
-        },
-      },
-      diagnostics: [],
-    };
 
-    cached.result = result;
-    return result;
+    (
+      resources.viewUniform as {
+        views: typeof viewDescriptor.plan.views;
+      }
+    ).views = viewDescriptor.plan.views;
+    (
+      resources.worldTransforms as {
+        offsets: typeof transformDescriptor.plan.offsets;
+      }
+    ).offsets = transformDescriptor.plan.offsets;
+    (
+      resources.lightGpuBuffers as {
+        lightBuffer: typeof lightBuffer;
+        descriptorPlan: typeof lightDescriptor.plan;
+      }
+    ).lightBuffer = lightBuffer;
+    (
+      resources.lightGpuBuffers as {
+        descriptorPlan: typeof lightDescriptor.plan;
+      }
+    ).descriptorPlan = lightDescriptor.plan;
+
+    return cached.result;
   }
 
   const result = createStandardFrameGpuResources({
@@ -190,6 +224,10 @@ export function createOrReuseStandardAppFrameResources(options: {
       lightMetadataByteLength:
         result.resources.lightGpuBuffers.descriptorPlan.source.metadata
           .byteLength,
+      viewDescriptorScratch,
+      worldTransformDescriptorScratch,
+      lightBufferDescriptorScratch,
+      lightBufferDescriptorPlanScratch,
       result,
     };
   }

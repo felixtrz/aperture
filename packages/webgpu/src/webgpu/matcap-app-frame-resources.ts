@@ -12,8 +12,16 @@ import {
 } from "./matcap-frame-resources.js";
 import type { MatcapMaterialBindGroupLayoutResource } from "./matcap-bind-group.js";
 import type { UnlitBindGroupLayoutResource } from "./unlit-bind-group.js";
-import { createViewUniformBufferDescriptor } from "./view-uniform-buffer.js";
-import { createWorldTransformBufferDescriptor } from "./world-transform-buffer.js";
+import {
+  createViewUniformBufferDescriptorScratch,
+  writeViewUniformBufferDescriptor,
+  type ViewUniformBufferDescriptorScratch,
+} from "./view-uniform-buffer.js";
+import {
+  createWorldTransformBufferDescriptorScratch,
+  writeWorldTransformBufferDescriptor,
+  type WorldTransformBufferDescriptorScratch,
+} from "./world-transform-buffer.js";
 
 export interface CachedMatcapAppFrameResources {
   readonly meshKey: string;
@@ -22,6 +30,8 @@ export interface CachedMatcapAppFrameResources {
   readonly samplerKeys: readonly string[];
   readonly viewByteLength: number;
   readonly worldTransformByteLength: number;
+  readonly viewDescriptorScratch: ViewUniformBufferDescriptorScratch;
+  readonly worldTransformDescriptorScratch: WorldTransformBufferDescriptorScratch;
   result: CreateMatcapFrameGpuResourcesResult;
 }
 
@@ -53,13 +63,20 @@ export function createOrReuseMatcapAppFrameResources(options: {
   readonly materialLayout: MatcapMaterialBindGroupLayoutResource | null;
   readonly reuse: MatcapAppFrameResourceReuseReport;
 }): CreateMatcapFrameGpuResourcesResult {
-  const viewDescriptor = createViewUniformBufferDescriptor(
-    options.viewUniforms,
-  );
-  const transformDescriptor = createWorldTransformBufferDescriptor(
-    options.worldTransforms,
-  );
   const cached = options.cache.current;
+  const viewDescriptorScratch =
+    cached?.viewDescriptorScratch ?? createViewUniformBufferDescriptorScratch();
+  const worldTransformDescriptorScratch =
+    cached?.worldTransformDescriptorScratch ??
+    createWorldTransformBufferDescriptorScratch();
+  const viewDescriptor = writeViewUniformBufferDescriptor(
+    options.viewUniforms,
+    viewDescriptorScratch,
+  );
+  const transformDescriptor = writeWorldTransformBufferDescriptor(
+    options.worldTransforms,
+    worldTransformDescriptorScratch,
+  );
 
   if (
     cached !== null &&
@@ -90,24 +107,19 @@ export function createOrReuseMatcapAppFrameResources(options: {
     options.reuse.dynamicBufferWrites += 2;
 
     const resources = cached.result.resources;
-    const result: CreateMatcapFrameGpuResourcesResult = {
-      valid: true,
-      resources: {
-        ...resources,
-        viewUniform: {
-          ...resources.viewUniform,
-          views: viewDescriptor.plan.views,
-        },
-        worldTransforms: {
-          ...resources.worldTransforms,
-          offsets: transformDescriptor.plan.offsets,
-        },
-      },
-      diagnostics: [],
-    };
 
-    cached.result = result;
-    return result;
+    (
+      resources.viewUniform as {
+        views: typeof viewDescriptor.plan.views;
+      }
+    ).views = viewDescriptor.plan.views;
+    (
+      resources.worldTransforms as {
+        offsets: typeof transformDescriptor.plan.offsets;
+      }
+    ).offsets = transformDescriptor.plan.offsets;
+
+    return cached.result;
   }
 
   const result = createMatcapFrameGpuResources({
@@ -139,6 +151,8 @@ export function createOrReuseMatcapAppFrameResources(options: {
       worldTransformByteLength:
         transformDescriptor.plan?.source.byteLength ??
         options.worldTransforms.data.byteLength,
+      viewDescriptorScratch,
+      worldTransformDescriptorScratch,
       result,
     };
   }

@@ -59,12 +59,12 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start with `task-0796`. Built-in route adapters, app texture/sampler helpers,
-frame-resource cache slots, unlit/Matcap/Standard frame-resource helpers, and
-shared frame-resource utilities are extracted, audited, and covered by a
-focused app cache-slot reuse regression plus direct utility tests. The next
-slice should audit the current app-local material resource path against the
-render-world prepared-resource direction before implementation cleanup resumes.
+Start with `task-0810`. The app-local material resource path has been audited,
+descriptor/light scratch writers are in place, frame-resource cache-hit shells
+are reused, scalar and textured unlit prepared material cache helpers have
+landed, and a direct prepared mesh cache helper is available. The next slice
+should wire the prepared mesh cache into the scalar unlit app route before
+expanding to textured app-route integration.
 
 ## Near-Term Proof Point Track
 
@@ -81,12 +81,11 @@ Target proof point:
 
 Remaining automation priority order:
 
-1. `task-0796` — audit app-local material resource path against render-world goals.
-2. `task-0797` — add app descriptor-plan scratch writers.
-3. `task-0798` — add Standard light-pack scratch writer.
-4. `task-0799` — reuse app frame-resource success result shells.
-5. `task-0800` — plan unlit scalar prepared material cache slice.
-6. `task-0801` — add internal prepared material cache for scalar unlit.
+1. `task-0810` — wire prepared mesh cache into scalar unlit app route.
+2. `task-0812` — wire textured unlit prepared cache into the app route.
+3. `task-0811` — audit textured unlit and mesh cache boundaries.
+4. `task-0813` — add prepared cache app-route invalidation counters.
+5. `task-0814` — extend prepared mesh cache to the Matcap app route.
 
 Defer allocation-only cleanup and metadata-only shader-contract tasks unless
 they are a direct blocker for this track.
@@ -152,106 +151,94 @@ viewer/material mapping should not outrun the material and queue architecture.
 
 ### Proof Point Critical Path
 
-### task-0796 — Audit app-local material resource path against render-world goals
+### task-0810 — Wire prepared mesh cache into scalar unlit app route
+
+Category: `webgpu-render`
+Package/write-scope: `packages/webgpu/src/webgpu/app.ts`, unlit app
+frame-resource helpers, prepared mesh cache helper, and focused app tests.
+Reference anchor:
+`docs/research/PREPARED_MESH_CACHE_HANDOFF_PLAN_2026_05_17.md`, scalar unlit
+prepared material cache implementation, and current app cache-slot tests.
+
+Acceptance criteria:
+
+- Scalar unlit app frames can consume prepared mesh resources when source mesh
+  versions and upload layout keys are unchanged.
+- A frame-resource cache miss reuses prepared mesh buffers without changing
+  public app APIs.
+- App reports distinguish frame-resource reuse from prepared mesh reuse.
+
+### task-0811 — Audit textured unlit and mesh cache boundaries
 
 Category: `audit-refactor`
 Package/write-scope: `docs/research`, `agent/BACKLOG.md`, and narrow follow-up
 task edits only.
 Reference anchor:
 `docs/ARCHITECTURE.md`, `docs/RENDER_ASSET_PREPARATION.md`,
-`docs/MEDIUM_LONG_TERM_GOALS.md`, extracted app resource helper modules,
-`references/engine`, and `references/three.js`.
+`docs/research/TEXTURED_UNLIT_PREPARED_DEPENDENCY_HANDOFF_PLAN_2026_05_17.md`,
+prepared unlit cache implementation, and prepared mesh cache implementation.
 
 Acceptance criteria:
 
-- Audit compares the current app-local material resource path against the
-  longer-term render-world prepared-resource direction.
-- Audit identifies which pieces should stay app-local for the proof point and
-  which should move toward render-world/prepared-asset contracts.
-- Follow-up tasks are concrete and do not propose a public material plugin API.
+- Audit verifies texture/sampler and mesh prepared resources stay WebGPU-owned
+  and renderer-derived.
+- Audit checks ECS/source assets remain authoritative and raw GPU handles do not
+  leak through public or render-layer keys.
+- Follow-up task wording is tightened if drift or missing coverage is found.
 
-### task-0797 — Add app descriptor-plan scratch writers
+### task-0812 — Wire textured unlit prepared cache into the app route
 
 Category: `webgpu-render`
-Package/write-scope: `packages/webgpu/src/webgpu`, targeted tests.
+Package/write-scope: `packages/webgpu/src/webgpu/app.ts`, unlit app
+frame-resource helpers, prepared unlit cache helper, and focused app tests.
 Reference anchor:
-`docs/research/APP_FRAME_RESOURCE_HOT_PATH_ALLOCATION_PLAN_2026_05_17.md`,
-existing view/world descriptor helpers, extracted app frame-resource helpers,
-and the three.js render-list record reuse pattern.
+`docs/research/TEXTURED_UNLIT_PREPARED_DEPENDENCY_HANDOFF_PLAN_2026_05_17.md`,
+`packages/webgpu/src/webgpu/prepared-unlit-material-cache.ts`, and current
+textured unlit app texture/sampler resource path.
 
 Acceptance criteria:
 
-- View uniform and world transform descriptor planning have scratch-backed
-  writer APIs.
-- Existing create helpers remain as convenience wrappers.
-- Tests prove result/plan/descriptor object identity is reused across repeated
-  successful writes.
+- Textured unlit app frames can consume prepared group-2 material resources
+  when texture and sampler dependencies are ready.
+- The app route reuses textured prepared resources when material, texture,
+  sampler, pipeline, and layout keys are unchanged.
+- Existing texture/sampler GPU resource preparation remains WebGPU-owned and
+  raw GPU handles do not enter render-layer descriptors.
 
-### task-0798 — Add Standard light-pack scratch writer
+### task-0813 — Add prepared cache app-route invalidation counters
 
 Category: `webgpu-render`
-Package/write-scope: `packages/webgpu/src/webgpu/light-packing.ts`, targeted
-tests.
+Package/write-scope: WebGPU app reports/tests only.
 Reference anchor:
-`docs/research/APP_FRAME_RESOURCE_HOT_PATH_ALLOCATION_PLAN_2026_05_17.md`,
-Standard app frame-resource helper, and existing transform packing scratch APIs.
+prepared scalar/textured unlit cache helpers, prepared mesh cache helper,
+current WebGPU app reuse counters, and `docs/RENDER_ASSET_PREPARATION.md`.
 
 Acceptance criteria:
 
-- Light packet packing can reuse caller-owned typed arrays when capacity fits.
-- Light descriptor planning can reuse result/descriptor shells.
-- Existing one-shot helpers remain available for tests and setup.
+- App tests distinguish frame-resource cache misses from prepared material and
+  prepared mesh cache reuse.
+- Changing only texture, sampler, material, or mesh source versions produces
+  clear JSON-safe reuse/creation counters.
+- Public reports do not expose mutable cache internals or raw GPU handles.
 
-### task-0799 — Reuse app frame-resource success result shells
+### task-0814 — Extend prepared mesh cache to the Matcap app route
 
 Category: `webgpu-render`
-Package/write-scope: extracted app frame-resource helper modules and focused
-WebGPU app tests.
+Package/write-scope: Matcap app frame-resource helper, app route wiring, and
+focused WebGPU app tests.
 Reference anchor:
-`docs/research/APP_FRAME_RESOURCE_HOT_PATH_ALLOCATION_PLAN_2026_05_17.md` and
-current app cache-slot reuse tests.
+`docs/research/PREPARED_MESH_CACHE_HANDOFF_PLAN_2026_05_17.md`,
+`packages/webgpu/src/webgpu/prepared-mesh-cache.ts`, and current Matcap
+frame-resource helper.
 
 Acceptance criteria:
 
-- Unlit, Matcap, and Standard cache-hit paths update cached result shells in
-  place.
-- Second-frame app tests still prove resource reuse counters and dynamic buffer
-  write counts.
-- Public app report shapes remain JSON-safe and do not expose mutable scratch
-  as API.
-
-### task-0800 — Plan unlit scalar prepared material cache slice
-
-Category: `webgpu-render`
-Package/write-scope: `docs/research`, with read-only inspection of unlit
-material buffer/bind group helpers and app frame-resource helpers.
-Reference anchor:
-`docs/research/PREPARED_MATERIAL_RESOURCE_CACHE_HANDOFF_PLAN_2026_05_17.md`,
-`docs/RENDER_ASSET_PREPARATION.md`, and
-`packages/render/src/materials/prepared-resource.ts`.
-
-Acceptance criteria:
-
-- The plan defines the smallest unlit scalar prepared material cache contract.
-- The plan identifies invalidation keys and report fields.
-- The plan keeps view/transform buffers frame-owned.
-
-### task-0801 — Add internal prepared material cache for scalar unlit
-
-Category: `webgpu-render`
-Package/write-scope: `packages/webgpu/src/webgpu`, focused WebGPU app tests.
-Reference anchor:
-the unlit scalar prepared cache plan, existing unlit material buffer/bind group
-helpers, and current app cache-slot tests.
-
-Acceptance criteria:
-
-- Scalar unlit material buffer and bind group preparation can be cached by
-  source material version and pipeline key.
-- The app route consumes the prepared material resource without changing public
-  app APIs.
-- Tests cover first-frame create, second-frame reuse, and source material
-  invalidation.
+- Matcap app frames can consume prepared mesh resources when mesh source
+  versions and upload layout keys are unchanged.
+- Mesh cache reuse does not change Matcap material texture/sampler resource
+  behavior.
+- Tests cover first-frame create and second-frame prepared mesh reuse through
+  public app diagnostics.
 
 ## Post-Unlit E2E Verification Targets
 
