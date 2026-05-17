@@ -59,9 +59,11 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start with `task-0625`. StandardMaterial normal-map shader support and the
-glTF PBR texture audit have landed, so the next implementation slice should
-make prepared material resource contracts renderer-independent.
+Start with `task-0636`. Generic prepared material descriptors, StandardMaterial
+texture readiness diagnostics, `TEXCOORD_1` shader variants, alpha/transparent
+phase-consumption planning, and single-family queue app routing have landed, so
+the next slice should make built-in WebGPU pipeline descriptors render-state
+aware before accepting non-opaque queue phases.
 
 ## Near-Term Proof Point Track
 
@@ -78,12 +80,11 @@ Target proof point:
 
 Remaining automation priority order:
 
-1. `task-0625` — add generic prepared material resource contracts.
-2. `task-0632` — add StandardMaterial texture semantic/color-space diagnostics.
-3. `task-0634` — diagnose unsupported StandardMaterial texture UV sets.
-4. `task-0635` — add StandardMaterial TEXCOORD_1 shader variants.
-5. `task-0630` — route single-family app frames through material queue.
-6. `task-0631` — plan alpha-test and transparent app queue consumption.
+1. `task-0636` — make built-in WebGPU pipelines render-state aware.
+2. `task-0637` — consume StandardMaterial alpha-test queue items.
+3. `task-0638` — consume StandardMaterial transparent alpha-blend queue items.
+4. `task-0639` — add browser pixel coverage for StandardMaterial queue phases.
+5. `task-0640` — audit expanded queue phase consumption.
 
 Defer allocation-only cleanup and metadata-only shader-contract tasks unless
 they are a direct blocker for this track.
@@ -122,124 +123,110 @@ viewer/material mapping should not outrun the material and queue architecture.
 
 ### Audit / Refactor
 
-### task-0625 — Add generic prepared material resource contracts
-
-Category: `render-bridge`
-Package/write-scope: `packages/render` prepared-asset contracts and targeted
-tests; `packages/webgpu/src/webgpu` only for adapter tests if needed.
-Reference anchor: Bevy `RenderAsset` preparation pattern, existing unlit,
-MatcapMaterial, and StandardMaterial preparation helpers.
-
-Acceptance criteria:
-
-- A renderer-independent prepared material descriptor can identify source
-  material key, material family, pipeline key, bind-group/resource key, and
-  dependency readiness without WebGPU handles.
-- Built-in unlit, MatcapMaterial, StandardMaterial, and DebugNormalMaterial
-  preparation helpers can populate the descriptor shape.
-- The descriptor is JSON-safe and suitable for material queue resource-key
-  resolution.
-- Tests cover all built-in material families and invalid source material kinds.
-
-### task-0632 — Add StandardMaterial texture semantic/color-space diagnostics
-
-Category: `render-bridge`
-Package/write-scope: `packages/render/src/materials`,
-`packages/render/src/rendering`, and focused material/extraction tests.
-Reference anchor:
-`docs/research/STANDARD_MATERIAL_GLTF_PBR_TEXTURE_AUDIT_2026_05_17.md`,
-three.js `GLTFLoader` color-space assignment, Bevy StandardMaterial texture
-channel docs, and existing material dependency readiness reports.
-
-Acceptance criteria:
-
-- StandardMaterial readiness can diagnose base-color/emissive textures that are
-  not authored as color/sRGB data.
-- StandardMaterial readiness can diagnose metallic-roughness, normal, and
-  occlusion textures that are not authored as data/linear maps.
-- Diagnostics are JSON-safe and include material key, texture key, field, and
-  expected semantic/color-space hints.
-- Existing valid StandardMaterial texture tests continue to pass.
-
-### task-0634 — Diagnose unsupported StandardMaterial texture UV sets
-
-Category: `render-bridge`
-Package/write-scope: `packages/render/src/materials`,
-`packages/render/src/rendering`, and focused material/extraction tests.
-Reference anchor:
-`docs/research/STANDARD_MATERIAL_UV_TEXTURE_TRANSFORM_PLAN_2026_05_17.md`,
-Bevy glTF UV channel mapping, three.js `GLTFLoader` texture channel handling,
-and existing StandardMaterial dependency/readiness diagnostics.
-
-Acceptance criteria:
-
-- StandardMaterial readiness diagnoses any texture binding with `texCoord > 0`
-  until a shader variant can consume `TEXCOORD_1`.
-- Diagnostics are JSON-safe and include material key, field, texture key when
-  present, and the unsupported `texCoord`.
-- Existing `TEXCOORD_0`/undefined texture bindings remain valid.
-- Extraction/app diagnostics surface the unsupported UV-set reason before
-  WebGPU resource preparation.
-
-### task-0635 — Add StandardMaterial TEXCOORD_1 shader variants
+### task-0636 — Make built-in WebGPU pipelines render-state aware
 
 Category: `webgpu-render`
-Package/write-scope: `packages/webgpu/src/webgpu`,
-`packages/render/src/rendering`, focused StandardMaterial shader/pipeline/app
-tests, and browser coverage if practical.
+Package/write-scope: `packages/webgpu/src/webgpu/*-pipeline-descriptor.ts`,
+`packages/webgpu/src/webgpu/*-pipeline.ts`, and focused pipeline descriptor
+tests.
 Reference anchor:
-`docs/research/STANDARD_MATERIAL_UV_TEXTURE_TRANSFORM_PLAN_2026_05_17.md`,
-three.js texture channel selection, Bevy UV channel material keys, and existing
-StandardMaterial texture shader specialization.
+`docs/research/ALPHA_TRANSPARENT_QUEUE_CONSUMPTION_PLAN_2026_05_17.md`, Bevy
+mesh pipeline alpha/depth state selection, three.js material transparency
+routing, and PlayCanvas material blend/depth state.
 
 Acceptance criteria:
 
-- StandardMaterial shader variants can sample texture bindings from
-  `TEXCOORD_1` when mesh metadata provides that attribute.
-- Pipeline keys/layout metadata distinguish `TEXCOORD_0` and `TEXCOORD_1`
-  variants without encoding raw material handles.
-- Missing `TEXCOORD_1` mesh attributes block rendering with JSON-safe
-  diagnostics.
-- Tests cover at least one ready `TEXCOORD_1` texture path and one missing-UV
-  blocked path.
+- Built-in descriptor plans and browser pipeline descriptors derive depth write,
+  depth compare, cull mode, and blend target state from material pipeline
+  render-state tokens.
+- `mask` keys keep replacement rendering semantics: no blend and depth writes
+  enabled when a depth format is present.
+- `blend|alpha` keys produce WebGPU alpha blending and disable depth writes
+  while preserving depth tests.
+- Tests cover cache-key and browser-descriptor differences for opaque, mask,
+  and alpha-blend StandardMaterial keys.
 
-### task-0630 — Route single-family app frames through material queue
+### task-0637 — Consume StandardMaterial alpha-test queue items
 
 Category: `webgpu-render`
-Package/write-scope: `packages/webgpu/src/webgpu/app.ts` and focused app tests.
-Reference anchor: task-0621 queue-driven app routing, task-0628 reusable queue
-scratch, Bevy render phase queue/sort patterns.
+Package/write-scope: `packages/webgpu/src/webgpu/app.ts`,
+`packages/webgpu/src/webgpu/standard-*`, and focused app/render-frame tests.
+Reference anchor:
+`docs/research/ALPHA_TRANSPARENT_QUEUE_CONSUMPTION_PLAN_2026_05_17.md`, Bevy
+`AlphaMask3d` binned phase, and existing StandardMaterial alpha-cutoff shader
+support.
 
 Acceptance criteria:
 
-- Single-family unlit, MatcapMaterial, and StandardMaterial app frames can use
-  the queue route without regressing existing resource reuse and diagnostics
-  tests.
-- Same-resource multi-draw frames continue to render through stable prepared
-  mesh/material resource keys.
-- The optimized multi-unlit path is either preserved as an explicit fast path or
-  replaced only if tests prove equivalent cache/reuse behavior.
-- No pairwise mixed-material app branches are reintroduced.
+- The queue app route accepts `StandardMaterial` items in the `alpha-test`
+  phase and submits them after opaque queue items.
+- Unsupported alpha-test material families still emit JSON-safe diagnostics
+  without submitting a partial frame.
+- StandardMaterial alpha-test items reuse prepared mesh/material resource keys
+  and pipeline cache entries across frames.
+- Focused app tests cover mixed opaque plus alpha-test StandardMaterial frames.
 
-### task-0631 — Plan alpha-test and transparent app queue consumption
+### task-0638 — Consume StandardMaterial transparent alpha-blend queue items
+
+Category: `webgpu-render`
+Package/write-scope: `packages/webgpu/src/webgpu/app.ts`,
+`packages/webgpu/src/webgpu/standard-*`, and focused app/render-frame tests.
+Reference anchor:
+`docs/research/ALPHA_TRANSPARENT_QUEUE_CONSUMPTION_PLAN_2026_05_17.md`,
+three.js transparent render-list sorting, PlayCanvas back-to-front transparent
+sorting, and Bevy `Transparent3d` sorted phase.
+
+Acceptance criteria:
+
+- The queue app route accepts `StandardMaterial` items in the `transparent`
+  phase when `alphaMode` is `blend`, `depth.write` is false, and
+  `blend.preset` is `alpha`.
+- Transparent queue order remains back-to-front and comes after opaque and
+  alpha-test items.
+- Unsupported transparent material families or blend presets emit JSON-safe
+  diagnostics with render id, draw index, material family, phase, and entity.
+- Focused app tests cover two overlapping transparent StandardMaterial queue
+  items with stable sorted order.
+
+### task-0639 — Add browser pixel coverage for StandardMaterial queue phases
+
+Category: `webgpu-render`
+Package/write-scope: `examples`, `test/e2e`, and any narrow WebGPU app fixture
+helpers needed for deterministic pixels.
+Reference anchor:
+`docs/research/ALPHA_TRANSPARENT_QUEUE_CONSUMPTION_PLAN_2026_05_17.md`,
+existing materials-showcase Playwright coverage, and three.js/PlayCanvas
+opaque-before-transparent render order.
+
+Acceptance criteria:
+
+- A browser path renders overlapping opaque, alpha-test StandardMaterial, and
+  transparent StandardMaterial draws through the queue route.
+- Playwright verifies deterministic non-background pixels for the alpha-test
+  cutout and transparent blend regions.
+- Frame diagnostics stay JSON-safe and report the expected draw count and no
+  unsupported phase diagnostics.
+- The test does not rely on WebGL fallback or renderer-owned scene state.
+
+### task-0640 — Audit expanded queue phase consumption
 
 Category: `audit-refactor`
-Package/write-scope: `docs/research`, backlog updates, and small diagnostics
-test adjustments only if needed.
-Reference anchor: task-0623 transparent queue sort coverage, task-0629
-unsupported phase diagnostics, three.js/PlayCanvas transparent sorting
-patterns, Bevy render phase split.
+Package/write-scope: `docs/research`, `agent/BACKLOG.md`, and narrow tests or
+docs only if drift is found.
+Reference anchor:
+`docs/research/ALPHA_TRANSPARENT_QUEUE_CONSUMPTION_PLAN_2026_05_17.md`,
+`docs/NORTH_STAR.md`, `docs/ARCHITECTURE.md`, Bevy render phases, three.js
+render lists, and PlayCanvas layer sorting.
 
 Acceptance criteria:
 
-- The plan identifies the smallest app/render-frame changes needed to consume
-  alpha-test and transparent queue items rather than only diagnosing them.
-- The plan covers render-state validation, phase ordering, depth/write/blend
-  behavior, and JSON-safe diagnostics.
-- The plan confirms which material families should be supported first and which
-  tests should prove browser pixel behavior.
-- Backlog receives concrete implementation slices if the plan finds safe next
-  steps.
+- Audit confirms alpha-test and transparent consumption remains snapshot-derived
+  and queue-driven with no hidden mutable scene graph.
+- Audit confirms WebGPU resources remain backend-owned and package boundaries
+  still pass.
+- Any drift in render-state validation, phase ordering, or diagnostics is
+  corrected with small scoped edits or captured as follow-up backlog tasks.
+- Validation includes package boundary checks and the focused queue/app tests.
 
 ## Post-Unlit E2E Verification Targets
 

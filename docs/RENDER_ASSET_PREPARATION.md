@@ -58,10 +58,13 @@ The initial prepared stores are metadata-only:
 - `createPreparedMeshAssetStore()`
 - `createPreparedMaterialAssetStore()`
 
-The material metadata adapter is sufficient for the near-term StandardMaterial
-proof point because it records material kind, pipeline-key inputs, source
-version, dependency readiness, and texture/sampler dependency keys without raw
-GPU resources.
+The material metadata adapter now prepares a renderer-independent material
+resource descriptor. It records the source material key, material family, stable
+pipeline key, pipeline-key inputs, logical material/bind-group resource keys,
+dependency readiness, and texture/sampler dependency keys without raw GPU
+resources. The logical resource keys are suitable for material queue resource
+resolution; the WebGPU backend still owns the actual buffers, textures, samplers,
+bind groups, and pipeline handles.
 
 Future WebGPU preparation should add backend-owned resources as a later stage
 derived from these renderer-independent contracts.

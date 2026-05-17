@@ -30,7 +30,7 @@ import {
 } from "@aperture-engine/webgpu";
 
 describe("WebGPU app facade", () => {
-  it("initializes WebGPU and renders the existing unlit path from ECS-authored entities", async () => {
+  it("initializes WebGPU and renders the unlit queue path from ECS-authored entities", async () => {
     const events: string[] = [];
     const { canvas, environment } = webGpuHarness(events);
     const created = await createWebGpuApp({
@@ -83,6 +83,16 @@ describe("WebGPU app facade", () => {
       bindGroupsCreated: 3,
       dynamicBufferWrites: 0,
     });
+    expect(queuedFamilyResourceCount(frame.resources?.resources, "unlit")).toBe(
+      1,
+    );
+    expect(
+      queuedFamilyResourceCount(frame.resources?.resources, "matcap"),
+    ).toBe(0);
+    expect(
+      queuedFamilyResourceCount(frame.resources?.resources, "standard"),
+    ).toBe(0);
+    expect(queuedMeshResourceCount(frame.resources?.resources)).toBe(1);
     expect(events).toContain("context:configure:bgra8unorm");
     expect(events).toContain("queue:submit:1");
     expect(events.some((event) => event.startsWith("pass:draw"))).toBe(true);
@@ -123,7 +133,7 @@ describe("WebGPU app facade", () => {
     expect(resourceEventCounts(events)).toEqual(firstResourceEvents);
   });
 
-  it("renders same-resource multi-draw frames through the current app resource set", async () => {
+  it("renders same-resource multi-draw frames through the material queue resource set", async () => {
     const events: string[] = [];
     const { canvas, environment } = webGpuHarness(events);
     const created = await createWebGpuApp({
@@ -184,6 +194,18 @@ describe("WebGPU app facade", () => {
         },
       ],
     });
+    expect(queuedMeshResourceCount(frame.resources?.resources)).toBe(1);
+    expect(queuedFamilyResourceCount(frame.resources?.resources, "unlit")).toBe(
+      2,
+    );
+    expect(
+      queuedMaterialResources(frame.resources?.resources, "unlit").map(
+        (resource) => resource.material,
+      ),
+    ).toEqual([
+      queuedMaterialResources(frame.resources?.resources, "unlit")[0]?.material,
+      queuedMaterialResources(frame.resources?.resources, "unlit")[0]?.material,
+    ]);
     expect(
       events.filter((event) => event.startsWith("pass:draw")),
     ).toHaveLength(2);
@@ -713,7 +735,7 @@ describe("WebGPU app facade", () => {
     }
   });
 
-  it("renders and reuses the single-material matcap app path", async () => {
+  it("renders and reuses the single-material matcap queue path", async () => {
     const events: string[] = [];
     const { canvas, environment } = webGpuHarness(events);
     const created = await createWebGpuApp({
@@ -804,6 +826,16 @@ describe("WebGPU app facade", () => {
       bindGroupsCreated: 3,
       dynamicBufferWrites: 0,
     });
+    expect(queuedFamilyResourceCount(frame.resources?.resources, "unlit")).toBe(
+      0,
+    );
+    expect(
+      queuedFamilyResourceCount(frame.resources?.resources, "matcap"),
+    ).toBe(1);
+    expect(
+      queuedFamilyResourceCount(frame.resources?.resources, "standard"),
+    ).toBe(0);
+    expect(queuedMeshResourceCount(frame.resources?.resources)).toBe(1);
     expect(events).toContain("device:texture:StudioMatcap");
     expect(events).toContain("queue:writeTexture:16");
     expect(events).toContain("device:sampler:MatcapLinear");
@@ -1714,7 +1746,7 @@ describe("WebGPU app facade", () => {
 
     expect(frame.ok).toBe(false);
     expect(frame.counts).toMatchObject({
-      meshDraws: 2,
+      meshDraws: 1,
       drawCalls: 0,
     });
     expect(appDiagnostic).toMatchObject({
@@ -2330,7 +2362,7 @@ describe("WebGPU app facade", () => {
     expect(events).not.toContain("queue:submit:1");
   });
 
-  it("renders the standard material app path with extracted lights", async () => {
+  it("renders the standard material queue path with extracted lights", async () => {
     const events: string[] = [];
     const { canvas, environment } = webGpuHarness(events);
     const created = await createWebGpuApp({
@@ -2409,6 +2441,16 @@ describe("WebGPU app facade", () => {
       lightBuffersCreated: 1,
       dynamicBufferWrites: 0,
     });
+    expect(queuedFamilyResourceCount(frame.resources?.resources, "unlit")).toBe(
+      0,
+    );
+    expect(
+      queuedFamilyResourceCount(frame.resources?.resources, "matcap"),
+    ).toBe(0);
+    expect(
+      queuedFamilyResourceCount(frame.resources?.resources, "standard"),
+    ).toBe(1);
+    expect(queuedMeshResourceCount(frame.resources?.resources)).toBe(1);
     const value = webGpuAppRenderReportToJsonValue(frame);
     const json = webGpuAppRenderReportToJson(frame);
 
@@ -2443,6 +2485,11 @@ describe("WebGPU app facade", () => {
     const secondEvents = events.slice(firstEventCount);
     const firstResources = frame.resources?.resources;
     const secondResources = secondFrame.resources?.resources;
+    const firstStandardResources =
+      queuedMaterialResources(firstResources, "standard")[0] ?? firstResources;
+    const secondStandardResources =
+      queuedMaterialResources(secondResources, "standard")[0] ??
+      secondResources;
 
     expect(secondFrame.ok).toBe(true);
     expect(secondFrame.counts.drawCalls).toBe(1);
@@ -2468,21 +2515,17 @@ describe("WebGPU app facade", () => {
     expect(secondResources?.bindGroups).toBe(firstResources?.bindGroups);
 
     if (
-      firstResources !== undefined &&
-      firstResources !== null &&
-      secondResources !== undefined &&
-      secondResources !== null &&
-      "lightBindGroup" in firstResources &&
-      "lightBindGroup" in secondResources
+      hasStandardLightResources(firstStandardResources) &&
+      hasStandardLightResources(secondStandardResources)
     ) {
-      expect(secondResources.materialBindGroup).toBe(
-        firstResources.materialBindGroup,
+      expect(secondStandardResources.materialBindGroup).toBe(
+        firstStandardResources.materialBindGroup,
       );
-      expect(secondResources.lightBindGroup).toBe(
-        firstResources.lightBindGroup,
+      expect(secondStandardResources.lightBindGroup).toBe(
+        firstStandardResources.lightBindGroup,
       );
-      expect(secondResources.lightGpuBuffers.resource).toBe(
-        firstResources.lightGpuBuffers.resource,
+      expect(secondStandardResources.lightGpuBuffers.resource).toBe(
+        firstStandardResources.lightGpuBuffers.resource,
       );
     } else {
       expect.unreachable("Expected standard frame resources.");
@@ -3147,7 +3190,7 @@ describe("WebGPU app facade", () => {
 
     expect(frame.ok).toBe(false);
     expect(frame.counts).toMatchObject({
-      meshDraws: 1,
+      meshDraws: 0,
       drawCalls: 0,
     });
     expect(appDiagnostic).toMatchObject({
@@ -3240,7 +3283,7 @@ describe("WebGPU app facade", () => {
 
     expect(frame.ok).toBe(false);
     expect(frame.counts).toMatchObject({
-      meshDraws: 1,
+      meshDraws: 0,
       drawCalls: 0,
     });
     expect(appDiagnostic).toMatchObject({
@@ -3464,7 +3507,79 @@ function singleMaterialResource(resources: unknown): unknown {
     return undefined;
   }
 
-  return "material" in resources
-    ? (resources as { readonly material: unknown }).material
-    : undefined;
+  if ("material" in resources) {
+    return (resources as { readonly material: unknown }).material;
+  }
+
+  for (const family of ["unlit", "matcap", "standard"] as const) {
+    const resource = queuedMaterialResources(resources, family)[0];
+
+    if (resource !== undefined) {
+      return resource.material;
+    }
+  }
+
+  return undefined;
+}
+
+function queuedMeshResourceCount(resources: unknown): number {
+  if (typeof resources !== "object" || resources === null) {
+    return 0;
+  }
+
+  const meshResources = (resources as { readonly meshResources?: unknown })
+    .meshResources;
+
+  return Array.isArray(meshResources) ? meshResources.length : 0;
+}
+
+function queuedFamilyResourceCount(
+  resources: unknown,
+  family: "unlit" | "matcap" | "standard",
+): number {
+  return queuedMaterialResources(resources, family).length;
+}
+
+function queuedMaterialResources(
+  resources: unknown,
+  family: "unlit" | "matcap" | "standard",
+): readonly { readonly material?: unknown }[] {
+  if (typeof resources !== "object" || resources === null) {
+    return [];
+  }
+
+  const value = (resources as Record<string, unknown>)[family];
+
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.filter(
+    (resource): resource is { readonly material?: unknown } =>
+      typeof resource === "object" && resource !== null,
+  );
+}
+
+function hasStandardLightResources(resource: unknown): resource is {
+  readonly materialBindGroup: unknown;
+  readonly lightBindGroup: unknown;
+  readonly lightGpuBuffers: { readonly resource: unknown };
+} {
+  if (typeof resource !== "object" || resource === null) {
+    return false;
+  }
+
+  const candidate = resource as {
+    readonly materialBindGroup?: unknown;
+    readonly lightBindGroup?: unknown;
+    readonly lightGpuBuffers?: unknown;
+  };
+
+  return (
+    candidate.materialBindGroup !== undefined &&
+    candidate.lightBindGroup !== undefined &&
+    typeof candidate.lightGpuBuffers === "object" &&
+    candidate.lightGpuBuffers !== null &&
+    "resource" in candidate.lightGpuBuffers
+  );
 }

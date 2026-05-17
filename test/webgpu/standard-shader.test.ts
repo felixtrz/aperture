@@ -311,6 +311,39 @@ describe("built-in standard material WGSL shader metadata", () => {
     ]);
   });
 
+  it("generates TEXCOORD_1 texture variants for StandardMaterial", () => {
+    const shader = createStandardTextureVariantShader({
+      baseColorTexture: true,
+      metallicRoughnessTexture: false,
+      normalTexture: false,
+      occlusionTexture: false,
+      emissiveTexture: false,
+      texCoord1: true,
+    });
+
+    expect(validateStandardShaderMetadata(shader)).toEqual({
+      valid: true,
+      diagnostics: [],
+    });
+    expect(
+      createStandardTextureShaderVariantKey({
+        baseColorTexture: true,
+        metallicRoughnessTexture: false,
+        normalTexture: false,
+        occlusionTexture: false,
+        emissiveTexture: false,
+        texCoord1: true,
+      }),
+    ).toBe("direct-lit-metallic-roughness-base-color-uv1-texture");
+    expect(shader.label).toBe("aperture/standard-mesh-base-color-uv1-textured");
+    expect(shader.code).toContain("@location(4) uv1: vec2f");
+    expect(shader.code).toContain("@location(5) uv1: vec2f");
+    expect(shader.code).toContain("fn standardTextureUv");
+    expect(shader.code).toContain(
+      "standardTextureUv(material.baseColorTexCoord, input.uv, input.uv1)",
+    );
+  });
+
   it("diagnoses missing required standard shader metadata fields", () => {
     const invalid: BuiltInShaderSourceModule = {
       label: "",

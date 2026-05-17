@@ -2,95 +2,100 @@
 
 ## Latest Run Update
 
-Completed `task-0624`, `task-0627`, and `task-0633` after the queue-routing
-continuation work from this automation run:
+Completed `task-0625`, `task-0632`, `task-0634`, `task-0635`, `task-0631`,
+and `task-0630` in this automation run:
 
-- `task-0624` — StandardMaterial normal maps are now rendered through
-  tangent-space WGSL specialization instead of being a deferred proof-point
-  feature. The shader variant declares normal texture/sampler bindings, consumes
-  `@location(3)` tangents, builds a TBN matrix, applies `normalScale`, and uses
-  the sampled normal for direct lighting.
-- Pipeline descriptor/cache-key planning now specializes normal-map variants,
-  includes the `TANGENT` vertex semantic when `normalTexture` is active, and
-  includes normal texture/sampler bindings in the StandardMaterial group-2
-  layout key.
-- Browser StandardMaterial pipeline creation selects a 48-byte primitive vertex
-  layout for normal-map shaders, while non-normal variants keep the existing
-  32-byte primitive layout.
-- `createWebGpuApp` now prepares StandardMaterial normal texture/sampler GPU
-  resources. App coverage renders a tangent-bearing normal-mapped cube twice
-  and verifies pipeline, texture, sampler, bind-group, and reuse behavior.
-- `normalTexture` moved from deferred to supported StandardMaterial proof-point
-  metadata. Existing renderer-independent extraction diagnostics still block
-  normal-mapped StandardMaterial draws when mesh tangents are missing.
-- `task-0627` — audited StandardMaterial glTF PBR texture expectations in
-  `docs/research/STANDARD_MATERIAL_GLTF_PBR_TEXTURE_AUDIT_2026_05_17.md`.
-  The audit confirms base-color, metallic-roughness, normal, occlusion, and
-  emissive channels now have real renderer coverage, but GLB material mapping
-  should remain deferred until UV-set selection, texture transforms, sampler
-  import policy, and texture semantic/color-space diagnostics are explicit.
-- Added ready follow-ups `task-0632` and `task-0633`.
-- Stop hook requested continuation before minute 45, so a small docs-only
-  `task-0633` slice was completed:
-  `docs/research/STANDARD_MATERIAL_UV_TEXTURE_TRANSFORM_PLAN_2026_05_17.md`
-  now defines the safe path for `MaterialTextureBinding.texCoord`,
-  `TEXCOORD_1` shader variants, and future texture-transform metadata.
-- Added ready follow-ups `task-0634` and `task-0635`.
+- `task-0625` — Added renderer-independent prepared material resource
+  descriptors in `packages/render`. Built-in unlit, MatcapMaterial,
+  StandardMaterial, and DebugNormalMaterial helpers now produce JSON-safe
+  prepared descriptors with source material key, material family/kind,
+  pipeline key input, stable pipeline key, material/bind-group resource keys,
+  dependencies, texture bindings, and dependency readiness. Render-asset
+  preparation now passes the asset registry into adapters and material metadata
+  preparation returns the richer descriptor shape.
+- `task-0632` — Added StandardMaterial semantic/color-space readiness
+  diagnostics for base-color, emissive, metallic-roughness, normal, and
+  occlusion textures. Extraction now blocks invalid texture metadata before
+  WebGPU resource preparation and reports JSON-safe material key, texture key,
+  field, expected values, and actual values.
+- `task-0634` — Added StandardMaterial UV-set readiness diagnostics. After
+  `task-0635`, `TEXCOORD_0` and `TEXCOORD_1` are supported; `texCoord > 1`
+  remains blocked with JSON-safe diagnostics that include the supported UV set
+  list.
+- `task-0635` — Added StandardMaterial `TEXCOORD_1` shader variants. Pipeline
+  keys now include `uv1` when any StandardMaterial texture binding samples UV1;
+  extraction requires mesh `TEXCOORD_1` metadata for those variants; browser
+  StandardMaterial pipeline creation has UV1-only and tangent+UV1 primitive
+  layouts.
+- `task-0631` — Added
+  `docs/research/ALPHA_TRANSPARENT_QUEUE_CONSUMPTION_PLAN_2026_05_17.md`.
+  The plan keeps phase consumption queue-driven and identifies the safe order:
+  render-state-aware built-in WebGPU descriptors first, then StandardMaterial
+  alpha-test queue items, then StandardMaterial transparent alpha-blend items,
+  then browser pixel coverage and an audit.
+- `task-0630` — Supported single-family unlit, MatcapMaterial, and
+  StandardMaterial app frames now use the same material queue route as mixed
+  built-in frames. The optimized multi-unlit shared-mesh path remains
+  preserved, and same-resource multi-draw frames now prove the queue route still
+  reuses stable prepared mesh/material resources.
+- Browser example status code now understands queued family resources, so
+  Matcap and StandardMaterial examples continue reporting material/light
+  bind-group readiness after the app route change.
+- Backlog was refilled with `task-0636` through `task-0640` for render-state
+  descriptors, alpha-test consumption, transparent consumption, browser pixel
+  coverage, and the follow-up audit.
 
 Validation:
 
-- `pnpm exec vitest run test/webgpu/standard-shader.test.ts test/webgpu/standard-pipeline-descriptor.test.ts test/webgpu/standard-pipeline.test.ts test/webgpu/standard-material-buffer.test.ts test/webgpu/webgpu-app.test.ts test/materials/standard-proof-point.test.ts test/materials/standard-normal-map-readiness.test.ts test/materials/material-dependency-readiness.test.ts test/rendering/extraction.test.ts`
+- `pnpm exec vitest run test/materials/prepared-material-resource.test.ts test/assets/render-asset-preparation.test.ts`
 - `pnpm exec tsc --noEmit -p tsconfig.test.json`
-- `pnpm run build`
-- `pnpm run check:examples`
-- `pnpm run check:boundaries`
-- `pnpm run lint`
-- `pnpm run format:check`
-- `pnpm run check` passed: 169 test files / 818 tests.
-- After `task-0633`: `pnpm run format:check` and
-  `pnpm exec tsc --noEmit -p tsconfig.test.json` passed.
-- After `task-0633`: `pnpm run test:e2e` passed: 142 Playwright tests.
-- Final `pnpm run check` passed after all updates: 169 test files / 818 tests.
+- `pnpm exec vitest run test/materials/standard-texture-readiness.test.ts test/rendering/extraction.test.ts`
+- `pnpm exec vitest run test/materials/standard-texture-readiness.test.ts test/rendering/extraction.test.ts test/webgpu/standard-shader.test.ts test/webgpu/standard-pipeline-descriptor.test.ts test/webgpu/standard-pipeline.test.ts`
+- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts`
+- `pnpm exec vitest run test/materials/prepared-material-resource.test.ts test/assets/render-asset-preparation.test.ts test/materials/standard-texture-readiness.test.ts test/rendering/extraction.test.ts test/webgpu/standard-shader.test.ts test/webgpu/standard-pipeline-descriptor.test.ts test/webgpu/standard-pipeline.test.ts test/webgpu/webgpu-app.test.ts`
+- `pnpm exec playwright test test/e2e/app-diagnostics.spec.ts test/e2e/matcap-app.spec.ts test/e2e/spinning-cube.spec.ts`
+- `pnpm run test:e2e` passed: 142 tests.
+- Final `pnpm run check` passed: 171 test files / 831 tests.
 
 Reference files/patterns inspected:
 
-- Normal-map shader/TBN patterns:
-  `references/three.js/src/renderers/shaders/ShaderChunk/normal_pars_vertex.glsl.js`,
-  `references/three.js/src/renderers/shaders/ShaderChunk/normal_vertex.glsl.js`,
-  `references/three.js/src/renderers/shaders/ShaderChunk/normal_fragment_maps.glsl.js`,
-  `references/engine/src/scene/shader-lib/wgsl/chunks/lit/vert/litMain.js`,
-  `references/engine/src/scene/shader-lib/wgsl/chunks/standard/frag/normalMap.js`.
-- glTF PBR material mapping patterns:
+- Prepared/material extraction anchors:
+  `docs/RENDER_ASSET_PREPARATION.md`,
+  `packages/render/src/assets/preparation.ts`,
+  `packages/render/src/materials/pipeline-key.ts`, and Bevy render-asset
+  preparation/material specialization patterns.
+- StandardMaterial glTF texture and UV-set patterns:
   `references/three.js/examples/jsm/loaders/GLTFLoader.js`,
   `references/engine/src/framework/parsers/glb-parser.js`,
   `references/bevy/crates/bevy_gltf/src/loader/mod.rs`,
   `references/bevy/crates/bevy_pbr/src/pbr_material.rs`.
-- UV/texture-transform planning:
-  `references/three.js/examples/jsm/loaders/GLTFLoader.js`,
-  `references/engine/src/framework/parsers/glb-parser.js`,
-  `references/bevy/crates/bevy_gltf/src/loader/mod.rs`,
-  `references/bevy/crates/bevy_gltf/src/lib.rs`.
-- Aperture anchors:
-  `docs/MEDIUM_LONG_TERM_GOALS.md`,
-  `docs/research/MATERIAL_TEXTURE_RENDER_STATE_COVERAGE.md`,
-  `packages/render/src/materials/standard-normal-map-readiness.ts`,
+- StandardMaterial shader/pipeline anchors:
   `packages/webgpu/src/webgpu/standard-shader.ts`,
-  `packages/webgpu/src/webgpu/standard-pipeline-descriptor.ts`.
+  `packages/webgpu/src/webgpu/standard-pipeline-descriptor.ts`,
+  `packages/webgpu/src/webgpu/standard-pipeline.ts`.
+- Alpha/transparent queue phase patterns:
+  `references/bevy/crates/bevy_render/src/render_phase/mod.rs`,
+  `references/bevy/crates/bevy_pbr/src/render/mesh.rs`,
+  `references/three.js/src/renderers/common/RenderList.js`,
+  `references/three.js/src/renderers/WebGLRenderer.js`,
+  `references/engine/src/scene/layer.js`,
+  `references/engine/src/scene/mesh-instance.js`,
+  `references/engine/src/scene/materials/material.js`.
 
 Recommended next task:
 
-- `task-0625 — Add generic prepared material resource contracts`.
+- `task-0636 — Make built-in WebGPU pipelines render-state aware`.
 
 Known issues / follow-ups:
 
-- GLB material mapping remains deferred. The current blockers are tracked in
-  `task-0632` for texture semantic/color-space diagnostics, `task-0634` for
-  unsupported UV-set diagnostics, and `task-0635` for `TEXCOORD_1` shader
-  variants.
-- Single-family app frames still have legacy route paths; `task-0630` tracks
-  routing them through the material queue without cache regressions.
 - Alpha-test and transparent queue items are still diagnosed rather than
-  consumed; `task-0631` tracks the plan for phase consumption.
+  consumed. The new plan says to land render-state-aware built-in pipeline
+  descriptors (`task-0636`) before accepting non-opaque queue phases.
+- GLB material mapping remains deferred until sampler import policy and texture
+  transform support/diagnostics are explicit.
+- `UnlitMaterial`, `MatcapMaterial`, and `DebugNormalMaterial` non-opaque phase
+  consumption remains intentionally deferred until each family has defined
+  shader behavior and browser pixel coverage.
 
 Files touched in this update:
 
@@ -98,17 +103,26 @@ Files touched in this update:
 - `agent/COMPLETED.md`
 - `agent/HANDOFF.md`
 - `agent/STATUS.json`
-- `docs/research/QUEUE_DRIVEN_APP_ROUTING_AUDIT_2026_05_17.md`
-- `docs/research/STANDARD_MATERIAL_GLTF_PBR_TEXTURE_AUDIT_2026_05_17.md`
-- `docs/research/STANDARD_MATERIAL_UV_TEXTURE_TRANSFORM_PLAN_2026_05_17.md`
-- `packages/render/src/materials/standard-proof-point.ts`
+- `docs/RENDER_ASSET_PREPARATION.md`
+- `docs/research/ALPHA_TRANSPARENT_QUEUE_CONSUMPTION_PLAN_2026_05_17.md`
+- `examples/matcap-app.js`
+- `examples/spinning-cube.js`
+- `packages/render/src/assets/preparation.ts`
+- `packages/render/src/materials/index.ts`
+- `packages/render/src/materials/pipeline-key.ts`
+- `packages/render/src/materials/prepared-resource.ts`
+- `packages/render/src/materials/standard-texture-readiness.ts`
+- `packages/render/src/rendering/extraction.ts`
+- `packages/render/src/rendering/snapshot.ts`
 - `packages/webgpu/src/webgpu/app.ts`
 - `packages/webgpu/src/webgpu/standard-pipeline-descriptor.ts`
 - `packages/webgpu/src/webgpu/standard-pipeline.ts`
 - `packages/webgpu/src/webgpu/standard-shader.ts`
-- `packages/webgpu/src/webgpu/unlit-shader.ts`
-- `test/materials/standard-proof-point.test.ts`
-- `test/webgpu/standard-material-buffer.test.ts`
+- `test/assets/render-asset-preparation.test.ts`
+- `test/e2e/app-diagnostics.spec.ts`
+- `test/materials/prepared-material-resource.test.ts`
+- `test/materials/standard-texture-readiness.test.ts`
+- `test/rendering/extraction.test.ts`
 - `test/webgpu/standard-pipeline-descriptor.test.ts`
 - `test/webgpu/standard-pipeline.test.ts`
 - `test/webgpu/standard-shader.test.ts`

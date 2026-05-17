@@ -2332,7 +2332,8 @@ async function renderWebGpuAppFrame(
     firstDraw,
   });
   const queuedBuiltIn =
-    multiUnlit === null && resourceSetPlan.sets.length > 1
+    multiUnlit === null &&
+    (firstMaterialKindSupported || resourceSetPlan.sets.length > 1)
       ? collectQueuedOpaqueBuiltInAppResourceSet({
           app,
           snapshot,
@@ -2772,6 +2773,7 @@ function isMaterialDependencyRenderDiagnostic(
     typeof code === "string" &&
     (code === "render.material.missingTextureHandle" ||
       code === "render.material.missingSamplerHandle" ||
+      code.startsWith("render.standardMaterialTexture.") ||
       code.startsWith("render.texture.") ||
       code.startsWith("render.sampler."))
   );

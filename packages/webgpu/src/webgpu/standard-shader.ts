@@ -27,6 +27,7 @@ export interface StandardTextureShaderFeatures {
   readonly normalTexture: boolean;
   readonly occlusionTexture: boolean;
   readonly emissiveTexture: boolean;
+  readonly texCoord1?: boolean;
 }
 
 export const STANDARD_MATERIAL_MVP_LIGHTING_MODEL = {
@@ -455,7 +456,8 @@ export function createStandardTextureShaderVariantKey(
     !features.baseColorTexture &&
     !features.normalTexture &&
     !features.occlusionTexture &&
-    !features.emissiveTexture
+    !features.emissiveTexture &&
+    features.texCoord1 !== true
   ) {
     return STANDARD_METALLIC_ROUGHNESS_TEXTURE_SHADER_VARIANT;
   }
@@ -482,12 +484,24 @@ export function createStandardTextureShaderVariantKey(
     names.push("emissive");
   }
 
+  if (features.texCoord1 === true) {
+    names.push("uv1");
+  }
+
   return `${STANDARD_DIRECT_LIGHT_SHADER_VARIANT}-${names.join("-")}-texture`;
 }
 
 function createStandardTextureVariantWgsl(
   features: StandardTextureShaderFeatures,
 ): string {
+  const baseColorUv = standardTextureUvExpression(features, "baseColor");
+  const metallicRoughnessUv = standardTextureUvExpression(
+    features,
+    "metallicRoughness",
+  );
+  const normalUv = standardTextureUvExpression(features, "normal");
+  const occlusionUv = standardTextureUvExpression(features, "occlusion");
+  const emissiveUv = standardTextureUvExpression(features, "emissive");
   let code = STANDARD_MESH_WGSL.replace(
     `// Direct lights use a small metallic/roughness GGX BRDF. Texture sampling,
 // image-based lighting, and shadows are deferred.`,
@@ -543,7 +557,7 @@ function createStandardTextureVariantWgsl(
         `fn evaluateDirectLight(
   normal: vec3f,`,
         `fn sampleTangentSpaceNormal(input: VertexOutput) -> vec3f {
-  var tangentNormal = textureSample(normalTexture, normalSampler, input.uv).xyz * 2.0 - vec3f(1.0);
+  var tangentNormal = textureSample(normalTexture, normalSampler, ${normalUv}).xyz * 2.0 - vec3f(1.0);
   tangentNormal = normalize(vec3f(
     tangentNormal.xy * material.normalScale,
     tangentNormal.z,
@@ -565,11 +579,112 @@ fn evaluateDirectLight(
       );
   }
 
+  if (features.texCoord1 === true) {
+    if (features.normalTexture) {
+      code = code
+        .replace(
+          `struct VertexInput {
+  @location(0) position: vec3f,
+  @location(1) normal: vec3f,
+  @location(2) uv: vec2f,
+  @location(3) tangent: vec4f,
+  @builtin(instance_index) instanceIndex: u32,
+};`,
+          `struct VertexInput {
+  @location(0) position: vec3f,
+  @location(1) normal: vec3f,
+  @location(2) uv: vec2f,
+  @location(3) tangent: vec4f,
+  @location(4) uv1: vec2f,
+  @builtin(instance_index) instanceIndex: u32,
+};`,
+        )
+        .replace(
+          `struct VertexOutput {
+  @builtin(position) position: vec4f,
+  @location(0) worldPosition: vec3f,
+  @location(1) worldNormal: vec3f,
+  @location(2) uv: vec2f,
+  @location(3) worldTangent: vec3f,
+  @location(4) tangentSign: f32,
+};`,
+          `struct VertexOutput {
+  @builtin(position) position: vec4f,
+  @location(0) worldPosition: vec3f,
+  @location(1) worldNormal: vec3f,
+  @location(2) uv: vec2f,
+  @location(3) worldTangent: vec3f,
+  @location(4) tangentSign: f32,
+  @location(5) uv1: vec2f,
+};`,
+        )
+        .replace(
+          `  output.tangentSign = input.tangent.w;
+  output.uv = input.uv;`,
+          `  output.tangentSign = input.tangent.w;
+  output.uv = input.uv;
+  output.uv1 = input.uv1;`,
+        );
+    } else {
+      code = code
+        .replace(
+          `struct VertexInput {
+  @location(0) position: vec3f,
+  @location(1) normal: vec3f,
+  @location(2) uv: vec2f,
+  @builtin(instance_index) instanceIndex: u32,
+};`,
+          `struct VertexInput {
+  @location(0) position: vec3f,
+  @location(1) normal: vec3f,
+  @location(2) uv: vec2f,
+  @location(4) uv1: vec2f,
+  @builtin(instance_index) instanceIndex: u32,
+};`,
+        )
+        .replace(
+          `struct VertexOutput {
+  @builtin(position) position: vec4f,
+  @location(0) worldPosition: vec3f,
+  @location(1) worldNormal: vec3f,
+  @location(2) uv: vec2f,
+};`,
+          `struct VertexOutput {
+  @builtin(position) position: vec4f,
+  @location(0) worldPosition: vec3f,
+  @location(1) worldNormal: vec3f,
+  @location(2) uv: vec2f,
+  @location(5) uv1: vec2f,
+};`,
+        )
+        .replace(
+          `  output.worldNormal = normalize((world * vec4f(input.normal, 0.0)).xyz);
+  output.uv = input.uv;`,
+          `  output.worldNormal = normalize((world * vec4f(input.normal, 0.0)).xyz);
+  output.uv = input.uv;
+  output.uv1 = input.uv1;`,
+        );
+    }
+
+    code = code.replace(
+      `fn saturate(value: f32) -> f32 {`,
+      `fn standardTextureUv(texCoord: u32, uv0: vec2f, uv1: vec2f) -> vec2f {
+  if (texCoord == 1u) {
+    return uv1;
+  }
+
+  return uv0;
+}
+
+fn saturate(value: f32) -> f32 {`,
+    );
+  }
+
   if (features.baseColorTexture) {
     code = code.replace(
       `  let baseColor = material.baseColorFactor.rgb;
   let alpha = material.baseColorFactor.a;`,
-      `  let baseColorSample = textureSample(baseColorTexture, baseColorSampler, input.uv);
+      `  let baseColorSample = textureSample(baseColorTexture, baseColorSampler, ${baseColorUv});
   let baseColor = baseColorSample.rgb * material.baseColorFactor.rgb;
   let alpha = baseColorSample.a * material.baseColorFactor.a;`,
     );
@@ -582,7 +697,7 @@ fn evaluateDirectLight(
       `  let metallicRoughnessSample = textureSample(
     metallicRoughnessTexture,
     metallicRoughnessSampler,
-    input.uv,
+    ${metallicRoughnessUv},
   );
   let metallic = clamp(material.metallicFactor * metallicRoughnessSample.b, 0.0, 1.0);
   let roughness = clamp(material.roughnessFactor * metallicRoughnessSample.g, 0.045, 1.0);`,
@@ -591,11 +706,11 @@ fn evaluateDirectLight(
 
   if (features.occlusionTexture || features.emissiveTexture) {
     const occlusion = features.occlusionTexture
-      ? `  let occlusionSample = textureSample(occlusionTexture, occlusionSampler, input.uv);
+      ? `  let occlusionSample = textureSample(occlusionTexture, occlusionSampler, ${occlusionUv});
   let occlusion = mix(1.0, occlusionSample.r, clamp(material.occlusionStrength, 0.0, 1.0));`
       : `  let occlusion = 1.0;`;
     const emissive = features.emissiveTexture
-      ? `  let emissiveSample = textureSample(emissiveTexture, emissiveSampler, input.uv);
+      ? `  let emissiveSample = textureSample(emissiveTexture, emissiveSampler, ${emissiveUv});
   let emissive = material.emissiveFactor * emissiveSample.rgb;`
       : `  let emissive = material.emissiveFactor;`;
 
@@ -620,6 +735,22 @@ function standardTextureVariantComment(
   return `// Direct lights use a small metallic/roughness GGX BRDF. ${active.join(
     ", ",
   )} texture sampling is active; image-based lighting and shadows are deferred.`;
+}
+
+function standardTextureUvExpression(
+  features: StandardTextureShaderFeatures,
+  field:
+    | "baseColor"
+    | "metallicRoughness"
+    | "normal"
+    | "occlusion"
+    | "emissive",
+): string {
+  if (features.texCoord1 !== true) {
+    return "input.uv";
+  }
+
+  return `standardTextureUv(material.${field}TexCoord, input.uv, input.uv1)`;
 }
 
 function standardTextureVariantDeclaration(
@@ -782,7 +913,8 @@ function standardTextureVariantShaderLabel(
     !features.metallicRoughnessTexture &&
     !features.normalTexture &&
     !features.occlusionTexture &&
-    !features.emissiveTexture
+    !features.emissiveTexture &&
+    features.texCoord1 !== true
   ) {
     return "aperture/standard-mesh-base-color-textured";
   }
@@ -792,7 +924,8 @@ function standardTextureVariantShaderLabel(
     !features.baseColorTexture &&
     !features.normalTexture &&
     !features.occlusionTexture &&
-    !features.emissiveTexture
+    !features.emissiveTexture &&
+    features.texCoord1 !== true
   ) {
     return "aperture/standard-mesh-metallic-roughness-textured";
   }
@@ -802,7 +935,8 @@ function standardTextureVariantShaderLabel(
     features.metallicRoughnessTexture &&
     !features.normalTexture &&
     !features.occlusionTexture &&
-    !features.emissiveTexture
+    !features.emissiveTexture &&
+    features.texCoord1 !== true
   ) {
     return "aperture/standard-mesh-base-color-metallic-roughness-textured";
   }
@@ -837,6 +971,10 @@ function standardTextureFeatureNames(
     names.push("emissive");
   }
 
+  if (features.texCoord1 === true) {
+    names.push("uv1");
+  }
+
   return names;
 }
 
@@ -848,6 +986,7 @@ function hasAnyStandardTextureFeature(
     features.metallicRoughnessTexture ||
     features.normalTexture ||
     features.occlusionTexture ||
-    features.emissiveTexture
+    features.emissiveTexture ||
+    features.texCoord1 === true
   );
 }

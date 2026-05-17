@@ -206,13 +206,19 @@ describe("render asset preparation contract", () => {
     });
     expect(prepared.entry?.prepared).toMatchObject({
       resourceFamily: "material",
+      sourceMaterialKey: "material:standard-material-1",
       label: "Proof Standard",
+      materialFamily: "standard",
       materialKind: "standard",
       dependencies: ["texture:albedo", "sampler:linear"],
-      pipelineKey: {
+      pipelineKey: "standard|baseColorTexture|opaque|back|less|none",
+      pipelineKeyInput: {
         shaderFamily: "standard",
         features: ["baseColorTexture"],
       },
+      materialResourceKey: "prepared-material:material:standard-material-1",
+      bindGroupResourceKey:
+        "prepared-material-bind-group:material:standard-material-1|pipeline:standard|baseColorTexture|opaque|back|less|none",
     });
   });
 });

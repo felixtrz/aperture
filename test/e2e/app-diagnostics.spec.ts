@@ -134,7 +134,7 @@ test("app diagnostics example exposes app-facade failure reports", async ({
     failedMaterialKind: "standard",
     report: {
       ok: false,
-      counts: { meshDraws: 2, drawCalls: 0 },
+      counts: { meshDraws: 1, drawCalls: 0 },
     },
   });
   expect(standardDependencies?.diagnosticCodes).toContain(

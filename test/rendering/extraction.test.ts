@@ -746,6 +746,209 @@ describe("render extraction", () => {
     expect(() => JSON.stringify(snapshot.diagnostics)).not.toThrow();
   });
 
+  it("diagnoses StandardMaterial texture metadata before extraction queues a draw", () => {
+    const world = createRuntimeWorld();
+    const texture = createTextureHandle("wrong-standard-base");
+    const sampler = createSamplerHandle("standard-base-linear");
+    const assets = createReadyAssets({
+      materialAsset: createStandardMaterialAsset({
+        baseColorTexture: { texture, sampler },
+      }),
+    });
+
+    assets.register(texture);
+    assets.markReady(
+      texture,
+      createTextureAsset({
+        label: "WrongStandardBase",
+        dimension: "2d",
+        width: 1,
+        height: 1,
+        format: "rgba8unorm",
+        colorSpace: "linear",
+        semantic: "normal",
+        usage: ["sampled"],
+      }),
+    );
+    assets.register(sampler);
+    assets.markReady(sampler, createSamplerAsset());
+
+    createCameraEntity(world, { priority: 0, layerMask: 1 });
+    createMeshEntity(world, {
+      meshId: "mesh:cube",
+      materialId: "material:unlit",
+      layerMask: 1,
+    });
+
+    const snapshot = extractRenderSnapshot(world, assets);
+
+    expect(snapshot.meshDraws).toEqual([]);
+    expect(snapshot.diagnostics).toMatchObject([
+      {
+        code: "render.standardMaterialTexture.invalidSemantic",
+        assetKey: "material:unlit",
+        materialKey: "material:unlit",
+        textureKey: "texture:wrong-standard-base",
+        field: "baseColorTexture",
+      },
+      {
+        code: "render.standardMaterialTexture.invalidColorSpace",
+        assetKey: "material:unlit",
+        materialKey: "material:unlit",
+        textureKey: "texture:wrong-standard-base",
+        field: "baseColorTexture",
+      },
+    ]);
+    expect(() => JSON.stringify(snapshot.diagnostics)).not.toThrow();
+  });
+
+  it("diagnoses unsupported StandardMaterial texture UV sets before extraction queues a draw", () => {
+    const world = createRuntimeWorld();
+    const texture = createTextureHandle("standard-base-uv2");
+    const sampler = createSamplerHandle("standard-base-linear");
+    const assets = createReadyAssets({
+      materialAsset: createStandardMaterialAsset({
+        baseColorTexture: { texture, sampler, texCoord: 2 },
+      }),
+    });
+
+    assets.register(texture);
+    assets.markReady(
+      texture,
+      createTextureAsset({
+        label: "StandardBaseUv2",
+        dimension: "2d",
+        width: 1,
+        height: 1,
+        format: "rgba8unorm-srgb",
+        colorSpace: "srgb",
+        semantic: "base-color",
+        usage: ["sampled"],
+      }),
+    );
+    assets.register(sampler);
+    assets.markReady(sampler, createSamplerAsset());
+
+    createCameraEntity(world, { priority: 0, layerMask: 1 });
+    createMeshEntity(world, {
+      meshId: "mesh:cube",
+      materialId: "material:unlit",
+      layerMask: 1,
+    });
+
+    const snapshot = extractRenderSnapshot(world, assets);
+
+    expect(snapshot.meshDraws).toEqual([]);
+    expect(snapshot.diagnostics).toMatchObject([
+      {
+        code: "render.standardMaterialTexture.unsupportedTexCoord",
+        assetKey: "material:unlit",
+        materialKey: "material:unlit",
+        textureKey: "texture:standard-base-uv2",
+        field: "baseColorTexture",
+        texCoord: 2,
+        supportedTexCoords: [0, 1],
+      },
+    ]);
+    expect(() => JSON.stringify(snapshot.diagnostics)).not.toThrow();
+  });
+
+  it("diagnoses missing TEXCOORD_1 mesh attributes for StandardMaterial UV1 textures", () => {
+    const world = createRuntimeWorld();
+    const texture = createTextureHandle("standard-base-uv1");
+    const sampler = createSamplerHandle("standard-base-linear");
+    const assets = createReadyAssets({
+      materialAsset: createStandardMaterialAsset({
+        baseColorTexture: { texture, sampler, texCoord: 1 },
+      }),
+    });
+
+    assets.register(texture);
+    assets.markReady(
+      texture,
+      createTextureAsset({
+        label: "StandardBaseUv1",
+        dimension: "2d",
+        width: 1,
+        height: 1,
+        format: "rgba8unorm-srgb",
+        colorSpace: "srgb",
+        semantic: "base-color",
+        usage: ["sampled"],
+      }),
+    );
+    assets.register(sampler);
+    assets.markReady(sampler, createSamplerAsset());
+
+    createCameraEntity(world, { priority: 0, layerMask: 1 });
+    createMeshEntity(world, {
+      meshId: "mesh:cube",
+      materialId: "material:unlit",
+      layerMask: 1,
+    });
+
+    const snapshot = extractRenderSnapshot(world, assets);
+
+    expect(snapshot.meshDraws).toEqual([]);
+    expect(snapshot.diagnostics).toMatchObject([
+      {
+        code: "render.standardMaterialTexture.missingTexCoord1",
+        assetKey: "material:unlit",
+        materialKey: "material:unlit",
+        meshKey: "mesh:cube",
+        textureKey: "texture:standard-base-uv1",
+        field: "baseColorTexture",
+        texCoord: 1,
+      },
+    ]);
+    expect(() => JSON.stringify(snapshot.diagnostics)).not.toThrow();
+  });
+
+  it("extracts StandardMaterial TEXCOORD_1 textures when mesh metadata provides UV1", () => {
+    const world = createRuntimeWorld();
+    const texture = createTextureHandle("standard-base-uv1");
+    const sampler = createSamplerHandle("standard-base-linear");
+    const assets = createReadyAssets({
+      meshAsset: withTexCoord1Attribute(createBoxMeshAsset()),
+      materialAsset: createStandardMaterialAsset({
+        baseColorTexture: { texture, sampler, texCoord: 1 },
+      }),
+    });
+
+    assets.register(texture);
+    assets.markReady(
+      texture,
+      createTextureAsset({
+        label: "StandardBaseUv1",
+        dimension: "2d",
+        width: 1,
+        height: 1,
+        format: "rgba8unorm-srgb",
+        colorSpace: "srgb",
+        semantic: "base-color",
+        usage: ["sampled"],
+      }),
+    );
+    assets.register(sampler);
+    assets.markReady(sampler, createSamplerAsset());
+
+    createCameraEntity(world, { priority: 0, layerMask: 1 });
+    createMeshEntity(world, {
+      meshId: "mesh:cube",
+      materialId: "material:unlit",
+      layerMask: 1,
+    });
+
+    const snapshot = extractRenderSnapshot(world, assets);
+
+    expect(snapshot.diagnostics).toEqual([]);
+    expect(snapshot.meshDraws).toHaveLength(1);
+    expect(snapshot.meshDraws[0]?.batchKey).toMatchObject({
+      pipelineKey: "standard|baseColorTexture|uv1|opaque|back|less|none",
+      meshLayoutKey: "POSITION,NORMAL,TEXCOORD_0,TEXCOORD_1",
+    });
+  });
+
   it("preserves mesh validation codes in render diagnostics", () => {
     const world = createRuntimeWorld();
     const invalidMesh = createBoxMeshAsset();
@@ -1221,6 +1424,49 @@ function createReadyAssets(
     options.materialAsset ?? createUnlitMaterialAsset(),
   );
   return registry;
+}
+
+function withTexCoord1Attribute(mesh: MeshAsset): MeshAsset {
+  const stream = required(mesh.vertexStreams[0]);
+  const source = stream.data;
+  const sourceStrideFloats = stream.arrayStride / 4;
+  const targetStrideFloats = sourceStrideFloats + 2;
+  const data = new Float32Array(stream.vertexCount * targetStrideFloats);
+  const uvOffset = 6;
+
+  for (let vertex = 0; vertex < stream.vertexCount; vertex += 1) {
+    const sourceOffset = vertex * sourceStrideFloats;
+    const targetOffset = vertex * targetStrideFloats;
+
+    data.set(
+      source.subarray(sourceOffset, sourceOffset + sourceStrideFloats),
+      targetOffset,
+    );
+    data.set(
+      source.subarray(sourceOffset + uvOffset, sourceOffset + uvOffset + 2),
+      targetOffset + sourceStrideFloats,
+    );
+  }
+
+  return {
+    ...mesh,
+    vertexStreams: [
+      {
+        ...stream,
+        id: `${stream.id}-uv1`,
+        arrayStride: targetStrideFloats * 4,
+        attributes: [
+          ...stream.attributes,
+          {
+            semantic: "TEXCOORD_1",
+            format: "float32x2",
+            offset: stream.arrayStride,
+          },
+        ],
+        data,
+      },
+    ],
+  };
 }
 
 function createTwoRenderableTextureDependencyFixture(

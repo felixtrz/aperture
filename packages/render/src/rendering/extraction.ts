@@ -23,8 +23,11 @@ import {
 import {
   createMaterialPipelineKeyInput,
   createStandardMaterialNormalMapTangentReadinessReport,
+  createStandardMaterialTextureReadinessReport,
   type SamplerAsset,
   type MaterialAsset,
+  type MaterialTextureBinding,
+  type StandardMaterialAsset,
   type TextureAsset,
 } from "../materials/index.js";
 import { type MeshAsset, validateMeshAsset } from "../mesh/index.js";
@@ -532,11 +535,38 @@ function extractMeshDraws(
         continue;
       }
 
+      const materialKey = assetHandleKey(materialHandle);
+      const meshKey = assetHandleKey(meshHandle);
+
+      if (
+        materialEntry.asset.kind === "standard" &&
+        !validateStandardMaterialTextureReadiness({
+          registry: assets,
+          material: materialHandle,
+          entity,
+          diagnostics,
+        })
+      ) {
+        continue;
+      }
+
+      if (
+        materialEntry.asset.kind === "standard" &&
+        !validateStandardMaterialUvSetReadiness({
+          mesh: meshEntry.asset,
+          material: materialEntry.asset,
+          meshKey,
+          materialKey,
+          entity,
+          diagnostics,
+        })
+      ) {
+        continue;
+      }
+
       const queue = materialQueue(materialEntry.asset);
       const stableId =
         createStableRenderId(entityRef(entity)) + submesh.materialSlot;
-      const materialKey = assetHandleKey(materialHandle);
-      const meshKey = assetHandleKey(meshHandle);
       const normalMapReadiness = validateStandardNormalMapReadiness({
         mesh: meshEntry.asset,
         material: materialEntry.asset,
@@ -621,6 +651,134 @@ function validateStandardNormalMapReadiness(input: {
   }
 
   return false;
+}
+
+function validateStandardMaterialTextureReadiness(input: {
+  readonly registry: AssetRegistry;
+  readonly material: MaterialHandle;
+  readonly entity: Entity;
+  readonly diagnostics: RenderDiagnostic[];
+}): boolean {
+  const report = createStandardMaterialTextureReadinessReport({
+    registry: input.registry,
+    material: input.material,
+  });
+
+  if (report.ready) {
+    return true;
+  }
+
+  for (const readinessDiagnostic of report.diagnostics) {
+    input.diagnostics.push({
+      code: `render.${readinessDiagnostic.code}`,
+      severity: readinessDiagnostic.severity,
+      entity: entityRef(input.entity),
+      assetKey: readinessDiagnostic.materialKey,
+      materialKey: readinessDiagnostic.materialKey,
+      ...(readinessDiagnostic.textureKey === undefined
+        ? {}
+        : { textureKey: readinessDiagnostic.textureKey }),
+      ...(readinessDiagnostic.field === undefined
+        ? {}
+        : { field: readinessDiagnostic.field }),
+      ...(readinessDiagnostic.texCoord === undefined
+        ? {}
+        : { texCoord: readinessDiagnostic.texCoord }),
+      ...(readinessDiagnostic.supportedTexCoords === undefined
+        ? {}
+        : {
+            supportedTexCoords: [...readinessDiagnostic.supportedTexCoords],
+          }),
+      message: readinessDiagnostic.message,
+    });
+  }
+
+  return false;
+}
+
+function validateStandardMaterialUvSetReadiness(input: {
+  readonly mesh: MeshAsset;
+  readonly material: StandardMaterialAsset;
+  readonly meshKey: string;
+  readonly materialKey: string;
+  readonly entity: Entity;
+  readonly diagnostics: RenderDiagnostic[];
+}): boolean {
+  if (!usesStandardTexCoord1(input.material)) {
+    return true;
+  }
+
+  if (meshHasSemantic(input.mesh, "TEXCOORD_1")) {
+    return true;
+  }
+
+  for (const [field, binding] of standardMaterialTextureBindings(
+    input.material,
+  )) {
+    if (binding === null || binding.texture === null) {
+      continue;
+    }
+
+    const texCoord = binding.texCoord ?? 0;
+
+    if (texCoord !== 1) {
+      continue;
+    }
+
+    const textureKey = assetHandleKey(binding.texture);
+
+    input.diagnostics.push({
+      code: "render.standardMaterialTexture.missingTexCoord1",
+      severity: "warning",
+      entity: entityRef(input.entity),
+      assetKey: input.materialKey,
+      materialKey: input.materialKey,
+      meshKey: input.meshKey,
+      textureKey,
+      field,
+      texCoord,
+      message: `StandardMaterial ${field} uses TEXCOORD_1 texture '${textureKey}', but mesh '${input.meshKey}' does not provide a TEXCOORD_1 vertex attribute.`,
+    });
+  }
+
+  return false;
+}
+
+function usesStandardTexCoord1(material: StandardMaterialAsset): boolean {
+  return standardMaterialTextureBindings(material).some(([, binding]) => {
+    return (
+      binding !== null &&
+      binding.texture !== null &&
+      (binding.texCoord ?? 0) === 1
+    );
+  });
+}
+
+function standardMaterialTextureBindings(
+  material: StandardMaterialAsset,
+): readonly (readonly [
+  (
+    | "baseColorTexture"
+    | "metallicRoughnessTexture"
+    | "normalTexture"
+    | "occlusionTexture"
+    | "emissiveTexture"
+  ),
+  MaterialTextureBinding | null,
+])[] {
+  return [
+    ["baseColorTexture", material.baseColorTexture],
+    ["metallicRoughnessTexture", material.metallicRoughnessTexture],
+    ["normalTexture", material.normalTexture],
+    ["occlusionTexture", material.occlusionTexture],
+    ["emissiveTexture", material.emissiveTexture],
+  ];
+}
+
+function meshHasSemantic(mesh: MeshAsset, semantic: "TEXCOORD_1"): boolean {
+  return mesh.vertexStreams.some((stream) =>
+    stream.attributes.some((attribute) => attribute.semantic === semantic),
+  );
 }
 
 function validateMaterialTextureDependencies(

@@ -8,12 +8,17 @@ import type {
 export function createMaterialPipelineKeyInput(
   material: MaterialAsset,
 ): MaterialPipelineKeyInput {
+  const features = materialTextureBindings(material)
+    .filter(([, binding]) => binding.texture !== null)
+    .map(([field]) => field);
+
+  if (usesStandardTexCoord1(material)) {
+    features.push("uv1");
+  }
+
   return {
     shaderFamily: material.kind,
-    features: materialTextureBindings(material)
-      .filter(([, binding]) => binding.texture !== null)
-      .map(([field]) => field)
-      .sort(),
+    features: features.sort(),
     alphaMode: material.renderState.alphaMode,
     cullMode: material.renderState.cullMode,
     frontFace: material.renderState.frontFace,
@@ -21,6 +26,28 @@ export function createMaterialPipelineKeyInput(
     blend: material.renderState.blend,
     colorWriteMask: material.renderState.colorWriteMask,
   };
+}
+
+function usesStandardTexCoord1(material: MaterialAsset): boolean {
+  return (
+    material.kind === "standard" &&
+    materialTextureBindings(material).some(
+      ([, binding]) => binding.texture !== null && binding.texCoord === 1,
+    )
+  );
+}
+
+export function materialPipelineKeyInputToKey(
+  input: MaterialPipelineKeyInput,
+): string {
+  return [
+    input.shaderFamily,
+    ...input.features,
+    input.alphaMode,
+    input.cullMode,
+    input.depth.compare,
+    input.blend.preset,
+  ].join("|");
 }
 
 export function samplerPipelineKey(sampler: SamplerAsset): string {

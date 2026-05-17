@@ -32,6 +32,29 @@ export const STANDARD_TANGENT_PRIMITIVE_VERTEX_BUFFER_LAYOUT = {
   ],
 } as const;
 
+export const STANDARD_TEXCOORD1_PRIMITIVE_VERTEX_BUFFER_LAYOUT = {
+  arrayStride: 40,
+  stepMode: "vertex",
+  attributes: [
+    { shaderLocation: 0, offset: 0, format: "float32x3" },
+    { shaderLocation: 1, offset: 12, format: "float32x3" },
+    { shaderLocation: 2, offset: 24, format: "float32x2" },
+    { shaderLocation: 4, offset: 32, format: "float32x2" },
+  ],
+} as const;
+
+export const STANDARD_TANGENT_TEXCOORD1_PRIMITIVE_VERTEX_BUFFER_LAYOUT = {
+  arrayStride: 56,
+  stepMode: "vertex",
+  attributes: [
+    { shaderLocation: 0, offset: 0, format: "float32x3" },
+    { shaderLocation: 1, offset: 12, format: "float32x3" },
+    { shaderLocation: 2, offset: 24, format: "float32x2" },
+    { shaderLocation: 3, offset: 32, format: "float32x4" },
+    { shaderLocation: 4, offset: 48, format: "float32x2" },
+  ],
+} as const;
+
 export type StandardRenderPipelineDiagnosticCode =
   | "standardRenderPipeline.shaderDiagnostic"
   | "standardRenderPipeline.shaderCreationFailed"
@@ -217,10 +240,27 @@ function standardPrimitiveVertexBufferLayout(
   shader: BuiltInShaderSourceModule,
 ):
   | typeof UNLIT_PRIMITIVE_VERTEX_BUFFER_LAYOUT
-  | typeof STANDARD_TANGENT_PRIMITIVE_VERTEX_BUFFER_LAYOUT {
-  return shader.bindings.some((binding) => binding.id === "normalTexture")
-    ? STANDARD_TANGENT_PRIMITIVE_VERTEX_BUFFER_LAYOUT
-    : UNLIT_PRIMITIVE_VERTEX_BUFFER_LAYOUT;
+  | typeof STANDARD_TANGENT_PRIMITIVE_VERTEX_BUFFER_LAYOUT
+  | typeof STANDARD_TEXCOORD1_PRIMITIVE_VERTEX_BUFFER_LAYOUT
+  | typeof STANDARD_TANGENT_TEXCOORD1_PRIMITIVE_VERTEX_BUFFER_LAYOUT {
+  const needsTangents = shader.bindings.some(
+    (binding) => binding.id === "normalTexture",
+  );
+  const needsTexCoord1 = shader.code.includes("@location(4) uv1: vec2f");
+
+  if (needsTangents && needsTexCoord1) {
+    return STANDARD_TANGENT_TEXCOORD1_PRIMITIVE_VERTEX_BUFFER_LAYOUT;
+  }
+
+  if (needsTangents) {
+    return STANDARD_TANGENT_PRIMITIVE_VERTEX_BUFFER_LAYOUT;
+  }
+
+  if (needsTexCoord1) {
+    return STANDARD_TEXCOORD1_PRIMITIVE_VERTEX_BUFFER_LAYOUT;
+  }
+
+  return UNLIT_PRIMITIVE_VERTEX_BUFFER_LAYOUT;
 }
 
 function mapShaderDiagnostic(

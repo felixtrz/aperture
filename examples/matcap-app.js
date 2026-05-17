@@ -261,6 +261,7 @@ function createFrameStatus(
   const snapshot = report.snapshot;
   const firstDraw = snapshot.meshDraws[0];
   const resources = report.resources?.resources ?? null;
+  const matcapResources = firstFamilyResource(resources, "matcap");
   const boundary = report.boundary;
   const reason = firstFailureReason(report, firstDraw, resources);
 
@@ -291,9 +292,10 @@ function createFrameStatus(
       cacheKey: report.pipeline?.resource?.cacheKey ?? null,
     },
     resources: {
-      materials: 1,
+      materials: familyResourceCount(resources, "matcap", 1),
       bindGroups: resources?.bindGroups.length ?? 0,
-      materialBindGroup: resources?.materialBindGroup === undefined ? 0 : 1,
+      materialBindGroup:
+        matcapResources?.materialBindGroup === undefined ? 0 : 1,
       reuse: report.resourceReuse,
     },
     renderWorld: {
@@ -330,6 +332,22 @@ function createFrameStatus(
     },
     report: reportJson,
   };
+}
+
+function firstFamilyResource(resources, family) {
+  const list = resources?.[family];
+
+  if (Array.isArray(list) && list.length > 0) {
+    return list[0];
+  }
+
+  return resources;
+}
+
+function familyResourceCount(resources, family, fallback) {
+  const list = resources?.[family];
+
+  return Array.isArray(list) ? list.length : fallback;
 }
 
 function pausedStatus(status) {

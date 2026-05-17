@@ -200,6 +200,7 @@ function createFrameStatus(
   const snapshot = report.snapshot;
   const firstDraw = snapshot.meshDraws[0];
   const resources = report.resources?.resources ?? null;
+  const standardResources = firstFamilyResource(resources, "standard");
   const boundary = report.boundary;
   const diagnostics = [
     ...step.transform.diagnostics,
@@ -233,16 +234,16 @@ function createFrameStatus(
       authored: scene.authoredLights,
       extracted: snapshot.lights.length,
       kinds: snapshot.lights.map((light) => light.kind),
-      gpuLights: resources?.lightGpuBuffers?.lightBuffer.count ?? 0,
+      gpuLights: standardResources?.lightGpuBuffers?.lightBuffer.count ?? 0,
     },
     pipeline: {
       key: firstDraw?.batchKey.pipelineKey ?? null,
       cacheKey: report.pipeline?.resource?.cacheKey ?? null,
     },
     resources: {
-      materials: 1,
+      materials: familyResourceCount(resources, "standard", 1),
       bindGroups: resources?.bindGroups.length ?? 0,
-      lightBindGroup: resources?.lightBindGroup === undefined ? 0 : 1,
+      lightBindGroup: standardResources?.lightBindGroup === undefined ? 0 : 1,
       reuse: report.resourceReuse,
     },
     renderWorld: {
@@ -281,6 +282,22 @@ function createFrameStatus(
     },
     diagnostics,
   };
+}
+
+function firstFamilyResource(resources, family) {
+  const list = resources?.[family];
+
+  if (Array.isArray(list) && list.length > 0) {
+    return list[0];
+  }
+
+  return resources;
+}
+
+function familyResourceCount(resources, family, fallback) {
+  const list = resources?.[family];
+
+  return Array.isArray(list) ? list.length : fallback;
 }
 
 function firstFailureReason(report, firstDraw, resources) {

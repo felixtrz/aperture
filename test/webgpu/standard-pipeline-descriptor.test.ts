@@ -324,6 +324,50 @@ describe("standard material pipeline descriptor planning", () => {
     });
   });
 
+  it("specializes TEXCOORD_1 variants with UV1 vertex attributes", () => {
+    const featurePlan = createStandardPipelineShaderFeaturePlan({
+      ...STANDARD_BATCH_KEY,
+      pipelineKey: "standard|baseColorTexture|uv1|opaque|back|less|none",
+    });
+    const descriptor = createStandardPipelineDescriptorPlan({
+      colorFormat: "bgra8unorm",
+      batchKey: {
+        ...STANDARD_BATCH_KEY,
+        pipelineKey: "standard|baseColorTexture|uv1|opaque|back|less|none",
+        meshLayoutKey: "POSITION,NORMAL,TEXCOORD_0,TEXCOORD_1",
+      },
+    });
+
+    expect(featurePlan).toMatchObject({
+      variantKey: "direct-lit-metallic-roughness-base-color-uv1-texture",
+      shader: { label: "aperture/standard-mesh-base-color-uv1-textured" },
+      features: {
+        baseColorTexture: true,
+        texCoord1: true,
+      },
+    });
+    expect(descriptor.diagnostics).toEqual([]);
+    expect(descriptor.plan?.descriptor).toMatchObject({
+      vertex: {
+        moduleLabel: "aperture/standard-mesh-base-color-uv1-textured",
+        buffers: ["POSITION", "NORMAL", "TEXCOORD_0", "TEXCOORD_1"],
+      },
+    });
+    expect(
+      JSON.parse(required(descriptor.plan).cacheKey) as unknown,
+    ).toMatchObject({
+      shader: {
+        variantKey: "direct-lit-metallic-roughness-base-color-uv1-texture",
+      },
+      layouts: {
+        vertex: "POSITION,NORMAL,TEXCOORD_0,TEXCOORD_1",
+      },
+      material: {
+        pipelineKey: "standard|baseColorTexture|uv1|opaque|back|less|none",
+      },
+    });
+  });
+
   it("diagnoses invalid metadata, missing color format, and non-standard batch keys", () => {
     const invalidShader: BuiltInShaderSourceModule = {
       label: "",

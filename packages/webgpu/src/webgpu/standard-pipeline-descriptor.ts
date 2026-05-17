@@ -66,13 +66,7 @@ interface StandardPipelineTokens {
 export interface StandardPipelineShaderFeaturePlan {
   readonly shader: BuiltInShaderSourceModule;
   readonly variantKey: string;
-  readonly features: {
-    readonly baseColorTexture: boolean;
-    readonly metallicRoughnessTexture: boolean;
-    readonly normalTexture: boolean;
-    readonly occlusionTexture: boolean;
-    readonly emissiveTexture: boolean;
-  };
+  readonly features: StandardTextureShaderFeatures;
   readonly normalMap: {
     readonly authored: boolean;
     readonly requiresTangents: boolean;
@@ -176,9 +170,7 @@ export function createStandardPipelineDescriptorPlan(
     vertex: {
       moduleLabel: shader.label,
       entryPoint: shader.entryPoints.vertex,
-      buffers: shaderFeaturePlan.features.normalTexture
-        ? ["POSITION", "NORMAL", "TEXCOORD_0", "TANGENT"]
-        : ["POSITION", "NORMAL", "TEXCOORD_0"],
+      buffers: standardVertexBufferSemantics(shaderFeaturePlan.features),
     },
     fragment: {
       moduleLabel: shader.label,
@@ -275,7 +267,24 @@ function standardTextureFeatures(
     normalTexture: tokens.includes("normalTexture"),
     occlusionTexture: tokens.includes("occlusionTexture"),
     emissiveTexture: tokens.includes("emissiveTexture"),
+    texCoord1: tokens.includes("uv1"),
   };
+}
+
+function standardVertexBufferSemantics(
+  features: StandardTextureShaderFeatures,
+): readonly string[] {
+  const semantics = ["POSITION", "NORMAL", "TEXCOORD_0"];
+
+  if (features.normalTexture) {
+    semantics.push("TANGENT");
+  }
+
+  if (features.texCoord1 === true) {
+    semantics.push("TEXCOORD_1");
+  }
+
+  return semantics;
 }
 
 function standardShaderVariantKey(

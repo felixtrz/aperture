@@ -7,11 +7,9 @@ import {
   type AssetRegistryEntry,
 } from "@aperture-engine/simulation";
 import {
-  createMaterialPipelineKeyInput,
+  createPreparedMaterialResourceDescriptor,
   type MaterialAsset,
-  type MaterialKind,
-  type MaterialPipelineKeyInput,
-  validateMaterialAsset,
+  type PreparedMaterialResourceDescriptor,
 } from "../materials/index.js";
 import { type MeshAsset, validateMeshAsset } from "../mesh/index.js";
 
@@ -37,6 +35,7 @@ export interface RenderAssetPrepareInput<
   TSource,
   TPrepared,
 > {
+  readonly registry: AssetRegistry;
   readonly handle: AssetHandle<TKind>;
   readonly assetKey: string;
   readonly source: TSource;
@@ -263,6 +262,7 @@ export function prepareRenderAsset<TKind extends AssetKind, TSource, TPrepared>(
   }
 
   const result = options.adapter.prepare({
+    registry: options.registry,
     handle: options.handle,
     assetKey,
     source: entry.asset,
@@ -355,11 +355,19 @@ export interface PreparedMeshAssetMetadata {
 }
 
 export interface PreparedMaterialAssetMetadata {
-  readonly resourceFamily: "material";
-  readonly label: string;
-  readonly materialKind: MaterialKind;
-  readonly pipelineKey: MaterialPipelineKeyInput;
-  readonly dependencies: readonly string[];
+  readonly resourceFamily: PreparedMaterialResourceDescriptor["resourceFamily"];
+  readonly sourceMaterialKey: PreparedMaterialResourceDescriptor["sourceMaterialKey"];
+  readonly materialKey: PreparedMaterialResourceDescriptor["materialKey"];
+  readonly label: PreparedMaterialResourceDescriptor["label"];
+  readonly materialFamily: PreparedMaterialResourceDescriptor["materialFamily"];
+  readonly materialKind: PreparedMaterialResourceDescriptor["materialKind"];
+  readonly pipelineKey: PreparedMaterialResourceDescriptor["pipelineKey"];
+  readonly pipelineKeyInput: PreparedMaterialResourceDescriptor["pipelineKeyInput"];
+  readonly materialResourceKey: PreparedMaterialResourceDescriptor["materialResourceKey"];
+  readonly bindGroupResourceKey: PreparedMaterialResourceDescriptor["bindGroupResourceKey"];
+  readonly dependencies: PreparedMaterialResourceDescriptor["dependencies"];
+  readonly textureBindings: PreparedMaterialResourceDescriptor["textureBindings"];
+  readonly dependencyReadiness: PreparedMaterialResourceDescriptor["dependencyReadiness"];
 }
 
 export type PreparedMeshAssetStore = PreparedRenderAssetStore<
@@ -435,29 +443,30 @@ export function createMaterialMetadataRenderAssetAdapter(): RenderAssetAdapter<
         };
       }
 
-      const validation = validateMaterialAsset(input.source);
+      const descriptorResult = createPreparedMaterialResourceDescriptor({
+        registry: input.registry,
+        material: input.handle,
+      });
 
-      if (!validation.valid) {
+      if (!descriptorResult.valid || descriptorResult.descriptor === null) {
         return {
           status: "failed",
-          diagnostics: validation.diagnostics.map((diagnostic) => ({
+          diagnostics: descriptorResult.diagnostics.map((diagnostic) => ({
             code: `renderAsset.${diagnostic.code}`,
             message: diagnostic.message,
             severity: "error",
             assetKey: input.assetKey,
+            ...("dependencyKey" in diagnostic &&
+            diagnostic.dependencyKey !== undefined
+              ? { dependencyKey: diagnostic.dependencyKey }
+              : {}),
           })),
         };
       }
 
       return {
         status: "prepared",
-        prepared: {
-          resourceFamily: "material",
-          label: input.source.label,
-          materialKind: input.source.kind,
-          pipelineKey: createMaterialPipelineKeyInput(input.source),
-          dependencies: input.dependencyState.dependencies.map(assetHandleKey),
-        },
+        prepared: descriptorResult.descriptor,
       };
     },
   };

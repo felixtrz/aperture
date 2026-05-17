@@ -9,7 +9,10 @@ import type {
   BoundingSphere,
   Vec4Like,
 } from "@aperture-engine/simulation";
-import type { MaterialPipelineKeyInput } from "../materials/index.js";
+import {
+  materialPipelineKeyInputToKey,
+  type MaterialPipelineKeyInput,
+} from "../materials/index.js";
 import type { MeshTopology } from "../mesh/index.js";
 import type { LightKind } from "./authoring.js";
 
@@ -116,6 +119,12 @@ export interface RenderDiagnostic {
   readonly severity: RenderDiagnosticSeverity;
   readonly entity?: RenderEntityRef;
   readonly assetKey?: string;
+  readonly materialKey?: string;
+  readonly meshKey?: string;
+  readonly textureKey?: string;
+  readonly field?: string;
+  readonly texCoord?: number;
+  readonly supportedTexCoords?: readonly number[];
 }
 
 export interface RenderSnapshotReport {
@@ -184,14 +193,7 @@ export function createBatchCompatibilityKey(input: {
   readonly morphed?: boolean;
 }): BatchCompatibilityKey {
   return {
-    pipelineKey: [
-      input.materialPipeline.shaderFamily,
-      ...input.materialPipeline.features,
-      input.materialPipeline.alphaMode,
-      input.materialPipeline.cullMode,
-      input.materialPipeline.depth.compare,
-      input.materialPipeline.blend.preset,
-    ].join("|"),
+    pipelineKey: materialPipelineKeyInputToKey(input.materialPipeline),
     materialKey: input.materialKey,
     meshLayoutKey: input.meshLayoutKey,
     topology: input.topology,

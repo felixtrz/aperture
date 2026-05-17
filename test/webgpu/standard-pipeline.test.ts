@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   STANDARD_MESH_WGSL,
   STANDARD_TANGENT_PRIMITIVE_VERTEX_BUFFER_LAYOUT,
+  STANDARD_TEXCOORD1_PRIMITIVE_VERTEX_BUFFER_LAYOUT,
   UNLIT_PRIMITIVE_VERTEX_BUFFER_LAYOUT,
   createBrowserStandardRenderPipelineDescriptor,
   createStandardRenderPipelineResource,
@@ -80,6 +81,31 @@ describe("browser standard material pipeline bridge", () => {
       module: shaderModule,
       entryPoint: "vs_main",
       buffers: [STANDARD_TANGENT_PRIMITIVE_VERTEX_BUFFER_LAYOUT],
+    });
+  });
+
+  it("uses a TEXCOORD_1 primitive vertex layout for UV1 standard shaders", () => {
+    const shaderModule = {
+      compilationInfo: async () => ({ messages: [] }),
+    };
+    const shader = createStandardTextureVariantShader({
+      baseColorTexture: true,
+      metallicRoughnessTexture: false,
+      normalTexture: false,
+      occlusionTexture: false,
+      emissiveTexture: false,
+      texCoord1: true,
+    });
+    const descriptor = createBrowserStandardRenderPipelineDescriptor({
+      shader,
+      shaderModule,
+      colorFormat: "bgra8unorm",
+    });
+
+    expect(descriptor.vertex).toMatchObject({
+      module: shaderModule,
+      entryPoint: "vs_main",
+      buffers: [STANDARD_TEXCOORD1_PRIMITIVE_VERTEX_BUFFER_LAYOUT],
     });
   });
 

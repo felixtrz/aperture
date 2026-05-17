@@ -15,6 +15,136 @@ Summary:
 - Validation run.
 - Follow-up tasks added.
 
+## task-0630 — Route single-family app frames through material queue
+
+Completed: 2026-05-17
+
+Summary:
+
+- Routed supported single-family unlit, MatcapMaterial, and StandardMaterial
+  app frames through the same material queue path used by mixed built-in
+  frames, while preserving the optimized multi-unlit shared-mesh path.
+- Same-resource multi-draw frames now exercise the queue route and continue to
+  reuse stable prepared mesh/material resources.
+- Updated app and browser example status tests for the queued resource shape so
+  Matcap and StandardMaterial status still reports material/light bind-group
+  readiness correctly.
+- Important files: `packages/webgpu/src/webgpu/app.ts`,
+  `test/webgpu/webgpu-app.test.ts`, `examples/matcap-app.js`,
+  `examples/spinning-cube.js`, `test/e2e/app-diagnostics.spec.ts`.
+- Validation run: focused WebGPU app tests, focused material/extraction/WebGPU
+  tests, `pnpm run check`, targeted failing Playwright specs, and full
+  `pnpm run test:e2e` passed.
+- Follow-up tasks added: none directly; continue with `task-0636`.
+
+## task-0631 — Plan alpha-test and transparent app queue consumption
+
+Completed: 2026-05-17
+
+Summary:
+
+- Added a focused phase-consumption plan for moving alpha-test and transparent
+  material queue items from app diagnostics to real WebGPU submission.
+- The plan confirms the smallest safe route: render-state-aware built-in
+  pipeline descriptors first, then StandardMaterial alpha-test, then
+  StandardMaterial transparent alpha blend, followed by browser pixel coverage
+  and an audit.
+- Important files:
+  `docs/research/ALPHA_TRANSPARENT_QUEUE_CONSUMPTION_PLAN_2026_05_17.md`,
+  `agent/BACKLOG.md`.
+- Validation run: `pnpm run format:check` and `pnpm exec tsc --noEmit -p
+tsconfig.test.json` passed before final stop-hook validation.
+- Follow-up tasks added: `task-0636`, `task-0637`, `task-0638`, `task-0639`,
+  and `task-0640`.
+
+## task-0635 — Add StandardMaterial TEXCOORD_1 shader variants
+
+Completed: 2026-05-17
+
+Summary:
+
+- Added StandardMaterial pipeline-key specialization for `uv1` texture
+  variants and shader support for sampling authored texture bindings from
+  `TEXCOORD_1`.
+- Added extraction readiness checks so `texCoord: 1` requires mesh
+  `TEXCOORD_1` metadata and reports JSON-safe missing-attribute diagnostics.
+- Updated StandardMaterial browser pipeline descriptors/layout selection for
+  UV1-only and tangent+UV1 primitive layouts.
+- Important files: `packages/render/src/materials/pipeline-key.ts`,
+  `packages/render/src/rendering/extraction.ts`,
+  `packages/webgpu/src/webgpu/standard-shader.ts`,
+  `packages/webgpu/src/webgpu/standard-pipeline-descriptor.ts`,
+  `packages/webgpu/src/webgpu/standard-pipeline.ts`.
+- Validation run: focused StandardMaterial material/extraction/WebGPU tests and
+  `pnpm exec tsc --noEmit -p tsconfig.test.json` passed.
+- Follow-up tasks added: none directly; continued into `task-0631`.
+
+## task-0634 — Diagnose unsupported StandardMaterial texture UV sets
+
+Completed: 2026-05-17
+
+Summary:
+
+- Added StandardMaterial readiness diagnostics for unsupported texture UV sets,
+  initially blocking unsupported bindings and then narrowing the unsupported
+  case to `texCoord > 1` after `TEXCOORD_1` shader support landed.
+- Diagnostics include material key, field, texture key when present, requested
+  `texCoord`, and supported UV sets.
+- Extraction surfaces unsupported UV-set diagnostics before WebGPU resource
+  preparation.
+- Important files:
+  `packages/render/src/materials/standard-texture-readiness.ts`,
+  `packages/render/src/rendering/extraction.ts`,
+  `test/materials/standard-texture-readiness.test.ts`,
+  `test/rendering/extraction.test.ts`.
+- Validation run: focused StandardMaterial readiness/extraction tests and
+  `pnpm exec tsc --noEmit -p tsconfig.test.json` passed.
+- Follow-up tasks added: none directly; continued into `task-0635`.
+
+## task-0632 — Add StandardMaterial texture semantic/color-space diagnostics
+
+Completed: 2026-05-17
+
+Summary:
+
+- Added StandardMaterial texture readiness diagnostics for semantic and
+  color-space mismatches across base-color, emissive, metallic-roughness,
+  normal, and occlusion texture bindings.
+- Extraction now blocks invalid StandardMaterial texture metadata before
+  WebGPU preparation and emits JSON-safe diagnostics with material key, texture
+  key, field, expected values, and actual values.
+- Important files:
+  `packages/render/src/materials/standard-texture-readiness.ts`,
+  `packages/render/src/rendering/extraction.ts`,
+  `packages/render/src/rendering/snapshot.ts`,
+  `test/materials/standard-texture-readiness.test.ts`.
+- Validation run: focused StandardMaterial readiness/extraction tests and
+  `pnpm exec tsc --noEmit -p tsconfig.test.json` passed.
+- Follow-up tasks added: none directly; continued into `task-0634`.
+
+## task-0625 — Add generic prepared material resource contracts
+
+Completed: 2026-05-17
+
+Summary:
+
+- Added renderer-independent prepared material resource descriptors for built-in
+  material families, including pipeline key input, material/bind-group resource
+  keys, texture dependencies, and dependency readiness.
+- Updated render-asset preparation to pass the asset registry into adapters and
+  prepare material descriptors instead of minimal metadata.
+- Reused the shared material pipeline-key serializer for batch compatibility
+  keys and prepared descriptors.
+- Important files:
+  `packages/render/src/materials/prepared-resource.ts`,
+  `packages/render/src/assets/preparation.ts`,
+  `packages/render/src/materials/pipeline-key.ts`,
+  `docs/RENDER_ASSET_PREPARATION.md`,
+  `test/materials/prepared-material-resource.test.ts`.
+- Validation run: focused prepared-resource/render-asset tests and
+  `pnpm exec tsc --noEmit -p tsconfig.test.json` passed.
+- Follow-up tasks added: none directly; continued into `task-0632`.
+
 ## task-0633 — Plan StandardMaterial UV-set and texture-transform handling
 
 Completed: 2026-05-17
