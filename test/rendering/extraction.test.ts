@@ -924,6 +924,7 @@ describe("render extraction", () => {
           transform: {
             offset: [0.1, 0.2],
             scale: [0.75, 0.5],
+            rotation: 0.25,
           },
         },
       }),
@@ -967,6 +968,7 @@ describe("render extraction", () => {
         textureTransform: {
           offset: [0.1, 0.2],
           scale: [0.75, 0.5],
+          rotation: 0.25,
         },
       },
     ]);

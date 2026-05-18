@@ -15,7 +15,7 @@ import { WEBGPU_BUFFER_USAGE_FLAGS } from "./mesh-buffer-descriptors.js";
 import { materialUniformBufferResourceKey } from "./resource-keys.js";
 import { createStandardMaterialBindGroupDescriptorPlan } from "./standard-bind-group.js";
 
-export const STANDARD_MATERIAL_UNIFORM_FLOATS = 20;
+export const STANDARD_MATERIAL_UNIFORM_FLOATS = 24;
 export const STANDARD_MATERIAL_UNIFORM_BYTE_LENGTH =
   STANDARD_MATERIAL_UNIFORM_FLOATS * Float32Array.BYTES_PER_ELEMENT;
 
@@ -38,6 +38,10 @@ export const STANDARD_MATERIAL_UNIFORM_LAYOUT = [
   "normalTexCoord.u32",
   "occlusionTexCoord.u32",
   "emissiveTexCoord.u32",
+  "baseColorTextureOffset.u",
+  "baseColorTextureOffset.v",
+  "baseColorTextureScale.u",
+  "baseColorTextureScale.v",
   "padding0",
   "padding1",
 ] as const;
@@ -209,6 +213,7 @@ export function packStandardMaterial(
   uniformUint32[15] = dependencies.normal.texCoord;
   uniformUint32[16] = dependencies.occlusion.texCoord;
   uniformUint32[17] = dependencies.emissive.texCoord;
+  uniformFloat32.set(readTextureTransform(material.baseColorTexture), 18);
 
   return {
     valid: true,
@@ -222,6 +227,23 @@ export function packStandardMaterial(
     },
     diagnostics,
   };
+}
+
+function readTextureTransform(
+  binding: MaterialTextureBinding | null,
+): readonly [number, number, number, number] {
+  const transform = binding?.transform;
+
+  if (transform === undefined) {
+    return [0, 0, 1, 1];
+  }
+
+  return [
+    transform.offset?.[0] ?? 0,
+    transform.offset?.[1] ?? 0,
+    transform.scale?.[0] ?? 1,
+    transform.scale?.[1] ?? 1,
+  ];
 }
 
 export function createStandardMaterialBufferDescriptor(

@@ -14,7 +14,7 @@ import type { SceneReadbackStatus } from "./example-status-types.js";
 interface StandardGltfTextureStatus extends ExampleStatusBase {
   readonly fixtureId?: string;
   readonly expectedFailure?: boolean;
-  readonly expectedMappingDiagnostic?: string;
+  readonly expectedMappingDiagnostic?: string | null;
   readonly expectedDiagnostic?: string;
   readonly expectedTextureStatus?: string;
   readonly materialModel?: string;
@@ -61,6 +61,7 @@ interface StandardGltfTextureStatus extends ExampleStatusBase {
     readonly textureSlot: string;
     readonly samplerMapping?: StandardGltfTextureSamplerMappingStatus;
     readonly expectedTextureColor?: RgbaTuple | null;
+    readonly expectedUntransformedTextureColor?: RgbaTuple | null;
     readonly expectedMetallicRoughness?: {
       readonly metallic: number;
       readonly roughness: number;
@@ -108,9 +109,20 @@ interface StandardGltfTextureStatus extends ExampleStatusBase {
       readonly scale?: readonly [number, number];
       readonly rotation?: number;
     } | null;
+    readonly expectedTexCoord?: number;
+    readonly expectedUv1?: {
+      readonly u: number;
+      readonly v: number;
+    } | null;
     readonly readiness?: {
       readonly ready: boolean;
       readonly materialKey: string;
+      readonly slots?: readonly {
+        readonly field: string;
+        readonly textureKey: string;
+        readonly texCoord: number;
+        readonly ready: boolean;
+      }[];
       readonly diagnostics: readonly {
         readonly code: string;
         readonly field?: string;
@@ -203,6 +215,47 @@ interface StandardGltfTextureStatus extends ExampleStatusBase {
       readonly status?: string;
     }[];
   }[];
+  readonly diagnosticsSummary?: {
+    readonly sectionCount: number;
+    readonly materialQueue?: {
+      readonly itemCount: number;
+      readonly byPhase: readonly {
+        readonly phase: string;
+        readonly itemCount: number;
+      }[];
+      readonly byFamily: readonly {
+        readonly family: string;
+        readonly itemCount: number;
+      }[];
+      readonly byPhaseAndFamily: readonly {
+        readonly phase: string;
+        readonly family: string;
+        readonly itemCount: number;
+      }[];
+    };
+    readonly routedResourceSet?: {
+      readonly itemCount: number;
+      readonly byFamily: readonly {
+        readonly family: string;
+        readonly itemCount: number;
+      }[];
+      readonly byPipeline: readonly {
+        readonly pipelineKey: string;
+        readonly itemCount: number;
+      }[];
+      readonly byFamilyAndPipeline: readonly {
+        readonly family: string;
+        readonly pipelineKey: string;
+        readonly itemCount: number;
+      }[];
+    };
+    readonly materialQueueRoute?: {
+      readonly valid: boolean;
+      readonly queueItemCount: number;
+      readonly routedItemCount: number;
+      readonly skippedItemCount: number;
+    };
+  };
   readonly readback?: SceneReadbackStatus;
 }
 
@@ -578,6 +631,291 @@ test("standard glTF texture fixture renders a mapped metallic-roughness texture"
   }
 
   expect(status.diagnosticCodes ?? []).toEqual([]);
+  webGpuValidation.expectNoWarnings();
+});
+
+test("standard glTF texture fixture samples base-color offset and scale transforms", async ({
+  page,
+}) => {
+  const webGpuValidation = attachWebGpuValidationConsoleGuard(page);
+
+  await page.goto(
+    "/examples/standard-gltf-texture.html?scenario=base-color-transform-sampling",
+  );
+
+  const status = await waitForExampleStatus<StandardGltfTextureStatus>(page);
+
+  await attachExampleStatus(
+    "standard-gltf-texture-base-color-transform-sampling-status",
+    status,
+  );
+
+  if (status === undefined) {
+    throw new Error("standard glTF texture transform sampling status missing");
+  }
+
+  skipIfUnsupportedWebGpu(status);
+  expectStatusJsonSafeForGpu(status);
+  expectRenderedGltfTextureStatus(status, {
+    scenario: "base-color-transform-sampling",
+    materialModel: "gltf-standard-base-color-transform-sampling",
+    textureSlot: "baseColorTexture",
+    textureKey: "texture:gltf:texture:0:baseColorTexture",
+    samplerKey: "sampler:gltf:sampler:0:baseColorTexture",
+    pipelineKey: "standard|baseColorTexture|opaque|back|less|none",
+  });
+  expect(status.standardTexture?.expectedTextureTransform).toEqual({
+    offset: [0.5, 0],
+    scale: [0.5, 1],
+  });
+  expect(status.standardTexture?.readiness).toMatchObject({
+    ready: true,
+    diagnostics: [],
+  });
+  const standardTexture = status.standardTexture;
+
+  if (standardTexture === undefined) {
+    throw new Error("standard glTF texture transform status is missing");
+  }
+
+  const expectedTransformedColor = standardTexture.expectedTextureColor;
+  const expectedUntransformedColor =
+    standardTexture.expectedUntransformedTextureColor;
+
+  if (
+    expectedTransformedColor === undefined ||
+    expectedTransformedColor === null ||
+    expectedUntransformedColor === undefined ||
+    expectedUntransformedColor === null
+  ) {
+    throw new Error("standard glTF texture transform expectation is missing");
+  }
+
+  const screenshot = await page.locator("#aperture-canvas").screenshot();
+  const transformedExpected = rgbaColorToPixel(
+    rgbaTupleToColor(expectedTransformedColor),
+  );
+  const untransformedExpected = rgbaColorToPixel(
+    rgbaTupleToColor(expectedUntransformedColor),
+  );
+  const sampled = readPngPixel(
+    screenshot,
+    standardTexture.sample.x,
+    standardTexture.sample.y,
+  );
+
+  expect(pixelDistance(sampled, transformedExpected)).toBeLessThan(
+    pixelDistance(sampled, untransformedExpected),
+  );
+
+  if (status.readback?.ok) {
+    const readbackTransformed = status.readback.samples.find(
+      (sample) => sample.id === "transformed",
+    );
+
+    expect(readbackTransformed).toBeDefined();
+
+    if (readbackTransformed !== undefined) {
+      expect(
+        pixelDistance(readbackTransformed.pixel, transformedExpected),
+      ).toBeLessThan(
+        pixelDistance(readbackTransformed.pixel, untransformedExpected),
+      );
+    }
+  }
+
+  expect(status.gltf?.assetMapping.diagnosticCodes ?? []).not.toContain(
+    "gltfMaterial.unsupportedTextureTransform",
+  );
+  expect(status.diagnosticCodes ?? []).toEqual([]);
+  webGpuValidation.expectNoWarnings();
+});
+
+test("standard glTF texture fixture samples base-color through TEXCOORD_1", async ({
+  page,
+}) => {
+  const webGpuValidation = attachWebGpuValidationConsoleGuard(page);
+
+  await page.goto(
+    "/examples/standard-gltf-texture.html?scenario=base-color-uv1",
+  );
+
+  const status = await waitForExampleStatus<StandardGltfTextureStatus>(page);
+
+  await attachExampleStatus(
+    "standard-gltf-texture-base-color-uv1-status",
+    status,
+  );
+
+  if (status === undefined) {
+    throw new Error("standard glTF base-color UV1 status missing");
+  }
+
+  skipIfUnsupportedWebGpu(status);
+  expectStatusJsonSafeForGpu(status);
+  expectRenderedGltfTextureStatus(status, {
+    scenario: "base-color-uv1",
+    materialModel: "gltf-standard-base-color-uv1",
+    textureSlot: "baseColorTexture",
+    textureKey: "texture:gltf:texture:0:baseColorTexture",
+    samplerKey: "sampler:gltf:sampler:0:baseColorTexture",
+    pipelineKey: "standard|baseColorTexture|uv1|opaque|back|less|none",
+    meshLayoutKey: "POSITION,NORMAL,TEXCOORD_0,TEXCOORD_1",
+  });
+  expect(status.standardTexture).toMatchObject({
+    expectedTexCoord: 1,
+    expectedUv1: {
+      u: expect.any(Number),
+      v: expect.any(Number),
+    },
+    readiness: {
+      ready: true,
+      slots: [
+        expect.objectContaining({
+          field: "baseColorTexture",
+          textureKey: "texture:gltf:texture:0:baseColorTexture",
+          texCoord: 1,
+          ready: true,
+        }),
+      ],
+      diagnostics: [],
+    },
+  });
+
+  const standardTexture = status.standardTexture;
+
+  if (standardTexture === undefined) {
+    throw new Error("standard glTF base-color UV1 texture status missing");
+  }
+
+  const expectedUv1Color = standardTexture.expectedTextureColor;
+  const rejectedUv0Color = standardTexture.expectedUntransformedTextureColor;
+
+  if (
+    expectedUv1Color === undefined ||
+    expectedUv1Color === null ||
+    rejectedUv0Color === undefined ||
+    rejectedUv0Color === null
+  ) {
+    throw new Error("standard glTF base-color UV1 expectation is missing");
+  }
+
+  const screenshot = await page.locator("#aperture-canvas").screenshot();
+  const expectedUv1 = rgbaColorToPixel(rgbaTupleToColor(expectedUv1Color));
+  const rejectedUv0 = rgbaColorToPixel(rgbaTupleToColor(rejectedUv0Color));
+  const sampled = readPngPixel(
+    screenshot,
+    standardTexture.sample.x,
+    standardTexture.sample.y,
+  );
+
+  expect(pixelDistance(sampled, expectedUv1)).toBeLessThan(
+    pixelDistance(sampled, rejectedUv0),
+  );
+
+  if (status.readback?.ok) {
+    const readbackTextured = status.readback.samples.find(
+      (sample) => sample.id === "textured",
+    );
+
+    expect(readbackTextured).toBeDefined();
+
+    if (readbackTextured !== undefined) {
+      expect(pixelDistance(readbackTextured.pixel, expectedUv1)).toBeLessThan(
+        pixelDistance(readbackTextured.pixel, rejectedUv0),
+      );
+    }
+  }
+
+  expect(status.diagnosticCodes ?? []).toEqual([]);
+  webGpuValidation.expectNoWarnings();
+});
+
+test("standard glTF texture fixture reports missing TEXCOORD_1 before submitting draws", async ({
+  page,
+}) => {
+  const webGpuValidation = attachWebGpuValidationConsoleGuard(page);
+
+  await page.goto(
+    "/examples/standard-gltf-texture.html?scenario=base-color-uv1-missing",
+  );
+
+  const status = await waitForExampleStatus<StandardGltfTextureStatus>(page);
+
+  await attachExampleStatus(
+    "standard-gltf-texture-base-color-uv1-missing-status",
+    status,
+  );
+
+  if (status === undefined) {
+    throw new Error("standard glTF missing UV1 status missing");
+  }
+
+  skipIfUnsupportedWebGpu(status);
+  expectStatusJsonSafeForGpu(status);
+  expect(status, JSON.stringify(status, null, 2)).toMatchObject({
+    example: "standard-gltf-texture",
+    scenario: "base-color-uv1-missing",
+    ok: true,
+    phase: "expected-failure",
+    expectedFailure: true,
+    expectedMappingDiagnostic: null,
+    expectedDiagnostic: "render.standardMaterialTexture.missingTexCoord1",
+    expectedTextureStatus: "missing-texcoord1",
+    materialModel: "gltf-standard-base-color-uv1-missing",
+    gltf: {
+      assetMapping: {
+        valid: true,
+        textureCount: 1,
+        samplerCount: 1,
+        materialCount: 1,
+        diagnostics: 0,
+        diagnosticCodes: [],
+      },
+      meshConstruction: {
+        valid: true,
+        meshCount: 1,
+        diagnostics: 0,
+      },
+      registration: {
+        valid: true,
+        written: 4,
+        diagnostics: 0,
+      },
+    },
+    standardTexture: {
+      meshKey: "mesh:gltf:mesh:0:primitive:0",
+      materialKey: "material:gltf:material:0",
+      textureKey: "texture:gltf:texture:0:baseColorTexture",
+      samplerKey: "sampler:gltf:sampler:0:baseColorTexture",
+      textureSlot: "baseColorTexture",
+      expectedTexCoord: 1,
+      expectedUv1: null,
+      readiness: {
+        ready: true,
+        slots: [
+          expect.objectContaining({
+            field: "baseColorTexture",
+            textureKey: "texture:gltf:texture:0:baseColorTexture",
+            texCoord: 1,
+            ready: true,
+          }),
+        ],
+        diagnostics: [],
+      },
+    },
+    extraction: { views: 1, meshDraws: 0, lights: 2, diagnostics: 1 },
+    draw: { drawCalls: 0 },
+  });
+  expect(status.gltf?.assetMapping.diagnosticCodes ?? []).not.toContain(
+    "gltfMaterial.unsupportedTextureTransform",
+  );
+  expect(status.diagnosticCodes).toContain(
+    "render.standardMaterialTexture.missingTexCoord1",
+  );
+  expect(status.diagnosticsSummary).toBeUndefined();
+  expect(status.pipelines?.keys ?? []).toEqual([]);
+  expect(status.pipelines?.meshLayoutKeys ?? []).toEqual([]);
   webGpuValidation.expectNoWarnings();
 });
 
@@ -1493,6 +1831,7 @@ test("standard glTF texture fixture reports delayed source dependencies", async 
       }),
     ]),
   });
+  expect(status.diagnosticsSummary).toBeUndefined();
   expect(status.diagnosticCodes).toContain(
     "webGpuApp.materialDependenciesNotReady",
   );
@@ -1583,6 +1922,7 @@ test("standard glTF texture fixture reports texture transforms before submitting
   expect(status.diagnosticCodes).toContain(
     "render.standardMaterialTexture.unsupportedTextureTransform",
   );
+  expect(status.diagnosticsSummary).toBeUndefined();
   expect(status.pipelines?.keys ?? []).toEqual([]);
   expect(status.pipelines?.meshLayoutKeys ?? []).toEqual([]);
   webGpuValidation.expectNoWarnings();
@@ -1638,6 +1978,29 @@ function expectRenderedGltfTextureStatus(
       textureSlot: options.textureSlot,
     },
     extraction: { views: 1, meshDraws: 1, lights: 2, diagnostics: 0 },
+    diagnosticsSummary: {
+      sectionCount: 2,
+      materialQueue: {
+        itemCount: 1,
+        byPhase: [{ phase: "opaque", itemCount: 1 }],
+        byFamily: [{ family: "standard", itemCount: 1 }],
+        byPhaseAndFamily: [
+          { phase: "opaque", family: "standard", itemCount: 1 },
+        ],
+      },
+      routedResourceSet: {
+        itemCount: 1,
+        byFamily: [{ family: "standard", itemCount: 1 }],
+        byPipeline: [{ pipelineKey: options.pipelineKey, itemCount: 1 }],
+        byFamilyAndPipeline: [
+          {
+            family: "standard",
+            pipelineKey: options.pipelineKey,
+            itemCount: 1,
+          },
+        ],
+      },
+    },
     resources: {
       textureResourcesCreated: 1,
       samplerResourcesCreated: 1,

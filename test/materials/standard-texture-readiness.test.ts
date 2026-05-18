@@ -566,6 +566,94 @@ describe("StandardMaterial texture semantic and color-space readiness", () => {
       JSON.parse(standardMaterialTextureReadinessReportToJson(report)),
     ).toEqual(json);
   });
+
+  it("accepts base-color offset and scale transforms on TEXCOORD_0", () => {
+    const registry = new AssetRegistry();
+    const material = createMaterialHandle("standard");
+    const texture = createTextureHandle("base-color-transform");
+    const sampler = createSamplerHandle("linear");
+
+    registry.register(sampler);
+    registry.markReady(sampler, createSamplerAsset());
+    readyTexture(registry, texture, "base-color", "srgb");
+    registry.register(material);
+    registry.markReady(
+      material,
+      createStandardMaterialAsset({
+        baseColorTexture: {
+          texture,
+          sampler,
+          texCoord: 0,
+          transform: {
+            offset: [0.25, 0.5],
+            scale: [0.5, 0.5],
+          },
+        },
+      }),
+    );
+
+    const report = createStandardMaterialTextureReadinessReport({
+      registry,
+      material,
+    });
+
+    expect(report.ready).toBe(true);
+    expect(report.diagnostics).toEqual([]);
+    expect(report.slots).toEqual([
+      expect.objectContaining({
+        field: "baseColorTexture",
+        textureKey: "texture:base-color-transform",
+        texCoord: 0,
+        ready: true,
+      }),
+    ]);
+  });
+
+  it("continues to diagnose transformed non-UV0 base-color bindings", () => {
+    const registry = new AssetRegistry();
+    const material = createMaterialHandle("standard");
+    const texture = createTextureHandle("base-color-transform-uv1");
+    const sampler = createSamplerHandle("linear");
+
+    registry.register(sampler);
+    registry.markReady(sampler, createSamplerAsset());
+    readyTexture(registry, texture, "base-color", "srgb");
+    registry.register(material);
+    registry.markReady(
+      material,
+      createStandardMaterialAsset({
+        baseColorTexture: {
+          texture,
+          sampler,
+          texCoord: 1,
+          transform: {
+            offset: [0.25, 0.5],
+            scale: [0.5, 0.5],
+          },
+        },
+      }),
+    );
+
+    const report = createStandardMaterialTextureReadinessReport({
+      registry,
+      material,
+    });
+
+    expect(report.ready).toBe(false);
+    expect(report.diagnostics).toMatchObject([
+      {
+        code: "standardMaterialTexture.unsupportedTextureTransform",
+        materialKey: "material:standard",
+        textureKey: "texture:base-color-transform-uv1",
+        samplerKey: "sampler:linear",
+        field: "baseColorTexture",
+        textureTransform: {
+          offset: [0.25, 0.5],
+          scale: [0.5, 0.5],
+        },
+      },
+    ]);
+  });
 });
 
 function readyTexture(

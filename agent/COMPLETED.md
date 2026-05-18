@@ -1,5 +1,209 @@
 # Completed Tasks
 
+## task-1148 through task-1152 — GLB diagnostics, texture transforms, and collector audits
+
+Completed: 2026-05-18
+
+Completed task ids:
+
+- `task-1149` — Surface app diagnostics summary in the standard GLB browser
+  status.
+- `task-1148` — Implement base-color texture transform offset/scale sampling.
+- `task-1150` — Audit generic frame-resource collector after implementation.
+- `task-1152` — Add generic collector failed-route diagnostics coverage.
+- `task-1151` — Plan StandardMaterial non-UV0 texture-coordinate fixture.
+
+Summary:
+
+- Published `report.diagnosticsSummary` in the GLB texture browser status and
+  asserted queued material/resource-set summaries for successful StandardMaterial
+  routes.
+- Added StandardMaterial base-color texture transform offset/scale support for
+  UV0 via material uniform packing and WGSL UV transform sampling.
+- Kept unsupported diagnostics for rotation and transformed non-UV0 paths.
+- Added `standard-gltf-texture?scenario=base-color-transform-sampling` with
+  screenshot/readback coverage and changed the existing transform failure path
+  into an unsupported-rotation fixture.
+- Audited the generic queued material frame-resource collector and documented
+  that it does not import app/ECS/browser ownership or hard-code built-in
+  buckets.
+- Added direct generic collector failed frame-resource route coverage.
+- Planned a GLB-shaped base-color `texCoord: 1` browser fixture and added
+  `task-1153` as the next implementation slice.
+
+Validation run:
+
+- `node --check examples/standard-gltf-texture.js`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec vitest run test/webgpu/standard-material-buffer.test.ts test/webgpu/standard-shader.test.ts test/materials/gltf-material.test.ts test/materials/standard-texture-readiness.test.ts`
+- `pnpm exec vitest run test/webgpu/queued-material-frame-resource-set.test.ts test/webgpu/queued-built-in-frame-resource-set.test.ts`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "mapped base-color texture|delayed source dependencies|texture transforms"`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "offset and scale transforms|texture transforms before"`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts`
+- `pnpm exec prettier --check` on touched implementation, test, and research
+  files.
+
+## task-1153 — Standard GLB base-color UV1 browser fixture
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added `standard-gltf-texture?scenario=base-color-uv1`, authoring glTF
+  `baseColorTexture.texCoord = 1` against a mesh with `TEXCOORD_0` and
+  `TEXCOORD_1`.
+- Published JSON-safe expected texcoord/readiness status for the fixture and
+  preserved the disclaimer that this is GLB-shaped browser coverage, not binary
+  GLB mesh import support.
+- Added Playwright coverage for the UV1 pipeline key, mesh layout key,
+  readiness slot, JSON-safe status, and UV1-selected screenshot/readback color.
+
+Validation run:
+
+- `node --check examples/standard-gltf-texture.js`
+- `pnpm exec prettier --check examples/standard-gltf-texture.js test/e2e/standard-gltf-texture.spec.ts`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts`
+
+## task-1154 — StandardMaterial texture-transform support audit
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/STANDARD_MATERIAL_TEXTURE_TRANSFORM_SUPPORT_AUDIT_2026_05_18.md`.
+- Verified the current supported transform surface is limited to
+  `baseColorTexture` offset/scale on `TEXCOORD_0`.
+- Confirmed rotation, transformed UV1, and transformed non-base-color slots
+  still emit honest mapping/readiness diagnostics and should not submit draws
+  through the app path.
+- Documented remaining gaps: no browser fixture yet for transformed UV1
+  no-draw status, rotation remains planned, and the low-level packer is not a
+  transform validation boundary.
+
+Validation run:
+
+- Documentation-only audit slice; covered by touched-file Prettier,
+  `pnpm run check:progress`, and `git diff --check`.
+
+## task-1155 — Generic collector dependency-failure diagnostics coverage
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added direct generic collector coverage for invalid texture/sampler dependency
+  preparation in `test/webgpu/queued-material-frame-resource-set.test.ts`.
+- Verified dependency failures return JSON-safe diagnostics and do not call
+  frame-resource option creation, frame-resource creation, or append callbacks.
+- Kept the existing built-in frame-resource wrapper coverage passing.
+
+Validation run:
+
+- `pnpm exec vitest run test/webgpu/queued-material-frame-resource-set.test.ts test/webgpu/queued-built-in-frame-resource-set.test.ts`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+
+## task-1156 — StandardMaterial texture-transform rotation fixture plan
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/STANDARD_MATERIAL_TEXTURE_TRANSFORM_ROTATION_FIXTURE_PLAN_2026_05_18.md`.
+- Selected a narrow GLB-shaped base-color rotation sampling fixture using a
+  known center UV, a nearest 4x4 texture, and a 90-degree rotation plus offset
+  that distinguishes rotated, offset/scale-only, and untransformed texels.
+- Identified the needed mapping/readiness support predicate changes, uniform
+  rotation packing, WGSL scale-rotate-offset helper, and browser readback
+  assertions.
+- Added `task-1161` as the implementation follow-up.
+
+Validation run:
+
+- Documentation-only planning slice; covered by touched-file Prettier,
+  `pnpm run check:progress`, and `git diff --check`.
+
+## task-1157 — Generic material-family app route summary migration plan
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/GENERIC_MATERIAL_FAMILY_APP_ROUTE_SUMMARY_MIGRATION_PLAN_2026_05_18.md`.
+- Decided the successful queued resource-set summary should move to a generic
+  material-family helper before another material family is added.
+- Kept the public app diagnostics field name `routedResourceSet` as the
+  recommended compatibility path.
+- Added `task-1162` to move the built-in summary helper behind a generic
+  queued material frame-resource summary type/helper.
+
+Validation run:
+
+- Documentation-only planning slice; covered by touched-file Prettier,
+  `pnpm run check:progress`, and `git diff --check`.
+
+## task-1158 — GLB missing TEXCOORD_1 browser diagnostic fixture
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added `standard-gltf-texture?scenario=base-color-uv1-missing`, authoring glTF
+  `baseColorTexture.texCoord = 1` while keeping the mesh UV0-only.
+- Verified browser status reports JSON-safe
+  `render.standardMaterialTexture.missingTexCoord1` diagnostics before queueing
+  or draw submission.
+- Kept the successful `base-color-uv1` fixture unchanged as the paired positive
+  path.
+
+Validation run:
+
+- `node --check examples/standard-gltf-texture.js`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "missing TEXCOORD_1"`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts`
+
+## task-1159 — StandardMaterial texture-transform packer boundary note
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/STANDARD_MATERIAL_TEXTURE_TRANSFORM_PACKER_BOUNDARY_2026_05_18.md`.
+- Documented that `packStandardMaterial()` serializes already-accepted
+  StandardMaterial data and is not the unsupported-transform validation
+  boundary.
+- Confirmed readiness and extraction tests own unsupported transform and missing
+  UV-stream diagnostics.
+
+Validation run:
+
+- Documentation-only note; covered by touched-file Prettier,
+  `pnpm run check:progress`, and `git diff --check`.
+
+## task-1160 — Generic collector dependency-failure coverage audit
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/GENERIC_COLLECTOR_DEPENDENCY_FAILURE_COVERAGE_AUDIT_2026_05_18.md`.
+- Verified generic collector tests now cover success, failed frame-resource
+  result diagnostics, and invalid texture/sampler dependency preparation.
+- Confirmed dependency failures do not call frame-resource option creation,
+  frame-resource creation, or append callbacks.
+- Added `task-1165` for duplicate-pipeline reuse coverage.
+
+Validation run:
+
+- Documentation-only audit slice; covered by touched-file Prettier,
+  `pnpm run check:progress`, and `git diff --check`.
+
 ## task-1127 through task-1147 — Queued frame-resource split, GLB diagnostics, and route summaries
 
 Completed: 2026-05-17

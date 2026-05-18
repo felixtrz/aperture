@@ -1,5 +1,144 @@
 # Handoff
 
+## Current Run Update — 2026-05-18T03:56:07Z
+
+Completed `task-1149`, `task-1148`, `task-1150`, `task-1152`, and
+`task-1151`, then completed `task-1153`, `task-1154`, `task-1155`, and
+`task-1156`, then completed `task-1157`, `task-1158`, `task-1159`, and
+`task-1160`. Recommended next task is `task-1161`.
+
+Completed task ids:
+
+- `task-1149` — Surface app diagnostics summary in the standard GLB browser
+  status.
+- `task-1148` — Implement base-color texture transform offset/scale sampling.
+- `task-1150` — Audit generic frame-resource collector after implementation.
+- `task-1152` — Add generic collector failed-route diagnostics coverage.
+- `task-1151` — Plan StandardMaterial non-UV0 texture-coordinate fixture.
+- `task-1153` — Add standard GLB base-color UV1 browser fixture.
+- `task-1154` — Audit StandardMaterial texture-transform support after
+  sampling.
+- `task-1155` — Add generic collector dependency-failure diagnostics coverage.
+- `task-1156` — Plan StandardMaterial texture-transform rotation fixture.
+- `task-1157` — Plan generic material-family app route summary migration.
+- `task-1158` — Add GLB missing TEXCOORD_1 browser diagnostic fixture.
+- `task-1159` — Add StandardMaterial texture-transform packer boundary note.
+- `task-1160` — Audit generic collector dependency-failure coverage.
+
+Highlights:
+
+- `standard-gltf-texture` now publishes `report.diagnosticsSummary` when the
+  app render report includes one. The ready StandardMaterial path asserts
+  material-queue and routed-resource-set summary counts; delayed dependencies
+  and unsupported transforms assert the summary remains absent before queueing.
+- Added StandardMaterial base-color texture transform offset/scale support for
+  UV0. The transform is preserved from glTF mapping, accepted by readiness,
+  packed into the StandardMaterial uniform, and applied in WGSL before
+  base-color sampling.
+- Added `standard-gltf-texture?scenario=base-color-transform-sampling` with a
+  two-color readback assertion that proves transformed UV sampling. The existing
+  `base-color-transform` fixture now remains an unsupported-rotation diagnostic
+  path.
+- Added
+  `docs/research/GENERIC_FRAME_RESOURCE_COLLECTOR_AUDIT_2026_05_18.md`; the
+  generic collector still does not accept `WebGpuApp`, ECS world access,
+  canvas/context/queue submission, or hard-coded built-in buckets.
+- Added direct generic failed frame-resource route coverage in
+  `test/webgpu/queued-material-frame-resource-set.test.ts`.
+- Added
+  `docs/research/STANDARD_GLB_NON_UV0_TEXTURE_COORDINATE_FIXTURE_PLAN_2026_05_18.md`
+  and implemented the selected `base-color-uv1` browser fixture.
+- Added `standard-gltf-texture?scenario=base-color-uv1`, authoring
+  `baseColorTexture.texCoord = 1` with a mesh that includes `TEXCOORD_1`.
+  Playwright now verifies the UV1 pipeline key, mesh layout key, readiness slot,
+  JSON-safe status, and UV1-selected screenshot/readback color without claiming
+  binary GLB mesh import support.
+- Added
+  `docs/research/STANDARD_MATERIAL_TEXTURE_TRANSFORM_SUPPORT_AUDIT_2026_05_18.md`.
+  The current texture-transform contract remains aligned: only base-color
+  offset/scale on `TEXCOORD_0` is supported, rotation/transformed UV1/non-base
+  slots diagnose before app-path draw submission, and the packer is documented
+  as not being the transform validation boundary.
+- Added direct generic collector coverage for invalid texture/sampler dependency
+  preparation. The test verifies dependency failures do not create frame-resource
+  options, do not create frame resources, do not append resources, and keep
+  diagnostics JSON-safe.
+- Added
+  `docs/research/STANDARD_MATERIAL_TEXTURE_TRANSFORM_ROTATION_FIXTURE_PLAN_2026_05_18.md`.
+  The selected fixture uses a known UV0 sample, a nearest 4x4 texture, and a
+  90-degree rotation plus offset to distinguish Khronos-ordered rotation from
+  offset/scale-only and untransformed sampling.
+- Added
+  `docs/research/GENERIC_MATERIAL_FAMILY_APP_ROUTE_SUMMARY_MIGRATION_PLAN_2026_05_18.md`.
+  The plan keeps the public `routedResourceSet` diagnostics field stable while
+  moving its built-in-specific summary helper behind a generic queued material
+  frame-resource summary contract.
+- Added `standard-gltf-texture?scenario=base-color-uv1-missing`, which authors
+  `baseColorTexture.texCoord = 1` while leaving the mesh UV0-only. Playwright
+  verifies JSON-safe `render.standardMaterialTexture.missingTexCoord1` status,
+  no pipeline keys, and zero draw calls.
+- Added
+  `docs/research/STANDARD_MATERIAL_TEXTURE_TRANSFORM_PACKER_BOUNDARY_2026_05_18.md`;
+  it documents that `packStandardMaterial()` serializes accepted material state
+  and is not the unsupported-transform validation boundary.
+- Added
+  `docs/research/GENERIC_COLLECTOR_DEPENDENCY_FAILURE_COVERAGE_AUDIT_2026_05_18.md`;
+  the generic collector now has direct success, failed frame-resource result,
+  and invalid texture/sampler dependency coverage.
+- Fixed stale extraction coverage so the unsupported-transform extraction test
+  uses rotation; base-color UV0 offset/scale is now supported.
+- Refilled the ready backlog with `task-1161` through `task-1165`.
+- Refreshed `docs/index.html` and `docs/render-pipeline-comparison.html` for
+  the completed render-pipeline work.
+
+Validation:
+
+- `node --check examples/standard-gltf-texture.js`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec vitest run test/webgpu/standard-material-buffer.test.ts test/webgpu/standard-shader.test.ts test/materials/gltf-material.test.ts test/materials/standard-texture-readiness.test.ts`
+- `pnpm exec vitest run test/webgpu/queued-material-frame-resource-set.test.ts test/webgpu/queued-built-in-frame-resource-set.test.ts`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "mapped base-color texture|delayed source dependencies|texture transforms"`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "offset and scale transforms|texture transforms before"`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "TEXCOORD_1"`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts`
+- `pnpm exec prettier --check` on touched implementation, test, and research
+  files.
+- `pnpm run check:progress`
+- `git diff --check`
+- `pnpm exec vitest run test/webgpu/queued-material-frame-resource-set.test.ts test/webgpu/queued-built-in-frame-resource-set.test.ts`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "missing TEXCOORD_1"`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts`
+- `pnpm exec vitest run test/rendering/extraction.test.ts`
+
+Additional reference files/patterns inspected:
+
+- `references/engine/src/scene/renderer/forward-renderer.js`
+- `references/three.js/src/renderers/common/RenderObject.js`
+- `docs/research/GLB_TEXTURE_TRANSFORM_SAMPLING_FIXTURE_PLAN_2026_05_18.md`
+- `docs/research/GENERIC_MATERIAL_FAMILY_FRAME_RESOURCE_ADAPTER_INTERFACE_PLAN_2026_05_18.md`
+- `docs/research/CONTROLLED_STANDARD_UV1_BROWSER_VERIFICATION_PLAN_2026_05_17.md`
+- `docs/research/STANDARD_GLB_NON_UV0_TEXTURE_COORDINATE_FIXTURE_PLAN_2026_05_18.md`
+- `docs/research/STANDARD_MATERIAL_TEXTURE_TRANSFORM_SUPPORT_AUDIT_2026_05_18.md`
+- `docs/research/STANDARD_MATERIAL_TEXTURE_TRANSFORM_ROTATION_FIXTURE_PLAN_2026_05_18.md`
+- `docs/research/GENERIC_MATERIAL_FAMILY_APP_ROUTE_SUMMARY_MIGRATION_PLAN_2026_05_18.md`
+- `docs/research/STANDARD_MATERIAL_TEXTURE_TRANSFORM_PACKER_BOUNDARY_2026_05_18.md`
+- `docs/research/GENERIC_COLLECTOR_DEPENDENCY_FAILURE_COVERAGE_AUDIT_2026_05_18.md`
+- `packages/render/src/materials/gltf-material.ts`
+- `packages/render/src/materials/standard-texture-readiness.ts`
+- `packages/webgpu/src/webgpu/standard-material-buffer.ts`
+- `packages/webgpu/src/webgpu/standard-shader.ts`
+- `packages/webgpu/src/webgpu/queued-material-frame-resource-set.ts`
+- `packages/webgpu/src/webgpu/queued-built-in-frame-resource-set.ts`
+
+Known issues / follow-ups:
+
+- Stop hook still needs to run after this handoff entry.
+- `task-1161` should implement the planned base-color texture-transform
+  rotation sampling fixture.
+- `task-1164` should add the transformed-UV1 unsupported browser fixture.
+
 ## Current Run Update — 2026-05-18T02:43:00Z
 
 Completed `task-1142` through `task-1147`. Recommended next task is

@@ -72,6 +72,8 @@ struct StandardMaterialUniform {
   normalTexCoord: u32,
   occlusionTexCoord: u32,
   emissiveTexCoord: u32,
+  baseColorTextureOffset: vec2f,
+  baseColorTextureScale: vec2f,
   padding0: f32,
   padding1: f32,
 };
@@ -682,9 +684,22 @@ fn saturate(value: f32) -> f32 {`,
 
   if (features.baseColorTexture) {
     code = code.replace(
+      `fn saturate(value: f32) -> f32 {`,
+      `fn standardTextureTransformUv(uv: vec2f, offset: vec2f, scale: vec2f) -> vec2f {
+  return uv * scale + offset;
+}
+
+fn saturate(value: f32) -> f32 {`,
+    );
+    code = code.replace(
       `  let baseColor = material.baseColorFactor.rgb;
   let alpha = material.baseColorFactor.a;`,
-      `  let baseColorSample = textureSample(baseColorTexture, baseColorSampler, ${baseColorUv});
+      `  let baseColorUv = standardTextureTransformUv(
+    ${baseColorUv},
+    material.baseColorTextureOffset,
+    material.baseColorTextureScale,
+  );
+  let baseColorSample = textureSample(baseColorTexture, baseColorSampler, baseColorUv);
   let baseColor = baseColorSample.rgb * material.baseColorFactor.rgb;
   let alpha = baseColorSample.a * material.baseColorFactor.a;`,
     );

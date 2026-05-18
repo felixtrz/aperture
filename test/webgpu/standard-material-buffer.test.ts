@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 
+import type { MaterialTextureTransform } from "@aperture-engine/render";
 import {
   DEFAULT_STANDARD_MATERIAL_BUFFER_USAGE,
   STANDARD_MATERIAL_FEATURE_FLAGS,
@@ -114,6 +115,31 @@ describe("standard material WebGPU uniform packing", () => {
     expect(
       Array.from(result.packed?.uniformUint32.slice(13, 18) ?? []),
     ).toEqual([1, 2, 3, 4, 5]);
+    expect(
+      Array.from(result.packed?.uniformFloat32.slice(18, 22) ?? []),
+    ).toEqual([0, 0, 1, 1]);
+  });
+
+  it("packs base-color texture offset and scale for shader sampling", () => {
+    const result = packStandardMaterial(
+      createStandardMaterialAsset({
+        baseColorTexture: textureBinding("base", "base-sampler", 0, {
+          offset: [0.25, 0.5],
+          scale: [0.5, 2],
+        }),
+      }),
+    );
+
+    expect(result.valid).toBe(true);
+    expect(result.diagnostics).toEqual([]);
+    expect(
+      Array.from(result.packed?.uniformFloat32.slice(18, 22) ?? []),
+    ).toEqual([
+      expect.closeTo(0.25, 5),
+      expect.closeTo(0.5, 5),
+      expect.closeTo(0.5, 5),
+      expect.closeTo(2, 5),
+    ]);
   });
 
   it("packs textured alpha-mask flags and cutoff for shader discard", () => {
@@ -223,11 +249,13 @@ function textureBinding(
   texture: string,
   sampler: string,
   texCoord: number,
+  transform: MaterialTextureTransform | undefined = undefined,
 ): ReturnType<typeof createStandardMaterialAsset>["baseColorTexture"] {
   return {
     texture: createTextureHandle(texture),
     sampler: createSamplerHandle(sampler),
     texCoord,
+    ...(transform === undefined ? {} : { transform }),
   };
 }
 

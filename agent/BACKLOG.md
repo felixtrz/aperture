@@ -59,10 +59,16 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start with `task-1149`. The latest run introduced generic queued material
-frame-resource collector contracts, kept the built-in wrapper compatible, added
-JSON-safe queued route summaries in app render reports, planned base-color
-texture-transform sampling, and audited GLB helper boundaries.
+Start with `task-1161`. The latest run surfaced queued app diagnostics in GLB
+browser status, added StandardMaterial base-color offset/scale texture-transform
+sampling, audited the generic frame-resource collector, added generic failed
+route coverage, planned the GLB-shaped UV1 fixture, and implemented the
+GLB-shaped base-color `texCoord: 1` browser fixture, then audited the
+post-sampling texture-transform contract and added generic collector dependency
+failure coverage. It also planned a narrow rotation sampling fixture and the
+generic app route summary migration, then added the missing-`TEXCOORD_1`
+browser diagnostic fixture, documented the packer boundary, and audited generic
+collector dependency-failure coverage.
 
 ## Near-Term Proof Point Track
 
@@ -79,11 +85,11 @@ Target proof point:
 
 Remaining automation priority order:
 
-1. `task-1149` — surface app diagnostics summary in the standard GLB browser status.
-2. `task-1148` — implement base-color texture transform offset/scale sampling.
-3. `task-1150` — audit generic frame-resource collector after implementation.
-4. `task-1151` — plan StandardMaterial non-UV0 texture-coordinate fixture.
-5. `task-1152` — add generic collector failed-route diagnostics coverage.
+1. `task-1161` — implement base-color texture-transform rotation sampling.
+2. `task-1162` — move queued resource-set summary to generic material helper.
+3. `task-1163` — audit GLB missing TEXCOORD_1 browser diagnostics.
+4. `task-1164` — add GLB transformed UV1 unsupported browser fixture.
+5. `task-1165` — add generic collector duplicate-pipeline reuse coverage.
 
 Defer allocation-only cleanup and metadata-only shader-contract tasks unless
 they are a direct blocker for this track.
@@ -149,106 +155,105 @@ viewer/material mapping should not outrun the material and queue architecture.
 
 ### Proof Point Critical Path
 
-### task-1149 — Surface app diagnostics summary in the standard GLB browser status
-
-Category: `runtime-orchestration`
-Package/write-scope: `examples/standard-gltf-texture.js` and
-`test/e2e/standard-gltf-texture.spec.ts`.
-Reference anchor:
-`packages/webgpu/src/webgpu/app.ts`,
-`packages/webgpu/src/webgpu/app-diagnostics-summary.ts`, and
-`docs/research/STANDARD_GLB_TEXTURE_HELPER_EXTRACTION_AUDIT_2026_05_18.md`.
-
-Acceptance criteria:
-
-- The standard GLB browser status publishes `report.diagnosticsSummary` when the
-  app render report includes one.
-- The ready StandardMaterial texture path asserts material queue and routed
-  resource-set summary counts.
-- The unsupported texture-transform or delayed-dependency path asserts the
-  summary remains absent or only includes the applicable route/readiness data.
-- Status remains JSON-safe and does not expose raw GPU resources or source asset
-  payloads.
-
-### task-1148 — Implement base-color texture transform offset/scale sampling
+### task-1161 — Implement base-color texture-transform rotation sampling
 
 Category: `webgpu-render`
 Package/write-scope: `packages/render/src/materials`,
 `packages/webgpu/src/webgpu`, `examples/standard-gltf-texture.js`, and
 `test/e2e/standard-gltf-texture.spec.ts`.
 Reference anchor:
-`docs/research/GLB_TEXTURE_TRANSFORM_SAMPLING_FIXTURE_PLAN_2026_05_18.md`,
-the current `base-color-transform` fixture,
-`packages/render/src/materials/gltf-material.ts`, and
-`packages/webgpu/src/webgpu/standard-shader.ts`.
+`docs/research/STANDARD_MATERIAL_TEXTURE_TRANSFORM_ROTATION_FIXTURE_PLAN_2026_05_18.md`,
+the Khronos `KHR_texture_transform` README, `packages/webgpu/src/webgpu/standard-shader.ts`,
+and the current `base-color-transform-sampling` fixture.
 
 Acceptance criteria:
 
-- StandardMaterial base-color texture transforms support offset and scale for
-  UV0 without making ECS own renderer state.
-- Unsupported transform diagnostics remain for unsupported rotation or non-UV0
-  cases.
-- A browser fixture verifies transformed base-color sampling with readback.
-- Existing `base-color-transform` diagnostic coverage is either updated to the
-  unsupported case that remains true or replaced by a clearly named unsupported
-  rotation fixture.
+- StandardMaterial base-color texture transforms support rotation on
+  `TEXCOORD_0` without expanding support to transformed UV1 or non-base-color
+  slots.
+- Uniform packing and WGSL implement scale, rotation, then offset in the
+  Khronos order.
+- A browser fixture proves rotated sampling is closer to the rotated expected
+  texel than offset/scale-only or untransformed texels.
+- Existing unsupported transform diagnostics remain for transformed UV1 and
+  transformed non-base-color slots.
 
-### task-1150 — Audit generic frame-resource collector after implementation
+### task-1162 — Move queued resource-set summary to generic material helper
+
+Category: `webgpu-render`
+Package/write-scope: `packages/webgpu/src/webgpu`,
+`test/webgpu/app-diagnostics-summary.test.ts`, and targeted app diagnostics
+tests.
+Reference anchor:
+`docs/research/GENERIC_MATERIAL_FAMILY_APP_ROUTE_SUMMARY_MIGRATION_PLAN_2026_05_18.md`,
+`packages/webgpu/src/webgpu/queued-built-in-resource-set-summary.ts`,
+`packages/webgpu/src/webgpu/queued-material-frame-resource-set.ts`, and
+`packages/webgpu/src/webgpu/app-diagnostics-summary.ts`.
+
+Acceptance criteria:
+
+- Add a generic queued material frame-resource summary helper with the existing
+  item/family/pipeline counts.
+- Keep the public app diagnostics field name `routedResourceSet` stable.
+- Make the built-in summary helper a compatibility wrapper or type alias over
+  the generic helper.
+- Existing app diagnostics summary and WebGPU app tests pass.
+
+### task-1163 — Audit GLB missing TEXCOORD_1 browser diagnostics
 
 Category: `audit-refactor`
-Package/write-scope: `docs/research`, `packages/webgpu/src/webgpu`, and
-targeted tests only if a tiny corrective fix is needed.
+Package/write-scope: `docs/research`, `examples/standard-gltf-texture.js`,
+`test/e2e/standard-gltf-texture.spec.ts`, and targeted tests only if a tiny
+corrective fix is needed.
 Reference anchor:
-`docs/research/GENERIC_MATERIAL_FAMILY_FRAME_RESOURCE_ADAPTER_INTERFACE_PLAN_2026_05_18.md`,
-`docs/ARCHITECTURE.md`, the generic collector from `task-1147`, and the built-in
-wrapper.
+`docs/research/STANDARD_GLB_NON_UV0_TEXTURE_COORDINATE_FIXTURE_PLAN_2026_05_18.md`,
+the current `base-color-uv1` and `base-color-uv1-missing` scenarios, and
+`packages/render/src/rendering/extraction.ts`.
 
 Acceptance criteria:
 
-- Confirm the generic collector does not accept `WebGpuApp`, ECS world access,
-  canvas/context/queue submission, or renderer-authoritative source state.
-- Verify built-in material behavior remains adapter/sink-owned rather than
-  hard-coded in the generic collector.
-- Check scratch reuse and JSON-safe diagnostics.
-- Document concrete gaps and add follow-up tasks only for issues found.
+- Verify successful UV1 and missing-UV1 browser fixtures stay paired and
+  JSON-safe.
+- Confirm missing-UV1 reports no draw/pipeline submission and does not imply
+  binary GLB import support.
+- Document any remaining UV1 browser coverage gaps.
 
-### task-1151 — Plan StandardMaterial non-UV0 texture-coordinate fixture
+### task-1164 — Add GLB transformed UV1 unsupported browser fixture
 
 Category: `runtime-orchestration`
-Package/write-scope: `docs/research`, `examples/standard-gltf-texture.js`, and
-`test/e2e/standard-gltf-texture.spec.ts` only for inspection.
+Package/write-scope: `examples/standard-gltf-texture.js` and
+`test/e2e/standard-gltf-texture.spec.ts`.
 Reference anchor:
-`packages/render/src/materials/gltf-material.ts`,
-`packages/webgpu/src/webgpu/standard-shader.ts`, and current GLB texture browser
-fixtures.
+`docs/research/STANDARD_MATERIAL_TEXTURE_TRANSFORM_SUPPORT_AUDIT_2026_05_18.md`,
+the current `base-color-uv1` and `base-color-transform` scenarios, and
+`packages/render/src/materials/standard-texture-readiness.ts`.
 
 Acceptance criteria:
 
-- Decide the smallest future fixture that proves non-UV0 texture-coordinate
-  diagnostics or sampling behavior honestly.
-- Identify mesh attribute, material `texCoord`, shader, and status/reporting
-  requirements.
-- Add a concrete implementation follow-up only if it is smaller than the
-  texture-transform sampling task and does not conflict with StandardMaterial
-  scope.
+- Add a GLB-shaped scenario with `baseColorTexture.texCoord = 1`, a mesh with
+  `TEXCOORD_1`, and a non-identity offset/scale transform.
+- Browser status reports JSON-safe
+  `render.standardMaterialTexture.unsupportedTextureTransform` diagnostics.
+- Playwright asserts no draw/pipeline submission and confirms this does not
+  expand transform support to UV1.
 
-### task-1152 — Add generic collector failed-route diagnostics coverage
+### task-1165 — Add generic collector duplicate-pipeline reuse coverage
 
 Category: `webgpu-render`
 Package/write-scope: `test/webgpu/queued-material-frame-resource-set.test.ts`
 and `packages/webgpu/src/webgpu/queued-material-frame-resource-set.ts` only if a
-small corrective fix is needed.
+tiny corrective fix is needed.
 Reference anchor:
-`packages/webgpu/src/webgpu/queued-material-frame-resource-set.ts`,
-`packages/webgpu/src/webgpu/queued-built-in-frame-resource-set.ts`, and
-`docs/research/QUEUED_FRAME_RESOURCE_EXTRACTION_BOUNDARY_AUDIT_2026_05_18.md`.
+`docs/research/GENERIC_COLLECTOR_DEPENDENCY_FAILURE_COVERAGE_AUDIT_2026_05_18.md`
+and `packages/webgpu/src/webgpu/queued-material-frame-resource-set.ts`.
 
 Acceptance criteria:
 
-- The generic collector test covers a failed frame-resource result and verifies
-  the injected route diagnostic is appended.
-- The failure path remains JSON-safe and does not expose raw GPU handles.
-- The built-in frame-resource route tests still pass.
+- Add a generic collector test with two items sharing one pipeline key.
+- Assert pipeline plan creation is reused once while both resource append paths
+  still run.
+- Assert mesh/material resource-key maps and pipeline-scoped bind groups remain
+  JSON-safe.
 
 ## Post-Unlit E2E Verification Targets
 

@@ -122,6 +122,15 @@ describe("built-in standard material WGSL shader metadata", () => {
     );
     expect(STANDARD_BASE_COLOR_TEXTURED_MESH_WGSL).toContain("textureSample");
     expect(STANDARD_BASE_COLOR_TEXTURED_MESH_WGSL).toContain(
+      "fn standardTextureTransformUv",
+    );
+    expect(STANDARD_BASE_COLOR_TEXTURED_MESH_WGSL).toContain(
+      "material.baseColorTextureOffset",
+    );
+    expect(STANDARD_BASE_COLOR_TEXTURED_MESH_WGSL).toContain(
+      "material.baseColorTextureScale",
+    );
+    expect(STANDARD_BASE_COLOR_TEXTURED_MESH_WGSL).toContain(
       "baseColorSample.rgb * material.baseColorFactor.rgb",
     );
     expect(

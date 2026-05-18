@@ -35,7 +35,18 @@ const alphaMaskBackface = {
   sample: { id: "backface", x: 0.5, y: 0.5 },
   expectedColor: scalarColor,
 };
-const textureTransform = { offset: [0.25, 0] };
+const unsupportedTextureTransform = { offset: [0.25, 0], rotation: 0.25 };
+const textureTransformSampling = {
+  transform: { offset: [0.5, 0], scale: [0.5, 1] },
+  sample: { id: "transformed", x: 0.455, y: 0.5 },
+  expectedColor: [0.05, 0.95, 0.1, 1],
+  untransformedColor: [0.95, 0.05, 0.05, 1],
+};
+const uv1Coordinate = { u: 0.25, v: 0.25 };
+const uv1Texture = {
+  expectedColor: [0.95, 0.05, 0.05, 1],
+  rejectedUv0Color: [0.05, 0.95, 0.1, 1],
+};
 const gltfSamplerSource = {
   magFilter: 9728,
   minFilter: 9728,
@@ -61,6 +72,9 @@ const emissiveTextureBytes = new Uint8Array([
 const alphaMaskTextureBytes = new Uint8Array([
   24, 128, 255, 255, 255, 24, 24, 64, 24, 128, 255, 255, 255, 24, 24, 64,
 ]);
+const textureTransformSamplingBytes = new Uint8Array([
+  242, 13, 13, 255, 13, 242, 26, 255, 242, 13, 13, 255, 13, 242, 26, 255,
+]);
 const expectedGltfFailures = {
   "base-color-transform": {
     mappingDiagnostic: "gltfMaterial.unsupportedTextureTransform",
@@ -72,6 +86,11 @@ const expectedGltfFailures = {
     mappingDiagnostic: null,
     renderDiagnostic: "webGpuApp.materialDependenciesNotReady",
     status: "delayed-dependencies",
+  },
+  "base-color-uv1-missing": {
+    mappingDiagnostic: null,
+    renderDiagnostic: "render.standardMaterialTexture.missingTexCoord1",
+    status: "missing-texcoord1",
   },
 };
 const scenario =
@@ -208,10 +227,13 @@ function createGltfTextureScene(aperture, app, targetCanvas, selectedScenario) {
     mesh,
     material,
     textureSlot: config.textureSlot,
-    samplePoint: { x: 0.5, y: 0.5 },
+    samplePoint: config.samplePoint,
     expectedFailure: config.expectedFailure,
     expectedTextureTransform: config.expectedTextureTransform,
     expectedTextureColor: config.expectedTextureColor,
+    expectedUntransformedTextureColor: config.expectedUntransformedTextureColor,
+    expectedTexCoord: config.expectedTexCoord,
+    expectedUv1: config.expectedUv1,
     expectedMetallicRoughness: config.expectedMetallicRoughness,
     expectedNormalMap: config.expectedNormalMap,
     expectedOcclusion: config.expectedOcclusion,
@@ -226,6 +248,11 @@ function createGltfTextureScene(aperture, app, targetCanvas, selectedScenario) {
 
 function createGltfScenarioConfig(selectedScenario) {
   const usesBaseColorTransform = selectedScenario === "base-color-transform";
+  const usesBaseColorTransformSampling =
+    selectedScenario === "base-color-transform-sampling";
+  const usesBaseColorUv1 = selectedScenario === "base-color-uv1";
+  const usesBaseColorUv1Missing = selectedScenario === "base-color-uv1-missing";
+  const usesAnyBaseColorUv1 = usesBaseColorUv1 || usesBaseColorUv1Missing;
   const usesMetallicRoughnessTexture =
     selectedScenario === "metallic-roughness";
   const usesNormalTexture = selectedScenario === "normal-map";
@@ -239,6 +266,10 @@ function createGltfScenarioConfig(selectedScenario) {
 
   return {
     usesBaseColorTransform,
+    usesBaseColorTransformSampling,
+    usesBaseColorUv1,
+    usesBaseColorUv1Missing,
+    usesAnyBaseColorUv1,
     usesMetallicRoughnessTexture,
     usesNormalTexture,
     usesOcclusionTexture,
@@ -278,15 +309,37 @@ function createGltfScenarioConfig(selectedScenario) {
                   ? "gltf-standard-alpha-mask-backface"
                   : usesDelayedDependencies
                     ? "gltf-standard-delayed-dependencies"
-                    : "gltf-standard-base-color-texture",
+                    : usesBaseColorTransformSampling
+                      ? "gltf-standard-base-color-transform-sampling"
+                      : usesBaseColorUv1
+                        ? "gltf-standard-base-color-uv1"
+                        : usesBaseColorUv1Missing
+                          ? "gltf-standard-base-color-uv1-missing"
+                          : "gltf-standard-base-color-texture",
     expectedFailure: expectedGltfFailures[selectedScenario] ?? null,
-    expectedTextureTransform: usesBaseColorTransform ? textureTransform : null,
-    expectedTextureColor:
-      usesMetallicRoughnessTexture || usesNormalTexture || usesOcclusionTexture
-        ? null
-        : usesEmissiveTexture
+    expectedTextureTransform: usesBaseColorTransform
+      ? unsupportedTextureTransform
+      : usesBaseColorTransformSampling
+        ? textureTransformSampling.transform
+        : null,
+    expectedTextureColor: usesBaseColorTransformSampling
+      ? textureTransformSampling.expectedColor
+      : usesBaseColorUv1
+        ? uv1Texture.expectedColor
+        : usesMetallicRoughnessTexture ||
+            usesNormalTexture ||
+            usesOcclusionTexture
           ? null
-          : expectedTextureColor,
+          : usesEmissiveTexture
+            ? null
+            : expectedTextureColor,
+    expectedUntransformedTextureColor: usesBaseColorTransformSampling
+      ? textureTransformSampling.untransformedColor
+      : usesBaseColorUv1
+        ? uv1Texture.rejectedUv0Color
+        : null,
+    expectedTexCoord: usesAnyBaseColorUv1 ? 1 : 0,
+    expectedUv1: usesBaseColorUv1 ? uv1Coordinate : null,
     expectedMetallicRoughness: usesMetallicRoughnessTexture
       ? metallicRoughness
       : null,
@@ -325,6 +378,9 @@ function createGltfScenarioConfig(selectedScenario) {
             };
           })()
         : null,
+    samplePoint: usesBaseColorTransformSampling
+      ? textureTransformSampling.sample
+      : { id: "textured", x: 0.5, y: 0.5 },
   };
 }
 
@@ -357,7 +413,13 @@ function materialNameForConfig(config) {
                 ? "GLB Standard Alpha Mask Backface"
                 : config.usesDelayedDependencies
                   ? "GLB Standard Delayed Dependencies"
-                  : "GLB Standard BaseColor";
+                  : config.usesBaseColorTransformSampling
+                    ? "GLB Standard BaseColor Transform Sampling"
+                    : config.usesBaseColorUv1
+                      ? "GLB Standard BaseColor UV1"
+                      : config.usesBaseColorUv1Missing
+                        ? "GLB Standard BaseColor UV1 Missing"
+                        : "GLB Standard BaseColor";
 }
 
 function readbackSamplesForConfig(config) {
@@ -372,7 +434,7 @@ function readbackSamplesForConfig(config) {
     return [config.expectedBackface.sample];
   }
 
-  return [{ id: "textured", x: 0.5, y: 0.5 }];
+  return [config.samplePoint];
 }
 
 function createGltfFixtureRoot(config) {
@@ -409,13 +471,14 @@ function createGltfFixtureRoot(config) {
       baseColorFactor: [1, 1, 1, 1],
       baseColorTexture: {
         index: 0,
-        ...(config.usesBaseColorTransform
-          ? {
+        ...(config.usesAnyBaseColorUv1 ? { texCoord: 1 } : {}),
+        ...(config.expectedTextureTransform === null
+          ? {}
+          : {
               extensions: {
-                KHR_texture_transform: textureTransform,
+                KHR_texture_transform: config.expectedTextureTransform,
               },
-            }
-          : {}),
+            }),
       },
       metallicFactor: 0,
       roughnessFactor: 0.8,
@@ -492,7 +555,12 @@ function textureBytesForSlot(textureSlot) {
     case "baseColorTexture":
       return scenario === "alpha-mask-texture"
         ? alphaMaskTextureBytes
-        : baseColorTextureBytes;
+        : scenario === "base-color-transform-sampling"
+          ? textureTransformSamplingBytes
+          : scenario === "base-color-uv1" ||
+              scenario === "base-color-uv1-missing"
+            ? textureTransformSamplingBytes
+            : baseColorTextureBytes;
     default:
       return baseColorTextureBytes;
   }
@@ -538,7 +606,9 @@ function createGltfMeshConstructionReport(aperture, config) {
   });
   const mesh = config.usesNormalTexture
     ? createTangentPlaneMeshAsset(baseMesh)
-    : baseMesh;
+    : config.usesBaseColorUv1
+      ? createUv1PlaneMeshAsset(baseMesh, uv1Coordinate)
+      : baseMesh;
 
   return {
     valid: true,
@@ -641,6 +711,9 @@ function createStatus(aperture, app, scene, report) {
       : {
           materialDependencyReadiness: reportJson.materialDependencyReadiness,
         }),
+    ...(reportJson.diagnosticsSummary === undefined
+      ? {}
+      : { diagnosticsSummary: reportJson.diagnosticsSummary }),
     ...(report.readback === undefined ? {} : { readback: report.readback }),
     extraction: {
       views: snapshot.views.length,
@@ -708,6 +781,10 @@ function createStandardTextureStatus(aperture, scene) {
         scene.assetMapping.samplers[0],
       ),
       expectedTextureColor: scene.expectedTextureColor,
+      expectedUntransformedTextureColor:
+        scene.expectedUntransformedTextureColor,
+      expectedTexCoord: scene.expectedTexCoord,
+      expectedUv1: scene.expectedUv1,
       expectedMetallicRoughness: scene.expectedMetallicRoughness,
       expectedNormalMap: scene.expectedNormalMap,
       expectedOcclusion: scene.expectedOcclusion,
@@ -761,6 +838,52 @@ function createTangentPlaneMeshAsset(mesh) {
         attributes: [
           ...stream.attributes,
           { semantic: "TANGENT", format: "float32x4", offset: 32 },
+        ],
+        data,
+      },
+    ],
+  };
+}
+
+function createUv1PlaneMeshAsset(mesh, uv1) {
+  const stream = mesh.vertexStreams[0];
+
+  if (stream === undefined) {
+    throw new Error(
+      "Expected plane mesh fixture to provide one vertex stream.",
+    );
+  }
+
+  const source = stream.data;
+  const sourceStrideFloats = stream.arrayStride / 4;
+  const targetStrideFloats = sourceStrideFloats + 2;
+  const data = new Float32Array(stream.vertexCount * targetStrideFloats);
+
+  for (let vertex = 0; vertex < stream.vertexCount; vertex += 1) {
+    const sourceOffset = vertex * sourceStrideFloats;
+    const targetOffset = vertex * targetStrideFloats;
+
+    data.set(
+      source.subarray(sourceOffset, sourceOffset + sourceStrideFloats),
+      targetOffset,
+    );
+    data.set([uv1.u, uv1.v], targetOffset + sourceStrideFloats);
+  }
+
+  return {
+    ...mesh,
+    vertexStreams: [
+      {
+        ...stream,
+        id: "gltf-standard-plane-uv1",
+        arrayStride: targetStrideFloats * 4,
+        attributes: [
+          ...stream.attributes,
+          {
+            semantic: "TEXCOORD_1",
+            format: "float32x2",
+            offset: stream.arrayStride,
+          },
         ],
         data,
       },

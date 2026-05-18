@@ -622,15 +622,22 @@ function mapTextureTransform(input: {
   const textureIndex = isNonNegativeInteger(input.value.index)
     ? input.value.index
     : undefined;
-  input.diagnostics.push({
-    code: "gltfMaterial.unsupportedTextureTransform",
-    severity: "warning",
-    materialKey: input.materialKey,
-    field: `${input.field}.extensions.${TEXTURE_TRANSFORM_EXTENSION}`,
-    slot: input.slot,
-    ...(textureIndex === undefined ? {} : { textureIndex }),
-    message: `${TEXTURE_TRANSFORM_EXTENSION} is preserved but not rendered by current material shaders.`,
-  });
+  const texCoord = isNonNegativeInteger(input.value.texCoord)
+    ? input.value.texCoord
+    : 0;
+
+  if (!isSupportedTextureTransform(input.slot, texCoord, transform)) {
+    input.diagnostics.push({
+      code: "gltfMaterial.unsupportedTextureTransform",
+      severity: "warning",
+      materialKey: input.materialKey,
+      field: `${input.field}.extensions.${TEXTURE_TRANSFORM_EXTENSION}`,
+      slot: input.slot,
+      ...(textureIndex === undefined ? {} : { textureIndex }),
+      message: `${TEXTURE_TRANSFORM_EXTENSION} is preserved, but only base-color offset/scale transforms on TEXCOORD_0 are rendered by current material shaders.`,
+    });
+  }
+
   return transform;
 }
 
@@ -973,6 +980,16 @@ function isIdentityTransform(transform: MaterialTextureTransform): boolean {
       (transform.scale[0] === 1 && transform.scale[1] === 1)) &&
     (transform.rotation === undefined || transform.rotation === 0)
   );
+}
+
+function isSupportedTextureTransform(
+  slot: GltfMaterialTextureSlot,
+  texCoord: number,
+  transform: MaterialTextureTransform,
+): boolean {
+  const rotation = transform.rotation ?? 0;
+
+  return slot === "baseColorTexture" && texCoord === 0 && rotation === 0;
 }
 
 function toDiagnosticValue(value: unknown): GltfMaterialDiagnosticValue {

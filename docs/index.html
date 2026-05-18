@@ -393,15 +393,18 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-17 19:41 PDT</dd>
+            <dd>2026-05-17 20:47 PDT</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
-              Queued diagnostics summaries and GLB fixture plans refreshed
+              GLB diagnostics summaries, texture transforms, UV1 fixture,
+              support audit, dependency-failure coverage, rotation plan, summary
+              migration plan, missing-UV1 fixture, packer note, and collector
+              audit refreshed
             </dd>
             <dt>Next focus</dt>
-            <dd>Surface queued diagnostics summary in GLB browser status</dd>
+            <dd>Implement base-color texture-transform rotation sampling</dd>
           </dl>
         </aside>
       </header>
@@ -468,11 +471,11 @@
               missing-tangent diagnostics, authored and GLB-derived base-color
               transform diagnostics, a minimal GLB-derived base-color texture
               fixture, GLB sampler mapping status, and GLB-derived
-              metallic-roughness, normal, occlusion, and emissive texture
-              fixtures plus alpha-mask double-sided render-state diagnostics,
-              alpha-mask pixels, backface no-cull pixels, and GLB delayed
-              dependency diagnostics; texture-transform sampling is now planned
-              as the next narrow fidelity slice.
+              metallic-roughness, normal, occlusion, emissive, and base-color
+              UV1 fixtures plus alpha-mask double-sided render-state
+              diagnostics, alpha-mask pixels, backface no-cull pixels, and GLB
+              delayed dependency diagnostics; texture-transform rotation and
+              missing-UV1 diagnostics remain narrow follow-up slices.
             </p>
           </article>
           <article class="card metric">
@@ -632,9 +635,9 @@
           <article class="phase">
             <div class="topline">
               <h3>2. collect</h3>
-              <span class="percent">74%</span>
+              <span class="percent">75%</span>
             </div>
-            <div class="bar"><span style="width: 74%"></span></div>
+            <div class="bar"><span style="width: 75%"></span></div>
             <p>
               Asset readiness and source-version dependency summaries exist for
               meshes, materials, textures, and samplers. GLB-shaped invalid
@@ -670,7 +673,11 @@
               verifies no-cull visibility. Queued app render reports now expose
               JSON-safe diagnostics summaries for routed resources, and built-in
               frame-resource preparation is wrapped over a generic collector
-              contract.
+              contract. Base-color texture transform offset/scale sampling now
+              has packed uniforms, WGSL sampling, GLB browser readback coverage,
+              and unsupported-rotation diagnostics. GLB-shaped base-color UV1
+              browser coverage now verifies <code>TEXCOORD_1</code> readiness,
+              mesh layout, pipeline key, and selected pixel color.
             </p>
             <ul>
               <li>Missing generic material-family preparation contract.</li>
@@ -765,24 +772,57 @@
             <h3>Latest work in this update</h3>
             <ul>
               <li>
-                <span class="badge green">task-1147</span> Introduced generic
-                queued material frame-resource collector contracts.
+                <span class="badge green">task-1148</span> Added
+                StandardMaterial base-color texture transform offset/scale
+                sampling with GLB browser readback coverage.
               </li>
               <li>
-                <span class="badge green">task-1144</span> Exposed queued route
-                and resource summaries in app render report JSON.
+                <span class="badge green">task-1149</span> Published queued app
+                diagnostics summaries in standard GLB browser status.
               </li>
               <li>
-                <span class="badge green">task-1145</span> Planned base-color
-                texture-transform offset/scale sampling fixture.
+                <span class="badge green">task-1150</span> Audited the generic
+                frame-resource collector boundary.
               </li>
               <li>
-                <span class="badge green">task-1146</span> Audited standard GLB
-                texture helper extraction boundaries.
+                <span class="badge green">task-1152</span> Added generic
+                collector failed-route diagnostics coverage.
               </li>
               <li>
-                <span class="badge green">task-1142</span> Audited queued
-                frame-resource extraction boundary and removed an unused input.
+                <span class="badge green">task-1151</span> Planned a GLB-shaped
+                StandardMaterial base-color UV1 fixture.
+              </li>
+              <li>
+                <span class="badge green">task-1153</span> Added the GLB-shaped
+                StandardMaterial base-color UV1 browser fixture.
+              </li>
+              <li>
+                <span class="badge green">task-1154</span> Audited
+                StandardMaterial texture-transform support after sampling.
+              </li>
+              <li>
+                <span class="badge green">task-1155</span> Added generic
+                collector dependency-failure diagnostics coverage.
+              </li>
+              <li>
+                <span class="badge green">task-1156</span> Planned
+                StandardMaterial texture-transform rotation sampling.
+              </li>
+              <li>
+                <span class="badge green">task-1157</span> Planned generic
+                material-family app route summary migration.
+              </li>
+              <li>
+                <span class="badge green">task-1158</span> Added GLB
+                missing-<code>TEXCOORD_1</code> browser diagnostics.
+              </li>
+              <li>
+                <span class="badge green">task-1159</span> Documented the
+                StandardMaterial texture-transform packer boundary.
+              </li>
+              <li>
+                <span class="badge green">task-1160</span> Audited generic
+                collector dependency-failure coverage.
               </li>
               <li>
                 <span class="badge green">task-0961</span> Added
@@ -1402,8 +1442,8 @@
             <h3>Recommended next tasks</h3>
             <ul>
               <li>
-                <span class="badge amber">next</span> Surface app diagnostics
-                summary in the standard GLB browser status.
+                <span class="badge amber">next</span> Implement base-color
+                texture-transform rotation sampling.
               </li>
               <li>
                 Keep this tracker updated after render-pipeline or

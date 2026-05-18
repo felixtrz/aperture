@@ -256,6 +256,40 @@ describe("glTF material mapping", () => {
     });
   });
 
+  it("preserves supported base-color offset and scale transforms without a mapping warning", () => {
+    const report = createMaterialAssetFromGltfMaterial(
+      {
+        pbrMetallicRoughness: {
+          baseColorTexture: {
+            index: 0,
+            extensions: {
+              KHR_texture_transform: {
+                offset: [0.25, 0.5],
+                scale: [2, 1],
+              },
+            },
+          },
+        },
+      },
+      {
+        materialKey: "material:transform",
+        resolveTextureBinding,
+      },
+    );
+
+    expect(report.valid).toBe(true);
+    expect(report.diagnostics).toEqual([]);
+    expect(report.material).toMatchObject({
+      kind: "standard",
+      baseColorTexture: {
+        transform: {
+          offset: [0.25, 0.5],
+          scale: [2, 1],
+        },
+      },
+    });
+  });
+
   it("reports unsupported required extensions and unresolved texture handles", () => {
     const report = createMaterialAssetFromGltfMaterial(
       {

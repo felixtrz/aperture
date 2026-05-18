@@ -277,7 +277,12 @@ function inspectTextureBinding(input: {
 
   if (
     input.binding.transform !== undefined &&
-    !isIdentityTextureTransform(input.binding.transform)
+    !isIdentityTextureTransform(input.binding.transform) &&
+    !isSupportedStandardTextureTransform({
+      field: input.expectation.field,
+      texCoord,
+      transform: input.binding.transform,
+    })
   ) {
     input.diagnostics.push({
       code: "standardMaterialTexture.unsupportedTextureTransform",
@@ -289,7 +294,7 @@ function inspectTextureBinding(input: {
       expectedSemantic: input.expectation.semantic,
       expectedColorSpaces: input.expectation.colorSpaces,
       textureTransform: cloneTextureTransform(input.binding.transform),
-      message: `StandardMaterial ${input.expectation.field} uses a texture transform, but StandardMaterial shaders do not support texture transforms yet.`,
+      message: `StandardMaterial ${input.expectation.field} uses a texture transform that is not supported by current StandardMaterial shaders.`,
     });
   }
 
@@ -502,6 +507,18 @@ function isIdentityTextureTransform(
     scale[0] === 1 &&
     scale[1] === 1 &&
     rotation === 0
+  );
+}
+
+function isSupportedStandardTextureTransform(input: {
+  readonly field: StandardMaterialTextureField;
+  readonly texCoord: number;
+  readonly transform: MaterialTextureTransform;
+}): boolean {
+  const rotation = input.transform.rotation ?? 0;
+
+  return (
+    input.field === "baseColorTexture" && input.texCoord === 0 && rotation === 0
   );
 }
 
