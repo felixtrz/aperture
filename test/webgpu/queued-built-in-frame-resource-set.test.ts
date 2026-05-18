@@ -2,11 +2,14 @@ import { describe, expect, it } from "vitest";
 
 import {
   createBoxMeshAsset,
+  createMatcapMaterialAsset,
   createMaterialHandle,
   createMeshHandle,
   createRenderSortKey,
+  createStandardMaterialAsset,
   createUnlitMaterialAsset,
   type BatchCompatibilityKey,
+  type MaterialAsset,
   type MeshDrawPacket,
 } from "@aperture-engine/core";
 import {
@@ -206,9 +209,152 @@ describe("queued built-in frame-resource set preparation", () => {
     expect(serializedSecond).not.toContain("gpu-material:first");
     expect(serializedSecond).not.toContain("bind-group:first");
   });
+
+  it("prepares mixed built-in frame-resource families through deterministic generic buckets", async () => {
+    const pipeline = fakePipeline();
+    const scratch = createQueuedBuiltInFrameResourceScratch();
+    const items = [
+      queuedItem({
+        family: "unlit",
+        meshId: "cube-a",
+        materialId: "white-a",
+        material: createUnlitMaterialAsset({ label: "White A" }),
+        pipelineKey: "unlit|opaque|back|less|none",
+        frameResources: {
+          valid: true,
+          resources: fakeFrameResources("unlit-a"),
+          diagnostics: [],
+        },
+      }),
+      queuedItem({
+        family: "unlit",
+        meshId: "cube-b",
+        materialId: "white-b",
+        material: createUnlitMaterialAsset({ label: "White B" }),
+        pipelineKey: "unlit|opaque|back|less|none",
+        frameResources: {
+          valid: true,
+          resources: fakeFrameResources("unlit-b"),
+          diagnostics: [],
+        },
+      }),
+      queuedItem({
+        family: "matcap",
+        meshId: "cube-c",
+        materialId: "matcap-preview",
+        material: createMatcapMaterialAsset({ label: "Matcap Preview" }),
+        pipelineKey: "matcap|opaque|back|less|none",
+        frameResources: {
+          valid: true,
+          resources: fakeFrameResources("matcap"),
+          diagnostics: [],
+        },
+      }),
+    ];
+    let pipelinePlanCalls = 0;
+    let frameResourceOptionsCalls = 0;
+
+    const result = await prepareQueuedBuiltInFrameResourceSet({
+      resourceSet: { items },
+      scratch,
+      viewUniforms: fakeFrameResources("view").viewUniform as never,
+      worldTransforms: fakeFrameResources("world").worldTransforms as never,
+      callbacks: {
+        getPipeline: () => pipeline,
+        getPipelineView: (value) => value,
+        createPipelinePlanResult: ({ item: routedItem, pipeline }) => {
+          pipelinePlanCalls += 1;
+
+          return {
+            family: routedItem.queueItem.materialFamily,
+            key: routedItem.draw.batchKey.pipelineKey,
+            pipeline: pipeline.resource?.pipeline,
+          };
+        },
+        getPipelineLayouts: ({ getBindGroupLayout }) => ({
+          sharedLayouts: [getBindGroupLayout(0)],
+        }),
+        prepareTextureSamplerDependencies: () => preparedDependencies(),
+        createFrameResourceOptions: ({ item: routedItem, layouts }) => {
+          frameResourceOptionsCalls += 1;
+
+          return {
+            item: routedItem,
+            layouts,
+          };
+        },
+      },
+    });
+
+    expect(result.valid).toBe(true);
+    expect(result.diagnostics).toEqual([]);
+    expect(pipelinePlanCalls).toBe(2);
+    expect(frameResourceOptionsCalls).toBe(3);
+    expect(result.pipelineResults).toEqual([
+      {
+        family: "unlit",
+        key: "unlit|opaque|back|less|none",
+        pipeline: pipeline.resource?.pipeline,
+      },
+      {
+        family: "matcap",
+        key: "matcap|opaque|back|less|none",
+        pipeline: pipeline.resource?.pipeline,
+      },
+    ]);
+    expect(result.resources?.byFamilySummary).toEqual([
+      { family: "matcap", itemCount: 1 },
+      { family: "unlit", itemCount: 2 },
+    ]);
+    expect(result.resources?.unlit).toHaveLength(2);
+    expect(result.resources?.matcap).toHaveLength(1);
+    expect(result.resources?.standard).toHaveLength(0);
+    expect(result.resources?.byFamily.byFamily.get("unlit")).toHaveLength(2);
+    expect(result.resources?.byFamily.byFamily.get("matcap")).toHaveLength(1);
+    expect(result.resources?.meshResources).toMatchObject([
+      { resourceKey: "gpu-mesh:unlit-a" },
+      { resourceKey: "gpu-mesh:unlit-b" },
+      { resourceKey: "gpu-mesh:matcap" },
+    ]);
+    expect(result.resources?.bindGroups).toMatchObject([
+      {
+        resourceKey: "bind-group:unlit-a|pipeline:unlit|opaque|back|less|none",
+      },
+      {
+        resourceKey: "bind-group:unlit-b|pipeline:unlit|opaque|back|less|none",
+      },
+      {
+        resourceKey: "bind-group:matcap|pipeline:matcap|opaque|back|less|none",
+      },
+    ]);
+    expect(result.meshResourceKeys.get("mesh:cube-a")).toBe("gpu-mesh:unlit-a");
+    expect(result.meshResourceKeys.get("mesh:cube-b")).toBe("gpu-mesh:unlit-b");
+    expect(result.meshResourceKeys.get("mesh:cube-c")).toBe("gpu-mesh:matcap");
+    expect(result.materialResourceKeys.get("material:white-a")).toBe(
+      "gpu-material:unlit-a",
+    );
+    expect(result.materialResourceKeys.get("material:white-b")).toBe(
+      "gpu-material:unlit-b",
+    );
+    expect(result.materialResourceKeys.get("material:matcap-preview")).toBe(
+      "gpu-material:matcap",
+    );
+
+    const serialized = JSON.stringify(result);
+
+    expect(serialized).not.toContain("rawGpuHandle");
+    expect(serialized).not.toContain("White A");
+    expect(serialized).not.toContain("White B");
+    expect(serialized).not.toContain("Matcap Preview");
+  });
 });
 
 function queuedItem(options: {
+  readonly family?: "unlit" | "matcap" | "standard";
+  readonly meshId?: string;
+  readonly materialId?: string;
+  readonly material?: MaterialAsset;
+  readonly pipelineKey?: string;
   readonly frameResources: {
     readonly valid: boolean;
     readonly resources: UnlitFrameGpuResources | null;
@@ -234,12 +380,18 @@ function queuedItem(options: {
   });
   const item = createSingleQueuedBuiltInAppResourceItem({
     adapters,
-    draw: drawPacket(),
+    draw: drawPacket({
+      meshId: options.meshId,
+      pipelineKey: options.pipelineKey,
+      materialId: options.materialId,
+    }),
     drawIndex: 0,
     mesh: createBoxMeshAsset({ label: "Cube" }),
-    meshKey: "mesh:cube@1",
-    material: createUnlitMaterialAsset({ label: "White" }),
-    materialKey: "material:white@1",
+    meshKey: `mesh:${options.meshId ?? "cube"}@1`,
+    material:
+      options.material ??
+      createMaterialAssetForFamily(options.family ?? "unlit", "White"),
+    materialKey: `material:${options.materialId ?? "white"}@1`,
     materialVersion: 1,
     frame: 4,
   });
@@ -249,6 +401,20 @@ function queuedItem(options: {
   }
 
   return item;
+}
+
+function createMaterialAssetForFamily(
+  family: "unlit" | "matcap" | "standard",
+  label: string,
+): MaterialAsset {
+  switch (family) {
+    case "unlit":
+      return createUnlitMaterialAsset({ label });
+    case "matcap":
+      return createMatcapMaterialAsset({ label });
+    case "standard":
+      return createStandardMaterialAsset({ label });
+  }
 }
 
 function preparedDependencies() {
@@ -339,16 +505,22 @@ function fakeFrameResources(suffix = "cube"): UnlitFrameGpuResources {
   } as unknown as UnlitFrameGpuResources;
 }
 
-function drawPacket(): MeshDrawPacket {
-  const pipelineKey = "unlit|opaque|back|less|none";
-  const materialKey = "material:white";
-  const meshKey = "mesh:cube";
+function drawPacket(
+  options: {
+    readonly meshId?: string | undefined;
+    readonly pipelineKey?: string | undefined;
+    readonly materialId?: string | undefined;
+  } = {},
+): MeshDrawPacket {
+  const pipelineKey = options.pipelineKey ?? "unlit|opaque|back|less|none";
+  const materialKey = `material:${options.materialId ?? "white"}`;
+  const meshKey = `mesh:${options.meshId ?? "cube"}`;
 
   return {
     renderId: 1,
     entity: { index: 1, generation: 1 },
-    mesh: createMeshHandle("cube"),
-    material: createMaterialHandle("white"),
+    mesh: createMeshHandle(options.meshId ?? "cube"),
+    material: createMaterialHandle(options.materialId ?? "white"),
     submesh: 0,
     materialSlot: 0,
     worldTransformOffset: 0,

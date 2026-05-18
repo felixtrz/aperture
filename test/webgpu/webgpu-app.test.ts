@@ -1988,6 +1988,56 @@ describe("WebGPU app facade", () => {
         },
       ],
     });
+    expectNoMaterialQueueRouteReport(frame);
+    expectNoFrameResourceRouteDiagnostic(frame);
+    expect(
+      webGpuAppRenderReportToJsonValue(frame).diagnosticsSummary,
+    ).toMatchObject({
+      sectionCount: 2,
+      materialQueue: {
+        itemCount: 2,
+        byPhase: [{ phase: "opaque", itemCount: 2 }],
+        byFamily: [
+          { family: "matcap", itemCount: 1 },
+          { family: "unlit", itemCount: 1 },
+        ],
+        byPhaseAndFamily: [
+          { phase: "opaque", family: "matcap", itemCount: 1 },
+          { phase: "opaque", family: "unlit", itemCount: 1 },
+        ],
+      },
+      routedResourceSet: {
+        itemCount: 2,
+        byFamily: [
+          { family: "matcap", itemCount: 1 },
+          { family: "unlit", itemCount: 1 },
+        ],
+        byPipeline: [
+          {
+            pipelineKey: "matcap|matcapTexture|opaque|back|less|none",
+            itemCount: 1,
+          },
+          { pipelineKey: "unlit|opaque|back|less|none", itemCount: 1 },
+        ],
+        byFamilyAndPipeline: [
+          {
+            family: "matcap",
+            pipelineKey: "matcap|matcapTexture|opaque|back|less|none",
+            itemCount: 1,
+          },
+          {
+            family: "unlit",
+            pipelineKey: "unlit|opaque|back|less|none",
+            itemCount: 1,
+          },
+        ],
+      },
+    });
+    expect(
+      JSON.stringify(
+        webGpuAppRenderReportToJsonValue(frame).diagnosticsSummary,
+      ),
+    ).not.toMatch(/GPU|Mixed Unlit|Mixed Matcap|MixedMaterialCube/);
     expect(frame.resourceReuse).toMatchObject({
       pipelineMisses: 2,
       textureResourcesCreated: 1,
@@ -2807,6 +2857,74 @@ describe("WebGPU app facade", () => {
     });
     expectNoMaterialQueueRouteReport(frame);
     expectNoFrameResourceRouteDiagnostic(frame);
+    expect(
+      webGpuAppRenderReportToJsonValue(frame).diagnosticsSummary,
+    ).toMatchObject({
+      sectionCount: 3,
+      materialQueue: {
+        itemCount: 3,
+        byPhase: [{ phase: "opaque", itemCount: 3 }],
+        byFamily: [
+          { family: "matcap", itemCount: 1 },
+          { family: "standard", itemCount: 1 },
+          { family: "unlit", itemCount: 1 },
+        ],
+        byPhaseAndFamily: [
+          { phase: "opaque", family: "matcap", itemCount: 1 },
+          { phase: "opaque", family: "standard", itemCount: 1 },
+          { phase: "opaque", family: "unlit", itemCount: 1 },
+        ],
+      },
+      routedResourceSet: {
+        itemCount: 3,
+        byFamily: [
+          { family: "matcap", itemCount: 1 },
+          { family: "standard", itemCount: 1 },
+          { family: "unlit", itemCount: 1 },
+        ],
+        byPipeline: [
+          {
+            pipelineKey: "matcap|matcapTexture|opaque|back|less|none",
+            itemCount: 1,
+          },
+          { pipelineKey: "standard|opaque|back|less|none", itemCount: 1 },
+          { pipelineKey: "unlit|opaque|back|less|none", itemCount: 1 },
+        ],
+        byFamilyAndPipeline: [
+          {
+            family: "matcap",
+            pipelineKey: "matcap|matcapTexture|opaque|back|less|none",
+            itemCount: 1,
+          },
+          {
+            family: "standard",
+            pipelineKey: "standard|opaque|back|less|none",
+            itemCount: 1,
+          },
+          {
+            family: "unlit",
+            pipelineKey: "unlit|opaque|back|less|none",
+            itemCount: 1,
+          },
+        ],
+      },
+      directLighting: {
+        ready: true,
+        resources: {
+          lightGpuBufferResourceKey: "light-buffer:main",
+          lightBindGroupLayoutKey: "webgpu-app/standard/group-3",
+          lightBindGroupResourceKey:
+            "bind-group:lights/group-3/light-buffer:main",
+        },
+      },
+    });
+    expect(
+      JSON.stringify(
+        webGpuAppRenderReportToJsonValue(frame).diagnosticsSummary,
+      ),
+    ).not.toMatch(
+      /GPUBuffer|GPUTexture|Three Family Unlit|Three Family Standard|Three Family Matcap|ThreeFamilyCube/,
+    );
     expect(frame.resourceReuse).toMatchObject({
       pipelineMisses: 3,
       meshBuffersCreated: 1,

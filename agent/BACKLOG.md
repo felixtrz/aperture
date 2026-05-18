@@ -59,10 +59,10 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start with `task-1336`. `task-1333` pinned the generic frame-resource
-dependency-failure route/prepared-resource contract, `task-1334` audited it, and
-`task-1335` aligned the tracker/backlog. The next step should plan the next
-material route or glTF fidelity slice.
+Start with `task-1351`. `task-1348` pinned app-level three-family built-in
+material queue and routed resource summaries, `task-1349` audited it, and
+`task-1350` aligned the tracker/backlog. The next step should plan the next
+route or glTF fidelity slice after that app-facing coverage.
 
 ## Near-Term Proof Point Track
 
@@ -79,11 +79,11 @@ Target proof point:
 
 Remaining automation priority order:
 
-1. `task-1336` — plan the next material route or glTF fidelity slice after alignment.
-2. `task-1337` — audit the next material route or glTF fidelity plan.
-3. `task-1338` — add the selected material route or glTF fidelity follow-up.
-4. `task-1339` — audit the selected follow-up implementation.
-5. `task-1340` — audit tracker/backlog alignment after the selected follow-up.
+1. `task-1351` — plan next route or glTF fidelity slice after three-family route summaries.
+2. `task-1352` — audit the next route or glTF fidelity plan.
+3. `task-1353` — add the selected route or glTF fidelity follow-up.
+4. `task-1354` — audit the selected route or glTF fidelity follow-up.
+5. `task-1355` — audit tracker/backlog alignment after the selected follow-up.
 
 Defer allocation-only cleanup and metadata-only shader-contract tasks unless
 they are a direct blocker for this track.
@@ -149,13 +149,13 @@ viewer/material mapping should not outrun the material and queue architecture.
 
 ### Proof Point Critical Path
 
-### task-1336 — Plan next material route or glTF fidelity slice after alignment
+### task-1351 — Plan next route or glTF fidelity slice after three-family route summaries
 
 Category: `docs-tooling`
 Package/write-scope: `docs/research` and backlog only.
 Reference anchor:
 `docs/MEDIUM_LONG_TERM_GOALS.md`, `docs/ARCHITECTURE.md`,
-`docs/DECISIONS.md`, and the latest completed route/glTF diagnostic audits.
+`docs/DECISIONS.md`, and the latest three-family route/glTF diagnostic audits.
 
 Acceptance criteria:
 
@@ -165,13 +165,13 @@ Acceptance criteria:
   reference anchor, and acceptance criteria.
 - Keep the selected task to one focused run.
 
-### task-1337 — Audit next material route or glTF fidelity plan
+### task-1352 — Audit next route or glTF fidelity plan
 
 Category: `audit-refactor`
 Package/write-scope: `docs/research`, targeted tests only if a tiny corrective
 fix is required.
 Reference anchor:
-the plan from `task-1336`, `docs/ARCHITECTURE.md`,
+the plan from `task-1351`, `docs/ARCHITECTURE.md`,
 `docs/MEDIUM_LONG_TERM_GOALS.md`, and recent route/glTF diagnostic audits.
 
 Acceptance criteria:
@@ -181,32 +181,32 @@ Acceptance criteria:
   and WebGPU-only backend ownership.
 - Recommend whether to implement the selected follow-up or adjust the backlog.
 
-### task-1338 — Add selected material route or glTF fidelity follow-up
+### task-1353 — Add selected route or glTF fidelity follow-up
 
 Category: `render-bridge`
-Package/write-scope: to be narrowed by `task-1336`; expected to stay within
+Package/write-scope: to be narrowed by `task-1351`; expected to stay within
 `examples/standard-gltf-texture.js`, `test/e2e/standard-gltf-texture.spec.ts`,
 `test/webgpu`, or a tiny `packages/render`/`packages/webgpu` diagnostic bridge.
 Reference anchor:
-the plan from `task-1336`, `docs/MEDIUM_LONG_TERM_GOALS.md`,
+the plan from `task-1351`, `docs/MEDIUM_LONG_TERM_GOALS.md`,
 `docs/ARCHITECTURE.md`, and the selected local implementation/test files.
 
 Acceptance criteria:
 
-- Implement only the follow-up selected by `task-1336`.
+- Implement only the follow-up selected by `task-1351`.
 - Add or update targeted validation for the changed behavior.
 - Keep app-level non-built-in rendering, binary GLB loading, IBL, shadows, and
   GLB viewer behavior deferred unless explicitly selected as a narrow
   prerequisite.
 
-### task-1339 — Audit selected follow-up implementation
+### task-1354 — Audit selected route or glTF fidelity follow-up
 
 Category: `audit-refactor`
 Package/write-scope: `docs/research`, targeted tests only if a tiny corrective
 fix is required.
 Reference anchor:
-the implementation from `task-1338`, the plan/audit from `task-1336` and
-`task-1337`, `docs/ARCHITECTURE.md`, and `docs/MEDIUM_LONG_TERM_GOALS.md`.
+the implementation from `task-1353`, the plan/audit from `task-1351` and
+`task-1352`, `docs/ARCHITECTURE.md`, and `docs/MEDIUM_LONG_TERM_GOALS.md`.
 
 Acceptance criteria:
 
@@ -215,14 +215,14 @@ Acceptance criteria:
   diagnostics, and WebGPU-only backend ownership.
 - Recommend the next tracker/backlog or implementation follow-up.
 
-### task-1340 — Audit tracker/backlog alignment after selected follow-up
+### task-1355 — Audit tracker/backlog alignment after selected follow-up
 
 Category: `audit-refactor`
 Package/write-scope: `docs/research`, `agent/BACKLOG.md`, `docs/index.html`,
 and `docs/render-pipeline-comparison.html`.
 Reference anchor:
 `docs/NORTH_STAR.md`, `docs/MEDIUM_LONG_TERM_GOALS.md`,
-`docs/ARCHITECTURE.md`, and the `task-1338`/`task-1339` results.
+`docs/ARCHITECTURE.md`, and the `task-1353`/`task-1354` results.
 
 Acceptance criteria:
 

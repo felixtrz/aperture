@@ -393,23 +393,25 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-18 03:18 PDT</dd>
+            <dd>2026-05-18 04:20 PDT</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
-              Route summary determinism is pinned; app-level non-built-in
-              material routing remains deferred until material-family route
-              family keys are registry-driven at the queue boundary,
-              unregistered route keys report grouped JSON diagnostics without
-              fallback, and multiple optional glTF material extensions render
-              with warnings; invalid glTF material scalar factors fail before
-              registration with JSON-safe field/value status, invalid glTF
-              texture scalar fields do the same, and invalid vector/color
-              factors now follow the same no-draw path
+              Route summary determinism is pinned, the built-in frame-resource
+              wrapper now has mixed-family route regression coverage over the
+              generic collector, app-level mixed built-in routes now assert
+              JSON-safe material queue and routed resource summaries for
+              two-family and three-family paths, and app-level non-built-in
+              material routing remains deferred. Recent glTF invalid-source
+              browser diagnostics preserve JSON-safe field/value status and
+              create no draw work.
             </dd>
             <dt>Next focus</dt>
-            <dd>Plan next material route or glTF fidelity slice</dd>
+            <dd>
+              Plan next route or glTF fidelity slice after three-family route
+              summaries
+            </dd>
           </dl>
         </aside>
       </header>
@@ -454,7 +456,11 @@
               surface in app render report JSON, app diagnostics now consume
               generic bucket family summaries under the stable
               <code>routedResourceSet</code> field, and a test-only non-built-in
-              adapter spike exercises the generic route spine. Richer app-level
+              adapter spike exercises the generic route spine. Mixed built-in
+              frame-resource routes now pin deterministic generic buckets and
+              pipeline-scoped bind groups, and app-level mixed built-in routes
+              now pin JSON-safe material queue and routed resource summaries for
+              two-family and three-family successful paths. Richer app-level
               adapter routing, passes, and resource lifetime policy remain.
             </p>
           </article>
@@ -712,7 +718,11 @@
               browser coverage now verifies <code>TEXCOORD_1</code> readiness,
               mesh layout, pipeline key, and selected pixel color. Generic
               frame-resource buckets now expose deterministic family summaries
-              for app diagnostics.
+              for app diagnostics, and mixed built-in frame-resource preparation
+              now pins deterministic family buckets and pipeline-scoped bind
+              group keys. App-level mixed built-in frames now expose JSON-safe
+              routed resource summaries for two-family and three-family
+              successful routes.
             </p>
             <ul>
               <li>
@@ -740,7 +750,12 @@
               collector now lives in a focused internal module and
               frame-resource set preparation is extracted with reusable scratch
               regression coverage, now runs through a generic collector
-              contract, and has test-only non-built-in adapter coverage.
+              contract, has test-only non-built-in adapter coverage, and now has
+              mixed built-in family regression coverage for duplicate pipeline
+              reuse and deterministic family buckets. App-level mixed built-in
+              route summaries now assert material queue and routed resource
+              family/pipeline counts on two-family and three-family successful
+              paths.
             </p>
             <ul>
               <li>
@@ -808,6 +823,68 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">task-1350</span> Audited tracker and
+                backlog alignment after three-family route summaries.
+              </li>
+              <li>
+                <span class="badge green">task-1349</span> Audited three-family
+                app route summary regression boundaries.
+              </li>
+              <li>
+                <span class="badge green">task-1348</span> Added three-family
+                app route summary regression coverage.
+              </li>
+              <li>
+                <span class="badge green">task-1347</span> Audited the
+                three-family app route summary plan.
+              </li>
+              <li>
+                <span class="badge green">task-1346</span> Planned the next
+                route or glTF fidelity slice after app-level mixed route
+                summaries.
+              </li>
+              <li>
+                <span class="badge green">task-1345</span> Audited tracker and
+                backlog alignment after app-level mixed route summaries.
+              </li>
+              <li>
+                <span class="badge green">task-1344</span> Audited app-level
+                mixed built-in route summary regression boundaries.
+              </li>
+              <li>
+                <span class="badge green">task-1343</span> Added app-level mixed
+                built-in route summary regression coverage.
+              </li>
+              <li>
+                <span class="badge green">task-1342</span> Audited the app-level
+                mixed built-in route summary plan.
+              </li>
+              <li>
+                <span class="badge green">task-1341</span> Planned the next
+                route or glTF fidelity slice after mixed built-in route
+                coverage.
+              </li>
+              <li>
+                <span class="badge green">task-1340</span> Audited tracker and
+                backlog alignment after the mixed built-in route regression.
+              </li>
+              <li>
+                <span class="badge green">task-1339</span> Audited mixed
+                built-in frame-resource route regression boundaries.
+              </li>
+              <li>
+                <span class="badge green">task-1338</span> Added mixed built-in
+                frame-resource route regression coverage.
+              </li>
+              <li>
+                <span class="badge green">task-1337</span> Audited the mixed
+                built-in frame-resource route plan.
+              </li>
+              <li>
+                <span class="badge green">task-1336</span> Planned the next
+                route or glTF fidelity slice after dependency-failure coverage.
+              </li>
               <li>
                 <span class="badge green">task-1182</span> Audited the test-only
                 adapter spike before real material-family work.

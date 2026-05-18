@@ -1,5 +1,111 @@
 # Handoff
 
+## Current Run Update — 2026-05-18T11:22:18Z
+
+Completed `task-1336` through `task-1350`. Recommended next task is
+`task-1351`.
+
+Highlights:
+
+- Planned the next route/glTF fidelity slice after the dependency-failure route
+  regression and selected a mixed built-in frame-resource route regression.
+- Audited the selected plan against ECS authority, render extraction, JSON-safe
+  diagnostics, and WebGPU backend ownership.
+- Added a mixed built-in frame-resource regression covering two unlit routes and
+  one matcap route through `prepareQueuedBuiltInFrameResourceSet`.
+- The regression pins duplicate pipeline-key reuse, per-item resource append,
+  deterministic `byFamilySummary`, family buckets, mesh/material resource key
+  maps, pipeline-scoped bind group keys, and JSON-safe serialization.
+- Audited the implementation and updated the public tracker/render pipeline
+  comparison for the mixed built-in route coverage.
+- Stop hook requested continuation before the run window elapsed, so continued
+  into the next planning group.
+- Planned, audited, implemented, and audited app-level mixed built-in route
+  summary coverage.
+- Extended the mixed unlit/matcap WebGPU app test to assert JSON-safe
+  `diagnosticsSummary.materialQueue` and
+  `diagnosticsSummary.routedResourceSet` family/pipeline counts on the
+  successful path.
+- Planned, audited, implemented, and audited three-family app route summary
+  coverage.
+- Extended the unlit/standard/matcap WebGPU app test to assert JSON-safe
+  material queue, routed resource, and ready direct-light summaries for all
+  built-in material families.
+- Fixed the stop-hook `typecheck:test` failure by making the new
+  `drawPacket` test-helper options accept explicit `undefined` under
+  `exactOptionalPropertyTypes`.
+- Updated the public tracker/render pipeline comparison again for the app-level
+  mixed route summary coverage and then for three-family route summary coverage.
+- Refilled the ready backlog with `task-1351` through `task-1355`.
+
+Reference anchors inspected:
+
+- `docs/NORTH_STAR.md`
+- `docs/MEDIUM_LONG_TERM_GOALS.md`
+- `docs/ARCHITECTURE.md`
+- `docs/DECISIONS.md`
+- `docs/research/DEPENDENCY_FAILURE_ROUTE_PREPARED_RESOURCE_REGRESSION_AUDIT_2026_05_18.md`
+- `packages/webgpu/src/webgpu/queued-material-frame-resource-set.ts`
+- `packages/webgpu/src/webgpu/queued-built-in-frame-resource-set.ts`
+- `packages/webgpu/src/webgpu/queued-built-in-app-resource-set.ts`
+- `packages/webgpu/src/webgpu/app.ts`
+- `packages/webgpu/src/webgpu/queued-built-in-resource-set-summary.ts`
+- `test/webgpu/queued-material-frame-resource-set.test.ts`
+- `test/webgpu/queued-built-in-frame-resource-set.test.ts`
+- `test/webgpu/webgpu-app.test.ts`
+- `references/engine/src/scene/frame-graph.js`
+- `references/engine/src/scene/layer.js`
+- `references/three.js/src/renderers/common/Bindings.js`
+- `references/three.js/src/renderers/common/Pipeline.js`
+- `references/three.js/src/renderers/webgl-fallback/WebGLBackend.js`
+
+Files touched:
+
+- `agent/BACKLOG.md`
+- `agent/COMPLETED.md`
+- `agent/HANDOFF.md`
+- `agent/STATUS.json`
+- `docs/index.html`
+- `docs/render-pipeline-comparison.html`
+- `docs/research/NEXT_ROUTE_OR_GLTF_FIDELITY_AFTER_DEPENDENCY_FAILURE_PLAN_2026_05_18.md`
+- `docs/research/MIXED_BUILT_IN_FRAME_RESOURCE_ROUTE_PLAN_AUDIT_2026_05_18.md`
+- `docs/research/MIXED_BUILT_IN_FRAME_RESOURCE_ROUTE_REGRESSION_AUDIT_2026_05_18.md`
+- `docs/research/TRACKER_BACKLOG_ALIGNMENT_AFTER_MIXED_BUILT_IN_ROUTE_REGRESSION_AUDIT_2026_05_18.md`
+- `docs/research/NEXT_ROUTE_OR_GLTF_FIDELITY_AFTER_MIXED_BUILT_IN_ROUTE_PLAN_2026_05_18.md`
+- `docs/research/APP_LEVEL_MIXED_BUILT_IN_ROUTE_SUMMARY_PLAN_AUDIT_2026_05_18.md`
+- `docs/research/APP_LEVEL_MIXED_BUILT_IN_ROUTE_SUMMARY_REGRESSION_AUDIT_2026_05_18.md`
+- `docs/research/TRACKER_BACKLOG_ALIGNMENT_AFTER_APP_LEVEL_MIXED_ROUTE_SUMMARY_AUDIT_2026_05_18.md`
+- `docs/research/NEXT_ROUTE_OR_GLTF_FIDELITY_AFTER_APP_LEVEL_MIXED_ROUTE_SUMMARY_PLAN_2026_05_18.md`
+- `docs/research/THREE_FAMILY_APP_ROUTE_SUMMARY_PLAN_AUDIT_2026_05_18.md`
+- `docs/research/THREE_FAMILY_APP_ROUTE_SUMMARY_REGRESSION_AUDIT_2026_05_18.md`
+- `docs/research/TRACKER_BACKLOG_ALIGNMENT_AFTER_THREE_FAMILY_ROUTE_SUMMARY_AUDIT_2026_05_18.md`
+- `test/webgpu/queued-built-in-frame-resource-set.test.ts`
+- `test/webgpu/webgpu-app.test.ts`
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/queued-built-in-frame-resource-set.test.ts`
+- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts -t "renders mixed unlit and matcap app resource sets"`
+- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts -t "reuses unlit, standard, and matcap app resource cache slots"`
+- `pnpm run typecheck:test`
+- `pnpm run check:progress`
+- `pnpm exec prettier --check ...touched files...`
+- `git diff --check`
+- `pnpm run build`
+- `pnpm test`
+- `pnpm run lint`
+
+Known issues / follow-ups:
+
+- Start `task-1351`: plan the next route or glTF fidelity slice after
+  three-family route summary coverage. The next planning slice should give
+  serious weight to returning to StandardMaterial/glTF fidelity diagnostics now
+  that two-family and three-family successful route summaries are pinned.
+- Real app-level non-built-in material adapter routing remains deferred until a
+  source asset and prepared-resource adapter contract are selected.
+- Binary GLB loading, IBL, shadows, GLB viewer behavior, richer physical
+  material extension support, and full PBR resources remain deferred.
+
 ## Current Run Update — 2026-05-18T10:57:46Z
 
 Completed `task-1323` through `task-1335`. Recommended next task is

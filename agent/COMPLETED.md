@@ -1,5 +1,260 @@
 # Completed Tasks
 
+## task-1350 — Tracker/backlog alignment after three-family route summaries
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/TRACKER_BACKLOG_ALIGNMENT_AFTER_THREE_FAMILY_ROUTE_SUMMARY_AUDIT_2026_05_18.md`.
+- Updated the public tracker and render pipeline comparison for three-family
+  app-level built-in material queue and routed resource summary coverage.
+- Refilled the ready queue with `task-1351` through `task-1355`.
+
+Validation run:
+
+- `pnpm run check:progress`
+
+## task-1349 — Three-family app route summary regression audit
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/THREE_FAMILY_APP_ROUTE_SUMMARY_REGRESSION_AUDIT_2026_05_18.md`.
+- Confirmed the three-family app route summary regression pins successful-path
+  `materialQueue`, `routedResourceSet`, and ready `directLighting` diagnostics
+  for unlit, matcap, and standard routes.
+- Confirmed no source asset schema, ECS component, extraction, shader, WebGPU
+  upload, draw submission, or public API shape changed.
+
+Validation run:
+
+- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts -t "reuses unlit, standard, and matcap app resource cache slots"`
+
+## task-1348 — Three-family app route summary regression
+
+Completed: 2026-05-18
+
+Summary:
+
+- Extended the existing unlit/standard/matcap WebGPU app test with JSON
+  diagnostics summary assertions.
+- Pinned deterministic `materialQueue` and `routedResourceSet` family,
+  pipeline, and family/pipeline counts for all built-in material families.
+- Asserted the mixed StandardMaterial direct-light summary remains present and
+  ready on the successful path.
+
+Validation run:
+
+- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts -t "reuses unlit, standard, and matcap app resource cache slots"`
+
+## task-1347 — Three-family app route summary plan audit
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/THREE_FAMILY_APP_ROUTE_SUMMARY_PLAN_AUDIT_2026_05_18.md`.
+- Confirmed the selected three-family app route summary regression is concrete
+  enough for one run and preserves ECS authority, render extraction, JSON-safe
+  diagnostics, and WebGPU backend ownership.
+
+Validation run:
+
+- Documentation-only audit; covered by final formatting and diff checks.
+
+## task-1346 — Next route or glTF fidelity plan after app-level mixed summaries
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/NEXT_ROUTE_OR_GLTF_FIDELITY_AFTER_APP_LEVEL_MIXED_ROUTE_SUMMARY_PLAN_2026_05_18.md`.
+- Compared a three-family app route summary candidate, a StandardMaterial/glTF
+  fidelity candidate, and a diagnostics/tooling candidate.
+- Selected the three-family app route summary regression as the next focused
+  follow-up.
+
+Validation run:
+
+- Documentation-only planning slice; covered by final formatting and diff
+  checks.
+
+## task-1345 — Tracker/backlog alignment after app-level mixed route summaries
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/TRACKER_BACKLOG_ALIGNMENT_AFTER_APP_LEVEL_MIXED_ROUTE_SUMMARY_AUDIT_2026_05_18.md`.
+- Updated the public tracker and render pipeline comparison for app-level mixed
+  built-in material queue and routed resource summary coverage.
+- Refilled the ready queue with `task-1346` through `task-1350`.
+
+Validation run:
+
+- `pnpm run check:progress`
+
+## task-1344 — App-level mixed built-in route summary regression audit
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/APP_LEVEL_MIXED_BUILT_IN_ROUTE_SUMMARY_REGRESSION_AUDIT_2026_05_18.md`.
+- Confirmed the app-level mixed unlit/matcap route summary regression pins
+  successful-path `materialQueue` and `routedResourceSet` family/pipeline
+  counts without raw GPU handles or source asset labels.
+- Confirmed no source asset schema, ECS component, extraction, shader, WebGPU
+  upload, draw submission, or public API shape changed.
+
+Validation run:
+
+- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts -t "renders mixed unlit and matcap app resource sets"`
+
+## task-1343 — App-level mixed built-in route summary regression
+
+Completed: 2026-05-18
+
+Summary:
+
+- Extended the existing mixed unlit/matcap WebGPU app test with JSON diagnostics
+  summary assertions.
+- Pinned deterministic `materialQueue` and `routedResourceSet` phase, family,
+  pipeline, and family/pipeline counts for successful mixed built-in routes.
+- Asserted successful mixed route summaries omit raw GPU handles, source asset
+  payload labels, and route failure diagnostics.
+
+Validation run:
+
+- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts -t "renders mixed unlit and matcap app resource sets"`
+
+## task-1342 — App-level mixed built-in route summary plan audit
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/APP_LEVEL_MIXED_BUILT_IN_ROUTE_SUMMARY_PLAN_AUDIT_2026_05_18.md`.
+- Confirmed the selected app-level mixed built-in summary regression is concrete
+  enough for one run and preserves ECS authority, render extraction, JSON-safe
+  diagnostics, and WebGPU backend ownership.
+
+Validation run:
+
+- Documentation-only audit; covered by final formatting and diff checks.
+
+## task-1341 — Next route or glTF fidelity plan after mixed built-in route
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/NEXT_ROUTE_OR_GLTF_FIDELITY_AFTER_MIXED_BUILT_IN_ROUTE_PLAN_2026_05_18.md`.
+- Compared an app-level mixed built-in route summary candidate, a
+  StandardMaterial/glTF fidelity candidate, and a diagnostics/tooling candidate.
+- Selected the app-level mixed built-in route summary regression as the next
+  focused follow-up.
+
+Validation run:
+
+- Documentation-only planning slice; covered by final formatting and diff
+  checks.
+
+## task-1340 — Tracker/backlog alignment after mixed built-in route regression
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/TRACKER_BACKLOG_ALIGNMENT_AFTER_MIXED_BUILT_IN_ROUTE_REGRESSION_AUDIT_2026_05_18.md`.
+- Updated the public tracker and render pipeline comparison for mixed built-in
+  frame-resource route regression coverage over the generic collector.
+- Refilled the ready queue with `task-1341` through `task-1345`.
+
+Validation run:
+
+- `pnpm run check:progress`
+
+## task-1339 — Mixed built-in frame-resource route regression audit
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/MIXED_BUILT_IN_FRAME_RESOURCE_ROUTE_REGRESSION_AUDIT_2026_05_18.md`.
+- Confirmed the regression pins mixed built-in families, duplicate pipeline-key
+  reuse, deterministic family buckets, source-to-prepared key maps, and
+  pipeline-scoped bind group keys.
+- Confirmed no ECS, source asset schema, render extraction, shader, GPU upload,
+  draw submission, or app-level non-built-in route behavior changed.
+
+Validation run:
+
+- `pnpm exec vitest run test/webgpu/queued-built-in-frame-resource-set.test.ts`
+
+## task-1338 — Mixed built-in frame-resource route regression
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added mixed built-in `unlit` and `matcap` frame-resource coverage in
+  `test/webgpu/queued-built-in-frame-resource-set.test.ts`.
+- Verified duplicate unlit pipeline keys create one pipeline plan while each
+  routed item still appends resources.
+- Verified deterministic `byFamilySummary`, family buckets, mesh/material
+  resource key maps, pipeline-scoped bind group keys, and JSON-safe output.
+
+Validation run:
+
+- `pnpm exec vitest run test/webgpu/queued-built-in-frame-resource-set.test.ts`
+
+## task-1337 — Mixed built-in frame-resource route plan audit
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/MIXED_BUILT_IN_FRAME_RESOURCE_ROUTE_PLAN_AUDIT_2026_05_18.md`.
+- Confirmed the selected mixed built-in frame-resource regression is concrete
+  enough for one run and preserves ECS authority, render extraction, JSON-safe
+  diagnostics, and WebGPU backend ownership.
+
+Validation run:
+
+- Documentation-only audit; covered by final formatting and diff checks.
+
+## task-1336 — Next route or glTF fidelity plan after dependency failure
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/NEXT_ROUTE_OR_GLTF_FIDELITY_AFTER_DEPENDENCY_FAILURE_PLAN_2026_05_18.md`.
+- Compared a route/prepared-resource candidate, a StandardMaterial/glTF fidelity
+  candidate, and a diagnostics/tooling candidate.
+- Selected the mixed built-in frame-resource route regression as the next
+  focused follow-up.
+
+Validation run:
+
+- Documentation-only planning slice; covered by final formatting and diff
+  checks.
+
 ## task-1281 — Tracker and backlog alignment after route summary sorting
 
 Completed: 2026-05-18
