@@ -59,20 +59,11 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start with `task-1206`. The latest run completed the generic material route
-helper/test/audit cadence through built-in wrapper compatibility, real material
-family migration criteria, route cleanup criteria, and a route-criteria fixture.
-It then implemented the selected StandardMaterial metallic-roughness texture
-transform slice: glTF/readiness diagnostics now accept metallic-roughness
-texture transforms on `TEXCOORD_0`, the StandardMaterial uniform layout packs
-the transform with 16-byte-aligned padding, WGSL applies the transform before
-metallic-roughness sampling, and the GLB-shaped browser fixture now renders the
-scenario instead of treating it as unsupported. The implementation audit
-confirmed the slice stayed narrow, caught and documented the 128-byte uniform
-alignment fix, and recommended planning the lighting boundary before shadows or
-broader GLB viewer work. The lighting plan and audit select a direct-light
-readiness diagnostics report as the next implementation boundary, not IBL or
-shadows.
+Start with `task-1222`. The latest run implemented direct-light readiness
+diagnostics, completed finite `KHR_texture_transform` support on `TEXCOORD_0`
+for the currently rendered StandardMaterial texture slots, added a transformed
+texture app resource reuse regression, implemented transformed `TEXCOORD_1`
+support, and audited the UV1 boundary.
 
 ## Near-Term Proof Point Track
 
@@ -89,13 +80,11 @@ Target proof point:
 
 Remaining automation priority order:
 
-1. `task-1206` — add direct-light readiness diagnostics report.
-2. `task-1207` — audit direct-light readiness diagnostics report.
-3. `task-1203` — plan follow-up StandardMaterial texture transform coverage.
-4. `task-1204` — implement the next audited StandardMaterial texture transform
-   slice if `task-1203` selects one.
-5. `task-1205` — audit the next audited StandardMaterial texture transform
-   slice if `task-1204` lands.
+1. `task-1222` — plan next StandardMaterial sampler/color-space or route slice.
+2. `task-1223` — audit prepared-resource lifetime pressure after UV1.
+3. `task-1224` — plan the next lighting-boundary readiness contract.
+4. `task-1225` — implement selected sampler/color-space or route slice.
+5. `task-1226` — audit selected sampler/color-space or route slice.
 
 Defer allocation-only cleanup and metadata-only shader-contract tasks unless
 they are a direct blocker for this track.
@@ -161,96 +150,88 @@ viewer/material mapping should not outrun the material and queue architecture.
 
 ### Proof Point Critical Path
 
-### task-1206 — Add direct-light readiness diagnostics report
-
-Category: `webgpu-render`
-Package/write-scope: `packages/webgpu`, targeted tests, and examples only if a
-small status hook is needed.
-Reference anchor:
-the plan from `task-1201`, the audit from `task-1202`,
-`packages/webgpu/src/webgpu/light-packing.ts`, and
-`packages/webgpu/src/webgpu/light-shader-metadata.ts`.
-
-Acceptance criteria:
-
-- Add a JSON-safe direct-light readiness report for StandardMaterial/WebGPU app
-  status.
-- Include light counts by kind and readiness of light buffers, light bind group
-  layout, light bind group, and shader metadata.
-- Keep the helper derived from render snapshots/WebGPU resources rather than
-  ECS-owned or mutable renderer-owned light objects.
-- Add focused tests for populated and missing-resource cases.
-- Do not add IBL, shadow-map rendering, clustered lighting, or a new public
-  scene object.
-
-### task-1207 — Audit direct-light readiness diagnostics report
-
-Category: `audit-refactor`
-Package/write-scope: `docs/research`, targeted tests only if a tiny corrective
-fix is needed.
-Reference anchor:
-the implementation from `task-1206`,
-`docs/research/NEXT_LIGHTING_BOUNDARY_PLAN_AUDIT_2026_05_18.md`, and
-`docs/ARCHITECTURE.md`.
-
-Acceptance criteria:
-
-- Confirm the report stays JSON-safe and does not expose raw GPU resources.
-- Confirm the report derives from render snapshot/WebGPU readiness state, not
-  mutable ECS or scene-graph state.
-- Confirm IBL, shadows, clustered lighting, and render graph work remain
-  deferred.
-- Recommend whether the next task should stay in lighting diagnostics or return
-  to StandardMaterial texture fidelity.
-
-### task-1203 — Plan follow-up StandardMaterial texture transform coverage
+### task-1222 — Plan next StandardMaterial sampler/color-space or route slice
 
 Category: `docs-tooling`
-Package/write-scope: `docs/research` and backlog only if adding a follow-up
-implementation task.
+Package/write-scope: `docs/research` and backlog only.
 Reference anchor:
-the audit from `task-1200`,
-`docs/research/NEXT_STANDARD_MATERIAL_PBR_FIDELITY_SLICE_PLAN_2026_05_18.md`,
-and existing StandardMaterial transform tests.
+`docs/MEDIUM_LONG_TERM_GOALS.md`, the transformed UV1 audit from `task-1221`,
+and StandardMaterial texture/sampler diagnostics docs.
 
 Acceptance criteria:
 
-- Identify the next texture transform slot or transform field only after the
-  metallic-roughness slice is audited.
-- Keep unsupported diagnostics honest for deferred slots.
-- Add a concrete implementation task only if it can be validated narrowly.
+- Choose one narrow next slice: sampler behavior, color-space diagnostics, or a
+  route/prepared-resource cleanup.
+- Define a 30-60 minute implementation or audit task with package/write scope.
+- Keep IBL, shadows, binary GLB loading, and broad material rewrites deferred
+  unless explicitly selected.
 
-### task-1204 — Implement next audited StandardMaterial texture transform slice
+### task-1223 — Audit prepared-resource lifetime pressure after UV1
 
-Category: `webgpu-render`
-Package/write-scope: `packages/render`, `packages/webgpu`, examples, and
-targeted tests selected by `task-1203`.
+Category: `audit-refactor`
+Package/write-scope: `docs/research`, `packages/webgpu` only if a tiny
+corrective test is needed.
 Reference anchor:
-the plan from `task-1203`, `docs/MEDIUM_LONG_TERM_GOALS.md`, and existing
-StandardMaterial transform tests.
+`docs/ARCHITECTURE.md`, `packages/webgpu/src/webgpu/prepared-standard-material-cache.ts`,
+and recent route/prepared-resource audits.
 
 Acceptance criteria:
 
-- Implement only the transform slot or field selected by `task-1203`.
-- Preserve unsupported diagnostics for deferred transform cases.
-- Add focused unit and/or browser coverage, including WebGPU validation guards
-  if the slice reaches the browser path.
+- Check whether transformed UV1 increased cache invalidation, bind group, or
+  diagnostics pressure.
+- Confirm prepared resources remain WebGPU-owned and source assets remain
+  renderer-independent.
+- Recommend one concrete cleanup only if there is observable pressure.
 
-### task-1205 — Audit next StandardMaterial texture transform implementation
+### task-1224 — Plan lighting-boundary readiness contract
+
+Category: `docs-tooling`
+Package/write-scope: `docs/research` and backlog only.
+Reference anchor:
+`docs/MEDIUM_LONG_TERM_GOALS.md`, direct-light readiness diagnostics, and
+environment resource planning docs.
+
+Acceptance criteria:
+
+- Decide whether the next lighting task should target IBL readiness,
+  environment-map resource diagnostics, or direct-light contract cleanup.
+- Define one concrete implementation or audit task with 30-60 minute scope.
+- Keep shadows and binary GLB viewer integration deferred unless explicitly
+  selected.
+
+### task-1225 — Implement selected sampler/color-space or route slice
+
+Category: `render-bridge`
+Package/write-scope: selected by `task-1222`, expected `packages/render` and
+targeted tests unless the plan selects a WebGPU route cleanup.
+Reference anchor:
+the plan from `task-1222`, `docs/MEDIUM_LONG_TERM_GOALS.md`, and relevant
+StandardMaterial texture/sampler diagnostics docs.
+
+Acceptance criteria:
+
+- Implement only the slice selected by `task-1222`.
+- Preserve existing transformed `TEXCOORD_0` and `TEXCOORD_1` behavior.
+- Add targeted tests for the selected boundary.
+- Do not add IBL, shadows, binary GLB viewer behavior, or a new material
+  family.
+
+### task-1226 — Audit selected sampler/color-space or route slice
 
 Category: `audit-refactor`
 Package/write-scope: `docs/research`, targeted tests only if a tiny corrective
 fix is needed.
 Reference anchor:
-the implementation from `task-1204`, the plan from `task-1203`, and
+the implementation from `task-1225`, the plan from `task-1222`, and
 `docs/ARCHITECTURE.md`.
 
 Acceptance criteria:
 
-- Confirm the implementation stayed within the selected transform scope.
-- Confirm unsupported transform diagnostics remain honest for deferred cases.
-- Recommend whether the next slice should stay in material texture fidelity,
-  move to lighting contracts, or pause for route architecture cleanup.
+- Confirm the implementation stayed within the selected scope.
+- Confirm source material assets remain renderer-independent and WebGPU
+  resources stay backend-owned.
+- Recommend whether next work should target lighting contracts, prepared
+  resource lifetime, or another material fidelity slice.
 
 ## Post-Unlit E2E Verification Targets
 

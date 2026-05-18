@@ -1,5 +1,238 @@
 # Handoff
 
+## Current Run Update — 2026-05-18T06:50:00Z
+
+Completed `task-1203` through `task-1221`. Recommended next task is
+`task-1222`.
+
+Completed task ids:
+
+- `task-1203` — Plan follow-up StandardMaterial texture transform coverage.
+- `task-1204` — Implement normalTexture transform support on TEXCOORD_0.
+- `task-1205` — Audit normalTexture transform support.
+- `task-1206` — Add direct-light readiness diagnostics report.
+- `task-1207` — Audit direct-light readiness diagnostics report.
+- `task-1208` — Plan next StandardMaterial fidelity or route-audit slice.
+- `task-1209` — Implement occlusionTexture transform support on TEXCOORD_0.
+- `task-1210` — Audit occlusionTexture transform support.
+- `task-1211` — Audit generic route/prepared-resource pressure.
+- `task-1212` — Plan next post-transform material/lighting boundary.
+- `task-1213` — Implement emissiveTexture transform support on TEXCOORD_0.
+- `task-1214` — Audit emissiveTexture transform support.
+- `task-1215` — Plan StandardMaterial route/prepared-resource cleanup.
+- `task-1216` — Add the selected route/prepared-resource cleanup regression.
+- `task-1217` — Audit route/prepared-resource cleanup.
+- `task-1218` — Plan transformed UV1 or lighting boundary after cleanup.
+- `task-1219` — Audit tracker and backlog alignment after transform work.
+- `task-1220` — Implement transformed TEXCOORD_1 support.
+- `task-1221` — Audit transformed TEXCOORD_1 support.
+
+Highlights:
+
+- Added JSON-safe direct-light readiness diagnostics for StandardMaterial app
+  routes. The report summarizes light counts, light GPU buffer readiness, light
+  bind group readiness, shader metadata, and resource keys without exposing raw
+  GPU handles.
+- Completed finite `KHR_texture_transform` support on `TEXCOORD_0` for all
+  currently rendered StandardMaterial texture slots: base-color,
+  metallic-roughness, normal, occlusion, and emissive.
+- Expanded StandardMaterial uniform packing to 52 floats / 208 bytes with
+  aligned transform blocks and updated WGSL sampling for normal, occlusion, and
+  emissive transforms.
+- Added browser fixture scenarios and Playwright coverage for transformed
+  normal, occlusion, and emissive textures.
+- Added a transformed base-color texture app reuse regression that verifies
+  StandardMaterial prepared material, texture, sampler, bind group, mesh, and
+  light resource reuse while keeping `routedResourceSet` and direct-light
+  diagnostics JSON-safe.
+- Audited route/prepared-resource pressure and selected transformed
+  `TEXCOORD_1` support as the next narrow implementation slice.
+- Implemented transformed `TEXCOORD_1` support by allowing finite UV1
+  transforms through glTF mapping/readiness and converting the browser fixture
+  from expected failure to rendered/readback coverage.
+- Audited the transformed UV1 slice and confirmed it did not add a new route,
+  material family, prepared-resource type, IBL, shadows, or GLB viewer scope.
+- Refreshed `docs/index.html`, `docs/render-pipeline-comparison.html`,
+  `agent/BACKLOG.md`, and `agent/COMPLETED.md`.
+
+Files touched:
+
+- `agent/BACKLOG.md`
+- `agent/COMPLETED.md`
+- `agent/HANDOFF.md`
+- `agent/STATUS.json`
+- `docs/index.html`
+- `docs/render-pipeline-comparison.html`
+- `docs/research/DIRECT_LIGHT_READINESS_REPORT_AUDIT_2026_05_18.md`
+- `docs/research/FOLLOW_UP_STANDARD_MATERIAL_TEXTURE_TRANSFORM_PLAN_2026_05_18.md`
+- `docs/research/GENERIC_ROUTE_PREPARED_RESOURCE_PRESSURE_AUDIT_2026_05_18.md`
+- `docs/research/NEXT_POST_TRANSFORM_MATERIAL_LIGHTING_BOUNDARY_PLAN_2026_05_18.md`
+- `docs/research/NEXT_STANDARD_MATERIAL_FIDELITY_OR_ROUTE_AUDIT_PLAN_2026_05_18.md`
+- `docs/research/NEXT_TRANSFORMED_UV1_OR_LIGHTING_BOUNDARY_PLAN_2026_05_18.md`
+- `docs/research/STANDARD_MATERIAL_EMISSIVE_TRANSFORM_SUPPORT_AUDIT_2026_05_18.md`
+- `docs/research/STANDARD_MATERIAL_NORMAL_TRANSFORM_SUPPORT_AUDIT_2026_05_18.md`
+- `docs/research/STANDARD_MATERIAL_OCCLUSION_TRANSFORM_SUPPORT_AUDIT_2026_05_18.md`
+- `docs/research/STANDARD_MATERIAL_ROUTE_PREPARED_RESOURCE_CLEANUP_AUDIT_2026_05_18.md`
+- `docs/research/STANDARD_MATERIAL_ROUTE_PREPARED_RESOURCE_CLEANUP_PLAN_2026_05_18.md`
+- `docs/research/STANDARD_MATERIAL_TRANSFORMED_UV1_SUPPORT_AUDIT_2026_05_18.md`
+- `examples/standard-gltf-texture.js`
+- `packages/render/src/materials/gltf-material.ts`
+- `packages/render/src/materials/standard-texture-readiness.ts`
+- `packages/webgpu/src/webgpu/app.ts`
+- `packages/webgpu/src/webgpu/app-diagnostics-summary.ts`
+- `packages/webgpu/src/webgpu/direct-light-readiness.ts`
+- `packages/webgpu/src/webgpu/index.ts`
+- `packages/webgpu/src/webgpu/standard-material-buffer.ts`
+- `packages/webgpu/src/webgpu/standard-shader.ts`
+- `test/e2e/standard-gltf-texture.spec.ts`
+- `test/materials/gltf-material.test.ts`
+- `test/materials/standard-texture-readiness.test.ts`
+- `test/webgpu/app-diagnostics-summary.test.ts`
+- `test/webgpu/direct-light-readiness.test.ts`
+- `test/webgpu/standard-material-buffer.test.ts`
+- `test/webgpu/standard-shader.test.ts`
+- `test/webgpu/webgpu-app.test.ts`
+
+Validation:
+
+- `node --check examples/standard-gltf-texture.js`
+- `pnpm exec vitest run test/webgpu/direct-light-readiness.test.ts test/webgpu/app-diagnostics-summary.test.ts`
+- `pnpm exec vitest run test/materials/gltf-material.test.ts test/materials/standard-texture-readiness.test.ts test/webgpu/standard-material-buffer.test.ts test/webgpu/standard-shader.test.ts`
+- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts test/webgpu/standard-material-buffer.test.ts`
+- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts test/webgpu/standard-material-buffer.test.ts test/webgpu/direct-light-readiness.test.ts test/webgpu/app-diagnostics-summary.test.ts`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm run build`
+- `pnpm run lint`
+- `pnpm test`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "transformed base-color through TEXCOORD_1"`
+- `pnpm run check:progress`
+- `git diff --check`
+
+Additional reference files/patterns inspected:
+
+- `packages/webgpu/src/webgpu/queued-material-frame-resource-set.ts`
+- `packages/webgpu/src/webgpu/built-in-material-app-resource-adapter.ts`
+- `packages/webgpu/src/webgpu/queued-material-frame-resource-set-summary.ts`
+- `packages/webgpu/src/webgpu/standard-app-frame-resources.ts`
+- `packages/webgpu/src/webgpu/prepared-standard-material-cache.ts`
+- `references/three.js/src/renderers/common/Pipelines.js` pipeline cache
+  pattern.
+- `references/engine/src/platform/graphics/shader-processor-glsl.js` material,
+  mesh, and texture binding separation pattern.
+- `references/engine/src/platform/graphics/texture.js` texture-version
+  invalidation pattern.
+- `references/bevy/crates/bevy_mesh/src/components.rs` mesh/material handle
+  authoring pattern.
+- `references/bevy/crates/bevy_render/src/render_resource/bind_group.rs`
+  renderer-owned binding-resource pattern.
+
+Known issues / follow-ups:
+
+- `task-1222` should plan the next narrow StandardMaterial sampler/color-space
+  or route/prepared-resource slice.
+- `texCoord > 1`, non-finite transforms, IBL, shadows, binary GLB loading, and
+  GLB viewer work remain deferred.
+- No stop-hook failures were observed before final hook execution in this
+  handoff update.
+
+## Current Run Update — 2026-05-18T06:19:22Z
+
+Completed `task-1206`, `task-1207`, `task-1203`, `task-1204`, and
+`task-1205`. Recommended next task is `task-1208`.
+
+Completed task ids:
+
+- `task-1206` — Add direct-light readiness diagnostics report.
+- `task-1207` — Audit direct-light readiness diagnostics report.
+- `task-1203` — Plan follow-up StandardMaterial texture transform coverage.
+- `task-1204` — Implement normalTexture transform support on TEXCOORD_0.
+- `task-1205` — Audit normalTexture transform support.
+
+Highlights:
+
+- Added `direct-light-readiness.ts`, a JSON-safe StandardMaterial/WebGPU app
+  status helper derived from `RenderSnapshot.lights` and WebGPU resource keys.
+- App diagnostics summaries now include direct-light counts and readiness for
+  light GPU buffers, light bind group layout, light bind group, and shader
+  metadata when a StandardMaterial route is present.
+- Planned the next texture-transform slice and selected finite
+  `normalTexture` transforms on `TEXCOORD_0`.
+- glTF mapping and StandardMaterial texture readiness now accept normal texture
+  transforms on UV0 while transformed UV1, occlusion, and emissive transforms
+  remain diagnostic-only.
+- StandardMaterial uniform layout grew to a 144-byte aligned block with normal
+  texture transform fields.
+- WGSL now applies the normal texture transform before normal-map sampling.
+- Added `normal-map-transform` browser fixture coverage and audited the slice.
+- Refilled the backlog with `task-1208` through `task-1212`.
+- Public tracker pages were refreshed for direct-light readiness and normal
+  texture-transform progress.
+
+Files touched:
+
+- `agent/BACKLOG.md`
+- `agent/COMPLETED.md`
+- `agent/HANDOFF.md`
+- `agent/STATUS.json`
+- `docs/index.html`
+- `docs/render-pipeline-comparison.html`
+- `docs/research/DIRECT_LIGHT_READINESS_REPORT_AUDIT_2026_05_18.md`
+- `docs/research/FOLLOW_UP_STANDARD_MATERIAL_TEXTURE_TRANSFORM_PLAN_2026_05_18.md`
+- `docs/research/STANDARD_MATERIAL_NORMAL_TRANSFORM_SUPPORT_AUDIT_2026_05_18.md`
+- `examples/standard-gltf-texture.js`
+- `packages/render/src/materials/gltf-material.ts`
+- `packages/render/src/materials/standard-texture-readiness.ts`
+- `packages/webgpu/src/webgpu/app.ts`
+- `packages/webgpu/src/webgpu/app-diagnostics-summary.ts`
+- `packages/webgpu/src/webgpu/direct-light-readiness.ts`
+- `packages/webgpu/src/webgpu/index.ts`
+- `packages/webgpu/src/webgpu/standard-material-buffer.ts`
+- `packages/webgpu/src/webgpu/standard-shader.ts`
+- `test/e2e/standard-gltf-texture.spec.ts`
+- `test/materials/gltf-material.test.ts`
+- `test/materials/standard-texture-readiness.test.ts`
+- `test/webgpu/app-diagnostics-summary.test.ts`
+- `test/webgpu/direct-light-readiness.test.ts`
+- `test/webgpu/standard-material-buffer.test.ts`
+- `test/webgpu/standard-shader.test.ts`
+- `test/webgpu/webgpu-app.test.ts`
+
+Validation:
+
+- `node --check examples/standard-gltf-texture.js`
+- `pnpm exec vitest run test/webgpu/direct-light-readiness.test.ts test/webgpu/app-diagnostics-summary.test.ts`
+- `pnpm exec vitest run test/webgpu/direct-light-readiness.test.ts test/webgpu/app-diagnostics-summary.test.ts test/webgpu/webgpu-app.test.ts test/webgpu/queued-built-in-app-resource-set.test.ts`
+- `pnpm exec vitest run test/materials/gltf-material.test.ts test/materials/standard-texture-readiness.test.ts test/webgpu/standard-material-buffer.test.ts test/webgpu/standard-shader.test.ts`
+- `pnpm exec vitest run test/materials/gltf-material.test.ts test/materials/standard-texture-readiness.test.ts test/webgpu/standard-material-buffer.test.ts test/webgpu/standard-shader.test.ts test/webgpu/direct-light-readiness.test.ts test/webgpu/app-diagnostics-summary.test.ts test/webgpu/webgpu-app.test.ts`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "transformed normal texture"`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts`
+- `pnpm exec prettier --check` on touched implementation, tests, docs, and
+  agent files
+- `pnpm run check:progress`
+- `git diff --check`
+
+Additional reference files/patterns inspected:
+
+- `docs/research/NEXT_LIGHTING_BOUNDARY_AFTER_STANDARD_MATERIAL_FIDELITY_PLAN_2026_05_18.md`
+- `docs/research/NEXT_LIGHTING_BOUNDARY_PLAN_AUDIT_2026_05_18.md`
+- `docs/research/STANDARD_MATERIAL_METALLIC_ROUGHNESS_TRANSFORM_SUPPORT_AUDIT_2026_05_18.md`
+- `docs/research/NEXT_STANDARD_MATERIAL_PBR_FIDELITY_SLICE_PLAN_2026_05_18.md`
+- PlayCanvas `references/engine/src/scene/layer.js` split-light tracking
+  pattern.
+- three.js `references/three.js/src/renderers/shaders/UniformsLib.js` light
+  family grouping pattern.
+
+Known issues / follow-ups:
+
+- `task-1208` should decide whether the next slice is occlusion/emissive UV0
+  transform support or a route/prepared-resource audit.
+- Transformed `TEXCOORD_1`, occlusion transforms, and emissive transforms remain
+  diagnostic-only.
+- IBL, shadows, clustered lighting, render targets, and binary GLB viewer work
+  remain deferred.
+
 ## Current Run Update — 2026-05-18T05:36:02Z
 
 Completed `task-1178` through `task-1202`. Recommended next task is

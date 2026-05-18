@@ -921,7 +921,7 @@ describe("render extraction", () => {
         baseColorTexture: {
           texture,
           sampler,
-          texCoord: 1,
+          texCoord: 2,
           transform: {
             offset: [0.1, 0.2],
             scale: [0.75, 0.5],
@@ -971,6 +971,14 @@ describe("render extraction", () => {
           scale: [0.75, 0.5],
           rotation: 0.25,
         },
+      },
+      {
+        code: "render.standardMaterialTexture.unsupportedTexCoord",
+        assetKey: "material:unlit",
+        materialKey: "material:unlit",
+        textureKey: "texture:standard-base-transform",
+        field: "baseColorTexture",
+        texCoord: 2,
       },
     ]);
     expect(() => JSON.stringify(snapshot.diagnostics)).not.toThrow();

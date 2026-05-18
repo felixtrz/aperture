@@ -15,7 +15,7 @@ import { WEBGPU_BUFFER_USAGE_FLAGS } from "./mesh-buffer-descriptors.js";
 import { materialUniformBufferResourceKey } from "./resource-keys.js";
 import { createStandardMaterialBindGroupDescriptorPlan } from "./standard-bind-group.js";
 
-export const STANDARD_MATERIAL_UNIFORM_FLOATS = 32;
+export const STANDARD_MATERIAL_UNIFORM_FLOATS = 52;
 export const STANDARD_MATERIAL_UNIFORM_BYTE_LENGTH =
   STANDARD_MATERIAL_UNIFORM_FLOATS * Float32Array.BYTES_PER_ELEMENT;
 
@@ -50,8 +50,28 @@ export const STANDARD_MATERIAL_UNIFORM_LAYOUT = [
   "metallicRoughnessTextureScale.v",
   "metallicRoughnessTextureRotation",
   "padding2",
+  "normalTextureOffset.u",
+  "normalTextureOffset.v",
+  "normalTextureScale.u",
+  "normalTextureScale.v",
+  "normalTextureRotation",
   "padding3",
+  "occlusionTextureOffset.u",
+  "occlusionTextureOffset.v",
+  "occlusionTextureScale.u",
+  "occlusionTextureScale.v",
+  "occlusionTextureRotation",
   "padding4",
+  "emissiveTextureOffset.u",
+  "emissiveTextureOffset.v",
+  "emissiveTextureScale.u",
+  "emissiveTextureScale.v",
+  "emissiveTextureRotation",
+  "padding5",
+  "padding6",
+  "padding7",
+  "padding8",
+  "padding9",
 ] as const;
 
 export const STANDARD_MATERIAL_FEATURE_FLAGS = {
@@ -226,6 +246,9 @@ export function packStandardMaterial(
     readTextureTransform(material.metallicRoughnessTexture),
     24,
   );
+  uniformFloat32.set(readTextureTransform(material.normalTexture), 30);
+  uniformFloat32.set(readTextureTransform(material.occlusionTexture), 36);
+  uniformFloat32.set(readTextureTransform(material.emissiveTexture), 42);
 
   return {
     valid: true,

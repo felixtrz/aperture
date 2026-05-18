@@ -29,19 +29,22 @@ describe("WebGPU app diagnostics summary", () => {
     const materialQueueRoute = materialQueueRouteSummary();
     const routedResourceSet = routedResourceSetSummary();
     const renderFrameQueue = renderFrameQueueSummary();
+    const directLighting = directLightingSummary();
     const summary = createWebGpuAppDiagnosticsSummary({
       materialQueue,
       materialQueueRoute,
       routedResourceSet,
       renderFrameQueue,
+      directLighting,
     });
 
     expect(summary).toEqual({
-      sectionCount: 4,
+      sectionCount: 5,
       materialQueue,
       materialQueueRoute,
       routedResourceSet,
       renderFrameQueue,
+      directLighting,
     });
     const serialized = JSON.stringify(summary);
 
@@ -195,5 +198,36 @@ function renderFrameQueueSummary(): RenderFrameQueueDiagnosticsSummary {
       total: 0,
       byCode: {},
     },
+  };
+}
+
+function directLightingSummary() {
+  return {
+    ready: true,
+    lightCounts: {
+      total: 2,
+      direct: 1,
+      ambient: 1,
+      directional: 1,
+      point: 0,
+      spot: 0,
+      environment: 0,
+    },
+    sections: {
+      lightGpuBuffers: true,
+      lightBindGroupLayout: true,
+      lightBindGroup: true,
+      shaderMetadata: true,
+    },
+    resources: {
+      lightGpuBufferResourceKey: "light-buffer:main",
+      lightBindGroupLayoutKey: "bind-group-layout:lights/group-3",
+      lightBindGroupResourceKey: "bind-group:lights/group-3/light-buffer:main",
+    },
+    shaderMetadata: {
+      valid: true,
+      diagnostics: [],
+    },
+    diagnostics: [],
   };
 }

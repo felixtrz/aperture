@@ -169,6 +169,79 @@ describe("standard material WebGPU uniform packing", () => {
     expect(result.packed?.uniformFloat32[28]).toBeCloseTo(Math.PI / 4);
   });
 
+  it("packs normal texture transforms for shader sampling", () => {
+    const result = packStandardMaterial(
+      createStandardMaterialAsset({
+        normalTexture: textureBinding("normal", "normal-sampler", 0, {
+          offset: [0.375, 0.625],
+          rotation: Math.PI / 6,
+          scale: [0.25, 4],
+        }),
+      }),
+    );
+
+    expect(result.valid).toBe(true);
+    expect(result.diagnostics).toEqual([]);
+    expect(
+      Array.from(result.packed?.uniformFloat32.slice(30, 34) ?? []),
+    ).toEqual([
+      expect.closeTo(0.375, 5),
+      expect.closeTo(0.625, 5),
+      expect.closeTo(0.25, 5),
+      expect.closeTo(4, 5),
+    ]);
+    expect(result.packed?.uniformFloat32[34]).toBeCloseTo(Math.PI / 6);
+  });
+
+  it("packs occlusion texture transforms for shader sampling", () => {
+    const result = packStandardMaterial(
+      createStandardMaterialAsset({
+        occlusionTexture: textureBinding("ao", "ao-sampler", 0, {
+          offset: [0.1, 0.2],
+          rotation: Math.PI / 8,
+          scale: [2, 3],
+        }),
+      }),
+    );
+
+    expect(result.valid).toBe(true);
+    expect(result.diagnostics).toEqual([]);
+    expect(
+      Array.from(result.packed?.uniformFloat32.slice(36, 40) ?? []),
+    ).toEqual([
+      expect.closeTo(0.1, 5),
+      expect.closeTo(0.2, 5),
+      expect.closeTo(2, 5),
+      expect.closeTo(3, 5),
+    ]);
+    expect(result.packed?.uniformFloat32[40]).toBeCloseTo(Math.PI / 8);
+  });
+
+  it("packs emissive texture transforms for shader sampling", () => {
+    const result = packStandardMaterial(
+      createStandardMaterialAsset({
+        emissiveTexture: textureBinding("emissive", "emissive-sampler", 0, {
+          offset: [0.15, 0.35],
+          rotation: Math.PI / 3,
+          scale: [0.75, 1.5],
+        }),
+      }),
+    );
+
+    expect(result.valid).toBe(true);
+    expect(result.diagnostics).toEqual([]);
+    expect(
+      Array.from(result.packed?.uniformFloat32.slice(42, 46) ?? []),
+    ).toEqual([
+      expect.closeTo(0.15, 5),
+      expect.closeTo(0.35, 5),
+      expect.closeTo(0.75, 5),
+      expect.closeTo(1.5, 5),
+    ]);
+    expect(result.packed?.uniformFloat32[46]).toBeCloseTo(Math.PI / 3);
+    expect(STANDARD_MATERIAL_UNIFORM_BYTE_LENGTH).toBe(208);
+  });
+
   it("packs textured alpha-mask flags and cutoff for shader discard", () => {
     const result = packStandardMaterial(
       createStandardMaterialAsset({

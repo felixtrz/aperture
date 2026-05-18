@@ -634,7 +634,7 @@ function mapTextureTransform(input: {
       field: `${input.field}.extensions.${TEXTURE_TRANSFORM_EXTENSION}`,
       slot: input.slot,
       ...(textureIndex === undefined ? {} : { textureIndex }),
-      message: `${TEXTURE_TRANSFORM_EXTENSION} is preserved, but only base-color and metallic-roughness transforms on TEXCOORD_0 are rendered by current material shaders.`,
+      message: `${TEXTURE_TRANSFORM_EXTENSION} is preserved, but only base-color, metallic-roughness, normal, occlusion, and emissive transforms on TEXCOORD_0 or TEXCOORD_1 are rendered by current material shaders.`,
     });
   }
 
@@ -988,8 +988,12 @@ function isSupportedTextureTransform(
   transform: MaterialTextureTransform,
 ): boolean {
   return (
-    (slot === "baseColorTexture" || slot === "metallicRoughnessTexture") &&
-    texCoord === 0 &&
+    (slot === "baseColorTexture" ||
+      slot === "metallicRoughnessTexture" ||
+      slot === "normalTexture" ||
+      slot === "occlusionTexture" ||
+      slot === "emissiveTexture") &&
+    (texCoord === 0 || texCoord === 1) &&
     isFiniteTextureTransform(transform)
   );
 }

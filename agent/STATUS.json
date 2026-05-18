@@ -1,11 +1,11 @@
 {
   "state": "idle",
   "currentTaskId": null,
-  "currentRunStartedAt": "2026-05-18T05:02:01Z",
-  "lastRunStartedAt": "2026-05-18T03:02:16Z",
+  "currentRunStartedAt": "2026-05-18T06:02:41Z",
+  "lastRunStartedAt": "2026-05-18T06:02:41Z",
   "lastResult": "success",
   "lastCommit": "e41be0f",
   "activePid": null,
-  "notes": "Completed task-1178 through task-1202. Generic app material route compatibility work landed through audits/plans/tests, StandardMaterial supports GLB-shaped metallic-roughness texture transforms on TEXCOORD_0, the implementation audit is complete, and the next lighting boundary plan/audit selects a direct-light readiness diagnostics report rather than IBL or shadows. Next recommended task is task-1206 add direct-light readiness diagnostics report.",
-  "lastRunFinishedAt": "2026-05-18T05:55:02Z"
+  "notes": "Completed task-1203 through task-1221. Direct-light readiness diagnostics are in StandardMaterial app status, TEXCOORD_0 transforms are implemented for base-color, metallic-roughness, normal, occlusion, and emissive textures, transformed TEXCOORD_1 support is implemented and audited, and the next recommended task is task-1222 plan the next sampler/color-space or route slice.",
+  "lastRunFinishedAt": "2026-05-18T06:53:32Z"
 }

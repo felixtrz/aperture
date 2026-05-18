@@ -4141,7 +4141,7 @@ describe("WebGPU app facade", () => {
       },
       diagnostics: [],
       diagnosticsSummary: {
-        sectionCount: 2,
+        sectionCount: 3,
         materialQueue: {
           itemCount: 1,
           byPhase: [{ phase: "opaque", itemCount: 1 }],
@@ -4163,6 +4163,35 @@ describe("WebGPU app facade", () => {
               itemCount: 1,
             },
           ],
+        },
+        directLighting: {
+          ready: true,
+          lightCounts: {
+            total: 2,
+            direct: 1,
+            ambient: 1,
+            directional: 1,
+            point: 0,
+            spot: 0,
+            environment: 0,
+          },
+          sections: {
+            lightGpuBuffers: true,
+            lightBindGroupLayout: true,
+            lightBindGroup: true,
+            shaderMetadata: true,
+          },
+          resources: {
+            lightGpuBufferResourceKey: "light-buffer:main",
+            lightBindGroupLayoutKey: "webgpu-app/standard/group-3",
+            lightBindGroupResourceKey:
+              "bind-group:lights/group-3/light-buffer:main",
+          },
+          shaderMetadata: {
+            valid: true,
+            diagnostics: [],
+          },
+          diagnostics: [],
         },
       },
       resourceReuse: {
@@ -4859,7 +4888,15 @@ describe("WebGPU app facade", () => {
     const material = assets.materials.standard.add(
       createStandardMaterialAsset({
         label: "Textured Standard",
-        baseColorTexture: { texture, sampler },
+        baseColorTexture: {
+          texture,
+          sampler,
+          transform: {
+            offset: [0.125, 0.25],
+            rotation: Math.PI / 6,
+            scale: [0.75, 1.25],
+          },
+        },
         metallicFactor: 0,
         roughnessFactor: 0.6,
       }),
@@ -4934,6 +4971,40 @@ describe("WebGPU app facade", () => {
         assetHandleKey(sampler),
       ],
     });
+    expect(
+      webGpuAppRenderReportToJsonValue(frame).diagnosticsSummary,
+    ).toMatchObject({
+      sectionCount: 3,
+      routedResourceSet: {
+        itemCount: 1,
+        byFamily: [{ family: "standard", itemCount: 1 }],
+        byPipeline: [
+          {
+            pipelineKey: "standard|baseColorTexture|opaque|back|less|none",
+            itemCount: 1,
+          },
+        ],
+      },
+      directLighting: {
+        ready: true,
+        resources: {
+          lightGpuBufferResourceKey: "light-buffer:main",
+          lightBindGroupLayoutKey: "webgpu-app/standard/group-3",
+          lightBindGroupResourceKey:
+            "bind-group:lights/group-3/light-buffer:main",
+        },
+      },
+    });
+    expect(
+      JSON.stringify(
+        webGpuAppRenderReportToJsonValue(frame).diagnosticsSummary,
+      ),
+    ).not.toContain("GPU");
+    expect(
+      JSON.stringify(
+        webGpuAppRenderReportToJsonValue(frame).diagnosticsSummary,
+      ),
+    ).not.toContain("descriptor");
 
     const firstResourceEvents = resourceEventCounts(events);
     const firstResources = frame.resources?.resources;

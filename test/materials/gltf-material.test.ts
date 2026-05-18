@@ -247,6 +247,87 @@ describe("glTF material mapping", () => {
     });
   });
 
+  it("preserves supported base-color TEXCOORD_1 transforms without a mapping warning", () => {
+    const report = createMaterialAssetFromGltfMaterial(
+      {
+        pbrMetallicRoughness: {
+          baseColorTexture: {
+            index: 0,
+            texCoord: 1,
+            extensions: {
+              KHR_texture_transform: {
+                offset: [0.25, 0.5],
+                scale: [2, 1],
+                rotation: 0.25,
+              },
+            },
+          },
+        },
+      },
+      {
+        materialKey: "material:transform-uv1",
+        resolveTextureBinding,
+      },
+    );
+
+    expect(report.valid).toBe(true);
+    expect(report.diagnostics).toEqual([]);
+    expect(report.material).toMatchObject({
+      kind: "standard",
+      baseColorTexture: {
+        texCoord: 1,
+        transform: {
+          offset: [0.25, 0.5],
+          scale: [2, 1],
+          rotation: 0.25,
+        },
+      },
+    });
+  });
+
+  it("continues to warn for transformed texCoords above TEXCOORD_1", () => {
+    const report = createMaterialAssetFromGltfMaterial(
+      {
+        pbrMetallicRoughness: {
+          baseColorTexture: {
+            index: 0,
+            texCoord: 2,
+            extensions: {
+              KHR_texture_transform: {
+                offset: [0.25, 0.5],
+              },
+            },
+          },
+        },
+      },
+      {
+        materialKey: "material:transform-uv2",
+        resolveTextureBinding,
+      },
+    );
+
+    expect(report.valid).toBe(true);
+    expect(report.diagnostics).toMatchObject([
+      {
+        code: "gltfMaterial.unsupportedTextureTransform",
+        severity: "warning",
+        field:
+          "pbrMetallicRoughness.baseColorTexture.extensions.KHR_texture_transform",
+        slot: "baseColorTexture",
+        textureIndex: 0,
+      },
+    ]);
+    expect(report.material).toMatchObject({
+      kind: "standard",
+      baseColorTexture: {
+        texCoord: 2,
+        transform: {
+          offset: [0.25, 0.5],
+        },
+      },
+    });
+  });
+
   it("preserves supported metallic-roughness transforms without a mapping warning", () => {
     const report = createMaterialAssetFromGltfMaterial(
       {
@@ -274,6 +355,108 @@ describe("glTF material mapping", () => {
     expect(report.material).toMatchObject({
       kind: "standard",
       metallicRoughnessTexture: {
+        transform: {
+          offset: [0.25, 0.5],
+          scale: [2, 1],
+          rotation: 0.25,
+        },
+      },
+    });
+  });
+
+  it("preserves supported normal transforms without a mapping warning", () => {
+    const report = createMaterialAssetFromGltfMaterial(
+      {
+        normalTexture: {
+          index: 0,
+          extensions: {
+            KHR_texture_transform: {
+              offset: [0.25, 0.5],
+              scale: [2, 1],
+              rotation: 0.25,
+            },
+          },
+        },
+      },
+      {
+        materialKey: "material:transform",
+        resolveTextureBinding,
+      },
+    );
+
+    expect(report.valid).toBe(true);
+    expect(report.diagnostics).toEqual([]);
+    expect(report.material).toMatchObject({
+      kind: "standard",
+      normalTexture: {
+        transform: {
+          offset: [0.25, 0.5],
+          scale: [2, 1],
+          rotation: 0.25,
+        },
+      },
+    });
+  });
+
+  it("preserves supported occlusion transforms without a mapping warning", () => {
+    const report = createMaterialAssetFromGltfMaterial(
+      {
+        occlusionTexture: {
+          index: 0,
+          extensions: {
+            KHR_texture_transform: {
+              offset: [0.25, 0.5],
+              scale: [2, 1],
+              rotation: 0.25,
+            },
+          },
+        },
+      },
+      {
+        materialKey: "material:transform",
+        resolveTextureBinding,
+      },
+    );
+
+    expect(report.valid).toBe(true);
+    expect(report.diagnostics).toEqual([]);
+    expect(report.material).toMatchObject({
+      kind: "standard",
+      occlusionTexture: {
+        transform: {
+          offset: [0.25, 0.5],
+          scale: [2, 1],
+          rotation: 0.25,
+        },
+      },
+    });
+  });
+
+  it("preserves supported emissive transforms without a mapping warning", () => {
+    const report = createMaterialAssetFromGltfMaterial(
+      {
+        emissiveTexture: {
+          index: 0,
+          extensions: {
+            KHR_texture_transform: {
+              offset: [0.25, 0.5],
+              scale: [2, 1],
+              rotation: 0.25,
+            },
+          },
+        },
+      },
+      {
+        materialKey: "material:transform",
+        resolveTextureBinding,
+      },
+    );
+
+    expect(report.valid).toBe(true);
+    expect(report.diagnostics).toEqual([]);
+    expect(report.material).toMatchObject({
+      kind: "standard",
+      emissiveTexture: {
         transform: {
           offset: [0.25, 0.5],
           scale: [2, 1],

@@ -1,5 +1,349 @@
 # Completed Tasks
 
+## task-1221 — Transformed TEXCOORD_1 support audit
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/STANDARD_MATERIAL_TRANSFORMED_UV1_SUPPORT_AUDIT_2026_05_18.md`.
+- Confirmed transformed UV1 support stayed within source material/readiness and
+  existing StandardMaterial shader behavior.
+- Confirmed no new WebGPU route, material family, prepared-resource type, IBL,
+  shadow, or GLB viewer behavior was added.
+
+Validation run:
+
+- `node --check examples/standard-gltf-texture.js`
+- `pnpm exec vitest run test/materials/gltf-material.test.ts test/materials/standard-texture-readiness.test.ts test/webgpu/standard-shader.test.ts`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "transformed base-color through TEXCOORD_1"`
+
+## task-1220 — Transformed TEXCOORD_1 support
+
+Completed: 2026-05-18
+
+Summary:
+
+- Updated glTF mapping and StandardMaterial texture readiness to accept finite
+  texture transforms on `TEXCOORD_1` for currently rendered texture slots.
+- Kept transformed `texCoord > 1` and non-finite transform values in structured
+  diagnostics.
+- Changed the `base-color-uv1-transform` browser fixture from expected failure
+  to rendered/readback coverage.
+
+Validation run:
+
+- `node --check examples/standard-gltf-texture.js`
+- `pnpm exec vitest run test/materials/gltf-material.test.ts test/materials/standard-texture-readiness.test.ts test/webgpu/standard-shader.test.ts`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "transformed base-color through TEXCOORD_1"`
+
+## task-1219 — Tracker and backlog alignment after transform work
+
+Completed: 2026-05-18
+
+Summary:
+
+- Updated the public tracker to reflect direct-light readiness, completed
+  `TEXCOORD_0` transform coverage, and the route/prepared-resource cleanup
+  regression.
+- Updated the render-pipeline comparison page checkpoint.
+- Refilled the ready queue with transformed `TEXCOORD_1`, audit, sampler or
+  color-space planning, prepared-resource pressure, and lighting-boundary
+  planning tasks.
+
+Validation run:
+
+- `pnpm run check:progress`
+
+## task-1218 — Transformed UV1 or lighting boundary plan
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/NEXT_TRANSFORMED_UV1_OR_LIGHTING_BOUNDARY_PLAN_2026_05_18.md`.
+- Compared transformed `TEXCOORD_1`, lighting/IBL contracts, and another route
+  cleanup.
+- Selected transformed `TEXCOORD_1` support as the next narrow
+  StandardMaterial fidelity slice.
+
+Validation run:
+
+- Documentation-only planning slice; covered by touched-file Prettier,
+  progress checks, and `git diff --check`.
+
+## task-1217 — Route/prepared-resource cleanup audit
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/STANDARD_MATERIAL_ROUTE_PREPARED_RESOURCE_CLEANUP_AUDIT_2026_05_18.md`.
+- Confirmed the cleanup implementation stayed within the selected regression
+  scope and did not add routes, resource types, pipeline keys, or diagnostics
+  fields.
+- Confirmed transformed texture app diagnostics remain generic and JSON-safe.
+
+Validation run:
+
+- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts test/webgpu/standard-material-buffer.test.ts`
+
+## task-1216 — Selected route/prepared-resource cleanup regression
+
+Completed: 2026-05-18
+
+Summary:
+
+- Extended the StandardMaterial base-color app resource reuse test to use a
+  finite texture transform.
+- Asserted generic `routedResourceSet` diagnostics and direct-light readiness
+  stay JSON-safe without raw GPU descriptors.
+- Preserved first-frame creation, second-frame reuse, and texture/sampler
+  invalidation coverage for StandardMaterial prepared resources.
+
+Validation run:
+
+- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts test/webgpu/standard-material-buffer.test.ts`
+
+## task-1215 — StandardMaterial route/prepared-resource cleanup plan
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/STANDARD_MATERIAL_ROUTE_PREPARED_RESOURCE_CLEANUP_PLAN_2026_05_18.md`.
+- Selected a targeted StandardMaterial app resource reuse and diagnostics
+  regression after the 208-byte transform-capable uniform expansion.
+- Deferred new route types, transformed UV1, IBL, shadows, and binary GLB
+  viewer work.
+
+Validation run:
+
+- Documentation-only planning slice; covered by touched-file Prettier,
+  progress checks, and `git diff --check`.
+
+## task-1214 — Emissive texture transform support audit
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/STANDARD_MATERIAL_EMISSIVE_TRANSFORM_SUPPORT_AUDIT_2026_05_18.md`.
+- Confirmed finite `emissiveTexture` transform support stayed limited to
+  `TEXCOORD_0`.
+- Recommended pausing texture-transform expansion for a route/prepared-resource
+  cleanup slice.
+
+Validation run:
+
+- Documentation audit backed by the `task-1213` unit, TypeScript, and
+  Playwright validation.
+
+## task-1213 — StandardMaterial emissive texture transform support
+
+Completed: 2026-05-18
+
+Summary:
+
+- Extended glTF mapping and StandardMaterial texture readiness to accept finite
+  `emissiveTexture` transforms on `TEXCOORD_0`.
+- Added emissive texture transform fields to the StandardMaterial WebGPU
+  uniform layout and applied the transform in WGSL before emissive sampling.
+- Added an `emissive-transform` browser fixture scenario and Playwright
+  coverage.
+
+Validation run:
+
+- `node --check examples/standard-gltf-texture.js`
+- `pnpm exec vitest run test/materials/gltf-material.test.ts test/materials/standard-texture-readiness.test.ts test/webgpu/standard-material-buffer.test.ts test/webgpu/standard-shader.test.ts`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "transformed emissive texture"`
+
+## task-1212 — Next post-transform material/lighting boundary plan
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/NEXT_POST_TRANSFORM_MATERIAL_LIGHTING_BOUNDARY_PLAN_2026_05_18.md`.
+- Selected finite `emissiveTexture` transforms on `TEXCOORD_0` as the final
+  currently rendered texture-slot transform slice.
+- Recommended a route/prepared-resource cleanup after the emissive audit.
+
+Validation run:
+
+- Documentation-only planning slice; covered by touched-file Prettier,
+  progress checks, and `git diff --check`.
+
+## task-1211 — Generic route/prepared-resource pressure audit
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/GENERIC_ROUTE_PREPARED_RESOURCE_PRESSURE_AUDIT_2026_05_18.md`.
+- Confirmed recent transform slices stayed inside the existing StandardMaterial
+  route and did not move renderer-owned resources into ECS/source assets.
+- Recommended one final emissive transform slice before cleanup.
+
+Validation run:
+
+- Documentation-only audit slice; covered by touched-file Prettier, progress
+  checks, and `git diff --check`.
+
+## task-1210 — Occlusion texture transform support audit
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/STANDARD_MATERIAL_OCCLUSION_TRANSFORM_SUPPORT_AUDIT_2026_05_18.md`.
+- Confirmed finite `occlusionTexture` transform support stayed limited to
+  `TEXCOORD_0`.
+- Recommended a route/prepared-resource pressure audit before more texture
+  expansion.
+
+Validation run:
+
+- Documentation audit backed by the `task-1209` unit, TypeScript, and
+  Playwright validation.
+
+## task-1209 — StandardMaterial occlusion texture transform support
+
+Completed: 2026-05-18
+
+Summary:
+
+- Extended glTF mapping and StandardMaterial texture readiness to accept finite
+  `occlusionTexture` transforms on `TEXCOORD_0`.
+- Added occlusion texture transform fields to the StandardMaterial WebGPU
+  uniform layout and applied the transform in WGSL before occlusion sampling.
+- Added an `occlusion-transform` browser fixture scenario and Playwright
+  coverage.
+
+Validation run:
+
+- `node --check examples/standard-gltf-texture.js`
+- `pnpm exec vitest run test/materials/gltf-material.test.ts test/materials/standard-texture-readiness.test.ts test/webgpu/standard-material-buffer.test.ts test/webgpu/standard-shader.test.ts`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "transformed occlusion texture"`
+
+## task-1208 — Next StandardMaterial fidelity or route-audit plan
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/NEXT_STANDARD_MATERIAL_FIDELITY_OR_ROUTE_AUDIT_PLAN_2026_05_18.md`.
+- Selected finite `occlusionTexture` transforms on `TEXCOORD_0` as the next
+  texture-fidelity slice.
+- Kept transformed UV1, emissive transforms, IBL, shadows, binary GLB loading,
+  and route architecture changes deferred.
+
+Validation run:
+
+- Documentation-only planning slice; covered by touched-file Prettier,
+  progress checks, and `git diff --check`.
+
+## task-1207 — Direct-light readiness diagnostics audit
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added `docs/research/DIRECT_LIGHT_READINESS_REPORT_AUDIT_2026_05_18.md`.
+- Confirmed the direct-light report is JSON-safe and derives from
+  `RenderSnapshot.lights` plus WebGPU resource keys.
+- Kept IBL, shadows, clustered lighting, render graph work, and scene-object
+  APIs deferred.
+
+Validation run:
+
+- Covered by focused direct-light/app diagnostics tests, `tsc`, progress checks,
+  and `git diff --check` in the same run.
+
+## task-1206 — Direct-light readiness diagnostics report
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added `packages/webgpu/src/webgpu/direct-light-readiness.ts`.
+- WebGPU app diagnostics now include a StandardMaterial direct-light readiness
+  section with light counts, light GPU buffer readiness, light bind group layout
+  readiness, light bind group readiness, and shader metadata readiness.
+- Reports expose resource keys only and omit raw GPU handles.
+
+Validation run:
+
+- `pnpm exec vitest run test/webgpu/direct-light-readiness.test.ts test/webgpu/app-diagnostics-summary.test.ts test/webgpu/webgpu-app.test.ts test/webgpu/queued-built-in-app-resource-set.test.ts`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+
+## task-1205 — Normal texture transform implementation audit
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/STANDARD_MATERIAL_NORMAL_TRANSFORM_SUPPORT_AUDIT_2026_05_18.md`.
+- Confirmed normal texture transform support stayed scoped to finite
+  `normalTexture` transforms on `TEXCOORD_0`.
+- Confirmed transformed UV1, occlusion, emissive, IBL, shadows, and binary GLB
+  loading remain deferred.
+
+Validation run:
+
+- Documentation audit backed by the `task-1204` unit, TypeScript, and
+  Playwright validation.
+
+## task-1204 — StandardMaterial normal texture transform support
+
+Completed: 2026-05-18
+
+Summary:
+
+- Extended glTF mapping and StandardMaterial texture readiness to accept finite
+  `normalTexture` transforms on `TEXCOORD_0`.
+- Added normal texture transform fields to the StandardMaterial WebGPU uniform
+  layout and applied the transform in WGSL before normal-map sampling.
+- Added a `normal-map-transform` browser fixture scenario and Playwright
+  coverage.
+
+Validation run:
+
+- `node --check examples/standard-gltf-texture.js`
+- `pnpm exec vitest run test/materials/gltf-material.test.ts test/materials/standard-texture-readiness.test.ts test/webgpu/standard-material-buffer.test.ts test/webgpu/standard-shader.test.ts test/webgpu/direct-light-readiness.test.ts test/webgpu/app-diagnostics-summary.test.ts test/webgpu/webgpu-app.test.ts`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts`
+
+## task-1203 — Follow-up StandardMaterial transform plan
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/FOLLOW_UP_STANDARD_MATERIAL_TEXTURE_TRANSFORM_PLAN_2026_05_18.md`.
+- Selected finite `normalTexture` transforms on `TEXCOORD_0` as the next narrow
+  StandardMaterial texture-fidelity slice.
+- Kept occlusion, emissive, transformed UV1, all-slot transform support, IBL,
+  shadows, and binary GLB loading deferred.
+
+Validation run:
+
+- Documentation-only planning slice; covered by touched-file Prettier,
+  progress checks, and `git diff --check`.
+
 ## task-1202 — Next lighting boundary plan audit
 
 Completed: 2026-05-18

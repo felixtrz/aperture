@@ -80,6 +80,22 @@ struct StandardMaterialUniform {
   metallicRoughnessTextureScale: vec2f,
   metallicRoughnessTextureRotation: f32,
   padding2: f32,
+  normalTextureOffset: vec2f,
+  normalTextureScale: vec2f,
+  normalTextureRotation: f32,
+  padding3: f32,
+  occlusionTextureOffset: vec2f,
+  occlusionTextureScale: vec2f,
+  occlusionTextureRotation: f32,
+  padding4: f32,
+  emissiveTextureOffset: vec2f,
+  emissiveTextureScale: vec2f,
+  emissiveTextureRotation: f32,
+  padding5: f32,
+  padding6: f32,
+  padding7: f32,
+  padding8: f32,
+  padding9: f32,
 };
 
 struct VertexInput {
@@ -563,7 +579,13 @@ function createStandardTextureVariantWgsl(
         `fn evaluateDirectLight(
   normal: vec3f,`,
         `fn sampleTangentSpaceNormal(input: VertexOutput) -> vec3f {
-  var tangentNormal = textureSample(normalTexture, normalSampler, ${normalUv}).xyz * 2.0 - vec3f(1.0);
+  let normalTextureUv = standardTextureTransformUv(
+    ${normalUv},
+    material.normalTextureOffset,
+    material.normalTextureScale,
+    material.normalTextureRotation,
+  );
+  var tangentNormal = textureSample(normalTexture, normalSampler, normalTextureUv).xyz * 2.0 - vec3f(1.0);
   tangentNormal = normalize(vec3f(
     tangentNormal.xy * material.normalScale,
     tangentNormal.z,
@@ -686,7 +708,13 @@ fn saturate(value: f32) -> f32 {`,
     );
   }
 
-  if (features.baseColorTexture || features.metallicRoughnessTexture) {
+  if (
+    features.baseColorTexture ||
+    features.metallicRoughnessTexture ||
+    features.normalTexture ||
+    features.occlusionTexture ||
+    features.emissiveTexture
+  ) {
     code = code.replace(
       `fn saturate(value: f32) -> f32 {`,
       `fn standardTextureTransformUv(uv: vec2f, offset: vec2f, scale: vec2f, rotation: f32) -> vec2f {
@@ -742,11 +770,23 @@ fn saturate(value: f32) -> f32 {`,
 
   if (features.occlusionTexture || features.emissiveTexture) {
     const occlusion = features.occlusionTexture
-      ? `  let occlusionSample = textureSample(occlusionTexture, occlusionSampler, ${occlusionUv});
+      ? `  let occlusionTextureUv = standardTextureTransformUv(
+    ${occlusionUv},
+    material.occlusionTextureOffset,
+    material.occlusionTextureScale,
+    material.occlusionTextureRotation,
+  );
+  let occlusionSample = textureSample(occlusionTexture, occlusionSampler, occlusionTextureUv);
   let occlusion = mix(1.0, occlusionSample.r, clamp(material.occlusionStrength, 0.0, 1.0));`
       : `  let occlusion = 1.0;`;
     const emissive = features.emissiveTexture
-      ? `  let emissiveSample = textureSample(emissiveTexture, emissiveSampler, ${emissiveUv});
+      ? `  let emissiveTextureUv = standardTextureTransformUv(
+    ${emissiveUv},
+    material.emissiveTextureOffset,
+    material.emissiveTextureScale,
+    material.emissiveTextureRotation,
+  );
+  let emissiveSample = textureSample(emissiveTexture, emissiveSampler, emissiveTextureUv);
   let emissive = material.emissiveFactor * emissiveSample.rgb;`
       : `  let emissive = material.emissiveFactor;`;
 

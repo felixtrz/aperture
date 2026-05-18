@@ -55,6 +55,42 @@ describe("built-in standard material WGSL shader metadata", () => {
     ]);
   });
 
+  it("applies occlusion texture transforms before sampling", () => {
+    const shader = createStandardTextureVariantShader({
+      baseColorTexture: false,
+      metallicRoughnessTexture: false,
+      normalTexture: false,
+      occlusionTexture: true,
+      emissiveTexture: false,
+    });
+
+    expect(shader.code).toContain("fn standardTextureTransformUv");
+    expect(shader.code).toContain("material.occlusionTextureOffset");
+    expect(shader.code).toContain("material.occlusionTextureScale");
+    expect(shader.code).toContain("material.occlusionTextureRotation");
+    expect(shader.code).toContain(
+      "textureSample(occlusionTexture, occlusionSampler, occlusionTextureUv)",
+    );
+  });
+
+  it("applies emissive texture transforms before sampling", () => {
+    const shader = createStandardTextureVariantShader({
+      baseColorTexture: false,
+      metallicRoughnessTexture: false,
+      normalTexture: false,
+      occlusionTexture: false,
+      emissiveTexture: true,
+    });
+
+    expect(shader.code).toContain("fn standardTextureTransformUv");
+    expect(shader.code).toContain("material.emissiveTextureOffset");
+    expect(shader.code).toContain("material.emissiveTextureScale");
+    expect(shader.code).toContain("material.emissiveTextureRotation");
+    expect(shader.code).toContain(
+      "textureSample(emissiveTexture, emissiveSampler, emissiveTextureUv)",
+    );
+  });
+
   it("declares transform, standard material, and light buffer bindings", () => {
     expect(validateStandardShaderMetadata(STANDARD_MESH_SHADER)).toEqual({
       valid: true,
@@ -358,6 +394,10 @@ describe("built-in standard material WGSL shader metadata", () => {
     expect(shader.label).toBe("aperture/standard-mesh-normal-map-textured");
     expect(shader.code).toContain("@location(3) tangent: vec4f");
     expect(shader.code).toContain("sampleTangentSpaceNormal");
+    expect(shader.code).toContain("fn standardTextureTransformUv");
+    expect(shader.code).toContain("material.normalTextureOffset");
+    expect(shader.code).toContain("material.normalTextureScale");
+    expect(shader.code).toContain("material.normalTextureRotation");
     expect(shader.code).toContain("textureSample(normalTexture, normalSampler");
     expect(shader.code).toContain("tangentNormal.xy * material.normalScale");
     expect(shader.code).toContain("mat3x3f(tangent, bitangent, normal)");

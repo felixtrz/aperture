@@ -529,7 +529,7 @@
 
 <section class="progress-status" aria-label="Aperture render pipeline status">
   <div class="status-head">
-    <h2>Current Aperture Render Pipeline Status · Updated 2026-05-17 · task-1202 direct-light readiness plan audit</h2>
+    <h2>Current Aperture Render Pipeline Status · Updated 2026-05-17 · task-1221 transformed UV1 support audit</h2>
     <a href="index.html">Back to project tracker</a>
   </div>
   <div class="phase-status-grid">
@@ -544,9 +544,9 @@
       <p>Working: source readiness/version summaries, extracted built-in queue-to-resource-set collection, generic queued material frame-resource summary counts, duplicate-pipeline reuse coverage for the generic collector, GLB invalid texture/sampler dependency diagnostics, and delayed dependency browser diagnostics. Missing: one generic change-set scheduler, binary GLB loading integration, and unload integration.</p>
     </div>
     <div class="phase-status">
-      <div class="top"><b>3 · prepare</b><span class="pct">82%</span></div>
-      <div class="bar"><span style="width:82%"></span></div>
-      <p>Working: prepared mesh/material facades, compact render-world prepared resource summaries, prepare-and-bind summary consumers, prepared/app reuse alignment summaries, backend caches, lifetime alignment summaries, diagnostics example coverage, StandardMaterial texture/sampler fidelity diagnostics and summaries, controlled base-color, base-color UV1, base-color linear sampler, base-color repeat sampler, metallic-roughness, normal-map, occlusion, emissive, and alpha-mask texture browser verification, missing/loading/failed texture browser diagnostics, normal missing-tangent browser diagnostics, authored and GLB-derived unsupported transformed-UV1 diagnostics, GLB-derived base-color offset/scale and rotation transform sampling with readback, GLB-derived metallic-roughness texture-transform sampling on TEXCOORD_0, GLB-derived StandardMaterial base-color, base-color UV1, base-color missing-TEXCOORD_1 diagnostics, base-color transformed-UV1 diagnostics, normal, occlusion, emissive, alpha-mask texture, alpha-mask backface, and delayed dependency fixtures, GLB sampler mapping status, alpha-mask double-sided render-state browser diagnostics, textured alpha-mask shader and buffer flag contract coverage, GLB dependency diagnostics matrix coverage, opt-in app-facade readback samples, and generic frame-resource bucket summaries for app diagnostics. Missing: transformed UV1 and remaining non-base-color texture transform implementation, binary GLB loading, app-level generic adapter routing, and full PBR resources.</p>
+      <div class="top"><b>3 · prepare</b><span class="pct">84%</span></div>
+      <div class="bar"><span style="width:84%"></span></div>
+      <p>Working: prepared mesh/material facades, compact render-world prepared resource summaries, prepare-and-bind summary consumers, prepared/app reuse alignment summaries, backend caches, lifetime alignment summaries, diagnostics example coverage, StandardMaterial texture/sampler fidelity diagnostics and summaries, controlled base-color, base-color UV1, base-color linear sampler, base-color repeat sampler, metallic-roughness, normal-map, occlusion, emissive, and alpha-mask texture browser verification, missing/loading/failed texture browser diagnostics, normal missing-tangent browser diagnostics, authored and GLB-derived transformed-UV1 sampling with readback, GLB-derived base-color offset/scale and rotation transform sampling with readback, GLB-derived metallic-roughness, normal, occlusion, and emissive texture-transform sampling on TEXCOORD_0, GLB-derived StandardMaterial base-color, base-color UV1, base-color missing-TEXCOORD_1 diagnostics, base-color transformed-UV1 diagnostics, normal, occlusion, emissive, alpha-mask texture, alpha-mask backface, and delayed dependency fixtures, GLB sampler mapping status, alpha-mask double-sided render-state browser diagnostics, textured alpha-mask shader and buffer flag contract coverage, GLB dependency diagnostics matrix coverage, opt-in app-facade readback samples, generic frame-resource bucket summaries for app diagnostics, and JSON-safe direct-light readiness status for StandardMaterial routes. Missing: binary GLB loading, real app-level generic adapter routing, and full PBR resources.</p>
     </div>
     <div class="phase-status">
       <div class="top"><b>4 · queue</b><span class="pct">78%</span></div>
@@ -561,7 +561,7 @@
     <div class="phase-status">
       <div class="top"><b>6 · submit</b><span class="pct">55%</span></div>
       <div class="bar"><span style="width:55%"></span></div>
-      <p>Working: current proof paths submit through WebGPU, and the next lighting boundary is planned as direct-light readiness diagnostics rather than a new pass. Missing: render graph, multi-pass, IBL, shadows, render targets, GPU timings.</p>
+      <p>Working: current proof paths submit through WebGPU, and StandardMaterial app status now reports direct-light buffer, bind-group, and shader metadata readiness rather than adding a new pass. Missing: render graph, multi-pass, IBL, shadows, render targets, GPU timings.</p>
     </div>
   </div>
 </section>

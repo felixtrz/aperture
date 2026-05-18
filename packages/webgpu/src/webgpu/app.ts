@@ -126,6 +126,10 @@ import {
   createWebGpuAppDiagnosticsSummary,
   type WebGpuAppDiagnosticsSummary,
 } from "./app-diagnostics-summary.js";
+import {
+  createDirectLightReadinessReport,
+  directLightReadinessResourceStateFromStandardFrameResources,
+} from "./direct-light-readiness.js";
 import type { WebGpuAppMaterialQueueRouteReportJsonValue } from "./material-queue-route-report.js";
 import { createStandardMaterialBindGroupLayoutPlan } from "./standard-bind-group-layout.js";
 import type { StandardMaterialBindGroupLayoutResource } from "./standard-bind-group.js";
@@ -953,6 +957,7 @@ async function renderQueuedBuiltInWebGpuAppFrame(options: {
     worldTransforms: packedTransforms,
   });
   const diagnosticsSummary = createQueuedBuiltInAppDiagnosticsSummary({
+    snapshot: options.snapshot,
     resourceSet: options.resourceSet,
     resources: prepared.resources,
   });
@@ -1087,9 +1092,14 @@ async function renderQueuedBuiltInWebGpuAppFrame(options: {
 }
 
 function createQueuedBuiltInAppDiagnosticsSummary(input: {
+  readonly snapshot: RenderSnapshot;
   readonly resourceSet: QueuedBuiltInAppResourceSet;
   readonly resources: QueuedBuiltInFrameResources | null;
 }): WebGpuAppDiagnosticsSummary {
+  const hasStandardRoute = input.resourceSet.items.some(
+    (item) => item.queueItem.materialFamily === "standard",
+  );
+
   return createWebGpuAppDiagnosticsSummary({
     materialQueue: createMaterialQueuePhaseSummary(
       input.resourceSet.items.map((item) => item.queueItem),
@@ -1104,6 +1114,19 @@ function createQueuedBuiltInAppDiagnosticsSummary(input: {
         ? {}
         : { byFamily: input.resources.byFamilySummary },
     ),
+    ...(hasStandardRoute
+      ? {
+          directLighting: createDirectLightReadinessReport({
+            snapshot: input.snapshot,
+            resources:
+              input.resources === null
+                ? null
+                : directLightReadinessResourceStateFromStandardFrameResources(
+                    input.resources.standard[0] ?? null,
+                  ),
+          }),
+        }
+      : {}),
   });
 }
 

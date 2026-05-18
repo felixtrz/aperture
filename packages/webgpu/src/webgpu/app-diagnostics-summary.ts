@@ -1,4 +1,5 @@
 import type { MaterialQueuePhaseSummary } from "@aperture-engine/render";
+import type { DirectLightReadinessReport } from "./direct-light-readiness.js";
 import type { WebGpuAppMaterialQueueRouteReportJsonValue } from "./material-queue-route-report.js";
 import type { QueuedMaterialFrameResourceSetSummary } from "./queued-material-frame-resource-set-summary.js";
 import type { RenderFrameQueueDiagnosticsSummary } from "./render-frame-plan.js";
@@ -8,6 +9,7 @@ export interface WebGpuAppDiagnosticsSummaryInput {
   readonly materialQueueRoute?: WebGpuAppMaterialQueueRouteReportJsonValue;
   readonly routedResourceSet?: QueuedMaterialFrameResourceSetSummary;
   readonly renderFrameQueue?: RenderFrameQueueDiagnosticsSummary;
+  readonly directLighting?: DirectLightReadinessReport;
 }
 
 export interface WebGpuAppDiagnosticsSummary {
@@ -16,6 +18,7 @@ export interface WebGpuAppDiagnosticsSummary {
   readonly materialQueueRoute?: WebGpuAppMaterialQueueRouteReportJsonValue;
   readonly routedResourceSet?: QueuedMaterialFrameResourceSetSummary;
   readonly renderFrameQueue?: RenderFrameQueueDiagnosticsSummary;
+  readonly directLighting?: DirectLightReadinessReport;
 }
 
 export function createWebGpuAppDiagnosticsSummary(
@@ -43,6 +46,11 @@ export function createWebGpuAppDiagnosticsSummary(
   if (input.renderFrameQueue !== undefined) {
     summary.sectionCount += 1;
     summary.renderFrameQueue = input.renderFrameQueue;
+  }
+
+  if (input.directLighting !== undefined) {
+    summary.sectionCount += 1;
+    summary.directLighting = input.directLighting;
   }
 
   return summary;

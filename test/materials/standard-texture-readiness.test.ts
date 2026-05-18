@@ -481,7 +481,12 @@ describe("StandardMaterial texture semantic and color-space readiness", () => {
     registry.markReady(
       material,
       createStandardMaterialAsset({
-        baseColorTexture: { texture, sampler, texCoord: 2 },
+        baseColorTexture: {
+          texture,
+          sampler,
+          texCoord: 2,
+          transform: { offset: [0.25, 0.5] },
+        },
       }),
     );
 
@@ -500,6 +505,13 @@ describe("StandardMaterial texture semantic and color-space readiness", () => {
       },
     ]);
     expect(report.diagnostics).toMatchObject([
+      {
+        code: "standardMaterialTexture.unsupportedTextureTransform",
+        materialKey: "material:standard",
+        textureKey: "texture:base-color-uv2",
+        field: "baseColorTexture",
+        textureTransform: { offset: [0.25, 0.5] },
+      },
       {
         code: "standardMaterialTexture.unsupportedTexCoord",
         materialKey: "material:standard",
@@ -555,6 +567,132 @@ describe("StandardMaterial texture semantic and color-space readiness", () => {
     expect(
       JSON.parse(standardMaterialTextureReadinessReportToJson(report)),
     ).toEqual(json);
+  });
+
+  it("accepts normal texture transforms on TEXCOORD_0", () => {
+    const registry = new AssetRegistry();
+    const material = createMaterialHandle("standard");
+    const texture = createTextureHandle("normal-transform");
+    const sampler = createSamplerHandle("linear");
+
+    registry.register(sampler);
+    registry.markReady(sampler, createSamplerAsset());
+    readyTexture(registry, texture, "normal", "linear");
+    registry.register(material);
+    registry.markReady(
+      material,
+      createStandardMaterialAsset({
+        normalTexture: {
+          texture,
+          sampler,
+          transform: {
+            offset: [0.25, 0.5],
+            scale: [0.5, 0.5],
+            rotation: 0.125,
+          },
+        },
+      }),
+    );
+
+    const report = createStandardMaterialTextureReadinessReport({
+      registry,
+      material,
+    });
+
+    expect(report.ready).toBe(true);
+    expect(report.diagnostics).toEqual([]);
+    expect(report.slots).toEqual([
+      expect.objectContaining({
+        field: "normalTexture",
+        textureKey: "texture:normal-transform",
+        texCoord: 0,
+        ready: true,
+      }),
+    ]);
+  });
+
+  it("accepts occlusion texture transforms on TEXCOORD_0", () => {
+    const registry = new AssetRegistry();
+    const material = createMaterialHandle("standard");
+    const texture = createTextureHandle("occlusion-transform");
+    const sampler = createSamplerHandle("linear");
+
+    registry.register(sampler);
+    registry.markReady(sampler, createSamplerAsset());
+    readyTexture(registry, texture, "occlusion", "linear");
+    registry.register(material);
+    registry.markReady(
+      material,
+      createStandardMaterialAsset({
+        occlusionTexture: {
+          texture,
+          sampler,
+          transform: {
+            offset: [0.25, 0.5],
+            scale: [0.5, 0.5],
+            rotation: 0.125,
+          },
+        },
+      }),
+    );
+
+    const report = createStandardMaterialTextureReadinessReport({
+      registry,
+      material,
+    });
+
+    expect(report.ready).toBe(true);
+    expect(report.diagnostics).toEqual([]);
+    expect(report.slots).toEqual([
+      expect.objectContaining({
+        field: "occlusionTexture",
+        textureKey: "texture:occlusion-transform",
+        texCoord: 0,
+        ready: true,
+      }),
+    ]);
+  });
+
+  it("accepts emissive texture transforms on TEXCOORD_0", () => {
+    const registry = new AssetRegistry();
+    const material = createMaterialHandle("standard");
+    const texture = createTextureHandle("emissive-transform");
+    const sampler = createSamplerHandle("linear");
+
+    registry.register(sampler);
+    registry.markReady(sampler, createSamplerAsset());
+    readyTexture(registry, texture, "emissive", "srgb");
+    registry.register(material);
+    registry.markReady(
+      material,
+      createStandardMaterialAsset({
+        emissiveTexture: {
+          texture,
+          sampler,
+          transform: {
+            offset: [0.25, 0.5],
+            scale: [0.5, 0.5],
+            rotation: 0.125,
+          },
+        },
+      }),
+    );
+
+    const report = createStandardMaterialTextureReadinessReport({
+      registry,
+      material,
+    });
+
+    expect(report.ready).toBe(true);
+    expect(report.diagnostics).toEqual([]);
+    expect(report.slots).toEqual([
+      expect.objectContaining({
+        field: "emissiveTexture",
+        textureKey: "texture:emissive-transform",
+        texCoord: 0,
+        ready: true,
+      }),
+    ]);
   });
 
   it("accepts base-color offset and scale transforms on TEXCOORD_0", () => {
@@ -642,7 +780,7 @@ describe("StandardMaterial texture semantic and color-space readiness", () => {
     ]);
   });
 
-  it("continues to diagnose transformed non-UV0 base-color bindings", () => {
+  it("accepts transformed TEXCOORD_1 base-color bindings", () => {
     const registry = new AssetRegistry();
     const material = createMaterialHandle("standard");
     const texture = createTextureHandle("base-color-transform-uv1");
@@ -672,19 +810,15 @@ describe("StandardMaterial texture semantic and color-space readiness", () => {
       material,
     });
 
-    expect(report.ready).toBe(false);
-    expect(report.diagnostics).toMatchObject([
-      {
-        code: "standardMaterialTexture.unsupportedTextureTransform",
-        materialKey: "material:standard",
-        textureKey: "texture:base-color-transform-uv1",
-        samplerKey: "sampler:linear",
+    expect(report.ready).toBe(true);
+    expect(report.diagnostics).toEqual([]);
+    expect(report.slots).toEqual([
+      expect.objectContaining({
         field: "baseColorTexture",
-        textureTransform: {
-          offset: [0.25, 0.5],
-          scale: [0.5, 0.5],
-        },
-      },
+        textureKey: "texture:base-color-transform-uv1",
+        texCoord: 1,
+        ready: true,
+      }),
     ]);
   });
 });

@@ -393,17 +393,20 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-17 22:49 PDT</dd>
+            <dd>2026-05-17 23:50 PDT</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
               Generic route compatibility work landed, and StandardMaterial now
-              renders GLB-shaped metallic-roughness texture transforms on
-              TEXCOORD_0; the lighting boundary plan is audited
+              renders GLB-shaped texture transforms on TEXCOORD_0 for
+              base-color, metallic-roughness, normal, occlusion, and emissive;
+              finite transformed TEXCOORD_1 base-color sampling now renders;
+              direct-light readiness diagnostics are implemented and audited;
+              the route/prepared-resource cleanup regression is in place
             </dd>
             <dt>Next focus</dt>
-            <dd>Add direct-light readiness diagnostics</dd>
+            <dd>Plan the next sampler/color-space or route slice</dd>
           </dl>
         </aside>
       </header>
@@ -454,9 +457,9 @@
           </article>
           <article class="card metric">
             <div class="label">material system</div>
-            <div class="value">57%</div>
-            <div class="bar" aria-label="57 percent complete">
-              <span style="width: 57%"></span>
+            <div class="value">60%</div>
+            <div class="bar" aria-label="60 percent complete">
+              <span style="width: 60%"></span>
             </div>
             <p>
               Unlit, Matcap, DebugNormal, and direct-lit StandardMaterial paths
@@ -474,9 +477,11 @@
               diagnostics, alpha-mask pixels, backface no-cull pixels, and GLB
               delayed dependency diagnostics; base-color texture-transform
               rotation, metallic-roughness texture transforms on
+              <code>TEXCOORD_0</code>, normal texture transforms on
+              <code>TEXCOORD_0</code>, occlusion texture transforms on
+              <code>TEXCOORD_0</code>, emissive texture transforms on
               <code>TEXCOORD_0</code>, and missing-UV1 diagnostics are covered,
-              while transformed UV1 and other transformed non-base-color slots
-              remain deferred.
+              while transformed UV1 remains deferred.
             </p>
           </article>
           <article class="card metric">
@@ -500,7 +505,9 @@
               transform/render-state diagnostics in browser, and queued material
               diagnostics summaries in app render JSON. App diagnostics now use
               generic frame-resource bucket summaries for family resource counts
-              without exposing raw bucket maps.
+              without exposing raw bucket maps, and StandardMaterial routes
+              surface direct-light buffer, bind-group, and shader metadata
+              readiness without raw GPU handles.
             </p>
           </article>
         </div>
@@ -1488,11 +1495,12 @@
             <h3>Recommended next tasks</h3>
             <ul>
               <li>
-                <span class="badge amber">next</span> Add the direct-light
-                readiness diagnostics report.
+                <span class="badge amber">next</span> Plan the next
+                StandardMaterial sampler/color-space or route slice.
               </li>
               <li>
-                Keep IBL and shadow work deferred until that report is audited.
+                Keep IBL and shadow work deferred until material texture
+                fidelity and routing remain stable.
               </li>
               <li>
                 Keep this tracker updated after render-pipeline or
@@ -1509,6 +1517,80 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-1220-1221</div>
+            <div>
+              <strong
+                >StandardMaterial transformed TEXCOORD_1 support
+                completed.</strong
+              >
+              <span
+                >Accepted finite transformed UV1 material bindings, preserved
+                unsupported texCoord diagnostics, verified the browser fixture,
+                and audited the ECS/source-asset versus WebGPU-resource
+                boundary.</span
+              >
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="task-id">task-1215-1219</div>
+            <div>
+              <strong
+                >StandardMaterial route cleanup and UV1 planning
+                completed.</strong
+              >
+              <span
+                >Added a transformed-texture app reuse regression, audited the
+                generic diagnostics boundary, and selected transformed
+                TEXCOORD_1 support as the next narrow implementation
+                slice.</span
+              >
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="task-id">task-1208-1214</div>
+            <div>
+              <strong
+                >StandardMaterial occlusion and emissive transforms completed
+                and audited.</strong
+              >
+              <span
+                >Accepted glTF/readiness transforms on TEXCOORD_0 for the
+                remaining rendered texture slots, added aligned WebGPU uniform
+                fields, verified browser fixtures, and selected cleanup
+                next.</span
+              >
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="task-id">task-1203-1205</div>
+            <div>
+              <strong
+                >StandardMaterial normal texture transforms planned,
+                implemented, and audited.</strong
+              >
+              <span
+                >Accepted glTF/readiness normal texture transforms on
+                TEXCOORD_0, added aligned WebGPU uniform fields, applied the
+                transform in WGSL, and verified the browser fixture.</span
+              >
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="task-id">task-1206-1207</div>
+            <div>
+              <strong
+                >Direct-light readiness diagnostics implemented and
+                audited.</strong
+              >
+              <span
+                >Added JSON-safe StandardMaterial lighting readiness status for
+                light counts, light GPU buffers, bind-group layout, bind group,
+                and shader metadata while keeping IBL and shadows
+                deferred.</span
+              >
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-1199-1200</div>
             <div>

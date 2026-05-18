@@ -517,8 +517,11 @@ function isSupportedStandardTextureTransform(input: {
 }): boolean {
   return (
     (input.field === "baseColorTexture" ||
-      input.field === "metallicRoughnessTexture") &&
-    input.texCoord === 0 &&
+      input.field === "metallicRoughnessTexture" ||
+      input.field === "normalTexture" ||
+      input.field === "occlusionTexture" ||
+      input.field === "emissiveTexture") &&
+    (input.texCoord === 0 || input.texCoord === 1) &&
     isFiniteTextureTransform(input.transform)
   );
 }
