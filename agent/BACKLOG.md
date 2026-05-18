@@ -59,26 +59,20 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start with `task-1178`. The latest run implemented StandardMaterial base-color
-texture-transform rotation sampling for `TEXCOORD_0`, kept transformed UV1 and
-non-base-color transform diagnostics unsupported, moved queued resource-set
-summary counts behind a generic material frame-resource summary helper, and
-audited the paired successful/missing GLB `TEXCOORD_1` browser fixtures, then
-added a GLB-shaped transformed-UV1 unsupported browser fixture and generic
-collector duplicate-pipeline reuse coverage. It also audited the rotation
-support boundary and generic queued resource summary migration, planned the
-next generic prepared route migration slice, added transformed non-base-color
-GLB diagnostics coverage, and pinned app diagnostics compatibility for generic
-queued material frame-resource summaries. It also audited the transformed
-texture diagnostics matrix after the new fixtures and added a next-family
-generic route summary handoff note. Generic queued material frame-resource
-buckets now group resources by material family while preserving built-in
-compatibility arrays, and the bucket migration audit documented that diagnostics
-must consume summaries rather than raw bucket maps. The diagnostics handoff plan
-now pins `routedResourceSet` compatibility and the summary-only bucket payload,
-and generic bucket summary/reset coverage is in place.
-The next-family route readiness audit found the generic spine ready for a
-test-only non-built-in adapter spike, but not a real app material family yet.
+Start with `task-1206`. The latest run completed the generic material route
+helper/test/audit cadence through built-in wrapper compatibility, real material
+family migration criteria, route cleanup criteria, and a route-criteria fixture.
+It then implemented the selected StandardMaterial metallic-roughness texture
+transform slice: glTF/readiness diagnostics now accept metallic-roughness
+texture transforms on `TEXCOORD_0`, the StandardMaterial uniform layout packs
+the transform with 16-byte-aligned padding, WGSL applies the transform before
+metallic-roughness sampling, and the GLB-shaped browser fixture now renders the
+scenario instead of treating it as unsupported. The implementation audit
+confirmed the slice stayed narrow, caught and documented the 128-byte uniform
+alignment fix, and recommended planning the lighting boundary before shadows or
+broader GLB viewer work. The lighting plan and audit select a direct-light
+readiness diagnostics report as the next implementation boundary, not IBL or
+shadows.
 
 ## Near-Term Proof Point Track
 
@@ -95,11 +89,13 @@ Target proof point:
 
 Remaining automation priority order:
 
-1. `task-1178` — route app diagnostics through generic bucket summary.
-2. `task-1179` — audit app diagnostics summary after bucket routing.
-3. `task-1180` — plan non-built-in material family adapter spike.
-4. `task-1181` — add test-only non-built-in material route adapter.
-5. `task-1182` — audit test-only adapter before real family work.
+1. `task-1206` — add direct-light readiness diagnostics report.
+2. `task-1207` — audit direct-light readiness diagnostics report.
+3. `task-1203` — plan follow-up StandardMaterial texture transform coverage.
+4. `task-1204` — implement the next audited StandardMaterial texture transform
+   slice if `task-1203` selects one.
+5. `task-1205` — audit the next audited StandardMaterial texture transform
+   slice if `task-1204` lands.
 
 Defer allocation-only cleanup and metadata-only shader-contract tasks unless
 they are a direct blocker for this track.
@@ -165,92 +161,96 @@ viewer/material mapping should not outrun the material and queue architecture.
 
 ### Proof Point Critical Path
 
-### task-1178 — Route app diagnostics through generic bucket summary
+### task-1206 — Add direct-light readiness diagnostics report
 
 Category: `webgpu-render`
-Package/write-scope: `packages/webgpu/src/webgpu` and targeted tests.
+Package/write-scope: `packages/webgpu`, targeted tests, and examples only if a
+small status hook is needed.
 Reference anchor:
-`docs/research/GENERIC_ROUTE_SUMMARY_NEXT_FAMILY_HANDOFF_2026_05_18.md`,
-`packages/webgpu/src/webgpu/queued-material-frame-resource-buckets.ts`, and
-`packages/webgpu/src/webgpu/app-diagnostics-summary.ts`.
+the plan from `task-1201`, the audit from `task-1202`,
+`packages/webgpu/src/webgpu/light-packing.ts`, and
+`packages/webgpu/src/webgpu/light-shader-metadata.ts`.
 
 Acceptance criteria:
 
-- Use generic bucket summary output where app diagnostics need family resource
-  counts, without renaming the public `routedResourceSet` field.
-- Preserve existing built-in app diagnostics compatibility.
-- Tests assert deterministic family ordering and JSON-safe output.
+- Add a JSON-safe direct-light readiness report for StandardMaterial/WebGPU app
+  status.
+- Include light counts by kind and readiness of light buffers, light bind group
+  layout, light bind group, and shader metadata.
+- Keep the helper derived from render snapshots/WebGPU resources rather than
+  ECS-owned or mutable renderer-owned light objects.
+- Add focused tests for populated and missing-resource cases.
+- Do not add IBL, shadow-map rendering, clustered lighting, or a new public
+  scene object.
 
-### task-1179 — Audit app diagnostics summary after bucket routing
+### task-1207 — Audit direct-light readiness diagnostics report
 
 Category: `audit-refactor`
 Package/write-scope: `docs/research`, targeted tests only if a tiny corrective
 fix is needed.
 Reference anchor:
-`docs/research/GENERIC_BUCKET_MIGRATION_AUDIT_2026_05_18.md`,
-`packages/webgpu/src/webgpu/app-diagnostics-summary.ts`, and
-`packages/webgpu/src/webgpu/queued-material-frame-resource-buckets.ts`.
+the implementation from `task-1206`,
+`docs/research/NEXT_LIGHTING_BOUNDARY_PLAN_AUDIT_2026_05_18.md`, and
+`docs/ARCHITECTURE.md`.
 
 Acceptance criteria:
 
-- Verify app diagnostics consume only bucket summaries, not raw family bucket
-  maps.
-- Confirm public diagnostics naming remains compatible.
-- Document the next route/generalization step.
+- Confirm the report stays JSON-safe and does not expose raw GPU resources.
+- Confirm the report derives from render snapshot/WebGPU readiness state, not
+  mutable ECS or scene-graph state.
+- Confirm IBL, shadows, clustered lighting, and render graph work remain
+  deferred.
+- Recommend whether the next task should stay in lighting diagnostics or return
+  to StandardMaterial texture fidelity.
 
-### task-1180 — Plan non-built-in material family adapter spike
+### task-1203 — Plan follow-up StandardMaterial texture transform coverage
 
 Category: `docs-tooling`
 Package/write-scope: `docs/research` and backlog only if adding a follow-up
 implementation task.
 Reference anchor:
-`docs/research/GENERIC_ROUTE_SUMMARY_NEXT_FAMILY_HANDOFF_2026_05_18.md`,
-`docs/research/GENERIC_BUCKET_DIAGNOSTICS_HANDOFF_2026_05_18.md`, and
-`packages/webgpu/src/webgpu/queued-material-adapter.ts`.
+the audit from `task-1200`,
+`docs/research/NEXT_STANDARD_MATERIAL_PBR_FIDELITY_SLICE_PLAN_2026_05_18.md`,
+and existing StandardMaterial transform tests.
 
 Acceptance criteria:
 
-- Define the smallest fake or debug material family adapter spike that would
-  exercise generic route/bucket contracts without adding product-facing
-  material support.
-- Identify which built-in compatibility wrappers the spike must avoid copying.
-- Add a concrete implementation task only if the spike can stay test-only and
-  reviewable.
+- Identify the next texture transform slot or transform field only after the
+  metallic-roughness slice is audited.
+- Keep unsupported diagnostics honest for deferred slots.
+- Add a concrete implementation task only if it can be validated narrowly.
 
-### task-1181 — Add test-only non-built-in material route adapter
+### task-1204 — Implement next audited StandardMaterial texture transform slice
 
 Category: `webgpu-render`
-Package/write-scope: `test/webgpu` and generic WebGPU helpers only if a tiny
-test seam is needed.
+Package/write-scope: `packages/render`, `packages/webgpu`, examples, and
+targeted tests selected by `task-1203`.
 Reference anchor:
-`docs/research/GENERIC_ROUTE_SUMMARY_NEXT_FAMILY_HANDOFF_2026_05_18.md`,
-`docs/research/GENERIC_BUCKET_DIAGNOSTICS_HANDOFF_2026_05_18.md`, and
-`packages/webgpu/src/webgpu/queued-material-adapter.ts`.
+the plan from `task-1203`, `docs/MEDIUM_LONG_TERM_GOALS.md`, and existing
+StandardMaterial transform tests.
 
 Acceptance criteria:
 
-- Add a test-only adapter family that exercises generic queue/resource/bucket
-  contracts without becoming product-facing material support.
-- Do not add a family-specific app diagnostics field or built-in compatibility
-  array.
-- Assert summaries remain deterministic and JSON-safe.
+- Implement only the transform slot or field selected by `task-1203`.
+- Preserve unsupported diagnostics for deferred transform cases.
+- Add focused unit and/or browser coverage, including WebGPU validation guards
+  if the slice reaches the browser path.
 
-### task-1182 — Audit test-only adapter before real family work
+### task-1205 — Audit next StandardMaterial texture transform implementation
 
 Category: `audit-refactor`
 Package/write-scope: `docs/research`, targeted tests only if a tiny corrective
 fix is needed.
 Reference anchor:
-`docs/research/NEXT_FAMILY_ROUTE_READINESS_AUDIT_2026_05_18.md` and the
-test-only adapter coverage from `task-1181`.
+the implementation from `task-1204`, the plan from `task-1203`, and
+`docs/ARCHITECTURE.md`.
 
 Acceptance criteria:
 
-- Confirm the test-only adapter did not introduce product-facing material APIs.
-- Confirm no new family-specific app diagnostics field or compatibility array
-  was added.
-- Document whether a real material-family implementation is ready or still
-  blocked by app diagnostics routing.
+- Confirm the implementation stayed within the selected transform scope.
+- Confirm unsupported transform diagnostics remain honest for deferred cases.
+- Recommend whether the next slice should stay in material texture fidelity,
+  move to lighting contracts, or pause for route architecture cleanup.
 
 ## Post-Unlit E2E Verification Targets
 

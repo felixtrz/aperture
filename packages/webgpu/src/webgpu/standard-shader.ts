@@ -76,6 +76,10 @@ struct StandardMaterialUniform {
   baseColorTextureScale: vec2f,
   baseColorTextureRotation: f32,
   padding1: f32,
+  metallicRoughnessTextureOffset: vec2f,
+  metallicRoughnessTextureScale: vec2f,
+  metallicRoughnessTextureRotation: f32,
+  padding2: f32,
 };
 
 struct VertexInput {
@@ -682,7 +686,7 @@ fn saturate(value: f32) -> f32 {`,
     );
   }
 
-  if (features.baseColorTexture) {
+  if (features.baseColorTexture || features.metallicRoughnessTexture) {
     code = code.replace(
       `fn saturate(value: f32) -> f32 {`,
       `fn standardTextureTransformUv(uv: vec2f, offset: vec2f, scale: vec2f, rotation: f32) -> vec2f {
@@ -698,6 +702,9 @@ fn saturate(value: f32) -> f32 {`,
 
 fn saturate(value: f32) -> f32 {`,
     );
+  }
+
+  if (features.baseColorTexture) {
     code = code.replace(
       `  let baseColor = material.baseColorFactor.rgb;
   let alpha = material.baseColorFactor.a;`,
@@ -717,10 +724,16 @@ fn saturate(value: f32) -> f32 {`,
     code = code.replace(
       `  let metallic = clamp(material.metallicFactor, 0.0, 1.0);
   let roughness = clamp(material.roughnessFactor, 0.045, 1.0);`,
-      `  let metallicRoughnessSample = textureSample(
+      `  let metallicRoughnessUv = standardTextureTransformUv(
+    ${metallicRoughnessUv},
+    material.metallicRoughnessTextureOffset,
+    material.metallicRoughnessTextureScale,
+    material.metallicRoughnessTextureRotation,
+  );
+  let metallicRoughnessSample = textureSample(
     metallicRoughnessTexture,
     metallicRoughnessSampler,
-    ${metallicRoughnessUv},
+    metallicRoughnessUv,
   );
   let metallic = clamp(material.metallicFactor * metallicRoughnessSample.b, 0.0, 1.0);
   let roughness = clamp(material.roughnessFactor * metallicRoughnessSample.g, 0.045, 1.0);`,

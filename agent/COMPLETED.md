@@ -1,5 +1,410 @@
 # Completed Tasks
 
+## task-1202 — Next lighting boundary plan audit
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/NEXT_LIGHTING_BOUNDARY_PLAN_AUDIT_2026_05_18.md`.
+- Confirmed the direct-light readiness diagnostics report is a safe next
+  implementation boundary.
+- Kept IBL, shadow-map passes, clustered lighting, render targets, binary GLB
+  loading, and ECS/scene-object API changes deferred.
+
+Validation run:
+
+- Documentation-only audit slice; covered by touched-file Prettier,
+  `pnpm run check:progress`, and `git diff --check`.
+
+## task-1201 — Next lighting boundary plan
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/NEXT_LIGHTING_BOUNDARY_AFTER_STANDARD_MATERIAL_FIDELITY_PLAN_2026_05_18.md`.
+- Selected a direct-light readiness diagnostics report as the next lighting
+  boundary.
+- Kept IBL, shadow-map passes, clustered lighting, binary GLB viewer work, and
+  new scene-object APIs deferred.
+
+Validation run:
+
+- Documentation-only planning slice; covered by touched-file Prettier,
+  `pnpm run check:progress`, and `git diff --check`.
+
+## task-1200 — StandardMaterial PBR fidelity implementation audit
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/STANDARD_MATERIAL_METALLIC_ROUGHNESS_TRANSFORM_SUPPORT_AUDIT_2026_05_18.md`.
+- Confirmed the metallic-roughness transform implementation stayed limited to
+  StandardMaterial `metallicRoughnessTexture` on `TEXCOORD_0`.
+- Documented the 128-byte uniform alignment correction and kept IBL, shadows,
+  broad GLB loading, and custom material-family APIs deferred.
+
+Validation run:
+
+- Documentation-only audit slice; covered by touched-file Prettier,
+  `pnpm run check:progress`, and `git diff --check`.
+
+## task-1199 — StandardMaterial metallic-roughness transform support
+
+Completed: 2026-05-18
+
+Summary:
+
+- Extended StandardMaterial texture-transform support from base-color UV0 to
+  metallic-roughness UV0.
+- Packed metallic-roughness texture transforms into the WebGPU material uniform
+  with 16-byte-aligned padding and applied them in WGSL before sampling.
+- Updated glTF/readiness diagnostics and the browser fixture so the
+  metallic-roughness transform scenario renders successfully.
+
+Validation run:
+
+- `node --check examples/standard-gltf-texture.js`
+- `pnpm exec vitest run test/materials/gltf-material.test.ts test/materials/standard-texture-readiness.test.ts test/webgpu/standard-material-buffer.test.ts test/webgpu/standard-shader.test.ts`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "metallic-roughness transforms"`
+
+## task-1198 — Next StandardMaterial PBR fidelity plan audit
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/NEXT_STANDARD_MATERIAL_PBR_FIDELITY_PLAN_AUDIT_2026_05_18.md`.
+- Confirmed the selected next implementation slice should stay limited to
+  metallic-roughness texture transforms on `TEXCOORD_0`.
+- Kept IBL, shadows, and broad GLB viewer work deferred.
+
+Validation run:
+
+- Documentation-only audit slice; covered by touched-file Prettier and
+  `git diff --check`.
+
+## task-1197 — Next StandardMaterial PBR fidelity slice plan
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/NEXT_STANDARD_MATERIAL_PBR_FIDELITY_SLICE_PLAN_2026_05_18.md`.
+- Selected metallic-roughness texture-transform support as the next narrow
+  StandardMaterial fidelity implementation slice.
+- Defined unit and browser acceptance criteria for the follow-up.
+
+Validation run:
+
+- Documentation-only planning slice; covered by touched-file Prettier and
+  `git diff --check`.
+
+## task-1196 — StandardMaterial route compatibility test audit
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/STANDARD_MATERIAL_ROUTE_COMPATIBILITY_TEST_AUDIT_2026_05_18.md`.
+- Verified the compatibility test pinned generic route fields without changing
+  public app APIs.
+
+Validation run:
+
+- Documentation-only audit slice; covered by touched-file Prettier and
+  `git diff --check`.
+
+## task-1195 — StandardMaterial route cleanup compatibility test
+
+Completed: 2026-05-18
+
+Summary:
+
+- Extended built-in app resource-set tests for the StandardMaterial route
+  cleanup boundary.
+- Asserted StandardMaterial compatibility wrappers expose generic route fields
+  needed by later cleanup work.
+
+Validation run:
+
+- `pnpm exec vitest run test/webgpu/queued-built-in-app-resource-set.test.ts`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+
+## task-1194 — Generic route criteria fixture audit
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/GENERIC_ROUTE_CRITERIA_FIXTURE_AUDIT_2026_05_18.md`.
+- Confirmed the fixture stayed test-only and did not introduce product-facing
+  material-family APIs.
+
+Validation run:
+
+- Documentation-only audit slice; covered by touched-file Prettier and
+  `git diff --check`.
+
+## task-1193 — Generic route criteria fixture
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added a `criteria-preview` fixture to the generic app resource-item tests.
+- Exercised generic route criteria without adding family-specific diagnostics
+  fields.
+
+Validation run:
+
+- `pnpm exec vitest run test/webgpu/queued-material-app-resource-item.test.ts`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+
+## task-1192 — StandardMaterial route cleanup plan audit
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/STANDARD_MATERIAL_ROUTE_CLEANUP_PLAN_AUDIT_2026_05_18.md`.
+- Confirmed cleanup should be compatibility-tested before product route
+  migration.
+
+Validation run:
+
+- Documentation-only audit slice; covered by touched-file Prettier and
+  `git diff --check`.
+
+## task-1191 — StandardMaterial route cleanup plan
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/STANDARD_MATERIAL_ROUTE_CLEANUP_AFTER_GENERIC_BOUNDARY_PLAN_2026_05_18.md`.
+- Planned the compatibility-preserving StandardMaterial route cleanup sequence.
+
+Validation run:
+
+- Documentation-only planning slice; covered by touched-file Prettier and
+  `git diff --check`.
+
+## task-1190 — Real material-family route criteria audit
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/REAL_MATERIAL_FAMILY_ROUTE_CRITERIA_AUDIT_2026_05_18.md`.
+- Confirmed real material-family app migration should wait for explicit route
+  criteria.
+
+Validation run:
+
+- Documentation-only audit slice; covered by touched-file Prettier and
+  `git diff --check`.
+
+## task-1189 — Real material-family app route migration criteria
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/REAL_MATERIAL_FAMILY_APP_ROUTE_MIGRATION_CRITERIA_2026_05_18.md`.
+- Defined criteria for moving from test-only generic route fixtures to a real
+  material-family route.
+
+Validation run:
+
+- Documentation-only criteria slice; covered by touched-file Prettier and
+  `git diff --check`.
+
+## task-1188 — Built-in wrapper generic-boundary compatibility audit
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/BUILT_IN_WRAPPER_GENERIC_BOUNDARY_COMPATIBILITY_AUDIT_2026_05_18.md`.
+- Verified built-in compatibility wrappers can coexist with the generic app
+  route boundary.
+
+Validation run:
+
+- Documentation-only audit slice; covered by touched-file Prettier and
+  `git diff --check`.
+
+## task-1187 — Built-in route compatibility assertions
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added built-in app resource-set assertions for generic route fields and
+  `prepareRoute` compatibility.
+- Asserted app diagnostics no longer expose legacy family-specific resource-set
+  fields such as `standardResourceSet`.
+
+Validation run:
+
+- `pnpm exec vitest run test/webgpu/queued-built-in-app-resource-set.test.ts test/webgpu/app-diagnostics-summary.test.ts`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+
+## task-1186 — Built-in route migration plan
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/BUILT_IN_ROUTE_MIGRATION_ON_GENERIC_APP_BOUNDARY_PLAN_2026_05_18.md`.
+- Planned the compatibility-preserving migration of built-in route wrappers
+  onto the generic app boundary.
+
+Validation run:
+
+- Documentation-only planning slice; covered by touched-file Prettier and
+  `git diff --check`.
+
+## task-1185 — Generic app route item helper audit
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added `docs/research/GENERIC_APP_ROUTE_ITEM_HELPER_AUDIT_2026_05_18.md`.
+- Confirmed the helper stays family-agnostic, JSON-safe, and free of ECS/game
+  ownership.
+
+Validation run:
+
+- Documentation-only audit slice; covered by touched-file Prettier and
+  `git diff --check`.
+
+## task-1184 — Generic app material route boundary helper
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added `queued-material-app-resource-item.ts`, a generic app route item helper
+  exported from `@aperture-engine/webgpu`.
+- Updated built-in app resource-set collection to construct route items through
+  the helper while preserving compatibility wrappers.
+- Added test coverage with a fake non-built-in route item.
+
+Validation run:
+
+- `pnpm exec vitest run test/webgpu/queued-material-app-resource-item.test.ts test/webgpu/queued-material-frame-resource-set.test.ts test/webgpu/queued-built-in-resource-set-summary.test.ts test/webgpu/queued-built-in-frame-resource-set.test.ts test/webgpu/webgpu-app.test.ts`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+
+## task-1183 — App-level generic material adapter route boundary plan
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/APP_LEVEL_GENERIC_MATERIAL_ADAPTER_ROUTE_BOUNDARY_PLAN_2026_05_18.md`.
+- Planned the generic route item boundary used by later compatibility work.
+
+Validation run:
+
+- Documentation-only planning slice; covered by touched-file Prettier and
+  `git diff --check`.
+
+## task-1182 — Test-only adapter spike audit
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added `docs/research/TEST_ONLY_ADAPTER_SPIKE_AUDIT_2026_05_18.md`.
+- Confirmed the custom-preview route stayed inside tests and did not become a
+  product material family.
+
+Validation run:
+
+- Documentation-only audit slice; covered by touched-file Prettier and
+  `git diff --check`.
+
+## task-1181 — Test-only non-built-in material route adapter
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added a test-only custom material adapter route exercising the generic
+  adapter registry, collector, bucket, and routed-resource summary spine.
+- Kept the route out of production material APIs and app diagnostics fields.
+
+Validation run:
+
+- `pnpm exec vitest run test/webgpu/queued-material-frame-resource-set.test.ts test/webgpu/queued-built-in-resource-set-summary.test.ts test/webgpu/app-diagnostics-summary.test.ts`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+
+## task-1180 — Non-built-in material adapter spike plan
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/TEST_ONLY_NON_BUILT_IN_MATERIAL_ADAPTER_SPIKE_PLAN_2026_05_18.md`.
+- Defined a narrow test-only route spike to validate generic family plumbing.
+
+Validation run:
+
+- Documentation-only planning slice; covered by touched-file Prettier and
+  `git diff --check`.
+
+## task-1179 — App diagnostics bucket summary audit
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added `docs/research/APP_DIAGNOSTICS_BUCKET_SUMMARY_AUDIT_2026_05_18.md`.
+- Verified app diagnostics consume generic bucket summaries rather than raw
+  bucket maps or family-specific resource-set fields.
+
+Validation run:
+
+- Documentation-only audit slice; covered by touched-file Prettier and
+  `git diff --check`.
+
+## task-1178 — App diagnostics through generic bucket summary
+
+Completed: 2026-05-18
+
+Summary:
+
+- Routed app diagnostics family resource counts through generic queued material
+  frame-resource bucket summaries.
+- Preserved the public `routedResourceSet` diagnostics field and deterministic
+  JSON-safe summary rows.
+
+Validation run:
+
+- `pnpm exec vitest run test/webgpu/queued-built-in-resource-set-summary.test.ts test/webgpu/app-diagnostics-summary.test.ts test/webgpu/queued-built-in-frame-resource-set.test.ts test/webgpu/webgpu-app.test.ts`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+
 ## task-1177 — Next-family route readiness audit
 
 Completed: 2026-05-18
@@ -10625,3 +11030,365 @@ Summary:
 - Validation run: targeted Vitest suites, full `standard-gltf-texture`
   Playwright spec, `pnpm run check:progress`, and final `pnpm run check` passed
   with 250 Vitest files / 1168 tests.
+
+## task-1178 through task-1182 — Generic bucket diagnostics and test-only adapter spike
+
+Completed: 2026-05-18
+
+Completed task ids:
+
+- `task-1178` — Route app diagnostics through generic bucket summary.
+- `task-1179` — Audit app diagnostics summary after bucket routing.
+- `task-1180` — Plan non-built-in material family adapter spike.
+- `task-1181` — Add test-only non-built-in material route adapter.
+- `task-1182` — Audit test-only adapter before real family work.
+
+Summary:
+
+- Routed app diagnostics family resource counts through
+  `resources.byFamilySummary` from the generic queued material frame-resource
+  bucket path while preserving the public `routedResourceSet` diagnostics
+  section.
+- Added summary helper coverage proving generic and built-in routed-resource
+  summaries can accept bucket family counts, keep deterministic ordering, and
+  remain JSON-safe.
+- Added
+  `docs/research/APP_DIAGNOSTICS_BUCKET_SUMMARY_AUDIT_2026_05_18.md` to confirm
+  app diagnostics consume summary rows rather than raw bucket maps.
+- Added
+  `docs/research/TEST_ONLY_NON_BUILT_IN_MATERIAL_ADAPTER_SPIKE_PLAN_2026_05_18.md`
+  and a test-only `custom-preview` route spike covering generic adapter
+  registry lookup, generic frame-resource preparation, bucket summaries, and
+  folded routed-resource summaries without adding product-facing material APIs.
+- Added
+  `docs/research/TEST_ONLY_ADAPTER_SPIKE_AUDIT_2026_05_18.md` to confirm the
+  spike stayed in tests and did not add family-specific diagnostics fields or
+  built-in-style compatibility arrays.
+- Validation run: focused WebGPU tests, test TypeScript build, Prettier checks
+  for touched files, and `git diff --check` passed.
+
+## task-1183 — App-level generic material adapter route boundary plan
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/APP_LEVEL_GENERIC_MATERIAL_ADAPTER_ROUTE_BOUNDARY_PLAN_2026_05_18.md`.
+- Inspected the built-in app resource-set collector and built-in app resource
+  adapter modules, then identified the missing generic app route item seam
+  between queue routing and built-in compatibility wrappers.
+- Planned `createQueuedMaterialAppResourceItem(...)` as the next small helper:
+  a family-agnostic route item contract that can carry queue item, prepare
+  route, adapter, draw, mesh, material, and source/backend keys without naming
+  `unlit`, `matcap`, or `standard`.
+- Refilled the backlog with follow-up implementation and audit tasks through
+  `task-1188`.
+
+Validation:
+
+- Formatting/check validation is covered in the current run handoff.
+
+## task-1184 — Generic app material route boundary helper
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added `packages/webgpu/src/webgpu/queued-material-app-resource-item.ts` with
+  a family-agnostic `QueuedMaterialAppResourceItem` contract and
+  `createQueuedMaterialAppResourceItem(...)` helper.
+- Exported the helper from `@aperture-engine/webgpu`.
+- Updated the built-in app resource-set collector to construct built-in route
+  items through the generic helper while preserving existing built-in app route
+  behavior.
+- Added `test/webgpu/queued-material-app-resource-item.test.ts`, which uses a
+  fake `custom-preview` family to prove the helper can feed generic
+  routed-resource summaries without adding a family-specific diagnostics field
+  or built-in-style compatibility array.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/queued-material-app-resource-item.test.ts test/webgpu/queued-material-frame-resource-set.test.ts test/webgpu/queued-built-in-resource-set-summary.test.ts test/webgpu/queued-built-in-frame-resource-set.test.ts test/webgpu/webgpu-app.test.ts`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+
+## task-1185 — Generic app route boundary helper audit
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/GENERIC_APP_ROUTE_ITEM_HELPER_AUDIT_2026_05_18.md`.
+- Verified `queued-material-app-resource-item.ts` does not import ECS world
+  state, asset registries, app facade state, canvas/context/device/queue state,
+  or raw GPU resource types.
+- Verified the helper does not mention built-in family names or the test-only
+  `custom-preview` family.
+- Verified `custom-preview` remains confined to docs and WebGPU tests, with no
+  product-facing material asset, shader, app route, GLB mapping, compatibility
+  array, or family-specific diagnostics field.
+- Documented that built-in wrapper compatibility migration can proceed as the
+  next narrow slice.
+
+Validation:
+
+- Audit grep and formatting/check validation are covered in the current run
+  handoff.
+
+## task-1186 — Built-in route migration plan on generic app boundary
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/BUILT_IN_ROUTE_MIGRATION_ON_GENERIC_APP_BOUNDARY_PLAN_2026_05_18.md`.
+- Confirmed `collectQueuedBuiltInAppResourceSet()` already crosses the generic
+  app route item seam by constructing route items through
+  `createQueuedMaterialAppResourceItem()`.
+- Planned the next narrow implementation as compatibility tests, not more
+  abstraction: assert built-in route items expose stable generic fields,
+  `prepareRoute` mirrors queue/source keys, and app diagnostics still expose
+  `routedResourceSet` without family-specific fields.
+- Refilled the backlog through `task-1191`.
+
+Validation:
+
+- Formatting/check validation is covered in the current run handoff.
+
+## task-1187 — Built-in wrapper compatibility tests for generic app boundary
+
+Completed: 2026-05-18
+
+Summary:
+
+- Extended `test/webgpu/queued-built-in-app-resource-set.test.ts` to pin the
+  collected built-in item's generic route fields, including `prepareRoute`,
+  adapter kind, draw identity, source keys, and prepared mesh/material resource
+  keys.
+- Extended `test/webgpu/app-diagnostics-summary.test.ts` to assert app
+  diagnostics keep the public `routedResourceSet` field and do not introduce
+  `standardResourceSet` or `customPreviewResourceSet`.
+- Preserved built-in runtime behavior; this was a compatibility-test slice.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/queued-built-in-app-resource-set.test.ts test/webgpu/app-diagnostics-summary.test.ts test/webgpu/queued-material-app-resource-item.test.ts test/webgpu/queued-built-in-frame-resource-set.test.ts test/webgpu/webgpu-app.test.ts`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+
+## task-1188 — Built-in wrapper generic boundary compatibility audit
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/BUILT_IN_WRAPPER_GENERIC_BOUNDARY_COMPATIBILITY_AUDIT_2026_05_18.md`.
+- Confirmed the compatibility tests pin generic route item fields and
+  `prepareRoute` identity for built-in route items.
+- Confirmed app diagnostics still expose `routedResourceSet` and do not add
+  `standardResourceSet` or `customPreviewResourceSet`.
+- Confirmed built-in `unlit`, `matcap`, and `standard` arrays remain current
+  compatibility outputs, not a template for future material families.
+- Recommended planning real material-family app route migration criteria before
+  any product-facing material route work.
+
+Validation:
+
+- Audit grep and formatting/check validation are covered in the current run
+  handoff.
+
+## task-1189 — Real material-family app route migration criteria
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/REAL_MATERIAL_FAMILY_APP_ROUTE_MIGRATION_CRITERIA_2026_05_18.md`.
+- Defined required source asset, queue, prepare, app route, compatibility, and
+  verification criteria before product-facing non-built-in material app routing.
+- Reaffirmed the material-family order from `docs/MEDIUM_LONG_TERM_GOALS.md`.
+- Recommended existing-family cleanup, likely StandardMaterial route cleanup,
+  before adding any brand-new product material family.
+- Kept the criteria separate from shader/PBR implementation work.
+
+Validation:
+
+- Formatting/check validation is covered in the current run handoff.
+
+## task-1190 — Real material-family route criteria audit
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/REAL_MATERIAL_FAMILY_ROUTE_CRITERIA_AUDIT_2026_05_18.md`.
+- Confirmed the route migration criteria align with the material-family order
+  in `docs/MEDIUM_LONG_TERM_GOALS.md` and do not propose arbitrary new material
+  support.
+- Confirmed the criteria preserve source asset, queue, app route,
+  diagnostics-summary, and WebGPU-owned prepared-resource boundaries.
+- Recommended a StandardMaterial route cleanup planning slice before any
+  implementation.
+
+Validation:
+
+- Formatting/check validation is covered in the current run handoff.
+
+## task-1191 — StandardMaterial route cleanup plan after generic boundary
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/STANDARD_MATERIAL_ROUTE_CLEANUP_AFTER_GENERIC_BOUNDARY_PLAN_2026_05_18.md`.
+- Inspected `standard-app-frame-resources.ts` and `standard-frame-resources.ts`
+  to keep the plan scoped to route/preparation identity rather than shader or
+  PBR feature work.
+- Selected a focused compatibility test slice for StandardMaterial route item
+  and prepare-route identity across the generic route item and built-in frame
+  resource boundaries.
+- Explicitly deferred Standard WGSL changes, new PBR texture support, IBL,
+  shadows, GLB viewer work, and app diagnostics field changes.
+
+Validation:
+
+- Formatting/check validation is covered in the current run handoff.
+
+## task-1192 — StandardMaterial route cleanup plan audit
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/STANDARD_MATERIAL_ROUTE_CLEANUP_PLAN_AUDIT_2026_05_18.md`.
+- Confirmed the StandardMaterial cleanup plan is a compatibility-test slice,
+  not shader/PBR/IBL/shadow/GLB viewer work.
+- Confirmed the plan preserves ECS authoring, derived route items,
+  WebGPU-owned prepared resources, and `routedResourceSet` diagnostics.
+- Recommended implementing the route identity test as a focused WebGPU test
+  slice.
+
+Validation:
+
+- Formatting/check validation is covered in the current run handoff.
+
+## task-1193 — Generic route criteria test fixture
+
+Completed: 2026-05-18
+
+Summary:
+
+- Extended `test/webgpu/queued-material-app-resource-item.test.ts` with a
+  `criteria-preview` fake-family fixture.
+- The fixture validates source asset, queue, prepare, app route, compatibility,
+  and verification criteria using only generic route item and summary helpers.
+- Asserted routed-resource summaries remain family-neutral and JSON-safe without
+  adding app runtime behavior or product material support.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/queued-material-app-resource-item.test.ts test/webgpu/queued-built-in-app-resource-set.test.ts test/webgpu/app-diagnostics-summary.test.ts`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+
+## task-1194 — Generic route criteria fixture audit
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/GENERIC_ROUTE_CRITERIA_FIXTURE_AUDIT_2026_05_18.md`.
+- Confirmed the `criteria-preview` fixture remains test-only and did not add a
+  source material asset, shader, pipeline, app route, browser example, GLB
+  mapping, public product API, or family-specific diagnostics field.
+- Confirmed the fixture validates source asset, queue, prepare, app route,
+  compatibility, and verification criteria through generic helpers.
+- Recommended proceeding to StandardMaterial route cleanup compatibility tests.
+
+Validation:
+
+- Formatting/check validation is covered in the current run handoff.
+
+## task-1195 — StandardMaterial route cleanup compatibility test
+
+Completed: 2026-05-18
+
+Summary:
+
+- Extended `test/webgpu/queued-built-in-app-resource-set.test.ts` with a
+  StandardMaterial route identity test.
+- The test asserts the collected Standard route item keeps generic app route
+  fields aligned: `queueItem`, `prepareRoute`, adapter kind, source keys, and
+  prepared mesh/material resource keys.
+- Asserted no `standardResourceSet` diagnostics field is introduced and no raw
+  GPU handles are serialized.
+- Did not change Standard WGSL, PBR behavior, lighting, shadows, GLB mapping, or
+  app runtime behavior.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/queued-built-in-app-resource-set.test.ts test/webgpu/app-diagnostics-summary.test.ts test/webgpu/queued-material-app-resource-item.test.ts test/webgpu/webgpu-app.test.ts`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+
+## task-1196 — StandardMaterial route compatibility test audit
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/STANDARD_MATERIAL_ROUTE_COMPATIBILITY_TEST_AUDIT_2026_05_18.md`.
+- Confirmed the Standard route compatibility test pins route identity without
+  adding WGSL, PBR, GLB, lighting, shadow, browser, or app runtime scope.
+- Confirmed app diagnostics compatibility remains `routedResourceSet`-based and
+  no `standardResourceSet` field was introduced.
+- Recommended planning the next narrow StandardMaterial PBR fidelity slice.
+
+Validation:
+
+- Formatting/check validation is covered in the current run handoff.
+
+## task-1197 — Next StandardMaterial PBR fidelity slice plan
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/NEXT_STANDARD_MATERIAL_PBR_FIDELITY_SLICE_PLAN_2026_05_18.md`.
+- Selected a narrow metallic-roughness texture transform slice for
+  `TEXCOORD_0` offset/scale as the next StandardMaterial fidelity step.
+- Explicitly deferred IBL, shadows, GLB viewer work, broad texture transform
+  support, normal-map tangent changes, and new app diagnostics fields.
+- Defined implementation acceptance criteria across glTF mapping, readiness,
+  uniform packing, WGSL sampling, diagnostics, and browser/readback coverage.
+
+Validation:
+
+- Formatting/check validation is covered in the current run handoff.
+
+## task-1198 — Next StandardMaterial PBR fidelity plan audit
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/NEXT_STANDARD_MATERIAL_PBR_FIDELITY_PLAN_AUDIT_2026_05_18.md`.
+- Confirmed the selected metallic-roughness texture transform slice is narrow:
+  `metallicRoughnessTexture`, `TEXCOORD_0`, offset/scale first.
+- Confirmed the plan defers IBL, shadows, new BRDF work, GLB viewer work,
+  normal tangent changes, broad all-slot transform support, and new app
+  diagnostics fields.
+- Listed validation requirements for mapping, readiness, packing, WGSL, browser
+  readback, and unsupported-case diagnostics.
+
+Validation:
+
+- Formatting/check validation is covered in the current run handoff.

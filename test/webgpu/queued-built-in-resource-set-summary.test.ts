@@ -39,6 +39,49 @@ describe("queued material frame resource set summary", () => {
       ],
     });
   });
+
+  it("can use generic frame-resource bucket summaries for family resource counts", () => {
+    const summary = createQueuedMaterialFrameResourceSetSummary(
+      [
+        genericItem("standard", "standard|base-color"),
+        genericItem("custom-preview", "custom|preview"),
+        genericItem("standard", "standard|base-color"),
+      ],
+      {
+        byFamily: [
+          { family: "standard", itemCount: 2 },
+          { family: "custom-preview", itemCount: 1 },
+        ],
+      },
+    );
+
+    expect(summary).toEqual({
+      itemCount: 3,
+      byFamily: [
+        { family: "custom-preview", itemCount: 1 },
+        { family: "standard", itemCount: 2 },
+      ],
+      byPipeline: [
+        { pipelineKey: "custom|preview", itemCount: 1 },
+        { pipelineKey: "standard|base-color", itemCount: 2 },
+      ],
+      byFamilyAndPipeline: [
+        {
+          family: "custom-preview",
+          pipelineKey: "custom|preview",
+          itemCount: 1,
+        },
+        {
+          family: "standard",
+          pipelineKey: "standard|base-color",
+          itemCount: 2,
+        },
+      ],
+    });
+    expect(JSON.stringify(summary)).not.toMatch(
+      /GPUDevice|GPUTexture|GPUBuffer|WebGpuApp|bindGroup|sourceMesh/,
+    );
+  });
 });
 
 describe("queued built-in resource set summary", () => {
@@ -104,6 +147,55 @@ describe("queued built-in resource set summary", () => {
     expect(JSON.stringify(summary)).not.toContain("gpu-buffer-handle");
     expect(JSON.stringify(summary)).not.toContain("sourceMesh");
     expect(JSON.stringify(summary)).not.toContain("bindGroup");
+  });
+
+  it("keeps built-in summary shape while accepting generic bucket family counts", () => {
+    const summary = createQueuedBuiltInResourceSetSummary(
+      [
+        item("standard", "standard|opaque"),
+        item("unlit", "unlit|opaque"),
+        item("standard", "standard|transparent"),
+      ],
+      {
+        byFamily: [
+          { family: "unlit", itemCount: 1 },
+          { family: "standard", itemCount: 2 },
+        ],
+      },
+    );
+
+    expect(summary).toEqual({
+      itemCount: 3,
+      byFamily: [
+        { family: "standard", itemCount: 2 },
+        { family: "unlit", itemCount: 1 },
+      ],
+      byPipeline: [
+        { pipelineKey: "standard|opaque", itemCount: 1 },
+        { pipelineKey: "standard|transparent", itemCount: 1 },
+        { pipelineKey: "unlit|opaque", itemCount: 1 },
+      ],
+      byFamilyAndPipeline: [
+        {
+          family: "standard",
+          pipelineKey: "standard|opaque",
+          itemCount: 1,
+        },
+        {
+          family: "standard",
+          pipelineKey: "standard|transparent",
+          itemCount: 1,
+        },
+        {
+          family: "unlit",
+          pipelineKey: "unlit|opaque",
+          itemCount: 1,
+        },
+      ],
+    });
+    expect(JSON.stringify(summary)).not.toMatch(
+      /GPUDevice|GPUTexture|GPUBuffer|WebGpuApp|bindGroup|sourceMesh/,
+    );
   });
 });
 

@@ -112,12 +112,6 @@ const expectedGltfFailures = {
       "render.standardMaterialTexture.unsupportedTextureTransform",
     status: "unsupported-transform",
   },
-  "metallic-roughness-transform": {
-    mappingDiagnostic: "gltfMaterial.unsupportedTextureTransform",
-    renderDiagnostic:
-      "render.standardMaterialTexture.unsupportedTextureTransform",
-    status: "unsupported-transform",
-  },
 };
 const scenario =
   new URLSearchParams(window.location.search).get("scenario") ?? "ready";

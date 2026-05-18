@@ -18,6 +18,7 @@ import {
 import type { BuiltInMaterialAsset } from "./built-in-material-queue-adapter.js";
 import type { QueuedBuiltInAppResourceAdapter } from "./built-in-material-app-resource-adapter.js";
 import type { QueuedMaterialAdapterRegistry } from "./queued-material-adapter.js";
+import { createQueuedMaterialAppResourceItem } from "./queued-material-app-resource-item.js";
 import {
   routeQueuedMaterialPrepare,
   type QueuedMaterialPrepareRouteResult,
@@ -273,18 +274,20 @@ export function collectQueuedBuiltInAppResourceSet(
       continue;
     }
 
-    items.push({
-      queueItem,
-      prepareRoute: route,
-      adapter,
-      draw,
-      mesh: mesh.asset,
-      meshKey: mesh.resourceKey,
-      sourceMeshKey: queueItem.meshKey,
-      material: material.asset,
-      materialKey: material.resourceKey,
-      sourceMaterialKey: queueItem.materialKey,
-    });
+    items.push(
+      createQueuedMaterialAppResourceItem({
+        queueItem,
+        prepareRoute: route,
+        adapter,
+        draw,
+        mesh: mesh.asset,
+        meshKey: mesh.resourceKey,
+        sourceMeshKey: queueItem.meshKey,
+        material: material.asset as BuiltInMaterialAsset,
+        materialKey: material.resourceKey,
+        sourceMaterialKey: queueItem.materialKey,
+      }),
+    );
   }
 
   const valid = diagnostics.length === 0 && items.length === queue.items.length;

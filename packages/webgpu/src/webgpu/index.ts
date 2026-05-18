@@ -69,6 +69,7 @@ export * from "./queued-built-in-resource-set-summary.js";
 export * from "./queued-built-in-app-resource-set.js";
 export * from "./queued-built-in-frame-resource-set.js";
 export * from "./queued-material-adapter.js";
+export * from "./queued-material-app-resource-item.js";
 export * from "./queued-material-frame-resource-route.js";
 export * from "./queued-material-frame-resource-set.js";
 export * from "./queued-material-prepare-route.js";

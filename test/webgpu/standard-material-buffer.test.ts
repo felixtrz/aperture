@@ -18,7 +18,7 @@ import {
 } from "@aperture-engine/webgpu";
 
 describe("standard material WebGPU uniform packing", () => {
-  it("packs scalar proof-point fields into the documented 80-byte layout", () => {
+  it("packs scalar proof-point fields into the documented uniform layout", () => {
     const material = createStandardMaterialAsset({
       baseColorFactor: new Float32Array([0.2, 0.4, 0.6, 0.8]),
       metallicFactor: 0.25,
@@ -143,6 +143,30 @@ describe("standard material WebGPU uniform packing", () => {
       expect.closeTo(2, 5),
     ]);
     expect(result.packed?.uniformFloat32[22]).toBeCloseTo(Math.PI / 2);
+  });
+
+  it("packs metallic-roughness texture transforms for shader sampling", () => {
+    const result = packStandardMaterial(
+      createStandardMaterialAsset({
+        metallicRoughnessTexture: textureBinding("mr", "mr-sampler", 0, {
+          offset: [0.125, 0.25],
+          rotation: Math.PI / 4,
+          scale: [2, 0.5],
+        }),
+      }),
+    );
+
+    expect(result.valid).toBe(true);
+    expect(result.diagnostics).toEqual([]);
+    expect(
+      Array.from(result.packed?.uniformFloat32.slice(24, 28) ?? []),
+    ).toEqual([
+      expect.closeTo(0.125, 5),
+      expect.closeTo(0.25, 5),
+      expect.closeTo(2, 5),
+      expect.closeTo(0.5, 5),
+    ]);
+    expect(result.packed?.uniformFloat32[28]).toBeCloseTo(Math.PI / 4);
   });
 
   it("packs textured alpha-mask flags and cutoff for shader discard", () => {

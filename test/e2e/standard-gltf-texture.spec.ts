@@ -1105,7 +1105,7 @@ test("standard glTF texture fixture reports transformed TEXCOORD_1 before submit
   webGpuValidation.expectNoWarnings();
 });
 
-test("standard glTF texture fixture reports non-base-color transforms before submitting draws", async ({
+test("standard glTF texture fixture renders metallic-roughness transforms", async ({
   page,
 }) => {
   const webGpuValidation = attachWebGpuValidationConsoleGuard(page);
@@ -1129,15 +1129,17 @@ test("standard glTF texture fixture reports non-base-color transforms before sub
 
   skipIfUnsupportedWebGpu(status);
   expectStatusJsonSafeForGpu(status);
-  expectExpectedGltfTextureFailureStatus(status, {
+  expectRenderedGltfTextureStatus(status, {
     scenario: "metallic-roughness-transform",
-    expectedMappingDiagnostic: "gltfMaterial.unsupportedTextureTransform",
-    expectedDiagnostic:
-      "render.standardMaterialTexture.unsupportedTextureTransform",
-    expectedTextureStatus: "unsupported-transform",
+    materialModel: "gltf-standard-metallic-roughness-transform",
     textureSlot: "metallicRoughnessTexture",
+    textureKey: "texture:gltf:texture:0:metallicRoughnessTexture",
+    samplerKey: "sampler:gltf:sampler:0:metallicRoughnessTexture",
+    pipelineKey: "standard|metallicRoughnessTexture|opaque|back|less|none",
   });
   expect(status).toMatchObject({
+    ok: true,
+    phase: "rendered",
     materialModel: "gltf-standard-metallic-roughness-transform",
     standardTexture: {
       expectedTexCoord: 0,
@@ -1150,28 +1152,33 @@ test("standard glTF texture fixture reports non-base-color transforms before sub
         roughness: expect.any(Number),
       },
       readiness: {
-        ready: false,
-        diagnostics: [
-          expect.objectContaining({
-            code: "standardMaterialTexture.unsupportedTextureTransform",
-            field: "metallicRoughnessTexture",
-          }),
-        ],
+        ready: true,
+        diagnostics: [],
       },
     },
+    draw: { packages: 1, drawCalls: 1 },
   });
-  expect(status.gltf?.assetMapping.diagnosticCodes).toContain(
+  expect(status.gltf?.assetMapping.diagnosticCodes).not.toContain(
     "gltfMaterial.unsupportedTextureTransform",
   );
-  expect(status.diagnosticCodes).toContain(
+  expect(status.diagnosticCodes).not.toContain(
     "render.standardMaterialTexture.unsupportedTextureTransform",
   );
   expect(status.diagnosticCodes).not.toContain(
     "render.standardMaterialTexture.missingTexCoord1",
   );
-  expect(status.diagnosticsSummary).toBeUndefined();
-  expect(status.pipelines?.keys ?? []).toEqual([]);
-  expect(status.pipelines?.meshLayoutKeys ?? []).toEqual([]);
+  expect(status.diagnosticsSummary?.routedResourceSet?.byFamily).toContainEqual(
+    {
+      family: "standard",
+      itemCount: 1,
+    },
+  );
+  expect(status.pipelines?.keys).toContain(
+    "standard|metallicRoughnessTexture|opaque|back|less|none",
+  );
+  expect(status.pipelines?.meshLayoutKeys).toContain(
+    "POSITION,NORMAL,TEXCOORD_0",
+  );
   webGpuValidation.expectNoWarnings();
 });
 

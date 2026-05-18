@@ -952,9 +952,10 @@ async function renderQueuedBuiltInWebGpuAppFrame(options: {
     viewUniforms: packedViews,
     worldTransforms: packedTransforms,
   });
-  const diagnosticsSummary = createQueuedBuiltInAppDiagnosticsSummary(
-    options.resourceSet,
-  );
+  const diagnosticsSummary = createQueuedBuiltInAppDiagnosticsSummary({
+    resourceSet: options.resourceSet,
+    resources: prepared.resources,
+  });
 
   if (!prepared.valid || prepared.resources === null) {
     return renderReport({
@@ -1085,19 +1086,23 @@ async function renderQueuedBuiltInWebGpuAppFrame(options: {
   });
 }
 
-function createQueuedBuiltInAppDiagnosticsSummary(
-  resourceSet: QueuedBuiltInAppResourceSet,
-): WebGpuAppDiagnosticsSummary {
+function createQueuedBuiltInAppDiagnosticsSummary(input: {
+  readonly resourceSet: QueuedBuiltInAppResourceSet;
+  readonly resources: QueuedBuiltInFrameResources | null;
+}): WebGpuAppDiagnosticsSummary {
   return createWebGpuAppDiagnosticsSummary({
     materialQueue: createMaterialQueuePhaseSummary(
-      resourceSet.items.map((item) => item.queueItem),
+      input.resourceSet.items.map((item) => item.queueItem),
     ),
     routedResourceSet: createQueuedBuiltInResourceSetSummary(
-      resourceSet.items.map((item) => ({
+      input.resourceSet.items.map((item) => ({
         materialFamily: item.queueItem.materialFamily,
         pipelineKey: item.draw.batchKey.pipelineKey,
         renderPhase: item.queueItem.renderPhase,
       })),
+      input.resources === null
+        ? {}
+        : { byFamily: input.resources.byFamilySummary },
     ),
   });
 }

@@ -10,6 +10,7 @@ import {
   createPreparedMaterialStore,
   createPreparedMeshStore,
   createRenderSortKey,
+  createStandardMaterialAsset,
   createUnlitMaterialAsset,
   prepareSnapshotMaterials,
   prepareSnapshotMeshes,
@@ -50,7 +51,9 @@ describe("queued built-in app resource set collector", () => {
     expect(result.valid).toBe(true);
     expect(result.diagnostics).toEqual([]);
     expect(result.resourceSet?.items).toHaveLength(1);
-    expect(result.resourceSet?.items[0]).toMatchObject({
+    const item = result.resourceSet?.items[0];
+
+    expect(item).toMatchObject({
       meshKey: "mesh:cube@1",
       materialKey: "material:white@1",
       sourceMeshKey: "mesh:cube",
@@ -62,7 +65,25 @@ describe("queued built-in app resource set collector", () => {
         materialResourceKey: "prepared-material:material:white",
       },
     });
+    expect(item?.prepareRoute).toEqual({
+      valid: true,
+      status: "prepared",
+      family: "unlit",
+      materialKey: "material:white",
+      meshResourceKey: "prepared-mesh:mesh:cube",
+      materialResourceKey: "prepared-material:material:white",
+      pipelineKey: "unlit|opaque|back|less|none",
+      sourceVersion: 1,
+      frame: 1,
+      diagnostics: [],
+    });
+    expect(item?.adapter.kind).toBe("unlit");
+    expect(item?.draw.renderId).toBe(3);
+    expect(
+      (item as unknown as { readonly customPreview?: unknown }).customPreview,
+    ).toBe(undefined);
     expect(JSON.stringify(result)).not.toContain("rawGpuHandle");
+    expect(JSON.stringify(result)).not.toContain("customPreviewResourceSet");
   });
 
   it("reports unsupported material families with a JSON-safe route report", () => {
@@ -120,6 +141,64 @@ describe("queued built-in app resource set collector", () => {
     expect(JSON.parse(JSON.stringify(result))).toEqual(result);
     expect(JSON.stringify(result)).not.toContain("rawGpuHandle");
   });
+
+  it("keeps StandardMaterial route identity aligned with generic app route fields", () => {
+    const assets = readyAssets("standard");
+    const snapshot = renderSnapshot([
+      drawPacket({ renderId: 11, materialFamily: "standard" }),
+    ]);
+    const meshes = createPreparedMeshStore();
+    const materials = createPreparedMaterialStore();
+
+    prepareSnapshotMeshes({ registry: assets, snapshot, meshes });
+    prepareSnapshotMaterials({ registry: assets, snapshot, materials });
+
+    const result = collectQueuedBuiltInAppResourceSet({
+      assets,
+      snapshot,
+      materialQueueScratch: createMaterialQueueScratch(),
+      routeScratch: routeScratch(),
+      meshes,
+      materials,
+      adapters: adapters(),
+    });
+    const item = result.resourceSet?.items[0];
+
+    expect(result.valid).toBe(true);
+    expect(result.diagnostics).toEqual([]);
+    expect(item).toMatchObject({
+      meshKey: "mesh:cube@1",
+      materialKey: "material:white@1",
+      sourceMeshKey: "mesh:cube",
+      sourceMaterialKey: "material:white",
+      queueItem: {
+        renderId: 11,
+        materialFamily: "standard",
+        pipelineKey: "standard|opaque|back|less|none",
+        meshResourceKey: "prepared-mesh:mesh:cube",
+        materialResourceKey: "prepared-material:material:white",
+      },
+      prepareRoute: {
+        valid: true,
+        status: "prepared",
+        family: "standard",
+        materialKey: "material:white",
+        meshResourceKey: "prepared-mesh:mesh:cube",
+        materialResourceKey: "prepared-material:material:white",
+        pipelineKey: "standard|opaque|back|less|none",
+        sourceVersion: 1,
+        frame: 1,
+        diagnostics: [],
+      },
+    });
+    expect(item?.adapter.kind).toBe("standard");
+    expect(
+      (item as unknown as { readonly standardResourceSet?: unknown })
+        .standardResourceSet,
+    ).toBe(undefined);
+    expect(JSON.stringify(result)).not.toContain("standardResourceSet");
+    expect(JSON.stringify(result)).not.toContain("rawGpuHandle");
+  });
 });
 
 function adapters() {
@@ -143,7 +222,9 @@ function routeScratch() {
   return createQueuedBuiltInAppRouteCollectorScratch();
 }
 
-function readyAssets(materialFamily: "unlit" | "debug-normal"): AssetRegistry {
+function readyAssets(
+  materialFamily: "unlit" | "debug-normal" | "standard",
+): AssetRegistry {
   const registry = new AssetRegistry();
   const mesh = createMeshHandle("cube");
   const material = createMaterialHandle(
@@ -152,7 +233,9 @@ function readyAssets(materialFamily: "unlit" | "debug-normal"): AssetRegistry {
   const materialAsset: MaterialAsset =
     materialFamily === "debug-normal"
       ? createDebugNormalMaterialAsset({ label: "Debug Normals" })
-      : createUnlitMaterialAsset({ label: "White" });
+      : materialFamily === "standard"
+        ? createStandardMaterialAsset({ label: "Standard White" })
+        : createUnlitMaterialAsset({ label: "White" });
 
   registry.register(mesh);
   registry.register(material);

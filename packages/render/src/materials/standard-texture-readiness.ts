@@ -516,7 +516,8 @@ function isSupportedStandardTextureTransform(input: {
   readonly transform: MaterialTextureTransform;
 }): boolean {
   return (
-    input.field === "baseColorTexture" &&
+    (input.field === "baseColorTexture" ||
+      input.field === "metallicRoughnessTexture") &&
     input.texCoord === 0 &&
     isFiniteTextureTransform(input.transform)
   );

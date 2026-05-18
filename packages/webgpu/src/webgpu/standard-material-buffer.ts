@@ -15,7 +15,7 @@ import { WEBGPU_BUFFER_USAGE_FLAGS } from "./mesh-buffer-descriptors.js";
 import { materialUniformBufferResourceKey } from "./resource-keys.js";
 import { createStandardMaterialBindGroupDescriptorPlan } from "./standard-bind-group.js";
 
-export const STANDARD_MATERIAL_UNIFORM_FLOATS = 24;
+export const STANDARD_MATERIAL_UNIFORM_FLOATS = 32;
 export const STANDARD_MATERIAL_UNIFORM_BYTE_LENGTH =
   STANDARD_MATERIAL_UNIFORM_FLOATS * Float32Array.BYTES_PER_ELEMENT;
 
@@ -44,6 +44,14 @@ export const STANDARD_MATERIAL_UNIFORM_LAYOUT = [
   "baseColorTextureScale.v",
   "baseColorTextureRotation",
   "padding1",
+  "metallicRoughnessTextureOffset.u",
+  "metallicRoughnessTextureOffset.v",
+  "metallicRoughnessTextureScale.u",
+  "metallicRoughnessTextureScale.v",
+  "metallicRoughnessTextureRotation",
+  "padding2",
+  "padding3",
+  "padding4",
 ] as const;
 
 export const STANDARD_MATERIAL_FEATURE_FLAGS = {
@@ -214,6 +222,10 @@ export function packStandardMaterial(
   uniformUint32[16] = dependencies.occlusion.texCoord;
   uniformUint32[17] = dependencies.emissive.texCoord;
   uniformFloat32.set(readTextureTransform(material.baseColorTexture), 18);
+  uniformFloat32.set(
+    readTextureTransform(material.metallicRoughnessTexture),
+    24,
+  );
 
   return {
     valid: true,
@@ -281,8 +293,7 @@ export function createStandardMaterialBufferDescriptor(
     diagnostics.push({
       code: "standardMaterialBuffer.invalidUniformData",
       field: "uniform",
-      message:
-        "Packed standard material uniform data must match the documented 80-byte layout.",
+      message: `Packed standard material uniform data must match the documented ${STANDARD_MATERIAL_UNIFORM_BYTE_LENGTH}-byte layout.`,
     });
   }
 

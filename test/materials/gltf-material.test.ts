@@ -247,7 +247,7 @@ describe("glTF material mapping", () => {
     });
   });
 
-  it("preserves transformed non-base-color slots and reports current shader limits", () => {
+  it("preserves supported metallic-roughness transforms without a mapping warning", () => {
     const report = createMaterialAssetFromGltfMaterial(
       {
         pbrMetallicRoughness: {
@@ -270,16 +270,7 @@ describe("glTF material mapping", () => {
     );
 
     expect(report.valid).toBe(true);
-    expect(report.diagnostics).toMatchObject([
-      {
-        code: "gltfMaterial.unsupportedTextureTransform",
-        severity: "warning",
-        field:
-          "pbrMetallicRoughness.metallicRoughnessTexture.extensions.KHR_texture_transform",
-        slot: "metallicRoughnessTexture",
-        textureIndex: 0,
-      },
-    ]);
+    expect(report.diagnostics).toEqual([]);
     expect(report.material).toMatchObject({
       kind: "standard",
       metallicRoughnessTexture: {

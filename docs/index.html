@@ -393,17 +393,17 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-17 21:51 PDT</dd>
+            <dd>2026-05-17 22:49 PDT</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
-              Rotation transforms, GLB transform diagnostics, generic app
-              diagnostics summary coverage, transform diagnostics audit, and
-              next-family route readiness audit landed
+              Generic route compatibility work landed, and StandardMaterial now
+              renders GLB-shaped metallic-roughness texture transforms on
+              TEXCOORD_0; the lighting boundary plan is audited
             </dd>
             <dt>Next focus</dt>
-            <dd>Route app diagnostics through generic bucket summaries</dd>
+            <dd>Add direct-light readiness diagnostics</dd>
           </dl>
         </aside>
       </header>
@@ -438,26 +438,25 @@
           </article>
           <article class="card metric">
             <div class="label">render pipeline</div>
-            <div class="value">74%</div>
-            <div class="bar" aria-label="74 percent complete">
-              <span style="width: 74%"></span>
+            <div class="value">75%</div>
+            <div class="bar" aria-label="75 percent complete">
+              <span style="width: 75%"></span>
             </div>
             <p>
               The ECS-to-WebGPU spine is usable, app route reporting runs
-              through the generic contract, and failed frame preparation now
-              reports key/status shells. Queued built-in frame-resource set
-              preparation now lives outside app orchestration with reusable
-              scratch coverage, queued route/resource summaries now surface in
-              app render report JSON, and the built-in path now runs through a
-              generic collector contract. Richer passes and resource lifetime
-              policy remain.
+              through the generic contract, queued route/resource summaries
+              surface in app render report JSON, app diagnostics now consume
+              generic bucket family summaries under the stable
+              <code>routedResourceSet</code> field, and a test-only non-built-in
+              adapter spike exercises the generic route spine. Richer app-level
+              adapter routing, passes, and resource lifetime policy remain.
             </p>
           </article>
           <article class="card metric">
             <div class="label">material system</div>
-            <div class="value">56%</div>
-            <div class="bar" aria-label="56 percent complete">
-              <span style="width: 56%"></span>
+            <div class="value">57%</div>
+            <div class="bar" aria-label="57 percent complete">
+              <span style="width: 57%"></span>
             </div>
             <p>
               Unlit, Matcap, DebugNormal, and direct-lit StandardMaterial paths
@@ -473,15 +472,18 @@
               metallic-roughness, normal, occlusion, emissive, and base-color
               UV1 fixtures plus alpha-mask double-sided render-state
               diagnostics, alpha-mask pixels, backface no-cull pixels, and GLB
-              delayed dependency diagnostics; texture-transform rotation and
-              missing-UV1 diagnostics remain narrow follow-up slices.
+              delayed dependency diagnostics; base-color texture-transform
+              rotation, metallic-roughness texture transforms on
+              <code>TEXCOORD_0</code>, and missing-UV1 diagnostics are covered,
+              while transformed UV1 and other transformed non-base-color slots
+              remain deferred.
             </p>
           </article>
           <article class="card metric">
             <div class="label">diagnostics</div>
-            <div class="value">74%</div>
-            <div class="bar" aria-label="74 percent complete">
-              <span style="width: 74%"></span>
+            <div class="value">75%</div>
+            <div class="bar" aria-label="75 percent complete">
+              <span style="width: 75%"></span>
             </div>
             <p>
               JSON-safe reports now cover extraction, queues, app summaries,
@@ -496,7 +498,9 @@
               example-level texture fidelity summary usage, GLB-derived source
               registration status, GLB sampler mapping status, and GLB texture
               transform/render-state diagnostics in browser, and queued material
-              diagnostics summaries in app render JSON.
+              diagnostics summaries in app render JSON. App diagnostics now use
+              generic frame-resource bucket summaries for family resource counts
+              without exposing raw bucket maps.
             </p>
           </article>
         </div>
@@ -657,9 +661,9 @@
           <article class="phase">
             <div class="topline">
               <h3>3. prepare</h3>
-              <span class="percent">74%</span>
+              <span class="percent">75%</span>
             </div>
-            <div class="bar"><span style="width: 74%"></span></div>
+            <div class="bar"><span style="width: 75%"></span></div>
             <p>
               Prepared mesh/material facades and WebGPU-private backend caches
               exist for built-in material families, with compact render-world
@@ -676,10 +680,14 @@
               has packed uniforms, WGSL sampling, GLB browser readback coverage,
               and unsupported-rotation diagnostics. GLB-shaped base-color UV1
               browser coverage now verifies <code>TEXCOORD_1</code> readiness,
-              mesh layout, pipeline key, and selected pixel color.
+              mesh layout, pipeline key, and selected pixel color. Generic
+              frame-resource buckets now expose deterministic family summaries
+              for app diagnostics.
             </p>
             <ul>
-              <li>Missing generic material-family preparation contract.</li>
+              <li>
+                Missing app-level generic material adapter route boundary.
+              </li>
               <li>
                 Missing full StandardMaterial PBR texture/resource coverage.
               </li>
@@ -691,9 +699,9 @@
           <article class="phase">
             <div class="topline">
               <h3>4. queue</h3>
-              <span class="percent">74%</span>
+              <span class="percent">77%</span>
             </div>
-            <div class="bar"><span style="width: 74%"></span></div>
+            <div class="bar"><span style="width: 77%"></span></div>
             <p>
               Material-family queueing, route diagnostics, resource key
               resolution, Standard transparent phases, app route reporting,
@@ -701,12 +709,12 @@
               route shells are implemented; the queued built-in resource-set
               collector now lives in a focused internal module and
               frame-resource set preparation is extracted with reusable scratch
-              regression coverage and now runs through a generic collector
-              contract.
+              regression coverage, now runs through a generic collector
+              contract, and has test-only non-built-in adapter coverage.
             </p>
             <ul>
               <li>
-                Missing browser/example surfacing for app diagnostics summary.
+                Missing app-level generic material adapter route boundary.
               </li>
               <li>
                 Missing instancing, batching, and multi-material primitive queue
@@ -770,6 +778,34 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">task-1182</span> Audited the test-only
+                adapter spike before real material-family work.
+              </li>
+              <li>
+                <span class="badge green">task-1183</span> Planned the app-level
+                generic material adapter route boundary.
+              </li>
+              <li>
+                <span class="badge green">task-1184</span> Added the generic app
+                material route item helper.
+              </li>
+              <li>
+                <span class="badge green">task-1181</span> Added a test-only
+                non-built-in material route adapter through generic helpers.
+              </li>
+              <li>
+                <span class="badge green">task-1180</span> Planned the
+                non-built-in material adapter spike.
+              </li>
+              <li>
+                <span class="badge green">task-1179</span> Audited app
+                diagnostics after generic bucket summary routing.
+              </li>
+              <li>
+                <span class="badge green">task-1178</span> Routed app
+                diagnostics family counts through generic bucket summaries.
+              </li>
               <li>
                 <span class="badge green">task-1168</span> Planned the generic
                 material-family prepared route migration.
@@ -1452,8 +1488,11 @@
             <h3>Recommended next tasks</h3>
             <ul>
               <li>
-                <span class="badge amber">next</span> Route app diagnostics
-                through generic bucket summaries.
+                <span class="badge amber">next</span> Add the direct-light
+                readiness diagnostics report.
+              </li>
+              <li>
+                Keep IBL and shadow work deferred until that report is audited.
               </li>
               <li>
                 Keep this tracker updated after render-pipeline or
@@ -1470,6 +1509,62 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-1199-1200</div>
+            <div>
+              <strong
+                >StandardMaterial metallic-roughness texture transforms and
+                audit.</strong
+              >
+              <span
+                >Packed a 16-byte-aligned transform uniform, applied it in WGSL,
+                accepted glTF metallic-roughness transforms on TEXCOORD_0, and
+                promoted the browser fixture to a rendered path; the audit keeps
+                IBL, shadows, and binary GLB loading deferred.</span
+              >
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="task-id">task-1201-1202</div>
+            <div>
+              <strong
+                >Direct-light readiness boundary planned and audited.</strong
+              >
+              <span
+                >Selected JSON-safe light readiness diagnostics as the next
+                lighting step, keeping IBL, shadows, and clustered lighting
+                deferred.</span
+              >
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="task-id">task-1185-1198</div>
+            <div>
+              <strong
+                >Generic route compatibility and material-fidelity
+                planning.</strong
+              >
+              <span
+                >Audited the generic app route helper, pinned built-in wrapper
+                compatibility, defined real material-family criteria, and
+                selected the next StandardMaterial fidelity slice.</span
+              >
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="task-id">task-1178-1182</div>
+            <div>
+              <strong
+                >Generic bucket diagnostics and test-only adapter spike.</strong
+              >
+              <span
+                >Routed app diagnostics through generic bucket summaries,
+                planned and tested a fake non-built-in material route, added a
+                generic app route item helper, and audited that the spike stayed
+                test-only.</span
+              >
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-1051-1065</div>
             <div>

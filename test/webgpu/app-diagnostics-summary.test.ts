@@ -106,6 +106,8 @@ describe("WebGPU app diagnostics summary", () => {
     expect(JSON.stringify(summary)).not.toMatch(
       /GPUDevice|GPUTexture|GPUBuffer|WebGpuApp|bindGroup|sourceMesh/,
     );
+    expect(summary).not.toHaveProperty("standardResourceSet");
+    expect(summary).not.toHaveProperty("customPreviewResourceSet");
   });
 });
 

@@ -27,8 +27,13 @@ export interface QueuedMaterialFrameResourceSetSummary {
   readonly byFamilyAndPipeline: readonly QueuedMaterialFrameResourceFamilyPipelineBucketSummary[];
 }
 
+export interface CreateQueuedMaterialFrameResourceSetSummaryOptions {
+  readonly byFamily?: readonly QueuedMaterialFrameResourceFamilyBucketSummary[];
+}
+
 export function createQueuedMaterialFrameResourceSetSummary(
   items: readonly QueuedMaterialFrameResourceSetSummaryItem[],
+  options: CreateQueuedMaterialFrameResourceSetSummaryOptions = {},
 ): QueuedMaterialFrameResourceSetSummary {
   const familyCounts = new Map<string, number>();
   const pipelineCounts = new Map<string, number>();
@@ -50,10 +55,13 @@ export function createQueuedMaterialFrameResourceSetSummary(
 
   return {
     itemCount: items.length,
-    byFamily: stringEntries(familyCounts).map(([family, itemCount]) => ({
-      family,
-      itemCount,
-    })),
+    byFamily:
+      options.byFamily === undefined
+        ? stringEntries(familyCounts).map(([family, itemCount]) => ({
+            family,
+            itemCount,
+          }))
+        : sortedFamilySummary(options.byFamily),
     byPipeline: stringEntries(pipelineCounts).map(
       ([pipelineKey, itemCount]) => ({
         pipelineKey,
@@ -79,6 +87,14 @@ function stringEntries<Value>(
   counts: ReadonlyMap<string, Value>,
 ): [string, Value][] {
   return [...counts.entries()].sort(([a], [b]) => compareStrings(a, b));
+}
+
+function sortedFamilySummary(
+  summary: readonly QueuedMaterialFrameResourceFamilyBucketSummary[],
+): QueuedMaterialFrameResourceFamilyBucketSummary[] {
+  return [...summary]
+    .sort((a, b) => compareStrings(a.family, b.family))
+    .map(({ family, itemCount }) => ({ family, itemCount }));
 }
 
 function compareStrings(a: string, b: string): number {

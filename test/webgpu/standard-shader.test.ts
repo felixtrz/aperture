@@ -206,6 +206,18 @@ describe("built-in standard material WGSL shader metadata", () => {
     expect(STANDARD_METALLIC_ROUGHNESS_TEXTURED_MESH_WGSL).toContain(
       "metallicRoughnessSample.g",
     );
+    expect(STANDARD_METALLIC_ROUGHNESS_TEXTURED_MESH_WGSL).toContain(
+      "fn standardTextureTransformUv",
+    );
+    expect(STANDARD_METALLIC_ROUGHNESS_TEXTURED_MESH_WGSL).toContain(
+      "material.metallicRoughnessTextureOffset",
+    );
+    expect(STANDARD_METALLIC_ROUGHNESS_TEXTURED_MESH_WGSL).toContain(
+      "material.metallicRoughnessTextureScale",
+    );
+    expect(STANDARD_METALLIC_ROUGHNESS_TEXTURED_MESH_WGSL).toContain(
+      "material.metallicRoughnessTextureRotation",
+    );
     expect(
       STANDARD_METALLIC_ROUGHNESS_TEXTURED_MESH_SHADER.bindings.map(
         (binding) => [

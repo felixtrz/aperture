@@ -511,7 +511,7 @@ describe("StandardMaterial texture semantic and color-space readiness", () => {
     ]);
   });
 
-  it("diagnoses unsupported non-base-color StandardMaterial texture transforms", () => {
+  it("accepts metallic-roughness texture transforms on TEXCOORD_0", () => {
     const registry = new AssetRegistry();
     const material = createMaterialHandle("standard");
     const texture = createTextureHandle("metallic-roughness-transform");
@@ -542,26 +542,16 @@ describe("StandardMaterial texture semantic and color-space readiness", () => {
     });
     const json = standardMaterialTextureReadinessReportToJsonValue(report);
 
-    expect(report.ready).toBe(false);
-    expect(report.diagnostics).toMatchObject([
-      {
-        code: "standardMaterialTexture.unsupportedTextureTransform",
-        materialKey: "material:standard",
-        textureKey: "texture:metallic-roughness-transform",
-        samplerKey: "sampler:linear",
+    expect(report.ready).toBe(true);
+    expect(report.diagnostics).toEqual([]);
+    expect(report.slots).toEqual([
+      expect.objectContaining({
         field: "metallicRoughnessTexture",
-        textureTransform: {
-          offset: [0.25, 0.5],
-          scale: [0.5, 0.5],
-          rotation: 0.125,
-        },
-      },
+        textureKey: "texture:metallic-roughness-transform",
+        texCoord: 0,
+        ready: true,
+      }),
     ]);
-    expect(json.diagnostics[0]?.textureTransform).toEqual({
-      offset: [0.25, 0.5],
-      scale: [0.5, 0.5],
-      rotation: 0.125,
-    });
     expect(
       JSON.parse(standardMaterialTextureReadinessReportToJson(report)),
     ).toEqual(json);

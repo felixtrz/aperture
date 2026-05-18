@@ -1,5 +1,250 @@
 # Handoff
 
+## Current Run Update — 2026-05-18T05:36:02Z
+
+Completed `task-1178` through `task-1202`. Recommended next task is
+`task-1206`.
+
+Completed task ids:
+
+- `task-1178` — Route app diagnostics through generic bucket summary.
+- `task-1179` — Audit app diagnostics summary after bucket routing.
+- `task-1180` — Plan non-built-in material family adapter spike.
+- `task-1181` — Add test-only non-built-in material route adapter.
+- `task-1182` — Audit test-only adapter before real family work.
+- `task-1183` — Plan app-level generic material adapter route boundary.
+- `task-1184` — Add generic app material route boundary helper.
+- `task-1185` — Audit generic app route item helper.
+- `task-1186` — Plan built-in route migration on generic app boundary.
+- `task-1187` — Add built-in route compatibility assertions.
+- `task-1188` — Audit built-in wrapper generic-boundary compatibility.
+- `task-1189` — Define real material-family app route migration criteria.
+- `task-1190` — Audit real material-family route criteria.
+- `task-1191` — Plan StandardMaterial route cleanup.
+- `task-1192` — Audit StandardMaterial route cleanup plan.
+- `task-1193` — Add generic route criteria fixture.
+- `task-1194` — Audit generic route criteria fixture.
+- `task-1195` — Add StandardMaterial route cleanup compatibility test.
+- `task-1196` — Audit StandardMaterial route compatibility test.
+- `task-1197` — Plan next StandardMaterial PBR fidelity slice.
+- `task-1198` — Audit next StandardMaterial PBR fidelity plan.
+- `task-1199` — Add StandardMaterial metallic-roughness texture transforms.
+- `task-1200` — Audit StandardMaterial metallic-roughness transform support.
+- `task-1201` — Plan next lighting boundary after StandardMaterial fidelity.
+- `task-1202` — Audit next lighting boundary plan.
+
+Highlights:
+
+- App diagnostics family counts now flow through generic queued material
+  frame-resource bucket summaries while keeping the public `routedResourceSet`
+  JSON field stable.
+- Added a generic app route item helper and compatibility tests so built-in
+  wrappers can expose generic route fields without adding product-facing
+  material-family APIs.
+- Added route migration criteria, cleanup plans, and audits to keep real
+  material-family work behind explicit boundaries.
+- Implemented the selected StandardMaterial PBR fidelity slice:
+  metallic-roughness texture transforms on `TEXCOORD_0`.
+- StandardMaterial uniform packing now reserves 32 floats / 128 bytes so the
+  WGSL uniform struct remains 16-byte aligned after adding metallic-roughness
+  transform fields.
+- WGSL applies metallic-roughness texture offset/scale/rotation before
+  sampling; glTF/readiness diagnostics accept that slot on `TEXCOORD_0`.
+- `standard-gltf-texture?scenario=metallic-roughness-transform` now renders
+  successfully instead of reporting unsupported-transform diagnostics.
+- Audited the metallic-roughness transform implementation and documented the
+  128-byte uniform alignment correction.
+- Planned the next lighting boundary as a JSON-safe direct-light readiness
+  diagnostics report, explicitly deferring IBL, shadows, clustered lighting,
+  and binary GLB viewer work.
+- Audited that lighting plan and confirmed `task-1206` should implement a
+  report/diagnostics slice only.
+- Public tracker pages were updated for the route compatibility work and the
+  metallic-roughness texture-transform and lighting-boundary planning slices.
+
+Files touched:
+
+- `agent/BACKLOG.md`
+- `agent/COMPLETED.md`
+- `agent/HANDOFF.md`
+- `agent/STATUS.json`
+- `docs/index.html`
+- `docs/render-pipeline-comparison.html`
+- `docs/research/APP_DIAGNOSTICS_BUCKET_SUMMARY_AUDIT_2026_05_18.md`
+- `docs/research/APP_LEVEL_GENERIC_MATERIAL_ADAPTER_ROUTE_BOUNDARY_PLAN_2026_05_18.md`
+- `docs/research/BUILT_IN_ROUTE_MIGRATION_ON_GENERIC_APP_BOUNDARY_PLAN_2026_05_18.md`
+- `docs/research/BUILT_IN_WRAPPER_GENERIC_BOUNDARY_COMPATIBILITY_AUDIT_2026_05_18.md`
+- `docs/research/GENERIC_APP_ROUTE_ITEM_HELPER_AUDIT_2026_05_18.md`
+- `docs/research/GENERIC_ROUTE_CRITERIA_FIXTURE_AUDIT_2026_05_18.md`
+- `docs/research/NEXT_STANDARD_MATERIAL_PBR_FIDELITY_PLAN_AUDIT_2026_05_18.md`
+- `docs/research/NEXT_STANDARD_MATERIAL_PBR_FIDELITY_SLICE_PLAN_2026_05_18.md`
+- `docs/research/NEXT_LIGHTING_BOUNDARY_AFTER_STANDARD_MATERIAL_FIDELITY_PLAN_2026_05_18.md`
+- `docs/research/NEXT_LIGHTING_BOUNDARY_PLAN_AUDIT_2026_05_18.md`
+- `docs/research/REAL_MATERIAL_FAMILY_APP_ROUTE_MIGRATION_CRITERIA_2026_05_18.md`
+- `docs/research/REAL_MATERIAL_FAMILY_ROUTE_CRITERIA_AUDIT_2026_05_18.md`
+- `docs/research/STANDARD_MATERIAL_METALLIC_ROUGHNESS_TRANSFORM_SUPPORT_AUDIT_2026_05_18.md`
+- `docs/research/STANDARD_MATERIAL_ROUTE_CLEANUP_AFTER_GENERIC_BOUNDARY_PLAN_2026_05_18.md`
+- `docs/research/STANDARD_MATERIAL_ROUTE_CLEANUP_PLAN_AUDIT_2026_05_18.md`
+- `docs/research/STANDARD_MATERIAL_ROUTE_COMPATIBILITY_TEST_AUDIT_2026_05_18.md`
+- `docs/research/TEST_ONLY_ADAPTER_SPIKE_AUDIT_2026_05_18.md`
+- `docs/research/TEST_ONLY_NON_BUILT_IN_MATERIAL_ADAPTER_SPIKE_PLAN_2026_05_18.md`
+- `examples/standard-gltf-texture.js`
+- `packages/render/src/materials/gltf-material.ts`
+- `packages/render/src/materials/standard-texture-readiness.ts`
+- `packages/webgpu/src/webgpu/app.ts`
+- `packages/webgpu/src/webgpu/index.ts`
+- `packages/webgpu/src/webgpu/queued-built-in-app-resource-set.ts`
+- `packages/webgpu/src/webgpu/queued-built-in-resource-set-summary.ts`
+- `packages/webgpu/src/webgpu/queued-material-app-resource-item.ts`
+- `packages/webgpu/src/webgpu/queued-material-frame-resource-set-summary.ts`
+- `packages/webgpu/src/webgpu/standard-material-buffer.ts`
+- `packages/webgpu/src/webgpu/standard-shader.ts`
+- `test/e2e/standard-gltf-texture.spec.ts`
+- `test/materials/gltf-material.test.ts`
+- `test/materials/standard-texture-readiness.test.ts`
+- `test/webgpu/app-diagnostics-summary.test.ts`
+- `test/webgpu/queued-built-in-app-resource-set.test.ts`
+- `test/webgpu/queued-built-in-resource-set-summary.test.ts`
+- `test/webgpu/queued-material-app-resource-item.test.ts`
+- `test/webgpu/queued-material-frame-resource-set.test.ts`
+- `test/webgpu/standard-material-buffer.test.ts`
+- `test/webgpu/standard-shader.test.ts`
+
+Validation:
+
+- `node --check examples/standard-gltf-texture.js`
+- `pnpm exec vitest run test/materials/gltf-material.test.ts test/materials/standard-texture-readiness.test.ts test/webgpu/standard-material-buffer.test.ts test/webgpu/standard-shader.test.ts`
+- `pnpm exec vitest run test/webgpu/standard-material-buffer.test.ts test/webgpu/standard-shader.test.ts`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "metallic-roughness transforms"`
+- `pnpm exec vitest run test/webgpu/queued-material-app-resource-item.test.ts test/webgpu/queued-built-in-app-resource-set.test.ts test/webgpu/queued-built-in-resource-set-summary.test.ts test/webgpu/queued-material-frame-resource-set.test.ts test/webgpu/app-diagnostics-summary.test.ts test/materials/gltf-material.test.ts test/materials/standard-texture-readiness.test.ts test/webgpu/standard-material-buffer.test.ts test/webgpu/standard-shader.test.ts`
+- `pnpm exec prettier --check` on touched files
+- `pnpm run check:progress`
+- `git diff --check`
+
+Additional reference files/patterns inspected:
+
+- `docs/research/NEXT_STANDARD_MATERIAL_PBR_FIDELITY_SLICE_PLAN_2026_05_18.md`
+- `docs/research/NEXT_STANDARD_MATERIAL_PBR_FIDELITY_PLAN_AUDIT_2026_05_18.md`
+- `docs/research/LIGHTING_ENVIRONMENT_SHADOW_COVERAGE.md`
+- `docs/research/STANDARD_MATERIAL_METALLIC_ROUGHNESS_TRANSFORM_SUPPORT_AUDIT_2026_05_18.md`
+- `packages/webgpu/src/webgpu/standard-material-buffer.ts`
+- `packages/webgpu/src/webgpu/standard-shader.ts`
+- `packages/webgpu/src/webgpu/light-packing.ts`
+- `packages/webgpu/src/webgpu/light-shader-metadata.ts`
+- `packages/render/src/materials/gltf-material.ts`
+- `packages/render/src/materials/standard-texture-readiness.ts`
+- `examples/standard-gltf-texture.js`
+
+Known issues / follow-ups:
+
+- `task-1206` should add the direct-light readiness diagnostics report, then
+  `task-1207` should audit it.
+- Full binary `.gltf`/`.glb` scene loading is still not implemented; current
+  GLB/glTF work is fixture-shaped material/texture mapping and browser
+  diagnostics/rendering coverage.
+- IBL and shadow-map rendering remain deferred until StandardMaterial texture
+  fidelity and generic material routing are more stable.
+
+## Current Run Update — 2026-05-18T05:12:23Z
+
+Completed `task-1178`, `task-1179`, `task-1180`, `task-1181`, `task-1182`,
+`task-1183`, and `task-1184`. Recommended next task is `task-1185`.
+
+Completed task ids:
+
+- `task-1178` — Route app diagnostics through generic bucket summary.
+- `task-1179` — Audit app diagnostics summary after bucket routing.
+- `task-1180` — Plan non-built-in material family adapter spike.
+- `task-1181` — Add test-only non-built-in material route adapter.
+- `task-1182` — Audit test-only adapter before real family work.
+- `task-1183` — Plan app-level generic material adapter route boundary.
+- `task-1184` — Add generic app material route boundary helper.
+
+Highlights:
+
+- App diagnostics now route family resource counts through generic queued
+  material frame-resource bucket summaries while keeping the public
+  `routedResourceSet` field stable.
+- `createQueuedMaterialFrameResourceSetSummary()` and the built-in compatibility
+  wrapper can accept caller-provided bucket family counts, copy/sort them
+  deterministically, and keep the rest of the routed-resource summary shape
+  unchanged.
+- Added focused tests for generic and built-in routed-resource summaries,
+  deterministic family ordering, JSON safety, and a test-only `custom-preview`
+  route that exercises generic adapter registry lookup, generic frame-resource
+  preparation, generic buckets, and folded routed-resource summaries.
+- Added audits/plans:
+  - `docs/research/APP_DIAGNOSTICS_BUCKET_SUMMARY_AUDIT_2026_05_18.md`
+  - `docs/research/TEST_ONLY_NON_BUILT_IN_MATERIAL_ADAPTER_SPIKE_PLAN_2026_05_18.md`
+  - `docs/research/TEST_ONLY_ADAPTER_SPIKE_AUDIT_2026_05_18.md`
+  - `docs/research/APP_LEVEL_GENERIC_MATERIAL_ADAPTER_ROUTE_BOUNDARY_PLAN_2026_05_18.md`
+- Added `queued-material-app-resource-item.ts`, a family-agnostic app route
+  item helper exported from `@aperture-engine/webgpu`; the built-in app
+  resource-set collector now constructs route items through that helper while
+  preserving built-in behavior.
+- Added `test/webgpu/queued-material-app-resource-item.test.ts` for a fake
+  `custom-preview` route item feeding generic routed-resource summaries without
+  adding a family-specific diagnostics field or compatibility array.
+- Updated `docs/index.html` and `docs/render-pipeline-comparison.html` for the
+  generic diagnostics route/bucket progress and next recommended task.
+- Refilled the backlog with `task-1185` through `task-1189`.
+
+Files touched:
+
+- `agent/BACKLOG.md`
+- `agent/COMPLETED.md`
+- `agent/HANDOFF.md`
+- `agent/STATUS.json`
+- `docs/index.html`
+- `docs/render-pipeline-comparison.html`
+- `docs/research/APP_DIAGNOSTICS_BUCKET_SUMMARY_AUDIT_2026_05_18.md`
+- `docs/research/APP_LEVEL_GENERIC_MATERIAL_ADAPTER_ROUTE_BOUNDARY_PLAN_2026_05_18.md`
+- `docs/research/TEST_ONLY_ADAPTER_SPIKE_AUDIT_2026_05_18.md`
+- `docs/research/TEST_ONLY_NON_BUILT_IN_MATERIAL_ADAPTER_SPIKE_PLAN_2026_05_18.md`
+- `packages/webgpu/src/webgpu/queued-material-app-resource-item.ts`
+- `packages/webgpu/src/webgpu/app.ts`
+- `packages/webgpu/src/webgpu/index.ts`
+- `packages/webgpu/src/webgpu/queued-built-in-app-resource-set.ts`
+- `packages/webgpu/src/webgpu/queued-built-in-resource-set-summary.ts`
+- `packages/webgpu/src/webgpu/queued-material-frame-resource-set-summary.ts`
+- `test/webgpu/queued-built-in-resource-set-summary.test.ts`
+- `test/webgpu/queued-material-app-resource-item.test.ts`
+- `test/webgpu/queued-material-frame-resource-set.test.ts`
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/queued-built-in-resource-set-summary.test.ts test/webgpu/app-diagnostics-summary.test.ts test/webgpu/queued-built-in-frame-resource-set.test.ts test/webgpu/webgpu-app.test.ts`
+- `pnpm exec vitest run test/webgpu/queued-material-frame-resource-set.test.ts test/webgpu/queued-built-in-resource-set-summary.test.ts test/webgpu/app-diagnostics-summary.test.ts`
+- `pnpm exec vitest run test/webgpu/queued-material-frame-resource-set.test.ts test/webgpu/queued-built-in-resource-set-summary.test.ts test/webgpu/app-diagnostics-summary.test.ts test/webgpu/queued-built-in-frame-resource-set.test.ts test/webgpu/webgpu-app.test.ts`
+- `pnpm exec vitest run test/webgpu/queued-material-app-resource-item.test.ts test/webgpu/queued-material-frame-resource-set.test.ts test/webgpu/queued-built-in-resource-set-summary.test.ts test/webgpu/queued-built-in-frame-resource-set.test.ts test/webgpu/webgpu-app.test.ts`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec prettier --check` on touched implementation, test, docs, and
+  agent files.
+- `pnpm run check:progress`
+- `git diff --check`
+
+Additional reference files/patterns inspected:
+
+- `docs/research/GENERIC_BUCKET_MIGRATION_AUDIT_2026_05_18.md`
+- `docs/research/GENERIC_BUCKET_DIAGNOSTICS_HANDOFF_2026_05_18.md`
+- `docs/research/GENERIC_ROUTE_SUMMARY_NEXT_FAMILY_HANDOFF_2026_05_18.md`
+- `docs/research/NEXT_FAMILY_ROUTE_READINESS_AUDIT_2026_05_18.md`
+- `packages/webgpu/src/webgpu/queued-material-adapter.ts`
+- `packages/webgpu/src/webgpu/queued-material-frame-resource-set.ts`
+- `packages/webgpu/src/webgpu/queued-material-frame-resource-buckets.ts`
+- `packages/webgpu/src/webgpu/queued-built-in-app-resource-set.ts`
+- `packages/webgpu/src/webgpu/built-in-material-app-resource-adapter.ts`
+
+Known issues / follow-ups:
+
+- Initial stop-hook attempt was blocked by its minute-of-hour gate; stop hook is
+  still pending for this run.
+- `task-1185` should audit the generic app material route boundary helper before
+  planning built-in route wrapper migration.
+- The fake `custom-preview` route is test-only. It is not a product material
+  family, shader path, app facade route, or GLB mapping.
+
 ## Current Run Update — 2026-05-18T04:56:27Z
 
 Completed `task-1161`, `task-1162`, `task-1163`, `task-1164`, `task-1165`,

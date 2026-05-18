@@ -22,8 +22,13 @@ export type QueuedBuiltInResourceFamilyPipelineBucketSummary =
 export type QueuedBuiltInResourceSetSummary =
   QueuedMaterialFrameResourceSetSummary;
 
+export interface CreateQueuedBuiltInResourceSetSummaryOptions {
+  readonly byFamily?: readonly QueuedBuiltInResourceFamilyBucketSummary[];
+}
+
 export function createQueuedBuiltInResourceSetSummary(
   items: readonly QueuedBuiltInResourceSetSummaryItem[],
+  options: CreateQueuedBuiltInResourceSetSummaryOptions = {},
 ): QueuedBuiltInResourceSetSummary {
-  return createQueuedMaterialFrameResourceSetSummary(items);
+  return createQueuedMaterialFrameResourceSetSummary(items, options);
 }

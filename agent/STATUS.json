@@ -1,11 +1,11 @@
 {
   "state": "idle",
   "currentTaskId": null,
-  "currentRunStartedAt": "2026-05-18T04:51:20Z",
+  "currentRunStartedAt": "2026-05-18T05:02:01Z",
   "lastRunStartedAt": "2026-05-18T03:02:16Z",
   "lastResult": "success",
   "lastCommit": "e41be0f",
   "activePid": null,
-  "notes": "Completed task-1161 through task-1177. Base-color texture-transform rotation now renders for StandardMaterial TEXCOORD_0, routedResourceSet uses a generic queued material frame-resource summary helper with explicit app diagnostics compatibility coverage, GLB missing/transformed TEXCOORD_1 and transformed non-base-color texture diagnostics are covered and audited, generic queued material frame-resource buckets now group resources by family while preserving built-in arrays, bucket migration and diagnostics handoff notes were added, generic bucket summary/reset coverage is in place, next-family route readiness was audited, stop hook checkpoint e41be0f pushed, and next recommended task is task-1178 route app diagnostics through generic bucket summary.",
-  "lastRunFinishedAt": "2026-05-18T04:56:27Z"
+  "notes": "Completed task-1178 through task-1202. Generic app material route compatibility work landed through audits/plans/tests, StandardMaterial supports GLB-shaped metallic-roughness texture transforms on TEXCOORD_0, the implementation audit is complete, and the next lighting boundary plan/audit selects a direct-light readiness diagnostics report rather than IBL or shadows. Next recommended task is task-1206 add direct-light readiness diagnostics report.",
+  "lastRunFinishedAt": "2026-05-18T05:55:02Z"
 }
