@@ -1,5 +1,86 @@
 # Handoff
 
+## Current Run Update — 2026-05-18T18:47:46Z
+
+Completed `task-1529` through `task-1566`. Recommended next task is
+`task-1567`: add glTF sampler wrap visual browser proof.
+
+Highlights:
+
+- Added a deterministic scalar-vs-normal browser proof for glTF
+  `normalTexture.scale`, rendering a scalar control plane beside the reduced
+  normal-mapped plane and asserting screenshot/readback deltas.
+- Added browser coverage for metallic-roughness delayed texture/sampler
+  dependency diagnostics with no draw submission, no prepared GPU resources, and
+  JSON-safe status output.
+- Added browser coverage for occlusion texture and emissive sampler delayed
+  dependencies across two mapped texture/sampler slots.
+- Added an unsupported material route-family regression proving grouped
+  JSON-safe diagnostics and no routed resources for a test-only unknown family.
+- Audited route diagnostics report field naming and kept the public nested
+  diagnostic field as `report`; `routeReport` remains internal scratch
+  terminology.
+- Added a valid non-default glTF sampler browser scenario that preserves source
+  enum values, maps repeat/mirror-repeat/linear sampler settings, creates one
+  texture and sampler resource, and submits a draw with JSON-safe status.
+- Planned, audited, and aligned tracker/backlog state through valid sampler
+  mapping coverage and selected a focused glTF sampler wrap visual proof as the
+  next implementation.
+
+Reference anchors inspected:
+
+- `docs/NORTH_STAR.md`
+- `docs/MEDIUM_LONG_TERM_GOALS.md`
+- `docs/ARCHITECTURE.md`
+- `docs/DECISIONS.md`
+- `packages/render/src/materials/gltf-material.ts`
+- `packages/render/src/assets/gltf-asset-mapping.ts`
+- `packages/webgpu/src/webgpu/material-queue-route-report.ts`
+- `packages/webgpu/src/webgpu/queued-built-in-app-resource-set.ts`
+- `packages/webgpu/src/webgpu/standard-shader.ts`
+- `examples/standard-gltf-texture.js`
+- `test/e2e/standard-gltf-texture.spec.ts`
+- `test/webgpu/queued-built-in-app-resource-set.test.ts`
+- `references/three.js/src/renderers/common/Bindings.js`
+- `references/engine/src/scene/materials/standard-material.js`
+
+Files touched:
+
+- `agent/BACKLOG.md`
+- `agent/COMPLETED.md`
+- `agent/HANDOFF.md`
+- `agent/STATUS.json`
+- `docs/index.html`
+- `docs/render-pipeline-comparison.html`
+- `docs/research/*2026_05_18.md`
+- `examples/standard-gltf-texture.js`
+- `packages/render/src/assets/gltf-asset-mapping.ts`
+- `test/e2e/standard-gltf-texture.spec.ts`
+- `test/webgpu/queued-built-in-app-resource-set.test.ts`
+
+Validation:
+
+- `node --check examples/standard-gltf-texture.js`
+- `pnpm run typecheck:test`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "normal texture scale"`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "metallic-roughness delayed dependencies"`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "occlusion and emissive delayed dependencies"`
+- `pnpm exec vitest run test/webgpu/queued-built-in-app-resource-set.test.ts`
+- `pnpm run check:progress`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "normal texture scale|metallic-roughness delayed dependencies|occlusion and emissive delayed dependencies"`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "valid non-default sampler"`
+- `pnpm run format:check`
+- `pnpm run check`
+
+Known issues / follow-ups:
+
+- Start `task-1567`: add the glTF sampler wrap visual browser proof. Keep it to
+  one wrap behavior and stop with a fixture design audit if deterministic
+  UV/readback setup becomes larger than expected.
+- Real app-level non-built-in material adapter rendering, binary GLB loading,
+  IBL, shadows, instancing, batching, multi-material primitive rules, and broad
+  PBR completeness remain deferred.
+
 ## Current Run Update — 2026-05-18T17:51:41Z
 
 Completed `task-1488` through `task-1528`. Recommended next task is

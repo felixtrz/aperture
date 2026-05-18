@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-18 10:48 PDT</dd>
+            <dd>2026-05-18 11:29 PDT</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -507,13 +507,40 @@
               normal texture scale mapping coverage, surfacing a non-default
               <code>normalTexture.scale</code> value through JSON-safe browser
               status with tangent-layout, readiness, resource, and pipeline
-              assertions; a separate focused task will make the normal-scale
-              visual readback delta deterministic. The follow-up audit selected
-              a Standard texture control-style scalar-vs-normal comparison
-              inside the glTF fixture as the next implementation slice.
+              assertions. The follow-up audit selected a Standard texture
+              control-style scalar-vs-normal comparison inside the glTF fixture,
+              and that browser proof now renders a scalar control plane beside
+              the reduced-scale normal plane with screenshot/readback delta
+              assertions. Follow-up planning selected a browser-verifiable
+              metallic-roughness dependency diagnostics slice, and the plan
+              audit confirmed it stays scoped to JSON-safe dependency reporting
+              without adding binary GLB loading, IBL, shadows, or custom
+              material source APIs. The implementation now adds a
+              metallic-roughness delayed-dependency glTF scenario and verifies
+              slot-specific loading/failed diagnostics, zero draw submission,
+              zero prepared GPU resources, and JSON-safe status. The latest gap
+              audit selected occlusion/emissive dependency diagnostics as the
+              next browser-verifiable StandardMaterial/glTF honesty slice. That
+              slice now covers a GLB-shaped occlusion/emissive delayed
+              dependency fixture with slot-specific readiness diagnostics, zero
+              draw submission, zero prepared GPU resources, and JSON-safe
+              status. The route boundary now also has a test-only unsupported
+              family regression proving unknown route families produce grouped
+              JSON-safe diagnostics and no routed resources. Follow-up planning
+              selected a small route diagnostics field-naming audit, which
+              confirmed public route-report diagnostics consistently use
+              <code>report</code> while <code>routeReport</code> remains
+              internal scratch terminology. The next implementation slice is
+              valid non-default glTF sampler mapping browser coverage. That
+              fixture now preserves source sampler enum values, verifies mapped
+              repeat/mirror-repeat/linear sampler settings, creates exactly one
+              texture and sampler resource, and submits a draw with JSON-safe
+              status. Follow-up planning selected a focused glTF sampler wrap
+              visual proof using out-of-range UVs, and the plan audit confirmed
+              it should stay limited to one wrap behavior.
             </dd>
             <dt>Next focus</dt>
-            <dd>Implement deterministic visual normal-scale browser proof</dd>
+            <dd>Add glTF sampler wrap visual browser proof</dd>
           </dl>
         </aside>
       </header>
@@ -592,19 +619,19 @@
               covered. Controlled browser texture verification now covers
               base-color, base-color UV1, base-color linear and repeat samplers,
               metallic-roughness, normal-map, normal scale, occlusion, and
-              emissive positive paths, occlusion strength, combined base-color
-              plus metallic-roughness browser rendering, plus
-              missing/loading/failed base-color states, normal missing-tangent
-              diagnostics, authored and GLB-derived base-color transform
-              diagnostics, a minimal GLB-derived base-color texture fixture, GLB
-              sampler mapping status, and GLB-derived metallic-roughness,
-              normal, occlusion, emissive, and base-color UV1 fixtures plus
-              alpha-mask double-sided render-state diagnostics, alpha-mask
-              pixels, backface no-cull pixels, alpha-blend render-state and
-              translucent pixel browser coverage, alpha-blend double-sided
-              no-cull browser coverage, and GLB delayed dependency diagnostics;
-              base-color texture-transform rotation, metallic-roughness texture
-              transforms on
+              emissive positive paths, occlusion strength, normal-scale
+              scalar-vs-normal visual/readback proof, combined base-color plus
+              metallic-roughness browser rendering, plus missing/loading/failed
+              base-color states, normal missing-tangent diagnostics, authored
+              and GLB-derived base-color transform diagnostics, a minimal
+              GLB-derived base-color texture fixture, GLB sampler mapping
+              status, and GLB-derived metallic-roughness, normal, occlusion,
+              emissive, and base-color UV1 fixtures plus alpha-mask double-sided
+              render-state diagnostics, alpha-mask pixels, backface no-cull
+              pixels, alpha-blend render-state and translucent pixel browser
+              coverage, alpha-blend double-sided no-cull browser coverage, and
+              GLB delayed dependency diagnostics; base-color texture-transform
+              rotation, metallic-roughness texture transforms on
               <code>TEXCOORD_0</code>, metallic-roughness transformed sampling
               on <code>TEXCOORD_1</code>, combined base-color plus
               metallic-roughness texture routing, normal texture transforms on
@@ -614,7 +641,11 @@
               missing-UV1 diagnostics, texture format/color-space mismatch
               diagnostics, invalid render-state browser diagnostics, unresolved
               texture-binding browser diagnostics, and invalid texture-info
-              browser diagnostics are covered. Optional material-extension
+              browser diagnostics are covered. Metallic-roughness texture
+              dependency diagnostics now have slot-specific browser coverage
+              with no draw submission or prepared GPU resources, and
+              occlusion/emissive delayed dependencies now have the same
+              browser-verified no-work behavior. Optional material-extension
               warnings now include multi-extension browser status coverage, and
               invalid material scalar-factor diagnostics are covered before
               registration. Invalid texture scalar-field and vector/color factor
@@ -895,7 +926,14 @@
               collector. Combined base-color plus alpha-mask plus emissive
               browser coverage now verifies two glTF texture/sampler mappings,
               alpha-mask render-state, prepared texture/sampler counts, and the
-              combined StandardMaterial pipeline key.
+              combined StandardMaterial pipeline key. The GLB normal-scale
+              fixture now renders scalar and reduced-normal-scale planes in one
+              frame and verifies deterministic screenshot/readback deltas.
+              Metallic-roughness delayed-dependency browser coverage now proves
+              slot-specific texture/sampler readiness diagnostics skip draw
+              submission and prepared GPU resources. Occlusion/emissive
+              delayed-dependency browser coverage now proves the same no-work
+              behavior for secondary StandardMaterial texture slots.
             </p>
             <ul>
               <li>
@@ -1006,6 +1044,89 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">task-1566</span> Aligned tracker and
+                backlog after the sampler wrap visual proof plan audit.
+              </li>
+              <li>
+                <span class="badge green">task-1565</span> Audited the selected
+                glTF sampler wrap visual proof plan.
+              </li>
+              <li>
+                <span class="badge green">task-1564</span> Planned the next
+                route or StandardMaterial follow-up after valid sampler mapping.
+              </li>
+              <li>
+                <span class="badge green">task-1563</span> Aligned tracker and
+                backlog after valid sampler mapping coverage.
+              </li>
+              <li>
+                <span class="badge green">task-1551</span> Audited the unknown
+                route-family diagnostics regression.
+              </li>
+              <li>
+                <span class="badge green">task-1550</span> Added an unsupported
+                material route-family diagnostics regression.
+              </li>
+              <li>
+                <span class="badge green">task-1544</span> Aligned tracker and
+                backlog after occlusion/emissive dependency diagnostics.
+              </li>
+              <li>
+                <span class="badge green">task-1543</span> Audited
+                occlusion/emissive dependency diagnostics browser coverage.
+              </li>
+              <li>
+                <span class="badge green">task-1542</span> Added
+                occlusion/emissive delayed-dependency browser diagnostics.
+              </li>
+              <li>
+                <span class="badge green">task-1541</span> Aligned tracker and
+                backlog after the occlusion/emissive dependency plan audit.
+              </li>
+              <li>
+                <span class="badge green">task-1540</span> Audited the selected
+                occlusion/emissive dependency diagnostics follow-up plan.
+              </li>
+              <li>
+                <span class="badge green">task-1539</span> Planned the next
+                route or StandardMaterial follow-up after the dependency gap
+                audit.
+              </li>
+              <li>
+                <span class="badge green">task-1535</span> Audited the generic
+                material route boundary before non-built-in app migration.
+              </li>
+              <li>
+                <span class="badge green">task-1534</span> Audited remaining
+                StandardMaterial/glTF texture-dependency gaps.
+              </li>
+              <li>
+                <span class="badge green">task-1538</span> Aligned tracker and
+                backlog after metallic-roughness dependency diagnostics.
+              </li>
+              <li>
+                <span class="badge green">task-1537</span> Audited
+                metallic-roughness dependency diagnostics browser coverage.
+              </li>
+              <li>
+                <span class="badge green">task-1536</span> Added
+                metallic-roughness delayed-dependency browser diagnostics.
+              </li>
+              <li>
+                <span class="badge green">task-1532</span> Audited the selected
+                metallic-roughness dependency diagnostics follow-up plan.
+              </li>
+              <li>
+                <span class="badge green">task-1531</span> Planned the next
+                route or StandardMaterial follow-up after normal-scale visual
+                proof.
+              </li>
+              <li>
+                <span class="badge green">task-1529</span> Added deterministic
+                scalar-vs-normal browser screenshot/readback proof for
+                <code>normalTexture.scale</code>.
+              </li>
               <li>
                 <span class="badge green">task-1528</span> Audited visual
                 normal-scale proof options and selected a scalar-vs-normal glTF
@@ -2117,16 +2238,12 @@
             <h3>Recommended next tasks</h3>
             <ul>
               <li>
-                <span class="badge amber">next</span> Plan next material route
-                or glTF fidelity slice.
+                <span class="badge amber">next</span> Add glTF sampler wrap
+                visual browser proof.
               </li>
+              <li>Audit glTF sampler wrap visual browser proof.</li>
               <li>
-                Plan material-family extensibility before app-level route
-                migration.
-              </li>
-              <li>
-                Keep IBL and shadow work deferred until material texture
-                fidelity and routing remain stable.
+                Align tracker/backlog after glTF sampler wrap visual proof.
               </li>
               <li>
                 Keep this tracker updated after render-pipeline or

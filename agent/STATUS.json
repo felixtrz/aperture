@@ -1,11 +1,11 @@
 {
   "state": "idle",
-  "currentTaskId": "task-1529",
+  "currentTaskId": "task-1567",
   "currentRunStartedAt": null,
-  "lastRunStartedAt": "2026-05-18T17:01:16Z",
+  "lastRunStartedAt": "2026-05-18T18:01:50Z",
   "lastResult": "success",
   "lastCommit": "6ceb4cf",
   "activePid": null,
-  "notes": "Completed through task-1528. Next: implement deterministic visual normal-scale browser proof.",
-  "lastRunFinishedAt": "2026-05-18T17:55:00Z"
+  "notes": "Completed through task-1566. Next: add glTF sampler wrap visual browser proof.",
+  "lastRunFinishedAt": "2026-05-18T18:50:57Z"
 }

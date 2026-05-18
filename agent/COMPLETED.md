@@ -1,5 +1,222 @@
 # Completed Tasks
 
+## task-1566 — Audit tracker/backlog alignment after valid sampler follow-up plan audit
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/TRACKER_BACKLOG_ALIGNMENT_AFTER_GLTF_SAMPLER_WRAP_PLAN_AUDIT_2026_05_18.md`.
+- Updated public tracker pages to point at glTF sampler wrap visual proof.
+- Confirmed the ready queue remains scoped through `task-1569`.
+
+Validation:
+
+- `pnpm run check:progress`
+
+## task-1565 — Audit selected follow-up plan after valid sampler mapping planning
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/GLTF_SAMPLER_WRAP_VISUAL_PROOF_PLAN_AUDIT_2026_05_18.md`.
+- Confirmed the selected glTF sampler wrap visual proof is scoped enough for one
+  implementation run.
+- Recommended proceeding only if deterministic UV and texture sampling can stay
+  narrow; otherwise stop with a fixture design audit.
+
+Validation:
+
+- Documentation-only audit; covered by final formatting and closeout checks.
+
+## task-1564 — Plan next route or StandardMaterial follow-up after valid sampler mapping coverage
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/NEXT_ROUTE_OR_STANDARD_AFTER_VALID_GLTF_SAMPLER_MAPPING_PLAN_2026_05_18.md`.
+- Compared a route-report reader helper, a glTF sampler wrap visual proof, and
+  tracker-only work.
+- Selected a focused glTF sampler wrap visual browser proof as the next
+  implementation direction.
+- Refilled the backlog with `task-1567` through `task-1569`.
+
+Validation:
+
+- Documentation-only planning slice; covered by final formatting and closeout
+  checks.
+
+## task-1563 — Audit tracker/backlog alignment after valid sampler mapping coverage
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/TRACKER_BACKLOG_ALIGNMENT_AFTER_VALID_GLTF_SAMPLER_MAPPING_2026_05_18.md`.
+- Updated public tracker pages to mention valid non-default glTF sampler mapping
+  browser coverage.
+- Refilled the backlog with `task-1564` through `task-1566` and recommended
+  planning the next route or StandardMaterial follow-up.
+
+Validation:
+
+- `pnpm run check:progress`
+
+## task-1562 — Audit valid non-default sampler mapping browser coverage
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/VALID_NON_DEFAULT_GLTF_SAMPLER_MAPPING_BROWSER_COVERAGE_AUDIT_2026_05_18.md`.
+- Confirmed the sampler scenario preserves source enum values, mapped sampler
+  settings, prepared resource counts, draw submission, and JSON safety.
+- Recommended deferring visual wrap/repeat proof until explicitly selected.
+
+Validation:
+
+- Documentation-only audit; covered by final formatting and closeout checks.
+
+## task-1561 — Add valid non-default glTF sampler mapping browser coverage
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added a `valid-non-default-sampler` glTF browser scenario using repeat,
+  mirror-repeat, and linear/mipmap-linear sampler enum values.
+- Preserved original glTF sampler source values on planned sampler assets so the
+  browser status can compare source enums against mapped sampler settings.
+- Added Playwright coverage proving JSON-safe status, one texture resource, one
+  sampler resource, draw submission, and no backend resource leakage.
+
+Validation:
+
+- `node --check examples/standard-gltf-texture.js`
+- `pnpm run typecheck:test`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "valid non-default sampler"`
+
+## task-1560 — Audit tracker freshness after route diagnostics naming track
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/TRACKER_FRESHNESS_AFTER_ROUTE_DIAGNOSTICS_NAMING_TRACK_AUDIT_2026_05_18.md`.
+- Confirmed the public tracker points at valid non-default glTF sampler mapping
+  browser coverage as the next focus.
+- Confirmed the ready queue remains scoped through `task-1563`.
+
+Validation:
+
+- `pnpm run check:progress`
+
+## task-1559 — Audit tracker/backlog alignment after route diagnostics follow-up plan audit
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/TRACKER_BACKLOG_ALIGNMENT_AFTER_ROUTE_DIAGNOSTICS_NAMING_PLAN_AUDIT_2026_05_18.md`.
+- Updated public tracker pages to summarize the route diagnostics field naming
+  audit and point next focus at valid non-default glTF sampler mapping coverage.
+- Confirmed a scoped ready queue remains through `task-1563`.
+
+Validation:
+
+- `pnpm run check:progress`
+
+## task-1558 — Audit selected follow-up plan after route diagnostics naming planning
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/VALID_NON_DEFAULT_GLTF_SAMPLER_MAPPING_PLAN_AUDIT_2026_05_18.md`.
+- Confirmed valid non-default glTF sampler browser coverage is scoped enough for
+  one focused implementation run.
+- Recommended keeping the implementation to sampler source enums, mapped
+  sampler status, resource creation, draw submission, and JSON-safety.
+
+Validation:
+
+- Documentation-only audit; covered by final formatting and closeout checks.
+
+## task-1557 — Plan next route or StandardMaterial follow-up after route diagnostics naming audit
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/NEXT_ROUTE_OR_STANDARD_AFTER_ROUTE_DIAGNOSTICS_NAMING_AUDIT_PLAN_2026_05_18.md`.
+- Compared a route-report reader helper, valid non-default glTF sampler browser
+  coverage, and tracker-only alignment.
+- Selected valid non-default glTF sampler mapping browser coverage as the next
+  implementation slice.
+- Refilled the backlog with `task-1561` through `task-1563`.
+
+Validation:
+
+- Documentation-only planning slice; covered by final formatting and closeout
+  checks.
+
+## task-1556 — Audit route diagnostics report field naming consistency
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/ROUTE_DIAGNOSTICS_REPORT_FIELD_NAMING_CONSISTENCY_AUDIT_2026_05_18.md`.
+- Confirmed public `webGpuApp.materialQueueRouteReport` diagnostics expose the
+  nested payload under `report`.
+- Confirmed `routeReport` is internal scratch/planning terminology, not emitted
+  JSON.
+- Recommended keeping the current public `report` field and avoiding a
+  compatibility alias unless an external consumer appears.
+
+Validation:
+
+- Documentation-only audit; covered by final formatting and closeout checks.
+
+## task-1529 through task-1555 — Normal-scale proof, dependency diagnostics, and route-boundary audits
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added deterministic scalar-vs-normal browser screenshot/readback proof for
+  glTF `normalTexture.scale`.
+- Added browser diagnostics coverage for metallic-roughness and
+  occlusion/emissive delayed texture/sampler dependencies, including no draw
+  submission, no pipeline keys, zero prepared GPU resources, and JSON-safe
+  status assertions.
+- Added an unsupported material route-family regression proving grouped
+  JSON-safe diagnostics and no routed resources for a test-only unknown family.
+- Completed the associated tracker/backlog alignment, follow-up planning, and
+  focused audits through `task-1555`.
+
+Validation:
+
+- `node --check examples/standard-gltf-texture.js`
+- `pnpm run typecheck:test`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "normal texture scale"`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "metallic-roughness delayed dependencies"`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "occlusion and emissive delayed dependencies"`
+- `pnpm exec vitest run test/webgpu/queued-built-in-app-resource-set.test.ts`
+- `pnpm run check:progress`
+
 ## task-1479 — Audit remaining built-in-specific app route collector diagnostics surfaces
 
 Completed: 2026-05-18

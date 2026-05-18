@@ -59,6 +59,7 @@ export interface GltfPlannedSamplerAsset {
   readonly handleKey: string;
   readonly textureIndex: number;
   readonly slot: GltfMaterialTextureSlot;
+  readonly source: Record<string, unknown> | null;
   readonly sampler: SamplerAsset | null;
 }
 
@@ -202,6 +203,7 @@ export function createGltfAssetMappingReport(
         handleKey: samplerHandleKey,
         textureIndex: textureSlot.textureIndex,
         slot: textureSlot.slot,
+        source: samplerSourceForTexture(options.root, textureSlot.textureIndex),
         sampler: report.sampler,
       });
       diagnostics.push(
@@ -397,6 +399,20 @@ function plannedHandleKey(
   return slot === undefined
     ? `${prefix}:${kind}:${index}`
     : `${prefix}:${kind}:${index}:${slot}`;
+}
+
+function samplerSourceForTexture(
+  root: Record<string, unknown>,
+  textureIndex: number,
+): Record<string, unknown> | null {
+  const texture = arrayField(root, "textures")[textureIndex];
+
+  if (!isRecord(texture) || typeof texture.sampler !== "number") {
+    return null;
+  }
+
+  const sampler = arrayField(root, "samplers")[texture.sampler];
+  return isRecord(sampler) ? sampler : null;
 }
 
 function arrayField(

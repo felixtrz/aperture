@@ -59,7 +59,7 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start with `task-1529`. `task-1421` through `task-1528` completed GLB
+Start with `task-1567`. `task-1421` through `task-1566` completed GLB
 metallic-roughness transformed-UV1 coverage, combined StandardMaterial browser
 coverage for base-color/metallic-roughness, base-color/metallic-roughness/normal,
 base-color/occlusion/emissive, and base-color/alpha-mask/emissive, built-in app
@@ -68,12 +68,19 @@ contract cleanup, audits, tracker alignment, alpha texture assertion helper
 cleanup, follow-up planning, generic routed-item report serialization, and the
 remaining route collector diagnostics surface audit. This run selected,
 implemented, and audited occlusion strength and normal texture scale
-StandardMaterial/glTF browser mapping coverage. The next ready task is a focused
-visual normal-scale proof audit because the mapping fixture reports the scale
-correctly but the current single-plane lighting setup does not produce a
-deterministic readback delta between scale values. The follow-up audit selected
-a Standard texture control-style scalar-vs-normal comparison inside the glTF
-fixture as the next implementation slice.
+StandardMaterial/glTF browser mapping coverage. The normal-scale follow-up now
+renders a scalar control plane beside the reduced-scale normal plane inside the
+glTF fixture and verifies deterministic screenshot/readback deltas. This run
+also added metallic-roughness and occlusion/emissive dependency diagnostics,
+an unknown route-family regression, and the associated planning/audits/tracker
+alignment. The route diagnostics naming follow-up confirmed the public
+diagnostic field remains `report`, selected valid non-default glTF sampler
+mapping browser coverage as the next implementation slice, confirmed tracker
+freshness after the naming track, added the sampler mapping browser
+implementation, audited it, aligned the tracker/backlog, and selected glTF
+sampler wrap visual browser proof as the next implementation direction, audited
+that plan, and aligned tracker/backlog state. The next ready task is the sampler
+wrap visual browser implementation.
 
 ## Near-Term Proof Point Track
 
@@ -90,14 +97,12 @@ Target proof point:
 
 Remaining automation priority order:
 
-1. `task-1529` — implement deterministic visual normal-scale browser proof.
-2. `task-1530` — audit tracker/backlog alignment after visual normal-scale
+1. `task-1567` — add glTF sampler wrap visual browser proof.
+2. `task-1568` — audit glTF sampler wrap visual browser proof.
+3. `task-1569` — audit tracker/backlog alignment after glTF sampler wrap visual
    proof.
-3. `task-1531` — plan next route or StandardMaterial follow-up after normal
-   scale visual proof.
-4. `task-1532` — audit selected follow-up plan after normal-scale planning.
-5. `task-1533` — audit tracker/backlog alignment after normal-scale follow-up
-   plan audit.
+4. Plan the next route or StandardMaterial follow-up after the visual proof.
+5. Keep a focused audit-refactor task after the next implementation slice.
 
 Defer allocation-only cleanup and metadata-only shader-contract tasks unless
 they are a direct blocker for this track.
@@ -3559,6 +3564,9 @@ Acceptance criteria:
 
 ### task-1529 — Implement deterministic visual normal-scale browser proof
 
+Status: completed 2026-05-18. See
+`test/e2e/standard-gltf-texture.spec.ts`.
+
 Category: `webgpu-render`
 Package/write-scope:
 `examples/standard-gltf-texture.js`, `test/e2e/standard-gltf-texture.spec.ts`,
@@ -3578,6 +3586,9 @@ Acceptance criteria:
 
 ### task-1530 — Audit tracker/backlog alignment after visual normal-scale proof
 
+Status: completed 2026-05-18. See
+`docs/research/TRACKER_BACKLOG_ALIGNMENT_AFTER_STANDARD_GLTF_NORMAL_SCALE_VISUAL_PROOF_2026_05_18.md`.
+
 Category: `docs-tooling`
 Package/write-scope: `docs/index.html`, `docs/render-pipeline-comparison.html`,
 `agent/BACKLOG.md`, and `docs/research`.
@@ -3593,6 +3604,9 @@ Acceptance criteria:
 - Run `pnpm run check:progress` after tracker edits.
 
 ### task-1531 — Plan next route or StandardMaterial follow-up after normal-scale visual proof
+
+Status: completed 2026-05-18. See
+`docs/research/NEXT_ROUTE_OR_STANDARD_AFTER_NORMAL_SCALE_VISUAL_PROOF_PLAN_2026_05_18.md`.
 
 Category: `docs-tooling`
 Package/write-scope: `docs/research` and backlog only.
@@ -3610,6 +3624,9 @@ Acceptance criteria:
 
 ### task-1532 — Audit selected follow-up plan after normal-scale planning
 
+Status: completed 2026-05-18. See
+`docs/research/METALLIC_ROUGHNESS_DEPENDENCY_DIAGNOSTICS_PLAN_AUDIT_2026_05_18.md`.
+
 Category: `audit-refactor`
 Package/write-scope: `docs/research` and backlog only.
 Reference anchor:
@@ -3625,6 +3642,9 @@ Acceptance criteria:
 
 ### task-1533 — Audit tracker/backlog alignment after normal-scale follow-up plan audit
 
+Status: completed 2026-05-18. See
+`docs/research/TRACKER_BACKLOG_ALIGNMENT_AFTER_METALLIC_ROUGHNESS_DEPENDENCY_PLAN_AUDIT_2026_05_18.md`.
+
 Category: `docs-tooling`
 Package/write-scope: `docs/index.html`, `docs/render-pipeline-comparison.html`,
 `agent/BACKLOG.md`, and `docs/research`.
@@ -3636,6 +3656,753 @@ Acceptance criteria:
 
 - Update public tracker pages if the selected follow-up changes project status
   or recommended next task.
+- Confirm at least five categorized, scoped ready tasks remain.
+- Run `pnpm run check:progress` after tracker edits.
+
+### task-1536 — Add metallic-roughness dependency diagnostics browser coverage
+
+Status: completed 2026-05-18. See
+`test/e2e/standard-gltf-texture.spec.ts`.
+
+Category: `webgpu-render`
+Package/write-scope:
+`examples/standard-gltf-texture.js`, `test/e2e/standard-gltf-texture.spec.ts`,
+and implementation files only if the fixture exposes a focused defect.
+Reference anchor:
+`docs/research/NEXT_ROUTE_OR_STANDARD_AFTER_NORMAL_SCALE_VISUAL_PROOF_PLAN_2026_05_18.md`,
+`docs/ARCHITECTURE.md`, `docs/MEDIUM_LONG_TERM_GOALS.md`,
+`packages/render/src/materials/gltf-material.ts`,
+`packages/webgpu/src/webgpu/standard-shader.ts`,
+`examples/standard-gltf-texture.js`, `test/e2e/standard-gltf-texture.spec.ts`,
+`references/three.js/src/renderers/common/Bindings.js`, and
+`references/engine/src/scene/materials/standard-material.js`.
+
+Acceptance criteria:
+
+- Add a glTF-shaped browser scenario with an unavailable
+  `metallicRoughnessTexture` texture or sampler dependency.
+- Assert JSON-safe readiness/dependency diagnostics identify the
+  metallic-roughness slot and dependency status.
+- Assert no draw submission and no raw GPU handles leak through status JSON.
+- Keep IBL, shadows, binary GLB loading, broad PBR work, and app-level
+  non-built-in rendering deferred.
+
+### task-1537 — Audit metallic-roughness dependency diagnostics browser coverage
+
+Status: completed 2026-05-18. See
+`docs/research/METALLIC_ROUGHNESS_DEPENDENCY_DIAGNOSTICS_BROWSER_COVERAGE_AUDIT_2026_05_18.md`.
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research`, targeted tests only if a tiny corrective
+fix is required.
+Reference anchor:
+the `task-1536` implementation, `docs/ARCHITECTURE.md`,
+`docs/MEDIUM_LONG_TERM_GOALS.md`, and recent StandardMaterial/glTF dependency
+diagnostics audits.
+
+Acceptance criteria:
+
+- Confirm the metallic-roughness dependency scenario proves the intended
+  JSON-safe readiness/diagnostic behavior.
+- Confirm the implementation preserves ECS authority, render extraction
+  boundaries, and WebGPU-only GPU resource ownership.
+- Recommend whether to proceed to tracker alignment or add a focused fix.
+
+### task-1538 — Audit tracker/backlog alignment after metallic-roughness dependency diagnostics
+
+Status: completed 2026-05-18. See
+`docs/research/TRACKER_BACKLOG_ALIGNMENT_AFTER_METALLIC_ROUGHNESS_DEPENDENCY_DIAGNOSTICS_2026_05_18.md`.
+
+Category: `docs-tooling`
+Package/write-scope: `docs/index.html`, `docs/render-pipeline-comparison.html`,
+`agent/BACKLOG.md`, and `docs/research`.
+Reference anchor:
+the `task-1536`/`task-1537` results, `docs/ARCHITECTURE.md`, and
+`docs/MEDIUM_LONG_TERM_GOALS.md`.
+
+Acceptance criteria:
+
+- Update public tracker pages if the dependency diagnostics materially change
+  render pipeline status or the recommended next task.
+- Confirm at least five categorized, scoped ready tasks remain.
+- Run `pnpm run check:progress` after tracker edits.
+
+### task-1534 — Audit StandardMaterial glTF texture-dependency gaps after normal-scale proof
+
+Status: completed 2026-05-18. See
+`docs/research/STANDARD_GLTF_TEXTURE_DEPENDENCY_GAP_AUDIT_AFTER_METALLIC_ROUGHNESS_2026_05_18.md`.
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research`, `agent/BACKLOG.md` only if a focused
+follow-up needs to be queued.
+Reference anchor:
+`docs/MEDIUM_LONG_TERM_GOALS.md`, `docs/ARCHITECTURE.md`,
+`examples/standard-gltf-texture.js`, `test/e2e/standard-gltf-texture.spec.ts`,
+and recent StandardMaterial/glTF fidelity audits.
+
+Acceptance criteria:
+
+- Inventory remaining browser-verifiable dependency gaps for base-color,
+  metallic-roughness, normal, occlusion, and emissive texture/sampler slots.
+- Identify one narrow follow-up that improves StandardMaterial/glTF honesty
+  without adding binary GLB loading, IBL, shadows, or broad PBR work.
+- Preserve ECS authority, render extraction boundaries, JSON-safe diagnostics,
+  and WebGPU-only ownership.
+
+### task-1535 — Audit generic material route boundary before non-built-in app route migration
+
+Status: completed 2026-05-18. See
+`docs/research/GENERIC_MATERIAL_ROUTE_BOUNDARY_BEFORE_NON_BUILT_IN_APP_MIGRATION_AUDIT_2026_05_18.md`.
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research`, targeted WebGPU tests only if a tiny
+boundary regression is exposed.
+Reference anchor:
+`docs/DECISIONS.md` decision 0010, `docs/ARCHITECTURE.md`,
+`packages/webgpu/src/webgpu/queued-material-app-resource-item.ts`,
+`packages/webgpu/src/webgpu/queued-built-in-app-resource-set.ts`,
+`references/three.js/src/renderers/common/Bindings.js`, and
+`references/engine/src/scene/materials/standard-material.js`.
+
+Acceptance criteria:
+
+- Inventory which app route collector responsibilities remain intentionally
+  built-in-specific versus family-generic.
+- Confirm the boundary still treats route family keys as adapter routing
+  metadata, not public custom source material authoring.
+- Recommend one small route-boundary implementation or diagnostic follow-up
+  before real non-built-in app rendering.
+
+### task-1539 — Plan next route or StandardMaterial follow-up after dependency gap audit
+
+Status: completed 2026-05-18. See
+`docs/research/NEXT_ROUTE_OR_STANDARD_AFTER_DEPENDENCY_GAP_AUDIT_PLAN_2026_05_18.md`.
+
+Category: `docs-tooling`
+Package/write-scope: `docs/research` and backlog only.
+Reference anchor:
+the `task-1534` results, `docs/ARCHITECTURE.md`,
+`docs/MEDIUM_LONG_TERM_GOALS.md`, `docs/DECISIONS.md`, and recent route/glTF
+fidelity audits.
+
+Acceptance criteria:
+
+- Compare one material route architecture candidate, one StandardMaterial/glTF
+  fidelity candidate, and one diagnostics/tooling candidate.
+- Select exactly one follow-up with category, package/write-scope, reference
+  anchor, and acceptance criteria.
+- Keep the selected task to one focused run.
+
+### task-1542 — Add occlusion/emissive dependency diagnostics browser coverage
+
+Status: completed 2026-05-18. See
+`test/e2e/standard-gltf-texture.spec.ts`.
+
+Category: `webgpu-render`
+Package/write-scope:
+`examples/standard-gltf-texture.js`, `test/e2e/standard-gltf-texture.spec.ts`,
+and implementation files only if the fixture exposes a focused defect.
+Reference anchor:
+`docs/research/NEXT_ROUTE_OR_STANDARD_AFTER_DEPENDENCY_GAP_AUDIT_PLAN_2026_05_18.md`,
+`docs/research/STANDARD_GLTF_TEXTURE_DEPENDENCY_GAP_AUDIT_AFTER_METALLIC_ROUGHNESS_2026_05_18.md`,
+`docs/ARCHITECTURE.md`, `docs/MEDIUM_LONG_TERM_GOALS.md`,
+`packages/render/src/materials/gltf-material.ts`,
+`packages/webgpu/src/webgpu/standard-shader.ts`,
+`examples/standard-gltf-texture.js`, `test/e2e/standard-gltf-texture.spec.ts`,
+`references/three.js/src/renderers/common/Bindings.js`, and
+`references/engine/src/scene/materials/standard-material.js`.
+
+Acceptance criteria:
+
+- Add a GLB-shaped browser scenario with unavailable occlusion/emissive texture
+  or sampler dependencies.
+- Assert JSON-safe readiness/dependency diagnostics identify both affected slots
+  and statuses.
+- Assert no draw submission, no pipeline keys, and no prepared GPU resources.
+- Keep IBL, shadows, binary GLB loading, broad PBR work, and app-level
+  non-built-in rendering deferred.
+
+### task-1540 — Audit selected follow-up plan after dependency gap planning
+
+Status: completed 2026-05-18. See
+`docs/research/OCCLUSION_EMISSIVE_DEPENDENCY_DIAGNOSTICS_PLAN_AUDIT_2026_05_18.md`.
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research` and backlog only.
+Reference anchor:
+the plan from `task-1539`, `docs/ARCHITECTURE.md`,
+`docs/MEDIUM_LONG_TERM_GOALS.md`, and recent route/glTF audits.
+
+Acceptance criteria:
+
+- Confirm the selected follow-up is concrete enough for one focused run.
+- Confirm it preserves ECS authority, render extraction, JSON-safe diagnostics,
+  and WebGPU-only ownership.
+- Recommend whether to implement the selected follow-up or adjust the backlog.
+
+### task-1543 — Audit occlusion/emissive dependency diagnostics browser coverage
+
+Status: completed 2026-05-18. See
+`docs/research/OCCLUSION_EMISSIVE_DEPENDENCY_DIAGNOSTICS_BROWSER_COVERAGE_AUDIT_2026_05_18.md`.
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research`, targeted tests only if a tiny corrective
+fix is required.
+Reference anchor:
+the `task-1542` implementation, `docs/ARCHITECTURE.md`,
+`docs/MEDIUM_LONG_TERM_GOALS.md`, and recent StandardMaterial/glTF dependency
+diagnostics audits.
+
+Acceptance criteria:
+
+- Confirm the occlusion/emissive dependency scenario proves the intended
+  JSON-safe readiness/diagnostic behavior.
+- Confirm the implementation preserves ECS authority, render extraction
+  boundaries, and WebGPU-only GPU resource ownership.
+- Recommend whether to proceed to tracker alignment or add a focused fix.
+
+### task-1544 — Audit tracker/backlog alignment after occlusion/emissive dependency diagnostics
+
+Status: completed 2026-05-18. See
+`docs/research/TRACKER_BACKLOG_ALIGNMENT_AFTER_OCCLUSION_EMISSIVE_DEPENDENCY_DIAGNOSTICS_2026_05_18.md`.
+
+Category: `docs-tooling`
+Package/write-scope: `docs/index.html`, `docs/render-pipeline-comparison.html`,
+`agent/BACKLOG.md`, and `docs/research`.
+Reference anchor:
+the `task-1542`/`task-1543` results, `docs/ARCHITECTURE.md`, and
+`docs/MEDIUM_LONG_TERM_GOALS.md`.
+
+Acceptance criteria:
+
+- Update public tracker pages if the dependency diagnostics materially change
+  render pipeline status or the recommended next task.
+- Confirm at least five categorized, scoped ready tasks remain.
+- Run `pnpm run check:progress` after tracker edits.
+
+### task-1541 — Audit tracker/backlog alignment after dependency follow-up plan audit
+
+Status: completed 2026-05-18. See
+`docs/research/TRACKER_BACKLOG_ALIGNMENT_AFTER_OCCLUSION_EMISSIVE_DEPENDENCY_PLAN_AUDIT_2026_05_18.md`.
+
+Category: `docs-tooling`
+Package/write-scope: `docs/index.html`, `docs/render-pipeline-comparison.html`,
+`agent/BACKLOG.md`, and `docs/research`.
+Reference anchor:
+the `task-1539`/`task-1540` results, `docs/ARCHITECTURE.md`, and
+`docs/MEDIUM_LONG_TERM_GOALS.md`.
+
+Acceptance criteria:
+
+- Update public tracker pages if the selected follow-up changes project status
+  or recommended next task.
+- Confirm at least five categorized, scoped ready tasks remain.
+- Run `pnpm run check:progress` after tracker edits.
+
+### task-1545 — Plan next route or StandardMaterial follow-up after occlusion/emissive dependency tracker alignment
+
+Status: completed 2026-05-18. See
+`docs/research/NEXT_ROUTE_OR_STANDARD_AFTER_OCCLUSION_EMISSIVE_DEPENDENCY_PLAN_2026_05_18.md`.
+
+Category: `docs-tooling`
+Package/write-scope: `docs/research` and backlog only.
+Reference anchor:
+the `task-1542`/`task-1544` results, `docs/ARCHITECTURE.md`,
+`docs/MEDIUM_LONG_TERM_GOALS.md`, `docs/DECISIONS.md`, and recent route/glTF
+fidelity audits.
+
+Acceptance criteria:
+
+- Compare one material route architecture candidate, one StandardMaterial/glTF
+  fidelity candidate, and one diagnostics/tooling candidate.
+- Select exactly one follow-up with category, package/write-scope, reference
+  anchor, and acceptance criteria.
+- Keep the selected task to one focused run.
+
+### task-1550 — Add unknown material route family diagnostics regression
+
+Status: completed 2026-05-18. See
+`test/webgpu/queued-built-in-app-resource-set.test.ts`.
+
+Category: `webgpu-render`
+Package/write-scope:
+`test/webgpu/queued-built-in-app-resource-set.test.ts` or the nearest existing
+route diagnostics test, with implementation files only if the regression exposes
+a focused defect.
+Reference anchor:
+`docs/research/NEXT_ROUTE_OR_STANDARD_AFTER_OCCLUSION_EMISSIVE_DEPENDENCY_PLAN_2026_05_18.md`,
+`docs/DECISIONS.md` decision 0010, `docs/ARCHITECTURE.md`,
+`packages/webgpu/src/webgpu/queued-built-in-app-resource-set.ts`,
+`packages/webgpu/src/webgpu/material-queue-route-report.ts`,
+`references/three.js/src/renderers/common/Bindings.js`, and
+`references/engine/src/scene/materials/standard-material.js`.
+
+Acceptance criteria:
+
+- Add a test-only queued material route item or snapshot fixture with a valid
+  but unsupported material family key.
+- Assert the route report is invalid, includes
+  `webGpuApp.unsupportedMaterialQueueFamily`, groups the skipped family/phase,
+  appends no routed resources, and exposes no raw source assets, app objects, or
+  GPU handles in JSON.
+- Do not add public custom material source authoring or real non-built-in app
+  rendering.
+
+### task-1546 — Audit selected follow-up plan after occlusion/emissive follow-up planning
+
+Status: completed 2026-05-18. See
+`docs/research/UNKNOWN_MATERIAL_ROUTE_FAMILY_DIAGNOSTICS_PLAN_AUDIT_2026_05_18.md`.
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research` and backlog only.
+Reference anchor:
+the plan from `task-1545`, `docs/ARCHITECTURE.md`,
+`docs/MEDIUM_LONG_TERM_GOALS.md`, and recent route/glTF audits.
+
+Acceptance criteria:
+
+- Confirm the selected follow-up is concrete enough for one focused run.
+- Confirm it preserves ECS authority, render extraction, JSON-safe diagnostics,
+  and WebGPU-only ownership.
+- Recommend whether to implement the selected follow-up or adjust the backlog.
+
+### task-1547 — Audit delayed-dependency browser assertion helper extraction
+
+Status: completed 2026-05-18. See
+`docs/research/DELAYED_DEPENDENCY_BROWSER_ASSERTION_HELPER_AUDIT_2026_05_18.md`.
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research`, `test/e2e/standard-gltf-texture.spec.ts`
+only if a tiny local cleanup is clearly worthwhile.
+Reference anchor:
+`test/e2e/standard-gltf-texture.spec.ts`,
+`examples/standard-gltf-texture.js`, `docs/ARCHITECTURE.md`, and recent
+StandardMaterial/glTF dependency diagnostics audits.
+
+Acceptance criteria:
+
+- Identify whether the delayed-dependency browser assertions now have enough
+  duplication to justify a focused helper extraction.
+- If yes, recommend one helper shape and scope; if no, explain why the
+  slot-specific assertions should stay local for now.
+- Preserve JSON-safe status checks and avoid weakening slot-specific coverage.
+
+### task-1548 — Plan next route or StandardMaterial follow-up after helper audit
+
+Status: completed 2026-05-18. See
+`docs/research/NEXT_ROUTE_OR_STANDARD_AFTER_DELAYED_DEPENDENCY_HELPER_AUDIT_PLAN_2026_05_18.md`.
+
+Category: `docs-tooling`
+Package/write-scope: `docs/research` and backlog only.
+Reference anchor:
+the `task-1547` results, `docs/ARCHITECTURE.md`,
+`docs/MEDIUM_LONG_TERM_GOALS.md`, `docs/DECISIONS.md`, and recent route/glTF
+fidelity audits.
+
+Acceptance criteria:
+
+- Compare one material route architecture candidate, one StandardMaterial/glTF
+  fidelity candidate, and one diagnostics/tooling candidate.
+- Select exactly one follow-up with category, package/write-scope, reference
+  anchor, and acceptance criteria.
+- Keep the selected task to one focused run.
+
+### task-1549 — Audit selected follow-up plan after helper-audit planning
+
+Status: completed 2026-05-18. See
+`docs/research/UNKNOWN_ROUTE_FAMILY_DIAGNOSTICS_REGRESSION_PLAN_AUDIT_2026_05_18.md`.
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research` and backlog only.
+Reference anchor:
+the plan from `task-1548`, `docs/ARCHITECTURE.md`,
+`docs/MEDIUM_LONG_TERM_GOALS.md`, and recent route/glTF audits.
+
+Acceptance criteria:
+
+- Confirm the selected follow-up is concrete enough for one focused run.
+- Confirm it preserves ECS authority, render extraction, JSON-safe diagnostics,
+  and WebGPU-only ownership.
+- Recommend whether to implement the selected follow-up or adjust the backlog.
+
+### task-1551 — Audit unknown route family diagnostics regression
+
+Status: completed 2026-05-18. See
+`docs/research/UNKNOWN_ROUTE_FAMILY_DIAGNOSTICS_REGRESSION_AUDIT_2026_05_18.md`.
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research`, targeted tests only if a tiny corrective
+fix is required.
+Reference anchor:
+the `task-1550` implementation, `docs/DECISIONS.md` decision 0010,
+`docs/ARCHITECTURE.md`, `test/webgpu/queued-built-in-app-resource-set.test.ts`,
+`packages/webgpu/src/webgpu/queued-built-in-app-resource-set.ts`, and
+`packages/webgpu/src/webgpu/material-queue-route-report.ts`.
+
+Acceptance criteria:
+
+- Confirm the unknown-family regression preserves decision 0010 and does not
+  imply public custom material source authoring.
+- Confirm diagnostics are JSON-safe, grouped, and omit routed resources and raw
+  handles.
+- Recommend the next tracker/backlog or implementation follow-up.
+
+### task-1552 — Audit tracker/backlog alignment after unknown-family route regression
+
+Status: completed 2026-05-18. See
+`docs/research/TRACKER_BACKLOG_ALIGNMENT_AFTER_UNKNOWN_ROUTE_FAMILY_REGRESSION_2026_05_18.md`.
+
+Category: `docs-tooling`
+Package/write-scope: `docs/index.html`, `docs/render-pipeline-comparison.html`,
+`agent/BACKLOG.md`, and `docs/research`.
+Reference anchor:
+the `task-1550`/`task-1551` results, `docs/ARCHITECTURE.md`, and
+`docs/DECISIONS.md`.
+
+Acceptance criteria:
+
+- Update public tracker pages if the route regression materially changes route
+  architecture status or the recommended next task.
+- Confirm at least five categorized, scoped ready tasks remain.
+- Run `pnpm run check:progress` after tracker edits.
+
+### task-1556 — Audit route diagnostics report field naming consistency
+
+Status: completed 2026-05-18. See
+`docs/research/ROUTE_DIAGNOSTICS_REPORT_FIELD_NAMING_CONSISTENCY_AUDIT_2026_05_18.md`.
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research`, targeted tests only if a tiny corrective
+fix is required.
+Reference anchor:
+`docs/DECISIONS.md` decision 0010, `docs/ARCHITECTURE.md`,
+`packages/webgpu/src/webgpu/material-queue-route-report.ts`,
+`packages/webgpu/src/webgpu/queued-built-in-app-resource-set.ts`, and recent
+route diagnostics tests.
+
+Acceptance criteria:
+
+- Inventory whether route diagnostics consistently expose nested reports under
+  `report` versus `routeReport`.
+- Confirm current JSON shape is documented by tests and does not leak raw
+  resources.
+- Recommend whether to keep the current field or add a compatibility helper.
+
+### task-1557 — Plan next route or StandardMaterial follow-up after route diagnostics naming audit
+
+Status: completed 2026-05-18. See
+`docs/research/NEXT_ROUTE_OR_STANDARD_AFTER_ROUTE_DIAGNOSTICS_NAMING_AUDIT_PLAN_2026_05_18.md`.
+
+Category: `docs-tooling`
+Package/write-scope: `docs/research` and backlog only.
+Reference anchor:
+the `task-1556` results, `docs/ARCHITECTURE.md`,
+`docs/MEDIUM_LONG_TERM_GOALS.md`, `docs/DECISIONS.md`, and recent route/glTF
+fidelity audits.
+
+Acceptance criteria:
+
+- Compare one material route architecture candidate, one StandardMaterial/glTF
+  fidelity candidate, and one diagnostics/tooling candidate.
+- Select exactly one follow-up with category, package/write-scope, reference
+  anchor, and acceptance criteria.
+- Keep the selected task to one focused run.
+
+### task-1558 — Audit selected follow-up plan after route diagnostics naming planning
+
+Status: completed 2026-05-18. See
+`docs/research/VALID_NON_DEFAULT_GLTF_SAMPLER_MAPPING_PLAN_AUDIT_2026_05_18.md`.
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research` and backlog only.
+Reference anchor:
+the plan from `task-1557`, `docs/ARCHITECTURE.md`,
+`docs/MEDIUM_LONG_TERM_GOALS.md`, and recent route/glTF audits.
+
+Acceptance criteria:
+
+- Confirm the selected follow-up is concrete enough for one focused run.
+- Confirm it preserves ECS authority, render extraction, JSON-safe diagnostics,
+  and WebGPU-only ownership.
+- Recommend whether to implement the selected follow-up or adjust the backlog.
+
+### task-1559 — Audit tracker/backlog alignment after route diagnostics follow-up plan audit
+
+Status: completed 2026-05-18. See
+`docs/research/TRACKER_BACKLOG_ALIGNMENT_AFTER_ROUTE_DIAGNOSTICS_NAMING_PLAN_AUDIT_2026_05_18.md`.
+
+Category: `docs-tooling`
+Package/write-scope: `docs/index.html`, `docs/render-pipeline-comparison.html`,
+`agent/BACKLOG.md`, and `docs/research`.
+Reference anchor:
+the `task-1557`/`task-1558` results, `docs/ARCHITECTURE.md`, and
+`docs/MEDIUM_LONG_TERM_GOALS.md`.
+
+Acceptance criteria:
+
+- Update public tracker pages if the selected follow-up changes project status
+  or recommended next task.
+- Confirm at least five categorized, scoped ready tasks remain.
+- Run `pnpm run check:progress` after tracker edits.
+
+### task-1553 — Plan next route or StandardMaterial follow-up after route regression alignment
+
+Status: completed 2026-05-18. See
+`docs/research/NEXT_ROUTE_OR_STANDARD_AFTER_UNKNOWN_ROUTE_REGRESSION_PLAN_2026_05_18.md`.
+
+Category: `docs-tooling`
+Package/write-scope: `docs/research` and backlog only.
+Reference anchor:
+the `task-1552` results, `docs/ARCHITECTURE.md`,
+`docs/MEDIUM_LONG_TERM_GOALS.md`, `docs/DECISIONS.md`, and recent route/glTF
+fidelity audits.
+
+Acceptance criteria:
+
+- Compare one material route architecture candidate, one StandardMaterial/glTF
+  fidelity candidate, and one diagnostics/tooling candidate.
+- Select exactly one follow-up with category, package/write-scope, reference
+  anchor, and acceptance criteria.
+- Keep the selected task to one focused run.
+
+### task-1554 — Audit selected follow-up plan after route regression planning
+
+Status: completed 2026-05-18. See
+`docs/research/ROUTE_DIAGNOSTICS_REPORT_FIELD_NAMING_PLAN_AUDIT_2026_05_18.md`.
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research` and backlog only.
+Reference anchor:
+the plan from `task-1553`, `docs/ARCHITECTURE.md`,
+`docs/MEDIUM_LONG_TERM_GOALS.md`, and recent route/glTF audits.
+
+Acceptance criteria:
+
+- Confirm the selected follow-up is concrete enough for one focused run.
+- Confirm it preserves ECS authority, render extraction, JSON-safe diagnostics,
+  and WebGPU-only ownership.
+- Recommend whether to implement the selected follow-up or adjust the backlog.
+
+### task-1555 — Audit tracker/backlog alignment after route follow-up plan audit
+
+Status: completed 2026-05-18. See
+`docs/research/TRACKER_BACKLOG_ALIGNMENT_AFTER_ROUTE_FIELD_NAMING_PLAN_AUDIT_2026_05_18.md`.
+
+Category: `docs-tooling`
+Package/write-scope: `docs/index.html`, `docs/render-pipeline-comparison.html`,
+`agent/BACKLOG.md`, and `docs/research`.
+Reference anchor:
+the `task-1553`/`task-1554` results, `docs/ARCHITECTURE.md`, and
+`docs/MEDIUM_LONG_TERM_GOALS.md`.
+
+Acceptance criteria:
+
+- Update public tracker pages if the selected follow-up changes project status
+  or recommended next task.
+- Confirm at least five categorized, scoped ready tasks remain.
+- Run `pnpm run check:progress` after tracker edits.
+
+### task-1560 — Audit tracker freshness after route diagnostics naming track
+
+Status: completed 2026-05-18. See
+`docs/research/TRACKER_FRESHNESS_AFTER_ROUTE_DIAGNOSTICS_NAMING_TRACK_AUDIT_2026_05_18.md`.
+
+Category: `docs-tooling`
+Package/write-scope: `docs/index.html`, `docs/render-pipeline-comparison.html`,
+`agent/BACKLOG.md`, and `docs/research`.
+Reference anchor:
+the route diagnostics naming track results, `docs/ARCHITECTURE.md`, and
+`docs/MEDIUM_LONG_TERM_GOALS.md`.
+
+Acceptance criteria:
+
+- Update public tracker pages if the route diagnostics naming work changes
+  project status or recommended next task.
+- Confirm at least five categorized, scoped ready tasks remain.
+- Run `pnpm run check:progress` after tracker edits.
+
+### task-1561 — Add valid non-default glTF sampler mapping browser coverage
+
+Status: completed 2026-05-18. See
+`test/e2e/standard-gltf-texture.spec.ts`.
+
+Category: `webgpu-render`
+Package/write-scope:
+`examples/standard-gltf-texture.js`, `test/e2e/standard-gltf-texture.spec.ts`,
+and implementation files only if the fixture exposes a focused defect.
+Reference anchor:
+`docs/research/NEXT_ROUTE_OR_STANDARD_AFTER_ROUTE_DIAGNOSTICS_NAMING_AUDIT_PLAN_2026_05_18.md`,
+`docs/MEDIUM_LONG_TERM_GOALS.md`, `docs/ARCHITECTURE.md`,
+`packages/render/src/materials/gltf-material.ts`,
+`examples/standard-gltf-texture.js`, `test/e2e/standard-gltf-texture.spec.ts`,
+`references/three.js/src/renderers/common/Bindings.js`, and
+`references/engine/src/scene/materials/standard-material.js`.
+
+Acceptance criteria:
+
+- Add a glTF-shaped browser scenario with a valid non-default sampler enum
+  combination such as repeat wrapping and linear filtering.
+- Assert JSON-safe asset-mapping status includes the original glTF sampler enum
+  values and the mapped sampler settings.
+- Assert the rendered path creates exactly one sampler resource and one texture
+  resource, submits a draw, and exposes no raw GPU handles.
+- Keep visual wrap-repeat proof, IBL, shadows, binary GLB loading, broad PBR
+  work, and app-level non-built-in rendering deferred unless this fixture
+  exposes a focused defect.
+
+### task-1562 — Audit valid non-default sampler mapping browser coverage
+
+Status: completed 2026-05-18. See
+`docs/research/VALID_NON_DEFAULT_GLTF_SAMPLER_MAPPING_BROWSER_COVERAGE_AUDIT_2026_05_18.md`.
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research`, targeted tests only if a tiny corrective
+fix is required.
+Reference anchor:
+the `task-1561` implementation, `docs/ARCHITECTURE.md`,
+`docs/MEDIUM_LONG_TERM_GOALS.md`, and recent StandardMaterial/glTF sampler
+audits.
+
+Acceptance criteria:
+
+- Confirm the valid sampler mapping scenario proves the intended JSON-safe
+  source enum, mapped sampler, resource, and draw behavior.
+- Confirm the implementation preserves ECS authority, render extraction
+  boundaries, and WebGPU-only GPU resource ownership.
+- Recommend whether to proceed to tracker alignment or add a focused fix.
+
+### task-1563 — Audit tracker/backlog alignment after valid sampler mapping coverage
+
+Status: completed 2026-05-18. See
+`docs/research/TRACKER_BACKLOG_ALIGNMENT_AFTER_VALID_GLTF_SAMPLER_MAPPING_2026_05_18.md`.
+
+Category: `docs-tooling`
+Package/write-scope: `docs/index.html`, `docs/render-pipeline-comparison.html`,
+`agent/BACKLOG.md`, and `docs/research`.
+Reference anchor:
+the `task-1561`/`task-1562` results, `docs/ARCHITECTURE.md`, and
+`docs/MEDIUM_LONG_TERM_GOALS.md`.
+
+Acceptance criteria:
+
+- Update public tracker pages if the valid sampler mapping coverage materially
+  changes render pipeline status or recommended next task.
+- Confirm at least five categorized, scoped ready tasks remain.
+- Run `pnpm run check:progress` after tracker edits.
+
+### task-1564 — Plan next route or StandardMaterial follow-up after valid sampler mapping coverage
+
+Status: completed 2026-05-18. See
+`docs/research/NEXT_ROUTE_OR_STANDARD_AFTER_VALID_GLTF_SAMPLER_MAPPING_PLAN_2026_05_18.md`.
+
+Category: `docs-tooling`
+Package/write-scope: `docs/research` and backlog only.
+Reference anchor:
+the `task-1561`/`task-1562` results, `docs/ARCHITECTURE.md`,
+`docs/MEDIUM_LONG_TERM_GOALS.md`, `docs/DECISIONS.md`, and recent route/glTF
+fidelity audits.
+
+Acceptance criteria:
+
+- Compare one material route architecture candidate, one StandardMaterial/glTF
+  fidelity candidate, and one diagnostics/tooling candidate.
+- Select exactly one follow-up with category, package/write-scope, reference
+  anchor, and acceptance criteria.
+- Keep the selected task to one focused run.
+
+### task-1565 — Audit selected follow-up plan after valid sampler mapping planning
+
+Status: completed 2026-05-18. See
+`docs/research/GLTF_SAMPLER_WRAP_VISUAL_PROOF_PLAN_AUDIT_2026_05_18.md`.
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research` and backlog only.
+Reference anchor:
+the plan from `task-1564`, `docs/ARCHITECTURE.md`,
+`docs/MEDIUM_LONG_TERM_GOALS.md`, and recent route/glTF audits.
+
+Acceptance criteria:
+
+- Confirm the selected follow-up is concrete enough for one focused run.
+- Confirm it preserves ECS authority, render extraction, JSON-safe diagnostics,
+  and WebGPU-only ownership.
+- Recommend whether to implement the selected follow-up or adjust the backlog.
+
+### task-1566 — Audit tracker/backlog alignment after valid sampler follow-up plan audit
+
+Status: completed 2026-05-18. See
+`docs/research/TRACKER_BACKLOG_ALIGNMENT_AFTER_GLTF_SAMPLER_WRAP_PLAN_AUDIT_2026_05_18.md`.
+
+Category: `docs-tooling`
+Package/write-scope: `docs/index.html`, `docs/render-pipeline-comparison.html`,
+`agent/BACKLOG.md`, and `docs/research`.
+Reference anchor:
+the `task-1564`/`task-1565` results, `docs/ARCHITECTURE.md`, and
+`docs/MEDIUM_LONG_TERM_GOALS.md`.
+
+Acceptance criteria:
+
+- Update public tracker pages if the selected follow-up changes project status
+  or recommended next task.
+- Confirm at least five categorized, scoped ready tasks remain.
+- Run `pnpm run check:progress` after tracker edits.
+
+### task-1567 — Add glTF sampler wrap visual browser proof
+
+Category: `webgpu-render`
+Package/write-scope:
+`examples/standard-gltf-texture.js`, `test/e2e/standard-gltf-texture.spec.ts`,
+and implementation files only if the fixture exposes a focused defect.
+Reference anchor:
+`docs/research/NEXT_ROUTE_OR_STANDARD_AFTER_VALID_GLTF_SAMPLER_MAPPING_PLAN_2026_05_18.md`,
+`docs/MEDIUM_LONG_TERM_GOALS.md`, `docs/ARCHITECTURE.md`,
+`examples/standard-gltf-texture.js`, `test/e2e/standard-gltf-texture.spec.ts`,
+`test/e2e/standard-texture-control.spec.ts`,
+`references/three.js/src/renderers/common/Bindings.js`, and
+`references/engine/src/scene/materials/standard-material.js`.
+
+Acceptance criteria:
+
+- Add a glTF-shaped browser scenario that uses a valid repeat or mirror-repeat
+  sampler with UVs outside the 0..1 range.
+- Assert JSON-safe sampler mapping status still preserves source enums and
+  mapped sampler settings.
+- Assert screenshot or readback samples distinguish wrapped sampling from clamp
+  behavior.
+- Keep the proof to one sampler/wrap behavior and defer sampler matrices, IBL,
+  shadows, binary GLB loading, and real non-built-in app rendering.
+
+### task-1568 — Audit glTF sampler wrap visual browser proof
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research`, targeted tests only if a tiny corrective
+fix is required.
+Reference anchor:
+the `task-1567` implementation, `docs/ARCHITECTURE.md`,
+`docs/MEDIUM_LONG_TERM_GOALS.md`, and recent StandardMaterial/glTF sampler
+audits.
+
+Acceptance criteria:
+
+- Confirm the visual proof distinguishes wrapped sampling from clamp behavior
+  without broadening into a sampler matrix.
+- Confirm the implementation preserves ECS authority, render extraction
+  boundaries, and WebGPU-only GPU resource ownership.
+- Recommend whether to proceed to tracker alignment or add a focused fix.
+
+### task-1569 — Audit tracker/backlog alignment after glTF sampler wrap visual proof
+
+Category: `docs-tooling`
+Package/write-scope: `docs/index.html`, `docs/render-pipeline-comparison.html`,
+`agent/BACKLOG.md`, and `docs/research`.
+Reference anchor:
+the `task-1567`/`task-1568` results, `docs/ARCHITECTURE.md`, and
+`docs/MEDIUM_LONG_TERM_GOALS.md`.
+
+Acceptance criteria:
+
+- Update public tracker pages if the visual sampler proof materially changes
+  render pipeline status or recommended next task.
 - Confirm at least five categorized, scoped ready tasks remain.
 - Run `pnpm run check:progress` after tracker edits.
 

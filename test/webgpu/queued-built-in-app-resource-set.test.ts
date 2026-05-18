@@ -196,6 +196,79 @@ describe("queued built-in app resource set collector", () => {
     expect(JSON.stringify(result)).not.toContain("rawGpuHandle");
   });
 
+  it("reports unsupported route families without routed resources or raw handles", () => {
+    const assets = readyAssets("unlit");
+    const snapshot = renderSnapshot([
+      drawPacket({
+        renderId: 13,
+        materialFamily: "toon-shaded",
+      }),
+    ]);
+    const meshes = createPreparedMeshStore();
+    const materials = createPreparedMaterialStore();
+
+    prepareSnapshotMeshes({ registry: assets, snapshot, meshes });
+    prepareSnapshotMaterials({ registry: assets, snapshot, materials });
+
+    const result = collectQueuedBuiltInAppResourceSet({
+      assets,
+      snapshot,
+      materialQueueScratch: createMaterialQueueScratch(),
+      routeScratch: routeScratch(),
+      meshes,
+      materials,
+      adapters: adapters(),
+    });
+
+    expect(result.valid).toBe(false);
+    expect(result.resourceSet).toBeNull();
+    expect(result.diagnostics).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          code: "webGpuApp.unsupportedMaterialQueueFamily",
+          renderId: 13,
+          drawIndex: 0,
+          materialFamily: "toon-shaded",
+          entity: { index: 13, generation: 1 },
+        }),
+        expect.objectContaining({
+          code: "webGpuApp.materialQueueRouteReport",
+          report: expect.objectContaining({
+            valid: false,
+            queueItemCount: 1,
+            routedItemCount: 0,
+            skippedItemCount: 1,
+            byFamily: [
+              {
+                key: "toon-shaded",
+                queuedCount: 1,
+                routedCount: 0,
+                skippedCount: 1,
+              },
+            ],
+            byPhase: [
+              {
+                key: "opaque",
+                queuedCount: 1,
+                routedCount: 0,
+                skippedCount: 1,
+              },
+            ],
+            diagnosticSummary: expect.objectContaining({
+              total: 1,
+              byCode: {
+                "webGpuApp.unsupportedMaterialQueueFamily": 1,
+              },
+            }),
+          }),
+        }),
+      ]),
+    );
+    expect(JSON.stringify(result)).not.toMatch(
+      /rawGpuHandle|sourceAsset|GPUDevice|GPUBuffer|GPUTexture|bindGroup/,
+    );
+  });
+
   it("resets reusable route scratch between unsupported and valid collections", () => {
     const sharedRouteScratch = routeScratch();
     const sharedMaterialQueueScratch = createMaterialQueueScratch();
