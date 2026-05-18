@@ -84,6 +84,7 @@ export * from "./queued-material-frame-resource-route.js";
 export * from "./queued-material-frame-resource-set.js";
 export * from "./queued-material-prepare-route.js";
 export * from "./queued-material-route-summary-group.js";
+export * from "./queued-source-assets.js";
 export * from "./queue-submit.js";
 export * from "./resource-lifecycle.js";
 export * from "./resource-keys.js";

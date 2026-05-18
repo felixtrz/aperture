@@ -20,7 +20,8 @@ import type { QueuedBuiltInAppResourceAdapter } from "./built-in-material-app-re
 import type { QueuedMaterialAdapterRegistry } from "./queued-material-adapter.js";
 import {
   createQueuedMaterialAppResourceItem,
-  queuedMaterialAppResourceItemToRouteRoutedItem,
+  createQueuedMaterialAppRouteReportDiagnostic,
+  type QueuedMaterialAppRouteReportDiagnostic,
   type QueuedMaterialAppResourceItem,
   type QueuedMaterialAppResourceSet,
 } from "./queued-material-app-resource-item.js";
@@ -30,17 +31,16 @@ import {
   createReusableRouteCollector,
   resetReusableRouteCollector,
 } from "./reusable-route-collector.js";
-import { sourceAssetCacheKey } from "./app-texture-sampler-resources.js";
 import {
   createWebGpuAppMaterialQueueRouteReportShell,
-  webGpuAppMaterialQueueRouteReportShellToJsonValue,
-  writeWebGpuAppMaterialQueueRouteReportShell,
-  type WebGpuAppMaterialQueueRouteDiagnostic,
-  type WebGpuAppMaterialQueueRouteDiagnosticSeverity,
-  type WebGpuAppMaterialQueueRouteQueueItem,
-  type WebGpuAppMaterialQueueRouteReportJsonValue,
+  unknownToWebGpuAppMaterialQueueRouteDiagnostics,
   type WebGpuAppMaterialQueueRouteReportShell,
 } from "./material-queue-route-report.js";
+import {
+  indexQueuedSourceAssets,
+  type QueuedSourceMaterialAsset,
+  type QueuedSourceMeshAsset,
+} from "./queued-source-assets.js";
 
 export type QueuedBuiltInAppResourceItem = QueuedMaterialAppResourceItem<
   BuiltInMaterialAsset,
@@ -49,18 +49,6 @@ export type QueuedBuiltInAppResourceItem = QueuedMaterialAppResourceItem<
 
 export type QueuedBuiltInAppResourceSet =
   QueuedMaterialAppResourceSet<QueuedBuiltInAppResourceItem>;
-
-export interface QueuedSourceMeshAsset {
-  readonly asset: MeshAsset;
-  readonly resourceKey: string;
-}
-
-export interface QueuedSourceMaterialAsset {
-  readonly asset: MaterialAsset;
-  readonly kind: string;
-  readonly resourceKey: string;
-  readonly sourceVersion: number;
-}
 
 export interface QueuedBuiltInAppRouteCollectorScratch {
   readonly sourceMeshAssets: Map<string, QueuedSourceMeshAsset>;
@@ -90,11 +78,8 @@ export interface WebGpuAppUnsupportedMaterialQueueDiagnostic {
   readonly entity?: MeshDrawPacket["entity"];
 }
 
-export interface WebGpuAppMaterialQueueRouteReportDiagnostic {
-  readonly code: "webGpuApp.materialQueueRouteReport";
-  readonly message: string;
-  readonly report: WebGpuAppMaterialQueueRouteReportJsonValue;
-}
+export type WebGpuAppMaterialQueueRouteReportDiagnostic =
+  QueuedMaterialAppRouteReportDiagnostic;
 
 export type QueuedBuiltInMaterialAdapter = QueuedBuiltInAppResourceAdapter<
   unknown,
@@ -289,7 +274,9 @@ export function collectQueuedBuiltInAppResourceSet(
       createWebGpuAppMaterialQueueRouteReportDiagnostic({
         queueItems: queue.items,
         routedItems: items,
-        diagnostics,
+        diagnostics: diagnostics.flatMap(
+          unknownToWebGpuAppMaterialQueueRouteDiagnostics,
+        ),
         shell: options.routeScratch.routeReport,
       }),
     );
@@ -302,96 +289,8 @@ export function collectQueuedBuiltInAppResourceSet(
   };
 }
 
-function indexQueuedSourceAssets(
-  assets: AssetRegistry,
-  snapshot: RenderSnapshot,
-  output: {
-    readonly meshAssets: Map<string, QueuedSourceMeshAsset>;
-    readonly materialAssets: Map<string, QueuedSourceMaterialAsset>;
-  },
-): void {
-  output.meshAssets.clear();
-  output.materialAssets.clear();
-
-  for (const draw of snapshot.meshDraws) {
-    const meshKey = assetHandleKey(draw.mesh);
-
-    if (!output.meshAssets.has(meshKey)) {
-      const meshEntry = assets.get<"mesh", MeshAsset>(draw.mesh);
-
-      if (
-        meshEntry !== undefined &&
-        meshEntry.status === "ready" &&
-        meshEntry.asset !== null
-      ) {
-        output.meshAssets.set(meshKey, {
-          asset: meshEntry.asset,
-          resourceKey: sourceAssetCacheKey(draw.mesh, meshEntry.version),
-        });
-      }
-    }
-
-    const materialKey = assetHandleKey(draw.material);
-
-    if (output.materialAssets.has(materialKey)) {
-      continue;
-    }
-
-    const materialEntry = assets.get<"material", MaterialAsset>(draw.material);
-    const material = materialEntry?.asset ?? null;
-
-    if (
-      materialEntry === undefined ||
-      materialEntry.status !== "ready" ||
-      material === null
-    ) {
-      continue;
-    }
-
-    output.materialAssets.set(materialKey, {
-      asset: material,
-      kind: material.kind,
-      resourceKey: sourceAssetCacheKey(draw.material, materialEntry.version),
-      sourceVersion: materialEntry.version,
-    });
-  }
-}
-
-function createWebGpuAppMaterialQueueRouteReportDiagnostic(input: {
-  readonly queueItems: readonly MaterialQueueItem[];
-  readonly routedItems: readonly QueuedBuiltInAppResourceItem[];
-  readonly diagnostics: readonly unknown[];
-  readonly shell: WebGpuAppMaterialQueueRouteReportShell;
-}): WebGpuAppMaterialQueueRouteReportDiagnostic {
-  writeWebGpuAppMaterialQueueRouteReportShell(
-    {
-      queueItems: input.queueItems.map(materialQueueItemToRouteQueueItem),
-      routedItems: input.routedItems.map(
-        queuedMaterialAppResourceItemToRouteRoutedItem,
-      ),
-      diagnostics: input.diagnostics.flatMap(unknownToRouteDiagnostic),
-    },
-    input.shell,
-  );
-
-  return {
-    code: "webGpuApp.materialQueueRouteReport",
-    message: "WebGPU app material queue routing failed.",
-    report: webGpuAppMaterialQueueRouteReportShellToJsonValue(input.shell),
-  };
-}
-
-function materialQueueItemToRouteQueueItem(
-  item: MaterialQueueItem,
-): WebGpuAppMaterialQueueRouteQueueItem {
-  return {
-    renderId: item.renderId,
-    drawIndex: item.drawIndex,
-    materialFamily: item.materialFamily,
-    renderPhase: item.renderPhase,
-    entity: item.entity,
-  };
-}
+const createWebGpuAppMaterialQueueRouteReportDiagnostic =
+  createQueuedMaterialAppRouteReportDiagnostic;
 
 function queuedPrepareRouteDiagnosticToAppDiagnostic(
   diagnostic: unknown,
@@ -432,102 +331,10 @@ function queuedPrepareRouteDiagnosticToAppDiagnostic(
   return diagnostic;
 }
 
-function unknownToRouteDiagnostic(
-  diagnostic: unknown,
-): WebGpuAppMaterialQueueRouteDiagnostic[] {
-  if (typeof diagnostic !== "object" || diagnostic === null) {
-    return [];
-  }
-
-  const candidate = diagnostic as {
-    readonly code?: unknown;
-    readonly message?: unknown;
-    readonly severity?: unknown;
-    readonly renderId?: unknown;
-    readonly drawIndex?: unknown;
-    readonly materialFamily?: unknown;
-    readonly materialKind?: unknown;
-    readonly renderPhase?: unknown;
-    readonly blendPreset?: unknown;
-    readonly entity?: unknown;
-  };
-
-  if (typeof candidate.code !== "string") {
-    return [];
-  }
-
-  return [
-    {
-      code: candidate.code,
-      message: typeof candidate.message === "string" ? candidate.message : "",
-      ...optionalRouteSeverity(candidate.severity),
-      ...optionalNumber("renderId", candidate.renderId),
-      ...optionalNumber("drawIndex", candidate.drawIndex),
-      ...optionalString("materialFamily", candidate.materialFamily),
-      ...optionalString("materialKind", candidate.materialKind),
-      ...optionalString("renderPhase", candidate.renderPhase),
-      ...optionalBlendPreset(candidate.blendPreset),
-      ...optionalRouteEntity(candidate.entity),
-    },
-  ];
-}
-
-function optionalRouteSeverity(value: unknown): {
-  readonly severity?: WebGpuAppMaterialQueueRouteDiagnosticSeverity;
-} {
-  return value === "info" || value === "warning" || value === "error"
-    ? { severity: value }
-    : {};
-}
-
-function optionalNumber<Key extends "renderId" | "drawIndex">(
-  key: Key,
-  value: unknown,
-): { readonly [Property in Key]?: number } {
-  return typeof value === "number" && Number.isFinite(value)
-    ? ({ [key]: value } as { readonly [Property in Key]?: number })
-    : {};
-}
-
 function optionalString<
   Key extends "materialFamily" | "materialKind" | "renderPhase",
 >(key: Key, value: unknown): { readonly [Property in Key]?: string } {
   return typeof value === "string"
     ? ({ [key]: value } as { readonly [Property in Key]?: string })
-    : {};
-}
-
-function optionalBlendPreset(value: unknown): {
-  readonly blendPreset?: string | null;
-} {
-  return typeof value === "string" || value === null
-    ? { blendPreset: value }
-    : {};
-}
-
-function optionalRouteEntity(value: unknown): {
-  readonly entity?: NonNullable<
-    WebGpuAppMaterialQueueRouteDiagnostic["entity"]
-  >;
-} {
-  if (typeof value !== "object" || value === null) {
-    return {};
-  }
-
-  const entity = value as {
-    readonly index?: unknown;
-    readonly generation?: unknown;
-  };
-
-  return typeof entity.index === "number" &&
-    Number.isFinite(entity.index) &&
-    typeof entity.generation === "number" &&
-    Number.isFinite(entity.generation)
-    ? {
-        entity: {
-          index: entity.index,
-          generation: entity.generation,
-        },
-      }
     : {};
 }

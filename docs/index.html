@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-18 09:44 PDT</dd>
+            <dd>2026-05-18 10:48 PDT</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -484,12 +484,36 @@
               diagnostics surfaces before another collector cleanup. That audit
               recommends a small generic app material queue route report
               diagnostic builder slice rather than a broad collector rewrite.
+              That builder is now implemented over generic queue and routed app
+              resource items, and the built-in collector delegates route-report
+              diagnostic assembly to it while keeping built-in compatibility
+              diagnostics local. The generic unknown-diagnostic normalizer is
+              now also exported from the route-report module, so future
+              non-built-in route collectors can reuse the same JSON-safe
+              diagnostic allowlist without inheriting built-in app-family
+              policy. The next route plan selected a focused audit of the
+              remaining built-in collector responsibilities before any further
+              collector extraction. That audit selected queued source asset
+              indexing as the next narrow generic helper to extract. Source
+              asset indexing now lives in a reusable queued route helper, while
+              the built-in collector keeps adapter policy, route traversal, and
+              compatibility diagnostics. Further broad collector extraction is
+              paused; the next task is a StandardMaterial/glTF fidelity gap
+              audit to choose one browser-verifiable implementation slice. That
+              audit selected occlusion texture strength browser coverage as the
+              next focused fidelity task. That fixture now verifies a
+              non-default occlusion strength against the existing full-strength
+              control with WebGPU readback. The next follow-up added glTF-shaped
+              normal texture scale mapping coverage, surfacing a non-default
+              <code>normalTexture.scale</code> value through JSON-safe browser
+              status with tangent-layout, readiness, resource, and pipeline
+              assertions; a separate focused task will make the normal-scale
+              visual readback delta deterministic. The follow-up audit selected
+              a Standard texture control-style scalar-vs-normal comparison
+              inside the glTF fixture as the next implementation slice.
             </dd>
             <dt>Next focus</dt>
-            <dd>
-              Plan the next collector genericization slice after route surface
-              audit
-            </dd>
+            <dd>Implement deterministic visual normal-scale browser proof</dd>
           </dl>
         </aside>
       </header>
@@ -567,19 +591,20 @@
               and extraction-level texture semantic/color-space details now
               covered. Controlled browser texture verification now covers
               base-color, base-color UV1, base-color linear and repeat samplers,
-              metallic-roughness, normal-map, occlusion, and emissive positive
-              paths, combined base-color plus metallic-roughness browser
-              rendering, plus missing/loading/failed base-color states, normal
-              missing-tangent diagnostics, authored and GLB-derived base-color
-              transform diagnostics, a minimal GLB-derived base-color texture
-              fixture, GLB sampler mapping status, and GLB-derived
-              metallic-roughness, normal, occlusion, emissive, and base-color
-              UV1 fixtures plus alpha-mask double-sided render-state
-              diagnostics, alpha-mask pixels, backface no-cull pixels,
-              alpha-blend render-state and translucent pixel browser coverage,
-              alpha-blend double-sided no-cull browser coverage, and GLB delayed
-              dependency diagnostics; base-color texture-transform rotation,
-              metallic-roughness texture transforms on
+              metallic-roughness, normal-map, normal scale, occlusion, and
+              emissive positive paths, occlusion strength, combined base-color
+              plus metallic-roughness browser rendering, plus
+              missing/loading/failed base-color states, normal missing-tangent
+              diagnostics, authored and GLB-derived base-color transform
+              diagnostics, a minimal GLB-derived base-color texture fixture, GLB
+              sampler mapping status, and GLB-derived metallic-roughness,
+              normal, occlusion, emissive, and base-color UV1 fixtures plus
+              alpha-mask double-sided render-state diagnostics, alpha-mask
+              pixels, backface no-cull pixels, alpha-blend render-state and
+              translucent pixel browser coverage, alpha-blend double-sided
+              no-cull browser coverage, and GLB delayed dependency diagnostics;
+              base-color texture-transform rotation, metallic-roughness texture
+              transforms on
               <code>TEXCOORD_0</code>, metallic-roughness transformed sampling
               on <code>TEXCOORD_1</code>, combined base-color plus
               metallic-roughness texture routing, normal texture transforms on
@@ -861,11 +886,16 @@
               migration, and the derived app resource-set contract is now
               generic while the built-in collector remains the compatibility
               wrapper. The built-in app resource item is also a typed
-              specialization of the generic route item contract. Combined
-              base-color plus alpha-mask plus emissive browser coverage now
-              verifies two glTF texture/sampler mappings, alpha-mask
-              render-state, prepared texture/sampler counts, and the combined
-              StandardMaterial pipeline key.
+              specialization of the generic route item contract, and the
+              route-report diagnostic builder now serializes generic queue and
+              routed app resource items before the built-in collector wraps the
+              result in its compatibility failure path. The route-report module
+              now also normalizes unknown diagnostics through the same JSON-safe
+              allowlist, leaving built-in app-family policy in the built-in
+              collector. Combined base-color plus alpha-mask plus emissive
+              browser coverage now verifies two glTF texture/sampler mappings,
+              alpha-mask render-state, prepared texture/sampler counts, and the
+              combined StandardMaterial pipeline key.
             </p>
             <ul>
               <li>
@@ -977,35 +1007,68 @@
             <h3>Latest work in this update</h3>
             <ul>
               <li>
-                <span class="badge green">task-1479</span> Audited remaining
-                built-in-specific app route collector diagnostics surfaces.
+                <span class="badge green">task-1528</span> Audited visual
+                normal-scale proof options and selected a scalar-vs-normal glTF
+                fixture comparison.
               </li>
               <li>
-                <span class="badge green">task-1478</span> Audited the selected
-                collector diagnostics surface follow-up plan.
+                <span class="badge green">task-1527</span> Added
+                StandardMaterial/glTF normal texture scale browser mapping
+                coverage.
               </li>
               <li>
-                <span class="badge green">task-1477</span> Selected the
-                remaining built-in-specific app route collector diagnostics
-                surface audit as the next follow-up.
+                <span class="badge green">task-1523</span> Audited the selected
+                normal-scale browser coverage plan.
               </li>
               <li>
-                <span class="badge green">task-1476</span> Audited tracker and
-                backlog alignment after the generic routed-item report helper.
+                <span class="badge green">task-1522</span> Planned the next
+                StandardMaterial/glTF fidelity follow-up after occlusion
+                strength.
               </li>
               <li>
-                <span class="badge green">task-1475</span> Audited generic app
-                route report routed-item serialization.
+                <span class="badge green">task-1521</span> Aligned tracker and
+                backlog after occlusion strength browser coverage.
               </li>
               <li>
-                <span class="badge green">task-1474</span> Generalized app route
-                report routed-item serialization around generic queued material
-                app resource items.
+                <span class="badge green">task-1520</span> Audited
+                StandardMaterial/glTF occlusion strength browser coverage.
               </li>
               <li>
-                <span class="badge green">task-1473</span> Selected generic app
-                route report routed-item serialization as the next focused route
-                architecture slice.
+                <span class="badge green">task-1519</span> Added
+                StandardMaterial/glTF occlusion texture strength browser
+                coverage with readback comparison.
+              </li>
+              <li>
+                <span class="badge green">task-1515</span> Aligned tracker and
+                backlog after the StandardMaterial/glTF fidelity gap audit.
+              </li>
+              <li>
+                <span class="badge green">task-1514</span> Audited remaining
+                StandardMaterial/glTF fidelity gaps and selected occlusion
+                strength browser coverage.
+              </li>
+              <li>
+                <span class="badge green">task-1511</span> Aligned tracker and
+                backlog after selecting the StandardMaterial/glTF fidelity gap
+                audit.
+              </li>
+              <li>
+                <span class="badge green">task-1510</span> Audited the selected
+                StandardMaterial/glTF fidelity gap audit plan.
+              </li>
+              <li>
+                <span class="badge green">task-1509</span> Selected the
+                StandardMaterial/glTF fidelity gap audit after source asset
+                helper extraction.
+              </li>
+              <li>
+                <span class="badge green">task-1508</span> Aligned tracker and
+                backlog after queued source asset index helper extraction.
+              </li>
+              <li>
+                <span class="badge green">task-1495</span> Aligned tracker and
+                backlog after the generic route diagnostic normalizer
+                extraction.
               </li>
               <li>
                 <span class="badge green">task-1472</span> Audited tracker and

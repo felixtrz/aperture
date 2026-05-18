@@ -86,6 +86,7 @@ interface StandardGltfTextureStatus extends ExampleStatusBase {
       readonly y: number;
       readonly z: number;
     } | null;
+    readonly expectedNormalScale?: number | null;
     readonly expectedOcclusion?: {
       readonly red: number;
       readonly strength: number;
@@ -826,6 +827,7 @@ test("standard glTF texture fixture renders combined base-color metallic-roughne
         y: expect.any(Number),
         z: expect.any(Number),
       },
+      expectedNormalScale: 2,
     },
     pipelineKey:
       "standard|baseColorTexture|metallicRoughnessTexture|normalTexture|opaque|back|less|none",
@@ -1933,6 +1935,107 @@ test("standard glTF texture fixture renders a mapped normal texture", async ({
   webGpuValidation.expectNoWarnings();
 });
 
+test("standard glTF texture fixture applies normal texture scale", async ({
+  page,
+}) => {
+  const webGpuValidation = attachWebGpuValidationConsoleGuard(page);
+
+  await page.goto("/examples/standard-gltf-texture.html?scenario=normal-map");
+  const controlStatus =
+    await waitForExampleStatus<StandardGltfTextureStatus>(page);
+
+  await attachExampleStatus(
+    "standard-gltf-texture-normal-scale-control-status",
+    controlStatus,
+  );
+  expect(controlStatus).toBeDefined();
+
+  if (controlStatus === undefined) {
+    return;
+  }
+
+  skipIfUnsupportedWebGpu(controlStatus);
+  expectStatusJsonSafeForGpu(controlStatus);
+  expect(controlStatus.standardTexture?.expectedNormalScale).toBe(2);
+
+  await page.goto(
+    "/examples/standard-gltf-texture.html?scenario=normal-map-scale",
+  );
+  const status = await waitForExampleStatus<StandardGltfTextureStatus>(page);
+
+  await attachExampleStatus(
+    "standard-gltf-texture-normal-scale-status",
+    status,
+  );
+  expect(status, "standard glTF normal scale status missing").toBeDefined();
+
+  if (status === undefined) {
+    return;
+  }
+
+  skipIfUnsupportedWebGpu(status);
+  expectStatusJsonSafeForGpu(status);
+  expectRenderedGltfTextureStatus(status, {
+    scenario: "normal-map-scale",
+    materialModel: "gltf-standard-normal-scale",
+    textureSlot: "normalTexture",
+    textureKey: "texture:gltf:texture:0:normalTexture",
+    samplerKey: "sampler:gltf:sampler:0:normalTexture",
+    pipelineKey: "standard|normalTexture|opaque|back|less|none",
+    meshLayoutKey: "POSITION,NORMAL,TEXCOORD_0,TANGENT",
+  });
+  expect(status, JSON.stringify(status, null, 2)).toMatchObject({
+    example: "standard-gltf-texture",
+    scenario: "normal-map-scale",
+    materialModel: "gltf-standard-normal-scale",
+    ok: true,
+    phase: "rendered",
+    standardTexture: {
+      textureKey: "texture:gltf:texture:0:normalTexture",
+      samplerKey: "sampler:gltf:sampler:0:normalTexture",
+      textureSlot: "normalTexture",
+      expectedNormalMap: {
+        x: expect.any(Number),
+        y: expect.any(Number),
+        z: expect.any(Number),
+      },
+      expectedNormalScale: 0.25,
+      readiness: {
+        ready: true,
+        diagnostics: [],
+      },
+    },
+    resources: {
+      textureResourcesCreated: 1,
+      samplerResourcesCreated: 1,
+      materialBuffersCreated: 1,
+    },
+    draw: { packages: 1, drawCalls: 1 },
+  });
+
+  if (status.standardTexture === undefined) {
+    throw new Error("standard glTF normal scale status is missing");
+  }
+
+  const screenshot = await page.locator("#aperture-canvas").screenshot();
+  const texturedSample = readPngPixel(
+    screenshot,
+    status.standardTexture.sample.x,
+    status.standardTexture.sample.y,
+  );
+  const clear = rgbaColorToPixel({
+    r: status.clearColor?.r ?? 0,
+    g: status.clearColor?.g ?? 0,
+    b: status.clearColor?.b ?? 0,
+    a: status.clearColor?.a ?? 1,
+  });
+
+  expect(pixelDistance(texturedSample, clear)).toBeGreaterThan(30);
+
+  expect(status.diagnosticCodes ?? []).toEqual([]);
+  webGpuValidation.expectNoWarnings();
+});
+
 test("standard glTF texture fixture renders a transformed normal texture", async ({
   page,
 }) => {
@@ -2103,6 +2206,130 @@ test("standard glTF texture fixture renders a mapped occlusion texture", async (
           2,
         )}`,
       ).toBeGreaterThan(10);
+    }
+  }
+
+  expect(status.diagnosticCodes ?? []).toEqual([]);
+  webGpuValidation.expectNoWarnings();
+});
+
+test("standard glTF texture fixture applies occlusion texture strength", async ({
+  page,
+}) => {
+  const webGpuValidation = attachWebGpuValidationConsoleGuard(page);
+
+  await page.goto("/examples/standard-gltf-texture.html?scenario=occlusion");
+  const controlStatus =
+    await waitForExampleStatus<StandardGltfTextureStatus>(page);
+
+  await attachExampleStatus(
+    "standard-gltf-texture-occlusion-strength-control-status",
+    controlStatus,
+  );
+  expect(controlStatus).toBeDefined();
+
+  if (controlStatus === undefined) {
+    return;
+  }
+
+  skipIfUnsupportedWebGpu(controlStatus);
+  expectStatusJsonSafeForGpu(controlStatus);
+
+  await page.goto(
+    "/examples/standard-gltf-texture.html?scenario=occlusion-strength",
+  );
+  const status = await waitForExampleStatus<StandardGltfTextureStatus>(page);
+
+  await attachExampleStatus(
+    "standard-gltf-texture-occlusion-strength-status",
+    status,
+  );
+  expect(
+    status,
+    "standard glTF occlusion strength status missing",
+  ).toBeDefined();
+
+  if (status === undefined) {
+    return;
+  }
+
+  skipIfUnsupportedWebGpu(status);
+  expectStatusJsonSafeForGpu(status);
+  expectRenderedGltfTextureStatus(status, {
+    scenario: "occlusion-strength",
+    materialModel: "gltf-standard-occlusion-strength",
+    textureSlot: "occlusionTexture",
+    textureKey: "texture:gltf:texture:0:occlusionTexture",
+    samplerKey: "sampler:gltf:sampler:0:occlusionTexture",
+    pipelineKey: "standard|occlusionTexture|opaque|back|less|none",
+  });
+  expect(status, JSON.stringify(status, null, 2)).toMatchObject({
+    example: "standard-gltf-texture",
+    scenario: "occlusion-strength",
+    materialModel: "gltf-standard-occlusion-strength",
+    ok: true,
+    phase: "rendered",
+    standardTexture: {
+      textureKey: "texture:gltf:texture:0:occlusionTexture",
+      samplerKey: "sampler:gltf:sampler:0:occlusionTexture",
+      textureSlot: "occlusionTexture",
+      expectedOcclusion: {
+        red: expect.any(Number),
+        strength: 0.25,
+      },
+    },
+    resources: {
+      textureResourcesCreated: 1,
+      samplerResourcesCreated: 1,
+      materialBuffersCreated: 1,
+    },
+    draw: { packages: 1, drawCalls: 1 },
+  });
+
+  if (status.standardTexture === undefined) {
+    throw new Error("standard glTF occlusion strength status is missing");
+  }
+
+  expect(status.standardTexture.expectedOcclusion).toMatchObject({
+    red: expect.any(Number),
+    strength: 0.25,
+  });
+
+  const screenshot = await page.locator("#aperture-canvas").screenshot();
+  const texturedSample = readPngPixel(
+    screenshot,
+    status.standardTexture.sample.x,
+    status.standardTexture.sample.y,
+  );
+  const clear = rgbaColorToPixel({
+    r: status.clearColor?.r ?? 0,
+    g: status.clearColor?.g ?? 0,
+    b: status.clearColor?.b ?? 0,
+    a: status.clearColor?.a ?? 1,
+  });
+
+  expect(pixelDistance(texturedSample, clear)).toBeGreaterThan(10);
+
+  if (controlStatus.readback?.ok && status.readback?.ok) {
+    const controlReadback = controlStatus.readback.samples.find(
+      (sample) => sample.id === "textured",
+    );
+    const strengthReadback = status.readback.samples.find(
+      (sample) => sample.id === "textured",
+    );
+
+    expect(controlReadback).toBeDefined();
+    expect(strengthReadback).toBeDefined();
+
+    if (controlReadback !== undefined && strengthReadback !== undefined) {
+      expect(
+        pixelDistance(controlReadback.pixel, strengthReadback.pixel),
+        `glTF occlusion strength should change readback output; control=${JSON.stringify(
+          controlStatus,
+          null,
+          2,
+        )}; strength=${JSON.stringify(status, null, 2)}`,
+      ).toBeGreaterThan(2);
     }
   }
 

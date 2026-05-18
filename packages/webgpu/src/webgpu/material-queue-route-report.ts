@@ -232,6 +232,46 @@ export function webGpuAppMaterialQueueRouteReportToJson(
   return JSON.stringify(webGpuAppMaterialQueueRouteReportToJsonValue(report));
 }
 
+export function unknownToWebGpuAppMaterialQueueRouteDiagnostics(
+  diagnostic: unknown,
+): WebGpuAppMaterialQueueRouteDiagnostic[] {
+  if (typeof diagnostic !== "object" || diagnostic === null) {
+    return [];
+  }
+
+  const candidate = diagnostic as {
+    readonly code?: unknown;
+    readonly message?: unknown;
+    readonly severity?: unknown;
+    readonly renderId?: unknown;
+    readonly drawIndex?: unknown;
+    readonly materialFamily?: unknown;
+    readonly materialKind?: unknown;
+    readonly renderPhase?: unknown;
+    readonly blendPreset?: unknown;
+    readonly entity?: unknown;
+  };
+
+  if (typeof candidate.code !== "string") {
+    return [];
+  }
+
+  return [
+    {
+      code: candidate.code,
+      message: typeof candidate.message === "string" ? candidate.message : "",
+      ...optionalUnknownSeverity(candidate.severity),
+      ...optionalUnknownNumber("renderId", candidate.renderId),
+      ...optionalUnknownNumber("drawIndex", candidate.drawIndex),
+      ...optionalUnknownString("materialFamily", candidate.materialFamily),
+      ...optionalUnknownString("materialKind", candidate.materialKind),
+      ...optionalUnknownString("renderPhase", candidate.renderPhase),
+      ...optionalUnknownBlendPreset(candidate.blendPreset),
+      ...optionalUnknownEntity(candidate.entity),
+    },
+  ];
+}
+
 function routeItemKey(input: {
   readonly renderId: number;
   readonly drawIndex: number;
@@ -347,6 +387,66 @@ function optionalEntity(
     : {
         entity: { ...value },
       };
+}
+
+function optionalUnknownSeverity(value: unknown): {
+  readonly severity?: WebGpuAppMaterialQueueRouteDiagnosticSeverity;
+} {
+  return value === "info" || value === "warning" || value === "error"
+    ? { severity: value }
+    : {};
+}
+
+function optionalUnknownNumber<Key extends "renderId" | "drawIndex">(
+  key: Key,
+  value: unknown,
+): { readonly [Property in Key]?: number } {
+  return typeof value === "number" && Number.isFinite(value)
+    ? ({ [key]: value } as { readonly [Property in Key]?: number })
+    : {};
+}
+
+function optionalUnknownString<
+  Key extends "materialFamily" | "materialKind" | "renderPhase",
+>(key: Key, value: unknown): { readonly [Property in Key]?: string } {
+  return typeof value === "string"
+    ? ({ [key]: value } as { readonly [Property in Key]?: string })
+    : {};
+}
+
+function optionalUnknownBlendPreset(value: unknown): {
+  readonly blendPreset?: string | null;
+} {
+  return typeof value === "string" || value === null
+    ? { blendPreset: value }
+    : {};
+}
+
+function optionalUnknownEntity(value: unknown): {
+  readonly entity?: NonNullable<
+    WebGpuAppMaterialQueueRouteDiagnostic["entity"]
+  >;
+} {
+  if (typeof value !== "object" || value === null) {
+    return {};
+  }
+
+  const entity = value as {
+    readonly index?: unknown;
+    readonly generation?: unknown;
+  };
+
+  return typeof entity.index === "number" &&
+    Number.isFinite(entity.index) &&
+    typeof entity.generation === "number" &&
+    Number.isFinite(entity.generation)
+    ? {
+        entity: {
+          index: entity.index,
+          generation: entity.generation,
+        },
+      }
+    : {};
 }
 
 function resetDiagnosticSummary(

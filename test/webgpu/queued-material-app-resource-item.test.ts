@@ -6,9 +6,12 @@ import {
   type MeshDrawPacket,
 } from "@aperture-engine/core";
 import {
+  createQueuedMaterialAppRouteReportDiagnostic,
   createQueuedMaterialAdapterRegistry,
   createQueuedMaterialAppResourceItem,
+  createWebGpuAppMaterialQueueRouteReportShell,
   createQueuedMaterialFrameResourceSetSummary,
+  materialQueueItemToRouteQueueItem,
   queuedMaterialAppResourceItemToRouteRoutedItem,
   type QueuedMaterialAdapterRegistration,
   type QueuedMaterialAppResourceSet,
@@ -254,6 +257,130 @@ describe("queued material app resource item", () => {
     });
     expect(JSON.stringify(routedItem)).not.toMatch(
       /GPUDevice|GPUBuffer|GPUTexture|bindGroup|rawGpuHandle|reportPreviewResourceSet/,
+    );
+  });
+
+  it("builds a generic route report diagnostic without built-in fields or GPU handles", () => {
+    const adapter = { kind: "report-builder-preview" as const };
+    const queueItem = {
+      ...customQueueItem(),
+      renderId: 31,
+      drawIndex: 0,
+      materialFamily:
+        "report-builder-preview" as MaterialQueueItem["materialFamily"],
+      pipelineKey: "report-builder-preview|opaque",
+      sortKey: {
+        ...customQueueItem().sortKey,
+        pipelineKey: "report-builder-preview|opaque",
+      },
+    };
+    const skippedQueueItem = {
+      ...customQueueItem(),
+      renderId: 32,
+      drawIndex: 1,
+      materialFamily:
+        "report-builder-preview" as MaterialQueueItem["materialFamily"],
+      pipelineKey: "report-builder-preview|transparent",
+      renderPhase: "transparent" as const,
+      sortKey: {
+        ...customQueueItem().sortKey,
+        pipelineKey: "report-builder-preview|transparent",
+        renderPhase: "transparent" as const,
+        drawIndex: 1,
+        stableId: 32,
+      },
+    };
+    const item = createQueuedMaterialAppResourceItem({
+      queueItem,
+      prepareRoute: {
+        valid: true,
+        status: "prepared",
+        family: "report-builder-preview",
+        materialKey: "material:report-builder",
+        meshResourceKey: "mesh:report-builder@1",
+        materialResourceKey: "material:report-builder@1",
+        pipelineKey: "report-builder-preview|opaque",
+        sourceVersion: 1,
+        frame: 11,
+        diagnostics: [],
+      },
+      adapter,
+      draw: customDrawPacket(),
+      mesh: createBoxMeshAsset({ label: "Report builder mesh" }),
+      meshKey: "mesh:report-builder@1",
+      sourceMeshKey: "mesh:report-builder",
+      material: {
+        kind: "report-builder-preview",
+        label: "Report builder material",
+        rawGpuHandle: "must-not-leak",
+      },
+      materialKey: "material:report-builder@1",
+      sourceMaterialKey: "material:report-builder",
+    });
+
+    const diagnostic = createQueuedMaterialAppRouteReportDiagnostic({
+      queueItems: [queueItem, skippedQueueItem],
+      routedItems: [item],
+      diagnostics: [
+        {
+          code: "webGpuApp.reportBuilderPreviewSkipped",
+          message: "Skipped one test-only preview item.",
+          severity: "warning",
+          renderId: 32,
+          drawIndex: 1,
+          materialFamily: "report-builder-preview",
+          renderPhase: "transparent",
+        },
+      ],
+      shell: createWebGpuAppMaterialQueueRouteReportShell(),
+    });
+
+    expect(materialQueueItemToRouteQueueItem(skippedQueueItem)).toEqual({
+      renderId: 32,
+      drawIndex: 1,
+      materialFamily: "report-builder-preview",
+      renderPhase: "transparent",
+      entity: { index: 1, generation: 1 },
+    });
+    expect(diagnostic).toMatchObject({
+      code: "webGpuApp.materialQueueRouteReport",
+      message: "WebGPU app material queue routing failed.",
+      report: {
+        valid: false,
+        queueItemCount: 2,
+        routedItemCount: 1,
+        skippedItemCount: 1,
+        byFamily: [
+          {
+            key: "report-builder-preview",
+            queuedCount: 2,
+            routedCount: 1,
+            skippedCount: 1,
+          },
+        ],
+        byPhase: [
+          {
+            key: "opaque",
+            queuedCount: 1,
+            routedCount: 1,
+            skippedCount: 0,
+          },
+          {
+            key: "transparent",
+            queuedCount: 1,
+            routedCount: 0,
+            skippedCount: 1,
+          },
+        ],
+        diagnosticSummary: {
+          total: 1,
+          bySeverity: { info: 0, warning: 1, error: 0 },
+          byCode: { "webGpuApp.reportBuilderPreviewSkipped": 1 },
+        },
+      },
+    });
+    expect(JSON.stringify(diagnostic)).not.toMatch(
+      /GPUDevice|GPUBuffer|GPUTexture|bindGroup|rawGpuHandle|reportBuilderPreviewResourceSet/,
     );
   });
 });

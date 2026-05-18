@@ -15647,3 +15647,214 @@ Validation:
 - `pnpm test`
 - `pnpm run lint`
 - `git diff --check`
+
+## task-1473 through task-1487 — Generic route report diagnostics and collector planning
+
+Completed: 2026-05-18
+
+Summary:
+
+- Planned, implemented, and audited generic app route report routed-item
+  serialization around `QueuedMaterialAppResourceItem`.
+- Audited remaining built-in-specific app route collector diagnostics surfaces.
+- Planned and audited the generic app route report diagnostic builder
+  extraction.
+- Extracted `createQueuedMaterialAppRouteReportDiagnostic()` and
+  `materialQueueItemToRouteQueueItem()` so route-report diagnostic assembly
+  works over generic queued material app resource items.
+- Routed `collectQueuedBuiltInAppResourceSet()` through the generic builder
+  while preserving built-in compatibility diagnostic translation.
+- Added a test-only non-built-in material family fixture proving route-report
+  diagnostics stay JSON-safe without source assets, adapters, app objects, or
+  raw GPU handles.
+- Updated public tracker pages and refilled the backlog with `task-1488` as the
+  recommended next planning task.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/queued-material-app-resource-item.test.ts test/webgpu/queued-built-in-app-resource-set.test.ts`
+- `pnpm run typecheck:test`
+
+## task-1488 through task-1495 — Generic route diagnostic normalization
+
+Completed: 2026-05-18
+
+Summary:
+
+- Planned and audited the next route architecture follow-up after the generic
+  route-report diagnostic builder extraction.
+- Selected the generic unknown-to-route-diagnostic normalizer extraction over
+  another StandardMaterial/glTF browser fixture or tracker-only document.
+- Added `unknownToWebGpuAppMaterialQueueRouteDiagnostics()` in the material
+  queue route report module.
+- Routed `collectQueuedBuiltInAppResourceSet()` through the generic normalizer
+  after its built-in compatibility diagnostic translation.
+- Added targeted diagnostics coverage for skipped non-object diagnostics,
+  preserved JSON-safe fields, omitted invalid optional fields, and excluded raw
+  GPU/source-shaped fields.
+- Audited the extraction, updated public tracker pages, and refilled the
+  backlog with `task-1496` as the recommended next planning task.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/material-queue-route-report-diagnostics.test.ts test/webgpu/queued-built-in-app-resource-set.test.ts test/webgpu/queued-material-app-resource-item.test.ts`
+- `pnpm run typecheck:test`
+
+## task-1496 through task-1498 — Remaining collector responsibility planning
+
+Completed: 2026-05-18
+
+Summary:
+
+- Planned and audited the next route architecture follow-up after generic route
+  diagnostic normalizer extraction.
+- Selected a focused audit of remaining built-in collector responsibilities
+  rather than another immediate code extraction or StandardMaterial/glTF
+  fixture.
+- Updated tracker/backlog alignment so the next run starts with `task-1501`.
+
+Validation:
+
+- Documentation-only planning/audit work; covered by touched-file formatting and
+  progress checks.
+
+## task-1501 through task-1502 — Remaining collector responsibility audit
+
+Completed: 2026-05-18
+
+Summary:
+
+- Audited remaining built-in collector responsibilities after route diagnostic
+  helper extraction.
+- Classified built-in compatibility policy, generic extraction candidates, and
+  deferred app-level non-built-in rendering work.
+- Selected queued source asset indexing as the next narrow generic helper
+  extraction.
+- Updated tracker/backlog alignment so the next ready task is `task-1506`.
+
+Validation:
+
+- Documentation-only audit/alignment work; covered by touched-file formatting
+  and progress checks.
+
+## task-1506 through task-1508 — Queued source asset index helper extraction
+
+Completed: 2026-05-18
+
+Summary:
+
+- Extracted generic queued source mesh/material asset indexing into
+  `queued-source-assets.ts`.
+- Routed the built-in app resource-set collector through the reusable helper
+  while keeping adapter policy, route traversal, and compatibility diagnostics
+  local.
+- Added focused tests for ready source asset indexing, duplicate draw reuse,
+  versioned resource keys, stale output clearing, and skipping missing/loading/
+  failed source assets.
+- Audited the extraction and updated tracker/backlog alignment with `task-1509`
+  as the recommended next planning task.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/queued-source-assets.test.ts test/webgpu/queued-built-in-app-resource-set.test.ts`
+- `pnpm run typecheck:test`
+
+## task-1509 through task-1511 — StandardMaterial fidelity audit planning
+
+Completed: 2026-05-18
+
+Summary:
+
+- Planned the next follow-up after queued source asset index helper extraction.
+- Paused further broad collector genericization and selected a
+  StandardMaterial/glTF fidelity gap audit.
+- Audited the selected plan and updated tracker/backlog alignment so the next
+  ready task is `task-1514`.
+
+Validation:
+
+- Documentation-only planning/audit work; covered by touched-file formatting and
+  progress checks.
+
+## task-1514 through task-1515 — StandardMaterial fidelity gap audit
+
+Completed: 2026-05-18
+
+Summary:
+
+- Audited remaining StandardMaterial/glTF fidelity gaps after route helper
+  cleanup.
+- Compared occlusion strength, normal texture scale, and larger combined PBR
+  texture fixtures.
+- Selected occlusion texture strength browser coverage as the next focused
+  implementation.
+- Updated tracker/backlog alignment with `task-1519` as the recommended next
+  task.
+
+Validation:
+
+- Documentation-only audit/alignment work; covered by touched-file formatting
+  and progress checks.
+
+## task-1519 through task-1521 — StandardMaterial occlusion strength coverage
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added the `occlusion-strength` glTF-shaped StandardMaterial browser scenario.
+- Authored `occlusionTexture.strength` as `0.25` and surfaced that value through
+  the existing JSON-safe status.
+- Added Playwright coverage comparing the non-default-strength output against
+  the existing full-strength occlusion control with WebGPU readback.
+- Audited the fixture and updated tracker/backlog alignment with `task-1522` as
+  the recommended next planning task.
+
+Validation:
+
+- `node --check examples/standard-gltf-texture.js`
+- `pnpm run typecheck:test`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "occlusion texture strength"`
+
+## task-1522 through task-1527 — StandardMaterial normal scale mapping coverage
+
+Completed: 2026-05-18
+
+Summary:
+
+- Planned and audited the next StandardMaterial/glTF fidelity follow-up after
+  occlusion strength browser coverage.
+- Selected normal texture scale browser coverage over more route collector
+  cleanup or a larger combined PBR fixture.
+- Added a `normal-map-scale` glTF-shaped browser scenario with
+  `normalTexture.scale` mapped to `0.25`.
+- Surfaced `expectedNormalScale` through JSON-safe browser status and asserted
+  the normal texture binding, tangent mesh layout, readiness, resource counts,
+  and pipeline key.
+- Audited the result and recorded a focused follow-up because the current
+  single-plane normal-map lighting setup does not produce a deterministic
+  readback delta between full-scale and reduced-scale values.
+
+Validation:
+
+- `node --check examples/standard-gltf-texture.js`
+- `pnpm run typecheck:test`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "normal texture scale"`
+
+## task-1528 — StandardMaterial normal-scale visual proof options audit
+
+Completed: 2026-05-18
+
+Summary:
+
+- Audited three narrow options for making normal texture scale produce a
+  deterministic browser screenshot/readback delta.
+- Selected a Standard texture control-style scalar-vs-normal comparison inside
+  the glTF fixture over ad hoc light/texel tuning.
+- Kept the recommended implementation scoped to
+  `examples/standard-gltf-texture.js` and
+  `test/e2e/standard-gltf-texture.spec.ts`.
+
+Validation:
+
+- Documentation-only audit; covered by final formatting and progress checks.

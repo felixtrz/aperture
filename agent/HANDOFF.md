@@ -1,5 +1,166 @@
 # Handoff
 
+## Current Run Update — 2026-05-18T17:51:41Z
+
+Completed `task-1488` through `task-1528`. Recommended next task is
+`task-1528`: audit visual normal-scale proof options after browser mapping
+coverage.
+
+Highlights:
+
+- Extracted generic route diagnostic normalization and queued source asset
+  indexing helpers for material app route collectors.
+- Audited remaining built-in collector responsibilities and paused broader
+  collector cleanup in favor of StandardMaterial/glTF fidelity slices.
+- Added `occlusion-strength` browser coverage, proving
+  `occlusionTexture.strength: 0.25` changes WebGPU readback versus the
+  full-strength control.
+- Planned and audited normal texture scale coverage, then added the
+  `normal-map-scale` glTF-shaped browser scenario.
+- Surfaced `expectedNormalScale` through JSON-safe browser status and asserted
+  normal texture binding, readiness, tangent mesh layout, resource counts, and
+  pipeline key.
+- Audited a limitation found during validation: the current single-plane
+  normal-map lighting setup does not produce a deterministic visual/readback
+  delta between full-scale and reduced-scale normal values. The next task is a
+  focused audit for a deterministic visual proof, not a broad lighting rewrite.
+- Updated `docs/index.html`, `docs/render-pipeline-comparison.html`,
+  `agent/BACKLOG.md`, and `agent/COMPLETED.md` for the latest status.
+
+Reference anchors inspected:
+
+- `docs/NORTH_STAR.md`
+- `docs/MEDIUM_LONG_TERM_GOALS.md`
+- `docs/ARCHITECTURE.md`
+- `docs/DECISIONS.md`
+- `packages/render/src/materials/gltf-material.ts`
+- `packages/webgpu/src/webgpu/standard-shader.ts`
+- `packages/webgpu/src/webgpu/standard-material-buffer.ts`
+- `examples/standard-gltf-texture.js`
+- `examples/standard-texture-control.js`
+- `test/e2e/standard-gltf-texture.spec.ts`
+- `test/e2e/standard-texture-control.spec.ts`
+- `references/three.js/src/renderers/common/Bindings.js`
+- `references/engine/src/scene/materials/standard-material.js`
+
+Files touched:
+
+- `agent/BACKLOG.md`
+- `agent/COMPLETED.md`
+- `agent/HANDOFF.md`
+- `agent/STATUS.json`
+- `docs/index.html`
+- `docs/render-pipeline-comparison.html`
+- `docs/research/*2026_05_18.md`
+- `examples/standard-gltf-texture.js`
+- `packages/webgpu/src/webgpu/index.ts`
+- `packages/webgpu/src/webgpu/material-queue-route-report.ts`
+- `packages/webgpu/src/webgpu/queued-built-in-app-resource-set.ts`
+- `packages/webgpu/src/webgpu/queued-material-app-resource-item.ts`
+- `packages/webgpu/src/webgpu/queued-source-assets.ts`
+- `test/e2e/standard-gltf-texture.spec.ts`
+- `test/webgpu/material-queue-route-report-diagnostics.test.ts`
+- `test/webgpu/queued-material-app-resource-item.test.ts`
+- `test/webgpu/queued-source-assets.test.ts`
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/queued-material-app-resource-item.test.ts test/webgpu/queued-built-in-app-resource-set.test.ts`
+- `pnpm exec vitest run test/webgpu/material-queue-route-report-diagnostics.test.ts test/webgpu/queued-built-in-app-resource-set.test.ts test/webgpu/queued-material-app-resource-item.test.ts`
+- `pnpm exec vitest run test/webgpu/queued-source-assets.test.ts test/webgpu/queued-built-in-app-resource-set.test.ts`
+- `node --check examples/standard-gltf-texture.js`
+- `pnpm run typecheck:test`
+- `pnpm run check:progress`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "occlusion texture strength"`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "normal texture scale|occlusion texture strength"`
+- `pnpm run check`
+- `git diff --check`
+
+Known issues / follow-ups:
+
+- Start `task-1529`: implement the selected scalar-vs-normal glTF fixture proof for `normalTexture.scale` visual readback.
+- Real app-level non-built-in material adapter rendering, binary GLB loading,
+  IBL, shadows, instancing, batching, multi-material primitive rules, and broad
+  PBR completeness remain deferred.
+
+## Current Run Update — 2026-05-18T17:11:44Z
+
+Completed `task-1480` through `task-1487`. Recommended next task is
+`task-1488`: plan the next route or StandardMaterial follow-up after generic
+route-report diagnostic builder extraction.
+
+Highlights:
+
+- Planned and audited the next collector genericization slice after the
+  built-in app route collector diagnostics surface audit.
+- Selected the generic app route-report diagnostic builder extraction over
+  another StandardMaterial/glTF fidelity fixture or tracker-only task.
+- Added `createQueuedMaterialAppRouteReportDiagnostic()` and
+  `materialQueueItemToRouteQueueItem()` over generic queued material app
+  resource items.
+- Routed `collectQueuedBuiltInAppResourceSet()` through the generic builder
+  while keeping built-in missing-family and material-mismatch compatibility
+  diagnostics local.
+- Added a test-only non-built-in material family fixture proving the generic
+  route-report diagnostic stays JSON-safe and omits source assets, adapters, app
+  objects, and raw GPU handles.
+- Audited the extraction, updated the public tracker pages, and refilled the
+  backlog through `task-1492`.
+
+Reference anchors inspected:
+
+- `docs/NORTH_STAR.md`
+- `docs/MEDIUM_LONG_TERM_GOALS.md`
+- `docs/ARCHITECTURE.md`
+- `docs/DECISIONS.md`
+- `docs/research/BUILT_IN_APP_ROUTE_COLLECTOR_DIAGNOSTICS_SURFACE_AUDIT_2026_05_18.md`
+- `docs/research/GENERIC_APP_ROUTE_REPORT_ROUTED_ITEM_SERIALIZATION_AUDIT_2026_05_18.md`
+- `packages/webgpu/src/webgpu/material-queue-route-report.ts`
+- `packages/webgpu/src/webgpu/queued-material-app-resource-item.ts`
+- `packages/webgpu/src/webgpu/queued-built-in-app-resource-set.ts`
+- `references/three.js/src/renderers/common/Bindings.js`
+- `references/engine/src/scene/materials/standard-material.js`
+
+Files touched:
+
+- `agent/BACKLOG.md`
+- `agent/COMPLETED.md`
+- `agent/HANDOFF.md`
+- `agent/STATUS.json`
+- `docs/index.html`
+- `docs/render-pipeline-comparison.html`
+- `docs/research/NEXT_COLLECTOR_GENERICIZATION_AFTER_ROUTE_SURFACE_AUDIT_PLAN_2026_05_18.md`
+- `docs/research/GENERIC_APP_ROUTE_REPORT_DIAGNOSTIC_BUILDER_PLAN_AUDIT_2026_05_18.md`
+- `docs/research/TRACKER_BACKLOG_ALIGNMENT_AFTER_GENERIC_ROUTE_REPORT_DIAGNOSTIC_BUILDER_PLAN_AUDIT_2026_05_18.md`
+- `docs/research/NEXT_ROUTE_OR_STANDARD_AFTER_GENERIC_ROUTE_REPORT_DIAGNOSTIC_BUILDER_PLAN_2026_05_18.md`
+- `docs/research/GENERIC_ROUTE_REPORT_DIAGNOSTIC_BUILDER_FOLLOW_UP_PLAN_AUDIT_2026_05_18.md`
+- `docs/research/GENERIC_APP_ROUTE_REPORT_DIAGNOSTIC_BUILDER_EXTRACTION_AUDIT_2026_05_18.md`
+- `docs/research/TRACKER_BACKLOG_ALIGNMENT_AFTER_GENERIC_ROUTE_REPORT_DIAGNOSTIC_BUILDER_EXTRACTION_AUDIT_2026_05_18.md`
+- `packages/webgpu/src/webgpu/queued-material-app-resource-item.ts`
+- `packages/webgpu/src/webgpu/queued-built-in-app-resource-set.ts`
+- `test/webgpu/queued-material-app-resource-item.test.ts`
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/queued-material-app-resource-item.test.ts test/webgpu/queued-built-in-app-resource-set.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm run check:progress`
+- `pnpm exec prettier --check ...touched files...`
+- `pnpm run build`
+- `pnpm test`
+- `pnpm run lint`
+- `git diff --check`
+- `pnpm run check`
+
+Known issues / follow-ups:
+
+- Start `task-1488`: plan the next route architecture or StandardMaterial/glTF
+  fidelity follow-up after the generic route-report diagnostic builder
+  extraction.
+- Real app-level non-built-in material adapter rendering, binary GLB loading,
+  IBL, shadows, instancing, batching, multi-material primitive rules, and broad
+  PBR completeness remain deferred.
+
 ## Current Run Update — 2026-05-18T16:44:50Z
 
 Completed `task-1449` through `task-1479`. Recommended next task is

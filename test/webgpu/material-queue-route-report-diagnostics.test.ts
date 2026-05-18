@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   createWebGpuAppMaterialQueueRouteReport,
+  unknownToWebGpuAppMaterialQueueRouteDiagnostics,
   webGpuAppMaterialQueueRouteReportToJsonValue,
 } from "@aperture-engine/webgpu";
 
@@ -64,6 +65,69 @@ describe("WebGPU app material queue route report diagnostics", () => {
         "webGpuApp.materialQueueAssetMismatch": 1,
       },
     });
+  });
+
+  it("normalizes unknown route diagnostics through a JSON-safe allowlist", () => {
+    const diagnostics = unknownToWebGpuAppMaterialQueueRouteDiagnostics({
+      code: "webGpuApp.previewDiagnostic",
+      message: "Preview diagnostic.",
+      severity: "warning",
+      renderId: 9,
+      drawIndex: 2,
+      materialFamily: "preview",
+      materialKind: "preview-material",
+      renderPhase: "transparent",
+      blendPreset: "alpha",
+      entity: { index: 9, generation: 3 },
+      rawGpuHandle: "must-not-leak",
+      sourceAsset: { rawGpuHandle: "must-not-leak" },
+    });
+
+    expect(diagnostics).toEqual([
+      {
+        code: "webGpuApp.previewDiagnostic",
+        message: "Preview diagnostic.",
+        severity: "warning",
+        renderId: 9,
+        drawIndex: 2,
+        materialFamily: "preview",
+        materialKind: "preview-material",
+        renderPhase: "transparent",
+        blendPreset: "alpha",
+        entity: { index: 9, generation: 3 },
+      },
+    ]);
+    expect(JSON.stringify(diagnostics)).not.toMatch(
+      /rawGpuHandle|sourceAsset|GPUDevice|GPUBuffer|GPUTexture|bindGroup/,
+    );
+  });
+
+  it("skips non-object diagnostics and omits invalid optional fields", () => {
+    expect(unknownToWebGpuAppMaterialQueueRouteDiagnostics(null)).toEqual([]);
+    expect(unknownToWebGpuAppMaterialQueueRouteDiagnostics("missing")).toEqual(
+      [],
+    );
+    expect(unknownToWebGpuAppMaterialQueueRouteDiagnostics({})).toEqual([]);
+
+    expect(
+      unknownToWebGpuAppMaterialQueueRouteDiagnostics({
+        code: "webGpuApp.invalidOptionalFields",
+        message: 12,
+        severity: "debug",
+        renderId: Number.NaN,
+        drawIndex: Infinity,
+        materialFamily: 5,
+        materialKind: false,
+        renderPhase: null,
+        blendPreset: 8,
+        entity: { index: "bad", generation: 1 },
+      }),
+    ).toEqual([
+      {
+        code: "webGpuApp.invalidOptionalFields",
+        message: "",
+      },
+    ]);
   });
 });
 

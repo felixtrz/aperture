@@ -5,7 +5,15 @@ import type {
 } from "@aperture-engine/render";
 import type { QueuedMaterialAdapterRegistration } from "./queued-material-adapter.js";
 import type { QueuedMaterialPrepareRouteResult } from "./queued-material-prepare-route.js";
-import type { WebGpuAppMaterialQueueRouteRoutedItem } from "./material-queue-route-report.js";
+import {
+  webGpuAppMaterialQueueRouteReportShellToJsonValue,
+  writeWebGpuAppMaterialQueueRouteReportShell,
+  type WebGpuAppMaterialQueueRouteDiagnostic,
+  type WebGpuAppMaterialQueueRouteQueueItem,
+  type WebGpuAppMaterialQueueRouteReportJsonValue,
+  type WebGpuAppMaterialQueueRouteReportShell,
+  type WebGpuAppMaterialQueueRouteRoutedItem,
+} from "./material-queue-route-report.js";
 
 export interface QueuedMaterialAppResourceItem<
   TMaterial = unknown,
@@ -28,6 +36,12 @@ export interface QueuedMaterialAppResourceSet<
   TItem extends QueuedMaterialAppResourceItem = QueuedMaterialAppResourceItem,
 > {
   readonly items: readonly TItem[];
+}
+
+export interface QueuedMaterialAppRouteReportDiagnostic {
+  readonly code: "webGpuApp.materialQueueRouteReport";
+  readonly message: string;
+  readonly report: WebGpuAppMaterialQueueRouteReportJsonValue;
 }
 
 export interface CreateQueuedMaterialAppResourceItemOptions<
@@ -74,5 +88,41 @@ export function queuedMaterialAppResourceItemToRouteRoutedItem(
     drawIndex: item.queueItem.drawIndex,
     materialFamily: item.queueItem.materialFamily,
     renderPhase: item.queueItem.renderPhase,
+  };
+}
+
+export function materialQueueItemToRouteQueueItem(
+  item: MaterialQueueItem,
+): WebGpuAppMaterialQueueRouteQueueItem {
+  return {
+    renderId: item.renderId,
+    drawIndex: item.drawIndex,
+    materialFamily: item.materialFamily,
+    renderPhase: item.renderPhase,
+    entity: item.entity,
+  };
+}
+
+export function createQueuedMaterialAppRouteReportDiagnostic(input: {
+  readonly queueItems: readonly MaterialQueueItem[];
+  readonly routedItems: readonly QueuedMaterialAppResourceItem[];
+  readonly diagnostics: readonly WebGpuAppMaterialQueueRouteDiagnostic[];
+  readonly shell: WebGpuAppMaterialQueueRouteReportShell;
+}): QueuedMaterialAppRouteReportDiagnostic {
+  writeWebGpuAppMaterialQueueRouteReportShell(
+    {
+      queueItems: input.queueItems.map(materialQueueItemToRouteQueueItem),
+      routedItems: input.routedItems.map(
+        queuedMaterialAppResourceItemToRouteRoutedItem,
+      ),
+      diagnostics: input.diagnostics,
+    },
+    input.shell,
+  );
+
+  return {
+    code: "webGpuApp.materialQueueRouteReport",
+    message: "WebGPU app material queue routing failed.",
+    report: webGpuAppMaterialQueueRouteReportShellToJsonValue(input.shell),
   };
 }
