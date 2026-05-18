@@ -129,6 +129,12 @@ const expectedGltfFailures = {
     status: "invalid-material-scalar",
     registrationValid: false,
   },
+  "invalid-vector-factor": {
+    mappingDiagnostic: "gltfMaterial.invalidField",
+    renderDiagnostic: "render.missingMaterialHandle",
+    status: "invalid-vector-factor",
+    registrationValid: false,
+  },
   "invalid-texture-scalar": {
     mappingDiagnostic: "gltfMaterial.invalidField",
     renderDiagnostic: "render.missingMaterialHandle",
@@ -363,6 +369,7 @@ function createGltfScenarioConfig(selectedScenario) {
   const usesInvalidRenderState = selectedScenario === "invalid-render-state";
   const usesInvalidMaterialScalar =
     selectedScenario === "invalid-material-scalar";
+  const usesInvalidVectorFactor = selectedScenario === "invalid-vector-factor";
   const usesUnresolvedTextureBinding =
     selectedScenario === "unresolved-texture-binding";
   const usesInvalidTextureInfo = selectedScenario === "invalid-texture-info";
@@ -395,6 +402,7 @@ function createGltfScenarioConfig(selectedScenario) {
     usesMultipleOptionalMaterialExtensions,
     usesInvalidRenderState,
     usesInvalidMaterialScalar,
+    usesInvalidVectorFactor,
     usesInvalidTextureScalar,
     usesUnresolvedTextureBinding,
     usesInvalidTextureInfo,
@@ -404,6 +412,7 @@ function createGltfScenarioConfig(selectedScenario) {
       usesUnsupportedRequiredMaterialExtension ||
       usesInvalidRenderState ||
       usesInvalidMaterialScalar ||
+      usesInvalidVectorFactor ||
       usesInvalidTextureInfo
         ? null
         : usesMetallicRoughnessTexture || usesMetallicRoughnessTextureTransform
@@ -459,25 +468,27 @@ function createGltfScenarioConfig(selectedScenario) {
                                         ? "gltf-standard-invalid-render-state"
                                         : usesInvalidMaterialScalar
                                           ? "gltf-standard-invalid-material-scalar"
-                                          : usesUnresolvedTextureBinding
-                                            ? "gltf-standard-unresolved-texture-binding"
-                                            : usesInvalidTextureInfo
-                                              ? "gltf-standard-invalid-texture-info"
-                                              : usesInvalidSamplerIndex
-                                                ? "gltf-standard-invalid-sampler-index"
-                                                : usesInvalidSamplerEnum
-                                                  ? "gltf-standard-invalid-sampler-enum"
-                                                  : usesBaseColorTransformSampling
-                                                    ? "gltf-standard-base-color-transform-sampling"
-                                                    : usesBaseColorTransformRotationSampling
-                                                      ? "gltf-standard-base-color-transform-rotation-sampling"
-                                                      : usesBaseColorUv1
-                                                        ? "gltf-standard-base-color-uv1"
-                                                        : usesBaseColorUv1Missing
-                                                          ? "gltf-standard-base-color-uv1-missing"
-                                                          : usesBaseColorUv1Transform
-                                                            ? "gltf-standard-base-color-uv1-transform"
-                                                            : "gltf-standard-base-color-texture",
+                                          : usesInvalidVectorFactor
+                                            ? "gltf-standard-invalid-vector-factor"
+                                            : usesUnresolvedTextureBinding
+                                              ? "gltf-standard-unresolved-texture-binding"
+                                              : usesInvalidTextureInfo
+                                                ? "gltf-standard-invalid-texture-info"
+                                                : usesInvalidSamplerIndex
+                                                  ? "gltf-standard-invalid-sampler-index"
+                                                  : usesInvalidSamplerEnum
+                                                    ? "gltf-standard-invalid-sampler-enum"
+                                                    : usesBaseColorTransformSampling
+                                                      ? "gltf-standard-base-color-transform-sampling"
+                                                      : usesBaseColorTransformRotationSampling
+                                                        ? "gltf-standard-base-color-transform-rotation-sampling"
+                                                        : usesBaseColorUv1
+                                                          ? "gltf-standard-base-color-uv1"
+                                                          : usesBaseColorUv1Missing
+                                                            ? "gltf-standard-base-color-uv1-missing"
+                                                            : usesBaseColorUv1Transform
+                                                              ? "gltf-standard-base-color-uv1-transform"
+                                                              : "gltf-standard-base-color-texture",
     expectedFailure: expectedGltfFailures[selectedScenario] ?? null,
     expectedTextureTransform: usesBaseColorTransform
       ? unsupportedTextureTransform
@@ -614,25 +625,31 @@ function materialNameForConfig(config) {
                               ? "GLB Standard Unsupported Optional Extension"
                               : config.usesInvalidRenderState
                                 ? "GLB Standard Invalid Render State"
-                                : config.usesUnresolvedTextureBinding
-                                  ? "GLB Standard Unresolved Texture Binding"
-                                  : config.usesInvalidTextureInfo
-                                    ? "GLB Standard Invalid Texture Info"
-                                    : config.usesBaseColorTransformSampling
-                                      ? "GLB Standard BaseColor Transform Sampling"
-                                      : config.usesBaseColorTransformRotationSampling
-                                        ? "GLB Standard BaseColor Transform Rotation Sampling"
-                                        : config.usesBaseColorUv1
-                                          ? "GLB Standard BaseColor UV1"
-                                          : config.usesBaseColorUv1Missing
-                                            ? "GLB Standard BaseColor UV1 Missing"
-                                            : config.usesInvalidSamplerIndex
-                                              ? "GLB Standard Invalid Sampler Index"
-                                              : config.usesInvalidSamplerEnum
-                                                ? "GLB Standard Invalid Sampler Enum"
-                                                : config.usesBaseColorUv1Transform
-                                                  ? "GLB Standard BaseColor UV1 Transform"
-                                                  : "GLB Standard BaseColor";
+                                : config.usesInvalidMaterialScalar
+                                  ? "GLB Standard Invalid Material Scalar"
+                                  : config.usesInvalidVectorFactor
+                                    ? "GLB Standard Invalid Vector Factor"
+                                    : config.usesInvalidTextureScalar
+                                      ? "GLB Standard Invalid Texture Scalar"
+                                      : config.usesUnresolvedTextureBinding
+                                        ? "GLB Standard Unresolved Texture Binding"
+                                        : config.usesInvalidTextureInfo
+                                          ? "GLB Standard Invalid Texture Info"
+                                          : config.usesBaseColorTransformSampling
+                                            ? "GLB Standard BaseColor Transform Sampling"
+                                            : config.usesBaseColorTransformRotationSampling
+                                              ? "GLB Standard BaseColor Transform Rotation Sampling"
+                                              : config.usesBaseColorUv1
+                                                ? "GLB Standard BaseColor UV1"
+                                                : config.usesBaseColorUv1Missing
+                                                  ? "GLB Standard BaseColor UV1 Missing"
+                                                  : config.usesInvalidSamplerIndex
+                                                    ? "GLB Standard Invalid Sampler Index"
+                                                    : config.usesInvalidSamplerEnum
+                                                      ? "GLB Standard Invalid Sampler Enum"
+                                                      : config.usesBaseColorUv1Transform
+                                                        ? "GLB Standard BaseColor UV1 Transform"
+                                                        : "GLB Standard BaseColor";
 }
 
 function readbackSamplesForConfig(config) {
@@ -666,6 +683,12 @@ function createGltfFixtureRoot(config) {
     pbrMetallicRoughness = {
       baseColorFactor: scalarColor,
       metallicFactor: "metallic",
+      roughnessFactor: 0.8,
+    };
+  } else if (config.usesInvalidVectorFactor) {
+    pbrMetallicRoughness = {
+      baseColorFactor: "hot-pink",
+      metallicFactor: 0,
       roughnessFactor: 0.8,
     };
   } else if (config.usesInvalidTextureInfo) {

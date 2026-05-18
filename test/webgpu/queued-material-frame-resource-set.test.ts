@@ -677,6 +677,7 @@ describe("queued material frame-resource set preparation", () => {
 
   it("reports invalid texture/sampler dependencies before creating generic frame resources", async () => {
     type Item = {
+      readonly materialFamily: "custom-preview";
       readonly pipelineKey: string;
       readonly sourceMeshKey: string;
       readonly sourceMaterialKey: string;
@@ -718,7 +719,7 @@ describe("queued material frame-resource set preparation", () => {
       }[];
     };
     const scratch = createQueuedMaterialFrameResourceScratch<
-      { readonly key: string },
+      { readonly family: string; readonly pipelineKey: string },
       Mesh,
       BindGroup
     >();
@@ -729,7 +730,7 @@ describe("queued material frame-resource set preparation", () => {
     const result = await prepareQueuedMaterialFrameResourceSet<
       Item,
       Pipeline,
-      { readonly key: string },
+      { readonly family: string; readonly pipelineKey: string },
       { readonly layout: unknown },
       DependencyResult,
       { readonly item: Item; readonly layouts: { readonly layout: unknown } },
@@ -740,6 +741,7 @@ describe("queued material frame-resource set preparation", () => {
     >({
       items: [
         {
+          materialFamily: "custom-preview",
           pipelineKey: "custom|textured|opaque",
           sourceMeshKey: "mesh:source",
           sourceMaterialKey: "material:source",
@@ -758,7 +760,10 @@ describe("queued material frame-resource set preparation", () => {
           diagnostics: [],
         }),
         getPipelineView: (pipeline) => pipeline,
-        createPipelinePlanResult: ({ item }) => ({ key: item.pipelineKey }),
+        createPipelinePlanResult: ({ item }) => ({
+          family: item.materialFamily,
+          pipelineKey: item.pipelineKey,
+        }),
         getPipelineLayouts: ({ getBindGroupLayout }) => ({
           layout: getBindGroupLayout(0),
         }),
@@ -808,7 +813,9 @@ describe("queued material frame-resource set preparation", () => {
 
     expect(result.valid).toBe(false);
     expect(result.firstResources).toBeNull();
-    expect(result.pipelineResults).toEqual([{ key: "custom|textured|opaque" }]);
+    expect(result.pipelineResults).toEqual([
+      { family: "custom-preview", pipelineKey: "custom|textured|opaque" },
+    ]);
     expect(result.meshResources).toEqual([]);
     expect(result.bindGroups).toEqual([]);
     expect(result.meshResourceKeys.size).toBe(0);
@@ -835,6 +842,9 @@ describe("queued material frame-resource set preparation", () => {
 
     expect(serialized).not.toContain("GPUTexture");
     expect(serialized).not.toContain("GPUSampler");
+    expect(serialized).not.toContain("GPUBuffer");
+    expect(serialized).not.toContain("WebGpuApp");
+    expect(serialized).not.toContain("sourceAsset");
     expect(serialized).not.toContain("rawGpuHandle");
   });
 });

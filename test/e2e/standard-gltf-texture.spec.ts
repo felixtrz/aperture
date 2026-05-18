@@ -3065,6 +3065,114 @@ test("standard glTF texture fixture reports invalid material scalar factors befo
   webGpuValidation.expectNoWarnings();
 });
 
+test("standard glTF texture fixture reports invalid vector factors before registration", async ({
+  page,
+}) => {
+  const webGpuValidation = attachWebGpuValidationConsoleGuard(page);
+
+  await page.goto(
+    "/examples/standard-gltf-texture.html?scenario=invalid-vector-factor",
+  );
+
+  const status = await waitForExampleStatus<StandardGltfTextureStatus>(page);
+
+  await attachExampleStatus(
+    "standard-gltf-texture-invalid-vector-factor-status",
+    status,
+  );
+  expect(
+    status,
+    "standard glTF invalid vector factor status should publish",
+  ).toBeDefined();
+
+  if (status === undefined) {
+    return;
+  }
+
+  skipIfUnsupportedWebGpu(status);
+  expectStatusJsonSafeForGpu(status);
+  expect(status, JSON.stringify(status, null, 2)).toMatchObject({
+    example: "standard-gltf-texture",
+    scenario: "invalid-vector-factor",
+    ok: true,
+    phase: "expected-failure",
+    expectedFailure: true,
+    expectedMappingDiagnostic: "gltfMaterial.invalidField",
+    expectedDiagnostic: "render.missingMaterialHandle",
+    expectedTextureStatus: "invalid-vector-factor",
+    materialModel: "gltf-standard-invalid-vector-factor",
+    gltf: {
+      assetMapping: {
+        valid: false,
+        textureCount: 0,
+        samplerCount: 0,
+        materialCount: 1,
+        diagnostics: 1,
+      },
+      meshConstruction: {
+        valid: true,
+        meshCount: 1,
+        diagnostics: 0,
+      },
+      registration: {
+        valid: false,
+        written: 1,
+        diagnostics: 1,
+        stages: [
+          {
+            stage: "materialTextureSamplerRegistration",
+            status: "failed",
+            writtenCount: 0,
+            skippedCount: 1,
+            diagnosticCount: 1,
+          },
+          {
+            stage: "meshRegistration",
+            status: "provided",
+            writtenCount: 1,
+            skippedCount: 0,
+            diagnosticCount: 0,
+          },
+        ],
+      },
+    },
+    extraction: {
+      views: 1,
+      meshDraws: 0,
+      lights: 2,
+      diagnostics: 1,
+    },
+    resources: {
+      textureResourcesCreated: 0,
+      samplerResourcesCreated: 0,
+      materialBuffersCreated: 0,
+      bindGroupsCreated: 0,
+    },
+    draw: { packages: 0, commands: 0, drawCalls: 0 },
+  });
+  expect(status.standardTexture).toBeUndefined();
+  expect(status.gltf?.assetMapping.diagnosticCodes).toEqual([
+    "gltfMaterial.invalidField",
+  ]);
+  expect(status.gltf?.assetMapping.diagnosticDetails).toEqual(
+    expect.arrayContaining([
+      expect.objectContaining({
+        layer: "material",
+        code: "gltfMaterial.invalidField",
+        severity: "error",
+        materialIndex: 0,
+        field: "pbrMetallicRoughness.baseColorFactor",
+        value: "hot-pink",
+      }),
+    ]),
+  );
+  expect(status.diagnosticCodes).toContain("render.missingMaterialHandle");
+  expect(status.diagnosticsSummary).toBeUndefined();
+  expect(status.pipelines?.keys ?? []).toEqual([]);
+  expect(status.pipelines?.meshLayoutKeys ?? []).toEqual([]);
+  webGpuValidation.expectNoWarnings();
+});
+
 test("standard glTF texture fixture reports invalid texture scalar fields before registration", async ({
   page,
 }) => {

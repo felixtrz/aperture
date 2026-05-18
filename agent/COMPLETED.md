@@ -13479,3 +13479,227 @@ Validation:
 
 - `node --check examples/standard-gltf-texture.js`
 - `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "invalid texture scalar"`
+
+## task-1323 — Audit selected post-diagnostics follow-up implementation
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/INVALID_GLTF_TEXTURE_SCALAR_BROWSER_DIAGNOSTIC_AUDIT_2026_05_18.md`.
+- Confirmed the invalid texture scalar fixture satisfies the selected
+  acceptance criteria and preserves JSON-safe `field`/`value` diagnostics
+  without adding new rendering or backend behavior.
+- Recommended tracker/backlog alignment next.
+
+Validation:
+
+- Documentation audit backed by the `task-1322` targeted browser test.
+
+## task-1324 — Audit tracker/backlog alignment after post-diagnostics follow-up
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/TRACKER_BACKLOG_ALIGNMENT_AFTER_INVALID_TEXTURE_SCALAR_AUDIT_2026_05_18.md`.
+- Updated the public tracker next focus and completed-task timeline after the
+  invalid texture scalar diagnostic audit.
+- Updated the render pipeline comparison heading while keeping the six
+  phase-status entries intact.
+
+Validation:
+
+- `pnpm run check:progress`
+
+## task-1325 — Plan next material route or glTF fidelity slice
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/NEXT_MATERIAL_ROUTE_OR_GLTF_FIDELITY_SLICE_AFTER_TEXTURE_SCALAR_PLAN_2026_05_18.md`.
+- Compared a generic material-family frame-resource adapter migration, an
+  invalid glTF vector/color factor browser diagnostic, and diagnostic summary
+  aggregation.
+- Selected `task-1327`: invalid glTF vector factor browser diagnostic.
+
+Validation:
+
+- Documentation-only planning slice; covered by touched-file formatting and
+  final checks.
+
+## task-1326 — Audit next material route or glTF fidelity plan
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/NEXT_MATERIAL_ROUTE_OR_GLTF_FIDELITY_SLICE_AFTER_TEXTURE_SCALAR_PLAN_AUDIT_2026_05_18.md`.
+- Confirmed the invalid glTF vector/color factor diagnostic is concrete,
+  JSON-safe, and does not add new rendering or backend behavior.
+- Recommended implementing `task-1327` next.
+
+Validation:
+
+- Documentation-only audit; covered by touched-file formatting and final
+  checks.
+
+## task-1327 — Add invalid glTF vector factor browser diagnostic
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added an `invalid-vector-factor` browser scenario to
+  `examples/standard-gltf-texture.js`.
+- Added Playwright coverage proving malformed
+  `pbrMetallicRoughness.baseColorFactor` reports `gltfMaterial.invalidField`
+  with JSON-safe `field`/`value` data, prevents material registration, and
+  creates no GPU resources or draws.
+
+Validation:
+
+- `node --check examples/standard-gltf-texture.js`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "invalid vector"`
+
+## task-1328 — Audit invalid glTF vector factor browser diagnostic
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/INVALID_GLTF_VECTOR_FACTOR_BROWSER_DIAGNOSTIC_AUDIT_2026_05_18.md`.
+- Confirmed the invalid vector/color factor fixture satisfies the selected
+  acceptance criteria and preserves JSON-safe `field`/`value` diagnostics
+  without adding new rendering or backend behavior.
+- Recommended tracker/backlog alignment next.
+
+Validation:
+
+- Documentation audit backed by the `task-1327` targeted browser test.
+
+## task-1329 — Audit tracker/backlog alignment after vector diagnostics
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/TRACKER_BACKLOG_ALIGNMENT_AFTER_INVALID_VECTOR_FACTOR_AUDIT_2026_05_18.md`.
+- Updated the public tracker and render pipeline comparison for invalid glTF
+  vector/color factor browser diagnostics.
+- Refilled the ready backlog with scoped tasks through `task-1335`.
+
+Validation:
+
+- `pnpm run check:progress`
+
+## task-1330 — Plan next route/prepared-resource or glTF fidelity slice
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/NEXT_ROUTE_PREPARED_OR_GLTF_FIDELITY_AFTER_VECTOR_DIAGNOSTIC_PLAN_2026_05_18.md`.
+- Compared generic material-family frame-resource adapter readiness, another
+  glTF vector-field diagnostic, and diagnostic aggregation.
+- Selected `task-1332`: audit generic material-family frame-resource adapter
+  readiness.
+
+Validation:
+
+- Documentation-only planning slice; covered by touched-file formatting and
+  final checks.
+
+## task-1331 — Audit next route/prepared-resource or glTF fidelity plan
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/NEXT_ROUTE_PREPARED_OR_GLTF_FIDELITY_AFTER_VECTOR_DIAGNOSTIC_PLAN_AUDIT_2026_05_18.md`.
+- Confirmed the generic material-family frame-resource adapter readiness audit
+  is concrete and should precede any app-level route migration.
+- Recommended implementing `task-1332` next.
+
+Validation:
+
+- Documentation-only audit; covered by touched-file formatting and final
+  checks.
+
+## task-1332 — Audit generic material-family frame-resource adapter readiness
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/GENERIC_MATERIAL_FAMILY_FRAME_RESOURCE_ADAPTER_READINESS_AUDIT_2026_05_18.md`.
+- Confirmed the generic adapter/collector surface is close to migration-ready,
+  but recommended pinning the dependency-failure route/prepared-resource
+  contract before broader built-in wrapper migration.
+- Recommended a focused WebGPU unit regression as the next implementation.
+
+Validation:
+
+- Audit backed by existing route/prepared-resource tests; final checks cover
+  formatting and broad validation.
+
+## task-1333 — Add dependency-failure route/prepared-resource regression
+
+Completed: 2026-05-18
+
+Summary:
+
+- Strengthened the generic queued material frame-resource dependency-failure
+  regression in `test/webgpu/queued-material-frame-resource-set.test.ts`.
+- The test now pins the planned test-only family/pipeline key, verifies no
+  frame-resource callbacks or append calls run after dependency failure, and
+  asserts serialized output omits raw GPU handles, source asset payloads, and
+  app objects.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/queued-material-frame-resource-set.test.ts`
+
+## task-1334 — Audit dependency-failure route/prepared-resource regression
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/DEPENDENCY_FAILURE_ROUTE_PREPARED_RESOURCE_REGRESSION_AUDIT_2026_05_18.md`.
+- Confirmed the dependency-failure regression pins the generic route/prepared
+  contract without changing ECS, extraction, source assets, shaders, pipelines,
+  draw submission, or app-level non-built-in rendering.
+- Recommended tracker/backlog alignment next.
+
+Validation:
+
+- Audit backed by
+  `pnpm exec vitest run test/webgpu/queued-material-frame-resource-set.test.ts`.
+
+## task-1335 — Audit tracker/backlog alignment after route regression
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/TRACKER_BACKLOG_ALIGNMENT_AFTER_DEPENDENCY_FAILURE_ROUTE_REGRESSION_AUDIT_2026_05_18.md`.
+- Updated the public tracker and render pipeline comparison for the
+  dependency-failure route/prepared-resource regression.
+- Refilled the ready backlog with scoped tasks through `task-1340`.
+
+Validation:
+
+- `pnpm run check:progress`

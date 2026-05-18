@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-18 02:55 PDT</dd>
+            <dd>2026-05-18 03:18 PDT</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -404,11 +404,12 @@
               unregistered route keys report grouped JSON diagnostics without
               fallback, and multiple optional glTF material extensions render
               with warnings; invalid glTF material scalar factors fail before
-              registration with JSON-safe field/value status, and invalid glTF
-              texture scalar fields do the same
+              registration with JSON-safe field/value status, invalid glTF
+              texture scalar fields do the same, and invalid vector/color
+              factors now follow the same no-draw path
             </dd>
             <dt>Next focus</dt>
-            <dd>Audit invalid glTF texture scalar diagnostics</dd>
+            <dd>Plan next material route or glTF fidelity slice</dd>
           </dl>
         </aside>
       </header>
@@ -489,8 +490,8 @@
               browser diagnostics are covered. Optional material-extension
               warnings now include multi-extension browser status coverage, and
               invalid material scalar-factor diagnostics are covered before
-              registration. Invalid texture scalar-field diagnostics are now
-              covered on the same expected-failure path.
+              registration. Invalid texture scalar-field and vector/color factor
+              diagnostics are now covered on the same expected-failure path.
             </p>
           </article>
           <article class="card metric">
@@ -527,8 +528,9 @@
               warnings preserve JSON-safe extension fields while rendering the
               base material. Invalid glTF material scalar-factor failures now
               preserve JSON-safe field/value diagnostics without creating GPU
-              resources. Invalid glTF texture scalar-field failures now preserve
-              JSON-safe field/value diagnostics while producing no draw work.
+              resources. Invalid glTF texture scalar-field and vector/color
+              factor failures now preserve JSON-safe field/value diagnostics
+              while producing no draw work.
             </p>
           </article>
         </div>
@@ -1516,7 +1518,7 @@
             <h3>Recommended next tasks</h3>
             <ul>
               <li>
-                <span class="badge amber">next</span> Plan next route-boundary
+                <span class="badge amber">next</span> Plan next material route
                 or glTF fidelity slice.
               </li>
               <li>
@@ -1542,6 +1544,51 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-1317-1323</div>
+            <div>
+              <strong>Invalid glTF scalar diagnostics covered.</strong>
+              <span
+                >Material scalar-factor and texture scalar-field failures now
+                preserve JSON-safe field/value status before registration and
+                produce no GPU resources or draw work.</span
+              >
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="task-id">task-1325-1328</div>
+            <div>
+              <strong>Invalid glTF vector diagnostics covered.</strong>
+              <span
+                >Malformed base-color vector factors now fail before material
+                registration while preserving JSON-safe field/value status and
+                producing no GPU resources or draw work.</span
+              >
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="task-id">task-1330-1332</div>
+            <div>
+              <strong>Route adapter readiness audited.</strong>
+              <span
+                >Generic material-family frame-resource migration is close, but
+                dependency-failure route/prepared-resource behavior should be
+                pinned before broader built-in wrapper migration.</span
+              >
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="task-id">task-1333-1334</div>
+            <div>
+              <strong>Dependency-failure route regression pinned.</strong>
+              <span
+                >The generic frame-resource collector now asserts dependency
+                failures preserve planned family/pipeline context while creating
+                no frame resources, bind groups, or raw GPU-facing
+                diagnostics.</span
+              >
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-1303-1306</div>
             <div>

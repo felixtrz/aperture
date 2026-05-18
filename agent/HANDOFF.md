@@ -1,5 +1,85 @@
 # Handoff
 
+## Current Run Update — 2026-05-18T10:57:46Z
+
+Completed `task-1323` through `task-1335`. Recommended next task is
+`task-1336`.
+
+Highlights:
+
+- Audited the invalid glTF texture scalar diagnostic from the prior run and
+  aligned the public tracker/backlog for it.
+- Planned, audited, implemented, and audited an invalid glTF vector/color factor
+  browser diagnostic.
+- Added the `invalid-vector-factor` scenario and Playwright coverage proving
+  malformed `pbrMetallicRoughness.baseColorFactor` preserves JSON-safe
+  `field`/`value`, prevents material registration, and creates no GPU resources
+  or draws.
+- Planned and audited the next route/prepared-resource direction after the glTF
+  diagnostic run.
+- Audited generic material-family frame-resource adapter readiness and pinned a
+  focused dependency-failure route/prepared-resource regression in
+  `test/webgpu/queued-material-frame-resource-set.test.ts`.
+- Updated the public tracker and render pipeline comparison for vector
+  diagnostics and the dependency-failure route regression.
+- Refilled the ready backlog through `task-1340`.
+
+Reference anchors inspected:
+
+- `docs/NORTH_STAR.md`
+- `docs/MEDIUM_LONG_TERM_GOALS.md`
+- `docs/ARCHITECTURE.md`
+- `docs/DECISIONS.md`
+- `packages/render/src/materials/gltf-material.ts`
+- `packages/render/src/assets/gltf-asset-mapping.ts`
+- `packages/webgpu/src/webgpu/queued-material-adapter.ts`
+- `packages/webgpu/src/webgpu/queued-material-frame-resource-set.ts`
+- `packages/webgpu/src/webgpu/queued-material-frame-resource-route.ts`
+- `packages/webgpu/src/webgpu/queued-built-in-app-resource-set.ts`
+- `test/webgpu/queued-material-app-resource-item.test.ts`
+- `test/webgpu/queued-material-frame-resource-set.test.ts`
+- `test/webgpu/webgpu-app.test.ts`
+- `references/bevy/crates/bevy_pbr/src/material.rs`
+- `references/bevy/crates/bevy_render/src/render_asset.rs`
+
+Files touched:
+
+- `agent/BACKLOG.md`
+- `agent/COMPLETED.md`
+- `agent/HANDOFF.md`
+- `agent/STATUS.json`
+- `docs/index.html`
+- `docs/render-pipeline-comparison.html`
+- `docs/research/*2026_05_18.md` notes for the completed plans/audits
+- `examples/standard-gltf-texture.js`
+- `test/e2e/standard-gltf-texture.spec.ts`
+- `test/webgpu/queued-material-frame-resource-set.test.ts`
+
+Validation:
+
+- `node --check examples/standard-gltf-texture.js`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "invalid vector"`
+- `pnpm exec vitest run test/webgpu/queued-material-frame-resource-set.test.ts`
+- `npm run typecheck:test`
+- `pnpm run build`
+- `pnpm run lint`
+- `pnpm test`
+- `pnpm run check:progress`
+- `pnpm exec prettier --check ...touched files...`
+- `git diff --check`
+
+Known issues / follow-ups:
+
+- Start `task-1336`: plan the next material route or glTF fidelity slice after
+  the dependency-failure route regression.
+- The next likely architecture implementation is a narrow built-in wrapper
+  migration over the generic collector, but `task-1336` should compare that
+  against a glTF fidelity slice before selecting it.
+- Real app-level non-built-in material adapter routing remains deferred until a
+  source asset and prepared-resource adapter contract are selected.
+- Binary GLB loading, IBL, shadows, GLB viewer behavior, richer physical
+  material extension support, and full PBR resources remain deferred.
+
 ## Current Run Update — 2026-05-18T09:56:59Z
 
 Completed `task-1282` through `task-1322`. Recommended next task is
