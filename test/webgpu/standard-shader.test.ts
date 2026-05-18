@@ -1,6 +1,13 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  createMaterialPipelineKeyInput,
+  createSamplerHandle,
+  createStandardMaterialAsset,
+  createTextureHandle,
+  materialPipelineKeyInputToKey,
+} from "@aperture-engine/core";
+import {
   STANDARD_BASE_COLOR_METALLIC_ROUGHNESS_TEXTURED_MESH_SHADER,
   STANDARD_BASE_COLOR_METALLIC_ROUGHNESS_TEXTURED_MESH_WGSL,
   STANDARD_BASE_COLOR_METALLIC_ROUGHNESS_TEXTURE_SHADER_VARIANT,
@@ -133,6 +140,41 @@ describe("built-in standard material WGSL shader metadata", () => {
       ["baseColorTexture", 2, 1, "texture"],
       ["baseColorSampler", 2, 2, "sampler"],
     ]);
+  });
+
+  it("keeps textured alpha-mask discard tied to sampled base-color alpha", () => {
+    const alphaSampleOffset =
+      STANDARD_BASE_COLOR_TEXTURED_MESH_WGSL.indexOf("baseColorSample.a");
+    const alphaCutoffOffset = STANDARD_BASE_COLOR_TEXTURED_MESH_WGSL.indexOf(
+      "material.alphaCutoff",
+    );
+    const discardOffset =
+      STANDARD_BASE_COLOR_TEXTURED_MESH_WGSL.indexOf("discard;");
+    const material = createStandardMaterialAsset({
+      baseColorTexture: {
+        texture: createTextureHandle("alpha-mask"),
+        sampler: createSamplerHandle("nearest"),
+      },
+      renderState: {
+        alphaMode: "mask",
+        alphaCutoff: 0.5,
+        cullMode: "none",
+        frontFace: "ccw",
+        depth: { test: true, write: true, compare: "less" },
+        blend: { preset: "none" },
+        colorWriteMask: "all",
+      },
+    });
+
+    expect(STANDARD_BASE_COLOR_TEXTURED_MESH_WGSL).toContain(
+      "let alpha = baseColorSample.a * material.baseColorFactor.a;",
+    );
+    expect(alphaSampleOffset).toBeGreaterThanOrEqual(0);
+    expect(alphaCutoffOffset).toBeGreaterThan(alphaSampleOffset);
+    expect(discardOffset).toBeGreaterThan(alphaCutoffOffset);
+    expect(
+      materialPipelineKeyInputToKey(createMaterialPipelineKeyInput(material)),
+    ).toBe("standard|baseColorTexture|mask|none|less|none");
   });
 
   it("declares metallic-roughness texture sampling for the PBR texture variant", () => {

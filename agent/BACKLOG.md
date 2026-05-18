@@ -59,11 +59,16 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start with `task-1112`. The latest run audited GLB texture upload boundaries,
-planned and implemented GLB-derived metallic-roughness browser coverage, added
-GLB sampler mapping status, documented the next material-family queue
-migration, cleaned up the GLB browser harness locally, and planned the next GLB
-normal-texture fixture.
+Start with `task-1127`. The latest run extracted the queued built-in
+resource-set collector from WebGPU app orchestration, added GLB-derived
+occlusion and emissive StandardMaterial browser fixtures, and added GLB
+alpha-mask/double-sided render-state browser diagnostics. The GLB browser
+helper/status audit found no boundary drift, and the next frame-resource
+collector split has been planned. GLB render-state browser status helpers were
+cleaned up locally without changing published status shapes. The GLB
+StandardMaterial dependency diagnostics matrix is now planned; the remaining
+dependency-diagnostic work is implementation coverage, not another planning
+pass.
 
 ## Near-Term Proof Point Track
 
@@ -80,11 +85,11 @@ Target proof point:
 
 Remaining automation priority order:
 
-1. `task-1112` — extract queued built-in resource-set collector.
-2. `task-1119` — add GLB StandardMaterial occlusion texture browser fixture.
-3. `task-1120` — add GLB StandardMaterial emissive texture browser fixture.
-4. `task-1121` — add GLB alpha-mask double-sided render-state diagnostics.
-5. `task-1122` — audit GLB browser helpers after occlusion/emissive expansion.
+1. `task-1127` — extract queued built-in frame-resource preparation set.
+2. `task-1128` — add GLB invalid texture/sampler diagnostics matrix tests.
+3. `task-1129` — add GLB delayed dependency browser diagnostics fixture.
+4. `task-1132` — plan GLB alpha-mask backface visual fixture.
+5. `task-1136` — audit StandardMaterial alpha-mask coverage alignment.
 
 Defer allocation-only cleanup and metadata-only shader-contract tasks unless
 they are a direct blocker for this track.
@@ -150,116 +155,115 @@ viewer/material mapping should not outrun the material and queue architecture.
 
 ### Proof Point Critical Path
 
-### task-1112 — Extract queued built-in resource-set collector
+### task-1127 — Extract queued built-in frame-resource preparation set
 
 Category: `webgpu-render`
 Package/write-scope: `packages/webgpu/src/webgpu/app.ts`,
-`packages/webgpu/src/webgpu/queued-built-in-app-resource-set.ts`, and targeted
-WebGPU route tests.
+`packages/webgpu/src/webgpu/queued-built-in-frame-resource-set.ts`, and targeted
+WebGPU route/frame-resource tests.
 Reference anchor:
-`docs/research/GENERIC_MATERIAL_FAMILY_QUEUE_MIGRATION_CHECKPOINT_2026_05_17.md`,
-`packages/render/src/rendering/material-queue.ts`,
+`docs/research/GENERIC_MATERIAL_FAMILY_FRAME_RESOURCE_COLLECTOR_SPLIT_PLAN_2026_05_17.md`,
+`packages/webgpu/src/webgpu/queued-built-in-app-resource-set.ts`,
 `packages/webgpu/src/webgpu/built-in-material-app-resource-adapter.ts`,
-`references/engine/src/platform/graphics/webgpu/webgpu-render-pipeline.js`, and
+`references/engine/src/scene/renderer/forward-renderer.js`, and
 `references/three.js/src/renderers/common/RenderObject.js`.
 
 Acceptance criteria:
 
-- The queue-to-resource-set collection flow is moved out of `app.ts` without
-  changing rendered output or route diagnostics.
-- The new module exposes typed input/output contracts and keeps GPU handles out
-  of JSON summaries.
-- Existing route-report and material-family tests pass, with a targeted test
-  covering one successful built-in route and one unsupported-family diagnostic.
-- Validation runs
-  `pnpm exec vitest run test/webgpu/material-queue-route-report.test.ts test/webgpu/queued-material-frame-resource-route.test.ts`
-  plus `pnpm run build`.
+- Move `prepareQueuedBuiltInFrameResources()` scratch ownership and result
+  assembly out of `app.ts` without changing rendered output or diagnostics.
+- Keep pipeline lookup, layout lookup, and app/device-specific frame-resource
+  callbacks injected from `app.ts`.
+- Preserve JSON-safe frame-resource route diagnostics and resource reuse
+  counters.
+- Existing queued route tests and full `standard-gltf-texture` browser spec
+  pass, plus a targeted test for one successful prepared frame-resource set and
+  one failed frame-resource route diagnostic.
 
-### task-1119 — Add GLB StandardMaterial occlusion texture browser fixture
+### task-1128 — Add GLB invalid texture/sampler diagnostics matrix tests
 
-Category: `runtime-orchestration`
-Package/write-scope: `examples/standard-gltf-texture.js`,
-`test/e2e/standard-gltf-texture.spec.ts`, and tracker docs if status changes.
+Category: `render-bridge`
+Package/write-scope: `packages/render/src/assets`,
+`packages/render/src/materials`, and targeted GLB mapping/readiness tests.
 Reference anchor:
-`docs/research/GLB_OCCLUSION_EMISSIVE_BROWSER_FIXTURE_SPLIT_PLAN_2026_05_17.md`,
-the GLB base-color/metallic-roughness fixtures, and the authored occlusion
-controlled browser scenario.
+`docs/research/GLB_STANDARD_MATERIAL_DEPENDENCY_DIAGNOSTICS_MATRIX_2026_05_17.md`,
+Bevy glTF/load-context dependency patterns, and current
+`createGltfAssetMappingReport()` / `createStandardMaterialTextureReadinessReport()`
+tests.
 
 Acceptance criteria:
 
-- Add `standard-gltf-texture?scenario=occlusion` using glTF mapping and source
-  registration for an `occlusionTexture`.
-- Browser status reports JSON-safe occlusion expectations, source asset keys,
-  pipeline/resource counters, diagnostics, draw counts, and readback samples
-  when available.
-- Playwright verifies the mapped GLB-derived occlusion texture renders through
-  the app-facade path without claiming full ambient-occlusion lighting fidelity.
-- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "occlusion"`
-  and `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts` pass.
+- Add a targeted GLB-shaped test matrix for base-color, metallic-roughness,
+  normal, occlusion, and emissive slots.
+- Cover at least one invalid texture/image path and one invalid sampler path,
+  preserving slot, field, texture index, sampler index when present, and
+  dependency kind in diagnostics.
+- Verify source registration skips or omits invalid planned dependencies
+  without registering a material with missing source texture/sampler edges.
+- Keep reports JSON-safe and free of source asset objects or WebGPU resources.
 
-### task-1120 — Add GLB StandardMaterial emissive texture browser fixture
+### task-1129 — Add GLB delayed dependency browser diagnostics fixture
 
 Category: `runtime-orchestration`
 Package/write-scope: `examples/standard-gltf-texture.js`,
-`test/e2e/standard-gltf-texture.spec.ts`, and tracker docs if status changes.
+`test/e2e/standard-gltf-texture.spec.ts`, and app-facing diagnostics only.
 Reference anchor:
-`docs/research/GLB_OCCLUSION_EMISSIVE_BROWSER_FIXTURE_SPLIT_PLAN_2026_05_17.md`,
-the GLB base-color/metallic-roughness fixtures, and the authored emissive
-controlled browser scenario.
+`docs/research/GLB_STANDARD_MATERIAL_DEPENDENCY_DIAGNOSTICS_MATRIX_2026_05_17.md`,
+existing `standard-gltf-texture` GLB-derived scenarios, and generic
+missing/loading/failed texture browser diagnostics.
 
 Acceptance criteria:
 
-- Add `standard-gltf-texture?scenario=emissive` using glTF mapping and source
-  registration for an `emissiveTexture`.
-- Browser status reports JSON-safe emissive factor/color expectations, source
-  asset keys, pipeline/resource counters, diagnostics, draw counts, and readback
-  samples when available.
-- Playwright verifies the mapped GLB-derived emissive texture renders through
-  the app-facade path without claiming tone mapping, IBL, or full glTF PBR
-  fidelity.
-- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "emissive"`
-  and `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts` pass.
+- Add a GLB-derived browser scenario that uses GLB-style material, texture, and
+  sampler handle keys while deliberately marking source texture/sampler
+  dependencies loading or failed before rendering.
+- Assert app-facing readiness diagnostics preserve GLB-derived keys, slot names,
+  dependency kinds, and statuses for texture and sampler failures.
+- Assert the published browser status remains JSON-safe and contains no raw
+  source asset objects or WebGPU resources.
+- Do not claim binary `.glb` loading or transparent blending support.
 
-### task-1121 — Add GLB alpha-mask double-sided render-state browser diagnostics
+### task-1132 — Plan GLB alpha-mask backface visual fixture
 
 Category: `runtime-orchestration`
-Package/write-scope: `examples/standard-gltf-texture.js`,
-`test/e2e/standard-gltf-texture.spec.ts`, and targeted material/pipeline tests
-only if existing coverage exposes a mapping gap.
+Package/write-scope: `docs/research`, `examples/standard-gltf-texture.js`, and
+`test/e2e/standard-gltf-texture.spec.ts` only for inspection.
 Reference anchor:
 `docs/research/GLB_ALPHA_DOUBLE_SIDED_RENDER_STATE_DIAGNOSTICS_PLAN_2026_05_17.md`,
-`packages/render/src/materials/gltf-material.ts`, and
-`packages/webgpu/src/webgpu/standard-pipeline-descriptor.ts`.
+the alpha-mask texture pixel fixture, and current StandardMaterial render-state
+pipeline behavior.
 
 Acceptance criteria:
 
-- Add `standard-gltf-texture?scenario=alpha-mask-double-sided` with glTF source
-  fields for `MASK` alpha and `doubleSided: true`.
-- Browser status reports JSON-safe source and mapped render-state fields,
-  pipeline keys, draw/resource counters, and diagnostics.
-- Playwright verifies alpha-test/no-cull pipeline behavior and zero WebGPU
-  validation warnings without claiming transparent blending or full double-sided
-  visual fidelity.
-- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "alpha-mask"`
-  and `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts` pass.
+- Plan a narrow browser fixture that proves `doubleSided: true` visually without
+  adding transparent blending or multi-object sorting.
+- Define mesh orientation, camera/sample positions, source material fields,
+  expected pipeline key, and screenshot/readback assertions.
+- Decide whether the proof should reuse the alpha-mask texture fixture or use a
+  scalar masked material with a back-facing primitive.
+- Add a concrete implementation follow-up only if the plan stays aligned with
+  current StandardMaterial support.
 
-### task-1122 — Audit GLB browser helpers after occlusion/emissive expansion
+### task-1136 — Audit StandardMaterial alpha-mask coverage alignment
 
 Category: `audit-refactor`
-Package/write-scope: `docs/research`, `examples/standard-gltf-texture.js`, and
-`test/e2e/standard-gltf-texture.spec.ts` only if small cleanup is needed.
-Reference anchor: `docs/NORTH_STAR.md`, `docs/ARCHITECTURE.md`, current GLB
-browser fixtures, and GLB texture mapping/source registration helpers.
+Package/write-scope: `docs/research`, alpha-mask browser/shader/buffer tests,
+and small docs/backlog updates only if needed.
+Reference anchor:
+`docs/research/GLB_ALPHA_MASK_TEXTURE_PIXEL_FIXTURE_PLAN_2026_05_17.md`,
+`packages/webgpu/src/webgpu/standard-shader.ts`,
+`packages/webgpu/src/webgpu/standard-material-buffer.ts`, and the GLB
+alpha-mask browser tests.
 
 Acceptance criteria:
 
-- Check that GLB browser status remains JSON-safe after occlusion/emissive
-  additions and does not expose backend caches, GPU resources, queues, encoders,
-  or raw texture bytes.
-- Check that fixture helpers still keep ECS/source assets authoritative and
-  rendering derived from snapshots.
-- Add a focused cleanup or follow-up task only if concrete duplication or drift
-  is found.
+- Confirm alpha-mask coverage now spans glTF source mapping, buffer feature
+  flags, WGSL alpha discard, pipeline key, desktop pixels, and narrow viewport
+  pixels.
+- Identify any duplicated status/test helper code worth extracting later.
+- Verify no alpha-mask coverage claims transparent blending or binary `.glb`
+  loading.
+- Document findings and add follow-up tasks only for concrete gaps.
 
 ## Post-Unlit E2E Verification Targets
 

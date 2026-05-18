@@ -1,5 +1,103 @@
 # Completed Tasks
 
+## task-1112 through task-1135 — Queue collector and GLB texture/render-state diagnostics expansion
+
+Completed: 2026-05-17
+
+Completed task ids:
+
+- `task-1112` — Extract queued built-in resource-set collector.
+- `task-1119` — Add GLB StandardMaterial occlusion texture browser fixture.
+- `task-1120` — Add GLB StandardMaterial emissive texture browser fixture.
+- `task-1121` — Add GLB alpha-mask double-sided render-state browser
+  diagnostics.
+- `task-1122` — Audit GLB browser helpers after occlusion/emissive expansion.
+- `task-1123` — Plan generic material-family frame-resource collector split.
+- `task-1124` — Add GLB render-state browser helper cleanup.
+- `task-1125` — Plan GLB StandardMaterial dependency diagnostics matrix.
+- `task-1126` — Add GLB alpha-mask texture pixel fixture plan.
+- `task-1130` — Add GLB alpha-mask texture pixel fixture.
+- `task-1131` — Audit GLB texture browser status after alpha-mask pixels.
+- `task-1133` — Add StandardMaterial textured alpha-mask shader contract test.
+- `task-1134` — Add GLB alpha-mask texture mobile viewport smoke test.
+- `task-1135` — Add StandardMaterial alpha-mask buffer flag test.
+
+Summary:
+
+- Moved the built-in material queue-to-resource-set collection flow out of
+  `packages/webgpu/src/webgpu/app.ts` into
+  `packages/webgpu/src/webgpu/queued-built-in-app-resource-set.ts`.
+- Added focused collector coverage for one successful built-in route and one
+  unsupported-family route-report diagnostic, keeping diagnostics JSON-safe and
+  free of raw GPU handles.
+- Added `standard-gltf-texture?scenario=occlusion` and
+  `standard-gltf-texture?scenario=emissive`, mapping GLB-derived
+  `occlusionTexture` and `emissiveTexture` through source registration and the
+  app-facade WebGPU path.
+- Added `standard-gltf-texture?scenario=alpha-mask-double-sided`, publishing
+  JSON-safe glTF source render-state fields and mapped StandardMaterial render
+  state with the current `standard|mask|none|less|none` pipeline key.
+- Added
+  `docs/research/GLB_BROWSER_HELPERS_AFTER_OCCLUSION_EMISSIVE_AUDIT_2026_05_17.md`;
+  no ECS/source-asset ownership drift or JSON-safety issue was found.
+- Added
+  `docs/research/GENERIC_MATERIAL_FAMILY_FRAME_RESOURCE_COLLECTOR_SPLIT_PLAN_2026_05_17.md`,
+  selecting a focused `queued-built-in-frame-resource-set` extraction as the
+  next renderer/material architecture step.
+- Extracted local `standard-gltf-texture` status helpers for
+  `standardMaterial` render-state status and optional `standardTexture` status
+  without changing the published browser status shape.
+- Added
+  `docs/research/GLB_STANDARD_MATERIAL_DEPENDENCY_DIAGNOSTICS_MATRIX_2026_05_17.md`,
+  documenting current GLB StandardMaterial texture/sampler dependency coverage
+  across base-color, metallic-roughness, normal, occlusion, and emissive slots.
+- Added follow-up tasks for GLB invalid texture/sampler diagnostics matrix tests
+  and GLB delayed dependency browser diagnostics.
+- Added
+  `docs/research/GLB_ALPHA_MASK_TEXTURE_PIXEL_FIXTURE_PLAN_2026_05_17.md`,
+  selecting a two-sample GLB-shaped alpha-mask base-color texture fixture that
+  proves one opaque pixel and one masked clear pixel without claiming
+  transparent blending.
+- Added `standard-gltf-texture?scenario=alpha-mask-texture`, using a
+  GLB-shaped base-color texture with alpha values above and below cutoff.
+- Added Playwright coverage that verifies the alpha-test pipeline key, one
+  opaque screenshot/readback sample, and one masked clear screenshot/readback
+  sample without claiming transparent blending or binary `.glb` loading.
+- Added
+  `docs/research/GLB_TEXTURE_BROWSER_STATUS_AFTER_ALPHA_MASK_AUDIT_2026_05_17.md`;
+  no ECS/render ownership drift or JSON-safety issue was found after the
+  alpha-mask texture sample fields.
+- Added a focused StandardMaterial shader contract test proving the
+  base-color-textured WGSL variant samples texture alpha before applying
+  `material.alphaCutoff` and keeps the textured alpha-mask pipeline key stable.
+- Added a narrow-viewport Playwright smoke test for the GLB alpha-mask texture
+  scenario to verify JSON-safe status, one draw, the alpha-test pipeline key,
+  and the opaque/masked pixel split.
+- Added a material-buffer packing test for textured masked StandardMaterial
+  assets, locking alpha-mask feature flags, `alphaCutoff`, texture dependency
+  keys, and JSON-safety expectations.
+- Updated public tracker pages and refilled the ready backlog.
+
+Validation run:
+
+- `pnpm exec tsc --noEmit -p tsconfig.json`
+- `pnpm exec vitest run test/webgpu/material-queue-route-report.test.ts test/webgpu/queued-material-frame-resource-route.test.ts test/webgpu/queued-built-in-app-resource-set.test.ts`
+- `pnpm run build`
+- `node --check examples/standard-gltf-texture.js`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "occlusion"`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "emissive"`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "alpha-mask"`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts`
+- `pnpm run check:progress`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "base-color alpha"`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts`
+- `pnpm exec vitest run test/webgpu/standard-shader.test.ts`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "narrow viewport"`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts`
+- `pnpm exec vitest run test/webgpu/standard-material-buffer.test.ts`
+
 ## task-1117 — Audit GLB texture browser status after metallic/normal work
 
 Completed: 2026-05-17

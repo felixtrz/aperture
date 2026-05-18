@@ -1,5 +1,394 @@
 # Handoff
 
+## Current Run Update — 2026-05-18T01:52:03Z
+
+Completed `task-1112`, `task-1119` through `task-1126`, `task-1130` through
+`task-1131`, and `task-1133` through `task-1135`. Recommended next task remains
+`task-1127`.
+
+Additional completed task id:
+
+- `task-1135` — Add StandardMaterial alpha-mask buffer flag test.
+
+Additional highlights since the previous handoff entry:
+
+- Added a focused StandardMaterial material-buffer packing test for a textured
+  masked material.
+- The test locks `BASE_COLOR_TEXTURE`, `ALPHA_MASK`, and `DOUBLE_SIDED` feature
+  flags, `alphaCutoff`, and base-color texture/sampler dependency keys.
+- Refilled the ready backlog with `task-1136`, an audit of alpha-mask coverage
+  alignment across mapping, buffer packing, WGSL, pipeline keys, and browser
+  pixels.
+
+Additional validation:
+
+- `pnpm exec vitest run test/webgpu/standard-material-buffer.test.ts`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm run check:progress`
+- `pnpm run check` passed: package boundaries, progress tracker validation,
+  build/typecheck, test typecheck, example syntax checks, lint, format check,
+  and 249 Vitest files / 1161 tests.
+
+Known issues / follow-ups:
+
+- Stop hook still needs to run after this handoff entry.
+- `task-1127` remains the recommended next architecture task.
+
+## Current Run Update — 2026-05-18T01:49:41Z
+
+Completed `task-1112`, `task-1119` through `task-1126`, `task-1130` through
+`task-1131`, and `task-1133` through `task-1134`. Recommended next task remains
+`task-1127`.
+
+Additional completed task id:
+
+- `task-1134` — Add GLB alpha-mask texture mobile viewport smoke test.
+
+Additional highlights since the previous handoff entry:
+
+- Added a narrow viewport Playwright smoke test for
+  `standard-gltf-texture?scenario=alpha-mask-texture`.
+- The test verifies JSON-safe status, one extracted draw, the textured
+  alpha-test pipeline key, and the opaque/masked pixel split at a smaller
+  viewport.
+- Refilled the ready backlog with `task-1135` for StandardMaterial alpha-mask
+  buffer flag coverage.
+
+Additional validation:
+
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "narrow viewport"`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts`
+- `pnpm run check:progress`
+
+Known issues / follow-ups:
+
+- Stop hook still needs to run after this handoff entry.
+- `task-1127` remains the recommended next architecture task.
+
+## Current Run Update — 2026-05-18T01:47:16Z
+
+Completed `task-1112`, `task-1119` through `task-1126`, `task-1130` through
+`task-1131`, and `task-1133`. Recommended next task remains `task-1127`.
+
+Additional completed task id:
+
+- `task-1133` — Add StandardMaterial textured alpha-mask shader contract test.
+
+Additional highlights since the previous handoff entry:
+
+- Added a focused StandardMaterial shader contract test in
+  `test/webgpu/standard-shader.test.ts`.
+- The test verifies the base-color-textured WGSL variant computes alpha from
+  `baseColorSample.a * material.baseColorFactor.a`, applies
+  `material.alphaCutoff` before `discard`, and keeps
+  `standard|baseColorTexture|mask|none|less|none` stable for a textured masked
+  StandardMaterial.
+- Refilled the ready backlog with `task-1134` for a narrow alpha-mask texture
+  mobile viewport smoke test.
+
+Additional validation:
+
+- `pnpm exec vitest run test/webgpu/standard-shader.test.ts`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm run check:progress`
+
+Additional reference files/patterns inspected:
+
+- `packages/webgpu/src/webgpu/standard-shader.ts`
+- `test/webgpu/standard-shader.test.ts`
+- `packages/render/src/materials/pipeline-key.ts`
+- `test/materials/materials.test.ts`
+
+Known issues / follow-ups:
+
+- Stop hook still needs to run after this handoff entry.
+- `task-1127` remains the recommended next architecture task.
+
+## Current Run Update — 2026-05-18T01:44:18Z
+
+Completed `task-1112`, `task-1119` through `task-1126`, and `task-1130`
+through `task-1131`. Recommended next task remains `task-1127`.
+
+Additional completed task id:
+
+- `task-1131` — Audit GLB texture browser status after alpha-mask pixels.
+
+Additional highlights since the previous handoff entry:
+
+- Added
+  `docs/research/GLB_TEXTURE_BROWSER_STATUS_AFTER_ALPHA_MASK_AUDIT_2026_05_17.md`.
+- Confirmed the alpha-mask texture browser status still derives from
+  GLB-shaped source mapping, source asset registration, ECS-authored
+  mesh/material handles, extraction, and app render reports.
+- Confirmed no raw texture bytes, source asset objects, backend caches, bind
+  groups, pipelines, queues, devices, or other WebGPU handles are published in
+  the browser status.
+- No corrective code change was needed.
+- Added `task-1133` to keep the ready backlog above five tasks with a focused
+  textured alpha-mask shader contract test.
+
+Additional validation:
+
+- `pnpm run check`
+- `pnpm run check:progress`
+
+Additional reference files/patterns inspected:
+
+- `docs/NORTH_STAR.md`
+- `docs/ARCHITECTURE.md`
+- `docs/DECISIONS.md`
+- `examples/standard-gltf-texture.js`
+- `test/e2e/standard-gltf-texture.spec.ts`
+
+Known issues / follow-ups:
+
+- Stop hook still needs to run after this handoff entry.
+- `task-1127` remains the recommended next architecture task.
+- Ready GLB follow-ups are `task-1128`, `task-1129`, `task-1132`, and
+  `task-1133`.
+
+## Current Run Update — 2026-05-18T01:41:44Z
+
+Completed `task-1112`, `task-1119` through `task-1126`, and `task-1130`.
+Recommended next task remains `task-1127`.
+
+Additional completed task id:
+
+- `task-1130` — Add GLB alpha-mask texture pixel fixture.
+
+Additional highlights since the previous handoff entry:
+
+- Added `standard-gltf-texture?scenario=alpha-mask-texture`.
+- The scenario maps a GLB-shaped StandardMaterial base-color texture with alpha
+  values above and below `alphaCutoff`, `alphaMode: "MASK"`, and
+  `doubleSided: true`.
+- Browser status now reports JSON-safe alpha-mask texture expectations,
+  source/mapped render-state fields, GLB-derived texture/sampler keys, sampler
+  mapping, sample points, pipeline keys, draw/resource counters, and diagnostics.
+- Added Playwright coverage that verifies one opaque screenshot/readback sample,
+  one masked clear screenshot/readback sample, and the
+  `standard|baseColorTexture|mask|none|less|none` pipeline key.
+- Refilled ready backlog with `task-1131` audit coverage and `task-1132`
+  planning for a future double-sided backface visual proof.
+
+Additional validation:
+
+- `node --check examples/standard-gltf-texture.js`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "base-color alpha"`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts`
+- `pnpm run check:progress`
+
+Additional reference files/patterns inspected:
+
+- `packages/webgpu/src/webgpu/standard-shader.ts`
+- `examples/standard-gltf-texture.js`
+- `test/e2e/standard-gltf-texture.spec.ts`
+
+Known issues / follow-ups:
+
+- Stop hook still needs to run after this handoff entry.
+- `task-1127` remains the recommended next architecture task.
+- `task-1131` should audit the browser status shape after the alpha-mask sample
+  fields before further GLB fixture expansion.
+
+## Current Run Update — 2026-05-18T01:36:02Z
+
+Completed `task-1112` and `task-1119` through `task-1126`. Recommended next
+task remains `task-1127`.
+
+Additional completed task id:
+
+- `task-1126` — Add GLB alpha-mask texture pixel fixture plan.
+
+Additional highlights since the previous handoff entry:
+
+- Added
+  `docs/research/GLB_ALPHA_MASK_TEXTURE_PIXEL_FIXTURE_PLAN_2026_05_17.md`.
+- Confirmed `STANDARD_MESH_WGSL` already discards masked StandardMaterial
+  fragments using base-color texture alpha when alpha masking is enabled.
+- Planned `standard-gltf-texture?scenario=alpha-mask-texture` with one opaque
+  sample and one masked clear sample, using a GLB-shaped base-color texture,
+  `alphaMode: "MASK"`, `alphaCutoff: 0.5`, and `doubleSided: true`.
+- Added `task-1130` as the implementation follow-up with screenshot/readback
+  assertions for one opaque pixel and one masked clear pixel.
+- Updated public tracker pages again for the alpha-mask pixel fixture plan.
+
+Additional validation:
+
+- `pnpm run check:progress`
+
+Additional reference files/patterns inspected:
+
+- `docs/research/GLB_ALPHA_DOUBLE_SIDED_RENDER_STATE_DIAGNOSTICS_PLAN_2026_05_17.md`
+- `examples/standard-gltf-texture.js`
+- `test/e2e/standard-gltf-texture.spec.ts`
+- `packages/render/src/materials/gltf-material.ts`
+- `packages/webgpu/src/webgpu/standard-shader.ts`
+- `packages/webgpu/src/webgpu/standard-pipeline-descriptor.ts`
+
+Known issues / follow-ups:
+
+- Stop hook still needs to run after this handoff entry.
+- `task-1127` is still the recommended next architecture task.
+- `task-1130` is ready when the run returns to alpha-mask pixel browser
+  coverage.
+
+## Current Run Update — 2026-05-18T01:33:18Z
+
+Completed `task-1112` and `task-1119` through `task-1125`. Recommended next
+task remains `task-1127`.
+
+Additional completed task id:
+
+- `task-1125` — Plan GLB StandardMaterial dependency diagnostics matrix.
+
+Additional highlights since the previous handoff entry:
+
+- Added
+  `docs/research/GLB_STANDARD_MATERIAL_DEPENDENCY_DIAGNOSTICS_MATRIX_2026_05_17.md`.
+- Confirmed current GLB-shaped StandardMaterial coverage already plans and
+  registers base-color, metallic-roughness, normal, occlusion, and emissive
+  texture/sampler handles with slot-specific texture semantics.
+- Confirmed existing readiness APIs already diagnose missing/loading/failed
+  texture and sampler states, plus StandardMaterial slot semantic/color-space
+  mismatches.
+- Identified the real remaining coverage gap as GLB-shaped failure/delayed
+  dependency fixtures, not missing core diagnostic states.
+- Added `task-1128` for invalid GLB texture/sampler diagnostics matrix tests
+  and `task-1129` for GLB delayed dependency browser diagnostics.
+- Updated public tracker pages to reflect the dependency diagnostics matrix
+  planning and next focus.
+
+Additional validation:
+
+- `pnpm run check:progress`
+
+Additional reference files/patterns inspected:
+
+- Bevy anchors: `references/bevy/crates/bevy_asset/src/loader.rs`,
+  `references/bevy/crates/bevy_asset/src/render_asset.rs`,
+  `references/bevy/crates/bevy_pbr/src/lib.rs`, and
+  `references/bevy/crates/bevy_gltf/src/loader/mod.rs`.
+- Aperture anchors:
+  `packages/render/src/assets/gltf-asset-mapping.ts`,
+  `packages/render/src/assets/gltf-source-registration.ts`,
+  `packages/render/src/materials/gltf-material.ts`,
+  `packages/render/src/materials/gltf-texture.ts`,
+  `packages/render/src/materials/dependency-readiness.ts`,
+  `packages/render/src/materials/standard-texture-readiness.ts`,
+  `test/assets/gltf-asset-mapping.test.ts`,
+  `test/assets/gltf-source-registration-dependencies.test.ts`,
+  `test/materials/material-dependency-readiness.test.ts`,
+  `test/materials/standard-texture-readiness.test.ts`, and
+  `test/e2e/standard-gltf-texture.spec.ts`.
+
+Known issues / follow-ups:
+
+- Stop hook still needs to run after this handoff entry.
+- `task-1127` is still the recommended next task for the renderer/material
+  architecture spine.
+- `task-1128` and `task-1129` should follow when the run returns to GLB
+  dependency diagnostics coverage.
+
+## Current Run Update — 2026-05-18T01:24:01Z
+
+Completed `task-1112` and `task-1119` through `task-1124`. Recommended next
+task is `task-1127`.
+
+Completed task ids:
+
+- `task-1112` — Extract queued built-in resource-set collector.
+- `task-1119` — Add GLB StandardMaterial occlusion texture browser fixture.
+- `task-1120` — Add GLB StandardMaterial emissive texture browser fixture.
+- `task-1121` — Add GLB alpha-mask double-sided render-state browser
+  diagnostics.
+- `task-1122` — Audit GLB browser helpers after occlusion/emissive expansion.
+- `task-1123` — Plan generic material-family frame-resource collector split.
+- `task-1124` — Add GLB render-state browser helper cleanup.
+
+Highlights:
+
+- Added `packages/webgpu/src/webgpu/queued-built-in-app-resource-set.ts` and
+  moved queue-to-resource-set collection, source asset indexing, prepare-route
+  diagnostics, and route-report normalization out of `app.ts`.
+- Added `test/webgpu/queued-built-in-app-resource-set.test.ts`, covering one
+  successful built-in route and one unsupported `debug-normal` family route
+  diagnostic without leaking raw GPU handles into JSON.
+- Added `standard-gltf-texture?scenario=occlusion` and
+  `standard-gltf-texture?scenario=emissive`, using GLB-style glTF mapping and
+  source registration for `occlusionTexture` and `emissiveTexture` through the
+  app-facade WebGPU path.
+- Added `standard-gltf-texture?scenario=alpha-mask-double-sided`, publishing
+  JSON-safe glTF source render-state fields and mapped StandardMaterial render
+  state. The current pipeline key is
+  `standard|mask|none|less|none`.
+- Updated public tracker pages, moved completed tasks to `agent/COMPLETED.md`,
+  and refilled the ready backlog with `task-1123` through `task-1126`.
+- Added
+  `docs/research/GLB_BROWSER_HELPERS_AFTER_OCCLUSION_EMISSIVE_AUDIT_2026_05_17.md`;
+  no ECS/source-asset ownership drift or JSON-safety issue was found.
+- Added
+  `docs/research/GENERIC_MATERIAL_FAMILY_FRAME_RESOURCE_COLLECTOR_SPLIT_PLAN_2026_05_17.md`,
+  selecting a `queued-built-in-frame-resource-set` extraction with app/device
+  callbacks injected from `app.ts`.
+- Extracted local `standard-gltf-texture` status helpers for
+  `standardMaterial` render-state status and optional `standardTexture` status
+  without changing the published status shape.
+
+Validation:
+
+- `pnpm exec tsc --noEmit -p tsconfig.json`
+- `pnpm exec vitest run test/webgpu/material-queue-route-report.test.ts test/webgpu/queued-material-frame-resource-route.test.ts test/webgpu/queued-built-in-app-resource-set.test.ts`
+- `pnpm run build`
+- `node --check examples/standard-gltf-texture.js`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "occlusion"`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "emissive"`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "alpha-mask"`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts`
+- `node --check examples/standard-gltf-texture.js`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts`
+- `pnpm run check:progress`
+- `pnpm run check` passed: package boundaries, progress tracker validation,
+  build/typecheck, test typecheck, example syntax checks, lint, format check,
+  and 249 Vitest files / 1159 tests.
+
+Reference files/patterns inspected:
+
+- WebGPU render anchors:
+  `references/engine/src/platform/graphics/webgpu/webgpu-render-pipeline.js`
+  and `references/three.js/src/renderers/common/RenderObject.js`.
+- Aperture anchors:
+  `docs/research/GENERIC_MATERIAL_FAMILY_QUEUE_MIGRATION_CHECKPOINT_2026_05_17.md`,
+  `docs/research/GLB_OCCLUSION_EMISSIVE_BROWSER_FIXTURE_SPLIT_PLAN_2026_05_17.md`,
+  `docs/research/GLB_ALPHA_DOUBLE_SIDED_RENDER_STATE_DIAGNOSTICS_PLAN_2026_05_17.md`,
+  `docs/research/GENERIC_MATERIAL_FAMILY_FRAME_RESOURCE_COLLECTOR_SPLIT_PLAN_2026_05_17.md`,
+  `packages/render/src/rendering/material-queue.ts`,
+  `packages/render/src/assets/gltf-asset-mapping.ts`,
+  `packages/render/src/assets/gltf-source-registration-orchestration.ts`,
+  `packages/render/src/materials/gltf-material.ts`,
+  `packages/webgpu/src/webgpu/built-in-material-app-resource-adapter.ts`,
+  `packages/webgpu/src/webgpu/queued-built-in-app-resource-set.ts`,
+  `packages/webgpu/src/webgpu/standard-pipeline-descriptor.ts`,
+  `references/engine/src/scene/renderer/forward-renderer.js`,
+  `references/three.js/src/renderers/common/RenderObject.js`,
+  `examples/standard-gltf-texture.js`, and
+  `test/e2e/standard-gltf-texture.spec.ts`.
+
+Known issues / follow-ups:
+
+- Stop hook still needs to run after this handoff entry.
+- The GLB browser path is still inline GLB-equivalent mapping/source
+  registration, not binary `.glb` loading.
+- The alpha-mask/double-sided browser slice verifies source-to-render-state and
+  pipeline-key diagnostics only; it does not prove masked texture pixel
+  behavior.
+- Next task: `task-1127` extract the queued built-in frame-resource
+  preparation set.
+
 ## Current Run Update — 2026-05-18T00:38:00Z
 
 Completed `task-1106` through `task-1118`. Recommended next task is

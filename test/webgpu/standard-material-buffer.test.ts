@@ -116,6 +116,34 @@ describe("standard material WebGPU uniform packing", () => {
     ).toEqual([1, 2, 3, 4, 5]);
   });
 
+  it("packs textured alpha-mask flags and cutoff for shader discard", () => {
+    const result = packStandardMaterial(
+      createStandardMaterialAsset({
+        baseColorTexture: textureBinding("alpha-mask", "nearest", 0),
+        renderState: {
+          alphaMode: "mask",
+          alphaCutoff: 0.5,
+          cullMode: "none",
+        },
+      }),
+    );
+
+    expect(result.valid).toBe(true);
+    expect(result.diagnostics).toEqual([]);
+    expect(result.packed?.featureFlags).toBe(
+      STANDARD_MATERIAL_FEATURE_FLAGS.BASE_COLOR_TEXTURE |
+        STANDARD_MATERIAL_FEATURE_FLAGS.ALPHA_MASK |
+        STANDARD_MATERIAL_FEATURE_FLAGS.DOUBLE_SIDED,
+    );
+    expect(result.packed?.uniformFloat32[11]).toBeCloseTo(0.5);
+    expect(result.packed?.dependencies.baseColor).toEqual({
+      textureKey: "texture:alpha-mask",
+      samplerKey: "sampler:nearest",
+      texCoord: 0,
+    });
+    expect(JSON.stringify(result)).not.toContain("GPU");
+  });
+
   it("plans a material buffer and material bind group with stable keys", () => {
     const material = createStandardMaterialAsset({
       label: "Gold",

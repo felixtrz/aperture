@@ -6,6 +6,26 @@ const scalarColor = [0.95, 0.1, 0.08, 1];
 const expectedTextureColor = [0.09375, 0.5, 1, 1];
 const metallicRoughness = { metallic: 64 / 255, roughness: 16 / 255 };
 const normalMapVector = { x: 128 / 255, y: 128 / 255, z: 16 / 255 };
+const occlusionValue = 32 / 255;
+const occlusion = { red: occlusionValue, strength: 1 };
+const emissiveColor = [1, 0.5, 0.125, 1];
+const emissiveFactor = [0.9, 0.25, 0.08];
+const alphaMaskDoubleSided = {
+  alphaMode: "MASK",
+  alphaCutoff: 0.35,
+  doubleSided: true,
+};
+const alphaMaskTexture = {
+  source: {
+    alphaMode: "MASK",
+    alphaCutoff: 0.5,
+    doubleSided: true,
+  },
+  opaqueColor: expectedTextureColor,
+  maskedColor: [1, 24 / 255, 24 / 255, 64 / 255],
+  opaqueSample: { id: "opaque", x: 0.455, y: 0.5 },
+  maskedSample: { id: "masked", x: 0.53, y: 0.5 },
+};
 const textureTransform = { offset: [0.25, 0] };
 const gltfSamplerSource = {
   magFilter: 9728,
@@ -22,6 +42,15 @@ const metallicRoughnessTextureBytes = new Uint8Array([
 ]);
 const normalTextureBytes = new Uint8Array([
   128, 128, 16, 255, 128, 128, 16, 255, 128, 128, 16, 255, 128, 128, 16, 255,
+]);
+const occlusionTextureBytes = new Uint8Array([
+  32, 255, 255, 255, 32, 255, 255, 255, 32, 255, 255, 255, 32, 255, 255, 255,
+]);
+const emissiveTextureBytes = new Uint8Array([
+  255, 128, 32, 255, 255, 128, 32, 255, 255, 128, 32, 255, 255, 128, 32, 255,
+]);
+const alphaMaskTextureBytes = new Uint8Array([
+  24, 128, 255, 255, 255, 24, 24, 64, 24, 128, 255, 255, 255, 24, 24, 64,
 ]);
 const expectedGltfFailures = {
   "base-color-transform": {
@@ -79,7 +108,7 @@ try {
         frame: 1,
         clearColor,
         label: "standard-gltf-texture-app",
-        readbackSamples: [{ id: "textured", ...scene.samplePoint }],
+        readbackSamples: scene.readbackSamples,
       });
 
       publishStatus(createStatus(aperture, created.app, scene, report));
@@ -167,6 +196,16 @@ function createGltfTextureScene(aperture, app, targetCanvas, selectedScenario) {
     expectedTextureColor: config.expectedTextureColor,
     expectedMetallicRoughness: config.expectedMetallicRoughness,
     expectedNormalMap: config.expectedNormalMap,
+    expectedOcclusion: config.expectedOcclusion,
+    expectedEmissive: config.expectedEmissive,
+    expectedAlphaMaskTexture: config.expectedAlphaMaskTexture,
+    expectedRenderState: config.expectedRenderState,
+    readbackSamples: config.expectedAlphaMaskTexture
+      ? [
+          config.expectedAlphaMaskTexture.opaqueSample,
+          config.expectedAlphaMaskTexture.maskedSample,
+        ]
+      : [{ id: "textured", x: 0.5, y: 0.5 }],
   };
 }
 
@@ -175,31 +214,78 @@ function createGltfScenarioConfig(selectedScenario) {
   const usesMetallicRoughnessTexture =
     selectedScenario === "metallic-roughness";
   const usesNormalTexture = selectedScenario === "normal-map";
+  const usesOcclusionTexture = selectedScenario === "occlusion";
+  const usesEmissiveTexture = selectedScenario === "emissive";
+  const usesAlphaMaskDoubleSided =
+    selectedScenario === "alpha-mask-double-sided";
+  const usesAlphaMaskTexture = selectedScenario === "alpha-mask-texture";
 
   return {
     usesBaseColorTransform,
     usesMetallicRoughnessTexture,
     usesNormalTexture,
+    usesOcclusionTexture,
+    usesEmissiveTexture,
+    usesAlphaMaskDoubleSided,
+    usesAlphaMaskTexture,
     textureSlot: usesMetallicRoughnessTexture
       ? "metallicRoughnessTexture"
       : usesNormalTexture
         ? "normalTexture"
-        : "baseColorTexture",
+        : usesOcclusionTexture
+          ? "occlusionTexture"
+          : usesEmissiveTexture
+            ? "emissiveTexture"
+            : usesAlphaMaskDoubleSided
+              ? null
+              : "baseColorTexture",
     materialModel: usesMetallicRoughnessTexture
       ? "gltf-standard-metallic-roughness-texture"
       : usesNormalTexture
         ? "gltf-standard-normal-texture"
-        : "gltf-standard-base-color-texture",
+        : usesOcclusionTexture
+          ? "gltf-standard-occlusion-texture"
+          : usesEmissiveTexture
+            ? "gltf-standard-emissive-texture"
+            : usesAlphaMaskDoubleSided
+              ? "gltf-standard-alpha-mask-double-sided"
+              : usesAlphaMaskTexture
+                ? "gltf-standard-alpha-mask-texture"
+                : "gltf-standard-base-color-texture",
     expectedFailure: expectedGltfFailures[selectedScenario] ?? null,
     expectedTextureTransform: usesBaseColorTransform ? textureTransform : null,
     expectedTextureColor:
-      usesMetallicRoughnessTexture || usesNormalTexture
+      usesMetallicRoughnessTexture || usesNormalTexture || usesOcclusionTexture
         ? null
-        : expectedTextureColor,
+        : usesEmissiveTexture
+          ? null
+          : expectedTextureColor,
     expectedMetallicRoughness: usesMetallicRoughnessTexture
       ? metallicRoughness
       : null,
     expectedNormalMap: usesNormalTexture ? normalMapVector : null,
+    expectedOcclusion: usesOcclusionTexture ? occlusion : null,
+    expectedEmissive: usesEmissiveTexture
+      ? { factor: emissiveFactor, color: emissiveColor }
+      : null,
+    expectedAlphaMaskTexture: usesAlphaMaskTexture ? alphaMaskTexture : null,
+    expectedRenderState:
+      usesAlphaMaskDoubleSided || usesAlphaMaskTexture
+        ? {
+            source: usesAlphaMaskTexture
+              ? alphaMaskTexture.source
+              : alphaMaskDoubleSided,
+            mapped: {
+              alphaMode: "mask",
+              alphaCutoff: usesAlphaMaskTexture
+                ? alphaMaskTexture.source.alphaCutoff
+                : alphaMaskDoubleSided.alphaCutoff,
+              cullMode: "none",
+              depth: { test: true, write: true, compare: "less" },
+              blend: { preset: "none" },
+            },
+          }
+        : null,
   };
 }
 
@@ -217,40 +303,96 @@ function createGltfFixtureRoot(config) {
           metallicFactor: 0,
           roughnessFactor: 0.8,
         }
-      : {
-          baseColorFactor: [1, 1, 1, 1],
-          baseColorTexture: {
-            index: 0,
-            ...(config.usesBaseColorTransform
+      : config.usesOcclusionTexture
+        ? {
+            baseColorFactor: scalarColor,
+            metallicFactor: 0,
+            roughnessFactor: 0.8,
+          }
+        : config.usesEmissiveTexture
+          ? {
+              baseColorFactor: scalarColor,
+              metallicFactor: 0,
+              roughnessFactor: 0.8,
+            }
+          : config.usesAlphaMaskDoubleSided
+            ? {
+                baseColorFactor: scalarColor,
+                metallicFactor: 0,
+                roughnessFactor: 0.8,
+              }
+            : config.usesAlphaMaskTexture
               ? {
-                  extensions: {
-                    KHR_texture_transform: textureTransform,
-                  },
+                  baseColorFactor: [1, 1, 1, 1],
+                  baseColorTexture: { index: 0 },
+                  metallicFactor: 0,
+                  roughnessFactor: 0.8,
                 }
-              : {}),
-          },
-          metallicFactor: 0,
-          roughnessFactor: 0.8,
-        };
+              : {
+                  baseColorFactor: [1, 1, 1, 1],
+                  baseColorTexture: {
+                    index: 0,
+                    ...(config.usesBaseColorTransform
+                      ? {
+                          extensions: {
+                            KHR_texture_transform: textureTransform,
+                          },
+                        }
+                      : {}),
+                  },
+                  metallicFactor: 0,
+                  roughnessFactor: 0.8,
+                };
 
   const material = {
     name: config.usesMetallicRoughnessTexture
       ? "GLB Standard MetallicRoughness"
       : config.usesNormalTexture
         ? "GLB Standard Normal"
-        : "GLB Standard BaseColor",
+        : config.usesOcclusionTexture
+          ? "GLB Standard Occlusion"
+          : config.usesEmissiveTexture
+            ? "GLB Standard Emissive"
+            : config.usesAlphaMaskDoubleSided
+              ? "GLB Standard Alpha Mask Double Sided"
+              : config.usesAlphaMaskTexture
+                ? "GLB Standard Alpha Mask Texture"
+                : "GLB Standard BaseColor",
     pbrMetallicRoughness,
+    ...(config.usesAlphaMaskDoubleSided || config.usesAlphaMaskTexture
+      ? {
+          alphaMode: config.usesAlphaMaskTexture
+            ? alphaMaskTexture.source.alphaMode
+            : alphaMaskDoubleSided.alphaMode,
+          alphaCutoff: config.usesAlphaMaskTexture
+            ? alphaMaskTexture.source.alphaCutoff
+            : alphaMaskDoubleSided.alphaCutoff,
+          doubleSided: config.usesAlphaMaskTexture
+            ? alphaMaskTexture.source.doubleSided
+            : alphaMaskDoubleSided.doubleSided,
+        }
+      : {}),
     ...(config.usesNormalTexture
       ? { normalTexture: { index: 0, scale: 2 } }
+      : {}),
+    ...(config.usesOcclusionTexture
+      ? { occlusionTexture: { index: 0, strength: occlusion.strength } }
+      : {}),
+    ...(config.usesEmissiveTexture
+      ? { emissiveFactor, emissiveTexture: { index: 0 } }
       : {}),
   };
 
   return {
     asset: { version: "2.0" },
     materials: [material],
-    textures: [{ source: 0, sampler: 0 }],
-    images: [{ bufferView: 0, mimeType: "image/png", name: "BaseColor" }],
-    samplers: [gltfSamplerSource],
+    ...(config.textureSlot === null
+      ? {}
+      : {
+          textures: [{ source: 0, sampler: 0 }],
+          images: [{ bufferView: 0, mimeType: "image/png", name: "BaseColor" }],
+          samplers: [gltfSamplerSource],
+        }),
   };
 }
 
@@ -260,6 +402,14 @@ function textureBytesForSlot(textureSlot) {
       return metallicRoughnessTextureBytes;
     case "normalTexture":
       return normalTextureBytes;
+    case "occlusionTexture":
+      return occlusionTextureBytes;
+    case "emissiveTexture":
+      return emissiveTextureBytes;
+    case "baseColorTexture":
+      return scenario === "alpha-mask-texture"
+        ? alphaMaskTextureBytes
+        : baseColorTextureBytes;
     default:
       return baseColorTextureBytes;
   }
@@ -360,21 +510,8 @@ function createStatus(aperture, app, scene, report) {
         ),
       },
     },
-    standardTexture: {
-      meshKey: aperture.assetHandleKey(scene.mesh),
-      materialKey: aperture.assetHandleKey(scene.material),
-      textureKey: `texture:gltf:texture:0:${scene.textureSlot}`,
-      samplerKey: `sampler:gltf:sampler:0:${scene.textureSlot}`,
-      textureSlot: scene.textureSlot,
-      samplerMapping: createSamplerMappingStatus(
-        scene.assetMapping.samplers[0],
-      ),
-      expectedTextureColor: scene.expectedTextureColor,
-      expectedMetallicRoughness: scene.expectedMetallicRoughness,
-      expectedNormalMap: scene.expectedNormalMap,
-      expectedTextureTransform: scene.expectedTextureTransform,
-      sample: scene.samplePoint,
-    },
+    standardMaterial: createStandardMaterialStatus(aperture, scene),
+    ...createStandardTextureStatus(aperture, scene),
     ...(report.readback === undefined ? {} : { readback: report.readback }),
     extraction: {
       views: snapshot.views.length,
@@ -405,6 +542,54 @@ function createStatus(aperture, app, scene, report) {
       message: diagnostic.message,
       severity: diagnostic.severity,
     })),
+  };
+}
+
+function createStandardMaterialStatus(aperture, scene) {
+  return {
+    meshKey: aperture.assetHandleKey(scene.mesh),
+    materialKey: aperture.assetHandleKey(scene.material),
+    renderState: {
+      source: scene.expectedRenderState?.source ?? null,
+      mapped:
+        scene.assetMapping.materials[0]?.material.renderState ??
+        scene.expectedRenderState?.mapped ??
+        null,
+    },
+  };
+}
+
+function createStandardTextureStatus(aperture, scene) {
+  if (scene.textureSlot === null) {
+    return {};
+  }
+
+  return {
+    standardTexture: {
+      meshKey: aperture.assetHandleKey(scene.mesh),
+      materialKey: aperture.assetHandleKey(scene.material),
+      textureKey: `texture:gltf:texture:0:${scene.textureSlot}`,
+      samplerKey: `sampler:gltf:sampler:0:${scene.textureSlot}`,
+      textureSlot: scene.textureSlot,
+      samplerMapping: createSamplerMappingStatus(
+        scene.assetMapping.samplers[0],
+      ),
+      expectedTextureColor: scene.expectedTextureColor,
+      expectedMetallicRoughness: scene.expectedMetallicRoughness,
+      expectedNormalMap: scene.expectedNormalMap,
+      expectedOcclusion: scene.expectedOcclusion,
+      expectedEmissive: scene.expectedEmissive,
+      expectedAlphaMaskTexture: scene.expectedAlphaMaskTexture,
+      expectedTextureTransform: scene.expectedTextureTransform,
+      sample: scene.samplePoint,
+      samples:
+        scene.expectedAlphaMaskTexture === null
+          ? undefined
+          : {
+              opaque: scene.expectedAlphaMaskTexture.opaqueSample,
+              masked: scene.expectedAlphaMaskTexture.maskedSample,
+            },
+    },
   };
 }
 

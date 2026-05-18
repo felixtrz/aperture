@@ -393,16 +393,13 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-17 17:47 PDT</dd>
+            <dd>2026-05-17 18:51 PDT</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
-            <dd>GLB texture browser coverage expanded through normal maps</dd>
+            <dd>GLB alpha-mask buffer and pixel coverage verified</dd>
             <dt>Next focus</dt>
-            <dd>
-              Extract material queue collector, audit GLB status, then add
-              occlusion/emissive fixtures
-            </dd>
+            <dd>Extract queued built-in frame-resource preparation set</dd>
           </dl>
         </aside>
       </header>
@@ -467,7 +464,8 @@
               missing-tangent diagnostics, authored and GLB-derived base-color
               transform diagnostics, a minimal GLB-derived base-color texture
               fixture, GLB sampler mapping status, and GLB-derived
-              metallic-roughness and normal texture fixtures.
+              metallic-roughness, normal, occlusion, and emissive texture
+              fixtures plus alpha-mask double-sided render-state diagnostics.
             </p>
           </article>
           <article class="card metric">
@@ -488,7 +486,7 @@
               texture diagnostics, opt-in app-facade readback samples,
               example-level texture fidelity summary usage, GLB-derived source
               registration status, GLB sampler mapping status, and GLB texture
-              transform diagnostics in browser.
+              transform/render-state diagnostics in browser.
             </p>
           </article>
         </div>
@@ -638,7 +636,7 @@
                 Missing one generic change-set scheduler across all prepared
                 assets.
               </li>
-              <li>Missing complete GLB texture/sampler dependency handoff.</li>
+              <li>Missing GLB delayed dependency browser diagnostics.</li>
               <li>Missing automatic unload policy integration.</li>
             </ul>
           </article>
@@ -653,6 +651,10 @@
               exist for built-in material families, with compact render-world
               prepared resource summaries, prepare-and-bind summary consumers,
               and StandardMaterial texture/sampler fidelity diagnostics covered.
+              GLB-derived occlusion/emissive fixtures and alpha-mask
+              double-sided diagnostics now run through the app facade. The
+              GLB-derived alpha-mask texture fixture now verifies one opaque
+              pixel and one masked clear pixel.
             </p>
             <ul>
               <li>Missing generic material-family preparation contract.</li>
@@ -674,8 +676,9 @@
               Material-family queueing, route diagnostics, resource key
               resolution, Standard transparent phases, app route reporting, and
               failure diagnostics for frame-resource route shells are
-              implemented; successful frames now route through an internal shell
-              wrapper with omission regression coverage.
+              implemented; the queued built-in resource-set collector now lives
+              in a focused internal module with route-report regression
+              coverage.
             </p>
             <ul>
               <li>
@@ -1307,14 +1310,63 @@
                 <span class="badge green">task-1117</span> Audited GLB texture
                 browser status after metallic-roughness and normal-map coverage.
               </li>
+              <li>
+                <span class="badge green">task-1112</span> Extracted the queued
+                built-in resource-set collector from WebGPU app orchestration.
+              </li>
+              <li>
+                <span class="badge green">task-1119-1121</span> Added
+                GLB-derived occlusion/emissive texture browser coverage and
+                alpha-mask double-sided render-state diagnostics.
+              </li>
+              <li>
+                <span class="badge green">task-1122</span> Audited GLB browser
+                helper/status boundaries after occlusion and emissive expansion.
+              </li>
+              <li>
+                <span class="badge green">task-1123</span> Planned the next
+                generic material-family frame-resource collector split.
+              </li>
+              <li>
+                <span class="badge green">task-1124</span> Cleaned up local GLB
+                texture/render-state browser status helpers.
+              </li>
+              <li>
+                <span class="badge green">task-1125</span> Planned the GLB
+                StandardMaterial texture/sampler dependency diagnostics matrix.
+              </li>
+              <li>
+                <span class="badge green">task-1126</span> Planned a GLB-derived
+                alpha-mask texture pixel fixture.
+              </li>
+              <li>
+                <span class="badge green">task-1130</span> Added GLB-derived
+                alpha-mask texture pixel coverage.
+              </li>
+              <li>
+                <span class="badge green">task-1131</span> Audited GLB texture
+                browser status after alpha-mask pixel coverage.
+              </li>
+              <li>
+                <span class="badge green">task-1133</span> Added a
+                StandardMaterial textured alpha-mask shader contract test.
+              </li>
+              <li>
+                <span class="badge green">task-1134</span> Added a narrow
+                viewport smoke test for GLB alpha-mask texture pixels.
+              </li>
+              <li>
+                <span class="badge green">task-1135</span> Added
+                StandardMaterial alpha-mask buffer flag coverage.
+              </li>
             </ul>
           </article>
           <article class="card task-list">
             <h3>Recommended next tasks</h3>
             <ul>
               <li>
-                <span class="badge amber">next</span> Extract the queued
-                built-in resource-set collector from the WebGPU app route.
+                <span class="badge amber">next</span> Extract queued built-in
+                frame-resource preparation set.
               </li>
               <li>
                 Keep this tracker updated after render-pipeline or
