@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-18 05:23 PDT</dd>
+            <dd>2026-05-18 06:45 PDT</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -408,13 +408,28 @@
               its deterministic StandardMaterial pipeline key. The translucent
               alpha-blend texture fixture now verifies blended pixels through
               screenshot/readback checks, and the double-sided alpha-blend
-              fixture now pins no-cull transparent backface rendering. App-level
-              non-built-in material routing remains deferred.
+              fixture now pins no-cull transparent backface rendering. The
+              generic frame-resource route now also rejects valid pipeline
+              resources that do not expose bind group layouts before creating
+              frame resources, and invalid pipeline views now preserve their
+              diagnostics while producing no frame-resource output. App-level
+              non-built-in material routing remains deferred. A
+              DebugNormalMaterial route-readiness map now defines the missing
+              material buffer, bind group, frame-resource, route adapter, and
+              browser coverage steps before activation, and the renderer now has
+              a JSON-safe debug-normal material buffer resource helper.
+              DebugNormalMaterial group-2 bind group layout/resource helpers now
+              consume that buffer, and DebugNormalMaterial frame resources now
+              assemble mesh, view, transform, material, and bind group resources
+              while the app frame-resource cache can now reuse same-key
+              debug-normal resources and update dynamic buffers in place. Active
+              app routing remains inactive, with the route integration plan now
+              audited as the next implementation slice.
             </dd>
             <dt>Next focus</dt>
             <dd>
-              Plan next route or glTF fidelity slice after alpha-blend
-              double-sided coverage
+              Plan active DebugNormalMaterial route integration after app frame
+              resources
             </dd>
           </dl>
         </aside>
@@ -464,7 +479,14 @@
               frame-resource routes now pin deterministic generic buckets and
               pipeline-scoped bind groups, and app-level mixed built-in routes
               now pin JSON-safe material queue and routed resource summaries for
-              two-family and three-family successful paths. Richer app-level
+              two-family and three-family successful paths. The generic
+              frame-resource set now rejects incomplete pipeline layout access
+              and invalid pipeline views before creating frame resources.
+              DebugNormalMaterial route readiness is mapped, with app routing
+              still inactive until renderer-owned resources exist. The first
+              renderer-owned debug-normal material buffer helper now exists with
+              JSON-safe inspection, and group-2 bind group resources now have
+              JSON-safe inspection as the next prerequisite. Richer app-level
               adapter routing, passes, and resource lifetime policy remain.
             </p>
           </article>
@@ -725,11 +747,21 @@
               blended pixel/readback behavior and double-sided backface output.
               Queued app render reports now expose JSON-safe diagnostics
               summaries for routed resources, and built-in frame-resource
-              preparation is wrapped over a generic collector contract.
-              Base-color texture transform offset/scale sampling now has packed
-              uniforms, WGSL sampling, GLB browser readback coverage, and
-              unsupported-rotation diagnostics. GLB-shaped base-color UV1
-              browser coverage now verifies
+              preparation is wrapped over a generic collector contract. Missing
+              pipeline-layout access now fails with a JSON-safe
+              <code>webGpuApp.missingPipelineLayouts</code> diagnostic before
+              any frame resources are created, and invalid pipeline views now
+              preserve their diagnostics with zero frame-resource output.
+              DebugNormalMaterial route readiness now identifies the material
+              buffer, bind group, frame-resource, and app adapter work required
+              before activation. The material buffer helper is now implemented
+              and tested; bind group layout/resource helpers are now implemented
+              and tested; frame resources are now implemented and tested while
+              app frame-resource cache/reuse is also covered; active app routing
+              remains deferred. Base-color texture transform offset/scale
+              sampling now has packed uniforms, WGSL sampling, GLB browser
+              readback coverage, and unsupported-rotation diagnostics.
+              GLB-shaped base-color UV1 browser coverage now verifies
               <code>TEXCOORD_1</code> readiness, mesh layout, pipeline key, and
               selected pixel color. Generic frame-resource buckets now expose
               deterministic family summaries for app diagnostics, and mixed
@@ -772,7 +804,14 @@
               paths, and the alpha-blend fixture now asserts transparent phase
               routing with the
               <code>standard|baseColorTexture|blend|back|less|alpha</code>
-              pipeline key.
+              pipeline key. Missing pipeline-layout access in the generic
+              frame-resource route now produces a JSON-safe failure with zero
+              resource-key mappings, and invalid pipeline views do the same
+              before pipeline plans or layouts are created. DebugNormalMaterial
+              remains intentionally outside the active built-in route table
+              while material buffer, bind group, and frame-resource helpers are
+              implemented below the app routing layer, including same-key app
+              frame-resource cache reuse.
             </p>
             <ul>
               <li>
@@ -840,6 +879,112 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">task-1400</span> Audited the active
+                DebugNormal route integration plan.
+              </li>
+              <li>
+                <span class="badge green">task-1399</span> Planned active
+                DebugNormal route integration after app frame resources.
+              </li>
+              <li>
+                <span class="badge green">task-1397</span> Audited the
+                debug-normal app frame-resource helper.
+              </li>
+              <li>
+                <span class="badge green">task-1396</span> Added the
+                debug-normal app frame-resource cache/reuse helper.
+              </li>
+              <li>
+                <span class="badge green">task-1395</span> Audited the
+                debug-normal app frame-resource plan.
+              </li>
+              <li>
+                <span class="badge green">task-1394</span> Planned debug-normal
+                app frame resources after frame resources.
+              </li>
+              <li>
+                <span class="badge green">task-1392</span> Audited the
+                debug-normal frame-resource helper.
+              </li>
+              <li>
+                <span class="badge green">task-1391</span> Added the
+                debug-normal frame-resource helper.
+              </li>
+              <li>
+                <span class="badge green">task-1390</span> Audited the
+                debug-normal frame-resource plan.
+              </li>
+              <li>
+                <span class="badge green">task-1389</span> Planned debug-normal
+                frame resources after bind groups.
+              </li>
+              <li>
+                <span class="badge green">task-1387</span> Audited the
+                debug-normal bind group resource helper.
+              </li>
+              <li>
+                <span class="badge green">task-1386</span> Added the
+                debug-normal bind group resource helper.
+              </li>
+              <li>
+                <span class="badge green">task-1382</span> Audited the
+                debug-normal material buffer resource helper.
+              </li>
+              <li>
+                <span class="badge green">task-1381</span> Added the
+                debug-normal material buffer resource helper.
+              </li>
+              <li>
+                <span class="badge green">task-1379</span> Audited the
+                DebugNormalMaterial route-readiness map.
+              </li>
+              <li>
+                <span class="badge green">task-1378</span> Added the
+                DebugNormalMaterial route-readiness map.
+              </li>
+              <li>
+                <span class="badge green">task-1377</span> Audited the
+                DebugNormalMaterial route-readiness plan.
+              </li>
+              <li>
+                <span class="badge green">task-1376</span> Planned
+                DebugNormalMaterial route-readiness after generic route guards.
+              </li>
+              <li>
+                <span class="badge green">task-1374</span> Audited the invalid
+                pipeline-view frame-resource regression boundaries.
+              </li>
+              <li>
+                <span class="badge green">task-1373</span> Added a generic
+                frame-resource regression for invalid pipeline views.
+              </li>
+              <li>
+                <span class="badge green">task-1372</span> Audited the invalid
+                pipeline-view frame-resource plan.
+              </li>
+              <li>
+                <span class="badge green">task-1371</span> Planned the next
+                route/prepared-resource slice after the pipeline-layout guard.
+              </li>
+              <li>
+                <span class="badge green">task-1369</span> Audited the
+                pipeline-layout-missing frame-resource regression boundaries.
+              </li>
+              <li>
+                <span class="badge green">task-1368</span> Added a generic
+                frame-resource regression for pipelines without bind group
+                layout access.
+              </li>
+              <li>
+                <span class="badge green">task-1367</span> Audited the
+                pipeline-layout-missing frame-resource plan.
+              </li>
+              <li>
+                <span class="badge green">task-1366</span> Planned the next
+                route/prepared-resource slice after alpha-blend double-sided
+                coverage.
+              </li>
               <li>
                 <span class="badge green">task-1365</span> Audited tracker and
                 backlog alignment after alpha-blend double-sided coverage.

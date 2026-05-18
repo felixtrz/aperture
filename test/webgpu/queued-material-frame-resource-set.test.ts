@@ -675,6 +675,252 @@ describe("queued material frame-resource set preparation", () => {
     expect(serialized).not.toContain("rawGpuHandle");
   });
 
+  it("rejects generic frame resources when the pipeline does not expose layouts", async () => {
+    type Item = {
+      readonly pipelineKey: string;
+      readonly sourceMeshKey: string;
+      readonly sourceMaterialKey: string;
+    };
+    type Pipeline = {
+      readonly valid: true;
+      readonly resource: {
+        readonly pipeline: Record<string, never>;
+      };
+      readonly diagnostics: readonly [];
+    };
+    type Mesh = { readonly resourceKey: string };
+    type BindGroup = {
+      readonly group: number;
+      readonly resourceKey: string;
+      readonly layoutKey: string;
+      readonly bindGroup: unknown;
+      readonly entryResourceKeys: readonly string[];
+    };
+    type Resources = {
+      readonly mesh: Mesh;
+      readonly material: { readonly resourceKey: string };
+      readonly bindGroups: readonly BindGroup[];
+    };
+    type ResourceResult = {
+      readonly valid: true;
+      readonly resources: Resources;
+      readonly diagnostics: readonly [];
+    };
+    const scratch = createQueuedMaterialFrameResourceScratch<
+      { readonly key: string },
+      Mesh,
+      BindGroup
+    >();
+    let frameResourceCalls = 0;
+    const result = await prepareQueuedMaterialFrameResourceSet<
+      Item,
+      Pipeline,
+      { readonly key: string },
+      { readonly layout: unknown },
+      { readonly valid: true; readonly diagnostics: readonly [] },
+      { readonly item: Item; readonly layouts: { readonly layout: unknown } },
+      Resources,
+      ResourceResult,
+      Mesh,
+      BindGroup
+    >({
+      items: [
+        {
+          pipelineKey: "custom|opaque",
+          sourceMeshKey: "mesh:source",
+          sourceMaterialKey: "material:source",
+        },
+      ],
+      scratch,
+      callbacks: {
+        getPipelineKey: (item) => item.pipelineKey,
+        getSourceMeshKey: (item) => item.sourceMeshKey,
+        getSourceMaterialKey: (item) => item.sourceMaterialKey,
+        getPipeline: () => ({
+          valid: true,
+          resource: { pipeline: {} },
+          diagnostics: [],
+        }),
+        getPipelineView: (pipeline) => pipeline,
+        createPipelinePlanResult: ({ item }) => ({ key: item.pipelineKey }),
+        getPipelineLayouts: ({ getBindGroupLayout }) => ({
+          layout: getBindGroupLayout(0),
+        }),
+        prepareTextureSamplerDependencies: () => ({
+          valid: true,
+          diagnostics: [],
+        }),
+        createFrameResourceOptions: ({ item, layouts }) => ({
+          item,
+          layouts,
+        }),
+        createFrameResources: () => {
+          frameResourceCalls += 1;
+          return {
+            valid: true,
+            resources: {
+              mesh: { resourceKey: "gpu-mesh:unexpected" },
+              material: { resourceKey: "gpu-material:unexpected" },
+              bindGroups: [],
+            },
+            diagnostics: [],
+          };
+        },
+        appendFrameResources: () => {
+          throw new Error("Resources should not append without layouts.");
+        },
+        createRouteDiagnostic: () => ({ code: "custom.failed" }),
+        getMeshResource: (resources) => resources.mesh,
+        getMeshResourceKey: (resources) => resources.mesh.resourceKey,
+        getMaterialResourceKey: (resources) => resources.material.resourceKey,
+        getBindGroups: (resources) => resources.bindGroups,
+      },
+    });
+
+    expect(result.valid).toBe(false);
+    expect(result.firstResources).toBeNull();
+    expect(result.pipelineResults).toEqual([]);
+    expect(result.meshResources).toEqual([]);
+    expect(result.bindGroups).toEqual([]);
+    expect(result.meshResourceKeys.size).toBe(0);
+    expect(result.materialResourceKeys.size).toBe(0);
+    expect(frameResourceCalls).toBe(0);
+    expect(result.diagnostics).toEqual([
+      {
+        code: "webGpuApp.missingPipelineLayouts",
+        message: "The WebGPU app pipeline does not expose bind group layouts.",
+      },
+    ]);
+    expect(JSON.stringify(result)).not.toMatch(
+      /GPUBuffer|GPUDevice|GPUTexture|rawGpuHandle/,
+    );
+  });
+
+  it("rejects generic frame resources when the pipeline view is invalid", async () => {
+    type Item = {
+      readonly pipelineKey: string;
+      readonly sourceMeshKey: string;
+      readonly sourceMaterialKey: string;
+    };
+    type Pipeline = {
+      readonly label: string;
+    };
+    type Mesh = { readonly resourceKey: string };
+    type BindGroup = {
+      readonly group: number;
+      readonly resourceKey: string;
+      readonly layoutKey: string;
+      readonly bindGroup: unknown;
+      readonly entryResourceKeys: readonly string[];
+    };
+    type Resources = {
+      readonly mesh: Mesh;
+      readonly material: { readonly resourceKey: string };
+      readonly bindGroups: readonly BindGroup[];
+    };
+    type ResourceResult = {
+      readonly valid: true;
+      readonly resources: Resources;
+      readonly diagnostics: readonly [];
+    };
+    const scratch = createQueuedMaterialFrameResourceScratch<
+      { readonly key: string },
+      Mesh,
+      BindGroup
+    >();
+    let frameResourceCalls = 0;
+    const result = await prepareQueuedMaterialFrameResourceSet<
+      Item,
+      Pipeline,
+      { readonly key: string },
+      { readonly layout: unknown },
+      { readonly valid: true; readonly diagnostics: readonly [] },
+      { readonly item: Item; readonly layouts: { readonly layout: unknown } },
+      Resources,
+      ResourceResult,
+      Mesh,
+      BindGroup
+    >({
+      items: [
+        {
+          pipelineKey: "custom|invalid-pipeline",
+          sourceMeshKey: "mesh:source",
+          sourceMaterialKey: "material:source",
+        },
+      ],
+      scratch,
+      callbacks: {
+        getPipelineKey: (item) => item.pipelineKey,
+        getSourceMeshKey: (item) => item.sourceMeshKey,
+        getSourceMaterialKey: (item) => item.sourceMaterialKey,
+        getPipeline: (item) => ({ label: `pipeline:${item.pipelineKey}` }),
+        getPipelineView: (pipeline) => ({
+          valid: false,
+          resource: null,
+          diagnostics: [
+            {
+              code: "custom.pipelineUnavailable",
+              pipelineLabel: pipeline.label,
+            },
+          ],
+        }),
+        createPipelinePlanResult: ({ item }) => ({ key: item.pipelineKey }),
+        getPipelineLayouts: ({ getBindGroupLayout }) => ({
+          layout: getBindGroupLayout(0),
+        }),
+        prepareTextureSamplerDependencies: () => ({
+          valid: true,
+          diagnostics: [],
+        }),
+        createFrameResourceOptions: ({ item, layouts }) => ({
+          item,
+          layouts,
+        }),
+        createFrameResources: () => {
+          frameResourceCalls += 1;
+          return {
+            valid: true,
+            resources: {
+              mesh: { resourceKey: "gpu-mesh:unexpected" },
+              material: { resourceKey: "gpu-material:unexpected" },
+              bindGroups: [],
+            },
+            diagnostics: [],
+          };
+        },
+        appendFrameResources: () => {
+          throw new Error("Resources should not append for invalid pipelines.");
+        },
+        createRouteDiagnostic: () => ({ code: "custom.failed" }),
+        getMeshResource: (resources) => resources.mesh,
+        getMeshResourceKey: (resources) => resources.mesh.resourceKey,
+        getMaterialResourceKey: (resources) => resources.material.resourceKey,
+        getBindGroups: (resources) => resources.bindGroups,
+      },
+    });
+
+    expect(result.valid).toBe(false);
+    expect(result.firstPipeline).toEqual({
+      label: "pipeline:custom|invalid-pipeline",
+    });
+    expect(result.firstResources).toBeNull();
+    expect(result.pipelineResults).toEqual([]);
+    expect(result.meshResources).toEqual([]);
+    expect(result.bindGroups).toEqual([]);
+    expect(result.meshResourceKeys.size).toBe(0);
+    expect(result.materialResourceKeys.size).toBe(0);
+    expect(frameResourceCalls).toBe(0);
+    expect(result.diagnostics).toEqual([
+      {
+        code: "custom.pipelineUnavailable",
+        pipelineLabel: "pipeline:custom|invalid-pipeline",
+      },
+    ]);
+    expect(JSON.stringify(result)).not.toMatch(
+      /GPUBuffer|GPUDevice|GPUTexture|rawGpuHandle/,
+    );
+  });
+
   it("reports invalid texture/sampler dependencies before creating generic frame resources", async () => {
     type Item = {
       readonly materialFamily: "custom-preview";

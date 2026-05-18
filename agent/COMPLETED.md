@@ -1,5 +1,516 @@
 # Completed Tasks
 
+## task-1400 — Active DebugNormalMaterial route integration plan audit
+
+Completed: 2026-05-18
+
+- Audited the active DebugNormal route integration plan against app route
+  wiring, ECS authority, render extraction boundaries, and JSON-safe
+  diagnostics.
+- Confirmed the next implementation should focus on app route resources and
+  route summaries, not browser pixels yet.
+
+Validation:
+
+- Documentation-only audit; targeted validation follows with `task-1401`.
+
+## task-1399 — Active DebugNormalMaterial route integration plan
+
+Completed: 2026-05-18
+
+- Compared active app route resource integration, browser pixel coverage, and a
+  prepared DebugNormal material cache as candidates.
+- Selected active app route resource integration as the next focused slice.
+- Kept browser pixel coverage deferred until the real app route exists.
+
+Validation:
+
+- Documentation/planning change only; targeted validation follows with
+  `task-1401`.
+
+## task-1398 — Tracker/backlog alignment after debug-normal app frame resources
+
+Completed: 2026-05-18
+
+- Updated the public tracker and render pipeline comparison for the
+  DebugNormalMaterial app frame-resource cache/reuse helper.
+- Added tracker/backlog alignment after the `task-1396` implementation and
+  `task-1397` audit.
+- Refilled the ready queue with scoped active DebugNormal route integration
+  follow-up work.
+
+Validation:
+
+- `pnpm run check:progress`
+
+## task-1397 — DebugNormalMaterial app frame-resource audit
+
+Completed: 2026-05-18
+
+- Audited the debug-normal app frame-resource cache/reuse helper against the
+  selected plan, analogous built-in app helpers, ECS authority, and renderer
+  ownership boundaries.
+- Confirmed route activation remains deferred and prepared-material counters
+  stay at zero until a later prepared-material cache is selected.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/debug-normal-app-frame-resources.test.ts`
+
+## task-1396 — DebugNormalMaterial app frame-resource cache/reuse helper
+
+Completed: 2026-05-18
+
+- Added `createOrReuseDebugNormalAppFrameResources()` to wrap the lower-level
+  frame-resource helper.
+- Added same-key cache reuse with in-place dynamic view/transform buffer writes.
+- Added targeted tests for first-frame resource creation and same-key dynamic
+  reuse counters.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/debug-normal-app-frame-resources.test.ts`
+
+## task-1395 — DebugNormalMaterial app frame-resource plan audit
+
+Completed: 2026-05-18
+
+- Audited the selected app frame-resource cache/reuse plan.
+- Confirmed it is the right prerequisite after low-level frame resources and
+  before active route wiring or browser pixels.
+- Recommended implementing `task-1396`.
+
+Validation:
+
+- Documentation-only audit; targeted validation follows with `task-1396`.
+
+## task-1394 — Next DebugNormalMaterial route activation plan after frame resources
+
+Completed: 2026-05-18
+
+- Compared app frame-resource cache/reuse, direct route activation, and browser
+  pixel coverage candidates.
+- Selected DebugNormalMaterial app frame-resource cache/reuse as the next
+  prerequisite.
+- Kept active routing and browser rendering deferred.
+
+Validation:
+
+- Documentation/planning change only; targeted validation follows with
+  `task-1396`.
+
+## task-1393 — Tracker/backlog alignment after debug-normal frame resources
+
+Completed: 2026-05-18
+
+- Updated the public tracker and render pipeline comparison for
+  DebugNormalMaterial frame-resource coverage.
+- Added tracker/backlog alignment after the `task-1391` implementation and
+  `task-1392` audit.
+- Refilled the ready queue with scoped DebugNormal app frame-resource follow-up
+  work.
+
+Validation:
+
+- `pnpm run check:progress`
+
+## task-1392 — DebugNormalMaterial frame resource audit
+
+Completed: 2026-05-18
+
+- Audited the debug-normal frame-resource helper against the selected plan,
+  analogous built-in helpers, ECS authority, render extraction boundaries, and
+  WebGPU backend ownership.
+- Confirmed app routing remains inactive and should wait for app cache/reuse
+  integration.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/debug-normal-frame-resources.test.ts`
+
+## task-1391 — DebugNormalMaterial frame resources
+
+Completed: 2026-05-18
+
+- Added `createDebugNormalFrameGpuResources()` for assembling mesh, view,
+  world-transform, material buffer, shared bind groups, and group-2
+  DebugNormalMaterial bind group resources.
+- Supported prepared mesh and prepared material resource inputs for later app
+  cache/reuse integration.
+- Added targeted tests for successful resource assembly and missing required
+  input diagnostics.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/debug-normal-frame-resources.test.ts`
+
+## task-1390 — DebugNormalMaterial frame resource plan audit
+
+Completed: 2026-05-18
+
+- Audited the selected debug-normal frame-resource plan.
+- Confirmed it is the right prerequisite after material buffer and bind group
+  helpers and before app cache/reuse integration or active routing.
+- Recommended implementing `task-1391`.
+
+Validation:
+
+- Documentation-only audit; targeted validation follows with `task-1391`.
+
+## task-1389 — Next DebugNormalMaterial route activation plan after bind groups
+
+Completed: 2026-05-18
+
+- Compared debug-normal frame resources, app frame-resource integration, and
+  direct app route activation candidates.
+- Selected the lower-level DebugNormalMaterial frame-resource helper as the next
+  prerequisite after bind group resources.
+- Kept app routing and browser rendering deferred.
+
+Validation:
+
+- Documentation/planning change only; targeted validation follows with
+  `task-1391`.
+
+## task-1388 — Tracker/backlog alignment after debug-normal bind group
+
+Completed: 2026-05-18
+
+- Updated the public tracker and render pipeline comparison for
+  DebugNormalMaterial bind group resource coverage.
+- Added tracker/backlog alignment after the `task-1386` implementation and
+  `task-1387` audit.
+- Confirmed the ready backlog remains categorized and scoped.
+
+Validation:
+
+- `pnpm run check:progress`
+
+## task-1387 — DebugNormalMaterial bind group resource audit
+
+Completed: 2026-05-18
+
+- Audited the debug-normal group-2 bind group layout/resource helpers against
+  shader metadata, renderer ownership, JSON safety, and app-route deferral.
+- Confirmed the helper adds renderer-owned bind group planning/resource creation
+  without activating app routing.
+- Recommended tracker/backlog alignment next.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/debug-normal-bind-group.test.ts`
+
+## task-1386 — DebugNormalMaterial bind group resources
+
+Completed: 2026-05-18
+
+- Added DebugNormalMaterial group-2 bind group layout metadata and descriptor
+  planning for the material uniform binding.
+- Added renderer-owned bind group resource creation and JSON-safe inspection
+  that omits raw bind group handles.
+- Added targeted tests for descriptor planning, resource creation, JSON safety,
+  layout metadata, and missing resource diagnostics.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/debug-normal-bind-group.test.ts`
+
+## task-1385 — DebugNormalMaterial bind group plan audit
+
+Completed: 2026-05-18
+
+- Audited the selected debug-normal group-2 bind group layout/resource plan.
+- Confirmed the slice is the right prerequisite after material buffers and
+  before frame resources or route adapter activation.
+- Recommended implementing `task-1386` only if there is enough runway for tests
+  and validation.
+
+Validation:
+
+- Documentation-only audit; targeted validation follows with `task-1386`.
+
+## task-1384 — Next DebugNormalMaterial route activation plan
+
+Completed: 2026-05-18
+
+- Compared debug-normal bind group resources, frame resources, and route adapter
+  activation candidates.
+- Selected group-2 DebugNormalMaterial bind group layout/resource helpers as the
+  next prerequisite after the material buffer helper.
+- Updated the ready backlog so `task-1385` audits the plan and `task-1386`
+  implements the bind group resources.
+
+Validation:
+
+- Documentation/planning change only; targeted validation follows with
+  `task-1386`.
+
+## task-1383 — Tracker/backlog alignment after debug-normal material buffer
+
+Completed: 2026-05-18
+
+- Updated the public tracker and render pipeline comparison for the
+  debug-normal material buffer resource helper.
+- Added tracker/backlog alignment after the `task-1381` implementation and
+  `task-1382` audit.
+- Refilled the ready queue with `task-1384` through `task-1388`.
+
+Validation:
+
+- `pnpm run check:progress`
+
+## task-1382 — Debug-normal material buffer resource audit
+
+Completed: 2026-05-18
+
+- Audited the debug-normal material buffer/resource helper against shader
+  binding metadata, renderer ownership, JSON safety, and app-route deferral.
+- Confirmed the helper adds renderer-owned uniform packing, descriptor planning,
+  GPU buffer creation, and JSON-safe inspection without activating routing.
+- Recommended tracker/backlog alignment next.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/debug-normal-material-buffer.test.ts`
+
+## task-1381 — Debug-normal material buffer resource helper
+
+Completed: 2026-05-18
+
+- Added `debug-normal-material-buffer` helpers for the current 16-byte
+  `DebugNormalMaterialUniform` shader contract.
+- Added `debug-normal-material-buffer-resource` GPU buffer creation and a
+  JSON-safe resource view that omits the raw uniform buffer.
+- Added targeted tests for packing, descriptor/resource shape, JSON safety, and
+  failure diagnostics.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/debug-normal-material-buffer.test.ts`
+
+## task-1380 — Tracker/backlog alignment after DebugNormal readiness
+
+Completed: 2026-05-18
+
+- Updated the public tracker and render pipeline comparison for the
+  DebugNormalMaterial route-readiness map.
+- Added tracker/backlog alignment after the `task-1378` readiness map and
+  `task-1379` audit.
+- Refilled the ready queue with `task-1381` through `task-1385`, starting with a
+  debug-normal material buffer resource helper.
+
+Validation:
+
+- `pnpm run check:progress`
+
+## task-1379 — DebugNormalMaterial route-readiness map audit
+
+Completed: 2026-05-18
+
+- Audited the DebugNormalMaterial route-readiness map against the selected plan
+  and architecture boundaries.
+- Confirmed it documents present source/preparation/shader/pipeline pieces,
+  active-routing blockers, and a safe activation sequence without changing app
+  routing.
+- Recommended tracker/backlog alignment next and a future debug-normal material
+  buffer resource helper before route activation.
+
+Validation:
+
+- Documentation-only audit; tracker validation follows with `task-1380`.
+
+## task-1378 — DebugNormalMaterial route-readiness map
+
+Completed: 2026-05-18
+
+- Added a readiness map for DebugNormalMaterial app route activation.
+- Documented existing source asset, preparation plan, shader metadata, and
+  pipeline descriptor pieces.
+- Documented why app-level routing is still deferred and the smallest safe
+  activation sequence before browser rendering.
+
+Validation:
+
+- Documentation-only change; audit follows with `task-1379`.
+
+## task-1377 — DebugNormalMaterial route-readiness plan audit
+
+Completed: 2026-05-18
+
+- Audited the selected DebugNormalMaterial readiness map plan against ECS
+  authority, render extraction boundaries, WebGPU ownership, and current
+  built-in route scope.
+- Confirmed the follow-up should remain docs/tooling and defer actual app-level
+  DebugNormalMaterial rendering.
+
+Validation:
+
+- Documentation-only audit; targeted validation follows with `task-1378`.
+
+## task-1376 — Next route/prepared-resource plan after invalid pipeline view
+
+Completed: 2026-05-18
+
+- Compared remaining generic route diagnostics, DebugNormalMaterial
+  route-readiness, and StandardMaterial/glTF fidelity candidates.
+- Selected a DebugNormalMaterial route-readiness map as the next architecture
+  checkpoint before app-level activation.
+- Updated the ready backlog so `task-1377` audits the plan and `task-1378`
+  adds the readiness map.
+
+Validation:
+
+- Documentation/planning change only; targeted validation follows with
+  `task-1378`.
+
+## task-1375 — Tracker/backlog alignment after invalid pipeline-view guard
+
+Completed: 2026-05-18
+
+- Updated the public tracker and render pipeline comparison for the generic
+  invalid pipeline-view frame-resource guard.
+- Added tracker/backlog alignment after the `task-1373` regression and
+  `task-1374` audit.
+- Refilled the ready queue with `task-1376` through `task-1380`.
+
+Validation:
+
+- `pnpm run check:progress`
+
+## task-1374 — Invalid pipeline-view frame-resource regression audit
+
+Completed: 2026-05-18
+
+- Audited the `task-1373` regression against the selected plan and architecture
+  boundaries.
+- Confirmed invalid pipeline views preserve diagnostics, create no pipeline
+  plans, produce no frame resources, and serialize without raw GPU handles.
+- Recommended tracker/backlog alignment next.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/queued-material-frame-resource-set.test.ts`
+
+## task-1373 — Invalid pipeline-view frame-resource regression
+
+Completed: 2026-05-18
+
+- Added a generic frame-resource-set regression where `getPipelineView()`
+  returns `valid: false` with a diagnostic.
+- Asserted the invalid pipeline view blocks layout lookup and frame-resource
+  creation, leaves resource-key mappings empty, and keeps the result JSON-safe.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/queued-material-frame-resource-set.test.ts`
+
+## task-1372 — Invalid pipeline-view frame-resource plan audit
+
+Completed: 2026-05-18
+
+- Audited the selected invalid pipeline-view regression against ECS authority,
+  render extraction boundaries, JSON-safe diagnostics, and WebGPU backend
+  ownership.
+- Confirmed the test should stay inside
+  `test/webgpu/queued-material-frame-resource-set.test.ts` unless it exposes a
+  localized bug.
+
+Validation:
+
+- Documentation-only audit; targeted validation follows with `task-1373`.
+
+## task-1371 — Next route/prepared-resource plan after pipeline-layout guard
+
+Completed: 2026-05-18
+
+- Compared a generic route/prepared-resource candidate, a DebugNormalMaterial
+  route-readiness candidate, and a StandardMaterial/glTF fidelity candidate.
+- Selected an invalid pipeline-view regression for the generic frame-resource
+  set as the next focused route/prepared-resource contract slice.
+- Updated the ready backlog so `task-1372` audits the plan and `task-1373`
+  implements the targeted regression.
+
+Validation:
+
+- Documentation/planning change only; targeted validation follows with
+  `task-1373`.
+
+## task-1370 — Tracker/backlog alignment after pipeline-layout guard
+
+Completed: 2026-05-18
+
+- Updated the public tracker and render pipeline comparison for the generic
+  missing-pipeline-layout frame-resource guard.
+- Added tracker/backlog alignment after the `task-1368` regression and
+  `task-1369` audit.
+- Refilled the ready queue with `task-1371` through `task-1375`.
+
+Validation:
+
+- `pnpm run check:progress`
+
+## task-1369 — Pipeline-layout-missing frame-resource regression audit
+
+Completed: 2026-05-18
+
+- Audited the `task-1368` regression against the selected plan and architecture
+  boundaries.
+- Confirmed the test pins `webGpuApp.missingPipelineLayouts`, creates no frame
+  resources after the missing-layout failure, and preserves JSON-safe output.
+- Recommended tracker/backlog alignment next.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/queued-material-frame-resource-set.test.ts`
+
+## task-1368 — Pipeline-layout-missing frame-resource regression
+
+Completed: 2026-05-18
+
+- Added a generic frame-resource-set regression for a valid pipeline resource
+  whose pipeline object lacks `getBindGroupLayout`.
+- Asserted the route fails before frame-resource creation, emits
+  `webGpuApp.missingPipelineLayouts`, creates no resource-key mappings, and
+  serializes without raw GPU handles.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/queued-material-frame-resource-set.test.ts`
+
+## task-1367 — Pipeline-layout-missing frame-resource plan audit
+
+Completed: 2026-05-18
+
+- Audited the selected generic frame-resource-set regression plan against ECS
+  authority, render extraction boundaries, JSON-safe diagnostics, and WebGPU
+  backend ownership.
+- Confirmed the missing pipeline-layout branch is an existing renderer-owned
+  prepared-resource contract and should be pinned by a targeted unit test.
+- Recommended implementing `task-1368` in
+  `test/webgpu/queued-material-frame-resource-set.test.ts` only.
+
+Validation:
+
+- Documentation-only audit; targeted validation follows with `task-1368`.
+
+## task-1366 — Next route or glTF fidelity plan after alpha-blend double-sided
+
+Completed: 2026-05-18
+
+- Compared a route/prepared-resource candidate, a StandardMaterial/glTF
+  fidelity candidate, and a diagnostics/tooling candidate after alpha-blend
+  double-sided coverage.
+- Selected a generic frame-resource-set regression for valid pipeline resources
+  that lack `getBindGroupLayout`, keeping the next slice focused on the
+  material route/prepared-resource contract.
+- Updated the ready backlog so `task-1367` audits the selected plan and
+  `task-1368` implements the targeted regression.
+
+Validation:
+
+- Documentation/planning change only; targeted validation follows with
+  `task-1368`.
+
 ## task-1365 — Tracker/backlog alignment after alpha-blend double-sided
 
 Completed: 2026-05-18

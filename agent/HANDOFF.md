@@ -1,5 +1,132 @@
 # Handoff
 
+## Current Run Update — 2026-05-18T13:47:00Z
+
+Completed `task-1366` through `task-1400`. Recommended next task is
+`task-1401`.
+
+Highlights:
+
+- Planned, audited, implemented, and audited generic frame-resource failure
+  coverage for missing pipeline layout access.
+- Added a regression proving `prepareQueuedMaterialFrameResourceSet()` reports
+  `webGpuApp.missingPipelineLayouts`, creates no frame resources, and produces
+  no mesh/material resource-key mappings when a valid pipeline lacks
+  `getBindGroupLayout`.
+- Planned, audited, implemented, and audited invalid pipeline-view frame-resource
+  coverage.
+- Added a regression proving invalid pipeline views preserve diagnostics and
+  stop before pipeline plan creation, layout lookup, and frame-resource
+  creation.
+- Updated the public tracker/render pipeline comparison for both generic route
+  guards.
+- Planned, audited, added, and audited a DebugNormalMaterial route-readiness map.
+  It records the present source asset, preparation plan, shader metadata, and
+  pipeline descriptor pieces, and defers app routing until renderer-owned
+  resources exist.
+- Added renderer-owned DebugNormalMaterial material buffer helpers and tests:
+  packing, descriptor planning, GPU buffer creation, and JSON-safe inspection
+  that omits the raw uniform buffer.
+- Added and audited DebugNormalMaterial group-2 bind group layout/resource
+  helpers with JSON-safe inspection.
+- Planned, audited, added, and audited DebugNormalMaterial frame-resource
+  assembly for mesh, view, world-transform, material buffer, shared bind groups,
+  and the group-2 material bind group.
+- Planned, audited, added, and audited a DebugNormalMaterial app frame-resource
+  cache/reuse helper that reuses same-key resources and updates dynamic
+  view/transform buffers in place.
+- Planned and audited active DebugNormalMaterial app route integration as the
+  next implementation slice.
+- Updated the public tracker/render pipeline comparison for DebugNormalMaterial
+  readiness, material buffer, bind group, frame-resource, and app
+  frame-resource cache/reuse coverage.
+- Refilled the ready backlog through `task-1405`.
+
+Reference anchors inspected:
+
+- `docs/NORTH_STAR.md`
+- `docs/MEDIUM_LONG_TERM_GOALS.md`
+- `docs/ARCHITECTURE.md`
+- `docs/DECISIONS.md`
+- `packages/webgpu/src/webgpu/queued-material-frame-resource-set.ts`
+- `test/webgpu/queued-material-frame-resource-set.test.ts`
+- `packages/render/src/materials/debug-normal-preparation.ts`
+- `packages/render/src/materials/factories.ts`
+- `packages/render/src/materials/types.ts`
+- `packages/webgpu/src/webgpu/debug-normal-shader.ts`
+- `packages/webgpu/src/webgpu/debug-normal-pipeline-descriptor.ts`
+- `packages/webgpu/src/webgpu/unlit-material-buffer.ts`
+- `packages/webgpu/src/webgpu/matcap-material-buffer.ts`
+- `packages/webgpu/src/webgpu/standard-material-buffer.ts`
+- `packages/webgpu/src/webgpu/unlit-bind-group-layout.ts`
+- `packages/webgpu/src/webgpu/unlit-bind-group.ts`
+- `packages/webgpu/src/webgpu/matcap-bind-group-layout.ts`
+- `packages/webgpu/src/webgpu/matcap-bind-group.ts`
+- `packages/webgpu/src/webgpu/matcap-frame-resources.ts`
+- `packages/webgpu/src/webgpu/unlit-frame-resources.ts`
+- `packages/webgpu/src/webgpu/matcap-app-frame-resources.ts`
+- `packages/webgpu/src/webgpu/unlit-app-frame-resources.ts`
+- `packages/webgpu/src/webgpu/app-frame-resource-utils.ts`
+- `packages/webgpu/src/webgpu/prepared-app-mesh-resource.ts`
+- `packages/webgpu/src/webgpu/app.ts`
+- `packages/webgpu/src/webgpu/built-in-material-app-resource-adapter.ts`
+- `packages/webgpu/src/webgpu/queued-built-in-app-resource-set.ts`
+- `references/three.js/src/renderers/common/Pipeline.js`
+- `references/three.js/src/renderers/common/Bindings.js`
+- `references/engine/src/scene/frame-graph.js`
+- `references/engine/src/scene/layer.js`
+
+Files touched:
+
+- `agent/BACKLOG.md`
+- `agent/COMPLETED.md`
+- `agent/HANDOFF.md`
+- `agent/STATUS.json`
+- `docs/index.html`
+- `docs/render-pipeline-comparison.html`
+- `docs/research/*2026_05_18.md` notes for the completed plans/audits
+- `packages/webgpu/src/webgpu/debug-normal-material-buffer.ts`
+- `packages/webgpu/src/webgpu/debug-normal-material-buffer-resource.ts`
+- `packages/webgpu/src/webgpu/debug-normal-bind-group-layout.ts`
+- `packages/webgpu/src/webgpu/debug-normal-bind-group.ts`
+- `packages/webgpu/src/webgpu/debug-normal-frame-resources.ts`
+- `packages/webgpu/src/webgpu/debug-normal-app-frame-resources.ts`
+- `packages/webgpu/src/webgpu/index.ts`
+- `test/webgpu/debug-normal-bind-group.test.ts`
+- `test/webgpu/debug-normal-frame-resources.test.ts`
+- `test/webgpu/debug-normal-app-frame-resources.test.ts`
+- `test/webgpu/debug-normal-material-buffer.test.ts`
+- `test/webgpu/queued-material-frame-resource-set.test.ts`
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/queued-material-frame-resource-set.test.ts`
+- `pnpm exec vitest run test/webgpu/debug-normal-material-buffer.test.ts`
+- `pnpm exec vitest run test/webgpu/debug-normal-bind-group.test.ts`
+- `pnpm exec vitest run test/webgpu/debug-normal-frame-resources.test.ts`
+- `pnpm exec vitest run test/webgpu/debug-normal-app-frame-resources.test.ts`
+- `pnpm exec vitest run test/webgpu/debug-normal-app-frame-resources.test.ts test/webgpu/debug-normal-frame-resources.test.ts test/webgpu/debug-normal-bind-group.test.ts test/webgpu/debug-normal-material-buffer.test.ts test/webgpu/queued-material-frame-resource-set.test.ts`
+- `pnpm run build`
+- `pnpm run typecheck:test`
+- `pnpm run check:progress`
+- `pnpm exec prettier --check ...touched files...`
+- `git diff --check`
+- `pnpm run lint`
+- `pnpm test`
+- `scripts/codex-stop-hook.sh` initially failed because `agent/STATUS.json`
+  was idle but still had `activePid`; `activePid` was cleared and the hook was
+  rerun.
+
+Known issues / follow-ups:
+
+- Start `task-1401`: wire DebugNormalMaterial into the app route resource path
+  using the app-frame-resource helper and existing generic route summaries.
+- Browser DebugNormalMaterial pixel coverage remains deferred until active app
+  route resources and summaries are implemented and audited.
+- Real app-level non-built-in material adapter routing, binary GLB loading, IBL,
+  shadows, GLB viewer behavior, richer physical material extension support, and
+  full PBR resources remain deferred.
+
 ## Current Run Update — 2026-05-18T12:56:00Z
 
 Completed `task-1351` through `task-1365`. Recommended next task is

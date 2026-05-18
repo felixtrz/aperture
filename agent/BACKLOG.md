@@ -59,11 +59,9 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start with `task-1366`. `task-1363` pinned glTF alpha-blend double-sided
-no-cull behavior, `task-1364` audited it, and `task-1365` aligned the
-tracker/backlog. The next planning slice should give more weight to route and
-prepared-resource contract work now that alpha blending is covered at
-render-state, pixel, and double-sided levels.
+Start with `task-1401`. `task-1399` planned active DebugNormalMaterial route
+integration and `task-1400` audited the plan. Active app routing remains
+deferred until `task-1401`.
 
 ## Near-Term Proof Point Track
 
@@ -80,11 +78,12 @@ Target proof point:
 
 Remaining automation priority order:
 
-1. `task-1366` — plan next route or glTF fidelity slice after alpha-blend double-sided coverage.
-2. `task-1367` — audit the next route or glTF fidelity plan.
-3. `task-1368` — add the selected route or glTF fidelity follow-up.
-4. `task-1369` — audit the selected route or glTF fidelity follow-up.
-5. `task-1370` — audit tracker/backlog alignment after the selected follow-up.
+1. `task-1401` — add DebugNormalMaterial app route resource integration.
+2. `task-1402` — audit the DebugNormalMaterial app route resource integration.
+3. `task-1403` — audit tracker/backlog alignment after DebugNormal route
+   integration.
+4. `task-1404` — plan DebugNormalMaterial browser pixel coverage.
+5. `task-1405` — audit the DebugNormalMaterial browser pixel coverage plan.
 
 Defer allocation-only cleanup and metadata-only shader-contract tasks unless
 they are a direct blocker for this track.
@@ -152,6 +151,9 @@ viewer/material mapping should not outrun the material and queue architecture.
 
 ### task-1366 — Plan next route or glTF fidelity slice after alpha-blend double-sided coverage
 
+Status: completed 2026-05-18. See
+`docs/research/NEXT_ROUTE_OR_GLTF_FIDELITY_AFTER_ALPHA_BLEND_DOUBLE_SIDED_PLAN_2026_05_18.md`.
+
 Category: `docs-tooling`
 Package/write-scope: `docs/research` and backlog only.
 Reference anchor:
@@ -166,41 +168,57 @@ Acceptance criteria:
   reference anchor, and acceptance criteria.
 - Keep the selected task to one focused run.
 
-### task-1367 — Audit next route or glTF fidelity plan
+### task-1367 — Audit selected pipeline-layout-missing frame-resource plan
+
+Status: completed 2026-05-18. See
+`docs/research/PIPELINE_LAYOUT_MISSING_FRAME_RESOURCE_PLAN_AUDIT_2026_05_18.md`.
 
 Category: `audit-refactor`
 Package/write-scope: `docs/research`, targeted tests only if a tiny corrective
 fix is required.
 Reference anchor:
-the plan from `task-1366`, `docs/ARCHITECTURE.md`,
-`docs/MEDIUM_LONG_TERM_GOALS.md`, and recent route/glTF diagnostic audits.
+`docs/research/NEXT_ROUTE_OR_GLTF_FIDELITY_AFTER_ALPHA_BLEND_DOUBLE_SIDED_PLAN_2026_05_18.md`,
+`docs/ARCHITECTURE.md`, `docs/MEDIUM_LONG_TERM_GOALS.md`, and recent
+route/glTF diagnostic audits.
 
 Acceptance criteria:
 
-- Confirm the selected follow-up is concrete enough for one focused run.
+- Confirm the selected pipeline-layout-missing follow-up is concrete enough for
+  one focused run.
 - Confirm it preserves ECS authority, render extraction, JSON-safe diagnostics,
   and WebGPU-only backend ownership.
 - Recommend whether to implement the selected follow-up or adjust the backlog.
 
-### task-1368 — Add selected route or glTF fidelity follow-up
+### task-1368 — Add pipeline-layout-missing frame-resource regression
 
-Category: `render-bridge`
-Package/write-scope: to be narrowed by `task-1366`; expected to stay within
-`examples/standard-gltf-texture.js`, `test/e2e/standard-gltf-texture.spec.ts`,
-`test/webgpu`, or a tiny `packages/render`/`packages/webgpu` diagnostic bridge.
+Status: completed 2026-05-18. See
+`test/webgpu/queued-material-frame-resource-set.test.ts`.
+
+Category: `webgpu-render`
+Package/write-scope: `test/webgpu/queued-material-frame-resource-set.test.ts`;
+implementation files only if the regression exposes a focused defect.
 Reference anchor:
-the plan from `task-1366`, `docs/MEDIUM_LONG_TERM_GOALS.md`,
-`docs/ARCHITECTURE.md`, and the selected local implementation/test files.
+`docs/research/NEXT_ROUTE_OR_GLTF_FIDELITY_AFTER_ALPHA_BLEND_DOUBLE_SIDED_PLAN_2026_05_18.md`,
+`packages/webgpu/src/webgpu/queued-material-frame-resource-set.ts`,
+`test/webgpu/queued-material-frame-resource-set.test.ts`,
+`references/three.js/src/renderers/common/Pipeline.js`,
+`references/three.js/src/renderers/common/Bindings.js`, and
+`references/engine/src/scene/frame-graph.js`.
 
 Acceptance criteria:
 
-- Implement only the follow-up selected by `task-1366`.
-- Add or update targeted validation for the changed behavior.
+- Add a generic frame-resource-set regression where `getPipelineView()` returns
+  a valid pipeline resource whose `pipeline` lacks `getBindGroupLayout`.
+- Assert the result is invalid, reports `webGpuApp.missingPipelineLayouts`,
+  appends no frame resources, creates no mesh/material resource-key mappings,
+  and exposes no raw GPU handles in JSON.
 - Keep app-level non-built-in rendering, binary GLB loading, IBL, shadows, and
-  GLB viewer behavior deferred unless explicitly selected as a narrow
-  prerequisite.
+  GLB viewer behavior deferred.
 
 ### task-1369 — Audit selected route or glTF fidelity follow-up
+
+Status: completed 2026-05-18. See
+`docs/research/PIPELINE_LAYOUT_MISSING_FRAME_RESOURCE_REGRESSION_AUDIT_2026_05_18.md`.
 
 Category: `audit-refactor`
 Package/write-scope: `docs/research`, targeted tests only if a tiny corrective
@@ -218,6 +236,9 @@ Acceptance criteria:
 
 ### task-1370 — Audit tracker/backlog alignment after selected follow-up
 
+Status: completed 2026-05-18. See
+`docs/research/TRACKER_BACKLOG_ALIGNMENT_AFTER_PIPELINE_LAYOUT_GUARD_AUDIT_2026_05_18.md`.
+
 Category: `audit-refactor`
 Package/write-scope: `docs/research`, `agent/BACKLOG.md`, `docs/index.html`,
 and `docs/render-pipeline-comparison.html`.
@@ -230,6 +251,747 @@ Acceptance criteria:
 - Confirm the public tracker reflects the latest implemented slice.
 - Confirm the ready backlog has at least five categorized, scoped tasks.
 - Run `pnpm run check:progress` after tracker edits.
+
+### task-1371 — Plan next route/prepared-resource slice after pipeline-layout guard
+
+Status: completed 2026-05-18. See
+`docs/research/NEXT_ROUTE_PREPARED_AFTER_PIPELINE_LAYOUT_GUARD_PLAN_2026_05_18.md`.
+
+Category: `docs-tooling`
+Package/write-scope: `docs/research` and backlog only.
+Reference anchor:
+`docs/MEDIUM_LONG_TERM_GOALS.md`, `docs/ARCHITECTURE.md`,
+`docs/DECISIONS.md`, `docs/research/PIPELINE_LAYOUT_MISSING_FRAME_RESOURCE_REGRESSION_AUDIT_2026_05_18.md`,
+and recent route/prepared-resource audits.
+
+Acceptance criteria:
+
+- Compare one generic route/prepared-resource candidate, one DebugNormalMaterial
+  route-readiness candidate, and one StandardMaterial/glTF fidelity candidate.
+- Select exactly one follow-up task with category, package/write-scope,
+  reference anchor, and acceptance criteria.
+- Keep the selected task to one focused run.
+
+### task-1372 — Audit invalid pipeline-view frame-resource plan
+
+Status: completed 2026-05-18. See
+`docs/research/INVALID_PIPELINE_VIEW_FRAME_RESOURCE_PLAN_AUDIT_2026_05_18.md`.
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research`, targeted tests only if a tiny corrective
+fix is required.
+Reference anchor:
+`docs/research/NEXT_ROUTE_PREPARED_AFTER_PIPELINE_LAYOUT_GUARD_PLAN_2026_05_18.md`,
+`docs/ARCHITECTURE.md`, `docs/MEDIUM_LONG_TERM_GOALS.md`, and recent
+route/prepared-resource audits.
+
+Acceptance criteria:
+
+- Confirm the selected invalid pipeline-view follow-up is concrete enough for
+  one focused run.
+- Confirm it preserves ECS authority, render extraction, JSON-safe diagnostics,
+  and WebGPU-only backend ownership.
+- Recommend whether to implement the selected follow-up or adjust the backlog.
+
+### task-1373 — Add invalid pipeline-view frame-resource regression
+
+Status: completed 2026-05-18. See
+`test/webgpu/queued-material-frame-resource-set.test.ts`.
+
+Category: `webgpu-render`
+Package/write-scope: `test/webgpu/queued-material-frame-resource-set.test.ts`;
+implementation files only if the regression exposes a focused defect.
+Reference anchor:
+`docs/research/NEXT_ROUTE_PREPARED_AFTER_PIPELINE_LAYOUT_GUARD_PLAN_2026_05_18.md`,
+`packages/webgpu/src/webgpu/queued-material-frame-resource-set.ts`,
+`test/webgpu/queued-material-frame-resource-set.test.ts`,
+`references/three.js/src/renderers/common/Pipeline.js`,
+`references/three.js/src/renderers/common/Bindings.js`, and
+`references/engine/src/scene/frame-graph.js`.
+
+Acceptance criteria:
+
+- Add a generic frame-resource-set regression where `getPipelineView()` returns
+  `valid: false` with a diagnostic.
+- Assert the result is invalid, preserves the pipeline-view diagnostic, creates
+  no pipeline plans, no frame resources, no mesh/material resource-key mappings,
+  and exposes no raw GPU handles in JSON.
+- Keep app-level non-built-in rendering, binary GLB loading, IBL, shadows, and
+  GLB viewer behavior deferred.
+
+### task-1374 — Audit selected route/prepared-resource follow-up
+
+Status: completed 2026-05-18. See
+`docs/research/INVALID_PIPELINE_VIEW_FRAME_RESOURCE_REGRESSION_AUDIT_2026_05_18.md`.
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research`, targeted tests only if a tiny corrective
+fix is required.
+Reference anchor:
+the implementation from `task-1373`, the plan/audit from `task-1371` and
+`task-1372`, `docs/ARCHITECTURE.md`, and `docs/MEDIUM_LONG_TERM_GOALS.md`.
+
+Acceptance criteria:
+
+- Confirm the implementation satisfies the selected acceptance criteria.
+- Confirm it preserves ECS authority, render extraction boundaries, JSON-safe
+  diagnostics, and WebGPU-only backend ownership.
+- Recommend the next tracker/backlog or implementation follow-up.
+
+### task-1375 — Audit tracker/backlog alignment after selected follow-up
+
+Status: completed 2026-05-18. See
+`docs/research/TRACKER_BACKLOG_ALIGNMENT_AFTER_INVALID_PIPELINE_VIEW_AUDIT_2026_05_18.md`.
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research`, `agent/BACKLOG.md`, `docs/index.html`,
+and `docs/render-pipeline-comparison.html`.
+Reference anchor:
+`docs/NORTH_STAR.md`, `docs/MEDIUM_LONG_TERM_GOALS.md`,
+`docs/ARCHITECTURE.md`, and the `task-1373`/`task-1374` results.
+
+Acceptance criteria:
+
+- Confirm the public tracker reflects the latest implemented slice.
+- Confirm the ready backlog has at least five categorized, scoped tasks.
+- Run `pnpm run check:progress` after tracker edits.
+
+### task-1376 — Plan next route/prepared-resource slice after invalid pipeline-view coverage
+
+Status: completed 2026-05-18. See
+`docs/research/NEXT_ROUTE_PREPARED_AFTER_INVALID_PIPELINE_VIEW_PLAN_2026_05_18.md`.
+
+Category: `docs-tooling`
+Package/write-scope: `docs/research` and backlog only.
+Reference anchor:
+`docs/MEDIUM_LONG_TERM_GOALS.md`, `docs/ARCHITECTURE.md`,
+`docs/DECISIONS.md`, `docs/research/INVALID_PIPELINE_VIEW_FRAME_RESOURCE_REGRESSION_AUDIT_2026_05_18.md`,
+and recent route/prepared-resource audits.
+
+Acceptance criteria:
+
+- Compare one remaining generic route diagnostic candidate, one
+  DebugNormalMaterial route-readiness candidate, and one StandardMaterial/glTF
+  fidelity candidate.
+- Select exactly one follow-up task with category, package/write-scope,
+  reference anchor, and acceptance criteria.
+- Keep the selected task to one focused run.
+
+### task-1377 — Audit DebugNormalMaterial route-readiness plan
+
+Status: completed 2026-05-18. See
+`docs/research/DEBUG_NORMAL_ROUTE_READINESS_PLAN_AUDIT_2026_05_18.md`.
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research`, targeted tests only if a tiny corrective
+fix is required.
+Reference anchor:
+`docs/research/NEXT_ROUTE_PREPARED_AFTER_INVALID_PIPELINE_VIEW_PLAN_2026_05_18.md`,
+`docs/ARCHITECTURE.md`, `docs/MEDIUM_LONG_TERM_GOALS.md`, and recent
+route/prepared-resource audits.
+
+Acceptance criteria:
+
+- Confirm the selected DebugNormalMaterial readiness map is concrete enough for
+  one focused run.
+- Confirm it preserves ECS authority, render extraction, JSON-safe diagnostics,
+  and WebGPU-only backend ownership.
+- Recommend whether to implement the selected follow-up or adjust the backlog.
+
+### task-1378 — Add DebugNormalMaterial route-readiness map
+
+Status: completed 2026-05-18. See
+`docs/research/DEBUG_NORMAL_MATERIAL_ROUTE_READINESS_2026_05_18.md`.
+
+Category: `docs-tooling`
+Package/write-scope: `docs/research`.
+Reference anchor:
+`docs/research/NEXT_ROUTE_PREPARED_AFTER_INVALID_PIPELINE_VIEW_PLAN_2026_05_18.md`,
+`docs/MEDIUM_LONG_TERM_GOALS.md`, `docs/ARCHITECTURE.md`,
+`packages/render/src/materials/debug-normal-preparation.ts`,
+`packages/webgpu/src/webgpu/debug-normal-pipeline-descriptor.ts`,
+`packages/webgpu/src/webgpu/debug-normal-shader.ts`,
+`test/webgpu/built-in-material-queue-family.test.ts`, and
+`test/webgpu/built-in-material-queue-adapter.test.ts`.
+
+Acceptance criteria:
+
+- Document which DebugNormalMaterial pieces are already present: source asset
+  type/factory, preparation plan, shader metadata, and pipeline descriptor plan.
+- Document why it is not active in app-level built-in routing yet.
+- Define the smallest safe activation sequence and tests needed before browser
+  rendering can be enabled.
+- Keep app-level DebugNormalMaterial rendering, binary GLB loading, IBL,
+  shadows, and GLB viewer behavior deferred.
+
+### task-1379 — Audit DebugNormalMaterial route-readiness map
+
+Status: completed 2026-05-18. See
+`docs/research/DEBUG_NORMAL_ROUTE_READINESS_MAP_AUDIT_2026_05_18.md`.
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research`, targeted tests only if a tiny corrective
+fix is required.
+Reference anchor:
+`docs/research/DEBUG_NORMAL_MATERIAL_ROUTE_READINESS_2026_05_18.md`, the
+plan/audit from `task-1376` and `task-1377`, `docs/ARCHITECTURE.md`, and
+`docs/MEDIUM_LONG_TERM_GOALS.md`.
+
+Acceptance criteria:
+
+- Confirm the implementation satisfies the selected acceptance criteria.
+- Confirm it preserves ECS authority, render extraction boundaries, JSON-safe
+  diagnostics, and WebGPU-only backend ownership.
+- Recommend the next tracker/backlog or implementation follow-up.
+
+### task-1380 — Audit tracker/backlog alignment after selected follow-up
+
+Status: completed 2026-05-18. See
+`docs/research/TRACKER_BACKLOG_ALIGNMENT_AFTER_DEBUG_NORMAL_READINESS_AUDIT_2026_05_18.md`.
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research`, `agent/BACKLOG.md`, `docs/index.html`,
+and `docs/render-pipeline-comparison.html`.
+Reference anchor:
+`docs/NORTH_STAR.md`, `docs/MEDIUM_LONG_TERM_GOALS.md`,
+`docs/ARCHITECTURE.md`, and the `task-1378`/`task-1379` results.
+
+Acceptance criteria:
+
+- Confirm the public tracker reflects the latest implemented slice.
+- Confirm the ready backlog has at least five categorized, scoped tasks.
+- Run `pnpm run check:progress` after tracker edits.
+
+### task-1381 — Add debug-normal material buffer resource helper
+
+Status: completed 2026-05-18. See
+`packages/webgpu/src/webgpu/debug-normal-material-buffer.ts`,
+`packages/webgpu/src/webgpu/debug-normal-material-buffer-resource.ts`, and
+`test/webgpu/debug-normal-material-buffer.test.ts`.
+
+Category: `webgpu-render`
+Package/write-scope: `packages/webgpu/src/webgpu`, `test/webgpu`, and exports
+only if needed.
+Reference anchor:
+`docs/research/DEBUG_NORMAL_MATERIAL_ROUTE_READINESS_2026_05_18.md`,
+`packages/webgpu/src/webgpu/unlit-material-buffer.ts`,
+`packages/webgpu/src/webgpu/unlit-material-buffer-resource.ts`,
+`packages/webgpu/src/webgpu/matcap-material-buffer.ts`,
+`packages/webgpu/src/webgpu/standard-material-buffer.ts`,
+`packages/webgpu/src/webgpu/debug-normal-shader.ts`, and
+`references/three.js/src/renderers/common/Bindings.js`.
+
+Acceptance criteria:
+
+- Add a renderer-owned debug-normal material uniform data/buffer resource helper
+  for the current shader contract.
+- Expose JSON-safe inspection or report helpers that omit raw GPU handles.
+- Add targeted tests for buffer contents/descriptor shape and JSON safety.
+- Do not add debug-normal app route activation, bind groups, frame resources,
+  browser rendering, IBL, shadows, or GLB viewer behavior.
+
+### task-1382 — Audit debug-normal material buffer resource helper
+
+Status: completed 2026-05-18. See
+`docs/research/DEBUG_NORMAL_MATERIAL_BUFFER_RESOURCE_AUDIT_2026_05_18.md`.
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research`, targeted tests only if a tiny corrective
+fix is required.
+Reference anchor:
+the implementation from `task-1381`,
+`docs/research/DEBUG_NORMAL_MATERIAL_ROUTE_READINESS_2026_05_18.md`,
+`docs/ARCHITECTURE.md`, and analogous material buffer helpers.
+
+Acceptance criteria:
+
+- Confirm the helper is renderer-owned and JSON-safe.
+- Confirm it matches the debug-normal shader binding contract.
+- Confirm app route activation remains deferred.
+
+### task-1383 — Audit tracker/backlog alignment after debug-normal material buffer
+
+Status: completed 2026-05-18. See
+`docs/research/TRACKER_BACKLOG_ALIGNMENT_AFTER_DEBUG_NORMAL_BUFFER_AUDIT_2026_05_18.md`.
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research`, `agent/BACKLOG.md`, `docs/index.html`,
+and `docs/render-pipeline-comparison.html`.
+Reference anchor:
+`docs/NORTH_STAR.md`, `docs/MEDIUM_LONG_TERM_GOALS.md`,
+`docs/ARCHITECTURE.md`, and the `task-1381`/`task-1382` results.
+
+Acceptance criteria:
+
+- Confirm the public tracker reflects the debug-normal material buffer slice.
+- Confirm the ready backlog has at least five categorized, scoped tasks.
+- Run `pnpm run check:progress` after tracker edits.
+
+### task-1384 — Plan next DebugNormalMaterial route activation slice
+
+Status: completed 2026-05-18. See
+`docs/research/NEXT_DEBUG_NORMAL_ROUTE_ACTIVATION_PLAN_2026_05_18.md`.
+
+Category: `docs-tooling`
+Package/write-scope: `docs/research` and backlog only.
+Reference anchor:
+`docs/research/DEBUG_NORMAL_MATERIAL_ROUTE_READINESS_2026_05_18.md`,
+the `task-1381`/`task-1382` results, `docs/ARCHITECTURE.md`, and analogous
+built-in material bind group/frame-resource helpers.
+
+Acceptance criteria:
+
+- Compare debug-normal bind group resources, debug-normal frame resources, and
+  route adapter activation candidates.
+- Select exactly one follow-up with category, package/write-scope, reference
+  anchor, and acceptance criteria.
+- Keep app-level rendering deferred unless the selected prerequisite is fully
+  testable in one focused run.
+
+### task-1385 — Audit DebugNormalMaterial bind group plan
+
+Status: completed 2026-05-18. See
+`docs/research/DEBUG_NORMAL_BIND_GROUP_PLAN_AUDIT_2026_05_18.md`.
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research`, targeted tests only if a tiny corrective
+fix is required.
+Reference anchor:
+`docs/research/NEXT_DEBUG_NORMAL_ROUTE_ACTIVATION_PLAN_2026_05_18.md`,
+`docs/research/DEBUG_NORMAL_MATERIAL_ROUTE_READINESS_2026_05_18.md`,
+`docs/ARCHITECTURE.md`, and analogous built-in material resource helpers.
+
+Acceptance criteria:
+
+- Confirm the selected bind group resource follow-up is concrete enough for one
+  focused run.
+- Confirm it preserves ECS authority, render extraction, JSON-safe diagnostics,
+  and WebGPU-only backend ownership.
+- Recommend whether to implement the selected follow-up or adjust the backlog.
+
+### task-1386 — Add DebugNormalMaterial bind group resources
+
+Status: completed 2026-05-18. See
+`packages/webgpu/src/webgpu/debug-normal-bind-group-layout.ts`,
+`packages/webgpu/src/webgpu/debug-normal-bind-group.ts`, and
+`test/webgpu/debug-normal-bind-group.test.ts`.
+
+Category: `webgpu-render`
+Package/write-scope:
+`packages/webgpu/src/webgpu/debug-normal-bind-group-layout.ts`,
+`packages/webgpu/src/webgpu/debug-normal-bind-group.ts`,
+`test/webgpu/debug-normal-bind-group.test.ts`, and exports only if needed.
+Reference anchor:
+`docs/research/NEXT_DEBUG_NORMAL_ROUTE_ACTIVATION_PLAN_2026_05_18.md`,
+`docs/research/DEBUG_NORMAL_MATERIAL_ROUTE_READINESS_2026_05_18.md`,
+`packages/webgpu/src/webgpu/debug-normal-material-buffer.ts`,
+`packages/webgpu/src/webgpu/debug-normal-shader.ts`,
+`packages/webgpu/src/webgpu/matcap-bind-group-layout.ts`,
+`packages/webgpu/src/webgpu/matcap-bind-group.ts`, and analogous built-in
+material resource helpers.
+
+Acceptance criteria:
+
+- Add DebugNormalMaterial group-2 bind group layout metadata/plan for binding 0
+  material uniform buffer.
+- Add descriptor/resource helpers that consume a material buffer resource key
+  and renderer-owned buffer resource.
+- Add JSON-safe inspection for successful bind group resources that omits raw
+  bind group handles.
+- Add targeted tests for descriptor planning, resource creation, JSON safety,
+  and missing material/layout/device diagnostics.
+- Do not activate app-level DebugNormalMaterial routing, frame resources,
+  browser rendering, binary GLB loading, IBL, shadows, or GLB viewer behavior.
+
+### task-1387 — Audit selected DebugNormalMaterial route activation prerequisite
+
+Status: completed 2026-05-18. See
+`docs/research/DEBUG_NORMAL_BIND_GROUP_RESOURCE_AUDIT_2026_05_18.md`.
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research`, targeted tests only if a tiny corrective
+fix is required.
+Reference anchor:
+the implementation from `task-1386`, the plan/audit from `task-1384` and
+`task-1385`, `docs/ARCHITECTURE.md`, and
+`docs/research/DEBUG_NORMAL_MATERIAL_ROUTE_READINESS_2026_05_18.md`.
+
+Acceptance criteria:
+
+- Confirm the implementation satisfies the selected acceptance criteria.
+- Confirm it preserves ECS authority, render extraction boundaries, JSON-safe
+  diagnostics, and WebGPU-only backend ownership.
+- Recommend the next tracker/backlog or implementation follow-up.
+
+### task-1388 — Audit tracker/backlog alignment after selected DebugNormal prerequisite
+
+Status: completed 2026-05-18. See
+`docs/research/TRACKER_BACKLOG_ALIGNMENT_AFTER_DEBUG_NORMAL_BIND_GROUP_AUDIT_2026_05_18.md`.
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research`, `agent/BACKLOG.md`, `docs/index.html`,
+and `docs/render-pipeline-comparison.html`.
+Reference anchor:
+`docs/NORTH_STAR.md`, `docs/MEDIUM_LONG_TERM_GOALS.md`,
+`docs/ARCHITECTURE.md`, and the `task-1386`/`task-1387` results.
+
+Acceptance criteria:
+
+- Confirm the public tracker reflects the latest DebugNormal prerequisite.
+- Confirm the ready backlog has at least five categorized, scoped tasks.
+- Run `pnpm run check:progress` after tracker edits.
+
+### task-1389 — Plan next DebugNormalMaterial route activation slice
+
+Status: completed 2026-05-18. See
+`docs/research/NEXT_DEBUG_NORMAL_ROUTE_ACTIVATION_AFTER_BIND_GROUP_PLAN_2026_05_18.md`.
+
+Category: `docs-tooling`
+Package/write-scope: `docs/research` and backlog only.
+Reference anchor:
+`docs/research/DEBUG_NORMAL_MATERIAL_ROUTE_READINESS_2026_05_18.md`,
+the `task-1386`/`task-1387` results, `docs/ARCHITECTURE.md`, and analogous
+built-in material resource helpers.
+
+Acceptance criteria:
+
+- Compare the next DebugNormalMaterial prerequisite candidates after the
+  selected `task-1386` work lands.
+- Select exactly one follow-up with category, package/write-scope, reference
+  anchor, and acceptance criteria.
+- Keep app-level rendering deferred unless the selected prerequisite is fully
+  testable in one focused run.
+
+### task-1390 — Audit next DebugNormalMaterial route activation plan
+
+Status: completed 2026-05-18. See
+`docs/research/DEBUG_NORMAL_FRAME_RESOURCE_PLAN_AUDIT_2026_05_18.md`.
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research`, targeted tests only if a tiny corrective
+fix is required.
+Reference anchor:
+the plan from `task-1389`,
+`docs/research/DEBUG_NORMAL_MATERIAL_ROUTE_READINESS_2026_05_18.md`,
+`docs/ARCHITECTURE.md`, and analogous built-in material resource helpers.
+
+Acceptance criteria:
+
+- Confirm the selected follow-up is concrete enough for one focused run.
+- Confirm it preserves ECS authority, render extraction, JSON-safe diagnostics,
+  and WebGPU-only backend ownership.
+- Recommend whether to implement the selected follow-up or adjust the backlog.
+
+### task-1391 — Add DebugNormalMaterial frame resources
+
+Status: completed 2026-05-18. See
+`packages/webgpu/src/webgpu/debug-normal-frame-resources.ts` and
+`test/webgpu/debug-normal-frame-resources.test.ts`.
+
+Category: `webgpu-render`
+Package/write-scope:
+`packages/webgpu/src/webgpu/debug-normal-frame-resources.ts`,
+`test/webgpu/debug-normal-frame-resources.test.ts`, and exports only if needed.
+Reference anchor:
+`docs/research/NEXT_DEBUG_NORMAL_ROUTE_ACTIVATION_AFTER_BIND_GROUP_PLAN_2026_05_18.md`,
+`packages/webgpu/src/webgpu/matcap-frame-resources.ts`,
+`packages/webgpu/src/webgpu/unlit-frame-resources.ts`,
+`packages/webgpu/src/webgpu/debug-normal-bind-group.ts`,
+`packages/webgpu/src/webgpu/debug-normal-material-buffer-resource.ts`,
+`references/three.js/src/renderers/common/Bindings.js`, and
+`references/engine/src/scene/frame-graph.js`.
+
+Acceptance criteria:
+
+- Add a DebugNormalMaterial frame-resource assembly helper that can upload mesh,
+  view uniforms, world transforms, material buffer, shared bind groups, and the
+  debug-normal group-2 bind group.
+- Support prepared mesh and prepared material resources as inputs so app/cache
+  integration can reuse renderer-owned resources later.
+- Return JSON-safe diagnostics and no resources when required inputs are
+  missing.
+- Add targeted tests for successful resource assembly and missing required
+  input diagnostics.
+- Do not activate app-level routing, browser rendering, binary GLB loading, IBL,
+  shadows, or GLB viewer behavior.
+
+### task-1392 — Audit selected DebugNormalMaterial frame-resource prerequisite
+
+Status: completed 2026-05-18. See
+`docs/research/DEBUG_NORMAL_FRAME_RESOURCE_AUDIT_2026_05_18.md`.
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research`, targeted tests only if a tiny corrective
+fix is required.
+Reference anchor:
+the implementation from `task-1391`, the plan/audit from `task-1389` and
+`task-1390`, `docs/ARCHITECTURE.md`, and analogous built-in material frame
+resource helpers.
+
+Acceptance criteria:
+
+- Confirm the implementation satisfies the selected acceptance criteria.
+- Confirm it preserves ECS authority, render extraction boundaries, JSON-safe
+  diagnostics, and WebGPU-only backend ownership.
+- Recommend the next tracker/backlog or implementation follow-up.
+
+### task-1393 — Audit tracker/backlog alignment after DebugNormal frame resources
+
+Status: completed 2026-05-18. See
+`docs/research/TRACKER_BACKLOG_ALIGNMENT_AFTER_DEBUG_NORMAL_FRAME_RESOURCE_AUDIT_2026_05_18.md`.
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research`, `agent/BACKLOG.md`, `docs/index.html`,
+and `docs/render-pipeline-comparison.html`.
+Reference anchor:
+`docs/NORTH_STAR.md`, `docs/MEDIUM_LONG_TERM_GOALS.md`,
+`docs/ARCHITECTURE.md`, and the `task-1391`/`task-1392` results.
+
+Acceptance criteria:
+
+- Confirm the public tracker reflects the latest DebugNormal prerequisite.
+- Confirm the ready backlog has at least five categorized, scoped tasks.
+- Run `pnpm run check:progress` after tracker edits.
+
+### task-1394 — Plan next DebugNormalMaterial route activation slice after frame resources
+
+Status: completed 2026-05-18. See
+`docs/research/NEXT_DEBUG_NORMAL_ROUTE_ACTIVATION_AFTER_FRAME_RESOURCES_PLAN_2026_05_18.md`.
+
+Category: `docs-tooling`
+Package/write-scope: `docs/research` and backlog only.
+Reference anchor:
+`docs/research/DEBUG_NORMAL_FRAME_RESOURCE_AUDIT_2026_05_18.md`,
+`docs/research/DEBUG_NORMAL_MATERIAL_ROUTE_READINESS_2026_05_18.md`,
+`docs/ARCHITECTURE.md`, and analogous built-in app frame-resource helpers.
+
+Acceptance criteria:
+
+- Compare app frame-resource cache/reuse integration, direct app route
+  activation, and route diagnostics coverage as next candidates.
+- Select exactly one follow-up with category, package/write-scope, reference
+  anchor, and acceptance criteria.
+- Keep browser rendering deferred unless the selected slice includes all needed
+  app resources and diagnostics in one focused run.
+
+### task-1395 — Audit next DebugNormalMaterial route activation plan after frame resources
+
+Status: completed 2026-05-18. See
+`docs/research/DEBUG_NORMAL_APP_FRAME_RESOURCE_PLAN_AUDIT_2026_05_18.md`.
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research`, targeted tests only if a tiny corrective
+fix is required.
+Reference anchor:
+the plan from `task-1394`,
+`docs/research/DEBUG_NORMAL_FRAME_RESOURCE_AUDIT_2026_05_18.md`,
+`docs/ARCHITECTURE.md`, and analogous built-in app frame-resource helpers.
+
+Acceptance criteria:
+
+- Confirm the selected follow-up is concrete enough for one focused run.
+- Confirm it preserves ECS authority, render extraction, JSON-safe diagnostics,
+  and WebGPU-only backend ownership.
+- Recommend whether to implement the selected follow-up or adjust the backlog.
+
+### task-1396 — Add DebugNormalMaterial app frame-resource cache/reuse helper
+
+Status: completed 2026-05-18. See
+`packages/webgpu/src/webgpu/debug-normal-app-frame-resources.ts` and
+`test/webgpu/debug-normal-app-frame-resources.test.ts`.
+
+Category: `webgpu-render`
+Package/write-scope:
+`packages/webgpu/src/webgpu/debug-normal-app-frame-resources.ts`,
+targeted tests, and exports only if needed.
+Reference anchor:
+`docs/research/DEBUG_NORMAL_FRAME_RESOURCE_AUDIT_2026_05_18.md`,
+`packages/webgpu/src/webgpu/debug-normal-frame-resources.ts`,
+`packages/webgpu/src/webgpu/matcap-app-frame-resources.ts`,
+`packages/webgpu/src/webgpu/unlit-app-frame-resources.ts`, and
+`references/engine/src/scene/frame-graph.js`.
+
+Acceptance criteria:
+
+- Add a DebugNormalMaterial app frame-resource helper that wraps
+  `createDebugNormalFrameGpuResources()`.
+- Cache/reuse mesh, material buffer, bind groups, and dynamic view/transform
+  buffer writes using the established app helper pattern.
+- Track reuse counters consistently with existing built-in material app
+  frame-resource reports.
+- Add targeted tests for first-frame creation and same-key dynamic-buffer reuse.
+- Do not add active app routing or browser rendering.
+
+### task-1397 — Audit selected DebugNormalMaterial app frame-resource helper
+
+Status: completed 2026-05-18. See
+`docs/research/DEBUG_NORMAL_APP_FRAME_RESOURCE_AUDIT_2026_05_18.md`.
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research`, targeted tests only if a tiny corrective
+fix is required.
+Reference anchor:
+the implementation from `task-1396`, the plan/audit from `task-1394` and
+`task-1395`, `docs/ARCHITECTURE.md`, and analogous built-in app frame-resource
+helpers.
+
+Acceptance criteria:
+
+- Confirm the implementation satisfies the selected acceptance criteria.
+- Confirm app cache/reuse does not make the renderer own ECS/game state.
+- Confirm route activation remains deferred until diagnostics and app adapter
+  wiring are explicitly selected.
+
+### task-1398 — Audit tracker/backlog alignment after DebugNormal app frame resources
+
+Status: completed 2026-05-18. See
+`docs/research/TRACKER_BACKLOG_ALIGNMENT_AFTER_DEBUG_NORMAL_APP_FRAME_RESOURCE_AUDIT_2026_05_18.md`.
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research`, `agent/BACKLOG.md`, `docs/index.html`,
+and `docs/render-pipeline-comparison.html`.
+Reference anchor:
+`docs/NORTH_STAR.md`, `docs/MEDIUM_LONG_TERM_GOALS.md`,
+`docs/ARCHITECTURE.md`, and the `task-1396`/`task-1397` results.
+
+Acceptance criteria:
+
+- Confirm the public tracker reflects the latest DebugNormal app frame-resource
+  prerequisite.
+- Confirm the ready backlog has at least five categorized, scoped tasks.
+- Run `pnpm run check:progress` after tracker edits.
+
+### task-1399 — Plan active DebugNormalMaterial route integration after app frame resources
+
+Status: completed 2026-05-18. See
+`docs/research/ACTIVE_DEBUG_NORMAL_ROUTE_INTEGRATION_PLAN_2026_05_18.md`.
+
+Category: `docs-tooling`
+Package/write-scope: `docs/research` and backlog only.
+Reference anchor:
+`docs/research/DEBUG_NORMAL_APP_FRAME_RESOURCE_AUDIT_2026_05_18.md`,
+`docs/research/DEBUG_NORMAL_MATERIAL_ROUTE_READINESS_2026_05_18.md`,
+`packages/webgpu/src/webgpu/app.ts`,
+`packages/webgpu/src/webgpu/built-in-material-app-resource-adapter.ts`, and
+analogous Unlit/Matcap app route paths.
+
+Acceptance criteria:
+
+- Compare app route resource integration, route-summary diagnostics, and browser
+  pixel coverage as next candidates.
+- Select exactly one follow-up with category, package/write-scope, reference
+  anchor, and acceptance criteria.
+- Keep browser rendering deferred unless the selected slice includes route
+  wiring, summaries, and reliable targeted verification in one focused run.
+
+### task-1400 — Audit active DebugNormalMaterial route integration plan
+
+Status: completed 2026-05-18. See
+`docs/research/ACTIVE_DEBUG_NORMAL_ROUTE_INTEGRATION_PLAN_AUDIT_2026_05_18.md`.
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research`, targeted tests only if a tiny corrective
+fix is required.
+Reference anchor:
+the plan from `task-1399`,
+`docs/research/DEBUG_NORMAL_APP_FRAME_RESOURCE_AUDIT_2026_05_18.md`,
+`docs/ARCHITECTURE.md`, and analogous built-in app route resource paths.
+
+Acceptance criteria:
+
+- Confirm the selected follow-up is concrete enough for one focused run.
+- Confirm it preserves ECS authority, render extraction, JSON-safe diagnostics,
+  and WebGPU-only backend ownership.
+- Recommend whether to implement the selected follow-up or adjust the backlog.
+
+### task-1401 — Add DebugNormalMaterial app route resource integration
+
+Category: `webgpu-render`
+Package/write-scope:
+`packages/webgpu/src/webgpu/app.ts`,
+`packages/webgpu/src/webgpu/built-in-material-app-resource-adapter.ts`,
+targeted tests, and exports only if needed.
+Reference anchor:
+`docs/research/DEBUG_NORMAL_APP_FRAME_RESOURCE_AUDIT_2026_05_18.md`,
+`packages/webgpu/src/webgpu/debug-normal-app-frame-resources.ts`,
+`packages/webgpu/src/webgpu/unlit-app-frame-resources.ts`,
+`packages/webgpu/src/webgpu/matcap-app-frame-resources.ts`, and analogous app
+route resource wiring.
+
+Acceptance criteria:
+
+- Wire DebugNormalMaterial into the app route resource path using the
+  app-frame-resource helper and existing generic route summaries.
+- Report JSON-safe routed resource summaries and diagnostics for debug-normal
+  family routes.
+- Add targeted tests for app resource creation and route-summary shape.
+- Keep browser pixel coverage, binary GLB loading, IBL, shadows, and GLB viewer
+  behavior deferred.
+
+### task-1402 — Audit selected DebugNormalMaterial app route resource integration
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research`, targeted tests only if a tiny corrective
+fix is required.
+Reference anchor:
+the implementation from `task-1401`, the plan/audit from `task-1399` and
+`task-1400`, `docs/ARCHITECTURE.md`, and analogous built-in app route resource
+paths.
+
+Acceptance criteria:
+
+- Confirm the implementation satisfies the selected acceptance criteria.
+- Confirm route integration preserves ECS authority, render extraction
+  boundaries, and JSON-safe diagnostics.
+- Recommend the next tracker/backlog or browser verification follow-up.
+
+### task-1403 — Audit tracker/backlog alignment after DebugNormal route integration
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research`, `agent/BACKLOG.md`, `docs/index.html`,
+and `docs/render-pipeline-comparison.html`.
+Reference anchor:
+`docs/NORTH_STAR.md`, `docs/MEDIUM_LONG_TERM_GOALS.md`,
+`docs/ARCHITECTURE.md`, and the `task-1401`/`task-1402` results.
+
+Acceptance criteria:
+
+- Confirm the public tracker reflects the latest DebugNormal route integration.
+- Confirm the ready backlog has at least five categorized, scoped tasks.
+- Run `pnpm run check:progress` after tracker edits.
+
+### task-1404 — Plan DebugNormalMaterial browser pixel coverage
+
+Category: `docs-tooling`
+Package/write-scope: `docs/research` and backlog only.
+Reference anchor:
+the `task-1401`/`task-1402` route integration results,
+`docs/ARCHITECTURE.md`, and existing material browser fixtures.
+
+Acceptance criteria:
+
+- Compare browser pixel coverage, route diagnostics coverage, and prepared
+  material cache coverage as next candidates.
+- Select exactly one follow-up with category, package/write-scope, reference
+  anchor, and acceptance criteria.
+- Keep the selected browser slice narrow enough for one focused Playwright run
+  if browser coverage is selected.
+
+### task-1405 — Audit DebugNormalMaterial browser pixel coverage plan
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research`, targeted tests only if a tiny corrective
+fix is required.
+Reference anchor:
+the plan from `task-1404`, the `task-1401`/`task-1402` route integration
+results, `docs/ARCHITECTURE.md`, and existing material browser fixtures.
+
+Acceptance criteria:
+
+- Confirm the selected follow-up is concrete enough for one focused run.
+- Confirm it preserves ECS authority, render extraction, JSON-safe diagnostics,
+  and WebGPU-only backend ownership.
+- Recommend whether to implement the selected follow-up or adjust the backlog.
 
 ## Post-Unlit E2E Verification Targets
 
