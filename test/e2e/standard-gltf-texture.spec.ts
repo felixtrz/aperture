@@ -215,6 +215,11 @@ interface StandardGltfTextureStatus extends ExampleStatusBase {
   readonly standardMaterial?: {
     readonly meshKey: string;
     readonly materialKey: string;
+    readonly expectedEmissive?: {
+      readonly factor: readonly number[];
+      readonly color: readonly number[] | null;
+    } | null;
+    readonly sample?: { readonly x: number; readonly y: number };
     readonly renderState: {
       readonly source: {
         readonly alphaMode: string;
@@ -2889,6 +2894,107 @@ test("standard glTF texture fixture renders a mapped emissive texture", async ({
       expect(
         pixelDistance(readbackTextured.pixel, clear),
         `glTF emissive readback sample should not match clear; status=${JSON.stringify(
+          status,
+          null,
+          2,
+        )}`,
+      ).toBeGreaterThan(30);
+    }
+  }
+
+  expect(status.diagnosticCodes ?? []).toEqual([]);
+  webGpuValidation.expectNoWarnings();
+});
+
+test("standard glTF texture fixture renders emissive factor without an emissive texture", async ({
+  page,
+}) => {
+  const webGpuValidation = attachWebGpuValidationConsoleGuard(page);
+
+  await page.goto(
+    "/examples/standard-gltf-texture.html?scenario=emissive-factor",
+  );
+
+  const status = await waitForExampleStatus<StandardGltfTextureStatus>(page);
+
+  await attachExampleStatus(
+    "standard-gltf-texture-emissive-factor-status",
+    status,
+  );
+  expect(
+    status,
+    "standard glTF emissive factor status should publish",
+  ).toBeDefined();
+
+  if (status === undefined) {
+    return;
+  }
+
+  skipIfUnsupportedWebGpu(status);
+  expectStatusJsonSafeForGpu(status);
+  expect(status, JSON.stringify(status, null, 2)).toMatchObject({
+    example: "standard-gltf-texture",
+    scenario: "emissive-factor",
+    materialModel: "gltf-standard-emissive-factor",
+    ok: true,
+    phase: "rendered",
+    gltf: {
+      assetMapping: {
+        valid: true,
+        textureCount: 0,
+        samplerCount: 0,
+        materialCount: 1,
+        diagnostics: 0,
+        samplers: [],
+      },
+    },
+    standardMaterial: {
+      expectedEmissive: {
+        factor: expect.any(Array),
+        color: null,
+      },
+    },
+    extraction: { views: 1, meshDraws: 1, lights: 2, diagnostics: 0 },
+    resources: {
+      textureResourcesCreated: 0,
+      samplerResourcesCreated: 0,
+      materialBuffersCreated: 1,
+    },
+    draw: { packages: 1, drawCalls: 1 },
+  });
+  expect(status.standardTexture).toBeUndefined();
+  expect(status.pipelines?.keys).toContain("standard|opaque|back|less|none");
+
+  if (status.standardMaterial?.sample === undefined) {
+    throw new Error("standard glTF emissive factor sample is missing");
+  }
+
+  const screenshot = await page.locator("#aperture-canvas").screenshot();
+  const emissiveSample = readPngPixel(
+    screenshot,
+    status.standardMaterial.sample.x,
+    status.standardMaterial.sample.y,
+  );
+  const clear = rgbaColorToPixel({
+    r: status.clearColor?.r ?? 0,
+    g: status.clearColor?.g ?? 0,
+    b: status.clearColor?.b ?? 0,
+    a: status.clearColor?.a ?? 1,
+  });
+
+  expect(pixelDistance(emissiveSample, clear)).toBeGreaterThan(30);
+
+  if (status.readback?.ok) {
+    const readbackTextured = status.readback.samples.find(
+      (sample) => sample.id === "textured",
+    );
+
+    expect(readbackTextured).toBeDefined();
+
+    if (readbackTextured !== undefined) {
+      expect(
+        pixelDistance(readbackTextured.pixel, clear),
+        `glTF emissive factor readback sample should not match clear; status=${JSON.stringify(
           status,
           null,
           2,

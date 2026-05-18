@@ -1,4 +1,7 @@
-import type { MaterialQueuePhaseSummary } from "@aperture-engine/render";
+import type {
+  MaterialAssetDependencyReadinessReportJsonValue,
+  MaterialQueuePhaseSummary,
+} from "@aperture-engine/render";
 import type { QueuedBuiltInAppResourceAdapterRegistryValidationJsonValue } from "./built-in-material-app-resource-adapter.js";
 import type { DirectLightReadinessReport } from "./direct-light-readiness.js";
 import type { WebGpuAppMaterialQueueRouteReportJsonValue } from "./material-queue-route-report.js";
@@ -87,6 +90,38 @@ export function collectWebGpuAppMaterialQueueRouteReport(
   }
 
   return null;
+}
+
+export function collectWebGpuAppMaterialDependencyReadiness(
+  diagnostics: readonly unknown[],
+): MaterialAssetDependencyReadinessReportJsonValue[] {
+  const readiness: MaterialAssetDependencyReadinessReportJsonValue[] = [];
+
+  for (const diagnostic of diagnostics) {
+    if (
+      typeof diagnostic !== "object" ||
+      diagnostic === null ||
+      (diagnostic as { readonly code?: unknown }).code !==
+        "webGpuApp.materialDependenciesNotReady"
+    ) {
+      continue;
+    }
+
+    const candidate = diagnostic as {
+      readonly materialDependencyReadiness?: unknown;
+    };
+
+    if (
+      typeof candidate.materialDependencyReadiness === "object" &&
+      candidate.materialDependencyReadiness !== null
+    ) {
+      readiness.push(
+        candidate.materialDependencyReadiness as MaterialAssetDependencyReadinessReportJsonValue,
+      );
+    }
+  }
+
+  return readiness;
 }
 
 type MutableWebGpuAppDiagnosticsSummary = {

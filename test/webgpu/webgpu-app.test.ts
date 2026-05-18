@@ -2867,9 +2867,14 @@ describe("WebGPU app facade", () => {
     });
     expectNoMaterialQueueRouteReport(frame);
     expectNoFrameResourceRouteDiagnostic(frame);
-    expect(
-      webGpuAppRenderReportToJsonValue(frame).diagnosticsSummary,
-    ).toMatchObject({
+    const diagnosticsSummary =
+      webGpuAppRenderReportToJsonValue(frame).diagnosticsSummary;
+
+    expect(diagnosticsSummary).toHaveProperty("routedResourceSet");
+    expect(diagnosticsSummary).not.toHaveProperty("standardResourceSet");
+    expect(diagnosticsSummary).not.toHaveProperty("unlitResourceSet");
+    expect(diagnosticsSummary).not.toHaveProperty("matcapResourceSet");
+    expect(diagnosticsSummary).toMatchObject({
       sectionCount: 4,
       materialQueue: {
         itemCount: 3,
@@ -2928,12 +2933,8 @@ describe("WebGPU app facade", () => {
         },
       },
     });
-    expect(
-      JSON.stringify(
-        webGpuAppRenderReportToJsonValue(frame).diagnosticsSummary,
-      ),
-    ).not.toMatch(
-      /GPUBuffer|GPUTexture|Three Family Unlit|Three Family Standard|Three Family Matcap|ThreeFamilyCube/,
+    expect(JSON.stringify(diagnosticsSummary)).not.toMatch(
+      /GPUBuffer|GPUTexture|Three Family Unlit|Three Family Standard|Three Family Matcap|ThreeFamilyCube|standardResourceSet|unlitResourceSet|matcapResourceSet/,
     );
     expect(frame.resourceReuse).toMatchObject({
       pipelineMisses: 3,
@@ -3612,8 +3613,23 @@ describe("WebGPU app facade", () => {
         diagnostics: [],
       },
     });
+    expect(jsonReport.diagnosticsSummary).toHaveProperty("materialQueueRoute");
+    expect(jsonReport.diagnosticsSummary).not.toHaveProperty(
+      "standardResourceSet",
+    );
+    expect(jsonReport.diagnosticsSummary).not.toHaveProperty(
+      "unlitResourceSet",
+    );
+    expect(jsonReport.diagnosticsSummary).not.toHaveProperty(
+      "matcapResourceSet",
+    );
+    const serialized = JSON.stringify(jsonReport);
+
     expect(events).not.toContain("queue:submit:1");
-    expect(JSON.stringify(jsonReport)).not.toContain("GPUBuffer");
+    expect(serialized).not.toContain("standardResourceSet");
+    expect(serialized).not.toContain("unlitResourceSet");
+    expect(serialized).not.toContain("matcapResourceSet");
+    expect(serialized).not.toContain("GPUBuffer");
   });
 
   it("surfaces JSON-safe built-in app adapter registry validation diagnostics", () => {
@@ -4513,7 +4529,14 @@ describe("WebGPU app facade", () => {
       },
     });
     expect(value).not.toHaveProperty("materialDependencyReadiness");
+    expect(value.diagnosticsSummary).toHaveProperty("routedResourceSet");
+    expect(value.diagnosticsSummary).not.toHaveProperty("standardResourceSet");
+    expect(value.diagnosticsSummary).not.toHaveProperty("unlitResourceSet");
+    expect(value.diagnosticsSummary).not.toHaveProperty("matcapResourceSet");
     expect(json).toBe(JSON.stringify(value));
+    expect(json).not.toContain("standardResourceSet");
+    expect(json).not.toContain("unlitResourceSet");
+    expect(json).not.toContain("matcapResourceSet");
     expect(json).not.toContain("snapshot");
     expect(json).not.toContain("commandBuffer");
     expect(json).not.toContain("descriptor");

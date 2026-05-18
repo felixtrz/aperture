@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import type { MaterialQueuePhaseSummary } from "@aperture-engine/render";
 import {
+  collectWebGpuAppMaterialDependencyReadiness,
   collectWebGpuAppMaterialQueueRouteReport,
   createQueuedMaterialFrameResourceSetSummary,
   createWebGpuAppDiagnosticsSummary,
@@ -150,6 +151,52 @@ describe("WebGPU app diagnostics summary", () => {
       /GPUDevice|GPUTexture|GPUBuffer|WebGpuApp|bindGroup|sourceMesh/,
     );
   });
+
+  it("collects material dependency readiness diagnostics through the public field", () => {
+    const readiness = materialDependencyReadinessSummary();
+
+    expect(
+      collectWebGpuAppMaterialDependencyReadiness([
+        "ignored",
+        { code: "other", materialDependencyReadiness: readiness },
+        {
+          code: "webGpuApp.materialDependenciesNotReady",
+          materialDependencyReadiness: readiness,
+        },
+      ]),
+    ).toEqual([readiness]);
+  });
+
+  it("ignores missing and malformed material dependency readiness diagnostics", () => {
+    expect(collectWebGpuAppMaterialDependencyReadiness([])).toEqual([]);
+    expect(
+      collectWebGpuAppMaterialDependencyReadiness([
+        { code: "webGpuApp.materialDependenciesNotReady" },
+        {
+          code: "webGpuApp.materialDependenciesNotReady",
+          materialDependencyReadiness: null,
+        },
+        {
+          code: "webGpuApp.materialDependenciesNotReady",
+          materialDependencyReadiness: "ready",
+        },
+      ]),
+    ).toEqual([]);
+  });
+
+  it("keeps collected material dependency readiness reports JSON safe", () => {
+    const readiness = collectWebGpuAppMaterialDependencyReadiness([
+      {
+        code: "webGpuApp.materialDependenciesNotReady",
+        materialDependencyReadiness: materialDependencyReadinessSummary(),
+      },
+    ]);
+
+    expect(readiness).toHaveLength(1);
+    expect(JSON.stringify(readiness)).not.toMatch(
+      /GPUDevice|GPUTexture|GPUBuffer|WebGpuApp|bindGroup|sourceMesh/,
+    );
+  });
 });
 
 function materialQueueSummary(): MaterialQueuePhaseSummary {
@@ -267,5 +314,24 @@ function directLightingSummary() {
       diagnostics: [],
     },
     diagnostics: [],
+  };
+}
+
+function materialDependencyReadinessSummary() {
+  return {
+    ready: false,
+    materialKey: "material:delayed-standard",
+    diagnostics: {
+      total: 1,
+      bySeverity: { info: 0, warning: 1, error: 0 },
+      byCode: { "materialDependency.textureNotReady": 1 },
+    },
+    dependencies: [
+      {
+        kind: "texture",
+        key: "texture:loading-base-color",
+        status: "loading",
+      },
+    ],
   };
 }

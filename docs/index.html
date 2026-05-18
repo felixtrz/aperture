@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-18 12:23 PDT</dd>
+            <dd>2026-05-18 13:44 PDT</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -551,12 +551,29 @@
               a reusable material queue route-report collector that reads the
               public <code>report</code> field, ignores malformed diagnostics,
               and feeds app route-failure summaries without keeping a private
-              duplicate in the app module.
+              duplicate in the app module. App render report JSON now also uses
+              a reusable material dependency readiness collector for
+              <code>webGpuApp.materialDependenciesNotReady</code> diagnostics,
+              preserving the existing public
+              <code>materialDependencyReadiness</code> field while ignoring
+              malformed payloads. StandardMaterial/glTF browser coverage now
+              also verifies <code>emissiveFactor</code> without an
+              <code>emissiveTexture</code>, with zero texture/sampler assets,
+              zero texture/sampler GPU resources, scalar opaque pipeline
+              routing, JSON-safe expected-factor status, and non-clear
+              screenshot/readback output. Mapper-level glTF
+              <code>emissiveFactor</code> coverage now includes both valid
+              factor-only authoring and invalid-field fallback diagnostics, and
+              mixed built-in app route diagnostics now explicitly guard the
+              generic <code>routedResourceSet</code> summary against legacy
+              family-specific resource-set field names. Queued prepare-route app
+              diagnostic normalization now lives in a focused helper module
+              instead of the built-in app resource-set collector.
             </dd>
             <dt>Next focus</dt>
             <dd>
-              Plan next route or StandardMaterial follow-up after route-report
-              collector extraction
+              Plan next route or StandardMaterial follow-up after mixed-family
+              queued prepare-route diagnostic normalization
             </dd>
           </dl>
         </aside>
@@ -951,6 +968,8 @@
               submission and prepared GPU resources. Occlusion/emissive
               delayed-dependency browser coverage now proves the same no-work
               behavior for secondary StandardMaterial texture slots.
+              Mapper-level glTF emissive-factor coverage now includes valid
+              factor-only input and invalid-field fallback diagnostics.
             </p>
             <ul>
               <li>
@@ -983,8 +1002,10 @@
               reuse and deterministic family buckets. App-level mixed built-in
               route summaries now assert material queue and routed resource
               family/pipeline counts on two-family and three-family successful
-              paths, and the alpha-blend fixture now asserts transparent phase
-              routing with the
+              paths, including guards against legacy family-specific routed
+              resource summary fields, and queued prepare-route app diagnostic
+              normalization now sits behind a focused helper. The alpha-blend
+              fixture now asserts transparent phase routing with the
               <code>standard|baseColorTexture|blend|back|less|alpha</code>
               pipeline key. Missing pipeline-layout access in the generic
               frame-resource route now produces a JSON-safe failure with zero
@@ -1062,37 +1083,37 @@
             <h3>Latest work in this update</h3>
             <ul>
               <li>
-                <span class="badge green">task-1584</span> Aligned tracker and
-                backlog after route-report collector extraction.
+                <span class="badge green">task-1624</span> Aligned tracker and
+                backlog after queued prepare-route diagnostic normalization.
               </li>
               <li>
-                <span class="badge green">task-1583</span> Audited route-report
-                collector extraction.
+                <span class="badge green">task-1623</span> Audited the queued
+                prepare-route diagnostic normalization extraction.
               </li>
               <li>
-                <span class="badge green">task-1582</span> Extracted the
-                material queue route-report diagnostic collector.
+                <span class="badge green">task-1622</span> Extracted queued
+                prepare-route app diagnostic normalization.
               </li>
               <li>
-                <span class="badge green">task-1581</span> Audited the
-                route-report collector extraction plan.
+                <span class="badge green">task-1621</span> Audited the queued
+                prepare-route diagnostic normalization plan.
               </li>
               <li>
-                <span class="badge green">task-1580</span> Planned the next
-                route or StandardMaterial follow-up after omitted sampler
-                coverage.
+                <span class="badge green">task-1620</span> Planned the next
+                route or StandardMaterial follow-up after mixed-family route
+                summary coverage.
               </li>
               <li>
-                <span class="badge green">task-1550</span> Added an unsupported
-                material route-family diagnostics regression.
+                <span class="badge green">task-1614</span> Aligned tracker and
+                backlog after invalid emissive-factor mapping coverage.
               </li>
               <li>
-                <span class="badge green">task-1544</span> Aligned tracker and
-                backlog after occlusion/emissive dependency diagnostics.
+                <span class="badge green">task-1612</span> Added invalid
+                emissive-factor glTF mapping coverage.
               </li>
               <li>
-                <span class="badge green">task-1543</span> Audited
-                occlusion/emissive dependency diagnostics browser coverage.
+                <span class="badge green">task-1607</span> Added valid
+                emissive-factor-only glTF material mapping coverage.
               </li>
               <li>
                 <span class="badge green">task-1542</span> Added
@@ -2257,10 +2278,10 @@
             <ul>
               <li>
                 <span class="badge amber">next</span> Plan next route or
-                StandardMaterial follow-up after route-report collector
-                extraction.
+                StandardMaterial follow-up after queued prepare-route diagnostic
+                normalization.
               </li>
-              <li>Audit the selected post-route-helper follow-up plan.</li>
+              <li>Audit the selected post-normalization follow-up plan.</li>
               <li>
                 Implement the selected route or StandardMaterial follow-up.
               </li>

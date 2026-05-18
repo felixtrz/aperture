@@ -16324,6 +16324,274 @@ Validation:
 - Documentation-only audit/alignment work; covered by touched-file formatting
   and progress checks.
 
+## task-1615 — Plan next route or StandardMaterial follow-up after invalid emissive-factor mapping coverage
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/NEXT_ROUTE_OR_STANDARD_AFTER_INVALID_EMISSIVE_FACTOR_MAPPING_PLAN_2026_05_18.md`.
+- Compared a material route/prepared-resource guard, another StandardMaterial
+  glTF fidelity slice, and tooling-only work.
+- Selected mixed-family routed-resource summary field-shape coverage as the
+  next route-focused follow-up.
+
+Validation:
+
+- Documentation-only planning slice; covered by final formatting and closeout
+  checks.
+
+## task-1616 — Audit selected mixed-family routed-resource summary plan
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/MIXED_FAMILY_ROUTED_RESOURCE_SUMMARY_FIELD_SHAPE_PLAN_AUDIT_2026_05_18.md`.
+- Confirmed the selected mixed-family routed-resource summary regression is
+  concrete enough for one focused implementation slice.
+- Recommended keeping the implementation limited to
+  `test/webgpu/webgpu-app.test.ts`.
+
+Validation:
+
+- Documentation-only audit; covered by final formatting and closeout checks.
+
+## task-1617 — Add mixed-family routed-resource summary field-shape regression
+
+Completed: 2026-05-18
+
+Summary:
+
+- Updated `test/webgpu/webgpu-app.test.ts` in the mixed
+  `unlit`/`matcap`/`standard` app route test.
+- Asserted the JSON diagnostics summary exposes `routedResourceSet`.
+- Asserted legacy `standardResourceSet`, `unlitResourceSet`, and
+  `matcapResourceSet` fields are absent from both the object and serialized
+  summary.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts --testNamePattern "reuses unlit, standard, and matcap app resource cache slots"`
+
+## task-1618 — Audit mixed-family routed-resource summary implementation
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/MIXED_FAMILY_ROUTED_RESOURCE_SUMMARY_FIELD_SHAPE_IMPLEMENTATION_AUDIT_2026_05_18.md`.
+- Confirmed the implementation is test-only and stays on the generic
+  route/prepared-resource diagnostics surface.
+- Recommended tracker/backlog alignment, then a production route/prepared-
+  resource cleanup planning task if the work window continues.
+
+Validation:
+
+- Documentation-only audit; covered by final formatting and closeout checks.
+
+## task-1619 — Audit tracker/backlog alignment after mixed-family route summary shape
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/TRACKER_BACKLOG_ALIGNMENT_AFTER_MIXED_FAMILY_ROUTE_SUMMARY_SHAPE_2026_05_18.md`.
+- Updated public tracker pages for valid/invalid emissive-factor mapper coverage
+  and mixed-family routed-resource summary legacy-field guards.
+- Refilled the ready backlog with `task-1620` through `task-1624`.
+
+Validation:
+
+- `pnpm run check:progress`
+
+## task-1620 — Plan next route or StandardMaterial follow-up after mixed-family route summary coverage
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/NEXT_ROUTE_OR_STANDARD_AFTER_MIXED_FAMILY_ROUTE_SUMMARY_PLAN_2026_05_18.md`.
+- Compared a production route/prepared-resource cleanup, another
+  StandardMaterial/glTF fidelity slice, and tooling-only work.
+- Selected queued prepare-route app diagnostic normalization extraction as the
+  next route cleanup.
+
+Validation:
+
+- Documentation-only planning slice; covered by final formatting and closeout
+  checks.
+
+## task-1621 — Audit queued prepare-route diagnostic normalization plan
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/QUEUED_PREPARE_ROUTE_DIAGNOSTIC_NORMALIZATION_PLAN_AUDIT_2026_05_18.md`.
+- Confirmed the selected cleanup is small enough for one focused implementation
+  slice.
+- Recommended limiting `task-1622` to a helper module, targeted tests, and
+  replacing the private built-in collector diagnostic-normalization function.
+
+Validation:
+
+- Documentation-only audit; covered by final formatting and closeout checks.
+
+## task-1622 — Extract queued prepare-route app diagnostic normalization
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `packages/webgpu/src/webgpu/queued-material-prepare-route-diagnostics.ts`.
+- Moved missing-adapter and material-mismatch app diagnostic normalization out
+  of `queued-built-in-app-resource-set.ts`.
+- Added targeted tests for missing-adapter normalization, material-mismatch
+  normalization, and passthrough of unknown diagnostics.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/queued-material-prepare-route-diagnostics.test.ts`
+- `pnpm run typecheck:test`
+
+## task-1623 — Audit queued prepare-route diagnostic normalization implementation
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/QUEUED_PREPARE_ROUTE_DIAGNOSTIC_NORMALIZATION_IMPLEMENTATION_AUDIT_2026_05_18.md`.
+- Confirmed the implementation only moved app-facing diagnostic normalization
+  out of the built-in collector.
+- Recommended tracker/backlog alignment, then another production
+  route/prepared-resource cleanup planning task.
+
+Validation:
+
+- Documentation-only audit; covered by final formatting and closeout checks.
+
+## task-1624 — Audit tracker/backlog alignment after prepare-route diagnostic normalization
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/TRACKER_BACKLOG_ALIGNMENT_AFTER_PREPARE_ROUTE_DIAGNOSTIC_NORMALIZATION_2026_05_18.md`.
+- Updated public tracker pages to mention queued prepare-route app diagnostic
+  normalization extraction.
+- Refilled the ready backlog with `task-1625` through `task-1629`.
+
+Validation:
+
+- `pnpm run check:progress`
+
+## task-1595 through task-1604 — Standard route summary field-shape regressions
+
+Completed: 2026-05-18
+
+Summary:
+
+- Planned and audited a route/prepared-resource cleanup after
+  emissive-factor browser coverage.
+- Added app-level scalar StandardMaterial route assertions proving successful
+  diagnostics use `routedResourceSet` and do not expose `standardResourceSet`,
+  `unlitResourceSet`, or `matcapResourceSet`.
+- Planned, audited, and added the matching route-failure assertions for
+  unsupported material queue family diagnostics.
+- Refilled the ready queue through `task-1609`.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts --testNamePattern "renders the standard material queue path with extracted lights"`
+- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts --testNamePattern "diagnoses unregistered route family keys"`
+- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts --testNamePattern "renders the standard material queue path with extracted lights|diagnoses unregistered route family keys"`
+- `pnpm run check:progress`
+- `pnpm run format:check`
+
+## task-1605 through task-1614 — Emissive-factor glTF mapping regressions
+
+Completed: 2026-05-18
+
+Summary:
+
+- Planned and audited render-bridge coverage after route-failure field-shape
+  assertions.
+- Added mapper-level coverage for glTF `emissiveFactor` without
+  `emissiveTexture`, asserting the factor is preserved and no active emissive
+  texture binding is created.
+- Added invalid `emissiveFactor` mapper coverage, asserting fallback to
+  `[0, 0, 0]`, invalid report status, and JSON-safe
+  `gltfMaterial.invalidField` diagnostics.
+- Refilled the ready queue through `task-1619`.
+
+Validation:
+
+- `pnpm exec vitest run test/materials/gltf-material.test.ts --testNamePattern "emissive factor"`
+- `pnpm run typecheck:test`
+- `pnpm run check:progress`
+- `pnpm run format:check`
+- `pnpm run check`
+
+## task-1585 through task-1589 — Material dependency readiness collector extraction
+
+Completed: 2026-05-18
+
+Summary:
+
+- Planned and audited the next follow-up after material queue route-report
+  collector extraction.
+- Selected the app material dependency readiness collector as a focused
+  diagnostics-surface cleanup.
+- Moved `webGpuApp.materialDependenciesNotReady` diagnostic collection into
+  `collectWebGpuAppMaterialDependencyReadiness()`.
+- Routed `webGpuAppRenderReportToJsonValue()` through the shared helper while
+  preserving the public `materialDependencyReadiness` JSON field shape.
+- Added targeted tests for valid extraction, malformed diagnostic filtering,
+  and JSON-safe output.
+- Updated tracker/backlog state and refilled the ready queue.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/app-diagnostics-summary.test.ts`
+- `pnpm run typecheck`
+- `pnpm run check:progress`
+
+## task-1590 through task-1594 — Emissive-factor-only glTF browser coverage
+
+Completed: 2026-05-18
+
+Summary:
+
+- Planned and audited the next follow-up after material dependency collector
+  extraction.
+- Selected a StandardMaterial/glTF fidelity slice for `emissiveFactor` without
+  `emissiveTexture`.
+- Added the `emissive-factor` browser scenario with zero texture/sampler assets,
+  zero texture/sampler GPU resources, scalar opaque pipeline routing, and
+  JSON-safe expected-factor status.
+- Added Playwright coverage proving screenshot/readback output differs from
+  clear color.
+- Updated tracker/backlog state and added `task-1595` through `task-1599`.
+
+Validation:
+
+- `node --check examples/standard-gltf-texture.js`
+- `pnpm run typecheck:test`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "emissive factor"`
+- `pnpm run check:progress`
+- `pnpm run format:check`
+- `pnpm run check`
+
 ## task-1519 through task-1521 — StandardMaterial occlusion strength coverage
 
 Completed: 2026-05-18

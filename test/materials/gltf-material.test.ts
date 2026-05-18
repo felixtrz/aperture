@@ -102,6 +102,75 @@ describe("glTF material mapping", () => {
     });
   });
 
+  it("maps emissive factor without requiring an emissive texture", () => {
+    const report = createMaterialAssetFromGltfMaterial(
+      {
+        name: "Emissive Factor Only",
+        emissiveFactor: [0.9, 0.25, 0.08],
+        pbrMetallicRoughness: {
+          baseColorFactor: [0.2, 0.2, 0.2, 1],
+          metallicFactor: 0,
+          roughnessFactor: 0.8,
+        },
+      },
+      { materialKey: "material:emissive-factor" },
+    );
+
+    expect(report.valid).toBe(true);
+    expect(report.diagnostics).toEqual([]);
+    expect(report.material).toMatchObject({
+      kind: "standard",
+      label: "Emissive Factor Only",
+      metallicFactor: 0,
+      roughnessFactor: 0.8,
+      emissiveFactor: [0.9, 0.25, 0.08],
+    });
+    if (report.material?.kind !== "standard") {
+      throw new Error("Expected StandardMaterial mapping.");
+    }
+    expect(Array.from(report.material.baseColorFactor)).toEqual([
+      expect.closeTo(0.2),
+      expect.closeTo(0.2),
+      expect.closeTo(0.2),
+      1,
+    ]);
+    expect(report.material.emissiveTexture).toBeNull();
+  });
+
+  it("reports invalid emissive factor without dropping the StandardMaterial", () => {
+    const report = createMaterialAssetFromGltfMaterial(
+      {
+        name: "Invalid Emissive Factor",
+        emissiveFactor: [0.9, "hot", 0.08],
+        pbrMetallicRoughness: {
+          metallicFactor: 0,
+          roughnessFactor: 0.8,
+        },
+      },
+      { materialKey: "material:invalid-emissive-factor" },
+    );
+
+    expect(report.valid).toBe(false);
+    expect(report.material).toMatchObject({
+      kind: "standard",
+      label: "Invalid Emissive Factor",
+      metallicFactor: 0,
+      roughnessFactor: 0.8,
+      emissiveFactor: [0, 0, 0],
+    });
+    expect(report.diagnostics).toMatchObject([
+      {
+        code: "gltfMaterial.invalidField",
+        severity: "error",
+        field: "emissiveFactor",
+        value: "[object Array]",
+      },
+    ]);
+    expect(JSON.parse(gltfMaterialMappingReportToJson(report))).toEqual(
+      gltfMaterialMappingReportToJsonValue(report),
+    );
+  });
+
   it("maps KHR_materials_unlit to an UnlitMaterial asset", () => {
     const report = createMaterialAssetFromGltfMaterial(
       {

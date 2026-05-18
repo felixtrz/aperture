@@ -138,6 +138,7 @@ import {
 } from "./queued-built-in-frame-resource-set.js";
 import { createQueuedMaterialFrameResourceSetSummary } from "./queued-material-frame-resource-set-summary.js";
 import {
+  collectWebGpuAppMaterialDependencyReadiness,
   collectWebGpuAppMaterialQueueRouteReport,
   createWebGpuAppDiagnosticsSummary,
   type WebGpuAppDiagnosticsSummary,
@@ -1989,7 +1990,7 @@ export function webGpuAppRenderReportToJsonValue(
   report: WebGpuAppRenderReport,
 ): WebGpuAppRenderReportJsonValue {
   const materialDependencyReadiness =
-    collectAppReportMaterialDependencyReadiness(report);
+    collectWebGpuAppMaterialDependencyReadiness(report.diagnostics);
 
   return {
     ok: report.ok,
@@ -2015,41 +2016,6 @@ export function webGpuAppRenderReportToJson(
   report: WebGpuAppRenderReport,
 ): string {
   return JSON.stringify(webGpuAppRenderReportToJsonValue(report));
-}
-
-function collectAppReportMaterialDependencyReadiness(
-  report: WebGpuAppRenderReport,
-): MaterialAssetDependencyReadinessReportJsonValue[] {
-  const readiness: MaterialAssetDependencyReadinessReportJsonValue[] = [];
-
-  for (const diagnostic of report.diagnostics) {
-    if (!isWebGpuAppMaterialDependencyDiagnostic(diagnostic)) {
-      continue;
-    }
-
-    readiness.push(diagnostic.materialDependencyReadiness);
-  }
-
-  return readiness;
-}
-
-function isWebGpuAppMaterialDependencyDiagnostic(
-  diagnostic: unknown,
-): diagnostic is WebGpuAppMaterialDependencyDiagnostic {
-  if (typeof diagnostic !== "object" || diagnostic === null) {
-    return false;
-  }
-
-  const candidate = diagnostic as {
-    readonly code?: unknown;
-    readonly materialDependencyReadiness?: unknown;
-  };
-
-  return (
-    candidate.code === "webGpuApp.materialDependenciesNotReady" &&
-    typeof candidate.materialDependencyReadiness === "object" &&
-    candidate.materialDependencyReadiness !== null
-  );
 }
 
 function toWebGpuAppJsonValue(

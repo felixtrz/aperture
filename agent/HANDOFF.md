@@ -1,5 +1,150 @@
 # Handoff
 
+## Current Run Update — 2026-05-18T20:48:01Z
+
+Completed `task-1585` through `task-1624`. Recommended next task is
+`task-1625`: plan the next route or StandardMaterial follow-up after queued
+prepare-route diagnostic normalization.
+
+Highlights:
+
+- Planned and audited the next follow-up after route-report collector
+  extraction, then selected app material dependency readiness collector
+  extraction.
+- Added `collectWebGpuAppMaterialDependencyReadiness()` in
+  `app-diagnostics-summary.ts` and routed `webGpuAppRenderReportToJsonValue()`
+  through it without changing the public `materialDependencyReadiness` JSON
+  shape.
+- Added focused unit coverage for valid dependency-readiness extraction,
+  malformed diagnostic filtering, and JSON-safe output.
+- Planned and audited a StandardMaterial/glTF fidelity follow-up after the
+  diagnostics helper extraction, then selected emissive-factor-only browser
+  coverage.
+- Added an `emissive-factor` glTF browser scenario proving `emissiveFactor`
+  renders without `emissiveTexture`, with zero texture/sampler assets/resources,
+  scalar opaque pipeline routing, JSON-safe expected-factor status, and
+  screenshot/readback output distinct from clear color.
+- Added successful and route-failure app diagnostics summary regressions proving
+  the public summary uses `routedResourceSet`/`materialQueueRoute` and no longer
+  leaks older family-specific `standardResourceSet`, `unlitResourceSet`, or
+  `matcapResourceSet` names.
+- Added mapper-level glTF `emissiveFactor` coverage for a valid factor without
+  `emissiveTexture`, preserving the scalar factor and no active emissive
+  texture binding.
+- Added invalid `emissiveFactor` mapper coverage proving fallback to
+  `[0, 0, 0]`, invalid report status, and JSON-safe
+  `gltfMaterial.invalidField` diagnostics.
+- Added mixed `unlit`/`matcap`/`standard` app diagnostics assertions proving the
+  successful mixed-family path exposes `routedResourceSet` and does not expose
+  legacy `standardResourceSet`, `unlitResourceSet`, or `matcapResourceSet`
+  fields.
+- Updated public tracker pages and refilled the ready queue with `task-1620`
+  through `task-1624`.
+- Planned and audited the next production route cleanup: move queued
+  prepare-route app diagnostic normalization out of the built-in collector into
+  a focused helper module.
+- Implemented that helper extraction in
+  `queued-material-prepare-route-diagnostics.ts`, kept the built-in resource-set
+  type re-export, and added targeted tests for missing-adapter,
+  material-mismatch, and unknown-diagnostic passthrough.
+- Updated public tracker pages and refilled the ready queue with `task-1625`
+  through `task-1629`.
+
+Reference anchors inspected:
+
+- `docs/NORTH_STAR.md`
+- `docs/MEDIUM_LONG_TERM_GOALS.md`
+- `docs/ARCHITECTURE.md`
+- `docs/DECISIONS.md`
+- `docs/research/MATERIAL_DEPENDENCY_READINESS_COLLECTOR_EXTRACTION_AUDIT_2026_05_18.md`
+- `docs/research/NEXT_ROUTE_OR_STANDARD_AFTER_MATERIAL_DEPENDENCY_COLLECTOR_PLAN_2026_05_18.md`
+- `docs/research/NEXT_ROUTE_OR_STANDARD_AFTER_EMISSIVE_FACTOR_PLAN_2026_05_18.md`
+- `docs/research/NEXT_ROUTE_OR_STANDARD_AFTER_SCALAR_ROUTE_SHAPE_PLAN_2026_05_18.md`
+- `docs/research/NEXT_ROUTE_OR_STANDARD_AFTER_ROUTE_FAILURE_SHAPE_PLAN_2026_05_18.md`
+- `docs/research/NEXT_ROUTE_OR_STANDARD_AFTER_EMISSIVE_MAPPING_PLAN_2026_05_18.md`
+- `docs/research/NEXT_ROUTE_OR_STANDARD_AFTER_INVALID_EMISSIVE_FACTOR_MAPPING_PLAN_2026_05_18.md`
+- `docs/research/NEXT_ROUTE_OR_STANDARD_AFTER_MIXED_FAMILY_ROUTE_SUMMARY_PLAN_2026_05_18.md`
+- `docs/research/QUEUED_PREPARE_ROUTE_DIAGNOSTIC_NORMALIZATION_PLAN_AUDIT_2026_05_18.md`
+- `docs/research/QUEUED_PREPARE_ROUTE_DIAGNOSTIC_NORMALIZATION_IMPLEMENTATION_AUDIT_2026_05_18.md`
+- `docs/research/MIXED_FAMILY_ROUTED_RESOURCE_SUMMARY_FIELD_SHAPE_PLAN_AUDIT_2026_05_18.md`
+- `docs/research/MIXED_FAMILY_ROUTED_RESOURCE_SUMMARY_FIELD_SHAPE_IMPLEMENTATION_AUDIT_2026_05_18.md`
+- `examples/standard-gltf-texture.js`
+- `test/e2e/standard-gltf-texture.spec.ts`
+- `test/materials/gltf-material.test.ts`
+- `test/webgpu/webgpu-app.test.ts`
+- `packages/webgpu/src/webgpu/app.ts`
+- `packages/webgpu/src/webgpu/app-diagnostics-summary.ts`
+- `packages/render/src/materials/gltf-material.ts`
+- `references/three.js/src/materials/MeshStandardMaterial.js`
+- `references/three.js/src/renderers/webgl/WebGLMaterials.js`
+- `references/engine/src/scene/materials/standard-material.js`
+- `references/engine/src/scene/shader-lib/wgsl/chunks/standard/frag/emissive.js`
+
+Files touched:
+
+- `agent/BACKLOG.md`
+- `agent/COMPLETED.md`
+- `agent/HANDOFF.md`
+- `agent/STATUS.json`
+- `docs/index.html`
+- `docs/render-pipeline-comparison.html`
+- `docs/research/EMISSIVE_FACTOR_GLTF_BROWSER_COVERAGE_IMPLEMENTATION_AUDIT_2026_05_18.md`
+- `docs/research/EMISSIVE_FACTOR_GLTF_BROWSER_COVERAGE_PLAN_AUDIT_2026_05_18.md`
+- `docs/research/MATERIAL_DEPENDENCY_READINESS_COLLECTOR_EXTRACTION_AUDIT_2026_05_18.md`
+- `docs/research/MATERIAL_DEPENDENCY_READINESS_COLLECTOR_PLAN_AUDIT_2026_05_18.md`
+- `docs/research/NEXT_ROUTE_OR_STANDARD_AFTER_MATERIAL_DEPENDENCY_COLLECTOR_PLAN_2026_05_18.md`
+- `docs/research/NEXT_ROUTE_OR_STANDARD_AFTER_ROUTE_REPORT_COLLECTOR_PLAN_2026_05_18.md`
+- `docs/research/TRACKER_BACKLOG_ALIGNMENT_AFTER_EMISSIVE_FACTOR_GLTF_COVERAGE_2026_05_18.md`
+- `docs/research/TRACKER_BACKLOG_ALIGNMENT_AFTER_SCALAR_STANDARD_ROUTE_SUMMARY_FIELD_SHAPE_2026_05_18.md`
+- `docs/research/TRACKER_BACKLOG_ALIGNMENT_AFTER_ROUTE_FAILURE_SUMMARY_FIELD_SHAPE_2026_05_18.md`
+- `docs/research/TRACKER_BACKLOG_ALIGNMENT_AFTER_EMISSIVE_FACTOR_GLTF_MAPPING_2026_05_18.md`
+- `docs/research/TRACKER_BACKLOG_ALIGNMENT_AFTER_INVALID_EMISSIVE_FACTOR_GLTF_MAPPING_2026_05_18.md`
+- `docs/research/TRACKER_BACKLOG_ALIGNMENT_AFTER_MIXED_FAMILY_ROUTE_SUMMARY_SHAPE_2026_05_18.md`
+- `docs/research/TRACKER_BACKLOG_ALIGNMENT_AFTER_PREPARE_ROUTE_DIAGNOSTIC_NORMALIZATION_2026_05_18.md`
+- `docs/research/NEXT_ROUTE_OR_STANDARD_AFTER_INVALID_EMISSIVE_FACTOR_MAPPING_PLAN_2026_05_18.md`
+- `docs/research/NEXT_ROUTE_OR_STANDARD_AFTER_MIXED_FAMILY_ROUTE_SUMMARY_PLAN_2026_05_18.md`
+- `docs/research/MIXED_FAMILY_ROUTED_RESOURCE_SUMMARY_FIELD_SHAPE_PLAN_AUDIT_2026_05_18.md`
+- `docs/research/MIXED_FAMILY_ROUTED_RESOURCE_SUMMARY_FIELD_SHAPE_IMPLEMENTATION_AUDIT_2026_05_18.md`
+- `docs/research/QUEUED_PREPARE_ROUTE_DIAGNOSTIC_NORMALIZATION_PLAN_AUDIT_2026_05_18.md`
+- `docs/research/QUEUED_PREPARE_ROUTE_DIAGNOSTIC_NORMALIZATION_IMPLEMENTATION_AUDIT_2026_05_18.md`
+- `docs/research/TRACKER_BACKLOG_ALIGNMENT_AFTER_MATERIAL_DEPENDENCY_COLLECTOR_EXTRACTION_2026_05_18.md`
+- `examples/standard-gltf-texture.js`
+- `packages/webgpu/src/webgpu/app-diagnostics-summary.ts`
+- `packages/webgpu/src/webgpu/app.ts`
+- `packages/webgpu/src/webgpu/queued-built-in-app-resource-set.ts`
+- `packages/webgpu/src/webgpu/queued-material-prepare-route-diagnostics.ts`
+- `test/e2e/standard-gltf-texture.spec.ts`
+- `test/materials/gltf-material.test.ts`
+- `test/webgpu/app-diagnostics-summary.test.ts`
+- `test/webgpu/queued-material-prepare-route-diagnostics.test.ts`
+- `test/webgpu/webgpu-app.test.ts`
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/app-diagnostics-summary.test.ts`
+- `pnpm run typecheck`
+- `node --check examples/standard-gltf-texture.js`
+- `pnpm run typecheck:test`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "emissive factor"`
+- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts --testNamePattern "renders the standard material queue path with extracted lights"`
+- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts --testNamePattern "diagnoses unregistered route family keys"`
+- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts --testNamePattern "renders the standard material queue path with extracted lights|diagnoses unregistered route family keys"`
+- `pnpm exec vitest run test/materials/gltf-material.test.ts --testNamePattern "emissive factor"`
+- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts --testNamePattern "reuses unlit, standard, and matcap app resource cache slots"`
+- `pnpm exec vitest run test/webgpu/queued-material-prepare-route-diagnostics.test.ts`
+- `pnpm run check:progress`
+- `pnpm run format:check`
+- `git diff --check`
+- `pnpm run check` (261 test files, 1263 tests)
+
+Known issues / follow-ups:
+
+- Start `task-1625`: plan the next route or StandardMaterial follow-up after
+  queued prepare-route diagnostic normalization.
+- Real app-level non-built-in material adapter rendering, binary GLB loading,
+  IBL, shadows, instancing, batching, multi-material primitive rules, and broad
+  PBR completeness remain deferred.
+
 ## Current Run Update — 2026-05-18T19:56:12Z
 
 Completed `task-1567` through `task-1584`. Recommended next task is
