@@ -106,6 +106,38 @@ The grouped summary combines prepare-route and frame-resource-route summary
 counts by stage. It does not replace failure diagnostics and is not emitted by
 default on successful app frames.
 
+## Material Route Diagnostics Layers
+
+Material route diagnostics are split across generic route infrastructure and
+app compatibility policy. Keep these layers distinct when reading reports or
+adding new diagnostics:
+
+| Layer                           | Primary Module                                                                   | JSON / Public Surface                                                                                                                              | Boundary                                                                                                                |
+| ------------------------------- | -------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| Material queue route report     | `packages/webgpu/src/webgpu/material-queue-route-report.ts`                      | `webGpuApp.materialQueueRouteReport.report`, `diagnosticsSummary.materialQueueRoute`                                                               | Generic app route reporting. Normalizes allowed route diagnostics without owning adapters, assets, or GPU resources.    |
+| Queued prepare route            | `packages/webgpu/src/webgpu/queued-material-prepare-route.ts`                    | Internal prepare-route result diagnostics                                                                                                          | Generic route validation. Reports missing adapters and material mismatches before app-specific normalization.           |
+| Prepare-route app normalization | `packages/webgpu/src/webgpu/queued-material-prepare-route-diagnostics.ts`        | App diagnostics such as `webGpuApp.unsupportedMaterialQueueFamily` and `webGpuApp.materialQueueAssetMismatch`                                      | Built-in/app compatibility policy over generic prepare-route failures.                                                  |
+| Frame-resource route shell      | `packages/webgpu/src/webgpu/queued-material-frame-resource-route.ts`             | `QueuedMaterialFrameResourceRouteShell` and shell summaries                                                                                        | Generic frame-resource metadata. Records facade/backend resource keys and diagnostic-code counts without raw resources. |
+| Frame-resource app diagnostic   | `packages/webgpu/src/webgpu/queued-material-frame-resource-route-diagnostics.ts` | `webGpuApp.frameResourceRoute`                                                                                                                     | App diagnostic wrapper for failed frame-resource routes. Successful route shells stay out of default app reports.       |
+| App route item report assembly  | `packages/webgpu/src/webgpu/queued-material-app-resource-item.ts`                | `webGpuApp.materialQueueRouteReport` with nested `report`                                                                                          | Generic queued app item/report assembly. `routeReport` remains internal scratch terminology.                            |
+| Diagnostics summary collection  | `packages/webgpu/src/webgpu/app-diagnostics-summary.ts`                          | `diagnosticsSummary.materialQueue`, `diagnosticsSummary.materialQueueRoute`, `diagnosticsSummary.routedResourceSet`, `materialDependencyReadiness` | App report JSON summary grouping. Does not become cache ownership or renderer state.                                    |
+
+Route-family strings at these layers are adapter/report keys. They are not
+public custom material source asset kinds by themselves, and they do not imply
+that a material family can render. Current public source material kinds remain
+closed until a separate decision defines custom material source validation,
+shader/resource dependencies, preparation, and lifecycle.
+
+Unsupported or colliding route-family keys should stay visible through
+diagnostics. They must not silently override an existing adapter, fallback to a
+built-in family, or create renderer-owned source material state.
+
+JSON-safe route diagnostics may include stable family names, phase names,
+resource keys, source versions, statuses, counts, and diagnostic codes. They
+must not expose raw `GPUBuffer`, `GPUBindGroup`, `GPUTexture`, texture views,
+samplers, pipelines, shader modules, adapter callbacks, app objects, mutable
+cache maps, source asset payloads, or hidden override/fallback behavior.
+
 ## Render-World Prepared Resource Summary
 
 `createRenderWorldPreparedResourceSummary()` is a renderer-independent summary

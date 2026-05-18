@@ -12,6 +12,7 @@ import {
 } from "@aperture-engine/webgpu";
 
 interface TestAdapter extends QueuedMaterialAdapterRegistration {
+  readonly label?: string;
   readonly prepare?: () => void;
 }
 
@@ -146,6 +147,135 @@ describe("queued material adapter registry validation", () => {
       registeredFamilies: BUILT_IN_APP_RESOURCE_ADAPTER_FAMILIES,
       diagnostics: [],
     });
+  });
+
+  it("validates built-in families alongside one app-owned family key", () => {
+    const appOwnedFamily = "test-preview";
+    const registry = createQueuedMaterialAdapterRegistry<TestAdapter>([
+      ...BUILT_IN_APP_RESOURCE_ADAPTER_FAMILIES.map((kind) => ({
+        kind,
+        prepare: () => undefined,
+      })),
+      { kind: appOwnedFamily, prepare: () => undefined },
+      { kind: appOwnedFamily, prepare: () => undefined },
+    ]);
+    const expectedFamilies = [
+      ...BUILT_IN_APP_RESOURCE_ADAPTER_FAMILIES,
+      appOwnedFamily,
+    ];
+    const report = validateQueuedMaterialAdapterRegistry(registry, {
+      expectedFamilies,
+    });
+    const json =
+      queuedMaterialAdapterRegistryValidationReportToJsonValue(report);
+    const serialized =
+      queuedMaterialAdapterRegistryValidationReportToJson(report);
+    const firstAppOwnedIndex = BUILT_IN_APP_RESOURCE_ADAPTER_FAMILIES.length;
+
+    expect(report).toEqual({
+      valid: true,
+      expectedFamilies,
+      registeredFamilies: [
+        ...BUILT_IN_APP_RESOURCE_ADAPTER_FAMILIES,
+        appOwnedFamily,
+        appOwnedFamily,
+      ],
+      diagnostics: [
+        {
+          code: "queuedMaterialAdapter.duplicateFamily",
+          severity: "warning",
+          family: appOwnedFamily,
+          firstIndex: firstAppOwnedIndex,
+          duplicateIndex: firstAppOwnedIndex + 1,
+          message: `Material adapter family '${appOwnedFamily}' is registered more than once; the first adapter at index ${firstAppOwnedIndex} will be used.`,
+        },
+      ],
+    });
+    expect(registry.get(appOwnedFamily)?.kind).toBe(appOwnedFamily);
+    expect(json).toEqual({
+      valid: true,
+      expectedFamilies,
+      registeredFamilies: [
+        ...BUILT_IN_APP_RESOURCE_ADAPTER_FAMILIES,
+        appOwnedFamily,
+        appOwnedFamily,
+      ],
+      diagnostics: [
+        expect.objectContaining({
+          code: "queuedMaterialAdapter.duplicateFamily",
+          family: appOwnedFamily,
+          firstIndex: firstAppOwnedIndex,
+          duplicateIndex: firstAppOwnedIndex + 1,
+        }),
+      ],
+    });
+    expect(JSON.parse(serialized)).toEqual(json);
+    expect(serialized).toContain(appOwnedFamily);
+    expect(serialized).not.toContain("prepare");
+    expect(serialized).not.toContain("function");
+    expect(serialized).not.toContain("GPU");
+    expect(serialized).not.toContain("MaterialAsset");
+    expect(serialized).not.toContain("fallback");
+  });
+
+  it("keeps built-in family collisions visible without overriding the first adapter", () => {
+    const builtInStyleAdapters =
+      BUILT_IN_APP_RESOURCE_ADAPTER_FAMILIES.map<TestAdapter>((kind) => ({
+        kind,
+        label: `built-in:${kind}`,
+        prepare: () => undefined,
+      }));
+    const collidingAppOwnedAdapter: TestAdapter = {
+      kind: "standard",
+      label: "app-owned:standard",
+      prepare: () => undefined,
+    };
+    const registry = createQueuedMaterialAdapterRegistry<TestAdapter>([
+      ...builtInStyleAdapters,
+      collidingAppOwnedAdapter,
+    ]);
+    const report = validateQueuedMaterialAdapterRegistry(registry, {
+      expectedFamilies: BUILT_IN_APP_RESOURCE_ADAPTER_FAMILIES,
+    });
+    const json =
+      queuedMaterialAdapterRegistryValidationReportToJsonValue(report);
+    const serialized =
+      queuedMaterialAdapterRegistryValidationReportToJson(report);
+    const firstStandardIndex =
+      BUILT_IN_APP_RESOURCE_ADAPTER_FAMILIES.indexOf("standard");
+
+    expect(registry.get("standard")).toBe(
+      builtInStyleAdapters[firstStandardIndex],
+    );
+    expect(registry.get("standard")).not.toBe(collidingAppOwnedAdapter);
+    expect(report).toEqual({
+      valid: true,
+      expectedFamilies: BUILT_IN_APP_RESOURCE_ADAPTER_FAMILIES,
+      registeredFamilies: [
+        ...BUILT_IN_APP_RESOURCE_ADAPTER_FAMILIES,
+        "standard",
+      ],
+      diagnostics: [
+        {
+          code: "queuedMaterialAdapter.duplicateFamily",
+          severity: "warning",
+          family: "standard",
+          firstIndex: firstStandardIndex,
+          duplicateIndex: BUILT_IN_APP_RESOURCE_ADAPTER_FAMILIES.length,
+          message: `Material adapter family 'standard' is registered more than once; the first adapter at index ${firstStandardIndex} will be used.`,
+        },
+      ],
+    });
+    expect(JSON.parse(serialized)).toEqual(json);
+    expect(serialized).toContain("standard");
+    expect(serialized).not.toContain("built-in:standard");
+    expect(serialized).not.toContain("app-owned:standard");
+    expect(serialized).not.toContain("prepare");
+    expect(serialized).not.toContain("function");
+    expect(serialized).not.toContain("GPU");
+    expect(serialized).not.toContain("MaterialAsset");
+    expect(serialized).not.toContain("override");
+    expect(serialized).not.toContain("fallback");
   });
 
   it("serializes validation reports without adapter objects or functions", () => {

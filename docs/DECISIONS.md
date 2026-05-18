@@ -294,3 +294,45 @@ Consequences:
   contract.
 - App-level non-built-in route migration should start with type-boundary and
   diagnostics tests before adding a real rendered family.
+
+## 0011 — Public App-Owned Material Adapters Require Source Contracts First
+
+Status: accepted
+
+Context:
+
+Aperture now has generic material route, adapter registry, app resource item,
+and frame-resource contracts that can carry non-built-in family keys in tests.
+Those contracts are useful for keeping the route spine generic, but they do not
+define public custom material source assets. A public app facade option for
+app-owned material adapters would imply that users can author, validate,
+prepare, and render custom material families through the normal app path.
+
+Decision:
+
+Aperture will not expose public app-owned material adapter registration through
+`createWebGpuApp()` or equivalent app facades until a public custom material
+source asset contract has been accepted.
+
+Generic route and adapter family keys may remain internal or test-facing
+surfaces unless they are backed by explicit public contracts for:
+
+- source material asset shape and validation;
+- texture, sampler, mesh, shader, and other resource dependencies;
+- render-asset preparation and unload/lifetime behavior;
+- shader, bind group, render-state, and pipeline-key specialization;
+- diagnostics and JSON-safe report surfaces; and
+- compatibility with snapshots, worker boundaries, and renderer-owned GPU
+  resources.
+
+Consequences:
+
+- Built-in app routes remain the only public rendered material families for
+  now.
+- Tests may continue using non-built-in family keys to guard generic route and
+  adapter boundaries.
+- Colliding or unsupported family keys must diagnose clearly and must not
+  silently override built-ins, fallback to built-ins, or create hidden source
+  material state.
+- The next public custom material step should be a source/API design decision,
+  not an app facade implementation shortcut.

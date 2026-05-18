@@ -1,5 +1,157 @@
 # Handoff
 
+## Current Run Update — 2026-05-18T23:48:30Z
+
+Completed `task-1676` through `task-1705`. Recommended next task is
+`task-1706`: plan a source-shape decision, StandardMaterial/glTF fidelity
+slice, or diagnostics/tooling follow-up.
+
+Highlights:
+
+- Added test-only generic adapter registry policy guards:
+  - built-in app resource families can validate alongside an app-owned
+    `test-preview` family key;
+  - a colliding app-owned-style `standard` adapter does not override the first
+    built-in-style registration.
+- Promoted material route diagnostics layers into
+  `docs/DIAGNOSTICS_SUMMARIES.md`, documenting JSON-safe route reporting
+  boundaries and the split between generic route infrastructure and built-in/app
+  compatibility policy.
+- Added Decision 0011: public app-owned material adapter facades stay deferred
+  until a public custom material source asset contract is accepted.
+- Drafted a non-binding custom material source/API design brief and a
+  source-asset-shape checklist for future decision work.
+- Updated public tracker pages and refilled the ready queue with `task-1706`
+  through `task-1710`.
+- Recorded the automation memory rule from the user: before minute 47, do not
+  wait on the stop-hook gate if ready tasks remain; take another coherent task.
+
+Reference anchors inspected:
+
+- `docs/NORTH_STAR.md`
+- `docs/ROADMAP.md`
+- `docs/MEDIUM_LONG_TERM_GOALS.md`
+- `docs/ARCHITECTURE.md`
+- `docs/DECISIONS.md`
+- `docs/DIAGNOSTICS_SUMMARIES.md`
+- `docs/research/METALLIC_ROUGHNESS_FACTOR_BROWSER_PROOF_AUDIT_2026_05_18.md`
+- `docs/research/NON_BUILT_IN_APP_MATERIAL_ADAPTER_DECOMPOSITION_2026_05_18.md`
+- `docs/research/MATERIAL_ROUTE_DIAGNOSTICS_MAP_2026_05_18.md`
+- `packages/webgpu/src/webgpu/queued-material-adapter.ts`
+- `packages/webgpu/src/webgpu/built-in-material-app-resource-adapter.ts`
+- `packages/webgpu/src/webgpu/app.ts`
+- `test/webgpu/queued-material-adapter-json.test.ts`
+- `references/bevy/crates/bevy_render/src/render_asset.rs`
+- `references/bevy/crates/bevy_pbr/src/material.rs`
+
+Files touched:
+
+- `agent/BACKLOG.md`
+- `agent/COMPLETED.md`
+- `agent/HANDOFF.md`
+- `agent/STATUS.json`
+- `docs/DECISIONS.md`
+- `docs/DIAGNOSTICS_SUMMARIES.md`
+- `docs/index.html`
+- `docs/render-pipeline-comparison.html`
+- `test/webgpu/queued-material-adapter-json.test.ts`
+- `docs/research/*_2026_05_18.md` planning/audit/tracker notes for
+  `task-1676` through `task-1705`
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/queued-material-adapter-json.test.ts`
+- `pnpm run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm run check:progress`
+- `pnpm run format:check`
+- `git diff --check`
+
+Known issues / follow-ups:
+
+- Start `task-1706`: compare a public custom material source-shape decision
+  candidate, a StandardMaterial/glTF fidelity candidate, and a diagnostics/tooling
+  candidate.
+- Public custom material source APIs and app-owned adapter facades remain
+  unimplemented and require a later accepted decision/design record.
+- Real app-level non-built-in material rendering, binary GLB loading, IBL,
+  shadows, instancing, batching, and multi-material primitive rules remain
+  deferred.
+
+## Current Run Update — 2026-05-18T23:11:56Z
+
+Completed `task-1676` through `task-1685`. Recommended next task is
+`task-1686`: plan the next app adapter facade, route diagnostics docs, or
+StandardMaterial/glTF fidelity follow-up.
+
+Highlights:
+
+- Planned and audited the next route/app adapter versus StandardMaterial
+  follow-up after metallic-roughness factor browser coverage.
+- Added generic adapter registry coexistence coverage proving all built-in app
+  resource families can validate alongside a test-only app-owned
+  `test-preview` family key.
+- Added built-in family collision coverage proving a colliding
+  app-owned-style `standard` adapter does not override the first
+  built-in-style registration.
+- Kept both route/app adapter policy guards test-only, JSON-safe, and outside
+  public custom material source authoring or app-level non-built-in rendering.
+- Updated public tracker pages and refilled the ready queue with `task-1686`
+  through `task-1690`.
+
+Reference anchors inspected:
+
+- `docs/NORTH_STAR.md`
+- `docs/ROADMAP.md`
+- `docs/MEDIUM_LONG_TERM_GOALS.md`
+- `docs/ARCHITECTURE.md`
+- `docs/DECISIONS.md`
+- `docs/research/METALLIC_ROUGHNESS_FACTOR_BROWSER_PROOF_AUDIT_2026_05_18.md`
+- `docs/research/NON_BUILT_IN_APP_MATERIAL_ADAPTER_DECOMPOSITION_2026_05_18.md`
+- `docs/research/APP_ADAPTER_REGISTRY_COHABITATION_REGRESSION_AUDIT_2026_05_18.md`
+- `packages/webgpu/src/webgpu/queued-material-adapter.ts`
+- `packages/webgpu/src/webgpu/built-in-material-app-resource-adapter.ts`
+- `packages/webgpu/src/webgpu/app.ts`
+- `test/webgpu/queued-material-adapter-json.test.ts`
+- `references/bevy/crates/bevy_render/src/render_asset.rs`
+- `references/bevy/crates/bevy_pbr/src/material.rs`
+
+Files touched:
+
+- `agent/BACKLOG.md`
+- `agent/COMPLETED.md`
+- `agent/HANDOFF.md`
+- `agent/STATUS.json`
+- `docs/index.html`
+- `docs/render-pipeline-comparison.html`
+- `docs/research/APP_ADAPTER_BUILT_IN_COLLISION_PLAN_AUDIT_2026_05_18.md`
+- `docs/research/APP_ADAPTER_BUILT_IN_COLLISION_REGRESSION_AUDIT_2026_05_18.md`
+- `docs/research/APP_ADAPTER_REGISTRY_COHABITATION_PLAN_AUDIT_2026_05_18.md`
+- `docs/research/APP_ADAPTER_REGISTRY_COHABITATION_REGRESSION_AUDIT_2026_05_18.md`
+- `docs/research/NEXT_APP_ADAPTER_OR_STANDARD_AFTER_FACTOR_BROWSER_PLAN_2026_05_18.md`
+- `docs/research/NEXT_APP_ADAPTER_OR_STANDARD_AFTER_REGISTRY_COHABITATION_PLAN_2026_05_18.md`
+- `docs/research/TRACKER_BACKLOG_ALIGNMENT_AFTER_APP_ADAPTER_BUILT_IN_COLLISION_2026_05_18.md`
+- `docs/research/TRACKER_BACKLOG_ALIGNMENT_AFTER_APP_ADAPTER_REGISTRY_COHABITATION_2026_05_18.md`
+- `test/webgpu/queued-material-adapter-json.test.ts`
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/queued-material-adapter-json.test.ts`
+- `pnpm run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm run check:progress`
+- `pnpm run format:check`
+- `git diff --check`
+
+Known issues / follow-ups:
+
+- Start `task-1686`: compare an explicit app-owned adapter facade candidate, a
+  StandardMaterial/glTF fidelity candidate, and a diagnostics/tooling candidate.
+- Public custom material source authoring still requires a decision record.
+- Real app-level non-built-in material rendering, binary GLB loading, IBL,
+  shadows, instancing, batching, and multi-material primitive rules remain
+  deferred.
+
 ## Current Run Update — 2026-05-18T22:22:21Z
 
 Completed `task-1658` through `task-1675`. Recommended next task is

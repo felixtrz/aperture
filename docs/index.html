@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-18 15:25 PDT</dd>
+            <dd>2026-05-18 16:46 PDT</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -605,10 +605,33 @@
               by <code>metallicFactor</code> and the green channel by
               <code>roughnessFactor</code>. Browser coverage now proves the same
               scalar-factor plus metallic-roughness texture path through the
-              glTF fixture with JSON-safe factor/channel status.
+              glTF fixture with JSON-safe factor/channel status. The next
+              route/app adapter planning pass selected a test-only adapter
+              registry coexistence regression, and that test now proves built-in
+              app resource families can validate alongside an app-owned
+              <code>test-preview</code> family key with duplicate-family
+              warnings, deterministic indexes, JSON-safe output, and no public
+              custom material source API or fallback behavior. A follow-up
+              collision-policy regression now proves a colliding app-owned
+              <code>standard</code> adapter does not override the first
+              built-in-style registration, while still surfacing the duplicate
+              as a JSON-safe warning. Public diagnostics docs now include a
+              material route diagnostics layer map that distinguishes generic
+              route infrastructure from built-in/app compatibility policy and
+              documents JSON-safe route reporting boundaries. Decision 0011 now
+              makes the public app-owned material adapter facade boundary
+              explicit: it stays deferred until a public custom material source
+              asset contract is accepted. A non-binding custom material
+              source/API design brief now lists the source shape, validation,
+              dependency, preparation/lifetime, shader/resource, diagnostics,
+              and worker-boundary questions that must be resolved before that
+              public API can be accepted. A follow-up source asset shape
+              checklist now narrows the future decision to family key format,
+              stable identity, render-phase declaration, render-state inputs,
+              pipeline-key inputs, binding schema, and metadata rules.
             </dd>
             <dt>Next focus</dt>
-            <dd>Plan app adapter registration or glTF fidelity follow-up</dd>
+            <dd>Plan source-shape decision or glTF fidelity</dd>
           </dl>
         </aside>
       </header>

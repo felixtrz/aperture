@@ -1,5 +1,60 @@
 # Completed Tasks
 
+## tasks-1686-1705 — Route diagnostics docs and custom material source design gates
+
+Completed: 2026-05-18
+
+Summary:
+
+- Documented material route diagnostics layers in
+  `docs/DIAGNOSTICS_SUMMARIES.md`, including JSON-safe public surfaces and the
+  boundary between generic route infrastructure and built-in/app compatibility
+  policy.
+- Added Decision 0011, which keeps public app-owned material adapter facades
+  deferred until a public custom material source asset contract is accepted.
+- Drafted a non-binding custom material source/API design brief covering source
+  shape, validation, dependencies, preparation/lifetime, shader/resource
+  contracts, diagnostics, and worker-boundary compatibility.
+- Added a non-binding source asset shape checklist to narrow a future public
+  source-shape decision.
+- Updated tracker/backlog state and refilled the ready queue with `task-1706`
+  through `task-1710`.
+
+Validation:
+
+- `pnpm run check:progress`
+- `pnpm run format:check`
+- `git diff --check`
+
+## tasks-1676-1685 — App adapter registry policy guards
+
+Completed: 2026-05-18
+
+Summary:
+
+- Planned and audited the next route/app adapter versus StandardMaterial
+  follow-up after metallic-roughness factor browser coverage.
+- Added a generic adapter registry coexistence regression proving all built-in
+  app resource families can validate alongside a test-only app-owned
+  `test-preview` family key.
+- Added a built-in family collision regression proving a colliding
+  app-owned-style `standard` adapter does not override the first
+  built-in-style registration.
+- Kept both changes test-only, with JSON-safe diagnostics and no public custom
+  material source API, app-level non-built-in rendering, shaders, IBL, shadows,
+  or binary GLB loading.
+- Updated tracker/backlog state and refilled the ready queue with `task-1686`
+  through `task-1690`.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/queued-material-adapter-json.test.ts`
+- `pnpm run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm run check:progress`
+- `pnpm run format:check`
+- `git diff --check`
+
 ## tasks-1658-1670 — Generic adapter validation and route/shader contract coverage
 
 Completed: 2026-05-18
