@@ -4,6 +4,11 @@ const jsonElement = document.querySelector("#example-json");
 const clearColor = [0.015, 0.025, 0.035, 1];
 const scalarColor = [0.95, 0.1, 0.08, 1];
 const expectedTextureColor = [0.09375, 0.5, 1, 1];
+const baseColorFactorTextureTint = {
+  factor: [0.25, 0.6, 0.8, 1],
+  expectedColor: [0.09375 * 0.25, 0.5 * 0.6, 1 * 0.8, 1],
+  untintedColor: expectedTextureColor,
+};
 const metallicRoughness = { metallic: 64 / 255, roughness: 16 / 255 };
 const normalMapVector = { x: 192 / 255, y: 64 / 255, z: 16 / 255 };
 const fullNormalMapScale = 2;
@@ -402,6 +407,7 @@ function createGltfTextureScene(aperture, app, targetCanvas, selectedScenario) {
     expectedTextureColor: config.expectedTextureColor,
     expectedUntransformedTextureColor: config.expectedUntransformedTextureColor,
     expectedOffsetScaleTextureColor: config.expectedOffsetScaleTextureColor,
+    expectedBaseColorFactor: config.expectedBaseColorFactor,
     expectedSampler: config.expectedSampler,
     expectedTexCoord: config.expectedTexCoord,
     expectedUv1: config.expectedUv1,
@@ -430,6 +436,8 @@ function createGltfScenarioConfig(selectedScenario) {
   const usesBaseColorUv1Missing = selectedScenario === "base-color-uv1-missing";
   const usesBaseColorUv1Transform =
     selectedScenario === "base-color-uv1-transform";
+  const usesBaseColorFactorTextureTint =
+    selectedScenario === "base-color-factor-texture-tint";
   const usesAnyBaseColorUv1 =
     usesBaseColorUv1 || usesBaseColorUv1Missing || usesBaseColorUv1Transform;
   const usesBaseColorMetallicRoughness =
@@ -533,6 +541,7 @@ function createGltfScenarioConfig(selectedScenario) {
     usesBaseColorUv1,
     usesBaseColorUv1Missing,
     usesBaseColorUv1Transform,
+    usesBaseColorFactorTextureTint,
     usesAnyBaseColorUv1,
     usesBaseColorMetallicRoughness,
     usesBaseColorMetallicRoughnessNormal,
@@ -690,17 +699,19 @@ function createGltfScenarioConfig(selectedScenario) {
                                                                                     ? "gltf-standard-default-sampler"
                                                                                     : usesValidNonDefaultSampler
                                                                                       ? "gltf-standard-valid-non-default-sampler"
-                                                                                      : usesBaseColorTransformSampling
-                                                                                        ? "gltf-standard-base-color-transform-sampling"
-                                                                                        : usesBaseColorTransformRotationSampling
-                                                                                          ? "gltf-standard-base-color-transform-rotation-sampling"
-                                                                                          : usesBaseColorUv1
-                                                                                            ? "gltf-standard-base-color-uv1"
-                                                                                            : usesBaseColorUv1Missing
-                                                                                              ? "gltf-standard-base-color-uv1-missing"
-                                                                                              : usesBaseColorUv1Transform
-                                                                                                ? "gltf-standard-base-color-uv1-transform"
-                                                                                                : "gltf-standard-base-color-texture",
+                                                                                      : usesBaseColorFactorTextureTint
+                                                                                        ? "gltf-standard-base-color-factor-texture-tint"
+                                                                                        : usesBaseColorTransformSampling
+                                                                                          ? "gltf-standard-base-color-transform-sampling"
+                                                                                          : usesBaseColorTransformRotationSampling
+                                                                                            ? "gltf-standard-base-color-transform-rotation-sampling"
+                                                                                            : usesBaseColorUv1
+                                                                                              ? "gltf-standard-base-color-uv1"
+                                                                                              : usesBaseColorUv1Missing
+                                                                                                ? "gltf-standard-base-color-uv1-missing"
+                                                                                                : usesBaseColorUv1Transform
+                                                                                                  ? "gltf-standard-base-color-uv1-transform"
+                                                                                                  : "gltf-standard-base-color-texture",
     expectedFailure: expectedGltfFailures[selectedScenario] ?? null,
     expectedTextureTransform: usesBaseColorTransform
       ? unsupportedTextureTransform
@@ -716,10 +727,11 @@ function createGltfScenarioConfig(selectedScenario) {
               usesEmissiveTextureTransform
             ? textureTransformSampling.transform
             : null,
-    expectedTextureColor:
-      usesBaseColorMetallicRoughness ||
-      usesBaseColorOcclusionEmissive ||
-      usesBaseColorAlphaMaskEmissive
+    expectedTextureColor: usesBaseColorFactorTextureTint
+      ? baseColorFactorTextureTint.expectedColor
+      : usesBaseColorMetallicRoughness ||
+          usesBaseColorOcclusionEmissive ||
+          usesBaseColorAlphaMaskEmissive
         ? expectedTextureColor
         : usesBaseColorTransformSampling
           ? textureTransformSampling.expectedColor
@@ -747,6 +759,12 @@ function createGltfScenarioConfig(selectedScenario) {
             : null,
     expectedOffsetScaleTextureColor: usesBaseColorTransformRotationSampling
       ? textureTransformRotationSampling.offsetScaleOnlyColor
+      : null,
+    expectedBaseColorFactor: usesBaseColorFactorTextureTint
+      ? {
+          factor: baseColorFactorTextureTint.factor,
+          untintedColor: baseColorFactorTextureTint.untintedColor,
+        }
       : null,
     expectedTexCoord:
       usesAnyBaseColorUv1 || usesAnyMetallicRoughnessUv1 ? 1 : 0,
@@ -1105,6 +1123,13 @@ function createGltfFixtureRoot(config) {
   ) {
     pbrMetallicRoughness = {
       baseColorFactor: scalarColor,
+      metallicFactor: 0,
+      roughnessFactor: 0.8,
+    };
+  } else if (config.usesBaseColorFactorTextureTint) {
+    pbrMetallicRoughness = {
+      baseColorFactor: baseColorFactorTextureTint.factor,
+      baseColorTexture: { index: 0 },
       metallicFactor: 0,
       roughnessFactor: 0.8,
     };
@@ -1786,6 +1811,7 @@ function createStandardTextureStatus(aperture, scene) {
       expectedUntransformedTextureColor:
         scene.expectedUntransformedTextureColor,
       expectedOffsetScaleTextureColor: scene.expectedOffsetScaleTextureColor,
+      expectedBaseColorFactor: scene.expectedBaseColorFactor,
       expectedTexCoord: scene.expectedTexCoord,
       expectedUv1: scene.expectedUv1,
       expectedMetallicRoughness: scene.expectedMetallicRoughness,

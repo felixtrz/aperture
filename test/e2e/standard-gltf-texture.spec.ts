@@ -77,6 +77,10 @@ interface StandardGltfTextureStatus extends ExampleStatusBase {
     readonly expectedTextureColor?: RgbaTuple | null;
     readonly expectedUntransformedTextureColor?: RgbaTuple | null;
     readonly expectedOffsetScaleTextureColor?: RgbaTuple | null;
+    readonly expectedBaseColorFactor?: {
+      readonly factor: readonly number[];
+      readonly untintedColor: RgbaTuple;
+    } | null;
     readonly expectedMetallicRoughness?: {
       readonly metallic: number;
       readonly roughness: number;
@@ -553,6 +557,120 @@ test("standard glTF texture fixture renders a mapped base-color texture", async 
     expect(status.readback?.message, JSON.stringify(status, null, 2)).toEqual(
       expect.any(String),
     );
+  }
+
+  expect(status.diagnosticCodes ?? []).toEqual([]);
+  webGpuValidation.expectNoWarnings();
+});
+
+test("standard glTF texture fixture tints base-color texture with baseColorFactor", async ({
+  page,
+}) => {
+  const webGpuValidation = attachWebGpuValidationConsoleGuard(page);
+
+  await page.goto(
+    "/examples/standard-gltf-texture.html?scenario=base-color-factor-texture-tint",
+  );
+
+  const status = await waitForExampleStatus<StandardGltfTextureStatus>(page);
+
+  await attachExampleStatus(
+    "standard-gltf-texture-base-color-factor-texture-tint-status",
+    status,
+  );
+  expect(
+    status,
+    "standard glTF base-color factor tint status should publish",
+  ).toBeDefined();
+
+  if (status === undefined) {
+    return;
+  }
+
+  skipIfUnsupportedWebGpu(status);
+  expectStatusJsonSafeForGpu(status);
+  expectRenderedGltfTextureStatus(status, {
+    scenario: "base-color-factor-texture-tint",
+    materialModel: "gltf-standard-base-color-factor-texture-tint",
+    textureSlot: "baseColorTexture",
+    textureKey: "texture:gltf:texture:0:baseColorTexture",
+    samplerKey: "sampler:gltf:sampler:0:baseColorTexture",
+    pipelineKey: "standard|baseColorTexture|opaque|back|less|none",
+  });
+  expect(status, JSON.stringify(status, null, 2)).toMatchObject({
+    standardTexture: {
+      expectedTextureColor: expect.any(Array),
+      expectedBaseColorFactor: {
+        factor: [0.25, 0.6, 0.8, 1],
+        untintedColor: expect.any(Array),
+      },
+      readiness: { ready: true, diagnostics: [] },
+    },
+    resources: {
+      textureResourcesCreated: 1,
+      samplerResourcesCreated: 1,
+      materialBuffersCreated: 1,
+    },
+    draw: { drawCalls: 1 },
+  });
+
+  const standardTexture = status.standardTexture;
+
+  if (standardTexture === undefined) {
+    throw new Error("standard glTF base-color factor texture status missing");
+  }
+  if (
+    standardTexture.expectedTextureColor === undefined ||
+    standardTexture.expectedTextureColor === null ||
+    standardTexture.expectedBaseColorFactor === undefined ||
+    standardTexture.expectedBaseColorFactor === null
+  ) {
+    throw new Error(
+      "standard glTF base-color factor texture expectations are missing",
+    );
+  }
+
+  const screenshot = await page.locator("#aperture-canvas").screenshot();
+  const texturedSample = readPngPixel(
+    screenshot,
+    standardTexture.sample.x,
+    standardTexture.sample.y,
+  );
+  const tinted = rgbaColorToPixel(
+    rgbaTupleToColor(standardTexture.expectedTextureColor),
+  );
+  const untinted = rgbaColorToPixel(
+    rgbaTupleToColor(standardTexture.expectedBaseColorFactor.untintedColor),
+  );
+  const clear = rgbaColorToPixel({
+    r: status.clearColor?.r ?? 0,
+    g: status.clearColor?.g ?? 0,
+    b: status.clearColor?.b ?? 0,
+    a: status.clearColor?.a ?? 1,
+  });
+
+  expect(pixelDistance(texturedSample, tinted)).toBeLessThan(
+    pixelDistance(texturedSample, untinted),
+  );
+  expect(pixelDistance(texturedSample, tinted)).toBeLessThan(
+    pixelDistance(texturedSample, clear),
+  );
+
+  if (status.readback?.ok) {
+    const readbackTextured = status.readback.samples.find(
+      (sample) => sample.id === "textured",
+    );
+
+    expect(readbackTextured).toBeDefined();
+
+    if (readbackTextured !== undefined) {
+      expect(pixelDistance(readbackTextured.pixel, tinted)).toBeLessThan(
+        pixelDistance(readbackTextured.pixel, untinted),
+      );
+      expect(pixelDistance(readbackTextured.pixel, tinted)).toBeLessThan(
+        pixelDistance(readbackTextured.pixel, clear),
+      );
+    }
   }
 
   expect(status.diagnosticCodes ?? []).toEqual([]);

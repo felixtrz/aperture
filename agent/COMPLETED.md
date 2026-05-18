@@ -1,5 +1,37 @@
 # Completed Tasks
 
+## tasks-1625-1657 — Frame-resource diagnostics, glTF tint, and generic adapter contracts
+
+Completed: 2026-05-18
+
+Summary:
+
+- Planned, audited, implemented, and aligned tracker/backlog work from
+  queued prepare-route diagnostic normalization through generic app adapter
+  registration policy.
+- Extracted frame-resource route app diagnostic construction into a generic
+  helper while preserving built-in compatibility.
+- Added StandardMaterial/glTF base-color factor times texture browser coverage.
+- Added route diagnostics map and non-built-in app material adapter
+  decomposition research.
+- Proved a test-only generic app adapter contract through route preparation,
+  app item construction, and frame-resource setup.
+- Audited registration policy and selected a generic app adapter registry
+  validation helper as the next ready implementation task.
+
+Validation:
+
+- `pnpm run check`
+- `pnpm run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm run check:progress`
+- `pnpm run format:check`
+- `git diff --check`
+- Focused Vitest coverage for frame-resource route diagnostics, built-in
+  frame-resource failures, generic app adapter contracts, prepare routes, and
+  generic frame-resource sets.
+- Focused Playwright coverage for glTF base-color factor texture tint.
+
 ## task-1584 — Audit tracker/backlog alignment after route-report collector extraction
 
 Completed: 2026-05-18

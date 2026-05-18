@@ -1,5 +1,98 @@
 # Handoff
 
+## Current Run Update — 2026-05-18T21:45:00Z
+
+Completed `task-1625` through `task-1657`. Recommended next task is
+`task-1658`: add a generic app adapter registry validation helper.
+
+Highlights:
+
+- Extracted frame-resource route app diagnostic construction into
+  `queued-material-frame-resource-route-diagnostics.ts` and kept the built-in
+  wrapper/export compatible.
+- Added StandardMaterial/glTF browser coverage proving `baseColorFactor` tints
+  `baseColorTexture`, with JSON-safe factor status and screenshot/readback
+  comparison against untinted texture and clear color.
+- Added an agent-readable material route diagnostics map and decomposed
+  non-built-in app material adapter support into ordered safe slices.
+- Audited generic app adapter contract readiness and confirmed the registry,
+  prepare-route, app item, and frame-resource-set contracts are generic enough
+  for a test-only non-built-in proof while public source material kinds remain
+  closed.
+- Relaxed the internal `QueuedMaterialPrepareRouteAdapter` material generic so
+  route adapters can accept non-public test material objects without extending
+  the public `MaterialAsset` union.
+- Added `queued-material-generic-app-adapter-contract.test.ts`, proving a
+  non-public `test-preview` family through adapter registry, prepare-route,
+  app resource item, and frame-resource-set preparation, including JSON-safe
+  failure diagnostics.
+- Audited generic app adapter registration policy and selected a generic app
+  adapter registry validation helper as the next focused implementation slice.
+- Updated public tracker pages and refilled the ready queue with `task-1658`
+  through `task-1662`.
+
+Reference anchors inspected:
+
+- `docs/NORTH_STAR.md`
+- `docs/ROADMAP.md`
+- `docs/MEDIUM_LONG_TERM_GOALS.md`
+- `docs/ARCHITECTURE.md`
+- `docs/DECISIONS.md`
+- `packages/webgpu/src/webgpu/queued-material-adapter.ts`
+- `packages/webgpu/src/webgpu/queued-material-prepare-route.ts`
+- `packages/webgpu/src/webgpu/queued-material-app-resource-item.ts`
+- `packages/webgpu/src/webgpu/queued-material-frame-resource-set.ts`
+- `packages/webgpu/src/webgpu/built-in-material-app-resource-adapter.ts`
+- `packages/webgpu/src/webgpu/queued-built-in-app-resource-set.ts`
+- `packages/webgpu/src/webgpu/queued-built-in-frame-resource-set.ts`
+- `packages/webgpu/src/webgpu/app.ts`
+- `packages/render/src/materials/types.ts`
+- `references/three.js/src/renderers/common/Pipeline.js`
+- `references/three.js/src/renderers/common/Bindings.js`
+- `references/engine/src/scene/frame-graph.js`
+
+Files touched:
+
+- `agent/BACKLOG.md`
+- `agent/COMPLETED.md`
+- `agent/HANDOFF.md`
+- `agent/STATUS.json`
+- `docs/index.html`
+- `docs/render-pipeline-comparison.html`
+- `docs/research/*_2026_05_18.md` research/audit/tracker notes for
+  `task-1625` through `task-1657`
+- `examples/standard-gltf-texture.js`
+- `packages/webgpu/src/webgpu/built-in-material-queue-adapter.ts`
+- `packages/webgpu/src/webgpu/index.ts`
+- `packages/webgpu/src/webgpu/queued-built-in-frame-resource-set.ts`
+- `packages/webgpu/src/webgpu/queued-material-frame-resource-route-diagnostics.ts`
+- `packages/webgpu/src/webgpu/queued-material-prepare-route.ts`
+- `test/e2e/standard-gltf-texture.spec.ts`
+- `test/webgpu/queued-material-frame-resource-route-diagnostics.test.ts`
+- `test/webgpu/queued-material-generic-app-adapter-contract.test.ts`
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/queued-material-frame-resource-route-diagnostics.test.ts`
+- `pnpm exec vitest run test/webgpu/queued-built-in-frame-resource-set.test.ts --testNamePattern "failed frame-resource routes"`
+- `node --check examples/standard-gltf-texture.js`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "baseColorFactor"`
+- `pnpm exec vitest run test/webgpu/queued-material-generic-app-adapter-contract.test.ts test/webgpu/queued-material-prepare-route.test.ts test/webgpu/queued-material-frame-resource-set.test.ts`
+- `pnpm run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm run check:progress`
+- `pnpm run format:check`
+- `git diff --check`
+- `pnpm run check` (263 test files, 1265 tests)
+
+Known issues / follow-ups:
+
+- Start `task-1658`: add a generic app adapter registry validation helper with
+  optional expected-family keys and JSON-safe diagnostics.
+- Public custom material source authoring, runtime app-owned adapter
+  registration, real non-built-in rendering, binary GLB loading, IBL, shadows,
+  instancing, batching, and multi-material primitive rules remain deferred.
+
 ## Current Run Update — 2026-05-18T20:48:01Z
 
 Completed `task-1585` through `task-1624`. Recommended next task is

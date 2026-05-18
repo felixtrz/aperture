@@ -28,9 +28,7 @@ export interface QueuedMaterialPrepareRouteDiagnostic {
   };
 }
 
-export interface QueuedMaterialPrepareRouteContext<
-  TMaterial extends MaterialAsset = MaterialAsset,
-> {
+export interface QueuedMaterialPrepareRouteContext<TMaterial = MaterialAsset> {
   readonly queueItem: MaterialQueueItem;
   readonly material: TMaterial;
   readonly sourceVersion: number;
@@ -52,10 +50,10 @@ export interface QueuedMaterialPrepareRouteResult<TDiagnostic = unknown> {
 
 export interface QueuedMaterialPrepareRouteAdapter<
   Kind extends string = string,
-  TMaterial extends MaterialAsset = MaterialAsset,
+  TMaterial = MaterialAsset,
   TDiagnostic = unknown,
 > extends QueuedMaterialAdapterRegistration<Kind> {
-  acceptsMaterial(material: MaterialAsset): material is TMaterial;
+  acceptsMaterial(material: unknown): material is TMaterial;
   validateQueueItem(queueItem: MaterialQueueItem): TDiagnostic | null;
   prepareRoute(
     context: QueuedMaterialPrepareRouteContext<TMaterial>,
@@ -72,16 +70,16 @@ export type QueuedMaterialPrepareRouteAdapterDiagnostic<TAdapter> =
     : never;
 
 type QueuedMaterialPrepareRouteResultDiagnostic<
-  TAdapter extends QueuedMaterialPrepareRouteAdapter,
+  TAdapter extends QueuedMaterialPrepareRouteAdapter<string, unknown, unknown>,
 > =
   | QueuedMaterialPrepareRouteDiagnostic
   | QueuedMaterialPrepareRouteAdapterDiagnostic<TAdapter>;
 
 export function routeQueuedMaterialPrepare<
-  TAdapter extends QueuedMaterialPrepareRouteAdapter,
+  TAdapter extends QueuedMaterialPrepareRouteAdapter<string, unknown, unknown>,
 >(
   registry: QueuedMaterialAdapterRegistry<TAdapter>,
-  context: QueuedMaterialPrepareRouteContext,
+  context: QueuedMaterialPrepareRouteContext<unknown>,
 ): QueuedMaterialPrepareRouteResult<
   QueuedMaterialPrepareRouteResultDiagnostic<TAdapter>
 > {
@@ -114,15 +112,13 @@ export function routeQueuedMaterialPrepare<
     });
   }
 
-  return adapter.prepareRoute(
-    context as QueuedMaterialPrepareRouteContext,
-  ) as QueuedMaterialPrepareRouteResult<
+  return adapter.prepareRoute(context) as QueuedMaterialPrepareRouteResult<
     QueuedMaterialPrepareRouteResultDiagnostic<TAdapter>
   >;
 }
 
 export function createQueuedMaterialPrepareRouteResult<TDiagnostic = never>(
-  context: QueuedMaterialPrepareRouteContext,
+  context: QueuedMaterialPrepareRouteContext<unknown>,
   options: {
     readonly valid?: boolean;
     readonly status?: QueuedMaterialPrepareRouteStatus;
@@ -144,7 +140,7 @@ export function createQueuedMaterialPrepareRouteResult<TDiagnostic = never>(
 }
 
 function createQueuedMaterialPrepareRouteFailure<TDiagnostic>(
-  context: QueuedMaterialPrepareRouteContext,
+  context: QueuedMaterialPrepareRouteContext<unknown>,
   options: {
     readonly status: Extract<
       QueuedMaterialPrepareRouteStatus,
@@ -161,14 +157,16 @@ function createQueuedMaterialPrepareRouteFailure<TDiagnostic>(
 }
 
 function missingAdapterDiagnostic(
-  context: QueuedMaterialPrepareRouteContext,
+  context: QueuedMaterialPrepareRouteContext<unknown>,
 ): QueuedMaterialPrepareRouteDiagnostic {
+  const materialKind = readQueuedMaterialKind(context.material);
+
   return {
     code: "queuedMaterialPrepareRoute.missingAdapter",
     renderId: context.queueItem.renderId,
     drawIndex: context.queueItem.drawIndex,
     materialFamily: context.queueItem.materialFamily,
-    materialKind: context.material.kind,
+    ...(materialKind === undefined ? {} : { materialKind }),
     materialKey: context.queueItem.materialKey,
     entity: context.queueItem.entity,
     message: `No queued material prepare route adapter is registered for material family '${context.queueItem.materialFamily}'.`,
@@ -176,16 +174,30 @@ function missingAdapterDiagnostic(
 }
 
 function materialMismatchDiagnostic(
-  context: QueuedMaterialPrepareRouteContext,
+  context: QueuedMaterialPrepareRouteContext<unknown>,
 ): QueuedMaterialPrepareRouteDiagnostic {
+  const materialKind = readQueuedMaterialKind(context.material);
+
   return {
     code: "queuedMaterialPrepareRoute.materialMismatch",
     renderId: context.queueItem.renderId,
     drawIndex: context.queueItem.drawIndex,
     materialFamily: context.queueItem.materialFamily,
-    materialKind: context.material.kind,
+    ...(materialKind === undefined ? {} : { materialKind }),
     materialKey: context.queueItem.materialKey,
     entity: context.queueItem.entity,
-    message: `Queued material family '${context.queueItem.materialFamily}' does not match source material kind '${context.material.kind}'.`,
+    message:
+      materialKind === undefined
+        ? `Queued material family '${context.queueItem.materialFamily}' does not match source material.`
+        : `Queued material family '${context.queueItem.materialFamily}' does not match source material kind '${materialKind}'.`,
   };
+}
+
+function readQueuedMaterialKind(material: unknown): string | undefined {
+  return typeof material === "object" &&
+    material !== null &&
+    "kind" in material &&
+    typeof material.kind === "string"
+    ? material.kind
+    : undefined;
 }

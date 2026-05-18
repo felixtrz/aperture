@@ -36,6 +36,10 @@ import {
   type QueuedMaterialFrameResourceResultLike,
   type QueuedMaterialFrameResourceRouteShell,
 } from "./queued-material-frame-resource-route.js";
+import {
+  createWebGpuAppFrameResourceRouteDiagnostic,
+  type QueuedMaterialFrameResourceRouteAppDiagnostic,
+} from "./queued-material-frame-resource-route-diagnostics.js";
 
 export interface QueuedBuiltInFrameResources {
   readonly mesh: UnlitFrameGpuResources["mesh"];
@@ -57,11 +61,8 @@ export interface CreateQueuedBuiltInFrameResourcesResult {
   readonly diagnostics: readonly unknown[];
 }
 
-export interface QueuedBuiltInFrameResourceRouteDiagnostic {
-  readonly code: "webGpuApp.frameResourceRoute";
-  readonly message: string;
-  readonly route: QueuedMaterialFrameResourceRouteShell;
-}
+export type QueuedBuiltInFrameResourceRouteDiagnostic =
+  QueuedMaterialFrameResourceRouteAppDiagnostic;
 
 export type QueuedBuiltInPipelineResourceView =
   QueuedMaterialPipelineResourceView;
@@ -300,11 +301,7 @@ export function createQueuedBuiltInFrameResourceRouteShell(input: {
 export function createQueuedBuiltInFrameResourceRouteDiagnostic(
   route: QueuedMaterialFrameResourceRouteShell,
 ): QueuedBuiltInFrameResourceRouteDiagnostic {
-  return {
-    code: "webGpuApp.frameResourceRoute",
-    message: `WebGPU app frame resource preparation failed for '${route.family}' material route.`,
-    route,
-  };
+  return createWebGpuAppFrameResourceRouteDiagnostic(route);
 }
 
 function resetQueuedBuiltInFrameResourceScratch<TPipelinePlanResult>(

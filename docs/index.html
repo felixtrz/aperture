@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-18 13:44 PDT</dd>
+            <dd>2026-05-18 14:45 PDT</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -568,13 +568,36 @@
               generic <code>routedResourceSet</code> summary against legacy
               family-specific resource-set field names. Queued prepare-route app
               diagnostic normalization now lives in a focused helper module
-              instead of the built-in app resource-set collector.
+              instead of the built-in app resource-set collector. Frame-resource
+              route app diagnostic construction now also lives behind a focused
+              helper while preserving the
+              <code>webGpuApp.frameResourceRoute</code> payload and keeping
+              successful-frame route shells out of default app reports.
+              StandardMaterial/glTF browser coverage now proves
+              <code>baseColorFactor</code> tints
+              <code>baseColorTexture</code> with JSON-safe factor status plus
+              screenshot/readback comparisons against untinted texture and clear
+              color. The current material route diagnostics layers are now
+              mapped in an agent-readable research note, separating generic
+              route infrastructure from built-in app compatibility policy. Real
+              non-built-in app material adapter support is now decomposed into
+              ordered design and implementation slices, with the next
+              recommended route step scoped to a generic app adapter contract
+              audit rather than broad custom material rendering. That readiness
+              audit now confirms the registry, prepare-route, app resource item,
+              and frame-resource-set contracts are generic enough for a
+              test-only non-built-in proof, while public source material kinds
+              and app registration policy remain intentionally built-in-only.
+              That proof now routes a non-public
+              <code>test-preview</code> family through generic prepare-route,
+              app item, and frame-resource-set contracts with JSON-safe success
+              and failure diagnostics. The registration-policy audit now keeps
+              built-in required-family diagnostics separate from generic app
+              adapter policy and selects a generic registry validation helper as
+              the next implementation slice.
             </dd>
             <dt>Next focus</dt>
-            <dd>
-              Plan next route or StandardMaterial follow-up after mixed-family
-              queued prepare-route diagnostic normalization
-            </dd>
+            <dd>Add generic app adapter registry validation helper</dd>
           </dl>
         </aside>
       </header>
@@ -888,9 +911,9 @@
           <article class="phase">
             <div class="topline">
               <h3>3. prepare</h3>
-              <span class="percent">75%</span>
+              <span class="percent">76%</span>
             </div>
-            <div class="bar"><span style="width: 75%"></span></div>
+            <div class="bar"><span style="width: 76%"></span></div>
             <p>
               Prepared mesh/material facades and WebGPU-private backend caches
               exist for built-in material families, with compact render-world
@@ -967,9 +990,13 @@
               slot-specific texture/sampler readiness diagnostics skip draw
               submission and prepared GPU resources. Occlusion/emissive
               delayed-dependency browser coverage now proves the same no-work
-              behavior for secondary StandardMaterial texture slots.
-              Mapper-level glTF emissive-factor coverage now includes valid
-              factor-only input and invalid-field fallback diagnostics.
+              behavior for secondary StandardMaterial texture slots. Base-color
+              factor tint browser coverage now proves a non-white glTF
+              <code>baseColorFactor</code> multiplies
+              <code>baseColorTexture</code> with screenshot/readback checks
+              against untinted texture and clear color. Mapper-level glTF
+              emissive-factor coverage now includes valid factor-only input and
+              invalid-field fallback diagnostics.
             </p>
             <ul>
               <li>
@@ -986,9 +1013,9 @@
           <article class="phase">
             <div class="topline">
               <h3>4. queue</h3>
-              <span class="percent">79%</span>
+              <span class="percent">80%</span>
             </div>
-            <div class="bar"><span style="width: 79%"></span></div>
+            <div class="bar"><span style="width: 80%"></span></div>
             <p>
               Material-family queueing, route diagnostics, resource key
               resolution, Standard transparent phases, app route reporting,
@@ -1004,8 +1031,11 @@
               family/pipeline counts on two-family and three-family successful
               paths, including guards against legacy family-specific routed
               resource summary fields, and queued prepare-route app diagnostic
-              normalization now sits behind a focused helper. The alpha-blend
-              fixture now asserts transparent phase routing with the
+              normalization now sits behind a focused helper. Frame-resource
+              route app diagnostic construction also sits behind a focused
+              helper while preserving the existing failure-only report shape.
+              The alpha-blend fixture now asserts transparent phase routing with
+              the
               <code>standard|baseColorTexture|blend|back|less|alpha</code>
               pipeline key. Missing pipeline-layout access in the generic
               frame-resource route now produces a JSON-safe failure with zero
@@ -1083,25 +1113,24 @@
             <h3>Latest work in this update</h3>
             <ul>
               <li>
-                <span class="badge green">task-1624</span> Aligned tracker and
-                backlog after queued prepare-route diagnostic normalization.
+                <span class="badge green">task-1657</span> Aligned tracker and
+                backlog after generic app adapter registration policy.
               </li>
               <li>
-                <span class="badge green">task-1623</span> Audited the queued
-                prepare-route diagnostic normalization extraction.
+                <span class="badge green">task-1656</span> Audited the generic
+                app adapter registration policy audit.
               </li>
               <li>
-                <span class="badge green">task-1622</span> Extracted queued
-                prepare-route app diagnostic normalization.
+                <span class="badge green">task-1655</span> Audited generic app
+                adapter registration policy.
               </li>
               <li>
-                <span class="badge green">task-1621</span> Audited the queued
-                prepare-route diagnostic normalization plan.
+                <span class="badge green">task-1654</span> Audited the selected
+                registration-policy follow-up plan.
               </li>
               <li>
-                <span class="badge green">task-1620</span> Planned the next
-                route or StandardMaterial follow-up after mixed-family route
-                summary coverage.
+                <span class="badge green">task-1653</span> Planned the next
+                follow-up after the generic adapter contract proof.
               </li>
               <li>
                 <span class="badge green">task-1614</span> Aligned tracker and
@@ -2277,17 +2306,14 @@
             <h3>Recommended next tasks</h3>
             <ul>
               <li>
-                <span class="badge amber">next</span> Plan next route or
-                StandardMaterial follow-up after queued prepare-route diagnostic
-                normalization.
+                <span class="badge amber">next</span> Add the generic app
+                adapter registry validation helper.
               </li>
-              <li>Audit the selected post-normalization follow-up plan.</li>
+              <li>Audit the registry validation helper implementation.</li>
+              <li>Align tracker/backlog after the helper.</li>
               <li>
-                Implement the selected route or StandardMaterial follow-up.
-              </li>
-              <li>
-                Keep this tracker updated after render-pipeline or
-                project-status changes.
+                Plan the next route or StandardMaterial follow-up after registry
+                validation.
               </li>
             </ul>
           </article>

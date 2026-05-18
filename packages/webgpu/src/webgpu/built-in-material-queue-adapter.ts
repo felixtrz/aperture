@@ -59,8 +59,19 @@ export function createBuiltInMaterialQueueRouteAdapters(): readonly BuiltInMater
     isMaterialAsset: (material): material is BuiltInMaterialAsset =>
       material.kind === family,
     acceptsMaterial: (material): material is BuiltInMaterialAsset =>
-      material.kind === family,
+      isBuiltInMaterialCandidate(material) && material.kind === family,
     validateQueueItem: createUnsupportedBuiltInMaterialQueuePhaseDiagnostic,
     prepareRoute: (context) => createQueuedMaterialPrepareRouteResult(context),
   }));
+}
+
+function isBuiltInMaterialCandidate(
+  material: unknown,
+): material is MaterialAsset {
+  return (
+    typeof material === "object" &&
+    material !== null &&
+    "kind" in material &&
+    typeof material.kind === "string"
+  );
 }

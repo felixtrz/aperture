@@ -1,11 +1,11 @@
 {
   "state": "idle",
-  "currentTaskId": "task-1625",
+  "currentTaskId": "task-1658",
   "currentRunStartedAt": null,
-  "lastRunStartedAt": "2026-05-18T20:02:19Z",
+  "lastRunStartedAt": "2026-05-18T21:02:19Z",
   "lastResult": "success",
   "lastCommit": "fd2da19",
   "activePid": null,
-  "notes": "Completed through task-1624. Next: plan next route or StandardMaterial follow-up after queued prepare-route diagnostic normalization.",
-  "lastRunFinishedAt": "2026-05-18T20:48:01Z"
+  "notes": "Completed task-1625 through task-1657. Next: task-1658 generic app adapter registry validation helper.",
+  "lastRunFinishedAt": "2026-05-18T21:46:33Z"
 }
