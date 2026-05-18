@@ -59,14 +59,15 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start with `task-1449`. `task-1421` through `task-1448` completed GLB
-metallic-roughness transformed-UV1 coverage, combined base-color plus
-metallic-roughness browser coverage, adapter registration and app-diagnostics
-validation diagnostics, combined base-color plus metallic-roughness plus normal
-browser coverage, combined base-color plus occlusion plus emissive browser
-coverage, audits, tracker alignment, and selected/audited the next follow-up.
-The next ready task is extracting a shared multi-texture StandardMaterial browser
-assertion helper.
+Start with `task-1480`. `task-1421` through `task-1479` completed GLB
+metallic-roughness transformed-UV1 coverage, combined StandardMaterial browser
+coverage for base-color/metallic-roughness, base-color/metallic-roughness/normal,
+base-color/occlusion/emissive, and base-color/alpha-mask/emissive, built-in app
+adapter validation diagnostics, generic app diagnostics/resource item/set route
+contract cleanup, audits, tracker alignment, alpha texture assertion helper
+cleanup, follow-up planning, generic routed-item report serialization, and the
+remaining route collector diagnostics surface audit. The next ready task is
+planning the next collector genericization slice.
 
 ## Near-Term Proof Point Track
 
@@ -83,15 +84,15 @@ Target proof point:
 
 Remaining automation priority order:
 
-1. `task-1449` — extract multi-texture StandardMaterial browser assertion
-   helper.
-2. `task-1450` — audit multi-texture StandardMaterial browser assertion helper.
-3. `task-1451` — audit tracker/backlog alignment after multi-texture assertion
-   helper.
-4. `task-1452` — plan next material route or StandardMaterial follow-up after
-   multi-texture assertion helper.
-5. `task-1453` — audit selected follow-up plan after multi-texture assertion
-   helper.
+1. `task-1480` — plan next collector genericization slice after route surface
+   audit.
+2. `task-1481` — audit selected collector genericization plan.
+3. `task-1482` — audit tracker/backlog alignment after collector
+   genericization plan audit.
+4. `task-1483` — plan next route or StandardMaterial follow-up after collector
+   genericization plan audit.
+5. `task-1484` — audit selected follow-up plan after collector-genericization
+   follow-up planning.
 
 Defer allocation-only cleanup and metadata-only shader-contract tasks unless
 they are a direct blocker for this track.
@@ -1892,6 +1893,9 @@ Acceptance criteria:
 
 ### task-1449 — Extract multi-texture StandardMaterial browser assertion helper
 
+Status: Completed 2026-05-18. See
+`test/e2e/standard-gltf-texture.spec.ts`.
+
 Category: `docs-tooling`
 Package/write-scope: `test/e2e/standard-gltf-texture.spec.ts` only.
 Reference anchor:
@@ -1911,6 +1915,9 @@ Acceptance criteria:
 
 ### task-1450 — Audit multi-texture StandardMaterial browser assertion helper
 
+Status: Completed 2026-05-18. See
+`docs/research/MULTI_TEXTURE_STANDARD_ASSERTION_HELPER_AUDIT_2026_05_18.md`.
+
 Category: `audit-refactor`
 Package/write-scope: `docs/research`, targeted tests only if a tiny corrective
 fix is required.
@@ -1928,6 +1935,9 @@ Acceptance criteria:
 
 ### task-1451 — Audit tracker/backlog alignment after multi-texture assertion helper
 
+Status: Completed 2026-05-18. See
+`docs/research/TRACKER_BACKLOG_ALIGNMENT_AFTER_MULTI_TEXTURE_STANDARD_ASSERTION_HELPER_AUDIT_2026_05_18.md`.
+
 Category: `audit-refactor`
 Package/write-scope: `docs/research`, `agent/BACKLOG.md`, `docs/index.html`,
 and `docs/render-pipeline-comparison.html` only if public status changed.
@@ -1942,6 +1952,9 @@ Acceptance criteria:
 - Run `pnpm run check:progress` if tracker pages change.
 
 ### task-1452 — Plan next material route or StandardMaterial follow-up after multi-texture assertion helper
+
+Status: Completed 2026-05-18. See
+`docs/research/NEXT_MATERIAL_ROUTE_OR_STANDARD_FOLLOW_UP_AFTER_MULTI_TEXTURE_HELPER_PLAN_2026_05_18.md`.
 
 Category: `docs-tooling`
 Package/write-scope: `docs/research` and backlog only.
@@ -1959,6 +1972,9 @@ Acceptance criteria:
 
 ### task-1453 — Audit selected follow-up plan after multi-texture assertion helper
 
+Status: Completed 2026-05-18. See
+`docs/research/NEXT_MATERIAL_ROUTE_OR_STANDARD_FOLLOW_UP_AFTER_MULTI_TEXTURE_HELPER_PLAN_AUDIT_2026_05_18.md`.
+
 Category: `audit-refactor`
 Package/write-scope: `docs/research`, targeted tests only if a tiny corrective
 fix is required.
@@ -1972,6 +1988,652 @@ Acceptance criteria:
 - Confirm the selected follow-up is concrete enough for one focused run.
 - Confirm it preserves ECS authority, render extraction, JSON-safe diagnostics,
   and WebGPU-only backend ownership.
+- Recommend whether to implement the selected follow-up or adjust the backlog.
+
+### task-1454 — Route app diagnostics through generic material summary
+
+Status: Completed 2026-05-18. See `packages/webgpu/src/webgpu/app.ts`.
+
+Category: `webgpu-render`
+Package/write-scope:
+`packages/webgpu/src/webgpu/app.ts`,
+`packages/webgpu/src/webgpu/queued-built-in-resource-set-summary.ts`,
+`test/webgpu/webgpu-app.test.ts`, and targeted summary tests if needed.
+Reference anchor:
+`docs/research/NEXT_MATERIAL_ROUTE_OR_STANDARD_FOLLOW_UP_AFTER_MULTI_TEXTURE_HELPER_PLAN_2026_05_18.md`,
+`docs/research/REAL_MATERIAL_FAMILY_APP_ROUTE_MIGRATION_CRITERIA_2026_05_18.md`,
+`packages/webgpu/src/webgpu/queued-material-frame-resource-set-summary.ts`,
+`packages/webgpu/src/webgpu/queued-built-in-resource-set-summary.ts`,
+`packages/webgpu/src/webgpu/app.ts`,
+`references/three.js/src/renderers/common/Bindings.js`, and
+`references/engine/src/scene/materials/standard-material.js`.
+
+Acceptance criteria:
+
+- `createQueuedBuiltInAppDiagnosticsSummary()` builds `routedResourceSet`
+  through `createQueuedMaterialFrameResourceSetSummary()` or an equivalent
+  generic material-family summary path.
+- Existing public `routedResourceSet` JSON shape and built-in compatibility
+  arrays remain unchanged.
+- Built-in wrapper exports are either kept as explicit compatibility aliases or
+  removed only if no public exports/tests/docs rely on them.
+- Tests cover at least one app diagnostics summary route and any touched summary
+  wrapper behavior.
+- Do not add app-level non-built-in material rendering, route renames, GLB
+  loading, IBL, shadows, or shader changes.
+
+### task-1455 — Audit generic material summary app diagnostics routing
+
+Status: Completed 2026-05-18. See
+`docs/research/GENERIC_MATERIAL_SUMMARY_APP_DIAGNOSTICS_ROUTING_AUDIT_2026_05_18.md`.
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research`, targeted tests only if a tiny corrective
+fix is required.
+Reference anchor:
+the implementation from `task-1454`,
+`docs/research/NEXT_MATERIAL_ROUTE_OR_STANDARD_FOLLOW_UP_AFTER_MULTI_TEXTURE_HELPER_PLAN_2026_05_18.md`,
+`docs/ARCHITECTURE.md`, and
+`packages/webgpu/src/webgpu/app.ts`.
+
+Acceptance criteria:
+
+- Confirm the app diagnostics route uses the generic summary helper without
+  changing the public `routedResourceSet` JSON shape.
+- Confirm built-in compatibility exports remain stable.
+- Confirm no app-level non-built-in material rendering, route renames, GLB
+  loading, IBL, shadows, or shader changes were introduced.
+
+### task-1456 — Audit tracker/backlog alignment after generic summary routing
+
+Status: Completed 2026-05-18. See
+`docs/research/TRACKER_BACKLOG_ALIGNMENT_AFTER_GENERIC_SUMMARY_ROUTING_AUDIT_2026_05_18.md`.
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research`, `agent/BACKLOG.md`, `docs/index.html`,
+and `docs/render-pipeline-comparison.html` only if public status changed.
+Reference anchor:
+`docs/NORTH_STAR.md`, `docs/MEDIUM_LONG_TERM_GOALS.md`,
+`docs/ARCHITECTURE.md`, and the `task-1454`/`task-1455` results.
+
+Acceptance criteria:
+
+- Confirm whether public tracker pages need changes for the generic summary
+  route cleanup.
+- Confirm the ready backlog has at least five categorized, scoped tasks.
+- Run `pnpm run check:progress` if tracker pages change.
+
+### task-1457 — Plan next route or StandardMaterial follow-up after generic summary routing
+
+Status: Completed 2026-05-18. See
+`docs/research/NEXT_ROUTE_OR_STANDARD_AFTER_GENERIC_SUMMARY_ROUTING_PLAN_2026_05_18.md`.
+
+Category: `docs-tooling`
+Package/write-scope: `docs/research` and backlog only.
+Reference anchor:
+`docs/MEDIUM_LONG_TERM_GOALS.md`, `docs/ARCHITECTURE.md`,
+`docs/DECISIONS.md`, and the `task-1454`/`task-1456` results.
+
+Acceptance criteria:
+
+- Compare one material route architecture candidate, one StandardMaterial/glTF
+  fidelity candidate, and one diagnostics/tooling candidate.
+- Select exactly one follow-up with category, package/write-scope, reference
+  anchor, and acceptance criteria.
+- Keep the selected task to one focused run.
+
+### task-1458 — Add generic queued material app resource set contract
+
+Status: Completed 2026-05-18. See
+`packages/webgpu/src/webgpu/queued-material-app-resource-item.ts`.
+
+Category: `webgpu-render`
+Package/write-scope:
+`packages/webgpu/src/webgpu/queued-material-app-resource-item.ts`,
+`packages/webgpu/src/webgpu/queued-built-in-app-resource-set.ts`,
+`test/webgpu/queued-material-app-resource-item.test.ts`, and targeted built-in
+resource-set tests if needed.
+Reference anchor:
+`docs/research/NEXT_ROUTE_OR_STANDARD_AFTER_GENERIC_SUMMARY_ROUTING_PLAN_2026_05_18.md`,
+`docs/research/REAL_MATERIAL_FAMILY_APP_ROUTE_MIGRATION_CRITERIA_2026_05_18.md`,
+`packages/webgpu/src/webgpu/queued-material-app-resource-item.ts`,
+`packages/webgpu/src/webgpu/queued-built-in-app-resource-set.ts`,
+`references/three.js/src/renderers/common/Bindings.js`, and
+`references/engine/src/scene/materials/standard-material.js`.
+
+Acceptance criteria:
+
+- Add a generic `QueuedMaterialAppResourceSet` type or interface that carries
+  generic queued material app resource items.
+- Make `QueuedBuiltInAppResourceSet` use or alias that generic set shape while
+  preserving its built-in item type.
+- Add or update tests proving a fake non-built-in item can be grouped in the
+  generic set without adding family-specific diagnostics fields or built-in
+  compatibility arrays.
+- Existing built-in app resource set and WebGPU app diagnostics tests continue
+  to pass.
+- Do not add app-level non-built-in material rendering, route renames, GLB
+  loading, IBL, shadows, or shader changes.
+
+### task-1459 — Audit generic queued material app resource set contract
+
+Status: Completed 2026-05-18. See
+`docs/research/GENERIC_QUEUED_MATERIAL_APP_RESOURCE_SET_CONTRACT_AUDIT_2026_05_18.md`.
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research`, targeted tests only if a tiny corrective
+fix is required.
+Reference anchor:
+the implementation from `task-1458`,
+`docs/research/NEXT_ROUTE_OR_STANDARD_AFTER_GENERIC_SUMMARY_ROUTING_PLAN_2026_05_18.md`,
+`docs/ARCHITECTURE.md`, and
+`packages/webgpu/src/webgpu/queued-material-app-resource-item.ts`.
+
+Acceptance criteria:
+
+- Confirm the generic app resource set remains a typed derived render-route
+  contract, not renderer-owned ECS/game state.
+- Confirm built-in compatibility behavior and diagnostics fields remain stable.
+- Recommend whether to continue route cleanup or return to StandardMaterial/glTF
+  fidelity.
+
+### task-1460 — Audit tracker/backlog alignment after generic app resource set contract
+
+Status: Completed 2026-05-18. See
+`docs/research/TRACKER_BACKLOG_ALIGNMENT_AFTER_GENERIC_APP_RESOURCE_SET_AUDIT_2026_05_18.md`.
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research`, `agent/BACKLOG.md`, `docs/index.html`,
+and `docs/render-pipeline-comparison.html` only if public status changed.
+Reference anchor:
+`docs/NORTH_STAR.md`, `docs/MEDIUM_LONG_TERM_GOALS.md`,
+`docs/ARCHITECTURE.md`, and the `task-1458`/`task-1459` results.
+
+Acceptance criteria:
+
+- Confirm whether public tracker pages need changes for the generic app resource
+  set contract.
+- Confirm the ready backlog has at least five categorized, scoped tasks.
+- Run `pnpm run check:progress` if tracker pages change.
+
+### task-1461 — Plan next route or StandardMaterial follow-up after generic app resource set contract
+
+Status: Completed 2026-05-18. See
+`docs/research/NEXT_ROUTE_OR_STANDARD_AFTER_GENERIC_APP_RESOURCE_SET_PLAN_2026_05_18.md`.
+
+Category: `docs-tooling`
+Package/write-scope: `docs/research` and backlog only.
+Reference anchor:
+`docs/MEDIUM_LONG_TERM_GOALS.md`, `docs/ARCHITECTURE.md`,
+`docs/DECISIONS.md`, and the `task-1458`/`task-1460` results.
+
+Acceptance criteria:
+
+- Compare one material route architecture candidate, one StandardMaterial/glTF
+  fidelity candidate, and one diagnostics/tooling candidate.
+- Select exactly one follow-up with category, package/write-scope, reference
+  anchor, and acceptance criteria.
+- Keep the selected task to one focused run.
+
+### task-1462 — Make built-in app resource item extend generic route item
+
+Status: Completed 2026-05-18. See
+`packages/webgpu/src/webgpu/queued-built-in-app-resource-set.ts`.
+
+Category: `webgpu-render`
+Package/write-scope:
+`packages/webgpu/src/webgpu/queued-built-in-app-resource-set.ts`,
+`test/webgpu/queued-material-app-resource-item.test.ts`, and targeted built-in
+resource-set tests if needed.
+Reference anchor:
+`docs/research/NEXT_ROUTE_OR_STANDARD_AFTER_GENERIC_APP_RESOURCE_SET_PLAN_2026_05_18.md`,
+`packages/webgpu/src/webgpu/queued-material-app-resource-item.ts`,
+`packages/webgpu/src/webgpu/queued-built-in-app-resource-set.ts`,
+`references/three.js/src/renderers/common/Bindings.js`, and
+`references/engine/src/scene/materials/standard-material.js`.
+
+Acceptance criteria:
+
+- `QueuedBuiltInAppResourceItem` extends or aliases
+  `QueuedMaterialAppResourceItem<BuiltInMaterialAsset, QueuedBuiltInMaterialAdapter>`.
+- Existing built-in resource set collection behavior and diagnostics JSON shape
+  remain unchanged.
+- Tests cover the generic item contract and the built-in collector path.
+- Do not add app-level non-built-in material rendering, route renames, GLB
+  loading, IBL, shadows, or shader changes.
+
+### task-1463 — Audit built-in app resource item generic contract
+
+Status: Completed 2026-05-18. See
+`docs/research/BUILT_IN_APP_RESOURCE_ITEM_GENERIC_CONTRACT_AUDIT_2026_05_18.md`.
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research`, targeted tests only if a tiny corrective
+fix is required.
+Reference anchor:
+the implementation from `task-1462`,
+`docs/research/NEXT_ROUTE_OR_STANDARD_AFTER_GENERIC_APP_RESOURCE_SET_PLAN_2026_05_18.md`,
+`docs/ARCHITECTURE.md`, and
+`packages/webgpu/src/webgpu/queued-built-in-app-resource-set.ts`.
+
+Acceptance criteria:
+
+- Confirm the built-in item type is a compatibility specialization of the
+  generic app resource item contract.
+- Confirm no public diagnostics shape or rendering behavior changed.
+- Recommend whether to continue route cleanup or return to StandardMaterial/glTF
+  fidelity.
+
+### task-1464 — Audit tracker/backlog alignment after built-in item generic contract
+
+Status: Completed 2026-05-18. See
+`docs/research/TRACKER_BACKLOG_ALIGNMENT_AFTER_BUILT_IN_ITEM_GENERIC_CONTRACT_AUDIT_2026_05_18.md`.
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research`, `agent/BACKLOG.md`, `docs/index.html`,
+and `docs/render-pipeline-comparison.html` only if public status changed.
+Reference anchor:
+`docs/NORTH_STAR.md`, `docs/MEDIUM_LONG_TERM_GOALS.md`,
+`docs/ARCHITECTURE.md`, and the `task-1462`/`task-1463` results.
+
+Acceptance criteria:
+
+- Confirm whether public tracker pages need changes for the built-in item
+  generic contract.
+- Confirm the ready backlog has at least five categorized, scoped tasks.
+- Run `pnpm run check:progress` if tracker pages change.
+
+### task-1465 — Plan next route or StandardMaterial follow-up after built-in item generic contract
+
+Status: Completed 2026-05-18. See
+`docs/research/NEXT_ROUTE_OR_STANDARD_AFTER_BUILT_IN_ITEM_GENERIC_CONTRACT_PLAN_2026_05_18.md`.
+
+Category: `docs-tooling`
+Package/write-scope: `docs/research` and backlog only.
+Reference anchor:
+`docs/MEDIUM_LONG_TERM_GOALS.md`, `docs/ARCHITECTURE.md`,
+`docs/DECISIONS.md`, and the `task-1462`/`task-1464` results.
+
+Acceptance criteria:
+
+- Compare one material route architecture candidate, one StandardMaterial/glTF
+  fidelity candidate, and one diagnostics/tooling candidate.
+- Select exactly one follow-up with category, package/write-scope, reference
+  anchor, and acceptance criteria.
+- Keep the selected task to one focused run.
+
+### task-1466 — Add combined alpha-mask emissive StandardMaterial browser coverage
+
+Status: Completed 2026-05-18. See
+`examples/standard-gltf-texture.js` and
+`test/e2e/standard-gltf-texture.spec.ts`.
+
+Category: `webgpu-render`
+Package/write-scope:
+`examples/standard-gltf-texture.js`, `test/e2e/standard-gltf-texture.spec.ts`,
+and targeted docs only if the fixture changes public status.
+Reference anchor:
+`docs/research/NEXT_ROUTE_OR_STANDARD_AFTER_BUILT_IN_ITEM_GENERIC_CONTRACT_PLAN_2026_05_18.md`,
+`docs/MEDIUM_LONG_TERM_GOALS.md`,
+`examples/standard-gltf-texture.js`,
+`test/e2e/standard-gltf-texture.spec.ts`,
+`references/three.js/src/renderers/common/Bindings.js`, and
+`references/engine/src/scene/materials/standard-material.js`.
+
+Acceptance criteria:
+
+- Add a GLB-shaped StandardMaterial browser scenario with base-color,
+  alpha-mask, and emissive textures.
+- Assert glTF texture/sampler mappings, readiness slots, resource counts,
+  alpha-mask render-state status, and the combined pipeline key.
+- Keep screenshot/readback assertions scenario-specific and verify masked versus
+  visible pixels where practical.
+- Keep app-level non-built-in material rendering, binary GLB loading, IBL,
+  shadows, route renames, and broad PBR work deferred.
+- Run targeted Playwright coverage for the new scenario and the full
+  `standard-gltf-texture.spec.ts` file.
+
+### task-1467 — Audit combined alpha-mask emissive StandardMaterial browser coverage
+
+Status: Completed 2026-05-18. See
+`docs/research/GLB_COMBINED_BASE_COLOR_ALPHA_MASK_EMISSIVE_BROWSER_COVERAGE_AUDIT_2026_05_18.md`.
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research`, targeted tests only if a tiny corrective
+fix is required.
+Reference anchor:
+the implementation from `task-1466`,
+`docs/research/NEXT_ROUTE_OR_STANDARD_AFTER_BUILT_IN_ITEM_GENERIC_CONTRACT_PLAN_2026_05_18.md`,
+`docs/ARCHITECTURE.md`, `examples/standard-gltf-texture.js`, and
+`test/e2e/standard-gltf-texture.spec.ts`.
+
+Acceptance criteria:
+
+- Confirm combined texture assertions and scenario-specific pixel/readback
+  checks cover the new fixture.
+- Confirm alpha-mask render-state expectations remain honest and JSON-safe.
+- Confirm no app-level non-built-in rendering, binary GLB loading, IBL, shadows,
+  route renames, or broad PBR work was added.
+
+### task-1468 — Audit tracker/backlog alignment after alpha-mask emissive coverage
+
+Status: Completed 2026-05-18. See
+`docs/research/TRACKER_BACKLOG_ALIGNMENT_AFTER_ALPHA_MASK_EMISSIVE_AUDIT_2026_05_18.md`.
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research`, `agent/BACKLOG.md`, `docs/index.html`,
+and `docs/render-pipeline-comparison.html` only if public status changed.
+Reference anchor:
+`docs/NORTH_STAR.md`, `docs/MEDIUM_LONG_TERM_GOALS.md`,
+`docs/ARCHITECTURE.md`, and the `task-1466`/`task-1467` results.
+
+Acceptance criteria:
+
+- Confirm public tracker pages reflect the new combined alpha-mask emissive
+  browser coverage if it lands.
+- Confirm the ready backlog has at least five categorized, scoped tasks.
+- Run `pnpm run check:progress` if tracker pages change.
+
+### task-1469 — Plan next route or StandardMaterial follow-up after alpha-mask emissive coverage
+
+Status: Completed 2026-05-18. See
+`docs/research/NEXT_ROUTE_OR_STANDARD_AFTER_ALPHA_MASK_EMISSIVE_PLAN_2026_05_18.md`.
+
+Category: `docs-tooling`
+Package/write-scope: `docs/research` and backlog only.
+Reference anchor:
+`docs/MEDIUM_LONG_TERM_GOALS.md`, `docs/ARCHITECTURE.md`,
+`docs/DECISIONS.md`, and the `task-1466`/`task-1468` results.
+
+Acceptance criteria:
+
+- Compare one material route architecture candidate, one StandardMaterial/glTF
+  fidelity candidate, and one diagnostics/tooling candidate.
+- Select exactly one follow-up with category, package/write-scope, reference
+  anchor, and acceptance criteria.
+- Keep the selected task to one focused run.
+
+### task-1470 — Extract alpha texture browser pixel assertion helper
+
+Status: Completed 2026-05-18. See
+`test/e2e/standard-gltf-texture.spec.ts`.
+
+Category: `docs-tooling`
+Package/write-scope: `test/e2e/standard-gltf-texture.spec.ts` only.
+Reference anchor:
+`docs/research/NEXT_ROUTE_OR_STANDARD_AFTER_ALPHA_MASK_EMISSIVE_PLAN_2026_05_18.md`,
+`test/e2e/standard-gltf-texture.spec.ts`, and existing alpha-mask/alpha-blend
+browser tests.
+
+Acceptance criteria:
+
+- Extract a helper for screenshot/readback comparisons shared by alpha-mask
+  texture and combined alpha-mask emissive tests.
+- Keep alpha-blend translucent comparisons scenario-specific unless the helper
+  can support them without weakening assertions.
+- Preserve render-state, mapping, readiness, resource, and pipeline assertions.
+- Run the full `standard-gltf-texture.spec.ts` Playwright file.
+
+### task-1471 — Audit alpha texture browser pixel assertion helper
+
+Status: Completed 2026-05-18. See
+`docs/research/ALPHA_TEXTURE_BROWSER_PIXEL_ASSERTION_HELPER_AUDIT_2026_05_18.md`.
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research`, targeted tests only if a tiny corrective
+fix is required.
+Reference anchor:
+the implementation from `task-1470`,
+`docs/research/NEXT_ROUTE_OR_STANDARD_AFTER_ALPHA_MASK_EMISSIVE_PLAN_2026_05_18.md`,
+and `test/e2e/standard-gltf-texture.spec.ts`.
+
+Acceptance criteria:
+
+- Confirm the helper does not weaken alpha-mask or combined alpha-mask emissive
+  pixel/readback assertions.
+- Confirm render-state, pipeline, resource, and JSON-safe status assertions
+  remain scenario-specific.
+- Confirm no runtime files changed for the test-only helper.
+
+### task-1472 — Audit tracker/backlog alignment after alpha texture helper
+
+Status: Completed 2026-05-18. See
+`docs/research/TRACKER_BACKLOG_ALIGNMENT_AFTER_ALPHA_TEXTURE_HELPER_AUDIT_2026_05_18.md`.
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research`, `agent/BACKLOG.md`, `docs/index.html`,
+and `docs/render-pipeline-comparison.html` only if public status changed.
+Reference anchor:
+`docs/NORTH_STAR.md`, `docs/MEDIUM_LONG_TERM_GOALS.md`,
+`docs/ARCHITECTURE.md`, and the `task-1470`/`task-1471` results.
+
+Acceptance criteria:
+
+- Confirm whether public tracker pages need changes for the test-only helper.
+- Confirm the ready backlog has at least five categorized, scoped tasks.
+- Run `pnpm run check:progress` if tracker pages change.
+
+### task-1473 — Plan next route or StandardMaterial follow-up after alpha texture helper
+
+Status: completed 2026-05-18. See
+`docs/research/NEXT_ROUTE_OR_STANDARD_AFTER_ALPHA_TEXTURE_HELPER_PLAN_2026_05_18.md`.
+
+Category: `docs-tooling`
+Package/write-scope: `docs/research` and backlog only.
+Reference anchor:
+`docs/MEDIUM_LONG_TERM_GOALS.md`, `docs/ARCHITECTURE.md`,
+`docs/DECISIONS.md`, and the `task-1470`/`task-1472` results.
+
+Acceptance criteria:
+
+- Compare one material route architecture candidate, one StandardMaterial/glTF
+  fidelity candidate, and one diagnostics/tooling candidate.
+- Select exactly one follow-up with category, package/write-scope, reference
+  anchor, and acceptance criteria.
+- Keep the selected task to one focused run.
+
+### task-1474 — Generalize app route report routed-item serialization
+
+Status: completed 2026-05-18. See
+`packages/webgpu/src/webgpu/queued-material-app-resource-item.ts`.
+
+Category: `webgpu-render`
+Package/write-scope:
+`packages/webgpu/src/webgpu/queued-material-app-resource-item.ts`,
+`packages/webgpu/src/webgpu/queued-built-in-app-resource-set.ts`, and targeted
+`test/webgpu` coverage.
+Reference anchor:
+`docs/ARCHITECTURE.md`, `docs/MEDIUM_LONG_TERM_GOALS.md`,
+`packages/webgpu/src/webgpu/queued-material-app-resource-item.ts`,
+`packages/webgpu/src/webgpu/queued-built-in-app-resource-set.ts`,
+`references/three.js/src/renderers/common/Bindings.js`, and
+`references/engine/src/scene/materials/standard-material.js`.
+
+Acceptance criteria:
+
+- Add a family-agnostic helper that serializes a `QueuedMaterialAppResourceItem`
+  into the JSON-safe routed-item shape used by app material queue route reports.
+- Use the helper from the built-in app resource set route failure diagnostic.
+- Add or update tests with a test-only non-built-in item to prove the helper
+  does not require built-in material fields or GPU handles.
+- Preserve existing built-in route diagnostic JSON shape and app behavior.
+
+### task-1475 — Audit generic app route report routed-item serialization
+
+Status: completed 2026-05-18. See
+`docs/research/GENERIC_APP_ROUTE_REPORT_ROUTED_ITEM_SERIALIZATION_AUDIT_2026_05_18.md`.
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research`, targeted tests only if a tiny corrective
+fix is required.
+Reference anchor:
+`docs/research/NEXT_ROUTE_OR_STANDARD_AFTER_ALPHA_TEXTURE_HELPER_PLAN_2026_05_18.md`,
+the implementation from `task-1474`, `docs/ARCHITECTURE.md`, and
+`docs/MEDIUM_LONG_TERM_GOALS.md`.
+
+Acceptance criteria:
+
+- Confirm the helper is family-agnostic and JSON-safe.
+- Confirm built-in app route failure diagnostics preserve their public JSON
+  shape.
+- Confirm the change does not add custom material rendering, WebGL fallback, or
+  renderer-owned ECS state.
+
+### task-1476 — Audit tracker/backlog alignment after generic routed-item report helper
+
+Status: completed 2026-05-18. See
+`docs/research/TRACKER_BACKLOG_ALIGNMENT_AFTER_GENERIC_ROUTED_ITEM_REPORT_HELPER_AUDIT_2026_05_18.md`.
+
+Category: `docs-tooling`
+Package/write-scope: `docs/index.html`, `docs/render-pipeline-comparison.html`,
+`agent/BACKLOG.md`, and `docs/research`.
+Reference anchor:
+`docs/MEDIUM_LONG_TERM_GOALS.md`, `docs/ARCHITECTURE.md`, and the
+`task-1474`/`task-1475` results.
+
+Acceptance criteria:
+
+- Update public tracker pages if the helper materially changes route-contract
+  status.
+- Confirm the ready backlog has at least five categorized, scoped tasks.
+- Run `pnpm run check:progress` if tracker pages change.
+
+### task-1477 — Plan next route or StandardMaterial follow-up after generic routed-item report helper
+
+Status: completed 2026-05-18. See
+`docs/research/NEXT_ROUTE_OR_STANDARD_AFTER_GENERIC_ROUTED_ITEM_REPORT_HELPER_PLAN_2026_05_18.md`.
+
+Category: `docs-tooling`
+Package/write-scope: `docs/research` and backlog only.
+Reference anchor:
+`docs/MEDIUM_LONG_TERM_GOALS.md`, `docs/ARCHITECTURE.md`,
+`docs/DECISIONS.md`, and the `task-1474`/`task-1476` results.
+
+Acceptance criteria:
+
+- Compare one material route architecture candidate, one StandardMaterial/glTF
+  fidelity candidate, and one diagnostics/tooling candidate.
+- Select exactly one follow-up with category, package/write-scope, reference
+  anchor, and acceptance criteria.
+- Keep the selected task to one focused run.
+
+### task-1478 — Audit selected follow-up plan after generic routed-item report helper
+
+Status: completed 2026-05-18. See
+`docs/research/NEXT_ROUTE_OR_STANDARD_AFTER_GENERIC_ROUTED_ITEM_REPORT_HELPER_PLAN_AUDIT_2026_05_18.md`.
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research` and backlog only.
+Reference anchor:
+the plan from `task-1477`, `docs/ARCHITECTURE.md`,
+`docs/MEDIUM_LONG_TERM_GOALS.md`, and recent route-contract audits.
+
+Acceptance criteria:
+
+- Confirm the selected follow-up is concrete enough for one focused run.
+- Confirm it preserves ECS authority, render extraction, JSON-safe diagnostics,
+  and WebGPU-only ownership.
+- Recommend whether to implement the selected follow-up or adjust the backlog.
+
+### task-1479 — Audit remaining built-in-specific app route collector diagnostics surfaces
+
+Status: completed 2026-05-18. See
+`docs/research/BUILT_IN_APP_ROUTE_COLLECTOR_DIAGNOSTICS_SURFACE_AUDIT_2026_05_18.md`.
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research`, targeted tests only if a tiny corrective
+fix is required.
+Reference anchor:
+`docs/ARCHITECTURE.md`, `docs/MEDIUM_LONG_TERM_GOALS.md`,
+`packages/webgpu/src/webgpu/queued-built-in-app-resource-set.ts`,
+`packages/webgpu/src/webgpu/queued-material-app-resource-item.ts`, and recent
+generic route-contract audits.
+
+Acceptance criteria:
+
+- Identify remaining built-in-specific app route collector diagnostics or
+  serialization helpers.
+- Separate acceptable built-in compatibility wrappers from surfaces that block
+  future non-built-in material-family routing.
+- Recommend one small follow-up, or state that no immediate cleanup is needed.
+
+### task-1480 — Plan next collector genericization slice after route surface audit
+
+Category: `docs-tooling`
+Package/write-scope: `docs/research` and backlog only.
+Reference anchor:
+the `task-1479` audit, `docs/ARCHITECTURE.md`,
+`docs/MEDIUM_LONG_TERM_GOALS.md`, and recent route-contract implementation
+tasks.
+
+Acceptance criteria:
+
+- Compare one collector genericization candidate, one StandardMaterial/glTF
+  fidelity candidate, and one diagnostics/tooling candidate.
+- Select exactly one follow-up with category, package/write-scope, reference
+  anchor, and acceptance criteria.
+- Keep the selected task to one focused run.
+
+### task-1481 — Audit selected collector genericization plan
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research` and backlog only.
+Reference anchor:
+the plan from `task-1480`, `docs/ARCHITECTURE.md`,
+`docs/MEDIUM_LONG_TERM_GOALS.md`, and recent route-contract audits.
+
+Acceptance criteria:
+
+- Confirm the selected follow-up is concrete enough for one focused run.
+- Confirm it preserves ECS authority, render extraction, JSON-safe diagnostics,
+  and WebGPU-only ownership.
+- Recommend whether to implement the selected follow-up or adjust the backlog.
+
+### task-1482 — Audit tracker/backlog alignment after collector genericization plan audit
+
+Category: `docs-tooling`
+Package/write-scope: `docs/index.html`, `docs/render-pipeline-comparison.html`,
+`agent/BACKLOG.md`, and `docs/research`.
+Reference anchor:
+the `task-1480`/`task-1481` results, `docs/ARCHITECTURE.md`, and
+`docs/MEDIUM_LONG_TERM_GOALS.md`.
+
+Acceptance criteria:
+
+- Update public tracker pages if the selected collector genericization plan
+  materially changes the recommended next task or route-contract status.
+- Confirm the ready backlog has at least five categorized, scoped tasks.
+- Run `pnpm run check:progress` if tracker pages change.
+
+### task-1483 — Plan next route or StandardMaterial follow-up after collector genericization plan audit
+
+Category: `docs-tooling`
+Package/write-scope: `docs/research` and backlog only.
+Reference anchor:
+the `task-1480`/`task-1482` results, `docs/ARCHITECTURE.md`,
+`docs/MEDIUM_LONG_TERM_GOALS.md`, and `docs/DECISIONS.md`.
+
+Acceptance criteria:
+
+- Compare one material route architecture candidate, one StandardMaterial/glTF
+  fidelity candidate, and one diagnostics/tooling candidate.
+- Select exactly one follow-up with category, package/write-scope, reference
+  anchor, and acceptance criteria.
+- Keep the selected task to one focused run.
+
+### task-1484 — Audit selected follow-up plan after collector-genericization follow-up planning
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research` and backlog only.
+Reference anchor:
+the plan from `task-1483`, `docs/ARCHITECTURE.md`,
+`docs/MEDIUM_LONG_TERM_GOALS.md`, and recent route-contract audits.
+
+Acceptance criteria:
+
+- Confirm the selected follow-up is concrete enough for one focused run.
+- Confirm it preserves ECS authority, render extraction, JSON-safe diagnostics,
+  and WebGPU-only ownership.
 - Recommend whether to implement the selected follow-up or adjust the backlog.
 
 ## Post-Unlit E2E Verification Targets

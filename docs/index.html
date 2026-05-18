@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-18 08:44 PDT</dd>
+            <dd>2026-05-18 09:44 PDT</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -455,12 +455,40 @@
               combined pipeline key. Another combined GLB-shaped
               StandardMaterial fixture now renders base-color, occlusion, and
               emissive textures together with three mappings, readiness slots,
-              resource counts, and the combined pipeline key.
+              resource counts, and the combined pipeline key. The combined
+              StandardMaterial browser assertions now share a focused
+              multi-texture status helper, and WebGPU app diagnostics now build
+              the public <code>routedResourceSet</code> section through the
+              generic material frame-resource summary helper while preserving
+              built-in compatibility exports. A generic queued material app
+              resource set contract now wraps derived route items, and the
+              built-in app resource set uses that generic shape without adding
+              custom material rendering. The built-in app resource item is now a
+              specialization of the generic route item contract, removing
+              duplicated field definitions while preserving diagnostics and
+              rendering behavior. A combined GLB-shaped StandardMaterial browser
+              fixture now renders base-color alpha-mask and emissive textures
+              together with two texture/sampler mappings, alpha-mask
+              render-state assertions, resource counts, the combined pipeline
+              key, and opaque-versus-masked screenshot/readback checks.
+              Alpha-mask browser pixel/readback assertions now share a focused
+              helper, and the ready backlog points at the next route or
+              StandardMaterial follow-up planning slice. That plan selected a
+              small material-route architecture follow-up: generalizing app
+              route report routed-item serialization around the generic queued
+              material app resource item contract. The built-in route failure
+              report now uses that helper, and a test-only non-built-in item
+              proves the report metadata stays JSON-safe without depending on
+              built-in material fields. The next route-contract plan selected an
+              audit of remaining built-in-specific app route collector
+              diagnostics surfaces before another collector cleanup. That audit
+              recommends a small generic app material queue route report
+              diagnostic builder slice rather than a broad collector rewrite.
             </dd>
             <dt>Next focus</dt>
             <dd>
-              Audit tracker/backlog alignment after combined
-              base-color/occlusion/emissive GLB coverage
+              Plan the next collector genericization slice after route surface
+              audit
             </dd>
           </dl>
         </aside>
@@ -827,8 +855,17 @@
               Built-in app resource adapter registration now has deterministic
               duplicate-family and missing-family validation diagnostics, and
               app frame diagnostics now expose the default validation report
-              without raw callbacks, app objects, or GPU handles before broader
-              route migration.
+              without raw callbacks, app objects, or GPU handles. The stable app
+              diagnostics routed-resource summary now uses the generic material
+              frame-resource summary helper directly before broader route
+              migration, and the derived app resource-set contract is now
+              generic while the built-in collector remains the compatibility
+              wrapper. The built-in app resource item is also a typed
+              specialization of the generic route item contract. Combined
+              base-color plus alpha-mask plus emissive browser coverage now
+              verifies two glTF texture/sampler mappings, alpha-mask
+              render-state, prepared texture/sampler counts, and the combined
+              StandardMaterial pipeline key.
             </p>
             <ul>
               <li>
@@ -939,6 +976,95 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">task-1479</span> Audited remaining
+                built-in-specific app route collector diagnostics surfaces.
+              </li>
+              <li>
+                <span class="badge green">task-1478</span> Audited the selected
+                collector diagnostics surface follow-up plan.
+              </li>
+              <li>
+                <span class="badge green">task-1477</span> Selected the
+                remaining built-in-specific app route collector diagnostics
+                surface audit as the next follow-up.
+              </li>
+              <li>
+                <span class="badge green">task-1476</span> Audited tracker and
+                backlog alignment after the generic routed-item report helper.
+              </li>
+              <li>
+                <span class="badge green">task-1475</span> Audited generic app
+                route report routed-item serialization.
+              </li>
+              <li>
+                <span class="badge green">task-1474</span> Generalized app route
+                report routed-item serialization around generic queued material
+                app resource items.
+              </li>
+              <li>
+                <span class="badge green">task-1473</span> Selected generic app
+                route report routed-item serialization as the next focused route
+                architecture slice.
+              </li>
+              <li>
+                <span class="badge green">task-1472</span> Audited tracker and
+                backlog alignment after alpha texture helper cleanup.
+              </li>
+              <li>
+                <span class="badge green">task-1470</span> Extracted the shared
+                alpha-mask browser pixel/readback assertion helper.
+              </li>
+              <li>
+                <span class="badge green">task-1468</span> Audited tracker and
+                backlog alignment after alpha-mask emissive coverage.
+              </li>
+              <li>
+                <span class="badge green">task-1467</span> Audited combined
+                base-color alpha-mask emissive browser coverage.
+              </li>
+              <li>
+                <span class="badge green">task-1466</span> Added combined
+                base-color alpha-mask emissive StandardMaterial browser
+                coverage.
+              </li>
+              <li>
+                <span class="badge green">task-1463</span> Audited the built-in
+                app resource item generic contract.
+              </li>
+              <li>
+                <span class="badge green">task-1462</span> Made the built-in app
+                resource item specialize the generic route item contract.
+              </li>
+              <li>
+                <span class="badge green">task-1459</span> Audited the generic
+                queued material app resource set contract.
+              </li>
+              <li>
+                <span class="badge green">task-1458</span> Added the generic
+                queued material app resource set contract.
+              </li>
+              <li>
+                <span class="badge green">task-1456</span> Audited tracker and
+                backlog alignment after generic summary routing.
+              </li>
+              <li>
+                <span class="badge green">task-1455</span> Audited generic
+                material summary app diagnostics routing.
+              </li>
+              <li>
+                <span class="badge green">task-1454</span> Routed app
+                diagnostics through the generic material frame-resource summary
+                helper.
+              </li>
+              <li>
+                <span class="badge green">task-1450</span> Audited the
+                multi-texture StandardMaterial browser assertion helper.
+              </li>
+              <li>
+                <span class="badge green">task-1449</span> Extracted the shared
+                multi-texture StandardMaterial browser assertion helper.
+              </li>
               <li>
                 <span class="badge green">task-1433</span> Audited tracker and
                 backlog alignment after adapter registration diagnostics.

@@ -9,7 +9,9 @@ import {
   createQueuedMaterialAdapterRegistry,
   createQueuedMaterialAppResourceItem,
   createQueuedMaterialFrameResourceSetSummary,
+  queuedMaterialAppResourceItemToRouteRoutedItem,
   type QueuedMaterialAdapterRegistration,
+  type QueuedMaterialAppResourceSet,
   type QueuedMaterialPrepareRouteResult,
 } from "@aperture-engine/webgpu";
 
@@ -62,14 +64,15 @@ describe("queued material app resource item", () => {
       materialKey: "material:preview@1",
       sourceMaterialKey: "material:preview",
     });
+    const resourceSet: QueuedMaterialAppResourceSet<typeof item> = {
+      items: [item],
+    };
     const routedResourceSet = createQueuedMaterialFrameResourceSetSummary(
-      [
-        {
-          materialFamily: item.queueItem.materialFamily,
-          pipelineKey: item.queueItem.pipelineKey,
-          renderPhase: item.queueItem.renderPhase,
-        },
-      ],
+      resourceSet.items.map((resourceItem) => ({
+        materialFamily: resourceItem.queueItem.materialFamily,
+        pipelineKey: resourceItem.queueItem.pipelineKey,
+        renderPhase: resourceItem.queueItem.renderPhase,
+      })),
       { byFamily: [{ family: item.adapter.kind, itemCount: 1 }] },
     );
 
@@ -101,7 +104,7 @@ describe("queued material app resource item", () => {
     expect((item as unknown as { readonly standard?: unknown }).standard).toBe(
       undefined,
     );
-    expect(JSON.stringify({ item, routedResourceSet })).not.toMatch(
+    expect(JSON.stringify({ resourceSet, routedResourceSet })).not.toMatch(
       /GPUDevice|GPUBuffer|GPUTexture|bindGroup|WebGpuApp|customPreviewResourceSet/,
     );
   });
@@ -196,6 +199,61 @@ describe("queued material app resource item", () => {
     });
     expect(JSON.stringify({ routeCriteria, routedResourceSet })).not.toMatch(
       /GPUDevice|GPUBuffer|GPUTexture|bindGroup|WebGpuApp|criteriaPreviewResourceSet/,
+    );
+  });
+
+  it("serializes generic routed-item report metadata without built-in fields or GPU handles", () => {
+    const adapter = { kind: "report-preview" as const };
+    const queueItem = {
+      ...customQueueItem(),
+      renderId: 23,
+      drawIndex: 4,
+      materialFamily: "report-preview" as MaterialQueueItem["materialFamily"],
+      renderPhase: "opaque" as const,
+      pipelineKey: "report-preview|opaque",
+      sortKey: {
+        ...customQueueItem().sortKey,
+        pipelineKey: "report-preview|opaque",
+      },
+    };
+    const item = createQueuedMaterialAppResourceItem({
+      queueItem,
+      prepareRoute: {
+        valid: true,
+        status: "prepared",
+        family: "report-preview",
+        materialKey: "material:report",
+        meshResourceKey: "mesh:report@1",
+        materialResourceKey: "material:report@1",
+        pipelineKey: "report-preview|opaque",
+        sourceVersion: 1,
+        frame: 10,
+        diagnostics: [],
+      },
+      adapter,
+      draw: customDrawPacket(),
+      mesh: createBoxMeshAsset({ label: "Report mesh" }),
+      meshKey: "mesh:report@1",
+      sourceMeshKey: "mesh:report",
+      material: {
+        kind: "report-preview",
+        label: "Report material",
+        rawGpuHandle: "must-not-leak",
+      },
+      materialKey: "material:report@1",
+      sourceMaterialKey: "material:report",
+    });
+
+    const routedItem = queuedMaterialAppResourceItemToRouteRoutedItem(item);
+
+    expect(routedItem).toEqual({
+      renderId: 23,
+      drawIndex: 4,
+      materialFamily: "report-preview",
+      renderPhase: "opaque",
+    });
+    expect(JSON.stringify(routedItem)).not.toMatch(
+      /GPUDevice|GPUBuffer|GPUTexture|bindGroup|rawGpuHandle|reportPreviewResourceSet/,
     );
   });
 });

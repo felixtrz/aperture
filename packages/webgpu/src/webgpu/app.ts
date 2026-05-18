@@ -136,7 +136,7 @@ import {
   type QueuedBuiltInFrameResourceScratch,
   type QueuedBuiltInFrameResources,
 } from "./queued-built-in-frame-resource-set.js";
-import { createQueuedBuiltInResourceSetSummary } from "./queued-built-in-resource-set-summary.js";
+import { createQueuedMaterialFrameResourceSetSummary } from "./queued-material-frame-resource-set-summary.js";
 import {
   createWebGpuAppDiagnosticsSummary,
   type WebGpuAppDiagnosticsSummary,
@@ -1197,7 +1197,7 @@ function createQueuedBuiltInAppDiagnosticsSummary(input: {
     materialQueue: createMaterialQueuePhaseSummary(
       input.resourceSet.items.map((item) => item.queueItem),
     ),
-    routedResourceSet: createQueuedBuiltInResourceSetSummary(
+    routedResourceSet: createQueuedMaterialFrameResourceSetSummary(
       input.resourceSet.items.map((item) => ({
         materialFamily: item.queueItem.materialFamily,
         pipelineKey: item.draw.batchKey.pipelineKey,

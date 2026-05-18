@@ -18,11 +18,13 @@ import {
 import type { BuiltInMaterialAsset } from "./built-in-material-queue-adapter.js";
 import type { QueuedBuiltInAppResourceAdapter } from "./built-in-material-app-resource-adapter.js";
 import type { QueuedMaterialAdapterRegistry } from "./queued-material-adapter.js";
-import { createQueuedMaterialAppResourceItem } from "./queued-material-app-resource-item.js";
 import {
-  routeQueuedMaterialPrepare,
-  type QueuedMaterialPrepareRouteResult,
-} from "./queued-material-prepare-route.js";
+  createQueuedMaterialAppResourceItem,
+  queuedMaterialAppResourceItemToRouteRoutedItem,
+  type QueuedMaterialAppResourceItem,
+  type QueuedMaterialAppResourceSet,
+} from "./queued-material-app-resource-item.js";
+import { routeQueuedMaterialPrepare } from "./queued-material-prepare-route.js";
 import type { ReusableRouteCollector } from "./reusable-route-collector.js";
 import {
   createReusableRouteCollector,
@@ -38,25 +40,15 @@ import {
   type WebGpuAppMaterialQueueRouteQueueItem,
   type WebGpuAppMaterialQueueRouteReportJsonValue,
   type WebGpuAppMaterialQueueRouteReportShell,
-  type WebGpuAppMaterialQueueRouteRoutedItem,
 } from "./material-queue-route-report.js";
 
-export interface QueuedBuiltInAppResourceItem {
-  readonly queueItem: MaterialQueueItem;
-  readonly prepareRoute: QueuedMaterialPrepareRouteResult;
-  readonly adapter: QueuedBuiltInMaterialAdapter;
-  readonly draw: MeshDrawPacket;
-  readonly mesh: MeshAsset;
-  readonly meshKey: string;
-  readonly sourceMeshKey: string;
-  readonly material: BuiltInMaterialAsset;
-  readonly materialKey: string;
-  readonly sourceMaterialKey: string;
-}
+export type QueuedBuiltInAppResourceItem = QueuedMaterialAppResourceItem<
+  BuiltInMaterialAsset,
+  QueuedBuiltInMaterialAdapter
+>;
 
-export interface QueuedBuiltInAppResourceSet {
-  readonly items: readonly QueuedBuiltInAppResourceItem[];
-}
+export type QueuedBuiltInAppResourceSet =
+  QueuedMaterialAppResourceSet<QueuedBuiltInAppResourceItem>;
 
 export interface QueuedSourceMeshAsset {
   readonly asset: MeshAsset;
@@ -374,7 +366,9 @@ function createWebGpuAppMaterialQueueRouteReportDiagnostic(input: {
   writeWebGpuAppMaterialQueueRouteReportShell(
     {
       queueItems: input.queueItems.map(materialQueueItemToRouteQueueItem),
-      routedItems: input.routedItems.map(resourceItemToRouteRoutedItem),
+      routedItems: input.routedItems.map(
+        queuedMaterialAppResourceItemToRouteRoutedItem,
+      ),
       diagnostics: input.diagnostics.flatMap(unknownToRouteDiagnostic),
     },
     input.shell,
@@ -396,17 +390,6 @@ function materialQueueItemToRouteQueueItem(
     materialFamily: item.materialFamily,
     renderPhase: item.renderPhase,
     entity: item.entity,
-  };
-}
-
-function resourceItemToRouteRoutedItem(
-  item: QueuedBuiltInAppResourceItem,
-): WebGpuAppMaterialQueueRouteRoutedItem {
-  return {
-    renderId: item.queueItem.renderId,
-    drawIndex: item.queueItem.drawIndex,
-    materialFamily: item.queueItem.materialFamily,
-    renderPhase: item.queueItem.renderPhase,
   };
 }
 

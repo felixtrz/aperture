@@ -1,5 +1,112 @@
 # Handoff
 
+## Current Run Update — 2026-05-18T16:44:50Z
+
+Completed `task-1449` through `task-1479`. Recommended next task is
+`task-1480`: plan the next collector genericization slice after the route
+surface audit.
+
+Highlights:
+
+- Extracted `expectRenderedMultiTextureStandardStatus()` for repeated
+  StandardMaterial combined-texture browser status assertions while keeping
+  scenario-specific screenshot/readback checks local.
+- Routed WebGPU app diagnostics `routedResourceSet` through
+  `createQueuedMaterialFrameResourceSetSummary()` directly, preserving the
+  public JSON shape and built-in compatibility wrapper exports.
+- Added `QueuedMaterialAppResourceSet<TItem>` and made built-in app resource
+  item/set types specialize the generic queued material route item/set
+  contracts.
+- Added a GLB-shaped `base-color-alpha-mask-emissive` StandardMaterial browser
+  scenario with two texture/sampler mappings, alpha-mask render-state,
+  readiness/resource/pipeline assertions, and opaque-versus-masked
+  screenshot/readback checks.
+- Extracted `expectAlphaMaskTexturePixels()` for shared alpha-mask browser
+  pixel/readback assertions.
+- Updated public tracker pages for generic route-contract cleanup and combined
+  alpha-mask/emissive browser coverage.
+- Planned the next focused route architecture slice:
+  `task-1474`, a family-agnostic routed-item report serialization helper over
+  `QueuedMaterialAppResourceItem`.
+- Added `queuedMaterialAppResourceItemToRouteRoutedItem()`, routed built-in app
+  route failure reports through it, and covered the helper with a test-only
+  non-built-in material family item.
+- Audited and updated public tracker pages for the generic routed-item report
+  helper.
+- Planned and audited the next follow-up: a narrow audit of remaining
+  built-in-specific app route collector diagnostics surfaces.
+- Audited those collector diagnostics surfaces and recommended planning a small
+  generic app material queue route report diagnostic builder slice rather than a
+  broad collector rewrite.
+
+Reference anchors inspected:
+
+- `docs/NORTH_STAR.md`
+- `docs/MEDIUM_LONG_TERM_GOALS.md`
+- `docs/ARCHITECTURE.md`
+- `docs/DECISIONS.md`
+- `docs/research/REAL_MATERIAL_FAMILY_APP_ROUTE_MIGRATION_CRITERIA_2026_05_18.md`
+- `docs/research/APP_LEVEL_GENERIC_MATERIAL_ADAPTER_ROUTE_BOUNDARY_PLAN_2026_05_18.md`
+- `packages/webgpu/src/webgpu/app.ts`
+- `packages/webgpu/src/webgpu/queued-material-frame-resource-set-summary.ts`
+- `packages/webgpu/src/webgpu/queued-built-in-resource-set-summary.ts`
+- `packages/webgpu/src/webgpu/queued-material-app-resource-item.ts`
+- `packages/webgpu/src/webgpu/queued-built-in-app-resource-set.ts`
+- `examples/standard-gltf-texture.js`
+- `test/e2e/standard-gltf-texture.spec.ts`
+- `references/three.js/src/renderers/common/Bindings.js`
+- `references/engine/src/scene/materials/standard-material.js`
+
+Files touched:
+
+- `agent/BACKLOG.md`
+- `agent/COMPLETED.md`
+- `agent/HANDOFF.md`
+- `agent/STATUS.json`
+- `docs/index.html`
+- `docs/render-pipeline-comparison.html`
+- `docs/research/*MULTI_TEXTURE*2026_05_18.md`
+- `docs/research/*GENERIC*2026_05_18.md`
+- `docs/research/*BUILT_IN_ITEM*2026_05_18.md`
+- `docs/research/*ALPHA_MASK_EMISSIVE*2026_05_18.md`
+- `docs/research/*ALPHA_TEXTURE*2026_05_18.md`
+- `docs/research/NEXT_ROUTE_OR_STANDARD_AFTER_ALPHA_TEXTURE_HELPER_PLAN_2026_05_18.md`
+- `docs/research/GENERIC_APP_ROUTE_REPORT_ROUTED_ITEM_SERIALIZATION_AUDIT_2026_05_18.md`
+- `docs/research/TRACKER_BACKLOG_ALIGNMENT_AFTER_GENERIC_ROUTED_ITEM_REPORT_HELPER_AUDIT_2026_05_18.md`
+- `docs/research/NEXT_ROUTE_OR_STANDARD_AFTER_GENERIC_ROUTED_ITEM_REPORT_HELPER_PLAN_2026_05_18.md`
+- `docs/research/NEXT_ROUTE_OR_STANDARD_AFTER_GENERIC_ROUTED_ITEM_REPORT_HELPER_PLAN_AUDIT_2026_05_18.md`
+- `docs/research/BUILT_IN_APP_ROUTE_COLLECTOR_DIAGNOSTICS_SURFACE_AUDIT_2026_05_18.md`
+- `examples/standard-gltf-texture.js`
+- `packages/webgpu/src/webgpu/app.ts`
+- `packages/webgpu/src/webgpu/queued-built-in-app-resource-set.ts`
+- `packages/webgpu/src/webgpu/queued-material-app-resource-item.ts`
+- `test/e2e/standard-gltf-texture.spec.ts`
+- `test/webgpu/queued-material-app-resource-item.test.ts`
+
+Validation:
+
+- `node --check examples/standard-gltf-texture.js`
+- `pnpm exec prettier --check ...touched files...`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "combined base-color alpha-mask and emissive"`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts`
+- `pnpm exec vitest run test/webgpu/app-diagnostics-summary.test.ts test/webgpu/queued-built-in-resource-set-summary.test.ts test/webgpu/webgpu-app.test.ts`
+- `pnpm exec vitest run test/webgpu/queued-material-app-resource-item.test.ts test/webgpu/queued-built-in-app-resource-set.test.ts test/webgpu/webgpu-app.test.ts`
+- `pnpm exec vitest run test/webgpu/queued-material-app-resource-item.test.ts test/webgpu/queued-built-in-app-resource-set.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm run check:progress`
+- `pnpm run build`
+- `pnpm test`
+- `pnpm run lint`
+- `git diff --check`
+
+Known issues / follow-ups:
+
+- Start `task-1480`: plan the next collector genericization slice after the route
+  surface audit.
+- Real app-level non-built-in material adapter rendering, binary GLB loading,
+  IBL, shadows, instancing, batching, multi-material primitive rules, and broad
+  PBR completeness remain deferred.
+
 ## Current Run Update — 2026-05-18T15:47:00Z
 
 Completed `task-1421` through `task-1448`. Recommended next task is

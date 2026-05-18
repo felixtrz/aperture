@@ -5,6 +5,7 @@ import type {
 } from "@aperture-engine/render";
 import type { QueuedMaterialAdapterRegistration } from "./queued-material-adapter.js";
 import type { QueuedMaterialPrepareRouteResult } from "./queued-material-prepare-route.js";
+import type { WebGpuAppMaterialQueueRouteRoutedItem } from "./material-queue-route-report.js";
 
 export interface QueuedMaterialAppResourceItem<
   TMaterial = unknown,
@@ -21,6 +22,12 @@ export interface QueuedMaterialAppResourceItem<
   readonly material: TMaterial;
   readonly materialKey: string;
   readonly sourceMaterialKey: string;
+}
+
+export interface QueuedMaterialAppResourceSet<
+  TItem extends QueuedMaterialAppResourceItem = QueuedMaterialAppResourceItem,
+> {
+  readonly items: readonly TItem[];
 }
 
 export interface CreateQueuedMaterialAppResourceItemOptions<
@@ -56,5 +63,16 @@ export function createQueuedMaterialAppResourceItem<
     material: options.material,
     materialKey: options.materialKey,
     sourceMaterialKey: options.sourceMaterialKey,
+  };
+}
+
+export function queuedMaterialAppResourceItemToRouteRoutedItem(
+  item: QueuedMaterialAppResourceItem,
+): WebGpuAppMaterialQueueRouteRoutedItem {
+  return {
+    renderId: item.queueItem.renderId,
+    drawIndex: item.queueItem.drawIndex,
+    materialFamily: item.queueItem.materialFamily,
+    renderPhase: item.queueItem.renderPhase,
   };
 }

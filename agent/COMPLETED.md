@@ -1,5 +1,127 @@
 # Completed Tasks
 
+## task-1479 — Audit remaining built-in-specific app route collector diagnostics surfaces
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/BUILT_IN_APP_ROUTE_COLLECTOR_DIAGNOSTICS_SURFACE_AUDIT_2026_05_18.md`.
+- Identified acceptable built-in compatibility wrappers versus route report
+  diagnostic surfaces that are good candidates for genericization.
+- Recommended planning a small generic app material queue route report
+  diagnostic builder slice rather than rewriting the collector.
+
+Validation:
+
+- Documentation-only audit; covered by final formatting and progress checks.
+
+## task-1478 — Audit selected follow-up plan after generic routed-item report helper
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/NEXT_ROUTE_OR_STANDARD_AFTER_GENERIC_ROUTED_ITEM_REPORT_HELPER_PLAN_AUDIT_2026_05_18.md`.
+- Confirmed the selected collector diagnostics surface audit is concrete,
+  architecture-aligned, and should precede another route collector cleanup.
+- Recommended `task-1479` as the next task.
+
+Validation:
+
+- Documentation-only audit; covered by final formatting and progress checks.
+
+## task-1477 — Plan next route or StandardMaterial follow-up after generic routed-item report helper
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/NEXT_ROUTE_OR_STANDARD_AFTER_GENERIC_ROUTED_ITEM_REPORT_HELPER_PLAN_2026_05_18.md`.
+- Compared a remaining route collector surface audit, another
+  StandardMaterial/glTF browser fixture, and a diagnostics/tooling slice.
+- Selected the remaining built-in-specific app route collector diagnostics
+  surface audit as the next route-contract follow-up.
+
+Validation:
+
+- Documentation-only planning slice; covered by final formatting and progress
+  checks.
+
+## task-1476 — Audit tracker/backlog alignment after generic routed-item report helper
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/TRACKER_BACKLOG_ALIGNMENT_AFTER_GENERIC_ROUTED_ITEM_REPORT_HELPER_AUDIT_2026_05_18.md`.
+- Updated public tracker pages to mention generic routed-item report
+  serialization as route-contract cleanup.
+- Refilled the ready backlog through `task-1481`.
+
+Validation:
+
+- `pnpm run check:progress`
+
+## task-1475 — Audit generic app route report routed-item serialization
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/GENERIC_APP_ROUTE_REPORT_ROUTED_ITEM_SERIALIZATION_AUDIT_2026_05_18.md`.
+- Confirmed the new routed-item report helper is family-agnostic and JSON-safe.
+- Confirmed built-in route report shape is preserved and custom material
+  rendering remains deferred.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/queued-material-app-resource-item.test.ts test/webgpu/queued-built-in-app-resource-set.test.ts`
+- `pnpm run typecheck:test`
+
+## task-1474 — Generalize app route report routed-item serialization
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added `queuedMaterialAppResourceItemToRouteRoutedItem()` over the generic
+  `QueuedMaterialAppResourceItem` contract.
+- Switched the built-in app resource set failure report to use that generic
+  helper.
+- Added a test-only non-built-in material family regression proving the helper
+  emits only JSON-safe route metadata and does not depend on built-in fields or
+  GPU handles.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/queued-material-app-resource-item.test.ts test/webgpu/queued-built-in-app-resource-set.test.ts`
+- `pnpm run typecheck:test`
+
+## task-1473 — Plan next route or StandardMaterial follow-up after alpha texture helper
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/NEXT_ROUTE_OR_STANDARD_AFTER_ALPHA_TEXTURE_HELPER_PLAN_2026_05_18.md`.
+- Compared a material-route architecture slice, a StandardMaterial/glTF browser
+  fidelity slice, and a diagnostics/tooling slice.
+- Selected generic app route report routed-item serialization as the next
+  focused WebGPU-render follow-up.
+- Refilled the ready backlog through `task-1478`.
+
+Validation:
+
+- Documentation-only planning slice; covered by final formatting and progress
+  checks.
+
 ## task-1420 — Selected follow-up plan after adapter registry smoke audit
 
 Completed: 2026-05-18
@@ -15489,3 +15611,39 @@ Summary:
 Validation:
 
 - Documentation-only audit; covered by touched-file formatting and final checks.
+
+## task-1449 through task-1472 — Multi-texture helpers, generic route contracts, and alpha-mask emissive coverage
+
+Completed: 2026-05-18
+
+Summary:
+
+- Extracted shared multi-texture StandardMaterial browser status assertions and
+  audited the helper.
+- Routed WebGPU app diagnostics through the generic material frame-resource
+  summary helper while preserving the public `routedResourceSet` shape.
+- Added generic queued material app resource item/set contracts and made the
+  built-in app resource item/set typed specializations of those generic route
+  contracts.
+- Added GLB-shaped combined base-color, alpha-mask, and emissive
+  StandardMaterial browser coverage with mapping, readiness, render-state,
+  resource, pipeline, screenshot, and readback assertions.
+- Extracted a shared alpha-mask browser pixel/readback helper.
+- Updated public tracker pages for generic route-contract progress and the new
+  combined alpha-mask/emissive browser coverage.
+- Refilled the ready backlog with `task-1473` as the recommended next planning
+  task.
+
+Validation:
+
+- `node --check examples/standard-gltf-texture.js`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "combined base-color alpha-mask and emissive"`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts`
+- `pnpm exec vitest run test/webgpu/app-diagnostics-summary.test.ts test/webgpu/queued-built-in-resource-set-summary.test.ts test/webgpu/webgpu-app.test.ts`
+- `pnpm exec vitest run test/webgpu/queued-material-app-resource-item.test.ts test/webgpu/queued-built-in-app-resource-set.test.ts test/webgpu/webgpu-app.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm run check:progress`
+- `pnpm run build`
+- `pnpm test`
+- `pnpm run lint`
+- `git diff --check`
