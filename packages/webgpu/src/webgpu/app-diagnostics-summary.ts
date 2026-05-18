@@ -64,6 +64,31 @@ export function createWebGpuAppDiagnosticsSummary(
   return summary;
 }
 
+export function collectWebGpuAppMaterialQueueRouteReport(
+  diagnostics: readonly unknown[],
+): WebGpuAppMaterialQueueRouteReportJsonValue | null {
+  for (const diagnostic of diagnostics) {
+    if (typeof diagnostic !== "object" || diagnostic === null) {
+      continue;
+    }
+
+    const candidate = diagnostic as {
+      readonly code?: unknown;
+      readonly report?: unknown;
+    };
+
+    if (
+      candidate.code === "webGpuApp.materialQueueRouteReport" &&
+      typeof candidate.report === "object" &&
+      candidate.report !== null
+    ) {
+      return candidate.report as WebGpuAppMaterialQueueRouteReportJsonValue;
+    }
+  }
+
+  return null;
+}
+
 type MutableWebGpuAppDiagnosticsSummary = {
   -readonly [Key in keyof WebGpuAppDiagnosticsSummary]: WebGpuAppDiagnosticsSummary[Key];
 };

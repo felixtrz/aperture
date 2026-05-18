@@ -138,6 +138,7 @@ import {
 } from "./queued-built-in-frame-resource-set.js";
 import { createQueuedMaterialFrameResourceSetSummary } from "./queued-material-frame-resource-set-summary.js";
 import {
+  collectWebGpuAppMaterialQueueRouteReport,
   createWebGpuAppDiagnosticsSummary,
   type WebGpuAppDiagnosticsSummary,
 } from "./app-diagnostics-summary.js";
@@ -145,7 +146,6 @@ import {
   createDirectLightReadinessReport,
   directLightReadinessResourceStateFromStandardFrameResources,
 } from "./direct-light-readiness.js";
-import type { WebGpuAppMaterialQueueRouteReportJsonValue } from "./material-queue-route-report.js";
 import { createStandardMaterialBindGroupLayoutPlan } from "./standard-bind-group-layout.js";
 import type { StandardMaterialBindGroupLayoutResource } from "./standard-bind-group.js";
 import {
@@ -1227,7 +1227,8 @@ function createQueuedBuiltInAppDiagnosticsSummary(input: {
 function createQueuedBuiltInRouteFailureDiagnosticsSummary(
   diagnostics: readonly unknown[],
 ): WebGpuAppDiagnosticsSummary | undefined {
-  const materialQueueRoute = collectMaterialQueueRouteReport(diagnostics);
+  const materialQueueRoute =
+    collectWebGpuAppMaterialQueueRouteReport(diagnostics);
 
   return materialQueueRoute === null
     ? undefined
@@ -1236,31 +1237,6 @@ function createQueuedBuiltInRouteFailureDiagnosticsSummary(
         builtInAppResourceAdapters:
           QUEUED_BUILT_IN_APP_RESOURCE_ADAPTER_VALIDATION,
       });
-}
-
-function collectMaterialQueueRouteReport(
-  diagnostics: readonly unknown[],
-): WebGpuAppMaterialQueueRouteReportJsonValue | null {
-  for (const diagnostic of diagnostics) {
-    if (typeof diagnostic !== "object" || diagnostic === null) {
-      continue;
-    }
-
-    const candidate = diagnostic as {
-      readonly code?: unknown;
-      readonly report?: unknown;
-    };
-
-    if (
-      candidate.code === "webGpuApp.materialQueueRouteReport" &&
-      typeof candidate.report === "object" &&
-      candidate.report !== null
-    ) {
-      return candidate.report as WebGpuAppMaterialQueueRouteReportJsonValue;
-    }
-  }
-
-  return null;
 }
 
 async function prepareQueuedBuiltInFrameResources(options: {

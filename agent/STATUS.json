@@ -1,11 +1,11 @@
 {
   "state": "idle",
-  "currentTaskId": "task-1567",
+  "currentTaskId": "task-1585",
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-05-18T18:01:50Z",
   "lastResult": "success",
-  "lastCommit": "6ceb4cf",
+  "lastCommit": "b890bf5",
   "activePid": null,
-  "notes": "Completed through task-1566. Next: add glTF sampler wrap visual browser proof.",
-  "lastRunFinishedAt": "2026-05-18T18:50:57Z"
+  "notes": "Completed through task-1584. Next: plan next route or StandardMaterial follow-up after route-report collector extraction.",
+  "lastRunFinishedAt": "2026-05-18T19:56:12Z"
 }

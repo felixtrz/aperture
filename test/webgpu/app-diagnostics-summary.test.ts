@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import type { MaterialQueuePhaseSummary } from "@aperture-engine/render";
 import {
+  collectWebGpuAppMaterialQueueRouteReport,
   createQueuedMaterialFrameResourceSetSummary,
   createWebGpuAppDiagnosticsSummary,
   type QueuedMaterialFrameResourceSetSummary,
@@ -111,6 +112,43 @@ describe("WebGPU app diagnostics summary", () => {
     );
     expect(summary).not.toHaveProperty("standardResourceSet");
     expect(summary).not.toHaveProperty("customPreviewResourceSet");
+  });
+
+  it("collects material queue route report diagnostics through the public report field", () => {
+    const routeReport = materialQueueRouteSummary();
+
+    expect(
+      collectWebGpuAppMaterialQueueRouteReport([
+        "ignored",
+        { code: "other", report: routeReport },
+        { code: "webGpuApp.materialQueueRouteReport", report: routeReport },
+      ]),
+    ).toBe(routeReport);
+  });
+
+  it("ignores missing and malformed material queue route report diagnostics", () => {
+    expect(collectWebGpuAppMaterialQueueRouteReport([])).toBeNull();
+    expect(
+      collectWebGpuAppMaterialQueueRouteReport([
+        { code: "webGpuApp.materialQueueRouteReport" },
+        { code: "webGpuApp.materialQueueRouteReport", report: null },
+        { code: "webGpuApp.materialQueueRouteReport", report: "route" },
+      ]),
+    ).toBeNull();
+  });
+
+  it("keeps collected material queue route reports JSON safe", () => {
+    const routeReport = collectWebGpuAppMaterialQueueRouteReport([
+      {
+        code: "webGpuApp.materialQueueRouteReport",
+        report: materialQueueRouteSummary(),
+      },
+    ]);
+
+    expect(routeReport).not.toBeNull();
+    expect(JSON.stringify(routeReport)).not.toMatch(
+      /GPUDevice|GPUTexture|GPUBuffer|WebGpuApp|bindGroup|sourceMesh/,
+    );
   });
 });
 

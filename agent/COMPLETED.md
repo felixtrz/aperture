@@ -1,5 +1,316 @@
 # Completed Tasks
 
+## task-1584 — Audit tracker/backlog alignment after route-report collector extraction
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/TRACKER_BACKLOG_ALIGNMENT_AFTER_ROUTE_REPORT_COLLECTOR_EXTRACTION_2026_05_18.md`.
+- Updated public tracker pages to mention the reusable material queue route
+  report diagnostic collector.
+- Refilled the ready backlog with `task-1585` through `task-1589`.
+
+Validation:
+
+- `pnpm run check:progress`
+
+## task-1583 — Audit selected post-omitted-sampler implementation
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/MATERIAL_QUEUE_ROUTE_REPORT_DIAGNOSTIC_COLLECTOR_IMPLEMENTATION_AUDIT_2026_05_18.md`.
+- Confirmed the route-report collector extraction stayed limited to
+  diagnostics helper reuse.
+- Confirmed route traversal, adapter policy, and frame-resource preparation are
+  unchanged.
+
+Validation:
+
+- Documentation-only audit; covered by final formatting and closeout checks.
+
+## task-1582 — Implement selected post-omitted-sampler follow-up
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added `collectWebGpuAppMaterialQueueRouteReport()` to diagnostics summary
+  helpers.
+- Routed app route-failure diagnostics summary creation through the reusable
+  helper instead of a private local collector.
+- Added targeted unit tests for valid extraction, missing/malformed diagnostics,
+  and JSON-safe reports.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/app-diagnostics-summary.test.ts`
+- `pnpm run typecheck`
+
+## task-1581 — Audit selected post-omitted-sampler follow-up plan
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/MATERIAL_QUEUE_ROUTE_REPORT_DIAGNOSTIC_COLLECTOR_PLAN_AUDIT_2026_05_18.md`.
+- Confirmed the route-report collector extraction is scoped enough for one
+  focused implementation run.
+- Recommended avoiding route traversal, adapter policy, or frame-resource
+  changes.
+
+Validation:
+
+- Documentation-only audit; covered by final formatting and closeout checks.
+
+## task-1580 — Plan next route or StandardMaterial follow-up after omitted sampler coverage
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/NEXT_ROUTE_OR_STANDARD_AFTER_OMITTED_SAMPLER_PLAN_2026_05_18.md`.
+- Compared a route helper extraction, another StandardMaterial/glTF fidelity
+  slice, and tooling-only work.
+- Selected material queue route-report diagnostic collector extraction as the
+  next focused route cleanup.
+
+Validation:
+
+- Documentation-only planning slice; covered by final formatting and closeout
+  checks.
+
+## task-1579 — Audit tracker/backlog alignment after omitted sampler default coverage
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/TRACKER_BACKLOG_ALIGNMENT_AFTER_OMITTED_GLTF_SAMPLER_DEFAULT_MAPPING_2026_05_18.md`.
+- Updated public tracker pages to mention omitted glTF sampler source/default
+  mapping coverage.
+- Refilled the ready backlog with `task-1580` through `task-1584`.
+
+Validation:
+
+- `pnpm run check:progress`
+
+## task-1578 — Audit selected post-opaque-double-sided implementation
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/OMITTED_GLTF_SAMPLER_DEFAULT_MAPPING_IMPLEMENTATION_AUDIT_2026_05_18.md`.
+- Confirmed omitted sampler source status remains `null` while mapped defaults
+  are still visible.
+- Confirmed the implementation preserves ECS authority, render extraction, and
+  WebGPU-owned resources.
+
+Validation:
+
+- Documentation-only audit; covered by final formatting and closeout checks.
+
+## task-1577 — Implement selected post-opaque-double-sided follow-up
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added `scenario=default-sampler` to the StandardMaterial glTF browser
+  fixture.
+- Changed browser sampler status so omitted sampler sources remain `null`
+  instead of being displayed as the default explicit clamp source.
+- Added Playwright coverage for mapped repeat/linear defaults, resource counts,
+  draw submission, no diagnostics, and no backend handle leakage.
+
+Validation:
+
+- `node --check examples/standard-gltf-texture.js`
+- `pnpm run typecheck:test`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "omitted sampler defaults"`
+
+## task-1576 — Audit selected post-opaque-double-sided follow-up plan
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/OMITTED_GLTF_SAMPLER_DEFAULT_MAPPING_PLAN_AUDIT_2026_05_18.md`.
+- Confirmed omitted sampler default mapping browser coverage is scoped enough
+  for one focused implementation run.
+- Recommended keeping the task status/resource oriented instead of expanding
+  into a sampler matrix.
+
+Validation:
+
+- Documentation-only audit; covered by final formatting and closeout checks.
+
+## task-1575 — Plan next route or StandardMaterial follow-up after opaque double-sided coverage
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/NEXT_ROUTE_OR_STANDARD_AFTER_OPAQUE_DOUBLE_SIDED_PLAN_2026_05_18.md`.
+- Compared a generic route/prepared-resource candidate, omitted glTF sampler
+  source/default mapping coverage, and tooling-only work.
+- Selected omitted sampler default mapping browser coverage as the next
+  implementation direction.
+
+Validation:
+
+- Documentation-only planning slice; covered by final formatting and closeout
+  checks.
+
+## task-1574 — Audit tracker/backlog alignment after opaque double-sided coverage
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/TRACKER_BACKLOG_ALIGNMENT_AFTER_OPAQUE_DOUBLE_SIDED_GLTF_COVERAGE_2026_05_18.md`.
+- Updated public tracker pages to mention opaque double-sided glTF render-state
+  and backface browser coverage.
+- Refilled the ready backlog with `task-1575` through `task-1579`.
+
+Validation:
+
+- `pnpm run check:progress`
+
+## task-1573 — Audit selected post-sampler-wrap implementation
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/OPAQUE_DOUBLE_SIDED_GLTF_BROWSER_COVERAGE_IMPLEMENTATION_AUDIT_2026_05_18.md`.
+- Confirmed the opaque double-sided implementation stays limited to one
+  render-state/backface proof.
+- Confirmed the implementation preserves ECS authority, render extraction, and
+  WebGPU-owned resources.
+
+Validation:
+
+- Documentation-only audit; covered by final formatting and closeout checks.
+
+## task-1572 — Implement selected post-sampler-wrap follow-up
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added `scenario=opaque-double-sided` to the StandardMaterial glTF browser
+  fixture.
+- Asserted source `doubleSided: true` maps to opaque no-cull render state.
+- Added Playwright screenshot/readback coverage proving a rotated backface
+  renders non-clear content.
+
+Validation:
+
+- `node --check examples/standard-gltf-texture.js`
+- `pnpm run typecheck:test`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "opaque double-sided"`
+
+## task-1571 — Audit selected post-sampler-wrap follow-up plan
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/OPAQUE_DOUBLE_SIDED_GLTF_BROWSER_COVERAGE_PLAN_AUDIT_2026_05_18.md`.
+- Confirmed the selected opaque double-sided browser coverage is scoped enough
+  for one focused implementation run.
+- Recommended keeping the task to one render-state scenario and one backface
+  sample.
+
+Validation:
+
+- Documentation-only audit; covered by final formatting and closeout checks.
+
+## task-1570 — Plan next route or StandardMaterial follow-up after sampler wrap proof
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/NEXT_ROUTE_OR_STANDARD_AFTER_SAMPLER_WRAP_VISUAL_PROOF_PLAN_2026_05_18.md`.
+- Compared a generic route/prepared-resource candidate, an opaque double-sided
+  StandardMaterial/glTF fidelity candidate, and a diagnostics/tooling
+  candidate.
+- Selected opaque `doubleSided: true` glTF browser coverage as the next
+  implementation direction.
+
+Validation:
+
+- Documentation-only planning slice; covered by final formatting and closeout
+  checks.
+
+## task-1569 — Audit tracker/backlog alignment after glTF sampler wrap visual proof
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/TRACKER_BACKLOG_ALIGNMENT_AFTER_GLTF_SAMPLER_WRAP_VISUAL_PROOF_2026_05_18.md`.
+- Updated public tracker pages to mention the valid repeat sampler visual proof.
+- Refilled the ready backlog with `task-1570` through `task-1574`.
+
+Validation:
+
+- `pnpm run check:progress`
+
+## task-1568 — Audit glTF sampler wrap visual browser proof
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/GLTF_SAMPLER_WRAP_VISUAL_PROOF_IMPLEMENTATION_AUDIT_2026_05_18.md`.
+- Confirmed the repeat-sampler proof stays limited to one wrap behavior.
+- Confirmed the implementation preserves ECS authority, render extraction, and
+  WebGPU-owned GPU resources.
+
+Validation:
+
+- Documentation-only audit; covered by final formatting and closeout checks.
+
+## task-1567 — Add glTF sampler wrap visual browser proof
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added `scenario=valid-repeat-sampler` to the StandardMaterial glTF browser
+  fixture.
+- Mapped a valid glTF repeat sampler to WebGPU `addressModeU: "repeat"` and
+  used an out-of-range UV to distinguish wrapped sampling from clamp behavior.
+- Added Playwright coverage for JSON-safe sampler mapping status,
+  screenshot pixels, optional readback pixels, prepared resource counts, and no
+  backend resource leakage in status.
+
+Validation:
+
+- `node --check examples/standard-gltf-texture.js`
+- `pnpm run typecheck:test`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "valid repeat sampler"`
+
 ## task-1566 — Audit tracker/backlog alignment after valid sampler follow-up plan audit
 
 Completed: 2026-05-18

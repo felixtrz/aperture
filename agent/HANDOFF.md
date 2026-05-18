@@ -1,5 +1,105 @@
 # Handoff
 
+## Current Run Update — 2026-05-18T19:56:12Z
+
+Completed `task-1567` through `task-1584`. Recommended next task is
+`task-1585`: plan the next route or StandardMaterial follow-up after route
+report collector extraction.
+
+Highlights:
+
+- Added a glTF-shaped `valid-repeat-sampler` StandardMaterial browser scenario.
+  It maps a valid repeat sampler, uses an out-of-range U coordinate, and
+  verifies wrapped sampling against rejected clamp behavior through screenshot
+  and readback assertions.
+- Audited the sampler wrap proof and aligned tracker/backlog state.
+- Planned the next follow-up after sampler wrap coverage and selected opaque
+  `doubleSided: true` glTF browser coverage.
+- Added an `opaque-double-sided` StandardMaterial glTF browser scenario. It
+  verifies JSON-safe source/mapped render-state status, no-cull opaque pipeline
+  routing, and non-clear backface screenshot/readback output.
+- Added a `default-sampler` glTF browser scenario proving omitted sampler
+  sources remain `source: null` in status while mapped defaults still report
+  repeat addressing, linear filtering, resource creation, and draw submission.
+- Extracted `collectWebGpuAppMaterialQueueRouteReport()` so route-failure app
+  diagnostics reuse one JSON-safe helper for the public `report` field instead
+  of keeping a private duplicate in `app.ts`.
+- Audited each implementation and aligned public tracker/backlog state through
+  `task-1584`.
+
+Reference anchors inspected:
+
+- `docs/NORTH_STAR.md`
+- `docs/MEDIUM_LONG_TERM_GOALS.md`
+- `docs/ARCHITECTURE.md`
+- `docs/DECISIONS.md`
+- `docs/research/NEXT_ROUTE_OR_STANDARD_AFTER_VALID_GLTF_SAMPLER_MAPPING_PLAN_2026_05_18.md`
+- `docs/research/GLTF_SAMPLER_WRAP_VISUAL_PROOF_PLAN_AUDIT_2026_05_18.md`
+- `examples/standard-gltf-texture.js`
+- `test/e2e/standard-gltf-texture.spec.ts`
+- `test/e2e/standard-texture-control.spec.ts`
+- `packages/render/src/assets/gltf-asset-mapping.ts`
+- `packages/render/src/materials/gltf-material.ts`
+- `packages/render/src/materials/gltf-sampler.ts`
+- `packages/webgpu/src/webgpu/app.ts`
+- `packages/webgpu/src/webgpu/app-diagnostics-summary.ts`
+- `packages/webgpu/src/webgpu/material-queue-route-report.ts`
+- `references/three.js/src/textures/Texture.js`
+- `references/three.js/src/materials/Material.js`
+- `references/engine/src/platform/graphics/texture.js`
+- `references/engine/src/framework/handlers/texture.js`
+- `references/engine/src/scene/materials/standard-material.js`
+
+Files touched:
+
+- `agent/BACKLOG.md`
+- `agent/COMPLETED.md`
+- `agent/HANDOFF.md`
+- `agent/STATUS.json`
+- `docs/index.html`
+- `docs/render-pipeline-comparison.html`
+- `docs/research/GLTF_SAMPLER_WRAP_VISUAL_PROOF_IMPLEMENTATION_AUDIT_2026_05_18.md`
+- `docs/research/NEXT_ROUTE_OR_STANDARD_AFTER_SAMPLER_WRAP_VISUAL_PROOF_PLAN_2026_05_18.md`
+- `docs/research/NEXT_ROUTE_OR_STANDARD_AFTER_OPAQUE_DOUBLE_SIDED_PLAN_2026_05_18.md`
+- `docs/research/NEXT_ROUTE_OR_STANDARD_AFTER_OMITTED_SAMPLER_PLAN_2026_05_18.md`
+- `docs/research/OPAQUE_DOUBLE_SIDED_GLTF_BROWSER_COVERAGE_IMPLEMENTATION_AUDIT_2026_05_18.md`
+- `docs/research/OPAQUE_DOUBLE_SIDED_GLTF_BROWSER_COVERAGE_PLAN_AUDIT_2026_05_18.md`
+- `docs/research/OMITTED_GLTF_SAMPLER_DEFAULT_MAPPING_IMPLEMENTATION_AUDIT_2026_05_18.md`
+- `docs/research/OMITTED_GLTF_SAMPLER_DEFAULT_MAPPING_PLAN_AUDIT_2026_05_18.md`
+- `docs/research/MATERIAL_QUEUE_ROUTE_REPORT_DIAGNOSTIC_COLLECTOR_IMPLEMENTATION_AUDIT_2026_05_18.md`
+- `docs/research/MATERIAL_QUEUE_ROUTE_REPORT_DIAGNOSTIC_COLLECTOR_PLAN_AUDIT_2026_05_18.md`
+- `docs/research/TRACKER_BACKLOG_ALIGNMENT_AFTER_GLTF_SAMPLER_WRAP_VISUAL_PROOF_2026_05_18.md`
+- `docs/research/TRACKER_BACKLOG_ALIGNMENT_AFTER_OPAQUE_DOUBLE_SIDED_GLTF_COVERAGE_2026_05_18.md`
+- `docs/research/TRACKER_BACKLOG_ALIGNMENT_AFTER_OMITTED_GLTF_SAMPLER_DEFAULT_MAPPING_2026_05_18.md`
+- `docs/research/TRACKER_BACKLOG_ALIGNMENT_AFTER_ROUTE_REPORT_COLLECTOR_EXTRACTION_2026_05_18.md`
+- `examples/standard-gltf-texture.js`
+- `packages/webgpu/src/webgpu/app-diagnostics-summary.ts`
+- `packages/webgpu/src/webgpu/app.ts`
+- `test/e2e/standard-gltf-texture.spec.ts`
+- `test/webgpu/app-diagnostics-summary.test.ts`
+
+Validation:
+
+- `node --check examples/standard-gltf-texture.js`
+- `pnpm run typecheck:test`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "valid repeat sampler"`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "opaque double-sided"`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "omitted sampler defaults"`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "valid repeat sampler|opaque double-sided|omitted sampler defaults"`
+- `pnpm exec vitest run test/webgpu/app-diagnostics-summary.test.ts`
+- `pnpm run typecheck`
+- `pnpm run check:progress`
+- `pnpm run format:check`
+- `pnpm run check`
+
+Known issues / follow-ups:
+
+- Start `task-1585`: plan the next route or StandardMaterial follow-up after
+  route-report collector extraction.
+- Real app-level non-built-in material adapter rendering, binary GLB loading,
+  IBL, shadows, instancing, batching, multi-material primitive rules, and broad
+  PBR completeness remain deferred.
+
 ## Current Run Update — 2026-05-18T18:47:46Z
 
 Completed `task-1529` through `task-1566`. Recommended next task is

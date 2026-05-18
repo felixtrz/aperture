@@ -58,6 +58,13 @@ const alphaBlendDoubleSided = {
   sample: { id: "backface", x: 0.5, y: 0.5 },
   expectedColor: scalarColor,
 };
+const opaqueDoubleSided = {
+  source: {
+    doubleSided: true,
+  },
+  sample: { id: "backface", x: 0.5, y: 0.5 },
+  expectedColor: scalarColor,
+};
 const unsupportedTextureTransform = { offset: [0.25, 0], rotation: 0.25 };
 const textureTransformSampling = {
   transform: { offset: [0.5, 0], scale: [0.5, 1] },
@@ -78,6 +85,11 @@ const uv1Texture = {
   expectedColor: [0.95, 0.05, 0.05, 1],
   rejectedUv0Color: [0.05, 0.95, 0.1, 1],
 };
+const repeatSamplerCoordinate = { u: 1.25, v: 0.25 };
+const repeatSamplerTexture = {
+  expectedColor: expectedTextureColor,
+  rejectedClampColor: [1, 32 / 255, 32 / 255, 1],
+};
 const gltfSamplerSource = {
   magFilter: 9728,
   minFilter: 9728,
@@ -89,6 +101,12 @@ const nonDefaultGltfSamplerSource = {
   minFilter: 9987,
   wrapS: 10497,
   wrapT: 33648,
+};
+const repeatGltfSamplerSource = {
+  magFilter: 9728,
+  minFilter: 9728,
+  wrapS: 10497,
+  wrapT: 33071,
 };
 const fixtureId = "inline-gltf-standard-base-color-texture";
 const baseColorTextureBytes = new Uint8Array([
@@ -111,6 +129,9 @@ const emissiveTextureBytes = new Uint8Array([
 ]);
 const alphaMaskTextureBytes = new Uint8Array([
   24, 128, 255, 255, 255, 24, 24, 64, 24, 128, 255, 255, 255, 24, 24, 64,
+]);
+const repeatSamplerTextureBytes = new Uint8Array([
+  24, 128, 255, 255, 255, 32, 32, 255, 255, 255, 0, 255, 0, 255, 0, 255,
 ]);
 const textureTransformSamplingBytes = new Uint8Array([
   242, 13, 13, 255, 13, 242, 26, 255, 242, 13, 13, 255, 13, 242, 26, 255,
@@ -381,6 +402,7 @@ function createGltfTextureScene(aperture, app, targetCanvas, selectedScenario) {
     expectedTextureColor: config.expectedTextureColor,
     expectedUntransformedTextureColor: config.expectedUntransformedTextureColor,
     expectedOffsetScaleTextureColor: config.expectedOffsetScaleTextureColor,
+    expectedSampler: config.expectedSampler,
     expectedTexCoord: config.expectedTexCoord,
     expectedUv1: config.expectedUv1,
     expectedMetallicRoughness: config.expectedMetallicRoughness,
@@ -473,6 +495,7 @@ function createGltfScenarioConfig(selectedScenario) {
   const usesAlphaMaskTexture =
     selectedScenario === "alpha-mask-texture" || usesBaseColorAlphaMaskEmissive;
   const usesAlphaMaskBackface = selectedScenario === "alpha-mask-backface";
+  const usesOpaqueDoubleSided = selectedScenario === "opaque-double-sided";
   const usesAlphaBlendTexturePixels =
     selectedScenario === "alpha-blend-texture";
   const usesAlphaBlendTexture =
@@ -499,6 +522,8 @@ function createGltfScenarioConfig(selectedScenario) {
   const usesInvalidSamplerEnum = selectedScenario === "invalid-sampler-enum";
   const usesValidNonDefaultSampler =
     selectedScenario === "valid-non-default-sampler";
+  const usesValidRepeatSampler = selectedScenario === "valid-repeat-sampler";
+  const usesDefaultSampler = selectedScenario === "default-sampler";
 
   return {
     usesBaseColorTransform,
@@ -530,6 +555,7 @@ function createGltfScenarioConfig(selectedScenario) {
     usesAlphaMaskDoubleSided,
     usesAlphaMaskTexture,
     usesAlphaMaskBackface,
+    usesOpaqueDoubleSided,
     usesAlphaBlendTexturePixels,
     usesAlphaBlendTexture,
     usesAlphaBlendDoubleSided,
@@ -547,6 +573,8 @@ function createGltfScenarioConfig(selectedScenario) {
     usesInvalidSamplerIndex,
     usesInvalidSamplerEnum,
     usesValidNonDefaultSampler,
+    usesValidRepeatSampler,
+    usesDefaultSampler,
     textureSlot:
       usesUnsupportedRequiredMaterialExtension ||
       usesInvalidRenderState ||
@@ -570,9 +598,11 @@ function createGltfScenarioConfig(selectedScenario) {
                     ? null
                     : usesAlphaMaskBackface
                       ? null
-                      : usesAlphaBlendDoubleSided
+                      : usesOpaqueDoubleSided
                         ? null
-                        : "baseColorTexture",
+                        : usesAlphaBlendDoubleSided
+                          ? null
+                          : "baseColorTexture",
     materialModel: usesMetallicRoughnessTexture
       ? "gltf-standard-metallic-roughness-texture"
       : usesMetallicRoughnessDelayedDependencies
@@ -623,43 +653,49 @@ function createGltfScenarioConfig(selectedScenario) {
                                                     : "gltf-standard-alpha-blend"
                                                   : usesAlphaBlendDoubleSided
                                                     ? "gltf-standard-alpha-blend-double-sided"
-                                                    : usesDelayedDependencies
-                                                      ? "gltf-standard-delayed-dependencies"
-                                                      : usesFormatColorSpaceMismatch
-                                                        ? "gltf-standard-base-color-format-color-space-mismatch"
-                                                        : usesUnsupportedRequiredMaterialExtension
-                                                          ? "gltf-standard-unsupported-required-material-extension"
-                                                          : usesUnsupportedOptionalMaterialExtension
-                                                            ? "gltf-standard-unsupported-optional-material-extension"
-                                                            : usesMultipleOptionalMaterialExtensions
-                                                              ? "gltf-standard-multiple-optional-material-extensions"
-                                                              : usesInvalidRenderState
-                                                                ? "gltf-standard-invalid-render-state"
-                                                                : usesInvalidMaterialScalar
-                                                                  ? "gltf-standard-invalid-material-scalar"
-                                                                  : usesInvalidVectorFactor
-                                                                    ? "gltf-standard-invalid-vector-factor"
-                                                                    : usesUnresolvedTextureBinding
-                                                                      ? "gltf-standard-unresolved-texture-binding"
-                                                                      : usesInvalidTextureInfo
-                                                                        ? "gltf-standard-invalid-texture-info"
-                                                                        : usesInvalidSamplerIndex
-                                                                          ? "gltf-standard-invalid-sampler-index"
-                                                                          : usesInvalidSamplerEnum
-                                                                            ? "gltf-standard-invalid-sampler-enum"
-                                                                            : usesValidNonDefaultSampler
-                                                                              ? "gltf-standard-valid-non-default-sampler"
-                                                                              : usesBaseColorTransformSampling
-                                                                                ? "gltf-standard-base-color-transform-sampling"
-                                                                                : usesBaseColorTransformRotationSampling
-                                                                                  ? "gltf-standard-base-color-transform-rotation-sampling"
-                                                                                  : usesBaseColorUv1
-                                                                                    ? "gltf-standard-base-color-uv1"
-                                                                                    : usesBaseColorUv1Missing
-                                                                                      ? "gltf-standard-base-color-uv1-missing"
-                                                                                      : usesBaseColorUv1Transform
-                                                                                        ? "gltf-standard-base-color-uv1-transform"
-                                                                                        : "gltf-standard-base-color-texture",
+                                                    : usesOpaqueDoubleSided
+                                                      ? "gltf-standard-opaque-double-sided"
+                                                      : usesDelayedDependencies
+                                                        ? "gltf-standard-delayed-dependencies"
+                                                        : usesFormatColorSpaceMismatch
+                                                          ? "gltf-standard-base-color-format-color-space-mismatch"
+                                                          : usesUnsupportedRequiredMaterialExtension
+                                                            ? "gltf-standard-unsupported-required-material-extension"
+                                                            : usesUnsupportedOptionalMaterialExtension
+                                                              ? "gltf-standard-unsupported-optional-material-extension"
+                                                              : usesMultipleOptionalMaterialExtensions
+                                                                ? "gltf-standard-multiple-optional-material-extensions"
+                                                                : usesInvalidRenderState
+                                                                  ? "gltf-standard-invalid-render-state"
+                                                                  : usesInvalidMaterialScalar
+                                                                    ? "gltf-standard-invalid-material-scalar"
+                                                                    : usesInvalidVectorFactor
+                                                                      ? "gltf-standard-invalid-vector-factor"
+                                                                      : usesUnresolvedTextureBinding
+                                                                        ? "gltf-standard-unresolved-texture-binding"
+                                                                        : usesInvalidTextureInfo
+                                                                          ? "gltf-standard-invalid-texture-info"
+                                                                          : usesInvalidSamplerIndex
+                                                                            ? "gltf-standard-invalid-sampler-index"
+                                                                            : usesInvalidSamplerEnum
+                                                                              ? "gltf-standard-invalid-sampler-enum"
+                                                                              : usesValidRepeatSampler
+                                                                                ? "gltf-standard-valid-repeat-sampler"
+                                                                                : usesDefaultSampler
+                                                                                  ? "gltf-standard-default-sampler"
+                                                                                  : usesValidNonDefaultSampler
+                                                                                    ? "gltf-standard-valid-non-default-sampler"
+                                                                                    : usesBaseColorTransformSampling
+                                                                                      ? "gltf-standard-base-color-transform-sampling"
+                                                                                      : usesBaseColorTransformRotationSampling
+                                                                                        ? "gltf-standard-base-color-transform-rotation-sampling"
+                                                                                        : usesBaseColorUv1
+                                                                                          ? "gltf-standard-base-color-uv1"
+                                                                                          : usesBaseColorUv1Missing
+                                                                                            ? "gltf-standard-base-color-uv1-missing"
+                                                                                            : usesBaseColorUv1Transform
+                                                                                              ? "gltf-standard-base-color-uv1-transform"
+                                                                                              : "gltf-standard-base-color-texture",
     expectedFailure: expectedGltfFailures[selectedScenario] ?? null,
     expectedTextureTransform: usesBaseColorTransform
       ? unsupportedTextureTransform
@@ -715,6 +751,17 @@ function createGltfScenarioConfig(selectedScenario) {
       usesAnyMetallicRoughnessUv1
         ? uv1Coordinate
         : null,
+    expectedSampler: usesValidRepeatSampler
+      ? {
+          addressModeU: "repeat",
+          addressModeV: "clamp-to-edge",
+          magFilter: "nearest",
+          minFilter: "nearest",
+          sampleUv: repeatSamplerCoordinate,
+          expectedColor: repeatSamplerTexture.expectedColor,
+          rejectedClampColor: repeatSamplerTexture.rejectedClampColor,
+        }
+      : null,
     expectedMetallicRoughness: usesMetallicRoughnessUv1Transform
       ? { metallic: 1, roughness: 1 }
       : usesMetallicRoughnessUv1
@@ -752,7 +799,9 @@ function createGltfScenarioConfig(selectedScenario) {
       ? alphaMaskBackface
       : usesAlphaBlendDoubleSided
         ? alphaBlendDoubleSided
-        : null,
+        : usesOpaqueDoubleSided
+          ? opaqueDoubleSided
+          : null,
     expectedDelayedDependencies: usesDelayedDependencies
       ? {
           loadingTextureKey: "texture:gltf:texture:0:baseColorTexture",
@@ -813,7 +862,18 @@ function createGltfScenarioConfig(selectedScenario) {
                   blend: { preset: "alpha" },
                 },
               }
-            : null,
+            : usesOpaqueDoubleSided
+              ? {
+                  source: opaqueDoubleSided.source,
+                  mapped: {
+                    alphaMode: "opaque",
+                    alphaCutoff: 0.5,
+                    cullMode: "none",
+                    depth: { test: true, write: true, compare: "less" },
+                    blend: { preset: "none" },
+                  },
+                }
+              : null,
     samplePoint:
       usesBaseColorTransformSampling ||
       usesBaseColorUv1Transform ||
@@ -821,9 +881,11 @@ function createGltfScenarioConfig(selectedScenario) {
         ? textureTransformSampling.sample
         : usesBaseColorTransformRotationSampling
           ? textureTransformRotationSampling.sample
-          : usesNormalTextureScale
-            ? { id: "textured", x: 0.62, y: 0.5 }
-            : { id: "textured", x: 0.5, y: 0.5 },
+          : usesValidRepeatSampler
+            ? { id: "textured", x: 0.5, y: 0.5 }
+            : usesNormalTextureScale
+              ? { id: "textured", x: 0.62, y: 0.5 }
+              : { id: "textured", x: 0.5, y: 0.5 },
   };
 }
 
@@ -886,41 +948,47 @@ function materialNameForConfig(config) {
                                               : "GLB Standard Alpha Blend"
                                             : config.usesAlphaBlendDoubleSided
                                               ? "GLB Standard Alpha Blend Double Sided"
-                                              : config.usesDelayedDependencies
-                                                ? "GLB Standard Delayed Dependencies"
-                                                : config.usesUnsupportedRequiredMaterialExtension
-                                                  ? "GLB Standard Unsupported Required Extension"
-                                                  : config.usesUnsupportedOptionalMaterialExtension
-                                                    ? "GLB Standard Unsupported Optional Extension"
-                                                    : config.usesInvalidRenderState
-                                                      ? "GLB Standard Invalid Render State"
-                                                      : config.usesInvalidMaterialScalar
-                                                        ? "GLB Standard Invalid Material Scalar"
-                                                        : config.usesInvalidVectorFactor
-                                                          ? "GLB Standard Invalid Vector Factor"
-                                                          : config.usesInvalidTextureScalar
-                                                            ? "GLB Standard Invalid Texture Scalar"
-                                                            : config.usesUnresolvedTextureBinding
-                                                              ? "GLB Standard Unresolved Texture Binding"
-                                                              : config.usesInvalidTextureInfo
-                                                                ? "GLB Standard Invalid Texture Info"
-                                                                : config.usesBaseColorTransformSampling
-                                                                  ? "GLB Standard BaseColor Transform Sampling"
-                                                                  : config.usesBaseColorTransformRotationSampling
-                                                                    ? "GLB Standard BaseColor Transform Rotation Sampling"
-                                                                    : config.usesBaseColorUv1
-                                                                      ? "GLB Standard BaseColor UV1"
-                                                                      : config.usesBaseColorUv1Missing
-                                                                        ? "GLB Standard BaseColor UV1 Missing"
-                                                                        : config.usesInvalidSamplerIndex
-                                                                          ? "GLB Standard Invalid Sampler Index"
-                                                                          : config.usesInvalidSamplerEnum
-                                                                            ? "GLB Standard Invalid Sampler Enum"
-                                                                            : config.usesValidNonDefaultSampler
-                                                                              ? "GLB Standard Valid Non-Default Sampler"
-                                                                              : config.usesBaseColorUv1Transform
-                                                                                ? "GLB Standard BaseColor UV1 Transform"
-                                                                                : "GLB Standard BaseColor";
+                                              : config.usesOpaqueDoubleSided
+                                                ? "GLB Standard Opaque Double Sided"
+                                                : config.usesDelayedDependencies
+                                                  ? "GLB Standard Delayed Dependencies"
+                                                  : config.usesUnsupportedRequiredMaterialExtension
+                                                    ? "GLB Standard Unsupported Required Extension"
+                                                    : config.usesUnsupportedOptionalMaterialExtension
+                                                      ? "GLB Standard Unsupported Optional Extension"
+                                                      : config.usesInvalidRenderState
+                                                        ? "GLB Standard Invalid Render State"
+                                                        : config.usesInvalidMaterialScalar
+                                                          ? "GLB Standard Invalid Material Scalar"
+                                                          : config.usesInvalidVectorFactor
+                                                            ? "GLB Standard Invalid Vector Factor"
+                                                            : config.usesInvalidTextureScalar
+                                                              ? "GLB Standard Invalid Texture Scalar"
+                                                              : config.usesUnresolvedTextureBinding
+                                                                ? "GLB Standard Unresolved Texture Binding"
+                                                                : config.usesInvalidTextureInfo
+                                                                  ? "GLB Standard Invalid Texture Info"
+                                                                  : config.usesBaseColorTransformSampling
+                                                                    ? "GLB Standard BaseColor Transform Sampling"
+                                                                    : config.usesBaseColorTransformRotationSampling
+                                                                      ? "GLB Standard BaseColor Transform Rotation Sampling"
+                                                                      : config.usesBaseColorUv1
+                                                                        ? "GLB Standard BaseColor UV1"
+                                                                        : config.usesBaseColorUv1Missing
+                                                                          ? "GLB Standard BaseColor UV1 Missing"
+                                                                          : config.usesInvalidSamplerIndex
+                                                                            ? "GLB Standard Invalid Sampler Index"
+                                                                            : config.usesInvalidSamplerEnum
+                                                                              ? "GLB Standard Invalid Sampler Enum"
+                                                                              : config.usesValidRepeatSampler
+                                                                                ? "GLB Standard Valid Repeat Sampler"
+                                                                                : config.usesDefaultSampler
+                                                                                  ? "GLB Standard Default Sampler"
+                                                                                  : config.usesValidNonDefaultSampler
+                                                                                    ? "GLB Standard Valid Non-Default Sampler"
+                                                                                    : config.usesBaseColorUv1Transform
+                                                                                      ? "GLB Standard BaseColor UV1 Transform"
+                                                                                      : "GLB Standard BaseColor";
 }
 
 function readbackSamplesForConfig(config) {
@@ -1020,6 +1088,7 @@ function createGltfFixtureRoot(config) {
     config.usesEmissiveTexture ||
     config.usesAlphaMaskDoubleSided ||
     config.usesAlphaMaskBackface ||
+    config.usesOpaqueDoubleSided ||
     config.usesAlphaBlendDoubleSided
   ) {
     pbrMetallicRoughness = {
@@ -1112,6 +1181,11 @@ function createGltfFixtureRoot(config) {
           alphaMode: alphaBlendDoubleSided.source.alphaMode,
           alphaCutoff: alphaBlendDoubleSided.source.alphaCutoff,
           doubleSided: alphaBlendDoubleSided.source.doubleSided,
+        }
+      : {}),
+    ...(config.usesOpaqueDoubleSided
+      ? {
+          doubleSided: opaqueDoubleSided.source.doubleSided,
         }
       : {}),
     ...(config.usesNormalTexture
@@ -1328,17 +1402,40 @@ function createGltfFixtureRoot(config) {
                               ],
                               samplers: [nonDefaultGltfSamplerSource],
                             }
-                          : {
-                              textures: [{ source: 0, sampler: 0 }],
-                              images: [
-                                {
-                                  bufferView: 0,
-                                  mimeType: "image/png",
-                                  name: "BaseColor",
-                                },
-                              ],
-                              samplers: [gltfSamplerSource],
-                            }),
+                          : config.usesValidRepeatSampler
+                            ? {
+                                textures: [{ source: 0, sampler: 0 }],
+                                images: [
+                                  {
+                                    bufferView: 0,
+                                    mimeType: "image/png",
+                                    name: "BaseColor",
+                                  },
+                                ],
+                                samplers: [repeatGltfSamplerSource],
+                              }
+                            : config.usesDefaultSampler
+                              ? {
+                                  textures: [{ source: 0 }],
+                                  images: [
+                                    {
+                                      bufferView: 0,
+                                      mimeType: "image/png",
+                                      name: "BaseColor",
+                                    },
+                                  ],
+                                }
+                              : {
+                                  textures: [{ source: 0, sampler: 0 }],
+                                  images: [
+                                    {
+                                      bufferView: 0,
+                                      mimeType: "image/png",
+                                      name: "BaseColor",
+                                    },
+                                  ],
+                                  samplers: [gltfSamplerSource],
+                                }),
   };
 }
 
@@ -1365,11 +1462,13 @@ function textureBytesForSlot(textureSlot) {
             ? textureTransformSamplingBytes
             : scenario === "base-color-transform-rotation-sampling"
               ? textureTransformRotationSamplingBytes
-              : scenario === "base-color-uv1" ||
-                  scenario === "base-color-uv1-missing" ||
-                  scenario === "base-color-uv1-transform"
-                ? textureTransformSamplingBytes
-                : baseColorTextureBytes;
+              : scenario === "valid-repeat-sampler"
+                ? repeatSamplerTextureBytes
+                : scenario === "base-color-uv1" ||
+                    scenario === "base-color-uv1-missing" ||
+                    scenario === "base-color-uv1-transform"
+                  ? textureTransformSamplingBytes
+                  : baseColorTextureBytes;
     default:
       return baseColorTextureBytes;
   }
@@ -1471,11 +1570,13 @@ function createGltfMeshConstructionReport(aperture, config) {
           baseMesh,
           textureTransformRotationSampling.authoredUv0,
         )
-      : config.usesBaseColorUv1 ||
-          config.usesBaseColorUv1Transform ||
-          config.usesAnyMetallicRoughnessUv1
-        ? createUv1PlaneMeshAsset(baseMesh, uv1Coordinate)
-        : baseMesh;
+      : config.usesValidRepeatSampler
+        ? createConstantUv0PlaneMeshAsset(baseMesh, repeatSamplerCoordinate)
+        : config.usesBaseColorUv1 ||
+            config.usesBaseColorUv1Transform ||
+            config.usesAnyMetallicRoughnessUv1
+          ? createUv1PlaneMeshAsset(baseMesh, uv1Coordinate)
+          : baseMesh;
 
   return {
     valid: true,
@@ -1680,6 +1781,7 @@ function createStandardTextureStatus(aperture, scene) {
       expectedAlphaBlendTexture: scene.expectedAlphaBlendTexture,
       expectedDelayedDependencies: scene.expectedDelayedDependencies,
       expectedTextureTransform: scene.expectedTextureTransform,
+      expectedSampler: scene.expectedSampler,
       readiness:
         aperture.standardMaterialTextureReadinessReportToJsonValue(readiness),
       sample: scene.samplePoint,
@@ -1834,18 +1936,21 @@ function createUv1PlaneMeshAsset(mesh, uv1) {
 }
 
 function createSamplerMappingStatus(plannedSampler) {
-  const source = plannedSampler?.source ?? gltfSamplerSource;
+  const source = plannedSampler?.source;
 
   return {
     handleKey: plannedSampler?.handleKey ?? null,
     textureIndex: plannedSampler?.textureIndex ?? null,
     slot: plannedSampler?.slot ?? null,
-    source: {
-      magFilter: source.magFilter ?? gltfSamplerSource.magFilter,
-      minFilter: source.minFilter ?? gltfSamplerSource.minFilter,
-      wrapS: source.wrapS ?? gltfSamplerSource.wrapS,
-      wrapT: source.wrapT ?? gltfSamplerSource.wrapT,
-    },
+    source:
+      source === null
+        ? null
+        : {
+            magFilter: source?.magFilter ?? gltfSamplerSource.magFilter,
+            minFilter: source?.minFilter ?? gltfSamplerSource.minFilter,
+            wrapS: source?.wrapS ?? gltfSamplerSource.wrapS,
+            wrapT: source?.wrapT ?? gltfSamplerSource.wrapT,
+          },
     mapped:
       plannedSampler?.sampler === null || plannedSampler?.sampler === undefined
         ? null

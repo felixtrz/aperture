@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-18 11:29 PDT</dd>
+            <dd>2026-05-18 12:23 PDT</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -537,10 +537,27 @@
               texture and sampler resource, and submits a draw with JSON-safe
               status. Follow-up planning selected a focused glTF sampler wrap
               visual proof using out-of-range UVs, and the plan audit confirmed
-              it should stay limited to one wrap behavior.
+              it should stay limited to one wrap behavior. That visual browser
+              proof now renders a valid glTF repeat sampler with an out-of-range
+              U coordinate and asserts both JSON-safe sampler mapping status and
+              wrapped-versus-clamped screenshot/readback pixels. The next
+              StandardMaterial/glTF fidelity slice now verifies opaque
+              <code>doubleSided: true</code> render-state mapping with no
+              culling and a non-clear backface screenshot/readback proof. The
+              glTF texture fixture now also covers omitted sampler sources:
+              status preserves <code>source: null</code> while mapped sampler
+              defaults still report repeat addressing, linear filtering,
+              resource creation, and draw submission. Route diagnostics now use
+              a reusable material queue route-report collector that reads the
+              public <code>report</code> field, ignores malformed diagnostics,
+              and feeds app route-failure summaries without keeping a private
+              duplicate in the app module.
             </dd>
             <dt>Next focus</dt>
-            <dd>Add glTF sampler wrap visual browser proof</dd>
+            <dd>
+              Plan next route or StandardMaterial follow-up after route-report
+              collector extraction
+            </dd>
           </dl>
         </aside>
       </header>
@@ -1045,24 +1062,25 @@
             <h3>Latest work in this update</h3>
             <ul>
               <li>
-                <span class="badge green">task-1566</span> Aligned tracker and
-                backlog after the sampler wrap visual proof plan audit.
+                <span class="badge green">task-1584</span> Aligned tracker and
+                backlog after route-report collector extraction.
               </li>
               <li>
-                <span class="badge green">task-1565</span> Audited the selected
-                glTF sampler wrap visual proof plan.
+                <span class="badge green">task-1583</span> Audited route-report
+                collector extraction.
               </li>
               <li>
-                <span class="badge green">task-1564</span> Planned the next
-                route or StandardMaterial follow-up after valid sampler mapping.
+                <span class="badge green">task-1582</span> Extracted the
+                material queue route-report diagnostic collector.
               </li>
               <li>
-                <span class="badge green">task-1563</span> Aligned tracker and
-                backlog after valid sampler mapping coverage.
+                <span class="badge green">task-1581</span> Audited the
+                route-report collector extraction plan.
               </li>
               <li>
-                <span class="badge green">task-1551</span> Audited the unknown
-                route-family diagnostics regression.
+                <span class="badge green">task-1580</span> Planned the next
+                route or StandardMaterial follow-up after omitted sampler
+                coverage.
               </li>
               <li>
                 <span class="badge green">task-1550</span> Added an unsupported
@@ -2238,12 +2256,13 @@
             <h3>Recommended next tasks</h3>
             <ul>
               <li>
-                <span class="badge amber">next</span> Add glTF sampler wrap
-                visual browser proof.
+                <span class="badge amber">next</span> Plan next route or
+                StandardMaterial follow-up after route-report collector
+                extraction.
               </li>
-              <li>Audit glTF sampler wrap visual browser proof.</li>
+              <li>Audit the selected post-route-helper follow-up plan.</li>
               <li>
-                Align tracker/backlog after glTF sampler wrap visual proof.
+                Implement the selected route or StandardMaterial follow-up.
               </li>
               <li>
                 Keep this tracker updated after render-pipeline or

@@ -144,6 +144,18 @@ interface StandardGltfTextureStatus extends ExampleStatusBase {
       readonly scale?: readonly [number, number];
       readonly rotation?: number;
     } | null;
+    readonly expectedSampler?: {
+      readonly addressModeU?: string;
+      readonly addressModeV?: string;
+      readonly magFilter?: string;
+      readonly minFilter?: string;
+      readonly sampleUv?: {
+        readonly u: number;
+        readonly v: number;
+      };
+      readonly expectedColor: RgbaTuple;
+      readonly rejectedClampColor?: RgbaTuple;
+    } | null;
     readonly expectedTexCoord?: number;
     readonly expectedUv1?: {
       readonly u: number;
@@ -322,7 +334,7 @@ interface StandardGltfTextureSamplerMappingStatus {
     readonly minFilter: number;
     readonly wrapS: number;
     readonly wrapT: number;
-  };
+  } | null;
   readonly mapped: {
     readonly kind: string;
     readonly label: string;
@@ -644,6 +656,218 @@ test("standard glTF texture fixture maps valid non-default sampler enums", async
   expect(status.pipelines?.keys).toContain(
     "standard|baseColorTexture|opaque|back|less|none",
   );
+  expect(status.standardTexture?.samplerMapping).toEqual(
+    status.gltf?.assetMapping.samplers?.[0],
+  );
+  expectSamplerStatusContainsNoBackendResources(
+    status.standardTexture?.samplerMapping,
+  );
+  webGpuValidation.expectNoWarnings();
+});
+
+test("standard glTF texture fixture renders a valid repeat sampler", async ({
+  page,
+}) => {
+  const webGpuValidation = attachWebGpuValidationConsoleGuard(page);
+
+  await page.goto(
+    "/examples/standard-gltf-texture.html?scenario=valid-repeat-sampler",
+  );
+
+  const status = await waitForExampleStatus<StandardGltfTextureStatus>(page);
+
+  await attachExampleStatus(
+    "standard-gltf-texture-valid-repeat-sampler-status",
+    status,
+  );
+  expect(
+    status,
+    "standard glTF valid repeat sampler status should publish",
+  ).toBeDefined();
+
+  if (status === undefined) {
+    return;
+  }
+
+  skipIfUnsupportedWebGpu(status);
+  expectStatusJsonSafeForGpu(status);
+  expectRenderedGltfTextureStatus(status, {
+    scenario: "valid-repeat-sampler",
+    materialModel: "gltf-standard-valid-repeat-sampler",
+    textureSlot: "baseColorTexture",
+    textureKey: "texture:gltf:texture:0:baseColorTexture",
+    samplerKey: "sampler:gltf:sampler:0:baseColorTexture",
+    pipelineKey: "standard|baseColorTexture|opaque|back|less|none",
+  });
+  expect(status, JSON.stringify(status, null, 2)).toMatchObject({
+    gltf: {
+      assetMapping: {
+        valid: true,
+        textureCount: 1,
+        samplerCount: 1,
+        materialCount: 1,
+        diagnostics: 0,
+        samplers: [
+          {
+            handleKey: "gltf:sampler:0:baseColorTexture",
+            textureIndex: 0,
+            slot: "baseColorTexture",
+            source: {
+              magFilter: 9728,
+              minFilter: 9728,
+              wrapS: 10497,
+              wrapT: 33071,
+            },
+            mapped: {
+              kind: "sampler",
+              addressModeU: "repeat",
+              addressModeV: "clamp-to-edge",
+              addressModeW: "repeat",
+              magFilter: "nearest",
+              minFilter: "nearest",
+              mipmapFilter: "nearest",
+              lodMinClamp: 0,
+              lodMaxClamp: 32,
+              maxAnisotropy: 1,
+            },
+          },
+        ],
+      },
+    },
+    standardTexture: {
+      samplerMapping: {
+        source: {
+          magFilter: 9728,
+          minFilter: 9728,
+          wrapS: 10497,
+          wrapT: 33071,
+        },
+        mapped: {
+          addressModeU: "repeat",
+          addressModeV: "clamp-to-edge",
+          magFilter: "nearest",
+          minFilter: "nearest",
+          mipmapFilter: "nearest",
+        },
+      },
+      expectedSampler: {
+        addressModeU: "repeat",
+        addressModeV: "clamp-to-edge",
+        magFilter: "nearest",
+        minFilter: "nearest",
+        sampleUv: { u: 1.25, v: 0.25 },
+        expectedColor: expect.any(Array),
+        rejectedClampColor: expect.any(Array),
+      },
+    },
+    resources: {
+      textureResourcesCreated: 1,
+      samplerResourcesCreated: 1,
+      materialBuffersCreated: 1,
+    },
+    draw: { packages: 1, drawCalls: 1 },
+  });
+  expect(status.diagnosticCodes ?? []).toEqual([]);
+  expect(status.standardTexture?.samplerMapping).toEqual(
+    status.gltf?.assetMapping.samplers?.[0],
+  );
+  expectSamplerStatusContainsNoBackendResources(
+    status.standardTexture?.samplerMapping,
+  );
+  await expectValidRepeatSamplerPixels(page, status);
+  webGpuValidation.expectNoWarnings();
+});
+
+test("standard glTF texture fixture maps omitted sampler defaults", async ({
+  page,
+}) => {
+  const webGpuValidation = attachWebGpuValidationConsoleGuard(page);
+
+  await page.goto(
+    "/examples/standard-gltf-texture.html?scenario=default-sampler",
+  );
+
+  const status = await waitForExampleStatus<StandardGltfTextureStatus>(page);
+
+  await attachExampleStatus(
+    "standard-gltf-texture-default-sampler-status",
+    status,
+  );
+  expect(
+    status,
+    "standard glTF default sampler status should publish",
+  ).toBeDefined();
+
+  if (status === undefined) {
+    return;
+  }
+
+  skipIfUnsupportedWebGpu(status);
+  expectStatusJsonSafeForGpu(status);
+  expectRenderedGltfTextureStatus(status, {
+    scenario: "default-sampler",
+    materialModel: "gltf-standard-default-sampler",
+    textureSlot: "baseColorTexture",
+    textureKey: "texture:gltf:texture:0:baseColorTexture",
+    samplerKey: "sampler:gltf:sampler:0:baseColorTexture",
+    pipelineKey: "standard|baseColorTexture|opaque|back|less|none",
+  });
+  expect(status, JSON.stringify(status, null, 2)).toMatchObject({
+    gltf: {
+      assetMapping: {
+        valid: true,
+        textureCount: 1,
+        samplerCount: 1,
+        materialCount: 1,
+        diagnostics: 0,
+        samplers: [
+          {
+            handleKey: "gltf:sampler:0:baseColorTexture",
+            textureIndex: 0,
+            slot: "baseColorTexture",
+            source: null,
+            mapped: {
+              kind: "sampler",
+              addressModeU: "repeat",
+              addressModeV: "repeat",
+              addressModeW: "repeat",
+              magFilter: "linear",
+              minFilter: "linear",
+              mipmapFilter: "linear",
+              lodMinClamp: 0,
+              lodMaxClamp: 32,
+              maxAnisotropy: 1,
+            },
+          },
+        ],
+      },
+      registration: {
+        valid: true,
+        written: 4,
+        diagnostics: 0,
+      },
+    },
+    standardTexture: {
+      samplerMapping: {
+        source: null,
+        mapped: {
+          addressModeU: "repeat",
+          addressModeV: "repeat",
+          addressModeW: "repeat",
+          magFilter: "linear",
+          minFilter: "linear",
+          mipmapFilter: "linear",
+        },
+      },
+    },
+    resources: {
+      textureResourcesCreated: 1,
+      samplerResourcesCreated: 1,
+      materialBuffersCreated: 1,
+    },
+    draw: { packages: 1, drawCalls: 1 },
+  });
+  expect(status.diagnosticCodes ?? []).toEqual([]);
   expect(status.standardTexture?.samplerMapping).toEqual(
     status.gltf?.assetMapping.samplers?.[0],
   );
@@ -3387,6 +3611,120 @@ test("standard glTF alpha-mask backface fixture renders with no culling", async 
   webGpuValidation.expectNoWarnings();
 });
 
+test("standard glTF opaque double-sided fixture renders backfaces", async ({
+  page,
+}) => {
+  const webGpuValidation = attachWebGpuValidationConsoleGuard(page);
+
+  await page.goto(
+    "/examples/standard-gltf-texture.html?scenario=opaque-double-sided",
+  );
+
+  const status = await waitForExampleStatus<StandardGltfTextureStatus>(page);
+
+  await attachExampleStatus(
+    "standard-gltf-texture-opaque-double-sided-status",
+    status,
+  );
+  expect(
+    status,
+    "standard glTF opaque double-sided status should publish",
+  ).toBeDefined();
+
+  if (status === undefined) {
+    return;
+  }
+
+  skipIfUnsupportedWebGpu(status);
+  expectStatusJsonSafeForGpu(status);
+  expect(status, JSON.stringify(status, null, 2)).toMatchObject({
+    example: "standard-gltf-texture",
+    scenario: "opaque-double-sided",
+    materialModel: "gltf-standard-opaque-double-sided",
+    ok: true,
+    phase: "rendered",
+    gltf: {
+      assetMapping: {
+        valid: true,
+        textureCount: 0,
+        samplerCount: 0,
+        materialCount: 1,
+        diagnostics: 0,
+      },
+      registration: {
+        valid: true,
+        diagnostics: 0,
+      },
+    },
+    standardMaterial: {
+      renderState: {
+        source: {
+          doubleSided: true,
+        },
+        mapped: {
+          alphaMode: "opaque",
+          alphaCutoff: 0.5,
+          cullMode: "none",
+          depth: { test: true, write: true, compare: "less" },
+          blend: { preset: "none" },
+        },
+      },
+    },
+    backface: {
+      sample: { id: "backface", x: expect.any(Number), y: expect.any(Number) },
+      expectedColor: expect.any(Array),
+    },
+    extraction: { views: 1, meshDraws: 1, lights: 2, diagnostics: 0 },
+    draw: { packages: 1, drawCalls: 1 },
+  });
+  expect(status.standardTexture).toBeUndefined();
+  expect(status.pipelines?.keys).toContain("standard|opaque|none|less|none");
+  expect(status.pipelines?.meshLayoutKeys).toContain(
+    "POSITION,NORMAL,TEXCOORD_0",
+  );
+  expect(status.diagnosticCodes ?? []).toEqual([]);
+
+  if (status.backface === undefined) {
+    throw new Error("standard glTF opaque double-sided expectation is missing");
+  }
+
+  const screenshot = await page.locator("#aperture-canvas").screenshot();
+  const clear = rgbaColorToPixel({
+    r: status.clearColor?.r ?? 0,
+    g: status.clearColor?.g ?? 0,
+    b: status.clearColor?.b ?? 0,
+    a: status.clearColor?.a ?? 1,
+  });
+  const expected = rgbaColorToPixel(
+    rgbaTupleToColor(status.backface.expectedColor),
+  );
+  const pixel = readPngPixel(
+    screenshot,
+    status.backface.sample.x,
+    status.backface.sample.y,
+  );
+
+  expect(pixelDistance(pixel, expected)).toBeLessThan(
+    pixelDistance(pixel, clear),
+  );
+
+  if (status.readback?.ok) {
+    const readbackBackface = status.readback.samples.find(
+      (sample) => sample.id === "backface",
+    );
+
+    expect(readbackBackface).toBeDefined();
+
+    if (readbackBackface !== undefined) {
+      expect(pixelDistance(readbackBackface.pixel, expected)).toBeLessThan(
+        pixelDistance(readbackBackface.pixel, clear),
+      );
+    }
+  }
+
+  webGpuValidation.expectNoWarnings();
+});
+
 test("standard glTF alpha-mask texture fixture survives a narrow viewport", async ({
   page,
 }) => {
@@ -5388,6 +5726,54 @@ function rgbaTupleToColor(color: RgbaTuple): {
   readonly a: number;
 } {
   return { r: color[0], g: color[1], b: color[2], a: color[3] };
+}
+
+async function expectValidRepeatSamplerPixels(
+  page: Page,
+  status: StandardGltfTextureStatus,
+): Promise<void> {
+  const expectedSampler = status.standardTexture?.expectedSampler;
+
+  if (
+    expectedSampler === undefined ||
+    expectedSampler === null ||
+    expectedSampler.rejectedClampColor === undefined
+  ) {
+    throw new Error("standard glTF repeat sampler expectation is missing");
+  }
+
+  const screenshot = await page.locator("#aperture-canvas").screenshot();
+  const sample = status.standardTexture?.sample ?? { x: 0.5, y: 0.5 };
+  const texturedSample = readPngPixel(screenshot, sample.x, sample.y);
+  const expectedRepeat = rgbaColorToPixel(
+    rgbaTupleToColor(expectedSampler.expectedColor),
+  );
+  const rejectedClamp = rgbaColorToPixel(
+    rgbaTupleToColor(expectedSampler.rejectedClampColor),
+  );
+
+  expect(pixelDistance(texturedSample, expectedRepeat)).toBeLessThan(
+    pixelDistance(texturedSample, rejectedClamp),
+  );
+
+  if (status.readback?.ok) {
+    const readbackTextured = status.readback.samples.find(
+      (readbackSample) => readbackSample.id === "textured",
+    );
+
+    expect(readbackTextured).toBeDefined();
+
+    if (readbackTextured !== undefined) {
+      expect(
+        pixelDistance(readbackTextured.pixel, expectedRepeat),
+        `glTF repeat sampler readback sample should resolve the wrapped texel; status=${JSON.stringify(
+          status,
+          null,
+          2,
+        )}`,
+      ).toBeLessThan(pixelDistance(readbackTextured.pixel, rejectedClamp));
+    }
+  }
 }
 
 async function expectAlphaMaskTexturePixels(
