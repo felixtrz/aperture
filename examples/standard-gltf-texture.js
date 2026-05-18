@@ -106,6 +106,17 @@ const expectedGltfFailures = {
     renderDiagnostic: "render.standardMaterialTexture.missingTexCoord1",
     status: "missing-texcoord1",
   },
+  "base-color-format-color-space-mismatch": {
+    mappingDiagnostic: null,
+    renderDiagnostic: "render.standardMaterialTexture.invalidColorSpaceFormat",
+    status: "format-color-space-mismatch",
+  },
+  "unsupported-required-material-extension": {
+    mappingDiagnostic: "gltfMaterial.unsupportedRequiredExtension",
+    renderDiagnostic: "render.missingMaterialHandle",
+    status: "unsupported-required-material-extension",
+    registrationValid: false,
+  },
 };
 const scenario =
   new URLSearchParams(window.location.search).get("scenario") ?? "ready";
@@ -193,6 +204,7 @@ function createGltfTextureScene(aperture, app, targetCanvas, selectedScenario) {
     meshConstruction,
   });
   applyDelayedDependencyScenario(aperture, app, config);
+  applyFormatColorSpaceMismatchScenario(aperture, app, config);
   const mesh = aperture.createMeshHandle("gltf:mesh:0:primitive:0");
   const material = aperture.createMaterialHandle("gltf:material:0");
 
@@ -294,6 +306,10 @@ function createGltfScenarioConfig(selectedScenario) {
   const usesAlphaMaskTexture = selectedScenario === "alpha-mask-texture";
   const usesAlphaMaskBackface = selectedScenario === "alpha-mask-backface";
   const usesDelayedDependencies = selectedScenario === "delayed-dependencies";
+  const usesFormatColorSpaceMismatch =
+    selectedScenario === "base-color-format-color-space-mismatch";
+  const usesUnsupportedRequiredMaterialExtension =
+    selectedScenario === "unsupported-required-material-extension";
 
   return {
     usesBaseColorTransform,
@@ -315,8 +331,11 @@ function createGltfScenarioConfig(selectedScenario) {
     usesAlphaMaskTexture,
     usesAlphaMaskBackface,
     usesDelayedDependencies,
-    textureSlot:
-      usesMetallicRoughnessTexture || usesMetallicRoughnessTextureTransform
+    usesFormatColorSpaceMismatch,
+    usesUnsupportedRequiredMaterialExtension,
+    textureSlot: usesUnsupportedRequiredMaterialExtension
+      ? null
+      : usesMetallicRoughnessTexture || usesMetallicRoughnessTextureTransform
         ? "metallicRoughnessTexture"
         : usesNormalTexture
           ? "normalTexture"
@@ -355,17 +374,21 @@ function createGltfScenarioConfig(selectedScenario) {
                           ? "gltf-standard-alpha-mask-backface"
                           : usesDelayedDependencies
                             ? "gltf-standard-delayed-dependencies"
-                            : usesBaseColorTransformSampling
-                              ? "gltf-standard-base-color-transform-sampling"
-                              : usesBaseColorTransformRotationSampling
-                                ? "gltf-standard-base-color-transform-rotation-sampling"
-                                : usesBaseColorUv1
-                                  ? "gltf-standard-base-color-uv1"
-                                  : usesBaseColorUv1Missing
-                                    ? "gltf-standard-base-color-uv1-missing"
-                                    : usesBaseColorUv1Transform
-                                      ? "gltf-standard-base-color-uv1-transform"
-                                      : "gltf-standard-base-color-texture",
+                            : usesFormatColorSpaceMismatch
+                              ? "gltf-standard-base-color-format-color-space-mismatch"
+                              : usesUnsupportedRequiredMaterialExtension
+                                ? "gltf-standard-unsupported-required-material-extension"
+                                : usesBaseColorTransformSampling
+                                  ? "gltf-standard-base-color-transform-sampling"
+                                  : usesBaseColorTransformRotationSampling
+                                    ? "gltf-standard-base-color-transform-rotation-sampling"
+                                    : usesBaseColorUv1
+                                      ? "gltf-standard-base-color-uv1"
+                                      : usesBaseColorUv1Missing
+                                        ? "gltf-standard-base-color-uv1-missing"
+                                        : usesBaseColorUv1Transform
+                                          ? "gltf-standard-base-color-uv1-transform"
+                                          : "gltf-standard-base-color-texture",
     expectedFailure: expectedGltfFailures[selectedScenario] ?? null,
     expectedTextureTransform: usesBaseColorTransform
       ? unsupportedTextureTransform
@@ -496,17 +519,19 @@ function materialNameForConfig(config) {
                         ? "GLB Standard Alpha Mask Backface"
                         : config.usesDelayedDependencies
                           ? "GLB Standard Delayed Dependencies"
-                          : config.usesBaseColorTransformSampling
-                            ? "GLB Standard BaseColor Transform Sampling"
-                            : config.usesBaseColorTransformRotationSampling
-                              ? "GLB Standard BaseColor Transform Rotation Sampling"
-                              : config.usesBaseColorUv1
-                                ? "GLB Standard BaseColor UV1"
-                                : config.usesBaseColorUv1Missing
-                                  ? "GLB Standard BaseColor UV1 Missing"
-                                  : config.usesBaseColorUv1Transform
-                                    ? "GLB Standard BaseColor UV1 Transform"
-                                    : "GLB Standard BaseColor";
+                          : config.usesUnsupportedRequiredMaterialExtension
+                            ? "GLB Standard Unsupported Required Extension"
+                            : config.usesBaseColorTransformSampling
+                              ? "GLB Standard BaseColor Transform Sampling"
+                              : config.usesBaseColorTransformRotationSampling
+                                ? "GLB Standard BaseColor Transform Rotation Sampling"
+                                : config.usesBaseColorUv1
+                                  ? "GLB Standard BaseColor UV1"
+                                  : config.usesBaseColorUv1Missing
+                                    ? "GLB Standard BaseColor UV1 Missing"
+                                    : config.usesBaseColorUv1Transform
+                                      ? "GLB Standard BaseColor UV1 Transform"
+                                      : "GLB Standard BaseColor";
 }
 
 function readbackSamplesForConfig(config) {
@@ -527,7 +552,13 @@ function readbackSamplesForConfig(config) {
 function createGltfFixtureRoot(config) {
   let pbrMetallicRoughness;
 
-  if (
+  if (config.usesUnsupportedRequiredMaterialExtension) {
+    pbrMetallicRoughness = {
+      baseColorFactor: scalarColor,
+      metallicFactor: 0,
+      roughnessFactor: 0.8,
+    };
+  } else if (
     config.usesMetallicRoughnessTexture ||
     config.usesMetallicRoughnessTextureTransform
   ) {
@@ -591,6 +622,9 @@ function createGltfFixtureRoot(config) {
   const material = {
     name: materialNameForConfig(config),
     pbrMetallicRoughness,
+    ...(config.usesUnsupportedRequiredMaterialExtension
+      ? { extensions: { KHR_materials_clearcoat: {} } }
+      : {}),
     ...(config.usesAlphaMaskDoubleSided ||
     config.usesAlphaMaskTexture ||
     config.usesAlphaMaskBackface
@@ -656,6 +690,9 @@ function createGltfFixtureRoot(config) {
 
   return {
     asset: { version: "2.0" },
+    ...(config.usesUnsupportedRequiredMaterialExtension
+      ? { extensionsRequired: ["KHR_materials_clearcoat"] }
+      : {}),
     materials: [material],
     ...(config.textureSlot === null
       ? {}
@@ -740,6 +777,27 @@ function applyDelayedDependencyScenario(aperture, app, config) {
   );
 }
 
+function applyFormatColorSpaceMismatchScenario(aperture, app, config) {
+  if (!config.usesFormatColorSpaceMismatch) {
+    return;
+  }
+
+  const textureHandle = aperture.createTextureHandle(
+    "gltf:texture:0:baseColorTexture",
+  );
+  const entry = app.assets.get(textureHandle);
+
+  if (entry?.asset === null || entry?.asset === undefined) {
+    return;
+  }
+
+  app.assets.markReady(textureHandle, {
+    ...entry.asset,
+    format: "rgba8unorm",
+    colorSpace: "srgb",
+  });
+}
+
 function createGltfMeshConstructionReport(aperture, config) {
   const baseMesh = aperture.createPlaneMeshAsset({
     label: "GltfStandardBaseColorPlane",
@@ -783,10 +841,14 @@ function createStatus(aperture, app, scene, report) {
   );
 
   const expectedFailure = scene.expectedFailure;
+  const expectedRegistrationValid =
+    expectedFailure?.registrationValid === undefined
+      ? true
+      : expectedFailure.registrationValid;
   const ok =
     expectedFailure === null
       ? report.ok && scene.registration.valid
-      : !report.ok && scene.registration.valid;
+      : !report.ok && scene.registration.valid === expectedRegistrationValid;
 
   return {
     ...baseStatus,
@@ -824,6 +886,19 @@ function createStatus(aperture, app, scene, report) {
         diagnosticCodes: scene.assetMapping.diagnostics.map(
           (diagnostic) => diagnostic.code,
         ),
+        diagnosticDetails: scene.assetMapping.diagnostics.map((diagnostic) => ({
+          layer: diagnostic.layer,
+          code: diagnostic.code,
+          severity: diagnostic.severity,
+          message: diagnostic.message,
+          materialIndex: diagnostic.materialIndex,
+          textureIndex: diagnostic.textureIndex,
+          samplerIndex: diagnostic.samplerIndex,
+          slot: diagnostic.slot,
+          field: diagnostic.field,
+          extensionName: diagnostic.extensionName,
+          dependencyKind: diagnostic.dependencyKind,
+        })),
         samplers: scene.assetMapping.samplers.map((sampler) =>
           createSamplerMappingStatus(sampler),
         ),

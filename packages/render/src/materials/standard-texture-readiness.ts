@@ -13,6 +13,7 @@ import type {
   StandardMaterialAsset,
   TextureAsset,
   TextureColorSpace,
+  TextureFormat,
   TextureSemantic,
 } from "./types.js";
 
@@ -34,7 +35,8 @@ export type StandardMaterialTextureReadinessDiagnosticCode =
   | "standardMaterialTexture.unsupportedTexCoord"
   | "standardMaterialTexture.unsupportedTextureTransform"
   | "standardMaterialTexture.invalidSemantic"
-  | "standardMaterialTexture.invalidColorSpace";
+  | "standardMaterialTexture.invalidColorSpace"
+  | "standardMaterialTexture.invalidColorSpaceFormat";
 
 export interface StandardMaterialTextureReadinessDiagnostic {
   readonly code: StandardMaterialTextureReadinessDiagnosticCode;
@@ -50,6 +52,8 @@ export interface StandardMaterialTextureReadinessDiagnostic {
   readonly actualSemantic?: TextureSemantic;
   readonly expectedColorSpaces?: readonly TextureColorSpace[];
   readonly actualColorSpace?: TextureColorSpace;
+  readonly expectedFormatSrgb?: boolean;
+  readonly actualFormat?: TextureFormat;
   readonly texCoord?: number;
   readonly supportedTexCoords?: readonly number[];
   readonly textureTransform?: MaterialTextureTransform;
@@ -62,6 +66,7 @@ export interface StandardMaterialTextureReadinessSlot {
   readonly actualSemantic: TextureSemantic;
   readonly expectedColorSpaces: readonly TextureColorSpace[];
   readonly actualColorSpace: TextureColorSpace;
+  readonly actualFormat: TextureFormat;
   readonly texCoord: number;
   readonly ready: boolean;
 }
@@ -420,6 +425,7 @@ function inspectReadyTexture(input: {
   const colorSpaceReady = input.expectation.colorSpaces.includes(
     input.texture.colorSpace,
   );
+  const formatReady = textureFormatMatchesColorSpace(input.texture);
   const texCoordReady = isSupportedStandardTexCoord(input.texCoord);
 
   input.slots.push({
@@ -429,8 +435,9 @@ function inspectReadyTexture(input: {
     actualSemantic: input.texture.semantic,
     expectedColorSpaces: input.expectation.colorSpaces,
     actualColorSpace: input.texture.colorSpace,
+    actualFormat: input.texture.format,
     texCoord: input.texCoord,
-    ready: semanticReady && colorSpaceReady && texCoordReady,
+    ready: semanticReady && colorSpaceReady && formatReady && texCoordReady,
   });
 
   if (!semanticReady) {
@@ -462,6 +469,25 @@ function inspectReadyTexture(input: {
       message: `StandardMaterial ${input.expectation.field} texture '${input.textureKey}' should use color space '${input.expectation.colorSpaces.join(
         "' or '",
       )}', not '${input.texture.colorSpace}'.`,
+    });
+  }
+
+  if (!formatReady) {
+    const expectedFormatSrgb = input.texture.colorSpace === "srgb";
+
+    input.diagnostics.push({
+      code: "standardMaterialTexture.invalidColorSpaceFormat",
+      severity: "warning",
+      materialKey: input.materialKey,
+      textureKey: input.textureKey,
+      field: input.expectation.field,
+      expectedSemantic: input.expectation.semantic,
+      actualSemantic: input.texture.semantic,
+      expectedColorSpaces: input.expectation.colorSpaces,
+      actualColorSpace: input.texture.colorSpace,
+      expectedFormatSrgb,
+      actualFormat: input.texture.format,
+      message: `StandardMaterial ${input.expectation.field} texture '${input.textureKey}' declares color space '${input.texture.colorSpace}' but uses texture format '${input.texture.format}'.`,
     });
   }
 }
@@ -540,6 +566,16 @@ function isFiniteTextureTransform(
     Number.isFinite(scale[1]) &&
     Number.isFinite(rotation)
   );
+}
+
+function textureFormatMatchesColorSpace(texture: TextureAsset): boolean {
+  return (
+    isSrgbTextureFormat(texture.format) === (texture.colorSpace === "srgb")
+  );
+}
+
+function isSrgbTextureFormat(format: TextureFormat): boolean {
+  return format.endsWith("-srgb");
 }
 
 function cloneTextureTransform(

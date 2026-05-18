@@ -529,29 +529,29 @@
 
 <section class="progress-status" aria-label="Aperture render pipeline status">
   <div class="status-head">
-    <h2>Current Aperture Render Pipeline Status · Updated 2026-05-17 · task-1221 transformed UV1 support audit</h2>
+    <h2>Current Aperture Render Pipeline Status · Updated 2026-05-18 · task-1242 material route migration criteria audit</h2>
     <a href="index.html">Back to project tracker</a>
   </div>
   <div class="phase-status-grid">
     <div class="phase-status">
       <div class="top"><b>1 · extract</b><span class="pct">79%</span></div>
       <div class="bar"><span style="width:79%"></span></div>
-      <p>Working: ECS to snapshot packets, including StandardMaterial texture semantic/color-space diagnostics. Missing: richer visibility explanations, snapshot diffing, worker transport validation.</p>
+      <p>Working: ECS to snapshot packets, including StandardMaterial texture semantic/color-space/format diagnostics. Missing: richer visibility explanations, snapshot diffing, worker transport validation.</p>
     </div>
     <div class="phase-status">
       <div class="top"><b>2 · collect</b><span class="pct">75%</span></div>
       <div class="bar"><span style="width:75%"></span></div>
-      <p>Working: source readiness/version summaries, extracted built-in queue-to-resource-set collection, generic queued material frame-resource summary counts, duplicate-pipeline reuse coverage for the generic collector, GLB invalid texture/sampler dependency diagnostics, and delayed dependency browser diagnostics. Missing: one generic change-set scheduler, binary GLB loading integration, and unload integration.</p>
+      <p>Working: source readiness/version summaries, extracted built-in queue-to-resource-set collection, generic queued material frame-resource summary counts, duplicate-pipeline reuse coverage for the generic collector, GLB invalid texture/sampler dependency diagnostics, delayed dependency browser diagnostics, and unsupported required glTF material-extension browser diagnostics. Missing: one generic change-set scheduler, binary GLB loading integration, and unload integration.</p>
     </div>
     <div class="phase-status">
       <div class="top"><b>3 · prepare</b><span class="pct">84%</span></div>
       <div class="bar"><span style="width:84%"></span></div>
-      <p>Working: prepared mesh/material facades, compact render-world prepared resource summaries, prepare-and-bind summary consumers, prepared/app reuse alignment summaries, backend caches, lifetime alignment summaries, diagnostics example coverage, StandardMaterial texture/sampler fidelity diagnostics and summaries, controlled base-color, base-color UV1, base-color linear sampler, base-color repeat sampler, metallic-roughness, normal-map, occlusion, emissive, and alpha-mask texture browser verification, missing/loading/failed texture browser diagnostics, normal missing-tangent browser diagnostics, authored and GLB-derived transformed-UV1 sampling with readback, GLB-derived base-color offset/scale and rotation transform sampling with readback, GLB-derived metallic-roughness, normal, occlusion, and emissive texture-transform sampling on TEXCOORD_0, GLB-derived StandardMaterial base-color, base-color UV1, base-color missing-TEXCOORD_1 diagnostics, base-color transformed-UV1 diagnostics, normal, occlusion, emissive, alpha-mask texture, alpha-mask backface, and delayed dependency fixtures, GLB sampler mapping status, alpha-mask double-sided render-state browser diagnostics, textured alpha-mask shader and buffer flag contract coverage, GLB dependency diagnostics matrix coverage, opt-in app-facade readback samples, generic frame-resource bucket summaries for app diagnostics, and JSON-safe direct-light readiness status for StandardMaterial routes. Missing: binary GLB loading, real app-level generic adapter routing, and full PBR resources.</p>
+      <p>Working: prepared mesh/material facades, compact render-world prepared resource summaries, prepare-and-bind summary consumers, prepared/app reuse alignment summaries, backend caches, lifetime alignment summaries, diagnostics example coverage, StandardMaterial texture/sampler fidelity diagnostics and summaries, StandardMaterial texture format/color-space mismatch diagnostics and summary grouping, controlled base-color, base-color UV1, base-color linear sampler, base-color repeat sampler, metallic-roughness, normal-map, occlusion, emissive, and alpha-mask texture browser verification, missing/loading/failed texture browser diagnostics, format/color-space mismatch browser diagnostics, normal missing-tangent browser diagnostics, authored and GLB-derived transformed-UV1 sampling with readback, GLB-derived base-color offset/scale and rotation transform sampling with readback, GLB-derived metallic-roughness, normal, occlusion, and emissive texture-transform sampling on TEXCOORD_0, GLB-derived StandardMaterial base-color, base-color UV1, base-color missing-TEXCOORD_1 diagnostics, base-color transformed-UV1 diagnostics, normal, occlusion, emissive, alpha-mask texture, alpha-mask backface, and delayed dependency fixtures, GLB sampler mapping status, alpha-mask double-sided render-state browser diagnostics, textured alpha-mask shader and buffer flag contract coverage, GLB dependency diagnostics matrix coverage, opt-in app-facade readback samples, generic frame-resource bucket summaries for app diagnostics, JSON-safe direct-light readiness status for StandardMaterial routes, and JSON-safe environment-map readiness reporting. Missing: binary GLB loading, real app-level generic adapter routing, and full PBR resources.</p>
     </div>
     <div class="phase-status">
       <div class="top"><b>4 · queue</b><span class="pct">78%</span></div>
       <div class="bar"><span style="width:78%"></span></div>
-      <p>Working: built-in family queue routing, app route reporting, extracted built-in resource-set collector, extracted queued built-in frame-resource set preparation, failure diagnostics for frame-resource route shells, internal route shell wrapper, compact route shell and grouped route summary helpers, queued app diagnostics summaries surfaced in GLB browser status, a generic queued material frame-resource collector contract, generic frame-resource adapter append helper, generic queued material frame-resource summary helper with app diagnostics compatibility coverage, generic family-keyed frame-resource buckets with built-in compatibility arrays, app diagnostics routed through generic bucket summaries, generic failed-route diagnostics coverage, generic dependency-failure diagnostics coverage, generic app route summary migration plan, test-only non-built-in adapter coverage, generic app route item helper, built-in compatibility assertions, and reusable-scratch regression coverage. Missing: real app-level non-built-in material adapter route migration, instancing, batching, multi-material primitive rules.</p>
+      <p>Working: built-in family queue routing, app route reporting, extracted built-in resource-set collector, extracted queued built-in frame-resource set preparation, failure diagnostics for frame-resource route shells, internal route shell wrapper, compact route shell and grouped route summary helpers, queued app diagnostics summaries surfaced in GLB browser status, a generic queued material frame-resource collector contract, generic frame-resource adapter append helper, generic queued material frame-resource summary helper with app diagnostics compatibility coverage, generic family-keyed frame-resource buckets with built-in compatibility arrays, app diagnostics routed through generic bucket summaries, generic failed-route diagnostics coverage, generic dependency-failure diagnostics coverage, generic app route summary migration plan, test-only non-built-in adapter coverage, generic app route item helper, built-in compatibility assertions, reusable route scratch reset regression coverage, selected route-summary stale-state plan, and reusable route report shell stale-state regression coverage. Missing: route summary group clean-after-failed regression, real app-level non-built-in material adapter route migration, instancing, batching, multi-material primitive rules.</p>
     </div>
     <div class="phase-status">
       <div class="top"><b>5 · sort</b><span class="pct">58%</span></div>
@@ -561,7 +561,7 @@
     <div class="phase-status">
       <div class="top"><b>6 · submit</b><span class="pct">55%</span></div>
       <div class="bar"><span style="width:55%"></span></div>
-      <p>Working: current proof paths submit through WebGPU, and StandardMaterial app status now reports direct-light buffer, bind-group, and shader metadata readiness rather than adding a new pass. Missing: render graph, multi-pass, IBL, shadows, render targets, GPU timings.</p>
+      <p>Working: current proof paths submit through WebGPU, and diagnostics now report direct-light buffer, bind-group, shader metadata, and environment-map readiness rather than adding a new pass. Missing: render graph, multi-pass, IBL, shadows, render targets, GPU timings.</p>
     </div>
   </div>
 </section>
@@ -621,7 +621,7 @@
 
       <div class="diag">
         <span class="label">DIAGNOSTICS</span><span class="c">all prefixed </span><code>render.*</code><br>
-        cameraMissingTransform · lightMissingTransform · missingWorldTransform · disabled · invisible · zeroLayerMask · layerMismatch · missingMeshHandle · mesh.{status} · missingMaterialHandle · material.{status} · texture.{status} · sampler.{status} · standardMaterialTexture.{invalidSemantic,invalidColorSpace,unsupportedTexCoord,unsupportedTextureTransform,missingTexCoord1} · shadowUnsupportedLightKind.{kind}
+        cameraMissingTransform · lightMissingTransform · missingWorldTransform · disabled · invisible · zeroLayerMask · layerMismatch · missingMeshHandle · mesh.{status} · missingMaterialHandle · material.{status} · texture.{status} · sampler.{status} · standardMaterialTexture.{invalidSemantic,invalidColorSpace,invalidColorSpaceFormat,unsupportedTexCoord,unsupportedTextureTransform,missingTexCoord1} · shadowUnsupportedLightKind.{kind}
       </div>
 
       <div class="downstream">

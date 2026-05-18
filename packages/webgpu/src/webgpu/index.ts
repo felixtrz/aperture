@@ -19,6 +19,7 @@ export * from "./current-texture-view.js";
 export * from "./debug-normal-pipeline-descriptor.js";
 export * from "./debug-normal-shader.js";
 export * from "./direct-light-readiness.js";
+export * from "./environment-map-readiness.js";
 export * from "./draw-command.js";
 export * from "./environment-resource-planning.js";
 export * from "./frame-boundary.js";

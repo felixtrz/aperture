@@ -165,6 +165,16 @@ failures as resource-summary warnings without changing resource counts. Shader
 lighting consumption, shadows, skyboxes, and IBL remain outside the current unlit
 frame path.
 
+`createEnvironmentMapReadinessReport` is the focused JSON-safe readiness helper
+for extracted environment packets. It reports environment packet counts,
+null-handle counts, required environment-map resource keys, optional
+renderer-owned resource readiness, and stable diagnostics for missing renderer
+environment resources. Its JSON helper omits raw `EnvironmentMapHandle` objects,
+WebGPU textures, texture views, samplers, bind groups, backend cache maps, and
+source payloads. This report is diagnostics/planning only; it does not upload
+environment maps, render skyboxes, activate IBL shader sampling, or add shadow
+passes.
+
 When an environment light references a missing, loading, or failed
 environment-map asset, extraction emits `render.environment.*` diagnostics with
 the stable asset key and omits only that `EnvironmentPacket`. Unrelated mesh

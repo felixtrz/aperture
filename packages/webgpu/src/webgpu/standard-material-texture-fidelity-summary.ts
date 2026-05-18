@@ -91,6 +91,7 @@ export function createStandardMaterialTextureFidelitySummary(
           samplerIssueCount += 1;
           break;
         case "standardMaterialTexture.invalidColorSpace":
+        case "standardMaterialTexture.invalidColorSpaceFormat":
           colorSpaceIssueCount += 1;
           break;
         case "standardMaterialTexture.invalidSemantic":

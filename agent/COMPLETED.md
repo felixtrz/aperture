@@ -11736,3 +11736,458 @@ Summary:
 Validation:
 
 - Formatting/check validation is covered in the current run handoff.
+
+## task-1222 — Next StandardMaterial sampler/color-space slice plan
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/NEXT_STANDARD_MATERIAL_COLOR_SPACE_FORMAT_SLICE_PLAN_2026_05_18.md`.
+- Selected StandardMaterial texture format/color-space readiness diagnostics as
+  the next narrow source-side fidelity slice.
+- Explicitly deferred WebGPU upload behavior, new app routes, IBL, shadows,
+  binary GLB loading, and new material families.
+- Updated the backlog to make `task-1225` concrete.
+
+Validation:
+
+- Formatting/check validation is covered in the current run handoff.
+
+## task-1223 — Prepared-resource lifetime pressure after UV1 audit
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/PREPARED_RESOURCE_LIFETIME_PRESSURE_AFTER_UV1_AUDIT_2026_05_18.md`.
+- Confirmed transformed UV1 did not add new prepared resource types, cache-key
+  surfaces, bind group layouts, app routes, or diagnostics fields.
+- Confirmed UV set and texture transform values remain source material uniform
+  data and invalidate prepared StandardMaterial resources through existing
+  source material versioning.
+
+Validation:
+
+- Formatting/check validation is covered in the current run handoff.
+
+## task-1224 — Lighting-boundary readiness contract plan
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/NEXT_LIGHTING_ENVIRONMENT_READINESS_CONTRACT_PLAN_2026_05_18.md`.
+- Selected an environment-map readiness report as the next lighting-boundary
+  contract after direct-light readiness diagnostics.
+- Defined `task-1227` for a JSON-safe report derived from environment packets
+  and environment resource planning.
+- Kept IBL shader sampling, skyboxes, shadow maps, environment texture upload,
+  app route changes, and GLB viewer behavior deferred.
+
+Validation:
+
+- Formatting/check validation is covered in the current run handoff.
+
+## task-1225 — StandardMaterial texture format/color-space diagnostics
+
+Completed: 2026-05-18
+
+Summary:
+
+- Extended `createStandardMaterialTextureReadinessReport()` to warn when a
+  ready texture slot's declared `TextureAsset.colorSpace` disagrees with
+  whether `TextureAsset.format` is sRGB encoded.
+- Added `actualFormat` to readiness slots and `actualFormat` plus
+  `expectedFormatSrgb` to the new
+  `standardMaterialTexture.invalidColorSpaceFormat` diagnostic.
+- Added targeted tests for sRGB textures using non-sRGB formats and data
+  textures using sRGB formats.
+- Preserved existing semantic, color-space, UV, transform, texture dependency,
+  and sampler dependency behavior.
+
+Validation:
+
+- `pnpm exec vitest run test/materials/standard-texture-readiness.test.ts`
+
+## task-1226 — StandardMaterial texture format/color-space diagnostics audit
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/STANDARD_MATERIAL_COLOR_SPACE_FORMAT_DIAGNOSTICS_AUDIT_2026_05_18.md`.
+- Confirmed the implementation stayed source-side and renderer-independent:
+  no WebGPU texture creation, sampler changes, source asset mutation, app route,
+  IBL, shadow, or prepared-cache-key change.
+- Updated the public tracker and render-pipeline comparison to reflect texture
+  format/color-space diagnostics and the new environment-map readiness next
+  task.
+
+Validation:
+
+- Formatting/check validation is covered in the current run handoff.
+
+## task-1227 — Environment-map readiness report
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added `createEnvironmentMapReadinessReport()` and JSON helpers in
+  `packages/webgpu/src/webgpu/environment-map-readiness.ts`.
+- The report derives environment counts, null-handle counts, stable
+  environment-map resource requirements, optional renderer-owned resource
+  readiness, and missing-resource diagnostics from extracted environment
+  packets.
+- Exported the helper from `@aperture-engine/webgpu` and documented the
+  diagnostics/planning-only boundary in `docs/RENDER_FRAME_READINESS.md`.
+- Added focused tests for empty snapshots, null handles, repeated environment
+  handles, JSON-safe output, and missing optional renderer resource state.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/environment-map-readiness.test.ts test/webgpu/environment-resource-planning.test.ts`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+
+## task-1228 — Environment-map readiness report audit
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/ENVIRONMENT_MAP_READINESS_REPORT_AUDIT_2026_05_18.md`.
+- Confirmed the readiness helper is derived from extracted environment packets
+  and optional renderer resource keys, not ECS state or app-owned scene state.
+- Confirmed JSON helpers omit raw environment handles, WebGPU objects, backend
+  cache maps, source payloads, queues, encoders, and devices.
+- Confirmed IBL shader sampling, skyboxes, environment texture upload, shadows,
+  binary GLB loading, and app route changes remain deferred.
+
+Validation:
+
+- Formatting/check validation is covered in the current run handoff.
+
+## task-1229 — Texture fidelity summary coverage for format diagnostics
+
+Completed: 2026-05-18
+
+Summary:
+
+- Updated `createStandardMaterialTextureFidelitySummary()` so
+  `standardMaterialTexture.invalidColorSpaceFormat` contributes to
+  `colorSpaceIssueCount`.
+- Extended the focused summary test to prove the new diagnostic appears in
+  `byIssue` and remains grouped without exposing handles or source assets.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/standard-material-texture-fidelity-summary.test.ts`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+
+## task-1230 — Texture fidelity summary format diagnostic audit
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/TEXTURE_FIDELITY_SUMMARY_FORMAT_DIAGNOSTIC_AUDIT_2026_05_18.md`.
+- Confirmed the summary remains opt-in and compact, emitting only counts by
+  field and diagnostic code.
+- Confirmed no app-frame default report field, WebGPU upload behavior, app
+  route, material family, IBL path, skybox path, or shadow path was added.
+
+Validation:
+
+- Formatting/check validation is covered in the current run handoff.
+
+## task-1231 — Next material route or PBR fidelity slice plan
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/NEXT_MATERIAL_ROUTE_OR_PBR_FIDELITY_SLICE_PLAN_2026_05_18.md`.
+- Selected a browser/status regression for
+  `standardMaterialTexture.invalidColorSpaceFormat` as the next narrow vertical
+  slice.
+- Defined `task-1232` and follow-up route-cleanup planning tasks while keeping
+  WebGPU upload behavior, app route structure changes, IBL, shadows, binary GLB
+  loading, and broad material-family rewrites deferred.
+
+Validation:
+
+- Formatting/check validation is covered in the current run handoff.
+
+## task-1232 — StandardMaterial format/color-space browser diagnostic fixture
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added a glTF-shaped `base-color-format-color-space-mismatch` browser fixture
+  that mutates fixture texture metadata to pair `colorSpace: "srgb"` with a
+  non-sRGB `rgba8unorm` texture format.
+- Verified app status exposes
+  `standardMaterialTexture.invalidColorSpaceFormat` with material field,
+  texture role, color-space, and format context before submitting a misleading
+  successful draw.
+- Kept the scenario inside existing source asset metadata and JSON-safe status
+  reporting without app route, upload, IBL, shadow, binary GLB, or
+  material-family changes.
+
+Validation:
+
+- `node --check examples/standard-gltf-texture.js`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "format/color-space mismatches"`
+
+## task-1233 — StandardMaterial format/color-space browser fixture audit
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/STANDARD_MATERIAL_FORMAT_COLOR_SPACE_BROWSER_FIXTURE_AUDIT_2026_05_18.md`.
+- Confirmed the fixture uses app status and source asset metadata, not
+  renderer-owned ECS/game state or hidden scene graph behavior.
+- Confirmed WebGPU upload behavior, app route structure, IBL, shadows, binary
+  GLB loading, and material-family routing stayed unchanged.
+
+Validation:
+
+- Formatting/check validation is covered in the current run handoff.
+
+## task-1234 — Next generic material route cleanup plan
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/NEXT_GENERIC_MATERIAL_ROUTE_CLEANUP_PLAN_2026_05_18.md`.
+- Selected a reusable route scratch reset regression for the built-in app
+  resource collector.
+- Deferred shader feature work, IBL, shadows, binary GLB loading, GLB viewer
+  behavior, and broad material-family rewrites.
+
+Validation:
+
+- Formatting/check validation is covered in the current run handoff.
+
+## task-1235 — Reusable route scratch reset regression
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added a focused regression in
+  `test/webgpu/queued-built-in-app-resource-set.test.ts` that reuses one
+  `QueuedBuiltInAppRouteCollectorScratch` and one `MaterialQueueScratch` across
+  unsupported and valid collections.
+- Asserted the valid StandardMaterial collection has one routed item, no
+  diagnostics, no stale unsupported-family text, no stale route-report
+  diagnostic, and no raw GPU-handle serialization.
+- Preserved the existing generic route item shape without adding new material
+  families or app route behavior.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/queued-built-in-app-resource-set.test.ts`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+
+## task-1236 — Generic route cleanup test audit
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/REUSABLE_ROUTE_SCRATCH_RESET_REGRESSION_AUDIT_2026_05_18.md`.
+- Confirmed the regression remains generic route hygiene rather than
+  StandardMaterial-only product behavior.
+- Confirmed source assets remain renderer-independent and WebGPU resources stay
+  backend-owned.
+
+Validation:
+
+- Formatting/check validation is covered in the current run handoff.
+
+## task-1237 — Next route or fidelity slice after scratch reset plan
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/NEXT_ROUTE_OR_FIDELITY_AFTER_SCRATCH_RESET_PLAN_2026_05_18.md`.
+- Compared a generic route summary stale-state regression against another
+  StandardMaterial/glTF fidelity diagnostic.
+- Selected the route summary stale-state regression as the next slice because it
+  strengthens generic material route diagnostics before more
+  StandardMaterial-specific fixture expansion.
+
+Validation:
+
+- Documentation-only planning slice; covered by touched-file Prettier, progress
+  checks, and `git diff --check` in the current run.
+
+## task-1238 — Generic route summary stale-state regression
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added a reusable route report shell regression in
+  `test/webgpu/material-queue-route-report.test.ts`.
+- Reused one material queue route report shell across a failed route report and
+  a clean routed report.
+- Asserted the clean JSON report has no stale unsupported-family, skipped,
+  blend-preset, diagnostic-code, or route-report state.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/material-queue-route-report.test.ts test/webgpu/queued-material-route-summary-group.test.ts`
+
+## task-1239 — Generic route summary stale-state regression audit
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/GENERIC_ROUTE_SUMMARY_STALE_STATE_REGRESSION_AUDIT_2026_05_18.md`.
+- Confirmed the route report shell regression is generic diagnostics hygiene,
+  not StandardMaterial-only product behavior.
+- Confirmed the change is test-only and does not move WebGPU resources into ECS
+  or source assets.
+
+Validation:
+
+- Documentation audit backed by the `task-1238` targeted test, TypeScript,
+  build, lint, and full test validation.
+
+## task-1240 — Next StandardMaterial glTF fidelity diagnostic plan
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/NEXT_STANDARD_MATERIAL_GLTF_FIDELITY_DIAGNOSTIC_PLAN_2026_05_18.md`.
+- Compared unsupported required material-extension browser diagnostics,
+  additional sampler/texture diagnostics, and route summary group cleanup.
+- Selected unsupported required glTF material-extension browser diagnostics as
+  the next fidelity slice.
+
+Validation:
+
+- Documentation-only planning slice; covered by touched-file Prettier, progress
+  checks, and `git diff --check` in the current run.
+
+## task-1244 — Selected StandardMaterial glTF fidelity plan audit
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/UNSUPPORTED_REQUIRED_GLTF_EXTENSION_DIAGNOSTIC_PLAN_AUDIT_2026_05_18.md`.
+- Confirmed the unsupported required material-extension browser/status plan
+  stays source-side and fixture-side.
+- Confirmed the selected slice does not require WebGPU upload behavior, app
+  route structure changes, IBL, shadows, binary GLB loading, GLB viewer
+  behavior, or material-family routing.
+
+Validation:
+
+- Documentation-only audit slice; covered by touched-file Prettier, progress
+  checks, and `git diff --check` in the current run.
+
+## task-1245 — Unsupported required glTF material extension browser diagnostic
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added an `unsupported-required-material-extension` glTF-shaped browser
+  scenario using `KHR_materials_clearcoat`.
+- Preserved `extensionName` on JSON-safe asset-mapping diagnostics so browser
+  status can identify the unsupported required material extension precisely.
+- Added Playwright coverage proving invalid material mapping does not register
+  or draw a misleading StandardMaterial and surfaces
+  `gltfMaterial.unsupportedRequiredExtension` plus
+  `render.missingMaterialHandle`.
+
+Validation:
+
+- `node --check examples/standard-gltf-texture.js`
+- `pnpm exec vitest run test/materials/gltf-material.test.ts test/assets/gltf-asset-mapping.test.ts`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "unsupported required material extensions"`
+
+## task-1246 — Unsupported required glTF extension browser diagnostic audit
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/UNSUPPORTED_REQUIRED_GLTF_EXTENSION_BROWSER_DIAGNOSTIC_AUDIT_2026_05_18.md`.
+- Confirmed the fixture stays inside source glTF material mapping and JSON-safe
+  app/example status.
+- Confirmed no WebGPU upload behavior, app route structure, IBL, shadows,
+  binary GLB loading, GLB viewer behavior, material-family routing, or shader
+  behavior changed.
+
+Validation:
+
+- Documentation audit backed by the `task-1245` targeted unit, TypeScript,
+  Playwright, build, lint, and full test validation.
+
+## task-1241 — Tracker and backlog alignment after diagnostics route cleanup
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/TRACKER_BACKLOG_ALIGNMENT_AFTER_DIAGNOSTICS_ROUTE_CLEANUP_AUDIT_2026_05_18.md`.
+- Confirmed the public tracker and render-pipeline comparison reflect the
+  completed diagnostics, environment readiness, route scratch/report cleanup,
+  and unsupported required glTF extension browser coverage.
+- Confirmed the ready backlog has five concrete follow-up tasks and no
+  immediate task asks for IBL, shadows, binary GLB loading, GLB viewer behavior,
+  WebGL fallback, or a mutable scene graph.
+
+Validation:
+
+- `pnpm run check:progress`
+- `git diff --check`
+
+## task-1242 — Material-family route migration criteria audit
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/MATERIAL_FAMILY_ROUTE_MIGRATION_CRITERIA_AUDIT_2026_05_18.md`.
+- Identified route summary group clean-after-failed coverage as the smallest
+  next observable migration criterion before app-level non-built-in material
+  adapter routing.
+- Confirmed no source asset, ECS component, render snapshot, or WebGPU resource
+  ownership boundary needs to change for that criterion.
+
+Validation:
+
+- Documentation-only audit; covered by touched-file Prettier, progress checks,
+  and `git diff --check` in the current run.

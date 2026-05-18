@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import { createWebGpuAppMaterialQueueRouteReport } from "@aperture-engine/webgpu";
+import {
+  createWebGpuAppMaterialQueueRouteReport,
+  createWebGpuAppMaterialQueueRouteReportShell,
+  webGpuAppMaterialQueueRouteReportShellToJsonValue,
+  writeWebGpuAppMaterialQueueRouteReportShell,
+} from "@aperture-engine/webgpu";
 
 describe("WebGPU app material queue route report", () => {
   it("reports all-routed queue items by material family and render phase", () => {
@@ -99,6 +104,93 @@ describe("WebGPU app material queue route report", () => {
         blendPreset: "additive",
       },
     ]);
+  });
+
+  it("resets reusable route report shells between failed and clean summaries", () => {
+    const shell = createWebGpuAppMaterialQueueRouteReportShell();
+    const failedItems = [
+      queueItem(30, 0, "debug-normal", "opaque"),
+      queueItem(31, 1, "standard", "transparent"),
+    ];
+
+    writeWebGpuAppMaterialQueueRouteReportShell(
+      {
+        queueItems: failedItems,
+        routedItems: [],
+        diagnostics: [
+          {
+            code: "webGpuApp.unsupportedMaterialQueueFamily",
+            message: "DebugNormal is not routable by the app facade.",
+            severity: "error",
+            renderId: 30,
+            drawIndex: 0,
+            materialFamily: "debug-normal",
+          },
+          {
+            code: "webGpuApp.unsupportedMaterialQueueBlendPreset",
+            message: "Additive transparent StandardMaterial is unsupported.",
+            severity: "warning",
+            renderId: 31,
+            drawIndex: 1,
+            materialFamily: "standard",
+            renderPhase: "transparent",
+            blendPreset: "additive",
+          },
+        ],
+      },
+      shell,
+    );
+
+    expect(
+      webGpuAppMaterialQueueRouteReportShellToJsonValue(shell),
+    ).toMatchObject({
+      valid: false,
+      queueItemCount: 2,
+      routedItemCount: 0,
+      skippedItemCount: 2,
+      diagnosticSummary: {
+        total: 2,
+        bySeverity: { info: 0, warning: 1, error: 1 },
+        byCode: {
+          "webGpuApp.unsupportedMaterialQueueBlendPreset": 1,
+          "webGpuApp.unsupportedMaterialQueueFamily": 1,
+        },
+      },
+    });
+
+    const cleanItem = queueItem(32, 0, "standard", "opaque");
+
+    writeWebGpuAppMaterialQueueRouteReportShell(
+      {
+        queueItems: [cleanItem],
+        routedItems: [cleanItem],
+      },
+      shell,
+    );
+
+    const cleanJson = webGpuAppMaterialQueueRouteReportShellToJsonValue(shell);
+
+    expect(cleanJson).toEqual({
+      valid: true,
+      queueItemCount: 1,
+      routedItemCount: 1,
+      skippedItemCount: 0,
+      byFamily: [
+        { key: "standard", queuedCount: 1, routedCount: 1, skippedCount: 0 },
+      ],
+      byPhase: [
+        { key: "opaque", queuedCount: 1, routedCount: 1, skippedCount: 0 },
+      ],
+      diagnosticSummary: {
+        total: 0,
+        bySeverity: { info: 0, warning: 0, error: 0 },
+        byCode: {},
+      },
+      diagnostics: [],
+    });
+    expect(JSON.stringify(cleanJson)).not.toContain("debug-normal");
+    expect(JSON.stringify(cleanJson)).not.toContain("unsupportedMaterialQueue");
+    expect(JSON.stringify(cleanJson)).not.toContain("additive");
   });
 });
 

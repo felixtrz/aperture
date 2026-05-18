@@ -393,20 +393,19 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-17 23:50 PDT</dd>
+            <dd>2026-05-18 00:53 PDT</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
-              Generic route compatibility work landed, and StandardMaterial now
-              renders GLB-shaped texture transforms on TEXCOORD_0 for
-              base-color, metallic-roughness, normal, occlusion, and emissive;
-              finite transformed TEXCOORD_1 base-color sampling now renders;
-              direct-light readiness diagnostics are implemented and audited;
-              the route/prepared-resource cleanup regression is in place
+              StandardMaterial format/color-space mismatches now have source,
+              summary, and browser/status coverage; environment-map readiness is
+              reportable; reusable route scratch reset behavior is pinned; and
+              unsupported required glTF material-extension browser diagnostics
+              are implemented and audited; tracker/backlog alignment is checked
             </dd>
             <dt>Next focus</dt>
-            <dd>Plan the next sampler/color-space or route slice</dd>
+            <dd>Add route summary group clean-after-failed coverage</dd>
           </dl>
         </aside>
       </header>
@@ -480,8 +479,9 @@
               <code>TEXCOORD_0</code>, normal texture transforms on
               <code>TEXCOORD_0</code>, occlusion texture transforms on
               <code>TEXCOORD_0</code>, emissive texture transforms on
-              <code>TEXCOORD_0</code>, and missing-UV1 diagnostics are covered,
-              while transformed UV1 remains deferred.
+              <code>TEXCOORD_0</code>, transformed UV1 readiness/rendering,
+              missing-UV1 diagnostics, and texture format/color-space mismatch
+              diagnostics are covered.
             </p>
           </article>
           <article class="card metric">
@@ -497,17 +497,17 @@
               fidelity warnings and summaries, lifetime alignment summaries,
               route shell summary policy, prepared/app reuse alignment, grouped
               route health, tracker freshness validation, extraction-level
-              StandardMaterial texture semantic/color-space details, controlled
-              StandardMaterial texture browser status, loading/failed browser
-              texture diagnostics, opt-in app-facade readback samples,
+              StandardMaterial texture semantic/color-space/format details,
+              controlled StandardMaterial texture browser status, loading/failed
+              browser texture diagnostics, opt-in app-facade readback samples,
               example-level texture fidelity summary usage, GLB-derived source
               registration status, GLB sampler mapping status, and GLB texture
               transform/render-state diagnostics in browser, and queued material
               diagnostics summaries in app render JSON. App diagnostics now use
               generic frame-resource bucket summaries for family resource counts
               without exposing raw bucket maps, and StandardMaterial routes
-              surface direct-light buffer, bind-group, and shader metadata
-              readiness without raw GPU handles.
+              surface direct-light buffer, bind-group, shader metadata, and
+              environment-map readiness without raw GPU handles.
             </p>
           </article>
         </div>
@@ -1495,8 +1495,12 @@
             <h3>Recommended next tasks</h3>
             <ul>
               <li>
-                <span class="badge amber">next</span> Plan the next
-                StandardMaterial sampler/color-space or route slice.
+                <span class="badge amber">next</span> Add route summary group
+                clean-after-failed coverage.
+              </li>
+              <li>
+                Keep route summary group cleanup available if the fidelity plan
+                finds no narrow source-side diagnostic.
               </li>
               <li>
                 Keep IBL and shadow work deferred until material texture
@@ -1517,6 +1521,148 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-1242</div>
+            <div>
+              <strong>Material route migration criteria audited.</strong>
+              <span
+                >Selected route summary group clean-after-failed coverage as the
+                smallest next route hygiene slice.</span
+              >
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="task-id">task-1241</div>
+            <div>
+              <strong>Tracker and backlog alignment audited.</strong>
+              <span
+                >Confirmed the public tracker and five-task ready queue reflect
+                the diagnostics and route cleanup work.</span
+              >
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="task-id">task-1246</div>
+            <div>
+              <strong>Unsupported required extension fixture audited.</strong>
+              <span
+                >Confirmed the fixture stays in source glTF mapping and
+                JSON-safe app status without renderer-route or shader
+                changes.</span
+              >
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="task-id">task-1245</div>
+            <div>
+              <strong
+                >Unsupported required glTF extension fixture added.</strong
+              >
+              <span
+                >Browser status now preserves extension-name context and proves
+                invalid required material extensions skip registration and
+                draws.</span
+              >
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="task-id">task-1244</div>
+            <div>
+              <strong>glTF extension diagnostic plan audited.</strong>
+              <span
+                >Confirmed the selected unsupported required extension fixture
+                can stay source-side and fixture-side before
+                implementation.</span
+              >
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="task-id">task-1240</div>
+            <div>
+              <strong>Next glTF fidelity diagnostic selected.</strong>
+              <span
+                >Planned unsupported required material-extension browser/status
+                coverage as the next StandardMaterial glTF honesty slice.</span
+              >
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="task-id">task-1239</div>
+            <div>
+              <strong>Route report stale-state audit completed.</strong>
+              <span
+                >Confirmed the reusable shell regression is generic diagnostics
+                hygiene and recommended returning to StandardMaterial/glTF
+                fidelity planning next.</span
+              >
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="task-id">task-1238</div>
+            <div>
+              <strong>Reusable route report shell coverage added.</strong>
+              <span
+                >Pinned clean-after-failed report behavior so stale
+                unsupported-family, skipped, blend, and diagnostic-code state
+                does not leak through JSON status.</span
+              >
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="task-id">task-1237</div>
+            <div>
+              <strong>Next route cleanup slice selected.</strong>
+              <span
+                >Compared route cleanup against another StandardMaterial/glTF
+                fidelity diagnostic and selected generic route summary
+                stale-state coverage next.</span
+              >
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="task-id">task-1232-1236</div>
+            <div>
+              <strong
+                >Browser diagnostics and route scratch coverage
+                completed.</strong
+              >
+              <span
+                >Added the StandardMaterial format/color-space browser fixture,
+                audited it, planned the generic route cleanup, and pinned
+                reusable route scratch reset behavior.</span
+              >
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="task-id">task-1227-1231</div>
+            <div>
+              <strong
+                >Environment readiness and format-summary coverage
+                completed.</strong
+              >
+              <span
+                >Added JSON-safe environment-map readiness reporting, audited
+                the lighting boundary, grouped the new format diagnostic in
+                texture fidelity summaries, and selected browser/status coverage
+                next.</span
+              >
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="task-id">task-1222-1226</div>
+            <div>
+              <strong
+                >StandardMaterial color-space format diagnostics
+                completed.</strong
+              >
+              <span
+                >Selected and implemented source-side texture format/color-space
+                readiness warnings, audited UV1 prepared-resource pressure, and
+                planned environment-map readiness as the next lighting
+                contract.</span
+              >
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-1220-1221</div>
             <div>

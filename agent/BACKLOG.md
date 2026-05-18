@@ -59,11 +59,13 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start with `task-1222`. The latest run implemented direct-light readiness
-diagnostics, completed finite `KHR_texture_transform` support on `TEXCOORD_0`
-for the currently rendered StandardMaterial texture slots, added a transformed
-texture app resource reuse regression, implemented transformed `TEXCOORD_1`
-support, and audited the UV1 boundary.
+Start with `task-1243`. The latest run completed StandardMaterial texture
+format/color-space diagnostics through unit, summary, and browser/status
+coverage; added environment-map readiness reporting; and pinned reusable route
+scratch reset behavior plus route report shell stale-state coverage for the
+generic built-in app resource collector. The unsupported required glTF
+material-extension browser diagnostic fixture is implemented and audited, and
+the tracker/backlog plus material route migration criteria audits are complete.
 
 ## Near-Term Proof Point Track
 
@@ -80,11 +82,11 @@ Target proof point:
 
 Remaining automation priority order:
 
-1. `task-1222` — plan next StandardMaterial sampler/color-space or route slice.
-2. `task-1223` — audit prepared-resource lifetime pressure after UV1.
-3. `task-1224` — plan the next lighting-boundary readiness contract.
-4. `task-1225` — implement selected sampler/color-space or route slice.
-5. `task-1226` — audit selected sampler/color-space or route slice.
+1. `task-1243` — add route summary group clean-after-failed regression.
+2. `task-1247` — plan next post-extension fidelity or route slice.
+3. `task-1248` — audit next post-extension slice plan.
+4. `task-1249` — refill after material route criteria audit.
+5. `task-1250` — audit route summary group clean-after-failed regression.
 
 Defer allocation-only cleanup and metadata-only shader-contract tasks unless
 they are a direct blocker for this track.
@@ -150,88 +152,98 @@ viewer/material mapping should not outrun the material and queue architecture.
 
 ### Proof Point Critical Path
 
-### task-1222 — Plan next StandardMaterial sampler/color-space or route slice
+### task-1243 — Add route summary group clean-after-failed regression
+
+Category: `webgpu-render`
+Package/write-scope: `test/webgpu/queued-material-route-summary-group.test.ts`
+only unless a tiny implementation fix is required.
+Reference anchor:
+`docs/research/MATERIAL_FAMILY_ROUTE_MIGRATION_CRITERIA_AUDIT_2026_05_18.md`,
+`packages/webgpu/src/webgpu/queued-material-route-summary-group.ts`,
+`packages/webgpu/src/webgpu/queued-material-frame-resource-route.ts`, and
+`docs/research/GENERIC_ROUTE_SUMMARY_STALE_STATE_REGRESSION_AUDIT_2026_05_18.md`.
+
+Acceptance criteria:
+
+- Build a failed prepare/frame-resource route summary group followed by a clean
+  group in the same test.
+- Assert the clean group has empty diagnostic-code buckets, no failed statuses,
+  no stale unsupported-family text, and no raw facade/backend resource keys.
+- Preserve the existing JSON-safe group shape.
+- Do not add app route structure changes, new material families, IBL, shadows,
+  binary GLB loading, GLB viewer behavior, or shader behavior.
+
+### task-1247 — Plan next post-extension fidelity or route slice
 
 Category: `docs-tooling`
 Package/write-scope: `docs/research` and backlog only.
 Reference anchor:
-`docs/MEDIUM_LONG_TERM_GOALS.md`, the transformed UV1 audit from `task-1221`,
-and StandardMaterial texture/sampler diagnostics docs.
+`docs/MEDIUM_LONG_TERM_GOALS.md`, `docs/ARCHITECTURE.md`, the audit from
+`task-1246`, and recent route summary stale-state work.
 
 Acceptance criteria:
 
-- Choose one narrow next slice: sampler behavior, color-space diagnostics, or a
-  route/prepared-resource cleanup.
-- Define a 30-60 minute implementation or audit task with package/write scope.
-- Keep IBL, shadows, binary GLB loading, and broad material rewrites deferred
-  unless explicitly selected.
+- Compare one StandardMaterial/glTF fidelity candidate, one route-summary
+  cleanup candidate, and one material-family migration criterion candidate.
+- Select exactly one 30-60 minute follow-up task with package/write-scope,
+  reference anchor, and acceptance criteria.
+- Keep IBL, shadows, binary GLB loading, GLB viewer behavior, and broad
+  material-family rewrites deferred unless the selected task explicitly remains
+  narrow.
 
-### task-1223 — Audit prepared-resource lifetime pressure after UV1
-
-Category: `audit-refactor`
-Package/write-scope: `docs/research`, `packages/webgpu` only if a tiny
-corrective test is needed.
-Reference anchor:
-`docs/ARCHITECTURE.md`, `packages/webgpu/src/webgpu/prepared-standard-material-cache.ts`,
-and recent route/prepared-resource audits.
-
-Acceptance criteria:
-
-- Check whether transformed UV1 increased cache invalidation, bind group, or
-  diagnostics pressure.
-- Confirm prepared resources remain WebGPU-owned and source assets remain
-  renderer-independent.
-- Recommend one concrete cleanup only if there is observable pressure.
-
-### task-1224 — Plan lighting-boundary readiness contract
-
-Category: `docs-tooling`
-Package/write-scope: `docs/research` and backlog only.
-Reference anchor:
-`docs/MEDIUM_LONG_TERM_GOALS.md`, direct-light readiness diagnostics, and
-environment resource planning docs.
-
-Acceptance criteria:
-
-- Decide whether the next lighting task should target IBL readiness,
-  environment-map resource diagnostics, or direct-light contract cleanup.
-- Define one concrete implementation or audit task with 30-60 minute scope.
-- Keep shadows and binary GLB viewer integration deferred unless explicitly
-  selected.
-
-### task-1225 — Implement selected sampler/color-space or route slice
-
-Category: `render-bridge`
-Package/write-scope: selected by `task-1222`, expected `packages/render` and
-targeted tests unless the plan selects a WebGPU route cleanup.
-Reference anchor:
-the plan from `task-1222`, `docs/MEDIUM_LONG_TERM_GOALS.md`, and relevant
-StandardMaterial texture/sampler diagnostics docs.
-
-Acceptance criteria:
-
-- Implement only the slice selected by `task-1222`.
-- Preserve existing transformed `TEXCOORD_0` and `TEXCOORD_1` behavior.
-- Add targeted tests for the selected boundary.
-- Do not add IBL, shadows, binary GLB viewer behavior, or a new material
-  family.
-
-### task-1226 — Audit selected sampler/color-space or route slice
+### task-1248 — Audit next post-extension slice plan
 
 Category: `audit-refactor`
 Package/write-scope: `docs/research`, targeted tests only if a tiny corrective
 fix is needed.
 Reference anchor:
-the implementation from `task-1225`, the plan from `task-1222`, and
+the plan from `task-1247`, `docs/ARCHITECTURE.md`,
+`docs/MEDIUM_LONG_TERM_GOALS.md`, and recent diagnostics/route cleanup audits.
+
+Acceptance criteria:
+
+- Confirm the selected follow-up is concrete enough for one focused run.
+- Confirm the selected follow-up preserves ECS authority, render extraction,
+  and WebGPU-only backend ownership.
+- Recommend whether to implement the selected follow-up or adjust the backlog.
+
+### task-1249 — Refill after material route criteria audit
+
+Category: `docs-tooling`
+Package/write-scope: `agent/BACKLOG.md`, `agent/HANDOFF.md`, and
+`docs/research`.
+Reference anchor:
+the audit from `task-1242`, `docs/MEDIUM_LONG_TERM_GOALS.md`, and
 `docs/ARCHITECTURE.md`.
 
 Acceptance criteria:
 
-- Confirm the implementation stayed within the selected scope.
-- Confirm source material assets remain renderer-independent and WebGPU
-  resources stay backend-owned.
-- Recommend whether next work should target lighting contracts, prepared
-  resource lifetime, or another material fidelity slice.
+- If `task-1242` removes or redirects ready tasks, refill the ready queue back
+  to at least five concrete tasks.
+- Each new or adjusted task includes category, package/write-scope, reference
+  anchor, and acceptance criteria.
+- Preserve ECS authority, render extraction, WebGPU-only backend ownership, and
+  the current deferral of IBL, shadows, binary GLB loading, and GLB viewer
+  behavior.
+
+### task-1250 — Audit route summary group clean-after-failed regression
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research`, targeted tests only if a tiny corrective
+fix is needed.
+Reference anchor:
+the implementation from `task-1243`,
+`docs/research/MATERIAL_FAMILY_ROUTE_MIGRATION_CRITERIA_AUDIT_2026_05_18.md`,
+and `docs/ARCHITECTURE.md`.
+
+Acceptance criteria:
+
+- Confirm the regression strengthens generic route-summary hygiene without
+  adding app-level non-built-in rendering behavior.
+- Confirm no source asset, ECS component, render snapshot, or WebGPU resource
+  ownership boundary changed.
+- Recommend whether to continue with route cleanup or return to
+  StandardMaterial/glTF fidelity planning.
 
 ## Post-Unlit E2E Verification Targets
 

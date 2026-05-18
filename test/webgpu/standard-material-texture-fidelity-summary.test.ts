@@ -90,6 +90,10 @@ describe("StandardMaterial texture fidelity summary", () => {
             "baseColorTexture",
           ),
           diagnostic(
+            "standardMaterialTexture.invalidColorSpaceFormat",
+            "metallicRoughnessTexture",
+          ),
+          diagnostic(
             "standardMaterialTexture.invalidSemantic",
             "baseColorTexture",
           ),
@@ -154,6 +158,10 @@ describe("StandardMaterial texture fidelity summary", () => {
       ],
       byIssue: [
         { code: "standardMaterialTexture.invalidColorSpace", count: 1 },
+        {
+          code: "standardMaterialTexture.invalidColorSpaceFormat",
+          count: 1,
+        },
         { code: "standardMaterialTexture.invalidSemantic", count: 1 },
         { code: "standardMaterialTexture.missingSamplerHandle", count: 1 },
         { code: "standardMaterialTexture.samplerNotReady", count: 1 },
@@ -164,7 +172,7 @@ describe("StandardMaterial texture fidelity summary", () => {
         },
       ],
       samplerIssueCount: 2,
-      colorSpaceIssueCount: 1,
+      colorSpaceIssueCount: 2,
       semanticIssueCount: 1,
       texCoordIssueCount: 1,
       transformIssueCount: 1,
@@ -211,6 +219,8 @@ function slot(
     expectedColorSpaces:
       field === "baseColorTexture" ? ["srgb"] : ["linear", "data"],
     actualColorSpace: field === "baseColorTexture" ? "srgb" : "data",
+    actualFormat:
+      field === "baseColorTexture" ? "rgba8unorm-srgb" : "rgba8unorm",
     texCoord: 0,
     ready,
   };

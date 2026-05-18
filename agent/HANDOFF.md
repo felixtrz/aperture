@@ -1,5 +1,362 @@
 # Handoff
 
+## Current Run Update — 2026-05-18T07:33:09Z
+
+Completed `task-1222` through `task-1242`, plus `task-1244` through
+`task-1246`. Recommended next task is `task-1243`.
+
+Completed task ids:
+
+- `task-1222` — Plan next StandardMaterial sampler/color-space or route slice.
+- `task-1223` — Audit prepared-resource lifetime pressure after UV1.
+- `task-1224` — Plan lighting-boundary readiness contract.
+- `task-1225` — Add StandardMaterial texture format/color-space diagnostics.
+- `task-1226` — Audit selected sampler/color-space or route slice.
+- `task-1227` — Add environment-map readiness report.
+- `task-1228` — Audit environment-map readiness report.
+- `task-1229` — Add texture fidelity summary coverage for format diagnostics.
+- `task-1230` — Audit texture fidelity summary coverage.
+- `task-1231` — Plan the next material route or PBR fidelity slice.
+- `task-1232` — Add StandardMaterial format/color-space browser diagnostic fixture.
+- `task-1233` — Audit StandardMaterial format/color-space browser diagnostic fixture.
+- `task-1234` — Plan the next generic material route cleanup.
+- `task-1235` — Add reusable route scratch reset regression.
+- `task-1236` — Audit selected generic route cleanup test.
+- `task-1237` — Plan next route or fidelity slice after scratch reset.
+- `task-1238` — Add generic route summary stale-state regression.
+- `task-1239` — Audit generic route summary stale-state regression.
+- `task-1240` — Plan next StandardMaterial glTF fidelity diagnostic.
+- `task-1241` — Audit tracker/backlog alignment after diagnostics and route cleanup.
+- `task-1242` — Audit material-family route migration criteria.
+- `task-1244` — Audit selected StandardMaterial glTF fidelity plan.
+- `task-1245` — Add unsupported required glTF material extension browser diagnostic.
+- `task-1246` — Audit unsupported required glTF extension browser diagnostic.
+
+Highlights:
+
+- Added source-side StandardMaterial
+  `standardMaterialTexture.invalidColorSpaceFormat` diagnostics when
+  `TextureAsset.colorSpace` and `TextureAsset.format` disagree about sRGB
+  encoding. Texture readiness slots now include `actualFormat`, and texture
+  fidelity summaries group the diagnostic under color-space issues.
+- Added JSON-safe `createEnvironmentMapReadinessReport()` in
+  `@aperture-engine/webgpu` for extracted environment packets and optional
+  renderer resource readiness without exposing raw handles or GPU objects.
+- Added a browser/status regression for a glTF-shaped base-color texture
+  format/color-space mismatch. The fixture blocks misleading successful draws
+  and exposes the readiness diagnostic through existing app status.
+- Added a reusable route scratch reset regression for the built-in app resource
+  collector, proving unsupported-route diagnostics do not leak into a later
+  valid StandardMaterial collection with the same scratch.
+- Refilled the ready backlog with `task-1243`, `task-1247`, `task-1248`,
+  `task-1249`, and `task-1250`, keeping the
+  next work focused on route/fidelity planning, stale-state route summaries,
+  and tracker/backlog alignment.
+- Continued after the stop hook requested more work, completed `task-1237`, and
+  selected `task-1238` as the next executable route summary stale-state
+  regression.
+- Added a reusable material queue route report shell regression that proves a
+  clean routed report does not retain stale unsupported-family, skipped,
+  blend-preset, diagnostic-code, or route-report state after a failed report.
+- Audited that regression as generic diagnostics hygiene and recommended
+  planning the next StandardMaterial/glTF fidelity diagnostic before more route
+  summary group cleanup.
+- Planned the next StandardMaterial/glTF fidelity diagnostic and selected an
+  unsupported required material-extension browser/status fixture before
+  implementation.
+- Audited the selected plan and confirmed it stays source-side/fixture-side
+  without WebGPU upload, app route, IBL, shadow, binary GLB, GLB viewer, or
+  material-family routing changes.
+- Added the unsupported required glTF material-extension browser/status fixture.
+  It preserves `extensionName` in JSON-safe asset-mapping diagnostics and proves
+  invalid material mapping skips registration/draw submission.
+- Audited the fixture and confirmed it stays in source glTF material mapping and
+  JSON-safe app/example status without renderer route or shader changes.
+- Audited tracker/backlog alignment and confirmed the ready backlog is refilled
+  with five concrete tasks.
+- Audited material-family route migration criteria and selected route summary
+  group clean-after-failed coverage as the next smallest observable route
+  hygiene slice.
+
+Files touched:
+
+- `agent/BACKLOG.md`
+- `agent/COMPLETED.md`
+- `agent/HANDOFF.md`
+- `agent/STATUS.json`
+- `docs/DIAGNOSTICS_SUMMARIES.md`
+- `docs/RENDER_FRAME_READINESS.md`
+- `docs/index.html`
+- `docs/render-pipeline-comparison.html`
+- `docs/research/ENVIRONMENT_MAP_READINESS_REPORT_AUDIT_2026_05_18.md`
+- `docs/research/GENERIC_ROUTE_SUMMARY_STALE_STATE_REGRESSION_AUDIT_2026_05_18.md`
+- `docs/research/MATERIAL_FAMILY_ROUTE_MIGRATION_CRITERIA_AUDIT_2026_05_18.md`
+- `docs/research/NEXT_GENERIC_MATERIAL_ROUTE_CLEANUP_PLAN_2026_05_18.md`
+- `docs/research/NEXT_LIGHTING_ENVIRONMENT_READINESS_CONTRACT_PLAN_2026_05_18.md`
+- `docs/research/NEXT_MATERIAL_ROUTE_OR_PBR_FIDELITY_SLICE_PLAN_2026_05_18.md`
+- `docs/research/NEXT_ROUTE_OR_FIDELITY_AFTER_SCRATCH_RESET_PLAN_2026_05_18.md`
+- `docs/research/NEXT_STANDARD_MATERIAL_GLTF_FIDELITY_DIAGNOSTIC_PLAN_2026_05_18.md`
+- `docs/research/NEXT_STANDARD_MATERIAL_COLOR_SPACE_FORMAT_SLICE_PLAN_2026_05_18.md`
+- `docs/research/PREPARED_RESOURCE_LIFETIME_PRESSURE_AFTER_UV1_AUDIT_2026_05_18.md`
+- `docs/research/REUSABLE_ROUTE_SCRATCH_RESET_REGRESSION_AUDIT_2026_05_18.md`
+- `docs/research/STANDARD_MATERIAL_COLOR_SPACE_FORMAT_DIAGNOSTICS_AUDIT_2026_05_18.md`
+- `docs/research/STANDARD_MATERIAL_FORMAT_COLOR_SPACE_BROWSER_FIXTURE_AUDIT_2026_05_18.md`
+- `docs/research/TEXTURE_FIDELITY_SUMMARY_FORMAT_DIAGNOSTIC_AUDIT_2026_05_18.md`
+- `docs/research/TRACKER_BACKLOG_ALIGNMENT_AFTER_DIAGNOSTICS_ROUTE_CLEANUP_AUDIT_2026_05_18.md`
+- `docs/research/UNSUPPORTED_REQUIRED_GLTF_EXTENSION_DIAGNOSTIC_PLAN_AUDIT_2026_05_18.md`
+- `docs/research/UNSUPPORTED_REQUIRED_GLTF_EXTENSION_BROWSER_DIAGNOSTIC_AUDIT_2026_05_18.md`
+- `examples/standard-gltf-texture.js`
+- `packages/render/src/assets/gltf-asset-mapping.ts`
+- `packages/render/src/materials/standard-texture-readiness.ts`
+- `packages/webgpu/src/webgpu/environment-map-readiness.ts`
+- `packages/webgpu/src/webgpu/index.ts`
+- `packages/webgpu/src/webgpu/standard-material-texture-fidelity-summary.ts`
+- `test/e2e/standard-gltf-texture.spec.ts`
+- `test/materials/standard-texture-readiness.test.ts`
+- `test/materials/standard-texture-sampler-alignment.test.ts`
+- `test/webgpu/environment-map-readiness.test.ts`
+- `test/webgpu/material-queue-route-report.test.ts`
+- `test/webgpu/queued-built-in-app-resource-set.test.ts`
+- `test/webgpu/standard-material-texture-fidelity-summary.test.ts`
+
+Validation:
+
+- `pnpm exec vitest run test/materials/standard-texture-readiness.test.ts`
+- `pnpm exec vitest run test/materials/standard-texture-readiness.test.ts test/materials/standard-texture-sampler-alignment.test.ts test/webgpu/standard-material-texture-fidelity-summary.test.ts`
+- `pnpm exec vitest run test/webgpu/environment-map-readiness.test.ts test/webgpu/environment-resource-planning.test.ts`
+- `pnpm exec vitest run test/webgpu/standard-material-texture-fidelity-summary.test.ts`
+- `pnpm exec vitest run test/webgpu/environment-map-readiness.test.ts test/webgpu/environment-resource-planning.test.ts test/webgpu/standard-material-texture-fidelity-summary.test.ts`
+- `node --check examples/standard-gltf-texture.js`
+- `pnpm exec vitest run test/webgpu/queued-built-in-app-resource-set.test.ts`
+- `pnpm exec vitest run test/webgpu/material-queue-route-report.test.ts test/webgpu/queued-material-route-summary-group.test.ts`
+- `pnpm exec vitest run test/materials/gltf-material.test.ts test/assets/gltf-asset-mapping.test.ts`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "format/color-space mismatches"`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "unsupported required material extensions"`
+- `pnpm run build`
+- `pnpm run lint`
+- `pnpm test`
+- `pnpm run check:progress`
+- `pnpm exec prettier --check ...` on touched files
+- `git diff --check`
+
+Additional reference files/patterns inspected:
+
+- `references/bevy/crates/bevy_image/src/image.rs` for image asset texture
+  format and sRGB view-format separation.
+- `references/engine/src/extras/render-passes/frame-pass-camera-frame.js` for
+  renderer-owned skybox/pass placement.
+- `references/three.js/src/extras/PMREMGenerator.js` and
+  `references/three.js/src/renderers/WebGLRenderer.js` for renderer-side
+  environment/PMREM handling.
+- `packages/webgpu/src/webgpu/prepared-standard-material-cache.ts`
+- `packages/webgpu/src/webgpu/standard-material-buffer.ts`
+- `packages/webgpu/src/webgpu/standard-shader.ts`
+- `packages/webgpu/src/webgpu/direct-light-readiness.ts`
+- `packages/webgpu/src/webgpu/environment-resource-planning.ts`
+- `packages/webgpu/src/webgpu/queued-built-in-app-resource-set.ts`
+- `packages/webgpu/src/webgpu/queued-material-frame-resource-set-summary.ts`
+- `packages/webgpu/src/webgpu/queued-material-route-summary-group.ts`
+- `packages/webgpu/src/webgpu/material-queue-route-report.ts`
+- `packages/webgpu/src/webgpu/reusable-route-collector.ts`
+
+Known issues / follow-ups:
+
+- `task-1243` should add route summary group clean-after-failed coverage.
+- IBL shader sampling, skyboxes, environment texture upload, shadows, binary
+  GLB loading, and broad material route rewrites remain deferred.
+- Stop-hook attempts requested continuation while the time window was still
+  open; the run continued through `task-1242` before final handoff.
+
+## Current Run Update — 2026-05-18T07:18:58Z
+
+Completed `task-1222` through `task-1231`. Recommended next task is
+`task-1232`.
+
+Completed task ids:
+
+- `task-1222` — Plan next StandardMaterial sampler/color-space or route slice.
+- `task-1223` — Audit prepared-resource lifetime pressure after UV1.
+- `task-1224` — Plan lighting-boundary readiness contract.
+- `task-1225` — Add StandardMaterial texture format/color-space diagnostics.
+- `task-1226` — Audit selected sampler/color-space or route slice.
+- `task-1227` — Add environment-map readiness report.
+- `task-1228` — Audit environment-map readiness report.
+- `task-1229` — Add texture fidelity summary coverage for format diagnostics.
+- `task-1230` — Audit texture fidelity summary coverage.
+- `task-1231` — Plan the next material route or PBR fidelity slice.
+
+Highlights:
+
+- Added source-side StandardMaterial
+  `standardMaterialTexture.invalidColorSpaceFormat` diagnostics when
+  `TextureAsset.colorSpace` and `TextureAsset.format` disagree about sRGB
+  encoding. Texture readiness slots now include `actualFormat`.
+- Audited transformed UV1 prepared-resource pressure; no new cache-key,
+  bind-group, prepared-resource, app-route, or diagnostics pressure needs
+  cleanup.
+- Added JSON-safe `createEnvironmentMapReadinessReport()` in `@aperture-engine/webgpu`.
+  It reports extracted environment counts, null-handle counts, required
+  environment-map resource keys, optional renderer resource readiness, and
+  missing-resource diagnostics without raw handles or GPU objects.
+- Updated StandardMaterial texture fidelity summaries so
+  `invalidColorSpaceFormat` contributes to `colorSpaceIssueCount`.
+- Planned the next vertical slice: a StandardMaterial browser/status fixture
+  for the format/color-space diagnostic.
+- Refreshed tracker docs, diagnostics docs, backlog, completed log, handoff,
+  and automation memory.
+
+Files touched:
+
+- `agent/BACKLOG.md`
+- `agent/COMPLETED.md`
+- `agent/HANDOFF.md`
+- `agent/STATUS.json`
+- `docs/DIAGNOSTICS_SUMMARIES.md`
+- `docs/RENDER_FRAME_READINESS.md`
+- `docs/index.html`
+- `docs/render-pipeline-comparison.html`
+- `docs/research/ENVIRONMENT_MAP_READINESS_REPORT_AUDIT_2026_05_18.md`
+- `docs/research/NEXT_LIGHTING_ENVIRONMENT_READINESS_CONTRACT_PLAN_2026_05_18.md`
+- `docs/research/NEXT_MATERIAL_ROUTE_OR_PBR_FIDELITY_SLICE_PLAN_2026_05_18.md`
+- `docs/research/NEXT_STANDARD_MATERIAL_COLOR_SPACE_FORMAT_SLICE_PLAN_2026_05_18.md`
+- `docs/research/PREPARED_RESOURCE_LIFETIME_PRESSURE_AFTER_UV1_AUDIT_2026_05_18.md`
+- `docs/research/STANDARD_MATERIAL_COLOR_SPACE_FORMAT_DIAGNOSTICS_AUDIT_2026_05_18.md`
+- `docs/research/TEXTURE_FIDELITY_SUMMARY_FORMAT_DIAGNOSTIC_AUDIT_2026_05_18.md`
+- `packages/render/src/materials/standard-texture-readiness.ts`
+- `packages/webgpu/src/webgpu/environment-map-readiness.ts`
+- `packages/webgpu/src/webgpu/index.ts`
+- `packages/webgpu/src/webgpu/standard-material-texture-fidelity-summary.ts`
+- `test/materials/standard-texture-readiness.test.ts`
+- `test/materials/standard-texture-sampler-alignment.test.ts`
+- `test/webgpu/environment-map-readiness.test.ts`
+- `test/webgpu/standard-material-texture-fidelity-summary.test.ts`
+
+Validation:
+
+- `pnpm exec vitest run test/materials/standard-texture-readiness.test.ts`
+- `pnpm exec vitest run test/materials/standard-texture-readiness.test.ts test/materials/standard-texture-sampler-alignment.test.ts test/webgpu/standard-material-texture-fidelity-summary.test.ts`
+- `pnpm exec vitest run test/webgpu/environment-map-readiness.test.ts test/webgpu/environment-resource-planning.test.ts`
+- `pnpm exec vitest run test/webgpu/standard-material-texture-fidelity-summary.test.ts`
+- `pnpm exec vitest run test/webgpu/environment-map-readiness.test.ts test/webgpu/environment-resource-planning.test.ts test/webgpu/standard-material-texture-fidelity-summary.test.ts`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm run build`
+- `pnpm run lint`
+- `pnpm test`
+- `pnpm run check:progress`
+- `pnpm exec prettier --check ...` on touched files
+- `git diff --check`
+
+Additional reference files/patterns inspected:
+
+- `references/bevy/crates/bevy_image/src/image.rs` for image asset texture
+  format and sRGB view-format separation.
+- `references/engine/src/extras/render-passes/frame-pass-camera-frame.js` for
+  renderer-owned skybox/pass placement.
+- `references/three.js/src/extras/PMREMGenerator.js` and
+  `references/three.js/src/renderers/WebGLRenderer.js` for renderer-side
+  environment/PMREM handling.
+- `packages/webgpu/src/webgpu/prepared-standard-material-cache.ts`
+- `packages/webgpu/src/webgpu/standard-material-buffer.ts`
+- `packages/webgpu/src/webgpu/standard-shader.ts`
+- `packages/webgpu/src/webgpu/direct-light-readiness.ts`
+- `packages/webgpu/src/webgpu/environment-resource-planning.ts`
+
+Known issues / follow-ups:
+
+- `task-1232` should add the StandardMaterial browser/status fixture for
+  `standardMaterialTexture.invalidColorSpaceFormat`.
+- `task-1234` should plan the next narrow generic material route cleanup after
+  the browser diagnostic fixture and audit.
+- IBL shader sampling, skyboxes, environment texture upload, shadows, binary
+  GLB loading, and broad material route rewrites remain deferred.
+- The first stop-hook attempt requested continuation because the work window was
+  still open; subsequent work completed through `task-1231` before this handoff
+  update.
+
+## Current Run Update — 2026-05-18T07:11:37Z
+
+Completed `task-1222` through `task-1226`. Recommended next task is
+`task-1227`.
+
+Completed task ids:
+
+- `task-1222` — Plan next StandardMaterial sampler/color-space or route slice.
+- `task-1223` — Audit prepared-resource lifetime pressure after UV1.
+- `task-1224` — Plan lighting-boundary readiness contract.
+- `task-1225` — Add StandardMaterial texture format/color-space diagnostics.
+- `task-1226` — Audit selected sampler/color-space or route slice.
+
+Highlights:
+
+- Selected StandardMaterial texture format/color-space readiness diagnostics as
+  the next narrow source-side material fidelity slice.
+- Audited prepared-resource lifetime pressure after transformed UV1 and found
+  no new cache-key, bind-group, prepared-resource, app-route, or diagnostics
+  pressure requiring cleanup.
+- Planned the next lighting boundary as a JSON-safe environment-map readiness
+  report derived from extracted environment packets and environment resource
+  planning, while keeping IBL, skyboxes, shadows, environment texture upload,
+  app route changes, and GLB viewer behavior deferred.
+- Implemented
+  `standardMaterialTexture.invalidColorSpaceFormat` in StandardMaterial texture
+  readiness. Ready texture slots now include `actualFormat`, and diagnostics
+  include `actualFormat` plus `expectedFormatSrgb` when source
+  `TextureAsset.colorSpace` and `TextureAsset.format` disagree about sRGB
+  encoding.
+- Updated typed texture-readiness fixtures, public tracker pages, diagnostics
+  docs, backlog, and completed-task records.
+
+Files touched:
+
+- `agent/BACKLOG.md`
+- `agent/COMPLETED.md`
+- `agent/HANDOFF.md`
+- `agent/STATUS.json`
+- `docs/DIAGNOSTICS_SUMMARIES.md`
+- `docs/index.html`
+- `docs/render-pipeline-comparison.html`
+- `docs/research/NEXT_LIGHTING_ENVIRONMENT_READINESS_CONTRACT_PLAN_2026_05_18.md`
+- `docs/research/NEXT_STANDARD_MATERIAL_COLOR_SPACE_FORMAT_SLICE_PLAN_2026_05_18.md`
+- `docs/research/PREPARED_RESOURCE_LIFETIME_PRESSURE_AFTER_UV1_AUDIT_2026_05_18.md`
+- `docs/research/STANDARD_MATERIAL_COLOR_SPACE_FORMAT_DIAGNOSTICS_AUDIT_2026_05_18.md`
+- `packages/render/src/materials/standard-texture-readiness.ts`
+- `test/materials/standard-texture-readiness.test.ts`
+- `test/materials/standard-texture-sampler-alignment.test.ts`
+- `test/webgpu/standard-material-texture-fidelity-summary.test.ts`
+
+Validation:
+
+- `pnpm exec vitest run test/materials/standard-texture-readiness.test.ts`
+- `pnpm exec vitest run test/materials/standard-texture-readiness.test.ts test/materials/standard-texture-sampler-alignment.test.ts test/webgpu/standard-material-texture-fidelity-summary.test.ts`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm run build`
+- `pnpm run lint`
+- `pnpm test`
+- `pnpm run check:progress`
+- `pnpm exec prettier --check ...` on touched files
+- `git diff --check`
+
+Additional reference files/patterns inspected:
+
+- `references/bevy/crates/bevy_image/src/image.rs` for the image asset texture
+  format / sRGB view-format split.
+- `packages/webgpu/src/webgpu/prepared-standard-material-cache.ts`
+- `packages/webgpu/src/webgpu/standard-material-buffer.ts`
+- `packages/webgpu/src/webgpu/standard-shader.ts`
+- `packages/webgpu/src/webgpu/direct-light-readiness.ts`
+- `packages/webgpu/src/webgpu/environment-resource-planning.ts`
+
+Known issues / follow-ups:
+
+- `task-1227` should add the environment-map readiness report.
+- `task-1229` should add focused texture fidelity summary coverage for
+  `standardMaterialTexture.invalidColorSpaceFormat`.
+- IBL shader sampling, skyboxes, shadows, environment texture upload, binary
+  GLB loading, and broader material route rewrites remain deferred.
+- No stop-hook failures were observed before final hook execution in this
+  handoff update.
+
 ## Current Run Update — 2026-05-18T06:50:00Z
 
 Completed `task-1203` through `task-1221`. Recommended next task is

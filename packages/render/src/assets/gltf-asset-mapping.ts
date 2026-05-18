@@ -41,6 +41,7 @@ export interface GltfAssetMappingDiagnostic {
   readonly samplerIndex?: number;
   readonly slot?: GltfMaterialTextureSlot;
   readonly field?: string;
+  readonly extensionName?: string;
   readonly dependencyKind?: GltfMaterialTextureDependencyKind;
 }
 
@@ -234,6 +235,9 @@ export function createGltfAssetMappingReport(
           : { samplerIndex: diagnostic.samplerIndex }),
         ...(diagnostic.slot === undefined ? {} : { slot: diagnostic.slot }),
         ...(diagnostic.field === undefined ? {} : { field: diagnostic.field }),
+        ...(diagnostic.extensionName === undefined
+          ? {}
+          : { extensionName: diagnostic.extensionName }),
         ...(diagnostic.dependencyKind === undefined
           ? {}
           : { dependencyKind: diagnostic.dependencyKind }),

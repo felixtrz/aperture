@@ -33,6 +33,19 @@ interface StandardGltfTextureStatus extends ExampleStatusBase {
       readonly materialCount: number;
       readonly diagnostics: number;
       readonly diagnosticCodes?: readonly string[];
+      readonly diagnosticDetails?: readonly {
+        readonly layer?: string;
+        readonly code?: string;
+        readonly severity?: string;
+        readonly message?: string;
+        readonly materialIndex?: number;
+        readonly textureIndex?: number;
+        readonly samplerIndex?: number;
+        readonly slot?: string;
+        readonly field?: string;
+        readonly extensionName?: string;
+        readonly dependencyKind?: string;
+      }[];
       readonly samplers?: readonly StandardGltfTextureSamplerMappingStatus[];
     };
     readonly meshConstruction: {
@@ -123,6 +136,7 @@ interface StandardGltfTextureStatus extends ExampleStatusBase {
         readonly textureKey: string;
         readonly texCoord: number;
         readonly ready: boolean;
+        readonly actualFormat?: string;
       }[];
       readonly diagnostics: readonly {
         readonly code: string;
@@ -131,6 +145,9 @@ interface StandardGltfTextureStatus extends ExampleStatusBase {
         readonly textureKey?: string;
         readonly samplerKey?: string;
         readonly status?: string;
+        readonly actualColorSpace?: string;
+        readonly expectedFormatSrgb?: boolean;
+        readonly actualFormat?: string;
       }[];
     };
     readonly sample: { readonly x: number; readonly y: number };
@@ -2423,6 +2440,187 @@ test("standard glTF texture fixture reports texture transforms before submitting
   webGpuValidation.expectNoWarnings();
 });
 
+test("standard glTF texture fixture reports format/color-space mismatches before submitting draws", async ({
+  page,
+}) => {
+  const webGpuValidation = attachWebGpuValidationConsoleGuard(page);
+
+  await page.goto(
+    "/examples/standard-gltf-texture.html?scenario=base-color-format-color-space-mismatch",
+  );
+
+  const status = await waitForExampleStatus<StandardGltfTextureStatus>(page);
+
+  await attachExampleStatus(
+    "standard-gltf-texture-format-color-space-mismatch-status",
+    status,
+  );
+  expect(
+    status,
+    "standard glTF texture format/color-space mismatch status should publish",
+  ).toBeDefined();
+
+  if (status === undefined) {
+    return;
+  }
+
+  skipIfUnsupportedWebGpu(status);
+  expectStatusJsonSafeForGpu(status);
+  expectExpectedGltfTextureFailureStatus(status, {
+    scenario: "base-color-format-color-space-mismatch",
+    expectedMappingDiagnostic: null,
+    expectedDiagnostic:
+      "render.standardMaterialTexture.invalidColorSpaceFormat",
+    expectedTextureStatus: "format-color-space-mismatch",
+    textureSlot: "baseColorTexture",
+  });
+  expect(status, JSON.stringify(status, null, 2)).toMatchObject({
+    materialModel: "gltf-standard-base-color-format-color-space-mismatch",
+    standardTexture: {
+      readiness: {
+        ready: false,
+        slots: [
+          {
+            field: "baseColorTexture",
+            textureKey: "texture:gltf:texture:0:baseColorTexture",
+            actualFormat: "rgba8unorm",
+            ready: false,
+          },
+        ],
+        diagnostics: [
+          {
+            code: "standardMaterialTexture.invalidColorSpaceFormat",
+            field: "baseColorTexture",
+            textureKey: "texture:gltf:texture:0:baseColorTexture",
+            actualColorSpace: "srgb",
+            expectedFormatSrgb: true,
+            actualFormat: "rgba8unorm",
+          },
+        ],
+      },
+    },
+    extraction: {
+      views: 1,
+      meshDraws: 0,
+      lights: 2,
+      diagnostics: 1,
+    },
+    draw: { drawCalls: 0 },
+  });
+  expect(status.gltf?.assetMapping.diagnosticCodes ?? []).not.toContain(
+    "gltfMaterial.unsupportedTextureTransform",
+  );
+  expect(status.diagnosticCodes).toContain(
+    "render.standardMaterialTexture.invalidColorSpaceFormat",
+  );
+  expect(status.diagnosticsSummary).toBeUndefined();
+  expect(status.pipelines?.keys ?? []).toEqual([]);
+  expect(status.pipelines?.meshLayoutKeys ?? []).toEqual([]);
+  webGpuValidation.expectNoWarnings();
+});
+
+test("standard glTF texture fixture reports unsupported required material extensions before registration", async ({
+  page,
+}) => {
+  const webGpuValidation = attachWebGpuValidationConsoleGuard(page);
+
+  await page.goto(
+    "/examples/standard-gltf-texture.html?scenario=unsupported-required-material-extension",
+  );
+
+  const status = await waitForExampleStatus<StandardGltfTextureStatus>(page);
+
+  await attachExampleStatus(
+    "standard-gltf-texture-unsupported-required-material-extension-status",
+    status,
+  );
+  expect(
+    status,
+    "standard glTF unsupported required extension status should publish",
+  ).toBeDefined();
+
+  if (status === undefined) {
+    return;
+  }
+
+  skipIfUnsupportedWebGpu(status);
+  expectStatusJsonSafeForGpu(status);
+  expect(status, JSON.stringify(status, null, 2)).toMatchObject({
+    example: "standard-gltf-texture",
+    scenario: "unsupported-required-material-extension",
+    ok: true,
+    phase: "expected-failure",
+    expectedFailure: true,
+    expectedMappingDiagnostic: "gltfMaterial.unsupportedRequiredExtension",
+    expectedDiagnostic: "render.missingMaterialHandle",
+    expectedTextureStatus: "unsupported-required-material-extension",
+    materialModel: "gltf-standard-unsupported-required-material-extension",
+    gltf: {
+      assetMapping: {
+        valid: false,
+        textureCount: 0,
+        samplerCount: 0,
+        materialCount: 1,
+        diagnostics: 2,
+      },
+      meshConstruction: {
+        valid: true,
+        meshCount: 1,
+        diagnostics: 0,
+      },
+      registration: {
+        valid: false,
+        written: 1,
+        diagnostics: 1,
+        stages: [
+          {
+            stage: "materialTextureSamplerRegistration",
+            status: "failed",
+            writtenCount: 0,
+            skippedCount: 1,
+            diagnosticCount: 1,
+          },
+          {
+            stage: "meshRegistration",
+            status: "provided",
+            writtenCount: 1,
+            skippedCount: 0,
+            diagnosticCount: 0,
+          },
+        ],
+      },
+    },
+    extraction: {
+      views: 1,
+      meshDraws: 0,
+      lights: 2,
+      diagnostics: 1,
+    },
+    draw: { drawCalls: 0 },
+  });
+  expect(status.standardTexture).toBeUndefined();
+  expect(status.gltf?.assetMapping.diagnosticCodes).toContain(
+    "gltfMaterial.unsupportedRequiredExtension",
+  );
+  expect(status.gltf?.assetMapping.diagnosticDetails).toEqual(
+    expect.arrayContaining([
+      expect.objectContaining({
+        layer: "material",
+        code: "gltfMaterial.unsupportedRequiredExtension",
+        severity: "error",
+        materialIndex: 0,
+        field: "extensions.KHR_materials_clearcoat",
+        extensionName: "KHR_materials_clearcoat",
+      }),
+    ]),
+  );
+  expect(status.diagnosticCodes).toContain("render.missingMaterialHandle");
+  expect(status.diagnosticsSummary).toBeUndefined();
+  expect(status.pipelines?.keys ?? []).toEqual([]);
+  expect(status.pipelines?.meshLayoutKeys ?? []).toEqual([]);
+  webGpuValidation.expectNoWarnings();
+});
+
 function rgbaTupleToColor(color: RgbaTuple): {
   readonly r: number;
   readonly g: number;
@@ -2531,7 +2729,7 @@ function expectExpectedGltfTextureFailureStatus(
   status: StandardGltfTextureStatus,
   options: {
     readonly scenario: string;
-    readonly expectedMappingDiagnostic: string;
+    readonly expectedMappingDiagnostic: string | null;
     readonly expectedDiagnostic: string;
     readonly expectedTextureStatus: string;
     readonly textureSlot: string;
@@ -2573,9 +2771,13 @@ function expectExpectedGltfTextureFailureStatus(
     },
     draw: { drawCalls: 0 },
   });
-  expect(status.gltf?.assetMapping.diagnosticCodes).toContain(
-    options.expectedMappingDiagnostic,
-  );
+  if (options.expectedMappingDiagnostic === null) {
+    expect(status.gltf?.assetMapping.diagnosticCodes ?? []).toEqual([]);
+  } else {
+    expect(status.gltf?.assetMapping.diagnosticCodes).toContain(
+      options.expectedMappingDiagnostic,
+    );
+  }
   expect(status.diagnosticCodes).toContain(options.expectedDiagnostic);
   expect(status.pipelines?.keys ?? []).toEqual([]);
   expect(status.pipelines?.meshLayoutKeys ?? []).toEqual([]);

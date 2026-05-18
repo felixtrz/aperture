@@ -6,6 +6,6 @@
   "lastResult": "success",
   "lastCommit": "e41be0f",
   "activePid": null,
-  "notes": "Completed task-1203 through task-1221. Direct-light readiness diagnostics are in StandardMaterial app status, TEXCOORD_0 transforms are implemented for base-color, metallic-roughness, normal, occlusion, and emissive textures, transformed TEXCOORD_1 support is implemented and audited, and the next recommended task is task-1222 plan the next sampler/color-space or route slice.",
-  "lastRunFinishedAt": "2026-05-18T06:53:32Z"
+  "notes": "Completed task-1222 through task-1242 plus task-1244 through task-1246. Next recommended task: task-1243.",
+  "lastRunFinishedAt": "2026-05-18T07:53:00Z"
 }

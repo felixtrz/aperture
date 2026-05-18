@@ -326,6 +326,91 @@ describe("StandardMaterial texture semantic and color-space readiness", () => {
     expect(() => JSON.stringify(report)).not.toThrow();
   });
 
+  it("diagnoses StandardMaterial texture format and color-space mismatches", () => {
+    const registry = new AssetRegistry();
+    const material = createMaterialHandle("standard");
+    const sampler = createSamplerHandle("linear");
+    const baseColor = createTextureHandle("base-color-linear-format");
+    const normal = createTextureHandle("normal-srgb-format");
+
+    registry.register(sampler);
+    registry.markReady(sampler, createSamplerAsset());
+    readyTexture(registry, baseColor, "base-color", "srgb", "rgba8unorm");
+    readyTexture(registry, normal, "normal", "data", "rgba8unorm-srgb");
+    registry.register(material);
+    registry.markReady(
+      material,
+      createStandardMaterialAsset({
+        baseColorTexture: { texture: baseColor, sampler },
+        normalTexture: { texture: normal, sampler },
+      }),
+    );
+
+    const report = createStandardMaterialTextureReadinessReport({
+      registry,
+      material,
+    });
+
+    expect(report.ready).toBe(false);
+    expect(
+      report.slots.map((slot) => ({
+        field: slot.field,
+        textureKey: slot.textureKey,
+        actualColorSpace: slot.actualColorSpace,
+        actualFormat: slot.actualFormat,
+        ready: slot.ready,
+      })),
+    ).toEqual([
+      {
+        field: "baseColorTexture",
+        textureKey: "texture:base-color-linear-format",
+        actualColorSpace: "srgb",
+        actualFormat: "rgba8unorm",
+        ready: false,
+      },
+      {
+        field: "normalTexture",
+        textureKey: "texture:normal-srgb-format",
+        actualColorSpace: "data",
+        actualFormat: "rgba8unorm-srgb",
+        ready: false,
+      },
+    ]);
+    expect(
+      report.diagnostics.map((diagnostic) => ({
+        code: diagnostic.code,
+        field: diagnostic.field,
+        textureKey: diagnostic.textureKey,
+        expectedColorSpaces: diagnostic.expectedColorSpaces,
+        actualColorSpace: diagnostic.actualColorSpace,
+        expectedFormatSrgb: diagnostic.expectedFormatSrgb,
+        actualFormat: diagnostic.actualFormat,
+      })),
+    ).toEqual([
+      {
+        code: "standardMaterialTexture.invalidColorSpaceFormat",
+        field: "baseColorTexture",
+        textureKey: "texture:base-color-linear-format",
+        expectedColorSpaces: ["srgb"],
+        actualColorSpace: "srgb",
+        expectedFormatSrgb: true,
+        actualFormat: "rgba8unorm",
+      },
+      {
+        code: "standardMaterialTexture.invalidColorSpaceFormat",
+        field: "normalTexture",
+        textureKey: "texture:normal-srgb-format",
+        expectedColorSpaces: ["linear", "data"],
+        actualColorSpace: "data",
+        expectedFormatSrgb: false,
+        actualFormat: "rgba8unorm-srgb",
+      },
+    ]);
+    expect(
+      JSON.parse(standardMaterialTextureReadinessReportToJson(report)),
+    ).toEqual(standardMaterialTextureReadinessReportToJsonValue(report));
+  });
+
   it("diagnoses StandardMaterial texture and sampler dependency states by channel", () => {
     const registry = new AssetRegistry();
     const material = createMaterialHandle("standard");
@@ -828,6 +913,10 @@ function readyTexture(
   handle: ReturnType<typeof createTextureHandle>,
   semantic: Parameters<typeof createTextureAsset>[0]["semantic"],
   colorSpace: Parameters<typeof createTextureAsset>[0]["colorSpace"],
+  format: Parameters<typeof createTextureAsset>[0]["format"] = colorSpace ===
+  "srgb"
+    ? "rgba8unorm-srgb"
+    : "rgba8unorm",
 ): void {
   registry.register(handle);
   registry.markReady(
@@ -837,7 +926,7 @@ function readyTexture(
       dimension: "2d",
       width: 1,
       height: 1,
-      format: colorSpace === "srgb" ? "rgba8unorm-srgb" : "rgba8unorm",
+      format,
       semantic,
       colorSpace,
       usage: ["sampled"],

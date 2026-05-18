@@ -199,6 +199,92 @@ describe("queued built-in app resource set collector", () => {
     expect(JSON.stringify(result)).not.toContain("standardResourceSet");
     expect(JSON.stringify(result)).not.toContain("rawGpuHandle");
   });
+
+  it("resets reusable route scratch between unsupported and valid collections", () => {
+    const sharedRouteScratch = routeScratch();
+    const sharedMaterialQueueScratch = createMaterialQueueScratch();
+    const unsupportedAssets = readyAssets("debug-normal");
+    const unsupportedSnapshot = renderSnapshot([
+      drawPacket({
+        renderId: 17,
+        materialFamily: "debug-normal",
+        materialId: "debug",
+      }),
+    ]);
+    const unsupportedMeshes = createPreparedMeshStore();
+    const unsupportedMaterials = createPreparedMaterialStore();
+
+    prepareSnapshotMeshes({
+      registry: unsupportedAssets,
+      snapshot: unsupportedSnapshot,
+      meshes: unsupportedMeshes,
+    });
+    prepareSnapshotMaterials({
+      registry: unsupportedAssets,
+      snapshot: unsupportedSnapshot,
+      materials: unsupportedMaterials,
+    });
+
+    const unsupported = collectQueuedBuiltInAppResourceSet({
+      assets: unsupportedAssets,
+      snapshot: unsupportedSnapshot,
+      materialQueueScratch: sharedMaterialQueueScratch,
+      routeScratch: sharedRouteScratch,
+      meshes: unsupportedMeshes,
+      materials: unsupportedMaterials,
+      adapters: adapters(),
+    });
+
+    expect(unsupported.valid).toBe(false);
+    expect(JSON.stringify(unsupported)).toContain("debug-normal");
+
+    const validAssets = readyAssets("standard");
+    const validSnapshot = renderSnapshot([
+      drawPacket({ renderId: 18, materialFamily: "standard" }),
+    ]);
+    const validMeshes = createPreparedMeshStore();
+    const validMaterials = createPreparedMaterialStore();
+
+    prepareSnapshotMeshes({
+      registry: validAssets,
+      snapshot: validSnapshot,
+      meshes: validMeshes,
+    });
+    prepareSnapshotMaterials({
+      registry: validAssets,
+      snapshot: validSnapshot,
+      materials: validMaterials,
+    });
+
+    const valid = collectQueuedBuiltInAppResourceSet({
+      assets: validAssets,
+      snapshot: validSnapshot,
+      materialQueueScratch: sharedMaterialQueueScratch,
+      routeScratch: sharedRouteScratch,
+      meshes: validMeshes,
+      materials: validMaterials,
+      adapters: adapters(),
+    });
+
+    expect(valid.valid).toBe(true);
+    expect(valid.diagnostics).toEqual([]);
+    expect(valid.resourceSet?.items).toHaveLength(1);
+    expect(valid.resourceSet?.items[0]).toMatchObject({
+      queueItem: {
+        renderId: 18,
+        materialFamily: "standard",
+      },
+      prepareRoute: {
+        valid: true,
+        family: "standard",
+      },
+    });
+    expect(JSON.stringify(valid)).not.toContain("debug-normal");
+    expect(JSON.stringify(valid)).not.toContain(
+      "webGpuApp.materialQueueRouteReport",
+    );
+    expect(JSON.stringify(valid)).not.toContain("rawGpuHandle");
+  });
 });
 
 function adapters() {
