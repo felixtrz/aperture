@@ -97,11 +97,29 @@ interface StandardGltfTextureStatus extends ExampleStatusBase {
         readonly y: number;
       };
     } | null;
+    readonly expectedDelayedDependencies?: {
+      readonly loadingTextureKey: string;
+      readonly failedTextureKey: string;
+      readonly loadingSamplerKey: string;
+      readonly failedSamplerKey: string;
+    } | null;
     readonly expectedTextureTransform?: {
       readonly offset?: readonly [number, number];
       readonly scale?: readonly [number, number];
       readonly rotation?: number;
     } | null;
+    readonly readiness?: {
+      readonly ready: boolean;
+      readonly materialKey: string;
+      readonly diagnostics: readonly {
+        readonly code: string;
+        readonly field?: string;
+        readonly dependencyKind?: string;
+        readonly textureKey?: string;
+        readonly samplerKey?: string;
+        readonly status?: string;
+      }[];
+    };
     readonly sample: { readonly x: number; readonly y: number };
     readonly samples?: {
       readonly opaque: {
@@ -160,6 +178,31 @@ interface StandardGltfTextureStatus extends ExampleStatusBase {
     readonly drawCalls: number;
   };
   readonly diagnosticCodes?: readonly string[];
+  readonly backface?: {
+    readonly sample: {
+      readonly id: string;
+      readonly x: number;
+      readonly y: number;
+    };
+    readonly expectedColor: RgbaTuple;
+  };
+  readonly materialDependencyReadiness?: readonly {
+    readonly ready: boolean;
+    readonly materialKey: string;
+    readonly dependencies: readonly {
+      readonly field: string;
+      readonly dependencyKind: string;
+      readonly handleKey: string | null;
+      readonly status: string;
+      readonly ready: boolean;
+    }[];
+    readonly diagnostics: readonly {
+      readonly code: string;
+      readonly dependencyKind?: string;
+      readonly dependencyKey?: string;
+      readonly status?: string;
+    }[];
+  }[];
   readonly readback?: SceneReadbackStatus;
 }
 
@@ -1095,6 +1138,121 @@ test("standard glTF texture fixture masks pixels with base-color alpha", async (
   webGpuValidation.expectNoWarnings();
 });
 
+test("standard glTF alpha-mask backface fixture renders with no culling", async ({
+  page,
+}) => {
+  const webGpuValidation = attachWebGpuValidationConsoleGuard(page);
+
+  await page.goto(
+    "/examples/standard-gltf-texture.html?scenario=alpha-mask-backface",
+  );
+
+  const status = await waitForExampleStatus<StandardGltfTextureStatus>(page);
+
+  await attachExampleStatus(
+    "standard-gltf-texture-alpha-mask-backface-status",
+    status,
+  );
+  expect(
+    status,
+    "standard glTF alpha-mask backface status should publish",
+  ).toBeDefined();
+
+  if (status === undefined) {
+    return;
+  }
+
+  skipIfUnsupportedWebGpu(status);
+  expectStatusJsonSafeForGpu(status);
+  expect(status, JSON.stringify(status, null, 2)).toMatchObject({
+    example: "standard-gltf-texture",
+    scenario: "alpha-mask-backface",
+    materialModel: "gltf-standard-alpha-mask-backface",
+    ok: true,
+    phase: "rendered",
+    gltf: {
+      assetMapping: {
+        valid: true,
+        textureCount: 0,
+        samplerCount: 0,
+        materialCount: 1,
+        diagnostics: 0,
+      },
+      registration: {
+        valid: true,
+        diagnostics: 0,
+      },
+    },
+    standardMaterial: {
+      renderState: {
+        source: {
+          alphaMode: "MASK",
+          alphaCutoff: 0.35,
+          doubleSided: true,
+        },
+        mapped: {
+          alphaMode: "mask",
+          alphaCutoff: 0.35,
+          cullMode: "none",
+          blend: { preset: "none" },
+        },
+      },
+    },
+    backface: {
+      sample: { id: "backface", x: expect.any(Number), y: expect.any(Number) },
+      expectedColor: expect.any(Array),
+    },
+    extraction: { views: 1, meshDraws: 1, lights: 2, diagnostics: 0 },
+    draw: { packages: 1, drawCalls: 1 },
+  });
+  expect(status.standardTexture).toBeUndefined();
+  expect(status.pipelines?.keys).toContain("standard|mask|none|less|none");
+  expect(status.pipelines?.meshLayoutKeys).toContain(
+    "POSITION,NORMAL,TEXCOORD_0",
+  );
+  expect(status.diagnosticCodes ?? []).toEqual([]);
+
+  if (status.backface === undefined) {
+    throw new Error("standard glTF alpha-mask backface expectation is missing");
+  }
+
+  const screenshot = await page.locator("#aperture-canvas").screenshot();
+  const clear = rgbaColorToPixel({
+    r: status.clearColor?.r ?? 0,
+    g: status.clearColor?.g ?? 0,
+    b: status.clearColor?.b ?? 0,
+    a: status.clearColor?.a ?? 1,
+  });
+  const expected = rgbaColorToPixel(
+    rgbaTupleToColor(status.backface.expectedColor),
+  );
+  const pixel = readPngPixel(
+    screenshot,
+    status.backface.sample.x,
+    status.backface.sample.y,
+  );
+
+  expect(pixelDistance(pixel, expected)).toBeLessThan(
+    pixelDistance(pixel, clear),
+  );
+
+  if (status.readback?.ok) {
+    const readbackBackface = status.readback.samples.find(
+      (sample) => sample.id === "backface",
+    );
+
+    expect(readbackBackface).toBeDefined();
+
+    if (readbackBackface !== undefined) {
+      expect(pixelDistance(readbackBackface.pixel, expected)).toBeLessThan(
+        pixelDistance(readbackBackface.pixel, clear),
+      );
+    }
+  }
+
+  webGpuValidation.expectNoWarnings();
+});
+
 test("standard glTF alpha-mask texture fixture survives a narrow viewport", async ({
   page,
 }) => {
@@ -1165,6 +1323,181 @@ test("standard glTF alpha-mask texture fixture survives a narrow viewport", asyn
   expect(pixelDistance(maskedPixel, clear)).toBeLessThan(
     pixelDistance(maskedPixel, opaqueExpected),
   );
+  webGpuValidation.expectNoWarnings();
+});
+
+test("standard glTF texture fixture reports delayed source dependencies", async ({
+  page,
+}) => {
+  const webGpuValidation = attachWebGpuValidationConsoleGuard(page);
+
+  await page.goto(
+    "/examples/standard-gltf-texture.html?scenario=delayed-dependencies",
+  );
+
+  const status = await waitForExampleStatus<StandardGltfTextureStatus>(page);
+
+  await attachExampleStatus(
+    "standard-gltf-texture-delayed-dependencies-status",
+    status,
+  );
+  expect(
+    status,
+    "standard glTF delayed dependency status should publish",
+  ).toBeDefined();
+
+  if (status === undefined) {
+    return;
+  }
+
+  skipIfUnsupportedWebGpu(status);
+  expectStatusJsonSafeForGpu(status);
+  expect(status, JSON.stringify(status, null, 2)).toMatchObject({
+    example: "standard-gltf-texture",
+    scenario: "delayed-dependencies",
+    materialModel: "gltf-standard-delayed-dependencies",
+    ok: true,
+    phase: "expected-failure",
+    expectedFailure: true,
+    expectedMappingDiagnostic: null,
+    expectedDiagnostic: "webGpuApp.materialDependenciesNotReady",
+    expectedTextureStatus: "delayed-dependencies",
+    gltf: {
+      assetMapping: {
+        valid: true,
+        textureCount: 2,
+        samplerCount: 2,
+        materialCount: 1,
+        diagnostics: 0,
+      },
+      registration: {
+        valid: true,
+        written: 6,
+        diagnostics: 0,
+      },
+    },
+    standardTexture: {
+      meshKey: "mesh:gltf:mesh:0:primitive:0",
+      materialKey: "material:gltf:material:0",
+      textureKey: "texture:gltf:texture:0:baseColorTexture",
+      samplerKey: "sampler:gltf:sampler:0:baseColorTexture",
+      textureSlot: "baseColorTexture",
+      expectedDelayedDependencies: {
+        loadingTextureKey: "texture:gltf:texture:0:baseColorTexture",
+        failedTextureKey: "texture:gltf:texture:1:normalTexture",
+        loadingSamplerKey: "sampler:gltf:sampler:1:normalTexture",
+        failedSamplerKey: "sampler:gltf:sampler:0:baseColorTexture",
+      },
+    },
+    extraction: { views: 1, meshDraws: 0, lights: 2, diagnostics: 4 },
+    draw: { drawCalls: 0 },
+  });
+
+  const dependencyReport = status.materialDependencyReadiness?.[0];
+
+  expect(dependencyReport).toMatchObject({
+    ready: false,
+    materialKey: "material:gltf:material:0",
+  });
+  expect(dependencyReport?.dependencies).toEqual(
+    expect.arrayContaining([
+      expect.objectContaining({
+        field: "baseColorTexture",
+        dependencyKind: "texture",
+        handleKey: "texture:gltf:texture:0:baseColorTexture",
+        status: "loading",
+        ready: false,
+      }),
+      expect.objectContaining({
+        field: "baseColorTexture",
+        dependencyKind: "sampler",
+        handleKey: "sampler:gltf:sampler:0:baseColorTexture",
+        status: "failed",
+        ready: false,
+      }),
+      expect.objectContaining({
+        field: "normalTexture",
+        dependencyKind: "texture",
+        handleKey: "texture:gltf:texture:1:normalTexture",
+        status: "failed",
+        ready: false,
+      }),
+      expect.objectContaining({
+        field: "normalTexture",
+        dependencyKind: "sampler",
+        handleKey: "sampler:gltf:sampler:1:normalTexture",
+        status: "loading",
+        ready: false,
+      }),
+    ]),
+  );
+  expect(dependencyReport?.diagnostics).toEqual(
+    expect.arrayContaining([
+      expect.objectContaining({
+        code: "materialDependency.dependencyLoading",
+        dependencyKind: "texture",
+        dependencyKey: "texture:gltf:texture:0:baseColorTexture",
+        status: "loading",
+      }),
+      expect.objectContaining({
+        code: "materialDependency.dependencyFailed",
+        dependencyKind: "sampler",
+        dependencyKey: "sampler:gltf:sampler:0:baseColorTexture",
+        status: "failed",
+      }),
+      expect.objectContaining({
+        code: "materialDependency.dependencyFailed",
+        dependencyKind: "texture",
+        dependencyKey: "texture:gltf:texture:1:normalTexture",
+        status: "failed",
+      }),
+      expect.objectContaining({
+        code: "materialDependency.dependencyLoading",
+        dependencyKind: "sampler",
+        dependencyKey: "sampler:gltf:sampler:1:normalTexture",
+        status: "loading",
+      }),
+    ]),
+  );
+  expect(status.standardTexture?.readiness).toMatchObject({
+    ready: false,
+    materialKey: "material:gltf:material:0",
+    diagnostics: expect.arrayContaining([
+      expect.objectContaining({
+        code: "standardMaterialTexture.textureNotReady",
+        field: "baseColorTexture",
+        dependencyKind: "texture",
+        textureKey: "texture:gltf:texture:0:baseColorTexture",
+        status: "loading",
+      }),
+      expect.objectContaining({
+        code: "standardMaterialTexture.samplerNotReady",
+        field: "baseColorTexture",
+        dependencyKind: "sampler",
+        samplerKey: "sampler:gltf:sampler:0:baseColorTexture",
+        status: "failed",
+      }),
+      expect.objectContaining({
+        code: "standardMaterialTexture.textureNotReady",
+        field: "normalTexture",
+        dependencyKind: "texture",
+        textureKey: "texture:gltf:texture:1:normalTexture",
+        status: "failed",
+      }),
+      expect.objectContaining({
+        code: "standardMaterialTexture.samplerNotReady",
+        field: "normalTexture",
+        dependencyKind: "sampler",
+        samplerKey: "sampler:gltf:sampler:1:normalTexture",
+        status: "loading",
+      }),
+    ]),
+  });
+  expect(status.diagnosticCodes).toContain(
+    "webGpuApp.materialDependenciesNotReady",
+  );
+  expect(status.pipelines?.keys ?? []).toEqual([]);
+  expect(status.pipelines?.meshLayoutKeys ?? []).toEqual([]);
   webGpuValidation.expectNoWarnings();
 });
 

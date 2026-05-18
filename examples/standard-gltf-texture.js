@@ -26,6 +26,15 @@ const alphaMaskTexture = {
   opaqueSample: { id: "opaque", x: 0.455, y: 0.5 },
   maskedSample: { id: "masked", x: 0.53, y: 0.5 },
 };
+const alphaMaskBackface = {
+  source: {
+    alphaMode: "MASK",
+    alphaCutoff: 0.35,
+    doubleSided: true,
+  },
+  sample: { id: "backface", x: 0.5, y: 0.5 },
+  expectedColor: scalarColor,
+};
 const textureTransform = { offset: [0.25, 0] };
 const gltfSamplerSource = {
   magFilter: 9728,
@@ -58,6 +67,11 @@ const expectedGltfFailures = {
     renderDiagnostic:
       "render.standardMaterialTexture.unsupportedTextureTransform",
     status: "unsupported-transform",
+  },
+  "delayed-dependencies": {
+    mappingDiagnostic: null,
+    renderDiagnostic: "webGpuApp.materialDependenciesNotReady",
+    status: "delayed-dependencies",
   },
 };
 const scenario =
@@ -145,6 +159,7 @@ function createGltfTextureScene(aperture, app, targetCanvas, selectedScenario) {
     assetMapping,
     meshConstruction,
   });
+  applyDelayedDependencyScenario(aperture, app, config);
   const mesh = aperture.createMeshHandle("gltf:mesh:0:primitive:0");
   const material = aperture.createMaterialHandle("gltf:material:0");
 
@@ -176,7 +191,9 @@ function createGltfTextureScene(aperture, app, targetCanvas, selectedScenario) {
     }),
   );
   app.spawn(
-    aperture.withTransform(),
+    aperture.withTransform(
+      config.expectedBackface === null ? {} : { rotation: [0, 1, 0, 0] },
+    ),
     aperture.withMesh(mesh),
     aperture.withMaterial(material),
     aperture.withRenderLayer(1),
@@ -187,6 +204,7 @@ function createGltfTextureScene(aperture, app, targetCanvas, selectedScenario) {
     assetMapping,
     meshConstruction,
     registration,
+    app,
     mesh,
     material,
     textureSlot: config.textureSlot,
@@ -199,13 +217,10 @@ function createGltfTextureScene(aperture, app, targetCanvas, selectedScenario) {
     expectedOcclusion: config.expectedOcclusion,
     expectedEmissive: config.expectedEmissive,
     expectedAlphaMaskTexture: config.expectedAlphaMaskTexture,
+    expectedBackface: config.expectedBackface,
+    expectedDelayedDependencies: config.expectedDelayedDependencies,
     expectedRenderState: config.expectedRenderState,
-    readbackSamples: config.expectedAlphaMaskTexture
-      ? [
-          config.expectedAlphaMaskTexture.opaqueSample,
-          config.expectedAlphaMaskTexture.maskedSample,
-        ]
-      : [{ id: "textured", x: 0.5, y: 0.5 }],
+    readbackSamples: readbackSamplesForConfig(config),
   };
 }
 
@@ -219,6 +234,8 @@ function createGltfScenarioConfig(selectedScenario) {
   const usesAlphaMaskDoubleSided =
     selectedScenario === "alpha-mask-double-sided";
   const usesAlphaMaskTexture = selectedScenario === "alpha-mask-texture";
+  const usesAlphaMaskBackface = selectedScenario === "alpha-mask-backface";
+  const usesDelayedDependencies = selectedScenario === "delayed-dependencies";
 
   return {
     usesBaseColorTransform,
@@ -228,6 +245,8 @@ function createGltfScenarioConfig(selectedScenario) {
     usesEmissiveTexture,
     usesAlphaMaskDoubleSided,
     usesAlphaMaskTexture,
+    usesAlphaMaskBackface,
+    usesDelayedDependencies,
     textureSlot: usesMetallicRoughnessTexture
       ? "metallicRoughnessTexture"
       : usesNormalTexture
@@ -238,7 +257,11 @@ function createGltfScenarioConfig(selectedScenario) {
             ? "emissiveTexture"
             : usesAlphaMaskDoubleSided
               ? null
-              : "baseColorTexture",
+              : usesAlphaMaskBackface
+                ? null
+                : usesDelayedDependencies
+                  ? "baseColorTexture"
+                  : "baseColorTexture",
     materialModel: usesMetallicRoughnessTexture
       ? "gltf-standard-metallic-roughness-texture"
       : usesNormalTexture
@@ -251,7 +274,11 @@ function createGltfScenarioConfig(selectedScenario) {
               ? "gltf-standard-alpha-mask-double-sided"
               : usesAlphaMaskTexture
                 ? "gltf-standard-alpha-mask-texture"
-                : "gltf-standard-base-color-texture",
+                : usesAlphaMaskBackface
+                  ? "gltf-standard-alpha-mask-backface"
+                  : usesDelayedDependencies
+                    ? "gltf-standard-delayed-dependencies"
+                    : "gltf-standard-base-color-texture",
     expectedFailure: expectedGltfFailures[selectedScenario] ?? null,
     expectedTextureTransform: usesBaseColorTransform ? textureTransform : null,
     expectedTextureColor:
@@ -269,111 +296,153 @@ function createGltfScenarioConfig(selectedScenario) {
       ? { factor: emissiveFactor, color: emissiveColor }
       : null,
     expectedAlphaMaskTexture: usesAlphaMaskTexture ? alphaMaskTexture : null,
+    expectedBackface: usesAlphaMaskBackface ? alphaMaskBackface : null,
+    expectedDelayedDependencies: usesDelayedDependencies
+      ? {
+          loadingTextureKey: "texture:gltf:texture:0:baseColorTexture",
+          failedTextureKey: "texture:gltf:texture:1:normalTexture",
+          loadingSamplerKey: "sampler:gltf:sampler:1:normalTexture",
+          failedSamplerKey: "sampler:gltf:sampler:0:baseColorTexture",
+        }
+      : null,
     expectedRenderState:
-      usesAlphaMaskDoubleSided || usesAlphaMaskTexture
-        ? {
-            source: usesAlphaMaskTexture
-              ? alphaMaskTexture.source
-              : alphaMaskDoubleSided,
-            mapped: {
-              alphaMode: "mask",
-              alphaCutoff: usesAlphaMaskTexture
-                ? alphaMaskTexture.source.alphaCutoff
-                : alphaMaskDoubleSided.alphaCutoff,
-              cullMode: "none",
-              depth: { test: true, write: true, compare: "less" },
-              blend: { preset: "none" },
-            },
-          }
+      usesAlphaMaskDoubleSided || usesAlphaMaskTexture || usesAlphaMaskBackface
+        ? (() => {
+            const source = alphaMaskSourceForConfig({
+              usesAlphaMaskTexture,
+              usesAlphaMaskBackface,
+            });
+
+            return {
+              source,
+              mapped: {
+                alphaMode: "mask",
+                alphaCutoff: source.alphaCutoff,
+                cullMode: "none",
+                depth: { test: true, write: true, compare: "less" },
+                blend: { preset: "none" },
+              },
+            };
+          })()
         : null,
   };
 }
 
-function createGltfFixtureRoot(config) {
-  const pbrMetallicRoughness = config.usesMetallicRoughnessTexture
-    ? {
-        baseColorFactor: scalarColor,
-        metallicFactor: 1,
-        roughnessFactor: 1,
-        metallicRoughnessTexture: { index: 0 },
-      }
+function alphaMaskSourceForConfig(config) {
+  if (config.usesAlphaMaskTexture) {
+    return alphaMaskTexture.source;
+  }
+
+  if (config.usesAlphaMaskBackface) {
+    return alphaMaskBackface.source;
+  }
+
+  return alphaMaskDoubleSided;
+}
+
+function materialNameForConfig(config) {
+  return config.usesMetallicRoughnessTexture
+    ? "GLB Standard MetallicRoughness"
     : config.usesNormalTexture
-      ? {
-          baseColorFactor: scalarColor,
-          metallicFactor: 0,
-          roughnessFactor: 0.8,
-        }
+      ? "GLB Standard Normal"
       : config.usesOcclusionTexture
-        ? {
-            baseColorFactor: scalarColor,
-            metallicFactor: 0,
-            roughnessFactor: 0.8,
-          }
+        ? "GLB Standard Occlusion"
         : config.usesEmissiveTexture
-          ? {
-              baseColorFactor: scalarColor,
-              metallicFactor: 0,
-              roughnessFactor: 0.8,
-            }
+          ? "GLB Standard Emissive"
           : config.usesAlphaMaskDoubleSided
-            ? {
-                baseColorFactor: scalarColor,
-                metallicFactor: 0,
-                roughnessFactor: 0.8,
-              }
+            ? "GLB Standard Alpha Mask Double Sided"
             : config.usesAlphaMaskTexture
-              ? {
-                  baseColorFactor: [1, 1, 1, 1],
-                  baseColorTexture: { index: 0 },
-                  metallicFactor: 0,
-                  roughnessFactor: 0.8,
-                }
-              : {
-                  baseColorFactor: [1, 1, 1, 1],
-                  baseColorTexture: {
-                    index: 0,
-                    ...(config.usesBaseColorTransform
-                      ? {
-                          extensions: {
-                            KHR_texture_transform: textureTransform,
-                          },
-                        }
-                      : {}),
-                  },
-                  metallicFactor: 0,
-                  roughnessFactor: 0.8,
-                };
+              ? "GLB Standard Alpha Mask Texture"
+              : config.usesAlphaMaskBackface
+                ? "GLB Standard Alpha Mask Backface"
+                : config.usesDelayedDependencies
+                  ? "GLB Standard Delayed Dependencies"
+                  : "GLB Standard BaseColor";
+}
+
+function readbackSamplesForConfig(config) {
+  if (config.expectedAlphaMaskTexture !== null) {
+    return [
+      config.expectedAlphaMaskTexture.opaqueSample,
+      config.expectedAlphaMaskTexture.maskedSample,
+    ];
+  }
+
+  if (config.expectedBackface !== null) {
+    return [config.expectedBackface.sample];
+  }
+
+  return [{ id: "textured", x: 0.5, y: 0.5 }];
+}
+
+function createGltfFixtureRoot(config) {
+  let pbrMetallicRoughness;
+
+  if (config.usesMetallicRoughnessTexture) {
+    pbrMetallicRoughness = {
+      baseColorFactor: scalarColor,
+      metallicFactor: 1,
+      roughnessFactor: 1,
+      metallicRoughnessTexture: { index: 0 },
+    };
+  } else if (
+    config.usesNormalTexture ||
+    config.usesOcclusionTexture ||
+    config.usesEmissiveTexture ||
+    config.usesAlphaMaskDoubleSided ||
+    config.usesAlphaMaskBackface
+  ) {
+    pbrMetallicRoughness = {
+      baseColorFactor: scalarColor,
+      metallicFactor: 0,
+      roughnessFactor: 0.8,
+    };
+  } else if (config.usesAlphaMaskTexture || config.usesDelayedDependencies) {
+    pbrMetallicRoughness = {
+      baseColorFactor: [1, 1, 1, 1],
+      baseColorTexture: { index: 0 },
+      metallicFactor: 0,
+      roughnessFactor: 0.8,
+    };
+  } else {
+    pbrMetallicRoughness = {
+      baseColorFactor: [1, 1, 1, 1],
+      baseColorTexture: {
+        index: 0,
+        ...(config.usesBaseColorTransform
+          ? {
+              extensions: {
+                KHR_texture_transform: textureTransform,
+              },
+            }
+          : {}),
+      },
+      metallicFactor: 0,
+      roughnessFactor: 0.8,
+    };
+  }
 
   const material = {
-    name: config.usesMetallicRoughnessTexture
-      ? "GLB Standard MetallicRoughness"
-      : config.usesNormalTexture
-        ? "GLB Standard Normal"
-        : config.usesOcclusionTexture
-          ? "GLB Standard Occlusion"
-          : config.usesEmissiveTexture
-            ? "GLB Standard Emissive"
-            : config.usesAlphaMaskDoubleSided
-              ? "GLB Standard Alpha Mask Double Sided"
-              : config.usesAlphaMaskTexture
-                ? "GLB Standard Alpha Mask Texture"
-                : "GLB Standard BaseColor",
+    name: materialNameForConfig(config),
     pbrMetallicRoughness,
-    ...(config.usesAlphaMaskDoubleSided || config.usesAlphaMaskTexture
-      ? {
-          alphaMode: config.usesAlphaMaskTexture
-            ? alphaMaskTexture.source.alphaMode
-            : alphaMaskDoubleSided.alphaMode,
-          alphaCutoff: config.usesAlphaMaskTexture
-            ? alphaMaskTexture.source.alphaCutoff
-            : alphaMaskDoubleSided.alphaCutoff,
-          doubleSided: config.usesAlphaMaskTexture
-            ? alphaMaskTexture.source.doubleSided
-            : alphaMaskDoubleSided.doubleSided,
-        }
+    ...(config.usesAlphaMaskDoubleSided ||
+    config.usesAlphaMaskTexture ||
+    config.usesAlphaMaskBackface
+      ? (() => {
+          const source = alphaMaskSourceForConfig(config);
+
+          return {
+            alphaMode: source.alphaMode,
+            alphaCutoff: source.alphaCutoff,
+            doubleSided: source.doubleSided,
+          };
+        })()
       : {}),
     ...(config.usesNormalTexture
       ? { normalTexture: { index: 0, scale: 2 } }
+      : {}),
+    ...(config.usesDelayedDependencies
+      ? { normalTexture: { index: 1, scale: 1 } }
       : {}),
     ...(config.usesOcclusionTexture
       ? { occlusionTexture: { index: 0, strength: occlusion.strength } }
@@ -388,11 +457,25 @@ function createGltfFixtureRoot(config) {
     materials: [material],
     ...(config.textureSlot === null
       ? {}
-      : {
-          textures: [{ source: 0, sampler: 0 }],
-          images: [{ bufferView: 0, mimeType: "image/png", name: "BaseColor" }],
-          samplers: [gltfSamplerSource],
-        }),
+      : config.usesDelayedDependencies
+        ? {
+            textures: [
+              { source: 0, sampler: 0 },
+              { source: 1, sampler: 1 },
+            ],
+            images: [
+              { bufferView: 0, mimeType: "image/png", name: "BaseColor" },
+              { bufferView: 1, mimeType: "image/png", name: "Normal" },
+            ],
+            samplers: [gltfSamplerSource, gltfSamplerSource],
+          }
+        : {
+            textures: [{ source: 0, sampler: 0 }],
+            images: [
+              { bufferView: 0, mimeType: "image/png", name: "BaseColor" },
+            ],
+            samplers: [gltfSamplerSource],
+          }),
   };
 }
 
@@ -413,6 +496,38 @@ function textureBytesForSlot(textureSlot) {
     default:
       return baseColorTextureBytes;
   }
+}
+function applyDelayedDependencyScenario(aperture, app, config) {
+  if (config.expectedDelayedDependencies === null) {
+    return;
+  }
+
+  app.assets.markLoading(
+    aperture.createTextureHandle("gltf:texture:0:baseColorTexture"),
+  );
+  app.assets.markFailed(
+    aperture.createTextureHandle("gltf:texture:1:normalTexture"),
+    [
+      {
+        code: "example.gltfTextureDecodeFailed",
+        message: "Delayed dependency fixture marks normal texture failed.",
+        severity: "error",
+      },
+    ],
+  );
+  app.assets.markLoading(
+    aperture.createSamplerHandle("gltf:sampler:1:normalTexture"),
+  );
+  app.assets.markFailed(
+    aperture.createSamplerHandle("gltf:sampler:0:baseColorTexture"),
+    [
+      {
+        code: "example.gltfSamplerFailed",
+        message: "Delayed dependency fixture marks base-color sampler failed.",
+        severity: "error",
+      },
+    ],
+  );
 }
 
 function createGltfMeshConstructionReport(aperture, config) {
@@ -442,6 +557,7 @@ function createGltfMeshConstructionReport(aperture, config) {
 
 function createStatus(aperture, app, scene, report) {
   const snapshot = report.snapshot;
+  const reportJson = aperture.webGpuAppRenderReportToJsonValue(report);
   const pipelineKeys = snapshot.meshDraws.map(
     (draw) => draw.batchKey.pipelineKey,
   );
@@ -512,6 +628,19 @@ function createStatus(aperture, app, scene, report) {
     },
     standardMaterial: createStandardMaterialStatus(aperture, scene),
     ...createStandardTextureStatus(aperture, scene),
+    ...(scene.expectedBackface === null
+      ? {}
+      : {
+          backface: {
+            sample: scene.expectedBackface.sample,
+            expectedColor: scene.expectedBackface.expectedColor,
+          },
+        }),
+    ...(reportJson.materialDependencyReadiness === undefined
+      ? {}
+      : {
+          materialDependencyReadiness: reportJson.materialDependencyReadiness,
+        }),
     ...(report.readback === undefined ? {} : { readback: report.readback }),
     extraction: {
       views: snapshot.views.length,
@@ -563,6 +692,10 @@ function createStandardTextureStatus(aperture, scene) {
   if (scene.textureSlot === null) {
     return {};
   }
+  const readiness = aperture.createStandardMaterialTextureReadinessReport({
+    registry: scene.app.assets,
+    material: scene.material,
+  });
 
   return {
     standardTexture: {
@@ -580,7 +713,10 @@ function createStandardTextureStatus(aperture, scene) {
       expectedOcclusion: scene.expectedOcclusion,
       expectedEmissive: scene.expectedEmissive,
       expectedAlphaMaskTexture: scene.expectedAlphaMaskTexture,
+      expectedDelayedDependencies: scene.expectedDelayedDependencies,
       expectedTextureTransform: scene.expectedTextureTransform,
+      readiness:
+        aperture.standardMaterialTextureReadinessReportToJsonValue(readiness),
       sample: scene.samplePoint,
       samples:
         scene.expectedAlphaMaskTexture === null

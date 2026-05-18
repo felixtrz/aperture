@@ -1,9 +1,11 @@
 import type { MaterialQueuePhaseSummary } from "@aperture-engine/render";
+import type { WebGpuAppMaterialQueueRouteReportJsonValue } from "./material-queue-route-report.js";
 import type { QueuedBuiltInResourceSetSummary } from "./queued-built-in-resource-set-summary.js";
 import type { RenderFrameQueueDiagnosticsSummary } from "./render-frame-plan.js";
 
 export interface WebGpuAppDiagnosticsSummaryInput {
   readonly materialQueue?: MaterialQueuePhaseSummary;
+  readonly materialQueueRoute?: WebGpuAppMaterialQueueRouteReportJsonValue;
   readonly routedResourceSet?: QueuedBuiltInResourceSetSummary;
   readonly renderFrameQueue?: RenderFrameQueueDiagnosticsSummary;
 }
@@ -11,6 +13,7 @@ export interface WebGpuAppDiagnosticsSummaryInput {
 export interface WebGpuAppDiagnosticsSummary {
   readonly sectionCount: number;
   readonly materialQueue?: MaterialQueuePhaseSummary;
+  readonly materialQueueRoute?: WebGpuAppMaterialQueueRouteReportJsonValue;
   readonly routedResourceSet?: QueuedBuiltInResourceSetSummary;
   readonly renderFrameQueue?: RenderFrameQueueDiagnosticsSummary;
 }
@@ -25,6 +28,11 @@ export function createWebGpuAppDiagnosticsSummary(
   if (input.materialQueue !== undefined) {
     summary.sectionCount += 1;
     summary.materialQueue = input.materialQueue;
+  }
+
+  if (input.materialQueueRoute !== undefined) {
+    summary.sectionCount += 1;
+    summary.materialQueueRoute = input.materialQueueRoute;
   }
 
   if (input.routedResourceSet !== undefined) {

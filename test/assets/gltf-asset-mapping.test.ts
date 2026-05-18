@@ -202,4 +202,158 @@ describe("glTF asset mapping orchestration report", () => {
       },
     ]);
   });
+
+  it("preserves invalid GLB texture dependency context for every StandardMaterial slot", () => {
+    for (const slot of standardTextureSlots) {
+      const report = createGltfAssetMappingReport({
+        root: rootForSlot(slot, {
+          textures: [{ source: 7, sampler: 0 }],
+          images: [],
+          samplers: [{}],
+        }),
+        resolveImageData: () => decodedImage,
+      });
+
+      expect(report.valid).toBe(false);
+      expect(report.diagnostics).toMatchObject([
+        {
+          layer: "texture",
+          code: "gltfTexture.malformedImage",
+          textureIndex: 0,
+          slot: slot.slot,
+          field: "images[7]",
+        },
+        {
+          layer: "material",
+          code: "gltfMaterial.unresolvedTextureBinding",
+          textureIndex: 0,
+          slot: slot.slot,
+          field: slot.field,
+          dependencyKind: "texture",
+        },
+      ]);
+      expect(report.textures).toMatchObject([
+        {
+          handleKey: `gltf:texture:0:${slot.slot}`,
+          textureIndex: 0,
+          slot: slot.slot,
+          texture: null,
+        },
+      ]);
+      expect(report.samplers).toMatchObject([
+        {
+          handleKey: `gltf:sampler:0:${slot.slot}`,
+          textureIndex: 0,
+          slot: slot.slot,
+          sampler: expect.any(Object),
+        },
+      ]);
+      expect(report.materials).toMatchObject([
+        {
+          handleKey: "material:gltf:material:0",
+          materialIndex: 0,
+          material: { kind: "standard", [slot.slot]: null },
+        },
+      ]);
+    }
+  });
+
+  it("preserves invalid GLB sampler dependency context for every StandardMaterial slot", () => {
+    for (const slot of standardTextureSlots) {
+      const report = createGltfAssetMappingReport({
+        root: rootForSlot(slot, {
+          textures: [{ source: 0, sampler: 5 }],
+          images: [{ bufferView: 1, mimeType: "image/png" }],
+          samplers: [],
+        }),
+        resolveImageData: () => decodedImage,
+      });
+
+      expect(report.valid).toBe(false);
+      expect(report.diagnostics).toMatchObject([
+        {
+          layer: "texture",
+          code: "gltfTexture.invalidSamplerIndex",
+          textureIndex: 0,
+          samplerIndex: 5,
+          slot: slot.slot,
+          field: "textures[0].sampler",
+        },
+        {
+          layer: "material",
+          code: "gltfMaterial.unresolvedTextureBinding",
+          textureIndex: 0,
+          samplerIndex: 5,
+          slot: slot.slot,
+          field: slot.field,
+          dependencyKind: "sampler",
+        },
+      ]);
+      expect(report.textures).toMatchObject([
+        {
+          handleKey: `gltf:texture:0:${slot.slot}`,
+          textureIndex: 0,
+          slot: slot.slot,
+        },
+      ]);
+      expect(report.samplers).toMatchObject([
+        {
+          handleKey: `gltf:sampler:0:${slot.slot}`,
+          textureIndex: 0,
+          slot: slot.slot,
+          sampler: expect.any(Object),
+        },
+      ]);
+      expect(report.materials).toMatchObject([
+        {
+          handleKey: "material:gltf:material:0",
+          materialIndex: 0,
+          material: { kind: "standard", [slot.slot]: null },
+        },
+      ]);
+    }
+  });
 });
+
+const standardTextureSlots = [
+  {
+    slot: "baseColorTexture",
+    field: "pbrMetallicRoughness.baseColorTexture",
+  },
+  {
+    slot: "metallicRoughnessTexture",
+    field: "pbrMetallicRoughness.metallicRoughnessTexture",
+  },
+  { slot: "normalTexture", field: "normalTexture" },
+  { slot: "occlusionTexture", field: "occlusionTexture" },
+  { slot: "emissiveTexture", field: "emissiveTexture" },
+] as const;
+
+function rootForSlot(
+  slot: (typeof standardTextureSlots)[number],
+  source: {
+    readonly textures: readonly unknown[];
+    readonly images: readonly unknown[];
+    readonly samplers: readonly unknown[];
+  },
+) {
+  const textureInfo = { index: 0 };
+  const material =
+    slot.slot === "baseColorTexture" || slot.slot === "metallicRoughnessTexture"
+      ? {
+          pbrMetallicRoughness: {
+            [slot.slot]: textureInfo,
+          },
+        }
+      : {
+          [slot.slot]: textureInfo,
+        };
+
+  return {
+    asset: { version: "2.0" },
+    materials: [material],
+    textures: source.textures,
+    images: source.images,
+    samplers: source.samplers,
+  };
+}

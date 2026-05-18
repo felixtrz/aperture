@@ -59,16 +59,10 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start with `task-1127`. The latest run extracted the queued built-in
-resource-set collector from WebGPU app orchestration, added GLB-derived
-occlusion and emissive StandardMaterial browser fixtures, and added GLB
-alpha-mask/double-sided render-state browser diagnostics. The GLB browser
-helper/status audit found no boundary drift, and the next frame-resource
-collector split has been planned. GLB render-state browser status helpers were
-cleaned up locally without changing published status shapes. The GLB
-StandardMaterial dependency diagnostics matrix is now planned; the remaining
-dependency-diagnostic work is implementation coverage, not another planning
-pass.
+Start with `task-1149`. The latest run introduced generic queued material
+frame-resource collector contracts, kept the built-in wrapper compatible, added
+JSON-safe queued route summaries in app render reports, planned base-color
+texture-transform sampling, and audited GLB helper boundaries.
 
 ## Near-Term Proof Point Track
 
@@ -85,11 +79,11 @@ Target proof point:
 
 Remaining automation priority order:
 
-1. `task-1127` — extract queued built-in frame-resource preparation set.
-2. `task-1128` — add GLB invalid texture/sampler diagnostics matrix tests.
-3. `task-1129` — add GLB delayed dependency browser diagnostics fixture.
-4. `task-1132` — plan GLB alpha-mask backface visual fixture.
-5. `task-1136` — audit StandardMaterial alpha-mask coverage alignment.
+1. `task-1149` — surface app diagnostics summary in the standard GLB browser status.
+2. `task-1148` — implement base-color texture transform offset/scale sampling.
+3. `task-1150` — audit generic frame-resource collector after implementation.
+4. `task-1151` — plan StandardMaterial non-UV0 texture-coordinate fixture.
+5. `task-1152` — add generic collector failed-route diagnostics coverage.
 
 Defer allocation-only cleanup and metadata-only shader-contract tasks unless
 they are a direct blocker for this track.
@@ -155,115 +149,106 @@ viewer/material mapping should not outrun the material and queue architecture.
 
 ### Proof Point Critical Path
 
-### task-1127 — Extract queued built-in frame-resource preparation set
-
-Category: `webgpu-render`
-Package/write-scope: `packages/webgpu/src/webgpu/app.ts`,
-`packages/webgpu/src/webgpu/queued-built-in-frame-resource-set.ts`, and targeted
-WebGPU route/frame-resource tests.
-Reference anchor:
-`docs/research/GENERIC_MATERIAL_FAMILY_FRAME_RESOURCE_COLLECTOR_SPLIT_PLAN_2026_05_17.md`,
-`packages/webgpu/src/webgpu/queued-built-in-app-resource-set.ts`,
-`packages/webgpu/src/webgpu/built-in-material-app-resource-adapter.ts`,
-`references/engine/src/scene/renderer/forward-renderer.js`, and
-`references/three.js/src/renderers/common/RenderObject.js`.
-
-Acceptance criteria:
-
-- Move `prepareQueuedBuiltInFrameResources()` scratch ownership and result
-  assembly out of `app.ts` without changing rendered output or diagnostics.
-- Keep pipeline lookup, layout lookup, and app/device-specific frame-resource
-  callbacks injected from `app.ts`.
-- Preserve JSON-safe frame-resource route diagnostics and resource reuse
-  counters.
-- Existing queued route tests and full `standard-gltf-texture` browser spec
-  pass, plus a targeted test for one successful prepared frame-resource set and
-  one failed frame-resource route diagnostic.
-
-### task-1128 — Add GLB invalid texture/sampler diagnostics matrix tests
-
-Category: `render-bridge`
-Package/write-scope: `packages/render/src/assets`,
-`packages/render/src/materials`, and targeted GLB mapping/readiness tests.
-Reference anchor:
-`docs/research/GLB_STANDARD_MATERIAL_DEPENDENCY_DIAGNOSTICS_MATRIX_2026_05_17.md`,
-Bevy glTF/load-context dependency patterns, and current
-`createGltfAssetMappingReport()` / `createStandardMaterialTextureReadinessReport()`
-tests.
-
-Acceptance criteria:
-
-- Add a targeted GLB-shaped test matrix for base-color, metallic-roughness,
-  normal, occlusion, and emissive slots.
-- Cover at least one invalid texture/image path and one invalid sampler path,
-  preserving slot, field, texture index, sampler index when present, and
-  dependency kind in diagnostics.
-- Verify source registration skips or omits invalid planned dependencies
-  without registering a material with missing source texture/sampler edges.
-- Keep reports JSON-safe and free of source asset objects or WebGPU resources.
-
-### task-1129 — Add GLB delayed dependency browser diagnostics fixture
+### task-1149 — Surface app diagnostics summary in the standard GLB browser status
 
 Category: `runtime-orchestration`
-Package/write-scope: `examples/standard-gltf-texture.js`,
-`test/e2e/standard-gltf-texture.spec.ts`, and app-facing diagnostics only.
+Package/write-scope: `examples/standard-gltf-texture.js` and
+`test/e2e/standard-gltf-texture.spec.ts`.
 Reference anchor:
-`docs/research/GLB_STANDARD_MATERIAL_DEPENDENCY_DIAGNOSTICS_MATRIX_2026_05_17.md`,
-existing `standard-gltf-texture` GLB-derived scenarios, and generic
-missing/loading/failed texture browser diagnostics.
+`packages/webgpu/src/webgpu/app.ts`,
+`packages/webgpu/src/webgpu/app-diagnostics-summary.ts`, and
+`docs/research/STANDARD_GLB_TEXTURE_HELPER_EXTRACTION_AUDIT_2026_05_18.md`.
 
 Acceptance criteria:
 
-- Add a GLB-derived browser scenario that uses GLB-style material, texture, and
-  sampler handle keys while deliberately marking source texture/sampler
-  dependencies loading or failed before rendering.
-- Assert app-facing readiness diagnostics preserve GLB-derived keys, slot names,
-  dependency kinds, and statuses for texture and sampler failures.
-- Assert the published browser status remains JSON-safe and contains no raw
-  source asset objects or WebGPU resources.
-- Do not claim binary `.glb` loading or transparent blending support.
+- The standard GLB browser status publishes `report.diagnosticsSummary` when the
+  app render report includes one.
+- The ready StandardMaterial texture path asserts material queue and routed
+  resource-set summary counts.
+- The unsupported texture-transform or delayed-dependency path asserts the
+  summary remains absent or only includes the applicable route/readiness data.
+- Status remains JSON-safe and does not expose raw GPU resources or source asset
+  payloads.
 
-### task-1132 — Plan GLB alpha-mask backface visual fixture
+### task-1148 — Implement base-color texture transform offset/scale sampling
+
+Category: `webgpu-render`
+Package/write-scope: `packages/render/src/materials`,
+`packages/webgpu/src/webgpu`, `examples/standard-gltf-texture.js`, and
+`test/e2e/standard-gltf-texture.spec.ts`.
+Reference anchor:
+`docs/research/GLB_TEXTURE_TRANSFORM_SAMPLING_FIXTURE_PLAN_2026_05_18.md`,
+the current `base-color-transform` fixture,
+`packages/render/src/materials/gltf-material.ts`, and
+`packages/webgpu/src/webgpu/standard-shader.ts`.
+
+Acceptance criteria:
+
+- StandardMaterial base-color texture transforms support offset and scale for
+  UV0 without making ECS own renderer state.
+- Unsupported transform diagnostics remain for unsupported rotation or non-UV0
+  cases.
+- A browser fixture verifies transformed base-color sampling with readback.
+- Existing `base-color-transform` diagnostic coverage is either updated to the
+  unsupported case that remains true or replaced by a clearly named unsupported
+  rotation fixture.
+
+### task-1150 — Audit generic frame-resource collector after implementation
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research`, `packages/webgpu/src/webgpu`, and
+targeted tests only if a tiny corrective fix is needed.
+Reference anchor:
+`docs/research/GENERIC_MATERIAL_FAMILY_FRAME_RESOURCE_ADAPTER_INTERFACE_PLAN_2026_05_18.md`,
+`docs/ARCHITECTURE.md`, the generic collector from `task-1147`, and the built-in
+wrapper.
+
+Acceptance criteria:
+
+- Confirm the generic collector does not accept `WebGpuApp`, ECS world access,
+  canvas/context/queue submission, or renderer-authoritative source state.
+- Verify built-in material behavior remains adapter/sink-owned rather than
+  hard-coded in the generic collector.
+- Check scratch reuse and JSON-safe diagnostics.
+- Document concrete gaps and add follow-up tasks only for issues found.
+
+### task-1151 — Plan StandardMaterial non-UV0 texture-coordinate fixture
 
 Category: `runtime-orchestration`
 Package/write-scope: `docs/research`, `examples/standard-gltf-texture.js`, and
 `test/e2e/standard-gltf-texture.spec.ts` only for inspection.
 Reference anchor:
-`docs/research/GLB_ALPHA_DOUBLE_SIDED_RENDER_STATE_DIAGNOSTICS_PLAN_2026_05_17.md`,
-the alpha-mask texture pixel fixture, and current StandardMaterial render-state
-pipeline behavior.
+`packages/render/src/materials/gltf-material.ts`,
+`packages/webgpu/src/webgpu/standard-shader.ts`, and current GLB texture browser
+fixtures.
 
 Acceptance criteria:
 
-- Plan a narrow browser fixture that proves `doubleSided: true` visually without
-  adding transparent blending or multi-object sorting.
-- Define mesh orientation, camera/sample positions, source material fields,
-  expected pipeline key, and screenshot/readback assertions.
-- Decide whether the proof should reuse the alpha-mask texture fixture or use a
-  scalar masked material with a back-facing primitive.
-- Add a concrete implementation follow-up only if the plan stays aligned with
-  current StandardMaterial support.
+- Decide the smallest future fixture that proves non-UV0 texture-coordinate
+  diagnostics or sampling behavior honestly.
+- Identify mesh attribute, material `texCoord`, shader, and status/reporting
+  requirements.
+- Add a concrete implementation follow-up only if it is smaller than the
+  texture-transform sampling task and does not conflict with StandardMaterial
+  scope.
 
-### task-1136 — Audit StandardMaterial alpha-mask coverage alignment
+### task-1152 — Add generic collector failed-route diagnostics coverage
 
-Category: `audit-refactor`
-Package/write-scope: `docs/research`, alpha-mask browser/shader/buffer tests,
-and small docs/backlog updates only if needed.
+Category: `webgpu-render`
+Package/write-scope: `test/webgpu/queued-material-frame-resource-set.test.ts`
+and `packages/webgpu/src/webgpu/queued-material-frame-resource-set.ts` only if a
+small corrective fix is needed.
 Reference anchor:
-`docs/research/GLB_ALPHA_MASK_TEXTURE_PIXEL_FIXTURE_PLAN_2026_05_17.md`,
-`packages/webgpu/src/webgpu/standard-shader.ts`,
-`packages/webgpu/src/webgpu/standard-material-buffer.ts`, and the GLB
-alpha-mask browser tests.
+`packages/webgpu/src/webgpu/queued-material-frame-resource-set.ts`,
+`packages/webgpu/src/webgpu/queued-built-in-frame-resource-set.ts`, and
+`docs/research/QUEUED_FRAME_RESOURCE_EXTRACTION_BOUNDARY_AUDIT_2026_05_18.md`.
 
 Acceptance criteria:
 
-- Confirm alpha-mask coverage now spans glTF source mapping, buffer feature
-  flags, WGSL alpha discard, pipeline key, desktop pixels, and narrow viewport
-  pixels.
-- Identify any duplicated status/test helper code worth extracting later.
-- Verify no alpha-mask coverage claims transparent blending or binary `.glb`
-  loading.
-- Document findings and add follow-up tasks only for concrete gaps.
+- The generic collector test covers a failed frame-resource result and verifies
+  the injected route diagnostic is appended.
+- The failure path remains JSON-safe and does not expose raw GPU handles.
+- The built-in frame-resource route tests still pass.
 
 ## Post-Unlit E2E Verification Targets
 

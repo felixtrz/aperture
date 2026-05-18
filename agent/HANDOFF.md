@@ -1,5 +1,154 @@
 # Handoff
 
+## Current Run Update — 2026-05-18T02:43:00Z
+
+Completed `task-1142` through `task-1147`. Recommended next task is
+`task-1149`.
+
+Completed task ids:
+
+- `task-1142` — Audit queued frame-resource extraction boundary.
+- `task-1143` — Plan generic material-family frame-resource adapter interface.
+- `task-1144` — Expose queued route summary in app diagnostics.
+- `task-1145` — Plan GLB texture-transform sampling fixture.
+- `task-1146` — Audit standard GLB texture helper extraction.
+- `task-1147` — Introduce generic queued material frame-resource collector
+  contracts.
+
+Highlights:
+
+- Added
+  `docs/research/QUEUED_FRAME_RESOURCE_EXTRACTION_BOUNDARY_AUDIT_2026_05_18.md`;
+  confirmed the extracted queued frame-resource set module has no `WebGpuApp`,
+  canvas, ECS world, `AssetRegistry`, or render-world dependency.
+- Removed the unused `snapshot` input from
+  `prepareQueuedBuiltInFrameResourceSet()` and updated its app caller/tests.
+- Added
+  `docs/research/GENERIC_MATERIAL_FAMILY_FRAME_RESOURCE_ADAPTER_INTERFACE_PLAN_2026_05_18.md`;
+  next implementation slice is `task-1147`.
+- Added app render-report `diagnosticsSummary` JSON for queued material routes:
+  successful queued frames expose material queue and routed resource-set
+  summaries; unsupported route failures expose the JSON-safe material queue
+  route report.
+- Added
+  `docs/research/GLB_TEXTURE_TRANSFORM_SAMPLING_FIXTURE_PLAN_2026_05_18.md`
+  and
+  `docs/research/STANDARD_GLB_TEXTURE_HELPER_EXTRACTION_AUDIT_2026_05_18.md`.
+- Refilled the ready backlog with `task-1147` through `task-1151` and refreshed
+  `docs/index.html` / `docs/render-pipeline-comparison.html`.
+- Added `packages/webgpu/src/webgpu/queued-material-frame-resource-set.ts`,
+  exported it, and re-routed the built-in queued frame-resource set wrapper
+  through the generic collector. Added
+  `test/webgpu/queued-material-frame-resource-set.test.ts` for a generic
+  non-built-in success path.
+
+Validation in this continuation:
+
+- `pnpm exec vitest run test/webgpu/queued-built-in-frame-resource-set.test.ts`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec vitest run test/webgpu/app-diagnostics-summary.test.ts`
+- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts`
+- `pnpm exec vitest run test/webgpu/app-diagnostics-summary.test.ts test/webgpu/webgpu-app.test.ts`
+- `pnpm run check:progress`
+- `pnpm run check` passed: package boundaries, progress tracker, build,
+  test typecheck, example syntax checks, lint, format check, and 251 Vitest
+  files / 1169 tests.
+- `pnpm exec vitest run test/webgpu/queued-material-frame-resource-set.test.ts test/webgpu/queued-built-in-frame-resource-set.test.ts`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+
+Additional reference files/patterns inspected:
+
+- `docs/research/GENERIC_MATERIAL_FAMILY_FRAME_RESOURCE_COLLECTOR_SPLIT_PLAN_2026_05_17.md`
+- `docs/ARCHITECTURE.md`
+- `references/engine/src/scene/renderer/forward-renderer.js`
+- `references/three.js/src/renderers/common/RenderObject.js`
+- `packages/webgpu/src/webgpu/built-in-material-app-resource-adapter.ts`
+- `packages/webgpu/src/webgpu/queued-built-in-frame-resource-set.ts`
+- `packages/render/src/materials/gltf-material.ts`
+- `packages/webgpu/src/webgpu/standard-shader.ts`
+
+Known issues / follow-ups:
+
+- First stop-hook retry at 2026-05-18T02:55:08Z failed because
+  `agent/STATUS.json` still had `activePid=71520`; this was cleared before the
+  next retry.
+- `task-1149` should publish the app render `diagnosticsSummary` through the
+  standard GLB browser status and assert the JSON-safe route/resource summary.
+
+## Current Run Update — 2026-05-18T02:29:10Z
+
+Completed `task-1127`, `task-1128`, `task-1129`, `task-1132`, `task-1136`,
+and `task-1137` through `task-1141`. Recommended next task is `task-1142`.
+
+Completed task ids:
+
+- `task-1127` — Extract queued built-in frame-resource preparation set.
+- `task-1128` — Add GLB invalid texture/sampler diagnostics matrix tests.
+- `task-1129` — Add GLB delayed dependency browser diagnostics fixture.
+- `task-1132` — Plan GLB alpha-mask backface visual fixture.
+- `task-1136` — Audit StandardMaterial alpha-mask coverage alignment.
+- `task-1137` — Add GLB alpha-mask backface visual fixture.
+- `task-1138` — Add queued built-in frame-resource reuse regression test.
+- `task-1139` — Audit GLB delayed dependency browser status.
+- `task-1140` — Extract standard GLB texture scenario status helpers.
+- `task-1141` — Add StandardMaterial delayed dependency texture-readiness
+  status.
+
+Highlights:
+
+- Added `packages/webgpu/src/webgpu/queued-built-in-frame-resource-set.ts` and
+  moved queued built-in frame-resource scratch ownership/result assembly out of
+  `app.ts`; app-specific pipeline/layout/texture/frame-resource behavior remains
+  injected.
+- Added `test/webgpu/queued-built-in-frame-resource-set.test.ts` for successful
+  preparation, failed frame-resource route diagnostics, and scratch reset/reuse.
+- Preserved `dependencyKind` in top-level GLB asset mapping diagnostics and
+  added invalid image/texture and invalid sampler matrix tests for all five
+  StandardMaterial texture slots.
+- Added `standard-gltf-texture?scenario=delayed-dependencies` with GLB-derived
+  loading/failed texture and sampler source dependencies, material dependency
+  readiness, and StandardMaterial texture-readiness status.
+- Added
+  `docs/research/GLB_ALPHA_MASK_BACKFACE_VISUAL_FIXTURE_PLAN_2026_05_18.md`,
+  implemented `standard-gltf-texture?scenario=alpha-mask-backface`, and verified
+  a visible scalar masked backface pixel/readback sample on the no-cull pipeline.
+- Added alpha-mask and delayed-dependency audits and refreshed
+  `docs/index.html` / `docs/render-pipeline-comparison.html`.
+- Refilled ready backlog with `task-1142` through `task-1146`; next recommended
+  task is `task-1142` to audit the queued frame-resource extraction boundary.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/queued-built-in-frame-resource-set.test.ts`
+- `pnpm exec vitest run test/webgpu/queued-built-in-app-resource-set.test.ts test/webgpu/built-in-material-app-resource-adapter.test.ts test/webgpu/queued-built-in-frame-resource-set.test.ts`
+- `pnpm exec vitest run test/assets/gltf-asset-mapping.test.ts test/assets/gltf-source-registration-dependencies.test.ts test/materials/standard-texture-readiness.test.ts`
+- `node --check examples/standard-gltf-texture.js`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "delayed source dependencies"`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "backface"`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts`
+- `pnpm run check:progress`
+- `pnpm run check` passed: package boundaries, progress tracker, build,
+  test typecheck, example syntax checks, lint, format check, and 250 Vitest
+  files / 1168 tests.
+
+Additional reference files/patterns inspected:
+
+- `references/engine/src/scene/renderer/forward-renderer.js`
+- `references/three.js/src/renderers/common/RenderObject.js`
+- `references/bevy/crates/bevy_asset/src/loader.rs`
+- `references/bevy/crates/bevy_asset/src/render_asset.rs`
+- `references/bevy/crates/bevy_gltf/src/loader/mod.rs`
+- `references/bevy/crates/bevy_pbr/src/lib.rs`
+
+Known issues / follow-ups:
+
+- Stop hook still needs to run after this handoff entry.
+- `task-1142` should verify the queued frame-resource split did not introduce
+  app/canvas/ECS ownership drift.
+- `task-1144` and `task-1145` remain the next queue/status and texture-transform
+  planning candidates after the audit.
+
 ## Current Run Update — 2026-05-18T01:52:03Z
 
 Completed `task-1112`, `task-1119` through `task-1126`, `task-1130` through

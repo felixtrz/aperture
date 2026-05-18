@@ -393,13 +393,15 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-17 18:51 PDT</dd>
+            <dd>2026-05-17 19:41 PDT</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
-            <dd>GLB alpha-mask buffer and pixel coverage verified</dd>
+            <dd>
+              Queued diagnostics summaries and GLB fixture plans refreshed
+            </dd>
             <dt>Next focus</dt>
-            <dd>Extract queued built-in frame-resource preparation set</dd>
+            <dd>Surface queued diagnostics summary in GLB browser status</dd>
           </dl>
         </aside>
       </header>
@@ -434,24 +436,26 @@
           </article>
           <article class="card metric">
             <div class="label">render pipeline</div>
-            <div class="value">72%</div>
-            <div class="bar" aria-label="72 percent complete">
-              <span style="width: 72%"></span>
+            <div class="value">74%</div>
+            <div class="bar" aria-label="74 percent complete">
+              <span style="width: 74%"></span>
             </div>
             <p>
               The ECS-to-WebGPU spine is usable, app route reporting runs
               through the generic contract, and failed frame preparation now
-              reports key/status shells. Prepared facade summaries now align
-              with render-world binding readiness through a reusable report
-              adapter, with route summary grouping available for explicit
-              diagnostics. Richer passes and resource lifetime policy remain.
+              reports key/status shells. Queued built-in frame-resource set
+              preparation now lives outside app orchestration with reusable
+              scratch coverage, queued route/resource summaries now surface in
+              app render report JSON, and the built-in path now runs through a
+              generic collector contract. Richer passes and resource lifetime
+              policy remain.
             </p>
           </article>
           <article class="card metric">
             <div class="label">material system</div>
-            <div class="value">53%</div>
-            <div class="bar" aria-label="53 percent complete">
-              <span style="width: 53%"></span>
+            <div class="value">56%</div>
+            <div class="bar" aria-label="56 percent complete">
+              <span style="width: 56%"></span>
             </div>
             <p>
               Unlit, Matcap, DebugNormal, and direct-lit StandardMaterial paths
@@ -465,14 +469,17 @@
               transform diagnostics, a minimal GLB-derived base-color texture
               fixture, GLB sampler mapping status, and GLB-derived
               metallic-roughness, normal, occlusion, and emissive texture
-              fixtures plus alpha-mask double-sided render-state diagnostics.
+              fixtures plus alpha-mask double-sided render-state diagnostics,
+              alpha-mask pixels, backface no-cull pixels, and GLB delayed
+              dependency diagnostics; texture-transform sampling is now planned
+              as the next narrow fidelity slice.
             </p>
           </article>
           <article class="card metric">
             <div class="label">diagnostics</div>
-            <div class="value">73%</div>
-            <div class="bar" aria-label="73 percent complete">
-              <span style="width: 73%"></span>
+            <div class="value">74%</div>
+            <div class="bar" aria-label="74 percent complete">
+              <span style="width: 74%"></span>
             </div>
             <p>
               JSON-safe reports now cover extraction, queues, app summaries,
@@ -486,7 +493,8 @@
               texture diagnostics, opt-in app-facade readback samples,
               example-level texture fidelity summary usage, GLB-derived source
               registration status, GLB sampler mapping status, and GLB texture
-              transform/render-state diagnostics in browser.
+              transform/render-state diagnostics in browser, and queued material
+              diagnostics summaries in app render JSON.
             </p>
           </article>
         </div>
@@ -533,9 +541,9 @@
                 <div class="label">webgpu-render</div>
                 <h3>backend resources</h3>
               </div>
-              <span class="percent">57%</span>
+              <span class="percent">58%</span>
             </div>
-            <div class="bar"><span style="width: 57%"></span></div>
+            <div class="bar"><span style="width: 58%"></span></div>
             <p>
               Backend buffers, pipelines, bind groups, queues, and app facade
               exist, with pass graph and profiling still deferred.
@@ -562,9 +570,9 @@
                 <div class="label">examples/e2e</div>
                 <h3>browser proof points</h3>
               </div>
-              <span class="percent">46%</span>
+              <span class="percent">47%</span>
             </div>
-            <div class="bar"><span style="width: 46%"></span></div>
+            <div class="bar"><span style="width: 47%"></span></div>
             <p>
               Spinning cube, material showcase, diagnostics, queue phases, and
               WebGPU readback examples exist with Playwright coverage.
@@ -624,28 +632,32 @@
           <article class="phase">
             <div class="topline">
               <h3>2. collect</h3>
-              <span class="percent">72%</span>
+              <span class="percent">74%</span>
             </div>
-            <div class="bar"><span style="width: 72%"></span></div>
+            <div class="bar"><span style="width: 74%"></span></div>
             <p>
               Asset readiness and source-version dependency summaries exist for
-              meshes, materials, textures, and samplers.
+              meshes, materials, textures, and samplers. GLB-shaped invalid
+              texture/sampler mapping and delayed dependency browser diagnostics
+              now preserve slot, key, dependency-kind, and status context.
             </p>
             <ul>
               <li>
                 Missing one generic change-set scheduler across all prepared
                 assets.
               </li>
-              <li>Missing GLB delayed dependency browser diagnostics.</li>
+              <li>
+                Missing binary GLB loading and broader loader integration.
+              </li>
               <li>Missing automatic unload policy integration.</li>
             </ul>
           </article>
           <article class="phase">
             <div class="topline">
               <h3>3. prepare</h3>
-              <span class="percent">71%</span>
+              <span class="percent">74%</span>
             </div>
-            <div class="bar"><span style="width: 71%"></span></div>
+            <div class="bar"><span style="width: 74%"></span></div>
             <p>
               Prepared mesh/material facades and WebGPU-private backend caches
               exist for built-in material families, with compact render-world
@@ -654,7 +666,11 @@
               GLB-derived occlusion/emissive fixtures and alpha-mask
               double-sided diagnostics now run through the app facade. The
               GLB-derived alpha-mask texture fixture now verifies one opaque
-              pixel and one masked clear pixel.
+              pixel and one masked clear pixel; a scalar masked backface fixture
+              verifies no-cull visibility. Queued app render reports now expose
+              JSON-safe diagnostics summaries for routed resources, and built-in
+              frame-resource preparation is wrapped over a generic collector
+              contract.
             </p>
             <ul>
               <li>Missing generic material-family preparation contract.</li>
@@ -669,21 +685,22 @@
           <article class="phase">
             <div class="topline">
               <h3>4. queue</h3>
-              <span class="percent">69%</span>
+              <span class="percent">74%</span>
             </div>
-            <div class="bar"><span style="width: 69%"></span></div>
+            <div class="bar"><span style="width: 74%"></span></div>
             <p>
               Material-family queueing, route diagnostics, resource key
-              resolution, Standard transparent phases, app route reporting, and
-              failure diagnostics for frame-resource route shells are
-              implemented; the queued built-in resource-set collector now lives
-              in a focused internal module with route-report regression
-              coverage.
+              resolution, Standard transparent phases, app route reporting,
+              diagnostics summaries, and failure diagnostics for frame-resource
+              route shells are implemented; the queued built-in resource-set
+              collector now lives in a focused internal module and
+              frame-resource set preparation is extracted with reusable scratch
+              regression coverage and now runs through a generic collector
+              contract.
             </p>
             <ul>
               <li>
-                Missing full frame resource preparation migrated behind the
-                generic route contract.
+                Missing browser/example surfacing for app diagnostics summary.
               </li>
               <li>
                 Missing instancing, batching, and multi-material primitive queue
@@ -747,6 +764,26 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">task-1147</span> Introduced generic
+                queued material frame-resource collector contracts.
+              </li>
+              <li>
+                <span class="badge green">task-1144</span> Exposed queued route
+                and resource summaries in app render report JSON.
+              </li>
+              <li>
+                <span class="badge green">task-1145</span> Planned base-color
+                texture-transform offset/scale sampling fixture.
+              </li>
+              <li>
+                <span class="badge green">task-1146</span> Audited standard GLB
+                texture helper extraction boundaries.
+              </li>
+              <li>
+                <span class="badge green">task-1142</span> Audited queued
+                frame-resource extraction boundary and removed an unused input.
+              </li>
               <li>
                 <span class="badge green">task-0961</span> Added
                 StandardMaterial UV1 per-field readiness and shader feature
@@ -1365,8 +1402,8 @@
             <h3>Recommended next tasks</h3>
             <ul>
               <li>
-                <span class="badge amber">next</span> Extract queued built-in
-                frame-resource preparation set.
+                <span class="badge amber">next</span> Surface app diagnostics
+                summary in the standard GLB browser status.
               </li>
               <li>
                 Keep this tracker updated after render-pipeline or

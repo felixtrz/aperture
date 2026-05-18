@@ -13,6 +13,7 @@ import {
 } from "@aperture-engine/simulation";
 import {
   RenderWorld,
+  createMaterialQueuePhaseSummary,
   createPreparedMeshStore,
   createPreparedMaterialStore,
   createMaterialQueueScratch,
@@ -36,9 +37,7 @@ import {
   type MaterialAsset,
   type MeshAsset,
   type PackedSnapshotTransforms,
-  type PackedSnapshotTransformsScratch,
   type PackedSnapshotViewUniforms,
-  type PackedSnapshotViewUniformsScratch,
   type PreparedMaterialStore,
   type PreparedMaterialStoreJsonValue,
   type PreparedMeshStore,
@@ -86,7 +85,6 @@ import {
 } from "./frame-boundary.js";
 import { createLightBindGroupLayoutDescriptor } from "./light-bind-group-layout.js";
 import type { LightBindGroupLayoutResource } from "./light-bind-group-layout.js";
-import { type MatcapFrameGpuResources } from "./matcap-frame-resources.js";
 import {
   createOrReuseMatcapAppFrameResources,
   type CachedMatcapAppFrameResources,
@@ -104,22 +102,33 @@ import {
   type BuiltInMaterialQueueFamily,
 } from "./built-in-material-queue-family.js";
 import {
-  appendQueuedBuiltInFrameResourceViaAdapter,
   createQueuedBuiltInAppResourceAdapterRegistry,
   createQueuedBuiltInAppResourceFamilyAdapterTable,
 } from "./built-in-material-app-resource-adapter.js";
 import {
   collectQueuedBuiltInAppResourceSet,
+  createQueuedBuiltInAppRouteCollectorScratch,
   createSingleQueuedBuiltInAppResourceItem,
   type QueuedBuiltInAppResourceItem,
   type QueuedBuiltInAppResourceSet,
   type QueuedBuiltInAppRouteCollectorScratch,
-  type QueuedBuiltInMaterialAdapter,
 } from "./queued-built-in-app-resource-set.js";
-import { createWebGpuAppMaterialQueueRouteReportShell } from "./material-queue-route-report.js";
+import {
+  createQueuedBuiltInFrameResourceScratch,
+  prepareQueuedBuiltInFrameResourceSet,
+  type CreateQueuedBuiltInFrameResourcesResult,
+  type QueuedBuiltInFrameResourceRouteDiagnostic,
+  type QueuedBuiltInFrameResourceScratch,
+  type QueuedBuiltInFrameResources,
+} from "./queued-built-in-frame-resource-set.js";
+import { createQueuedBuiltInResourceSetSummary } from "./queued-built-in-resource-set-summary.js";
+import {
+  createWebGpuAppDiagnosticsSummary,
+  type WebGpuAppDiagnosticsSummary,
+} from "./app-diagnostics-summary.js";
+import type { WebGpuAppMaterialQueueRouteReportJsonValue } from "./material-queue-route-report.js";
 import { createStandardMaterialBindGroupLayoutPlan } from "./standard-bind-group-layout.js";
 import type { StandardMaterialBindGroupLayoutResource } from "./standard-bind-group.js";
-import { type StandardFrameGpuResources } from "./standard-frame-resources.js";
 import {
   createOrReuseStandardAppFrameResources,
   type CachedStandardAppFrameResources,
@@ -133,7 +142,6 @@ import {
 import {
   createMultiMaterialUnlitFrameGpuResources,
   type CreateMultiMaterialUnlitFrameGpuResourcesResult,
-  type UnlitFrameGpuResources,
 } from "./unlit-frame-resources.js";
 import {
   createOrReuseUnlitAppFrameResources,
@@ -158,18 +166,6 @@ import {
   writeRenderFramePlanFromSnapshot,
   type RenderFramePlanScratch,
 } from "./render-frame-plan.js";
-import {
-  appendPipelineScopedBindGroups,
-  createPipelineScopedBindGroupScratch,
-  resetPipelineScopedBindGroupScratch,
-  type PipelineScopedBindGroupScratch,
-} from "./pipeline-scoped-bind-groups.js";
-import { createReusableRouteCollector } from "./reusable-route-collector.js";
-import {
-  createQueuedMaterialFrameResourceRouteShell,
-  type QueuedMaterialFrameResourceResultLike,
-  type QueuedMaterialFrameResourceRouteShell,
-} from "./queued-material-frame-resource-route.js";
 import {
   initializeWebGpu,
   type InitializeWebGpuOptions,
@@ -239,11 +235,8 @@ export interface WebGpuAppResourceReuseReport {
   dynamicBufferWrites: number;
 }
 
-export interface WebGpuAppFrameResourceRouteDiagnostic {
-  readonly code: "webGpuApp.frameResourceRoute";
-  readonly message: string;
-  readonly route: QueuedMaterialFrameResourceRouteShell;
-}
+export type WebGpuAppFrameResourceRouteDiagnostic =
+  QueuedBuiltInFrameResourceRouteDiagnostic;
 
 export interface WebGpuAppMaterialDependencyDiagnostic {
   readonly code: "webGpuApp.materialDependenciesNotReady";
@@ -270,6 +263,7 @@ export interface WebGpuAppRenderReport {
   readonly snapshot: RenderSnapshot;
   readonly counts: WebGpuAppRenderCounts;
   readonly diagnostics: readonly unknown[];
+  readonly diagnosticsSummary?: WebGpuAppDiagnosticsSummary;
   readonly resourceReuse: WebGpuAppResourceReuseReport;
   readonly pipeline: WebGpuAppPipelineResourceResult | null;
   readonly resources: WebGpuAppFrameResourcesResult | null;
@@ -290,6 +284,7 @@ export interface WebGpuAppRenderReportJsonValue {
   readonly frame: number;
   readonly counts: WebGpuAppRenderCounts;
   readonly diagnostics: readonly WebGpuAppJsonValue[];
+  readonly diagnosticsSummary?: WebGpuAppDiagnosticsSummary;
   readonly resourceReuse: WebGpuAppResourceReuseReport;
   readonly readback?: WebGpuAppJsonValue;
   readonly materialDependencyReadiness?: readonly MaterialAssetDependencyReadinessReportJsonValue[];
@@ -325,11 +320,16 @@ interface WebGpuAppResourceCache {
 }
 
 interface WebGpuAppFrameScratch {
-  readonly viewUniforms: PackedSnapshotViewUniformsScratch;
-  readonly worldTransforms: PackedSnapshotTransformsScratch;
+  readonly viewUniforms: ReturnType<
+    typeof createPackedSnapshotViewUniformsScratch
+  >;
+  readonly worldTransforms: ReturnType<
+    typeof createPackedSnapshotTransformsScratch
+  >;
   readonly framePlan: RenderFramePlanScratch;
   readonly materialQueue: MaterialQueueScratch;
-  readonly queueRoute: QueuedBuiltInAppRouteScratch;
+  readonly queueRoute: QueuedBuiltInAppRouteCollectorScratch;
+  readonly queuedBuiltInFrameResources: QueuedBuiltInFrameResourceScratch<WebGpuAppPipelinePlanResult>;
 }
 
 interface WebGpuAppPipelineLayouts {
@@ -362,31 +362,6 @@ interface WebGpuAppPipelinePlanResult {
   readonly diagnostics: readonly [];
 }
 
-interface QueuedBuiltInAppRouteScratch extends QueuedBuiltInAppRouteCollectorScratch {
-  readonly pipelineResults: Map<string, WebGpuAppPipelinePlanResult>;
-  readonly pipelineResultList: WebGpuAppPipelinePlanResult[];
-  readonly meshResources: Map<string, UnlitFrameGpuResources["mesh"]>;
-  readonly meshResourceList: UnlitFrameGpuResources["mesh"][];
-  readonly meshResourceKeys: Map<string, string>;
-  readonly materialResourceKeys: Map<string, string>;
-  readonly bindGroups: UnlitFrameGpuResources["bindGroups"][number][];
-  readonly pipelineScopedBindGroups: PipelineScopedBindGroupScratch;
-  readonly unlit: UnlitFrameGpuResources[];
-  readonly matcap: MatcapFrameGpuResources[];
-  readonly standard: StandardFrameGpuResources[];
-}
-
-interface QueuedBuiltInFrameResources {
-  readonly mesh: UnlitFrameGpuResources["mesh"];
-  readonly viewUniform: UnlitFrameGpuResources["viewUniform"];
-  readonly worldTransforms: UnlitFrameGpuResources["worldTransforms"];
-  readonly meshResources: readonly UnlitFrameGpuResources["mesh"][];
-  readonly unlit: readonly UnlitFrameGpuResources[];
-  readonly matcap: readonly MatcapFrameGpuResources[];
-  readonly standard: readonly StandardFrameGpuResources[];
-  readonly bindGroups: readonly UnlitFrameGpuResources["bindGroups"][number][];
-}
-
 interface QueuedBuiltInTextureSamplerPreparationOptions {
   readonly app: WebGpuApp;
   readonly cache: QueuedBuiltInAppResourcePreparationCache;
@@ -411,12 +386,6 @@ type QueuedBuiltInAppResourcePreparationCache = Omit<
   WebGpuAppResourceCache,
   "preparedMaterials"
 >;
-
-interface CreateQueuedBuiltInFrameResourcesResult {
-  readonly valid: boolean;
-  readonly resources: QueuedBuiltInFrameResources | null;
-  readonly diagnostics: readonly unknown[];
-}
 
 export interface WebGpuApp {
   readonly world: EcsWorld;
@@ -580,30 +549,9 @@ function createWebGpuAppFrameScratch(): WebGpuAppFrameScratch {
     worldTransforms: createPackedSnapshotTransformsScratch(),
     framePlan: createRenderFramePlanScratch(),
     materialQueue: createMaterialQueueScratch(),
-    queueRoute: createQueuedBuiltInAppRouteScratch(),
-  };
-}
-
-function createQueuedBuiltInAppRouteScratch(): QueuedBuiltInAppRouteScratch {
-  return {
-    sourceMeshAssets: new Map(),
-    sourceMaterialAssets: new Map(),
-    pipelineResults: new Map(),
-    pipelineResultList: [],
-    meshResources: new Map(),
-    meshResourceList: [],
-    meshResourceKeys: new Map(),
-    materialResourceKeys: new Map(),
-    bindGroups: [],
-    pipelineScopedBindGroups: createPipelineScopedBindGroupScratch(),
-    unlit: [],
-    matcap: [],
-    standard: [],
-    routeCollector: createReusableRouteCollector<
-      QueuedBuiltInAppResourceItem,
-      unknown
-    >(),
-    routeReport: createWebGpuAppMaterialQueueRouteReportShell(),
+    queueRoute: createQueuedBuiltInAppRouteCollectorScratch(),
+    queuedBuiltInFrameResources:
+      createQueuedBuiltInFrameResourceScratch<WebGpuAppPipelinePlanResult>(),
   };
 }
 
@@ -877,28 +825,6 @@ function collectMultiUnlitAppResourceSet(options: {
   };
 }
 
-function createWebGpuAppFrameResourceRouteDiagnostic(
-  route: QueuedMaterialFrameResourceRouteShell,
-): WebGpuAppFrameResourceRouteDiagnostic {
-  return {
-    code: "webGpuApp.frameResourceRoute",
-    message: `WebGPU app frame resource preparation failed for '${route.family}' material route.`,
-    route,
-  };
-}
-
-function createQueuedBuiltInFrameResourceRouteShell(input: {
-  readonly item: QueuedBuiltInAppResourceItem;
-  readonly resources: QueuedMaterialFrameResourceResultLike<unknown>;
-}): QueuedMaterialFrameResourceRouteShell {
-  return createQueuedMaterialFrameResourceRouteShell({
-    prepareRoute: input.item.prepareRoute,
-    backendMeshKey: input.item.meshKey,
-    backendMaterialKey: input.item.materialKey,
-    frameResources: input.resources,
-  });
-}
-
 const QUEUED_BUILT_IN_MATERIAL_ADAPTERS =
   createQueuedBuiltInAppResourceAdapterRegistry<
     QueuedBuiltInTextureSamplerPreparationOptions,
@@ -1026,6 +952,9 @@ async function renderQueuedBuiltInWebGpuAppFrame(options: {
     viewUniforms: packedViews,
     worldTransforms: packedTransforms,
   });
+  const diagnosticsSummary = createQueuedBuiltInAppDiagnosticsSummary(
+    options.resourceSet,
+  );
 
   if (!prepared.valid || prepared.resources === null) {
     return renderReport({
@@ -1034,6 +963,7 @@ async function renderQueuedBuiltInWebGpuAppFrame(options: {
       pipeline: prepared.firstPipeline,
       resources: prepared.resourcesResult,
       resourceReuse: options.reuse,
+      diagnosticsSummary,
       diagnostics: [
         ...options.snapshot.diagnostics,
         ...packedViews.diagnostics,
@@ -1061,6 +991,7 @@ async function renderQueuedBuiltInWebGpuAppFrame(options: {
       pipeline: prepared.firstPipeline,
       resources: prepared.resourcesResult,
       resourceReuse: options.reuse,
+      diagnosticsSummary,
       diagnostics: [
         ...options.snapshot.diagnostics,
         ...packedViews.diagnostics,
@@ -1129,6 +1060,7 @@ async function renderQueuedBuiltInWebGpuAppFrame(options: {
     boundary,
     ...(readback === undefined ? {} : { readback }),
     resourceReuse: options.reuse,
+    diagnosticsSummary,
     drawPackages: framePlan.packages.packages.length,
     drawCommands: framePlan.commandPlan.commands.length,
     drawCalls: framePlan.commandPlan.drawCount,
@@ -1153,6 +1085,58 @@ async function renderQueuedBuiltInWebGpuAppFrame(options: {
   });
 }
 
+function createQueuedBuiltInAppDiagnosticsSummary(
+  resourceSet: QueuedBuiltInAppResourceSet,
+): WebGpuAppDiagnosticsSummary {
+  return createWebGpuAppDiagnosticsSummary({
+    materialQueue: createMaterialQueuePhaseSummary(
+      resourceSet.items.map((item) => item.queueItem),
+    ),
+    routedResourceSet: createQueuedBuiltInResourceSetSummary(
+      resourceSet.items.map((item) => ({
+        materialFamily: item.queueItem.materialFamily,
+        pipelineKey: item.draw.batchKey.pipelineKey,
+        renderPhase: item.queueItem.renderPhase,
+      })),
+    ),
+  });
+}
+
+function createQueuedBuiltInRouteFailureDiagnosticsSummary(
+  diagnostics: readonly unknown[],
+): WebGpuAppDiagnosticsSummary | undefined {
+  const materialQueueRoute = collectMaterialQueueRouteReport(diagnostics);
+
+  return materialQueueRoute === null
+    ? undefined
+    : createWebGpuAppDiagnosticsSummary({ materialQueueRoute });
+}
+
+function collectMaterialQueueRouteReport(
+  diagnostics: readonly unknown[],
+): WebGpuAppMaterialQueueRouteReportJsonValue | null {
+  for (const diagnostic of diagnostics) {
+    if (typeof diagnostic !== "object" || diagnostic === null) {
+      continue;
+    }
+
+    const candidate = diagnostic as {
+      readonly code?: unknown;
+      readonly report?: unknown;
+    };
+
+    if (
+      candidate.code === "webGpuApp.materialQueueRouteReport" &&
+      typeof candidate.report === "object" &&
+      candidate.report !== null
+    ) {
+      return candidate.report as WebGpuAppMaterialQueueRouteReportJsonValue;
+    }
+  }
+
+  return null;
+}
+
 async function prepareQueuedBuiltInFrameResources(options: {
   readonly app: WebGpuApp;
   readonly cache: WebGpuAppResourceCache;
@@ -1171,214 +1155,60 @@ async function prepareQueuedBuiltInFrameResources(options: {
   readonly meshResourceKeys: ReadonlyMap<string, string>;
   readonly materialResourceKeys: ReadonlyMap<string, string>;
 }> {
-  const scratch = options.cache.frameScratch.queueRoute;
-  const diagnostics: unknown[] = [];
-  const pipelineResults = scratch.pipelineResults;
-  const pipelineResultList = scratch.pipelineResultList;
-  const meshResources = scratch.meshResources;
-  const meshResourceList = scratch.meshResourceList;
-  const meshResourceKeys = scratch.meshResourceKeys;
-  const materialResourceKeys = scratch.materialResourceKeys;
-  const bindGroups = scratch.bindGroups;
-  const scopedBindGroups = scratch.pipelineScopedBindGroups;
-  const unlit = scratch.unlit;
-  const matcap = scratch.matcap;
-  const standard = scratch.standard;
-  let firstPipeline: WebGpuAppPipelineResourceResult | null = null;
-  let firstResources:
-    | UnlitFrameGpuResources
-    | MatcapFrameGpuResources
-    | StandardFrameGpuResources
-    | null = null;
-
-  pipelineResults.clear();
-  pipelineResultList.length = 0;
-  meshResources.clear();
-  meshResourceList.length = 0;
-  meshResourceKeys.clear();
-  materialResourceKeys.clear();
-  bindGroups.length = 0;
-  resetPipelineScopedBindGroupScratch(scopedBindGroups);
-  unlit.length = 0;
-  matcap.length = 0;
-  standard.length = 0;
-
-  for (const item of options.resourceSet.items) {
-    const adapter = item.adapter;
-    const pipeline = await getOrCreateWebGpuAppPipeline({
-      app: options.app,
-      cache: options.cache,
-      reuse: options.reuse,
-      kind: adapter.kind,
-      pipelineKey: item.draw.batchKey.pipelineKey,
-      batchKey: item.draw.batchKey,
-    });
-
-    firstPipeline ??= pipeline;
-
-    if (!pipeline.valid || pipeline.resource === null) {
-      diagnostics.push(...pipeline.diagnostics);
-      continue;
-    }
-
-    const pipelineHandle = pipeline.resource.pipeline as {
-      getBindGroupLayout?: (group: number) => unknown;
-    };
-
-    if (pipelineHandle.getBindGroupLayout === undefined) {
-      diagnostics.push({
-        code: "webGpuApp.missingPipelineLayouts",
-        message: "The WebGPU app pipeline does not expose bind group layouts.",
-      });
-      continue;
-    }
-
-    if (!pipelineResults.has(item.draw.batchKey.pipelineKey)) {
-      const pipelineResult = createWebGpuAppPipelinePlanResult(
-        item.draw,
-        pipeline,
-      );
-
-      pipelineResults.set(item.draw.batchKey.pipelineKey, pipelineResult);
-      pipelineResultList.push(pipelineResult);
-    }
-
-    const layouts = getWebGpuAppPipelineLayouts({
-      cache: options.cache,
-      kind: adapter.kind,
-      pipeline,
-      getBindGroupLayout:
-        pipelineHandle.getBindGroupLayout.bind(pipelineHandle),
-    });
-    const textureSamplerDependencies =
-      prepareQueuedBuiltInTextureSamplerDependencies({
-        adapter,
-        app: options.app,
-        cache: options.cache,
-        item,
-        reuse: options.reuse,
-      });
-
-    if (!textureSamplerDependencies.valid) {
-      diagnostics.push(...textureSamplerDependencies.diagnostics);
-      continue;
-    }
-
-    const resources = adapter.createFrameResources(
-      createQueuedBuiltInFrameResourceOptions({
-        app: options.app,
-        cache: options.cache,
-        snapshot: options.snapshot,
+  return prepareQueuedBuiltInFrameResourceSet({
+    resourceSet: options.resourceSet,
+    scratch: options.cache.frameScratch.queuedBuiltInFrameResources,
+    viewUniforms: options.viewUniforms,
+    worldTransforms: options.worldTransforms,
+    callbacks: {
+      getPipeline: (item) =>
+        getOrCreateWebGpuAppPipeline({
+          app: options.app,
+          cache: options.cache,
+          reuse: options.reuse,
+          kind: item.adapter.kind,
+          pipelineKey: item.draw.batchKey.pipelineKey,
+          batchKey: item.draw.batchKey,
+        }),
+      getPipelineView: (pipeline) => pipeline,
+      createPipelinePlanResult: ({ item, pipeline }) =>
+        createWebGpuAppPipelinePlanResult(item.draw, pipeline),
+      getPipelineLayouts: ({ item, pipeline, getBindGroupLayout }) =>
+        getWebGpuAppPipelineLayouts({
+          cache: options.cache,
+          kind: item.adapter.kind,
+          pipeline,
+          getBindGroupLayout,
+        }),
+      prepareTextureSamplerDependencies: ({ item }) =>
+        createPreparedMaterialTextureSamplerDependencies(
+          item.adapter.prepareTextureSamplerResources({
+            app: options.app,
+            cache: options.cache,
+            item,
+            reuse: options.reuse,
+          }),
+        ),
+      createFrameResourceOptions: ({
         item,
         textureSamplerDependencies,
-        viewUniforms: options.viewUniforms,
-        worldTransforms: options.worldTransforms,
+        viewUniforms,
+        worldTransforms,
         layouts,
-        reuse: options.reuse,
-      }),
-    );
-    const frameResourceRoute = createQueuedBuiltInFrameResourceRouteShell({
-      item,
-      resources: resources as {
-        readonly valid: boolean;
-        readonly diagnostics: readonly unknown[];
-      },
-    });
-
-    if (!resources.valid || resources.resources === null) {
-      diagnostics.push(...resources.diagnostics);
-      diagnostics.push(
-        createWebGpuAppFrameResourceRouteDiagnostic(frameResourceRoute),
-      );
-      continue;
-    }
-
-    firstResources ??= resources.resources;
-    appendQueuedBuiltInFrameResourceViaAdapter({
-      adapter,
-      result: resources,
-      buckets: {
-        unlit,
-        matcap,
-        standard,
-      },
-    });
-
-    if (!meshResources.has(resources.resources.mesh.resourceKey)) {
-      meshResources.set(
-        resources.resources.mesh.resourceKey,
-        resources.resources.mesh,
-      );
-      meshResourceList.push(resources.resources.mesh);
-    }
-    meshResourceKeys.set(
-      item.sourceMeshKey,
-      resources.resources.mesh.resourceKey,
-    );
-    materialResourceKeys.set(
-      item.sourceMaterialKey,
-      resources.resources.material.resourceKey,
-    );
-    appendPipelineScopedBindGroups(
-      resources.resources.bindGroups,
-      item.draw.batchKey.pipelineKey,
-      bindGroups,
-      scopedBindGroups,
-    );
-  }
-
-  const result: CreateQueuedBuiltInFrameResourcesResult = {
-    valid:
-      diagnostics.length === 0 &&
-      meshResources.size > 0 &&
-      materialResourceKeys.size > 0 &&
-      firstResources !== null,
-    resources:
-      diagnostics.length === 0 &&
-      meshResources.size > 0 &&
-      materialResourceKeys.size > 0 &&
-      firstResources !== null
-        ? {
-            mesh: firstResources.mesh,
-            viewUniform: firstResources.viewUniform,
-            worldTransforms: firstResources.worldTransforms,
-            meshResources: meshResourceList,
-            unlit,
-            matcap,
-            standard,
-            bindGroups,
-          }
-        : null,
-    diagnostics,
-  };
-
-  return {
-    valid: result.valid,
-    resources: result.resources,
-    resourcesResult: result,
-    diagnostics,
-    pipelineResults: pipelineResultList,
-    firstPipeline,
-    meshResourceKeys,
-    materialResourceKeys,
-  };
-}
-
-function prepareQueuedBuiltInTextureSamplerDependencies(input: {
-  readonly adapter: QueuedBuiltInMaterialAdapter;
-  readonly app: WebGpuApp;
-  readonly cache: WebGpuAppResourceCache;
-  readonly item: QueuedBuiltInAppResourceItem;
-  readonly reuse: WebGpuAppResourceReuseReport;
-}): PreparedMaterialTextureSamplerDependencies {
-  return createPreparedMaterialTextureSamplerDependencies(
-    input.adapter.prepareTextureSamplerResources({
-      app: input.app,
-      cache: input.cache,
-      item: input.item,
-      reuse: input.reuse,
-    }),
-  );
+      }) =>
+        createQueuedBuiltInFrameResourceOptions({
+          app: options.app,
+          cache: options.cache,
+          snapshot: options.snapshot,
+          item,
+          textureSamplerDependencies,
+          viewUniforms,
+          worldTransforms,
+          layouts,
+          reuse: options.reuse,
+        }),
+    },
+  });
 }
 
 function createQueuedBuiltInFrameResourceOptions(input: {
@@ -1567,10 +1397,16 @@ async function renderWebGpuAppFrame(
     : null;
 
   if (queuedBuiltIn !== null && !queuedBuiltIn.valid) {
+    const diagnosticsSummary =
+      createQueuedBuiltInRouteFailureDiagnosticsSummary(
+        queuedBuiltIn.diagnostics,
+      );
+
     return renderReport({
       ok: false,
       snapshot,
       resourceReuse: reuse,
+      ...(diagnosticsSummary === undefined ? {} : { diagnosticsSummary }),
       diagnostics: [...snapshot.diagnostics, ...queuedBuiltIn.diagnostics],
     });
   }
@@ -2060,6 +1896,9 @@ export function webGpuAppRenderReportToJsonValue(
     diagnostics: report.diagnostics.map((diagnostic) =>
       toWebGpuAppJsonValue(diagnostic),
     ),
+    ...(report.diagnosticsSummary === undefined
+      ? {}
+      : { diagnosticsSummary: report.diagnosticsSummary }),
     resourceReuse: { ...report.resourceReuse },
     ...(report.readback === undefined
       ? {}
@@ -2163,6 +2002,7 @@ function renderReport(input: {
   readonly ok: boolean;
   readonly snapshot: RenderSnapshot;
   readonly diagnostics: readonly unknown[];
+  readonly diagnosticsSummary?: WebGpuAppDiagnosticsSummary;
   readonly resourceReuse?: WebGpuAppResourceReuseReport;
   readonly pipeline?: WebGpuAppPipelineResourceResult | null;
   readonly resources?: WebGpuAppFrameResourcesResult | null;
@@ -2185,6 +2025,9 @@ function renderReport(input: {
       diagnostics: input.diagnostics.length,
     },
     diagnostics: input.diagnostics,
+    ...(input.diagnosticsSummary === undefined
+      ? {}
+      : { diagnosticsSummary: input.diagnosticsSummary }),
     resourceReuse: input.resourceReuse ?? createWebGpuAppResourceReuseReport(),
     pipeline: input.pipeline ?? null,
     resources: input.resources ?? null,

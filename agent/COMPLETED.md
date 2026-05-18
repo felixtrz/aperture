@@ -1,5 +1,64 @@
 # Completed Tasks
 
+## task-1127 through task-1147 — Queued frame-resource split, GLB diagnostics, and route summaries
+
+Completed: 2026-05-17
+
+Completed task ids:
+
+- `task-1127` — Extract queued built-in frame-resource preparation set.
+- `task-1128` — Add GLB invalid texture/sampler diagnostics matrix tests.
+- `task-1129` — Add GLB delayed dependency browser diagnostics fixture.
+- `task-1132` — Plan GLB alpha-mask backface visual fixture.
+- `task-1136` — Audit StandardMaterial alpha-mask coverage alignment.
+- `task-1137` — Add GLB alpha-mask backface visual fixture.
+- `task-1138` — Add queued built-in frame-resource reuse regression test.
+- `task-1139` — Audit GLB delayed dependency browser status.
+- `task-1140` — Extract standard GLB texture scenario status helpers.
+- `task-1141` — Add StandardMaterial delayed dependency texture-readiness
+  status.
+- `task-1142` — Audit queued frame-resource extraction boundary.
+- `task-1143` — Plan generic material-family frame-resource adapter interface.
+- `task-1144` — Expose queued route summary in app diagnostics.
+- `task-1145` — Plan GLB texture-transform sampling fixture.
+- `task-1146` — Audit standard GLB texture helper extraction.
+- `task-1147` — Introduce generic queued material frame-resource collector
+  contracts.
+
+Summary:
+
+- Moved queued built-in frame-resource scratch ownership/result assembly from
+  `app.ts` into `queued-built-in-frame-resource-set.ts` and covered success,
+  failed-route diagnostics, and scratch reuse.
+- Preserved GLB texture/sampler `dependencyKind` diagnostics across all
+  StandardMaterial texture slots.
+- Added delayed dependency and alpha-mask backface browser coverage with
+  JSON-safe status/readiness data.
+- Audited the frame-resource extraction boundary and removed an unused
+  `snapshot` input from the extracted module.
+- Planned the generic material-family frame-resource adapter interface and
+  base-color texture-transform sampling fixture.
+- Added `diagnosticsSummary` to WebGPU app render report JSON for queued
+  material routes/resource sets and unsupported route reports.
+- Audited the standard GLB texture helper extraction; no corrective code change
+  was needed.
+- Added `queued-material-frame-resource-set.ts` with generic collector scratch,
+  adapter/sink callbacks, and a built-in wrapper path over the generic
+  collector.
+
+Validation run:
+
+- `pnpm exec vitest run test/webgpu/queued-built-in-frame-resource-set.test.ts`
+- `pnpm exec vitest run test/webgpu/queued-built-in-app-resource-set.test.ts test/webgpu/built-in-material-app-resource-adapter.test.ts test/webgpu/queued-built-in-frame-resource-set.test.ts`
+- `pnpm exec vitest run test/assets/gltf-asset-mapping.test.ts test/assets/gltf-source-registration-dependencies.test.ts test/materials/standard-texture-readiness.test.ts`
+- `node --check examples/standard-gltf-texture.js`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts`
+- `pnpm exec vitest run test/webgpu/app-diagnostics-summary.test.ts test/webgpu/webgpu-app.test.ts`
+- `pnpm exec vitest run test/webgpu/queued-material-frame-resource-set.test.ts test/webgpu/queued-built-in-frame-resource-set.test.ts`
+- `pnpm run check:progress`
+- `pnpm run check`
+
 ## task-1112 through task-1135 — Queue collector and GLB texture/render-state diagnostics expansion
 
 Completed: 2026-05-17
@@ -9995,3 +10054,42 @@ Summary:
   unrelated `.mcp.json` and `docs/render-pipeline-comparison.html` files were
   added to `.prettierignore` per the user's instruction to ignore unrelated
   files.
+
+## task-1127 through task-1141 — Queued frame-resource split and GLB diagnostics
+
+Completed: 2026-05-18
+
+Completed task ids:
+
+- `task-1127` — Extract queued built-in frame-resource preparation set.
+- `task-1128` — Add GLB invalid texture/sampler diagnostics matrix tests.
+- `task-1129` — Add GLB delayed dependency browser diagnostics fixture.
+- `task-1132` — Plan GLB alpha-mask backface visual fixture.
+- `task-1136` — Audit StandardMaterial alpha-mask coverage alignment.
+- `task-1137` — Add GLB alpha-mask backface visual fixture.
+- `task-1138` — Add queued built-in frame-resource reuse regression test.
+- `task-1139` — Audit GLB delayed dependency browser status.
+- `task-1140` — Extract standard GLB texture scenario status helpers.
+- `task-1141` — Add StandardMaterial delayed dependency texture-readiness
+  status.
+
+Summary:
+
+- Added `queued-built-in-frame-resource-set.ts` and moved queued built-in
+  frame-resource scratch/result assembly out of WebGPU app orchestration while
+  keeping pipeline, layout, texture/sampler, and frame-resource callbacks
+  injected from `app.ts`.
+- Added successful, failed, and scratch-reuse frame-resource set tests.
+- Preserved GLB dependency-kind context in top-level asset mapping diagnostics
+  and added invalid texture/image plus invalid sampler matrix coverage across
+  base-color, metallic-roughness, normal, occlusion, and emissive slots.
+- Added a GLB delayed dependency browser fixture with loading/failed texture
+  and sampler source assets, material dependency readiness, and slot-level
+  StandardMaterial texture-readiness status.
+- Planned and implemented a scalar alpha-mask backface browser fixture proving
+  `doubleSided: true` reaches the no-cull pipeline with visible backface pixels.
+- Added alpha-mask and delayed-dependency audits, refreshed public progress
+  tracker pages, and refilled the backlog with `task-1142` through `task-1146`.
+- Validation run: targeted Vitest suites, full `standard-gltf-texture`
+  Playwright spec, `pnpm run check:progress`, and final `pnpm run check` passed
+  with 250 Vitest files / 1168 tests.

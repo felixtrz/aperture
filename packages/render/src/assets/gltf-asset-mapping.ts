@@ -11,6 +11,7 @@ import {
   gltfTextureMappingReportToJsonValue,
   type GltfImageDataResolver,
   type GltfMaterialMappingDiagnosticSeverity,
+  type GltfMaterialTextureDependencyKind,
   type GltfMaterialMappingReportJsonValue,
   type GltfMaterialTextureBindingResolver,
   type GltfMaterialTextureBindingResolverDiagnostic,
@@ -40,6 +41,7 @@ export interface GltfAssetMappingDiagnostic {
   readonly samplerIndex?: number;
   readonly slot?: GltfMaterialTextureSlot;
   readonly field?: string;
+  readonly dependencyKind?: GltfMaterialTextureDependencyKind;
 }
 
 export interface GltfPlannedTextureAsset {
@@ -232,6 +234,9 @@ export function createGltfAssetMappingReport(
           : { samplerIndex: diagnostic.samplerIndex }),
         ...(diagnostic.slot === undefined ? {} : { slot: diagnostic.slot }),
         ...(diagnostic.field === undefined ? {} : { field: diagnostic.field }),
+        ...(diagnostic.dependencyKind === undefined
+          ? {}
+          : { dependencyKind: diagnostic.dependencyKind }),
       })),
     );
   }

@@ -25,17 +25,20 @@ describe("WebGPU app diagnostics summary", () => {
 
   it("summarizes full diagnostic groups without exposing app payloads", () => {
     const materialQueue = materialQueueSummary();
+    const materialQueueRoute = materialQueueRouteSummary();
     const routedResourceSet = routedResourceSetSummary();
     const renderFrameQueue = renderFrameQueueSummary();
     const summary = createWebGpuAppDiagnosticsSummary({
       materialQueue,
+      materialQueueRoute,
       routedResourceSet,
       renderFrameQueue,
     });
 
     expect(summary).toEqual({
-      sectionCount: 3,
+      sectionCount: 4,
       materialQueue,
+      materialQueueRoute,
       routedResourceSet,
       renderFrameQueue,
     });
@@ -54,6 +57,50 @@ function materialQueueSummary(): MaterialQueuePhaseSummary {
     byPhase: [{ phase: "opaque", itemCount: 2 }],
     byFamily: [{ family: "standard", itemCount: 2 }],
     byPhaseAndFamily: [{ phase: "opaque", family: "standard", itemCount: 2 }],
+  };
+}
+
+function materialQueueRouteSummary() {
+  return {
+    valid: false,
+    queueItemCount: 2,
+    routedItemCount: 1,
+    skippedItemCount: 1,
+    byFamily: [
+      {
+        key: "debug-normal",
+        queuedCount: 1,
+        routedCount: 0,
+        skippedCount: 1,
+      },
+      {
+        key: "standard",
+        queuedCount: 1,
+        routedCount: 1,
+        skippedCount: 0,
+      },
+    ],
+    byPhase: [
+      {
+        key: "opaque",
+        queuedCount: 2,
+        routedCount: 1,
+        skippedCount: 1,
+      },
+    ],
+    diagnosticSummary: {
+      total: 1,
+      bySeverity: { info: 0, warning: 0, error: 1 },
+      byCode: { "webGpuApp.unsupportedMaterialQueueFamily": 1 },
+    },
+    diagnostics: [
+      {
+        code: "webGpuApp.unsupportedMaterialQueueFamily",
+        message: "Unsupported route.",
+        severity: "error" as const,
+        materialFamily: "debug-normal",
+      },
+    ],
   };
 }
 

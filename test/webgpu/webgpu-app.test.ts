@@ -3333,6 +3333,34 @@ describe("WebGPU app facade", () => {
         }),
       }),
     ]);
+    expect(webGpuAppRenderReportToJsonValue(frame)).toMatchObject({
+      diagnosticsSummary: {
+        sectionCount: 1,
+        materialQueueRoute: {
+          valid: false,
+          queueItemCount: 2,
+          routedItemCount: 1,
+          skippedItemCount: 1,
+          byFamily: expect.arrayContaining([
+            expect.objectContaining({
+              key: "unlit",
+              queuedCount: 1,
+              routedCount: 1,
+              skippedCount: 0,
+            }),
+            expect.objectContaining({
+              key: "debug-normal",
+              queuedCount: 1,
+              routedCount: 0,
+              skippedCount: 1,
+            }),
+          ]),
+        },
+      },
+    });
+    expect(
+      JSON.stringify(webGpuAppRenderReportToJsonValue(frame)),
+    ).not.toContain("GPUBuffer");
     expect(events).not.toContain("queue:submit:1");
   });
 
@@ -4112,6 +4140,31 @@ describe("WebGPU app facade", () => {
         diagnostics: 0,
       },
       diagnostics: [],
+      diagnosticsSummary: {
+        sectionCount: 2,
+        materialQueue: {
+          itemCount: 1,
+          byPhase: [{ phase: "opaque", itemCount: 1 }],
+          byFamily: [{ family: "standard", itemCount: 1 }],
+          byPhaseAndFamily: [
+            { phase: "opaque", family: "standard", itemCount: 1 },
+          ],
+        },
+        routedResourceSet: {
+          itemCount: 1,
+          byFamily: [{ family: "standard", itemCount: 1 }],
+          byPipeline: [
+            { pipelineKey: "standard|opaque|back|less|none", itemCount: 1 },
+          ],
+          byFamilyAndPipeline: [
+            {
+              family: "standard",
+              pipelineKey: "standard|opaque|back|less|none",
+              itemCount: 1,
+            },
+          ],
+        },
+      },
       resourceReuse: {
         pipelineMisses: 1,
         meshBuffersCreated: 1,
