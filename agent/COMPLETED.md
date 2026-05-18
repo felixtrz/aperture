@@ -1,5 +1,157 @@
 # Completed Tasks
 
+## task-1117 — Audit GLB texture browser status after metallic/normal work
+
+Completed: 2026-05-17
+
+Summary:
+
+- Added
+  `docs/research/GLB_TEXTURE_BROWSER_STATUS_AFTER_NORMAL_AUDIT_2026_05_17.md`.
+- Verified the GLB browser fixture remains ECS/source-asset authored and
+  snapshot-derived after base-color, metallic-roughness, normal-map, sampler
+  status, and transform-diagnostic coverage.
+- Verified browser status remains JSON-safe and does not expose raw texture
+  bytes, GPU resources, backend caches, queues, encoders, or WebGPU handles.
+- Added `task-1122` to repeat the audit after occlusion/emissive expansion.
+
+Validation run:
+
+- Documentation-only audit slice; covered by formatting and final repo
+  validation after handoff updates.
+
+## task-1115 — Add GLB StandardMaterial normal texture browser fixture
+
+Completed: 2026-05-17
+
+Summary:
+
+- Added `standard-gltf-texture?scenario=normal-map` to
+  `examples/standard-gltf-texture.js`.
+- The scenario maps a glTF `normalTexture` through source registration, uses a
+  local tangent-bearing plane mesh fixture, and renders through the existing
+  ECS/app-facade WebGPU path.
+- Browser status reports JSON-safe normal expectations, sampler mapping, source
+  asset keys, pipeline/resource counters, diagnostics, draw counts, and
+  readback samples when available.
+- Added Playwright coverage for the normal-map GLB fixture and expanded the full
+  GLB texture spec to four scenarios.
+
+Validation run:
+
+- `node --check examples/standard-gltf-texture.js`
+- `pnpm run typecheck:test`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "normal texture|normal-map"`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts`
+
+## task-1118 — Plan GLB alpha-mode and double-sided render-state browser diagnostics
+
+Completed: 2026-05-17
+
+Summary:
+
+- Added
+  `docs/research/GLB_ALPHA_DOUBLE_SIDED_RENDER_STATE_DIAGNOSTICS_PLAN_2026_05_17.md`.
+- Selected a first browser diagnostics/status slice for glTF `MASK`
+  alpha-mode plus `doubleSided: true`.
+- Defined expected JSON-safe source/mapped render-state fields, pipeline key
+  behavior, assertions, and non-goals.
+- Added `task-1121` as the implementation follow-up.
+
+Validation run:
+
+- Documentation-only planning slice; covered by formatting and final repo
+  validation after handoff updates.
+
+## task-1116 — Plan GLB occlusion/emissive browser fixture split
+
+Completed: 2026-05-17
+
+Summary:
+
+- Added
+  `docs/research/GLB_OCCLUSION_EMISSIVE_BROWSER_FIXTURE_SPLIT_PLAN_2026_05_17.md`.
+- Chose separate GLB-derived occlusion and emissive browser fixture
+  implementation tasks to keep visual assertions and status fields focused.
+- Defined expected glTF material shape, texture bytes, JSON-safe status fields,
+  pixel/readback strategy, and non-goals for each slot.
+- Added `task-1119` and `task-1120` follow-ups.
+
+Validation run:
+
+- Documentation-only planning slice; covered by formatting and final repo
+  validation after handoff updates.
+
+## task-1106 through task-1114 — GLB texture browser expansion, queue planning, and harness audit
+
+Completed: 2026-05-17
+
+Summary:
+
+- Audited GLB texture browser upload-usage boundaries after decoded glTF image
+  textures started requesting `["sampled", "copy-dst"]`.
+- Planned and implemented a GLB-derived StandardMaterial
+  `metallicRoughnessTexture` browser scenario through glTF mapping, source
+  registration, ECS authoring, and app-facade WebGPU rendering.
+- Added JSON-safe GLB sampler source/mapped status to the browser fixture and
+  Playwright assertions that no backend sampler resources or cache fields leak
+  into status.
+- Planned the next generic material-family queue migration around extracting
+  the built-in queue-to-frame-resource collector out of `app.ts`.
+- Audited the StandardMaterial texture-control and GLB browser harnesses after
+  repeat sampler, GLB transform diagnostics, and GLB sampler status additions.
+- Extracted local GLB scenario/status helpers in the example and e2e spec
+  without changing published status values.
+- Planned the next GLB-derived normal texture browser fixture.
+
+Validation run:
+
+- `node --check examples/standard-gltf-texture.js`
+- `pnpm run typecheck:test`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "mapped base-color"`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "metallic-roughness"`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts`
+
+## task-1099 through task-1105 — StandardMaterial texture browser harness, GLB fixture, sampler, and transform diagnostics
+
+Completed: 2026-05-17
+
+Summary:
+
+- Refactored `examples/standard-texture-control.js` into local helpers for
+  scenario flags, mesh fixture selection, texture/sampler assets, material
+  bindings, and expectations.
+- Refactored repeated Playwright setup/status assertions in
+  `test/e2e/standard-texture-control.spec.ts`.
+- Added `examples/standard-gltf-texture.html` and
+  `examples/standard-gltf-texture.js` with a minimal GLB-equivalent
+  StandardMaterial base-color texture fixture that maps material, texture,
+  sampler, and mesh source assets through glTF reports/source registration into
+  the normal ECS/app-facade render path.
+- Fixed glTF decoded texture assets to request `["sampled", "copy-dst"]`, so
+  uploadable image source data is compatible with WebGPU texture uploads while
+  keeping GPU ownership in the backend.
+- Added controlled `base-color-repeat-sampler` browser coverage for
+  StandardMaterial repeat-U address mode sampling.
+- Added GLB-derived `base-color-transform` expected-failure browser coverage
+  for preserved `KHR_texture_transform` metadata and promoted
+  `render.standardMaterialTexture.unsupportedTextureTransform` diagnostics.
+- Added research docs for the updated StandardMaterial browser texture matrix,
+  repeat address-mode sampler verification, and GLB texture-transform
+  diagnostics.
+
+Validation run:
+
+- `node --check examples/standard-texture-control.js`
+- `node --check examples/standard-gltf-texture.js`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec vitest run test/materials/gltf-texture.test.ts`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "texture transforms"`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts`
+- `pnpm exec playwright test test/e2e/standard-texture-control.spec.ts -g "repeat sampler"`
+- `pnpm exec playwright test test/e2e/standard-texture-control.spec.ts`
+- `pnpm run check`
+
 ## task-1098 — Controlled StandardMaterial texture-transform diagnostics browser scenario
 
 Completed: 2026-05-17

@@ -275,6 +275,7 @@ export function createTextureAssetFromGltfTexture(
     format: decoded.format ?? slotInfo.format,
     colorSpace: slotInfo.colorSpace,
     semantic: slotInfo.semantic,
+    usage: ["sampled", "copy-dst"],
     sourceData: decoded.sourceData,
   });
 

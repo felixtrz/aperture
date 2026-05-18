@@ -5,6 +5,7 @@ const clearColor = [0.015, 0.025, 0.035, 1];
 const scalarColor = [0.95, 0.1, 0.08, 1];
 const textureColor = [0.09375, 0.5, 1, 1];
 const uv1Coordinate = { u: 0.25, v: 0.25 };
+const repeatSamplerCoordinate = { u: 1.25, v: 0.25 };
 const textureTransform = { offset: [0.25, 0] };
 const uv1TextureBytes = [
   24, 128, 255, 255, 255, 32, 32, 255, 255, 255, 0, 255, 0, 255, 0, 255,
@@ -14,6 +15,7 @@ const linearSamplerTextureBytes = [
 ];
 const linearSamplerExpectedColor = [0.5, 0, 0.5, 1];
 const linearSamplerRejectedNearestColor = [1, 0, 0, 1];
+const repeatSamplerRejectedClampColor = [1, 32 / 255, 32 / 255, 1];
 const metallicRoughnessBytes = [0, 16, 64, 255];
 const metallicRoughness = { metallic: 64 / 255, roughness: 16 / 255 };
 const normalMapBytes = [128, 128, 16, 255];
@@ -112,158 +114,28 @@ function createScene(aperture, app, targetCanvas, selectedScenario) {
   const assets = aperture.createRenderAssetCollections({
     registry: app.assets,
   });
-  const usesMetallicRoughness = selectedScenario === "metallic-roughness";
-  const usesNormalMap =
-    selectedScenario === "normal-map" ||
-    selectedScenario === "normal-map-missing-tangents";
-  const usesMissingNormalTangents =
-    selectedScenario === "normal-map-missing-tangents";
-  const providesTangents = selectedScenario === "normal-map";
-  const usesOcclusion = selectedScenario === "occlusion";
-  const usesEmissive = selectedScenario === "emissive";
-  const usesBaseColorUv1 = selectedScenario === "base-color-uv1";
-  const usesLinearSampler = selectedScenario === "base-color-linear-sampler";
-  const usesBaseColorTransform = selectedScenario === "base-color-transform";
-  const meshAsset = aperture.createPlaneMeshAsset({
-    label: "StandardTextureControlPlane",
-    width: 0.78,
-    height: 0.9,
+  const flags = createScenarioFlags(selectedScenario);
+  const mesh = assets.meshes.add(createScenarioMeshAsset(aperture, flags), {
+    id: "standard-texture-control-plane",
   });
-  const mesh = assets.meshes.add(
-    providesTangents
-      ? createTangentPlaneMeshAsset(meshAsset)
-      : usesBaseColorUv1
-        ? createUv1PlaneMeshAsset(meshAsset, uv1Coordinate)
-        : meshAsset,
-    { id: "standard-texture-control-plane" },
-  );
-  const texture = aperture.createTextureHandle(
-    usesMetallicRoughness
-      ? "standard-control-metallic-roughness"
-      : usesNormalMap
-        ? "standard-control-normal"
-        : usesOcclusion
-          ? "standard-control-occlusion"
-          : usesEmissive
-            ? "standard-control-emissive"
-            : usesBaseColorUv1
-              ? "standard-control-base-color-uv1"
-              : usesLinearSampler
-                ? "standard-control-base-color-linear-sampler"
-                : usesBaseColorTransform
-                  ? "standard-control-base-color-transform"
-                  : "standard-control-base-color",
-  );
+  const texture = aperture.createTextureHandle(createScenarioTextureId(flags));
   const sampler = aperture.createSamplerHandle(
-    usesLinearSampler ? "standard-control-linear" : "standard-control-nearest",
+    flags.usesLinearSampler
+      ? "standard-control-linear"
+      : "standard-control-nearest",
   );
   const textureKey = aperture.assetHandleKey(texture);
   const samplerKey = aperture.assetHandleKey(sampler);
-  if (selectedScenario === "loading-texture") {
-    app.assets.register(texture);
-    app.assets.markLoading(texture);
-  } else if (selectedScenario === "failed-texture") {
-    app.assets.register(texture);
-    app.assets.markFailed(texture, [
-      {
-        code: "standard-control.texture.failed",
-        message: "Intentional StandardMaterial texture control failure.",
-        severity: "error",
-      },
-    ]);
-  } else if (selectedScenario !== "missing-texture") {
-    const textureBytes = usesMetallicRoughness
-      ? metallicRoughnessBytes
-      : usesNormalMap
-        ? normalMapBytes
-        : usesOcclusion
-          ? occlusionBytes
-          : usesEmissive
-            ? emissiveBytes
-            : usesBaseColorUv1
-              ? uv1TextureBytes
-              : usesLinearSampler
-                ? linearSamplerTextureBytes
-                : [24, 128, 255, 255];
-    app.assets.register(texture);
-    app.assets.markReady(
-      texture,
-      aperture.createTextureAsset({
-        label: usesMetallicRoughness
-          ? "StandardControlMetallicRoughness"
-          : usesNormalMap
-            ? "StandardControlNormal"
-            : usesOcclusion
-              ? "StandardControlOcclusion"
-              : usesEmissive
-                ? "StandardControlEmissive"
-                : usesBaseColorUv1
-                  ? "StandardControlBaseColorUv1"
-                  : usesLinearSampler
-                    ? "StandardControlBaseColorLinearSampler"
-                    : usesBaseColorTransform
-                      ? "StandardControlBaseColorTransform"
-                      : "StandardControlBaseColor",
-        dimension: "2d",
-        width: 2,
-        height: 2,
-        format:
-          usesMetallicRoughness || usesNormalMap || usesOcclusion
-            ? "rgba8unorm"
-            : "rgba8unorm-srgb",
-        colorSpace:
-          usesMetallicRoughness || usesNormalMap || usesOcclusion
-            ? "data"
-            : "srgb",
-        semantic: usesMetallicRoughness
-          ? "metallic-roughness"
-          : usesNormalMap
-            ? "normal"
-            : usesOcclusion
-              ? "occlusion"
-              : usesEmissive
-                ? "emissive"
-                : "base-color",
-        usage: ["sampled", "copy-dst"],
-        sourceData: {
-          bytes: textureSourceBytes(textureBytes),
-          bytesPerRow: 8,
-          rowsPerImage: 2,
-        },
-      }),
-    );
-  }
+  registerScenarioTextureAsset(aperture, app, flags, texture);
   app.assets.register(sampler);
-  app.assets.markReady(
-    sampler,
-    aperture.createSamplerAsset({
-      label: usesLinearSampler
-        ? "StandardControlLinearSampler"
-        : "StandardControlNearestSampler",
-      addressModeU: "clamp-to-edge",
-      addressModeV: "clamp-to-edge",
-      addressModeW: "clamp-to-edge",
-      magFilter: usesLinearSampler ? "linear" : "nearest",
-      minFilter: usesLinearSampler ? "linear" : "nearest",
-      mipmapFilter: "nearest",
-    }),
-  );
+  app.assets.markReady(sampler, createScenarioSamplerAsset(aperture, flags));
 
+  const materialInput = createScenarioMaterialInput(flags, texture, sampler);
   const scalar = assets.materials.standard.add(
     aperture.createStandardMaterialAsset({
       label: "StandardControlScalar",
       baseColorFactor: new Float32Array(scalarColor),
-      ...(usesMissingNormalTangents
-        ? { normalTexture: { texture, sampler }, normalScale: 2 }
-        : usesBaseColorTransform
-          ? {
-              baseColorTexture: {
-                texture,
-                sampler,
-                transform: textureTransform,
-              },
-            }
-          : {}),
+      ...materialInput.scalarTextureBinding,
       metallicFactor: 0,
       roughnessFactor: 0.8,
     }),
@@ -272,34 +144,10 @@ function createScene(aperture, app, targetCanvas, selectedScenario) {
   const textured = assets.materials.standard.add(
     aperture.createStandardMaterialAsset({
       label: "StandardControlTextured",
-      baseColorFactor: new Float32Array(
-        usesMetallicRoughness || usesNormalMap || usesOcclusion || usesEmissive
-          ? scalarColor
-          : [1, 1, 1, 1],
-      ),
-      ...(usesMetallicRoughness
-        ? { metallicRoughnessTexture: { texture, sampler } }
-        : usesNormalMap
-          ? { normalTexture: { texture, sampler }, normalScale: 2 }
-          : usesOcclusion
-            ? { occlusionTexture: { texture, sampler }, occlusionStrength: 1 }
-            : usesEmissive
-              ? {
-                  emissiveTexture: { texture, sampler },
-                  emissiveFactor: new Float32Array(emissiveFactor),
-                }
-              : {
-                  baseColorTexture: {
-                    texture,
-                    sampler,
-                    ...(usesBaseColorUv1 ? { texCoord: 1 } : {}),
-                    ...(usesBaseColorTransform
-                      ? { transform: textureTransform }
-                      : {}),
-                  },
-                }),
-      metallicFactor: usesMetallicRoughness ? 1 : 0,
-      roughnessFactor: usesMetallicRoughness ? 1 : 0.8,
+      baseColorFactor: new Float32Array(materialInput.texturedBaseColorFactor),
+      ...materialInput.texturedTextureBinding,
+      metallicFactor: flags.usesMetallicRoughness ? 1 : 0,
+      roughnessFactor: flags.usesMetallicRoughness ? 1 : 0.8,
     }),
     { id: "standard-control-textured" },
   );
@@ -318,11 +166,11 @@ function createScene(aperture, app, targetCanvas, selectedScenario) {
     aperture.withLight({
       kind: aperture.LightKind.Ambient,
       color: [1, 1, 1, 1],
-      intensity: usesLinearSampler
+      intensity: flags.usesLinearSampler
         ? 1
-        : usesNormalMap
+        : flags.usesNormalMap
           ? 0.25
-          : usesEmissive
+          : flags.usesEmissive
             ? 0.05
             : 0.72,
       layerMask: 1,
@@ -330,14 +178,17 @@ function createScene(aperture, app, targetCanvas, selectedScenario) {
   );
   app.spawn(
     aperture.withTransform(
-      usesNormalMap
+      flags.usesNormalMap
         ? { rotation: normalMapLightRotation }
         : { translation: [0.2, 0.8, 1.5] },
     ),
     aperture.withLight({
       kind: aperture.LightKind.Directional,
       color: [1, 1, 1, 1],
-      intensity: usesOcclusion || usesEmissive || usesLinearSampler ? 0 : 1.15,
+      intensity:
+        flags.usesOcclusion || flags.usesEmissive || flags.usesLinearSampler
+          ? 0
+          : 1.15,
       layerMask: 1,
     }),
   );
@@ -364,39 +215,363 @@ function createScene(aperture, app, targetCanvas, selectedScenario) {
     sampler,
     textureKey,
     samplerKey,
-    textureSlot: usesMetallicRoughness
+    ...createScenarioExpectations(flags),
+    samplePoints: {
+      scalar: { x: 0.34, y: 0.5 },
+      textured: { x: 0.62, y: 0.5 },
+    },
+    expectedFailure: flags.expectedFailure,
+  };
+}
+
+function createScenarioFlags(selectedScenario) {
+  const usesNormalMap =
+    selectedScenario === "normal-map" ||
+    selectedScenario === "normal-map-missing-tangents";
+
+  return {
+    selectedScenario,
+    usesMetallicRoughness: selectedScenario === "metallic-roughness",
+    usesNormalMap,
+    usesMissingNormalTangents:
+      selectedScenario === "normal-map-missing-tangents",
+    providesTangents: selectedScenario === "normal-map",
+    usesOcclusion: selectedScenario === "occlusion",
+    usesEmissive: selectedScenario === "emissive",
+    usesBaseColorUv1: selectedScenario === "base-color-uv1",
+    usesLinearSampler: selectedScenario === "base-color-linear-sampler",
+    usesRepeatSampler: selectedScenario === "base-color-repeat-sampler",
+    usesBaseColorTransform: selectedScenario === "base-color-transform",
+    expectedFailure: expectedTextureFailures[selectedScenario] ?? null,
+  };
+}
+
+function createScenarioMeshAsset(aperture, flags) {
+  const meshAsset = aperture.createPlaneMeshAsset({
+    label: "StandardTextureControlPlane",
+    width: 0.78,
+    height: 0.9,
+  });
+
+  if (flags.providesTangents) {
+    return createTangentPlaneMeshAsset(meshAsset);
+  }
+
+  if (flags.usesBaseColorUv1) {
+    return createUv1PlaneMeshAsset(meshAsset, uv1Coordinate);
+  }
+
+  if (flags.usesRepeatSampler) {
+    return createUv0PlaneMeshAsset(meshAsset, repeatSamplerCoordinate);
+  }
+
+  return meshAsset;
+}
+
+function createScenarioTextureId(flags) {
+  if (flags.usesMetallicRoughness) {
+    return "standard-control-metallic-roughness";
+  }
+
+  if (flags.usesNormalMap) {
+    return "standard-control-normal";
+  }
+
+  if (flags.usesOcclusion) {
+    return "standard-control-occlusion";
+  }
+
+  if (flags.usesEmissive) {
+    return "standard-control-emissive";
+  }
+
+  if (flags.usesBaseColorUv1) {
+    return "standard-control-base-color-uv1";
+  }
+
+  if (flags.usesLinearSampler) {
+    return "standard-control-base-color-linear-sampler";
+  }
+
+  if (flags.usesRepeatSampler) {
+    return "standard-control-base-color-repeat-sampler";
+  }
+
+  if (flags.usesBaseColorTransform) {
+    return "standard-control-base-color-transform";
+  }
+
+  return "standard-control-base-color";
+}
+
+function registerScenarioTextureAsset(aperture, app, flags, texture) {
+  if (flags.selectedScenario === "missing-texture") {
+    return;
+  }
+
+  app.assets.register(texture);
+
+  if (flags.selectedScenario === "loading-texture") {
+    app.assets.markLoading(texture);
+    return;
+  }
+
+  if (flags.selectedScenario === "failed-texture") {
+    app.assets.markFailed(texture, [
+      {
+        code: "standard-control.texture.failed",
+        message: "Intentional StandardMaterial texture control failure.",
+        severity: "error",
+      },
+    ]);
+    return;
+  }
+
+  app.assets.markReady(texture, createScenarioTextureAsset(aperture, flags));
+}
+
+function createScenarioTextureAsset(aperture, flags) {
+  const dataTexture =
+    flags.usesMetallicRoughness || flags.usesNormalMap || flags.usesOcclusion;
+
+  return aperture.createTextureAsset({
+    label: createScenarioTextureLabel(flags),
+    dimension: "2d",
+    width: 2,
+    height: 2,
+    format: dataTexture ? "rgba8unorm" : "rgba8unorm-srgb",
+    colorSpace: dataTexture ? "data" : "srgb",
+    semantic: createScenarioTextureSemantic(flags),
+    usage: ["sampled", "copy-dst"],
+    sourceData: {
+      bytes: textureSourceBytes(createScenarioTextureBytes(flags)),
+      bytesPerRow: 8,
+      rowsPerImage: 2,
+    },
+  });
+}
+
+function createScenarioTextureLabel(flags) {
+  if (flags.usesMetallicRoughness) {
+    return "StandardControlMetallicRoughness";
+  }
+
+  if (flags.usesNormalMap) {
+    return "StandardControlNormal";
+  }
+
+  if (flags.usesOcclusion) {
+    return "StandardControlOcclusion";
+  }
+
+  if (flags.usesEmissive) {
+    return "StandardControlEmissive";
+  }
+
+  if (flags.usesBaseColorUv1) {
+    return "StandardControlBaseColorUv1";
+  }
+
+  if (flags.usesLinearSampler) {
+    return "StandardControlBaseColorLinearSampler";
+  }
+
+  if (flags.usesRepeatSampler) {
+    return "StandardControlBaseColorRepeatSampler";
+  }
+
+  if (flags.usesBaseColorTransform) {
+    return "StandardControlBaseColorTransform";
+  }
+
+  return "StandardControlBaseColor";
+}
+
+function createScenarioTextureSemantic(flags) {
+  if (flags.usesMetallicRoughness) {
+    return "metallic-roughness";
+  }
+
+  if (flags.usesNormalMap) {
+    return "normal";
+  }
+
+  if (flags.usesOcclusion) {
+    return "occlusion";
+  }
+
+  if (flags.usesEmissive) {
+    return "emissive";
+  }
+
+  return "base-color";
+}
+
+function createScenarioTextureBytes(flags) {
+  if (flags.usesMetallicRoughness) {
+    return metallicRoughnessBytes;
+  }
+
+  if (flags.usesNormalMap) {
+    return normalMapBytes;
+  }
+
+  if (flags.usesOcclusion) {
+    return occlusionBytes;
+  }
+
+  if (flags.usesEmissive) {
+    return emissiveBytes;
+  }
+
+  if (flags.usesBaseColorUv1) {
+    return uv1TextureBytes;
+  }
+
+  if (flags.usesLinearSampler) {
+    return linearSamplerTextureBytes;
+  }
+
+  if (flags.usesRepeatSampler) {
+    return uv1TextureBytes;
+  }
+
+  return [24, 128, 255, 255];
+}
+
+function createScenarioSamplerAsset(aperture, flags) {
+  return aperture.createSamplerAsset({
+    label: flags.usesLinearSampler
+      ? "StandardControlLinearSampler"
+      : flags.usesRepeatSampler
+        ? "StandardControlRepeatSampler"
+        : "StandardControlNearestSampler",
+    addressModeU: flags.usesRepeatSampler ? "repeat" : "clamp-to-edge",
+    addressModeV: "clamp-to-edge",
+    addressModeW: "clamp-to-edge",
+    magFilter: flags.usesLinearSampler ? "linear" : "nearest",
+    minFilter: flags.usesLinearSampler ? "linear" : "nearest",
+    mipmapFilter: "nearest",
+  });
+}
+
+function createScenarioMaterialInput(flags, texture, sampler) {
+  const binding = { texture, sampler };
+
+  if (flags.usesMissingNormalTangents) {
+    return {
+      scalarTextureBinding: { normalTexture: binding, normalScale: 2 },
+      texturedBaseColorFactor: scalarColor,
+      texturedTextureBinding: { normalTexture: binding, normalScale: 2 },
+    };
+  }
+
+  if (flags.usesBaseColorTransform) {
+    return {
+      scalarTextureBinding: {
+        baseColorTexture: { ...binding, transform: textureTransform },
+      },
+      texturedBaseColorFactor: [1, 1, 1, 1],
+      texturedTextureBinding: {
+        baseColorTexture: { ...binding, transform: textureTransform },
+      },
+    };
+  }
+
+  if (flags.usesMetallicRoughness) {
+    return {
+      scalarTextureBinding: {},
+      texturedBaseColorFactor: scalarColor,
+      texturedTextureBinding: { metallicRoughnessTexture: binding },
+    };
+  }
+
+  if (flags.usesNormalMap) {
+    return {
+      scalarTextureBinding: {},
+      texturedBaseColorFactor: scalarColor,
+      texturedTextureBinding: { normalTexture: binding, normalScale: 2 },
+    };
+  }
+
+  if (flags.usesOcclusion) {
+    return {
+      scalarTextureBinding: {},
+      texturedBaseColorFactor: scalarColor,
+      texturedTextureBinding: {
+        occlusionTexture: binding,
+        occlusionStrength: 1,
+      },
+    };
+  }
+
+  if (flags.usesEmissive) {
+    return {
+      scalarTextureBinding: {},
+      texturedBaseColorFactor: scalarColor,
+      texturedTextureBinding: {
+        emissiveTexture: binding,
+        emissiveFactor: new Float32Array(emissiveFactor),
+      },
+    };
+  }
+
+  return {
+    scalarTextureBinding: {},
+    texturedBaseColorFactor: [1, 1, 1, 1],
+    texturedTextureBinding: {
+      baseColorTexture: {
+        ...binding,
+        ...(flags.usesBaseColorUv1 ? { texCoord: 1 } : {}),
+      },
+    },
+  };
+}
+
+function createScenarioExpectations(flags) {
+  return {
+    textureSlot: flags.usesMetallicRoughness
       ? "metallicRoughnessTexture"
-      : usesNormalMap
+      : flags.usesNormalMap
         ? "normalTexture"
-        : usesOcclusion
+        : flags.usesOcclusion
           ? "occlusionTexture"
-          : usesEmissive
+          : flags.usesEmissive
             ? "emissiveTexture"
             : "baseColorTexture",
-    expectedMetallicRoughness: usesMetallicRoughness ? metallicRoughness : null,
-    expectedNormalMap: usesNormalMap ? normalMapVector : null,
-    expectedOcclusion: usesOcclusion
+    expectedMetallicRoughness: flags.usesMetallicRoughness
+      ? metallicRoughness
+      : null,
+    expectedNormalMap: flags.usesNormalMap ? normalMapVector : null,
+    expectedOcclusion: flags.usesOcclusion
       ? { red: occlusionValue, strength: 1 }
       : null,
-    expectedEmissive: usesEmissive
+    expectedEmissive: flags.usesEmissive
       ? { factor: emissiveFactor, color: emissiveColor }
       : null,
-    expectedTexCoord: usesBaseColorUv1 ? 1 : 0,
-    expectedUv1: usesBaseColorUv1 ? uv1Coordinate : null,
-    expectedSampler: usesLinearSampler
+    expectedTexCoord: flags.usesBaseColorUv1 ? 1 : 0,
+    expectedUv1: flags.usesBaseColorUv1 ? uv1Coordinate : null,
+    expectedSampler: flags.usesLinearSampler
       ? {
           magFilter: "linear",
           minFilter: "linear",
           expectedColor: linearSamplerExpectedColor,
           rejectedNearestColor: linearSamplerRejectedNearestColor,
         }
+      : flags.usesRepeatSampler
+        ? {
+            addressModeU: "repeat",
+            addressModeV: "clamp-to-edge",
+            magFilter: "nearest",
+            minFilter: "nearest",
+            sampleUv: repeatSamplerCoordinate,
+            expectedColor: textureColor,
+            rejectedClampColor: repeatSamplerRejectedClampColor,
+          }
+        : null,
+    expectedTextureTransform: flags.usesBaseColorTransform
+      ? textureTransform
       : null,
-    expectedTextureTransform: usesBaseColorTransform ? textureTransform : null,
-    samplePoints: {
-      scalar: { x: 0.34, y: 0.5 },
-      textured: { x: 0.62, y: 0.5 },
-    },
-    expectedFailure: expectedTextureFailures[selectedScenario] ?? null,
   };
 }
 
@@ -529,6 +704,45 @@ function createTangentPlaneMeshAsset(mesh) {
           ...stream.attributes,
           { semantic: "TANGENT", format: "float32x4", offset: 32 },
         ],
+        data,
+      },
+    ],
+  };
+}
+
+function createUv0PlaneMeshAsset(mesh, uv) {
+  const stream = mesh.vertexStreams[0];
+
+  if (stream === undefined) {
+    throw new Error(
+      "Expected plane mesh fixture to provide one vertex stream.",
+    );
+  }
+
+  const uv0 = stream.attributes.find(
+    (attribute) => attribute.semantic === "TEXCOORD_0",
+  );
+
+  if (uv0 === undefined) {
+    throw new Error("Expected plane mesh fixture to provide TEXCOORD_0.");
+  }
+
+  const data = new Float32Array(stream.data);
+  const strideFloats = stream.arrayStride / 4;
+  const uvOffsetFloats = uv0.offset / 4;
+
+  for (let vertex = 0; vertex < stream.vertexCount; vertex += 1) {
+    const offset = vertex * strideFloats + uvOffsetFloats;
+    data[offset] = uv.u;
+    data[offset + 1] = uv.v;
+  }
+
+  return {
+    ...mesh,
+    vertexStreams: [
+      {
+        ...stream,
+        id: "standard-control-plane-uv0-repeat",
         data,
       },
     ],

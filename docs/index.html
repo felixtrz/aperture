@@ -393,13 +393,16 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-17 16:44 PDT</dd>
+            <dd>2026-05-17 17:47 PDT</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
-            <dd>StandardMaterial texture-transform diagnostics covered</dd>
+            <dd>GLB texture browser coverage expanded through normal maps</dd>
             <dt>Next focus</dt>
-            <dd>task-1099 texture-control harness helper extraction</dd>
+            <dd>
+              Extract material queue collector, audit GLB status, then add
+              occlusion/emissive fixtures
+            </dd>
           </dl>
         </aside>
       </header>
@@ -458,10 +461,13 @@
               are present, with aggregate texture/sampler fidelity diagnostics
               and extraction-level texture semantic/color-space details now
               covered. Controlled browser texture verification now covers
-              base-color, base-color UV1, base-color linear sampler,
+              base-color, base-color UV1, base-color linear and repeat samplers,
               metallic-roughness, normal-map, occlusion, and emissive positive
-              paths plus missing, loading, and failed base-color states and
-              normal missing-tangent and base-color transform diagnostics.
+              paths plus missing/loading/failed base-color states, normal
+              missing-tangent diagnostics, authored and GLB-derived base-color
+              transform diagnostics, a minimal GLB-derived base-color texture
+              fixture, GLB sampler mapping status, and GLB-derived
+              metallic-roughness and normal texture fixtures.
             </p>
           </article>
           <article class="card metric">
@@ -479,8 +485,10 @@
               route health, tracker freshness validation, extraction-level
               StandardMaterial texture semantic/color-space details, controlled
               StandardMaterial texture browser status, loading/failed browser
-              texture diagnostics, opt-in app-facade readback samples, and
-              example-level texture fidelity summary usage.
+              texture diagnostics, opt-in app-facade readback samples,
+              example-level texture fidelity summary usage, GLB-derived source
+              registration status, GLB sampler mapping status, and GLB texture
+              transform diagnostics in browser.
             </p>
           </article>
         </div>
@@ -1247,14 +1255,66 @@
                 <span class="badge green">task-1098</span> Added controlled
                 StandardMaterial base-color texture-transform diagnostics.
               </li>
+              <li>
+                <span class="badge green">task-1099</span> Extracted local
+                StandardMaterial texture-control harness helpers.
+              </li>
+              <li>
+                <span class="badge green">task-1100</span> Added a minimal
+                GLB-derived StandardMaterial base-color browser fixture.
+              </li>
+              <li>
+                <span class="badge green">task-1101</span> Audited
+                StandardMaterial browser texture coverage after transform and
+                GLB additions.
+              </li>
+              <li>
+                <span class="badge green">task-1102</span> Planned repeat
+                address-mode sampler browser verification.
+              </li>
+              <li>
+                <span class="badge green">task-1103</span> Planned GLB
+                texture-transform diagnostics browser verification.
+              </li>
+              <li>
+                <span class="badge green">task-1104</span> Added controlled
+                StandardMaterial repeat sampler browser verification.
+              </li>
+              <li>
+                <span class="badge green">task-1105</span> Added GLB-derived
+                texture-transform diagnostics browser verification.
+              </li>
+              <li>
+                <span class="badge green">task-1106-1114</span> Audited GLB
+                texture upload boundaries, added GLB sampler mapping status,
+                added GLB metallic-roughness browser coverage, planned the
+                material-family queue collector extraction, cleaned up GLB
+                browser helpers, and planned GLB normal texture coverage.
+              </li>
+              <li>
+                <span class="badge green">task-1116</span> Planned separate GLB
+                occlusion and emissive browser fixture slices.
+              </li>
+              <li>
+                <span class="badge green">task-1118</span> Planned a GLB
+                alpha-mask and double-sided render-state diagnostics slice.
+              </li>
+              <li>
+                <span class="badge green">task-1115</span> Added GLB-derived
+                StandardMaterial normal texture browser coverage.
+              </li>
+              <li>
+                <span class="badge green">task-1117</span> Audited GLB texture
+                browser status after metallic-roughness and normal-map coverage.
+              </li>
             </ul>
           </article>
           <article class="card task-list">
             <h3>Recommended next tasks</h3>
             <ul>
               <li>
-                <span class="badge amber">task-1099</span> Extract local
-                StandardMaterial texture-control scenario helpers.
+                <span class="badge amber">next</span> Extract the queued
+                built-in resource-set collector from the WebGPU app route.
               </li>
               <li>
                 Keep this tracker updated after render-pipeline or

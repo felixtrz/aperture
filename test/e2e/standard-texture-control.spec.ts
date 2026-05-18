@@ -1,6 +1,11 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 
-import { pixelDistance, readPngPixel, rgbaColorToPixel } from "./png.js";
+import {
+  pixelDistance,
+  readPngPixel,
+  rgbaColorToPixel,
+  type RgbaPixel,
+} from "./png.js";
 import {
   attachExampleStatus,
   attachWebGpuValidationConsoleGuard,
@@ -29,6 +34,7 @@ const blockedTextureScenarios = [
     attachmentName: "standard-texture-control-failed-texture-status",
   },
 ] as const;
+type BlockedTextureScenario = (typeof blockedTextureScenarios)[number];
 
 interface StandardTextureControlStatus extends ExampleStatusBase {
   readonly renderingBackend?: string;
@@ -77,10 +83,17 @@ interface StandardTextureControlStatus extends ExampleStatusBase {
       readonly v: number;
     } | null;
     readonly expectedSampler?: {
-      readonly magFilter: string;
-      readonly minFilter: string;
+      readonly addressModeU?: string;
+      readonly addressModeV?: string;
+      readonly magFilter?: string;
+      readonly minFilter?: string;
+      readonly sampleUv?: {
+        readonly u: number;
+        readonly v: number;
+      };
       readonly expectedColor: RgbaTuple;
-      readonly rejectedNearestColor: RgbaTuple;
+      readonly rejectedNearestColor?: RgbaTuple;
+      readonly rejectedClampColor?: RgbaTuple;
     } | null;
     readonly expectedTextureTransform?: {
       readonly offset?: readonly [number, number];
@@ -115,59 +128,34 @@ test("standard texture control renders a distinct base-color textured material",
 }) => {
   const webGpuValidation = attachWebGpuValidationConsoleGuard(page);
 
-  await page.goto("/examples/standard-texture-control.html");
-
-  const status = await waitForExampleStatus<StandardTextureControlStatus>(page);
-
-  await attachExampleStatus("standard-texture-control-status", status);
-  expect(
-    status,
+  const status = await loadStandardTextureControlStatus(
+    page,
+    "ready",
+    "standard-texture-control-status",
     "standard texture control status should publish",
-  ).toBeDefined();
+  );
 
   if (status === undefined) {
     return;
   }
 
-  skipIfUnsupportedWebGpu(status);
-  expectStatusJsonSafeForGpu(status);
-  expect(status, JSON.stringify(status, null, 2)).toMatchObject({
-    example: "standard-texture-control",
-    ok: true,
-    phase: "rendered",
-    renderingBackend: "webgpu-explicit",
-    extraction: { views: 1, meshDraws: 2, lights: 2, diagnostics: 0 },
-    resources: {
-      textureResourcesCreated: 1,
-      samplerResourcesCreated: 1,
-      materialBuffersCreated: 2,
-    },
-    draw: { packages: 2, drawCalls: 2 },
-  });
+  expectRenderedStandardTextureStatus(status);
   expect(status.pipelines?.keys).toContain(
     "standard|baseColorTexture|opaque|back|less|none",
   );
 
-  if (status.standardTexture === undefined) {
-    throw new Error("standard texture status is missing");
-  }
+  const standardTexture = requireStandardTextureStatus(status);
 
   const screenshot = await page.locator("#aperture-canvas").screenshot();
-  const scalarSample = readPngPixel(
+  const { scalarSample, texturedSample } = readCanvasSamples(
     screenshot,
-    status.standardTexture.samples.scalar.x,
-    status.standardTexture.samples.scalar.y,
-  );
-  const texturedSample = readPngPixel(
-    screenshot,
-    status.standardTexture.samples.textured.x,
-    status.standardTexture.samples.textured.y,
+    standardTexture,
   );
   const expectedTexture = rgbaColorToPixel(
-    rgbaTupleToColor(status.standardTexture.expectedTextureColor),
+    rgbaTupleToColor(standardTexture.expectedTextureColor),
   );
   const expectedScalar = rgbaColorToPixel(
-    rgbaTupleToColor(status.standardTexture.expectedScalarColor),
+    rgbaTupleToColor(standardTexture.expectedScalarColor),
   );
 
   expect(pixelDistance(texturedSample, expectedTexture)).toBeLessThan(
@@ -219,41 +207,18 @@ test("standard texture control renders a base-color texture through TEXCOORD_1",
 }) => {
   const webGpuValidation = attachWebGpuValidationConsoleGuard(page);
 
-  await page.goto(
-    "/examples/standard-texture-control.html?scenario=base-color-uv1",
-  );
-
-  const status = await waitForExampleStatus<StandardTextureControlStatus>(page);
-
-  await attachExampleStatus(
+  const status = await loadStandardTextureControlStatus(
+    page,
+    "base-color-uv1",
     "standard-texture-control-base-color-uv1-status",
-    status,
-  );
-  expect(
-    status,
     "base-color UV1 texture control status should publish",
-  ).toBeDefined();
+  );
 
   if (status === undefined) {
     return;
   }
 
-  skipIfUnsupportedWebGpu(status);
-  expectStatusJsonSafeForGpu(status);
-  expect(status, JSON.stringify(status, null, 2)).toMatchObject({
-    example: "standard-texture-control",
-    scenario: "base-color-uv1",
-    ok: true,
-    phase: "rendered",
-    renderingBackend: "webgpu-explicit",
-    extraction: { views: 1, meshDraws: 2, lights: 2, diagnostics: 0 },
-    resources: {
-      textureResourcesCreated: 1,
-      samplerResourcesCreated: 1,
-      materialBuffersCreated: 2,
-    },
-    draw: { packages: 2, drawCalls: 2 },
-  });
+  expectRenderedStandardTextureStatus(status, "base-color-uv1");
   expect(status.pipelines?.keys).toContain(
     "standard|baseColorTexture|uv1|opaque|back|less|none",
   );
@@ -269,26 +234,18 @@ test("standard texture control renders a base-color texture through TEXCOORD_1",
     },
   });
 
-  if (status.standardTexture === undefined) {
-    throw new Error("standard texture status is missing");
-  }
+  const standardTexture = requireStandardTextureStatus(status);
 
   const screenshot = await page.locator("#aperture-canvas").screenshot();
-  const scalarSample = readPngPixel(
+  const { scalarSample, texturedSample } = readCanvasSamples(
     screenshot,
-    status.standardTexture.samples.scalar.x,
-    status.standardTexture.samples.scalar.y,
-  );
-  const texturedSample = readPngPixel(
-    screenshot,
-    status.standardTexture.samples.textured.x,
-    status.standardTexture.samples.textured.y,
+    standardTexture,
   );
   const expectedTexture = rgbaColorToPixel(
-    rgbaTupleToColor(status.standardTexture.expectedTextureColor),
+    rgbaTupleToColor(standardTexture.expectedTextureColor),
   );
   const expectedScalar = rgbaColorToPixel(
-    rgbaTupleToColor(status.standardTexture.expectedScalarColor),
+    rgbaTupleToColor(standardTexture.expectedScalarColor),
   );
 
   expect(pixelDistance(texturedSample, expectedTexture)).toBeLessThan(
@@ -326,41 +283,18 @@ test("standard texture control renders a base-color texture with linear sampling
 }) => {
   const webGpuValidation = attachWebGpuValidationConsoleGuard(page);
 
-  await page.goto(
-    "/examples/standard-texture-control.html?scenario=base-color-linear-sampler",
-  );
-
-  const status = await waitForExampleStatus<StandardTextureControlStatus>(page);
-
-  await attachExampleStatus(
+  const status = await loadStandardTextureControlStatus(
+    page,
+    "base-color-linear-sampler",
     "standard-texture-control-base-color-linear-sampler-status",
-    status,
-  );
-  expect(
-    status,
     "base-color linear sampler texture control status should publish",
-  ).toBeDefined();
+  );
 
   if (status === undefined) {
     return;
   }
 
-  skipIfUnsupportedWebGpu(status);
-  expectStatusJsonSafeForGpu(status);
-  expect(status, JSON.stringify(status, null, 2)).toMatchObject({
-    example: "standard-texture-control",
-    scenario: "base-color-linear-sampler",
-    ok: true,
-    phase: "rendered",
-    renderingBackend: "webgpu-explicit",
-    extraction: { views: 1, meshDraws: 2, lights: 2, diagnostics: 0 },
-    resources: {
-      textureResourcesCreated: 1,
-      samplerResourcesCreated: 1,
-      materialBuffersCreated: 2,
-    },
-    draw: { packages: 2, drawCalls: 2 },
-  });
+  expectRenderedStandardTextureStatus(status, "base-color-linear-sampler");
   expect(status.pipelines?.keys).toContain(
     "standard|baseColorTexture|opaque|back|less|none",
   );
@@ -377,27 +311,23 @@ test("standard texture control renders a base-color texture with linear sampling
     },
   });
 
+  const standardTexture = requireStandardTextureStatus(status);
+
   if (
-    status.standardTexture === undefined ||
-    status.standardTexture.expectedSampler === undefined ||
-    status.standardTexture.expectedSampler === null
+    standardTexture.expectedSampler === undefined ||
+    standardTexture.expectedSampler === null ||
+    standardTexture.expectedSampler.rejectedNearestColor === undefined
   ) {
     throw new Error("standard sampler texture status is missing");
   }
 
   const screenshot = await page.locator("#aperture-canvas").screenshot();
-  const texturedSample = readPngPixel(
-    screenshot,
-    status.standardTexture.samples.textured.x,
-    status.standardTexture.samples.textured.y,
-  );
+  const { texturedSample } = readCanvasSamples(screenshot, standardTexture);
   const expectedLinear = rgbaColorToPixel(
-    rgbaTupleToColor(status.standardTexture.expectedSampler.expectedColor),
+    rgbaTupleToColor(standardTexture.expectedSampler.expectedColor),
   );
   const rejectedNearest = rgbaColorToPixel(
-    rgbaTupleToColor(
-      status.standardTexture.expectedSampler.rejectedNearestColor,
-    ),
+    rgbaTupleToColor(standardTexture.expectedSampler.rejectedNearestColor),
   );
 
   expect(pixelDistance(texturedSample, expectedLinear)).toBeLessThan(
@@ -426,46 +356,107 @@ test("standard texture control renders a base-color texture with linear sampling
   webGpuValidation.expectNoWarnings();
 });
 
-test("standard texture control renders a distinct normal-mapped material", async ({
+test("standard texture control renders a base-color texture with repeat sampler addressing", async ({
   page,
 }) => {
   const webGpuValidation = attachWebGpuValidationConsoleGuard(page);
 
-  await page.goto(
-    "/examples/standard-texture-control.html?scenario=normal-map",
+  const status = await loadStandardTextureControlStatus(
+    page,
+    "base-color-repeat-sampler",
+    "standard-texture-control-base-color-repeat-sampler-status",
+    "base-color repeat sampler texture control status should publish",
   );
-
-  const status = await waitForExampleStatus<StandardTextureControlStatus>(page);
-
-  await attachExampleStatus(
-    "standard-texture-control-normal-map-status",
-    status,
-  );
-  expect(
-    status,
-    "normal-map texture control status should publish",
-  ).toBeDefined();
 
   if (status === undefined) {
     return;
   }
 
-  skipIfUnsupportedWebGpu(status);
-  expectStatusJsonSafeForGpu(status);
-  expect(status, JSON.stringify(status, null, 2)).toMatchObject({
-    example: "standard-texture-control",
-    scenario: "normal-map",
-    ok: true,
-    phase: "rendered",
-    renderingBackend: "webgpu-explicit",
-    extraction: { views: 1, meshDraws: 2, lights: 2, diagnostics: 0 },
-    resources: {
-      textureResourcesCreated: 1,
-      samplerResourcesCreated: 1,
-      materialBuffersCreated: 2,
+  expectRenderedStandardTextureStatus(status, "base-color-repeat-sampler");
+  expect(status.pipelines?.keys).toContain(
+    "standard|baseColorTexture|opaque|back|less|none",
+  );
+  expect(status.pipelines?.keys).not.toContain(
+    "standard|baseColorTexture|repeat|opaque|back|less|none",
+  );
+  expect(status.standardTexture).toMatchObject({
+    textureSlot: "baseColorTexture",
+    expectedSampler: {
+      addressModeU: "repeat",
+      addressModeV: "clamp-to-edge",
+      magFilter: "nearest",
+      minFilter: "nearest",
+      sampleUv: {
+        u: expect.any(Number),
+        v: expect.any(Number),
+      },
+      expectedColor: expect.any(Array),
+      rejectedClampColor: expect.any(Array),
     },
-    draw: { packages: 2, drawCalls: 2 },
   });
+
+  const standardTexture = requireStandardTextureStatus(status);
+
+  if (
+    standardTexture.expectedSampler === undefined ||
+    standardTexture.expectedSampler === null ||
+    standardTexture.expectedSampler.rejectedClampColor === undefined
+  ) {
+    throw new Error("standard repeat sampler texture status is missing");
+  }
+
+  const screenshot = await page.locator("#aperture-canvas").screenshot();
+  const { texturedSample } = readCanvasSamples(screenshot, standardTexture);
+  const expectedRepeat = rgbaColorToPixel(
+    rgbaTupleToColor(standardTexture.expectedSampler.expectedColor),
+  );
+  const rejectedClamp = rgbaColorToPixel(
+    rgbaTupleToColor(standardTexture.expectedSampler.rejectedClampColor),
+  );
+
+  expect(pixelDistance(texturedSample, expectedRepeat)).toBeLessThan(
+    pixelDistance(texturedSample, rejectedClamp),
+  );
+
+  if (status.readback?.ok) {
+    const readbackTextured = status.readback.samples.find(
+      (sample) => sample.id === "textured",
+    );
+
+    expect(readbackTextured).toBeDefined();
+
+    if (readbackTextured !== undefined) {
+      expect(
+        pixelDistance(readbackTextured.pixel, expectedRepeat),
+        `repeat sampler readback sample should resolve the wrapped texel; status=${JSON.stringify(
+          status,
+          null,
+          2,
+        )}`,
+      ).toBeLessThan(pixelDistance(readbackTextured.pixel, rejectedClamp));
+    }
+  }
+
+  webGpuValidation.expectNoWarnings();
+});
+
+test("standard texture control renders a distinct normal-mapped material", async ({
+  page,
+}) => {
+  const webGpuValidation = attachWebGpuValidationConsoleGuard(page);
+
+  const status = await loadStandardTextureControlStatus(
+    page,
+    "normal-map",
+    "standard-texture-control-normal-map-status",
+    "normal-map texture control status should publish",
+  );
+
+  if (status === undefined) {
+    return;
+  }
+
+  expectRenderedStandardTextureStatus(status, "normal-map");
   expect(status.pipelines?.keys).toContain(
     "standard|normalTexture|opaque|back|less|none",
   );
@@ -481,20 +472,12 @@ test("standard texture control renders a distinct normal-mapped material", async
     },
   });
 
-  if (status.standardTexture === undefined) {
-    throw new Error("standard texture status is missing");
-  }
+  const standardTexture = requireStandardTextureStatus(status);
 
   const screenshot = await page.locator("#aperture-canvas").screenshot();
-  const scalarSample = readPngPixel(
+  const { scalarSample, texturedSample } = readCanvasSamples(
     screenshot,
-    status.standardTexture.samples.scalar.x,
-    status.standardTexture.samples.scalar.y,
-  );
-  const texturedSample = readPngPixel(
-    screenshot,
-    status.standardTexture.samples.textured.x,
-    status.standardTexture.samples.textured.y,
+    standardTexture,
   );
   const clear = rgbaColorToPixel({
     r: status.clearColor?.r ?? 0,
@@ -538,39 +521,18 @@ test("standard texture control renders a darker occlusion-textured material", as
 }) => {
   const webGpuValidation = attachWebGpuValidationConsoleGuard(page);
 
-  await page.goto("/examples/standard-texture-control.html?scenario=occlusion");
-
-  const status = await waitForExampleStatus<StandardTextureControlStatus>(page);
-
-  await attachExampleStatus(
+  const status = await loadStandardTextureControlStatus(
+    page,
+    "occlusion",
     "standard-texture-control-occlusion-status",
-    status,
-  );
-  expect(
-    status,
     "occlusion texture control status should publish",
-  ).toBeDefined();
+  );
 
   if (status === undefined) {
     return;
   }
 
-  skipIfUnsupportedWebGpu(status);
-  expectStatusJsonSafeForGpu(status);
-  expect(status, JSON.stringify(status, null, 2)).toMatchObject({
-    example: "standard-texture-control",
-    scenario: "occlusion",
-    ok: true,
-    phase: "rendered",
-    renderingBackend: "webgpu-explicit",
-    extraction: { views: 1, meshDraws: 2, lights: 2, diagnostics: 0 },
-    resources: {
-      textureResourcesCreated: 1,
-      samplerResourcesCreated: 1,
-      materialBuffersCreated: 2,
-    },
-    draw: { packages: 2, drawCalls: 2 },
-  });
+  expectRenderedStandardTextureStatus(status, "occlusion");
   expect(status.pipelines?.keys).toContain(
     "standard|occlusionTexture|opaque|back|less|none",
   );
@@ -582,20 +544,12 @@ test("standard texture control renders a darker occlusion-textured material", as
     },
   });
 
-  if (status.standardTexture === undefined) {
-    throw new Error("standard texture status is missing");
-  }
+  const standardTexture = requireStandardTextureStatus(status);
 
   const screenshot = await page.locator("#aperture-canvas").screenshot();
-  const scalarSample = readPngPixel(
+  const { scalarSample, texturedSample } = readCanvasSamples(
     screenshot,
-    status.standardTexture.samples.scalar.x,
-    status.standardTexture.samples.scalar.y,
-  );
-  const texturedSample = readPngPixel(
-    screenshot,
-    status.standardTexture.samples.textured.x,
-    status.standardTexture.samples.textured.y,
+    standardTexture,
   );
   const clear = rgbaColorToPixel({
     r: status.clearColor?.r ?? 0,
@@ -641,36 +595,18 @@ test("standard texture control renders a brighter emissive-textured material", a
 }) => {
   const webGpuValidation = attachWebGpuValidationConsoleGuard(page);
 
-  await page.goto("/examples/standard-texture-control.html?scenario=emissive");
-
-  const status = await waitForExampleStatus<StandardTextureControlStatus>(page);
-
-  await attachExampleStatus("standard-texture-control-emissive-status", status);
-  expect(
-    status,
+  const status = await loadStandardTextureControlStatus(
+    page,
+    "emissive",
+    "standard-texture-control-emissive-status",
     "emissive texture control status should publish",
-  ).toBeDefined();
+  );
 
   if (status === undefined) {
     return;
   }
 
-  skipIfUnsupportedWebGpu(status);
-  expectStatusJsonSafeForGpu(status);
-  expect(status, JSON.stringify(status, null, 2)).toMatchObject({
-    example: "standard-texture-control",
-    scenario: "emissive",
-    ok: true,
-    phase: "rendered",
-    renderingBackend: "webgpu-explicit",
-    extraction: { views: 1, meshDraws: 2, lights: 2, diagnostics: 0 },
-    resources: {
-      textureResourcesCreated: 1,
-      samplerResourcesCreated: 1,
-      materialBuffersCreated: 2,
-    },
-    draw: { packages: 2, drawCalls: 2 },
-  });
+  expectRenderedStandardTextureStatus(status, "emissive");
   expect(status.pipelines?.keys).toContain(
     "standard|emissiveTexture|opaque|back|less|none",
   );
@@ -682,20 +618,12 @@ test("standard texture control renders a brighter emissive-textured material", a
     },
   });
 
-  if (status.standardTexture === undefined) {
-    throw new Error("standard texture status is missing");
-  }
+  const standardTexture = requireStandardTextureStatus(status);
 
   const screenshot = await page.locator("#aperture-canvas").screenshot();
-  const scalarSample = readPngPixel(
+  const { scalarSample, texturedSample } = readCanvasSamples(
     screenshot,
-    status.standardTexture.samples.scalar.x,
-    status.standardTexture.samples.scalar.y,
-  );
-  const texturedSample = readPngPixel(
-    screenshot,
-    status.standardTexture.samples.textured.x,
-    status.standardTexture.samples.textured.y,
+    standardTexture,
   );
   const clear = rgbaColorToPixel({
     r: status.clearColor?.r ?? 0,
@@ -741,41 +669,18 @@ test("standard texture control renders a distinct metallic-roughness textured ma
 }) => {
   const webGpuValidation = attachWebGpuValidationConsoleGuard(page);
 
-  await page.goto(
-    "/examples/standard-texture-control.html?scenario=metallic-roughness",
-  );
-
-  const status = await waitForExampleStatus<StandardTextureControlStatus>(page);
-
-  await attachExampleStatus(
+  const status = await loadStandardTextureControlStatus(
+    page,
+    "metallic-roughness",
     "standard-texture-control-metallic-roughness-status",
-    status,
-  );
-  expect(
-    status,
     "metallic-roughness texture control status should publish",
-  ).toBeDefined();
+  );
 
   if (status === undefined) {
     return;
   }
 
-  skipIfUnsupportedWebGpu(status);
-  expectStatusJsonSafeForGpu(status);
-  expect(status, JSON.stringify(status, null, 2)).toMatchObject({
-    example: "standard-texture-control",
-    scenario: "metallic-roughness",
-    ok: true,
-    phase: "rendered",
-    renderingBackend: "webgpu-explicit",
-    extraction: { views: 1, meshDraws: 2, lights: 2, diagnostics: 0 },
-    resources: {
-      textureResourcesCreated: 1,
-      samplerResourcesCreated: 1,
-      materialBuffersCreated: 2,
-    },
-    draw: { packages: 2, drawCalls: 2 },
-  });
+  expectRenderedStandardTextureStatus(status, "metallic-roughness");
   expect(status.pipelines?.keys).toContain(
     "standard|metallicRoughnessTexture|opaque|back|less|none",
   );
@@ -787,20 +692,12 @@ test("standard texture control renders a distinct metallic-roughness textured ma
     },
   });
 
-  if (status.standardTexture === undefined) {
-    throw new Error("standard texture status is missing");
-  }
+  const standardTexture = requireStandardTextureStatus(status);
 
   const screenshot = await page.locator("#aperture-canvas").screenshot();
-  const scalarSample = readPngPixel(
+  const { scalarSample, texturedSample } = readCanvasSamples(
     screenshot,
-    status.standardTexture.samples.scalar.x,
-    status.standardTexture.samples.scalar.y,
-  );
-  const texturedSample = readPngPixel(
-    screenshot,
-    status.standardTexture.samples.textured.x,
-    status.standardTexture.samples.textured.y,
+    standardTexture,
   );
   const clear = rgbaColorToPixel({
     r: status.clearColor?.r ?? 0,
@@ -843,76 +740,41 @@ for (const fixture of blockedTextureScenarios) {
   test(`standard texture control reports ${fixture.expectedStatus} base-color texture without submitting draws`, async ({
     page,
   }) => {
-    await page.goto(
-      `/examples/standard-texture-control.html?scenario=${fixture.scenario}`,
-    );
-
-    const status =
-      await waitForExampleStatus<StandardTextureControlStatus>(page);
-
-    await attachExampleStatus(fixture.attachmentName, status);
-    expect(
-      status,
+    const status = await loadStandardTextureControlStatus(
+      page,
+      fixture.scenario,
+      fixture.attachmentName,
       `${fixture.expectedStatus} texture status should publish`,
-    ).toBeDefined();
+    );
 
     if (status === undefined) {
       return;
     }
 
-    skipIfUnsupportedWebGpu(status);
-    expectStatusJsonSafeForGpu(status);
-    expect(status, JSON.stringify(status, null, 2)).toMatchObject({
-      example: "standard-texture-control",
-      scenario: fixture.scenario,
-      ok: true,
-      phase: "expected-failure",
-      expectedFailure: true,
-      expectedDiagnostic: "render.standardMaterialTexture.textureNotReady",
-      expectedTextureStatus: fixture.expectedStatus,
-      extraction: { views: 1, meshDraws: 1, lights: 2, diagnostics: 1 },
-      draw: { drawCalls: 0 },
-    });
-    expect(status.diagnosticCodes).toContain(
-      "render.standardMaterialTexture.textureNotReady",
-    );
+    expectBlockedTextureFailureStatus(status, fixture);
   });
 }
 
 test("standard texture control reports normal maps without tangents before submitting draws", async ({
   page,
 }) => {
-  await page.goto(
-    "/examples/standard-texture-control.html?scenario=normal-map-missing-tangents",
-  );
-
-  const status = await waitForExampleStatus<StandardTextureControlStatus>(page);
-
-  await attachExampleStatus(
+  const status = await loadStandardTextureControlStatus(
+    page,
+    "normal-map-missing-tangents",
     "standard-texture-control-normal-map-missing-tangents-status",
-    status,
-  );
-  expect(
-    status,
     "normal-map missing-tangents status should publish",
-  ).toBeDefined();
+  );
 
   if (status === undefined) {
     return;
   }
 
-  skipIfUnsupportedWebGpu(status);
-  expectStatusJsonSafeForGpu(status);
-  expect(status, JSON.stringify(status, null, 2)).toMatchObject({
-    example: "standard-texture-control",
+  expectExpectedFailureStatus(status, {
     scenario: "normal-map-missing-tangents",
-    ok: true,
-    phase: "expected-failure",
-    expectedFailure: true,
     expectedDiagnostic: "render.standardNormalMap.missingTangents",
     expectedTextureStatus: "missing-tangents",
-    extraction: { views: 1, meshDraws: 0, lights: 2, diagnostics: 2 },
-    draw: { drawCalls: 0 },
+    expectedMeshDraws: 0,
+    expectedDiagnostics: 2,
   });
   expect(status.standardTexture).toMatchObject({
     textureSlot: "normalTexture",
@@ -931,35 +793,24 @@ test("standard texture control reports normal maps without tangents before submi
 test("standard texture control reports base-color texture transforms before submitting draws", async ({
   page,
 }) => {
-  await page.goto(
-    "/examples/standard-texture-control.html?scenario=base-color-transform",
-  );
-
-  const status = await waitForExampleStatus<StandardTextureControlStatus>(page);
-
-  await attachExampleStatus(
+  const status = await loadStandardTextureControlStatus(
+    page,
+    "base-color-transform",
     "standard-texture-control-base-color-transform-status",
-    status,
+    "base-color transform status should publish",
   );
-  expect(status, "base-color transform status should publish").toBeDefined();
 
   if (status === undefined) {
     return;
   }
 
-  skipIfUnsupportedWebGpu(status);
-  expectStatusJsonSafeForGpu(status);
-  expect(status, JSON.stringify(status, null, 2)).toMatchObject({
-    example: "standard-texture-control",
+  expectExpectedFailureStatus(status, {
     scenario: "base-color-transform",
-    ok: true,
-    phase: "expected-failure",
-    expectedFailure: true,
     expectedDiagnostic:
       "render.standardMaterialTexture.unsupportedTextureTransform",
     expectedTextureStatus: "unsupported-transform",
-    extraction: { views: 1, meshDraws: 0, lights: 2, diagnostics: 2 },
-    draw: { drawCalls: 0 },
+    expectedMeshDraws: 0,
+    expectedDiagnostics: 2,
   });
   expect(status.standardTexture).toMatchObject({
     textureSlot: "baseColorTexture",
@@ -973,6 +824,124 @@ test("standard texture control reports base-color texture transforms before subm
     "render.standardMaterialTexture.unsupportedTextureTransform",
   );
 });
+
+async function loadStandardTextureControlStatus(
+  page: Page,
+  scenario: string,
+  attachmentName: string,
+  message: string,
+): Promise<StandardTextureControlStatus | undefined> {
+  const query = scenario === "ready" ? "" : `?scenario=${scenario}`;
+
+  await page.goto(`/examples/standard-texture-control.html${query}`);
+
+  const status = await waitForExampleStatus<StandardTextureControlStatus>(page);
+
+  await attachExampleStatus(attachmentName, status);
+  expect(status, message).toBeDefined();
+
+  if (status === undefined) {
+    return undefined;
+  }
+
+  skipIfUnsupportedWebGpu(status);
+  expectStatusJsonSafeForGpu(status);
+
+  return status;
+}
+
+function expectRenderedStandardTextureStatus(
+  status: StandardTextureControlStatus,
+  scenario?: string,
+): void {
+  expect(status, JSON.stringify(status, null, 2)).toMatchObject({
+    example: "standard-texture-control",
+    ...(scenario === undefined ? {} : { scenario }),
+    ok: true,
+    phase: "rendered",
+    renderingBackend: "webgpu-explicit",
+    extraction: { views: 1, meshDraws: 2, lights: 2, diagnostics: 0 },
+    resources: {
+      textureResourcesCreated: 1,
+      samplerResourcesCreated: 1,
+      materialBuffersCreated: 2,
+    },
+    draw: { packages: 2, drawCalls: 2 },
+  });
+}
+
+function expectBlockedTextureFailureStatus(
+  status: StandardTextureControlStatus,
+  fixture: BlockedTextureScenario,
+): void {
+  expectExpectedFailureStatus(status, {
+    scenario: fixture.scenario,
+    expectedDiagnostic: "render.standardMaterialTexture.textureNotReady",
+    expectedTextureStatus: fixture.expectedStatus,
+    expectedMeshDraws: 1,
+    expectedDiagnostics: 1,
+  });
+}
+
+function expectExpectedFailureStatus(
+  status: StandardTextureControlStatus,
+  options: {
+    readonly scenario: string;
+    readonly expectedDiagnostic: string;
+    readonly expectedTextureStatus: string;
+    readonly expectedMeshDraws: number;
+    readonly expectedDiagnostics: number;
+  },
+): void {
+  expect(status, JSON.stringify(status, null, 2)).toMatchObject({
+    example: "standard-texture-control",
+    scenario: options.scenario,
+    ok: true,
+    phase: "expected-failure",
+    expectedFailure: true,
+    expectedDiagnostic: options.expectedDiagnostic,
+    expectedTextureStatus: options.expectedTextureStatus,
+    extraction: {
+      views: 1,
+      meshDraws: options.expectedMeshDraws,
+      lights: 2,
+      diagnostics: options.expectedDiagnostics,
+    },
+    draw: { drawCalls: 0 },
+  });
+  expect(status.diagnosticCodes).toContain(options.expectedDiagnostic);
+}
+
+function requireStandardTextureStatus(
+  status: StandardTextureControlStatus,
+): NonNullable<StandardTextureControlStatus["standardTexture"]> {
+  if (status.standardTexture === undefined) {
+    throw new Error("standard texture status is missing");
+  }
+
+  return status.standardTexture;
+}
+
+function readCanvasSamples(
+  screenshot: Buffer,
+  standardTexture: NonNullable<StandardTextureControlStatus["standardTexture"]>,
+): {
+  readonly scalarSample: RgbaPixel;
+  readonly texturedSample: RgbaPixel;
+} {
+  return {
+    scalarSample: readPngPixel(
+      screenshot,
+      standardTexture.samples.scalar.x,
+      standardTexture.samples.scalar.y,
+    ),
+    texturedSample: readPngPixel(
+      screenshot,
+      standardTexture.samples.textured.x,
+      standardTexture.samples.textured.y,
+    ),
+  };
+}
 
 function rgbaTupleToColor(color: RgbaTuple): {
   readonly r: number;

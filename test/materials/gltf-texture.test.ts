@@ -52,6 +52,7 @@ describe("glTF texture mapping", () => {
         format: "rgba8unorm-srgb",
         colorSpace: "srgb",
         semantic: "base-color",
+        usage: ["sampled", "copy-dst"],
       },
       sampler: {
         addressModeU: "clamp-to-edge",

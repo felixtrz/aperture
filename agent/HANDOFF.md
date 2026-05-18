@@ -1,5 +1,191 @@
 # Handoff
 
+## Current Run Update — 2026-05-18T00:38:00Z
+
+Completed `task-1106` through `task-1118`. Recommended next task is
+`task-1112`.
+
+Completed task ids:
+
+- `task-1106` — Audit GLB texture browser and upload-usage boundaries.
+- `task-1107` — Plan GLB metallic-roughness texture browser fixture.
+- `task-1108` — Plan generic material-family queue migration checkpoint.
+- `task-1109` — Add GLB base-color sampler mapping browser status coverage.
+- `task-1110` — Audit StandardMaterial texture-control harness after repeat and
+  GLB additions.
+- `task-1111` — Add GLB StandardMaterial metallic-roughness texture browser
+  fixture.
+- `task-1113` — Extract GLB texture browser fixture helpers.
+- `task-1114` — Plan GLB normal texture browser fixture.
+- `task-1115` — Add GLB StandardMaterial normal texture browser fixture.
+- `task-1116` — Plan GLB occlusion/emissive browser fixture split.
+- `task-1117` — Audit GLB texture browser status after metallic/normal work.
+- `task-1118` — Plan GLB alpha-mode and double-sided render-state browser
+  diagnostics.
+
+Highlights:
+
+- Added GLB upload-usage boundary audit and confirmed `copy-dst` remains source
+  metadata while WebGPU upload/resource ownership stays in
+  `@aperture-engine/webgpu`.
+- Added
+  `docs/research/GENERIC_MATERIAL_FAMILY_QUEUE_MIGRATION_CHECKPOINT_2026_05_17.md`
+  after inspecting PlayCanvas/three.js render object, pipeline, and material
+  preparation patterns; next architecture task is extracting the built-in
+  queue-to-resource-set collector out of `app.ts`.
+- Added JSON-safe GLB sampler mapping status to
+  `examples/standard-gltf-texture.js` and Playwright assertions that source
+  glTF sampler enums map to Aperture sampler asset fields without leaking GPU
+  sampler objects or backend cache data.
+- Added `standard-gltf-texture?scenario=metallic-roughness`, mapping a glTF
+  `metallicRoughnessTexture` through source registration and rendering it via
+  the normal ECS/app-facade WebGPU path.
+- Added a post-repeat/GLB harness audit, then extracted local GLB scenario and
+  rendered/expected-failure assertion helpers without changing published status
+  values.
+- Added
+  `docs/research/GLB_NORMAL_TEXTURE_BROWSER_FIXTURE_PLAN_2026_05_17.md` and
+  refilled the ready queue with concrete GLB/material-queue follow-ups.
+- Added `standard-gltf-texture?scenario=normal-map`, mapping a glTF
+  `normalTexture` through source registration, using a local tangent-bearing
+  mesh fixture, and validating the pipeline/readback path in Playwright.
+- Audited GLB browser fixture status after the normal-map addition and found no
+  ECS/render/WebGPU ownership drift or JSON-safety issue.
+- Added
+  `docs/research/GLB_OCCLUSION_EMISSIVE_BROWSER_FIXTURE_SPLIT_PLAN_2026_05_17.md`,
+  choosing separate occlusion and emissive GLB browser implementation tasks.
+- Added
+  `docs/research/GLB_ALPHA_DOUBLE_SIDED_RENDER_STATE_DIAGNOSTICS_PLAN_2026_05_17.md`,
+  selecting a narrow alpha-mask/double-sided render-state browser diagnostics
+  slice.
+- Updated public tracker pages for the GLB metallic-roughness/sampler status
+  progress and next task.
+
+Validation:
+
+- `node --check examples/standard-gltf-texture.js`
+- `pnpm run typecheck:test`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "mapped base-color"`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "metallic-roughness"`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "normal texture|normal-map"`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts`
+- `pnpm run check:progress`
+- `pnpm run check` passed: package boundaries, progress tracker validation,
+  build/typecheck, test typecheck, example syntax checks, lint, format check,
+  and 248 Vitest files / 1157 tests.
+
+Reference files/patterns inspected:
+
+- WebGPU render anchors:
+  `references/engine/src/platform/graphics/webgpu/webgpu-render-pipeline.js`,
+  `references/engine/src/scene/renderer/forward-renderer.js`,
+  `references/three.js/src/renderers/common/RenderObject.js`, and
+  `references/three.js/src/renderers/webgpu/utils/WebGPUPipelineUtils.js`.
+- Aperture anchors:
+  `packages/render/src/rendering/material-queue.ts`,
+  `packages/webgpu/src/webgpu/queued-material-prepare-route.ts`,
+  `packages/webgpu/src/webgpu/queued-material-frame-resource-route.ts`,
+  `packages/webgpu/src/webgpu/built-in-material-app-resource-adapter.ts`,
+  `packages/webgpu/src/webgpu/app.ts`,
+  `examples/standard-gltf-texture.js`, and
+  `test/e2e/standard-gltf-texture.spec.ts`.
+
+Known issues / follow-ups:
+
+- Stop hook still needs to run after this handoff entry.
+- The GLB browser path is still inline GLB-equivalent mapping/source
+  registration, not binary `.glb` loading.
+- Next task: `task-1112` extract the queued built-in resource-set collector
+  from `packages/webgpu/src/webgpu/app.ts` into a focused internal module.
+
+## Current Run Update — 2026-05-18T00:21:42Z
+
+Completed `task-1099` through `task-1105`. Recommended next task is
+`task-1106`.
+
+Completed task ids:
+
+- `task-1099` — Extract local StandardMaterial texture-control scenario helpers.
+- `task-1100` — Add minimal GLB StandardMaterial base-color browser fixture.
+- `task-1101` — Audit StandardMaterial texture browser coverage after transform
+  diagnostics and GLB fixture work.
+- `task-1102` — Plan controlled StandardMaterial address-mode sampler browser
+  verification.
+- `task-1103` — Plan GLB StandardMaterial unsupported texture-transform
+  diagnostics browser fixture.
+- `task-1104` — Add controlled StandardMaterial repeat sampler browser
+  verification.
+- `task-1105` — Add GLB StandardMaterial texture-transform diagnostics browser
+  fixture.
+
+Highlights:
+
+- Refactored `examples/standard-texture-control.js` around local scenario
+  helpers for flags, mesh fixture selection, texture/sampler assets, material
+  bindings, and expectation metadata.
+- Refactored repeated Playwright status/assertion helpers in
+  `test/e2e/standard-texture-control.spec.ts`.
+- Added `examples/standard-gltf-texture.html` and
+  `examples/standard-gltf-texture.js`, a minimal GLB-equivalent browser fixture
+  that maps one StandardMaterial base-color texture, sampler, material, and mesh
+  source asset through glTF mapping/source registration into ECS-authored app
+  rendering.
+- Fixed `createTextureAssetFromGltfTexture()` so decoded glTF image textures
+  request `["sampled", "copy-dst"]`; this keeps source assets
+  renderer-independent while allowing the WebGPU backend to upload source data.
+- Added GLB base-color browser coverage and GLB `KHR_texture_transform`
+  expected-failure coverage in `test/e2e/standard-gltf-texture.spec.ts`.
+- Added controlled StandardMaterial repeat-U sampler browser coverage via
+  `standard-texture-control?scenario=base-color-repeat-sampler`.
+- Added research docs for the updated texture browser coverage matrix, repeat
+  address-mode sampler plan, and GLB texture-transform diagnostics plan.
+- Updated public tracker pages, backlog, completed log, and `package.json`
+  example syntax checks.
+
+Validation:
+
+- `node --check examples/standard-texture-control.js`
+- `node --check examples/standard-gltf-texture.js`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec vitest run test/materials/gltf-texture.test.ts`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "texture transforms"`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts`
+- `pnpm exec playwright test test/e2e/standard-texture-control.spec.ts -g "repeat sampler"`
+- `pnpm exec playwright test test/e2e/standard-texture-control.spec.ts`
+- `pnpm run check:progress`
+- `pnpm run check` passed: package boundaries, progress tracker validation,
+  build/typecheck, test typecheck, example syntax checks, lint, format check,
+  and 248 Vitest files / 1157 tests.
+
+Reference files/patterns inspected:
+
+- Aperture docs: `docs/NORTH_STAR.md`, `docs/ROADMAP.md`,
+  `docs/MEDIUM_LONG_TERM_GOALS.md`, `docs/ARCHITECTURE.md`,
+  `docs/DECISIONS.md`.
+- Bevy anchors:
+  `references/bevy/crates/bevy_gltf/src/loader/mod.rs`,
+  `references/bevy/crates/bevy_gltf/src/loader/gltf_ext/texture.rs`, and
+  related material/asset-loading pattern files by search.
+- Aperture anchors:
+  `docs/research/GLB_STANDARD_TEXTURE_BROWSER_FIXTURE_PLAN_2026_05_17.md`,
+  `docs/research/CONTROLLED_STANDARD_TEXTURE_TRANSFORM_DIAGNOSTICS_BROWSER_PLAN_2026_05_17.md`,
+  `docs/research/GLB_SAMPLER_TEXTURE_TRANSFORM_READINESS_AUDIT_2026_05_17.md`,
+  `packages/render/src/assets/gltf-asset-mapping.ts`,
+  `packages/render/src/assets/gltf-source-registration-orchestration.ts`,
+  `packages/render/src/materials/gltf-material.ts`,
+  `packages/render/src/materials/gltf-texture.ts`, and the controlled
+  StandardMaterial browser harness files.
+
+Known issues / follow-ups:
+
+- No known validation failures.
+- Texture-transform sampling remains intentionally unsupported; authored and
+  GLB-derived browser scenarios prove the diagnostic/no-submit path.
+- The GLB browser fixture is GLB-equivalent report/source-registration replay,
+  not a binary GLB parser/browser loader.
+- Next task: `task-1106` audit GLB texture browser and upload-usage boundaries,
+  especially after the `copy-dst` source texture usage fix.
+
 ## Current Run Update — 2026-05-17T23:44:00Z
 
 Completed `task-1098`. Recommended next task is `task-1099`.

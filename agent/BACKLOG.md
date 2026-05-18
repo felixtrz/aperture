@@ -59,11 +59,11 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start with `task-1099`. The latest run added controlled StandardMaterial
-normal-map, occlusion, emissive, missing-tangent, UV1, linear-sampler, and
-base-color texture-transform diagnostics browser verification. It also audited
-the texture-control harness maintainability risk and planned the first honest
-GLB StandardMaterial texture browser fixture.
+Start with `task-1112`. The latest run audited GLB texture upload boundaries,
+planned and implemented GLB-derived metallic-roughness browser coverage, added
+GLB sampler mapping status, documented the next material-family queue
+migration, cleaned up the GLB browser harness locally, and planned the next GLB
+normal-texture fixture.
 
 ## Near-Term Proof Point Track
 
@@ -80,11 +80,11 @@ Target proof point:
 
 Remaining automation priority order:
 
-1. `task-1099` — extract local StandardMaterial texture-control scenario helpers.
-2. `task-1100` — add minimal GLB StandardMaterial base-color browser fixture.
-3. `task-1101` — audit StandardMaterial texture browser coverage after transform diagnostics.
-4. `task-1102` — plan controlled StandardMaterial address-mode sampler browser verification.
-5. `task-1103` — plan GLB StandardMaterial unsupported texture-transform diagnostics browser fixture.
+1. `task-1112` — extract queued built-in resource-set collector.
+2. `task-1119` — add GLB StandardMaterial occlusion texture browser fixture.
+3. `task-1120` — add GLB StandardMaterial emissive texture browser fixture.
+4. `task-1121` — add GLB alpha-mask double-sided render-state diagnostics.
+5. `task-1122` — audit GLB browser helpers after occlusion/emissive expansion.
 
 Defer allocation-only cleanup and metadata-only shader-contract tasks unless
 they are a direct blocker for this track.
@@ -150,102 +150,116 @@ viewer/material mapping should not outrun the material and queue architecture.
 
 ### Proof Point Critical Path
 
-### task-1099 — Extract local StandardMaterial texture-control scenario helpers
+### task-1112 — Extract queued built-in resource-set collector
 
-Category: `audit-refactor`
-Package/write-scope: `examples/standard-texture-control.js`,
-`test/e2e/standard-texture-control.spec.ts` only.
+Category: `webgpu-render`
+Package/write-scope: `packages/webgpu/src/webgpu/app.ts`,
+`packages/webgpu/src/webgpu/queued-built-in-app-resource-set.ts`, and targeted
+WebGPU route tests.
 Reference anchor:
-`docs/research/STANDARD_TEXTURE_CONTROL_HARNESS_MAINTAINABILITY_AUDIT_2026_05_17.md`,
-controlled StandardMaterial texture browser harness, and
-`docs/ARCHITECTURE.md`.
+`docs/research/GENERIC_MATERIAL_FAMILY_QUEUE_MIGRATION_CHECKPOINT_2026_05_17.md`,
+`packages/render/src/rendering/material-queue.ts`,
+`packages/webgpu/src/webgpu/built-in-material-app-resource-adapter.ts`,
+`references/engine/src/platform/graphics/webgpu/webgpu-render-pipeline.js`, and
+`references/three.js/src/renderers/common/RenderObject.js`.
 
 Acceptance criteria:
 
-- Example scenario setup is split into local helper functions for flags,
-  mesh fixture selection, texture asset metadata, sampler asset settings,
-  material bindings, and status expectations.
-- Playwright repeated positive/expected-failure assertions are reduced through
-  local helpers where practical.
-- No public API changes, no new dependencies, and no behavior changes to
-  existing scenarios.
-- `pnpm exec playwright test test/e2e/standard-texture-control.spec.ts` and
-  `pnpm run check` pass.
+- The queue-to-resource-set collection flow is moved out of `app.ts` without
+  changing rendered output or route diagnostics.
+- The new module exposes typed input/output contracts and keeps GPU handles out
+  of JSON summaries.
+- Existing route-report and material-family tests pass, with a targeted test
+  covering one successful built-in route and one unsupported-family diagnostic.
+- Validation runs
+  `pnpm exec vitest run test/webgpu/material-queue-route-report.test.ts test/webgpu/queued-material-frame-resource-route.test.ts`
+  plus `pnpm run build`.
 
-### task-1100 — Add minimal GLB StandardMaterial base-color browser fixture
+### task-1119 — Add GLB StandardMaterial occlusion texture browser fixture
 
 Category: `runtime-orchestration`
-Package/write-scope: GLB fixture assets or inline fixture helper,
-`examples`, `test/e2e`, and targeted docs if needed.
+Package/write-scope: `examples/standard-gltf-texture.js`,
+`test/e2e/standard-gltf-texture.spec.ts`, and tracker docs if status changes.
 Reference anchor:
-`docs/research/GLB_STANDARD_TEXTURE_BROWSER_FIXTURE_PLAN_2026_05_17.md`, GLB
-material/source registration helpers, and the controlled authored
-StandardMaterial base-color browser scenario.
+`docs/research/GLB_OCCLUSION_EMISSIVE_BROWSER_FIXTURE_SPLIT_PLAN_2026_05_17.md`,
+the GLB base-color/metallic-roughness fixtures, and the authored occlusion
+controlled browser scenario.
 
 Acceptance criteria:
 
-- A minimal GLB-derived fixture maps one mesh, one StandardMaterial
-  base-color texture, and one sampler into ECS-authored source assets.
-- Browser status reports JSON-safe GLB mapping, asset keys, pipeline/resource
-  counters, diagnostics, draw counts, and readback samples when available.
-- Playwright verifies the rendered result through the app-facade path without
-  claiming UV1, sampler comparison, transforms, IBL, shadows, or full glTF PBR
+- Add `standard-gltf-texture?scenario=occlusion` using glTF mapping and source
+  registration for an `occlusionTexture`.
+- Browser status reports JSON-safe occlusion expectations, source asset keys,
+  pipeline/resource counters, diagnostics, draw counts, and readback samples
+  when available.
+- Playwright verifies the mapped GLB-derived occlusion texture renders through
+  the app-facade path without claiming full ambient-occlusion lighting fidelity.
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "occlusion"`
+  and `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts` pass.
+
+### task-1120 — Add GLB StandardMaterial emissive texture browser fixture
+
+Category: `runtime-orchestration`
+Package/write-scope: `examples/standard-gltf-texture.js`,
+`test/e2e/standard-gltf-texture.spec.ts`, and tracker docs if status changes.
+Reference anchor:
+`docs/research/GLB_OCCLUSION_EMISSIVE_BROWSER_FIXTURE_SPLIT_PLAN_2026_05_17.md`,
+the GLB base-color/metallic-roughness fixtures, and the authored emissive
+controlled browser scenario.
+
+Acceptance criteria:
+
+- Add `standard-gltf-texture?scenario=emissive` using glTF mapping and source
+  registration for an `emissiveTexture`.
+- Browser status reports JSON-safe emissive factor/color expectations, source
+  asset keys, pipeline/resource counters, diagnostics, draw counts, and readback
+  samples when available.
+- Playwright verifies the mapped GLB-derived emissive texture renders through
+  the app-facade path without claiming tone mapping, IBL, or full glTF PBR
   fidelity.
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "emissive"`
+  and `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts` pass.
 
-### task-1101 — Audit StandardMaterial texture browser coverage after transform diagnostics
+### task-1121 — Add GLB alpha-mask double-sided render-state browser diagnostics
+
+Category: `runtime-orchestration`
+Package/write-scope: `examples/standard-gltf-texture.js`,
+`test/e2e/standard-gltf-texture.spec.ts`, and targeted material/pipeline tests
+only if existing coverage exposes a mapping gap.
+Reference anchor:
+`docs/research/GLB_ALPHA_DOUBLE_SIDED_RENDER_STATE_DIAGNOSTICS_PLAN_2026_05_17.md`,
+`packages/render/src/materials/gltf-material.ts`, and
+`packages/webgpu/src/webgpu/standard-pipeline-descriptor.ts`.
+
+Acceptance criteria:
+
+- Add `standard-gltf-texture?scenario=alpha-mask-double-sided` with glTF source
+  fields for `MASK` alpha and `doubleSided: true`.
+- Browser status reports JSON-safe source and mapped render-state fields,
+  pipeline keys, draw/resource counters, and diagnostics.
+- Playwright verifies alpha-test/no-cull pipeline behavior and zero WebGPU
+  validation warnings without claiming transparent blending or full double-sided
+  visual fidelity.
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "alpha-mask"`
+  and `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts` pass.
+
+### task-1122 — Audit GLB browser helpers after occlusion/emissive expansion
 
 Category: `audit-refactor`
-Package/write-scope: `docs/research`, `agent/BACKLOG.md`, and tracker docs if
-alignment changes.
-Reference anchor: `docs/NORTH_STAR.md`, `docs/ARCHITECTURE.md`,
-`docs/research/STANDARD_MATERIAL_TEXTURE_BROWSER_COVERAGE_AFTER_OCCLUSION_EMISSIVE_AUDIT_2026_05_17.md`,
-and the controlled StandardMaterial texture browser harness.
+Package/write-scope: `docs/research`, `examples/standard-gltf-texture.js`, and
+`test/e2e/standard-gltf-texture.spec.ts` only if small cleanup is needed.
+Reference anchor: `docs/NORTH_STAR.md`, `docs/ARCHITECTURE.md`, current GLB
+browser fixtures, and GLB texture mapping/source registration helpers.
 
 Acceptance criteria:
 
-- Audit the current browser matrix against base-color, metallic-roughness,
-  normal, occlusion, emissive, UV set, sampler, transform, and failure
-  diagnostics coverage.
-- Record which remaining gaps are implementation gaps versus intentional
-  unsupported-feature diagnostics.
-- Update backlog ordering only if the audit finds a higher-priority drift
-  correction.
-
-### task-1102 — Plan controlled StandardMaterial address-mode sampler browser verification
-
-Category: `runtime-orchestration`
-Package/write-scope: `docs/research` and backlog only.
-Reference anchor:
-`docs/research/CONTROLLED_STANDARD_SAMPLER_BROWSER_VERIFICATION_PLAN_2026_05_17.md`,
-StandardMaterial sampler readiness/alignment diagnostics, and the controlled
-texture browser harness.
-
-Acceptance criteria:
-
-- Define a narrow browser scenario that proves clamp-to-edge versus repeat or
-  mirror-repeat sampler address behavior with controlled UVs and texture data.
-- Specify JSON-safe status fields, expected pipeline/resource counters, and
-  screenshot/readback comparisons.
-- Add a follow-up implementation task with package/write-scope and validation
-  commands.
-
-### task-1103 — Plan GLB StandardMaterial unsupported texture-transform diagnostics browser fixture
-
-Category: `runtime-orchestration`
-Package/write-scope: `docs/research` and backlog only.
-Reference anchor:
-`docs/research/GLB_STANDARD_TEXTURE_BROWSER_FIXTURE_PLAN_2026_05_17.md`,
-glTF material texture transform diagnostics, and StandardMaterial texture
-readiness diagnostics.
-
-Acceptance criteria:
-
-- Define a minimal GLB-derived fixture or inline glTF mapping case that carries
-  a texture transform without claiming transform sampling support.
-- Specify expected JSON-safe mapping status, promoted diagnostics, and no-draw
-  browser assertions.
-- Add a follow-up implementation task only if the plan is small enough for one
-  automation cycle.
+- Check that GLB browser status remains JSON-safe after occlusion/emissive
+  additions and does not expose backend caches, GPU resources, queues, encoders,
+  or raw texture bytes.
+- Check that fixture helpers still keep ECS/source assets authoritative and
+  rendering derived from snapshots.
+- Add a focused cleanup or follow-up task only if concrete duplication or drift
+  is found.
 
 ## Post-Unlit E2E Verification Targets
 
