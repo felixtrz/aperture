@@ -1,11 +1,11 @@
 {
   "state": "idle",
   "currentTaskId": null,
-  "currentRunStartedAt": "2026-05-18T03:02:16Z",
-  "lastRunStartedAt": "2026-05-18T00:01:36Z",
+  "currentRunStartedAt": "2026-05-18T04:51:20Z",
+  "lastRunStartedAt": "2026-05-18T03:02:16Z",
   "lastResult": "success",
   "lastCommit": "99e4cc0",
   "activePid": null,
-  "notes": "Completed task-1148, task-1149, task-1150, task-1151, task-1152, task-1153, task-1154, task-1155, task-1156, task-1157, task-1158, task-1159, and task-1160. Fixed stale extraction unsupported-transform test after stop-hook validation. Next recommended task is task-1161 base-color texture-transform rotation sampling.",
-  "lastRunFinishedAt": "2026-05-18T03:56:07Z"
+  "notes": "Completed task-1161 through task-1177. Base-color texture-transform rotation now renders for StandardMaterial TEXCOORD_0, routedResourceSet uses a generic queued material frame-resource summary helper with explicit app diagnostics compatibility coverage, GLB missing/transformed TEXCOORD_1 and transformed non-base-color texture diagnostics are covered and audited, generic queued material frame-resource buckets now group resources by family while preserving built-in arrays, bucket migration and diagnostics handoff notes were added, generic bucket summary/reset coverage is in place, next-family route readiness was audited, and next recommended task is task-1178 route app diagnostics through generic bucket summary.",
+  "lastRunFinishedAt": "2026-05-18T04:51:20Z"
 }

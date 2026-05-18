@@ -515,10 +515,26 @@ function isSupportedStandardTextureTransform(input: {
   readonly texCoord: number;
   readonly transform: MaterialTextureTransform;
 }): boolean {
-  const rotation = input.transform.rotation ?? 0;
+  return (
+    input.field === "baseColorTexture" &&
+    input.texCoord === 0 &&
+    isFiniteTextureTransform(input.transform)
+  );
+}
+
+function isFiniteTextureTransform(
+  transform: MaterialTextureTransform,
+): boolean {
+  const offset = transform.offset ?? [0, 0];
+  const scale = transform.scale ?? [1, 1];
+  const rotation = transform.rotation ?? 0;
 
   return (
-    input.field === "baseColorTexture" && input.texCoord === 0 && rotation === 0
+    Number.isFinite(offset[0]) &&
+    Number.isFinite(offset[1]) &&
+    Number.isFinite(scale[0]) &&
+    Number.isFinite(scale[1]) &&
+    Number.isFinite(rotation)
   );
 }
 

@@ -211,11 +211,47 @@ describe("glTF material mapping", () => {
     });
   });
 
-  it("preserves texture transforms and reports current shader limits", () => {
+  it("preserves supported base-color texture transforms without a mapping warning", () => {
     const report = createMaterialAssetFromGltfMaterial(
       {
         pbrMetallicRoughness: {
           baseColorTexture: {
+            index: 0,
+            extensions: {
+              KHR_texture_transform: {
+                offset: [0.25, 0.5],
+                scale: [2, 1],
+                rotation: 0.25,
+              },
+            },
+          },
+        },
+      },
+      {
+        materialKey: "material:transform",
+        resolveTextureBinding,
+      },
+    );
+
+    expect(report.valid).toBe(true);
+    expect(report.diagnostics).toEqual([]);
+    expect(report.material).toMatchObject({
+      kind: "standard",
+      baseColorTexture: {
+        transform: {
+          offset: [0.25, 0.5],
+          scale: [2, 1],
+          rotation: 0.25,
+        },
+      },
+    });
+  });
+
+  it("preserves transformed non-base-color slots and reports current shader limits", () => {
+    const report = createMaterialAssetFromGltfMaterial(
+      {
+        pbrMetallicRoughness: {
+          metallicRoughnessTexture: {
             index: 0,
             extensions: {
               KHR_texture_transform: {
@@ -239,14 +275,14 @@ describe("glTF material mapping", () => {
         code: "gltfMaterial.unsupportedTextureTransform",
         severity: "warning",
         field:
-          "pbrMetallicRoughness.baseColorTexture.extensions.KHR_texture_transform",
-        slot: "baseColorTexture",
+          "pbrMetallicRoughness.metallicRoughnessTexture.extensions.KHR_texture_transform",
+        slot: "metallicRoughnessTexture",
         textureIndex: 0,
       },
     ]);
     expect(report.material).toMatchObject({
       kind: "standard",
-      baseColorTexture: {
+      metallicRoughnessTexture: {
         transform: {
           offset: [0.25, 0.5],
           scale: [2, 1],

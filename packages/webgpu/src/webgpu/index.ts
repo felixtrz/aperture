@@ -63,6 +63,8 @@ export * from "./prepared-resource-lifetime-alignment-summary.js";
 export * from "./prepared-matcap-material-cache.js";
 export * from "./prepared-standard-material-cache.js";
 export * from "./prepared-unlit-material-cache.js";
+export * from "./queued-material-frame-resource-buckets.js";
+export * from "./queued-material-frame-resource-set-summary.js";
 export * from "./queued-built-in-resource-set-summary.js";
 export * from "./queued-built-in-app-resource-set.js";
 export * from "./queued-built-in-frame-resource-set.js";

@@ -1,5 +1,188 @@
 # Handoff
 
+## Current Run Update — 2026-05-18T04:51:20Z
+
+Completed `task-1161`, `task-1162`, `task-1163`, `task-1164`, `task-1165`,
+`task-1166`, `task-1167`, `task-1168`, `task-1169`, and `task-1170`.
+Then completed `task-1171`, `task-1172`, `task-1173`, `task-1174`, and
+`task-1175`, then completed `task-1176` and `task-1177`. Recommended next task
+is `task-1178`.
+
+Completed task ids:
+
+- `task-1161` — Implement base-color texture-transform rotation sampling.
+- `task-1162` — Move queued resource-set summary to generic material helper.
+- `task-1163` — Audit GLB missing TEXCOORD_1 browser diagnostics.
+- `task-1164` — Add GLB transformed UV1 unsupported browser fixture.
+- `task-1165` — Add generic collector duplicate-pipeline reuse coverage.
+- `task-1166` — Audit base-color texture-transform rotation support.
+- `task-1167` — Audit generic queued resource summary migration.
+- `task-1168` — Plan generic material-family prepared route migration.
+- `task-1169` — Add transformed non-base-color GLB diagnostic fixture.
+- `task-1170` — Add generic summary compatibility test for app diagnostics.
+- `task-1171` — Audit transformed texture diagnostics after UV1 fixture.
+- `task-1172` — Add generic route summary handoff note for next material family.
+- `task-1173` — Add generic queued material frame-resource buckets.
+- `task-1174` — Audit generic bucket migration after implementation.
+- `task-1175` — Plan generic bucket diagnostics handoff.
+- `task-1176` — Add generic bucket diagnostics summary coverage.
+- `task-1177` — Audit next-family route readiness after bucket coverage.
+
+Highlights:
+
+- StandardMaterial base-color texture transforms now accept finite rotation on
+  `TEXCOORD_0` while transformed UV1 and transformed non-base-color slots remain
+  unsupported diagnostics.
+- The glTF mapping/readiness predicates accept base-color UV0 rotation, the
+  StandardMaterial uniform packs `baseColorTextureRotation`, and WGSL applies
+  scale, rotation, then offset in the base-color texture helper.
+- Added
+  `standard-gltf-texture?scenario=base-color-transform-rotation-sampling` with
+  screenshot/readback assertions comparing rotated, offset-only, and
+  untransformed texels.
+- Kept the existing unsupported transform browser path as transformed UV1 so it
+  still reports
+  `render.standardMaterialTexture.unsupportedTextureTransform` before draw or
+  pipeline submission.
+- Added `queued-material-frame-resource-set-summary.ts`; the built-in queued
+  resource-set summary helper is now a compatibility wrapper over the generic
+  material frame-resource summary, and app diagnostics still expose the public
+  `routedResourceSet` field.
+- Added
+  `docs/research/GLB_MISSING_TEXCOORD1_BROWSER_DIAGNOSTICS_AUDIT_2026_05_18.md`;
+  the successful UV1 and missing-UV1 GLB-shaped browser fixtures remain paired,
+  JSON-safe, and honest about not claiming binary GLB mesh import support.
+- Added `standard-gltf-texture?scenario=base-color-uv1-transform`, which
+  provides both `baseColorTexture.texCoord = 1` and a mesh `TEXCOORD_1`
+  attribute, then verifies unsupported texture-transform diagnostics with no
+  draw or pipeline submission.
+- Added direct generic collector coverage for two queued items sharing one
+  pipeline key; pipeline plan creation is reused once while both resource append
+  paths and source resource-key maps still run.
+- Added
+  `docs/research/STANDARD_MATERIAL_TEXTURE_TRANSFORM_ROTATION_SUPPORT_AUDIT_2026_05_18.md`;
+  rotation support remains limited to base-color UV0, while transformed UV1 and
+  transformed non-base-color slots remain unsupported diagnostics.
+- Added
+  `docs/research/GENERIC_QUEUED_RESOURCE_SUMMARY_MIGRATION_AUDIT_2026_05_18.md`;
+  `routedResourceSet` remains the public diagnostics field, and the generic
+  summary helper stays free of app/ECS/GPU ownership.
+- Added
+  `docs/research/GENERIC_MATERIAL_FAMILY_PREPARED_ROUTE_MIGRATION_PLAN_2026_05_18.md`;
+  the next route migration should add a generic bucket store keyed by material
+  family while preserving built-in compatibility arrays.
+- Added `standard-gltf-texture?scenario=metallic-roughness-transform`, which
+  authors a transformed `metallicRoughnessTexture` and verifies the
+  non-base-color transform path reports JSON-safe unsupported-transform
+  diagnostics without draw or pipeline submission.
+- Added app diagnostics compatibility coverage that constructs
+  `routedResourceSet` through the generic
+  `createQueuedMaterialFrameResourceSetSummary` helper while keeping the public
+  JSON field name stable and free of raw GPU/app payload strings.
+- Added
+  `docs/research/STANDARD_MATERIAL_TEXTURE_TRANSFORM_DIAGNOSTICS_AUDIT_2026_05_18.md`;
+  supported base-color rotation, transformed UV1 unsupported, transformed
+  non-base-color unsupported, and missing UV1 diagnostics remain distinct, with
+  unsupported transform paths stopping before draw/pipeline submission.
+- Added
+  `docs/research/GENERIC_ROUTE_SUMMARY_NEXT_FAMILY_HANDOFF_2026_05_18.md`;
+  future non-built-in material families should reuse the generic queue route,
+  frame-resource, and `routedResourceSet` diagnostics contracts instead of
+  copying built-in app-route wrappers.
+- Added `queued-material-frame-resource-buckets.ts`, a generic family-keyed
+  bucket store with deterministic summaries. Built-in frame-resource
+  preparation now writes successful resources into the generic bucket store
+  while preserving `unlit`, `matcap`, and `standard` compatibility arrays.
+- Added `docs/research/GENERIC_BUCKET_MIGRATION_AUDIT_2026_05_18.md`; the
+  bucket helper does not introduce ECS/game ownership or public raw GPU
+  diagnostics, and future diagnostics should consume summaries rather than raw
+  bucket maps.
+- Added `docs/research/GENERIC_BUCKET_DIAGNOSTICS_HANDOFF_2026_05_18.md`;
+  generic bucket counts should flow through summary rows under existing app
+  diagnostics naming, not through raw bucket maps or new family-specific
+  resource-set fields.
+- Extended generic bucket coverage for family lookup, reset behavior,
+  deterministic summaries, stale-family cleanup, and JSON-safe summary output.
+- Added `docs/research/NEXT_FAMILY_ROUTE_READINESS_AUDIT_2026_05_18.md`; the
+  generic route/bucket spine is ready for a test-only non-built-in adapter
+  spike, but real app material-family work should wait until diagnostics
+  routing uses generic summaries.
+- Updated `docs/index.html` and `docs/render-pipeline-comparison.html` for the
+  completed render-pipeline work and refilled the backlog with `task-1166`
+  through `task-1173`.
+
+Files touched:
+
+- `agent/BACKLOG.md`
+- `agent/COMPLETED.md`
+- `docs/index.html`
+- `docs/render-pipeline-comparison.html`
+- `docs/research/GLB_MISSING_TEXCOORD1_BROWSER_DIAGNOSTICS_AUDIT_2026_05_18.md`
+- `docs/research/STANDARD_MATERIAL_TEXTURE_TRANSFORM_ROTATION_SUPPORT_AUDIT_2026_05_18.md`
+- `docs/research/GENERIC_QUEUED_RESOURCE_SUMMARY_MIGRATION_AUDIT_2026_05_18.md`
+- `docs/research/GENERIC_MATERIAL_FAMILY_PREPARED_ROUTE_MIGRATION_PLAN_2026_05_18.md`
+- `examples/standard-gltf-texture.js`
+- `examples/standard-texture-control.js`
+- `packages/render/src/materials/gltf-material.ts`
+- `packages/render/src/materials/standard-texture-readiness.ts`
+- `packages/webgpu/src/webgpu/app-diagnostics-summary.ts`
+- `packages/webgpu/src/webgpu/index.ts`
+- `packages/webgpu/src/webgpu/queued-built-in-resource-set-summary.ts`
+- `packages/webgpu/src/webgpu/queued-material-frame-resource-set-summary.ts`
+- `packages/webgpu/src/webgpu/standard-material-buffer.ts`
+- `packages/webgpu/src/webgpu/standard-shader.ts`
+- `test/e2e/standard-gltf-texture.spec.ts`
+- `test/materials/gltf-material.test.ts`
+- `test/materials/standard-texture-readiness.test.ts`
+- `test/rendering/extraction.test.ts`
+- `test/webgpu/app-diagnostics-summary.test.ts`
+- `test/webgpu/queued-built-in-resource-set-summary.test.ts`
+- `test/webgpu/standard-material-buffer.test.ts`
+- `test/webgpu/standard-shader.test.ts`
+
+Validation:
+
+- `node --check examples/standard-gltf-texture.js && node --check examples/standard-texture-control.js`
+- `pnpm exec vitest run test/materials/gltf-material.test.ts test/materials/standard-texture-readiness.test.ts test/webgpu/standard-material-buffer.test.ts test/webgpu/standard-shader.test.ts test/rendering/extraction.test.ts`
+- `pnpm exec vitest run test/webgpu/app-diagnostics-summary.test.ts test/webgpu/queued-built-in-resource-set-summary.test.ts test/webgpu/webgpu-app.test.ts`
+- `pnpm exec vitest run test/materials/gltf-material.test.ts test/materials/standard-texture-readiness.test.ts test/webgpu/standard-material-buffer.test.ts test/webgpu/standard-shader.test.ts test/rendering/extraction.test.ts test/webgpu/app-diagnostics-summary.test.ts test/webgpu/queued-built-in-resource-set-summary.test.ts test/webgpu/webgpu-app.test.ts`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "rotation transforms|texture transforms before"`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts test/e2e/standard-texture-control.spec.ts -g "base-color rotation transforms|base-color offset and scale transforms|texture transforms before|base-color texture transforms before"`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "TEXCOORD_1"`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "transformed TEXCOORD_1|TEXCOORD_1"`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "non-base-color transforms"`
+- `pnpm exec vitest run test/webgpu/queued-material-frame-resource-set.test.ts`
+- `pnpm exec vitest run test/webgpu/app-diagnostics-summary.test.ts`
+- `pnpm exec prettier --check docs/research/STANDARD_MATERIAL_TEXTURE_TRANSFORM_DIAGNOSTICS_AUDIT_2026_05_18.md`
+- `pnpm exec prettier --check docs/research/GENERIC_ROUTE_SUMMARY_NEXT_FAMILY_HANDOFF_2026_05_18.md`
+- `pnpm exec vitest run test/webgpu/queued-material-frame-resource-set.test.ts test/webgpu/queued-built-in-frame-resource-set.test.ts`
+- `pnpm exec prettier --check docs/research/GENERIC_BUCKET_MIGRATION_AUDIT_2026_05_18.md`
+- `pnpm exec prettier --check docs/research/GENERIC_BUCKET_DIAGNOSTICS_HANDOFF_2026_05_18.md`
+- `pnpm exec vitest run test/webgpu/queued-material-frame-resource-set.test.ts`
+- `pnpm exec prettier --check docs/research/NEXT_FAMILY_ROUTE_READINESS_AUDIT_2026_05_18.md`
+- `pnpm exec prettier --check` on touched implementation, test, example,
+  docs, and agent files.
+- `pnpm run check:progress`
+- `git diff --check`
+
+Additional reference files/patterns inspected:
+
+- `docs/research/STANDARD_MATERIAL_TEXTURE_TRANSFORM_ROTATION_FIXTURE_PLAN_2026_05_18.md`
+- `docs/research/GENERIC_MATERIAL_FAMILY_APP_ROUTE_SUMMARY_MIGRATION_PLAN_2026_05_18.md`
+- `docs/research/STANDARD_GLB_NON_UV0_TEXTURE_COORDINATE_FIXTURE_PLAN_2026_05_18.md`
+- `references/engine/src/framework/parsers/glb-parser.js`
+- `references/engine/src/scene/shader-lib/programs/lit-shader.js`
+- `references/engine/src/scene/shader-lib/programs/standard.js`
+- `references/three.js/examples/jsm/loaders/GLTFLoader.js`
+- `references/three.js/src/renderers/webgl/WebGLMaterials.js`
+- `references/three.js/src/textures/Texture.js`
+
+Known issues / follow-ups:
+
+- Stop hook still needs to run after this handoff entry.
+- `task-1178` should route app diagnostics through generic bucket summary.
+
 ## Current Run Update — 2026-05-18T03:56:07Z
 
 Completed `task-1149`, `task-1148`, `task-1150`, `task-1152`, and

@@ -5,6 +5,7 @@ import type {
 import {
   appendQueuedBuiltInFrameResourceViaAdapter,
   type CreateQueuedBuiltInFamilyFrameResourcesResult,
+  type QueuedBuiltInFrameResource,
 } from "./built-in-material-app-resource-adapter.js";
 import type {
   QueuedBuiltInAppResourceItem,
@@ -22,6 +23,14 @@ import {
   type QueuedMaterialPipelineResourceView,
 } from "./queued-material-frame-resource-set.js";
 import {
+  appendQueuedMaterialFrameResourceBucket,
+  createQueuedMaterialFrameResourceBuckets,
+  createQueuedMaterialFrameResourceBucketSummary,
+  resetQueuedMaterialFrameResourceBuckets,
+  type QueuedMaterialFrameResourceBucketSummary,
+  type QueuedMaterialFrameResourceBuckets,
+} from "./queued-material-frame-resource-buckets.js";
+import {
   createQueuedMaterialFrameResourceRouteShell,
   type QueuedMaterialFrameResourceResultLike,
   type QueuedMaterialFrameResourceRouteShell,
@@ -35,6 +44,8 @@ export interface QueuedBuiltInFrameResources {
   readonly unlit: readonly UnlitFrameGpuResources[];
   readonly matcap: readonly MatcapFrameGpuResources[];
   readonly standard: readonly StandardFrameGpuResources[];
+  readonly byFamily: QueuedMaterialFrameResourceBuckets<QueuedBuiltInFrameResource>;
+  readonly byFamilySummary: readonly QueuedMaterialFrameResourceBucketSummary[];
   readonly bindGroups: readonly UnlitFrameGpuResources["bindGroups"][number][];
 }
 
@@ -63,6 +74,7 @@ export interface QueuedBuiltInFrameResourceScratch<
   readonly unlit: UnlitFrameGpuResources[];
   readonly matcap: MatcapFrameGpuResources[];
   readonly standard: StandardFrameGpuResources[];
+  readonly byFamily: QueuedMaterialFrameResourceBuckets<QueuedBuiltInFrameResource>;
 }
 
 export interface PrepareQueuedBuiltInFrameResourceSetCallbacks<
@@ -140,6 +152,8 @@ export function createQueuedBuiltInFrameResourceScratch<
     unlit: [],
     matcap: [],
     standard: [],
+    byFamily:
+      createQueuedMaterialFrameResourceBuckets<QueuedBuiltInFrameResource>(),
   };
 }
 
@@ -199,6 +213,13 @@ export async function prepareQueuedBuiltInFrameResourceSet<
           frameOptions,
         ) as CreateQueuedBuiltInFamilyFrameResourcesResult,
       appendFrameResources: ({ item, result }) => {
+        if (result.resources !== null) {
+          appendQueuedMaterialFrameResourceBucket(
+            scratch.byFamily,
+            item.adapter.kind,
+            result.resources,
+          );
+        }
         appendQueuedBuiltInFrameResourceViaAdapter({
           adapter: item.adapter,
           result,
@@ -235,6 +256,10 @@ export async function prepareQueuedBuiltInFrameResourceSet<
           unlit: scratch.unlit,
           matcap: scratch.matcap,
           standard: scratch.standard,
+          byFamily: scratch.byFamily,
+          byFamilySummary: createQueuedMaterialFrameResourceBucketSummary(
+            scratch.byFamily,
+          ),
           bindGroups: prepared.bindGroups,
         }
       : null,
@@ -282,6 +307,7 @@ function resetQueuedBuiltInFrameResourceScratch<TPipelinePlanResult>(
   scratch.unlit.length = 0;
   scratch.matcap.length = 0;
   scratch.standard.length = 0;
+  resetQueuedMaterialFrameResourceBuckets(scratch.byFamily);
 
   return scratch;
 }

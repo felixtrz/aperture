@@ -511,20 +511,20 @@ describe("StandardMaterial texture semantic and color-space readiness", () => {
     ]);
   });
 
-  it("diagnoses unsupported StandardMaterial texture transforms", () => {
+  it("diagnoses unsupported non-base-color StandardMaterial texture transforms", () => {
     const registry = new AssetRegistry();
     const material = createMaterialHandle("standard");
-    const texture = createTextureHandle("base-color-transform");
+    const texture = createTextureHandle("metallic-roughness-transform");
     const sampler = createSamplerHandle("linear");
 
     registry.register(sampler);
     registry.markReady(sampler, createSamplerAsset());
-    readyTexture(registry, texture, "base-color", "srgb");
+    readyTexture(registry, texture, "metallic-roughness", "linear");
     registry.register(material);
     registry.markReady(
       material,
       createStandardMaterialAsset({
-        baseColorTexture: {
+        metallicRoughnessTexture: {
           texture,
           sampler,
           transform: {
@@ -547,9 +547,9 @@ describe("StandardMaterial texture semantic and color-space readiness", () => {
       {
         code: "standardMaterialTexture.unsupportedTextureTransform",
         materialKey: "material:standard",
-        textureKey: "texture:base-color-transform",
+        textureKey: "texture:metallic-roughness-transform",
         samplerKey: "sampler:linear",
-        field: "baseColorTexture",
+        field: "metallicRoughnessTexture",
         textureTransform: {
           offset: [0.25, 0.5],
           scale: [0.5, 0.5],
@@ -603,6 +603,49 @@ describe("StandardMaterial texture semantic and color-space readiness", () => {
       expect.objectContaining({
         field: "baseColorTexture",
         textureKey: "texture:base-color-transform",
+        texCoord: 0,
+        ready: true,
+      }),
+    ]);
+  });
+
+  it("accepts base-color rotation transforms on TEXCOORD_0", () => {
+    const registry = new AssetRegistry();
+    const material = createMaterialHandle("standard");
+    const texture = createTextureHandle("base-color-transform-rotation");
+    const sampler = createSamplerHandle("linear");
+
+    registry.register(sampler);
+    registry.markReady(sampler, createSamplerAsset());
+    readyTexture(registry, texture, "base-color", "srgb");
+    registry.register(material);
+    registry.markReady(
+      material,
+      createStandardMaterialAsset({
+        baseColorTexture: {
+          texture,
+          sampler,
+          texCoord: 0,
+          transform: {
+            offset: [0.5, 0.5],
+            rotation: Math.PI / 2,
+            scale: [1, 1],
+          },
+        },
+      }),
+    );
+
+    const report = createStandardMaterialTextureReadinessReport({
+      registry,
+      material,
+    });
+
+    expect(report.ready).toBe(true);
+    expect(report.diagnostics).toEqual([]);
+    expect(report.slots).toEqual([
+      expect.objectContaining({
+        field: "baseColorTexture",
+        textureKey: "texture:base-color-transform-rotation",
         texCoord: 0,
         ready: true,
       }),

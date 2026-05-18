@@ -131,6 +131,11 @@ describe("built-in standard material WGSL shader metadata", () => {
       "material.baseColorTextureScale",
     );
     expect(STANDARD_BASE_COLOR_TEXTURED_MESH_WGSL).toContain(
+      "material.baseColorTextureRotation",
+    );
+    expect(STANDARD_BASE_COLOR_TEXTURED_MESH_WGSL).toContain("cos(rotation)");
+    expect(STANDARD_BASE_COLOR_TEXTURED_MESH_WGSL).toContain("sin(rotation)");
+    expect(STANDARD_BASE_COLOR_TEXTURED_MESH_WGSL).toContain(
       "baseColorSample.rgb * material.baseColorFactor.rgb",
     );
     expect(

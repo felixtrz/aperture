@@ -42,6 +42,14 @@ const textureTransformSampling = {
   expectedColor: [0.05, 0.95, 0.1, 1],
   untransformedColor: [0.95, 0.05, 0.05, 1],
 };
+const textureTransformRotationSampling = {
+  transform: { offset: [0.5, 0.5], rotation: Math.PI / 2, scale: [1, 1] },
+  sample: { id: "rotated", x: 0.5, y: 0.5 },
+  authoredUv0: { u: 0.2, v: 0.2 },
+  expectedColor: [0.05, 0.95, 0.1, 1],
+  offsetScaleOnlyColor: [0.95, 0.95, 0.05, 1],
+  untransformedColor: [0.95, 0.05, 0.05, 1],
+};
 const uv1Coordinate = { u: 0.25, v: 0.25 };
 const uv1Texture = {
   expectedColor: [0.95, 0.05, 0.05, 1],
@@ -75,6 +83,12 @@ const alphaMaskTextureBytes = new Uint8Array([
 const textureTransformSamplingBytes = new Uint8Array([
   242, 13, 13, 255, 13, 242, 26, 255, 242, 13, 13, 255, 13, 242, 26, 255,
 ]);
+const textureTransformRotationSamplingBytes = new Uint8Array([
+  242, 242, 13, 255, 242, 242, 13, 255, 13, 242, 26, 255, 13, 242, 26, 255, 242,
+  242, 13, 255, 242, 242, 13, 255, 13, 242, 26, 255, 13, 242, 26, 255, 242, 13,
+  13, 255, 242, 13, 13, 255, 24, 128, 255, 255, 24, 128, 255, 255, 242, 13, 13,
+  255, 242, 13, 13, 255, 24, 128, 255, 255, 24, 128, 255, 255,
+]);
 const expectedGltfFailures = {
   "base-color-transform": {
     mappingDiagnostic: "gltfMaterial.unsupportedTextureTransform",
@@ -91,6 +105,18 @@ const expectedGltfFailures = {
     mappingDiagnostic: null,
     renderDiagnostic: "render.standardMaterialTexture.missingTexCoord1",
     status: "missing-texcoord1",
+  },
+  "base-color-uv1-transform": {
+    mappingDiagnostic: "gltfMaterial.unsupportedTextureTransform",
+    renderDiagnostic:
+      "render.standardMaterialTexture.unsupportedTextureTransform",
+    status: "unsupported-transform",
+  },
+  "metallic-roughness-transform": {
+    mappingDiagnostic: "gltfMaterial.unsupportedTextureTransform",
+    renderDiagnostic:
+      "render.standardMaterialTexture.unsupportedTextureTransform",
+    status: "unsupported-transform",
   },
 };
 const scenario =
@@ -232,6 +258,7 @@ function createGltfTextureScene(aperture, app, targetCanvas, selectedScenario) {
     expectedTextureTransform: config.expectedTextureTransform,
     expectedTextureColor: config.expectedTextureColor,
     expectedUntransformedTextureColor: config.expectedUntransformedTextureColor,
+    expectedOffsetScaleTextureColor: config.expectedOffsetScaleTextureColor,
     expectedTexCoord: config.expectedTexCoord,
     expectedUv1: config.expectedUv1,
     expectedMetallicRoughness: config.expectedMetallicRoughness,
@@ -250,11 +277,18 @@ function createGltfScenarioConfig(selectedScenario) {
   const usesBaseColorTransform = selectedScenario === "base-color-transform";
   const usesBaseColorTransformSampling =
     selectedScenario === "base-color-transform-sampling";
+  const usesBaseColorTransformRotationSampling =
+    selectedScenario === "base-color-transform-rotation-sampling";
   const usesBaseColorUv1 = selectedScenario === "base-color-uv1";
   const usesBaseColorUv1Missing = selectedScenario === "base-color-uv1-missing";
-  const usesAnyBaseColorUv1 = usesBaseColorUv1 || usesBaseColorUv1Missing;
+  const usesBaseColorUv1Transform =
+    selectedScenario === "base-color-uv1-transform";
+  const usesAnyBaseColorUv1 =
+    usesBaseColorUv1 || usesBaseColorUv1Missing || usesBaseColorUv1Transform;
   const usesMetallicRoughnessTexture =
     selectedScenario === "metallic-roughness";
+  const usesMetallicRoughnessTextureTransform =
+    selectedScenario === "metallic-roughness-transform";
   const usesNormalTexture = selectedScenario === "normal-map";
   const usesOcclusionTexture = selectedScenario === "occlusion";
   const usesEmissiveTexture = selectedScenario === "emissive";
@@ -267,10 +301,13 @@ function createGltfScenarioConfig(selectedScenario) {
   return {
     usesBaseColorTransform,
     usesBaseColorTransformSampling,
+    usesBaseColorTransformRotationSampling,
     usesBaseColorUv1,
     usesBaseColorUv1Missing,
+    usesBaseColorUv1Transform,
     usesAnyBaseColorUv1,
     usesMetallicRoughnessTexture,
+    usesMetallicRoughnessTextureTransform,
     usesNormalTexture,
     usesOcclusionTexture,
     usesEmissiveTexture,
@@ -278,71 +315,92 @@ function createGltfScenarioConfig(selectedScenario) {
     usesAlphaMaskTexture,
     usesAlphaMaskBackface,
     usesDelayedDependencies,
-    textureSlot: usesMetallicRoughnessTexture
-      ? "metallicRoughnessTexture"
-      : usesNormalTexture
-        ? "normalTexture"
-        : usesOcclusionTexture
-          ? "occlusionTexture"
-          : usesEmissiveTexture
-            ? "emissiveTexture"
-            : usesAlphaMaskDoubleSided
-              ? null
-              : usesAlphaMaskBackface
+    textureSlot:
+      usesMetallicRoughnessTexture || usesMetallicRoughnessTextureTransform
+        ? "metallicRoughnessTexture"
+        : usesNormalTexture
+          ? "normalTexture"
+          : usesOcclusionTexture
+            ? "occlusionTexture"
+            : usesEmissiveTexture
+              ? "emissiveTexture"
+              : usesAlphaMaskDoubleSided
                 ? null
-                : usesDelayedDependencies
-                  ? "baseColorTexture"
-                  : "baseColorTexture",
+                : usesAlphaMaskBackface
+                  ? null
+                  : usesDelayedDependencies
+                    ? "baseColorTexture"
+                    : "baseColorTexture",
     materialModel: usesMetallicRoughnessTexture
       ? "gltf-standard-metallic-roughness-texture"
-      : usesNormalTexture
-        ? "gltf-standard-normal-texture"
-        : usesOcclusionTexture
-          ? "gltf-standard-occlusion-texture"
-          : usesEmissiveTexture
-            ? "gltf-standard-emissive-texture"
-            : usesAlphaMaskDoubleSided
-              ? "gltf-standard-alpha-mask-double-sided"
-              : usesAlphaMaskTexture
-                ? "gltf-standard-alpha-mask-texture"
-                : usesAlphaMaskBackface
-                  ? "gltf-standard-alpha-mask-backface"
-                  : usesDelayedDependencies
-                    ? "gltf-standard-delayed-dependencies"
-                    : usesBaseColorTransformSampling
-                      ? "gltf-standard-base-color-transform-sampling"
-                      : usesBaseColorUv1
-                        ? "gltf-standard-base-color-uv1"
-                        : usesBaseColorUv1Missing
-                          ? "gltf-standard-base-color-uv1-missing"
-                          : "gltf-standard-base-color-texture",
+      : usesMetallicRoughnessTextureTransform
+        ? "gltf-standard-metallic-roughness-transform"
+        : usesNormalTexture
+          ? "gltf-standard-normal-texture"
+          : usesOcclusionTexture
+            ? "gltf-standard-occlusion-texture"
+            : usesEmissiveTexture
+              ? "gltf-standard-emissive-texture"
+              : usesAlphaMaskDoubleSided
+                ? "gltf-standard-alpha-mask-double-sided"
+                : usesAlphaMaskTexture
+                  ? "gltf-standard-alpha-mask-texture"
+                  : usesAlphaMaskBackface
+                    ? "gltf-standard-alpha-mask-backface"
+                    : usesDelayedDependencies
+                      ? "gltf-standard-delayed-dependencies"
+                      : usesBaseColorTransformSampling
+                        ? "gltf-standard-base-color-transform-sampling"
+                        : usesBaseColorTransformRotationSampling
+                          ? "gltf-standard-base-color-transform-rotation-sampling"
+                          : usesBaseColorUv1
+                            ? "gltf-standard-base-color-uv1"
+                            : usesBaseColorUv1Missing
+                              ? "gltf-standard-base-color-uv1-missing"
+                              : usesBaseColorUv1Transform
+                                ? "gltf-standard-base-color-uv1-transform"
+                                : "gltf-standard-base-color-texture",
     expectedFailure: expectedGltfFailures[selectedScenario] ?? null,
     expectedTextureTransform: usesBaseColorTransform
       ? unsupportedTextureTransform
       : usesBaseColorTransformSampling
         ? textureTransformSampling.transform
-        : null,
+        : usesBaseColorTransformRotationSampling
+          ? textureTransformRotationSampling.transform
+          : usesBaseColorUv1Transform || usesMetallicRoughnessTextureTransform
+            ? textureTransformSampling.transform
+            : null,
     expectedTextureColor: usesBaseColorTransformSampling
       ? textureTransformSampling.expectedColor
-      : usesBaseColorUv1
-        ? uv1Texture.expectedColor
-        : usesMetallicRoughnessTexture ||
-            usesNormalTexture ||
-            usesOcclusionTexture
-          ? null
-          : usesEmissiveTexture
+      : usesBaseColorTransformRotationSampling
+        ? textureTransformRotationSampling.expectedColor
+        : usesBaseColorUv1
+          ? uv1Texture.expectedColor
+          : usesMetallicRoughnessTexture ||
+              usesMetallicRoughnessTextureTransform ||
+              usesNormalTexture ||
+              usesOcclusionTexture
             ? null
-            : expectedTextureColor,
+            : usesEmissiveTexture
+              ? null
+              : expectedTextureColor,
     expectedUntransformedTextureColor: usesBaseColorTransformSampling
       ? textureTransformSampling.untransformedColor
-      : usesBaseColorUv1
-        ? uv1Texture.rejectedUv0Color
-        : null,
-    expectedTexCoord: usesAnyBaseColorUv1 ? 1 : 0,
-    expectedUv1: usesBaseColorUv1 ? uv1Coordinate : null,
-    expectedMetallicRoughness: usesMetallicRoughnessTexture
-      ? metallicRoughness
+      : usesBaseColorTransformRotationSampling
+        ? textureTransformRotationSampling.untransformedColor
+        : usesBaseColorUv1
+          ? uv1Texture.rejectedUv0Color
+          : null,
+    expectedOffsetScaleTextureColor: usesBaseColorTransformRotationSampling
+      ? textureTransformRotationSampling.offsetScaleOnlyColor
       : null,
+    expectedTexCoord: usesAnyBaseColorUv1 ? 1 : 0,
+    expectedUv1:
+      usesBaseColorUv1 || usesBaseColorUv1Transform ? uv1Coordinate : null,
+    expectedMetallicRoughness:
+      usesMetallicRoughnessTexture || usesMetallicRoughnessTextureTransform
+        ? metallicRoughness
+        : null,
     expectedNormalMap: usesNormalTexture ? normalMapVector : null,
     expectedOcclusion: usesOcclusionTexture ? occlusion : null,
     expectedEmissive: usesEmissiveTexture
@@ -380,7 +438,9 @@ function createGltfScenarioConfig(selectedScenario) {
         : null,
     samplePoint: usesBaseColorTransformSampling
       ? textureTransformSampling.sample
-      : { id: "textured", x: 0.5, y: 0.5 },
+      : usesBaseColorTransformRotationSampling
+        ? textureTransformRotationSampling.sample
+        : { id: "textured", x: 0.5, y: 0.5 },
   };
 }
 
@@ -399,27 +459,33 @@ function alphaMaskSourceForConfig(config) {
 function materialNameForConfig(config) {
   return config.usesMetallicRoughnessTexture
     ? "GLB Standard MetallicRoughness"
-    : config.usesNormalTexture
-      ? "GLB Standard Normal"
-      : config.usesOcclusionTexture
-        ? "GLB Standard Occlusion"
-        : config.usesEmissiveTexture
-          ? "GLB Standard Emissive"
-          : config.usesAlphaMaskDoubleSided
-            ? "GLB Standard Alpha Mask Double Sided"
-            : config.usesAlphaMaskTexture
-              ? "GLB Standard Alpha Mask Texture"
-              : config.usesAlphaMaskBackface
-                ? "GLB Standard Alpha Mask Backface"
-                : config.usesDelayedDependencies
-                  ? "GLB Standard Delayed Dependencies"
-                  : config.usesBaseColorTransformSampling
-                    ? "GLB Standard BaseColor Transform Sampling"
-                    : config.usesBaseColorUv1
-                      ? "GLB Standard BaseColor UV1"
-                      : config.usesBaseColorUv1Missing
-                        ? "GLB Standard BaseColor UV1 Missing"
-                        : "GLB Standard BaseColor";
+    : config.usesMetallicRoughnessTextureTransform
+      ? "GLB Standard MetallicRoughness Transform"
+      : config.usesNormalTexture
+        ? "GLB Standard Normal"
+        : config.usesOcclusionTexture
+          ? "GLB Standard Occlusion"
+          : config.usesEmissiveTexture
+            ? "GLB Standard Emissive"
+            : config.usesAlphaMaskDoubleSided
+              ? "GLB Standard Alpha Mask Double Sided"
+              : config.usesAlphaMaskTexture
+                ? "GLB Standard Alpha Mask Texture"
+                : config.usesAlphaMaskBackface
+                  ? "GLB Standard Alpha Mask Backface"
+                  : config.usesDelayedDependencies
+                    ? "GLB Standard Delayed Dependencies"
+                    : config.usesBaseColorTransformSampling
+                      ? "GLB Standard BaseColor Transform Sampling"
+                      : config.usesBaseColorTransformRotationSampling
+                        ? "GLB Standard BaseColor Transform Rotation Sampling"
+                        : config.usesBaseColorUv1
+                          ? "GLB Standard BaseColor UV1"
+                          : config.usesBaseColorUv1Missing
+                            ? "GLB Standard BaseColor UV1 Missing"
+                            : config.usesBaseColorUv1Transform
+                              ? "GLB Standard BaseColor UV1 Transform"
+                              : "GLB Standard BaseColor";
 }
 
 function readbackSamplesForConfig(config) {
@@ -440,12 +506,24 @@ function readbackSamplesForConfig(config) {
 function createGltfFixtureRoot(config) {
   let pbrMetallicRoughness;
 
-  if (config.usesMetallicRoughnessTexture) {
+  if (
+    config.usesMetallicRoughnessTexture ||
+    config.usesMetallicRoughnessTextureTransform
+  ) {
     pbrMetallicRoughness = {
       baseColorFactor: scalarColor,
       metallicFactor: 1,
       roughnessFactor: 1,
-      metallicRoughnessTexture: { index: 0 },
+      metallicRoughnessTexture: {
+        index: 0,
+        ...(config.expectedTextureTransform === null
+          ? {}
+          : {
+              extensions: {
+                KHR_texture_transform: config.expectedTextureTransform,
+              },
+            }),
+      },
     };
   } else if (
     config.usesNormalTexture ||
@@ -471,7 +549,9 @@ function createGltfFixtureRoot(config) {
       baseColorFactor: [1, 1, 1, 1],
       baseColorTexture: {
         index: 0,
-        ...(config.usesAnyBaseColorUv1 ? { texCoord: 1 } : {}),
+        ...(config.usesAnyBaseColorUv1 || config.usesBaseColorTransform
+          ? { texCoord: 1 }
+          : {}),
         ...(config.expectedTextureTransform === null
           ? {}
           : {
@@ -557,10 +637,13 @@ function textureBytesForSlot(textureSlot) {
         ? alphaMaskTextureBytes
         : scenario === "base-color-transform-sampling"
           ? textureTransformSamplingBytes
-          : scenario === "base-color-uv1" ||
-              scenario === "base-color-uv1-missing"
-            ? textureTransformSamplingBytes
-            : baseColorTextureBytes;
+          : scenario === "base-color-transform-rotation-sampling"
+            ? textureTransformRotationSamplingBytes
+            : scenario === "base-color-uv1" ||
+                scenario === "base-color-uv1-missing" ||
+                scenario === "base-color-uv1-transform"
+              ? textureTransformSamplingBytes
+              : baseColorTextureBytes;
     default:
       return baseColorTextureBytes;
   }
@@ -606,9 +689,14 @@ function createGltfMeshConstructionReport(aperture, config) {
   });
   const mesh = config.usesNormalTexture
     ? createTangentPlaneMeshAsset(baseMesh)
-    : config.usesBaseColorUv1
-      ? createUv1PlaneMeshAsset(baseMesh, uv1Coordinate)
-      : baseMesh;
+    : config.usesBaseColorTransformRotationSampling
+      ? createConstantUv0PlaneMeshAsset(
+          baseMesh,
+          textureTransformRotationSampling.authoredUv0,
+        )
+      : config.usesBaseColorUv1 || config.usesBaseColorUv1Transform
+        ? createUv1PlaneMeshAsset(baseMesh, uv1Coordinate)
+        : baseMesh;
 
   return {
     valid: true,
@@ -783,6 +871,7 @@ function createStandardTextureStatus(aperture, scene) {
       expectedTextureColor: scene.expectedTextureColor,
       expectedUntransformedTextureColor:
         scene.expectedUntransformedTextureColor,
+      expectedOffsetScaleTextureColor: scene.expectedOffsetScaleTextureColor,
       expectedTexCoord: scene.expectedTexCoord,
       expectedUv1: scene.expectedUv1,
       expectedMetallicRoughness: scene.expectedMetallicRoughness,
@@ -803,6 +892,46 @@ function createStandardTextureStatus(aperture, scene) {
               masked: scene.expectedAlphaMaskTexture.maskedSample,
             },
     },
+  };
+}
+
+function createConstantUv0PlaneMeshAsset(mesh, uv) {
+  const stream = mesh.vertexStreams[0];
+
+  if (stream === undefined) {
+    throw new Error(
+      "Expected plane mesh fixture to provide one vertex stream.",
+    );
+  }
+
+  const uvAttribute = stream.attributes.find(
+    (attribute) => attribute.semantic === "TEXCOORD_0",
+  );
+
+  if (uvAttribute === undefined) {
+    throw new Error("Expected plane mesh fixture to provide TEXCOORD_0.");
+  }
+
+  const source = stream.data;
+  const sourceStrideFloats = stream.arrayStride / 4;
+  const uvOffsetFloats = uvAttribute.offset / 4;
+  const data = new Float32Array(source);
+
+  for (let vertex = 0; vertex < stream.vertexCount; vertex += 1) {
+    const targetOffset = vertex * sourceStrideFloats + uvOffsetFloats;
+
+    data.set([uv.u, uv.v], targetOffset);
+  }
+
+  return {
+    ...mesh,
+    vertexStreams: [
+      {
+        ...stream,
+        id: "gltf-standard-plane-constant-uv0",
+        data,
+      },
+    ],
   };
 }
 

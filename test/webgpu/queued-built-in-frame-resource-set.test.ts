@@ -61,6 +61,7 @@ describe("queued built-in frame-resource set preparation", () => {
       unlit: [frameResources],
       matcap: [],
       standard: [],
+      byFamilySummary: [{ family: "unlit", itemCount: 1 }],
       bindGroups: [
         {
           resourceKey: "bind-group:0|pipeline:unlit|opaque|back|less|none",
@@ -68,6 +69,9 @@ describe("queued built-in frame-resource set preparation", () => {
       ],
     });
     expect(result.firstPipeline).toBe(pipeline);
+    expect(result.resources?.byFamily.byFamily.get("unlit")).toEqual([
+      frameResources,
+    ]);
     expect(result.pipelineResults).toEqual([
       {
         key: "unlit|opaque|back|less|none",

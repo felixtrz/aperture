@@ -42,7 +42,7 @@ export const STANDARD_MATERIAL_UNIFORM_LAYOUT = [
   "baseColorTextureOffset.v",
   "baseColorTextureScale.u",
   "baseColorTextureScale.v",
-  "padding0",
+  "baseColorTextureRotation",
   "padding1",
 ] as const;
 
@@ -231,11 +231,11 @@ export function packStandardMaterial(
 
 function readTextureTransform(
   binding: MaterialTextureBinding | null,
-): readonly [number, number, number, number] {
+): readonly [number, number, number, number, number, number] {
   const transform = binding?.transform;
 
   if (transform === undefined) {
-    return [0, 0, 1, 1];
+    return [0, 0, 1, 1, 0, 0];
   }
 
   return [
@@ -243,6 +243,8 @@ function readTextureTransform(
     transform.offset?.[1] ?? 0,
     transform.scale?.[0] ?? 1,
     transform.scale?.[1] ?? 1,
+    transform.rotation ?? 0,
+    0,
   ];
 }
 

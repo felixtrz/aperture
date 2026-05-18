@@ -2,8 +2,44 @@ import { describe, expect, it } from "vitest";
 
 import {
   createQueuedBuiltInResourceSetSummary,
+  createQueuedMaterialFrameResourceSetSummary,
   type QueuedBuiltInResourceSetSummaryItem,
+  type QueuedMaterialFrameResourceSetSummaryItem,
 } from "@aperture-engine/webgpu";
+
+describe("queued material frame resource set summary", () => {
+  it("summarizes generic material families and pipeline keys", () => {
+    const summary = createQueuedMaterialFrameResourceSetSummary([
+      genericItem("standard", "standard|base-color"),
+      genericItem("custom-preview", "custom|preview"),
+      genericItem("standard", "standard|base-color"),
+    ]);
+
+    expect(summary).toEqual({
+      itemCount: 3,
+      byFamily: [
+        { family: "custom-preview", itemCount: 1 },
+        { family: "standard", itemCount: 2 },
+      ],
+      byPipeline: [
+        { pipelineKey: "custom|preview", itemCount: 1 },
+        { pipelineKey: "standard|base-color", itemCount: 2 },
+      ],
+      byFamilyAndPipeline: [
+        {
+          family: "custom-preview",
+          pipelineKey: "custom|preview",
+          itemCount: 1,
+        },
+        {
+          family: "standard",
+          pipelineKey: "standard|base-color",
+          itemCount: 2,
+        },
+      ],
+    });
+  });
+});
 
 describe("queued built-in resource set summary", () => {
   it("summarizes empty resource sets", () => {
@@ -75,6 +111,17 @@ function item(
   materialFamily: QueuedBuiltInResourceSetSummaryItem["materialFamily"],
   pipelineKey: string,
 ): QueuedBuiltInResourceSetSummaryItem {
+  return {
+    materialFamily,
+    pipelineKey,
+    renderPhase: "opaque",
+  };
+}
+
+function genericItem(
+  materialFamily: string,
+  pipelineKey: string,
+): QueuedMaterialFrameResourceSetSummaryItem {
   return {
     materialFamily,
     pipelineKey,

@@ -1,11 +1,73 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  appendQueuedMaterialFrameResourceBucket,
+  createQueuedMaterialFrameResourceBuckets,
+  createQueuedMaterialFrameResourceBucketSummary,
   createQueuedMaterialFrameResourceScratch,
+  getQueuedMaterialFrameResourceBucket,
   prepareQueuedMaterialFrameResourceSet,
+  resetQueuedMaterialFrameResourceBuckets,
 } from "@aperture-engine/webgpu";
 
 describe("queued material frame-resource set preparation", () => {
+  it("groups generic frame resources by material family with JSON-safe summaries", () => {
+    const buckets = createQueuedMaterialFrameResourceBuckets<{
+      readonly resourceKey: string;
+    }>();
+
+    appendQueuedMaterialFrameResourceBucket(buckets, "standard", {
+      resourceKey: "standard:0",
+    });
+    appendQueuedMaterialFrameResourceBucket(buckets, "custom-preview", {
+      resourceKey: "custom:0",
+    });
+    appendQueuedMaterialFrameResourceBucket(buckets, "standard", {
+      resourceKey: "standard:1",
+    });
+
+    expect(createQueuedMaterialFrameResourceBucketSummary(buckets)).toEqual([
+      { family: "custom-preview", itemCount: 1 },
+      { family: "standard", itemCount: 2 },
+    ]);
+    expect(
+      JSON.stringify(createQueuedMaterialFrameResourceBucketSummary(buckets)),
+    ).not.toMatch(/GPUDevice|GPUBuffer|GPUTexture|bindGroup|WebGpuApp/);
+  });
+
+  it("resets generic frame-resource buckets without leaking stale families", () => {
+    const buckets = createQueuedMaterialFrameResourceBuckets<{
+      readonly resourceKey: string;
+    }>();
+
+    appendQueuedMaterialFrameResourceBucket(buckets, "standard", {
+      resourceKey: "standard:stale",
+    });
+    appendQueuedMaterialFrameResourceBucket(buckets, "debug-normal", {
+      resourceKey: "debug:stale",
+    });
+
+    expect(getQueuedMaterialFrameResourceBucket(buckets, "standard")).toEqual([
+      { resourceKey: "standard:stale" },
+    ]);
+
+    resetQueuedMaterialFrameResourceBuckets(buckets);
+
+    appendQueuedMaterialFrameResourceBucket(buckets, "custom-preview", {
+      resourceKey: "custom:fresh",
+    });
+
+    expect(getQueuedMaterialFrameResourceBucket(buckets, "standard")).toEqual(
+      [],
+    );
+    expect(createQueuedMaterialFrameResourceBucketSummary(buckets)).toEqual([
+      { family: "custom-preview", itemCount: 1 },
+    ]);
+    expect(
+      JSON.stringify(createQueuedMaterialFrameResourceBucketSummary(buckets)),
+    ).not.toContain("standard:stale");
+  });
+
   it("prepares generic material resources without built-in family buckets", async () => {
     type Item = {
       readonly pipelineKey: string;
@@ -130,6 +192,151 @@ describe("queued material frame-resource set preparation", () => {
     );
     expect(appended).toHaveLength(1);
     expect(JSON.stringify(result)).not.toContain("GPUBuffer");
+  });
+
+  it("reuses one generic pipeline plan for duplicate pipeline keys while appending each item", async () => {
+    type Item = {
+      readonly pipelineKey: string;
+      readonly sourceMeshKey: string;
+      readonly sourceMaterialKey: string;
+    };
+    type Pipeline = {
+      readonly valid: true;
+      readonly resource: {
+        readonly pipeline: {
+          readonly getBindGroupLayout: (group: number) => unknown;
+        };
+      };
+      readonly diagnostics: readonly [];
+    };
+    type Mesh = { readonly resourceKey: string };
+    type BindGroup = {
+      readonly group: number;
+      readonly resourceKey: string;
+      readonly layoutKey: string;
+      readonly bindGroup: unknown;
+      readonly entryResourceKeys: readonly string[];
+    };
+    type Resources = {
+      readonly mesh: Mesh;
+      readonly material: { readonly resourceKey: string };
+      readonly bindGroups: readonly BindGroup[];
+    };
+    type ResourceResult = {
+      readonly valid: true;
+      readonly resources: Resources;
+      readonly diagnostics: readonly [];
+    };
+    const scratch = createQueuedMaterialFrameResourceScratch<
+      { readonly key: string },
+      Mesh,
+      BindGroup
+    >();
+    let pipelinePlanCalls = 0;
+    let appendCalls = 0;
+    const result = await prepareQueuedMaterialFrameResourceSet<
+      Item,
+      Pipeline,
+      { readonly key: string },
+      { readonly layout: unknown },
+      { readonly valid: true; readonly diagnostics: readonly [] },
+      { readonly item: Item; readonly layouts: { readonly layout: unknown } },
+      Resources,
+      ResourceResult,
+      Mesh,
+      BindGroup
+    >({
+      items: [
+        {
+          pipelineKey: "custom|shared",
+          sourceMeshKey: "mesh:a",
+          sourceMaterialKey: "material:a",
+        },
+        {
+          pipelineKey: "custom|shared",
+          sourceMeshKey: "mesh:b",
+          sourceMaterialKey: "material:b",
+        },
+      ],
+      scratch,
+      callbacks: {
+        getPipelineKey: (item) => item.pipelineKey,
+        getSourceMeshKey: (item) => item.sourceMeshKey,
+        getSourceMaterialKey: (item) => item.sourceMaterialKey,
+        getPipeline: () => ({
+          valid: true,
+          resource: {
+            pipeline: { getBindGroupLayout: (group: number) => ({ group }) },
+          },
+          diagnostics: [],
+        }),
+        getPipelineView: (pipeline) => pipeline,
+        createPipelinePlanResult: ({ item }) => {
+          pipelinePlanCalls += 1;
+          return { key: item.pipelineKey };
+        },
+        getPipelineLayouts: ({ getBindGroupLayout }) => ({
+          layout: getBindGroupLayout(0),
+        }),
+        prepareTextureSamplerDependencies: () => ({
+          valid: true,
+          diagnostics: [],
+        }),
+        createFrameResourceOptions: ({ item, layouts }) => ({
+          item,
+          layouts,
+        }),
+        createFrameResources: ({ item }) => ({
+          valid: true,
+          resources: {
+            mesh: { resourceKey: `gpu-${item.sourceMeshKey}` },
+            material: { resourceKey: `gpu-${item.sourceMaterialKey}` },
+            bindGroups: [
+              {
+                group: 0,
+                resourceKey: `bind-group:${item.sourceMaterialKey}`,
+                layoutKey: "layout:custom",
+                bindGroup: {},
+                entryResourceKeys: [item.sourceMaterialKey],
+              },
+            ],
+          },
+          diagnostics: [],
+        }),
+        appendFrameResources: () => {
+          appendCalls += 1;
+        },
+        createRouteDiagnostic: () => ({ code: "custom.failed" }),
+        getMeshResource: (resources) => resources.mesh,
+        getMeshResourceKey: (resources) => resources.mesh.resourceKey,
+        getMaterialResourceKey: (resources) => resources.material.resourceKey,
+        getBindGroups: (resources) => resources.bindGroups,
+      },
+    });
+
+    expect(result.valid).toBe(true);
+    expect(result.diagnostics).toEqual([]);
+    expect(pipelinePlanCalls).toBe(1);
+    expect(appendCalls).toBe(2);
+    expect(result.pipelineResults).toEqual([{ key: "custom|shared" }]);
+    expect(result.meshResources).toEqual([
+      { resourceKey: "gpu-mesh:a" },
+      { resourceKey: "gpu-mesh:b" },
+    ]);
+    expect(result.meshResourceKeys.get("mesh:a")).toBe("gpu-mesh:a");
+    expect(result.meshResourceKeys.get("mesh:b")).toBe("gpu-mesh:b");
+    expect(result.materialResourceKeys.get("material:a")).toBe(
+      "gpu-material:a",
+    );
+    expect(result.materialResourceKeys.get("material:b")).toBe(
+      "gpu-material:b",
+    );
+    expect(result.bindGroups).toMatchObject([
+      { resourceKey: "bind-group:material:a|pipeline:custom|shared" },
+      { resourceKey: "bind-group:material:b|pipeline:custom|shared" },
+    ]);
+    expect(JSON.stringify(result)).not.toContain("GPUBuffer");
+    expect(JSON.stringify(result)).not.toContain("rawGpuHandle");
   });
 
   it("appends injected route diagnostics for failed generic frame resources", async () => {

@@ -59,16 +59,26 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start with `task-1161`. The latest run surfaced queued app diagnostics in GLB
-browser status, added StandardMaterial base-color offset/scale texture-transform
-sampling, audited the generic frame-resource collector, added generic failed
-route coverage, planned the GLB-shaped UV1 fixture, and implemented the
-GLB-shaped base-color `texCoord: 1` browser fixture, then audited the
-post-sampling texture-transform contract and added generic collector dependency
-failure coverage. It also planned a narrow rotation sampling fixture and the
-generic app route summary migration, then added the missing-`TEXCOORD_1`
-browser diagnostic fixture, documented the packer boundary, and audited generic
-collector dependency-failure coverage.
+Start with `task-1178`. The latest run implemented StandardMaterial base-color
+texture-transform rotation sampling for `TEXCOORD_0`, kept transformed UV1 and
+non-base-color transform diagnostics unsupported, moved queued resource-set
+summary counts behind a generic material frame-resource summary helper, and
+audited the paired successful/missing GLB `TEXCOORD_1` browser fixtures, then
+added a GLB-shaped transformed-UV1 unsupported browser fixture and generic
+collector duplicate-pipeline reuse coverage. It also audited the rotation
+support boundary and generic queued resource summary migration, planned the
+next generic prepared route migration slice, added transformed non-base-color
+GLB diagnostics coverage, and pinned app diagnostics compatibility for generic
+queued material frame-resource summaries. It also audited the transformed
+texture diagnostics matrix after the new fixtures and added a next-family
+generic route summary handoff note. Generic queued material frame-resource
+buckets now group resources by material family while preserving built-in
+compatibility arrays, and the bucket migration audit documented that diagnostics
+must consume summaries rather than raw bucket maps. The diagnostics handoff plan
+now pins `routedResourceSet` compatibility and the summary-only bucket payload,
+and generic bucket summary/reset coverage is in place.
+The next-family route readiness audit found the generic spine ready for a
+test-only non-built-in adapter spike, but not a real app material family yet.
 
 ## Near-Term Proof Point Track
 
@@ -85,11 +95,11 @@ Target proof point:
 
 Remaining automation priority order:
 
-1. `task-1161` — implement base-color texture-transform rotation sampling.
-2. `task-1162` — move queued resource-set summary to generic material helper.
-3. `task-1163` — audit GLB missing TEXCOORD_1 browser diagnostics.
-4. `task-1164` — add GLB transformed UV1 unsupported browser fixture.
-5. `task-1165` — add generic collector duplicate-pipeline reuse coverage.
+1. `task-1178` — route app diagnostics through generic bucket summary.
+2. `task-1179` — audit app diagnostics summary after bucket routing.
+3. `task-1180` — plan non-built-in material family adapter spike.
+4. `task-1181` — add test-only non-built-in material route adapter.
+5. `task-1182` — audit test-only adapter before real family work.
 
 Defer allocation-only cleanup and metadata-only shader-contract tasks unless
 they are a direct blocker for this track.
@@ -155,105 +165,92 @@ viewer/material mapping should not outrun the material and queue architecture.
 
 ### Proof Point Critical Path
 
-### task-1161 — Implement base-color texture-transform rotation sampling
+### task-1178 — Route app diagnostics through generic bucket summary
 
 Category: `webgpu-render`
-Package/write-scope: `packages/render/src/materials`,
-`packages/webgpu/src/webgpu`, `examples/standard-gltf-texture.js`, and
-`test/e2e/standard-gltf-texture.spec.ts`.
+Package/write-scope: `packages/webgpu/src/webgpu` and targeted tests.
 Reference anchor:
-`docs/research/STANDARD_MATERIAL_TEXTURE_TRANSFORM_ROTATION_FIXTURE_PLAN_2026_05_18.md`,
-the Khronos `KHR_texture_transform` README, `packages/webgpu/src/webgpu/standard-shader.ts`,
-and the current `base-color-transform-sampling` fixture.
-
-Acceptance criteria:
-
-- StandardMaterial base-color texture transforms support rotation on
-  `TEXCOORD_0` without expanding support to transformed UV1 or non-base-color
-  slots.
-- Uniform packing and WGSL implement scale, rotation, then offset in the
-  Khronos order.
-- A browser fixture proves rotated sampling is closer to the rotated expected
-  texel than offset/scale-only or untransformed texels.
-- Existing unsupported transform diagnostics remain for transformed UV1 and
-  transformed non-base-color slots.
-
-### task-1162 — Move queued resource-set summary to generic material helper
-
-Category: `webgpu-render`
-Package/write-scope: `packages/webgpu/src/webgpu`,
-`test/webgpu/app-diagnostics-summary.test.ts`, and targeted app diagnostics
-tests.
-Reference anchor:
-`docs/research/GENERIC_MATERIAL_FAMILY_APP_ROUTE_SUMMARY_MIGRATION_PLAN_2026_05_18.md`,
-`packages/webgpu/src/webgpu/queued-built-in-resource-set-summary.ts`,
-`packages/webgpu/src/webgpu/queued-material-frame-resource-set.ts`, and
+`docs/research/GENERIC_ROUTE_SUMMARY_NEXT_FAMILY_HANDOFF_2026_05_18.md`,
+`packages/webgpu/src/webgpu/queued-material-frame-resource-buckets.ts`, and
 `packages/webgpu/src/webgpu/app-diagnostics-summary.ts`.
 
 Acceptance criteria:
 
-- Add a generic queued material frame-resource summary helper with the existing
-  item/family/pipeline counts.
-- Keep the public app diagnostics field name `routedResourceSet` stable.
-- Make the built-in summary helper a compatibility wrapper or type alias over
-  the generic helper.
-- Existing app diagnostics summary and WebGPU app tests pass.
+- Use generic bucket summary output where app diagnostics need family resource
+  counts, without renaming the public `routedResourceSet` field.
+- Preserve existing built-in app diagnostics compatibility.
+- Tests assert deterministic family ordering and JSON-safe output.
 
-### task-1163 — Audit GLB missing TEXCOORD_1 browser diagnostics
+### task-1179 — Audit app diagnostics summary after bucket routing
 
 Category: `audit-refactor`
-Package/write-scope: `docs/research`, `examples/standard-gltf-texture.js`,
-`test/e2e/standard-gltf-texture.spec.ts`, and targeted tests only if a tiny
-corrective fix is needed.
+Package/write-scope: `docs/research`, targeted tests only if a tiny corrective
+fix is needed.
 Reference anchor:
-`docs/research/STANDARD_GLB_NON_UV0_TEXTURE_COORDINATE_FIXTURE_PLAN_2026_05_18.md`,
-the current `base-color-uv1` and `base-color-uv1-missing` scenarios, and
-`packages/render/src/rendering/extraction.ts`.
+`docs/research/GENERIC_BUCKET_MIGRATION_AUDIT_2026_05_18.md`,
+`packages/webgpu/src/webgpu/app-diagnostics-summary.ts`, and
+`packages/webgpu/src/webgpu/queued-material-frame-resource-buckets.ts`.
 
 Acceptance criteria:
 
-- Verify successful UV1 and missing-UV1 browser fixtures stay paired and
-  JSON-safe.
-- Confirm missing-UV1 reports no draw/pipeline submission and does not imply
-  binary GLB import support.
-- Document any remaining UV1 browser coverage gaps.
+- Verify app diagnostics consume only bucket summaries, not raw family bucket
+  maps.
+- Confirm public diagnostics naming remains compatible.
+- Document the next route/generalization step.
 
-### task-1164 — Add GLB transformed UV1 unsupported browser fixture
+### task-1180 — Plan non-built-in material family adapter spike
 
-Category: `runtime-orchestration`
-Package/write-scope: `examples/standard-gltf-texture.js` and
-`test/e2e/standard-gltf-texture.spec.ts`.
+Category: `docs-tooling`
+Package/write-scope: `docs/research` and backlog only if adding a follow-up
+implementation task.
 Reference anchor:
-`docs/research/STANDARD_MATERIAL_TEXTURE_TRANSFORM_SUPPORT_AUDIT_2026_05_18.md`,
-the current `base-color-uv1` and `base-color-transform` scenarios, and
-`packages/render/src/materials/standard-texture-readiness.ts`.
+`docs/research/GENERIC_ROUTE_SUMMARY_NEXT_FAMILY_HANDOFF_2026_05_18.md`,
+`docs/research/GENERIC_BUCKET_DIAGNOSTICS_HANDOFF_2026_05_18.md`, and
+`packages/webgpu/src/webgpu/queued-material-adapter.ts`.
 
 Acceptance criteria:
 
-- Add a GLB-shaped scenario with `baseColorTexture.texCoord = 1`, a mesh with
-  `TEXCOORD_1`, and a non-identity offset/scale transform.
-- Browser status reports JSON-safe
-  `render.standardMaterialTexture.unsupportedTextureTransform` diagnostics.
-- Playwright asserts no draw/pipeline submission and confirms this does not
-  expand transform support to UV1.
+- Define the smallest fake or debug material family adapter spike that would
+  exercise generic route/bucket contracts without adding product-facing
+  material support.
+- Identify which built-in compatibility wrappers the spike must avoid copying.
+- Add a concrete implementation task only if the spike can stay test-only and
+  reviewable.
 
-### task-1165 — Add generic collector duplicate-pipeline reuse coverage
+### task-1181 — Add test-only non-built-in material route adapter
 
 Category: `webgpu-render`
-Package/write-scope: `test/webgpu/queued-material-frame-resource-set.test.ts`
-and `packages/webgpu/src/webgpu/queued-material-frame-resource-set.ts` only if a
-tiny corrective fix is needed.
+Package/write-scope: `test/webgpu` and generic WebGPU helpers only if a tiny
+test seam is needed.
 Reference anchor:
-`docs/research/GENERIC_COLLECTOR_DEPENDENCY_FAILURE_COVERAGE_AUDIT_2026_05_18.md`
-and `packages/webgpu/src/webgpu/queued-material-frame-resource-set.ts`.
+`docs/research/GENERIC_ROUTE_SUMMARY_NEXT_FAMILY_HANDOFF_2026_05_18.md`,
+`docs/research/GENERIC_BUCKET_DIAGNOSTICS_HANDOFF_2026_05_18.md`, and
+`packages/webgpu/src/webgpu/queued-material-adapter.ts`.
 
 Acceptance criteria:
 
-- Add a generic collector test with two items sharing one pipeline key.
-- Assert pipeline plan creation is reused once while both resource append paths
-  still run.
-- Assert mesh/material resource-key maps and pipeline-scoped bind groups remain
-  JSON-safe.
+- Add a test-only adapter family that exercises generic queue/resource/bucket
+  contracts without becoming product-facing material support.
+- Do not add a family-specific app diagnostics field or built-in compatibility
+  array.
+- Assert summaries remain deterministic and JSON-safe.
+
+### task-1182 — Audit test-only adapter before real family work
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research`, targeted tests only if a tiny corrective
+fix is needed.
+Reference anchor:
+`docs/research/NEXT_FAMILY_ROUTE_READINESS_AUDIT_2026_05_18.md` and the
+test-only adapter coverage from `task-1181`.
+
+Acceptance criteria:
+
+- Confirm the test-only adapter did not introduce product-facing material APIs.
+- Confirm no new family-specific app diagnostics field or compatibility array
+  was added.
+- Document whether a real material-family implementation is ready or still
+  blocked by app diagnostics routing.
 
 ## Post-Unlit E2E Verification Targets
 

@@ -634,7 +634,7 @@ function mapTextureTransform(input: {
       field: `${input.field}.extensions.${TEXTURE_TRANSFORM_EXTENSION}`,
       slot: input.slot,
       ...(textureIndex === undefined ? {} : { textureIndex }),
-      message: `${TEXTURE_TRANSFORM_EXTENSION} is preserved, but only base-color offset/scale transforms on TEXCOORD_0 are rendered by current material shaders.`,
+      message: `${TEXTURE_TRANSFORM_EXTENSION} is preserved, but only base-color transforms on TEXCOORD_0 are rendered by current material shaders.`,
     });
   }
 
@@ -987,9 +987,27 @@ function isSupportedTextureTransform(
   texCoord: number,
   transform: MaterialTextureTransform,
 ): boolean {
+  return (
+    slot === "baseColorTexture" &&
+    texCoord === 0 &&
+    isFiniteTextureTransform(transform)
+  );
+}
+
+function isFiniteTextureTransform(
+  transform: MaterialTextureTransform,
+): boolean {
+  const offset = transform.offset ?? [0, 0];
+  const scale = transform.scale ?? [1, 1];
   const rotation = transform.rotation ?? 0;
 
-  return slot === "baseColorTexture" && texCoord === 0 && rotation === 0;
+  return (
+    Number.isFinite(offset[0]) &&
+    Number.isFinite(offset[1]) &&
+    Number.isFinite(scale[0]) &&
+    Number.isFinite(scale[1]) &&
+    Number.isFinite(rotation)
+  );
 }
 
 function toDiagnosticValue(value: unknown): GltfMaterialDiagnosticValue {

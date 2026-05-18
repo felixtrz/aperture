@@ -469,11 +469,19 @@ function createScenarioMaterialInput(flags, texture, sampler) {
   if (flags.usesBaseColorTransform) {
     return {
       scalarTextureBinding: {
-        baseColorTexture: { ...binding, transform: textureTransform },
+        baseColorTexture: {
+          ...binding,
+          texCoord: 1,
+          transform: textureTransform,
+        },
       },
       texturedBaseColorFactor: [1, 1, 1, 1],
       texturedTextureBinding: {
-        baseColorTexture: { ...binding, transform: textureTransform },
+        baseColorTexture: {
+          ...binding,
+          texCoord: 1,
+          transform: textureTransform,
+        },
       },
     };
   }

@@ -118,13 +118,15 @@ describe("standard material WebGPU uniform packing", () => {
     expect(
       Array.from(result.packed?.uniformFloat32.slice(18, 22) ?? []),
     ).toEqual([0, 0, 1, 1]);
+    expect(result.packed?.uniformFloat32[22]).toBe(0);
   });
 
-  it("packs base-color texture offset and scale for shader sampling", () => {
+  it("packs base-color texture offset, scale, and rotation for shader sampling", () => {
     const result = packStandardMaterial(
       createStandardMaterialAsset({
         baseColorTexture: textureBinding("base", "base-sampler", 0, {
           offset: [0.25, 0.5],
+          rotation: Math.PI / 2,
           scale: [0.5, 2],
         }),
       }),
@@ -140,6 +142,7 @@ describe("standard material WebGPU uniform packing", () => {
       expect.closeTo(0.5, 5),
       expect.closeTo(2, 5),
     ]);
+    expect(result.packed?.uniformFloat32[22]).toBeCloseTo(Math.PI / 2);
   });
 
   it("packs textured alpha-mask flags and cutoff for shader discard", () => {

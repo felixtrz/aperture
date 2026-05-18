@@ -2,8 +2,9 @@ import { describe, expect, it } from "vitest";
 
 import type { MaterialQueuePhaseSummary } from "@aperture-engine/render";
 import {
+  createQueuedMaterialFrameResourceSetSummary,
   createWebGpuAppDiagnosticsSummary,
-  type QueuedBuiltInResourceSetSummary,
+  type QueuedMaterialFrameResourceSetSummary,
   type RenderFrameQueueDiagnosticsSummary,
 } from "@aperture-engine/webgpu";
 
@@ -48,6 +49,63 @@ describe("WebGPU app diagnostics summary", () => {
     expect(serialized).not.toContain("sourceMesh");
     expect(serialized).not.toContain("gpu-buffer-handle");
     expect(serialized).not.toContain("bindGroup");
+  });
+
+  it("keeps the public routedResourceSet field for generic material frame-resource summaries", () => {
+    const routedResourceSet = createQueuedMaterialFrameResourceSetSummary([
+      {
+        materialFamily: "debug-normal",
+        pipelineKey: "debug-normal|opaque",
+        renderPhase: "opaque",
+      },
+      {
+        materialFamily: "standard",
+        pipelineKey: "standard|opaque",
+        renderPhase: "opaque",
+      },
+      {
+        materialFamily: "standard",
+        pipelineKey: "standard|transparent",
+        renderPhase: "transparent",
+      },
+    ]);
+    const summary = createWebGpuAppDiagnosticsSummary({ routedResourceSet });
+
+    expect(summary).toEqual({
+      sectionCount: 1,
+      routedResourceSet: {
+        itemCount: 3,
+        byFamily: [
+          { family: "debug-normal", itemCount: 1 },
+          { family: "standard", itemCount: 2 },
+        ],
+        byPipeline: [
+          { pipelineKey: "debug-normal|opaque", itemCount: 1 },
+          { pipelineKey: "standard|opaque", itemCount: 1 },
+          { pipelineKey: "standard|transparent", itemCount: 1 },
+        ],
+        byFamilyAndPipeline: [
+          {
+            family: "debug-normal",
+            pipelineKey: "debug-normal|opaque",
+            itemCount: 1,
+          },
+          {
+            family: "standard",
+            pipelineKey: "standard|opaque",
+            itemCount: 1,
+          },
+          {
+            family: "standard",
+            pipelineKey: "standard|transparent",
+            itemCount: 1,
+          },
+        ],
+      },
+    });
+    expect(JSON.stringify(summary)).not.toMatch(
+      /GPUDevice|GPUTexture|GPUBuffer|WebGpuApp|bindGroup|sourceMesh/,
+    );
   });
 });
 
@@ -104,7 +162,7 @@ function materialQueueRouteSummary() {
   };
 }
 
-function routedResourceSetSummary(): QueuedBuiltInResourceSetSummary {
+function routedResourceSetSummary(): QueuedMaterialFrameResourceSetSummary {
   return {
     itemCount: 2,
     byFamily: [{ family: "standard", itemCount: 2 }],

@@ -921,6 +921,7 @@ describe("render extraction", () => {
         baseColorTexture: {
           texture,
           sampler,
+          texCoord: 1,
           transform: {
             offset: [0.1, 0.2],
             scale: [0.75, 0.5],
