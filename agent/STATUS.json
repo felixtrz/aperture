@@ -4,8 +4,8 @@
   "currentRunStartedAt": "2026-05-18T04:51:20Z",
   "lastRunStartedAt": "2026-05-18T03:02:16Z",
   "lastResult": "success",
-  "lastCommit": "99e4cc0",
+  "lastCommit": "e41be0f",
   "activePid": null,
-  "notes": "Completed task-1161 through task-1177. Base-color texture-transform rotation now renders for StandardMaterial TEXCOORD_0, routedResourceSet uses a generic queued material frame-resource summary helper with explicit app diagnostics compatibility coverage, GLB missing/transformed TEXCOORD_1 and transformed non-base-color texture diagnostics are covered and audited, generic queued material frame-resource buckets now group resources by family while preserving built-in arrays, bucket migration and diagnostics handoff notes were added, generic bucket summary/reset coverage is in place, next-family route readiness was audited, and next recommended task is task-1178 route app diagnostics through generic bucket summary.",
-  "lastRunFinishedAt": "2026-05-18T04:51:20Z"
+  "notes": "Completed task-1161 through task-1177. Base-color texture-transform rotation now renders for StandardMaterial TEXCOORD_0, routedResourceSet uses a generic queued material frame-resource summary helper with explicit app diagnostics compatibility coverage, GLB missing/transformed TEXCOORD_1 and transformed non-base-color texture diagnostics are covered and audited, generic queued material frame-resource buckets now group resources by family while preserving built-in arrays, bucket migration and diagnostics handoff notes were added, generic bucket summary/reset coverage is in place, next-family route readiness was audited, stop hook checkpoint e41be0f pushed, and next recommended task is task-1178 route app diagnostics through generic bucket summary.",
+  "lastRunFinishedAt": "2026-05-18T04:56:27Z"
 }
