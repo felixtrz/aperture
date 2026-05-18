@@ -393,19 +393,19 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-18 00:53 PDT</dd>
+            <dd>2026-05-18 01:51 PDT</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
-              StandardMaterial format/color-space mismatches now have source,
-              summary, and browser/status coverage; environment-map readiness is
-              reportable; reusable route scratch reset behavior is pinned; and
-              unsupported required glTF material-extension browser diagnostics
-              are implemented and audited; tracker/backlog alignment is checked
+              Route summary group clean-after-failed, test-only non-built-in,
+              mixed-family aggregation, and diagnostic-code sorting coverage are
+              pinned; invalid glTF render-state, unresolved texture-binding,
+              invalid texture-info, and invalid-source no-prepared-resource
+              diagnostics are explicit
             </dd>
             <dt>Next focus</dt>
-            <dd>Add route summary group clean-after-failed coverage</dd>
+            <dd>Plan route migration readiness or glTF fidelity</dd>
           </dl>
         </aside>
       </header>
@@ -480,8 +480,10 @@
               <code>TEXCOORD_0</code>, occlusion texture transforms on
               <code>TEXCOORD_0</code>, emissive texture transforms on
               <code>TEXCOORD_0</code>, transformed UV1 readiness/rendering,
-              missing-UV1 diagnostics, and texture format/color-space mismatch
-              diagnostics are covered.
+              missing-UV1 diagnostics, texture format/color-space mismatch
+              diagnostics, invalid render-state browser diagnostics, unresolved
+              texture-binding browser diagnostics, and invalid texture-info
+              browser diagnostics are covered.
             </p>
           </article>
           <article class="card metric">
@@ -507,7 +509,12 @@
               generic frame-resource bucket summaries for family resource counts
               without exposing raw bucket maps, and StandardMaterial routes
               surface direct-light buffer, bind-group, shader metadata, and
-              environment-map readiness without raw GPU handles.
+              environment-map readiness without raw GPU handles. Invalid glTF
+              render-state field values, unresolved texture-binding diagnostics,
+              and invalid texture-info diagnostics now survive JSON-safe
+              asset-mapping status without registering or drawing invalid
+              materials. Invalid-source browser status also explicitly reports
+              zero prepared resources on no-work frames.
             </p>
           </article>
         </div>
@@ -1495,12 +1502,12 @@
             <h3>Recommended next tasks</h3>
             <ul>
               <li>
-                <span class="badge amber">next</span> Add route summary group
-                clean-after-failed coverage.
+                <span class="badge amber">next</span> Plan route migration
+                readiness or glTF fidelity.
               </li>
               <li>
-                Keep route summary group cleanup available if the fidelity plan
-                finds no narrow source-side diagnostic.
+                Audit route migration readiness if the plan keeps pushing the
+                generic route path.
               </li>
               <li>
                 Keep IBL and shadow work deferred until material texture
@@ -1521,6 +1528,113 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-1277-1281</div>
+            <div>
+              <strong>Route summary diagnostic sorting pinned.</strong>
+              <span
+                >Stage and group diagnostic-code maps now sort deterministically
+                and merge duplicate codes across prepare and frame-resource
+                stages.</span
+              >
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="task-id">task-1272-1276</div>
+            <div>
+              <strong>Mixed-family route aggregation added.</strong>
+              <span
+                >Route summary grouping now covers built-in prepared, test-only
+                non-built-in prepared, and failed routes with deterministic
+                JSON-safe totals.</span
+              >
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="task-id">task-1267-1271</div>
+            <div>
+              <strong>Non-built-in route summary fixture added.</strong>
+              <span
+                >A test-only material family now flows through prepare and
+                frame-resource route summaries without exposing raw resource
+                keys or GPU handles.</span
+              >
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="task-id">task-1262-1266</div>
+            <div>
+              <strong>No-prepared-resource status pinned.</strong>
+              <span
+                >Invalid-source browser status now proves zero prepared
+                resources, then route migration readiness was re-audited.</span
+              >
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="task-id">task-1257-1260</div>
+            <div>
+              <strong>Invalid glTF texture-info fixture added.</strong>
+              <span
+                >Malformed texture-info fields now report JSON-safe value
+                context and skip material registration, pipelines, and
+                draws.</span
+              >
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="task-id">task-1255-1256</div>
+            <div>
+              <strong>Unresolved glTF texture-binding fixture added.</strong>
+              <span
+                >Browser status now proves unresolved texture bindings skip
+                texture, sampler, material, pipeline, and draw work.</span
+              >
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="task-id">task-1252-1254</div>
+            <div>
+              <strong>Invalid render-state diagnostics audited.</strong>
+              <span
+                >Confirmed scalar diagnostic values are JSON-safe and selected
+                unresolved texture binding as the next fidelity slice.</span
+              >
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="task-id">task-1251</div>
+            <div>
+              <strong>Invalid glTF render-state fixture added.</strong>
+              <span
+                >Browser status now preserves invalid field values and proves
+                invalid render-state mapping skips registration and draws.</span
+              >
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="task-id">task-1247-1250</div>
+            <div>
+              <strong>Post-extension slice planned and audited.</strong>
+              <span
+                >Selected invalid glTF render-state diagnostics, checked the
+                ready queue, and audited route summary group hygiene.</span
+              >
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="task-id">task-1243</div>
+            <div>
+              <strong
+                >Route summary group clean-after-failed coverage added.</strong
+              >
+              <span
+                >Clean summary groups now prove no stale failed statuses,
+                diagnostic buckets, unsupported-family text, or raw resource
+                keys remain after a failed group.</span
+              >
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-1242</div>
             <div>

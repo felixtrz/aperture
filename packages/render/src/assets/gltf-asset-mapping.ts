@@ -10,6 +10,7 @@ import {
   gltfMaterialMappingReportToJsonValue,
   gltfTextureMappingReportToJsonValue,
   type GltfImageDataResolver,
+  type GltfMaterialDiagnosticValue,
   type GltfMaterialMappingDiagnosticSeverity,
   type GltfMaterialTextureDependencyKind,
   type GltfMaterialMappingReportJsonValue,
@@ -43,6 +44,7 @@ export interface GltfAssetMappingDiagnostic {
   readonly field?: string;
   readonly extensionName?: string;
   readonly dependencyKind?: GltfMaterialTextureDependencyKind;
+  readonly value?: GltfMaterialDiagnosticValue;
 }
 
 export interface GltfPlannedTextureAsset {
@@ -241,6 +243,7 @@ export function createGltfAssetMappingReport(
         ...(diagnostic.dependencyKind === undefined
           ? {}
           : { dependencyKind: diagnostic.dependencyKind }),
+        ...(diagnostic.value === undefined ? {} : { value: diagnostic.value }),
       })),
     );
   }

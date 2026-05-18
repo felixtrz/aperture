@@ -117,6 +117,24 @@ const expectedGltfFailures = {
     status: "unsupported-required-material-extension",
     registrationValid: false,
   },
+  "invalid-render-state": {
+    mappingDiagnostic: "gltfMaterial.invalidField",
+    renderDiagnostic: "render.missingMaterialHandle",
+    status: "invalid-render-state",
+    registrationValid: false,
+  },
+  "unresolved-texture-binding": {
+    mappingDiagnostic: "gltfMaterial.unresolvedTextureBinding",
+    renderDiagnostic: "render.missingMaterialHandle",
+    status: "unresolved-texture-binding",
+    registrationValid: false,
+  },
+  "invalid-texture-info": {
+    mappingDiagnostic: "gltfMaterial.invalidTextureInfo",
+    renderDiagnostic: "render.missingMaterialHandle",
+    status: "invalid-texture-info",
+    registrationValid: false,
+  },
 };
 const scenario =
   new URLSearchParams(window.location.search).get("scenario") ?? "ready";
@@ -310,6 +328,10 @@ function createGltfScenarioConfig(selectedScenario) {
     selectedScenario === "base-color-format-color-space-mismatch";
   const usesUnsupportedRequiredMaterialExtension =
     selectedScenario === "unsupported-required-material-extension";
+  const usesInvalidRenderState = selectedScenario === "invalid-render-state";
+  const usesUnresolvedTextureBinding =
+    selectedScenario === "unresolved-texture-binding";
+  const usesInvalidTextureInfo = selectedScenario === "invalid-texture-info";
 
   return {
     usesBaseColorTransform,
@@ -333,23 +355,29 @@ function createGltfScenarioConfig(selectedScenario) {
     usesDelayedDependencies,
     usesFormatColorSpaceMismatch,
     usesUnsupportedRequiredMaterialExtension,
-    textureSlot: usesUnsupportedRequiredMaterialExtension
-      ? null
-      : usesMetallicRoughnessTexture || usesMetallicRoughnessTextureTransform
-        ? "metallicRoughnessTexture"
-        : usesNormalTexture
-          ? "normalTexture"
-          : usesOcclusionTexture
-            ? "occlusionTexture"
-            : usesEmissiveTexture
-              ? "emissiveTexture"
-              : usesAlphaMaskDoubleSided
-                ? null
-                : usesAlphaMaskBackface
+    usesInvalidRenderState,
+    usesUnresolvedTextureBinding,
+    usesInvalidTextureInfo,
+    textureSlot:
+      usesUnsupportedRequiredMaterialExtension ||
+      usesInvalidRenderState ||
+      usesInvalidTextureInfo
+        ? null
+        : usesMetallicRoughnessTexture || usesMetallicRoughnessTextureTransform
+          ? "metallicRoughnessTexture"
+          : usesNormalTexture
+            ? "normalTexture"
+            : usesOcclusionTexture
+              ? "occlusionTexture"
+              : usesEmissiveTexture
+                ? "emissiveTexture"
+                : usesAlphaMaskDoubleSided
                   ? null
-                  : usesDelayedDependencies
-                    ? "baseColorTexture"
-                    : "baseColorTexture",
+                  : usesAlphaMaskBackface
+                    ? null
+                    : usesDelayedDependencies
+                      ? "baseColorTexture"
+                      : "baseColorTexture",
     materialModel: usesMetallicRoughnessTexture
       ? "gltf-standard-metallic-roughness-texture"
       : usesMetallicRoughnessTextureTransform
@@ -378,17 +406,23 @@ function createGltfScenarioConfig(selectedScenario) {
                               ? "gltf-standard-base-color-format-color-space-mismatch"
                               : usesUnsupportedRequiredMaterialExtension
                                 ? "gltf-standard-unsupported-required-material-extension"
-                                : usesBaseColorTransformSampling
-                                  ? "gltf-standard-base-color-transform-sampling"
-                                  : usesBaseColorTransformRotationSampling
-                                    ? "gltf-standard-base-color-transform-rotation-sampling"
-                                    : usesBaseColorUv1
-                                      ? "gltf-standard-base-color-uv1"
-                                      : usesBaseColorUv1Missing
-                                        ? "gltf-standard-base-color-uv1-missing"
-                                        : usesBaseColorUv1Transform
-                                          ? "gltf-standard-base-color-uv1-transform"
-                                          : "gltf-standard-base-color-texture",
+                                : usesInvalidRenderState
+                                  ? "gltf-standard-invalid-render-state"
+                                  : usesUnresolvedTextureBinding
+                                    ? "gltf-standard-unresolved-texture-binding"
+                                    : usesInvalidTextureInfo
+                                      ? "gltf-standard-invalid-texture-info"
+                                      : usesBaseColorTransformSampling
+                                        ? "gltf-standard-base-color-transform-sampling"
+                                        : usesBaseColorTransformRotationSampling
+                                          ? "gltf-standard-base-color-transform-rotation-sampling"
+                                          : usesBaseColorUv1
+                                            ? "gltf-standard-base-color-uv1"
+                                            : usesBaseColorUv1Missing
+                                              ? "gltf-standard-base-color-uv1-missing"
+                                              : usesBaseColorUv1Transform
+                                                ? "gltf-standard-base-color-uv1-transform"
+                                                : "gltf-standard-base-color-texture",
     expectedFailure: expectedGltfFailures[selectedScenario] ?? null,
     expectedTextureTransform: usesBaseColorTransform
       ? unsupportedTextureTransform
@@ -521,17 +555,23 @@ function materialNameForConfig(config) {
                           ? "GLB Standard Delayed Dependencies"
                           : config.usesUnsupportedRequiredMaterialExtension
                             ? "GLB Standard Unsupported Required Extension"
-                            : config.usesBaseColorTransformSampling
-                              ? "GLB Standard BaseColor Transform Sampling"
-                              : config.usesBaseColorTransformRotationSampling
-                                ? "GLB Standard BaseColor Transform Rotation Sampling"
-                                : config.usesBaseColorUv1
-                                  ? "GLB Standard BaseColor UV1"
-                                  : config.usesBaseColorUv1Missing
-                                    ? "GLB Standard BaseColor UV1 Missing"
-                                    : config.usesBaseColorUv1Transform
-                                      ? "GLB Standard BaseColor UV1 Transform"
-                                      : "GLB Standard BaseColor";
+                            : config.usesInvalidRenderState
+                              ? "GLB Standard Invalid Render State"
+                              : config.usesUnresolvedTextureBinding
+                                ? "GLB Standard Unresolved Texture Binding"
+                                : config.usesInvalidTextureInfo
+                                  ? "GLB Standard Invalid Texture Info"
+                                  : config.usesBaseColorTransformSampling
+                                    ? "GLB Standard BaseColor Transform Sampling"
+                                    : config.usesBaseColorTransformRotationSampling
+                                      ? "GLB Standard BaseColor Transform Rotation Sampling"
+                                      : config.usesBaseColorUv1
+                                        ? "GLB Standard BaseColor UV1"
+                                        : config.usesBaseColorUv1Missing
+                                          ? "GLB Standard BaseColor UV1 Missing"
+                                          : config.usesBaseColorUv1Transform
+                                            ? "GLB Standard BaseColor UV1 Transform"
+                                            : "GLB Standard BaseColor";
 }
 
 function readbackSamplesForConfig(config) {
@@ -552,9 +592,19 @@ function readbackSamplesForConfig(config) {
 function createGltfFixtureRoot(config) {
   let pbrMetallicRoughness;
 
-  if (config.usesUnsupportedRequiredMaterialExtension) {
+  if (
+    config.usesUnsupportedRequiredMaterialExtension ||
+    config.usesInvalidRenderState
+  ) {
     pbrMetallicRoughness = {
       baseColorFactor: scalarColor,
+      metallicFactor: 0,
+      roughnessFactor: 0.8,
+    };
+  } else if (config.usesInvalidTextureInfo) {
+    pbrMetallicRoughness = {
+      baseColorFactor: [1, 1, 1, 1],
+      baseColorTexture: { index: "zero", texCoord: "uv1" },
       metallicFactor: 0,
       roughnessFactor: 0.8,
     };
@@ -624,6 +674,13 @@ function createGltfFixtureRoot(config) {
     pbrMetallicRoughness,
     ...(config.usesUnsupportedRequiredMaterialExtension
       ? { extensions: { KHR_materials_clearcoat: {} } }
+      : {}),
+    ...(config.usesInvalidRenderState
+      ? {
+          alphaMode: "CUTOUT",
+          alphaCutoff: 1.5,
+          doubleSided: "true",
+        }
       : {}),
     ...(config.usesAlphaMaskDoubleSided ||
     config.usesAlphaMaskTexture ||
@@ -708,13 +765,19 @@ function createGltfFixtureRoot(config) {
             ],
             samplers: [gltfSamplerSource, gltfSamplerSource],
           }
-        : {
-            textures: [{ source: 0, sampler: 0 }],
-            images: [
-              { bufferView: 0, mimeType: "image/png", name: "BaseColor" },
-            ],
-            samplers: [gltfSamplerSource],
-          }),
+        : config.usesUnresolvedTextureBinding
+          ? {
+              textures: [{ source: 7, sampler: 0 }],
+              images: [],
+              samplers: [gltfSamplerSource],
+            }
+          : {
+              textures: [{ source: 0, sampler: 0 }],
+              images: [
+                { bufferView: 0, mimeType: "image/png", name: "BaseColor" },
+              ],
+              samplers: [gltfSamplerSource],
+            }),
   };
 }
 
@@ -898,6 +961,7 @@ function createStatus(aperture, app, scene, report) {
           field: diagnostic.field,
           extensionName: diagnostic.extensionName,
           dependencyKind: diagnostic.dependencyKind,
+          value: diagnostic.value,
         })),
         samplers: scene.assetMapping.samplers.map((sampler) =>
           createSamplerMappingStatus(sampler),
@@ -947,7 +1011,7 @@ function createStatus(aperture, app, scene, report) {
       textureResourcesCreated: report.resourceReuse.textureResourcesCreated,
       samplerResourcesCreated: report.resourceReuse.samplerResourcesCreated,
       materialBuffersCreated: report.resourceReuse.materialBuffersCreated,
-      bindGroupsCreated: report.resourceReuse.materialBindGroupsCreated,
+      bindGroupsCreated: report.resourceReuse.materialBindGroupsCreated ?? 0,
     },
     pipelines: {
       keys: pipelineKeys,

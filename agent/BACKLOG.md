@@ -59,13 +59,11 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start with `task-1243`. The latest run completed StandardMaterial texture
-format/color-space diagnostics through unit, summary, and browser/status
-coverage; added environment-map readiness reporting; and pinned reusable route
-scratch reset behavior plus route report shell stale-state coverage for the
-generic built-in app resource collector. The unsupported required glTF
-material-extension browser diagnostic fixture is implemented and audited, and
-the tracker/backlog plus material route migration criteria audits are complete.
+Start with `task-1282`. The latest run added test-only non-built-in,
+mixed-family aggregation, and diagnostic-code sorting coverage for queued
+material route summaries. The next task should decide whether route-summary
+criteria are sufficient to move closer to app-level material route migration or
+whether to return to StandardMaterial/glTF fidelity diagnostics.
 
 ## Near-Term Proof Point Track
 
@@ -82,11 +80,14 @@ Target proof point:
 
 Remaining automation priority order:
 
-1. `task-1243` — add route summary group clean-after-failed regression.
-2. `task-1247` — plan next post-extension fidelity or route slice.
-3. `task-1248` — audit next post-extension slice plan.
-4. `task-1249` — refill after material route criteria audit.
-5. `task-1250` — audit route summary group clean-after-failed regression.
+1. `task-1282` — plan route migration readiness or glTF fidelity after route
+   determinism.
+2. `task-1283` — audit route migration readiness or glTF fidelity plan.
+3. `task-1284` — audit material route migration readiness after route summary
+   determinism.
+4. `task-1285` — plan next StandardMaterial/glTF fidelity diagnostic if route
+   migration remains deferred.
+5. `task-1286` — audit tracker/backlog alignment after route determinism.
 
 Defer allocation-only cleanup and metadata-only shader-contract tasks unless
 they are a direct blocker for this track.
@@ -129,7 +130,7 @@ Preferred refill order after the current ready queue:
 
 Estimated remaining runway to a credible lit glTF render pipeline:
 
-- About 18-24 focused automation tasks for a production-shaped pipeline that can
+- About 14-20 focused automation tasks for a production-shaped pipeline that can
   load/map simple GLB materials and render lit metallic-roughness content with
   honest diagnostics, assuming no major redesign is found.
 - About 10-14 of those tasks are renderer/material architecture work: generic
@@ -152,98 +153,102 @@ viewer/material mapping should not outrun the material and queue architecture.
 
 ### Proof Point Critical Path
 
-### task-1243 — Add route summary group clean-after-failed regression
-
-Category: `webgpu-render`
-Package/write-scope: `test/webgpu/queued-material-route-summary-group.test.ts`
-only unless a tiny implementation fix is required.
-Reference anchor:
-`docs/research/MATERIAL_FAMILY_ROUTE_MIGRATION_CRITERIA_AUDIT_2026_05_18.md`,
-`packages/webgpu/src/webgpu/queued-material-route-summary-group.ts`,
-`packages/webgpu/src/webgpu/queued-material-frame-resource-route.ts`, and
-`docs/research/GENERIC_ROUTE_SUMMARY_STALE_STATE_REGRESSION_AUDIT_2026_05_18.md`.
-
-Acceptance criteria:
-
-- Build a failed prepare/frame-resource route summary group followed by a clean
-  group in the same test.
-- Assert the clean group has empty diagnostic-code buckets, no failed statuses,
-  no stale unsupported-family text, and no raw facade/backend resource keys.
-- Preserve the existing JSON-safe group shape.
-- Do not add app route structure changes, new material families, IBL, shadows,
-  binary GLB loading, GLB viewer behavior, or shader behavior.
-
-### task-1247 — Plan next post-extension fidelity or route slice
+### task-1282 — Plan route migration readiness or glTF fidelity after route determinism
 
 Category: `docs-tooling`
 Package/write-scope: `docs/research` and backlog only.
 Reference anchor:
-`docs/MEDIUM_LONG_TERM_GOALS.md`, `docs/ARCHITECTURE.md`, the audit from
-`task-1246`, and recent route summary stale-state work.
+`docs/MEDIUM_LONG_TERM_GOALS.md`, `docs/ARCHITECTURE.md`,
+`docs/research/ROUTE_SUMMARY_DIAGNOSTIC_CODE_SORTING_REGRESSION_AUDIT_2026_05_18.md`,
+`packages/webgpu/src/webgpu/queued-material-route-summary-group.ts`,
+`packages/webgpu/src/webgpu/queued-material-frame-resource-route.ts`,
+`packages/render/src/materials/gltf-material.ts`, and
+`examples/standard-gltf-texture.js`.
 
 Acceptance criteria:
 
-- Compare one StandardMaterial/glTF fidelity candidate, one route-summary
-  cleanup candidate, and one material-family migration criterion candidate.
-- Select exactly one 30-60 minute follow-up task with package/write-scope,
-  reference anchor, and acceptance criteria.
-- Keep IBL, shadows, binary GLB loading, GLB viewer behavior, and broad
-  material-family rewrites deferred unless the selected task explicitly remains
-  narrow.
+- Compare an app-level material route migration readiness audit, a narrow
+  app-status route diagnostic, and a StandardMaterial/glTF fidelity diagnostic.
+- Select exactly one 30-60 minute follow-up task with category,
+  package/write-scope, reference anchor, and acceptance criteria.
+- Keep app-level non-built-in material rendering, IBL, shadows, binary GLB
+  loading, GLB viewer behavior, and broad material-family rewrites deferred
+  unless the selected task explicitly remains narrow.
 
-### task-1248 — Audit next post-extension slice plan
+### task-1283 — Audit route migration readiness or glTF fidelity plan
 
 Category: `audit-refactor`
 Package/write-scope: `docs/research`, targeted tests only if a tiny corrective
 fix is needed.
 Reference anchor:
-the plan from `task-1247`, `docs/ARCHITECTURE.md`,
-`docs/MEDIUM_LONG_TERM_GOALS.md`, and recent diagnostics/route cleanup audits.
+the plan from `task-1282`, `docs/ARCHITECTURE.md`,
+`docs/MEDIUM_LONG_TERM_GOALS.md`, and recent route/glTF fidelity audits.
 
 Acceptance criteria:
 
-- Confirm the selected follow-up is concrete enough for one focused run.
+- Confirm the selected follow-up is concrete enough for one focused run and does
+  not smuggle in broad app-level material routing, IBL, shadows, binary GLB
+  loading, or GLB viewer behavior.
 - Confirm the selected follow-up preserves ECS authority, render extraction,
-  and WebGPU-only backend ownership.
+  JSON-safe diagnostics, and WebGPU-only backend ownership.
 - Recommend whether to implement the selected follow-up or adjust the backlog.
 
-### task-1249 — Refill after material route criteria audit
-
-Category: `docs-tooling`
-Package/write-scope: `agent/BACKLOG.md`, `agent/HANDOFF.md`, and
-`docs/research`.
-Reference anchor:
-the audit from `task-1242`, `docs/MEDIUM_LONG_TERM_GOALS.md`, and
-`docs/ARCHITECTURE.md`.
-
-Acceptance criteria:
-
-- If `task-1242` removes or redirects ready tasks, refill the ready queue back
-  to at least five concrete tasks.
-- Each new or adjusted task includes category, package/write-scope, reference
-  anchor, and acceptance criteria.
-- Preserve ECS authority, render extraction, WebGPU-only backend ownership, and
-  the current deferral of IBL, shadows, binary GLB loading, and GLB viewer
-  behavior.
-
-### task-1250 — Audit route summary group clean-after-failed regression
+### task-1284 — Audit material route migration readiness after route summary determinism
 
 Category: `audit-refactor`
-Package/write-scope: `docs/research`, targeted tests only if a tiny corrective
-fix is needed.
+Package/write-scope: `docs/research`, `agent/BACKLOG.md` only unless a tiny
+corrective test is required.
 Reference anchor:
-the implementation from `task-1243`,
-`docs/research/MATERIAL_FAMILY_ROUTE_MIGRATION_CRITERIA_AUDIT_2026_05_18.md`,
-and `docs/ARCHITECTURE.md`.
+the selected plan from `task-1282`,
+`docs/ARCHITECTURE.md`, `docs/MEDIUM_LONG_TERM_GOALS.md`,
+`packages/webgpu/src/webgpu/queued-material-frame-resource-route.ts`,
+`packages/webgpu/src/webgpu/queued-material-route-summary-group.ts`, and
+recent route summary audits.
 
 Acceptance criteria:
 
-- Confirm the regression strengthens generic route-summary hygiene without
-  adding app-level non-built-in rendering behavior.
-- Confirm no source asset, ECS component, render snapshot, or WebGPU resource
-  ownership boundary changed.
-- Recommend whether to continue with route cleanup or return to
-  StandardMaterial/glTF fidelity planning.
+- List the route-summary criteria now covered and the route/prepared-resource
+  criteria still missing before app-level non-built-in material routing.
+- Recommend either a concrete app-level migration slice or a return to
+  StandardMaterial/glTF fidelity work.
+- Do not implement app-level non-built-in rendering in the audit.
+
+### task-1285 — Plan next StandardMaterial/glTF fidelity diagnostic if route migration remains deferred
+
+Category: `docs-tooling`
+Package/write-scope: `docs/research` and backlog only.
+Reference anchor:
+`docs/MEDIUM_LONG_TERM_GOALS.md`, `docs/ARCHITECTURE.md`,
+`packages/render/src/materials/gltf-material.ts`,
+`packages/render/src/assets/gltf-asset-mapping.ts`,
+`examples/standard-gltf-texture.js`, and recent glTF diagnostic audits.
+
+Acceptance criteria:
+
+- Compare at least two narrow StandardMaterial/glTF diagnostic candidates and
+  one route/prepared-resource candidate.
+- Select exactly one follow-up task with category, package/write-scope,
+  reference anchor, and acceptance criteria.
+- Keep IBL, shadows, binary GLB loading, GLB viewer behavior, and broad PBR
+  rewrites deferred unless the selected task explicitly remains narrow.
+
+### task-1286 — Audit tracker/backlog alignment after route determinism
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research`, `agent/BACKLOG.md`, `docs/index.html`,
+and `docs/render-pipeline-comparison.html`; no implementation unless a tiny
+tracker/backlog fix is required.
+Reference anchor:
+`docs/NORTH_STAR.md`, `docs/MEDIUM_LONG_TERM_GOALS.md`,
+`docs/ARCHITECTURE.md`, and the completed route-summary determinism audits.
+
+Acceptance criteria:
+
+- Confirm the public tracker reflects the latest route-summary and glTF
+  diagnostic coverage.
+- Confirm the ready backlog has at least five concrete categorized tasks with
+  package/write-scope, reference anchors, and acceptance criteria.
+- Run `pnpm run check:progress` if tracker pages are edited.
 
 ## Post-Unlit E2E Verification Targets
 

@@ -203,6 +203,49 @@ describe("glTF asset mapping orchestration report", () => {
     ]);
   });
 
+  it("preserves invalid material render-state diagnostic values", () => {
+    const report = createGltfAssetMappingReport({
+      root: {
+        asset: { version: "2.0" },
+        materials: [
+          {
+            alphaMode: "CUTOUT",
+            alphaCutoff: 1.5,
+            doubleSided: "true",
+          },
+        ],
+      },
+      resolveImageData: () => decodedImage,
+    });
+
+    expect(report.valid).toBe(false);
+    expect(report.diagnostics).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          layer: "material",
+          code: "gltfMaterial.invalidField",
+          materialIndex: 0,
+          field: "alphaMode",
+          value: "CUTOUT",
+        }),
+        expect.objectContaining({
+          layer: "material",
+          code: "gltfMaterial.invalidField",
+          materialIndex: 0,
+          field: "doubleSided",
+          value: "true",
+        }),
+        expect.objectContaining({
+          layer: "material",
+          code: "gltfMaterial.invalidField",
+          materialIndex: 0,
+          field: "alphaCutoff",
+          value: 1.5,
+        }),
+      ]),
+    );
+  });
+
   it("preserves invalid GLB texture dependency context for every StandardMaterial slot", () => {
     for (const slot of standardTextureSlots) {
       const report = createGltfAssetMappingReport({

@@ -1,5 +1,263 @@
 # Handoff
 
+## Current Run Update — 2026-05-18T08:52:40Z
+
+Completed `task-1243` and `task-1247` through `task-1281`. Recommended next
+task is `task-1282`.
+
+Additional task ids completed since the previous checkpoint:
+
+- `task-1272` — Plan next material route or glTF fidelity slice.
+- `task-1273` — Audit next material route or glTF fidelity plan.
+- `task-1274` — Add mixed-family route summary aggregation regression.
+- `task-1275` — Audit mixed-family route summary aggregation regression.
+- `task-1276` — Audit tracker/backlog alignment after mixed-family route
+  regression.
+- `task-1277` — Plan route summary or glTF fidelity after mixed aggregation.
+- `task-1278` — Audit route summary or glTF fidelity plan.
+- `task-1279` — Add route summary diagnostic-code sorting regression.
+- `task-1280` — Audit route summary diagnostic-code sorting regression.
+- `task-1281` — Audit tracker/backlog alignment after route summary sorting.
+
+Additional highlights:
+
+- Added a mixed-family route summary group regression covering a prepared
+  built-in `standard` route, a prepared test-only `preview-custom` route, and a
+  failed `debug-normal` route.
+- Added route summary diagnostic-code sorting coverage proving stage-level and
+  group-level `byCode` maps sort deterministically and merge duplicate codes
+  across prepare and frame-resource stages.
+- Added plan/audit notes for the mixed-family aggregation slice and the
+  diagnostic-code sorting slice.
+- Updated the public tracker and render pipeline comparison for mixed-family
+  aggregation and deterministic route summary diagnostics.
+- Refilled the ready backlog with `task-1282` through `task-1286`.
+
+Additional files touched:
+
+- `docs/research/NEXT_MATERIAL_ROUTE_OR_GLTF_FIDELITY_SLICE_PLAN_2026_05_18.md`
+- `docs/research/NEXT_MATERIAL_ROUTE_OR_GLTF_FIDELITY_SLICE_PLAN_AUDIT_2026_05_18.md`
+- `docs/research/MIXED_FAMILY_ROUTE_SUMMARY_AGGREGATION_REGRESSION_AUDIT_2026_05_18.md`
+- `docs/research/TRACKER_BACKLOG_ALIGNMENT_AFTER_MIXED_FAMILY_ROUTE_REGRESSION_AUDIT_2026_05_18.md`
+- `docs/research/NEXT_ROUTE_SUMMARY_OR_GLTF_FIDELITY_AFTER_MIXED_AGGREGATION_PLAN_2026_05_18.md`
+- `docs/research/NEXT_ROUTE_SUMMARY_OR_GLTF_FIDELITY_AFTER_MIXED_AGGREGATION_PLAN_AUDIT_2026_05_18.md`
+- `docs/research/ROUTE_SUMMARY_DIAGNOSTIC_CODE_SORTING_REGRESSION_AUDIT_2026_05_18.md`
+- `docs/research/TRACKER_BACKLOG_ALIGNMENT_AFTER_ROUTE_SUMMARY_SORTING_AUDIT_2026_05_18.md`
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/queued-material-route-summary-group.test.ts`
+- `pnpm exec prettier --check agent/BACKLOG.md agent/COMPLETED.md agent/HANDOFF.md agent/STATUS.json docs/index.html docs/render-pipeline-comparison.html docs/research/NEXT_ROUTE_SUMMARY_OR_GLTF_FIDELITY_AFTER_MIXED_AGGREGATION_PLAN_2026_05_18.md docs/research/NEXT_ROUTE_SUMMARY_OR_GLTF_FIDELITY_AFTER_MIXED_AGGREGATION_PLAN_AUDIT_2026_05_18.md docs/research/ROUTE_SUMMARY_DIAGNOSTIC_CODE_SORTING_REGRESSION_AUDIT_2026_05_18.md docs/research/TRACKER_BACKLOG_ALIGNMENT_AFTER_ROUTE_SUMMARY_SORTING_AUDIT_2026_05_18.md test/webgpu/queued-material-route-summary-group.test.ts`
+- `pnpm run check:progress`
+- `git diff --check`
+- `pnpm run build`
+- `pnpm run lint`
+- `pnpm test`
+
+Known issues / follow-ups:
+
+- Start `task-1282`: decide whether route-summary criteria are sufficient to
+  move closer to app-level material route migration or whether to return to
+  StandardMaterial/glTF fidelity diagnostics.
+- Real app-level non-built-in material adapter routing, binary GLB loading, IBL,
+  shadows, GLB viewer behavior, and full PBR resources remain deferred.
+
+## Current Run Update — 2026-05-18T08:44:52Z
+
+Completed `task-1243` and `task-1247` through `task-1271`. Recommended next
+task is `task-1272`.
+
+Additional task ids completed since the previous checkpoint:
+
+- `task-1267` — Plan test-only non-built-in route summary fixture.
+- `task-1268` — Audit test-only non-built-in route summary plan.
+- `task-1269` — Add test-only non-built-in route summary fixture.
+- `task-1270` — Audit test-only non-built-in route summary fixture.
+- `task-1271` — Audit tracker/backlog alignment after route fixture.
+
+Additional highlights:
+
+- Added a `preview-custom` unit-only route summary fixture in
+  `test/webgpu/queued-material-route-summary-group.test.ts`.
+- The fixture builds prepare and frame-resource route shell summaries through
+  generic helpers and proves grouped JSON reports prepared totals without raw
+  facade/backend resource keys or GPU handles.
+- Audited the fixture as route-summary-only coverage with no source asset, ECS
+  component, render snapshot, WebGPU upload, pipeline, shader, draw submission,
+  or public material-family API changes.
+- Updated the public tracker and render pipeline comparison to mention
+  test-only non-built-in route summary coverage while keeping real app-level
+  non-built-in material adapter routing listed as missing.
+- Refilled the ready backlog with `task-1272` through `task-1276`.
+
+Additional files touched:
+
+- `docs/research/TEST_ONLY_NON_BUILT_IN_ROUTE_SUMMARY_FIXTURE_PLAN_2026_05_18.md`
+- `docs/research/TEST_ONLY_NON_BUILT_IN_ROUTE_SUMMARY_FIXTURE_PLAN_AUDIT_2026_05_18.md`
+- `docs/research/TEST_ONLY_NON_BUILT_IN_ROUTE_SUMMARY_FIXTURE_AUDIT_2026_05_18.md`
+- `docs/research/TRACKER_BACKLOG_ALIGNMENT_AFTER_ROUTE_FIXTURE_AUDIT_2026_05_18.md`
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/queued-material-route-summary-group.test.ts`
+- `pnpm exec prettier --check agent/BACKLOG.md agent/COMPLETED.md agent/STATUS.json docs/index.html docs/render-pipeline-comparison.html docs/research/TEST_ONLY_NON_BUILT_IN_ROUTE_SUMMARY_FIXTURE_AUDIT_2026_05_18.md docs/research/TRACKER_BACKLOG_ALIGNMENT_AFTER_ROUTE_FIXTURE_AUDIT_2026_05_18.md test/webgpu/queued-material-route-summary-group.test.ts`
+- `pnpm run check:progress`
+- `git diff --check`
+- `pnpm run build`
+- `pnpm run lint`
+- `pnpm test`
+
+Known issues / follow-ups:
+
+- Start `task-1272`: plan whether the next narrow slice should continue route
+  summary migration criteria with mixed-family aggregation coverage or return to
+  a StandardMaterial/glTF fidelity diagnostic.
+- Real app-level non-built-in material adapter routing, binary GLB loading, IBL,
+  shadows, GLB viewer behavior, and full PBR resources remain deferred.
+
+## Current Run Update — 2026-05-18T08:36:53Z
+
+Completed `task-1243` and `task-1247` through `task-1266`. Recommended next
+task is `task-1267`.
+
+Completed task ids:
+
+- `task-1243` — Add route summary group clean-after-failed regression.
+- `task-1247` — Plan next post-extension fidelity or route slice.
+- `task-1248` — Audit next post-extension slice plan.
+- `task-1249` — Refill after material route criteria audit.
+- `task-1250` — Audit route summary group clean-after-failed regression.
+- `task-1251` — Add invalid glTF render-state browser diagnostic fixture.
+- `task-1252` — Audit invalid glTF render-state browser diagnostic fixture.
+- `task-1253` — Plan next texture-binding fidelity or route-migration slice.
+- `task-1254` — Audit next texture-binding or route-migration plan.
+- `task-1255` — Add unresolved glTF texture-binding browser diagnostic fixture.
+- `task-1256` — Audit unresolved glTF texture-binding browser diagnostic fixture.
+- `task-1257` — Plan next route, prepared-resource, or glTF fidelity slice.
+- `task-1258` — Audit next route/prepared/fidelity plan.
+- `task-1259` — Add invalid glTF texture-info browser diagnostic fixture.
+- `task-1260` — Audit invalid glTF texture-info browser diagnostic fixture.
+- `task-1261` — Audit tracker/backlog alignment after glTF diagnostics.
+- `task-1262` — Plan next route, prepared-resource, or glTF fidelity slice.
+- `task-1263` — Audit next route/prepared/fidelity plan.
+- `task-1264` — Add invalid-source no-prepared-resource browser summary.
+- `task-1265` — Audit invalid-source no-prepared-resource browser summary.
+- `task-1266` — Audit material route migration readiness after diagnostics.
+
+Highlights:
+
+- Added a route summary group regression proving a clean StandardMaterial group
+  after a failed `debug-normal` group has no stale failed statuses,
+  diagnostic-code buckets, unsupported-family text, or raw facade/backend
+  resource keys.
+- Planned and audited the next post-extension fidelity slice, selecting invalid
+  glTF render-state browser/status diagnostics over more route-summary
+  permutations or a non-built-in route migration spike.
+- Added an `invalid-render-state` scenario to
+  `examples/standard-gltf-texture.js` with invalid `alphaMode`,
+  `alphaCutoff`, and `doubleSided` source values.
+- Preserved `value` in JSON-safe glTF material asset-mapping diagnostics and
+  added unit coverage for invalid render-state value propagation.
+- Added Playwright coverage proving invalid render-state mapping prevents
+  material registration, mesh draw extraction, pipeline key creation, and draw
+  submission while surfacing `gltfMaterial.invalidField` and
+  `render.missingMaterialHandle`.
+- Audited the invalid render-state fixture, then planned and audited unresolved
+  glTF texture-binding browser diagnostics as the next slice.
+- Added an `unresolved-texture-binding` scenario that surfaces
+  `gltfTexture.malformedImage`, `gltfMaterial.unresolvedTextureBinding`, and
+  `render.missingMaterialHandle` while skipping texture, sampler, material,
+  pipeline, and draw work.
+- Audited the unresolved texture-binding fixture and confirmed the status stays
+  free of raw texture bytes, sampler objects, WebGPU handles, and backend
+  resource handles.
+- Planned and audited the next route/prepared/fidelity slice, then added an
+  `invalid-texture-info` browser scenario that reports malformed base-color
+  texture-info `index` and `texCoord` values without registering or drawing an
+  invalid material.
+- Audited the invalid texture-info fixture and updated the public tracker/render
+  pipeline comparison for the expanded glTF diagnostic coverage.
+- Planned/audited an invalid-source no-prepared-resource status assertion,
+  implemented it on the invalid texture-info browser fixture, and made
+  `bindGroupsCreated` explicit as `0` for no-work frames.
+- Audited material route migration readiness after diagnostics and selected a
+  test-only non-built-in route summary fixture as the next planning target.
+- Refreshed the public tracker and render pipeline comparison, moved completed
+  tasks to `agent/COMPLETED.md`, and refilled the ready queue with
+  `task-1267` through `task-1271`.
+
+Files touched:
+
+- `agent/BACKLOG.md`
+- `agent/COMPLETED.md`
+- `agent/HANDOFF.md`
+- `agent/STATUS.json`
+- `docs/index.html`
+- `docs/render-pipeline-comparison.html`
+- `docs/research/NEXT_POST_EXTENSION_FIDELITY_OR_ROUTE_SLICE_PLAN_2026_05_18.md`
+- `docs/research/NEXT_POST_EXTENSION_SLICE_PLAN_AUDIT_2026_05_18.md`
+- `docs/research/NEXT_ROUTE_PREPARED_OR_GLTF_FIDELITY_PLAN_AUDIT_2026_05_18.md`
+- `docs/research/NEXT_ROUTE_PREPARED_OR_GLTF_FIDELITY_SLICE_PLAN_2026_05_18.md`
+- `docs/research/NEXT_ROUTE_PREPARED_OR_GLTF_FIDELITY_AFTER_DIAGNOSTICS_PLAN_2026_05_18.md`
+- `docs/research/NEXT_ROUTE_PREPARED_OR_GLTF_FIDELITY_AFTER_DIAGNOSTICS_PLAN_AUDIT_2026_05_18.md`
+- `docs/research/NEXT_TEXTURE_BINDING_OR_ROUTE_MIGRATION_PLAN_AUDIT_2026_05_18.md`
+- `docs/research/NEXT_TEXTURE_BINDING_OR_ROUTE_MIGRATION_SLICE_PLAN_2026_05_18.md`
+- `docs/research/REFILL_AFTER_MATERIAL_ROUTE_CRITERIA_AUDIT_2026_05_18.md`
+- `docs/research/ROUTE_SUMMARY_GROUP_CLEAN_AFTER_FAILED_REGRESSION_AUDIT_2026_05_18.md`
+- `docs/research/INVALID_GLTF_RENDER_STATE_BROWSER_DIAGNOSTIC_AUDIT_2026_05_18.md`
+- `docs/research/INVALID_GLTF_TEXTURE_INFO_BROWSER_DIAGNOSTIC_AUDIT_2026_05_18.md`
+- `docs/research/INVALID_SOURCE_NO_PREPARED_RESOURCE_BROWSER_SUMMARY_AUDIT_2026_05_18.md`
+- `docs/research/MATERIAL_ROUTE_MIGRATION_READINESS_AFTER_DIAGNOSTICS_AUDIT_2026_05_18.md`
+- `docs/research/TRACKER_BACKLOG_ALIGNMENT_AFTER_GLTF_DIAGNOSTICS_AUDIT_2026_05_18.md`
+- `docs/research/UNRESOLVED_GLTF_TEXTURE_BINDING_BROWSER_DIAGNOSTIC_AUDIT_2026_05_18.md`
+- `examples/standard-gltf-texture.js`
+- `packages/render/src/assets/gltf-asset-mapping.ts`
+- `test/assets/gltf-asset-mapping.test.ts`
+- `test/e2e/standard-gltf-texture.spec.ts`
+- `test/webgpu/queued-material-route-summary-group.test.ts`
+
+Validation:
+
+- `pnpm exec prettier --check packages/render/src/assets/gltf-asset-mapping.ts examples/standard-gltf-texture.js test/assets/gltf-asset-mapping.test.ts test/e2e/standard-gltf-texture.spec.ts agent/BACKLOG.md docs/research/NEXT_POST_EXTENSION_FIDELITY_OR_ROUTE_SLICE_PLAN_2026_05_18.md docs/research/NEXT_POST_EXTENSION_SLICE_PLAN_AUDIT_2026_05_18.md docs/research/REFILL_AFTER_MATERIAL_ROUTE_CRITERIA_AUDIT_2026_05_18.md docs/research/ROUTE_SUMMARY_GROUP_CLEAN_AFTER_FAILED_REGRESSION_AUDIT_2026_05_18.md`
+- `node --check examples/standard-gltf-texture.js`
+- `pnpm exec vitest run test/materials/gltf-material.test.ts test/assets/gltf-asset-mapping.test.ts`
+- `pnpm exec vitest run test/webgpu/queued-material-route-summary-group.test.ts test/webgpu/material-queue-route-report.test.ts`
+- `pnpm exec vitest run test/materials/gltf-material.test.ts test/assets/gltf-asset-mapping.test.ts test/webgpu/queued-material-route-summary-group.test.ts test/webgpu/material-queue-route-report.test.ts`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "invalid render-state"`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "unresolved texture bindings"`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "invalid texture-info"`
+- `pnpm run build`
+- `pnpm run lint`
+- `pnpm test`
+- `pnpm run check:progress`
+- `git diff --check`
+
+Additional reference files/patterns inspected:
+
+- `references/three.js/src/renderers/common/RenderList.js` for render item
+  reuse/reset behavior.
+- `references/engine/src/core/object-pool.js` and
+  `references/engine/src/core/sorted-loop-array.js` for renderer-side reuse and
+  ordered route/list handling patterns.
+- `packages/webgpu/src/webgpu/queued-material-route-summary-group.ts`
+- `packages/webgpu/src/webgpu/queued-material-frame-resource-route.ts`
+- `packages/webgpu/src/webgpu/queued-material-prepare-route.ts`
+- `packages/render/src/materials/gltf-material.ts`
+- `packages/render/src/assets/gltf-asset-mapping.ts`
+- `examples/standard-gltf-texture.js`
+- `test/e2e/standard-gltf-texture.spec.ts`
+
+Known issues / follow-ups:
+
+- `task-1267` should plan the test-only non-built-in route summary fixture
+  before implementation.
+- `task-1269` is prefilled as the likely implementation slice for the
+  non-built-in route summary fixture, but `task-1267` and `task-1268` should
+  plan/audit the exact shape first.
+- Real app-level non-built-in material adapter routing, binary GLB loading, IBL,
+  shadows, GLB viewer behavior, and full PBR resources remain deferred.
+
 ## Current Run Update — 2026-05-18T07:33:09Z
 
 Completed `task-1222` through `task-1242`, plus `task-1244` through
