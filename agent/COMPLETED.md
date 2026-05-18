@@ -15028,3 +15028,464 @@ Summary:
 Validation:
 
 - `pnpm run check:progress`
+
+## task-1421 — Add GLB metallic-roughness UV1 transform browser coverage
+
+Completed: 2026-05-18
+
+Summary:
+
+- Extended `examples/standard-gltf-texture.js` with GLB-derived
+  metallic-roughness UV1 and transformed-UV1 scenarios.
+- Added browser coverage that asserts UV1 texture metadata, texture transform
+  status, the UV1 StandardMaterial pipeline key, and pixel/readback difference
+  against an untransformed UV1 control.
+
+Validation:
+
+- `node --check examples/standard-gltf-texture.js`
+- `pnpm run typecheck:test`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "transformed metallic-roughness through TEXCOORD_1"`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts`
+
+## task-1422 — Audit GLB metallic-roughness UV1 transform browser coverage
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/GLB_METALLIC_ROUGHNESS_UV1_TRANSFORM_BROWSER_COVERAGE_AUDIT_2026_05_18.md`.
+- Confirmed the browser fixture proves transformed `TEXCOORD_1`
+  metallic-roughness sampling without adding GLB viewer, IBL, shadows, route
+  renames, or non-built-in rendering.
+
+Validation:
+
+- Audit backed by the targeted and full `standard-gltf-texture` Playwright
+  runs.
+
+## task-1423 — Audit tracker/backlog alignment after GLB metallic-roughness UV1 transform coverage
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/TRACKER_BACKLOG_ALIGNMENT_AFTER_GLB_METALLIC_ROUGHNESS_UV1_TRANSFORM_AUDIT_2026_05_18.md`.
+- Updated `docs/index.html` and `docs/render-pipeline-comparison.html` for the
+  new GLB metallic-roughness transformed-UV1 browser coverage.
+
+Validation:
+
+- `pnpm run check:progress`
+
+## task-1424 — Plan next material route or StandardMaterial follow-up after GLB metallic-roughness UV1 transform coverage
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/NEXT_MATERIAL_ROUTE_OR_STANDARD_FOLLOW_UP_AFTER_GLB_MR_UV1_PLAN_2026_05_18.md`.
+- Compared a route-architecture guard, StandardMaterial/glTF fidelity, and
+  tracker tooling; selected combined base-color plus metallic-roughness GLB
+  browser coverage.
+
+Validation:
+
+- Documentation-only planning slice; covered by touched-file formatting and
+  final checks.
+
+## task-1425 — Audit selected follow-up plan after GLB metallic-roughness UV1 transform coverage
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/NEXT_MATERIAL_ROUTE_OR_STANDARD_FOLLOW_UP_AFTER_GLB_MR_UV1_PLAN_AUDIT_2026_05_18.md`.
+- Confirmed the selected combined-texture browser slice is concrete, preserves
+  ECS/render/WebGPU ownership boundaries, and should be implemented next as
+  `task-1426`.
+
+Validation:
+
+- Documentation-only audit; covered by touched-file formatting and final
+  checks.
+
+## task-1426 — Add GLB combined base-color metallic-roughness browser coverage
+
+Completed: 2026-05-18
+
+Summary:
+
+- Extended `examples/standard-gltf-texture.js` with a GLB-derived
+  StandardMaterial scenario that resolves both `baseColorTexture` and
+  `metallicRoughnessTexture`.
+- Added Playwright coverage for two glTF texture/sampler mappings, two ready
+  material texture slots, two prepared texture/sampler resources, the combined
+  StandardMaterial pipeline key, and non-clear blue-dominant screenshot/readback
+  output.
+
+Validation:
+
+- `node --check examples/standard-gltf-texture.js`
+- `pnpm run typecheck:test`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "combined base-color and metallic-roughness"`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts`
+
+## task-1427 — Audit GLB combined base-color metallic-roughness browser coverage
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/GLB_COMBINED_BASE_COLOR_METALLIC_ROUGHNESS_BROWSER_COVERAGE_AUDIT_2026_05_18.md`.
+- Confirmed the combined texture browser fixture preserves ECS authority,
+  render extraction, WebGPU resource ownership, JSON-safe status, and the
+  deferred scope boundaries.
+
+Validation:
+
+- Audit backed by targeted and full `standard-gltf-texture` Playwright runs.
+
+## task-1428 — Audit tracker/backlog alignment after GLB combined texture coverage
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/TRACKER_BACKLOG_ALIGNMENT_AFTER_GLB_COMBINED_TEXTURE_AUDIT_2026_05_18.md`.
+- Updated public tracker pages for combined base-color plus metallic-roughness
+  browser coverage and confirmed backlog readiness.
+
+Validation:
+
+- `pnpm run check:progress`
+
+## task-1429 — Plan next material route or StandardMaterial follow-up after GLB combined texture coverage
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/NEXT_MATERIAL_ROUTE_OR_STANDARD_FOLLOW_UP_AFTER_GLB_COMBINED_TEXTURE_PLAN_2026_05_18.md`.
+- Compared adapter-registration diagnostics, another StandardMaterial/glTF UV1
+  fixture, and tracker tooling; selected built-in app adapter registration
+  diagnostics.
+
+Validation:
+
+- Documentation-only planning slice; covered by touched-file formatting and
+  final checks.
+
+## task-1430 — Audit selected follow-up plan after GLB combined texture coverage
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/NEXT_MATERIAL_ROUTE_OR_STANDARD_FOLLOW_UP_AFTER_GLB_COMBINED_TEXTURE_PLAN_AUDIT_2026_05_18.md`.
+- Confirmed the selected adapter-registration diagnostics slice is concrete,
+  JSON-safe, and aligned with decision 0010.
+
+Validation:
+
+- Documentation-only audit; covered by touched-file formatting and final
+  checks.
+
+## task-1431 — Add built-in app adapter registration diagnostics
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added built-in app resource adapter registry validation for missing built-in
+  families while reusing the generic duplicate-family registry diagnostic.
+- Added JSON-safe validation report coverage for valid default registration,
+  duplicate built-in family registration, and missing built-in family
+  registration.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/built-in-material-app-resource-adapter.test.ts`
+- `pnpm run typecheck:test`
+
+## task-1432 — Audit built-in app adapter registration diagnostics
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/BUILT_IN_APP_ADAPTER_REGISTRATION_DIAGNOSTICS_AUDIT_2026_05_18.md`.
+- Confirmed the diagnostics are deterministic, JSON-safe, and limited to WebGPU
+  route/app-resource adapter metadata.
+
+Validation:
+
+- Audit backed by focused adapter registry tests and typecheck.
+
+## task-1433 — Audit tracker/backlog alignment after adapter registration diagnostics
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/TRACKER_BACKLOG_ALIGNMENT_AFTER_APP_ADAPTER_REGISTRATION_DIAGNOSTICS_AUDIT_2026_05_18.md`.
+- Updated public tracker pages for built-in app adapter duplicate/missing family
+  diagnostics and confirmed backlog readiness.
+
+Validation:
+
+- `pnpm run check:progress`
+
+## task-1434 — Plan next material route or StandardMaterial follow-up after adapter registration diagnostics
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/NEXT_MATERIAL_ROUTE_OR_STANDARD_FOLLOW_UP_AFTER_APP_ADAPTER_DIAGNOSTICS_PLAN_2026_05_18.md`.
+- Compared app-level adapter validation surfacing, another StandardMaterial UV1
+  fixture, and tracker tooling; selected app-level surfacing for adapter
+  validation diagnostics.
+
+Validation:
+
+- Documentation-only planning slice; covered by touched-file formatting and
+  final checks.
+
+## task-1435 — Audit selected follow-up plan after adapter registration diagnostics
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/NEXT_MATERIAL_ROUTE_OR_STANDARD_FOLLOW_UP_AFTER_APP_ADAPTER_DIAGNOSTICS_PLAN_AUDIT_2026_05_18.md`.
+- Confirmed the selected app-diagnostics surfacing slice is scoped, JSON-safe,
+  and aligned with decision 0010.
+
+Validation:
+
+- Documentation-only audit; covered by touched-file formatting and final
+  checks.
+
+## task-1436 — Surface built-in app adapter validation in app diagnostics
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added a JSON-safe built-in app adapter validation section to
+  `WebGpuAppDiagnosticsSummary`.
+- Threaded default app resource adapter validation into successful built-in app
+  frame reports and route-failure reports.
+- Added app-level coverage for valid default validation and test-only invalid
+  duplicate/missing-family diagnostics.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts`
+
+## task-1437 — Audit built-in app adapter validation app diagnostics
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/BUILT_IN_APP_ADAPTER_VALIDATION_APP_DIAGNOSTICS_AUDIT_2026_05_18.md`.
+- Confirmed the app diagnostics section is JSON-safe and does not expose app
+  objects, callbacks, source assets, descriptors, or raw GPU handles.
+
+Validation:
+
+- Audit backed by focused WebGPU app diagnostics tests.
+
+## task-1438 — Audit tracker/backlog alignment after app adapter validation diagnostics
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/TRACKER_BACKLOG_ALIGNMENT_AFTER_APP_ADAPTER_VALIDATION_DIAGNOSTICS_AUDIT_2026_05_18.md`.
+- Updated public tracker pages for app-level built-in adapter validation
+  diagnostics and confirmed backlog readiness.
+
+Validation:
+
+- `pnpm run check:progress`
+
+## task-1439 — Plan next material route or StandardMaterial follow-up after app adapter validation diagnostics
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/NEXT_MATERIAL_ROUTE_OR_STANDARD_FOLLOW_UP_AFTER_APP_ADAPTER_VALIDATION_DIAGNOSTICS_PLAN_2026_05_18.md`.
+- Compared a material-route architecture slice, a StandardMaterial/glTF fidelity
+  slice, and a diagnostics/tooling slice; selected combined base-color,
+  metallic-roughness, and normal texture GLB browser coverage.
+
+Validation:
+
+- Documentation-only planning slice; covered by touched-file formatting and
+  final checks.
+
+## task-1440 — Audit selected follow-up plan after app adapter validation diagnostics
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/NEXT_MATERIAL_ROUTE_OR_STANDARD_FOLLOW_UP_AFTER_APP_ADAPTER_VALIDATION_DIAGNOSTICS_PLAN_AUDIT_2026_05_18.md`.
+- Confirmed the selected `task-1441` is a focused browser-visible
+  StandardMaterial slice that preserves ECS authority, render extraction, and
+  WebGPU-only ownership.
+
+Validation:
+
+- Documentation-only audit; covered by touched-file formatting and final
+  checks.
+
+## task-1441 — Add combined base-color metallic-roughness normal GLB browser coverage
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added a GLB-shaped StandardMaterial browser scenario with base-color,
+  metallic-roughness, and normal textures active together.
+- Added Playwright coverage for three texture/sampler mappings, three readiness
+  slots, tangent mesh layout, three prepared texture/sampler resources, the
+  combined StandardMaterial pipeline key, and non-clear screenshot/readback
+  pixels.
+
+Validation:
+
+- `node --check examples/standard-gltf-texture.js`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "combined base-color metallic-roughness and normal"`
+
+## task-1442 — Audit combined base-color metallic-roughness normal GLB browser coverage
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/GLB_COMBINED_BASE_COLOR_METALLIC_ROUGHNESS_NORMAL_BROWSER_COVERAGE_AUDIT_2026_05_18.md`.
+- Confirmed the fixture stays on the ECS-authored app path, built-in
+  StandardMaterial route, JSON-safe status, and WebGPU-only resource ownership.
+
+Validation:
+
+- Audit backed by focused Playwright coverage.
+
+## task-1443 — Tracker alignment and next follow-up after combined BMR normal coverage
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/TRACKER_BACKLOG_ALIGNMENT_AFTER_GLB_COMBINED_BASE_COLOR_METALLIC_ROUGHNESS_NORMAL_AUDIT_2026_05_18.md`.
+- Added
+  `docs/research/NEXT_MATERIAL_ROUTE_OR_STANDARD_FOLLOW_UP_AFTER_GLB_COMBINED_BMR_NORMAL_PLAN_2026_05_18.md`
+  and its audit.
+- Updated the public tracker for combined three-texture StandardMaterial browser
+  coverage and selected `task-1444`.
+
+Validation:
+
+- `pnpm run check:progress`
+
+## task-1444 — Add combined base-color occlusion emissive GLB browser coverage
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added a GLB-shaped StandardMaterial browser scenario with base-color,
+  occlusion, and emissive textures active together.
+- Added Playwright coverage for three texture/sampler mappings, three readiness
+  slots, three prepared texture/sampler resources, the combined StandardMaterial
+  pipeline key, and non-clear screenshot/readback pixels.
+
+Validation:
+
+- `node --check examples/standard-gltf-texture.js`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "combined base-color occlusion and emissive"`
+
+## task-1445 — Audit combined base-color occlusion emissive GLB browser coverage
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/GLB_COMBINED_BASE_COLOR_OCCLUSION_EMISSIVE_BROWSER_COVERAGE_AUDIT_2026_05_18.md`.
+- Confirmed the fixture stays on the ECS-authored app path, built-in
+  StandardMaterial route, JSON-safe status, and WebGPU-only resource ownership.
+
+Validation:
+
+- Audit backed by focused Playwright coverage.
+
+## task-1446 — Tracker/backlog alignment after combined base-color occlusion emissive coverage
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/TRACKER_BACKLOG_ALIGNMENT_AFTER_GLB_COMBINED_BASE_COLOR_OCCLUSION_EMISSIVE_AUDIT_2026_05_18.md`.
+- Updated the public tracker for combined base-color, occlusion, and emissive
+  StandardMaterial browser coverage.
+
+Validation:
+
+- `pnpm run check:progress`
+
+## task-1447 — Plan next material route or StandardMaterial follow-up after combined base-color occlusion emissive coverage
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/NEXT_MATERIAL_ROUTE_OR_STANDARD_FOLLOW_UP_AFTER_GLB_COMBINED_BASE_COLOR_OCCLUSION_EMISSIVE_PLAN_2026_05_18.md`.
+- Compared app-level non-built-in material routing, another combined
+  StandardMaterial fixture, and test-helper cleanup; selected the
+  multi-texture assertion helper extraction.
+
+Validation:
+
+- Documentation-only planning slice; covered by touched-file formatting and
+  final checks.
+
+## task-1448 — Audit selected follow-up plan after combined base-color occlusion emissive coverage
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/NEXT_MATERIAL_ROUTE_OR_STANDARD_FOLLOW_UP_AFTER_GLB_COMBINED_BASE_COLOR_OCCLUSION_EMISSIVE_PLAN_AUDIT_2026_05_18.md`.
+- Confirmed the selected helper extraction is single-scope, test-only, and
+  aligned with ECS/render/WebGPU boundaries.
+
+Validation:
+
+- Documentation-only audit; covered by touched-file formatting and final checks.

@@ -7,9 +7,12 @@ import {
   createQueuedBuiltInAppResourceFamilyAdapterTable,
   createQueuedBuiltInAppResourceAdapterRegistrations,
   createQueuedBuiltInFrameResourceViaAdapter,
+  createQueuedMaterialAdapterRegistry,
+  queuedBuiltInAppResourceAdapterRegistryValidationReportToJsonValue,
   type PreparedAppTextureSamplerResources,
   type QueuedBuiltInFrameResource,
   type QueuedMaterialFrameResourceAdapterResult,
+  validateQueuedBuiltInAppResourceAdapterRegistry,
 } from "@aperture-engine/webgpu";
 
 describe("built-in material app resource adapter factory", () => {
@@ -55,6 +58,117 @@ describe("built-in material app resource adapter factory", () => {
           typeof adapter.appendFrameResource === "function",
       ),
     ).toBe(true);
+  });
+
+  it("validates the default built-in app resource adapter registry", () => {
+    const registry = createQueuedBuiltInAppResourceAdapterRegistry<
+      Record<string, never>,
+      Record<string, never>
+    >({
+      prepareUnlitTextureSamplerResources: prepared,
+      prepareMatcapTextureSamplerResources: prepared,
+      prepareStandardTextureSamplerResources: prepared,
+      prepareDebugNormalTextureSamplerResources: prepared,
+      createUnlitFrameResources: frameResult,
+      createMatcapFrameResources: frameResult,
+      createStandardFrameResources: frameResult,
+      createDebugNormalFrameResources: frameResult,
+    });
+    const report = validateQueuedBuiltInAppResourceAdapterRegistry(registry);
+
+    expect(report).toEqual({
+      valid: true,
+      expectedFamilies: BUILT_IN_APP_RESOURCE_ADAPTER_FAMILIES,
+      registeredFamilies: BUILT_IN_APP_RESOURCE_ADAPTER_FAMILIES,
+      diagnostics: [],
+    });
+    expect(
+      queuedBuiltInAppResourceAdapterRegistryValidationReportToJsonValue(
+        report,
+      ),
+    ).toEqual(report);
+  });
+
+  it("reports duplicate built-in app resource adapter families deterministically", () => {
+    const registrations = createQueuedBuiltInAppResourceAdapterRegistrations<
+      Record<string, never>,
+      Record<string, never>
+    >({
+      prepareUnlitTextureSamplerResources: prepared,
+      prepareMatcapTextureSamplerResources: prepared,
+      prepareStandardTextureSamplerResources: prepared,
+      prepareDebugNormalTextureSamplerResources: prepared,
+      createUnlitFrameResources: frameResult,
+      createMatcapFrameResources: frameResult,
+      createStandardFrameResources: frameResult,
+      createDebugNormalFrameResources: frameResult,
+    });
+    const registry = createQueuedMaterialAdapterRegistry([
+      ...registrations,
+      registrations[0]!,
+    ]);
+    const report = validateQueuedBuiltInAppResourceAdapterRegistry(registry);
+
+    expect(report).toMatchObject({
+      valid: true,
+      expectedFamilies: BUILT_IN_APP_RESOURCE_ADAPTER_FAMILIES,
+      registeredFamilies: [
+        "unlit",
+        "matcap",
+        "standard",
+        "debug-normal",
+        "unlit",
+      ],
+      diagnostics: [
+        {
+          code: "queuedMaterialAdapter.duplicateFamily",
+          severity: "warning",
+          family: "unlit",
+          firstIndex: 0,
+          duplicateIndex: 4,
+        },
+      ],
+    });
+    expect(JSON.stringify(report)).not.toContain("prepareTextureSampler");
+    expect(JSON.stringify(report)).not.toContain("createFrameResources");
+  });
+
+  it("reports missing built-in app resource adapter families deterministically", () => {
+    const registrations = createQueuedBuiltInAppResourceAdapterRegistrations<
+      Record<string, never>,
+      Record<string, never>
+    >({
+      prepareUnlitTextureSamplerResources: prepared,
+      prepareMatcapTextureSamplerResources: prepared,
+      prepareStandardTextureSamplerResources: prepared,
+      prepareDebugNormalTextureSamplerResources: prepared,
+      createUnlitFrameResources: frameResult,
+      createMatcapFrameResources: frameResult,
+      createStandardFrameResources: frameResult,
+      createDebugNormalFrameResources: frameResult,
+    }).filter((adapter) => adapter.kind !== "standard");
+    const registry = createQueuedMaterialAdapterRegistry(registrations);
+    const report = validateQueuedBuiltInAppResourceAdapterRegistry(registry);
+
+    expect(report).toEqual({
+      valid: false,
+      expectedFamilies: BUILT_IN_APP_RESOURCE_ADAPTER_FAMILIES,
+      registeredFamilies: ["unlit", "matcap", "debug-normal"],
+      diagnostics: [
+        {
+          code: "queuedBuiltInAppResourceAdapter.missingFamily",
+          severity: "error",
+          family: "standard",
+          message:
+            "Built-in app resource adapter family 'standard' is not registered.",
+        },
+      ],
+    });
+    expect(
+      queuedBuiltInAppResourceAdapterRegistryValidationReportToJsonValue(
+        report,
+      ),
+    ).toEqual(report);
   });
 
   it("composes route adapters with caller-provided resource callbacks", () => {

@@ -117,6 +117,8 @@ import {
 import {
   createQueuedBuiltInAppResourceAdapterRegistry,
   createQueuedBuiltInAppResourceFamilyAdapterTable,
+  queuedBuiltInAppResourceAdapterRegistryValidationReportToJsonValue,
+  validateQueuedBuiltInAppResourceAdapterRegistry,
 } from "./built-in-material-app-resource-adapter.js";
 import {
   collectQueuedBuiltInAppResourceSet,
@@ -1017,6 +1019,12 @@ const QUEUED_BUILT_IN_MATERIAL_ADAPTERS =
         }),
     }),
   });
+const QUEUED_BUILT_IN_APP_RESOURCE_ADAPTER_VALIDATION =
+  queuedBuiltInAppResourceAdapterRegistryValidationReportToJsonValue(
+    validateQueuedBuiltInAppResourceAdapterRegistry(
+      QUEUED_BUILT_IN_MATERIAL_ADAPTERS,
+    ),
+  );
 
 async function renderQueuedBuiltInWebGpuAppFrame(options: {
   readonly app: WebGpuApp;
@@ -1199,6 +1207,7 @@ function createQueuedBuiltInAppDiagnosticsSummary(input: {
         ? {}
         : { byFamily: input.resources.byFamilySummary },
     ),
+    builtInAppResourceAdapters: QUEUED_BUILT_IN_APP_RESOURCE_ADAPTER_VALIDATION,
     ...(hasStandardRoute
       ? {
           directLighting: createDirectLightReadinessReport({
@@ -1222,7 +1231,11 @@ function createQueuedBuiltInRouteFailureDiagnosticsSummary(
 
   return materialQueueRoute === null
     ? undefined
-    : createWebGpuAppDiagnosticsSummary({ materialQueueRoute });
+    : createWebGpuAppDiagnosticsSummary({
+        materialQueueRoute,
+        builtInAppResourceAdapters:
+          QUEUED_BUILT_IN_APP_RESOURCE_ADAPTER_VALIDATION,
+      });
 }
 
 function collectMaterialQueueRouteReport(

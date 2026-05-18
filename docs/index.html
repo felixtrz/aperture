@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-18 07:52 PDT</dd>
+            <dd>2026-05-18 08:44 PDT</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -434,12 +434,33 @@
               summaries and cross-frame-resource-miss material reuse. The
               built-in app resource adapter registry now exposes a typed active
               family list and registration factory for Unlit, Matcap, Standard,
-              and DebugNormal without changing route behavior.
+              and DebugNormal without changing route behavior. GLB-derived
+              StandardMaterial browser coverage now verifies metallic-roughness
+              texture sampling through transformed <code>TEXCOORD_1</code>,
+              including JSON-safe UV/transform status and pixel/readback
+              comparison against an untransformed UV1 control. It also verifies
+              a combined base-color plus metallic-roughness StandardMaterial
+              browser path with two glTF texture/sampler mappings, combined
+              pipeline routing, and non-clear blue-dominant pixel/readback
+              output. Built-in app resource adapter registry validation now
+              reports duplicate family warnings and missing built-in family
+              errors through JSON-safe diagnostics while preserving default
+              Unlit, Matcap, Standard, and DebugNormal registration behavior.
+              App frame diagnostics now surface that validation report as a
+              JSON-safe section for both successful built-in routes and route
+              failure reports. A combined GLB-shaped StandardMaterial browser
+              fixture now renders base-color, metallic-roughness, and normal
+              textures together, asserting all three texture/sampler mappings,
+              readiness slots, resource counts, tangent mesh layout, and the
+              combined pipeline key. Another combined GLB-shaped
+              StandardMaterial fixture now renders base-color, occlusion, and
+              emissive textures together with three mappings, readiness slots,
+              resource counts, and the combined pipeline key.
             </dd>
             <dt>Next focus</dt>
             <dd>
-              Plan the next material route or StandardMaterial follow-up after
-              built-in app adapter registry smoke coverage
+              Audit tracker/backlog alignment after combined
+              base-color/occlusion/emissive GLB coverage
             </dd>
           </dl>
         </aside>
@@ -500,8 +521,10 @@
               DebugNormal material buffers/bind groups now reuse across
               mesh-only frame-resource cache misses. Active built-in app
               resource adapters now share explicit typed registry metadata.
-              Richer app-level adapter routing, passes, and resource lifetime
-              policy remain.
+              Built-in app resource adapter registry validation now reports
+              duplicate and missing family diagnostics without exposing
+              callbacks or renderer resources. Richer app-level adapter routing,
+              passes, and resource lifetime policy remain.
             </p>
           </article>
           <article class="card metric">
@@ -517,7 +540,8 @@
               covered. Controlled browser texture verification now covers
               base-color, base-color UV1, base-color linear and repeat samplers,
               metallic-roughness, normal-map, occlusion, and emissive positive
-              paths plus missing/loading/failed base-color states, normal
+              paths, combined base-color plus metallic-roughness browser
+              rendering, plus missing/loading/failed base-color states, normal
               missing-tangent diagnostics, authored and GLB-derived base-color
               transform diagnostics, a minimal GLB-derived base-color texture
               fixture, GLB sampler mapping status, and GLB-derived
@@ -528,7 +552,9 @@
               alpha-blend double-sided no-cull browser coverage, and GLB delayed
               dependency diagnostics; base-color texture-transform rotation,
               metallic-roughness texture transforms on
-              <code>TEXCOORD_0</code>, normal texture transforms on
+              <code>TEXCOORD_0</code>, metallic-roughness transformed sampling
+              on <code>TEXCOORD_1</code>, combined base-color plus
+              metallic-roughness texture routing, normal texture transforms on
               <code>TEXCOORD_0</code>, occlusion texture transforms on
               <code>TEXCOORD_0</code>, emissive texture transforms on
               <code>TEXCOORD_0</code>, transformed UV1 readiness/rendering,
@@ -779,12 +805,30 @@
               sampling, GLB browser readback coverage, and unsupported-rotation
               diagnostics. GLB-shaped base-color UV1 browser coverage now
               verifies <code>TEXCOORD_1</code> readiness, mesh layout, pipeline
-              key, and selected pixel color. Generic frame-resource buckets now
+              key, and selected pixel color; GLB-derived metallic-roughness UV1
+              transform coverage now verifies the matching UV1 pipeline key,
+              transform metadata, and changed pixel/readback output. Combined
+              base-color plus metallic-roughness browser coverage now verifies
+              two texture/sampler mappings, two prepared texture/sampler
+              resources, and the combined StandardMaterial pipeline key; the
+              combined base-color plus metallic-roughness plus normal fixture
+              now verifies three texture/sampler mappings, normal readiness,
+              tangent mesh layout, three prepared texture/sampler resources, and
+              the combined StandardMaterial pipeline key; the combined
+              base-color plus occlusion plus emissive fixture now verifies three
+              texture/sampler mappings, occlusion/emissive readiness, three
+              prepared texture/sampler resources, and the combined
+              StandardMaterial pipeline key. Generic frame-resource buckets now
               expose deterministic family summaries for app diagnostics, and
               mixed built-in frame-resource preparation now pins deterministic
               family buckets and pipeline-scoped bind group keys. App-level
               mixed built-in frames now expose JSON-safe routed resource
               summaries for two-family and three-family successful routes.
+              Built-in app resource adapter registration now has deterministic
+              duplicate-family and missing-family validation diagnostics, and
+              app frame diagnostics now expose the default validation report
+              without raw callbacks, app objects, or GPU handles before broader
+              route migration.
             </p>
             <ul>
               <li>
@@ -896,24 +940,33 @@
             <h3>Latest work in this update</h3>
             <ul>
               <li>
-                <span class="badge green">task-1418</span> Audited tracker and
-                backlog alignment after adapter registry smoke coverage.
+                <span class="badge green">task-1433</span> Audited tracker and
+                backlog alignment after adapter registration diagnostics.
               </li>
               <li>
-                <span class="badge green">task-1417</span> Audited generic
-                built-in app resource adapter registry smoke coverage.
+                <span class="badge green">task-1432</span> Audited built-in app
+                adapter registration diagnostics.
               </li>
               <li>
-                <span class="badge green">task-1416</span> Added generic
-                built-in app resource adapter registry smoke coverage.
+                <span class="badge green">task-1431</span> Added built-in app
+                adapter registration diagnostics.
               </li>
               <li>
-                <span class="badge green">task-1415</span> Audited the selected
-                next material route or StandardMaterial follow-up plan.
+                <span class="badge green">task-1428</span> Audited tracker and
+                backlog alignment after GLB combined texture coverage.
               </li>
               <li>
-                <span class="badge green">task-1414</span> Planned the next
-                material route or StandardMaterial follow-up.
+                <span class="badge green">task-1427</span> Audited GLB combined
+                base-color metallic-roughness browser coverage.
+              </li>
+              <li>
+                <span class="badge green">task-1423</span> Audited tracker and
+                backlog alignment after GLB metallic-roughness transformed-UV1
+                coverage.
+              </li>
+              <li>
+                <span class="badge green">task-1422</span> Audited GLB
+                metallic-roughness transformed-UV1 browser coverage.
               </li>
               <li>
                 <span class="badge green">task-1413</span> Audited tracker and

@@ -18,6 +18,7 @@ import type { CreateUnlitAppFrameResourcesResult } from "./unlit-app-frame-resou
 import {
   createQueuedMaterialAdapterRegistry,
   type QueuedMaterialAdapterRegistry,
+  type QueuedMaterialAdapterRegistryDiagnostic,
   type QueuedMaterialAdapterRegistration,
 } from "./queued-material-adapter.js";
 
@@ -161,6 +162,29 @@ export type QueuedBuiltInAppResourceAdapterFactoryOptions<
   | QueuedBuiltInAppResourceAdapterCallbacks<TextureOptions, FrameOptions>
   | QueuedBuiltInAppResourceAdapterTableOptions<TextureOptions, FrameOptions>;
 
+export type QueuedBuiltInAppResourceAdapterRegistryDiagnostic =
+  | QueuedMaterialAdapterRegistryDiagnostic
+  | {
+      readonly code: "queuedBuiltInAppResourceAdapter.missingFamily";
+      readonly severity: "error";
+      readonly family: BuiltInMaterialQueueFamily;
+      readonly message: string;
+    };
+
+export interface QueuedBuiltInAppResourceAdapterRegistryValidationReport {
+  readonly valid: boolean;
+  readonly expectedFamilies: readonly BuiltInMaterialQueueFamily[];
+  readonly registeredFamilies: readonly string[];
+  readonly diagnostics: readonly QueuedBuiltInAppResourceAdapterRegistryDiagnostic[];
+}
+
+export interface QueuedBuiltInAppResourceAdapterRegistryValidationJsonValue {
+  readonly valid: boolean;
+  readonly expectedFamilies: readonly BuiltInMaterialQueueFamily[];
+  readonly registeredFamilies: readonly string[];
+  readonly diagnostics: readonly QueuedBuiltInAppResourceAdapterRegistryDiagnostic[];
+}
+
 export function createQueuedBuiltInAppResourceFamilyAdapterTable<
   TextureOptions,
   FrameOptions,
@@ -277,6 +301,49 @@ export function createQueuedBuiltInAppResourceAdapterRegistry<
   return createQueuedMaterialAdapterRegistry(
     createQueuedBuiltInAppResourceAdapterRegistrations(options),
   );
+}
+
+export function validateQueuedBuiltInAppResourceAdapterRegistry(
+  registry: QueuedMaterialAdapterRegistry<
+    QueuedMaterialAdapterRegistration<string>
+  >,
+): QueuedBuiltInAppResourceAdapterRegistryValidationReport {
+  const registeredFamilies = registry.adapters.map((adapter) => adapter.kind);
+  const registeredFamilySet = new Set(registeredFamilies);
+  const diagnostics: QueuedBuiltInAppResourceAdapterRegistryDiagnostic[] = [
+    ...registry.diagnostics,
+  ];
+
+  for (const family of BUILT_IN_APP_RESOURCE_ADAPTER_FAMILIES) {
+    if (registeredFamilySet.has(family)) {
+      continue;
+    }
+
+    diagnostics.push({
+      code: "queuedBuiltInAppResourceAdapter.missingFamily",
+      severity: "error",
+      family,
+      message: `Built-in app resource adapter family '${family}' is not registered.`,
+    });
+  }
+
+  return {
+    valid: diagnostics.every((diagnostic) => diagnostic.severity !== "error"),
+    expectedFamilies: BUILT_IN_APP_RESOURCE_ADAPTER_FAMILIES,
+    registeredFamilies,
+    diagnostics,
+  };
+}
+
+export function queuedBuiltInAppResourceAdapterRegistryValidationReportToJsonValue(
+  report: QueuedBuiltInAppResourceAdapterRegistryValidationReport,
+): QueuedBuiltInAppResourceAdapterRegistryValidationJsonValue {
+  return {
+    valid: report.valid,
+    expectedFamilies: [...report.expectedFamilies],
+    registeredFamilies: [...report.registeredFamilies],
+    diagnostics: report.diagnostics.map((diagnostic) => ({ ...diagnostic })),
+  };
 }
 
 export function createQueuedBuiltInAppResourceAdapterRegistrations<

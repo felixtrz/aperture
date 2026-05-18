@@ -1,34 +1,36 @@
 # Handoff
 
-## Current Run Update — 2026-05-18T14:55:52Z
+## Current Run Update — 2026-05-18T15:47:00Z
 
-Completed `task-1406` through `task-1420`. Recommended next task is
-`task-1421`: add GLB metallic-roughness UV1 transform browser coverage.
+Completed `task-1421` through `task-1448`. Recommended next task is
+`task-1449`: extract the multi-texture StandardMaterial browser assertion
+helper.
 
 Highlights:
 
-- Added `examples/debug-normal-app.html` and
-  `examples/debug-normal-app.js`, an ECS-authored DebugNormalMaterial browser
-  example rendered through `createWebGpuApp`.
-- Added Playwright coverage proving the active DebugNormal route produces
-  JSON-safe status, one draw call, expected routed resource summaries, and
-  screenshot/readback pixels close to the normal-encoded front-face color.
-- Added `PreparedDebugNormalMaterialCache` and wired it through
-  DebugNormal app frame resources so material buffers and group-2 material bind
-  groups can be reused across mesh-only frame-resource cache misses.
-- Extended prepared material cache summaries and built-in cache eviction reports
-  to include the `debug-normal` family.
-- Updated public tracker pages for browser coverage and prepared DebugNormal
-  cache parity.
-- Planned and audited the next follow-up: a narrow generic built-in app
-  resource adapter registry smoke coverage slice.
-- Added typed built-in app resource adapter family metadata and a registration
-  factory covering Unlit, Matcap, Standard, and DebugNormal.
-- Audited and reflected that adapter registry smoke coverage in the public
-  tracker.
-- Planned and audited the next StandardMaterial/glTF follow-up:
-  GLB-derived metallic-roughness `TEXCOORD_1` texture-transform browser
-  coverage.
+- Added GLB-shaped metallic-roughness `TEXCOORD_1` transform browser coverage
+  with JSON-safe status and pixel/readback comparison.
+- Added GLB-shaped combined base-color plus metallic-roughness browser coverage
+  with two glTF texture/sampler mappings and the combined StandardMaterial
+  pipeline key.
+- Added GLB-shaped combined base-color plus metallic-roughness plus normal
+  browser coverage with three mappings, readiness slots, tangent mesh layout,
+  resource counts, combined pipeline key, and screenshot/readback assertions.
+- Added GLB-shaped combined base-color plus occlusion plus emissive browser
+  coverage with three mappings, readiness slots, resource counts, combined
+  pipeline key, and screenshot/readback assertions.
+- Added deterministic built-in app resource adapter registry validation for
+  duplicate-family warnings and missing-family errors.
+- Surfaced the default built-in app adapter validation report through
+  `WebGpuAppDiagnosticsSummary` for successful built-in routes and route
+  failures.
+- Added app diagnostics coverage for a test-only invalid adapter registry while
+  keeping callbacks, app objects, source assets, descriptors, and raw GPU handles
+  out of report JSON.
+- Updated public tracker pages for the new material coverage and adapter
+  diagnostics.
+- Planned and audited the next follow-up: a test-only helper extraction for the
+  repeated multi-texture StandardMaterial browser assertions.
 
 Reference anchors inspected:
 
@@ -36,17 +38,14 @@ Reference anchors inspected:
 - `docs/MEDIUM_LONG_TERM_GOALS.md`
 - `docs/ARCHITECTURE.md`
 - `docs/DECISIONS.md`
-- `docs/research/NEXT_MATERIAL_ROUTE_OR_DEBUG_NORMAL_AFTER_BROWSER_PLAN_2026_05_18.md`
-- `docs/research/NEXT_MATERIAL_ROUTE_OR_DEBUG_NORMAL_AFTER_BROWSER_PLAN_AUDIT_2026_05_18.md`
-- `packages/webgpu/src/webgpu/unlit-app-frame-resources.ts`
-- `packages/webgpu/src/webgpu/matcap-app-frame-resources.ts`
-- `packages/webgpu/src/webgpu/standard-app-frame-resources.ts`
-- `packages/webgpu/src/webgpu/prepared-unlit-material-cache.ts`
-- `packages/webgpu/src/webgpu/prepared-matcap-material-cache.ts`
-- `packages/webgpu/src/webgpu/prepared-standard-material-cache.ts`
-- `packages/webgpu/src/webgpu/debug-normal-frame-resources.ts`
+- `docs/research/NEXT_MATERIAL_ROUTE_OR_STANDARD_FOLLOW_UP_AFTER_APP_ADAPTER_VALIDATION_DIAGNOSTICS_PLAN_2026_05_18.md`
+- `docs/research/NEXT_MATERIAL_ROUTE_OR_STANDARD_FOLLOW_UP_AFTER_GLB_COMBINED_BASE_COLOR_OCCLUSION_EMISSIVE_PLAN_2026_05_18.md`
+- `packages/webgpu/src/webgpu/app.ts`
+- `packages/webgpu/src/webgpu/app-diagnostics-summary.ts`
 - `packages/webgpu/src/webgpu/built-in-material-app-resource-adapter.ts`
-- `packages/webgpu/src/webgpu/built-in-material-queue-adapter.ts`
+- `references/three.js/src/renderers/common/Bindings.js`
+- `references/three.js/src/renderers/webgpu/WebGPURenderer.js`
+- `references/engine/src/scene/materials/standard-material.js`
 
 Files touched:
 
@@ -56,53 +55,40 @@ Files touched:
 - `agent/STATUS.json`
 - `docs/index.html`
 - `docs/render-pipeline-comparison.html`
-- `docs/research/*DEBUG_NORMAL*2026_05_18.md`
-- `docs/research/NEXT_MATERIAL_ROUTE_OR_STANDARD_FOLLOW_UP_AFTER_DEBUG_NORMAL_CACHE_PLAN_2026_05_18.md`
-- `docs/research/NEXT_MATERIAL_ROUTE_OR_STANDARD_FOLLOW_UP_AFTER_DEBUG_NORMAL_CACHE_PLAN_AUDIT_2026_05_18.md`
-- `docs/research/*APP_ADAPTER_REGISTRY*2026_05_18.md`
-- `examples/debug-normal-app.html`
-- `examples/debug-normal-app.js`
+- `docs/research/*APP_ADAPTER*2026_05_18.md`
+- `docs/research/*GLB*2026_05_18.md`
+- `docs/research/*STANDARD_FOLLOW_UP*2026_05_18.md`
+- `examples/standard-gltf-texture.js`
 - `packages/webgpu/src/webgpu/app.ts`
+- `packages/webgpu/src/webgpu/app-diagnostics-summary.ts`
 - `packages/webgpu/src/webgpu/built-in-material-app-resource-adapter.ts`
-- `packages/webgpu/src/webgpu/built-in-material-queue-adapter.ts`
-- `packages/webgpu/src/webgpu/built-in-material-queue-family.ts`
-- `packages/webgpu/src/webgpu/debug-normal-app-frame-resources.ts`
-- `packages/webgpu/src/webgpu/debug-normal-pipeline.ts`
-- `packages/webgpu/src/webgpu/prepared-debug-normal-material-cache.ts`
-- `packages/webgpu/src/webgpu/prepared-app-material-resource.ts`
-- `packages/webgpu/src/webgpu/prepared-built-in-material-store.ts`
-- `packages/webgpu/src/webgpu/queued-built-in-app-resource-set.ts`
-- `packages/webgpu/src/webgpu/queued-built-in-frame-resource-set.ts`
-- `test/e2e/debug-normal-app.spec.ts`
-- `test/webgpu/*debug-normal*`
-- `test/webgpu/*built-in*`
-- `test/webgpu/prepared-app-material-resource.test.ts`
-- `test/webgpu/prepared-built-in-material-store.test.ts`
-- `test/webgpu/queued-material-prepare-route.test.ts`
+- `test/e2e/standard-gltf-texture.spec.ts`
+- `test/webgpu/built-in-material-app-resource-adapter.test.ts`
 - `test/webgpu/webgpu-app.test.ts`
 
 Validation:
 
-- `pnpm exec vitest run test/webgpu/prepared-debug-normal-material-cache.test.ts test/webgpu/debug-normal-app-frame-resources.test.ts test/webgpu/prepared-app-material-resource.test.ts`
-- `pnpm run typecheck:test`
-- `pnpm exec vitest run test/webgpu/prepared-built-in-material-store.test.ts test/webgpu/prepared-debug-normal-material-cache.test.ts test/webgpu/debug-normal-app-frame-resources.test.ts test/webgpu/prepared-app-material-resource.test.ts`
-- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts`
+- `node --check examples/standard-gltf-texture.js`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "combined base-color metallic-roughness and normal"`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "combined base-color occlusion and emissive"`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts`
 - `pnpm exec vitest run test/webgpu/built-in-material-app-resource-adapter.test.ts`
+- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts`
 - `pnpm run typecheck:test`
 - `pnpm run check:progress`
+- `pnpm exec prettier --write ...touched files...`
+- `pnpm exec prettier --check ...touched files...`
+- `git diff --check`
 - `pnpm test`
 - `pnpm run build`
 - `pnpm run lint`
-- `node --check examples/debug-normal-app.js`
-- `pnpm exec playwright test test/e2e/debug-normal-app.spec.ts`
-- `pnpm exec prettier --check ...touched files...`
-- `git diff --check`
 
 Known issues / follow-ups:
 
-- Start `task-1421`: add GLB metallic-roughness UV1 transform browser coverage.
-- Keep the next task scoped to one GLB-derived fixture and browser/status
-  regression; do not turn it into GLB viewer, IBL, shadows, or broad PBR work.
+- Start `task-1449`: extract a small multi-texture StandardMaterial browser
+  assertion helper in `test/e2e/standard-gltf-texture.spec.ts`.
+- Keep the next task test-only and preserve scenario-specific screenshot/readback
+  assertions.
 - Real app-level non-built-in material adapter rendering, route renames, binary
   GLB loading, IBL, shadows, instancing, batching, and multi-material primitive
   rules remain deferred.

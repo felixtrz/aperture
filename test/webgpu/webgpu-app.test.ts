@@ -29,8 +29,12 @@ import {
   type RenderSnapshot,
 } from "@aperture-engine/core";
 import {
+  createQueuedMaterialAdapterRegistry,
   createWebGpuApp,
+  createWebGpuAppDiagnosticsSummary,
   createWebGpuAppDrawResourceSetPlan,
+  queuedBuiltInAppResourceAdapterRegistryValidationReportToJsonValue,
+  validateQueuedBuiltInAppResourceAdapterRegistry,
   webGpuAppRenderReportToJson,
   webGpuAppRenderReportToJsonValue,
 } from "@aperture-engine/webgpu";
@@ -1993,7 +1997,7 @@ describe("WebGPU app facade", () => {
     expect(
       webGpuAppRenderReportToJsonValue(frame).diagnosticsSummary,
     ).toMatchObject({
-      sectionCount: 2,
+      sectionCount: 3,
       materialQueue: {
         itemCount: 2,
         byPhase: [{ phase: "opaque", itemCount: 2 }],
@@ -2031,6 +2035,12 @@ describe("WebGPU app facade", () => {
             itemCount: 1,
           },
         ],
+      },
+      builtInAppResourceAdapters: {
+        valid: true,
+        expectedFamilies: ["unlit", "matcap", "standard", "debug-normal"],
+        registeredFamilies: ["unlit", "matcap", "standard", "debug-normal"],
+        diagnostics: [],
       },
     });
     expect(
@@ -2860,7 +2870,7 @@ describe("WebGPU app facade", () => {
     expect(
       webGpuAppRenderReportToJsonValue(frame).diagnosticsSummary,
     ).toMatchObject({
-      sectionCount: 3,
+      sectionCount: 4,
       materialQueue: {
         itemCount: 3,
         byPhase: [{ phase: "opaque", itemCount: 3 }],
@@ -3405,7 +3415,7 @@ describe("WebGPU app facade", () => {
     ).toBe(1);
     expect(webGpuAppRenderReportToJsonValue(frame)).toMatchObject({
       diagnosticsSummary: {
-        sectionCount: 2,
+        sectionCount: 3,
         materialQueue: {
           itemCount: 2,
           byFamily: expect.arrayContaining([
@@ -3557,7 +3567,7 @@ describe("WebGPU app facade", () => {
     const jsonReport = webGpuAppRenderReportToJsonValue(frame);
 
     expect(jsonReport.diagnosticsSummary).toMatchObject({
-      sectionCount: 1,
+      sectionCount: 2,
       materialQueueRoute: {
         valid: false,
         queueItemCount: 1,
@@ -3597,9 +3607,52 @@ describe("WebGPU app facade", () => {
           }),
         ],
       },
+      builtInAppResourceAdapters: {
+        valid: true,
+        diagnostics: [],
+      },
     });
     expect(events).not.toContain("queue:submit:1");
     expect(JSON.stringify(jsonReport)).not.toContain("GPUBuffer");
+  });
+
+  it("surfaces JSON-safe built-in app adapter registry validation diagnostics", () => {
+    const invalidRegistry = createQueuedMaterialAdapterRegistry([
+      { kind: "unlit" },
+      { kind: "unlit" },
+      { kind: "matcap" },
+      { kind: "debug-normal" },
+    ]);
+    const diagnosticsSummary = createWebGpuAppDiagnosticsSummary({
+      builtInAppResourceAdapters:
+        queuedBuiltInAppResourceAdapterRegistryValidationReportToJsonValue(
+          validateQueuedBuiltInAppResourceAdapterRegistry(invalidRegistry),
+        ),
+    });
+
+    expect(diagnosticsSummary).toMatchObject({
+      sectionCount: 1,
+      builtInAppResourceAdapters: {
+        valid: false,
+        expectedFamilies: ["unlit", "matcap", "standard", "debug-normal"],
+        registeredFamilies: ["unlit", "unlit", "matcap", "debug-normal"],
+        diagnostics: expect.arrayContaining([
+          expect.objectContaining({
+            code: "queuedMaterialAdapter.duplicateFamily",
+            severity: "warning",
+            family: "unlit",
+          }),
+          expect.objectContaining({
+            code: "queuedBuiltInAppResourceAdapter.missingFamily",
+            severity: "error",
+            family: "standard",
+          }),
+        ]),
+      },
+    });
+    expect(JSON.stringify(diagnosticsSummary)).not.toMatch(
+      /prepareTextureSamplerResources|createFrameResources|GPU|descriptor/,
+    );
   });
 
   it("diagnoses unsupported alpha-test material queue families without submitting", async () => {
@@ -4390,7 +4443,7 @@ describe("WebGPU app facade", () => {
       },
       diagnostics: [],
       diagnosticsSummary: {
-        sectionCount: 3,
+        sectionCount: 4,
         materialQueue: {
           itemCount: 1,
           byPhase: [{ phase: "opaque", itemCount: 1 }],
@@ -5223,7 +5276,7 @@ describe("WebGPU app facade", () => {
     expect(
       webGpuAppRenderReportToJsonValue(frame).diagnosticsSummary,
     ).toMatchObject({
-      sectionCount: 3,
+      sectionCount: 4,
       routedResourceSet: {
         itemCount: 1,
         byFamily: [{ family: "standard", itemCount: 1 }],

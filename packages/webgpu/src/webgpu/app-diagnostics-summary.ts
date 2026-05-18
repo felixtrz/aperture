@@ -1,4 +1,5 @@
 import type { MaterialQueuePhaseSummary } from "@aperture-engine/render";
+import type { QueuedBuiltInAppResourceAdapterRegistryValidationJsonValue } from "./built-in-material-app-resource-adapter.js";
 import type { DirectLightReadinessReport } from "./direct-light-readiness.js";
 import type { WebGpuAppMaterialQueueRouteReportJsonValue } from "./material-queue-route-report.js";
 import type { QueuedMaterialFrameResourceSetSummary } from "./queued-material-frame-resource-set-summary.js";
@@ -8,6 +9,7 @@ export interface WebGpuAppDiagnosticsSummaryInput {
   readonly materialQueue?: MaterialQueuePhaseSummary;
   readonly materialQueueRoute?: WebGpuAppMaterialQueueRouteReportJsonValue;
   readonly routedResourceSet?: QueuedMaterialFrameResourceSetSummary;
+  readonly builtInAppResourceAdapters?: QueuedBuiltInAppResourceAdapterRegistryValidationJsonValue;
   readonly renderFrameQueue?: RenderFrameQueueDiagnosticsSummary;
   readonly directLighting?: DirectLightReadinessReport;
 }
@@ -17,6 +19,7 @@ export interface WebGpuAppDiagnosticsSummary {
   readonly materialQueue?: MaterialQueuePhaseSummary;
   readonly materialQueueRoute?: WebGpuAppMaterialQueueRouteReportJsonValue;
   readonly routedResourceSet?: QueuedMaterialFrameResourceSetSummary;
+  readonly builtInAppResourceAdapters?: QueuedBuiltInAppResourceAdapterRegistryValidationJsonValue;
   readonly renderFrameQueue?: RenderFrameQueueDiagnosticsSummary;
   readonly directLighting?: DirectLightReadinessReport;
 }
@@ -41,6 +44,11 @@ export function createWebGpuAppDiagnosticsSummary(
   if (input.routedResourceSet !== undefined) {
     summary.sectionCount += 1;
     summary.routedResourceSet = input.routedResourceSet;
+  }
+
+  if (input.builtInAppResourceAdapters !== undefined) {
+    summary.sectionCount += 1;
+    summary.builtInAppResourceAdapters = input.builtInAppResourceAdapters;
   }
 
   if (input.renderFrameQueue !== undefined) {
