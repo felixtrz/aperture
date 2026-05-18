@@ -2,6 +2,7 @@ export const BUILT_IN_MATERIAL_QUEUE_FAMILIES = [
   "unlit",
   "matcap",
   "standard",
+  "debug-normal",
 ] as const;
 
 export type BuiltInMaterialQueueFamily =

@@ -3,7 +3,8 @@ export type PreparedAppMaterialResourceStatus = "created" | "reused";
 export type PreparedAppMaterialCacheSummaryFamily =
   | "unlit"
   | "matcap"
-  | "standard";
+  | "standard"
+  | "debug-normal";
 
 export interface PreparedAppMaterialResourceUse<TResource> {
   readonly status: PreparedAppMaterialResourceStatus;
@@ -41,6 +42,7 @@ export interface PreparedAppMaterialCacheSummaryInput {
   readonly unlit: PreparedAppMaterialCacheLike;
   readonly matcap: PreparedAppMaterialCacheLike;
   readonly standard: PreparedAppMaterialCacheLike;
+  readonly debugNormal: PreparedAppMaterialCacheLike;
 }
 
 export type PreparedAppMaterialFallbackReason =
@@ -100,6 +102,7 @@ export function createPreparedAppMaterialCacheSummary(): PreparedAppMaterialCach
       unlit: { entries: 0 },
       matcap: { entries: 0 },
       standard: { entries: 0 },
+      "debug-normal": { entries: 0 },
     },
   };
 }
@@ -111,11 +114,14 @@ export function writePreparedAppMaterialCacheSummary(
   const unlitEntries = input.unlit.resources.size;
   const matcapEntries = input.matcap.resources.size;
   const standardEntries = input.standard.resources.size;
+  const debugNormalEntries = input.debugNormal.resources.size;
 
   summary.families.unlit.entries = unlitEntries;
   summary.families.matcap.entries = matcapEntries;
   summary.families.standard.entries = standardEntries;
-  summary.totalEntries = unlitEntries + matcapEntries + standardEntries;
+  summary.families["debug-normal"].entries = debugNormalEntries;
+  summary.totalEntries =
+    unlitEntries + matcapEntries + standardEntries + debugNormalEntries;
 
   return summary;
 }

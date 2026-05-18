@@ -12,6 +12,7 @@ import type {
   QueuedBuiltInAppResourceSet,
 } from "./queued-built-in-app-resource-set.js";
 import type { PreparedMaterialTextureSamplerDependencies } from "./prepared-material-texture-sampler-dependencies.js";
+import type { DebugNormalFrameGpuResources } from "./debug-normal-frame-resources.js";
 import type { MatcapFrameGpuResources } from "./matcap-frame-resources.js";
 import type { StandardFrameGpuResources } from "./standard-frame-resources.js";
 import type { UnlitFrameGpuResources } from "./unlit-frame-resources.js";
@@ -44,6 +45,7 @@ export interface QueuedBuiltInFrameResources {
   readonly unlit: readonly UnlitFrameGpuResources[];
   readonly matcap: readonly MatcapFrameGpuResources[];
   readonly standard: readonly StandardFrameGpuResources[];
+  readonly debugNormal: readonly DebugNormalFrameGpuResources[];
   readonly byFamily: QueuedMaterialFrameResourceBuckets<QueuedBuiltInFrameResource>;
   readonly byFamilySummary: readonly QueuedMaterialFrameResourceBucketSummary[];
   readonly bindGroups: readonly UnlitFrameGpuResources["bindGroups"][number][];
@@ -74,6 +76,7 @@ export interface QueuedBuiltInFrameResourceScratch<
   readonly unlit: UnlitFrameGpuResources[];
   readonly matcap: MatcapFrameGpuResources[];
   readonly standard: StandardFrameGpuResources[];
+  readonly debugNormal: DebugNormalFrameGpuResources[];
   readonly byFamily: QueuedMaterialFrameResourceBuckets<QueuedBuiltInFrameResource>;
 }
 
@@ -152,6 +155,7 @@ export function createQueuedBuiltInFrameResourceScratch<
     unlit: [],
     matcap: [],
     standard: [],
+    debugNormal: [],
     byFamily:
       createQueuedMaterialFrameResourceBuckets<QueuedBuiltInFrameResource>(),
   };
@@ -185,7 +189,8 @@ export async function prepareQueuedBuiltInFrameResourceSet<
     TFrameOptions,
     | UnlitFrameGpuResources
     | MatcapFrameGpuResources
-    | StandardFrameGpuResources,
+    | StandardFrameGpuResources
+    | DebugNormalFrameGpuResources,
     CreateQueuedBuiltInFamilyFrameResourcesResult,
     UnlitFrameGpuResources["mesh"],
     UnlitFrameGpuResources["bindGroups"][number]
@@ -227,6 +232,7 @@ export async function prepareQueuedBuiltInFrameResourceSet<
             unlit: scratch.unlit,
             matcap: scratch.matcap,
             standard: scratch.standard,
+            debugNormal: scratch.debugNormal,
           },
         });
       },
@@ -256,6 +262,7 @@ export async function prepareQueuedBuiltInFrameResourceSet<
           unlit: scratch.unlit,
           matcap: scratch.matcap,
           standard: scratch.standard,
+          debugNormal: scratch.debugNormal,
           byFamily: scratch.byFamily,
           byFamilySummary: createQueuedMaterialFrameResourceBucketSummary(
             scratch.byFamily,
@@ -307,6 +314,7 @@ function resetQueuedBuiltInFrameResourceScratch<TPipelinePlanResult>(
   scratch.unlit.length = 0;
   scratch.matcap.length = 0;
   scratch.standard.length = 0;
+  scratch.debugNormal.length = 0;
   resetQueuedMaterialFrameResourceBuckets(scratch.byFamily);
 
   return scratch;

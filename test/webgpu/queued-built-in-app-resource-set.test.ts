@@ -86,7 +86,7 @@ describe("queued built-in app resource set collector", () => {
     expect(JSON.stringify(result)).not.toContain("customPreviewResourceSet");
   });
 
-  it("reports unsupported material families with a JSON-safe route report", () => {
+  it("collects debug-normal resource items with JSON-safe route metadata", () => {
     const assets = readyAssets("debug-normal");
     const snapshot = renderSnapshot([
       drawPacket({
@@ -111,34 +111,30 @@ describe("queued built-in app resource set collector", () => {
       adapters: adapters(),
     });
 
-    expect(result.valid).toBe(false);
-    expect(result.resourceSet).toBeNull();
-    expect(result.diagnostics).toMatchObject([
-      {
-        code: "webGpuApp.unsupportedMaterialQueueFamily",
+    expect(result.valid).toBe(true);
+    expect(result.diagnostics).toEqual([]);
+    expect(result.resourceSet?.items).toHaveLength(1);
+    expect(result.resourceSet?.items[0]).toMatchObject({
+      queueItem: {
         renderId: 7,
-        drawIndex: 0,
         materialFamily: "debug-normal",
+        meshResourceKey: "prepared-mesh:mesh:cube",
+        materialResourceKey: "prepared-material:material:debug",
       },
-      {
-        code: "webGpuApp.materialQueueRouteReport",
-        report: {
-          valid: false,
-          queueItemCount: 1,
-          routedItemCount: 0,
-          skippedItemCount: 1,
-          byFamily: [
-            {
-              key: "debug-normal",
-              queuedCount: 1,
-              routedCount: 0,
-              skippedCount: 1,
-            },
-          ],
-        },
+      prepareRoute: {
+        valid: true,
+        status: "prepared",
+        family: "debug-normal",
+        materialKey: "material:debug",
+        meshResourceKey: "prepared-mesh:mesh:cube",
+        materialResourceKey: "prepared-material:material:debug",
+        pipelineKey: "debug-normal|opaque|back|less|none",
+        sourceVersion: 1,
+        frame: 1,
+        diagnostics: [],
       },
-    ]);
-    expect(JSON.parse(JSON.stringify(result))).toEqual(result);
+    });
+    expect(() => JSON.stringify(result)).not.toThrow();
     expect(JSON.stringify(result)).not.toContain("rawGpuHandle");
   });
 
@@ -203,12 +199,11 @@ describe("queued built-in app resource set collector", () => {
   it("resets reusable route scratch between unsupported and valid collections", () => {
     const sharedRouteScratch = routeScratch();
     const sharedMaterialQueueScratch = createMaterialQueueScratch();
-    const unsupportedAssets = readyAssets("debug-normal");
+    const unsupportedAssets = readyAssets("unlit");
     const unsupportedSnapshot = renderSnapshot([
       drawPacket({
         renderId: 17,
-        materialFamily: "debug-normal",
-        materialId: "debug",
+        materialFamily: "toon-shaded",
       }),
     ]);
     const unsupportedMeshes = createPreparedMeshStore();
@@ -236,7 +231,7 @@ describe("queued built-in app resource set collector", () => {
     });
 
     expect(unsupported.valid).toBe(false);
-    expect(JSON.stringify(unsupported)).toContain("debug-normal");
+    expect(JSON.stringify(unsupported)).toContain("toon-shaded");
 
     const validAssets = readyAssets("standard");
     const validSnapshot = renderSnapshot([
@@ -280,6 +275,7 @@ describe("queued built-in app resource set collector", () => {
       },
     });
     expect(JSON.stringify(valid)).not.toContain("debug-normal");
+    expect(JSON.stringify(valid)).not.toContain("toon-shaded");
     expect(JSON.stringify(valid)).not.toContain(
       "webGpuApp.materialQueueRouteReport",
     );
@@ -297,9 +293,11 @@ function adapters() {
       prepareUnlitTextureSamplerResources: unused,
       prepareMatcapTextureSamplerResources: unused,
       prepareStandardTextureSamplerResources: unused,
+      prepareDebugNormalTextureSamplerResources: unused,
       createUnlitFrameResources: unused,
       createMatcapFrameResources: unused,
       createStandardFrameResources: unused,
+      createDebugNormalFrameResources: unused,
     }),
   });
 }

@@ -22,12 +22,13 @@ describe("built-in material queue route adapter factory", () => {
       "unlit",
       "matcap",
       "standard",
+      "debug-normal",
     ]);
     expect(registry.diagnostics).toEqual([]);
     expect(registry.get("unlit")?.kind).toBe("unlit");
     expect(registry.get("matcap")?.kind).toBe("matcap");
     expect(registry.get("standard")?.kind).toBe("standard");
-    expect(registry.get("debug-normal")).toBeNull();
+    expect(registry.get("debug-normal")?.kind).toBe("debug-normal");
   });
 
   it("keeps material asset type guards scoped to each built-in family", () => {
@@ -54,6 +55,11 @@ describe("built-in material queue route adapter factory", () => {
         adapter(registry, "standard").isMaterialAsset(material),
       ),
     ).toEqual([false, false, true, false]);
+    expect(
+      materials.map((material) =>
+        adapter(registry, "debug-normal").isMaterialAsset(material),
+      ),
+    ).toEqual([false, false, false, true]);
   });
 
   it("preserves duplicate-family diagnostics when factory input is duplicated", () => {
@@ -66,15 +72,15 @@ describe("built-in material queue route adapter factory", () => {
 
     expect(registry.get("standard")).toBe(duplicate);
     expect(queuedMaterialAdapterRegistryToJsonValue(registry)).toEqual({
-      adapterCount: 4,
-      families: ["unlit", "matcap", "standard", "standard"],
+      adapterCount: 5,
+      families: ["unlit", "matcap", "standard", "debug-normal", "standard"],
       diagnostics: [
         {
           code: "queuedMaterialAdapter.duplicateFamily",
           severity: "warning",
           family: "standard",
           firstIndex: 2,
-          duplicateIndex: 3,
+          duplicateIndex: 4,
           message:
             "Material adapter family 'standard' is registered more than once; the first adapter at index 2 will be used.",
         },
@@ -128,7 +134,7 @@ describe("built-in material queue route adapter factory", () => {
 
 function adapter(
   registry: ReturnType<typeof createBuiltInMaterialQueueRouteAdapterRegistry>,
-  kind: "unlit" | "matcap" | "standard",
+  kind: "unlit" | "matcap" | "standard" | "debug-normal",
 ): BuiltInMaterialQueueRouteAdapter {
   const routeAdapter = registry.get(kind);
 

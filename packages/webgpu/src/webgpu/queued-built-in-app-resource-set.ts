@@ -430,7 +430,7 @@ function queuedPrepareRouteDiagnosticToAppDiagnostic(
       drawIndex: queueItem.drawIndex,
       materialFamily: queueItem.materialFamily,
       entity: queueItem.entity,
-      message: `WebGPU app material queue routing supports unlit, matcap, and standard materials, not '${queueItem.materialFamily}'.`,
+      message: `WebGPU app material queue routing supports unlit, matcap, standard, and debug-normal materials, not '${queueItem.materialFamily}'.`,
     } satisfies WebGpuAppUnsupportedMaterialQueueDiagnostic;
   }
 

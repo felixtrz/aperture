@@ -1,5 +1,302 @@
 # Completed Tasks
 
+## task-1420 — Selected follow-up plan after adapter registry smoke audit
+
+Completed: 2026-05-18
+
+- Audited the GLB-derived metallic-roughness `TEXCOORD_1`
+  texture-transform browser coverage plan.
+- Confirmed the follow-up is scoped to one fixture/test slice and preserves ECS
+  authority, render extraction boundaries, JSON-safe diagnostics, and
+  WebGPU-only ownership.
+- Recommended `task-1421` as the next implementation task.
+
+Validation:
+
+- Documentation-only audit; covered by final formatting and broad validation.
+
+## task-1419 — Next material route or StandardMaterial follow-up after adapter registry smoke coverage
+
+Completed: 2026-05-18
+
+- Compared route architecture, StandardMaterial/glTF fidelity, and
+  diagnostics/tooling candidates after adapter registry smoke coverage.
+- Selected GLB-derived metallic-roughness `TEXCOORD_1` texture-transform
+  browser coverage as the next implementation slice.
+- Refilled the backlog with scoped follow-up, audit, tracker alignment, and
+  next-planning tasks.
+
+Validation:
+
+- Documentation-only planning slice; covered by final formatting and broad
+  validation.
+
+## task-1418 — Tracker/backlog alignment after adapter registry smoke coverage
+
+Completed: 2026-05-18
+
+- Updated `docs/index.html` and `docs/render-pipeline-comparison.html` to
+  reflect typed built-in app resource adapter registry smoke coverage.
+- Audited the backlog and recommended the next material route or
+  StandardMaterial follow-up planning slice.
+
+Validation:
+
+- `pnpm run check:progress`
+
+## task-1417 — Generic built-in app resource adapter registry smoke audit
+
+Completed: 2026-05-18
+
+- Audited the adapter registry smoke slice and confirmed it stayed limited to
+  metadata/test coverage rather than a route rewrite.
+- Confirmed ECS authority, render extraction boundaries, JSON-safe diagnostics,
+  and WebGPU-only ownership remain intact.
+
+Validation:
+
+- Documentation-only audit; covered by final formatting and broad validation.
+
+## task-1416 — Generic built-in app resource adapter registry smoke coverage
+
+Completed: 2026-05-18
+
+- Added explicit built-in app resource adapter family metadata and a
+  registration factory that creates typed app resource adapters from that shared
+  metadata.
+- Updated tests to prove Unlit, Matcap, Standard, and DebugNormal are present,
+  uniquely keyed, and expose route, texture/sampler, frame-resource, and append
+  functions through the shared registry shape.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/built-in-material-app-resource-adapter.test.ts`
+- `pnpm run typecheck:test`
+
+## task-1415 — Selected next material route or StandardMaterial follow-up plan audit
+
+Completed: 2026-05-18
+
+- Audited the selected generic built-in app resource adapter registry smoke
+  coverage plan.
+- Confirmed the follow-up is scoped to typed registry/test coverage and
+  preserves ECS authority, render extraction boundaries, JSON-safe diagnostics,
+  and WebGPU-only ownership.
+- Recommended `task-1416` as the next implementation task.
+
+Validation:
+
+- Documentation-only audit; covered by final formatting and broad validation.
+
+## task-1414 — Next material route or StandardMaterial follow-up plan
+
+Completed: 2026-05-18
+
+- Compared route architecture, StandardMaterial/glTF fidelity, and
+  diagnostics/tooling candidates after prepared DebugNormal cache parity.
+- Selected generic built-in app resource adapter registry smoke coverage as the
+  next implementation slice.
+- Refilled the backlog with scoped follow-up, audit, tracker alignment, and
+  next-planning tasks.
+
+Validation:
+
+- Documentation-only planning slice; covered by final formatting and broad
+  validation.
+
+## task-1413 — Tracker/backlog alignment after prepared DebugNormal cache parity
+
+Completed: 2026-05-18
+
+- Updated `docs/index.html` and `docs/render-pipeline-comparison.html` to
+  reflect prepared DebugNormal material cache parity and remove that item from
+  missing prepare/queue work.
+- Audited the ready backlog and confirmed the next focus should move to route
+  architecture or StandardMaterial follow-up planning.
+
+Validation:
+
+- `pnpm run check:progress`
+
+## task-1412 — Prepared DebugNormal material cache parity audit
+
+Completed: 2026-05-18
+
+- Audited prepared DebugNormal material cache parity against the selected plan,
+  architecture docs, and existing Unlit/Matcap/Standard prepared cache patterns.
+- Confirmed the implementation preserves ECS authority, render extraction
+  boundaries, JSON-safe diagnostics, and WebGPU-only backend ownership.
+- Recommended tracker/backlog alignment as the next follow-up.
+
+Validation:
+
+- Documentation-only audit; covered by final formatting and broad validation.
+
+## task-1411 — Prepared DebugNormal material cache parity
+
+Completed: 2026-05-18
+
+- Added a renderer-owned prepared DebugNormal material cache keyed by source
+  material handle/version plus pipeline and layout keys.
+- Wired the cache into DebugNormal app frame resources so mesh-only
+  frame-resource cache misses can reuse the material uniform buffer and
+  group-2 material bind group.
+- Extended built-in prepared material store summaries and eviction reports to
+  include the `debug-normal` family.
+- Added targeted cache, app-frame, store, and JSON-safe summary coverage.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/prepared-debug-normal-material-cache.test.ts test/webgpu/debug-normal-app-frame-resources.test.ts test/webgpu/prepared-app-material-resource.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm exec vitest run test/webgpu/prepared-built-in-material-store.test.ts test/webgpu/prepared-debug-normal-material-cache.test.ts test/webgpu/debug-normal-app-frame-resources.test.ts test/webgpu/prepared-app-material-resource.test.ts`
+- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts`
+
+## task-1410 — Selected next material route or DebugNormal follow-up plan audit
+
+Completed: 2026-05-18
+
+- Audited the selected prepared DebugNormal material cache parity plan.
+- Confirmed it is concrete, preserves renderer-owned GPU resources, and should
+  precede broader route renames or custom material source APIs.
+
+Validation:
+
+- Documentation-only audit; covered by final formatting and broad validation.
+
+## task-1409 — Next material route or DebugNormal follow-up plan
+
+Completed: 2026-05-18
+
+- Compared material route architecture cleanup, prepared DebugNormal material
+  cache parity, and StandardMaterial/glTF fidelity candidates.
+- Selected prepared DebugNormal material cache parity as the next focused
+  WebGPU-render implementation slice.
+
+Validation:
+
+- Documentation-only planning slice; covered by final formatting and broad
+  validation.
+
+## task-1408 — Tracker/backlog alignment after DebugNormal browser coverage
+
+Completed: 2026-05-18
+
+- Updated the public tracker and render pipeline comparison for
+  DebugNormalMaterial browser pixel/readback coverage.
+- Refilled the backlog with scoped next material route/DebugNormal follow-ups
+  through `task-1413`.
+
+Validation:
+
+- `pnpm run check:progress`
+
+## task-1407 — DebugNormalMaterial browser pixel coverage audit
+
+Completed: 2026-05-18
+
+- Audited the DebugNormal browser example and Playwright regression against the
+  selected plan, ECS authority, render extraction boundaries, and WebGPU-only
+  ownership.
+- Confirmed the example verifies JSON-safe status plus screenshot/readback
+  pixels over the active app route.
+
+Validation:
+
+- `node --check examples/debug-normal-app.js`
+- `pnpm run typecheck:test`
+- `pnpm exec playwright test test/e2e/debug-normal-app.spec.ts`
+
+## task-1406 — DebugNormalMaterial browser pixel coverage
+
+Completed: 2026-05-18
+
+- Added `examples/debug-normal-app.html` and `examples/debug-normal-app.js`.
+- The example authors a camera, cube mesh, and `DebugNormalMaterial` through
+  ECS components and typed assets, then renders through `createWebGpuApp`.
+- Added Playwright coverage for JSON-safe route summaries, draw counts,
+  screenshot pixels, and readback pixels when readback is available.
+
+Validation:
+
+- `node --check examples/debug-normal-app.js`
+- `pnpm run typecheck:test`
+- `pnpm exec playwright test test/e2e/debug-normal-app.spec.ts`
+
+## task-1405 — DebugNormalMaterial browser pixel coverage plan audit
+
+Completed: 2026-05-18
+
+- Audited the browser pixel coverage plan against the active DebugNormal route,
+  ECS authority, render extraction boundaries, and WebGPU-only ownership.
+- Confirmed the selected follow-up should be one browser example plus one
+  Playwright pixel/readback regression.
+
+Validation:
+
+- Documentation-only audit; covered by final formatting and broad validation.
+
+## task-1404 — DebugNormalMaterial browser pixel coverage plan
+
+Completed: 2026-05-18
+
+- Compared browser pixel coverage, route diagnostics coverage, and prepared
+  DebugNormal material cache coverage.
+- Selected browser pixel coverage over the now-active app route as the next
+  focused implementation slice.
+
+Validation:
+
+- Documentation-only planning slice; covered by final formatting and broad
+  validation.
+
+## task-1403 — Tracker/backlog alignment after DebugNormal route integration
+
+Completed: 2026-05-18
+
+- Updated the public tracker and render pipeline comparison for active
+  DebugNormalMaterial app route resources.
+- Refilled the ready backlog with scoped browser coverage, audit, tracker, and
+  planning follow-ups through `task-1410`.
+
+Validation:
+
+- `pnpm run check:progress`
+
+## task-1402 — DebugNormalMaterial app route integration audit
+
+Completed: 2026-05-18
+
+- Audited active DebugNormalMaterial app route integration against the selected
+  plan, app route resource patterns, package boundaries, and JSON-safe
+  diagnostics.
+- Confirmed the implementation keeps ECS authoritative and GPU resources
+  renderer-owned.
+
+Validation:
+
+- Audit backed by focused route/app tests from `task-1401`.
+
+## task-1401 — DebugNormalMaterial app route resource integration
+
+Completed: 2026-05-18
+
+- Added DebugNormalMaterial to the built-in material queue route family and app
+  resource adapter table.
+- Added a DebugNormal WebGPU pipeline resource wrapper and active app route
+  layout/frame-resource wiring.
+- Added targeted tests for DebugNormal route collection, app resource creation,
+  routed resource summaries, and unregistered-route stale-state behavior.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/built-in-material-queue-family.test.ts test/webgpu/built-in-material-queue-adapter.test.ts test/webgpu/built-in-material-app-resource-adapter.test.ts test/webgpu/queued-built-in-app-resource-set.test.ts test/webgpu/queued-built-in-frame-resource-set.test.ts`
+- `pnpm exec vitest run test/webgpu/debug-normal-pipeline-descriptor.test.ts test/webgpu/debug-normal-frame-resources.test.ts test/webgpu/debug-normal-app-frame-resources.test.ts`
+- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts -t "DebugNormalMaterial app resources|unregistered route family keys"`
+- `pnpm run typecheck:test`
+- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts`
+- `pnpm exec vitest run test/webgpu/built-in-material-queue-family.test.ts test/webgpu/built-in-material-queue-adapter.test.ts test/webgpu/built-in-material-app-resource-adapter.test.ts test/webgpu/queued-built-in-app-resource-set.test.ts test/webgpu/queued-built-in-frame-resource-set.test.ts test/webgpu/material-queue-route-report.test.ts test/webgpu/material-queue-route-report-json.test.ts`
+
 ## task-1400 — Active DebugNormalMaterial route integration plan audit
 
 Completed: 2026-05-18

@@ -373,9 +373,11 @@ function queuedItem(options: {
       }),
       prepareMatcapTextureSamplerResources: () => preparedDependencies(),
       prepareStandardTextureSamplerResources: () => preparedDependencies(),
+      prepareDebugNormalTextureSamplerResources: () => preparedDependencies(),
       createUnlitFrameResources: () => options.frameResources as never,
       createMatcapFrameResources: () => options.frameResources as never,
       createStandardFrameResources: () => options.frameResources as never,
+      createDebugNormalFrameResources: () => options.frameResources as never,
     }),
   });
   const item = createSingleQueuedBuiltInAppResourceItem({

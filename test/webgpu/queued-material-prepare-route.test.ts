@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  createDebugNormalMaterialAsset,
   createMatcapMaterialAsset,
   createStandardMaterialAsset,
   createUnlitMaterialAsset,
@@ -44,11 +43,11 @@ describe("queued material prepare route contract", () => {
       createBuiltInMaterialQueueRouteAdapterRegistry(),
       {
         queueItem: queueItem(
-          "debug-normal",
+          "toon-shaded",
           "opaque",
-          "debug-normal|opaque|back|less|none",
+          "toon-shaded|opaque|back|less|none",
         ),
-        material: createDebugNormalMaterialAsset(),
+        material: createUnlitMaterialAsset(),
         sourceVersion: 1,
         frame: 2,
       },
@@ -57,17 +56,17 @@ describe("queued material prepare route contract", () => {
     expect(result).toMatchObject({
       valid: false,
       status: "skipped",
-      family: "debug-normal",
-      materialKey: "material:debug-normal",
+      family: "toon-shaded",
+      materialKey: "material:toon-shaded",
       meshResourceKey: "gpu-mesh:mesh:cube",
-      materialResourceKey: "gpu-material:material:debug-normal",
-      pipelineKey: "debug-normal|opaque|back|less|none",
+      materialResourceKey: "gpu-material:material:toon-shaded",
+      pipelineKey: "toon-shaded|opaque|back|less|none",
       diagnostics: [
         {
           code: "queuedMaterialPrepareRoute.missingAdapter",
-          materialFamily: "debug-normal",
-          materialKind: "debug-normal",
-          materialKey: "material:debug-normal",
+          materialFamily: "toon-shaded",
+          materialKind: "unlit",
+          materialKey: "material:toon-shaded",
         },
       ],
     });

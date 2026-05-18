@@ -11,6 +11,7 @@ describe("built-in material queue families", () => {
       "unlit",
       "matcap",
       "standard",
+      "debug-normal",
     ]);
   });
 
@@ -18,11 +19,11 @@ describe("built-in material queue families", () => {
     expect(isBuiltInMaterialQueueFamily("unlit")).toBe(true);
     expect(isBuiltInMaterialQueueFamily("matcap")).toBe(true);
     expect(isBuiltInMaterialQueueFamily("standard")).toBe(true);
+    expect(isBuiltInMaterialQueueFamily("debug-normal")).toBe(true);
   });
 
   it("rejects unsupported, empty, and near-miss family strings", () => {
     expect(isBuiltInMaterialQueueFamily("")).toBe(false);
-    expect(isBuiltInMaterialQueueFamily("debug-normal")).toBe(false);
     expect(isBuiltInMaterialQueueFamily("standard ")).toBe(false);
     expect(isBuiltInMaterialQueueFamily("Standard")).toBe(false);
     expect(isBuiltInMaterialQueueFamily("unlit|opaque")).toBe(false);

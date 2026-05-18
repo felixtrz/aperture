@@ -3337,7 +3337,7 @@ describe("WebGPU app facade", () => {
     ).not.toContain("GPU");
   });
 
-  it("diagnoses unsupported material queue families without submitting", async () => {
+  it("routes DebugNormalMaterial app resources with JSON-safe summaries", async () => {
     const events: string[] = [];
     const { canvas, environment } = webGpuHarness(events);
     const created = await createWebGpuApp({
@@ -3385,92 +3385,66 @@ describe("WebGPU app facade", () => {
 
     const frame = await app.stepAndRender(1 / 60, 1, 43);
 
-    expect(frame.ok).toBe(false);
+    expect(frame.ok).toBe(true);
     expect(frame.counts).toMatchObject({
       meshDraws: 2,
-      drawCalls: 0,
+      drawCalls: 2,
     });
-    expect(frame.diagnostics).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          code: "webGpuApp.unsupportedMaterialQueueFamily",
-          materialFamily: "debug-normal",
-        }),
-      ]),
+    expect(frame.diagnostics).toEqual([]);
+    expectPreparedMaterialFacadeSummary(frame, {
+      unlit: 1,
+      matcap: 0,
+      standard: 0,
+      debugNormal: 1,
+    });
+    expect(queuedFamilyResourceCount(frame.resources?.resources, "unlit")).toBe(
+      1,
     );
-    expect(JSON.parse(JSON.stringify(frame.diagnostics))).toEqual([
-      expect.objectContaining({
-        code: "webGpuApp.unsupportedMaterialQueueFamily",
-        renderId: expect.any(Number),
-        drawIndex: expect.any(Number),
-        materialFamily: "debug-normal",
-        entity: expect.objectContaining({
-          index: expect.any(Number),
-          generation: expect.any(Number),
-        }),
-      }),
-      expect.objectContaining({
-        code: "webGpuApp.materialQueueRouteReport",
-        report: expect.objectContaining({
-          valid: false,
-          queueItemCount: 2,
-          routedItemCount: 1,
-          skippedItemCount: 1,
-          byFamily: expect.arrayContaining([
-            expect.objectContaining({
-              key: "unlit",
-              queuedCount: 1,
-              routedCount: 1,
-              skippedCount: 0,
-            }),
-            expect.objectContaining({
-              key: "debug-normal",
-              queuedCount: 1,
-              routedCount: 0,
-              skippedCount: 1,
-            }),
-          ]),
-          byPhase: expect.arrayContaining([
-            expect.objectContaining({
-              key: "opaque",
-              queuedCount: 2,
-              routedCount: 1,
-              skippedCount: 1,
-            }),
-          ]),
-          diagnosticSummary: expect.objectContaining({
-            total: 1,
-            bySeverity: expect.objectContaining({ error: 1 }),
-          }),
-          diagnostics: [
-            expect.objectContaining({
-              code: "webGpuApp.unsupportedMaterialQueueFamily",
-              materialFamily: "debug-normal",
-            }),
-          ],
-        }),
-      }),
-    ]);
+    expect(
+      queuedFamilyResourceCount(frame.resources?.resources, "debug-normal"),
+    ).toBe(1);
     expect(webGpuAppRenderReportToJsonValue(frame)).toMatchObject({
       diagnosticsSummary: {
-        sectionCount: 1,
-        materialQueueRoute: {
-          valid: false,
-          queueItemCount: 2,
-          routedItemCount: 1,
-          skippedItemCount: 1,
+        sectionCount: 2,
+        materialQueue: {
+          itemCount: 2,
+          byFamily: expect.arrayContaining([
+            expect.objectContaining({ family: "unlit", itemCount: 1 }),
+            expect.objectContaining({
+              family: "debug-normal",
+              itemCount: 1,
+            }),
+          ]),
+        },
+        routedResourceSet: {
+          itemCount: 2,
           byFamily: expect.arrayContaining([
             expect.objectContaining({
-              key: "unlit",
-              queuedCount: 1,
-              routedCount: 1,
-              skippedCount: 0,
+              family: "unlit",
+              itemCount: 1,
             }),
             expect.objectContaining({
-              key: "debug-normal",
-              queuedCount: 1,
-              routedCount: 0,
-              skippedCount: 1,
+              family: "debug-normal",
+              itemCount: 1,
+            }),
+          ]),
+          byFamilyAndPipeline: expect.arrayContaining([
+            expect.objectContaining({
+              family: "debug-normal",
+              pipelineKey: "debug-normal|opaque|back|less|none",
+              itemCount: 1,
+            }),
+          ]),
+        },
+      },
+    });
+    expect(JSON.parse(webGpuAppRenderReportToJson(frame))).toMatchObject({
+      diagnosticsSummary: {
+        routedResourceSet: {
+          byFamily: expect.arrayContaining([
+            expect.objectContaining({
+              family: "debug-normal",
+              itemCount: 1,
             }),
           ]),
         },
@@ -3479,7 +3453,7 @@ describe("WebGPU app facade", () => {
     expect(
       JSON.stringify(webGpuAppRenderReportToJsonValue(frame)),
     ).not.toContain("GPUBuffer");
-    expect(events).not.toContain("queue:submit:1");
+    expect(events).toContain("queue:submit:1");
   });
 
   it("diagnoses unregistered route family keys without built-in fallback", async () => {
@@ -4102,10 +4076,21 @@ describe("WebGPU app facade", () => {
 
     app.step(1 / 60, 1);
     const snapshot = app.extract(47);
+    const unregisteredDraw = drawForMaterial(snapshot, unlitMaterial);
+    const unregisteredPipelineKey = "toon-shaded|opaque|back|less|none";
     const firstFrame = await app.render({
       snapshot: renderSnapshotWithDraws(snapshot, 47, [
-        drawForMaterial(snapshot, unlitMaterial),
-        drawForMaterial(snapshot, debugNormalMaterial),
+        {
+          ...unregisteredDraw,
+          sortKey: {
+            ...unregisteredDraw.sortKey,
+            pipelineKey: unregisteredPipelineKey,
+          },
+          batchKey: {
+            ...unregisteredDraw.batchKey,
+            pipelineKey: unregisteredPipelineKey,
+          },
+        },
       ]),
     });
     const secondFrame = await app.render({
@@ -4122,20 +4107,19 @@ describe("WebGPU app facade", () => {
 
     expect(firstReport).toMatchObject({
       valid: false,
-      queueItemCount: 2,
-      routedItemCount: 1,
+      queueItemCount: 1,
+      routedItemCount: 0,
       skippedItemCount: 1,
-      byFamily: expect.arrayContaining([
-        { key: "unlit", queuedCount: 1, routedCount: 1, skippedCount: 0 },
+      byFamily: [
         {
-          key: "debug-normal",
+          key: "toon-shaded",
           queuedCount: 1,
           routedCount: 0,
           skippedCount: 1,
         },
-      ]),
+      ],
       byPhase: [
-        { key: "opaque", queuedCount: 2, routedCount: 1, skippedCount: 1 },
+        { key: "opaque", queuedCount: 1, routedCount: 0, skippedCount: 1 },
       ],
       diagnosticSummary: expect.objectContaining({
         total: 1,
@@ -4170,6 +4154,7 @@ describe("WebGPU app facade", () => {
     });
     expect(JSON.stringify(secondReport)).not.toContain("debug-normal");
     expect(JSON.stringify(secondReport)).not.toContain("unlit");
+    expect(JSON.stringify(secondReport)).not.toContain("toon-shaded");
     expect(events).not.toContain("queue:submit:1");
   });
 
@@ -6821,7 +6806,12 @@ function singleMaterialResource(resources: unknown): unknown {
     return (resources as { readonly material: unknown }).material;
   }
 
-  for (const family of ["unlit", "matcap", "standard"] as const) {
+  for (const family of [
+    "unlit",
+    "matcap",
+    "standard",
+    "debug-normal",
+  ] as const) {
     const resource = queuedMaterialResources(resources, family)[0];
 
     if (resource !== undefined) {
@@ -6838,15 +6828,20 @@ function expectPreparedMaterialCacheSummary(
     readonly unlit: number;
     readonly matcap: number;
     readonly standard: number;
+    readonly debugNormal?: number;
   },
 ): void {
+  const debugNormal = expected.debugNormal ?? 0;
+
   expect(webGpuAppRenderReportToJsonValue(report).resourceReuse).toMatchObject({
     preparedMaterialCache: {
-      totalEntries: expected.unlit + expected.matcap + expected.standard,
+      totalEntries:
+        expected.unlit + expected.matcap + expected.standard + debugNormal,
       families: {
         unlit: { entries: expected.unlit },
         matcap: { entries: expected.matcap },
         standard: { entries: expected.standard },
+        "debug-normal": { entries: debugNormal },
       },
     },
   });
@@ -7017,7 +7012,7 @@ function queuedMeshResourceCount(resources: unknown): number {
 
 function queuedFamilyResourceCount(
   resources: unknown,
-  family: "unlit" | "matcap" | "standard",
+  family: "unlit" | "matcap" | "standard" | "debug-normal",
 ): number {
   return queuedMaterialResources(resources, family).length;
 }
@@ -7055,7 +7050,7 @@ function queuedBindGroupResourceKeys(
 
 function queuedMaterialResources(
   resources: unknown,
-  family: "unlit" | "matcap" | "standard",
+  family: "unlit" | "matcap" | "standard" | "debug-normal",
 ): readonly {
   readonly material?: unknown;
   readonly bindGroups?: readonly { readonly group?: unknown }[];
@@ -7064,7 +7059,8 @@ function queuedMaterialResources(
     return [];
   }
 
-  const value = (resources as Record<string, unknown>)[family];
+  const resourceKey = family === "debug-normal" ? "debugNormal" : family;
+  const value = (resources as Record<string, unknown>)[resourceKey];
 
   if (!Array.isArray(value)) {
     return [];

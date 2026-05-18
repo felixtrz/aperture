@@ -57,7 +57,7 @@ describe("WebGPU app material queue route report JSON", () => {
         {
           code: "webGpuApp.unsupportedMaterialQueueFamily",
           message:
-            "WebGPU app material queue routing supports unlit, matcap, and standard materials, not 'debug-normal'.",
+            "WebGPU app material queue routing supports unlit, matcap, standard, and debug-normal materials, not 'debug-normal'.",
           renderId: 10,
           drawIndex: 0,
           materialFamily: "debug-normal",

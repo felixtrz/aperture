@@ -49,14 +49,16 @@ describe("prepared app material resource reuse counters", () => {
       unlit: cacheWithEntries("unlit:1", "unlit:2"),
       matcap: cacheWithEntries("matcap:1"),
       standard: cacheWithEntries("standard:1", "standard:2", "standard:3"),
+      debugNormal: cacheWithEntries("debug-normal:1"),
     });
 
     expect(summary).toEqual({
-      totalEntries: 6,
+      totalEntries: 7,
       families: {
         unlit: { entries: 2 },
         matcap: { entries: 1 },
         standard: { entries: 3 },
+        "debug-normal": { entries: 1 },
       },
     });
     expect(JSON.stringify(summary)).not.toContain("Map");

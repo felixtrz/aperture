@@ -1,4 +1,9 @@
-import type { MaterialHandle, MeshHandle } from "@aperture-engine/simulation";
+import {
+  assetHandleKey,
+  type AssetRegistry,
+  type MaterialHandle,
+  type MeshHandle,
+} from "@aperture-engine/simulation";
 import type {
   DebugNormalMaterialAsset,
   MeshAsset,
@@ -16,6 +21,17 @@ import {
   type PreparedAppMeshResourceUse,
   type PreparedMeshGpuResourceCache,
 } from "./prepared-app-mesh-resource.js";
+import {
+  createPreparedAppMaterialFallbackDiagnostic,
+  recordPreparedAppMaterialResourceUse,
+  type PreparedAppMaterialFallbackDiagnostic,
+  type PreparedAppMaterialResourceUse,
+} from "./prepared-app-material-resource.js";
+import {
+  prepareDebugNormalMaterialResource,
+  type PreparedDebugNormalMaterialCache,
+  type PreparedDebugNormalMaterialResource,
+} from "./prepared-debug-normal-material-cache.js";
 import type { UnlitBindGroupLayoutResource } from "./unlit-bind-group.js";
 import {
   createViewUniformBufferDescriptorScratch,
@@ -58,10 +74,14 @@ export interface DebugNormalAppFrameResourceReuseReport {
   dynamicBufferWrites: number;
 }
 
+export type CreateDebugNormalAppFrameResourcesDiagnostic =
+  | CreateDebugNormalFrameGpuResourcesResult["diagnostics"][number]
+  | PreparedAppMaterialFallbackDiagnostic;
+
 export interface CreateDebugNormalAppFrameResourcesResult {
   readonly valid: boolean;
   readonly resources: CreateDebugNormalFrameGpuResourcesResult["resources"];
-  readonly diagnostics: CreateDebugNormalFrameGpuResourcesResult["diagnostics"];
+  readonly diagnostics: readonly CreateDebugNormalAppFrameResourcesDiagnostic[];
 }
 
 export function createOrReuseDebugNormalAppFrameResources(options: {
@@ -73,12 +93,16 @@ export function createOrReuseDebugNormalAppFrameResources(options: {
   readonly material: DebugNormalMaterialAsset | null;
   readonly materialHandle: MaterialHandle;
   readonly materialKey: string;
+  readonly sourceMaterialKey: string;
   readonly frame?: number | undefined;
+  readonly pipelineKey: string;
+  readonly assets: AssetRegistry;
   readonly viewUniforms: PackedSnapshotViewUniforms;
   readonly worldTransforms: PackedSnapshotTransforms;
   readonly sharedLayouts: readonly UnlitBindGroupLayoutResource[];
   readonly materialLayout: DebugNormalMaterialBindGroupLayoutResource | null;
   readonly preparedMeshes: PreparedMeshGpuResourceCache;
+  readonly preparedDebugNormalMaterials: PreparedDebugNormalMaterialCache;
   readonly reuse: DebugNormalAppFrameResourceReuseReport;
 }): CreateDebugNormalAppFrameResourcesResult {
   const cached = options.cache.current;
@@ -138,7 +162,13 @@ export function createOrReuseDebugNormalAppFrameResources(options: {
     return cached.result;
   }
 
+  const preparedMaterialFallbackDiagnostics: PreparedAppMaterialFallbackDiagnostic[] =
+    [];
   const preparedMesh = preparePreparedDebugNormalMesh(options);
+  const preparedMaterial = preparePreparedDebugNormalMaterial(
+    options,
+    preparedMaterialFallbackDiagnostics,
+  );
   const result = createDebugNormalFrameGpuResources({
     device: options.device as Parameters<
       typeof createDebugNormalFrameGpuResources
@@ -148,6 +178,9 @@ export function createOrReuseDebugNormalAppFrameResources(options: {
       ? {}
       : { preparedMesh: preparedMesh.resource.mesh }),
     material: options.material,
+    ...(preparedMaterial === null
+      ? {}
+      : { preparedMaterial: preparedMaterial.resource }),
     viewUniforms: options.viewUniforms,
     worldTransforms: options.worldTransforms,
     sharedLayouts: options.sharedLayouts,
@@ -165,8 +198,16 @@ export function createOrReuseDebugNormalAppFrameResources(options: {
       options.reuse.preparedMeshBuffersCreated += 1;
     }
 
-    options.reuse.materialBuffersCreated += 1;
-    options.reuse.bindGroupsCreated += result.resources.bindGroups.length;
+    if (preparedMaterial === null) {
+      options.reuse.materialBuffersCreated += 1;
+      options.reuse.bindGroupsCreated += result.resources.bindGroups.length;
+    } else {
+      recordPreparedAppMaterialResourceUse(
+        options.reuse,
+        preparedMaterial,
+        result.resources.bindGroups.length,
+      );
+    }
 
     options.cache.current = {
       meshKey: options.meshKey,
@@ -183,7 +224,10 @@ export function createOrReuseDebugNormalAppFrameResources(options: {
     };
   }
 
-  return result;
+  return appendPreparedMaterialFallbackDiagnostics(
+    result,
+    preparedMaterialFallbackDiagnostics,
+  );
 }
 
 function preparePreparedDebugNormalMesh(options: {
@@ -207,4 +251,98 @@ function preparePreparedDebugNormalMesh(options: {
     frame: options.frame,
     preparedMeshes: options.preparedMeshes,
   });
+}
+
+type PreparedDebugNormalAppMaterialResourceUse =
+  PreparedAppMaterialResourceUse<PreparedDebugNormalMaterialResource>;
+
+function preparePreparedDebugNormalMaterial(
+  options: {
+    readonly device: unknown;
+    readonly assets: AssetRegistry;
+    readonly material: DebugNormalMaterialAsset | null;
+    readonly materialHandle: MaterialHandle;
+    readonly sourceMaterialKey: string;
+    readonly materialKey: string;
+    readonly frame?: number | undefined;
+    readonly pipelineKey: string;
+    readonly materialLayout: DebugNormalMaterialBindGroupLayoutResource | null;
+    readonly preparedDebugNormalMaterials: PreparedDebugNormalMaterialCache;
+  },
+  fallbackDiagnostics: PreparedAppMaterialFallbackDiagnostic[],
+): PreparedDebugNormalAppMaterialResourceUse | null {
+  if (options.material === null) {
+    return null;
+  }
+
+  const sourceVersion = parseSourceAssetVersion(
+    options.materialKey,
+    options.sourceMaterialKey,
+  );
+
+  if (sourceVersion === null) {
+    return null;
+  }
+
+  const result = prepareDebugNormalMaterialResource({
+    registry: options.assets,
+    device: options.device as Parameters<
+      typeof prepareDebugNormalMaterialResource
+    >[0]["device"],
+    cache: options.preparedDebugNormalMaterials,
+    handle: options.materialHandle,
+    material: options.material,
+    sourceVersion,
+    frame: options.frame,
+    pipelineKey: options.pipelineKey,
+    layout: options.materialLayout,
+  });
+
+  if (
+    result.valid &&
+    result.resource !== null &&
+    (result.status === "created" || result.status === "reused")
+  ) {
+    return { status: result.status, resource: result.resource };
+  }
+
+  const diagnostic = createPreparedAppMaterialFallbackDiagnostic({
+    materialFamily: "debug-normal",
+    materialKey: assetHandleKey(options.materialHandle),
+    status: result.status,
+    diagnostics: result.diagnostics,
+  });
+
+  if (diagnostic !== null) {
+    fallbackDiagnostics.push(diagnostic);
+  }
+
+  return null;
+}
+
+function appendPreparedMaterialFallbackDiagnostics(
+  result: CreateDebugNormalFrameGpuResourcesResult,
+  diagnostics: readonly PreparedAppMaterialFallbackDiagnostic[],
+): CreateDebugNormalAppFrameResourcesResult {
+  return diagnostics.length === 0
+    ? result
+    : {
+        ...result,
+        diagnostics: [...result.diagnostics, ...diagnostics],
+      };
+}
+
+function parseSourceAssetVersion(
+  resourceKey: string,
+  sourceKey: string,
+): number | null {
+  const prefix = `${sourceKey}@`;
+
+  if (!resourceKey.startsWith(prefix)) {
+    return null;
+  }
+
+  const version = Number(resourceKey.slice(prefix.length));
+
+  return Number.isInteger(version) && version >= 0 ? version : null;
 }

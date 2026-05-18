@@ -1,11 +1,11 @@
 {
   "state": "idle",
-  "currentTaskId": null,
-  "currentRunStartedAt": "2026-05-18T13:01:53Z",
-  "lastRunStartedAt": "2026-05-18T13:01:53Z",
+  "currentTaskId": "task-1421",
+  "currentRunStartedAt": "2026-05-18T14:02:22Z",
+  "lastRunStartedAt": "2026-05-18T14:02:22Z",
   "lastResult": "success",
   "lastCommit": "c4f5a8a",
   "activePid": null,
-  "notes": "Completed task-1366 through task-1400. Next recommended task: task-1401 add DebugNormalMaterial app route resource integration.",
-  "lastRunFinishedAt": "2026-05-18T13:55:17Z"
+  "notes": "Completed through task-1420. Next: task-1421 GLB metallic-roughness UV1 transform browser coverage.",
+  "lastRunFinishedAt": "2026-05-18T14:55:52Z"
 }

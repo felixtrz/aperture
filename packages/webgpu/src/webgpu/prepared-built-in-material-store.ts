@@ -7,6 +7,10 @@ import {
   type PreparedMatcapMaterialCache,
 } from "./prepared-matcap-material-cache.js";
 import {
+  createPreparedDebugNormalMaterialCache,
+  type PreparedDebugNormalMaterialCache,
+} from "./prepared-debug-normal-material-cache.js";
+import {
   createPreparedScalarStandardMaterialCache,
   type PreparedScalarStandardMaterialCache,
 } from "./prepared-standard-material-cache.js";
@@ -19,6 +23,7 @@ export interface PreparedBuiltInMaterialStore {
   readonly unlit: PreparedScalarUnlitMaterialCache;
   readonly matcap: PreparedMatcapMaterialCache;
   readonly standard: PreparedScalarStandardMaterialCache;
+  readonly debugNormal: PreparedDebugNormalMaterialCache;
 }
 
 export interface PreparedBuiltInMaterialCacheEvictionOptions {
@@ -39,7 +44,7 @@ export interface PreparedBuiltInMaterialCacheEvictionReport {
   readonly evicted: number;
   readonly skippedInUse: number;
   readonly families: Record<
-    "unlit" | "matcap" | "standard",
+    "unlit" | "matcap" | "standard" | "debug-normal",
     PreparedBuiltInMaterialCacheEvictionFamilyReport
   >;
 }
@@ -49,6 +54,7 @@ export function createPreparedBuiltInMaterialStore(): PreparedBuiltInMaterialSto
     unlit: createPreparedScalarUnlitMaterialCache(),
     matcap: createPreparedMatcapMaterialCache(),
     standard: createPreparedScalarStandardMaterialCache(),
+    debugNormal: createPreparedDebugNormalMaterialCache(),
   };
 }
 
@@ -70,25 +76,33 @@ export function evictPreparedBuiltInMaterialStoreEntries(
       store.standard.resources,
       options,
     ),
+    "debug-normal": evictPreparedMaterialCacheEntries(
+      store.debugNormal.resources,
+      options,
+    ),
   };
 
   return {
     checked:
       families.unlit.checked +
       families.matcap.checked +
-      families.standard.checked,
+      families.standard.checked +
+      families["debug-normal"].checked,
     retained:
       families.unlit.retained +
       families.matcap.retained +
-      families.standard.retained,
+      families.standard.retained +
+      families["debug-normal"].retained,
     evicted:
       families.unlit.evicted +
       families.matcap.evicted +
-      families.standard.evicted,
+      families.standard.evicted +
+      families["debug-normal"].evicted,
     skippedInUse:
       families.unlit.skippedInUse +
       families.matcap.skippedInUse +
-      families.standard.skippedInUse,
+      families.standard.skippedInUse +
+      families["debug-normal"].skippedInUse,
     families,
   };
 }

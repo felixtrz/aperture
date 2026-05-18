@@ -33,6 +33,7 @@ import {
   writePackedSnapshotViewUniforms,
   type MaterialQueueScratch,
   type MaterialAssetDependencyReadinessReportJsonValue,
+  type DebugNormalMaterialAsset,
   type MatcapMaterialAsset,
   type MaterialAsset,
   type MeshAsset,
@@ -85,6 +86,18 @@ import {
 } from "./frame-boundary.js";
 import { createLightBindGroupLayoutDescriptor } from "./light-bind-group-layout.js";
 import type { LightBindGroupLayoutResource } from "./light-bind-group-layout.js";
+import {
+  createOrReuseDebugNormalAppFrameResources,
+  type CachedDebugNormalAppFrameResources,
+  type CreateDebugNormalAppFrameResourcesResult,
+  type DebugNormalAppFrameResourceCacheSlot,
+} from "./debug-normal-app-frame-resources.js";
+import { createDebugNormalMaterialBindGroupLayoutPlan } from "./debug-normal-bind-group-layout.js";
+import type { DebugNormalMaterialBindGroupLayoutResource } from "./debug-normal-bind-group.js";
+import {
+  createDebugNormalRenderPipelineResource,
+  type CreateDebugNormalRenderPipelineResourceResult,
+} from "./debug-normal-pipeline.js";
 import {
   createOrReuseMatcapAppFrameResources,
   type CachedMatcapAppFrameResources,
@@ -297,13 +310,15 @@ export interface WebGpuAppRenderReportJsonValue {
 export type WebGpuAppPipelineResourceResult =
   | CreateUnlitRenderPipelineResourceResult
   | CreateMatcapRenderPipelineResourceResult
-  | CreateStandardRenderPipelineResourceResult;
+  | CreateStandardRenderPipelineResourceResult
+  | CreateDebugNormalRenderPipelineResourceResult;
 
 export type WebGpuAppFrameResourcesResult =
   | CreateUnlitAppFrameResourcesResult
   | CreateMultiMaterialUnlitFrameGpuResourcesResult
   | CreateMatcapAppFrameResourcesResult
   | CreateStandardAppFrameResourcesResult
+  | CreateDebugNormalAppFrameResourcesResult
   | CreateQueuedBuiltInFrameResourcesResult;
 
 type WebGpuAppMaterialKind = BuiltInMaterialQueueFamily;
@@ -321,6 +336,7 @@ interface WebGpuAppResourceCache {
   readonly unlitFrame: UnlitAppFrameResourceCacheSlot;
   readonly matcapFrame: MatcapAppFrameResourceCacheSlot;
   readonly standardFrame: StandardAppFrameResourceCacheSlot;
+  readonly debugNormalFrame: DebugNormalAppFrameResourceCacheSlot;
 }
 
 interface WebGpuAppFrameScratch {
@@ -343,6 +359,7 @@ interface WebGpuAppPipelineLayouts {
   readonly materialLayout:
     | MatcapMaterialBindGroupLayoutResource
     | StandardMaterialBindGroupLayoutResource
+    | DebugNormalMaterialBindGroupLayoutResource
     | null;
   readonly lightLayout: LightBindGroupLayoutResource | null;
 }
@@ -538,6 +555,8 @@ function createWebGpuAppResourceCache(): WebGpuAppResourceCache {
       createWebGpuAppFrameResourceCacheSlot<CachedMatcapAppFrameResources>(),
     standardFrame:
       createWebGpuAppFrameResourceCacheSlot<CachedStandardAppFrameResources>(),
+    debugNormalFrame:
+      createWebGpuAppFrameResourceCacheSlot<CachedDebugNormalAppFrameResources>(),
   };
 }
 
@@ -590,21 +609,29 @@ async function getOrCreateWebGpuAppPipeline(options: {
           colorFormat: options.app.initialization.format,
           batchKey: options.batchKey,
         })
-      : options.kind === "matcap"
-        ? await createMatcapRenderPipelineResource({
+      : options.kind === "debug-normal"
+        ? await createDebugNormalRenderPipelineResource({
             device: options.app.initialization.device as Parameters<
-              typeof createMatcapRenderPipelineResource
+              typeof createDebugNormalRenderPipelineResource
             >[0]["device"],
             colorFormat: options.app.initialization.format,
             batchKey: options.batchKey,
           })
-        : await createUnlitRenderPipelineResource({
-            device: options.app.initialization.device as Parameters<
-              typeof createUnlitRenderPipelineResource
-            >[0]["device"],
-            colorFormat: options.app.initialization.format,
-            batchKey: options.batchKey,
-          });
+        : options.kind === "matcap"
+          ? await createMatcapRenderPipelineResource({
+              device: options.app.initialization.device as Parameters<
+                typeof createMatcapRenderPipelineResource
+              >[0]["device"],
+              colorFormat: options.app.initialization.format,
+              batchKey: options.batchKey,
+            })
+          : await createUnlitRenderPipelineResource({
+              device: options.app.initialization.device as Parameters<
+                typeof createUnlitRenderPipelineResource
+              >[0]["device"],
+              colorFormat: options.app.initialization.format,
+              batchKey: options.batchKey,
+            });
 
   if (pipeline.valid && pipeline.resource !== null) {
     options.cache.pipelines.set(key, pipeline);
@@ -633,15 +660,20 @@ function getWebGpuAppPipelineLayouts(options: {
           pipelineResourceKey,
           options.getBindGroupLayout,
         )
-      : options.kind === "matcap"
-        ? createMatcapAppPipelineLayouts(
+      : options.kind === "debug-normal"
+        ? createDebugNormalAppPipelineLayouts(
             pipelineResourceKey,
             options.getBindGroupLayout,
           )
-        : createUnlitAppPipelineLayouts(
-            pipelineResourceKey,
-            options.getBindGroupLayout,
-          );
+        : options.kind === "matcap"
+          ? createMatcapAppPipelineLayouts(
+              pipelineResourceKey,
+              options.getBindGroupLayout,
+            )
+          : createUnlitAppPipelineLayouts(
+              pipelineResourceKey,
+              options.getBindGroupLayout,
+            );
 
   options.cache.layouts.set(key, layouts);
   return layouts;
@@ -722,6 +754,34 @@ function createMatcapAppPipelineLayouts(
       layout: getBindGroupLayout(2),
       descriptor: createMatcapMaterialBindGroupLayoutPlan(
         "webgpu-app/matcap/group-2",
+      ).layout,
+    },
+    lightLayout: null,
+  };
+}
+
+function createDebugNormalAppPipelineLayouts(
+  pipelineResourceKey: string,
+  getBindGroupLayout: (group: number) => unknown,
+): WebGpuAppPipelineLayouts {
+  return {
+    kind: "debug-normal",
+    pipelineResourceKey,
+    sharedLayouts: [0, 1].map((group) => ({
+      group,
+      layoutKey: `webgpu-app/debug-normal/group-${group}`,
+      layout: getBindGroupLayout(group),
+      metadata: createUnlitBindGroupLayoutMetadata(
+        group,
+        `webgpu-app/debug-normal/group-${group}`,
+      ),
+    })),
+    materialLayout: {
+      group: 2,
+      layoutKey: "webgpu-app/debug-normal/group-2",
+      layout: getBindGroupLayout(2),
+      descriptor: createDebugNormalMaterialBindGroupLayoutPlan(
+        "webgpu-app/debug-normal/group-2",
       ).layout,
     },
     lightLayout: null,
@@ -859,6 +919,8 @@ const QUEUED_BUILT_IN_MATERIAL_ADAPTERS =
           material: options.item.material as StandardMaterialAsset,
           reuse: options.reuse,
         }),
+      prepareDebugNormalTextureSamplerResources: () =>
+        emptyPreparedAppTextureSamplerResources(),
       createUnlitFrameResources: (options) =>
         createOrReuseUnlitAppFrameResources({
           device: options.app.initialization.device,
@@ -928,6 +990,29 @@ const QUEUED_BUILT_IN_MATERIAL_ADAPTERS =
           lightLayout: options.layouts.lightLayout,
           preparedMeshes: options.cache.preparedMeshes,
           preparedScalarMaterials: options.preparedMaterials.standard,
+          reuse: options.reuse,
+        }),
+      createDebugNormalFrameResources: (options) =>
+        createOrReuseDebugNormalAppFrameResources({
+          device: options.app.initialization.device,
+          cache: options.cache.debugNormalFrame,
+          mesh: options.item.mesh,
+          meshHandle: options.item.draw.mesh,
+          meshKey: options.item.meshKey,
+          material: options.item.material as DebugNormalMaterialAsset,
+          materialHandle: options.item.draw.material,
+          materialKey: options.item.materialKey,
+          sourceMaterialKey: options.item.sourceMaterialKey,
+          frame: options.snapshot.frame,
+          pipelineKey: options.item.draw.batchKey.pipelineKey,
+          assets: options.app.assets,
+          viewUniforms: options.viewUniforms,
+          worldTransforms: options.worldTransforms,
+          sharedLayouts: options.layouts.sharedLayouts,
+          materialLayout: options.layouts
+            .materialLayout as DebugNormalMaterialBindGroupLayoutResource | null,
+          preparedMeshes: options.cache.preparedMeshes,
+          preparedDebugNormalMaterials: options.preparedMaterials.debugNormal,
           reuse: options.reuse,
         }),
     }),
@@ -1383,7 +1468,7 @@ async function renderWebGpuAppFrame(
       diagnostics: [
         {
           code: "webGpuApp.unsupportedMaterialKind",
-          message: `WebGPU app render supports unlit, matcap, and standard materials, not '${material.kind}'.`,
+          message: `WebGPU app render supports unlit, matcap, standard, and debug-normal materials, not '${material.kind}'.`,
         },
       ],
     });
@@ -1542,7 +1627,7 @@ async function renderWebGpuAppFrame(
       diagnostics: [
         {
           code: "webGpuApp.unsupportedMaterialKind",
-          message: `WebGPU app render supports unlit, matcap, and standard materials, not '${material.kind}'.`,
+          message: `WebGPU app render supports unlit, matcap, standard, and debug-normal materials, not '${material.kind}'.`,
         },
       ],
     });
@@ -1597,7 +1682,7 @@ async function renderWebGpuAppFrame(
         diagnostics: [
           {
             code: "webGpuApp.unsupportedMaterialKind",
-            message: `WebGPU app render supports unlit, matcap, and standard materials, not '${material.kind}'.`,
+            message: `WebGPU app render supports unlit, matcap, standard, and debug-normal materials, not '${material.kind}'.`,
           },
         ],
       });

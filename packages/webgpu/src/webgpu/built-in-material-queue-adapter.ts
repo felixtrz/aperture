@@ -1,4 +1,5 @@
 import type {
+  DebugNormalMaterialAsset,
   MaterialAsset,
   MaterialQueueItem,
   MatcapMaterialAsset,
@@ -26,7 +27,8 @@ import {
 export type BuiltInMaterialAsset =
   | UnlitMaterialAsset
   | MatcapMaterialAsset
-  | StandardMaterialAsset;
+  | StandardMaterialAsset
+  | DebugNormalMaterialAsset;
 
 export interface BuiltInMaterialQueueRouteAdapter
   extends

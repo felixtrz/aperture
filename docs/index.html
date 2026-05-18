@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-18 06:45 PDT</dd>
+            <dd>2026-05-18 07:52 PDT</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -422,14 +422,24 @@
               consume that buffer, and DebugNormalMaterial frame resources now
               assemble mesh, view, transform, material, and bind group resources
               while the app frame-resource cache can now reuse same-key
-              debug-normal resources and update dynamic buffers in place. Active
-              app routing remains inactive, with the route integration plan now
-              audited as the next implementation slice.
+              debug-normal resources and update dynamic buffers in place.
+              DebugNormalMaterial now has active app route resource integration
+              through the built-in queue adapter table, a WebGPU pipeline
+              wrapper, and JSON-safe material queue/routed resource summaries.
+              The new DebugNormal browser example now renders that active route
+              and Playwright verifies screenshot/readback pixels against the
+              expected normal-encoded face color. DebugNormalMaterial prepared
+              material resources now use the same renderer-owned cache pattern
+              as Unlit, Matcap, and StandardMaterial, including JSON-safe family
+              summaries and cross-frame-resource-miss material reuse. The
+              built-in app resource adapter registry now exposes a typed active
+              family list and registration factory for Unlit, Matcap, Standard,
+              and DebugNormal without changing route behavior.
             </dd>
             <dt>Next focus</dt>
             <dd>
-              Plan active DebugNormalMaterial route integration after app frame
-              resources
+              Plan the next material route or StandardMaterial follow-up after
+              built-in app adapter registry smoke coverage
             </dd>
           </dl>
         </aside>
@@ -465,9 +475,9 @@
           </article>
           <article class="card metric">
             <div class="label">render pipeline</div>
-            <div class="value">75%</div>
-            <div class="bar" aria-label="75 percent complete">
-              <span style="width: 75%"></span>
+            <div class="value">78%</div>
+            <div class="bar" aria-label="78 percent complete">
+              <span style="width: 78%"></span>
             </div>
             <p>
               The ECS-to-WebGPU spine is usable, app route reporting runs
@@ -482,12 +492,16 @@
               two-family and three-family successful paths. The generic
               frame-resource set now rejects incomplete pipeline layout access
               and invalid pipeline views before creating frame resources.
-              DebugNormalMaterial route readiness is mapped, with app routing
-              still inactive until renderer-owned resources exist. The first
-              renderer-owned debug-normal material buffer helper now exists with
-              JSON-safe inspection, and group-2 bind group resources now have
-              JSON-safe inspection as the next prerequisite. Richer app-level
-              adapter routing, passes, and resource lifetime policy remain.
+              DebugNormalMaterial route readiness is mapped and active app route
+              resources now run through the built-in queue adapter table with a
+              WebGPU pipeline wrapper, app-frame-resource cache, and JSON-safe
+              material queue/routed resource summaries. A browser fixture now
+              verifies normal-encoded pixels over that route, and prepared
+              DebugNormal material buffers/bind groups now reuse across
+              mesh-only frame-resource cache misses. Active built-in app
+              resource adapters now share explicit typed registry metadata.
+              Richer app-level adapter routing, passes, and resource lifetime
+              policy remain.
             </p>
           </article>
           <article class="card metric">
@@ -754,21 +768,23 @@
               preserve their diagnostics with zero frame-resource output.
               DebugNormalMaterial route readiness now identifies the material
               buffer, bind group, frame-resource, and app adapter work required
-              before activation. The material buffer helper is now implemented
-              and tested; bind group layout/resource helpers are now implemented
-              and tested; frame resources are now implemented and tested while
-              app frame-resource cache/reuse is also covered; active app routing
-              remains deferred. Base-color texture transform offset/scale
-              sampling now has packed uniforms, WGSL sampling, GLB browser
-              readback coverage, and unsupported-rotation diagnostics.
-              GLB-shaped base-color UV1 browser coverage now verifies
-              <code>TEXCOORD_1</code> readiness, mesh layout, pipeline key, and
-              selected pixel color. Generic frame-resource buckets now expose
-              deterministic family summaries for app diagnostics, and mixed
-              built-in frame-resource preparation now pins deterministic family
-              buckets and pipeline-scoped bind group keys. App-level mixed
-              built-in frames now expose JSON-safe routed resource summaries for
-              two-family and three-family successful routes.
+              before browser verification. The material buffer helper is now
+              implemented and tested; bind group layout/resource helpers are now
+              implemented and tested; frame resources are now implemented and
+              tested while app frame-resource cache/reuse is also covered;
+              active app routing now creates debug-normal route resources with
+              JSON-safe summaries, and browser pixel/readback coverage now
+              verifies the normal visualization path. Base-color texture
+              transform offset/scale sampling now has packed uniforms, WGSL
+              sampling, GLB browser readback coverage, and unsupported-rotation
+              diagnostics. GLB-shaped base-color UV1 browser coverage now
+              verifies <code>TEXCOORD_1</code> readiness, mesh layout, pipeline
+              key, and selected pixel color. Generic frame-resource buckets now
+              expose deterministic family summaries for app diagnostics, and
+              mixed built-in frame-resource preparation now pins deterministic
+              family buckets and pipeline-scoped bind group keys. App-level
+              mixed built-in frames now expose JSON-safe routed resource
+              summaries for two-family and three-family successful routes.
             </p>
             <ul>
               <li>
@@ -785,9 +801,9 @@
           <article class="phase">
             <div class="topline">
               <h3>4. queue</h3>
-              <span class="percent">77%</span>
+              <span class="percent">79%</span>
             </div>
-            <div class="bar"><span style="width: 77%"></span></div>
+            <div class="bar"><span style="width: 79%"></span></div>
             <p>
               Material-family queueing, route diagnostics, resource key
               resolution, Standard transparent phases, app route reporting,
@@ -808,10 +824,10 @@
               frame-resource route now produces a JSON-safe failure with zero
               resource-key mappings, and invalid pipeline views do the same
               before pipeline plans or layouts are created. DebugNormalMaterial
-              remains intentionally outside the active built-in route table
-              while material buffer, bind group, and frame-resource helpers are
-              implemented below the app routing layer, including same-key app
-              frame-resource cache reuse.
+              now participates in the active built-in route table with
+              renderer-owned pipeline/layout/frame resources, JSON-safe app
+              material queue and routed resource summaries, and browser
+              pixel/readback coverage for the normal-encoded face color.
             </p>
             <ul>
               <li>
@@ -879,6 +895,47 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">task-1418</span> Audited tracker and
+                backlog alignment after adapter registry smoke coverage.
+              </li>
+              <li>
+                <span class="badge green">task-1417</span> Audited generic
+                built-in app resource adapter registry smoke coverage.
+              </li>
+              <li>
+                <span class="badge green">task-1416</span> Added generic
+                built-in app resource adapter registry smoke coverage.
+              </li>
+              <li>
+                <span class="badge green">task-1415</span> Audited the selected
+                next material route or StandardMaterial follow-up plan.
+              </li>
+              <li>
+                <span class="badge green">task-1414</span> Planned the next
+                material route or StandardMaterial follow-up.
+              </li>
+              <li>
+                <span class="badge green">task-1413</span> Audited tracker and
+                backlog alignment after DebugNormal prepared material cache
+                parity.
+              </li>
+              <li>
+                <span class="badge green">task-1408</span> Audited tracker and
+                backlog alignment after DebugNormal browser coverage.
+              </li>
+              <li>
+                <span class="badge green">task-1407</span> Audited
+                DebugNormalMaterial browser pixel coverage.
+              </li>
+              <li>
+                <span class="badge green">task-1406</span> Added
+                DebugNormalMaterial browser pixel coverage.
+              </li>
+              <li>
+                <span class="badge green">task-1401</span> Added active
+                DebugNormalMaterial app route resource integration.
+              </li>
               <li>
                 <span class="badge green">task-1400</span> Audited the active
                 DebugNormal route integration plan.
