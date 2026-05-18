@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-18 04:20 PDT</dd>
+            <dd>2026-05-18 05:23 PDT</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -402,15 +402,19 @@
               wrapper now has mixed-family route regression coverage over the
               generic collector, app-level mixed built-in routes now assert
               JSON-safe material queue and routed resource summaries for
-              two-family and three-family paths, and app-level non-built-in
-              material routing remains deferred. Recent glTF invalid-source
-              browser diagnostics preserve JSON-safe field/value status and
-              create no draw work.
+              two-family and three-family paths, and the glTF
+              <code>alphaMode: "BLEND"</code> browser fixture now pins
+              transparent queue routing, alpha-blend render-state mapping, and
+              its deterministic StandardMaterial pipeline key. The translucent
+              alpha-blend texture fixture now verifies blended pixels through
+              screenshot/readback checks, and the double-sided alpha-blend
+              fixture now pins no-cull transparent backface rendering. App-level
+              non-built-in material routing remains deferred.
             </dd>
             <dt>Next focus</dt>
             <dd>
-              Plan next route or glTF fidelity slice after three-family route
-              summaries
+              Plan next route or glTF fidelity slice after alpha-blend
+              double-sided coverage
             </dd>
           </dl>
         </aside>
@@ -483,9 +487,11 @@
               fixture, GLB sampler mapping status, and GLB-derived
               metallic-roughness, normal, occlusion, emissive, and base-color
               UV1 fixtures plus alpha-mask double-sided render-state
-              diagnostics, alpha-mask pixels, backface no-cull pixels, and GLB
-              delayed dependency diagnostics; base-color texture-transform
-              rotation, metallic-roughness texture transforms on
+              diagnostics, alpha-mask pixels, backface no-cull pixels,
+              alpha-blend render-state and translucent pixel browser coverage,
+              alpha-blend double-sided no-cull browser coverage, and GLB delayed
+              dependency diagnostics; base-color texture-transform rotation,
+              metallic-roughness texture transforms on
               <code>TEXCOORD_0</code>, normal texture transforms on
               <code>TEXCOORD_0</code>, occlusion texture transforms on
               <code>TEXCOORD_0</code>, emissive texture transforms on
@@ -536,7 +542,12 @@
               preserve JSON-safe field/value diagnostics without creating GPU
               resources. Invalid glTF texture scalar-field and vector/color
               factor failures now preserve JSON-safe field/value diagnostics
-              while producing no draw work.
+              while producing no draw work. The alpha-blend glTF fixture now
+              preserves JSON-safe transparent queue and routed pipeline
+              summaries on the successful path, and the alpha-blend texture
+              fixture verifies translucent blended pixels without claiming full
+              transparency sorting. The double-sided alpha-blend fixture also
+              pins no-cull transparent backface diagnostics.
             </p>
           </article>
         </div>
@@ -709,20 +720,23 @@
               double-sided diagnostics now run through the app facade. The
               GLB-derived alpha-mask texture fixture now verifies one opaque
               pixel and one masked clear pixel; a scalar masked backface fixture
-              verifies no-cull visibility. Queued app render reports now expose
-              JSON-safe diagnostics summaries for routed resources, and built-in
-              frame-resource preparation is wrapped over a generic collector
-              contract. Base-color texture transform offset/scale sampling now
-              has packed uniforms, WGSL sampling, GLB browser readback coverage,
-              and unsupported-rotation diagnostics. GLB-shaped base-color UV1
-              browser coverage now verifies <code>TEXCOORD_1</code> readiness,
-              mesh layout, pipeline key, and selected pixel color. Generic
-              frame-resource buckets now expose deterministic family summaries
-              for app diagnostics, and mixed built-in frame-resource preparation
-              now pins deterministic family buckets and pipeline-scoped bind
-              group keys. App-level mixed built-in frames now expose JSON-safe
-              routed resource summaries for two-family and three-family
-              successful routes.
+              verifies no-cull visibility, and the alpha-blend fixture now pins
+              transparent StandardMaterial render-state mapping plus translucent
+              blended pixel/readback behavior and double-sided backface output.
+              Queued app render reports now expose JSON-safe diagnostics
+              summaries for routed resources, and built-in frame-resource
+              preparation is wrapped over a generic collector contract.
+              Base-color texture transform offset/scale sampling now has packed
+              uniforms, WGSL sampling, GLB browser readback coverage, and
+              unsupported-rotation diagnostics. GLB-shaped base-color UV1
+              browser coverage now verifies
+              <code>TEXCOORD_1</code> readiness, mesh layout, pipeline key, and
+              selected pixel color. Generic frame-resource buckets now expose
+              deterministic family summaries for app diagnostics, and mixed
+              built-in frame-resource preparation now pins deterministic family
+              buckets and pipeline-scoped bind group keys. App-level mixed
+              built-in frames now expose JSON-safe routed resource summaries for
+              two-family and three-family successful routes.
             </p>
             <ul>
               <li>
@@ -755,7 +769,10 @@
               reuse and deterministic family buckets. App-level mixed built-in
               route summaries now assert material queue and routed resource
               family/pipeline counts on two-family and three-family successful
-              paths.
+              paths, and the alpha-blend fixture now asserts transparent phase
+              routing with the
+              <code>standard|baseColorTexture|blend|back|less|alpha</code>
+              pipeline key.
             </p>
             <ul>
               <li>
@@ -823,6 +840,67 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">task-1365</span> Audited tracker and
+                backlog alignment after alpha-blend double-sided coverage.
+              </li>
+              <li>
+                <span class="badge green">task-1364</span> Audited the
+                alpha-blend double-sided browser regression boundaries.
+              </li>
+              <li>
+                <span class="badge green">task-1363</span> Added alpha-blend
+                double-sided no-cull browser coverage.
+              </li>
+              <li>
+                <span class="badge green">task-1362</span> Audited the
+                alpha-blend double-sided plan.
+              </li>
+              <li>
+                <span class="badge green">task-1361</span> Planned the next
+                route or glTF fidelity slice after alpha-blend texture coverage.
+              </li>
+              <li>
+                <span class="badge green">task-1360</span> Audited tracker and
+                backlog alignment after alpha-blend texture pixel coverage.
+              </li>
+              <li>
+                <span class="badge green">task-1359</span> Audited the
+                translucent alpha-blend texture pixel regression boundaries.
+              </li>
+              <li>
+                <span class="badge green">task-1358</span> Added translucent
+                alpha-blend texture browser pixel coverage.
+              </li>
+              <li>
+                <span class="badge green">task-1357</span> Audited the
+                alpha-blend texture pixel plan.
+              </li>
+              <li>
+                <span class="badge green">task-1356</span> Planned the next
+                route or glTF fidelity slice after alpha-blend render-state
+                coverage.
+              </li>
+              <li>
+                <span class="badge green">task-1355</span> Audited tracker and
+                backlog alignment after alpha-blend render-state coverage.
+              </li>
+              <li>
+                <span class="badge green">task-1354</span> Audited the
+                alpha-blend browser render-state regression boundaries.
+              </li>
+              <li>
+                <span class="badge green">task-1353</span> Added glTF
+                alpha-blend browser render-state coverage.
+              </li>
+              <li>
+                <span class="badge green">task-1352</span> Audited the
+                alpha-blend render-state plan.
+              </li>
+              <li>
+                <span class="badge green">task-1351</span> Planned the next
+                route or glTF fidelity slice after three-family route summaries.
+              </li>
               <li>
                 <span class="badge green">task-1350</span> Audited tracker and
                 backlog alignment after three-family route summaries.

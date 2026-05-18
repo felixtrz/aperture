@@ -1,5 +1,267 @@
 # Completed Tasks
 
+## task-1365 — Tracker/backlog alignment after alpha-blend double-sided
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added tracker/backlog alignment after the glTF alpha-blend double-sided
+  browser regression and audit.
+- Updated the public tracker and render pipeline comparison for no-cull
+  transparent backface coverage.
+- Refilled the ready queue with `task-1366` through `task-1370`.
+
+Validation run:
+
+- `pnpm run check:progress`
+
+## task-1364 — glTF alpha-blend double-sided regression audit
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/GLTF_ALPHA_BLEND_DOUBLE_SIDED_REGRESSION_AUDIT_2026_05_18.md`.
+- Confirmed the alpha-blend double-sided regression pins mapped no-cull blend
+  render state, transparent queue routing, deterministic scalar blend pipeline
+  key, and visible rotated backface output.
+- Confirmed no ECS component, source asset contract, render extraction contract,
+  shader, WebGPU upload path, or public API shape changed.
+
+Validation run:
+
+- `node --check examples/standard-gltf-texture.js`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "alpha-blend double-sided"`
+
+## task-1363 — glTF alpha-blend double-sided regression
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added an `alpha-blend-double-sided` scenario to the StandardMaterial glTF
+  browser fixture.
+- Added Playwright coverage asserting `alphaMode: "BLEND"` plus
+  `doubleSided: true` maps to transparent queue routing, no culling, disabled
+  depth writes, alpha blending, and the `standard|blend|none|less|alpha`
+  pipeline key.
+- Verified a rotated backface sample renders instead of clear.
+
+Validation run:
+
+- `node --check examples/standard-gltf-texture.js`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "alpha-blend double-sided"`
+
+## task-1362 — glTF alpha-blend double-sided plan audit
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/GLTF_ALPHA_BLEND_DOUBLE_SIDED_PLAN_AUDIT_2026_05_18.md`.
+- Confirmed the alpha-blend double-sided browser regression is narrow enough for
+  one run and preserves ECS authority, render extraction, JSON-safe diagnostics,
+  and WebGPU backend ownership.
+
+Validation run:
+
+- Documentation-only audit; covered by final formatting and diff checks.
+
+## task-1361 — Next route or glTF fidelity plan after alpha-blend texture
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/NEXT_ROUTE_OR_GLTF_FIDELITY_AFTER_ALPHA_BLEND_TEXTURE_PLAN_2026_05_18.md`.
+- Compared real app-level non-built-in material adapter rendering, an
+  alpha-blend double-sided glTF fidelity branch, and a diagnostics/tooling
+  candidate.
+- Selected glTF alpha-blend double-sided browser coverage as the next focused
+  follow-up.
+
+Validation run:
+
+- Documentation-only planning slice; covered by final formatting and diff
+  checks.
+
+## task-1360 — Tracker/backlog alignment after alpha-blend texture pixels
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added tracker/backlog alignment after the translucent glTF alpha-blend texture
+  browser regression and audit.
+- Updated the public tracker and render pipeline comparison for alpha-blend
+  texture screenshot/readback coverage.
+- Refilled the ready queue with `task-1361` through `task-1365`.
+
+Validation run:
+
+- `pnpm run check:progress`
+
+## task-1359 — glTF alpha-blend texture pixel regression audit
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/GLTF_ALPHA_BLEND_TEXTURE_PIXEL_REGRESSION_AUDIT_2026_05_18.md`.
+- Confirmed the translucent alpha-blend texture regression pins source fixture
+  data, mapped blend render state, transparent queue routing, deterministic
+  blend pipeline key, and screenshot/readback pixel behavior.
+- Confirmed no ECS component, source asset contract, render extraction contract,
+  shader, WebGPU upload path, or public API shape changed.
+
+Validation run:
+
+- `node --check examples/standard-gltf-texture.js`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "blends translucent"`
+
+## task-1358 — glTF alpha-blend texture pixel regression
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added an `alpha-blend-texture` scenario to the StandardMaterial glTF browser
+  fixture using a base-color texture with opaque and translucent texels.
+- Added Playwright coverage asserting transparent queue routing, the
+  `standard|baseColorTexture|blend|back|less|alpha` pipeline key, and
+  screenshot/readback sampling for translucent blended pixels.
+
+Validation run:
+
+- `node --check examples/standard-gltf-texture.js`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "blends translucent"`
+
+## task-1357 — glTF alpha-blend texture pixel plan audit
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/GLTF_ALPHA_BLEND_TEXTURE_PIXEL_PLAN_AUDIT_2026_05_18.md`.
+- Confirmed the translucent alpha-blend texture browser regression is narrow
+  enough for one run and preserves ECS authority, render extraction, JSON-safe
+  diagnostics, and WebGPU backend ownership.
+
+Validation run:
+
+- Documentation-only audit; covered by final formatting and diff checks.
+
+## task-1356 — Next route or glTF fidelity plan after alpha-blend render state
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/NEXT_ROUTE_OR_GLTF_FIDELITY_AFTER_ALPHA_BLEND_RENDER_STATE_PLAN_2026_05_18.md`.
+- Compared a transparent route/prepared-resource candidate, a StandardMaterial
+  glTF fidelity candidate, and a diagnostics/tooling candidate.
+- Selected translucent alpha-blend texture browser pixel coverage as the next
+  focused follow-up.
+
+Validation run:
+
+- Documentation-only planning slice; covered by final formatting and diff
+  checks.
+
+## task-1355 — Tracker/backlog alignment after alpha-blend render state
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added tracker/backlog alignment after the glTF alpha-blend browser
+  render-state regression and audit.
+- Updated the public tracker and render pipeline comparison for transparent
+  StandardMaterial queue and pipeline-key coverage.
+- Refilled the ready queue with `task-1356` through `task-1360`.
+
+Validation run:
+
+- `pnpm run check:progress`
+
+## task-1354 — glTF alpha-blend render-state regression audit
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/GLTF_ALPHA_BLEND_RENDER_STATE_REGRESSION_AUDIT_2026_05_18.md`.
+- Confirmed the alpha-blend browser fixture pins source and mapped render state,
+  transparent material queue routing, deterministic blend pipeline key, and
+  JSON-safe successful diagnostics.
+- Confirmed no ECS component, source asset contract, render extraction contract,
+  shader, WebGPU upload path, or public API shape changed.
+
+Validation run:
+
+- `node --check examples/standard-gltf-texture.js`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "alpha-blend"`
+
+## task-1353 — glTF alpha BLEND browser render-state regression
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added an `alpha-blend` scenario to the StandardMaterial glTF browser fixture.
+- Added Playwright coverage asserting `alphaMode: "BLEND"` maps to
+  `alphaMode: "blend"`, disabled depth writes, back-face culling, alpha
+  blending, transparent material queue routing, and the
+  `standard|baseColorTexture|blend|back|less|alpha` pipeline key.
+- Asserted the successful path remains JSON-safe and reports no route failures.
+
+Validation run:
+
+- `node --check examples/standard-gltf-texture.js`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "alpha-blend"`
+
+## task-1352 — glTF alpha-blend render-state plan audit
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/GLTF_ALPHA_BLEND_RENDER_STATE_PLAN_AUDIT_2026_05_18.md`.
+- Confirmed the selected alpha-blend browser render-state regression is narrow
+  enough for one run and preserves ECS authority, render extraction, JSON-safe
+  diagnostics, and WebGPU backend ownership.
+
+Validation run:
+
+- Documentation-only audit; covered by final formatting and diff checks.
+
+## task-1351 — Next route or glTF fidelity plan after three-family route summaries
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/NEXT_ROUTE_OR_GLTF_FIDELITY_AFTER_THREE_FAMILY_ROUTE_SUMMARY_PLAN_2026_05_18.md`.
+- Compared a route/prepared-resource candidate, a StandardMaterial/glTF fidelity
+  candidate, and a diagnostics/tooling candidate.
+- Selected a glTF `alphaMode: "BLEND"` browser render-state regression as the
+  next focused follow-up.
+
+Validation run:
+
+- Documentation-only planning slice; covered by final formatting and diff
+  checks.
+
 ## task-1350 — Tracker/backlog alignment after three-family route summaries
 
 Completed: 2026-05-18

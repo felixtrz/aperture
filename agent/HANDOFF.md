@@ -1,5 +1,114 @@
 # Handoff
 
+## Current Run Update — 2026-05-18T12:23:00Z
+
+Completed `task-1351` through `task-1365`. Recommended next task is
+`task-1366`.
+
+Highlights:
+
+- Planned the next route/glTF fidelity slice after three-family app route
+  summaries and selected a glTF `alphaMode: "BLEND"` browser render-state
+  regression.
+- Audited the alpha-blend render-state plan against ECS authority, render
+  extraction, JSON-safe diagnostics, WebGPU backend ownership, and Bevy material
+  render-state concepts.
+- Added an `alpha-blend` scenario to `examples/standard-gltf-texture.js`.
+- Added Playwright coverage proving the browser status records source
+  `alphaMode: "BLEND"`, mapped `alphaMode: "blend"`, disabled depth writes,
+  alpha blending, transparent material queue routing, and the deterministic
+  `standard|baseColorTexture|blend|back|less|alpha` pipeline key.
+- Audited the render-state regression and updated the public tracker/render
+  pipeline comparison for alpha-blend render-state coverage.
+- Planned and audited the follow-up translucent alpha-blend texture pixel
+  regression.
+- Added an `alpha-blend-texture` scenario using a base-color texture with opaque
+  and translucent texels.
+- Added Playwright coverage proving screenshot/readback samples distinguish the
+  translucent blended pixel from clear and from the opaque sample while keeping
+  transparent queue and pipeline-key diagnostics pinned.
+- Audited the translucent texture regression and updated the public tracker,
+  render pipeline comparison, backlog, and completed task log.
+- Stop hook requested continuation before minute 55, so continued into the next
+  alpha-blend fidelity slice.
+- Planned and audited an alpha-blend double-sided browser regression.
+- Added an `alpha-blend-double-sided` scalar-color scenario.
+- Added Playwright coverage proving `alphaMode: "BLEND"` plus
+  `doubleSided: true` maps to no culling, disabled depth writes, alpha blending,
+  transparent queue routing, the `standard|blend|none|less|alpha` pipeline key,
+  and visible rotated backface output.
+- Audited the double-sided regression and updated the public tracker, render
+  pipeline comparison, backlog, and completed task log.
+- Refilled the ready backlog with `task-1366` through `task-1370`.
+
+Reference anchors inspected:
+
+- `docs/NORTH_STAR.md`
+- `docs/MEDIUM_LONG_TERM_GOALS.md`
+- `docs/ARCHITECTURE.md`
+- `docs/DECISIONS.md`
+- `docs/research/THREE_FAMILY_APP_ROUTE_SUMMARY_REGRESSION_AUDIT_2026_05_18.md`
+- `docs/research/TRACKER_BACKLOG_ALIGNMENT_AFTER_THREE_FAMILY_ROUTE_SUMMARY_AUDIT_2026_05_18.md`
+- `docs/research/GLTF_ALPHA_BLEND_RENDER_STATE_REGRESSION_AUDIT_2026_05_18.md`
+- `examples/standard-gltf-texture.js`
+- `test/e2e/standard-gltf-texture.spec.ts`
+- `packages/render/src/materials/gltf-material.ts`
+- `packages/render/src/materials/pipeline-key.ts`
+- `packages/webgpu/src/webgpu/material-render-state.ts`
+- `packages/webgpu/src/webgpu/standard-pipeline-descriptor.ts`
+- `references/bevy/crates/bevy_pbr/src/material.rs`
+
+Files touched:
+
+- `agent/BACKLOG.md`
+- `agent/COMPLETED.md`
+- `agent/HANDOFF.md`
+- `agent/STATUS.json`
+- `docs/index.html`
+- `docs/render-pipeline-comparison.html`
+- `docs/research/NEXT_ROUTE_OR_GLTF_FIDELITY_AFTER_THREE_FAMILY_ROUTE_SUMMARY_PLAN_2026_05_18.md`
+- `docs/research/GLTF_ALPHA_BLEND_RENDER_STATE_PLAN_AUDIT_2026_05_18.md`
+- `docs/research/GLTF_ALPHA_BLEND_RENDER_STATE_REGRESSION_AUDIT_2026_05_18.md`
+- `docs/research/TRACKER_BACKLOG_ALIGNMENT_AFTER_ALPHA_BLEND_RENDER_STATE_AUDIT_2026_05_18.md`
+- `docs/research/NEXT_ROUTE_OR_GLTF_FIDELITY_AFTER_ALPHA_BLEND_RENDER_STATE_PLAN_2026_05_18.md`
+- `docs/research/GLTF_ALPHA_BLEND_TEXTURE_PIXEL_PLAN_AUDIT_2026_05_18.md`
+- `docs/research/GLTF_ALPHA_BLEND_TEXTURE_PIXEL_REGRESSION_AUDIT_2026_05_18.md`
+- `docs/research/TRACKER_BACKLOG_ALIGNMENT_AFTER_ALPHA_BLEND_TEXTURE_PIXEL_AUDIT_2026_05_18.md`
+- `docs/research/NEXT_ROUTE_OR_GLTF_FIDELITY_AFTER_ALPHA_BLEND_TEXTURE_PLAN_2026_05_18.md`
+- `docs/research/GLTF_ALPHA_BLEND_DOUBLE_SIDED_PLAN_AUDIT_2026_05_18.md`
+- `docs/research/GLTF_ALPHA_BLEND_DOUBLE_SIDED_REGRESSION_AUDIT_2026_05_18.md`
+- `docs/research/TRACKER_BACKLOG_ALIGNMENT_AFTER_ALPHA_BLEND_DOUBLE_SIDED_AUDIT_2026_05_18.md`
+- `examples/standard-gltf-texture.js`
+- `test/e2e/standard-gltf-texture.spec.ts`
+
+Validation:
+
+- `node --check examples/standard-gltf-texture.js`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "alpha-blend"`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "blends translucent"`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "alpha-blend|blends translucent"`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "alpha-blend double-sided"`
+- `pnpm run typecheck:test`
+- `pnpm run check:progress`
+- `pnpm exec prettier --check ...touched files...`
+- `git diff --check`
+- `pnpm run build`
+- `pnpm run lint`
+- `pnpm test`
+
+Known issues / follow-ups:
+
+- Start `task-1366`: plan the next route or glTF fidelity slice after
+  alpha-blend double-sided coverage.
+- Real app-level non-built-in material adapter routing remains deferred until a
+  source asset and prepared-resource adapter contract are selected.
+- Binary GLB loading, IBL, shadows, GLB viewer behavior, richer physical
+  material extension support, and full PBR resources remain deferred.
+- The alpha-blend texture regression proves one translucent single-plane sample;
+  it does not claim complete transparency sorting.
+- The alpha-blend double-sided regression proves one no-cull scalar backface
+  sample; it does not claim complete two-sided lighting quality.
+
 ## Current Run Update — 2026-05-18T11:22:18Z
 
 Completed `task-1336` through `task-1350`. Recommended next task is

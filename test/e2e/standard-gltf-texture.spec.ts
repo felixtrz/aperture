@@ -113,6 +113,25 @@ interface StandardGltfTextureStatus extends ExampleStatusBase {
         readonly y: number;
       };
     } | null;
+    readonly expectedAlphaBlendTexture?: {
+      readonly source: {
+        readonly alphaMode: string;
+        readonly alphaCutoff: number;
+        readonly doubleSided: boolean;
+      };
+      readonly opaqueColor: RgbaTuple;
+      readonly translucentColor: RgbaTuple;
+      readonly opaqueSample: {
+        readonly id: string;
+        readonly x: number;
+        readonly y: number;
+      };
+      readonly translucentSample: {
+        readonly id: string;
+        readonly x: number;
+        readonly y: number;
+      };
+    } | null;
     readonly expectedDelayedDependencies?: {
       readonly loadingTextureKey: string;
       readonly failedTextureKey: string;
@@ -159,6 +178,11 @@ interface StandardGltfTextureStatus extends ExampleStatusBase {
         readonly y: number;
       };
       readonly masked: {
+        readonly id: string;
+        readonly x: number;
+        readonly y: number;
+      };
+      readonly translucent?: {
         readonly id: string;
         readonly x: number;
         readonly y: number;
@@ -1848,6 +1872,386 @@ test("standard glTF texture fixture reports alpha-mask double-sided render state
     "POSITION,NORMAL,TEXCOORD_0",
   );
   expect(status.diagnosticCodes ?? []).toEqual([]);
+  webGpuValidation.expectNoWarnings();
+});
+
+test("standard glTF texture fixture reports alpha-blend render state", async ({
+  page,
+}) => {
+  const webGpuValidation = attachWebGpuValidationConsoleGuard(page);
+
+  await page.goto("/examples/standard-gltf-texture.html?scenario=alpha-blend");
+
+  const status = await waitForExampleStatus<StandardGltfTextureStatus>(page);
+
+  await attachExampleStatus("standard-gltf-texture-alpha-blend-status", status);
+  expect(
+    status,
+    "standard glTF alpha-blend status should publish",
+  ).toBeDefined();
+
+  if (status === undefined) {
+    return;
+  }
+
+  skipIfUnsupportedWebGpu(status);
+  expectStatusJsonSafeForGpu(status);
+  expect(status, JSON.stringify(status, null, 2)).toMatchObject({
+    example: "standard-gltf-texture",
+    scenario: "alpha-blend",
+    materialModel: "gltf-standard-alpha-blend",
+    ok: true,
+    phase: "rendered",
+    gltf: {
+      assetMapping: {
+        valid: true,
+        textureCount: 1,
+        samplerCount: 1,
+        materialCount: 1,
+        diagnostics: 0,
+      },
+      registration: {
+        valid: true,
+        diagnostics: 0,
+      },
+    },
+    standardTexture: {
+      textureSlot: "baseColorTexture",
+      textureKey: "texture:gltf:texture:0:baseColorTexture",
+      samplerKey: "sampler:gltf:sampler:0:baseColorTexture",
+      readiness: {
+        ready: true,
+        diagnostics: [],
+      },
+    },
+    standardMaterial: {
+      meshKey: "mesh:gltf:mesh:0:primitive:0",
+      materialKey: "material:gltf:material:0",
+      renderState: {
+        source: {
+          alphaMode: "BLEND",
+          alphaCutoff: 0.5,
+          doubleSided: false,
+        },
+        mapped: {
+          alphaMode: "blend",
+          alphaCutoff: 0.5,
+          cullMode: "back",
+          depth: { test: true, write: false, compare: "less" },
+          blend: { preset: "alpha" },
+        },
+      },
+    },
+    extraction: { views: 1, meshDraws: 1, lights: 2, diagnostics: 0 },
+    diagnosticsSummary: {
+      sectionCount: 3,
+      materialQueue: {
+        itemCount: 1,
+        byPhase: [{ phase: "transparent", itemCount: 1 }],
+        byFamily: [{ family: "standard", itemCount: 1 }],
+        byPhaseAndFamily: [
+          { phase: "transparent", family: "standard", itemCount: 1 },
+        ],
+      },
+      routedResourceSet: {
+        itemCount: 1,
+        byFamily: [{ family: "standard", itemCount: 1 }],
+        byPipeline: [
+          {
+            pipelineKey: "standard|baseColorTexture|blend|back|less|alpha",
+            itemCount: 1,
+          },
+        ],
+        byFamilyAndPipeline: [
+          {
+            family: "standard",
+            pipelineKey: "standard|baseColorTexture|blend|back|less|alpha",
+            itemCount: 1,
+          },
+        ],
+      },
+    },
+    resources: {
+      textureResourcesCreated: 1,
+      samplerResourcesCreated: 1,
+      materialBuffersCreated: 1,
+      bindGroupsCreated: 0,
+    },
+    draw: { packages: 1, drawCalls: 1 },
+  });
+  expect(status.pipelines?.keys).toContain(
+    "standard|baseColorTexture|blend|back|less|alpha",
+  );
+  expect(status.pipelines?.meshLayoutKeys).toContain(
+    "POSITION,NORMAL,TEXCOORD_0",
+  );
+  expect(status.diagnosticCodes ?? []).toEqual([]);
+  webGpuValidation.expectNoWarnings();
+});
+
+test("standard glTF texture fixture blends translucent base-color pixels", async ({
+  page,
+}) => {
+  const webGpuValidation = attachWebGpuValidationConsoleGuard(page);
+
+  await page.goto(
+    "/examples/standard-gltf-texture.html?scenario=alpha-blend-texture",
+  );
+
+  const status = await waitForExampleStatus<StandardGltfTextureStatus>(page);
+
+  await attachExampleStatus(
+    "standard-gltf-texture-alpha-blend-texture-status",
+    status,
+  );
+  expect(
+    status,
+    "standard glTF alpha-blend texture status should publish",
+  ).toBeDefined();
+
+  if (status === undefined) {
+    return;
+  }
+
+  skipIfUnsupportedWebGpu(status);
+  expectStatusJsonSafeForGpu(status);
+  expect(status, JSON.stringify(status, null, 2)).toMatchObject({
+    example: "standard-gltf-texture",
+    scenario: "alpha-blend-texture",
+    materialModel: "gltf-standard-alpha-blend-texture",
+    ok: true,
+    phase: "rendered",
+    standardTexture: {
+      textureSlot: "baseColorTexture",
+      expectedAlphaBlendTexture: {
+        source: {
+          alphaMode: "BLEND",
+          alphaCutoff: 0.5,
+          doubleSided: false,
+        },
+      },
+      samples: {
+        opaque: { id: "opaque", x: expect.any(Number), y: expect.any(Number) },
+        translucent: {
+          id: "masked",
+          x: expect.any(Number),
+          y: expect.any(Number),
+        },
+      },
+      readiness: {
+        ready: true,
+        diagnostics: [],
+      },
+    },
+    standardMaterial: {
+      renderState: {
+        mapped: {
+          alphaMode: "blend",
+          cullMode: "back",
+          depth: { test: true, write: false, compare: "less" },
+          blend: { preset: "alpha" },
+        },
+      },
+    },
+    diagnosticsSummary: {
+      materialQueue: {
+        byPhase: [{ phase: "transparent", itemCount: 1 }],
+      },
+      routedResourceSet: {
+        byPipeline: [
+          {
+            pipelineKey: "standard|baseColorTexture|blend|back|less|alpha",
+            itemCount: 1,
+          },
+        ],
+      },
+    },
+    draw: { packages: 1, drawCalls: 1 },
+  });
+  expect(status.pipelines?.keys).toContain(
+    "standard|baseColorTexture|blend|back|less|alpha",
+  );
+  expect(status.diagnosticCodes ?? []).toEqual([]);
+
+  if (status.standardTexture?.expectedAlphaBlendTexture == null) {
+    throw new Error("standard glTF alpha-blend texture expectation is missing");
+  }
+  if (
+    status.standardTexture.samples?.opaque === undefined ||
+    status.standardTexture.samples.translucent === undefined
+  ) {
+    throw new Error("standard glTF alpha-blend sample points are missing");
+  }
+
+  const screenshot = await page.locator("#aperture-canvas").screenshot();
+  const clear = rgbaColorToPixel({
+    r: status.clearColor?.r ?? 0,
+    g: status.clearColor?.g ?? 0,
+    b: status.clearColor?.b ?? 0,
+    a: status.clearColor?.a ?? 1,
+  });
+  const opaquePixel = readPngPixel(
+    screenshot,
+    status.standardTexture.samples.opaque.x,
+    status.standardTexture.samples.opaque.y,
+  );
+  const translucentPixel = readPngPixel(
+    screenshot,
+    status.standardTexture.samples.translucent.x,
+    status.standardTexture.samples.translucent.y,
+  );
+
+  expect(pixelDistance(opaquePixel, clear)).toBeGreaterThan(30);
+  expect(pixelDistance(translucentPixel, clear)).toBeGreaterThan(5);
+  expect(pixelDistance(translucentPixel, clear)).toBeLessThan(
+    pixelDistance(opaquePixel, clear),
+  );
+
+  if (status.readback?.ok) {
+    const readbackOpaque = status.readback.samples.find(
+      (sample) => sample.id === "opaque",
+    );
+    const readbackTranslucent = status.readback.samples.find(
+      (sample) => sample.id === "masked",
+    );
+
+    expect(readbackOpaque).toBeDefined();
+    expect(readbackTranslucent).toBeDefined();
+
+    if (readbackOpaque !== undefined && readbackTranslucent !== undefined) {
+      expect(pixelDistance(readbackOpaque.pixel, clear)).toBeGreaterThan(30);
+      expect(pixelDistance(readbackTranslucent.pixel, clear)).toBeGreaterThan(
+        5,
+      );
+      expect(pixelDistance(readbackTranslucent.pixel, clear)).toBeLessThan(
+        pixelDistance(readbackOpaque.pixel, clear),
+      );
+    }
+  }
+
+  webGpuValidation.expectNoWarnings();
+});
+
+test("standard glTF alpha-blend double-sided fixture renders with no culling", async ({
+  page,
+}) => {
+  const webGpuValidation = attachWebGpuValidationConsoleGuard(page);
+
+  await page.goto(
+    "/examples/standard-gltf-texture.html?scenario=alpha-blend-double-sided",
+  );
+
+  const status = await waitForExampleStatus<StandardGltfTextureStatus>(page);
+
+  await attachExampleStatus(
+    "standard-gltf-texture-alpha-blend-double-sided-status",
+    status,
+  );
+  expect(
+    status,
+    "standard glTF alpha-blend double-sided status should publish",
+  ).toBeDefined();
+
+  if (status === undefined) {
+    return;
+  }
+
+  skipIfUnsupportedWebGpu(status);
+  expectStatusJsonSafeForGpu(status);
+  expect(status, JSON.stringify(status, null, 2)).toMatchObject({
+    example: "standard-gltf-texture",
+    scenario: "alpha-blend-double-sided",
+    materialModel: "gltf-standard-alpha-blend-double-sided",
+    ok: true,
+    phase: "rendered",
+    gltf: {
+      assetMapping: {
+        valid: true,
+        textureCount: 0,
+        samplerCount: 0,
+        materialCount: 1,
+        diagnostics: 0,
+      },
+      registration: {
+        valid: true,
+        diagnostics: 0,
+      },
+    },
+    standardMaterial: {
+      renderState: {
+        source: {
+          alphaMode: "BLEND",
+          alphaCutoff: 0.5,
+          doubleSided: true,
+        },
+        mapped: {
+          alphaMode: "blend",
+          alphaCutoff: 0.5,
+          cullMode: "none",
+          depth: { test: true, write: false, compare: "less" },
+          blend: { preset: "alpha" },
+        },
+      },
+    },
+    backface: {
+      sample: { id: "backface", x: expect.any(Number), y: expect.any(Number) },
+      expectedColor: expect.any(Array),
+    },
+    diagnosticsSummary: {
+      materialQueue: {
+        byPhase: [{ phase: "transparent", itemCount: 1 }],
+      },
+      routedResourceSet: {
+        byPipeline: [
+          {
+            pipelineKey: "standard|blend|none|less|alpha",
+            itemCount: 1,
+          },
+        ],
+      },
+    },
+    draw: { packages: 1, drawCalls: 1 },
+  });
+  expect(status.standardTexture).toBeUndefined();
+  expect(status.pipelines?.keys).toContain("standard|blend|none|less|alpha");
+  expect(status.pipelines?.meshLayoutKeys).toContain(
+    "POSITION,NORMAL,TEXCOORD_0",
+  );
+  expect(status.diagnosticCodes ?? []).toEqual([]);
+
+  if (status.backface === undefined) {
+    throw new Error(
+      "standard glTF alpha-blend double-sided expectation is missing",
+    );
+  }
+
+  const screenshot = await page.locator("#aperture-canvas").screenshot();
+  const clear = rgbaColorToPixel({
+    r: status.clearColor?.r ?? 0,
+    g: status.clearColor?.g ?? 0,
+    b: status.clearColor?.b ?? 0,
+    a: status.clearColor?.a ?? 1,
+  });
+  const pixel = readPngPixel(
+    screenshot,
+    status.backface.sample.x,
+    status.backface.sample.y,
+  );
+
+  expect(pixelDistance(pixel, clear)).toBeGreaterThan(20);
+
+  if (status.readback?.ok) {
+    const readbackBackface = status.readback.samples.find(
+      (sample) => sample.id === "backface",
+    );
+
+    expect(readbackBackface).toBeDefined();
+
+    if (readbackBackface !== undefined) {
+      expect(pixelDistance(readbackBackface.pixel, clear)).toBeGreaterThan(20);
+    }
+  }
+
   webGpuValidation.expectNoWarnings();
 });
 
