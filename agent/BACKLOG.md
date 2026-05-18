@@ -59,7 +59,7 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start with `task-1658`. `task-1421` through `task-1657` completed GLB
+Start with `task-1676`. `task-1421` through `task-1675` completed GLB
 metallic-roughness transformed-UV1 coverage, combined StandardMaterial browser
 coverage for base-color/metallic-roughness, base-color/metallic-roughness/normal,
 base-color/occlusion/emissive, and base-color/alpha-mask/emissive, built-in app
@@ -116,9 +116,15 @@ remain intentionally built-in-only.
 The follow-up test-only proof now routes a non-public `test-preview` material
 family through the generic adapter registry, prepare-route helper, app resource
 item, and frame-resource-set contracts with JSON-safe failure diagnostics.
-The registration-policy audit selected a generic adapter registry validation
-helper as the next implementation slice, keeping built-in required-family
-diagnostics separate from generic app adapter policy.
+The registration-policy audit selected and implemented a generic adapter
+registry validation helper, keeping built-in required-family diagnostics
+separate from generic app adapter policy. The route-shell follow-up proved
+non-built-in `test-preview` prepared-resource route metadata through the
+generic route shell summary without public material APIs or raw GPU handles.
+The StandardMaterial follow-up added shader contract coverage proving
+metallic-roughness texture channels multiply `metallicFactor` and
+`roughnessFactor`, then added browser coverage for the same scalar-factor plus
+metallic-roughness texture path with JSON-safe channel/factor status.
 
 ## Near-Term Proof Point Track
 
@@ -135,12 +141,12 @@ Target proof point:
 
 Remaining automation priority order:
 
-1. `task-1658` — add generic app adapter registry validation helper.
-2. `task-1659` — audit generic app adapter registry validation helper.
-3. `task-1660` — audit tracker/backlog alignment after registry validation.
-4. `task-1661` — plan next route or StandardMaterial follow-up after registry
-   validation.
-5. `task-1662` — audit selected post-registry-validation follow-up plan.
+1. `task-1676` — plan next route/app adapter or StandardMaterial follow-up
+   follow-up.
+2. `task-1677` — audit selected post-factor-browser follow-up plan.
+3. `task-1678` — implement the selected route or glTF fidelity slice.
+4. `task-1679` — audit the selected implementation slice.
+5. `task-1680` — audit tracker/backlog alignment after the selected slice.
 
 Defer allocation-only cleanup and metadata-only shader-contract tasks unless
 they are a direct blocker for this track.
@@ -6335,6 +6341,10 @@ Acceptance criteria:
 
 ### task-1658 — Add generic app adapter registry validation helper
 
+Status: completed 2026-05-18. See
+`packages/webgpu/src/webgpu/queued-material-adapter.ts` and
+`test/webgpu/queued-material-adapter-json.test.ts`.
+
 Category: `webgpu-render`
 Package/write-scope:
 `packages/webgpu/src/webgpu/queued-material-adapter.ts` or a focused sibling
@@ -6357,6 +6367,9 @@ Acceptance criteria:
 
 ### task-1659 — Audit generic app adapter registry validation helper
 
+Status: completed 2026-05-18. See
+`docs/research/GENERIC_APP_ADAPTER_REGISTRY_VALIDATION_HELPER_AUDIT_2026_05_18.md`.
+
 Category: `audit-refactor`
 Package/write-scope: `docs/research`, targeted tests only if a tiny corrective
 fix is required.
@@ -6374,6 +6387,9 @@ Acceptance criteria:
 
 ### task-1660 — Audit tracker/backlog alignment after registry validation
 
+Status: completed 2026-05-18. See
+`docs/research/TRACKER_BACKLOG_ALIGNMENT_AFTER_REGISTRY_VALIDATION_2026_05_18.md`.
+
 Category: `docs-tooling`
 Package/write-scope: `docs/index.html`, `docs/render-pipeline-comparison.html`,
 `agent/BACKLOG.md`, and `docs/research`.
@@ -6389,6 +6405,9 @@ Acceptance criteria:
 - Run `pnpm run check:progress` after tracker edits.
 
 ### task-1661 — Plan next route or StandardMaterial follow-up after registry validation
+
+Status: completed 2026-05-18. See
+`docs/research/NEXT_ROUTE_OR_STANDARD_AFTER_REGISTRY_VALIDATION_PLAN_2026_05_18.md`.
 
 Category: `docs-tooling`
 Package/write-scope: `docs/research` and backlog only.
@@ -6409,6 +6428,9 @@ Acceptance criteria:
 
 ### task-1662 — Audit selected post-registry-validation follow-up plan
 
+Status: completed 2026-05-18. See
+`docs/research/NEXT_ROUTE_OR_STANDARD_AFTER_REGISTRY_VALIDATION_PLAN_AUDIT_2026_05_18.md`.
+
 Category: `audit-refactor`
 Package/write-scope: `docs/research`, targeted tests only if a tiny corrective
 fix is required.
@@ -6423,6 +6445,348 @@ Acceptance criteria:
 - Confirm it preserves ECS authority, render extraction boundaries,
   JSON-safe diagnostics, and WebGPU-only backend ownership.
 - Recommend whether to implement the selected follow-up or adjust the backlog.
+
+### task-1663 — Add non-built-in prepared-resource route shell regression
+
+Status: completed 2026-05-18. See
+`test/webgpu/queued-material-frame-resource-route.test.ts`.
+
+Category: `webgpu-render`
+Package/write-scope:
+`test/webgpu/queued-material-frame-resource-route.test.ts`.
+Reference anchor:
+`docs/research/NEXT_ROUTE_OR_STANDARD_AFTER_REGISTRY_VALIDATION_PLAN_2026_05_18.md`,
+`packages/webgpu/src/webgpu/queued-material-frame-resource-route.ts`,
+`references/three.js/src/renderers/common/Pipelines.js`,
+`references/three.js/src/renderers/common/Bindings.js`, and
+`references/engine/src/scene/frame-graph.js`.
+
+Acceptance criteria:
+
+- Add a test-only non-built-in family route shell using distinct facade and
+  backend mesh/material resource keys.
+- Assert shell summary reports family, prepared status, key-presence booleans,
+  pipeline key, source version, frame, and sorted diagnostic code counts.
+- Assert JSON-safe shell and summary output omit raw GPU handles and do not
+  require public source material APIs, shaders, examples, or browser fixtures.
+
+### task-1664 — Audit non-built-in route shell regression
+
+Status: completed 2026-05-18. See
+`docs/research/NON_BUILT_IN_ROUTE_SHELL_REGRESSION_AUDIT_2026_05_18.md`.
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research`.
+Reference anchor:
+the `task-1663` implementation and
+`docs/research/NON_BUILT_IN_APP_MATERIAL_ADAPTER_DECOMPOSITION_2026_05_18.md`.
+
+Acceptance criteria:
+
+- Confirm the regression remains test-only and does not expose public custom
+  material source APIs.
+- Confirm route shell summaries remain JSON-safe.
+- Recommend the next tracker/backlog or implementation follow-up.
+
+### task-1665 — Audit tracker/backlog alignment after non-built-in route shell
+
+Status: completed 2026-05-18. See
+`docs/research/TRACKER_BACKLOG_ALIGNMENT_AFTER_NON_BUILT_IN_ROUTE_SHELL_2026_05_18.md`.
+
+Category: `docs-tooling`
+Package/write-scope: `docs/index.html`, `docs/render-pipeline-comparison.html`,
+`agent/BACKLOG.md`, and `docs/research`.
+Reference anchor:
+the `task-1663`/`task-1664` results, `docs/ARCHITECTURE.md`, and
+`docs/MEDIUM_LONG_TERM_GOALS.md`.
+
+Acceptance criteria:
+
+- Update public tracker pages for the route-shell regression.
+- Confirm ready backlog remains concrete and categorized.
+- Run `pnpm run check:progress`.
+
+### task-1666 — Plan next route or StandardMaterial follow-up after route shell coverage
+
+Status: completed 2026-05-18. See
+`docs/research/NEXT_ROUTE_OR_STANDARD_AFTER_ROUTE_SHELL_PLAN_2026_05_18.md`.
+
+Category: `docs-tooling`
+Package/write-scope: `docs/research` and backlog only.
+Reference anchor:
+`docs/MEDIUM_LONG_TERM_GOALS.md`, `docs/ARCHITECTURE.md`,
+`docs/research/NON_BUILT_IN_ROUTE_SHELL_REGRESSION_AUDIT_2026_05_18.md`, and
+recent StandardMaterial/glTF audits.
+
+Acceptance criteria:
+
+- Compare one route/prepared-resource candidate, one StandardMaterial/glTF
+  fidelity candidate, and one diagnostics/tooling candidate.
+- Select exactly one follow-up task with category, package/write-scope,
+  reference anchor, and acceptance criteria.
+
+### task-1667 — Audit selected post-route-shell follow-up plan
+
+Status: completed 2026-05-18. See
+`docs/research/NEXT_ROUTE_OR_STANDARD_AFTER_ROUTE_SHELL_PLAN_AUDIT_2026_05_18.md`.
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research`.
+Reference anchor:
+the `task-1666` plan, `docs/ARCHITECTURE.md`,
+`docs/MEDIUM_LONG_TERM_GOALS.md`, and StandardMaterial shader references.
+
+Acceptance criteria:
+
+- Confirm the selected follow-up is concrete enough for one focused run.
+- Confirm it preserves ECS authority, render extraction boundaries,
+  JSON-safe diagnostics, and WebGPU-only backend ownership.
+
+### task-1668 — Add metallic-roughness factor texture shader contract regression
+
+Status: completed 2026-05-18. See
+`test/webgpu/standard-shader.test.ts`.
+
+Category: `webgpu-render`
+Package/write-scope: `test/webgpu/standard-shader.test.ts`.
+Reference anchor:
+`docs/research/NEXT_ROUTE_OR_STANDARD_AFTER_ROUTE_SHELL_PLAN_2026_05_18.md`,
+`packages/webgpu/src/webgpu/standard-shader.ts`,
+`references/three.js/src/materials/MeshStandardMaterial.js`,
+`references/three.js/src/renderers/webgl/WebGLMaterials.js`, and
+`references/engine/src/scene/materials/standard-material.js`.
+
+Acceptance criteria:
+
+- Assert metallic-roughness texture WGSL multiplies texture blue by
+  `material.metallicFactor`.
+- Assert metallic-roughness texture WGSL multiplies texture green by
+  `material.roughnessFactor`.
+- Keep the slice as shader contract coverage only.
+
+### task-1669 — Audit metallic-roughness factor shader contract regression
+
+Status: completed 2026-05-18. See
+`docs/research/METALLIC_ROUGHNESS_FACTOR_SHADER_CONTRACT_AUDIT_2026_05_18.md`.
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research`.
+Reference anchor:
+the `task-1668` implementation and StandardMaterial shader contract docs/tests.
+
+Acceptance criteria:
+
+- Confirm the regression stays test-only and no production shader change was
+  needed unless the test exposed a defect.
+- Confirm no app routing, public material source API, IBL, shadow, or browser
+  fixture behavior changed.
+
+### task-1670 — Audit tracker/backlog alignment after metallic-roughness factor shader
+
+Status: completed 2026-05-18. See
+`docs/research/TRACKER_BACKLOG_ALIGNMENT_AFTER_METALLIC_ROUGHNESS_FACTOR_SHADER_2026_05_18.md`.
+
+Category: `docs-tooling`
+Package/write-scope: `docs/index.html`, `docs/render-pipeline-comparison.html`,
+`agent/BACKLOG.md`, and `docs/research`.
+Reference anchor:
+the `task-1668`/`task-1669` results, `docs/ARCHITECTURE.md`, and
+`docs/MEDIUM_LONG_TERM_GOALS.md`.
+
+Acceptance criteria:
+
+- Update public tracker pages for the shader contract coverage.
+- Confirm ready backlog remains concrete and categorized.
+- Run `pnpm run check:progress`.
+
+### task-1671 — Plan app adapter registration or glTF browser fidelity follow-up
+
+Status: completed 2026-05-18. See
+`docs/research/NEXT_APP_ADAPTER_OR_GLTF_AFTER_SHADER_CONTRACT_PLAN_2026_05_18.md`.
+
+Category: `docs-tooling`
+Package/write-scope: `docs/research` and backlog only.
+Reference anchor:
+`docs/MEDIUM_LONG_TERM_GOALS.md`, `docs/ARCHITECTURE.md`,
+`docs/research/NON_BUILT_IN_APP_MATERIAL_ADAPTER_DECOMPOSITION_2026_05_18.md`,
+`docs/research/METALLIC_ROUGHNESS_FACTOR_SHADER_CONTRACT_AUDIT_2026_05_18.md`,
+and recent StandardMaterial/glTF browser audits.
+
+Acceptance criteria:
+
+- Compare one app adapter registration candidate, one StandardMaterial/glTF
+  browser fidelity candidate, and one diagnostics/tooling candidate.
+- Select exactly one follow-up with category, package/write-scope, reference
+  anchor, and acceptance criteria.
+- Do not select public custom material source authoring unless the plan calls
+  for a decision record first.
+
+### task-1672 — Audit selected post-shader-contract follow-up plan
+
+Status: completed 2026-05-18. See
+`docs/research/NEXT_APP_ADAPTER_OR_GLTF_AFTER_SHADER_CONTRACT_PLAN_AUDIT_2026_05_18.md`.
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research`, targeted tests only if a tiny corrective
+fix is required.
+Reference anchor:
+the `task-1671` plan, `docs/ARCHITECTURE.md`,
+`docs/MEDIUM_LONG_TERM_GOALS.md`, and the latest route or StandardMaterial
+audits selected by the plan.
+
+Acceptance criteria:
+
+- Confirm the selected follow-up is concrete enough for one focused run.
+- Confirm it preserves ECS authority, render extraction boundaries,
+  JSON-safe diagnostics, and WebGPU-only backend ownership.
+- Recommend whether to implement the selected follow-up or adjust the backlog.
+
+### task-1673 — Add metallic-roughness factor browser proof
+
+Status: completed 2026-05-18. See `examples/standard-gltf-texture.js` and
+`test/e2e/standard-gltf-texture.spec.ts`.
+
+Category: `webgpu-render`
+Package/write-scope:
+`examples/standard-gltf-texture.js`, `test/e2e/standard-gltf-texture.spec.ts`,
+and targeted status helpers only if selected by `task-1671`.
+Reference anchor:
+`docs/research/METALLIC_ROUGHNESS_FACTOR_SHADER_CONTRACT_AUDIT_2026_05_18.md`,
+`examples/standard-gltf-texture.js`, `test/e2e/standard-gltf-texture.spec.ts`,
+`references/three.js/src/materials/MeshStandardMaterial.js`,
+`references/three.js/src/renderers/webgl/WebGLMaterials.js`, and
+`references/engine/src/scene/materials/standard-material.js`.
+
+Acceptance criteria:
+
+- Add a glTF-shaped browser scenario where `metallicFactor` and
+  `roughnessFactor` are non-default while `metallicRoughnessTexture` is mapped.
+- Surface JSON-safe expected factor and texture-channel status.
+- Add Playwright coverage proving the scenario renders and reports the expected
+  pipeline/readiness state.
+- Do not add app-level non-built-in rendering, IBL, shadows, binary GLB loading,
+  or public custom material source APIs.
+
+### task-1674 — Audit selected implementation slice
+
+Status: completed 2026-05-18. See
+`docs/research/METALLIC_ROUGHNESS_FACTOR_BROWSER_PROOF_AUDIT_2026_05_18.md`.
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research`, targeted tests only if a tiny corrective
+fix is required.
+Reference anchor:
+the selected implementation from `task-1671`/`task-1672`,
+`docs/ARCHITECTURE.md`, and `docs/MEDIUM_LONG_TERM_GOALS.md`.
+
+Acceptance criteria:
+
+- Confirm implementation satisfies the selected acceptance criteria.
+- Confirm no ECS/render ownership, WebGPU-only, or public API boundary drift.
+- Recommend tracker/backlog alignment or the next implementation follow-up.
+
+### task-1675 — Audit tracker/backlog alignment after selected slice
+
+Status: completed 2026-05-18. See
+`docs/research/TRACKER_BACKLOG_ALIGNMENT_AFTER_METALLIC_ROUGHNESS_FACTOR_BROWSER_2026_05_18.md`.
+
+Category: `docs-tooling`
+Package/write-scope: `docs/index.html`, `docs/render-pipeline-comparison.html`,
+`agent/BACKLOG.md`, and `docs/research`.
+Reference anchor:
+the `task-1671` through `task-1674` results, `docs/ARCHITECTURE.md`, and
+`docs/MEDIUM_LONG_TERM_GOALS.md`.
+
+Acceptance criteria:
+
+- Update public tracker pages if project status or recommended next task
+  changed.
+- Confirm at least five categorized, scoped ready tasks remain.
+- Run `pnpm run check:progress` after tracker edits.
+
+### task-1676 — Plan next route/app adapter or StandardMaterial follow-up
+
+Category: `docs-tooling`
+Package/write-scope: `docs/research` and backlog only.
+Reference anchor:
+`docs/MEDIUM_LONG_TERM_GOALS.md`, `docs/ARCHITECTURE.md`,
+`docs/research/METALLIC_ROUGHNESS_FACTOR_BROWSER_PROOF_AUDIT_2026_05_18.md`,
+`docs/research/NON_BUILT_IN_APP_MATERIAL_ADAPTER_DECOMPOSITION_2026_05_18.md`,
+and recent route/StandardMaterial audits.
+
+Acceptance criteria:
+
+- Compare one route/app adapter candidate, one StandardMaterial/glTF fidelity
+  candidate, and one diagnostics/tooling candidate.
+- Select exactly one follow-up with category, package/write-scope, reference
+  anchor, and acceptance criteria.
+- Do not select public custom material source authoring unless the plan calls
+  for a decision record first.
+
+### task-1677 — Audit selected post-factor-browser follow-up plan
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research`, targeted tests only if a tiny corrective
+fix is required.
+Reference anchor:
+the `task-1676` plan, `docs/ARCHITECTURE.md`,
+`docs/MEDIUM_LONG_TERM_GOALS.md`, and the latest route or StandardMaterial
+audits selected by the plan.
+
+Acceptance criteria:
+
+- Confirm the selected follow-up is concrete enough for one focused run.
+- Confirm it preserves ECS authority, render extraction boundaries,
+  JSON-safe diagnostics, and WebGPU-only backend ownership.
+- Recommend whether to implement the selected follow-up or adjust the backlog.
+
+### task-1678 — Implement selected route or glTF fidelity slice
+
+Category: `webgpu-render`
+Package/write-scope:
+To be narrowed by `task-1676`; expected to stay within targeted
+`packages/webgpu`, `examples`, or `test` files.
+Reference anchor:
+the selected `task-1676` plan plus relevant local reference code.
+
+Acceptance criteria:
+
+- Implement exactly the selected focused slice from `task-1676`.
+- Add targeted tests or browser coverage appropriate to the selected scope.
+- Do not add app-level non-built-in rendering, IBL, shadows, binary GLB loading,
+  or public custom material source APIs unless explicitly selected with the
+  required decision record.
+
+### task-1679 — Audit selected implementation slice
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research`, targeted tests only if a tiny corrective
+fix is required.
+Reference anchor:
+the selected implementation from `task-1678`, `docs/ARCHITECTURE.md`, and
+`docs/MEDIUM_LONG_TERM_GOALS.md`.
+
+Acceptance criteria:
+
+- Confirm implementation satisfies the selected acceptance criteria.
+- Confirm no ECS/render ownership, WebGPU-only, or public API boundary drift.
+- Recommend tracker/backlog alignment or the next implementation follow-up.
+
+### task-1680 — Audit tracker/backlog alignment after selected slice
+
+Category: `docs-tooling`
+Package/write-scope: `docs/index.html`, `docs/render-pipeline-comparison.html`,
+`agent/BACKLOG.md`, and `docs/research`.
+Reference anchor:
+the `task-1676` through `task-1679` results, `docs/ARCHITECTURE.md`, and
+`docs/MEDIUM_LONG_TERM_GOALS.md`.
+
+Acceptance criteria:
+
+- Update public tracker pages if project status or recommended next task
+  changed.
+- Confirm at least five categorized, scoped ready tasks remain.
+- Run `pnpm run check:progress` after tracker edits.
 
 ## Post-Unlit E2E Verification Targets
 

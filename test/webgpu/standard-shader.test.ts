@@ -243,6 +243,12 @@ describe("built-in standard material WGSL shader metadata", () => {
       "metallicRoughnessSample.g",
     );
     expect(STANDARD_METALLIC_ROUGHNESS_TEXTURED_MESH_WGSL).toContain(
+      "material.metallicFactor * metallicRoughnessSample.b",
+    );
+    expect(STANDARD_METALLIC_ROUGHNESS_TEXTURED_MESH_WGSL).toContain(
+      "material.roughnessFactor * metallicRoughnessSample.g",
+    );
+    expect(STANDARD_METALLIC_ROUGHNESS_TEXTURED_MESH_WGSL).toContain(
       "fn standardTextureTransformUv",
     );
     expect(STANDARD_METALLIC_ROUGHNESS_TEXTURED_MESH_WGSL).toContain(
@@ -288,6 +294,12 @@ describe("built-in standard material WGSL shader metadata", () => {
     );
     expect(STANDARD_BASE_COLOR_METALLIC_ROUGHNESS_TEXTURED_MESH_WGSL).toContain(
       "metallicRoughnessSample.b",
+    );
+    expect(STANDARD_BASE_COLOR_METALLIC_ROUGHNESS_TEXTURED_MESH_WGSL).toContain(
+      "material.metallicFactor * metallicRoughnessSample.b",
+    );
+    expect(STANDARD_BASE_COLOR_METALLIC_ROUGHNESS_TEXTURED_MESH_WGSL).toContain(
+      "material.roughnessFactor * metallicRoughnessSample.g",
     );
     expect(
       STANDARD_BASE_COLOR_METALLIC_ROUGHNESS_TEXTURED_MESH_SHADER.bindings.map(

@@ -1,5 +1,102 @@
 # Handoff
 
+## Current Run Update — 2026-05-18T22:22:21Z
+
+Completed `task-1658` through `task-1675`. Recommended next task is
+`task-1676`: plan the next route/app adapter or StandardMaterial follow-up.
+
+Highlights:
+
+- Added generic queued material adapter registry validation with optional
+  expected-family diagnostics and JSON-safe report serialization.
+- Kept built-in required-family validation separate from generic adapter policy.
+- Added test-only non-built-in `test-preview` prepared-resource route shell
+  coverage with facade/backend key separation, sorted diagnostic counts, and no
+  raw GPU handles in JSON surfaces.
+- Added StandardMaterial shader contract coverage proving metallic-roughness
+  texture blue/green channels multiply `metallicFactor` and `roughnessFactor`.
+- The stop hook requested continuation before minute 55, so the run continued
+  into `task-1671` through `task-1675`.
+- Added a `metallic-roughness-factor-texture` browser scenario proving
+  non-default `metallicFactor`/`roughnessFactor` with a mapped
+  `metallicRoughnessTexture`, including JSON-safe factor/channel status and
+  Playwright screenshot coverage.
+- Updated public tracker pages and refilled the ready queue with `task-1676`
+  through `task-1680`.
+
+Reference anchors inspected:
+
+- `docs/NORTH_STAR.md`
+- `docs/ROADMAP.md`
+- `docs/MEDIUM_LONG_TERM_GOALS.md`
+- `docs/ARCHITECTURE.md`
+- `docs/DECISIONS.md`
+- `docs/research/GENERIC_APP_ADAPTER_REGISTRATION_POLICY_AUDIT_2026_05_18.md`
+- `docs/research/NON_BUILT_IN_APP_MATERIAL_ADAPTER_DECOMPOSITION_2026_05_18.md`
+- `packages/webgpu/src/webgpu/queued-material-adapter.ts`
+- `packages/webgpu/src/webgpu/built-in-material-app-resource-adapter.ts`
+- `packages/webgpu/src/webgpu/queued-material-frame-resource-route.ts`
+- `packages/webgpu/src/webgpu/standard-shader.ts`
+- `references/three.js/src/renderers/common/Pipelines.js`
+- `references/three.js/src/renderers/common/Bindings.js`
+- `references/three.js/src/materials/MeshStandardMaterial.js`
+- `references/three.js/src/renderers/webgl/WebGLMaterials.js`
+- `references/engine/src/scene/frame-graph.js`
+- `references/engine/src/scene/materials/standard-material.js`
+- `references/engine/src/scene/materials/standard-material-validator.js`
+
+Files touched:
+
+- `agent/BACKLOG.md`
+- `agent/COMPLETED.md`
+- `agent/HANDOFF.md`
+- `agent/STATUS.json`
+- `docs/index.html`
+- `docs/render-pipeline-comparison.html`
+- `examples/standard-gltf-texture.js`
+- `docs/research/GENERIC_APP_ADAPTER_REGISTRY_VALIDATION_HELPER_AUDIT_2026_05_18.md`
+- `docs/research/METALLIC_ROUGHNESS_FACTOR_BROWSER_PROOF_AUDIT_2026_05_18.md`
+- `docs/research/METALLIC_ROUGHNESS_FACTOR_SHADER_CONTRACT_AUDIT_2026_05_18.md`
+- `docs/research/NEXT_APP_ADAPTER_OR_GLTF_AFTER_SHADER_CONTRACT_PLAN_2026_05_18.md`
+- `docs/research/NEXT_APP_ADAPTER_OR_GLTF_AFTER_SHADER_CONTRACT_PLAN_AUDIT_2026_05_18.md`
+- `docs/research/NEXT_ROUTE_OR_STANDARD_AFTER_REGISTRY_VALIDATION_PLAN_2026_05_18.md`
+- `docs/research/NEXT_ROUTE_OR_STANDARD_AFTER_REGISTRY_VALIDATION_PLAN_AUDIT_2026_05_18.md`
+- `docs/research/NEXT_ROUTE_OR_STANDARD_AFTER_ROUTE_SHELL_PLAN_2026_05_18.md`
+- `docs/research/NEXT_ROUTE_OR_STANDARD_AFTER_ROUTE_SHELL_PLAN_AUDIT_2026_05_18.md`
+- `docs/research/NON_BUILT_IN_ROUTE_SHELL_REGRESSION_AUDIT_2026_05_18.md`
+- `docs/research/TRACKER_BACKLOG_ALIGNMENT_AFTER_METALLIC_ROUGHNESS_FACTOR_BROWSER_2026_05_18.md`
+- `docs/research/TRACKER_BACKLOG_ALIGNMENT_AFTER_METALLIC_ROUGHNESS_FACTOR_SHADER_2026_05_18.md`
+- `docs/research/TRACKER_BACKLOG_ALIGNMENT_AFTER_NON_BUILT_IN_ROUTE_SHELL_2026_05_18.md`
+- `docs/research/TRACKER_BACKLOG_ALIGNMENT_AFTER_REGISTRY_VALIDATION_2026_05_18.md`
+- `packages/webgpu/src/webgpu/queued-material-adapter.ts`
+- `test/e2e/standard-gltf-texture.spec.ts`
+- `test/webgpu/queued-material-adapter-json.test.ts`
+- `test/webgpu/queued-material-frame-resource-route.test.ts`
+- `test/webgpu/standard-shader.test.ts`
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/queued-material-adapter-json.test.ts`
+- `pnpm exec vitest run test/webgpu/queued-material-frame-resource-route.test.ts`
+- `pnpm exec vitest run test/webgpu/standard-shader.test.ts`
+- `pnpm exec vitest run test/webgpu/queued-material-adapter-json.test.ts test/webgpu/queued-material-frame-resource-route.test.ts test/webgpu/standard-shader.test.ts`
+- `node --check examples/standard-gltf-texture.js`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "metallic-roughness scalar factors"`
+- `pnpm run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm run check:progress`
+- `pnpm run format:check`
+- `git diff --check`
+- `pnpm run check` (263 test files, 1270 tests)
+
+Known issues / follow-ups:
+
+- Start `task-1676`: compare route/app adapter work, a StandardMaterial/glTF
+  fidelity slice, and diagnostics/tooling, then select exactly one follow-up.
+- App-level non-built-in material adapter rendering, public custom material
+  source APIs, binary GLB loading, IBL, shadows, instancing, batching, and
+  multi-material primitive rules remain deferred.
+
 ## Current Run Update — 2026-05-18T21:45:00Z
 
 Completed `task-1625` through `task-1657`. Recommended next task is

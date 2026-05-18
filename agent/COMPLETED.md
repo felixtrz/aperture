@@ -1,5 +1,59 @@
 # Completed Tasks
 
+## tasks-1658-1670 — Generic adapter validation and route/shader contract coverage
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added generic queued material adapter registry validation with optional
+  expected-family diagnostics and JSON-safe report serialization.
+- Audited the helper to confirm built-in required-family policy remains
+  separate from generic adapter policy.
+- Updated tracker pages after registry validation.
+- Planned, audited, and implemented non-built-in `test-preview`
+  prepared-resource route shell coverage with facade/backend key separation and
+  JSON-safe sorted diagnostic summaries.
+- Planned, audited, and implemented StandardMaterial shader contract coverage
+  proving metallic-roughness texture blue/green channels multiply
+  `metallicFactor` and `roughnessFactor`.
+- Updated tracker/backlog state and refilled the ready queue with `task-1671`
+  through `task-1675`.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/queued-material-adapter-json.test.ts`
+- `pnpm exec vitest run test/webgpu/queued-material-frame-resource-route.test.ts`
+- `pnpm exec vitest run test/webgpu/standard-shader.test.ts`
+- `pnpm run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm run check:progress`
+
+## tasks-1671-1675 — Metallic-roughness factor browser coverage
+
+Completed: 2026-05-18
+
+Summary:
+
+- Planned and audited the next follow-up after shader contract coverage.
+- Selected a browser-level StandardMaterial/glTF fidelity proof over app-level
+  adapter registration policy.
+- Added a `metallic-roughness-factor-texture` glTF scenario with non-default
+  `metallicFactor` and `roughnessFactor` plus a mapped
+  `metallicRoughnessTexture`.
+- Surfaced JSON-safe channel, scalar factor, and multiplied expected
+  metallic/roughness status.
+- Added Playwright coverage for rendering, readiness, pipeline routing, and
+  non-clear screenshot output.
+- Updated tracker/backlog state and refilled the ready queue with `task-1676`
+  through `task-1680`.
+
+Validation:
+
+- `node --check examples/standard-gltf-texture.js`
+- `pnpm run typecheck:test`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "metallic-roughness scalar factors"`
+
 ## tasks-1625-1657 — Frame-resource diagnostics, glTF tint, and generic adapter contracts
 
 Completed: 2026-05-18

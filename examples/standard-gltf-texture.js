@@ -10,6 +10,12 @@ const baseColorFactorTextureTint = {
   untintedColor: expectedTextureColor,
 };
 const metallicRoughness = { metallic: 64 / 255, roughness: 16 / 255 };
+const metallicRoughnessFactorTexture = {
+  metallic: metallicRoughness.metallic * 0.5,
+  roughness: metallicRoughness.roughness * 0.75,
+  factors: { metallic: 0.5, roughness: 0.75 },
+  channels: metallicRoughness,
+};
 const normalMapVector = { x: 192 / 255, y: 64 / 255, z: 16 / 255 };
 const fullNormalMapScale = 2;
 const reducedNormalMapScale = 0.25;
@@ -451,6 +457,8 @@ function createGltfScenarioConfig(selectedScenario) {
     selectedScenario === "base-color-alpha-mask-emissive";
   const usesMetallicRoughnessTexture =
     selectedScenario === "metallic-roughness";
+  const usesMetallicRoughnessFactorTexture =
+    selectedScenario === "metallic-roughness-factor-texture";
   const usesMetallicRoughnessDelayedDependencies =
     selectedScenario === "metallic-roughness-delayed-dependencies";
   const usesMetallicRoughnessTextureTransform =
@@ -461,6 +469,7 @@ function createGltfScenarioConfig(selectedScenario) {
     selectedScenario === "metallic-roughness-uv1-transform";
   const usesAnyMetallicRoughnessTexture =
     usesMetallicRoughnessTexture ||
+    usesMetallicRoughnessFactorTexture ||
     usesMetallicRoughnessDelayedDependencies ||
     usesMetallicRoughnessTextureTransform ||
     usesMetallicRoughnessUv1 ||
@@ -617,101 +626,103 @@ function createGltfScenarioConfig(selectedScenario) {
                           : "baseColorTexture",
     materialModel: usesMetallicRoughnessTexture
       ? "gltf-standard-metallic-roughness-texture"
-      : usesMetallicRoughnessDelayedDependencies
-        ? "gltf-standard-metallic-roughness-delayed-dependencies"
-        : usesMetallicRoughnessTextureTransform
-          ? "gltf-standard-metallic-roughness-transform"
-          : usesMetallicRoughnessUv1
-            ? "gltf-standard-metallic-roughness-uv1"
-            : usesMetallicRoughnessUv1Transform
-              ? "gltf-standard-metallic-roughness-uv1-transform"
-              : usesBaseColorAlphaMaskEmissive
-                ? "gltf-standard-base-color-alpha-mask-emissive"
-                : usesBaseColorOcclusionEmissive
-                  ? "gltf-standard-base-color-occlusion-emissive"
-                  : usesBaseColorMetallicRoughnessNormal
-                    ? "gltf-standard-base-color-metallic-roughness-normal"
-                    : usesBaseColorMetallicRoughness
-                      ? "gltf-standard-base-color-metallic-roughness"
-                      : usesNormalTextureScale
-                        ? "gltf-standard-normal-scale"
-                        : usesNormalTextureTransform
-                          ? "gltf-standard-normal-transform"
-                          : usesNormalTexture
-                            ? "gltf-standard-normal-texture"
-                            : usesOcclusionTextureTransform
-                              ? "gltf-standard-occlusion-transform"
-                              : usesInvalidTextureScalar
-                                ? "gltf-standard-invalid-texture-scalar"
-                                : usesOcclusionTextureStrength
-                                  ? "gltf-standard-occlusion-strength"
-                                  : usesOcclusionEmissiveDelayedDependencies
-                                    ? "gltf-standard-occlusion-emissive-delayed-dependencies"
-                                    : usesOcclusionTexture
-                                      ? "gltf-standard-occlusion-texture"
-                                      : usesEmissiveTextureTransform
-                                        ? "gltf-standard-emissive-transform"
-                                        : usesEmissiveFactor
-                                          ? "gltf-standard-emissive-factor"
-                                          : usesEmissiveTexture
-                                            ? "gltf-standard-emissive-texture"
-                                            : usesAlphaMaskDoubleSided
-                                              ? "gltf-standard-alpha-mask-double-sided"
-                                              : usesAlphaMaskTexture
-                                                ? "gltf-standard-alpha-mask-texture"
-                                                : usesAlphaMaskBackface
-                                                  ? "gltf-standard-alpha-mask-backface"
-                                                  : usesAlphaBlendTexture
-                                                    ? usesAlphaBlendTexturePixels
-                                                      ? "gltf-standard-alpha-blend-texture"
-                                                      : "gltf-standard-alpha-blend"
-                                                    : usesAlphaBlendDoubleSided
-                                                      ? "gltf-standard-alpha-blend-double-sided"
-                                                      : usesOpaqueDoubleSided
-                                                        ? "gltf-standard-opaque-double-sided"
-                                                        : usesDelayedDependencies
-                                                          ? "gltf-standard-delayed-dependencies"
-                                                          : usesFormatColorSpaceMismatch
-                                                            ? "gltf-standard-base-color-format-color-space-mismatch"
-                                                            : usesUnsupportedRequiredMaterialExtension
-                                                              ? "gltf-standard-unsupported-required-material-extension"
-                                                              : usesUnsupportedOptionalMaterialExtension
-                                                                ? "gltf-standard-unsupported-optional-material-extension"
-                                                                : usesMultipleOptionalMaterialExtensions
-                                                                  ? "gltf-standard-multiple-optional-material-extensions"
-                                                                  : usesInvalidRenderState
-                                                                    ? "gltf-standard-invalid-render-state"
-                                                                    : usesInvalidMaterialScalar
-                                                                      ? "gltf-standard-invalid-material-scalar"
-                                                                      : usesInvalidVectorFactor
-                                                                        ? "gltf-standard-invalid-vector-factor"
-                                                                        : usesUnresolvedTextureBinding
-                                                                          ? "gltf-standard-unresolved-texture-binding"
-                                                                          : usesInvalidTextureInfo
-                                                                            ? "gltf-standard-invalid-texture-info"
-                                                                            : usesInvalidSamplerIndex
-                                                                              ? "gltf-standard-invalid-sampler-index"
-                                                                              : usesInvalidSamplerEnum
-                                                                                ? "gltf-standard-invalid-sampler-enum"
-                                                                                : usesValidRepeatSampler
-                                                                                  ? "gltf-standard-valid-repeat-sampler"
-                                                                                  : usesDefaultSampler
-                                                                                    ? "gltf-standard-default-sampler"
-                                                                                    : usesValidNonDefaultSampler
-                                                                                      ? "gltf-standard-valid-non-default-sampler"
-                                                                                      : usesBaseColorFactorTextureTint
-                                                                                        ? "gltf-standard-base-color-factor-texture-tint"
-                                                                                        : usesBaseColorTransformSampling
-                                                                                          ? "gltf-standard-base-color-transform-sampling"
-                                                                                          : usesBaseColorTransformRotationSampling
-                                                                                            ? "gltf-standard-base-color-transform-rotation-sampling"
-                                                                                            : usesBaseColorUv1
-                                                                                              ? "gltf-standard-base-color-uv1"
-                                                                                              : usesBaseColorUv1Missing
-                                                                                                ? "gltf-standard-base-color-uv1-missing"
-                                                                                                : usesBaseColorUv1Transform
-                                                                                                  ? "gltf-standard-base-color-uv1-transform"
-                                                                                                  : "gltf-standard-base-color-texture",
+      : usesMetallicRoughnessFactorTexture
+        ? "gltf-standard-metallic-roughness-factor-texture"
+        : usesMetallicRoughnessDelayedDependencies
+          ? "gltf-standard-metallic-roughness-delayed-dependencies"
+          : usesMetallicRoughnessTextureTransform
+            ? "gltf-standard-metallic-roughness-transform"
+            : usesMetallicRoughnessUv1
+              ? "gltf-standard-metallic-roughness-uv1"
+              : usesMetallicRoughnessUv1Transform
+                ? "gltf-standard-metallic-roughness-uv1-transform"
+                : usesBaseColorAlphaMaskEmissive
+                  ? "gltf-standard-base-color-alpha-mask-emissive"
+                  : usesBaseColorOcclusionEmissive
+                    ? "gltf-standard-base-color-occlusion-emissive"
+                    : usesBaseColorMetallicRoughnessNormal
+                      ? "gltf-standard-base-color-metallic-roughness-normal"
+                      : usesBaseColorMetallicRoughness
+                        ? "gltf-standard-base-color-metallic-roughness"
+                        : usesNormalTextureScale
+                          ? "gltf-standard-normal-scale"
+                          : usesNormalTextureTransform
+                            ? "gltf-standard-normal-transform"
+                            : usesNormalTexture
+                              ? "gltf-standard-normal-texture"
+                              : usesOcclusionTextureTransform
+                                ? "gltf-standard-occlusion-transform"
+                                : usesInvalidTextureScalar
+                                  ? "gltf-standard-invalid-texture-scalar"
+                                  : usesOcclusionTextureStrength
+                                    ? "gltf-standard-occlusion-strength"
+                                    : usesOcclusionEmissiveDelayedDependencies
+                                      ? "gltf-standard-occlusion-emissive-delayed-dependencies"
+                                      : usesOcclusionTexture
+                                        ? "gltf-standard-occlusion-texture"
+                                        : usesEmissiveTextureTransform
+                                          ? "gltf-standard-emissive-transform"
+                                          : usesEmissiveFactor
+                                            ? "gltf-standard-emissive-factor"
+                                            : usesEmissiveTexture
+                                              ? "gltf-standard-emissive-texture"
+                                              : usesAlphaMaskDoubleSided
+                                                ? "gltf-standard-alpha-mask-double-sided"
+                                                : usesAlphaMaskTexture
+                                                  ? "gltf-standard-alpha-mask-texture"
+                                                  : usesAlphaMaskBackface
+                                                    ? "gltf-standard-alpha-mask-backface"
+                                                    : usesAlphaBlendTexture
+                                                      ? usesAlphaBlendTexturePixels
+                                                        ? "gltf-standard-alpha-blend-texture"
+                                                        : "gltf-standard-alpha-blend"
+                                                      : usesAlphaBlendDoubleSided
+                                                        ? "gltf-standard-alpha-blend-double-sided"
+                                                        : usesOpaqueDoubleSided
+                                                          ? "gltf-standard-opaque-double-sided"
+                                                          : usesDelayedDependencies
+                                                            ? "gltf-standard-delayed-dependencies"
+                                                            : usesFormatColorSpaceMismatch
+                                                              ? "gltf-standard-base-color-format-color-space-mismatch"
+                                                              : usesUnsupportedRequiredMaterialExtension
+                                                                ? "gltf-standard-unsupported-required-material-extension"
+                                                                : usesUnsupportedOptionalMaterialExtension
+                                                                  ? "gltf-standard-unsupported-optional-material-extension"
+                                                                  : usesMultipleOptionalMaterialExtensions
+                                                                    ? "gltf-standard-multiple-optional-material-extensions"
+                                                                    : usesInvalidRenderState
+                                                                      ? "gltf-standard-invalid-render-state"
+                                                                      : usesInvalidMaterialScalar
+                                                                        ? "gltf-standard-invalid-material-scalar"
+                                                                        : usesInvalidVectorFactor
+                                                                          ? "gltf-standard-invalid-vector-factor"
+                                                                          : usesUnresolvedTextureBinding
+                                                                            ? "gltf-standard-unresolved-texture-binding"
+                                                                            : usesInvalidTextureInfo
+                                                                              ? "gltf-standard-invalid-texture-info"
+                                                                              : usesInvalidSamplerIndex
+                                                                                ? "gltf-standard-invalid-sampler-index"
+                                                                                : usesInvalidSamplerEnum
+                                                                                  ? "gltf-standard-invalid-sampler-enum"
+                                                                                  : usesValidRepeatSampler
+                                                                                    ? "gltf-standard-valid-repeat-sampler"
+                                                                                    : usesDefaultSampler
+                                                                                      ? "gltf-standard-default-sampler"
+                                                                                      : usesValidNonDefaultSampler
+                                                                                        ? "gltf-standard-valid-non-default-sampler"
+                                                                                        : usesBaseColorFactorTextureTint
+                                                                                          ? "gltf-standard-base-color-factor-texture-tint"
+                                                                                          : usesBaseColorTransformSampling
+                                                                                            ? "gltf-standard-base-color-transform-sampling"
+                                                                                            : usesBaseColorTransformRotationSampling
+                                                                                              ? "gltf-standard-base-color-transform-rotation-sampling"
+                                                                                              : usesBaseColorUv1
+                                                                                                ? "gltf-standard-base-color-uv1"
+                                                                                                : usesBaseColorUv1Missing
+                                                                                                  ? "gltf-standard-base-color-uv1-missing"
+                                                                                                  : usesBaseColorUv1Transform
+                                                                                                    ? "gltf-standard-base-color-uv1-transform"
+                                                                                                    : "gltf-standard-base-color-texture",
     expectedFailure: expectedGltfFailures[selectedScenario] ?? null,
     expectedTextureTransform: usesBaseColorTransform
       ? unsupportedTextureTransform
@@ -789,11 +800,13 @@ function createGltfScenarioConfig(selectedScenario) {
       ? { metallic: 1, roughness: 1 }
       : usesMetallicRoughnessUv1
         ? { metallic: 0, roughness: 1 }
-        : usesBaseColorMetallicRoughness ||
-            usesMetallicRoughnessTexture ||
-            usesMetallicRoughnessTextureTransform
-          ? metallicRoughness
-          : null,
+        : usesMetallicRoughnessFactorTexture
+          ? metallicRoughnessFactorTexture
+          : usesBaseColorMetallicRoughness ||
+              usesMetallicRoughnessTexture ||
+              usesMetallicRoughnessTextureTransform
+            ? metallicRoughness
+            : null,
     expectedNormalMap: usesNormalTexture ? normalMapVector : null,
     expectedNormalScale: usesNormalTexture
       ? usesNormalTextureScale
@@ -1097,8 +1110,9 @@ function createGltfFixtureRoot(config) {
   } else if (config.usesAnyMetallicRoughnessTexture) {
     pbrMetallicRoughness = {
       baseColorFactor: scalarColor,
-      metallicFactor: 1,
-      roughnessFactor: 1,
+      metallicFactor: config.expectedMetallicRoughness?.factors?.metallic ?? 1,
+      roughnessFactor:
+        config.expectedMetallicRoughness?.factors?.roughness ?? 1,
       metallicRoughnessTexture: {
         index: 0,
         ...(config.usesAnyMetallicRoughnessUv1 ? { texCoord: 1 } : {}),

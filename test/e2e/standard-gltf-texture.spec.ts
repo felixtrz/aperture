@@ -84,6 +84,14 @@ interface StandardGltfTextureStatus extends ExampleStatusBase {
     readonly expectedMetallicRoughness?: {
       readonly metallic: number;
       readonly roughness: number;
+      readonly factors?: {
+        readonly metallic: number;
+        readonly roughness: number;
+      };
+      readonly channels?: {
+        readonly metallic: number;
+        readonly roughness: number;
+      };
     } | null;
     readonly expectedNormalMap?: {
       readonly x: number;
@@ -1149,6 +1157,106 @@ test("standard glTF texture fixture renders a mapped metallic-roughness texture"
   }
 
   expect(status.diagnosticCodes ?? []).toEqual([]);
+  webGpuValidation.expectNoWarnings();
+});
+
+test("standard glTF texture fixture applies metallic-roughness scalar factors to texture channels", async ({
+  page,
+}) => {
+  const webGpuValidation = attachWebGpuValidationConsoleGuard(page);
+
+  await page.goto(
+    "/examples/standard-gltf-texture.html?scenario=metallic-roughness-factor-texture",
+  );
+
+  const status = await waitForExampleStatus<StandardGltfTextureStatus>(page);
+
+  await attachExampleStatus(
+    "standard-gltf-texture-metallic-roughness-factor-texture-status",
+    status,
+  );
+
+  expect(status).toBeDefined();
+
+  if (status === undefined) {
+    return;
+  }
+
+  skipIfUnsupportedWebGpu(status);
+  expectStatusJsonSafeForGpu(status);
+  expectRenderedGltfTextureStatus(status, {
+    scenario: "metallic-roughness-factor-texture",
+    materialModel: "gltf-standard-metallic-roughness-factor-texture",
+    textureSlot: "metallicRoughnessTexture",
+    textureKey: "texture:gltf:texture:0:metallicRoughnessTexture",
+    samplerKey: "sampler:gltf:sampler:0:metallicRoughnessTexture",
+    pipelineKey: "standard|metallicRoughnessTexture|opaque|back|less|none",
+  });
+
+  expect(status).toMatchObject({
+    ok: true,
+    phase: "rendered",
+    scenario: "metallic-roughness-factor-texture",
+    materialModel: "gltf-standard-metallic-roughness-factor-texture",
+    standardTexture: {
+      textureSlot: "metallicRoughnessTexture",
+      expectedMetallicRoughness: {
+        metallic: expect.any(Number),
+        roughness: expect.any(Number),
+        factors: {
+          metallic: 0.5,
+          roughness: 0.75,
+        },
+        channels: {
+          metallic: expect.any(Number),
+          roughness: expect.any(Number),
+        },
+      },
+      readiness: {
+        ready: true,
+      },
+    },
+    resources: {
+      textureResourcesCreated: 1,
+      samplerResourcesCreated: 1,
+      materialBuffersCreated: 1,
+    },
+    draw: { packages: 1, drawCalls: 1 },
+  });
+
+  const expected = status.standardTexture?.expectedMetallicRoughness;
+
+  if (expected === undefined || expected === null) {
+    throw new Error("metallic-roughness factor status missing");
+  }
+
+  expect(expected.metallic).toBeCloseTo(
+    (expected.channels?.metallic ?? 0) * (expected.factors?.metallic ?? 0),
+    6,
+  );
+  expect(expected.roughness).toBeCloseTo(
+    (expected.channels?.roughness ?? 0) * (expected.factors?.roughness ?? 0),
+    6,
+  );
+  expect(status.pipelines?.keys).toContain(
+    "standard|metallicRoughnessTexture|opaque|back|less|none",
+  );
+
+  const screenshot = await page.locator("#aperture-canvas").screenshot();
+  const texturedSample = readPngPixel(
+    screenshot,
+    status.standardTexture?.sample.x ?? 0.5,
+    status.standardTexture?.sample.y ?? 0.5,
+  );
+  const clear = rgbaColorToPixel({
+    r: status.clearColor?.r ?? 0,
+    g: status.clearColor?.g ?? 0,
+    b: status.clearColor?.b ?? 0,
+    a: status.clearColor?.a ?? 1,
+  });
+
+  expect(pixelDistance(texturedSample, clear)).toBeGreaterThan(30);
+
   webGpuValidation.expectNoWarnings();
 });
 

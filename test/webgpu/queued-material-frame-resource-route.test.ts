@@ -144,6 +144,84 @@ describe("queued material frame resource route shell", () => {
     expect(JSON.stringify(summary)).not.toContain("facade-mesh");
     expect(JSON.stringify(summary)).not.toContain("GPUBuffer");
   });
+
+  it("summarizes non-built-in prepared-resource route metadata without public material APIs", () => {
+    const shell = createQueuedMaterialFrameResourceRouteShell({
+      prepareRoute: createQueuedMaterialPrepareRouteResult({
+        queueItem: queueItem("test-preview"),
+        material: {
+          kind: "test-preview",
+          label: "internal preview",
+        } as never,
+        sourceVersion: 13,
+        frame: 55,
+      }),
+      backendMeshKey: "gpu-mesh:preview@13",
+      backendMaterialKey: "gpu-material:preview@13",
+      frameResources: frameResources(true, {
+        resources: {
+          rawGpuHandle: "GPUTexture",
+          bindGroup: "GPUBindGroup",
+        },
+        diagnostics: [
+          {
+            code: "z.previewRoute",
+            resourceKey: "gpu-material:preview@13",
+          },
+          {
+            code: "a.previewRoute",
+            resourceKey: "gpu-mesh:preview@13",
+          },
+          {
+            code: "z.previewRoute",
+            resourceKey: "gpu-material:preview@13",
+          },
+        ],
+      }),
+    });
+    const summary = createQueuedMaterialFrameResourceRouteShellSummary(shell);
+    const jsonSummary =
+      queuedMaterialFrameResourceRouteShellSummaryToJsonValue(summary);
+
+    expect(shell).toMatchObject({
+      valid: true,
+      status: "prepared",
+      family: "test-preview",
+      facadeMeshResourceKey: "facade-mesh:mesh:cube",
+      facadeMaterialResourceKey: "facade-material:material:test-preview",
+      backendMeshKey: "gpu-mesh:preview@13",
+      backendMaterialKey: "gpu-material:preview@13",
+      pipelineKey: "test-preview|opaque|back|less|none",
+      sourceVersion: 13,
+      frame: 55,
+    });
+    expect(summary).toEqual({
+      valid: true,
+      status: "prepared",
+      family: "test-preview",
+      hasFacadeMeshResourceKey: true,
+      hasFacadeMaterialResourceKey: true,
+      hasBackendMeshKey: true,
+      hasBackendMaterialKey: true,
+      pipelineKey: "test-preview|opaque|back|less|none",
+      sourceVersion: 13,
+      frame: 55,
+      diagnostics: {
+        total: 3,
+        byCode: {
+          "a.previewRoute": 1,
+          "z.previewRoute": 2,
+        },
+      },
+    });
+    expect(jsonSummary).toEqual(summary);
+    expect(JSON.stringify(shell)).not.toMatch(
+      /GPUTexture|GPUBindGroup|rawGpuHandle|bindGroup/,
+    );
+    expect(JSON.stringify(jsonSummary)).not.toMatch(
+      /gpu-material|gpu-mesh|facade-material|facade-mesh|GPU/,
+    );
+  });
 });
 
 function frameResources(

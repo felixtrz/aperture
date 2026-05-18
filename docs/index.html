@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-18 14:45 PDT</dd>
+            <dd>2026-05-18 15:25 PDT</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -593,11 +593,22 @@
               app item, and frame-resource-set contracts with JSON-safe success
               and failure diagnostics. The registration-policy audit now keeps
               built-in required-family diagnostics separate from generic app
-              adapter policy and selects a generic registry validation helper as
-              the next implementation slice.
+              adapter policy. Generic app adapter registry validation now
+              reports optional expected-family coverage with JSON-safe
+              diagnostics while preserving duplicate-family warnings and keeping
+              built-in required-family policy separate. A non-built-in
+              <code>test-preview</code> prepared-resource route shell regression
+              now proves generic route metadata can carry facade and backend
+              resource keys with sorted diagnostic summaries and no raw GPU
+              handles. StandardMaterial shader contract coverage now also locks
+              metallic-roughness texture sampling to multiply the blue channel
+              by <code>metallicFactor</code> and the green channel by
+              <code>roughnessFactor</code>. Browser coverage now proves the same
+              scalar-factor plus metallic-roughness texture path through the
+              glTF fixture with JSON-safe factor/channel status.
             </dd>
             <dt>Next focus</dt>
-            <dd>Add generic app adapter registry validation helper</dd>
+            <dd>Plan app adapter registration or glTF fidelity follow-up</dd>
           </dl>
         </aside>
       </header>
@@ -1113,20 +1124,20 @@
             <h3>Latest work in this update</h3>
             <ul>
               <li>
-                <span class="badge green">task-1657</span> Aligned tracker and
-                backlog after generic app adapter registration policy.
+                <span class="badge green">task-1675</span> Aligned tracker and
+                backlog after metallic-roughness factor browser coverage.
               </li>
               <li>
-                <span class="badge green">task-1656</span> Audited the generic
-                app adapter registration policy audit.
+                <span class="badge green">task-1674</span> Audited the
+                metallic-roughness factor browser proof.
               </li>
               <li>
-                <span class="badge green">task-1655</span> Audited generic app
-                adapter registration policy.
+                <span class="badge green">task-1673</span> Added
+                metallic-roughness factor browser coverage.
               </li>
               <li>
-                <span class="badge green">task-1654</span> Audited the selected
-                registration-policy follow-up plan.
+                <span class="badge green">task-1672</span> Audited the selected
+                browser fidelity follow-up plan.
               </li>
               <li>
                 <span class="badge green">task-1653</span> Planned the next
@@ -2306,15 +2317,12 @@
             <h3>Recommended next tasks</h3>
             <ul>
               <li>
-                <span class="badge amber">next</span> Add the generic app
-                adapter registry validation helper.
+                <span class="badge amber">next</span> Plan app adapter
+                registration or glTF browser fidelity follow-up.
               </li>
-              <li>Audit the registry validation helper implementation.</li>
-              <li>Align tracker/backlog after the helper.</li>
-              <li>
-                Plan the next route or StandardMaterial follow-up after registry
-                validation.
-              </li>
+              <li>Audit the selected post-shader-contract follow-up plan.</li>
+              <li>Implement the selected route or glTF fidelity slice.</li>
+              <li>Audit tracker/backlog alignment after the selected slice.</li>
             </ul>
           </article>
         </div>
