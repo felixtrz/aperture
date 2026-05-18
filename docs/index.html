@@ -393,19 +393,22 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-18 01:51 PDT</dd>
+            <dd>2026-05-18 02:55 PDT</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
-              Route summary group clean-after-failed, test-only non-built-in,
-              mixed-family aggregation, and diagnostic-code sorting coverage are
-              pinned; invalid glTF render-state, unresolved texture-binding,
-              invalid texture-info, and invalid-source no-prepared-resource
-              diagnostics are explicit
+              Route summary determinism is pinned; app-level non-built-in
+              material routing remains deferred until material-family route
+              family keys are registry-driven at the queue boundary,
+              unregistered route keys report grouped JSON diagnostics without
+              fallback, and multiple optional glTF material extensions render
+              with warnings; invalid glTF material scalar factors fail before
+              registration with JSON-safe field/value status, and invalid glTF
+              texture scalar fields do the same
             </dd>
             <dt>Next focus</dt>
-            <dd>Plan route migration readiness or glTF fidelity</dd>
+            <dd>Audit invalid glTF texture scalar diagnostics</dd>
           </dl>
         </aside>
       </header>
@@ -483,7 +486,11 @@
               missing-UV1 diagnostics, texture format/color-space mismatch
               diagnostics, invalid render-state browser diagnostics, unresolved
               texture-binding browser diagnostics, and invalid texture-info
-              browser diagnostics are covered.
+              browser diagnostics are covered. Optional material-extension
+              warnings now include multi-extension browser status coverage, and
+              invalid material scalar-factor diagnostics are covered before
+              registration. Invalid texture scalar-field diagnostics are now
+              covered on the same expected-failure path.
             </p>
           </article>
           <article class="card metric">
@@ -514,7 +521,14 @@
               and invalid texture-info diagnostics now survive JSON-safe
               asset-mapping status without registering or drawing invalid
               materials. Invalid-source browser status also explicitly reports
-              zero prepared resources on no-work frames.
+              zero prepared resources on no-work frames. Valid-but-unregistered
+              route keys now assert grouped JSON route diagnostics without raw
+              GPU handles, and multiple optional glTF material-extension
+              warnings preserve JSON-safe extension fields while rendering the
+              base material. Invalid glTF material scalar-factor failures now
+              preserve JSON-safe field/value diagnostics without creating GPU
+              resources. Invalid glTF texture scalar-field failures now preserve
+              JSON-safe field/value diagnostics while producing no draw work.
             </p>
           </article>
         </div>
@@ -1502,12 +1516,12 @@
             <h3>Recommended next tasks</h3>
             <ul>
               <li>
-                <span class="badge amber">next</span> Plan route migration
-                readiness or glTF fidelity.
+                <span class="badge amber">next</span> Plan next route-boundary
+                or glTF fidelity slice.
               </li>
               <li>
-                Audit route migration readiness if the plan keeps pushing the
-                generic route path.
+                Plan material-family extensibility before app-level route
+                migration.
               </li>
               <li>
                 Keep IBL and shadow work deferred until material texture
@@ -1528,6 +1542,87 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-1303-1306</div>
+            <div>
+              <strong>Unregistered route-key diagnostics covered.</strong>
+              <span
+                >Valid custom route keys now reach app route diagnostics without
+                falling back to built-in rendering or submitting draw
+                work.</span
+              >
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="task-id">task-1295-1305</div>
+            <div>
+              <strong>Optional glTF extension warnings covered.</strong>
+              <span
+                >Unsupported optional material extensions now render the base
+                StandardMaterial while surfacing JSON-safe warning
+                diagnostics.</span
+              >
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="task-id">task-1294-1302</div>
+            <div>
+              <strong>Route-family key boundary accepted.</strong>
+              <span
+                >Decision 0010 keeps source material kinds closed while allowing
+                registry-driven route keys at the queue/adapter boundary, with
+                type-boundary tests for custom route keys.</span
+              >
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="task-id">task-1292</div>
+            <div>
+              <strong>Invalid glTF sampler enum fixture added.</strong>
+              <span
+                >Browser status now preserves invalid sampler enum values and
+                proves malformed sampler fields create no resources, pipelines,
+                or draws.</span
+              >
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="task-id">task-1288-1291</div>
+            <div>
+              <strong
+                >Next sampler diagnostic and route boundary planned.</strong
+              >
+              <span
+                >Audited sampler-index coverage, selected invalid sampler enum
+                browser diagnostics next, and confirmed route migration needs a
+                material-family extensibility plan.</span
+              >
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="task-id">task-1287</div>
+            <div>
+              <strong>Invalid glTF sampler-index fixture added.</strong>
+              <span
+                >Browser status now surfaces sampler-index dependency failures
+                and proves invalid sampler sources create no resources,
+                pipelines, or draws.</span
+              >
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="task-id">task-1282-1286</div>
+            <div>
+              <strong
+                >Route migration deferred; sampler diagnostic selected.</strong
+              >
+              <span
+                >Audited route-summary readiness, found closed material-family
+                contracts still block app-level non-built-in routing, and chose
+                invalid glTF sampler-index browser diagnostics next.</span
+              >
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-1277-1281</div>
             <div>

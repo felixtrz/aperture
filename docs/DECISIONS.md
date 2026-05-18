@@ -256,3 +256,41 @@ Consequences:
 - Before adding PBR or larger frame orchestration, audit existing per-frame
   helpers and add reusable scratch APIs where the current implementation still
   allocates.
+
+## 0010 — Route Family Keys May Be Registry-Driven
+
+Status: accepted
+
+Context:
+
+Aperture's queued material route helpers can already summarize arbitrary
+material-family strings in tests, but the current source material assets and
+app rendering path remain built around a closed set of built-in material kinds.
+Moving directly to app-level non-built-in material rendering would blur source
+asset contracts, queue route keys, WebGPU adapter registration, and diagnostics.
+
+Decision:
+
+Source material asset kinds remain closed until Aperture has an explicit public
+custom material source API. Built-in material assets continue to use the
+`MaterialKind` union.
+
+Material route family keys may become registry-driven strings at the queue and
+adapter boundary. A route family key identifies which prepared-resource and
+frame-resource adapter should handle a queued draw; it does not by itself define
+a valid source material asset or imply render support.
+
+Unsupported route family keys must produce diagnostics. They must not fallback
+to another material family or create hidden renderer-owned source state.
+
+Consequences:
+
+- Future route-family parsing may accept syntactically valid registered-family
+  strings instead of only built-in names.
+- WebGPU app rendering remains limited to families with registered backend
+  adapters.
+- Public custom material authoring still needs a separate source asset,
+  validation, dependency, prepared-resource, pipeline, shader, and diagnostics
+  contract.
+- App-level non-built-in route migration should start with type-boundary and
+  diagnostics tests before adding a real rendered family.

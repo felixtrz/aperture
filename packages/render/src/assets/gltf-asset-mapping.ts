@@ -338,6 +338,7 @@ function textureDiagnosticToAssetDiagnostic(
       ? {}
       : { samplerIndex: diagnostic.samplerIndex }),
     ...(diagnostic.field === undefined ? {} : { field: diagnostic.field }),
+    ...(diagnostic.value === undefined ? {} : { value: diagnostic.value }),
   };
 }
 

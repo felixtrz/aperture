@@ -3364,6 +3364,152 @@ describe("WebGPU app facade", () => {
     expect(events).not.toContain("queue:submit:1");
   });
 
+  it("diagnoses unregistered route family keys without built-in fallback", async () => {
+    const events: string[] = [];
+    const { canvas, environment } = webGpuHarness(events);
+    const created = await createWebGpuApp({
+      canvas,
+      environment,
+      worldOptions: { entityCapacity: 8 },
+    });
+
+    expect(created.ok).toBe(true);
+
+    if (!created.ok) {
+      return;
+    }
+
+    const app = created.app;
+    const assets = createRenderAssetCollections({ registry: app.assets });
+    const mesh = assets.meshes.add(
+      createBoxMeshAsset({ label: "UnregisteredRouteKeyCube" }),
+    );
+    const material = assets.materials.unlit.add(
+      createUnlitMaterialAsset({ label: "Unregistered Route Source" }),
+    );
+
+    app.spawn(
+      withTransform({ translation: [0, 0, 5] }),
+      withCamera({ priority: 0, layerMask: 1 }),
+    );
+    app.spawn(
+      withTransform({ translation: [0, 0, 0] }),
+      withMesh(mesh),
+      withMaterial(material),
+      withRenderLayer(1),
+      withVisibility(true),
+    );
+
+    app.step(1 / 60, 1);
+    const snapshot = app.extract(44);
+    const [draw] = snapshot.meshDraws;
+
+    expect(draw).toBeDefined();
+
+    if (draw === undefined) {
+      return;
+    }
+
+    const pipelineKey = "toon-shaded|opaque|back|less|none";
+    const frame = await app.render({
+      snapshot: renderSnapshotWithDraws(snapshot, 44, [
+        {
+          ...draw,
+          sortKey: {
+            ...draw.sortKey,
+            pipelineKey,
+          },
+          batchKey: {
+            ...draw.batchKey,
+            pipelineKey,
+          },
+        },
+      ]),
+    });
+
+    expect(frame.ok).toBe(false);
+    expect(frame.counts).toMatchObject({
+      meshDraws: 1,
+      drawCalls: 0,
+    });
+    expect(frame.diagnostics).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          code: "webGpuApp.unsupportedMaterialQueueFamily",
+          materialFamily: "toon-shaded",
+        }),
+      ]),
+    );
+
+    const routeReport = materialQueueRouteReport(frame);
+
+    expect(routeReport).toMatchObject({
+      valid: false,
+      queueItemCount: 1,
+      routedItemCount: 0,
+      skippedItemCount: 1,
+      byFamily: [
+        {
+          key: "toon-shaded",
+          queuedCount: 1,
+          routedCount: 0,
+          skippedCount: 1,
+        },
+      ],
+      diagnosticSummary: expect.objectContaining({
+        total: 1,
+        byCode: { "webGpuApp.unsupportedMaterialQueueFamily": 1 },
+      }),
+    });
+
+    const jsonReport = webGpuAppRenderReportToJsonValue(frame);
+
+    expect(jsonReport.diagnosticsSummary).toMatchObject({
+      sectionCount: 1,
+      materialQueueRoute: {
+        valid: false,
+        queueItemCount: 1,
+        routedItemCount: 0,
+        skippedItemCount: 1,
+        byFamily: [
+          {
+            key: "toon-shaded",
+            queuedCount: 1,
+            routedCount: 0,
+            skippedCount: 1,
+          },
+        ],
+        byPhase: [
+          {
+            key: "opaque",
+            queuedCount: 1,
+            routedCount: 0,
+            skippedCount: 1,
+          },
+        ],
+        diagnosticSummary: {
+          total: 1,
+          bySeverity: { info: 0, warning: 0, error: 1 },
+          byCode: { "webGpuApp.unsupportedMaterialQueueFamily": 1 },
+        },
+        diagnostics: [
+          expect.objectContaining({
+            code: "webGpuApp.unsupportedMaterialQueueFamily",
+            materialFamily: "toon-shaded",
+            renderId: expect.any(Number),
+            drawIndex: 0,
+            entity: expect.objectContaining({
+              index: expect.any(Number),
+              generation: expect.any(Number),
+            }),
+          }),
+        ],
+      },
+    });
+    expect(events).not.toContain("queue:submit:1");
+    expect(JSON.stringify(jsonReport)).not.toContain("GPUBuffer");
+  });
+
   it("diagnoses unsupported alpha-test material queue families without submitting", async () => {
     const events: string[] = [];
     const { canvas, environment } = webGpuHarness(events);

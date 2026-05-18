@@ -12815,3 +12815,667 @@ Validation:
 
 - Documentation-only audit; covered by touched-file formatting and final
   `git diff --check`.
+
+## task-1282 — Plan route migration readiness or glTF fidelity after route determinism
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/ROUTE_MIGRATION_READINESS_OR_GLTF_FIDELITY_AFTER_ROUTE_DETERMINISM_PLAN_2026_05_18.md`.
+- Compared app-level route migration readiness, app-status route diagnostics,
+  and StandardMaterial/glTF fidelity work.
+- Selected a route migration readiness audit before any app-level non-built-in
+  material route implementation.
+
+Validation:
+
+- Documentation-only plan; covered by touched-file formatting and final checks.
+
+## task-1283 — Route migration readiness or glTF fidelity plan audit
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/ROUTE_MIGRATION_READINESS_OR_GLTF_FIDELITY_AFTER_ROUTE_DETERMINISM_PLAN_AUDIT_2026_05_18.md`.
+- Confirmed the selected readiness audit was bounded and preserved ECS/render
+  and WebGPU ownership boundaries.
+
+Validation:
+
+- Documentation-only audit; covered by touched-file formatting and final checks.
+
+## task-1284 — Material route migration readiness after route summary determinism
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/MATERIAL_ROUTE_MIGRATION_READINESS_AFTER_ROUTE_DETERMINISM_AUDIT_2026_05_18.md`.
+- Found route-summary diagnostics are strong enough for inspection but not
+  sufficient for app-level non-built-in routing.
+- Deferred app-level route migration until material-family extensibility is
+  planned.
+
+Validation:
+
+- Documentation-only audit; covered by touched-file formatting and final checks.
+
+## task-1285 — Next StandardMaterial/glTF fidelity diagnostic after route defer
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/NEXT_STANDARD_GLTF_FIDELITY_DIAGNOSTIC_AFTER_ROUTE_DEFER_PLAN_2026_05_18.md`.
+- Selected invalid glTF sampler-index browser diagnostics as the next narrow
+  StandardMaterial/glTF follow-up.
+
+Validation:
+
+- Documentation-only plan; covered by touched-file formatting and final checks.
+
+## task-1286 — Tracker/backlog alignment after route determinism
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/TRACKER_BACKLOG_ALIGNMENT_AFTER_ROUTE_DETERMINISM_AND_DEFER_AUDIT_2026_05_18.md`.
+- Updated the public tracker and render pipeline comparison for route deferral
+  and the selected sampler-index diagnostic.
+
+Validation:
+
+- `pnpm run check:progress`
+
+## task-1287 — Invalid glTF sampler-index browser diagnostic
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added an `invalid-sampler-index` scenario to
+  `examples/standard-gltf-texture.js`.
+- Added Playwright coverage proving invalid sampler references surface
+  `gltfTexture.invalidSamplerIndex` plus sampler dependency context and create
+  no resources, pipelines, or draws.
+
+Validation:
+
+- `node --check examples/standard-gltf-texture.js`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "invalid sampler indices"`
+
+## task-1288 — Invalid glTF sampler-index browser diagnostic audit
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/INVALID_GLTF_SAMPLER_INDEX_BROWSER_DIAGNOSTIC_AUDIT_2026_05_18.md`.
+- Confirmed the fixture is source-mapping/status-only and does not change
+  shader, WebGPU upload, route migration, or draw behavior.
+
+Validation:
+
+- Documentation audit backed by the `task-1287` targeted Playwright check.
+
+## task-1289 — Next glTF sampler or optional-extension diagnostic plan
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/NEXT_GLTF_SAMPLER_OR_OPTIONAL_EXTENSION_DIAGNOSTIC_PLAN_2026_05_18.md`.
+- Selected invalid glTF sampler enum browser diagnostics as the next
+  implementation candidate.
+
+Validation:
+
+- Documentation-only plan; covered by touched-file formatting and final checks.
+
+## task-1290 — Material-family extensibility boundary before route migration
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/MATERIAL_FAMILY_EXTENSIBILITY_BOUNDARY_BEFORE_ROUTE_MIGRATION_AUDIT_2026_05_18.md`.
+- Listed the closed `MaterialKind`, `MaterialQueueFamily`, pipeline-family, and
+  built-in app adapter contracts that block safe app-level non-built-in routing.
+
+Validation:
+
+- Documentation-only audit; covered by touched-file formatting and final checks.
+
+## task-1291 — Tracker/backlog alignment after sampler diagnostic
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/TRACKER_BACKLOG_ALIGNMENT_AFTER_SAMPLER_DIAGNOSTIC_AUDIT_2026_05_18.md`.
+- Updated tracker/backlog state after sampler-index coverage and route
+  extensibility planning.
+
+Validation:
+
+- `pnpm run check:progress`
+
+## task-1292 — Invalid glTF sampler enum browser diagnostic
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added an `invalid-sampler-enum` scenario to
+  `examples/standard-gltf-texture.js`.
+- Added Playwright coverage proving malformed sampler enum values surface
+  `gltfTexture.invalidSampler` plus sampler dependency context and create no
+  resources, pipelines, or draws.
+- Preserved texture-layer diagnostic `value` through
+  `packages/render/src/assets/gltf-asset-mapping.ts`.
+
+Validation:
+
+- `node --check examples/standard-gltf-texture.js`
+- `pnpm exec vitest run test/assets/gltf-asset-mapping.test.ts`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "invalid sampler"`
+
+## task-1293 — Invalid glTF sampler enum browser diagnostic audit
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/INVALID_GLTF_SAMPLER_ENUM_BROWSER_DIAGNOSTIC_AUDIT_2026_05_18.md`.
+- Confirmed the fixture preserves invalid sampler field/value context without
+  changing shader behavior, route migration, IBL, shadows, binary GLB loading,
+  or GLB viewer behavior.
+
+Validation:
+
+- Documentation audit backed by the `task-1292` targeted checks.
+
+## task-1296 — Tracker/backlog alignment after sampler enum diagnostic
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/TRACKER_BACKLOG_ALIGNMENT_AFTER_SAMPLER_ENUM_DIAGNOSTIC_AUDIT_2026_05_18.md`.
+- Refilled the ready backlog with material-family extensibility,
+  optional-extension warning, and follow-up audit tasks.
+
+Validation:
+
+- `pnpm run check:progress`
+
+## task-1294 — Material-family extensibility contract plan
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/MATERIAL_FAMILY_EXTENSIBILITY_CONTRACT_PLAN_2026_05_18.md`.
+- Planned route-family extensibility as registry-driven route keys while source
+  material kinds remain closed.
+- Selected a decision record before any type-boundary implementation.
+
+Validation:
+
+- Documentation-only plan; covered by touched-file formatting and final checks.
+
+## task-1297 — Material-family extensibility contract plan audit
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/MATERIAL_FAMILY_EXTENSIBILITY_CONTRACT_PLAN_AUDIT_2026_05_18.md`.
+- Confirmed the plan avoids a hidden custom material API and preserves ECS,
+  render extraction, and WebGPU ownership boundaries.
+
+Validation:
+
+- Documentation-only audit; covered by touched-file formatting and final checks.
+
+## task-1300 — Material-family route key decision
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added Decision 0010 to `docs/DECISIONS.md`.
+- Recorded that source material kinds remain closed while route-family keys may
+  become registry-driven strings at the queue/adapter boundary.
+
+Validation:
+
+- `pnpm run build`
+
+## task-1301 — Route-family key type-boundary test
+
+Completed: 2026-05-18
+
+Summary:
+
+- Updated `MaterialQueueFamily` and `materialQueueFamilyFromPipelineKey()` to
+  accept syntactically valid registry-style route family keys.
+- Added render queue tests for custom route keys and malformed family tokens.
+
+Validation:
+
+- `pnpm exec vitest run test/rendering/material-queue.test.ts`
+
+## task-1302 — Route-family key type-boundary test audit
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/ROUTE_FAMILY_KEY_TYPE_BOUNDARY_TEST_AUDIT_2026_05_18.md`.
+- Confirmed the change does not widen source material kinds or add app-level
+  non-built-in rendering.
+
+Validation:
+
+- Documentation audit backed by the `task-1301` targeted render queue test.
+
+## task-1295 — Optional glTF material-extension warning status plan
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/OPTIONAL_GLTF_MATERIAL_EXTENSION_WARNING_STATUS_PLAN_2026_05_18.md`.
+- Planned unsupported optional material-extension status as rendered-with-warning
+  rather than expected-failure no-work behavior.
+
+Validation:
+
+- Documentation-only plan; covered by touched-file formatting and final checks.
+
+## task-1298 — Optional glTF material-extension warning status plan audit
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/OPTIONAL_GLTF_MATERIAL_EXTENSION_WARNING_STATUS_PLAN_AUDIT_2026_05_18.md`.
+- Confirmed the fixture plan avoids adding optional extension support, route
+  migration, binary GLB loading, or GLB viewer behavior.
+
+Validation:
+
+- Documentation-only audit; covered by touched-file formatting and final checks.
+
+## task-1304 — Optional glTF material-extension warning browser status
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added an `unsupported-optional-material-extension` scenario to
+  `examples/standard-gltf-texture.js`.
+- Added Playwright coverage proving unsupported optional glTF material
+  extensions emit warnings while the base StandardMaterial still registers,
+  prepares resources, creates a pipeline, and draws.
+
+Validation:
+
+- `node --check examples/standard-gltf-texture.js`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "unsupported optional"`
+
+## task-1305 — Optional glTF material-extension warning status audit
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/OPTIONAL_GLTF_MATERIAL_EXTENSION_WARNING_STATUS_AUDIT_2026_05_18.md`.
+- Confirmed the fixture is success-with-warning and does not add clearcoat/PBR
+  support.
+
+Validation:
+
+- Documentation audit backed by the `task-1304` targeted Playwright test.
+
+## task-1303 — Unregistered route-key app diagnostic coverage
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added WebGPU app coverage for a syntactically valid but unregistered
+  `toon-shaded` route key.
+- Confirmed the app emits unsupported route diagnostics, routes zero items, and
+  does not submit fallback draw work.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts -t "unregistered route family"`
+
+## task-1306 — Unregistered route-key app diagnostic coverage audit
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/UNREGISTERED_ROUTE_KEY_APP_DIAGNOSTIC_AUDIT_2026_05_18.md`.
+- Confirmed Decision 0010's unsupported-route behavior at the app diagnostics
+  boundary.
+
+Validation:
+
+- Documentation audit backed by the `task-1303` targeted WebGPU app test.
+
+## task-1299 — Tracker/backlog alignment after extensibility and optional extension
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/TRACKER_BACKLOG_ALIGNMENT_AFTER_ROUTE_EXTENSIBILITY_AND_OPTIONAL_EXTENSION_AUDIT_2026_05_18.md`.
+- Updated public trackers and refilled the ready backlog with `task-1307`
+  through `task-1311`.
+
+Validation:
+
+- `pnpm run check:progress`
+
+## task-1307 — Plan next route-boundary or glTF fidelity slice
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/NEXT_ROUTE_BOUNDARY_OR_GLTF_FIDELITY_SLICE_PLAN_2026_05_18.md`.
+- Compared route-key diagnostics summary coverage, optional-extension warning
+  aggregation/status, and StandardMaterial/glTF fidelity candidates.
+- Selected `task-1309` as the next implementation follow-up: grouped
+  route-key diagnostics summary regression.
+
+Validation:
+
+- Documentation-only planning slice; covered by touched-file formatting and
+  final checks.
+
+## task-1308 — Audit next route-boundary or glTF fidelity plan
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/NEXT_ROUTE_BOUNDARY_OR_GLTF_FIDELITY_SLICE_PLAN_AUDIT_2026_05_18.md`.
+- Confirmed the selected route-key diagnostics summary regression is concrete,
+  JSON-safe, WebGPU-only, and does not add fallback rendering or app-level
+  non-built-in material support.
+- Recommended implementing `task-1309` next.
+
+Validation:
+
+- Documentation-only audit; covered by touched-file formatting and final
+  checks.
+
+## task-1309 — Add route-key diagnostics summary regression
+
+Completed: 2026-05-18
+
+Summary:
+
+- Tightened the unregistered route-family app diagnostic regression in
+  `test/webgpu/webgpu-app.test.ts`.
+- Asserted the JSON-safe material queue route report includes the custom
+  `toon-shaded` family, skipped family/phase counts, diagnostic summary counts,
+  and diagnostic entity context.
+- Confirmed the report does not expose raw `GPUBuffer` handles and does not
+  submit fallback draw work.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts -t "unregistered route family"`
+
+## task-1310 — Plan optional-extension warning aggregation or next glTF fidelity slice
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/OPTIONAL_EXTENSION_WARNING_AGGREGATION_OR_GLTF_FIDELITY_PLAN_2026_05_18.md`.
+- Compared multiple optional-extension warning status, another glTF diagnostic,
+  and a route-boundary candidate.
+- Selected a browser fixture for multiple unsupported optional glTF material
+  extension warnings as the next implementation follow-up and added scoped
+  ready tasks through `task-1315`.
+
+Validation:
+
+- Documentation-only planning slice; covered by touched-file formatting and
+  final checks.
+
+## task-1311 — Audit tracker/backlog alignment after the next selected slice
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/TRACKER_BACKLOG_ALIGNMENT_AFTER_ROUTE_SUMMARY_AND_OPTIONAL_WARNING_PLAN_AUDIT_2026_05_18.md`.
+- Updated the public tracker and render pipeline comparison for grouped
+  unregistered route-key JSON diagnostics and the selected multi-extension
+  warning follow-up.
+- Refilled the ready backlog with scoped tasks through `task-1316`.
+
+Validation:
+
+- `pnpm run check:progress`
+
+## task-1312 — Add multiple optional glTF material-extension warning status
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added a `multiple-optional-material-extensions` browser scenario to
+  `examples/standard-gltf-texture.js`.
+- Added Playwright coverage proving two unsupported optional material extension
+  warnings are preserved with JSON-safe `field` and `extensionName` values.
+- Confirmed the base StandardMaterial texture path still registers, prepares
+  resources, creates a pipeline, and draws.
+
+Validation:
+
+- `node --check examples/standard-gltf-texture.js`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "multiple unsupported optional"`
+
+## task-1313 — Audit multiple optional extension warning status
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/MULTIPLE_OPTIONAL_EXTENSION_WARNING_STATUS_AUDIT_2026_05_18.md`.
+- Confirmed the fixture remains success-with-warning, preserves extension names,
+  and does not add unsupported material extension rendering.
+- Recommended tracker/backlog alignment next.
+
+Validation:
+
+- Documentation audit backed by the `task-1312` targeted browser test.
+
+## task-1314 — Audit tracker/backlog alignment after optional warning aggregation
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/TRACKER_BACKLOG_ALIGNMENT_AFTER_OPTIONAL_WARNING_AGGREGATION_AUDIT_2026_05_18.md`.
+- Updated the public tracker and render pipeline comparison for multiple
+  optional material-extension warning coverage.
+- Refilled the ready backlog with scoped tasks through `task-1320`.
+
+Validation:
+
+- `pnpm run check:progress`
+
+## task-1315 — Plan next route-boundary or StandardMaterial fidelity slice
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/NEXT_ROUTE_BOUNDARY_OR_STANDARD_MATERIAL_FIDELITY_PLAN_2026_05_18.md`.
+- Compared a real route-boundary prerequisite, an invalid StandardMaterial
+  scalar-factor browser diagnostic, and a diagnostics/tooling candidate.
+- Selected `task-1317`: invalid glTF material scalar factor browser diagnostic.
+
+Validation:
+
+- Documentation-only planning slice; covered by touched-file formatting and
+  final checks.
+
+## task-1316 — Audit next route-boundary or StandardMaterial fidelity plan
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/NEXT_ROUTE_BOUNDARY_OR_STANDARD_MATERIAL_FIDELITY_PLAN_AUDIT_2026_05_18.md`.
+- Confirmed the invalid scalar-factor browser diagnostic is concrete, narrow,
+  JSON-safe, and does not add new material rendering or backend behavior.
+- Recommended implementing `task-1317` next.
+
+Validation:
+
+- Documentation-only audit; covered by touched-file formatting and final
+  checks.
+
+## task-1317 — Add invalid glTF material scalar factor browser diagnostic
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added an `invalid-material-scalar` browser scenario to
+  `examples/standard-gltf-texture.js`.
+- Added Playwright coverage proving malformed
+  `pbrMetallicRoughness.metallicFactor` fails before registration/rendering,
+  preserves JSON-safe `field`/`value` diagnostics, and creates no GPU resources
+  or draws.
+
+Validation:
+
+- `node --check examples/standard-gltf-texture.js`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "invalid material scalar"`
+
+## task-1318 — Audit selected follow-up implementation
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/INVALID_GLTF_MATERIAL_SCALAR_BROWSER_DIAGNOSTIC_AUDIT_2026_05_18.md`.
+- Confirmed the invalid scalar-factor fixture satisfies the selected acceptance
+  criteria and preserves JSON-safe field/value diagnostics without adding new
+  rendering behavior.
+- Recommended tracker/backlog alignment next.
+
+Validation:
+
+- Documentation audit backed by the `task-1317` targeted browser test.
+
+## task-1319 — Audit tracker/backlog alignment after selected follow-up
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/TRACKER_BACKLOG_ALIGNMENT_AFTER_INVALID_MATERIAL_SCALAR_AUDIT_2026_05_18.md`.
+- Updated the public tracker and render pipeline comparison for invalid glTF
+  material scalar-factor browser diagnostics.
+- Refilled the ready backlog with scoped tasks through `task-1325`.
+
+Validation:
+
+- `pnpm run check:progress`
+
+## task-1320 — Plan next post-diagnostics material or route slice
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/NEXT_POST_DIAGNOSTICS_MATERIAL_OR_ROUTE_SLICE_PLAN_2026_05_18.md`.
+- Compared an invalid texture scalar browser diagnostic, a route/prepared-resource
+  contract candidate, and diagnostic summary aggregation.
+- Selected `task-1322`: invalid glTF texture scalar browser diagnostic.
+
+Validation:
+
+- Documentation-only planning slice; covered by touched-file formatting and
+  final checks.
+
+## task-1321 — Audit next post-diagnostics material or route plan
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added
+  `docs/research/NEXT_POST_DIAGNOSTICS_MATERIAL_OR_ROUTE_SLICE_PLAN_AUDIT_2026_05_18.md`.
+- Confirmed the invalid texture scalar browser diagnostic is concrete,
+  JSON-safe, and does not add new rendering or backend behavior.
+- Recommended implementing `task-1322` next.
+
+Validation:
+
+- Documentation-only audit; covered by touched-file formatting and final
+  checks.
+
+## task-1322 — Add invalid glTF texture scalar browser diagnostic
+
+Completed: 2026-05-18
+
+Summary:
+
+- Added an `invalid-texture-scalar` browser scenario to
+  `examples/standard-gltf-texture.js`.
+- Added Playwright coverage proving malformed `occlusionTexture.strength`
+  reports `gltfMaterial.invalidField` with JSON-safe `field`/`value` data,
+  prevents material registration, and creates no GPU resources or draws.
+
+Validation:
+
+- `node --check examples/standard-gltf-texture.js`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "invalid texture scalar"`

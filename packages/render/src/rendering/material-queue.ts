@@ -9,7 +9,7 @@ import type {
   RenderSnapshot,
 } from "./snapshot.js";
 
-export type MaterialQueueFamily = MaterialKind;
+export type MaterialQueueFamily = MaterialKind | (string & {});
 
 export interface MaterialQueueResolverInput {
   readonly draw: MeshDrawPacket;
@@ -316,17 +316,15 @@ export function createMaterialQueuePhaseSummary(
 export function materialQueueFamilyFromPipelineKey(
   pipelineKey: string,
 ): MaterialQueueFamily | null {
-  const family = pipelineKey.split("|", 1)[0];
+  const family = pipelineKey.split("|", 1)[0] ?? "";
 
-  switch (family) {
-    case "unlit":
-    case "matcap":
-    case "standard":
-    case "debug-normal":
-      return family;
-    default:
-      return null;
-  }
+  return isMaterialQueueFamilyKey(family) ? family : null;
+}
+
+function isMaterialQueueFamilyKey(
+  family: string,
+): family is MaterialQueueFamily {
+  return /^[a-z][a-z0-9-]*$/.test(family);
 }
 
 function compareMaterialQueueItems(

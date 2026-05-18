@@ -1,5 +1,300 @@
 # Handoff
 
+## Current Run Update — 2026-05-18T09:56:59Z
+
+Completed `task-1282` through `task-1322`. Recommended next task is
+`task-1323`.
+
+Additional highlights since the previous checkpoint:
+
+- Implemented invalid glTF texture scalar-field browser diagnostics.
+- Added the `invalid-texture-scalar` scenario and Playwright coverage proving a
+  malformed `occlusionTexture.strength` preserves JSON-safe `field`/`value`,
+  prevents material registration, and creates no GPU resources or draws.
+- Updated the public tracker and render pipeline comparison for invalid texture
+  scalar-field diagnostics.
+- Refilled the ready backlog through `task-1327`.
+
+Validation:
+
+- `node --check examples/standard-gltf-texture.js`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "invalid texture scalar"`
+- `pnpm run build`
+- `pnpm run lint`
+- `pnpm test`
+- `pnpm run check:progress`
+- `pnpm exec prettier --check ...touched files...`
+- `git diff --check`
+
+Known issues / follow-ups:
+
+- Start `task-1323`: audit invalid glTF texture scalar diagnostics.
+- Real app-level non-built-in material adapter routing remains deferred until a
+  source asset and prepared-resource adapter contract are selected.
+- Binary GLB loading, IBL, shadows, GLB viewer behavior, richer physical
+  material extension support, and full PBR resources remain deferred.
+
+## Current Run Update — 2026-05-18T09:53:11Z
+
+Completed `task-1282` through `task-1321`. Recommended next task is
+`task-1322`.
+
+Additional highlights since the previous checkpoint:
+
+- Implemented and audited invalid glTF material scalar-factor browser
+  diagnostics.
+- Added the `invalid-material-scalar` scenario and Playwright coverage proving a
+  malformed `pbrMetallicRoughness.metallicFactor` fails before registration,
+  preserves JSON-safe `field`/`value`, and creates no GPU resources or draws.
+- Updated the public tracker and render pipeline comparison for invalid material
+  scalar-factor diagnostics.
+- Planned and audited the next selected follow-up: invalid glTF texture scalar
+  browser diagnostics.
+- Refilled the ready backlog through `task-1326`.
+
+Validation:
+
+- `node --check examples/standard-gltf-texture.js`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "invalid material scalar"`
+- `pnpm run build`
+- `pnpm run lint`
+- `pnpm test`
+- `pnpm run check:progress`
+- `pnpm exec prettier --check ...touched files...`
+- `git diff --check`
+
+Known issues / follow-ups:
+
+- Start `task-1322`: add invalid glTF texture scalar browser diagnostics.
+- Real app-level non-built-in material adapter routing remains deferred until a
+  source asset and prepared-resource adapter contract are selected.
+- Binary GLB loading, IBL, shadows, GLB viewer behavior, richer physical
+  material extension support, and full PBR resources remain deferred.
+
+## Current Run Update — 2026-05-18T09:46:32Z
+
+Completed `task-1282` through `task-1316`. Recommended next task is
+`task-1317`.
+
+Highlights since the previous checkpoint:
+
+- Added grouped JSON route-summary assertions for syntactically valid but
+  unregistered material route keys.
+- Planned, audited, implemented, and audited multiple unsupported optional glTF
+  material-extension warning status.
+- Added the `multiple-optional-material-extensions` browser scenario and
+  Playwright coverage proving both optional warnings preserve JSON-safe
+  `field`/`extensionName` values while base StandardMaterial still renders.
+- Updated the public tracker and render pipeline comparison for route summary
+  diagnostics and multi-extension warning coverage.
+- Planned and audited the next selected follow-up: invalid glTF
+  StandardMaterial scalar-factor browser diagnostics.
+- Refilled the ready backlog through `task-1321`.
+
+Reference anchors inspected:
+
+- `docs/NORTH_STAR.md`
+- `docs/MEDIUM_LONG_TERM_GOALS.md`
+- `docs/ARCHITECTURE.md`
+- `docs/DECISIONS.md`
+- `packages/render/src/materials/gltf-material.ts`
+- `packages/webgpu/src/webgpu/material-queue-route-report.ts`
+- `examples/standard-gltf-texture.js`
+- `test/e2e/standard-gltf-texture.spec.ts`
+- `test/webgpu/webgpu-app.test.ts`
+
+Files touched:
+
+- `agent/BACKLOG.md`
+- `agent/COMPLETED.md`
+- `agent/HANDOFF.md`
+- `agent/STATUS.json`
+- `docs/DECISIONS.md`
+- `docs/index.html`
+- `docs/render-pipeline-comparison.html`
+- `docs/research/*2026_05_18.md` notes for the completed plans/audits
+- `examples/standard-gltf-texture.js`
+- `packages/render/src/assets/gltf-asset-mapping.ts`
+- `packages/render/src/rendering/material-queue.ts`
+- `test/e2e/standard-gltf-texture.spec.ts`
+- `test/rendering/material-queue.test.ts`
+- `test/webgpu/webgpu-app.test.ts`
+
+Validation:
+
+- `node --check examples/standard-gltf-texture.js`
+- `pnpm exec vitest run test/assets/gltf-asset-mapping.test.ts`
+- `pnpm exec vitest run test/rendering/material-queue.test.ts`
+- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts -t "unregistered route family"`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "invalid sampler indices"`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "invalid sampler"`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "unsupported optional"`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "multiple unsupported optional"`
+- `pnpm run build`
+- `pnpm run lint`
+- `pnpm test`
+- `pnpm run check:progress`
+- `pnpm exec prettier --check ...touched files...`
+- `git diff --check`
+
+Known issues / follow-ups:
+
+- Start `task-1317`: add invalid glTF material scalar-factor browser
+  diagnostics.
+- Real app-level non-built-in material adapter routing remains deferred until a
+  source asset and prepared-resource adapter contract are selected.
+- Binary GLB loading, IBL, shadows, GLB viewer behavior, richer physical
+  material extension support, and full PBR resources remain deferred.
+
+## Current Run Update — 2026-05-18T09:33:30Z
+
+Completed `task-1282` through `task-1306`, including the stop-hook-requested
+continuation work. Recommended next task is `task-1307`.
+
+Highlights:
+
+- Planned and audited the route-migration readiness branch after route-summary
+  determinism, then deferred app-level non-built-in material routing until the
+  material-family extensibility contract was explicit.
+- Added browser diagnostics for invalid glTF sampler indices and invalid
+  sampler enum values in the StandardMaterial texture fixture.
+- Preserved invalid sampler enum `value` fields through
+  `packages/render/src/assets/gltf-asset-mapping.ts` so JSON-safe app status
+  includes the offending value.
+- Recorded Decision 0010: source `MaterialKind` stays closed, while route family
+  keys may be registry-driven strings at the queue/adapter boundary.
+- Opened `MaterialQueueFamily` to validated registry-style route keys without
+  adding fallback rendering for unsupported route families.
+- Added an app-level regression proving unregistered route family keys are
+  diagnosed and skipped without creating GPU resources or submitting work.
+- Added an optional glTF material extension warning fixture proving unsupported
+  non-required extensions fall back to base StandardMaterial rendering with a
+  warning.
+- Updated the public tracker and render pipeline comparison as the diagnostics,
+  route-family contract, and optional-extension warning status landed.
+- Refilled the ready backlog with `task-1307` through `task-1311`.
+
+Reference anchors inspected:
+
+- Aperture docs: North Star, Roadmap, medium/long-term goals, architecture, and
+  decisions.
+- Local render-route and glTF fixture tests around material queues, app
+  diagnostics, and StandardMaterial texture browser scenarios.
+- Bevy-oriented route/extraction constraints from the existing project docs were
+  used for the render-bridge/audit slices; no reference code was copied.
+
+Files touched:
+
+- `agent/BACKLOG.md`
+- `agent/COMPLETED.md`
+- `agent/HANDOFF.md`
+- `agent/STATUS.json`
+- `docs/DECISIONS.md`
+- `docs/index.html`
+- `docs/render-pipeline-comparison.html`
+- `docs/research/*2026_05_18.md` notes for the completed plans/audits
+- `examples/standard-gltf-texture.js`
+- `packages/render/src/assets/gltf-asset-mapping.ts`
+- `packages/render/src/rendering/material-queue.ts`
+- `test/e2e/standard-gltf-texture.spec.ts`
+- `test/rendering/material-queue.test.ts`
+- `test/webgpu/webgpu-app.test.ts`
+
+Validation:
+
+- `node --check examples/standard-gltf-texture.js`
+- `pnpm exec vitest run test/assets/gltf-asset-mapping.test.ts`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "invalid sampler indices"`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "invalid sampler"`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "unsupported optional"`
+- `pnpm exec vitest run test/rendering/material-queue.test.ts`
+- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts -t "unregistered route family"`
+- `pnpm run build`
+- `pnpm run lint`
+- `pnpm test`
+- `pnpm run check:progress`
+- `pnpm exec prettier --check ...touched files...`
+- `git diff --check`
+
+Known issues / follow-ups:
+
+- Start `task-1307`: plan the next route-boundary or glTF fidelity slice.
+- Real app-level non-built-in material adapter routing remains deferred until a
+  concrete registry/adapter slice is selected.
+- Binary GLB loading, IBL, shadows, GLB viewer behavior, richer material
+  extension support, and full PBR resources remain deferred.
+
+## Current Run Update — 2026-05-18T09:20:02Z
+
+Completed `task-1282` through `task-1293`, plus `task-1296`. Recommended next
+task is `task-1294`.
+
+Highlights:
+
+- Planned and audited route migration readiness after route-summary
+  determinism.
+- Audited app-level non-built-in material route readiness and deferred it until
+  material-family extensibility is planned across `MaterialKind`,
+  `MaterialQueueFamily`, pipeline-family parsing, prepared-resource adapters,
+  and app diagnostics.
+- Planned, implemented, and audited invalid glTF sampler-index browser
+  diagnostics.
+- Planned, implemented, and audited invalid glTF sampler enum browser
+  diagnostics.
+- Preserved texture-layer diagnostic `value` through
+  `packages/render/src/assets/gltf-asset-mapping.ts` so invalid sampler enum
+  values survive into JSON-safe app status.
+- Updated `docs/index.html` and `docs/render-pipeline-comparison.html` for the
+  sampler diagnostics and route-migration deferral.
+- Refilled the ready backlog with `task-1294`, `task-1295`, `task-1297`,
+  `task-1298`, and `task-1299`.
+
+Files touched:
+
+- `agent/BACKLOG.md`
+- `agent/COMPLETED.md`
+- `agent/HANDOFF.md`
+- `agent/STATUS.json`
+- `docs/index.html`
+- `docs/render-pipeline-comparison.html`
+- `docs/research/ROUTE_MIGRATION_READINESS_OR_GLTF_FIDELITY_AFTER_ROUTE_DETERMINISM_PLAN_2026_05_18.md`
+- `docs/research/ROUTE_MIGRATION_READINESS_OR_GLTF_FIDELITY_AFTER_ROUTE_DETERMINISM_PLAN_AUDIT_2026_05_18.md`
+- `docs/research/MATERIAL_ROUTE_MIGRATION_READINESS_AFTER_ROUTE_DETERMINISM_AUDIT_2026_05_18.md`
+- `docs/research/NEXT_STANDARD_GLTF_FIDELITY_DIAGNOSTIC_AFTER_ROUTE_DEFER_PLAN_2026_05_18.md`
+- `docs/research/TRACKER_BACKLOG_ALIGNMENT_AFTER_ROUTE_DETERMINISM_AND_DEFER_AUDIT_2026_05_18.md`
+- `docs/research/INVALID_GLTF_SAMPLER_INDEX_BROWSER_DIAGNOSTIC_AUDIT_2026_05_18.md`
+- `docs/research/NEXT_GLTF_SAMPLER_OR_OPTIONAL_EXTENSION_DIAGNOSTIC_PLAN_2026_05_18.md`
+- `docs/research/MATERIAL_FAMILY_EXTENSIBILITY_BOUNDARY_BEFORE_ROUTE_MIGRATION_AUDIT_2026_05_18.md`
+- `docs/research/TRACKER_BACKLOG_ALIGNMENT_AFTER_SAMPLER_DIAGNOSTIC_AUDIT_2026_05_18.md`
+- `docs/research/INVALID_GLTF_SAMPLER_ENUM_BROWSER_DIAGNOSTIC_AUDIT_2026_05_18.md`
+- `docs/research/TRACKER_BACKLOG_ALIGNMENT_AFTER_SAMPLER_ENUM_DIAGNOSTIC_AUDIT_2026_05_18.md`
+- `examples/standard-gltf-texture.js`
+- `packages/render/src/assets/gltf-asset-mapping.ts`
+- `test/e2e/standard-gltf-texture.spec.ts`
+
+Validation:
+
+- `node --check examples/standard-gltf-texture.js`
+- `pnpm exec vitest run test/assets/gltf-asset-mapping.test.ts`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "invalid sampler indices"`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "invalid sampler"`
+- `pnpm run check:progress`
+- `pnpm exec prettier --check ...touched files...`
+- `git diff --check`
+- `pnpm run build`
+- `pnpm run lint`
+- `pnpm test`
+
+Known issues / follow-ups:
+
+- Start `task-1294`: plan the material-family extensibility contract before
+  any app-level non-built-in route migration.
+- `task-1295` is ready if the next run prefers to stay on StandardMaterial/glTF
+  fidelity and plan optional-extension warning status.
+- Real app-level non-built-in material adapter routing, public material-family
+  plugin APIs, binary GLB loading, IBL, shadows, GLB viewer behavior, and full
+  PBR resources remain deferred.
+
 ## Current Run Update — 2026-05-18T08:52:40Z
 
 Completed `task-1243` and `task-1247` through `task-1281`. Recommended next

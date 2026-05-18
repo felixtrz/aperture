@@ -397,11 +397,11 @@ describe("material family render queue", () => {
     expect(JSON.stringify(plan.diagnostics)).not.toContain("GPU");
   });
 
-  it("diagnoses unknown material family tokens before resolving resources", () => {
+  it("diagnoses malformed material family tokens before resolving resources", () => {
     const snapshot = renderSnapshot([
       drawPacket({
         renderId: 9,
-        materialFamily: "toon",
+        materialFamily: "bad family",
         meshId: "sphere",
         materialId: "ink",
       }),
@@ -530,7 +530,7 @@ describe("material family render queue", () => {
     expect(serialized).not.toContain("GPU");
   });
 
-  it("extracts known material family tokens from pipeline keys", () => {
+  it("extracts built-in and custom material family tokens from pipeline keys", () => {
     expect(materialQueueFamilyFromPipelineKey("unlit|opaque")).toBe("unlit");
     expect(materialQueueFamilyFromPipelineKey("matcap|opaque")).toBe("matcap");
     expect(materialQueueFamilyFromPipelineKey("standard|opaque")).toBe(
@@ -539,7 +539,13 @@ describe("material family render queue", () => {
     expect(materialQueueFamilyFromPipelineKey("debug-normal|opaque")).toBe(
       "debug-normal",
     );
-    expect(materialQueueFamilyFromPipelineKey("toon|opaque")).toBeNull();
+    expect(materialQueueFamilyFromPipelineKey("toon|opaque")).toBe("toon");
+    expect(materialQueueFamilyFromPipelineKey("toon-shaded|opaque")).toBe(
+      "toon-shaded",
+    );
+    expect(materialQueueFamilyFromPipelineKey("|opaque")).toBeNull();
+    expect(materialQueueFamilyFromPipelineKey("bad family|opaque")).toBeNull();
+    expect(materialQueueFamilyFromPipelineKey("Standard|opaque")).toBeNull();
   });
 });
 
