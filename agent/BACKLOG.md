@@ -59,108 +59,17 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start with `task-1758`: inspect the alpha/render-state browser tests for
-real JSON-safe status assertion gaps, then tighten a focused slice or switch
-to transform-status hardening if alpha coverage is already sufficient. Keep
-`task-1761` ready as a critical depth-attachment fix after this status
-hardening chain.
-`task-1421` through `task-1757` completed GLB
-metallic-roughness transformed-UV1 coverage, combined StandardMaterial browser
-coverage for base-color/metallic-roughness, base-color/metallic-roughness/normal,
-base-color/occlusion/emissive, and base-color/alpha-mask/emissive, built-in app
-adapter validation diagnostics, generic app diagnostics/resource item/set route
-contract cleanup, audits, tracker alignment, alpha texture assertion helper
-cleanup, follow-up planning, generic routed-item report serialization, and the
-remaining route collector diagnostics surface audit. This run selected,
-implemented, and audited occlusion strength and normal texture scale
-StandardMaterial/glTF browser mapping coverage. The normal-scale follow-up now
-renders a scalar control plane beside the reduced-scale normal plane inside the
-glTF fixture and verifies deterministic screenshot/readback deltas. This run
-also added metallic-roughness and occlusion/emissive dependency diagnostics,
-an unknown route-family regression, and the associated planning/audits/tracker
-alignment. The route diagnostics naming follow-up confirmed the public
-diagnostic field remains `report`, selected valid non-default glTF sampler
-mapping browser coverage as the next implementation slice, confirmed tracker
-freshness after the naming track, added the sampler mapping browser
-implementation, audited it, aligned the tracker/backlog, selected glTF sampler
-wrap visual browser proof as the next implementation direction, audited that
-plan, aligned tracker/backlog state, implemented the repeat-sampler visual
-browser proof, audited it, aligned tracker/backlog state, extracted the app
-material dependency readiness collector, audited the extraction, and aligned
-tracker/backlog state, selected emissive-factor-only glTF browser coverage as
-the next focused StandardMaterial fidelity slice, audited that plan, implemented
-the browser proof, audited the implementation, aligned tracker/backlog state,
-selected scalar StandardMaterial app route summary field-shape coverage,
-audited that plan, implemented the focused regression, aligned the backlog, and
-selected route-failure summary field-shape coverage, audited that plan,
-implemented the focused regression, aligned the backlog, selected
-emissive-factor-only glTF material mapping coverage, audited that plan,
-implemented the mapper regression, aligned the backlog, selected invalid
-emissive-factor glTF mapping coverage, audited that plan, implemented the
-invalid-field regression, aligned the backlog, and selected mixed-family
-routed-resource summary field-shape coverage as the next route-focused
-follow-up, audited that plan, and added the focused mixed-family app summary
-regression, audited the implementation, and aligned tracker/backlog state.
-The next route/prepared-resource plan selected queued prepare-route app
-diagnostic normalization extraction, audited that plan, and implemented the
-helper extraction, audited the implementation, and aligned tracker/backlog
-state. The follow-up plan selected frame-resource route app diagnostic helper
-extraction, audited the plan, implemented the helper, audited the
-implementation, and aligned tracker/backlog state. The next plan selected
-glTF base-color factor texture tint browser coverage, audited the plan,
-implemented the fixture, audited the implementation, and aligned
-tracker/backlog state. The next plan selected an agent-readable material route
-diagnostics map, audited the plan, wrote the map, audited it, and aligned
-tracker/backlog state. The next route plan decomposed non-built-in app material
-adapter support into safe ordered slices, audited that decomposition, and
-aligned tracker/backlog state. The generic app adapter contract readiness audit
-found the registry, prepare-route, app resource item, and frame-resource-set
-contracts are already string-keyed and generic enough for a test-only
-non-built-in proof, while source material kinds and app registration policy
-remain intentionally built-in-only.
-The follow-up test-only proof now routes a non-public `test-preview` material
-family through the generic adapter registry, prepare-route helper, app resource
-item, and frame-resource-set contracts with JSON-safe failure diagnostics.
-The registration-policy audit selected and implemented a generic adapter
-registry validation helper, keeping built-in required-family diagnostics
-separate from generic app adapter policy. The route-shell follow-up proved
-non-built-in `test-preview` prepared-resource route metadata through the
-generic route shell summary without public material APIs or raw GPU handles.
-The StandardMaterial follow-up added shader contract coverage proving
-metallic-roughness texture channels multiply `metallicFactor` and
-`roughnessFactor`, then added browser coverage for the same scalar-factor plus
-metallic-roughness texture path with JSON-safe channel/factor status. Decision
-0012 now accepts custom material source assets as data-only registered-family
-instances while deferring source validation implementation, app-owned adapter
-facades, rendered custom families, IBL, shadows, and binary GLB loading. A
-follow-up non-binding source validation taxonomy now defines future
-`customMaterialSource.*` shape diagnostics and keeps them separate from route,
-dependency, preparation, frame-resource, pipeline, and app facade diagnostics.
-A fixture matrix now gives future tests concrete valid/invalid custom source
-examples and expected JSON-safe `customMaterialSource.*` diagnostic records
-without adding public source APIs or runtime validators.
-A local test-only fixture now executes those guardrails and verifies source
-diagnostics stay in the `customMaterialSource.*` layer while omitting raw
-handles, callbacks, cache objects, and source payload bytes from JSON output.
-Public diagnostics docs now include this custom source validation boundary
-while still deferring package validators, public source types, app-owned adapter
-facades, and rendered custom material families.
-StandardMaterial/glTF browser coverage now also pins the exact non-default
-emissive factor and sampled emissive texture color exposed through JSON-safe
-status for the mapped emissive texture scenario and the combined
-base-color/occlusion/emissive and base-color/alpha-mask/emissive scenarios.
-Metallic-roughness browser coverage now pins exact base channel status values
-for standalone, combined base-color, and combined base-color plus normal
-fixtures.
-Occlusion browser coverage now pins the exact sampled red-channel status across
-standalone, occlusion-strength, and combined base-color/occlusion/emissive
-fixtures.
-A follow-up audit found the assertion-hardening sweep useful and recommends
-alpha/render-state status or texture-transform status as the next focused glTF
-fidelity direction. The selected follow-up plan chose alpha/render-state status
-hardening, but the plan audit requires inspecting existing alpha tests first and
-switching to texture-transform status hardening if no meaningful alpha gap
-remains.
+Start with `task-1789`: plan the GLTF scene vertical slice. The user has
+changed the near-term priority: Aperture should render glTF/GLB-style scenes
+with multiple primitive shapes, transforms, built-in materials, IBL, and shadows
+as soon as practical, while still using the full ECS -> extraction ->
+render-world preparation -> queue/sort -> WebGPU submit architecture.
+
+The previous micro-hardening tasks remain useful but are no longer the main
+ready queue unless they directly block the scene slice. Public custom
+shader/material APIs, shader graphs, app-owned custom adapter facades, and broad
+custom material rendering should wait until the built-in glTF scene path can
+support real test applications.
 
 ## Near-Term Proof Point Track
 
@@ -177,72 +86,78 @@ Target proof point:
 
 Remaining automation priority order:
 
-1. `task-1758` — implement the selected alpha/render-state or transform status
-   slice.
-2. `task-1759` — audit the selected implementation slice.
-3. `task-1760` — audit tracker/backlog alignment after the selected slice.
-4. `task-1761` — attach a depth-stencil texture so opaque draws depth-test.
-5. `task-1762` — audit the depth-attachment fix after implementation.
+1. `task-1789` — plan the GLTF scene vertical slice and its ordered blocker
+   list.
+2. `task-1790` — define the glTF scene import/data contract for multiple
+   primitives, built-in materials, IBL, and shadow intent.
+3. `task-1791` — implement the first multi-primitive/multi-material scene
+   fixture through the public app path.
+4. `task-1792` — add the first environment/IBL resource path needed by that
+   scene.
+5. `task-1793` — add the first shadow-map path needed by that scene.
+6. `task-1794` — audit the scene slice architecture and tracker alignment.
 
-Defer allocation-only cleanup and metadata-only shader-contract tasks unless
-they are a direct blocker for this track.
+Defer allocation-only cleanup, metadata-only shader-contract tasks, public
+custom material source work, and app-owned custom adapter facades unless they
+are a direct blocker for this track.
 
 ## Strategic Focus
 
-The next focus area is the renderer/material architecture spine:
+The next focus area is the glTF scene architecture spine:
 
 ```text
-source material asset
+glTF/GLB-derived scene data
+  -> ECS entities, transforms, typed mesh/material/light/environment assets
+  -> render snapshot
+  -> source material asset
   -> readiness diagnostics
   -> render queue item
   -> prepared WebGPU resources
+  -> IBL/shadow resources where supported
   -> pipeline and bind groups
   -> draw submission
 ```
 
-Do not prioritize IBL, shadows, a GLB viewer, or broader feature work until this
-spine is generic enough that new material families do not require another
-family-specific app route. The current renderer can already prove the ECS-to-
-WebGPU path with lit StandardMaterial content; the main risk now is letting the
-specialized proof path become permanent architecture.
+Prioritize a narrow GLTF scene app over further isolated route/material
+hardening. IBL and shadows are now part of the near-term scene milestone, but
+they should be added as real render resources and diagnostics over the same app
+path, not as disconnected demos. The current renderer can already prove the
+ECS-to-WebGPU path with lit StandardMaterial content; the main risk now is
+spending more cycles on tiny status assertions while the user-facing scene path
+remains absent.
 
 Preferred refill order after the current ready queue:
 
-1. Finish generic material-family queue and preparation contracts inside the
-   existing WebGPU app/render-world path.
-2. Tighten StandardMaterial glTF metallic-roughness fidelity: texture
-   dependency diagnostics, sampler/color-space/UV behavior, alpha modes,
-   double-sided/cull behavior, and compatibility audits.
-3. Mature render-world/prepared-asset lifetime, cache reports, resource
-   invalidation, and hot-path allocation discipline for the material queue.
-4. Add IBL/environment lighting for StandardMaterial once source material and
-   prepared-resource contracts are stable.
-5. Add shadow-map passes and StandardMaterial shadow sampling after IBL or when
-   a focused proof point requires shadows.
-6. Bring GLB material mapping and viewer work forward only when it can target
-   real `StandardMaterial` and `UnlitMaterial` behavior without pretending
-   unsupported PBR features are rendered.
+1. Define the GLTF scene vertical-slice contract and select the smallest scene
+   fixture that proves multiple primitive shapes, multiple built-in materials,
+   transforms, camera, light, IBL intent, and shadow intent.
+2. Implement scene data mapping into existing typed assets and ECS authoring,
+   preserving the render extraction boundary and JSON-safe diagnostics.
+3. Render the scene through the app facade with multiple built-in materials and
+   stable queue/sort diagnostics.
+4. Add environment/IBL resources and StandardMaterial sampling for the scene.
+5. Add the first shadow-map pass and StandardMaterial shadow sampling for the
+   scene.
+6. Audit architecture drift, then fill remaining GLB/container parsing,
+   resource lifetime, batching, and diagnostics gaps exposed by the scene.
 
-Estimated remaining runway to a credible lit glTF render pipeline:
+Estimated remaining runway to a useful GLTF scene render pipeline:
 
-- About 14-20 focused automation tasks for a production-shaped pipeline that can
-  load/map simple GLB materials and render lit metallic-roughness content with
-  honest diagnostics, assuming no major redesign is found.
-- About 10-14 of those tasks are renderer/material architecture work: generic
-  queue adapters, render-world prepared resources, phase sorting, resource
-  lifetime/cache reporting, warning guards, and audits.
-- About 5-7 tasks are StandardMaterial/glTF fidelity work: final dependency
-  diagnostics, sampler/color-space/UV/alpha/double-sided behavior, and browser
-  verification.
-- About 3-5 tasks are minimal GLB material mapping/viewer integration once the
-  above contracts are stable.
-- IBL and shadows can add another 6-10 tasks if "complete" means physically
-  plausible environment-lit and shadowed PBR rather than direct-lit glTF
-  metallic-roughness rendering.
+- About 18-28 focused automation tasks for a production-shaped slice that maps
+  simple glTF/GLB-derived scene data, renders multiple primitive shapes and
+  built-in materials, and includes first IBL plus shadow support with honest
+  diagnostics.
+- About 5-7 tasks are scene/import contract and public app fixture work.
+- About 5-8 tasks are StandardMaterial/glTF fidelity and built-in material
+  integration needed by the scene.
+- About 4-6 tasks are IBL/environment resource, binding, shader, and browser
+  proof work.
+- About 5-7 tasks are shadow-map pass, light extraction, shadow resource,
+  shader sampling, and browser proof work.
 
-Keep GLB work narrow until StandardMaterial PBR is ready enough to map glTF
-materials honestly. GLB container parsing and diagnostics are fine, but GLB
-viewer/material mapping should not outrun the material and queue architecture.
+Keep GLTF work narrow, but no longer postpone the scene app. Container parsing,
+IBL, and shadows should advance only when they feed the scene vertical slice
+through the established ECS/render boundary.
 
 ## Ready Tasks By Category
 
@@ -8415,6 +8330,9 @@ Acceptance criteria:
 
 ### task-1758 — Implement selected alpha/render-state or transform status slice
 
+Status: completed 2026-05-19. See
+`docs/research/STANDARD_GLTF_ALPHA_RENDER_STATE_STATUS_ASSERTION_IMPLEMENTATION_AUDIT_2026_05_19.md`.
+
 Category: `webgpu-render`
 Package/write-scope:
 To be narrowed by `task-1756`; expected to stay within targeted
@@ -8432,6 +8350,9 @@ Acceptance criteria:
 
 ### task-1759 — Audit selected implementation slice
 
+Status: completed 2026-05-19. See
+`docs/research/STANDARD_GLTF_ALPHA_RENDER_STATE_STATUS_ASSERTION_IMPLEMENTATION_AUDIT_2026_05_19.md`.
+
 Category: `audit-refactor`
 Package/write-scope: `docs/research`, targeted tests only if a tiny corrective
 fix is required.
@@ -8446,6 +8367,10 @@ Acceptance criteria:
 - Recommend tracker/backlog alignment or the next implementation follow-up.
 
 ### task-1760 — Audit tracker/backlog alignment after selected slice
+
+Status: completed 2026-05-19. See
+`docs/index.html`, `docs/render-pipeline-comparison.html`, and this backlog
+update.
 
 Category: `docs-tooling`
 Package/write-scope: `docs/index.html`, `docs/render-pipeline-comparison.html`,
@@ -8462,6 +8387,9 @@ Acceptance criteria:
 - Run `pnpm run check:progress` after tracker edits.
 
 ### task-1761 — Attach a depth-stencil texture so opaque draws depth-test
+
+Status: completed 2026-05-19. See
+`docs/research/DEPTH_ATTACHMENT_FIX_AUDIT_2026_05_18.md`.
 
 Category: `webgpu-render`
 Package/write-scope:
@@ -8539,6 +8467,9 @@ Acceptance criteria:
 
 ### task-1762 — Audit depth-attachment fix after implementation
 
+Status: completed 2026-05-19. See
+`docs/research/DEPTH_ATTACHMENT_FIX_IMPLEMENTATION_AUDIT_2026_05_19.md`.
+
 Category: `audit-refactor`
 Package/write-scope:
 `docs/research`, targeted tests only if a tiny corrective fix is required.
@@ -8557,6 +8488,667 @@ Acceptance criteria:
   design and that diagnostics stay JSON-safe.
 - Confirm targeted unit/browser coverage and tracker updates are sufficient,
   or document the smallest follow-up.
+
+### task-1763 — Audit tracker/backlog alignment after depth attachment
+
+Status: completed 2026-05-19. See `docs/index.html`,
+`docs/render-pipeline-comparison.html`, and this backlog update.
+
+Category: `docs-tooling`
+Package/write-scope: `docs/index.html`, `docs/render-pipeline-comparison.html`,
+`agent/BACKLOG.md`, and `docs/research`.
+Reference anchor:
+the `task-1761`/`task-1762` results, `docs/ARCHITECTURE.md`, and
+`docs/MEDIUM_LONG_TERM_GOALS.md`.
+
+Acceptance criteria:
+
+- Update public tracker pages if depth-test/write status or recommended next
+  task changed.
+- Confirm at least five categorized, scoped ready tasks remain.
+- Run `pnpm run check:progress` after tracker edits.
+
+### task-1764 — Plan next renderer/material architecture slice after depth
+
+Status: completed 2026-05-19. See
+`docs/research/NEXT_RENDERER_MATERIAL_AFTER_DEPTH_PLAN_2026_05_19.md`.
+
+Category: `docs-tooling`
+Package/write-scope: `docs/research` and backlog only.
+Reference anchor:
+`docs/MEDIUM_LONG_TERM_GOALS.md`, `docs/ARCHITECTURE.md`,
+`docs/DECISIONS.md`, the depth-attachment implementation/audit, and relevant
+`references/engine` and `references/three.js` material/pipeline code.
+
+Acceptance criteria:
+
+- Compare one generic material-family queue/prepared-resource candidate, one
+  StandardMaterial/glTF fidelity candidate, and one diagnostics/tooling
+  candidate.
+- Select exactly one follow-up task with category, package/write-scope,
+  reference anchor, and acceptance criteria.
+- Keep the selected task to one focused run.
+
+### task-1765 — Tighten transformed texture status assertions
+
+Status: completed 2026-05-19. See
+`docs/research/NORMAL_TEXTURE_TRANSFORM_STATUS_ASSERTION_AUDIT_2026_05_19.md`.
+
+Category: `webgpu-render`
+Package/write-scope:
+`test/e2e/standard-gltf-texture.spec.ts`; implementation files only if the
+status assertion exposes a focused defect.
+Reference anchor:
+existing transformed texture browser fixtures in
+`test/e2e/standard-gltf-texture.spec.ts`, `examples/standard-gltf-texture.js`,
+`references/three.js` texture transform handling, and `references/engine`
+material texture transform handling.
+
+Acceptance criteria:
+
+- Pick one under-asserted transformed texture fixture among normal, occlusion,
+  or emissive texture transforms.
+- Replace broad status matchers with exact JSON-safe transform, texCoord,
+  slot/readiness, and pipeline-key assertions where the fixture already exposes
+  that data.
+- Preserve existing screenshot/readback checks and WebGPU warning guards.
+- Do not add new material features, IBL, shadows, binary GLB loading, or public
+  custom material APIs.
+
+### task-1766 — Audit transformed texture status assertion hardening
+
+Status: completed 2026-05-19. See
+`docs/research/NORMAL_TEXTURE_TRANSFORM_STATUS_ASSERTION_AUDIT_2026_05_19.md`.
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research`, targeted tests only if a tiny corrective
+fix is required.
+Reference anchor:
+the `task-1765` implementation, `docs/ARCHITECTURE.md`,
+`docs/MEDIUM_LONG_TERM_GOALS.md`, existing transformed texture browser
+fixtures, and relevant `references/three.js` / `references/engine` material
+texture transform handling.
+
+Acceptance criteria:
+
+- Confirm the transformed texture assertion slice tightened status coverage
+  without adding unsupported material features.
+- Confirm JSON-safe status remains free of raw GPU handles and source payload
+  blobs.
+- Recommend tracker/backlog alignment or the smallest follow-up.
+
+### task-1767 — Add app depth attachment resize report regression
+
+Status: completed 2026-05-19. See
+`docs/research/DEPTH_ATTACHMENT_RESIZE_REPORT_REGRESSION_AUDIT_2026_05_19.md`.
+
+Category: `webgpu-render`
+Package/write-scope:
+`test/webgpu/webgpu-app.test.ts` and focused WebGPU app test fixtures; app
+implementation files only if the test exposes a resize/report defect.
+Reference anchor:
+`packages/webgpu/src/webgpu/depth-texture-resource.ts`,
+`packages/webgpu/src/webgpu/app.ts`, `references/three.js` depth-buffer resize
+handling, and `references/engine` WebGPU render-target depth attachment
+lifecycle.
+
+Acceptance criteria:
+
+- Add a focused app-level regression that renders, changes the canvas/output
+  size, renders again, and asserts the JSON-safe depth report reflects the new
+  dimensions.
+- Confirm the depth texture cache reuses same-size attachments and recreates
+  resized attachments without exposing raw GPU objects.
+- Keep the test within the existing single forward pass; do not add a render
+  graph, multi-pass API, IBL, shadows, or public custom material APIs.
+
+### task-1768 — Audit app depth attachment resize report coverage
+
+Status: completed 2026-05-19. See
+`docs/research/DEPTH_ATTACHMENT_RESIZE_REPORT_REGRESSION_AUDIT_2026_05_19.md`.
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research`, targeted tests only if a tiny corrective
+fix is required.
+Reference anchor:
+the `task-1767` regression, `docs/ARCHITECTURE.md`,
+`docs/MEDIUM_LONG_TERM_GOALS.md`, and WebGPU app depth attachment reports.
+
+Acceptance criteria:
+
+- Confirm depth resize coverage remains app/resource-cache scoped and does not
+  move simulation state into the renderer.
+- Confirm the report shape stays JSON-safe and useful for browser/agent status
+  checks.
+- Recommend whether the renderer/material track should proceed to transformed
+  texture status hardening, generic material-family contracts, or another
+  depth/resource lifecycle follow-up.
+
+### task-1769 — Plan next renderer/material slice after depth resize coverage
+
+Status: completed 2026-05-19. See
+`docs/research/NEXT_RENDERER_MATERIAL_AFTER_DEPTH_RESIZE_PLAN_2026_05_19.md`.
+
+Category: `docs-tooling`
+Package/write-scope: `docs/research` and backlog only.
+Reference anchor:
+`docs/MEDIUM_LONG_TERM_GOALS.md`, `docs/ARCHITECTURE.md`, `docs/DECISIONS.md`,
+the depth attachment and transformed texture assertion audits, plus relevant
+`references/engine` and `references/three.js` material/pipeline code.
+
+Acceptance criteria:
+
+- Compare one generic material-family queue/prepared-resource candidate, one
+  StandardMaterial/glTF fidelity candidate, and one diagnostics/tooling
+  candidate.
+- Select exactly one follow-up task with category, package/write-scope,
+  reference anchor, and acceptance criteria.
+- Keep the selected task to one focused run.
+
+### task-1770 — Tighten occlusion or emissive transformed texture status assertions
+
+Status: completed 2026-05-19. See
+`docs/research/OCCLUSION_TEXTURE_TRANSFORM_STATUS_ASSERTION_AUDIT_2026_05_19.md`.
+
+Category: `webgpu-render`
+Package/write-scope:
+`test/e2e/standard-gltf-texture.spec.ts`; implementation files only if the
+status assertion exposes a focused defect.
+Reference anchor:
+existing occlusion/emissive transformed texture browser fixtures in
+`test/e2e/standard-gltf-texture.spec.ts`, `examples/standard-gltf-texture.js`,
+`references/three.js` texture transform handling, and `references/engine`
+material texture transform handling.
+
+Acceptance criteria:
+
+- Pick either the occlusion or emissive transformed texture fixture.
+- Pin exact JSON-safe transform, texCoord, slot/readiness, sampler mapping, and
+  pipeline-key assertions where the fixture already exposes that data.
+- Preserve existing screenshot/readback checks and WebGPU warning guards.
+- Do not add new material features, IBL, shadows, binary GLB loading, or public
+  custom material APIs.
+
+### task-1771 — Audit transformed texture status assertion follow-up
+
+Status: completed 2026-05-19. See
+`docs/research/OCCLUSION_TEXTURE_TRANSFORM_STATUS_ASSERTION_AUDIT_2026_05_19.md`.
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research`, targeted tests only if a tiny corrective
+fix is required.
+Reference anchor:
+the `task-1770` implementation, `docs/ARCHITECTURE.md`,
+`docs/MEDIUM_LONG_TERM_GOALS.md`, and transformed texture browser fixtures.
+
+Acceptance criteria:
+
+- Confirm the selected transformed texture fixture now pins the meaningful
+  status fields without duplicating unrelated assertions.
+- Confirm JSON-safe status remains free of raw GPU handles and source payload
+  blobs.
+- Recommend tracker/backlog alignment or the smallest follow-up.
+
+### task-1772 — Audit tracker/backlog alignment after transformed texture follow-up
+
+Status: completed 2026-05-19. See `docs/index.html`,
+`docs/render-pipeline-comparison.html`, and this backlog update.
+
+Category: `docs-tooling`
+Package/write-scope: `docs/index.html`, `docs/render-pipeline-comparison.html`,
+`agent/BACKLOG.md`, and `docs/research`.
+Reference anchor:
+the transformed texture status follow-up, `docs/ARCHITECTURE.md`,
+`docs/MEDIUM_LONG_TERM_GOALS.md`, and current public tracker state.
+
+Acceptance criteria:
+
+- Update public tracker pages only if project status or recommended next task
+  changed materially.
+- Confirm at least five categorized, scoped ready tasks remain.
+- Run `pnpm run check:progress` after tracker edits.
+
+### task-1773 — Plan next generic material-family contract slice
+
+Status: completed 2026-05-19. See
+`docs/research/GENERIC_MATERIAL_FAMILY_CONTRACT_PLAN_2026_05_19.md`.
+
+Category: `docs-tooling`
+Package/write-scope: `docs/research` and backlog only.
+Reference anchor:
+`docs/MEDIUM_LONG_TERM_GOALS.md`, `docs/ARCHITECTURE.md`,
+`docs/DECISIONS.md`, `packages/webgpu/src/webgpu/queued-material-adapter.ts`,
+`packages/webgpu/src/webgpu/queued-built-in-app-resource-set.ts`, and relevant
+Bevy render-asset/material references.
+
+Acceptance criteria:
+
+- Identify one small generic material-family contract slice that does not
+  expose public custom material APIs yet.
+- Define category, package/write-scope, reference anchors, and acceptance
+  criteria for the selected follow-up.
+- Keep the selected task suitable for one focused run.
+
+### task-1774 — Serialize generic queued material app resource items
+
+Status: completed 2026-05-19. See
+`docs/research/GENERIC_MATERIAL_APP_RESOURCE_ITEM_SERIALIZATION_AUDIT_2026_05_19.md`.
+
+Category: `render-bridge`
+Package/write-scope:
+`packages/webgpu/src/webgpu/queued-material-app-resource-item.ts` and
+`test/webgpu/queued-material-app-resource-item.test.ts`.
+Reference anchor:
+`docs/research/GENERIC_MATERIAL_FAMILY_CONTRACT_PLAN_2026_05_19.md`,
+`docs/ARCHITECTURE.md`, `docs/DECISIONS.md`, relevant Bevy
+render-asset/material references, and local queued-material contract code.
+
+Acceptance criteria:
+
+- Add a JSON-safe helper for serializing
+  `QueuedMaterialAppResourceItem` route identity plus source/prepared
+  mesh/material keys.
+- Omit raw `mesh`, `material`, `adapter`, `draw`, GPU objects, app caches, and
+  source payload bytes from the JSON helper output.
+- Cover a test-only material family and assert the output is family-agnostic,
+  deterministic, and free of backend handles.
+- Do not expose public custom material APIs, app-owned adapter facades, IBL,
+  shadows, binary GLB loading, or WebGL fallback.
+
+### task-1775 — Audit selected generic material-family contract slice
+
+Status: completed 2026-05-19. See
+`docs/research/GENERIC_MATERIAL_APP_RESOURCE_ITEM_SERIALIZATION_AUDIT_2026_05_19.md`.
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research`, targeted tests only if a tiny corrective
+fix is required.
+Reference anchor:
+the `task-1774` implementation, `docs/ARCHITECTURE.md`,
+`docs/DECISIONS.md`, relevant Bevy render-asset/material references, and local
+queued-material contract code.
+
+Acceptance criteria:
+
+- Confirm the selected generic contract slice does not expose deferred public
+  custom material APIs or app-owned adapter facades.
+- Confirm ECS/render ownership, WebGPU-only backend boundaries, and JSON-safe
+  diagnostics remain intact.
+- Recommend tracker/backlog alignment or the smallest follow-up.
+
+### task-1776 — Tighten emissive transformed texture status assertions
+
+Status: completed 2026-05-19. See
+`docs/research/EMISSIVE_TEXTURE_TRANSFORM_STATUS_ASSERTION_AUDIT_2026_05_19.md`.
+
+Category: `webgpu-render`
+Package/write-scope:
+`test/e2e/standard-gltf-texture.spec.ts`; implementation files only if the
+status assertion exposes a focused defect.
+Reference anchor:
+the existing emissive transformed texture browser fixture in
+`test/e2e/standard-gltf-texture.spec.ts`, `examples/standard-gltf-texture.js`,
+`references/three.js` texture transform handling, and `references/engine`
+material texture transform handling.
+
+Acceptance criteria:
+
+- Pin exact JSON-safe transform, texCoord, slot/readiness, sampler mapping, and
+  pipeline-key assertions for the emissive transformed texture fixture.
+- Preserve existing screenshot/readback checks and WebGPU warning guards.
+- Do not add new material features, IBL, shadows, binary GLB loading, or public
+  custom material APIs.
+
+### task-1777 — Audit emissive transformed texture status assertions
+
+Status: completed 2026-05-19. See
+`docs/research/EMISSIVE_TEXTURE_TRANSFORM_STATUS_ASSERTION_AUDIT_2026_05_19.md`.
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research`, targeted tests only if a tiny corrective
+fix is required.
+Reference anchor:
+the `task-1776` implementation, `docs/ARCHITECTURE.md`,
+`docs/MEDIUM_LONG_TERM_GOALS.md`, and transformed texture browser fixtures.
+
+Acceptance criteria:
+
+- Confirm the emissive transformed texture fixture now pins the meaningful
+  status fields without duplicating unrelated assertions.
+- Confirm JSON-safe status remains free of raw GPU handles and source payload
+  blobs.
+- Recommend tracker/backlog alignment or the smallest follow-up.
+
+### task-1778 — Audit tracker/backlog alignment after generic item serialization
+
+Status: completed 2026-05-19. See `docs/index.html`,
+`docs/render-pipeline-comparison.html`, and this backlog update.
+
+Category: `docs-tooling`
+Package/write-scope: `docs/index.html`, `docs/render-pipeline-comparison.html`,
+`agent/BACKLOG.md`, and `docs/research`.
+Reference anchor:
+the `task-1774`/`task-1775` results, `docs/ARCHITECTURE.md`,
+`docs/MEDIUM_LONG_TERM_GOALS.md`, and current public tracker state.
+
+Acceptance criteria:
+
+- Update public tracker pages only if project status or recommended next task
+  changed materially.
+- Confirm at least five categorized, scoped ready tasks remain.
+- Run `pnpm run check:progress` after tracker edits.
+
+### task-1779 — Plan next generic material-family contract follow-up
+
+Status: completed 2026-05-19. See
+`docs/research/NEXT_GENERIC_MATERIAL_CONTRACT_AFTER_ITEM_JSON_PLAN_2026_05_19.md`.
+
+Category: `docs-tooling`
+Package/write-scope: `docs/research` and backlog only.
+Reference anchor:
+`docs/MEDIUM_LONG_TERM_GOALS.md`, `docs/ARCHITECTURE.md`,
+`docs/DECISIONS.md`, the generic app resource item serialization audit,
+`packages/webgpu/src/webgpu/queued-material-adapter.ts`, and relevant Bevy
+render-asset/material references.
+
+Acceptance criteria:
+
+- Compare one small generic contract candidate, one StandardMaterial/glTF
+  fidelity candidate, and one diagnostics/tooling candidate.
+- Select exactly one follow-up task with category, package/write-scope,
+  reference anchor, and acceptance criteria.
+- Keep the selected task suitable for one focused run.
+
+### task-1780 — Add routed item key details to route report diagnostics
+
+Status: completed 2026-05-19. See
+`docs/research/GENERIC_ROUTE_REPORT_ROUTED_ITEMS_AUDIT_2026_05_19.md`.
+
+Category: `render-bridge`
+Package/write-scope:
+`packages/webgpu/src/webgpu/queued-material-app-resource-item.ts` and
+`test/webgpu/queued-material-app-resource-item.test.ts`.
+Reference anchor:
+`docs/research/NEXT_GENERIC_MATERIAL_CONTRACT_AFTER_ITEM_JSON_PLAN_2026_05_19.md`,
+`docs/ARCHITECTURE.md`, `docs/DECISIONS.md`, relevant Bevy
+render-asset/material references, and local queued-material contract code.
+
+Acceptance criteria:
+
+- Extend generic route report diagnostics with a JSON-safe `routedItems` list
+  built from `queuedMaterialAppResourceItemToJsonValue`.
+- Preserve existing route report summary fields and diagnostic counts.
+- Cover a test-only material family and assert the diagnostic output omits raw
+  mesh/material assets, adapter instances, draw packets, GPU handles, app
+  caches, and source payload bytes.
+- Do not expose public custom material APIs, app-owned adapter facades, IBL,
+  shadows, binary GLB loading, or WebGL fallback.
+
+### task-1781 — Audit selected generic material-family contract follow-up
+
+Status: completed 2026-05-19. See
+`docs/research/GENERIC_ROUTE_REPORT_ROUTED_ITEMS_AUDIT_2026_05_19.md`.
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research`, targeted tests only if a tiny corrective
+fix is required.
+Reference anchor:
+the `task-1780` implementation, `docs/ARCHITECTURE.md`,
+`docs/DECISIONS.md`, relevant Bevy render-asset/material references, and local
+queued-material contract code.
+
+Acceptance criteria:
+
+- Confirm the selected generic contract slice preserves ECS/render ownership
+  and deferred public custom material API boundaries.
+- Confirm JSON-safe diagnostics/serialization remain free of raw GPU handles and
+  source payload blobs.
+- Recommend tracker/backlog alignment or the smallest follow-up.
+
+### task-1782 — Audit tracker/backlog alignment after generic contract follow-up
+
+Status: completed 2026-05-19. See `docs/index.html`,
+`docs/render-pipeline-comparison.html`, and this backlog update.
+
+Category: `docs-tooling`
+Package/write-scope: `docs/index.html`, `docs/render-pipeline-comparison.html`,
+`agent/BACKLOG.md`, and `docs/research`.
+Reference anchor:
+the `task-1780`/`task-1781` results, `docs/ARCHITECTURE.md`,
+`docs/MEDIUM_LONG_TERM_GOALS.md`, and current public tracker state.
+
+Acceptance criteria:
+
+- Update public tracker pages only if project status or recommended next task
+  changed materially.
+- Confirm at least five categorized, scoped ready tasks remain.
+- Run `pnpm run check:progress` after tracker edits.
+
+### task-1783 — Plan next StandardMaterial/glTF fidelity follow-up
+
+Status: completed 2026-05-19. See
+`docs/research/NEXT_STANDARD_GLTF_FIDELITY_AFTER_ROUTE_ITEMS_PLAN_2026_05_19.md`.
+
+Category: `docs-tooling`
+Package/write-scope: `docs/research` and backlog only.
+Reference anchor:
+`docs/MEDIUM_LONG_TERM_GOALS.md`, `docs/ARCHITECTURE.md`, current
+StandardMaterial/glTF browser fixtures, `references/three.js` material/texture
+handling, and `references/engine` material/texture handling.
+
+Acceptance criteria:
+
+- Compare at least two remaining StandardMaterial/glTF fidelity candidates and
+  one diagnostics/tooling candidate.
+- Select exactly one follow-up task with category, package/write-scope,
+  reference anchor, and acceptance criteria.
+- Keep the selected task suitable for one focused run.
+
+### task-1784 — Tighten base-color rotation transform fixture status
+
+Category: `webgpu-render`
+Package/write-scope:
+`test/e2e/standard-gltf-texture.spec.ts`; implementation files only if the
+status assertion exposes a focused defect.
+Reference anchor:
+`docs/research/NEXT_STANDARD_GLTF_FIDELITY_AFTER_ROUTE_ITEMS_PLAN_2026_05_19.md`,
+the base-color rotation transform fixture in
+`test/e2e/standard-gltf-texture.spec.ts`, `examples/standard-gltf-texture.js`,
+`references/three.js` material/texture handling, and `references/engine`
+material/texture handling.
+
+Acceptance criteria:
+
+- Pin exact JSON-safe transform, texCoord, slot/readiness, sampler mapping, and
+  pipeline-key assertions for the base-color rotation transform fixture.
+- Preserve existing screenshot/readback checks and WebGPU warning guards.
+- Do not add IBL, shadows, binary GLB loading, public custom material APIs,
+  app-owned adapter facades, or WebGL fallback.
+
+### task-1785 — Audit selected StandardMaterial/glTF fidelity follow-up
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research`, targeted tests only if a tiny corrective
+fix is required.
+Reference anchor:
+the `task-1784` implementation, `docs/ARCHITECTURE.md`,
+`docs/MEDIUM_LONG_TERM_GOALS.md`, current StandardMaterial/glTF browser
+fixtures, and relevant engine references.
+
+Acceptance criteria:
+
+- Confirm the selected StandardMaterial/glTF slice satisfies its acceptance
+  criteria without adding deferred features.
+- Confirm JSON-safe status/diagnostics remain free of raw GPU handles and
+  source payload blobs.
+- Recommend tracker/backlog alignment or the smallest follow-up.
+
+### task-1786 — Plan next generic material-family contract follow-up
+
+Category: `docs-tooling`
+Package/write-scope: `docs/research` and backlog only.
+Reference anchor:
+`docs/MEDIUM_LONG_TERM_GOALS.md`, `docs/ARCHITECTURE.md`,
+`docs/DECISIONS.md`, recent generic route/item audits, and relevant Bevy
+render-asset/material references.
+
+Acceptance criteria:
+
+- Compare one small generic contract candidate, one StandardMaterial/glTF
+  fidelity candidate, and one diagnostics/tooling candidate.
+- Select exactly one follow-up task with category, package/write-scope,
+  reference anchor, and acceptance criteria.
+- Keep the selected task suitable for one focused run.
+
+### task-1787 — Audit tracker/backlog alignment after selected fidelity follow-up
+
+Category: `docs-tooling`
+Package/write-scope: `docs/index.html`, `docs/render-pipeline-comparison.html`,
+`agent/BACKLOG.md`, and `docs/research`.
+Reference anchor:
+the `task-1784`/`task-1785` results, `docs/ARCHITECTURE.md`,
+`docs/MEDIUM_LONG_TERM_GOALS.md`, and current public tracker state.
+
+Acceptance criteria:
+
+- Update public tracker pages only if project status or recommended next task
+  changed materially.
+- Confirm at least five categorized, scoped ready tasks remain.
+- Run `pnpm run check:progress` after tracker edits.
+
+### task-1788 — Implement selected generic material-family contract follow-up
+
+Category: `render-bridge`
+Package/write-scope:
+To be narrowed by `task-1786`; expected to stay within focused render/WebGPU
+route, queue, summary, or diagnostics contract files plus targeted tests.
+Reference anchor:
+the selected `task-1786` plan, `docs/ARCHITECTURE.md`,
+`docs/DECISIONS.md`, relevant Bevy render-asset/material references, and local
+queued-material contract code.
+
+Acceptance criteria:
+
+- Implement exactly the selected focused generic contract slice.
+- Add targeted tests appropriate to the selected scope.
+- Do not expose public custom material APIs, app-owned adapter facades, IBL,
+  shadows, binary GLB loading, or WebGL fallback.
+
+### task-1789 — Plan GLTF scene vertical slice
+
+Category: `docs-tooling`
+Package/write-scope: `docs/research`, `agent/BACKLOG.md`, and tracker docs if
+status changes.
+Reference anchor:
+`docs/NORTH_STAR.md`, `docs/ROADMAP.md`,
+`docs/MEDIUM_LONG_TERM_GOALS.md`, `docs/ARCHITECTURE.md`,
+`references/bevy` asset/material/render-extraction patterns, and local
+StandardMaterial/glTF browser fixtures.
+
+Acceptance criteria:
+
+- Define the smallest GLTF scene fixture that proves multiple primitive shapes,
+  multiple built-in materials, transforms, camera, direct light, IBL intent, and
+  shadow intent.
+- Order the implementation blockers into scene contract, built-in material
+  rendering, IBL, shadows, and audit slices.
+- Explicitly defer public custom shader/material APIs and app-owned custom
+  adapter facades unless they block the built-in scene path.
+
+### task-1790 — Define GLTF scene import data contract
+
+Category: `render-bridge`
+Package/write-scope:
+`packages/render`, GLTF fixture helpers, docs/research, and targeted tests.
+Reference anchor:
+`references/bevy` scene/asset/material extraction patterns, local glTF mapper
+fixtures, and `docs/ARCHITECTURE.md`.
+
+Acceptance criteria:
+
+- Define a JSON-safe scene import contract for mesh primitives, node
+  transforms, cameras, built-in material references, texture/sampler
+  references, environment/IBL metadata, and shadow-capable light metadata.
+- Map the contract into existing typed assets and ECS authoring without adding a
+  mutable scene graph.
+- Add tests covering multiple primitive shapes and multiple built-in materials.
+
+### task-1791 — Build multi-primitive multi-material GLTF scene fixture
+
+Category: `runtime-orchestration`
+Package/write-scope:
+`examples`, `test/e2e`, and app-facade fixture helpers; implementation files
+only as needed by the public app path.
+Reference anchor:
+`references/bevy` app/render extraction patterns, existing browser examples,
+and local WebGPU app diagnostics.
+
+Acceptance criteria:
+
+- Add a browser fixture that renders at least three primitive shapes with at
+  least two built-in material families through the public app facade.
+- Verify pixels and JSON-safe frame status with Playwright.
+- Preserve ECS authority, render extraction, typed assets, and WebGPU-only
+  backend ownership.
+
+### task-1792 — Add first GLTF scene IBL resource path
+
+Category: `webgpu-render`
+Package/write-scope:
+`packages/webgpu`, relevant shader/resource helpers, examples, and targeted
+tests.
+Reference anchor:
+`references/engine` and `references/three.js` environment/IBL resource and
+shader patterns, adapted to Aperture's ECS/render-world architecture.
+
+Acceptance criteria:
+
+- Prepare an environment/IBL resource from the GLTF scene path without storing
+  renderer state in ECS.
+- Bind and sample the IBL resource in StandardMaterial or report a structured
+  unsupported diagnostic when incomplete.
+- Add browser-visible proof or a targeted diagnostic proof, plus JSON-safe
+  readiness reporting.
+
+### task-1793 — Add first GLTF scene shadow-map path
+
+Category: `webgpu-render`
+Package/write-scope:
+`packages/render`, `packages/webgpu`, relevant shaders, examples, and targeted
+tests.
+Reference anchor:
+`references/engine` and `references/three.js` shadow pass/resource patterns,
+plus Bevy render extraction concepts for light/shadow requests.
+
+Acceptance criteria:
+
+- Extract at least one shadow-capable light request from ECS/render snapshot
+  data.
+- Create a first shadow-map render path and bind shadow resources to
+  StandardMaterial without WebGL fallback or renderer-owned game state.
+- Verify visible shadow behavior or a narrowly scoped first-step diagnostic
+  proof with Playwright/targeted tests.
+
+### task-1794 — Audit GLTF scene vertical slice architecture
+
+Category: `audit-refactor`
+Package/write-scope:
+`docs/research`, `agent/BACKLOG.md`, tracker docs, and tiny corrective fixes
+only if required.
+Reference anchor:
+`docs/NORTH_STAR.md`, `docs/ARCHITECTURE.md`,
+`docs/MEDIUM_LONG_TERM_GOALS.md`, `docs/DECISIONS.md`, and the scene/IBL/shadow
+implementation tasks.
+
+Acceptance criteria:
+
+- Confirm the scene path does not introduce a central mutable scene graph,
+  renderer-owned ECS/game state, WebGL fallback, or raw GPU objects in source
+  assets.
+- Confirm IBL and shadows are modeled through render resources, diagnostics,
+  and the established frame phases.
+- Update tracker/backlog recommendations and run `pnpm run check:progress` if
+  tracker pages change.
 
 ## Post-Unlit E2E Verification Targets
 

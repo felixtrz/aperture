@@ -14,22 +14,29 @@ grab bag of isolated WebGPU demos.
 ## Current Steering
 
 After the current documentation, audit, guardrail, GLB-container planning, and
-DebugNormal metadata queue, prioritize full StandardMaterial PBR support and the
-proper render pipeline architecture.
+DebugNormal metadata queue, prioritize a narrow but complete glTF scene
+vertical slice: one browser/test application should render multiple glTF/GLB
+primitive meshes, transforms, and built-in material families through the normal
+ECS -> extraction -> render-world preparation -> queue/sort -> WebGPU submit
+path. This is now the shortest path to useful test applications.
 
 The desired sequence is:
 
-1. Expand StandardMaterial from the current direct-lit scalar MVP to glTF-style
-   metallic-roughness coverage: base-color texture, metallic-roughness texture,
-   normal map/tangents, emissive, occlusion, UV set handling, sampler behavior,
-   color-space rules, and structured diagnostics.
-2. Replace the current narrow mixed-material app routing with a generic
-   material-family render queue, phase sorting, and prepared-asset contracts.
-3. Add IBL/environment lighting and shadows once StandardMaterial texture paths
-   and queueing are stable.
-4. Bring GLB material mapping forward only when it can map into real
-   StandardMaterial and UnlitMaterial support without pretending unsupported PBR
-   features are rendered.
+1. Define and implement the glTF scene vertical-slice contract: simple
+   uncompressed glTF/GLB-derived data, multiple mesh primitives, node
+   transforms, stable asset handles, and ECS-authored renderables.
+2. Render different primitive shapes with different built-in material families
+   in one scene, starting with `UnlitMaterial`, `StandardMaterial`, and existing
+   diagnostic families where useful.
+3. Expand StandardMaterial only where the scene slice needs it: base-color and
+   metallic-roughness textures, normal map/tangents, emissive, occlusion, UV set
+   handling, sampler behavior, color-space rules, and structured diagnostics.
+4. Add IBL/environment lighting and a first shadow-map path for StandardMaterial
+   as part of the same glTF scene milestone once the scene can render multiple
+   primitives/materials through the real app path.
+5. Defer public custom shader/material APIs, shader graphs, app-owned adapter
+   facades, and broad custom material work unless they directly unblock this
+   built-in glTF scene path.
 
 ## Post-Proof-Point Priority
 
@@ -45,7 +52,7 @@ The desired sequence is:
    - Make `app.world.spawn(...)`, typed assets, systems, and diagnostics the
      normal example shape.
 
-3. Expand the material system deliberately.
+3. Expand the material system deliberately around the glTF scene slice.
    - Material families should be data-driven assets referenced by ECS
      components.
    - Renderer code should prepare material assets into WebGPU resources through
@@ -60,7 +67,7 @@ The desired sequence is:
    - Improve resource lifetime, cache reporting, batching, instancing, and
      hot-path allocation discipline.
 
-5. Build the glTF/GLB asset path.
+5. Build the glTF/GLB asset path as an early vertical slice.
    - Aperture should focus 3D model import on glTF 2.0 / GLB.
    - Do not add OBJ, FBX, STL, USD, or other 3D import formats without a new
      decision record.
@@ -73,9 +80,12 @@ The desired sequence is:
      specialization, and browser/WebGPU failures in JSON-safe formats.
 
 7. Add app-scale features only after the core path is stable.
-   - Texture coverage, GLB viewer, multiple cameras, render targets,
-     transparency, picking/raycasting, simple animation, and worker/headless
-     proofs should arrive as vertical slices over the same ECS/render boundary.
+   - The first GLB/glTF scene test app, IBL, and a first shadow-map path are now
+     part of the near-term rendering milestone because they prove useful scene
+     rendering.
+   - Multiple cameras, render targets, picking/raycasting, simple animation,
+     and worker/headless proofs should arrive later as vertical slices over the
+     same ECS/render boundary.
 
 8. Keep WebXR later.
    - XR should become a view/input mode over the same ECS and render extraction

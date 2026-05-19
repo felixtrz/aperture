@@ -1,5 +1,271 @@
 # Completed Tasks
 
+## task-1789 priority realignment — GLTF scene vertical slice
+
+Completed: 2026-05-19
+
+Summary:
+
+- Reprioritized the near-term roadmap/backlog around a complete GLTF scene
+  vertical slice: multiple primitive shapes, multiple built-in materials, IBL,
+  and shadows through the full ECS/render/WebGPU path.
+- Added the ordered `task-1789` through `task-1794` scene, IBL, shadow, and
+  audit queue.
+- Deferred public custom shader/material APIs and app-owned custom adapter
+  facades behind the built-in scene path.
+
+Validation:
+
+- `pnpm run check:progress`
+
+## task-1783 — Next StandardMaterial/glTF fidelity plan
+
+Completed: 2026-05-19
+
+Summary:
+
+- Compared base-color rotation transform status hardening, adding a new glTF
+  material feature, and diagnostics/tooling work.
+- Selected base-color rotation transform status hardening as the next focused,
+  test-only browser assertion slice.
+
+Validation:
+
+- Covered by final run-level validation for this automation cycle.
+
+## task-1782 — Tracker alignment after route report item details
+
+Completed: 2026-05-19
+
+Summary:
+
+- Updated public tracker pages to mention JSON-safe routed item key details in
+  generic route report diagnostics.
+- Shifted recommended next work back to StandardMaterial/glTF fidelity planning
+  while keeping generic material-family contract follow-ups queued.
+- Confirmed the ready queue remains categorized and scoped.
+
+Validation:
+
+- `pnpm run check:progress`
+
+## tasks-1780-1781 — Route report routed item details
+
+Completed: 2026-05-19
+
+Summary:
+
+- Extended generic app route report diagnostics with a JSON-safe
+  `routedItems` list built from queued material app resource item JSON values.
+- Preserved existing route report summary fields and diagnostic counts.
+- Covered the output with a test-only material family and asserted raw
+  mesh/material assets, adapter instances, draw packets, GPU handles, app
+  caches, and source payload bytes do not leak.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/queued-material-app-resource-item.test.ts test/webgpu/queued-built-in-app-resource-set.test.ts`
+
+## task-1779 — Next generic material contract after item JSON
+
+Completed: 2026-05-19
+
+Summary:
+
+- Compared adding routed item details to route report diagnostics, public
+  app-owned adapter registration, and another StandardMaterial/glTF fidelity
+  slice.
+- Selected the route report diagnostic extension because it reuses the new
+  JSON-safe generic item helper without exposing deferred public custom material
+  APIs.
+
+Validation:
+
+- Covered by final run-level validation for this automation cycle.
+
+## tasks-1776-1777 — Emissive texture transform status hardening
+
+Completed: 2026-05-19
+
+Summary:
+
+- Tightened the `emissive-transform` StandardMaterial/glTF browser fixture to
+  assert exact transform metadata, emissive readiness slot fields,
+  semantic/color-space/format, texCoord, sampler mapping, and pipeline status.
+- Audited the change as test-only and JSON-safe with no runtime or public API
+  boundary change.
+
+Validation:
+
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "transformed emissive texture"`
+
+## task-1778 — Tracker alignment after generic item serialization
+
+Completed: 2026-05-19
+
+Summary:
+
+- Updated public tracker pages to mention the generic queued material app
+  resource item JSON helper.
+- Shifted recommended next work to emissive transformed texture status
+  hardening while keeping generic contract follow-ups queued.
+- Confirmed the ready queue remains categorized and scoped.
+
+Validation:
+
+- `pnpm run check:progress`
+
+## tasks-1774-1775 — Generic app resource item JSON helper
+
+Completed: 2026-05-19
+
+Summary:
+
+- Added `queuedMaterialAppResourceItemToJsonValue` for family-agnostic,
+  JSON-safe route identity plus source/prepared mesh/material key reporting.
+- Covered a test-only material family and asserted raw source payload fields,
+  backend handles, adapter objects, mesh/material assets, and app/cache objects
+  are not serialized.
+- Audited the helper against ECS/render ownership and deferred public custom
+  material API boundaries.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/queued-material-app-resource-item.test.ts`
+
+## task-1773 — Generic material-family contract plan
+
+Completed: 2026-05-19
+
+Summary:
+
+- Compared public custom material source APIs, app-owned adapter facade
+  registration, and a JSON-safe generic app resource item serialization helper.
+- Selected the helper as the next generic material-family contract slice because
+  it improves agent-readable diagnostics without exposing deferred public custom
+  material APIs.
+- Updated `task-1774` with concrete package scope and acceptance criteria.
+
+Validation:
+
+- Covered by final run-level validation for this automation cycle.
+
+## task-1772 — Tracker alignment after transformed texture follow-up
+
+Completed: 2026-05-19
+
+Summary:
+
+- Updated the public tracker to include app depth attachment proof, app depth
+  resize/report coverage, and exact normal/occlusion transformed texture status
+  assertions.
+- Updated recommended next tasks toward the generic material-family contract
+  planning track while keeping emissive transformed texture status hardening in
+  the ready queue.
+- Refilled the ready queue with categorized, scoped follow-ups.
+
+Validation:
+
+- `pnpm run check:progress`
+
+## tasks-1770-1771 — Occlusion texture transform status hardening
+
+Completed: 2026-05-19
+
+Summary:
+
+- Tightened the `occlusion-transform` StandardMaterial/glTF browser fixture to
+  assert exact transform metadata, occlusion readiness slot fields,
+  semantic/color-space/format, texCoord, sampler mapping, and pipeline status.
+- Audited the change as test-only and JSON-safe with no runtime or public API
+  boundary change.
+
+Validation:
+
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "transformed occlusion texture"`
+
+## task-1769 — Next renderer/material slice after depth resize
+
+Completed: 2026-05-19
+
+Summary:
+
+- Compared a generic material-family contract slice, another StandardMaterial
+  transformed texture assertion slice, and diagnostics/tooling alignment.
+- Selected occlusion/emissive transformed texture status hardening as the next
+  narrow implementation, with occlusion preferred first because it covers a data
+  texture and occlusion-specific readiness slot.
+- Left runtime code unchanged.
+
+Validation:
+
+- Covered by final run-level validation for this automation cycle.
+
+## tasks-1767-1768 — Depth attachment resize report regression
+
+Completed: 2026-05-19
+
+Summary:
+
+- Added app-level unit coverage that renders with one canvas size, resizes the
+  same app canvas, renders again, and asserts JSON-safe depth attachment report
+  dimensions update.
+- Confirmed the resize path creates one additional depth texture and texture
+  view while keeping depth resources WebGPU-private.
+- Audited the regression for ECS/render ownership and JSON-safe report shape.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts test/webgpu/depth-texture-resource.test.ts`
+
+## tasks-1764-1766 — Normal texture transform status hardening
+
+Completed: 2026-05-19
+
+Summary:
+
+- Planned the next renderer/material slice after app depth attachment and
+  selected transformed texture status hardening over a broader generic material
+  contract or tooling-only follow-up.
+- Tightened the `normal-map-transform` StandardMaterial/glTF browser fixture to
+  assert exact transform, readiness slot, semantic/color-space/format, texCoord,
+  sampler mapping, and pipeline status.
+- Audited the change as test-only and JSON-safe with no runtime or public API
+  boundary change.
+
+Validation:
+
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "transformed normal texture"`
+
+## tasks-1758-1763 — Alpha/render-state hardening and app depth attachment
+
+Completed: 2026-05-19
+
+Summary:
+
+- Tightened StandardMaterial/glTF alpha browser assertions for alpha-blend
+  texture, alpha-mask texture, and alpha-mask backface fixtures.
+- Added an audit confirming the alpha/render-state status hardening preserves
+  JSON-safe source/mapped render-state boundaries.
+- Added a cached app-owned `depth24plus` WebGPU depth texture resource and
+  passed its view into the existing forward render pass.
+- Plumbed a non-null depth format through unlit, standard, matcap, and
+  debug-normal app pipeline creation.
+- Added JSON-safe app render report depth metadata and browser proof that a
+  nearer unlit cube rejects a later farther standard cube at the overlap pixel.
+- Updated public tracker pages and refilled the ready queue with renderer
+  architecture and depth/resource lifecycle follow-ups.
+
+Validation:
+
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "(blends translucent base-color pixels|masks pixels with base-color alpha|alpha-mask backface)"`
+- `pnpm exec vitest run test/webgpu/depth-texture-resource.test.ts test/webgpu/material-render-state.test.ts test/webgpu/webgpu-app.test.ts`
+- `pnpm run check:examples`
+- `pnpm run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec playwright test test/e2e/depth-app-overlap.spec.ts`
+- `pnpm run check:progress`
+
 ## tasks-1756-1757 — Alpha/render-state status hardening plan audit
 
 Completed: 2026-05-18

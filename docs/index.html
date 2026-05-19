@@ -393,16 +393,23 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-18 17:40 PDT</dd>
+            <dd>2026-05-18 18:54 PDT</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
-              Route summary determinism is pinned, the built-in frame-resource
-              wrapper now has mixed-family route regression coverage over the
-              generic collector, app-level mixed built-in routes now assert
-              JSON-safe material queue and routed resource summaries for
-              two-family and three-family paths, and the glTF
+              Near-term priority has shifted to a complete GLTF scene vertical
+              slice: render multiple primitive shapes with different built-in
+              materials through ECS, extraction, render-world preparation,
+              queue/sort, and WebGPU submission, then add IBL and a first
+              shadow-map path for that same scene. Public custom shader/material
+              APIs and app-owned custom adapter facades are now deferred behind
+              this built-in scene path. Route summary determinism is pinned, the
+              built-in frame-resource wrapper now has mixed-family route
+              regression coverage over the generic collector, app-level mixed
+              built-in routes now assert JSON-safe material queue and routed
+              resource summaries for two-family and three-family paths, and the
+              glTF
               <code>alphaMode: "BLEND"</code> browser fixture now pins
               transparent queue routing, alpha-blend render-state mapping, and
               its deterministic StandardMaterial pipeline key. The translucent
@@ -657,16 +664,23 @@
               combined base-color plus normal fixtures. Occlusion browser
               coverage now pins the exact sampled red-channel status across
               standalone, occlusion-strength, and combined
-              base-color/occlusion/emissive fixtures. A follow-up audit found
-              the assertion-hardening sweep useful and recommends
-              alpha/render-state status or texture-transform status as the next
-              focused glTF fidelity direction. Follow-up planning selected
-              alpha/render-state status hardening, and the plan audit requires
-              inspecting existing alpha tests for real gaps before adding new
-              checks, with texture-transform status hardening as the fallback.
+              base-color/occlusion/emissive fixtures. Alpha/render-state status
+              hardening found real gaps and now pins exact source, alpha cutoff,
+              cull, blend, and depth mapping for the alpha-blend texture,
+              alpha-mask texture, and alpha-mask backface browser fixtures. The
+              WebGPU app facade now attaches a JSON-reported
+              <code>depth24plus</code> depth texture, creates built-in pipelines
+              with depth testing/writes for opaque draws, and has browser
+              overlap proof that a nearer unlit draw rejects a later farther
+              standard draw. Normal and occlusion transformed texture fixtures
+              now also pin exact JSON-safe transform, texCoord, readiness slot,
+              sampler mapping, and pipeline status. Generic queued material app
+              resource items now have a JSON-safe helper for route identity plus
+              source/prepared mesh and material keys, and generic route report
+              diagnostics now include those routed item key details.
             </dd>
             <dt>Next focus</dt>
-            <dd>Implement alpha or transform status hardening</dd>
+            <dd>Plan the GLTF scene vertical slice with IBL and shadows</dd>
           </dl>
         </aside>
       </header>
@@ -994,11 +1008,19 @@
               pixel and one masked clear pixel; a scalar masked backface fixture
               verifies no-cull visibility, and the alpha-blend fixture now pins
               transparent StandardMaterial render-state mapping plus translucent
-              blended pixel/readback behavior and double-sided backface output.
-              Queued app render reports now expose JSON-safe diagnostics
-              summaries for routed resources, and built-in frame-resource
-              preparation is wrapped over a generic collector contract. Missing
-              pipeline-layout access now fails with a JSON-safe
+              blended pixel/readback behavior and double-sided backface output;
+              the alpha-blend texture, alpha-mask texture, and alpha-mask
+              backface fixtures now pin exact JSON-safe source and mapped
+              render-state status, including cutoff, culling, blend, and depth.
+              App-level built-in pipelines now receive a non-null depth format
+              and the frame boundary receives an app-managed
+              <code>depth24plus</code> attachment. Normal and occlusion
+              transformed texture fixtures now pin exact JSON-safe transform,
+              readiness slot, texCoord, sampler, and pipeline status. Queued app
+              render reports now expose JSON-safe diagnostics summaries for
+              routed resources, and built-in frame-resource preparation is
+              wrapped over a generic collector contract. Missing pipeline-layout
+              access now fails with a JSON-safe
               <code>webGpuApp.missingPipelineLayouts</code> diagnostic before
               any frame resources are created, and invalid pipeline views now
               preserve their diagnostics with zero frame-resource output.
@@ -1151,13 +1173,15 @@
           <article class="phase">
             <div class="topline">
               <h3>6. submit</h3>
-              <span class="percent">55%</span>
+              <span class="percent">58%</span>
             </div>
-            <div class="bar"><span style="width: 55%"></span></div>
+            <div class="bar"><span style="width: 58%"></span></div>
             <p>
               WebGPU command submission renders the current proof paths with
               pipeline, bind group, transform, light, mesh, and material
-              resources.
+              resources. The app facade now attaches a single
+              <code>depth24plus</code> forward-pass depth texture, clears it to
+              1.0, stores it, and reports JSON-safe depth metadata.
             </p>
             <ul>
               <li>Missing render graph and multi-pass architecture.</li>
@@ -2375,17 +2399,15 @@
             <h3>Recommended next tasks</h3>
             <ul>
               <li>
-                <span class="badge amber">next</span> Inspect alpha render-state
-                status assertions, then tighten one real gap or switch to
-                texture transforms.
+                <span class="badge amber">next</span> Plan the GLTF scene
+                vertical slice and ordered blockers.
               </li>
-              <li>Audit the selected implementation slice.</li>
-              <li>Audit tracker/backlog alignment after the selected slice.</li>
               <li>
-                Attach the critical depth-stencil texture for opaque depth
-                testing.
+                Define the scene import contract for primitives/materials.
               </li>
-              <li>Audit the depth-attachment fix after implementation.</li>
+              <li>Build the multi-primitive, multi-material scene fixture.</li>
+              <li>Add IBL resources for the scene path.</li>
+              <li>Add the first shadow-map path for the scene.</li>
             </ul>
           </article>
         </div>

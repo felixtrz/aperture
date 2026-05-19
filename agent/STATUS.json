@@ -1,11 +1,11 @@
 {
   "state": "idle",
-  "currentTaskId": "task-1758",
-  "currentRunStartedAt": null,
-  "lastRunStartedAt": "2026-05-19T00:02:12Z",
+  "currentTaskId": "task-1789",
+  "currentRunStartedAt": "2026-05-19T01:35:00Z",
+  "lastRunStartedAt": "2026-05-19T00:52:00Z",
   "lastResult": "success",
   "lastCommit": "638102e",
   "activePid": null,
-  "notes": "Completed task-1706 through task-1757. Next: task-1758 inspect alpha/render-state status assertions for real gaps, or switch to transform-status hardening if alpha coverage is already explicit enough.",
-  "lastRunFinishedAt": "2026-05-19T00:50:00Z"
+  "notes": "Priority realigned to GLTF scene vertical slice: multiple primitive shapes, built-in materials, IBL, and shadows through the full ECS/render/WebGPU path. Next: task-1789 plan the scene slice and ordered blockers.",
+  "lastRunFinishedAt": "2026-05-19T01:54:00Z"
 }

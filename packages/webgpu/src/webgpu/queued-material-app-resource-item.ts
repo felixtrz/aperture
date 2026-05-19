@@ -38,9 +38,24 @@ export interface QueuedMaterialAppResourceSet<
   readonly items: readonly TItem[];
 }
 
+export interface QueuedMaterialAppResourceItemJsonValue {
+  readonly renderId: number;
+  readonly drawIndex: number;
+  readonly materialFamily: string;
+  readonly renderPhase: string;
+  readonly pipelineKey: string;
+  readonly meshKey: string;
+  readonly sourceMeshKey: string;
+  readonly materialKey: string;
+  readonly sourceMaterialKey: string;
+  readonly meshResourceKey: string;
+  readonly materialResourceKey: string;
+}
+
 export interface QueuedMaterialAppRouteReportDiagnostic {
   readonly code: "webGpuApp.materialQueueRouteReport";
   readonly message: string;
+  readonly routedItems: readonly QueuedMaterialAppResourceItemJsonValue[];
   readonly report: WebGpuAppMaterialQueueRouteReportJsonValue;
 }
 
@@ -91,6 +106,24 @@ export function queuedMaterialAppResourceItemToRouteRoutedItem(
   };
 }
 
+export function queuedMaterialAppResourceItemToJsonValue(
+  item: QueuedMaterialAppResourceItem,
+): QueuedMaterialAppResourceItemJsonValue {
+  return {
+    renderId: item.queueItem.renderId,
+    drawIndex: item.queueItem.drawIndex,
+    materialFamily: item.queueItem.materialFamily,
+    renderPhase: item.queueItem.renderPhase,
+    pipelineKey: item.queueItem.pipelineKey,
+    meshKey: item.meshKey,
+    sourceMeshKey: item.sourceMeshKey,
+    materialKey: item.materialKey,
+    sourceMaterialKey: item.sourceMaterialKey,
+    meshResourceKey: item.meshKey,
+    materialResourceKey: item.materialKey,
+  };
+}
+
 export function materialQueueItemToRouteQueueItem(
   item: MaterialQueueItem,
 ): WebGpuAppMaterialQueueRouteQueueItem {
@@ -123,6 +156,9 @@ export function createQueuedMaterialAppRouteReportDiagnostic(input: {
   return {
     code: "webGpuApp.materialQueueRouteReport",
     message: "WebGPU app material queue routing failed.",
+    routedItems: input.routedItems.map(
+      queuedMaterialAppResourceItemToJsonValue,
+    ),
     report: webGpuAppMaterialQueueRouteReportShellToJsonValue(input.shell),
   };
 }

@@ -1776,8 +1776,9 @@ test("standard glTF texture fixture samples base-color rotation transforms", asy
     samplerKey: "sampler:gltf:sampler:0:baseColorTexture",
     pipelineKey: "standard|baseColorTexture|opaque|back|less|none",
   });
-  expect(status.standardTexture?.expectedTextureTransform).toMatchObject({
+  expect(status.standardTexture?.expectedTextureTransform).toEqual({
     offset: [0.5, 0.5],
+    rotation: Math.PI / 2,
     scale: [1, 1],
   });
   expect(
@@ -1786,6 +1787,43 @@ test("standard glTF texture fixture samples base-color rotation transforms", asy
   expect(status.standardTexture?.readiness).toMatchObject({
     ready: true,
     diagnostics: [],
+  });
+  expect(status.standardTexture?.readiness?.slots).toEqual([
+    {
+      field: "baseColorTexture",
+      textureKey: "texture:gltf:texture:0:baseColorTexture",
+      expectedSemantic: "base-color",
+      actualSemantic: "base-color",
+      expectedColorSpaces: ["srgb"],
+      actualColorSpace: "srgb",
+      actualFormat: "rgba8unorm-srgb",
+      texCoord: 0,
+      ready: true,
+    },
+  ]);
+  expect(status.standardTexture?.samplerMapping).toEqual({
+    handleKey: "gltf:sampler:0:baseColorTexture",
+    textureIndex: 0,
+    slot: "baseColorTexture",
+    source: {
+      magFilter: 9728,
+      minFilter: 9728,
+      wrapS: 33071,
+      wrapT: 33071,
+    },
+    mapped: {
+      kind: "sampler",
+      label: "glTF Sampler",
+      addressModeU: "clamp-to-edge",
+      addressModeV: "clamp-to-edge",
+      addressModeW: "repeat",
+      magFilter: "nearest",
+      minFilter: "nearest",
+      mipmapFilter: "nearest",
+      lodMinClamp: 0,
+      lodMaxClamp: 32,
+      maxAnisotropy: 1,
+    },
   });
   const standardTexture = status.standardTexture;
 
@@ -2727,6 +2765,47 @@ test("standard glTF texture fixture renders a transformed normal texture", async
     },
     draw: { packages: 1, drawCalls: 1 },
   });
+  expect(status.standardTexture?.expectedTextureTransform).toEqual({
+    offset: [0.5, 0],
+    scale: [0.5, 1],
+  });
+  expect(status.standardTexture?.readiness?.slots).toEqual([
+    {
+      field: "normalTexture",
+      textureKey: "texture:gltf:texture:0:normalTexture",
+      expectedSemantic: "normal",
+      actualSemantic: "normal",
+      expectedColorSpaces: ["linear", "data"],
+      actualColorSpace: "data",
+      actualFormat: "rgba8unorm",
+      texCoord: 0,
+      ready: true,
+    },
+  ]);
+  expect(status.standardTexture?.samplerMapping).toEqual({
+    handleKey: "gltf:sampler:0:normalTexture",
+    textureIndex: 0,
+    slot: "normalTexture",
+    source: {
+      magFilter: 9728,
+      minFilter: 9728,
+      wrapS: 33071,
+      wrapT: 33071,
+    },
+    mapped: {
+      kind: "sampler",
+      label: "glTF Sampler",
+      addressModeU: "clamp-to-edge",
+      addressModeV: "clamp-to-edge",
+      addressModeW: "repeat",
+      magFilter: "nearest",
+      minFilter: "nearest",
+      mipmapFilter: "nearest",
+      lodMinClamp: 0,
+      lodMaxClamp: 32,
+      maxAnisotropy: 1,
+    },
+  });
   expect(status.gltf?.assetMapping.diagnosticCodes).not.toContain(
     "gltfMaterial.unsupportedTextureTransform",
   );
@@ -3035,6 +3114,47 @@ test("standard glTF texture fixture renders a transformed occlusion texture", as
     },
     draw: { packages: 1, drawCalls: 1 },
   });
+  expect(status.standardTexture?.expectedTextureTransform).toEqual({
+    offset: [0.5, 0],
+    scale: [0.5, 1],
+  });
+  expect(status.standardTexture?.readiness?.slots).toEqual([
+    {
+      field: "occlusionTexture",
+      textureKey: "texture:gltf:texture:0:occlusionTexture",
+      expectedSemantic: "occlusion",
+      actualSemantic: "occlusion",
+      expectedColorSpaces: ["linear", "data"],
+      actualColorSpace: "data",
+      actualFormat: "rgba8unorm",
+      texCoord: 0,
+      ready: true,
+    },
+  ]);
+  expect(status.standardTexture?.samplerMapping).toEqual({
+    handleKey: "gltf:sampler:0:occlusionTexture",
+    textureIndex: 0,
+    slot: "occlusionTexture",
+    source: {
+      magFilter: 9728,
+      minFilter: 9728,
+      wrapS: 33071,
+      wrapT: 33071,
+    },
+    mapped: {
+      kind: "sampler",
+      label: "glTF Sampler",
+      addressModeU: "clamp-to-edge",
+      addressModeV: "clamp-to-edge",
+      addressModeW: "repeat",
+      magFilter: "nearest",
+      minFilter: "nearest",
+      mipmapFilter: "nearest",
+      lodMinClamp: 0,
+      lodMaxClamp: 32,
+      maxAnisotropy: 1,
+    },
+  });
   expect(status.gltf?.assetMapping.diagnosticCodes).not.toContain(
     "gltfMaterial.unsupportedTextureTransform",
   );
@@ -3312,6 +3432,47 @@ test("standard glTF texture fixture renders a transformed emissive texture", asy
     },
     draw: { packages: 1, drawCalls: 1 },
   });
+  expect(status.standardTexture?.expectedTextureTransform).toEqual({
+    offset: [0.5, 0],
+    scale: [0.5, 1],
+  });
+  expect(status.standardTexture?.readiness?.slots).toEqual([
+    {
+      field: "emissiveTexture",
+      textureKey: "texture:gltf:texture:0:emissiveTexture",
+      expectedSemantic: "emissive",
+      actualSemantic: "emissive",
+      expectedColorSpaces: ["srgb"],
+      actualColorSpace: "srgb",
+      actualFormat: "rgba8unorm-srgb",
+      texCoord: 0,
+      ready: true,
+    },
+  ]);
+  expect(status.standardTexture?.samplerMapping).toEqual({
+    handleKey: "gltf:sampler:0:emissiveTexture",
+    textureIndex: 0,
+    slot: "emissiveTexture",
+    source: {
+      magFilter: 9728,
+      minFilter: 9728,
+      wrapS: 33071,
+      wrapT: 33071,
+    },
+    mapped: {
+      kind: "sampler",
+      label: "glTF Sampler",
+      addressModeU: "clamp-to-edge",
+      addressModeV: "clamp-to-edge",
+      addressModeW: "repeat",
+      magFilter: "nearest",
+      minFilter: "nearest",
+      mipmapFilter: "nearest",
+      lodMinClamp: 0,
+      lodMaxClamp: 32,
+      maxAnisotropy: 1,
+    },
+  });
   expect(status.gltf?.assetMapping.diagnosticCodes).not.toContain(
     "gltfMaterial.unsupportedTextureTransform",
   );
@@ -3569,8 +3730,14 @@ test("standard glTF texture fixture blends translucent base-color pixels", async
     },
     standardMaterial: {
       renderState: {
+        source: {
+          alphaMode: "BLEND",
+          alphaCutoff: 0.5,
+          doubleSided: false,
+        },
         mapped: {
           alphaMode: "blend",
+          alphaCutoff: 0.5,
           cullMode: "back",
           depth: { test: true, write: false, compare: "less" },
           blend: { preset: "alpha" },
@@ -3839,10 +4006,16 @@ test("standard glTF texture fixture masks pixels with base-color alpha", async (
     },
     standardMaterial: {
       renderState: {
+        source: {
+          alphaMode: "MASK",
+          alphaCutoff: 0.5,
+          doubleSided: true,
+        },
         mapped: {
           alphaMode: "mask",
           alphaCutoff: 0.5,
           cullMode: "none",
+          depth: { test: true, write: true, compare: "less" },
           blend: { preset: "none" },
         },
       },
@@ -3916,6 +4089,7 @@ test("standard glTF alpha-mask backface fixture renders with no culling", async 
           alphaMode: "mask",
           alphaCutoff: 0.35,
           cullMode: "none",
+          depth: { test: true, write: true, compare: "less" },
           blend: { preset: "none" },
         },
       },

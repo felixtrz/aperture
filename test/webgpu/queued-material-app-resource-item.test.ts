@@ -12,6 +12,7 @@ import {
   createWebGpuAppMaterialQueueRouteReportShell,
   createQueuedMaterialFrameResourceSetSummary,
   materialQueueItemToRouteQueueItem,
+  queuedMaterialAppResourceItemToJsonValue,
   queuedMaterialAppResourceItemToRouteRoutedItem,
   type QueuedMaterialAdapterRegistration,
   type QueuedMaterialAppResourceSet,
@@ -260,6 +261,74 @@ describe("queued material app resource item", () => {
     );
   });
 
+  it("serializes generic app resource item keys without source assets or backend handles", () => {
+    const adapter = { kind: "json-preview" as const };
+    const queueItem = {
+      ...customQueueItem(),
+      renderId: 29,
+      drawIndex: 3,
+      materialFamily: "json-preview" as MaterialQueueItem["materialFamily"],
+      pipelineKey: "json-preview|opaque|less",
+      meshKey: "mesh:json-source",
+      materialKey: "material:json-source",
+      meshResourceKey: "mesh:json-prepared@7",
+      materialResourceKey: "material:json-prepared@7",
+      sortKey: {
+        ...customQueueItem().sortKey,
+        pipelineKey: "json-preview|opaque|less",
+        meshResourceKey: "mesh:json-prepared@7",
+        materialResourceKey: "material:json-prepared@7",
+      },
+    };
+    const item = createQueuedMaterialAppResourceItem({
+      queueItem,
+      prepareRoute: {
+        valid: true,
+        status: "prepared",
+        family: "json-preview",
+        materialKey: "material:json-source",
+        meshResourceKey: "mesh:json-prepared@7",
+        materialResourceKey: "material:json-prepared@7",
+        pipelineKey: "json-preview|opaque|less",
+        sourceVersion: 7,
+        frame: 12,
+        diagnostics: [],
+      },
+      adapter,
+      draw: customDrawPacket(),
+      mesh: createBoxMeshAsset({ label: "Json preview mesh" }),
+      meshKey: "mesh:json-prepared@7",
+      sourceMeshKey: "mesh:json-source",
+      material: {
+        kind: "json-preview",
+        label: "Json preview material",
+        rawGpuHandle: "must-not-leak",
+        sourcePayloadBytes: new Uint8Array([1, 2, 3]),
+      },
+      materialKey: "material:json-prepared@7",
+      sourceMaterialKey: "material:json-source",
+    });
+
+    const json = queuedMaterialAppResourceItemToJsonValue(item);
+
+    expect(json).toEqual({
+      renderId: 29,
+      drawIndex: 3,
+      materialFamily: "json-preview",
+      renderPhase: "opaque",
+      pipelineKey: "json-preview|opaque|less",
+      meshKey: "mesh:json-prepared@7",
+      sourceMeshKey: "mesh:json-source",
+      materialKey: "material:json-prepared@7",
+      sourceMaterialKey: "material:json-source",
+      meshResourceKey: "mesh:json-prepared@7",
+      materialResourceKey: "material:json-prepared@7",
+    });
+    expect(JSON.stringify(json)).not.toMatch(
+      /GPUDevice|GPUBuffer|GPUTexture|bindGroup|rawGpuHandle|sourcePayloadBytes|Json preview material|Json preview mesh/,
+    );
+  });
+
   it("builds a generic route report diagnostic without built-in fields or GPU handles", () => {
     const adapter = { kind: "report-builder-preview" as const };
     const queueItem = {
@@ -345,6 +414,21 @@ describe("queued material app resource item", () => {
     expect(diagnostic).toMatchObject({
       code: "webGpuApp.materialQueueRouteReport",
       message: "WebGPU app material queue routing failed.",
+      routedItems: [
+        {
+          renderId: 31,
+          drawIndex: 0,
+          materialFamily: "report-builder-preview",
+          renderPhase: "opaque",
+          pipelineKey: "report-builder-preview|opaque",
+          meshKey: "mesh:report-builder@1",
+          sourceMeshKey: "mesh:report-builder",
+          materialKey: "material:report-builder@1",
+          sourceMaterialKey: "material:report-builder",
+          meshResourceKey: "mesh:report-builder@1",
+          materialResourceKey: "material:report-builder@1",
+        },
+      ],
       report: {
         valid: false,
         queueItemCount: 2,
@@ -380,7 +464,7 @@ describe("queued material app resource item", () => {
       },
     });
     expect(JSON.stringify(diagnostic)).not.toMatch(
-      /GPUDevice|GPUBuffer|GPUTexture|bindGroup|rawGpuHandle|reportBuilderPreviewResourceSet/,
+      /GPUDevice|GPUBuffer|GPUTexture|bindGroup|rawGpuHandle|Report builder material|Report builder mesh|reportBuilderPreviewResourceSet/,
     );
   });
 });

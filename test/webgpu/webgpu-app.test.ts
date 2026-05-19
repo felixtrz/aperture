@@ -85,6 +85,20 @@ describe("WebGPU app facade", () => {
       drawCalls: 1,
       diagnostics: 0,
     });
+    expect(frame.depthAttachment).toEqual({
+      format: "depth24plus",
+      attached: true,
+      width: 1,
+      height: 1,
+      opaquePipelineDepthWriteCount: 1,
+    });
+    expect(
+      frame.boundary?.attachments?.plan?.depthStencilAttachment,
+    ).toMatchObject({
+      depthClearValue: 1,
+      depthLoadOp: "clear",
+      depthStoreOp: "store",
+    });
     expect(frame.resourceReuse).toMatchObject({
       pipelineHits: 0,
       pipelineMisses: 1,
@@ -121,8 +135,13 @@ describe("WebGPU app facade", () => {
     ).toBe(0);
     expect(queuedMeshResourceCount(frame.resources?.resources)).toBe(1);
     expect(events).toContain("context:configure:bgra8unorm");
+    expect(events).toContain("device:texture:aperture/webgpu-app/depth");
+    expect(events).toContain("textureResource:view:aperture/webgpu-app/depth");
     expect(events).toContain("queue:submit:1");
     expect(events.some((event) => event.startsWith("pass:draw"))).toBe(true);
+    expect(webGpuAppRenderReportToJsonValue(frame).depthAttachment).toEqual(
+      frame.depthAttachment,
+    );
 
     const firstResourceEvents = resourceEventCounts(events);
     const firstEventCount = events.length;
@@ -287,6 +306,75 @@ describe("WebGPU app facade", () => {
     expect(resourceEventCounts(events).buffers).toBe(
       firstEventCounts.buffers + 3,
     );
+  });
+
+  it("updates app depth attachment reports when the canvas size changes", async () => {
+    const events: string[] = [];
+    const { canvas, environment } = webGpuHarness(events);
+
+    Object.assign(canvas, { width: 320, height: 180 });
+
+    const created = await createWebGpuApp({
+      canvas,
+      environment,
+      worldOptions: { entityCapacity: 8 },
+    });
+
+    expect(created.ok).toBe(true);
+
+    if (!created.ok) {
+      return;
+    }
+
+    const app = created.app;
+    const assets = createRenderAssetCollections({ registry: app.assets });
+    const mesh = assets.meshes.add(
+      createBoxMeshAsset({ label: "ResizeDepthCube" }),
+    );
+    const material = assets.materials.unlit.add(
+      createUnlitMaterialAsset({ label: "ResizeDepthWhite" }),
+    );
+
+    app.spawn(
+      withTransform({ translation: [0, 0, 5] }),
+      withCamera({ priority: 0, layerMask: 1 }),
+    );
+    app.spawn(
+      withTransform(),
+      withMesh(mesh),
+      withMaterial(material),
+      withRenderLayer(1),
+      withVisibility(true),
+    );
+
+    const firstFrame = await app.stepAndRender(1 / 60, 1, 64);
+    const firstEventCounts = resourceEventCounts(events);
+
+    Object.assign(canvas, { width: 640, height: 360 });
+
+    const resizedFrame = await app.stepAndRender(1 / 60, 2, 65);
+
+    expect(firstFrame.depthAttachment).toEqual({
+      format: "depth24plus",
+      attached: true,
+      width: 320,
+      height: 180,
+      opaquePipelineDepthWriteCount: 1,
+    });
+    expect(resizedFrame.depthAttachment).toEqual({
+      format: "depth24plus",
+      attached: true,
+      width: 640,
+      height: 360,
+      opaquePipelineDepthWriteCount: 1,
+    });
+    expect(webGpuAppRenderReportToJsonValue(resizedFrame).depthAttachment).toBe(
+      resizedFrame.depthAttachment,
+    );
+    expect(resourceEventCounts(events)).toMatchObject({
+      textures: firstEventCounts.textures + 1,
+      textureViews: firstEventCounts.textureViews + 1,
+    });
   });
 
   it("reports scalar unlit prepared mesh and material source-version invalidation", async () => {

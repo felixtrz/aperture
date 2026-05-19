@@ -9,6 +9,37 @@ After the near-term lit spinning cube proof point, use
 creation. That document records the material-family direction, glTF/GLB-only 3D
 import focus, and the next high-level tracks after the proof point.
 
+## Immediate Product Slice — glTF Scene Rendering
+
+As of 2026-05-19, the near-term product target is a useful glTF scene rendering
+path, not more isolated material assertions or public custom shader APIs.
+
+Goal:
+
+- Render one glTF/GLB-authored scene with multiple primitive mesh shapes,
+  transforms, and different built-in materials in the same browser app.
+- Keep the full Aperture architecture path: ECS-authored entities/assets,
+  render extraction, render-world preparation, material-family queueing,
+  sorting, WebGPU-only submission, and JSON-safe diagnostics.
+- Add IBL/environment lighting and a first shadow-map path to that scene
+  milestone once multiple primitive/material rendering works through the real
+  app path.
+- Defer public custom shader/material APIs, shader graphs, app-owned custom
+  adapter facades, and broad custom material rendering until this built-in scene
+  path is practical.
+
+Exit criteria:
+
+- A simple uncompressed glTF/GLB-derived scene fixture can produce Aperture
+  mesh, material, texture/sampler, transform, and camera assets.
+- The fixture renders multiple primitive shapes with at least two built-in
+  material families without introducing a mutable scene graph.
+- StandardMaterial scene rendering includes the glTF metallic-roughness subset
+  needed by the fixture and reports unsupported material features honestly.
+- IBL/environment readiness and first shadow-map readiness are represented as
+  real render resources/diagnostics, then proven with browser-visible output.
+- Playwright verifies pixels plus JSON-safe frame status for the scene app.
+
 ## Immediate Alignment Gate — Bevy ECS/Render Bridge
 
 As of 2026-05-16, Aperture should use the local Bevy checkout as the primary

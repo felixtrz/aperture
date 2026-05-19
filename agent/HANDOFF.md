@@ -1,5 +1,131 @@
 # Handoff
 
+## Current Run Update — 2026-05-19T01:54:00Z
+
+Priority realignment completed after user direction: the next near-term goal is
+a GLTF scene vertical slice that renders multiple primitive shapes with
+different built-in materials through the full ECS -> extraction -> render-world
+preparation -> queue/sort -> WebGPU path, then adds IBL and a first shadow-map
+path for that same scene.
+
+What changed:
+
+- Updated `docs/MEDIUM_LONG_TERM_GOALS.md` and `docs/ROADMAP.md` to move the
+  GLTF scene app, IBL, and shadows ahead of public custom shader/material APIs
+  and broad custom adapter work.
+- Updated `agent/BACKLOG.md` recommended next work to start with
+  `task-1789`, then `task-1790` through `task-1794` for scene contract,
+  multi-primitive/multi-material fixture, IBL, shadows, and audit alignment.
+- Added
+  `docs/research/GLTF_SCENE_VERTICAL_SLICE_PRIORITY_2026_05_19.md` as the
+  priority note and guardrail record.
+- Updated public tracker pages to show the new scene-first priority.
+
+Validation:
+
+- Stop hook ran `pnpm run typecheck`, `pnpm run typecheck:test`,
+  `pnpm run build`, `pnpm test`, and `pnpm run lint` successfully.
+- First stop-hook attempt failed on `pnpm run format:check`; formatted
+  `docs/index.html` and
+  `packages/webgpu/src/webgpu/queued-material-app-resource-item.ts`.
+- `pnpm run check:progress`
+- `git diff --check`
+
+Next recommended task:
+
+- `task-1789` — plan the GLTF scene vertical slice and ordered blockers.
+
+Known issues / follow-ups:
+
+- The working tree still contains the earlier depth, StandardMaterial/glTF
+  assertion, and generic route-contract changes from this automation run.
+- Public custom shader/material APIs, shader graphs, app-owned custom adapter
+  facades, and broad custom material rendering are deferred unless they directly
+  block the built-in GLTF scene path.
+- IBL and shadows are no longer "later someday" work; they are part of the
+  scene milestone, but must be implemented through real render resources,
+  diagnostics, and frame phases.
+
+## Current Run Update — 2026-05-19T01:34:28Z
+
+Completed `task-1758` through `task-1778`. Recommended next task is
+`task-1776`: tighten emissive transformed texture status assertions, then audit
+that fixture and return to the generic material-family contract track.
+
+Highlights:
+
+- Tightened alpha/render-state browser status assertions for alpha-blend
+  texture, alpha-mask texture, and alpha-mask backface fixtures.
+- Added an app-owned cached `depth24plus` WebGPU depth texture, attached it to
+  the forward render pass, and plumbed non-null depth format into all built-in
+  app pipelines.
+- Added JSON-safe app depth attachment reports, browser overlap proof, depth
+  texture reuse/resize unit coverage, and app-level resize report coverage.
+- Hardened normal and occlusion transformed texture browser fixtures with exact
+  transform, texCoord, readiness slot, sampler mapping, and pipeline assertions.
+- Added JSON-safe generic queued material app resource item serialization for
+  route identity plus source/prepared mesh/material keys.
+- Updated public tracker pages and refilled the ready queue.
+
+Reference anchors inspected:
+
+- `references/three.js/build/three.webgpu.js` depth texture lifecycle and
+  texture transform patterns.
+- `references/engine/src/platform/graphics/webgpu/webgpu-render-target.js`
+  depth attachment lifecycle.
+- `references/engine/src/extras/exporters/gltf-exporter.js` and lit shader UV
+  transform chunks.
+- `references/bevy/crates/bevy_pbr/src/material.rs` and Bevy render-asset
+  references for source/prepared material separation.
+- Local WebGPU app, frame boundary, material render-state, queued material app
+  resource item, and StandardMaterial/glTF browser fixtures.
+
+Files touched:
+
+- `agent/BACKLOG.md`
+- `agent/COMPLETED.md`
+- `agent/HANDOFF.md`
+- `agent/STATUS.json`
+- `docs/index.html`
+- `docs/render-pipeline-comparison.html`
+- `docs/research/*_2026_05_19.md` notes for tasks `1758` through `1778`
+- `examples/depth-app-overlap.html`
+- `examples/depth-app-overlap.js`
+- `package.json`
+- `packages/webgpu/src/webgpu/app.ts`
+- `packages/webgpu/src/webgpu/depth-texture-resource.ts`
+- `packages/webgpu/src/webgpu/frame-boundary.ts`
+- `packages/webgpu/src/webgpu/queued-material-app-resource-item.ts`
+- `test/e2e/depth-app-overlap.spec.ts`
+- `test/e2e/standard-gltf-texture.spec.ts`
+- `test/webgpu/depth-texture-resource.test.ts`
+- `test/webgpu/material-render-state.test.ts`
+- `test/webgpu/queued-material-app-resource-item.test.ts`
+- `test/webgpu/webgpu-app.test.ts`
+
+Validation:
+
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "(blends translucent base-color pixels|masks pixels with base-color alpha|alpha-mask backface)"`
+- `pnpm exec playwright test test/e2e/depth-app-overlap.spec.ts`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "transformed normal texture"`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "transformed occlusion texture"`
+- `pnpm exec vitest run test/webgpu/depth-texture-resource.test.ts test/webgpu/material-render-state.test.ts test/webgpu/webgpu-app.test.ts`
+- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts test/webgpu/depth-texture-resource.test.ts`
+- `pnpm exec vitest run test/webgpu/queued-material-app-resource-item.test.ts`
+- `pnpm run check:progress`
+- `pnpm run check`
+- `git diff --check`
+
+Known issues / follow-ups:
+
+- Start `task-1776`: mirror the exact transformed texture status hardening onto
+  the emissive transform fixture.
+- `task-1779` / `task-1780` should continue the generic material-family
+  contract track after the emissive status follow-up.
+- Public custom material source APIs, app-owned adapter facades, real
+  non-built-in material rendering, binary GLB loading, IBL, shadows, instancing,
+  batching, and multi-material primitive rules remain deferred.
+
 ## Current Run Update — 2026-05-19T00:50:00Z
 
 Completed `task-1706` through `task-1757`. Recommended next task is

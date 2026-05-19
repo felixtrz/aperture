@@ -84,6 +84,13 @@ import {
   type FrameBoundaryReadbackResult,
   type FrameBoundaryReadbackSampleRequest,
 } from "./frame-boundary.js";
+import {
+  createOrReuseWebGpuDepthTexture,
+  createWebGpuDepthTextureCacheSlot,
+  WEBGPU_APP_DEPTH_FORMAT,
+  type CachedWebGpuDepthTextureResource,
+  type WebGpuDepthTextureCacheSlot,
+} from "./depth-texture-resource.js";
 import { createLightBindGroupLayoutDescriptor } from "./light-bind-group-layout.js";
 import type { LightBindGroupLayoutResource } from "./light-bind-group-layout.js";
 import {
@@ -186,6 +193,7 @@ import {
   writeRenderFramePlanFromSnapshot,
   type RenderFramePlanScratch,
 } from "./render-frame-plan.js";
+import { parseMaterialPipelineRenderStateTokens } from "./material-render-state.js";
 import {
   initializeWebGpu,
   type InitializeWebGpuOptions,
@@ -224,6 +232,14 @@ export interface WebGpuAppRenderCounts {
   readonly drawCommands: number;
   readonly drawCalls: number;
   readonly diagnostics: number;
+}
+
+export interface WebGpuAppDepthAttachmentReport {
+  readonly format: string;
+  readonly attached: boolean;
+  readonly width: number;
+  readonly height: number;
+  readonly opaquePipelineDepthWriteCount: number;
 }
 
 export interface WebGpuAppResourceReuseReport {
@@ -288,6 +304,7 @@ export interface WebGpuAppRenderReport {
   readonly pipeline: WebGpuAppPipelineResourceResult | null;
   readonly resources: WebGpuAppFrameResourcesResult | null;
   readonly boundary: FrameBoundaryAssemblyReport | null;
+  readonly depthAttachment?: WebGpuAppDepthAttachmentReport;
   readonly readback?: FrameBoundaryReadbackResult;
 }
 
@@ -306,6 +323,7 @@ export interface WebGpuAppRenderReportJsonValue {
   readonly diagnostics: readonly WebGpuAppJsonValue[];
   readonly diagnosticsSummary?: WebGpuAppDiagnosticsSummary;
   readonly resourceReuse: WebGpuAppResourceReuseReport;
+  readonly depthAttachment?: WebGpuAppDepthAttachmentReport;
   readonly readback?: WebGpuAppJsonValue;
   readonly materialDependencyReadiness?: readonly MaterialAssetDependencyReadinessReportJsonValue[];
 }
@@ -340,6 +358,7 @@ interface WebGpuAppResourceCache {
   readonly matcapFrame: MatcapAppFrameResourceCacheSlot;
   readonly standardFrame: StandardAppFrameResourceCacheSlot;
   readonly debugNormalFrame: DebugNormalAppFrameResourceCacheSlot;
+  readonly depth: WebGpuDepthTextureCacheSlot;
 }
 
 interface WebGpuAppFrameScratch {
@@ -560,6 +579,7 @@ function createWebGpuAppResourceCache(): WebGpuAppResourceCache {
       createWebGpuAppFrameResourceCacheSlot<CachedStandardAppFrameResources>(),
     debugNormalFrame:
       createWebGpuAppFrameResourceCacheSlot<CachedDebugNormalAppFrameResources>(),
+    depth: createWebGpuDepthTextureCacheSlot(),
   };
 }
 
@@ -592,6 +612,7 @@ async function getOrCreateWebGpuAppPipeline(options: {
   const key = [
     options.kind,
     options.app.initialization.format,
+    WEBGPU_APP_DEPTH_FORMAT,
     options.pipelineKey,
   ].join("|");
   const cached = options.cache.pipelines.get(key);
@@ -610,6 +631,7 @@ async function getOrCreateWebGpuAppPipeline(options: {
             typeof createStandardRenderPipelineResource
           >[0]["device"],
           colorFormat: options.app.initialization.format,
+          depthFormat: WEBGPU_APP_DEPTH_FORMAT,
           batchKey: options.batchKey,
         })
       : options.kind === "debug-normal"
@@ -618,6 +640,7 @@ async function getOrCreateWebGpuAppPipeline(options: {
               typeof createDebugNormalRenderPipelineResource
             >[0]["device"],
             colorFormat: options.app.initialization.format,
+            depthFormat: WEBGPU_APP_DEPTH_FORMAT,
             batchKey: options.batchKey,
           })
         : options.kind === "matcap"
@@ -626,6 +649,7 @@ async function getOrCreateWebGpuAppPipeline(options: {
                 typeof createMatcapRenderPipelineResource
               >[0]["device"],
               colorFormat: options.app.initialization.format,
+              depthFormat: WEBGPU_APP_DEPTH_FORMAT,
               batchKey: options.batchKey,
             })
           : await createUnlitRenderPipelineResource({
@@ -633,6 +657,7 @@ async function getOrCreateWebGpuAppPipeline(options: {
                 typeof createUnlitRenderPipelineResource
               >[0]["device"],
               colorFormat: options.app.initialization.format,
+              depthFormat: WEBGPU_APP_DEPTH_FORMAT,
               batchKey: options.batchKey,
             });
 
@@ -1114,6 +1139,10 @@ async function renderQueuedBuiltInWebGpuAppFrame(options: {
     bindGroups: prepared.resources.bindGroups,
     scratch: options.cache.frameScratch.framePlan,
   });
+  const depthAttachment = createWebGpuAppDepthAttachment(
+    options.app,
+    options.cache,
+  );
   const boundary = assembleFrameBoundary({
     context: options.app.initialization.context as Parameters<
       typeof assembleFrameBoundary
@@ -1126,6 +1155,12 @@ async function renderQueuedBuiltInWebGpuAppFrame(options: {
     commands: framePlan.commandPlan.commands,
     label: options.label ?? "aperture-webgpu-app",
     clearColor: options.clearColor ?? [0, 0, 0, 1],
+    depthTarget: {
+      view: depthAttachment.view,
+      depthClearValue: 1,
+      depthLoadOp: "clear",
+      depthStoreOp: "store",
+    },
     ...(options.readbackSamples === undefined
       ? {}
       : {
@@ -1158,6 +1193,10 @@ async function renderQueuedBuiltInWebGpuAppFrame(options: {
     pipeline: prepared.firstPipeline,
     resources: prepared.resourcesResult,
     boundary,
+    depthAttachment: createWebGpuAppDepthAttachmentReport(
+      options.snapshot,
+      depthAttachment,
+    ),
     ...(readback === undefined ? {} : { readback }),
     resourceReuse: options.reuse,
     diagnosticsSummary,
@@ -1758,6 +1797,7 @@ async function renderWebGpuAppFrame(
     bindGroups: frameResources.bindGroups,
     scratch: resourceCache.frameScratch.framePlan,
   });
+  const depthAttachment = createWebGpuAppDepthAttachment(app, resourceCache);
   const boundary = assembleFrameBoundary({
     context: app.initialization.context as Parameters<
       typeof assembleFrameBoundary
@@ -1770,6 +1810,12 @@ async function renderWebGpuAppFrame(
     commands: framePlan.commandPlan.commands,
     label: options.label ?? "aperture-webgpu-app",
     clearColor: options.clearColor ?? [0, 0, 0, 1],
+    depthTarget: {
+      view: depthAttachment.view,
+      depthClearValue: 1,
+      depthLoadOp: "clear",
+      depthStoreOp: "store",
+    },
     ...(options.readbackSamples === undefined
       ? {}
       : {
@@ -1802,6 +1848,10 @@ async function renderWebGpuAppFrame(
     pipeline,
     resources,
     boundary,
+    depthAttachment: createWebGpuAppDepthAttachmentReport(
+      snapshot,
+      depthAttachment,
+    ),
     ...(readback === undefined ? {} : { readback }),
     resourceReuse: reuse,
     drawPackages: framePlan.packages.packages.length,
@@ -2003,6 +2053,9 @@ export function webGpuAppRenderReportToJsonValue(
       ? {}
       : { diagnosticsSummary: report.diagnosticsSummary }),
     resourceReuse: { ...report.resourceReuse },
+    ...(report.depthAttachment === undefined
+      ? {}
+      : { depthAttachment: report.depthAttachment }),
     ...(report.readback === undefined
       ? {}
       : { readback: toWebGpuAppJsonValue(report.readback) }),
@@ -2075,6 +2128,7 @@ function renderReport(input: {
   readonly pipeline?: WebGpuAppPipelineResourceResult | null;
   readonly resources?: WebGpuAppFrameResourcesResult | null;
   readonly boundary?: FrameBoundaryAssemblyReport | null;
+  readonly depthAttachment?: WebGpuAppDepthAttachmentReport;
   readonly readback?: FrameBoundaryReadbackResult;
   readonly drawPackages?: number;
   readonly drawCommands?: number;
@@ -2100,8 +2154,54 @@ function renderReport(input: {
     pipeline: input.pipeline ?? null,
     resources: input.resources ?? null,
     boundary: input.boundary ?? null,
+    ...(input.depthAttachment === undefined
+      ? {}
+      : { depthAttachment: input.depthAttachment }),
     ...(input.readback === undefined ? {} : { readback: input.readback }),
   };
+}
+
+function createWebGpuAppDepthAttachment(
+  app: WebGpuApp,
+  resourceCache: WebGpuAppResourceCache,
+): CachedWebGpuDepthTextureResource {
+  return createOrReuseWebGpuDepthTexture({
+    device: app.initialization.device as Parameters<
+      typeof createOrReuseWebGpuDepthTexture
+    >[0]["device"],
+    cache: resourceCache.depth,
+    ...webGpuAppCanvasDimensions(app.canvas),
+    format: WEBGPU_APP_DEPTH_FORMAT,
+  }).resource;
+}
+
+function createWebGpuAppDepthAttachmentReport(
+  snapshot: RenderSnapshot,
+  resource: CachedWebGpuDepthTextureResource,
+): WebGpuAppDepthAttachmentReport {
+  return {
+    format: resource.format,
+    attached: true,
+    width: resource.width,
+    height: resource.height,
+    opaquePipelineDepthWriteCount: countOpaqueDepthWritePipelineKeys(snapshot),
+  };
+}
+
+function countOpaqueDepthWritePipelineKeys(snapshot: RenderSnapshot): number {
+  const pipelineKeys = new Set<string>();
+
+  for (const draw of snapshot.meshDraws) {
+    const tokens = parseMaterialPipelineRenderStateTokens(
+      draw.batchKey.pipelineKey,
+    );
+
+    if ((tokens.alphaMode ?? "opaque") !== "blend") {
+      pipelineKeys.add(draw.batchKey.pipelineKey);
+    }
+  }
+
+  return pipelineKeys.size;
 }
 
 function webGpuAppCanvasDimensions(canvas: WebGpuCanvasLike): {
