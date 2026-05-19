@@ -26,6 +26,9 @@ export type BuiltInShaderBindingId =
   | "occlusionSampler"
   | "emissiveTexture"
   | "emissiveSampler"
+  | "directionalShadowMatrices"
+  | "directionalShadowMap"
+  | "directionalShadowSampler"
   | "matcapTexture"
   | "matcapSampler";
 

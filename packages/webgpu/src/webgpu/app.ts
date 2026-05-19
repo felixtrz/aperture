@@ -99,6 +99,10 @@ import {
 import { createLightBindGroupLayoutDescriptor } from "./light-bind-group-layout.js";
 import type { LightBindGroupLayoutResource } from "./light-bind-group-layout.js";
 import {
+  STANDARD_LIGHT_SHADOW_BIND_GROUP_LAYOUT_KEY,
+  createStandardLightShadowBindGroupLayoutDescriptor,
+} from "./standard-light-shadow-bind-group.js";
+import {
   createOrReuseDebugNormalAppFrameResources,
   type CachedDebugNormalAppFrameResources,
   type CreateDebugNormalAppFrameResourcesResult,
@@ -740,6 +744,13 @@ function createStandardAppPipelineLayouts(
   pipelineResourceKey: string,
   getBindGroupLayout: (group: number) => unknown,
 ): WebGpuAppPipelineLayouts {
+  const usesLightShadowGroup = pipelineResourceKey.includes(
+    STANDARD_LIGHT_SHADOW_BIND_GROUP_LAYOUT_KEY,
+  );
+  const lightLayoutKey = usesLightShadowGroup
+    ? "webgpu-app/standard/lights-shadow/group-3"
+    : "webgpu-app/standard/group-3";
+
   return {
     kind: "standard",
     pipelineResourceKey,
@@ -762,12 +773,14 @@ function createStandardAppPipelineLayouts(
     },
     lightLayout: {
       group: 3,
-      layoutKey: "webgpu-app/standard/group-3",
+      layoutKey: lightLayoutKey,
       layout: getBindGroupLayout(3),
-      descriptor: createLightBindGroupLayoutDescriptor({
-        group: 3,
-        label: "webgpu-app/standard/group-3",
-      }),
+      descriptor: usesLightShadowGroup
+        ? createStandardLightShadowBindGroupLayoutDescriptor()
+        : createLightBindGroupLayoutDescriptor({
+            group: 3,
+            label: "webgpu-app/standard/group-3",
+          }),
     },
   };
 }

@@ -20,6 +20,8 @@ export const STANDARD_METALLIC_ROUGHNESS_TEXTURE_SHADER_VARIANT =
   "direct-lit-metallic-roughness-texture";
 export const STANDARD_BASE_COLOR_METALLIC_ROUGHNESS_TEXTURE_SHADER_VARIANT =
   "direct-lit-metallic-roughness-base-color-metallic-roughness-texture";
+export const STANDARD_SHADOW_MAP_SHADER_VARIANT =
+  "direct-lit-metallic-roughness-shadow-map";
 
 export interface StandardTextureShaderFeatures {
   readonly baseColorTexture: boolean;
@@ -27,6 +29,7 @@ export interface StandardTextureShaderFeatures {
   readonly normalTexture: boolean;
   readonly occlusionTexture: boolean;
   readonly emissiveTexture: boolean;
+  readonly shadowMap?: boolean;
   readonly texCoord1?: boolean;
 }
 
@@ -301,6 +304,15 @@ export const STANDARD_BASE_COLOR_METALLIC_ROUGHNESS_TEXTURED_MESH_WGSL =
     occlusionTexture: false,
     emissiveTexture: false,
   });
+export const STANDARD_SHADOW_RECEIVER_MESH_WGSL =
+  createStandardTextureVariantWgsl({
+    baseColorTexture: false,
+    metallicRoughnessTexture: false,
+    normalTexture: false,
+    occlusionTexture: false,
+    emissiveTexture: false,
+    shadowMap: true,
+  });
 
 export const STANDARD_MESH_SHADER: BuiltInShaderSourceModule = {
   label: "aperture/standard-mesh",
@@ -373,6 +385,15 @@ export const STANDARD_BASE_COLOR_METALLIC_ROUGHNESS_TEXTURED_MESH_SHADER: BuiltI
     normalTexture: false,
     occlusionTexture: false,
     emissiveTexture: false,
+  });
+export const STANDARD_SHADOW_RECEIVER_MESH_SHADER: BuiltInShaderSourceModule =
+  createStandardTextureVariantShader({
+    baseColorTexture: false,
+    metallicRoughnessTexture: false,
+    normalTexture: false,
+    occlusionTexture: false,
+    emissiveTexture: false,
+    shadowMap: true,
   });
 
 export function createStandardMeshShaderModuleDescriptor(
@@ -479,9 +500,22 @@ export function createStandardTextureShaderVariantKey(
     !features.normalTexture &&
     !features.occlusionTexture &&
     !features.emissiveTexture &&
+    features.shadowMap !== true &&
     features.texCoord1 !== true
   ) {
     return STANDARD_METALLIC_ROUGHNESS_TEXTURE_SHADER_VARIANT;
+  }
+
+  if (
+    features.shadowMap === true &&
+    !features.baseColorTexture &&
+    !features.metallicRoughnessTexture &&
+    !features.normalTexture &&
+    !features.occlusionTexture &&
+    !features.emissiveTexture &&
+    features.texCoord1 !== true
+  ) {
+    return STANDARD_SHADOW_MAP_SHADER_VARIANT;
   }
 
   const names: string[] = [];
@@ -504,6 +538,10 @@ export function createStandardTextureShaderVariantKey(
 
   if (features.emissiveTexture) {
     names.push("emissive");
+  }
+
+  if (features.shadowMap === true) {
+    names.push("shadow-map");
   }
 
   if (features.texCoord1 === true) {
@@ -800,6 +838,10 @@ ${emissive}
     );
   }
 
+  if (features.shadowMap === true) {
+    code = applyStandardShadowMapSampling(code);
+  }
+
   return code;
 }
 
@@ -808,9 +850,14 @@ function standardTextureVariantComment(
 ): string {
   const active = standardTextureFeatureNames(features);
 
+  const deferred =
+    features.shadowMap === true
+      ? "image-based lighting is"
+      : "image-based lighting and shadows are";
+
   return `// Direct lights use a small metallic/roughness GGX BRDF. ${active.join(
     ", ",
-  )} texture sampling is active; image-based lighting and shadows are deferred.`;
+  )} sampling is active; ${deferred} deferred.`;
 }
 
 function standardTextureUvExpression(
@@ -868,6 +915,14 @@ function standardTextureVariantDeclaration(
     declarations.push(
       "@group(2) @binding(9) var emissiveTexture: texture_2d<f32>;",
       "@group(2) @binding(10) var emissiveSampler: sampler;",
+    );
+  }
+
+  if (features.shadowMap === true) {
+    declarations.push(
+      "@group(3) @binding(2) var<storage, read> directionalShadowMatrices: array<mat4x4f>;",
+      "@group(3) @binding(3) var directionalShadowMap: texture_depth_2d;",
+      "@group(3) @binding(4) var directionalShadowSampler: sampler_comparison;",
     );
   }
 
@@ -978,6 +1033,32 @@ function standardTextureVariantBindings(
     );
   }
 
+  if (features.shadowMap === true) {
+    bindings.push(
+      {
+        id: "directionalShadowMatrices",
+        label: "Directional shadow view-projection matrix storage",
+        group: 3,
+        binding: 2,
+        resource: "read-only-storage-buffer",
+      },
+      {
+        id: "directionalShadowMap",
+        label: "Directional shadow depth texture",
+        group: 3,
+        binding: 3,
+        resource: "texture",
+      },
+      {
+        id: "directionalShadowSampler",
+        label: "Directional shadow comparison sampler",
+        group: 3,
+        binding: 4,
+        resource: "sampler",
+      },
+    );
+  }
+
   return bindings;
 }
 
@@ -990,6 +1071,7 @@ function standardTextureVariantShaderLabel(
     !features.normalTexture &&
     !features.occlusionTexture &&
     !features.emissiveTexture &&
+    features.shadowMap !== true &&
     features.texCoord1 !== true
   ) {
     return "aperture/standard-mesh-base-color-textured";
@@ -1001,6 +1083,7 @@ function standardTextureVariantShaderLabel(
     !features.normalTexture &&
     !features.occlusionTexture &&
     !features.emissiveTexture &&
+    features.shadowMap !== true &&
     features.texCoord1 !== true
   ) {
     return "aperture/standard-mesh-metallic-roughness-textured";
@@ -1012,9 +1095,22 @@ function standardTextureVariantShaderLabel(
     !features.normalTexture &&
     !features.occlusionTexture &&
     !features.emissiveTexture &&
+    features.shadowMap !== true &&
     features.texCoord1 !== true
   ) {
     return "aperture/standard-mesh-base-color-metallic-roughness-textured";
+  }
+
+  if (
+    features.shadowMap === true &&
+    !features.baseColorTexture &&
+    !features.metallicRoughnessTexture &&
+    !features.normalTexture &&
+    !features.occlusionTexture &&
+    !features.emissiveTexture &&
+    features.texCoord1 !== true
+  ) {
+    return "aperture/standard-mesh-shadow-receiver";
   }
 
   return `aperture/standard-mesh-${standardTextureFeatureNames(features).join(
@@ -1047,6 +1143,10 @@ function standardTextureFeatureNames(
     names.push("emissive");
   }
 
+  if (features.shadowMap === true) {
+    names.push("shadow-map");
+  }
+
   if (features.texCoord1 === true) {
     names.push("uv1");
   }
@@ -1063,6 +1163,78 @@ function hasAnyStandardTextureFeature(
     features.normalTexture ||
     features.occlusionTexture ||
     features.emissiveTexture ||
+    features.shadowMap === true ||
     features.texCoord1 === true
   );
+}
+
+function applyStandardShadowMapSampling(code: string): string {
+  return code
+    .replace(
+      `fn evaluateDirectLight(
+  normal: vec3f,`,
+      `fn sampleDirectionalShadowFactor(worldPosition: vec3f) -> f32 {
+  if (arrayLength(&directionalShadowMatrices) == 0u) {
+    return 1.0;
+  }
+
+  let shadowPosition = directionalShadowMatrices[0] * vec4f(worldPosition, 1.0);
+
+  if (abs(shadowPosition.w) <= 0.00001) {
+    return 1.0;
+  }
+
+  let shadowClip = shadowPosition.xyz / shadowPosition.w;
+  let shadowUv = vec2f(shadowClip.x * 0.5 + 0.5, 0.5 - shadowClip.y * 0.5);
+  let inShadowFrustum =
+    shadowUv.x >= 0.0 &&
+    shadowUv.x <= 1.0 &&
+    shadowUv.y >= 0.0 &&
+    shadowUv.y <= 1.0 &&
+    shadowClip.z >= 0.0 &&
+    shadowClip.z <= 1.0;
+
+  if (!inShadowFrustum) {
+    return 1.0;
+  }
+
+  let rawVisibility = textureSampleCompareLevel(
+    directionalShadowMap,
+    directionalShadowSampler,
+    shadowUv,
+    shadowClip.z - 0.0005,
+  );
+  let visibility = select(
+    clamp(rawVisibility, 0.0, 1.0),
+    1.0,
+    rawVisibility != rawVisibility,
+  );
+
+  return mix(0.35, 1.0, visibility);
+}
+
+fn evaluateDirectLight(
+  normal: vec3f,`,
+    )
+    .replace(
+      `      direct = direct + evaluateDirectLight(
+        normal,
+        viewDir,
+        directionalLightDirection(lightIndex),
+        lightRadiance(lightIndex),
+        baseColor,
+        metallic,
+        roughness,
+      );`,
+      `      let shadowFactor = sampleDirectionalShadowFactor(input.worldPosition);
+      direct = direct + evaluateDirectLight(
+        normal,
+        viewDir,
+        directionalLightDirection(lightIndex),
+        lightRadiance(lightIndex),
+        baseColor,
+        metallic,
+        roughness,
+      ) * shadowFactor;`,
+    );
 }

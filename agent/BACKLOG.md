@@ -59,7 +59,8 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start with `task-1876`: implement minimal receiver shadow factor.
+Start with `task-1881`: route combined StandardMaterial light/shadow group 3
+resources through the app path.
 The GLTF scene fixture now renders through the public app path, reports detailed
 JSON-safe IBL/shadow readiness, allocates live renderer-owned diffuse IBL
 texture/view, specular IBL texture/view, and IBL sampler resources, allocates
@@ -87,11 +88,18 @@ executes three indexed caster draws, ends the pass, and finishes a shadow
 command buffer while queue submission remains deferred. The finish path now
 shares the shadow caster matrix bind-group layout with the depth-only shadow
 pipeline layout so WebGPU validation accepts the live draw calls. Specular
-prefilter pass execution, IBL shader sampling, shadow queue submission, and
-receiver WGSL shadow sampling remain deferred. The StandardMaterial receiver
-side now also has a JSON-safe readiness report proving access to the live shadow
-matrix buffer, shadow depth view, shadow sampler, group 5 bind group, and shadow
-command-buffer readiness status.
+prefilter pass execution, IBL shader sampling, and shadow queue submission
+remain deferred. The StandardMaterial receiver side now has a JSON-safe
+readiness report proving access to the live shadow matrix buffer, shadow depth
+view, shadow sampler, group 5 bind group, and shadow command-buffer readiness
+status. StandardMaterial also now has a `shadowMap` shader variant with group 5
+matrix/depth/sampler bindings, a single-tap directional shadow factor, shadow
+pipeline cache-key metadata, and required group 5 draw-list binding selection.
+The next blocker before visible receiver pixels is live app orchestration for
+the browser-safe receiver layout: the shader contract fits Chrome's
+`maxBindGroups: 4` limit and combined light/shadow group 3 resource primitives
+exist, but the app still needs to route those resources for shadow-capable
+StandardMaterial pipeline keys.
 
 The previous micro-hardening tasks remain useful but are no longer the main
 ready queue unless they directly block the scene slice. Public custom
@@ -114,7 +122,7 @@ Target proof point:
 
 Remaining automation priority order:
 
-1. `task-1876` — implement minimal receiver shadow factor.
+1. `task-1881` — route combined light/shadow group 3 resources through app.
 2. `task-1877` — verify first visible receiver shadow pixels.
 3. `task-1878` — audit receiver shadow sampling boundary.
 
@@ -10882,6 +10890,9 @@ Acceptance criteria:
 
 ### task-1876 — Implement minimal receiver shadow factor
 
+Status: completed 2026-05-19. See `packages/webgpu/src/webgpu/standard-shader.ts`
+and `test/webgpu/standard-shader.test.ts`.
+
 Category: `webgpu-render`
 Package/write-scope:
 `packages/webgpu`, `examples/gltf-scene.js`, targeted tests, e2e status
@@ -10901,6 +10912,80 @@ Acceptance criteria:
   GPU handles in JSON.
 - Keep visible pixel proof focused and covered by targeted tests before the
   follow-up browser readback task.
+
+### task-1879 — Rework shadow receiver bindings for maxBindGroups
+
+Status: completed 2026-05-19. See `packages/webgpu/src/webgpu/standard-shader.ts`
+and `test/webgpu/standard-shader.test.ts`.
+
+Category: `webgpu-render`
+Package/write-scope:
+`packages/webgpu`, `examples/gltf-scene.js`, targeted tests, e2e status
+expectations.
+Reference anchor:
+local WebGPU app frame-resource orchestration, StandardMaterial light/material
+bind groups, shadow command-buffer submission, receiver resource layout patterns
+in `references/engine` and `references/three.js`, and browser WebGPU
+`maxBindGroups` limits.
+
+Acceptance criteria:
+
+- Choose and implement a receiver resource layout that fits browser
+  `maxBindGroups: 4` by using only bind groups `0` through `3`.
+- Update the StandardMaterial shadow shader metadata, pipeline descriptor tests,
+  and draw-list required bind groups so browser-created render pipelines do not
+  exceed the device bind-group limit.
+- Keep receiver resources renderer-owned and JSON-safe; do not place GPU handles
+  in ECS snapshots or public status JSON.
+- Preserve non-shadow StandardMaterial behavior and existing GLTF scene browser
+  pixels while keeping live receiver sampling deferred until the next proof
+  task.
+
+### task-1880 — Create combined light/shadow group 3 resources
+
+Status: completed 2026-05-19. See
+`packages/webgpu/src/webgpu/standard-light-shadow-bind-group.ts`.
+
+Category: `webgpu-render`
+Package/write-scope:
+`packages/webgpu`, `examples/gltf-scene.js`, targeted tests, e2e status
+expectations.
+Reference anchor:
+local StandardMaterial light bind-group resources, shadow receiver bindings,
+pipeline layout/cache metadata, and combined light/shadow binding patterns in
+`references/engine` and `references/three.js`.
+
+Acceptance criteria:
+
+- Add a renderer-owned combined StandardMaterial group 3 bind group layout and
+  bind group resource containing light floats, light metadata, shadow matrices,
+  shadow depth texture view, and shadow comparison sampler.
+- Preserve JSON-safe status output and do not expose raw GPU handles through ECS
+  snapshots or public diagnostics.
+- Keep the GLTF scene browser fixture rendering with no WebGPU validation
+  warnings.
+
+### task-1881 — Route combined light/shadow group 3 resources through app
+
+Category: `webgpu-render`
+Package/write-scope:
+`packages/webgpu`, `examples/gltf-scene.js`, targeted tests, e2e status
+expectations.
+Reference anchor:
+local StandardMaterial app frame resources, queued built-in app route
+collection, pipeline-scoped bind group selection, shadow command-buffer
+submission, and receiver pass ordering patterns in `references/engine` and
+`references/three.js`.
+
+Acceptance criteria:
+
+- Route `standard|shadowMap|...` draws to the combined group 3 light/shadow bind
+  group only when all receiver resources are ready.
+- Keep non-shadow StandardMaterial draws on the existing light group.
+- Submit or schedule the GLTF shadow command buffer before the forward
+  StandardMaterial pass that samples it.
+- Preserve JSON-safe status output and existing GLTF scene browser pixels with
+  no WebGPU validation warnings.
 
 ### task-1877 — Verify first visible receiver shadow pixels
 

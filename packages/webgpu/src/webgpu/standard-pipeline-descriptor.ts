@@ -238,7 +238,9 @@ function standardBindGroupLayoutKeys(
     "standard/group-0:view-uniform@0",
     "standard/group-1:world-transforms@0",
     standardMaterialLayoutKey(features),
-    "lights/group-3:light-floats@0,light-metadata@1",
+    features.shadowMap === true
+      ? "standard/lights-shadow/group-3:light-floats@0,light-metadata@1,matrix@2,depth@3,sampler@4"
+      : "lights/group-3:light-floats@0,light-metadata@1",
   ];
 }
 
@@ -270,6 +272,7 @@ function standardTextureFeatures(
     normalTexture: tokens.includes("normalTexture"),
     occlusionTexture: tokens.includes("occlusionTexture"),
     emissiveTexture: tokens.includes("emissiveTexture"),
+    shadowMap: tokens.includes("shadowMap"),
     texCoord1: tokens.includes("uv1"),
   };
 }

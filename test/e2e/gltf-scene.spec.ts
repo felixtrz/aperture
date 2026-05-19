@@ -2943,7 +2943,7 @@ test("Playwright shows the GLTF scene fixture through the app path", async ({
           samplerResource: true,
           bindGroupResource: true,
           commandBufferSubmission: true,
-          shaderSampling: false,
+          shaderSampling: true,
         },
         records: [
           {
@@ -2979,12 +2979,7 @@ test("Playwright shows the GLTF scene fixture through the app path", async ({
             commandBufferStatus: "ready",
           },
         ],
-        diagnostics: [
-          {
-            code: "standardMaterialShadowReceiverBinding.shaderSamplingDeferred",
-            severity: "warning",
-          },
-        ],
+        diagnostics: [],
       },
       resourceSummary: {
         ready: false,

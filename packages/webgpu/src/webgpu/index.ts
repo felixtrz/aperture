@@ -146,6 +146,7 @@ export * from "./standard-material-ibl-shadow-binding-readiness.js";
 export * from "./standard-material-ibl-shadow-pipeline-key-readiness.js";
 export * from "./standard-material-shadow-bind-group-layout.js";
 export * from "./standard-material-shadow-bind-group.js";
+export * from "./standard-light-shadow-bind-group.js";
 export * from "./standard-material-shadow-receiver-binding-readiness.js";
 export * from "./standard-material-shadow-readiness.js";
 export * from "./standard-material-sampler-fidelity-summary.js";

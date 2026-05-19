@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-19 01:55 PDT</dd>
+            <dd>2026-05-19 02:40 PDT</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -480,15 +480,21 @@
               layout, avoiding WebGPU validation warnings during the depth-only
               pass. The receiver side now reports StandardMaterial access to the
               finished shadow command buffer, matrix buffer, shadow depth view,
-              shadow sampler, and group 5 bind group, while WGSL receiver shadow
-              sampling stays deferred. Public custom shader/material APIs and
-              app-owned custom adapter facades remain deferred behind this
-              built-in scene path. Route summary determinism is pinned, the
-              built-in frame-resource wrapper now has mixed-family route
-              regression coverage over the generic collector, app-level mixed
-              built-in routes now assert JSON-safe material queue and routed
-              resource summaries for two-family and three-family paths, and the
-              glTF
+              shadow sampler, and group 5 bind group. StandardMaterial now has a
+              shadow-map shader variant with browser-safe group 3
+              matrix/depth/sampler bindings and a deterministic single-tap
+              directional shadow factor; Chrome reports
+              <code>maxBindGroups: 4</code>, and combined light/shadow group 3
+              resource helpers now exist. The next browser proof needs app
+              orchestration that submits the shadow pass before the forward
+              StandardMaterial pass and routes shadow-capable pipeline keys.
+              Public custom shader/material APIs and app-owned custom adapter
+              facades remain deferred behind this built-in scene path. Route
+              summary determinism is pinned, the built-in frame-resource wrapper
+              now has mixed-family route regression coverage over the generic
+              collector, app-level mixed built-in routes now assert JSON-safe
+              material queue and routed resource summaries for two-family and
+              three-family paths, and the glTF
               <code>alphaMode: "BLEND"</code> browser fixture now pins
               transparent queue routing, alpha-blend render-state mapping, and
               its deterministic StandardMaterial pipeline key. The translucent
@@ -759,7 +765,7 @@
               diagnostics now include those routed item key details.
             </dd>
             <dt>Next focus</dt>
-            <dd>Implement minimal StandardMaterial receiver shadow factor</dd>
+            <dd>Route combined light/shadow group 3 resources</dd>
           </dl>
         </aside>
       </header>
@@ -1285,16 +1291,24 @@
             <h3>Latest work in this update</h3>
             <ul>
               <li>
+                <span class="badge green">task-1880</span> Added combined
+                StandardMaterial light/shadow group 3 resources.
+              </li>
+              <li>
+                <span class="badge green">task-1879</span> Made the shadow
+                receiver shader contract fit WebGPU maxBindGroups.
+              </li>
+              <li>
+                <span class="badge green">task-1876</span> Added minimal
+                StandardMaterial receiver shadow factor.
+              </li>
+              <li>
                 <span class="badge green">task-1875</span> Planned minimal
                 StandardMaterial shadow shader sampling.
               </li>
               <li>
                 <span class="badge green">task-1874</span> Added
                 StandardMaterial shadow receiver binding readiness.
-              </li>
-              <li>
-                <span class="badge green">task-1873</span> Planned
-                StandardMaterial receiver shadow sampling readiness.
               </li>
               <li>
                 <span class="badge green">task-1872</span> Audited the shadow
@@ -2514,15 +2528,15 @@
             <h3>Recommended next tasks</h3>
             <ul>
               <li>
-                <span class="badge amber">next</span> Implement minimal receiver
-                shadow factor.
+                <span class="badge amber">next</span> Route combined
+                light/shadow group 3 resources.
               </li>
               <li>
-                Add single-tap directional shadow sampling over the ready group
-                5 binding.
+                Submit the shadow pass before forward rendering and select the
+                shadow-capable StandardMaterial pipeline only when ready.
               </li>
               <li>
-                Keep diagnostics JSON-safe and preserve ECS-to-render ownership.
+                Then verify deterministic receiver shadow pixels in Playwright.
               </li>
             </ul>
           </article>

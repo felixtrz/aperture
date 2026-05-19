@@ -1,5 +1,79 @@
 # Completed Tasks
 
+## task-1880 — Create combined light/shadow group 3 resources
+
+Completed: 2026-05-19
+
+Summary:
+
+- Added `standard-light-shadow-bind-group` helpers for a combined
+  StandardMaterial group 3 layout containing light floats, light metadata,
+  shadow matrices, shadow depth texture view, and shadow comparison sampler.
+- Added descriptor planning and bind-group resource creation with stable
+  JSON-safe resource keys and no raw GPU handles in public records.
+- Added tests for the browser-safe group 3 layout, combined resource creation,
+  and missing receiver-resource diagnostics.
+- Exported the helpers from the WebGPU package.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/standard-light-shadow-bind-group.test.ts`
+- `pnpm run typecheck`
+- `pnpm run typecheck:test`
+
+## task-1879 — Rework shadow receiver bindings for maxBindGroups
+
+Completed: 2026-05-19
+
+Summary:
+
+- Moved the StandardMaterial `shadowMap` shader receiver declarations from
+  `@group(5)` into browser-safe group 3 bindings 2-4 alongside the existing
+  light group.
+- Updated shadow pipeline cache-key metadata to use one combined
+  `standard/lights-shadow/group-3` layout key instead of a fifth bind group.
+- Updated required bind-group selection so `standard|shadowMap|...` still uses
+  groups `[0, 1, 2, 3]`, matching Chrome's reported `maxBindGroups: 4` limit.
+- Kept live app routing deferred; the next slice needs a combined group 3
+  resource containing lights plus shadow receiver resources.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/standard-shader.test.ts test/webgpu/standard-pipeline.test.ts test/webgpu/material-pipeline-selection.test.ts test/webgpu/standard-material-shadow-receiver-binding-readiness.test.ts`
+- `pnpm run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec playwright test test/e2e/gltf-scene.spec.ts`
+
+## task-1876 — Minimal StandardMaterial receiver shadow factor
+
+Completed: 2026-05-19
+
+Summary:
+
+- Added a StandardMaterial `shadowMap` shader variant with directional-shadow
+  matrix, depth texture, and comparison sampler bindings.
+- Added a deterministic single-tap directional shadow factor that multiplies
+  direct StandardMaterial lighting while preserving non-shadow shader behavior.
+  The compare result is clamped and guarded so non-finite comparison samples do
+  not poison fragment color.
+- Added shadow-aware StandardMaterial pipeline cache-key metadata and required
+  bind group selection for `standard|shadowMap|...` pipeline keys.
+- Updated receiver binding readiness JSON to report shader sampling readiness
+  once all live renderer-owned receiver resources and a finished shadow command
+  buffer are available.
+- Updated GLTF scene e2e expectations and public progress tracker pages.
+- Confirmed browser activation still needs a follow-up combined group 3
+  resource before the shader can be routed through the GLTF app path.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/standard-shader.test.ts test/webgpu/standard-pipeline.test.ts test/webgpu/material-pipeline-selection.test.ts test/webgpu/standard-material-shadow-receiver-binding-readiness.test.ts`
+- `pnpm run typecheck`
+- `pnpm run typecheck:test`
+- `node --check examples/gltf-scene.js`
+- `pnpm exec playwright test test/e2e/gltf-scene.spec.ts`
+- `pnpm run check`
+
 ## task-1875 — Minimal StandardMaterial shadow shader sampling plan
 
 Completed: 2026-05-19

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  STANDARD_SHADOW_RECEIVER_MESH_WGSL,
   STANDARD_MESH_WGSL,
   STANDARD_TANGENT_PRIMITIVE_VERTEX_BUFFER_LAYOUT,
   STANDARD_TEXCOORD1_PRIMITIVE_VERTEX_BUFFER_LAYOUT,
@@ -225,6 +226,53 @@ describe("browser standard material pipeline bridge", () => {
         buffers: [UNLIT_PRIMITIVE_VERTEX_BUFFER_LAYOUT],
       },
       primitive: { topology: "triangle-list", cullMode: "back" },
+    });
+  });
+
+  it("selects a shadow receiver shader and browser-safe group 3 layout key for shadowMap pipeline keys", async () => {
+    const shaderModule = {
+      compilationInfo: async () => ({ messages: [] }),
+    };
+    const pipeline = { kind: "standard-shadow-render-pipeline" };
+    const shaderDescriptors: WebGpuShaderCreateDescriptor[] = [];
+    const pipelineDescriptors: WebGpuRenderPipelineCreateDescriptor[] = [];
+    const device = {
+      createShaderModule(descriptor: WebGpuShaderCreateDescriptor) {
+        shaderDescriptors.push(descriptor);
+        return shaderModule;
+      },
+      createRenderPipeline(descriptor: WebGpuRenderPipelineCreateDescriptor) {
+        pipelineDescriptors.push(descriptor);
+        return pipeline;
+      },
+    };
+
+    const result = await createStandardRenderPipelineResource({
+      device,
+      colorFormat: "bgra8unorm",
+      depthFormat: "depth24plus",
+      batchKey: {
+        ...STANDARD_BATCH_KEY,
+        pipelineKey: "standard|shadowMap|opaque|back|less|none",
+      },
+    });
+
+    expect(result.diagnostics).toEqual([]);
+    expect(required(result.resource).cacheKey).toContain(
+      "direct-lit-metallic-roughness-shadow-map",
+    );
+    expect(required(result.resource).cacheKey).toContain(
+      "standard/lights-shadow/group-3:light-floats@0,light-metadata@1,matrix@2,depth@3,sampler@4",
+    );
+    expect(shaderDescriptors).toEqual([
+      {
+        label: "aperture/standard-mesh-shadow-receiver",
+        code: STANDARD_SHADOW_RECEIVER_MESH_WGSL,
+      },
+    ]);
+    expect(pipelineDescriptors[0]).toMatchObject({
+      label: "aperture/standard-mesh-shadow-receiver:bgra8unorm:triangle-list",
+      layout: "auto",
     });
   });
 

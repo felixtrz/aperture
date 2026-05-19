@@ -41,6 +41,11 @@ describe("material pipeline selection", () => {
     expect(
       requiredBindGroupGroupsForPipelineKey("standard|opaque|back|less|none"),
     ).toEqual([0, 1, 2, 3]);
+    expect(
+      requiredBindGroupGroupsForPipelineKey(
+        "standard|shadowMap|opaque|back|less|none",
+      ),
+    ).toEqual([0, 1, 2, 3]);
     expect(requiredBindGroupGroupsForPipelineKey("pipeline:legacy")).toEqual([
       0, 1, 2,
     ]);

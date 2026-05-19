@@ -1,5 +1,228 @@
 # Handoff
 
+## Current Run Update — 2026-05-19T09:30:16Z
+
+Completed `task-1876`, `task-1879`, and `task-1880`. Recommended next task is
+`task-1881`: route combined StandardMaterial light/shadow group 3 resources
+through the app path before visible receiver pixel proof.
+
+What changed:
+
+- Added a StandardMaterial `shadowMap` shader variant with a guarded single-tap
+  directional shadow factor.
+- Added shadow-aware StandardMaterial pipeline descriptor/cache-key metadata and
+  required bind-group selection for `standard|shadowMap|...` keys.
+- Updated receiver binding readiness so ready receiver resources now report
+  `shaderSampling: true` and no deferred shader diagnostic.
+- Verified a live browser routing attempt and found Chrome reports
+  `maxBindGroups: 4`; a fifth bind group makes the receiver pipeline invalid.
+- Reworked the receiver shader contract to use group 3 bindings 2-4 for shadow
+  matrices, shadow depth texture, and shadow comparison sampler.
+- Updated the shadow pipeline cache key to use one combined
+  `standard/lights-shadow/group-3` layout and kept required groups at
+  `[0, 1, 2, 3]`.
+- Added `standard-light-shadow-bind-group` helpers for a combined group 3
+  layout, descriptor plan, and bind-group resource containing light floats,
+  light metadata, shadow matrices, shadow depth view, and comparison sampler.
+- Started `task-1881` with one enabling change: StandardMaterial app pipeline
+  layout metadata now reports the combined light/shadow group 3 descriptor when
+  the pipeline cache key contains `standard/lights-shadow/group-3`.
+- Kept GLTF live receiver routing deferred because the app still needs to
+  select and pass that combined resource for `standard|shadowMap|...` draws.
+- Updated public tracker pages, backlog, and completed log.
+
+Reference anchors inspected:
+
+- `packages/webgpu/src/webgpu/standard-shader.ts`
+- `packages/webgpu/src/webgpu/standard-pipeline.ts`
+- `packages/webgpu/src/webgpu/standard-pipeline-descriptor.ts`
+- `packages/webgpu/src/webgpu/material-pipeline-selection.ts`
+- `packages/webgpu/src/webgpu/light-bind-group-layout.ts`
+- `packages/webgpu/src/webgpu/standard-light-shadow-bind-group.ts`
+- `packages/webgpu/src/webgpu/standard-material-shadow-bind-group.ts`
+- `packages/webgpu/src/webgpu/standard-material-shadow-receiver-binding-readiness.ts`
+- `packages/webgpu/src/webgpu/render-pass-draw-list.ts`
+- `packages/webgpu/src/webgpu/app.ts`
+- `examples/gltf-scene.js`
+- `test/e2e/gltf-scene.spec.ts`
+- `references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/clusteredLightShadows.js`
+- `references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/lighting/shadowPCF3.js`
+- `references/engine/src/platform/graphics/shader-chunks/frag/webgpu.js`
+- `references/engine/src/scene/renderer/shadow-renderer.js`
+- `references/engine/src/scene/renderer/forward-renderer.js`
+- `references/three.js/src/renderers/shaders/ShaderChunk/shadowmap_pars_fragment.glsl.js`
+- `references/three.js/src/renderers/shaders/ShaderChunk/lights_fragment_begin.glsl.js`
+- `references/three.js/src/renderers/webgl/WebGLShadowMap.js`
+- `references/three.js/src/renderers/webgpu/nodes/WGSLNodeBuilder.js`
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/standard-shader.test.ts test/webgpu/standard-pipeline.test.ts test/webgpu/material-pipeline-selection.test.ts test/webgpu/standard-material-shadow-receiver-binding-readiness.test.ts`
+- `pnpm exec vitest run test/webgpu/standard-light-shadow-bind-group.test.ts`
+- `pnpm exec vitest run test/webgpu/standard-light-shadow-bind-group.test.ts test/webgpu/standard-pipeline.test.ts`
+- `pnpm run typecheck`
+- `pnpm run typecheck:test`
+- `node --check examples/gltf-scene.js`
+- `pnpm exec playwright test test/e2e/gltf-scene.spec.ts`
+- `pnpm run check` (`309` test files / `1401` tests passed)
+
+Known issues / follow-ups:
+
+- GLTF visible receiver pixels remain deferred until the app routes the combined
+  StandardMaterial light/shadow group 3 bind group.
+- Shadow queue submission before forward rendering remains deferred until that
+  receiver resource is selected for the shadow-capable forward pass.
+- IBL shader sampling remains deferred.
+- Start `task-1881` next, then return to `task-1877` for deterministic
+  Playwright receiver shadow pixels, followed by `task-1878` audit.
+
+## Current Run Update — 2026-05-19T09:22:48Z
+
+Completed `task-1876`. `task-1879` was refined, not implemented: the first
+attempt to route the receiver shader through the GLTF app proved that Chrome's
+WebGPU `maxBindGroups` limit is `4`, so the current StandardMaterial receiver
+shader using `@group(5)` cannot create a valid browser render pipeline.
+Recommended next task is now `task-1879`: rework shadow receiver bindings for
+the WebGPU `maxBindGroups` limit before any app orchestration or visible pixel
+proof.
+
+What changed:
+
+- Added a StandardMaterial `shadowMap` shader variant with shadow matrix,
+  depth texture, and comparison sampler bindings.
+- Added a guarded single-tap directional shadow factor that multiplies direct
+  StandardMaterial lighting while preserving non-shadow StandardMaterial
+  behavior.
+- Added a non-finite guard around the comparison sample result so invalid
+  compare values do not produce black/NaN receiver pixels.
+- Added shadow-aware StandardMaterial pipeline descriptor/cache-key metadata
+  and required bind-group selection for `standard|shadowMap|...` keys.
+- Updated receiver binding readiness so ready receiver resources now report
+  `shaderSampling: true` and no deferred shader diagnostic.
+- Kept the GLTF app path on the existing non-shadow StandardMaterial pipeline
+  because live browser routing through group 5 is invalid under Chrome's
+  `maxBindGroups: 4` limit.
+- Updated public tracker pages and backlog to make the binding-layout rework
+  the next task.
+
+Reference anchors inspected:
+
+- `packages/webgpu/src/webgpu/standard-shader.ts`
+- `packages/webgpu/src/webgpu/standard-pipeline.ts`
+- `packages/webgpu/src/webgpu/standard-pipeline-descriptor.ts`
+- `packages/webgpu/src/webgpu/material-pipeline-selection.ts`
+- `packages/webgpu/src/webgpu/standard-material-shadow-bind-group.ts`
+- `packages/webgpu/src/webgpu/standard-material-shadow-receiver-binding-readiness.ts`
+- `packages/webgpu/src/webgpu/render-pass-draw-list.ts`
+- `packages/webgpu/src/webgpu/render-frame-plan.ts`
+- `packages/webgpu/src/webgpu/app.ts`
+- `examples/gltf-scene.js`
+- `test/e2e/gltf-scene.spec.ts`
+- `references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/clusteredLightShadows.js`
+- `references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/lighting/shadowPCF3.js`
+- `references/engine/src/platform/graphics/shader-chunks/frag/webgpu.js`
+- `references/engine/src/scene/renderer/shadow-renderer.js`
+- `references/engine/src/scene/renderer/forward-renderer.js`
+- `references/three.js/src/renderers/shaders/ShaderChunk/shadowmap_pars_fragment.glsl.js`
+- `references/three.js/src/renderers/shaders/ShaderChunk/lights_fragment_begin.glsl.js`
+- `references/three.js/src/renderers/webgl/WebGLShadowMap.js`
+- `references/three.js/src/renderers/webgpu/nodes/WGSLNodeBuilder.js`
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/standard-shader.test.ts test/webgpu/standard-pipeline.test.ts test/webgpu/material-pipeline-selection.test.ts test/webgpu/standard-material-shadow-receiver-binding-readiness.test.ts`
+- `pnpm run typecheck`
+- `pnpm run typecheck:test`
+- `node --check examples/gltf-scene.js`
+- `pnpm exec playwright test test/e2e/gltf-scene.spec.ts`
+- `pnpm run check` (`308` test files / `1398` tests passed)
+
+Known issues / follow-ups:
+
+- The StandardMaterial shadow receiver shader variant and readiness contract are
+  covered, but browser activation must be reworked to fit bind groups `0`
+  through `3`; group 5 exceeds Chrome's reported `maxBindGroups`.
+- Shadow queue submission before forward rendering remains deferred until the
+  receiver resource layout is browser-safe.
+- IBL shader sampling remains deferred.
+- Start `task-1879` next, then return to `task-1877` for deterministic
+  Playwright receiver shadow pixels, followed by `task-1878` audit.
+
+## Current Run Update — 2026-05-19T09:11:51Z
+
+Completed `task-1876`. Recommended next task is `task-1879`: wire shadow
+receiver app orchestration before attempting the visible receiver pixel proof.
+
+What changed:
+
+- Added a StandardMaterial `shadowMap` shader variant:
+  - declares group 5 shadow matrix storage, depth texture, and comparison
+    sampler bindings,
+  - computes a guarded world-to-shadow coordinate from the first directional
+    shadow matrix,
+  - applies a deterministic single-tap `textureSampleCompareLevel` visibility
+    factor to direct StandardMaterial lighting,
+  - preserves existing non-shadow StandardMaterial shader behavior.
+- Added shadow-aware StandardMaterial pipeline metadata:
+  - `standard|shadowMap|...` selects the shadow receiver shader,
+  - pipeline cache keys include the group 5 shadow layout key,
+  - draw-list required bind groups include group 5 only for shadow-capable
+    StandardMaterial pipeline keys.
+- Updated `StandardMaterialShadowReceiverBindingReadinessReport` so a ready
+  receiver binding now reports `shaderSampling: true` and no deferred shader
+  diagnostic once the live matrix buffer, depth view, sampler, bind group, and
+  finished shadow command buffer are present.
+- Updated GLTF scene e2e expectations, public tracker pages, backlog, and
+  completed log.
+- Started inspecting `task-1877`, but did not implement it because visible
+  receiver pixels require a prerequisite app orchestration slice: the current
+  GLTF app status creates/finishes the shadow command buffer after the forward
+  app render, does not submit it before StandardMaterial draws, and does not yet
+  route shadow-capable pipeline keys or group 5 bind groups into the main draw
+  path.
+
+Reference anchors inspected:
+
+- `packages/webgpu/src/webgpu/standard-shader.ts`
+- `packages/webgpu/src/webgpu/standard-pipeline.ts`
+- `packages/webgpu/src/webgpu/standard-pipeline-descriptor.ts`
+- `packages/webgpu/src/webgpu/material-pipeline-selection.ts`
+- `packages/webgpu/src/webgpu/standard-material-shadow-bind-group.ts`
+- `packages/webgpu/src/webgpu/standard-material-shadow-receiver-binding-readiness.ts`
+- `packages/webgpu/src/webgpu/render-pass-draw-list.ts`
+- `packages/webgpu/src/webgpu/render-frame-plan.ts`
+- `packages/webgpu/src/webgpu/app.ts`
+- `examples/gltf-scene.js`
+- `test/e2e/gltf-scene.spec.ts`
+- `references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/clusteredLightShadows.js`
+- `references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/lighting/shadowPCF3.js`
+- `references/engine/src/platform/graphics/shader-chunks/frag/webgpu.js`
+- `references/three.js/src/renderers/shaders/ShaderChunk/shadowmap_pars_fragment.glsl.js`
+- `references/three.js/src/renderers/shaders/ShaderChunk/lights_fragment_begin.glsl.js`
+- `references/three.js/src/renderers/webgpu/nodes/WGSLNodeBuilder.js`
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/standard-shader.test.ts test/webgpu/standard-pipeline.test.ts test/webgpu/material-pipeline-selection.test.ts test/webgpu/standard-material-shadow-receiver-binding-readiness.test.ts`
+- `pnpm run typecheck`
+- `pnpm run typecheck:test`
+- `node --check examples/gltf-scene.js`
+- `pnpm exec playwright test test/e2e/gltf-scene.spec.ts`
+- `pnpm run check:progress`
+- `pnpm run lint`
+- `pnpm run format:check`
+- `pnpm run check` (`308` test files / `1398` tests passed)
+
+Known issues / follow-ups:
+
+- The shadow receiver shader variant exists and is covered, but the GLTF
+  visible-pixel proof remains deferred until `task-1879` wires app-level shadow
+  pass ordering, queue submission, `shadowMap` pipeline-key routing, and group 5
+  bind group inclusion in the main forward draw path.
+- IBL shader sampling remains deferred.
+- Start `task-1879` next, then return to `task-1877` for deterministic
+  Playwright receiver shadow pixels, followed by `task-1878` audit.
+
 ## Current Run Update — 2026-05-19T08:55:08Z
 
 Completed `task-1866` through `task-1875`. Recommended next task is

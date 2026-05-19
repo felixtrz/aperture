@@ -16,8 +16,7 @@ export type StandardMaterialShadowReceiverBindingDiagnosticCode =
   | "standardMaterialShadowReceiverBinding.missingDepthTextureResource"
   | "standardMaterialShadowReceiverBinding.missingSamplerResource"
   | "standardMaterialShadowReceiverBinding.missingBindGroupResource"
-  | "standardMaterialShadowReceiverBinding.commandBufferNotReady"
-  | "standardMaterialShadowReceiverBinding.shaderSamplingDeferred";
+  | "standardMaterialShadowReceiverBinding.commandBufferNotReady";
 
 export interface StandardMaterialShadowReceiverBindingDiagnostic {
   readonly code: StandardMaterialShadowReceiverBindingDiagnosticCode;
@@ -47,7 +46,7 @@ export interface StandardMaterialShadowReceiverBindingReadinessReport {
     readonly samplerResource: boolean;
     readonly bindGroupResource: boolean;
     readonly commandBufferSubmission: boolean;
-    readonly shaderSampling: false;
+    readonly shaderSampling: boolean;
   };
   readonly records: readonly StandardMaterialShadowReceiverBindingRecord[];
   readonly diagnostics: readonly StandardMaterialShadowReceiverBindingDiagnostic[];
@@ -148,15 +147,6 @@ export function createStandardMaterialShadowReceiverBindingReadinessReport(
           commandBufferStatus: options.commandBufferSubmission.status,
         }));
 
-  if (records.length > 0) {
-    diagnostics.push({
-      code: "standardMaterialShadowReceiverBinding.shaderSamplingDeferred",
-      severity: "warning",
-      message:
-        "StandardMaterial shadow receiver resources are bound, but WGSL shadow sampling remains deferred.",
-    });
-  }
-
   return report({
     status: records.length > 0 ? "ready" : "missing",
     standardMaterialCount: options.standardMaterialCount,
@@ -199,7 +189,14 @@ function sections(
     samplerResource: options.samplerResource.resource !== null,
     bindGroupResource: options.bindGroupResource.resource !== null,
     commandBufferSubmission: options.commandBufferSubmission.ready,
-    shaderSampling: false,
+    shaderSampling:
+      options.matrixBufferResource.resource !== null &&
+      options.depthTextureResources.resources.some(
+        (resource) => resource.allocation.valid,
+      ) &&
+      options.samplerResource.resource !== null &&
+      options.bindGroupResource.resource !== null &&
+      options.commandBufferSubmission.ready,
   };
 }
 

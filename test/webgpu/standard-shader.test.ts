@@ -20,6 +20,9 @@ import {
   PACKED_LIGHT_FLOAT_STRIDE,
   PACKED_LIGHT_METADATA_STRIDE,
   PackedLightKindId,
+  STANDARD_SHADOW_MAP_SHADER_VARIANT,
+  STANDARD_SHADOW_RECEIVER_MESH_SHADER,
+  STANDARD_SHADOW_RECEIVER_MESH_WGSL,
   STANDARD_MATERIAL_MVP_LIGHTING_MODEL,
   STANDARD_MESH_SHADER,
   STANDARD_MESH_WGSL,
@@ -189,6 +192,48 @@ describe("built-in standard material WGSL shader metadata", () => {
       ["lightMetadata", 3, 1, "read-only-storage-buffer"],
       ["baseColorTexture", 2, 1, "texture"],
       ["baseColorSampler", 2, 2, "sampler"],
+    ]);
+  });
+
+  it("declares browser-safe group 3 bindings and single-tap comparison sampling for shadow receivers", () => {
+    expect(
+      validateStandardShaderMetadata(STANDARD_SHADOW_RECEIVER_MESH_SHADER),
+    ).toEqual({ valid: true, diagnostics: [] });
+    expect(STANDARD_SHADOW_MAP_SHADER_VARIANT).toBe(
+      "direct-lit-metallic-roughness-shadow-map",
+    );
+    expect(STANDARD_SHADOW_RECEIVER_MESH_WGSL).toContain(
+      "@group(3) @binding(2) var<storage, read> directionalShadowMatrices: array<mat4x4f>;",
+    );
+    expect(STANDARD_SHADOW_RECEIVER_MESH_WGSL).toContain(
+      "@group(3) @binding(3) var directionalShadowMap: texture_depth_2d;",
+    );
+    expect(STANDARD_SHADOW_RECEIVER_MESH_WGSL).toContain(
+      "@group(3) @binding(4) var directionalShadowSampler: sampler_comparison;",
+    );
+    expect(STANDARD_SHADOW_RECEIVER_MESH_WGSL).toContain(
+      "fn sampleDirectionalShadowFactor(worldPosition: vec3f) -> f32",
+    );
+    expect(STANDARD_SHADOW_RECEIVER_MESH_WGSL).toContain(
+      "textureSampleCompareLevel(",
+    );
+    expect(STANDARD_SHADOW_RECEIVER_MESH_WGSL).toContain(") * shadowFactor;");
+    expect(
+      STANDARD_SHADOW_RECEIVER_MESH_SHADER.bindings.map((binding) => [
+        binding.id,
+        binding.group,
+        binding.binding,
+        binding.resource,
+      ]),
+    ).toEqual([
+      ["viewProjection", 0, 0, "uniform-buffer"],
+      ["worldTransforms", 1, 0, "read-only-storage-buffer"],
+      ["standardMaterial", 2, 0, "uniform-buffer"],
+      ["lightFloats", 3, 0, "read-only-storage-buffer"],
+      ["lightMetadata", 3, 1, "read-only-storage-buffer"],
+      ["directionalShadowMatrices", 3, 2, "read-only-storage-buffer"],
+      ["directionalShadowMap", 3, 3, "texture"],
+      ["directionalShadowSampler", 3, 4, "sampler"],
     ]);
   });
 

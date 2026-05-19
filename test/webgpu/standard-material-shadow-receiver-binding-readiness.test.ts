@@ -53,7 +53,7 @@ describe("StandardMaterialShadowReceiverBindingReadinessReport", () => {
         samplerResource: true,
         bindGroupResource: true,
         commandBufferSubmission: true,
-        shaderSampling: false,
+        shaderSampling: true,
       },
       records: [
         {
@@ -77,14 +77,7 @@ describe("StandardMaterialShadowReceiverBindingReadinessReport", () => {
           commandBufferStatus: "ready",
         },
       ],
-      diagnostics: [
-        {
-          code: "standardMaterialShadowReceiverBinding.shaderSamplingDeferred",
-          severity: "warning",
-          message:
-            "StandardMaterial shadow receiver resources are bound, but WGSL shadow sampling remains deferred.",
-        },
-      ],
+      diagnostics: [],
     });
     expect(JSON.stringify(json)).not.toMatch(
       /GPUBuffer|GPUTexture|GPUTextureView|GPUSampler|GPUBindGroup|GPUCommandBuffer|"raw"|callback/,
