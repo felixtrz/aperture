@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-18 19:50 PDT</dd>
+            <dd>2026-05-18 20:46 PDT</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -410,16 +410,35 @@
               resource/pass readiness diagnostics. StandardMaterial IBL
               readiness diagnostics are exposed, while shader IBL sampling and
               shadow-map rendering remain explicitly deferred. The descriptor
-              alignment audit is complete, and data-only shadow texture resource
-              descriptors are now exposed; the next task is adding the first
-              shadow pass plan/report. Public custom shader/material APIs and
-              app-owned custom adapter facades remain deferred behind this
-              built-in scene path. Route summary determinism is pinned, the
-              built-in frame-resource wrapper now has mixed-family route
-              regression coverage over the generic collector, app-level mixed
-              built-in routes now assert JSON-safe material queue and routed
-              resource summaries for two-family and three-family paths, and the
-              glTF
+              alignment audit is complete, data-only shadow texture resource
+              descriptors are exposed, the first JSON-safe shadow pass plan
+              report now shows stable pass keys plus deferred submission state,
+              and StandardMaterial shadow readiness diagnostics now classify the
+              scene as deferred until pass submission and shader sampling exist,
+              and IBL texture preparation descriptors now classify
+              diffuse/specular texture upload and prefiltering as deferred; the
+              post-descriptor GLTF scene resource alignment audit confirms the
+              reports remain ECS-derived, renderer-owned, WebGPU-only,
+              JSON-safe, and diagnostic-only. The resource dashboard audit is
+              complete, IBL texture preparation pass planning now reports
+              deferred diffuse/specular preparation passes, and directional
+              shadow view/projection planning now exposes stable matrix keys
+              with deferred computation, and shadow caster draw-list planning
+              now reports caster filtering over the extracted GLTF scene draws.
+              StandardMaterial IBL/shadow shader binding readiness now exposes
+              deferred IBL and shadow slot metadata, and the first IBL/shadow
+              planning-chain audit confirms this path is still ECS-derived,
+              renderer-owned, WebGPU-only, JSON-safe, and diagnostic-only.
+              Shadow matrix buffer descriptor planning now exposes stable matrix
+              buffer keys, byte counts, and deferred upload status. The next
+              task is the IBL preparation resource summary bridge. Public custom
+              shader/material APIs and app-owned custom adapter facades remain
+              deferred behind this built-in scene path. Route summary
+              determinism is pinned, the built-in frame-resource wrapper now has
+              mixed-family route regression coverage over the generic collector,
+              app-level mixed built-in routes now assert JSON-safe material
+              queue and routed resource summaries for two-family and
+              three-family paths, and the glTF
               <code>alphaMode: "BLEND"</code> browser fixture now pins
               transparent queue routing, alpha-blend render-state mapping, and
               its deterministic StandardMaterial pipeline key. The translucent
@@ -690,7 +709,7 @@
               diagnostics now include those routed item key details.
             </dd>
             <dt>Next focus</dt>
-            <dd>Add first shadow pass plan/report</dd>
+            <dd>Add IBL preparation resource summary bridge</dd>
           </dl>
         </aside>
       </header>
@@ -2409,13 +2428,11 @@
             <h3>Recommended next tasks</h3>
             <ul>
               <li>
-                <span class="badge amber">next</span> Add first shadow pass
-                plan/report.
+                <span class="badge amber">next</span> Add IBL preparation
+                resource summary bridge.
               </li>
-              <li>Add StandardMaterial shadow readiness diagnostics.</li>
-              <li>Add IBL texture preparation descriptor.</li>
-              <li>Audit GLTF scene post-descriptor resource alignment.</li>
-              <li>Add first IBL/shadow resource dashboard audit.</li>
+              <li>Add shadow caster command-plan readiness.</li>
+              <li>Add StandardMaterial IBL/shadow pipeline-key readiness.</li>
             </ul>
           </article>
         </div>

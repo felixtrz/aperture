@@ -1,11 +1,11 @@
 {
   "state": "idle",
-  "currentTaskId": "task-1801",
-  "currentRunStartedAt": "2026-05-19T02:02:09Z",
-  "lastRunStartedAt": "2026-05-19T02:02:09Z",
+  "currentTaskId": "task-1812",
+  "currentRunStartedAt": "2026-05-19T03:03:58Z",
+  "lastRunStartedAt": "2026-05-19T03:03:58Z",
   "lastResult": "success",
-  "lastCommit": "638102e",
+  "lastCommit": "99af59c",
   "activePid": null,
-  "notes": "Completed task-1789 through task-1800: planned and implemented the GLTF scene diagnostic chain through IBL descriptors/readiness, shadow descriptors/resource readiness, ECS-safe alignment audit, and data-only shadow texture resource planning. Next: task-1801 add first shadow pass plan/report.",
-  "lastRunFinishedAt": "2026-05-19T02:50:00Z"
+  "notes": "Completed task-1801 through task-1811: added JSON-safe IBL/shadow descriptor, pass-plan, draw-list, view-projection, matrix buffer descriptor, StandardMaterial readiness, and shader binding readiness reports; audited the first planning chain; refilled task-1812 through task-1816. Next: task-1812 add IBL preparation resource summary bridge.",
+  "lastRunFinishedAt": "2026-05-19T03:49:53Z"
 }

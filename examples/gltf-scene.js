@@ -226,6 +226,16 @@ function publishFrameStatus(aperture, app, scene, step, report, frame) {
       ],
     }),
   );
+  const iblTextures = aperture.iblTexturePreparationReportToJsonValue(
+    aperture.createIblTexturePreparationReport({
+      descriptors: iblDescriptor,
+    }),
+  );
+  const iblPassPlan = aperture.iblPreparationPassPlanReportToJsonValue(
+    aperture.createIblPreparationPassPlanReport({
+      textures: iblTextures,
+    }),
+  );
   const standardMaterialCount =
     contractJson.summary.materialFamilies.find(
       (materialFamily) => materialFamily.family === "standard",
@@ -259,6 +269,50 @@ function publishFrameStatus(aperture, app, scene, step, report, frame) {
       descriptors: shadowDescriptor,
     }),
   );
+  const shadowPassPlan = aperture.shadowPassPlanReportToJsonValue(
+    aperture.createShadowPassPlanReport({
+      shadowRequests: report.snapshot.shadowRequests,
+      textures: shadowTextures,
+    }),
+  );
+  const standardMaterialShadow =
+    aperture.standardMaterialShadowReadinessReportToJsonValue(
+      aperture.createStandardMaterialShadowReadinessReport({
+        standardMaterialCount,
+        shadowPassPlan,
+      }),
+    );
+  const shadowViewProjection =
+    aperture.directionalShadowViewProjectionPlanReportToJsonValue(
+      aperture.createDirectionalShadowViewProjectionPlanReport({
+        shadowRequests: report.snapshot.shadowRequests,
+        lights: report.snapshot.lights,
+        shadowPassPlan,
+      }),
+    );
+  const shadowMatrixBuffer =
+    aperture.shadowMatrixBufferDescriptorReportToJsonValue(
+      aperture.createShadowMatrixBufferDescriptorReport({
+        viewProjection: shadowViewProjection,
+      }),
+    );
+  const shadowCasterDrawList =
+    aperture.shadowCasterDrawListPlanReportToJsonValue(
+      aperture.createShadowCasterDrawListPlanReport({
+        shadowRequests: report.snapshot.shadowRequests,
+        meshDraws: report.snapshot.meshDraws,
+        shadowPassPlan,
+      }),
+    );
+  const standardMaterialIblShadowBinding =
+    aperture.standardMaterialIblShadowBindingReadinessReportToJsonValue(
+      aperture.createStandardMaterialIblShadowBindingReadinessReport({
+        standardMaterialCount,
+        iblPassPlan,
+        shadowViewProjection,
+        shadowCasterDrawList,
+      }),
+    );
 
   publishStatus({
     example: "gltf-scene",
@@ -299,6 +353,9 @@ function publishFrameStatus(aperture, app, scene, step, report, frame) {
       environmentMapKey,
       readiness: environmentReadiness,
       descriptor: iblDescriptor,
+      textures: iblTextures,
+      passPlan: iblPassPlan,
+      shaderBinding: standardMaterialIblShadowBinding,
       standardMaterial: standardMaterialIbl,
       sampling: {
         supported: false,
@@ -328,6 +385,11 @@ function publishFrameStatus(aperture, app, scene, step, report, frame) {
       descriptor: shadowDescriptor,
       resources: shadowResources,
       textures: shadowTextures,
+      passPlan: shadowPassPlan,
+      viewProjection: shadowViewProjection,
+      matrixBuffer: shadowMatrixBuffer,
+      casterDrawList: shadowCasterDrawList,
+      standardMaterial: standardMaterialShadow,
       rendering: {
         supported: false,
         diagnostic: {

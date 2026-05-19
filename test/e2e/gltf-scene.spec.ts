@@ -91,6 +91,159 @@ interface GltfSceneStatus extends ExampleStatusBase {
         readonly severity: string;
       }[];
     };
+    readonly textures: {
+      readonly ready: boolean;
+      readonly status: string;
+      readonly descriptorCount: number;
+      readonly slotCount: number;
+      readonly preparedSlotCount: number;
+      readonly sections: {
+        readonly iblDescriptors: boolean;
+        readonly texturePreparation: boolean;
+        readonly textureUpload: boolean;
+        readonly prefiltering: boolean;
+        readonly shaderSampling: boolean;
+      };
+      readonly slots: readonly {
+        readonly environmentMapResourceKey: string;
+        readonly environmentIds: readonly number[];
+        readonly kind: string;
+        readonly sourceResourceKey: string | null;
+        readonly placeholder: string | null;
+        readonly textureKey: string | null;
+        readonly viewKey: string | null;
+        readonly samplerKey: string | null;
+        readonly dimension: string;
+        readonly format: string;
+        readonly usageIntent: string;
+        readonly preparation: string;
+      }[];
+      readonly diagnostics: readonly {
+        readonly code: string;
+        readonly severity: string;
+      }[];
+    };
+    readonly passPlan: {
+      readonly ready: boolean;
+      readonly status: string;
+      readonly slotCount: number;
+      readonly passCount: number;
+      readonly sections: {
+        readonly texturePreparation: boolean;
+        readonly passPlans: boolean;
+        readonly passSubmission: boolean;
+        readonly shaderSampling: boolean;
+      };
+      readonly passes: readonly {
+        readonly passKey: string;
+        readonly environmentMapResourceKey: string;
+        readonly environmentIds: readonly number[];
+        readonly kind: string;
+        readonly sourceResourceKey: string;
+        readonly textureKey: string;
+        readonly viewKey: string;
+        readonly samplerKey: string;
+        readonly operation: string;
+        readonly submission: string;
+      }[];
+      readonly diagnostics: readonly {
+        readonly code: string;
+        readonly severity: string;
+      }[];
+    };
+    readonly viewProjection: {
+      readonly ready: boolean;
+      readonly status: string;
+      readonly requestCount: number;
+      readonly passCount: number;
+      readonly planCount: number;
+      readonly sections: {
+        readonly shadowRequests: boolean;
+        readonly lightPackets: boolean;
+        readonly passPlans: boolean;
+        readonly matrixPlanning: boolean;
+        readonly gpuResources: boolean;
+      };
+      readonly plans: readonly {
+        readonly shadowId: number;
+        readonly lightId: number;
+        readonly planKey: string;
+        readonly passKey: string;
+        readonly lightKind: string;
+        readonly lightTransformOffset: number;
+        readonly mapSize: number;
+        readonly casterLayerMask: number;
+        readonly receiverLayerMask: number;
+        readonly projection: string;
+        readonly viewMatrixKey: string;
+        readonly projectionMatrixKey: string;
+        readonly viewProjectionMatrixKey: string;
+        readonly computation: string;
+      }[];
+      readonly diagnostics: readonly {
+        readonly code: string;
+        readonly severity: string;
+      }[];
+    };
+    readonly casterDrawList: {
+      readonly ready: boolean;
+      readonly status: string;
+      readonly requestCount: number;
+      readonly meshDrawCount: number;
+      readonly listCount: number;
+      readonly includedDrawCount: number;
+      readonly skippedDrawCount: number;
+      readonly sections: {
+        readonly shadowRequests: boolean;
+        readonly passPlans: boolean;
+        readonly casterFiltering: boolean;
+        readonly commandEncoding: boolean;
+      };
+      readonly lists: readonly {
+        readonly shadowId: number;
+        readonly lightId: number;
+        readonly passKey: string;
+        readonly casterLayerMask: number;
+        readonly receiverLayerMask: number;
+        readonly includedDrawCount: number;
+        readonly skippedDrawCount: number;
+        readonly commandEncoding: string;
+        readonly draws: readonly {
+          readonly renderId: number;
+          readonly meshKey: string;
+          readonly materialKey: string;
+          readonly submesh: number;
+          readonly layerMask: number;
+        }[];
+      }[];
+      readonly diagnostics: readonly {
+        readonly code: string;
+        readonly severity: string;
+      }[];
+    };
+    readonly shaderBinding: {
+      readonly ready: boolean;
+      readonly status: string;
+      readonly standardMaterialCount: number;
+      readonly slotCount: number;
+      readonly sections: {
+        readonly iblPassPlanning: boolean;
+        readonly shadowPlanning: boolean;
+        readonly bindGroupLayout: boolean;
+        readonly shaderSampling: boolean;
+      };
+      readonly slots: readonly {
+        readonly bindingKey: string;
+        readonly resourceKey: string;
+        readonly kind: string;
+        readonly source: string;
+        readonly readiness: string;
+      }[];
+      readonly diagnostics: readonly {
+        readonly code: string;
+        readonly severity: string;
+      }[];
+    };
     readonly standardMaterial: {
       readonly ready: boolean;
       readonly status: string;
@@ -192,6 +345,94 @@ interface GltfSceneStatus extends ExampleStatusBase {
         readonly usageIntent: string;
         readonly allocation: string;
       }[];
+      readonly diagnostics: readonly {
+        readonly code: string;
+        readonly severity: string;
+      }[];
+    };
+    readonly passPlan: {
+      readonly ready: boolean;
+      readonly status: string;
+      readonly requestCount: number;
+      readonly textureCount: number;
+      readonly passCount: number;
+      readonly sections: {
+        readonly shadowRequests: boolean;
+        readonly textureResources: boolean;
+        readonly passPlans: boolean;
+        readonly passSubmission: boolean;
+        readonly gpuCommands: boolean;
+      };
+      readonly passes: readonly {
+        readonly shadowId: number;
+        readonly lightId: number;
+        readonly passKey: string;
+        readonly resourceKey: string;
+        readonly textureKey: string;
+        readonly viewKey: string;
+        readonly width: number;
+        readonly height: number;
+        readonly depthFormat: string;
+        readonly casterLayerMask: number;
+        readonly receiverLayerMask: number;
+        readonly depthLoadOp: string;
+        readonly depthStoreOp: string;
+        readonly depthClearValue: number;
+        readonly submission: string;
+      }[];
+      readonly diagnostics: readonly {
+        readonly code: string;
+        readonly severity: string;
+      }[];
+    };
+    readonly matrixBuffer: {
+      readonly ready: boolean;
+      readonly status: string;
+      readonly planCount: number;
+      readonly matrixCount: number;
+      readonly byteSize: number;
+      readonly sections: {
+        readonly viewProjectionPlanning: boolean;
+        readonly bufferDescriptor: boolean;
+        readonly gpuAllocation: boolean;
+        readonly upload: boolean;
+      };
+      readonly descriptor: {
+        readonly resourceKey: string;
+        readonly label: string;
+        readonly usage: string;
+        readonly matrixCount: number;
+        readonly strideBytes: number;
+        readonly byteSize: number;
+        readonly entries: readonly {
+          readonly shadowId: number;
+          readonly lightId: number;
+          readonly planKey: string;
+          readonly passKey: string;
+          readonly matrixKey: string;
+          readonly offsetBytes: number;
+          readonly sizeBytes: number;
+          readonly upload: string;
+        }[];
+      } | null;
+      readonly diagnostics: readonly {
+        readonly code: string;
+        readonly severity: string;
+      }[];
+    };
+    readonly standardMaterial: {
+      readonly ready: boolean;
+      readonly status: string;
+      readonly standardMaterialCount: number;
+      readonly shadowRequestCount: number;
+      readonly passCount: number;
+      readonly sections: {
+        readonly shadowRequests: boolean;
+        readonly shadowTextureResources: boolean;
+        readonly shadowPassPlan: boolean;
+        readonly passSubmission: boolean;
+        readonly shaderSampling: boolean;
+      };
       readonly diagnostics: readonly {
         readonly code: string;
         readonly severity: string;
@@ -302,6 +543,149 @@ test("Playwright shows the GLTF scene fixture through the app path", async ({
           },
         ],
         diagnostics: [],
+      },
+      textures: {
+        ready: false,
+        status: "deferred",
+        descriptorCount: 1,
+        slotCount: 2,
+        preparedSlotCount: 0,
+        sections: {
+          iblDescriptors: true,
+          texturePreparation: true,
+          textureUpload: false,
+          prefiltering: false,
+          shaderSampling: false,
+        },
+        slots: [
+          {
+            environmentMapResourceKey:
+              "environment-map:gltf:environment:studio",
+            environmentIds: [expect.any(Number)],
+            kind: "diffuse",
+            sourceResourceKey: "texture:gltf:environment:studio:diffuse",
+            placeholder: null,
+            textureKey: "texture:gltf:environment:studio:diffuse:texture",
+            viewKey: "texture:gltf:environment:studio:diffuse:view",
+            samplerKey: "texture:gltf:environment:studio:diffuse:sampler",
+            dimension: "cube",
+            format: "rgba16float",
+            usageIntent: "texture-binding",
+            preparation: "deferred",
+          },
+          {
+            environmentMapResourceKey:
+              "environment-map:gltf:environment:studio",
+            environmentIds: [expect.any(Number)],
+            kind: "specular",
+            sourceResourceKey: "texture:gltf:environment:studio:specular",
+            placeholder: null,
+            textureKey: "texture:gltf:environment:studio:specular:texture",
+            viewKey: "texture:gltf:environment:studio:specular:view",
+            samplerKey: "texture:gltf:environment:studio:specular:sampler",
+            dimension: "cube",
+            format: "rgba16float",
+            usageIntent: "texture-binding",
+            preparation: "deferred",
+          },
+        ],
+        diagnostics: [
+          {
+            code: "iblTexturePreparation.preparationDeferred",
+            severity: "warning",
+          },
+        ],
+      },
+      passPlan: {
+        ready: false,
+        status: "deferred",
+        slotCount: 2,
+        passCount: 2,
+        sections: {
+          texturePreparation: true,
+          passPlans: true,
+          passSubmission: false,
+          shaderSampling: false,
+        },
+        passes: [
+          {
+            passKey: "ibl-pass:environment-map:gltf:environment:studio:diffuse",
+            environmentMapResourceKey:
+              "environment-map:gltf:environment:studio",
+            environmentIds: [expect.any(Number)],
+            kind: "diffuse",
+            sourceResourceKey: "texture:gltf:environment:studio:diffuse",
+            textureKey: "texture:gltf:environment:studio:diffuse:texture",
+            viewKey: "texture:gltf:environment:studio:diffuse:view",
+            samplerKey: "texture:gltf:environment:studio:diffuse:sampler",
+            operation: "irradiance-convolution",
+            submission: "deferred",
+          },
+          {
+            passKey:
+              "ibl-pass:environment-map:gltf:environment:studio:specular",
+            environmentMapResourceKey:
+              "environment-map:gltf:environment:studio",
+            environmentIds: [expect.any(Number)],
+            kind: "specular",
+            sourceResourceKey: "texture:gltf:environment:studio:specular",
+            textureKey: "texture:gltf:environment:studio:specular:texture",
+            viewKey: "texture:gltf:environment:studio:specular:view",
+            samplerKey: "texture:gltf:environment:studio:specular:sampler",
+            operation: "specular-prefilter",
+            submission: "deferred",
+          },
+        ],
+        diagnostics: [
+          {
+            code: "iblPreparationPass.submissionDeferred",
+            severity: "warning",
+          },
+        ],
+      },
+      shaderBinding: {
+        ready: false,
+        status: "deferred",
+        standardMaterialCount: 2,
+        slotCount: 4,
+        sections: {
+          iblPassPlanning: true,
+          shadowPlanning: true,
+          bindGroupLayout: false,
+          shaderSampling: false,
+        },
+        slots: expect.arrayContaining([
+          expect.objectContaining({
+            kind: "ibl-diffuse",
+            source: "ibl",
+            readiness: "deferred",
+          }),
+          expect.objectContaining({
+            kind: "ibl-specular",
+            source: "ibl",
+            readiness: "deferred",
+          }),
+          expect.objectContaining({
+            kind: "shadow-view-projection",
+            source: "shadow",
+            readiness: "deferred",
+          }),
+          expect.objectContaining({
+            kind: "shadow-map",
+            source: "shadow",
+            readiness: "deferred",
+          }),
+        ]),
+        diagnostics: [
+          {
+            code: "standardMaterialIblShadowBinding.bindGroupDeferred",
+            severity: "warning",
+          },
+          {
+            code: "standardMaterialIblShadowBinding.shaderSamplingDeferred",
+            severity: "warning",
+          },
+        ],
       },
       standardMaterial: {
         ready: true,
@@ -415,6 +799,201 @@ test("Playwright shows the GLTF scene fixture through the app path", async ({
         diagnostics: [
           {
             code: "shadowTextureResource.allocationDeferred",
+            severity: "warning",
+          },
+        ],
+      },
+      passPlan: {
+        ready: false,
+        status: "deferred",
+        requestCount: 1,
+        textureCount: 1,
+        passCount: 1,
+        sections: {
+          shadowRequests: true,
+          textureResources: true,
+          passPlans: true,
+          passSubmission: false,
+          gpuCommands: false,
+        },
+        passes: [
+          {
+            shadowId: expect.any(Number),
+            lightId: expect.any(Number),
+            passKey: expect.stringMatching(/^shadow-pass:\d+:light:\d+$/),
+            resourceKey: expect.stringMatching(/^shadow-map:\d+:light:\d+$/),
+            textureKey: expect.stringMatching(
+              /^shadow-map:\d+:light:\d+:texture$/,
+            ),
+            viewKey: expect.stringMatching(/^shadow-map:\d+:light:\d+:view$/),
+            width: 1024,
+            height: 1024,
+            depthFormat: "depth24plus",
+            casterLayerMask: 1,
+            receiverLayerMask: 1,
+            depthLoadOp: "clear",
+            depthStoreOp: "store",
+            depthClearValue: 1,
+            submission: "deferred",
+          },
+        ],
+        diagnostics: [
+          {
+            code: "shadowPassPlan.submissionDeferred",
+            severity: "warning",
+          },
+        ],
+      },
+      viewProjection: {
+        ready: false,
+        status: "deferred",
+        requestCount: 1,
+        passCount: 1,
+        planCount: 1,
+        sections: {
+          shadowRequests: true,
+          lightPackets: true,
+          passPlans: true,
+          matrixPlanning: false,
+          gpuResources: false,
+        },
+        plans: [
+          {
+            shadowId: expect.any(Number),
+            lightId: expect.any(Number),
+            planKey: expect.stringMatching(
+              /^directional-shadow-view-projection:\d+:light:\d+$/,
+            ),
+            passKey: expect.stringMatching(/^shadow-pass:\d+:light:\d+$/),
+            lightKind: "directional",
+            lightTransformOffset: expect.any(Number),
+            mapSize: 1024,
+            casterLayerMask: 1,
+            receiverLayerMask: 1,
+            projection: "orthographic",
+            viewMatrixKey: expect.stringMatching(
+              /^shadow-pass:\d+:light:\d+:view$/,
+            ),
+            projectionMatrixKey: expect.stringMatching(
+              /^shadow-pass:\d+:light:\d+:projection$/,
+            ),
+            viewProjectionMatrixKey: expect.stringMatching(
+              /^shadow-pass:\d+:light:\d+:view-projection$/,
+            ),
+            computation: "deferred",
+          },
+        ],
+        diagnostics: [
+          {
+            code: "directionalShadowViewProjection.matrixDeferred",
+            severity: "warning",
+          },
+        ],
+      },
+      matrixBuffer: {
+        ready: false,
+        status: "deferred",
+        planCount: 1,
+        matrixCount: 1,
+        byteSize: 64,
+        sections: {
+          viewProjectionPlanning: true,
+          bufferDescriptor: true,
+          gpuAllocation: false,
+          upload: false,
+        },
+        descriptor: {
+          resourceKey: "shadow-matrix-buffer:directional",
+          label: "DirectionalShadowMatrices/storage",
+          usage: "read-only-storage-buffer",
+          matrixCount: 1,
+          strideBytes: 64,
+          byteSize: 64,
+          entries: [
+            {
+              shadowId: expect.any(Number),
+              lightId: expect.any(Number),
+              planKey: expect.stringMatching(
+                /^directional-shadow-view-projection:\d+:light:\d+$/,
+              ),
+              passKey: expect.stringMatching(/^shadow-pass:\d+:light:\d+$/),
+              matrixKey: expect.stringMatching(
+                /^shadow-pass:\d+:light:\d+:view-projection$/,
+              ),
+              offsetBytes: 0,
+              sizeBytes: 64,
+              upload: "deferred",
+            },
+          ],
+        },
+        diagnostics: [
+          {
+            code: "shadowMatrixBuffer.uploadDeferred",
+            severity: "warning",
+          },
+        ],
+      },
+      casterDrawList: {
+        ready: false,
+        status: "deferred",
+        requestCount: 1,
+        meshDrawCount: 3,
+        listCount: 1,
+        includedDrawCount: 3,
+        skippedDrawCount: 0,
+        sections: {
+          shadowRequests: true,
+          passPlans: true,
+          casterFiltering: true,
+          commandEncoding: false,
+        },
+        lists: [
+          {
+            shadowId: expect.any(Number),
+            lightId: expect.any(Number),
+            passKey: expect.stringMatching(/^shadow-pass:\d+:light:\d+$/),
+            casterLayerMask: 1,
+            receiverLayerMask: 1,
+            includedDrawCount: 3,
+            skippedDrawCount: 0,
+            commandEncoding: "deferred",
+            draws: expect.arrayContaining([
+              expect.objectContaining({
+                meshKey: expect.stringMatching(/^mesh:gltf:/),
+                materialKey: expect.stringMatching(/^material:gltf:/),
+                submesh: 0,
+                layerMask: 1,
+              }),
+            ]),
+          },
+        ],
+        diagnostics: [
+          {
+            code: "shadowCasterDrawList.commandEncodingDeferred",
+            severity: "warning",
+          },
+        ],
+      },
+      standardMaterial: {
+        ready: false,
+        status: "deferred",
+        standardMaterialCount: 2,
+        shadowRequestCount: 1,
+        passCount: 1,
+        sections: {
+          shadowRequests: true,
+          shadowTextureResources: true,
+          shadowPassPlan: true,
+          passSubmission: false,
+          shaderSampling: false,
+        },
+        diagnostics: [
+          {
+            code: "standardMaterialShadow.passSubmissionDeferred",
+            severity: "warning",
+          },
+          {
+            code: "standardMaterialShadow.shaderSamplingDeferred",
             severity: "warning",
           },
         ],

@@ -1,5 +1,214 @@
 # Completed Tasks
 
+## task-1811 — Shadow matrix buffer descriptor planning
+
+Completed: 2026-05-19
+
+Summary:
+
+- Added `ShadowMatrixBufferDescriptorReport` in `packages/webgpu`.
+- The report derives a JSON-safe directional shadow matrix buffer descriptor
+  from the existing shadow view/projection plan, including stable resource keys,
+  matrix offsets, byte size, and deferred upload diagnostics.
+- Updated the GLTF scene app and Playwright status assertions to expose
+  `shadow.matrixBuffer` without allocating a GPU buffer or uploading matrices.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/shadow-matrix-buffer-descriptor.test.ts test/webgpu/directional-shadow-view-projection-plan.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm run check:examples`
+
+## task-1810 — First IBL/shadow planning chain audit
+
+Completed: 2026-05-19
+
+Summary:
+
+- Audited the first GLTF scene IBL/shadow planning chain after the IBL pass,
+  directional shadow view/projection, shadow caster draw-list, and
+  StandardMaterial IBL/shadow binding readiness slices.
+- Confirmed the chain remains ECS-derived, renderer-owned, WebGPU-only,
+  JSON-safe, and diagnostic/planning-only.
+- Refilled the ready queue with `task-1811` through `task-1815`.
+
+Validation:
+
+- `pnpm run check:boundaries`
+- Raw-handle/WebGL/scene-graph scan over the new IBL/shadow helpers, GLTF scene
+  status path, and targeted tests.
+
+## task-1809 — IBL/shadow shader binding readiness metadata
+
+Completed: 2026-05-19
+
+Summary:
+
+- Added `StandardMaterialIblShadowBindingReadinessReport` in `packages/webgpu`.
+- The report derives JSON-safe IBL diffuse/specular, shadow view-projection, and
+  shadow-map binding-slot metadata from the existing IBL/shadow planning
+  reports.
+- Updated the GLTF scene app and Playwright status assertions to expose deferred
+  StandardMaterial IBL/shadow bind-group and shader-sampling readiness without
+  modifying WGSL or bind group layouts.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/standard-material-ibl-shadow-binding-readiness.test.ts test/webgpu/shadow-caster-draw-list-plan.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm run check:examples`
+
+## task-1808 — Shadow caster draw-list planning
+
+Completed: 2026-05-19
+
+Summary:
+
+- Added `ShadowCasterDrawListPlanReport` in `packages/webgpu`.
+- The report filters extracted mesh draws by shadow caster layer masks and
+  emits JSON-safe caster draw records with mesh/material resource keys.
+- Updated the GLTF scene app and Playwright status assertions to expose deferred
+  shadow caster draw-list planning without command encoding.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/shadow-caster-draw-list-plan.test.ts test/webgpu/directional-shadow-view-projection-plan.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm run check:examples`
+
+## task-1807 — Directional shadow view-projection plan
+
+Completed: 2026-05-19
+
+Summary:
+
+- Added `DirectionalShadowViewProjectionPlanReport` in `packages/webgpu`.
+- The report derives JSON-safe directional shadow matrix plan keys from
+  extracted shadow requests, light packets, and shadow pass plans.
+- Updated the GLTF scene app and Playwright status assertions to expose
+  deferred directional shadow view/projection planning without live cameras,
+  scene graph nodes, matrix packing, or GPU resources.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/directional-shadow-view-projection-plan.test.ts test/webgpu/shadow-pass-plan.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm run check:examples`
+
+## task-1806 — IBL texture preparation pass planning
+
+Completed: 2026-05-19
+
+Summary:
+
+- Added `IblPreparationPassPlanReport` in `packages/webgpu`.
+- The report derives JSON-safe diffuse irradiance and specular prefilter pass
+  keys from `IblTexturePreparationReport`.
+- Updated the GLTF scene app and Playwright status assertions to expose
+  deferred IBL preparation pass planning without GPU submission or shader
+  sampling.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/ibl-preparation-pass-plan.test.ts test/webgpu/ibl-texture-preparation.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm run check:examples`
+
+## task-1805 — IBL/shadow resource dashboard audit
+
+Completed: 2026-05-19
+
+Summary:
+
+- Audited the public tracker after IBL texture preparation, shadow pass
+  planning, and StandardMaterial shadow readiness diagnostics.
+- Confirmed dashboard language still describes IBL/shadow work as descriptor,
+  preparation, planning, and readiness diagnostics until real GPU passes and
+  shader sampling exist.
+- Refilled the ready queue with `task-1806` through `task-1810`.
+
+Validation:
+
+- `pnpm run check:progress`
+
+## task-1804 — Post-descriptor GLTF scene resource alignment audit
+
+Completed: 2026-05-19
+
+Summary:
+
+- Audited the GLTF scene IBL/shadow descriptor and readiness chain after the
+  new shadow pass plan, StandardMaterial shadow readiness, and IBL texture
+  preparation reports.
+- Confirmed the reports remain ECS-derived, renderer-owned, WebGPU-only,
+  JSON-safe, and diagnostic-only.
+- Confirmed no raw GPU handles, WebGL fallback, scene graph shortcut, shader
+  sampling, or command submission path was introduced.
+
+Validation:
+
+- `pnpm run check:boundaries`
+- `rg` scan for raw WebGPU handles / command submission / WebGL / scene graph
+  shortcuts in the new report helpers and GLTF scene status path.
+
+## task-1803 — IBL texture preparation descriptor
+
+Completed: 2026-05-19
+
+Summary:
+
+- Added `IblTexturePreparationReport` in `packages/webgpu`.
+- The report derives JSON-safe diffuse/specular texture, view, and sampler keys
+  from `IblResourceDescriptorReport` while classifying upload/prefiltering as
+  ready, missing, unsupported, deferred, or not required.
+- Updated the GLTF scene app and Playwright status assertions to expose IBL
+  texture preparation as deferred without enabling shader sampling.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/ibl-texture-preparation.test.ts test/webgpu/ibl-resource-descriptor.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm run check:examples`
+
+## task-1802 — StandardMaterial shadow readiness diagnostics
+
+Completed: 2026-05-19
+
+Summary:
+
+- Added `StandardMaterialShadowReadinessReport` in `packages/webgpu`.
+- The report classifies StandardMaterial shadow readiness as available, missing,
+  unsupported, deferred, or not required based on `ShadowPassPlanReport`.
+- Updated the GLTF scene app and Playwright status assertions to expose
+  StandardMaterial shadow readiness as deferred until shadow pass submission and
+  shader sampling exist.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/standard-material-shadow-readiness.test.ts test/webgpu/shadow-pass-plan.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm run check:examples`
+
+## task-1801 — First shadow pass plan report
+
+Completed: 2026-05-19
+
+Summary:
+
+- Added `ShadowPassPlanReport` in `packages/webgpu`.
+- The report derives JSON-safe shadow pass keys, depth attachment intent,
+  texture/view resource keys, layer masks, and submission status from extracted
+  shadow requests plus `ShadowTextureResourceReport`.
+- Updated the GLTF scene app and Playwright status assertions to expose the
+  deferred shadow pass plan without submitting GPU commands or claiming visible
+  shadows.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/shadow-pass-plan.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm run check:examples`
+
 ## task-1800 — First shadow texture resource helper
 
 Completed: 2026-05-19

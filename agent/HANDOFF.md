@@ -1,5 +1,146 @@
 # Handoff
 
+## Current Run Update — 2026-05-19T03:49:53Z
+
+Completed `task-1801` through `task-1811`. Recommended next task is
+`task-1812`: add the IBL preparation resource summary bridge.
+
+What changed:
+
+- Added JSON-safe WebGPU report helpers for:
+  - shadow pass planning,
+  - StandardMaterial shadow readiness,
+  - IBL texture preparation,
+  - IBL preparation pass planning,
+  - directional shadow view/projection planning,
+  - shadow matrix buffer descriptor planning,
+  - shadow caster draw-list planning, and
+  - StandardMaterial IBL/shadow shader binding readiness.
+- Exported the new helpers from `@aperture-engine/webgpu`.
+- Updated `examples/gltf-scene.js` and `test/e2e/gltf-scene.spec.ts` so the
+  GLTF scene browser status exposes the new IBL/shadow descriptors, plans,
+  readiness diagnostics, and deferred shader/bind-group status.
+- Added implementation notes and audits under `docs/research`, including the
+  first IBL/shadow planning-chain audit and the shadow matrix buffer descriptor
+  implementation note.
+- Updated `docs/index.html`, `docs/render-pipeline-comparison.html`,
+  `agent/BACKLOG.md`, and `agent/COMPLETED.md`.
+- Refilled the ready queue with `task-1812` through `task-1816`.
+
+Reference anchors inspected:
+
+- `references/engine/src/scene/renderer/render-pass-shadow-directional.js`
+- `references/engine/src/scene/renderer/shadow-renderer.js`
+- `references/engine/src/scene/graphics/env-lighting.js`
+- `references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/lighting`
+- `references/three.js/src/renderers/WebGLRenderer.js`
+- `references/three.js/src/renderers/webgl/WebGLShadowMap.js`
+- `references/three.js/src/extras/PMREMGenerator.js`
+- `references/three.js/src/lights/LightShadow.js`
+- `references/three.js/src/renderers/shaders/ShaderChunk`
+- Local `shadow-map-descriptor`, `shadow-resource-readiness`,
+  `shadow-texture-resource`, `shadow-pass-plan`,
+  `directional-shadow-view-projection-plan`, `shadow-caster-draw-list-plan`,
+  `shadow-matrix-buffer-descriptor`, `ibl-resource-descriptor`,
+  `ibl-texture-preparation`, `ibl-preparation-pass-plan`,
+  `standard-material-ibl-readiness`, and `standard-material-shadow-readiness`
+  helpers.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/shadow-pass-plan.test.ts test/webgpu/standard-material-shadow-readiness.test.ts test/webgpu/ibl-texture-preparation.test.ts test/webgpu/ibl-preparation-pass-plan.test.ts test/webgpu/directional-shadow-view-projection-plan.test.ts test/webgpu/shadow-caster-draw-list-plan.test.ts test/webgpu/standard-material-ibl-shadow-binding-readiness.test.ts`
+- `pnpm exec vitest run test/webgpu/shadow-matrix-buffer-descriptor.test.ts test/webgpu/directional-shadow-view-projection-plan.test.ts`
+- `pnpm exec playwright test test/e2e/gltf-scene.spec.ts`
+- `pnpm run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm run check:examples`
+- `pnpm run check:progress`
+- `pnpm run check:boundaries`
+- `pnpm run lint`
+- `pnpm run format:check`
+- `pnpm run check`
+- `git diff --check`
+- Raw-handle/WebGL/scene-graph scan over the new IBL/shadow helpers, GLTF scene
+  status path, and targeted tests.
+
+Known issues / follow-ups:
+
+- All new IBL/shadow work is still descriptor, planning, and readiness metadata.
+  No live IBL texture upload, IBL prefilter pass, shadow texture allocation,
+  shadow matrix buffer upload, shadow pass submission, bind-group layout change,
+  or shader sampling exists yet.
+- Start `task-1812` next. It should summarize IBL descriptor, texture
+  preparation, and pass-plan readiness into a compact renderer resource status
+  object without allocating textures or submitting IBL passes.
+
+## Current Run Update — 2026-05-19T03:23:00Z
+
+Completed `task-1801` through `task-1806`. Recommended next task is
+`task-1807`: add directional shadow view-projection planning.
+
+What changed:
+
+- Added `packages/webgpu/src/webgpu/shadow-pass-plan.ts`.
+- Added `packages/webgpu/src/webgpu/standard-material-shadow-readiness.ts`.
+- Added `packages/webgpu/src/webgpu/ibl-texture-preparation.ts`.
+- Added `packages/webgpu/src/webgpu/ibl-preparation-pass-plan.ts`.
+- Exported all four reports from `@aperture-engine/webgpu`.
+- Updated `examples/gltf-scene.js` and `test/e2e/gltf-scene.spec.ts` so the
+  GLTF scene status exposes:
+  - IBL texture preparation descriptors,
+  - IBL preparation pass plans,
+  - shadow pass plans, and
+  - StandardMaterial shadow readiness diagnostics.
+- Added targeted tests for the new reports:
+  - `test/webgpu/shadow-pass-plan.test.ts`
+  - `test/webgpu/standard-material-shadow-readiness.test.ts`
+  - `test/webgpu/ibl-texture-preparation.test.ts`
+  - `test/webgpu/ibl-preparation-pass-plan.test.ts`
+- Added research/audit notes:
+  - `docs/research/GLTF_SCENE_SHADOW_PASS_PLAN_IMPLEMENTATION_2026_05_19.md`
+  - `docs/research/GLTF_SCENE_STANDARD_SHADOW_READINESS_IMPLEMENTATION_2026_05_19.md`
+  - `docs/research/GLTF_SCENE_IBL_TEXTURE_PREPARATION_IMPLEMENTATION_2026_05_19.md`
+  - `docs/research/GLTF_SCENE_POST_DESCRIPTOR_RESOURCE_ALIGNMENT_AUDIT_2026_05_19.md`
+  - `docs/research/IBL_SHADOW_RESOURCE_DASHBOARD_AUDIT_2026_05_19.md`
+  - `docs/research/GLTF_SCENE_IBL_PREPARATION_PASS_PLAN_IMPLEMENTATION_2026_05_19.md`
+- Updated `docs/index.html`, `docs/render-pipeline-comparison.html`,
+  `agent/BACKLOG.md`, and `agent/COMPLETED.md`.
+- Refilled the ready queue with `task-1807` through `task-1810`.
+
+Reference anchors inspected:
+
+- `references/engine/src/scene/renderer/render-pass-shadow-directional.js`
+- `references/engine/src/scene/renderer/shadow-renderer.js`
+- `references/engine/src/scene/graphics/env-lighting.js`
+- `references/three.js/src/renderers/WebGLRenderer.js`
+- `references/three.js/src/renderers/webgl/WebGLShadowMap.js`
+- `references/three.js/src/extras/PMREMGenerator.js`
+- Local `shadow-map-descriptor`, `shadow-resource-readiness`,
+  `shadow-texture-resource`, `ibl-resource-descriptor`, and
+  `standard-material-ibl-readiness` helpers.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/shadow-pass-plan.test.ts test/webgpu/standard-material-shadow-readiness.test.ts test/webgpu/ibl-texture-preparation.test.ts test/webgpu/ibl-preparation-pass-plan.test.ts`
+- `pnpm exec playwright test test/e2e/gltf-scene.spec.ts`
+- `pnpm run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm run check:examples`
+- `pnpm run check:progress`
+- `pnpm run check:boundaries`
+- `pnpm run format:check`
+- `git diff --check`
+
+Known issues / follow-ups:
+
+- All new IBL/shadow reports are descriptor/planning/readiness only. No live
+  IBL texture upload, prefilter render pass, shadow texture allocation, shadow
+  matrix/camera packing, shadow pass submission, bind-group changes, or
+  StandardMaterial shader sampling exists yet.
+- Start `task-1807` next. It should plan directional shadow view/projection data
+  from extracted shadow/light data without creating live shadow cameras or GPU
+  resources.
+
 ## Current Run Update — 2026-05-19T02:50:00Z
 
 Completed `task-1800`. Recommended next task is `task-1801`: add the first
