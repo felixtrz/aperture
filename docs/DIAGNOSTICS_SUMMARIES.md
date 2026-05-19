@@ -138,6 +138,36 @@ must not expose raw `GPUBuffer`, `GPUBindGroup`, `GPUTexture`, texture views,
 samplers, pipelines, shader modules, adapter callbacks, app objects, mutable
 cache maps, source asset payloads, or hidden override/fallback behavior.
 
+## Custom Material Source Validation
+
+Decision 0012 accepts future custom material source assets as data-only
+instances of registered material families. The source validation diagnostics for
+that future shape should use a dedicated `customMaterialSource.*` prefix.
+
+These diagnostics answer only whether the source material asset shape is valid
+as data. They are separate from:
+
+- `queuedMaterialPrepareRoute.*` route diagnostics;
+- `webGpuApp.*` app compatibility and report diagnostics;
+- dependency readiness diagnostics for textures, samplers, shaders, buffers,
+  lights, or environment inputs;
+- renderer-owned preparation diagnostics;
+- frame-resource route diagnostics; and
+- pipeline specialization or WebGPU resource diagnostics.
+
+Source validation payloads may include diagnostic code, severity, field path,
+family key, label, concise expected values, and primitive actual values. They
+must not include full source objects, source payload bytes, raw WebGPU handles,
+callbacks, adapter instances, cache maps, ECS worlds, render worlds, typed
+arrays, or live backend objects.
+
+The current executable guardrail is test-only:
+`test/materials/custom-material-source-validation-fixture.test.ts`. It locks
+representative `customMaterialSource.*` records and JSON-safety expectations but
+does not expose a public `CustomMaterialAsset` type, package validator,
+app-owned adapter facade, shader loading path, prepared-resource adapter,
+rendered custom family, IBL, shadows, or binary GLB loading.
+
 ## Render-World Prepared Resource Summary
 
 `createRenderWorldPreparedResourceSummary()` is a renderer-independent summary

@@ -519,6 +519,12 @@ test("standard glTF texture fixture renders a mapped base-color texture", async 
   expectSamplerStatusContainsNoBackendResources(
     status.standardTexture.samplerMapping,
   );
+  expect(
+    status.standardTexture.expectedMetallicRoughness?.metallic,
+  ).toBeCloseTo(64 / 255, 8);
+  expect(
+    status.standardTexture.expectedMetallicRoughness?.roughness,
+  ).toBeCloseTo(16 / 255, 8);
 
   const screenshot = await page.locator("#aperture-canvas").screenshot();
   const texturedSample = readPngPixel(
@@ -1311,6 +1317,14 @@ test("standard glTF texture fixture renders combined base-color and metallic-rou
       "standard glTF combined base-color metallic-roughness texture status missing",
     );
   }
+  expect(standardTexture.expectedMetallicRoughness?.metallic).toBeCloseTo(
+    64 / 255,
+    8,
+  );
+  expect(standardTexture.expectedMetallicRoughness?.roughness).toBeCloseTo(
+    16 / 255,
+    8,
+  );
 
   const expectedTextureColor = standardTexture.expectedTextureColor;
 
@@ -1417,6 +1431,14 @@ test("standard glTF texture fixture renders combined base-color metallic-roughne
       "standard glTF combined base-color metallic-roughness normal texture status missing",
     );
   }
+  expect(standardTexture.expectedMetallicRoughness?.metallic).toBeCloseTo(
+    64 / 255,
+    8,
+  );
+  expect(standardTexture.expectedMetallicRoughness?.roughness).toBeCloseTo(
+    16 / 255,
+    8,
+  );
 
   const screenshot = await page.locator("#aperture-canvas").screenshot();
   const sampled = readPngPixel(
@@ -1494,8 +1516,8 @@ test("standard glTF texture fixture renders combined base-color occlusion and em
         strength: expect.any(Number),
       },
       expectedEmissive: {
-        factor: expect.any(Array),
-        color: expect.any(Array),
+        factor: [0.9, 0.25, 0.08],
+        color: [1, 0.5, 0.125, 1],
       },
     },
     pipelineKey:
@@ -1510,6 +1532,8 @@ test("standard glTF texture fixture renders combined base-color occlusion and em
       "standard glTF combined base-color occlusion emissive texture status missing",
     );
   }
+  expect(standardTexture.expectedOcclusion?.red).toBeCloseTo(32 / 255, 8);
+  expect(standardTexture.expectedOcclusion?.strength).toBe(1);
 
   const screenshot = await page.locator("#aperture-canvas").screenshot();
   const sampled = readPngPixel(
@@ -1584,8 +1608,8 @@ test("standard glTF texture fixture renders combined base-color alpha-mask and e
         },
       },
       expectedEmissive: {
-        factor: expect.any(Array),
-        color: expect.any(Array),
+        factor: [0.9, 0.25, 0.08],
+        color: [1, 0.5, 0.125, 1],
       },
       samples: {
         opaque: { id: "opaque", x: expect.any(Number), y: expect.any(Number) },
@@ -2793,6 +2817,10 @@ test("standard glTF texture fixture renders a mapped occlusion texture", async (
     red: expect.any(Number),
     strength: 1,
   });
+  expect(status.standardTexture.expectedOcclusion?.red).toBeCloseTo(
+    32 / 255,
+    8,
+  );
 
   const screenshot = await page.locator("#aperture-canvas").screenshot();
   const texturedSample = readPngPixel(
@@ -2913,6 +2941,10 @@ test("standard glTF texture fixture applies occlusion texture strength", async (
     red: expect.any(Number),
     strength: 0.25,
   });
+  expect(status.standardTexture.expectedOcclusion?.red).toBeCloseTo(
+    32 / 255,
+    8,
+  );
 
   const screenshot = await page.locator("#aperture-canvas").screenshot();
   const texturedSample = readPngPixel(
@@ -3089,9 +3121,9 @@ test("standard glTF texture fixture renders a mapped emissive texture", async ({
     throw new Error("standard glTF emissive texture status is missing");
   }
 
-  expect(status.standardTexture.expectedEmissive).toMatchObject({
-    factor: expect.any(Array),
-    color: expect.any(Array),
+  expect(status.standardTexture.expectedEmissive).toEqual({
+    factor: [0.9, 0.25, 0.08],
+    color: [1, 0.5, 0.125, 1],
   });
 
   const screenshot = await page.locator("#aperture-canvas").screenshot();

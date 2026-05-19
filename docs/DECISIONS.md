@@ -336,3 +336,75 @@ Consequences:
   material state.
 - The next public custom material step should be a source/API design decision,
   not an app facade implementation shortcut.
+
+## 0012 — Custom Material Source Assets Are Data-Only Family Instances
+
+Status: accepted
+
+Context:
+
+Decision 0011 blocks public app-owned material adapter registration until
+Aperture has an accepted public custom material source asset contract. Recent
+route and adapter work proved that internal queues can carry non-built-in
+family keys, but source `MaterialAsset` authoring is still intentionally
+limited to built-in families. Without a source-shape decision, validation,
+dependency readiness, prepared-resource adapters, and app facade policy would
+continue to blur together.
+
+The built-in material source assets already follow the desired boundary: they
+are renderer-independent data referenced by stable handles, while WebGPU
+resources, bind groups, pipelines, and caches are prepared by the backend.
+Bevy's material/render-asset pattern provides the same conceptual split between
+source asset, material family behavior, extraction, and prepared render asset.
+Aperture should adapt that split as TypeScript data contracts that remain
+JSON-safe and worker-boundary-friendly.
+
+Decision:
+
+Public custom material source assets, when implemented, will be data-only
+instances of a registered material family. They will not be live adapter objects
+and will not contain renderer-owned state.
+
+The minimum public source shape must include these policy-level fields:
+
+- a source discriminator separate from the built-in `MaterialKind` union;
+- a stable, namespaced `familyKey` string that identifies the registered
+  material family;
+- a human-facing `label`;
+- serializable render-state inputs such as alpha mode, cull mode, front face,
+  depth, blend, and color write policy;
+- serializable pipeline-key inputs such as declared feature flags and
+  specialization values;
+- data-only binding and dependency declarations for uniforms, textures,
+  samplers, shaders, lights, environment inputs, or other renderer-prepared
+  resources; and
+- optional JSON-safe metadata that does not affect rendering unless it is also
+  declared as a validated pipeline, binding, or dependency input.
+
+Built-in material family keys remain reserved. A custom family key collision
+with a built-in family or with another registered custom family is invalid and
+must diagnose clearly. Unsupported family keys must diagnose rather than
+fallback to a built-in family.
+
+Custom source assets must not contain raw `GPUBuffer`, `GPUTexture`,
+`GPUTextureView`, `GPUSampler`, `GPUBindGroup`, `GPUPipeline`,
+`GPUShaderModule`, WebGPU descriptors that hold live objects, callbacks,
+adapter instances, cache maps, mutable renderer state, or authoritative ECS/game
+state. Shader and resource references must be represented by stable data keys or
+asset handles, not live backend objects.
+
+Consequences:
+
+- Built-in `MaterialKind` can remain a closed built-in union while custom
+  material source assets use a distinct public shape.
+- Follow-up work should add source validation before exposing app-owned adapter
+  facades or rendered custom families.
+- Source validation diagnostics must be separate from route, dependency,
+  preparation, frame-resource, and pipeline diagnostics.
+- Render asset preparation remains renderer/backend-owned and derives GPU
+  resources from source assets and dependencies.
+- Future worker simulation remains possible because source assets and extracted
+  route data can stay serializable.
+- This decision does not implement validation, typed APIs, package exports,
+  app facade options, shader loading, prepared-resource adapters, browser
+  rendering, IBL, shadows, or binary GLB loading.

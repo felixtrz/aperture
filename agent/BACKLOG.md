@@ -59,7 +59,12 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start with `task-1706`. `task-1421` through `task-1705` completed GLB
+Start with `task-1758`: inspect the alpha/render-state browser tests for
+real JSON-safe status assertion gaps, then tighten a focused slice or switch
+to transform-status hardening if alpha coverage is already sufficient. Keep
+`task-1761` ready as a critical depth-attachment fix after this status
+hardening chain.
+`task-1421` through `task-1757` completed GLB
 metallic-roughness transformed-UV1 coverage, combined StandardMaterial browser
 coverage for base-color/metallic-roughness, base-color/metallic-roughness/normal,
 base-color/occlusion/emissive, and base-color/alpha-mask/emissive, built-in app
@@ -124,7 +129,38 @@ generic route shell summary without public material APIs or raw GPU handles.
 The StandardMaterial follow-up added shader contract coverage proving
 metallic-roughness texture channels multiply `metallicFactor` and
 `roughnessFactor`, then added browser coverage for the same scalar-factor plus
-metallic-roughness texture path with JSON-safe channel/factor status.
+metallic-roughness texture path with JSON-safe channel/factor status. Decision
+0012 now accepts custom material source assets as data-only registered-family
+instances while deferring source validation implementation, app-owned adapter
+facades, rendered custom families, IBL, shadows, and binary GLB loading. A
+follow-up non-binding source validation taxonomy now defines future
+`customMaterialSource.*` shape diagnostics and keeps them separate from route,
+dependency, preparation, frame-resource, pipeline, and app facade diagnostics.
+A fixture matrix now gives future tests concrete valid/invalid custom source
+examples and expected JSON-safe `customMaterialSource.*` diagnostic records
+without adding public source APIs or runtime validators.
+A local test-only fixture now executes those guardrails and verifies source
+diagnostics stay in the `customMaterialSource.*` layer while omitting raw
+handles, callbacks, cache objects, and source payload bytes from JSON output.
+Public diagnostics docs now include this custom source validation boundary
+while still deferring package validators, public source types, app-owned adapter
+facades, and rendered custom material families.
+StandardMaterial/glTF browser coverage now also pins the exact non-default
+emissive factor and sampled emissive texture color exposed through JSON-safe
+status for the mapped emissive texture scenario and the combined
+base-color/occlusion/emissive and base-color/alpha-mask/emissive scenarios.
+Metallic-roughness browser coverage now pins exact base channel status values
+for standalone, combined base-color, and combined base-color plus normal
+fixtures.
+Occlusion browser coverage now pins the exact sampled red-channel status across
+standalone, occlusion-strength, and combined base-color/occlusion/emissive
+fixtures.
+A follow-up audit found the assertion-hardening sweep useful and recommends
+alpha/render-state status or texture-transform status as the next focused glTF
+fidelity direction. The selected follow-up plan chose alpha/render-state status
+hardening, but the plan audit requires inspecting existing alpha tests first and
+switching to texture-transform status hardening if no meaningful alpha gap
+remains.
 
 ## Near-Term Proof Point Track
 
@@ -141,13 +177,12 @@ Target proof point:
 
 Remaining automation priority order:
 
-1. `task-1706` — plan source-shape decision or StandardMaterial/glTF fidelity
-   follow-up.
-2. `task-1707` — audit selected post-checklist follow-up plan.
-3. `task-1708` — implement the selected source-shape decision or glTF fidelity
-   fidelity slice.
-4. `task-1709` — audit the selected implementation slice.
-5. `task-1710` — audit tracker/backlog alignment after the selected slice.
+1. `task-1758` — implement the selected alpha/render-state or transform status
+   slice.
+2. `task-1759` — audit the selected implementation slice.
+3. `task-1760` — audit tracker/backlog alignment after the selected slice.
+4. `task-1761` — attach a depth-stencil texture so opaque draws depth-test.
+5. `task-1762` — audit the depth-attachment fix after implementation.
 
 Defer allocation-only cleanup and metadata-only shader-contract tasks unless
 they are a direct blocker for this track.
@@ -7353,6 +7388,9 @@ Acceptance criteria:
 
 ### task-1706 — Plan source-shape decision or StandardMaterial/glTF fidelity follow-up
 
+Status: completed 2026-05-18. See
+`docs/research/NEXT_SOURCE_DECISION_OR_GLTF_AFTER_SOURCE_CHECKLIST_PLAN_2026_05_19.md`.
+
 Category: `docs-tooling`
 Package/write-scope: `docs/research` and backlog only.
 Reference anchor:
@@ -7373,6 +7411,9 @@ Acceptance criteria:
 
 ### task-1707 — Audit selected post-checklist follow-up plan
 
+Status: completed 2026-05-18. See
+`docs/research/CUSTOM_MATERIAL_SOURCE_SHAPE_DECISION_PLAN_AUDIT_2026_05_19.md`.
+
 Category: `audit-refactor`
 Package/write-scope: `docs/research`, targeted tests only if a tiny corrective
 fix is required.
@@ -7389,6 +7430,8 @@ Acceptance criteria:
 - Recommend whether to implement the selected follow-up or adjust the backlog.
 
 ### task-1708 — Implement selected source-shape decision or glTF fidelity slice
+
+Status: completed 2026-05-18. See `docs/DECISIONS.md` Decision 0012.
 
 Category: `docs-tooling`
 Package/write-scope:
@@ -7408,6 +7451,9 @@ Acceptance criteria:
 
 ### task-1709 — Audit selected implementation slice
 
+Status: completed 2026-05-18. See
+`docs/research/CUSTOM_MATERIAL_SOURCE_SHAPE_DECISION_IMPLEMENTATION_AUDIT_2026_05_19.md`.
+
 Category: `audit-refactor`
 Package/write-scope: `docs/research`, targeted tests only if a tiny corrective
 fix is required.
@@ -7423,6 +7469,9 @@ Acceptance criteria:
 
 ### task-1710 — Audit tracker/backlog alignment after selected slice
 
+Status: completed 2026-05-18. See
+`docs/research/TRACKER_BACKLOG_ALIGNMENT_AFTER_CUSTOM_MATERIAL_SOURCE_SHAPE_DECISION_2026_05_19.md`.
+
 Category: `docs-tooling`
 Package/write-scope: `docs/index.html`, `docs/render-pipeline-comparison.html`,
 `agent/BACKLOG.md`, and `docs/research`.
@@ -7436,6 +7485,1078 @@ Acceptance criteria:
   changed.
 - Confirm at least five categorized, scoped ready tasks remain.
 - Run `pnpm run check:progress` after tracker edits.
+
+### task-1711 — Plan source validation diagnostics or glTF fidelity after Decision 0012
+
+Status: completed 2026-05-18. See
+`docs/research/NEXT_SOURCE_VALIDATION_OR_GLTF_AFTER_DECISION_0012_PLAN_2026_05_19.md`.
+
+Category: `docs-tooling`
+Package/write-scope: `docs/research` and backlog only.
+Reference anchor:
+`docs/DECISIONS.md` Decision 0012, `docs/ARCHITECTURE.md`,
+`docs/MEDIUM_LONG_TERM_GOALS.md`,
+`docs/research/CUSTOM_MATERIAL_SOURCE_SHAPE_DECISION_IMPLEMENTATION_AUDIT_2026_05_19.md`,
+and recent route/StandardMaterial audits.
+
+Acceptance criteria:
+
+- Compare one source validation diagnostics candidate, one StandardMaterial/glTF
+  fidelity candidate, and one diagnostics/tooling candidate.
+- Select exactly one follow-up with category, package/write-scope, reference
+  anchor, and acceptance criteria.
+- Do not select public app-owned adapter facade implementation, rendered custom
+  material families, IBL, shadows, or binary GLB loading.
+
+### task-1712 — Audit selected post-decision follow-up plan
+
+Status: completed 2026-05-18. See
+`docs/research/CUSTOM_MATERIAL_SOURCE_VALIDATION_TAXONOMY_PLAN_AUDIT_2026_05_19.md`.
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research`, targeted tests only if a tiny corrective
+fix is required.
+Reference anchor:
+the `task-1711` plan, `docs/ARCHITECTURE.md`,
+`docs/MEDIUM_LONG_TERM_GOALS.md`, and the latest route, diagnostics, source
+validation, or StandardMaterial audits selected by the plan.
+
+Acceptance criteria:
+
+- Confirm the selected follow-up is concrete enough for one focused run.
+- Confirm it preserves ECS authority, render extraction boundaries,
+  JSON-safe diagnostics, and WebGPU-only backend ownership.
+- Recommend whether to implement the selected follow-up or adjust the backlog.
+
+### task-1713 — Implement selected source validation diagnostics or glTF fidelity slice
+
+Status: completed 2026-05-18. See
+`docs/research/CUSTOM_MATERIAL_SOURCE_VALIDATION_DIAGNOSTICS_TAXONOMY_2026_05_19.md`.
+
+Category: `docs-tooling`
+Package/write-scope:
+To be narrowed by `task-1711`; expected to stay within targeted docs,
+`packages/render`, `packages/webgpu`, `examples`, or `test` files.
+Reference anchor:
+the selected `task-1711` plan plus relevant local reference code.
+
+Acceptance criteria:
+
+- Implement exactly the selected focused slice from `task-1711`.
+- Add targeted tests, docs validation, or browser coverage appropriate to the
+  selected scope.
+- Do not add public app-owned adapter facades, app-level non-built-in rendered
+  material families, IBL, shadows, or binary GLB loading.
+
+### task-1714 — Audit selected implementation slice
+
+Status: completed 2026-05-18. See
+`docs/research/CUSTOM_MATERIAL_SOURCE_VALIDATION_TAXONOMY_IMPLEMENTATION_AUDIT_2026_05_19.md`.
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research`, targeted tests only if a tiny corrective
+fix is required.
+Reference anchor:
+the selected implementation from `task-1713`, `docs/ARCHITECTURE.md`,
+`docs/DECISIONS.md` Decision 0012, and `docs/MEDIUM_LONG_TERM_GOALS.md`.
+
+Acceptance criteria:
+
+- Confirm implementation satisfies the selected acceptance criteria.
+- Confirm no ECS/render ownership, WebGPU-only, or public API boundary drift.
+- Recommend tracker/backlog alignment or the next implementation follow-up.
+
+### task-1715 — Audit tracker/backlog alignment after selected slice
+
+Status: completed 2026-05-18. See
+`docs/research/TRACKER_BACKLOG_ALIGNMENT_AFTER_CUSTOM_MATERIAL_SOURCE_VALIDATION_TAXONOMY_2026_05_19.md`.
+
+Category: `docs-tooling`
+Package/write-scope: `docs/index.html`, `docs/render-pipeline-comparison.html`,
+`agent/BACKLOG.md`, and `docs/research`.
+Reference anchor:
+the `task-1711` through `task-1714` results, `docs/ARCHITECTURE.md`,
+`docs/DECISIONS.md` Decision 0012, and `docs/MEDIUM_LONG_TERM_GOALS.md`.
+
+Acceptance criteria:
+
+- Update public tracker pages if project status or recommended next task
+  changed.
+- Confirm at least five categorized, scoped ready tasks remain.
+- Run `pnpm run check:progress` after tracker edits.
+
+### task-1716 — Plan source validation fixture or glTF fidelity after taxonomy
+
+Status: completed 2026-05-18. See
+`docs/research/NEXT_SOURCE_VALIDATION_FIXTURE_OR_GLTF_AFTER_TAXONOMY_PLAN_2026_05_19.md`.
+
+Category: `docs-tooling`
+Package/write-scope: `docs/research` and backlog only.
+Reference anchor:
+`docs/research/CUSTOM_MATERIAL_SOURCE_VALIDATION_DIAGNOSTICS_TAXONOMY_2026_05_19.md`,
+`docs/DECISIONS.md` Decision 0012, `docs/DIAGNOSTICS_SUMMARIES.md`,
+`docs/ARCHITECTURE.md`, and recent route/StandardMaterial audits.
+
+Acceptance criteria:
+
+- Compare one test-only source validation fixture candidate, one
+  StandardMaterial/glTF fidelity candidate, and one diagnostics/tooling
+  candidate.
+- Select exactly one follow-up with category, package/write-scope, reference
+  anchor, and acceptance criteria.
+- Do not select public app-owned adapter facade implementation, rendered custom
+  material families, IBL, shadows, or binary GLB loading.
+
+### task-1717 — Audit selected post-taxonomy follow-up plan
+
+Status: completed 2026-05-18. See
+`docs/research/CUSTOM_MATERIAL_SOURCE_VALIDATION_FIXTURE_PLAN_AUDIT_2026_05_19.md`.
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research`, targeted tests only if a tiny corrective
+fix is required.
+Reference anchor:
+the `task-1716` plan, `docs/ARCHITECTURE.md`,
+`docs/DECISIONS.md` Decision 0012, and the latest route, diagnostics, source
+validation, or StandardMaterial audits selected by the plan.
+
+Acceptance criteria:
+
+- Confirm the selected follow-up is concrete enough for one focused run.
+- Confirm it preserves ECS authority, render extraction boundaries,
+  JSON-safe diagnostics, and WebGPU-only backend ownership.
+- Recommend whether to implement the selected follow-up or adjust the backlog.
+
+### task-1718 — Implement selected source validation fixture or glTF fidelity slice
+
+Status: completed 2026-05-18. See
+`docs/research/CUSTOM_MATERIAL_SOURCE_VALIDATION_FIXTURE_MATRIX_2026_05_19.md`.
+
+Category: `docs-tooling`
+Package/write-scope:
+To be narrowed by `task-1716`; expected to stay within targeted docs,
+`packages/render`, `packages/webgpu`, `examples`, or `test` files.
+Reference anchor:
+the selected `task-1716` plan plus relevant local reference code.
+
+Acceptance criteria:
+
+- Implement exactly the selected focused slice from `task-1716`.
+- Add targeted tests, docs validation, or browser coverage appropriate to the
+  selected scope.
+- Do not add public app-owned adapter facades, app-level non-built-in rendered
+  material families, IBL, shadows, or binary GLB loading.
+
+### task-1719 — Audit selected implementation slice
+
+Status: completed 2026-05-18. See
+`docs/research/CUSTOM_MATERIAL_SOURCE_VALIDATION_FIXTURE_IMPLEMENTATION_AUDIT_2026_05_19.md`.
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research`, targeted tests only if a tiny corrective
+fix is required.
+Reference anchor:
+the selected implementation from `task-1718`, `docs/ARCHITECTURE.md`,
+`docs/DECISIONS.md` Decision 0012, and `docs/MEDIUM_LONG_TERM_GOALS.md`.
+
+Acceptance criteria:
+
+- Confirm implementation satisfies the selected acceptance criteria.
+- Confirm no ECS/render ownership, WebGPU-only, or public API boundary drift.
+- Recommend tracker/backlog alignment or the next implementation follow-up.
+
+### task-1720 — Audit tracker/backlog alignment after selected slice
+
+Status: completed 2026-05-18. See
+`docs/research/TRACKER_BACKLOG_ALIGNMENT_AFTER_CUSTOM_MATERIAL_SOURCE_VALIDATION_FIXTURE_2026_05_19.md`.
+
+Category: `docs-tooling`
+Package/write-scope: `docs/index.html`, `docs/render-pipeline-comparison.html`,
+`agent/BACKLOG.md`, and `docs/research`.
+Reference anchor:
+the `task-1716` through `task-1719` results, `docs/ARCHITECTURE.md`,
+`docs/DECISIONS.md` Decision 0012, and `docs/MEDIUM_LONG_TERM_GOALS.md`.
+
+Acceptance criteria:
+
+- Update public tracker pages if project status or recommended next task
+  changed.
+- Confirm at least five categorized, scoped ready tasks remain.
+- Run `pnpm run check:progress` after tracker edits.
+
+### task-1721 — Plan validator helper or glTF fidelity after fixture matrix
+
+Status: completed 2026-05-18. See
+`docs/research/NEXT_VALIDATOR_HELPER_OR_GLTF_AFTER_FIXTURE_MATRIX_PLAN_2026_05_19.md`.
+
+Category: `docs-tooling`
+Package/write-scope: `docs/research` and backlog only.
+Reference anchor:
+`docs/research/CUSTOM_MATERIAL_SOURCE_VALIDATION_FIXTURE_MATRIX_2026_05_19.md`,
+`docs/research/CUSTOM_MATERIAL_SOURCE_VALIDATION_DIAGNOSTICS_TAXONOMY_2026_05_19.md`,
+`docs/DECISIONS.md` Decision 0012, `docs/ARCHITECTURE.md`, and recent
+route/StandardMaterial audits.
+
+Acceptance criteria:
+
+- Compare one deliberately test-only validator helper candidate, one
+  StandardMaterial/glTF fidelity candidate, and one diagnostics/tooling
+  candidate.
+- Select exactly one follow-up with category, package/write-scope, reference
+  anchor, and acceptance criteria.
+- Do not select public app-owned adapter facade implementation, rendered custom
+  material families, IBL, shadows, or binary GLB loading.
+
+### task-1722 — Audit selected post-fixture follow-up plan
+
+Status: completed 2026-05-18. See
+`docs/research/CUSTOM_MATERIAL_SOURCE_VALIDATION_TEST_HELPER_PLAN_AUDIT_2026_05_19.md`.
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research`, targeted tests only if a tiny corrective
+fix is required.
+Reference anchor:
+the `task-1721` plan, `docs/ARCHITECTURE.md`,
+`docs/DECISIONS.md` Decision 0012, and the latest route, diagnostics, source
+validation, or StandardMaterial audits selected by the plan.
+
+Acceptance criteria:
+
+- Confirm the selected follow-up is concrete enough for one focused run.
+- Confirm it preserves ECS authority, render extraction boundaries,
+  JSON-safe diagnostics, and WebGPU-only backend ownership.
+- Recommend whether to implement the selected follow-up or adjust the backlog.
+
+### task-1723 — Implement selected validator helper or glTF fidelity slice
+
+Status: completed 2026-05-18. See
+`test/materials/custom-material-source-validation-fixture.test.ts`.
+
+Category: `docs-tooling`
+Package/write-scope:
+To be narrowed by `task-1721`; expected to stay within targeted docs,
+`packages/render`, `packages/webgpu`, `examples`, or `test` files.
+Reference anchor:
+the selected `task-1721` plan plus relevant local reference code.
+
+Acceptance criteria:
+
+- Implement exactly the selected focused slice from `task-1721`.
+- Add targeted tests, docs validation, or browser coverage appropriate to the
+  selected scope.
+- Do not add public app-owned adapter facades, app-level non-built-in rendered
+  material families, IBL, shadows, or binary GLB loading.
+
+### task-1724 — Audit selected implementation slice
+
+Status: completed 2026-05-18. See
+`docs/research/CUSTOM_MATERIAL_SOURCE_VALIDATION_TEST_HELPER_IMPLEMENTATION_AUDIT_2026_05_19.md`.
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research`, targeted tests only if a tiny corrective
+fix is required.
+Reference anchor:
+the selected implementation from `task-1723`, `docs/ARCHITECTURE.md`,
+`docs/DECISIONS.md` Decision 0012, and `docs/MEDIUM_LONG_TERM_GOALS.md`.
+
+Acceptance criteria:
+
+- Confirm implementation satisfies the selected acceptance criteria.
+- Confirm no ECS/render ownership, WebGPU-only, or public API boundary drift.
+- Recommend tracker/backlog alignment or the next implementation follow-up.
+
+### task-1725 — Audit tracker/backlog alignment after selected slice
+
+Status: completed 2026-05-18. See
+`docs/research/TRACKER_BACKLOG_ALIGNMENT_AFTER_CUSTOM_MATERIAL_SOURCE_VALIDATION_TEST_HELPER_2026_05_19.md`.
+
+Category: `docs-tooling`
+Package/write-scope: `docs/index.html`, `docs/render-pipeline-comparison.html`,
+`agent/BACKLOG.md`, and `docs/research`.
+Reference anchor:
+the `task-1721` through `task-1724` results, `docs/ARCHITECTURE.md`,
+`docs/DECISIONS.md` Decision 0012, and `docs/MEDIUM_LONG_TERM_GOALS.md`.
+
+Acceptance criteria:
+
+- Update public tracker pages if project status or recommended next task
+  changed.
+- Confirm at least five categorized, scoped ready tasks remain.
+- Run `pnpm run check:progress` after tracker edits.
+
+### task-1726 — Plan package validator or glTF fidelity after test fixture
+
+Status: completed 2026-05-18. See
+`docs/research/NEXT_PACKAGE_VALIDATOR_OR_GLTF_AFTER_TEST_FIXTURE_PLAN_2026_05_19.md`.
+
+Category: `docs-tooling`
+Package/write-scope: `docs/research` and backlog only.
+Reference anchor:
+`test/materials/custom-material-source-validation-fixture.test.ts`,
+`docs/research/CUSTOM_MATERIAL_SOURCE_VALIDATION_FIXTURE_MATRIX_2026_05_19.md`,
+`docs/DECISIONS.md` Decision 0012, `docs/ARCHITECTURE.md`, and recent
+route/StandardMaterial audits.
+
+Acceptance criteria:
+
+- Compare one package-level custom material source validator candidate, one
+  StandardMaterial/glTF fidelity candidate, and one diagnostics/tooling
+  candidate.
+- Select exactly one follow-up with category, package/write-scope, reference
+  anchor, and acceptance criteria.
+- Do not select public app-owned adapter facade implementation, rendered custom
+  material families, IBL, shadows, or binary GLB loading.
+
+### task-1727 — Audit selected post-test-fixture follow-up plan
+
+Status: completed 2026-05-18. See
+`docs/research/CUSTOM_MATERIAL_SOURCE_VALIDATION_DOCS_PLAN_AUDIT_2026_05_19.md`.
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research`, targeted tests only if a tiny corrective
+fix is required.
+Reference anchor:
+the `task-1726` plan, `docs/ARCHITECTURE.md`,
+`docs/DECISIONS.md` Decision 0012, and the latest route, diagnostics, source
+validation, or StandardMaterial audits selected by the plan.
+
+Acceptance criteria:
+
+- Confirm the selected follow-up is concrete enough for one focused run.
+- Confirm it preserves ECS authority, render extraction boundaries,
+  JSON-safe diagnostics, and WebGPU-only backend ownership.
+- Recommend whether to implement the selected follow-up or adjust the backlog.
+
+### task-1728 — Implement selected package validator or glTF fidelity slice
+
+Status: completed 2026-05-18. See `docs/DIAGNOSTICS_SUMMARIES.md`.
+
+Category: `docs-tooling`
+Package/write-scope:
+To be narrowed by `task-1726`; expected to stay within targeted docs,
+`packages/render`, `packages/webgpu`, `examples`, or `test` files.
+Reference anchor:
+the selected `task-1726` plan plus relevant local reference code.
+
+Acceptance criteria:
+
+- Implement exactly the selected focused slice from `task-1726`.
+- Add targeted tests, docs validation, or browser coverage appropriate to the
+  selected scope.
+- Do not add public app-owned adapter facades, app-level non-built-in rendered
+  material families, IBL, shadows, or binary GLB loading.
+
+### task-1729 — Audit selected implementation slice
+
+Status: completed 2026-05-18. See
+`docs/research/CUSTOM_MATERIAL_SOURCE_VALIDATION_DOCS_IMPLEMENTATION_AUDIT_2026_05_19.md`.
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research`, targeted tests only if a tiny corrective
+fix is required.
+Reference anchor:
+the selected implementation from `task-1728`, `docs/ARCHITECTURE.md`,
+`docs/DECISIONS.md` Decision 0012, and `docs/MEDIUM_LONG_TERM_GOALS.md`.
+
+Acceptance criteria:
+
+- Confirm implementation satisfies the selected acceptance criteria.
+- Confirm no ECS/render ownership, WebGPU-only, or public API boundary drift.
+- Recommend tracker/backlog alignment or the next implementation follow-up.
+
+### task-1730 — Audit tracker/backlog alignment after selected slice
+
+Status: completed 2026-05-18. See
+`docs/research/TRACKER_BACKLOG_ALIGNMENT_AFTER_CUSTOM_MATERIAL_SOURCE_VALIDATION_DOCS_2026_05_19.md`.
+
+Category: `docs-tooling`
+Package/write-scope: `docs/index.html`, `docs/render-pipeline-comparison.html`,
+`agent/BACKLOG.md`, and `docs/research`.
+Reference anchor:
+the `task-1726` through `task-1729` results, `docs/ARCHITECTURE.md`,
+`docs/DECISIONS.md` Decision 0012, and `docs/MEDIUM_LONG_TERM_GOALS.md`.
+
+Acceptance criteria:
+
+- Update public tracker pages if project status or recommended next task
+  changed.
+- Confirm at least five categorized, scoped ready tasks remain.
+- Run `pnpm run check:progress` after tracker edits.
+
+### task-1731 — Plan StandardMaterial/glTF fidelity or package validation after source docs
+
+Status: completed 2026-05-18. See
+`docs/research/NEXT_STANDARD_GLTF_FIDELITY_AFTER_SOURCE_DIAGNOSTICS_DOCS_PLAN_2026_05_19.md`.
+
+Category: `docs-tooling`
+Package/write-scope: `docs/research` and backlog only.
+Reference anchor:
+`docs/DIAGNOSTICS_SUMMARIES.md`, `docs/DECISIONS.md` Decision 0012,
+`docs/MEDIUM_LONG_TERM_GOALS.md`, `docs/ARCHITECTURE.md`, and recent
+StandardMaterial/glTF audits.
+
+Acceptance criteria:
+
+- Compare one StandardMaterial/glTF fidelity candidate, one package-level custom
+  source validation candidate, and one diagnostics/tooling candidate.
+- Select exactly one follow-up with category, package/write-scope, reference
+  anchor, and acceptance criteria.
+- Prefer returning to StandardMaterial/glTF fidelity unless package validation
+  is required to unblock the material route architecture.
+
+### task-1732 — Audit selected post-docs follow-up plan
+
+Status: completed 2026-05-18. See
+`docs/research/STANDARD_GLTF_EMISSIVE_FACTOR_TEXTURE_ASSERTION_PLAN_AUDIT_2026_05_19.md`.
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research`, targeted tests only if a tiny corrective
+fix is required.
+Reference anchor:
+the `task-1731` plan, `docs/ARCHITECTURE.md`,
+`docs/MEDIUM_LONG_TERM_GOALS.md`, and the latest route, diagnostics, source
+validation, or StandardMaterial audits selected by the plan.
+
+Acceptance criteria:
+
+- Confirm the selected follow-up is concrete enough for one focused run.
+- Confirm it preserves ECS authority, render extraction boundaries,
+  JSON-safe diagnostics, and WebGPU-only backend ownership.
+- Recommend whether to implement the selected follow-up or adjust the backlog.
+
+### task-1733 — Implement selected StandardMaterial/glTF fidelity or package validation slice
+
+Status: completed 2026-05-18. See `test/e2e/standard-gltf-texture.spec.ts`.
+
+Category: `docs-tooling`
+Package/write-scope:
+To be narrowed by `task-1731`; expected to stay within targeted docs,
+`packages/render`, `packages/webgpu`, `examples`, or `test` files.
+Reference anchor:
+the selected `task-1731` plan plus relevant local reference code.
+
+Acceptance criteria:
+
+- Implement exactly the selected focused slice from `task-1731`.
+- Add targeted tests, docs validation, or browser coverage appropriate to the
+  selected scope.
+- Do not add public app-owned adapter facades, app-level non-built-in rendered
+  material families, IBL, shadows, or binary GLB loading.
+
+### task-1734 — Audit selected implementation slice
+
+Status: completed 2026-05-18. See
+`docs/research/STANDARD_GLTF_EMISSIVE_FACTOR_TEXTURE_ASSERTION_IMPLEMENTATION_AUDIT_2026_05_19.md`.
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research`, targeted tests only if a tiny corrective
+fix is required.
+Reference anchor:
+the selected implementation from `task-1733`, `docs/ARCHITECTURE.md`,
+`docs/DECISIONS.md` Decision 0012, and `docs/MEDIUM_LONG_TERM_GOALS.md`.
+
+Acceptance criteria:
+
+- Confirm implementation satisfies the selected acceptance criteria.
+- Confirm no ECS/render ownership, WebGPU-only, or public API boundary drift.
+- Recommend tracker/backlog alignment or the next implementation follow-up.
+
+### task-1735 — Audit tracker/backlog alignment after selected slice
+
+Status: completed 2026-05-18. See
+`docs/research/TRACKER_BACKLOG_ALIGNMENT_AFTER_STANDARD_GLTF_EMISSIVE_FACTOR_TEXTURE_ASSERTION_2026_05_19.md`.
+
+Category: `docs-tooling`
+Package/write-scope: `docs/index.html`, `docs/render-pipeline-comparison.html`,
+`agent/BACKLOG.md`, and `docs/research`.
+Reference anchor:
+the `task-1731` through `task-1734` results, `docs/ARCHITECTURE.md`,
+`docs/DECISIONS.md` Decision 0012, and `docs/MEDIUM_LONG_TERM_GOALS.md`.
+
+Acceptance criteria:
+
+- Update public tracker pages if project status or recommended next task
+  changed.
+- Confirm at least five categorized, scoped ready tasks remain.
+- Run `pnpm run check:progress` after tracker edits.
+
+### task-1736 — Plan next StandardMaterial/glTF fidelity follow-up
+
+Status: completed 2026-05-18. See
+`docs/research/NEXT_STANDARD_GLTF_FIDELITY_AFTER_EMISSIVE_ASSERTION_PLAN_2026_05_19.md`.
+
+Category: `docs-tooling`
+Package/write-scope: `docs/research` and backlog only.
+Reference anchor:
+`docs/MEDIUM_LONG_TERM_GOALS.md`, `docs/ARCHITECTURE.md`,
+`test/e2e/standard-gltf-texture.spec.ts`, `examples/standard-gltf-texture.js`,
+`packages/webgpu/src/webgpu/standard-shader.ts`, and recent
+StandardMaterial/glTF audits.
+
+Acceptance criteria:
+
+- Compare at least two StandardMaterial/glTF fidelity candidates and one
+  diagnostics/tooling or route architecture candidate.
+- Select exactly one follow-up with category, package/write-scope, reference
+  anchor, and acceptance criteria.
+- Keep the selected task to one focused run and do not add IBL, shadows, binary
+  GLB loading, public custom material APIs, or app-owned adapter facades.
+
+### task-1737 — Audit selected post-emissive follow-up plan
+
+Status: completed 2026-05-18. See
+`docs/research/STANDARD_GLTF_COMBINED_EMISSIVE_STATUS_ASSERTION_PLAN_AUDIT_2026_05_19.md`.
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research`, targeted tests only if a tiny corrective
+fix is required.
+Reference anchor:
+the `task-1736` plan, `docs/ARCHITECTURE.md`,
+`docs/MEDIUM_LONG_TERM_GOALS.md`, and the latest StandardMaterial/glTF audits
+selected by the plan.
+
+Acceptance criteria:
+
+- Confirm the selected follow-up is concrete enough for one focused run.
+- Confirm it preserves ECS authority, render extraction boundaries,
+  JSON-safe diagnostics, and WebGPU-only backend ownership.
+- Recommend whether to implement the selected follow-up or adjust the backlog.
+
+### task-1738 — Implement selected StandardMaterial/glTF fidelity slice
+
+Status: completed 2026-05-18. See `test/e2e/standard-gltf-texture.spec.ts`.
+
+Category: `webgpu-render`
+Package/write-scope:
+To be narrowed by `task-1736`; expected to stay within targeted
+`packages/webgpu`, `examples`, or `test` files.
+Reference anchor:
+the selected `task-1736` plan plus relevant local reference code.
+
+Acceptance criteria:
+
+- Implement exactly the selected focused StandardMaterial/glTF fidelity slice.
+- Add targeted unit or browser coverage appropriate to the selected scope.
+- Do not add IBL, shadows, binary GLB loading, public custom material APIs, or
+  app-owned adapter facades.
+
+### task-1739 — Audit selected implementation slice
+
+Status: completed 2026-05-18. See
+`docs/research/STANDARD_GLTF_COMBINED_EMISSIVE_STATUS_ASSERTION_IMPLEMENTATION_AUDIT_2026_05_19.md`.
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research`, targeted tests only if a tiny corrective
+fix is required.
+Reference anchor:
+the selected implementation from `task-1738`, `docs/ARCHITECTURE.md`, and
+`docs/MEDIUM_LONG_TERM_GOALS.md`.
+
+Acceptance criteria:
+
+- Confirm implementation satisfies the selected acceptance criteria.
+- Confirm no ECS/render ownership, WebGPU-only, or public API boundary drift.
+- Recommend tracker/backlog alignment or the next implementation follow-up.
+
+### task-1740 — Audit tracker/backlog alignment after selected slice
+
+Status: completed 2026-05-18. See
+`docs/research/TRACKER_BACKLOG_ALIGNMENT_AFTER_STANDARD_GLTF_COMBINED_EMISSIVE_ASSERTIONS_2026_05_19.md`.
+
+Category: `docs-tooling`
+Package/write-scope: `docs/index.html`, `docs/render-pipeline-comparison.html`,
+`agent/BACKLOG.md`, and `docs/research`.
+Reference anchor:
+the `task-1736` through `task-1739` results, `docs/ARCHITECTURE.md`, and
+`docs/MEDIUM_LONG_TERM_GOALS.md`.
+
+Acceptance criteria:
+
+- Update public tracker pages if project status or recommended next task
+  changed.
+- Confirm at least five categorized, scoped ready tasks remain.
+- Run `pnpm run check:progress` after tracker edits.
+
+### task-1741 — Plan next StandardMaterial assertion or fidelity follow-up
+
+Status: completed 2026-05-18. See
+`docs/research/NEXT_STANDARD_GLTF_ASSERTION_AFTER_COMBINED_EMISSIVE_PLAN_2026_05_19.md`.
+
+Category: `docs-tooling`
+Package/write-scope: `docs/research` and backlog only.
+Reference anchor:
+`docs/MEDIUM_LONG_TERM_GOALS.md`, `docs/ARCHITECTURE.md`,
+`test/e2e/standard-gltf-texture.spec.ts`, `examples/standard-gltf-texture.js`,
+and recent StandardMaterial/glTF audits.
+
+Acceptance criteria:
+
+- Compare at least two StandardMaterial/glTF assertion or fidelity candidates
+  and one diagnostics/tooling or route architecture candidate.
+- Select exactly one follow-up with category, package/write-scope, reference
+  anchor, and acceptance criteria.
+- Keep the selected task to one focused run and do not add IBL, shadows, binary
+  GLB loading, public custom material APIs, or app-owned adapter facades.
+
+### task-1742 — Audit selected post-combined-emissive follow-up plan
+
+Status: completed 2026-05-18. See
+`docs/research/STANDARD_GLTF_METALLIC_ROUGHNESS_STATUS_ASSERTION_PLAN_AUDIT_2026_05_19.md`.
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research`, targeted tests only if a tiny corrective
+fix is required.
+Reference anchor:
+the `task-1741` plan, `docs/ARCHITECTURE.md`,
+`docs/MEDIUM_LONG_TERM_GOALS.md`, and the latest StandardMaterial/glTF audits
+selected by the plan.
+
+Acceptance criteria:
+
+- Confirm the selected follow-up is concrete enough for one focused run.
+- Confirm it preserves ECS authority, render extraction boundaries,
+  JSON-safe diagnostics, and WebGPU-only backend ownership.
+- Recommend whether to implement the selected follow-up or adjust the backlog.
+
+### task-1743 — Implement selected StandardMaterial assertion or fidelity slice
+
+Status: completed 2026-05-18. See `test/e2e/standard-gltf-texture.spec.ts`.
+
+Category: `webgpu-render`
+Package/write-scope:
+To be narrowed by `task-1741`; expected to stay within targeted
+`packages/webgpu`, `examples`, or `test` files.
+Reference anchor:
+the selected `task-1741` plan plus relevant local reference code.
+
+Acceptance criteria:
+
+- Implement exactly the selected focused StandardMaterial/glTF assertion or
+  fidelity slice.
+- Add targeted unit or browser coverage appropriate to the selected scope.
+- Do not add IBL, shadows, binary GLB loading, public custom material APIs, or
+  app-owned adapter facades.
+
+### task-1744 — Audit selected implementation slice
+
+Status: completed 2026-05-18. See
+`docs/research/STANDARD_GLTF_METALLIC_ROUGHNESS_STATUS_ASSERTION_IMPLEMENTATION_AUDIT_2026_05_19.md`.
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research`, targeted tests only if a tiny corrective
+fix is required.
+Reference anchor:
+the selected implementation from `task-1743`, `docs/ARCHITECTURE.md`, and
+`docs/MEDIUM_LONG_TERM_GOALS.md`.
+
+Acceptance criteria:
+
+- Confirm implementation satisfies the selected acceptance criteria.
+- Confirm no ECS/render ownership, WebGPU-only, or public API boundary drift.
+- Recommend tracker/backlog alignment or the next implementation follow-up.
+
+### task-1745 — Audit tracker/backlog alignment after selected slice
+
+Status: completed 2026-05-18. See
+`docs/research/TRACKER_BACKLOG_ALIGNMENT_AFTER_STANDARD_GLTF_METALLIC_ROUGHNESS_ASSERTIONS_2026_05_19.md`.
+
+Category: `docs-tooling`
+Package/write-scope: `docs/index.html`, `docs/render-pipeline-comparison.html`,
+`agent/BACKLOG.md`, and `docs/research`.
+Reference anchor:
+the `task-1741` through `task-1744` results, `docs/ARCHITECTURE.md`, and
+`docs/MEDIUM_LONG_TERM_GOALS.md`.
+
+Acceptance criteria:
+
+- Update public tracker pages if project status or recommended next task
+  changed.
+- Confirm at least five categorized, scoped ready tasks remain.
+- Run `pnpm run check:progress` after tracker edits.
+
+### task-1746 — Plan next glTF assertion or fidelity follow-up
+
+Status: completed 2026-05-18. See
+`docs/research/NEXT_GLTF_ASSERTION_AFTER_METALLIC_ROUGHNESS_PLAN_2026_05_19.md`.
+
+Category: `docs-tooling`
+Package/write-scope: `docs/research` and backlog only.
+Reference anchor:
+`docs/MEDIUM_LONG_TERM_GOALS.md`, `docs/ARCHITECTURE.md`,
+`test/e2e/standard-gltf-texture.spec.ts`, `examples/standard-gltf-texture.js`,
+and recent StandardMaterial/glTF audits.
+
+Acceptance criteria:
+
+- Compare at least two StandardMaterial/glTF assertion or fidelity candidates
+  and one diagnostics/tooling or route architecture candidate.
+- Select exactly one follow-up with category, package/write-scope, reference
+  anchor, and acceptance criteria.
+- Keep the selected task to one focused run and do not add IBL, shadows, binary
+  GLB loading, public custom material APIs, or app-owned adapter facades.
+
+### task-1747 — Audit selected post-metallic follow-up plan
+
+Status: completed 2026-05-18. See
+`docs/research/STANDARD_GLTF_OCCLUSION_STATUS_ASSERTION_PLAN_AUDIT_2026_05_19.md`.
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research`, targeted tests only if a tiny corrective
+fix is required.
+Reference anchor:
+the `task-1746` plan, `docs/ARCHITECTURE.md`,
+`docs/MEDIUM_LONG_TERM_GOALS.md`, and the latest StandardMaterial/glTF audits
+selected by the plan.
+
+Acceptance criteria:
+
+- Confirm the selected follow-up is concrete enough for one focused run.
+- Confirm it preserves ECS authority, render extraction boundaries,
+  JSON-safe diagnostics, and WebGPU-only backend ownership.
+- Recommend whether to implement the selected follow-up or adjust the backlog.
+
+### task-1748 — Implement selected glTF assertion or fidelity slice
+
+Status: completed 2026-05-18. See `test/e2e/standard-gltf-texture.spec.ts`.
+
+Category: `webgpu-render`
+Package/write-scope:
+To be narrowed by `task-1746`; expected to stay within targeted
+`packages/webgpu`, `examples`, or `test` files.
+Reference anchor:
+the selected `task-1746` plan plus relevant local reference code.
+
+Acceptance criteria:
+
+- Implement exactly the selected focused StandardMaterial/glTF assertion or
+  fidelity slice.
+- Add targeted unit or browser coverage appropriate to the selected scope.
+- Do not add IBL, shadows, binary GLB loading, public custom material APIs, or
+  app-owned adapter facades.
+
+### task-1749 — Audit selected implementation slice
+
+Status: completed 2026-05-18. See
+`docs/research/STANDARD_GLTF_OCCLUSION_STATUS_ASSERTION_IMPLEMENTATION_AUDIT_2026_05_19.md`.
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research`, targeted tests only if a tiny corrective
+fix is required.
+Reference anchor:
+the selected implementation from `task-1748`, `docs/ARCHITECTURE.md`, and
+`docs/MEDIUM_LONG_TERM_GOALS.md`.
+
+Acceptance criteria:
+
+- Confirm implementation satisfies the selected acceptance criteria.
+- Confirm no ECS/render ownership, WebGPU-only, or public API boundary drift.
+- Recommend tracker/backlog alignment or the next implementation follow-up.
+
+### task-1750 — Audit tracker/backlog alignment after selected slice
+
+Status: completed 2026-05-18. See
+`docs/research/TRACKER_BACKLOG_ALIGNMENT_AFTER_STANDARD_GLTF_OCCLUSION_ASSERTIONS_2026_05_19.md`.
+
+Category: `docs-tooling`
+Package/write-scope: `docs/index.html`, `docs/render-pipeline-comparison.html`,
+`agent/BACKLOG.md`, and `docs/research`.
+Reference anchor:
+the `task-1746` through `task-1749` results, `docs/ARCHITECTURE.md`, and
+`docs/MEDIUM_LONG_TERM_GOALS.md`.
+
+Acceptance criteria:
+
+- Update public tracker pages if project status or recommended next task
+  changed.
+- Confirm at least five categorized, scoped ready tasks remain.
+- Run `pnpm run check:progress` after tracker edits.
+
+### task-1751 — Plan next StandardMaterial fidelity or audit follow-up
+
+Status: completed 2026-05-18. See
+`docs/research/NEXT_STANDARD_GLTF_AFTER_OCCLUSION_ASSERTIONS_PLAN_2026_05_19.md`.
+
+Category: `docs-tooling`
+Package/write-scope: `docs/research` and backlog only.
+Reference anchor:
+`docs/MEDIUM_LONG_TERM_GOALS.md`, `docs/ARCHITECTURE.md`,
+`test/e2e/standard-gltf-texture.spec.ts`, `examples/standard-gltf-texture.js`,
+and recent StandardMaterial/glTF audits.
+
+Acceptance criteria:
+
+- Compare one StandardMaterial/glTF fidelity implementation candidate, one
+  audit-refactor candidate, and one diagnostics/tooling or route architecture
+  candidate.
+- Select exactly one follow-up with category, package/write-scope, reference
+  anchor, and acceptance criteria.
+- Keep the selected task to one focused run and do not add IBL, shadows, binary
+  GLB loading, public custom material APIs, or app-owned adapter facades.
+
+### task-1752 — Audit selected post-occlusion follow-up plan
+
+Status: completed 2026-05-18. See
+`docs/research/STANDARD_GLTF_ASSERTION_HARDENING_AUDIT_PLAN_AUDIT_2026_05_19.md`.
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research`, targeted tests only if a tiny corrective
+fix is required.
+Reference anchor:
+the `task-1751` plan, `docs/ARCHITECTURE.md`,
+`docs/MEDIUM_LONG_TERM_GOALS.md`, and the latest StandardMaterial/glTF audits
+selected by the plan.
+
+Acceptance criteria:
+
+- Confirm the selected follow-up is concrete enough for one focused run.
+- Confirm it preserves ECS authority, render extraction boundaries,
+  JSON-safe diagnostics, and WebGPU-only backend ownership.
+- Recommend whether to implement the selected follow-up or adjust the backlog.
+
+### task-1753 — Implement selected StandardMaterial fidelity or audit slice
+
+Status: completed 2026-05-18. See
+`docs/research/STANDARD_GLTF_ASSERTION_HARDENING_AUDIT_2026_05_19.md`.
+
+Category: `docs-tooling`
+Package/write-scope:
+To be narrowed by `task-1751`; expected to stay within targeted docs,
+`packages/webgpu`, `examples`, or `test` files.
+Reference anchor:
+the selected `task-1751` plan plus relevant local reference code.
+
+Acceptance criteria:
+
+- Implement exactly the selected focused StandardMaterial/glTF fidelity or audit
+  slice.
+- Add targeted unit, browser, or docs validation appropriate to the selected
+  scope.
+- Do not add IBL, shadows, binary GLB loading, public custom material APIs, or
+  app-owned adapter facades.
+
+### task-1754 — Audit selected implementation slice
+
+Status: completed 2026-05-18. See
+`docs/research/STANDARD_GLTF_ASSERTION_HARDENING_AUDIT_IMPLEMENTATION_AUDIT_2026_05_19.md`.
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research`, targeted tests only if a tiny corrective
+fix is required.
+Reference anchor:
+the selected implementation from `task-1753`, `docs/ARCHITECTURE.md`, and
+`docs/MEDIUM_LONG_TERM_GOALS.md`.
+
+Acceptance criteria:
+
+- Confirm implementation satisfies the selected acceptance criteria.
+- Confirm no ECS/render ownership, WebGPU-only, or public API boundary drift.
+- Recommend tracker/backlog alignment or the next implementation follow-up.
+
+### task-1755 — Audit tracker/backlog alignment after selected slice
+
+Status: completed 2026-05-18. See
+`docs/research/TRACKER_BACKLOG_ALIGNMENT_AFTER_STANDARD_GLTF_ASSERTION_HARDENING_AUDIT_2026_05_19.md`.
+
+Category: `docs-tooling`
+Package/write-scope: `docs/index.html`, `docs/render-pipeline-comparison.html`,
+`agent/BACKLOG.md`, and `docs/research`.
+Reference anchor:
+the `task-1751` through `task-1754` results, `docs/ARCHITECTURE.md`, and
+`docs/MEDIUM_LONG_TERM_GOALS.md`.
+
+Acceptance criteria:
+
+- Update public tracker pages if project status or recommended next task
+  changed.
+- Confirm at least five categorized, scoped ready tasks remain.
+- Run `pnpm run check:progress` after tracker edits.
+
+### task-1756 — Plan alpha/render-state or transform status hardening
+
+Status: completed 2026-05-18. See
+`docs/research/NEXT_ALPHA_OR_TRANSFORM_STATUS_AFTER_ASSERTION_AUDIT_PLAN_2026_05_19.md`.
+
+Category: `docs-tooling`
+Package/write-scope: `docs/research` and backlog only.
+Reference anchor:
+`docs/research/STANDARD_GLTF_ASSERTION_HARDENING_AUDIT_2026_05_19.md`,
+`docs/MEDIUM_LONG_TERM_GOALS.md`, `docs/ARCHITECTURE.md`,
+`test/e2e/standard-gltf-texture.spec.ts`, and
+`examples/standard-gltf-texture.js`.
+
+Acceptance criteria:
+
+- Compare alpha/render-state status hardening, texture-transform status
+  hardening, and one diagnostics/tooling or route architecture candidate.
+- Select exactly one follow-up with category, package/write-scope, reference
+  anchor, and acceptance criteria.
+- Keep the selected task to one focused run and do not add IBL, shadows, binary
+  GLB loading, public custom material APIs, or app-owned adapter facades.
+
+### task-1757 — Audit selected post-assertion-audit follow-up plan
+
+Status: completed 2026-05-18. See
+`docs/research/ALPHA_RENDER_STATE_STATUS_ASSERTION_PLAN_AUDIT_2026_05_19.md`.
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research`, targeted tests only if a tiny corrective
+fix is required.
+Reference anchor:
+the `task-1756` plan, `docs/ARCHITECTURE.md`,
+`docs/MEDIUM_LONG_TERM_GOALS.md`, and the latest StandardMaterial/glTF audits
+selected by the plan.
+
+Acceptance criteria:
+
+- Confirm the selected follow-up is concrete enough for one focused run.
+- Confirm it preserves ECS authority, render extraction boundaries,
+  JSON-safe diagnostics, and WebGPU-only backend ownership.
+- Recommend whether to implement the selected follow-up or adjust the backlog.
+
+### task-1758 — Implement selected alpha/render-state or transform status slice
+
+Category: `webgpu-render`
+Package/write-scope:
+To be narrowed by `task-1756`; expected to stay within targeted
+`packages/webgpu`, `examples`, or `test` files.
+Reference anchor:
+the selected `task-1756` plan plus relevant local reference code.
+
+Acceptance criteria:
+
+- Implement exactly the selected focused StandardMaterial/glTF status hardening
+  slice.
+- Add targeted unit or browser coverage appropriate to the selected scope.
+- Do not add IBL, shadows, binary GLB loading, public custom material APIs, or
+  app-owned adapter facades.
+
+### task-1759 — Audit selected implementation slice
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research`, targeted tests only if a tiny corrective
+fix is required.
+Reference anchor:
+the selected implementation from `task-1758`, `docs/ARCHITECTURE.md`, and
+`docs/MEDIUM_LONG_TERM_GOALS.md`.
+
+Acceptance criteria:
+
+- Confirm implementation satisfies the selected acceptance criteria.
+- Confirm no ECS/render ownership, WebGPU-only, or public API boundary drift.
+- Recommend tracker/backlog alignment or the next implementation follow-up.
+
+### task-1760 — Audit tracker/backlog alignment after selected slice
+
+Category: `docs-tooling`
+Package/write-scope: `docs/index.html`, `docs/render-pipeline-comparison.html`,
+`agent/BACKLOG.md`, and `docs/research`.
+Reference anchor:
+the `task-1756` through `task-1759` results, `docs/ARCHITECTURE.md`, and
+`docs/MEDIUM_LONG_TERM_GOALS.md`.
+
+Acceptance criteria:
+
+- Update public tracker pages if project status or recommended next task
+  changed.
+- Confirm at least five categorized, scoped ready tasks remain.
+- Run `pnpm run check:progress` after tracker edits.
+
+### task-1761 — Attach a depth-stencil texture so opaque draws depth-test
+
+Category: `webgpu-render`
+Package/write-scope:
+`packages/webgpu/src/webgpu/app.ts`,
+`packages/webgpu/src/webgpu/frame-boundary.ts`,
+the app-level material adapters under
+`packages/webgpu/src/webgpu/*-app-frame-resources.ts` and
+`packages/webgpu/src/webgpu/built-in-material-app-resource-adapter.ts`,
+plus a new depth-texture resource module under
+`packages/webgpu/src/webgpu/` and matching unit tests under
+`packages/webgpu/test/`. A new browser proof under
+`test/e2e/` and a research note under `docs/research/` are also in scope.
+Reference anchor:
+`packages/webgpu/src/webgpu/material-render-state.ts:50-91`,
+`packages/webgpu/src/webgpu/pipeline-cache.ts:130-165`,
+`packages/webgpu/src/webgpu/render-pass-attachments.ts:48-106`,
+`packages/webgpu/src/webgpu/frame-boundary.ts:160-200`,
+`references/three.js` WebGPU renderer for the canonical depth-texture
+lifecycle, and `references/engine` for an alternate pattern.
+
+Root-cause summary (verified 2026-05-18 against a standalone five-mesh
+demo with the box, sphere, torus, cylinder, cone arrangement):
+
+- `frame-boundary.ts:178` calls `createRenderPassAttachmentPlan({
+colorTargets: [texture.target] })` with no `depthTarget`, so the forward
+  render pass has no depth-stencil attachment.
+- No code under `packages/webgpu/src` creates a depth texture; a
+  `grep -rn "depth24" packages/webgpu/src` returns zero non-type matches.
+- `material-render-state.ts:78-83` returns
+  `{ depthWriteEnabled: false, depthCompare: "always" }` whenever
+  `depthFormat` is `null`/`undefined`; `pipeline-cache.ts:159-160` defaults
+  match. Every built-in pipeline therefore disables depth-test and depth-write.
+- Symptom: with five opaque meshes spawned in box→sphere→torus→cylinder→cone
+  order, the farthest object (box) is rendered on top of nearer objects
+  because draw order wins where pixels overlap, not depth.
+
+Acceptance criteria:
+
+- Allocate a depth-stencil texture (`depth24plus`) sized to the
+  swap-chain output and re-create it when the canvas/output target resizes;
+  expose its `GPUTextureView` to the frame boundary so the forward pass
+  receives a `depthStencilAttachment` with `depthLoadOp: "clear"`,
+  `depthClearValue: 1.0`, and `depthStoreOp: "store"`.
+- Plumb a non-null `depthFormat` from `WebGpuApp` through to every
+  built-in material pipeline descriptor (`unlit`, `standard`, `matcap`,
+  `debug-normal`) so `resolveWebGpuPipelineRenderState` returns
+  `depthCompare: "less"` (or `"less-equal"`) and
+  `depthWriteEnabled: true` for opaque pipelines. The
+  alpha-blend Standard variant must keep `depthWriteEnabled: false` while
+  still depth-testing.
+- Add a focused unit test that asserts
+  `createWebGpuDepthStencilDescriptor` produces
+  `{ depthCompare: "less", depthWriteEnabled: true }` for an opaque pipeline
+  key with a non-null `depthFormat`, and confirms the existing
+  `null`-depth-format fallback still returns the no-depth state.
+- Add a Playwright browser proof that authors at least one inter-family
+  overlap (e.g. an `Unlit` cube in front of a `Standard` sphere at
+  overlapping screen-space coordinates) and asserts via canvas readback
+  that the nearer object's color wins at the overlap pixel. Spawn order
+  must intentionally place the farther object first so the test fails
+  loudly if depth is regressed.
+- Surface a JSON-safe `webGpuApp.depthAttachment` block in the render
+  report (format, attached: boolean, opaque pipeline depth-write count)
+  without exposing raw GPU textures or views.
+- Do not introduce a public render-graph, multi-pass API, IBL, shadows,
+  binary GLB loading, or a public custom-material facade — this slice
+  attaches a single depth-stencil to the existing single forward pass and
+  nothing more.
+- Add a research note
+  `docs/research/DEPTH_ATTACHMENT_FIX_AUDIT_2026_05_18.md` capturing the
+  root-cause diagnosis above and the chosen approach.
+- Update `docs/index.html` and
+  `docs/render-pipeline-comparison.html` phase 6 (submit) to record that
+  depth-test/write is now wired, then run `pnpm run check:progress`.
+
+### task-1762 — Audit depth-attachment fix after implementation
+
+Category: `audit-refactor`
+Package/write-scope:
+`docs/research`, targeted tests only if a tiny corrective fix is required.
+Reference anchor:
+the selected implementation from `task-1761`, `docs/ARCHITECTURE.md`,
+`docs/NORTH_STAR.md`, `docs/MEDIUM_LONG_TERM_GOALS.md`,
+`packages/webgpu/src/webgpu/material-render-state.ts`,
+`packages/webgpu/src/webgpu/render-pass-attachments.ts`, and the local
+WebGPU app depth-resource changes.
+
+Acceptance criteria:
+
+- Confirm the depth attachment remains a derived WebGPU render resource and
+  does not introduce renderer-owned ECS/game state or a scene graph.
+- Confirm opaque and alpha-blend pipeline depth behavior matches the selected
+  design and that diagnostics stay JSON-safe.
+- Confirm targeted unit/browser coverage and tracker updates are sufficient,
+  or document the smallest follow-up.
 
 ## Post-Unlit E2E Verification Targets
 

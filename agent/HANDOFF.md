@@ -1,5 +1,90 @@
 # Handoff
 
+## Current Run Update — 2026-05-19T00:50:00Z
+
+Completed `task-1706` through `task-1757`. Recommended next task is
+`task-1758`: inspect existing alpha/render-state browser tests for meaningful
+JSON-safe status assertion gaps, tighten one focused slice if present, or
+switch to texture-transform status hardening if alpha coverage is already
+sufficiently explicit.
+
+Highlights:
+
+- Added Decision 0012: future custom material source assets are data-only
+  registered-family instances, with raw WebGPU objects, callbacks, caches, and
+  renderer-owned state banned from source assets.
+- Added a custom material source validation taxonomy, fixture matrix,
+  test-only validator guardrail, and public diagnostics-summary boundary for
+  `customMaterialSource.*` source-shape diagnostics.
+- Tightened existing StandardMaterial/glTF browser assertions for exact
+  emissive factor/color status, metallic-roughness channel status, and occlusion
+  red-channel status across standalone and combined fixtures.
+- Audited the assertion-hardening sweep and recommended alpha/render-state
+  status hardening or texture-transform status hardening next.
+- Planned alpha/render-state status hardening as the next follow-up, then
+  audited the plan and recorded the guardrail to avoid duplicate alpha
+  assertions by switching to transform-status hardening if needed.
+- Updated public tracker pages and kept at least five ready tasks by retaining
+  `task-1758` through `task-1761` and adding `task-1762` as the depth-fix audit.
+
+Reference anchors inspected:
+
+- `docs/NORTH_STAR.md`
+- `docs/ROADMAP.md`
+- `docs/MEDIUM_LONG_TERM_GOALS.md`
+- `docs/ARCHITECTURE.md`
+- `docs/DECISIONS.md`
+- `docs/DIAGNOSTICS_SUMMARIES.md`
+- `docs/research/CUSTOM_MATERIAL_SOURCE_API_DESIGN_BRIEF_2026_05_18.md`
+- `docs/research/CUSTOM_MATERIAL_SOURCE_ASSET_SHAPE_CHECKLIST_2026_05_18.md`
+- `docs/research/STANDARD_GLTF_ASSERTION_HARDENING_AUDIT_2026_05_19.md`
+- `packages/render/src/materials/types.ts`
+- `packages/webgpu/src/webgpu/standard-shader.ts`
+- `examples/standard-gltf-texture.js`
+- `test/e2e/standard-gltf-texture.spec.ts`
+- `test/webgpu/standard-shader.test.ts`
+- `references/bevy/crates/bevy_pbr/src/material.rs`
+- `references/bevy/crates/bevy_render/src/render_asset.rs`
+
+Files touched:
+
+- `agent/BACKLOG.md`
+- `agent/COMPLETED.md`
+- `agent/HANDOFF.md`
+- `agent/STATUS.json`
+- `docs/DECISIONS.md`
+- `docs/DIAGNOSTICS_SUMMARIES.md`
+- `docs/index.html`
+- `docs/render-pipeline-comparison.html`
+- `test/e2e/standard-gltf-texture.spec.ts`
+- `test/materials/custom-material-source-validation-fixture.test.ts`
+- `docs/research/*_2026_05_19.md` planning/audit/tracker notes for
+  `task-1706` through `task-1757`
+
+Validation:
+
+- `pnpm exec vitest run test/materials/custom-material-source-validation-fixture.test.ts`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "(combined base-color occlusion and emissive|mapped occlusion texture|occlusion texture strength|mapped metallic-roughness texture|combined base-color and metallic-roughness textures|combined base-color metallic-roughness and normal textures|mapped emissive texture|combined base-color \\(occlusion and emissive|alpha-mask and emissive\\))"`
+- `pnpm run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm run check:progress`
+- `pnpm run format:check`
+- `pnpm run check`
+- `git diff --check`
+
+Known issues / follow-ups:
+
+- Start `task-1758`: inspect alpha-mask and alpha-blend status assertions for
+  real gaps before adding checks; switch to texture-transform status hardening
+  if alpha coverage is already explicit enough.
+- `task-1761` remains a critical depth-attachment fix once the current
+  assertion-status chain is complete or if depth artifacts block browser
+  verification.
+- Public custom material source APIs, package-level source validators,
+  app-owned adapter facades, real non-built-in material rendering, binary GLB
+  loading, IBL, shadows, instancing, batching, and multi-material primitive
+  rules remain deferred.
+
 ## Current Run Update — 2026-05-18T23:48:30Z
 
 Completed `task-1676` through `task-1705`. Recommended next task is

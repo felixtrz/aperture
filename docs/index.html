@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-18 16:46 PDT</dd>
+            <dd>2026-05-18 17:40 PDT</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -628,10 +628,45 @@
               public API can be accepted. A follow-up source asset shape
               checklist now narrows the future decision to family key format,
               stable identity, render-phase declaration, render-state inputs,
-              pipeline-key inputs, binding schema, and metadata rules.
+              pipeline-key inputs, binding schema, and metadata rules. Decision
+              0012 now accepts custom material source assets as data-only
+              registered-family instances, while explicitly deferring source
+              validation, app-owned adapter facades, prepared-resource adapters,
+              shader loading, rendered custom families, IBL, shadows, and binary
+              GLB loading. The follow-up source validation taxonomy now
+              separates future <code>customMaterialSource.*</code> shape
+              diagnostics from route, dependency, preparation, frame-resource,
+              pipeline, and app facade diagnostics while preserving JSON-safe
+              payload limits. A fixture matrix now gives future tests concrete
+              valid/invalid custom source examples and expected
+              <code>customMaterialSource.*</code> diagnostic records without
+              adding a public source API or runtime validator. A local test-only
+              fixture now executes those guardrails, proving source diagnostics
+              stay in the <code>customMaterialSource.*</code> layer and omit raw
+              handles, callbacks, cache objects, and source payload bytes from
+              JSON output. Public diagnostics docs now include this custom
+              source validation boundary while still deferring package
+              validators, public source types, app-owned adapter facades, and
+              rendered custom material families. StandardMaterial/glTF browser
+              coverage now also pins the exact non-default emissive factor and
+              sampled emissive texture color exposed through JSON-safe status
+              for the mapped emissive texture scenario and the combined
+              base-color/occlusion/emissive and base-color/alpha-mask/emissive
+              scenarios. Metallic-roughness browser coverage now pins exact base
+              channel status values for standalone, combined base-color, and
+              combined base-color plus normal fixtures. Occlusion browser
+              coverage now pins the exact sampled red-channel status across
+              standalone, occlusion-strength, and combined
+              base-color/occlusion/emissive fixtures. A follow-up audit found
+              the assertion-hardening sweep useful and recommends
+              alpha/render-state status or texture-transform status as the next
+              focused glTF fidelity direction. Follow-up planning selected
+              alpha/render-state status hardening, and the plan audit requires
+              inspecting existing alpha tests for real gaps before adding new
+              checks, with texture-transform status hardening as the fallback.
             </dd>
             <dt>Next focus</dt>
-            <dd>Plan source-shape decision or glTF fidelity</dd>
+            <dd>Implement alpha or transform status hardening</dd>
           </dl>
         </aside>
       </header>
@@ -2340,12 +2375,17 @@
             <h3>Recommended next tasks</h3>
             <ul>
               <li>
-                <span class="badge amber">next</span> Plan app adapter
-                registration or glTF browser fidelity follow-up.
+                <span class="badge amber">next</span> Inspect alpha render-state
+                status assertions, then tighten one real gap or switch to
+                texture transforms.
               </li>
-              <li>Audit the selected post-shader-contract follow-up plan.</li>
-              <li>Implement the selected route or glTF fidelity slice.</li>
+              <li>Audit the selected implementation slice.</li>
               <li>Audit tracker/backlog alignment after the selected slice.</li>
+              <li>
+                Attach the critical depth-stencil texture for opaque depth
+                testing.
+              </li>
+              <li>Audit the depth-attachment fix after implementation.</li>
             </ul>
           </article>
         </div>

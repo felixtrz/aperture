@@ -1,5 +1,250 @@
 # Completed Tasks
 
+## tasks-1756-1757 — Alpha/render-state status hardening plan audit
+
+Completed: 2026-05-18
+
+Summary:
+
+- Planned the next StandardMaterial/glTF follow-up after the assertion
+  hardening audit.
+- Compared alpha/render-state status hardening, texture-transform status
+  hardening, and a route/diagnostics return.
+- Selected alpha/render-state status hardening as the next focused browser
+  assertion slice.
+- Audited the plan and recorded a guardrail: inspect existing alpha tests for
+  real assertion gaps first, and switch to texture-transform status hardening if
+  alpha coverage is already sufficiently explicit.
+- Left runtime code unchanged.
+
+Validation:
+
+- Covered by final run-level validation for this automation cycle.
+
+## tasks-1751-1755 — StandardMaterial assertion hardening audit
+
+Completed: 2026-05-18
+
+Summary:
+
+- Planned and audited the next follow-up after occlusion status assertion
+  hardening.
+- Selected an audit-refactor slice after many small browser assertion changes.
+- Added an audit confirming recent emissive, metallic-roughness, and occlusion
+  assertion hardening pins useful JSON-safe glTF status values without replacing
+  screenshot/readback proof.
+- Recommended alpha/render-state status hardening or texture-transform status
+  hardening as the next focused StandardMaterial/glTF direction.
+- Updated public tracker pages and refilled the ready queue with `task-1756`
+  through `task-1760`.
+
+Validation:
+
+- Covered by final run-level validation for this automation cycle.
+
+## tasks-1746-1750 — StandardMaterial occlusion status assertions
+
+Completed: 2026-05-18
+
+Summary:
+
+- Planned and audited the next StandardMaterial/glTF assertion follow-up after
+  metallic-roughness status hardening.
+- Selected a narrow occlusion red-channel status assertion slice.
+- Updated standalone occlusion, occlusion-strength, and combined
+  base-color/occlusion/emissive Playwright tests to assert exact
+  `expectedOcclusion.red` value `32 / 255`.
+- Preserved existing strength, screenshot/readback, diagnostics, and WebGPU
+  warning checks.
+- Updated public tracker pages and refilled the ready queue with `task-1751`
+  through `task-1755`.
+
+Validation:
+
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "(combined base-color occlusion and emissive|mapped occlusion texture|occlusion texture strength)"`
+- Covered by final run-level validation for this automation cycle.
+
+## tasks-1741-1745 — StandardMaterial metallic-roughness status assertions
+
+Completed: 2026-05-18
+
+Summary:
+
+- Planned and audited the next StandardMaterial/glTF assertion follow-up after
+  combined emissive status hardening.
+- Selected a narrow metallic-roughness channel status assertion slice.
+- Updated standalone metallic-roughness, combined base-color/metallic-roughness,
+  and combined base-color/metallic-roughness/normal Playwright tests to assert
+  exact metallic `64 / 255` and roughness `16 / 255` status values.
+- Preserved existing screenshot/readback, diagnostics, and WebGPU warning
+  checks.
+- Updated public tracker pages and refilled the ready queue with `task-1746`
+  through `task-1750`.
+
+Validation:
+
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "(mapped metallic-roughness texture|combined base-color and metallic-roughness textures|combined base-color metallic-roughness and normal textures)"`
+- Covered by final run-level validation for this automation cycle.
+
+## tasks-1736-1740 — StandardMaterial combined emissive status assertions
+
+Completed: 2026-05-18
+
+Summary:
+
+- Planned and audited the next StandardMaterial/glTF follow-up after the
+  standalone emissive factor texture assertion.
+- Selected a narrow assertion hardening slice for the combined emissive browser
+  fixtures.
+- Updated the base-color/occlusion/emissive and base-color/alpha-mask/emissive
+  Playwright tests to assert exact `expectedEmissive.factor` and texture
+  `color` values.
+- Preserved existing screenshot/readback, alpha-mask, diagnostics, and WebGPU
+  warning checks.
+- Updated public tracker pages and refilled the ready queue with `task-1741`
+  through `task-1745`.
+
+Validation:
+
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "combined base-color (occlusion and emissive|alpha-mask and emissive)"`
+- Covered by final run-level validation for this automation cycle.
+
+## tasks-1731-1735 — StandardMaterial emissive factor texture assertion
+
+Completed: 2026-05-18
+
+Summary:
+
+- Planned and audited the next follow-up after documenting custom material
+  source validation diagnostics.
+- Selected a narrow StandardMaterial/glTF browser assertion hardening slice.
+- Updated the mapped emissive texture Playwright test to assert the exact
+  non-default `expectedEmissive.factor` and sampled texture `color` exposed
+  through JSON-safe status.
+- Preserved the existing screenshot/readback checks and WebGPU warning guard.
+- Updated public tracker pages and refilled the ready queue with `task-1736`
+  through `task-1740`.
+
+Validation:
+
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "mapped emissive texture"`
+- Covered by final run-level validation for this automation cycle.
+
+## tasks-1726-1730 — Custom material source validation diagnostics docs
+
+Completed: 2026-05-18
+
+Summary:
+
+- Planned and audited the next follow-up after the test-only custom source
+  validation fixture.
+- Deferred a package-level validator and selected a public diagnostics docs
+  update so the source-vs-route boundary is visible without implying public
+  custom material support.
+- Added a `Custom Material Source Validation` section to
+  `docs/DIAGNOSTICS_SUMMARIES.md`.
+- Documented `customMaterialSource.*` as source-shape diagnostics and kept them
+  separate from route, app, dependency readiness, preparation, frame-resource,
+  pipeline, and WebGPU resource diagnostics.
+- Updated public tracker pages and refilled the ready queue with `task-1731`
+  through `task-1735`.
+
+Validation:
+
+- Covered by final run-level validation for this automation cycle.
+
+## tasks-1721-1725 — Custom material source validation test fixture
+
+Completed: 2026-05-18
+
+Summary:
+
+- Planned and audited the next follow-up after the source validation fixture
+  matrix.
+- Selected a local test-only validator fixture over another StandardMaterial
+  browser fidelity slice or diagnostics page promotion.
+- Added `test/materials/custom-material-source-validation-fixture.test.ts` with
+  a non-exported local helper that checks representative custom source fixtures
+  and emits `customMaterialSource.*` diagnostics.
+- Covered valid minimal shape, invalid source/family/render-state/pipeline
+  inputs, malformed binding/dependency declarations, metadata warnings, and
+  live renderer object/callback/typed-array rejection.
+- Updated public tracker pages and refilled the ready queue with `task-1726`
+  through `task-1730`.
+
+Validation:
+
+- `pnpm exec vitest run test/materials/custom-material-source-validation-fixture.test.ts`
+- Covered by final run-level validation for this automation cycle.
+
+## tasks-1716-1720 — Custom material source validation fixture matrix
+
+Completed: 2026-05-18
+
+Summary:
+
+- Planned and audited the next follow-up after the custom material source
+  validation taxonomy.
+- Selected a non-binding fixture matrix over another StandardMaterial browser
+  fidelity slice or immediate diagnostics page promotion.
+- Added expected input/output examples for future
+  `customMaterialSource.*` diagnostics, covering valid minimal shape, invalid
+  discriminator/family/render-state/pipeline/binding/dependency cases, metadata
+  warnings, and live renderer object rejection.
+- Audited the matrix for JSON-safe payload fields and absence of public source
+  APIs, runtime validators, app facades, WebGPU resources, and rendered custom
+  families.
+- Updated public tracker pages and refilled the ready queue with `task-1721`
+  through `task-1725`.
+
+Validation:
+
+- Covered by final run-level validation for this automation cycle.
+
+## tasks-1711-1715 — Custom material source validation taxonomy
+
+Completed: 2026-05-18
+
+Summary:
+
+- Planned and audited the next follow-up after Decision 0012.
+- Selected a non-binding source validation diagnostics taxonomy over another
+  StandardMaterial browser fidelity slice or immediate public diagnostics page
+  update.
+- Added a `customMaterialSource.*` candidate diagnostics taxonomy with severity,
+  stable field, JSON-safety, disallowed live-object, validation phase, and
+  existing-diagnostic boundary notes.
+- Audited the taxonomy for Decision 0012, ECS/render ownership, WebGPU-only,
+  JSON-safe diagnostics, and public API boundary drift.
+- Updated public tracker pages and refilled the ready queue with `task-1716`
+  through `task-1720`.
+
+Validation:
+
+- Covered by final run-level validation for this automation cycle.
+
+## tasks-1706-1710 — Custom material source shape decision
+
+Completed: 2026-05-18
+
+Summary:
+
+- Planned and audited the next follow-up after the custom material source asset
+  shape checklist.
+- Selected a narrow architecture decision record over another StandardMaterial
+  browser fidelity slice or public diagnostics page.
+- Added Decision 0012, accepting future custom material source assets as
+  data-only registered-family instances while keeping raw WebGPU objects,
+  callbacks, caches, and renderer-owned state out of source assets.
+- Audited the decision for ECS/render ownership, WebGPU-only, JSON-safe
+  diagnostics, and public API boundary drift.
+- Updated public tracker pages and refilled the ready queue with `task-1711`
+  through `task-1715`.
+
+Validation:
+
+- Covered by final run-level validation for this automation cycle.
+
 ## tasks-1686-1705 — Route diagnostics docs and custom material source design gates
 
 Completed: 2026-05-18
