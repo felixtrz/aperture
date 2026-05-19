@@ -131,6 +131,13 @@ const statusPath = "agent/STATUS.json";
 const workWindowMinutes = Number(process.env.WORK_WINDOW_MINUTES ?? 55);
 const status = JSON.parse(fs.readFileSync(statusPath, "utf8"));
 const startedAt = status.currentRunStartedAt ?? status.lastRunStartedAt;
+const stopConditionResult =
+  status.lastResult === "blocked" || status.lastResult === "stop-condition";
+
+if (stopConditionResult) {
+  console.log(`stopCondition=${status.lastResult}`);
+  process.exit(0);
+}
 
 if (typeof startedAt !== "string" || Number.isNaN(workWindowMinutes)) {
   process.exit(0);

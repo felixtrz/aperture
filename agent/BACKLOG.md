@@ -311,6 +311,14 @@ Category: `webgpu-render`
 Package/write-scope: `packages/webgpu/src/`, `examples/multi-light-shadow.html`, `examples/multi-light-shadow.js`, `test/e2e/multi-light-shadow.spec.ts`.
 Reference anchor: `references/engine/src/scene/renderer/shadow-renderer.js` (PlayCanvas shadow-renderer top-level coordination); Bevy multi-light render path under `references/bevy/crates/bevy_pbr/src/render/` (verify file on read).
 
+Implementation notes:
+
+- Current StandardMaterial receiver resources accept one shadow resource set per
+  frame. The next slice should add a real multi-shadow receiver contract before
+  trying to build the browser example.
+- Directional and spot shadows can share the 2D `shadowMap` feature; point
+  shadows require the cube `pointShadowMap` feature.
+
 Acceptance criteria:
 
 - New `examples/multi-light-shadow.html` with all three light types active casts three distinct shadows on a shared plane.

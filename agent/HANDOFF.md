@@ -1,6 +1,6 @@
 # Agent Handoff
 
-Updated: 2026-05-19T21:35:15Z
+Updated: 2026-05-19T21:36:16Z
 
 ## In-Progress Update — 2026-05-19T21:35:15Z — Multi-light shadow scene prerequisite
 
@@ -19,6 +19,9 @@ Started `task-2014`.
   `shadowKind: "spot"` in `StandardFrameShadowReceiverResources` and mapping it
   to the existing `shadowMap` pipeline feature. `examples/spot-shadow.js` now
   passes `shadowKind: "spot"` instead of masquerading as directional.
+- Updated `scripts/codex-stop-hook.sh` so a finalized `blocked` or
+  `stop-condition` result can stop before the elapsed-time gate when a documented
+  stop condition applies.
 
 ### References inspected
 
@@ -40,6 +43,9 @@ Started `task-2014`.
 - `task-2014` is not complete. The next implementation step is a real
   multi-shadow receiver contract, likely accepting separate directional/spot 2D
   and point cube resources rather than one global shadow resource set.
+- Stopping now because `agent/STOP_CONDITIONS.md` applies: the full
+  multi-light scene requires a receiver-contract architecture decision and
+  cannot be finished as a coherent vertical slice in the remaining run.
 
 ## Current Run Update — 2026-05-19T21:28:45Z — Spot shadow projection proof
 
