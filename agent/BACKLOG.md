@@ -59,11 +59,13 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start with `task-1789`: plan the GLTF scene vertical slice. The user has
-changed the near-term priority: Aperture should render glTF/GLB-style scenes
-with multiple primitive shapes, transforms, built-in materials, IBL, and shadows
-as soon as practical, while still using the full ECS -> extraction ->
-render-world preparation -> queue/sort -> WebGPU submit architecture.
+Start with `task-1801`: add the first shadow pass plan/report. The GLTF scene
+fixture now renders through the public app path, reports
+environment-map readiness, reports renderer-owned diffuse/specular IBL
+descriptors, exposes StandardMaterial IBL readiness, surfaces renderer-owned
+shadow-map descriptors, reports shadow resource/pass readiness, has an audit
+confirming the descriptor chain remains ECS-safe, and now exposes data-only
+shadow texture resource descriptors.
 
 The previous micro-hardening tasks remain useful but are no longer the main
 ready queue unless they directly block the scene slice. Public custom
@@ -86,16 +88,11 @@ Target proof point:
 
 Remaining automation priority order:
 
-1. `task-1789` — plan the GLTF scene vertical slice and its ordered blocker
-   list.
-2. `task-1790` — define the glTF scene import/data contract for multiple
-   primitives, built-in materials, IBL, and shadow intent.
-3. `task-1791` — implement the first multi-primitive/multi-material scene
-   fixture through the public app path.
-4. `task-1792` — add the first environment/IBL resource path needed by that
-   scene.
-5. `task-1793` — add the first shadow-map path needed by that scene.
-6. `task-1794` — audit the scene slice architecture and tracker alignment.
+1. `task-1801` — add first shadow pass plan/report.
+2. `task-1802` — add StandardMaterial shadow readiness diagnostics.
+3. `task-1803` — add IBL texture preparation descriptor.
+4. `task-1804` — audit GLTF scene post-descriptor resource alignment.
+5. `task-1805` — add first IBL/shadow resource dashboard audit.
 
 Defer allocation-only cleanup, metadata-only shader-contract tasks, public
 custom material source work, and app-owned custom adapter facades unless they
@@ -9036,6 +9033,9 @@ Acceptance criteria:
 
 ### task-1789 — Plan GLTF scene vertical slice
 
+Status: completed 2026-05-19. See
+`docs/research/GLTF_SCENE_VERTICAL_SLICE_PLAN_2026_05_19.md`.
+
 Category: `docs-tooling`
 Package/write-scope: `docs/research`, `agent/BACKLOG.md`, and tracker docs if
 status changes.
@@ -9057,6 +9057,11 @@ Acceptance criteria:
 
 ### task-1790 — Define GLTF scene import data contract
 
+Status: completed 2026-05-19. See
+`packages/render/src/assets/gltf-scene-import-contract.ts`,
+`test/assets/gltf-scene-import-contract.test.ts`, and
+`docs/research/GLTF_SCENE_IMPORT_CONTRACT_IMPLEMENTATION_2026_05_19.md`.
+
 Category: `render-bridge`
 Package/write-scope:
 `packages/render`, GLTF fixture helpers, docs/research, and targeted tests.
@@ -9075,6 +9080,10 @@ Acceptance criteria:
 
 ### task-1791 — Build multi-primitive multi-material GLTF scene fixture
 
+Status: completed 2026-05-19. See `examples/gltf-scene.js`,
+`examples/gltf-scene.html`, `test/e2e/gltf-scene.spec.ts`, and
+`docs/research/GLTF_SCENE_BROWSER_FIXTURE_IMPLEMENTATION_2026_05_19.md`.
+
 Category: `runtime-orchestration`
 Package/write-scope:
 `examples`, `test/e2e`, and app-facade fixture helpers; implementation files
@@ -9092,6 +9101,10 @@ Acceptance criteria:
   backend ownership.
 
 ### task-1792 — Add first GLTF scene IBL resource path
+
+Status: completed 2026-05-19. See `examples/gltf-scene.js`,
+`test/e2e/gltf-scene.spec.ts`, and
+`docs/research/GLTF_SCENE_BROWSER_FIXTURE_IMPLEMENTATION_2026_05_19.md`.
 
 Category: `webgpu-render`
 Package/write-scope:
@@ -9112,6 +9125,10 @@ Acceptance criteria:
 
 ### task-1793 — Add first GLTF scene shadow-map path
 
+Status: completed 2026-05-19. See `examples/gltf-scene.js`,
+`test/e2e/gltf-scene.spec.ts`, and
+`docs/research/GLTF_SCENE_BROWSER_FIXTURE_IMPLEMENTATION_2026_05_19.md`.
+
 Category: `webgpu-render`
 Package/write-scope:
 `packages/render`, `packages/webgpu`, relevant shaders, examples, and targeted
@@ -9131,6 +9148,9 @@ Acceptance criteria:
 
 ### task-1794 — Audit GLTF scene vertical slice architecture
 
+Status: completed 2026-05-19. See
+`docs/research/GLTF_SCENE_VERTICAL_SLICE_ARCHITECTURE_AUDIT_2026_05_19.md`.
+
 Category: `audit-refactor`
 Package/write-scope:
 `docs/research`, `agent/BACKLOG.md`, tracker docs, and tiny corrective fixes
@@ -9149,6 +9169,221 @@ Acceptance criteria:
   and the established frame phases.
 - Update tracker/backlog recommendations and run `pnpm run check:progress` if
   tracker pages change.
+
+### task-1795 — Define GLTF scene IBL resource descriptors
+
+Status: completed 2026-05-19. See
+`docs/research/GLTF_SCENE_IBL_DESCRIPTOR_IMPLEMENTATION_2026_05_19.md`.
+
+Category: `webgpu-render`
+Package/write-scope:
+`packages/webgpu`, `examples/gltf-scene.js`, targeted tests, and docs/research.
+Reference anchor:
+`references/engine` environment atlas/resource selection patterns,
+`references/three.js` PMREM/environment texture patterns, and Aperture's
+`environment-map-readiness` / `environment-resource-planning` helpers.
+
+Acceptance criteria:
+
+- Define a JSON-safe renderer-owned IBL descriptor shape for the GLTF scene's
+  environment-map handle, including diffuse/specular resource keys or explicit
+  unsupported placeholders.
+- Keep descriptor/resource state out of ECS and source assets.
+- Surface descriptor readiness in the GLTF scene status and targeted tests
+  without claiming StandardMaterial shader IBL sampling is active.
+
+### task-1796 — Add StandardMaterial IBL readiness diagnostics
+
+Status: completed 2026-05-19. See
+`docs/research/GLTF_SCENE_STANDARD_IBL_READINESS_IMPLEMENTATION_2026_05_19.md`.
+
+Category: `webgpu-render`
+Package/write-scope:
+`packages/webgpu`, StandardMaterial readiness/diagnostic helpers, and targeted
+tests.
+Reference anchor:
+`references/engine` lit material reflection-source selection,
+`references/three.js` environment intensity/material envMap patterns, and local
+StandardMaterial direct-light readiness diagnostics.
+
+Acceptance criteria:
+
+- StandardMaterial route/readiness status can report whether IBL descriptors
+  are available, unsupported, or missing.
+- Diagnostics remain JSON-safe and do not include raw GPU handles.
+- The GLTF scene app exposes the StandardMaterial IBL readiness state.
+
+### task-1797 — Define GLTF scene shadow-map descriptors
+
+Status: completed 2026-05-19. See
+`docs/research/GLTF_SCENE_SHADOW_DESCRIPTOR_IMPLEMENTATION_2026_05_19.md`.
+
+Category: `webgpu-render`
+Package/write-scope:
+`packages/render`, `packages/webgpu`, targeted tests, and docs/research.
+Reference anchor:
+`references/engine` shadow-map render target/pass patterns,
+`references/three.js` shadow map resource/pass patterns, and Bevy light/shadow
+request extraction concepts.
+
+Acceptance criteria:
+
+- Define a renderer-owned shadow-map descriptor from extracted
+  `ShadowRequestPacket` data plus scene shadow intent.
+- Keep shadow textures, passes, and GPU state out of ECS/source assets.
+- Add tests for descriptor keys, map size/bias metadata, and JSON-safe
+  diagnostics.
+
+### task-1798 — Add first GLTF scene shadow resource diagnostic proof
+
+Status: completed 2026-05-19. See
+`docs/research/GLTF_SCENE_SHADOW_RESOURCE_READINESS_IMPLEMENTATION_2026_05_19.md`.
+
+Category: `webgpu-render`
+Package/write-scope:
+`packages/webgpu`, `examples/gltf-scene.js`, `test/e2e`, and targeted tests.
+Reference anchor:
+the descriptor from `task-1797`, `references/engine` shadow render target
+lifecycle, and `references/three.js` shadow-map pass/resource lifecycle.
+
+Acceptance criteria:
+
+- The GLTF scene app reports a renderer-owned shadow-map resource descriptor or
+  explicit unsupported resource diagnostic.
+- Playwright verifies shadow request/resource status remains JSON-safe.
+- Do not claim visible shadow sampling until a real shadow pass and material
+  sampling path exists.
+
+### task-1799 — Audit GLTF scene IBL/shadow descriptor alignment
+
+Status: completed 2026-05-19. See
+`docs/research/GLTF_SCENE_IBL_SHADOW_DESCRIPTOR_ALIGNMENT_AUDIT_2026_05_19.md`.
+
+Category: `audit-refactor`
+Package/write-scope:
+`docs/research`, `agent/BACKLOG.md`, tracker docs, and tiny corrective fixes
+only if required.
+Reference anchor:
+`docs/NORTH_STAR.md`, `docs/ARCHITECTURE.md`, `docs/DECISIONS.md`, and the
+`task-1795` through `task-1798` implementation notes.
+
+Acceptance criteria:
+
+- Confirm IBL/shadow descriptors remain renderer-owned and ECS-safe.
+- Confirm the scene fixture does not hide a scene graph or bypass extraction.
+- Refill the backlog with the next concrete resource/pass/shader slices.
+
+### task-1800 — Add first shadow texture resource helper
+
+Status: completed 2026-05-19. See
+`docs/research/GLTF_SCENE_SHADOW_TEXTURE_RESOURCE_IMPLEMENTATION_2026_05_19.md`.
+
+Category: `webgpu-render`
+Package/write-scope:
+`packages/webgpu`, targeted tests, and docs/research.
+Reference anchor:
+`references/engine` shadow render target lifecycle,
+`references/three.js` shadow map texture/render target ownership, and local
+`shadow-map-descriptor` / `shadow-resource-readiness` helpers.
+
+Acceptance criteria:
+
+- Define a renderer-owned shadow texture resource descriptor/result shape from
+  `ShadowMapDescriptorReport`.
+- Keep raw `GPUTexture`, `GPUTextureView`, render pass, and command encoder
+  objects out of JSON output.
+- Add tests for stable resource keys, depth format, map size, and JSON-safety.
+
+### task-1801 — Add first shadow pass plan report
+
+Category: `webgpu-render`
+Package/write-scope:
+`packages/webgpu`, targeted tests, and docs/research.
+Reference anchor:
+`references/engine` shadow pass/frame graph patterns,
+`references/three.js` shadow map render flow, and Aperture's frame-boundary and
+render-pass assembly helpers.
+
+Acceptance criteria:
+
+- Define a JSON-safe shadow pass plan/report that consumes shadow texture
+  resource descriptors and extracted shadow requests.
+- Report whether pass submission is deferred, unsupported, or ready.
+- Do not submit GPU commands or claim visible shadows yet.
+
+### task-1802 — Add StandardMaterial shadow readiness diagnostics
+
+Category: `webgpu-render`
+Package/write-scope:
+`packages/webgpu`, StandardMaterial readiness helpers, GLTF scene status, and
+targeted tests.
+Reference anchor:
+`references/engine` lit material shadow option selection,
+`references/three.js` material shadow-map bindings, and local
+`standard-material-ibl-readiness` diagnostics.
+
+Acceptance criteria:
+
+- StandardMaterial readiness can report whether shadow descriptors/resources
+  are available, missing, unsupported, or deferred.
+- The GLTF scene app exposes StandardMaterial shadow readiness status.
+- Diagnostics remain JSON-safe and do not include raw GPU handles.
+
+### task-1803 — Add IBL texture preparation descriptor
+
+Category: `webgpu-render`
+Package/write-scope:
+`packages/webgpu`, targeted tests, and docs/research.
+Reference anchor:
+`references/engine` environment atlas generation/resource selection,
+`references/three.js` PMREM texture preparation, and local
+`ibl-resource-descriptor` / `standard-material-ibl-readiness` helpers.
+
+Acceptance criteria:
+
+- Define the next renderer-owned IBL texture preparation descriptor for
+  diffuse/specular resources.
+- Report whether texture upload/prefiltering is unsupported, deferred, or ready
+  without changing shaders.
+- Tests cover JSON-safe resource keys and unsupported/deferred diagnostics.
+
+### task-1804 — Audit post-descriptor GLTF scene resource alignment
+
+Category: `audit-refactor`
+Package/write-scope:
+`docs/research`, `agent/BACKLOG.md`, tracker docs, and tiny corrective fixes
+only if required.
+Reference anchor:
+`docs/NORTH_STAR.md`, `docs/ARCHITECTURE.md`,
+`docs/MEDIUM_LONG_TERM_GOALS.md`, `docs/DECISIONS.md`, and tasks
+`1800` through `1803`.
+
+Acceptance criteria:
+
+- Confirm the IBL/shadow resource path still uses ECS authoring, extraction,
+  renderer-owned resources, WebGPU-only submission, and JSON-safe diagnostics.
+- Confirm no public custom shader/material APIs or scene graph shortcuts were
+  introduced.
+- Refill the next ready queue toward actual shader/pass work.
+
+### task-1805 — Add first IBL/shadow resource dashboard audit
+
+Category: `audit-refactor`
+Package/write-scope:
+`docs/index.html`, `docs/render-pipeline-comparison.html`,
+`agent/BACKLOG.md`, and `docs/research` only.
+Reference anchor:
+`docs/NORTH_STAR.md`, `docs/ROADMAP.md`,
+`docs/MEDIUM_LONG_TERM_GOALS.md`, `docs/ARCHITECTURE.md`, local GLTF scene
+diagnostics, and tasks `1800` through `1804`.
+
+Acceptance criteria:
+
+- Confirm the public tracker describes IBL/shadow state as descriptor/planning
+  work until real GPU passes and shader sampling exist.
+- Confirm the backlog still prioritizes GLTF scenes with built-in materials,
+  shadows, and IBL over public custom shader/material APIs.
+- Add the next five concrete ready tasks toward visible IBL/shadow rendering.
 
 ## Post-Unlit E2E Verification Targets
 

@@ -393,18 +393,28 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-18 18:54 PDT</dd>
+            <dd>2026-05-18 19:50 PDT</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
-              Near-term priority has shifted to a complete GLTF scene vertical
-              slice: render multiple primitive shapes with different built-in
-              materials through ECS, extraction, render-world preparation,
-              queue/sort, and WebGPU submission, then add IBL and a first
-              shadow-map path for that same scene. Public custom shader/material
-              APIs and app-owned custom adapter facades are now deferred behind
-              this built-in scene path. Route summary determinism is pinned, the
+              The GLTF scene vertical-slice plan, JSON-safe scene import
+              contract, and first browser fixture are now in place. The fixture
+              renders plane, box, and cone primitives with StandardMaterial and
+              UnlitMaterial through ECS authoring commands, extraction,
+              render-world preparation, queue/sort, and WebGPU submission. The
+              fixture now also reports extracted environment-map readiness and a
+              renderer-owned IBL descriptor report with diffuse/specular
+              resource keys or unsupported placeholders, plus a directional
+              shadow request, renderer-owned shadow-map descriptors, and shadow
+              resource/pass readiness diagnostics. StandardMaterial IBL
+              readiness diagnostics are exposed, while shader IBL sampling and
+              shadow-map rendering remain explicitly deferred. The descriptor
+              alignment audit is complete, and data-only shadow texture resource
+              descriptors are now exposed; the next task is adding the first
+              shadow pass plan/report. Public custom shader/material APIs and
+              app-owned custom adapter facades remain deferred behind this
+              built-in scene path. Route summary determinism is pinned, the
               built-in frame-resource wrapper now has mixed-family route
               regression coverage over the generic collector, app-level mixed
               built-in routes now assert JSON-safe material queue and routed
@@ -680,7 +690,7 @@
               diagnostics now include those routed item key details.
             </dd>
             <dt>Next focus</dt>
-            <dd>Plan the GLTF scene vertical slice with IBL and shadows</dd>
+            <dd>Add first shadow pass plan/report</dd>
           </dl>
         </aside>
       </header>
@@ -2399,15 +2409,13 @@
             <h3>Recommended next tasks</h3>
             <ul>
               <li>
-                <span class="badge amber">next</span> Plan the GLTF scene
-                vertical slice and ordered blockers.
+                <span class="badge amber">next</span> Add first shadow pass
+                plan/report.
               </li>
-              <li>
-                Define the scene import contract for primitives/materials.
-              </li>
-              <li>Build the multi-primitive, multi-material scene fixture.</li>
-              <li>Add IBL resources for the scene path.</li>
-              <li>Add the first shadow-map path for the scene.</li>
+              <li>Add StandardMaterial shadow readiness diagnostics.</li>
+              <li>Add IBL texture preparation descriptor.</li>
+              <li>Audit GLTF scene post-descriptor resource alignment.</li>
+              <li>Add first IBL/shadow resource dashboard audit.</li>
             </ul>
           </article>
         </div>

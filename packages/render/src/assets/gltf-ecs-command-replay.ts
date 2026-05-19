@@ -327,20 +327,34 @@ function applyComponent(input: {
       }
       case "Mesh": {
         const value = input.command.value as GltfMeshCommandValue;
-        if (!isRecord(value) || typeof value.meshId !== "string") {
-          invalidComponentValue(input, "Mesh.meshId must be a string.");
+        if (
+          !isRecord(value) ||
+          typeof value.meshId !== "string" ||
+          typeof value.handleKey !== "string"
+        ) {
+          invalidComponentValue(
+            input,
+            "Mesh value must contain meshId and handleKey strings.",
+          );
           return false;
         }
-        input.entity.addComponent(Mesh, { meshId: value.meshId });
+        input.entity.addComponent(Mesh, { meshId: value.handleKey });
         return true;
       }
       case "Material": {
         const value = input.command.value as GltfMaterialCommandValue;
-        if (!isRecord(value) || typeof value.materialId !== "string") {
-          invalidComponentValue(input, "Material.materialId must be a string.");
+        if (
+          !isRecord(value) ||
+          typeof value.materialId !== "string" ||
+          typeof value.handleKey !== "string"
+        ) {
+          invalidComponentValue(
+            input,
+            "Material value must contain materialId and handleKey strings.",
+          );
           return false;
         }
-        input.entity.addComponent(Material, { materialId: value.materialId });
+        input.entity.addComponent(Material, { materialId: value.handleKey });
         return true;
       }
       default:

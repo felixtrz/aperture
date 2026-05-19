@@ -1,16 +1,222 @@
 # Completed Tasks
 
-## task-1789 priority realignment — GLTF scene vertical slice
+## task-1800 — First shadow texture resource helper
+
+Completed: 2026-05-19
+
+Summary:
+
+- Added `ShadowTextureResourceReport` in `packages/webgpu`.
+- The report derives JSON-safe shadow texture/view resource keys, map size,
+  depth format, usage intent, and deferred allocation diagnostics from
+  `ShadowMapDescriptorReport`.
+- Updated the GLTF scene app and Playwright status assertions to expose the
+  planned shadow texture resources without allocating live GPU textures.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/shadow-texture-resource.test.ts`
+- `pnpm run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm run check:examples`
+- `pnpm exec playwright test test/e2e/gltf-scene.spec.ts`
+- `pnpm run format:check`
+
+## task-1799 — GLTF scene IBL/shadow descriptor alignment audit
+
+Completed: 2026-05-19
+
+Summary:
+
+- Audited the GLTF scene descriptor chain after IBL descriptors,
+  StandardMaterial IBL readiness, shadow-map descriptors, and shadow resource
+  readiness.
+- Confirmed ECS/source assets remain free of GPU handles and renderer state.
+- Confirmed the scene path is still public-app, snapshot-derived, WebGPU-only,
+  and JSON-safe.
+- Refilled the ready queue with concrete next slices toward real shadow/IBL
+  resources and eventual shader integration.
+
+Validation:
+
+- Documentation-only audit; covered by final progress/format/diff checks.
+
+## task-1798 — GLTF scene shadow resource diagnostic proof
+
+Completed: 2026-05-19
+
+Summary:
+
+- Added `ShadowResourceReadinessReport` in `packages/webgpu`.
+- The report surfaces descriptor-backed shadow resource keys and explicitly
+  marks shadow pass submission deferred.
+- Updated the GLTF scene app and Playwright status assertions to expose the
+  diagnostic proof without claiming visible shadow rendering.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/shadow-resource-readiness.test.ts test/webgpu/shadow-map-descriptor.test.ts`
+- `pnpm run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm run check:examples`
+- `pnpm run check:progress`
+- `pnpm run format:check`
+- `pnpm exec playwright test test/e2e/gltf-scene.spec.ts`
+
+## task-1797 — GLTF scene shadow-map descriptors
+
+Completed: 2026-05-19
+
+Summary:
+
+- Added `ShadowMapDescriptorReport` in `packages/webgpu`.
+- The report combines extracted `ShadowRequestPacket` data with scene shadow
+  intent metadata to produce JSON-safe renderer-owned shadow-map descriptor
+  keys, depth format, map size, bias, and layer masks.
+- Updated the GLTF scene app and Playwright status assertions to expose
+  descriptor readiness while keeping shadow pass submission deferred.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/shadow-map-descriptor.test.ts`
+- `pnpm run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm run check:examples`
+- `pnpm run check:progress`
+- `pnpm run format:check`
+- `pnpm exec playwright test test/e2e/gltf-scene.spec.ts`
+
+## task-1796 — StandardMaterial IBL readiness diagnostics
+
+Completed: 2026-05-19
+
+Summary:
+
+- Added `StandardMaterialIblReadinessReport` in `packages/webgpu`.
+- The report classifies StandardMaterial IBL as `available`, `unsupported`,
+  `missing`, or `not-required` from renderer-owned IBL descriptor state.
+- Updated the GLTF scene app and Playwright status assertions to expose
+  StandardMaterial IBL readiness while keeping shader sampling explicitly
+  deferred.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/standard-material-ibl-readiness.test.ts test/webgpu/ibl-resource-descriptor.test.ts`
+- `pnpm run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm run check:examples`
+- `pnpm run check:progress`
+- `pnpm run format:check`
+- `pnpm exec playwright test test/e2e/gltf-scene.spec.ts`
+
+## task-1795 — GLTF scene IBL resource descriptors
+
+Completed: 2026-05-19
+
+Summary:
+
+- Added `IblResourceDescriptorReport` in `packages/webgpu` to derive
+  environment-map requirements from extracted environment packets.
+- The report surfaces renderer-owned diffuse/specular IBL resource keys or
+  explicit unsupported placeholders while keeping shader sampling marked
+  inactive.
+- Updated the GLTF scene app and Playwright status assertions to expose the
+  JSON-safe descriptor report beside environment-map readiness.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/ibl-resource-descriptor.test.ts`
+- `pnpm run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm run check:examples`
+- `pnpm run check:progress`
+- `pnpm run format:check`
+- `pnpm exec playwright test test/e2e/gltf-scene.spec.ts`
+
+## tasks-1792-1794 — GLTF scene IBL/shadow readiness and audit
+
+Completed: 2026-05-19
+
+Summary:
+
+- Extended the GLTF scene fixture with a ready environment-map handle,
+  transformless environment light extraction, and JSON-safe environment-map
+  readiness status.
+- Added a directional light shadow request to the GLTF scene fixture and
+  surfaced shadow request status while explicitly deferring shadow-map rendering
+  and material shadow sampling.
+- Audited the GLTF scene vertical slice against ECS authority, render extraction,
+  source asset boundaries, and WebGPU ownership.
+- Refilled the ready queue with concrete IBL/shadow descriptor follow-ups.
+
+Validation:
+
+- `pnpm run check:examples`
+- `pnpm run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec playwright test test/e2e/gltf-scene.spec.ts`
+
+## task-1791 — Multi-primitive multi-material GLTF scene fixture
+
+Completed: 2026-05-19
+
+Summary:
+
+- Added a GLTF scene browser example that renders plane, box, and cone shapes
+  through `createWebGpuApp`.
+- The fixture uses the new scene import contract, registers typed source
+  mesh/material assets, replays ECS authoring commands, and keeps rendering
+  derived from ECS state.
+- Added Playwright coverage for JSON-safe contract status, registration/replay,
+  extraction counts, draw counts, render-world activity, and non-clear pixels in
+  the three scene regions.
+- Fixed GLTF ECS command replay to apply stable mesh/material handle keys to
+  render authoring components.
+
+Validation:
+
+- `pnpm exec vitest run test/assets/gltf-ecs-command-replay.test.ts test/assets/gltf-scene-import-contract.test.ts`
+- `pnpm run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm run check:examples`
+- `pnpm exec playwright test test/e2e/gltf-scene.spec.ts`
+
+## task-1790 — GLTF scene import data contract
+
+Completed: 2026-05-19
+
+Summary:
+
+- Added `createGltfSceneImportContractReport` and JSON helpers for a
+  multi-primitive GLTF scene contract.
+- The contract composes existing asset mapping, mesh primitive mapping,
+  primitive material resolution, scene traversal, and ECS authoring command
+  planning reports.
+- Added JSON-safe camera, direct-light, environment/IBL, and shadow intent
+  metadata plus diagnostics for scene-slice readiness gaps.
+- Covered three primitive shapes and two built-in material families with a
+  targeted test.
+
+Validation:
+
+- `pnpm exec vitest run test/assets/gltf-scene-import-contract.test.ts`
+- `pnpm run typecheck`
+- `pnpm run typecheck:test`
+
+## task-1789 — GLTF scene vertical slice plan
 
 Completed: 2026-05-19
 
 Summary:
 
 - Reprioritized the near-term roadmap/backlog around a complete GLTF scene
-  vertical slice: multiple primitive shapes, multiple built-in materials, IBL,
-  and shadows through the full ECS/render/WebGPU path.
-- Added the ordered `task-1789` through `task-1794` scene, IBL, shadow, and
-  audit queue.
+  vertical slice and then recorded the concrete plan in
+  `docs/research/GLTF_SCENE_VERTICAL_SLICE_PLAN_2026_05_19.md`.
+- Defined the smallest scene fixture: three primitive shapes, at least two
+  built-in material families, transforms, camera, direct light, IBL intent, and
+  shadow intent through the ECS/render/WebGPU path.
+- Ordered the implementation blockers into scene contract, built-in material
+  rendering, IBL resource path, shadow-map path, and architecture audit slices.
 - Deferred public custom shader/material APIs and app-owned custom adapter
   facades behind the built-in scene path.
 

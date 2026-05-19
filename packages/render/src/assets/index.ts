@@ -10,6 +10,7 @@ export * from "./gltf-mesh-primitive.js";
 export * from "./gltf-mesh-source-registration.js";
 export * from "./gltf-report-driven-import.js";
 export * from "./gltf-primitive-material-resolution.js";
+export * from "./gltf-scene-import-contract.js";
 export * from "./gltf-scene-traversal.js";
 export * from "./gltf-source-registration.js";
 export * from "./gltf-source-registration-orchestration.js";

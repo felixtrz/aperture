@@ -1,11 +1,11 @@
 {
   "state": "idle",
-  "currentTaskId": "task-1789",
-  "currentRunStartedAt": "2026-05-19T01:35:00Z",
-  "lastRunStartedAt": "2026-05-19T00:52:00Z",
+  "currentTaskId": "task-1801",
+  "currentRunStartedAt": "2026-05-19T02:02:09Z",
+  "lastRunStartedAt": "2026-05-19T02:02:09Z",
   "lastResult": "success",
   "lastCommit": "638102e",
   "activePid": null,
-  "notes": "Priority realigned to GLTF scene vertical slice: multiple primitive shapes, built-in materials, IBL, and shadows through the full ECS/render/WebGPU path. Next: task-1789 plan the scene slice and ordered blockers.",
-  "lastRunFinishedAt": "2026-05-19T01:54:00Z"
+  "notes": "Completed task-1789 through task-1800: planned and implemented the GLTF scene diagnostic chain through IBL descriptors/readiness, shadow descriptors/resource readiness, ECS-safe alignment audit, and data-only shadow texture resource planning. Next: task-1801 add first shadow pass plan/report.",
+  "lastRunFinishedAt": "2026-05-19T02:50:00Z"
 }

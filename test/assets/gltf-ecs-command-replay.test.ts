@@ -46,8 +46,12 @@ describe("glTF ECS command replay", () => {
     ).toEqual([1, 0, 0, 0]);
     expect(primitive?.getValue(Parent, "entity")).toBe(node);
     expect(primitive?.getValue(Visibility, "visible")).toBe(true);
-    expect(primitive?.getValue(Mesh, "meshId")).toBe("gltf:mesh:0:primitive:0");
-    expect(primitive?.getValue(Material, "materialId")).toBe("gltf:material:0");
+    expect(primitive?.getValue(Mesh, "meshId")).toBe(
+      "mesh:gltf:mesh:0:primitive:0",
+    );
+    expect(primitive?.getValue(Material, "materialId")).toBe(
+      "material:gltf:material:0",
+    );
   });
 
   it("reports invalid plans without mutating the world", () => {

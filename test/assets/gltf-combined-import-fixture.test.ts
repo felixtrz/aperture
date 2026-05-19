@@ -100,8 +100,12 @@ describe("combined glTF import fixture", () => {
       },
     ]);
     expect(primitive?.getValue(Name, "value")).toBe("MeshNode.Primitive0");
-    expect(primitive?.getValue(Mesh, "meshId")).toBe("gltf:mesh:0:primitive:0");
-    expect(primitive?.getValue(Material, "materialId")).toBe("gltf:material:0");
+    expect(primitive?.getValue(Mesh, "meshId")).toBe(
+      "mesh:gltf:mesh:0:primitive:0",
+    );
+    expect(primitive?.getValue(Material, "materialId")).toBe(
+      "material:gltf:material:0",
+    );
     expect(orchestration.stages).toEqual(
       expect.arrayContaining([
         expect.objectContaining({

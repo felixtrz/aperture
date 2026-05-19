@@ -1,5 +1,270 @@
 # Handoff
 
+## Current Run Update — 2026-05-19T02:50:00Z
+
+Completed `task-1800`. Recommended next task is `task-1801`: add the first
+shadow pass plan/report.
+
+What changed:
+
+- Added `packages/webgpu/src/webgpu/shadow-texture-resource.ts`.
+- Exported the shadow texture resource report from `@aperture-engine/webgpu`.
+- Added `test/webgpu/shadow-texture-resource.test.ts`.
+- Updated `examples/gltf-scene.js` and `test/e2e/gltf-scene.spec.ts` so the
+  GLTF scene status exposes JSON-safe planned shadow texture/view keys, map
+  size, depth format, usage intent, and deferred allocation diagnostics.
+- Added
+  `docs/research/GLTF_SCENE_SHADOW_TEXTURE_RESOURCE_IMPLEMENTATION_2026_05_19.md`.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/shadow-texture-resource.test.ts`
+- `pnpm run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm run check:examples`
+- `pnpm exec playwright test test/e2e/gltf-scene.spec.ts`
+- `pnpm run format:check`
+
+Known issues / follow-ups:
+
+- Shadow texture resources are data-only plans. No live texture allocation,
+  shadow pass submission, shadow matrices, or material sampling exists yet.
+
+## Current Run Update — 2026-05-19T02:48:00Z
+
+Completed `task-1799`. Recommended next task is `task-1800`: add the first
+renderer-owned shadow texture resource helper.
+
+What changed:
+
+- Added
+  `docs/research/GLTF_SCENE_IBL_SHADOW_DESCRIPTOR_ALIGNMENT_AUDIT_2026_05_19.md`.
+- Confirmed the GLTF scene IBL/shadow descriptor chain remains renderer-owned,
+  ECS-safe, WebGPU-only, JSON-safe, and diagnostic-only.
+- Refilled the ready queue with `task-1800` through `task-1804`, focused on
+  shadow texture resources, shadow pass planning, StandardMaterial shadow
+  readiness, IBL texture preparation descriptors, and a follow-up audit.
+
+Validation:
+
+- Documentation-only audit; final run validation should cover tracker,
+  formatting, typecheck/test/build/lint through the stop hook.
+
+Known issues / follow-ups:
+
+- Actual IBL texture upload/prefiltering, shader IBL sampling, shadow texture
+  allocation, shadow pass submission, shadow matrix packing, and material shadow
+  sampling remain unimplemented.
+
+## Current Run Update — 2026-05-19T02:44:00Z
+
+Completed `task-1798`. Recommended next task is `task-1799`: audit GLTF scene
+IBL/shadow descriptor alignment.
+
+What changed:
+
+- Added `packages/webgpu/src/webgpu/shadow-resource-readiness.ts`.
+- Exported the shadow resource readiness report from `@aperture-engine/webgpu`.
+- Added `test/webgpu/shadow-resource-readiness.test.ts`.
+- Updated `examples/gltf-scene.js` and `test/e2e/gltf-scene.spec.ts` so the
+  GLTF scene status reports descriptor-backed shadow resource keys and an
+  explicit deferred shadow pass diagnostic.
+- Added
+  `docs/research/GLTF_SCENE_SHADOW_RESOURCE_READINESS_IMPLEMENTATION_2026_05_19.md`.
+- Updated tracker/backlog/completed state.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/shadow-resource-readiness.test.ts test/webgpu/shadow-map-descriptor.test.ts`
+- `pnpm run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm run check:examples`
+- `pnpm run check:progress`
+- `pnpm run format:check`
+- `pnpm exec playwright test test/e2e/gltf-scene.spec.ts`
+- `git diff --check`
+
+Known issues / follow-ups:
+
+- Shadow resource readiness is diagnostic-only. No WebGPU shadow texture,
+  shadow pass, shadow matrix packing, or material sampling exists yet.
+- Run `task-1799` next to audit the IBL/shadow descriptor chain before starting
+  real shadow pass work.
+
+## Current Run Update — 2026-05-19T02:40:00Z
+
+Completed `task-1797`. Recommended next task is `task-1798`: add the first GLTF
+scene shadow resource diagnostic proof.
+
+What changed:
+
+- Added `packages/webgpu/src/webgpu/shadow-map-descriptor.ts`.
+- Exported the shadow-map descriptor report from `@aperture-engine/webgpu`.
+- Added `test/webgpu/shadow-map-descriptor.test.ts`.
+- Updated `examples/gltf-scene.js` and `test/e2e/gltf-scene.spec.ts` so the
+  GLTF scene status exposes JSON-safe renderer-owned shadow-map descriptor keys,
+  depth format, map size, bias, and layer masks while keeping shadow pass
+  submission deferred.
+- Added
+  `docs/research/GLTF_SCENE_SHADOW_DESCRIPTOR_IMPLEMENTATION_2026_05_19.md`.
+- Updated tracker/backlog/completed state.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/shadow-map-descriptor.test.ts`
+- `pnpm run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm run check:examples`
+- `pnpm run check:progress`
+- `pnpm run format:check`
+- `pnpm exec playwright test test/e2e/gltf-scene.spec.ts`
+- `git diff --check`
+
+Known issues / follow-ups:
+
+- Shadow descriptors are diagnostic-only. No shadow texture allocation, render
+  pass, or StandardMaterial shadow sampling is active yet.
+- Start `task-1798` next: add a first resource/pass diagnostic proof from the
+  descriptor state.
+
+## Current Run Update — 2026-05-19T02:35:00Z
+
+Completed `task-1796`. Recommended next task is `task-1797`: define
+renderer-owned GLTF scene shadow-map descriptors.
+
+What changed:
+
+- Added `packages/webgpu/src/webgpu/standard-material-ibl-readiness.ts`.
+- Exported the StandardMaterial IBL readiness report from
+  `@aperture-engine/webgpu`.
+- Added `test/webgpu/standard-material-ibl-readiness.test.ts`.
+- Updated `examples/gltf-scene.js` and `test/e2e/gltf-scene.spec.ts` so the
+  GLTF scene status classifies StandardMaterial IBL as available while still
+  reporting shader sampling as deferred.
+- Added
+  `docs/research/GLTF_SCENE_STANDARD_IBL_READINESS_IMPLEMENTATION_2026_05_19.md`.
+- Updated tracker/backlog/completed state.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/standard-material-ibl-readiness.test.ts test/webgpu/ibl-resource-descriptor.test.ts`
+- `pnpm run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm run check:examples`
+- `pnpm run check:progress`
+- `pnpm run format:check`
+- `pnpm exec playwright test test/e2e/gltf-scene.spec.ts`
+- `git diff --check`
+
+Known issues / follow-ups:
+
+- StandardMaterial IBL readiness is diagnostic-only. Shader IBL sampling,
+  bind-group changes, and actual IBL lighting remain unimplemented.
+- Start `task-1797` next: define renderer-owned shadow-map descriptors from the
+  GLTF scene shadow request.
+
+## Current Run Update — 2026-05-19T02:30:00Z
+
+Completed `task-1789` through `task-1795`. Recommended next task is `task-1796`: add
+StandardMaterial IBL readiness diagnostics from the new GLTF scene IBL
+descriptor report.
+
+What changed:
+
+- Added `packages/webgpu/src/webgpu/ibl-resource-descriptor.ts`.
+- Exported the descriptor report from `@aperture-engine/webgpu`.
+- Added `test/webgpu/ibl-resource-descriptor.test.ts`.
+- Updated `examples/gltf-scene.js` and `test/e2e/gltf-scene.spec.ts` so the
+  GLTF scene status reports renderer-owned diffuse/specular IBL descriptor keys
+  while keeping shader sampling explicitly inactive.
+- Added
+  `docs/research/GLTF_SCENE_IBL_DESCRIPTOR_IMPLEMENTATION_2026_05_19.md`.
+- Updated tracker/backlog/completed state.
+
+Reference anchors inspected:
+
+- `references/engine/src/scene/graphics/env-lighting.js`
+- `references/engine/src/scene/materials/standard-material-options-builder.js`
+- `references/three.js/src/extras/PMREMGenerator.js`
+- Bevy PBR environment/light-probe render-world references listed in the
+  previous handoff.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/ibl-resource-descriptor.test.ts`
+- `pnpm run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm run check:examples`
+- `pnpm run check:progress`
+- `pnpm run format:check`
+- `pnpm exec playwright test test/e2e/gltf-scene.spec.ts`
+- `git diff --check`
+
+Known issues / follow-ups:
+
+- IBL descriptors are JSON-safe renderer-side readiness records only; they do
+  not create GPU textures or enable StandardMaterial shader sampling.
+- `task-1796` should connect descriptor availability to StandardMaterial
+  readiness diagnostics.
+- Shadow-map descriptors/rendering remain queued in `task-1797`/`task-1798`.
+
+## Current Run Update — 2026-05-19T02:19:02Z
+
+Completed `task-1789`, `task-1790`, and `task-1791`. Recommended next task is
+`task-1792`: add the first GLTF scene IBL resource path by turning the scene
+fixture's environment/IBL intent into renderer-owned readiness/resources or a
+structured unsupported diagnostic surfaced through the app status.
+
+What changed:
+
+- Added
+  `docs/research/GLTF_SCENE_VERTICAL_SLICE_PLAN_2026_05_19.md`, defining the
+  smallest GLTF scene fixture and ordering blockers into scene contract,
+  built-in material rendering, IBL, shadows, and audit slices.
+- Added `createGltfSceneImportContractReport` plus JSON helpers in
+  `packages/render/src/assets/gltf-scene-import-contract.ts`.
+- Added `test/assets/gltf-scene-import-contract.test.ts` covering three
+  primitive shapes, two built-in material families, camera/direct-light intent,
+  environment intent, shadow intent, and JSON-safe output.
+- Added `examples/gltf-scene.html`, `examples/gltf-scene.js`, and
+  `test/e2e/gltf-scene.spec.ts`.
+- Fixed `replayGltfEcsAuthoringCommands` so replay applies stable
+  `mesh:gltf:...` / `material:gltf:...` handle keys to render authoring
+  components. This was required for extraction to see replayed GLTF primitive
+  entities as renderable.
+- Updated `package.json` example syntax checks to include `examples/gltf-scene.js`.
+- Updated public tracker pages and backlog/completed task records.
+
+Reference anchors inspected:
+
+- `references/bevy/crates/bevy_pbr/src/gltf.rs`
+- `references/bevy/crates/bevy_gltf/src/loader/mod.rs`
+- `references/bevy/crates/bevy_render/src/extract_instances.rs`
+- `references/bevy/crates/bevy_pbr/src/light_probe/environment_map.rs`
+- Local glTF scene traversal, ECS command planning/replay, source registration,
+  report-driven import, StandardMaterial/glTF fixture, materials showcase, and
+  WebGPU app diagnostics code.
+
+Validation:
+
+- `pnpm exec vitest run test/assets/gltf-scene-import-contract.test.ts`
+- `pnpm exec vitest run test/assets/gltf-ecs-command-replay.test.ts test/assets/gltf-scene-import-contract.test.ts`
+- `pnpm run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm run check:examples`
+- `pnpm run check:progress`
+- `pnpm exec playwright test test/e2e/gltf-scene.spec.ts`
+- `git diff --check`
+
+Known issues / follow-ups:
+
+- `task-1792` should inspect `references/engine` and `references/three.js` IBL
+  resource/shader patterns before implementation.
+- The new GLTF scene fixture carries environment/IBL and shadow intent metadata,
+  but IBL sampling and shadow-map rendering are not implemented yet.
+- Binary GLB container loading remains deferred; the scene fixture is inline
+  glTF-derived data over existing typed assets and ECS replay.
+
 ## Current Run Update — 2026-05-19T01:54:00Z
 
 Priority realignment completed after user direction: the next near-term goal is
