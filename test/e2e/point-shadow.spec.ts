@@ -271,6 +271,7 @@ test("Playwright renders a point light cube-map shadow on the receiver wall", as
   });
   expectVisiblePointShadowScene(screenshot, status);
   expectPointShadowActivation(noShadowScreenshot, screenshot, status);
+  expectPointShadowNamedReceiverSamples(noShadowScreenshot, screenshot, status);
   webGpuValidation.expectNoWarnings();
 });
 
@@ -363,6 +364,69 @@ function expectPointShadowActivation(
       baselineLuminance,
     )} shadowed=${JSON.stringify(shadowedLuminance)}`,
   ).toBeGreaterThan(1);
+}
+
+function expectPointShadowNamedReceiverSamples(
+  baseline: Buffer,
+  shadowed: Buffer,
+  status: PointShadowStatus,
+): void {
+  const clear = clearPixel(status);
+  const samples = [
+    {
+      name: "near-light receiver",
+      x: 0.42,
+      y: 0.4,
+      maxDelta: 40,
+      minShadowedLuminance: 220,
+    },
+    {
+      name: "mid receiver shadow",
+      x: 0.58,
+      y: 0.56,
+      minDelta: 80,
+      maxShadowedLuminance: 170,
+    },
+    {
+      name: "far-side receiver shadow",
+      x: 0.66,
+      y: 0.56,
+      minDelta: 120,
+      maxShadowedLuminance: 120,
+    },
+  ] as const;
+
+  for (const sample of samples) {
+    const before = readPngPixel(baseline, sample.x, sample.y);
+    const after = readPngPixel(shadowed, sample.x, sample.y);
+    const beforeLuminance = luminance(before);
+    const afterLuminance = luminance(after);
+    const delta = beforeLuminance - afterLuminance;
+    const label = `${sample.name} (${sample.x}, ${sample.y}) before=${JSON.stringify(
+      before,
+    )} after=${JSON.stringify(after)} delta=${delta}`;
+
+    expect(pixelDistance(before, clear), label).toBeGreaterThan(20);
+    expect(pixelDistance(after, clear), label).toBeGreaterThan(20);
+
+    if ("maxDelta" in sample) {
+      expect(delta, label).toBeLessThan(sample.maxDelta);
+    }
+
+    if ("minDelta" in sample) {
+      expect(delta, label).toBeGreaterThan(sample.minDelta);
+    }
+
+    if ("minShadowedLuminance" in sample) {
+      expect(afterLuminance, label).toBeGreaterThan(
+        sample.minShadowedLuminance,
+      );
+    }
+
+    if ("maxShadowedLuminance" in sample) {
+      expect(afterLuminance, label).toBeLessThan(sample.maxShadowedLuminance);
+    }
+  }
 }
 
 function clearPixel(status: PointShadowStatus) {
