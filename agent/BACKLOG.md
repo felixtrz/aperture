@@ -59,20 +59,15 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start with `task-1812`: add the IBL preparation resource summary bridge. The GLTF scene
-fixture now renders through the public app path, reports
-environment-map readiness, reports renderer-owned diffuse/specular IBL
-descriptors, exposes IBL texture preparation descriptors and pass plans, exposes
-StandardMaterial IBL readiness, surfaces renderer-owned shadow-map descriptors,
-reports shadow resource/pass readiness, has an audit confirming the descriptor
-chain remains ECS-safe, exposes data-only shadow texture resource descriptors,
-and now exposes a JSON-safe shadow pass plan with deferred submission status
-plus directional shadow view-projection planning, shadow caster draw-list
-planning, IBL/shadow shader binding readiness metadata, and StandardMaterial
-shadow readiness diagnostics, and now exposes a JSON-safe shadow matrix buffer
-descriptor with deferred upload status. The post-descriptor resource alignment
-audit, first IBL/shadow resource dashboard audit, and first IBL/shadow
-planning-chain audit are complete.
+Start with `task-1832`: allocate the shadow depth texture resource. The GLTF
+scene fixture now renders through the public app path, reports detailed
+JSON-safe IBL/shadow readiness, has the first live renderer-owned diffuse IBL
+texture/view allocation, and now allocates IBL samplers through the same
+renderer-owned resource path. It also summarizes those live IBL resources in a
+compact diffuse IBL resource bridge. Specular prefiltering, bind-group layout
+changes, shader sampling, and shadow resource allocation remain deferred. The
+next useful step is to allocate the first live shadow depth texture/view
+resource.
 
 The previous micro-hardening tasks remain useful but are no longer the main
 ready queue unless they directly block the scene slice. Public custom
@@ -95,11 +90,11 @@ Target proof point:
 
 Remaining automation priority order:
 
-1. `task-1812` — add IBL preparation resource summary bridge.
-2. `task-1813` — add shadow caster command-plan readiness.
-3. `task-1814` — add StandardMaterial IBL/shadow pipeline-key readiness report.
-4. `task-1815` — audit renderer planning hot-path allocation surfaces.
-5. `task-1816` — add IBL sampler descriptor readiness.
+1. `task-1832` — allocate shadow depth texture resource.
+2. `task-1833` — audit live IBL resource cache direction.
+3. `task-1834` — plan StandardMaterial IBL bind-group layout slice.
+4. `task-1835` — add shadow depth resource summary bridge.
+5. `task-1836` — audit GLTF live-resource status growth.
 
 Defer allocation-only cleanup, metadata-only shader-contract tasks, public
 custom material source work, and app-owned custom adapter facades unless they
@@ -9537,6 +9532,8 @@ Acceptance criteria:
 
 ### task-1812 — Add IBL preparation resource summary bridge
 
+Status: completed 2026-05-19. See `agent/COMPLETED.md`.
+
 Category: `webgpu-render`
 Package/write-scope:
 `packages/webgpu`, GLTF scene status path, targeted tests, and docs/research.
@@ -9556,6 +9553,8 @@ Acceptance criteria:
 
 ### task-1813 — Add shadow caster command-plan readiness
 
+Status: completed 2026-05-19. See `agent/COMPLETED.md`.
+
 Category: `webgpu-render`
 Package/write-scope:
 `packages/webgpu`, targeted tests, and docs/research.
@@ -9574,6 +9573,8 @@ Acceptance criteria:
 - Tests cover ready/deferred/missing classification from data-only inputs.
 
 ### task-1814 — Add StandardMaterial IBL/shadow pipeline-key readiness report
+
+Status: completed 2026-05-19. See `agent/COMPLETED.md`.
 
 Category: `webgpu-render`
 Package/write-scope:
@@ -9595,6 +9596,8 @@ Acceptance criteria:
 
 ### task-1815 — Audit renderer planning hot-path allocation surfaces
 
+Status: completed 2026-05-19. See `agent/COMPLETED.md`.
+
 Category: `audit-refactor`
 Package/write-scope:
 `docs/research`, `packages/webgpu` only for tiny corrective fixes, and
@@ -9613,6 +9616,8 @@ Acceptance criteria:
 
 ### task-1816 — Add IBL sampler descriptor readiness
 
+Status: completed 2026-05-19. See `agent/COMPLETED.md`.
+
 Category: `webgpu-render`
 Package/write-scope:
 `packages/webgpu`, GLTF scene status path, targeted tests, and docs/research.
@@ -9629,6 +9634,366 @@ Acceptance criteria:
   changing bind-group layouts or shader sampling.
 - GLTF scene status exposes sampler descriptor readiness alongside the existing
   IBL texture preparation status.
+
+### task-1817 — Add scratch-backed shadow command-plan writer
+
+Status: completed 2026-05-19. See `agent/COMPLETED.md`.
+
+Category: `webgpu-render`
+Package/write-scope:
+`packages/webgpu`, targeted tests, and docs/research.
+Reference anchor:
+Decision 0009 hot-path writer guidance and local
+`shadow-caster-command-plan-readiness`.
+
+Acceptance criteria:
+
+- Define a reusable scratch object for shadow caster command-plan readiness.
+- Provide a writer API that can refill caller-owned arrays for valid frames.
+- Keep the existing JSON helper as a diagnostic convenience wrapper.
+
+### task-1818 — Add IBL preparation summary scratch-writer plan
+
+Status: completed 2026-05-19. See `agent/COMPLETED.md`.
+
+Category: `audit-refactor`
+Package/write-scope:
+`docs/research`, backlog only unless a tiny corrective docs change is required.
+Reference anchor:
+Decision 0009 hot-path writer guidance, local `ibl-preparation-resource-summary`,
+and local `ibl-sampler-descriptor-readiness`.
+
+Acceptance criteria:
+
+- Identify which IBL preparation/status helpers need scratch-backed writer forms
+  before live frame-loop use.
+- Propose one concrete implementation task with package scope and tests.
+- Confirm current GLTF status usage remains diagnostic/browser-facing.
+
+### task-1819 — Add shadow command-plan resource summary bridge
+
+Status: completed 2026-05-19. See `agent/COMPLETED.md`.
+
+Category: `webgpu-render`
+Package/write-scope:
+`packages/webgpu`, GLTF scene status path, targeted tests, and docs/research.
+Reference anchor:
+local `shadow-caster-command-plan-readiness`, `shadow-matrix-buffer-descriptor`,
+and `shadow-pass-plan`.
+
+Acceptance criteria:
+
+- Summarize shadow texture, matrix-buffer, pass, draw-list, and command-plan
+  readiness into a compact renderer resource status object.
+- Keep the summary JSON-safe and data-only; do not allocate GPU buffers,
+  textures, encoders, or render passes.
+- GLTF scene status exposes the summary with deferred command encoding clearly
+  separated from descriptor readiness.
+
+### task-1820 — Audit GLTF status report surface growth
+
+Status: completed 2026-05-19. See `agent/COMPLETED.md`.
+
+Category: `audit-refactor`
+Package/write-scope:
+`docs/research`, GLTF scene status/tests only for tiny corrective fixes.
+Reference anchor:
+`examples/gltf-scene.js`, `test/e2e/gltf-scene.spec.ts`,
+`docs/ARCHITECTURE.md`, and Decision 0009.
+
+Acceptance criteria:
+
+- Confirm the GLTF scene status remains useful and JSON-safe after recent
+  IBL/shadow report additions.
+- Identify any repeated status sections that should be grouped before more
+  render resources are added.
+- Add follow-up tasks for concrete cleanup if needed.
+
+### task-1821 — Add IBL/shadow readiness status grouping
+
+Status: completed 2026-05-19. See `agent/COMPLETED.md`.
+
+Category: `runtime-orchestration`
+Package/write-scope:
+`examples/gltf-scene.js`, e2e status expectations, and docs/research.
+Reference anchor:
+local GLTF scene status shape and Bevy-inspired render diagnostics grouping.
+
+Acceptance criteria:
+
+- Add a compact top-level GLTF scene readiness grouping for IBL and shadow
+  phases without removing detailed reports.
+- Keep detailed JSON-safe report objects intact for agent inspection.
+- Playwright verifies the grouped status alongside rendered pixels.
+
+### task-1822 — Add scratch-backed IBL preparation summary writer
+
+Status: completed 2026-05-19. See `agent/COMPLETED.md`.
+
+Category: `webgpu-render`
+Package/write-scope:
+`packages/webgpu`, targeted tests, and docs/research.
+Reference anchor:
+Decision 0009 hot-path writer guidance and local
+`ibl-preparation-resource-summary`.
+
+Acceptance criteria:
+
+- Define reusable scratch storage for IBL preparation resource summary reports.
+- Provide a writer API that refills caller-owned arrays for descriptor keys,
+  texture keys, sampler keys, pass keys, and diagnostics.
+- Keep existing JSON helpers as diagnostic convenience wrappers.
+
+### task-1823 — Audit scratch writer API consistency
+
+Status: completed 2026-05-19. See `agent/COMPLETED.md`.
+
+Category: `audit-refactor`
+Package/write-scope:
+`docs/research`, `packages/webgpu` only for tiny naming fixes.
+Reference anchor:
+Decision 0009 and the shadow/IBL scratch-backed writer APIs.
+
+Acceptance criteria:
+
+- Compare scratch creation and writer names/signatures across shadow and IBL
+  readiness helpers.
+- Confirm convenience wrappers still produce JSON-safe reports.
+- Recommend concrete naming or writer-shape cleanup if needed.
+
+### task-1824 — Add grouped readiness helper extraction
+
+Status: completed 2026-05-19. See `agent/COMPLETED.md`.
+
+Category: `runtime-orchestration`
+Package/write-scope:
+`examples/gltf-scene.js`, targeted tests if a helper is moved into package code,
+and docs/research.
+Reference anchor:
+local GLTF scene readiness grouping and Bevy-style diagnostics grouping.
+
+Acceptance criteria:
+
+- Extract the GLTF scene readiness grouping logic into a small named helper
+  rather than keeping it embedded in `publishFrameStatus`.
+- Preserve the existing browser status shape.
+- Playwright verifies grouped readiness and rendered pixels.
+
+### task-1825 — Plan first live IBL resource allocation slice
+
+Status: completed 2026-05-19. See `agent/COMPLETED.md`.
+
+Category: `docs-tooling`
+Package/write-scope:
+`docs/research`, backlog only.
+Reference anchor:
+`references/engine/src/scene/graphics/env-lighting.js`,
+`references/three.js/src/extras/PMREMGenerator.js`, and local IBL descriptor
+reports.
+
+Acceptance criteria:
+
+- Compare diffuse irradiance, specular prefilter, and sampler allocation as
+  candidates for the first live WebGPU IBL resource slice.
+- Select one implementation task with acceptance criteria and validation.
+- Keep shader sampling and public custom material APIs deferred unless selected
+  as explicit prerequisites.
+
+### task-1826 — Add shadow matrix-buffer scratch writer plan
+
+Status: completed 2026-05-19. See `agent/COMPLETED.md`.
+
+Category: `audit-refactor`
+Package/write-scope:
+`docs/research`, backlog only unless a tiny docs correction is required.
+Reference anchor:
+Decision 0009 and local `shadow-matrix-buffer-descriptor`.
+
+Acceptance criteria:
+
+- Identify allocation-heavy parts of shadow matrix-buffer descriptor planning.
+- Propose a concrete scratch-writer implementation task if needed.
+- Confirm current matrix-buffer descriptor usage remains diagnostic/status-only.
+
+### task-1827 — Allocate diffuse IBL texture resource
+
+Status: completed 2026-05-19. See `agent/COMPLETED.md`.
+
+Category: `webgpu-render`
+Package/write-scope:
+`packages/webgpu`, targeted tests, GLTF scene status path, and docs/research.
+Reference anchor:
+`references/engine/src/scene/graphics/env-lighting.js`,
+`references/three.js/src/extras/PMREMGenerator.js`, local
+`ibl-texture-preparation`, and local `texture-resources`.
+
+Acceptance criteria:
+
+- Create a renderer-owned diffuse IBL texture/view resource from a planned IBL
+  texture slot using an injected WebGPU-like device.
+- Report stable resource keys and creation diagnostics without raw GPU handles
+  in JSON helpers.
+- GLTF scene status distinguishes allocated diffuse IBL texture resources from
+  deferred specular prefiltering and deferred shader sampling.
+
+### task-1828 — Plan first live shadow resource allocation slice
+
+Status: completed 2026-05-19. See `agent/COMPLETED.md`.
+
+Category: `docs-tooling`
+Package/write-scope:
+`docs/research`, backlog only.
+Reference anchor:
+local `shadow-texture-resource`, `shadow-matrix-buffer-descriptor`, and
+`shadow-caster-command-plan-readiness`.
+
+Acceptance criteria:
+
+- Compare shadow texture allocation, matrix-buffer allocation/upload, and
+  command encoding as first live shadow-resource candidates.
+- Select one implementation task with acceptance criteria and validation.
+- Keep StandardMaterial shadow sampling deferred unless it is an explicit
+  prerequisite.
+
+### task-1829 — Audit live-resource boundary after diffuse IBL allocation
+
+Status: completed 2026-05-19. See `agent/COMPLETED.md`.
+
+Category: `audit-refactor`
+Package/write-scope:
+`docs/research`, `packages/webgpu` only for tiny corrective fixes.
+Reference anchor:
+the `task-1827` implementation, `docs/ARCHITECTURE.md`, and Decision 0009.
+
+Acceptance criteria:
+
+- Confirm diffuse IBL allocation stays renderer-owned and WebGPU-only.
+- Confirm ECS/render snapshots contain no raw GPU handles.
+- Confirm GLTF status distinguishes live resource allocation from shader
+  sampling.
+
+### task-1830 — Add IBL sampler GPU allocation resource
+
+Status: completed 2026-05-19. See `agent/COMPLETED.md`.
+
+Category: `webgpu-render`
+Package/write-scope:
+`packages/webgpu`, targeted tests, GLTF scene status path, and docs/research.
+Reference anchor:
+local `ibl-sampler-descriptor-readiness`, local `texture-resources`, and the
+diffuse IBL allocation slice.
+
+Acceptance criteria:
+
+- Allocate renderer-owned IBL samplers from sampler descriptor readiness using
+  an injected WebGPU-like device.
+- Report stable sampler resource keys and diagnostics without raw handles in
+  JSON helpers.
+- Keep bind-group layout changes and shader sampling deferred.
+
+### task-1831 — Add diffuse IBL resource summary bridge
+
+Status: completed 2026-05-19. See `agent/COMPLETED.md`.
+
+Category: `webgpu-render`
+Package/write-scope:
+`packages/webgpu`, GLTF scene status path, targeted tests, and docs/research.
+Reference anchor:
+local diffuse IBL texture allocation helper and
+`ibl-preparation-resource-summary`.
+
+Acceptance criteria:
+
+- Summarize diffuse IBL texture allocation, deferred specular prefiltering,
+  sampler readiness, and shader sampling into a compact JSON-safe resource
+  status object.
+- Keep raw GPU handles out of JSON helpers.
+- GLTF scene status exposes the summary beside detailed IBL reports.
+
+### task-1832 — Allocate shadow depth texture resource
+
+Category: `webgpu-render`
+Package/write-scope:
+`packages/webgpu`, targeted tests, GLTF scene status path, and docs/research.
+Reference anchor:
+local `shadow-texture-resource`, local `texture-resources`,
+`references/engine/src/scene/renderer/render-pass-shadow-directional.js`, and
+`references/three.js/src/renderers/webgl/WebGLShadowMap.js`.
+
+Acceptance criteria:
+
+- Create renderer-owned shadow depth texture/view resources from planned shadow
+  texture descriptors using an injected WebGPU-like device.
+- Report stable texture/view resource keys and diagnostics without raw GPU
+  handles in JSON helpers.
+- GLTF scene status distinguishes allocated shadow texture resources from
+  deferred matrix computation, command encoding, and shader sampling.
+
+### task-1833 — Audit live IBL resource cache direction
+
+Category: `audit-refactor`
+Package/write-scope:
+`docs/research`, `packages/webgpu` only for tiny corrective fixes.
+Reference anchor:
+the diffuse IBL texture allocation helper, `createWebGpuApp` resource cache
+shape, and `docs/ARCHITECTURE.md`.
+
+Acceptance criteria:
+
+- Confirm where live IBL texture/sampler resources should be cached before more
+  environment resources are allocated.
+- Identify whether GLTF example module-scope caching should remain example-only.
+- Add a concrete follow-up task if app resource cache integration is needed.
+
+### task-1834 — Plan StandardMaterial IBL bind-group layout slice
+
+Category: `docs-tooling`
+Package/write-scope:
+`docs/research`, backlog only.
+Reference anchor:
+local `standard-bind-group-layout`, `standard-material-ibl-shadow-binding-readiness`,
+and the diffuse IBL texture resource helper.
+
+Acceptance criteria:
+
+- Compare adding IBL texture/sampler bind-group layout slots, resource binding
+  descriptors, and shader WGSL sampling as candidate next steps.
+- Select one implementation task with acceptance criteria and validation.
+- Keep public custom material APIs deferred.
+
+### task-1835 — Add shadow depth resource summary bridge
+
+Category: `webgpu-render`
+Package/write-scope:
+`packages/webgpu`, GLTF scene status path, targeted tests, and docs/research.
+Reference anchor:
+local shadow depth texture allocation helper after `task-1832`,
+`shadow-command-resource-summary`, and
+`references/engine/src/scene/renderer/render-pass-shadow-directional.js`.
+
+Acceptance criteria:
+
+- Summarize shadow depth texture/view allocation, deferred pass submission,
+  matrix upload, and shader sampling into a compact JSON-safe resource status
+  object.
+- Keep raw GPU handles out of JSON helpers.
+- GLTF scene status exposes the summary beside detailed shadow reports.
+
+### task-1836 — Audit GLTF live-resource status growth
+
+Category: `audit-refactor`
+Package/write-scope:
+`docs/research`, GLTF scene status/tests only for tiny corrective fixes.
+Reference anchor:
+`examples/gltf-scene.js`, `test/e2e/gltf-scene.spec.ts`,
+`docs/ARCHITECTURE.md`, and Decision 0009.
+
+Acceptance criteria:
+
+- Confirm the GLTF scene status remains navigable after adding live IBL and
+  shadow resource reports.
+- Identify any duplicated status fields that should be grouped or summarized.
+- Add one concrete follow-up if status shape cleanup is needed.
 
 ## Post-Unlit E2E Verification Targets
 

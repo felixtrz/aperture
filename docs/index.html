@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-18 20:46 PDT</dd>
+            <dd>2026-05-18 21:45 PDT</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -430,15 +430,22 @@
               planning-chain audit confirms this path is still ECS-derived,
               renderer-owned, WebGPU-only, JSON-safe, and diagnostic-only.
               Shadow matrix buffer descriptor planning now exposes stable matrix
-              buffer keys, byte counts, and deferred upload status. The next
-              task is the IBL preparation resource summary bridge. Public custom
-              shader/material APIs and app-owned custom adapter facades remain
-              deferred behind this built-in scene path. Route summary
-              determinism is pinned, the built-in frame-resource wrapper now has
-              mixed-family route regression coverage over the generic collector,
-              app-level mixed built-in routes now assert JSON-safe material
-              queue and routed resource summaries for two-family and
-              three-family paths, and the glTF
+              buffer keys, byte counts, and deferred upload status. IBL
+              preparation resource summaries, live diffuse IBL texture/view
+              allocation, IBL sampler descriptors, live IBL sampler allocation,
+              a compact diffuse IBL live-resource summary, shadow command-plan
+              readiness, shadow command resource summaries, StandardMaterial
+              IBL/shadow pipeline-key metadata, scratch-backed IBL/shadow status
+              writers, and compact top-level IBL/shadow readiness grouping are
+              now exposed. The next task is allocating a live shadow depth
+              texture/view resource. Public custom shader/material APIs and
+              app-owned custom adapter facades remain deferred behind this
+              built-in scene path. Route summary determinism is pinned, the
+              built-in frame-resource wrapper now has mixed-family route
+              regression coverage over the generic collector, app-level mixed
+              built-in routes now assert JSON-safe material queue and routed
+              resource summaries for two-family and three-family paths, and the
+              glTF
               <code>alphaMode: "BLEND"</code> browser fixture now pins
               transparent queue routing, alpha-blend render-state mapping, and
               its deterministic StandardMaterial pipeline key. The translucent
@@ -709,7 +716,7 @@
               diagnostics now include those routed item key details.
             </dd>
             <dt>Next focus</dt>
-            <dd>Add IBL preparation resource summary bridge</dd>
+            <dd>Allocate shadow depth texture resource</dd>
           </dl>
         </aside>
       </header>
@@ -2428,11 +2435,11 @@
             <h3>Recommended next tasks</h3>
             <ul>
               <li>
-                <span class="badge amber">next</span> Add IBL preparation
-                resource summary bridge.
+                <span class="badge amber">next</span> Allocate shadow depth
+                texture resource.
               </li>
-              <li>Add shadow caster command-plan readiness.</li>
-              <li>Add StandardMaterial IBL/shadow pipeline-key readiness.</li>
+              <li>Audit live IBL resource cache direction.</li>
+              <li>Plan StandardMaterial IBL bind-group layout slice.</li>
             </ul>
           </article>
         </div>

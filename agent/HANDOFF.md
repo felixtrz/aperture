@@ -1,5 +1,93 @@
 # Handoff
 
+## Current Run Update — 2026-05-19T04:50:32Z
+
+Completed `task-1812` through `task-1831`. Recommended next task is
+`task-1832`: allocate the shadow depth texture resource.
+
+What changed:
+
+- Added JSON-safe IBL readiness/resource helpers:
+  - `IblPreparationResourceSummaryReport`,
+  - `IblSamplerDescriptorReadinessReport`, and
+  - a scratch-backed writer for IBL preparation resource summaries.
+- Added JSON-safe shadow readiness/resource helpers:
+  - `ShadowCasterCommandPlanReadinessReport`,
+  - scratch-backed shadow command-plan writer, and
+  - `ShadowCommandResourceSummaryReport`.
+- Added StandardMaterial IBL/shadow pipeline-key readiness metadata without
+  changing WGSL, bind-group layouts, or pipeline descriptors.
+- Updated `examples/gltf-scene.js` and `test/e2e/gltf-scene.spec.ts` so the
+  GLTF scene status exposes:
+  - `readiness.ibl` / `readiness.shadow` grouped phase status,
+  - `ibl.resourceSummary`,
+  - `ibl.samplers`,
+  - `ibl.pipelineKey`,
+  - `shadow.commandPlan`, and
+  - `shadow.resourceSummary`.
+- Added audit/planning docs for render hot-path allocation surfaces, scratch
+  writer consistency, GLTF status growth, first live IBL allocation, and shadow
+  matrix-buffer scratch-writer timing.
+- Updated `docs/index.html`, `docs/render-pipeline-comparison.html`,
+  `agent/BACKLOG.md`, and `agent/COMPLETED.md`.
+- Added the first live renderer-owned diffuse IBL texture/view allocation
+  helper and exposed `ibl.diffuseTextureResource` in the GLTF scene status.
+- Added the first live renderer-owned IBL sampler allocation helper and exposed
+  `ibl.samplerResources` in the GLTF scene status.
+- Tightened IBL sampler descriptor readiness so sampler allocation can proceed
+  from planned texture slots while texture upload and prefiltering remain
+  deferred.
+- Added a compact diffuse IBL resource summary bridge over live diffuse texture
+  and sampler allocations while keeping specular prefiltering, bind-group layout
+  changes, and shader sampling deferred.
+- Planned the first live shadow resource allocation slice and audited the
+  diffuse IBL live-resource boundary.
+- Refilled the ready queue with `task-1832` through `task-1836`.
+
+Reference anchors inspected:
+
+- `references/engine/src/scene/graphics/env-lighting.js`
+- `references/engine/src/scene/renderer/render-pass-shadow-directional.js`
+- `references/three.js/src/extras/PMREMGenerator.js`
+- `references/three.js/src/renderers/webgl/WebGLShadowMap.js`
+- `references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/lighting`
+- `references/three.js/src/renderers/shaders/ShaderChunk`
+- `references/engine/src/platform/graphics/webgpu/webgpu-bind-group-format.js`
+- `references/three.js/src/renderers/webgpu/utils/WebGPUTextureUtils.js`
+- Local `texture-resources`.
+- Local IBL/shadow descriptor, pass-plan, matrix, draw-list, command-plan,
+  resource-summary, and StandardMaterial readiness helpers.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/ibl-preparation-resource-summary.test.ts test/webgpu/ibl-texture-preparation.test.ts test/webgpu/ibl-preparation-pass-plan.test.ts`
+- `pnpm exec vitest run test/webgpu/shadow-caster-command-plan-readiness.test.ts test/webgpu/shadow-caster-draw-list-plan.test.ts test/webgpu/shadow-matrix-buffer-descriptor.test.ts`
+- `pnpm exec vitest run test/webgpu/standard-material-ibl-shadow-pipeline-key-readiness.test.ts test/webgpu/standard-material-ibl-shadow-binding-readiness.test.ts`
+- `pnpm exec vitest run test/webgpu/ibl-sampler-descriptor-readiness.test.ts test/webgpu/ibl-texture-preparation.test.ts test/webgpu/ibl-preparation-resource-summary.test.ts`
+- `pnpm exec vitest run test/webgpu/shadow-command-resource-summary.test.ts test/webgpu/shadow-caster-command-plan-readiness.test.ts test/webgpu/shadow-pass-plan.test.ts`
+- `pnpm exec vitest run test/webgpu/ibl-texture-resource.test.ts test/webgpu/ibl-texture-preparation.test.ts`
+- `pnpm exec vitest run test/webgpu/ibl-sampler-resource.test.ts test/webgpu/ibl-sampler-descriptor-readiness.test.ts test/webgpu/ibl-texture-resource.test.ts`
+- `pnpm exec vitest run test/webgpu/diffuse-ibl-resource-summary.test.ts test/webgpu/ibl-sampler-resource.test.ts test/webgpu/ibl-texture-resource.test.ts`
+- `pnpm exec playwright test test/e2e/gltf-scene.spec.ts`
+- `pnpm run check:progress`
+- `pnpm run check:examples`
+- `pnpm run check:boundaries`
+- `pnpm run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm run lint`
+- `pnpm run format:check`
+- `pnpm run check` (`288` test files / `1341` tests passed)
+
+Known issues / follow-ups:
+
+- IBL now has live diffuse texture/view and sampler allocation paths, but
+  specular prefiltering, bind-group layout changes, shader IBL sampling, shadow
+  texture allocation, shadow pass submission, and shadow sampling remain
+  deferred.
+- Start `task-1832` next. It should allocate renderer-owned shadow depth
+  texture/view resources from planned shadow descriptors while keeping matrix
+  upload, pass submission, and shader sampling deferred.
+
 ## Current Run Update — 2026-05-19T03:49:53Z
 
 Completed `task-1801` through `task-1811`. Recommended next task is

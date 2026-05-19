@@ -1,5 +1,331 @@
 # Completed Tasks
 
+## task-1831 — Diffuse IBL resource summary bridge
+
+Completed: 2026-05-19
+
+Summary:
+
+- Added `DiffuseIblResourceSummaryReport`.
+- Summarizes live diffuse IBL texture allocation, live IBL sampler allocation,
+  deferred specular prefiltering, deferred bind-group layout changes, and
+  deferred shader sampling without exposing raw GPU handles.
+- Exposes `ibl.diffuseResourceSummary` and
+  `readiness.ibl.phases.diffuseResourceSummary` in the GLTF scene status.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/diffuse-ibl-resource-summary.test.ts test/webgpu/ibl-sampler-resource.test.ts test/webgpu/ibl-texture-resource.test.ts`
+- `pnpm run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec playwright test test/e2e/gltf-scene.spec.ts`
+
+## task-1830 — IBL sampler GPU allocation resource
+
+Completed: 2026-05-19
+
+Summary:
+
+- Added `IblSamplerResourceReport`.
+- Allocates renderer-owned diffuse/specular IBL sampler resources from ready
+  sampler descriptors using an injected WebGPU-like device.
+- Exposes `ibl.samplerResources` in the GLTF scene status and keeps bind-group
+  layout changes plus shader sampling deferred.
+- Adjusted sampler descriptor readiness so sampler allocation can proceed from
+  planned texture slots before texture upload/prefiltering is implemented.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/ibl-sampler-resource.test.ts test/webgpu/ibl-sampler-descriptor-readiness.test.ts test/webgpu/ibl-texture-resource.test.ts`
+- `pnpm run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec playwright test test/e2e/gltf-scene.spec.ts`
+
+## task-1829 — Live-resource boundary audit after diffuse IBL allocation
+
+Completed: 2026-05-19
+
+Summary:
+
+- Audited the first live diffuse IBL texture allocation boundary.
+- Confirmed ECS and render snapshots still carry only stable handles/extracted
+  packets, while raw GPU handles stay renderer-owned.
+- Noted that production IBL resource lifetime should move into a renderer-owned
+  cache before more live environment resources land.
+
+Validation:
+
+- Documentation-only audit.
+
+## task-1828 — First live shadow resource allocation plan
+
+Completed: 2026-05-19
+
+Summary:
+
+- Compared shadow texture allocation, matrix-buffer allocation/upload, and
+  command encoding as first live shadow-resource candidates.
+- Selected shadow depth texture allocation as the next live shadow resource
+  slice.
+
+Validation:
+
+- Documentation-only planning task.
+
+## task-1827 — Diffuse IBL texture resource allocation
+
+Completed: 2026-05-19
+
+Summary:
+
+- Added `DiffuseIblTextureResourceReport`.
+- Allocates a renderer-owned diffuse IBL texture/view resource from a planned
+  diffuse IBL texture slot using an injected WebGPU-like device.
+- Exposes `ibl.diffuseTextureResource` in the GLTF scene status and groups it
+  separately from deferred specular prefiltering and shader sampling.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/ibl-texture-resource.test.ts test/webgpu/ibl-texture-preparation.test.ts`
+- `pnpm run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec playwright test test/e2e/gltf-scene.spec.ts`
+
+## task-1826 — Shadow matrix-buffer scratch writer plan
+
+Completed: 2026-05-19
+
+Summary:
+
+- Reviewed shadow matrix-buffer descriptor planning against Decision 0009.
+- Documented that current usage remains diagnostic/status-only.
+- Recommended planning the first live shadow resource allocation before adding
+  a matrix-buffer scratch writer.
+
+Validation:
+
+- Documentation-only planning task.
+
+## task-1825 — First live IBL resource allocation plan
+
+Completed: 2026-05-19
+
+Summary:
+
+- Compared diffuse IBL texture allocation, specular prefilter texture
+  allocation, and IBL sampler allocation.
+- Selected diffuse IBL texture resource allocation as the next live IBL resource
+  slice.
+
+Validation:
+
+- Documentation-only planning task.
+
+## task-1824 — GLTF readiness grouping helper extraction
+
+Completed: 2026-05-19
+
+Summary:
+
+- Verified the GLTF scene readiness grouping lives in a named
+  `createReadinessGrouping` helper in `examples/gltf-scene.js`.
+- Kept detailed IBL and shadow report objects intact.
+
+Validation:
+
+- `pnpm exec playwright test test/e2e/gltf-scene.spec.ts`
+
+## task-1823 — Scratch writer API consistency audit
+
+Completed: 2026-05-19
+
+Summary:
+
+- Compared the shadow and IBL scratch-backed writer APIs.
+- Confirmed the `create*Scratch` / `write*Report` / `create*Report` naming
+  pattern is consistent enough for the current stage.
+
+Validation:
+
+- Documentation-only audit.
+
+## task-1822 — Scratch-backed IBL preparation summary writer
+
+Completed: 2026-05-19
+
+Summary:
+
+- Added `IblPreparationResourceSummaryScratch`.
+- Added `writeIblPreparationResourceSummaryReport`.
+- Preserved `createIblPreparationResourceSummaryReport` as the diagnostic
+  convenience wrapper.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/ibl-preparation-resource-summary.test.ts test/webgpu/ibl-sampler-descriptor-readiness.test.ts`
+- `pnpm run typecheck`
+- `pnpm run typecheck:test`
+
+## task-1821 — IBL/shadow readiness status grouping
+
+Completed: 2026-05-19
+
+Summary:
+
+- Added top-level GLTF scene `readiness.ibl` and `readiness.shadow` phase
+  groupings.
+- Preserved all detailed nested IBL and shadow status reports.
+
+Validation:
+
+- `pnpm run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec playwright test test/e2e/gltf-scene.spec.ts`
+
+## task-1820 — GLTF status report surface growth audit
+
+Completed: 2026-05-19
+
+Summary:
+
+- Audited the expanded GLTF scene status surface after recent IBL/shadow
+  diagnostics.
+- Recommended compact readiness grouping while preserving detailed reports.
+
+Validation:
+
+- Documentation-only audit.
+
+## task-1819 — Shadow command-plan resource summary bridge
+
+Completed: 2026-05-19
+
+Summary:
+
+- Added `ShadowCommandResourceSummaryReport`.
+- Summarized shadow texture, pass, matrix-buffer, caster draw-list, and command
+  plan readiness into a compact JSON-safe status object.
+- Exposed `shadow.resourceSummary` in the GLTF scene status.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/shadow-command-resource-summary.test.ts test/webgpu/shadow-caster-command-plan-readiness.test.ts test/webgpu/shadow-pass-plan.test.ts`
+- `pnpm run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec playwright test test/e2e/gltf-scene.spec.ts`
+
+## task-1818 — IBL preparation summary scratch-writer plan
+
+Completed: 2026-05-19
+
+Summary:
+
+- Planned scratch-backed writer needs for IBL preparation/status helpers.
+- Confirmed current GLTF scene usage remains diagnostic/browser-facing.
+
+Validation:
+
+- Documentation-only planning task.
+
+## task-1817 — Scratch-backed shadow command-plan writer
+
+Completed: 2026-05-19
+
+Summary:
+
+- Added `ShadowCasterCommandPlanReadinessScratch`.
+- Added `writeShadowCasterCommandPlanReadinessReport`.
+- Preserved the existing create helper as a diagnostic convenience wrapper.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/shadow-caster-command-plan-readiness.test.ts test/webgpu/shadow-caster-draw-list-plan.test.ts test/webgpu/shadow-matrix-buffer-descriptor.test.ts`
+- `pnpm run typecheck`
+- `pnpm run typecheck:test`
+
+## task-1816 — IBL sampler descriptor readiness
+
+Completed: 2026-05-19
+
+Summary:
+
+- Added `IblSamplerDescriptorReadinessReport`.
+- Exposed JSON-safe diffuse/specular IBL sampler descriptor readiness in the
+  GLTF scene status as `ibl.samplers`.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/ibl-sampler-descriptor-readiness.test.ts test/webgpu/ibl-texture-preparation.test.ts test/webgpu/ibl-preparation-resource-summary.test.ts`
+- `pnpm run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec playwright test test/e2e/gltf-scene.spec.ts`
+
+## task-1815 — Renderer planning hot-path allocation audit
+
+Completed: 2026-05-19
+
+Summary:
+
+- Audited recent IBL/shadow planning helpers against Decision 0009.
+- Confirmed they are diagnostic/status surfaces today.
+- Added scratch-writer follow-ups for future live frame-loop use.
+
+Validation:
+
+- Documentation-only audit.
+
+## task-1814 — StandardMaterial IBL/shadow pipeline-key readiness
+
+Completed: 2026-05-19
+
+Summary:
+
+- Added `StandardMaterialIblShadowPipelineKeyReadinessReport`.
+- Exposed deferred future pipeline-key feature metadata for IBL and shadow
+  sampling without modifying WGSL or pipeline descriptors.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/standard-material-ibl-shadow-pipeline-key-readiness.test.ts test/webgpu/standard-material-ibl-shadow-binding-readiness.test.ts`
+- `pnpm run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec playwright test test/e2e/gltf-scene.spec.ts`
+
+## task-1813 — Shadow caster command-plan readiness
+
+Completed: 2026-05-19
+
+Summary:
+
+- Added `ShadowCasterCommandPlanReadinessReport`.
+- Exposed data-only shadow command-plan readiness in the GLTF scene status as
+  `shadow.commandPlan`.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/shadow-caster-command-plan-readiness.test.ts test/webgpu/shadow-caster-draw-list-plan.test.ts test/webgpu/shadow-matrix-buffer-descriptor.test.ts`
+- `pnpm run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec playwright test test/e2e/gltf-scene.spec.ts`
+
+## task-1812 — IBL preparation resource summary bridge
+
+Completed: 2026-05-19
+
+Summary:
+
+- Added `IblPreparationResourceSummaryReport`.
+- Summarized IBL descriptor, texture preparation, and pass-plan readiness into a
+  compact JSON-safe status object.
+- Exposed `ibl.resourceSummary` in the GLTF scene status.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/ibl-preparation-resource-summary.test.ts test/webgpu/ibl-texture-preparation.test.ts test/webgpu/ibl-preparation-pass-plan.test.ts`
+- `pnpm run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec playwright test test/e2e/gltf-scene.spec.ts`
+
 ## task-1811 — Shadow matrix buffer descriptor planning
 
 Completed: 2026-05-19

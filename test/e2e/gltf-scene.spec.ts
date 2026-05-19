@@ -17,6 +17,16 @@ interface GltfSceneStatus extends ExampleStatusBase {
     readonly b: number;
     readonly a: number;
   };
+  readonly readiness?: {
+    readonly ibl: {
+      readonly status: string;
+      readonly phases: Record<string, string>;
+    };
+    readonly shadow: {
+      readonly status: string;
+      readonly phases: Record<string, string>;
+    };
+  };
   readonly gltf?: {
     readonly contract: {
       readonly meshPrimitiveCount: number;
@@ -123,6 +133,98 @@ interface GltfSceneStatus extends ExampleStatusBase {
         readonly severity: string;
       }[];
     };
+    readonly samplers: {
+      readonly ready: boolean;
+      readonly status: string;
+      readonly textureSlotCount: number;
+      readonly samplerCount: number;
+      readonly allocatedSamplerCount: number;
+      readonly sections: {
+        readonly texturePreparation: boolean;
+        readonly samplerDescriptors: boolean;
+        readonly gpuAllocation: boolean;
+        readonly bindGroupLayout: boolean;
+        readonly shaderSampling: boolean;
+      };
+      readonly samplers: readonly {
+        readonly environmentMapResourceKey: string;
+        readonly environmentIds: readonly number[];
+        readonly kind: string;
+        readonly sourceResourceKey: string;
+        readonly samplerKey: string;
+        readonly addressModeU: string;
+        readonly addressModeV: string;
+        readonly addressModeW: string;
+        readonly magFilter: string;
+        readonly minFilter: string;
+        readonly mipmapFilter: string;
+        readonly maxAnisotropy: number;
+        readonly allocation: string;
+      }[];
+      readonly diagnostics: readonly {
+        readonly code: string;
+        readonly severity: string;
+      }[];
+    };
+    readonly samplerResources: {
+      readonly ready: boolean;
+      readonly status: string;
+      readonly samplerDescriptorCount: number;
+      readonly createdSamplerCount: number;
+      readonly sections: {
+        readonly samplerDescriptors: boolean;
+        readonly gpuAllocation: boolean;
+        readonly bindGroupLayout: boolean;
+        readonly shaderSampling: boolean;
+      };
+      readonly resources: readonly {
+        readonly valid: boolean;
+        readonly resourceKey: string;
+        readonly descriptor: {
+          readonly label: string;
+          readonly addressModeU: string;
+          readonly addressModeV: string;
+          readonly addressModeW: string;
+          readonly magFilter: string;
+          readonly minFilter: string;
+          readonly mipmapFilter: string;
+          readonly lodMinClamp: number;
+          readonly lodMaxClamp: number;
+          readonly maxAnisotropy: number;
+        } | null;
+      }[];
+      readonly diagnostics: readonly {
+        readonly code: string;
+        readonly severity: string;
+      }[];
+    };
+    readonly diffuseResourceSummary: {
+      readonly ready: boolean;
+      readonly status: string;
+      readonly counts: {
+        readonly textureSlots: number;
+        readonly diffuseTextureResources: number;
+        readonly samplerResources: number;
+        readonly deferredSpecularSlots: number;
+      };
+      readonly sections: {
+        readonly texturePreparation: boolean;
+        readonly diffuseTextureResource: boolean;
+        readonly samplerResources: boolean;
+        readonly specularPrefiltering: boolean;
+        readonly bindGroupLayout: boolean;
+        readonly shaderSampling: boolean;
+      };
+      readonly resourceKeys: {
+        readonly diffuseTextures: readonly string[];
+        readonly samplers: readonly string[];
+        readonly deferredSpecularTextures: readonly string[];
+      };
+      readonly diagnostics: readonly {
+        readonly code: string;
+        readonly severity: string;
+      }[];
+    };
     readonly passPlan: {
       readonly ready: boolean;
       readonly status: string;
@@ -146,6 +248,38 @@ interface GltfSceneStatus extends ExampleStatusBase {
         readonly operation: string;
         readonly submission: string;
       }[];
+      readonly diagnostics: readonly {
+        readonly code: string;
+        readonly severity: string;
+      }[];
+    };
+    readonly resourceSummary: {
+      readonly ready: boolean;
+      readonly status: string;
+      readonly counts: {
+        readonly environmentMaps: number;
+        readonly descriptors: number;
+        readonly textureSlots: number;
+        readonly plannedTextures: number;
+        readonly plannedViews: number;
+        readonly plannedSamplers: number;
+        readonly preparationPasses: number;
+      };
+      readonly sections: {
+        readonly iblDescriptors: boolean;
+        readonly textureDescriptors: boolean;
+        readonly textureUpload: boolean;
+        readonly prefilterPassPlans: boolean;
+        readonly passSubmission: boolean;
+        readonly shaderSampling: boolean;
+      };
+      readonly resourceKeys: {
+        readonly environmentMaps: readonly string[];
+        readonly textures: readonly string[];
+        readonly views: readonly string[];
+        readonly samplers: readonly string[];
+        readonly passes: readonly string[];
+      };
       readonly diagnostics: readonly {
         readonly code: string;
         readonly severity: string;
@@ -237,6 +371,65 @@ interface GltfSceneStatus extends ExampleStatusBase {
         readonly resourceKey: string;
         readonly kind: string;
         readonly source: string;
+        readonly readiness: string;
+      }[];
+      readonly diagnostics: readonly {
+        readonly code: string;
+        readonly severity: string;
+      }[];
+    };
+    readonly commandPlan: {
+      readonly ready: boolean;
+      readonly status: string;
+      readonly counts: {
+        readonly requests: number;
+        readonly passes: number;
+        readonly viewProjectionPlans: number;
+        readonly matrices: number;
+        readonly casterLists: number;
+        readonly drawCommands: number;
+        readonly commandPlans: number;
+      };
+      readonly sections: {
+        readonly shadowPassPlan: boolean;
+        readonly viewProjectionPlanning: boolean;
+        readonly matrixBufferDescriptor: boolean;
+        readonly casterDrawLists: boolean;
+        readonly commandEncoding: boolean;
+        readonly gpuCommands: boolean;
+      };
+      readonly commands: readonly {
+        readonly commandKey: string;
+        readonly shadowId: number;
+        readonly lightId: number;
+        readonly passKey: string;
+        readonly matrixResourceKey: string;
+        readonly matrixOffsetBytes: number;
+        readonly drawCount: number;
+        readonly commandEncoding: string;
+      }[];
+      readonly diagnostics: readonly {
+        readonly code: string;
+        readonly severity: string;
+      }[];
+    };
+    readonly pipelineKey: {
+      readonly ready: boolean;
+      readonly status: string;
+      readonly standardMaterialCount: number;
+      readonly featureCount: number;
+      readonly sections: {
+        readonly bindingReadiness: boolean;
+        readonly pipelineKeyMetadata: boolean;
+        readonly pipelineDescriptor: boolean;
+        readonly bindGroupLayout: boolean;
+        readonly shaderSampling: boolean;
+      };
+      readonly features: readonly {
+        readonly feature: string;
+        readonly pipelineKeyToken: string;
+        readonly source: string;
+        readonly requiredBySlotCount: number;
         readonly readiness: string;
       }[];
       readonly diagnostics: readonly {
@@ -474,6 +667,42 @@ test("Playwright shows the GLTF scene fixture through the app path", async ({
     ok: true,
     phase: "render",
     renderingBackend: "webgpu-explicit",
+    readiness: {
+      ibl: {
+        status: "deferred",
+        phases: {
+          environmentMap: "ready",
+          descriptors: "ready",
+          texturePreparation: "deferred",
+          diffuseTextureResource: "ready",
+          samplerDescriptors: "ready",
+          samplerResources: "ready",
+          diffuseResourceSummary: "deferred",
+          preparationPasses: "deferred",
+          resourceSummary: "deferred",
+          standardMaterial: "ready",
+          shaderBinding: "deferred",
+          pipelineKey: "deferred",
+          shaderSampling: "deferred",
+        },
+      },
+      shadow: {
+        status: "deferred",
+        phases: {
+          descriptors: "ready",
+          resourceReadiness: "ready",
+          textureDescriptors: "deferred",
+          passPlans: "deferred",
+          viewProjection: "deferred",
+          matrixBuffer: "deferred",
+          casterDrawLists: "deferred",
+          commandPlans: "deferred",
+          resourceSummary: "deferred",
+          standardMaterial: "deferred",
+          rendering: "deferred",
+        },
+      },
+    },
     gltf: {
       contract: {
         meshPrimitiveCount: 3,
@@ -596,6 +825,174 @@ test("Playwright shows the GLTF scene fixture through the app path", async ({
           },
         ],
       },
+      diffuseTextureResource: {
+        ready: true,
+        status: "available",
+        textureSlotCount: 2,
+        diffuseSlotCount: 1,
+        createdTextureCount: 1,
+        sections: {
+          texturePreparation: true,
+          diffuseTextureResource: true,
+          gpuAllocation: true,
+          specularPrefiltering: false,
+          shaderSampling: false,
+        },
+        resources: [
+          {
+            valid: true,
+            resourceKey: "texture:gltf:environment:studio:diffuse:texture",
+            descriptor: {
+              label: "environment-map:gltf:environment:studio:diffuse-ibl",
+              size: [64, 64, 6],
+              format: "rgba16float",
+              usage: 6,
+              mipLevelCount: 1,
+            },
+          },
+        ],
+        diagnostics: [],
+      },
+      samplers: {
+        ready: true,
+        status: "ready",
+        textureSlotCount: 2,
+        samplerCount: 2,
+        allocatedSamplerCount: 2,
+        sections: {
+          texturePreparation: true,
+          samplerDescriptors: true,
+          gpuAllocation: true,
+          bindGroupLayout: false,
+          shaderSampling: false,
+        },
+        samplers: [
+          {
+            environmentMapResourceKey:
+              "environment-map:gltf:environment:studio",
+            environmentIds: [expect.any(Number)],
+            kind: "diffuse",
+            sourceResourceKey: "texture:gltf:environment:studio:diffuse",
+            samplerKey: "texture:gltf:environment:studio:diffuse:sampler",
+            addressModeU: "clamp-to-edge",
+            addressModeV: "clamp-to-edge",
+            addressModeW: "clamp-to-edge",
+            magFilter: "linear",
+            minFilter: "linear",
+            mipmapFilter: "linear",
+            maxAnisotropy: 1,
+            allocation: "ready",
+          },
+          {
+            environmentMapResourceKey:
+              "environment-map:gltf:environment:studio",
+            environmentIds: [expect.any(Number)],
+            kind: "specular",
+            sourceResourceKey: "texture:gltf:environment:studio:specular",
+            samplerKey: "texture:gltf:environment:studio:specular:sampler",
+            addressModeU: "clamp-to-edge",
+            addressModeV: "clamp-to-edge",
+            addressModeW: "clamp-to-edge",
+            magFilter: "linear",
+            minFilter: "linear",
+            mipmapFilter: "linear",
+            maxAnisotropy: 1,
+            allocation: "ready",
+          },
+        ],
+        diagnostics: [],
+      },
+      samplerResources: {
+        ready: true,
+        status: "available",
+        samplerDescriptorCount: 2,
+        createdSamplerCount: 2,
+        sections: {
+          samplerDescriptors: true,
+          gpuAllocation: true,
+          bindGroupLayout: false,
+          shaderSampling: false,
+        },
+        resources: [
+          {
+            valid: true,
+            resourceKey: "texture:gltf:environment:studio:diffuse:sampler",
+            descriptor: {
+              label:
+                "environment-map:gltf:environment:studio:diffuse:ibl-sampler",
+              addressModeU: "clamp-to-edge",
+              addressModeV: "clamp-to-edge",
+              addressModeW: "clamp-to-edge",
+              magFilter: "linear",
+              minFilter: "linear",
+              mipmapFilter: "linear",
+              lodMinClamp: 0,
+              lodMaxClamp: 32,
+              maxAnisotropy: 1,
+            },
+          },
+          {
+            valid: true,
+            resourceKey: "texture:gltf:environment:studio:specular:sampler",
+            descriptor: {
+              label:
+                "environment-map:gltf:environment:studio:specular:ibl-sampler",
+              addressModeU: "clamp-to-edge",
+              addressModeV: "clamp-to-edge",
+              addressModeW: "clamp-to-edge",
+              magFilter: "linear",
+              minFilter: "linear",
+              mipmapFilter: "linear",
+              lodMinClamp: 0,
+              lodMaxClamp: 32,
+              maxAnisotropy: 1,
+            },
+          },
+        ],
+        diagnostics: [],
+      },
+      diffuseResourceSummary: {
+        ready: false,
+        status: "deferred",
+        counts: {
+          textureSlots: 2,
+          diffuseTextureResources: 1,
+          samplerResources: 2,
+          deferredSpecularSlots: 1,
+        },
+        sections: {
+          texturePreparation: true,
+          diffuseTextureResource: true,
+          samplerResources: true,
+          specularPrefiltering: false,
+          bindGroupLayout: false,
+          shaderSampling: false,
+        },
+        resourceKeys: {
+          diffuseTextures: ["texture:gltf:environment:studio:diffuse:texture"],
+          samplers: [
+            "texture:gltf:environment:studio:diffuse:sampler",
+            "texture:gltf:environment:studio:specular:sampler",
+          ],
+          deferredSpecularTextures: [
+            "texture:gltf:environment:studio:specular:texture",
+          ],
+        },
+        diagnostics: [
+          {
+            code: "diffuseIblResourceSummary.specularPrefilteringDeferred",
+            severity: "warning",
+          },
+          {
+            code: "diffuseIblResourceSummary.bindGroupLayoutDeferred",
+            severity: "warning",
+          },
+          {
+            code: "diffuseIblResourceSummary.shaderSamplingDeferred",
+            severity: "warning",
+          },
+        ],
+      },
       passPlan: {
         ready: false,
         status: "deferred",
@@ -643,6 +1040,60 @@ test("Playwright shows the GLTF scene fixture through the app path", async ({
           },
         ],
       },
+      resourceSummary: {
+        ready: false,
+        status: "deferred",
+        counts: {
+          environmentMaps: 1,
+          descriptors: 1,
+          textureSlots: 2,
+          plannedTextures: 2,
+          plannedViews: 2,
+          plannedSamplers: 2,
+          preparationPasses: 2,
+        },
+        sections: {
+          iblDescriptors: true,
+          textureDescriptors: true,
+          textureUpload: false,
+          prefilterPassPlans: true,
+          passSubmission: false,
+          shaderSampling: false,
+        },
+        resourceKeys: {
+          environmentMaps: ["environment-map:gltf:environment:studio"],
+          textures: [
+            "texture:gltf:environment:studio:diffuse:texture",
+            "texture:gltf:environment:studio:specular:texture",
+          ],
+          views: [
+            "texture:gltf:environment:studio:diffuse:view",
+            "texture:gltf:environment:studio:specular:view",
+          ],
+          samplers: [
+            "texture:gltf:environment:studio:diffuse:sampler",
+            "texture:gltf:environment:studio:specular:sampler",
+          ],
+          passes: [
+            "ibl-pass:environment-map:gltf:environment:studio:diffuse",
+            "ibl-pass:environment-map:gltf:environment:studio:specular",
+          ],
+        },
+        diagnostics: [
+          {
+            code: "iblPreparationResourceSummary.textureUploadDeferred",
+            severity: "warning",
+          },
+          {
+            code: "iblPreparationResourceSummary.passSubmissionDeferred",
+            severity: "warning",
+          },
+          {
+            code: "iblPreparationResourceSummary.shaderSamplingDeferred",
+            severity: "warning",
+          },
+        ],
+      },
       shaderBinding: {
         ready: false,
         status: "deferred",
@@ -683,6 +1134,71 @@ test("Playwright shows the GLTF scene fixture through the app path", async ({
           },
           {
             code: "standardMaterialIblShadowBinding.shaderSamplingDeferred",
+            severity: "warning",
+          },
+        ],
+      },
+      pipelineKey: {
+        ready: false,
+        status: "deferred",
+        standardMaterialCount: 2,
+        featureCount: 4,
+        sections: {
+          bindingReadiness: true,
+          pipelineKeyMetadata: true,
+          pipelineDescriptor: false,
+          bindGroupLayout: false,
+          shaderSampling: false,
+        },
+        features: [
+          {
+            feature: "ibl-diffuse-irradiance",
+            pipelineKeyToken: "iblDiffuseIrradiance",
+            source: "ibl",
+            requiredBySlotCount: 1,
+            readiness: "deferred",
+          },
+          {
+            feature: "ibl-specular-prefilter",
+            pipelineKeyToken: "iblSpecularPrefilter",
+            source: "ibl",
+            requiredBySlotCount: 1,
+            readiness: "deferred",
+          },
+          {
+            feature: "shadow-map",
+            pipelineKeyToken: "shadowMap",
+            source: "shadow",
+            requiredBySlotCount: 1,
+            readiness: "deferred",
+          },
+          {
+            feature: "shadow-view-projection",
+            pipelineKeyToken: "shadowViewProjection",
+            source: "shadow",
+            requiredBySlotCount: 1,
+            readiness: "deferred",
+          },
+        ],
+        diagnostics: [
+          {
+            code: "standardMaterialIblShadowPipelineKey.deferredFeature",
+            severity: "warning",
+          },
+          {
+            code: "standardMaterialIblShadowPipelineKey.deferredFeature",
+            severity: "warning",
+          },
+          {
+            code: "standardMaterialIblShadowPipelineKey.deferredFeature",
+            severity: "warning",
+          },
+          {
+            code: "standardMaterialIblShadowPipelineKey.deferredFeature",
+            severity: "warning",
+          },
+          {
+            code: "standardMaterialIblShadowPipelineKey.shaderSamplingDeferred",
             severity: "warning",
           },
         ],
@@ -970,6 +1486,94 @@ test("Playwright shows the GLTF scene fixture through the app path", async ({
         diagnostics: [
           {
             code: "shadowCasterDrawList.commandEncodingDeferred",
+            severity: "warning",
+          },
+        ],
+      },
+      commandPlan: {
+        ready: false,
+        status: "deferred",
+        counts: {
+          requests: 1,
+          passes: 1,
+          viewProjectionPlans: 1,
+          matrices: 1,
+          casterLists: 1,
+          drawCommands: 3,
+          commandPlans: 1,
+        },
+        sections: {
+          shadowPassPlan: true,
+          viewProjectionPlanning: true,
+          matrixBufferDescriptor: true,
+          casterDrawLists: true,
+          commandEncoding: false,
+          gpuCommands: false,
+        },
+        commands: [
+          {
+            commandKey: expect.stringMatching(
+              /^shadow-pass:\d+:light:\d+:caster-commands$/,
+            ),
+            shadowId: expect.any(Number),
+            lightId: expect.any(Number),
+            passKey: expect.stringMatching(/^shadow-pass:\d+:light:\d+$/),
+            matrixResourceKey: "shadow-matrix-buffer:directional",
+            matrixOffsetBytes: 0,
+            drawCount: 3,
+            commandEncoding: "deferred",
+          },
+        ],
+        diagnostics: [
+          {
+            code: "shadowCasterCommandPlan.commandEncodingDeferred",
+            severity: "warning",
+          },
+        ],
+      },
+      resourceSummary: {
+        ready: false,
+        status: "deferred",
+        counts: {
+          requests: 1,
+          textures: 1,
+          passes: 1,
+          viewProjectionPlans: 1,
+          matrices: 1,
+          casterLists: 1,
+          commandPlans: 1,
+          drawCommands: 3,
+        },
+        sections: {
+          textureResources: true,
+          passPlans: true,
+          viewProjectionPlanning: true,
+          matrixBufferDescriptor: true,
+          casterDrawLists: true,
+          commandPlans: true,
+          gpuAllocation: false,
+          commandEncoding: false,
+        },
+        resourceKeys: {
+          textures: [
+            expect.stringMatching(/^shadow-map:\d+:light:\d+:texture$/),
+          ],
+          views: [expect.stringMatching(/^shadow-map:\d+:light:\d+:view$/)],
+          passes: [expect.stringMatching(/^shadow-pass:\d+:light:\d+$/)],
+          matrixBuffers: ["shadow-matrix-buffer:directional"],
+          commands: [
+            expect.stringMatching(
+              /^shadow-pass:\d+:light:\d+:caster-commands$/,
+            ),
+          ],
+        },
+        diagnostics: [
+          {
+            code: "shadowCommandResourceSummary.textureAllocationDeferred",
+            severity: "warning",
+          },
+          {
+            code: "shadowCommandResourceSummary.commandEncodingDeferred",
             severity: "warning",
           },
         ],

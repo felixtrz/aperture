@@ -37,6 +37,8 @@ const shadowIntent = {
   depthBias: 0.001,
   normalBias: 0.01,
 };
+let diffuseIblTextureResourceReport = null;
+let iblSamplerResourceReport = null;
 
 try {
   const [core, webgpu] = await Promise.all([
@@ -231,11 +233,51 @@ function publishFrameStatus(aperture, app, scene, step, report, frame) {
       descriptors: iblDescriptor,
     }),
   );
+  diffuseIblTextureResourceReport ??=
+    aperture.createDiffuseIblTextureResourceReport({
+      device: app.initialization.device,
+      textures: iblTextures,
+    });
+  const diffuseIblTextureResource =
+    aperture.diffuseIblTextureResourceReportToJsonValue(
+      diffuseIblTextureResourceReport,
+    );
+  const iblSamplerDescriptors =
+    aperture.createIblSamplerDescriptorReadinessReport({
+      textures: iblTextures,
+      allocation: "ready",
+    });
+  const iblSamplers = aperture.iblSamplerDescriptorReadinessReportToJsonValue(
+    iblSamplerDescriptors,
+  );
+  iblSamplerResourceReport ??= aperture.createIblSamplerResourceReport({
+    device: app.initialization.device,
+    samplers: iblSamplerDescriptors,
+  });
+  const iblSamplerResources = aperture.iblSamplerResourceReportToJsonValue(
+    iblSamplerResourceReport,
+  );
+  const diffuseIblResourceSummary =
+    aperture.diffuseIblResourceSummaryReportToJsonValue(
+      aperture.createDiffuseIblResourceSummaryReport({
+        textures: iblTextures,
+        diffuseTextureResource: diffuseIblTextureResourceReport,
+        samplers: iblSamplerResourceReport,
+      }),
+    );
   const iblPassPlan = aperture.iblPreparationPassPlanReportToJsonValue(
     aperture.createIblPreparationPassPlanReport({
       textures: iblTextures,
     }),
   );
+  const iblResourceSummary =
+    aperture.iblPreparationResourceSummaryReportToJsonValue(
+      aperture.createIblPreparationResourceSummaryReport({
+        descriptors: iblDescriptor,
+        textures: iblTextures,
+        passPlan: iblPassPlan,
+      }),
+    );
   const standardMaterialCount =
     contractJson.summary.materialFamilies.find(
       (materialFamily) => materialFamily.family === "standard",
@@ -304,6 +346,26 @@ function publishFrameStatus(aperture, app, scene, step, report, frame) {
         shadowPassPlan,
       }),
     );
+  const shadowCommandPlan =
+    aperture.shadowCasterCommandPlanReadinessReportToJsonValue(
+      aperture.createShadowCasterCommandPlanReadinessReport({
+        shadowPassPlan,
+        viewProjection: shadowViewProjection,
+        matrixBuffer: shadowMatrixBuffer,
+        casterDrawList: shadowCasterDrawList,
+      }),
+    );
+  const shadowResourceSummary =
+    aperture.shadowCommandResourceSummaryReportToJsonValue(
+      aperture.createShadowCommandResourceSummaryReport({
+        textures: shadowTextures,
+        passPlan: shadowPassPlan,
+        viewProjection: shadowViewProjection,
+        matrixBuffer: shadowMatrixBuffer,
+        casterDrawList: shadowCasterDrawList,
+        commandPlan: shadowCommandPlan,
+      }),
+    );
   const standardMaterialIblShadowBinding =
     aperture.standardMaterialIblShadowBindingReadinessReportToJsonValue(
       aperture.createStandardMaterialIblShadowBindingReadinessReport({
@@ -313,6 +375,37 @@ function publishFrameStatus(aperture, app, scene, step, report, frame) {
         shadowCasterDrawList,
       }),
     );
+  const standardMaterialIblShadowPipelineKey =
+    aperture.standardMaterialIblShadowPipelineKeyReadinessReportToJsonValue(
+      aperture.createStandardMaterialIblShadowPipelineKeyReadinessReport({
+        standardMaterialCount,
+        bindingReadiness: standardMaterialIblShadowBinding,
+      }),
+    );
+  const readiness = createReadinessGrouping({
+    environmentReadiness,
+    iblDescriptor,
+    iblTextures,
+    diffuseIblTextureResource,
+    iblSamplers,
+    iblSamplerResources,
+    diffuseIblResourceSummary,
+    iblPassPlan,
+    iblResourceSummary,
+    standardMaterialIbl,
+    standardMaterialIblShadowBinding,
+    standardMaterialIblShadowPipelineKey,
+    shadowDescriptor,
+    shadowResources,
+    shadowTextures,
+    shadowPassPlan,
+    shadowViewProjection,
+    shadowMatrixBuffer,
+    shadowCasterDrawList,
+    shadowCommandPlan,
+    shadowResourceSummary,
+    standardMaterialShadow,
+  });
 
   publishStatus({
     example: "gltf-scene",
@@ -320,6 +413,7 @@ function publishFrameStatus(aperture, app, scene, step, report, frame) {
     phase: report.ok ? "render" : "failed",
     renderingBackend: "webgpu-explicit",
     frame,
+    readiness,
     clearColor: {
       r: clearColor[0],
       g: clearColor[1],
@@ -354,8 +448,14 @@ function publishFrameStatus(aperture, app, scene, step, report, frame) {
       readiness: environmentReadiness,
       descriptor: iblDescriptor,
       textures: iblTextures,
+      diffuseTextureResource: diffuseIblTextureResource,
+      samplers: iblSamplers,
+      samplerResources: iblSamplerResources,
+      diffuseResourceSummary: diffuseIblResourceSummary,
       passPlan: iblPassPlan,
+      resourceSummary: iblResourceSummary,
       shaderBinding: standardMaterialIblShadowBinding,
+      pipelineKey: standardMaterialIblShadowPipelineKey,
       standardMaterial: standardMaterialIbl,
       sampling: {
         supported: false,
@@ -389,6 +489,8 @@ function publishFrameStatus(aperture, app, scene, step, report, frame) {
       viewProjection: shadowViewProjection,
       matrixBuffer: shadowMatrixBuffer,
       casterDrawList: shadowCasterDrawList,
+      commandPlan: shadowCommandPlan,
+      resourceSummary: shadowResourceSummary,
       standardMaterial: standardMaterialShadow,
       rendering: {
         supported: false,
@@ -420,6 +522,72 @@ function publishFrameStatus(aperture, app, scene, step, report, frame) {
       height: scene.canvas.height,
     },
   });
+}
+
+function createReadinessGrouping(input) {
+  const iblPhases = {
+    environmentMap: input.environmentReadiness.ready ? "ready" : "missing",
+    descriptors: input.iblDescriptor.ready ? "ready" : "missing",
+    texturePreparation: input.iblTextures.status,
+    diffuseTextureResource: normalizeStatus(
+      input.diffuseIblTextureResource.status,
+    ),
+    samplerDescriptors: input.iblSamplers.status,
+    samplerResources: normalizeStatus(input.iblSamplerResources.status),
+    diffuseResourceSummary: input.diffuseIblResourceSummary.status,
+    preparationPasses: input.iblPassPlan.status,
+    resourceSummary: input.iblResourceSummary.status,
+    standardMaterial: normalizeStatus(input.standardMaterialIbl.status),
+    shaderBinding: normalizeStatus(
+      input.standardMaterialIblShadowBinding.status,
+    ),
+    pipelineKey: input.standardMaterialIblShadowPipelineKey.status,
+    shaderSampling: "deferred",
+  };
+  const shadowPhases = {
+    descriptors: input.shadowDescriptor.ready ? "ready" : "missing",
+    resourceReadiness: normalizeStatus(input.shadowResources.status),
+    textureDescriptors: input.shadowTextures.ready ? "deferred" : "missing",
+    passPlans: input.shadowPassPlan.status,
+    viewProjection: input.shadowViewProjection.status,
+    matrixBuffer: input.shadowMatrixBuffer.status,
+    casterDrawLists: input.shadowCasterDrawList.status,
+    commandPlans: input.shadowCommandPlan.status,
+    resourceSummary: input.shadowResourceSummary.status,
+    standardMaterial: input.standardMaterialShadow.status,
+    rendering: "deferred",
+  };
+
+  return {
+    ibl: {
+      status: summarizePhaseStatus(Object.values(iblPhases)),
+      phases: iblPhases,
+    },
+    shadow: {
+      status: summarizePhaseStatus(Object.values(shadowPhases)),
+      phases: shadowPhases,
+    },
+  };
+}
+
+function normalizeStatus(status) {
+  return status === "available" ? "ready" : status;
+}
+
+function summarizePhaseStatus(statuses) {
+  if (statuses.includes("missing")) {
+    return "missing";
+  }
+
+  if (statuses.includes("unsupported")) {
+    return "unsupported";
+  }
+
+  if (statuses.includes("deferred")) {
+    return "deferred";
+  }
+
+  return "ready";
 }
 
 function familyBuckets(report) {
