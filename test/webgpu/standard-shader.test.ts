@@ -18,6 +18,7 @@ import {
   STANDARD_METALLIC_ROUGHNESS_TEXTURED_MESH_SHADER,
   STANDARD_METALLIC_ROUGHNESS_TEXTURED_MESH_WGSL,
   STANDARD_METALLIC_ROUGHNESS_TEXTURE_SHADER_VARIANT,
+  STANDARD_POINT_SHADOW_MAP_SHADER_VARIANT,
   PACKED_LIGHT_FLOAT_STRIDE,
   PACKED_LIGHT_METADATA_STRIDE,
   PackedLightKindId,
@@ -257,6 +258,39 @@ describe("built-in standard material WGSL shader metadata", () => {
       ["directionalShadowMap", 3, 3, "texture"],
       ["directionalShadowSampler", 3, 4, "sampler"],
     ]);
+  });
+
+  it("compares point shadow cube samples against projected receiver depth", () => {
+    const shader = createStandardTextureVariantShader({
+      baseColorTexture: false,
+      metallicRoughnessTexture: false,
+      normalTexture: false,
+      occlusionTexture: false,
+      emissiveTexture: false,
+      pointShadowMap: true,
+    });
+
+    expect(validateStandardShaderMetadata(shader)).toEqual({
+      valid: true,
+      diagnostics: [],
+    });
+    expect(STANDARD_POINT_SHADOW_MAP_SHADER_VARIANT).toBe(
+      "direct-lit-metallic-roughness-point-shadow-map",
+    );
+    expect(shader.label).toBe("aperture/standard-mesh-point-shadow-receiver");
+    expect(shader.code).toContain(
+      "@group(3) @binding(3) var pointShadowMap: texture_depth_cube;",
+    );
+    expect(shader.code).toContain(
+      "fn samplePointShadowFactor(worldPosition: vec3f, lightPosition: vec3f) -> f32",
+    );
+    expect(shader.code).toContain("let clampedShadowDepth = clamp(");
+    expect(shader.code).toContain(
+      "clampedShadowDepth - STANDARD_POINT_SHADOW_DEPTH_BIAS",
+    );
+    expect(shader.code).not.toContain(
+      "let receiverDepth = 1.0 - STANDARD_POINT_SHADOW_DEPTH_BIAS;",
+    );
   });
 
   it("declares browser-safe group 3 bindings for the diffuse IBL shader variant", () => {

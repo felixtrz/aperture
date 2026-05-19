@@ -13,6 +13,8 @@ Summary:
   view/projection planning, and point shadow matrix upload.
 - Added StandardMaterial point-shadow pipeline keys, group 3 cube-depth receiver
   bindings, WGSL point-light direct lighting, and point-shadow cube-map sampling.
+- Refined point-shadow sampling to compare against the clamped projected
+  receiver depth rather than a constant reference depth.
 - Added `examples/point-shadow.html` / `examples/point-shadow.js` with a point
   light, cube caster, receiver wall, caster/receiver toggles, JSON-safe status,
   and Playwright coverage proving the receiver changes when point-shadow

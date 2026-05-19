@@ -1,8 +1,8 @@
 # Agent Handoff
 
-Updated: 2026-05-19T21:06:51Z
+Updated: 2026-05-19T21:08:50Z
 
-## Current Run Update — 2026-05-19T21:06:51Z — Point shadow cube-map proof
+## Current Run Update — 2026-05-19T21:08:50Z — Point shadow cube-map proof
 
 Completed `task-2012`.
 
@@ -15,6 +15,8 @@ Completed `task-2012`.
   view/projection planning, and point-shadow matrix computation/upload.
 - Added StandardMaterial point-shadow route support through group 3 cube-depth
   bindings and WGSL point-light shadow sampling.
+- Refined the point-shadow compare reference to use the clamped projected
+  receiver depth instead of a constant compare depth.
 - Added `examples/point-shadow.html` and `examples/point-shadow.js` with a
   point light, cube caster, receiver wall, caster/receiver toggles, JSON-safe
   status, and browser coverage proving point-shadow receiver activation.

@@ -1592,7 +1592,12 @@ fn samplePointShadowFactor(worldPosition: vec3f, lightPosition: vec3f) -> f32 {
     return 1.0;
   }
 
-  let receiverDepth = 1.0 - STANDARD_POINT_SHADOW_DEPTH_BIAS;
+  let clampedShadowDepth = clamp(shadowDepth, 0.0, 1.0);
+  let receiverDepth = clamp(
+    clampedShadowDepth - STANDARD_POINT_SHADOW_DEPTH_BIAS,
+    0.0,
+    1.0,
+  );
   let rawVisibility = textureSampleCompareLevel(
     pointShadowMap,
     pointShadowSampler,
