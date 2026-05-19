@@ -6,6 +6,7 @@ import {
   STANDARD_DIFFUSE_IBL_SHADER_VARIANT,
   STANDARD_DIRECT_LIGHT_SHADER_VARIANT,
   STANDARD_METALLIC_ROUGHNESS_TEXTURE_SHADER_VARIANT,
+  STANDARD_SPECULAR_IBL_PROOF_SHADER_VARIANT,
   createStandardPipelineDescriptorPlan,
   createStandardPipelineShaderFeaturePlan,
   createUnlitPipelineDescriptorPlan,
@@ -344,6 +345,44 @@ describe("standard material pipeline descriptor planning", () => {
             "standard/group-1:world-transforms@0",
             "standard/group-2:material@0",
             "standard/lights-ibl/group-3:light-floats@0,light-metadata@1,diffuse-ibl@5,ibl-sampler@6",
+          ],
+        },
+      },
+    );
+  });
+
+  it("specializes the specular IBL proof pipeline variant with a group 3 executable layout key", () => {
+    const result = createStandardPipelineDescriptorPlan({
+      colorFormat: "bgra8unorm",
+      batchKey: {
+        ...STANDARD_BATCH_KEY,
+        pipelineKey:
+          "standard|iblDiffuse|iblSpecularProof|opaque|back|less|none",
+      },
+    });
+
+    expect(result.diagnostics).toEqual([]);
+    expect(result.plan?.descriptor).toMatchObject({
+      label:
+        "aperture/standard-mesh-diffuse-specular-ibl-proof:bgra8unorm:triangle-list",
+      vertex: {
+        moduleLabel: "aperture/standard-mesh-diffuse-specular-ibl-proof",
+      },
+      fragment: {
+        moduleLabel: "aperture/standard-mesh-diffuse-specular-ibl-proof",
+      },
+    });
+    expect(JSON.parse(required(result.plan).cacheKey) as unknown).toMatchObject(
+      {
+        shader: {
+          variantKey: STANDARD_SPECULAR_IBL_PROOF_SHADER_VARIANT,
+        },
+        layouts: {
+          bindGroups: [
+            "standard/group-0:view-uniform@0",
+            "standard/group-1:world-transforms@0",
+            "standard/group-2:material@0",
+            "standard/lights-ibl/group-3:light-floats@0,light-metadata@1,diffuse-ibl@5,ibl-sampler@6,specular-ibl-proof@7",
           ],
         },
       },

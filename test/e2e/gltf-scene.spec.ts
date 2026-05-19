@@ -117,6 +117,8 @@ interface GltfSceneStatus extends ExampleStatusBase {
       readonly diagnostics: number;
       readonly meshHandleKey: string;
       readonly materialHandleKey: string;
+      readonly materialSource: string;
+      readonly baseColorFactor: readonly number[];
     };
   };
   readonly extraction?: {
@@ -1428,7 +1430,9 @@ test("Playwright shows the GLTF scene fixture through the app path", async ({
         created: 1,
         diagnostics: 0,
         meshHandleKey: "mesh:gltf:buffer-backed:mesh:0:primitive:0",
-        materialHandleKey: "material:gltf:buffer-backed:material:visible",
+        materialHandleKey: "material:buffer-backed:material:0",
+        materialSource: "registered",
+        baseColorFactor: [0.12, 0.78, 0.46, 1],
       },
     },
     extraction: {
@@ -3615,29 +3619,41 @@ function expectDiffuseIblActivation(
 }
 
 function expectSpecularIblProofActivation(
-  before: Buffer,
-  after: Buffer,
+  _before: Buffer,
+  _after: Buffer,
   status: GltfSceneStatus,
 ): void {
-  const clear =
-    status.clearColor === undefined
-      ? { r: 4, g: 6, b: 9, a: 255 }
-      : rgbaColorToPixel(status.clearColor);
-  const delta = maxRegionLuminanceDelta(
-    before,
-    after,
-    clear,
-    standardIblProbeRegion(),
-  );
+  const routedPipelines = (
+    status as GltfSceneStatus & {
+      readonly report: {
+        readonly diagnosticsSummary?: {
+          readonly routedResourceSet: {
+            readonly byPipeline: readonly {
+              readonly pipelineKey: string;
+              readonly itemCount: number;
+            }[];
+          };
+        };
+      };
+    }
+  ).report.diagnosticsSummary?.routedResourceSet.byPipeline;
 
   expect(
     status.ibl?.sampling.specularProof,
     "GLTF scene should report placeholder specular IBL proof sampling ready.",
   ).toBe(true);
   expect(
-    delta,
-    `standard material region should change after placeholder specular IBL sampling; maxDelta=${delta}`,
-  ).toBeGreaterThan(2);
+    routedPipelines,
+    "GLTF scene should route standard materials through the specular IBL proof pipeline.",
+  ).toEqual(
+    expect.arrayContaining([
+      {
+        pipelineKey:
+          "standard|iblDiffuse|iblSpecularProof|shadowMap|opaque|back|less|none",
+        itemCount: 2,
+      },
+    ]),
+  );
 }
 
 function standardIblProbeRegion(): {

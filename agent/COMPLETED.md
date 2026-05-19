@@ -1,5 +1,168 @@
 # Completed Tasks
 
+## task-2008 — Add orbit camera control to glb-viewer
+
+Completed: 2026-05-19
+
+Summary:
+
+- Added pointer-drag orbit and wheel zoom state to `examples/glb-viewer.js`.
+- The viewer updates the ECS camera `LocalTransform` before each app step,
+  keeping camera interaction inside the ECS-authoritative runtime path.
+- Extended GLB viewer status with JSON-safe orbit yaw/distance/dragging state.
+- Extended Playwright coverage to drag the viewer canvas, wait for a yaw change,
+  and assert rendered pixels differ after the camera orbit.
+
+References inspected:
+
+- `references/three.js/examples/jsm/controls/OrbitControls.js`
+
+Validation:
+
+- `node --check examples/glb-viewer.js`
+- `pnpm run typecheck:test`
+- `pnpm run lint`
+- `pnpm run format:check`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts`
+
+## task-2007 — Create `examples/glb-viewer.html` that fetches and renders a sample `.glb`
+
+Completed: 2026-05-19
+
+Summary:
+
+- Added `examples/assets/cube.glb`, a small committed GLB fixture with an unlit
+  source material.
+- Added `examples/glb-viewer.html` and `examples/glb-viewer.js`; the example
+  fetches the sample via `loadGlbFromUri(...)`, registers source assets, resolves
+  primitive material handles, replays ECS authoring commands, and renders via the
+  WebGPU app facade.
+- Added `test/e2e/glb-viewer.spec.ts` to verify the fetched sample reaches one
+  extracted mesh draw, one draw package/call, and non-clear canvas pixels.
+- Added the viewer to the examples navigation and `check:examples` script.
+
+References inspected:
+
+- `references/three.js/examples/webgpu_loader_gltf.html`
+- `references/three.js/examples/jsm/loaders/GLTFLoader.js`
+
+Validation:
+
+- `node --check examples/glb-viewer.js`
+- `pnpm run typecheck:test`
+- `pnpm run check:examples`
+- `pnpm run lint`
+- `pnpm run format:check`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts`
+
+## task-2006 — Add public `loadGlbFromUri(url, options)` async loader with error reporting
+
+Completed: 2026-05-19
+
+Summary:
+
+- Added `loadGlbFromUri(url, options)` to `@aperture-engine/render`.
+- The loader validates absolute URLs, fetches GLB bytes with `globalThis.fetch`
+  or an injected fetch function, passes the ArrayBuffer into the existing
+  no-fetch GLB source-loader facade, and keeps raw bytes out of JSON status.
+- Added typed diagnostics for invalid URLs, missing fetch support, fetch
+  failures, HTTP errors, response-read failures, and downstream loader
+  diagnostics.
+- Added coverage for a base64 data-URL GLB, malformed URL handling, and HTTP
+  error reporting.
+
+References inspected:
+
+- `references/three.js/examples/jsm/loaders/GLTFLoader.js`
+- `references/engine/src/framework/parsers/glb-parser.js`
+
+Validation:
+
+- `pnpm exec tsc -p packages/render/tsconfig.json --noEmit`
+- `pnpm exec vitest run test/assets/glb-uri-loader.test.ts`
+- `pnpm run typecheck:test`
+
+## task-2005 — Map GLB source material onto the buffer-backed primitive
+
+Completed: 2026-05-19
+
+Summary:
+
+- Updated the GLTF scene's buffer-backed GLB fixture to create asset-mapping
+  and mesh-construction reports from the same GLB source.
+- Resolved the primitive material through
+  `createGltfPrimitiveMaterialResolutionReport(...)`, registered the
+  GLB-authored material under a prefixed source key, and replayed the visible
+  primitive with that material handle instead of the hardcoded proof material.
+- Published `materialSource` and rounded `baseColorFactor` status for the
+  visible buffer-backed replay, with Playwright assertions for the source color
+  and prefixed material handle.
+
+References inspected:
+
+- `references/bevy/crates/bevy_gltf/src/loader/mod.rs`
+- `references/three.js/examples/jsm/loaders/GLTFLoader.js`
+
+Validation:
+
+- `node --check examples/gltf-scene.js`
+- `pnpm run typecheck:test`
+- `pnpm exec playwright test test/e2e/gltf-scene.spec.ts`
+
+## task-2004 — Replace specular-IBL placeholder with a minimal GGX mip-chain prefilter
+
+Completed: 2026-05-19
+
+Summary:
+
+- Updated the StandardMaterial specular IBL shader branch to sample the
+  renderer-owned cube texture with `textureSampleLevel(...)` using material
+  roughness as the mip selector.
+- Expanded `examples/spinning-cube.js` with a deterministic specular IBL mip
+  chain and two small glossy/rough probe cubes rendered through ECS-authored
+  StandardMaterial entities.
+- Updated Playwright coverage to compare the glossy and rough probe pixels while
+  preserving the diffuse/specular IBL route assertions.
+
+References inspected:
+
+- `references/three.js/src/extras/PMREMGenerator.js`
+- `references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/reflectionCube.js`
+
+Validation:
+
+- `node --check examples/spinning-cube.js`
+- `pnpm exec tsc -p packages/webgpu/tsconfig.json --noEmit`
+- `pnpm run typecheck:test`
+- `pnpm exec vitest run test/webgpu/standard-pipeline-descriptor.test.ts`
+- `pnpm exec playwright test test/e2e/spinning-cube.spec.ts`
+
+## task-2003 — Render specular IBL on the spinning-cube example
+
+Completed: 2026-05-19
+
+Summary:
+
+- Added renderer-owned specular IBL cube resources to the spinning-cube example
+  while keeping environment-map authoring ECS handle-based.
+- Activated the StandardMaterial `iblDiffuse|iblSpecularProof` route for the
+  example by providing ready diffuse, specular, and sampler resources.
+- Added a dedicated StandardMaterial pipeline descriptor test for the specular
+  IBL proof route and updated Playwright status/pixel assertions.
+
+References inspected:
+
+- `references/three.js/src/extras/PMREMGenerator.js`
+- `references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/reflectionCube.js`
+
+Validation:
+
+- `node --check examples/spinning-cube.js`
+- `pnpm exec tsc -p packages/webgpu/tsconfig.json --noEmit`
+- `pnpm run typecheck:test`
+- `pnpm exec vitest run test/webgpu/standard-pipeline-descriptor.test.ts`
+- `pnpm exec playwright test test/e2e/spinning-cube.spec.ts`
+
 ## task-2002 — Add `withEnvironmentMap(handle)` runtime helper and adopt in materials-showcase
 
 Completed: 2026-05-19

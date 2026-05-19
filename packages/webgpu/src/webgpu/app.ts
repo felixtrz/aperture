@@ -2070,11 +2070,7 @@ function hasReadyStandardSpecularIblProofResources(
     hasReadyStandardDiffuseIblResources(resources) &&
     resources.specularTextureResource?.resources.some(
       (resource) => resource.valid && resource.resource !== null,
-    ) === true &&
-    resources.specularTextureResource.diagnostics.some(
-      (diagnostic) =>
-        diagnostic.code === "iblTextureResource.specularProofUploadPlaceholder",
-    )
+    ) === true
   );
 }
 

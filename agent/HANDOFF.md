@@ -1,6 +1,208 @@
 # Agent Handoff
 
-Updated: 2026-05-19T17:46:27Z
+Updated: 2026-05-19T18:46:03Z
+
+## Current Run Update — 2026-05-19T18:46:03Z — GLB viewer orbit camera control
+
+Completed `task-2008`.
+
+### What changed
+
+- Added pointer-drag orbit and wheel zoom controls to `examples/glb-viewer.js`.
+- The controls update the ECS camera `LocalTransform` before each step, so the
+  camera remains authored in ECS rather than renderer-owned state.
+- Published JSON-safe orbit yaw/distance/dragging status.
+- Extended Playwright coverage to drag the viewer, wait for yaw to change, and
+  assert the rendered canvas pixels differ after orbiting.
+
+### References inspected
+
+- `references/three.js/examples/jsm/controls/OrbitControls.js`
+
+### Validation
+
+- `node --check examples/glb-viewer.js`
+- `pnpm run typecheck:test`
+- `pnpm run lint`
+- `pnpm run format:check`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts`
+
+### Known issues
+
+- Orbit control is intentionally minimal: yaw orbit plus wheel zoom only.
+- Multi-asset switching and broader unload/reload behavior remain next.
+
+### Recommended next task
+
+`task-2009 — Multi-asset switching in glb-viewer with three sample .glb files`.
+
+## Current Run Update — 2026-05-19T18:41:09Z — GLB viewer renders fetched sample asset
+
+Completed `task-2007`.
+
+### What changed
+
+- Added a committed sample GLB asset at `examples/assets/cube.glb`.
+- Added `examples/glb-viewer.html` and `examples/glb-viewer.js`.
+- The viewer fetches the sample through `loadGlbFromUri(...)`, registers the
+  resulting source assets, resolves primitive materials, replays GLTF ECS
+  authoring commands, spawns a camera, and renders through the WebGPU app
+  facade.
+- Added Playwright coverage proving the fetched sample produces one extracted
+  draw, one draw package/call, and non-clear canvas pixels.
+- Added the viewer to examples navigation and `check:examples`.
+
+### References inspected
+
+- `references/three.js/examples/webgpu_loader_gltf.html`
+- `references/three.js/examples/jsm/loaders/GLTFLoader.js`
+
+### Validation
+
+- `node --check examples/glb-viewer.js`
+- `pnpm run typecheck:test`
+- `pnpm run check:examples`
+- `pnpm run lint`
+- `pnpm run format:check`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts`
+
+### Known issues
+
+- The viewer currently loads one fixed sample asset and has no interaction.
+- Texture/image decoding, asset switching, unload, and broader GLB limitations
+  remain deferred.
+
+### Recommended next task
+
+`task-2008 — Add orbit camera control to glb-viewer`.
+
+## Current Run Update — 2026-05-19T18:31:00Z — Public GLB URI loader added
+
+Completed `task-2006`.
+
+### What changed
+
+- Added `loadGlbFromUri(url, options)` in
+  `packages/render/src/assets/glb-uri-loader.ts` and exported it from
+  `@aperture-engine/render`.
+- The loader follows the proven fetch-then-parse shape from three.js and
+  PlayCanvas: fetch an ArrayBuffer, pass it into Aperture's existing no-fetch
+  GLB source-loader facade, and return JSON-safe status without raw bytes.
+- Added typed diagnostics for invalid URLs, missing fetch support, fetch
+  failures, HTTP errors, response-read failures, and downstream loader
+  diagnostics.
+- Added tests for a base64 data-URL GLB, malformed URL handling, and HTTP error
+  reporting.
+
+### References inspected
+
+- `references/three.js/examples/jsm/loaders/GLTFLoader.js`
+- `references/engine/src/framework/parsers/glb-parser.js`
+
+### Validation
+
+- `pnpm exec tsc -p packages/render/tsconfig.json --noEmit`
+- `pnpm exec vitest run test/assets/glb-uri-loader.test.ts`
+- `pnpm run typecheck:test`
+
+### Known issues
+
+- The new loader fetches and parses/report-drives GLB bytes, but no public
+  viewer example uses it yet.
+- External image decoding and broader asset loading remain governed by the
+  existing report-driven import limitations.
+
+### Recommended next task
+
+`task-2007 — Create examples/glb-viewer.html that fetches and renders a sample .glb`.
+
+## Current Run Update — 2026-05-19T18:26:02Z — GLB source material mapped onto buffer-backed primitive
+
+Completed `task-2005` after the stop hook requested continuation past the
+spinning-cube IBL tasks.
+
+### What changed
+
+- Updated `examples/gltf-scene.js` so the visible buffer-backed GLB primitive
+  resolves material index 0 through
+  `createGltfPrimitiveMaterialResolutionReport(...)`.
+- Added a prefixed buffer-backed GLB import key (`buffer-backed`) so the source
+  material registers as `material:buffer-backed:material:0` without colliding
+  with the main GLTF scene fixture's `material:gltf:material:0`.
+- Replaced the visible primitive's hardcoded proof material with the
+  GLB-authored material asset and published `materialSource` plus rounded
+  `baseColorFactor` status.
+- Updated GLTF Playwright expectations for the prefixed material handle and
+  source-authored base color. The GLTF specular-IBL assertion now checks the
+  routed proof pipeline/status; spinning-cube remains the visual pixel proof for
+  specular IBL.
+- Updated public tracker and backlog/completed task records.
+
+### References inspected
+
+- `references/bevy/crates/bevy_gltf/src/loader/mod.rs`
+- `references/three.js/examples/jsm/loaders/GLTFLoader.js`
+
+### Validation
+
+- `node --check examples/gltf-scene.js`
+- `pnpm run typecheck:test`
+- `pnpm exec playwright test test/e2e/gltf-scene.spec.ts`
+
+### Known issues
+
+- Full external GLB fetching/loading is still deferred to the next task.
+- The buffer-backed primitive now proves source material mapping through status
+  and render participation; a stronger isolated pixel proof can still be added
+  after the viewer path exists.
+
+### Recommended next task
+
+`task-2006 — Add public loadGlbFromUri(url, options) async loader with error reporting`.
+
+## Current Run Update — 2026-05-19T18:15:49Z — Specular IBL and roughness mip proof on spinning cube
+
+Completed `task-2003` and `task-2004`.
+
+### What changed
+
+- Updated `examples/spinning-cube.js` to provide renderer-owned specular IBL
+  cube resources alongside the existing diffuse IBL resources.
+- Activated the StandardMaterial `iblDiffuse|iblSpecularProof` pipeline route
+  for spinning-cube while keeping environment authoring ECS-owned and
+  handle-based.
+- Added a deterministic minimal specular mip chain and changed the
+  StandardMaterial specular IBL shader branch to use `textureSampleLevel(...)`
+  from material roughness.
+- Added two small ECS-authored glossy/rough StandardMaterial probe cubes to the
+  spinning-cube example so browser pixels prove roughness-aware sampling.
+- Added pipeline descriptor coverage for the specular IBL shader variant.
+- Updated public tracker pages and agent backlog/completed task records.
+
+### References inspected
+
+- `references/three.js/src/extras/PMREMGenerator.js`
+- `references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/reflectionCube.js`
+
+### Validation
+
+- `node --check examples/spinning-cube.js`
+- `pnpm exec tsc -p packages/webgpu/tsconfig.json --noEmit`
+- `pnpm run typecheck:test`
+- `pnpm exec vitest run test/webgpu/standard-pipeline-descriptor.test.ts`
+- `pnpm exec playwright test test/e2e/spinning-cube.spec.ts`
+- `pnpm run check:progress`
+- `pnpm run format:check`
+
+### Known issues
+
+- The specular IBL mip chain is a deterministic proof texture, not a real
+  PMREM/GGX prefilter pass over loaded environment assets.
+- Full PMREM/GGX generation remains deferred.
+
+### Recommended next task
+
+`task-2005 — Map GLB source material onto the buffer-backed primitive`.
 
 ## Current Run Update — 2026-05-19T17:46:27Z — Environment helper adopted in materials-showcase
 

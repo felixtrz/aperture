@@ -18,6 +18,7 @@ export * from "./gltf-source-registration-orchestration.js";
 export * from "./glb-source-loader-facade.js";
 export * from "./glb-source-loader-output-summary.js";
 export * from "./glb-source-loader-status.js";
+export * from "./glb-uri-loader.js";
 export * from "./glb-container.js";
 export * from "./gltf-root.js";
 export * from "./preparation.js";

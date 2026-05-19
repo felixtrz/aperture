@@ -59,10 +59,16 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start with `task-2003`: render specular IBL on the spinning-cube example.
+Start with `task-2009`: multi-asset switching in `glb-viewer` with three sample `.glb` files.
 
 `task-2001` is complete: the spinning-cube example now creates a renderer-owned face-colored diffuse IBL cube texture and sampler, routes it through the StandardMaterial diffuse IBL shader variant, and Playwright verifies direction-dependent face pixels.
 `task-2002` is complete: `withEnvironmentMap(handle)` is exported from runtime/core and materials-showcase now uses it with visible diffuse IBL routing.
+`task-2003` is complete: the spinning-cube example now creates renderer-owned specular IBL resources, routes StandardMaterial through `iblSpecularProof`, and Playwright verifies visible specular response.
+`task-2004` is complete: the specular IBL proof now samples a minimal roughness-addressed mip chain, and the spinning-cube example includes glossy/rough probes with Playwright pixel comparison.
+`task-2005` is complete: the GLTF scene buffer-backed primitive now resolves its source GLB material, registers a prefixed material handle, and publishes/asserts the GLB-authored base-color factor.
+`task-2006` is complete: `loadGlbFromUri(url, options)` is exported from `@aperture-engine/render`, fetches GLB bytes into the existing no-fetch facade, and reports typed URL/fetch/HTTP/read/loader diagnostics.
+`task-2007` is complete: `examples/glb-viewer.html` fetches `examples/assets/cube.glb` with `loadGlbFromUri(...)`, registers/replays the GLB source assets through ECS, and Playwright verifies a visible rendered draw.
+`task-2008` is complete: `glb-viewer` has pointer-drag orbit and wheel zoom controls over the ECS camera transform, with Playwright proving drag changes rendered pixels.
 
 Reference anchors (read both before writing WGSL):
 
@@ -122,6 +128,8 @@ Acceptance criteria:
 
 ### task-2003 — Render specular IBL on the spinning-cube example
 
+Status: completed 2026-05-19. See `agent/COMPLETED.md`.
+
 Category: `webgpu-render`
 Package/write-scope: `packages/webgpu/src/`, `examples/spinning-cube.js`, targeted tests.
 Reference anchor: `references/three.js/src/extras/PMREMGenerator.js` (specular mip chain); `references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/reflectionCube.js` (PlayCanvas WGSL specular cube sampling).
@@ -134,6 +142,8 @@ Acceptance criteria:
 
 ### task-2004 — Replace specular-IBL placeholder with a minimal GGX mip-chain prefilter
 
+Status: completed 2026-05-19. See `agent/COMPLETED.md`.
+
 Category: `webgpu-render`
 Package/write-scope: `packages/webgpu/src/`, targeted tests.
 Reference anchor: `references/three.js/src/extras/PMREMGenerator.js` — the load-time GGX prefilter is the proven anchor.
@@ -144,6 +154,8 @@ Acceptance criteria:
 - Two cubes with `roughness=0.1` and `roughness=0.9` show visibly different specular extent in Playwright pixel comparison.
 
 ### task-2005 — Map GLB source material onto the buffer-backed primitive (promotes the deleted task-1978)
+
+Status: completed 2026-05-19. See `agent/COMPLETED.md`.
 
 Category: `render-bridge`
 Package/write-scope: `packages/render/src/assets/`, `examples/gltf-scene.js`, `test/e2e/gltf-scene.spec.ts`.
@@ -160,6 +172,8 @@ Acceptance criteria:
 
 ### task-2006 — Add public `loadGlbFromUri(url, options)` async loader with error reporting
 
+Status: completed 2026-05-19. See `agent/COMPLETED.md`.
+
 Category: `render-bridge`
 Package/write-scope: `packages/render/src/assets/`, targeted tests.
 Reference anchor: `references/three.js/examples/jsm/loaders/GLTFLoader.js` (fetch + parse + error reporting flow); `references/engine/src/framework/parsers/glb-parser.js` (PlayCanvas GLB parser entry).
@@ -171,6 +185,8 @@ Acceptance criteria:
 - Test loads a malformed URL and reports `ok: false` with a typed diagnostic.
 
 ### task-2007 — Create `examples/glb-viewer.html` that fetches and renders a sample `.glb`
+
+Status: completed 2026-05-19. See `agent/COMPLETED.md`.
 
 Category: `runtime-orchestration`
 Package/write-scope: `examples/glb-viewer.html`, `examples/glb-viewer.js`, `examples/assets/cube.glb`, `test/e2e/glb-viewer.spec.ts`.
@@ -187,6 +203,8 @@ Acceptance criteria:
 - Playwright sees non-clear-color pixels in the render region.
 
 ### task-2008 — Add orbit camera control to glb-viewer
+
+Status: completed 2026-05-19. See `agent/COMPLETED.md`.
 
 Category: `runtime-orchestration`
 Package/write-scope: `examples/glb-viewer.js`, `packages/runtime/src/` if a shared helper emerges, targeted tests.

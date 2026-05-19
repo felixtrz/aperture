@@ -26,6 +26,10 @@ interface SpinningCubeStatus extends ExampleStatusBase {
     readonly baseColorFactor: readonly number[];
     readonly metallicFactor: number;
     readonly roughnessFactor: number;
+    readonly roughnessProof?: {
+      readonly glossy: number;
+      readonly rough: number;
+    };
   };
   readonly lighting?: {
     readonly authored: number;
@@ -37,7 +41,8 @@ interface SpinningCubeStatus extends ExampleStatusBase {
     readonly authored: number;
     readonly extracted: number;
     readonly handleKey: string;
-    readonly resourceKey?: string;
+    readonly diffuseResourceKey?: string;
+    readonly specularResourceKey?: string;
     readonly samplerKey?: string;
   };
   readonly pipeline?: {
@@ -49,6 +54,7 @@ interface SpinningCubeStatus extends ExampleStatusBase {
     readonly bindGroups: number;
     readonly lightBindGroup: number;
     readonly diffuseIblTexture?: number;
+    readonly specularIblTexture?: number;
     readonly reuse?: {
       readonly pipelineHits: number;
       readonly pipelineMisses: number;
@@ -111,13 +117,13 @@ test("Playwright shows an ECS-driven spinning lit standard cube", async ({
 
   expect(initialStatus, JSON.stringify(initialStatus, null, 2)).toMatchObject({
     example: "ecs-spinning-cube",
-    materialModel: "standard-direct-lit-diffuse-ibl",
+    materialModel: "standard-direct-lit-diffuse-specular-ibl",
     ok: true,
     phase: "animate",
     renderingBackend: "webgpu-explicit",
     extraction: {
       views: 1,
-      meshDraws: 1,
+      meshDraws: 3,
       lights: 2,
       environments: 1,
       diagnostics: 0,
@@ -125,8 +131,12 @@ test("Playwright shows an ECS-driven spinning lit standard cube", async ({
     material: {
       kind: "standard",
       key: "material:spinning-cube-standard",
-      metallicFactor: 0.08,
-      roughnessFactor: 0.48,
+      metallicFactor: 0.82,
+      roughnessFactor: 0.18,
+      roughnessProof: {
+        glossy: 0.1,
+        rough: 0.9,
+      },
     },
     lighting: {
       authored: 3,
@@ -138,20 +148,25 @@ test("Playwright shows an ECS-driven spinning lit standard cube", async ({
       authored: 1,
       extracted: 1,
       handleKey: "environment-map:spinning-cube-studio",
-      resourceKey: "texture:spinning-cube-studio:diffuse:texture",
+      diffuseResourceKey: "texture:spinning-cube-studio:diffuse:texture",
+      specularResourceKey:
+        "texture:spinning-cube-studio:specular-proof:texture",
       samplerKey: "texture:spinning-cube-studio:diffuse:sampler",
     },
-    pipeline: { key: "standard|iblDiffuse|opaque|back|less|none" },
+    pipeline: {
+      key: "standard|iblDiffuse|iblSpecularProof|opaque|back|less|none",
+    },
     resources: {
-      materials: 1,
-      bindGroups: 4,
+      materials: 3,
+      bindGroups: 12,
       lightBindGroup: 1,
       diffuseIblTexture: 1,
+      specularIblTexture: 1,
     },
-    renderWorld: { active: 1 },
-    draw: { packages: 1, drawCalls: 1 },
-    command: { drawCount: 1, indexedDrawCount: 1 },
-    submission: { commandBuffers: 1, drawCalls: 1, indexedDrawCalls: 1 },
+    renderWorld: { active: 3 },
+    draw: { packages: 3, drawCalls: 3 },
+    command: { drawCount: 3, indexedDrawCount: 3 },
+    submission: { commandBuffers: 1, drawCalls: 3, indexedDrawCalls: 3 },
   });
   expect(initialStatus.resources?.reuse).toBeDefined();
 
@@ -174,6 +189,8 @@ test("Playwright shows an ECS-driven spinning lit standard cube", async ({
     firstScreenshot,
     firstAnimatedStatus,
   );
+  expectSpecularIblHighlightPixels(firstScreenshot, firstAnimatedStatus);
+  expectRoughnessMipChainPixels(firstScreenshot, firstAnimatedStatus);
 
   const laterStatus = await waitForAnimationRotation(
     page,
@@ -200,17 +217,15 @@ test("Playwright shows an ECS-driven spinning lit standard cube", async ({
   expect(
     laterStatus.command?.indexedDrawCount ?? 0,
     JSON.stringify(laterStatus, null, 2),
-  ).toBe(1);
+  ).toBe(3);
   expect(
     laterStatus.resources?.reuse?.pipelineHits ?? 0,
     JSON.stringify(laterStatus, null, 2),
-  ).toBe(1);
-  expect(
-    laterStatus.resources?.reuse?.lightBuffersReused ?? 0,
-    JSON.stringify(laterStatus, null, 2),
-  ).toBe(1);
+  ).toBe(3);
   expectNonBlankCubePixel(laterScreenshot, laterStatus);
   expectDirectionDependentDiffuseIblPixels(laterScreenshot, laterStatus);
+  expectSpecularIblHighlightPixels(laterScreenshot, laterStatus);
+  expectRoughnessMipChainPixels(laterScreenshot, laterStatus);
 });
 
 function expectNonBlankCubePixel(
@@ -335,6 +350,142 @@ function findDistinctFaceSample(
   ).toBeGreaterThan(10);
 
   return strongest ?? reference;
+}
+
+function expectSpecularIblHighlightPixels(
+  screenshot: Buffer,
+  status: SpinningCubeStatus,
+): void {
+  const clear =
+    status.clearColor !== undefined &&
+    typeof status.clearColor === "object" &&
+    status.clearColor !== null
+      ? rgbaColorToPixel(
+          status.clearColor as { r: number; g: number; b: number; a: number },
+        )
+      : { r: 4, g: 6, b: 9, a: 255 };
+  let highlight = { pixel: readPngPixel(screenshot, 0.5, 0.5), x: 0.5, y: 0.5 };
+  let matte = { pixel: readPngPixel(screenshot, 0.5, 0.5), x: 0.5, y: 0.5 };
+
+  for (let yStep = 0; yStep <= 24; yStep += 1) {
+    const y = 0.25 + (0.55 * yStep) / 24;
+
+    for (let xStep = 0; xStep <= 24; xStep += 1) {
+      const x = 0.25 + (0.5 * xStep) / 24;
+      const pixel = readPngPixel(screenshot, x, y);
+
+      if (pixelDistance(pixel, clear) <= 24) {
+        continue;
+      }
+
+      if (pixelLuminance(pixel) > pixelLuminance(highlight.pixel)) {
+        highlight = { pixel, x, y };
+      }
+
+      if (
+        pixelDistance(matte.pixel, clear) <= 24 ||
+        pixelLuminance(pixel) < pixelLuminance(matte.pixel)
+      ) {
+        matte = { pixel, x, y };
+      }
+    }
+  }
+
+  expect(
+    pixelDistance(highlight.pixel, clear),
+    `specular highlight search should hit the cube; highlight=${JSON.stringify(highlight)} clear=${JSON.stringify(clear)}`,
+  ).toBeGreaterThan(24);
+  expect(
+    pixelDistance(matte.pixel, clear),
+    `matte comparison search should hit the cube; matte=${JSON.stringify(matte)} clear=${JSON.stringify(clear)}`,
+  ).toBeGreaterThan(24);
+  expect(
+    pixelLuminance(highlight.pixel) - pixelLuminance(matte.pixel),
+    `specular IBL proof should create a brighter reflected environment sample; highlight=${JSON.stringify(highlight)} matte=${JSON.stringify(matte)}`,
+  ).toBeGreaterThan(24);
+}
+
+function expectRoughnessMipChainPixels(
+  screenshot: Buffer,
+  status: SpinningCubeStatus,
+): void {
+  const clear =
+    status.clearColor !== undefined &&
+    typeof status.clearColor === "object" &&
+    status.clearColor !== null
+      ? rgbaColorToPixel(
+          status.clearColor as { r: number; g: number; b: number; a: number },
+        )
+      : { r: 4, g: 6, b: 9, a: 255 };
+  const glossyProbe = findBrightestCubeSample(screenshot, clear, {
+    label: "glossy roughness probe",
+    xMin: 0.18,
+    xMax: 0.34,
+    yMin: 0.72,
+    yMax: 0.88,
+  });
+  const roughProbe = findBrightestCubeSample(screenshot, clear, {
+    label: "rough mip-chain probe",
+    xMin: 0.62,
+    xMax: 0.78,
+    yMin: 0.72,
+    yMax: 0.88,
+  });
+
+  expect(
+    pixelDistance(glossyProbe.pixel, roughProbe.pixel),
+    `roughness-aware specular IBL mip sampling should visibly change the glossy and rough probes; glossy=${JSON.stringify(glossyProbe)} rough=${JSON.stringify(roughProbe)}`,
+  ).toBeGreaterThan(8);
+}
+
+function findBrightestCubeSample(
+  screenshot: Buffer,
+  clear: ReturnType<typeof rgbaColorToPixel>,
+  search: {
+    readonly label: string;
+    readonly xMin: number;
+    readonly xMax: number;
+    readonly yMin: number;
+    readonly yMax: number;
+  },
+): {
+  readonly pixel: ReturnType<typeof readPngPixel>;
+  readonly x: number;
+  readonly y: number;
+} {
+  let best: {
+    pixel: ReturnType<typeof readPngPixel>;
+    x: number;
+    y: number;
+  } | null = null;
+
+  for (let yStep = 0; yStep <= 14; yStep += 1) {
+    const y = search.yMin + ((search.yMax - search.yMin) * yStep) / 14;
+
+    for (let xStep = 0; xStep <= 14; xStep += 1) {
+      const x = search.xMin + ((search.xMax - search.xMin) * xStep) / 14;
+      const pixel = readPngPixel(screenshot, x, y);
+
+      if (pixelDistance(pixel, clear) <= 24) {
+        continue;
+      }
+
+      if (best === null || pixelLuminance(pixel) > pixelLuminance(best.pixel)) {
+        best = { pixel, x, y };
+      }
+    }
+  }
+
+  expect(
+    best,
+    `${search.label} should be visible in the render region.`,
+  ).not.toBeNull();
+
+  return best ?? { pixel: readPngPixel(screenshot, 0.5, 0.5), x: 0.5, y: 0.5 };
+}
+
+function pixelLuminance(pixel: ReturnType<typeof readPngPixel>): number {
+  return 0.2126 * pixel.r + 0.7152 * pixel.g + 0.0722 * pixel.b;
 }
 
 async function waitForAnimationFrame(

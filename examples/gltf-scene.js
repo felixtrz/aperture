@@ -43,6 +43,7 @@ const shadowIntent = {
   depthBias: 0.001,
   normalBias: 0.01,
 };
+const bufferBackedGlbKeyPrefix = "buffer-backed";
 let shadowDepthTextureResourceReport = null;
 
 try {
@@ -137,7 +138,7 @@ function createScene(aperture, app, targetCanvas) {
   const visibleBufferBackedReplay = createVisibleBufferBackedReplay(
     aperture,
     app,
-    bufferBackedGlbFixture.mesh,
+    bufferBackedGlbFixture,
   );
 
   app.spawn(
@@ -773,6 +774,8 @@ async function publishFrameStatus(aperture, app, scene, step, report, frame) {
         diagnostics: scene.visibleBufferBackedReplay.replay.diagnostics.length,
         meshHandleKey: scene.visibleBufferBackedReplay.meshHandleKey,
         materialHandleKey: scene.visibleBufferBackedReplay.materialHandleKey,
+        materialSource: scene.visibleBufferBackedReplay.materialSource,
+        baseColorFactor: scene.visibleBufferBackedReplay.baseColorFactor,
       },
     },
     extraction: {
@@ -1413,6 +1416,8 @@ function createGltfSceneBufferBackedGlbFixture(aperture) {
   const { source } = createIndexedTriangleGlbFixtureSource();
   const preflight = aperture.createNoFetchGlbSourceLoaderReport({
     source,
+    keyPrefix: bufferBackedGlbKeyPrefix,
+    createAssetMapping: true,
     createMeshAssets: true,
   });
   const root = preflight.glbImportReport.container.container?.json;
@@ -1426,6 +1431,8 @@ function createGltfSceneBufferBackedGlbFixture(aperture) {
   });
   const loader = aperture.createNoFetchGlbSourceLoaderReport({
     source,
+    keyPrefix: bufferBackedGlbKeyPrefix,
+    createAssetMapping: true,
     createMeshAssets: true,
     ecsCommandPlan,
   });
@@ -1434,6 +1441,7 @@ function createGltfSceneBufferBackedGlbFixture(aperture) {
     mesh:
       loader.glbImportReport.importReport?.meshConstruction?.meshes[0]?.mesh ??
       null,
+    importReport: loader.glbImportReport.importReport,
     status: {
       ...loader.status,
       outputSummary: loader.outputSummary,
@@ -1441,7 +1449,9 @@ function createGltfSceneBufferBackedGlbFixture(aperture) {
   };
 }
 
-function createVisibleBufferBackedReplay(aperture, app, mesh) {
+function createVisibleBufferBackedReplay(aperture, app, fixture) {
+  const mesh = fixture.mesh;
+
   if (mesh === null) {
     throw new Error("Buffer-backed GLB fixture did not produce a mesh asset.");
   }
@@ -1449,8 +1459,26 @@ function createVisibleBufferBackedReplay(aperture, app, mesh) {
   const meshHandle = aperture.createMeshHandle(
     "gltf:buffer-backed:mesh:0:primitive:0",
   );
-  const materialHandle = aperture.createMaterialHandle(
-    "gltf:buffer-backed:material:visible",
+  const materialResolution = createBufferBackedMaterialResolution(
+    aperture,
+    fixture.importReport,
+  );
+  const resolvedMaterial = materialResolution.resolved[0];
+
+  if (resolvedMaterial === undefined) {
+    throw new Error("Buffer-backed GLB fixture did not resolve a material.");
+  }
+
+  const materialHandle = materialHandleFromKey(
+    aperture,
+    resolvedMaterial.materialHandleKey,
+  );
+  const materialAsset = materialAssetFromMapping(
+    fixture.importReport,
+    resolvedMaterial.materialIndex,
+  );
+  const baseColorFactor = Array.from(materialAsset.baseColorFactor, (value) =>
+    Number(value.toFixed(4)),
   );
   const meshHandleKey = aperture.assetHandleKey(meshHandle);
   const materialHandleKey = aperture.assetHandleKey(materialHandle);
@@ -1461,16 +1489,9 @@ function createVisibleBufferBackedReplay(aperture, app, mesh) {
     label: "BufferBackedVisibleTriangle",
   });
   app.assets.register(materialHandle, {
-    label: "BufferBackedVisibleTriangleMaterial",
+    label: materialAsset.label,
   });
-  app.assets.markReady(
-    materialHandle,
-    aperture.createUnlitMaterialAsset({
-      label: "BufferBackedVisibleTriangleMaterial",
-      baseColorFactor: new Float32Array([0.05, 1, 0.28, 1]),
-      renderState: { cullMode: "none" },
-    }),
-  );
+  app.assets.markReady(materialHandle, materialAsset);
 
   const replay = aperture.applyGltfEcsCommandPlanToApp({
     app,
@@ -1537,7 +1558,7 @@ function createVisibleBufferBackedReplay(aperture, app, mesh) {
           entityKey: "gltf:buffer-backed:visible:primitive:0",
           component: "Material",
           value: {
-            materialId: "gltf:buffer-backed:material:visible",
+            materialId: materialHandle.id,
             handleKey: materialHandleKey,
           },
         },
@@ -1548,7 +1569,60 @@ function createVisibleBufferBackedReplay(aperture, app, mesh) {
     },
   });
 
-  return { meshHandleKey, materialHandleKey, replay };
+  return {
+    meshHandleKey,
+    materialHandleKey,
+    materialSource: resolvedMaterial.source,
+    baseColorFactor,
+    replay,
+  };
+}
+
+function createBufferBackedMaterialResolution(aperture, importReport) {
+  if (
+    importReport === null ||
+    importReport.meshPrimitive === null ||
+    importReport.assetMapping === null
+  ) {
+    throw new Error("Buffer-backed GLB fixture did not produce material data.");
+  }
+
+  return aperture.createGltfPrimitiveMaterialResolutionReport({
+    primitiveReport: importReport.meshPrimitive,
+    registrationReport: {
+      valid: true,
+      written: importReport.assetMapping.materials.map((material) => ({
+        kind: "material",
+        plannedHandleKey: material.handleKey,
+        registeredHandleKey: material.handleKey,
+        materialIndex: material.materialIndex,
+        diagnostics: [],
+      })),
+      skipped: [],
+      diagnostics: [],
+    },
+    keyPrefix: bufferBackedGlbKeyPrefix,
+  });
+}
+
+function materialHandleFromKey(aperture, materialHandleKey) {
+  const id = materialHandleKey.startsWith("material:")
+    ? materialHandleKey.slice("material:".length)
+    : materialHandleKey;
+
+  return aperture.createMaterialHandle(id);
+}
+
+function materialAssetFromMapping(importReport, materialIndex) {
+  const material = importReport?.assetMapping?.materials.find(
+    (entry) => entry.materialIndex === materialIndex,
+  )?.material;
+
+  if (material === undefined || material === null) {
+    throw new Error("Buffer-backed GLB fixture material mapping is missing.");
+  }
+
+  return material;
 }
 
 function createGlbFixtureSource(root) {
@@ -1588,7 +1662,23 @@ function createIndexedTriangleGlbFixtureSource() {
       { bufferView: 0, componentType: 5126, type: "VEC3", count: 3 },
       { bufferView: 1, componentType: 5123, type: "SCALAR", count: 3 },
     ],
-    meshes: [{ primitives: [{ attributes: { POSITION: 0 }, indices: 1 }] }],
+    meshes: [
+      {
+        primitives: [{ attributes: { POSITION: 0 }, indices: 1, material: 0 }],
+      },
+    ],
+    materials: [
+      {
+        name: "BufferBackedSourceMint",
+        pbrMetallicRoughness: {
+          baseColorFactor: [0.12, 0.78, 0.46, 1],
+          metallicFactor: 0,
+          roughnessFactor: 0.62,
+        },
+        doubleSided: true,
+        extensions: { KHR_materials_unlit: {} },
+      },
+    ],
   };
 
   return {

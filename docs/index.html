@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-19 10:46 PDT</dd>
+            <dd>2026-05-19 11:46 PDT</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -793,17 +793,18 @@
               routes through the app frame-resource path as a planning identity,
               while ready diffuse IBL texture and sampler resources are aliased
               into an executable combined group 3 light/IBL layout. GLTF status
-              now reports diffuse IBL shader sampling ready. A placeholder
-              specular IBL proof route also samples a renderer-owned specular
-              cube texture from group 3 binding 7 while keeping full PMREM/GGX
-              prefiltering deferred. Playwright covers diffuse and placeholder
-              specular pixel deltas plus the combined
+              now reports diffuse IBL shader sampling ready. The spinning-cube
+              route now samples a renderer-owned specular cube texture from
+              group 3 binding 7 and uses a minimal roughness-addressed mip chain
+              while keeping full PMREM/GGX prefiltering deferred. Playwright
+              covers diffuse/specular pixel deltas plus the combined
               <code>iblDiffuse|iblSpecularProof|shadowMap</code> route, and draw
               commands still stay within groups 0 through 3 under Chrome's
               four-bind-group limit. The spinning-cube example now uses the same
-              diffuse IBL shader route with a renderer-owned face-colored cube
-              texture and Playwright verifies direction-dependent cube face
-              pixels. Materials-showcase now uses the public
+              diffuse/specular IBL shader route with renderer-owned face-colored
+              cube textures and Playwright verifies direction-dependent cube
+              face pixels plus glossy/rough probe differences.
+              Materials-showcase now uses the public
               <code>withEnvironmentMap(handle)</code> helper and renders its
               StandardMaterial cube through the diffuse IBL route as well. The
               source-side glTF path now also has a minimal GLB fixture bridge:
@@ -856,11 +857,22 @@
               GLB command-plan and replay-readiness proof. That proof is now in
               browser status and audited. The first buffer-backed primitive now
               replays through runtime ECS into the browser render path with
-              extraction and WebGPU draw readbacks; source-driven material
-              mapping remains deferred.
+              extraction and WebGPU draw readbacks. It now resolves the GLB
+              source material for the buffer-backed primitive, registers the
+              prefixed material handle, and publishes the authored base-color
+              factor in browser status. The render package now also exports
+              <code>loadGlbFromUri(url, options)</code>, which fetches GLB bytes
+              into the existing no-fetch facade and reports typed URL, fetch,
+              HTTP, read, and loader diagnostics. A new GLB viewer example now
+              fetches <code>examples/assets/cube.glb</code>, registers and
+              replays the source assets through ECS, and renders the fetched
+              sample through the WebGPU app facade with Playwright pixel proof.
+              The viewer now also supports pointer-drag orbit and wheel zoom by
+              updating the ECS camera transform, with Playwright proving the
+              drag changes rendered pixels.
             </dd>
             <dt>Next focus</dt>
-            <dd>Audit visible buffer-backed GLB primitive replay proof</dd>
+            <dd>Add multi-asset switching to glb-viewer</dd>
           </dl>
         </aside>
       </header>
@@ -1385,6 +1397,33 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">task-2008</span> Added pointer-drag
+                orbit and wheel zoom controls to the GLB viewer.
+              </li>
+              <li>
+                <span class="badge green">task-2007</span> Added the GLB viewer
+                example with a fetched sample asset and browser pixel proof.
+              </li>
+              <li>
+                <span class="badge green">task-2006</span> Added public
+                <code>loadGlbFromUri(url, options)</code> with typed fetch and
+                loader diagnostics.
+              </li>
+              <li>
+                <span class="badge green">task-2005</span> Mapped the
+                buffer-backed GLB primitive to its source material and asserted
+                the authored base color in Playwright.
+              </li>
+              <li>
+                <span class="badge green">task-2004</span> Added a
+                roughness-addressed specular IBL mip-chain proof with
+                glossy/rough browser probes.
+              </li>
+              <li>
+                <span class="badge green">task-2003</span> Rendered specular IBL
+                on spinning-cube through the StandardMaterial proof route.
+              </li>
               <li>
                 <span class="badge green">task-2001</span> Rendered diffuse IBL
                 on the spinning-cube example with face-difference Playwright
@@ -2943,16 +2982,16 @@
             <h3>Recommended next tasks</h3>
             <ul>
               <li>
-                <span class="badge amber">next</span> Render specular IBL on the
-                spinning-cube example.
+                <span class="badge amber">next</span> Map GLB source material
+                onto the buffer-backed primitive.
               </li>
               <li>
-                Reuse the existing placeholder specular IBL route before the
-                later GGX prefiltering slice.
+                Use the GLB fixture material's base color instead of the
+                hardcoded proof material.
               </li>
               <li>
-                Keep GPU environment textures renderer-owned and ECS authoring
-                handle-based.
+                Keep source material mapping in the render/import bridge and
+                render through ECS-authored entities.
               </li>
             </ul>
           </article>

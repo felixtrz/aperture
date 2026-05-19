@@ -540,6 +540,20 @@ export function createStandardTextureShaderVariantKey(
     return STANDARD_DIFFUSE_IBL_SHADER_VARIANT;
   }
 
+  if (
+    features.iblDiffuse === true &&
+    features.iblSpecularProof === true &&
+    !features.baseColorTexture &&
+    !features.metallicRoughnessTexture &&
+    !features.normalTexture &&
+    !features.occlusionTexture &&
+    !features.emissiveTexture &&
+    features.shadowMap !== true &&
+    features.texCoord1 !== true
+  ) {
+    return STANDARD_SPECULAR_IBL_PROOF_SHADER_VARIANT;
+  }
+
   const names: string[] = [];
 
   if (features.baseColorTexture) {
@@ -1213,6 +1227,20 @@ function standardTextureVariantShaderLabel(
     return "aperture/standard-mesh-diffuse-ibl";
   }
 
+  if (
+    features.iblDiffuse === true &&
+    features.iblSpecularProof === true &&
+    !features.baseColorTexture &&
+    !features.metallicRoughnessTexture &&
+    !features.normalTexture &&
+    !features.occlusionTexture &&
+    !features.emissiveTexture &&
+    features.shadowMap !== true &&
+    features.texCoord1 !== true
+  ) {
+    return "aperture/standard-mesh-diffuse-specular-ibl-proof";
+  }
+
   return `aperture/standard-mesh-${standardTextureFeatureNames(features).join(
     "-",
   )}-textured`;
@@ -1401,10 +1429,12 @@ function applyStandardDiffuseIblSampling(code: string): string {
 
 function applyStandardSpecularIblProofSampling(code: string): string {
   const sample = `  let reflectionDir = reflect(-viewDir, normal);
-  let specularIblProof = textureSample(
+  let specularMipLevel = f32(max(textureNumLevels(standardSpecularIblTexture), 1u) - 1u) * roughness;
+  let specularIblProof = textureSampleLevel(
     standardSpecularIblTexture,
     standardIblSampler,
     reflectionDir,
+    specularMipLevel,
   ).rgb * fresnelSchlick(max(dot(normal, viewDir), 0.0), mix(vec3f(0.04), baseColor, vec3f(metallic))) * (1.0 - roughness * 0.5);`;
 
   return code

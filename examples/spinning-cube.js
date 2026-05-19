@@ -7,7 +7,7 @@ const spinRadiansPerSecond = 3;
 
 const baseStatus = {
   example: "ecs-spinning-cube",
-  materialModel: "standard-direct-lit-diffuse-ibl",
+  materialModel: "standard-direct-lit-diffuse-specular-ibl",
   canvas: {
     width: canvas?.width ?? 0,
     height: canvas?.height ?? 0,
@@ -72,12 +72,32 @@ function createLitSpinningCubeScene(aperture, app, canvasSize) {
   const materialAsset = aperture.createStandardMaterialAsset({
     label: "SpinningCubeStandard",
     baseColorFactor: new Float32Array([1, 0.55, 0.25, 1]),
-    metallicFactor: 0.08,
-    roughnessFactor: 0.48,
+    metallicFactor: 0.82,
+    roughnessFactor: 0.18,
     emissiveFactor: [0.015, 0.01, 0.005],
   });
   const material = assets.materials.standard.add(materialAsset, {
     id: "spinning-cube-standard",
+  });
+  const glossyMaterialAsset = aperture.createStandardMaterialAsset({
+    label: "SpinningCubeGlossyProbe",
+    baseColorFactor: new Float32Array([1, 0.55, 0.25, 1]),
+    metallicFactor: 0.92,
+    roughnessFactor: 0.1,
+    emissiveFactor: [0, 0, 0],
+  });
+  const roughMaterialAsset = aperture.createStandardMaterialAsset({
+    label: "SpinningCubeRoughProbe",
+    baseColorFactor: new Float32Array([1, 0.55, 0.25, 1]),
+    metallicFactor: 0.92,
+    roughnessFactor: 0.9,
+    emissiveFactor: [0, 0, 0],
+  });
+  const glossyMaterial = assets.materials.standard.add(glossyMaterialAsset, {
+    id: "spinning-cube-glossy-probe",
+  });
+  const roughMaterial = assets.materials.standard.add(roughMaterialAsset, {
+    id: "spinning-cube-rough-probe",
   });
   const environmentMap = aperture.createEnvironmentMapHandle(
     "spinning-cube-studio",
@@ -87,6 +107,7 @@ function createLitSpinningCubeScene(aperture, app, canvasSize) {
   app.assets.markReady(environmentMap, {
     label: "Spinning cube studio IBL",
     diffuseResourceKey: "spinning-cube-studio/diffuse",
+    specularResourceKey: "spinning-cube-studio/specular-proof",
   });
 
   app.registerSystem(aperture.SpinSystem);
@@ -112,6 +133,28 @@ function createLitSpinningCubeScene(aperture, app, canvasSize) {
       radiansPerSecond: spinRadiansPerSecond,
       axis: spinAxis,
     }),
+  );
+
+  app.spawn(
+    aperture.withTransform({
+      translation: [-1.15, -0.95, 0],
+      scale: [0.42, 0.42, 0.42],
+    }),
+    aperture.withMesh(mesh),
+    aperture.withMaterial(glossyMaterial),
+    aperture.withRenderLayer(1),
+    aperture.withVisibility(true),
+  );
+
+  app.spawn(
+    aperture.withTransform({
+      translation: [1.15, -0.95, 0],
+      scale: [0.42, 0.42, 0.42],
+    }),
+    aperture.withMesh(mesh),
+    aperture.withMaterial(roughMaterial),
+    aperture.withRenderLayer(1),
+    aperture.withVisibility(true),
   );
 
   app.spawn(
@@ -143,13 +186,15 @@ function createLitSpinningCubeScene(aperture, app, canvasSize) {
     }),
   );
 
-  const iblResources = createSpinningCubeDiffuseIblResources(aperture, app);
+  const iblResources = createSpinningCubeIblResources(aperture, app);
 
   return {
     cube,
     mesh,
     material,
     materialAsset,
+    glossyMaterialAsset,
+    roughMaterialAsset,
     environmentMap,
     iblResources,
     authoredLights: 3,
@@ -254,6 +299,10 @@ function createFrameStatus(
       baseColorFactor: Array.from(scene.materialAsset.baseColorFactor),
       metallicFactor: scene.materialAsset.metallicFactor,
       roughnessFactor: scene.materialAsset.roughnessFactor,
+      roughnessProof: {
+        glossy: scene.glossyMaterialAsset.roughnessFactor,
+        rough: scene.roughMaterialAsset.roughnessFactor,
+      },
     },
     lighting: {
       authored: scene.authoredLights,
@@ -265,8 +314,11 @@ function createFrameStatus(
       authored: scene.authoredEnvironments,
       extracted: snapshot.environments.length,
       handleKey: aperture.assetHandleKey(scene.environmentMap),
-      resourceKey:
+      diffuseResourceKey:
         scene.iblResources.diffuseTextureResource.resources[0]?.resource
+          ?.resourceKey,
+      specularResourceKey:
+        scene.iblResources.specularTextureResource.resources[0]?.resource
           ?.resourceKey,
       samplerKey:
         scene.iblResources.samplerResource.resources[0]?.resource?.resourceKey,
@@ -281,6 +333,11 @@ function createFrameStatus(
       lightBindGroup: standardResources?.lightBindGroup === undefined ? 0 : 1,
       diffuseIblTexture:
         standardResources?.standardMaterialIblBindGroup === undefined ? 0 : 1,
+      specularIblTexture:
+        scene.iblResources.specularTextureResource.resources[0]?.resource ===
+        undefined
+          ? 0
+          : 1,
       reuse: report.resourceReuse,
     },
     renderWorld: {
@@ -376,12 +433,15 @@ function snapshotCounts(snapshot) {
   };
 }
 
-function createSpinningCubeDiffuseIblResources(aperture, app) {
+function createSpinningCubeIblResources(aperture, app) {
   const cache = aperture.getOrCreateWebGpuAppEnvironmentResourceCache(app);
   const device = app.initialization.device;
   const diffuseResourceKey = "texture:spinning-cube-studio:diffuse:texture";
+  const specularResourceKey =
+    "texture:spinning-cube-studio:specular-proof:texture";
   const samplerResourceKey = "texture:spinning-cube-studio:diffuse:sampler";
   let diffuseTexture = cache.diffuseTextures.get(diffuseResourceKey);
+  let specularTexture = cache.specularTextures.get(specularResourceKey);
   let iblSampler = cache.samplers.get(samplerResourceKey);
 
   if (diffuseTexture === undefined) {
@@ -390,6 +450,14 @@ function createSpinningCubeDiffuseIblResources(aperture, app) {
       diffuseResourceKey,
     );
     cache.diffuseTextures.set(diffuseResourceKey, diffuseTexture);
+  }
+
+  if (specularTexture === undefined) {
+    specularTexture = createFaceColoredSpecularCubeTexture(
+      device,
+      specularResourceKey,
+    );
+    cache.specularTextures.set(specularResourceKey, specularTexture);
   }
 
   if (iblSampler === undefined) {
@@ -418,7 +486,11 @@ function createSpinningCubeDiffuseIblResources(aperture, app) {
         resourceKey: "bind-group:standard/ibl/group-4/spinning-cube-studio",
         layoutKey: "standard/ibl/group-4",
         bindGroup: { label: "standard/ibl/group-4/spinning-cube-studio" },
-        entryResourceKeys: [diffuseResourceKey, samplerResourceKey],
+        entryResourceKeys: [
+          diffuseResourceKey,
+          specularResourceKey,
+          samplerResourceKey,
+        ],
       },
       diagnostics: [],
     },
@@ -445,6 +517,38 @@ function createSpinningCubeDiffuseIblResources(aperture, app) {
       ],
       diagnostics: [],
     },
+    specularTextureResource: {
+      ready: true,
+      status: "available",
+      textureSlotCount: 1,
+      specularSlotCount: 1,
+      createdTextureCount: 1,
+      reusedTextureCount: 0,
+      sections: {
+        texturePreparation: true,
+        specularTextureResource: true,
+        gpuAllocation: true,
+        proofUpload: true,
+        prefiltering: false,
+        bindGroupResource: false,
+        shaderSampling: true,
+      },
+      resources: [
+        {
+          valid: true,
+          resource: specularTexture,
+          diagnostics: [],
+        },
+      ],
+      diagnostics: [
+        {
+          code: "iblTextureResource.specularPrefilteringDeferred",
+          severity: "warning",
+          message:
+            "Specular IBL texture resource uses a deterministic minimal mip chain; full PMREM/GGX prefiltering remains deferred.",
+        },
+      ],
+    },
     samplerResource: {
       ready: true,
       status: "available",
@@ -466,6 +570,90 @@ function createSpinningCubeDiffuseIblResources(aperture, app) {
       ],
       diagnostics: [],
     },
+  };
+}
+
+function createFaceColoredSpecularCubeTexture(device, resourceKey) {
+  const baseSize = 8;
+  const mipLevelCount = 4;
+  const texture = device.createTexture({
+    label: "spinning-cube-studio:specular-ibl-minimal-mip-chain",
+    size: [baseSize, baseSize, 6],
+    format: "rgba8unorm",
+    usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST,
+    mipLevelCount,
+  });
+  const mipFaceColors = [
+    [
+      [255, 245, 210, 255],
+      [70, 105, 155, 255],
+      [245, 240, 190, 255],
+      [26, 42, 54, 255],
+      [245, 210, 255, 255],
+      [42, 48, 72, 255],
+    ],
+    [
+      [218, 202, 176, 255],
+      [92, 116, 148, 255],
+      [218, 210, 170, 255],
+      [50, 66, 74, 255],
+      [214, 184, 220, 255],
+      [64, 70, 92, 255],
+    ],
+    [
+      [116, 112, 104, 255],
+      [84, 92, 106, 255],
+      [116, 114, 104, 255],
+      [62, 70, 76, 255],
+      [112, 102, 118, 255],
+      [68, 72, 84, 255],
+    ],
+    [
+      [42, 46, 52, 255],
+      [42, 46, 52, 255],
+      [42, 46, 52, 255],
+      [42, 46, 52, 255],
+      [42, 46, 52, 255],
+      [42, 46, 52, 255],
+    ],
+  ];
+
+  mipFaceColors.forEach((faceColors, mipLevel) => {
+    const mipSize = Math.max(1, baseSize >> mipLevel);
+
+    faceColors.forEach((color, face) => {
+      const data = new Uint8Array(256 * mipSize);
+
+      for (let row = 0; row < mipSize; row += 1) {
+        for (let column = 0; column < mipSize; column += 1) {
+          data.set(color, row * 256 + column * 4);
+        }
+      }
+
+      device.queue.writeTexture(
+        { texture, mipLevel, origin: [0, 0, face] },
+        data,
+        { bytesPerRow: 256, rowsPerImage: mipSize },
+        [mipSize, mipSize, 1],
+      );
+    });
+  });
+
+  return {
+    resourceKey,
+    texture,
+    view: texture.createView({
+      label: "spinning-cube-studio:specular-ibl-minimal-mip-chain-view",
+      dimension: "cube",
+    }),
+    descriptor: {
+      label: "spinning-cube-studio:specular-ibl-minimal-mip-chain",
+      size: [baseSize, baseSize, 6],
+      format: "rgba8unorm",
+      usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST,
+      mipLevelCount,
+    },
+    viewDescriptor: { dimension: "cube" },
   };
 }
 
@@ -523,9 +711,9 @@ function createDiffuseIblSampler(device, resourceKey) {
     addressModeW: "clamp-to-edge",
     magFilter: "linear",
     minFilter: "linear",
-    mipmapFilter: "nearest",
+    mipmapFilter: "linear",
     lodMinClamp: 0,
-    lodMaxClamp: 0,
+    lodMaxClamp: 3,
     maxAnisotropy: 1,
   };
 
