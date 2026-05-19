@@ -1,11 +1,11 @@
 {
   "state": "idle",
-  "currentTaskId": "task-1976",
-  "currentRunStartedAt": "2026-05-19T14:04:08Z",
-  "lastRunStartedAt": "2026-05-19T14:04:08Z",
+  "currentTaskId": "task-2001",
+  "currentRunStartedAt": null,
+  "lastRunStartedAt": "2026-05-19T15:02:57Z",
   "lastResult": "success",
-  "lastCommit": "9fd4f06",
+  "lastCommit": "9049476",
   "activePid": null,
-  "notes": "Completed task-1953 through task-1975. Added command-plan summaries, replay-readiness summaries, runtime replay facade, browser runtime replay status, buffer-backed GLB command-plan status, and buffer-backed primitive browser render-path readbacks. Recommended next task is task-1976: audit visible buffer-backed GLB primitive replay proof.",
-  "lastRunFinishedAt": "2026-05-19T14:58:23Z"
+  "notes": "Protocol rewritten to prioritize visible-feature work. 55-min window preserved. Ceremony tasks (1784-1788, 1976, 1977, 1978, 1979) marked superseded and removed from ready queue. MVP tracks (IBL, real GLB loading, multi-light + PCF shadows) seeded as task-2001 through task-2014, each with a reference anchor under references/bevy, references/engine (PlayCanvas), or references/three.js. Recommended next task is task-2001 (diffuse IBL on spinning-cube); the agent MUST read references/three.js/src/extras/PMREMGenerator.js and references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/reflectionEnv.js before writing WGSL. Stale running state (pid 62211) from a crashed run was cleared. Uncommitted in-flight work from the previous run (runtime facade applyGltfEcsCommandPlanToApp, no-fetch GLB output summary, replay-readiness preflight, visible buffer-backed GLB primitive completing task-1975, 11 research docs) is documented in HANDOFF.md and will be checkpointed by the stop hook on the next run.",
+  "lastRunFinishedAt": "2026-05-19T15:30:00Z"
 }

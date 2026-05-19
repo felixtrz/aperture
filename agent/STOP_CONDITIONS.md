@@ -15,7 +15,7 @@ An autonomous agent must stop and update `agent/HANDOFF.md` instead of continuin
 11. The requested change conflicts with `docs/NORTH_STAR.md` or `docs/ARCHITECTURE.md`.
 12. The agent is tempted to create a three.js-style scene graph as the core model.
 
-No ready task remaining is not a final stop condition by itself. If `agent/BACKLOG.md` has no ready tasks, add concrete next-step tasks by comparing the implementation against `docs/NORTH_STAR.md`, `docs/ROADMAP.md`, and `docs/ARCHITECTURE.md`, then continue if the 55-minute window has not elapsed.
+No ready task remaining is not a final stop condition by itself, but the agent must never generate `plan-X`, `audit-X`, or `tracker-alignment-X` tasks to fill the window. If `agent/BACKLOG.md` has no ready visible-feature task, read the current examples and public API, compare against `docs/NORTH_STAR.md` and `docs/MEDIUM_LONG_TERM_GOALS.md`, and write one visible-feature task per `agent/WAKE.md` §9. If after 5 minutes of inspection no visible-feature slice can be identified, stop and document the gap in handoff. Stopping early with real work shipped is better than filling time with ceremony.
 
 Completing a single task before the 55-minute work window has elapsed is not a stop condition. If no stop condition applies and ready work remains, the agent should select the next ready task and continue.
 

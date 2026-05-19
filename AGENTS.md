@@ -78,24 +78,17 @@ through GitHub Pages. Keep it useful for quick status checks:
 
 ## Backlog Expansion Protocol
 
-At the end of a successful run, compare current state against:
+See `agent/WAKE.md` §9 for the authoritative rules. Summary:
 
-- `docs/NORTH_STAR.md`
-- `docs/ROADMAP.md`
-- `docs/MEDIUM_LONG_TERM_GOALS.md`
-- `docs/ARCHITECTURE.md`
+- The ready queue must always contain ≥3 visible-feature tasks before any diagnostic, helper, audit, or planning task may be added.
+- At most 1 `plan-X` task in the ready queue. At most 1 `audit-refactor` task. Zero `tracker-alignment-X` tasks.
+- The Recommended Next Task must always be a visible-feature task.
+- Every visible-feature task entry must include a `Reference anchor:` line citing a specific file under `references/bevy`, `references/engine`, or `references/three.js`.
+- Acceptance criteria of the form "status equals X" or "diagnostic count equals N" are diagnostic, not visible-feature, criteria.
+- If 3 visible-feature tasks cannot be identified by comparing the current examples and public API against `docs/NORTH_STAR.md` and `docs/MEDIUM_LONG_TERM_GOALS.md`, stop and document the gap in handoff. Do not fill the queue with diagnostic work.
+- Diagnostic tasks follow visible features; they never precede them.
 
-If the backlog is empty or nearly empty, add small next-step tasks that advance the roadmap.
-
-Rules:
-
-- Add concrete tasks, not vague aspirations.
-- Each task should have acceptance criteria.
-- Each task should be substantial enough for about 30-60 minutes of focused work when possible.
-- Prefer vertical slices.
-- Do not add huge epics as immediate tasks.
-- Do not invent architecture that conflicts with docs.
-- If a new major direction is needed, add a decision to `docs/DECISIONS.md`.
+Each task should be a vertical slice sized to fill the 55-minute window with real implementation. If the slice finishes early, extend the same slice rather than starting a new ceremonial task (see WAKE.md §3).
 
 ## Stop-Hook / End-of-Run Requirements
 
@@ -150,22 +143,27 @@ Do not:
 
 ## Good Task Shape
 
-Good:
+Every task is a vertical slice sized to fill a 55-minute window with real implementation. A vertical slice ends in a user-visible change: pixels in an example, a new public API surface, a removed limitation, a deleted file, or a measurable benchmark delta. Diagnostics, status projections, and audit markdown are not user-visible changes.
 
-- Implement entity allocator with tests.
-- Add `WorldTransform` propagation for one-level hierarchy.
-- Define `RenderPacket` and test extraction from mock ECS state.
-- Add WebGPU device initialization with clear unsupported error.
-- Add `FrameReport` data type and populate draw-call count.
+Good tasks:
 
-Bad:
+- "Render visible diffuse IBL on the spinning-cube example. Done when the cube shows direction-dependent shading and Playwright canvas readback at three named coordinates differs by ≥ N units. Reference anchor: `references/three.js/src/extras/PMREMGenerator.js`."
+- "Fetch and render a sample `cube.glb` from `examples/assets/`. Done when `examples/glb-viewer.html` shows the fetched primitive and Playwright sees ≥1 non-clear-color pixel in the render region. Reference anchor: `references/three.js/examples/jsm/loaders/GLTFLoader.js`."
+- "Add `withEnvironmentMap(handle)` to `@aperture-engine/runtime`. Done when the helper is exported, type-checked, and used in `examples/spinning-cube.js`. Reference anchor: existing `withCamera`/`withLight` patterns + Bevy environment-map components."
+- "Delete `packages/render/src/assets/legacy-foo.ts` and rewire callers. Done when the file is removed and the test suite passes."
 
-- Build the whole renderer.
-- Implement full material system.
-- Add WebXR.
-- Rewrite ECS and renderer at once.
-- Add an editor.
-- Add a physics engine before the ECS/render boundary exists.
+Bad tasks:
+
+- "Plan next X slice."
+- "Audit X."
+- "Audit tracker/backlog alignment after X."
+- "Add JSON status projection for X" (unless a real user-facing failure mode requires it and the visible feature already shipped).
+- "Build the whole renderer."
+- "Implement full material system."
+- "Add WebXR."
+- "Rewrite ECS and renderer at once."
+- "Add an editor."
+- "Add a physics engine before the ECS/render boundary exists."
 
 ## Validation Expectations
 

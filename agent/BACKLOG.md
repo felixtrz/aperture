@@ -59,106 +59,211 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start with `task-1976`: audit visible buffer-backed GLB primitive replay proof.
-The source-side GLB path now has structured
-container diagnostics, compact JSON-safe source status, a no-fetch loader
-facade, output summaries for mesh construction and optional source registration,
-compact ECS command-plan summaries for provided plans, report-only replay
-readiness summaries, a controlled runtime replay execution surface with headless
-extraction proof, and a plan to route browser replay through the runtime facade.
-The browser GLTF scene now routes replay through the runtime facade, publishes a
-buffer-backed command-plan/replay-readiness proof, and replays one
-buffer-backed GLB-derived primitive through ECS into the browser render path
-with extraction/WebGPU draw readbacks. Broader GLB viewer behavior, external
-file loading, and source-driven material mapping remain deferred.
+Start with `task-2001`: render diffuse IBL on the spinning-cube example.
 
-The previous micro-hardening tasks remain useful but are no longer the main
-ready queue unless they directly block the scene slice. Public custom
-shader/material APIs, shader graphs, app-owned custom adapter facades, and broad
-custom material rendering should wait until the built-in glTF scene path can
-support real test applications.
+The IBL infrastructure is already built — descriptors, bind groups, shader variants. Only shader wiring, pipeline-key extension, and bind-group routing remain to put direction-dependent diffuse-IBL pixels on screen in the spinning-cube example.
 
-## Near-Term Proof Point Track
+Reference anchors (read both before writing WGSL):
+- `references/three.js/src/extras/PMREMGenerator.js`
+- `references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/reflectionEnv.js`
+- `references/engine/src/scene/graphics/reproject-texture.js`
 
-Target proof point:
+## Strategic Focus — MVP Renderer
 
-- A browser example renders a spinning cube through a simple user-facing API.
-- Authoring starts from ECS entities/components, not renderer scene nodes.
-- Mesh and material assets are created through typed collections.
-- The cube uses a `StandardMaterial` MVP with metallic/roughness/base color.
-- Lighting is active in the shader from at least ambient plus one directional
-  light.
-- `createWebGpuApp` or equivalent hides backend setup and frame-loop plumbing.
-- Playwright verifies rendered pixels and JSON-safe frame diagnostics.
+Target: a credible MVP renderer that ships three capabilities. In priority order:
 
-Remaining automation priority order:
+1. **Image-based lighting (IBL).** Diffuse + specular environment lighting visible in the spinning-cube, materials-showcase, and GLTF-scene examples. Infrastructure (descriptors, bind groups, shader variants) already exists; only shader wiring, pipeline-key extension, and bind-group routing remain.
 
-1. `task-1976` — audit visible buffer-backed GLB primitive replay proof.
-2. `task-1977` — plan buffer-backed GLB material mapping for visible replay.
-3. `task-1978` — add visible buffer-backed GLB primitive material mapping.
-4. `task-1979` — audit buffer-backed GLB material mapping replay.
+2. **Real GLB scene loading and rendering.** A glTF viewer comparable to existing engine sample viewers: fetch any `.glb` URL, parse it, register assets, replay ECS authoring commands, render. Camera navigation and multi-asset switching included. Animation playback queued for post-MVP.
 
-Defer allocation-only cleanup, metadata-only shader-contract tasks, public
-custom material source work, and app-owned custom adapter facades unless they
-are a direct blocker for this track.
+3. **Complete shadow path.** Multi-light (directional + point + spot) with PCF soft shadows. Single directional shadow path is closest to ready; soft-shadow and multi-light extensions follow.
 
-## Strategic Focus
+These three tracks are the only acceptable subjects for the Recommended Next Task. Other work (route boundaries, generic adapter families, broader material extensibility, container format edge cases) is **deferred** until all three MVP tracks land.
 
-The next focus area is the glTF scene architecture spine:
+All MVP-track tasks are visible-feature tasks under `agent/WAKE.md` §9. Diagnostic and audit work follows the visible feature, never precedes it. Every task entry below cites at least one specific reference file under `references/bevy`, `references/engine` (PlayCanvas), or `references/three.js`. The agent MUST read the cited references before writing implementation code (see `agent/WAKE.md` §4).
 
-```text
-glTF/GLB-derived scene data
-  -> ECS entities, transforms, typed mesh/material/light/environment assets
-  -> render snapshot
-  -> source material asset
-  -> readiness diagnostics
-  -> render queue item
-  -> prepared WebGPU resources
-  -> IBL/shadow resources where supported
-  -> pipeline and bind groups
-  -> draw submission
-```
+## Ready Tasks — MVP Tracks
 
-Prioritize a narrow GLTF scene app over further isolated route/material
-hardening. IBL and shadows are now part of the near-term scene milestone, but
-they should be added as real render resources and diagnostics over the same app
-path, not as disconnected demos. The current renderer can already prove the
-ECS-to-WebGPU path with lit StandardMaterial content; the main risk now is
-spending more cycles on tiny status assertions while the user-facing scene path
-remains absent.
+### task-2001 — Render diffuse IBL on the spinning-cube example
 
-Preferred refill order after the current ready queue:
+Category: `webgpu-render`
+Package/write-scope: `packages/webgpu/src/`, `examples/spinning-cube.js`, `test/e2e/spinning-cube.spec.ts`.
+Reference anchor: `references/three.js/src/extras/PMREMGenerator.js`, `references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/reflectionEnv.js`, `references/engine/src/scene/graphics/reproject-texture.js`. Compare at least two before writing WGSL.
 
-1. Define the GLTF scene vertical-slice contract and select the smallest scene
-   fixture that proves multiple primitive shapes, multiple built-in materials,
-   transforms, camera, light, IBL intent, and shadow intent.
-2. Implement scene data mapping into existing typed assets and ECS authoring,
-   preserving the render extraction boundary and JSON-safe diagnostics.
-3. Render the scene through the app facade with multiple built-in materials and
-   stable queue/sort diagnostics.
-4. Add environment/IBL resources and StandardMaterial sampling for the scene.
-5. Add the first shadow-map pass and StandardMaterial shadow sampling for the
-   scene.
-6. Audit architecture drift, then fill remaining GLB/container parsing,
-   resource lifetime, batching, and diagnostics gaps exposed by the scene.
+Implementation notes:
 
-Estimated remaining runway to a useful GLTF scene render pipeline:
+- Wire `STANDARD_DIFFUSE_IBL_SHADER_VARIANT` (already defined in `packages/webgpu/src/standard-shader.ts`) into the spinning-cube path.
+- Extend `StandardMaterialPipelineKey` with `iblDiffuseEnabled`.
+- Route `getOrCreateWebGpuAppEnvironmentResourceCache()` output into bind group 4.
 
-- About 18-28 focused automation tasks for a production-shaped slice that maps
-  simple glTF/GLB-derived scene data, renders multiple primitive shapes and
-  built-in materials, and includes first IBL plus shadow support with honest
-  diagnostics.
-- About 5-7 tasks are scene/import contract and public app fixture work.
-- About 5-8 tasks are StandardMaterial/glTF fidelity and built-in material
-  integration needed by the scene.
-- About 4-6 tasks are IBL/environment resource, binding, shader, and browser
-  proof work.
-- About 5-7 tasks are shadow-map pass, light extraction, shadow resource,
-  shader sampling, and browser proof work.
+Acceptance criteria:
 
-Keep GLTF work narrow, but no longer postpone the scene app. Container parsing,
-IBL, and shadows should advance only when they feed the scene vertical slice
-through the established ECS/render boundary.
+- Cube in `examples/spinning-cube.html` shows direction-dependent diffuse-IBL shading (not flat ambient).
+- Playwright canvas readback at three named coordinates differs measurably between top/side/bottom faces.
+- `pnpm exec playwright test test/e2e/spinning-cube.spec.ts` passes.
+
+### task-2002 — Add `withEnvironmentMap(handle)` runtime helper and adopt in materials-showcase
+
+Category: `runtime-orchestration`
+Package/write-scope: `packages/runtime/src/index.ts`, `examples/materials-showcase.js`, targeted tests.
+Reference anchor: existing `withCamera`, `withLight` patterns in `packages/runtime/src/index.ts`; Bevy environment-map components under `references/bevy/crates/bevy_pbr/src/` (verify path on read).
+
+Acceptance criteria:
+
+- `withEnvironmentMap(handle)` exported from `@aperture-engine/runtime`, typed, callable.
+- `examples/materials-showcase.html` uses it; showcase cubes show IBL response in Playwright pixel readback.
+- `pnpm exec tsc -p packages/runtime/tsconfig.json --noEmit` passes.
+
+### task-2003 — Render specular IBL on the spinning-cube example
+
+Category: `webgpu-render`
+Package/write-scope: `packages/webgpu/src/`, `examples/spinning-cube.js`, targeted tests.
+Reference anchor: `references/three.js/src/extras/PMREMGenerator.js` (specular mip chain); `references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/reflectionCube.js` (PlayCanvas WGSL specular cube sampling).
+
+Acceptance criteria:
+
+- Metallic cube in `examples/spinning-cube.html` shows specular reflection of the environment.
+- Playwright pixel at a named coordinate over a specular highlight is measurably brighter than at a matte coordinate.
+- Extend `StandardMaterialPipelineKey` with `iblSpecularEnabled`.
+
+### task-2004 — Replace specular-IBL placeholder with a minimal GGX mip-chain prefilter
+
+Category: `webgpu-render`
+Package/write-scope: `packages/webgpu/src/`, targeted tests.
+Reference anchor: `references/three.js/src/extras/PMREMGenerator.js` — the load-time GGX prefilter is the proven anchor.
+
+Acceptance criteria:
+
+- Specular highlight on the spinning cube responds to roughness.
+- Two cubes with `roughness=0.1` and `roughness=0.9` show visibly different specular extent in Playwright pixel comparison.
+
+### task-2005 — Map GLB source material onto the buffer-backed primitive (promotes the deleted task-1978)
+
+Category: `render-bridge`
+Package/write-scope: `packages/render/src/assets/`, `examples/gltf-scene.js`, `test/e2e/gltf-scene.spec.ts`.
+Reference anchor: `references/bevy/crates/bevy_gltf/src/loader/mod.rs` (material resolution from glTF material index); `references/three.js/examples/jsm/loaders/GLTFLoader.js` (function `loadMaterial`).
+
+Implementation notes:
+
+- Replace the example's hardcoded material handle with one derived from the GLB source via existing `packages/render/src/assets/gltf-primitive-material-resolution.ts`.
+
+Acceptance criteria:
+
+- Primitive in `examples/gltf-scene.html` uses the GLB-defined `baseColorFactor`.
+- Playwright pixel readback at the primitive's center differs measurably based on the fixture's material color compared to the previous hardcoded color.
+
+### task-2006 — Add public `loadGlbFromUri(url, options)` async loader with error reporting
+
+Category: `render-bridge`
+Package/write-scope: `packages/render/src/assets/`, targeted tests.
+Reference anchor: `references/three.js/examples/jsm/loaders/GLTFLoader.js` (fetch + parse + error reporting flow); `references/engine/src/framework/parsers/glb-parser.js` (PlayCanvas GLB parser entry).
+
+Acceptance criteria:
+
+- `loadGlbFromUri(url, options)` exported from `@aperture-engine/render`, typed.
+- Test loads a base64-data-URL `.glb` and reports `ok: true`.
+- Test loads a malformed URL and reports `ok: false` with a typed diagnostic.
+
+### task-2007 — Create `examples/glb-viewer.html` that fetches and renders a sample `.glb`
+
+Category: `runtime-orchestration`
+Package/write-scope: `examples/glb-viewer.html`, `examples/glb-viewer.js`, `examples/assets/cube.glb`, `test/e2e/glb-viewer.spec.ts`.
+Reference anchor: `references/three.js/examples/jsm/loaders/GLTFLoader.js` and the three.js glTF viewer under `references/three.js/examples/` for the smallest end-to-end load+render flow.
+
+Implementation notes:
+
+- Commit a small sample `cube.glb` under `examples/assets/`.
+- Use `loadGlbFromUri` to fetch it; register assets via `app.assets.register`; replay ECS commands via `applyGltfEcsCommandPlanToApp`; render.
+
+Acceptance criteria:
+
+- Example renders the fetched primitive.
+- Playwright sees non-clear-color pixels in the render region.
+
+### task-2008 — Add orbit camera control to glb-viewer
+
+Category: `runtime-orchestration`
+Package/write-scope: `examples/glb-viewer.js`, `packages/runtime/src/` if a shared helper emerges, targeted tests.
+Reference anchor: `references/three.js/examples/jsm/controls/OrbitControls.js`.
+
+Acceptance criteria:
+
+- Pointer-drag rotates the camera around the scene origin; mouse wheel zooms.
+- Playwright simulates drag and asserts canvas pixel content changes between before/after frames.
+
+### task-2009 — Multi-asset switching in glb-viewer with three sample `.glb` files
+
+Category: `runtime-orchestration`
+Package/write-scope: `examples/glb-viewer.js`, `examples/glb-viewer.html`, `examples/assets/`, targeted tests.
+Reference anchor: `references/three.js/examples/webgl_loader_gltf.html` (sample-switching UI patterns).
+
+Acceptance criteria:
+
+- Dropdown with 3 sample `.glb` files; switching unloads previous scene, loads next.
+- Playwright switches dropdown and asserts pixel difference between selections.
+
+### task-2010 — Execute shadow depth pass and render visible directional shadow in gltf-scene
+
+Category: `webgpu-render`
+Package/write-scope: `packages/webgpu/src/`, `examples/gltf-scene.js`, `test/e2e/gltf-scene.spec.ts`.
+Reference anchor: `references/three.js/src/lights/DirectionalLightShadow.js` + `references/three.js/src/lights/LightShadow.js`; `references/engine/src/scene/renderer/shadow-renderer-directional.js` + `references/engine/src/scene/renderer/render-pass-shadow-directional.js`; `references/bevy/examples/3d/shadow_caster_receiver.rs`.
+
+Implementation notes:
+
+- Wire `shadowPassCommandEncoderResource` into `app.render()` before the main color pass.
+- Add shadow sampling to `standard-material.wgsl`.
+- Extend `StandardMaterialPipelineKey` with `shadowMapEnabled`.
+
+Acceptance criteria:
+
+- A box in `examples/gltf-scene.html` casts a visible shadow onto a receiving plane.
+- Playwright pixel under the shadow is measurably darker than an unshadowed pixel.
+
+### task-2011 — Add 3×3 PCF soft-shadow filtering for directional light
+
+Category: `webgpu-render`
+Package/write-scope: `packages/webgpu/src/`, targeted tests.
+Reference anchor: `references/three.js/src/renderers/shaders/ShaderChunk/shadowmap_pars_fragment.glsl.js` (3-tap and 5-tap PCF); PlayCanvas WGSL shadow chunks under `references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/`.
+
+Acceptance criteria:
+
+- Shadow edges in `examples/gltf-scene.html` are visibly softer than the hard-shadow version.
+- Playwright samples the shadow penumbra and asserts intermediate intensity (between fully-shadowed and fully-lit pixels).
+
+### task-2012 — Add point-light shadow cube map and render visible point-light shadow
+
+Category: `webgpu-render`
+Package/write-scope: `packages/webgpu/src/`, an example update, targeted tests.
+Reference anchor: `references/three.js/src/lights/PointLightShadow.js`; `references/engine/src/scene/renderer/shadow-renderer-local.js`; `references/engine/src/scene/renderer/render-pass-shadow-local-non-clustered.js`.
+
+Acceptance criteria:
+
+- A point light near a cube produces a visible shadow that wraps around the caster.
+- Playwright pixel readback at three named coordinates around the cube shows shadow on the far side and light on the near side.
+
+### task-2013 — Add spot-light shadow projection and render visible spot-light shadow
+
+Category: `webgpu-render`
+Package/write-scope: `packages/webgpu/src/`, an example update, targeted tests.
+Reference anchor: `references/three.js/src/lights/SpotLightShadow.js`; `references/engine/src/scene/renderer/shadow-renderer-local.js`.
+
+Acceptance criteria:
+
+- Spot light placed above the gltf-scene cube produces a visible conical shadow region.
+- Playwright pixel inside the cone is bright, outside is dark.
+
+### task-2014 — Combined multi-light scene: directional + point + spot all casting PCF shadows
+
+Category: `webgpu-render`
+Package/write-scope: `packages/webgpu/src/`, `examples/multi-light-shadow.html`, `examples/multi-light-shadow.js`, `test/e2e/multi-light-shadow.spec.ts`.
+Reference anchor: `references/engine/src/scene/renderer/shadow-renderer.js` (PlayCanvas shadow-renderer top-level coordination); Bevy multi-light render path under `references/bevy/crates/bevy_pbr/src/render/` (verify file on read).
+
+Acceptance criteria:
+
+- New `examples/multi-light-shadow.html` with all three light types active casts three distinct shadows on a shared plane.
+- Playwright pixel sampling at six named coordinates distinguishes each shadow region.
+
+Future MVP slices (animation playback for glb-viewer, IBL composition with shadow receivers, performance pass) will be queued after these land. They are not in the initial 5-ready-task floor.
 
 ## Ready Tasks By Category
 
@@ -8947,6 +9052,8 @@ Acceptance criteria:
 
 ### task-1784 — Tighten base-color rotation transform fixture status
 
+Status: superseded 2026-05-19 — removed from ready queue per MVP focus shift to IBL/GLB/shadow tracks. See `agent/HANDOFF.md`.
+
 Category: `webgpu-render`
 Package/write-scope:
 `test/e2e/standard-gltf-texture.spec.ts`; implementation files only if the
@@ -8968,6 +9075,8 @@ Acceptance criteria:
 
 ### task-1785 — Audit selected StandardMaterial/glTF fidelity follow-up
 
+Status: superseded 2026-05-19 — removed from ready queue per MVP focus shift to IBL/GLB/shadow tracks. See `agent/HANDOFF.md`.
+
 Category: `audit-refactor`
 Package/write-scope: `docs/research`, targeted tests only if a tiny corrective
 fix is required.
@@ -8986,6 +9095,8 @@ Acceptance criteria:
 
 ### task-1786 — Plan next generic material-family contract follow-up
 
+Status: superseded 2026-05-19 — removed from ready queue per MVP focus shift to IBL/GLB/shadow tracks. See `agent/HANDOFF.md`.
+
 Category: `docs-tooling`
 Package/write-scope: `docs/research` and backlog only.
 Reference anchor:
@@ -9003,6 +9114,8 @@ Acceptance criteria:
 
 ### task-1787 — Audit tracker/backlog alignment after selected fidelity follow-up
 
+Status: superseded 2026-05-19 — removed from ready queue per MVP focus shift to IBL/GLB/shadow tracks. See `agent/HANDOFF.md`.
+
 Category: `docs-tooling`
 Package/write-scope: `docs/index.html`, `docs/render-pipeline-comparison.html`,
 `agent/BACKLOG.md`, and `docs/research`.
@@ -9018,6 +9131,8 @@ Acceptance criteria:
 - Run `pnpm run check:progress` after tracker edits.
 
 ### task-1788 — Implement selected generic material-family contract follow-up
+
+Status: superseded 2026-05-19 — removed from ready queue per MVP focus shift to IBL/GLB/shadow tracks. See `agent/HANDOFF.md`.
 
 Category: `render-bridge`
 Package/write-scope:
@@ -12866,6 +12981,8 @@ Acceptance criteria:
 
 ### task-1976 — Audit visible buffer-backed GLB primitive replay proof
 
+Status: superseded 2026-05-19 — removed from ready queue per MVP focus shift. The completed task-1975 has visible Playwright assertions that act as the standing audit; standalone audit markdown is no longer the deliverable shape per `agent/WAKE.md` §7. See `agent/HANDOFF.md`.
+
 Category: `audit-refactor`
 Package/write-scope: `docs/research`, `agent/BACKLOG.md`, targeted checks.
 Reference anchor:
@@ -12879,6 +12996,8 @@ Acceptance criteria:
 - Recommend the next glTF scene vertical-slice task.
 
 ### task-1977 — Plan buffer-backed GLB material mapping for visible replay
+
+Status: superseded 2026-05-19 — removed from ready queue. Material mapping is now folded into the visible-feature task `task-2005`. See `agent/HANDOFF.md`.
 
 Category: `docs-tooling`
 Package/write-scope: `docs/research`, `agent/BACKLOG.md`.
@@ -12896,6 +13015,8 @@ Acceptance criteria:
 
 ### task-1978 — Add visible buffer-backed GLB primitive material mapping
 
+Status: superseded 2026-05-19 — content promoted to `task-2005` with explicit reference anchors and visible pixel acceptance criteria under the MVP GLB-loading track. See `agent/HANDOFF.md`.
+
 Category: `render-bridge`
 Package/write-scope: `packages/render/src/assets`, `examples/gltf-scene.js`,
 `test/e2e/gltf-scene.spec.ts`, targeted tests.
@@ -12910,6 +13031,8 @@ Acceptance criteria:
 - Playwright keeps the visible proof stable.
 
 ### task-1979 — Audit buffer-backed GLB material mapping replay
+
+Status: superseded 2026-05-19 — removed from ready queue. Playwright pixel assertions on the visible material in `task-2005` are the standing audit per `agent/WAKE.md` §7. See `agent/HANDOFF.md`.
 
 Category: `audit-refactor`
 Package/write-scope: `docs/research`, `agent/BACKLOG.md`, targeted checks.
