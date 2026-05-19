@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-18 21:45 PDT</dd>
+            <dd>2026-05-18 22:40 PDT</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -437,8 +437,19 @@
               readiness, shadow command resource summaries, StandardMaterial
               IBL/shadow pipeline-key metadata, scratch-backed IBL/shadow status
               writers, and compact top-level IBL/shadow readiness grouping are
-              now exposed. The next task is allocating a live shadow depth
-              texture/view resource. Public custom shader/material APIs and
+              now exposed. Live shadow depth texture/view allocation, compact
+              shadow depth resource summaries, a live IBL cache-direction audit,
+              a StandardMaterial IBL bind-group layout slice plan, and a GLTF
+              live-resource status-growth audit are now complete.
+              Descriptor-only StandardMaterial IBL bind-group layout metadata,
+              an IBL app-cache integration plan, a first shadow matrix upload
+              plan, a GLTF status grouping audit, a StandardMaterial shadow
+              bind-group layout plan, computed directional shadow matrices,
+              StandardMaterial shadow bind-group layout metadata, IBL group 4
+              descriptor planning, live specular IBL texture/view allocation,
+              and follow-up status/layout audits are now complete. The next task
+              is integrating IBL resources with the WebGPU app cache before live
+              bind-group creation. Public custom shader/material APIs and
               app-owned custom adapter facades remain deferred behind this
               built-in scene path. Route summary determinism is pinned, the
               built-in frame-resource wrapper now has mixed-family route
@@ -716,7 +727,7 @@
               diagnostics now include those routed item key details.
             </dd>
             <dt>Next focus</dt>
-            <dd>Allocate shadow depth texture resource</dd>
+            <dd>Integrate IBL resources with the WebGPU app cache</dd>
           </dl>
         </aside>
       </header>
@@ -2435,11 +2446,11 @@
             <h3>Recommended next tasks</h3>
             <ul>
               <li>
-                <span class="badge amber">next</span> Allocate shadow depth
-                texture resource.
+                <span class="badge amber">next</span> Integrate IBL resources
+                with the WebGPU app cache.
               </li>
-              <li>Audit live IBL resource cache direction.</li>
-              <li>Plan StandardMaterial IBL bind-group layout slice.</li>
+              <li>Create live StandardMaterial IBL bind groups.</li>
+              <li>Plan shadow matrix buffer upload resources.</li>
             </ul>
           </article>
         </div>

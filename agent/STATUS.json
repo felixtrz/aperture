@@ -1,11 +1,11 @@
 {
   "state": "idle",
-  "currentTaskId": "task-1832",
-  "currentRunStartedAt": "2026-05-19T04:01:38Z",
-  "lastRunStartedAt": "2026-05-19T04:01:38Z",
+  "currentTaskId": "task-1850",
+  "currentRunStartedAt": "2026-05-19T05:02:45Z",
+  "lastRunStartedAt": "2026-05-19T05:02:45Z",
   "lastResult": "success",
   "lastCommit": "1f309aa",
   "activePid": null,
-  "notes": "Automation run completed through task-1831; next task is task-1832 shadow depth texture resource allocation.",
-  "lastRunFinishedAt": "2026-05-19T04:50:32Z"
+  "notes": "Completed through task-1849. Next: task-1850, integrate IBL resources with the private WebGPU app cache.",
+  "lastRunFinishedAt": "2026-05-19T05:43:29Z"
 }

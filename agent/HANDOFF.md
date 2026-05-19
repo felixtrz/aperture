@@ -1,5 +1,128 @@
 # Handoff
 
+## Current Run Update — 2026-05-19T05:41:29Z
+
+Completed `task-1837` through `task-1849`. Recommended next task is
+`task-1850`: integrate IBL resources with the WebGPU app cache.
+
+What changed:
+
+- Added descriptor-only StandardMaterial IBL group 4 bind-group layout metadata.
+- Added computed directional shadow view/projection matrix arrays for the GLTF
+  scene path while keeping GPU upload and pass submission deferred.
+- Added descriptor-only StandardMaterial shadow group 5 bind-group layout
+  metadata.
+- Added StandardMaterial IBL group 4 descriptor planning and exposed
+  `ibl.bindGroupDescriptor`.
+- Added live renderer-owned specular IBL texture/view allocation and exposed
+  `ibl.specularTextureResource`.
+- Updated `examples/gltf-scene.js` and `test/e2e/gltf-scene.spec.ts` so grouped
+  IBL/shadow readiness reports include the new layout, descriptor, matrix, and
+  specular resource phases.
+- Added focused plans/audits for IBL app-cache integration, IBL/shadow layout
+  boundaries, GLTF status compaction, specular IBL resource allocation, and
+  first shadow matrix upload resource selection.
+- Updated public tracker pages, backlog, completed log, and status.
+
+Reference anchors inspected:
+
+- `packages/webgpu/src/webgpu/standard-bind-group.ts`
+- `packages/webgpu/src/webgpu/matcap-bind-group.ts`
+- `packages/webgpu/src/webgpu/standard-material-ibl-bind-group-layout.ts`
+- `packages/webgpu/src/webgpu/standard-material-shadow-bind-group-layout.ts`
+- `packages/webgpu/src/webgpu/ibl-texture-resource.ts`
+- `packages/webgpu/src/webgpu/ibl-sampler-resource.ts`
+- `packages/webgpu/src/webgpu/app.ts`
+- `packages/webgpu/src/webgpu/app-texture-sampler-resources.ts`
+- `references/engine/src/scene/graphics/env-lighting.js`
+- `references/engine/src/scene/renderer/render-pass-shadow-directional.js`
+- `references/three.js/src/extras/PMREMGenerator.js`
+- `references/three.js/src/renderers/webgl/WebGLShadowMap.js`
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/standard-material-shadow-bind-group-layout.test.ts test/webgpu/standard-material-ibl-bind-group-layout.test.ts`
+- `pnpm exec vitest run test/webgpu/directional-shadow-matrix-computation.test.ts test/webgpu/directional-shadow-view-projection-plan.test.ts test/webgpu/shadow-matrix-buffer-descriptor.test.ts`
+- `pnpm exec vitest run test/webgpu/standard-material-ibl-bind-group.test.ts test/webgpu/standard-material-ibl-bind-group-layout.test.ts`
+- `pnpm exec vitest run test/webgpu/specular-ibl-texture-resource.test.ts test/webgpu/ibl-texture-resource.test.ts test/webgpu/standard-material-ibl-bind-group.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm exec playwright test test/e2e/gltf-scene.spec.ts`
+- `pnpm run check` (`295` test files / `1353` tests passed)
+
+Known issues / follow-ups:
+
+- GLTF IBL resources are still cached by example-level module-scope variables.
+  Move diffuse/specular IBL texture resources and IBL samplers into private app
+  cache state next.
+- Live group 4 IBL bind-group creation is still deferred even though the
+  descriptor plan is valid.
+- Specular prefilter pass execution, WGSL IBL sampling, shadow matrix buffer
+  allocation/upload, shadow pass submission, and shadow sampling remain
+  deferred.
+
+## Current Run Update — 2026-05-19T05:13:55Z
+
+Completed `task-1832` through `task-1836`. Recommended next task is
+`task-1837`: add StandardMaterial IBL bind-group layout metadata.
+
+What changed:
+
+- Added renderer-owned shadow depth texture/view allocation:
+  - `ShadowDepthTextureResourceReport`,
+  - JSON helpers, package export, and focused unit coverage.
+- Added compact shadow depth resource summaries:
+  - `ShadowDepthResourceSummaryReport`,
+  - JSON helpers, package export, and focused unit coverage.
+- Updated `examples/gltf-scene.js` and `test/e2e/gltf-scene.spec.ts` so the
+  GLTF scene status exposes:
+  - `shadow.depthTextureResources`,
+  - `shadow.depthResourceSummary`, and
+  - grouped readiness phases for live shadow depth resources.
+- Added audits/plans for:
+  - live IBL app-cache direction,
+  - StandardMaterial IBL bind-group layout metadata,
+  - GLTF live-resource status growth, and
+  - the two shadow depth resource implementation slices.
+- Updated `docs/index.html`, `docs/render-pipeline-comparison.html`,
+  `agent/BACKLOG.md`, and `agent/COMPLETED.md`.
+- Refilled the ready queue with `task-1837` through `task-1841`.
+
+Reference anchors inspected:
+
+- `references/engine/src/scene/renderer/render-pass-shadow-directional.js`
+- `references/three.js/src/renderers/webgl/WebGLShadowMap.js`
+- `references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/lighting/shadowPCF3.js`
+- `references/three.js/src/renderers/shaders/ShaderChunk`
+- Local `shadow-texture-resource`, `texture-resources`,
+  `shadow-command-resource-summary`, `standard-bind-group-layout`,
+  `standard-bind-group`, `standard-material-ibl-shadow-binding-readiness`,
+  `standard-shader`, app resource cache, app texture/sampler resource cache,
+  prepared mesh cache, and prepared StandardMaterial cache helpers.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/shadow-depth-texture-resource.test.ts test/webgpu/shadow-texture-resource.test.ts test/webgpu/ibl-texture-resource.test.ts`
+- `pnpm exec vitest run test/webgpu/shadow-depth-texture-resource.test.ts test/webgpu/shadow-depth-resource-summary.test.ts test/webgpu/shadow-command-resource-summary.test.ts`
+- `pnpm exec playwright test test/e2e/gltf-scene.spec.ts`
+- `pnpm run check:progress`
+- `pnpm run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm run lint`
+- `pnpm run format:check`
+- `pnpm run check` (`290` test files / `1345` tests passed)
+
+Known issues / follow-ups:
+
+- IBL now has live diffuse texture/view and sampler allocation, and shadows now
+  have live depth texture/view allocation, but specular prefiltering,
+  StandardMaterial IBL/shadow bind-group layouts, shader sampling, shadow matrix
+  upload, and shadow pass submission remain deferred.
+- The GLTF scene status is still useful, but it is growing. After `task-1837`,
+  use `task-1840` to decide whether detailed fields should be folded behind
+  compact summaries.
+- Start `task-1837` next. It should add descriptor-only StandardMaterial IBL
+  bind-group layout metadata without creating bind groups or changing WGSL.
+
 ## Current Run Update — 2026-05-19T04:50:32Z
 
 Completed `task-1812` through `task-1831`. Recommended next task is

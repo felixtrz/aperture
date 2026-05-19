@@ -38,7 +38,9 @@ const shadowIntent = {
   normalBias: 0.01,
 };
 let diffuseIblTextureResourceReport = null;
+let specularIblTextureResourceReport = null;
 let iblSamplerResourceReport = null;
+let shadowDepthTextureResourceReport = null;
 
 try {
   const [core, webgpu] = await Promise.all([
@@ -242,6 +244,15 @@ function publishFrameStatus(aperture, app, scene, step, report, frame) {
     aperture.diffuseIblTextureResourceReportToJsonValue(
       diffuseIblTextureResourceReport,
     );
+  specularIblTextureResourceReport ??=
+    aperture.createSpecularIblTextureResourceReport({
+      device: app.initialization.device,
+      textures: iblTextures,
+    });
+  const specularIblTextureResource =
+    aperture.specularIblTextureResourceReportToJsonValue(
+      specularIblTextureResourceReport,
+    );
   const iblSamplerDescriptors =
     aperture.createIblSamplerDescriptorReadinessReport({
       textures: iblTextures,
@@ -289,6 +300,22 @@ function publishFrameStatus(aperture, app, scene, step, report, frame) {
         iblDescriptors: iblDescriptor,
       }),
     );
+  const standardMaterialIblBindGroupLayout =
+    aperture.standardMaterialIblBindGroupLayoutReadinessReportToJsonValue(
+      aperture.createStandardMaterialIblBindGroupLayoutReadinessReport({
+        standardMaterialCount,
+      }),
+    );
+  const standardMaterialIblBindGroupDescriptor =
+    aperture.standardMaterialIblBindGroupDescriptorReadinessReportToJsonValue(
+      aperture.createStandardMaterialIblBindGroupDescriptorReadinessReport({
+        standardMaterialCount,
+        textures: iblTextures,
+        diffuseTextureResource: diffuseIblTextureResourceReport,
+        specularTextureResource: specularIblTextureResourceReport,
+        samplers: iblSamplerResourceReport,
+      }),
+    );
   const shadowDescriptor = aperture.shadowMapDescriptorReportToJsonValue(
     aperture.createShadowMapDescriptorReport({
       shadowRequests: report.snapshot.shadowRequests,
@@ -311,6 +338,21 @@ function publishFrameStatus(aperture, app, scene, step, report, frame) {
       descriptors: shadowDescriptor,
     }),
   );
+  shadowDepthTextureResourceReport ??=
+    aperture.createShadowDepthTextureResourceReport({
+      device: app.initialization.device,
+      textures: shadowTextures,
+    });
+  const shadowDepthTextureResources =
+    aperture.shadowDepthTextureResourceReportToJsonValue(
+      shadowDepthTextureResourceReport,
+    );
+  const shadowDepthResourceSummary =
+    aperture.shadowDepthResourceSummaryReportToJsonValue(
+      aperture.createShadowDepthResourceSummaryReport({
+        depthTextureResources: shadowDepthTextureResourceReport,
+      }),
+    );
   const shadowPassPlan = aperture.shadowPassPlanReportToJsonValue(
     aperture.createShadowPassPlanReport({
       shadowRequests: report.snapshot.shadowRequests,
@@ -324,12 +366,25 @@ function publishFrameStatus(aperture, app, scene, step, report, frame) {
         shadowPassPlan,
       }),
     );
+  const standardMaterialShadowBindGroupLayout =
+    aperture.standardMaterialShadowBindGroupLayoutReadinessReportToJsonValue(
+      aperture.createStandardMaterialShadowBindGroupLayoutReadinessReport({
+        standardMaterialCount,
+      }),
+    );
   const shadowViewProjection =
     aperture.directionalShadowViewProjectionPlanReportToJsonValue(
       aperture.createDirectionalShadowViewProjectionPlanReport({
         shadowRequests: report.snapshot.shadowRequests,
         lights: report.snapshot.lights,
         shadowPassPlan,
+      }),
+    );
+  const shadowMatrixComputation =
+    aperture.directionalShadowMatrixComputationReportToJsonValue(
+      aperture.createDirectionalShadowMatrixComputationReport({
+        viewProjection: shadowViewProjection,
+        transforms: report.snapshot.transforms,
       }),
     );
   const shadowMatrixBuffer =
@@ -387,24 +442,31 @@ function publishFrameStatus(aperture, app, scene, step, report, frame) {
     iblDescriptor,
     iblTextures,
     diffuseIblTextureResource,
+    specularIblTextureResource,
     iblSamplers,
     iblSamplerResources,
     diffuseIblResourceSummary,
     iblPassPlan,
     iblResourceSummary,
     standardMaterialIbl,
+    standardMaterialIblBindGroupLayout,
+    standardMaterialIblBindGroupDescriptor,
     standardMaterialIblShadowBinding,
     standardMaterialIblShadowPipelineKey,
     shadowDescriptor,
     shadowResources,
     shadowTextures,
+    shadowDepthTextureResources,
+    shadowDepthResourceSummary,
     shadowPassPlan,
     shadowViewProjection,
+    shadowMatrixComputation,
     shadowMatrixBuffer,
     shadowCasterDrawList,
     shadowCommandPlan,
     shadowResourceSummary,
     standardMaterialShadow,
+    standardMaterialShadowBindGroupLayout,
   });
 
   publishStatus({
@@ -449,11 +511,14 @@ function publishFrameStatus(aperture, app, scene, step, report, frame) {
       descriptor: iblDescriptor,
       textures: iblTextures,
       diffuseTextureResource: diffuseIblTextureResource,
+      specularTextureResource: specularIblTextureResource,
       samplers: iblSamplers,
       samplerResources: iblSamplerResources,
       diffuseResourceSummary: diffuseIblResourceSummary,
       passPlan: iblPassPlan,
       resourceSummary: iblResourceSummary,
+      bindGroupLayout: standardMaterialIblBindGroupLayout,
+      bindGroupDescriptor: standardMaterialIblBindGroupDescriptor,
       shaderBinding: standardMaterialIblShadowBinding,
       pipelineKey: standardMaterialIblShadowPipelineKey,
       standardMaterial: standardMaterialIbl,
@@ -485,12 +550,16 @@ function publishFrameStatus(aperture, app, scene, step, report, frame) {
       descriptor: shadowDescriptor,
       resources: shadowResources,
       textures: shadowTextures,
+      depthTextureResources: shadowDepthTextureResources,
+      depthResourceSummary: shadowDepthResourceSummary,
       passPlan: shadowPassPlan,
       viewProjection: shadowViewProjection,
+      matrixComputation: shadowMatrixComputation,
       matrixBuffer: shadowMatrixBuffer,
       casterDrawList: shadowCasterDrawList,
       commandPlan: shadowCommandPlan,
       resourceSummary: shadowResourceSummary,
+      bindGroupLayout: standardMaterialShadowBindGroupLayout,
       standardMaterial: standardMaterialShadow,
       rendering: {
         supported: false,
@@ -532,12 +601,17 @@ function createReadinessGrouping(input) {
     diffuseTextureResource: normalizeStatus(
       input.diffuseIblTextureResource.status,
     ),
+    specularTextureResource: normalizeStatus(
+      input.specularIblTextureResource.status,
+    ),
     samplerDescriptors: input.iblSamplers.status,
     samplerResources: normalizeStatus(input.iblSamplerResources.status),
     diffuseResourceSummary: input.diffuseIblResourceSummary.status,
     preparationPasses: input.iblPassPlan.status,
     resourceSummary: input.iblResourceSummary.status,
     standardMaterial: normalizeStatus(input.standardMaterialIbl.status),
+    bindGroupLayout: input.standardMaterialIblBindGroupLayout.status,
+    bindGroupDescriptor: input.standardMaterialIblBindGroupDescriptor.status,
     shaderBinding: normalizeStatus(
       input.standardMaterialIblShadowBinding.status,
     ),
@@ -548,12 +622,18 @@ function createReadinessGrouping(input) {
     descriptors: input.shadowDescriptor.ready ? "ready" : "missing",
     resourceReadiness: normalizeStatus(input.shadowResources.status),
     textureDescriptors: input.shadowTextures.ready ? "deferred" : "missing",
+    depthTextureResources: normalizeStatus(
+      input.shadowDepthTextureResources.status,
+    ),
+    depthResourceSummary: input.shadowDepthResourceSummary.status,
     passPlans: input.shadowPassPlan.status,
     viewProjection: input.shadowViewProjection.status,
+    matrixComputation: input.shadowMatrixComputation.status,
     matrixBuffer: input.shadowMatrixBuffer.status,
     casterDrawLists: input.shadowCasterDrawList.status,
     commandPlans: input.shadowCommandPlan.status,
     resourceSummary: input.shadowResourceSummary.status,
+    bindGroupLayout: input.standardMaterialShadowBindGroupLayout.status,
     standardMaterial: input.standardMaterialShadow.status,
     rendering: "deferred",
   };

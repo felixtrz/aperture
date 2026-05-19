@@ -1,5 +1,60 @@
 # Completed Tasks
 
+## task-1849 — Specular IBL texture resources
+
+Completed: 2026-05-19
+
+Summary:
+
+- Added `SpecularIblTextureResourceReport`.
+- Allocates renderer-owned specular IBL texture/view resources from planned
+  specular slots and reports deferred prefilter pass execution.
+- Updated the GLTF scene status with `ibl.specularTextureResource`.
+- Made the StandardMaterial IBL group 4 descriptor plan valid when diffuse,
+  specular, and sampler resources are available.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/specular-ibl-texture-resource.test.ts test/webgpu/ibl-texture-resource.test.ts test/webgpu/standard-material-ibl-bind-group.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm exec playwright test test/e2e/gltf-scene.spec.ts`
+
+## task-1847 — StandardMaterial IBL bind-group descriptor planning
+
+Completed: 2026-05-19
+
+Summary:
+
+- Added `StandardMaterialIblBindGroupDescriptorReadinessReport`.
+- Plans JSON-safe group 4 resource-key entries for diffuse IBL texture,
+  specular IBL texture, and IBL sampler resources.
+- Exposes `ibl.bindGroupDescriptor` and
+  `readiness.ibl.phases.bindGroupDescriptor` in the GLTF scene status.
+- Keeps live bind-group creation and WGSL sampling deferred.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/standard-material-ibl-bind-group.test.ts test/webgpu/standard-material-ibl-bind-group-layout.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm exec playwright test test/e2e/gltf-scene.spec.ts`
+
+## task-1842 — Directional shadow matrix computation
+
+Completed: 2026-05-19
+
+Summary:
+
+- Added deterministic directional shadow matrix computation from planned shadow
+  view/projection data and extracted transforms.
+- Exposes computed shadow matrix arrays in the GLTF scene status while keeping
+  GPU buffer allocation/upload and pass submission deferred.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/directional-shadow-matrix-computation.test.ts test/webgpu/directional-shadow-view-projection-plan.test.ts test/webgpu/shadow-matrix-buffer-descriptor.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm exec playwright test test/e2e/gltf-scene.spec.ts`
+
 ## task-1831 — Diffuse IBL resource summary bridge
 
 Completed: 2026-05-19
@@ -17984,6 +18039,54 @@ Validation:
 - `pnpm run check:progress`
 - `pnpm run format:check`
 - `pnpm run check`
+
+## task-1832 through task-1836 — Live shadow depth resources and GLTF status audits
+
+Completed: 2026-05-19
+
+Summary:
+
+- Added renderer-owned shadow depth texture/view allocation from planned shadow
+  texture descriptors.
+- Added compact shadow depth resource summaries covering live allocation plus
+  deferred matrix upload, pass submission, and shader sampling.
+- Updated the GLTF scene status and Playwright coverage with
+  `shadow.depthTextureResources`, `shadow.depthResourceSummary`, and grouped
+  readiness phases.
+- Audited live IBL resource cache direction and selected app-cache integration
+  as a follow-up before IBL resources become normal shader inputs.
+- Planned the next StandardMaterial IBL bind-group layout metadata slice.
+- Audited GLTF live-resource status growth and recommended compact summaries
+  once more IBL/shadow layout reports land.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/shadow-depth-texture-resource.test.ts test/webgpu/shadow-texture-resource.test.ts test/webgpu/ibl-texture-resource.test.ts`
+- `pnpm exec vitest run test/webgpu/shadow-depth-texture-resource.test.ts test/webgpu/shadow-depth-resource-summary.test.ts test/webgpu/shadow-command-resource-summary.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm exec playwright test test/e2e/gltf-scene.spec.ts`
+
+## task-1837 through task-1841 — StandardMaterial IBL layout and next shadow plans
+
+Completed: 2026-05-19
+
+Summary:
+
+- Added descriptor-only StandardMaterial IBL bind-group layout metadata on
+  group 4 with diffuse irradiance, specular prefilter, and IBL sampler slots.
+- Updated GLTF scene status and Playwright coverage with `ibl.bindGroupLayout`
+  and grouped readiness.
+- Planned IBL app-cache integration without exposing private app cache internals.
+- Planned directional shadow matrix computation as the next shadow resource
+  step before matrix buffer upload.
+- Audited GLTF status grouping after the IBL layout report and planned
+  StandardMaterial shadow bind-group layout metadata.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/standard-material-ibl-bind-group-layout.test.ts test/webgpu/standard-material-ibl-shadow-binding-readiness.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm exec playwright test test/e2e/gltf-scene.spec.ts`
 
 ## task-1519 through task-1521 — StandardMaterial occlusion strength coverage
 
