@@ -3,7 +3,6 @@ import {
   type WebGpuBufferDeviceLike,
   type WebGpuBufferFailure,
 } from "./buffer.js";
-import type { DirectionalShadowMatrixComputationReport } from "./directional-shadow-matrix-computation.js";
 import type { ShadowMatrixBufferDescriptorReport } from "./shadow-matrix-buffer-descriptor.js";
 import { WEBGPU_BUFFER_USAGE_FLAGS } from "./mesh-buffer-descriptors.js";
 
@@ -72,8 +71,19 @@ export type ShadowMatrixBufferResourceReportJsonValue = Omit<
 export interface CreateShadowMatrixBufferResourceReportOptions {
   readonly device: WebGpuBufferDeviceLike;
   readonly descriptor: ShadowMatrixBufferDescriptorReport;
-  readonly matrices: DirectionalShadowMatrixComputationReport;
+  readonly matrices: ShadowMatrixComputationReportLike;
   readonly cache?: Map<string, ShadowMatrixBufferResource>;
+}
+
+export interface ShadowMatrixComputationLike {
+  readonly matrixKey: string;
+  readonly viewProjectionMatrix: readonly number[];
+}
+
+export interface ShadowMatrixComputationReportLike {
+  readonly status: "ready" | "missing" | "unsupported" | "not-required";
+  readonly matrixCount: number;
+  readonly matrices: readonly ShadowMatrixComputationLike[];
 }
 
 export const DEFAULT_SHADOW_MATRIX_BUFFER_USAGE =
@@ -242,7 +252,7 @@ export function shadowMatrixBufferResourceReportToJson(
 
 function packShadowMatrices(
   descriptor: ShadowMatrixBufferDescriptorReport,
-  matrices: DirectionalShadowMatrixComputationReport,
+  matrices: ShadowMatrixComputationReportLike,
 ):
   | { readonly data: Float32Array }
   | { readonly diagnostics: readonly ShadowMatrixBufferResourceDiagnostic[] } {

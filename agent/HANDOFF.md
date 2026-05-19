@@ -1,6 +1,52 @@
 # Agent Handoff
 
-Updated: 2026-05-19T19:53:10Z
+Updated: 2026-05-19T20:58:56Z
+
+## Current Run Update — 2026-05-19T20:58:56Z — Point shadow cube-map proof
+
+Completed `task-2012`.
+
+### What changed
+
+- Added point-light shadow extraction metadata so shadow requests preserve the
+  originating light kind.
+- Added point-light cube-map shadow resource planning: cube depth descriptors,
+  six per-face attachment views, six shadow pass records, point-shadow
+  view/projection planning, and point-shadow matrix computation/upload.
+- Added StandardMaterial point-shadow route support through group 3 cube-depth
+  bindings and WGSL point-light shadow sampling.
+- Added `examples/point-shadow.html` and `examples/point-shadow.js` with a
+  point light, cube caster, receiver wall, caster/receiver toggles, JSON-safe
+  status, and browser coverage proving point-shadow receiver activation.
+- Updated packed transform buffers to preserve the full snapshot transform table
+  so shaders can address light transforms as well as draw transforms.
+- Updated the public tracker pages and recorded a focused follow-up for
+  distance-accurate radial point-shadow depth.
+
+### References inspected
+
+- `references/three.js/src/lights/PointLightShadow.js`
+- `references/engine/src/scene/renderer/shadow-renderer-local.js`
+- `references/engine/src/scene/renderer/render-pass-shadow-local-non-clustered.js`
+
+### Validation
+
+- `pnpm run build`
+- `pnpm run typecheck:test`
+- `pnpm run check:examples`
+- `pnpm exec vitest run test/webgpu/point-shadow-pipeline.test.ts test/webgpu/shadow-pass-plan.test.ts test/webgpu/shadow-texture-resource.test.ts test/webgpu/shadow-depth-texture-resource.test.ts test/webgpu/shadow-pass-attachment-descriptor.test.ts test/webgpu/shadow-pass-command-encoding-report.test.ts test/webgpu/standard-light-shadow-bind-group.test.ts test/rendering/transform-pack.test.ts test/webgpu/shadow-caster-pipeline-descriptor.test.ts test/webgpu/shadow-caster-frame-resource-readiness.test.ts`
+- `pnpm exec playwright test test/e2e/point-shadow.spec.ts`
+
+### Known issues
+
+- The current point-shadow example proves cube-map allocation, six-face
+  submission, receiver binding, and visible cube-map sampling. It is still a
+  conservative occupancy proof; the next task should replace it with
+  distance-accurate radial point-depth writes and localized shadow/lit sampling.
+
+### Recommended next task
+
+`task-2017 — Replace point-shadow occupancy proof with radial depth compare`.
 
 ## Current Run Update — 2026-05-19T19:53:10Z — GLTF shadow controls
 

@@ -176,6 +176,15 @@ function resourceInputs() {
           resourceKey: "shadow-depth",
           textureKey: "shadow-depth:texture",
           viewKey: "shadow-depth:view",
+          faceCount: 1,
+          viewDimension: "2d",
+          attachmentViews: [
+            {
+              faceIndex: 0,
+              viewKey: "shadow-depth:view",
+              view: "shadow-depth-view",
+            },
+          ],
           allocation: {
             valid: true,
             resource: {

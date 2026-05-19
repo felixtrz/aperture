@@ -36,6 +36,10 @@ struct VertexInput {
 fn vs_main(input: VertexInput) -> @builtin(position) vec4f {
   return shadowMatrices.matrices[input.instanceIndex] * vec4f(input.position, 1.0);
 }
+
+@fragment
+fn fs_main() {
+}
 `;
 
 export type ShadowCasterPipelineResourceStatus =
@@ -267,6 +271,11 @@ export function createBrowserShadowCasterPipelineDescriptor(
       topology: metadata.primitive.topology,
       frontFace: metadata.primitive.frontFace,
       cullMode: metadata.primitive.cullMode,
+    },
+    fragment: {
+      module: shaderModule,
+      entryPoint: metadata.shader.entryPoints.fragment,
+      targets: [],
     },
     depthStencil: {
       format: metadata.depthStencil.format,

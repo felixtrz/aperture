@@ -81,6 +81,7 @@ export interface EnvironmentPacket {
 export interface ShadowRequestPacket {
   readonly shadowId: number;
   readonly lightId: number;
+  readonly lightKind?: LightKind;
   readonly casterLayerMask: number;
   readonly receiverLayerMask: number;
 }

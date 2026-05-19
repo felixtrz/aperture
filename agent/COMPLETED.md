@@ -1,5 +1,45 @@
 # Completed Tasks
 
+## task-2012 — Add point-light shadow cube map and render visible point-light shadow
+
+Completed: 2026-05-19
+
+Summary:
+
+- Extended extracted shadow requests with light kind so point lights can drive
+  point-specific shadow resources without making the renderer own ECS state.
+- Added point-light cube-map shadow descriptors, cube depth texture allocation
+  with six 2D attachment views, six shadow pass plans, point shadow
+  view/projection planning, and point shadow matrix upload.
+- Added StandardMaterial point-shadow pipeline keys, group 3 cube-depth receiver
+  bindings, WGSL point-light direct lighting, and point-shadow cube-map sampling.
+- Added `examples/point-shadow.html` / `examples/point-shadow.js` with a point
+  light, cube caster, receiver wall, caster/receiver toggles, JSON-safe status,
+  and Playwright coverage proving the receiver changes when point-shadow
+  sampling is active.
+- Updated transform packing so the StandardMaterial shader can address light
+  transforms from the same snapshot transform table used by draw transforms.
+
+References inspected:
+
+- `references/three.js/src/lights/PointLightShadow.js`
+- `references/engine/src/scene/renderer/shadow-renderer-local.js`
+- `references/engine/src/scene/renderer/render-pass-shadow-local-non-clustered.js`
+
+Validation:
+
+- `pnpm run build`
+- `pnpm run typecheck:test`
+- `pnpm run check:examples`
+- `pnpm exec vitest run test/webgpu/point-shadow-pipeline.test.ts test/webgpu/shadow-pass-plan.test.ts test/webgpu/shadow-texture-resource.test.ts test/webgpu/shadow-depth-texture-resource.test.ts test/webgpu/shadow-pass-attachment-descriptor.test.ts test/webgpu/shadow-pass-command-encoding-report.test.ts test/webgpu/standard-light-shadow-bind-group.test.ts test/rendering/transform-pack.test.ts test/webgpu/shadow-caster-pipeline-descriptor.test.ts test/webgpu/shadow-caster-frame-resource-readiness.test.ts`
+- `pnpm exec playwright test test/e2e/point-shadow.spec.ts`
+
+Known follow-up:
+
+- The current visible point-shadow proof uses conservative cube-map occupancy
+  behavior. `task-2017` should replace that with distance-accurate radial depth
+  writes and localized point-shadow sampling.
+
 ## task-2015 — Add caster/receiver shadow toggles to gltf-scene
 
 Completed: 2026-05-19

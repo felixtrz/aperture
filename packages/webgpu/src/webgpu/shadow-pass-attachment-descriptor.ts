@@ -33,7 +33,7 @@ export interface ShadowPassDepthAttachmentDescriptor {
   readonly depthFormat: "depth24plus";
   readonly depthLoadOp: "clear";
   readonly depthStoreOp: "store";
-  readonly depthClearValue: 1;
+  readonly depthClearValue: 0 | 1;
 }
 
 export interface ShadowPassAttachmentDescriptorReport {
@@ -96,7 +96,15 @@ export function createShadowPassAttachmentDescriptorReport(
       shadowInputKey(pass.shadowId, pass.lightId),
     );
 
-    if (resource?.allocation.resource === null || resource === undefined) {
+    const hasAttachmentView =
+      resource?.attachmentViews.some((view) => view.viewKey === pass.viewKey) ??
+      false;
+
+    if (
+      resource?.allocation.resource === null ||
+      resource === undefined ||
+      !hasAttachmentView
+    ) {
       diagnostics.push({
         code: "shadowPassAttachmentDescriptor.missingDepthView",
         severity: "warning",
@@ -114,7 +122,7 @@ export function createShadowPassAttachmentDescriptorReport(
       shadowId: pass.shadowId,
       lightId: pass.lightId,
       textureKey: resource.textureKey,
-      viewKey: resource.viewKey,
+      viewKey: pass.viewKey,
       width: pass.width,
       height: pass.height,
       depthFormat: pass.depthFormat,

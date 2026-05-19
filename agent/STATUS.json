@@ -1,11 +1,11 @@
 {
   "state": "idle",
-  "currentTaskId": "task-2012",
+  "currentTaskId": "task-2017",
   "currentRunStartedAt": null,
-  "lastRunStartedAt": "2026-05-19T19:01:50Z",
+  "lastRunStartedAt": "2026-05-19T20:02:26Z",
   "lastResult": "success",
   "lastCommit": "interim-feature-commit",
   "activePid": null,
-  "notes": "Completed task-2015 caster/receiver shadow toggles in gltf-scene after fixing the stop-hook continuation policy and documenting interim feature commits. task-2012 remains the next broader point-light shadow feature.",
-  "lastRunFinishedAt": "2026-05-19T19:53:10Z"
+  "notes": "Completed task-2012 point-light cube-map shadow proof. Recommended next: task-2017 radial point-depth compare.",
+  "lastRunFinishedAt": "2026-05-19T20:58:56Z"
 }

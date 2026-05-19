@@ -55,7 +55,7 @@ describe("shadow caster frame-resource readiness", () => {
           indexBufferResourceKey: "gpu-mesh:cube/index",
           matrixResourceKey: "shadow-matrix-buffer:directional",
           pipelineKey:
-            "shadow-caster/depth-only/depth24plus/triangle-list/back",
+            "shadow-caster/depth-only/depth24plus/triangle-list/none",
           ready: true,
         },
       ],
@@ -288,14 +288,14 @@ function pipelineDescriptor(
     descriptor: hasDescriptor
       ? {
           pipelineKey:
-            "shadow-caster/depth-only/depth24plus/triangle-list/back",
+            "shadow-caster/depth-only/depth24plus/triangle-list/none",
           label: "shadow-caster-depth-only:depth24plus:triangle-list",
           shader: {
             family: "shadow-caster",
             label: "shadow-caster-depth-only",
             entryPoints: {
               vertex: "vs_main",
-              fragment: null,
+              fragment: "fs_main",
             },
           },
           vertex: {
@@ -309,7 +309,7 @@ function pipelineDescriptor(
           },
           primitive: {
             topology: "triangle-list",
-            cullMode: "back",
+            cullMode: "none",
             frontFace: "ccw",
           },
           depthStencil: {

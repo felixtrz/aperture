@@ -161,6 +161,7 @@ export interface CreateStandardFrameGpuResourcesOptions {
 }
 
 export interface StandardFrameShadowReceiverResources {
+  readonly shadowKind?: "directional" | "point";
   readonly matrixBufferResource: ShadowMatrixBufferResourceReport;
   readonly depthTextureResources: ShadowDepthTextureResourceReport;
   readonly samplerResource: ShadowSamplerResourceReport;
@@ -512,7 +513,8 @@ function createLightBindGroup(
   }
 
   if (
-    options.pipelineKey.includes("shadowMap") &&
+    (options.pipelineKey.includes("shadowMap") ||
+      options.pipelineKey.includes("pointShadowMap")) &&
     options.shadowReceiverResources !== undefined
   ) {
     return createLightShadowBindGroup(options, lightGpuBuffers, diagnostics);
@@ -555,7 +557,9 @@ function createLightIblBindGroup(
     return null;
   }
 
-  const shadowRequired = options.pipelineKey.includes("shadowMap");
+  const shadowRequired =
+    options.pipelineKey.includes("shadowMap") ||
+    options.pipelineKey.includes("pointShadowMap");
   const shadowReceiverResources = shadowRequired
     ? options.shadowReceiverResources
     : undefined;

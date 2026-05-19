@@ -42,10 +42,8 @@ interface MutablePackedSnapshotTransforms {
 export function packSnapshotTransforms(
   snapshot: Pick<RenderSnapshot, "meshDraws" | "transforms">,
 ): PackedSnapshotTransforms {
-  const values: number[] = [];
   const offsets: PackedTransformOffset[] = [];
   const diagnostics: RenderDiagnostic[] = [];
-  const sourceToPackedOffset = new Map<number, number>();
 
   for (const draw of snapshot.meshDraws) {
     const sourceOffset = draw.worldTransformOffset;
@@ -55,26 +53,16 @@ export function packSnapshotTransforms(
       continue;
     }
 
-    let packedOffset = sourceToPackedOffset.get(sourceOffset);
-
-    if (packedOffset === undefined) {
-      packedOffset = values.length;
-      sourceToPackedOffset.set(sourceOffset, packedOffset);
-      values.push(
-        ...snapshot.transforms.slice(sourceOffset, sourceOffset + 16),
-      );
-    }
-
     offsets.push({
       renderId: draw.renderId,
       sourceOffset,
-      packedOffset,
+      packedOffset: sourceOffset,
     });
   }
 
   return {
-    data: new Float32Array(values),
-    floatCount: values.length,
+    data: new Float32Array(snapshot.transforms),
+    floatCount: snapshot.transforms.length,
     offsets,
     diagnostics,
   };
@@ -112,7 +100,9 @@ export function writePackedSnapshotTransforms(
   scratch.offsets.length = 0;
   scratch.diagnostics.length = 0;
   scratch.sourceToPackedOffset.clear();
-  result.floatCount = 0;
+  result.floatCount = snapshot.transforms.length;
+  ensureTransformDataCapacity(scratch, snapshot.transforms.length);
+  scratch.data.set(snapshot.transforms);
 
   for (const draw of snapshot.meshDraws) {
     const sourceOffset = draw.worldTransformOffset;
@@ -124,26 +114,11 @@ export function writePackedSnapshotTransforms(
       continue;
     }
 
-    let packedOffset = scratch.sourceToPackedOffset.get(sourceOffset);
-
-    if (packedOffset === undefined) {
-      packedOffset = result.floatCount;
-      scratch.sourceToPackedOffset.set(sourceOffset, packedOffset);
-      ensureTransformDataCapacity(scratch, result.floatCount + 16);
-
-      for (let index = 0; index < 16; index += 1) {
-        scratch.data[result.floatCount + index] =
-          snapshot.transforms[sourceOffset + index] ?? 0;
-      }
-
-      result.floatCount += 16;
-    }
-
     const offset = offsetAt(scratch, scratch.offsets.length);
 
     offset.renderId = draw.renderId;
     offset.sourceOffset = sourceOffset;
-    offset.packedOffset = packedOffset;
+    offset.packedOffset = sourceOffset;
     scratch.offsets.push(offset);
   }
 

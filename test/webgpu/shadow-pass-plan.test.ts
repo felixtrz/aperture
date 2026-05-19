@@ -46,6 +46,9 @@ describe("shadow pass planning", () => {
         {
           shadowId: 7,
           lightId: 11,
+          lightKind: "directional",
+          faceIndex: 0,
+          faceCount: 1,
           passKey: "shadow-pass:7:light:11",
           resourceKey: "shadow-map:7:light:11",
           textureKey: "shadow-map:7:light:11:texture",

@@ -30,7 +30,7 @@ export interface ShadowCasterPipelineDescriptorMetadata {
     readonly label: "shadow-caster-depth-only";
     readonly entryPoints: {
       readonly vertex: "vs_main";
-      readonly fragment: null;
+      readonly fragment: "fs_main";
     };
   };
   readonly vertex: {
@@ -43,7 +43,7 @@ export interface ShadowCasterPipelineDescriptorMetadata {
   };
   readonly primitive: {
     readonly topology: "triangle-list";
-    readonly cullMode: "back";
+    readonly cullMode: "none";
     readonly frontFace: "ccw";
   };
   readonly depthStencil: {
@@ -214,14 +214,14 @@ function createDescriptor(
   indexFormat: MeshIndexFormat,
 ): ShadowCasterPipelineDescriptorMetadata {
   return {
-    pipelineKey: "shadow-caster/depth-only/depth24plus/triangle-list/back",
+    pipelineKey: "shadow-caster/depth-only/depth24plus/triangle-list/none",
     label: "shadow-caster-depth-only:depth24plus:triangle-list",
     shader: {
       family: "shadow-caster",
       label: "shadow-caster-depth-only",
       entryPoints: {
         vertex: "vs_main",
-        fragment: null,
+        fragment: "fs_main",
       },
     },
     vertex: {
@@ -235,7 +235,7 @@ function createDescriptor(
     },
     primitive: {
       topology: "triangle-list",
-      cullMode: "back",
+      cullMode: "none",
       frontFace: "ccw",
     },
     depthStencil: {

@@ -1514,6 +1514,7 @@ describe("render extraction", () => {
       {
         shadowId: lightId,
         lightId,
+        lightKind: "directional",
         casterLayerMask: 0b0011,
         receiverLayerMask: 0b0101,
       },

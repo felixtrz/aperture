@@ -170,6 +170,15 @@ function depthTextureResources(): ShadowDepthTextureResourceReport {
         resourceKey: "shadow-depth-resource:0",
         textureKey: "shadow-map:7:light:11:texture",
         viewKey: "shadow-map:7:light:11:view",
+        faceCount: 1,
+        viewDimension: "2d",
+        attachmentViews: [
+          {
+            faceIndex: 0,
+            viewKey: "shadow-map:7:light:11:view",
+            view: { raw: "view" },
+          },
+        ],
         allocation: {
           valid: true,
           resource: {

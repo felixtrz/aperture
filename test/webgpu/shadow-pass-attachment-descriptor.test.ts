@@ -143,6 +143,9 @@ function passPlan(
             {
               shadowId: 7,
               lightId: 11,
+              lightKind: "directional",
+              faceIndex: 0,
+              faceCount: 1,
               passKey: "shadow-pass:7:light:11",
               resourceKey: "shadow-map:7:light:11",
               textureKey: "shadow-map:7:light:11:texture",
@@ -188,6 +191,18 @@ function depthResources(
               resourceKey: "shadow-map:7:light:11",
               textureKey: "shadow-map:7:light:11:texture",
               viewKey: "shadow-map:7:light:11:view",
+              faceCount: 1,
+              viewDimension: "2d",
+              attachmentViews:
+                status === "available"
+                  ? [
+                      {
+                        faceIndex: 0,
+                        viewKey: "shadow-map:7:light:11:view",
+                        view: {},
+                      },
+                    ]
+                  : [],
               allocation: {
                 valid: status === "available",
                 resource:

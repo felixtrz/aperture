@@ -7,12 +7,21 @@ export type ShadowTextureResourceDiagnosticCode =
 export interface ShadowTextureResourceDescriptor {
   readonly shadowId: number;
   readonly lightId: number;
+  readonly lightKind:
+    | "directional"
+    | "point"
+    | "spot"
+    | "ambient"
+    | "environment";
   readonly resourceKey: string;
   readonly textureKey: string;
   readonly viewKey: string;
+  readonly attachmentViewKeys: readonly string[];
   readonly width: number;
   readonly height: number;
   readonly depthFormat: "depth24plus";
+  readonly faceCount: 1 | 6;
+  readonly viewDimension: "2d" | "cube";
   readonly usageIntent: "render-attachment";
   readonly allocation: "deferred";
 }
@@ -61,12 +70,22 @@ export function createShadowTextureResourceReport(
     .map((descriptor) => ({
       shadowId: descriptor.shadowId,
       lightId: descriptor.lightId,
+      lightKind: descriptor.lightKind,
       resourceKey: descriptor.resourceKey,
       textureKey: `${descriptor.resourceKey}:texture`,
       viewKey: `${descriptor.resourceKey}:view`,
+      attachmentViewKeys: Array.from(
+        { length: descriptor.faceCount },
+        (_, face) =>
+          descriptor.faceCount === 1
+            ? `${descriptor.resourceKey}:view`
+            : `${descriptor.resourceKey}:face-${face}:view`,
+      ),
       width: descriptor.mapSize,
       height: descriptor.mapSize,
       depthFormat: descriptor.depthFormat,
+      faceCount: descriptor.faceCount,
+      viewDimension: descriptor.viewDimension,
       usageIntent: "render-attachment" as const,
       allocation: "deferred" as const,
     }));

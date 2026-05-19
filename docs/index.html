@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-19 12:52 PDT</dd>
+            <dd>2026-05-19 13:56 PDT</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -408,8 +408,11 @@
               resource keys or unsupported placeholders, plus a directional
               shadow request, renderer-owned shadow-map descriptors, and shadow
               resource/pass readiness diagnostics. StandardMaterial IBL and
-              directional shadow sampling are now active in the GLTF scene;
-              broader PMREM and non-directional shadow paths remain deferred.
+              directional shadow sampling are now active in the GLTF scene, and
+              a new point-shadow example allocates a cube depth texture, submits
+              six point-light shadow faces, and routes StandardMaterial through
+              a point-shadow cube-map sampling variant. Broader PMREM, spot
+              shadows, and distance-accurate point shadow depth remain deferred.
               The GLTF scene now exposes live caster/receiver shadow toggles,
               and Playwright verifies receiver-off luminance returns toward the
               unshadowed baseline while the ECS-authored scene keeps rendering.
@@ -879,7 +882,7 @@
               the switched asset changes rendered pixels.
             </dd>
             <dt>Next focus</dt>
-            <dd>Add point-light shadow cube map rendering</dd>
+            <dd>Tighten point-light radial depth compare</dd>
           </dl>
         </aside>
       </header>
@@ -1079,13 +1082,14 @@
                 <div class="label">webgpu-render</div>
                 <h3>backend resources</h3>
               </div>
-              <span class="percent">60%</span>
+              <span class="percent">62%</span>
             </div>
-            <div class="bar"><span style="width: 60%"></span></div>
+            <div class="bar"><span style="width: 62%"></span></div>
             <p>
               Backend buffers, pipelines, bind groups, queues, and app facade
               exist; directional shadow pass submission and 3x3 PCF sampling are
-              active, with point/spot shadows and profiling still deferred.
+              active, point-light cube-map resources now render a visible
+              receiver proof, and spot shadows plus profiling remain deferred.
             </p>
           </article>
           <article class="card track">
@@ -1406,6 +1410,11 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">task-2012</span> Added point-light
+                cube-map shadow resources, six face submissions, and a browser
+                point-shadow receiver proof.
+              </li>
               <li>
                 <span class="badge green">task-2011</span> Added 3x3 PCF
                 comparison sampling to the StandardMaterial directional shadow

@@ -100,9 +100,11 @@ import { createLightBindGroupLayoutDescriptor } from "./light-bind-group-layout.
 import type { LightBindGroupLayoutResource } from "./light-bind-group-layout.js";
 import {
   STANDARD_LIGHT_IBL_BIND_GROUP_LAYOUT_KEY,
+  STANDARD_LIGHT_POINT_SHADOW_BIND_GROUP_LAYOUT_KEY,
   STANDARD_LIGHT_SHADOW_BIND_GROUP_LAYOUT_KEY,
   STANDARD_LIGHT_SHADOW_IBL_BIND_GROUP_LAYOUT_KEY,
   createStandardLightIblBindGroupLayoutDescriptor,
+  createStandardLightPointShadowBindGroupLayoutDescriptor,
   createStandardLightShadowBindGroupLayoutDescriptor,
   type StandardLightShadowBindGroupLayoutResource,
 } from "./standard-light-shadow-bind-group.js";
@@ -773,13 +775,18 @@ function createStandardAppPipelineLayouts(
   const usesLightShadowGroup = pipelineResourceKey.includes(
     STANDARD_LIGHT_SHADOW_BIND_GROUP_LAYOUT_KEY,
   );
+  const usesLightPointShadowGroup = pipelineResourceKey.includes(
+    STANDARD_LIGHT_POINT_SHADOW_BIND_GROUP_LAYOUT_KEY,
+  );
   const lightLayoutKey = usesLightShadowIblGroup
     ? "webgpu-app/standard/lights-shadow-ibl/group-3"
     : usesLightIblGroup
       ? "webgpu-app/standard/lights-ibl/group-3"
-      : usesLightShadowGroup
-        ? "webgpu-app/standard/lights-shadow/group-3"
-        : "webgpu-app/standard/group-3";
+      : usesLightPointShadowGroup
+        ? "webgpu-app/standard/lights-point-shadow/group-3"
+        : usesLightShadowGroup
+          ? "webgpu-app/standard/lights-shadow/group-3"
+          : "webgpu-app/standard/group-3";
 
   return {
     kind: "standard",
@@ -813,10 +820,12 @@ function createStandardAppPipelineLayouts(
             })
           : usesLightShadowGroup
             ? createStandardLightShadowBindGroupLayoutDescriptor()
-            : createLightBindGroupLayoutDescriptor({
-                group: 3,
-                label: "webgpu-app/standard/group-3",
-              }),
+            : usesLightPointShadowGroup
+              ? createStandardLightPointShadowBindGroupLayoutDescriptor()
+              : createLightBindGroupLayoutDescriptor({
+                  group: 3,
+                  label: "webgpu-app/standard/group-3",
+                }),
     },
   };
 }
@@ -1526,7 +1535,11 @@ async function renderWebGpuAppFrame(
   const shadowSnapshot = hasReadyStandardShadowReceiverResources(
     options.standardMaterialShadowReceiverResources,
   )
-    ? withStandardShadowPipelineKeys(extractedSnapshot)
+    ? withStandardShadowPipelineKeys(
+        extractedSnapshot,
+        options.standardMaterialShadowReceiverResources.shadowKind ??
+          "directional",
+      )
     : extractedSnapshot;
   const snapshot = hasReadyStandardDiffuseIblResources(
     options.standardMaterialIblResources,
@@ -2076,14 +2089,16 @@ function hasReadyStandardSpecularIblProofResources(
 
 function withStandardShadowPipelineKeys(
   snapshot: RenderSnapshot,
+  shadowKind: "directional" | "point" = "directional",
 ): RenderSnapshot {
   let changed = false;
+  const shadowFeature = shadowKind === "point" ? "pointShadowMap" : "shadowMap";
   const meshDraws = snapshot.meshDraws.map((draw) => {
     const pipelineKey = draw.batchKey.pipelineKey;
 
     if (
       !pipelineKey.startsWith("standard|") ||
-      pipelineKey.includes("|shadowMap|")
+      pipelineKey.includes(`|${shadowFeature}|`)
     ) {
       return draw;
     }
@@ -2091,7 +2106,7 @@ function withStandardShadowPipelineKeys(
     changed = true;
     const shadowPipelineKey = pipelineKey.replace(
       /^standard\|/,
-      "standard|shadowMap|",
+      `standard|${shadowFeature}|`,
     );
 
     return {

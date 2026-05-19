@@ -15,6 +15,8 @@ import type { ShadowSamplerResourceReport } from "./standard-material-shadow-bin
 export const STANDARD_LIGHT_SHADOW_BIND_GROUP = 3;
 export const STANDARD_LIGHT_SHADOW_BIND_GROUP_LAYOUT_KEY =
   "standard/lights-shadow/group-3";
+export const STANDARD_LIGHT_POINT_SHADOW_BIND_GROUP_LAYOUT_KEY =
+  "standard/lights-point-shadow/group-3";
 export const STANDARD_LIGHT_IBL_BIND_GROUP_LAYOUT_KEY =
   "standard/lights-ibl/group-3";
 export const STANDARD_LIGHT_SHADOW_IBL_BIND_GROUP_LAYOUT_KEY =
@@ -116,8 +118,21 @@ export interface StandardLightShadowBindGroupDeviceLike {
 }
 
 export function createStandardLightShadowBindGroupLayoutDescriptor(): WebGpuBindGroupLayoutDescriptor {
+  return createStandardLightShadowBindGroupLayoutDescriptorForView("2d");
+}
+
+export function createStandardLightPointShadowBindGroupLayoutDescriptor(): WebGpuBindGroupLayoutDescriptor {
+  return createStandardLightShadowBindGroupLayoutDescriptorForView("cube");
+}
+
+function createStandardLightShadowBindGroupLayoutDescriptorForView(
+  viewDimension: "2d" | "cube",
+): WebGpuBindGroupLayoutDescriptor {
   return {
-    label: STANDARD_LIGHT_SHADOW_BIND_GROUP_LAYOUT_KEY,
+    label:
+      viewDimension === "cube"
+        ? STANDARD_LIGHT_POINT_SHADOW_BIND_GROUP_LAYOUT_KEY
+        : STANDARD_LIGHT_SHADOW_BIND_GROUP_LAYOUT_KEY,
     entries: [
       { binding: 0, visibility: 0x2, buffer: { type: "read-only-storage" } },
       { binding: 1, visibility: 0x2, buffer: { type: "read-only-storage" } },
@@ -127,7 +142,7 @@ export function createStandardLightShadowBindGroupLayoutDescriptor(): WebGpuBind
         visibility: 0x2,
         texture: {
           sampleType: "depth",
-          viewDimension: "2d",
+          viewDimension,
           multisampled: false,
         },
       },

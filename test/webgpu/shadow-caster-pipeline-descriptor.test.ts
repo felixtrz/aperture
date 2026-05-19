@@ -31,14 +31,14 @@ describe("shadow caster pipeline descriptor metadata", () => {
         shaderSampling: false,
       },
       descriptor: {
-        pipelineKey: "shadow-caster/depth-only/depth24plus/triangle-list/back",
+        pipelineKey: "shadow-caster/depth-only/depth24plus/triangle-list/none",
         label: "shadow-caster-depth-only:depth24plus:triangle-list",
         shader: {
           family: "shadow-caster",
           label: "shadow-caster-depth-only",
           entryPoints: {
             vertex: "vs_main",
-            fragment: null,
+            fragment: "fs_main",
           },
         },
         vertex: {
@@ -52,7 +52,7 @@ describe("shadow caster pipeline descriptor metadata", () => {
         },
         primitive: {
           topology: "triangle-list",
-          cullMode: "back",
+          cullMode: "none",
           frontFace: "ccw",
         },
         depthStencil: {

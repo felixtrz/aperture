@@ -1,6 +1,8 @@
-import type { DirectionalShadowViewProjectionPlanReport } from "./directional-shadow-view-projection-plan.js";
 import type { ShadowCasterDrawListPlanReport } from "./shadow-caster-draw-list-plan.js";
-import type { ShadowMatrixBufferDescriptorReport } from "./shadow-matrix-buffer-descriptor.js";
+import type {
+  ShadowMatrixBufferDescriptorReport,
+  ShadowViewProjectionPlanReportLike,
+} from "./shadow-matrix-buffer-descriptor.js";
 import type { ShadowPassPlanReport } from "./shadow-pass-plan.js";
 
 export type ShadowCasterCommandPlanStatus =
@@ -75,7 +77,7 @@ export interface ShadowCasterCommandPlanReadinessScratch {
 
 export interface ShadowCasterCommandPlanReadinessInput {
   readonly shadowPassPlan: ShadowPassPlanReport;
-  readonly viewProjection: DirectionalShadowViewProjectionPlanReport;
+  readonly viewProjection: ShadowViewProjectionPlanReportLike;
   readonly matrixBuffer: ShadowMatrixBufferDescriptorReport;
   readonly casterDrawList: ShadowCasterDrawListPlanReport;
   readonly commandEncoding?: ShadowCasterCommandEncodingMode;
@@ -161,7 +163,7 @@ export function writeShadowCasterCommandPlanReadinessReport(
   const matrixEntries = input.matrixBuffer.descriptor?.entries ?? [];
 
   for (const list of input.casterDrawList.lists) {
-    const matrix = findMatrixEntry(matrixEntries, list.shadowId, list.lightId);
+    const matrix = findMatrixEntry(matrixEntries, list.passKey);
 
     if (matrix === undefined) {
       scratch.diagnostics.push({
@@ -277,14 +279,14 @@ function writePrerequisiteDiagnostics(
       code: "shadowCasterCommandPlan.missingViewProjection",
       severity: "warning",
       message:
-        "Shadow caster command planning requires directional shadow view/projection plans.",
+        "Shadow caster command planning requires shadow view/projection plans.",
     });
   } else if (input.viewProjection.status === "unsupported") {
     diagnostics.push({
       code: "shadowCasterCommandPlan.unsupportedViewProjection",
       severity: "warning",
       message:
-        "Shadow caster command planning currently supports directional shadow view/projection plans only.",
+        "Shadow caster command planning cannot use the current shadow view/projection plans.",
     });
   }
 
@@ -386,17 +388,14 @@ function findMatrixEntry(
   entries: NonNullable<
     ShadowMatrixBufferDescriptorReport["descriptor"]
   >["entries"],
-  shadowId: number,
-  lightId: number,
+  passKey: string,
 ) {
-  return entries.find(
-    (entry) => entry.shadowId === shadowId && entry.lightId === lightId,
-  );
+  return entries.find((entry) => entry.passKey === passKey);
 }
 
 function determineStatus(input: {
   readonly shadowPassPlanStatus: ShadowPassPlanReport["status"];
-  readonly viewProjectionStatus: DirectionalShadowViewProjectionPlanReport["status"];
+  readonly viewProjectionStatus: ShadowViewProjectionPlanReportLike["status"];
   readonly matrixBufferStatus: ShadowMatrixBufferDescriptorReport["status"];
   readonly casterDrawListStatus: ShadowCasterDrawListPlanReport["status"];
   readonly hasMissingMatrixEntry: boolean;

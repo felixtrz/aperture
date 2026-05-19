@@ -11,17 +11,22 @@ export interface ShadowMapDescriptorSource {
   readonly depthBias: number;
   readonly normalBias?: number;
   readonly depthFormat?: "depth24plus";
+  readonly faceCount?: 1 | 6;
+  readonly viewDimension?: "2d" | "cube";
   readonly resourceKey?: string;
 }
 
 export interface ShadowMapDescriptor {
   readonly shadowId: number;
   readonly lightId: number;
+  readonly lightKind: NonNullable<ShadowRequestPacket["lightKind"]>;
   readonly resourceKey: string;
   readonly depthFormat: "depth24plus";
   readonly mapSize: number;
   readonly depthBias: number;
   readonly normalBias: number;
+  readonly faceCount: 1 | 6;
+  readonly viewDimension: "2d" | "cube";
   readonly casterLayerMask: number;
   readonly receiverLayerMask: number;
   readonly ready: boolean;
@@ -66,6 +71,7 @@ export function createShadowMapDescriptorReport(
   );
   const diagnostics: ShadowMapDescriptorDiagnostic[] = [];
   const descriptors = input.shadowRequests.map((request) => {
+    const lightKind = request.lightKind ?? "directional";
     const source = sourcesByKey.get(
       descriptorKey(request.shadowId, request.lightId),
     );
@@ -91,6 +97,7 @@ export function createShadowMapDescriptorReport(
     return {
       shadowId: request.shadowId,
       lightId: request.lightId,
+      lightKind,
       resourceKey:
         source?.resourceKey ??
         `shadow-map:${request.shadowId}:light:${request.lightId}`,
@@ -98,6 +105,9 @@ export function createShadowMapDescriptorReport(
       mapSize: source?.mapSize ?? 0,
       depthBias: source?.depthBias ?? 0,
       normalBias: source?.normalBias ?? 0,
+      faceCount: source?.faceCount ?? (lightKind === "point" ? 6 : 1),
+      viewDimension:
+        source?.viewDimension ?? (lightKind === "point" ? "cube" : "2d"),
       casterLayerMask: request.casterLayerMask,
       receiverLayerMask: request.receiverLayerMask,
       ready: source !== undefined && source.mapSize > 0,

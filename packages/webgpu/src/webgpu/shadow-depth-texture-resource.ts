@@ -21,6 +21,13 @@ export type ShadowDepthTextureResourceDiagnostic =
       readonly code: "shadowDepthTextureResource.missingTextureDescriptors";
       readonly severity: "warning" | "error";
       readonly message: string;
+    }
+  | {
+      readonly code: "shadowDepthTextureResource.faceViewCreationFailed";
+      readonly severity: "warning" | "error";
+      readonly message: string;
+      readonly resourceKey: string;
+      readonly faceIndex: number;
     };
 
 export interface CreateShadowDepthTextureResourceOptions {
@@ -34,7 +41,16 @@ export interface ShadowDepthTextureResource {
   readonly resourceKey: string;
   readonly textureKey: string;
   readonly viewKey: string;
+  readonly faceCount: 1 | 6;
+  readonly viewDimension: "2d" | "cube";
+  readonly attachmentViews: readonly ShadowDepthTextureAttachmentView[];
   readonly allocation: CreateTextureGpuResourceResult;
+}
+
+export interface ShadowDepthTextureAttachmentView {
+  readonly faceIndex: number;
+  readonly viewKey: string;
+  readonly view: unknown;
 }
 
 export interface ShadowDepthTextureResourceReport {
@@ -67,6 +83,9 @@ export interface ShadowDepthTextureResourceReportJsonValue {
     readonly resourceKey: string;
     readonly textureKey: string;
     readonly viewKey: string;
+    readonly faceCount: 1 | 6;
+    readonly viewDimension: "2d" | "cube";
+    readonly attachmentViewKeys: readonly string[];
     readonly descriptor: {
       readonly label?: string;
       readonly size: readonly [number, number, number];
@@ -126,10 +145,27 @@ export function createShadowDepthTextureResourceReport(
         severity: "warning" as const,
       })),
     );
+
+    if (
+      resource.allocation.valid &&
+      resource.attachmentViews.length !== resource.faceCount
+    ) {
+      diagnostics.push({
+        code: "shadowDepthTextureResource.faceViewCreationFailed",
+        severity: "warning",
+        resourceKey: resource.resourceKey,
+        faceIndex: resource.attachmentViews.length,
+        message: `Shadow depth texture '${resource.resourceKey}' could not create all ${resource.faceCount} render attachment view(s).`,
+      });
+    }
   }
 
   return report({
-    status: resources.every((resource) => resource.allocation.valid)
+    status: resources.every(
+      (resource) =>
+        resource.allocation.valid &&
+        resource.attachmentViews.length === resource.faceCount,
+    )
       ? "available"
       : "missing",
     textureDescriptorCount: options.textures.textureCount,
@@ -155,6 +191,9 @@ export function shadowDepthTextureResourceReportToJsonValue(
       resourceKey: resource.resourceKey,
       textureKey: resource.textureKey,
       viewKey: resource.viewKey,
+      faceCount: resource.faceCount,
+      viewDimension: resource.viewDimension,
+      attachmentViewKeys: resource.attachmentViews.map((view) => view.viewKey),
       descriptor:
         resource.allocation.resource === null
           ? null
@@ -188,26 +227,77 @@ function createShadowDepthTextureResource(
   device: TextureGpuDeviceLike,
   texture: ShadowTextureResourceDescriptor,
 ): ShadowDepthTextureResource {
+  const allocation = createTextureGpuResource({
+    device,
+    resourceKey: texture.textureKey,
+    descriptor: {
+      label: `${texture.resourceKey}:depth`,
+      size: [texture.width, texture.height, texture.faceCount],
+      format: texture.depthFormat,
+      usage:
+        WEBGPU_TEXTURE_USAGE_FLAGS.RENDER_ATTACHMENT |
+        WEBGPU_TEXTURE_USAGE_FLAGS.TEXTURE_BINDING,
+      mipLevelCount: 1,
+    },
+    viewDescriptor:
+      texture.viewDimension === "cube" ? { dimension: "cube" } : undefined,
+  });
+
   return {
     shadowId: texture.shadowId,
     lightId: texture.lightId,
     resourceKey: texture.resourceKey,
     textureKey: texture.textureKey,
     viewKey: texture.viewKey,
-    allocation: createTextureGpuResource({
-      device,
-      resourceKey: texture.textureKey,
-      descriptor: {
-        label: `${texture.resourceKey}:depth`,
-        size: [texture.width, texture.height, 1],
-        format: texture.depthFormat,
-        usage:
-          WEBGPU_TEXTURE_USAGE_FLAGS.RENDER_ATTACHMENT |
-          WEBGPU_TEXTURE_USAGE_FLAGS.TEXTURE_BINDING,
-        mipLevelCount: 1,
-      },
-    }),
+    faceCount: texture.faceCount,
+    viewDimension: texture.viewDimension,
+    attachmentViews: createAttachmentViews(texture, allocation),
+    allocation,
   };
+}
+
+function createAttachmentViews(
+  texture: ShadowTextureResourceDescriptor,
+  allocation: CreateTextureGpuResourceResult,
+): readonly ShadowDepthTextureAttachmentView[] {
+  const resource = allocation.resource;
+
+  if (resource === null) {
+    return [];
+  }
+
+  if (texture.faceCount === 1) {
+    return [{ faceIndex: 0, viewKey: texture.viewKey, view: resource.view }];
+  }
+
+  const textureLike = resource.texture as {
+    readonly createView?: (descriptor?: unknown) => unknown;
+  };
+
+  const createView = textureLike.createView;
+
+  if (createView === undefined) {
+    return [];
+  }
+
+  return texture.attachmentViewKeys.flatMap((viewKey, faceIndex) => {
+    try {
+      return [
+        {
+          faceIndex,
+          viewKey,
+          view: createView.call(textureLike, {
+            dimension: "2d",
+            baseArrayLayer: faceIndex,
+            arrayLayerCount: 1,
+            mipLevelCount: 1,
+          }),
+        },
+      ];
+    } catch {
+      return [];
+    }
+  });
 }
 
 function report(input: {

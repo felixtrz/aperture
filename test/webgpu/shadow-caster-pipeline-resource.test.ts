@@ -33,7 +33,7 @@ describe("shadow caster pipeline resource", () => {
     const json = shadowCasterPipelineResourceReportToJsonValue(report);
 
     expect(report.resource).toMatchObject({
-      pipelineKey: "shadow-caster/depth-only/depth24plus/triangle-list/back",
+      pipelineKey: "shadow-caster/depth-only/depth24plus/triangle-list/none",
       pipeline,
       shaderModule,
     });
@@ -51,10 +51,15 @@ describe("shadow caster pipeline resource", () => {
         module: shaderModule,
         entryPoint: "vs_main",
       },
+      fragment: {
+        module: shaderModule,
+        entryPoint: "fs_main",
+        targets: [],
+      },
       primitive: {
         topology: "triangle-list",
         frontFace: "ccw",
-        cullMode: "back",
+        cullMode: "none",
       },
       depthStencil: {
         format: "depth24plus",
@@ -76,9 +81,9 @@ describe("shadow caster pipeline resource", () => {
         shaderSampling: false,
       },
       resource: {
-        pipelineKey: "shadow-caster/depth-only/depth24plus/triangle-list/back",
+        pipelineKey: "shadow-caster/depth-only/depth24plus/triangle-list/none",
         resourceKey:
-          "render-pipeline:shadow-caster/depth-only/depth24plus/triangle-list/back",
+          "render-pipeline:shadow-caster/depth-only/depth24plus/triangle-list/none",
         shaderModuleKey: "shader-module:shadow-caster-depth-only",
         label: "shadow-caster-depth-only:depth24plus:triangle-list",
       },

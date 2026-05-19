@@ -23,6 +23,9 @@ export type ShadowPassPlanDiagnosticCode =
 export interface ShadowPassPlan {
   readonly shadowId: number;
   readonly lightId: number;
+  readonly lightKind: NonNullable<ShadowRequestPacket["lightKind"]>;
+  readonly faceIndex: number;
+  readonly faceCount: 1 | 6;
   readonly passKey: string;
   readonly resourceKey: string;
   readonly textureKey: string;
@@ -34,7 +37,7 @@ export interface ShadowPassPlan {
   readonly receiverLayerMask: number;
   readonly depthLoadOp: "clear";
   readonly depthStoreOp: "store";
-  readonly depthClearValue: 1;
+  readonly depthClearValue: 0 | 1;
   readonly submission: Exclude<ShadowPassSubmissionMode, "ready"> | "ready";
 }
 
@@ -126,7 +129,7 @@ export function createShadowPassPlanReport(
       continue;
     }
 
-    passes.push(createShadowPassPlan(texture, request, submission));
+    passes.push(...createShadowPassPlans(texture, request, submission));
   }
 
   if (submission === "unsupported") {
@@ -191,18 +194,24 @@ export function shadowPassPlanReportToJson(
   return JSON.stringify(shadowPassPlanReportToJsonValue(report));
 }
 
-function createShadowPassPlan(
+function createShadowPassPlans(
   texture: ShadowTextureResourceDescriptor,
   request: ShadowRequestPacket,
   submission: ShadowPassSubmissionMode,
-): ShadowPassPlan {
-  return {
+): readonly ShadowPassPlan[] {
+  return Array.from({ length: texture.faceCount }, (_, faceIndex) => ({
     shadowId: request.shadowId,
     lightId: request.lightId,
-    passKey: `shadow-pass:${request.shadowId}:light:${request.lightId}`,
+    lightKind: request.lightKind ?? "directional",
+    faceIndex,
+    faceCount: texture.faceCount,
+    passKey:
+      texture.faceCount === 1
+        ? `shadow-pass:${request.shadowId}:light:${request.lightId}`
+        : `shadow-pass:${request.shadowId}:light:${request.lightId}:face:${faceIndex}`,
     resourceKey: texture.resourceKey,
     textureKey: texture.textureKey,
-    viewKey: texture.viewKey,
+    viewKey: texture.attachmentViewKeys[faceIndex] ?? texture.viewKey,
     width: texture.width,
     height: texture.height,
     depthFormat: texture.depthFormat,
@@ -210,9 +219,9 @@ function createShadowPassPlan(
     receiverLayerMask: request.receiverLayerMask,
     depthLoadOp: "clear",
     depthStoreOp: "store",
-    depthClearValue: 1,
+    depthClearValue: texture.faceCount === 6 ? 0 : 1,
     submission,
-  };
+  }));
 }
 
 function determineStatus(

@@ -238,17 +238,19 @@ function standardBindGroupLayoutKeys(
     "standard/group-0:view-uniform@0",
     "standard/group-1:world-transforms@0",
     standardMaterialLayoutKey(features),
-    features.shadowMap === true
-      ? features.iblDiffuse === true
-        ? features.iblSpecularProof === true
-          ? "standard/lights-shadow-ibl/group-3:light-floats@0,light-metadata@1,matrix@2,depth@3,sampler@4,diffuse-ibl@5,ibl-sampler@6,specular-ibl-proof@7"
-          : "standard/lights-shadow-ibl/group-3:light-floats@0,light-metadata@1,matrix@2,depth@3,sampler@4,diffuse-ibl@5,ibl-sampler@6"
-        : "standard/lights-shadow/group-3:light-floats@0,light-metadata@1,matrix@2,depth@3,sampler@4"
-      : features.iblDiffuse === true
-        ? features.iblSpecularProof === true
-          ? "standard/lights-ibl/group-3:light-floats@0,light-metadata@1,diffuse-ibl@5,ibl-sampler@6,specular-ibl-proof@7"
-          : "standard/lights-ibl/group-3:light-floats@0,light-metadata@1,diffuse-ibl@5,ibl-sampler@6"
-        : "lights/group-3:light-floats@0,light-metadata@1",
+    features.pointShadowMap === true
+      ? "standard/lights-point-shadow/group-3:light-floats@0,light-metadata@1,matrix@2,depth-cube@3,sampler@4"
+      : features.shadowMap === true
+        ? features.iblDiffuse === true
+          ? features.iblSpecularProof === true
+            ? "standard/lights-shadow-ibl/group-3:light-floats@0,light-metadata@1,matrix@2,depth@3,sampler@4,diffuse-ibl@5,ibl-sampler@6,specular-ibl-proof@7"
+            : "standard/lights-shadow-ibl/group-3:light-floats@0,light-metadata@1,matrix@2,depth@3,sampler@4,diffuse-ibl@5,ibl-sampler@6"
+          : "standard/lights-shadow/group-3:light-floats@0,light-metadata@1,matrix@2,depth@3,sampler@4"
+        : features.iblDiffuse === true
+          ? features.iblSpecularProof === true
+            ? "standard/lights-ibl/group-3:light-floats@0,light-metadata@1,diffuse-ibl@5,ibl-sampler@6,specular-ibl-proof@7"
+            : "standard/lights-ibl/group-3:light-floats@0,light-metadata@1,diffuse-ibl@5,ibl-sampler@6"
+          : "lights/group-3:light-floats@0,light-metadata@1",
   ];
 }
 
@@ -281,6 +283,7 @@ function standardTextureFeatures(
     occlusionTexture: tokens.includes("occlusionTexture"),
     emissiveTexture: tokens.includes("emissiveTexture"),
     shadowMap: tokens.includes("shadowMap"),
+    pointShadowMap: tokens.includes("pointShadowMap"),
     iblDiffuse: tokens.includes("iblDiffuse"),
     iblSpecularProof: tokens.includes("iblSpecularProof"),
     texCoord1: tokens.includes("uv1"),

@@ -22,6 +22,8 @@ export const STANDARD_BASE_COLOR_METALLIC_ROUGHNESS_TEXTURE_SHADER_VARIANT =
   "direct-lit-metallic-roughness-base-color-metallic-roughness-texture";
 export const STANDARD_SHADOW_MAP_SHADER_VARIANT =
   "direct-lit-metallic-roughness-shadow-map";
+export const STANDARD_POINT_SHADOW_MAP_SHADER_VARIANT =
+  "direct-lit-metallic-roughness-point-shadow-map";
 export const STANDARD_DIFFUSE_IBL_SHADER_VARIANT =
   "direct-lit-metallic-roughness-diffuse-ibl";
 export const STANDARD_SPECULAR_IBL_PROOF_SHADER_VARIANT =
@@ -34,6 +36,7 @@ export interface StandardTextureShaderFeatures {
   readonly occlusionTexture: boolean;
   readonly emissiveTexture: boolean;
   readonly shadowMap?: boolean;
+  readonly pointShadowMap?: boolean;
   readonly iblDiffuse?: boolean;
   readonly iblSpecularProof?: boolean;
   readonly texCoord1?: boolean;
@@ -126,6 +129,7 @@ const PACKED_LIGHT_FLOAT_STRIDE: u32 = ${PACKED_LIGHT_FLOAT_STRIDE}u;
 const PACKED_LIGHT_METADATA_STRIDE: u32 = ${PACKED_LIGHT_METADATA_STRIDE}u;
 const LIGHT_KIND_AMBIENT: i32 = ${PackedLightKindId.Ambient};
 const LIGHT_KIND_DIRECTIONAL: i32 = ${PackedLightKindId.Directional};
+const LIGHT_KIND_POINT: i32 = ${PackedLightKindId.Point};
 const STANDARD_FEATURE_ALPHA_MASK: u32 = 32u;
 
 @group(0) @binding(0) var<uniform> view: ViewProjectionUniform;
@@ -242,6 +246,16 @@ fn directionalLightDirection(lightIndex: u32) -> vec3f {
   return normalize(-world[2].xyz);
 }
 
+fn pointLightPosition(lightIndex: u32) -> vec3f {
+  let world = worldTransforms[lightTransformIndex(lightIndex)];
+  return world[3].xyz;
+}
+
+fn pointLightRange(lightIndex: u32) -> f32 {
+  let offset = lightFloatOffset(lightIndex);
+  return max(lightFloats[offset + 5u], 0.0001);
+}
+
 @fragment
 fn fs_main(input: VertexOutput) -> @location(0) vec4f {
   let baseColor = material.baseColorFactor.rgb;
@@ -275,6 +289,26 @@ fn fs_main(input: VertexOutput) -> @location(0) vec4f {
         metallic,
         roughness,
       );
+    }
+
+    if (kind == LIGHT_KIND_POINT) {
+      let lightPosition = pointLightPosition(lightIndex);
+      let toLight = lightPosition - input.worldPosition;
+      let lightDistance = length(toLight);
+      let lightRange = pointLightRange(lightIndex);
+      let attenuation = pow(saturate(1.0 - lightDistance / lightRange), 2.0);
+
+      if (attenuation > 0.0 && lightDistance > 0.0001) {
+        direct = direct + evaluateDirectLight(
+          normal,
+          viewDir,
+          toLight / lightDistance,
+          lightRadiance(lightIndex) * attenuation,
+          baseColor,
+          metallic,
+          roughness,
+        );
+      }
     }
   }
 
@@ -507,6 +541,7 @@ export function createStandardTextureShaderVariantKey(
     !features.occlusionTexture &&
     !features.emissiveTexture &&
     features.shadowMap !== true &&
+    features.pointShadowMap !== true &&
     features.texCoord1 !== true
   ) {
     return STANDARD_METALLIC_ROUGHNESS_TEXTURE_SHADER_VARIANT;
@@ -519,11 +554,27 @@ export function createStandardTextureShaderVariantKey(
     !features.normalTexture &&
     !features.occlusionTexture &&
     !features.emissiveTexture &&
+    features.pointShadowMap !== true &&
     features.iblDiffuse !== true &&
     features.iblSpecularProof !== true &&
     features.texCoord1 !== true
   ) {
     return STANDARD_SHADOW_MAP_SHADER_VARIANT;
+  }
+
+  if (
+    features.pointShadowMap === true &&
+    features.shadowMap !== true &&
+    !features.baseColorTexture &&
+    !features.metallicRoughnessTexture &&
+    !features.normalTexture &&
+    !features.occlusionTexture &&
+    !features.emissiveTexture &&
+    features.iblDiffuse !== true &&
+    features.iblSpecularProof !== true &&
+    features.texCoord1 !== true
+  ) {
+    return STANDARD_POINT_SHADOW_MAP_SHADER_VARIANT;
   }
 
   if (
@@ -535,6 +586,7 @@ export function createStandardTextureShaderVariantKey(
     !features.occlusionTexture &&
     !features.emissiveTexture &&
     features.shadowMap !== true &&
+    features.pointShadowMap !== true &&
     features.texCoord1 !== true
   ) {
     return STANDARD_DIFFUSE_IBL_SHADER_VARIANT;
@@ -549,6 +601,7 @@ export function createStandardTextureShaderVariantKey(
     !features.occlusionTexture &&
     !features.emissiveTexture &&
     features.shadowMap !== true &&
+    features.pointShadowMap !== true &&
     features.texCoord1 !== true
   ) {
     return STANDARD_SPECULAR_IBL_PROOF_SHADER_VARIANT;
@@ -578,6 +631,10 @@ export function createStandardTextureShaderVariantKey(
 
   if (features.shadowMap === true) {
     names.push("shadow-map");
+  }
+
+  if (features.pointShadowMap === true) {
+    names.push("point-shadow-map");
   }
 
   if (features.iblDiffuse === true) {
@@ -886,6 +943,10 @@ ${emissive}
     code = applyStandardShadowMapSampling(code);
   }
 
+  if (features.pointShadowMap === true) {
+    code = applyStandardPointShadowMapSampling(code);
+  }
+
   if (features.iblDiffuse === true) {
     code = applyStandardDiffuseIblSampling(code);
   }
@@ -903,7 +964,7 @@ function standardTextureVariantComment(
   const active = standardTextureFeatureNames(features);
 
   const deferred =
-    features.shadowMap === true
+    features.shadowMap === true || features.pointShadowMap === true
       ? "image-based lighting is"
       : "image-based lighting and shadows are";
 
@@ -975,6 +1036,14 @@ function standardTextureVariantDeclaration(
       "@group(3) @binding(2) var<storage, read> directionalShadowMatrices: array<mat4x4f>;",
       "@group(3) @binding(3) var directionalShadowMap: texture_depth_2d;",
       "@group(3) @binding(4) var directionalShadowSampler: sampler_comparison;",
+    );
+  }
+
+  if (features.pointShadowMap === true) {
+    declarations.push(
+      "@group(3) @binding(2) var<storage, read> pointShadowMatrices: array<mat4x4f>;",
+      "@group(3) @binding(3) var pointShadowMap: texture_depth_cube;",
+      "@group(3) @binding(4) var pointShadowSampler: sampler_comparison;",
     );
   }
 
@@ -1124,6 +1193,32 @@ function standardTextureVariantBindings(
     );
   }
 
+  if (features.pointShadowMap === true) {
+    bindings.push(
+      {
+        id: "directionalShadowMatrices",
+        label: "Point shadow cube-face view-projection matrix storage",
+        group: 3,
+        binding: 2,
+        resource: "read-only-storage-buffer",
+      },
+      {
+        id: "directionalShadowMap",
+        label: "Point shadow cube depth texture",
+        group: 3,
+        binding: 3,
+        resource: "texture",
+      },
+      {
+        id: "directionalShadowSampler",
+        label: "Point shadow comparison sampler",
+        group: 3,
+        binding: 4,
+        resource: "sampler",
+      },
+    );
+  }
+
   if (features.iblDiffuse === true) {
     bindings.push(
       {
@@ -1166,6 +1261,7 @@ function standardTextureVariantShaderLabel(
     !features.occlusionTexture &&
     !features.emissiveTexture &&
     features.shadowMap !== true &&
+    features.pointShadowMap !== true &&
     features.iblDiffuse !== true &&
     features.iblSpecularProof !== true &&
     features.texCoord1 !== true
@@ -1180,6 +1276,7 @@ function standardTextureVariantShaderLabel(
     !features.occlusionTexture &&
     !features.emissiveTexture &&
     features.shadowMap !== true &&
+    features.pointShadowMap !== true &&
     features.iblDiffuse !== true &&
     features.iblSpecularProof !== true &&
     features.texCoord1 !== true
@@ -1194,6 +1291,7 @@ function standardTextureVariantShaderLabel(
     !features.occlusionTexture &&
     !features.emissiveTexture &&
     features.shadowMap !== true &&
+    features.pointShadowMap !== true &&
     features.iblSpecularProof !== true &&
     features.texCoord1 !== true
   ) {
@@ -1207,10 +1305,25 @@ function standardTextureVariantShaderLabel(
     !features.normalTexture &&
     !features.occlusionTexture &&
     !features.emissiveTexture &&
+    features.pointShadowMap !== true &&
     features.iblDiffuse !== true &&
     features.texCoord1 !== true
   ) {
     return "aperture/standard-mesh-shadow-receiver";
+  }
+
+  if (
+    features.pointShadowMap === true &&
+    features.shadowMap !== true &&
+    !features.baseColorTexture &&
+    !features.metallicRoughnessTexture &&
+    !features.normalTexture &&
+    !features.occlusionTexture &&
+    !features.emissiveTexture &&
+    features.iblDiffuse !== true &&
+    features.texCoord1 !== true
+  ) {
+    return "aperture/standard-mesh-point-shadow-receiver";
   }
 
   if (
@@ -1222,6 +1335,7 @@ function standardTextureVariantShaderLabel(
     !features.occlusionTexture &&
     !features.emissiveTexture &&
     features.shadowMap !== true &&
+    features.pointShadowMap !== true &&
     features.texCoord1 !== true
   ) {
     return "aperture/standard-mesh-diffuse-ibl";
@@ -1236,6 +1350,7 @@ function standardTextureVariantShaderLabel(
     !features.occlusionTexture &&
     !features.emissiveTexture &&
     features.shadowMap !== true &&
+    features.pointShadowMap !== true &&
     features.texCoord1 !== true
   ) {
     return "aperture/standard-mesh-diffuse-specular-ibl-proof";
@@ -1275,6 +1390,10 @@ function standardTextureFeatureNames(
     names.push("shadow-map");
   }
 
+  if (features.pointShadowMap === true) {
+    names.push("point-shadow-map");
+  }
+
   if (features.iblDiffuse === true) {
     names.push("diffuse-ibl");
   }
@@ -1300,6 +1419,7 @@ function hasAnyStandardTextureFeature(
     features.occlusionTexture ||
     features.emissiveTexture ||
     features.shadowMap === true ||
+    features.pointShadowMap === true ||
     features.iblDiffuse === true ||
     features.iblSpecularProof === true ||
     features.texCoord1 === true
@@ -1417,6 +1537,120 @@ fn evaluateDirectLight(
       `  let color = ambientDiffuse + direct + material.emissiveFactor;`,
       `  let receiverShadowFactor = sampleDirectionalShadowFactor(input.worldPosition);
   let color = (ambientDiffuse + direct) * receiverShadowFactor + material.emissiveFactor;`,
+    );
+}
+
+function applyStandardPointShadowMapSampling(code: string): string {
+  return code
+    .replace(
+      `fn evaluateDirectLight(
+  normal: vec3f,`,
+      `const STANDARD_POINT_SHADOW_MIN_VISIBILITY: f32 = 0.5;
+const STANDARD_POINT_SHADOW_DEPTH_BIAS: f32 = 0.0001;
+
+fn pointShadowFaceIndex(toReceiver: vec3f) -> u32 {
+  let absDirection = abs(toReceiver);
+
+  if (absDirection.x >= absDirection.y && absDirection.x >= absDirection.z) {
+    return select(1u, 0u, toReceiver.x >= 0.0);
+  }
+
+  if (absDirection.y >= absDirection.x && absDirection.y >= absDirection.z) {
+    return select(3u, 2u, toReceiver.y >= 0.0);
+  }
+
+  return select(5u, 4u, toReceiver.z >= 0.0);
+}
+
+fn samplePointShadowFactor(worldPosition: vec3f, lightPosition: vec3f) -> f32 {
+  if (arrayLength(&pointShadowMatrices) < 6u) {
+    return 1.0;
+  }
+
+  let toReceiver = worldPosition - lightPosition;
+  let receiverDistance = length(toReceiver);
+
+  if (receiverDistance <= 0.0001) {
+    return 1.0;
+  }
+
+  let faceIndex = pointShadowFaceIndex(toReceiver);
+  let shadowPosition = pointShadowMatrices[faceIndex] * vec4f(worldPosition, 1.0);
+
+  if (abs(shadowPosition.w) <= 0.00001) {
+    return 1.0;
+  }
+
+  let shadowClip = shadowPosition.xyz / shadowPosition.w;
+  let shadowDepth = select(
+    shadowClip.z,
+    shadowClip.z * 0.5 + 0.5,
+    shadowClip.z < 0.0,
+  );
+
+  if (abs(shadowClip.x) > 1.0 || abs(shadowClip.y) > 1.0 || shadowDepth < 0.0 || shadowDepth > 1.0) {
+    return 1.0;
+  }
+
+  let receiverDepth = 1.0 - STANDARD_POINT_SHADOW_DEPTH_BIAS;
+  let rawVisibility = textureSampleCompareLevel(
+    pointShadowMap,
+    pointShadowSampler,
+    normalize(toReceiver),
+    receiverDepth,
+  );
+  let visibility = select(
+    clamp(rawVisibility, 0.0, 1.0),
+    1.0,
+    rawVisibility != rawVisibility,
+  );
+
+  return mix(STANDARD_POINT_SHADOW_MIN_VISIBILITY, 1.0, visibility);
+}
+
+fn samplePointShadowReceiverFactor(worldPosition: vec3f) -> f32 {
+  var factor = 1.0;
+
+  for (var lightIndex = 0u; lightIndex < lightCount(); lightIndex = lightIndex + 1u) {
+    if (lightKind(lightIndex) == LIGHT_KIND_POINT) {
+      factor = min(
+        factor,
+        samplePointShadowFactor(worldPosition, pointLightPosition(lightIndex)),
+      );
+    }
+  }
+
+  return factor;
+}
+
+fn evaluateDirectLight(
+  normal: vec3f,`,
+    )
+    .replace(
+      `        direct = direct + evaluateDirectLight(
+          normal,
+          viewDir,
+          toLight / lightDistance,
+          lightRadiance(lightIndex) * attenuation,
+          baseColor,
+          metallic,
+          roughness,
+        );`,
+      `        let shadowFactor = samplePointShadowFactor(input.worldPosition, lightPosition);
+        direct = direct + evaluateDirectLight(
+          normal,
+          viewDir,
+          toLight / lightDistance,
+          lightRadiance(lightIndex) * attenuation,
+          baseColor,
+          metallic,
+          roughness,
+        ) * shadowFactor;`,
+    )
+    .replace(
+      `  let color = ambientDiffuse + direct + material.emissiveFactor;`,
+      `  let receiverPointShadowFactor = samplePointShadowReceiverFactor(input.worldPosition);
+  let color = (ambientDiffuse + direct) * receiverPointShadowFactor + material.emissiveFactor;`,
     );
 }
 

@@ -1,5 +1,3 @@
-import type { DirectionalShadowViewProjectionPlanReport } from "./directional-shadow-view-projection-plan.js";
-
 export type ShadowMatrixBufferDescriptorStatus =
   | "ready"
   | "deferred"
@@ -61,10 +59,29 @@ export type ShadowMatrixBufferDescriptorReportJsonValue =
   ShadowMatrixBufferDescriptorReport;
 
 export interface ShadowMatrixBufferDescriptorInput {
-  readonly viewProjection: DirectionalShadowViewProjectionPlanReport;
+  readonly viewProjection: ShadowViewProjectionPlanReportLike;
   readonly upload?: ShadowMatrixBufferUploadMode;
   readonly resourceKey?: string;
   readonly label?: string;
+}
+
+export interface ShadowViewProjectionPlanLike {
+  readonly shadowId: number;
+  readonly lightId: number;
+  readonly planKey: string;
+  readonly passKey: string;
+  readonly viewProjectionMatrixKey: string;
+}
+
+export interface ShadowViewProjectionPlanReportLike {
+  readonly status:
+    | "ready"
+    | "deferred"
+    | "unsupported"
+    | "missing"
+    | "not-required";
+  readonly planCount: number;
+  readonly plans: readonly ShadowViewProjectionPlanLike[];
 }
 
 export const SHADOW_MATRIX_BUFFER_STRIDE_BYTES = 16 * 4;
@@ -102,7 +119,7 @@ export function createShadowMatrixBufferDescriptorReport(
       code: "shadowMatrixBuffer.missingViewProjectionPlan",
       severity: "warning",
       message:
-        "Shadow matrix buffer planning requires a directional shadow view/projection plan.",
+        "Shadow matrix buffer planning requires a shadow view/projection plan.",
     });
   }
 
@@ -111,7 +128,7 @@ export function createShadowMatrixBufferDescriptorReport(
       code: "shadowMatrixBuffer.unsupportedViewProjectionPlan",
       severity: "warning",
       message:
-        "Shadow matrix buffer planning only supports directional shadow view/projection plans.",
+        "Shadow matrix buffer planning does not support the current shadow view/projection plan.",
     });
   }
 
@@ -199,7 +216,7 @@ export function shadowMatrixBufferDescriptorReportToJson(
 }
 
 function determineStatus(input: {
-  readonly viewProjectionStatus: DirectionalShadowViewProjectionPlanReport["status"];
+  readonly viewProjectionStatus: ShadowViewProjectionPlanReportLike["status"];
   readonly hasDescriptor: boolean;
   readonly upload: ShadowMatrixBufferUploadMode;
 }): ShadowMatrixBufferDescriptorStatus {

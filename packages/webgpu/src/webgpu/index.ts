@@ -77,6 +77,8 @@ export * from "./mvp-frame-readiness.js";
 export * from "./pipeline-cache.js";
 export * from "./pipeline-cache-integration.js";
 export * from "./pipeline-scoped-bind-groups.js";
+export * from "./point-shadow-matrix-computation.js";
+export * from "./point-shadow-view-projection-plan.js";
 export * from "./prepared-mesh-cache.js";
 export * from "./prepared-resource-app-reuse-alignment-summary.js";
 export * from "./prepared-resource-lifetime-alignment-summary.js";

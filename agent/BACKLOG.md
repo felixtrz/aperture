@@ -59,7 +59,7 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start with `task-2012`: add point-light shadow cube map and render a visible point-light shadow.
+Start with `task-2017`: replace the conservative point-shadow occupancy proof with distance-accurate point-light depth compare.
 
 `task-2001` is complete: the spinning-cube example now creates a renderer-owned face-colored diffuse IBL cube texture and sampler, routes it through the StandardMaterial diffuse IBL shader variant, and Playwright verifies direction-dependent face pixels.
 `task-2002` is complete: `withEnvironmentMap(handle)` is exported from runtime/core and materials-showcase now uses it with visible diffuse IBL routing.
@@ -265,6 +265,8 @@ Acceptance criteria:
 
 ### task-2012 — Add point-light shadow cube map and render visible point-light shadow
 
+Status: completed 2026-05-19. See `agent/COMPLETED.md`.
+
 Category: `webgpu-render`
 Package/write-scope: `packages/webgpu/src/`, an example update, targeted tests.
 Reference anchor: `references/three.js/src/lights/PointLightShadow.js`; `references/engine/src/scene/renderer/shadow-renderer-local.js`; `references/engine/src/scene/renderer/render-pass-shadow-local-non-clustered.js`.
@@ -273,6 +275,18 @@ Acceptance criteria:
 
 - A point light near a cube produces a visible shadow that wraps around the caster.
 - Playwright pixel readback at three named coordinates around the cube shows shadow on the far side and light on the near side.
+
+### task-2017 — Replace point-shadow occupancy proof with radial depth compare
+
+Category: `webgpu-render`
+Package/write-scope: `packages/webgpu/src/`, `examples/point-shadow.js`, `test/e2e/point-shadow.spec.ts`, targeted tests.
+Reference anchor: `references/three.js/src/lights/PointLightShadow.js`; `references/engine/src/scene/renderer/shadow-renderer-local.js`; `references/engine/src/scene/renderer/render-pass-shadow-local-non-clustered.js`.
+
+Acceptance criteria:
+
+- Point-shadow caster pass writes distance-accurate point-light depth instead of relying on conservative cube-map occupancy clear behavior.
+- `examples/point-shadow.html` shows a localized far-side shadow while nearby receiver pixels remain visibly lit.
+- Playwright samples at least three named receiver coordinates and proves localized shadow/lit separation with no WebGPU validation warnings.
 
 ### task-2013 — Add spot-light shadow projection and render visible spot-light shadow
 

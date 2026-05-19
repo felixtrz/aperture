@@ -383,7 +383,7 @@ function appendShadowRequest(
     return;
   }
 
-  if (kind !== "directional") {
+  if (kind !== "directional" && kind !== "point") {
     diagnoseUnsupportedShadowRequest(entity, kind, settings, diagnostics);
     return;
   }
@@ -393,6 +393,7 @@ function appendShadowRequest(
   shadowRequests.push({
     shadowId: lightId,
     lightId,
+    lightKind: kind,
     casterLayerMask: settings.casterLayerMask ?? -1,
     receiverLayerMask: settings.receiverLayerMask ?? -1,
   });

@@ -22,10 +22,10 @@ describe("render snapshot transform packing", () => {
       snapshot([first, second], matrices([1, 2])),
     );
 
-    expect(Array.from(result.data)).toEqual([...matrix(2), ...matrix(1)]);
+    expect(Array.from(result.data)).toEqual([...matrix(1), ...matrix(2)]);
     expect(result.offsets).toEqual([
-      { renderId: first.renderId, sourceOffset: 16, packedOffset: 0 },
-      { renderId: second.renderId, sourceOffset: 0, packedOffset: 16 },
+      { renderId: first.renderId, sourceOffset: 16, packedOffset: 16 },
+      { renderId: second.renderId, sourceOffset: 0, packedOffset: 0 },
     ]);
     expect(result.diagnostics).toEqual([]);
   });
@@ -86,8 +86,8 @@ describe("render snapshot transform packing", () => {
     expect(new Set(second.offsets)).toEqual(new Set(firstOffsets));
     expect(second.offsets.map((offset) => offset.renderId)).toEqual([2, 1]);
     expect(Array.from(second.data.subarray(0, second.floatCount))).toEqual([
-      ...matrix(2),
       ...matrix(1),
+      ...matrix(2),
     ]);
   });
 });

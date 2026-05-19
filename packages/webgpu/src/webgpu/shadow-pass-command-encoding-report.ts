@@ -152,16 +152,10 @@ export function writeShadowPassCommandEncodingReport(
     ]),
   );
   const casterListsByPass = new Map(
-    input.casterDrawList.lists.map((list) => [
-      shadowInputKey(list.shadowId, list.lightId),
-      list,
-    ]),
+    input.casterDrawList.lists.map((list) => [list.passKey, list]),
   );
   const commandPlansByPass = new Map(
-    input.commandPlan.commands.map((command) => [
-      shadowInputKey(command.shadowId, command.lightId),
-      command,
-    ]),
+    input.commandPlan.commands.map((command) => [command.passKey, command]),
   );
   const matrixResource = input.matrixBufferResource.resource;
 
@@ -185,10 +179,14 @@ export function writeShadowPassCommandEncodingReport(
   for (const pass of input.shadowPassPlan.passes) {
     const key = shadowInputKey(pass.shadowId, pass.lightId);
     const depthResource = depthResourcesByPass.get(key);
-    const casterList = casterListsByPass.get(key);
-    const commandPlan = commandPlansByPass.get(key);
+    const casterList = casterListsByPass.get(pass.passKey);
+    const commandPlan = commandPlansByPass.get(pass.passKey);
+    const hasDepthView =
+      depthResource?.attachmentViews.some(
+        (view) => view.viewKey === pass.viewKey,
+      ) ?? false;
 
-    if (depthResource?.allocation.resource === null) {
+    if (depthResource?.allocation.resource === null || !hasDepthView) {
       scratch.diagnostics.push({
         code: "shadowPassCommandEncoding.missingDepthView",
         severity: "warning",
@@ -237,6 +235,7 @@ export function writeShadowPassCommandEncodingReport(
     if (
       depthResource?.allocation.resource === null ||
       depthResource === undefined ||
+      !hasDepthView ||
       matrixResource === null ||
       casterList === undefined ||
       commandPlan === undefined
@@ -249,7 +248,7 @@ export function writeShadowPassCommandEncodingReport(
       scratch.records.length,
       pass,
       depthResource.textureKey,
-      depthResource.viewKey,
+      pass.viewKey,
       matrixResource.resourceKey,
       commandPlan.commandKey,
       commandPlan.drawCount,

@@ -101,24 +101,43 @@ export function createShadowCasterDrawListPlanReport(
   }
 
   const diagnostics: ShadowCasterDrawListDiagnostic[] = [];
-  const passesByKey = new Map(
-    input.shadowPassPlan.passes.map((pass) => [
-      `${pass.shadowId}:${pass.lightId}`,
-      pass,
+  const requestsByKey = new Map(
+    input.shadowRequests.map((request) => [
+      `${request.shadowId}:${request.lightId}`,
+      request,
     ]),
+  );
+  const plannedRequestKeys = new Set(
+    input.shadowPassPlan.passes.map(
+      (pass) => `${pass.shadowId}:${pass.lightId}`,
+    ),
   );
   const lists: ShadowCasterDrawList[] = [];
 
   for (const request of input.shadowRequests) {
-    const pass = passesByKey.get(`${request.shadowId}:${request.lightId}`);
+    if (plannedRequestKeys.has(`${request.shadowId}:${request.lightId}`)) {
+      continue;
+    }
 
-    if (pass === undefined) {
+    diagnostics.push({
+      code: "shadowCasterDrawList.missingPassPlan",
+      severity: "warning",
+      shadowId: request.shadowId,
+      lightId: request.lightId,
+      message: `Shadow request '${request.shadowId}' has no planned shadow pass for caster draw-list planning.`,
+    });
+  }
+
+  for (const pass of input.shadowPassPlan.passes) {
+    const request = requestsByKey.get(`${pass.shadowId}:${pass.lightId}`);
+
+    if (request === undefined) {
       diagnostics.push({
         code: "shadowCasterDrawList.missingPassPlan",
         severity: "warning",
-        shadowId: request.shadowId,
-        lightId: request.lightId,
-        message: `Shadow request '${request.shadowId}' has no pass plan for caster draw-list planning.`,
+        shadowId: pass.shadowId,
+        lightId: pass.lightId,
+        message: `Shadow pass '${pass.passKey}' has no extracted shadow request for caster draw-list planning.`,
       });
       continue;
     }
