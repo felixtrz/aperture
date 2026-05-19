@@ -19,6 +19,8 @@ Summary:
   sampling is active.
 - Updated transform packing so the StandardMaterial shader can address light
   transforms from the same snapshot transform table used by draw transforms.
+- Tightened draw-list planning so a shadow request with no planned pass reports
+  a missing prerequisite before command readiness runs.
 
 References inspected:
 
@@ -31,7 +33,12 @@ Validation:
 - `pnpm run build`
 - `pnpm run typecheck:test`
 - `pnpm run check:examples`
+- `pnpm run check:progress`
+- `pnpm run lint`
+- `pnpm run format:check`
+- `pnpm test`
 - `pnpm exec vitest run test/webgpu/point-shadow-pipeline.test.ts test/webgpu/shadow-pass-plan.test.ts test/webgpu/shadow-texture-resource.test.ts test/webgpu/shadow-depth-texture-resource.test.ts test/webgpu/shadow-pass-attachment-descriptor.test.ts test/webgpu/shadow-pass-command-encoding-report.test.ts test/webgpu/standard-light-shadow-bind-group.test.ts test/rendering/transform-pack.test.ts test/webgpu/shadow-caster-pipeline-descriptor.test.ts test/webgpu/shadow-caster-frame-resource-readiness.test.ts`
+- `pnpm exec vitest run test/rendering/extraction.test.ts test/webgpu/shadow-map-descriptor.test.ts test/webgpu/shadow-caster-pipeline-resource.test.ts test/webgpu/shadow-caster-command-plan-readiness.test.ts test/webgpu/shadow-caster-draw-list-plan.test.ts`
 - `pnpm exec playwright test test/e2e/point-shadow.spec.ts`
 
 Known follow-up:

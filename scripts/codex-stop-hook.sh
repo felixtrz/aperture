@@ -121,13 +121,78 @@ echo "Aperture stop hook started at $(date -u +"%Y-%m-%dT%H:%M:%SZ")"
 echo "Repository: $ROOT"
 echo "Log file: $LOG_FILE"
 
-minute_of_hour="$(date +%M)"
-echo "Stop gate current minute-of-hour: $minute_of_hour"
+work_window_minutes="${STOP_HOOK_WORK_WINDOW_MINUTES:-55}"
+echo "Stop gate work window: $work_window_minutes minute(s)"
 
-if ((10#$minute_of_hour < 55)); then
-  echo "Blocking stop attempt before minute 55 of the hour."
-  emit_continue_request "current minute is $minute_of_hour; do not wait, sleep, poll, or idle for minute 55. Continue active repository work on the next coherent ready task until the work window is actually exhausted. It is OK if that work runs past minute 55; agent/STATUS.json and handoff state will block overlapping automation runs."
+stop_gate_reason="$(WORK_WINDOW_MINUTES="$work_window_minutes" node <<'NODE'
+const fs = require("node:fs");
+
+const statusPath = "agent/STATUS.json";
+const workWindowMinutes = Number(process.env.WORK_WINDOW_MINUTES ?? 55);
+const status = JSON.parse(fs.readFileSync(statusPath, "utf8"));
+const startedAt = status.currentRunStartedAt ?? status.lastRunStartedAt;
+
+if (typeof startedAt !== "string" || Number.isNaN(workWindowMinutes)) {
+  process.exit(0);
+}
+
+const startedMs = Date.parse(startedAt);
+
+if (!Number.isFinite(startedMs)) {
+  process.exit(0);
+}
+
+const elapsedMinutes = (Date.now() - startedMs) / 60000;
+const readyTaskCount = countReadyTasks("agent/BACKLOG.md");
+
+console.log(
+  `elapsed=${elapsedMinutes.toFixed(1)} readyTasks=${readyTaskCount}`,
+);
+
+if (elapsedMinutes < workWindowMinutes && readyTaskCount > 0) {
+  console.error(
+    `BLOCK: elapsed ${elapsedMinutes.toFixed(1)}m is below ${workWindowMinutes}m with ${readyTaskCount} ready task(s) remaining`,
+  );
+  process.exit(2);
+}
+
+function countReadyTasks(backlogPath) {
+  const backlog = fs.readFileSync(backlogPath, "utf8");
+  const lines = backlog.split(/\r?\n/);
+  let inReadySection = false;
+  let count = 0;
+
+  for (const line of lines) {
+    if (/^##\s+Ready Tasks(?:\s+By Category)?\s*$/.test(line)) {
+      inReadySection = true;
+      continue;
+    }
+
+    if (inReadySection && /^##\s+/.test(line)) {
+      break;
+    }
+
+    if (inReadySection && /^###\s+task-\d+\b/.test(line)) {
+      count += 1;
+    }
+  }
+
+  return count;
+}
+NODE
+)"
+stop_gate_status=$?
+
+if [[ -n "$stop_gate_reason" ]]; then
+  echo "Stop gate: $stop_gate_reason"
+fi
+
+if ((stop_gate_status == 2)); then
+  echo "Blocking stop attempt before elapsed work window is exhausted."
+  emit_continue_request "elapsed work window is not exhausted; do not wait, sleep, poll, or idle. Continue active repository work on the next coherent ready task until the work window is actually exhausted. It is OK if that work runs past the window; agent/STATUS.json and handoff state will block overlapping automation runs."
   exit 0
+elif ((stop_gate_status != 0)); then
+  fail "stop gate elapsed-time check failed"
 fi
 
 required_files=(

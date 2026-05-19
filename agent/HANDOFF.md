@@ -1,8 +1,8 @@
 # Agent Handoff
 
-Updated: 2026-05-19T20:58:56Z
+Updated: 2026-05-19T21:06:51Z
 
-## Current Run Update — 2026-05-19T20:58:56Z — Point shadow cube-map proof
+## Current Run Update — 2026-05-19T21:06:51Z — Point shadow cube-map proof
 
 Completed `task-2012`.
 
@@ -20,8 +20,12 @@ Completed `task-2012`.
   status, and browser coverage proving point-shadow receiver activation.
 - Updated packed transform buffers to preserve the full snapshot transform table
   so shaders can address light transforms as well as draw transforms.
+- Tightened shadow caster draw-list diagnostics so an extracted shadow request
+  with no planned pass remains a missing prerequisite for command planning.
 - Updated the public tracker pages and recorded a focused follow-up for
   distance-accurate radial point-shadow depth.
+- Corrected `scripts/codex-stop-hook.sh` so its continuation gate uses elapsed
+  run time from `agent/STATUS.json` instead of the current minute of the hour.
 
 ### References inspected
 
@@ -34,7 +38,13 @@ Completed `task-2012`.
 - `pnpm run build`
 - `pnpm run typecheck:test`
 - `pnpm run check:examples`
+- `pnpm run check:progress`
+- `pnpm run lint`
+- `pnpm run format:check`
+- `pnpm test`
+- `bash -n scripts/codex-stop-hook.sh`
 - `pnpm exec vitest run test/webgpu/point-shadow-pipeline.test.ts test/webgpu/shadow-pass-plan.test.ts test/webgpu/shadow-texture-resource.test.ts test/webgpu/shadow-depth-texture-resource.test.ts test/webgpu/shadow-pass-attachment-descriptor.test.ts test/webgpu/shadow-pass-command-encoding-report.test.ts test/webgpu/standard-light-shadow-bind-group.test.ts test/rendering/transform-pack.test.ts test/webgpu/shadow-caster-pipeline-descriptor.test.ts test/webgpu/shadow-caster-frame-resource-readiness.test.ts`
+- `pnpm exec vitest run test/rendering/extraction.test.ts test/webgpu/shadow-map-descriptor.test.ts test/webgpu/shadow-caster-pipeline-resource.test.ts test/webgpu/shadow-caster-command-plan-readiness.test.ts test/webgpu/shadow-caster-draw-list-plan.test.ts`
 - `pnpm exec playwright test test/e2e/point-shadow.spec.ts`
 
 ### Known issues
