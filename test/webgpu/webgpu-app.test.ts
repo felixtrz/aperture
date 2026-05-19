@@ -4495,8 +4495,48 @@ describe("WebGPU app facade", () => {
         layerMask: 1,
       }),
     );
+    const standardMaterialIblResources = {
+      bindGroupResource: {
+        ready: true,
+        status: "available" as const,
+        standardMaterialCount: 1,
+        group: 4 as const,
+        createdBindGroupCount: 0,
+        reusedBindGroupCount: 1,
+        sections: {
+          descriptorPlan: true,
+          layoutResource: true,
+          textureResources: true,
+          samplerResource: true,
+          bindGroupResource: true,
+          shaderSampling: false as const,
+        },
+        resource: {
+          group: 4 as const,
+          resourceKey: "bind-group:standard/ibl/group-4/test",
+          layoutKey: "standard/ibl/group-4",
+          bindGroup: { label: "standard/ibl/group-4/test" },
+          entryResourceKeys: [
+            "texture:test:diffuse:texture",
+            "texture:test:specular:texture",
+            "texture:test:diffuse:sampler",
+          ],
+        },
+        diagnostics: [
+          {
+            code: "standardMaterialIblBindGroupResource.shaderSamplingDeferred",
+            severity: "warning" as const,
+            message: "StandardMaterial IBL shader sampling is deferred.",
+          },
+        ],
+      },
+    } as const;
 
-    const frame = await app.stepAndRender(1 / 60, 1, 12);
+    app.step(1 / 60, 1);
+    const frame = await app.render({
+      frame: 12,
+      standardMaterialIblResources,
+    });
 
     expect(frame.ok).toBe(true);
     expect(frame.snapshot.lights.map((light) => light.kind)).toEqual([
@@ -4533,6 +4573,21 @@ describe("WebGPU app facade", () => {
       queuedFamilyResourceCount(frame.resources?.resources, "standard"),
     ).toBe(1);
     expect(queuedMeshResourceCount(frame.resources?.resources)).toBe(1);
+    expect(queuedBindGroupResourceKeys(frame.resources?.resources, 4)).toEqual(
+      [],
+    );
+    expect(
+      standardIblBindGroupResource(frame.resources?.resources),
+    ).toMatchObject({
+      group: 4,
+      resourceKey: "bind-group:standard/ibl/group-4/test",
+      layoutKey: "standard/ibl/group-4",
+      entryResourceKeys: [
+        "texture:test:diffuse:texture",
+        "texture:test:specular:texture",
+        "texture:test:diffuse:sampler",
+      ],
+    });
     const value = webGpuAppRenderReportToJsonValue(frame);
     const json = webGpuAppRenderReportToJson(frame);
 
@@ -4629,11 +4684,16 @@ describe("WebGPU app facade", () => {
     expect(json).not.toContain("commandBuffer");
     expect(json).not.toContain("descriptor");
     expect(events).toContain("pass:bind:3");
+    expect(events).not.toContain("pass:bind:4");
     expect(events).toContain("queue:submit:1");
 
     const firstResourceEvents = resourceEventCounts(events);
     const firstEventCount = events.length;
-    const secondFrame = await app.stepAndRender(1 / 60, 2, 13);
+    app.step(1 / 60, 2);
+    const secondFrame = await app.render({
+      frame: 13,
+      standardMaterialIblResources,
+    });
     const secondEvents = events.slice(firstEventCount);
     const firstResources = frame.resources?.resources;
     const secondResources = secondFrame.resources?.resources;
@@ -7210,6 +7270,29 @@ function queuedBindGroupResourceKeys(
       ? [candidate.resourceKey]
       : [];
   });
+}
+
+function standardIblBindGroupResource(resources: unknown): unknown {
+  for (const resource of queuedMaterialResources(resources, "standard")) {
+    const candidate = resource as {
+      readonly standardMaterialIblBindGroup?: unknown;
+    };
+
+    if (candidate.standardMaterialIblBindGroup !== undefined) {
+      return candidate.standardMaterialIblBindGroup;
+    }
+  }
+
+  if (
+    typeof resources === "object" &&
+    resources !== null &&
+    "standardMaterialIblBindGroup" in resources
+  ) {
+    return (resources as { readonly standardMaterialIblBindGroup: unknown })
+      .standardMaterialIblBindGroup;
+  }
+
+  return undefined;
 }
 
 function queuedMaterialResources(

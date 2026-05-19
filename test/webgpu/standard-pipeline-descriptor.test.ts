@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   STANDARD_BASE_COLOR_METALLIC_ROUGHNESS_TEXTURE_SHADER_VARIANT,
   STANDARD_BASE_COLOR_TEXTURE_SHADER_VARIANT,
+  STANDARD_DIFFUSE_IBL_SHADER_VARIANT,
   STANDARD_DIRECT_LIGHT_SHADER_VARIANT,
   STANDARD_METALLIC_ROUGHNESS_TEXTURE_SHADER_VARIANT,
   createStandardPipelineDescriptorPlan,
@@ -315,6 +316,38 @@ describe("standard material pipeline descriptor planning", () => {
         ],
       },
     });
+  });
+
+  it("specializes the diffuse IBL pipeline variant with a group 3 executable layout key", () => {
+    const result = createStandardPipelineDescriptorPlan({
+      colorFormat: "bgra8unorm",
+      batchKey: {
+        ...STANDARD_BATCH_KEY,
+        pipelineKey: "standard|iblDiffuse|opaque|back|less|none",
+      },
+    });
+
+    expect(result.diagnostics).toEqual([]);
+    expect(result.plan?.descriptor).toMatchObject({
+      label: "aperture/standard-mesh-diffuse-ibl:bgra8unorm:triangle-list",
+      vertex: { moduleLabel: "aperture/standard-mesh-diffuse-ibl" },
+      fragment: { moduleLabel: "aperture/standard-mesh-diffuse-ibl" },
+    });
+    expect(JSON.parse(required(result.plan).cacheKey) as unknown).toMatchObject(
+      {
+        shader: {
+          variantKey: STANDARD_DIFFUSE_IBL_SHADER_VARIANT,
+        },
+        layouts: {
+          bindGroups: [
+            "standard/group-0:view-uniform@0",
+            "standard/group-1:world-transforms@0",
+            "standard/group-2:material@0",
+            "standard/lights-ibl/group-3:light-floats@0,light-metadata@1,diffuse-ibl@5,ibl-sampler@6",
+          ],
+        },
+      },
+    );
   });
 
   it("specializes emissive and occlusion texture variants without deferring them", () => {

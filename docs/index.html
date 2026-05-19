@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-19 03:46 PDT</dd>
+            <dd>2026-05-19 04:31 PDT</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -777,12 +777,28 @@
               exposes JSON-safe receiver/caster projection coverage records with
               UV, depth, inside-projection flags, and projection distance, and
               the receiver envelope fade has been reduced using that proof. The
-              remaining strict caster-depth work is now blocked on JSON-safe
-              sampled shadow-depth or compare-result evidence at those projected
-              records.
+              GLTF scene now also runs a renderer-owned shadow depth probe pass
+              over those projection records and reports JSON-safe sampled depth,
+              receiver compare depth, compare result, texel, and expected
+              lit/shadowed classification. The probe identifies a deterministic
+              strict pair, <code>receiver:box-center-depth-probe</code> versus
+              <code>caster:box:center</code>, without exposing raw GPU handles.
+              The follow-up strict visible proof is now in place too: the GLTF
+              directional shadow light is angled, the StandardMaterial plane is
+              positioned in the caster footprint, the receiver shader no longer
+              uses the projected envelope term, and Playwright verifies a
+              visible strict receiver delta for
+              <code>receiver:plane:center</code> versus
+              <code>caster:box:center</code>. StandardMaterial IBL group 4 now
+              routes through the app frame-resource path as a deferred resource;
+              GLTF status reports <code>ibl.appFrameRoute</code> ready with
+              JSON-safe resource keys while executable draw commands keep group
+              4 unbound until shader sampling lands. Decision 0013 now selects
+              the combined group 3 layout as the browser-safe executable IBL
+              sampling path under Chrome's four-bind-group limit.
             </dd>
             <dt>Next focus</dt>
-            <dd>Add shadow depth probe evidence</dd>
+            <dd>Add first diffuse IBL shader contribution</dd>
           </dl>
         </aside>
       </header>
@@ -1307,6 +1323,25 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">task-1890</span> Routed
+                StandardMaterial IBL group 4 through app frame resources while
+                keeping shader sampling deferred.
+              </li>
+              <li>
+                <span class="badge green">task-1889</span> Audited the strict
+                receiver shadow proof and selected the IBL group 4 routing
+                slice.
+              </li>
+              <li>
+                <span class="badge green">task-1888</span> Replaced the
+                projected receiver envelope with visible strict shadow compare
+                proof.
+              </li>
+              <li>
+                <span class="badge green">task-1887</span> Added JSON-safe
+                shadow depth probe evidence for projection samples.
+              </li>
               <li>
                 <span class="badge green">task-1886</span> Documented the strict
                 caster-depth proof blocker.
@@ -2565,16 +2600,17 @@
             <h3>Recommended next tasks</h3>
             <ul>
               <li>
-                <span class="badge amber">next</span> Add shadow depth probe
-                evidence.
+                <span class="badge amber">next</span> Add the first diffuse IBL
+                shader contribution using Decision 0013's combined group 3
+                layout.
               </li>
               <li>
-                Report sampled depth or compare results for the projected
-                receiver/caster records.
+                Preserve group 4 as planning identity while executable browser
+                draws stay within groups 0 through 3.
               </li>
               <li>
-                Keep IBL shader sampling and broad shadow quality deferred until
-                the receiver proof audit is complete.
+                Keep specular prefiltering, skybox, and broad PBR completeness
+                deferred.
               </li>
             </ul>
           </article>

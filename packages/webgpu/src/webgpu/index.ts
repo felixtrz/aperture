@@ -120,6 +120,7 @@ export * from "./shadow-caster-matrix-bind-group-resource.js";
 export * from "./shadow-caster-pipeline-descriptor.js";
 export * from "./shadow-caster-pipeline-resource.js";
 export * from "./shadow-command-resource-summary.js";
+export * from "./shadow-depth-probe.js";
 export * from "./shadow-depth-resource-summary.js";
 export * from "./shadow-depth-texture-resource.js";
 export * from "./shadow-map-descriptor.js";

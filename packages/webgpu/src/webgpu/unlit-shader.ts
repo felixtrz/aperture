@@ -29,6 +29,8 @@ export type BuiltInShaderBindingId =
   | "directionalShadowMatrices"
   | "directionalShadowMap"
   | "directionalShadowSampler"
+  | "standardDiffuseIblTexture"
+  | "standardIblSampler"
   | "matcapTexture"
   | "matcapSampler";
 

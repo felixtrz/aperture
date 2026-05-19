@@ -172,7 +172,10 @@ import {
   type CreateStandardAppFrameResourcesResult,
   type StandardAppFrameResourceCacheSlot,
 } from "./standard-app-frame-resources.js";
-import type { StandardFrameShadowReceiverResources } from "./standard-frame-resources.js";
+import type {
+  StandardFrameIblResources,
+  StandardFrameShadowReceiverResources,
+} from "./standard-frame-resources.js";
 import {
   createStandardRenderPipelineResource,
   type CreateStandardRenderPipelineResourceResult,
@@ -235,6 +238,7 @@ export interface WebGpuAppRenderOptions {
   readonly label?: string;
   readonly readbackSamples?: readonly FrameBoundaryReadbackSampleRequest[];
   readonly standardMaterialShadowReceiverResources?: StandardFrameShadowReceiverResources;
+  readonly standardMaterialIblResources?: StandardFrameIblResources;
 }
 
 export interface WebGpuAppRenderCounts {
@@ -441,6 +445,7 @@ interface QueuedBuiltInFrameResourcePreparationOptions {
   readonly standardMaterialShadowReceiverResources?:
     | StandardFrameShadowReceiverResources
     | undefined;
+  readonly standardMaterialIblResources?: StandardFrameIblResources | undefined;
   readonly reuse: WebGpuAppResourceReuseReport;
 }
 
@@ -1056,6 +1061,12 @@ const QUEUED_BUILT_IN_MATERIAL_ADAPTERS =
                 shadowReceiverResources:
                   options.standardMaterialShadowReceiverResources,
               }),
+          ...(options.standardMaterialIblResources === undefined
+            ? {}
+            : {
+                standardMaterialIblResources:
+                  options.standardMaterialIblResources,
+              }),
           preparedMeshes: options.cache.preparedMeshes,
           preparedScalarMaterials: options.preparedMaterials.standard,
           reuse: options.reuse,
@@ -1104,6 +1115,7 @@ async function renderQueuedBuiltInWebGpuAppFrame(options: {
   readonly standardMaterialShadowReceiverResources?:
     | StandardFrameShadowReceiverResources
     | undefined;
+  readonly standardMaterialIblResources?: StandardFrameIblResources | undefined;
 }): Promise<WebGpuAppRenderReport> {
   const packedViews = writePackedSnapshotViewUniforms(
     options.snapshot,
@@ -1122,6 +1134,11 @@ async function renderQueuedBuiltInWebGpuAppFrame(options: {
       : {
           standardMaterialShadowReceiverResources:
             options.standardMaterialShadowReceiverResources,
+        }),
+    ...(options.standardMaterialIblResources === undefined
+      ? {}
+      : {
+          standardMaterialIblResources: options.standardMaterialIblResources,
         }),
   });
   const diagnosticsSummary = createQueuedBuiltInAppDiagnosticsSummary({
@@ -1339,6 +1356,7 @@ async function prepareQueuedBuiltInFrameResources(options: {
   readonly standardMaterialShadowReceiverResources?:
     | StandardFrameShadowReceiverResources
     | undefined;
+  readonly standardMaterialIblResources?: StandardFrameIblResources | undefined;
 }): Promise<{
   readonly valid: boolean;
   readonly resources: QueuedBuiltInFrameResources | null;
@@ -1405,6 +1423,12 @@ async function prepareQueuedBuiltInFrameResources(options: {
                 standardMaterialShadowReceiverResources:
                   options.standardMaterialShadowReceiverResources,
               }),
+          ...(options.standardMaterialIblResources === undefined
+            ? {}
+            : {
+                standardMaterialIblResources:
+                  options.standardMaterialIblResources,
+              }),
           reuse: options.reuse,
         }),
     },
@@ -1423,6 +1447,7 @@ function createQueuedBuiltInFrameResourceOptions(input: {
   readonly standardMaterialShadowReceiverResources?:
     | StandardFrameShadowReceiverResources
     | undefined;
+  readonly standardMaterialIblResources?: StandardFrameIblResources | undefined;
   readonly reuse: WebGpuAppResourceReuseReport;
 }): QueuedBuiltInFrameResourcePreparationOptions {
   return {
@@ -1440,6 +1465,11 @@ function createQueuedBuiltInFrameResourceOptions(input: {
       : {
           standardMaterialShadowReceiverResources:
             input.standardMaterialShadowReceiverResources,
+        }),
+    ...(input.standardMaterialIblResources === undefined
+      ? {}
+      : {
+          standardMaterialIblResources: input.standardMaterialIblResources,
         }),
     reuse: input.reuse,
   };
@@ -1645,6 +1675,11 @@ async function renderWebGpuAppFrame(
             standardMaterialShadowReceiverResources:
               options.standardMaterialShadowReceiverResources,
           }),
+      ...(options.standardMaterialIblResources === undefined
+        ? {}
+        : {
+            standardMaterialIblResources: options.standardMaterialIblResources,
+          }),
     });
   }
 
@@ -1813,6 +1848,11 @@ async function renderWebGpuAppFrame(
         : {
             standardMaterialShadowReceiverResources:
               options.standardMaterialShadowReceiverResources,
+          }),
+      ...(options.standardMaterialIblResources === undefined
+        ? {}
+        : {
+            standardMaterialIblResources: options.standardMaterialIblResources,
           }),
       reuse,
     });

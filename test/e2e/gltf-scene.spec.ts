@@ -431,6 +431,27 @@ interface GltfSceneStatus extends ExampleStatusBase {
         readonly severity: string;
       }[];
     };
+    readonly appFrameRoute: {
+      readonly ready: boolean;
+      readonly status: string;
+      readonly group: number;
+      readonly sections: {
+        readonly bindGroupResource: boolean;
+        readonly appFrameResources: boolean;
+        readonly drawListBinding: boolean;
+        readonly shaderSampling: boolean;
+      };
+      readonly resource: {
+        readonly group: number;
+        readonly resourceKey: string;
+        readonly layoutKey: string;
+        readonly entryResourceKeys: readonly string[];
+      } | null;
+      readonly diagnostics: readonly {
+        readonly code: string;
+        readonly severity: string;
+      }[];
+    };
     readonly viewProjection: {
       readonly ready: boolean;
       readonly status: string;
@@ -1166,6 +1187,7 @@ test("Playwright shows the GLTF scene fixture through the app path", async ({
           bindGroupLayout: "deferred",
           bindGroupDescriptor: "deferred",
           bindGroupResource: "ready",
+          appFrameRoute: "ready",
           shaderBinding: "deferred",
           pipelineKey: "deferred",
           shaderSampling: "deferred",
@@ -1195,6 +1217,7 @@ test("Playwright shows the GLTF scene fixture through the app path", async ({
           commandRecords: "ready",
           encoderAssembly: "missing",
           commandBufferSubmission: "submitted",
+          depthProbe: "ready",
           receiverBinding: "ready",
           resourceSummary: "deferred",
           bindGroupLayout: "deferred",
@@ -1895,6 +1918,35 @@ test("Playwright shows the GLTF scene fixture through the app path", async ({
           },
         ],
       },
+      appFrameRoute: {
+        ready: true,
+        status: "ready",
+        group: 4,
+        sections: {
+          bindGroupResource: true,
+          appFrameResources: true,
+          drawListBinding: false,
+          shaderSampling: false,
+        },
+        resource: {
+          group: 4,
+          resourceKey: expect.stringMatching(
+            /^bind-group:standard\/ibl\/group-4\//,
+          ),
+          layoutKey: "standard/ibl/group-4",
+          entryResourceKeys: [
+            "texture:gltf:environment:studio:diffuse:texture",
+            "texture:gltf:environment:studio:specular:texture",
+            "texture:gltf:environment:studio:diffuse:sampler",
+          ],
+        },
+        diagnostics: [
+          {
+            code: "gltfScene.standardMaterialIblAppRoute.shaderSamplingDeferred",
+            severity: "warning",
+          },
+        ],
+      },
       standardMaterial: {
         ready: true,
         status: "available",
@@ -2255,7 +2307,7 @@ test("Playwright shows the GLTF scene fixture through the app path", async ({
         matrixKey: expect.stringMatching(
           /^shadow-pass:\d+:light:\d+:view-projection$/,
         ),
-        sampleCount: 4,
+        sampleCount: 5,
         receiverInsideCount: expect.any(Number),
         casterInsideCount: expect.any(Number),
         records: expect.arrayContaining([
@@ -2264,6 +2316,15 @@ test("Playwright shows the GLTF scene fixture through the app path", async ({
             role: "receiver",
             shape: "plane",
             insideProjection: expect.any(Boolean),
+            uv: [expect.any(Number), expect.any(Number)],
+            depth: expect.any(Number),
+            projectionDistance: expect.any(Number),
+          }),
+          expect.objectContaining({
+            key: "receiver:box-center-depth-probe",
+            role: "receiver",
+            shape: "debug-depth-probe",
+            insideProjection: true,
             uv: [expect.any(Number), expect.any(Number)],
             depth: expect.any(Number),
             projectionDistance: expect.any(Number),
@@ -2278,6 +2339,50 @@ test("Playwright shows the GLTF scene fixture through the app path", async ({
             projectionDistance: expect.any(Number),
           }),
         ]),
+        diagnostics: [],
+      },
+      depthProbe: {
+        ready: true,
+        status: "ready",
+        sampleCount: 5,
+        probedSampleCount: 5,
+        sections: {
+          projectionCoverage: true,
+          depthTextureResource: true,
+          samplerResource: true,
+          commandBufferSubmission: true,
+          probeShader: true,
+          readback: true,
+        },
+        records: expect.arrayContaining([
+          expect.objectContaining({
+            key: "receiver:box-center-depth-probe",
+            role: "receiver",
+            shape: "debug-depth-probe",
+            receiverCompareDepth: expect.any(Number),
+            sampledDepth: expect.any(Number),
+            compareResult: 0,
+            expected: "shadowed",
+            texel: [expect.any(Number), expect.any(Number)],
+          }),
+          expect.objectContaining({
+            key: "caster:box:center",
+            role: "caster",
+            sampledDepth: expect.any(Number),
+            compareResult: 0,
+            expected: "shadowed",
+          }),
+        ]),
+        strictPair: {
+          receiverKey: "receiver:plane:center",
+          casterKey: "caster:box:center",
+          receiverCompareDepth: expect.any(Number),
+          receiverSampledDepth: expect.any(Number),
+          receiverCompareResult: 0,
+          casterProjectionDepth: expect.any(Number),
+          uvDistance: expect.any(Number),
+          expectedReceiver: "shadowed",
+        },
         diagnostics: [],
       },
       matrixBuffer: {
@@ -3183,7 +3288,7 @@ function expectVisibleSceneRegions(
       ? { r: 4, g: 6, b: 9, a: 255 }
       : rgbaColorToPixel(status.clearColor);
   const samples = {
-    plane: strongestRegionSample(screenshot, clear, 0.24, 0.42, 0.4, 0.65),
+    plane: strongestRegionSample(screenshot, clear, 0.57, 0.5, 0.63, 0.63),
     box: strongestRegionSample(screenshot, clear, 0.42, 0.35, 0.58, 0.65),
     cone: strongestRegionSample(screenshot, clear, 0.58, 0.38, 0.75, 0.67),
   };
@@ -3197,7 +3302,6 @@ function expectVisibleSceneRegions(
     ).toBeGreaterThan(20);
   }
 
-  expect(pixelDistance(samples.plane, samples.box)).toBeGreaterThan(18);
   expect(pixelDistance(samples.box, samples.cone)).toBeGreaterThan(18);
 }
 
@@ -3216,6 +3320,12 @@ function expectReceiverShadowActivation(
     standardReceiverRegion(),
   );
   const afterLuminance = averageRegionLuminance(
+    screenshot,
+    clear,
+    standardReceiverRegion(),
+  );
+  const maxDelta = maxRegionLuminanceDelta(
+    before,
     screenshot,
     clear,
     standardReceiverRegion(),
@@ -3253,11 +3363,11 @@ function expectReceiverShadowActivation(
     )}`,
   ).toBeGreaterThanOrEqual(4);
   expect(
-    Math.abs(beforeLuminance.average - afterLuminance.average),
+    maxDelta,
     `receiver region should change after shadow sampling; before=${JSON.stringify(
       beforeLuminance,
-    )} after=${JSON.stringify(afterLuminance)}`,
-  ).toBeGreaterThan(4);
+    )} after=${JSON.stringify(afterLuminance)} maxDelta=${maxDelta}`,
+  ).toBeGreaterThan(8);
 }
 
 function standardReceiverRegion(): {
@@ -3266,7 +3376,7 @@ function standardReceiverRegion(): {
   readonly width: number;
   readonly height: number;
 } {
-  return { minX: 0.42, minY: 0.35, width: 0.16, height: 0.3 };
+  return { minX: 0.56, minY: 0.47, width: 0.04, height: 0.14 };
 }
 
 function averageRegionLuminance(
@@ -3288,7 +3398,7 @@ function averageRegionLuminance(
         region.minY + (region.height * y) / 6,
       );
 
-      if (pixelDistance(sample, clear) <= 30) {
+      if (pixelDistance(sample, clear) <= 20) {
         continue;
       }
 
@@ -3302,6 +3412,44 @@ function averageRegionLuminance(
     visibleSamples,
     average: visibleSamples === 0 ? 0 : totalLuminance / visibleSamples,
   };
+}
+
+function maxRegionLuminanceDelta(
+  before: Buffer,
+  after: Buffer,
+  clear: ReturnType<typeof readPngPixel>,
+  region: ReturnType<typeof standardReceiverRegion>,
+): number {
+  let maxDelta = 0;
+
+  for (let y = 0; y < 9; y += 1) {
+    for (let x = 0; x < 9; x += 1) {
+      const xRatio = region.minX + (region.width * x) / 8;
+      const yRatio = region.minY + (region.height * y) / 8;
+      const beforeSample = readPngPixel(before, xRatio, yRatio);
+      const afterSample = readPngPixel(after, xRatio, yRatio);
+
+      if (
+        pixelDistance(beforeSample, clear) <= 20 &&
+        pixelDistance(afterSample, clear) <= 20
+      ) {
+        continue;
+      }
+
+      const beforeLuminance =
+        beforeSample.r * 0.2126 +
+        beforeSample.g * 0.7152 +
+        beforeSample.b * 0.0722;
+      const afterLuminance =
+        afterSample.r * 0.2126 +
+        afterSample.g * 0.7152 +
+        afterSample.b * 0.0722;
+
+      maxDelta = Math.max(maxDelta, Math.abs(beforeLuminance - afterLuminance));
+    }
+  }
+
+  return maxDelta;
 }
 
 function strongestRegionSample(

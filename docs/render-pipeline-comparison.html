@@ -529,7 +529,7 @@
 
 <section class="progress-status" aria-label="Aperture render pipeline status">
   <div class="status-head">
-    <h2>Current Aperture Render Pipeline Status · Updated 2026-05-19 · Receiver envelope tightened</h2>
+    <h2>Current Aperture Render Pipeline Status · Updated 2026-05-19 · IBL group 4 routed</h2>
     <a href="index.html">Back to project tracker</a>
   </div>
   <div class="phase-status-grid">
@@ -539,9 +539,9 @@
       <p>Working: ECS to snapshot packets, including StandardMaterial texture semantic/color-space/format diagnostics. Missing: richer visibility explanations, snapshot diffing, worker transport validation.</p>
     </div>
     <div class="phase-status">
-      <div class="top"><b>2 · collect</b><span class="pct">78%</span></div>
-      <div class="bar"><span style="width:78%"></span></div>
-      <p>Working: source readiness/version summaries, extracted built-in queue-to-resource-set collection, generic queued material frame-resource summary counts, reusable material queue route-report diagnostic collection, reusable app material dependency readiness diagnostic collection, duplicate-pipeline reuse coverage for the generic collector, GLTF invalid dependency/material diagnostics, the browser GLTF scene fixture with three primitive shapes and two built-in material families, renderer-owned IBL/shadow descriptor and readiness reports, live shadow depth texture/view allocation, live shadow matrix buffer upload, live depth-only caster pipeline and matrix bind-group resources, executable shadow caster command records, JSON-safe shadow command-buffer finish/submission reporting, StandardMaterial shadow receiver binding readiness, browser-safe StandardMaterial group 3 shadow receiver bindings, combined light/shadow group 3 app routing, shadow-capable StandardMaterial pipeline-key selection when receiver resources are ready, Playwright before/after receiver shadow pixel proof, a refined receiver projection path with normalized shadow depth, compare bias, and reduced projected receiver influence, and JSON-safe receiver/caster projection coverage status. Missing: binary GLB loading integration, shader IBL sampling, sampled shadow-depth proof for stricter caster-depth-only quality, one generic change-set scheduler, and unload integration.</p>
+      <div class="top"><b>2 · collect</b><span class="pct">79%</span></div>
+      <div class="bar"><span style="width:79%"></span></div>
+      <p>Working: source readiness/version summaries, extracted built-in queue-to-resource-set collection, generic queued material frame-resource summary counts, reusable material queue route-report diagnostic collection, reusable app material dependency readiness diagnostic collection, duplicate-pipeline reuse coverage for the generic collector, GLTF invalid dependency/material diagnostics, the browser GLTF scene fixture with three primitive shapes and two built-in material families, renderer-owned IBL/shadow descriptor and readiness reports, live shadow depth texture/view allocation, live shadow matrix buffer upload, live depth-only caster pipeline and matrix bind-group resources, executable shadow caster command records, JSON-safe shadow command-buffer finish/submission reporting, StandardMaterial shadow receiver binding readiness, browser-safe StandardMaterial group 3 shadow receiver bindings, combined light/shadow group 3 app routing, shadow-capable StandardMaterial pipeline-key selection when receiver resources are ready, Playwright before/after receiver shadow pixel proof, a strict receiver projection path with normalized shadow depth and compare bias, JSON-safe receiver/caster projection coverage status, JSON-safe shadow depth probe evidence with sampled depth plus compare results, a visible strict receiver/caster proof without the projected envelope term, and JSON-safe StandardMaterial IBL group 4 app-frame route readiness. Missing: binary GLB loading integration, shader IBL sampling, one generic change-set scheduler, and unload integration.</p>
     </div>
     <div class="phase-status">
       <div class="top"><b>3 · prepare</b><span class="pct">87%</span></div>
@@ -559,9 +559,9 @@
       <p>Working: stable opaque ordering and phase placement. Missing: transparent policy, phase reports, batching pressure summaries.</p>
     </div>
     <div class="phase-status">
-      <div class="top"><b>6 · submit</b><span class="pct">66%</span></div>
-      <div class="bar"><span style="width:66%"></span></div>
-      <p>Working: current proof paths submit through WebGPU, the app facade now attaches a single <code>depth24plus</code> forward-pass depth texture with clear/store ops, built-in opaque pipelines depth-test/write, alpha-blend StandardMaterial keeps depth testing without depth writes, the GLTF scene app submits three indexed draws through the public app path, live shadow depth texture/view and matrix-buffer resources are allocated, depth-only shadow caster commands are assembled, the GLTF shadow command buffer is submitted through the queue, shadow-capable StandardMaterial forward draws route through combined light/shadow group 3, Playwright proves visible receiver pixel changes through a normalized-depth, bias-adjusted, tighter projected receiver shadow path, and GLTF status exposes receiver/caster projection records with no WebGPU validation warnings. Missing: IBL sampling, sampled shadow-depth proof for stricter caster-depth-only quality, render targets, GPU timings.</p>
+      <div class="top"><b>6 · submit</b><span class="pct">67%</span></div>
+      <div class="bar"><span style="width:67%"></span></div>
+      <p>Working: current proof paths submit through WebGPU, the app facade now attaches a single <code>depth24plus</code> forward-pass depth texture with clear/store ops, built-in opaque pipelines depth-test/write, alpha-blend StandardMaterial keeps depth testing without depth writes, the GLTF scene app submits three indexed draws through the public app path, live shadow depth texture/view and matrix-buffer resources are allocated, depth-only shadow caster commands are assembled, the GLTF shadow command buffer is submitted through the queue, a renderer-owned depth probe pass reads JSON-safe sampled depth and compare results, shadow-capable StandardMaterial forward draws route through combined light/shadow group 3, StandardMaterial IBL group 4 now reaches app frame resources as a deferred resource without binding executable group 4 yet, Decision 0013 selects combined group 3 for executable browser IBL sampling under <code>maxBindGroups: 4</code>, Playwright proves visible receiver pixel changes through strict normalized-depth and bias-adjusted comparison without the projected envelope fallback, and GLTF status exposes receiver/caster projection records with no WebGPU validation warnings. Missing: IBL shader sampling, render targets, GPU timings.</p>
     </div>
   </div>
 </section>

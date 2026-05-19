@@ -38,6 +38,10 @@ import {
   type StandardMaterialBindGroupResource,
   type StandardMaterialBindGroupResourceDiagnostic,
 } from "./standard-bind-group.js";
+import type {
+  StandardMaterialIblBindGroupResource,
+  StandardMaterialIblBindGroupResourceReport,
+} from "./standard-material-ibl-bind-group.js";
 import {
   createStandardLightShadowBindGroupDescriptorPlan,
   createStandardLightShadowBindGroupResource,
@@ -145,6 +149,7 @@ export interface CreateStandardFrameGpuResourcesOptions {
     | StandardLightShadowBindGroupLayoutResource
     | null;
   readonly shadowReceiverResources?: StandardFrameShadowReceiverResources;
+  readonly standardMaterialIblResources?: StandardFrameIblResources;
   readonly textures?: readonly TextureGpuResource[];
   readonly samplers?: readonly SamplerGpuResource[];
 }
@@ -153,6 +158,10 @@ export interface StandardFrameShadowReceiverResources {
   readonly matrixBufferResource: ShadowMatrixBufferResourceReport;
   readonly depthTextureResources: ShadowDepthTextureResourceReport;
   readonly samplerResource: ShadowSamplerResourceReport;
+}
+
+export interface StandardFrameIblResources {
+  readonly bindGroupResource: StandardMaterialIblBindGroupResourceReport;
 }
 
 export interface StandardFrameGpuResources {
@@ -165,6 +174,7 @@ export interface StandardFrameGpuResources {
   readonly lightBindGroup:
     | LightBindGroupResource
     | StandardLightShadowBindGroupResource;
+  readonly standardMaterialIblBindGroup?: StandardMaterialIblBindGroupResource;
   readonly bindGroups: readonly UnlitBindGroupResource[];
 }
 
@@ -217,6 +227,8 @@ export function createStandardFrameGpuResources(
     lightGpuBuffers,
     diagnostics,
   );
+  const standardMaterialIblBindGroup =
+    resolveStandardMaterialIblBindGroupResource(options);
 
   if (
     mesh === null ||
@@ -242,6 +254,9 @@ export function createStandardFrameGpuResources(
       lightGpuBuffers,
       materialBindGroup,
       lightBindGroup,
+      ...(standardMaterialIblBindGroup === null
+        ? {}
+        : { standardMaterialIblBindGroup }),
       bindGroups: [
         ...sharedBindGroups.resources,
         materialBindGroup,
@@ -250,6 +265,19 @@ export function createStandardFrameGpuResources(
     },
     diagnostics,
   };
+}
+
+function resolveStandardMaterialIblBindGroupResource(
+  options: Pick<
+    CreateStandardFrameGpuResourcesOptions,
+    "standardMaterialIblResources"
+  >,
+): StandardMaterialIblBindGroupResource | null {
+  const report = options.standardMaterialIblResources?.bindGroupResource;
+
+  return report?.status === "available" && report.resource !== null
+    ? report.resource
+    : null;
 }
 
 function createMeshResource(

@@ -1,5 +1,161 @@
 # Handoff
 
+## Current Run Update — 2026-05-19T11:50:00Z
+
+Completed `task-1890` and `task-1891`, then started `task-1892`. Recommended
+next task remains `task-1892`: finish the first StandardMaterial diffuse IBL
+shader contribution using Decision 0013's combined group 3 executable layout.
+
+What changed:
+
+- Routed optional `standardMaterialIblResources` through `WebGpuApp.render`,
+  queued built-in resource preparation, the StandardMaterial app frame-resource
+  cache, and `createStandardFrameGpuResources`.
+- Standard frame resources now carry
+  `standardMaterialIblBindGroup` as a deferred group 4 resource while keeping
+  executable draw-command `bindGroups` unchanged until WGSL group 4 sampling
+  lands.
+- The GLTF scene frame loop now feeds the live StandardMaterial IBL bind-group
+  report back into the next app frame and publishes JSON-safe
+  `ibl.appFrameRoute` readiness.
+- Updated Playwright to assert `readiness.ibl.phases.appFrameRoute === "ready"`
+  and that `ibl.appFrameRoute.resource` contains only group/key/layout metadata.
+- Updated `test/webgpu/webgpu-app.test.ts` to prove the routed group 4 resource
+  is present on standard frame resources, omitted from executable bind groups,
+  and never bound as `pass:bind:4` before shader support.
+- Added
+  `docs/research/STANDARD_IBL_SHADER_BIND_GROUP_LIMIT_AUDIT_2026_05_19.md`,
+  documenting why executable WGSL `@group(4)` cannot be the next browser proof
+  path unless the device supports at least five bind groups.
+- Added Decision 0013: group 4 remains the JSON-safe planning/resource identity,
+  while executable StandardMaterial IBL sampling uses a browser-safe combined
+  group 3 layout.
+- Started `task-1892` research and added
+  `docs/research/STANDARD_DIFFUSE_IBL_SHADER_IMPLEMENTATION_PLAN_2026_05_19.md`
+  with the planned pipeline token, group 3 resource bridge, WGSL diffuse term,
+  and GLTF pixel-proof steps.
+- Started the `task-1892` shader surface: `standard-shader.ts` now recognizes
+  `iblDiffuse`, declares group 3 bindings 5/6 for diffuse IBL texture/sampler,
+  adds the diffuse IBL term in generated WGSL, and
+  `standard-pipeline-descriptor.ts` includes a matching group 3 layout cache key.
+  Added targeted shader and pipeline-descriptor tests for the feature metadata.
+  This is not wired to live app resources yet.
+- Rechecked the app bridge after the stop hook requested continuation. Do not
+  simply add `iblDiffuse` to StandardMaterial pipeline keys first: the app must
+  create a combined group 3 bind group containing light buffers plus diffuse IBL
+  texture/sampler entries before the browser pipeline can execute.
+
+Reference anchors inspected:
+
+- `packages/webgpu/src/webgpu/standard-material-ibl-bind-group.ts`
+- `packages/webgpu/src/webgpu/standard-app-frame-resources.ts`
+- `packages/webgpu/src/webgpu/standard-frame-resources.ts`
+- `packages/webgpu/src/webgpu/built-in-material-app-resource-adapter.ts`
+- `packages/webgpu/src/webgpu/app.ts`
+- `packages/webgpu/src/webgpu/standard-pipeline.ts`
+- `packages/webgpu/src/webgpu/standard-shader.ts`
+- Existing handoff records for the prior `maxBindGroups: 4` shadow receiver
+  blocker.
+- `references/engine/src/scene/shader-lib/wgsl/chunks/common/frag/envAtlas.js`
+- `references/engine/src/scene/shader-lib/wgsl/chunks/common/frag/envProc.js`
+- `references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/lightDiffuseLambert.js`
+- `references/three.js/src/extras/PMREMGenerator.js` search hits for the
+  broader PMREM/environment-map path.
+
+Validation:
+
+- `pnpm exec tsc -p packages/webgpu/tsconfig.json --noEmit`
+- `node --check examples/gltf-scene.js`
+- `pnpm run typecheck:test`
+- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts test/webgpu/standard-material-ibl-bind-group.test.ts`
+- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts test/webgpu/standard-material-ibl-bind-group.test.ts test/webgpu/standard-shader.test.ts`
+- `pnpm exec vitest run test/webgpu/standard-shader.test.ts test/webgpu/standard-pipeline-descriptor.test.ts`
+- `pnpm run lint`
+- `pnpm run format:check`
+- `pnpm run check:progress`
+- `pnpm run build`
+- `pnpm test`
+- `pnpm exec playwright test test/e2e/gltf-scene.spec.ts`
+
+Known issues / follow-ups:
+
+- `task-1892` is open. Continue by bridging the routed group 4 IBL resource
+  into an executable combined group 3 bind group, activating the `iblDiffuse`
+  pipeline token from app frame resources, and then adding the GLTF status and
+  pixel proof.
+- The first safe implementation slice is to extend `StandardFrameIblResources`
+  with the live diffuse texture and sampler reports, add app group 3 layout
+  metadata for `standard/lights-ibl/group-3`, and create a non-shadow combined
+  light/IBL bind group with entries 0, 1, 5, and 6 before enabling the pipeline
+  key.
+- Specular prefilter and full PBR IBL contribution remain deferred.
+
+## Current Run Update — 2026-05-19T11:11:05Z
+
+Completed `task-1887`, `task-1888`, and `task-1889`. Recommended next task is
+`task-1890`: route StandardMaterial IBL group 4 resources through the app frame
+path before adding shader contribution.
+
+What changed:
+
+- Added `packages/webgpu/src/webgpu/shadow-depth-probe.ts`, a renderer-owned
+  WebGPU compute/readback helper that samples the submitted shadow depth texture
+  and comparison sampler, then returns JSON-safe probe records.
+- Updated the GLTF scene status with `shadow.depthProbe` records keyed by
+  projection coverage samples. Each record reports UV, texel, projection depth,
+  receiver compare depth, sampled depth, compare result, and expected
+  lit/shadowed classification without raw GPU handles.
+- Added a deterministic debug receiver sample
+  `receiver:box-center-depth-probe`, which pairs with `caster:box:center` and
+  reports compare result `0` with sampled depth `0.49449` versus receiver
+  compare depth `0.49849`.
+- Updated GLTF Playwright assertions, public tracker pages, backlog, completed
+  log, and status.
+- Angled the GLTF directional shadow light and moved the existing
+  StandardMaterial plane into the caster footprint.
+- Removed the projected receiver envelope term from the StandardMaterial shadow
+  receiver shader; the path now uses strict comparison inside the projection
+  and returns lit outside the projection.
+- Updated Playwright to assert the visible strict pair
+  `receiver:plane:center` -> `caster:box:center` and a receiver-region pixel
+  delta with receiver sampling enabled.
+- Added
+  `docs/research/STRICT_RECEIVER_SHADOW_PROOF_AUDIT_2026_05_19.md`.
+- Selected `task-1890` as the next focused IBL slice.
+
+Reference anchors inspected:
+
+- `docs/research/RECEIVER_SHADOW_STRICT_CASTER_DEPTH_BLOCKER_2026_05_19.md`
+- `examples/gltf-scene.js`
+- `test/e2e/gltf-scene.spec.ts`
+- `packages/webgpu/src/webgpu/clear-readback.ts`
+- `packages/webgpu/src/webgpu/shadow-depth-texture-resource.ts`
+- `packages/webgpu/src/webgpu/shadow-pass-command-buffer-submission-report.ts`
+- `packages/webgpu/src/webgpu/standard-shader.ts`
+- `references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/lighting/shadowPCF3.js`
+- `references/three.js/src/renderers/webgl/WebGLShadowMap.js`
+- `docs/research/STRICT_RECEIVER_SHADOW_PROOF_AUDIT_2026_05_19.md`
+
+Validation:
+
+- `pnpm exec tsc -p packages/webgpu/tsconfig.json --noEmit`
+- `node --check examples/gltf-scene.js`
+- `pnpm run typecheck:test`
+- `pnpm run build`
+- `pnpm run check:progress`
+- `pnpm exec playwright test test/e2e/gltf-scene.spec.ts`
+- `pnpm run lint`
+- `pnpm run format:check`
+- `pnpm exec vitest run test/webgpu/shadow-depth-texture-resource.test.ts test/webgpu/shadow-pass-command-buffer-submission-report.test.ts`
+- `pnpm exec vitest run test/webgpu/standard-shader.test.ts`
+- `pnpm run check:progress`
+
+Known issues / follow-ups:
+
+- Start `task-1890` next. Route the existing StandardMaterial IBL group 4
+  resource through app frame resources before adding shader contribution.
+- IBL shader sampling remains deferred.
+
 ## Current Run Update — 2026-05-19T10:47:23Z
 
 Started `task-1887` after another stop-hook continuation request, but did not

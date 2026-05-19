@@ -408,3 +408,39 @@ Consequences:
 - This decision does not implement validation, typed APIs, package exports,
   app facade options, shader loading, prepared-resource adapters, browser
   rendering, IBL, shadows, or binary GLB loading.
+
+## 0013 — Executable StandardMaterial IBL Uses Browser-Safe Group 3
+
+Status: accepted
+
+Context:
+
+StandardMaterial IBL resources are currently planned and reported as group 4
+resources. That is a useful renderer-owned identity for readiness reports and
+cache keys, but the browser forward path already uses bind groups 0 through 3
+for view, world transforms, material resources, and lights/shadow receiver
+resources. Chrome reports `maxBindGroups: 4`, so WGSL `@group(4)` would require
+a fifth bind group and repeat the same browser-limit problem that forced the
+shadow receiver path into a combined group 3 layout.
+
+Decision:
+
+Executable StandardMaterial IBL shader sampling must use a browser-safe group 3
+extension for the near-term WebGPU path. Group 4 may remain the JSON-safe
+planning/cache/resource identity for StandardMaterial IBL bind-group resources,
+but the shader-capable pipeline variant must alias those resources into an
+executable combined group 3 layout alongside direct lighting and shadow receiver
+resources.
+
+Consequences:
+
+- The next diffuse IBL shader slice should extend the combined group 3 layout
+  rather than binding WGSL `@group(4)` in Chrome.
+- GLTF status may continue reporting `ibl.appFrameRoute` as group 4 planning
+  readiness, but executable draw-command bind groups must remain within groups
+  0 through 3 for the browser proof.
+- The renderer must keep JSON reports free of raw GPU handles when bridging the
+  group 4 planning resource into the executable group 3 layout.
+- A future high-limit device path can add a separate fifth-bind-group variant
+  only if it is explicitly gated and tested; it is not the default browser
+  target.

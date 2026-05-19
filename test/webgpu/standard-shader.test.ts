@@ -14,6 +14,7 @@ import {
   STANDARD_BASE_COLOR_TEXTURED_MESH_SHADER,
   STANDARD_BASE_COLOR_TEXTURED_MESH_WGSL,
   STANDARD_BASE_COLOR_TEXTURE_SHADER_VARIANT,
+  STANDARD_DIFFUSE_IBL_SHADER_VARIANT,
   STANDARD_METALLIC_ROUGHNESS_TEXTURED_MESH_SHADER,
   STANDARD_METALLIC_ROUGHNESS_TEXTURED_MESH_WGSL,
   STANDARD_METALLIC_ROUGHNESS_TEXTURE_SHADER_VARIANT,
@@ -195,7 +196,7 @@ describe("built-in standard material WGSL shader metadata", () => {
     ]);
   });
 
-  it("declares browser-safe group 3 bindings and single-tap comparison sampling for shadow receivers", () => {
+  it("declares browser-safe group 3 bindings and strict single-tap comparison sampling for shadow receivers", () => {
     expect(
       validateStandardShaderMetadata(STANDARD_SHADOW_RECEIVER_MESH_SHADER),
     ).toEqual({ valid: true, diagnostics: [] });
@@ -218,13 +219,10 @@ describe("built-in standard material WGSL shader metadata", () => {
       "const STANDARD_SHADOW_MIN_VISIBILITY: f32 = 0.45;",
     );
     expect(STANDARD_SHADOW_RECEIVER_MESH_WGSL).toContain(
-      "const STANDARD_SHADOW_PROJECTION_FADE: f32 = 0.2;",
-    );
-    expect(STANDARD_SHADOW_RECEIVER_MESH_WGSL).toContain(
       "let shadowDepth = select(",
     );
     expect(STANDARD_SHADOW_RECEIVER_MESH_WGSL).toContain(
-      "let projectedInfluence =",
+      "if (projectionDistance > 0.0) {",
     );
     expect(STANDARD_SHADOW_RECEIVER_MESH_WGSL).toContain(
       "let receiverDepth = clamp(",
@@ -233,7 +231,7 @@ describe("built-in standard material WGSL shader metadata", () => {
       "textureSampleCompareLevel(",
     );
     expect(STANDARD_SHADOW_RECEIVER_MESH_WGSL).toContain(
-      "return min(compareFactor, projectedFactor);",
+      "return compareFactor;",
     );
     expect(STANDARD_SHADOW_RECEIVER_MESH_WGSL).toContain(") * shadowFactor;");
     expect(
@@ -252,6 +250,61 @@ describe("built-in standard material WGSL shader metadata", () => {
       ["directionalShadowMatrices", 3, 2, "read-only-storage-buffer"],
       ["directionalShadowMap", 3, 3, "texture"],
       ["directionalShadowSampler", 3, 4, "sampler"],
+    ]);
+  });
+
+  it("declares browser-safe group 3 bindings for the diffuse IBL shader variant", () => {
+    const shader = createStandardTextureVariantShader({
+      baseColorTexture: false,
+      metallicRoughnessTexture: false,
+      normalTexture: false,
+      occlusionTexture: false,
+      emissiveTexture: false,
+      iblDiffuse: true,
+    });
+
+    expect(
+      createStandardTextureShaderVariantKey({
+        baseColorTexture: false,
+        metallicRoughnessTexture: false,
+        normalTexture: false,
+        occlusionTexture: false,
+        emissiveTexture: false,
+        iblDiffuse: true,
+      }),
+    ).toBe(STANDARD_DIFFUSE_IBL_SHADER_VARIANT);
+    expect(validateStandardShaderMetadata(shader)).toEqual({
+      valid: true,
+      diagnostics: [],
+    });
+    expect(shader.label).toBe("aperture/standard-mesh-diffuse-ibl");
+    expect(shader.code).toContain(
+      "@group(3) @binding(5) var standardDiffuseIblTexture: texture_cube<f32>;",
+    );
+    expect(shader.code).toContain(
+      "@group(3) @binding(6) var standardIblSampler: sampler;",
+    );
+    expect(shader.code).toContain(
+      "textureSample(\n    standardDiffuseIblTexture,",
+    );
+    expect(shader.code).toContain(
+      "let color = ambientDiffuse + diffuseIbl + direct + material.emissiveFactor;",
+    );
+    expect(
+      shader.bindings.map((binding) => [
+        binding.id,
+        binding.group,
+        binding.binding,
+        binding.resource,
+      ]),
+    ).toEqual([
+      ["viewProjection", 0, 0, "uniform-buffer"],
+      ["worldTransforms", 1, 0, "read-only-storage-buffer"],
+      ["standardMaterial", 2, 0, "uniform-buffer"],
+      ["lightFloats", 3, 0, "read-only-storage-buffer"],
+      ["lightMetadata", 3, 1, "read-only-storage-buffer"],
+      ["standardDiffuseIblTexture", 3, 5, "texture"],
+      ["standardIblSampler", 3, 6, "sampler"],
     ]);
   });
 

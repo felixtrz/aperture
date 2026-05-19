@@ -22,6 +22,8 @@ export const STANDARD_BASE_COLOR_METALLIC_ROUGHNESS_TEXTURE_SHADER_VARIANT =
   "direct-lit-metallic-roughness-base-color-metallic-roughness-texture";
 export const STANDARD_SHADOW_MAP_SHADER_VARIANT =
   "direct-lit-metallic-roughness-shadow-map";
+export const STANDARD_DIFFUSE_IBL_SHADER_VARIANT =
+  "direct-lit-metallic-roughness-diffuse-ibl";
 
 export interface StandardTextureShaderFeatures {
   readonly baseColorTexture: boolean;
@@ -30,6 +32,7 @@ export interface StandardTextureShaderFeatures {
   readonly occlusionTexture: boolean;
   readonly emissiveTexture: boolean;
   readonly shadowMap?: boolean;
+  readonly iblDiffuse?: boolean;
   readonly texCoord1?: boolean;
 }
 
@@ -513,9 +516,23 @@ export function createStandardTextureShaderVariantKey(
     !features.normalTexture &&
     !features.occlusionTexture &&
     !features.emissiveTexture &&
+    features.iblDiffuse !== true &&
     features.texCoord1 !== true
   ) {
     return STANDARD_SHADOW_MAP_SHADER_VARIANT;
+  }
+
+  if (
+    features.iblDiffuse === true &&
+    !features.baseColorTexture &&
+    !features.metallicRoughnessTexture &&
+    !features.normalTexture &&
+    !features.occlusionTexture &&
+    !features.emissiveTexture &&
+    features.shadowMap !== true &&
+    features.texCoord1 !== true
+  ) {
+    return STANDARD_DIFFUSE_IBL_SHADER_VARIANT;
   }
 
   const names: string[] = [];
@@ -542,6 +559,10 @@ export function createStandardTextureShaderVariantKey(
 
   if (features.shadowMap === true) {
     names.push("shadow-map");
+  }
+
+  if (features.iblDiffuse === true) {
+    names.push("diffuse-ibl");
   }
 
   if (features.texCoord1 === true) {
@@ -842,6 +863,10 @@ ${emissive}
     code = applyStandardShadowMapSampling(code);
   }
 
+  if (features.iblDiffuse === true) {
+    code = applyStandardDiffuseIblSampling(code);
+  }
+
   return code;
 }
 
@@ -923,6 +948,13 @@ function standardTextureVariantDeclaration(
       "@group(3) @binding(2) var<storage, read> directionalShadowMatrices: array<mat4x4f>;",
       "@group(3) @binding(3) var directionalShadowMap: texture_depth_2d;",
       "@group(3) @binding(4) var directionalShadowSampler: sampler_comparison;",
+    );
+  }
+
+  if (features.iblDiffuse === true) {
+    declarations.push(
+      "@group(3) @binding(5) var standardDiffuseIblTexture: texture_cube<f32>;",
+      "@group(3) @binding(6) var standardIblSampler: sampler;",
     );
   }
 
@@ -1059,6 +1091,25 @@ function standardTextureVariantBindings(
     );
   }
 
+  if (features.iblDiffuse === true) {
+    bindings.push(
+      {
+        id: "standardDiffuseIblTexture",
+        label: "Standard material diffuse IBL cube texture",
+        group: 3,
+        binding: 5,
+        resource: "texture",
+      },
+      {
+        id: "standardIblSampler",
+        label: "Standard material IBL sampler",
+        group: 3,
+        binding: 6,
+        resource: "sampler",
+      },
+    );
+  }
+
   return bindings;
 }
 
@@ -1072,6 +1123,7 @@ function standardTextureVariantShaderLabel(
     !features.occlusionTexture &&
     !features.emissiveTexture &&
     features.shadowMap !== true &&
+    features.iblDiffuse !== true &&
     features.texCoord1 !== true
   ) {
     return "aperture/standard-mesh-base-color-textured";
@@ -1084,6 +1136,7 @@ function standardTextureVariantShaderLabel(
     !features.occlusionTexture &&
     !features.emissiveTexture &&
     features.shadowMap !== true &&
+    features.iblDiffuse !== true &&
     features.texCoord1 !== true
   ) {
     return "aperture/standard-mesh-metallic-roughness-textured";
@@ -1108,9 +1161,23 @@ function standardTextureVariantShaderLabel(
     !features.normalTexture &&
     !features.occlusionTexture &&
     !features.emissiveTexture &&
+    features.iblDiffuse !== true &&
     features.texCoord1 !== true
   ) {
     return "aperture/standard-mesh-shadow-receiver";
+  }
+
+  if (
+    features.iblDiffuse === true &&
+    !features.baseColorTexture &&
+    !features.metallicRoughnessTexture &&
+    !features.normalTexture &&
+    !features.occlusionTexture &&
+    !features.emissiveTexture &&
+    features.shadowMap !== true &&
+    features.texCoord1 !== true
+  ) {
+    return "aperture/standard-mesh-diffuse-ibl";
   }
 
   return `aperture/standard-mesh-${standardTextureFeatureNames(features).join(
@@ -1147,6 +1214,10 @@ function standardTextureFeatureNames(
     names.push("shadow-map");
   }
 
+  if (features.iblDiffuse === true) {
+    names.push("diffuse-ibl");
+  }
+
   if (features.texCoord1 === true) {
     names.push("uv1");
   }
@@ -1164,6 +1235,7 @@ function hasAnyStandardTextureFeature(
     features.occlusionTexture ||
     features.emissiveTexture ||
     features.shadowMap === true ||
+    features.iblDiffuse === true ||
     features.texCoord1 === true
   );
 }
@@ -1175,8 +1247,6 @@ function applyStandardShadowMapSampling(code: string): string {
   normal: vec3f,`,
       `const STANDARD_SHADOW_MIN_VISIBILITY: f32 = 0.45;
 const STANDARD_SHADOW_DEPTH_BIAS: f32 = 0.002;
-const STANDARD_SHADOW_PROJECTION_FADE: f32 = 0.2;
-const STANDARD_SHADOW_PROJECTED_VISIBILITY: f32 = 0.45;
 
 fn sampleDirectionalShadowFactor(worldPosition: vec3f) -> f32 {
   if (arrayLength(&directionalShadowMatrices) == 0u) {
@@ -1202,8 +1272,11 @@ fn sampleDirectionalShadowFactor(worldPosition: vec3f) -> f32 {
     distance(shadowUv, clampedShadowUv),
     abs(shadowDepth - clampedShadowDepth),
   );
-  let projectedInfluence =
-    1.0 - smoothstep(0.0, STANDARD_SHADOW_PROJECTION_FADE, projectionDistance);
+
+  if (projectionDistance > 0.0) {
+    return 1.0;
+  }
+
   let receiverDepth = clamp(
     clampedShadowDepth - STANDARD_SHADOW_DEPTH_BIAS,
     0.0,
@@ -1222,13 +1295,8 @@ fn sampleDirectionalShadowFactor(worldPosition: vec3f) -> f32 {
   );
 
   let compareFactor = mix(STANDARD_SHADOW_MIN_VISIBILITY, 1.0, visibility);
-  let projectedFactor = mix(
-    1.0,
-    STANDARD_SHADOW_PROJECTED_VISIBILITY,
-    projectedInfluence,
-  );
 
-  return min(compareFactor, projectedFactor);
+  return compareFactor;
 }
 
 fn evaluateDirectLight(
@@ -1259,5 +1327,36 @@ fn evaluateDirectLight(
       `  let color = ambientDiffuse + direct + material.emissiveFactor;`,
       `  let receiverShadowFactor = sampleDirectionalShadowFactor(input.worldPosition);
   let color = (ambientDiffuse + direct) * receiverShadowFactor + material.emissiveFactor;`,
+    );
+}
+
+function applyStandardDiffuseIblSampling(code: string): string {
+  const sample = `  let diffuseIbl = textureSample(
+    standardDiffuseIblTexture,
+    standardIblSampler,
+    normal,
+  ).rgb * baseColor * (1.0 - metallic);`;
+
+  return code
+    .replace(
+      `  let ambientDiffuse = ambient * baseColor * (1.0 - metallic);
+  let color = ambientDiffuse + direct + material.emissiveFactor;`,
+      `${sample}
+  let ambientDiffuse = ambient * baseColor * (1.0 - metallic);
+  let color = ambientDiffuse + diffuseIbl + direct + material.emissiveFactor;`,
+    )
+    .replace(
+      `  let ambientDiffuse = ambient * baseColor * (1.0 - metallic) * occlusion;
+  let color = ambientDiffuse + direct + emissive;`,
+      `${sample}
+  let ambientDiffuse = ambient * baseColor * (1.0 - metallic) * occlusion;
+  let color = ambientDiffuse + diffuseIbl + direct + emissive;`,
+    )
+    .replace(
+      `  let receiverShadowFactor = sampleDirectionalShadowFactor(input.worldPosition);
+  let color = (ambientDiffuse + direct) * receiverShadowFactor + material.emissiveFactor;`,
+      `${sample}
+  let receiverShadowFactor = sampleDirectionalShadowFactor(input.worldPosition);
+  let color = (ambientDiffuse + diffuseIbl + direct) * receiverShadowFactor + material.emissiveFactor;`,
     );
 }

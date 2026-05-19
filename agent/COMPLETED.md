@@ -1,5 +1,127 @@
 # Completed Tasks
 
+## task-1891 — Decide executable StandardMaterial IBL bind-group layout
+
+Completed: 2026-05-19
+
+Summary:
+
+- Added
+  `docs/research/STANDARD_IBL_SHADER_BIND_GROUP_LIMIT_AUDIT_2026_05_19.md`.
+- Confirmed executable browser WGSL `@group(4)` would exceed Chrome's
+  `maxBindGroups: 4` limit because StandardMaterial already uses groups 0
+  through 3.
+- Added Decision 0013: keep group 4 as the JSON-safe planning/resource identity,
+  but use a combined browser-safe group 3 executable layout for StandardMaterial
+  IBL shader sampling.
+- Updated the backlog so the next shader task uses Decision 0013 instead of
+  executable group 4.
+
+Validation:
+
+- `pnpm run check:progress`
+- `pnpm run format:check`
+
+## task-1890 — Route StandardMaterial IBL group 4 through app
+
+Completed: 2026-05-19
+
+Summary:
+
+- Added optional `standardMaterialIblResources` routing through `WebGpuApp`
+  render options, queued built-in resource preparation, and StandardMaterial
+  frame-resource creation.
+- Standard frame resources now carry a deferred group 4 IBL bind-group resource
+  separately from executable draw-command bind groups, so WGSL sampling can be
+  added in the next slice without exposing raw GPU handles in JSON.
+- GLTF status now reports `ibl.appFrameRoute` as ready when the diffuse and
+  specular IBL texture resources plus IBL sampler resources are available.
+- Updated unit and Playwright coverage to prove group 4 is present on standard
+  frame resources, omitted from executable bind groups for now, and JSON-safe.
+
+Validation:
+
+- `pnpm exec tsc -p packages/webgpu/tsconfig.json --noEmit`
+- `node --check examples/gltf-scene.js`
+- `pnpm run typecheck:test`
+- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts test/webgpu/standard-material-ibl-bind-group.test.ts`
+- `pnpm run lint`
+- `pnpm run format:check`
+- `pnpm run build`
+- `pnpm test`
+- `pnpm exec playwright test test/e2e/gltf-scene.spec.ts`
+
+## task-1889 — Audit strict receiver shadow proof
+
+Completed: 2026-05-19
+
+Summary:
+
+- Added
+  `docs/research/STRICT_RECEIVER_SHADOW_PROOF_AUDIT_2026_05_19.md`.
+- Confirmed strict receiver shadow proof remains ECS-derived,
+  renderer-owned, WebGPU-only, and JSON-safe.
+- Confirmed the projected receiver envelope term was removed from the
+  StandardMaterial receiver shader rather than replaced with another fallback.
+- Selected `task-1890` to route StandardMaterial IBL group 4 resources through
+  the app frame path before adding IBL shader contribution.
+
+Validation:
+
+- `pnpm run check:progress`
+
+## task-1888 — Add visible strict receiver/caster shadow fixture
+
+Completed: 2026-05-19
+
+Summary:
+
+- Angled the GLTF directional shadow light so the caster footprint is visible
+  on the StandardMaterial receiver plane instead of being camera-aligned behind
+  the caster.
+- Moved the existing plane receiver into the strict shadow footprint while
+  preserving the three-primitive scene contract.
+- Removed the projected receiver envelope from the StandardMaterial shadow
+  receiver shader. The receiver path now returns lit outside the light
+  projection and otherwise uses the strict comparison result.
+- Updated the GLTF Playwright proof so `shadow.depthProbe.strictPair` is the
+  visible `receiver:plane:center` -> `caster:box:center` pair and the
+  enabled-versus-disabled receiver region asserts a strict-shadow pixel delta.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/standard-shader.test.ts`
+- `node --check examples/gltf-scene.js`
+- `pnpm run build`
+- `pnpm exec playwright test test/e2e/gltf-scene.spec.ts`
+
+## task-1887 — Add shadow depth probe evidence for projection samples
+
+Completed: 2026-05-19
+
+Summary:
+
+- Added `shadow-depth-probe`, a renderer-owned WebGPU compute/readback helper
+  that samples the submitted shadow depth texture and comparison sampler without
+  exposing raw GPU handles in JSON.
+- GLTF scene status now exposes `shadow.depthProbe` records keyed by projection
+  coverage samples, including sampled depth, receiver compare depth, compare
+  result, texel, and expected lit/shadowed classification.
+- Added the deterministic strict pair
+  `receiver:box-center-depth-probe` -> `caster:box:center` with compare result
+  `0`, proving a strict depth comparison can classify that receiver sample as
+  shadowed.
+- Updated Playwright coverage to assert the depth probe and strict pair while
+  preserving the combined group 3 route and visible receiver pixel proof.
+
+Validation:
+
+- `pnpm exec tsc -p packages/webgpu/tsconfig.json --noEmit`
+- `node --check examples/gltf-scene.js`
+- `pnpm run typecheck:test`
+- `pnpm run build`
+- `pnpm exec playwright test test/e2e/gltf-scene.spec.ts`
+
 ## task-1886 — Replace remaining receiver envelope with caster-depth proof
 
 Completed: 2026-05-19

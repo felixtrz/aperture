@@ -59,9 +59,8 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start with `task-1887`: add JSON-safe shadow depth probe evidence for the GLTF
-projection coverage samples so the remaining receiver envelope can be replaced
-with strict caster-depth comparison.
+Start with `task-1892`: add the first StandardMaterial diffuse IBL shader
+contribution using the Decision 0013 combined group 3 executable layout.
 The GLTF scene fixture now renders through the public app path, reports detailed
 JSON-safe IBL/shadow readiness, allocates live renderer-owned diffuse IBL
 texture/view, specular IBL texture/view, and IBL sampler resources, allocates
@@ -102,7 +101,16 @@ the GLTF shadow command buffer through the WebGPU queue, and Playwright compares
 receiver-sampling-disabled and receiver-sampling-enabled captures to prove
 visible receiver pixels. The receiver shader now normalizes projected depth,
 uses a bias-adjusted compare sample, and bounds the visible proof to a
-projected receiver envelope without changing ownership boundaries.
+strict depth compare without the previous projected receiver envelope. GLTF
+status now also exposes `shadow.depthProbe` records that sample the submitted
+renderer-owned shadow depth texture through a small probe pass and report
+sampled depth, receiver compare depth, compare result, texel, and expected
+lit/shadowed classification without exposing raw GPU handles. The visible
+strict pair is now `receiver:plane:center` versus `caster:box:center`.
+StandardMaterial IBL group 4 now routes through the app frame-resource path as
+a deferred bind-group resource: GLTF status reports `ibl.appFrameRoute` ready
+with JSON-safe group 4 resource keys, while executable draw commands still omit
+group 4 until the WGSL shader contribution lands.
 
 The previous micro-hardening tasks remain useful but are no longer the main
 ready queue unless they directly block the scene slice. Public custom
@@ -125,8 +133,9 @@ Target proof point:
 
 Remaining automation priority order:
 
-1. `task-1887` — add shadow depth probe evidence for projection samples.
-2. Resume IBL shader sampling only after receiver projection is stable.
+1. `task-1892` — add the first diffuse IBL shader contribution using the
+   Decision 0013 combined group 3 executable layout.
+2. Audit IBL/shadow route ownership once the first IBL pixel proof exists.
 
 Defer allocation-only cleanup, metadata-only shader-contract tasks, public
 custom material source work, and app-owned custom adapter facades unless they
@@ -11148,6 +11157,8 @@ Acceptance criteria:
 
 ### task-1887 — Add shadow depth probe evidence for projection samples
 
+Status: completed 2026-05-19. See `agent/COMPLETED.md`.
+
 Category: `webgpu-render`
 Package/write-scope:
 `examples/gltf-scene.js`, `test/e2e/gltf-scene.spec.ts`, and targeted WebGPU
@@ -11167,6 +11178,132 @@ Acceptance criteria:
 - Use the probe to identify at least one deterministic receiver/caster pair for
   strict shadow comparison.
 - Preserve the combined group 3 route and no WebGPU validation warnings.
+
+### task-1888 — Add visible strict receiver/caster shadow fixture
+
+Status: completed 2026-05-19. See `agent/COMPLETED.md`.
+
+Category: `webgpu-render`
+Package/write-scope:
+`examples/gltf-scene.js`, `test/e2e/gltf-scene.spec.ts`,
+`packages/webgpu/src/webgpu/standard-shader.ts`, and targeted shader/e2e
+tests.
+Reference anchor:
+GLTF `shadow.depthProbe` strict pair records, StandardMaterial receiver WGSL,
+`references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/lighting/shadowPCF3.js`,
+and `references/three.js/src/renderers/webgl/WebGLShadowMap.js`.
+
+Acceptance criteria:
+
+- Add or adjust a small GLTF scene receiver sample/primitive so a visible
+  StandardMaterial receiver pixel overlaps the probed caster footprint.
+- Replace the remaining projected receiver envelope influence with strict
+  depth-compare-driven receiver behavior for that visible proof.
+- Playwright verifies the strict receiver/caster pair remains reported in
+  `shadow.depthProbe` and the enabled-versus-disabled receiver pixel proof
+  remains stable.
+- Preserve the combined group 3 route and no WebGPU validation warnings.
+
+### task-1889 — Audit strict receiver shadow proof
+
+Status: completed 2026-05-19. See
+`docs/research/STRICT_RECEIVER_SHADOW_PROOF_AUDIT_2026_05_19.md`.
+
+Category: `audit-refactor`
+Package/write-scope:
+`docs/research`, `agent/BACKLOG.md`, and tracker docs only.
+Reference anchor:
+`docs/ARCHITECTURE.md`, `docs/DECISIONS.md`, GLTF `shadow.depthProbe`
+records, StandardMaterial receiver WGSL, and the strict receiver Playwright
+proof.
+
+Acceptance criteria:
+
+- Confirm the strict receiver proof remains ECS-derived, renderer-owned,
+  WebGPU-only, and JSON-safe.
+- Confirm the projected receiver envelope was removed rather than hidden behind
+  another fallback term.
+- Recommend the next concrete IBL or shadow quality task with category,
+  package/write-scope, reference anchor, and acceptance criteria.
+- Run `pnpm run check:progress` if tracker pages change.
+
+### task-1890 — Route StandardMaterial IBL group 4 through app
+
+Status: completed 2026-05-19. See `agent/COMPLETED.md`.
+
+Category: `webgpu-render`
+Package/write-scope:
+`packages/webgpu`, `examples/gltf-scene.js`, `test/e2e/gltf-scene.spec.ts`,
+and targeted WebGPU tests.
+Reference anchor:
+local `standard-material-ibl-bind-group`, `standard-app-frame-resources`,
+`built-in-material-app-resource-adapter`, strict shadow group 3 routing, and
+Bevy/engine material resource binding patterns conceptually.
+
+Acceptance criteria:
+
+- Route ready StandardMaterial IBL group 4 resources through the app
+  frame-resource/draw-list path without exposing raw GPU handles in JSON.
+- GLTF status reports the route as ready when diffuse/specular IBL texture
+  resources and IBL sampler resources are available.
+- Preserve existing shadow group 3 routing, strict receiver pixel proof, and no
+  WebGPU validation warnings.
+- Keep actual IBL shader lighting contribution deferred to the next slice.
+
+### task-1891 — Decide executable StandardMaterial IBL bind-group layout
+
+Status: completed 2026-05-19. See
+`docs/research/STANDARD_IBL_SHADER_BIND_GROUP_LIMIT_AUDIT_2026_05_19.md` and
+`docs/DECISIONS.md` decision 0013.
+
+Category: `audit-refactor`
+Package/write-scope:
+`docs/research`, `agent/BACKLOG.md`, and decision docs if a new architecture
+choice is made.
+Reference anchor:
+local StandardMaterial group 4 app route from `task-1890`, local
+`standard-material-ibl-bind-group` layout metadata, strict shadow group 3
+routing, `docs/research/STANDARD_IBL_SHADER_BIND_GROUP_LIMIT_AUDIT_2026_05_19.md`,
+and diffuse/environment lighting patterns in `references/engine` and
+`references/three.js`.
+
+Acceptance criteria:
+
+- Decide whether executable IBL resources should extend combined group 3, merge
+  into group 2, or use a gated high-bind-group variant.
+- Document why the selected layout fits Chrome's `maxBindGroups: 4` browser
+  proof and the ECS/render ownership boundary.
+- Update the follow-up shader task so it does not require executable WGSL
+  `@group(4)` on browsers limited to four bind groups.
+- Preserve the existing JSON-safe group 4 app-frame route as a planning/resource
+  identity unless a decision explicitly replaces it.
+
+### task-1892 — Add first StandardMaterial diffuse IBL shader contribution
+
+Category: `webgpu-render`
+Package/write-scope:
+`packages/webgpu/src/webgpu/standard-shader.ts`,
+`packages/webgpu/src/webgpu/standard-pipeline*`,
+`examples/gltf-scene.js`, `test/webgpu`, and
+`test/e2e/gltf-scene.spec.ts`.
+Reference anchor:
+Decision 0013's combined group 3 executable IBL layout, local
+StandardMaterial group 4 app-frame route from `task-1890`, strict shadow group 3
+routing,
+`docs/research/STANDARD_DIFFUSE_IBL_SHADER_IMPLEMENTATION_PLAN_2026_05_19.md`,
+and diffuse/environment lighting patterns in `references/engine` and
+`references/three.js`.
+
+Acceptance criteria:
+
+- Add WGSL bindings for StandardMaterial diffuse IBL sampling using the
+  browser-safe executable group 3 layout selected by Decision 0013.
+- Include the executable IBL resources only for the IBL shader-capable
+  StandardMaterial pipeline variant.
+- GLTF Playwright proves a stable visible pixel difference from diffuse IBL
+  contribution while preserving strict shadow receiver proof and no validation
+  warnings.
+- Keep specular prefilter and full PBR IBL contribution deferred.
 
 ## Post-Unlit E2E Verification Targets
 

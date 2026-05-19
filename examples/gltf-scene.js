@@ -147,7 +147,7 @@ function createScene(aperture, app, targetCanvas) {
     }),
   );
   app.spawn(
-    aperture.withTransform(),
+    aperture.withTransform({ rotation: [0, -0.258819, 0, 0.965926] }),
     aperture.withLight({
       kind: aperture.LightKind.Directional,
       color: [1, 0.94, 0.82, 1],
@@ -186,6 +186,7 @@ function createScene(aperture, app, targetCanvas) {
 function startRendering(aperture, app, scene) {
   let frame = 0;
   let standardMaterialShadowReceiverResources = null;
+  let standardMaterialIblResources = null;
 
   const render = async () => {
     frame += 1;
@@ -198,9 +199,12 @@ function startRendering(aperture, app, scene) {
       standardMaterialShadowReceiverResources === null
         ? {}
         : { standardMaterialShadowReceiverResources }),
+      ...(standardMaterialIblResources === null
+        ? {}
+        : { standardMaterialIblResources }),
     });
 
-    standardMaterialShadowReceiverResources = publishFrameStatus(
+    const nextFrameResources = await publishFrameStatus(
       aperture,
       app,
       scene,
@@ -208,13 +212,17 @@ function startRendering(aperture, app, scene) {
       report,
       frame,
     );
+    standardMaterialShadowReceiverResources =
+      nextFrameResources.standardMaterialShadowReceiverResources;
+    standardMaterialIblResources =
+      nextFrameResources.standardMaterialIblResources;
     requestAnimationFrame(render);
   };
 
   requestAnimationFrame(render);
 }
 
-function publishFrameStatus(aperture, app, scene, step, report, frame) {
+async function publishFrameStatus(aperture, app, scene, step, report, frame) {
   const contractJson = aperture.gltfSceneImportContractReportToJsonValue(
     scene.contract,
   );
@@ -325,17 +333,19 @@ function publishFrameStatus(aperture, app, scene, step, report, frame) {
     );
   const environmentResourceCache =
     aperture.getOrCreateWebGpuAppEnvironmentResourceCache(app);
+  const standardMaterialIblBindGroupResourceReport =
+    aperture.createStandardMaterialIblBindGroupResourceReport({
+      device: app.initialization.device,
+      standardMaterialCount,
+      descriptor: standardMaterialIblBindGroupDescriptor,
+      diffuseTextureResource: diffuseIblTextureResourceReport,
+      specularTextureResource: specularIblTextureResourceReport,
+      samplers: iblSamplerResourceReport,
+      cache: environmentResourceCache.standardIblBindGroups,
+    });
   const standardMaterialIblBindGroupResource =
     aperture.standardMaterialIblBindGroupResourceReportToJsonValue(
-      aperture.createStandardMaterialIblBindGroupResourceReport({
-        device: app.initialization.device,
-        standardMaterialCount,
-        descriptor: standardMaterialIblBindGroupDescriptor,
-        diffuseTextureResource: diffuseIblTextureResourceReport,
-        specularTextureResource: specularIblTextureResourceReport,
-        samplers: iblSamplerResourceReport,
-        cache: environmentResourceCache.standardIblBindGroups,
-      }),
+      standardMaterialIblBindGroupResourceReport,
     );
   const environmentResourceCacheSummary =
     aperture.writeWebGpuEnvironmentResourceCacheSummary(
@@ -608,6 +618,17 @@ function publishFrameStatus(aperture, app, scene, step, report, frame) {
     aperture.shadowPassCommandBufferSubmissionReportToJsonValue(
       shadowPassCommandBufferSubmissionReport,
     );
+  const shadowDepthProbeReport = await aperture.createShadowDepthProbeReport({
+    device: app.initialization.device,
+    samples: shadowProjectionCoverage.records,
+    depthTextureResources: shadowDepthTextureResourceReport,
+    samplerResource: shadowSamplerResourceReport,
+    commandBufferSubmission: shadowPassCommandBufferSubmissionReport,
+    depthBias: shadowIntent.depthBias,
+  });
+  const shadowDepthProbe = aperture.shadowDepthProbeReportToJsonValue(
+    shadowDepthProbeReport,
+  );
   const standardMaterialShadowReceiverBinding =
     aperture.standardMaterialShadowReceiverBindingReadinessReportToJsonValue(
       aperture.createStandardMaterialShadowReceiverBindingReadinessReport({
@@ -646,6 +667,10 @@ function publishFrameStatus(aperture, app, scene, step, report, frame) {
         bindingReadiness: standardMaterialIblShadowBinding,
       }),
     );
+  const standardMaterialIblAppRoute = createStandardMaterialIblAppRouteStatus(
+    report,
+    standardMaterialIblBindGroupResource,
+  );
   const readiness = createReadinessGrouping({
     environmentReadiness,
     iblDescriptor,
@@ -661,6 +686,7 @@ function publishFrameStatus(aperture, app, scene, step, report, frame) {
     standardMaterialIblBindGroupLayout,
     standardMaterialIblBindGroupDescriptor,
     standardMaterialIblBindGroupResource,
+    standardMaterialIblAppRoute,
     standardMaterialIblShadowBinding,
     standardMaterialIblShadowPipelineKey,
     shadowDescriptor,
@@ -684,6 +710,7 @@ function publishFrameStatus(aperture, app, scene, step, report, frame) {
     shadowCasterCommandRecords,
     shadowPassEncoderAssembly,
     shadowPassCommandBufferSubmission,
+    shadowDepthProbe,
     standardMaterialShadowReceiverBinding,
     shadowResourceSummary,
     standardMaterialShadow,
@@ -746,6 +773,7 @@ function publishFrameStatus(aperture, app, scene, step, report, frame) {
       bindGroupLayout: standardMaterialIblBindGroupLayout,
       bindGroupDescriptor: standardMaterialIblBindGroupDescriptor,
       bindGroupResource: standardMaterialIblBindGroupResource,
+      appFrameRoute: standardMaterialIblAppRoute,
       shaderBinding: standardMaterialIblShadowBinding,
       pipelineKey: standardMaterialIblShadowPipelineKey,
       standardMaterial: standardMaterialIbl,
@@ -799,6 +827,7 @@ function publishFrameStatus(aperture, app, scene, step, report, frame) {
       commandRecords: shadowCasterCommandRecords,
       encoderAssembly: shadowPassEncoderAssembly,
       commandBufferSubmission: shadowPassCommandBufferSubmission,
+      depthProbe: shadowDepthProbe,
       receiverBinding: standardMaterialShadowReceiverBinding,
       resourceSummary: shadowResourceSummary,
       bindGroupLayout: standardMaterialShadowBindGroupLayout,
@@ -835,9 +864,14 @@ function publishFrameStatus(aperture, app, scene, step, report, frame) {
   });
 
   return {
-    matrixBufferResource: shadowMatrixBufferResourceReport,
-    depthTextureResources: shadowDepthTextureResourceReport,
-    samplerResource: shadowSamplerResourceReport,
+    standardMaterialShadowReceiverResources: {
+      matrixBufferResource: shadowMatrixBufferResourceReport,
+      depthTextureResources: shadowDepthTextureResourceReport,
+      samplerResource: shadowSamplerResourceReport,
+    },
+    standardMaterialIblResources: {
+      bindGroupResource: standardMaterialIblBindGroupResourceReport,
+    },
   };
 }
 
@@ -863,6 +897,7 @@ function createReadinessGrouping(input) {
     bindGroupResource: normalizeStatus(
       input.standardMaterialIblBindGroupResource.status,
     ),
+    appFrameRoute: input.standardMaterialIblAppRoute.status,
     shaderBinding: normalizeStatus(
       input.standardMaterialIblShadowBinding.status,
     ),
@@ -899,6 +934,7 @@ function createReadinessGrouping(input) {
     commandRecords: input.shadowCasterCommandRecords.status,
     encoderAssembly: input.shadowPassEncoderAssembly.status,
     commandBufferSubmission: input.shadowPassCommandBufferSubmission.status,
+    depthProbe: input.shadowDepthProbe.status,
     receiverBinding: input.standardMaterialShadowReceiverBinding.status,
     resourceSummary: input.shadowResourceSummary.status,
     bindGroupLayout: input.standardMaterialShadowBindGroupLayout.status,
@@ -921,6 +957,79 @@ function createReadinessGrouping(input) {
       phases: shadowPhases,
     },
   };
+}
+
+function createStandardMaterialIblAppRouteStatus(report, bindGroupResource) {
+  const expectedResourceKey = bindGroupResource.resource?.resourceKey ?? null;
+  const routedResource = findStandardMaterialIblRoutedResource(report);
+  const ready =
+    expectedResourceKey !== null &&
+    routedResource !== null &&
+    routedResource.resourceKey === expectedResourceKey;
+
+  return {
+    ready,
+    status: ready
+      ? "ready"
+      : expectedResourceKey === null
+        ? "missing"
+        : "deferred",
+    group: 4,
+    sections: {
+      bindGroupResource: expectedResourceKey !== null,
+      appFrameResources: routedResource !== null,
+      drawListBinding: false,
+      shaderSampling: false,
+    },
+    resource:
+      routedResource === null
+        ? null
+        : {
+            group: routedResource.group,
+            resourceKey: routedResource.resourceKey,
+            layoutKey: routedResource.layoutKey,
+            entryResourceKeys: [...routedResource.entryResourceKeys],
+          },
+    diagnostics: ready
+      ? [
+          {
+            code: "gltfScene.standardMaterialIblAppRoute.shaderSamplingDeferred",
+            severity: "warning",
+            message:
+              "StandardMaterial IBL group 4 is routed through app frame resources, but WGSL sampling remains deferred.",
+          },
+        ]
+      : [
+          {
+            code:
+              expectedResourceKey === null
+                ? "gltfScene.standardMaterialIblAppRoute.missingBindGroupResource"
+                : "gltfScene.standardMaterialIblAppRoute.pendingFrameResource",
+            severity: "warning",
+            message:
+              expectedResourceKey === null
+                ? "StandardMaterial IBL app routing requires an available group 4 bind group resource."
+                : "StandardMaterial IBL app routing will be visible after the next app frame consumes the group 4 resource.",
+          },
+        ],
+  };
+}
+
+function findStandardMaterialIblRoutedResource(report) {
+  const resources = report.resources?.resources;
+  const standardResources = Array.isArray(resources?.standard)
+    ? resources.standard
+    : resources?.standardMaterialIblBindGroup === undefined
+      ? []
+      : [resources];
+
+  for (const resource of standardResources) {
+    if (resource?.standardMaterialIblBindGroup !== undefined) {
+      return resource.standardMaterialIblBindGroup;
+    }
+  }
+
+  return null;
 }
 
 function normalizeStatus(status) {
@@ -1100,13 +1209,19 @@ function shadowProjectionSamples() {
       key: "receiver:plane:center",
       role: "receiver",
       shape: "plane",
-      worldPosition: [-1.45, -0.15, 0],
+      worldPosition: [0.35, -0.15, 0],
     },
     {
       key: "receiver:cone:center",
       role: "receiver",
       shape: "cone",
       worldPosition: [1.45, -0.05, 0],
+    },
+    {
+      key: "receiver:box-center-depth-probe",
+      role: "receiver",
+      shape: "debug-depth-probe",
+      worldPosition: [0, 0, 0],
     },
     {
       key: "caster:box:center",
@@ -1185,7 +1300,7 @@ function createGltfSceneRoot() {
     scene: 0,
     scenes: [{ nodes: [0, 1, 2] }],
     nodes: [
-      { name: "Plane", mesh: 0, translation: [-1.45, -0.15, 0] },
+      { name: "Plane", mesh: 0, translation: [0.35, -0.15, 0] },
       {
         name: "Box",
         mesh: 1,

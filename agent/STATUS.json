@@ -1,11 +1,11 @@
 {
   "state": "idle",
-  "currentTaskId": "task-1887",
+  "currentTaskId": "task-1892",
   "currentRunStartedAt": "2026-05-19T09:01:58Z",
   "lastRunStartedAt": "2026-05-19T09:01:58Z",
   "lastResult": "success",
   "lastCommit": "9fd4f06",
   "activePid": null,
-  "notes": "Completed task-1881, task-1877, task-1878, task-1882, task-1883, task-1884, task-1885, and task-1886. Started task-1887 feasibility; next run should implement shadow depth probe evidence.",
-  "lastRunFinishedAt": "2026-05-19T10:47:23Z"
+  "notes": "Completed task-1887 through task-1891. StandardMaterial IBL group 4 now routes through app frame resources as a deferred resource; Decision 0013 selects combined group 3 for executable IBL sampling. Task-1892 is open; its implementation plan plus shader/pipeline iblDiffuse metadata and targeted tests are added. Do not enable the iblDiffuse app pipeline key before adding the combined group 3 light plus diffuse IBL bind group; live resource bridging and GLTF pixel proof remain.",
+  "lastRunFinishedAt": "2026-05-19T11:50:00Z"
 }

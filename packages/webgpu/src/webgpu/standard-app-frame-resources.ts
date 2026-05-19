@@ -51,6 +51,7 @@ import type { StandardMaterialBindGroupLayoutResource } from "./standard-bind-gr
 import {
   createStandardFrameGpuResources,
   type CreateStandardFrameGpuResourcesResult,
+  type StandardFrameIblResources,
   type StandardFrameShadowReceiverResources,
 } from "./standard-frame-resources.js";
 import type { UnlitBindGroupLayoutResource } from "./unlit-bind-group.js";
@@ -68,6 +69,7 @@ import {
 export interface CachedStandardAppFrameResources {
   readonly meshKey: string;
   readonly materialKey: string;
+  readonly standardMaterialIblBindGroupResourceKey: string | null;
   readonly textureKeys: readonly string[];
   readonly samplerKeys: readonly string[];
   readonly viewByteLength: number;
@@ -136,11 +138,16 @@ export function createOrReuseStandardAppFrameResources(options: {
     | StandardLightShadowBindGroupLayoutResource
     | null;
   readonly shadowReceiverResources?: StandardFrameShadowReceiverResources;
+  readonly standardMaterialIblResources?: StandardFrameIblResources;
   readonly preparedMeshes: PreparedMeshGpuResourceCache;
   readonly preparedScalarMaterials: PreparedScalarStandardMaterialCache;
   readonly reuse: StandardAppFrameResourceReuseReport;
 }): CreateStandardAppFrameResourcesResult {
   const cached = options.cache.current;
+  const standardMaterialIblBindGroupResourceKey =
+    standardMaterialIblBindGroupResourceKeyFromResources(
+      options.standardMaterialIblResources,
+    );
   const viewDescriptorScratch =
     cached?.viewDescriptorScratch ?? createViewUniformBufferDescriptorScratch();
   const worldTransformDescriptorScratch =
@@ -173,6 +180,8 @@ export function createOrReuseStandardAppFrameResources(options: {
     cached !== null &&
     cached.meshKey === options.meshKey &&
     cached.materialKey === options.materialKey &&
+    cached.standardMaterialIblBindGroupResourceKey ===
+      standardMaterialIblBindGroupResourceKey &&
     sameStringList(
       cached.textureKeys,
       options.textureSamplerDependencies.textureKeys,
@@ -276,6 +285,9 @@ export function createOrReuseStandardAppFrameResources(options: {
     ...(options.shadowReceiverResources === undefined
       ? {}
       : { shadowReceiverResources: options.shadowReceiverResources }),
+    ...(options.standardMaterialIblResources === undefined
+      ? {}
+      : { standardMaterialIblResources: options.standardMaterialIblResources }),
     textures: options.textureSamplerDependencies.textures,
     samplers: options.textureSamplerDependencies.samplers,
   });
@@ -310,6 +322,7 @@ export function createOrReuseStandardAppFrameResources(options: {
     options.cache.current = {
       meshKey: options.meshKey,
       materialKey: options.materialKey,
+      standardMaterialIblBindGroupResourceKey,
       textureKeys: [...options.textureSamplerDependencies.textureKeys],
       samplerKeys: [...options.textureSamplerDependencies.samplerKeys],
       viewByteLength:
@@ -509,6 +522,16 @@ function appendPreparedMaterialFallbackDiagnostics(
         ...result,
         diagnostics: [...result.diagnostics, ...diagnostics],
       };
+}
+
+function standardMaterialIblBindGroupResourceKeyFromResources(
+  resources: StandardFrameIblResources | undefined,
+): string | null {
+  const report = resources?.bindGroupResource;
+
+  return report?.status === "available" && report.resource !== null
+    ? report.resource.resourceKey
+    : null;
 }
 
 function sourceVersionFromAssetKey(
