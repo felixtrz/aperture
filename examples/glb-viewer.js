@@ -1,8 +1,25 @@
 const canvas = document.querySelector("#aperture-canvas");
+const assetSelect = document.querySelector("#glb-asset-select");
 const stateElement = document.querySelector("#example-state");
 const jsonElement = document.querySelector("#example-json");
 const clearColor = [0.015, 0.025, 0.035, 1];
-const sampleGlbUrl = new URL("./assets/cube.glb", globalThis.location.href);
+const sampleAssets = [
+  {
+    id: "cube",
+    label: "Mint cube",
+    url: new URL("./assets/cube.glb", globalThis.location.href),
+  },
+  {
+    id: "slab",
+    label: "Amber slab",
+    url: new URL("./assets/amber-slab.glb", globalThis.location.href),
+  },
+  {
+    id: "pillar",
+    label: "Sapphire pillar",
+    url: new URL("./assets/sapphire-pillar.glb", globalThis.location.href),
+  },
+];
 
 try {
   const [core, webgpu] = await Promise.all([
@@ -22,8 +39,9 @@ try {
     if (!created.ok) {
       publishStatus(failure(created.reason, created.message));
     } else {
-      const scene = await createGlbViewerScene(aperture, created.app, canvas);
+      const scene = createGlbViewerScene(aperture, created.app, canvas);
 
+      await loadSelectedAsset(aperture, created.app, scene);
       startRendering(aperture, created.app, scene);
     }
   }
@@ -36,55 +54,7 @@ try {
   );
 }
 
-async function createGlbViewerScene(aperture, app, targetCanvas) {
-  const loaded = await aperture.loadGlbFromUri(sampleGlbUrl.href, {
-    keyPrefix: "viewer",
-    createAssetMapping: true,
-    createMeshAssets: true,
-  });
-  const importReport = loaded.loader?.glbImportReport.importReport ?? null;
-
-  if (!loaded.ok || importReport === null) {
-    throw new Error(
-      loaded.diagnostics[0]?.message ?? "Sample GLB did not load.",
-    );
-  }
-
-  if (
-    importReport.assetMapping === null ||
-    importReport.meshConstruction === null ||
-    importReport.meshPrimitive === null
-  ) {
-    throw new Error("Sample GLB did not produce renderable source assets.");
-  }
-
-  const registration = aperture.registerGltfSourceAssetsFromReports({
-    registry: app.assets,
-    assetMapping: importReport.assetMapping,
-    meshConstruction: importReport.meshConstruction,
-  });
-  const sourceRegistration = registration.sourceRegistration;
-  const meshRegistration = registration.meshRegistration;
-
-  if (sourceRegistration === null || meshRegistration === null) {
-    throw new Error("Sample GLB source registration was not produced.");
-  }
-
-  const primitiveMaterials =
-    aperture.createGltfPrimitiveMaterialResolutionReport({
-      primitiveReport: importReport.meshPrimitive,
-      registrationReport: sourceRegistration,
-      keyPrefix: "viewer",
-    });
-  const commandPlan = aperture.createGltfEcsAuthoringCommandPlan({
-    traversalReport: importReport.sceneTraversal,
-    meshRegistrationReport: meshRegistration,
-    primitiveMaterialReport: primitiveMaterials,
-  });
-  const replay = aperture.applyGltfEcsCommandPlanToApp({
-    app,
-    plan: commandPlan,
-  });
+function createGlbViewerScene(aperture, app, targetCanvas) {
   const orbit = createOrbitControls(targetCanvas);
   const cameraEntity = app.spawn(
     aperture.withTransform({ translation: [0, 0, 3.4] }),
@@ -98,15 +68,129 @@ async function createGlbViewerScene(aperture, app, targetCanvas) {
   );
   updateOrbitCamera(aperture, cameraEntity, orbit);
 
-  return {
+  const scene = {
+    asset: sampleAssets[0],
+    loadState: null,
+    loadSequence: 0,
+    active: null,
+    orbit,
+    cameraEntity,
+  };
+
+  if (assetSelect !== null) {
+    for (const asset of sampleAssets) {
+      const option = document.createElement("option");
+      option.value = asset.id;
+      option.textContent = asset.label;
+      assetSelect.append(option);
+    }
+
+    assetSelect.addEventListener("change", () => {
+      loadSelectedAsset(aperture, app, scene).catch((error) => {
+        scene.loadState = failure(
+          "glb-viewer-load-failed",
+          error instanceof Error ? error.message : "GLB asset load failed.",
+        );
+      });
+    });
+  }
+
+  return scene;
+}
+
+async function loadSelectedAsset(aperture, app, scene) {
+  const asset =
+    sampleAssets.find((entry) => entry.id === assetSelect?.value) ??
+    sampleAssets[0];
+  const loadSequence = scene.loadSequence + 1;
+  const keyPrefix = `viewer-${asset.id}-${loadSequence}`;
+
+  scene.loadSequence = loadSequence;
+  scene.asset = asset;
+  scene.loadState = {
+    ok: true,
+    phase: "loading",
+    asset: {
+      id: asset.id,
+      label: asset.label,
+      url: asset.url.pathname,
+    },
+  };
+  destroyActiveScene(scene);
+
+  const loaded = await aperture.loadGlbFromUri(asset.url.href, {
+    keyPrefix,
+    createAssetMapping: true,
+    createMeshAssets: true,
+  });
+  const importReport = loaded.loader?.glbImportReport.importReport ?? null;
+
+  if (scene.loadSequence !== loadSequence) {
+    return;
+  }
+
+  if (!loaded.ok || importReport === null) {
+    throw new Error(loaded.diagnostics[0]?.message ?? "GLB did not load.");
+  }
+
+  if (
+    importReport.assetMapping === null ||
+    importReport.meshConstruction === null ||
+    importReport.meshPrimitive === null
+  ) {
+    throw new Error("GLB did not produce renderable source assets.");
+  }
+
+  const registration = aperture.registerGltfSourceAssetsFromReports({
+    registry: app.assets,
+    assetMapping: importReport.assetMapping,
+    meshConstruction: importReport.meshConstruction,
+  });
+  const sourceRegistration = registration.sourceRegistration;
+  const meshRegistration = registration.meshRegistration;
+
+  if (sourceRegistration === null || meshRegistration === null) {
+    throw new Error("GLB source registration was not produced.");
+  }
+
+  const primitiveMaterials =
+    aperture.createGltfPrimitiveMaterialResolutionReport({
+      primitiveReport: importReport.meshPrimitive,
+      registrationReport: sourceRegistration,
+      keyPrefix,
+    });
+  const commandPlan = aperture.createGltfEcsAuthoringCommandPlan({
+    traversalReport: importReport.sceneTraversal,
+    meshRegistrationReport: meshRegistration,
+    primitiveMaterialReport: primitiveMaterials,
+  });
+  const replay = aperture.applyGltfEcsCommandPlanToApp({
+    app,
+    plan: commandPlan,
+  });
+
+  scene.active = {
+    asset,
+    keyPrefix,
     loaded,
     registration,
     primitiveMaterials,
     commandPlan,
     replay,
-    orbit,
-    cameraEntity,
   };
+  scene.loadState = null;
+}
+
+function destroyActiveScene(scene) {
+  if (scene.active === null) {
+    return;
+  }
+
+  for (const entity of scene.active.replay.entitiesByKey.values()) {
+    entity.destroy();
+  }
+
+  scene.active = null;
 }
 
 function startRendering(aperture, app, scene) {
@@ -140,6 +224,7 @@ function startRendering(aperture, app, scene) {
 
 function createStatus(aperture, app, scene, step, report, frame) {
   const reportJson = aperture.webGpuAppRenderReportToJsonValue(report);
+  const active = scene.active;
 
   return {
     example: "glb-viewer",
@@ -153,33 +238,39 @@ function createStatus(aperture, app, scene, step, report, frame) {
       b: clearColor[2],
       a: clearColor[3],
     },
+    selectedAsset: {
+      id: scene.asset.id,
+      label: scene.asset.label,
+      url: scene.asset.url.pathname,
+      loading: scene.loadState?.phase === "loading",
+    },
     source: {
-      url: sampleGlbUrl.pathname,
-      ok: scene.loaded.ok,
-      byteLength: scene.loaded.byteLength,
-      status: scene.loaded.loader?.status ?? null,
-      outputSummary: scene.loaded.loader?.outputSummary ?? null,
-      diagnostics: scene.loaded.diagnostics,
+      url: active?.asset.url.pathname ?? scene.asset.url.pathname,
+      ok: active?.loaded.ok ?? false,
+      byteLength: active?.loaded.byteLength ?? null,
+      status: active?.loaded.loader?.status ?? null,
+      outputSummary: active?.loaded.loader?.outputSummary ?? null,
+      diagnostics: active?.loaded.diagnostics ?? [],
     },
     gltf: {
       registration: {
-        valid: scene.registration.valid,
-        diagnostics: scene.registration.diagnostics.length,
+        valid: active?.registration.valid ?? false,
+        diagnostics: active?.registration.diagnostics.length ?? 0,
       },
       primitiveMaterials: {
-        valid: scene.primitiveMaterials.valid,
-        resolved: scene.primitiveMaterials.resolved.length,
-        diagnostics: scene.primitiveMaterials.diagnostics.length,
+        valid: active?.primitiveMaterials.valid ?? false,
+        resolved: active?.primitiveMaterials.resolved.length ?? 0,
+        diagnostics: active?.primitiveMaterials.diagnostics.length ?? 0,
       },
       commandPlan: {
-        valid: scene.commandPlan.valid,
-        commands: scene.commandPlan.commands.length,
-        dependencies: scene.commandPlan.dependencies.length,
+        valid: active?.commandPlan.valid ?? false,
+        commands: active?.commandPlan.commands.length ?? 0,
+        dependencies: active?.commandPlan.dependencies.length ?? 0,
       },
       replay: {
-        valid: scene.replay.valid,
-        created: scene.replay.created.length,
-        diagnostics: scene.replay.diagnostics.length,
+        valid: active?.replay.valid ?? false,
+        created: active?.replay.created.length ?? 0,
+        diagnostics: active?.replay.diagnostics.length ?? 0,
       },
     },
     orbit: {

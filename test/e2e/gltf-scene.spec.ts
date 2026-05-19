@@ -1164,6 +1164,8 @@ interface GltfSceneStatus extends ExampleStatusBase {
     };
     readonly rendering: {
       readonly supported: boolean;
+      readonly mode: string;
+      readonly filter: string;
       readonly diagnostic: {
         readonly code: string;
         readonly severity: string;
@@ -1398,7 +1400,7 @@ test("Playwright shows the GLTF scene fixture through the app path", async ({
           samplerResource: "ready",
           bindGroupResource: "ready",
           standardMaterial: "deferred",
-          rendering: "deferred",
+          rendering: "ready",
         },
       },
     },
@@ -3468,10 +3470,12 @@ test("Playwright shows the GLTF scene fixture through the app path", async ({
         ],
       },
       rendering: {
-        supported: false,
+        supported: true,
+        mode: "directional-depth-compare",
+        filter: "pcf-3x3",
         diagnostic: {
-          code: "gltfScene.shadowMapDeferred",
-          severity: "warning",
+          code: "gltfScene.shadowMapActive",
+          severity: "info",
         },
       },
     },
@@ -3590,6 +3594,12 @@ function expectReceiverShadowActivation(
       beforeLuminance,
     )} after=${JSON.stringify(afterLuminance)} maxDelta=${maxDelta}`,
   ).toBeGreaterThan(8);
+  expect(
+    beforeLuminance.average - afterLuminance.average,
+    `receiver shadow should visibly darken the sampled receiver region; before=${JSON.stringify(
+      beforeLuminance,
+    )} after=${JSON.stringify(afterLuminance)}`,
+  ).toBeGreaterThan(1);
 }
 
 function expectDiffuseIblActivation(

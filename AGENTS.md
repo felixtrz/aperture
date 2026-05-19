@@ -92,6 +92,26 @@ Each task should be a vertical slice sized to fill the 55-minute window with rea
 
 ## Stop-Hook / End-of-Run Requirements
 
+## Commit Policy
+
+Agents may commit after each coherent, validated feature slice. Prefer an
+interim commit when a feature is complete, tests relevant to that feature have
+passed, and the next work would otherwise mix unrelated changes into the same
+diff. Do not wait for the final stop hook just to create the first commit.
+
+When committing mid-run:
+
+- Commit only coherent completed work plus the agent bookkeeping that describes
+  it.
+- Do not commit known-broken or partially validated work unless the handoff
+  explicitly documents the blocker and the user has asked for a checkpoint.
+- Continue working after the commit if the work window remains open and ready
+  visible-feature work is available.
+
+The configured stop hook is a final safety net: it validates, checkpoints any
+remaining uncommitted changes, and pushes the current branch to its configured
+upstream. It is not the only point at which commits may be made.
+
 Before stopping, first check the elapsed run time:
 
 - If less than 55 minutes have elapsed, a ready task remains, and no stop condition applies, do not finalize yet. Select the next ready task and continue.
@@ -109,9 +129,10 @@ When performing the end-of-run review:
 8. Update `agent/HANDOFF.md`.
 9. Ensure `agent/STATUS.json` is not left in `running` state.
 
-The configured stop hook checkpoints all repository changes and pushes the
-current branch to its configured upstream. A failed push is a stop-hook failure;
-document it and fix it when straightforward before treating the run as finished.
+The configured stop hook checkpoints any remaining uncommitted repository
+changes and pushes the current branch to its configured upstream. A failed push
+is a stop-hook failure; document it and fix it when straightforward before
+treating the run as finished.
 
 ## Hard Constraints
 

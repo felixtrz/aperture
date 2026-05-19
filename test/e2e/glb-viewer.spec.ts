@@ -10,6 +10,12 @@ import {
 import type { ExampleStatusBase } from "./example-status-types.js";
 
 interface GlbViewerStatus extends ExampleStatusBase {
+  readonly selectedAsset?: {
+    readonly id: string;
+    readonly label: string;
+    readonly url: string;
+    readonly loading: boolean;
+  };
   readonly source?: {
     readonly ok: boolean;
     readonly byteLength: number | null;
@@ -93,10 +99,21 @@ test("Playwright renders the fetched sample GLB viewer asset", async ({
 
   expect(rendered?.ok).toBe(true);
   expectStatusJsonSafeForGpu(rendered);
+  await expect(page.locator("#glb-asset-select option")).toHaveText([
+    "Mint cube",
+    "Amber slab",
+    "Sapphire pillar",
+  ]);
   expect(rendered).toMatchObject({
     example: "glb-viewer",
     phase: "render",
     renderingBackend: "webgpu-explicit",
+    selectedAsset: {
+      id: "cube",
+      label: "Mint cube",
+      url: "/examples/assets/cube.glb",
+      loading: false,
+    },
     source: {
       ok: true,
       byteLength: expect.any(Number),
@@ -178,6 +195,64 @@ test("Playwright renders the fetched sample GLB viewer asset", async ({
     maxSampleDelta(screenshot, rotatedScreenshot),
     "dragging the GLB viewer should orbit the camera and change canvas pixels",
   ).toBeGreaterThan(12);
+
+  await page.locator("#glb-asset-select").selectOption("slab");
+  await page.waitForFunction(
+    () => {
+      const status = (
+        globalThis as {
+          readonly __APERTURE_EXAMPLE_STATUS__?: {
+            readonly selectedAsset?: {
+              readonly id?: string;
+              readonly loading?: boolean;
+            };
+            readonly extraction?: { readonly meshDraws?: number };
+          };
+        }
+      ).__APERTURE_EXAMPLE_STATUS__;
+
+      return (
+        status?.selectedAsset?.id === "slab" &&
+        status.selectedAsset.loading === false &&
+        status.extraction?.meshDraws === 1
+      );
+    },
+    undefined,
+    { timeout: 5000 },
+  );
+  const slabStatus = await waitForExampleStatus<GlbViewerStatus>(page);
+  const slabScreenshot = await page.locator("#aperture-canvas").screenshot();
+
+  expect(slabStatus).toMatchObject({
+    selectedAsset: {
+      id: "slab",
+      label: "Amber slab",
+      url: "/examples/assets/amber-slab.glb",
+      loading: false,
+    },
+    source: {
+      ok: true,
+      status: {
+        status: "loaded",
+        sourceKind: "glb",
+        diagnostics: [],
+      },
+      diagnostics: [],
+    },
+    extraction: {
+      views: 1,
+      meshDraws: 1,
+      diagnostics: 0,
+    },
+    draw: {
+      packages: 1,
+      drawCalls: 1,
+    },
+  });
+  expect(
+    maxSampleDelta(rotatedScreenshot, slabScreenshot),
+    "switching GLB assets should unload the prior scene and render different pixels",
+  ).toBeGreaterThan(16);
   webGpuValidation.expectNoWarnings();
 });
 

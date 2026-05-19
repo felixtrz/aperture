@@ -86,6 +86,7 @@ Document:
 ## Final Requirement
 
 Leave the repository in a state where the next agent can continue without
-guessing. The configured stop hook is expected to checkpoint all changes and
-push the current branch; if that fails, document the failure and do not treat
-the run as cleanly finished.
+guessing. Agents are allowed to make interim commits after coherent, validated
+feature slices. The configured stop hook is expected to checkpoint any remaining
+uncommitted changes and push the current branch; if that fails, document the
+failure and do not treat the run as cleanly finished.

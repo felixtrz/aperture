@@ -196,7 +196,7 @@ describe("built-in standard material WGSL shader metadata", () => {
     ]);
   });
 
-  it("declares browser-safe group 3 bindings and strict single-tap comparison sampling for shadow receivers", () => {
+  it("declares browser-safe group 3 bindings and 3x3 PCF comparison sampling for shadow receivers", () => {
     expect(
       validateStandardShaderMetadata(STANDARD_SHADOW_RECEIVER_MESH_SHADER),
     ).toEqual({ valid: true, diagnostics: [] });
@@ -219,6 +219,12 @@ describe("built-in standard material WGSL shader metadata", () => {
       "const STANDARD_SHADOW_MIN_VISIBILITY: f32 = 0.45;",
     );
     expect(STANDARD_SHADOW_RECEIVER_MESH_WGSL).toContain(
+      "fn sampleDirectionalShadowPcf3x3(shadowUv: vec2f, receiverDepth: f32) -> f32",
+    );
+    expect(STANDARD_SHADOW_RECEIVER_MESH_WGSL).toContain(
+      "for (var y: i32 = -1; y <= 1; y = y + 1)",
+    );
+    expect(STANDARD_SHADOW_RECEIVER_MESH_WGSL).toContain(
       "let shadowDepth = select(",
     );
     expect(STANDARD_SHADOW_RECEIVER_MESH_WGSL).toContain(
@@ -228,7 +234,7 @@ describe("built-in standard material WGSL shader metadata", () => {
       "let receiverDepth = clamp(",
     );
     expect(STANDARD_SHADOW_RECEIVER_MESH_WGSL).toContain(
-      "textureSampleCompareLevel(",
+      "let rawVisibility = sampleDirectionalShadowPcf3x3(",
     );
     expect(STANDARD_SHADOW_RECEIVER_MESH_WGSL).toContain(
       "return compareFactor;",

@@ -1,11 +1,11 @@
 {
   "state": "idle",
-  "currentTaskId": "task-2009",
+  "currentTaskId": "task-2012",
   "currentRunStartedAt": null,
-  "lastRunStartedAt": "2026-05-19T18:03:14Z",
+  "lastRunStartedAt": "2026-05-19T19:01:50Z",
   "lastResult": "success",
-  "lastCommit": "pending-stop-hook",
+  "lastCommit": "interim-feature-commit",
   "activePid": null,
-  "notes": "Completed task-2003 specular IBL on spinning-cube, task-2004 roughness-addressed specular IBL mip-chain proof, task-2005 GLB source material mapping onto the buffer-backed primitive, task-2006 public loadGlbFromUri(url, options) async loader, task-2007 GLB viewer fetching/rendering a sample .glb, and task-2008 orbit camera controls for glb-viewer. Recommended next task is task-2009: multi-asset switching in glb-viewer with three sample .glb files.",
-  "lastRunFinishedAt": "2026-05-19T18:46:03Z"
+  "notes": "Completed task-2009 GLB viewer multi-asset switching, task-2010 active directional shadow status/receiver darkening proof in gltf-scene, and task-2011 3x3 PCF directional shadow filtering. Inspected task-2012 references; point-light shadows need a broader shadow contract extension and remain the recommended next task.",
+  "lastRunFinishedAt": "2026-05-19T19:13:43Z"
 }

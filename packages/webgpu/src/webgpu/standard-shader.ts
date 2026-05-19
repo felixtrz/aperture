@@ -1314,6 +1314,32 @@ function applyStandardShadowMapSampling(code: string): string {
       `const STANDARD_SHADOW_MIN_VISIBILITY: f32 = 0.45;
 const STANDARD_SHADOW_DEPTH_BIAS: f32 = 0.002;
 
+fn sampleDirectionalShadowPcf3x3(shadowUv: vec2f, receiverDepth: f32) -> f32 {
+  let shadowDimensions = textureDimensions(directionalShadowMap);
+  let shadowMapSize = vec2f(f32(shadowDimensions.x), f32(shadowDimensions.y));
+  let texelSize = 1.0 / max(shadowMapSize, vec2f(1.0));
+  var visibility = 0.0;
+
+  for (var y: i32 = -1; y <= 1; y = y + 1) {
+    for (var x: i32 = -1; x <= 1; x = x + 1) {
+      let sampleUv = clamp(
+        shadowUv + vec2f(f32(x), f32(y)) * texelSize,
+        vec2f(0.0),
+        vec2f(1.0),
+      );
+
+      visibility = visibility + textureSampleCompareLevel(
+        directionalShadowMap,
+        directionalShadowSampler,
+        sampleUv,
+        receiverDepth,
+      );
+    }
+  }
+
+  return visibility * (1.0 / 9.0);
+}
+
 fn sampleDirectionalShadowFactor(worldPosition: vec3f) -> f32 {
   if (arrayLength(&directionalShadowMatrices) == 0u) {
     return 1.0;
@@ -1348,9 +1374,7 @@ fn sampleDirectionalShadowFactor(worldPosition: vec3f) -> f32 {
     0.0,
     1.0,
   );
-  let rawVisibility = textureSampleCompareLevel(
-    directionalShadowMap,
-    directionalShadowSampler,
+  let rawVisibility = sampleDirectionalShadowPcf3x3(
     clampedShadowUv,
     receiverDepth,
   );

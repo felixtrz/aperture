@@ -868,12 +868,17 @@ async function publishFrameStatus(aperture, app, scene, step, report, frame) {
       bindGroupLayout: standardMaterialShadowBindGroupLayout,
       standardMaterial: standardMaterialShadow,
       rendering: {
-        supported: false,
+        supported:
+          enableShadowReceiver &&
+          shadowPassCommandBufferSubmissionReport.status === "submitted" &&
+          standardMaterialShadowReceiverBinding.status === "ready",
+        mode: "directional-depth-compare",
+        filter: "pcf-3x3",
         diagnostic: {
-          code: "gltfScene.shadowMapDeferred",
-          severity: "warning",
+          code: "gltfScene.shadowMapActive",
+          severity: "info",
           message:
-            "GLTF scene shadow request is extracted, but shadow-map pass creation and StandardMaterial shadow sampling are not implemented yet.",
+            "GLTF scene shadow request is rendered through the submitted shadow depth pass and StandardMaterial shadow-map pipeline.",
         },
       },
     },
@@ -990,7 +995,11 @@ function createReadinessGrouping(input) {
       input.standardMaterialShadowBindGroupResource.status,
     ),
     standardMaterial: input.standardMaterialShadow.status,
-    rendering: "deferred",
+    rendering:
+      input.shadowPassCommandBufferSubmission.status === "submitted" &&
+      input.standardMaterialShadowReceiverBinding.status === "ready"
+        ? "ready"
+        : "deferred",
   };
 
   return {

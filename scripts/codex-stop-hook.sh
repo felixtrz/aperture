@@ -49,11 +49,11 @@ commit_all_changes() {
   status_before_commit="$(git status --short --untracked-files=all)"
 
   if [[ -z "$status_before_commit" ]]; then
-    echo "No changes to checkpoint; working tree is already clean."
+    echo "No remaining changes to checkpoint; working tree is already clean."
     return
   fi
 
-  echo "Checkpointing all repository changes:"
+  echo "Checkpointing remaining uncommitted repository changes:"
   printf '%s\n' "$status_before_commit"
 
   if ! git add -A; then
@@ -126,7 +126,7 @@ echo "Stop gate current minute-of-hour: $minute_of_hour"
 
 if ((10#$minute_of_hour < 55)); then
   echo "Blocking stop attempt before minute 55 of the hour."
-  emit_continue_request "current minute is $minute_of_hour; keep working until minute 55 of the hour."
+  emit_continue_request "current minute is $minute_of_hour; do not wait, sleep, poll, or idle for minute 55. Continue active repository work on the next coherent ready task until the work window is actually exhausted. It is OK if that work runs past minute 55; agent/STATUS.json and handoff state will block overlapping automation runs."
   exit 0
 fi
 

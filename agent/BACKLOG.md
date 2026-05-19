@@ -59,7 +59,7 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start with `task-2009`: multi-asset switching in `glb-viewer` with three sample `.glb` files.
+Start with `task-2012`: add point-light shadow cube map and render a visible point-light shadow.
 
 `task-2001` is complete: the spinning-cube example now creates a renderer-owned face-colored diffuse IBL cube texture and sampler, routes it through the StandardMaterial diffuse IBL shader variant, and Playwright verifies direction-dependent face pixels.
 `task-2002` is complete: `withEnvironmentMap(handle)` is exported from runtime/core and materials-showcase now uses it with visible diffuse IBL routing.
@@ -69,6 +69,9 @@ Start with `task-2009`: multi-asset switching in `glb-viewer` with three sample 
 `task-2006` is complete: `loadGlbFromUri(url, options)` is exported from `@aperture-engine/render`, fetches GLB bytes into the existing no-fetch facade, and reports typed URL/fetch/HTTP/read/loader diagnostics.
 `task-2007` is complete: `examples/glb-viewer.html` fetches `examples/assets/cube.glb` with `loadGlbFromUri(...)`, registers/replays the GLB source assets through ECS, and Playwright verifies a visible rendered draw.
 `task-2008` is complete: `glb-viewer` has pointer-drag orbit and wheel zoom controls over the ECS camera transform, with Playwright proving drag changes rendered pixels.
+`task-2009` is complete: `glb-viewer` has a three-asset selector, destroys the previous replayed ECS scene before loading the next GLB, and Playwright proves switched assets render different pixels.
+`task-2010` is complete: `gltf-scene` now reports active directional shadow rendering through the submitted shadow depth pass and StandardMaterial shadow-map pipeline, and Playwright asserts the receiver region darkens.
+`task-2011` is complete: StandardMaterial directional shadow sampling now uses a 3x3 PCF comparison filter, publishes the active PCF mode in `gltf-scene`, and targeted browser coverage still passes.
 
 Reference anchors (read both before writing WGSL):
 
@@ -217,6 +220,8 @@ Acceptance criteria:
 
 ### task-2009 — Multi-asset switching in glb-viewer with three sample `.glb` files
 
+Status: completed 2026-05-19. See `agent/COMPLETED.md`.
+
 Category: `runtime-orchestration`
 Package/write-scope: `examples/glb-viewer.js`, `examples/glb-viewer.html`, `examples/assets/`, targeted tests.
 Reference anchor: `references/three.js/examples/webgl_loader_gltf.html` (sample-switching UI patterns).
@@ -227,6 +232,8 @@ Acceptance criteria:
 - Playwright switches dropdown and asserts pixel difference between selections.
 
 ### task-2010 — Execute shadow depth pass and render visible directional shadow in gltf-scene
+
+Status: completed 2026-05-19. See `agent/COMPLETED.md`.
 
 Category: `webgpu-render`
 Package/write-scope: `packages/webgpu/src/`, `examples/gltf-scene.js`, `test/e2e/gltf-scene.spec.ts`.
@@ -244,6 +251,8 @@ Acceptance criteria:
 - Playwright pixel under the shadow is measurably darker than an unshadowed pixel.
 
 ### task-2011 — Add 3×3 PCF soft-shadow filtering for directional light
+
+Status: completed 2026-05-19. See `agent/COMPLETED.md`.
 
 Category: `webgpu-render`
 Package/write-scope: `packages/webgpu/src/`, targeted tests.
@@ -287,7 +296,31 @@ Acceptance criteria:
 - New `examples/multi-light-shadow.html` with all three light types active casts three distinct shadows on a shared plane.
 - Playwright pixel sampling at six named coordinates distinguishes each shadow region.
 
-Future MVP slices (animation playback for glb-viewer, IBL composition with shadow receivers, performance pass) will be queued after these land. They are not in the initial 5-ready-task floor.
+### task-2015 — Add caster/receiver shadow toggles to gltf-scene
+
+Category: `runtime-orchestration`
+Package/write-scope: `examples/gltf-scene.js`, `examples/gltf-scene.html`, `test/e2e/gltf-scene.spec.ts`.
+Reference anchor: `references/bevy/examples/3d/shadow_caster_receiver.rs` (caster/receiver toggles over ECS-authored renderables).
+
+Acceptance criteria:
+
+- `examples/gltf-scene.html` exposes caster and receiver toggles without replacing the ECS/render extraction path.
+- Toggling receiver mode removes the visible receiver darkening while keeping the scene rendered.
+- Playwright toggles receiver mode and asserts the shadow-region luminance returns toward the unshadowed baseline.
+
+### task-2016 — Add URL-driven GLB loading to glb-viewer
+
+Category: `runtime-orchestration`
+Package/write-scope: `examples/glb-viewer.js`, `examples/glb-viewer.html`, targeted tests.
+Reference anchor: `references/three.js/examples/webgl_loader_gltf.html` (model URL selection and stale-load guard).
+
+Acceptance criteria:
+
+- `glb-viewer` accepts a typed `.glb` URL in addition to the three committed sample assets.
+- Loading a custom URL destroys the previous replayed ECS scene and reports the selected URL in JSON-safe status.
+- Playwright loads a local sample URL through the custom URL control and asserts one rendered mesh draw plus changed pixels.
+
+Future MVP slices (animation playback for glb-viewer, IBL composition with shadow receivers, performance pass) remain candidates after these visible feature tasks.
 
 ## Ready Tasks By Category
 

@@ -137,6 +137,25 @@ Run relevant validation:
 
 If validation fails, fix if straightforward. If not, stop and document the failure.
 
+## 6.5 Commit Completed Feature Slices
+
+After a coherent feature slice is implemented, validated, and documented in the
+agent files, you may make an interim commit before selecting the next task. This
+is encouraged when the next task would otherwise mix unrelated work into the
+same diff.
+
+Rules:
+
+- Commit only completed, validated work and the bookkeeping that describes it.
+- Do not wait for the final stop hook just to create the first commit.
+- Do not use interim commits to hide failing validation or incomplete
+  scaffolding.
+- After committing, continue active work if the work window remains open and a
+  ready visible-feature task remains.
+
+The stop hook remains a final safety net that commits any remaining
+uncommitted changes and pushes the branch. It is not the only commit point.
+
 ## 7. Audits Are Demand-Driven, Not Periodic
 
 Do not run audits on a cadence. The standing audit is the test suite: `check:boundaries`, `typecheck`, `lint`, `vitest`, and `playwright`. If those pass, the architecture invariants are intact.
@@ -246,9 +265,9 @@ Before returning your final response, run:
 scripts/codex-stop-hook.sh
 ```
 
-The stop hook validates required state, checkpoints all repository changes, and
-pushes the current branch to its configured upstream. If the push fails, treat
-that as a stop-hook failure and document/fix it before stopping.
+The stop hook validates required state, checkpoints any remaining uncommitted
+changes, and pushes the current branch to its configured upstream. If the push
+fails, treat that as a stop-hook failure and document/fix it before stopping.
 
 If it returns a continuation request or records failures in `agent/logs`, address the failures if straightforward, update the handoff, and run it again.
 

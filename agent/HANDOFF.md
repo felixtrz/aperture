@@ -1,6 +1,70 @@
 # Agent Handoff
 
-Updated: 2026-05-19T18:46:03Z
+Updated: 2026-05-19T19:13:43Z
+
+## Current Run Update — 2026-05-19T19:13:43Z — GLB viewer switching and active directional shadows
+
+Completed `task-2009`, `task-2010`, and `task-2011`.
+
+### What changed
+
+- Added `examples/assets/amber-slab.glb` and
+  `examples/assets/sapphire-pillar.glb` alongside the existing cube fixture.
+- Added a three-asset selector to `examples/glb-viewer.html` and
+  `examples/glb-viewer.js`.
+- Switching GLB assets now destroys the previous replayed ECS scene before
+  loading and replaying the next GLB through the public URI loader and app path.
+- Updated `examples/gltf-scene.js` so the directional shadow path reports active
+  rendering when the shadow pass has been submitted and receiver bindings are
+  ready.
+- StandardMaterial directional shadow sampling now uses a 3x3 PCF comparison
+  filter instead of a single comparison sample.
+- Updated public tracker pages and added two ready follow-up tasks so the ready
+  queue remains above the visible-feature floor.
+
+### References inspected
+
+- `references/three.js/examples/webgl_loader_gltf.html`
+- `references/three.js/src/lights/DirectionalLightShadow.js`
+- `references/three.js/src/lights/LightShadow.js`
+- `references/engine/src/scene/renderer/shadow-renderer-directional.js`
+- `references/engine/src/scene/renderer/render-pass-shadow-directional.js`
+- `references/bevy/examples/3d/shadow_caster_receiver.rs`
+- `references/three.js/src/renderers/shaders/ShaderChunk/shadowmap_pars_fragment.glsl.js`
+- `references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/lighting/shadowPCF3.js`
+
+### Validation
+
+- `node --check examples/glb-viewer.js`
+- `node --check examples/gltf-scene.js`
+- `pnpm run build`
+- `pnpm run typecheck:test`
+- `pnpm run check:examples`
+- `pnpm run check:progress`
+- `pnpm run lint`
+- `pnpm run format:check`
+- `pnpm exec vitest run test/webgpu/standard-shader.test.ts`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts`
+- `pnpm exec playwright test test/e2e/gltf-scene.spec.ts`
+
+### Known issues
+
+- GLB viewer unload currently destroys replayed ECS entities; source assets are
+  retained in the registry under unique per-load prefixes.
+- Directional shadow PCF is a fixed 3x3 filter; there is no public quality
+  control yet.
+- Point-light and spot-light shadow paths remain unimplemented.
+- Inspected `task-2012` references after the stop hook requested continuation.
+  Point-light cube-map shadows require a broader shadow contract extension:
+  shadow requests need light kind/face information, the WebGPU layer needs six
+  point-light face view/projection plans and cube or layered depth resources,
+  and StandardMaterial needs point-shadow sampling. This should start cleanly in
+  the next run rather than being partially mixed into the completed directional
+  shadow/GLB viewer diff.
+
+### Recommended next task
+
+`task-2012 — Add point-light shadow cube map and render visible point-light shadow`.
 
 ## Current Run Update — 2026-05-19T18:46:03Z — GLB viewer orbit camera control
 

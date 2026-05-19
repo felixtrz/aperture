@@ -1,5 +1,86 @@
 # Completed Tasks
 
+## task-2011 — Add 3×3 PCF soft-shadow filtering for directional light
+
+Completed: 2026-05-19
+
+Summary:
+
+- Updated StandardMaterial directional shadow-map sampling to average a 3x3
+  comparison-sampler neighborhood around the projected shadow UV.
+- Published `shadow.rendering.filter: "pcf-3x3"` in `examples/gltf-scene.js`.
+- Updated shader metadata coverage and GLTF scene Playwright assertions for the
+  active PCF shadow path.
+
+References inspected:
+
+- `references/three.js/src/renderers/shaders/ShaderChunk/shadowmap_pars_fragment.glsl.js`
+- `references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/lighting/shadowPCF3.js`
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/standard-shader.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm exec playwright test test/e2e/gltf-scene.spec.ts`
+
+## task-2010 — Execute shadow depth pass and render visible directional shadow in gltf-scene
+
+Completed: 2026-05-19
+
+Summary:
+
+- Updated `examples/gltf-scene.js` to report active directional shadow
+  rendering when the shadow pass command buffer is submitted and StandardMaterial
+  receiver bindings are ready.
+- Changed the GLTF scene shadow rendering status from deferred to active
+  `directional-depth-compare` mode.
+- Extended Playwright coverage to assert the receiver region darkens when
+  StandardMaterial shadow sampling is enabled.
+
+References inspected:
+
+- `references/three.js/src/lights/DirectionalLightShadow.js`
+- `references/three.js/src/lights/LightShadow.js`
+- `references/engine/src/scene/renderer/shadow-renderer-directional.js`
+- `references/engine/src/scene/renderer/render-pass-shadow-directional.js`
+- `references/bevy/examples/3d/shadow_caster_receiver.rs`
+
+Validation:
+
+- `node --check examples/gltf-scene.js`
+- `pnpm run typecheck:test`
+- `pnpm exec playwright test test/e2e/gltf-scene.spec.ts`
+
+## task-2009 — Multi-asset switching in glb-viewer with three sample `.glb` files
+
+Completed: 2026-05-19
+
+Summary:
+
+- Added two additional committed local GLB fixtures,
+  `examples/assets/amber-slab.glb` and
+  `examples/assets/sapphire-pillar.glb`, alongside the existing mint cube.
+- Added a GLB asset selector to `examples/glb-viewer.html` and
+  `examples/glb-viewer.js`.
+- Switching assets destroys the previous replayed GLB ECS entities before
+  loading and replaying the next scene through `loadGlbFromUri(...)`, source
+  asset registration, material resolution, ECS command replay, extraction, and
+  WebGPU rendering.
+- Extended browser status with JSON-safe selected-asset state and extended
+  Playwright coverage to switch assets and assert canvas pixels change.
+
+References inspected:
+
+- `references/three.js/examples/webgl_loader_gltf.html`
+
+Validation:
+
+- `node --check examples/glb-viewer.js`
+- `pnpm run typecheck:test`
+- `pnpm run check:examples`
+- `pnpm run build`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts`
+
 ## task-2008 — Add orbit camera control to glb-viewer
 
 Completed: 2026-05-19
