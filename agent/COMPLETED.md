@@ -1,5 +1,39 @@
 # Completed Tasks
 
+## task-2017 — Replace point-shadow occupancy proof with projected depth compare
+
+Completed: 2026-05-19
+
+Summary:
+
+- Updated StandardMaterial point-shadow WGSL so cube-map receiver sampling
+  compares against the selected cube-face projected receiver depth, clamped and
+  biased, instead of a constant near-1.0 reference.
+- Added shader unit coverage proving the point-shadow variant no longer uses
+  the constant occupancy reference.
+- Extended `test/e2e/point-shadow.spec.ts` with named receiver-wall samples:
+  one near-light pixel must remain lit while mid and far-side pixels darken
+  strongly, with the WebGPU validation guard still clean.
+- Updated public progress trackers to remove point-shadow depth compare from
+  the deferred list and recommend the spot-shadow slice next.
+
+References inspected:
+
+- `references/three.js/src/lights/PointLightShadow.js`
+- `references/engine/src/scene/renderer/shadow-renderer-local.js`
+- `references/engine/src/scene/renderer/render-pass-shadow-local-non-clustered.js`
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/standard-shader.test.ts`
+- `pnpm exec playwright test test/e2e/point-shadow.spec.ts`
+
+Known follow-up:
+
+- This slice fixes the visible point-shadow compare path. A future precision
+  task can add explicit per-fragment radial depth storage if multi-caster or
+  cube-face seam tests expose a need beyond projected cube-face depth.
+
 ## task-2012 — Add point-light shadow cube map and render visible point-light shadow
 
 Completed: 2026-05-19
@@ -13,8 +47,6 @@ Summary:
   view/projection planning, and point shadow matrix upload.
 - Added StandardMaterial point-shadow pipeline keys, group 3 cube-depth receiver
   bindings, WGSL point-light direct lighting, and point-shadow cube-map sampling.
-- Refined point-shadow sampling to compare against the clamped projected
-  receiver depth rather than a constant reference depth.
 - Added `examples/point-shadow.html` / `examples/point-shadow.js` with a point
   light, cube caster, receiver wall, caster/receiver toggles, JSON-safe status,
   and Playwright coverage proving the receiver changes when point-shadow
@@ -45,9 +77,8 @@ Validation:
 
 Known follow-up:
 
-- The current visible point-shadow proof uses conservative cube-map occupancy
-  behavior. `task-2017` should replace that with distance-accurate radial depth
-  writes and localized point-shadow sampling.
+- Completed by `task-2017`: point-shadow receiver sampling now uses projected
+  cube-face receiver depth instead of the earlier constant occupancy reference.
 
 ## task-2015 — Add caster/receiver shadow toggles to gltf-scene
 

@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-19 13:56 PDT</dd>
+            <dd>2026-05-19 14:11 PDT</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -410,87 +410,88 @@
               resource/pass readiness diagnostics. StandardMaterial IBL and
               directional shadow sampling are now active in the GLTF scene, and
               a new point-shadow example allocates a cube depth texture, submits
-              six point-light shadow faces, and routes StandardMaterial through
-              a point-shadow cube-map sampling variant. Broader PMREM, spot
-              shadows, and distance-accurate point shadow depth remain deferred.
-              The GLTF scene now exposes live caster/receiver shadow toggles,
-              and Playwright verifies receiver-off luminance returns toward the
-              unshadowed baseline while the ECS-authored scene keeps rendering.
-              The descriptor alignment audit is complete, data-only shadow
-              texture resource descriptors are exposed, the first JSON-safe
-              shadow pass plan report now shows stable pass keys plus deferred
-              submission state, and StandardMaterial shadow readiness
-              diagnostics now classify the scene as deferred until pass
-              submission and shader sampling exist, and IBL texture preparation
-              descriptors now classify diffuse/specular texture upload and
-              prefiltering as deferred; the post-descriptor GLTF scene resource
-              alignment audit confirms the reports remain ECS-derived,
-              renderer-owned, WebGPU-only, JSON-safe, and diagnostic-only. The
-              resource dashboard audit is complete, IBL texture preparation pass
-              planning now reports deferred diffuse/specular preparation passes,
-              and directional shadow view/projection planning now exposes stable
-              matrix keys with deferred computation, and shadow caster draw-list
-              planning now reports caster filtering over the extracted GLTF
-              scene draws. StandardMaterial IBL/shadow shader binding readiness
-              now exposes deferred IBL and shadow slot metadata, and the first
-              IBL/shadow planning-chain audit confirms this path is still
+              six point-light shadow faces, routes StandardMaterial through a
+              point-shadow cube-map sampling variant, and compares the receiver
+              against projected cube-face depth so near wall pixels remain lit
+              while far-side samples darken. Broader PMREM and spot shadows
+              remain deferred. The GLTF scene now exposes live caster/receiver
+              shadow toggles, and Playwright verifies receiver-off luminance
+              returns toward the unshadowed baseline while the ECS-authored
+              scene keeps rendering. The descriptor alignment audit is complete,
+              data-only shadow texture resource descriptors are exposed, the
+              first JSON-safe shadow pass plan report now shows stable pass keys
+              plus deferred submission state, and StandardMaterial shadow
+              readiness diagnostics now classify the scene as deferred until
+              pass submission and shader sampling exist, and IBL texture
+              preparation descriptors now classify diffuse/specular texture
+              upload and prefiltering as deferred; the post-descriptor GLTF
+              scene resource alignment audit confirms the reports remain
               ECS-derived, renderer-owned, WebGPU-only, JSON-safe, and
-              diagnostic-only. Shadow matrix buffer descriptor planning now
-              exposes stable matrix buffer keys, byte counts, and deferred
-              upload status. IBL preparation resource summaries, live diffuse
-              IBL texture/view allocation, IBL sampler descriptors, live IBL
-              sampler allocation, a compact diffuse IBL live-resource summary,
-              shadow command-plan readiness, shadow command resource summaries,
-              StandardMaterial IBL/shadow pipeline-key metadata, scratch-backed
-              IBL/shadow status writers, and compact top-level IBL/shadow
-              readiness grouping are now exposed. Live shadow depth texture/view
-              allocation, compact shadow depth resource summaries, a live IBL
-              cache-direction audit, a StandardMaterial IBL bind-group layout
-              slice plan, and a GLTF live-resource status-growth audit are now
-              complete. Descriptor-only StandardMaterial IBL bind-group layout
-              metadata, an IBL app-cache integration plan, a first shadow matrix
-              upload plan, a GLTF status grouping audit, a StandardMaterial
-              shadow bind-group layout plan, computed directional shadow
-              matrices, StandardMaterial shadow bind-group layout metadata, IBL
-              group 4 descriptor planning, live specular IBL texture/view
-              allocation, and follow-up status/layout audits are now complete.
-              IBL resources now reuse a private WebGPU app environment cache,
-              live StandardMaterial group 4 IBL bind groups are created and
-              reported, directional shadow matrices now allocate/upload a
-              renderer-owned matrix buffer, StandardMaterial shadow group 5
-              descriptor plans now report matrix-buffer plus depth-texture
-              entries, and live shadow sampler plus group 5 bind-group resources
-              are created and cached. The live IBL/shadow resource boundary
-              audit confirms these resources remain renderer-owned and
-              JSON-safe, and the GLTF scene status now exposes a JSON-safe
-              shadow pass command-encoding report with per-pass command records
-              and draw counts while pass submission and shader shadow sampling
-              remain deferred. It now also exposes depth-only shadow caster
-              pipeline descriptor metadata, shadow pass depth attachment
-              descriptors over live shadow depth views, and per-caster
-              frame-resource readiness over prepared mesh buffers, the live
-              shadow matrix buffer resource, and the selected shadow caster
-              pipeline descriptor. The first live shadow pass encoder
-              integration plan selected shadow pass encoder assembly as the next
-              slice before command-buffer submission or shader sampling. The
-              GLTF status now exposes JSON-safe shadow caster command-record
-              readiness: ready per-caster frame resources map to executable
-              render pass commands. Live depth-only shadow caster pipeline
-              resources and group-0 matrix bind-group resources are now created,
-              cached, reported in JSON-safe form, and used by the command-record
-              planner. The GLTF status also feeds those executable commands into
-              live shadow encoder assembly: one planned depth pass begins,
-              executes three indexed caster draws, and ends before a JSON-safe
-              command-buffer submission report finishes the encoder while queue
-              submission remains deferred. The shadow caster pipeline and matrix
-              bind group now share an explicit pipeline layout, avoiding WebGPU
-              validation warnings during the depth-only pass. The receiver side
-              now reports StandardMaterial access to the finished shadow command
-              buffer, matrix buffer, shadow depth view, shadow sampler, and
-              group 5 bind group. StandardMaterial now has a shadow-map shader
-              variant with browser-safe group 3 matrix/depth/sampler bindings
-              and a deterministic 3x3 PCF directional shadow factor; Chrome
-              reports
+              diagnostic-only. The resource dashboard audit is complete, IBL
+              texture preparation pass planning now reports deferred
+              diffuse/specular preparation passes, and directional shadow
+              view/projection planning now exposes stable matrix keys with
+              deferred computation, and shadow caster draw-list planning now
+              reports caster filtering over the extracted GLTF scene draws.
+              StandardMaterial IBL/shadow shader binding readiness now exposes
+              deferred IBL and shadow slot metadata, and the first IBL/shadow
+              planning-chain audit confirms this path is still ECS-derived,
+              renderer-owned, WebGPU-only, JSON-safe, and diagnostic-only.
+              Shadow matrix buffer descriptor planning now exposes stable matrix
+              buffer keys, byte counts, and deferred upload status. IBL
+              preparation resource summaries, live diffuse IBL texture/view
+              allocation, IBL sampler descriptors, live IBL sampler allocation,
+              a compact diffuse IBL live-resource summary, shadow command-plan
+              readiness, shadow command resource summaries, StandardMaterial
+              IBL/shadow pipeline-key metadata, scratch-backed IBL/shadow status
+              writers, and compact top-level IBL/shadow readiness grouping are
+              now exposed. Live shadow depth texture/view allocation, compact
+              shadow depth resource summaries, a live IBL cache-direction audit,
+              a StandardMaterial IBL bind-group layout slice plan, and a GLTF
+              live-resource status-growth audit are now complete.
+              Descriptor-only StandardMaterial IBL bind-group layout metadata,
+              an IBL app-cache integration plan, a first shadow matrix upload
+              plan, a GLTF status grouping audit, a StandardMaterial shadow
+              bind-group layout plan, computed directional shadow matrices,
+              StandardMaterial shadow bind-group layout metadata, IBL group 4
+              descriptor planning, live specular IBL texture/view allocation,
+              and follow-up status/layout audits are now complete. IBL resources
+              now reuse a private WebGPU app environment cache, live
+              StandardMaterial group 4 IBL bind groups are created and reported,
+              directional shadow matrices now allocate/upload a renderer-owned
+              matrix buffer, StandardMaterial shadow group 5 descriptor plans
+              now report matrix-buffer plus depth-texture entries, and live
+              shadow sampler plus group 5 bind-group resources are created and
+              cached. The live IBL/shadow resource boundary audit confirms these
+              resources remain renderer-owned and JSON-safe, and the GLTF scene
+              status now exposes a JSON-safe shadow pass command-encoding report
+              with per-pass command records and draw counts while pass
+              submission and shader shadow sampling remain deferred. It now also
+              exposes depth-only shadow caster pipeline descriptor metadata,
+              shadow pass depth attachment descriptors over live shadow depth
+              views, and per-caster frame-resource readiness over prepared mesh
+              buffers, the live shadow matrix buffer resource, and the selected
+              shadow caster pipeline descriptor. The first live shadow pass
+              encoder integration plan selected shadow pass encoder assembly as
+              the next slice before command-buffer submission or shader
+              sampling. The GLTF status now exposes JSON-safe shadow caster
+              command-record readiness: ready per-caster frame resources map to
+              executable render pass commands. Live depth-only shadow caster
+              pipeline resources and group-0 matrix bind-group resources are now
+              created, cached, reported in JSON-safe form, and used by the
+              command-record planner. The GLTF status also feeds those
+              executable commands into live shadow encoder assembly: one planned
+              depth pass begins, executes three indexed caster draws, and ends
+              before a JSON-safe command-buffer submission report finishes the
+              encoder while queue submission remains deferred. The shadow caster
+              pipeline and matrix bind group now share an explicit pipeline
+              layout, avoiding WebGPU validation warnings during the depth-only
+              pass. The receiver side now reports StandardMaterial access to the
+              finished shadow command buffer, matrix buffer, shadow depth view,
+              shadow sampler, and group 5 bind group. StandardMaterial now has a
+              shadow-map shader variant with browser-safe group 3
+              matrix/depth/sampler bindings and a deterministic 3x3 PCF
+              directional shadow factor; Chrome reports
               <code>maxBindGroups: 4</code>, and combined light/shadow group 3
               resource helpers now exist. The app facade now routes
               shadow-capable StandardMaterial draws through the combined group 3

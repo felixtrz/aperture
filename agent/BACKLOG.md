@@ -59,7 +59,7 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start with `task-2017`: replace the conservative point-shadow occupancy proof with distance-accurate point-light depth compare.
+Start with `task-2013`: add spot-light shadow projection and render a visible spot-light shadow.
 
 `task-2001` is complete: the spinning-cube example now creates a renderer-owned face-colored diffuse IBL cube texture and sampler, routes it through the StandardMaterial diffuse IBL shader variant, and Playwright verifies direction-dependent face pixels.
 `task-2002` is complete: `withEnvironmentMap(handle)` is exported from runtime/core and materials-showcase now uses it with visible diffuse IBL routing.
@@ -72,6 +72,7 @@ Start with `task-2017`: replace the conservative point-shadow occupancy proof wi
 `task-2009` is complete: `glb-viewer` has a three-asset selector, destroys the previous replayed ECS scene before loading the next GLB, and Playwright proves switched assets render different pixels.
 `task-2010` is complete: `gltf-scene` now reports active directional shadow rendering through the submitted shadow depth pass and StandardMaterial shadow-map pipeline, and Playwright asserts the receiver region darkens.
 `task-2011` is complete: StandardMaterial directional shadow sampling now uses a 3x3 PCF comparison filter, publishes the active PCF mode in `gltf-scene`, and targeted browser coverage still passes.
+`task-2017` is complete: StandardMaterial point-shadow sampling now compares against clamped projected cube-face receiver depth instead of a constant occupancy reference, and Playwright samples named receiver coordinates to prove near wall pixels remain lit while mid/far samples darken without WebGPU warnings.
 
 Reference anchors (read both before writing WGSL):
 
@@ -277,6 +278,8 @@ Acceptance criteria:
 - Playwright pixel readback at three named coordinates around the cube shows shadow on the far side and light on the near side.
 
 ### task-2017 — Replace point-shadow occupancy proof with radial depth compare
+
+Status: completed 2026-05-19. See `agent/COMPLETED.md`.
 
 Category: `webgpu-render`
 Package/write-scope: `packages/webgpu/src/`, `examples/point-shadow.js`, `test/e2e/point-shadow.spec.ts`, targeted tests.

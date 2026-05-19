@@ -1,11 +1,11 @@
 {
   "state": "idle",
-  "currentTaskId": "task-2017",
+  "currentTaskId": "task-2013",
   "currentRunStartedAt": null,
-  "lastRunStartedAt": "2026-05-19T20:02:26Z",
+  "lastRunStartedAt": "2026-05-19T21:04:19Z",
   "lastResult": "success",
   "lastCommit": "interim-feature-commit",
   "activePid": null,
-  "notes": "Completed task-2012 point-light cube-map shadow proof. Recommended next: task-2017 radial point-depth compare.",
-  "lastRunFinishedAt": "2026-05-19T21:08:50Z"
+  "notes": "Completed task-2017 point-shadow projected-depth compare. Recommended next: task-2013 spot-light shadow projection.",
+  "lastRunFinishedAt": "2026-05-19T21:14:35Z"
 }

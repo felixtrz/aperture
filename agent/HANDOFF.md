@@ -1,6 +1,45 @@
 # Agent Handoff
 
-Updated: 2026-05-19T21:08:50Z
+Updated: 2026-05-19T21:11:48Z
+
+## Current Run Update — 2026-05-19T21:11:48Z — Point shadow projected-depth compare
+
+Completed `task-2017`.
+
+### What changed
+
+- Updated StandardMaterial point-shadow cube sampling so the receiver compares
+  against the selected cube-face projected depth, clamped and biased, instead
+  of the previous constant near-1.0 occupancy reference.
+- Added shader unit coverage for the point-shadow variant to lock out the old
+  constant compare reference.
+- Tightened `test/e2e/point-shadow.spec.ts` with three named receiver-wall
+  samples: a near-light sample stays lit while mid and far-side samples darken
+  strongly, with no WebGPU validation warnings.
+- Updated public tracker pages, backlog, and completed-task notes. Recommended
+  next task is now the spot-light shadow slice.
+
+### References inspected
+
+- `references/three.js/src/lights/PointLightShadow.js`
+- `references/engine/src/scene/renderer/shadow-renderer-local.js`
+- `references/engine/src/scene/renderer/render-pass-shadow-local-non-clustered.js`
+
+### Validation
+
+- `pnpm exec vitest run test/webgpu/standard-shader.test.ts`
+- `pnpm exec playwright test test/e2e/point-shadow.spec.ts`
+
+### Known issues
+
+- The point-shadow proof now uses real projected cube-face depth comparison for
+  visible receiver localization. Explicit per-fragment radial depth storage is
+  still a future precision task if multi-caster or cube-face seam tests require
+  it.
+
+### Recommended next task
+
+`task-2013 — Add spot-light shadow projection and render visible spot-light shadow`.
 
 ## Current Run Update — 2026-05-19T21:08:50Z — Point shadow cube-map proof
 
