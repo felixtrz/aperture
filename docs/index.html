@@ -830,10 +830,31 @@
               includes a separate buffer-backed source fixture proof with a
               ready mesh-construction summary. No-fetch facade output can also
               carry report-derived source-registration summaries without
-              registry mutation.
+              registry mutation. No-fetch source-loader output now has compact
+              ECS command-plan summaries for provided plans, and the facade can
+              attach them without ECS replay, registry mutation, or visible
+              GLB-derived scene rendering changes. The command-plan summary
+              adoption audit is complete, and report-only ECS replay readiness
+              is now implemented as the next preflight layer before any replay
+              execution surface. No-fetch output can explain whether a provided
+              command plan is ready or blocked without creating a world or
+              calling command replay. The replay-readiness audit is complete,
+              and the first controlled execution surface is planned as a
+              headless runtime replay facade. That runtime facade is now in
+              place, and replayed GLTF command plans can feed headless render
+              extraction while browser-visible GLB-derived rendering remains a
+              later slice. The controlled replay audit is complete, and the next
+              browser step is to route the existing GLTF scene replay through
+              the runtime facade with status coverage. That browser route is now
+              in place and audited; the next step is a status-only buffer-backed
+              GLB command-plan and replay-readiness proof. That proof is now in
+              browser status and audited. The first buffer-backed primitive now
+              replays through runtime ECS into the browser render path with
+              extraction and WebGPU draw readbacks; source-driven material
+              mapping remains deferred.
             </dd>
             <dt>Next focus</dt>
-            <dd>Audit source-registration summary adoption</dd>
+            <dd>Audit visible buffer-backed GLB primitive replay proof</dd>
           </dl>
         </aside>
       </header>
@@ -1358,6 +1379,102 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">task-1975</span> Added visible
+                buffer-backed GLB primitive replay readback proof.
+              </li>
+              <li>
+                <span class="badge green">task-1974</span> Planned first visible
+                buffer-backed GLB primitive replay.
+              </li>
+              <li>
+                <span class="badge green">task-1973</span> Audited buffer-backed
+                GLB command-plan browser status proof.
+              </li>
+              <li>
+                <span class="badge green">task-1972</span> Added buffer-backed
+                GLB command-plan browser status proof.
+              </li>
+              <li>
+                <span class="badge green">task-1971</span> Planned buffer-backed
+                GLB command-plan browser status proof.
+              </li>
+              <li>
+                <span class="badge green">task-1970</span> Audited browser
+                runtime replay facade adoption.
+              </li>
+              <li>
+                <span class="badge green">task-1969</span> Routed GLTF browser
+                replay through the runtime facade.
+              </li>
+              <li>
+                <span class="badge green">task-1968</span> Planned the first
+                browser-visible GLB replay proof.
+              </li>
+              <li>
+                <span class="badge green">task-1967</span> Audited the
+                controlled ECS replay execution surface.
+              </li>
+              <li>
+                <span class="badge green">task-1966</span> Documented the
+                controlled ECS replay execution surface.
+              </li>
+              <li>
+                <span class="badge green">task-1965</span> Proved replayed GLTF
+                commands can feed headless extraction.
+              </li>
+              <li>
+                <span class="badge green">task-1964</span> Added the headless
+                runtime GLTF command-plan replay facade.
+              </li>
+              <li>
+                <span class="badge green">task-1963</span> Planned the first
+                controlled ECS replay execution surface.
+              </li>
+              <li>
+                <span class="badge green">task-1962</span> Audited ECS replay
+                readiness adoption.
+              </li>
+              <li>
+                <span class="badge green">task-1961</span> Documented ECS replay
+                readiness status.
+              </li>
+              <li>
+                <span class="badge green">task-1960</span> Attached replay
+                readiness to no-fetch output summaries.
+              </li>
+              <li>
+                <span class="badge green">task-1959</span> Added the ECS replay
+                readiness summary helper.
+              </li>
+              <li>
+                <span class="badge green">task-1958</span> Planned report-only
+                ECS replay readiness status.
+              </li>
+              <li>
+                <span class="badge green">task-1957</span> Audited ECS
+                command-plan summary adoption.
+              </li>
+              <li>
+                <span class="badge green">task-1956</span> Documented no-fetch
+                ECS command-plan summary status.
+              </li>
+              <li>
+                <span class="badge green">task-1955</span> Threaded ECS
+                command-plan summaries through the no-fetch facade.
+              </li>
+              <li>
+                <span class="badge green">task-1954</span> Added the compact ECS
+                command-plan output summary helper.
+              </li>
+              <li>
+                <span class="badge green">task-1953</span> Planned the no-fetch
+                ECS command-plan summary slice.
+              </li>
+              <li>
+                <span class="badge green">task-1952</span> Audited
+                source-registration summary adoption.
+              </li>
               <li>
                 <span class="badge green">task-1951</span> Documented
                 source-registration summary limitations.
@@ -2810,16 +2927,16 @@
             <h3>Recommended next tasks</h3>
             <ul>
               <li>
-                <span class="badge amber">next</span> Audit source-registration
-                summary adoption.
+                <span class="badge amber">next</span> Audit visible
+                buffer-backed GLB primitive replay proof.
               </li>
               <li>
-                Keep visible scene rendering stable while planning next source
-                step.
+                Confirm ECS ownership and source-loader/report boundaries, then
+                plan source-driven material mapping.
               </li>
               <li>
-                Keep full external loading, compression, and broad PBR
-                completeness deferred.
+                Keep external loading, broad viewer behavior, and new material
+                systems deferred.
               </li>
             </ul>
           </article>

@@ -5,13 +5,18 @@ import {
   LocalTransform,
   Material,
   Mesh,
+  Name,
+  Parent,
   RenderLayer,
   Spin,
   SpinSystem,
   Visibility,
   WorldTransform,
   assetHandleKey,
+  applyGltfEcsCommandPlanToApp,
   createBoxMeshAsset,
+  createGltfEcsAuthoringCommandPlan,
+  createGltfSceneTraversalReport,
   createCamera,
   createExtractionApp,
   createMaterialHandle,
@@ -27,6 +32,7 @@ import {
   withSpin,
   withTransform,
   withVisibility,
+  type GltfEcsAuthoringCommandPlan,
 } from "@aperture-engine/core";
 
 describe("runtime facade", () => {
@@ -113,4 +119,180 @@ describe("runtime facade", () => {
     expect(snapshot.meshDraws).toHaveLength(1);
     expect(snapshot.diagnostics).toEqual([]);
   });
+
+  it("applies a GLTF ECS command plan through an explicit runtime facade", () => {
+    const app = createSimulationApp({ worldOptions: { entityCapacity: 8 } });
+    const replay = applyGltfEcsCommandPlanToApp({
+      app,
+      plan: basicCommandPlan(),
+    });
+    const scene = replay.entitiesByKey.get("gltf:scene:0");
+    const node = replay.entitiesByKey.get("gltf:node:0");
+
+    expect(replay.valid).toBe(true);
+    expect(replay.created.map((entry) => entry.entityKey)).toEqual([
+      "gltf:scene:0",
+      "gltf:node:0",
+    ]);
+    expect(scene?.getValue(Name, "value")).toBe("Scene0");
+    expect(node?.getValue(Name, "value")).toBe("Node");
+    expect(node?.getValue(Parent, "entity")).toBe(scene);
+  });
+
+  it("does not create entities for invalid GLTF ECS command plans", () => {
+    const app = createSimulationApp({ worldOptions: { entityCapacity: 8 } });
+    const replay = applyGltfEcsCommandPlanToApp({
+      app,
+      plan: {
+        ...basicCommandPlan(),
+        valid: false,
+      },
+    });
+
+    expect(replay.valid).toBe(false);
+    expect(replay.created).toEqual([]);
+    expect(replay.entitiesByKey.size).toBe(0);
+    expect(replay.diagnostics).toMatchObject([
+      { code: "gltfEcsReplay.invalidPlan" },
+    ]);
+  });
+
+  it("extracts render packets from replayed GLTF ECS command plans headlessly", () => {
+    const app = createExtractionApp({ worldOptions: { entityCapacity: 12 } });
+    const meshHandle = createMeshHandle("gltf:mesh:0:primitive:0");
+    const materialHandle = createMaterialHandle("gltf:material:0");
+    const camera = app.world.createEntity();
+    const cameraTransform = createRootTransform({ translation: [0, 0, 5] });
+
+    app.assets.register(meshHandle);
+    app.assets.register(materialHandle);
+    app.assets.markReady(meshHandle, createBoxMeshAsset());
+    app.assets.markReady(materialHandle, createUnlitMaterialAsset());
+    camera.addComponent(WorldTransform, cameraTransform.world);
+    camera.addComponent(Camera, createCamera({ priority: 0, layerMask: 1 }));
+
+    const replay = applyGltfEcsCommandPlanToApp({
+      app,
+      plan: renderableCommandPlan(),
+    });
+    const snapshot = app.stepAndExtract(1 / 60, 1, 19);
+    const draw = snapshot.meshDraws[0];
+
+    expect(replay.valid).toBe(true);
+    expect(snapshot.frame).toBe(19);
+    expect(snapshot.views).toHaveLength(1);
+    expect(snapshot.meshDraws).toHaveLength(1);
+    expect(draw).toBeDefined();
+    if (draw === undefined) {
+      return;
+    }
+    expect(assetHandleKey(draw.mesh)).toBe(assetHandleKey(meshHandle));
+    expect(assetHandleKey(draw.material)).toBe(assetHandleKey(materialHandle));
+    expect(snapshot.diagnostics).toEqual([]);
+  });
 });
+
+function basicCommandPlan(): GltfEcsAuthoringCommandPlan {
+  return createGltfEcsAuthoringCommandPlan({
+    traversalReport: createGltfSceneTraversalReport({
+      root: {
+        asset: { version: "2.0" },
+        scene: 0,
+        scenes: [{ nodes: [0] }],
+        nodes: [{ name: "Node", translation: [1, 2, 3] }],
+      },
+    }),
+  });
+}
+
+function renderableCommandPlan(): GltfEcsAuthoringCommandPlan {
+  return {
+    valid: true,
+    sceneIndex: 0,
+    rootEntityKeys: ["gltf:scene:0"],
+    commands: [
+      { type: "createEntity", entityKey: "gltf:scene:0", label: "Scene0" },
+      {
+        type: "createEntity",
+        entityKey: "gltf:node:0:mesh:0:primitive:0",
+        label: "Primitive0",
+      },
+      {
+        type: "addComponent",
+        entityKey: "gltf:scene:0",
+        component: "Name",
+        value: { value: "Scene0" },
+      },
+      {
+        type: "addComponent",
+        entityKey: "gltf:scene:0",
+        component: "Parent",
+        value: { parentEntityKey: null },
+      },
+      {
+        type: "addComponent",
+        entityKey: "gltf:scene:0",
+        component: "LocalTransform",
+        value: {
+          translation: [0, 0, 0],
+          rotation: [0, 0, 0, 1],
+          scale: [1, 1, 1],
+        },
+      },
+      {
+        type: "addComponent",
+        entityKey: "gltf:scene:0",
+        component: "WorldTransform",
+        value: identityWorldTransformValue(),
+      },
+      {
+        type: "addComponent",
+        entityKey: "gltf:node:0:mesh:0:primitive:0",
+        component: "Parent",
+        value: { parentEntityKey: "gltf:scene:0" },
+      },
+      {
+        type: "addComponent",
+        entityKey: "gltf:node:0:mesh:0:primitive:0",
+        component: "WorldTransform",
+        value: identityWorldTransformValue(),
+      },
+      {
+        type: "addComponent",
+        entityKey: "gltf:node:0:mesh:0:primitive:0",
+        component: "Visibility",
+        value: { visible: true },
+      },
+      {
+        type: "addComponent",
+        entityKey: "gltf:node:0:mesh:0:primitive:0",
+        component: "Mesh",
+        value: {
+          meshId: "gltf:mesh:0:primitive:0",
+          handleKey: "mesh:gltf:mesh:0:primitive:0",
+        },
+      },
+      {
+        type: "addComponent",
+        entityKey: "gltf:node:0:mesh:0:primitive:0",
+        component: "Material",
+        value: {
+          materialId: "gltf:material:0",
+          handleKey: "material:gltf:material:0",
+        },
+      },
+    ],
+    dependencies: ["mesh:gltf:mesh:0:primitive:0", "material:gltf:material:0"],
+    skipped: [],
+    diagnostics: [],
+  };
+}
+
+function identityWorldTransformValue() {
+  return {
+    col0: [1, 0, 0, 0],
+    col1: [0, 1, 0, 0],
+    col2: [0, 0, 1, 0],
+    col3: [0, 0, 0, 1],
+  } as const;
+}

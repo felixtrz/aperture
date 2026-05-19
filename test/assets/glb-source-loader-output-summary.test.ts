@@ -8,7 +8,9 @@ import {
   GLB_HEADER_BYTE_LENGTH,
   GLB_JSON_CHUNK_TYPE,
   createGlbSourceLoaderOutputSummaryJsonValue,
+  createGltfEcsAuthoringCommandPlan,
   createGltfReportDrivenImportReportFromGlb,
+  createGltfSceneTraversalReport,
 } from "@aperture-engine/render";
 
 interface TestGlbChunk {
@@ -93,6 +95,20 @@ describe("GLB source-loader output summary", () => {
         diagnosticsCount: 0,
         stages: [],
       },
+      ecsCommandPlan: {
+        status: "absent",
+        valid: null,
+        sceneIndex: null,
+        rootEntityCount: 0,
+        commandCount: 0,
+        createEntityCount: 0,
+        addComponentCount: 0,
+        componentCounts: [],
+        dependencyCount: 0,
+        skippedCount: 0,
+        diagnosticsCount: 0,
+      },
+      ecsReplayReadiness: absentReplayReadiness(),
     });
   });
 
@@ -127,6 +143,20 @@ describe("GLB source-loader output summary", () => {
         diagnosticsCount: 0,
         stages: [],
       },
+      ecsCommandPlan: {
+        status: "absent",
+        valid: null,
+        sceneIndex: null,
+        rootEntityCount: 0,
+        commandCount: 0,
+        createEntityCount: 0,
+        addComponentCount: 0,
+        componentCounts: [],
+        dependencyCount: 0,
+        skippedCount: 0,
+        diagnosticsCount: 0,
+      },
+      ecsReplayReadiness: absentReplayReadiness(),
     });
     expect(serialized).not.toContain("Float32Array");
     expect(serialized).not.toContain("Uint16Array");
@@ -255,7 +285,128 @@ describe("GLB source-loader output summary", () => {
     expect(serialized).not.toContain("GPU");
     expect(serialized).not.toContain("entitiesByKey");
   });
+
+  it("summarizes valid ECS command plans without full command payloads", () => {
+    const report = createGltfReportDrivenImportReportFromGlb({
+      source: createGlb([jsonChunk(minimalRoot())]),
+    });
+    const commandPlan = createGltfEcsAuthoringCommandPlan({
+      traversalReport: createGltfSceneTraversalReport({
+        root: {
+          asset: { version: "2.0" },
+          scene: 0,
+          scenes: [{ nodes: [0] }],
+          nodes: [{ name: "Root" }],
+        },
+      }),
+    });
+
+    const summary = createGlbSourceLoaderOutputSummaryJsonValue(report, {
+      ecsCommandPlan: commandPlan,
+    });
+    const serialized = JSON.stringify(summary.ecsCommandPlan);
+
+    expect(summary.ecsCommandPlan).toEqual({
+      status: "ready",
+      valid: true,
+      sceneIndex: 0,
+      rootEntityCount: 1,
+      commandCount: 12,
+      createEntityCount: 2,
+      addComponentCount: 10,
+      componentCounts: [
+        { component: "Name", count: 2 },
+        { component: "LocalTransform", count: 2 },
+        { component: "Parent", count: 2 },
+        { component: "WorldTransform", count: 2 },
+        { component: "Visibility", count: 2 },
+      ],
+      dependencyCount: 0,
+      skippedCount: 0,
+      diagnosticsCount: 0,
+    });
+    expect(summary.ecsReplayReadiness).toMatchObject({
+      status: "ready",
+      ready: true,
+      expectedCreateEntityCount: 2,
+      expectedAddComponentCount: 10,
+      blockerCount: 0,
+      blockers: [],
+    });
+    expect(serialized).not.toContain("entityKey");
+    expect(serialized).not.toContain("label");
+    expect(serialized).not.toContain("value");
+    expect(serialized).not.toContain('LocalTransform":{"translation"');
+    expect(serialized).not.toContain("entitiesByKey");
+    expect(serialized).not.toContain("GPU");
+  });
+
+  it("summarizes invalid ECS command plans and skipped diagnostics", () => {
+    const report = createGltfReportDrivenImportReportFromGlb({
+      source: createGlb([jsonChunk(minimalRoot())]),
+    });
+    const commandPlan = createGltfEcsAuthoringCommandPlan({
+      traversalReport: createGltfSceneTraversalReport({
+        root: {
+          asset: { version: "2.0" },
+          scene: 0,
+          scenes: [{ nodes: [0] }],
+          nodes: [
+            {
+              name: "MatrixRoot",
+              matrix: [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 4, 5, 6, 1],
+            },
+          ],
+        },
+      }),
+    });
+
+    const summary = createGlbSourceLoaderOutputSummaryJsonValue(report, {
+      ecsCommandPlan: commandPlan,
+    });
+    const serialized = JSON.stringify(summary.ecsCommandPlan);
+
+    expect(commandPlan.valid).toBe(false);
+    expect(summary.ecsCommandPlan).toMatchObject({
+      status: "invalid",
+      valid: false,
+      sceneIndex: 0,
+      rootEntityCount: 1,
+      commandCount: 6,
+      createEntityCount: 1,
+      addComponentCount: 5,
+      dependencyCount: 0,
+      skippedCount: 1,
+      diagnosticsCount: 2,
+    });
+    expect(summary.ecsReplayReadiness).toMatchObject({
+      status: "blocked",
+      ready: false,
+      expectedCreateEntityCount: 1,
+      expectedAddComponentCount: 5,
+      blockerCount: 1,
+      blockers: [{ code: "gltfEcsReplayReadiness.invalidPlan", count: 1 }],
+    });
+    expect(serialized).not.toContain("MatrixRoot");
+    expect(serialized).not.toContain("matrix");
+    expect(serialized).not.toContain("commands");
+  });
 });
+
+function absentReplayReadiness() {
+  return {
+    status: "absent",
+    ready: null,
+    reason: "No ECS command plan was provided.",
+    requiredWorld: true,
+    wouldRegisterComponents: true,
+    expectedCreateEntityCount: 0,
+    expectedAddComponentCount: 0,
+    requiredComponents: [],
+    blockerCount: 0,
+    blockers: [],
+  };
+}
 
 function minimalRoot() {
   return {

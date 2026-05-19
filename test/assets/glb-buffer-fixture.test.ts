@@ -49,6 +49,31 @@ describe("buffer-backed GLB source fixtures", () => {
         diagnosticsCount: 0,
         stages: [],
       },
+      ecsCommandPlan: {
+        status: "absent",
+        valid: null,
+        sceneIndex: null,
+        rootEntityCount: 0,
+        commandCount: 0,
+        createEntityCount: 0,
+        addComponentCount: 0,
+        componentCounts: [],
+        dependencyCount: 0,
+        skippedCount: 0,
+        diagnosticsCount: 0,
+      },
+      ecsReplayReadiness: {
+        status: "absent",
+        ready: null,
+        reason: "No ECS command plan was provided.",
+        requiredWorld: true,
+        wouldRegisterComponents: true,
+        expectedCreateEntityCount: 0,
+        expectedAddComponentCount: 0,
+        requiredComponents: [],
+        blockerCount: 0,
+        blockers: [],
+      },
     });
     expect(serialized).not.toContain("Uint8Array");
     expect(serialized).not.toContain("Float32Array");

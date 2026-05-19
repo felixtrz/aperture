@@ -12,6 +12,38 @@ import type { ExampleStatusBase } from "./example-status-types.js";
 
 interface GltfSceneStatus extends ExampleStatusBase {
   readonly source?: {
+    readonly bufferBackedGlbFixture?: {
+      readonly status: string;
+      readonly outputSummary: {
+        readonly meshConstruction: {
+          readonly status: string;
+          readonly valid: boolean | null;
+          readonly meshCount: number;
+          readonly submeshCount: number;
+          readonly vertexCount: number;
+          readonly indexCount: number;
+          readonly diagnosticsCount: number;
+        };
+        readonly ecsCommandPlan: {
+          readonly status: string;
+          readonly valid: boolean | null;
+          readonly rootEntityCount: number;
+          readonly commandCount: number;
+          readonly createEntityCount: number;
+          readonly addComponentCount: number;
+          readonly dependencyCount: number;
+          readonly skippedCount: number;
+          readonly diagnosticsCount: number;
+        };
+        readonly ecsReplayReadiness: {
+          readonly status: string;
+          readonly ready: boolean | null;
+          readonly expectedCreateEntityCount: number;
+          readonly expectedAddComponentCount: number;
+          readonly blockerCount: number;
+        };
+      };
+    };
     readonly glbFixture: {
       readonly status: string;
       readonly sourceKind: string;
@@ -73,9 +105,18 @@ interface GltfSceneStatus extends ExampleStatusBase {
       readonly valid: boolean;
     };
     readonly replay: {
+      readonly source: string;
       readonly valid: boolean;
       readonly created: number;
       readonly diagnostics: number;
+    };
+    readonly visibleBufferBackedReplay: {
+      readonly source: string;
+      readonly valid: boolean;
+      readonly created: number;
+      readonly diagnostics: number;
+      readonly meshHandleKey: string;
+      readonly materialHandleKey: string;
     };
   };
   readonly extraction?: {
@@ -1266,6 +1307,38 @@ test("Playwright shows the GLTF scene fixture through the app path", async ({
           },
         },
       },
+      bufferBackedGlbFixture: {
+        status: "loaded",
+        outputSummary: {
+          meshConstruction: {
+            status: "ready",
+            valid: true,
+            meshCount: 1,
+            submeshCount: 1,
+            vertexCount: 3,
+            indexCount: 3,
+            diagnosticsCount: 0,
+          },
+          ecsCommandPlan: {
+            status: "ready",
+            valid: true,
+            rootEntityCount: 1,
+            commandCount: 12,
+            createEntityCount: 2,
+            addComponentCount: 10,
+            dependencyCount: 0,
+            skippedCount: 0,
+            diagnosticsCount: 0,
+          },
+          ecsReplayReadiness: {
+            status: "ready",
+            ready: true,
+            expectedCreateEntityCount: 2,
+            expectedAddComponentCount: 10,
+            blockerCount: 0,
+          },
+        },
+      },
     },
     readiness: {
       ibl: {
@@ -1343,11 +1416,24 @@ test("Playwright shows the GLTF scene fixture through the app path", async ({
       },
       diagnostics: [],
       registration: { valid: true },
-      replay: { valid: true, created: 7, diagnostics: 0 },
+      replay: {
+        source: "runtime-facade",
+        valid: true,
+        created: 7,
+        diagnostics: 0,
+      },
+      visibleBufferBackedReplay: {
+        source: "runtime-facade",
+        valid: true,
+        created: 1,
+        diagnostics: 0,
+        meshHandleKey: "mesh:gltf:buffer-backed:mesh:0:primitive:0",
+        materialHandleKey: "material:gltf:buffer-backed:material:visible",
+      },
     },
     extraction: {
       views: 1,
-      meshDraws: 3,
+      meshDraws: 4,
       lights: 2,
       environments: 1,
       shadowRequests: 1,
@@ -2699,9 +2785,9 @@ test("Playwright shows the GLTF scene fixture through the app path", async ({
         ready: false,
         status: "deferred",
         requestCount: 1,
-        meshDrawCount: 3,
+        meshDrawCount: 4,
         listCount: 1,
-        includedDrawCount: 3,
+        includedDrawCount: 4,
         skippedDrawCount: 0,
         sections: {
           shadowRequests: true,
@@ -2716,7 +2802,7 @@ test("Playwright shows the GLTF scene fixture through the app path", async ({
             passKey: expect.stringMatching(/^shadow-pass:\d+:light:\d+$/),
             casterLayerMask: 1,
             receiverLayerMask: 1,
-            includedDrawCount: 3,
+            includedDrawCount: 4,
             skippedDrawCount: 0,
             commandEncoding: "deferred",
             draws: expect.arrayContaining([
@@ -2745,7 +2831,7 @@ test("Playwright shows the GLTF scene fixture through the app path", async ({
           viewProjectionPlans: 1,
           matrices: 1,
           casterLists: 1,
-          drawCommands: 3,
+          drawCommands: 4,
           commandPlans: 1,
         },
         sections: {
@@ -2766,7 +2852,7 @@ test("Playwright shows the GLTF scene fixture through the app path", async ({
             passKey: expect.stringMatching(/^shadow-pass:\d+:light:\d+$/),
             matrixResourceKey: "shadow-matrix-buffer:directional",
             matrixOffsetBytes: 0,
-            drawCount: 3,
+            drawCount: 4,
             commandEncoding: "deferred",
           },
         ],
@@ -2787,7 +2873,7 @@ test("Playwright shows the GLTF scene fixture through the app path", async ({
           casterLists: 1,
           commandPlans: 1,
           commandRecords: 1,
-          drawCommands: 3,
+          drawCommands: 4,
         },
         sections: {
           passPlans: true,
@@ -2814,7 +2900,7 @@ test("Playwright shows the GLTF scene fixture through the app path", async ({
             commandKey: expect.stringMatching(
               /^shadow-pass:\d+:light:\d+:caster-commands$/,
             ),
-            drawCount: 3,
+            drawCount: 4,
             commandEncoding: "ready",
           },
         ],
@@ -2948,8 +3034,8 @@ test("Playwright shows the GLTF scene fixture through the app path", async ({
         ready: false,
         status: "deferred",
         counts: {
-          casterDraws: 3,
-          readyDraws: 3,
+          casterDraws: 4,
+          readyDraws: 4,
           missingMeshBuffers: 0,
           pipelineDescriptors: 1,
           matrixBuffers: 1,
@@ -3009,6 +3095,21 @@ test("Playwright shows the GLTF scene fixture through the app path", async ({
               "shadow-caster/depth-only/depth24plus/triangle-list/back",
             ready: true,
           },
+          {
+            renderId: expect.any(Number),
+            meshKey: "mesh:gltf:buffer-backed:mesh:0:primitive:0",
+            passKey: expect.stringMatching(/^shadow-pass:\d+:light:\d+$/),
+            meshResourceKey: expect.stringMatching(/^mesh-buffer:/),
+            vertexBufferResourceKeys: [
+              expect.stringMatching(/^mesh-vertex-buffer:/),
+            ],
+            indexBufferResourceKey:
+              expect.stringMatching(/^mesh-index-buffer:/),
+            matrixResourceKey: "shadow-matrix-buffer:directional",
+            pipelineKey:
+              "shadow-caster/depth-only/depth24plus/triangle-list/back",
+            ready: true,
+          },
         ]),
         diagnostics: [
           {
@@ -3025,15 +3126,15 @@ test("Playwright shows the GLTF scene fixture through the app path", async ({
         ready: true,
         status: "ready",
         counts: {
-          frameResourceDraws: 3,
-          readyFrameResourceDraws: 3,
+          frameResourceDraws: 4,
+          readyFrameResourceDraws: 4,
           pipelineResources: 1,
           matrixBindGroups: 1,
-          meshResources: 3,
+          meshResources: 4,
           commandRecords: 1,
-          commandCount: 15,
-          drawCalls: 3,
-          indexedDrawCalls: 3,
+          commandCount: 20,
+          drawCalls: 4,
+          indexedDrawCalls: 4,
         },
         sections: {
           frameResources: true,
@@ -3056,10 +3157,11 @@ test("Playwright shows the GLTF scene fixture through the app path", async ({
               expect.any(Number),
               expect.any(Number),
               expect.any(Number),
+              expect.any(Number),
             ],
-            commandCount: 15,
-            drawCalls: 3,
-            indexedDrawCalls: 3,
+            commandCount: 20,
+            drawCalls: 4,
+            indexedDrawCalls: 4,
             pipelineKeys: [
               "shadow-caster/depth-only/depth24plus/triangle-list/back",
             ],
@@ -3073,13 +3175,16 @@ test("Playwright shows the GLTF scene fixture through the app path", async ({
               expect.stringMatching(/^mesh-vertex-buffer:/),
               expect.stringMatching(/^mesh-vertex-buffer:/),
               expect.stringMatching(/^mesh-vertex-buffer:/),
+              expect.stringMatching(/^mesh-vertex-buffer:/),
             ],
             indexBufferResourceKeys: [
               expect.stringMatching(/^mesh-index-buffer:/),
               expect.stringMatching(/^mesh-index-buffer:/),
               expect.stringMatching(/^mesh-index-buffer:/),
+              expect.stringMatching(/^mesh-index-buffer:/),
             ],
             drawCommandKeys: [
+              expect.stringMatching(/^shadow-pass:\d+:light:\d+:draw:\d+$/),
               expect.stringMatching(/^shadow-pass:\d+:light:\d+:draw:\d+$/),
               expect.stringMatching(/^shadow-pass:\d+:light:\d+:draw:\d+$/),
               expect.stringMatching(/^shadow-pass:\d+:light:\d+:draw:\d+$/),
@@ -3092,7 +3197,7 @@ test("Playwright shows the GLTF scene fixture through the app path", async ({
             commandKey: expect.stringMatching(
               /^shadow-pass:\d+:light:\d+:caster-commands$/,
             ),
-            commandCount: 15,
+            commandCount: 20,
           },
         ],
         diagnostics: [
@@ -3112,12 +3217,12 @@ test("Playwright shows the GLTF scene fixture through the app path", async ({
         counts: {
           passes: 1,
           attachments: 1,
-          frameResourceDraws: 3,
+          frameResourceDraws: 4,
           commandRecords: 1,
           assembledPasses: 1,
-          commandCount: 15,
-          executedCommands: 15,
-          drawCalls: 3,
+          commandCount: 20,
+          executedCommands: 20,
+          drawCalls: 4,
         },
         sections: {
           attachmentDescriptors: true,
@@ -3141,10 +3246,10 @@ test("Playwright shows the GLTF scene fixture through the app path", async ({
             depthViewKey: expect.stringMatching(
               /^shadow-map:\d+:light:\d+:view$/,
             ),
-            commandCount: 15,
-            executedCommands: 15,
-            drawCalls: 3,
-            indexedDrawCalls: 3,
+            commandCount: 20,
+            executedCommands: 20,
+            drawCalls: 4,
+            indexedDrawCalls: 4,
             begun: true,
             ended: true,
           },
@@ -3169,8 +3274,8 @@ test("Playwright shows the GLTF scene fixture through the app path", async ({
         status: "submitted",
         counts: {
           assembledPasses: 1,
-          commandCount: 15,
-          drawCalls: 3,
+          commandCount: 20,
+          drawCalls: 4,
           commandBuffers: 1,
           submittedCommandBuffers: 1,
           skippedSubmissions: 0,
@@ -3249,7 +3354,7 @@ test("Playwright shows the GLTF scene fixture through the app path", async ({
           matrices: 1,
           casterLists: 1,
           commandPlans: 1,
-          drawCommands: 3,
+          drawCommands: 4,
         },
         sections: {
           textureResources: true,
@@ -3366,8 +3471,8 @@ test("Playwright shows the GLTF scene fixture through the app path", async ({
         },
       },
     },
-    draw: { drawCalls: 3, indexedDrawCalls: 3 },
-    renderWorld: { active: 3 },
+    draw: { drawCalls: 4, indexedDrawCalls: 4 },
+    renderWorld: { active: 4 },
   });
   expect(JSON.stringify(status.source?.glbFixture)).not.toContain(
     "binaryChunk",

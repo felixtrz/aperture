@@ -1,5 +1,268 @@
 # Completed Tasks
 
+## task-1975 — Add visible buffer-backed GLB primitive replay proof
+
+Completed: 2026-05-19
+
+Summary:
+
+- Replayed one buffer-backed GLB-derived primitive into the browser GLTF scene
+  through `applyGltfEcsCommandPlanToApp(...)`.
+- Registered a separate buffer-backed mesh asset and minimal unlit material for
+  the proof without adding external loading or a new material system.
+- Published `gltf.visibleBufferBackedReplay` status with runtime-facade source,
+  replay counts, and mesh/material handle keys.
+- Updated Playwright to assert buffer-backed source status, replay status, four
+  extracted mesh draws, four WebGPU draw calls, and four active render-world
+  draws. The browser proof is currently readback/status-based; an isolated
+  pixel placement remains a follow-up for the material/placement mapping slice.
+
+Validation:
+
+- `node --check examples/gltf-scene.js`
+- `pnpm run typecheck:test`
+- `pnpm exec playwright test test/e2e/gltf-scene.spec.ts`
+
+## task-1973 and task-1974 — Buffer-backed status audit and visible replay plan
+
+Completed: 2026-05-19
+
+Summary:
+
+- Added
+  `docs/research/BUFFER_BACKED_GLB_COMMAND_PLAN_BROWSER_STATUS_PROOF_AUDIT_2026_05_19.md`.
+- Confirmed the buffer-backed command-plan browser proof remains status-only and
+  does not replay into the visible scene.
+- Added
+  `docs/research/FIRST_VISIBLE_BUFFER_BACKED_GLB_PRIMITIVE_REPLAY_PLAN_2026_05_19.md`.
+- Selected a first visible proof that replays one buffer-backed GLB-derived
+  primitive using an existing ready material handle.
+- Added concrete follow-up tasks `task-1975` through `task-1979`.
+
+Validation:
+
+- `pnpm run check:progress`
+- `pnpm run format:check`
+
+## task-1972 — Add buffer-backed GLB command-plan browser status proof
+
+Completed: 2026-05-19
+
+Summary:
+
+- Updated the browser GLTF scene's buffer-backed GLB source proof to include a
+  generated command-plan summary and replay-readiness summary.
+- Kept the proof status-only: no secondary replay, no visible scene changes, and
+  no WebGPU/source-loader ownership changes.
+- Extended Playwright assertions for buffer-backed mesh-construction,
+  command-plan, and replay-readiness status.
+
+Validation:
+
+- `node --check examples/gltf-scene.js`
+- `pnpm run typecheck:test`
+- `pnpm exec vitest run test/runtime/runtime.test.ts test/assets/gltf-ecs-command-replay-readiness.test.ts test/assets/glb-source-loader-output-summary.test.ts test/assets/glb-source-loader-facade.test.ts`
+- `pnpm exec playwright test test/e2e/gltf-scene.spec.ts`
+
+## task-1970 and task-1971 — Browser replay audit and buffer-backed status plan
+
+Completed: 2026-05-19
+
+Summary:
+
+- Added
+  `docs/research/BROWSER_RUNTIME_REPLAY_FACADE_ADOPTION_AUDIT_2026_05_19.md`.
+- Confirmed browser GLTF replay now goes through runtime orchestration while
+  source-loader output remains report-only and rendering remains derived from
+  ECS extraction.
+- Added
+  `docs/research/BUFFER_BACKED_GLB_COMMAND_PLAN_BROWSER_STATUS_PROOF_PLAN_2026_05_19.md`.
+- Selected a status-only buffer-backed command-plan and replay-readiness browser
+  proof before adding visible buffer-backed GLB geometry.
+- Added concrete follow-up tasks `task-1972` through `task-1976`.
+
+Validation:
+
+- `pnpm run check:progress`
+- `pnpm run format:check`
+
+## task-1969 — Route GLTF browser scene replay through runtime facade
+
+Completed: 2026-05-19
+
+Summary:
+
+- Updated `examples/gltf-scene.js` to call
+  `applyGltfEcsCommandPlanToApp(...)` instead of direct
+  `replayGltfEcsAuthoringCommands(...)`.
+- Published `gltf.replay.source: "runtime-facade"` in JSON-safe browser status.
+- Updated Playwright status assertions while keeping existing visible pixels
+  stable.
+
+Validation:
+
+- `node --check examples/gltf-scene.js`
+- `pnpm run typecheck:test`
+- `pnpm exec vitest run test/runtime/runtime.test.ts test/assets/gltf-ecs-command-replay-readiness.test.ts test/assets/glb-source-loader-output-summary.test.ts test/assets/glb-source-loader-facade.test.ts`
+- `pnpm exec playwright test test/e2e/gltf-scene.spec.ts`
+
+## task-1967 and task-1968 — Runtime replay audit and browser replay plan
+
+Completed: 2026-05-19
+
+Summary:
+
+- Added
+  `docs/research/CONTROLLED_ECS_REPLAY_EXECUTION_SURFACE_AUDIT_2026_05_19.md`.
+- Confirmed explicit replay execution lives in runtime/app orchestration, while
+  source-loader output remains report-only and WebGPU ownership is unchanged.
+- Added
+  `docs/research/FIRST_BROWSER_VISIBLE_GLB_REPLAY_PROOF_PLAN_2026_05_19.md`.
+- Selected routing the browser GLTF scene's existing replay through the runtime
+  facade as the next browser-facing slice before adding new visible
+  buffer-backed GLB geometry.
+- Added concrete follow-up tasks `task-1969` through `task-1973`.
+
+Validation:
+
+- `pnpm run check:progress`
+- `pnpm run format:check`
+
+## task-1964 through task-1966 — Controlled runtime replay execution surface
+
+Completed: 2026-05-19
+
+Summary:
+
+- Added `applyGltfEcsCommandPlanToApp` to `@aperture-engine/runtime`.
+- The helper explicitly applies a provided glTF ECS command plan to a
+  `SimulationApp` world by delegating to the existing replay implementation.
+- Added runtime tests proving valid plans mutate the app world and invalid plans
+  do not create entities.
+- Added headless extraction coverage proving replayed GLTF mesh/material ECS
+  state can produce render snapshot mesh draws without WebGPU/browser changes.
+- Updated source-status docs and public tracker wording.
+
+Validation:
+
+- `pnpm exec vitest run test/runtime/runtime.test.ts test/assets/gltf-ecs-command-replay-readiness.test.ts test/assets/glb-source-loader-output-summary.test.ts test/assets/glb-source-loader-facade.test.ts`
+- `pnpm exec tsc -p packages/runtime/tsconfig.json --noEmit`
+- `pnpm exec tsc -p packages/render/tsconfig.json --noEmit`
+- `pnpm run check:progress`
+- `pnpm run format:check`
+
+## task-1962 and task-1963 — Replay-readiness audit and runtime replay plan
+
+Completed: 2026-05-19
+
+Summary:
+
+- Added
+  `docs/research/ECS_REPLAY_READINESS_ADOPTION_AUDIT_2026_05_19.md`.
+- Confirmed replay readiness remains preflight-only and does not mutate ECS,
+  assets, render-world, or WebGPU state.
+- Added
+  `docs/research/FIRST_CONTROLLED_ECS_REPLAY_EXECUTION_SURFACE_PLAN_2026_05_19.md`.
+- Selected a headless runtime replay facade as the first controlled execution
+  surface, keeping source-loader replay and browser-visible GLB scene rendering
+  deferred.
+- Added concrete follow-up tasks `task-1964` through `task-1968`.
+
+Validation:
+
+- `pnpm run check:progress`
+- `pnpm run format:check`
+
+## task-1959 through task-1961 — ECS replay readiness source summaries
+
+Completed: 2026-05-19
+
+Summary:
+
+- Added `createGltfEcsReplayReadinessSummaryJsonValue`, a pure preflight helper
+  that derives replay-ready/blocked status from a command plan without creating
+  an ECS world or calling replay.
+- Covered absent, ready, invalid-plan, duplicate-entity, missing-entity,
+  missing-parent, and unsupported-component readiness cases.
+- Attached replay readiness to no-fetch output summaries using provided command
+  plans only.
+- Updated source-status docs and public tracker wording to state that replay
+  readiness is report-only and actual ECS replay remains separate.
+
+Validation:
+
+- `pnpm exec vitest run test/assets/gltf-ecs-command-replay-readiness.test.ts test/assets/glb-source-loader-output-summary.test.ts test/assets/glb-source-loader-facade.test.ts`
+- `pnpm exec tsc -p packages/render/tsconfig.json --noEmit`
+- `pnpm run check:progress`
+- `pnpm run format:check`
+
+## task-1957 and task-1958 — ECS command-plan audit and replay-readiness plan
+
+Completed: 2026-05-19
+
+Summary:
+
+- Added
+  `docs/research/ECS_COMMAND_PLAN_SUMMARY_ADOPTION_AUDIT_2026_05_19.md`.
+- Confirmed no-fetch ECS command-plan summaries remain JSON-safe,
+  non-authoritative, and separate from registry mutation, ECS replay,
+  render-world preparation, and WebGPU resource ownership.
+- Added
+  `docs/research/ECS_REPLAY_READINESS_STATUS_PLAN_2026_05_19.md`.
+- Planned a report-only replay-readiness summary derived from command plans
+  without creating a world or calling replay.
+- Added concrete follow-up tasks `task-1959` through `task-1963`.
+
+Validation:
+
+- `pnpm run check:progress`
+- `pnpm run format:check`
+
+## task-1954 through task-1956 — GLB ECS command-plan source summaries
+
+Completed: 2026-05-19
+
+Summary:
+
+- Added a compact `ecsCommandPlan` output-summary section for provided glTF ECS
+  authoring command plans.
+- The summary reports absent/ready/invalid status, scene index, root entity
+  count, aggregate command counts, component counts, dependency count, skipped
+  count, and diagnostic count.
+- Threaded optional command-plan summaries through the no-fetch GLB
+  source-loader facade without command replay, ECS mutation, registry mutation,
+  render-world preparation, WebGPU resource ownership, or visible rendering
+  changes.
+- Updated docs and public tracker wording to keep the summary explicitly
+  report-only.
+
+Validation:
+
+- `pnpm exec vitest run test/assets/glb-source-loader-output-summary.test.ts test/assets/glb-source-loader-facade.test.ts`
+- `pnpm exec tsc -p packages/render/tsconfig.json --noEmit`
+- `pnpm run check:progress`
+- `pnpm run format:check`
+
+## task-1953 — Plan no-fetch ECS command-plan summary slice
+
+Completed: 2026-05-19
+
+Summary:
+
+- Added
+  `docs/research/NO_FETCH_ECS_COMMAND_PLAN_SUMMARY_SLICE_PLAN_2026_05_19.md`.
+- Planned a compact report-only `ecsCommandPlan` summary for no-fetch GLB
+  source-loader output.
+- Kept ECS command replay, registry mutation, render-world preparation, WebGPU
+  resource ownership, and visible browser rendering changes deferred.
+- Added concrete follow-up tasks `task-1954` through `task-1958` for helper
+  implementation, facade threading, docs, audit, and replay-readiness planning.
+
+Validation:
+
+- `pnpm run check:progress`
+- `pnpm run format:check`
+
 ## task-1908 through task-1952 — GLB source-loader facade and source summaries
 
 Completed: 2026-05-19

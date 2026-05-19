@@ -4,6 +4,7 @@ export * from "./gltf-accessor-decoding.js";
 export * from "./gltf-accessor-validation.js";
 export * from "./gltf-ecs-authoring-command-plan.js";
 export * from "./gltf-ecs-command-replay.js";
+export * from "./gltf-ecs-command-replay-readiness.js";
 export * from "./gltf-loader-orchestration.js";
 export * from "./gltf-mesh-asset-construction.js";
 export * from "./gltf-mesh-primitive.js";

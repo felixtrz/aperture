@@ -9,6 +9,7 @@ import {
   type GlbSourceLoaderOutputSummaryJsonValue,
 } from "./glb-source-loader-output-summary.js";
 import type { GltfSourceRegistrationOrchestrationReport } from "./gltf-source-registration-orchestration.js";
+import type { GltfEcsAuthoringCommandPlan } from "./gltf-ecs-authoring-command-plan.js";
 import {
   createGlbSourceLoaderStatusJsonValue,
   type GlbSourceLoaderDiagnostic,
@@ -30,6 +31,7 @@ export interface CreateNoFetchGlbSourceLoaderReportOptions extends Omit<
     ArrayBuffer | ArrayBufferView
   >;
   readonly sourceRegistration?: GltfSourceRegistrationOrchestrationReport | null;
+  readonly ecsCommandPlan?: GltfEcsAuthoringCommandPlan | null;
 }
 
 export interface NoFetchGlbSourceLoaderReport {
@@ -41,8 +43,13 @@ export interface NoFetchGlbSourceLoaderReport {
 export function createNoFetchGlbSourceLoaderReport(
   options: CreateNoFetchGlbSourceLoaderReportOptions,
 ): NoFetchGlbSourceLoaderReport {
-  const { externalBufferBytes, source, sourceRegistration, ...importOptions } =
-    options;
+  const {
+    externalBufferBytes,
+    source,
+    sourceRegistration,
+    ecsCommandPlan,
+    ...importOptions
+  } = options;
   const glbImportReport = createGltfReportDrivenImportReportFromGlb({
     ...importOptions,
     source,
@@ -76,6 +83,7 @@ export function createNoFetchGlbSourceLoaderReport(
       glbImportReport,
       {
         sourceRegistration: sourceRegistration ?? null,
+        ecsCommandPlan: ecsCommandPlan ?? null,
       },
     ),
     glbImportReport,

@@ -130,10 +130,15 @@ function createScene(aperture, app, targetCanvas) {
     throw new Error("GLTF scene contract did not produce an ECS command plan.");
   }
 
-  const replay = aperture.replayGltfEcsAuthoringCommands({
-    world: app.world,
+  const replay = aperture.applyGltfEcsCommandPlanToApp({
+    app,
     plan: contract.ecsCommandPlan,
   });
+  const visibleBufferBackedReplay = createVisibleBufferBackedReplay(
+    aperture,
+    app,
+    bufferBackedGlbFixture.mesh,
+  );
 
   app.spawn(
     aperture.withTransform({ translation: [0, 0.2, 5.2] }),
@@ -188,6 +193,7 @@ function createScene(aperture, app, targetCanvas) {
     glbFixture: glbFixture.status,
     registration,
     replay,
+    visibleBufferBackedReplay,
     root,
   };
 }
@@ -754,10 +760,19 @@ async function publishFrameStatus(aperture, app, scene, step, report, frame) {
         stages: scene.registration.stages,
       },
       replay: {
+        source: "runtime-facade",
         valid: scene.replay.valid,
         created: scene.replay.created.length,
         appliedComponents: scene.replay.appliedComponents.length,
         diagnostics: scene.replay.diagnostics.length,
+      },
+      visibleBufferBackedReplay: {
+        source: "runtime-facade",
+        valid: scene.visibleBufferBackedReplay.replay.valid,
+        created: scene.visibleBufferBackedReplay.replay.created.length,
+        diagnostics: scene.visibleBufferBackedReplay.replay.diagnostics.length,
+        meshHandleKey: scene.visibleBufferBackedReplay.meshHandleKey,
+        materialHandleKey: scene.visibleBufferBackedReplay.materialHandleKey,
       },
     },
     extraction: {
@@ -1396,21 +1411,144 @@ function createGltfSceneGlbFixture(aperture) {
 
 function createGltfSceneBufferBackedGlbFixture(aperture) {
   const { source } = createIndexedTriangleGlbFixtureSource();
-  const loader = aperture.createNoFetchGlbSourceLoaderReport({
+  const preflight = aperture.createNoFetchGlbSourceLoaderReport({
     source,
     createMeshAssets: true,
   });
+  const root = preflight.glbImportReport.container.container?.json;
 
-  if (!loader.glbImportReport.valid) {
+  if (!preflight.glbImportReport.valid || root === undefined) {
     throw new Error("GLTF scene buffer-backed GLB fixture did not load.");
   }
 
+  const ecsCommandPlan = aperture.createGltfEcsAuthoringCommandPlan({
+    traversalReport: aperture.createGltfSceneTraversalReport({ root }),
+  });
+  const loader = aperture.createNoFetchGlbSourceLoaderReport({
+    source,
+    createMeshAssets: true,
+    ecsCommandPlan,
+  });
+
   return {
+    mesh:
+      loader.glbImportReport.importReport?.meshConstruction?.meshes[0]?.mesh ??
+      null,
     status: {
       ...loader.status,
       outputSummary: loader.outputSummary,
     },
   };
+}
+
+function createVisibleBufferBackedReplay(aperture, app, mesh) {
+  if (mesh === null) {
+    throw new Error("Buffer-backed GLB fixture did not produce a mesh asset.");
+  }
+
+  const meshHandle = aperture.createMeshHandle(
+    "gltf:buffer-backed:mesh:0:primitive:0",
+  );
+  const materialHandle = aperture.createMaterialHandle(
+    "gltf:buffer-backed:material:visible",
+  );
+  const meshHandleKey = aperture.assetHandleKey(meshHandle);
+  const materialHandleKey = aperture.assetHandleKey(materialHandle);
+
+  app.assets.register(meshHandle, { label: "BufferBackedVisibleTriangle" });
+  app.assets.markReady(meshHandle, {
+    ...mesh,
+    label: "BufferBackedVisibleTriangle",
+  });
+  app.assets.register(materialHandle, {
+    label: "BufferBackedVisibleTriangleMaterial",
+  });
+  app.assets.markReady(
+    materialHandle,
+    aperture.createUnlitMaterialAsset({
+      label: "BufferBackedVisibleTriangleMaterial",
+      baseColorFactor: new Float32Array([0.05, 1, 0.28, 1]),
+      renderState: { cullMode: "none" },
+    }),
+  );
+
+  const replay = aperture.applyGltfEcsCommandPlanToApp({
+    app,
+    plan: {
+      valid: true,
+      sceneIndex: 0,
+      rootEntityKeys: ["gltf:buffer-backed:visible:primitive:0"],
+      commands: [
+        {
+          type: "createEntity",
+          entityKey: "gltf:buffer-backed:visible:primitive:0",
+          label: "BufferBackedVisibleTriangle",
+        },
+        {
+          type: "addComponent",
+          entityKey: "gltf:buffer-backed:visible:primitive:0",
+          component: "Name",
+          value: { value: "BufferBackedVisibleTriangle" },
+        },
+        {
+          type: "addComponent",
+          entityKey: "gltf:buffer-backed:visible:primitive:0",
+          component: "Parent",
+          value: { parentEntityKey: null },
+        },
+        {
+          type: "addComponent",
+          entityKey: "gltf:buffer-backed:visible:primitive:0",
+          component: "LocalTransform",
+          value: {
+            translation: [-2, -2, 3],
+            rotation: [0, 0, 0, 1],
+            scale: [4, 4, 4],
+          },
+        },
+        {
+          type: "addComponent",
+          entityKey: "gltf:buffer-backed:visible:primitive:0",
+          component: "WorldTransform",
+          value: {
+            col0: [4, 0, 0, 0],
+            col1: [0, 4, 0, 0],
+            col2: [0, 0, 4, 0],
+            col3: [-2, -2, 3, 1],
+          },
+        },
+        {
+          type: "addComponent",
+          entityKey: "gltf:buffer-backed:visible:primitive:0",
+          component: "Visibility",
+          value: { visible: true },
+        },
+        {
+          type: "addComponent",
+          entityKey: "gltf:buffer-backed:visible:primitive:0",
+          component: "Mesh",
+          value: {
+            meshId: "gltf:buffer-backed:mesh:0:primitive:0",
+            handleKey: meshHandleKey,
+          },
+        },
+        {
+          type: "addComponent",
+          entityKey: "gltf:buffer-backed:visible:primitive:0",
+          component: "Material",
+          value: {
+            materialId: "gltf:buffer-backed:material:visible",
+            handleKey: materialHandleKey,
+          },
+        },
+      ],
+      dependencies: [meshHandleKey, materialHandleKey],
+      skipped: [],
+      diagnostics: [],
+    },
+  });
+
+  return { meshHandleKey, materialHandleKey, replay };
 }
 
 function createGlbFixtureSource(root) {
@@ -1432,7 +1570,7 @@ function createIndexedTriangleGlbFixtureSource() {
   [0, 0, 0, 1, 0, 0, 0, 1, 0].forEach((value, index) =>
     view.setFloat32(index * 4, value, true),
   );
-  [0, 1, 2].forEach((value, index) =>
+  [0, 2, 1].forEach((value, index) =>
     view.setUint16(36 + index * 2, value, true),
   );
 

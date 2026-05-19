@@ -59,14 +59,18 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start with `task-1953`: plan a report-only ECS command-plan summary for the
-no-fetch GLB source-loader facade. The source-side GLB path now has structured
+Start with `task-1976`: audit visible buffer-backed GLB primitive replay proof.
+The source-side GLB path now has structured
 container diagnostics, compact JSON-safe source status, a no-fetch loader
 facade, output summaries for mesh construction and optional source registration,
-and browser source-status coverage for both JSON-only and buffer-backed GLB
-fixtures. Visible browser rendering still uses the established ECS authoring
-path; actual registry mutation, ECS command replay, and full GLB scene loading
-remain deferred.
+compact ECS command-plan summaries for provided plans, report-only replay
+readiness summaries, a controlled runtime replay execution surface with headless
+extraction proof, and a plan to route browser replay through the runtime facade.
+The browser GLTF scene now routes replay through the runtime facade, publishes a
+buffer-backed command-plan/replay-readiness proof, and replays one
+buffer-backed GLB-derived primitive through ECS into the browser render path
+with extraction/WebGPU draw readbacks. Broader GLB viewer behavior, external
+file loading, and source-driven material mapping remain deferred.
 
 The previous micro-hardening tasks remain useful but are no longer the main
 ready queue unless they directly block the scene slice. Public custom
@@ -89,8 +93,10 @@ Target proof point:
 
 Remaining automation priority order:
 
-1. `task-1953` — plan no-fetch ECS command-plan summary slice.
-2. Add implementation follow-ups from `task-1953`.
+1. `task-1976` — audit visible buffer-backed GLB primitive replay proof.
+2. `task-1977` — plan buffer-backed GLB material mapping for visible replay.
+3. `task-1978` — add visible buffer-backed GLB primitive material mapping.
+4. `task-1979` — audit buffer-backed GLB material mapping replay.
 
 Defer allocation-only cleanup, metadata-only shader-contract tasks, public
 custom material source work, and app-owned custom adapter facades unless they
@@ -12407,6 +12413,9 @@ Acceptance criteria:
 
 ### task-1953 — Plan no-fetch ECS command-plan summary slice
 
+Status: completed 2026-05-19. See
+`docs/research/NO_FETCH_ECS_COMMAND_PLAN_SUMMARY_SLICE_PLAN_2026_05_19.md`.
+
 Category: `docs-tooling`
 Package/write-scope: `docs/research`, `agent/BACKLOG.md`, tracker wording.
 Reference anchor:
@@ -12418,6 +12427,501 @@ Acceptance criteria:
 - Plan a report-only ECS command-plan summary for no-fetch facade output.
 - Keep actual ECS command replay and visible rendering changes deferred.
 - Add at least four concrete implementation/audit follow-up tasks.
+
+### task-1954 — Add GLB source-loader ECS command-plan summary helper
+
+Status: completed 2026-05-19. See
+`packages/render/src/assets/glb-source-loader-output-summary.ts` and
+`test/assets/glb-source-loader-output-summary.test.ts`.
+
+Category: `render-bridge`
+Package/write-scope: `packages/render/src/assets/glb-source-loader-output-summary.ts`,
+`test/assets/glb-source-loader-output-summary.test.ts`.
+Reference anchor:
+`docs/research/NO_FETCH_ECS_COMMAND_PLAN_SUMMARY_SLICE_PLAN_2026_05_19.md`,
+`packages/render/src/assets/gltf-ecs-authoring-command-plan.ts`, and Bevy glTF
+scene/entity staging in `references/bevy/crates/bevy_gltf/src/loader/mod.rs`.
+
+Acceptance criteria:
+
+- Output summaries include an `ecsCommandPlan` section with absent, ready, and
+  invalid states.
+- The summary reports command counts, component counts, dependency count,
+  skipped count, and diagnostics count.
+- Tests prove the summary omits full commands, component payloads, ECS world
+  state, raw arrays, and GPU handles.
+
+### task-1955 — Thread ECS command-plan summaries through no-fetch facade
+
+Status: completed 2026-05-19. See
+`packages/render/src/assets/glb-source-loader-facade.ts` and
+`test/assets/glb-source-loader-facade.test.ts`.
+
+Category: `render-bridge`
+Package/write-scope: `packages/render/src/assets/glb-source-loader-facade.ts`,
+`test/assets/glb-source-loader-facade.test.ts`.
+Reference anchor:
+`task-1954`, the no-fetch source-registration summary pattern, and
+`docs/ARCHITECTURE.md`.
+
+Acceptance criteria:
+
+- `createNoFetchGlbSourceLoaderReport` accepts an optional
+  `GltfEcsAuthoringCommandPlan`.
+- Facade output attaches the compact command-plan summary without executing
+  replay or mutating ECS/assets.
+- Tests cover valid and invalid provided command plans and assert JSON output
+  does not expose full commands or raw source data.
+
+### task-1956 — Document no-fetch ECS command-plan summary status
+
+Status: completed 2026-05-19. See
+`examples/gltf-scene-source-status.md`, `docs/index.html`, and
+`docs/render-pipeline-comparison.html`.
+
+Category: `docs-tooling`
+Package/write-scope: `examples/gltf-scene-source-status.md`,
+`docs/index.html`, `docs/render-pipeline-comparison.html`, and
+`pnpm run check:progress`.
+Reference anchor:
+`task-1955`, `docs/ARCHITECTURE.md`, and
+`docs/MEDIUM_LONG_TERM_GOALS.md`.
+
+Acceptance criteria:
+
+- Docs explain ECS command-plan summaries as report/readiness data only.
+- Docs state actual ECS replay and visible scene authoring remain separate.
+- Public tracker next-task language remains aligned.
+
+### task-1957 — Audit ECS command-plan summary adoption
+
+Status: completed 2026-05-19. See
+`docs/research/ECS_COMMAND_PLAN_SUMMARY_ADOPTION_AUDIT_2026_05_19.md`.
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research`, `agent/BACKLOG.md`, targeted checks.
+Reference anchor:
+`task-1954`, `task-1955`, `docs/NORTH_STAR.md`, `docs/ARCHITECTURE.md`, and
+Bevy glTF source-to-scene staging.
+
+Acceptance criteria:
+
+- Confirm command-plan summaries remain JSON-safe and non-authoritative.
+- Confirm no registry, ECS world, command replay, render-world, or WebGPU
+  mutation moved into the source loader.
+- Recommend exactly one next source-to-scene task.
+
+### task-1958 — Plan report-only ECS replay readiness status
+
+Status: completed 2026-05-19. See
+`docs/research/ECS_REPLAY_READINESS_STATUS_PLAN_2026_05_19.md`.
+
+Category: `docs-tooling`
+Package/write-scope: `docs/research`, `agent/BACKLOG.md`.
+Reference anchor:
+`task-1957`, `packages/render/src/assets/gltf-ecs-command-replay.ts`, and
+`docs/ARCHITECTURE.md`.
+
+Acceptance criteria:
+
+- Plan a status-only replay-readiness report that can explain why command replay
+  is ready or blocked before actual execution.
+- Keep ECS mutation, visible scene rendering, and WebGPU preparation deferred.
+- Add concrete implementation and audit follow-up tasks.
+
+### task-1959 — Add ECS replay readiness summary helper
+
+Status: completed 2026-05-19. See
+`packages/render/src/assets/gltf-ecs-command-replay-readiness.ts` and
+`test/assets/gltf-ecs-command-replay-readiness.test.ts`.
+
+Category: `render-bridge`
+Package/write-scope: `packages/render/src/assets`, targeted tests under
+`test/assets`.
+Reference anchor:
+`docs/research/ECS_REPLAY_READINESS_STATUS_PLAN_2026_05_19.md`,
+`packages/render/src/assets/gltf-ecs-command-replay.ts`, and Bevy glTF scene
+staging in `references/bevy/crates/bevy_gltf/src/loader/mod.rs`.
+
+Acceptance criteria:
+
+- Add a JSON-safe helper that derives replay readiness from a command plan
+  without an ECS world.
+- Cover absent, ready, invalid-plan, missing-entity, duplicate-entity,
+  missing-parent, and unsupported-component cases.
+- Tests assert the readiness summary omits full command payloads and raw ECS
+  objects.
+
+### task-1960 — Attach ECS replay readiness to no-fetch output summaries
+
+Status: completed 2026-05-19. See
+`packages/render/src/assets/glb-source-loader-output-summary.ts`,
+`packages/render/src/assets/glb-source-loader-facade.ts`, and targeted tests.
+
+Category: `render-bridge`
+Package/write-scope: `packages/render/src/assets/glb-source-loader-output-summary.ts`,
+`packages/render/src/assets/glb-source-loader-facade.ts`, targeted tests.
+Reference anchor:
+`task-1959`, `docs/ARCHITECTURE.md`, and the existing source-registration and
+command-plan summary patterns.
+
+Acceptance criteria:
+
+- No-fetch output summaries include an `ecsReplayReadiness` section.
+- Facade output can publish readiness without calling
+  `replayGltfEcsAuthoringCommands`.
+- Tests prove no ECS world, registry, render-world, or WebGPU resource state is
+  exposed.
+
+### task-1961 — Document ECS replay readiness status
+
+Status: completed 2026-05-19. See
+`examples/gltf-scene-source-status.md`, `docs/index.html`, and
+`docs/render-pipeline-comparison.html`.
+
+Category: `docs-tooling`
+Package/write-scope: `examples/gltf-scene-source-status.md`,
+`docs/index.html`, `docs/render-pipeline-comparison.html`, and
+`pnpm run check:progress`.
+Reference anchor:
+`task-1960`, `docs/ARCHITECTURE.md`, and
+`docs/MEDIUM_LONG_TERM_GOALS.md`.
+
+Acceptance criteria:
+
+- Docs explain replay readiness as report-only preflight data.
+- Docs state actual ECS replay and visible GLB-derived rendering remain
+  separate.
+- Public tracker next-task language remains aligned.
+
+### task-1962 — Audit ECS replay readiness adoption
+
+Status: completed 2026-05-19. See
+`docs/research/ECS_REPLAY_READINESS_ADOPTION_AUDIT_2026_05_19.md`.
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research`, `agent/BACKLOG.md`, targeted checks.
+Reference anchor:
+`task-1959`, `task-1960`, `docs/NORTH_STAR.md`, `docs/ARCHITECTURE.md`, and
+Bevy source-to-scene staging.
+
+Acceptance criteria:
+
+- Confirm replay readiness does not mutate ECS, assets, render-world, or WebGPU
+  state.
+- Confirm JSON outputs omit raw ECS world/entity maps and full command payloads.
+- Recommend exactly one next source-to-scene task.
+
+### task-1963 — Plan first controlled ECS replay execution surface
+
+Status: completed 2026-05-19. See
+`docs/research/FIRST_CONTROLLED_ECS_REPLAY_EXECUTION_SURFACE_PLAN_2026_05_19.md`.
+
+Category: `docs-tooling`
+Package/write-scope: `docs/research`, `agent/BACKLOG.md`.
+Reference anchor:
+`task-1962`, `packages/render/src/assets/gltf-ecs-command-replay.ts`,
+`@aperture-engine/runtime` app facades, and `docs/ARCHITECTURE.md`.
+
+Acceptance criteria:
+
+- Compare a test-only replay fixture, a headless runtime facade option, and a
+  browser example path.
+- Select one narrow execution surface that preserves ECS authority and keeps the
+  renderer derived from snapshots.
+- Add implementation and audit follow-up tasks.
+
+### task-1964 — Add headless runtime GLTF command-plan replay facade
+
+Status: completed 2026-05-19. See `packages/runtime/src/index.ts` and
+`test/runtime/runtime.test.ts`.
+
+Category: `runtime-orchestration`
+Package/write-scope: `packages/runtime/src/index.ts`, `test/runtime`.
+Reference anchor:
+`docs/research/FIRST_CONTROLLED_ECS_REPLAY_EXECUTION_SURFACE_PLAN_2026_05_19.md`,
+`packages/render/src/assets/gltf-ecs-command-replay.ts`,
+`packages/runtime/src/index.ts`, and Bevy scene-handle spawning patterns.
+
+Acceptance criteria:
+
+- Add an explicit runtime helper that applies a provided glTF ECS command plan
+  to a `SimulationApp` world.
+- The helper delegates to the existing replay implementation and returns its
+  report.
+- Tests prove valid plans mutate the app world and invalid plans do not create
+  entities.
+- The source-loader facade remains report-only.
+
+### task-1965 — Prove replayed GLTF commands can feed extraction headlessly
+
+Status: completed 2026-05-19. See `test/runtime/runtime.test.ts`.
+
+Category: `runtime-orchestration`
+Package/write-scope: `packages/runtime/src/index.ts`, `test/runtime`.
+Reference anchor:
+`task-1964`, `docs/ARCHITECTURE.md`, and existing extraction app tests.
+
+Acceptance criteria:
+
+- Use an `ExtractionApp` plus a ready command plan with mesh/material
+  components.
+- Apply the command plan, step/extract, and assert the render snapshot is
+  derived from replayed ECS state.
+- Keep WebGPU/browser rendering unchanged.
+
+### task-1966 — Document controlled ECS replay execution surface
+
+Status: completed 2026-05-19. See
+`examples/gltf-scene-source-status.md`, `docs/index.html`, and
+`docs/render-pipeline-comparison.html`.
+
+Category: `docs-tooling`
+Package/write-scope: `examples/gltf-scene-source-status.md`,
+`docs/index.html`, `docs/render-pipeline-comparison.html`, and
+`pnpm run check:progress`.
+Reference anchor:
+`task-1964`, `task-1965`, `docs/ARCHITECTURE.md`, and
+`docs/MEDIUM_LONG_TERM_GOALS.md`.
+
+Acceptance criteria:
+
+- Docs distinguish source-loader summaries, replay readiness, and explicit
+  runtime replay execution.
+- Docs state browser-visible GLB scene rendering remains deferred until a later
+  slice.
+- Public tracker next-task language remains aligned.
+
+### task-1967 — Audit controlled ECS replay execution surface
+
+Status: completed 2026-05-19. See
+`docs/research/CONTROLLED_ECS_REPLAY_EXECUTION_SURFACE_AUDIT_2026_05_19.md`.
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research`, `agent/BACKLOG.md`, targeted checks.
+Reference anchor:
+`task-1964`, `task-1965`, `docs/NORTH_STAR.md`, `docs/ARCHITECTURE.md`, and
+Bevy source-to-scene staging.
+
+Acceptance criteria:
+
+- Confirm replay execution lives in runtime/app orchestration, not source
+  loading or WebGPU.
+- Confirm ECS remains authoritative and rendering remains derived from
+  extraction.
+- Recommend exactly one next GLB source-to-scene task.
+
+### task-1968 — Plan first browser-visible GLB-derived scene replay proof
+
+Status: completed 2026-05-19. See
+`docs/research/FIRST_BROWSER_VISIBLE_GLB_REPLAY_PROOF_PLAN_2026_05_19.md`.
+
+Category: `docs-tooling`
+Package/write-scope: `docs/research`, `agent/BACKLOG.md`.
+Reference anchor:
+`task-1967`, `examples/gltf-scene.js`, `test/e2e/gltf-scene.spec.ts`, and
+`docs/MEDIUM_LONG_TERM_GOALS.md`.
+
+Acceptance criteria:
+
+- Compare keeping visible fixture authoring unchanged, adding a headless-only
+  browser status proof, and replaying one GLB-derived primitive into the visible
+  scene.
+- Select the narrowest browser proof that preserves the ECS/render boundary.
+- Add implementation and audit follow-up tasks.
+
+### task-1969 — Route GLTF browser scene replay through runtime facade
+
+Status: completed 2026-05-19. See `examples/gltf-scene.js` and
+`test/e2e/gltf-scene.spec.ts`.
+
+Category: `runtime-orchestration`
+Package/write-scope: `examples/gltf-scene.js`,
+`test/e2e/gltf-scene.spec.ts`.
+Reference anchor:
+`docs/research/FIRST_BROWSER_VISIBLE_GLB_REPLAY_PROOF_PLAN_2026_05_19.md`,
+`packages/runtime/src/index.ts`, `examples/gltf-scene.js`, and Bevy scene
+spawning patterns.
+
+Acceptance criteria:
+
+- Replace direct browser example calls to `replayGltfEcsAuthoringCommands` with
+  `applyGltfEcsCommandPlanToApp`.
+- Publish JSON-safe replay status proving runtime facade execution succeeded.
+- Playwright asserts the status and existing visible pixels remain stable.
+- The no-fetch source-loader facade remains report-only.
+
+### task-1970 — Audit browser runtime replay facade adoption
+
+Status: completed 2026-05-19. See
+`docs/research/BROWSER_RUNTIME_REPLAY_FACADE_ADOPTION_AUDIT_2026_05_19.md`.
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research`, `agent/BACKLOG.md`, targeted checks.
+Reference anchor:
+`task-1969`, `docs/NORTH_STAR.md`, `docs/ARCHITECTURE.md`, and
+`examples/gltf-scene.js`.
+
+Acceptance criteria:
+
+- Confirm browser replay execution goes through runtime orchestration.
+- Confirm source-loader status remains report-only.
+- Confirm rendering remains derived from ECS extraction and WebGPU owns only GPU
+  resources.
+- Recommend exactly one next browser GLB source-to-scene task.
+
+### task-1971 — Plan buffer-backed GLB command-plan browser status proof
+
+Status: completed 2026-05-19. See
+`docs/research/BUFFER_BACKED_GLB_COMMAND_PLAN_BROWSER_STATUS_PROOF_PLAN_2026_05_19.md`.
+
+Category: `docs-tooling`
+Package/write-scope: `docs/research`, `agent/BACKLOG.md`.
+Reference anchor:
+`task-1970`, `examples/gltf-scene.js`,
+`packages/render/src/assets/glb-source-loader-facade.ts`, and
+`docs/MEDIUM_LONG_TERM_GOALS.md`.
+
+Acceptance criteria:
+
+- Compare a status-only buffer-backed command-plan proof with adding visible
+  geometry.
+- Select one narrow next slice with Playwright status expectations.
+- Keep broad viewer behavior and external file loading deferred.
+
+### task-1972 — Add buffer-backed GLB command-plan browser status proof
+
+Status: completed 2026-05-19. See `examples/gltf-scene.js` and
+`test/e2e/gltf-scene.spec.ts`.
+
+Category: `runtime-orchestration`
+Package/write-scope: `examples/gltf-scene.js`,
+`test/e2e/gltf-scene.spec.ts`.
+Reference anchor:
+`task-1971`, the buffer-backed GLB fixture helper, and
+`docs/ARCHITECTURE.md`.
+
+Acceptance criteria:
+
+- Browser status includes a buffer-backed GLB command-plan and runtime replay
+  readiness proof without changing visible rendering.
+- Playwright asserts command-plan/replay-readiness status and JSON safety.
+- No external URL/file loading or WebGPU ownership moves into source loading.
+
+### task-1973 — Audit buffer-backed GLB command-plan browser status proof
+
+Status: completed 2026-05-19. See
+`docs/research/BUFFER_BACKED_GLB_COMMAND_PLAN_BROWSER_STATUS_PROOF_AUDIT_2026_05_19.md`.
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research`, `agent/BACKLOG.md`, targeted checks.
+Reference anchor:
+`task-1972`, `docs/NORTH_STAR.md`, `docs/ARCHITECTURE.md`, and
+`docs/MEDIUM_LONG_TERM_GOALS.md`.
+
+Acceptance criteria:
+
+- Confirm the proof remains status-only unless the selected implementation
+  explicitly renders geometry.
+- Confirm ECS authority and render extraction boundaries remain intact.
+- Recommend the next visible GLB-derived scene slice.
+
+### task-1974 — Plan first visible buffer-backed GLB primitive replay
+
+Status: completed 2026-05-19. See
+`docs/research/FIRST_VISIBLE_BUFFER_BACKED_GLB_PRIMITIVE_REPLAY_PLAN_2026_05_19.md`.
+
+Category: `docs-tooling`
+Package/write-scope: `docs/research`, `agent/BACKLOG.md`.
+Reference anchor:
+`task-1973`, `examples/gltf-scene.js`, `test/e2e/gltf-scene.spec.ts`, and
+`docs/MEDIUM_LONG_TERM_GOALS.md`.
+
+Acceptance criteria:
+
+- Define the smallest visible buffer-backed GLB primitive replay proof.
+- Decide whether to reuse an existing material or add a minimal unlit material
+  mapping for the buffer-backed primitive.
+- Add implementation and audit follow-up tasks with Playwright status/pixel
+  expectations.
+
+### task-1975 — Add visible buffer-backed GLB primitive replay proof
+
+Status: completed 2026-05-19. See `agent/COMPLETED.md`.
+
+Category: `runtime-orchestration`
+Package/write-scope: `examples/gltf-scene.js`,
+`test/e2e/gltf-scene.spec.ts`, targeted render/runtime tests if needed.
+Reference anchor:
+`task-1974`, `docs/ARCHITECTURE.md`, and the established GLTF browser scene
+fixture path.
+
+Acceptance criteria:
+
+- Replay one buffer-backed GLB-derived primitive into the visible browser scene.
+- Playwright asserts source status, replay status, and a stable visible pixel or
+  readback difference.
+- Keep external loading, broad viewer behavior, and new material systems
+  deferred.
+
+### task-1976 — Audit visible buffer-backed GLB primitive replay proof
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research`, `agent/BACKLOG.md`, targeted checks.
+Reference anchor:
+`task-1975`, `docs/NORTH_STAR.md`, `docs/ARCHITECTURE.md`, and
+`docs/MEDIUM_LONG_TERM_GOALS.md`.
+
+Acceptance criteria:
+
+- Confirm browser-visible GLB replay still follows ECS -> extraction -> WebGPU.
+- Confirm source loading remains separate from runtime replay execution.
+- Recommend the next glTF scene vertical-slice task.
+
+### task-1977 — Plan buffer-backed GLB material mapping for visible replay
+
+Category: `docs-tooling`
+Package/write-scope: `docs/research`, `agent/BACKLOG.md`.
+Reference anchor:
+`task-1976`, `packages/render/src/assets/gltf-asset-mapping.ts`,
+`packages/render/src/assets/gltf-source-registration.ts`, and
+`docs/MEDIUM_LONG_TERM_GOALS.md`.
+
+Acceptance criteria:
+
+- Compare minimal unlit material mapping with StandardMaterial mapping for the
+  buffer-backed visible primitive.
+- Select one narrow material/source registration follow-up.
+- Add implementation and audit follow-up tasks.
+
+### task-1978 — Add visible buffer-backed GLB primitive material mapping
+
+Category: `render-bridge`
+Package/write-scope: `packages/render/src/assets`, `examples/gltf-scene.js`,
+`test/e2e/gltf-scene.spec.ts`, targeted tests.
+Reference anchor:
+`task-1977`, `docs/ARCHITECTURE.md`, and current glTF material mapping helpers.
+
+Acceptance criteria:
+
+- The visible buffer-backed primitive uses a material source mapped from its GLB
+  root rather than borrowing an existing material handle.
+- Browser status reports the material mapping/registration path.
+- Playwright keeps the visible proof stable.
+
+### task-1979 — Audit buffer-backed GLB material mapping replay
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research`, `agent/BACKLOG.md`, targeted checks.
+Reference anchor:
+`task-1978`, `docs/NORTH_STAR.md`, `docs/ARCHITECTURE.md`, and
+`docs/MEDIUM_LONG_TERM_GOALS.md`.
+
+Acceptance criteria:
+
+- Confirm material source mapping remains renderer-independent.
+- Confirm runtime replay remains separate from source loading.
+- Recommend the next glTF scene vertical-slice task.
 
 ## Post-Unlit E2E Verification Targets
 

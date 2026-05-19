@@ -42,22 +42,45 @@ submesh count, vertex count, index count, validity, and diagnostic count. These
 are compact readiness summaries derived from import reports. They do not expose
 raw mesh arrays, ECS world state, source registry internals, or WebGPU resources.
 
+Facade output may also include a compact ECS authoring command-plan summary when
+the caller provides a precomputed command plan. That summary can report plan
+status, scene index, root entity count, aggregate command counts, component
+counts, dependency count, skipped count, and diagnostic count. It does not embed
+the full command list, component payloads, entity maps, an ECS world, registry
+internals, or WebGPU resources.
+
+When a command plan is available, facade output also includes ECS replay
+readiness preflight status. Replay readiness reports whether the command plan is
+ready or blocked for a future replay surface, including aggregate expected
+entity/component counts and blocker summaries. It does not create an ECS world,
+register components, allocate entities, apply components, or call command replay.
+
+Actual ECS command replay is now exposed separately through the headless runtime
+facade. Runtime code can explicitly apply a ready command plan to a
+`SimulationApp` or `ExtractionApp` world, and extraction can then derive render
+packets from the mutated ECS state. This execution surface is intentionally
+outside the no-fetch source-loader facade.
+
 The current browser GLTF scene reports `outputSummary.meshConstruction.status`
 as `absent`. That is intentional: the inline GLB fixture proves source status
 and root parsing, while the visible primitive meshes still use the established
 browser fixture authoring path.
 
 The browser status also includes `source.bufferBackedGlbFixture`, a separate
-source/import proof with one indexed triangle backed by GLB BIN bytes. It can
-report `outputSummary.meshConstruction.status` as `ready`, but it is not yet the
-source of the visible rendered scene.
+source/import proof with one indexed triangle backed by GLB BIN bytes. The
+scene now replays that buffer-backed mesh through a controlled runtime facade
+into ECS and publishes `gltf.visibleBufferBackedReplay` plus four extracted
+mesh draws / WebGPU draw calls as the first browser render-path readback proof.
 
 Deferred output stages:
 
 - Source asset registration execution. Provided source-registration reports can
   be summarized, but the facade does not write to a registry itself.
-- ECS authoring command-plan summaries.
-- ECS command replay status from facade output.
+- ECS authoring command-plan replay inside source-loader output. Provided
+  command plans can be summarized, and replay readiness can be reported, but the
+  facade does not execute them.
+- Source-driven material mapping for the buffer-backed primitive. The current
+  visible replay proof registers a minimal example material explicitly.
 - Render-world or WebGPU preparation summaries.
 
 `source.glbFixture` must not include:

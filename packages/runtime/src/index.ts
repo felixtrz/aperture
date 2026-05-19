@@ -40,8 +40,11 @@ import {
   createLight,
   createLightShadowSettings,
   extractRenderSnapshot,
+  replayGltfEcsAuthoringCommands,
   registerRenderAuthoringComponents,
   type CameraInput,
+  type GltfEcsAuthoringCommandPlan,
+  type GltfEcsCommandReplayReport,
   type LightInput,
   type LightShadowSettingsInput,
   type RenderSnapshot,
@@ -124,6 +127,12 @@ export interface CreateSimulationAppOptions {
 
 export type CreateExtractionAppOptions = CreateSimulationAppOptions;
 
+export interface ApplyGltfEcsCommandPlanToAppOptions {
+  readonly app: SimulationApp;
+  readonly plan: GltfEcsAuthoringCommandPlan;
+  readonly registerComponents?: boolean;
+}
+
 export function createSimulationApp(
   options: CreateSimulationAppOptions = {},
 ): SimulationApp {
@@ -177,6 +186,18 @@ export function createExtractionApp(
       return extractRenderSnapshot(app.world, app.assets, { frame });
     },
   };
+}
+
+export function applyGltfEcsCommandPlanToApp(
+  options: ApplyGltfEcsCommandPlanToAppOptions,
+): GltfEcsCommandReplayReport {
+  return replayGltfEcsAuthoringCommands({
+    world: options.app.world,
+    plan: options.plan,
+    ...(options.registerComponents === undefined
+      ? {}
+      : { registerComponents: options.registerComponents }),
+  });
 }
 
 export function registerRuntimeComponents(world: EcsWorld): EcsWorld {
