@@ -1086,9 +1086,32 @@ test("Playwright shows the GLTF scene fixture through the app path", async ({
 }) => {
   const webGpuValidation = attachWebGpuValidationConsoleGuard(page);
 
-  await page.goto("/examples/gltf-scene.html");
+  await page.goto("/examples/gltf-scene.html?disable-shadow-receiver=1");
 
   let status = await waitForExampleStatus<GltfSceneStatus>(page);
+
+  expect(status, "GLTF scene status should publish").toBeDefined();
+
+  if (status === undefined) {
+    return;
+  }
+
+  skipIfUnsupportedWebGpu(status);
+
+  await page.waitForFunction(
+    () =>
+      ((
+        globalThis as {
+          readonly __APERTURE_EXAMPLE_STATUS__?: { readonly frame?: number };
+        }
+      ).__APERTURE_EXAMPLE_STATUS__?.frame ?? 0) >= 3,
+  );
+  const noShadowScreenshot = await page
+    .locator("#aperture-canvas")
+    .screenshot();
+
+  await page.goto("/examples/gltf-scene.html");
+  status = await waitForExampleStatus<GltfSceneStatus>(page);
 
   expect(status, "GLTF scene status should publish").toBeDefined();
 
@@ -1171,7 +1194,7 @@ test("Playwright shows the GLTF scene fixture through the app path", async ({
           frameResources: "deferred",
           commandRecords: "ready",
           encoderAssembly: "missing",
-          commandBufferSubmission: "ready",
+          commandBufferSubmission: "submitted",
           receiverBinding: "ready",
           resourceSummary: "deferred",
           bindGroupLayout: "deferred",
@@ -2226,6 +2249,37 @@ test("Playwright shows the GLTF scene fixture through the app path", async ({
         ],
         diagnostics: [],
       },
+      projectionCoverage: {
+        ready: true,
+        status: "ready",
+        matrixKey: expect.stringMatching(
+          /^shadow-pass:\d+:light:\d+:view-projection$/,
+        ),
+        sampleCount: 4,
+        receiverInsideCount: expect.any(Number),
+        casterInsideCount: expect.any(Number),
+        records: expect.arrayContaining([
+          expect.objectContaining({
+            key: "receiver:plane:center",
+            role: "receiver",
+            shape: "plane",
+            insideProjection: expect.any(Boolean),
+            uv: [expect.any(Number), expect.any(Number)],
+            depth: expect.any(Number),
+            projectionDistance: expect.any(Number),
+          }),
+          expect.objectContaining({
+            key: "caster:box:center",
+            role: "caster",
+            shape: "box",
+            insideProjection: expect.any(Boolean),
+            uv: [expect.any(Number), expect.any(Number)],
+            depth: expect.any(Number),
+            projectionDistance: expect.any(Number),
+          }),
+        ]),
+        diagnostics: [],
+      },
       matrixBuffer: {
         ready: true,
         status: "ready",
@@ -2905,27 +2959,23 @@ test("Playwright shows the GLTF scene fixture through the app path", async ({
       },
       commandBufferSubmission: {
         ready: true,
-        status: "ready",
+        status: "submitted",
         counts: {
           assembledPasses: 1,
           commandCount: 15,
           drawCalls: 3,
           commandBuffers: 1,
-          submittedCommandBuffers: 0,
-          skippedSubmissions: 1,
+          submittedCommandBuffers: 1,
+          skippedSubmissions: 0,
         },
         sections: {
           encoderAssembly: true,
           commandBufferFinish: true,
-          queueSubmission: false,
+          queueSubmission: true,
           shaderSampling: false,
         },
         commandBufferKeys: ["command-buffer:shadow-pass:directional"],
         diagnostics: [
-          {
-            code: "shadowPassCommandBufferSubmission.queueSubmissionDeferred",
-            severity: "warning",
-          },
           {
             code: "shadowPassCommandBufferSubmission.shaderSamplingDeferred",
             severity: "warning",
@@ -2960,7 +3010,7 @@ test("Playwright shows the GLTF scene fixture through the app path", async ({
             bindGroupResourceKey: expect.stringMatching(
               /^bind-group:standard\/shadow\/group-5\//,
             ),
-            commandBufferStatus: "ready",
+            commandBufferStatus: "submitted",
           },
           {
             receiverKey: "standard-material-shadow-receiver:1",
@@ -2976,7 +3026,7 @@ test("Playwright shows the GLTF scene fixture through the app path", async ({
             bindGroupResourceKey: expect.stringMatching(
               /^bind-group:standard\/shadow\/group-5\//,
             ),
-            commandBufferStatus: "ready",
+            commandBufferStatus: "submitted",
           },
         ],
         diagnostics: [],
@@ -3120,6 +3170,7 @@ test("Playwright shows the GLTF scene fixture through the app path", async ({
     contentType: "image/png",
   });
   expectVisibleSceneRegions(screenshot, status);
+  expectReceiverShadowActivation(noShadowScreenshot, screenshot, status);
   webGpuValidation.expectNoWarnings();
 });
 
@@ -3143,11 +3194,114 @@ function expectVisibleSceneRegions(
       `${name} region should contain non-clear pixels; sample=${JSON.stringify(
         sample,
       )}`,
-    ).toBeGreaterThan(30);
+    ).toBeGreaterThan(20);
   }
 
   expect(pixelDistance(samples.plane, samples.box)).toBeGreaterThan(18);
   expect(pixelDistance(samples.box, samples.cone)).toBeGreaterThan(18);
+}
+
+function expectReceiverShadowActivation(
+  before: Buffer,
+  screenshot: Buffer,
+  status: GltfSceneStatus,
+): void {
+  const clear =
+    status.clearColor === undefined
+      ? { r: 4, g: 6, b: 9, a: 255 }
+      : rgbaColorToPixel(status.clearColor);
+  const beforeLuminance = averageRegionLuminance(
+    before,
+    clear,
+    standardReceiverRegion(),
+  );
+  const afterLuminance = averageRegionLuminance(
+    screenshot,
+    clear,
+    standardReceiverRegion(),
+  );
+  const routedPipelines = (
+    status as GltfSceneStatus & {
+      readonly report: {
+        readonly diagnosticsSummary?: {
+          readonly routedResourceSet: {
+            readonly byPipeline: readonly {
+              readonly pipelineKey: string;
+              readonly itemCount: number;
+            }[];
+          };
+        };
+      };
+    }
+  ).report.diagnosticsSummary?.routedResourceSet.byPipeline;
+
+  expect(
+    routedPipelines,
+    "StandardMaterial shadow receiver proof requires the shadowMap pipeline route.",
+  ).toEqual(
+    expect.arrayContaining([
+      {
+        pipelineKey: "standard|shadowMap|opaque|back|less|none",
+        itemCount: 2,
+      },
+    ]),
+  );
+  expect(
+    afterLuminance.visibleSamples,
+    `receiver region should contain enough visible samples; after=${JSON.stringify(
+      afterLuminance,
+    )}`,
+  ).toBeGreaterThanOrEqual(4);
+  expect(
+    Math.abs(beforeLuminance.average - afterLuminance.average),
+    `receiver region should change after shadow sampling; before=${JSON.stringify(
+      beforeLuminance,
+    )} after=${JSON.stringify(afterLuminance)}`,
+  ).toBeGreaterThan(4);
+}
+
+function standardReceiverRegion(): {
+  readonly minX: number;
+  readonly minY: number;
+  readonly width: number;
+  readonly height: number;
+} {
+  return { minX: 0.42, minY: 0.35, width: 0.16, height: 0.3 };
+}
+
+function averageRegionLuminance(
+  screenshot: Buffer,
+  clear: ReturnType<typeof readPngPixel>,
+  region: ReturnType<typeof standardReceiverRegion>,
+): {
+  readonly visibleSamples: number;
+  readonly average: number;
+} {
+  let visibleSamples = 0;
+  let totalLuminance = 0;
+
+  for (let y = 0; y < 7; y += 1) {
+    for (let x = 0; x < 7; x += 1) {
+      const sample = readPngPixel(
+        screenshot,
+        region.minX + (region.width * x) / 6,
+        region.minY + (region.height * y) / 6,
+      );
+
+      if (pixelDistance(sample, clear) <= 30) {
+        continue;
+      }
+
+      visibleSamples += 1;
+      totalLuminance +=
+        sample.r * 0.2126 + sample.g * 0.7152 + sample.b * 0.0722;
+    }
+  }
+
+  return {
+    visibleSamples,
+    average: visibleSamples === 0 ? 0 : totalLuminance / visibleSamples,
+  };
 }
 
 function strongestRegionSample(

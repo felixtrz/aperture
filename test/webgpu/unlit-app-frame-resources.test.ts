@@ -9,13 +9,17 @@ import {
   createTextureHandle,
 } from "@aperture-engine/simulation";
 import {
+  createBoxMeshAsset,
   createMatcapMaterialAsset,
   createSamplerAsset,
   createStandardMaterialAsset,
   createTextureAsset,
+  type LightPacket,
   type RenderSnapshot,
 } from "@aperture-engine/render";
 import {
+  createDirectionalShadowMatrixComputationReport,
+  createDirectionalShadowViewProjectionPlanReport,
   createMatcapMaterialBindGroupLayoutPlan,
   createOrReuseMatcapAppFrameResources,
   createOrReuseStandardAppFrameResources,
@@ -24,12 +28,22 @@ import {
   createPreparedMeshGpuResourceCache,
   createPreparedScalarStandardMaterialCache,
   createPreparedScalarUnlitMaterialCache,
+  createShadowDepthTextureResourceReport,
+  createShadowMapDescriptorReport,
+  createShadowMatrixBufferDescriptorReport,
+  createShadowMatrixBufferResourceReport,
+  createShadowPassPlanReport,
+  createShadowSamplerResourceReport,
+  createShadowTextureResourceReport,
   createStandardMaterialBindGroupLayoutPlan,
+  createStandardLightShadowBindGroupLayoutDescriptor,
   createUnlitBindGroupLayoutMetadata,
   createUnlitMaterialAsset,
   type MatcapMaterialBindGroupLayoutResource,
+  type StandardLightShadowBindGroupLayoutResource,
   type StandardMaterialBindGroupLayoutResource,
   type UnlitBindGroupLayoutResource,
+  type TextureGpuDeviceLike,
   type WebGpuBufferDeviceLike,
 } from "@aperture-engine/webgpu";
 
@@ -358,6 +372,64 @@ describe("unlit app frame-resource fallback diagnostics", () => {
       ],
     });
   });
+
+  it("routes shadowMap Standard frame resources through the combined light/shadow group 3 bind group", () => {
+    const registry = new AssetRegistry();
+    const material = createMaterialHandle("standard-shadow-receiver");
+    const mesh = createMeshHandle("standard-shadow-plane");
+    const createdBindGroups: unknown[] = [];
+    const device = deviceWithShadowResources({ createdBindGroups });
+
+    registry.register(material);
+    registry.register(mesh);
+    const materialEntry = registry.markReady(
+      material,
+      createStandardMaterialAsset(),
+    );
+    const shadowResources = standardShadowReceiverResources(device);
+
+    const result = createOrReuseStandardAppFrameResources({
+      device,
+      cache: { current: null },
+      snapshot: snapshotWithLight(),
+      mesh: createBoxMeshAsset({ label: "ShadowReceiver" }),
+      meshHandle: mesh,
+      meshKey: `${assetHandleKey(mesh)}@1`,
+      material: required(materialEntry.asset),
+      materialHandle: material,
+      materialKey: `${assetHandleKey(material)}@${materialEntry.version}`,
+      sourceMaterialKey: assetHandleKey(material),
+      pipelineKey: "standard|shadowMap|opaque|back|less|none",
+      assets: registry,
+      textureSamplerDependencies: emptyTextureSamplerDependencies(),
+      viewUniforms: validViewUniforms(),
+      worldTransforms: validTransforms(),
+      sharedLayouts: [sharedLayout(0), sharedLayout(1)],
+      materialLayout: standardMaterialLayout(),
+      lightLayout: standardLightShadowLayout(),
+      shadowReceiverResources: shadowResources,
+      preparedMeshes: createPreparedMeshGpuResourceCache(),
+      preparedScalarMaterials: createPreparedScalarStandardMaterialCache(),
+      reuse: standardReuseCounters(),
+    });
+
+    expect(result.valid).toBe(true);
+    expect(result.resources?.lightBindGroup).toMatchObject({
+      group: 3,
+      layoutKey: "webgpu-app/standard/lights-shadow/group-3",
+      entryResourceKeys: [
+        "light-buffer:main/floats",
+        "light-buffer:main/metadata",
+        "shadow-matrix-buffer:directional",
+        "shadow-map:7:light:11:texture",
+        "shadow-sampler:directional",
+      ],
+    });
+    expect(result.resources?.bindGroups.at(-1)).toBe(
+      result.resources?.lightBindGroup,
+    );
+    expect(createdBindGroups).toHaveLength(4);
+  });
 });
 
 function emptyTextureSamplerDependencies() {
@@ -401,12 +473,34 @@ function emptyTransforms() {
   };
 }
 
-function emptySnapshot(): RenderSnapshot {
+function validViewUniforms() {
+  return {
+    data: new Float32Array(20),
+    floatCount: 20,
+    views: [{ viewId: 1, sourceOffset: 0, packedOffset: 0 }],
+    diagnostics: [],
+  };
+}
+
+function validTransforms() {
+  return {
+    data: identityTransform(),
+    floatCount: 16,
+    offsets: [{ renderId: 1, sourceOffset: 0, packedOffset: 0 }],
+    diagnostics: [],
+  };
+}
+
+function emptySnapshot(
+  input: {
+    readonly lights?: readonly LightPacket[];
+  } = {},
+): RenderSnapshot {
   return {
     frame: 1,
     views: [],
     meshDraws: [],
-    lights: [],
+    lights: input.lights ?? [],
     environments: [],
     shadowRequests: [],
     bounds: [],
@@ -416,13 +510,17 @@ function emptySnapshot(): RenderSnapshot {
     report: {
       views: 0,
       meshDraws: 0,
-      lights: 0,
+      lights: input.lights?.length ?? 0,
       environments: 0,
       shadowRequests: 0,
       bounds: 0,
       diagnostics: 0,
     },
   };
+}
+
+function snapshotWithLight(): RenderSnapshot {
+  return emptySnapshot({ lights: [light()] });
 }
 
 function reuseCounters() {
@@ -460,6 +558,18 @@ function materialLayout(): UnlitBindGroupLayoutResource {
   };
 }
 
+function sharedLayout(group: 0 | 1): UnlitBindGroupLayoutResource {
+  return {
+    group,
+    layoutKey: `layout:standard/shared-${group}`,
+    layout: { group },
+    metadata: createUnlitBindGroupLayoutMetadata(
+      group,
+      `layout:standard/shared-${group}`,
+    ),
+  };
+}
+
 function matcapMaterialLayout(): MatcapMaterialBindGroupLayoutResource {
   return {
     group: 2,
@@ -482,6 +592,15 @@ function standardMaterialLayout(): StandardMaterialBindGroupLayoutResource {
   };
 }
 
+function standardLightShadowLayout(): StandardLightShadowBindGroupLayoutResource {
+  return {
+    group: 3,
+    layoutKey: "webgpu-app/standard/lights-shadow/group-3",
+    layout: { group: 3 },
+    descriptor: createStandardLightShadowBindGroupLayoutDescriptor(),
+  };
+}
+
 function deviceWithBuffers(): WebGpuBufferDeviceLike & {
   createBindGroup: (descriptor: unknown) => unknown;
 } {
@@ -491,6 +610,107 @@ function deviceWithBuffers(): WebGpuBufferDeviceLike & {
     },
     createBuffer: (descriptor) => ({ descriptor }),
     createBindGroup: (descriptor: unknown) => ({ descriptor }),
+  };
+}
+
+function standardShadowReceiverResources(
+  device: TextureGpuDeviceLike &
+    WebGpuBufferDeviceLike & {
+      createSampler: (descriptor: unknown) => unknown;
+    },
+) {
+  const descriptor = createShadowMapDescriptorReport({
+    shadowRequests: [shadowRequest()],
+    descriptors: [
+      { shadowId: 7, lightId: 11, mapSize: 1024, depthBias: 0.001 },
+    ],
+  });
+  const textures = createShadowTextureResourceReport({
+    descriptors: descriptor,
+  });
+  const passPlan = createShadowPassPlanReport({
+    shadowRequests: [shadowRequest()],
+    textures,
+  });
+  const viewProjection = createDirectionalShadowViewProjectionPlanReport({
+    shadowRequests: [shadowRequest()],
+    lights: [light()],
+    shadowPassPlan: passPlan,
+  });
+  const matrixBuffer = createShadowMatrixBufferDescriptorReport({
+    viewProjection,
+    upload: "ready",
+  });
+  const matrices = createDirectionalShadowMatrixComputationReport({
+    viewProjection,
+    transforms: identityTransform(),
+  });
+
+  return {
+    matrixBufferResource: createShadowMatrixBufferResourceReport({
+      device,
+      descriptor: matrixBuffer,
+      matrices,
+    }),
+    depthTextureResources: createShadowDepthTextureResourceReport({
+      device,
+      textures,
+    }),
+    samplerResource: createShadowSamplerResourceReport({
+      device,
+      cache: new Map(),
+    }),
+  };
+}
+
+function shadowRequest() {
+  return {
+    shadowId: 7,
+    lightId: 11,
+    casterLayerMask: 1,
+    receiverLayerMask: 1,
+  };
+}
+
+function light(): LightPacket {
+  return {
+    lightId: 11,
+    entity: { index: 1, generation: 0 },
+    kind: "directional",
+    color: [1, 1, 1, 1],
+    intensity: 1,
+    range: 0,
+    innerConeAngle: 0,
+    outerConeAngle: 0,
+    worldTransformOffset: 0,
+    layerMask: 1,
+  };
+}
+
+function identityTransform(): Float32Array {
+  return new Float32Array([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]);
+}
+
+function deviceWithShadowResources(captures: {
+  readonly createdBindGroups: unknown[];
+}): TextureGpuDeviceLike &
+  WebGpuBufferDeviceLike & {
+    createBindGroup: (descriptor: unknown) => unknown;
+    createSampler: (descriptor: unknown) => unknown;
+  } {
+  return {
+    queue: {
+      writeBuffer: () => undefined,
+    },
+    createBuffer: (descriptor) => ({ descriptor }),
+    createTexture: (descriptor) => ({
+      createView: () => ({ descriptor }),
+    }),
+    createSampler: (descriptor) => ({ descriptor }),
+    createBindGroup: (descriptor) => {
+      captures.createdBindGroups.push(descriptor);
+      return { descriptor };
+    },
   };
 }
 

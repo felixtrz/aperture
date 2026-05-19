@@ -1,6 +1,8 @@
 const canvas = document.querySelector("#aperture-canvas");
 const stateElement = document.querySelector("#example-state");
 const jsonElement = document.querySelector("#example-json");
+const exampleParams = new URLSearchParams(globalThis.location.search);
+const enableShadowReceiver = !exampleParams.has("disable-shadow-receiver");
 
 const clearColor = [0.015, 0.025, 0.035, 1];
 const primitiveShapes = [
@@ -183,6 +185,7 @@ function createScene(aperture, app, targetCanvas) {
 
 function startRendering(aperture, app, scene) {
   let frame = 0;
+  let standardMaterialShadowReceiverResources = null;
 
   const render = async () => {
     frame += 1;
@@ -191,9 +194,20 @@ function startRendering(aperture, app, scene) {
       frame,
       clearColor,
       label: "gltf-scene-app",
+      ...(!enableShadowReceiver ||
+      standardMaterialShadowReceiverResources === null
+        ? {}
+        : { standardMaterialShadowReceiverResources }),
     });
 
-    publishFrameStatus(aperture, app, scene, step, report, frame);
+    standardMaterialShadowReceiverResources = publishFrameStatus(
+      aperture,
+      app,
+      scene,
+      step,
+      report,
+      frame,
+    );
     requestAnimationFrame(render);
   };
 
@@ -416,6 +430,9 @@ function publishFrameStatus(aperture, app, scene, step, report, frame) {
         transforms: report.snapshot.transforms,
       }),
     );
+  const shadowProjectionCoverage = createShadowProjectionCoverageReport(
+    shadowMatrixComputation,
+  );
   const shadowMatrixBuffer =
     aperture.shadowMatrixBufferDescriptorReportToJsonValue(
       aperture.createShadowMatrixBufferDescriptorReport({
@@ -583,7 +600,9 @@ function publishFrameStatus(aperture, app, scene, step, report, frame) {
     aperture.createShadowPassCommandBufferSubmissionReport({
       assembly: shadowPassEncoderAssemblyReport,
       encoder: shadowPassCommandEncoderResource.resource?.encoder,
+      queue: app.initialization.device.queue,
       label: "shadow-pass:directional",
+      submit: true,
     });
   const shadowPassCommandBufferSubmission =
     aperture.shadowPassCommandBufferSubmissionReportToJsonValue(
@@ -767,6 +786,7 @@ function publishFrameStatus(aperture, app, scene, step, report, frame) {
       bindGroupResource: standardMaterialShadowBindGroupResource,
       viewProjection: shadowViewProjection,
       matrixComputation: shadowMatrixComputation,
+      projectionCoverage: shadowProjectionCoverage,
       matrixBuffer: shadowMatrixBuffer,
       matrixBufferResource: shadowMatrixBufferResource,
       casterDrawList: shadowCasterDrawList,
@@ -813,6 +833,12 @@ function publishFrameStatus(aperture, app, scene, step, report, frame) {
       height: scene.canvas.height,
     },
   });
+
+  return {
+    matrixBufferResource: shadowMatrixBufferResourceReport,
+    depthTextureResources: shadowDepthTextureResourceReport,
+    samplerResource: shadowSamplerResourceReport,
+  };
 }
 
 function createReadinessGrouping(input) {
@@ -1007,6 +1033,150 @@ function resolveShadowDepthView(depthTextureResources, attachment) {
   );
 
   return resource?.allocation.resource?.view ?? null;
+}
+
+function createShadowProjectionCoverageReport(matrixComputation) {
+  const matrix = matrixComputation.matrices?.[0] ?? null;
+
+  if (matrix === null) {
+    return {
+      ready: false,
+      status: "missing",
+      matrixKey: null,
+      sampleCount: 0,
+      receiverInsideCount: 0,
+      casterInsideCount: 0,
+      records: [],
+      diagnostics: [
+        {
+          code: "gltfScene.shadowProjectionCoverage.missingMatrix",
+          severity: "warning",
+          message:
+            "Shadow projection coverage requires a ready directional shadow matrix.",
+        },
+      ],
+    };
+  }
+
+  const records = shadowProjectionSamples().map((sample) =>
+    projectShadowSample(matrix.viewProjectionMatrix, sample),
+  );
+  const receiverRecords = records.filter(
+    (record) => record.role === "receiver",
+  );
+  const casterRecords = records.filter((record) => record.role === "caster");
+  const receiverInsideCount = receiverRecords.filter(
+    (record) => record.insideProjection,
+  ).length;
+  const casterInsideCount = casterRecords.filter(
+    (record) => record.insideProjection,
+  ).length;
+  const ready = receiverInsideCount > 0 && casterInsideCount > 0;
+
+  return {
+    ready,
+    status: ready ? "ready" : "missing",
+    matrixKey: matrix.matrixKey,
+    sampleCount: records.length,
+    receiverInsideCount,
+    casterInsideCount,
+    records,
+    diagnostics: ready
+      ? []
+      : [
+          {
+            code: "gltfScene.shadowProjectionCoverage.noOverlap",
+            severity: "warning",
+            message:
+              "Shadow projection coverage did not find both receiver and caster samples inside the light projection.",
+          },
+        ],
+  };
+}
+
+function shadowProjectionSamples() {
+  return [
+    {
+      key: "receiver:plane:center",
+      role: "receiver",
+      shape: "plane",
+      worldPosition: [-1.45, -0.15, 0],
+    },
+    {
+      key: "receiver:cone:center",
+      role: "receiver",
+      shape: "cone",
+      worldPosition: [1.45, -0.05, 0],
+    },
+    {
+      key: "caster:box:center",
+      role: "caster",
+      shape: "box",
+      worldPosition: [0, 0, 0],
+    },
+    {
+      key: "caster:box:top",
+      role: "caster",
+      shape: "box",
+      worldPosition: [0, 0.5, 0],
+    },
+  ];
+}
+
+function projectShadowSample(matrix, sample) {
+  const clip = transformPoint4(matrix, sample.worldPosition);
+  const w = Math.abs(clip[3]) <= 0.00001 ? 1 : clip[3];
+  const ndc = [clip[0] / w, clip[1] / w, clip[2] / w];
+  const depth = ndc[2] < 0 ? ndc[2] * 0.5 + 0.5 : ndc[2];
+  const uv = [ndc[0] * 0.5 + 0.5, 0.5 - ndc[1] * 0.5];
+  const clampedUv = [clamp01(uv[0]), clamp01(uv[1])];
+  const clampedDepth = clamp01(depth);
+  const projectionDistance = Math.max(
+    Math.hypot(uv[0] - clampedUv[0], uv[1] - clampedUv[1]),
+    Math.abs(depth - clampedDepth),
+  );
+
+  return {
+    key: sample.key,
+    role: sample.role,
+    shape: sample.shape,
+    worldPosition: sample.worldPosition,
+    uv: sanitizeTuple2(uv),
+    depth: sanitizeNumber(depth),
+    insideProjection:
+      uv[0] >= 0 &&
+      uv[0] <= 1 &&
+      uv[1] >= 0 &&
+      uv[1] <= 1 &&
+      depth >= 0 &&
+      depth <= 1,
+    projectionDistance: sanitizeNumber(projectionDistance),
+  };
+}
+
+function transformPoint4(matrix, point) {
+  const x = point[0];
+  const y = point[1];
+  const z = point[2];
+
+  return [
+    matrix[0] * x + matrix[4] * y + matrix[8] * z + matrix[12],
+    matrix[1] * x + matrix[5] * y + matrix[9] * z + matrix[13],
+    matrix[2] * x + matrix[6] * y + matrix[10] * z + matrix[14],
+    matrix[3] * x + matrix[7] * y + matrix[11] * z + matrix[15],
+  ];
+}
+
+function clamp01(value) {
+  return Math.min(Math.max(value, 0), 1);
+}
+
+function sanitizeTuple2(value) {
+  return [sanitizeNumber(value[0]), sanitizeNumber(value[1])];
+}
+
+function sanitizeNumber(value) {
+  return Object.is(value, -0) ? 0 : value;
 }
 
 function createGltfSceneRoot() {

@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-19 02:40 PDT</dd>
+            <dd>2026-05-19 03:46 PDT</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -485,15 +485,20 @@
               matrix/depth/sampler bindings and a deterministic single-tap
               directional shadow factor; Chrome reports
               <code>maxBindGroups: 4</code>, and combined light/shadow group 3
-              resource helpers now exist. The next browser proof needs app
-              orchestration that submits the shadow pass before the forward
-              StandardMaterial pass and routes shadow-capable pipeline keys.
-              Public custom shader/material APIs and app-owned custom adapter
-              facades remain deferred behind this built-in scene path. Route
-              summary determinism is pinned, the built-in frame-resource wrapper
-              now has mixed-family route regression coverage over the generic
-              collector, app-level mixed built-in routes now assert JSON-safe
-              material queue and routed resource summaries for two-family and
+              resource helpers now exist. The app facade now routes
+              shadow-capable StandardMaterial draws through the combined group 3
+              resource only when receiver resources are ready, submits the GLTF
+              shadow command buffer through the queue, and Playwright compares
+              receiver-sampling-disabled and receiver-sampling-enabled browser
+              captures to prove visible shadow receiver pixels. The receiver
+              shadow sampling boundary audit confirms this path remains
+              renderer-owned, ECS-derived, WebGPU-only, and JSON-safe. Public
+              custom shader/material APIs and app-owned custom adapter facades
+              remain deferred behind this built-in scene path. Route summary
+              determinism is pinned, the built-in frame-resource wrapper now has
+              mixed-family route regression coverage over the generic collector,
+              app-level mixed built-in routes now assert JSON-safe material
+              queue and routed resource summaries for two-family and
               three-family paths, and the glTF
               <code>alphaMode: "BLEND"</code> browser fixture now pins
               transparent queue routing, alpha-blend render-state mapping, and
@@ -762,10 +767,22 @@
               sampler mapping, and pipeline status. Generic queued material app
               resource items now have a JSON-safe helper for route identity plus
               source/prepared mesh and material keys, and generic route report
-              diagnostics now include those routed item key details.
+              diagnostics now include those routed item key details. The
+              StandardMaterial shadow receiver path now normalizes projected
+              shadow depth, applies a named compare bias, and bounds the
+              deterministic visible-pixel proof to a projected receiver
+              envelope. A follow-up audit confirmed that this remains
+              renderer-owned derived state while the remaining quality gap is
+              strict caster-depth-only shadow coverage. The GLTF status now also
+              exposes JSON-safe receiver/caster projection coverage records with
+              UV, depth, inside-projection flags, and projection distance, and
+              the receiver envelope fade has been reduced using that proof. The
+              remaining strict caster-depth work is now blocked on JSON-safe
+              sampled shadow-depth or compare-result evidence at those projected
+              records.
             </dd>
             <dt>Next focus</dt>
-            <dd>Route combined light/shadow group 3 resources</dd>
+            <dd>Add shadow depth probe evidence</dd>
           </dl>
         </aside>
       </header>
@@ -800,9 +817,9 @@
           </article>
           <article class="card metric">
             <div class="label">render pipeline</div>
-            <div class="value">78%</div>
-            <div class="bar" aria-label="78 percent complete">
-              <span style="width: 78%"></span>
+            <div class="value">81%</div>
+            <div class="bar" aria-label="81 percent complete">
+              <span style="width: 81%"></span>
             </div>
             <p>
               The ECS-to-WebGPU spine is usable, app route reporting runs
@@ -1291,24 +1308,44 @@
             <h3>Latest work in this update</h3>
             <ul>
               <li>
+                <span class="badge green">task-1886</span> Documented the strict
+                caster-depth proof blocker.
+              </li>
+              <li>
+                <span class="badge green">task-1885</span> Tightened the
+                receiver envelope using projection coverage status.
+              </li>
+              <li>
+                <span class="badge green">task-1884</span> Added receiver
+                projection debug/status proof.
+              </li>
+              <li>
+                <span class="badge green">task-1883</span> Audited receiver
+                shadow projection proof quality.
+              </li>
+              <li>
+                <span class="badge green">task-1882</span> Refined receiver
+                shadow projection and bias.
+              </li>
+              <li>
+                <span class="badge green">task-1878</span> Audited receiver
+                shadow sampling boundaries.
+              </li>
+              <li>
+                <span class="badge green">task-1877</span> Verified visible
+                receiver shadow pixels in Playwright.
+              </li>
+              <li>
+                <span class="badge green">task-1881</span> Routed combined
+                StandardMaterial light/shadow group 3 resources through the app.
+              </li>
+              <li>
                 <span class="badge green">task-1880</span> Added combined
                 StandardMaterial light/shadow group 3 resources.
               </li>
               <li>
                 <span class="badge green">task-1879</span> Made the shadow
                 receiver shader contract fit WebGPU maxBindGroups.
-              </li>
-              <li>
-                <span class="badge green">task-1876</span> Added minimal
-                StandardMaterial receiver shadow factor.
-              </li>
-              <li>
-                <span class="badge green">task-1875</span> Planned minimal
-                StandardMaterial shadow shader sampling.
-              </li>
-              <li>
-                <span class="badge green">task-1874</span> Added
-                StandardMaterial shadow receiver binding readiness.
               </li>
               <li>
                 <span class="badge green">task-1872</span> Audited the shadow
@@ -2528,15 +2565,16 @@
             <h3>Recommended next tasks</h3>
             <ul>
               <li>
-                <span class="badge amber">next</span> Route combined
-                light/shadow group 3 resources.
+                <span class="badge amber">next</span> Add shadow depth probe
+                evidence.
               </li>
               <li>
-                Submit the shadow pass before forward rendering and select the
-                shadow-capable StandardMaterial pipeline only when ready.
+                Report sampled depth or compare results for the projected
+                receiver/caster records.
               </li>
               <li>
-                Then verify deterministic receiver shadow pixels in Playwright.
+                Keep IBL shader sampling and broad shadow quality deferred until
+                the receiver proof audit is complete.
               </li>
             </ul>
           </article>

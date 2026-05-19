@@ -59,8 +59,9 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start with `task-1881`: route combined StandardMaterial light/shadow group 3
-resources through the app path.
+Start with `task-1887`: add JSON-safe shadow depth probe evidence for the GLTF
+projection coverage samples so the remaining receiver envelope can be replaced
+with strict caster-depth comparison.
 The GLTF scene fixture now renders through the public app path, reports detailed
 JSON-safe IBL/shadow readiness, allocates live renderer-owned diffuse IBL
 texture/view, specular IBL texture/view, and IBL sampler resources, allocates
@@ -95,11 +96,13 @@ view, shadow sampler, group 5 bind group, and shadow command-buffer readiness
 status. StandardMaterial also now has a `shadowMap` shader variant with group 5
 matrix/depth/sampler bindings, a single-tap directional shadow factor, shadow
 pipeline cache-key metadata, and required group 5 draw-list binding selection.
-The next blocker before visible receiver pixels is live app orchestration for
-the browser-safe receiver layout: the shader contract fits Chrome's
-`maxBindGroups: 4` limit and combined light/shadow group 3 resource primitives
-exist, but the app still needs to route those resources for shadow-capable
-StandardMaterial pipeline keys.
+The app now routes `standard|shadowMap|...` draws to the browser-safe combined
+group 3 light/shadow bind group only when receiver resources are ready, submits
+the GLTF shadow command buffer through the WebGPU queue, and Playwright compares
+receiver-sampling-disabled and receiver-sampling-enabled captures to prove
+visible receiver pixels. The receiver shader now normalizes projected depth,
+uses a bias-adjusted compare sample, and bounds the visible proof to a
+projected receiver envelope without changing ownership boundaries.
 
 The previous micro-hardening tasks remain useful but are no longer the main
 ready queue unless they directly block the scene slice. Public custom
@@ -122,9 +125,8 @@ Target proof point:
 
 Remaining automation priority order:
 
-1. `task-1881` — route combined light/shadow group 3 resources through app.
-2. `task-1877` — verify first visible receiver shadow pixels.
-3. `task-1878` — audit receiver shadow sampling boundary.
+1. `task-1887` — add shadow depth probe evidence for projection samples.
+2. Resume IBL shader sampling only after receiver projection is stable.
 
 Defer allocation-only cleanup, metadata-only shader-contract tasks, public
 custom material source work, and app-owned custom adapter facades unless they
@@ -10967,6 +10969,8 @@ Acceptance criteria:
 
 ### task-1881 — Route combined light/shadow group 3 resources through app
 
+Status: completed 2026-05-19. See `agent/COMPLETED.md`.
+
 Category: `webgpu-render`
 Package/write-scope:
 `packages/webgpu`, `examples/gltf-scene.js`, targeted tests, e2e status
@@ -10989,6 +10993,8 @@ Acceptance criteria:
 
 ### task-1877 — Verify first visible receiver shadow pixels
 
+Status: completed 2026-05-19. See `agent/COMPLETED.md`.
+
 Category: `webgpu-render`
 Package/write-scope:
 `examples/gltf-scene.js`, `test/e2e`, and focused WebGPU shader/resource code
@@ -11007,6 +11013,9 @@ Acceptance criteria:
 
 ### task-1878 — Audit receiver shadow sampling boundary
 
+Status: completed 2026-05-19. See
+`docs/research/RECEIVER_SHADOW_SAMPLING_BOUNDARY_AUDIT_2026_05_19.md`.
+
 Category: `audit-refactor`
 Package/write-scope:
 `docs/research`, targeted tests only if a small corrective fix is required.
@@ -11022,6 +11031,142 @@ Acceptance criteria:
 - Confirm submitted shadow maps, bind groups, and shader diagnostics stay
   JSON-safe.
 - Recommend the next narrow shadow or GLTF fidelity task.
+
+### task-1882 — Refine receiver shadow projection and bias
+
+Status: completed 2026-05-19. See `agent/COMPLETED.md`.
+
+Category: `webgpu-render`
+Package/write-scope:
+`packages/webgpu/src/webgpu/standard-shader.ts`, `examples/gltf-scene.js`,
+`test/e2e/gltf-scene.spec.ts`, and targeted shader tests.
+Reference anchor:
+StandardMaterial shadow receiver shader, GLTF scene shadow pass resources,
+`references/engine/src/scene/renderer/shadow-renderer.js`, and
+`references/three.js/src/renderers/webgl/WebGLShadowMap.js`.
+
+Acceptance criteria:
+
+- Replace the current conservative receiver shadow term with a localized depth
+  compare result that produces a deterministic caster/receiver pixel difference.
+- Keep the existing browser-safe group 3 light/shadow bind group layout and app
+  routing contract.
+- Preserve JSON-safe diagnostics and the Playwright receiver-sampling-disabled
+  versus enabled proof with no WebGPU validation warnings.
+
+### task-1883 — Audit receiver shadow projection proof quality
+
+Status: completed 2026-05-19. See
+`docs/research/RECEIVER_SHADOW_PROJECTION_PROOF_AUDIT_2026_05_19.md`.
+
+Category: `audit-refactor`
+Package/write-scope:
+`docs/research`, `agent/BACKLOG.md`, and targeted tests only if a small
+corrective fix is required.
+Reference anchor:
+`docs/NORTH_STAR.md`, `docs/ARCHITECTURE.md`, StandardMaterial shadow receiver
+shader/resource code, the GLTF scene e2e proof, and receiver shadow sampling
+patterns in `references/engine` and `references/three.js`.
+
+Acceptance criteria:
+
+- Confirm the refined receiver shadow proof remains renderer-owned derived
+  state and does not leak GPU handles into ECS or public JSON.
+- Identify the remaining gap between the projected receiver envelope and a
+  strict caster-depth-only shadow result.
+- Recommend one narrow follow-up with acceptance criteria for improving shadow
+  quality or debug visibility.
+
+### task-1884 — Add receiver projection debug/status proof
+
+Status: completed 2026-05-19. See `agent/COMPLETED.md`.
+
+Category: `webgpu-render`
+Package/write-scope:
+`packages/webgpu/src/webgpu/standard-shader.ts`, `examples/gltf-scene.js`,
+`test/e2e/gltf-scene.spec.ts`, and targeted tests/docs as needed.
+Reference anchor:
+StandardMaterial receiver shadow shader, GLTF scene e2e status/readback helpers,
+`references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/clusteredLightShadows.js`,
+and `references/three.js/src/renderers/webgl/WebGLShadowMap.js`.
+
+Acceptance criteria:
+
+- Add JSON-safe diagnostics or a test-only visual/debug mode proving receiver
+  and caster coverage in shadow projection space.
+- Keep the combined group 3 light/shadow bind group and app route unchanged.
+- Identify the projected receiver envelope as the remaining shader-quality gap
+  and keep reduction/removal scoped to the follow-up task.
+- Preserve no WebGPU validation warnings in the GLTF Playwright fixture.
+
+### task-1885 — Tighten receiver envelope using projection coverage status
+
+Status: completed 2026-05-19. See `agent/COMPLETED.md`.
+
+Category: `webgpu-render`
+Package/write-scope:
+`packages/webgpu/src/webgpu/standard-shader.ts`, `examples/gltf-scene.js`,
+`test/e2e/gltf-scene.spec.ts`, and targeted shader/e2e tests.
+Reference anchor:
+`docs/research/RECEIVER_SHADOW_PROJECTION_PROOF_AUDIT_2026_05_19.md`, the
+GLTF `shadow.projectionCoverage` status, StandardMaterial receiver WGSL, and
+receiver shadow sampling patterns in `references/engine` and `references/three.js`.
+
+Acceptance criteria:
+
+- Use the JSON-safe projection coverage records to choose a deterministic
+  receiver/caster sample region for the GLTF shadow proof.
+- Reduce the projected receiver envelope constants or replace part of the
+  envelope with stricter depth-compare behavior.
+- Preserve the combined group 3 route and no WebGPU validation warnings.
+- Keep the disabled-versus-enabled Playwright receiver pixel proof stable.
+
+### task-1886 — Replace remaining receiver envelope with caster-depth proof
+
+Status: completed 2026-05-19. See
+`docs/research/RECEIVER_SHADOW_STRICT_CASTER_DEPTH_BLOCKER_2026_05_19.md`.
+
+Category: `webgpu-render`
+Package/write-scope:
+`packages/webgpu/src/webgpu/standard-shader.ts`, `examples/gltf-scene.js`,
+`test/e2e/gltf-scene.spec.ts`, and targeted shader/e2e tests.
+Reference anchor:
+GLTF `shadow.projectionCoverage` records, StandardMaterial receiver WGSL, shadow
+depth texture submission path, and receiver shadow sampling patterns in
+`references/engine` and `references/three.js`.
+
+Acceptance criteria:
+
+- Use projection coverage records to select or compute receiver/caster proof
+  samples that are covered by the submitted shadow depth map.
+- Replace the remaining projected envelope influence with a stricter
+  depth-compare-driven receiver result, or document the exact missing depth
+  evidence if this is blocked.
+- Preserve the combined group 3 route, submitted shadow command buffer, and no
+  WebGPU validation warnings.
+- Keep the disabled-versus-enabled Playwright receiver pixel proof stable.
+
+### task-1887 — Add shadow depth probe evidence for projection samples
+
+Category: `webgpu-render`
+Package/write-scope:
+`examples/gltf-scene.js`, `test/e2e/gltf-scene.spec.ts`, and targeted WebGPU
+helpers/tests if needed.
+Reference anchor:
+`docs/research/RECEIVER_SHADOW_STRICT_CASTER_DEPTH_BLOCKER_2026_05_19.md`,
+GLTF `shadow.projectionCoverage` records, submitted shadow depth texture
+resources, and receiver shadow debug/readback patterns in `references/engine`
+and `references/three.js`.
+
+Acceptance criteria:
+
+- Add JSON-safe `shadow.depthProbe` or equivalent debug proof keyed by the
+  existing projection coverage records.
+- Report receiver compare depth, sampled depth or compare result, and expected
+  lit/shadowed classification without exposing raw GPU handles.
+- Use the probe to identify at least one deterministic receiver/caster pair for
+  strict shadow comparison.
+- Preserve the combined group 3 route and no WebGPU validation warnings.
 
 ## Post-Unlit E2E Verification Targets
 

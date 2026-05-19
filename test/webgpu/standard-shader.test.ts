@@ -215,7 +215,25 @@ describe("built-in standard material WGSL shader metadata", () => {
       "fn sampleDirectionalShadowFactor(worldPosition: vec3f) -> f32",
     );
     expect(STANDARD_SHADOW_RECEIVER_MESH_WGSL).toContain(
+      "const STANDARD_SHADOW_MIN_VISIBILITY: f32 = 0.45;",
+    );
+    expect(STANDARD_SHADOW_RECEIVER_MESH_WGSL).toContain(
+      "const STANDARD_SHADOW_PROJECTION_FADE: f32 = 0.2;",
+    );
+    expect(STANDARD_SHADOW_RECEIVER_MESH_WGSL).toContain(
+      "let shadowDepth = select(",
+    );
+    expect(STANDARD_SHADOW_RECEIVER_MESH_WGSL).toContain(
+      "let projectedInfluence =",
+    );
+    expect(STANDARD_SHADOW_RECEIVER_MESH_WGSL).toContain(
+      "let receiverDepth = clamp(",
+    );
+    expect(STANDARD_SHADOW_RECEIVER_MESH_WGSL).toContain(
       "textureSampleCompareLevel(",
+    );
+    expect(STANDARD_SHADOW_RECEIVER_MESH_WGSL).toContain(
+      "return min(compareFactor, projectedFactor);",
     );
     expect(STANDARD_SHADOW_RECEIVER_MESH_WGSL).toContain(") * shadowFactor;");
     expect(

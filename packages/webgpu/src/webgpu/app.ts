@@ -101,6 +101,7 @@ import type { LightBindGroupLayoutResource } from "./light-bind-group-layout.js"
 import {
   STANDARD_LIGHT_SHADOW_BIND_GROUP_LAYOUT_KEY,
   createStandardLightShadowBindGroupLayoutDescriptor,
+  type StandardLightShadowBindGroupLayoutResource,
 } from "./standard-light-shadow-bind-group.js";
 import {
   createOrReuseDebugNormalAppFrameResources,
@@ -171,6 +172,7 @@ import {
   type CreateStandardAppFrameResourcesResult,
   type StandardAppFrameResourceCacheSlot,
 } from "./standard-app-frame-resources.js";
+import type { StandardFrameShadowReceiverResources } from "./standard-frame-resources.js";
 import {
   createStandardRenderPipelineResource,
   type CreateStandardRenderPipelineResourceResult,
@@ -232,6 +234,7 @@ export interface WebGpuAppRenderOptions {
   readonly clearColor?: readonly number[];
   readonly label?: string;
   readonly readbackSamples?: readonly FrameBoundaryReadbackSampleRequest[];
+  readonly standardMaterialShadowReceiverResources?: StandardFrameShadowReceiverResources;
 }
 
 export interface WebGpuAppRenderCounts {
@@ -393,7 +396,10 @@ interface WebGpuAppPipelineLayouts {
     | StandardMaterialBindGroupLayoutResource
     | DebugNormalMaterialBindGroupLayoutResource
     | null;
-  readonly lightLayout: LightBindGroupLayoutResource | null;
+  readonly lightLayout:
+    | LightBindGroupLayoutResource
+    | StandardLightShadowBindGroupLayoutResource
+    | null;
 }
 
 interface WebGpuAppFrameResourceCacheSlot<TCachedFrameResources> {
@@ -432,6 +438,9 @@ interface QueuedBuiltInFrameResourcePreparationOptions {
   readonly viewUniforms: PackedSnapshotViewUniforms;
   readonly worldTransforms: PackedSnapshotTransforms;
   readonly layouts: WebGpuAppPipelineLayouts;
+  readonly standardMaterialShadowReceiverResources?:
+    | StandardFrameShadowReceiverResources
+    | undefined;
   readonly reuse: WebGpuAppResourceReuseReport;
 }
 
@@ -1041,6 +1050,12 @@ const QUEUED_BUILT_IN_MATERIAL_ADAPTERS =
           materialLayout: options.layouts
             .materialLayout as StandardMaterialBindGroupLayoutResource | null,
           lightLayout: options.layouts.lightLayout,
+          ...(options.standardMaterialShadowReceiverResources === undefined
+            ? {}
+            : {
+                shadowReceiverResources:
+                  options.standardMaterialShadowReceiverResources,
+              }),
           preparedMeshes: options.cache.preparedMeshes,
           preparedScalarMaterials: options.preparedMaterials.standard,
           reuse: options.reuse,
@@ -1086,6 +1101,9 @@ async function renderQueuedBuiltInWebGpuAppFrame(options: {
   readonly clearColor?: readonly number[];
   readonly label?: string;
   readonly readbackSamples?: readonly FrameBoundaryReadbackSampleRequest[];
+  readonly standardMaterialShadowReceiverResources?:
+    | StandardFrameShadowReceiverResources
+    | undefined;
 }): Promise<WebGpuAppRenderReport> {
   const packedViews = writePackedSnapshotViewUniforms(
     options.snapshot,
@@ -1099,6 +1117,12 @@ async function renderQueuedBuiltInWebGpuAppFrame(options: {
     ...options,
     viewUniforms: packedViews,
     worldTransforms: packedTransforms,
+    ...(options.standardMaterialShadowReceiverResources === undefined
+      ? {}
+      : {
+          standardMaterialShadowReceiverResources:
+            options.standardMaterialShadowReceiverResources,
+        }),
   });
   const diagnosticsSummary = createQueuedBuiltInAppDiagnosticsSummary({
     snapshot: options.snapshot,
@@ -1312,6 +1336,9 @@ async function prepareQueuedBuiltInFrameResources(options: {
   readonly reuse: WebGpuAppResourceReuseReport;
   readonly viewUniforms: PackedSnapshotViewUniforms;
   readonly worldTransforms: PackedSnapshotTransforms;
+  readonly standardMaterialShadowReceiverResources?:
+    | StandardFrameShadowReceiverResources
+    | undefined;
 }): Promise<{
   readonly valid: boolean;
   readonly resources: QueuedBuiltInFrameResources | null;
@@ -1372,6 +1399,12 @@ async function prepareQueuedBuiltInFrameResources(options: {
           viewUniforms,
           worldTransforms,
           layouts,
+          ...(options.standardMaterialShadowReceiverResources === undefined
+            ? {}
+            : {
+                standardMaterialShadowReceiverResources:
+                  options.standardMaterialShadowReceiverResources,
+              }),
           reuse: options.reuse,
         }),
     },
@@ -1387,6 +1420,9 @@ function createQueuedBuiltInFrameResourceOptions(input: {
   readonly viewUniforms: PackedSnapshotViewUniforms;
   readonly worldTransforms: PackedSnapshotTransforms;
   readonly layouts: WebGpuAppPipelineLayouts;
+  readonly standardMaterialShadowReceiverResources?:
+    | StandardFrameShadowReceiverResources
+    | undefined;
   readonly reuse: WebGpuAppResourceReuseReport;
 }): QueuedBuiltInFrameResourcePreparationOptions {
   return {
@@ -1399,6 +1435,12 @@ function createQueuedBuiltInFrameResourceOptions(input: {
     viewUniforms: input.viewUniforms,
     worldTransforms: input.worldTransforms,
     layouts: input.layouts,
+    ...(input.standardMaterialShadowReceiverResources === undefined
+      ? {}
+      : {
+          standardMaterialShadowReceiverResources:
+            input.standardMaterialShadowReceiverResources,
+        }),
     reuse: input.reuse,
   };
 }
@@ -1428,7 +1470,12 @@ async function renderWebGpuAppFrame(
   options: WebGpuAppRenderOptions,
 ): Promise<WebGpuAppRenderReport> {
   const reuse = createWebGpuAppResourceReuseReport();
-  const snapshot = options.snapshot ?? app.extract(options.frame ?? 0);
+  const extractedSnapshot = options.snapshot ?? app.extract(options.frame ?? 0);
+  const snapshot = hasReadyStandardShadowReceiverResources(
+    options.standardMaterialShadowReceiverResources,
+  )
+    ? withStandardShadowPipelineKeys(extractedSnapshot)
+    : extractedSnapshot;
   const firstDraw = snapshot.meshDraws[0];
   const firstView = snapshot.views[0];
   const resourceSetPlan = createWebGpuAppDrawResourceSetPlan(snapshot);
@@ -1592,6 +1639,12 @@ async function renderWebGpuAppFrame(
       ...(options.readbackSamples === undefined
         ? {}
         : { readbackSamples: options.readbackSamples }),
+      ...(options.standardMaterialShadowReceiverResources === undefined
+        ? {}
+        : {
+            standardMaterialShadowReceiverResources:
+              options.standardMaterialShadowReceiverResources,
+          }),
     });
   }
 
@@ -1755,6 +1808,12 @@ async function renderWebGpuAppFrame(
       viewUniforms: packedViews,
       worldTransforms: packedTransforms,
       layouts,
+      ...(options.standardMaterialShadowReceiverResources === undefined
+        ? {}
+        : {
+            standardMaterialShadowReceiverResources:
+              options.standardMaterialShadowReceiverResources,
+          }),
       reuse,
     });
   }
@@ -1901,6 +1960,49 @@ async function renderWebGpuAppFrame(
       ...(boundary.submit?.diagnostics ?? []),
     ],
   });
+}
+
+function hasReadyStandardShadowReceiverResources(
+  resources: StandardFrameShadowReceiverResources | undefined,
+): resources is StandardFrameShadowReceiverResources {
+  return (
+    resources !== undefined &&
+    resources.matrixBufferResource.resource !== null &&
+    resources.depthTextureResources.resources.some(
+      (resource) => resource.allocation.resource !== null,
+    ) &&
+    resources.samplerResource.resource !== null
+  );
+}
+
+function withStandardShadowPipelineKeys(
+  snapshot: RenderSnapshot,
+): RenderSnapshot {
+  let changed = false;
+  const meshDraws = snapshot.meshDraws.map((draw) => {
+    const pipelineKey = draw.batchKey.pipelineKey;
+
+    if (
+      !pipelineKey.startsWith("standard|") ||
+      pipelineKey.includes("|shadowMap|")
+    ) {
+      return draw;
+    }
+
+    changed = true;
+    const shadowPipelineKey = pipelineKey.replace(
+      /^standard\|/,
+      "standard|shadowMap|",
+    );
+
+    return {
+      ...draw,
+      batchKey: { ...draw.batchKey, pipelineKey: shadowPipelineKey },
+      sortKey: { ...draw.sortKey, pipelineKey: shadowPipelineKey },
+    };
+  });
+
+  return changed ? { ...snapshot, meshDraws } : snapshot;
 }
 
 export function createWebGpuAppDrawResourceSetPlan(

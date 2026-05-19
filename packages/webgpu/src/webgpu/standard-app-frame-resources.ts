@@ -20,6 +20,7 @@ import {
 } from "./prepared-app-material-resource.js";
 import type { PreparedMaterialTextureSamplerDependencies } from "./prepared-material-texture-sampler-dependencies.js";
 import type { LightBindGroupLayoutResource } from "./light-bind-group-layout.js";
+import type { StandardLightShadowBindGroupLayoutResource } from "./standard-light-shadow-bind-group.js";
 import {
   createLightBufferDescriptorPlanScratch,
   createLightBufferDescriptorScratch,
@@ -50,6 +51,7 @@ import type { StandardMaterialBindGroupLayoutResource } from "./standard-bind-gr
 import {
   createStandardFrameGpuResources,
   type CreateStandardFrameGpuResourcesResult,
+  type StandardFrameShadowReceiverResources,
 } from "./standard-frame-resources.js";
 import type { UnlitBindGroupLayoutResource } from "./unlit-bind-group.js";
 import {
@@ -129,7 +131,11 @@ export function createOrReuseStandardAppFrameResources(options: {
   readonly worldTransforms: PackedSnapshotTransforms;
   readonly sharedLayouts: readonly UnlitBindGroupLayoutResource[];
   readonly materialLayout: StandardMaterialBindGroupLayoutResource | null;
-  readonly lightLayout: LightBindGroupLayoutResource | null;
+  readonly lightLayout:
+    | LightBindGroupLayoutResource
+    | StandardLightShadowBindGroupLayoutResource
+    | null;
+  readonly shadowReceiverResources?: StandardFrameShadowReceiverResources;
   readonly preparedMeshes: PreparedMeshGpuResourceCache;
   readonly preparedScalarMaterials: PreparedScalarStandardMaterialCache;
   readonly reuse: StandardAppFrameResourceReuseReport;
@@ -253,6 +259,7 @@ export function createOrReuseStandardAppFrameResources(options: {
       typeof createStandardFrameGpuResources
     >[0]["device"],
     snapshot: options.snapshot,
+    pipelineKey: options.pipelineKey,
     mesh: options.mesh,
     ...(preparedMesh === null
       ? {}
@@ -266,6 +273,9 @@ export function createOrReuseStandardAppFrameResources(options: {
     sharedLayouts: options.sharedLayouts,
     materialLayout: options.materialLayout,
     lightLayout: options.lightLayout,
+    ...(options.shadowReceiverResources === undefined
+      ? {}
+      : { shadowReceiverResources: options.shadowReceiverResources }),
     textures: options.textureSamplerDependencies.textures,
     samplers: options.textureSamplerDependencies.samplers,
   });

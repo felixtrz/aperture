@@ -39,10 +39,20 @@ import {
   type StandardMaterialBindGroupResourceDiagnostic,
 } from "./standard-bind-group.js";
 import {
+  createStandardLightShadowBindGroupDescriptorPlan,
+  createStandardLightShadowBindGroupResource,
+  type StandardLightShadowBindGroupDiagnostic,
+  type StandardLightShadowBindGroupLayoutResource,
+  type StandardLightShadowBindGroupResource,
+} from "./standard-light-shadow-bind-group.js";
+import {
   createStandardMaterialGpuBuffer,
   type StandardMaterialGpuBufferDiagnostic,
   type StandardMaterialGpuBufferResource,
 } from "./standard-material-buffer-resource.js";
+import type { ShadowDepthTextureResourceReport } from "./shadow-depth-texture-resource.js";
+import type { ShadowMatrixBufferResourceReport } from "./shadow-matrix-buffer-resource.js";
+import type { ShadowSamplerResourceReport } from "./standard-material-shadow-bind-group.js";
 import {
   createStandardMaterialPreparationPlan,
   type StandardMaterialBufferDescriptorDiagnostic,
@@ -108,6 +118,7 @@ export type CreateStandardFrameGpuResourcesDiagnostic =
   | CreateSnapshotLightGpuBuffersDiagnostic
   | LightBindGroupDescriptorDiagnostic
   | LightBindGroupResourceDiagnostic
+  | StandardLightShadowBindGroupDiagnostic
   | UnlitBindGroupDescriptorDiagnostic
   | UnlitBindGroupResourceDiagnostic;
 
@@ -118,6 +129,7 @@ export interface StandardFrameGpuResourceDeviceLike extends WebGpuBufferDeviceLi
 export interface CreateStandardFrameGpuResourcesOptions {
   readonly device: StandardFrameGpuResourceDeviceLike;
   readonly snapshot: RenderSnapshot;
+  readonly pipelineKey: string;
   readonly mesh: MeshAsset | null;
   readonly preparedMesh?: MeshGpuBufferResource | undefined;
   readonly viewUniforms: PackedSnapshotViewUniforms | null;
@@ -128,9 +140,19 @@ export interface CreateStandardFrameGpuResourcesOptions {
     | undefined;
   readonly sharedLayouts: readonly UnlitBindGroupLayoutResource[];
   readonly materialLayout: StandardMaterialBindGroupLayoutResource | null;
-  readonly lightLayout: LightBindGroupLayoutResource | null;
+  readonly lightLayout:
+    | LightBindGroupLayoutResource
+    | StandardLightShadowBindGroupLayoutResource
+    | null;
+  readonly shadowReceiverResources?: StandardFrameShadowReceiverResources;
   readonly textures?: readonly TextureGpuResource[];
   readonly samplers?: readonly SamplerGpuResource[];
+}
+
+export interface StandardFrameShadowReceiverResources {
+  readonly matrixBufferResource: ShadowMatrixBufferResourceReport;
+  readonly depthTextureResources: ShadowDepthTextureResourceReport;
+  readonly samplerResource: ShadowSamplerResourceReport;
 }
 
 export interface StandardFrameGpuResources {
@@ -140,7 +162,9 @@ export interface StandardFrameGpuResources {
   readonly material: StandardMaterialGpuBufferResource;
   readonly lightGpuBuffers: CreateSnapshotLightGpuBuffersResult;
   readonly materialBindGroup: StandardMaterialBindGroupResource;
-  readonly lightBindGroup: LightBindGroupResource;
+  readonly lightBindGroup:
+    | LightBindGroupResource
+    | StandardLightShadowBindGroupResource;
   readonly bindGroups: readonly UnlitBindGroupResource[];
 }
 
@@ -442,7 +466,14 @@ function createLightBindGroup(
   options: CreateStandardFrameGpuResourcesOptions,
   lightGpuBuffers: CreateSnapshotLightGpuBuffersResult,
   diagnostics: CreateStandardFrameGpuResourcesDiagnostic[],
-): LightBindGroupResource | null {
+): LightBindGroupResource | StandardLightShadowBindGroupResource | null {
+  if (
+    options.pipelineKey.includes("shadowMap") &&
+    options.shadowReceiverResources !== undefined
+  ) {
+    return createLightShadowBindGroup(options, lightGpuBuffers, diagnostics);
+  }
+
   const plan = createLightBindGroupDescriptorPlan({
     lightGpuBufferResource: lightGpuBuffers.resource,
     layoutKey: options.lightLayout?.layoutKey ?? null,
@@ -458,6 +489,44 @@ function createLightBindGroup(
     device: options.device,
     plan,
     layout: options.lightLayout,
+  });
+
+  diagnostics.push(...result.diagnostics);
+
+  return result.valid ? result.resource : null;
+}
+
+function createLightShadowBindGroup(
+  options: CreateStandardFrameGpuResourcesOptions,
+  lightGpuBuffers: CreateSnapshotLightGpuBuffersResult,
+  diagnostics: CreateStandardFrameGpuResourcesDiagnostic[],
+): StandardLightShadowBindGroupResource | null {
+  const shadowReceiverResources = options.shadowReceiverResources;
+
+  if (shadowReceiverResources === undefined) {
+    return null;
+  }
+
+  const plan = createStandardLightShadowBindGroupDescriptorPlan({
+    lightGpuBufferResource: lightGpuBuffers.resource,
+    layoutKey: options.lightLayout?.layoutKey ?? null,
+    label: "standard/lights-shadow",
+    matrixBufferResource: shadowReceiverResources.matrixBufferResource,
+    depthTextureResources: shadowReceiverResources.depthTextureResources,
+    samplerResource: shadowReceiverResources.samplerResource,
+  });
+
+  diagnostics.push(...plan.diagnostics);
+
+  const result = createStandardLightShadowBindGroupResource({
+    device: options.device,
+    plan,
+    layout:
+      options.lightLayout as StandardLightShadowBindGroupLayoutResource | null,
+    lightGpuBufferResource: lightGpuBuffers.resource,
+    matrixBufferResource: shadowReceiverResources.matrixBufferResource,
+    depthTextureResources: shadowReceiverResources.depthTextureResources,
+    samplerResource: shadowReceiverResources.samplerResource,
   });
 
   diagnostics.push(...result.diagnostics);

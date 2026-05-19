@@ -1,5 +1,301 @@
 # Handoff
 
+## Current Run Update — 2026-05-19T10:47:23Z
+
+Started `task-1887` after another stop-hook continuation request, but did not
+complete it. Recommended next task remains `task-1887`.
+
+What changed:
+
+- Inspected existing color readback helpers in `examples/webgpu-readback.js`,
+  `packages/webgpu/src/webgpu/frame-boundary.ts`, and
+  `packages/webgpu/src/webgpu/clear-readback.ts`.
+- Confirmed existing readback support is centered on current color textures and
+  does not yet provide a shadow-depth probe.
+- Confirmed shadow depth textures are currently created with render-attachment
+  and texture-binding usage (`usage: 20` in JSON), not a dedicated JSON-safe
+  depth sample/readback report.
+
+Current task state:
+
+- `task-1887` is still open.
+- The likely implementation path is either a depth-texture copy/readback helper
+  if the chosen depth format and usage support it, or a small debug pass that
+  samples/compares shadow depth and writes probe results into a readable color
+  target.
+- Keep this as a focused diagnostic/proof task before changing the receiver
+  shader again.
+
+## Current Run Update — 2026-05-19T10:45:56Z
+
+Completed `task-1886` after a fifth stop-hook continuation request.
+Recommended next task is `task-1887`: add JSON-safe shadow depth probe evidence
+for the existing GLTF projection coverage records.
+
+What changed:
+
+- Added
+  `docs/research/RECEIVER_SHADOW_STRICT_CASTER_DEPTH_BLOCKER_2026_05_19.md`.
+- Confirmed the current route, submitted shadow command buffer, projection
+  coverage status, and receiver pixel proof are in place.
+- Documented the exact blocker for removing the remaining projected envelope:
+  the test cannot yet observe sampled shadow depth or compare results at the
+  projected receiver/caster coordinates.
+- Added `task-1887` for a `shadow.depthProbe`-style JSON-safe proof.
+- Updated public tracker pages, backlog, and completed log.
+
+Reference anchors inspected:
+
+- `docs/research/RECEIVER_SHADOW_PROJECTION_PROOF_AUDIT_2026_05_19.md`
+- `examples/gltf-scene.js`
+- `test/e2e/gltf-scene.spec.ts`
+- `packages/webgpu/src/webgpu/standard-shader.ts`
+- `references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/clusteredLightShadows.js`
+- `references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/lighting/shadowPCF3.js`
+- `references/three.js/src/renderers/webgl/WebGLShadowMap.js`
+
+Validation:
+
+- `pnpm run check:progress`
+
+Known issues / follow-ups:
+
+- Start `task-1887` next. The blocker is diagnostic visibility into submitted
+  shadow depth values, not route ownership or group layout.
+- IBL shader sampling remains deferred.
+
+## Current Run Update — 2026-05-19T10:43:02Z
+
+Completed `task-1885` after a fourth stop-hook continuation request.
+Recommended next task is `task-1886`: replace the remaining projected receiver
+envelope with stricter caster-depth proof, or document the exact blocker if the
+submitted shadow depth map does not yet provide enough evidence.
+
+What changed:
+
+- Reduced `STANDARD_SHADOW_PROJECTION_FADE` from `0.75` to `0.2` in the
+  StandardMaterial receiver shader.
+- Kept the normalized projected depth, bias-adjusted compare sample, and
+  combined group 3 app route unchanged.
+- Preserved the GLTF enabled-versus-disabled receiver pixel proof with the
+  projection coverage status in place.
+- Added `task-1886` for replacing the remaining projected envelope with
+  caster-depth proof.
+- Updated public tracker pages, backlog, and completed log.
+
+Reference anchors inspected:
+
+- `packages/webgpu/src/webgpu/standard-shader.ts`
+- `test/webgpu/standard-shader.test.ts`
+- `test/e2e/gltf-scene.spec.ts`
+- `docs/research/RECEIVER_SHADOW_PROJECTION_PROOF_AUDIT_2026_05_19.md`
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/standard-shader.test.ts`
+- `pnpm run build`
+- `pnpm exec playwright test test/e2e/gltf-scene.spec.ts`
+
+Known issues / follow-ups:
+
+- The projected receiver envelope is smaller but still present. `task-1886`
+  should use `shadow.projectionCoverage` records to drive or diagnose a strict
+  caster-depth compare proof.
+- IBL shader sampling remains deferred.
+
+## Current Run Update — 2026-05-19T10:38:39Z
+
+Completed `task-1884` after a third stop-hook continuation request.
+Recommended next task is `task-1885`: use the new receiver/caster projection
+coverage status to tighten or reduce the projected receiver envelope while
+preserving the GLTF enabled-versus-disabled pixel proof.
+
+What changed:
+
+- Added JSON-safe `shadow.projectionCoverage` status to the GLTF scene example.
+- Projected fixed receiver and caster sample points through the ready
+  directional shadow view-projection matrix.
+- Reported stable projection records with sample key, role, shape, world
+  position, UV, depth, inside-projection flag, and projection distance.
+- Added Playwright assertions for receiver and caster projection records
+  alongside the existing shadow route and visible receiver pixel proof.
+- Split envelope reduction into `task-1885` so the next shader-quality change
+  can use the new coverage status.
+- Updated public tracker pages, backlog, and completed log.
+
+Reference anchors inspected:
+
+- `examples/gltf-scene.js`
+- `test/e2e/gltf-scene.spec.ts`
+- `docs/research/RECEIVER_SHADOW_PROJECTION_PROOF_AUDIT_2026_05_19.md`
+- `packages/webgpu/src/webgpu/standard-shader.ts`
+- `references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/clusteredLightShadows.js`
+- `references/three.js/src/renderers/webgl/WebGLShadowMap.js`
+
+Validation:
+
+- `node --check examples/gltf-scene.js`
+- `pnpm run typecheck:test`
+- `pnpm exec playwright test test/e2e/gltf-scene.spec.ts`
+
+Known issues / follow-ups:
+
+- Start `task-1885` next. The new coverage status proves projected sample
+  visibility, but the shader still uses the bounded projected receiver envelope.
+- IBL shader sampling remains deferred.
+
+## Current Run Update — 2026-05-19T10:34:20Z
+
+Completed `task-1883` after a second stop-hook continuation request.
+Recommended next task is `task-1884`: add receiver projection debug/status proof
+so the current projected receiver envelope can be reduced toward strict
+caster-depth compare coverage.
+
+What changed:
+
+- Added
+  `docs/research/RECEIVER_SHADOW_PROJECTION_PROOF_AUDIT_2026_05_19.md`.
+- Confirmed the refined receiver shadow path remains renderer-owned derived
+  state and does not leak GPU handles into ECS snapshots or public JSON.
+- Documented the remaining gap: the current proof is normalized, bias-adjusted,
+  and projected, but still uses a bounded receiver envelope rather than a strict
+  caster-depth-only silhouette.
+- Added `task-1884` with concrete acceptance criteria for projection coverage
+  diagnostics/debug proof.
+- Updated public tracker pages, backlog, and completed log.
+
+Reference anchors inspected:
+
+- `docs/NORTH_STAR.md`
+- `docs/ARCHITECTURE.md`
+- `docs/DECISIONS.md`
+- `docs/research/RECEIVER_SHADOW_SAMPLING_BOUNDARY_AUDIT_2026_05_19.md`
+- `packages/webgpu/src/webgpu/standard-shader.ts`
+- `test/e2e/gltf-scene.spec.ts`
+- `references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/clusteredLightShadows.js`
+- `references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/lighting/shadowPCF3.js`
+- `references/engine/src/scene/renderer/shadow-renderer.js`
+- `references/engine/src/scene/renderer/forward-renderer.js`
+- `references/three.js/src/renderers/webgl/WebGLShadowMap.js`
+
+Validation:
+
+- `pnpm run check:progress`
+
+Known issues / follow-ups:
+
+- Start `task-1884` next. The current visible receiver proof is deterministic
+  and projected, but the next quality step should expose receiver/caster
+  projection coverage before removing the projected envelope.
+- IBL shader sampling remains deferred.
+
+## Current Run Update — 2026-05-19T10:31:41Z
+
+Completed `task-1882` after the stop hook requested continuation. Recommended
+next task is `task-1883`: audit receiver shadow projection proof quality and
+separate the remaining strict caster-depth shadow work from the renderer/ECS
+ownership boundary.
+
+What changed:
+
+- Refined the StandardMaterial shadow receiver shader to normalize projected
+  shadow depth before sampling.
+- Replaced the global first activation term with a bias-adjusted
+  `textureSampleCompareLevel` path plus a bounded projected receiver envelope.
+- Kept the browser-safe combined group 3 light/shadow bind group and app
+  routing contract unchanged.
+- Preserved the GLTF Playwright before/after proof after rebuilding the WebGPU
+  package output used by examples.
+- Updated public tracker pages, backlog, and completed log.
+
+Reference anchors inspected:
+
+- `packages/webgpu/src/webgpu/standard-shader.ts`
+- `test/webgpu/standard-shader.test.ts`
+- `test/e2e/gltf-scene.spec.ts`
+- `packages/webgpu/src/webgpu/directional-shadow-matrix-computation.ts`
+- `packages/simulation/src/math/projection.ts`
+- `references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/clusteredLightShadows.js`
+- `references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/lighting/shadowPCF3.js`
+- `references/engine/src/scene/renderer/forward-renderer.js`
+- `references/engine/src/scene/renderer/shadow-renderer.js`
+- `references/three.js/src/renderers/webgl/WebGLShadowMap.js`
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/standard-shader.test.ts`
+- `pnpm exec tsc -p packages/webgpu/tsconfig.json --noEmit`
+- `pnpm run build`
+- `pnpm exec playwright test test/e2e/gltf-scene.spec.ts`
+
+Known issues / follow-ups:
+
+- The receiver proof is now projected and bias-adjusted, but it still uses a
+  bounded projected receiver envelope to keep the fixture deterministic. Audit
+  this next, then add stricter caster-depth-only quality/debug visibility.
+- IBL shader sampling remains deferred.
+
+## Current Run Update — 2026-05-19T10:22:00Z
+
+Completed `task-1881`, `task-1877`, and `task-1878`. Recommended next task is
+`task-1882`: refine receiver shadow projection and bias so the now-visible
+receiver path becomes localized shadow sampling instead of a conservative
+activation proof.
+
+What changed:
+
+- Routed StandardMaterial `shadowMap` pipeline keys through the app frame path
+  when ready receiver shadow resources are present.
+- Added app/frame resource plumbing for the combined group 3 light/shadow bind
+  group, including the shadow matrix buffer, depth texture view, and comparison
+  sampler.
+- Updated the GLTF scene example to submit the shadow command buffer before the
+  following forward frame and to pass previous-frame receiver resources into
+  `app.render`.
+- Added a `disable-shadow-receiver=1` GLTF query mode for before/after
+  Playwright screenshots.
+- Added e2e proof that the GLTF scene routes
+  `standard|shadowMap|opaque|back|less|none`, submits one shadow command
+  buffer, and produces visible receiver pixel differences.
+- Added a focused audit note for receiver shadow sampling ownership and
+  serializability boundaries.
+- Updated public tracker pages, backlog, and completed log.
+
+Reference anchors inspected:
+
+- `packages/webgpu/src/webgpu/app.ts`
+- `packages/webgpu/src/webgpu/standard-frame-resources.ts`
+- `packages/webgpu/src/webgpu/standard-app-frame-resources.ts`
+- `packages/webgpu/src/webgpu/standard-light-shadow-bind-group.ts`
+- `packages/webgpu/src/webgpu/standard-shader.ts`
+- `examples/gltf-scene.js`
+- `test/e2e/gltf-scene.spec.ts`
+- `references/engine/src/scene/renderer/forward-renderer.js`
+- `references/engine/src/scene/renderer/shadow-renderer.js`
+- `references/three.js/src/renderers/webgl/WebGLShadowMap.js`
+
+Validation:
+
+- `pnpm exec tsc -p packages/webgpu/tsconfig.json --noEmit`
+- `pnpm exec vitest run test/webgpu/unlit-app-frame-resources.test.ts test/webgpu/standard-light-shadow-bind-group.test.ts`
+- `pnpm exec vitest run test/webgpu/unlit-app-frame-resources.test.ts test/webgpu/standard-light-shadow-bind-group.test.ts test/webgpu/standard-pipeline.test.ts`
+- `node --check examples/gltf-scene.js`
+- `pnpm exec vitest run test/webgpu/standard-shader.test.ts test/webgpu/unlit-app-frame-resources.test.ts test/webgpu/standard-light-shadow-bind-group.test.ts`
+- `pnpm run check:progress`
+- `pnpm run format:check`
+- `pnpm run typecheck:test`
+- `pnpm run check` (`309` test files / `1402` tests passed)
+- `pnpm exec playwright test test/e2e/gltf-scene.spec.ts`
+
+Known issues / follow-ups:
+
+- The receiver shadow term is intentionally conservative to prove end-to-end
+  activation. `task-1882` should refine projection, bias, and comparison
+  behavior into localized receiver shadows.
+- IBL shader sampling remains deferred.
+- Continue to keep the renderer-owned shadow GPU resources derived from ECS
+  snapshots; do not promote them into ECS or add scene-graph ownership.
+
 ## Current Run Update — 2026-05-19T09:30:16Z
 
 Completed `task-1876`, `task-1879`, and `task-1880`. Recommended next task is

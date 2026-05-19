@@ -1173,7 +1173,12 @@ function applyStandardShadowMapSampling(code: string): string {
     .replace(
       `fn evaluateDirectLight(
   normal: vec3f,`,
-      `fn sampleDirectionalShadowFactor(worldPosition: vec3f) -> f32 {
+      `const STANDARD_SHADOW_MIN_VISIBILITY: f32 = 0.45;
+const STANDARD_SHADOW_DEPTH_BIAS: f32 = 0.002;
+const STANDARD_SHADOW_PROJECTION_FADE: f32 = 0.2;
+const STANDARD_SHADOW_PROJECTED_VISIBILITY: f32 = 0.45;
+
+fn sampleDirectionalShadowFactor(worldPosition: vec3f) -> f32 {
   if (arrayLength(&directionalShadowMatrices) == 0u) {
     return 1.0;
   }
@@ -1185,24 +1190,30 @@ function applyStandardShadowMapSampling(code: string): string {
   }
 
   let shadowClip = shadowPosition.xyz / shadowPosition.w;
+  let shadowDepth = select(
+    shadowClip.z,
+    shadowClip.z * 0.5 + 0.5,
+    shadowClip.z < 0.0,
+  );
   let shadowUv = vec2f(shadowClip.x * 0.5 + 0.5, 0.5 - shadowClip.y * 0.5);
-  let inShadowFrustum =
-    shadowUv.x >= 0.0 &&
-    shadowUv.x <= 1.0 &&
-    shadowUv.y >= 0.0 &&
-    shadowUv.y <= 1.0 &&
-    shadowClip.z >= 0.0 &&
-    shadowClip.z <= 1.0;
-
-  if (!inShadowFrustum) {
-    return 1.0;
-  }
-
+  let clampedShadowUv = clamp(shadowUv, vec2f(0.0), vec2f(1.0));
+  let clampedShadowDepth = clamp(shadowDepth, 0.0, 1.0);
+  let projectionDistance = max(
+    distance(shadowUv, clampedShadowUv),
+    abs(shadowDepth - clampedShadowDepth),
+  );
+  let projectedInfluence =
+    1.0 - smoothstep(0.0, STANDARD_SHADOW_PROJECTION_FADE, projectionDistance);
+  let receiverDepth = clamp(
+    clampedShadowDepth - STANDARD_SHADOW_DEPTH_BIAS,
+    0.0,
+    1.0,
+  );
   let rawVisibility = textureSampleCompareLevel(
     directionalShadowMap,
     directionalShadowSampler,
-    shadowUv,
-    shadowClip.z - 0.0005,
+    clampedShadowUv,
+    receiverDepth,
   );
   let visibility = select(
     clamp(rawVisibility, 0.0, 1.0),
@@ -1210,7 +1221,14 @@ function applyStandardShadowMapSampling(code: string): string {
     rawVisibility != rawVisibility,
   );
 
-  return mix(0.35, 1.0, visibility);
+  let compareFactor = mix(STANDARD_SHADOW_MIN_VISIBILITY, 1.0, visibility);
+  let projectedFactor = mix(
+    1.0,
+    STANDARD_SHADOW_PROJECTED_VISIBILITY,
+    projectedInfluence,
+  );
+
+  return min(compareFactor, projectedFactor);
 }
 
 fn evaluateDirectLight(
@@ -1236,5 +1254,10 @@ fn evaluateDirectLight(
         metallic,
         roughness,
       ) * shadowFactor;`,
+    )
+    .replace(
+      `  let color = ambientDiffuse + direct + material.emissiveFactor;`,
+      `  let receiverShadowFactor = sampleDirectionalShadowFactor(input.worldPosition);
+  let color = (ambientDiffuse + direct) * receiverShadowFactor + material.emissiveFactor;`,
     );
 }

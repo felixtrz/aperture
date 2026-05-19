@@ -1,5 +1,169 @@
 # Completed Tasks
 
+## task-1886 — Replace remaining receiver envelope with caster-depth proof
+
+Completed: 2026-05-19
+
+Summary:
+
+- Added
+  `docs/research/RECEIVER_SHADOW_STRICT_CASTER_DEPTH_BLOCKER_2026_05_19.md`.
+- Confirmed the current route, submitted shadow command buffer, projection
+  coverage status, and receiver pixel proof are in place.
+- Documented the blocker for removing the remaining projected envelope: the e2e
+  proof lacks JSON-safe sampled shadow-depth or compare-result evidence at the
+  projected receiver/caster coordinates.
+- Added `task-1887` to add a depth probe/debug proof before removing the
+  remaining envelope.
+
+Validation:
+
+- `pnpm run check:progress`
+
+## task-1885 — Tighten receiver envelope using projection coverage status
+
+Completed: 2026-05-19
+
+Summary:
+
+- Used the new GLTF projection coverage proof to safely reduce the
+  StandardMaterial receiver projection fade from `0.75` to `0.2`.
+- Kept the normalized-depth, bias-adjusted compare path and combined group 3
+  light/shadow routing unchanged.
+- Preserved the disabled-versus-enabled GLTF Playwright receiver pixel proof.
+- Added `task-1886` for replacing the remaining projected receiver envelope with
+  stricter caster-depth evidence.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/standard-shader.test.ts`
+- `pnpm run build`
+- `pnpm exec playwright test test/e2e/gltf-scene.spec.ts`
+
+## task-1884 — Add receiver projection debug/status proof
+
+Completed: 2026-05-19
+
+Summary:
+
+- Added JSON-safe `shadow.projectionCoverage` status to the GLTF scene example.
+- Projected fixed receiver and caster sample points through the ready
+  directional shadow view-projection matrix and reported UV, depth,
+  inside-projection flags, and projection distance.
+- Added Playwright assertions proving receiver and caster projection records are
+  present alongside the existing enabled-versus-disabled shadow pixel proof.
+- Split remaining envelope reduction into `task-1885` so the next shader-quality
+  change can use the new coverage status.
+
+Validation:
+
+- `node --check examples/gltf-scene.js`
+- `pnpm run typecheck:test`
+- `pnpm exec playwright test test/e2e/gltf-scene.spec.ts`
+
+## task-1883 — Audit receiver shadow projection proof quality
+
+Completed: 2026-05-19
+
+Summary:
+
+- Added
+  `docs/research/RECEIVER_SHADOW_PROJECTION_PROOF_AUDIT_2026_05_19.md`.
+- Confirmed the refined receiver shadow path remains renderer-owned derived
+  state and does not leak GPU handles into ECS or public JSON.
+- Documented the remaining gap between the bounded projected receiver envelope
+  and a strict caster-depth-only shadow silhouette.
+- Added `task-1884` as the next narrow follow-up for projection debug/status
+  proof.
+
+Validation:
+
+- `pnpm run check:progress`
+
+## task-1882 — Refine receiver shadow projection and bias
+
+Completed: 2026-05-19
+
+Summary:
+
+- Replaced the global first receiver shadow activation term with a projected
+  receiver sampling path that normalizes shadow depth and uses a named
+  bias-adjusted depth compare.
+- Kept the browser-safe combined group 3 light/shadow bind group and app
+  routing contract unchanged.
+- Added a bounded projected receiver envelope so the GLTF before/after proof
+  remains deterministic while the next audit can separate remaining quality
+  work from ownership-boundary work.
+- Preserved the Playwright receiver-sampling-disabled versus enabled proof.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/standard-shader.test.ts`
+- `pnpm run build`
+- `pnpm exec playwright test test/e2e/gltf-scene.spec.ts`
+
+## task-1878 — Audit receiver shadow sampling boundary
+
+Completed: 2026-05-19
+
+Summary:
+
+- Added
+  `docs/research/RECEIVER_SHADOW_SAMPLING_BOUNDARY_AUDIT_2026_05_19.md`.
+- Confirmed receiver shadow sampling remains renderer-owned derived state:
+  ECS emits authoring/extraction data, while WebGPU owns shadow depth textures,
+  samplers, bind groups, command buffers, and receiver shader resources.
+- Confirmed JSON-safe status surfaces expose keys, counts, statuses, and
+  diagnostics without raw GPU handles.
+- Recommended refining StandardMaterial receiver projection and bias as the next
+  narrow shadow task.
+
+Validation:
+
+- `pnpm exec playwright test test/e2e/gltf-scene.spec.ts`
+- `pnpm run check:progress`
+
+## task-1877 — Verify first visible receiver shadow pixels
+
+Completed: 2026-05-19
+
+Summary:
+
+- Updated the GLTF e2e flow to compare the browser scene with receiver sampling
+  disabled and enabled.
+- Added a Playwright screenshot-sampling proof that the shadow-capable
+  StandardMaterial route changes visible receiver pixels.
+- Kept JSON-safe status assertions for submitted shadow command buffers and
+  shadow receiver binding readiness.
+- Adjusted the first shadow receiver term so the routed shader path produces a
+  deterministic visible browser difference. A follow-up should refine
+  projection, bias, and localized compare behavior.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/standard-shader.test.ts`
+- `pnpm exec playwright test test/e2e/gltf-scene.spec.ts`
+
+## task-1881 — Route combined light/shadow group 3 resources through app
+
+Completed: 2026-05-19
+
+Summary:
+
+- Added app render support for ready StandardMaterial shadow receiver resources.
+- Routed `standard|shadowMap|...` StandardMaterial draws through the combined
+  light/shadow group 3 bind group only when receiver resources are ready.
+- Preserved the light-only group 3 path for non-shadow StandardMaterial draws.
+- Updated the GLTF scene example to submit the shadow command buffer through the
+  WebGPU queue and feed ready receiver resources into later forward frames.
+- Added focused frame-resource regression coverage for combined group 3 routing.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/unlit-app-frame-resources.test.ts test/webgpu/standard-light-shadow-bind-group.test.ts`
+- `pnpm exec vitest run test/webgpu/standard-shader.test.ts test/webgpu/unlit-app-frame-resources.test.ts test/webgpu/standard-light-shadow-bind-group.test.ts`
+- `pnpm exec playwright test test/e2e/gltf-scene.spec.ts`
+
 ## task-1880 — Create combined light/shadow group 3 resources
 
 Completed: 2026-05-19
