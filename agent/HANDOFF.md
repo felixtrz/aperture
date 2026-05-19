@@ -1,6 +1,45 @@
 # Agent Handoff
 
-Updated: 2026-05-19T21:28:45Z
+Updated: 2026-05-19T21:35:15Z
+
+## In-Progress Update — 2026-05-19T21:35:15Z — Multi-light shadow scene prerequisite
+
+Started `task-2014`.
+
+### What changed
+
+- Inspected the multi-light shadow coordination references. PlayCanvas keeps a
+  top-level shadow renderer that loops light faces/views, while Bevy splits
+  point/spot shared shadow passes from per-view directional shadow passes and
+  queues visible casters into shadow render phases.
+- Confirmed Aperture's current StandardMaterial receiver contract still accepts
+  one shadow resource set per frame, so the full combined directional + point +
+  spot receiver path is larger than an example copy.
+- Made the current 2D receiver contract explicit for spot shadows by accepting
+  `shadowKind: "spot"` in `StandardFrameShadowReceiverResources` and mapping it
+  to the existing `shadowMap` pipeline feature. `examples/spot-shadow.js` now
+  passes `shadowKind: "spot"` instead of masquerading as directional.
+
+### References inspected
+
+- `references/engine/src/scene/renderer/shadow-renderer.js`
+- `references/bevy/crates/bevy_pbr/src/render/light.rs`
+
+### Validation
+
+- `node --check examples/spot-shadow.js`
+- `pnpm run typecheck:test`
+- `pnpm exec playwright test test/e2e/spot-shadow.spec.ts`
+- `pnpm run build`
+- `pnpm run lint`
+- `pnpm run format:check`
+- `pnpm test`
+
+### Known issues
+
+- `task-2014` is not complete. The next implementation step is a real
+  multi-shadow receiver contract, likely accepting separate directional/spot 2D
+  and point cube resources rather than one global shadow resource set.
 
 ## Current Run Update — 2026-05-19T21:28:45Z — Spot shadow projection proof
 

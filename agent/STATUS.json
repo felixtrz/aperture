@@ -6,6 +6,6 @@
   "lastResult": "success",
   "lastCommit": "interim-feature-commit",
   "activePid": null,
-  "notes": "Completed task-2013 spot-shadow projection proof. Continuing with task-2014 combined multi-light shadow scene.",
+  "notes": "Completed task-2013 spot-shadow projection proof. Started task-2014 and landed explicit spot shadowKind receiver support; full multi-shadow receiver contract remains next.",
   "lastRunFinishedAt": "2026-05-19T21:14:35Z"
 }

@@ -535,7 +535,7 @@ async function publishFrameStatus(aperture, app, scene, step, report, frame) {
 
   return {
     standardMaterialShadowReceiverResources: {
-      shadowKind: "directional",
+      shadowKind: "spot",
       matrixBufferResource: shadowMatrixBufferResourceReport,
       depthTextureResources: shadowDepthTextureResourceReport,
       samplerResource: shadowSamplerResourceReport,

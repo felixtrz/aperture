@@ -2089,7 +2089,7 @@ function hasReadyStandardSpecularIblProofResources(
 
 function withStandardShadowPipelineKeys(
   snapshot: RenderSnapshot,
-  shadowKind: "directional" | "point" = "directional",
+  shadowKind: "directional" | "point" | "spot" = "directional",
 ): RenderSnapshot {
   let changed = false;
   const shadowFeature = shadowKind === "point" ? "pointShadowMap" : "shadowMap";

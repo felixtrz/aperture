@@ -161,7 +161,7 @@ export interface CreateStandardFrameGpuResourcesOptions {
 }
 
 export interface StandardFrameShadowReceiverResources {
-  readonly shadowKind?: "directional" | "point";
+  readonly shadowKind?: "directional" | "point" | "spot";
   readonly matrixBufferResource: ShadowMatrixBufferResourceReport;
   readonly depthTextureResources: ShadowDepthTextureResourceReport;
   readonly samplerResource: ShadowSamplerResourceReport;
