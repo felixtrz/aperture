@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-19 05:35 PDT</dd>
+            <dd>2026-05-19 06:08 PDT</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -812,10 +812,28 @@
               asset-mapping contract with caller-provided decoded image data,
               and the follow-up audit keeps full file loading, image decoding,
               and compression deferred. Minimal GLB index-buffer fixture
-              coverage and public GLB fixture limitation docs are now in place.
+              coverage, malformed chunk-ordering diagnostics, bufferView image
+              JSON serialization coverage, mixed BIN plus caller-resolved
+              external buffer coverage, external-buffer JSON projection tests,
+              compact source-status helper adoption, and malformed status docs
+              are now in place. Compact source status also covers resolved and
+              missing external buffers, and the async GLB source-loader boundary
+              is now planned and started as a no-fetch, renderer-independent
+              facade. The browser GLTF scene now routes its inline fixture
+              through that facade and asserts loader-level source status.
+              No-fetch facade output now also carries compact mesh-construction
+              summaries for report-driven scene source readiness, and the
+              browser status honestly reports mesh construction as absent for
+              the current non-buffer-backed scene fixture. A buffer-backed GLB
+              source fixture slice is now planned to prove a ready mesh summary
+              without changing visible scene rendering. The browser status now
+              includes a separate buffer-backed source fixture proof with a
+              ready mesh-construction summary. No-fetch facade output can also
+              carry report-derived source-registration summaries without
+              registry mutation.
             </dd>
             <dt>Next focus</dt>
-            <dd>Add malformed GLB chunk ordering diagnostics coverage</dd>
+            <dd>Audit source-registration summary adoption</dd>
           </dl>
         </aside>
       </header>
@@ -1340,6 +1358,146 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">task-1951</span> Documented
+                source-registration summary limitations.
+              </li>
+              <li>
+                <span class="badge green">task-1950</span> Attached optional
+                source-registration summaries to no-fetch facade output.
+              </li>
+              <li>
+                <span class="badge green">task-1949</span> Added
+                source-registration output summary status tests.
+              </li>
+              <li>
+                <span class="badge green">task-1948</span> Planned the no-fetch
+                source-registration summary slice.
+              </li>
+              <li>
+                <span class="badge green">task-1946</span> Documented
+                buffer-backed source fixture limitations.
+              </li>
+              <li>
+                <span class="badge green">task-1945</span> Published a ready
+                mesh summary for a buffer-backed source fixture.
+              </li>
+              <li>
+                <span class="badge green">task-1944</span> Added buffer-backed
+                GLB source fixture helper tests.
+              </li>
+              <li>
+                <span class="badge green">task-1943</span> Planned a
+                buffer-backed GLB browser fixture slice.
+              </li>
+              <li>
+                <span class="badge green">task-1942</span> Audited browser
+                source output summary publication.
+              </li>
+              <li>
+                <span class="badge green">task-1941</span> Added invalid
+                browser-shaped mesh summary coverage.
+              </li>
+              <li>
+                <span class="badge green">task-1940</span> Documented browser
+                source output summary status.
+              </li>
+              <li>
+                <span class="badge green">task-1939</span> Added Playwright
+                assertions for browser source output summary status.
+              </li>
+              <li>
+                <span class="badge green">task-1938</span> Published
+                source-loader output summary in browser GLTF status.
+              </li>
+              <li>
+                <span class="badge green">task-1936</span> Documented
+                scene-source output summary staging.
+              </li>
+              <li>
+                <span class="badge green">task-1935</span> Attached
+                mesh-construction summaries to no-fetch facade output.
+              </li>
+              <li>
+                <span class="badge green">task-1934</span> Added source-loader
+                output summary status tests.
+              </li>
+              <li>
+                <span class="badge green">task-1933</span> Planned report-driven
+                scene-source output adoption.
+              </li>
+              <li>
+                <span class="badge green">task-1930</span> Documented browser
+                source-loader facade status.
+              </li>
+              <li>
+                <span class="badge green">task-1929</span> Added browser status
+                assertions for source-loader facade fields.
+              </li>
+              <li>
+                <span class="badge green">task-1928</span> Routed the browser
+                GLTF fixture through the no-fetch source-loader facade.
+              </li>
+              <li>
+                <span class="badge green">task-1926</span> Documented the
+                no-fetch source-loader facade non-goals.
+              </li>
+              <li>
+                <span class="badge green">task-1925</span> Added a no-fetch GLB
+                source-loader fixture facade.
+              </li>
+              <li>
+                <span class="badge green">task-1924</span> Added GLB
+                source-loader status shape tests.
+              </li>
+              <li>
+                <span class="badge green">task-1923</span> Planned the async GLB
+                source-loader boundary.
+              </li>
+              <li>
+                <span class="badge green">task-1922</span> Audited compact GLB
+                source-status helper adoption.
+              </li>
+              <li>
+                <span class="badge green">task-1921</span> Added compact GLB
+                source-status coverage for external buffers.
+              </li>
+              <li>
+                <span class="badge green">task-1920</span> Documented compact
+                GLB source status for malformed reports.
+              </li>
+              <li>
+                <span class="badge green">task-1919</span> Routed the browser
+                GLTF scene through the compact source-status helper.
+              </li>
+              <li>
+                <span class="badge green">task-1918</span> Added a compact GLB
+                source-status JSON helper.
+              </li>
+              <li>
+                <span class="badge green">task-1915</span> Documented the GLB
+                external-buffer resolver contract.
+              </li>
+              <li>
+                <span class="badge green">task-1914</span> Added GLB
+                external-buffer JSON projection coverage.
+              </li>
+              <li>
+                <span class="badge green">task-1913</span> Added mixed GLB BIN
+                plus external-buffer resolver coverage.
+              </li>
+              <li>
+                <span class="badge green">task-1910</span> Documented the
+                browser GLTF scene's JSON-safe GLB fixture source status.
+              </li>
+              <li>
+                <span class="badge green">task-1909</span> Added GLB bufferView
+                image JSON serialization coverage.
+              </li>
+              <li>
+                <span class="badge green">task-1908</span> Added malformed GLB
+                chunk-ordering diagnostics coverage.
+              </li>
               <li>
                 <span class="badge green">task-1907</span> Documented current
                 GLB fixture limitations.
@@ -2652,10 +2810,13 @@
             <h3>Recommended next tasks</h3>
             <ul>
               <li>
-                <span class="badge amber">next</span> Add malformed GLB chunk
-                ordering diagnostics coverage.
+                <span class="badge amber">next</span> Audit source-registration
+                summary adoption.
               </li>
-              <li>Add GLB bufferView image JSON serialization coverage.</li>
+              <li>
+                Keep visible scene rendering stable while planning next source
+                step.
+              </li>
               <li>
                 Keep full external loading, compression, and broad PBR
                 completeness deferred.

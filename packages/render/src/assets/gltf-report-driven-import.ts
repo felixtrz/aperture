@@ -138,6 +138,24 @@ export interface GltfReportDrivenGlbImportReportJsonValue {
   readonly diagnostics: readonly GltfReportDrivenGlbImportDiagnostic[];
 }
 
+export interface GltfReportDrivenGlbSourceStatusJsonValue {
+  readonly valid: boolean;
+  readonly byteLength: number | null;
+  readonly chunks: readonly {
+    readonly type: string;
+    readonly byteLength: number;
+  }[];
+  readonly diagnostics: readonly {
+    readonly code: string;
+    readonly severity: string;
+    readonly message: string;
+  }[];
+  readonly importStages: readonly {
+    readonly stage: string;
+    readonly status: string;
+  }[];
+}
+
 export interface GltfReportDrivenImportReportJsonValue extends Omit<
   GltfReportDrivenImportReport,
   | "root"
@@ -294,6 +312,7 @@ export function createGltfReportDrivenImportReportFromGlb(
   const resolveBufferBytes = (bufferIndex: number) =>
     resolveGlbBufferBytes(
       bufferIndex,
+      container.container?.json ?? {},
       container.container?.binaryChunk ?? null,
       resolveExternalBufferBytes,
       resolvedBuffers,
@@ -373,6 +392,37 @@ export function gltfReportDrivenGlbImportReportToJsonValue(
   };
 }
 
+export function gltfReportDrivenGlbImportReportToSourceStatusJsonValue(
+  report: GltfReportDrivenGlbImportReport,
+): GltfReportDrivenGlbSourceStatusJsonValue {
+  return {
+    valid: report.valid,
+    byteLength: report.container.container?.byteLength ?? null,
+    chunks:
+      report.container.container?.chunks.map((chunk) => ({
+        type: chunk.type,
+        byteLength: chunk.byteLength,
+      })) ?? [],
+    diagnostics: [
+      ...report.container.diagnostics.map((diagnostic) => ({
+        code: diagnostic.code,
+        severity: diagnostic.severity,
+        message: diagnostic.message,
+      })),
+      ...report.diagnostics.map((diagnostic) => ({
+        code: diagnostic.code,
+        severity: diagnostic.severity,
+        message: diagnostic.message,
+      })),
+    ],
+    importStages:
+      report.importReport?.orchestration.stages.map((stage) => ({
+        stage: stage.stage,
+        status: stage.status,
+      })) ?? [],
+  };
+}
+
 function createMeshReports(options: GltfReportDrivenImportOptions): {
   readonly meshPrimitive: GltfMeshPrimitiveMappingReport;
   readonly accessorValidation: GltfAccessorValidationReport;
@@ -407,6 +457,7 @@ function createMeshReports(options: GltfReportDrivenImportOptions): {
 
 function resolveGlbBufferBytes(
   bufferIndex: number,
+  root: Record<string, unknown>,
   binaryChunk: Uint8Array | null,
   resolveExternalBufferBytes:
     | ((
@@ -419,9 +470,16 @@ function resolveGlbBufferBytes(
     return resolvedBuffers.get(bufferIndex) ?? null;
   }
 
+  const buffer = Array.isArray(root.buffers)
+    ? root.buffers[bufferIndex]
+    : undefined;
+  const isExternalBuffer = isRecord(buffer) && typeof buffer.uri === "string";
   const resolved =
-    resolveExternalBufferBytes?.(bufferIndex) ??
-    (bufferIndex === 0 ? binaryChunk : null);
+    (isExternalBuffer
+      ? resolveExternalBufferBytes?.(bufferIndex)
+      : bufferIndex === 0
+        ? binaryChunk
+        : null) ?? null;
   const normalized = resolved ?? null;
 
   resolvedBuffers.set(bufferIndex, normalized);

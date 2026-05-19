@@ -1,5 +1,51 @@
 # Completed Tasks
 
+## task-1908 through task-1952 — GLB source-loader facade and source summaries
+
+Completed: 2026-05-19
+
+Summary:
+
+- Hardened GLB container diagnostics for duplicate JSON chunks, duplicate BIN
+  chunks, and BIN-before-JSON ordering while preserving non-throwing structured
+  parser results.
+- Added GLB bufferView image JSON serialization coverage, external-buffer
+  resolver contract tests, mixed BIN plus external-buffer coverage, malformed
+  diagnostic JSON projection coverage, and compact source-status coverage.
+- Added `gltfReportDrivenGlbImportReportToSourceStatusJsonValue` for compact
+  source status.
+- Added JSON-safe GLB source-loader status, no-fetch source-loader facade, and
+  source-loader output summary helpers in `@aperture-engine/render`.
+- Added a reusable buffer-backed GLB triangle fixture helper and tests proving
+  ready mesh-construction summaries without raw byte or typed-array leakage.
+- Routed the browser GLTF scene's inline source fixture through the no-fetch
+  facade and published loader-level source status plus output summary.
+- Published a secondary buffer-backed GLB source-status proof in the browser
+  example while keeping visible ECS authoring and rendering unchanged.
+- Added optional source-registration output summaries to the no-fetch facade,
+  derived from report data only with no registry, ECS, or WebGPU mutation.
+- Updated Playwright to assert loader-level source status, nested compact GLB
+  status, honest absent and ready mesh-construction summaries, and no raw
+  byte/typed-array leakage.
+- Added docs and audits covering GLB parser diagnostics, mixed buffer sources,
+  source-status helper adoption, async loader boundary planning, browser facade
+  adoption, source output summaries, buffer-backed source fixture adoption, and
+  source-registration summary adoption.
+- Updated public tracker pages and backlog. Recommended next task is
+  `task-1953`: plan no-fetch ECS command-plan summary slice.
+
+Validation:
+
+- `pnpm exec vitest run test/assets/glb-container.test.ts`
+- `pnpm exec vitest run test/assets/glb-source-loader-status.test.ts test/assets/glb-source-loader-facade.test.ts test/assets/glb-source-loader-output-summary.test.ts`
+- `pnpm exec vitest run test/assets/glb-buffer-fixture.test.ts test/assets/glb-source-loader-facade.test.ts`
+- `pnpm exec tsc -p packages/render/tsconfig.json --noEmit`
+- `pnpm run typecheck:test`
+- `pnpm run check:examples`
+- `pnpm run check:progress`
+- `pnpm exec playwright test test/e2e/gltf-scene.spec.ts`
+- `pnpm run check`
+
 ## task-1907 — Document current GLB fixture limitations
 
 Completed: 2026-05-19

@@ -1,11 +1,11 @@
 {
   "state": "idle",
-  "currentTaskId": "task-1908",
-  "currentRunStartedAt": "2026-05-19T12:02:15Z",
-  "lastRunStartedAt": "2026-05-19T12:02:15Z",
+  "currentTaskId": "task-1953",
+  "currentRunStartedAt": "2026-05-19T13:02:21Z",
+  "lastRunStartedAt": "2026-05-19T13:02:21Z",
   "lastResult": "success",
   "lastCommit": "9fd4f06",
   "activePid": null,
-  "notes": "Completed task-1892 through task-1907. StandardMaterial now has diffuse IBL and placeholder specular IBL browser proofs through browser-safe group 3, while group 4 remains JSON-safe planning identity only and full PMREM/GGX remains deferred. Added a minimal GLB fixture bridge into the report-driven glTF import contract, structured missing-BIN/external-buffer diagnostics, JSON-safe GLB import serialization, browser GLTF scene source status, bufferView image asset-mapping coverage, index-buffer fixture coverage, and GLB fixture limitation docs. Recommended next task is task-1908: add malformed GLB chunk ordering diagnostics coverage.",
-  "lastRunFinishedAt": "2026-05-19T12:49:29Z"
+  "notes": "Completed task-1908 through task-1952. Added structured malformed GLB chunk diagnostics, JSON-safe GLB source status, no-fetch source-loader status/facade/output summary helpers, buffer-backed GLB source-status proof coverage, and report-only source-registration summaries. Recommended next task is task-1953: plan no-fetch ECS command-plan summary slice.",
+  "lastRunFinishedAt": "2026-05-19T13:49:27Z"
 }

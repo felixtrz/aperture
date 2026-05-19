@@ -16,6 +16,8 @@ export type GlbContainerDiagnosticCode =
   | "glb.invalidChunkHeader"
   | "glb.chunkOutOfBounds"
   | "glb.emptyJsonChunk"
+  | "glb.duplicateJsonChunk"
+  | "glb.duplicateBinaryChunk"
   | "glb.invalidJson"
   | "glb.unknownChunk";
 
@@ -291,6 +293,19 @@ export function parseGlbContainer(
     }
 
     if (chunkType === GLB_JSON_CHUNK_TYPE) {
+      if (jsonBytes !== null) {
+        diagnostics.push(
+          createErrorDiagnostic({
+            code: "glb.duplicateJsonChunk",
+            message: "GLB must contain only one JSON chunk.",
+            byteOffset: offset,
+            byteLength: GLB_CHUNK_HEADER_BYTE_LENGTH + chunkLength,
+            chunkType,
+          }),
+        );
+        break;
+      }
+
       if (chunkLength === 0) {
         diagnostics.push(
           createErrorDiagnostic({
@@ -305,7 +320,20 @@ export function parseGlbContainer(
       }
 
       jsonBytes = sourceBytesForRange(source, chunkDataOffset, chunkLength);
-    } else if (chunkType === GLB_BINARY_CHUNK_TYPE && binaryChunk === null) {
+    } else if (chunkType === GLB_BINARY_CHUNK_TYPE) {
+      if (binaryChunk !== null) {
+        diagnostics.push(
+          createErrorDiagnostic({
+            code: "glb.duplicateBinaryChunk",
+            message: "GLB must contain at most one BIN chunk.",
+            byteOffset: offset,
+            byteLength: GLB_CHUNK_HEADER_BYTE_LENGTH + chunkLength,
+            chunkType,
+          }),
+        );
+        break;
+      }
+
       binaryChunk = sourceBytesForRange(source, chunkDataOffset, chunkLength);
     } else if (chunkType !== GLB_BINARY_CHUNK_TYPE) {
       diagnostics.push(

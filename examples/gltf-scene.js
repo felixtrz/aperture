@@ -83,6 +83,8 @@ try {
 
 function createScene(aperture, app, targetCanvas) {
   const glbFixture = createGltfSceneGlbFixture(aperture);
+  const bufferBackedGlbFixture =
+    createGltfSceneBufferBackedGlbFixture(aperture);
   const root = glbFixture.root;
   const meshConstruction = createMeshConstructionReport(aperture);
   const environmentHandle = aperture.createEnvironmentMapHandle(
@@ -182,6 +184,7 @@ function createScene(aperture, app, targetCanvas) {
     canvas: targetCanvas,
     contract,
     environmentHandle,
+    bufferBackedGlbFixture: bufferBackedGlbFixture.status,
     glbFixture: glbFixture.status,
     registration,
     replay,
@@ -733,6 +736,7 @@ async function publishFrameStatus(aperture, app, scene, step, report, frame) {
     renderingBackend: "webgpu-explicit",
     source: {
       glbFixture: scene.glbFixture,
+      bufferBackedGlbFixture: scene.bufferBackedGlbFixture,
     },
     frame,
     readiness,
@@ -1371,9 +1375,10 @@ function createGltfSceneRoot() {
 
 function createGltfSceneGlbFixture(aperture) {
   const source = createGlbFixtureSource(createGltfSceneRoot());
-  const report = aperture.createGltfReportDrivenImportReportFromGlb({
+  const loader = aperture.createNoFetchGlbSourceLoaderReport({
     source,
   });
+  const report = loader.glbImportReport;
   const container = report.container.container;
 
   if (!report.valid || container === null || report.importReport === null) {
@@ -1383,21 +1388,27 @@ function createGltfSceneGlbFixture(aperture) {
   return {
     root: container.json,
     status: {
-      valid: report.valid,
-      byteLength: container.byteLength,
-      chunks: container.chunks.map((chunk) => ({
-        type: chunk.type,
-        byteLength: chunk.byteLength,
-      })),
-      diagnostics: report.container.diagnostics.map((diagnostic) => ({
-        code: diagnostic.code,
-        severity: diagnostic.severity,
-        message: diagnostic.message,
-      })),
-      importStages: report.importReport.orchestration.stages.map((stage) => ({
-        stage: stage.stage,
-        status: stage.status,
-      })),
+      ...loader.status,
+      outputSummary: loader.outputSummary,
+    },
+  };
+}
+
+function createGltfSceneBufferBackedGlbFixture(aperture) {
+  const { source } = createIndexedTriangleGlbFixtureSource();
+  const loader = aperture.createNoFetchGlbSourceLoaderReport({
+    source,
+    createMeshAssets: true,
+  });
+
+  if (!loader.glbImportReport.valid) {
+    throw new Error("GLTF scene buffer-backed GLB fixture did not load.");
+  }
+
+  return {
+    status: {
+      ...loader.status,
+      outputSummary: loader.outputSummary,
     },
   };
 }
@@ -1412,6 +1423,51 @@ function createGlbFixtureSource(root) {
       ),
     },
   ]);
+}
+
+function createIndexedTriangleGlbFixtureSource() {
+  const bytes = new Uint8Array(44);
+  const view = new DataView(bytes.buffer);
+
+  [0, 0, 0, 1, 0, 0, 0, 1, 0].forEach((value, index) =>
+    view.setFloat32(index * 4, value, true),
+  );
+  [0, 1, 2].forEach((value, index) =>
+    view.setUint16(36 + index * 2, value, true),
+  );
+
+  const root = {
+    asset: { version: "2.0" },
+    scene: 0,
+    scenes: [{ nodes: [0] }],
+    nodes: [{ name: "BufferBackedTriangle", mesh: 0 }],
+    buffers: [{ byteLength: 42 }],
+    bufferViews: [
+      { buffer: 0, byteOffset: 0, byteLength: 36 },
+      { buffer: 0, byteOffset: 36, byteLength: 6 },
+    ],
+    accessors: [
+      { bufferView: 0, componentType: 5126, type: "VEC3", count: 3 },
+      { bufferView: 1, componentType: 5123, type: "SCALAR", count: 3 },
+    ],
+    meshes: [{ primitives: [{ attributes: { POSITION: 0 }, indices: 1 }] }],
+  };
+
+  return {
+    source: createGlbFixture([
+      {
+        typeCode: 0x4e4f534a,
+        data: padGlbChunkData(
+          new TextEncoder().encode(JSON.stringify(root)),
+          0x20,
+        ),
+      },
+      {
+        typeCode: 0x004e4942,
+        data: bytes,
+      },
+    ]),
+  };
 }
 
 function createGlbFixture(chunks) {

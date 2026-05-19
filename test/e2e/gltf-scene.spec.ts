@@ -13,12 +13,29 @@ import type { ExampleStatusBase } from "./example-status-types.js";
 interface GltfSceneStatus extends ExampleStatusBase {
   readonly source?: {
     readonly glbFixture: {
-      readonly valid: boolean;
-      readonly chunks: readonly {
-        readonly type: string;
-        readonly byteLength: number;
-      }[];
+      readonly status: string;
+      readonly sourceKind: string;
+      readonly byteLength: number | null;
+      readonly externalBuffers: readonly unknown[];
       readonly diagnostics: readonly unknown[];
+      readonly glbSourceStatus: {
+        readonly valid: boolean;
+        readonly chunks: readonly {
+          readonly type: string;
+          readonly byteLength: number;
+        }[];
+      } | null;
+      readonly outputSummary: {
+        readonly meshConstruction: {
+          readonly status: string;
+          readonly valid: boolean | null;
+          readonly meshCount: number;
+          readonly submeshCount: number;
+          readonly vertexCount: number;
+          readonly indexCount: number;
+          readonly diagnosticsCount: number;
+        };
+      };
     };
   };
   readonly clearColor?: {
@@ -1228,9 +1245,26 @@ test("Playwright shows the GLTF scene fixture through the app path", async ({
     renderingBackend: "webgpu-explicit",
     source: {
       glbFixture: {
-        valid: true,
-        chunks: [{ type: "json", byteLength: expect.any(Number) }],
+        status: "loaded",
+        sourceKind: "glb",
+        byteLength: expect.any(Number),
+        externalBuffers: [],
         diagnostics: [],
+        glbSourceStatus: {
+          valid: true,
+          chunks: [{ type: "json", byteLength: expect.any(Number) }],
+        },
+        outputSummary: {
+          meshConstruction: {
+            status: "absent",
+            valid: null,
+            meshCount: 0,
+            submeshCount: 0,
+            vertexCount: 0,
+            indexCount: 0,
+            diagnosticsCount: 0,
+          },
+        },
       },
     },
     readiness: {
@@ -3335,6 +3369,14 @@ test("Playwright shows the GLTF scene fixture through the app path", async ({
     draw: { drawCalls: 3, indexedDrawCalls: 3 },
     renderWorld: { active: 3 },
   });
+  expect(JSON.stringify(status.source?.glbFixture)).not.toContain(
+    "binaryChunk",
+  );
+  expect(JSON.stringify(status.source?.glbFixture)).not.toContain("jsonText");
+  expect(JSON.stringify(status.source?.glbFixture)).not.toContain("Uint8Array");
+  expect(JSON.stringify(status.source?.glbFixture)).not.toContain(
+    "Float32Array",
+  );
 
   const screenshot = await page.locator("#aperture-canvas").screenshot();
 

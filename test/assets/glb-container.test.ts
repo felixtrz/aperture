@@ -8,6 +8,7 @@ import {
   GLB_HEADER_BYTE_LENGTH,
   GLB_JSON_CHUNK_TYPE,
   createGltfReportDrivenImportReportFromGlb,
+  gltfReportDrivenGlbImportReportToSourceStatusJsonValue,
   gltfReportDrivenGlbImportReportToJsonValue,
   parseGlbContainer,
 } from "@aperture-engine/render";
@@ -232,6 +233,68 @@ describe("GLB container parser", () => {
     });
   });
 
+  it("diagnoses duplicate JSON and BIN chunks without throwing", () => {
+    const duplicateJson = parseGlbContainer(
+      createGlb([
+        jsonChunk({ asset: { version: "2.0" } }),
+        jsonChunk({ asset: { version: "2.0" }, scene: 0 }),
+      ]),
+    );
+    const duplicateBin = parseGlbContainer(
+      createGlb([
+        jsonChunk({ asset: { version: "2.0" } }),
+        bytesChunk(GLB_BINARY_CHUNK_TYPE, [1, 2, 3, 4]),
+        bytesChunk(GLB_BINARY_CHUNK_TYPE, [5, 6, 7, 8]),
+      ]),
+    );
+
+    expect(duplicateJson).toMatchObject({
+      ok: false,
+      container: null,
+      diagnostics: [
+        {
+          code: "glb.duplicateJsonChunk",
+          severity: "error",
+          chunkType: GLB_JSON_CHUNK_TYPE,
+        },
+      ],
+    });
+    expect(duplicateBin).toMatchObject({
+      ok: false,
+      container: null,
+      diagnostics: [
+        {
+          code: "glb.duplicateBinaryChunk",
+          severity: "error",
+          chunkType: GLB_BINARY_CHUNK_TYPE,
+        },
+      ],
+    });
+  });
+
+  it("diagnoses BIN-before-JSON chunk ordering without consuming late JSON", () => {
+    const binBeforeJson = parseGlbContainer(
+      createGlb([
+        bytesChunk(GLB_BINARY_CHUNK_TYPE, [1, 2, 3, 4]),
+        jsonChunk({ asset: { version: "2.0" } }),
+      ]),
+    );
+
+    expect(binBeforeJson).toMatchObject({
+      ok: false,
+      container: null,
+      diagnostics: [
+        {
+          code: "glb.missingJsonChunk",
+          severity: "error",
+          byteOffset: GLB_HEADER_BYTE_LENGTH,
+          byteLength: GLB_CHUNK_HEADER_BYTE_LENGTH,
+          chunkType: GLB_BINARY_CHUNK_TYPE,
+        },
+      ],
+    });
+  });
+
   it("diagnoses empty, invalid, and non-object JSON chunks", () => {
     const emptyJson = parseGlbContainer(
       createGlb([bytesChunk(GLB_JSON_CHUNK_TYPE, [])]),
@@ -393,6 +456,441 @@ describe("GLB report-driven import fixture path", () => {
     );
   });
 
+  it("accepts caller-provided external buffer bytes without GLB wrapper diagnostics", () => {
+    const { root, bytes } = rootWithTriangleMesh({
+      buffer: { byteLength: 36, uri: "mesh.bin" },
+    });
+    const report = createGltfReportDrivenImportReportFromGlb({
+      source: createGlb([jsonChunk(root)]),
+      createMeshAssets: true,
+      resolveBufferBytes: (bufferIndex) => {
+        expect(bufferIndex).toBe(0);
+        return bytes;
+      },
+    });
+
+    expect(report.valid).toBe(true);
+    expect(report.diagnostics).toEqual([]);
+    expect(report.importReport?.accessorDecoding?.valid).toBe(true);
+    expect(report.importReport?.accessorDecoding?.diagnostics).toEqual([]);
+  });
+
+  it("caches caller-provided external buffers across repeated buffer references", () => {
+    const { root, bytes } = rootWithIndexedTriangleMesh({
+      bufferUri: "indexed.bin",
+    });
+    let resolveCalls = 0;
+    const report = createGltfReportDrivenImportReportFromGlb({
+      source: createGlb([jsonChunk(root)]),
+      createMeshAssets: true,
+      resolveBufferBytes: (bufferIndex) => {
+        resolveCalls += 1;
+        expect(bufferIndex).toBe(0);
+        return bytes;
+      },
+    });
+
+    expect(report.valid).toBe(true);
+    expect(report.diagnostics).toEqual([]);
+    expect(report.importReport?.accessorDecoding?.primitives[0]).toMatchObject({
+      vertexCount: 3,
+      indices: {
+        semantic: "INDICES",
+        bufferIndex: 0,
+      },
+    });
+    expect(resolveCalls).toBe(1);
+  });
+
+  it("uses GLB BIN for buffer zero and caller bytes for a second URI buffer", () => {
+    const { root, positionBytes, indexBytes } = rootWithSplitIndexedBuffers();
+    const resolvedBufferIndexes: number[] = [];
+    const report = createGltfReportDrivenImportReportFromGlb({
+      source: createGlb([
+        jsonChunk(root),
+        bytesChunk(GLB_BINARY_CHUNK_TYPE, Array.from(positionBytes)),
+      ]),
+      createMeshAssets: true,
+      resolveBufferBytes: (bufferIndex) => {
+        resolvedBufferIndexes.push(bufferIndex);
+        expect(bufferIndex).toBe(1);
+        return indexBytes;
+      },
+    });
+
+    expect(report.valid).toBe(true);
+    expect(report.diagnostics).toEqual([]);
+    expect(report.importReport?.accessorDecoding?.primitives[0]).toMatchObject({
+      vertexCount: 3,
+      attributes: [
+        {
+          semantic: "POSITION",
+          bufferIndex: 0,
+          itemSize: 3,
+        },
+      ],
+      indices: {
+        semantic: "INDICES",
+        bufferIndex: 1,
+        itemSize: 1,
+      },
+    });
+    expect(
+      report.importReport?.meshConstruction?.meshes[0]?.mesh?.submeshes[0],
+    ).toMatchObject({
+      vertexCount: 3,
+      indexCount: 3,
+    });
+    expect(resolvedBufferIndexes).toEqual([1]);
+  });
+
+  it("keeps missing second URI buffer diagnostics distinct from BIN-backed buffer zero", () => {
+    const { root, positionBytes } = rootWithSplitIndexedBuffers();
+    const report = createGltfReportDrivenImportReportFromGlb({
+      source: createGlb([
+        jsonChunk(root),
+        bytesChunk(GLB_BINARY_CHUNK_TYPE, Array.from(positionBytes)),
+      ]),
+      createMeshAssets: true,
+      resolveBufferBytes: () => null,
+    });
+
+    expect(report.valid).toBe(false);
+    expect(report.diagnostics).toMatchObject([
+      {
+        code: "glbImport.externalBufferUnsupported",
+        severity: "error",
+        bufferIndex: 1,
+        uri: "indices.bin",
+      },
+    ]);
+    expect(report.importReport?.accessorDecoding?.diagnostics).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          code: "gltfDecode.missingBufferBytes",
+          bufferIndex: 1,
+        }),
+      ]),
+    );
+    expect(report.importReport?.accessorDecoding?.diagnostics).not.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          code: "gltfDecode.missingBufferBytes",
+          bufferIndex: 0,
+        }),
+      ]),
+    );
+  });
+
+  it("serializes externally resolved GLB buffers without caller-provided bytes", () => {
+    const { root, positionBytes, indexBytes } = rootWithSplitIndexedBuffers();
+    const report = createGltfReportDrivenImportReportFromGlb({
+      source: createGlb([
+        jsonChunk(root),
+        bytesChunk(GLB_BINARY_CHUNK_TYPE, Array.from(positionBytes)),
+      ]),
+      createMeshAssets: true,
+      resolveBufferBytes: () => indexBytes,
+    });
+
+    const json = gltfReportDrivenGlbImportReportToJsonValue(report);
+    const serialized = JSON.stringify(json);
+
+    expect(json.valid).toBe(true);
+    expect(json.container.chunks).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ type: "json" }),
+        expect.objectContaining({ type: "bin" }),
+      ]),
+    );
+    expect(json.importReport?.meshConstruction?.meshes[0]?.mesh).toMatchObject({
+      kind: "mesh",
+      submeshes: [{ vertexCount: 3, indexCount: 3 }],
+      vertexStreams: [
+        {
+          data: { type: "Float32Array", length: 9 },
+        },
+      ],
+      indexBuffer: {
+        format: "uint16",
+        data: { type: "Uint16Array", length: 3 },
+      },
+    });
+    expect("binaryChunk" in json.container).toBe(false);
+    expect("jsonText" in json.container).toBe(false);
+    expect(serialized).not.toContain("Uint8Array");
+    expect(serialized).not.toContain("[0,1,2]");
+    expect(serialized).not.toContain("[0,0,0,1,0,0,0,1,0]");
+  });
+
+  it("serializes missing external GLB buffer diagnostics without raw bytes", () => {
+    const { root, positionBytes } = rootWithSplitIndexedBuffers();
+    const report = createGltfReportDrivenImportReportFromGlb({
+      source: createGlb([
+        jsonChunk(root),
+        bytesChunk(GLB_BINARY_CHUNK_TYPE, Array.from(positionBytes)),
+      ]),
+      createMeshAssets: true,
+      resolveBufferBytes: () => null,
+    });
+
+    const json = gltfReportDrivenGlbImportReportToJsonValue(report);
+    const serialized = JSON.stringify(json);
+
+    expect(json.valid).toBe(false);
+    expect(json.diagnostics).toMatchObject([
+      {
+        code: "glbImport.externalBufferUnsupported",
+        severity: "error",
+        bufferIndex: 1,
+        uri: "indices.bin",
+      },
+    ]);
+    expect(json.importReport?.accessorDecoding?.diagnostics).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          code: "gltfDecode.missingBufferBytes",
+          bufferIndex: 1,
+        }),
+      ]),
+    );
+    expect("binaryChunk" in json.container).toBe(false);
+    expect("jsonText" in json.container).toBe(false);
+    expect(serialized).not.toContain("Uint8Array");
+    expect(serialized).not.toContain("[0,0,0,1,0,0,0,1,0]");
+  });
+
+  it("serializes malformed GLB chunk-order diagnostics without import reports", () => {
+    const reports = [
+      createGltfReportDrivenImportReportFromGlb({
+        source: createGlb([
+          jsonChunk({ asset: { version: "2.0" } }),
+          jsonChunk({ asset: { version: "2.0" }, scene: 0 }),
+        ]),
+        createMeshAssets: true,
+      }),
+      createGltfReportDrivenImportReportFromGlb({
+        source: createGlb([
+          jsonChunk({ asset: { version: "2.0" } }),
+          bytesChunk(GLB_BINARY_CHUNK_TYPE, [1, 2, 3, 4]),
+          bytesChunk(GLB_BINARY_CHUNK_TYPE, [5, 6, 7, 8]),
+        ]),
+        createMeshAssets: true,
+      }),
+      createGltfReportDrivenImportReportFromGlb({
+        source: createGlb([
+          bytesChunk(GLB_BINARY_CHUNK_TYPE, [1, 2, 3, 4]),
+          jsonChunk({ asset: { version: "2.0" } }),
+        ]),
+        createMeshAssets: true,
+      }),
+    ];
+
+    const jsonReports = reports.map(gltfReportDrivenGlbImportReportToJsonValue);
+    const serialized = JSON.stringify(jsonReports);
+
+    expect(jsonReports).toMatchObject([
+      {
+        valid: false,
+        importReport: null,
+        container: {
+          ok: false,
+          diagnostics: [
+            {
+              code: "glb.duplicateJsonChunk",
+              severity: "error",
+              byteOffset: expect.any(Number),
+              byteLength: expect.any(Number),
+              chunkType: GLB_JSON_CHUNK_TYPE,
+            },
+          ],
+        },
+      },
+      {
+        valid: false,
+        importReport: null,
+        container: {
+          ok: false,
+          diagnostics: [
+            {
+              code: "glb.duplicateBinaryChunk",
+              severity: "error",
+              byteOffset: expect.any(Number),
+              byteLength: expect.any(Number),
+              chunkType: GLB_BINARY_CHUNK_TYPE,
+            },
+          ],
+        },
+      },
+      {
+        valid: false,
+        importReport: null,
+        container: {
+          ok: false,
+          diagnostics: [
+            {
+              code: "glb.missingJsonChunk",
+              severity: "error",
+              byteOffset: GLB_HEADER_BYTE_LENGTH,
+              byteLength: GLB_CHUNK_HEADER_BYTE_LENGTH,
+              chunkType: GLB_BINARY_CHUNK_TYPE,
+            },
+          ],
+        },
+      },
+    ]);
+    expect(serialized).not.toContain("binaryChunk");
+    expect(serialized).not.toContain("jsonText");
+    expect(serialized).not.toContain("Uint8Array");
+    expect(serialized).not.toContain('"asset":{"version":"2.0"}');
+  });
+
+  it("projects compact GLB source status for valid reports", () => {
+    const { root, bytes } = rootWithTriangleMesh();
+    const report = createGltfReportDrivenImportReportFromGlb({
+      source: createGlb([
+        jsonChunk(root),
+        bytesChunk(GLB_BINARY_CHUNK_TYPE, Array.from(bytes)),
+      ]),
+      createMeshAssets: true,
+    });
+
+    const status =
+      gltfReportDrivenGlbImportReportToSourceStatusJsonValue(report);
+    const serialized = JSON.stringify(status);
+
+    expect(status).toMatchObject({
+      valid: true,
+      byteLength: expect.any(Number),
+      chunks: [
+        { type: "json", byteLength: expect.any(Number) },
+        { type: "bin", byteLength: bytes.byteLength },
+      ],
+      diagnostics: [],
+      importStages: expect.arrayContaining([
+        expect.objectContaining({ stage: "root", status: "provided" }),
+        expect.objectContaining({
+          stage: "meshConstruction",
+          status: "provided",
+        }),
+      ]),
+    });
+    expect(serialized).not.toContain("binaryChunk");
+    expect(serialized).not.toContain("jsonText");
+    expect(serialized).not.toContain("Uint8Array");
+    expect(serialized).not.toContain("[0,0,0,1,0,0,0,1,0]");
+  });
+
+  it("projects compact GLB source status for malformed containers", () => {
+    const report = createGltfReportDrivenImportReportFromGlb({
+      source: createGlb([
+        jsonChunk({ asset: { version: "2.0" } }),
+        jsonChunk({ asset: { version: "2.0" }, scene: 0 }),
+      ]),
+      createMeshAssets: true,
+    });
+
+    const status =
+      gltfReportDrivenGlbImportReportToSourceStatusJsonValue(report);
+    const serialized = JSON.stringify(status);
+
+    expect(status).toMatchObject({
+      valid: false,
+      byteLength: null,
+      chunks: [],
+      diagnostics: [
+        {
+          code: "glb.duplicateJsonChunk",
+          severity: "error",
+        },
+      ],
+      importStages: [],
+    });
+    expect(serialized).not.toContain("binaryChunk");
+    expect(serialized).not.toContain("jsonText");
+    expect(serialized).not.toContain('"asset":{"version":"2.0"}');
+  });
+
+  it("projects compact GLB source status for missing external buffers", () => {
+    const { root, positionBytes } = rootWithSplitIndexedBuffers();
+    const report = createGltfReportDrivenImportReportFromGlb({
+      source: createGlb([
+        jsonChunk(root),
+        bytesChunk(GLB_BINARY_CHUNK_TYPE, Array.from(positionBytes)),
+      ]),
+      createMeshAssets: true,
+      resolveBufferBytes: () => null,
+    });
+
+    const status =
+      gltfReportDrivenGlbImportReportToSourceStatusJsonValue(report);
+    const serialized = JSON.stringify(status);
+
+    expect(status).toMatchObject({
+      valid: false,
+      byteLength: expect.any(Number),
+      chunks: [
+        { type: "json", byteLength: expect.any(Number) },
+        { type: "bin", byteLength: positionBytes.byteLength },
+      ],
+      diagnostics: [
+        {
+          code: "glbImport.externalBufferUnsupported",
+          severity: "error",
+        },
+      ],
+      importStages: expect.arrayContaining([
+        expect.objectContaining({ stage: "root", status: "provided" }),
+        expect.objectContaining({
+          stage: "meshConstruction",
+          status: "provided",
+        }),
+      ]),
+    });
+    expect(serialized).not.toContain("binaryChunk");
+    expect(serialized).not.toContain("jsonText");
+    expect(serialized).not.toContain("Uint8Array");
+    expect(serialized).not.toContain("[0,0,0,1,0,0,0,1,0]");
+  });
+
+  it("projects compact GLB source status for externally resolved buffers", () => {
+    const { root, positionBytes, indexBytes } = rootWithSplitIndexedBuffers();
+    const report = createGltfReportDrivenImportReportFromGlb({
+      source: createGlb([
+        jsonChunk(root),
+        bytesChunk(GLB_BINARY_CHUNK_TYPE, Array.from(positionBytes)),
+      ]),
+      createMeshAssets: true,
+      resolveBufferBytes: () => indexBytes,
+    });
+
+    const status =
+      gltfReportDrivenGlbImportReportToSourceStatusJsonValue(report);
+    const serialized = JSON.stringify(status);
+
+    expect(status).toMatchObject({
+      valid: true,
+      byteLength: expect.any(Number),
+      chunks: [
+        { type: "json", byteLength: expect.any(Number) },
+        { type: "bin", byteLength: positionBytes.byteLength },
+      ],
+      diagnostics: [],
+      importStages: expect.arrayContaining([
+        expect.objectContaining({ stage: "root", status: "provided" }),
+        expect.objectContaining({
+          stage: "meshConstruction",
+          status: "provided",
+        }),
+      ]),
+    });
+    expect(serialized).not.toContain("binaryChunk");
+    expect(serialized).not.toContain("jsonText");
+    expect(serialized).not.toContain("Uint8Array");
+    expect(serialized).not.toContain("[0,1,2]");
+    expect(serialized).not.toContain("[0,0,0,1,0,0,0,1,0]");
+  });
+
   it("serializes GLB import reports without raw binary payloads", () => {
     const { root, bytes } = rootWithTriangleMesh();
     const report = createGltfReportDrivenImportReportFromGlb({
@@ -460,6 +958,54 @@ describe("GLB report-driven import fixture path", () => {
     });
   });
 
+  it("serializes GLB bufferView image mappings without raw image or container bytes", () => {
+    const { root, bytes } = rootWithBufferViewImage();
+    const report = createGltfReportDrivenImportReportFromGlb({
+      source: createGlb([
+        jsonChunk(root),
+        bytesChunk(GLB_BINARY_CHUNK_TYPE, Array.from(bytes)),
+      ]),
+      createAssetMapping: true,
+      resolveImageData: () => decodedImage,
+    });
+
+    const json = gltfReportDrivenGlbImportReportToJsonValue(report);
+    const serialized = JSON.stringify(json);
+
+    expect(json.valid).toBe(true);
+    expect(json.container.chunks).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ type: "json" }),
+        expect.objectContaining({ type: "bin" }),
+      ]),
+    );
+    expect(json.importReport?.assetMapping?.textures[0]).toMatchObject({
+      handleKey: "gltf:texture:0:baseColorTexture",
+      texture: {
+        kind: "texture",
+        semantic: "base-color",
+        colorSpace: "srgb",
+        sourceData: {
+          byteLength: 4,
+          bytesPerRow: 4,
+        },
+      },
+    });
+    expect(json.importReport?.assetMapping?.materials[0]).toMatchObject({
+      material: {
+        kind: "standard",
+        baseColorTexture: {
+          texture: { kind: "texture", id: "gltf:texture:0:baseColorTexture" },
+        },
+      },
+    });
+    expect("binaryChunk" in json.container).toBe(false);
+    expect("jsonText" in json.container).toBe(false);
+    expect(serialized).not.toContain("Uint8Array");
+    expect(serialized).not.toContain("[255,255,255,255]");
+    expect(serialized).not.toContain("[137,80,78,71]");
+  });
+
   it("preserves missing GLB bufferView image data as an asset-mapping diagnostic", () => {
     const { root, bytes } = rootWithBufferViewImage();
     const report = createGltfReportDrivenImportReportFromGlb({
@@ -488,6 +1034,61 @@ describe("GLB report-driven import fixture path", () => {
         slot: "baseColorTexture",
       },
     ]);
+  });
+
+  it("serializes missing GLB bufferView image diagnostics without raw bytes", () => {
+    const { root, bytes } = rootWithBufferViewImage();
+    const report = createGltfReportDrivenImportReportFromGlb({
+      source: createGlb([
+        jsonChunk(root),
+        bytesChunk(GLB_BINARY_CHUNK_TYPE, Array.from(bytes)),
+      ]),
+      createAssetMapping: true,
+      resolveImageData: () => null,
+    });
+
+    const json = gltfReportDrivenGlbImportReportToJsonValue(report);
+    const serialized = JSON.stringify(json);
+
+    expect(json.valid).toBe(false);
+    expect(json.container.chunks).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ type: "json" }),
+        expect.objectContaining({ type: "bin" }),
+      ]),
+    );
+    expect(json.importReport?.assetMapping?.textures[0]).toMatchObject({
+      handleKey: "gltf:texture:0:baseColorTexture",
+      texture: null,
+      report: {
+        diagnostics: [
+          {
+            code: "gltfTexture.imageResolverFailed",
+            textureIndex: 0,
+            slot: "baseColorTexture",
+          },
+        ],
+      },
+    });
+    expect(json.importReport?.assetMapping?.materials[0]).toMatchObject({
+      material: {
+        kind: "standard",
+        baseColorTexture: null,
+      },
+      report: {
+        diagnostics: [
+          {
+            code: "gltfMaterial.unresolvedTextureBinding",
+            textureIndex: 0,
+            slot: "baseColorTexture",
+          },
+        ],
+      },
+    });
+    expect("binaryChunk" in json.container).toBe(false);
+    expect("jsonText" in json.container).toBe(false);
+    expect(serialized).not.toContain("Uint8Array");
+    expect(serialized).not.toContain("[137,80,78,71]");
   });
 
   it("decodes GLB POSITION and unsigned-short index accessors", () => {
@@ -609,7 +1210,10 @@ function rootWithBufferViewImage() {
 }
 
 function rootWithIndexedTriangleMesh(
-  options: { readonly declaredBufferByteLength?: number } = {},
+  options: {
+    readonly declaredBufferByteLength?: number;
+    readonly bufferUri?: string;
+  } = {},
 ) {
   const bytes = new Uint8Array(44);
   const view = new DataView(bytes.buffer);
@@ -628,10 +1232,55 @@ function rootWithIndexedTriangleMesh(
       scene: 0,
       scenes: [{ nodes: [0] }],
       nodes: [{ name: "Indexed", mesh: 0 }],
-      buffers: [{ byteLength: options.declaredBufferByteLength ?? 42 }],
+      buffers: [
+        {
+          byteLength: options.declaredBufferByteLength ?? 42,
+          ...(options.bufferUri === undefined
+            ? {}
+            : { uri: options.bufferUri }),
+        },
+      ],
       bufferViews: [
         { buffer: 0, byteOffset: 0, byteLength: 36 },
         { buffer: 0, byteOffset: 36, byteLength: 6 },
+      ],
+      accessors: [
+        { bufferView: 0, componentType: 5126, type: "VEC3", count: 3 },
+        { bufferView: 1, componentType: 5123, type: "SCALAR", count: 3 },
+      ],
+      meshes: [{ primitives: [{ attributes: { POSITION: 0 }, indices: 1 }] }],
+    },
+  };
+}
+
+function rootWithSplitIndexedBuffers() {
+  const positionBytes = new Uint8Array(36);
+  const positionView = new DataView(positionBytes.buffer);
+  [0, 0, 0, 1, 0, 0, 0, 1, 0].forEach((value, index) =>
+    positionView.setFloat32(index * 4, value, true),
+  );
+
+  const indexBytes = new Uint8Array(6);
+  const indexView = new DataView(indexBytes.buffer);
+  [0, 1, 2].forEach((value, index) =>
+    indexView.setUint16(index * 2, value, true),
+  );
+
+  return {
+    positionBytes,
+    indexBytes,
+    root: {
+      asset: { version: "2.0" },
+      scene: 0,
+      scenes: [{ nodes: [0] }],
+      nodes: [{ name: "Split Indexed", mesh: 0 }],
+      buffers: [
+        { byteLength: positionBytes.byteLength },
+        { byteLength: indexBytes.byteLength, uri: "indices.bin" },
+      ],
+      bufferViews: [
+        { buffer: 0, byteOffset: 0, byteLength: positionBytes.byteLength },
+        { buffer: 1, byteOffset: 0, byteLength: indexBytes.byteLength },
       ],
       accessors: [
         { bufferView: 0, componentType: 5126, type: "VEC3", count: 3 },

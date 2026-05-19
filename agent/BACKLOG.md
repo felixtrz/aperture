@@ -59,73 +59,14 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start with `task-1908`: add malformed GLB chunk ordering diagnostics coverage.
-The GLTF scene fixture now renders through the public app path, reports detailed
-JSON-safe IBL/shadow readiness, allocates live renderer-owned diffuse IBL
-texture/view, specular IBL texture/view, and IBL sampler resources, allocates
-live renderer-owned shadow depth texture/view resources, exposes compact
-diffuse IBL plus shadow depth resource summaries, computes directional shadow
-matrices, reuses IBL resources through private WebGPU app cache state, creates
-live StandardMaterial IBL group 4 bind groups, and allocates/uploads a live
-shadow matrix buffer. It also plans StandardMaterial shadow group 5 descriptor
-entries over the live matrix buffer and shadow depth texture resources, creates
-the live shadow sampler, creates/caches live StandardMaterial shadow group 5
-bind groups, and exposes JSON-safe shadow pass command-encoding records over
-the live depth view, matrix buffer, caster draw list, and command plan. It now
-also reports depth-only shadow caster pipeline descriptor metadata, shadow pass
-depth attachment descriptors over live shadow depth views, and per-caster
-frame-resource readiness over prepared mesh buffers, matrix buffer resources,
-and the selected shadow caster pipeline descriptor. The first live shadow pass
-encoder integration plan selected and implemented a shadow pass encoder assembly
-report. The GLTF status now exposes `shadow.encoderAssembly` with honest
-missing diagnostics for the still-deferred live command encoder and executable
-caster command records.
-The GLTF status now also exposes live shadow caster pipeline resources, live
-shadow caster matrix bind-group resources, ready executable shadow caster command
-records, and live shadow encoder assembly that begins the planned depth pass,
-executes three indexed caster draws, ends the pass, and finishes a shadow
-command buffer while queue submission remains deferred. The finish path now
-shares the shadow caster matrix bind-group layout with the depth-only shadow
-pipeline layout so WebGPU validation accepts the live draw calls. Specular
-prefilter pass execution, IBL shader sampling, and shadow queue submission
-remain deferred. The StandardMaterial receiver side now has a JSON-safe
-readiness report proving access to the live shadow matrix buffer, shadow depth
-view, shadow sampler, group 5 bind group, and shadow command-buffer readiness
-status. StandardMaterial also now has a `shadowMap` shader variant with group 5
-matrix/depth/sampler bindings, a single-tap directional shadow factor, shadow
-pipeline cache-key metadata, and required group 5 draw-list binding selection.
-The app now routes `standard|shadowMap|...` draws to the browser-safe combined
-group 3 light/shadow bind group only when receiver resources are ready, submits
-the GLTF shadow command buffer through the WebGPU queue, and Playwright compares
-receiver-sampling-disabled and receiver-sampling-enabled captures to prove
-visible receiver pixels. The receiver shader now normalizes projected depth,
-uses a bias-adjusted compare sample, and bounds the visible proof to a
-strict depth compare without the previous projected receiver envelope. GLTF
-status now also exposes `shadow.depthProbe` records that sample the submitted
-renderer-owned shadow depth texture through a small probe pass and report
-sampled depth, receiver compare depth, compare result, texel, and expected
-lit/shadowed classification without exposing raw GPU handles. The visible
-strict pair is now `receiver:plane:center` versus `caster:box:center`.
-StandardMaterial IBL group 4 now routes through the app frame-resource path as
-a deferred bind-group resource: GLTF status reports `ibl.appFrameRoute` ready
-with JSON-safe group 4 resource keys, while executable draw commands still omit
-group 4. Ready diffuse IBL texture and sampler resources are now aliased into
-an executable combined group 3 light/IBL layout, `iblDiffuse` StandardMaterial
-pipeline variants sample diffuse irradiance in WGSL, and Playwright verifies
-the combined `iblDiffuse|shadowMap` route while preserving strict receiver
-shadow proof. The source-side glTF path now also has a minimal GLB fixture
-bridge: uncompressed JSON plus BIN chunks can feed the existing report-driven
-import contract, invalid container inputs stop before import stages with
-structured diagnostics, and the browser GLTF scene publishes a JSON-safe GLB
-fixture status while continuing to author ECS through the existing contract.
-The GLB import wrapper now also reports structured missing-BIN and unsupported
-external-buffer diagnostics, and it exposes a JSON-safe report projection that
-omits raw container bytes.
-GLB bufferView image sources now also flow through the existing asset-mapping
-contract with caller-provided decoded image data, and the follow-up audit
-confirmed this is still source-side fixture coverage rather than a full loader.
-Minimal GLB index-buffer fixture coverage and public GLB fixture limitation docs
-are now in place.
+Start with `task-1953`: plan a report-only ECS command-plan summary for the
+no-fetch GLB source-loader facade. The source-side GLB path now has structured
+container diagnostics, compact JSON-safe source status, a no-fetch loader
+facade, output summaries for mesh construction and optional source registration,
+and browser source-status coverage for both JSON-only and buffer-backed GLB
+fixtures. Visible browser rendering still uses the established ECS authoring
+path; actual registry mutation, ECS command replay, and full GLB scene loading
+remain deferred.
 
 The previous micro-hardening tasks remain useful but are no longer the main
 ready queue unless they directly block the scene slice. Public custom
@@ -148,12 +89,8 @@ Target proof point:
 
 Remaining automation priority order:
 
-1. `task-1908` — add malformed GLB chunk ordering diagnostics coverage.
-2. `task-1909` — add GLB bufferView image JSON serialization coverage.
-3. `task-1910` — add GLB fixture source-status docs to the browser example.
-4. `task-1911` — add external-buffer resolver contract tests.
-5. `task-1912` — audit GLB fixture parser diagnostics after chunk-ordering
-   coverage.
+1. `task-1953` — plan no-fetch ECS command-plan summary slice.
+2. Add implementation follow-ups from `task-1953`.
 
 Defer allocation-only cleanup, metadata-only shader-contract tasks, public
 custom material source work, and app-owned custom adapter facades unless they
@@ -11650,6 +11587,8 @@ Acceptance criteria:
 
 ### task-1908 — Add malformed GLB chunk ordering coverage
 
+Status: completed 2026-05-19. See `test/assets/glb-container.test.ts`.
+
 Category: `simulation`
 Package/write-scope: `packages/render/src/assets/glb-container.ts`,
 `test/assets/glb-container.test.ts`.
@@ -11664,6 +11603,8 @@ Acceptance criteria:
 - Existing valid JSON-only and JSON+BIN fixtures keep passing.
 
 ### task-1909 — Add GLB bufferView image JSON serialization coverage
+
+Status: completed 2026-05-19. See `test/assets/glb-container.test.ts`.
 
 Category: `simulation`
 Package/write-scope: `packages/render/src/assets`, targeted JSON tests.
@@ -11681,6 +11622,8 @@ Acceptance criteria:
 
 ### task-1910 — Add GLB fixture source-status docs to the browser example
 
+Status: completed 2026-05-19. See `examples/gltf-scene-source-status.md`.
+
 Category: `docs-tooling`
 Package/write-scope: `examples/gltf-scene.html` or adjacent example docs,
 `docs/index.html`.
@@ -11696,6 +11639,8 @@ Acceptance criteria:
 - Public tracker next-task language remains aligned.
 
 ### task-1911 — Add external-buffer resolver contract tests
+
+Status: completed 2026-05-19. See `test/assets/glb-container.test.ts`.
 
 Category: `simulation`
 Package/write-scope: `packages/render/src/assets`, targeted asset tests.
@@ -11714,6 +11659,9 @@ Acceptance criteria:
 
 ### task-1912 — Audit GLB parser diagnostics after chunk-ordering coverage
 
+Status: completed 2026-05-19. See
+`docs/research/GLB_PARSER_DIAGNOSTICS_AFTER_CHUNK_ORDERING_AUDIT_2026_05_19.md`.
+
 Category: `audit-refactor`
 Package/write-scope: `docs/research`, `agent/BACKLOG.md`, targeted checks.
 Reference anchor:
@@ -11725,6 +11673,751 @@ Acceptance criteria:
   structured.
 - Confirm valid GLB fixture paths still feed import reports.
 - Recommend exactly one next loader/source-contract slice.
+
+### task-1913 — Add mixed GLB BIN plus external-buffer resolver coverage
+
+Status: completed 2026-05-19. See `test/assets/glb-container.test.ts`.
+
+Category: `simulation`
+Package/write-scope: `packages/render/src/assets/gltf-report-driven-import.ts`,
+`test/assets/glb-container.test.ts`.
+Reference anchor:
+Bevy glTF buffer loading separation, glTF GLB buffer rules, and
+`docs/research/GLB_PARSER_DIAGNOSTICS_AFTER_CHUNK_ORDERING_AUDIT_2026_05_19.md`.
+
+Acceptance criteria:
+
+- A GLB fixture can use the container BIN chunk for buffer `0` and
+  caller-provided bytes for a second URI buffer.
+- The external resolver is not called for the BIN-backed buffer `0`.
+- Missing second-buffer resolver bytes still produce
+  `glbImport.externalBufferUnsupported`.
+- Targeted tests prove decoded POSITION and index data still feed mesh
+  construction.
+
+### task-1914 — Add GLB external-buffer JSON projection coverage
+
+Status: completed 2026-05-19. See `test/assets/glb-container.test.ts`.
+
+Category: `simulation`
+Package/write-scope: `packages/render/src/assets`, targeted JSON tests.
+Reference anchor:
+`task-1911`, `task-1913`, and the JSON-safe GLB import report projection.
+
+Acceptance criteria:
+
+- JSON serialization of an externally resolved GLB report omits caller-provided
+  external bytes and raw container bytes.
+- Chunk summaries and decoded mesh summaries remain present.
+- Missing external bytes keep the structured wrapper diagnostic in JSON.
+
+### task-1915 — Document the GLB external-buffer resolver contract
+
+Status: completed 2026-05-19. See `docs/GLB_FIXTURE_LIMITATIONS.md` and
+`examples/gltf-scene-source-status.md`.
+
+Category: `docs-tooling`
+Package/write-scope: `docs/GLB_FIXTURE_LIMITATIONS.md`,
+`examples/gltf-scene-source-status.md`, and public tracker wording.
+Reference anchor:
+`task-1911`, `task-1913`, `docs/MEDIUM_LONG_TERM_GOALS.md`, and
+`docs/ARCHITECTURE.md`.
+
+Acceptance criteria:
+
+- Docs state that URI buffer bytes are caller-provided in the fixture bridge.
+- Docs distinguish resolver contract tests from full async file loading.
+- Deferred fetch, validator, image decoding, and compression behavior remains
+  explicit.
+
+### task-1916 — Add malformed GLB diagnostics JSON projection coverage
+
+Status: completed 2026-05-19. See `test/assets/glb-container.test.ts`.
+
+Category: `simulation`
+Package/write-scope: `packages/render/src/assets`, targeted JSON tests.
+Reference anchor:
+`task-1908` chunk-ordering diagnostics and the JSON-safe GLB report projection.
+
+Acceptance criteria:
+
+- JSON projection for duplicate JSON, duplicate BIN, and BIN-before-JSON reports
+  preserves diagnostic codes, severity, offsets, byte lengths, and chunk types.
+- Invalid containers keep `importReport: null`.
+- Serialized JSON contains no raw bytes or parsed JSON text.
+
+### task-1917 — Audit mixed GLB buffer-source contracts
+
+Status: completed 2026-05-19. See
+`docs/research/MIXED_GLB_BUFFER_SOURCE_CONTRACT_AUDIT_2026_05_19.md`.
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research`, `agent/BACKLOG.md`, targeted checks.
+Reference anchor:
+`task-1913`, `task-1914`, `docs/ARCHITECTURE.md`, and Bevy glTF buffer loading
+patterns.
+
+Acceptance criteria:
+
+- Confirm BIN-backed and caller-resolved external buffers stay source-side and
+  renderer-independent.
+- Confirm JSON-safe diagnostics distinguish missing external bytes from missing
+  BIN bytes.
+- Recommend exactly one next glTF scene source or loader contract slice.
+
+### task-1918 — Add compact GLB source-status JSON helper
+
+Status: completed 2026-05-19. See
+`packages/render/src/assets/gltf-report-driven-import.ts` and
+`test/assets/glb-container.test.ts`.
+
+Category: `simulation`
+Package/write-scope: `packages/render/src/assets/gltf-report-driven-import.ts`,
+targeted tests.
+Reference anchor:
+`docs/research/MIXED_GLB_BUFFER_SOURCE_CONTRACT_AUDIT_2026_05_19.md`,
+existing browser `source.glbFixture` status shape, and JSON-safe report
+projection helpers.
+
+Acceptance criteria:
+
+- Add a render-package helper that projects a GLB import report to compact
+  source status with validity, byte length, chunk summaries, diagnostics, and
+  import stage summaries.
+- The helper omits raw bytes, parsed JSON text, WebGPU handles, and ECS state.
+- Tests cover valid, malformed-container, and missing external-buffer reports.
+
+### task-1919 — Route browser GLTF source status through the helper
+
+Status: completed 2026-05-19. See `examples/gltf-scene.js`.
+
+Category: `runtime-orchestration`
+Package/write-scope: `examples/gltf-scene.js`, targeted example checks.
+Reference anchor:
+`task-1918`, current `examples/gltf-scene.js` source status, and Bevy-style
+separation between source loading and ECS authoring.
+
+Acceptance criteria:
+
+- `examples/gltf-scene.js` uses the compact GLB source-status helper instead of
+  hand-building `source.glbFixture`.
+- Published status keeps the same JSON-safe fields.
+- `pnpm run check:examples` passes.
+
+### task-1920 — Add GLB source-status docs for malformed reports
+
+Status: completed 2026-05-19. See `docs/GLB_FIXTURE_LIMITATIONS.md` and
+`examples/gltf-scene-source-status.md`.
+
+Category: `docs-tooling`
+Package/write-scope: `examples/gltf-scene-source-status.md`,
+`docs/GLB_FIXTURE_LIMITATIONS.md`, and public tracker wording.
+Reference anchor:
+`task-1918`, `task-1919`, and malformed GLB diagnostic coverage.
+
+Acceptance criteria:
+
+- Docs explain how malformed containers appear in compact source status.
+- Docs state invalid containers keep `importStages` empty and do not run import
+  stages.
+- Public tracker recommended next task remains aligned.
+
+### task-1921 — Add GLB source-status fixture coverage for external buffers
+
+Status: completed 2026-05-19. See `test/assets/glb-container.test.ts`.
+
+Category: `simulation`
+Package/write-scope: `packages/render/src/assets`, targeted tests.
+Reference anchor:
+`task-1918`, `task-1913`, and `task-1914`.
+
+Acceptance criteria:
+
+- Compact source status summarizes externally resolved reports without raw
+  caller-provided bytes.
+- Missing external bytes preserve wrapper diagnostics in compact status.
+- Mixed BIN plus external-buffer chunk summaries remain stable.
+
+### task-1922 — Audit GLB source-status helper adoption
+
+Status: completed 2026-05-19. See
+`docs/research/GLB_SOURCE_STATUS_HELPER_ADOPTION_AUDIT_2026_05_19.md`.
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research`, `agent/BACKLOG.md`, targeted checks.
+Reference anchor:
+`task-1918`, `task-1919`, `docs/ARCHITECTURE.md`, and
+`docs/MEDIUM_LONG_TERM_GOALS.md`.
+
+Acceptance criteria:
+
+- Confirm compact source status is renderer-independent and JSON-safe.
+- Confirm the browser example still does not claim full file loading.
+- Recommend exactly one next source-loader or scene-contract task.
+
+### task-1923 — Plan the async GLB source-loader boundary
+
+Status: completed 2026-05-19. See
+`docs/research/ASYNC_GLB_SOURCE_LOADER_BOUNDARY_PLAN_2026_05_19.md`.
+
+Category: `docs-tooling`
+Package/write-scope: `docs/research`, `agent/BACKLOG.md`, tracker wording.
+Reference anchor:
+`docs/MEDIUM_LONG_TERM_GOALS.md`,
+`docs/research/GLB_SOURCE_STATUS_HELPER_ADOPTION_AUDIT_2026_05_19.md`,
+Bevy glTF loader buffer separation, and existing GLB fixture/report contracts.
+
+Acceptance criteria:
+
+- Define responsibilities for an eventual async GLB source-loader boundary:
+  fetching bytes, resolving external buffers, image decode handoff, diagnostics,
+  and cache/error reporting.
+- State that loaded bytes feed the existing GLB report-driven import contract
+  and do not author ECS state or allocate WebGPU resources directly.
+- Select exactly one implementation follow-up that is small enough for one
+  focused run.
+
+### task-1924 — Add GLB source-loader status shape tests
+
+Status: completed 2026-05-19. See
+`packages/render/src/assets/glb-source-loader-status.ts` and
+`test/assets/glb-source-loader-status.test.ts`.
+
+Category: `simulation`
+Package/write-scope: `packages/render/src/assets`, targeted tests.
+Reference anchor:
+`task-1923`, compact source-status helper, and existing loader orchestration
+reports.
+
+Acceptance criteria:
+
+- Define a JSON-safe status shape for a future source-loader facade without
+  performing fetches.
+- Tests cover pending, loaded, failed, and externally blocked statuses.
+- Status omits raw bytes and does not expose ECS or WebGPU state.
+
+### task-1925 — Add a source-loader no-fetch fixture facade
+
+Status: completed 2026-05-19. See
+`packages/render/src/assets/glb-source-loader-facade.ts` and
+`test/assets/glb-source-loader-facade.test.ts`.
+
+Category: `simulation`
+Package/write-scope: `packages/render/src/assets`, targeted tests.
+Reference anchor:
+`task-1923`, `task-1924`, and the current GLB report-driven import wrapper.
+
+Acceptance criteria:
+
+- Add a no-fetch facade that accepts already provided GLB bytes and optional
+  external buffer bytes, then returns source status plus the GLB import report.
+- The facade must not call `fetch`, decode images, author ECS state, or allocate
+  WebGPU resources.
+- Tests cover valid bytes, invalid bytes, and missing external bytes.
+
+### task-1926 — Document loader facade non-goals in example docs
+
+Status: completed 2026-05-19. See `docs/GLB_FIXTURE_LIMITATIONS.md` and
+`examples/gltf-scene-source-status.md`.
+
+Category: `docs-tooling`
+Package/write-scope: `docs/GLB_FIXTURE_LIMITATIONS.md`,
+`examples/gltf-scene-source-status.md`, and public tracker wording.
+Reference anchor:
+`task-1925`, `docs/ARCHITECTURE.md`, and
+`docs/MEDIUM_LONG_TERM_GOALS.md`.
+
+Acceptance criteria:
+
+- Docs distinguish the no-fetch source facade from full async loading.
+- Docs explain how future fetch/decode work should feed the same report
+  contract.
+- Deferred validator, compression, image decoding, cache, reload, and unload
+  work remains explicit.
+
+### task-1927 — Audit source-loader boundary plan and facade
+
+Status: completed 2026-05-19. See
+`docs/research/SOURCE_LOADER_BOUNDARY_PLAN_AND_FACADE_AUDIT_2026_05_19.md`.
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research`, `agent/BACKLOG.md`, targeted checks.
+Reference anchor:
+`task-1923`, `task-1925`, `docs/NORTH_STAR.md`, and
+`docs/ARCHITECTURE.md`.
+
+Acceptance criteria:
+
+- Confirm the source-loader facade remains renderer-independent and
+  ECS/WebGPU-side-effect free.
+- Confirm JSON-safe status does not expose raw bytes.
+- Recommend exactly one next GLB/glTF scene source task.
+
+### task-1928 — Route browser GLTF fixture through the no-fetch source-loader facade
+
+Status: completed 2026-05-19. See `examples/gltf-scene.js`.
+
+Category: `runtime-orchestration`
+Package/write-scope: `examples/gltf-scene.js`, targeted example checks.
+Reference anchor:
+`docs/research/SOURCE_LOADER_BOUNDARY_PLAN_AND_FACADE_AUDIT_2026_05_19.md`,
+current `createGltfSceneGlbFixture`, and Bevy-style source loading before ECS
+authoring.
+
+Acceptance criteria:
+
+- `examples/gltf-scene.js` uses `createNoFetchGlbSourceLoaderReport` for the
+  inline GLB fixture.
+- The example still extracts the parsed root for the existing ECS authoring
+  path without adding scene graph state.
+- Published `source.glbFixture` remains JSON-safe and includes loader facade
+  status fields.
+- `pnpm run check:examples` and targeted GLB tests pass.
+
+### task-1929 — Add browser status assertion for source-loader facade fields
+
+Status: completed 2026-05-19. See `test/e2e/gltf-scene.spec.ts`.
+
+Category: `runtime-orchestration`
+Package/write-scope: `test/e2e/gltf-scene.spec.ts`, targeted browser test.
+Reference anchor:
+`task-1928`, current GLTF scene source status, and JSON-safe browser diagnostics
+rules.
+
+Acceptance criteria:
+
+- Playwright asserts `source.glbFixture.status === "loaded"` and
+  `source.glbFixture.glbSourceStatus.valid === true`.
+- The assertion confirms no raw byte fields are present.
+- Existing GLTF scene pixel/readiness assertions keep passing.
+
+### task-1930 — Document browser source-loader facade status
+
+Status: completed 2026-05-19. See `examples/gltf-scene-source-status.md`.
+
+Category: `docs-tooling`
+Package/write-scope: `examples/gltf-scene-source-status.md`,
+`docs/GLB_FIXTURE_LIMITATIONS.md`, and tracker wording.
+Reference anchor:
+`task-1928`, `task-1929`, and
+`docs/research/SOURCE_LOADER_BOUNDARY_PLAN_AND_FACADE_AUDIT_2026_05_19.md`.
+
+Acceptance criteria:
+
+- Docs explain the browser example now routes through the no-fetch facade.
+- Docs state that source-loader status is still provided-bytes status, not file
+  loading.
+- Public tracker next-task language remains aligned.
+
+### task-1931 — Add GLB source-loader facade JSON projection coverage for malformed chunk ordering
+
+Status: completed 2026-05-19. See
+`test/assets/glb-source-loader-facade.test.ts`.
+
+Category: `simulation`
+Package/write-scope: `packages/render/src/assets`, targeted tests.
+Reference anchor:
+`task-1925`, `task-1908`, and source-loader status tests.
+
+Acceptance criteria:
+
+- No-fetch facade status preserves duplicate JSON, duplicate BIN, and
+  BIN-before-JSON diagnostics.
+- Invalid containers keep nested compact GLB source status with empty
+  import stages.
+- Serialized facade status contains no raw bytes or parsed JSON text.
+
+### task-1932 — Audit browser source-loader facade adoption
+
+Status: completed 2026-05-19. See
+`docs/research/BROWSER_SOURCE_LOADER_FACADE_ADOPTION_AUDIT_2026_05_19.md`.
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research`, `agent/BACKLOG.md`, targeted checks.
+Reference anchor:
+`task-1928`, `task-1929`, `docs/ARCHITECTURE.md`, and
+`docs/MEDIUM_LONG_TERM_GOALS.md`.
+
+Acceptance criteria:
+
+- Confirm browser source status stays JSON-safe and does not claim full loading.
+- Confirm ECS authoring still starts from parsed source data and existing
+  command/replay contracts.
+- Recommend exactly one next GLB/glTF scene source task.
+
+### task-1933 — Plan report-driven scene-source output adoption
+
+Status: completed 2026-05-19. See
+`docs/research/REPORT_DRIVEN_SCENE_SOURCE_OUTPUT_ADOPTION_PLAN_2026_05_19.md`.
+
+Category: `docs-tooling`
+Package/write-scope: `docs/research`, `agent/BACKLOG.md`, tracker wording.
+Reference anchor:
+`docs/research/BROWSER_SOURCE_LOADER_FACADE_ADOPTION_AUDIT_2026_05_19.md`,
+`docs/MEDIUM_LONG_TERM_GOALS.md`, current GLB report-driven import contract, and
+Bevy glTF source-to-asset staging.
+
+Acceptance criteria:
+
+- Plan how no-fetch source-loader output should expose asset mapping, mesh
+  construction, source registration, and ECS command-plan summaries over time.
+- State which summaries are source/import diagnostics versus ECS authoring or
+  WebGPU-owned state.
+- Select exactly one implementation follow-up small enough for one focused run.
+
+### task-1934 — Add source-loader output summary status tests
+
+Status: completed 2026-05-19. See
+`packages/render/src/assets/glb-source-loader-output-summary.ts` and
+`test/assets/glb-source-loader-output-summary.test.ts`.
+
+Category: `simulation`
+Package/write-scope: `packages/render/src/assets`, targeted tests.
+Reference anchor:
+`task-1933`, no-fetch source-loader facade, and compact JSON-safe status
+helpers.
+
+Acceptance criteria:
+
+- Define a JSON-safe output summary for no-fetch facade reports with optional
+  mesh-construction and asset-mapping summary sections.
+- Tests cover absent summaries, present mesh summary, and invalid mesh summary.
+- Raw bytes and ECS/WebGPU state remain omitted.
+
+### task-1935 — Attach mesh-construction summary to no-fetch facade output
+
+Status: completed 2026-05-19. See
+`packages/render/src/assets/glb-source-loader-facade.ts`.
+
+Category: `simulation`
+Package/write-scope: `packages/render/src/assets`, targeted tests.
+Reference anchor:
+`task-1934`, current mesh construction report JSON helpers, and the GLB scene
+source contract.
+
+Acceptance criteria:
+
+- No-fetch facade status can include mesh count, primitive count, vertex/index
+  summary, and validity when `createMeshAssets` is enabled.
+- Summary is derived from the GLB import report and does not duplicate raw mesh
+  arrays.
+- Tests cover valid indexed and invalid mesh reports.
+
+### task-1936 — Document scene-source output staging
+
+Status: completed 2026-05-19. See `docs/GLB_FIXTURE_LIMITATIONS.md` and
+`examples/gltf-scene-source-status.md`.
+
+Category: `docs-tooling`
+Package/write-scope: `docs/GLB_FIXTURE_LIMITATIONS.md`,
+`examples/gltf-scene-source-status.md`, and tracker wording.
+Reference anchor:
+`task-1935`, `docs/ARCHITECTURE.md`, and
+`docs/MEDIUM_LONG_TERM_GOALS.md`.
+
+Acceptance criteria:
+
+- Docs explain source-loader output summaries as diagnostics/readiness, not
+  authoritative ECS or renderer state.
+- Docs list deferred source registration and ECS command-plan consumption.
+- Public tracker next-task language remains aligned.
+
+### task-1937 — Audit scene-source output summary adoption
+
+Status: completed 2026-05-19. See
+`docs/research/SCENE_SOURCE_OUTPUT_SUMMARY_ADOPTION_AUDIT_2026_05_19.md`.
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research`, `agent/BACKLOG.md`, targeted checks.
+Reference anchor:
+`task-1935`, `docs/NORTH_STAR.md`, `docs/ARCHITECTURE.md`, and Bevy glTF
+source-to-asset staging.
+
+Acceptance criteria:
+
+- Confirm output summaries remain JSON-safe and renderer-independent.
+- Confirm browser and tests do not treat summaries as ECS/game state.
+- Recommend exactly one next GLB/glTF scene-source task.
+
+### task-1938 — Publish source-loader output summary in browser GLTF status
+
+Status: completed 2026-05-19. See `examples/gltf-scene.js`.
+
+Category: `runtime-orchestration`
+Package/write-scope: `examples/gltf-scene.js`, targeted example checks.
+Reference anchor:
+`docs/research/SCENE_SOURCE_OUTPUT_SUMMARY_ADOPTION_AUDIT_2026_05_19.md`,
+current no-fetch facade output, and JSON-safe browser source status.
+
+Acceptance criteria:
+
+- `source.glbFixture` includes the no-fetch facade `outputSummary`.
+- Output summary remains compact and JSON-safe.
+- Existing ECS authoring flow remains unchanged.
+- `pnpm run check:examples` passes.
+
+### task-1939 — Add Playwright assertion for browser source output summary
+
+Status: completed 2026-05-19. See `test/e2e/gltf-scene.spec.ts`.
+
+Category: `runtime-orchestration`
+Package/write-scope: `test/e2e/gltf-scene.spec.ts`.
+Reference anchor:
+`task-1938`, current GLTF scene source status assertions, and JSON-safe browser
+diagnostics rules.
+
+Acceptance criteria:
+
+- Playwright asserts the browser source output summary is present and honestly
+  reports absent mesh construction for the current non-buffer-backed fixture.
+- Assertion confirms raw mesh arrays and typed-array payloads are absent.
+- Existing GLTF scene browser checks keep passing.
+
+### task-1940 — Document browser source output summary status
+
+Status: completed 2026-05-19. See `examples/gltf-scene-source-status.md` and
+`docs/GLB_FIXTURE_LIMITATIONS.md`.
+
+Category: `docs-tooling`
+Package/write-scope: `examples/gltf-scene-source-status.md`,
+`docs/GLB_FIXTURE_LIMITATIONS.md`, and tracker wording.
+Reference anchor:
+`task-1938`, `task-1939`, and
+`docs/research/SCENE_SOURCE_OUTPUT_SUMMARY_ADOPTION_AUDIT_2026_05_19.md`.
+
+Acceptance criteria:
+
+- Docs explain the browser `outputSummary` field.
+- Docs state it is source/import readiness, not ECS or renderer state.
+- Public tracker next-task language remains aligned.
+
+### task-1941 — Add source output summary JSON coverage for invalid browser-shaped mesh input
+
+Status: completed 2026-05-19. See
+`test/assets/glb-source-loader-facade.test.ts`.
+
+Category: `simulation`
+Package/write-scope: `packages/render/src/assets`, targeted tests.
+Reference anchor:
+`task-1934`, browser GLTF fixture mesh shape, and current accessor validation
+diagnostics.
+
+Acceptance criteria:
+
+- Output summary reports invalid for a browser-shaped source fixture with a bad
+  mesh accessor or buffer range.
+- Diagnostics count is non-zero.
+- Serialized summary omits raw source bytes and mesh arrays.
+
+### task-1942 — Audit browser source output summary publication
+
+Status: completed 2026-05-19. See
+`docs/research/BROWSER_SOURCE_OUTPUT_SUMMARY_PUBLICATION_AUDIT_2026_05_19.md`.
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research`, `agent/BACKLOG.md`, targeted checks.
+Reference anchor:
+`task-1938`, `task-1939`, `docs/ARCHITECTURE.md`, and
+`docs/MEDIUM_LONG_TERM_GOALS.md`.
+
+Acceptance criteria:
+
+- Confirm browser status publication stays JSON-safe and non-authoritative.
+- Confirm no ECS/render ownership changed.
+- Recommend exactly one next glTF scene source task.
+
+### task-1943 — Plan buffer-backed GLB browser fixture slice
+
+Status: completed 2026-05-19. See
+`docs/research/BUFFER_BACKED_GLB_BROWSER_FIXTURE_SLICE_PLAN_2026_05_19.md`.
+
+Category: `docs-tooling`
+Package/write-scope: `docs/research`, `agent/BACKLOG.md`, tracker wording.
+Reference anchor:
+`docs/research/BROWSER_SOURCE_OUTPUT_SUMMARY_PUBLICATION_AUDIT_2026_05_19.md`,
+current no-fetch source facade, and Bevy glTF source-to-mesh staging.
+
+Acceptance criteria:
+
+- Plan a narrow buffer-backed GLB fixture that can produce a ready
+  mesh-construction summary through the no-fetch facade.
+- Keep visible browser scene rendering and ECS authoring flow stable.
+- Select exactly one implementation follow-up small enough for one focused run.
+
+### task-1944 — Add buffer-backed GLB source fixture helper tests
+
+Status: completed 2026-05-19. See `test/assets/glb-buffer-fixture.ts` and
+`test/assets/glb-buffer-fixture.test.ts`.
+
+Category: `simulation`
+Package/write-scope: `packages/render/src/assets`, targeted tests.
+Reference anchor:
+`task-1943`, current GLB indexed mesh fixtures, and no-fetch source facade.
+
+Acceptance criteria:
+
+- Add a reusable test helper or fixture for a minimal buffer-backed GLB triangle
+  with POSITION and unsigned-short indices.
+- No-fetch facade reports loaded source status and ready mesh-construction
+  output summary.
+- Serialized status and summary omit raw bytes and typed arrays.
+
+### task-1945 — Publish ready mesh summary for a buffer-backed source fixture
+
+Status: completed 2026-05-19. See `examples/gltf-scene.js`.
+
+Category: `runtime-orchestration`
+Package/write-scope: `examples/gltf-scene.js`, targeted example and browser
+status checks.
+Reference anchor:
+`task-1944`, browser GLTF source status, and current ECS authoring flow.
+
+Acceptance criteria:
+
+- Browser GLTF scene creates a secondary buffer-backed source fixture for
+  source-status proof without changing visible scene rendering.
+- `source.glbFixture.outputSummary.meshConstruction.status` can report `ready`
+  for that buffer-backed fixture or a clearly named sibling status.
+- Existing visible scene and ECS authoring path remain unchanged.
+
+### task-1946 — Document buffer-backed source fixture limitations
+
+Status: completed 2026-05-19. See `docs/GLB_FIXTURE_LIMITATIONS.md` and
+`examples/gltf-scene-source-status.md`.
+
+Category: `docs-tooling`
+Package/write-scope: `docs/GLB_FIXTURE_LIMITATIONS.md`,
+`examples/gltf-scene-source-status.md`, and tracker wording.
+Reference anchor:
+`task-1945`, `docs/ARCHITECTURE.md`, and
+`docs/MEDIUM_LONG_TERM_GOALS.md`.
+
+Acceptance criteria:
+
+- Docs distinguish buffer-backed source summary proof from full scene loading.
+- Deferred source registration, ECS command-plan routing, and visible rendering
+  from GLB mesh assets remain explicit.
+- Public tracker next-task language remains aligned.
+
+### task-1947 — Audit buffer-backed source fixture summary
+
+Status: completed 2026-05-19. See
+`docs/research/BUFFER_BACKED_SOURCE_FIXTURE_SUMMARY_AUDIT_2026_05_19.md`.
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research`, `agent/BACKLOG.md`, targeted checks.
+Reference anchor:
+`task-1944`, `task-1945`, `docs/NORTH_STAR.md`, and `docs/ARCHITECTURE.md`.
+
+Acceptance criteria:
+
+- Confirm buffer-backed source summaries remain JSON-safe and non-authoritative.
+- Confirm visible browser rendering still uses the established ECS/render path.
+- Recommend exactly one next GLB/glTF source-to-scene task.
+
+### task-1948 — Plan no-fetch source-registration summary slice
+
+Status: completed 2026-05-19. See
+`docs/research/NO_FETCH_SOURCE_REGISTRATION_SUMMARY_SLICE_PLAN_2026_05_19.md`.
+
+Category: `docs-tooling`
+Package/write-scope: `docs/research`, `agent/BACKLOG.md`, tracker wording.
+Reference anchor:
+`docs/research/BUFFER_BACKED_SOURCE_FIXTURE_SUMMARY_AUDIT_2026_05_19.md`,
+current source registration report helpers, and Bevy glTF source-to-asset
+staging.
+
+Acceptance criteria:
+
+- Plan a report-only source-registration summary for no-fetch facade output.
+- Keep actual registry mutation, ECS command replay, and WebGPU preparation
+  deferred.
+- Select exactly one implementation follow-up small enough for one focused run.
+
+### task-1949 — Add source-registration output summary status tests
+
+Status: completed 2026-05-19. See
+`test/assets/glb-source-loader-output-summary.test.ts`.
+
+Category: `simulation`
+Package/write-scope: `packages/render/src/assets`, targeted tests.
+Reference anchor:
+`task-1948`, current source registration report helpers, and no-fetch facade
+output summaries.
+
+Acceptance criteria:
+
+- Define a JSON-safe summary shape for source registration readiness.
+- Tests cover absent source registration, valid planned registration, and
+  invalid dependency/texture registration summaries.
+- Raw registry internals, ECS state, and GPU resources remain omitted.
+
+### task-1950 — Attach source-registration summary to no-fetch facade output
+
+Status: completed 2026-05-19. See
+`packages/render/src/assets/glb-source-loader-facade.ts`.
+
+Category: `simulation`
+Package/write-scope: `packages/render/src/assets`, targeted tests.
+Reference anchor:
+`task-1949`, no-fetch facade output summary, and GLB source-registration
+reports.
+
+Acceptance criteria:
+
+- No-fetch facade output can include source-registration summary when provided
+  reports are available.
+- Summary is derived from reports and does not mutate the registry.
+- Tests cover absent and provided summaries.
+
+### task-1951 — Document source-registration summary limitations
+
+Status: completed 2026-05-19. See `docs/GLB_FIXTURE_LIMITATIONS.md` and
+`examples/gltf-scene-source-status.md`.
+
+Category: `docs-tooling`
+Package/write-scope: `docs/GLB_FIXTURE_LIMITATIONS.md`,
+`examples/gltf-scene-source-status.md`, and tracker wording.
+Reference anchor:
+`task-1950`, `docs/ARCHITECTURE.md`, and
+`docs/MEDIUM_LONG_TERM_GOALS.md`.
+
+Acceptance criteria:
+
+- Docs explain source-registration summaries as report/readiness data only.
+- Docs state actual registry mutation and ECS replay remain separate.
+- Public tracker next-task language remains aligned.
+
+### task-1952 — Audit source-registration summary adoption
+
+Status: completed 2026-05-19. See
+`docs/research/SOURCE_REGISTRATION_SUMMARY_ADOPTION_AUDIT_2026_05_19.md`.
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research`, `agent/BACKLOG.md`, targeted checks.
+Reference anchor:
+`task-1950`, `docs/NORTH_STAR.md`, `docs/ARCHITECTURE.md`, and Bevy glTF
+source-to-asset staging.
+
+Acceptance criteria:
+
+- Confirm source-registration summaries remain JSON-safe and non-authoritative.
+- Confirm no registry, ECS, or WebGPU mutation moved into the source loader.
+- Recommend exactly one next source-to-scene task.
+
+### task-1953 — Plan no-fetch ECS command-plan summary slice
+
+Category: `docs-tooling`
+Package/write-scope: `docs/research`, `agent/BACKLOG.md`, tracker wording.
+Reference anchor:
+`docs/research/SOURCE_REGISTRATION_SUMMARY_ADOPTION_AUDIT_2026_05_19.md`,
+current glTF ECS authoring command-plan helpers, and `docs/ARCHITECTURE.md`.
+
+Acceptance criteria:
+
+- Plan a report-only ECS command-plan summary for no-fetch facade output.
+- Keep actual ECS command replay and visible rendering changes deferred.
+- Add at least four concrete implementation/audit follow-up tasks.
 
 ## Post-Unlit E2E Verification Targets
 

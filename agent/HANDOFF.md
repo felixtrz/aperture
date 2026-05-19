@@ -1,5 +1,73 @@
 # Handoff
 
+## Current Run Update — 2026-05-19T13:46:54Z
+
+Completed `task-1908` through `task-1952`. Recommended next task is
+`task-1953`: plan no-fetch ECS command-plan summary slice.
+
+What changed:
+
+- Hardened GLB parser diagnostics for duplicate JSON chunks, duplicate BIN
+  chunks, and BIN-before-JSON ordering with structured non-throwing errors.
+- Added GLB JSON projection coverage for bufferView images, external buffers,
+  malformed chunks, and compact source status.
+- Changed the GLB wrapper resolver so BIN-backed buffer `0` does not call the
+  caller external-buffer resolver unless that buffer has a URI.
+- Added JSON-safe source-loader status, no-fetch source-loader facade, and
+  source-loader output summary helpers under `@aperture-engine/render`.
+- Added a reusable buffer-backed GLB triangle fixture helper and facade coverage
+  proving ready mesh-construction summaries without exposing raw bytes.
+- Routed the browser GLTF scene's inline fixture through the no-fetch facade.
+  `source.glbFixture` now reports loader-level status, nested compact GLB
+  source status, and an honest absent mesh-construction output summary.
+- Published a secondary browser source-status proof for a buffer-backed GLB
+  fixture while leaving the visible ECS/render scene unchanged.
+- Added optional source-registration output summaries to the no-fetch facade.
+  The summary is report-derived only and does not mutate registries, ECS state,
+  or WebGPU resources.
+- Updated Playwright to assert the new source status shape and absence of raw
+  byte/typed-array payloads.
+- Added docs/plans/audits for GLB diagnostics, mixed buffers, source-status
+  helper adoption, async loader boundary, browser facade adoption, output
+  summaries, buffer-backed fixture adoption, and source-registration summary
+  adoption.
+- Updated public tracker pages, backlog, completed log, and GLB fixture docs.
+
+Reference anchors inspected:
+
+- `docs/NORTH_STAR.md`
+- `docs/ARCHITECTURE.md`
+- `docs/MEDIUM_LONG_TERM_GOALS.md`
+- `docs/research/GLB_CONTAINER_SLICE_PLAN_2026_05_16.md`
+- `docs/research/ASSET_LOADER_SCENE_IMPORT_COVERAGE.md`
+- `references/bevy/crates/bevy_gltf/src/loader/mod.rs`
+- `references/engine/src/framework/parsers/glb-parser.js`
+- `references/three.js/examples/jsm/loaders/GLTFLoader.js`
+- Current glTF source registration orchestration and ECS authoring helpers in
+  `packages/render/src/assets`.
+
+Validation:
+
+- `pnpm exec vitest run test/assets/glb-container.test.ts`
+- `pnpm exec vitest run test/assets/glb-source-loader-status.test.ts test/assets/glb-source-loader-facade.test.ts test/assets/glb-source-loader-output-summary.test.ts`
+- `pnpm exec vitest run test/assets/glb-buffer-fixture.test.ts test/assets/glb-source-loader-facade.test.ts`
+- `pnpm exec tsc -p packages/render/tsconfig.json --noEmit`
+- `pnpm run typecheck:test`
+- `pnpm run check:examples`
+- `pnpm run check:progress`
+- `pnpm exec playwright test test/e2e/gltf-scene.spec.ts`
+- `pnpm run check`
+
+Known issues / follow-ups:
+
+- `task-1953` is ready. Plan a report-only ECS command-plan summary for the
+  no-fetch facade output, then add concrete implementation/audit follow-up
+  tasks.
+- The browser GLTF scene's visible rendering still uses the established
+  fixture/ECS authoring path. Do not claim full GLB scene loading yet.
+- External fetch, image decoding, actual registry mutation, ECS command replay,
+  cache/reload/unload, compression, and validator integration remain deferred.
+
 ## Current Run Update — 2026-05-19T12:49:29Z
 
 Completed `task-1892` through `task-1907`. Recommended next task is
