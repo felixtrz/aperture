@@ -5,6 +5,11 @@
 Completed `task-1801` through `task-1811`. Recommended next task is
 `task-1812`: add the IBL preparation resource summary bridge.
 
+Stop hook:
+
+- `scripts/codex-stop-hook.sh` passed at 2026-05-19T03:55:19Z.
+- Checkpoint commit `1f309aa` was created and pushed to `origin/main`.
+
 What changed:
 
 - Added JSON-safe WebGPU report helpers for:
