@@ -24,6 +24,8 @@ export const STANDARD_SHADOW_MAP_SHADER_VARIANT =
   "direct-lit-metallic-roughness-shadow-map";
 export const STANDARD_POINT_SHADOW_MAP_SHADER_VARIANT =
   "direct-lit-metallic-roughness-point-shadow-map";
+export const STANDARD_MULTI_SHADOW_MAP_SHADER_VARIANT =
+  "direct-lit-metallic-roughness-multi-shadow-map";
 export const STANDARD_DIFFUSE_IBL_SHADER_VARIANT =
   "direct-lit-metallic-roughness-diffuse-ibl";
 export const STANDARD_SPECULAR_IBL_PROOF_SHADER_VARIANT =
@@ -616,6 +618,21 @@ export function createStandardTextureShaderVariantKey(
   }
 
   if (
+    features.shadowMap === true &&
+    features.pointShadowMap === true &&
+    !features.baseColorTexture &&
+    !features.metallicRoughnessTexture &&
+    !features.normalTexture &&
+    !features.occlusionTexture &&
+    !features.emissiveTexture &&
+    features.iblDiffuse !== true &&
+    features.iblSpecularProof !== true &&
+    features.texCoord1 !== true
+  ) {
+    return STANDARD_MULTI_SHADOW_MAP_SHADER_VARIANT;
+  }
+
+  if (
     features.iblDiffuse === true &&
     features.iblSpecularProof !== true &&
     !features.baseColorTexture &&
@@ -977,11 +994,11 @@ ${emissive}
     );
   }
 
-  if (features.shadowMap === true) {
+  if (features.shadowMap === true && features.pointShadowMap === true) {
+    code = applyStandardMultiShadowMapSampling(code);
+  } else if (features.shadowMap === true) {
     code = applyStandardShadowMapSampling(code);
-  }
-
-  if (features.pointShadowMap === true) {
+  } else if (features.pointShadowMap === true) {
     code = applyStandardPointShadowMapSampling(code);
   }
 
@@ -1075,13 +1092,25 @@ function standardTextureVariantDeclaration(
       "@group(3) @binding(3) var directionalShadowMap: texture_depth_2d;",
       "@group(3) @binding(4) var directionalShadowSampler: sampler_comparison;",
     );
+
+    if (features.pointShadowMap === true) {
+      declarations.push(
+        "@group(3) @binding(5) var<storage, read> spotShadowMatrices: array<mat4x4f>;",
+        "@group(3) @binding(6) var spotShadowMap: texture_depth_2d;",
+        "@group(3) @binding(7) var spotShadowSampler: sampler_comparison;",
+      );
+    }
   }
 
   if (features.pointShadowMap === true) {
+    const matrixBinding = features.shadowMap === true ? 8 : 2;
+    const textureBinding = features.shadowMap === true ? 9 : 3;
+    const samplerBinding = features.shadowMap === true ? 10 : 4;
+
     declarations.push(
-      "@group(3) @binding(2) var<storage, read> pointShadowMatrices: array<mat4x4f>;",
-      "@group(3) @binding(3) var pointShadowMap: texture_depth_cube;",
-      "@group(3) @binding(4) var pointShadowSampler: sampler_comparison;",
+      `@group(3) @binding(${matrixBinding}) var<storage, read> pointShadowMatrices: array<mat4x4f>;`,
+      `@group(3) @binding(${textureBinding}) var pointShadowMap: texture_depth_cube;`,
+      `@group(3) @binding(${samplerBinding}) var pointShadowSampler: sampler_comparison;`,
     );
   }
 
@@ -1229,29 +1258,59 @@ function standardTextureVariantBindings(
         resource: "sampler",
       },
     );
+
+    if (features.pointShadowMap === true) {
+      bindings.push(
+        {
+          id: "directionalShadowMatrices",
+          label: "Spot shadow view-projection matrix storage",
+          group: 3,
+          binding: 5,
+          resource: "read-only-storage-buffer",
+        },
+        {
+          id: "directionalShadowMap",
+          label: "Spot shadow depth texture",
+          group: 3,
+          binding: 6,
+          resource: "texture",
+        },
+        {
+          id: "directionalShadowSampler",
+          label: "Spot shadow comparison sampler",
+          group: 3,
+          binding: 7,
+          resource: "sampler",
+        },
+      );
+    }
   }
 
   if (features.pointShadowMap === true) {
+    const matrixBinding = features.shadowMap === true ? 8 : 2;
+    const textureBinding = features.shadowMap === true ? 9 : 3;
+    const samplerBinding = features.shadowMap === true ? 10 : 4;
+
     bindings.push(
       {
         id: "directionalShadowMatrices",
         label: "Point shadow cube-face view-projection matrix storage",
         group: 3,
-        binding: 2,
+        binding: matrixBinding,
         resource: "read-only-storage-buffer",
       },
       {
         id: "directionalShadowMap",
         label: "Point shadow cube depth texture",
         group: 3,
-        binding: 3,
+        binding: textureBinding,
         resource: "texture",
       },
       {
         id: "directionalShadowSampler",
         label: "Point shadow comparison sampler",
         group: 3,
-        binding: 4,
+        binding: samplerBinding,
         resource: "sampler",
       },
     );
@@ -1362,6 +1421,20 @@ function standardTextureVariantShaderLabel(
     features.texCoord1 !== true
   ) {
     return "aperture/standard-mesh-point-shadow-receiver";
+  }
+
+  if (
+    features.shadowMap === true &&
+    features.pointShadowMap === true &&
+    !features.baseColorTexture &&
+    !features.metallicRoughnessTexture &&
+    !features.normalTexture &&
+    !features.occlusionTexture &&
+    !features.emissiveTexture &&
+    features.iblDiffuse !== true &&
+    features.texCoord1 !== true
+  ) {
+    return "aperture/standard-mesh-multi-shadow-receiver";
   }
 
   if (
@@ -1694,6 +1767,320 @@ fn evaluateDirectLight(
       `  let color = ambientDiffuse + direct + material.emissiveFactor;`,
       `  let receiverPointShadowFactor = samplePointShadowReceiverFactor(input.worldPosition);
   let color = (ambientDiffuse + direct) * receiverPointShadowFactor + material.emissiveFactor;`,
+    );
+}
+
+function applyStandardMultiShadowMapSampling(code: string): string {
+  return code
+    .replace(
+      `fn evaluateDirectLight(
+  normal: vec3f,`,
+      `const STANDARD_SHADOW_MIN_VISIBILITY: f32 = 0.45;
+const STANDARD_SHADOW_DEPTH_BIAS: f32 = 0.002;
+const STANDARD_POINT_SHADOW_MIN_VISIBILITY: f32 = 0.5;
+const STANDARD_POINT_SHADOW_DEPTH_BIAS: f32 = 0.0001;
+
+fn sampleDirectionalShadowPcf3x3(shadowUv: vec2f, receiverDepth: f32) -> f32 {
+  let shadowDimensions = textureDimensions(directionalShadowMap);
+  let shadowMapSize = vec2f(f32(shadowDimensions.x), f32(shadowDimensions.y));
+  let texelSize = 1.0 / max(shadowMapSize, vec2f(1.0));
+  var visibility = 0.0;
+
+  for (var y: i32 = -1; y <= 1; y = y + 1) {
+    for (var x: i32 = -1; x <= 1; x = x + 1) {
+      let sampleUv = clamp(
+        shadowUv + vec2f(f32(x), f32(y)) * texelSize,
+        vec2f(0.0),
+        vec2f(1.0),
+      );
+
+      visibility = visibility + textureSampleCompareLevel(
+        directionalShadowMap,
+        directionalShadowSampler,
+        sampleUv,
+        receiverDepth,
+      );
+    }
+  }
+
+  return visibility * (1.0 / 9.0);
+}
+
+fn sampleSpotShadowPcf3x3(shadowUv: vec2f, receiverDepth: f32) -> f32 {
+  let shadowDimensions = textureDimensions(spotShadowMap);
+  let shadowMapSize = vec2f(f32(shadowDimensions.x), f32(shadowDimensions.y));
+  let texelSize = 1.0 / max(shadowMapSize, vec2f(1.0));
+  var visibility = 0.0;
+
+  for (var y: i32 = -1; y <= 1; y = y + 1) {
+    for (var x: i32 = -1; x <= 1; x = x + 1) {
+      let sampleUv = clamp(
+        shadowUv + vec2f(f32(x), f32(y)) * texelSize,
+        vec2f(0.0),
+        vec2f(1.0),
+      );
+
+      visibility = visibility + textureSampleCompareLevel(
+        spotShadowMap,
+        spotShadowSampler,
+        sampleUv,
+        receiverDepth,
+      );
+    }
+  }
+
+  return visibility * (1.0 / 9.0);
+}
+
+fn sampleDirectionalShadowFactor(worldPosition: vec3f) -> f32 {
+  if (arrayLength(&directionalShadowMatrices) == 0u) {
+    return 1.0;
+  }
+
+  let shadowPosition = directionalShadowMatrices[0] * vec4f(worldPosition, 1.0);
+
+  if (abs(shadowPosition.w) <= 0.00001) {
+    return 1.0;
+  }
+
+  let shadowClip = shadowPosition.xyz / shadowPosition.w;
+  let shadowDepth = select(
+    shadowClip.z,
+    shadowClip.z * 0.5 + 0.5,
+    shadowClip.z < 0.0,
+  );
+  let shadowUv = vec2f(shadowClip.x * 0.5 + 0.5, 0.5 - shadowClip.y * 0.5);
+  let clampedShadowUv = clamp(shadowUv, vec2f(0.0), vec2f(1.0));
+  let clampedShadowDepth = clamp(shadowDepth, 0.0, 1.0);
+  let projectionDistance = max(
+    distance(shadowUv, clampedShadowUv),
+    abs(shadowDepth - clampedShadowDepth),
+  );
+
+  if (projectionDistance > 0.0) {
+    return 1.0;
+  }
+
+  let receiverDepth = clamp(
+    clampedShadowDepth - STANDARD_SHADOW_DEPTH_BIAS,
+    0.0,
+    1.0,
+  );
+  let rawVisibility = sampleDirectionalShadowPcf3x3(
+    clampedShadowUv,
+    receiverDepth,
+  );
+  let visibility = select(
+    clamp(rawVisibility, 0.0, 1.0),
+    1.0,
+    rawVisibility != rawVisibility,
+  );
+
+  return mix(STANDARD_SHADOW_MIN_VISIBILITY, 1.0, visibility);
+}
+
+fn sampleSpotShadowFactor(worldPosition: vec3f) -> f32 {
+  if (arrayLength(&spotShadowMatrices) == 0u) {
+    return 1.0;
+  }
+
+  let shadowPosition = spotShadowMatrices[0] * vec4f(worldPosition, 1.0);
+
+  if (abs(shadowPosition.w) <= 0.00001) {
+    return 1.0;
+  }
+
+  let shadowClip = shadowPosition.xyz / shadowPosition.w;
+  let shadowDepth = select(
+    shadowClip.z,
+    shadowClip.z * 0.5 + 0.5,
+    shadowClip.z < 0.0,
+  );
+  let shadowUv = vec2f(shadowClip.x * 0.5 + 0.5, 0.5 - shadowClip.y * 0.5);
+  let clampedShadowUv = clamp(shadowUv, vec2f(0.0), vec2f(1.0));
+  let clampedShadowDepth = clamp(shadowDepth, 0.0, 1.0);
+  let projectionDistance = max(
+    distance(shadowUv, clampedShadowUv),
+    abs(shadowDepth - clampedShadowDepth),
+  );
+
+  if (projectionDistance > 0.0) {
+    return 1.0;
+  }
+
+  let receiverDepth = clamp(
+    clampedShadowDepth - STANDARD_SHADOW_DEPTH_BIAS,
+    0.0,
+    1.0,
+  );
+  let rawVisibility = sampleSpotShadowPcf3x3(
+    clampedShadowUv,
+    receiverDepth,
+  );
+  let visibility = select(
+    clamp(rawVisibility, 0.0, 1.0),
+    1.0,
+    rawVisibility != rawVisibility,
+  );
+
+  return mix(STANDARD_SHADOW_MIN_VISIBILITY, 1.0, visibility);
+}
+
+fn pointShadowFaceIndex(toReceiver: vec3f) -> u32 {
+  let absDirection = abs(toReceiver);
+
+  if (absDirection.x >= absDirection.y && absDirection.x >= absDirection.z) {
+    return select(1u, 0u, toReceiver.x >= 0.0);
+  }
+
+  if (absDirection.y >= absDirection.x && absDirection.y >= absDirection.z) {
+    return select(3u, 2u, toReceiver.y >= 0.0);
+  }
+
+  return select(5u, 4u, toReceiver.z >= 0.0);
+}
+
+fn samplePointShadowFactor(worldPosition: vec3f, lightPosition: vec3f) -> f32 {
+  if (arrayLength(&pointShadowMatrices) < 6u) {
+    return 1.0;
+  }
+
+  let toReceiver = worldPosition - lightPosition;
+  let receiverDistance = length(toReceiver);
+
+  if (receiverDistance <= 0.0001) {
+    return 1.0;
+  }
+
+  let faceIndex = pointShadowFaceIndex(toReceiver);
+  let shadowPosition = pointShadowMatrices[faceIndex] * vec4f(worldPosition, 1.0);
+
+  if (abs(shadowPosition.w) <= 0.00001) {
+    return 1.0;
+  }
+
+  let shadowClip = shadowPosition.xyz / shadowPosition.w;
+  let shadowDepth = select(
+    shadowClip.z,
+    shadowClip.z * 0.5 + 0.5,
+    shadowClip.z < 0.0,
+  );
+
+  if (abs(shadowClip.x) > 1.0 || abs(shadowClip.y) > 1.0 || shadowDepth < 0.0 || shadowDepth > 1.0) {
+    return 1.0;
+  }
+
+  let receiverDepth = clamp(
+    clamp(shadowDepth, 0.0, 1.0) - STANDARD_POINT_SHADOW_DEPTH_BIAS,
+    0.0,
+    1.0,
+  );
+  let rawVisibility = textureSampleCompareLevel(
+    pointShadowMap,
+    pointShadowSampler,
+    normalize(toReceiver),
+    receiverDepth,
+  );
+  let visibility = select(
+    clamp(rawVisibility, 0.0, 1.0),
+    1.0,
+    rawVisibility != rawVisibility,
+  );
+
+  return mix(STANDARD_POINT_SHADOW_MIN_VISIBILITY, 1.0, visibility);
+}
+
+fn samplePointShadowReceiverFactor(worldPosition: vec3f) -> f32 {
+  var factor = 1.0;
+
+  for (var lightIndex = 0u; lightIndex < lightCount(); lightIndex = lightIndex + 1u) {
+    if (lightKind(lightIndex) == LIGHT_KIND_POINT) {
+      factor = min(
+        factor,
+        samplePointShadowFactor(worldPosition, pointLightPosition(lightIndex)),
+      );
+    }
+  }
+
+  return factor;
+}
+
+fn evaluateDirectLight(
+  normal: vec3f,`,
+    )
+    .replace(
+      `      direct = direct + evaluateDirectLight(
+        normal,
+        viewDir,
+        directionalLightDirection(lightIndex),
+        lightRadiance(lightIndex),
+        baseColor,
+        metallic,
+        roughness,
+      );`,
+      `      let shadowFactor = sampleDirectionalShadowFactor(input.worldPosition);
+      direct = direct + evaluateDirectLight(
+        normal,
+        viewDir,
+        directionalLightDirection(lightIndex),
+        lightRadiance(lightIndex),
+        baseColor,
+        metallic,
+        roughness,
+      ) * shadowFactor;`,
+    )
+    .replace(
+      `        direct = direct + evaluateDirectLight(
+          normal,
+          viewDir,
+          toLight / lightDistance,
+          lightRadiance(lightIndex) * attenuation,
+          baseColor,
+          metallic,
+          roughness,
+        );`,
+      `        let shadowFactor = samplePointShadowFactor(input.worldPosition, lightPosition);
+        direct = direct + evaluateDirectLight(
+          normal,
+          viewDir,
+          toLight / lightDistance,
+          lightRadiance(lightIndex) * attenuation,
+          baseColor,
+          metallic,
+          roughness,
+        ) * shadowFactor;`,
+    )
+    .replace(
+      `        direct = direct + evaluateDirectLight(
+          normal,
+          viewDir,
+          lightDir,
+          lightRadiance(lightIndex) * rangeAttenuation * coneAttenuation,
+          baseColor,
+          metallic,
+          roughness,
+        );`,
+      `        let shadowFactor = sampleSpotShadowFactor(input.worldPosition);
+        direct = direct + evaluateDirectLight(
+          normal,
+          viewDir,
+          lightDir,
+          lightRadiance(lightIndex) * rangeAttenuation * coneAttenuation,
+          baseColor,
+          metallic,
+          roughness,
+        ) * shadowFactor;`,
+    )
+    .replace(
+      `  let color = ambientDiffuse + direct + material.emissiveFactor;`,
+      `  let receiverShadowFactor = min(
+    min(
+      sampleDirectionalShadowFactor(input.worldPosition),
+      sampleSpotShadowFactor(input.worldPosition),
+    ),
+    samplePointShadowReceiverFactor(input.worldPosition),
+  );
+  let color = (ambientDiffuse + direct) * receiverShadowFactor + material.emissiveFactor;`,
     );
 }
 

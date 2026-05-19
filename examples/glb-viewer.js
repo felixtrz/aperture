@@ -1,23 +1,29 @@
 const canvas = document.querySelector("#aperture-canvas");
 const assetSelect = document.querySelector("#glb-asset-select");
+const customUrlForm = document.querySelector("#glb-url-form");
+const customUrlInput = document.querySelector("#glb-url-input");
 const stateElement = document.querySelector("#example-state");
 const jsonElement = document.querySelector("#example-json");
+const exampleParams = new URLSearchParams(globalThis.location.search);
 const clearColor = [0.015, 0.025, 0.035, 1];
 const sampleAssets = [
   {
     id: "cube",
     label: "Mint cube",
     url: new URL("./assets/cube.glb", globalThis.location.href),
+    source: "sample",
   },
   {
     id: "slab",
     label: "Amber slab",
     url: new URL("./assets/amber-slab.glb", globalThis.location.href),
+    source: "sample",
   },
   {
     id: "pillar",
     label: "Sapphire pillar",
     url: new URL("./assets/sapphire-pillar.glb", globalThis.location.href),
+    source: "sample",
   },
 ];
 
@@ -41,7 +47,7 @@ try {
     } else {
       const scene = createGlbViewerScene(aperture, created.app, canvas);
 
-      await loadSelectedAsset(aperture, created.app, scene);
+      await loadInitialAsset(aperture, created.app, scene);
       startRendering(aperture, created.app, scene);
     }
   }
@@ -56,6 +62,7 @@ try {
 
 function createGlbViewerScene(aperture, app, targetCanvas) {
   const orbit = createOrbitControls(targetCanvas);
+  const initialCustomUrl = readInitialCustomUrl();
   const cameraEntity = app.spawn(
     aperture.withTransform({ translation: [0, 0, 3.4] }),
     aperture.withCamera({
@@ -72,6 +79,7 @@ function createGlbViewerScene(aperture, app, targetCanvas) {
     asset: sampleAssets[0],
     loadState: null,
     loadSequence: 0,
+    initialCustomUrl,
     active: null,
     orbit,
     cameraEntity,
@@ -95,13 +103,76 @@ function createGlbViewerScene(aperture, app, targetCanvas) {
     });
   }
 
+  if (customUrlForm !== null) {
+    if (
+      customUrlInput instanceof HTMLInputElement &&
+      initialCustomUrl !== null
+    ) {
+      customUrlInput.value = initialCustomUrl.href;
+    }
+
+    customUrlForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+      loadCustomUrlAsset(aperture, app, scene).catch((error) => {
+        scene.loadState = failure(
+          "glb-viewer-load-failed",
+          error instanceof Error ? error.message : "GLB URL load failed.",
+        );
+      });
+    });
+  }
+
   return scene;
+}
+
+async function loadInitialAsset(aperture, app, scene) {
+  if (scene.initialCustomUrl !== null) {
+    await loadAsset(aperture, app, scene, {
+      id: "custom-url",
+      label: "Custom URL",
+      url: scene.initialCustomUrl,
+      source: "custom",
+    });
+    return;
+  }
+
+  await loadSelectedAsset(aperture, app, scene);
 }
 
 async function loadSelectedAsset(aperture, app, scene) {
   const asset =
     sampleAssets.find((entry) => entry.id === assetSelect?.value) ??
     sampleAssets[0];
+
+  await loadAsset(aperture, app, scene, asset);
+}
+
+async function loadCustomUrlAsset(aperture, app, scene) {
+  if (!(customUrlInput instanceof HTMLInputElement)) {
+    throw new Error("Custom GLB URL input is unavailable.");
+  }
+
+  const rawUrl = customUrlInput.value.trim();
+
+  if (rawUrl.length === 0) {
+    throw new Error("Custom GLB URL is empty.");
+  }
+
+  const url = new URL(rawUrl, globalThis.location.href);
+
+  if (!url.pathname.toLowerCase().endsWith(".glb")) {
+    throw new Error("Custom GLB URL must end in .glb.");
+  }
+
+  await loadAsset(aperture, app, scene, {
+    id: "custom-url",
+    label: "Custom URL",
+    url,
+    source: "custom",
+  });
+}
+
+async function loadAsset(aperture, app, scene, asset) {
   const loadSequence = scene.loadSequence + 1;
   const keyPrefix = `viewer-${asset.id}-${loadSequence}`;
 
@@ -113,7 +184,8 @@ async function loadSelectedAsset(aperture, app, scene) {
     asset: {
       id: asset.id,
       label: asset.label,
-      url: asset.url.pathname,
+      source: asset.source,
+      url: formatAssetUrl(asset.url),
     },
   };
   destroyActiveScene(scene);
@@ -241,11 +313,12 @@ function createStatus(aperture, app, scene, step, report, frame) {
     selectedAsset: {
       id: scene.asset.id,
       label: scene.asset.label,
-      url: scene.asset.url.pathname,
+      source: scene.asset.source,
+      url: formatAssetUrl(scene.asset.url),
       loading: scene.loadState?.phase === "loading",
     },
     source: {
-      url: active?.asset.url.pathname ?? scene.asset.url.pathname,
+      url: formatAssetUrl(active?.asset.url ?? scene.asset.url),
       ok: active?.loaded.ok ?? false,
       byteLength: active?.loaded.byteLength ?? null,
       status: active?.loaded.loader?.status ?? null,
@@ -363,6 +436,30 @@ function wrapRadians(value) {
 
 function clamp(value, min, max) {
   return Math.min(Math.max(value, min), max);
+}
+
+function readInitialCustomUrl() {
+  const rawUrl = exampleParams.get("url");
+
+  if (rawUrl === null || rawUrl.trim().length === 0) {
+    return null;
+  }
+
+  const url = new URL(rawUrl.trim(), globalThis.location.href);
+
+  if (!url.pathname.toLowerCase().endsWith(".glb")) {
+    return null;
+  }
+
+  return url;
+}
+
+function formatAssetUrl(url) {
+  if (url.origin === globalThis.location.origin) {
+    return url.pathname;
+  }
+
+  return url.href;
 }
 
 function publishStatus(status) {

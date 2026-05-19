@@ -9,6 +9,8 @@ import {
   Name,
   Parent,
   RenderLayer,
+  ShadowCaster,
+  ShadowReceiver,
   Spin,
   SpinSystem,
   Visibility,
@@ -32,6 +34,8 @@ import {
   withMaterial,
   withMesh,
   withRenderLayer,
+  withShadowCaster,
+  withShadowReceiver,
   withSpin,
   withTransform,
   withVisibility,
@@ -101,6 +105,8 @@ describe("runtime facade", () => {
       withMesh(mesh),
       withMaterial(material),
       withRenderLayer(1),
+      withShadowCaster(false),
+      withShadowReceiver(true),
       withVisibility(true),
       withSpin({ radiansPerSecond: Math.PI, axis: [0, 1, 0] }),
     );
@@ -109,17 +115,25 @@ describe("runtime facade", () => {
 
     expect(cube.hasComponent(Mesh)).toBe(true);
     expect(cube.hasComponent(Material)).toBe(true);
+    expect(cube.hasComponent(ShadowCaster)).toBe(true);
+    expect(cube.hasComponent(ShadowReceiver)).toBe(true);
     expect(cube.hasComponent(Spin)).toBe(true);
     expect(cube.getValue(Mesh, "meshId")).toBe(assetHandleKey(mesh));
     expect(cube.getValue(Material, "materialId")).toBe(
       assetHandleKey(material),
     );
+    expect(cube.getValue(ShadowCaster, "enabled")).toBe(false);
+    expect(cube.getValue(ShadowReceiver, "enabled")).toBe(true);
     expect(
       Array.from(cube.getVectorView(LocalTransform, "rotation")),
     ).not.toEqual([0, 0, 0, 1]);
     expect(snapshot.frame).toBe(7);
     expect(snapshot.views).toHaveLength(1);
     expect(snapshot.meshDraws).toHaveLength(1);
+    expect(snapshot.meshDraws[0]).toMatchObject({
+      castsShadow: false,
+      receivesShadow: true,
+    });
     expect(snapshot.diagnostics).toEqual([]);
   });
 

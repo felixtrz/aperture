@@ -102,6 +102,53 @@ body {
   outline-offset: 3px;
 }
 
+.asset-url-row {
+  display: grid;
+  gap: 6px;
+  font-size: 13px;
+}
+
+.asset-url-row label {
+  color: #9ca8b7;
+}
+
+.asset-url-controls {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+}
+
+.asset-url-controls input,
+.asset-url-controls button {
+  min-height: 34px;
+  border: 1px solid rgb(255 255 255 / 18%);
+  background: #202832;
+  color: #edf2f7;
+  font: inherit;
+  font-size: 13px;
+}
+
+.asset-url-controls input {
+  min-width: 0;
+  padding: 0 10px;
+}
+
+.asset-url-controls button {
+  padding: 0 12px;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.asset-url-controls button:hover {
+  background: #2a3440;
+}
+
+.asset-url-controls input:focus-visible,
+.asset-url-controls button:focus-visible {
+  outline: 2px solid #81d69d;
+  outline-offset: 3px;
+}
+
 #example-state[data-state="ready"] {
   color: #81d69d;
 }

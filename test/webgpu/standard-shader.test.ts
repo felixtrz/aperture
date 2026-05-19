@@ -18,6 +18,7 @@ import {
   STANDARD_METALLIC_ROUGHNESS_TEXTURED_MESH_SHADER,
   STANDARD_METALLIC_ROUGHNESS_TEXTURED_MESH_WGSL,
   STANDARD_METALLIC_ROUGHNESS_TEXTURE_SHADER_VARIANT,
+  STANDARD_MULTI_SHADOW_MAP_SHADER_VARIANT,
   STANDARD_POINT_SHADOW_MAP_SHADER_VARIANT,
   PACKED_LIGHT_FLOAT_STRIDE,
   PACKED_LIGHT_METADATA_STRIDE,
@@ -290,6 +291,42 @@ describe("built-in standard material WGSL shader metadata", () => {
     );
     expect(shader.code).not.toContain(
       "let receiverDepth = 1.0 - STANDARD_POINT_SHADOW_DEPTH_BIAS;",
+    );
+  });
+
+  it("declares non-overlapping bindings for combined 2D and cube shadow receivers", () => {
+    const shader = createStandardTextureVariantShader({
+      baseColorTexture: false,
+      metallicRoughnessTexture: false,
+      normalTexture: false,
+      occlusionTexture: false,
+      emissiveTexture: false,
+      shadowMap: true,
+      pointShadowMap: true,
+    });
+
+    expect(validateStandardShaderMetadata(shader)).toEqual({
+      valid: true,
+      diagnostics: [],
+    });
+    expect(STANDARD_MULTI_SHADOW_MAP_SHADER_VARIANT).toBe(
+      "direct-lit-metallic-roughness-multi-shadow-map",
+    );
+    expect(shader.label).toBe("aperture/standard-mesh-multi-shadow-receiver");
+    expect(shader.code).toContain(
+      "@group(3) @binding(3) var directionalShadowMap: texture_depth_2d;",
+    );
+    expect(shader.code).toContain(
+      "@group(3) @binding(6) var spotShadowMap: texture_depth_2d;",
+    );
+    expect(shader.code).toContain(
+      "@group(3) @binding(9) var pointShadowMap: texture_depth_cube;",
+    );
+    expect(shader.code).toContain(
+      "fn sampleSpotShadowFactor(worldPosition: vec3f) -> f32",
+    );
+    expect(shader.code).toContain(
+      "fn samplePointShadowFactor(worldPosition: vec3f, lightPosition: vec3f) -> f32",
     );
   });
 

@@ -1,5 +1,141 @@
 # Completed Tasks
 
+## task-2019 — Add query-URL bootstrap to glb-viewer
+
+Completed: 2026-05-19
+
+Summary:
+
+- Added `?url=` handling to `examples/glb-viewer.js` so a custom `.glb` URL
+  can seed the URL field and load on initial page open.
+- Reused the existing custom URL loader, load-sequence guard, and ECS
+  replay/unload path.
+- Extended GLB viewer Playwright coverage with a query-driven initial custom
+  URL load and pixel proof.
+
+References inspected:
+
+- `references/three.js/examples/webgl_loader_gltf.html`
+
+Validation:
+
+- `node --check examples/glb-viewer.js`
+- `pnpm run typecheck:test`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts`
+
+Known follow-up:
+
+- `task-2020` should fit the GLB viewer orbit camera from loaded asset bounds
+  instead of using a fixed camera distance.
+
+## task-2018 — Add public shadow caster/receiver authoring helpers
+
+Completed: 2026-05-19
+
+Summary:
+
+- Added public runtime helpers `withShadowCaster(enabled)` and
+  `withShadowReceiver(enabled)` over the existing renderer-independent shadow
+  authoring components.
+- Extended extracted mesh draw packets with JSON-safe `castsShadow` and
+  `receivesShadow` flags.
+- Updated shadow caster draw-list planning to skip ECS-authored non-casters and
+  StandardMaterial shadow pipeline-key routing to skip ECS-authored
+  non-receivers.
+- Updated `examples/gltf-scene.js` so the receiver and caster toggles mutate
+  ECS shadow authoring flags on replayed entities instead of filtering only
+  example-local renderer inputs.
+- Added runtime, extraction, shadow draw-list, and GLTF scene browser coverage.
+
+References inspected:
+
+- `references/bevy/examples/3d/shadow_caster_receiver.rs`
+
+Validation:
+
+- `node --check examples/gltf-scene.js`
+- `pnpm exec vitest run test/runtime/runtime.test.ts test/rendering/extraction.test.ts test/webgpu/shadow-caster-draw-list-plan.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm run build`
+- `pnpm run check:examples`
+- `pnpm exec playwright test test/e2e/gltf-scene.spec.ts`
+
+Known follow-up:
+
+- `task-2021` should prove IBL and shadow receivers together through the
+  browser-safe StandardMaterial route.
+
+## task-2016 — Add URL-driven GLB loading to glb-viewer
+
+Completed: 2026-05-19
+
+Summary:
+
+- Added a custom `.glb` URL form to `examples/glb-viewer.html` with focused
+  input/button styling in the shared examples stylesheet.
+- Reused the existing `loadSequence` stale-load guard and ECS replay teardown
+  path for both sample-selection loads and typed custom URL loads.
+- Published the selected asset source and formatted URL in JSON-safe viewer
+  status.
+- Extended GLB viewer Playwright coverage to load a local sample through the
+  custom URL control and prove the rendered pixels change after replay.
+
+References inspected:
+
+- `references/three.js/examples/webgl_loader_gltf.html`
+
+Validation:
+
+- `node --check examples/glb-viewer.js`
+- `pnpm run typecheck:test`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts`
+- In-app browser check at `http://127.0.0.1:4173/examples/glb-viewer.html`
+  confirmed the custom URL status reports one mesh draw.
+
+Known follow-up:
+
+- `task-2019` should make the custom URL path deep-linkable from a query
+  parameter.
+
+## task-2014 — Combined multi-light scene: directional + point + spot all casting shadows
+
+Completed: 2026-05-19
+
+Summary:
+
+- Added a browser-safe multi-shadow StandardMaterial receiver contract that can
+  bind directional 2D, spot 2D, and point cube shadow resources in group 3.
+- Added a combined shadow-map pipeline/layout route and WGSL variant that
+  samples all three shadow families without exceeding Chrome's four bind groups.
+- Added `examples/multi-light-shadow.html` / `examples/multi-light-shadow.js`
+  with directional, spot, and point shadow casters feeding one receiving wall.
+- Added targeted bind-group, shader, pipeline, and Playwright coverage proving
+  the combined route and six named receiver samples.
+- Updated the public progress trackers for the multi-light shadow milestone.
+
+References inspected:
+
+- `references/engine/src/scene/renderer/shadow-renderer.js`
+- `references/bevy/crates/bevy_pbr/src/render/light.rs`
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/standard-light-shadow-bind-group.test.ts test/webgpu/standard-shader.test.ts test/webgpu/standard-pipeline.test.ts`
+- `pnpm run typecheck:test`
+- `node --check examples/multi-light-shadow.js`
+- `pnpm run check:examples`
+- `pnpm run build`
+- `pnpm run check:progress`
+- `pnpm run lint`
+- `pnpm run format:check`
+- `pnpm exec playwright test test/e2e/multi-light-shadow.spec.ts`
+- `pnpm test`
+
+Known follow-up:
+
+- Future IBL/shadow composition should prove environment lighting and shadow
+  receivers together through the same browser-safe bind group boundary.
+
 ## task-2013 — Add spot-light shadow projection and render visible spot-light shadow
 
 Completed: 2026-05-19

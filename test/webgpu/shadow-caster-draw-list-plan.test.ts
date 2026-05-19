@@ -111,6 +111,21 @@ describe("shadow caster draw-list planning", () => {
       "shadowCasterDrawList.noCasters",
     ]);
   });
+
+  it("skips mesh draws whose ECS shadow caster flag is disabled", () => {
+    const report = createShadowCasterDrawListPlanReport({
+      shadowRequests: [shadowRequest(7, 11)],
+      meshDraws: [
+        meshDraw(1, 1, { castsShadow: false }),
+        meshDraw(2, 1, { castsShadow: true }),
+      ],
+      shadowPassPlan: shadowPassPlan(),
+    });
+
+    expect(report.includedDrawCount).toBe(1);
+    expect(report.skippedDrawCount).toBe(1);
+    expect(report.lists[0]?.draws.map((draw) => draw.renderId)).toEqual([2]);
+  });
 });
 
 function shadowPassPlan() {
@@ -141,7 +156,11 @@ function shadowRequest(shadowId: number, lightId: number): ShadowRequestPacket {
   };
 }
 
-function meshDraw(renderId: number, layerMask: number): MeshDrawPacket {
+function meshDraw(
+  renderId: number,
+  layerMask: number,
+  options: Pick<MeshDrawPacket, "castsShadow" | "receivesShadow"> = {},
+): MeshDrawPacket {
   return {
     renderId,
     entity: { index: renderId, generation: 0 },
@@ -152,6 +171,7 @@ function meshDraw(renderId: number, layerMask: number): MeshDrawPacket {
     worldTransformOffset: 0,
     boundsIndex: 0,
     layerMask,
+    ...options,
     sortKey: {
       queue: "opaque",
       viewId: 0,

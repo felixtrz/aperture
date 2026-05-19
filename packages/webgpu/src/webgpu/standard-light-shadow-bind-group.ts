@@ -17,6 +17,8 @@ export const STANDARD_LIGHT_SHADOW_BIND_GROUP_LAYOUT_KEY =
   "standard/lights-shadow/group-3";
 export const STANDARD_LIGHT_POINT_SHADOW_BIND_GROUP_LAYOUT_KEY =
   "standard/lights-point-shadow/group-3";
+export const STANDARD_LIGHT_MULTI_SHADOW_BIND_GROUP_LAYOUT_KEY =
+  "standard/lights-multi-shadow/group-3";
 export const STANDARD_LIGHT_IBL_BIND_GROUP_LAYOUT_KEY =
   "standard/lights-ibl/group-3";
 export const STANDARD_LIGHT_SHADOW_IBL_BIND_GROUP_LAYOUT_KEY =
@@ -82,6 +84,15 @@ export interface CreateStandardLightShadowBindGroupDescriptorPlanOptions {
   readonly label?: string;
 }
 
+export interface CreateStandardLightMultiShadowBindGroupDescriptorPlanOptions {
+  readonly lightGpuBufferResource: LightGpuBufferResource | null;
+  readonly directionalShadowReceiverResources: StandardLightIblShadowReceiverResources;
+  readonly spotShadowReceiverResources: StandardLightIblShadowReceiverResources;
+  readonly pointShadowReceiverResources: StandardLightIblShadowReceiverResources;
+  readonly layoutKey?: string | null;
+  readonly label?: string;
+}
+
 export interface CreateStandardLightIblBindGroupDescriptorPlanOptions {
   readonly lightGpuBufferResource: LightGpuBufferResource | null;
   readonly diffuseTextureResource: DiffuseIblTextureResourceReport;
@@ -123,6 +134,49 @@ export function createStandardLightShadowBindGroupLayoutDescriptor(): WebGpuBind
 
 export function createStandardLightPointShadowBindGroupLayoutDescriptor(): WebGpuBindGroupLayoutDescriptor {
   return createStandardLightShadowBindGroupLayoutDescriptorForView("cube");
+}
+
+export function createStandardLightMultiShadowBindGroupLayoutDescriptor(): WebGpuBindGroupLayoutDescriptor {
+  return {
+    label: STANDARD_LIGHT_MULTI_SHADOW_BIND_GROUP_LAYOUT_KEY,
+    entries: [
+      { binding: 0, visibility: 0x2, buffer: { type: "read-only-storage" } },
+      { binding: 1, visibility: 0x2, buffer: { type: "read-only-storage" } },
+      { binding: 2, visibility: 0x3, buffer: { type: "read-only-storage" } },
+      {
+        binding: 3,
+        visibility: 0x2,
+        texture: {
+          sampleType: "depth",
+          viewDimension: "2d",
+          multisampled: false,
+        },
+      },
+      { binding: 4, visibility: 0x2, sampler: { type: "comparison" } },
+      { binding: 5, visibility: 0x3, buffer: { type: "read-only-storage" } },
+      {
+        binding: 6,
+        visibility: 0x2,
+        texture: {
+          sampleType: "depth",
+          viewDimension: "2d",
+          multisampled: false,
+        },
+      },
+      { binding: 7, visibility: 0x2, sampler: { type: "comparison" } },
+      { binding: 8, visibility: 0x3, buffer: { type: "read-only-storage" } },
+      {
+        binding: 9,
+        visibility: 0x2,
+        texture: {
+          sampleType: "depth",
+          viewDimension: "cube",
+          multisampled: false,
+        },
+      },
+      { binding: 10, visibility: 0x2, sampler: { type: "comparison" } },
+    ],
+  };
 }
 
 function createStandardLightShadowBindGroupLayoutDescriptorForView(
@@ -324,6 +378,78 @@ export function createStandardLightShadowBindGroupDescriptorPlan(
   };
 }
 
+export function createStandardLightMultiShadowBindGroupDescriptorPlan(
+  options: CreateStandardLightMultiShadowBindGroupDescriptorPlanOptions,
+): StandardLightShadowBindGroupDescriptorPlan {
+  const layoutKey =
+    options.layoutKey ?? STANDARD_LIGHT_MULTI_SHADOW_BIND_GROUP_LAYOUT_KEY;
+  const label =
+    options.label ?? STANDARD_LIGHT_MULTI_SHADOW_BIND_GROUP_LAYOUT_KEY;
+  const diagnostics: StandardLightShadowBindGroupDiagnostic[] = [];
+  const entries: StandardLightShadowBindGroupDescriptorEntry[] = [];
+
+  if (layoutKey === null || layoutKey.length === 0) {
+    diagnostics.push({
+      code: "standardLightShadowBindGroup.missingLayoutKey",
+      message:
+        "StandardMaterial multi-shadow bind-group planning requires a layout key.",
+    });
+  }
+
+  if (options.lightGpuBufferResource === null) {
+    diagnostics.push({
+      code: "standardLightShadowBindGroup.missingLightGpuBufferResource",
+      message:
+        "StandardMaterial multi-shadow bind-group planning requires light GPU buffers.",
+    });
+  } else {
+    entries.push(
+      {
+        binding: 0,
+        resourceKey: options.lightGpuBufferResource.floatResourceKey,
+        resourceKind: "buffer",
+      },
+      {
+        binding: 1,
+        resourceKey: options.lightGpuBufferResource.metadataResourceKey,
+        resourceKind: "buffer",
+      },
+    );
+  }
+
+  appendShadowEntries(
+    options.directionalShadowReceiverResources,
+    entries,
+    diagnostics,
+    { matrix: 2, depth: 3, sampler: 4 },
+  );
+  appendShadowEntries(
+    options.spotShadowReceiverResources,
+    entries,
+    diagnostics,
+    { matrix: 5, depth: 6, sampler: 7 },
+  );
+  appendShadowEntries(
+    options.pointShadowReceiverResources,
+    entries,
+    diagnostics,
+    { matrix: 8, depth: 9, sampler: 10 },
+  );
+
+  return {
+    valid: diagnostics.length === 0,
+    group: STANDARD_LIGHT_SHADOW_BIND_GROUP,
+    label,
+    resourceKey:
+      diagnostics.length === 0 && layoutKey !== null
+        ? standardLightShadowBindGroupResourceKey(entries, layoutKey)
+        : null,
+    layoutKey,
+    entries,
+    diagnostics,
+  };
+}
+
 export function createStandardLightIblBindGroupDescriptorPlan(
   options: CreateStandardLightIblBindGroupDescriptorPlanOptions,
 ): StandardLightShadowBindGroupDescriptorPlan {
@@ -477,6 +603,7 @@ export function createStandardLightShadowBindGroupResource(options: {
   readonly matrixBufferResource: ShadowMatrixBufferResourceReport;
   readonly depthTextureResources: ShadowDepthTextureResourceReport;
   readonly samplerResource: ShadowSamplerResourceReport;
+  readonly additionalShadowReceiverResources?: readonly StandardLightIblShadowReceiverResources[];
   readonly diffuseTextureResource?: DiffuseIblTextureResourceReport;
   readonly specularTextureResource?: SpecularIblTextureResourceReport;
   readonly iblSamplerResource?: IblSamplerResourceReport;
@@ -602,6 +729,29 @@ function createCreationEntries(
     );
   }
 
+  for (const shadowResources of resources.additionalShadowReceiverResources ??
+    []) {
+    if (shadowResources.matrixBufferResource.resource !== null) {
+      buffers.set(
+        shadowResources.matrixBufferResource.resource.resourceKey,
+        shadowResources.matrixBufferResource.resource.buffer,
+      );
+    }
+
+    for (const resource of shadowResources.depthTextureResources.resources) {
+      if (resource.allocation.resource !== null) {
+        textures.set(resource.textureKey, resource.allocation.resource.view);
+      }
+    }
+
+    if (shadowResources.samplerResource.resource !== null) {
+      samplers.set(
+        shadowResources.samplerResource.resource.resourceKey,
+        shadowResources.samplerResource.resource.sampler,
+      );
+    }
+  }
+
   for (const resource of resources.diffuseTextureResource?.resources ?? []) {
     if (resource.valid && resource.resource !== null) {
       textures.set(resource.resource.resourceKey, resource.resource.view);
@@ -646,6 +796,11 @@ function appendShadowEntries(
   shadowResources: StandardLightIblShadowReceiverResources,
   entries: StandardLightShadowBindGroupDescriptorEntry[],
   diagnostics: StandardLightShadowBindGroupDiagnostic[],
+  bindings: {
+    readonly matrix: number;
+    readonly depth: number;
+    readonly sampler: number;
+  } = { matrix: 2, depth: 3, sampler: 4 },
 ): void {
   if (shadowResources.matrixBufferResource.resource === null) {
     diagnostics.push({
@@ -655,7 +810,7 @@ function appendShadowEntries(
     });
   } else {
     entries.push({
-      binding: 2,
+      binding: bindings.matrix,
       resourceKey: shadowResources.matrixBufferResource.resource.resourceKey,
       resourceKind: "buffer",
     });
@@ -673,7 +828,7 @@ function appendShadowEntries(
     });
   } else {
     entries.push({
-      binding: 3,
+      binding: bindings.depth,
       resourceKey: depthResource.textureKey,
       resourceKind: "texture-view",
     });
@@ -687,7 +842,7 @@ function appendShadowEntries(
     });
   } else {
     entries.push({
-      binding: 4,
+      binding: bindings.sampler,
       resourceKey: shadowResources.samplerResource.resource.resourceKey,
       resourceKind: "sampler",
     });

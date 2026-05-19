@@ -49,6 +49,7 @@ import type {
 } from "./ibl-texture-resource.js";
 import {
   createStandardLightIblBindGroupDescriptorPlan,
+  createStandardLightMultiShadowBindGroupDescriptorPlan,
   createStandardLightShadowBindGroupDescriptorPlan,
   createStandardLightShadowBindGroupResource,
   type StandardLightShadowBindGroupDiagnostic,
@@ -160,11 +161,16 @@ export interface CreateStandardFrameGpuResourcesOptions {
   readonly samplers?: readonly SamplerGpuResource[];
 }
 
-export interface StandardFrameShadowReceiverResources {
-  readonly shadowKind?: "directional" | "point" | "spot";
+export interface StandardFrameShadowReceiverResourceSet {
   readonly matrixBufferResource: ShadowMatrixBufferResourceReport;
   readonly depthTextureResources: ShadowDepthTextureResourceReport;
   readonly samplerResource: ShadowSamplerResourceReport;
+}
+
+export interface StandardFrameShadowReceiverResources extends StandardFrameShadowReceiverResourceSet {
+  readonly shadowKind?: "directional" | "point" | "spot" | "multi";
+  readonly spotShadowReceiverResources?: StandardFrameShadowReceiverResourceSet;
+  readonly pointShadowReceiverResources?: StandardFrameShadowReceiverResourceSet;
 }
 
 export interface StandardFrameIblResources {
@@ -620,6 +626,45 @@ function createLightShadowBindGroup(
 
   if (shadowReceiverResources === undefined) {
     return null;
+  }
+
+  if (
+    options.pipelineKey.includes("shadowMap") &&
+    options.pipelineKey.includes("pointShadowMap") &&
+    shadowReceiverResources.spotShadowReceiverResources !== undefined &&
+    shadowReceiverResources.pointShadowReceiverResources !== undefined
+  ) {
+    const plan = createStandardLightMultiShadowBindGroupDescriptorPlan({
+      lightGpuBufferResource: lightGpuBuffers.resource,
+      layoutKey: options.lightLayout?.layoutKey ?? null,
+      label: "standard/lights-multi-shadow",
+      directionalShadowReceiverResources: shadowReceiverResources,
+      spotShadowReceiverResources:
+        shadowReceiverResources.spotShadowReceiverResources,
+      pointShadowReceiverResources:
+        shadowReceiverResources.pointShadowReceiverResources,
+    });
+
+    diagnostics.push(...plan.diagnostics);
+
+    const result = createStandardLightShadowBindGroupResource({
+      device: options.device,
+      plan,
+      layout:
+        options.lightLayout as StandardLightShadowBindGroupLayoutResource | null,
+      lightGpuBufferResource: lightGpuBuffers.resource,
+      matrixBufferResource: shadowReceiverResources.matrixBufferResource,
+      depthTextureResources: shadowReceiverResources.depthTextureResources,
+      samplerResource: shadowReceiverResources.samplerResource,
+      additionalShadowReceiverResources: [
+        shadowReceiverResources.spotShadowReceiverResources,
+        shadowReceiverResources.pointShadowReceiverResources,
+      ],
+    });
+
+    diagnostics.push(...result.diagnostics);
+
+    return result.valid ? result.resource : null;
   }
 
   const plan = createStandardLightShadowBindGroupDescriptorPlan({

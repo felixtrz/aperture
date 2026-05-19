@@ -37,6 +37,8 @@ import {
   Mesh,
   RenderLayer,
   RenderOrder,
+  ShadowCaster,
+  ShadowReceiver,
   Visibility,
   createCamera,
   createLight,
@@ -278,6 +280,20 @@ export function withLightShadowSettings(
   return (entity, context) => {
     registerRenderAuthoringComponents(context.world);
     entity.addComponent(LightShadowSettings, createLightShadowSettings(input));
+  };
+}
+
+export function withShadowCaster(enabled = true): SpawnEntityInitializer {
+  return (entity, context) => {
+    registerRenderAuthoringComponents(context.world);
+    entity.addComponent(ShadowCaster, { enabled });
+  };
+}
+
+export function withShadowReceiver(enabled = true): SpawnEntityInitializer {
+  return (entity, context) => {
+    registerRenderAuthoringComponents(context.world);
+    entity.addComponent(ShadowReceiver, { enabled });
   };
 }
 

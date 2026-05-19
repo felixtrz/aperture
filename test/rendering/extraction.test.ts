@@ -9,6 +9,8 @@ import {
   Material,
   Mesh,
   RenderLayer,
+  ShadowCaster,
+  ShadowReceiver,
   Visibility,
   WorldTransform,
   createBoxMeshAsset,
@@ -95,6 +97,33 @@ describe("render extraction", () => {
     expect(view).not.toEqual(projection);
     expect(viewProjection).not.toEqual(projection);
     expect(viewProjection).not.toEqual(view);
+  });
+
+  it("extracts ECS-authored shadow caster and receiver flags on mesh draws", () => {
+    const world = createRuntimeWorld();
+    const assets = createReadyAssets();
+
+    createCameraEntity(world, { priority: 0, layerMask: 1 });
+    const mesh = createMeshEntity(world, {
+      meshId: "mesh:cube",
+      materialId: "material:unlit",
+      layerMask: 1,
+    });
+
+    mesh.addComponent(ShadowCaster, { enabled: false });
+    mesh.addComponent(ShadowReceiver, { enabled: true });
+
+    const snapshot = extractRenderSnapshot(world, assets);
+
+    expect(snapshot.meshDraws).toHaveLength(1);
+    expect(snapshot.meshDraws[0]).toMatchObject({
+      castsShadow: false,
+      receivesShadow: true,
+    });
+    expect(JSON.parse(JSON.stringify(snapshot.meshDraws[0]))).toMatchObject({
+      castsShadow: false,
+      receivesShadow: true,
+    });
   });
 
   it("orders camera packets by priority then stable id", () => {

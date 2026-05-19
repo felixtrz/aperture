@@ -53,6 +53,8 @@ export interface MeshDrawPacket {
   readonly worldTransformOffset: number;
   readonly boundsIndex: number;
   readonly layerMask: number;
+  readonly castsShadow?: boolean;
+  readonly receivesShadow?: boolean;
   readonly sortKey: RenderSortKey;
   readonly batchKey: BatchCompatibilityKey;
 }

@@ -51,6 +51,8 @@ import {
   Mesh,
   RenderLayer,
   RenderOrder,
+  ShadowCaster,
+  ShadowReceiver,
   Visibility,
   registerRenderAuthoringComponents,
   type CameraInput,
@@ -450,6 +452,12 @@ function extractMeshDraws(
     const layerMask = entity.hasComponent(RenderLayer)
       ? (entity.getValue(RenderLayer, "mask") ?? 1)
       : 1;
+    const castsShadow = entity.hasComponent(ShadowCaster)
+      ? (entity.getValue(ShadowCaster, "enabled") ?? true)
+      : true;
+    const receivesShadow = entity.hasComponent(ShadowReceiver)
+      ? (entity.getValue(ShadowReceiver, "enabled") ?? true)
+      : true;
 
     if (layerMask === 0) {
       diagnostics.push(diagnostic("render.zeroLayerMask", entity));
@@ -591,6 +599,8 @@ function extractMeshDraws(
         worldTransformOffset,
         boundsIndex,
         layerMask,
+        castsShadow,
+        receivesShadow,
         sortKey: createRenderSortKey({
           queue,
           layer: layerMask,

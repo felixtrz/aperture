@@ -143,7 +143,11 @@ export function createShadowCasterDrawListPlanReport(
     }
 
     const included = input.meshDraws
-      .filter((draw) => (draw.layerMask & request.casterLayerMask) !== 0)
+      .filter(
+        (draw) =>
+          draw.castsShadow !== false &&
+          (draw.layerMask & request.casterLayerMask) !== 0,
+      )
       .map((draw) => ({
         renderId: draw.renderId,
         meshKey: assetHandleKey(draw.mesh),

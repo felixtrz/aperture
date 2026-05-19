@@ -827,6 +827,13 @@ interface GltfSceneStatus extends ExampleStatusBase {
       readonly receiverEnabled: boolean;
       readonly casterEnabled: boolean;
     };
+    readonly authoring: {
+      readonly drawCount: number;
+      readonly casterCount: number;
+      readonly receiverCount: number;
+      readonly disabledCasterCount: number;
+      readonly disabledReceiverCount: number;
+    };
     readonly intent: {
       readonly key: string;
       readonly lightKey: string;
@@ -1090,6 +1097,10 @@ interface GltfSceneStatus extends ExampleStatusBase {
         readonly code: string;
         readonly severity: string;
       }[];
+    };
+    readonly casterDrawList: {
+      readonly includedDrawCount: number;
+      readonly skippedDrawCount: number;
     };
     readonly bindGroupDescriptor: {
       readonly ready: boolean;
@@ -2935,14 +2946,14 @@ test("Playwright shows the GLTF scene fixture through the app path", async ({
         },
         descriptor: {
           pipelineKey:
-            "shadow-caster/depth-only/depth24plus/triangle-list/back",
+            "shadow-caster/depth-only/depth24plus/triangle-list/none",
           label: "shadow-caster-depth-only:depth24plus:triangle-list",
           shader: {
             family: "shadow-caster",
             label: "shadow-caster-depth-only",
             entryPoints: {
               vertex: "vs_main",
-              fragment: null,
+              fragment: "fs_main",
             },
           },
           vertex: {
@@ -2956,7 +2967,7 @@ test("Playwright shows the GLTF scene fixture through the app path", async ({
           },
           primitive: {
             topology: "triangle-list",
-            cullMode: "back",
+            cullMode: "none",
             frontFace: "ccw",
           },
           depthStencil: {
@@ -2992,9 +3003,9 @@ test("Playwright shows the GLTF scene fixture through the app path", async ({
         },
         resource: {
           pipelineKey:
-            "shadow-caster/depth-only/depth24plus/triangle-list/back",
+            "shadow-caster/depth-only/depth24plus/triangle-list/none",
           resourceKey:
-            "render-pipeline:shadow-caster/depth-only/depth24plus/triangle-list/back",
+            "render-pipeline:shadow-caster/depth-only/depth24plus/triangle-list/none",
           shaderModuleKey: "shader-module:shadow-caster-depth-only",
           label: "shadow-caster-depth-only:depth24plus:triangle-list",
         },
@@ -3073,7 +3084,7 @@ test("Playwright shows the GLTF scene fixture through the app path", async ({
               expect.stringMatching(/^mesh-index-buffer:/),
             matrixResourceKey: "shadow-matrix-buffer:directional",
             pipelineKey:
-              "shadow-caster/depth-only/depth24plus/triangle-list/back",
+              "shadow-caster/depth-only/depth24plus/triangle-list/none",
             ready: true,
           },
           {
@@ -3088,7 +3099,7 @@ test("Playwright shows the GLTF scene fixture through the app path", async ({
               expect.stringMatching(/^mesh-index-buffer:/),
             matrixResourceKey: "shadow-matrix-buffer:directional",
             pipelineKey:
-              "shadow-caster/depth-only/depth24plus/triangle-list/back",
+              "shadow-caster/depth-only/depth24plus/triangle-list/none",
             ready: true,
           },
           {
@@ -3103,7 +3114,7 @@ test("Playwright shows the GLTF scene fixture through the app path", async ({
               expect.stringMatching(/^mesh-index-buffer:/),
             matrixResourceKey: "shadow-matrix-buffer:directional",
             pipelineKey:
-              "shadow-caster/depth-only/depth24plus/triangle-list/back",
+              "shadow-caster/depth-only/depth24plus/triangle-list/none",
             ready: true,
           },
           {
@@ -3118,7 +3129,7 @@ test("Playwright shows the GLTF scene fixture through the app path", async ({
               expect.stringMatching(/^mesh-index-buffer:/),
             matrixResourceKey: "shadow-matrix-buffer:directional",
             pipelineKey:
-              "shadow-caster/depth-only/depth24plus/triangle-list/back",
+              "shadow-caster/depth-only/depth24plus/triangle-list/none",
             ready: true,
           },
         ]),
@@ -3174,10 +3185,10 @@ test("Playwright shows the GLTF scene fixture through the app path", async ({
             drawCalls: 4,
             indexedDrawCalls: 4,
             pipelineKeys: [
-              "shadow-caster/depth-only/depth24plus/triangle-list/back",
+              "shadow-caster/depth-only/depth24plus/triangle-list/none",
             ],
             pipelineResourceKeys: [
-              "shadow-caster/depth-only/depth24plus/triangle-list/back",
+              "shadow-caster/depth-only/depth24plus/triangle-list/none",
             ],
             bindGroupResourceKeys: [
               "bind-group:shadow-caster/group-0/shadow-matrix-buffer:directional",
@@ -3487,6 +3498,13 @@ test("Playwright shows the GLTF scene fixture through the app path", async ({
         receiverEnabled: true,
         casterEnabled: true,
       },
+      authoring: {
+        drawCount: 4,
+        casterCount: 4,
+        receiverCount: 4,
+        disabledCasterCount: 0,
+        disabledReceiverCount: 0,
+      },
     },
     draw: { drawCalls: 4, indexedDrawCalls: 4 },
     renderWorld: { active: 4 },
@@ -3522,6 +3540,7 @@ test("Playwright shows the GLTF scene fixture through the app path", async ({
 
     return (
       status?.shadow?.controls.receiverEnabled === false &&
+      status.shadow.authoring.receiverCount === 0 &&
       (status.frame ?? 0) > previousFrame
     );
   }, frameBeforeReceiverToggle);
@@ -3548,6 +3567,43 @@ test("Playwright shows the GLTF scene fixture through the app path", async ({
     receiverOffScreenshot,
     receiverOffStatus,
   );
+
+  const frameBeforeCasterToggle = receiverOffStatus.frame ?? 0;
+  await page.locator("#shadow-caster-toggle").uncheck();
+  await page.waitForFunction((previousFrame) => {
+    const status = (
+      globalThis as {
+        readonly __APERTURE_EXAMPLE_STATUS__?: GltfSceneStatus;
+      }
+    ).__APERTURE_EXAMPLE_STATUS__;
+
+    return (
+      status?.shadow?.controls.casterEnabled === false &&
+      status.shadow.authoring.casterCount === 0 &&
+      (status.frame ?? 0) > previousFrame
+    );
+  }, frameBeforeCasterToggle);
+  const casterOffStatus = await page.evaluate(
+    () =>
+      (globalThis as { readonly __APERTURE_EXAMPLE_STATUS__?: GltfSceneStatus })
+        .__APERTURE_EXAMPLE_STATUS__,
+  );
+
+  expect(casterOffStatus?.shadow?.controls).toMatchObject({
+    receiverEnabled: false,
+    casterEnabled: false,
+  });
+  expect(casterOffStatus?.shadow?.authoring).toMatchObject({
+    drawCount: 4,
+    casterCount: 0,
+    receiverCount: 0,
+    disabledCasterCount: 4,
+    disabledReceiverCount: 4,
+  });
+  expect(casterOffStatus?.shadow?.casterDrawList).toMatchObject({
+    includedDrawCount: 0,
+    skippedDrawCount: 4,
+  });
   webGpuValidation.expectNoWarnings();
 });
 
@@ -3677,6 +3733,13 @@ function expectReceiverShadowToggleRelease(
 
   expect(status.shadow?.controls.receiverEnabled).toBe(false);
   expect(status.shadow?.controls.casterEnabled).toBe(true);
+  expect(status.shadow?.authoring).toMatchObject({
+    drawCount: 4,
+    casterCount: 4,
+    receiverCount: 0,
+    disabledCasterCount: 0,
+    disabledReceiverCount: 4,
+  });
   expect(status.shadow?.rendering.supported).toBe(false);
   expect(
     receiverOffLuminance.visibleSamples,

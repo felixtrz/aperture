@@ -100,10 +100,12 @@ import { createLightBindGroupLayoutDescriptor } from "./light-bind-group-layout.
 import type { LightBindGroupLayoutResource } from "./light-bind-group-layout.js";
 import {
   STANDARD_LIGHT_IBL_BIND_GROUP_LAYOUT_KEY,
+  STANDARD_LIGHT_MULTI_SHADOW_BIND_GROUP_LAYOUT_KEY,
   STANDARD_LIGHT_POINT_SHADOW_BIND_GROUP_LAYOUT_KEY,
   STANDARD_LIGHT_SHADOW_BIND_GROUP_LAYOUT_KEY,
   STANDARD_LIGHT_SHADOW_IBL_BIND_GROUP_LAYOUT_KEY,
   createStandardLightIblBindGroupLayoutDescriptor,
+  createStandardLightMultiShadowBindGroupLayoutDescriptor,
   createStandardLightPointShadowBindGroupLayoutDescriptor,
   createStandardLightShadowBindGroupLayoutDescriptor,
   type StandardLightShadowBindGroupLayoutResource,
@@ -778,15 +780,20 @@ function createStandardAppPipelineLayouts(
   const usesLightPointShadowGroup = pipelineResourceKey.includes(
     STANDARD_LIGHT_POINT_SHADOW_BIND_GROUP_LAYOUT_KEY,
   );
+  const usesLightMultiShadowGroup = pipelineResourceKey.includes(
+    STANDARD_LIGHT_MULTI_SHADOW_BIND_GROUP_LAYOUT_KEY,
+  );
   const lightLayoutKey = usesLightShadowIblGroup
     ? "webgpu-app/standard/lights-shadow-ibl/group-3"
     : usesLightIblGroup
       ? "webgpu-app/standard/lights-ibl/group-3"
-      : usesLightPointShadowGroup
-        ? "webgpu-app/standard/lights-point-shadow/group-3"
-        : usesLightShadowGroup
-          ? "webgpu-app/standard/lights-shadow/group-3"
-          : "webgpu-app/standard/group-3";
+      : usesLightMultiShadowGroup
+        ? "webgpu-app/standard/lights-multi-shadow/group-3"
+        : usesLightPointShadowGroup
+          ? "webgpu-app/standard/lights-point-shadow/group-3"
+          : usesLightShadowGroup
+            ? "webgpu-app/standard/lights-shadow/group-3"
+            : "webgpu-app/standard/group-3";
 
   return {
     kind: "standard",
@@ -818,14 +825,16 @@ function createStandardAppPipelineLayouts(
               shadowMap: usesLightShadowIblGroup,
               specularProof: usesSpecularIblProof,
             })
-          : usesLightShadowGroup
-            ? createStandardLightShadowBindGroupLayoutDescriptor()
-            : usesLightPointShadowGroup
-              ? createStandardLightPointShadowBindGroupLayoutDescriptor()
-              : createLightBindGroupLayoutDescriptor({
-                  group: 3,
-                  label: "webgpu-app/standard/group-3",
-                }),
+          : usesLightMultiShadowGroup
+            ? createStandardLightMultiShadowBindGroupLayoutDescriptor()
+            : usesLightShadowGroup
+              ? createStandardLightShadowBindGroupLayoutDescriptor()
+              : usesLightPointShadowGroup
+                ? createStandardLightPointShadowBindGroupLayoutDescriptor()
+                : createLightBindGroupLayoutDescriptor({
+                    group: 3,
+                    label: "webgpu-app/standard/group-3",
+                  }),
     },
   };
 }
@@ -2050,6 +2059,29 @@ async function renderWebGpuAppFrame(
 function hasReadyStandardShadowReceiverResources(
   resources: StandardFrameShadowReceiverResources | undefined,
 ): resources is StandardFrameShadowReceiverResources {
+  if (resources?.shadowKind === "multi") {
+    return (
+      hasReadyStandardShadowReceiverResourceSet(resources) &&
+      hasReadyStandardShadowReceiverResourceSet(
+        resources.spotShadowReceiverResources,
+      ) &&
+      hasReadyStandardShadowReceiverResourceSet(
+        resources.pointShadowReceiverResources,
+      )
+    );
+  }
+
+  return hasReadyStandardShadowReceiverResourceSet(resources);
+}
+
+function hasReadyStandardShadowReceiverResourceSet(
+  resources:
+    | Pick<
+        StandardFrameShadowReceiverResources,
+        "matrixBufferResource" | "depthTextureResources" | "samplerResource"
+      >
+    | undefined,
+): boolean {
   return (
     resources !== undefined &&
     resources.matrixBufferResource.resource !== null &&
@@ -2089,30 +2121,39 @@ function hasReadyStandardSpecularIblProofResources(
 
 function withStandardShadowPipelineKeys(
   snapshot: RenderSnapshot,
-  shadowKind: "directional" | "point" | "spot" = "directional",
+  shadowKind: "directional" | "point" | "spot" | "multi" = "directional",
 ): RenderSnapshot {
   let changed = false;
-  const shadowFeature = shadowKind === "point" ? "pointShadowMap" : "shadowMap";
+  const shadowFeatures =
+    shadowKind === "multi"
+      ? ["shadowMap", "pointShadowMap"]
+      : [shadowKind === "point" ? "pointShadowMap" : "shadowMap"];
   const meshDraws = snapshot.meshDraws.map((draw) => {
-    const pipelineKey = draw.batchKey.pipelineKey;
+    let pipelineKey = draw.batchKey.pipelineKey;
 
     if (
+      draw.receivesShadow === false ||
       !pipelineKey.startsWith("standard|") ||
-      pipelineKey.includes(`|${shadowFeature}|`)
+      shadowFeatures.every((feature) => pipelineKey.includes(`|${feature}|`))
     ) {
       return draw;
     }
 
     changed = true;
-    const shadowPipelineKey = pipelineKey.replace(
-      /^standard\|/,
-      `standard|${shadowFeature}|`,
-    );
+
+    for (const shadowFeature of shadowFeatures) {
+      if (!pipelineKey.includes(`|${shadowFeature}|`)) {
+        pipelineKey = pipelineKey.replace(
+          /^standard\|/,
+          `standard|${shadowFeature}|`,
+        );
+      }
+    }
 
     return {
       ...draw,
-      batchKey: { ...draw.batchKey, pipelineKey: shadowPipelineKey },
-      sortKey: { ...draw.sortKey, pipelineKey: shadowPipelineKey },
+      batchKey: { ...draw.batchKey, pipelineKey },
+      sortKey: { ...draw.sortKey, pipelineKey },
     };
   });
 

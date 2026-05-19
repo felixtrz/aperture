@@ -13,6 +13,7 @@ interface GlbViewerStatus extends ExampleStatusBase {
   readonly selectedAsset?: {
     readonly id: string;
     readonly label: string;
+    readonly source: string;
     readonly url: string;
     readonly loading: boolean;
   };
@@ -111,6 +112,7 @@ test("Playwright renders the fetched sample GLB viewer asset", async ({
     selectedAsset: {
       id: "cube",
       label: "Mint cube",
+      source: "sample",
       url: "/examples/assets/cube.glb",
       loading: false,
     },
@@ -227,6 +229,7 @@ test("Playwright renders the fetched sample GLB viewer asset", async ({
     selectedAsset: {
       id: "slab",
       label: "Amber slab",
+      source: "sample",
       url: "/examples/assets/amber-slab.glb",
       loading: false,
     },
@@ -253,6 +256,172 @@ test("Playwright renders the fetched sample GLB viewer asset", async ({
     maxSampleDelta(rotatedScreenshot, slabScreenshot),
     "switching GLB assets should unload the prior scene and render different pixels",
   ).toBeGreaterThan(16);
+
+  await page
+    .locator("#glb-url-input")
+    .fill(new URL("/examples/assets/sapphire-pillar.glb", page.url()).href);
+  await page.locator("#glb-url-form button").click();
+  await page.waitForFunction(
+    () => {
+      const status = (
+        globalThis as {
+          readonly __APERTURE_EXAMPLE_STATUS__?: {
+            readonly selectedAsset?: {
+              readonly id?: string;
+              readonly loading?: boolean;
+            };
+            readonly source?: { readonly ok?: boolean };
+            readonly extraction?: { readonly meshDraws?: number };
+          };
+        }
+      ).__APERTURE_EXAMPLE_STATUS__;
+
+      return (
+        status?.selectedAsset?.id === "custom-url" &&
+        status.selectedAsset.loading === false &&
+        status.source?.ok === true &&
+        status.extraction?.meshDraws === 1
+      );
+    },
+    undefined,
+    { timeout: 5000 },
+  );
+  const customStatus = await waitForExampleStatus<GlbViewerStatus>(page);
+  const customScreenshot = await page.locator("#aperture-canvas").screenshot();
+
+  expect(customStatus).toMatchObject({
+    selectedAsset: {
+      id: "custom-url",
+      label: "Custom URL",
+      source: "custom",
+      url: "/examples/assets/sapphire-pillar.glb",
+      loading: false,
+    },
+    source: {
+      ok: true,
+      status: {
+        status: "loaded",
+        sourceKind: "glb",
+        diagnostics: [],
+      },
+      diagnostics: [],
+    },
+    extraction: {
+      views: 1,
+      meshDraws: 1,
+      diagnostics: 0,
+    },
+    draw: {
+      packages: 1,
+      drawCalls: 1,
+    },
+  });
+  expect(
+    maxSampleDelta(slabScreenshot, customScreenshot),
+    "loading a custom GLB URL should replace the selected sample and change rendered pixels",
+  ).toBeGreaterThan(16);
+  webGpuValidation.expectNoWarnings();
+});
+
+test("Playwright bootstraps a custom GLB URL from the query string", async ({
+  page,
+}) => {
+  const webGpuValidation = attachWebGpuValidationConsoleGuard(page);
+
+  await page.goto(
+    `/examples/glb-viewer.html?url=${encodeURIComponent(
+      "/examples/assets/sapphire-pillar.glb",
+    )}`,
+  );
+
+  await page.waitForFunction(
+    () =>
+      ((
+        globalThis as {
+          readonly __APERTURE_EXAMPLE_STATUS__?: {
+            readonly frame?: number;
+            readonly selectedAsset?: {
+              readonly id?: string;
+              readonly loading?: boolean;
+            };
+            readonly extraction?: { readonly meshDraws?: number };
+          };
+        }
+      ).__APERTURE_EXAMPLE_STATUS__?.frame ?? 0) >= 3 &&
+      ((
+        globalThis as {
+          readonly __APERTURE_EXAMPLE_STATUS__?: {
+            readonly selectedAsset?: {
+              readonly id?: string;
+              readonly loading?: boolean;
+            };
+            readonly extraction?: { readonly meshDraws?: number };
+          };
+        }
+      ).__APERTURE_EXAMPLE_STATUS__?.selectedAsset?.id ?? "") ===
+        "custom-url" &&
+      ((
+        globalThis as {
+          readonly __APERTURE_EXAMPLE_STATUS__?: {
+            readonly selectedAsset?: { readonly loading?: boolean };
+            readonly extraction?: { readonly meshDraws?: number };
+          };
+        }
+      ).__APERTURE_EXAMPLE_STATUS__?.selectedAsset?.loading ?? true) ===
+        false &&
+      ((
+        globalThis as {
+          readonly __APERTURE_EXAMPLE_STATUS__?: {
+            readonly extraction?: { readonly meshDraws?: number };
+          };
+        }
+      ).__APERTURE_EXAMPLE_STATUS__?.extraction?.meshDraws ?? 0) === 1,
+  );
+
+  const status = await waitForExampleStatus<GlbViewerStatus>(page);
+
+  expect(status?.ok).toBe(true);
+  expectStatusJsonSafeForGpu(status);
+  expect(status).toMatchObject({
+    selectedAsset: {
+      id: "custom-url",
+      label: "Custom URL",
+      source: "custom",
+      url: "/examples/assets/sapphire-pillar.glb",
+      loading: false,
+    },
+    source: {
+      ok: true,
+      status: {
+        status: "loaded",
+        sourceKind: "glb",
+        diagnostics: [],
+      },
+      diagnostics: [],
+    },
+    extraction: {
+      views: 1,
+      meshDraws: 1,
+      diagnostics: 0,
+    },
+    draw: {
+      packages: 1,
+      drawCalls: 1,
+    },
+  });
+  await expect(page.locator("#glb-url-input")).toHaveValue(
+    "http://127.0.0.1:4173/examples/assets/sapphire-pillar.glb",
+  );
+
+  const screenshot = await page.locator("#aperture-canvas").screenshot();
+  const clear =
+    status?.clearColor === undefined
+      ? { r: 4, g: 6, b: 9, a: 255 }
+      : rgbaColorToPixel(status.clearColor);
+
+  expect(
+    pixelDistance(strongestSample(screenshot, clear), clear),
+  ).toBeGreaterThan(20);
   webGpuValidation.expectNoWarnings();
 });
 

@@ -276,6 +276,53 @@ describe("browser standard material pipeline bridge", () => {
     });
   });
 
+  it("selects a multi-shadow shader and group 3 layout key for combined shadow pipeline keys", async () => {
+    const shaderModule = {
+      compilationInfo: async () => ({ messages: [] }),
+    };
+    const pipeline = { kind: "standard-multi-shadow-render-pipeline" };
+    const shaderDescriptors: WebGpuShaderCreateDescriptor[] = [];
+    const device = {
+      createShaderModule(descriptor: WebGpuShaderCreateDescriptor) {
+        shaderDescriptors.push(descriptor);
+        return shaderModule;
+      },
+      createRenderPipeline() {
+        return pipeline;
+      },
+    };
+
+    const result = await createStandardRenderPipelineResource({
+      device,
+      colorFormat: "bgra8unorm",
+      depthFormat: "depth24plus",
+      batchKey: {
+        ...STANDARD_BATCH_KEY,
+        pipelineKey: "standard|pointShadowMap|shadowMap|opaque|back|less|none",
+      },
+    });
+
+    expect(result.diagnostics).toEqual([]);
+    expect(required(result.resource).cacheKey).toContain(
+      "direct-lit-metallic-roughness-multi-shadow-map",
+    );
+    expect(required(result.resource).cacheKey).toContain(
+      "standard/lights-multi-shadow/group-3:light-floats@0,light-metadata@1,directional-matrix@2,directional-depth@3,directional-sampler@4,spot-matrix@5,spot-depth@6,spot-sampler@7,point-matrix@8,point-depth-cube@9,point-sampler@10",
+    );
+    expect(shaderDescriptors[0]).toEqual({
+      label: "aperture/standard-mesh-multi-shadow-receiver",
+      code: createStandardTextureVariantShader({
+        baseColorTexture: false,
+        metallicRoughnessTexture: false,
+        normalTexture: false,
+        occlusionTexture: false,
+        emissiveTexture: false,
+        shadowMap: true,
+        pointShadowMap: true,
+      }).code,
+    });
+  });
+
   it("diagnoses missing pipeline creation separately from shader creation", async () => {
     const result = await createStandardRenderPipelineResource({
       device: {

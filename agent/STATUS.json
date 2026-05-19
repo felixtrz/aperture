@@ -1,11 +1,11 @@
 {
   "state": "idle",
-  "currentTaskId": "task-2014",
+  "currentTaskId": "task-2020",
   "currentRunStartedAt": null,
-  "lastRunStartedAt": "2026-05-19T21:15:38Z",
-  "lastResult": "blocked",
+  "lastRunStartedAt": "2026-05-19T22:01:50Z",
+  "lastResult": "completed",
   "lastCommit": "a2683d7",
   "activePid": null,
-  "notes": "Completed task-2013 spot-shadow projection proof. Started task-2014 and landed explicit spot shadowKind receiver support; stopped because full multi-shadow receiver support needs a deliberate receiver contract change.",
-  "lastRunFinishedAt": "2026-05-19T21:36:16Z"
+  "notes": "Completed task-2014 multi-light shadow scene, task-2016 custom GLB URL loading, task-2018 public shadow caster/receiver helpers, and task-2019 glb-viewer query URL bootstrap. Recommended next task is task-2020 orbit camera fit from loaded asset bounds.",
+  "lastRunFinishedAt": "2026-05-19T22:46:36Z"
 }

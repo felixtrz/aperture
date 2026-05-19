@@ -59,7 +59,7 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start with `task-2014`: build a combined directional, point, and spot shadow scene.
+Start with `task-2020`: fit glb-viewer orbit camera from loaded asset bounds.
 
 `task-2001` is complete: the spinning-cube example now creates a renderer-owned face-colored diffuse IBL cube texture and sampler, routes it through the StandardMaterial diffuse IBL shader variant, and Playwright verifies direction-dependent face pixels.
 `task-2002` is complete: `withEnvironmentMap(handle)` is exported from runtime/core and materials-showcase now uses it with visible diffuse IBL routing.
@@ -74,6 +74,10 @@ Start with `task-2014`: build a combined directional, point, and spot shadow sce
 `task-2011` is complete: StandardMaterial directional shadow sampling now uses a 3x3 PCF comparison filter, publishes the active PCF mode in `gltf-scene`, and targeted browser coverage still passes.
 `task-2017` is complete: StandardMaterial point-shadow sampling now compares against clamped projected cube-face receiver depth instead of a constant occupancy reference, and Playwright samples named receiver coordinates to prove near wall pixels remain lit while mid/far samples darken without WebGPU warnings.
 `task-2013` is complete: `examples/spot-shadow.html` now extracts spot shadow requests, plans a single 2D shadow pass with a perspective spot matrix, routes StandardMaterial spot lighting plus receiver sampling, and Playwright verifies lit and shadowed receiver samples without WebGPU warnings.
+`task-2014` is complete: `examples/multi-light-shadow.html` now submits directional, spot, and point shadow passes into one browser-safe StandardMaterial receiver route, and Playwright verifies six named receiver samples in one scene.
+`task-2016` is complete: `examples/glb-viewer.html` now accepts a typed custom `.glb` URL, loads it through the same ECS replay/unload path as the sample selector, reports the selected URL in JSON-safe status, and Playwright verifies a local custom URL swaps rendered pixels.
+`task-2018` is complete: `withShadowCaster()` and `withShadowReceiver()` are public runtime helpers, extracted mesh draws carry JSON-safe caster/receiver flags, and the GLTF scene toggles now update ECS-authored flags that drive caster draw-list and receiver pipeline routing.
+`task-2019` is complete: `examples/glb-viewer.html?url=...` now seeds the custom URL field, loads through the same guarded ECS replay path, and Playwright verifies query-driven initial render status and pixels.
 
 Reference anchors (read both before writing WGSL):
 
@@ -307,6 +311,8 @@ Acceptance criteria:
 
 ### task-2014 — Combined multi-light scene: directional + point + spot all casting shadows
 
+Status: completed 2026-05-19. See `agent/COMPLETED.md`.
+
 Category: `webgpu-render`
 Package/write-scope: `packages/webgpu/src/`, `examples/multi-light-shadow.html`, `examples/multi-light-shadow.js`, `test/e2e/multi-light-shadow.spec.ts`.
 Reference anchor: `references/engine/src/scene/renderer/shadow-renderer.js` (PlayCanvas shadow-renderer top-level coordination); Bevy multi-light render path under `references/bevy/crates/bevy_pbr/src/render/` (verify file on read).
@@ -340,6 +346,8 @@ Acceptance criteria:
 
 ### task-2016 — Add URL-driven GLB loading to glb-viewer
 
+Status: completed 2026-05-19. See `agent/COMPLETED.md`.
+
 Category: `runtime-orchestration`
 Package/write-scope: `examples/glb-viewer.js`, `examples/glb-viewer.html`, targeted tests.
 Reference anchor: `references/three.js/examples/webgl_loader_gltf.html` (model URL selection and stale-load guard).
@@ -352,6 +360,8 @@ Acceptance criteria:
 
 ### task-2018 — Add public shadow caster/receiver authoring helpers
 
+Status: completed 2026-05-19. See `agent/COMPLETED.md`.
+
 Category: `render-bridge`
 Package/write-scope: `packages/render/src/rendering/`, `packages/runtime/src/`, `examples/gltf-scene.js`, targeted tests.
 Reference anchor: `references/bevy/examples/3d/shadow_caster_receiver.rs`.
@@ -361,6 +371,56 @@ Acceptance criteria:
 - Public helpers can mark ECS-authored renderables as shadow casters, shadow receivers, or both without renderer-owned scene state.
 - `examples/gltf-scene.html` uses the helpers for its caster/receiver controls instead of filtering only example-local renderer inputs.
 - Targeted extraction/runtime tests prove shadow caster/receiver flags appear in render snapshot data and remain JSON-safe.
+
+### task-2019 — Add query-URL bootstrap to glb-viewer
+
+Status: completed 2026-05-19. See `agent/COMPLETED.md`.
+
+Category: `runtime-orchestration`
+Package/write-scope: `examples/glb-viewer.js`, `examples/glb-viewer.html`, `test/e2e/glb-viewer.spec.ts`.
+Reference anchor: `references/three.js/examples/webgl_loader_gltf.html` (model selection flow and stale-load guard).
+
+Acceptance criteria:
+
+- Opening `examples/glb-viewer.html?url=/examples/assets/sapphire-pillar.glb` seeds the custom URL control and loads that GLB without first selecting a sample asset.
+- JSON-safe viewer status reports `selectedAsset.source: "custom"` and the selected URL while extraction reports one mesh draw.
+- Playwright covers the query-driven initial load and proves rendered pixels differ from the default sample asset.
+
+### task-2020 — Fit glb-viewer orbit camera from loaded asset bounds
+
+Category: `runtime-orchestration`
+Package/write-scope: `examples/glb-viewer.js`, targeted tests.
+Reference anchor: `references/three.js/examples/webgl_loader_gltf.html` (`fitCameraToSelection` pattern).
+
+Acceptance criteria:
+
+- Each GLB load derives an orbit distance/framing target from the replayed mesh bounds instead of using a fixed one-size camera distance.
+- JSON-safe viewer status reports the active fit bounds and distance used for the current asset.
+- Playwright switches at least two differently sized sample assets and verifies both remain visibly framed with non-clear pixels near the render-region center.
+
+### task-2021 — Render IBL and shadows together in one StandardMaterial browser scene
+
+Category: `webgpu-render`
+Package/write-scope: `packages/webgpu/src/`, one example, targeted tests.
+Reference anchor: `references/three.js/src/extras/PMREMGenerator.js`; `references/engine/src/scene/renderer/shadow-renderer.js`.
+
+Acceptance criteria:
+
+- A browser example renders a StandardMaterial surface with environment lighting and an active shadow receiver route in the same frame.
+- The active pipeline key includes IBL and shadow features while all draw bind groups remain within Chrome's four-bind-group limit.
+- Playwright verifies both an IBL-lit sample and a shadow-darkened receiver sample with no WebGPU validation warnings.
+
+### task-2022 — Add a lit StandardMaterial GLB sample to glb-viewer
+
+Category: `runtime-orchestration`
+Package/write-scope: `examples/assets/`, `examples/glb-viewer.js`, `test/e2e/glb-viewer.spec.ts`.
+Reference anchor: `references/three.js/examples/jsm/loaders/GLTFLoader.js` (material resolution from loaded glTF assets).
+
+Acceptance criteria:
+
+- `glb-viewer` includes a sample GLB whose source material resolves to StandardMaterial instead of an unlit-only path.
+- Viewer status reports the selected sample material family and a successful replay with one rendered mesh draw.
+- Playwright selects the lit sample and verifies rendered pixels differ from the unlit samples.
 
 Future MVP slices (animation playback for glb-viewer, IBL composition with shadow receivers, performance pass) remain candidates after these visible feature tasks.
 

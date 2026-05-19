@@ -145,7 +145,21 @@ function createScene(aperture, app, targetCanvas) {
     app,
     bufferBackedGlbFixture,
   );
-  setupShadowControls(shadowControls);
+  const shadowAuthoringEntities = collectShadowAuthoringEntities(
+    aperture,
+    replay,
+    visibleBufferBackedReplay.replay,
+  );
+
+  applyShadowAuthoring(aperture, app, shadowAuthoringEntities, shadowControls);
+  setupShadowControls(shadowControls, () => {
+    applyShadowAuthoring(
+      aperture,
+      app,
+      shadowAuthoringEntities,
+      shadowControls,
+    );
+  });
 
   app.spawn(
     aperture.withTransform({ translation: [0, 0.2, 5.2] }),
@@ -201,6 +215,7 @@ function createScene(aperture, app, targetCanvas) {
     registration,
     replay,
     shadowControls,
+    shadowAuthoringEntities,
     visibleBufferBackedReplay,
     root,
   };
@@ -218,8 +233,7 @@ function startRendering(aperture, app, scene) {
       frame,
       clearColor,
       label: "gltf-scene-app",
-      ...(!scene.shadowControls.receiverEnabled ||
-      standardMaterialShadowReceiverResources === null
+      ...(standardMaterialShadowReceiverResources === null
         ? {}
         : { standardMaterialShadowReceiverResources }),
       ...(!enableIblSampling || standardMaterialIblResources === null
@@ -508,14 +522,11 @@ async function publishFrameStatus(aperture, app, scene, step, report, frame) {
     aperture.standardMaterialShadowBindGroupResourceReportToJsonValue(
       standardMaterialShadowBindGroupResourceReport,
     );
-  const shadowCasterMeshDraws = scene.shadowControls.casterEnabled
-    ? report.snapshot.meshDraws
-    : [];
   const shadowCasterDrawList =
     aperture.shadowCasterDrawListPlanReportToJsonValue(
       aperture.createShadowCasterDrawListPlanReport({
         shadowRequests: report.snapshot.shadowRequests,
-        meshDraws: shadowCasterMeshDraws,
+        meshDraws: report.snapshot.meshDraws,
         shadowPassPlan,
       }),
     );
@@ -843,6 +854,7 @@ async function publishFrameStatus(aperture, app, scene, step, report, frame) {
         receiverEnabled: scene.shadowControls.receiverEnabled,
         casterEnabled: scene.shadowControls.casterEnabled,
       },
+      authoring: createShadowAuthoringStatus(report.snapshot.meshDraws),
       intent: {
         key: shadowIntent.key,
         lightKey: shadowIntent.lightKey,
@@ -883,7 +895,7 @@ async function publishFrameStatus(aperture, app, scene, step, report, frame) {
       standardMaterial: standardMaterialShadow,
       rendering: {
         supported:
-          scene.shadowControls.receiverEnabled &&
+          hasShadowReceiverDraw(report.snapshot.meshDraws) &&
           shadowPassCommandBufferSubmissionReport.status === "submitted" &&
           standardMaterialShadowReceiverBinding.status === "ready",
         mode: "directional-depth-compare",
@@ -934,11 +946,72 @@ async function publishFrameStatus(aperture, app, scene, step, report, frame) {
   };
 }
 
-function setupShadowControls(controls) {
+function collectShadowAuthoringEntities(aperture, ...replays) {
+  const entities = [];
+
+  for (const replay of replays) {
+    for (const entity of replay.entitiesByKey.values()) {
+      if (
+        entity.hasComponent(aperture.Mesh) &&
+        entity.hasComponent(aperture.Material)
+      ) {
+        entities.push(entity);
+      }
+    }
+  }
+
+  return entities;
+}
+
+function applyShadowAuthoring(aperture, app, entities, controls) {
+  const context = { app, world: app.world, assets: app.assets };
+
+  for (const entity of entities) {
+    if (entity.hasComponent(aperture.ShadowCaster)) {
+      entity.setValue(aperture.ShadowCaster, "enabled", controls.casterEnabled);
+    } else {
+      aperture.withShadowCaster(controls.casterEnabled)(entity, context);
+    }
+
+    if (entity.hasComponent(aperture.ShadowReceiver)) {
+      entity.setValue(
+        aperture.ShadowReceiver,
+        "enabled",
+        controls.receiverEnabled,
+      );
+    } else {
+      aperture.withShadowReceiver(controls.receiverEnabled)(entity, context);
+    }
+  }
+}
+
+function createShadowAuthoringStatus(meshDraws) {
+  const casterCount = meshDraws.filter(
+    (draw) => draw.castsShadow !== false,
+  ).length;
+  const receiverCount = meshDraws.filter(
+    (draw) => draw.receivesShadow !== false,
+  ).length;
+
+  return {
+    drawCount: meshDraws.length,
+    casterCount,
+    receiverCount,
+    disabledCasterCount: meshDraws.length - casterCount,
+    disabledReceiverCount: meshDraws.length - receiverCount,
+  };
+}
+
+function hasShadowReceiverDraw(meshDraws) {
+  return meshDraws.some((draw) => draw.receivesShadow !== false);
+}
+
+function setupShadowControls(controls, onChange) {
   if (shadowReceiverToggle instanceof HTMLInputElement) {
     shadowReceiverToggle.checked = controls.receiverEnabled;
     shadowReceiverToggle.addEventListener("change", () => {
       controls.receiverEnabled = shadowReceiverToggle.checked;
+      onChange();
     });
   }
 
@@ -946,6 +1019,7 @@ function setupShadowControls(controls) {
     shadowCasterToggle.checked = controls.casterEnabled;
     shadowCasterToggle.addEventListener("change", () => {
       controls.casterEnabled = shadowCasterToggle.checked;
+      onChange();
     });
   }
 }

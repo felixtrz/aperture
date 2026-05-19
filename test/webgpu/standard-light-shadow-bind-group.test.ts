@@ -1,5 +1,8 @@
 import {
+  STANDARD_LIGHT_MULTI_SHADOW_BIND_GROUP_LAYOUT_KEY,
   STANDARD_LIGHT_SHADOW_BIND_GROUP_LAYOUT_KEY,
+  createStandardLightMultiShadowBindGroupDescriptorPlan,
+  createStandardLightMultiShadowBindGroupLayoutDescriptor,
   createStandardLightShadowBindGroupDescriptorPlan,
   createStandardLightShadowBindGroupLayoutDescriptor,
   createStandardLightShadowBindGroupLayoutResource,
@@ -27,6 +30,167 @@ describe("StandardMaterial light/shadow bind group", () => {
         { binding: 4, visibility: 2, sampler: { type: "comparison" } },
       ],
     });
+  });
+
+  it("plans separate group 3 bindings for directional, spot, and point shadow receivers", () => {
+    expect(createStandardLightMultiShadowBindGroupLayoutDescriptor()).toEqual({
+      label: STANDARD_LIGHT_MULTI_SHADOW_BIND_GROUP_LAYOUT_KEY,
+      entries: [
+        { binding: 0, visibility: 2, buffer: { type: "read-only-storage" } },
+        { binding: 1, visibility: 2, buffer: { type: "read-only-storage" } },
+        { binding: 2, visibility: 3, buffer: { type: "read-only-storage" } },
+        {
+          binding: 3,
+          visibility: 2,
+          texture: {
+            sampleType: "depth",
+            viewDimension: "2d",
+            multisampled: false,
+          },
+        },
+        { binding: 4, visibility: 2, sampler: { type: "comparison" } },
+        { binding: 5, visibility: 3, buffer: { type: "read-only-storage" } },
+        {
+          binding: 6,
+          visibility: 2,
+          texture: {
+            sampleType: "depth",
+            viewDimension: "2d",
+            multisampled: false,
+          },
+        },
+        { binding: 7, visibility: 2, sampler: { type: "comparison" } },
+        { binding: 8, visibility: 3, buffer: { type: "read-only-storage" } },
+        {
+          binding: 9,
+          visibility: 2,
+          texture: {
+            sampleType: "depth",
+            viewDimension: "cube",
+            multisampled: false,
+          },
+        },
+        { binding: 10, visibility: 2, sampler: { type: "comparison" } },
+      ],
+    });
+  });
+
+  it("creates a multi-shadow light bind group resource", () => {
+    const createdBindGroups: unknown[] = [];
+    const directional = resourceInputs("directional", "2d");
+    const spot = resourceInputs("spot", "2d");
+    const point = resourceInputs("point", "cube");
+    const plan = createStandardLightMultiShadowBindGroupDescriptorPlan({
+      lightGpuBufferResource: directional.lightGpuBufferResource,
+      directionalShadowReceiverResources: directional,
+      spotShadowReceiverResources: spot,
+      pointShadowReceiverResources: point,
+    });
+    const result = createStandardLightShadowBindGroupResource({
+      ...directional,
+      additionalShadowReceiverResources: [spot, point],
+      plan,
+      layout: {
+        group: 3,
+        layoutKey: STANDARD_LIGHT_MULTI_SHADOW_BIND_GROUP_LAYOUT_KEY,
+        layout: "multi-shadow-layout",
+        descriptor: createStandardLightMultiShadowBindGroupLayoutDescriptor(),
+      },
+      device: {
+        createBindGroup: (descriptor) => {
+          createdBindGroups.push(descriptor);
+          return "multi-shadow-bind-group";
+        },
+      },
+    });
+
+    expect(plan).toMatchObject({
+      valid: true,
+      group: 3,
+      layoutKey: STANDARD_LIGHT_MULTI_SHADOW_BIND_GROUP_LAYOUT_KEY,
+      entries: [
+        { binding: 0, resourceKey: "light-floats", resourceKind: "buffer" },
+        {
+          binding: 1,
+          resourceKey: "light-metadata",
+          resourceKind: "buffer",
+        },
+        {
+          binding: 2,
+          resourceKey: "directional-shadow-matrices",
+          resourceKind: "buffer",
+        },
+        {
+          binding: 3,
+          resourceKey: "directional-shadow-depth:texture",
+          resourceKind: "texture-view",
+        },
+        {
+          binding: 4,
+          resourceKey: "directional-shadow-sampler",
+          resourceKind: "sampler",
+        },
+        {
+          binding: 5,
+          resourceKey: "spot-shadow-matrices",
+          resourceKind: "buffer",
+        },
+        {
+          binding: 6,
+          resourceKey: "spot-shadow-depth:texture",
+          resourceKind: "texture-view",
+        },
+        {
+          binding: 7,
+          resourceKey: "spot-shadow-sampler",
+          resourceKind: "sampler",
+        },
+        {
+          binding: 8,
+          resourceKey: "point-shadow-matrices",
+          resourceKind: "buffer",
+        },
+        {
+          binding: 9,
+          resourceKey: "point-shadow-depth:texture",
+          resourceKind: "texture-view",
+        },
+        {
+          binding: 10,
+          resourceKey: "point-shadow-sampler",
+          resourceKind: "sampler",
+        },
+      ],
+      diagnostics: [],
+    });
+    expect(result.valid).toBe(true);
+    expect(result.resource).toMatchObject({
+      group: 3,
+      layoutKey: STANDARD_LIGHT_MULTI_SHADOW_BIND_GROUP_LAYOUT_KEY,
+      bindGroup: "multi-shadow-bind-group",
+    });
+    expect(createdBindGroups).toEqual([
+      {
+        label: STANDARD_LIGHT_MULTI_SHADOW_BIND_GROUP_LAYOUT_KEY,
+        layout: "multi-shadow-layout",
+        entries: [
+          { binding: 0, resource: { buffer: "light-float-buffer" } },
+          { binding: 1, resource: { buffer: "light-metadata-buffer" } },
+          {
+            binding: 2,
+            resource: { buffer: "directional-shadow-matrix-buffer" },
+          },
+          { binding: 3, resource: "directional-shadow-depth-view" },
+          { binding: 4, resource: "directional-shadow-sampler-resource" },
+          { binding: 5, resource: { buffer: "spot-shadow-matrix-buffer" } },
+          { binding: 6, resource: "spot-shadow-depth-view" },
+          { binding: 7, resource: "spot-shadow-sampler-resource" },
+          { binding: 8, resource: { buffer: "point-shadow-matrix-buffer" } },
+          { binding: 9, resource: "point-shadow-depth-view" },
+          { binding: 10, resource: "point-shadow-sampler-resource" },
+        ],
+      },
+    ]);
   });
 
   it("creates a combined light and shadow bind group resource", () => {
@@ -121,7 +285,9 @@ describe("StandardMaterial light/shadow bind group", () => {
   });
 });
 
-function resourceInputs() {
+function resourceInputs(prefix = "", viewDimension: "2d" | "cube" = "2d") {
+  const keyPrefix = prefix.length === 0 ? "" : `${prefix}-`;
+
   return {
     lightGpuBufferResource: {
       resourceKey: "lights",
@@ -147,12 +313,12 @@ function resourceInputs() {
         shaderSampling: false,
       },
       resource: {
-        resourceKey: "shadow-matrices",
-        label: "shadow-matrices",
-        buffer: "shadow-matrix-buffer",
+        resourceKey: `${keyPrefix}shadow-matrices`,
+        label: `${keyPrefix}shadow-matrices`,
+        buffer: `${keyPrefix}shadow-matrix-buffer`,
         byteSize: 64,
         matrixCount: 1,
-        entryMatrixKeys: ["shadow-matrix:0"],
+        entryMatrixKeys: [`${keyPrefix}shadow-matrix:0`],
       },
       diagnostics: [],
     },
@@ -173,24 +339,24 @@ function resourceInputs() {
         {
           shadowId: 1,
           lightId: 2,
-          resourceKey: "shadow-depth",
-          textureKey: "shadow-depth:texture",
-          viewKey: "shadow-depth:view",
-          faceCount: 1,
-          viewDimension: "2d",
+          resourceKey: `${keyPrefix}shadow-depth`,
+          textureKey: `${keyPrefix}shadow-depth:texture`,
+          viewKey: `${keyPrefix}shadow-depth:view`,
+          faceCount: viewDimension === "cube" ? 6 : 1,
+          viewDimension,
           attachmentViews: [
             {
               faceIndex: 0,
-              viewKey: "shadow-depth:view",
-              view: "shadow-depth-view",
+              viewKey: `${keyPrefix}shadow-depth:view`,
+              view: `${keyPrefix}shadow-depth-view`,
             },
           ],
           allocation: {
             valid: true,
             resource: {
-              resourceKey: "shadow-depth:texture",
-              texture: "shadow-depth-texture",
-              view: "shadow-depth-view",
+              resourceKey: `${keyPrefix}shadow-depth:texture`,
+              texture: `${keyPrefix}shadow-depth-texture`,
+              view: `${keyPrefix}shadow-depth-view`,
               descriptor: {
                 size: [1024, 1024, 1],
                 format: "depth32float",
@@ -215,8 +381,8 @@ function resourceInputs() {
         shaderSampling: false,
       },
       resource: {
-        resourceKey: "shadow-sampler",
-        sampler: "shadow-sampler-resource",
+        resourceKey: `${keyPrefix}shadow-sampler`,
+        sampler: `${keyPrefix}shadow-sampler-resource`,
         descriptor: {
           label: "shadow-sampler",
           addressModeU: "clamp-to-edge",
