@@ -1,11 +1,11 @@
 {
   "state": "idle",
-  "currentTaskId": "task-2020",
+  "currentTaskId": "task-2021",
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-05-19T22:01:50Z",
   "lastResult": "completed",
-  "lastCommit": "a2683d7",
+  "lastCommit": "7c40934",
   "activePid": null,
-  "notes": "Completed task-2014 multi-light shadow scene, task-2016 custom GLB URL loading, task-2018 public shadow caster/receiver helpers, and task-2019 glb-viewer query URL bootstrap. Recommended next task is task-2020 orbit camera fit from loaded asset bounds.",
-  "lastRunFinishedAt": "2026-05-19T22:46:36Z"
+  "notes": "Completed task-2020 glb-viewer orbit fitting from replayed GLB mesh bounds. Recommended next task is task-2021 IBL and shadows together in one StandardMaterial browser scene.",
+  "lastRunFinishedAt": "2026-05-19T22:59:01Z"
 }

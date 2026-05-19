@@ -1,5 +1,40 @@
 # Completed Tasks
 
+## task-2020 — Fit glb-viewer orbit camera from loaded asset bounds
+
+Completed: 2026-05-19
+
+Summary:
+
+- Added replay-bound-driven orbit fitting to `examples/glb-viewer.js`.
+- Resolves ECS world transforms after GLB replay, unions ready mesh bounds, and
+  derives the orbit target, distance, and min/max zoom range from that world
+  AABB.
+- Publishes JSON-safe orbit fit bounds, target, distance, and zoom limits in
+  viewer status.
+- Extended GLB viewer Playwright coverage so the default sample, sample switch,
+  custom URL, and query-loaded GLB all report ready fit status and remain
+  visible near the render center.
+
+References inspected:
+
+- `references/three.js/examples/webgl_loader_gltf.html`
+
+Validation:
+
+- `node --check examples/glb-viewer.js`
+- `pnpm run typecheck:test`
+- `pnpm run check:examples`
+- `pnpm run check:progress`
+- `pnpm run lint`
+- `pnpm run format:check`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts`
+
+Known follow-up:
+
+- `task-2021` should render IBL and shadows together in one StandardMaterial
+  browser scene.
+
 ## task-2019 — Add query-URL bootstrap to glb-viewer
 
 Completed: 2026-05-19

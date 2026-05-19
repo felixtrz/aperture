@@ -1,6 +1,52 @@
 # Agent Handoff
 
-Updated: 2026-05-19T22:42:28Z
+Updated: 2026-05-19T22:59:01Z
+
+## Current Run Update — 2026-05-19T22:59:01Z — GLB viewer orbit fitting
+
+Completed `task-2020`.
+
+### What changed
+
+- `examples/glb-viewer.js` now resolves ECS world transforms after GLB replay,
+  unions ready replayed mesh bounds, and derives the orbit target, distance,
+  and min/max zoom range from the resulting world AABB.
+- Viewer status now publishes JSON-safe orbit fit data: target, bounds center,
+  size, distance, min zoom, and max zoom.
+- Orbit updates now place the ECS camera around the fitted target instead of a
+  fixed origin while preserving the existing pointer-drag yaw and wheel zoom
+  behavior.
+- GLB viewer Playwright coverage now asserts ready fit status and center-region
+  non-clear pixels for the default sample, a differently sized sample switch, a
+  custom URL load, and a query-bootstrapped GLB load.
+- Updated `docs/index.html`, `agent/BACKLOG.md`, and `agent/COMPLETED.md`.
+
+### References inspected
+
+- `references/three.js/examples/webgl_loader_gltf.html`
+- Existing Aperture transform resolution and render extraction world-matrix
+  readback patterns.
+
+### Validation
+
+- `node --check examples/glb-viewer.js`
+- `pnpm run typecheck:test`
+- `pnpm run check:examples`
+- `pnpm run check:progress`
+- `pnpm run lint`
+- `pnpm run format:check`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts`
+
+### Known issues
+
+- No known regressions from this slice.
+- `task-2021` remains the next MVP proof: render IBL and shadows together in one
+  StandardMaterial browser scene while staying within Chrome's four-bind-group
+  limit.
+
+### Recommended next task
+
+`task-2021 — Render IBL and shadows together in one StandardMaterial browser scene`.
 
 ## Current Run Update — 2026-05-19T22:42:28Z — Shadows, GLB URLs, and shadow authoring helpers
 

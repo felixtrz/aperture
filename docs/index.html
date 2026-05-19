@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-19 15:42 PDT</dd>
+            <dd>2026-05-19 15:58 PDT</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -898,10 +898,16 @@
               replay/unload path as sample selection, reports the selected URL
               in JSON-safe status, and proves a local custom URL swaps the
               rendered mesh in Playwright. A <code>?url=</code> query parameter
-              now bootstraps the same custom URL path on initial page load.
+              now bootstraps the same custom URL path on initial page load. The
+              viewer now fits its ECS-authored orbit target, distance, and zoom
+              range from replayed GLB mesh bounds, reports that fit in JSON-safe
+              status, and Playwright proves differently sized GLBs remain
+              visible near the render center.
             </dd>
             <dt>Next focus</dt>
-            <dd>Fit glb-viewer orbit camera from loaded asset bounds</dd>
+            <dd>
+              Render IBL and shadows together in one StandardMaterial scene
+            </dd>
           </dl>
         </aside>
       </header>
@@ -1433,6 +1439,11 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">task-2020</span> Fit
+                <code>glb-viewer</code> orbit target, distance, and zoom limits
+                from loaded GLB bounds with centered Playwright pixel proof.
+              </li>
               <li>
                 <span class="badge green">task-2019</span> Added
                 <code>?url=</code> bootstrap to <code>glb-viewer</code> so a
@@ -3068,16 +3079,16 @@
             <h3>Recommended next tasks</h3>
             <ul>
               <li>
-                <span class="badge amber">next</span> Fit
-                <code>glb-viewer</code> orbit camera from loaded asset bounds.
+                <span class="badge amber">next</span> Render IBL and shadows
+                together in one StandardMaterial browser scene.
               </li>
               <li>
-                Derive orbit distance/framing from the loaded mesh instead of a
-                fixed camera distance.
+                Prove the active pipeline key can carry IBL and shadow receiver
+                features while staying within Chrome's four bind groups.
               </li>
               <li>
-                Report the fit bounds in status and prove differently sized
-                samples remain centered.
+                Use Playwright to verify one IBL-lit sample and one
+                shadow-darkened receiver sample with no WebGPU warnings.
               </li>
             </ul>
           </article>

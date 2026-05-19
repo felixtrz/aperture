@@ -60,6 +60,15 @@ interface GlbViewerStatus extends ExampleStatusBase {
   readonly orbit?: {
     readonly yaw: number;
     readonly distance: number;
+    readonly target: readonly number[];
+    readonly fit: {
+      readonly status: string;
+      readonly center: readonly number[];
+      readonly size: readonly number[];
+      readonly distance: number;
+      readonly minDistance: number;
+      readonly maxDistance: number;
+    };
     readonly dragging: boolean;
   };
   readonly clearColor?: {
@@ -143,10 +152,20 @@ test("Playwright renders the fetched sample GLB viewer asset", async ({
     },
     orbit: {
       yaw: 0,
-      distance: 3.4,
+      distance: expect.any(Number),
+      target: expect.any(Array),
+      fit: {
+        status: "ready",
+        center: expect.any(Array),
+        size: expect.any(Array),
+        distance: expect.any(Number),
+        minDistance: expect.any(Number),
+        maxDistance: expect.any(Number),
+      },
       dragging: false,
     },
   });
+  const initialOrbit = expectReadyOrbitFit(rendered, "default sample");
 
   const screenshot = await page.locator("#aperture-canvas").screenshot();
   const clear =
@@ -160,6 +179,10 @@ test("Playwright renders the fetched sample GLB viewer asset", async ({
     `GLB viewer canvas should contain non-clear pixels; sample=${JSON.stringify(
       center,
     )}`,
+  ).toBeGreaterThan(20);
+  expect(
+    pixelDistance(strongestNearCenterSample(screenshot, clear), clear),
+    "fit camera should keep the default GLB visibly framed near the center",
   ).toBeGreaterThan(20);
 
   await page.mouse.move(640, 360);
@@ -224,6 +247,7 @@ test("Playwright renders the fetched sample GLB viewer asset", async ({
   );
   const slabStatus = await waitForExampleStatus<GlbViewerStatus>(page);
   const slabScreenshot = await page.locator("#aperture-canvas").screenshot();
+  const slabOrbit = expectReadyOrbitFit(slabStatus, "slab sample");
 
   expect(slabStatus).toMatchObject({
     selectedAsset: {
@@ -256,6 +280,11 @@ test("Playwright renders the fetched sample GLB viewer asset", async ({
     maxSampleDelta(rotatedScreenshot, slabScreenshot),
     "switching GLB assets should unload the prior scene and render different pixels",
   ).toBeGreaterThan(16);
+  expect(slabOrbit.fit.size).not.toEqual(initialOrbit.fit.size);
+  expect(
+    pixelDistance(strongestNearCenterSample(slabScreenshot, clear), clear),
+    "fit camera should keep the slab GLB visibly framed near the center",
+  ).toBeGreaterThan(20);
 
   await page
     .locator("#glb-url-input")
@@ -288,6 +317,7 @@ test("Playwright renders the fetched sample GLB viewer asset", async ({
   );
   const customStatus = await waitForExampleStatus<GlbViewerStatus>(page);
   const customScreenshot = await page.locator("#aperture-canvas").screenshot();
+  const customOrbit = expectReadyOrbitFit(customStatus, "custom GLB");
 
   expect(customStatus).toMatchObject({
     selectedAsset: {
@@ -320,6 +350,11 @@ test("Playwright renders the fetched sample GLB viewer asset", async ({
     maxSampleDelta(slabScreenshot, customScreenshot),
     "loading a custom GLB URL should replace the selected sample and change rendered pixels",
   ).toBeGreaterThan(16);
+  expect(customOrbit.fit.size).not.toEqual(slabOrbit.fit.size);
+  expect(
+    pixelDistance(strongestNearCenterSample(customScreenshot, clear), clear),
+    "fit camera should keep the custom GLB visibly framed near the center",
+  ).toBeGreaterThan(20);
   webGpuValidation.expectNoWarnings();
 });
 
@@ -382,6 +417,7 @@ test("Playwright bootstraps a custom GLB URL from the query string", async ({
 
   expect(status?.ok).toBe(true);
   expectStatusJsonSafeForGpu(status);
+  expectReadyOrbitFit(status, "query GLB");
   expect(status).toMatchObject({
     selectedAsset: {
       id: "custom-url",
@@ -422,8 +458,41 @@ test("Playwright bootstraps a custom GLB URL from the query string", async ({
   expect(
     pixelDistance(strongestSample(screenshot, clear), clear),
   ).toBeGreaterThan(20);
+  expect(
+    pixelDistance(strongestNearCenterSample(screenshot, clear), clear),
+    "query-loaded GLB should be visibly framed near the center",
+  ).toBeGreaterThan(20);
   webGpuValidation.expectNoWarnings();
 });
+
+function expectReadyOrbitFit(
+  status: GlbViewerStatus | undefined,
+  label: string,
+): NonNullable<GlbViewerStatus["orbit"]> {
+  const orbit = status?.orbit;
+
+  expect(orbit, `${label} should publish orbit status`).toBeDefined();
+  expect(orbit?.fit.status, `${label} fit status`).toBe("ready");
+  expect(orbit?.fit.center.length, `${label} fit center`).toBe(3);
+  expect(orbit?.fit.size.length, `${label} fit size`).toBe(3);
+  expect(orbit?.target, `${label} fit target`).toEqual(orbit?.fit.center);
+  expect(orbit?.distance, `${label} fit distance`).toBeCloseTo(
+    orbit?.fit.distance ?? Number.NaN,
+    3,
+  );
+  expect(
+    orbit?.fit.size.some((value) => value > 0),
+    `${label} fit should have a positive extent`,
+  ).toBe(true);
+  expect(orbit?.fit.minDistance, `${label} min zoom`).toBeLessThan(
+    orbit?.fit.distance ?? 0,
+  );
+  expect(orbit?.fit.maxDistance, `${label} max zoom`).toBeGreaterThan(
+    orbit?.fit.distance ?? 0,
+  );
+
+  return orbit as NonNullable<GlbViewerStatus["orbit"]>;
+}
 
 function strongestSample(
   screenshot: Buffer,
@@ -438,6 +507,32 @@ function strongestSample(
         screenshot,
         0.35 + (0.3 * x) / 6,
         0.3 + (0.4 * y) / 6,
+      );
+      const distance = pixelDistance(sample, clear);
+
+      if (distance > bestDistance) {
+        best = sample;
+        bestDistance = distance;
+      }
+    }
+  }
+
+  return best;
+}
+
+function strongestNearCenterSample(
+  screenshot: Buffer,
+  clear: ReturnType<typeof readPngPixel>,
+): ReturnType<typeof readPngPixel> {
+  let best = readPngPixel(screenshot, 0.5, 0.5);
+  let bestDistance = pixelDistance(best, clear);
+
+  for (let y = 0; y < 5; y += 1) {
+    for (let x = 0; x < 5; x += 1) {
+      const sample = readPngPixel(
+        screenshot,
+        0.43 + (0.14 * x) / 4,
+        0.43 + (0.14 * y) / 4,
       );
       const distance = pixelDistance(sample, clear);
 

@@ -59,7 +59,7 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start with `task-2020`: fit glb-viewer orbit camera from loaded asset bounds.
+Start with `task-2021`: render IBL and shadows together in one StandardMaterial browser scene.
 
 `task-2001` is complete: the spinning-cube example now creates a renderer-owned face-colored diffuse IBL cube texture and sampler, routes it through the StandardMaterial diffuse IBL shader variant, and Playwright verifies direction-dependent face pixels.
 `task-2002` is complete: `withEnvironmentMap(handle)` is exported from runtime/core and materials-showcase now uses it with visible diffuse IBL routing.
@@ -78,6 +78,7 @@ Start with `task-2020`: fit glb-viewer orbit camera from loaded asset bounds.
 `task-2016` is complete: `examples/glb-viewer.html` now accepts a typed custom `.glb` URL, loads it through the same ECS replay/unload path as the sample selector, reports the selected URL in JSON-safe status, and Playwright verifies a local custom URL swaps rendered pixels.
 `task-2018` is complete: `withShadowCaster()` and `withShadowReceiver()` are public runtime helpers, extracted mesh draws carry JSON-safe caster/receiver flags, and the GLTF scene toggles now update ECS-authored flags that drive caster draw-list and receiver pipeline routing.
 `task-2019` is complete: `examples/glb-viewer.html?url=...` now seeds the custom URL field, loads through the same guarded ECS replay path, and Playwright verifies query-driven initial render status and pixels.
+`task-2020` is complete: `glb-viewer` now fits its orbit target, distance, and zoom limits from replayed GLB mesh bounds, reports JSON-safe fit status, and Playwright verifies differently sized GLBs remain visibly framed near the render center.
 
 Reference anchors (read both before writing WGSL):
 

@@ -240,6 +240,8 @@ async function loadAsset(aperture, app, scene, asset) {
     app,
     plan: commandPlan,
   });
+  aperture.resolveWorldTransforms(app.world);
+  const fit = fitOrbitToReplayBounds(aperture, app, replay, scene.orbit);
 
   scene.active = {
     asset,
@@ -249,6 +251,7 @@ async function loadAsset(aperture, app, scene, asset) {
     primitiveMaterials,
     commandPlan,
     replay,
+    fit,
   };
   scene.loadState = null;
 }
@@ -349,6 +352,8 @@ function createStatus(aperture, app, scene, step, report, frame) {
     orbit: {
       yaw: Number(scene.orbit.yaw.toFixed(4)),
       distance: Number(scene.orbit.distance.toFixed(3)),
+      target: roundTuple(scene.orbit.target, 3),
+      fit: scene.orbit.fit,
       dragging: scene.orbit.dragging,
     },
     extraction: {
@@ -376,6 +381,17 @@ function createOrbitControls(targetCanvas) {
   const state = {
     yaw: 0,
     distance: 3.4,
+    minDistance: 1.8,
+    maxDistance: 6,
+    target: [0, 0, 0],
+    fit: {
+      status: "default",
+      center: [0, 0, 0],
+      size: [1, 1, 1],
+      distance: 3.4,
+      minDistance: 1.8,
+      maxDistance: 6,
+    },
     dragging: false,
     lastX: 0,
   };
@@ -408,7 +424,11 @@ function createOrbitControls(targetCanvas) {
     "wheel",
     (event) => {
       event.preventDefault();
-      state.distance = clamp(state.distance + event.deltaY * 0.004, 1.8, 6);
+      state.distance = clamp(
+        state.distance + event.deltaY * 0.004,
+        state.minDistance,
+        state.maxDistance,
+      );
     },
     { passive: false },
   );
@@ -417,16 +437,163 @@ function createOrbitControls(targetCanvas) {
 }
 
 function updateOrbitCamera(aperture, cameraEntity, orbit) {
-  const x = Math.sin(orbit.yaw) * orbit.distance;
-  const z = Math.cos(orbit.yaw) * orbit.distance;
+  const x = orbit.target[0] + Math.sin(orbit.yaw) * orbit.distance;
+  const y = orbit.target[1];
+  const z = orbit.target[2] + Math.cos(orbit.yaw) * orbit.distance;
   const halfYaw = orbit.yaw * 0.5;
 
   cameraEntity
     .getVectorView(aperture.LocalTransform, "translation")
-    .set([x, 0, z]);
+    .set([x, y, z]);
   cameraEntity
     .getVectorView(aperture.LocalTransform, "rotation")
     .set([0, Math.sin(halfYaw), 0, Math.cos(halfYaw)]);
+}
+
+function fitOrbitToReplayBounds(aperture, app, replay, orbit) {
+  const bounds = computeReplayWorldBounds(aperture, app, replay);
+
+  if (bounds === null) {
+    orbit.fit = {
+      status: "missing-bounds",
+      center: roundTuple(orbit.target, 3),
+      size: [0, 0, 0],
+      distance: Number(orbit.distance.toFixed(3)),
+      minDistance: Number(orbit.minDistance.toFixed(3)),
+      maxDistance: Number(orbit.maxDistance.toFixed(3)),
+    };
+    return orbit.fit;
+  }
+
+  const center = [
+    (bounds.min[0] + bounds.max[0]) * 0.5,
+    (bounds.min[1] + bounds.max[1]) * 0.5,
+    (bounds.min[2] + bounds.max[2]) * 0.5,
+  ];
+  const size = [
+    bounds.max[0] - bounds.min[0],
+    bounds.max[1] - bounds.min[1],
+    bounds.max[2] - bounds.min[2],
+  ];
+  const aspect = Math.max(1, (canvas?.width ?? 1) / (canvas?.height ?? 1));
+  const fovY = Math.PI / 3;
+  const fitOffset = 1.35;
+  const fitHeightDistance = size[1] / (2 * Math.tan(fovY * 0.5));
+  const fitWidthDistance = size[0] / (2 * Math.tan(fovY * 0.5) * aspect);
+  const fitDepthDistance = size[2] * 1.2;
+  const distance = Math.max(
+    1.2,
+    fitOffset * Math.max(fitHeightDistance, fitWidthDistance, fitDepthDistance),
+  );
+
+  orbit.target = center;
+  orbit.distance = distance;
+  orbit.minDistance = Math.max(0.25, distance * 0.25);
+  orbit.maxDistance = Math.max(distance * 4, orbit.minDistance + 0.25);
+  orbit.fit = {
+    status: "ready",
+    center: roundTuple(center, 3),
+    size: roundTuple(size, 3),
+    distance: Number(distance.toFixed(3)),
+    minDistance: Number(orbit.minDistance.toFixed(3)),
+    maxDistance: Number(orbit.maxDistance.toFixed(3)),
+  };
+
+  return orbit.fit;
+}
+
+function computeReplayWorldBounds(aperture, app, replay) {
+  let bounds = null;
+
+  for (const entity of replay.entitiesByKey.values()) {
+    if (
+      !entity.hasComponent(aperture.Mesh) ||
+      !entity.hasComponent(aperture.WorldTransform)
+    ) {
+      continue;
+    }
+
+    const meshId = entity.getValue(aperture.Mesh, "meshId") ?? "";
+
+    if (!meshId.startsWith("mesh:")) {
+      continue;
+    }
+
+    const meshEntry = app.assets.get(
+      aperture.createMeshHandle(meshId.slice(5)),
+    );
+    const mesh = meshEntry?.asset ?? null;
+
+    if (meshEntry?.status !== "ready" || mesh?.localAabb === undefined) {
+      continue;
+    }
+
+    const worldBounds = transformAabb(
+      mesh.localAabb,
+      readWorldMatrix(aperture, entity),
+    );
+
+    bounds = bounds === null ? worldBounds : unionAabb(bounds, worldBounds);
+  }
+
+  return bounds;
+}
+
+function readWorldMatrix(aperture, entity) {
+  const matrix = new Float32Array(16);
+
+  matrix.set(entity.getVectorView(aperture.WorldTransform, "col0"), 0);
+  matrix.set(entity.getVectorView(aperture.WorldTransform, "col1"), 4);
+  matrix.set(entity.getVectorView(aperture.WorldTransform, "col2"), 8);
+  matrix.set(entity.getVectorView(aperture.WorldTransform, "col3"), 12);
+  return matrix;
+}
+
+function transformAabb(aabb, matrix) {
+  let minX = Number.POSITIVE_INFINITY;
+  let minY = Number.POSITIVE_INFINITY;
+  let minZ = Number.POSITIVE_INFINITY;
+  let maxX = Number.NEGATIVE_INFINITY;
+  let maxY = Number.NEGATIVE_INFINITY;
+  let maxZ = Number.NEGATIVE_INFINITY;
+
+  for (const x of [aabb.min[0], aabb.max[0]]) {
+    for (const y of [aabb.min[1], aabb.max[1]]) {
+      for (const z of [aabb.min[2], aabb.max[2]]) {
+        const tx = matrix[0] * x + matrix[4] * y + matrix[8] * z + matrix[12];
+        const ty = matrix[1] * x + matrix[5] * y + matrix[9] * z + matrix[13];
+        const tz = matrix[2] * x + matrix[6] * y + matrix[10] * z + matrix[14];
+
+        minX = Math.min(minX, tx);
+        minY = Math.min(minY, ty);
+        minZ = Math.min(minZ, tz);
+        maxX = Math.max(maxX, tx);
+        maxY = Math.max(maxY, ty);
+        maxZ = Math.max(maxZ, tz);
+      }
+    }
+  }
+
+  return { min: [minX, minY, minZ], max: [maxX, maxY, maxZ] };
+}
+
+function unionAabb(a, b) {
+  return {
+    min: [
+      Math.min(a.min[0], b.min[0]),
+      Math.min(a.min[1], b.min[1]),
+      Math.min(a.min[2], b.min[2]),
+    ],
+    max: [
+      Math.max(a.max[0], b.max[0]),
+      Math.max(a.max[1], b.max[1]),
+      Math.max(a.max[2], b.max[2]),
+    ],
+  };
+}
+
+function roundTuple(values, digits) {
+  return values.map((value) => Number(value.toFixed(digits)));
 }
 
 function wrapRadians(value) {
