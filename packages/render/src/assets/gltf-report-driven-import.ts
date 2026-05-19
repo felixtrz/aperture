@@ -47,6 +47,11 @@ import {
   type GltfMeshAssetConstructionReport,
   type GltfMeshAssetConstructionReportJsonValue,
 } from "./gltf-mesh-asset-construction.js";
+import {
+  parseGlbContainer,
+  type GlbContainerParseResult,
+  type GlbContainerSource,
+} from "./glb-container.js";
 import type { GltfImageDataResolver } from "../materials/gltf-texture.js";
 
 export type GltfReportDrivenImportDiagnosticCode =
@@ -55,10 +60,22 @@ export type GltfReportDrivenImportDiagnosticCode =
   | "gltfImport.assetMappingConflict"
   | "gltfImport.meshConstructionConflict";
 
+export type GltfReportDrivenGlbImportDiagnosticCode =
+  | "glbImport.missingBinaryChunk"
+  | "glbImport.externalBufferUnsupported";
+
 export interface GltfReportDrivenImportDiagnostic {
   readonly code: GltfReportDrivenImportDiagnosticCode;
   readonly severity: "error";
   readonly message: string;
+}
+
+export interface GltfReportDrivenGlbImportDiagnostic {
+  readonly code: GltfReportDrivenGlbImportDiagnosticCode;
+  readonly severity: "error";
+  readonly message: string;
+  readonly bufferIndex?: number;
+  readonly uri?: string;
 }
 
 export interface GltfReportDrivenImportOptions {
@@ -74,6 +91,16 @@ export interface GltfReportDrivenImportOptions {
   readonly provided?: Partial<GltfLoaderOrchestrationReportOptions>;
 }
 
+export interface GltfReportDrivenGlbImportOptions extends Omit<
+  GltfReportDrivenImportOptions,
+  "root" | "resolveBufferBytes"
+> {
+  readonly source: GlbContainerSource;
+  readonly resolveBufferBytes?: (
+    bufferIndex: number,
+  ) => ArrayBuffer | ArrayBufferView | null | undefined;
+}
+
 export interface GltfReportDrivenImportReport {
   readonly valid: boolean;
   readonly root: GltfRootValidationReport;
@@ -85,6 +112,30 @@ export interface GltfReportDrivenImportReport {
   readonly sceneTraversal: GltfSceneTraversalReport;
   readonly orchestration: GltfLoaderOrchestrationReport;
   readonly diagnostics: readonly GltfReportDrivenImportDiagnostic[];
+}
+
+export interface GltfReportDrivenGlbImportReport {
+  readonly valid: boolean;
+  readonly container: GlbContainerParseResult;
+  readonly importReport: GltfReportDrivenImportReport | null;
+  readonly diagnostics: readonly GltfReportDrivenGlbImportDiagnostic[];
+}
+
+export interface GltfReportDrivenGlbImportReportJsonValue {
+  readonly valid: boolean;
+  readonly container: {
+    readonly ok: boolean;
+    readonly byteLength: number | null;
+    readonly chunks: readonly {
+      readonly type: string;
+      readonly typeCode: number;
+      readonly byteOffset: number;
+      readonly byteLength: number;
+    }[];
+    readonly diagnostics: readonly GlbContainerParseResult["diagnostics"][number][];
+  };
+  readonly importReport: GltfReportDrivenImportReportJsonValue | null;
+  readonly diagnostics: readonly GltfReportDrivenGlbImportDiagnostic[];
 }
 
 export interface GltfReportDrivenImportReportJsonValue extends Omit<
@@ -217,6 +268,55 @@ export function createGltfReportDrivenImportReport(
   };
 }
 
+export function createGltfReportDrivenImportReportFromGlb(
+  options: GltfReportDrivenGlbImportOptions,
+): GltfReportDrivenGlbImportReport {
+  const {
+    source,
+    resolveBufferBytes: resolveExternalBufferBytes,
+    ...importOptions
+  } = options;
+  const container = parseGlbContainer(source);
+
+  if (container.container === null) {
+    return {
+      valid: false,
+      container,
+      importReport: null,
+      diagnostics: [],
+    };
+  }
+
+  const resolvedBuffers = new Map<
+    number,
+    ArrayBuffer | ArrayBufferView | null
+  >();
+  const resolveBufferBytes = (bufferIndex: number) =>
+    resolveGlbBufferBytes(
+      bufferIndex,
+      container.container?.binaryChunk ?? null,
+      resolveExternalBufferBytes,
+      resolvedBuffers,
+    );
+  const diagnostics = createGlbBufferSourceDiagnostics(
+    container.container.json,
+    container.container.binaryChunk,
+    resolveBufferBytes,
+  );
+  const importReport = createGltfReportDrivenImportReport({
+    ...importOptions,
+    root: container.container.json,
+    resolveBufferBytes,
+  });
+
+  return {
+    valid: container.ok && importReport.valid && diagnostics.length === 0,
+    container,
+    importReport,
+    diagnostics,
+  };
+}
+
 export function gltfReportDrivenImportReportToJsonValue(
   report: GltfReportDrivenImportReport,
 ): GltfReportDrivenImportReportJsonValue {
@@ -251,6 +351,28 @@ export function gltfReportDrivenImportReportToJsonValue(
   };
 }
 
+export function gltfReportDrivenGlbImportReportToJsonValue(
+  report: GltfReportDrivenGlbImportReport,
+): GltfReportDrivenGlbImportReportJsonValue {
+  return {
+    valid: report.valid,
+    container: {
+      ok: report.container.ok,
+      byteLength: report.container.container?.byteLength ?? null,
+      chunks:
+        report.container.container?.chunks.map((chunk) => ({ ...chunk })) ?? [],
+      diagnostics: report.container.diagnostics.map((diagnostic) => ({
+        ...diagnostic,
+      })),
+    },
+    importReport:
+      report.importReport === null
+        ? null
+        : gltfReportDrivenImportReportToJsonValue(report.importReport),
+    diagnostics: report.diagnostics.map((diagnostic) => ({ ...diagnostic })),
+  };
+}
+
 function createMeshReports(options: GltfReportDrivenImportOptions): {
   readonly meshPrimitive: GltfMeshPrimitiveMappingReport;
   readonly accessorValidation: GltfAccessorValidationReport;
@@ -281,6 +403,78 @@ function createMeshReports(options: GltfReportDrivenImportOptions): {
     accessorDecoding,
     meshConstruction,
   };
+}
+
+function resolveGlbBufferBytes(
+  bufferIndex: number,
+  binaryChunk: Uint8Array | null,
+  resolveExternalBufferBytes:
+    | ((
+        bufferIndex: number,
+      ) => ArrayBuffer | ArrayBufferView | null | undefined)
+    | undefined,
+  resolvedBuffers: Map<number, ArrayBuffer | ArrayBufferView | null>,
+): ArrayBuffer | ArrayBufferView | null {
+  if (resolvedBuffers.has(bufferIndex)) {
+    return resolvedBuffers.get(bufferIndex) ?? null;
+  }
+
+  const resolved =
+    resolveExternalBufferBytes?.(bufferIndex) ??
+    (bufferIndex === 0 ? binaryChunk : null);
+  const normalized = resolved ?? null;
+
+  resolvedBuffers.set(bufferIndex, normalized);
+
+  return normalized;
+}
+
+function createGlbBufferSourceDiagnostics(
+  root: Record<string, unknown>,
+  binaryChunk: Uint8Array | null,
+  resolveBufferBytes: (
+    bufferIndex: number,
+  ) => ArrayBuffer | ArrayBufferView | null,
+): GltfReportDrivenGlbImportDiagnostic[] {
+  const buffers = Array.isArray(root.buffers) ? root.buffers : [];
+  const diagnostics: GltfReportDrivenGlbImportDiagnostic[] = [];
+
+  buffers.forEach((buffer, bufferIndex) => {
+    if (!isRecord(buffer)) {
+      return;
+    }
+
+    if (resolveBufferBytes(bufferIndex) !== null) {
+      return;
+    }
+
+    if (typeof buffer.uri === "string") {
+      diagnostics.push({
+        code: "glbImport.externalBufferUnsupported",
+        severity: "error",
+        bufferIndex,
+        uri: buffer.uri,
+        message: `GLB buffer ${bufferIndex} uses external URI '${buffer.uri}', but no caller-provided bytes were resolved.`,
+      });
+      return;
+    }
+
+    if (bufferIndex === 0 && binaryChunk === null) {
+      diagnostics.push({
+        code: "glbImport.missingBinaryChunk",
+        severity: "error",
+        bufferIndex,
+        message:
+          "GLB buffer 0 requires bytes, but the container has no BIN chunk.",
+      });
+    }
+  });
+
+  return diagnostics;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
 }
 
 export function gltfReportDrivenImportReportToJson(

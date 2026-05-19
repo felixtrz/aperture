@@ -20,6 +20,7 @@ export type IblTextureResourceDiagnostic =
       readonly code:
         | "iblTextureResource.missingTexturePreparation"
         | "iblTextureResource.unsupportedTextureSlots"
+        | "iblTextureResource.specularProofUploadPlaceholder"
         | "iblTextureResource.specularPrefilteringDeferred";
       readonly severity: "warning" | "error";
       readonly message: string;
@@ -69,6 +70,7 @@ export interface SpecularIblTextureResourceReport {
     readonly texturePreparation: boolean;
     readonly specularTextureResource: boolean;
     readonly gpuAllocation: boolean;
+    readonly proofUpload: boolean;
     readonly prefiltering: false;
     readonly bindGroupResource: false;
     readonly shaderSampling: false;
@@ -207,6 +209,14 @@ export function createDiffuseIblTextureResourceReport(
           WEBGPU_TEXTURE_USAGE_FLAGS.COPY_DST,
         mipLevelCount: 1,
       },
+      ...(options.device.queue?.writeTexture === undefined
+        ? {}
+        : {
+            upload: createDefaultDiffuseIblUpload(
+              options.size ?? 64,
+              slot.format,
+            ),
+          }),
       viewDescriptor: { dimension: "cube" },
     });
 
@@ -238,6 +248,57 @@ export function createDiffuseIblTextureResourceReport(
     resources,
     diagnostics,
   });
+}
+
+function createDefaultDiffuseIblUpload(size: number, format: string) {
+  const bytesPerPixel = format === "rgba16float" ? 8 : 4;
+  const bytesPerRow = size * bytesPerPixel;
+  const data = new Uint8Array(bytesPerRow * size * 6);
+
+  if (bytesPerPixel === 8) {
+    for (let index = 0; index < data.length; index += 8) {
+      data[index] = 0x00;
+      data[index + 1] = 0x38;
+      data[index + 2] = 0x00;
+      data[index + 3] = 0x38;
+      data[index + 4] = 0x00;
+      data[index + 5] = 0x38;
+      data[index + 6] = 0x00;
+      data[index + 7] = 0x3c;
+    }
+  } else {
+    for (let index = 0; index < data.length; index += 4) {
+      data[index] = 128;
+      data[index + 1] = 144;
+      data[index + 2] = 168;
+      data[index + 3] = 255;
+    }
+  }
+
+  return {
+    data,
+    bytesPerRow,
+    rowsPerImage: size,
+  };
+}
+
+function createDefaultSpecularIblUpload(size: number, format: string) {
+  const upload = createDefaultDiffuseIblUpload(size, format);
+
+  if (format === "rgba16float") {
+    for (let index = 0; index < upload.data.length; index += 8) {
+      upload.data[index] = 0x00;
+      upload.data[index + 1] = 0x34;
+      upload.data[index + 2] = 0x00;
+      upload.data[index + 3] = 0x34;
+      upload.data[index + 4] = 0x00;
+      upload.data[index + 5] = 0x34;
+      upload.data[index + 6] = 0x00;
+      upload.data[index + 7] = 0x3c;
+    }
+  }
+
+  return upload;
 }
 
 export function createSpecularIblTextureResourceReport(
@@ -324,6 +385,9 @@ export function createSpecularIblTextureResourceReport(
           WEBGPU_TEXTURE_USAGE_FLAGS.RENDER_ATTACHMENT,
         mipLevelCount: mipLevelCountForSize(size),
       },
+      ...(options.device.queue?.writeTexture === undefined
+        ? {}
+        : { upload: createDefaultSpecularIblUpload(size, slot.format) }),
       viewDescriptor: { dimension: "cube" },
     });
 
@@ -345,6 +409,15 @@ export function createSpecularIblTextureResourceReport(
   }
 
   if (resources.some((resource) => resource.valid)) {
+    if (options.device.queue?.writeTexture !== undefined) {
+      diagnostics.push({
+        code: "iblTextureResource.specularProofUploadPlaceholder",
+        severity: "warning",
+        message:
+          "Specular IBL texture resource uses a deterministic proof-upload placeholder; full PMREM/GGX prefiltering remains deferred.",
+      });
+    }
+
     diagnostics.push({
       code: "iblTextureResource.specularPrefilteringDeferred",
       severity: "warning",
@@ -531,6 +604,11 @@ function specularReport(input: {
         input.status !== "missing" && input.status !== "unsupported",
       specularTextureResource: input.status === "available",
       gpuAllocation: input.status === "available",
+      proofUpload: input.diagnostics.some(
+        (diagnostic) =>
+          diagnostic.code ===
+          "iblTextureResource.specularProofUploadPlaceholder",
+      ),
       prefiltering: false,
       bindGroupResource: false,
       shaderSampling: false,

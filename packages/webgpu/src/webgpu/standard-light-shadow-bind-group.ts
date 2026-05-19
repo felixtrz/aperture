@@ -1,4 +1,12 @@
-import type { WebGpuBindGroupLayoutDescriptor } from "./bind-group-layout-cache.js";
+import type {
+  WebGpuBindGroupLayoutDescriptor,
+  WebGpuBindGroupLayoutEntryDescriptor,
+} from "./bind-group-layout-cache.js";
+import type { IblSamplerResourceReport } from "./ibl-sampler-resource.js";
+import type {
+  DiffuseIblTextureResourceReport,
+  SpecularIblTextureResourceReport,
+} from "./ibl-texture-resource.js";
 import type { LightGpuBufferResource } from "./light-packing.js";
 import type { ShadowDepthTextureResourceReport } from "./shadow-depth-texture-resource.js";
 import type { ShadowMatrixBufferResourceReport } from "./shadow-matrix-buffer-resource.js";
@@ -7,6 +15,10 @@ import type { ShadowSamplerResourceReport } from "./standard-material-shadow-bin
 export const STANDARD_LIGHT_SHADOW_BIND_GROUP = 3;
 export const STANDARD_LIGHT_SHADOW_BIND_GROUP_LAYOUT_KEY =
   "standard/lights-shadow/group-3";
+export const STANDARD_LIGHT_IBL_BIND_GROUP_LAYOUT_KEY =
+  "standard/lights-ibl/group-3";
+export const STANDARD_LIGHT_SHADOW_IBL_BIND_GROUP_LAYOUT_KEY =
+  "standard/lights-shadow-ibl/group-3";
 
 export type StandardLightShadowBindGroupDiagnosticCode =
   | "standardLightShadowBindGroup.missingLayoutKey"
@@ -14,6 +26,8 @@ export type StandardLightShadowBindGroupDiagnosticCode =
   | "standardLightShadowBindGroup.missingMatrixBufferResource"
   | "standardLightShadowBindGroup.missingDepthTextureResource"
   | "standardLightShadowBindGroup.missingSamplerResource"
+  | "standardLightShadowBindGroup.missingDiffuseIblTextureResource"
+  | "standardLightShadowBindGroup.missingIblSamplerResource"
   | "standardLightShadowBindGroupResource.nullDescriptorPlan"
   | "standardLightShadowBindGroupResource.invalidDescriptorPlan"
   | "standardLightShadowBindGroupResource.missingLayout"
@@ -66,6 +80,23 @@ export interface CreateStandardLightShadowBindGroupDescriptorPlanOptions {
   readonly label?: string;
 }
 
+export interface CreateStandardLightIblBindGroupDescriptorPlanOptions {
+  readonly lightGpuBufferResource: LightGpuBufferResource | null;
+  readonly diffuseTextureResource: DiffuseIblTextureResourceReport;
+  readonly specularTextureResource?: SpecularIblTextureResourceReport;
+  readonly samplerResource: IblSamplerResourceReport;
+  readonly shadowReceiverResources?: StandardLightIblShadowReceiverResources;
+  readonly shadowRequired?: boolean;
+  readonly layoutKey?: string | null;
+  readonly label?: string;
+}
+
+export interface StandardLightIblShadowReceiverResources {
+  readonly matrixBufferResource: ShadowMatrixBufferResourceReport;
+  readonly depthTextureResources: ShadowDepthTextureResourceReport;
+  readonly samplerResource: ShadowSamplerResourceReport;
+}
+
 export interface StandardLightShadowBindGroupLayoutResource {
   readonly group: typeof STANDARD_LIGHT_SHADOW_BIND_GROUP;
   readonly layoutKey: string;
@@ -102,6 +133,65 @@ export function createStandardLightShadowBindGroupLayoutDescriptor(): WebGpuBind
       },
       { binding: 4, visibility: 0x2, sampler: { type: "comparison" } },
     ],
+  };
+}
+
+export function createStandardLightIblBindGroupLayoutDescriptor(options?: {
+  readonly shadowMap?: boolean;
+  readonly specularProof?: boolean;
+}): WebGpuBindGroupLayoutDescriptor {
+  const entries: WebGpuBindGroupLayoutEntryDescriptor[] = [
+    { binding: 0, visibility: 0x2, buffer: { type: "read-only-storage" } },
+    { binding: 1, visibility: 0x2, buffer: { type: "read-only-storage" } },
+  ];
+
+  if (options?.shadowMap === true) {
+    entries.push(
+      { binding: 2, visibility: 0x3, buffer: { type: "read-only-storage" } },
+      {
+        binding: 3,
+        visibility: 0x2,
+        texture: {
+          sampleType: "depth",
+          viewDimension: "2d",
+          multisampled: false,
+        },
+      },
+      { binding: 4, visibility: 0x2, sampler: { type: "comparison" } },
+    );
+  }
+
+  entries.push(
+    {
+      binding: 5,
+      visibility: 0x2,
+      texture: {
+        sampleType: "float",
+        viewDimension: "cube",
+        multisampled: false,
+      },
+    },
+    { binding: 6, visibility: 0x2, sampler: { type: "filtering" } },
+  );
+
+  if (options?.specularProof === true) {
+    entries.push({
+      binding: 7,
+      visibility: 0x2,
+      texture: {
+        sampleType: "float",
+        viewDimension: "cube",
+        multisampled: false,
+      },
+    });
+  }
+
+  return {
+    label:
+      options?.shadowMap === true
+        ? STANDARD_LIGHT_SHADOW_IBL_BIND_GROUP_LAYOUT_KEY
+        : STANDARD_LIGHT_IBL_BIND_GROUP_LAYOUT_KEY,
+    entries,
   };
 }
 
@@ -219,6 +309,151 @@ export function createStandardLightShadowBindGroupDescriptorPlan(
   };
 }
 
+export function createStandardLightIblBindGroupDescriptorPlan(
+  options: CreateStandardLightIblBindGroupDescriptorPlanOptions,
+): StandardLightShadowBindGroupDescriptorPlan {
+  const shadowMap = options.shadowRequired === true;
+  const layoutKey =
+    options.layoutKey ??
+    (shadowMap
+      ? STANDARD_LIGHT_SHADOW_IBL_BIND_GROUP_LAYOUT_KEY
+      : STANDARD_LIGHT_IBL_BIND_GROUP_LAYOUT_KEY);
+  const label =
+    options.label ??
+    (shadowMap
+      ? STANDARD_LIGHT_SHADOW_IBL_BIND_GROUP_LAYOUT_KEY
+      : STANDARD_LIGHT_IBL_BIND_GROUP_LAYOUT_KEY);
+  const diagnostics: StandardLightShadowBindGroupDiagnostic[] = [];
+  const entries: StandardLightShadowBindGroupDescriptorEntry[] = [];
+
+  if (layoutKey === null || layoutKey.length === 0) {
+    diagnostics.push({
+      code: "standardLightShadowBindGroup.missingLayoutKey",
+      message:
+        "StandardMaterial light/IBL bind-group planning requires a layout key.",
+    });
+  }
+
+  if (options.lightGpuBufferResource === null) {
+    diagnostics.push({
+      code: "standardLightShadowBindGroup.missingLightGpuBufferResource",
+      message:
+        "StandardMaterial light/IBL bind-group planning requires light GPU buffers.",
+    });
+  } else {
+    entries.push(
+      {
+        binding: 0,
+        resourceKey: options.lightGpuBufferResource.floatResourceKey,
+        resourceKind: "buffer",
+      },
+      {
+        binding: 1,
+        resourceKey: options.lightGpuBufferResource.metadataResourceKey,
+        resourceKind: "buffer",
+      },
+    );
+  }
+
+  if (shadowMap) {
+    const shadowResources = options.shadowReceiverResources;
+
+    if (shadowResources === undefined) {
+      diagnostics.push(
+        {
+          code: "standardLightShadowBindGroup.missingMatrixBufferResource",
+          message:
+            "StandardMaterial light/shadow/IBL bind-group planning requires a shadow matrix buffer.",
+        },
+        {
+          code: "standardLightShadowBindGroup.missingDepthTextureResource",
+          message:
+            "StandardMaterial light/shadow/IBL bind-group planning requires a shadow depth texture view.",
+        },
+        {
+          code: "standardLightShadowBindGroup.missingSamplerResource",
+          message:
+            "StandardMaterial light/shadow/IBL bind-group planning requires a shadow comparison sampler.",
+        },
+      );
+    } else {
+      appendShadowEntries(shadowResources, entries, diagnostics);
+    }
+  }
+
+  const diffuseResource =
+    options.diffuseTextureResource.resources.find(
+      (resource) => resource.valid && resource.resource !== null,
+    )?.resource ?? null;
+
+  if (diffuseResource === null) {
+    diagnostics.push({
+      code: "standardLightShadowBindGroup.missingDiffuseIblTextureResource",
+      message:
+        "StandardMaterial light/IBL bind-group planning requires a diffuse IBL texture view.",
+    });
+  } else {
+    entries.push({
+      binding: 5,
+      resourceKey: diffuseResource.resourceKey,
+      resourceKind: "texture-view",
+    });
+  }
+
+  const samplerResource =
+    options.samplerResource.resources.find(
+      (resource) => resource.valid && resource.resource !== null,
+    )?.resource ?? null;
+
+  if (samplerResource === null) {
+    diagnostics.push({
+      code: "standardLightShadowBindGroup.missingIblSamplerResource",
+      message:
+        "StandardMaterial light/IBL bind-group planning requires an IBL sampler.",
+    });
+  } else {
+    entries.push({
+      binding: 6,
+      resourceKey: samplerResource.resourceKey,
+      resourceKind: "sampler",
+    });
+  }
+
+  if (options.specularTextureResource !== undefined) {
+    const specularResource =
+      options.specularTextureResource.resources.find(
+        (resource) => resource.valid && resource.resource !== null,
+      )?.resource ?? null;
+
+    if (specularResource === null) {
+      diagnostics.push({
+        code: "standardLightShadowBindGroup.missingDiffuseIblTextureResource",
+        message:
+          "StandardMaterial light/IBL bind-group planning requires a specular IBL proof texture view.",
+      });
+    } else {
+      entries.push({
+        binding: 7,
+        resourceKey: specularResource.resourceKey,
+        resourceKind: "texture-view",
+      });
+    }
+  }
+
+  return {
+    valid: diagnostics.length === 0,
+    group: STANDARD_LIGHT_SHADOW_BIND_GROUP,
+    label,
+    resourceKey:
+      diagnostics.length === 0 && layoutKey !== null
+        ? standardLightShadowBindGroupResourceKey(entries, layoutKey)
+        : null,
+    layoutKey,
+    entries,
+    diagnostics,
+  };
+}
+
 export function createStandardLightShadowBindGroupResource(options: {
   readonly device: StandardLightShadowBindGroupDeviceLike;
   readonly plan: StandardLightShadowBindGroupDescriptorPlan | null;
@@ -227,6 +462,9 @@ export function createStandardLightShadowBindGroupResource(options: {
   readonly matrixBufferResource: ShadowMatrixBufferResourceReport;
   readonly depthTextureResources: ShadowDepthTextureResourceReport;
   readonly samplerResource: ShadowSamplerResourceReport;
+  readonly diffuseTextureResource?: DiffuseIblTextureResourceReport;
+  readonly specularTextureResource?: SpecularIblTextureResourceReport;
+  readonly iblSamplerResource?: IblSamplerResourceReport;
 }): CreateStandardLightShadowBindGroupResourceResult {
   if (options.plan === null) {
     return resourceResult(
@@ -303,8 +541,9 @@ export function createStandardLightShadowBindGroupResource(options: {
 
 function standardLightShadowBindGroupResourceKey(
   entries: readonly StandardLightShadowBindGroupDescriptorEntry[],
+  layoutKey = STANDARD_LIGHT_SHADOW_BIND_GROUP_LAYOUT_KEY,
 ): string {
-  return `bind-group:${STANDARD_LIGHT_SHADOW_BIND_GROUP_LAYOUT_KEY}/${entries
+  return `bind-group:${layoutKey}/${entries
     .map((entry) => `${entry.binding}:${entry.resourceKey}`)
     .join("/")}`;
 }
@@ -348,6 +587,24 @@ function createCreationEntries(
     );
   }
 
+  for (const resource of resources.diffuseTextureResource?.resources ?? []) {
+    if (resource.valid && resource.resource !== null) {
+      textures.set(resource.resource.resourceKey, resource.resource.view);
+    }
+  }
+
+  for (const resource of resources.specularTextureResource?.resources ?? []) {
+    if (resource.valid && resource.resource !== null) {
+      textures.set(resource.resource.resourceKey, resource.resource.view);
+    }
+  }
+
+  for (const resource of resources.iblSamplerResource?.resources ?? []) {
+    if (resource.valid && resource.resource !== null) {
+      samplers.set(resource.resource.resourceKey, resource.resource.sampler);
+    }
+  }
+
   return plan.entries.flatMap((entry) => {
     if (entry.resourceKind === "texture-view") {
       const texture = textures.get(entry.resourceKey);
@@ -368,6 +625,58 @@ function createCreationEntries(
       ? []
       : [{ binding: entry.binding, resource: { buffer } }];
   });
+}
+
+function appendShadowEntries(
+  shadowResources: StandardLightIblShadowReceiverResources,
+  entries: StandardLightShadowBindGroupDescriptorEntry[],
+  diagnostics: StandardLightShadowBindGroupDiagnostic[],
+): void {
+  if (shadowResources.matrixBufferResource.resource === null) {
+    diagnostics.push({
+      code: "standardLightShadowBindGroup.missingMatrixBufferResource",
+      message:
+        "StandardMaterial light/shadow/IBL bind-group planning requires a shadow matrix buffer.",
+    });
+  } else {
+    entries.push({
+      binding: 2,
+      resourceKey: shadowResources.matrixBufferResource.resource.resourceKey,
+      resourceKind: "buffer",
+    });
+  }
+
+  const depthResource = shadowResources.depthTextureResources.resources.find(
+    (resource) => resource.allocation.resource !== null,
+  );
+
+  if (depthResource === undefined) {
+    diagnostics.push({
+      code: "standardLightShadowBindGroup.missingDepthTextureResource",
+      message:
+        "StandardMaterial light/shadow/IBL bind-group planning requires a shadow depth texture view.",
+    });
+  } else {
+    entries.push({
+      binding: 3,
+      resourceKey: depthResource.textureKey,
+      resourceKind: "texture-view",
+    });
+  }
+
+  if (shadowResources.samplerResource.resource === null) {
+    diagnostics.push({
+      code: "standardLightShadowBindGroup.missingSamplerResource",
+      message:
+        "StandardMaterial light/shadow/IBL bind-group planning requires a shadow comparison sampler.",
+    });
+  } else {
+    entries.push({
+      binding: 4,
+      resourceKey: shadowResources.samplerResource.resource.resourceKey,
+      resourceKind: "sampler",
+    });
+  }
 }
 
 function resourceResult(

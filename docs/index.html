@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-19 04:31 PDT</dd>
+            <dd>2026-05-19 05:35 PDT</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -790,15 +790,32 @@
               visible strict receiver delta for
               <code>receiver:plane:center</code> versus
               <code>caster:box:center</code>. StandardMaterial IBL group 4 now
-              routes through the app frame-resource path as a deferred resource;
-              GLTF status reports <code>ibl.appFrameRoute</code> ready with
-              JSON-safe resource keys while executable draw commands keep group
-              4 unbound until shader sampling lands. Decision 0013 now selects
-              the combined group 3 layout as the browser-safe executable IBL
-              sampling path under Chrome's four-bind-group limit.
+              routes through the app frame-resource path as a planning identity,
+              while ready diffuse IBL texture and sampler resources are aliased
+              into an executable combined group 3 light/IBL layout. GLTF status
+              now reports diffuse IBL shader sampling ready. A placeholder
+              specular IBL proof route also samples a renderer-owned specular
+              cube texture from group 3 binding 7 while keeping full PMREM/GGX
+              prefiltering deferred. Playwright covers diffuse and placeholder
+              specular pixel deltas plus the combined
+              <code>iblDiffuse|iblSpecularProof|shadowMap</code> route, and draw
+              commands still stay within groups 0 through 3 under Chrome's
+              four-bind-group limit. The source-side glTF path now also has a
+              minimal GLB fixture bridge: JSON plus BIN chunks can feed the
+              report-driven import contract, invalid containers stop before
+              import stages with structured diagnostics, and the browser GLTF
+              scene publishes JSON-safe GLB fixture status while ECS authoring
+              stays on the existing contract path. The wrapper now also reports
+              structured missing-BIN and unsupported external-buffer diagnostics
+              and exposes a JSON-safe report projection that omits raw container
+              bytes. GLB bufferView image sources now flow through the existing
+              asset-mapping contract with caller-provided decoded image data,
+              and the follow-up audit keeps full file loading, image decoding,
+              and compression deferred. Minimal GLB index-buffer fixture
+              coverage and public GLB fixture limitation docs are now in place.
             </dd>
             <dt>Next focus</dt>
-            <dd>Add first diffuse IBL shader contribution</dd>
+            <dd>Add malformed GLB chunk ordering diagnostics coverage</dd>
           </dl>
         </aside>
       </header>
@@ -1324,23 +1341,58 @@
             <h3>Latest work in this update</h3>
             <ul>
               <li>
-                <span class="badge green">task-1890</span> Routed
-                StandardMaterial IBL group 4 through app frame resources while
-                keeping shader sampling deferred.
+                <span class="badge green">task-1907</span> Documented current
+                GLB fixture limitations.
               </li>
               <li>
-                <span class="badge green">task-1889</span> Audited the strict
-                receiver shadow proof and selected the IBL group 4 routing
-                slice.
+                <span class="badge green">task-1906</span> Added minimal GLB
+                index-buffer fixture coverage.
               </li>
               <li>
-                <span class="badge green">task-1888</span> Replaced the
-                projected receiver envelope with visible strict shadow compare
-                proof.
+                <span class="badge green">task-1905</span> Audited GLB fixture
+                source status after buffer diagnostics.
               </li>
               <li>
-                <span class="badge green">task-1887</span> Added JSON-safe
-                shadow depth probe evidence for projection samples.
+                <span class="badge green">task-1904</span> Added GLB bufferView
+                image asset-mapping fixture coverage.
+              </li>
+              <li>
+                <span class="badge green">task-1903</span> Added JSON-safe GLB
+                import report serialization.
+              </li>
+              <li>
+                <span class="badge green">task-1902</span> Added structured GLB
+                missing-BIN and external-buffer diagnostics.
+              </li>
+              <li>
+                <span class="badge green">task-1901</span> Routed the browser
+                GLTF scene root through a JSON-safe GLB fixture status.
+              </li>
+              <li>
+                <span class="badge green">task-1900</span> Audited the GLB
+                fixture path package and ownership boundary.
+              </li>
+              <li>
+                <span class="badge green">task-1899</span> Added a minimal GLB
+                JSON+BIN fixture bridge into the report-driven import contract.
+              </li>
+              <li>
+                <span class="badge green">task-1898</span> Audited IBL fidelity
+                diagnostics after the placeholder specular browser proof.
+              </li>
+              <li>
+                <span class="badge green">task-1897</span> Implemented the
+                placeholder specular IBL shader proof with a GLTF pixel delta.
+              </li>
+              <li>
+                <span class="badge green">task-1896</span> Planned the
+                placeholder specular IBL shader-readiness slice and kept full
+                PMREM/GGX deferred.
+              </li>
+              <li>
+                <span class="badge green">task-1891</span> Selected combined
+                group 3 as the executable IBL bind-group layout under Chrome's
+                four-bind-group limit.
               </li>
               <li>
                 <span class="badge green">task-1886</span> Documented the strict
@@ -2600,17 +2652,13 @@
             <h3>Recommended next tasks</h3>
             <ul>
               <li>
-                <span class="badge amber">next</span> Add the first diffuse IBL
-                shader contribution using Decision 0013's combined group 3
-                layout.
+                <span class="badge amber">next</span> Add malformed GLB chunk
+                ordering diagnostics coverage.
               </li>
+              <li>Add GLB bufferView image JSON serialization coverage.</li>
               <li>
-                Preserve group 4 as planning identity while executable browser
-                draws stay within groups 0 through 3.
-              </li>
-              <li>
-                Keep specular prefiltering, skybox, and broad PBR completeness
-                deferred.
+                Keep full external loading, compression, and broad PBR
+                completeness deferred.
               </li>
             </ul>
           </article>

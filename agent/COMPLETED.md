@@ -1,5 +1,320 @@
 # Completed Tasks
 
+## task-1907 — Document current GLB fixture limitations
+
+Completed: 2026-05-19
+
+Summary:
+
+- Added `docs/GLB_FIXTURE_LIMITATIONS.md`.
+- Documented supported GLB fixture behavior and explicitly deferred async
+  loading, external URI fetching, built-in image decoding, validation,
+  compression, and lifecycle/cache work.
+- Restated that GLB fixture reports are renderer-independent and must not own
+  ECS/game state or GPU resources.
+
+Validation:
+
+- `pnpm run format:check`
+- `pnpm run check:progress`
+
+## task-1906 — Add minimal GLB index-buffer fixture coverage
+
+Completed: 2026-05-19
+
+Summary:
+
+- Added GLB fixture tests for POSITION plus unsigned-short index accessor
+  decoding through the report-driven import path.
+- Verified mesh construction preserves indexed submesh metadata and JSON-safe
+  GLB report output omits raw container bytes.
+- Added malformed index buffer range coverage.
+
+Validation:
+
+- `pnpm exec vitest run test/assets/glb-container.test.ts test/assets/gltf-mesh-asset-construction.test.ts`
+- `pnpm run typecheck:test`
+
+## task-1905 — Audit GLB fixture source status after buffer diagnostics
+
+Completed: 2026-05-19
+
+Summary:
+
+- Added
+  `docs/research/GLB_FIXTURE_SOURCE_STATUS_AUDIT_2026_05_19.md`.
+- Confirmed GLB diagnostics and JSON-safe source status remain source-side and
+  renderer-independent.
+- Confirmed the bufferView image fixture depends on caller-provided decoded
+  image data and does not imply full image decoding or external file loading.
+- Recommended minimal GLB index-buffer fixture coverage next.
+
+Validation:
+
+- Local architecture/reference inspection.
+- `pnpm run check:progress`
+- `pnpm run format:check`
+
+## task-1904 — Add GLB bufferView image asset-mapping fixture
+
+Completed: 2026-05-19
+
+Summary:
+
+- Added GLB fixture tests proving an image `bufferView` can flow through the
+  existing asset-mapping report when caller-provided decoded image data is
+  available.
+- Added missing image-data coverage that preserves structured texture and
+  material diagnostics.
+- Kept the path renderer-independent with no GPU resources or ECS side effects.
+
+Validation:
+
+- `pnpm exec vitest run test/assets/glb-container.test.ts test/assets/gltf-asset-mapping.test.ts`
+- `pnpm run typecheck:test`
+
+## task-1903 — Add JSON-safe GLB import report serialization
+
+Completed: 2026-05-19
+
+Summary:
+
+- Added `gltfReportDrivenGlbImportReportToJsonValue`.
+- Preserved GLB chunk summaries, container diagnostics, import report JSON, and
+  GLB wrapper diagnostics without exposing `binaryChunk` or `jsonText`.
+- Added tests proving the JSON projection omits raw binary container payloads
+  and typed-array names.
+
+Validation:
+
+- `pnpm exec tsc -p packages/render/tsconfig.json --noEmit`
+- `pnpm exec vitest run test/assets/glb-container.test.ts test/assets/gltf-report-driven-import-json.test.ts`
+- `pnpm run typecheck:test`
+
+## task-1902 — Add structured GLB buffer-source diagnostics
+
+Completed: 2026-05-19
+
+Summary:
+
+- Added source-side GLB wrapper diagnostics for missing BIN chunk bytes and
+  unsupported external buffer URIs without caller-provided bytes.
+- Kept existing accessor decoding diagnostics intact while making the GLB source
+  cause explicit at the wrapper boundary.
+- Added tests for missing BIN and unsupported external URI cases.
+
+Validation:
+
+- `pnpm exec tsc -p packages/render/tsconfig.json --noEmit`
+- `pnpm exec vitest run test/assets/glb-container.test.ts test/assets/gltf-report-driven-import.test.ts`
+- `pnpm run typecheck:test`
+
+## task-1901 — Add browser GLTF scene GLB fixture status
+
+Completed: 2026-05-19
+
+Summary:
+
+- Routed the browser GLTF scene root through a minimal parsed GLB fixture source.
+- Published JSON-safe GLB fixture status in the example status without exposing
+  raw binary payloads.
+- Kept ECS authoring, mesh construction, and rendering behavior on the existing
+  contract path.
+- Extended Playwright status assertions to verify the GLB source fixture.
+
+Validation:
+
+- `node --check examples/gltf-scene.js`
+- `pnpm run typecheck:test`
+- `pnpm exec playwright test test/e2e/gltf-scene.spec.ts`
+
+## task-1900 — Audit GLB fixture path package boundary
+
+Completed: 2026-05-19
+
+Summary:
+
+- Added
+  `docs/research/GLB_FIXTURE_PATH_BOUNDARY_AUDIT_2026_05_19.md`.
+- Confirmed the GLB report-driven import helper stays in
+  `@aperture-engine/render` and remains renderer-independent/headless-safe.
+- Confirmed the helper does not introduce a scene graph, ECS side effects, or
+  WebGPU ownership.
+- Recommended adding JSON-safe browser GLB fixture source status.
+
+Validation:
+
+- `pnpm run check:boundaries`
+- Local architecture/reference inspection.
+
+## task-1899 — Add minimal uncompressed GLB container fixture path
+
+Completed: 2026-05-19
+
+Summary:
+
+- Added `createGltfReportDrivenImportReportFromGlb`, a minimal source-side GLB
+  bridge that parses a GLB container and feeds parsed JSON plus BIN chunk bytes
+  into the existing report-driven glTF import contract.
+- Kept the helper renderer-independent in `@aperture-engine/render`, with no
+  ECS side effects and no WebGPU resource ownership.
+- Added tests proving valid JSON+BIN fixture import into mesh construction and
+  invalid container short-circuit behavior for bad header and missing JSON
+  inputs.
+
+Validation:
+
+- `pnpm exec tsc -p packages/render/tsconfig.json --noEmit`
+- `pnpm exec vitest run test/assets/glb-container.test.ts test/assets/gltf-report-driven-import.test.ts`
+- `pnpm run typecheck:test`
+
+## task-1898 — Audit IBL material-fidelity diagnostics after specular proof
+
+Completed: 2026-05-19
+
+Summary:
+
+- Added
+  `docs/research/IBL_MATERIAL_FIDELITY_DIAGNOSTICS_AUDIT_2026_05_19.md`.
+- Confirmed diffuse and placeholder specular IBL diagnostics do not overstate
+  full PMREM/GGX, split-sum BRDF, skybox, or PBR readiness.
+- Confirmed group 4 remains planning-only and executable browser draws stay in
+  groups 0 through 3.
+- Recommended returning to the glTF scene ingestion track with a minimal
+  uncompressed GLB container fixture path.
+
+Validation:
+
+- `rg` checks for group 4 draw binding, IBL deferred diagnostics, and package
+  boundary drift.
+
+## task-1897 — Implement placeholder specular IBL shader proof
+
+Completed: 2026-05-19
+
+Summary:
+
+- Added `iblSpecularProof` StandardMaterial shader/pipeline handling over the
+  existing browser-safe group 3 IBL route.
+- Extended group 3 IBL layouts/resources with binding 7 for the renderer-owned
+  specular proof cube texture while keeping group 4 as planning identity only.
+- Added a small Fresnel-weighted placeholder specular reflection contribution
+  while full PMREM/GGX prefiltering and split-sum BRDF remain deferred.
+- GLTF Playwright now compares normal rendering against
+  `disable-specular-ibl-sampling=1`, verifies a visible pixel delta, preserves
+  strict receiver shadow proof, and binds no executable group 4.
+
+Validation:
+
+- `pnpm exec tsc -p packages/webgpu/tsconfig.json --noEmit`
+- `pnpm run typecheck:test`
+- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts test/webgpu/standard-shader.test.ts test/webgpu/standard-pipeline-descriptor.test.ts test/webgpu/ibl-texture-resource.test.ts`
+- `pnpm exec playwright test test/e2e/gltf-scene.spec.ts`
+
+## task-1896 — Plan first specular IBL shader-readiness slice
+
+Completed: 2026-05-19
+
+Summary:
+
+- Added `docs/research/SPECULAR_IBL_SHADER_READINESS_PLAN_2026_05_19.md`.
+- Selected `iblSpecularProof` as a narrow placeholder specular shader token
+  gated by diffuse IBL readiness plus the specular proof-upload placeholder.
+- Planned group 3 binding 7 for the specular proof cube texture while keeping
+  group 4 as JSON-safe planning identity.
+- Kept full PMREM/GGX prefiltering and split-sum BRDF deferred.
+
+Validation:
+
+- Reference and local shader/pipeline contract inspection only.
+
+## task-1895 — Add minimal specular IBL texture upload readiness
+
+Completed: 2026-05-19
+
+Summary:
+
+- Added deterministic placeholder upload data for renderer-owned specular IBL
+  cube textures when a WebGPU queue is available.
+- Specular IBL texture resource reports now expose `sections.proofUpload` and a
+  JSON-safe `iblTextureResource.specularProofUploadPlaceholder` diagnostic.
+- Full PMREM/GGX specular prefiltering remains explicitly deferred through the
+  existing `specularPrefilteringDeferred` diagnostic.
+- Added targeted tests for upload and no-upload behavior plus JSON safety.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/ibl-texture-resource.test.ts test/webgpu/standard-material-ibl-bind-group.test.ts`
+
+## task-1894 — Audit specular IBL contract before shader sampling
+
+Completed: 2026-05-19
+
+Summary:
+
+- Added `docs/research/SPECULAR_IBL_CONTRACT_AUDIT_2026_05_19.md`.
+- Confirmed the existing specular IBL texture resource is renderer-owned but
+  should not be sampled as a meaningful material-fidelity proof until upload or
+  prefilter readiness is represented honestly.
+- Compared PlayCanvas-style reflection/prefilter paths and three.js PMREM
+  direction, then deferred full PMREM/GGX convolution.
+- Selected a minimal specular IBL texture upload readiness slice as the next
+  implementation task.
+
+Validation:
+
+- Reference and local contract inspection only.
+
+## task-1893 — Audit IBL/shadow route ownership after diffuse IBL proof
+
+Completed: 2026-05-19
+
+Summary:
+
+- Added
+  `docs/research/DIFFUSE_IBL_ROUTE_OWNERSHIP_AUDIT_2026_05_19.md`.
+- Confirmed the diffuse IBL executable group 3 bridge keeps ECS authoritative,
+  keeps GPU resources renderer-owned, and keeps group 4 as JSON-safe planning
+  identity only.
+- Confirmed the combined `iblDiffuse|shadowMap` route stays within groups 0
+  through 3 and preserves strict receiver shadow proof.
+- Selected a narrow specular IBL planning audit as the next slice before any
+  full PBR IBL implementation.
+
+Validation:
+
+- `rg` checks for group 4 draw binding and package-boundary drift.
+- `pnpm run typecheck:test`
+- `pnpm exec playwright test test/e2e/gltf-scene.spec.ts`
+
+## task-1892 — Add first StandardMaterial diffuse IBL shader contribution
+
+Completed: 2026-05-19
+
+Summary:
+
+- Added executable StandardMaterial diffuse IBL sampling through Decision 0013's
+  browser-safe combined group 3 layout.
+- Extended StandardMaterial app frame IBL resources with live diffuse texture
+  and sampler reports so group 4 remains a JSON-safe planning identity while
+  executable draws bind group 3 only.
+- Added combined light/IBL and light/shadow/IBL group 3 descriptor/resource
+  planning over renderer-owned light buffers, shadow receiver resources, diffuse
+  cube texture views, and IBL samplers.
+- GLTF status now reports diffuse IBL shader sampling ready while keeping
+  specular prefilter, split-sum BRDF, and skybox deferred.
+- Playwright now verifies the combined `iblDiffuse|shadowMap` route and
+  preserves the strict receiver shadow pixel proof with no WebGPU validation
+  warnings.
+
+Validation:
+
+- `pnpm exec tsc -p packages/webgpu/tsconfig.json --noEmit`
+- `node --check examples/gltf-scene.js`
+- `pnpm run typecheck:test`
+- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts test/webgpu/standard-shader.test.ts test/webgpu/standard-pipeline-descriptor.test.ts`
+- `pnpm exec playwright test test/e2e/gltf-scene.spec.ts`
+
 ## task-1891 — Decide executable StandardMaterial IBL bind-group layout
 
 Completed: 2026-05-19

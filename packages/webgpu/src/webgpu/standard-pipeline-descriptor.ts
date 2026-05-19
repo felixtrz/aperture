@@ -240,10 +240,14 @@ function standardBindGroupLayoutKeys(
     standardMaterialLayoutKey(features),
     features.shadowMap === true
       ? features.iblDiffuse === true
-        ? "standard/lights-shadow-ibl/group-3:light-floats@0,light-metadata@1,matrix@2,depth@3,sampler@4,diffuse-ibl@5,ibl-sampler@6"
+        ? features.iblSpecularProof === true
+          ? "standard/lights-shadow-ibl/group-3:light-floats@0,light-metadata@1,matrix@2,depth@3,sampler@4,diffuse-ibl@5,ibl-sampler@6,specular-ibl-proof@7"
+          : "standard/lights-shadow-ibl/group-3:light-floats@0,light-metadata@1,matrix@2,depth@3,sampler@4,diffuse-ibl@5,ibl-sampler@6"
         : "standard/lights-shadow/group-3:light-floats@0,light-metadata@1,matrix@2,depth@3,sampler@4"
       : features.iblDiffuse === true
-        ? "standard/lights-ibl/group-3:light-floats@0,light-metadata@1,diffuse-ibl@5,ibl-sampler@6"
+        ? features.iblSpecularProof === true
+          ? "standard/lights-ibl/group-3:light-floats@0,light-metadata@1,diffuse-ibl@5,ibl-sampler@6,specular-ibl-proof@7"
+          : "standard/lights-ibl/group-3:light-floats@0,light-metadata@1,diffuse-ibl@5,ibl-sampler@6"
         : "lights/group-3:light-floats@0,light-metadata@1",
   ];
 }
@@ -278,6 +282,7 @@ function standardTextureFeatures(
     emissiveTexture: tokens.includes("emissiveTexture"),
     shadowMap: tokens.includes("shadowMap"),
     iblDiffuse: tokens.includes("iblDiffuse"),
+    iblSpecularProof: tokens.includes("iblSpecularProof"),
     texCoord1: tokens.includes("uv1"),
   };
 }

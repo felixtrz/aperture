@@ -5,8 +5,10 @@ import {
   createEnvironmentMapHandle,
   createIblResourceDescriptorReport,
   createIblTexturePreparationReport,
+  createSpecularIblTextureResourceReport,
   diffuseIblTextureResourceReportToJson,
   diffuseIblTextureResourceReportToJsonValue,
+  specularIblTextureResourceReportToJsonValue,
   type EnvironmentPacket,
   type TextureGpuDeviceLike,
 } from "@aperture-engine/webgpu";
@@ -104,6 +106,72 @@ describe("diffuse IBL texture resource", () => {
   });
 });
 
+describe("specular IBL texture resource", () => {
+  it("uploads deterministic placeholder radiance when a queue is available", () => {
+    const created: unknown[] = [];
+    const uploads: { readonly byteLength: number; readonly size: unknown }[] =
+      [];
+    const report = createSpecularIblTextureResourceReport({
+      device: deviceWithTexturesAndQueue(created, uploads),
+      textures: textures("deferred"),
+      size: 16,
+    });
+    const json = specularIblTextureResourceReportToJsonValue(report);
+
+    expect(json).toMatchObject({
+      ready: true,
+      status: "available",
+      textureSlotCount: 2,
+      specularSlotCount: 1,
+      createdTextureCount: 1,
+      sections: {
+        specularTextureResource: true,
+        gpuAllocation: true,
+        proofUpload: true,
+        prefiltering: false,
+        shaderSampling: false,
+      },
+      diagnostics: expect.arrayContaining([
+        expect.objectContaining({
+          code: "iblTextureResource.specularProofUploadPlaceholder",
+          severity: "warning",
+        }),
+        expect.objectContaining({
+          code: "iblTextureResource.specularPrefilteringDeferred",
+          severity: "warning",
+        }),
+      ]),
+    });
+    expect(uploads).toEqual([{ byteLength: 12288, size: [16, 16, 6] }]);
+    expect(JSON.stringify(json)).not.toMatch(/GPUTexture|GPUTextureView|"raw"/);
+  });
+
+  it("keeps proof upload false when the device cannot upload", () => {
+    const report = createSpecularIblTextureResourceReport({
+      device: deviceWithTextures([]),
+      textures: textures("deferred"),
+      size: 16,
+    });
+
+    expect(specularIblTextureResourceReportToJsonValue(report)).toMatchObject({
+      ready: true,
+      status: "available",
+      sections: {
+        proofUpload: false,
+        prefiltering: false,
+      },
+      diagnostics: [
+        {
+          code: "iblTextureResource.specularPrefilteringDeferred",
+          severity: "warning",
+          message:
+            "Specular IBL texture resources are allocated, but prefilter pass execution remains deferred.",
+        },
+      ],
+    });
+  });
+});
+
 function textures(preparation: "deferred" | "ready" | "unsupported") {
   return createIblTexturePreparationReport({
     descriptors: createIblResourceDescriptorReport({
@@ -141,6 +209,20 @@ function deviceWithTextures(created: unknown[]): TextureGpuDeviceLike {
       return {
         createView: () => ({ descriptor }),
       };
+    },
+  };
+}
+
+function deviceWithTexturesAndQueue(
+  created: unknown[],
+  uploads: { readonly byteLength: number; readonly size: unknown }[],
+): TextureGpuDeviceLike {
+  return {
+    ...deviceWithTextures(created),
+    queue: {
+      writeTexture: (_destination, data, _layout, size) => {
+        uploads.push({ byteLength: data.byteLength, size });
+      },
     },
   };
 }

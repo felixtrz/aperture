@@ -11,6 +11,16 @@ import {
 import type { ExampleStatusBase } from "./example-status-types.js";
 
 interface GltfSceneStatus extends ExampleStatusBase {
+  readonly source?: {
+    readonly glbFixture: {
+      readonly valid: boolean;
+      readonly chunks: readonly {
+        readonly type: string;
+        readonly byteLength: number;
+      }[];
+      readonly diagnostics: readonly unknown[];
+    };
+  };
   readonly clearColor?: {
     readonly r: number;
     readonly g: number;
@@ -732,7 +742,10 @@ interface GltfSceneStatus extends ExampleStatusBase {
     };
     readonly sampling: {
       readonly supported: boolean;
-      readonly diagnostic: {
+      readonly mode?: string;
+      readonly specularProof?: boolean;
+      readonly deferred?: readonly string[];
+      readonly diagnostic?: {
         readonly code: string;
         readonly severity: string;
       };
@@ -1131,6 +1144,50 @@ test("Playwright shows the GLTF scene fixture through the app path", async ({
     .locator("#aperture-canvas")
     .screenshot();
 
+  await page.goto("/examples/gltf-scene.html?disable-ibl-sampling=1");
+  status = await waitForExampleStatus<GltfSceneStatus>(page);
+
+  expect(status, "GLTF scene status should publish").toBeDefined();
+
+  if (status === undefined) {
+    return;
+  }
+
+  skipIfUnsupportedWebGpu(status);
+
+  await page.waitForFunction(
+    () =>
+      ((
+        globalThis as {
+          readonly __APERTURE_EXAMPLE_STATUS__?: { readonly frame?: number };
+        }
+      ).__APERTURE_EXAMPLE_STATUS__?.frame ?? 0) >= 3,
+  );
+  const noIblScreenshot = await page.locator("#aperture-canvas").screenshot();
+
+  await page.goto("/examples/gltf-scene.html?disable-specular-ibl-sampling=1");
+  status = await waitForExampleStatus<GltfSceneStatus>(page);
+
+  expect(status, "GLTF scene status should publish").toBeDefined();
+
+  if (status === undefined) {
+    return;
+  }
+
+  skipIfUnsupportedWebGpu(status);
+
+  await page.waitForFunction(
+    () =>
+      ((
+        globalThis as {
+          readonly __APERTURE_EXAMPLE_STATUS__?: { readonly frame?: number };
+        }
+      ).__APERTURE_EXAMPLE_STATUS__?.frame ?? 0) >= 3,
+  );
+  const noSpecularIblScreenshot = await page
+    .locator("#aperture-canvas")
+    .screenshot();
+
   await page.goto("/examples/gltf-scene.html");
   status = await waitForExampleStatus<GltfSceneStatus>(page);
 
@@ -1169,6 +1226,13 @@ test("Playwright shows the GLTF scene fixture through the app path", async ({
     ok: true,
     phase: "render",
     renderingBackend: "webgpu-explicit",
+    source: {
+      glbFixture: {
+        valid: true,
+        chunks: [{ type: "json", byteLength: expect.any(Number) }],
+        diagnostics: [],
+      },
+    },
     readiness: {
       ibl: {
         status: "deferred",
@@ -1190,7 +1254,7 @@ test("Playwright shows the GLTF scene fixture through the app path", async ({
           appFrameRoute: "ready",
           shaderBinding: "deferred",
           pipelineKey: "deferred",
-          shaderSampling: "deferred",
+          shaderSampling: "ready",
         },
       },
       shadow: {
@@ -1391,6 +1455,7 @@ test("Playwright shows the GLTF scene fixture through the app path", async ({
           texturePreparation: true,
           specularTextureResource: true,
           gpuAllocation: true,
+          proofUpload: true,
           prefiltering: false,
           bindGroupResource: false,
           shaderSampling: false,
@@ -1409,6 +1474,10 @@ test("Playwright shows the GLTF scene fixture through the app path", async ({
           },
         ],
         diagnostics: [
+          {
+            code: "iblTextureResource.specularProofUploadPlaceholder",
+            severity: "warning",
+          },
           {
             code: "iblTextureResource.specularPrefilteringDeferred",
             severity: "warning",
@@ -1966,11 +2035,10 @@ test("Playwright shows the GLTF scene fixture through the app path", async ({
         ],
       },
       sampling: {
-        supported: false,
-        diagnostic: {
-          code: "gltfScene.iblSamplingDeferred",
-          severity: "warning",
-        },
+        supported: true,
+        mode: "diffuse-ibl",
+        specularProof: true,
+        deferred: ["specular-prefilter", "split-sum-brdf", "skybox"],
       },
     },
     shadow: {
@@ -3275,6 +3343,8 @@ test("Playwright shows the GLTF scene fixture through the app path", async ({
     contentType: "image/png",
   });
   expectVisibleSceneRegions(screenshot, status);
+  expectDiffuseIblActivation(noIblScreenshot, screenshot, status);
+  expectSpecularIblProofActivation(noSpecularIblScreenshot, screenshot, status);
   expectReceiverShadowActivation(noShadowScreenshot, screenshot, status);
   webGpuValidation.expectNoWarnings();
 });
@@ -3351,7 +3421,8 @@ function expectReceiverShadowActivation(
   ).toEqual(
     expect.arrayContaining([
       {
-        pipelineKey: "standard|shadowMap|opaque|back|less|none",
+        pipelineKey:
+          "standard|iblDiffuse|iblSpecularProof|shadowMap|opaque|back|less|none",
         itemCount: 2,
       },
     ]),
@@ -3368,6 +3439,67 @@ function expectReceiverShadowActivation(
       beforeLuminance,
     )} after=${JSON.stringify(afterLuminance)} maxDelta=${maxDelta}`,
   ).toBeGreaterThan(8);
+}
+
+function expectDiffuseIblActivation(
+  before: Buffer,
+  after: Buffer,
+  status: GltfSceneStatus,
+): void {
+  const clear =
+    status.clearColor === undefined
+      ? { r: 4, g: 6, b: 9, a: 255 }
+      : rgbaColorToPixel(status.clearColor);
+  const delta = maxRegionLuminanceDelta(
+    before,
+    after,
+    clear,
+    standardIblProbeRegion(),
+  );
+
+  expect(
+    status.ibl?.sampling.supported,
+    "GLTF scene should report diffuse IBL shader sampling ready.",
+  ).toBe(true);
+  expect(
+    delta,
+    `standard material region should change after diffuse IBL sampling; maxDelta=${delta}`,
+  ).toBeGreaterThan(4);
+}
+
+function expectSpecularIblProofActivation(
+  before: Buffer,
+  after: Buffer,
+  status: GltfSceneStatus,
+): void {
+  const clear =
+    status.clearColor === undefined
+      ? { r: 4, g: 6, b: 9, a: 255 }
+      : rgbaColorToPixel(status.clearColor);
+  const delta = maxRegionLuminanceDelta(
+    before,
+    after,
+    clear,
+    standardIblProbeRegion(),
+  );
+
+  expect(
+    status.ibl?.sampling.specularProof,
+    "GLTF scene should report placeholder specular IBL proof sampling ready.",
+  ).toBe(true);
+  expect(
+    delta,
+    `standard material region should change after placeholder specular IBL sampling; maxDelta=${delta}`,
+  ).toBeGreaterThan(2);
+}
+
+function standardIblProbeRegion(): {
+  readonly minX: number;
+  readonly minY: number;
+  readonly width: number;
+  readonly height: number;
+} {
+  return { minX: 0.42, minY: 0.35, width: 0.33, height: 0.32 };
 }
 
 function standardReceiverRegion(): {

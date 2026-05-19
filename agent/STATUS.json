@@ -1,11 +1,11 @@
 {
   "state": "idle",
-  "currentTaskId": "task-1892",
-  "currentRunStartedAt": "2026-05-19T09:01:58Z",
-  "lastRunStartedAt": "2026-05-19T09:01:58Z",
+  "currentTaskId": "task-1908",
+  "currentRunStartedAt": "2026-05-19T12:02:15Z",
+  "lastRunStartedAt": "2026-05-19T12:02:15Z",
   "lastResult": "success",
   "lastCommit": "9fd4f06",
   "activePid": null,
-  "notes": "Completed task-1887 through task-1891. StandardMaterial IBL group 4 now routes through app frame resources as a deferred resource; Decision 0013 selects combined group 3 for executable IBL sampling. Task-1892 is open; its implementation plan plus shader/pipeline iblDiffuse metadata and targeted tests are added. Do not enable the iblDiffuse app pipeline key before adding the combined group 3 light plus diffuse IBL bind group; live resource bridging and GLTF pixel proof remain.",
-  "lastRunFinishedAt": "2026-05-19T11:50:00Z"
+  "notes": "Completed task-1892 through task-1907. StandardMaterial now has diffuse IBL and placeholder specular IBL browser proofs through browser-safe group 3, while group 4 remains JSON-safe planning identity only and full PMREM/GGX remains deferred. Added a minimal GLB fixture bridge into the report-driven glTF import contract, structured missing-BIN/external-buffer diagnostics, JSON-safe GLB import serialization, browser GLTF scene source status, bufferView image asset-mapping coverage, index-buffer fixture coverage, and GLB fixture limitation docs. Recommended next task is task-1908: add malformed GLB chunk ordering diagnostics coverage.",
+  "lastRunFinishedAt": "2026-05-19T12:49:29Z"
 }

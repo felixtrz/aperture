@@ -1,5 +1,141 @@
 # Handoff
 
+## Current Run Update — 2026-05-19T12:49:29Z
+
+Completed `task-1892` through `task-1907`. Recommended next task is
+`task-1908`: add malformed GLB chunk ordering diagnostics coverage.
+
+What changed:
+
+- Added executable StandardMaterial diffuse IBL and placeholder specular IBL
+  browser proofs through the browser-safe combined group 3 route; group 4
+  remains JSON-safe planning identity only, and full PMREM/GGX remains deferred.
+- Added deterministic diffuse/specular IBL proof texture uploads, live group 3
+  IBL resource routing, and GLTF Playwright coverage for diffuse IBL,
+  placeholder specular IBL, and strict receiver shadow deltas.
+- Added `createGltfReportDrivenImportReportFromGlb`, which parses a GLB
+  container and feeds parsed JSON plus BIN chunk bytes into the existing
+  report-driven glTF import contract without ECS side effects or WebGPU
+  ownership.
+- Added GLB wrapper diagnostics for missing BIN chunk bytes and unsupported
+  external buffer URIs without caller-provided bytes.
+- Added `gltfReportDrivenGlbImportReportToJsonValue`, a JSON-safe projection
+  that preserves chunk/import diagnostics while omitting raw container bytes.
+- Routed the browser GLTF scene root through a minimal parsed GLB fixture source
+  and published JSON-safe `source.glbFixture` status in the example.
+- Added GLB bufferView image asset-mapping fixture coverage with caller-provided
+  decoded image data and missing-image diagnostics.
+- Added GLB POSITION plus unsigned-short index-buffer fixture coverage.
+- Added `docs/GLB_FIXTURE_LIMITATIONS.md` to state supported fixture behavior
+  and deferred full-loader work.
+- Added audits/plans:
+  - `docs/research/DIFFUSE_IBL_ROUTE_OWNERSHIP_AUDIT_2026_05_19.md`
+  - `docs/research/SPECULAR_IBL_CONTRACT_AUDIT_2026_05_19.md`
+  - `docs/research/SPECULAR_IBL_SHADER_READINESS_PLAN_2026_05_19.md`
+  - `docs/research/IBL_MATERIAL_FIDELITY_DIAGNOSTICS_AUDIT_2026_05_19.md`
+  - `docs/research/GLB_FIXTURE_PATH_BOUNDARY_AUDIT_2026_05_19.md`
+  - `docs/research/GLB_FIXTURE_SOURCE_STATUS_AUDIT_2026_05_19.md`
+- Updated public tracker pages, backlog, completed log, and status.
+
+Reference anchors inspected:
+
+- `references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/reflectionEnv.js`
+- `references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/reflectionCube.js`
+- `references/engine/src/scene/graphics/reproject-texture.js`
+- `references/three.js/src/extras/PMREMGenerator.js`
+- `references/bevy/crates/bevy_gltf/src/loader/mod.rs`
+- `docs/research/ASSET_LOADER_SCENE_IMPORT_COVERAGE.md`
+- Bevy render app / prepared asset / bind-group preparation patterns in
+  `references/bevy/crates/bevy_render` and `references/bevy/crates/bevy_pbr`.
+
+Validation:
+
+- `pnpm run check`
+- `pnpm exec playwright test test/e2e/gltf-scene.spec.ts`
+- Targeted GLB/render checks during implementation:
+  - `pnpm exec tsc -p packages/render/tsconfig.json --noEmit`
+  - `pnpm exec vitest run test/assets/glb-container.test.ts test/assets/gltf-report-driven-import.test.ts`
+  - `pnpm exec vitest run test/assets/glb-container.test.ts test/assets/gltf-report-driven-import-json.test.ts`
+  - `pnpm exec vitest run test/assets/glb-container.test.ts test/assets/gltf-asset-mapping.test.ts`
+  - `pnpm exec vitest run test/assets/glb-container.test.ts test/assets/gltf-mesh-asset-construction.test.ts`
+
+Known issues / follow-ups:
+
+- `task-1908` is ready. Add malformed GLB chunk ordering diagnostics coverage;
+  keep valid JSON-only and JSON+BIN fixtures passing.
+- Placeholder specular IBL is intentionally not full PMREM/GGX. Keep the
+  deferred diagnostics until a real prefilter path exists.
+- Group 4 should remain a planning/reporting identity only for the default
+  browser path; executable draw commands must stay within groups 0 through 3.
+- The GLB path is still a source/fixture bridge, not an async file loader.
+  External URI resolution, compression, validator integration, and broad image
+  decoding remain deferred.
+
+## Current Run Update — 2026-05-19T12:26:36Z
+
+Completed `task-1892` through `task-1898`. Recommended next task is
+`task-1899`: add a minimal uncompressed GLB container fixture path for the
+existing scene data contract.
+
+What changed:
+
+- Added executable StandardMaterial diffuse IBL sampling through Decision
+  0013's browser-safe combined group 3 layout.
+- Extended StandardMaterial app frame IBL resources with live diffuse texture,
+  specular texture, and sampler reports while preserving group 4 as the
+  JSON-safe planning/resource identity.
+- Added combined group 3 light/IBL and light/shadow/IBL descriptor/resource
+  planning, including binding 7 for the placeholder specular proof cube
+  texture.
+- Added deterministic proof uploads for diffuse and specular cube textures when
+  a WebGPU queue is available.
+- Added `iblSpecularProof` StandardMaterial shader/pipeline support with a
+  small Fresnel-weighted placeholder reflection term. Full PMREM/GGX
+  prefiltering, split-sum BRDF, and skybox remain explicitly deferred.
+- Updated the GLTF scene with `disable-ibl-sampling=1` and
+  `disable-specular-ibl-sampling=1` comparison paths. Playwright now verifies
+  visible diffuse IBL, placeholder specular IBL, and strict receiver shadow
+  pixel deltas with no executable group 4 binding.
+- Added audits/plans:
+  - `docs/research/DIFFUSE_IBL_ROUTE_OWNERSHIP_AUDIT_2026_05_19.md`
+  - `docs/research/SPECULAR_IBL_CONTRACT_AUDIT_2026_05_19.md`
+  - `docs/research/SPECULAR_IBL_SHADER_READINESS_PLAN_2026_05_19.md`
+  - `docs/research/IBL_MATERIAL_FIDELITY_DIAGNOSTICS_AUDIT_2026_05_19.md`
+- Updated public tracker pages, backlog, completed log, and status.
+
+Reference anchors inspected:
+
+- `references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/reflectionEnv.js`
+- `references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/reflectionCube.js`
+- `references/engine/src/scene/graphics/reproject-texture.js`
+- `references/three.js/src/extras/PMREMGenerator.js`
+- Bevy render app / prepared asset / bind-group preparation patterns in
+  `references/bevy/crates/bevy_render` and `references/bevy/crates/bevy_pbr`.
+
+Validation:
+
+- `pnpm exec tsc -p packages/webgpu/tsconfig.json --noEmit`
+- `node --check examples/gltf-scene.js`
+- `pnpm run typecheck:test`
+- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts test/webgpu/standard-shader.test.ts test/webgpu/standard-pipeline-descriptor.test.ts test/webgpu/ibl-texture-resource.test.ts`
+- `pnpm exec vitest run test/webgpu/ibl-texture-resource.test.ts test/webgpu/standard-material-ibl-bind-group.test.ts`
+- `pnpm exec playwright test test/e2e/gltf-scene.spec.ts`
+- `pnpm run build`
+- `pnpm run lint`
+- `pnpm run format:check`
+- `pnpm test`
+- `pnpm run check:progress`
+
+Known issues / follow-ups:
+
+- `task-1899` is ready. It should add a minimal uncompressed GLB container
+  fixture path that feeds the existing scene data contract without changing
+  material/shadow features.
+- Placeholder specular IBL is intentionally not full PMREM/GGX. Keep the
+  deferred diagnostics until a real prefilter path exists.
+- Group 4 should remain a planning/reporting identity only for the default
+  browser path; executable draw commands must stay within groups 0 through 3.
+
 ## Current Run Update — 2026-05-19T11:50:00Z
 
 Completed `task-1890` and `task-1891`, then started `task-1892`. Recommended

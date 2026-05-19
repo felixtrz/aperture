@@ -42,7 +42,13 @@ import type {
   StandardMaterialIblBindGroupResource,
   StandardMaterialIblBindGroupResourceReport,
 } from "./standard-material-ibl-bind-group.js";
+import type { IblSamplerResourceReport } from "./ibl-sampler-resource.js";
+import type {
+  DiffuseIblTextureResourceReport,
+  SpecularIblTextureResourceReport,
+} from "./ibl-texture-resource.js";
 import {
+  createStandardLightIblBindGroupDescriptorPlan,
   createStandardLightShadowBindGroupDescriptorPlan,
   createStandardLightShadowBindGroupResource,
   type StandardLightShadowBindGroupDiagnostic,
@@ -162,6 +168,9 @@ export interface StandardFrameShadowReceiverResources {
 
 export interface StandardFrameIblResources {
   readonly bindGroupResource: StandardMaterialIblBindGroupResourceReport;
+  readonly diffuseTextureResource?: DiffuseIblTextureResourceReport;
+  readonly specularTextureResource?: SpecularIblTextureResourceReport;
+  readonly samplerResource?: IblSamplerResourceReport;
 }
 
 export interface StandardFrameGpuResources {
@@ -496,6 +505,13 @@ function createLightBindGroup(
   diagnostics: CreateStandardFrameGpuResourcesDiagnostic[],
 ): LightBindGroupResource | StandardLightShadowBindGroupResource | null {
   if (
+    options.pipelineKey.includes("iblDiffuse") &&
+    options.standardMaterialIblResources !== undefined
+  ) {
+    return createLightIblBindGroup(options, lightGpuBuffers, diagnostics);
+  }
+
+  if (
     options.pipelineKey.includes("shadowMap") &&
     options.shadowReceiverResources !== undefined
   ) {
@@ -517,6 +533,73 @@ function createLightBindGroup(
     device: options.device,
     plan,
     layout: options.lightLayout,
+  });
+
+  diagnostics.push(...result.diagnostics);
+
+  return result.valid ? result.resource : null;
+}
+
+function createLightIblBindGroup(
+  options: CreateStandardFrameGpuResourcesOptions,
+  lightGpuBuffers: CreateSnapshotLightGpuBuffersResult,
+  diagnostics: CreateStandardFrameGpuResourcesDiagnostic[],
+): StandardLightShadowBindGroupResource | null {
+  const iblResources = options.standardMaterialIblResources;
+
+  if (
+    iblResources === undefined ||
+    iblResources.diffuseTextureResource === undefined ||
+    iblResources.samplerResource === undefined
+  ) {
+    return null;
+  }
+
+  const shadowRequired = options.pipelineKey.includes("shadowMap");
+  const shadowReceiverResources = shadowRequired
+    ? options.shadowReceiverResources
+    : undefined;
+  const plan = createStandardLightIblBindGroupDescriptorPlan({
+    lightGpuBufferResource: lightGpuBuffers.resource,
+    layoutKey: options.lightLayout?.layoutKey ?? null,
+    label: shadowRequired
+      ? "standard/lights-shadow-ibl"
+      : "standard/lights-ibl",
+    diffuseTextureResource: iblResources.diffuseTextureResource,
+    ...(options.pipelineKey.includes("iblSpecularProof") &&
+    iblResources.specularTextureResource !== undefined
+      ? { specularTextureResource: iblResources.specularTextureResource }
+      : {}),
+    samplerResource: iblResources.samplerResource,
+    shadowRequired,
+    ...(shadowReceiverResources === undefined
+      ? {}
+      : { shadowReceiverResources }),
+  });
+
+  diagnostics.push(...plan.diagnostics);
+
+  const result = createStandardLightShadowBindGroupResource({
+    device: options.device,
+    plan,
+    layout:
+      options.lightLayout as StandardLightShadowBindGroupLayoutResource | null,
+    lightGpuBufferResource: lightGpuBuffers.resource,
+    matrixBufferResource:
+      shadowReceiverResources?.matrixBufferResource ??
+      emptyShadowMatrixBufferResourceReport(),
+    depthTextureResources:
+      shadowReceiverResources?.depthTextureResources ??
+      emptyShadowDepthTextureResourceReport(),
+    samplerResource:
+      shadowReceiverResources?.samplerResource ??
+      emptyShadowSamplerResourceReport(),
+    diffuseTextureResource: iblResources.diffuseTextureResource,
+    ...(options.pipelineKey.includes("iblSpecularProof") &&
+    iblResources.specularTextureResource !== undefined
+      ? { specularTextureResource: iblResources.specularTextureResource }
+      : {}),
+    iblSamplerResource: iblResources.samplerResource,
   });
 
   diagnostics.push(...result.diagnostics);
@@ -599,4 +682,61 @@ function createSharedBindGroupDescriptorPlan(input: {
   }
 
   return { valid: diagnostics.length === 0, entries, diagnostics };
+}
+
+function emptyShadowMatrixBufferResourceReport(): ShadowMatrixBufferResourceReport {
+  return {
+    ready: false,
+    status: "missing",
+    matrixCount: 0,
+    byteSize: 0,
+    createdBufferCount: 0,
+    reusedBufferCount: 0,
+    sections: {
+      matrixComputation: false,
+      bufferDescriptor: false,
+      bufferAllocation: false,
+      upload: false,
+      bindGroupResource: false,
+      shaderSampling: false,
+    },
+    resource: null,
+    diagnostics: [],
+  };
+}
+
+function emptyShadowDepthTextureResourceReport(): ShadowDepthTextureResourceReport {
+  return {
+    ready: false,
+    status: "missing",
+    textureDescriptorCount: 0,
+    createdTextureCount: 0,
+    sections: {
+      textureDescriptors: false,
+      depthTextureResource: false,
+      gpuAllocation: false,
+      matrixUpload: false,
+      passSubmission: false,
+      shaderSampling: false,
+    },
+    resources: [],
+    diagnostics: [],
+  };
+}
+
+function emptyShadowSamplerResourceReport(): ShadowSamplerResourceReport {
+  return {
+    ready: false,
+    status: "missing",
+    createdSamplerCount: 0,
+    reusedSamplerCount: 0,
+    sections: {
+      samplerDescriptor: true,
+      samplerResource: false,
+      bindGroupResource: false,
+      shaderSampling: false,
+    },
+    resource: null,
+    diagnostics: [],
+  };
 }

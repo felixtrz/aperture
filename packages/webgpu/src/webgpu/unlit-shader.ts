@@ -30,6 +30,7 @@ export type BuiltInShaderBindingId =
   | "directionalShadowMap"
   | "directionalShadowSampler"
   | "standardDiffuseIblTexture"
+  | "standardSpecularIblTexture"
   | "standardIblSampler"
   | "matcapTexture"
   | "matcapSampler";

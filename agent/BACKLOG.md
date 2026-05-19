@@ -59,8 +59,7 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start with `task-1892`: add the first StandardMaterial diffuse IBL shader
-contribution using the Decision 0013 combined group 3 executable layout.
+Start with `task-1908`: add malformed GLB chunk ordering diagnostics coverage.
 The GLTF scene fixture now renders through the public app path, reports detailed
 JSON-safe IBL/shadow readiness, allocates live renderer-owned diffuse IBL
 texture/view, specular IBL texture/view, and IBL sampler resources, allocates
@@ -110,7 +109,23 @@ strict pair is now `receiver:plane:center` versus `caster:box:center`.
 StandardMaterial IBL group 4 now routes through the app frame-resource path as
 a deferred bind-group resource: GLTF status reports `ibl.appFrameRoute` ready
 with JSON-safe group 4 resource keys, while executable draw commands still omit
-group 4 until the WGSL shader contribution lands.
+group 4. Ready diffuse IBL texture and sampler resources are now aliased into
+an executable combined group 3 light/IBL layout, `iblDiffuse` StandardMaterial
+pipeline variants sample diffuse irradiance in WGSL, and Playwright verifies
+the combined `iblDiffuse|shadowMap` route while preserving strict receiver
+shadow proof. The source-side glTF path now also has a minimal GLB fixture
+bridge: uncompressed JSON plus BIN chunks can feed the existing report-driven
+import contract, invalid container inputs stop before import stages with
+structured diagnostics, and the browser GLTF scene publishes a JSON-safe GLB
+fixture status while continuing to author ECS through the existing contract.
+The GLB import wrapper now also reports structured missing-BIN and unsupported
+external-buffer diagnostics, and it exposes a JSON-safe report projection that
+omits raw container bytes.
+GLB bufferView image sources now also flow through the existing asset-mapping
+contract with caller-provided decoded image data, and the follow-up audit
+confirmed this is still source-side fixture coverage rather than a full loader.
+Minimal GLB index-buffer fixture coverage and public GLB fixture limitation docs
+are now in place.
 
 The previous micro-hardening tasks remain useful but are no longer the main
 ready queue unless they directly block the scene slice. Public custom
@@ -133,9 +148,12 @@ Target proof point:
 
 Remaining automation priority order:
 
-1. `task-1892` — add the first diffuse IBL shader contribution using the
-   Decision 0013 combined group 3 executable layout.
-2. Audit IBL/shadow route ownership once the first IBL pixel proof exists.
+1. `task-1908` — add malformed GLB chunk ordering diagnostics coverage.
+2. `task-1909` — add GLB bufferView image JSON serialization coverage.
+3. `task-1910` — add GLB fixture source-status docs to the browser example.
+4. `task-1911` — add external-buffer resolver contract tests.
+5. `task-1912` — audit GLB fixture parser diagnostics after chunk-ordering
+   coverage.
 
 Defer allocation-only cleanup, metadata-only shader-contract tasks, public
 custom material source work, and app-owned custom adapter facades unless they
@@ -11280,6 +11298,8 @@ Acceptance criteria:
 
 ### task-1892 — Add first StandardMaterial diffuse IBL shader contribution
 
+Status: completed 2026-05-19. See `agent/COMPLETED.md`.
+
 Category: `webgpu-render`
 Package/write-scope:
 `packages/webgpu/src/webgpu/standard-shader.ts`,
@@ -11304,6 +11324,407 @@ Acceptance criteria:
   contribution while preserving strict shadow receiver proof and no validation
   warnings.
 - Keep specular prefilter and full PBR IBL contribution deferred.
+
+### task-1893 — Audit IBL/shadow route ownership after diffuse IBL proof
+
+Status: completed 2026-05-19. See
+`docs/research/DIFFUSE_IBL_ROUTE_OWNERSHIP_AUDIT_2026_05_19.md`.
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research`, `agent/BACKLOG.md`,
+`docs/index.html`, `docs/render-pipeline-comparison.html`; targeted tests only
+if a tiny corrective fix is required.
+Reference anchor:
+`docs/NORTH_STAR.md`, `docs/ARCHITECTURE.md`, `docs/DECISIONS.md`,
+`docs/research/STANDARD_DIFFUSE_IBL_SHADER_IMPLEMENTATION_PLAN_2026_05_19.md`,
+the `task-1892` implementation, and the relevant Bevy/render bridge ownership
+constraints.
+
+Acceptance criteria:
+
+- Confirm the diffuse IBL executable group 3 bridge keeps ECS authoritative and
+  GPU resources renderer-owned.
+- Confirm group 4 remains only a JSON-safe planning/resource identity and is
+  not bound by executable draw commands.
+- Confirm the combined `iblDiffuse|shadowMap` route preserves strict shadow
+  receiver proof and browser `maxBindGroups: 4` compatibility.
+- Recommend exactly one next implementation slice for the glTF scene track.
+
+### task-1894 — Audit specular IBL contract before shader sampling
+
+Status: completed 2026-05-19. See
+`docs/research/SPECULAR_IBL_CONTRACT_AUDIT_2026_05_19.md`.
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research`, `agent/BACKLOG.md`; targeted tests only
+if a tiny corrective fix is required.
+Reference anchor:
+`docs/MEDIUM_LONG_TERM_GOALS.md`, `docs/ARCHITECTURE.md`,
+`docs/DECISIONS.md`,
+`docs/research/DIFFUSE_IBL_ROUTE_OWNERSHIP_AUDIT_2026_05_19.md`,
+`packages/webgpu/src/webgpu/ibl-texture-resource.ts`,
+`packages/webgpu/src/webgpu/standard-material-ibl-bind-group.ts`, and
+environment/specular patterns in `references/engine` and `references/three.js`.
+
+Acceptance criteria:
+
+- Decide whether the current specular IBL texture resource is sufficient for a
+  narrow shader proof or whether a minimal renderer-owned prefilter/upload step
+  must come first.
+- Preserve the ECS/render ownership boundary and JSON-safe group 4 planning
+  identity.
+- Identify the exact pipeline-key, bind-group, WGSL, and Playwright proof
+  requirements for the next implementation slice.
+- Recommend exactly one follow-up task.
+
+### task-1895 — Add minimal specular IBL texture upload readiness
+
+Status: completed 2026-05-19. See `agent/COMPLETED.md`.
+
+Category: `webgpu-render`
+Package/write-scope:
+`packages/webgpu/src/webgpu/ibl-texture-resource.ts`,
+`packages/webgpu/src/webgpu/diffuse-ibl-resource-summary.ts` if needed,
+`examples/gltf-scene.js`, and targeted `test/webgpu`.
+Reference anchor:
+`docs/research/SPECULAR_IBL_CONTRACT_AUDIT_2026_05_19.md`,
+`references/engine/src/scene/graphics/reproject-texture.js`, and
+`references/three.js/src/extras/PMREMGenerator.js`.
+
+Acceptance criteria:
+
+- Specular IBL texture resource reports distinguish allocation from proof
+  upload/prefilter readiness in JSON-safe diagnostics.
+- When a WebGPU queue is available, the renderer uploads deterministic
+  placeholder radiance to the specular cube texture and labels it as a narrow
+  proof placeholder, not full PMREM/GGX readiness.
+- GLTF status exposes the specular proof-upload state while keeping full
+  specular prefilter and full PBR IBL deferred.
+- Targeted tests cover upload/no-upload behavior and JSON safety.
+
+### task-1896 — Plan first specular IBL shader-readiness slice
+
+Status: completed 2026-05-19. See
+`docs/research/SPECULAR_IBL_SHADER_READINESS_PLAN_2026_05_19.md`.
+
+Category: `docs-tooling`
+Package/write-scope: `docs/research`, `agent/BACKLOG.md`; no implementation
+unless a tiny test/documentation correction is required.
+Reference anchor:
+`docs/research/SPECULAR_IBL_CONTRACT_AUDIT_2026_05_19.md`,
+`packages/webgpu/src/webgpu/standard-shader.ts`,
+`packages/webgpu/src/webgpu/standard-pipeline-descriptor.ts`,
+`packages/webgpu/src/webgpu/standard-light-shadow-bind-group.ts`,
+`references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/reflectionEnv.js`,
+and `references/three.js/src/extras/PMREMGenerator.js`.
+
+Acceptance criteria:
+
+- Select the exact shader token, group 3 binding additions, resource-report
+  readiness gates, and Playwright proof for a placeholder specular IBL shader
+  slice.
+- State why the slice is not full PMREM/GGX IBL and which diagnostics must
+  remain deferred.
+- Preserve group 4 planning identity and executable browser groups 0 through 3.
+- Recommend exactly one implementation task.
+
+### task-1897 — Implement placeholder specular IBL shader proof
+
+Status: completed 2026-05-19. See `agent/COMPLETED.md`.
+
+Category: `webgpu-render`
+Package/write-scope:
+`packages/webgpu/src/webgpu/standard-shader.ts`,
+`packages/webgpu/src/webgpu/standard-pipeline-descriptor.ts`,
+`packages/webgpu/src/webgpu/standard-light-shadow-bind-group.ts`,
+`examples/gltf-scene.js`, `test/webgpu`, and
+`test/e2e/gltf-scene.spec.ts`.
+Reference anchor:
+`docs/research/SPECULAR_IBL_SHADER_READINESS_PLAN_2026_05_19.md`,
+PlayCanvas reflection/environment chunks, and three.js PMREM roughness sampling
+direction.
+
+Acceptance criteria:
+
+- Add an `iblSpecularProof` StandardMaterial shader/pipeline token gated by
+  diffuse IBL readiness and specular proof-upload readiness.
+- Extend the executable group 3 IBL layout with binding 7 for the specular proof
+  cube texture while keeping group 4 as planning identity only.
+- Add a small Fresnel-weighted placeholder specular reflection term and keep
+  full PMREM/GGX and split-sum BRDF diagnostics deferred.
+- GLTF Playwright proves a visible pixel delta with specular proof sampling
+  enabled, preserves strict shadow proof, and binds no executable group 4.
+
+### task-1898 — Audit IBL material-fidelity diagnostics after specular proof
+
+Status: completed 2026-05-19. See
+`docs/research/IBL_MATERIAL_FIDELITY_DIAGNOSTICS_AUDIT_2026_05_19.md`.
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research`, `agent/BACKLOG.md`, and tracker docs;
+targeted tests only if a tiny corrective fix is required.
+Reference anchor:
+`docs/NORTH_STAR.md`, `docs/MEDIUM_LONG_TERM_GOALS.md`,
+`docs/ARCHITECTURE.md`, `docs/DECISIONS.md`, `task-1897` implementation,
+PlayCanvas reflection/prefilter references, and three.js PMREM references.
+
+Acceptance criteria:
+
+- Confirm diffuse plus placeholder specular IBL diagnostics do not overstate
+  full PBR, PMREM, split-sum BRDF, or skybox readiness.
+- Confirm group 4 remains planning-only and executable browser draws bind only
+  groups 0 through 3.
+- Confirm GLTF pixel proofs cover diffuse, placeholder specular, and strict
+  shadow receiver behavior without WebGPU validation warnings.
+- Recommend exactly one next implementation slice for the glTF scene track.
+
+### task-1899 — Add minimal uncompressed GLB container fixture path
+
+Status: completed 2026-05-19. See `agent/COMPLETED.md`.
+
+Category: `simulation`
+Package/write-scope: `packages/render` or `packages/simulation` if the existing
+asset/source helpers live there, `examples/gltf-scene.js`, targeted tests.
+Reference anchor:
+`docs/MEDIUM_LONG_TERM_GOALS.md`,
+`docs/research/ASSET_LOADER_SCENE_IMPORT_COVERAGE.md`, local glTF scene
+fixture code, Bevy asset-loading concepts in `references/bevy`, and glTF 2.0
+GLB container rules.
+
+Acceptance criteria:
+
+- Add a minimal GLB container parser/fixture helper for uncompressed JSON plus
+  BIN chunks needed by the current scene contract.
+- Feed the existing GLTF scene data contract from the fixture path without
+  introducing a scene graph or renderer-owned ECS state.
+- Unsupported GLB/chunk cases produce structured diagnostics.
+- Tests cover valid fixture parsing and at least two invalid container cases.
+
+### task-1900 — Audit GLB fixture path package boundary
+
+Status: completed 2026-05-19. See
+`docs/research/GLB_FIXTURE_PATH_BOUNDARY_AUDIT_2026_05_19.md`.
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research`, `agent/BACKLOG.md`, targeted checks.
+Reference anchor:
+`docs/NORTH_STAR.md`, `docs/ARCHITECTURE.md`,
+`docs/research/ASSET_LOADER_SCENE_IMPORT_COVERAGE.md`, Bevy glTF loader buffer
+loading pattern, and the `task-1899` helper.
+
+Acceptance criteria:
+
+- Confirm the GLB fixture helper stays renderer-independent and headless-safe.
+- Confirm the helper does not introduce scene graph, ECS side effects, or WebGPU
+  ownership.
+- Confirm invalid GLB input stops before import stages with structured
+  diagnostics.
+- Recommend one next GLB fixture/source-status task.
+
+### task-1901 — Add browser GLTF scene GLB fixture status
+
+Status: completed 2026-05-19. See `agent/COMPLETED.md`.
+
+Category: `runtime-orchestration`
+Package/write-scope: `examples/gltf-scene.js`, `test/e2e/gltf-scene.spec.ts`.
+Reference anchor:
+`docs/research/GLB_FIXTURE_PATH_BOUNDARY_AUDIT_2026_05_19.md`, local GLTF scene
+fixture code, and existing Playwright GLTF scene status assertions.
+
+Acceptance criteria:
+
+- Route the browser GLTF scene root through a minimal parsed GLB fixture source.
+- Publish only JSON-safe GLB fixture status in the example status object.
+- Keep ECS authoring, mesh construction, and rendering behavior unchanged.
+- Playwright verifies the GLB fixture source status.
+
+### task-1902 — Add structured GLB buffer-source diagnostics
+
+Status: completed 2026-05-19. See `agent/COMPLETED.md`.
+
+Category: `simulation`
+Package/write-scope: `packages/render/src/assets/gltf-report-driven-import.ts`
+and targeted asset tests.
+Reference anchor:
+Bevy `load_buffers` GLB `Source::Bin` handling, glTF 2.0 buffer source rules,
+and `docs/research/ASSET_LOADER_SCENE_IMPORT_COVERAGE.md`.
+
+Acceptance criteria:
+
+- GLB report-driven import reports a structured diagnostic when buffer `0`
+  requires bytes but the GLB has no BIN chunk.
+- GLB report-driven import reports a structured diagnostic when a buffer uses an
+  unsupported external URI without caller-provided bytes.
+- Existing accessor decoding diagnostics remain intact and renderer-independent.
+- Tests cover missing BIN and unsupported external-buffer URI cases.
+
+### task-1903 — Add JSON-safe GLB import report serialization
+
+Status: completed 2026-05-19. See `agent/COMPLETED.md`.
+
+Category: `simulation`
+Package/write-scope: `packages/render/src/assets`, targeted JSON tests.
+Reference anchor:
+Existing `*ReportToJsonValue` helpers and the JSON-safe diagnostics rules in
+`docs/ARCHITECTURE.md`.
+
+Acceptance criteria:
+
+- Add a JSON-safe projection for the GLB report-driven import wrapper that omits
+  raw BIN bytes.
+- Preserve container diagnostics, chunk summaries, and import stage summaries.
+- Tests prove the serialized value contains no `ArrayBuffer`, `Uint8Array`, or
+  raw binary payload.
+
+### task-1904 — Add GLB bufferView image asset-mapping fixture
+
+Status: completed 2026-05-19. See `agent/COMPLETED.md`.
+
+Category: `render-bridge`
+Package/write-scope: `packages/render/src/assets`, `test/assets`.
+Reference anchor:
+Existing glTF asset-mapping image bufferView tests, Bevy glTF image loading
+concepts, and `docs/research/ASSET_LOADER_SCENE_IMPORT_COVERAGE.md`.
+
+Acceptance criteria:
+
+- A GLB fixture with an image `bufferView` can feed the existing asset-mapping
+  report through caller-provided image data resolution.
+- Missing image data remains a structured mapping diagnostic.
+- The fixture path remains renderer-independent and does not allocate GPU
+  resources.
+
+### task-1905 — Audit GLB fixture source status after buffer diagnostics
+
+Status: completed 2026-05-19. See
+`docs/research/GLB_FIXTURE_SOURCE_STATUS_AUDIT_2026_05_19.md`.
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research`, `agent/BACKLOG.md`, targeted checks.
+Reference anchor:
+`docs/NORTH_STAR.md`, `docs/ARCHITECTURE.md`, `docs/DECISIONS.md`, and
+`task-1902`/`task-1903` implementation.
+
+Acceptance criteria:
+
+- Confirm GLB diagnostics remain source-side and JSON-safe.
+- Confirm external buffer/image support is not overstated as a full loader.
+- Confirm package dependency direction and ECS/render ownership invariants.
+- Recommend exactly one next implementation slice.
+
+### task-1906 — Add minimal GLB index-buffer fixture coverage
+
+Status: completed 2026-05-19. See `agent/COMPLETED.md`.
+
+Category: `simulation`
+Package/write-scope: `packages/render/src/assets`, targeted asset tests.
+Reference anchor:
+Existing accessor decoding index tests, Bevy glTF mesh primitive loading
+pattern, and glTF 2.0 accessor/index rules.
+
+Acceptance criteria:
+
+- A GLB fixture with POSITION and unsigned-short index accessors decodes through
+  the report-driven import path.
+- Mesh construction preserves index-buffer metadata without exposing raw bytes
+  in JSON reports.
+- Tests cover valid indexed mesh decoding and a malformed index buffer range.
+
+### task-1907 — Document current GLB fixture limitations
+
+Status: completed 2026-05-19. See `docs/GLB_FIXTURE_LIMITATIONS.md`.
+
+Category: `docs-tooling`
+Package/write-scope: `docs`, `agent/BACKLOG.md`.
+Reference anchor:
+`docs/research/ASSET_LOADER_SCENE_IMPORT_COVERAGE.md`, current GLB fixture
+helper, and `docs/MEDIUM_LONG_TERM_GOALS.md`.
+
+Acceptance criteria:
+
+- Document that the current path is a fixture/source bridge, not full async
+  file loading.
+- List supported JSON/BIN behavior and explicitly deferred external URI,
+  compression, validator, and image decoding work.
+- Keep docs aligned with the public dashboard and next backlog task.
+
+### task-1908 — Add malformed GLB chunk ordering coverage
+
+Category: `simulation`
+Package/write-scope: `packages/render/src/assets/glb-container.ts`,
+`test/assets/glb-container.test.ts`.
+Reference anchor:
+glTF 2.0 GLB container rules and existing container parser diagnostics.
+
+Acceptance criteria:
+
+- Tests cover duplicate JSON chunks, duplicate BIN chunks, and BIN-before-JSON
+  ordering.
+- Parser diagnostics remain structured and non-throwing.
+- Existing valid JSON-only and JSON+BIN fixtures keep passing.
+
+### task-1909 — Add GLB bufferView image JSON serialization coverage
+
+Category: `simulation`
+Package/write-scope: `packages/render/src/assets`, targeted JSON tests.
+Reference anchor:
+`task-1903` JSON-safe GLB import report projection and `task-1904` bufferView
+image fixture.
+
+Acceptance criteria:
+
+- JSON serialization of a GLB bufferView image mapping omits decoded image byte
+  payloads and GLB raw bytes.
+- Chunk summaries, texture handle keys, and material texture bindings remain
+  present.
+- Tests cover valid and missing-image-data reports.
+
+### task-1910 — Add GLB fixture source-status docs to the browser example
+
+Category: `docs-tooling`
+Package/write-scope: `examples/gltf-scene.html` or adjacent example docs,
+`docs/index.html`.
+Reference anchor:
+Current `examples/gltf-scene.js` source status and
+`docs/research/GLB_FIXTURE_SOURCE_STATUS_AUDIT_2026_05_19.md`.
+
+Acceptance criteria:
+
+- Browser example docs explain that `source.glbFixture` is JSON-safe fixture
+  status, not full file loading.
+- Deferred external URI/image decoding/compression behavior is stated clearly.
+- Public tracker next-task language remains aligned.
+
+### task-1911 — Add external-buffer resolver contract tests
+
+Category: `simulation`
+Package/write-scope: `packages/render/src/assets`, targeted asset tests.
+Reference anchor:
+Bevy glTF `load_buffers` behavior and current
+`createGltfReportDrivenImportReportFromGlb` resolver hook.
+
+Acceptance criteria:
+
+- Caller-provided bytes for an external glTF buffer URI satisfy the GLB wrapper
+  without `glbImport.externalBufferUnsupported`.
+- Missing resolver bytes continue to produce the structured external-buffer
+  diagnostic.
+- Tests confirm the resolver is not called more than needed for repeated buffer
+  references.
+
+### task-1912 — Audit GLB parser diagnostics after chunk-ordering coverage
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research`, `agent/BACKLOG.md`, targeted checks.
+Reference anchor:
+glTF 2.0 GLB container rules, `task-1908`, and `docs/ARCHITECTURE.md`.
+
+Acceptance criteria:
+
+- Confirm malformed chunk ordering diagnostics remain non-throwing and
+  structured.
+- Confirm valid GLB fixture paths still feed import reports.
+- Recommend exactly one next loader/source-contract slice.
 
 ## Post-Unlit E2E Verification Targets
 

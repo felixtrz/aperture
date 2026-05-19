@@ -4752,6 +4752,88 @@ describe("WebGPU app facade", () => {
     expect(resourceEventCounts(events)).toEqual(firstResourceEvents);
   });
 
+  it("aliases ready StandardMaterial diffuse IBL resources into executable group 3", async () => {
+    const events: string[] = [];
+    const { canvas, environment } = webGpuHarness(events);
+    const created = await createWebGpuApp({
+      canvas,
+      environment,
+      worldOptions: { entityCapacity: 8 },
+    });
+
+    expect(created.ok).toBe(true);
+
+    if (!created.ok) {
+      return;
+    }
+
+    const app = created.app;
+    const assets = createRenderAssetCollections({ registry: app.assets });
+    const mesh = assets.meshes.add(createBoxMeshAsset({ label: "IblCube" }));
+    const material = assets.materials.standard.add(
+      createStandardMaterialAsset({
+        label: "IblLit",
+        metallicFactor: 0.0,
+        roughnessFactor: 0.6,
+      }),
+    );
+
+    app.spawn(
+      withTransform({ translation: [0, 0, 5] }),
+      withCamera({ priority: 0, layerMask: 1 }),
+    );
+    app.spawn(
+      withTransform(),
+      withMesh(mesh),
+      withMaterial(material),
+      withRenderLayer(1),
+      withVisibility(true),
+    );
+    app.spawn(
+      withLight({
+        kind: LightKind.Ambient,
+        intensity: 0.1,
+        layerMask: 1,
+      }),
+    );
+    app.spawn(
+      withTransform(),
+      withLight({
+        kind: LightKind.Directional,
+        intensity: 1.0,
+        layerMask: 1,
+      }),
+    );
+
+    const standardMaterialIblResources = createReadyStandardIblFrameResources();
+
+    app.step(1 / 60, 1);
+    const frame = await app.render({
+      frame: 31,
+      standardMaterialIblResources,
+    });
+
+    expect(frame.ok).toBe(true);
+    expect(frame.snapshot.meshDraws[0]?.batchKey.pipelineKey).toBe(
+      "standard|iblDiffuse|opaque|back|less|none",
+    );
+    expect(events).toContain(
+      "device:pipeline:aperture/standard-mesh-diffuse-ibl:bgra8unorm:triangle-list",
+    );
+    expect(events).toContain("device:bindGroup:standard/lights-ibl");
+    expect(events).toContain("pass:bind:3");
+    expect(events).not.toContain("pass:bind:4");
+    expect(queuedBindGroupResourceKeys(frame.resources?.resources, 4)).toEqual(
+      [],
+    );
+    expect(queuedBindGroupResourceKeys(frame.resources?.resources, 3)).toEqual([
+      "bind-group:webgpu-app/standard/lights-ibl/group-3/0:light-buffer:main/floats/1:light-buffer:main/metadata/5:texture:test:diffuse:texture/6:texture:test:diffuse:sampler|pipeline:standard|iblDiffuse|opaque|back|less|none",
+    ]);
+    expect(standardIblBindGroupResource(frame.resources?.resources)).toBe(
+      standardMaterialIblResources.bindGroupResource.resource,
+    );
+  });
+
   it("reuses prepared StandardMaterial mesh buffers across frame-resource misses", async () => {
     const events: string[] = [];
     const { canvas, environment } = webGpuHarness(events);
@@ -6877,6 +6959,114 @@ function webGpuHarness(events: string[]) {
   };
 
   return { canvas, environment };
+}
+
+function createReadyStandardIblFrameResources() {
+  const diffuseResource = {
+    resourceKey: "texture:test:diffuse:texture",
+    texture: { label: "texture:test:diffuse:texture" },
+    view: { label: "view:texture:test:diffuse:texture" },
+    descriptor: {
+      label: "test:diffuse-ibl",
+      size: [64, 64, 6] as const,
+      format: "rgba8unorm",
+      usage: 6,
+      mipLevelCount: 1,
+    },
+    viewDescriptor: { dimension: "cube" },
+  };
+  const samplerResource = {
+    resourceKey: "texture:test:diffuse:sampler",
+    sampler: { label: "texture:test:diffuse:sampler" },
+    descriptor: {
+      label: "test:diffuse:ibl-sampler",
+      addressModeU: "clamp-to-edge" as const,
+      addressModeV: "clamp-to-edge" as const,
+      addressModeW: "clamp-to-edge" as const,
+      magFilter: "linear" as const,
+      minFilter: "linear" as const,
+      mipmapFilter: "linear" as const,
+      lodMinClamp: 0,
+      lodMaxClamp: 32,
+      maxAnisotropy: 1,
+    },
+  };
+  const group4Resource = {
+    group: 4 as const,
+    resourceKey: "bind-group:standard/ibl/group-4/test",
+    layoutKey: "standard/ibl/group-4",
+    bindGroup: { label: "standard/ibl/group-4/test" },
+    entryResourceKeys: [
+      diffuseResource.resourceKey,
+      "texture:test:specular:texture",
+      samplerResource.resourceKey,
+    ],
+  };
+
+  return {
+    bindGroupResource: {
+      ready: true,
+      status: "available" as const,
+      standardMaterialCount: 1,
+      group: 4 as const,
+      createdBindGroupCount: 0,
+      reusedBindGroupCount: 1,
+      sections: {
+        descriptorPlan: true,
+        layoutResource: true,
+        textureResources: true,
+        samplerResource: true,
+        bindGroupResource: true,
+        shaderSampling: false as const,
+      },
+      resource: group4Resource,
+      diagnostics: [],
+    },
+    diffuseTextureResource: {
+      ready: true,
+      status: "available" as const,
+      textureSlotCount: 1,
+      diffuseSlotCount: 1,
+      createdTextureCount: 0,
+      reusedTextureCount: 1,
+      sections: {
+        texturePreparation: true,
+        diffuseTextureResource: true,
+        gpuAllocation: true,
+        specularPrefiltering: false as const,
+        shaderSampling: false as const,
+      },
+      resources: [
+        {
+          valid: true,
+          resource: diffuseResource,
+          diagnostics: [],
+        },
+      ],
+      diagnostics: [],
+    },
+    samplerResource: {
+      ready: true,
+      status: "available" as const,
+      samplerDescriptorCount: 1,
+      createdSamplerCount: 0,
+      reusedSamplerCount: 1,
+      sections: {
+        samplerDescriptors: true,
+        gpuAllocation: true,
+        bindGroupLayout: false as const,
+        shaderSampling: false as const,
+      },
+      resources: [
+        {
+          valid: true,
+          resource: samplerResource,
+          diagnostics: [],
+        },
+      ],
+      diagnostics: [],
+    },
+  };
 }
 
 function bufferLabel(buffer: unknown): string {

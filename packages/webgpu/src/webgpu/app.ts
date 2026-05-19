@@ -99,7 +99,10 @@ import {
 import { createLightBindGroupLayoutDescriptor } from "./light-bind-group-layout.js";
 import type { LightBindGroupLayoutResource } from "./light-bind-group-layout.js";
 import {
+  STANDARD_LIGHT_IBL_BIND_GROUP_LAYOUT_KEY,
   STANDARD_LIGHT_SHADOW_BIND_GROUP_LAYOUT_KEY,
+  STANDARD_LIGHT_SHADOW_IBL_BIND_GROUP_LAYOUT_KEY,
+  createStandardLightIblBindGroupLayoutDescriptor,
   createStandardLightShadowBindGroupLayoutDescriptor,
   type StandardLightShadowBindGroupLayoutResource,
 } from "./standard-light-shadow-bind-group.js";
@@ -758,12 +761,25 @@ function createStandardAppPipelineLayouts(
   pipelineResourceKey: string,
   getBindGroupLayout: (group: number) => unknown,
 ): WebGpuAppPipelineLayouts {
+  const usesLightShadowIblGroup = pipelineResourceKey.includes(
+    STANDARD_LIGHT_SHADOW_IBL_BIND_GROUP_LAYOUT_KEY,
+  );
+  const usesLightIblGroup = pipelineResourceKey.includes(
+    STANDARD_LIGHT_IBL_BIND_GROUP_LAYOUT_KEY,
+  );
+  const usesSpecularIblProof = pipelineResourceKey.includes(
+    "specular-ibl-proof@7",
+  );
   const usesLightShadowGroup = pipelineResourceKey.includes(
     STANDARD_LIGHT_SHADOW_BIND_GROUP_LAYOUT_KEY,
   );
-  const lightLayoutKey = usesLightShadowGroup
-    ? "webgpu-app/standard/lights-shadow/group-3"
-    : "webgpu-app/standard/group-3";
+  const lightLayoutKey = usesLightShadowIblGroup
+    ? "webgpu-app/standard/lights-shadow-ibl/group-3"
+    : usesLightIblGroup
+      ? "webgpu-app/standard/lights-ibl/group-3"
+      : usesLightShadowGroup
+        ? "webgpu-app/standard/lights-shadow/group-3"
+        : "webgpu-app/standard/group-3";
 
   return {
     kind: "standard",
@@ -789,12 +805,18 @@ function createStandardAppPipelineLayouts(
       group: 3,
       layoutKey: lightLayoutKey,
       layout: getBindGroupLayout(3),
-      descriptor: usesLightShadowGroup
-        ? createStandardLightShadowBindGroupLayoutDescriptor()
-        : createLightBindGroupLayoutDescriptor({
-            group: 3,
-            label: "webgpu-app/standard/group-3",
-          }),
+      descriptor:
+        usesLightShadowIblGroup || usesLightIblGroup
+          ? createStandardLightIblBindGroupLayoutDescriptor({
+              shadowMap: usesLightShadowIblGroup,
+              specularProof: usesSpecularIblProof,
+            })
+          : usesLightShadowGroup
+            ? createStandardLightShadowBindGroupLayoutDescriptor()
+            : createLightBindGroupLayoutDescriptor({
+                group: 3,
+                label: "webgpu-app/standard/group-3",
+              }),
     },
   };
 }
@@ -1501,11 +1523,21 @@ async function renderWebGpuAppFrame(
 ): Promise<WebGpuAppRenderReport> {
   const reuse = createWebGpuAppResourceReuseReport();
   const extractedSnapshot = options.snapshot ?? app.extract(options.frame ?? 0);
-  const snapshot = hasReadyStandardShadowReceiverResources(
+  const shadowSnapshot = hasReadyStandardShadowReceiverResources(
     options.standardMaterialShadowReceiverResources,
   )
     ? withStandardShadowPipelineKeys(extractedSnapshot)
     : extractedSnapshot;
+  const snapshot = hasReadyStandardDiffuseIblResources(
+    options.standardMaterialIblResources,
+  )
+    ? withStandardIblPipelineKeys(
+        shadowSnapshot,
+        hasReadyStandardSpecularIblProofResources(
+          options.standardMaterialIblResources,
+        ),
+      )
+    : shadowSnapshot;
   const firstDraw = snapshot.meshDraws[0];
   const firstView = snapshot.views[0];
   const resourceSetPlan = createWebGpuAppDrawResourceSetPlan(snapshot);
@@ -2015,6 +2047,37 @@ function hasReadyStandardShadowReceiverResources(
   );
 }
 
+function hasReadyStandardDiffuseIblResources(
+  resources: StandardFrameIblResources | undefined,
+): resources is StandardFrameIblResources {
+  return (
+    resources !== undefined &&
+    resources.bindGroupResource.status === "available" &&
+    resources.bindGroupResource.resource !== null &&
+    resources.diffuseTextureResource?.resources.some(
+      (resource) => resource.valid && resource.resource !== null,
+    ) === true &&
+    resources.samplerResource?.resources.some(
+      (resource) => resource.valid && resource.resource !== null,
+    ) === true
+  );
+}
+
+function hasReadyStandardSpecularIblProofResources(
+  resources: StandardFrameIblResources | undefined,
+): boolean {
+  return (
+    hasReadyStandardDiffuseIblResources(resources) &&
+    resources.specularTextureResource?.resources.some(
+      (resource) => resource.valid && resource.resource !== null,
+    ) === true &&
+    resources.specularTextureResource.diagnostics.some(
+      (diagnostic) =>
+        diagnostic.code === "iblTextureResource.specularProofUploadPlaceholder",
+    )
+  );
+}
+
 function withStandardShadowPipelineKeys(
   snapshot: RenderSnapshot,
 ): RenderSnapshot {
@@ -2039,6 +2102,39 @@ function withStandardShadowPipelineKeys(
       ...draw,
       batchKey: { ...draw.batchKey, pipelineKey: shadowPipelineKey },
       sortKey: { ...draw.sortKey, pipelineKey: shadowPipelineKey },
+    };
+  });
+
+  return changed ? { ...snapshot, meshDraws } : snapshot;
+}
+
+function withStandardIblPipelineKeys(
+  snapshot: RenderSnapshot,
+  includeSpecularProof: boolean,
+): RenderSnapshot {
+  let changed = false;
+  const meshDraws = snapshot.meshDraws.map((draw) => {
+    const pipelineKey = draw.batchKey.pipelineKey;
+
+    if (
+      !pipelineKey.startsWith("standard|") ||
+      pipelineKey.includes("|iblDiffuse|")
+    ) {
+      return draw;
+    }
+
+    changed = true;
+    const iblPipelineKey = pipelineKey.replace(
+      /^standard\|/,
+      includeSpecularProof
+        ? "standard|iblDiffuse|iblSpecularProof|"
+        : "standard|iblDiffuse|",
+    );
+
+    return {
+      ...draw,
+      batchKey: { ...draw.batchKey, pipelineKey: iblPipelineKey },
+      sortKey: { ...draw.sortKey, pipelineKey: iblPipelineKey },
     };
   });
 

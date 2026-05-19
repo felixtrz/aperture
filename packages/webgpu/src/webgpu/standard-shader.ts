@@ -24,6 +24,8 @@ export const STANDARD_SHADOW_MAP_SHADER_VARIANT =
   "direct-lit-metallic-roughness-shadow-map";
 export const STANDARD_DIFFUSE_IBL_SHADER_VARIANT =
   "direct-lit-metallic-roughness-diffuse-ibl";
+export const STANDARD_SPECULAR_IBL_PROOF_SHADER_VARIANT =
+  "direct-lit-metallic-roughness-diffuse-specular-ibl-proof";
 
 export interface StandardTextureShaderFeatures {
   readonly baseColorTexture: boolean;
@@ -33,6 +35,7 @@ export interface StandardTextureShaderFeatures {
   readonly emissiveTexture: boolean;
   readonly shadowMap?: boolean;
   readonly iblDiffuse?: boolean;
+  readonly iblSpecularProof?: boolean;
   readonly texCoord1?: boolean;
 }
 
@@ -517,6 +520,7 @@ export function createStandardTextureShaderVariantKey(
     !features.occlusionTexture &&
     !features.emissiveTexture &&
     features.iblDiffuse !== true &&
+    features.iblSpecularProof !== true &&
     features.texCoord1 !== true
   ) {
     return STANDARD_SHADOW_MAP_SHADER_VARIANT;
@@ -524,6 +528,7 @@ export function createStandardTextureShaderVariantKey(
 
   if (
     features.iblDiffuse === true &&
+    features.iblSpecularProof !== true &&
     !features.baseColorTexture &&
     !features.metallicRoughnessTexture &&
     !features.normalTexture &&
@@ -563,6 +568,10 @@ export function createStandardTextureShaderVariantKey(
 
   if (features.iblDiffuse === true) {
     names.push("diffuse-ibl");
+  }
+
+  if (features.iblSpecularProof === true) {
+    names.push("specular-ibl-proof");
   }
 
   if (features.texCoord1 === true) {
@@ -867,6 +876,10 @@ ${emissive}
     code = applyStandardDiffuseIblSampling(code);
   }
 
+  if (features.iblSpecularProof === true) {
+    code = applyStandardSpecularIblProofSampling(code);
+  }
+
   return code;
 }
 
@@ -955,6 +968,12 @@ function standardTextureVariantDeclaration(
     declarations.push(
       "@group(3) @binding(5) var standardDiffuseIblTexture: texture_cube<f32>;",
       "@group(3) @binding(6) var standardIblSampler: sampler;",
+    );
+  }
+
+  if (features.iblSpecularProof === true) {
+    declarations.push(
+      "@group(3) @binding(7) var standardSpecularIblTexture: texture_cube<f32>;",
     );
   }
 
@@ -1110,6 +1129,16 @@ function standardTextureVariantBindings(
     );
   }
 
+  if (features.iblSpecularProof === true) {
+    bindings.push({
+      id: "standardSpecularIblTexture",
+      label: "Standard material placeholder specular IBL cube texture",
+      group: 3,
+      binding: 7,
+      resource: "texture",
+    });
+  }
+
   return bindings;
 }
 
@@ -1124,6 +1153,7 @@ function standardTextureVariantShaderLabel(
     !features.emissiveTexture &&
     features.shadowMap !== true &&
     features.iblDiffuse !== true &&
+    features.iblSpecularProof !== true &&
     features.texCoord1 !== true
   ) {
     return "aperture/standard-mesh-base-color-textured";
@@ -1137,6 +1167,7 @@ function standardTextureVariantShaderLabel(
     !features.emissiveTexture &&
     features.shadowMap !== true &&
     features.iblDiffuse !== true &&
+    features.iblSpecularProof !== true &&
     features.texCoord1 !== true
   ) {
     return "aperture/standard-mesh-metallic-roughness-textured";
@@ -1149,6 +1180,7 @@ function standardTextureVariantShaderLabel(
     !features.occlusionTexture &&
     !features.emissiveTexture &&
     features.shadowMap !== true &&
+    features.iblSpecularProof !== true &&
     features.texCoord1 !== true
   ) {
     return "aperture/standard-mesh-base-color-metallic-roughness-textured";
@@ -1169,6 +1201,7 @@ function standardTextureVariantShaderLabel(
 
   if (
     features.iblDiffuse === true &&
+    features.iblSpecularProof !== true &&
     !features.baseColorTexture &&
     !features.metallicRoughnessTexture &&
     !features.normalTexture &&
@@ -1218,6 +1251,10 @@ function standardTextureFeatureNames(
     names.push("diffuse-ibl");
   }
 
+  if (features.iblSpecularProof === true) {
+    names.push("specular-ibl-proof");
+  }
+
   if (features.texCoord1 === true) {
     names.push("uv1");
   }
@@ -1236,6 +1273,7 @@ function hasAnyStandardTextureFeature(
     features.emissiveTexture ||
     features.shadowMap === true ||
     features.iblDiffuse === true ||
+    features.iblSpecularProof === true ||
     features.texCoord1 === true
   );
 }
@@ -1358,5 +1396,31 @@ function applyStandardDiffuseIblSampling(code: string): string {
       `${sample}
   let receiverShadowFactor = sampleDirectionalShadowFactor(input.worldPosition);
   let color = (ambientDiffuse + diffuseIbl + direct) * receiverShadowFactor + material.emissiveFactor;`,
+    );
+}
+
+function applyStandardSpecularIblProofSampling(code: string): string {
+  const sample = `  let reflectionDir = reflect(-viewDir, normal);
+  let specularIblProof = textureSample(
+    standardSpecularIblTexture,
+    standardIblSampler,
+    reflectionDir,
+  ).rgb * fresnelSchlick(max(dot(normal, viewDir), 0.0), mix(vec3f(0.04), baseColor, vec3f(metallic))) * (1.0 - roughness * 0.5);`;
+
+  return code
+    .replace(
+      `  let color = ambientDiffuse + diffuseIbl + direct + material.emissiveFactor;`,
+      `${sample}
+  let color = ambientDiffuse + diffuseIbl + specularIblProof + direct + material.emissiveFactor;`,
+    )
+    .replace(
+      `  let color = ambientDiffuse + diffuseIbl + direct + emissive;`,
+      `${sample}
+  let color = ambientDiffuse + diffuseIbl + specularIblProof + direct + emissive;`,
+    )
+    .replace(
+      `  let color = (ambientDiffuse + diffuseIbl + direct) * receiverShadowFactor + material.emissiveFactor;`,
+      `${sample}
+  let color = (ambientDiffuse + diffuseIbl + specularIblProof + direct) * receiverShadowFactor + material.emissiveFactor;`,
     );
 }

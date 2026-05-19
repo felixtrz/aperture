@@ -3,6 +3,10 @@ const stateElement = document.querySelector("#example-state");
 const jsonElement = document.querySelector("#example-json");
 const exampleParams = new URLSearchParams(globalThis.location.search);
 const enableShadowReceiver = !exampleParams.has("disable-shadow-receiver");
+const enableIblSampling = !exampleParams.has("disable-ibl-sampling");
+const enableSpecularIblSampling = !exampleParams.has(
+  "disable-specular-ibl-sampling",
+);
 
 const clearColor = [0.015, 0.025, 0.035, 1];
 const primitiveShapes = [
@@ -78,7 +82,8 @@ try {
 }
 
 function createScene(aperture, app, targetCanvas) {
-  const root = createGltfSceneRoot();
+  const glbFixture = createGltfSceneGlbFixture(aperture);
+  const root = glbFixture.root;
   const meshConstruction = createMeshConstructionReport(aperture);
   const environmentHandle = aperture.createEnvironmentMapHandle(
     "gltf:environment:studio",
@@ -177,6 +182,7 @@ function createScene(aperture, app, targetCanvas) {
     canvas: targetCanvas,
     contract,
     environmentHandle,
+    glbFixture: glbFixture.status,
     registration,
     replay,
     root,
@@ -199,7 +205,7 @@ function startRendering(aperture, app, scene) {
       standardMaterialShadowReceiverResources === null
         ? {}
         : { standardMaterialShadowReceiverResources }),
-      ...(standardMaterialIblResources === null
+      ...(!enableIblSampling || standardMaterialIblResources === null
         ? {}
         : { standardMaterialIblResources }),
     });
@@ -725,6 +731,9 @@ async function publishFrameStatus(aperture, app, scene, step, report, frame) {
     ok: report.ok && scene.contract.valid && scene.replay.valid,
     phase: report.ok ? "render" : "failed",
     renderingBackend: "webgpu-explicit",
+    source: {
+      glbFixture: scene.glbFixture,
+    },
     frame,
     readiness,
     clearColor: {
@@ -778,13 +787,17 @@ async function publishFrameStatus(aperture, app, scene, step, report, frame) {
       pipelineKey: standardMaterialIblShadowPipelineKey,
       standardMaterial: standardMaterialIbl,
       sampling: {
-        supported: false,
-        diagnostic: {
-          code: "gltfScene.iblSamplingDeferred",
-          severity: "warning",
-          message:
-            "GLTF scene environment map is extracted and resource-ready, but StandardMaterial IBL shader sampling is not implemented yet.",
-        },
+        supported:
+          enableIblSampling &&
+          standardMaterialIblBindGroupResourceReport.status === "available" &&
+          diffuseIblTextureResourceReport.status === "available" &&
+          iblSamplerResourceReport.status === "available",
+        mode: "diffuse-ibl",
+        specularProof:
+          enableIblSampling &&
+          enableSpecularIblSampling &&
+          specularIblTextureResourceReport.sections.proofUpload === true,
+        deferred: ["specular-prefilter", "split-sum-brdf", "skybox"],
       },
     },
     shadow: {
@@ -871,6 +884,11 @@ async function publishFrameStatus(aperture, app, scene, step, report, frame) {
     },
     standardMaterialIblResources: {
       bindGroupResource: standardMaterialIblBindGroupResourceReport,
+      diffuseTextureResource: diffuseIblTextureResourceReport,
+      ...(enableSpecularIblSampling
+        ? { specularTextureResource: specularIblTextureResourceReport }
+        : {}),
+      samplerResource: iblSamplerResourceReport,
     },
   };
 }
@@ -902,7 +920,13 @@ function createReadinessGrouping(input) {
       input.standardMaterialIblShadowBinding.status,
     ),
     pipelineKey: input.standardMaterialIblShadowPipelineKey.status,
-    shaderSampling: "deferred",
+    shaderSampling:
+      enableIblSampling &&
+      input.standardMaterialIblBindGroupResource.status === "available" &&
+      input.diffuseIblTextureResource.status === "available" &&
+      input.iblSamplerResources.status === "available"
+        ? "ready"
+        : "deferred",
   };
   const shadowPhases = {
     descriptors: input.shadowDescriptor.ready ? "ready" : "missing",
@@ -1343,6 +1367,89 @@ function createGltfSceneRoot() {
       },
     ],
   };
+}
+
+function createGltfSceneGlbFixture(aperture) {
+  const source = createGlbFixtureSource(createGltfSceneRoot());
+  const report = aperture.createGltfReportDrivenImportReportFromGlb({
+    source,
+  });
+  const container = report.container.container;
+
+  if (!report.valid || container === null || report.importReport === null) {
+    throw new Error("GLTF scene GLB fixture did not produce a valid root.");
+  }
+
+  return {
+    root: container.json,
+    status: {
+      valid: report.valid,
+      byteLength: container.byteLength,
+      chunks: container.chunks.map((chunk) => ({
+        type: chunk.type,
+        byteLength: chunk.byteLength,
+      })),
+      diagnostics: report.container.diagnostics.map((diagnostic) => ({
+        code: diagnostic.code,
+        severity: diagnostic.severity,
+        message: diagnostic.message,
+      })),
+      importStages: report.importReport.orchestration.stages.map((stage) => ({
+        stage: stage.stage,
+        status: stage.status,
+      })),
+    },
+  };
+}
+
+function createGlbFixtureSource(root) {
+  return createGlbFixture([
+    {
+      typeCode: 0x4e4f534a,
+      data: padGlbChunkData(
+        new TextEncoder().encode(JSON.stringify(root)),
+        0x20,
+      ),
+    },
+  ]);
+}
+
+function createGlbFixture(chunks) {
+  const headerByteLength = 12;
+  const chunkHeaderByteLength = 8;
+  const byteLength =
+    headerByteLength +
+    chunks.reduce(
+      (total, chunk) => total + chunkHeaderByteLength + chunk.data.byteLength,
+      0,
+    );
+  const buffer = new ArrayBuffer(byteLength);
+  const view = new DataView(buffer);
+  const bytes = new Uint8Array(buffer);
+  let offset = headerByteLength;
+
+  view.setUint32(0, 0x46546c67, true);
+  view.setUint32(4, 2, true);
+  view.setUint32(8, byteLength, true);
+
+  for (const chunk of chunks) {
+    view.setUint32(offset, chunk.data.byteLength, true);
+    view.setUint32(offset + 4, chunk.typeCode, true);
+    bytes.set(chunk.data, offset + chunkHeaderByteLength);
+    offset += chunkHeaderByteLength + chunk.data.byteLength;
+  }
+
+  return bytes;
+}
+
+function padGlbChunkData(data, padByte) {
+  const paddedLength = Math.ceil(data.byteLength / 4) * 4;
+  const padded = new Uint8Array(paddedLength);
+
+  padded.set(data);
+  padded.fill(padByte, data.byteLength);
+
+  return padded;
 }
 
 function createMeshConstructionReport(aperture) {

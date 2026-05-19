@@ -32,6 +32,7 @@ describe("specular IBL texture resource", () => {
         texturePreparation: true,
         specularTextureResource: true,
         gpuAllocation: true,
+        proofUpload: false,
         prefiltering: false,
         bindGroupResource: false,
         shaderSampling: false,
