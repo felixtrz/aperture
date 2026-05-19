@@ -59,7 +59,7 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start with `task-1858`: audit GLTF IBL/shadow live-resource boundary.
+Start with `task-1866`: add executable shadow caster command record planning.
 The GLTF scene fixture now renders through the public app path, reports detailed
 JSON-safe IBL/shadow readiness, allocates live renderer-owned diffuse IBL
 texture/view, specular IBL texture/view, and IBL sampler resources, allocates
@@ -69,8 +69,18 @@ matrices, reuses IBL resources through private WebGPU app cache state, creates
 live StandardMaterial IBL group 4 bind groups, and allocates/uploads a live
 shadow matrix buffer. It also plans StandardMaterial shadow group 5 descriptor
 entries over the live matrix buffer and shadow depth texture resources, creates
-the live shadow sampler, and creates/caches live StandardMaterial shadow group 5
-bind groups. Specular prefilter pass execution, IBL shader sampling, shadow pass
+the live shadow sampler, creates/caches live StandardMaterial shadow group 5
+bind groups, and exposes JSON-safe shadow pass command-encoding records over
+the live depth view, matrix buffer, caster draw list, and command plan. It now
+also reports depth-only shadow caster pipeline descriptor metadata, shadow pass
+depth attachment descriptors over live shadow depth views, and per-caster
+frame-resource readiness over prepared mesh buffers, matrix buffer resources,
+and the selected shadow caster pipeline descriptor. The first live shadow pass
+encoder integration plan selected and implemented a shadow pass encoder assembly
+report. The GLTF status now exposes `shadow.encoderAssembly` with honest
+missing diagnostics for the still-deferred live command encoder and executable
+caster command records.
+Specular prefilter pass execution, IBL shader sampling, actual shadow pass
 submission, and shadow sampling remain deferred.
 
 The previous micro-hardening tasks remain useful but are no longer the main
@@ -94,8 +104,11 @@ Target proof point:
 
 Remaining automation priority order:
 
-1. `task-1858` — audit GLTF IBL/shadow live-resource boundary.
-2. `task-1859` — add shadow pass command encoding report.
+1. `task-1866` — add executable shadow caster command record planning.
+2. `task-1867` — add live depth-only shadow caster pipeline resource report.
+3. `task-1868` — add shadow caster matrix bind-group resource report.
+4. `task-1869` — integrate shadow encoder assembly with executable commands.
+5. `task-1870` — audit live shadow encoder assembly boundary.
 
 Defer allocation-only cleanup, metadata-only shader-contract tasks, public
 custom material source work, and app-owned custom adapter facades unless they
@@ -10467,6 +10480,9 @@ Acceptance criteria:
 
 ### task-1858 — Audit GLTF IBL/shadow live-resource boundary
 
+Status: completed 2026-05-19. See
+`docs/research/GLTF_IBL_SHADOW_LIVE_RESOURCE_BOUNDARY_AUDIT_2026_05_19.md`.
+
 Category: `audit-refactor`
 Package/write-scope:
 `docs/research`, targeted tests only if a small corrective fix is required.
@@ -10483,6 +10499,9 @@ Acceptance criteria:
   slice.
 
 ### task-1859 — Add shadow pass command encoding report
+
+Status: completed 2026-05-19. See
+`packages/webgpu/src/webgpu/shadow-pass-command-encoding-report.ts`.
 
 Category: `webgpu-render`
 Package/write-scope:
@@ -10503,6 +10522,228 @@ Acceptance criteria:
   with stable diagnostics.
 - Expose the report in the GLTF scene status/readiness while keeping
   StandardMaterial shadow sampling deferred.
+
+### task-1860 — Audit shadow pass command-encoding boundary
+
+Status: completed 2026-05-19. See
+`docs/research/SHADOW_PASS_COMMAND_ENCODING_BOUNDARY_AUDIT_2026_05_19.md`.
+
+Category: `audit-refactor`
+Package/write-scope:
+`docs/research`, targeted tests only if a small corrective fix is required.
+Reference anchor:
+`docs/NORTH_STAR.md`, `docs/ARCHITECTURE.md`, `docs/DECISIONS.md`,
+`packages/webgpu/src/webgpu/shadow-pass-command-encoding-report.ts`,
+`packages/webgpu/src/webgpu/shadow-caster-command-plan-readiness.ts`,
+`packages/webgpu/src/webgpu/render-pass-command-executor.ts`, and reference
+shadow-pass patterns in `references/engine` and `references/three.js`.
+
+Acceptance criteria:
+
+- Confirm the command-encoding report remains JSON-safe and renderer-owned.
+- Confirm it does not imply ECS owns GPU state or that shadow sampling is live.
+- Recommend the next implementation slice and update tracker/backlog wording if
+  needed.
+
+### task-1861 — Add depth-only shadow caster pipeline descriptor metadata
+
+Status: completed 2026-05-19. See
+`packages/webgpu/src/webgpu/shadow-caster-pipeline-descriptor.ts`.
+
+Category: `webgpu-render`
+Package/write-scope:
+`packages/webgpu`, targeted tests, GLTF scene status path if useful.
+Reference anchor:
+local `standard-pipeline-descriptor`, `unlit-pipeline-descriptor`,
+`shadow-pass-command-encoding-report`, `shadow-caster-command-plan-readiness`,
+`references/engine/src/scene/renderer/shadow-renderer.js`, and
+`references/three.js/src/renderers/webgl/WebGLShadowMap.js`.
+
+Acceptance criteria:
+
+- Add JSON-safe descriptor metadata for the first depth-only directional shadow
+  caster pipeline.
+- Report required vertex buffer, index buffer, matrix buffer, depth format, and
+  cull/depth state fields.
+- Keep actual pipeline creation, pass submission, and StandardMaterial shadow
+  sampling deferred.
+
+### task-1862 — Add shadow pass attachment descriptor report
+
+Status: completed 2026-05-19. See
+`packages/webgpu/src/webgpu/shadow-pass-attachment-descriptor.ts`.
+
+Category: `webgpu-render`
+Package/write-scope:
+`packages/webgpu`, targeted tests, GLTF scene status path.
+Reference anchor:
+local `shadow-pass-plan`, `shadow-depth-texture-resource`,
+`render-pass-attachments`, `render-pass-lifecycle`, and reference shadow pass
+attachment setup in `references/engine` and `references/three.js`.
+
+Acceptance criteria:
+
+- Add a JSON-safe report that maps planned shadow passes to depth attachment
+  descriptors using live shadow depth texture views.
+- Report missing depth views with stable diagnostics.
+- Keep command encoder execution, pass submission, and shader sampling deferred.
+
+### task-1863 — Add shadow caster frame-resource readiness report
+
+Status: completed 2026-05-19. See
+`packages/webgpu/src/webgpu/shadow-caster-frame-resource-readiness.ts`.
+
+Category: `webgpu-render`
+Package/write-scope:
+`packages/webgpu`, targeted tests, GLTF scene status path.
+Reference anchor:
+local `render-pass-resources`, `queued-built-in-frame-resource-set`,
+`shadow-caster-draw-list-plan`, and reference shadow caster resource binding in
+`references/engine` and `references/three.js`.
+
+Acceptance criteria:
+
+- Summarize which caster draw records have prepared mesh buffers, matrix buffer
+  resource access, and a selected depth-only pipeline descriptor.
+- Report missing mesh buffers, pipeline metadata, or matrix buffer resources
+  with stable JSON-safe diagnostics.
+- Keep draw command execution and pass submission deferred.
+
+### task-1864 — Plan first live shadow pass encoder integration
+
+Status: completed 2026-05-19. See
+`docs/research/FIRST_LIVE_SHADOW_PASS_ENCODER_INTEGRATION_PLAN_2026_05_19.md`.
+
+Category: `docs-tooling`
+Package/write-scope:
+`docs/research`, backlog only.
+Reference anchor:
+local shadow command-encoding, attachment, pipeline-descriptor, frame-resource,
+and render-pass command execution helpers, plus reference shadow pass execution
+patterns in `references/engine` and `references/three.js`.
+
+Acceptance criteria:
+
+- Compare encoder integration, command-buffer submission, and shader sampling
+  as follow-up candidates.
+- Select exactly one implementation slice with category, package/write-scope,
+  reference anchor, and acceptance criteria.
+- Keep the selected task to one focused run.
+
+### task-1865 — Add shadow pass encoder assembly report
+
+Status: completed 2026-05-19. See
+`packages/webgpu/src/webgpu/shadow-pass-encoder-assembly-report.ts`.
+
+Category: `webgpu-render`
+Package/write-scope:
+`packages/webgpu`, targeted tests, GLTF scene status path.
+Reference anchor:
+local `frame-boundary`, `render-pass-lifecycle`, `render-pass-command-executor`,
+`shadow-pass-attachment-descriptor`, `shadow-caster-frame-resource-readiness`,
+and reference shadow pass execution patterns in `references/engine` and
+`references/three.js`.
+
+Acceptance criteria:
+
+- Add a JSON-safe report for beginning planned shadow depth passes, executing
+  prepared caster command records against a pass-like encoder, and ending the
+  passes.
+- Reuse existing render-pass lifecycle and command executor helpers where
+  practical.
+- Report missing attachment descriptors, frame resources, pass encoder methods,
+  or command records with stable diagnostics.
+- Keep command-buffer finish, queue submission, and StandardMaterial shadow
+  shader sampling deferred.
+
+### task-1866 — Add executable shadow caster command record planning
+
+Category: `webgpu-render`
+Package/write-scope:
+`packages/webgpu`, targeted tests, GLTF scene status path.
+Reference anchor:
+local `render-pass-commands`, `render-pass-command-executor`,
+`shadow-caster-frame-resource-readiness`, and shadow pass command assembly
+patterns in `references/engine` and `references/three.js`.
+
+Acceptance criteria:
+
+- Add a typed plan that maps ready shadow caster frame-resource records into
+  executable `RenderPassCommand` records or stable missing-resource diagnostics.
+- Preserve JSON-safe reporting of pipeline, bind-group, vertex-buffer,
+  index-buffer, and draw command keys without exposing raw GPU handles.
+- Expose command-record readiness in the GLTF scene status.
+- Keep live command-buffer finish, queue submission, and shader sampling
+  deferred.
+
+### task-1867 — Add live depth-only shadow caster pipeline resource report
+
+Category: `webgpu-render`
+Package/write-scope:
+`packages/webgpu`, targeted tests, GLTF scene status path.
+Reference anchor:
+local pipeline cache/resource helpers, `shadow-caster-pipeline-descriptor`, and
+reference shadow pipeline setup in `references/engine` and `references/three.js`.
+
+Acceptance criteria:
+
+- Create or reuse a renderer-owned depth-only shadow caster pipeline resource
+  from the descriptor metadata.
+- Report created/reused pipeline counts and stable pipeline resource keys.
+- Keep command-buffer finish, queue submission, and shader sampling deferred.
+
+### task-1868 — Add shadow caster matrix bind-group resource report
+
+Category: `webgpu-render`
+Package/write-scope:
+`packages/webgpu`, targeted tests, GLTF scene status path.
+Reference anchor:
+local bind-group helpers, `shadow-matrix-buffer-resource`,
+`shadow-caster-pipeline-descriptor`, and reference shadow matrix binding
+patterns in `references/engine` and `references/three.js`.
+
+Acceptance criteria:
+
+- Create or reuse a renderer-owned bind group for the shadow caster matrix
+  buffer layout.
+- Report stable bind-group resource keys and created/reused counts.
+- Keep StandardMaterial receiver shadow sampling separate from caster pass
+  binding.
+
+### task-1869 — Integrate shadow encoder assembly with executable commands
+
+Category: `webgpu-render`
+Package/write-scope:
+`packages/webgpu`, `examples/gltf-scene.js`, e2e status expectations.
+Reference anchor:
+local `shadow-pass-encoder-assembly-report`, executable command record plan,
+pipeline resource report, matrix bind-group resource report, and
+`frame-boundary`.
+
+Acceptance criteria:
+
+- Feed executable shadow caster command records into the shadow encoder assembly
+  report for the GLTF scene status.
+- Report begun/executed/ended shadow passes with nonzero command and draw
+  counts.
+- Keep command-buffer finish, queue submission, and shader sampling deferred
+  until a follow-up task.
+
+### task-1870 — Audit live shadow encoder assembly boundary
+
+Category: `audit-refactor`
+Package/write-scope:
+`docs/research`, targeted tests only if a small corrective fix is required.
+Reference anchor:
+`docs/NORTH_STAR.md`, `docs/ARCHITECTURE.md`, `docs/DECISIONS.md`, live shadow
+encoder assembly reports, and reference shadow pass patterns.
+
+Acceptance criteria:
+
+- Confirm live shadow encoder assembly remains renderer-owned and ECS-derived.
+- Confirm JSON status omits raw GPU handles and does not imply submitted shadow
+  maps or receiver shader sampling.
+- Recommend the next implementation slice.
 
 ## Post-Unlit E2E Verification Targets
 

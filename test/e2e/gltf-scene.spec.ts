@@ -559,6 +559,96 @@ interface GltfSceneStatus extends ExampleStatusBase {
         readonly severity: string;
       }[];
     };
+    readonly commandEncoding: {
+      readonly ready: boolean;
+      readonly status: string;
+      readonly counts: {
+        readonly passes: number;
+        readonly depthViews: number;
+        readonly matrixBuffers: number;
+        readonly casterLists: number;
+        readonly commandPlans: number;
+        readonly commandRecords: number;
+        readonly drawCommands: number;
+      };
+      readonly sections: {
+        readonly passPlans: boolean;
+        readonly depthTextureResources: boolean;
+        readonly matrixBufferResource: boolean;
+        readonly casterDrawLists: boolean;
+        readonly commandPlans: boolean;
+        readonly commandEncoding: boolean;
+        readonly passSubmission: boolean;
+        readonly shaderSampling: boolean;
+      };
+      readonly records: readonly {
+        readonly passKey: string;
+        readonly shadowId: number;
+        readonly lightId: number;
+        readonly depthTextureKey: string;
+        readonly depthViewKey: string;
+        readonly matrixResourceKey: string;
+        readonly commandKey: string;
+        readonly drawCount: number;
+        readonly commandEncoding: string;
+      }[];
+      readonly diagnostics: readonly {
+        readonly code: string;
+        readonly severity: string;
+      }[];
+    };
+    readonly pipelineDescriptor: {
+      readonly ready: boolean;
+      readonly status: string;
+      readonly commandRecordCount: number;
+      readonly descriptorCount: number;
+      readonly sections: {
+        readonly commandEncoding: boolean;
+        readonly vertexBufferLayout: boolean;
+        readonly indexBuffer: boolean;
+        readonly matrixBufferLayout: boolean;
+        readonly depthStencil: boolean;
+        readonly colorTargets: boolean;
+        readonly pipelineCreation: boolean;
+        readonly passSubmission: boolean;
+        readonly shaderSampling: boolean;
+      };
+      readonly descriptor: {
+        readonly pipelineKey: string;
+        readonly label: string;
+        readonly shader: {
+          readonly family: string;
+          readonly label: string;
+          readonly entryPoints: {
+            readonly vertex: string;
+            readonly fragment: string | null;
+          };
+        };
+        readonly vertex: {
+          readonly buffers: readonly string[];
+          readonly matrixBufferLayoutKey: string;
+        };
+        readonly index: {
+          readonly required: boolean;
+          readonly format: string;
+        };
+        readonly primitive: {
+          readonly topology: string;
+          readonly cullMode: string;
+          readonly frontFace: string;
+        };
+        readonly depthStencil: {
+          readonly format: string;
+          readonly depthWriteEnabled: boolean;
+          readonly depthCompare: string;
+        };
+        readonly colorTargets: readonly unknown[];
+      } | null;
+      readonly diagnostics: readonly {
+        readonly code: string;
+        readonly severity: string;
+      }[];
+    };
     readonly pipelineKey: {
       readonly ready: boolean;
       readonly status: string;
@@ -801,6 +891,37 @@ interface GltfSceneStatus extends ExampleStatusBase {
         readonly severity: string;
       }[];
     };
+    readonly passAttachments: {
+      readonly ready: boolean;
+      readonly status: string;
+      readonly passCount: number;
+      readonly attachmentCount: number;
+      readonly sections: {
+        readonly passPlans: boolean;
+        readonly depthTextureResources: boolean;
+        readonly depthAttachments: boolean;
+        readonly commandEncoder: boolean;
+        readonly passSubmission: boolean;
+        readonly shaderSampling: boolean;
+      };
+      readonly attachments: readonly {
+        readonly passKey: string;
+        readonly shadowId: number;
+        readonly lightId: number;
+        readonly textureKey: string;
+        readonly viewKey: string;
+        readonly width: number;
+        readonly height: number;
+        readonly depthFormat: string;
+        readonly depthLoadOp: string;
+        readonly depthStoreOp: string;
+        readonly depthClearValue: number;
+      }[];
+      readonly diagnostics: readonly {
+        readonly code: string;
+        readonly severity: string;
+      }[];
+    };
     readonly matrixComputation: {
       readonly ready: boolean;
       readonly status: string;
@@ -1015,12 +1136,16 @@ test("Playwright shows the GLTF scene fixture through the app path", async ({
           depthTextureResources: "ready",
           depthResourceSummary: "deferred",
           passPlans: "deferred",
+          passAttachments: "deferred",
           viewProjection: "deferred",
           matrixComputation: "ready",
           matrixBuffer: "ready",
           matrixBufferResource: "ready",
           casterDrawLists: "deferred",
           commandPlans: "deferred",
+          commandEncoding: "deferred",
+          pipelineDescriptor: "deferred",
+          frameResources: "deferred",
           resourceSummary: "deferred",
           bindGroupLayout: "deferred",
           bindGroupDescriptor: "deferred",
@@ -1943,6 +2068,43 @@ test("Playwright shows the GLTF scene fixture through the app path", async ({
           },
         ],
       },
+      passAttachments: {
+        ready: false,
+        status: "deferred",
+        passCount: 1,
+        attachmentCount: 1,
+        sections: {
+          passPlans: true,
+          depthTextureResources: true,
+          depthAttachments: true,
+          commandEncoder: false,
+          passSubmission: false,
+          shaderSampling: false,
+        },
+        attachments: [
+          {
+            passKey: expect.stringMatching(/^shadow-pass:\d+:light:\d+$/),
+            shadowId: expect.any(Number),
+            lightId: expect.any(Number),
+            textureKey: expect.stringMatching(
+              /^shadow-map:\d+:light:\d+:texture$/,
+            ),
+            viewKey: expect.stringMatching(/^shadow-map:\d+:light:\d+:view$/),
+            width: 1024,
+            height: 1024,
+            depthFormat: "depth24plus",
+            depthLoadOp: "clear",
+            depthStoreOp: "store",
+            depthClearValue: 1,
+          },
+        ],
+        diagnostics: [
+          {
+            code: "shadowPassAttachmentDescriptor.passSubmissionDeferred",
+            severity: "warning",
+          },
+        ],
+      },
       viewProjection: {
         ready: false,
         status: "deferred",
@@ -2321,6 +2483,244 @@ test("Playwright shows the GLTF scene fixture through the app path", async ({
         diagnostics: [
           {
             code: "shadowCasterCommandPlan.commandEncodingDeferred",
+            severity: "warning",
+          },
+        ],
+      },
+      commandEncoding: {
+        ready: false,
+        status: "deferred",
+        counts: {
+          passes: 1,
+          depthViews: 1,
+          matrixBuffers: 1,
+          casterLists: 1,
+          commandPlans: 1,
+          commandRecords: 1,
+          drawCommands: 3,
+        },
+        sections: {
+          passPlans: true,
+          depthTextureResources: true,
+          matrixBufferResource: true,
+          casterDrawLists: false,
+          commandPlans: false,
+          commandEncoding: false,
+          passSubmission: false,
+          shaderSampling: false,
+        },
+        records: [
+          {
+            passKey: expect.stringMatching(/^shadow-pass:\d+:light:\d+$/),
+            shadowId: expect.any(Number),
+            lightId: expect.any(Number),
+            depthTextureKey: expect.stringMatching(
+              /^shadow-map:\d+:light:\d+:texture$/,
+            ),
+            depthViewKey: expect.stringMatching(
+              /^shadow-map:\d+:light:\d+:view$/,
+            ),
+            matrixResourceKey: "shadow-matrix-buffer:directional",
+            commandKey: expect.stringMatching(
+              /^shadow-pass:\d+:light:\d+:caster-commands$/,
+            ),
+            drawCount: 3,
+            commandEncoding: "ready",
+          },
+        ],
+        diagnostics: [],
+      },
+      pipelineDescriptor: {
+        ready: false,
+        status: "deferred",
+        commandRecordCount: 1,
+        descriptorCount: 1,
+        sections: {
+          commandEncoding: true,
+          vertexBufferLayout: true,
+          indexBuffer: true,
+          matrixBufferLayout: true,
+          depthStencil: true,
+          colorTargets: true,
+          pipelineCreation: false,
+          passSubmission: false,
+          shaderSampling: false,
+        },
+        descriptor: {
+          pipelineKey:
+            "shadow-caster/depth-only/depth24plus/triangle-list/back",
+          label: "shadow-caster-depth-only:depth24plus:triangle-list",
+          shader: {
+            family: "shadow-caster",
+            label: "shadow-caster-depth-only",
+            entryPoints: {
+              vertex: "vs_main",
+              fragment: null,
+            },
+          },
+          vertex: {
+            buffers: ["POSITION"],
+            matrixBufferLayoutKey:
+              "shadow-caster/group-0:directional-shadow-matrices@0",
+          },
+          index: {
+            required: true,
+            format: "uint32",
+          },
+          primitive: {
+            topology: "triangle-list",
+            cullMode: "back",
+            frontFace: "ccw",
+          },
+          depthStencil: {
+            format: "depth24plus",
+            depthWriteEnabled: true,
+            depthCompare: "less-equal",
+          },
+          colorTargets: [],
+        },
+        diagnostics: [
+          {
+            code: "shadowCasterPipelineDescriptor.commandEncodingDeferred",
+            severity: "warning",
+          },
+          {
+            code: "shadowCasterPipelineDescriptor.passSubmissionDeferred",
+            severity: "warning",
+          },
+        ],
+      },
+      frameResources: {
+        ready: false,
+        status: "deferred",
+        counts: {
+          casterDraws: 3,
+          readyDraws: 3,
+          missingMeshBuffers: 0,
+          pipelineDescriptors: 1,
+          matrixBuffers: 1,
+        },
+        sections: {
+          casterDrawLists: true,
+          preparedMeshBuffers: true,
+          matrixBufferResource: true,
+          pipelineDescriptor: true,
+          pipelineCreation: false,
+          passSubmission: false,
+          shaderSampling: false,
+        },
+        records: expect.arrayContaining([
+          {
+            renderId: expect.any(Number),
+            meshKey: "mesh:gltf:mesh:0:primitive:0",
+            passKey: expect.stringMatching(/^shadow-pass:\d+:light:\d+$/),
+            meshResourceKey: expect.stringMatching(/^mesh-buffer:/),
+            vertexBufferResourceKeys: [
+              expect.stringMatching(/^mesh-vertex-buffer:/),
+            ],
+            indexBufferResourceKey:
+              expect.stringMatching(/^mesh-index-buffer:/),
+            matrixResourceKey: "shadow-matrix-buffer:directional",
+            pipelineKey:
+              "shadow-caster/depth-only/depth24plus/triangle-list/back",
+            ready: true,
+          },
+          {
+            renderId: expect.any(Number),
+            meshKey: "mesh:gltf:mesh:1:primitive:0",
+            passKey: expect.stringMatching(/^shadow-pass:\d+:light:\d+$/),
+            meshResourceKey: expect.stringMatching(/^mesh-buffer:/),
+            vertexBufferResourceKeys: [
+              expect.stringMatching(/^mesh-vertex-buffer:/),
+            ],
+            indexBufferResourceKey:
+              expect.stringMatching(/^mesh-index-buffer:/),
+            matrixResourceKey: "shadow-matrix-buffer:directional",
+            pipelineKey:
+              "shadow-caster/depth-only/depth24plus/triangle-list/back",
+            ready: true,
+          },
+          {
+            renderId: expect.any(Number),
+            meshKey: "mesh:gltf:mesh:2:primitive:0",
+            passKey: expect.stringMatching(/^shadow-pass:\d+:light:\d+$/),
+            meshResourceKey: expect.stringMatching(/^mesh-buffer:/),
+            vertexBufferResourceKeys: [
+              expect.stringMatching(/^mesh-vertex-buffer:/),
+            ],
+            indexBufferResourceKey:
+              expect.stringMatching(/^mesh-index-buffer:/),
+            matrixResourceKey: "shadow-matrix-buffer:directional",
+            pipelineKey:
+              "shadow-caster/depth-only/depth24plus/triangle-list/back",
+            ready: true,
+          },
+        ]),
+        diagnostics: [
+          {
+            code: "shadowCasterFrameResource.pipelineCreationDeferred",
+            severity: "warning",
+          },
+          {
+            code: "shadowCasterFrameResource.passSubmissionDeferred",
+            severity: "warning",
+          },
+        ],
+      },
+      encoderAssembly: {
+        ready: false,
+        status: "missing",
+        counts: {
+          passes: 1,
+          attachments: 1,
+          frameResourceDraws: 3,
+          commandRecords: 1,
+          assembledPasses: 0,
+          commandCount: 0,
+          executedCommands: 0,
+          drawCalls: 0,
+        },
+        sections: {
+          attachmentDescriptors: true,
+          frameResources: false,
+          commandRecords: true,
+          passBegin: false,
+          commandExecution: false,
+          passEnd: false,
+          commandBufferFinish: false,
+          queueSubmission: false,
+          shaderSampling: false,
+        },
+        records: [
+          {
+            passKey: expect.stringMatching(/^shadow-pass:\d+:light:\d+$/),
+            shadowId: expect.any(Number),
+            lightId: expect.any(Number),
+            depthTextureKey: expect.stringMatching(
+              /^shadow-map:\d+:light:\d+:texture$/,
+            ),
+            depthViewKey: expect.stringMatching(
+              /^shadow-map:\d+:light:\d+:view$/,
+            ),
+            commandCount: 0,
+            executedCommands: 0,
+            drawCalls: 0,
+            indexedDrawCalls: 0,
+            begun: false,
+            ended: false,
+          },
+        ],
+        diagnostics: [
+          {
+            code: "shadowPassEncoderAssembly.frameResourcesNotReady",
+            severity: "warning",
+          },
+          {
+            code: "shadowPassEncoderAssembly.missingCommandEncoder",
+            severity: "warning",
+          },
+          {
+            code: "shadowPassEncoderAssembly.missingCommandRecords",
             severity: "warning",
           },
         ],

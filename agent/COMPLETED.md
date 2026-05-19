@@ -1,5 +1,157 @@
 # Completed Tasks
 
+## task-1865 — Shadow pass encoder assembly report
+
+Completed: 2026-05-19
+
+Summary:
+
+- Added `ShadowPassEncoderAssemblyReport` for depth-only shadow pass
+  begin/execute/end assembly through an injected command encoder.
+- Reuses the existing render-pass lifecycle and command executor helpers.
+- Exposes JSON-safe pass, command, execution, draw, and diagnostic counts while
+  command-buffer finish, queue submission, and shader sampling stay deferred.
+- Exposes `shadow.encoderAssembly` in the GLTF scene status with honest
+  missing diagnostics for the still-deferred live command encoder and executable
+  caster command records.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/shadow-pass-encoder-assembly-report.test.ts`
+- `pnpm run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec playwright test test/e2e/gltf-scene.spec.ts`
+
+## task-1864 — First live shadow pass encoder integration plan
+
+Completed: 2026-05-19
+
+Summary:
+
+- Compared shadow pass encoder assembly, command-buffer submission, and
+  StandardMaterial shadow shader sampling as follow-up candidates.
+- Selected a shadow pass encoder assembly report as the next implementation
+  slice because it is the smallest live step after attachment, pipeline, matrix,
+  and frame-resource readiness.
+- Added `task-1865` to implement that report.
+
+Validation:
+
+- Documentation-only planning task.
+
+## task-1863 — Shadow caster frame-resource readiness report
+
+Completed: 2026-05-19
+
+Summary:
+
+- Added `ShadowCasterFrameResourceReadinessReport` for JSON-safe per-caster
+  draw readiness over prepared mesh buffers, the live shadow matrix buffer
+  resource, and the selected depth-only shadow caster pipeline descriptor.
+- Exposed `shadow.frameResources` and
+  `readiness.shadow.phases.frameResources` in the GLTF scene status.
+- Kept live pipeline creation, draw execution, pass submission, and shader
+  shadow sampling deferred.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/shadow-caster-frame-resource-readiness.test.ts test/webgpu/shadow-caster-pipeline-descriptor.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm exec playwright test test/e2e/gltf-scene.spec.ts`
+
+## task-1862 — Shadow pass attachment descriptor report
+
+Completed: 2026-05-19
+
+Summary:
+
+- Added `ShadowPassAttachmentDescriptorReport` to map planned shadow passes to
+  JSON-safe depth attachment descriptors over live shadow depth texture views.
+- Exposed `shadow.passAttachments` and
+  `readiness.shadow.phases.passAttachments` in the GLTF scene status.
+- Kept command encoder execution, pass submission, and shader sampling
+  deferred.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/shadow-pass-attachment-descriptor.test.ts test/webgpu/shadow-caster-pipeline-descriptor.test.ts`
+- `pnpm run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec playwright test test/e2e/gltf-scene.spec.ts`
+
+## task-1861 — Depth-only shadow caster pipeline descriptor metadata
+
+Completed: 2026-05-19
+
+Summary:
+
+- Added `ShadowCasterPipelineDescriptorReport` with JSON-safe metadata for the
+  first depth-only directional shadow caster pipeline.
+- Reports required position vertex layout, index format, matrix buffer layout,
+  depth format, cull state, and depth compare/write state.
+- Exposed `shadow.pipelineDescriptor` and
+  `readiness.shadow.phases.pipelineDescriptor` in the GLTF scene status.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/shadow-caster-pipeline-descriptor.test.ts test/webgpu/shadow-pass-command-encoding-report.test.ts`
+- `pnpm run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec playwright test test/e2e/gltf-scene.spec.ts`
+
+## task-1860 — Shadow pass command-encoding boundary audit
+
+Completed: 2026-05-19
+
+Summary:
+
+- Added a focused audit confirming `ShadowPassCommandEncodingReport` is
+  render-side only, scratch-backed, JSON-safe, and does not imply submitted
+  shadow passes or shader sampling.
+- Confirmed the next prerequisite should be depth-only shadow caster pipeline
+  descriptor metadata.
+
+Validation:
+
+- Documentation-only audit.
+
+## task-1859 — Shadow pass command encoding report
+
+Completed: 2026-05-19
+
+Summary:
+
+- Added `ShadowPassCommandEncodingReport` with scratch-backed writers and
+  JSON-safe records for shadow pass, depth view, matrix buffer, command key, and
+  draw counts.
+- Exposed `shadow.commandEncoding` and grouped readiness phase
+  `readiness.shadow.phases.commandEncoding` in the GLTF scene status.
+- Kept pass submission and StandardMaterial shadow sampling deferred.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/shadow-pass-command-encoding-report.test.ts`
+- `pnpm exec vitest run test/webgpu/shadow-pass-command-encoding-report.test.ts test/webgpu/shadow-caster-command-plan-readiness.test.ts`
+- `pnpm run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec playwright test test/e2e/gltf-scene.spec.ts`
+
+## task-1858 — GLTF IBL/shadow live-resource boundary audit
+
+Completed: 2026-05-19
+
+Summary:
+
+- Added a focused audit confirming live IBL/shadow textures, samplers, buffers,
+  and bind groups remain renderer-owned WebGPU resources.
+- Confirmed GLTF scene status JSON helpers expose stable keys, descriptors, and
+  counts instead of raw GPU handles.
+- Recommended the shadow pass command-encoding report as the next slice.
+
+Validation:
+
+- Documentation-only audit.
+
 ## task-1857 — First shadow-map pass command encoding plan
 
 Completed: 2026-05-19

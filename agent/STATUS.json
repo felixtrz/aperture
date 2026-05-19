@@ -1,11 +1,11 @@
 {
   "state": "idle",
-  "currentTaskId": "task-1858",
-  "currentRunStartedAt": "2026-05-19T06:02:10Z",
-  "lastRunStartedAt": "2026-05-19T06:02:10Z",
+  "currentTaskId": "task-1866",
+  "currentRunStartedAt": "2026-05-19T07:02:19Z",
+  "lastRunStartedAt": "2026-05-19T07:02:19Z",
   "lastResult": "success",
   "lastCommit": "c2bd275",
   "activePid": null,
-  "notes": "Completed through task-1857. Next: task-1858, audit GLTF IBL/shadow live-resource boundary.",
-  "lastRunFinishedAt": "2026-05-19T06:50:00Z"
+  "notes": "Completed tasks 1858-1865; next task is task-1866 to add executable shadow caster command record planning.",
+  "lastRunFinishedAt": "2026-05-19T07:47:14Z"
 }

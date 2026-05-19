@@ -1,5 +1,150 @@
 # Handoff
 
+## Current Run Update — 2026-05-19T07:33:00Z
+
+Completed `task-1860` through `task-1865`. Recommended next task is
+`task-1866`: add executable shadow caster command record planning.
+
+What changed:
+
+- Added
+  `docs/research/SHADOW_PASS_COMMAND_ENCODING_BOUNDARY_AUDIT_2026_05_19.md`,
+  confirming the command-encoding report remains JSON-safe, renderer-owned,
+  and diagnostic-only.
+- Added `ShadowCasterPipelineDescriptorReport` for depth-only directional shadow
+  caster pipeline metadata: position vertex layout, required index buffer,
+  matrix buffer layout key, depth format, cull state, and depth compare/write
+  state.
+- Added `ShadowPassAttachmentDescriptorReport` mapping planned shadow passes to
+  live shadow depth texture/view attachment descriptors while keeping pass
+  submission deferred.
+- Added `ShadowCasterFrameResourceReadinessReport` summarizing per-caster draw
+  access to prepared mesh buffers, the live shadow matrix buffer resource, and
+  the selected shadow caster pipeline descriptor.
+- Added
+  `docs/research/FIRST_LIVE_SHADOW_PASS_ENCODER_INTEGRATION_PLAN_2026_05_19.md`,
+  selecting shadow pass encoder assembly as the next implementation slice
+  before command-buffer submission or shader sampling.
+- Added `ShadowPassEncoderAssemblyReport`. The report can begin a depth-only
+  shadow pass through an injected command encoder, execute caster
+  `RenderPassCommand` records, end the pass, and report JSON-safe assembly
+  counts/diagnostics while command-buffer finish, queue submission, and shader
+  sampling remain deferred.
+- Exposed `shadow.encoderAssembly` in the GLTF scene status with honest missing
+  diagnostics for the still-deferred live command encoder and executable caster
+  command records.
+- Exposed `shadow.pipelineDescriptor`, `shadow.passAttachments`, and
+  `shadow.frameResources` in `examples/gltf-scene.js` and grouped readiness
+  phases.
+- Updated public tracker pages, backlog, and completed log.
+
+Reference anchors inspected:
+
+- `docs/NORTH_STAR.md`
+- `docs/ARCHITECTURE.md`
+- `docs/DECISIONS.md`
+- `packages/webgpu/src/webgpu/shadow-pass-command-encoding-report.ts`
+- `packages/webgpu/src/webgpu/shadow-caster-command-plan-readiness.ts`
+- `packages/webgpu/src/webgpu/shadow-caster-draw-list-plan.ts`
+- `packages/webgpu/src/webgpu/shadow-pass-plan.ts`
+- `packages/webgpu/src/webgpu/shadow-depth-texture-resource.ts`
+- `packages/webgpu/src/webgpu/shadow-matrix-buffer-resource.ts`
+- `packages/webgpu/src/webgpu/render-pass-attachments.ts`
+- `packages/webgpu/src/webgpu/render-pass-resources.ts`
+- `packages/webgpu/src/webgpu/frame-boundary.ts`
+- `packages/webgpu/src/webgpu/render-pass-lifecycle.ts`
+- `packages/webgpu/src/webgpu/render-pass-command-executor.ts`
+- `packages/webgpu/src/webgpu/queued-built-in-frame-resource-set.ts`
+- `references/engine/src/scene/renderer/render-pass-shadow-directional.js`
+- `references/three.js/src/renderers/webgl/WebGLShadowMap.js`
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/shadow-caster-pipeline-descriptor.test.ts test/webgpu/shadow-pass-command-encoding-report.test.ts`
+- `pnpm exec vitest run test/webgpu/shadow-pass-attachment-descriptor.test.ts test/webgpu/shadow-caster-pipeline-descriptor.test.ts`
+- `pnpm exec vitest run test/webgpu/shadow-caster-frame-resource-readiness.test.ts test/webgpu/shadow-caster-pipeline-descriptor.test.ts`
+- `pnpm run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec playwright test test/e2e/gltf-scene.spec.ts`
+- `pnpm exec vitest run test/webgpu/shadow-pass-encoder-assembly-report.test.ts`
+- `pnpm run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec playwright test test/e2e/gltf-scene.spec.ts`
+- Documentation-only validation for `task-1864`.
+
+Known issues / follow-ups:
+
+- Shadow pass submission is still deferred; the new reports stop at descriptor,
+  resource-readiness, and command-planning metadata.
+- StandardMaterial shadow sampling and IBL sampling remain deferred.
+- Start `task-1866` next: map ready caster frame-resource records into
+  executable shadow pass command records or stable missing-resource diagnostics.
+
+## Current Run Update — 2026-05-19T07:13:47Z
+
+Completed `task-1858` and `task-1859`. Recommended next task is `task-1860`:
+audit shadow pass command-encoding boundary.
+
+What changed:
+
+- Added
+  `docs/research/GLTF_IBL_SHADOW_LIVE_RESOURCE_BOUNDARY_AUDIT_2026_05_19.md`.
+  The audit confirms live IBL/shadow resources remain renderer-owned,
+  JSON-safe, and outside ECS snapshots.
+- Added `ShadowPassCommandEncodingReport` in `packages/webgpu`:
+  - scratch-backed writer API,
+  - one JSON-safe record per shadow pass when depth view, matrix buffer, caster
+    draw list, and command plan are available,
+  - stable diagnostics for missing pass plans, depth views, matrix buffers,
+    caster lists, command plans, and deferred encoding.
+- Exposed `shadow.commandEncoding` in `examples/gltf-scene.js` and
+  `readiness.shadow.phases.commandEncoding`.
+- Updated GLTF Playwright expectations for the new command-encoding report.
+- Updated public tracker pages, backlog, and completed log.
+- Refilled the ready backlog with `task-1860` through `task-1864`.
+
+Reference anchors inspected:
+
+- `docs/NORTH_STAR.md`
+- `docs/ARCHITECTURE.md`
+- `docs/DECISIONS.md`
+- `docs/research/FIRST_SHADOW_PASS_COMMAND_ENCODING_PLAN_2026_05_19.md`
+- `packages/webgpu/src/webgpu/app-environment-resources.ts`
+- `packages/webgpu/src/webgpu/standard-material-ibl-bind-group.ts`
+- `packages/webgpu/src/webgpu/standard-material-shadow-bind-group.ts`
+- `packages/webgpu/src/webgpu/shadow-depth-texture-resource.ts`
+- `packages/webgpu/src/webgpu/shadow-matrix-buffer-resource.ts`
+- `packages/webgpu/src/webgpu/shadow-pass-plan.ts`
+- `packages/webgpu/src/webgpu/shadow-caster-draw-list-plan.ts`
+- `packages/webgpu/src/webgpu/shadow-caster-command-plan-readiness.ts`
+- `packages/webgpu/src/webgpu/render-pass-command-executor.ts`
+- `references/engine/src/scene/graphics/env-lighting.js`
+- `references/engine/src/scene/renderer/render-pass-shadow-directional.js`
+- `references/three.js/src/extras/PMREMGenerator.js`
+- `references/three.js/src/renderers/common/Bindings.js`
+- `references/three.js/src/renderers/webgl/WebGLShadowMap.js`
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/shadow-pass-command-encoding-report.test.ts`
+- `pnpm exec vitest run test/webgpu/shadow-pass-command-encoding-report.test.ts test/webgpu/shadow-caster-command-plan-readiness.test.ts`
+- `pnpm run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec playwright test test/e2e/gltf-scene.spec.ts`
+- `pnpm run check:progress`
+- `pnpm run check` (`299` test files / `1364` tests passed)
+
+Known issues / follow-ups:
+
+- Shadow pass submission is still deferred; the new report is a JSON-safe
+  readiness/record surface, not live GPU pass execution.
+- StandardMaterial shadow sampling and IBL sampling remain deferred.
+- Some older diagnostics still say bind-group creation is deferred even though
+  live group 4/group 5 bind-group resources now exist; the live resource reports
+  are correct, so this is cleanup wording rather than a blocker.
+- Start `task-1860` next. After the audit, `task-1861` should add depth-only
+  shadow caster pipeline descriptor metadata.
+
 ## Current Run Update — 2026-05-19T06:50:00Z
 
 Completed `task-1850` through `task-1857`. Recommended next task is
