@@ -11,6 +11,7 @@ import {
 import type { ExampleStatusBase } from "./example-status-types.js";
 
 interface GltfSceneStatus extends ExampleStatusBase {
+  readonly frame?: number;
   readonly source?: {
     readonly bufferBackedGlbFixture?: {
       readonly status: string;
@@ -822,6 +823,10 @@ interface GltfSceneStatus extends ExampleStatusBase {
       readonly casterLayerMask: number;
       readonly receiverLayerMask: number;
     }[];
+    readonly controls: {
+      readonly receiverEnabled: boolean;
+      readonly casterEnabled: boolean;
+    };
     readonly intent: {
       readonly key: string;
       readonly lightKey: string;
@@ -3478,6 +3483,10 @@ test("Playwright shows the GLTF scene fixture through the app path", async ({
           severity: "info",
         },
       },
+      controls: {
+        receiverEnabled: true,
+        casterEnabled: true,
+      },
     },
     draw: { drawCalls: 4, indexedDrawCalls: 4 },
     renderWorld: { active: 4 },
@@ -3501,6 +3510,44 @@ test("Playwright shows the GLTF scene fixture through the app path", async ({
   expectDiffuseIblActivation(noIblScreenshot, screenshot, status);
   expectSpecularIblProofActivation(noSpecularIblScreenshot, screenshot, status);
   expectReceiverShadowActivation(noShadowScreenshot, screenshot, status);
+
+  const frameBeforeReceiverToggle = status.frame ?? 0;
+  await page.locator("#shadow-receiver-toggle").uncheck();
+  await page.waitForFunction((previousFrame) => {
+    const status = (
+      globalThis as {
+        readonly __APERTURE_EXAMPLE_STATUS__?: GltfSceneStatus;
+      }
+    ).__APERTURE_EXAMPLE_STATUS__;
+
+    return (
+      status?.shadow?.controls.receiverEnabled === false &&
+      (status.frame ?? 0) > previousFrame
+    );
+  }, frameBeforeReceiverToggle);
+  const receiverOffStatus = await page.evaluate(
+    () =>
+      (globalThis as { readonly __APERTURE_EXAMPLE_STATUS__?: GltfSceneStatus })
+        .__APERTURE_EXAMPLE_STATUS__,
+  );
+  expect(
+    receiverOffStatus,
+    "receiver toggle status should publish",
+  ).toBeDefined();
+
+  if (receiverOffStatus === undefined) {
+    return;
+  }
+
+  const receiverOffScreenshot = await page
+    .locator("#aperture-canvas")
+    .screenshot();
+  expectReceiverShadowToggleRelease(
+    noShadowScreenshot,
+    screenshot,
+    receiverOffScreenshot,
+    receiverOffStatus,
+  );
   webGpuValidation.expectNoWarnings();
 });
 
@@ -3600,6 +3647,59 @@ function expectReceiverShadowActivation(
       beforeLuminance,
     )} after=${JSON.stringify(afterLuminance)}`,
   ).toBeGreaterThan(1);
+}
+
+function expectReceiverShadowToggleRelease(
+  baseline: Buffer,
+  shadowed: Buffer,
+  receiverOff: Buffer,
+  status: GltfSceneStatus,
+): void {
+  const clear =
+    status.clearColor === undefined
+      ? { r: 4, g: 6, b: 9, a: 255 }
+      : rgbaColorToPixel(status.clearColor);
+  const baselineLuminance = averageRegionLuminance(
+    baseline,
+    clear,
+    standardReceiverRegion(),
+  );
+  const shadowedLuminance = averageRegionLuminance(
+    shadowed,
+    clear,
+    standardReceiverRegion(),
+  );
+  const receiverOffLuminance = averageRegionLuminance(
+    receiverOff,
+    clear,
+    standardReceiverRegion(),
+  );
+
+  expect(status.shadow?.controls.receiverEnabled).toBe(false);
+  expect(status.shadow?.controls.casterEnabled).toBe(true);
+  expect(status.shadow?.rendering.supported).toBe(false);
+  expect(
+    receiverOffLuminance.visibleSamples,
+    `receiver-off region should still render visible samples; receiverOff=${JSON.stringify(
+      receiverOffLuminance,
+    )}`,
+  ).toBeGreaterThanOrEqual(4);
+  expect(
+    receiverOffLuminance.average - shadowedLuminance.average,
+    `receiver toggle should remove visible receiver darkening; shadowed=${JSON.stringify(
+      shadowedLuminance,
+    )} receiverOff=${JSON.stringify(receiverOffLuminance)}`,
+  ).toBeGreaterThan(1);
+  expect(
+    Math.abs(receiverOffLuminance.average - baselineLuminance.average),
+    `receiver-off luminance should return toward unshadowed baseline; baseline=${JSON.stringify(
+      baselineLuminance,
+    )} shadowed=${JSON.stringify(
+      shadowedLuminance,
+    )} receiverOff=${JSON.stringify(receiverOffLuminance)}`,
+  ).toBeLessThan(
+    Math.abs(shadowedLuminance.average - baselineLuminance.average),
+  );
 }
 
 function expectDiffuseIblActivation(

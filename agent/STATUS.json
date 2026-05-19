@@ -6,6 +6,6 @@
   "lastResult": "success",
   "lastCommit": "interim-feature-commit",
   "activePid": null,
-  "notes": "Completed task-2009 GLB viewer multi-asset switching, task-2010 active directional shadow status/receiver darkening proof in gltf-scene, and task-2011 3x3 PCF directional shadow filtering. Inspected task-2012 references; point-light shadows need a broader shadow contract extension and remain the recommended next task.",
-  "lastRunFinishedAt": "2026-05-19T19:13:43Z"
+  "notes": "Completed task-2015 caster/receiver shadow toggles in gltf-scene after fixing the stop-hook continuation policy and documenting interim feature commits. task-2012 remains the next broader point-light shadow feature.",
+  "lastRunFinishedAt": "2026-05-19T19:53:10Z"
 }

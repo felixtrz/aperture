@@ -298,6 +298,8 @@ Acceptance criteria:
 
 ### task-2015 — Add caster/receiver shadow toggles to gltf-scene
 
+Status: completed 2026-05-19. See `agent/COMPLETED.md`.
+
 Category: `runtime-orchestration`
 Package/write-scope: `examples/gltf-scene.js`, `examples/gltf-scene.html`, `test/e2e/gltf-scene.spec.ts`.
 Reference anchor: `references/bevy/examples/3d/shadow_caster_receiver.rs` (caster/receiver toggles over ECS-authored renderables).

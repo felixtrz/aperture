@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-19 12:12 PDT</dd>
+            <dd>2026-05-19 12:52 PDT</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -410,6 +410,9 @@
               resource/pass readiness diagnostics. StandardMaterial IBL and
               directional shadow sampling are now active in the GLTF scene;
               broader PMREM and non-directional shadow paths remain deferred.
+              The GLTF scene now exposes live caster/receiver shadow toggles,
+              and Playwright verifies receiver-off luminance returns toward the
+              unshadowed baseline while the ECS-authored scene keeps rendering.
               The descriptor alignment audit is complete, data-only shadow
               texture resource descriptors are exposed, the first JSON-safe
               shadow pass plan report now shows stable pass keys plus deferred

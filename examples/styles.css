@@ -145,6 +145,34 @@ body {
   cursor: default;
 }
 
+.runtime-controls label {
+  display: flex;
+  min-width: 0;
+  min-height: 34px;
+  align-items: center;
+  gap: 8px;
+  padding: 0 10px;
+  border: 1px solid rgb(255 255 255 / 18%);
+  background: #202832;
+  color: #edf2f7;
+  font-size: 13px;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.runtime-controls input {
+  accent-color: #81d69d;
+}
+
+.runtime-controls label:has(input:focus-visible) {
+  outline: 2px solid #81d69d;
+  outline-offset: 3px;
+}
+
+.runtime-controls label:hover {
+  background: #2a3440;
+}
+
 .example-links {
   display: flex;
   flex-wrap: wrap;

@@ -1,6 +1,55 @@
 # Agent Handoff
 
-Updated: 2026-05-19T19:13:43Z
+Updated: 2026-05-19T19:53:10Z
+
+## Current Run Update — 2026-05-19T19:53:10Z — GLTF shadow controls
+
+Completed `task-2015`.
+
+### What changed
+
+- Added live receiver and caster shadow checkboxes to
+  `examples/gltf-scene.html`.
+- Receiver state now controls whether `app.render()` receives
+  `standardMaterialShadowReceiverResources`, so disabling receivers removes
+  visible StandardMaterial shadow sampling without replacing the ECS/render
+  extraction path.
+- Caster state now filters the shadow caster draw-list input, keeping the
+  toggle on the renderer-owned shadow pass side of the existing extracted
+  snapshot path.
+- Published JSON-safe `shadow.controls` status and extended the GLTF Playwright
+  test to uncheck receiver shadows, wait for a new frame, and assert the sampled
+  receiver region returns toward the unshadowed baseline.
+- Updated the public tracker pages, backlog, and completed-task log.
+- Earlier in this work cycle, the stop-hook wording and agent docs were changed
+  so time-gate continuation prompts require active repository work instead of
+  waiting. The commit policy now explicitly permits interim commits after a
+  completed, validated feature slice; this run has local interim commits ahead
+  of `origin/main` and the final stop hook still owns the push/checkpoint.
+
+### References inspected
+
+- `references/bevy/examples/3d/shadow_caster_receiver.rs`
+
+### Validation
+
+- `node --check examples/gltf-scene.js`
+- `pnpm run build`
+- `pnpm run typecheck:test`
+- `pnpm run check:examples`
+- `pnpm run lint`
+- `pnpm run format:check`
+- `pnpm exec playwright test test/e2e/gltf-scene.spec.ts`
+
+### Known issues
+
+- Caster/receiver controls are example-level runtime controls; there is not yet
+  a general public `NotShadowCaster`/`NotShadowReceiver` component API.
+- Point-light and spot-light shadow paths remain unimplemented.
+
+### Recommended next task
+
+`task-2012 — Add point-light shadow cube map and render visible point-light shadow`.
 
 ## Current Run Update — 2026-05-19T19:13:43Z — GLB viewer switching and active directional shadows
 

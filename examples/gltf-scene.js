@@ -1,12 +1,17 @@
 const canvas = document.querySelector("#aperture-canvas");
 const stateElement = document.querySelector("#example-state");
 const jsonElement = document.querySelector("#example-json");
+const shadowReceiverToggle = document.querySelector("#shadow-receiver-toggle");
+const shadowCasterToggle = document.querySelector("#shadow-caster-toggle");
 const exampleParams = new URLSearchParams(globalThis.location.search);
-const enableShadowReceiver = !exampleParams.has("disable-shadow-receiver");
 const enableIblSampling = !exampleParams.has("disable-ibl-sampling");
 const enableSpecularIblSampling = !exampleParams.has(
   "disable-specular-ibl-sampling",
 );
+const shadowControls = {
+  receiverEnabled: !exampleParams.has("disable-shadow-receiver"),
+  casterEnabled: !exampleParams.has("disable-shadow-caster"),
+};
 
 const clearColor = [0.015, 0.025, 0.035, 1];
 const primitiveShapes = [
@@ -140,6 +145,7 @@ function createScene(aperture, app, targetCanvas) {
     app,
     bufferBackedGlbFixture,
   );
+  setupShadowControls(shadowControls);
 
   app.spawn(
     aperture.withTransform({ translation: [0, 0.2, 5.2] }),
@@ -194,6 +200,7 @@ function createScene(aperture, app, targetCanvas) {
     glbFixture: glbFixture.status,
     registration,
     replay,
+    shadowControls,
     visibleBufferBackedReplay,
     root,
   };
@@ -211,7 +218,7 @@ function startRendering(aperture, app, scene) {
       frame,
       clearColor,
       label: "gltf-scene-app",
-      ...(!enableShadowReceiver ||
+      ...(!scene.shadowControls.receiverEnabled ||
       standardMaterialShadowReceiverResources === null
         ? {}
         : { standardMaterialShadowReceiverResources }),
@@ -501,11 +508,14 @@ async function publishFrameStatus(aperture, app, scene, step, report, frame) {
     aperture.standardMaterialShadowBindGroupResourceReportToJsonValue(
       standardMaterialShadowBindGroupResourceReport,
     );
+  const shadowCasterMeshDraws = scene.shadowControls.casterEnabled
+    ? report.snapshot.meshDraws
+    : [];
   const shadowCasterDrawList =
     aperture.shadowCasterDrawListPlanReportToJsonValue(
       aperture.createShadowCasterDrawListPlanReport({
         shadowRequests: report.snapshot.shadowRequests,
-        meshDraws: report.snapshot.meshDraws,
+        meshDraws: shadowCasterMeshDraws,
         shadowPassPlan,
       }),
     );
@@ -829,6 +839,10 @@ async function publishFrameStatus(aperture, app, scene, step, report, frame) {
         casterLayerMask: request.casterLayerMask,
         receiverLayerMask: request.receiverLayerMask,
       })),
+      controls: {
+        receiverEnabled: scene.shadowControls.receiverEnabled,
+        casterEnabled: scene.shadowControls.casterEnabled,
+      },
       intent: {
         key: shadowIntent.key,
         lightKey: shadowIntent.lightKey,
@@ -869,7 +883,7 @@ async function publishFrameStatus(aperture, app, scene, step, report, frame) {
       standardMaterial: standardMaterialShadow,
       rendering: {
         supported:
-          enableShadowReceiver &&
+          scene.shadowControls.receiverEnabled &&
           shadowPassCommandBufferSubmissionReport.status === "submitted" &&
           standardMaterialShadowReceiverBinding.status === "ready",
         mode: "directional-depth-compare",
@@ -918,6 +932,22 @@ async function publishFrameStatus(aperture, app, scene, step, report, frame) {
       samplerResource: iblSamplerResourceReport,
     },
   };
+}
+
+function setupShadowControls(controls) {
+  if (shadowReceiverToggle instanceof HTMLInputElement) {
+    shadowReceiverToggle.checked = controls.receiverEnabled;
+    shadowReceiverToggle.addEventListener("change", () => {
+      controls.receiverEnabled = shadowReceiverToggle.checked;
+    });
+  }
+
+  if (shadowCasterToggle instanceof HTMLInputElement) {
+    shadowCasterToggle.checked = controls.casterEnabled;
+    shadowCasterToggle.addEventListener("change", () => {
+      controls.casterEnabled = shadowCasterToggle.checked;
+    });
+  }
 }
 
 function createReadinessGrouping(input) {

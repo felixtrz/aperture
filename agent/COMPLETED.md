@@ -1,5 +1,36 @@
 # Completed Tasks
 
+## task-2015 — Add caster/receiver shadow toggles to gltf-scene
+
+Completed: 2026-05-19
+
+Summary:
+
+- Added live receiver and caster shadow checkboxes to `examples/gltf-scene.html`.
+- Routed receiver state into the app render options so disabling receiver
+  shadows removes StandardMaterial shadow sampling while keeping the ECS-authored
+  scene rendered.
+- Routed caster state into the shadow caster draw-list planning path so the
+  control affects renderer-owned shadow pass inputs instead of adding a mutable
+  scene graph.
+- Published JSON-safe `shadow.controls` status and extended Playwright coverage
+  to uncheck receiver shadows and assert the sampled receiver region returns
+  toward the unshadowed baseline.
+
+References inspected:
+
+- `references/bevy/examples/3d/shadow_caster_receiver.rs`
+
+Validation:
+
+- `node --check examples/gltf-scene.js`
+- `pnpm run build`
+- `pnpm run typecheck:test`
+- `pnpm run check:examples`
+- `pnpm run lint`
+- `pnpm run format:check`
+- `pnpm exec playwright test test/e2e/gltf-scene.spec.ts`
+
 ## task-2011 — Add 3×3 PCF soft-shadow filtering for directional light
 
 Completed: 2026-05-19
