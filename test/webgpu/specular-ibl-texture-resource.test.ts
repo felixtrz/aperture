@@ -27,6 +27,7 @@ describe("specular IBL texture resource", () => {
       textureSlotCount: 2,
       specularSlotCount: 1,
       createdTextureCount: 1,
+      reusedTextureCount: 0,
       sections: {
         texturePreparation: true,
         specularTextureResource: true,

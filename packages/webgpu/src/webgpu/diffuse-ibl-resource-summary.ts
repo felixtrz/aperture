@@ -77,9 +77,8 @@ export function createDiffuseIblResourceSummaryReport(
     status,
     counts: {
       textureSlots: options.textures.slotCount,
-      diffuseTextureResources:
-        options.diffuseTextureResource.createdTextureCount,
-      samplerResources: options.samplers.createdSamplerCount,
+      diffuseTextureResources: diffuseTextures.length,
+      samplerResources: samplers.length,
       deferredSpecularSlots: deferredSpecularTextures.length,
     },
     sections: {

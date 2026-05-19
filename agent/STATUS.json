@@ -1,11 +1,11 @@
 {
   "state": "idle",
-  "currentTaskId": "task-1850",
-  "currentRunStartedAt": "2026-05-19T05:02:45Z",
-  "lastRunStartedAt": "2026-05-19T05:02:45Z",
+  "currentTaskId": "task-1858",
+  "currentRunStartedAt": "2026-05-19T06:02:10Z",
+  "lastRunStartedAt": "2026-05-19T06:02:10Z",
   "lastResult": "success",
-  "lastCommit": "1f309aa",
+  "lastCommit": "c2bd275",
   "activePid": null,
-  "notes": "Completed through task-1849. Next: task-1850, integrate IBL resources with the private WebGPU app cache.",
-  "lastRunFinishedAt": "2026-05-19T05:43:29Z"
+  "notes": "Completed through task-1857. Next: task-1858, audit GLTF IBL/shadow live-resource boundary.",
+  "lastRunFinishedAt": "2026-05-19T06:50:00Z"
 }

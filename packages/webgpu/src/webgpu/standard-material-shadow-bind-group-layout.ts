@@ -28,7 +28,7 @@ export interface StandardMaterialShadowBindGroupLayoutMetadata {
 export interface StandardMaterialShadowBindGroupLayoutEntry {
   readonly binding: number;
   readonly label: string;
-  readonly resource: "uniform-buffer" | "texture" | "sampler";
+  readonly resource: "read-only-storage-buffer" | "texture" | "sampler";
 }
 
 export interface StandardMaterialShadowBindGroupLayoutDescriptor {
@@ -338,7 +338,7 @@ function resourceKindToLayoutResource(
 ): StandardMaterialShadowBindGroupLayoutEntry["resource"] {
   switch (kind) {
     case "buffer":
-      return "uniform-buffer";
+      return "read-only-storage-buffer";
     case "texture-view":
       return "texture";
     case "sampler":

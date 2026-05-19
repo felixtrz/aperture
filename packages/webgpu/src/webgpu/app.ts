@@ -58,6 +58,11 @@ import {
   type AppTextureSamplerResourceCacheSummary,
 } from "./app-texture-sampler-resources.js";
 import {
+  createWebGpuEnvironmentResourceCache,
+  registerWebGpuAppEnvironmentResourceCache,
+  type WebGpuEnvironmentResourceCache,
+} from "./app-environment-resources.js";
+import {
   createPreparedMaterialTextureSamplerDependencies,
   type PreparedMaterialTextureSamplerDependencies,
 } from "./prepared-material-texture-sampler-dependencies.js";
@@ -349,6 +354,7 @@ interface WebGpuAppResourceCache {
   readonly layouts: Map<string, WebGpuAppPipelineLayouts>;
   readonly textures: Map<string, TextureGpuResource>;
   readonly samplers: Map<string, SamplerGpuResource>;
+  readonly environmentResources: WebGpuEnvironmentResourceCache;
   readonly preparedMeshes: PreparedMeshGpuResourceCache;
   readonly preparedMeshFacade: PreparedMeshStore;
   readonly preparedMaterials: PreparedBuiltInMaterialStore;
@@ -557,6 +563,11 @@ export async function createWebGpuApp(
     },
   };
 
+  registerWebGpuAppEnvironmentResourceCache(
+    app,
+    resourceCache.environmentResources,
+  );
+
   return { ok: true, app, initialization };
 }
 
@@ -566,6 +577,7 @@ function createWebGpuAppResourceCache(): WebGpuAppResourceCache {
     layouts: new Map(),
     textures: new Map(),
     samplers: new Map(),
+    environmentResources: createWebGpuEnvironmentResourceCache(),
     preparedMeshes: createPreparedMeshGpuResourceCache(),
     preparedMeshFacade: createPreparedMeshStore(),
     preparedMaterials: createPreparedBuiltInMaterialStore(),

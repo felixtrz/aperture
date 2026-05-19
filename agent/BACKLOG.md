@@ -59,19 +59,19 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start with `task-1850`: integrate IBL resources with the WebGPU app cache.
+Start with `task-1858`: audit GLTF IBL/shadow live-resource boundary.
 The GLTF scene fixture now renders through the public app path, reports detailed
 JSON-safe IBL/shadow readiness, allocates live renderer-owned diffuse IBL
 texture/view, specular IBL texture/view, and IBL sampler resources, allocates
 live renderer-owned shadow depth texture/view resources, exposes compact
 diffuse IBL plus shadow depth resource summaries, computes directional shadow
-matrices, and now has descriptor-only StandardMaterial IBL/shadow bind-group
-layout metadata plus a valid StandardMaterial IBL group 4 descriptor plan.
-Specular prefilter pass execution, live bind-group creation, shader sampling,
-shadow matrix upload, and shadow pass submission remain deferred. The next
-useful IBL step is to move environment-derived texture/sampler reuse from
-example-level caches into the private WebGPU app resource cache before live
-bind-group creation.
+matrices, reuses IBL resources through private WebGPU app cache state, creates
+live StandardMaterial IBL group 4 bind groups, and allocates/uploads a live
+shadow matrix buffer. It also plans StandardMaterial shadow group 5 descriptor
+entries over the live matrix buffer and shadow depth texture resources, creates
+the live shadow sampler, and creates/caches live StandardMaterial shadow group 5
+bind groups. Specular prefilter pass execution, IBL shader sampling, shadow pass
+submission, and shadow sampling remain deferred.
 
 The previous micro-hardening tasks remain useful but are no longer the main
 ready queue unless they directly block the scene slice. Public custom
@@ -94,9 +94,8 @@ Target proof point:
 
 Remaining automation priority order:
 
-1. `task-1850` — integrate IBL resources with the WebGPU app cache.
-2. `task-1851` — create live StandardMaterial IBL bind-group resources.
-3. `task-1852` — plan shadow matrix buffer upload resources.
+1. `task-1858` — audit GLTF IBL/shadow live-resource boundary.
+2. `task-1859` — add shadow pass command encoding report.
 
 Defer allocation-only cleanup, metadata-only shader-contract tasks, public
 custom material source work, and app-owned custom adapter facades unless they
@@ -10295,6 +10294,9 @@ Acceptance criteria:
 
 ### task-1850 — Integrate IBL resources with the WebGPU app cache
 
+Status: completed 2026-05-19. See
+`packages/webgpu/src/webgpu/app-environment-resources.ts`.
+
 Category: `webgpu-render`
 Package/write-scope:
 `packages/webgpu`, targeted tests, GLTF scene status path.
@@ -10317,6 +10319,9 @@ Acceptance criteria:
 
 ### task-1851 — Create live StandardMaterial IBL bind-group resources
 
+Status: completed 2026-05-19. See
+`packages/webgpu/src/webgpu/standard-material-ibl-bind-group.ts`.
+
 Category: `webgpu-render`
 Package/write-scope:
 `packages/webgpu`, targeted tests, GLTF scene status path.
@@ -10335,6 +10340,9 @@ Acceptance criteria:
 
 ### task-1852 — Plan shadow matrix buffer upload resources
 
+Status: completed 2026-05-19. See
+`docs/research/SHADOW_MATRIX_BUFFER_UPLOAD_RESOURCE_PLAN_2026_05_19.md`.
+
 Category: `docs-tooling`
 Package/write-scope:
 `docs/research`, backlog only.
@@ -10349,6 +10357,152 @@ Acceptance criteria:
   planning, and shadow pass command encoding as next steps.
 - Select one focused implementation task with acceptance criteria.
 - Keep shadow shader sampling deferred unless prerequisites are selected.
+
+### task-1853 — Allocate shadow matrix buffer resources
+
+Status: completed 2026-05-19. See
+`packages/webgpu/src/webgpu/shadow-matrix-buffer-resource.ts`.
+
+Category: `webgpu-render`
+Package/write-scope:
+`packages/webgpu`, targeted tests, GLTF scene status path.
+Reference anchor:
+local `directional-shadow-matrix-computation`,
+`shadow-matrix-buffer-descriptor`, `buffer`, and
+`standard-material-shadow-bind-group-layout` helpers.
+
+Acceptance criteria:
+
+- Add a `ShadowMatrixBufferResourceReport` with JSON helpers.
+- Pack computed directional shadow view-projection matrices into a contiguous
+  `Float32Array` using descriptor offsets.
+- Allocate/upload a renderer-owned storage buffer from the packed data and
+  report created/reused counts without exposing raw GPU handles.
+- Update GLTF scene status/readiness with `shadow.matrixBufferResource`.
+- Keep shadow bind-group creation, shadow pass submission, and shader sampling
+  deferred.
+
+### task-1854 — Plan StandardMaterial shadow bind-group resources
+
+Status: completed 2026-05-19. See
+`docs/research/STANDARD_MATERIAL_SHADOW_BIND_GROUP_RESOURCE_PLAN_2026_05_19.md`.
+
+Category: `docs-tooling`
+Package/write-scope:
+`docs/research`, backlog only.
+Reference anchor:
+local `standard-material-shadow-bind-group-layout`,
+`shadow-matrix-buffer-resource`, `shadow-depth-texture-resource`,
+`shadow-pass-plan`, and `standard-material-ibl-bind-group` helpers.
+
+Acceptance criteria:
+
+- Compare shadow bind-group descriptor planning, live shadow bind-group
+  creation, and first shadow pass command encoding.
+- Select one focused implementation task with acceptance criteria.
+- Keep shadow shader sampling deferred unless prerequisites are selected.
+
+### task-1855 — Create StandardMaterial shadow bind-group descriptor plans
+
+Status: completed 2026-05-19. See
+`packages/webgpu/src/webgpu/standard-material-shadow-bind-group.ts`.
+
+Category: `webgpu-render`
+Package/write-scope:
+`packages/webgpu`, targeted tests, GLTF scene status path.
+Reference anchor:
+local `standard-material-shadow-bind-group-layout`,
+`shadow-matrix-buffer-resource`, `shadow-depth-texture-resource`, and
+`standard-material-ibl-bind-group`.
+
+Acceptance criteria:
+
+- Add JSON-safe group 5 descriptor planning for shadow matrix buffer, shadow
+  depth texture view, and shadow sampler resources.
+- Report missing matrix/depth/sampler resources with stable diagnostics.
+- Expose `shadow.bindGroupDescriptor` in the GLTF scene status.
+- Keep live shadow bind-group creation and shader sampling deferred.
+
+### task-1856 — Create live StandardMaterial shadow bind-group resources
+
+Status: completed 2026-05-19. See
+`packages/webgpu/src/webgpu/standard-material-shadow-bind-group.ts`.
+
+Category: `webgpu-render`
+Package/write-scope:
+`packages/webgpu`, targeted tests, GLTF scene status path.
+Reference anchor:
+local `standard-material-shadow-bind-group-layout`, planned shadow group 5
+descriptor helpers, `standard-material-ibl-bind-group`, and WebGPU resource
+cache helpers.
+
+Acceptance criteria:
+
+- Create live group 5 shadow bind groups from valid descriptor plans and layout
+  resources.
+- Report created/reused bind-group counts with JSON-safe diagnostics.
+- GLTF scene status distinguishes descriptor plans from live group 5 resources.
+- Keep shadow pass submission and shader sampling deferred.
+
+### task-1857 — Plan first shadow-map pass command encoding
+
+Status: completed 2026-05-19. See
+`docs/research/FIRST_SHADOW_PASS_COMMAND_ENCODING_PLAN_2026_05_19.md`.
+
+Category: `docs-tooling`
+Package/write-scope:
+`docs/research`, backlog only.
+Reference anchor:
+local `shadow-pass-plan`, `shadow-caster-draw-list-plan`,
+`shadow-caster-command-plan-readiness`, `render-pass-command-executor`, and
+reference shadow pass patterns in `references/engine` and `references/three.js`.
+
+Acceptance criteria:
+
+- Compare depth-only pipeline selection, command encoding, and pass submission
+  as next steps.
+- Select one focused implementation task with acceptance criteria.
+- Keep StandardMaterial shadow sampling deferred unless prerequisites are
+  selected.
+
+### task-1858 — Audit GLTF IBL/shadow live-resource boundary
+
+Category: `audit-refactor`
+Package/write-scope:
+`docs/research`, targeted tests only if a small corrective fix is required.
+Reference anchor:
+`docs/NORTH_STAR.md`, `docs/ARCHITECTURE.md`, `docs/DECISIONS.md`,
+GLTF scene status, IBL app cache, IBL bind-group resource, and shadow matrix
+buffer resource helpers.
+
+Acceptance criteria:
+
+- Confirm live IBL and shadow resources remain renderer-owned and JSON-safe.
+- Confirm ECS snapshots still carry stable handles/packets, not GPU handles.
+- Check public tracker/backlog alignment and recommend the next implementation
+  slice.
+
+### task-1859 — Add shadow pass command encoding report
+
+Category: `webgpu-render`
+Package/write-scope:
+`packages/webgpu`, targeted tests, GLTF scene status path.
+Reference anchor:
+`docs/research/FIRST_SHADOW_PASS_COMMAND_ENCODING_PLAN_2026_05_19.md`,
+local `shadow-pass-plan`, `shadow-caster-draw-list-plan`,
+`shadow-caster-command-plan-readiness`, `shadow-depth-texture-resource`,
+`shadow-matrix-buffer-resource`, and `render-pass-command-executor` helpers.
+
+Acceptance criteria:
+
+- Add a JSON-safe `ShadowPassCommandEncodingReport` over existing shadow pass
+  plans, depth texture resources, shadow matrix buffer resources, caster draw
+  lists, and command plans.
+- Report one command-encoding record per pass when prerequisites are available.
+- Report missing depth views, matrix buffers, caster lists, and command plans
+  with stable diagnostics.
+- Expose the report in the GLTF scene status/readiness while keeping
+  StandardMaterial shadow sampling deferred.
 
 ## Post-Unlit E2E Verification Targets
 

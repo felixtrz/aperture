@@ -37,9 +37,6 @@ const shadowIntent = {
   depthBias: 0.001,
   normalBias: 0.01,
 };
-let diffuseIblTextureResourceReport = null;
-let specularIblTextureResourceReport = null;
-let iblSamplerResourceReport = null;
 let shadowDepthTextureResourceReport = null;
 
 try {
@@ -235,36 +232,32 @@ function publishFrameStatus(aperture, app, scene, step, report, frame) {
       descriptors: iblDescriptor,
     }),
   );
-  diffuseIblTextureResourceReport ??=
-    aperture.createDiffuseIblTextureResourceReport({
-      device: app.initialization.device,
-      textures: iblTextures,
-    });
-  const diffuseIblTextureResource =
-    aperture.diffuseIblTextureResourceReportToJsonValue(
-      diffuseIblTextureResourceReport,
-    );
-  specularIblTextureResourceReport ??=
-    aperture.createSpecularIblTextureResourceReport({
-      device: app.initialization.device,
-      textures: iblTextures,
-    });
-  const specularIblTextureResource =
-    aperture.specularIblTextureResourceReportToJsonValue(
-      specularIblTextureResourceReport,
-    );
   const iblSamplerDescriptors =
     aperture.createIblSamplerDescriptorReadinessReport({
       textures: iblTextures,
       allocation: "ready",
     });
+  const iblAppResources = aperture.prepareWebGpuAppIblResourceReports({
+    app,
+    textures: iblTextures,
+    samplers: iblSamplerDescriptors,
+  });
+  const diffuseIblTextureResourceReport =
+    iblAppResources.diffuseTextureResource;
+  const diffuseIblTextureResource =
+    aperture.diffuseIblTextureResourceReportToJsonValue(
+      diffuseIblTextureResourceReport,
+    );
+  const specularIblTextureResourceReport =
+    iblAppResources.specularTextureResource;
+  const specularIblTextureResource =
+    aperture.specularIblTextureResourceReportToJsonValue(
+      specularIblTextureResourceReport,
+    );
   const iblSamplers = aperture.iblSamplerDescriptorReadinessReportToJsonValue(
     iblSamplerDescriptors,
   );
-  iblSamplerResourceReport ??= aperture.createIblSamplerResourceReport({
-    device: app.initialization.device,
-    samplers: iblSamplerDescriptors,
-  });
+  const iblSamplerResourceReport = iblAppResources.samplerResources;
   const iblSamplerResources = aperture.iblSamplerResourceReportToJsonValue(
     iblSamplerResourceReport,
   );
@@ -316,6 +309,25 @@ function publishFrameStatus(aperture, app, scene, step, report, frame) {
         samplers: iblSamplerResourceReport,
       }),
     );
+  const environmentResourceCache =
+    aperture.getOrCreateWebGpuAppEnvironmentResourceCache(app);
+  const standardMaterialIblBindGroupResource =
+    aperture.standardMaterialIblBindGroupResourceReportToJsonValue(
+      aperture.createStandardMaterialIblBindGroupResourceReport({
+        device: app.initialization.device,
+        standardMaterialCount,
+        descriptor: standardMaterialIblBindGroupDescriptor,
+        diffuseTextureResource: diffuseIblTextureResourceReport,
+        specularTextureResource: specularIblTextureResourceReport,
+        samplers: iblSamplerResourceReport,
+        cache: environmentResourceCache.standardIblBindGroups,
+      }),
+    );
+  const environmentResourceCacheSummary =
+    aperture.writeWebGpuEnvironmentResourceCacheSummary(
+      aperture.createWebGpuEnvironmentResourceCacheSummary(),
+      environmentResourceCache,
+    );
   const shadowDescriptor = aperture.shadowMapDescriptorReportToJsonValue(
     aperture.createShadowMapDescriptorReport({
       shadowRequests: report.snapshot.shadowRequests,
@@ -353,6 +365,16 @@ function publishFrameStatus(aperture, app, scene, step, report, frame) {
         depthTextureResources: shadowDepthTextureResourceReport,
       }),
     );
+  const appEnvironmentResourceCache =
+    aperture.getOrCreateWebGpuAppEnvironmentResourceCache(app);
+  const shadowSamplerResourceReport =
+    aperture.createShadowSamplerResourceReport({
+      device: app.initialization.device,
+      cache: appEnvironmentResourceCache.shadowSamplers,
+    });
+  const shadowSamplerResource = aperture.shadowSamplerResourceReportToJsonValue(
+    shadowSamplerResourceReport,
+  );
   const shadowPassPlan = aperture.shadowPassPlanReportToJsonValue(
     aperture.createShadowPassPlanReport({
       shadowRequests: report.snapshot.shadowRequests,
@@ -391,6 +413,40 @@ function publishFrameStatus(aperture, app, scene, step, report, frame) {
     aperture.shadowMatrixBufferDescriptorReportToJsonValue(
       aperture.createShadowMatrixBufferDescriptorReport({
         viewProjection: shadowViewProjection,
+        upload: "ready",
+      }),
+    );
+  const shadowMatrixBufferResourceReport =
+    aperture.createShadowMatrixBufferResourceReport({
+      device: app.initialization.device,
+      descriptor: shadowMatrixBuffer,
+      matrices: shadowMatrixComputation,
+    });
+  const shadowMatrixBufferResource =
+    aperture.shadowMatrixBufferResourceReportToJsonValue(
+      shadowMatrixBufferResourceReport,
+    );
+  const standardMaterialShadowBindGroupDescriptorReport =
+    aperture.createStandardMaterialShadowBindGroupDescriptorReadinessReport({
+      standardMaterialCount,
+      matrixBufferResource: shadowMatrixBufferResourceReport,
+      depthTextureResources: shadowDepthTextureResourceReport,
+      samplerResource: shadowSamplerResourceReport,
+    });
+  const standardMaterialShadowBindGroupDescriptor =
+    aperture.standardMaterialShadowBindGroupDescriptorReadinessReportToJsonValue(
+      standardMaterialShadowBindGroupDescriptorReport,
+    );
+  const standardMaterialShadowBindGroupResource =
+    aperture.standardMaterialShadowBindGroupResourceReportToJsonValue(
+      aperture.createStandardMaterialShadowBindGroupResourceReport({
+        device: app.initialization.device,
+        standardMaterialCount,
+        descriptor: standardMaterialShadowBindGroupDescriptorReport,
+        matrixBufferResource: shadowMatrixBufferResourceReport,
+        depthTextureResources: shadowDepthTextureResourceReport,
+        samplerResource: shadowSamplerResourceReport,
+        cache: appEnvironmentResourceCache.standardShadowBindGroups,
       }),
     );
   const shadowCasterDrawList =
@@ -451,6 +507,7 @@ function publishFrameStatus(aperture, app, scene, step, report, frame) {
     standardMaterialIbl,
     standardMaterialIblBindGroupLayout,
     standardMaterialIblBindGroupDescriptor,
+    standardMaterialIblBindGroupResource,
     standardMaterialIblShadowBinding,
     standardMaterialIblShadowPipelineKey,
     shadowDescriptor,
@@ -462,11 +519,15 @@ function publishFrameStatus(aperture, app, scene, step, report, frame) {
     shadowViewProjection,
     shadowMatrixComputation,
     shadowMatrixBuffer,
+    shadowMatrixBufferResource,
     shadowCasterDrawList,
     shadowCommandPlan,
     shadowResourceSummary,
     standardMaterialShadow,
     standardMaterialShadowBindGroupLayout,
+    standardMaterialShadowBindGroupDescriptor,
+    shadowSamplerResource,
+    standardMaterialShadowBindGroupResource,
   });
 
   publishStatus({
@@ -514,11 +575,14 @@ function publishFrameStatus(aperture, app, scene, step, report, frame) {
       specularTextureResource: specularIblTextureResource,
       samplers: iblSamplers,
       samplerResources: iblSamplerResources,
+      resourceReuse: iblAppResources.reuse,
+      cacheSummary: environmentResourceCacheSummary,
       diffuseResourceSummary: diffuseIblResourceSummary,
       passPlan: iblPassPlan,
       resourceSummary: iblResourceSummary,
       bindGroupLayout: standardMaterialIblBindGroupLayout,
       bindGroupDescriptor: standardMaterialIblBindGroupDescriptor,
+      bindGroupResource: standardMaterialIblBindGroupResource,
       shaderBinding: standardMaterialIblShadowBinding,
       pipelineKey: standardMaterialIblShadowPipelineKey,
       standardMaterial: standardMaterialIbl,
@@ -552,10 +616,14 @@ function publishFrameStatus(aperture, app, scene, step, report, frame) {
       textures: shadowTextures,
       depthTextureResources: shadowDepthTextureResources,
       depthResourceSummary: shadowDepthResourceSummary,
+      samplerResource: shadowSamplerResource,
       passPlan: shadowPassPlan,
+      bindGroupDescriptor: standardMaterialShadowBindGroupDescriptor,
+      bindGroupResource: standardMaterialShadowBindGroupResource,
       viewProjection: shadowViewProjection,
       matrixComputation: shadowMatrixComputation,
       matrixBuffer: shadowMatrixBuffer,
+      matrixBufferResource: shadowMatrixBufferResource,
       casterDrawList: shadowCasterDrawList,
       commandPlan: shadowCommandPlan,
       resourceSummary: shadowResourceSummary,
@@ -612,6 +680,9 @@ function createReadinessGrouping(input) {
     standardMaterial: normalizeStatus(input.standardMaterialIbl.status),
     bindGroupLayout: input.standardMaterialIblBindGroupLayout.status,
     bindGroupDescriptor: input.standardMaterialIblBindGroupDescriptor.status,
+    bindGroupResource: normalizeStatus(
+      input.standardMaterialIblBindGroupResource.status,
+    ),
     shaderBinding: normalizeStatus(
       input.standardMaterialIblShadowBinding.status,
     ),
@@ -630,10 +701,18 @@ function createReadinessGrouping(input) {
     viewProjection: input.shadowViewProjection.status,
     matrixComputation: input.shadowMatrixComputation.status,
     matrixBuffer: input.shadowMatrixBuffer.status,
+    matrixBufferResource: normalizeStatus(
+      input.shadowMatrixBufferResource.status,
+    ),
     casterDrawLists: input.shadowCasterDrawList.status,
     commandPlans: input.shadowCommandPlan.status,
     resourceSummary: input.shadowResourceSummary.status,
     bindGroupLayout: input.standardMaterialShadowBindGroupLayout.status,
+    bindGroupDescriptor: input.standardMaterialShadowBindGroupDescriptor.status,
+    samplerResource: normalizeStatus(input.shadowSamplerResource.status),
+    bindGroupResource: normalizeStatus(
+      input.standardMaterialShadowBindGroupResource.status,
+    ),
     standardMaterial: input.standardMaterialShadow.status,
     rendering: "deferred",
   };

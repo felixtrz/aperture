@@ -4,6 +4,7 @@ import {
   WEBGPU_TEXTURE_USAGE_FLAGS,
   type CreateTextureGpuResourceResult,
   type TextureGpuDeviceLike,
+  type TextureGpuResource,
   type TextureGpuResourceDiagnostic,
 } from "./texture-resources.js";
 
@@ -29,12 +30,14 @@ export interface CreateDiffuseIblTextureResourceOptions {
   readonly device: TextureGpuDeviceLike;
   readonly textures: IblTexturePreparationReport;
   readonly size?: number;
+  readonly cache?: Map<string, TextureGpuResource>;
 }
 
 export interface CreateSpecularIblTextureResourceOptions {
   readonly device: TextureGpuDeviceLike;
   readonly textures: IblTexturePreparationReport;
   readonly size?: number;
+  readonly cache?: Map<string, TextureGpuResource>;
 }
 
 export interface DiffuseIblTextureResourceReport {
@@ -43,6 +46,7 @@ export interface DiffuseIblTextureResourceReport {
   readonly textureSlotCount: number;
   readonly diffuseSlotCount: number;
   readonly createdTextureCount: number;
+  readonly reusedTextureCount: number;
   readonly sections: {
     readonly texturePreparation: boolean;
     readonly diffuseTextureResource: boolean;
@@ -60,6 +64,7 @@ export interface SpecularIblTextureResourceReport {
   readonly textureSlotCount: number;
   readonly specularSlotCount: number;
   readonly createdTextureCount: number;
+  readonly reusedTextureCount: number;
   readonly sections: {
     readonly texturePreparation: boolean;
     readonly specularTextureResource: boolean;
@@ -78,6 +83,7 @@ export interface DiffuseIblTextureResourceReportJsonValue {
   readonly textureSlotCount: number;
   readonly diffuseSlotCount: number;
   readonly createdTextureCount: number;
+  readonly reusedTextureCount: number;
   readonly sections: DiffuseIblTextureResourceReport["sections"];
   readonly resources: readonly {
     readonly valid: boolean;
@@ -104,6 +110,7 @@ export interface SpecularIblTextureResourceReportJsonValue {
   readonly textureSlotCount: number;
   readonly specularSlotCount: number;
   readonly createdTextureCount: number;
+  readonly reusedTextureCount: number;
   readonly sections: SpecularIblTextureResourceReport["sections"];
   readonly resources: readonly {
     readonly valid: boolean;
@@ -173,10 +180,24 @@ export function createDiffuseIblTextureResourceReport(
       slot.sourceResourceKey !== null &&
       slot.textureKey !== null,
   );
-  const resources = diffuseSlots.map((slot) =>
-    createTextureGpuResource({
+  let createdTextureCount = 0;
+  let reusedTextureCount = 0;
+  const resources = diffuseSlots.map((slot) => {
+    const resourceKey = slot.textureKey ?? `${slot.sourceResourceKey}:texture`;
+    const cached = options.cache?.get(resourceKey);
+
+    if (cached !== undefined) {
+      reusedTextureCount += 1;
+      return {
+        valid: true,
+        resource: cached,
+        diagnostics: [],
+      };
+    }
+
+    const result = createTextureGpuResource({
       device: options.device,
-      resourceKey: slot.textureKey ?? `${slot.sourceResourceKey}:texture`,
+      resourceKey,
       descriptor: {
         label: `${slot.environmentMapResourceKey}:diffuse-ibl`,
         size: [options.size ?? 64, options.size ?? 64, 6],
@@ -186,8 +207,16 @@ export function createDiffuseIblTextureResourceReport(
           WEBGPU_TEXTURE_USAGE_FLAGS.COPY_DST,
         mipLevelCount: 1,
       },
-    }),
-  );
+      viewDescriptor: { dimension: "cube" },
+    });
+
+    if (result.valid && result.resource !== null) {
+      options.cache?.set(resourceKey, result.resource);
+      createdTextureCount += 1;
+    }
+
+    return result;
+  });
 
   for (const resource of resources) {
     diagnostics.push(
@@ -204,6 +233,8 @@ export function createDiffuseIblTextureResourceReport(
       : "missing",
     textureSlotCount: options.textures.slotCount,
     diffuseSlotCount: diffuseSlots.length,
+    createdTextureCount,
+    reusedTextureCount,
     resources,
     diagnostics,
   });
@@ -265,10 +296,24 @@ export function createSpecularIblTextureResourceReport(
       slot.sourceResourceKey !== null &&
       slot.textureKey !== null,
   );
-  const resources = specularSlots.map((slot) =>
-    createTextureGpuResource({
+  let createdTextureCount = 0;
+  let reusedTextureCount = 0;
+  const resources = specularSlots.map((slot) => {
+    const resourceKey = slot.textureKey ?? `${slot.sourceResourceKey}:texture`;
+    const cached = options.cache?.get(resourceKey);
+
+    if (cached !== undefined) {
+      reusedTextureCount += 1;
+      return {
+        valid: true,
+        resource: cached,
+        diagnostics: [],
+      };
+    }
+
+    const result = createTextureGpuResource({
       device: options.device,
-      resourceKey: slot.textureKey ?? `${slot.sourceResourceKey}:texture`,
+      resourceKey,
       descriptor: {
         label: `${slot.environmentMapResourceKey}:specular-ibl`,
         size: [size, size, 6],
@@ -279,8 +324,16 @@ export function createSpecularIblTextureResourceReport(
           WEBGPU_TEXTURE_USAGE_FLAGS.RENDER_ATTACHMENT,
         mipLevelCount: mipLevelCountForSize(size),
       },
-    }),
-  );
+      viewDescriptor: { dimension: "cube" },
+    });
+
+    if (result.valid && result.resource !== null) {
+      options.cache?.set(resourceKey, result.resource);
+      createdTextureCount += 1;
+    }
+
+    return result;
+  });
 
   for (const resource of resources) {
     diagnostics.push(
@@ -306,6 +359,8 @@ export function createSpecularIblTextureResourceReport(
       : "missing",
     textureSlotCount: options.textures.slotCount,
     specularSlotCount: specularSlots.length,
+    createdTextureCount,
+    reusedTextureCount,
     resources,
     diagnostics,
   });
@@ -320,6 +375,7 @@ export function diffuseIblTextureResourceReportToJsonValue(
     textureSlotCount: report.textureSlotCount,
     diffuseSlotCount: report.diffuseSlotCount,
     createdTextureCount: report.createdTextureCount,
+    reusedTextureCount: report.reusedTextureCount,
     sections: { ...report.sections },
     resources: report.resources.map((resource) => ({
       valid: resource.valid,
@@ -365,6 +421,7 @@ export function specularIblTextureResourceReportToJsonValue(
     textureSlotCount: report.textureSlotCount,
     specularSlotCount: report.specularSlotCount,
     createdTextureCount: report.createdTextureCount,
+    reusedTextureCount: report.reusedTextureCount,
     sections: { ...report.sections },
     resources: report.resources.map((resource) => ({
       valid: resource.valid,
@@ -418,12 +475,15 @@ function report(input: {
   readonly status: IblTextureResourceStatus;
   readonly textureSlotCount: number;
   readonly diffuseSlotCount: number;
+  readonly createdTextureCount?: number;
+  readonly reusedTextureCount?: number;
   readonly resources: readonly CreateTextureGpuResourceResult[];
   readonly diagnostics: readonly IblTextureResourceDiagnostic[];
 }): DiffuseIblTextureResourceReport {
-  const createdTextureCount = input.resources.filter(
-    (resource) => resource.valid,
-  ).length;
+  const createdTextureCount =
+    input.createdTextureCount ??
+    input.resources.filter((resource) => resource.valid).length;
+  const reusedTextureCount = input.reusedTextureCount ?? 0;
 
   return {
     ready: input.status === "available" || input.status === "not-required",
@@ -431,6 +491,7 @@ function report(input: {
     textureSlotCount: input.textureSlotCount,
     diffuseSlotCount: input.diffuseSlotCount,
     createdTextureCount,
+    reusedTextureCount,
     sections: {
       texturePreparation:
         input.status !== "missing" && input.status !== "unsupported",
@@ -448,12 +509,15 @@ function specularReport(input: {
   readonly status: IblTextureResourceStatus;
   readonly textureSlotCount: number;
   readonly specularSlotCount: number;
+  readonly createdTextureCount?: number;
+  readonly reusedTextureCount?: number;
   readonly resources: readonly CreateTextureGpuResourceResult[];
   readonly diagnostics: readonly IblTextureResourceDiagnostic[];
 }): SpecularIblTextureResourceReport {
-  const createdTextureCount = input.resources.filter(
-    (resource) => resource.valid,
-  ).length;
+  const createdTextureCount =
+    input.createdTextureCount ??
+    input.resources.filter((resource) => resource.valid).length;
+  const reusedTextureCount = input.reusedTextureCount ?? 0;
 
   return {
     ready: input.status === "available" || input.status === "not-required",
@@ -461,6 +525,7 @@ function specularReport(input: {
     textureSlotCount: input.textureSlotCount,
     specularSlotCount: input.specularSlotCount,
     createdTextureCount,
+    reusedTextureCount,
     sections: {
       texturePreparation:
         input.status !== "missing" && input.status !== "unsupported",

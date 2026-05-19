@@ -139,6 +139,7 @@ interface GltfSceneStatus extends ExampleStatusBase {
       readonly textureSlotCount: number;
       readonly diffuseSlotCount: number;
       readonly createdTextureCount: number;
+      readonly reusedTextureCount: number;
       readonly sections: Record<string, boolean>;
       readonly resources: readonly {
         readonly valid: boolean;
@@ -156,6 +157,7 @@ interface GltfSceneStatus extends ExampleStatusBase {
       readonly textureSlotCount: number;
       readonly specularSlotCount: number;
       readonly createdTextureCount: number;
+      readonly reusedTextureCount: number;
       readonly sections: Record<string, boolean>;
       readonly resources: readonly {
         readonly valid: boolean;
@@ -205,6 +207,7 @@ interface GltfSceneStatus extends ExampleStatusBase {
       readonly status: string;
       readonly samplerDescriptorCount: number;
       readonly createdSamplerCount: number;
+      readonly reusedSamplerCount: number;
       readonly sections: {
         readonly samplerDescriptors: boolean;
         readonly gpuAllocation: boolean;
@@ -231,6 +234,23 @@ interface GltfSceneStatus extends ExampleStatusBase {
         readonly code: string;
         readonly severity: string;
       }[];
+    };
+    readonly resourceReuse: {
+      readonly diffuseTextureResourcesCreated: number;
+      readonly diffuseTextureResourcesReused: number;
+      readonly specularTextureResourcesCreated: number;
+      readonly specularTextureResourcesReused: number;
+      readonly samplerResourcesCreated: number;
+      readonly samplerResourcesReused: number;
+    };
+    readonly cacheSummary: {
+      readonly diffuseTextureEntries: number;
+      readonly specularTextureEntries: number;
+      readonly samplerEntries: number;
+      readonly standardIblBindGroupEntries: number;
+      readonly shadowSamplerEntries: number;
+      readonly standardShadowBindGroupEntries: number;
+      readonly totalEntries: number;
     };
     readonly diffuseResourceSummary: {
       readonly ready: boolean;
@@ -392,6 +412,25 @@ interface GltfSceneStatus extends ExampleStatusBase {
         readonly severity: string;
       }[];
     };
+    readonly bindGroupResource: {
+      readonly ready: boolean;
+      readonly status: string;
+      readonly standardMaterialCount: number;
+      readonly group: number;
+      readonly createdBindGroupCount: number;
+      readonly reusedBindGroupCount: number;
+      readonly sections: Record<string, boolean>;
+      readonly resource: {
+        readonly group: number;
+        readonly resourceKey: string;
+        readonly layoutKey: string;
+        readonly entryResourceKeys: readonly string[];
+      } | null;
+      readonly diagnostics: readonly {
+        readonly code: string;
+        readonly severity: string;
+      }[];
+    };
     readonly viewProjection: {
       readonly ready: boolean;
       readonly status: string;
@@ -539,6 +578,26 @@ interface GltfSceneStatus extends ExampleStatusBase {
         readonly requiredBySlotCount: number;
         readonly readiness: string;
       }[];
+      readonly diagnostics: readonly {
+        readonly code: string;
+        readonly severity: string;
+      }[];
+    };
+    readonly matrixBufferResource: {
+      readonly ready: boolean;
+      readonly status: string;
+      readonly matrixCount: number;
+      readonly byteSize: number;
+      readonly createdBufferCount: number;
+      readonly reusedBufferCount: number;
+      readonly sections: Record<string, boolean>;
+      readonly resource: {
+        readonly resourceKey: string;
+        readonly label: string;
+        readonly byteSize: number;
+        readonly matrixCount: number;
+        readonly entryMatrixKeys: readonly string[];
+      } | null;
       readonly diagnostics: readonly {
         readonly code: string;
         readonly severity: string;
@@ -812,6 +871,33 @@ interface GltfSceneStatus extends ExampleStatusBase {
         readonly severity: string;
       }[];
     };
+    readonly bindGroupDescriptor: {
+      readonly ready: boolean;
+      readonly status: string;
+      readonly standardMaterialCount: number;
+      readonly group: number;
+      readonly entryCount: number;
+      readonly sections: Record<string, boolean>;
+      readonly plan: {
+        readonly valid: boolean;
+        readonly group: number;
+        readonly resourceKey: string | null;
+        readonly entries: readonly {
+          readonly group: number;
+          readonly binding: number;
+          readonly resourceKey: string;
+          readonly resourceKind: string;
+        }[];
+        readonly diagnostics: readonly {
+          readonly code: string;
+          readonly severity: string;
+        }[];
+      } | null;
+      readonly diagnostics: readonly {
+        readonly code: string;
+        readonly severity: string;
+      }[];
+    };
     readonly standardMaterial: {
       readonly ready: boolean;
       readonly status: string;
@@ -914,6 +1000,7 @@ test("Playwright shows the GLTF scene fixture through the app path", async ({
           standardMaterial: "ready",
           bindGroupLayout: "deferred",
           bindGroupDescriptor: "deferred",
+          bindGroupResource: "ready",
           shaderBinding: "deferred",
           pipelineKey: "deferred",
           shaderSampling: "deferred",
@@ -930,11 +1017,15 @@ test("Playwright shows the GLTF scene fixture through the app path", async ({
           passPlans: "deferred",
           viewProjection: "deferred",
           matrixComputation: "ready",
-          matrixBuffer: "deferred",
+          matrixBuffer: "ready",
+          matrixBufferResource: "ready",
           casterDrawLists: "deferred",
           commandPlans: "deferred",
           resourceSummary: "deferred",
           bindGroupLayout: "deferred",
+          bindGroupDescriptor: "deferred",
+          samplerResource: "ready",
+          bindGroupResource: "ready",
           standardMaterial: "deferred",
           rendering: "deferred",
         },
@@ -1067,7 +1158,8 @@ test("Playwright shows the GLTF scene fixture through the app path", async ({
         status: "available",
         textureSlotCount: 2,
         diffuseSlotCount: 1,
-        createdTextureCount: 1,
+        createdTextureCount: 0,
+        reusedTextureCount: 1,
         sections: {
           texturePreparation: true,
           diffuseTextureResource: true,
@@ -1095,7 +1187,8 @@ test("Playwright shows the GLTF scene fixture through the app path", async ({
         status: "available",
         textureSlotCount: 2,
         specularSlotCount: 1,
-        createdTextureCount: 1,
+        createdTextureCount: 0,
+        reusedTextureCount: 1,
         sections: {
           texturePreparation: true,
           specularTextureResource: true,
@@ -1177,7 +1270,8 @@ test("Playwright shows the GLTF scene fixture through the app path", async ({
         ready: true,
         status: "available",
         samplerDescriptorCount: 2,
-        createdSamplerCount: 2,
+        createdSamplerCount: 0,
+        reusedSamplerCount: 2,
         sections: {
           samplerDescriptors: true,
           gpuAllocation: true,
@@ -1221,6 +1315,23 @@ test("Playwright shows the GLTF scene fixture through the app path", async ({
           },
         ],
         diagnostics: [],
+      },
+      resourceReuse: {
+        diffuseTextureResourcesCreated: 0,
+        diffuseTextureResourcesReused: 1,
+        specularTextureResourcesCreated: 0,
+        specularTextureResourcesReused: 1,
+        samplerResourcesCreated: 0,
+        samplerResourcesReused: 2,
+      },
+      cacheSummary: {
+        diffuseTextureEntries: 1,
+        specularTextureEntries: 1,
+        samplerEntries: 2,
+        standardIblBindGroupEntries: 1,
+        shadowSamplerEntries: 1,
+        standardShadowBindGroupEntries: 1,
+        totalEntries: 7,
       },
       diffuseResourceSummary: {
         ready: false,
@@ -1568,11 +1679,41 @@ test("Playwright shows the GLTF scene fixture through the app path", async ({
         },
         diagnostics: [
           {
-            code: "standardMaterialIblBindGroup.bindGroupCreationDeferred",
+            code: "standardMaterialIblBindGroup.shaderSamplingDeferred",
             severity: "warning",
           },
+        ],
+      },
+      bindGroupResource: {
+        ready: true,
+        status: "available",
+        standardMaterialCount: 2,
+        group: 4,
+        createdBindGroupCount: 0,
+        reusedBindGroupCount: 1,
+        sections: {
+          descriptorPlan: true,
+          layoutResource: true,
+          textureResources: true,
+          samplerResource: true,
+          bindGroupResource: true,
+          shaderSampling: false,
+        },
+        resource: {
+          group: 4,
+          resourceKey: expect.stringMatching(
+            /^bind-group:standard\/ibl\/group-4\//,
+          ),
+          layoutKey: "standard/ibl/group-4",
+          entryResourceKeys: [
+            "texture:gltf:environment:studio:diffuse:texture",
+            "texture:gltf:environment:studio:specular:texture",
+            "texture:gltf:environment:studio:diffuse:sampler",
+          ],
+        },
+        diagnostics: [
           {
-            code: "standardMaterialIblBindGroup.shaderSamplingDeferred",
+            code: "standardMaterialIblBindGroupResource.shaderSamplingDeferred",
             severity: "warning",
           },
         ],
@@ -1718,7 +1859,7 @@ test("Playwright shows the GLTF scene fixture through the app path", async ({
               label: expect.stringMatching(/^shadow-map:\d+:light:\d+:depth$/),
               size: [1024, 1024, 1],
               format: "depth24plus",
-              usage: 16,
+              usage: 20,
               mipLevelCount: 1,
             },
           },
@@ -1895,8 +2036,8 @@ test("Playwright shows the GLTF scene fixture through the app path", async ({
         diagnostics: [],
       },
       matrixBuffer: {
-        ready: false,
-        status: "deferred",
+        ready: true,
+        status: "ready",
         planCount: 1,
         matrixCount: 1,
         byteSize: 64,
@@ -1904,7 +2045,7 @@ test("Playwright shows the GLTF scene fixture through the app path", async ({
           viewProjectionPlanning: true,
           bufferDescriptor: true,
           gpuAllocation: false,
-          upload: false,
+          upload: true,
         },
         descriptor: {
           resourceKey: "shadow-matrix-buffer:directional",
@@ -1926,13 +2067,178 @@ test("Playwright shows the GLTF scene fixture through the app path", async ({
               ),
               offsetBytes: 0,
               sizeBytes: 64,
-              upload: "deferred",
+              upload: "ready",
             },
+          ],
+        },
+        diagnostics: [],
+      },
+      matrixBufferResource: {
+        ready: true,
+        status: "available",
+        matrixCount: 1,
+        byteSize: 64,
+        createdBufferCount: 1,
+        reusedBufferCount: 0,
+        sections: {
+          matrixComputation: true,
+          bufferDescriptor: true,
+          bufferAllocation: true,
+          upload: true,
+          bindGroupResource: false,
+          shaderSampling: false,
+        },
+        resource: {
+          resourceKey: "shadow-matrix-buffer:directional",
+          label: "DirectionalShadowMatrices/storage",
+          byteSize: 64,
+          matrixCount: 1,
+          entryMatrixKeys: [
+            expect.stringMatching(
+              /^shadow-pass:\d+:light:\d+:view-projection$/,
+            ),
           ],
         },
         diagnostics: [
           {
-            code: "shadowMatrixBuffer.uploadDeferred",
+            code: "shadowMatrixBufferResource.bindGroupDeferred",
+            severity: "warning",
+          },
+          {
+            code: "shadowMatrixBufferResource.shaderSamplingDeferred",
+            severity: "warning",
+          },
+        ],
+      },
+      bindGroupDescriptor: {
+        ready: false,
+        status: "deferred",
+        standardMaterialCount: 2,
+        group: 5,
+        entryCount: 3,
+        sections: {
+          layoutMetadata: true,
+          descriptorPlan: true,
+          matrixBufferResource: true,
+          depthTextureResource: true,
+          samplerResource: true,
+          bindGroupResource: false,
+          shaderSampling: false,
+        },
+        plan: {
+          valid: true,
+          group: 5,
+          resourceKey: expect.stringMatching(
+            /^bind-group:standard\/shadow\/group-5\//,
+          ),
+          entries: [
+            {
+              group: 5,
+              binding: 0,
+              resourceKey: "shadow-matrix-buffer:directional",
+              resourceKind: "buffer",
+            },
+            {
+              group: 5,
+              binding: 1,
+              resourceKey: expect.stringMatching(
+                /^shadow-map:\d+:light:\d+:texture$/,
+              ),
+              resourceKind: "texture-view",
+            },
+            {
+              group: 5,
+              binding: 2,
+              resourceKey: "shadow-sampler:directional",
+              resourceKind: "sampler",
+            },
+          ],
+          diagnostics: [],
+        },
+        diagnostics: [
+          {
+            code: "standardMaterialShadowBindGroup.bindGroupCreationDeferred",
+            severity: "warning",
+          },
+          {
+            code: "standardMaterialShadowBindGroup.shaderSamplingDeferred",
+            severity: "warning",
+          },
+        ],
+      },
+      samplerResource: {
+        ready: true,
+        status: "available",
+        createdSamplerCount: 0,
+        reusedSamplerCount: 1,
+        sections: {
+          samplerDescriptor: true,
+          samplerResource: true,
+          bindGroupResource: false,
+          shaderSampling: false,
+        },
+        resource: {
+          resourceKey: "shadow-sampler:directional",
+          descriptor: {
+            label: "shadow-sampler:directional",
+            addressModeU: "clamp-to-edge",
+            addressModeV: "clamp-to-edge",
+            addressModeW: "clamp-to-edge",
+            magFilter: "nearest",
+            minFilter: "nearest",
+            mipmapFilter: "nearest",
+            lodMinClamp: 0,
+            lodMaxClamp: 32,
+            compare: "less-equal",
+          },
+        },
+        diagnostics: [
+          {
+            code: "shadowSamplerResource.bindGroupDeferred",
+            severity: "warning",
+          },
+          {
+            code: "shadowSamplerResource.shaderSamplingDeferred",
+            severity: "warning",
+          },
+        ],
+      },
+      bindGroupResource: {
+        ready: true,
+        status: "available",
+        standardMaterialCount: 2,
+        group: 5,
+        createdBindGroupCount: 0,
+        reusedBindGroupCount: 1,
+        sections: {
+          descriptorPlan: true,
+          layoutResource: true,
+          matrixBufferResource: true,
+          depthTextureResource: true,
+          samplerResource: true,
+          bindGroupResource: true,
+          passSubmission: false,
+          shaderSampling: false,
+        },
+        resource: {
+          group: 5,
+          resourceKey: expect.stringMatching(
+            /^bind-group:standard\/shadow\/group-5\//,
+          ),
+          layoutKey: "standard/shadow/group-5",
+          entryResourceKeys: [
+            "shadow-matrix-buffer:directional",
+            expect.stringMatching(/^shadow-map:\d+:light:\d+:texture$/),
+            "shadow-sampler:directional",
+          ],
+        },
+        diagnostics: [
+          {
+            code: "standardMaterialShadowBindGroupResource.passSubmissionDeferred",
+            severity: "warning",
+          },
+          {
+            code: "standardMaterialShadowBindGroupResource.shaderSamplingDeferred",
             severity: "warning",
           },
         ],
@@ -2085,7 +2391,7 @@ test("Playwright shows the GLTF scene fixture through the app path", async ({
             {
               binding: 0,
               label: "directionalShadowMatrices",
-              resource: "uniform-buffer",
+              resource: "read-only-storage-buffer",
             },
             {
               binding: 1,

@@ -27,6 +27,7 @@ describe("diffuse IBL texture resource", () => {
       textureSlotCount: 2,
       diffuseSlotCount: 1,
       createdTextureCount: 1,
+      reusedTextureCount: 0,
       sections: {
         texturePreparation: true,
         diffuseTextureResource: true,
@@ -79,6 +80,7 @@ describe("diffuse IBL texture resource", () => {
       ready: false,
       status: "missing",
       createdTextureCount: 0,
+      reusedTextureCount: 0,
       diagnostics: [
         {
           code: "textureResource.createTextureUnavailable",

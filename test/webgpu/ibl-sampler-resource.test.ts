@@ -26,6 +26,7 @@ describe("IBL sampler resource", () => {
       status: "available",
       samplerDescriptorCount: 2,
       createdSamplerCount: 2,
+      reusedSamplerCount: 0,
       sections: {
         samplerDescriptors: true,
         gpuAllocation: true,
@@ -91,6 +92,7 @@ describe("IBL sampler resource", () => {
       ready: false,
       status: "missing",
       createdSamplerCount: 0,
+      reusedSamplerCount: 0,
       diagnostics: [
         {
           code: "samplerResource.createSamplerUnavailable",

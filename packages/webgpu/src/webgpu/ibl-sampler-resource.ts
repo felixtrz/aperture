@@ -4,6 +4,7 @@ import type { IblSamplerDescriptorReadinessReport } from "./ibl-sampler-descript
 import {
   createSamplerGpuResource,
   type CreateSamplerGpuResourceResult,
+  type SamplerGpuResource,
   type SamplerDescriptorInput,
   type TextureGpuDeviceLike,
   type TextureGpuResourceDiagnostic,
@@ -29,6 +30,7 @@ export type IblSamplerResourceDiagnostic =
 export interface CreateIblSamplerResourceOptions {
   readonly device: TextureGpuDeviceLike;
   readonly samplers: IblSamplerDescriptorReadinessReport;
+  readonly cache?: Map<string, SamplerGpuResource>;
 }
 
 export interface IblSamplerResourceReport {
@@ -36,6 +38,7 @@ export interface IblSamplerResourceReport {
   readonly status: IblSamplerResourceStatus;
   readonly samplerDescriptorCount: number;
   readonly createdSamplerCount: number;
+  readonly reusedSamplerCount: number;
   readonly sections: {
     readonly samplerDescriptors: boolean;
     readonly gpuAllocation: boolean;
@@ -51,6 +54,7 @@ export interface IblSamplerResourceReportJsonValue {
   readonly status: IblSamplerResourceStatus;
   readonly samplerDescriptorCount: number;
   readonly createdSamplerCount: number;
+  readonly reusedSamplerCount: number;
   readonly sections: IblSamplerResourceReport["sections"];
   readonly resources: readonly {
     readonly valid: boolean;
@@ -114,8 +118,21 @@ export function createIblSamplerResourceReport(
     });
   }
 
-  const resources = options.samplers.samplers.map((sampler) =>
-    createSamplerGpuResource({
+  let createdSamplerCount = 0;
+  let reusedSamplerCount = 0;
+  const resources = options.samplers.samplers.map((sampler) => {
+    const cached = options.cache?.get(sampler.samplerKey);
+
+    if (cached !== undefined) {
+      reusedSamplerCount += 1;
+      return {
+        valid: true,
+        resource: cached,
+        diagnostics: [],
+      };
+    }
+
+    const result = createSamplerGpuResource({
       device: options.device,
       resourceKey: sampler.samplerKey,
       sampler: createSamplerAsset({
@@ -128,8 +145,15 @@ export function createIblSamplerResourceReport(
         mipmapFilter: sampler.mipmapFilter,
         maxAnisotropy: sampler.maxAnisotropy,
       }),
-    }),
-  );
+    });
+
+    if (result.valid && result.resource !== null) {
+      options.cache?.set(sampler.samplerKey, result.resource);
+      createdSamplerCount += 1;
+    }
+
+    return result;
+  });
 
   for (const resource of resources) {
     diagnostics.push(
@@ -145,6 +169,8 @@ export function createIblSamplerResourceReport(
       ? "available"
       : "missing",
     samplerDescriptorCount: options.samplers.samplerCount,
+    createdSamplerCount,
+    reusedSamplerCount,
     resources,
     diagnostics,
   });
@@ -158,6 +184,7 @@ export function iblSamplerResourceReportToJsonValue(
     status: report.status,
     samplerDescriptorCount: report.samplerDescriptorCount,
     createdSamplerCount: report.createdSamplerCount,
+    reusedSamplerCount: report.reusedSamplerCount,
     sections: { ...report.sections },
     resources: report.resources.map((resource) => ({
       valid: resource.valid,
@@ -188,18 +215,22 @@ export function iblSamplerResourceReportToJson(
 function report(input: {
   readonly status: IblSamplerResourceStatus;
   readonly samplerDescriptorCount: number;
+  readonly createdSamplerCount?: number;
+  readonly reusedSamplerCount?: number;
   readonly resources: readonly CreateSamplerGpuResourceResult[];
   readonly diagnostics: readonly IblSamplerResourceDiagnostic[];
 }): IblSamplerResourceReport {
-  const createdSamplerCount = input.resources.filter(
-    (resource) => resource.valid,
-  ).length;
+  const createdSamplerCount =
+    input.createdSamplerCount ??
+    input.resources.filter((resource) => resource.valid).length;
+  const reusedSamplerCount = input.reusedSamplerCount ?? 0;
 
   return {
     ready: input.status === "available" || input.status === "not-required",
     status: input.status,
     samplerDescriptorCount: input.samplerDescriptorCount,
     createdSamplerCount,
+    reusedSamplerCount,
     sections: {
       samplerDescriptors:
         input.status !== "missing" && input.status !== "unsupported",

@@ -41,7 +41,7 @@ export interface TextureGpuDeviceLike {
 }
 
 export interface TextureLike {
-  readonly createView?: () => unknown;
+  readonly createView?: (descriptor?: unknown) => unknown;
 }
 
 export interface TextureGpuResource {
@@ -49,6 +49,7 @@ export interface TextureGpuResource {
   readonly texture: unknown;
   readonly view: unknown;
   readonly descriptor: TextureDescriptorInput;
+  readonly viewDescriptor?: unknown;
 }
 
 export interface SamplerGpuResource {
@@ -76,6 +77,7 @@ export interface CreateTextureGpuResourceOptions {
   readonly resourceKey: string;
   readonly descriptor: TextureDescriptorInput;
   readonly upload?: TextureUploadInput;
+  readonly viewDescriptor?: unknown;
 }
 
 export interface CreateTextureGpuResourceResult {
@@ -187,7 +189,7 @@ export function createTextureGpuResource(
   let view: unknown;
 
   try {
-    view = texture.createView();
+    view = texture.createView(options.viewDescriptor);
   } catch (error) {
     return failure(
       "textureResource.textureViewCreationFailed",
@@ -203,6 +205,9 @@ export function createTextureGpuResource(
       texture,
       view,
       descriptor: options.descriptor,
+      ...(options.viewDescriptor === undefined
+        ? {}
+        : { viewDescriptor: options.viewDescriptor }),
     },
     diagnostics: [],
   };

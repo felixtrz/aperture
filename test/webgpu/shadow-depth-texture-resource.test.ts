@@ -44,7 +44,7 @@ describe("shadow depth texture resource", () => {
             label: "shadow-map:7:light:11:depth",
             size: [1024, 1024, 1],
             format: "depth24plus",
-            usage: 16,
+            usage: 20,
             mipLevelCount: 1,
           },
         },
@@ -60,7 +60,7 @@ describe("shadow depth texture resource", () => {
         label: "shadow-map:7:light:11:depth",
         size: [1024, 1024, 1],
         format: "depth24plus",
-        usage: 16,
+        usage: 20,
         mipLevelCount: 1,
       },
     ]);

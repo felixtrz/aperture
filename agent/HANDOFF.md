@@ -1,5 +1,99 @@
 # Handoff
 
+## Current Run Update — 2026-05-19T06:50:00Z
+
+Completed `task-1850` through `task-1857`. Recommended next task is
+`task-1858`: audit GLTF IBL/shadow live-resource boundary.
+
+What changed:
+
+- Added a private WebGPU app environment resource cache:
+  - diffuse IBL textures,
+  - specular IBL textures,
+  - IBL samplers,
+  - StandardMaterial IBL bind groups.
+- IBL texture/sampler reports now include created vs reused counts.
+- GLTF scene IBL resources now use app-owned cache state instead of module
+  `??=` variables.
+- Added live StandardMaterial IBL group 4 bind-group resource creation and
+  cache reuse while keeping WGSL IBL sampling deferred.
+- Added cube texture-view creation for IBL textures so group 4 WebGPU bind
+  group validation passes.
+- Added a shadow matrix buffer upload plan and implemented the selected follow
+  up:
+  - `ShadowMatrixBufferResourceReport`,
+  - matrix packing into a contiguous `Float32Array`,
+  - renderer-owned storage-buffer allocation/upload,
+  - JSON-safe created/reused counts,
+  - `shadow.matrixBufferResource` in the GLTF scene status.
+- Added the StandardMaterial shadow group 5 resource plan and implemented the
+  selected descriptor-planning slice:
+  - `StandardMaterialShadowBindGroupDescriptorReadinessReport`,
+  - JSON-safe group 5 entries for shadow matrix buffer and depth texture view,
+  - stable diagnostics for the deferred shadow sampler and live bind-group
+    creation,
+  - `shadow.bindGroupDescriptor` in the GLTF scene status.
+- Implemented live StandardMaterial shadow group 5 resources:
+  - `ShadowSamplerResourceReport`,
+  - valid group 5 descriptor plans when the shadow sampler is live,
+  - live group 5 bind-group creation/reuse over the shadow matrix buffer, depth
+    texture view, and shadow sampler,
+  - `shadow.samplerResource` and `shadow.bindGroupResource` in the GLTF scene
+    status.
+- Added the first shadow-map pass command encoding plan and selected a
+  JSON-safe `ShadowPassCommandEncodingReport` as the next implementation slice
+  after the live-resource boundary audit.
+- Updated public tracker pages, backlog, completed log, and GLTF scene e2e
+  expectations.
+
+Reference anchors inspected:
+
+- `packages/webgpu/src/webgpu/app.ts`
+- `packages/webgpu/src/webgpu/app-texture-sampler-resources.ts`
+- `packages/webgpu/src/webgpu/app-environment-resources.ts`
+- `packages/webgpu/src/webgpu/ibl-texture-resource.ts`
+- `packages/webgpu/src/webgpu/ibl-sampler-resource.ts`
+- `packages/webgpu/src/webgpu/standard-material-ibl-bind-group.ts`
+- `packages/webgpu/src/webgpu/standard-bind-group.ts`
+- `packages/webgpu/src/webgpu/bind-group-layout-cache.ts`
+- `packages/webgpu/src/webgpu/directional-shadow-matrix-computation.ts`
+- `packages/webgpu/src/webgpu/shadow-matrix-buffer-descriptor.ts`
+- `packages/webgpu/src/webgpu/shadow-depth-texture-resource.ts`
+- `packages/webgpu/src/webgpu/standard-material-shadow-bind-group-layout.ts`
+- `packages/webgpu/src/webgpu/standard-material-shadow-bind-group.ts`
+- `packages/webgpu/src/webgpu/buffer.ts`
+- `references/engine/src/scene/graphics/env-lighting.js`
+- `references/three.js/src/extras/PMREMGenerator.js`
+- `references/three.js/src/renderers/common/extras/PMREMGenerator.js`
+- `references/three.js/src/renderers/common/Bindings.js`
+- `references/engine/src/scene/renderer/render-pass-shadow-directional.js`
+- `references/engine/src/scene/renderer/render-pass-forward.js`
+- `references/three.js/src/renderers/webgl/WebGLShadowMap.js`
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/app-environment-resources.test.ts test/webgpu/ibl-texture-resource.test.ts test/webgpu/ibl-sampler-resource.test.ts`
+- `pnpm exec vitest run test/webgpu/standard-material-ibl-bind-group.test.ts test/webgpu/app-environment-resources.test.ts`
+- `pnpm exec vitest run test/webgpu/shadow-matrix-buffer-resource.test.ts test/webgpu/shadow-matrix-buffer-descriptor.test.ts test/webgpu/directional-shadow-matrix-computation.test.ts`
+- `pnpm exec vitest run test/webgpu/standard-material-shadow-bind-group.test.ts`
+- `pnpm exec vitest run test/webgpu/standard-material-shadow-bind-group.test.ts test/webgpu/standard-material-shadow-bind-group-layout.test.ts test/webgpu/shadow-depth-texture-resource.test.ts test/webgpu/app-environment-resources.test.ts`
+- `pnpm run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec playwright test test/e2e/gltf-scene.spec.ts`
+- `pnpm run check:progress`
+- `pnpm run check` (`298` test files / `1361` tests passed)
+- Documentation-only validation for `task-1857`.
+
+Known issues / follow-ups:
+
+- IBL shader sampling remains deferred even though group 4 resources are now
+  live.
+- Shadow group 5 sampler and bind-group resources are live, but shadow pass
+  submission and StandardMaterial shadow sampling remain deferred.
+- Start `task-1858` next because live IBL/shadow resources have changed the
+  renderer boundary. After that audit, `task-1859` should add the JSON-safe
+  shadow pass command encoding report selected in the plan.
+
 ## Current Run Update — 2026-05-19T05:41:29Z
 
 Completed `task-1837` through `task-1849`. Recommended next task is

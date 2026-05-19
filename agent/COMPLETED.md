@@ -1,5 +1,144 @@
 # Completed Tasks
 
+## task-1857 — First shadow-map pass command encoding plan
+
+Completed: 2026-05-19
+
+Summary:
+
+- Compared depth-only pipeline metadata, shadow pass command encoding, and
+  direct shadow pass submission.
+- Selected a JSON-safe `ShadowPassCommandEncodingReport` as the next
+  implementation slice after the live-resource boundary audit.
+
+Validation:
+
+- Documentation-only planning task.
+
+## task-1856 — Live StandardMaterial shadow bind-group resources
+
+Completed: 2026-05-19
+
+Summary:
+
+- Added JSON-safe shadow sampler resource reporting with app-cache reuse.
+- Updated shadow group 5 descriptor planning so live sampler resources make the
+  descriptor plan valid.
+- Added live StandardMaterial shadow group 5 bind-group resource creation and
+  reuse over the shadow matrix buffer, depth texture view, and shadow sampler.
+- Updated the GLTF scene status with `shadow.samplerResource` and
+  `shadow.bindGroupResource`.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/standard-material-shadow-bind-group.test.ts test/webgpu/standard-material-shadow-bind-group-layout.test.ts test/webgpu/shadow-depth-texture-resource.test.ts test/webgpu/app-environment-resources.test.ts`
+- `pnpm run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec playwright test test/e2e/gltf-scene.spec.ts`
+
+## task-1855 — StandardMaterial shadow bind-group descriptor plans
+
+Completed: 2026-05-19
+
+Summary:
+
+- Added `StandardMaterialShadowBindGroupDescriptorReadinessReport`.
+- Plans JSON-safe group 5 entries for the live shadow matrix buffer and shadow
+  depth texture view.
+- Reports the deferred shadow sampler and live bind-group creation steps with
+  stable diagnostics.
+- Exposes `shadow.bindGroupDescriptor` in the GLTF scene status.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/standard-material-shadow-bind-group.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm exec playwright test test/e2e/gltf-scene.spec.ts`
+
+## task-1854 — StandardMaterial shadow bind-group resource plan
+
+Completed: 2026-05-19
+
+Summary:
+
+- Compared shadow bind-group descriptor planning, live bind-group resources,
+  and first shadow pass command encoding.
+- Selected group 5 descriptor planning as the next focused implementation step.
+
+Validation:
+
+- Documentation-only planning task.
+
+## task-1853 — Shadow matrix buffer resources
+
+Completed: 2026-05-19
+
+Summary:
+
+- Added `ShadowMatrixBufferResourceReport`.
+- Packs computed directional shadow matrices into a contiguous `Float32Array`.
+- Allocates/uploads a renderer-owned storage buffer with JSON-safe
+  created/reused counts.
+- Exposes `shadow.matrixBufferResource` in the GLTF scene status.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/shadow-matrix-buffer-resource.test.ts test/webgpu/shadow-matrix-buffer-descriptor.test.ts test/webgpu/directional-shadow-matrix-computation.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm exec playwright test test/e2e/gltf-scene.spec.ts`
+
+## task-1852 — Shadow matrix buffer upload resource plan
+
+Completed: 2026-05-19
+
+Summary:
+
+- Compared shadow matrix buffer allocation/upload, shadow bind-group
+  descriptor planning, and shadow pass command encoding.
+- Selected live shadow matrix buffer allocation/upload as the next focused
+  implementation slice.
+
+Validation:
+
+- Documentation-only planning task.
+
+## task-1851 — Live StandardMaterial IBL bind-group resources
+
+Completed: 2026-05-19
+
+Summary:
+
+- Added live StandardMaterial IBL group 4 bind-group resource reporting.
+- Creates and reuses group 4 bind groups from valid IBL descriptor plans,
+  renderer-owned cube texture views, and IBL samplers.
+- Exposes `ibl.bindGroupResource` in the GLTF scene status while keeping WGSL
+  IBL sampling deferred.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/standard-material-ibl-bind-group.test.ts test/webgpu/app-environment-resources.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm exec playwright test test/e2e/gltf-scene.spec.ts`
+
+## task-1850 — WebGPU app IBL resource cache
+
+Completed: 2026-05-19
+
+Summary:
+
+- Added a private WebGPU app environment resource cache for diffuse/specular IBL
+  textures, IBL samplers, and StandardMaterial IBL bind groups.
+- IBL texture and sampler resource reports now distinguish created vs reused
+  resources.
+- Replaced GLTF scene module-scope IBL resource caching with app-owned cache
+  state.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/app-environment-resources.test.ts test/webgpu/ibl-texture-resource.test.ts test/webgpu/ibl-sampler-resource.test.ts test/webgpu/diffuse-ibl-resource-summary.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm exec playwright test test/e2e/gltf-scene.spec.ts`
+
 ## task-1849 — Specular IBL texture resources
 
 Completed: 2026-05-19

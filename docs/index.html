@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-18 22:40 PDT</dd>
+            <dd>2026-05-18 23:50 PDT</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -447,16 +447,23 @@
               bind-group layout plan, computed directional shadow matrices,
               StandardMaterial shadow bind-group layout metadata, IBL group 4
               descriptor planning, live specular IBL texture/view allocation,
-              and follow-up status/layout audits are now complete. The next task
-              is integrating IBL resources with the WebGPU app cache before live
-              bind-group creation. Public custom shader/material APIs and
-              app-owned custom adapter facades remain deferred behind this
-              built-in scene path. Route summary determinism is pinned, the
-              built-in frame-resource wrapper now has mixed-family route
-              regression coverage over the generic collector, app-level mixed
-              built-in routes now assert JSON-safe material queue and routed
-              resource summaries for two-family and three-family paths, and the
-              glTF
+              and follow-up status/layout audits are now complete. IBL resources
+              now reuse a private WebGPU app environment cache, live
+              StandardMaterial group 4 IBL bind groups are created and reported,
+              directional shadow matrices now allocate/upload a renderer-owned
+              matrix buffer, StandardMaterial shadow group 5 descriptor plans
+              now report matrix-buffer plus depth-texture entries, and live
+              shadow sampler plus group 5 bind-group resources are created and
+              cached. The first shadow-map pass command-encoding plan is now
+              complete; the next task is auditing the live IBL/shadow resource
+              boundary before implementing that command report. Public custom
+              shader/material APIs and app-owned custom adapter facades remain
+              deferred behind this built-in scene path. Route summary
+              determinism is pinned, the built-in frame-resource wrapper now has
+              mixed-family route regression coverage over the generic collector,
+              app-level mixed built-in routes now assert JSON-safe material
+              queue and routed resource summaries for two-family and
+              three-family paths, and the glTF
               <code>alphaMode: "BLEND"</code> browser fixture now pins
               transparent queue routing, alpha-blend render-state mapping, and
               its deterministic StandardMaterial pipeline key. The translucent
@@ -727,7 +734,7 @@
               diagnostics now include those routed item key details.
             </dd>
             <dt>Next focus</dt>
-            <dd>Integrate IBL resources with the WebGPU app cache</dd>
+            <dd>Audit GLTF IBL/shadow live-resource boundary</dd>
           </dl>
         </aside>
       </header>
@@ -1252,6 +1259,26 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">task-1856</span> Created live
+                StandardMaterial shadow group 5 resources.
+              </li>
+              <li>
+                <span class="badge green">task-1857</span> Planned first
+                shadow-map pass command encoding.
+              </li>
+              <li>
+                <span class="badge green">task-1855</span> Added
+                StandardMaterial shadow group 5 descriptor planning.
+              </li>
+              <li>
+                <span class="badge green">task-1854</span> Planned the
+                StandardMaterial shadow bind-group resource slice.
+              </li>
+              <li>
+                <span class="badge green">task-1853</span> Allocated and
+                uploaded live shadow matrix buffer resources.
+              </li>
               <li>
                 <span class="badge green">task-1675</span> Aligned tracker and
                 backlog after metallic-roughness factor browser coverage.
@@ -2446,11 +2473,13 @@
             <h3>Recommended next tasks</h3>
             <ul>
               <li>
-                <span class="badge amber">next</span> Integrate IBL resources
-                with the WebGPU app cache.
+                <span class="badge amber">next</span> Audit GLTF IBL/shadow
+                live-resource boundaries.
               </li>
-              <li>Create live StandardMaterial IBL bind groups.</li>
-              <li>Plan shadow matrix buffer upload resources.</li>
+              <li>Add a shadow pass command encoding report.</li>
+              <li>
+                Keep shader shadow sampling deferred until pass proof lands.
+              </li>
             </ul>
           </article>
         </div>

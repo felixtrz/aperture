@@ -201,7 +201,9 @@ function createShadowDepthTextureResource(
         label: `${texture.resourceKey}:depth`,
         size: [texture.width, texture.height, 1],
         format: texture.depthFormat,
-        usage: WEBGPU_TEXTURE_USAGE_FLAGS.RENDER_ATTACHMENT,
+        usage:
+          WEBGPU_TEXTURE_USAGE_FLAGS.RENDER_ATTACHMENT |
+          WEBGPU_TEXTURE_USAGE_FLAGS.TEXTURE_BINDING,
         mipLevelCount: 1,
       },
     }),

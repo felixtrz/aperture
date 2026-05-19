@@ -35,7 +35,7 @@ describe("StandardMaterial shadow bind group layout", () => {
           {
             binding: 0,
             label: "directionalShadowMatrices",
-            resource: "uniform-buffer",
+            resource: "read-only-storage-buffer",
           },
           {
             binding: 1,
@@ -123,7 +123,7 @@ describe("StandardMaterial shadow bind group layout", () => {
         code: "standardMaterialShadowBindGroupLayout.resourceKindMismatch",
         binding: 0,
         message:
-          "Standard material shadow binding 0 must be 'uniform-buffer', not 'texture'.",
+          "Standard material shadow binding 0 must be 'read-only-storage-buffer', not 'texture'.",
       },
     ]);
   });
