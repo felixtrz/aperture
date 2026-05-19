@@ -1,5 +1,187 @@
 # Completed Tasks
 
+## task-1875 — Minimal StandardMaterial shadow shader sampling plan
+
+Completed: 2026-05-19
+
+Summary:
+
+- Added
+  `docs/research/MINIMAL_STANDARD_MATERIAL_SHADOW_SHADER_SAMPLING_PLAN_2026_05_19.md`.
+- Compared hard single-tap shadow factor, metadata-only readiness, and PCF/bias
+  slices.
+- Selected `task-1876`: implement a minimal hard directional shadow factor for
+  StandardMaterial receivers using the ready group 5 binding and finished shadow
+  command buffer.
+
+Validation:
+
+- Documentation-only plan.
+
+## task-1874 — StandardMaterial shadow receiver binding readiness
+
+Completed: 2026-05-19
+
+Summary:
+
+- Added `StandardMaterialShadowReceiverBindingReadinessReport`, covering live
+  shadow matrix buffer, shadow depth view, shadow sampler, StandardMaterial
+  group 5 bind group, and command-buffer readiness status.
+- Exposed `shadow.receiverBinding` in the GLTF scene status and e2e assertions
+  while keeping WGSL receiver shadow sampling deferred.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/standard-material-shadow-receiver-binding-readiness.test.ts test/webgpu/shadow-pass-command-buffer-submission-report.test.ts`
+- `pnpm run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm run check:examples`
+- `pnpm exec playwright test test/e2e/gltf-scene.spec.ts`
+
+## task-1873 — StandardMaterial shadow receiver sampling readiness plan
+
+Completed: 2026-05-19
+
+Summary:
+
+- Added
+  `docs/research/STANDARD_MATERIAL_SHADOW_RECEIVER_SAMPLING_READINESS_PLAN_2026_05_19.md`.
+- Compared receiver binding readiness, minimal WGSL shadow factor, and queue
+  submission as next receiver-side slices.
+- Selected receiver binding readiness as the narrow next step before shader
+  sampling and visible pixel proof.
+
+Validation:
+
+- Documentation plan.
+
+## task-1872 — Shadow pass submission boundary audit
+
+Completed: 2026-05-19
+
+Summary:
+
+- Added
+  `docs/research/SHADOW_PASS_SUBMISSION_BOUNDARY_AUDIT_2026_05_19.md`.
+- Confirmed shadow command buffers remain renderer-owned derived state and do
+  not enter ECS snapshots or public JSON as raw GPU handles.
+- Identified actual queue submission as the required next step before receiver
+  shader sampling.
+
+Validation:
+
+- Documentation audit.
+
+## task-1871 — Shadow pass command-buffer submission report
+
+Completed: 2026-05-19
+
+Summary:
+
+- Added `ShadowPassCommandBufferSubmissionReport` with finish, optional queue
+  submit, JSON-safe serialization, stable command-buffer keys, and diagnostics
+  for missing prerequisites or deferred sampling.
+- Wired the GLTF scene status to finish the assembled shadow command encoder
+  and report the command buffer.
+- Fixed live WebGPU compatibility by sharing the shadow caster matrix
+  bind-group layout with the depth-only shadow caster pipeline layout.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/shadow-pass-command-buffer-submission-report.test.ts`
+- `pnpm exec vitest run test/webgpu/shadow-caster-pipeline-resource.test.ts test/webgpu/shadow-caster-matrix-bind-group-resource.test.ts test/webgpu/shadow-pass-command-buffer-submission-report.test.ts`
+- `pnpm run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec playwright test test/e2e/gltf-scene.spec.ts`
+- `pnpm run check` (`307` test files / `1393` tests passed)
+
+## task-1870 — Live shadow encoder assembly boundary audit
+
+Completed: 2026-05-19
+
+Summary:
+
+- Added a focused audit confirming live shadow encoder assembly remains
+  renderer-owned, ECS-derived, and JSON-safe.
+- Confirmed the GLTF path begins and ends the depth-only shadow pass and
+  executes caster commands, but does not finish, submit, or sample the command
+  buffer.
+- Recommended command-buffer finish/submission reporting as the next
+  implementation slice before receiver shadow sampling.
+
+Validation:
+
+- Documentation-only audit.
+- `pnpm run check:progress`
+
+## task-1869 — Shadow encoder assembly with executable commands
+
+Completed: 2026-05-19
+
+Summary:
+
+- Wired executable shadow caster command records into the GLTF scene shadow
+  encoder assembly report.
+- Added a live command encoder and live depth texture view resolution for the
+  planned directional shadow pass.
+- Updated the GLTF browser fixture to assert one begun/ended shadow pass, 15
+  executed commands, and three indexed caster draw calls while command-buffer
+  finish, queue submission, and receiver shader sampling remain deferred.
+
+Validation:
+
+- `pnpm exec playwright test test/e2e/gltf-scene.spec.ts`
+- `pnpm run typecheck`
+- `pnpm run typecheck:test`
+- `node --check examples/gltf-scene.js`
+
+## task-1867 and task-1868 — Live shadow caster pipeline and matrix bind-group resources
+
+Completed: 2026-05-19
+
+Summary:
+
+- Added live depth-only shadow caster pipeline resource creation/reuse from the
+  shadow caster pipeline descriptor metadata.
+- Added live group-0 shadow caster matrix bind-group resource creation/reuse
+  over the uploaded shadow matrix buffer.
+- Wired both resources through private WebGPU app environment resource cache
+  summaries and the GLTF scene status.
+- Fed the live pipeline and matrix bind group into shadow caster command-record
+  planning so `shadow.commandRecords` is now ready while pass submission and
+  shader sampling remain deferred.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/shadow-caster-command-record-plan.test.ts test/webgpu/shadow-caster-pipeline-resource.test.ts test/webgpu/shadow-caster-matrix-bind-group-resource.test.ts`
+- `pnpm run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec playwright test test/e2e/gltf-scene.spec.ts`
+- `pnpm run check` (`306` test files / `1386` tests passed)
+
+## task-1866 — Executable shadow caster command record planning
+
+Completed: 2026-05-19
+
+Summary:
+
+- Added a shadow caster command-record planner that maps ready caster
+  frame-resource records plus live pipeline, matrix bind-group, and mesh buffer
+  views into executable `RenderPassCommand` records.
+- Added JSON-safe reporting for pipeline, bind-group, vertex-buffer,
+  index-buffer, and draw-command keys without exposing raw GPU handles.
+- Exposed `shadow.commandRecords` in the GLTF scene status and grouped
+  readiness, with stable missing-resource diagnostics for the still-deferred
+  live caster pipeline and matrix bind group resources.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/shadow-caster-command-record-plan.test.ts`
+- `pnpm run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm exec playwright test test/e2e/gltf-scene.spec.ts`
+- `pnpm run check:examples`
+
 ## task-1865 — Shadow pass encoder assembly report
 
 Completed: 2026-05-19

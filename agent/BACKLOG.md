@@ -59,7 +59,7 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start with `task-1866`: add executable shadow caster command record planning.
+Start with `task-1876`: implement minimal receiver shadow factor.
 The GLTF scene fixture now renders through the public app path, reports detailed
 JSON-safe IBL/shadow readiness, allocates live renderer-owned diffuse IBL
 texture/view, specular IBL texture/view, and IBL sampler resources, allocates
@@ -80,8 +80,18 @@ encoder integration plan selected and implemented a shadow pass encoder assembly
 report. The GLTF status now exposes `shadow.encoderAssembly` with honest
 missing diagnostics for the still-deferred live command encoder and executable
 caster command records.
-Specular prefilter pass execution, IBL shader sampling, actual shadow pass
-submission, and shadow sampling remain deferred.
+The GLTF status now also exposes live shadow caster pipeline resources, live
+shadow caster matrix bind-group resources, ready executable shadow caster command
+records, and live shadow encoder assembly that begins the planned depth pass,
+executes three indexed caster draws, ends the pass, and finishes a shadow
+command buffer while queue submission remains deferred. The finish path now
+shares the shadow caster matrix bind-group layout with the depth-only shadow
+pipeline layout so WebGPU validation accepts the live draw calls. Specular
+prefilter pass execution, IBL shader sampling, shadow queue submission, and
+receiver WGSL shadow sampling remain deferred. The StandardMaterial receiver
+side now also has a JSON-safe readiness report proving access to the live shadow
+matrix buffer, shadow depth view, shadow sampler, group 5 bind group, and shadow
+command-buffer readiness status.
 
 The previous micro-hardening tasks remain useful but are no longer the main
 ready queue unless they directly block the scene slice. Public custom
@@ -104,11 +114,9 @@ Target proof point:
 
 Remaining automation priority order:
 
-1. `task-1866` — add executable shadow caster command record planning.
-2. `task-1867` — add live depth-only shadow caster pipeline resource report.
-3. `task-1868` — add shadow caster matrix bind-group resource report.
-4. `task-1869` — integrate shadow encoder assembly with executable commands.
-5. `task-1870` — audit live shadow encoder assembly boundary.
+1. `task-1876` — implement minimal receiver shadow factor.
+2. `task-1877` — verify first visible receiver shadow pixels.
+3. `task-1878` — audit receiver shadow sampling boundary.
 
 Defer allocation-only cleanup, metadata-only shader-contract tasks, public
 custom material source work, and app-owned custom adapter facades unless they
@@ -10658,6 +10666,9 @@ Acceptance criteria:
 
 ### task-1866 — Add executable shadow caster command record planning
 
+Status: completed 2026-05-19. See
+`packages/webgpu/src/webgpu/shadow-caster-command-record-plan.ts`.
+
 Category: `webgpu-render`
 Package/write-scope:
 `packages/webgpu`, targeted tests, GLTF scene status path.
@@ -10678,6 +10689,9 @@ Acceptance criteria:
 
 ### task-1867 — Add live depth-only shadow caster pipeline resource report
 
+Status: completed 2026-05-19. See
+`packages/webgpu/src/webgpu/shadow-caster-pipeline-resource.ts`.
+
 Category: `webgpu-render`
 Package/write-scope:
 `packages/webgpu`, targeted tests, GLTF scene status path.
@@ -10693,6 +10707,9 @@ Acceptance criteria:
 - Keep command-buffer finish, queue submission, and shader sampling deferred.
 
 ### task-1868 — Add shadow caster matrix bind-group resource report
+
+Status: completed 2026-05-19. See
+`packages/webgpu/src/webgpu/shadow-caster-matrix-bind-group-resource.ts`.
 
 Category: `webgpu-render`
 Package/write-scope:
@@ -10711,6 +10728,9 @@ Acceptance criteria:
   binding.
 
 ### task-1869 — Integrate shadow encoder assembly with executable commands
+
+Status: completed 2026-05-19. See `examples/gltf-scene.js` and
+`test/e2e/gltf-scene.spec.ts`.
 
 Category: `webgpu-render`
 Package/write-scope:
@@ -10731,6 +10751,9 @@ Acceptance criteria:
 
 ### task-1870 — Audit live shadow encoder assembly boundary
 
+Status: completed 2026-05-19. See
+`docs/research/LIVE_SHADOW_ENCODER_ASSEMBLY_BOUNDARY_AUDIT_2026_05_19.md`.
+
 Category: `audit-refactor`
 Package/write-scope:
 `docs/research`, targeted tests only if a small corrective fix is required.
@@ -10744,6 +10767,176 @@ Acceptance criteria:
 - Confirm JSON status omits raw GPU handles and does not imply submitted shadow
   maps or receiver shader sampling.
 - Recommend the next implementation slice.
+
+### task-1871 — Add shadow pass command-buffer submission report
+
+Status: completed 2026-05-19.
+
+Category: `webgpu-render`
+Package/write-scope:
+`packages/webgpu`, `examples/gltf-scene.js`, targeted tests, e2e status
+expectations.
+Reference anchor:
+local `shadow-pass-encoder-assembly-report`, `frame-boundary`,
+`render-pass-resources`, and shadow submission patterns in
+`references/engine/src/scene/renderer/render-pass-shadow-directional.js` and
+`references/three.js/src/renderers/webgl/WebGLShadowMap.js`.
+
+Acceptance criteria:
+
+- Add a JSON-safe report that can finish an assembled shadow command encoder and
+  optionally submit the resulting command buffer through an injected queue.
+- Report finished/submitted command-buffer counts, deferred-submission
+  diagnostics, and stable command-buffer keys without exposing raw GPU handles.
+- Wire the GLTF scene status to show the first shadow command buffer is ready or
+  submitted while keeping receiver shader sampling deferred.
+- Cover missing encoder assembly, missing command encoder finish, missing queue,
+  and successful finish/submit paths with targeted tests.
+
+### task-1872 — Audit shadow pass submission boundary
+
+Status: completed 2026-05-19. See
+`docs/research/SHADOW_PASS_SUBMISSION_BOUNDARY_AUDIT_2026_05_19.md`.
+
+Category: `audit-refactor`
+Package/write-scope:
+`docs/research`, targeted tests only if a small corrective fix is required.
+Reference anchor:
+`docs/NORTH_STAR.md`, `docs/ARCHITECTURE.md`, `docs/DECISIONS.md`, the shadow
+submission report, and local render pass/frame-boundary helpers.
+
+Acceptance criteria:
+
+- Confirm submitted shadow command buffers remain renderer-owned derived state,
+  not ECS or scene-graph state.
+- Confirm JSON diagnostics do not expose raw GPU handles and clearly separate
+  caster pass submission from receiver material sampling.
+- Recommend whether the next implementation slice should be receiver sampling
+  readiness, shader binding, or submission hardening.
+
+### task-1873 — Plan StandardMaterial shadow receiver sampling readiness
+
+Status: completed 2026-05-19. See
+`docs/research/STANDARD_MATERIAL_SHADOW_RECEIVER_SAMPLING_READINESS_PLAN_2026_05_19.md`.
+
+Category: `webgpu-render`
+Package/write-scope:
+`docs/research`, `packages/webgpu` only if a tiny diagnostic correction is
+needed.
+Reference anchor:
+local StandardMaterial WGSL/pipeline-key readiness, StandardMaterial shadow
+bind-group resources, and receiver shadow sampling patterns in
+`references/engine` and `references/three.js`.
+
+Acceptance criteria:
+
+- Compare at least two receiver-side shadow sampling implementation slices.
+- Select one narrow next task that preserves the existing ECS/render extraction
+  boundary and WebGPU-only ownership.
+- Identify shader inputs, bind groups, diagnostics, and e2e proof needed for the
+  selected slice.
+
+### task-1874 — Add StandardMaterial shadow receiver binding readiness
+
+Status: completed 2026-05-19. See
+`packages/webgpu/src/webgpu/standard-material-shadow-receiver-binding-readiness.ts`.
+
+Category: `webgpu-render`
+Package/write-scope:
+`packages/webgpu`, `examples/gltf-scene.js`, targeted tests, e2e status
+expectations.
+Reference anchor:
+local StandardMaterial WGSL/pipeline-key readiness, StandardMaterial shadow
+bind-group resources, and receiver shadow sampling patterns in
+`references/engine` and `references/three.js`.
+
+Acceptance criteria:
+
+- Add a JSON-safe receiver binding readiness report proving StandardMaterial
+  access to the matrix buffer, depth view, sampler, group 5 bind group, and
+  command-buffer readiness status.
+- Expose receiver binding readiness in the GLTF scene status and grouped shadow
+  readiness phases.
+- Keep WGSL receiver shadow sampling and visible shadow pixel proof deferred.
+
+### task-1875 — Plan minimal StandardMaterial shadow shader sampling
+
+Status: completed 2026-05-19. See
+`docs/research/MINIMAL_STANDARD_MATERIAL_SHADOW_SHADER_SAMPLING_PLAN_2026_05_19.md`.
+
+Category: `webgpu-render`
+Package/write-scope:
+`docs/research`, `packages/webgpu` only if a tiny diagnostic correction is
+needed.
+Reference anchor:
+local StandardMaterial WGSL/pipeline descriptors, receiver binding readiness,
+and receiver shadow sampling patterns in `references/engine` and
+`references/three.js`.
+
+Acceptance criteria:
+
+- Compare at least two minimal WGSL receiver shadow sampling slices.
+- Select one narrow shader/resource task that uses the existing group 5 shadow
+  binding and finished shadow command buffer.
+- Identify deterministic e2e proof requirements before visible shadow pixels.
+
+### task-1876 — Implement minimal receiver shadow factor
+
+Category: `webgpu-render`
+Package/write-scope:
+`packages/webgpu`, `examples/gltf-scene.js`, targeted tests, e2e status
+expectations.
+Reference anchor:
+local StandardMaterial shadow group 5 bind-group resources, pipeline-key
+readiness, WGSL shader modules, and receiver binding patterns in
+`references/engine` and `references/three.js`.
+
+Acceptance criteria:
+
+- Thread the live shadow matrix buffer, shadow depth texture view, and shadow
+  sampler into the StandardMaterial receiver shader path.
+- Add a minimal deterministic shadow factor while preserving existing
+  non-shadow StandardMaterial behavior.
+- Report shader shadow sampling readiness with stable resource keys and no raw
+  GPU handles in JSON.
+- Keep visible pixel proof focused and covered by targeted tests before the
+  follow-up browser readback task.
+
+### task-1877 — Verify first visible receiver shadow pixels
+
+Category: `webgpu-render`
+Package/write-scope:
+`examples/gltf-scene.js`, `test/e2e`, and focused WebGPU shader/resource code
+only as needed.
+Reference anchor:
+local GLTF scene fixture, WebGPU readback helpers, and shadow receiver proof
+patterns in `references/engine` and `references/three.js`.
+
+Acceptance criteria:
+
+- Add or update a GLTF scene browser proof that shows a deterministic receiver
+  shadow difference with WebGPU readback or screenshot sampling.
+- Keep diagnostics JSON-safe and explain whether the shadow pass was submitted
+  and sampled.
+- Preserve existing non-shadow GLTF scene expectations.
+
+### task-1878 — Audit receiver shadow sampling boundary
+
+Category: `audit-refactor`
+Package/write-scope:
+`docs/research`, targeted tests only if a small corrective fix is required.
+Reference anchor:
+`docs/NORTH_STAR.md`, `docs/ARCHITECTURE.md`, `docs/DECISIONS.md`,
+StandardMaterial shadow receiver resources, and relevant WebGPU reference
+receiver-shadow patterns.
+
+Acceptance criteria:
+
+- Confirm receiver shadow sampling remains renderer-owned derived state and does
+  not introduce scene-graph authority.
+- Confirm submitted shadow maps, bind groups, and shader diagnostics stay
+  JSON-safe.
+- Recommend the next narrow shadow or GLTF fidelity task.
 
 ## Post-Unlit E2E Verification Targets
 

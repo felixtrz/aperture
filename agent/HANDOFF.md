@@ -1,5 +1,135 @@
 # Handoff
 
+## Current Run Update — 2026-05-19T08:53:00Z
+
+Completed `task-1866` through `task-1875`. Recommended next task is
+`task-1876`: implement a minimal receiver shadow factor.
+
+What changed:
+
+- Added `ShadowCasterCommandRecordPlanReport`:
+  - maps ready shadow caster frame-resource records plus live pipeline,
+    matrix bind-group, and mesh buffer views into executable
+    `RenderPassCommand` records,
+  - reports stable JSON-safe pipeline, bind-group, vertex-buffer,
+    index-buffer, and draw-command keys,
+  - keeps command-buffer finish, queue submission, and shader sampling
+    deferred.
+- Exposed `shadow.commandRecords` and the grouped readiness phase in
+  `examples/gltf-scene.js`.
+- Updated GLTF Playwright expectations and public tracker pages.
+- Added live shadow caster pipeline resources:
+  `ShadowCasterPipelineResourceReport`, depth-only WGSL, pipeline creation,
+  cache reuse, JSON-safe report helpers, and focused tests.
+- Added live shadow caster matrix bind-group resources:
+  `ShadowCasterMatrixBindGroupResourceReport`, group-0 layout/bind-group
+  creation, cache reuse, JSON-safe report helpers, and focused tests.
+- Wired both resources into `examples/gltf-scene.js`, cache summaries, grouped
+  readiness, and command-record planning. `shadow.commandRecords` is now
+  `ready`.
+- Integrated executable shadow caster command records into GLTF shadow encoder
+  assembly through a live command encoder and live shadow depth texture view
+  resolver.
+- The GLTF status now reports one begun/ended shadow pass, 15 executed commands,
+  and three indexed caster draw calls while command-buffer finish, queue
+  submission, and receiver shader sampling remain deferred.
+- Added
+  `docs/research/LIVE_SHADOW_ENCODER_ASSEMBLY_BOUNDARY_AUDIT_2026_05_19.md`,
+  confirming the live encoder assembly remains renderer-owned, JSON-safe, and
+  separate from receiver sampling.
+- Added `ShadowPassCommandBufferSubmissionReport`:
+  - finishes assembled shadow command encoders,
+  - optionally submits the resulting command buffers through an injected queue,
+  - reports finished/submitted counts, stable command-buffer keys, and
+    JSON-safe diagnostics without exposing raw GPU handles.
+- Wired GLTF status to report `shadow.commandBufferSubmission`.
+- Fixed a real WebGPU validation error by sharing the explicit shadow caster
+  matrix bind-group layout with the depth-only shadow caster pipeline layout.
+  This follows the common WebGPU pattern of using one pipeline layout for the
+  bind groups that will be set during the pass.
+- Added
+  `docs/research/SHADOW_PASS_SUBMISSION_BOUNDARY_AUDIT_2026_05_19.md`,
+  confirming command-buffer submission remains renderer-owned derived state.
+- The GLTF status now reports one finished shadow command buffer while queue
+  submission and receiver shadow sampling remain deferred.
+- Added
+  `docs/research/STANDARD_MATERIAL_SHADOW_RECEIVER_SAMPLING_READINESS_PLAN_2026_05_19.md`,
+  selecting receiver binding readiness as the next low-risk slice before WGSL
+  sampling.
+- Added `StandardMaterialShadowReceiverBindingReadinessReport` and exposed
+  `shadow.receiverBinding` in the GLTF status. It reports per-StandardMaterial
+  receiver access to the live shadow matrix buffer, shadow depth view, shadow
+  sampler, StandardMaterial group 5 bind group, and shadow command-buffer
+  readiness status.
+- Added
+  `docs/research/MINIMAL_STANDARD_MATERIAL_SHADOW_SHADER_SAMPLING_PLAN_2026_05_19.md`,
+  selecting a single-tap hard directional shadow factor as the next
+  StandardMaterial shader slice.
+
+Reference anchors inspected:
+
+- `packages/webgpu/src/webgpu/render-pass-commands.ts`
+- `packages/webgpu/src/webgpu/render-pass-command-executor.ts`
+- `packages/webgpu/src/webgpu/shadow-caster-frame-resource-readiness.ts`
+- `packages/webgpu/src/webgpu/shadow-pass-encoder-assembly-report.ts`
+- `packages/webgpu/src/webgpu/render-pass-resources.ts`
+- `packages/webgpu/src/webgpu/pipeline-cache.ts`
+- `packages/webgpu/src/webgpu/shadow-caster-pipeline-descriptor.ts`
+- `packages/webgpu/src/webgpu/shadow-caster-pipeline-resource.ts`
+- `packages/webgpu/src/webgpu/shadow-caster-matrix-bind-group-resource.ts`
+- `packages/webgpu/src/webgpu/shadow-matrix-buffer-resource.ts`
+- `packages/webgpu/src/webgpu/standard-material-shadow-bind-group.ts`
+- `packages/webgpu/src/webgpu/shadow-pass-command-buffer-submission-report.ts`
+- `packages/webgpu/src/webgpu/standard-material-shadow-receiver-binding-readiness.ts`
+- `packages/webgpu/src/webgpu/command-buffer.ts`
+- `packages/webgpu/src/webgpu/queue-submit.ts`
+- `packages/webgpu/src/webgpu/standard-shader.ts`
+- `packages/webgpu/src/webgpu/standard-pipeline.ts`
+- `examples/gltf-scene.js`
+- `test/e2e/gltf-scene.spec.ts`
+- `references/engine/src/scene/renderer/render-pass-shadow-directional.js`
+- `references/engine/src/scene/renderer/shadow-renderer.js`
+- `references/engine/src/platform/graphics/webgpu/webgpu-render-pipeline.js`
+- `references/three.js/src/renderers/webgl/WebGLShadowMap.js`
+- `references/three.js/src/renderers/webgl/WebGLProgram.js`
+- `references/three.js/src/renderers/webgpu/utils/WebGPUPipelineUtils.js`
+- `references/three.js/src/renderers/webgpu/utils/WebGPUTexturePassUtils.js`
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/shadow-caster-command-record-plan.test.ts`
+- `pnpm exec vitest run test/webgpu/shadow-caster-command-record-plan.test.ts test/webgpu/shadow-caster-pipeline-resource.test.ts test/webgpu/shadow-caster-matrix-bind-group-resource.test.ts`
+- `pnpm exec vitest run test/webgpu/shadow-caster-command-record-plan.test.ts test/webgpu/shadow-caster-pipeline-resource.test.ts`
+- `pnpm exec vitest run test/webgpu/shadow-caster-command-record-plan.test.ts test/webgpu/shadow-caster-pipeline-resource.test.ts test/webgpu/shadow-caster-matrix-bind-group-resource.test.ts test/webgpu/shadow-pass-encoder-assembly-report.test.ts`
+- `pnpm run typecheck`
+- `pnpm run typecheck:test`
+- `node --check examples/gltf-scene.js`
+- `pnpm run check:examples`
+- `pnpm run check:progress`
+- `pnpm run lint`
+- `pnpm run format:check`
+- `pnpm exec playwright test test/e2e/gltf-scene.spec.ts`
+- `pnpm exec vitest run test/webgpu/shadow-pass-command-buffer-submission-report.test.ts`
+- `pnpm exec vitest run test/webgpu/standard-material-shadow-receiver-binding-readiness.test.ts test/webgpu/shadow-pass-command-buffer-submission-report.test.ts`
+- `pnpm exec vitest run test/webgpu/shadow-caster-pipeline-resource.test.ts test/webgpu/shadow-caster-matrix-bind-group-resource.test.ts test/webgpu/shadow-pass-command-buffer-submission-report.test.ts`
+- `node --check examples/gltf-scene.js`
+- `pnpm run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm run check` (`308` test files / `1396` tests passed)
+- Documentation-only validation for `task-1875`.
+
+Known issues / follow-ups:
+
+- `shadow.encoderAssembly` still reports `missing` because frame-resource
+  readiness is diagnostic-only, but it does execute caster commands and the
+  follow-up submission report now finishes the shadow command buffer.
+- StandardMaterial shadow receiver sampling and IBL shader sampling remain
+  deferred. Shadow queue submission is still deferred until the sampling path
+  needs it.
+- Start `task-1876` next: implement a minimal single-tap directional shadow
+  factor for StandardMaterial receivers using the ready shadow depth texture,
+  live shadow matrix buffer, shadow sampler, and ready receiver binding report.
+
 ## Current Run Update — 2026-05-19T07:33:00Z
 
 Completed `task-1860` through `task-1865`. Recommended next task is
@@ -678,6 +808,7 @@ Validation:
 - `pnpm run check:progress`
 - `pnpm run format:check`
 - `pnpm exec playwright test test/e2e/gltf-scene.spec.ts`
+- `pnpm run check` (`306` test files / `1386` tests passed)
 - `git diff --check`
 
 Known issues / follow-ups:

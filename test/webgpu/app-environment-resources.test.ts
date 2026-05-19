@@ -51,6 +51,8 @@ describe("WebGPU app environment resource cache", () => {
       standardIblBindGroupEntries: 0,
       shadowSamplerEntries: 0,
       standardShadowBindGroupEntries: 0,
+      shadowCasterPipelineEntries: 0,
+      shadowCasterMatrixBindGroupEntries: 0,
       totalEntries: 4,
     });
     expect(second.reuse).toEqual({

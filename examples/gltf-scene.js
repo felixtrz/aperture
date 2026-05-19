@@ -444,17 +444,19 @@ function publishFrameStatus(aperture, app, scene, step, report, frame) {
     aperture.standardMaterialShadowBindGroupDescriptorReadinessReportToJsonValue(
       standardMaterialShadowBindGroupDescriptorReport,
     );
+  const standardMaterialShadowBindGroupResourceReport =
+    aperture.createStandardMaterialShadowBindGroupResourceReport({
+      device: app.initialization.device,
+      standardMaterialCount,
+      descriptor: standardMaterialShadowBindGroupDescriptorReport,
+      matrixBufferResource: shadowMatrixBufferResourceReport,
+      depthTextureResources: shadowDepthTextureResourceReport,
+      samplerResource: shadowSamplerResourceReport,
+      cache: appEnvironmentResourceCache.standardShadowBindGroups,
+    });
   const standardMaterialShadowBindGroupResource =
     aperture.standardMaterialShadowBindGroupResourceReportToJsonValue(
-      aperture.createStandardMaterialShadowBindGroupResourceReport({
-        device: app.initialization.device,
-        standardMaterialCount,
-        descriptor: standardMaterialShadowBindGroupDescriptorReport,
-        matrixBufferResource: shadowMatrixBufferResourceReport,
-        depthTextureResources: shadowDepthTextureResourceReport,
-        samplerResource: shadowSamplerResourceReport,
-        cache: appEnvironmentResourceCache.standardShadowBindGroups,
-      }),
+      standardMaterialShadowBindGroupResourceReport,
     );
   const shadowCasterDrawList =
     aperture.shadowCasterDrawListPlanReportToJsonValue(
@@ -489,6 +491,28 @@ function publishFrameStatus(aperture, app, scene, step, report, frame) {
         commandEncoding: shadowPassCommandEncoding,
       }),
     );
+  const shadowCasterPipelineResourceReport =
+    aperture.createShadowCasterPipelineResourceReport({
+      device: app.initialization.device,
+      descriptor: shadowCasterPipelineDescriptor,
+      cache: appEnvironmentResourceCache.shadowCasterPipelines,
+    });
+  const shadowCasterPipelineResource =
+    aperture.shadowCasterPipelineResourceReportToJsonValue(
+      shadowCasterPipelineResourceReport,
+    );
+  const shadowCasterMatrixBindGroupResourceReport =
+    aperture.createShadowCasterMatrixBindGroupResourceReport({
+      device: app.initialization.device,
+      matrixBufferResource: shadowMatrixBufferResourceReport,
+      layout:
+        shadowCasterPipelineResourceReport.resource?.matrixBindGroupLayout,
+      cache: appEnvironmentResourceCache.shadowCasterMatrixBindGroups,
+    });
+  const shadowCasterMatrixBindGroupResource =
+    aperture.shadowCasterMatrixBindGroupResourceReportToJsonValue(
+      shadowCasterMatrixBindGroupResourceReport,
+    );
   const shadowCasterFrameResources =
     aperture.shadowCasterFrameResourceReadinessReportToJsonValue(
       aperture.createShadowCasterFrameResourceReadinessReport({
@@ -498,13 +522,82 @@ function publishFrameStatus(aperture, app, scene, step, report, frame) {
         pipelineDescriptor: shadowCasterPipelineDescriptor,
       }),
     );
+  const shadowCasterCommandRecordPlan =
+    aperture.createShadowCasterCommandRecordPlanReport({
+      frameResources: shadowCasterFrameResources,
+      commandPlan: shadowCommandPlan,
+      pipelines:
+        shadowCasterPipelineResourceReport.resource === null
+          ? []
+          : [
+              {
+                pipelineKey:
+                  shadowCasterPipelineResourceReport.resource.pipelineKey,
+                resourceKey:
+                  shadowCasterPipelineResourceReport.resource.resourceKey,
+                pipeline: shadowCasterPipelineResourceReport.resource.pipeline,
+              },
+            ],
+      matrixBindGroups:
+        shadowCasterMatrixBindGroupResourceReport.resource === null
+          ? []
+          : [
+              {
+                matrixResourceKey:
+                  shadowCasterMatrixBindGroupResourceReport.resource
+                    .matrixResourceKey,
+                resourceKey:
+                  shadowCasterMatrixBindGroupResourceReport.resource
+                    .resourceKey,
+                group: shadowCasterMatrixBindGroupResourceReport.resource.group,
+                bindGroup:
+                  shadowCasterMatrixBindGroupResourceReport.resource.bindGroup,
+              },
+            ],
+      meshes: createShadowCasterExecutableMeshViews(report),
+    });
+  const shadowCasterCommandRecords =
+    aperture.shadowCasterCommandRecordPlanReportToJsonValue(
+      shadowCasterCommandRecordPlan,
+    );
+  const shadowPassCommandEncoderResource =
+    aperture.createCommandEncoderResource({
+      device: app.initialization.device,
+      label: "shadow-pass:directional",
+    });
+  const shadowPassEncoderAssemblyReport =
+    aperture.createShadowPassEncoderAssemblyReport({
+      attachments: shadowPassAttachments,
+      frameResources: shadowCasterFrameResources,
+      commandEncoding: shadowPassCommandEncoding,
+      commands: shadowCasterCommandRecordPlan.commandRecords,
+      encoder: shadowPassCommandEncoderResource.resource?.encoder,
+      resolveDepthView: (attachment) =>
+        resolveShadowDepthView(shadowDepthTextureResourceReport, attachment),
+    });
   const shadowPassEncoderAssembly =
     aperture.shadowPassEncoderAssemblyReportToJsonValue(
-      aperture.createShadowPassEncoderAssemblyReport({
-        attachments: shadowPassAttachments,
-        frameResources: shadowCasterFrameResources,
-        commandEncoding: shadowPassCommandEncoding,
-        commands: [],
+      shadowPassEncoderAssemblyReport,
+    );
+  const shadowPassCommandBufferSubmissionReport =
+    aperture.createShadowPassCommandBufferSubmissionReport({
+      assembly: shadowPassEncoderAssemblyReport,
+      encoder: shadowPassCommandEncoderResource.resource?.encoder,
+      label: "shadow-pass:directional",
+    });
+  const shadowPassCommandBufferSubmission =
+    aperture.shadowPassCommandBufferSubmissionReportToJsonValue(
+      shadowPassCommandBufferSubmissionReport,
+    );
+  const standardMaterialShadowReceiverBinding =
+    aperture.standardMaterialShadowReceiverBindingReadinessReportToJsonValue(
+      aperture.createStandardMaterialShadowReceiverBindingReadinessReport({
+        standardMaterialCount,
+        matrixBufferResource: shadowMatrixBufferResourceReport,
+        depthTextureResources: shadowDepthTextureResourceReport,
+        samplerResource: shadowSamplerResourceReport,
+        bindGroupResource: standardMaterialShadowBindGroupResourceReport,
+        commandBufferSubmission: shadowPassCommandBufferSubmissionReport,
       }),
     );
   const shadowResourceSummary =
@@ -566,8 +659,13 @@ function publishFrameStatus(aperture, app, scene, step, report, frame) {
     shadowCommandPlan,
     shadowPassCommandEncoding,
     shadowCasterPipelineDescriptor,
+    shadowCasterPipelineResource,
+    shadowCasterMatrixBindGroupResource,
     shadowCasterFrameResources,
+    shadowCasterCommandRecords,
     shadowPassEncoderAssembly,
+    shadowPassCommandBufferSubmission,
+    standardMaterialShadowReceiverBinding,
     shadowResourceSummary,
     standardMaterialShadow,
     standardMaterialShadowBindGroupLayout,
@@ -675,8 +773,13 @@ function publishFrameStatus(aperture, app, scene, step, report, frame) {
       commandPlan: shadowCommandPlan,
       commandEncoding: shadowPassCommandEncoding,
       pipelineDescriptor: shadowCasterPipelineDescriptor,
+      pipelineResource: shadowCasterPipelineResource,
+      matrixBindGroupResource: shadowCasterMatrixBindGroupResource,
       frameResources: shadowCasterFrameResources,
+      commandRecords: shadowCasterCommandRecords,
       encoderAssembly: shadowPassEncoderAssembly,
+      commandBufferSubmission: shadowPassCommandBufferSubmission,
+      receiverBinding: standardMaterialShadowReceiverBinding,
       resourceSummary: shadowResourceSummary,
       bindGroupLayout: standardMaterialShadowBindGroupLayout,
       standardMaterial: standardMaterialShadow,
@@ -760,7 +863,17 @@ function createReadinessGrouping(input) {
     commandPlans: input.shadowCommandPlan.status,
     commandEncoding: input.shadowPassCommandEncoding.status,
     pipelineDescriptor: input.shadowCasterPipelineDescriptor.status,
+    pipelineResource: normalizeStatus(
+      input.shadowCasterPipelineResource.status,
+    ),
+    matrixBindGroupResource: normalizeStatus(
+      input.shadowCasterMatrixBindGroupResource.status,
+    ),
     frameResources: input.shadowCasterFrameResources.status,
+    commandRecords: input.shadowCasterCommandRecords.status,
+    encoderAssembly: input.shadowPassEncoderAssembly.status,
+    commandBufferSubmission: input.shadowPassCommandBufferSubmission.status,
+    receiverBinding: input.standardMaterialShadowReceiverBinding.status,
     resourceSummary: input.shadowResourceSummary.status,
     bindGroupLayout: input.standardMaterialShadowBindGroupLayout.status,
     bindGroupDescriptor: input.standardMaterialShadowBindGroupDescriptor.status,
@@ -844,6 +957,56 @@ function createShadowCasterPreparedMeshViews(report) {
   }
 
   return [...meshResourceByKey.values()];
+}
+
+function createShadowCasterExecutableMeshViews(report) {
+  const meshResources = report.resources?.resources?.meshResources ?? [];
+  const preparedMeshEntries =
+    report.resourceReuse?.preparedMeshFacade?.entries ?? [];
+  const meshResourceByLabel = new Map(
+    meshResources.map((resource) => [resource.resourceKey, resource]),
+  );
+  const meshResourceByKey = new Map();
+
+  for (const entry of preparedMeshEntries) {
+    const resource = meshResourceByLabel.get(`mesh-buffer:${entry.label}`);
+
+    if (resource === undefined) {
+      continue;
+    }
+
+    meshResourceByKey.set(entry.assetKey, {
+      meshKey: entry.assetKey,
+      meshResourceKey: resource.resourceKey,
+      vertexBuffers: resource.vertexBuffers.map((buffer) => ({
+        resourceKey: buffer.resourceKey,
+        buffer: buffer.buffer,
+        vertexCount: buffer.vertexCount,
+      })),
+      indexBuffer:
+        resource.indexBuffer === undefined
+          ? null
+          : {
+              resourceKey: resource.indexBuffer.resourceKey,
+              buffer: resource.indexBuffer.buffer,
+              format: resource.indexBuffer.format,
+              indexCount: resource.indexBuffer.indexCount,
+            },
+    });
+  }
+
+  return [...meshResourceByKey.values()];
+}
+
+function resolveShadowDepthView(depthTextureResources, attachment) {
+  const resource = depthTextureResources.resources.find(
+    (candidate) =>
+      candidate.shadowId === attachment.shadowId &&
+      candidate.lightId === attachment.lightId &&
+      candidate.viewKey === attachment.viewKey,
+  );
+
+  return resource?.allocation.resource?.view ?? null;
 }
 
 function createGltfSceneRoot() {

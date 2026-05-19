@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-19 00:44 PDT</dd>
+            <dd>2026-05-19 01:53 PDT</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -464,18 +464,31 @@
               views, and per-caster frame-resource readiness over prepared mesh
               buffers, the live shadow matrix buffer resource, and the selected
               shadow caster pipeline descriptor. The first live shadow pass
-              encoder integration plan selects shadow pass encoder assembly as
+              encoder integration plan selected shadow pass encoder assembly as
               the next slice before command-buffer submission or shader
-              sampling. The GLTF status now exposes a shadow pass encoder
-              assembly report with honest missing diagnostics for the
-              still-deferred live command encoder and executable caster command
-              records. Public custom shader/material APIs and app-owned custom
-              adapter facades remain deferred behind this built-in scene path.
-              Route summary determinism is pinned, the built-in frame-resource
-              wrapper now has mixed-family route regression coverage over the
-              generic collector, app-level mixed built-in routes now assert
-              JSON-safe material queue and routed resource summaries for
-              two-family and three-family paths, and the glTF
+              sampling. The GLTF status now exposes JSON-safe shadow caster
+              command-record readiness: ready per-caster frame resources map to
+              executable render pass commands. Live depth-only shadow caster
+              pipeline resources and group-0 matrix bind-group resources are now
+              created, cached, reported in JSON-safe form, and used by the
+              command-record planner. The GLTF status also feeds those
+              executable commands into live shadow encoder assembly: one planned
+              depth pass begins, executes three indexed caster draws, and ends
+              before a JSON-safe command-buffer submission report finishes the
+              encoder while queue submission remains deferred. The shadow caster
+              pipeline and matrix bind group now share an explicit pipeline
+              layout, avoiding WebGPU validation warnings during the depth-only
+              pass. The receiver side now reports StandardMaterial access to the
+              finished shadow command buffer, matrix buffer, shadow depth view,
+              shadow sampler, and group 5 bind group, while WGSL receiver shadow
+              sampling stays deferred. Public custom shader/material APIs and
+              app-owned custom adapter facades remain deferred behind this
+              built-in scene path. Route summary determinism is pinned, the
+              built-in frame-resource wrapper now has mixed-family route
+              regression coverage over the generic collector, app-level mixed
+              built-in routes now assert JSON-safe material queue and routed
+              resource summaries for two-family and three-family paths, and the
+              glTF
               <code>alphaMode: "BLEND"</code> browser fixture now pins
               transparent queue routing, alpha-blend render-state mapping, and
               its deterministic StandardMaterial pipeline key. The translucent
@@ -746,7 +759,7 @@
               diagnostics now include those routed item key details.
             </dd>
             <dt>Next focus</dt>
-            <dd>Add executable shadow caster command record planning</dd>
+            <dd>Implement minimal StandardMaterial receiver shadow factor</dd>
           </dl>
         </aside>
       </header>
@@ -1272,24 +1285,32 @@
             <h3>Latest work in this update</h3>
             <ul>
               <li>
+                <span class="badge green">task-1875</span> Planned minimal
+                StandardMaterial shadow shader sampling.
+              </li>
+              <li>
+                <span class="badge green">task-1874</span> Added
+                StandardMaterial shadow receiver binding readiness.
+              </li>
+              <li>
+                <span class="badge green">task-1873</span> Planned
+                StandardMaterial receiver shadow sampling readiness.
+              </li>
+              <li>
+                <span class="badge green">task-1872</span> Audited the shadow
+                pass submission boundary.
+              </li>
+              <li>
+                <span class="badge green">task-1866</span> Added executable
+                shadow caster command record planning.
+              </li>
+              <li>
                 <span class="badge green">task-1865</span> Added shadow pass
                 encoder assembly reporting.
               </li>
               <li>
                 <span class="badge green">task-1864</span> Planned first live
                 shadow pass encoder integration.
-              </li>
-              <li>
-                <span class="badge green">task-1863</span> Added shadow caster
-                frame-resource readiness reporting.
-              </li>
-              <li>
-                <span class="badge green">task-1862</span> Added shadow pass
-                depth attachment descriptor reporting.
-              </li>
-              <li>
-                <span class="badge green">task-1861</span> Added depth-only
-                shadow caster pipeline descriptor metadata.
               </li>
               <li>
                 <span class="badge green">task-1860</span> Audited shadow pass
@@ -2493,15 +2514,15 @@
             <h3>Recommended next tasks</h3>
             <ul>
               <li>
-                <span class="badge amber">next</span> Add executable shadow
-                caster command record planning.
+                <span class="badge amber">next</span> Implement minimal receiver
+                shadow factor.
               </li>
               <li>
-                Convert ready caster frame-resource records into executable pass
-                commands without queue submission.
+                Add single-tap directional shadow sampling over the ready group
+                5 binding.
               </li>
               <li>
-                Keep shader shadow sampling deferred until pass proof lands.
+                Keep diagnostics JSON-safe and preserve ECS-to-render ownership.
               </li>
             </ul>
           </article>

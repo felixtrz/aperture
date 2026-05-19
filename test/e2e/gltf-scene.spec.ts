@@ -1088,9 +1088,8 @@ test("Playwright shows the GLTF scene fixture through the app path", async ({
 
   await page.goto("/examples/gltf-scene.html");
 
-  const status = await waitForExampleStatus<GltfSceneStatus>(page);
+  let status = await waitForExampleStatus<GltfSceneStatus>(page);
 
-  await attachExampleStatus("gltf-scene-status", status);
   expect(status, "GLTF scene status should publish").toBeDefined();
 
   if (status === undefined) {
@@ -1098,6 +1097,28 @@ test("Playwright shows the GLTF scene fixture through the app path", async ({
   }
 
   skipIfUnsupportedWebGpu(status);
+
+  await page.waitForFunction(
+    () =>
+      ((
+        globalThis as {
+          readonly __APERTURE_EXAMPLE_STATUS__?: { readonly frame?: number };
+        }
+      ).__APERTURE_EXAMPLE_STATUS__?.frame ?? 0) >= 3,
+  );
+  status = await page.evaluate(
+    () =>
+      (globalThis as { readonly __APERTURE_EXAMPLE_STATUS__?: GltfSceneStatus })
+        .__APERTURE_EXAMPLE_STATUS__,
+  );
+  await attachExampleStatus("gltf-scene-status", status);
+
+  expect(status, "GLTF scene status should publish").toBeDefined();
+
+  if (status === undefined) {
+    return;
+  }
+
   expectStatusJsonSafeForGpu(status);
   expect(status, JSON.stringify(status, null, 2)).toMatchObject({
     example: "gltf-scene",
@@ -1128,7 +1149,7 @@ test("Playwright shows the GLTF scene fixture through the app path", async ({
         },
       },
       shadow: {
-        status: "deferred",
+        status: "missing",
         phases: {
           descriptors: "ready",
           resourceReadiness: "ready",
@@ -1145,7 +1166,13 @@ test("Playwright shows the GLTF scene fixture through the app path", async ({
           commandPlans: "deferred",
           commandEncoding: "deferred",
           pipelineDescriptor: "deferred",
+          pipelineResource: "ready",
+          matrixBindGroupResource: "ready",
           frameResources: "deferred",
+          commandRecords: "ready",
+          encoderAssembly: "missing",
+          commandBufferSubmission: "ready",
+          receiverBinding: "ready",
           resourceSummary: "deferred",
           bindGroupLayout: "deferred",
           bindGroupDescriptor: "deferred",
@@ -1456,7 +1483,9 @@ test("Playwright shows the GLTF scene fixture through the app path", async ({
         standardIblBindGroupEntries: 1,
         shadowSamplerEntries: 1,
         standardShadowBindGroupEntries: 1,
-        totalEntries: 7,
+        shadowCasterPipelineEntries: 1,
+        shadowCasterMatrixBindGroupEntries: 1,
+        totalEntries: 9,
       },
       diffuseResourceSummary: {
         ready: false,
@@ -2590,6 +2619,70 @@ test("Playwright shows the GLTF scene fixture through the app path", async ({
           },
         ],
       },
+      pipelineResource: {
+        ready: true,
+        status: "available",
+        descriptorCount: 1,
+        createdPipelineCount: 0,
+        reusedPipelineCount: 1,
+        sections: {
+          pipelineDescriptor: true,
+          shaderModule: true,
+          pipelineCreation: true,
+          passSubmission: false,
+          shaderSampling: false,
+        },
+        resource: {
+          pipelineKey:
+            "shadow-caster/depth-only/depth24plus/triangle-list/back",
+          resourceKey:
+            "render-pipeline:shadow-caster/depth-only/depth24plus/triangle-list/back",
+          shaderModuleKey: "shader-module:shadow-caster-depth-only",
+          label: "shadow-caster-depth-only:depth24plus:triangle-list",
+        },
+        diagnostics: [
+          {
+            code: "shadowCasterPipelineResource.passSubmissionDeferred",
+            severity: "warning",
+          },
+          {
+            code: "shadowCasterPipelineResource.shaderSamplingDeferred",
+            severity: "warning",
+          },
+        ],
+      },
+      matrixBindGroupResource: {
+        ready: true,
+        status: "available",
+        matrixBufferCount: 1,
+        createdBindGroupCount: 0,
+        reusedBindGroupCount: 1,
+        sections: {
+          matrixBufferResource: true,
+          bindGroupLayout: true,
+          bindGroupResource: true,
+          passSubmission: false,
+          shaderSampling: false,
+        },
+        resource: {
+          group: 0,
+          matrixResourceKey: "shadow-matrix-buffer:directional",
+          resourceKey:
+            "bind-group:shadow-caster/group-0/shadow-matrix-buffer:directional",
+          layoutKey: "shadow-caster/group-0:directional-shadow-matrices@0",
+          entryResourceKeys: ["shadow-matrix-buffer:directional"],
+        },
+        diagnostics: [
+          {
+            code: "shadowCasterMatrixBindGroupResource.passSubmissionDeferred",
+            severity: "warning",
+          },
+          {
+            code: "shadowCasterMatrixBindGroupResource.shaderSamplingDeferred",
+            severity: "warning",
+          },
+        ],
+      },
       frameResources: {
         ready: false,
         status: "deferred",
@@ -2667,6 +2760,91 @@ test("Playwright shows the GLTF scene fixture through the app path", async ({
           },
         ],
       },
+      commandRecords: {
+        ready: true,
+        status: "ready",
+        counts: {
+          frameResourceDraws: 3,
+          readyFrameResourceDraws: 3,
+          pipelineResources: 1,
+          matrixBindGroups: 1,
+          meshResources: 3,
+          commandRecords: 1,
+          commandCount: 15,
+          drawCalls: 3,
+          indexedDrawCalls: 3,
+        },
+        sections: {
+          frameResources: true,
+          commandPlans: true,
+          pipelineResources: true,
+          matrixBindGroups: true,
+          meshBuffers: true,
+          commandRecords: true,
+          commandBufferFinish: false,
+          queueSubmission: false,
+          shaderSampling: false,
+        },
+        records: [
+          {
+            passKey: expect.stringMatching(/^shadow-pass:\d+:light:\d+$/),
+            commandKey: expect.stringMatching(
+              /^shadow-pass:\d+:light:\d+:caster-commands$/,
+            ),
+            renderIds: [
+              expect.any(Number),
+              expect.any(Number),
+              expect.any(Number),
+            ],
+            commandCount: 15,
+            drawCalls: 3,
+            indexedDrawCalls: 3,
+            pipelineKeys: [
+              "shadow-caster/depth-only/depth24plus/triangle-list/back",
+            ],
+            pipelineResourceKeys: [
+              "shadow-caster/depth-only/depth24plus/triangle-list/back",
+            ],
+            bindGroupResourceKeys: [
+              "bind-group:shadow-caster/group-0/shadow-matrix-buffer:directional",
+            ],
+            vertexBufferResourceKeys: [
+              expect.stringMatching(/^mesh-vertex-buffer:/),
+              expect.stringMatching(/^mesh-vertex-buffer:/),
+              expect.stringMatching(/^mesh-vertex-buffer:/),
+            ],
+            indexBufferResourceKeys: [
+              expect.stringMatching(/^mesh-index-buffer:/),
+              expect.stringMatching(/^mesh-index-buffer:/),
+              expect.stringMatching(/^mesh-index-buffer:/),
+            ],
+            drawCommandKeys: [
+              expect.stringMatching(/^shadow-pass:\d+:light:\d+:draw:\d+$/),
+              expect.stringMatching(/^shadow-pass:\d+:light:\d+:draw:\d+$/),
+              expect.stringMatching(/^shadow-pass:\d+:light:\d+:draw:\d+$/),
+            ],
+          },
+        ],
+        commandRecords: [
+          {
+            passKey: expect.stringMatching(/^shadow-pass:\d+:light:\d+$/),
+            commandKey: expect.stringMatching(
+              /^shadow-pass:\d+:light:\d+:caster-commands$/,
+            ),
+            commandCount: 15,
+          },
+        ],
+        diagnostics: [
+          {
+            code: "shadowCasterCommandRecord.passSubmissionDeferred",
+            severity: "warning",
+          },
+          {
+            code: "shadowCasterCommandRecord.shaderSamplingDeferred",
+            severity: "warning",
+          },
+        ],
+      },
       encoderAssembly: {
         ready: false,
         status: "missing",
@@ -2675,18 +2853,18 @@ test("Playwright shows the GLTF scene fixture through the app path", async ({
           attachments: 1,
           frameResourceDraws: 3,
           commandRecords: 1,
-          assembledPasses: 0,
-          commandCount: 0,
-          executedCommands: 0,
-          drawCalls: 0,
+          assembledPasses: 1,
+          commandCount: 15,
+          executedCommands: 15,
+          drawCalls: 3,
         },
         sections: {
           attachmentDescriptors: true,
           frameResources: false,
           commandRecords: true,
-          passBegin: false,
-          commandExecution: false,
-          passEnd: false,
+          passBegin: true,
+          commandExecution: true,
+          passEnd: true,
           commandBufferFinish: false,
           queueSubmission: false,
           shaderSampling: false,
@@ -2702,12 +2880,12 @@ test("Playwright shows the GLTF scene fixture through the app path", async ({
             depthViewKey: expect.stringMatching(
               /^shadow-map:\d+:light:\d+:view$/,
             ),
-            commandCount: 0,
-            executedCommands: 0,
-            drawCalls: 0,
-            indexedDrawCalls: 0,
-            begun: false,
-            ended: false,
+            commandCount: 15,
+            executedCommands: 15,
+            drawCalls: 3,
+            indexedDrawCalls: 3,
+            begun: true,
+            ended: true,
           },
         ],
         diagnostics: [
@@ -2716,11 +2894,94 @@ test("Playwright shows the GLTF scene fixture through the app path", async ({
             severity: "warning",
           },
           {
-            code: "shadowPassEncoderAssembly.missingCommandEncoder",
+            code: "shadowPassEncoderAssembly.commandBufferSubmissionDeferred",
             severity: "warning",
           },
           {
-            code: "shadowPassEncoderAssembly.missingCommandRecords",
+            code: "shadowPassEncoderAssembly.shaderSamplingDeferred",
+            severity: "warning",
+          },
+        ],
+      },
+      commandBufferSubmission: {
+        ready: true,
+        status: "ready",
+        counts: {
+          assembledPasses: 1,
+          commandCount: 15,
+          drawCalls: 3,
+          commandBuffers: 1,
+          submittedCommandBuffers: 0,
+          skippedSubmissions: 1,
+        },
+        sections: {
+          encoderAssembly: true,
+          commandBufferFinish: true,
+          queueSubmission: false,
+          shaderSampling: false,
+        },
+        commandBufferKeys: ["command-buffer:shadow-pass:directional"],
+        diagnostics: [
+          {
+            code: "shadowPassCommandBufferSubmission.queueSubmissionDeferred",
+            severity: "warning",
+          },
+          {
+            code: "shadowPassCommandBufferSubmission.shaderSamplingDeferred",
+            severity: "warning",
+          },
+        ],
+      },
+      receiverBinding: {
+        ready: true,
+        status: "ready",
+        standardMaterialCount: 2,
+        receiverCount: 2,
+        sections: {
+          matrixBufferResource: true,
+          depthTextureResource: true,
+          samplerResource: true,
+          bindGroupResource: true,
+          commandBufferSubmission: true,
+          shaderSampling: false,
+        },
+        records: [
+          {
+            receiverKey: "standard-material-shadow-receiver:0",
+            group: 5,
+            matrixResourceKey: "shadow-matrix-buffer:directional",
+            depthTextureResourceKey: expect.stringMatching(
+              /^shadow-map:\d+:light:\d+$/,
+            ),
+            depthViewKey: expect.stringMatching(
+              /^shadow-map:\d+:light:\d+:view$/,
+            ),
+            samplerResourceKey: "shadow-sampler:directional",
+            bindGroupResourceKey: expect.stringMatching(
+              /^bind-group:standard\/shadow\/group-5\//,
+            ),
+            commandBufferStatus: "ready",
+          },
+          {
+            receiverKey: "standard-material-shadow-receiver:1",
+            group: 5,
+            matrixResourceKey: "shadow-matrix-buffer:directional",
+            depthTextureResourceKey: expect.stringMatching(
+              /^shadow-map:\d+:light:\d+$/,
+            ),
+            depthViewKey: expect.stringMatching(
+              /^shadow-map:\d+:light:\d+:view$/,
+            ),
+            samplerResourceKey: "shadow-sampler:directional",
+            bindGroupResourceKey: expect.stringMatching(
+              /^bind-group:standard\/shadow\/group-5\//,
+            ),
+            commandBufferStatus: "ready",
+          },
+        ],
+        diagnostics: [
+          {
+            code: "standardMaterialShadowReceiverBinding.shaderSamplingDeferred",
             severity: "warning",
           },
         ],

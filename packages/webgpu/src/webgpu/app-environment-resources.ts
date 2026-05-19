@@ -20,6 +20,8 @@ import type {
   ShadowSamplerResource,
   StandardMaterialShadowBindGroupResource,
 } from "./standard-material-shadow-bind-group.js";
+import type { ShadowCasterPipelineResource } from "./shadow-caster-pipeline-resource.js";
+import type { ShadowCasterMatrixBindGroupResource } from "./shadow-caster-matrix-bind-group-resource.js";
 
 export interface WebGpuEnvironmentResourceCache {
   readonly diffuseTextures: Map<string, TextureGpuResource>;
@@ -34,6 +36,11 @@ export interface WebGpuEnvironmentResourceCache {
     string,
     StandardMaterialShadowBindGroupResource
   >;
+  readonly shadowCasterPipelines: Map<string, ShadowCasterPipelineResource>;
+  readonly shadowCasterMatrixBindGroups: Map<
+    string,
+    ShadowCasterMatrixBindGroupResource
+  >;
 }
 
 export interface WebGpuEnvironmentResourceCacheSummary {
@@ -43,6 +50,8 @@ export interface WebGpuEnvironmentResourceCacheSummary {
   standardIblBindGroupEntries: number;
   shadowSamplerEntries: number;
   standardShadowBindGroupEntries: number;
+  shadowCasterPipelineEntries: number;
+  shadowCasterMatrixBindGroupEntries: number;
   totalEntries: number;
 }
 
@@ -83,6 +92,8 @@ export function createWebGpuEnvironmentResourceCache(): WebGpuEnvironmentResourc
     standardIblBindGroups: new Map(),
     shadowSamplers: new Map(),
     standardShadowBindGroups: new Map(),
+    shadowCasterPipelines: new Map(),
+    shadowCasterMatrixBindGroups: new Map(),
   };
 }
 
@@ -115,6 +126,8 @@ export function createWebGpuEnvironmentResourceCacheSummary(): WebGpuEnvironment
     standardIblBindGroupEntries: 0,
     shadowSamplerEntries: 0,
     standardShadowBindGroupEntries: 0,
+    shadowCasterPipelineEntries: 0,
+    shadowCasterMatrixBindGroupEntries: 0,
     totalEntries: 0,
   };
 }
@@ -129,13 +142,18 @@ export function writeWebGpuEnvironmentResourceCacheSummary(
   summary.standardIblBindGroupEntries = cache.standardIblBindGroups.size;
   summary.shadowSamplerEntries = cache.shadowSamplers.size;
   summary.standardShadowBindGroupEntries = cache.standardShadowBindGroups.size;
+  summary.shadowCasterPipelineEntries = cache.shadowCasterPipelines.size;
+  summary.shadowCasterMatrixBindGroupEntries =
+    cache.shadowCasterMatrixBindGroups.size;
   summary.totalEntries =
     summary.diffuseTextureEntries +
     summary.specularTextureEntries +
     summary.samplerEntries +
     summary.standardIblBindGroupEntries +
     summary.shadowSamplerEntries +
-    summary.standardShadowBindGroupEntries;
+    summary.standardShadowBindGroupEntries +
+    summary.shadowCasterPipelineEntries +
+    summary.shadowCasterMatrixBindGroupEntries;
   return summary;
 }
 
