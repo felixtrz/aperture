@@ -1,11 +1,11 @@
 {
   "state": "idle",
-  "currentTaskId": "task-2021",
+  "currentTaskId": "task-2026",
   "currentRunStartedAt": null,
-  "lastRunStartedAt": "2026-05-19T22:01:50Z",
-  "lastResult": "completed",
-  "lastCommit": "7c40934",
+  "lastRunStartedAt": "2026-05-19T23:03:37Z",
+  "lastResult": "stop-condition",
+  "lastCommit": "178d302",
   "activePid": null,
-  "notes": "Completed task-2020 glb-viewer orbit fitting from replayed GLB mesh bounds. Recommended next task is task-2021 IBL and shadows together in one StandardMaterial browser scene.",
-  "lastRunFinishedAt": "2026-05-19T22:59:01Z"
+  "notes": "Completed task-2021 through task-2025. Stopping before task-2026 because the next shadow/IBL viewer slices need a coherent validation window.",
+  "lastRunFinishedAt": "2026-05-19T23:32:45Z"
 }

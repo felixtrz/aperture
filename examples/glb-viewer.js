@@ -25,6 +25,30 @@ const sampleAssets = [
     url: new URL("./assets/sapphire-pillar.glb", globalThis.location.href),
     source: "sample",
   },
+  {
+    id: "brass",
+    label: "Lit brass cube",
+    url: new URL("./assets/lit-brass-cube.glb", globalThis.location.href),
+    source: "sample",
+  },
+  {
+    id: "animated",
+    label: "Animated cube",
+    url: new URL("./assets/animated-cube.glb", globalThis.location.href),
+    source: "sample",
+  },
+  {
+    id: "dual",
+    label: "Dual primitive",
+    url: new URL("./assets/dual-primitive.glb", globalThis.location.href),
+    source: "sample",
+  },
+  {
+    id: "hierarchy",
+    label: "Hierarchy cube",
+    url: new URL("./assets/hierarchy-cube.glb", globalThis.location.href),
+    source: "sample",
+  },
 ];
 
 try {
@@ -74,6 +98,24 @@ function createGlbViewerScene(aperture, app, targetCanvas) {
     }),
   );
   updateOrbitCamera(aperture, cameraEntity, orbit);
+  app.spawn(
+    aperture.withLight({
+      kind: aperture.LightKind.Ambient,
+      color: [0.48, 0.52, 0.58, 1],
+      intensity: 0.24,
+      layerMask: 1,
+    }),
+  );
+  app.spawn(
+    aperture.withTransform({ translation: [0.2, 1.2, 3.4] }),
+    aperture.withLight({
+      kind: aperture.LightKind.Point,
+      color: [1, 0.92, 0.76, 1],
+      intensity: 18,
+      range: 8,
+      layerMask: 1,
+    }),
+  );
 
   const scene = {
     asset: sampleAssets[0],
@@ -240,6 +282,15 @@ async function loadAsset(aperture, app, scene, asset) {
     app,
     plan: commandPlan,
   });
+  const animation = createGltfAnimationState({
+    aperture,
+    root: loaded.loader.glbImportReport.container.container.json,
+    binary: loaded.loader.glbImportReport.container.container.binaryChunk,
+    keyPrefix,
+    replay,
+  });
+
+  updateActiveAnimation(aperture, animation, 0);
   aperture.resolveWorldTransforms(app.world);
   const fit = fitOrbitToReplayBounds(aperture, app, replay, scene.orbit);
 
@@ -251,6 +302,7 @@ async function loadAsset(aperture, app, scene, asset) {
     primitiveMaterials,
     commandPlan,
     replay,
+    animation,
     fit,
   };
   scene.loadState = null;
@@ -274,6 +326,11 @@ function startRendering(aperture, app, scene) {
   const render = async () => {
     try {
       frame += 1;
+      updateActiveAnimation(
+        aperture,
+        scene.active?.animation ?? null,
+        frame / 60,
+      );
       updateOrbitCamera(aperture, scene.cameraEntity, scene.orbit);
       const step = app.step(0, frame / 60);
       const report = await app.render({
@@ -319,6 +376,7 @@ function createStatus(aperture, app, scene, step, report, frame) {
       source: scene.asset.source,
       url: formatAssetUrl(scene.asset.url),
       loading: scene.loadState?.phase === "loading",
+      materialFamilies: createMaterialFamilyStatus(aperture, app, active),
     },
     source: {
       url: formatAssetUrl(active?.asset.url ?? scene.asset.url),
@@ -337,6 +395,7 @@ function createStatus(aperture, app, scene, step, report, frame) {
         valid: active?.primitiveMaterials.valid ?? false,
         resolved: active?.primitiveMaterials.resolved.length ?? 0,
         diagnostics: active?.primitiveMaterials.diagnostics.length ?? 0,
+        families: createMaterialFamilyStatus(aperture, app, active),
       },
       commandPlan: {
         valid: active?.commandPlan.valid ?? false,
@@ -356,9 +415,12 @@ function createStatus(aperture, app, scene, step, report, frame) {
       fit: scene.orbit.fit,
       dragging: scene.orbit.dragging,
     },
+    animation: createAnimationStatus(active?.animation ?? null),
+    hierarchy: createHierarchyStatus(aperture, active),
     extraction: {
       views: report.snapshot.views.length,
       meshDraws: report.snapshot.meshDraws.length,
+      lights: report.snapshot.lights.length,
       diagnostics: report.snapshot.diagnostics.length,
     },
     draw: {
@@ -375,6 +437,364 @@ function createStatus(aperture, app, scene, step, report, frame) {
       height: canvas?.height ?? 0,
     },
   };
+}
+
+function createGltfAnimationState(options) {
+  const clips = parseGltfAnimationClips(options);
+  const activeClip = clips[0] ?? null;
+
+  return {
+    status: activeClip === null ? "absent" : "playing",
+    clipCount: clips.length,
+    activeClip,
+    time: 0,
+    animatedNodes: [],
+  };
+}
+
+function parseGltfAnimationClips({
+  aperture,
+  root,
+  binary,
+  keyPrefix,
+  replay,
+}) {
+  if (!isRecord(root) || !Array.isArray(root.animations)) {
+    return [];
+  }
+
+  const clips = [];
+
+  root.animations.forEach((animation, animationIndex) => {
+    if (!isRecord(animation)) {
+      return;
+    }
+
+    const samplers = Array.isArray(animation.samplers)
+      ? animation.samplers
+      : [];
+    const channels = Array.isArray(animation.channels)
+      ? animation.channels
+      : [];
+    const parsedChannels = [];
+
+    channels.forEach((channel) => {
+      if (!isRecord(channel) || !isRecord(channel.target)) {
+        return;
+      }
+
+      const samplerIndex = integerOrNull(channel.sampler);
+      const nodeIndex = integerOrNull(channel.target.node);
+      const path = channel.target.path;
+
+      if (
+        samplerIndex === null ||
+        nodeIndex === null ||
+        path !== "translation"
+      ) {
+        return;
+      }
+
+      const sampler = samplers[samplerIndex];
+      if (!isRecord(sampler)) {
+        return;
+      }
+
+      const inputAccessor = integerOrNull(sampler.input);
+      const outputAccessor = integerOrNull(sampler.output);
+      if (inputAccessor === null || outputAccessor === null) {
+        return;
+      }
+
+      const times = readGltfFloatAccessorTuples(
+        root,
+        binary,
+        inputAccessor,
+        "SCALAR",
+      ).map((tuple) => tuple[0]);
+      const translations = readGltfFloatAccessorTuples(
+        root,
+        binary,
+        outputAccessor,
+        "VEC3",
+      );
+      const entityKey = `${keyPrefix}:node:${nodeIndex}`;
+      const entity = replay.entitiesByKey.get(entityKey) ?? null;
+
+      if (
+        times.length < 2 ||
+        times.length !== translations.length ||
+        entity === null ||
+        !entity.hasComponent(aperture.LocalTransform)
+      ) {
+        return;
+      }
+
+      parsedChannels.push({
+        nodeIndex,
+        entityKey,
+        path,
+        times,
+        translations,
+        entity,
+      });
+    });
+
+    if (parsedChannels.length === 0) {
+      return;
+    }
+
+    clips.push({
+      name:
+        typeof animation.name === "string" && animation.name.length > 0
+          ? animation.name
+          : `Animation${animationIndex}`,
+      duration: Math.max(
+        ...parsedChannels.map((channel) => channel.times.at(-1) ?? 0),
+      ),
+      channels: parsedChannels,
+    });
+  });
+
+  return clips;
+}
+
+function updateActiveAnimation(aperture, animation, elapsedSeconds) {
+  const clip = animation?.activeClip ?? null;
+
+  if (animation === null || clip === null) {
+    return;
+  }
+
+  const duration = Math.max(0, clip.duration);
+  const localTime =
+    duration > 0 ? ((elapsedSeconds % duration) + duration) % duration : 0;
+  const animatedNodes = [];
+
+  for (const channel of clip.channels) {
+    const translation = sampleTranslationChannel(channel, localTime);
+
+    channel.entity
+      .getVectorView(aperture.LocalTransform, "translation")
+      .set(translation);
+    animatedNodes.push({
+      nodeIndex: channel.nodeIndex,
+      entityKey: channel.entityKey,
+      path: channel.path,
+      value: roundTuple(translation, 3),
+    });
+  }
+
+  animation.time = Number(localTime.toFixed(3));
+  animation.animatedNodes = animatedNodes;
+}
+
+function sampleTranslationChannel(channel, time) {
+  if (time <= channel.times[0]) {
+    return channel.translations[0];
+  }
+
+  for (let index = 1; index < channel.times.length; index += 1) {
+    const nextTime = channel.times[index];
+
+    if (time > nextTime) {
+      continue;
+    }
+
+    const previousTime = channel.times[index - 1];
+    const previous = channel.translations[index - 1];
+    const next = channel.translations[index];
+    const t =
+      nextTime === previousTime
+        ? 0
+        : (time - previousTime) / (nextTime - previousTime);
+
+    return [
+      previous[0] + (next[0] - previous[0]) * t,
+      previous[1] + (next[1] - previous[1]) * t,
+      previous[2] + (next[2] - previous[2]) * t,
+    ];
+  }
+
+  return channel.translations.at(-1) ?? [0, 0, 0];
+}
+
+function createAnimationStatus(animation) {
+  const clip = animation?.activeClip ?? null;
+
+  if (animation === null || clip === null) {
+    return {
+      status: "absent",
+      clipCount: 0,
+      activeClipName: null,
+      time: 0,
+      duration: 0,
+      channelCount: 0,
+      animatedNodes: [],
+    };
+  }
+
+  return {
+    status: animation.status,
+    clipCount: animation.clipCount,
+    activeClipName: clip.name,
+    time: animation.time,
+    duration: Number(clip.duration.toFixed(3)),
+    channelCount: clip.channels.length,
+    animatedNodes: animation.animatedNodes,
+  };
+}
+
+function readGltfFloatAccessorTuples(
+  root,
+  binary,
+  accessorIndex,
+  expectedType,
+) {
+  if (binary === null || !isRecord(root) || !Array.isArray(root.accessors)) {
+    return [];
+  }
+
+  const accessor = root.accessors[accessorIndex];
+  const bufferViews = Array.isArray(root.bufferViews) ? root.bufferViews : [];
+
+  if (!isRecord(accessor)) {
+    return [];
+  }
+
+  const bufferViewIndex = integerOrNull(accessor.bufferView);
+  const count = integerOrNull(accessor.count);
+  const componentType = accessor.componentType;
+  const type = accessor.type;
+  const componentCount = componentCountForAccessorType(type);
+
+  if (
+    bufferViewIndex === null ||
+    count === null ||
+    count <= 0 ||
+    componentType !== 5126 ||
+    type !== expectedType ||
+    componentCount === null
+  ) {
+    return [];
+  }
+
+  const bufferView = bufferViews[bufferViewIndex];
+  if (!isRecord(bufferView)) {
+    return [];
+  }
+
+  const viewOffset = integerOrZero(bufferView.byteOffset);
+  const accessorOffset = integerOrZero(accessor.byteOffset);
+  const viewLength = integerOrNull(bufferView.byteLength);
+  const elementByteLength = componentCount * 4;
+  const stride = integerOrNull(bufferView.byteStride) ?? elementByteLength;
+  const start = viewOffset + accessorOffset;
+
+  if (
+    viewLength === null ||
+    start < 0 ||
+    stride < elementByteLength ||
+    accessorOffset + (count - 1) * stride + elementByteLength > viewLength ||
+    start + (count - 1) * stride + elementByteLength > binary.byteLength
+  ) {
+    return [];
+  }
+
+  const data = new DataView(
+    binary.buffer,
+    binary.byteOffset,
+    binary.byteLength,
+  );
+  const tuples = [];
+
+  for (let itemIndex = 0; itemIndex < count; itemIndex += 1) {
+    const itemOffset = start + itemIndex * stride;
+    const tuple = [];
+
+    for (let component = 0; component < componentCount; component += 1) {
+      tuple.push(data.getFloat32(itemOffset + component * 4, true));
+    }
+
+    if (tuple.every(Number.isFinite)) {
+      tuples.push(tuple);
+    }
+  }
+
+  return tuples;
+}
+
+function componentCountForAccessorType(type) {
+  switch (type) {
+    case "SCALAR":
+      return 1;
+    case "VEC3":
+      return 3;
+    default:
+      return null;
+  }
+}
+
+function createHierarchyStatus(aperture, active) {
+  if (active === null) {
+    return { nodes: [] };
+  }
+
+  const nodes =
+    active.loaded.loader?.glbImportReport.importReport?.sceneTraversal.nodes ??
+    [];
+
+  return {
+    nodes: nodes.map((node) => {
+      const entity = active.replay.entitiesByKey.get(node.entityKey) ?? null;
+      const worldMatrix =
+        entity === null || !entity.hasComponent(aperture.WorldTransform)
+          ? null
+          : readWorldMatrix(aperture, entity);
+
+      return {
+        nodeIndex: node.nodeIndex,
+        entityKey: node.entityKey,
+        parentEntityKey: node.parentEntityKey,
+        localTranslation:
+          entity === null || !entity.hasComponent(aperture.LocalTransform)
+            ? null
+            : roundTuple(
+                Array.from(
+                  entity.getVectorView(aperture.LocalTransform, "translation"),
+                ),
+                3,
+              ),
+        worldTranslation:
+          worldMatrix === null
+            ? null
+            : roundTuple(
+                [worldMatrix[12], worldMatrix[13], worldMatrix[14]],
+                3,
+              ),
+      };
+    }),
+  };
+}
+
+function createMaterialFamilyStatus(aperture, app, active) {
+  if (active === null) {
+    return [];
+  }
+
+  const counts = new Map();
+
+  for (const material of active.primitiveMaterials.resolved) {
+    const materialId = material.materialHandleKey.replace(/^material:/, "");
+    const entry = app.assets.get(aperture.createMaterialHandle(materialId));
+    const family = entry?.asset?.kind ?? "missing";
+
+    counts.set(family, (counts.get(family) ?? 0) + 1);
+  }
+
+  return [...counts.entries()]
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([family, count]) => ({ family, count }));
 }
 
 function createOrbitControls(targetCanvas) {
@@ -603,6 +1023,22 @@ function wrapRadians(value) {
 
 function clamp(value, min, max) {
   return Math.min(Math.max(value, min), max);
+}
+
+function integerOrNull(value) {
+  return Number.isInteger(value) && typeof value === "number" && value >= 0
+    ? value
+    : null;
+}
+
+function integerOrZero(value) {
+  return Number.isInteger(value) && typeof value === "number" && value >= 0
+    ? value
+    : 0;
+}
+
+function isRecord(value) {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
 }
 
 function readInitialCustomUrl() {

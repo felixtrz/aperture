@@ -1,5 +1,164 @@
 # Completed Tasks
 
+## task-2025 — Preserve GLB node hierarchy transforms during viewer replay
+
+Completed: 2026-05-19
+
+Summary:
+
+- Added `examples/assets/hierarchy-cube.glb`, a parent/child GLB hierarchy
+  fixture with a mesh on the child node.
+- Added JSON-safe hierarchy status to `examples/glb-viewer.js`, reporting
+  replayed node entity keys plus local and world translations from ECS
+  `LocalTransform` and `WorldTransform` components.
+- Extended GLB viewer Playwright coverage to select the hierarchy sample and
+  verify the child node's world translation includes the parent translation.
+
+References inspected:
+
+- `references/bevy/crates/bevy_gltf/src/loader/mod.rs`
+- `references/bevy/crates/bevy_transform/src/systems.rs`
+
+Validation:
+
+- `node --check examples/glb-viewer.js`
+- GLB JSON parse check for `examples/assets/hierarchy-cube.glb`
+- `pnpm run typecheck:test`
+- `pnpm run check:examples`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts`
+
+Known follow-up:
+
+- `task-2026` should add a shadow-receiver floor for the lit GLB viewer sample.
+
+## task-2024 — Render a multi-primitive GLB sample in glb-viewer
+
+Completed: 2026-05-19
+
+Summary:
+
+- Added `examples/assets/dual-primitive.glb`, a local GLB fixture with two mesh
+  primitives and two distinct unlit source materials.
+- Added the sample to `glb-viewer` without adding a new replay path; the
+  existing ECS command-plan replay now extracts two mesh draws from the sample.
+- Extended Playwright coverage to assert two resolved primitive materials, two
+  extracted mesh draws, two draw calls, and visibly distinct material regions.
+
+References inspected:
+
+- `references/bevy/crates/bevy_gltf/src/loader/mod.rs`
+- `references/three.js/examples/jsm/loaders/GLTFLoader.js`
+
+Validation:
+
+- `node --check examples/glb-viewer.js`
+- GLB JSON parse check for `examples/assets/dual-primitive.glb`
+- `pnpm run typecheck:test`
+- `pnpm run check:examples`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts`
+
+Known follow-up:
+
+- `task-2025` should prove GLB parent/child hierarchy transforms in viewer
+  replay.
+
+## task-2023 — Play the first GLB animation clip in glb-viewer
+
+Completed: 2026-05-19
+
+Summary:
+
+- Added `examples/assets/animated-cube.glb`, a local GLB fixture with one
+  translation animation clip.
+- Added example-local animation clip parsing for GLB translation channels,
+  sampling Float32 accessor data from the parsed GLB BIN chunk and applying the
+  first clip to replayed ECS node `LocalTransform` data before render.
+- Published JSON-safe animation status with active clip name, clip time,
+  channel count, and animated node transform values.
+- Extended Playwright coverage to verify animation status and rendered pixels
+  change over time.
+
+References inspected:
+
+- `references/bevy/crates/bevy_animation/src/lib.rs`
+- `references/three.js/examples/jsm/loaders/GLTFLoader.js`
+
+Validation:
+
+- `node --check examples/glb-viewer.js`
+- GLB JSON parse check for `examples/assets/animated-cube.glb`
+- `pnpm run typecheck:test`
+- `pnpm run check:examples`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts`
+
+Known follow-up:
+
+- `task-2024` should add a multi-primitive GLB sample to `glb-viewer`.
+
+## task-2022 — Add a lit StandardMaterial GLB sample to glb-viewer
+
+Completed: 2026-05-19
+
+Summary:
+
+- Added `examples/assets/lit-brass-cube.glb`, a local single-mesh GLB whose
+  source material resolves to StandardMaterial instead of the unlit path.
+- Added ECS-authored ambient and point lights to `examples/glb-viewer.js` so
+  StandardMaterial samples render through the lit route.
+- Published selected-asset and GLTF primitive material-family status plus
+  extracted light count in the GLB viewer's JSON-safe status.
+- Extended GLB viewer Playwright coverage to select the lit brass sample,
+  assert the StandardMaterial route and material family, and compare visible
+  pixels against unlit samples.
+
+References inspected:
+
+- `references/three.js/examples/jsm/loaders/GLTFLoader.js`
+
+Validation:
+
+- `node --check examples/glb-viewer.js`
+- GLB JSON parse check for `examples/assets/lit-brass-cube.glb`
+- `pnpm run typecheck:test`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts`
+- `pnpm run check:progress`
+- `pnpm run check:examples`
+- `pnpm run lint`
+- `pnpm run format:check`
+
+Known follow-up:
+
+- `task-2023` should add first-clip GLB animation playback in `glb-viewer`.
+
+## task-2021 — Render IBL and shadows together in one StandardMaterial browser scene
+
+Completed: 2026-05-19
+
+Summary:
+
+- Verified the existing `examples/gltf-scene.js` route already renders
+  StandardMaterial diffuse IBL, specular IBL proof sampling, and active shadow
+  receiver sampling together in one browser-safe pipeline.
+- Confirmed draw bind groups remain bounded to groups 0 through 3 under
+  Chrome's four-bind-group limit.
+- Re-ran targeted StandardMaterial route, bind-group, and browser tests to
+  validate the combined `iblDiffuse|iblSpecularProof|shadowMap` proof.
+
+References inspected:
+
+- `references/three.js/src/extras/PMREMGenerator.js`
+- `references/engine/src/scene/renderer/shadow-renderer.js`
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/standard-shader.test.ts test/webgpu/standard-pipeline.test.ts test/webgpu/standard-light-shadow-bind-group.test.ts`
+- `pnpm exec playwright test test/e2e/gltf-scene.spec.ts`
+
+Known follow-up:
+
+- `task-2022` added a lit StandardMaterial GLB viewer sample; `task-2023`
+  should tackle first-clip animation playback next.
+
 ## task-2020 — Fit glb-viewer orbit camera from loaded asset bounds
 
 Completed: 2026-05-19

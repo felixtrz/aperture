@@ -59,7 +59,7 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start with `task-2021`: render IBL and shadows together in one StandardMaterial browser scene.
+Start with `task-2026`: add a shadow-receiver floor for the lit GLB viewer sample.
 
 `task-2001` is complete: the spinning-cube example now creates a renderer-owned face-colored diffuse IBL cube texture and sampler, routes it through the StandardMaterial diffuse IBL shader variant, and Playwright verifies direction-dependent face pixels.
 `task-2002` is complete: `withEnvironmentMap(handle)` is exported from runtime/core and materials-showcase now uses it with visible diffuse IBL routing.
@@ -79,6 +79,11 @@ Start with `task-2021`: render IBL and shadows together in one StandardMaterial 
 `task-2018` is complete: `withShadowCaster()` and `withShadowReceiver()` are public runtime helpers, extracted mesh draws carry JSON-safe caster/receiver flags, and the GLTF scene toggles now update ECS-authored flags that drive caster draw-list and receiver pipeline routing.
 `task-2019` is complete: `examples/glb-viewer.html?url=...` now seeds the custom URL field, loads through the same guarded ECS replay path, and Playwright verifies query-driven initial render status and pixels.
 `task-2020` is complete: `glb-viewer` now fits its orbit target, distance, and zoom limits from replayed GLB mesh bounds, reports JSON-safe fit status, and Playwright verifies differently sized GLBs remain visibly framed near the render center.
+`task-2021` is complete: `gltf-scene` now proves the combined StandardMaterial `iblDiffuse|iblSpecularProof|shadowMap` browser route with draw bind groups bounded to groups 0 through 3 and Playwright-covered IBL plus receiver-shadow samples.
+`task-2022` is complete: `glb-viewer` now includes a lit brass StandardMaterial GLB sample, ECS-authored lights, material-family status, and Playwright coverage proving the StandardMaterial sample renders differently from unlit samples.
+`task-2023` is complete: `glb-viewer` now includes an animated local GLB, applies the first translation clip to replayed ECS node transforms, reports active clip status, and Playwright proves transform status plus pixels move over time.
+`task-2024` is complete: `glb-viewer` now includes a dual-primitive GLB with two source materials, reports two resolved primitive materials and two extracted draws, and Playwright verifies two distinct visible material regions.
+`task-2025` is complete: `glb-viewer` now includes a parent/child hierarchy GLB, reports JSON-safe local and world transform summaries for replayed nodes, and Playwright verifies the child world transform depends on its parent.
 
 Reference anchors (read both before writing WGSL):
 
@@ -401,6 +406,8 @@ Acceptance criteria:
 
 ### task-2021 — Render IBL and shadows together in one StandardMaterial browser scene
 
+Status: completed 2026-05-19. See `agent/COMPLETED.md`.
+
 Category: `webgpu-render`
 Package/write-scope: `packages/webgpu/src/`, one example, targeted tests.
 Reference anchor: `references/three.js/src/extras/PMREMGenerator.js`; `references/engine/src/scene/renderer/shadow-renderer.js`.
@@ -413,6 +420,8 @@ Acceptance criteria:
 
 ### task-2022 — Add a lit StandardMaterial GLB sample to glb-viewer
 
+Status: completed 2026-05-19. See `agent/COMPLETED.md`.
+
 Category: `runtime-orchestration`
 Package/write-scope: `examples/assets/`, `examples/glb-viewer.js`, `test/e2e/glb-viewer.spec.ts`.
 Reference anchor: `references/three.js/examples/jsm/loaders/GLTFLoader.js` (material resolution from loaded glTF assets).
@@ -423,7 +432,112 @@ Acceptance criteria:
 - Viewer status reports the selected sample material family and a successful replay with one rendered mesh draw.
 - Playwright selects the lit sample and verifies rendered pixels differ from the unlit samples.
 
-Future MVP slices (animation playback for glb-viewer, IBL composition with shadow receivers, performance pass) remain candidates after these visible feature tasks.
+### task-2023 — Play the first GLB animation clip in glb-viewer
+
+Status: completed 2026-05-19. See `agent/COMPLETED.md`.
+
+Category: `runtime-orchestration`
+Package/write-scope: `packages/render/src/assets/`, `examples/assets/`, `examples/glb-viewer.js`, `test/e2e/glb-viewer.spec.ts`.
+Reference anchor: `references/bevy/crates/bevy_animation/src/lib.rs`; `references/three.js/examples/jsm/loaders/GLTFLoader.js` (animation clip loading and playback contracts).
+
+Acceptance criteria:
+
+- A small animated local `.glb` sample is available in `examples/assets/` and selectable in `glb-viewer`.
+- `glb-viewer` applies the first animation clip through ECS-authored transform updates without introducing a renderer-owned scene graph.
+- Viewer status reports the active clip name, time, channel count, and at least one animated node transform.
+- Playwright verifies the animated sample changes transform status and rendered pixels over time without WebGPU validation warnings.
+
+### task-2024 — Render a multi-primitive GLB sample in glb-viewer
+
+Status: completed 2026-05-19. See `agent/COMPLETED.md`.
+
+Category: `render-bridge`
+Package/write-scope: `examples/assets/`, `examples/glb-viewer.js`, `test/e2e/glb-viewer.spec.ts`, targeted render-asset tests if needed.
+Reference anchor: `references/bevy/crates/bevy_gltf/src/loader/mod.rs`; `references/three.js/examples/jsm/loaders/GLTFLoader.js` (mesh primitive/material index mapping).
+
+Acceptance criteria:
+
+- `glb-viewer` includes a local GLB sample with at least two mesh primitives using distinct source materials.
+- ECS replay registers and extracts both primitives as separate mesh draws without losing material handles.
+- Viewer status reports two resolved primitive materials and two extracted mesh draws.
+- Playwright selects the sample and verifies two distinct visible colored regions in the render area.
+
+### task-2025 — Preserve GLB node hierarchy transforms during viewer replay
+
+Status: completed 2026-05-19. See `agent/COMPLETED.md`.
+
+Category: `simulation`
+Package/write-scope: `packages/render/src/assets/`, `packages/runtime/src/` if replay transform helpers are needed, `examples/assets/`, `test/e2e/glb-viewer.spec.ts`.
+Reference anchor: `references/bevy/crates/bevy_gltf/src/loader/mod.rs`; `references/bevy/crates/bevy_transform/src/systems.rs` (hierarchical transform propagation).
+
+Acceptance criteria:
+
+- A local GLB hierarchy sample demonstrates a child mesh whose world transform depends on a parent node transform.
+- ECS replay preserves parent/child transform relationships through the existing simulation transform propagation path.
+- Viewer status reports local and world transform summaries for the replayed hierarchy.
+- Playwright verifies the hierarchy sample is framed and visibly differs from the same mesh without the parent transform.
+
+### task-2026 — Add a shadow-receiver floor for the lit GLB viewer sample
+
+Category: `runtime-orchestration`
+Package/write-scope: `examples/glb-viewer.js`, `test/e2e/glb-viewer.spec.ts`, targeted WebGPU tests if routing changes.
+Reference anchor: `references/bevy/examples/3d/shadow_caster_receiver.rs`; `references/engine/src/scene/renderer/shadow-renderer.js`.
+
+Acceptance criteria:
+
+- Selecting the lit brass GLB sample creates ECS-authored shadow caster/receiver state and a simple receiver floor without making the renderer own scene state.
+- Viewer status reports at least one shadow request, one caster draw, and one receiver route for the selected sample.
+- Playwright verifies a lit model sample and a shadow-darkened floor sample in the same frame with no WebGPU validation warnings.
+
+### task-2027 — Route glb-viewer StandardMaterial samples through IBL
+
+Category: `webgpu-render`
+Package/write-scope: `examples/glb-viewer.js`, `packages/webgpu/src/` if a route gap is exposed, `test/e2e/glb-viewer.spec.ts`.
+Reference anchor: `references/three.js/src/extras/PMREMGenerator.js`; `references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/reflectionEnv.js`.
+
+Acceptance criteria:
+
+- The lit StandardMaterial GLB viewer sample can use the existing renderer-owned environment resource path.
+- Routed pipeline status includes the active IBL feature for the StandardMaterial sample while staying within Chrome's four bind groups.
+- Playwright verifies a visible pixel delta between direct-lit-only and IBL-enabled viewer states.
+
+### task-2028 — Render a mixed alpha-state GLB sample in glb-viewer
+
+Category: `render-bridge`
+Package/write-scope: `examples/assets/`, `examples/glb-viewer.js`, `test/e2e/glb-viewer.spec.ts`, targeted render-state tests if needed.
+Reference anchor: `references/bevy/crates/bevy_gltf/src/loader/mod.rs`; `references/three.js/examples/jsm/loaders/GLTFLoader.js` (material alphaMode and primitive material assignment).
+
+Acceptance criteria:
+
+- `glb-viewer` includes a local GLB sample with at least one opaque primitive and one alpha-state primitive using distinct source materials.
+- Viewer status reports both primitive material resolutions and routed pipeline keys for the mixed render states.
+- Playwright selects the sample and verifies visible pixels from both primitives with no WebGPU validation warnings.
+
+### task-2029 — Add a camera reset control to glb-viewer
+
+Category: `runtime-orchestration`
+Package/write-scope: `examples/glb-viewer.html`, `examples/glb-viewer.js`, `test/e2e/glb-viewer.spec.ts`.
+Reference anchor: `references/three.js/examples/webgl_loader_gltf.html` (`fitCameraToSelection` and viewer camera reset behavior).
+
+Acceptance criteria:
+
+- `glb-viewer` exposes a reset/home camera control that restores the current asset's fitted orbit target, distance, yaw, and zoom limits.
+- The control updates only ECS camera transform state and the existing orbit controller state.
+- Playwright drags/zooms the camera, activates reset, and verifies status and rendered pixels return near the fitted view.
+
+### task-2030 — Add ECS light controls for the lit GLB viewer sample
+
+Category: `runtime-orchestration`
+Package/write-scope: `examples/glb-viewer.html`, `examples/glb-viewer.js`, `test/e2e/glb-viewer.spec.ts`.
+Reference anchor: `references/bevy/crates/bevy_pbr/src/light_probe/mod.rs`; `references/bevy/crates/bevy_pbr/src/render/light.rs`.
+
+Acceptance criteria:
+
+- `glb-viewer` exposes compact controls for the ECS-authored point light intensity and ambient fill used by StandardMaterial samples.
+- Changing controls mutates ECS light components rather than renderer-owned scene state.
+- Playwright verifies light status changes and the lit brass sample pixels respond measurably.
+
+Future MVP slices (IBL composition quality, animation breadth, and performance reporting) remain candidates after these visible feature tasks.
 
 ## Ready Tasks By Category
 

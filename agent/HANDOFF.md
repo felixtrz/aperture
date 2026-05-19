@@ -1,6 +1,77 @@
 # Agent Handoff
 
-Updated: 2026-05-19T22:59:01Z
+Updated: 2026-05-19T23:30:22Z
+
+## Current Run Update — 2026-05-19T23:30:22Z — IBL/shadow proof and GLB viewer fidelity samples
+
+Completed `task-2021`, `task-2022`, `task-2023`, `task-2024`, and
+`task-2025`.
+
+### What changed
+
+- Validated that `examples/gltf-scene.js` already renders StandardMaterial
+  diffuse IBL, specular IBL proof sampling, and active receiver shadow sampling
+  together through the browser-safe
+  `standard|iblDiffuse|iblSpecularProof|shadowMap|opaque|back|less|none`
+  route.
+- Confirmed the combined IBL/shadow draw still binds only groups 0 through 3,
+  so it remains under Chrome's four-bind-group limit.
+- Added `examples/assets/lit-brass-cube.glb`, a local GLB sample whose source
+  material resolves to StandardMaterial.
+- Added ECS-authored ambient and point lights to `examples/glb-viewer.js`, plus
+  JSON-safe selected-asset and primitive material-family status.
+- Extended `test/e2e/glb-viewer.spec.ts` so the viewer selects the lit brass
+  sample, asserts the StandardMaterial route, verifies two extracted lights, and
+  proves the rendered pixels differ from unlit samples.
+- Added `examples/assets/animated-cube.glb` plus example-local first-clip
+  translation playback that samples GLB animation accessors and writes replayed
+  ECS `LocalTransform` data before render. Status now reports active clip name,
+  time, channel count, and animated node values.
+- Added `examples/assets/dual-primitive.glb` and Playwright coverage proving
+  two resolved primitive materials, two extracted mesh draws, two draw calls,
+  and visibly distinct material regions in `glb-viewer`.
+- Added `examples/assets/hierarchy-cube.glb` and JSON-safe hierarchy status
+  that reports replayed node local/world translations; Playwright verifies the
+  child world transform includes its parent transform.
+- Updated `docs/index.html`, `docs/render-pipeline-comparison.html`,
+  `agent/BACKLOG.md`, and `agent/COMPLETED.md`.
+
+### References inspected
+
+- `references/three.js/src/extras/PMREMGenerator.js`
+- `references/engine/src/scene/renderer/shadow-renderer.js`
+- `references/three.js/examples/jsm/loaders/GLTFLoader.js`
+- `references/bevy/crates/bevy_animation/src/lib.rs`
+- `references/bevy/crates/bevy_gltf/src/loader/mod.rs`
+- `references/bevy/crates/bevy_transform/src/systems.rs`
+
+### Validation
+
+- `pnpm exec vitest run test/webgpu/standard-shader.test.ts test/webgpu/standard-pipeline.test.ts test/webgpu/standard-light-shadow-bind-group.test.ts`
+- `pnpm exec playwright test test/e2e/gltf-scene.spec.ts`
+- `node --check examples/glb-viewer.js`
+- GLB JSON parse check for `examples/assets/lit-brass-cube.glb`
+- `pnpm run typecheck:test`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts`
+- `pnpm run check:progress`
+- `pnpm run format:check`
+- `pnpm run check:examples`
+- `pnpm run lint`
+- GLB JSON parse checks for `examples/assets/animated-cube.glb`,
+  `examples/assets/dual-primitive.glb`, and
+  `examples/assets/hierarchy-cube.glb`
+
+### Known issues
+
+- No known regressions from these slices.
+- Stopping at the end-of-run review because the next ready slices touch
+  shadow/IBL viewer routing and need their own coherent validation window.
+- Viewer shadows, viewer IBL, mixed alpha-state GLB replay, camera reset, and
+  ECS light controls are queued as visible follow-up work.
+
+### Recommended next task
+
+`task-2026 — Add a shadow-receiver floor for the lit GLB viewer sample`.
 
 ## Current Run Update — 2026-05-19T22:59:01Z — GLB viewer orbit fitting
 
