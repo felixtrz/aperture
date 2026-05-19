@@ -59,7 +59,7 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start with `task-2013`: add spot-light shadow projection and render a visible spot-light shadow.
+Start with `task-2014`: build a combined directional, point, and spot shadow scene.
 
 `task-2001` is complete: the spinning-cube example now creates a renderer-owned face-colored diffuse IBL cube texture and sampler, routes it through the StandardMaterial diffuse IBL shader variant, and Playwright verifies direction-dependent face pixels.
 `task-2002` is complete: `withEnvironmentMap(handle)` is exported from runtime/core and materials-showcase now uses it with visible diffuse IBL routing.
@@ -73,6 +73,7 @@ Start with `task-2013`: add spot-light shadow projection and render a visible sp
 `task-2010` is complete: `gltf-scene` now reports active directional shadow rendering through the submitted shadow depth pass and StandardMaterial shadow-map pipeline, and Playwright asserts the receiver region darkens.
 `task-2011` is complete: StandardMaterial directional shadow sampling now uses a 3x3 PCF comparison filter, publishes the active PCF mode in `gltf-scene`, and targeted browser coverage still passes.
 `task-2017` is complete: StandardMaterial point-shadow sampling now compares against clamped projected cube-face receiver depth instead of a constant occupancy reference, and Playwright samples named receiver coordinates to prove near wall pixels remain lit while mid/far samples darken without WebGPU warnings.
+`task-2013` is complete: `examples/spot-shadow.html` now extracts spot shadow requests, plans a single 2D shadow pass with a perspective spot matrix, routes StandardMaterial spot lighting plus receiver sampling, and Playwright verifies lit and shadowed receiver samples without WebGPU warnings.
 
 Reference anchors (read both before writing WGSL):
 
@@ -293,16 +294,18 @@ Acceptance criteria:
 
 ### task-2013 — Add spot-light shadow projection and render visible spot-light shadow
 
+Status: completed 2026-05-19. See `agent/COMPLETED.md`.
+
 Category: `webgpu-render`
 Package/write-scope: `packages/webgpu/src/`, an example update, targeted tests.
 Reference anchor: `references/three.js/src/lights/SpotLightShadow.js`; `references/engine/src/scene/renderer/shadow-renderer-local.js`.
 
 Acceptance criteria:
 
-- Spot light placed above the gltf-scene cube produces a visible conical shadow region.
-- Playwright pixel inside the cone is bright, outside is dark.
+- Spot light placed above the spot-shadow cube produces a visible conical shadow region.
+- Playwright samples named receiver pixels and proves lit/shadowed separation.
 
-### task-2014 — Combined multi-light scene: directional + point + spot all casting PCF shadows
+### task-2014 — Combined multi-light scene: directional + point + spot all casting shadows
 
 Category: `webgpu-render`
 Package/write-scope: `packages/webgpu/src/`, `examples/multi-light-shadow.html`, `examples/multi-light-shadow.js`, `test/e2e/multi-light-shadow.spec.ts`.
@@ -338,6 +341,18 @@ Acceptance criteria:
 - `glb-viewer` accepts a typed `.glb` URL in addition to the three committed sample assets.
 - Loading a custom URL destroys the previous replayed ECS scene and reports the selected URL in JSON-safe status.
 - Playwright loads a local sample URL through the custom URL control and asserts one rendered mesh draw plus changed pixels.
+
+### task-2018 — Add public shadow caster/receiver authoring helpers
+
+Category: `render-bridge`
+Package/write-scope: `packages/render/src/rendering/`, `packages/runtime/src/`, `examples/gltf-scene.js`, targeted tests.
+Reference anchor: `references/bevy/examples/3d/shadow_caster_receiver.rs`.
+
+Acceptance criteria:
+
+- Public helpers can mark ECS-authored renderables as shadow casters, shadow receivers, or both without renderer-owned scene state.
+- `examples/gltf-scene.html` uses the helpers for its caster/receiver controls instead of filtering only example-local renderer inputs.
+- Targeted extraction/runtime tests prove shadow caster/receiver flags appear in render snapshot data and remain JSON-safe.
 
 Future MVP slices (animation playback for glb-viewer, IBL composition with shadow receivers, performance pass) remain candidates after these visible feature tasks.
 

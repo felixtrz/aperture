@@ -383,7 +383,7 @@ function appendShadowRequest(
     return;
   }
 
-  if (kind !== "directional" && kind !== "point") {
+  if (kind !== "directional" && kind !== "point" && kind !== "spot") {
     diagnoseUnsupportedShadowRequest(entity, kind, settings, diagnostics);
     return;
   }

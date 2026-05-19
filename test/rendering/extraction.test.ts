@@ -1468,7 +1468,7 @@ describe("render extraction", () => {
     expect(snapshot.report).toMatchObject({ lights: 2, diagnostics: 0 });
   });
 
-  it("extracts directional shadow requests and diagnoses unsupported shadow light kinds", () => {
+  it("extracts directional and spot shadow requests and diagnoses unsupported shadow light kinds", () => {
     const world = createRuntimeWorld();
     const directionalLight = createLightEntity(world, {
       kind: LightKind.Directional,
@@ -1484,6 +1484,14 @@ describe("render extraction", () => {
       kind: LightKind.Point,
       intensity: 1,
       range: 2,
+      layerMask: 1,
+    });
+    const spotLight = createLightEntity(world, {
+      kind: LightKind.Spot,
+      intensity: 1,
+      range: 8,
+      innerConeAngle: 0.25,
+      outerConeAngle: 0.5,
       layerMask: 1,
     });
 
@@ -1503,25 +1511,44 @@ describe("render extraction", () => {
       LightShadowSettings,
       createLightShadowSettings({ enabled: false }),
     );
+    spotLight.addComponent(
+      LightShadowSettings,
+      createLightShadowSettings({
+        enabled: true,
+        casterLayerMask: 0b0110,
+        receiverLayerMask: 0b1001,
+      }),
+    );
 
     const snapshot = extractRenderSnapshot(world, createReadyAssets());
-    const lightId = createStableRenderId({
+    const directionalLightId = createStableRenderId({
       index: directionalLight.index,
       generation: directionalLight.generation,
+    });
+    const spotLightId = createStableRenderId({
+      index: spotLight.index,
+      generation: spotLight.generation,
     });
 
     expect(snapshot.shadowRequests).toEqual([
       {
-        shadowId: lightId,
-        lightId,
+        shadowId: directionalLightId,
+        lightId: directionalLightId,
         lightKind: "directional",
         casterLayerMask: 0b0011,
         receiverLayerMask: 0b0101,
       },
+      {
+        shadowId: spotLightId,
+        lightId: spotLightId,
+        lightKind: "spot",
+        casterLayerMask: 0b0110,
+        receiverLayerMask: 0b1001,
+      },
     ]);
     expect(snapshot.report).toMatchObject({
-      lights: 3,
-      shadowRequests: 1,
+      lights: 4,
+      shadowRequests: 2,
       diagnostics: 1,
     });
     expect(snapshot.diagnostics.map((diagnostic) => diagnostic.code)).toEqual([

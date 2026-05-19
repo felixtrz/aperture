@@ -1,6 +1,50 @@
 # Agent Handoff
 
-Updated: 2026-05-19T21:11:48Z
+Updated: 2026-05-19T21:28:45Z
+
+## Current Run Update — 2026-05-19T21:28:45Z — Spot shadow projection proof
+
+Completed `task-2013`.
+
+### What changed
+
+- Added spot shadow extraction support so enabled spot lights can emit
+  renderer-facing shadow requests without creating renderer-owned scene state.
+- Added spot-shadow 2D view/projection planning and matrix computation from the
+  extracted ECS light transform.
+- Added StandardMaterial spot direct lighting and reused the existing 2D shadow
+  receiver path for spot-shadow sampling.
+- Added `examples/spot-shadow.html` and `examples/spot-shadow.js` with a spot
+  light, cube caster, receiver wall, caster/receiver toggles, JSON-safe status,
+  and a visible lit/shadowed receiver proof.
+- Added `test/webgpu/spot-shadow-pipeline.test.ts` and
+  `test/e2e/spot-shadow.spec.ts`, and extended extraction coverage for spot
+  shadow requests.
+- Updated public progress trackers, backlog, and completed-task notes.
+
+### References inspected
+
+- `references/three.js/src/lights/SpotLightShadow.js`
+- `references/engine/src/scene/renderer/shadow-renderer-local.js`
+- Existing Aperture point/directional shadow planning and StandardMaterial
+  receiver paths.
+
+### Validation
+
+- `node --check examples/spot-shadow.js`
+- `pnpm exec vitest run test/webgpu/spot-shadow-pipeline.test.ts test/webgpu/standard-shader.test.ts test/rendering/extraction.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm exec playwright test test/e2e/spot-shadow.spec.ts`
+
+### Known issues
+
+- Spot shadows currently use the 2D StandardMaterial receiver path; this is
+  enough for a visible spot-shadow proof, but the combined multi-light example
+  still needs to prove directional, point, and spot shadows together.
+
+### Recommended next task
+
+`task-2014 — Combined multi-light scene: directional + point + spot all casting shadows`.
 
 ## Current Run Update — 2026-05-19T21:11:48Z — Point shadow projected-depth compare
 

@@ -130,6 +130,7 @@ const PACKED_LIGHT_METADATA_STRIDE: u32 = ${PACKED_LIGHT_METADATA_STRIDE}u;
 const LIGHT_KIND_AMBIENT: i32 = ${PackedLightKindId.Ambient};
 const LIGHT_KIND_DIRECTIONAL: i32 = ${PackedLightKindId.Directional};
 const LIGHT_KIND_POINT: i32 = ${PackedLightKindId.Point};
+const LIGHT_KIND_SPOT: i32 = ${PackedLightKindId.Spot};
 const STANDARD_FEATURE_ALPHA_MASK: u32 = 32u;
 
 @group(0) @binding(0) var<uniform> view: ViewProjectionUniform;
@@ -256,6 +257,21 @@ fn pointLightRange(lightIndex: u32) -> f32 {
   return max(lightFloats[offset + 5u], 0.0001);
 }
 
+fn spotLightDirection(lightIndex: u32) -> vec3f {
+  let world = worldTransforms[lightTransformIndex(lightIndex)];
+  return normalize(-world[2].xyz);
+}
+
+fn spotLightConeAttenuation(lightIndex: u32, lightToReceiver: vec3f) -> f32 {
+  let offset = lightFloatOffset(lightIndex);
+  let inner = clamp(lightFloats[offset + 6u], 0.0, 3.14159);
+  let outer = clamp(lightFloats[offset + 7u], inner, 3.14159);
+  let cosTheta = dot(normalize(lightToReceiver), spotLightDirection(lightIndex));
+  let innerCos = cos(inner);
+  let outerCos = cos(outer);
+  return saturate((cosTheta - outerCos) / max(innerCos - outerCos, 0.0001));
+}
+
 @fragment
 fn fs_main(input: VertexOutput) -> @location(0) vec4f {
   let baseColor = material.baseColorFactor.rgb;
@@ -304,6 +320,28 @@ fn fs_main(input: VertexOutput) -> @location(0) vec4f {
           viewDir,
           toLight / lightDistance,
           lightRadiance(lightIndex) * attenuation,
+          baseColor,
+          metallic,
+          roughness,
+        );
+      }
+    }
+
+    if (kind == LIGHT_KIND_SPOT) {
+      let lightPosition = pointLightPosition(lightIndex);
+      let toLight = lightPosition - input.worldPosition;
+      let lightDistance = length(toLight);
+      let lightRange = pointLightRange(lightIndex);
+      let rangeAttenuation = pow(saturate(1.0 - lightDistance / lightRange), 2.0);
+
+      if (rangeAttenuation > 0.0 && lightDistance > 0.0001) {
+        let lightDir = toLight / lightDistance;
+        let coneAttenuation = spotLightConeAttenuation(lightIndex, -lightDir);
+        direct = direct + evaluateDirectLight(
+          normal,
+          viewDir,
+          lightDir,
+          lightRadiance(lightIndex) * rangeAttenuation * coneAttenuation,
           baseColor,
           metallic,
           roughness,

@@ -1,5 +1,40 @@
 # Completed Tasks
 
+## task-2013 — Add spot-light shadow projection and render visible spot-light shadow
+
+Completed: 2026-05-19
+
+Summary:
+
+- Extended shadow extraction to preserve enabled spot-light shadow requests.
+- Added spot-shadow view/projection planning and matrix computation for a
+  single 2D shadow pass using the extracted ECS light transform.
+- Added StandardMaterial spot direct lighting so spot lights visibly affect
+  receiver materials before shadow sampling.
+- Added `examples/spot-shadow.html` / `examples/spot-shadow.js` with a spot
+  light, cube caster, receiver wall, caster/receiver toggles, JSON-safe status,
+  and the existing StandardMaterial 2D shadow receiver path.
+- Added headless spot-shadow pipeline coverage and browser coverage proving the
+  spot-shadow receiver path has named lit and shadowed samples with no WebGPU
+  validation warnings.
+
+References inspected:
+
+- `references/three.js/src/lights/SpotLightShadow.js`
+- `references/engine/src/scene/renderer/shadow-renderer-local.js`
+
+Validation:
+
+- `node --check examples/spot-shadow.js`
+- `pnpm exec vitest run test/webgpu/spot-shadow-pipeline.test.ts test/webgpu/standard-shader.test.ts test/rendering/extraction.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm exec playwright test test/e2e/spot-shadow.spec.ts`
+
+Known follow-up:
+
+- The combined multi-light scene should prove directional, point, and spot
+  shadows together through one user-facing example.
+
 ## task-2017 — Replace point-shadow occupancy proof with projected depth compare
 
 Completed: 2026-05-19
