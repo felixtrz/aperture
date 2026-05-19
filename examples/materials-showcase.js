@@ -3,7 +3,7 @@ const stateElement = document.querySelector("#example-state");
 const jsonElement = document.querySelector("#example-json");
 
 const clearColor = [0.015, 0.02, 0.027, 1];
-const materialNames = ["unlit", "standard-pbr", "matcap"];
+const materialNames = ["unlit", "standard-pbr-diffuse-ibl", "matcap"];
 const spinAxis = [0.35, 1, 0.2];
 
 try {
@@ -90,7 +90,7 @@ function createScene(aperture, app, targetCanvas) {
       dimension: "2d",
       width: 2,
       height: 2,
-      format: "rgba8unorm",
+      format: "rgba8unorm-srgb",
       colorSpace: "srgb",
       semantic: "base-color",
       usage: ["sampled", "copy-dst"],
@@ -261,6 +261,15 @@ function createScene(aperture, app, targetCanvas) {
     }),
     { id: "showcase-matcap" },
   );
+  const environmentMap = aperture.createEnvironmentMapHandle(
+    "materials-showcase-studio",
+  );
+
+  app.assets.register(environmentMap, { label: "Materials showcase IBL" });
+  app.assets.markReady(environmentMap, {
+    label: "Materials showcase IBL",
+    diffuseResourceKey: "materials-showcase-studio/diffuse",
+  });
 
   app.registerSystem(aperture.SpinSystem);
   app.spawn(
@@ -297,6 +306,15 @@ function createScene(aperture, app, targetCanvas) {
       layerMask: 1,
     }),
   );
+  app.spawn(
+    aperture.withEnvironmentMap(environmentMap, {
+      color: [1, 1, 1, 1],
+      intensity: 1,
+      layerMask: 1,
+    }),
+  );
+
+  const iblResources = createShowcaseDiffuseIblResources(aperture, app);
 
   return {
     canvas: targetCanvas,
@@ -313,6 +331,8 @@ function createScene(aperture, app, targetCanvas) {
     standardEmissiveSampler,
     matcapTexture,
     matcapSampler,
+    environmentMap,
+    iblResources,
   };
 }
 
@@ -353,6 +373,7 @@ function startAnimation(aperture, app, scene) {
       frame,
       clearColor,
       label: "materials-showcase-app",
+      standardMaterialIblResources: scene.iblResources,
     });
 
     publishFrameStatus(aperture, app, scene, report, frame, elapsedSeconds);
@@ -388,15 +409,28 @@ function publishFrameStatus(
       views: report.snapshot.views.length,
       meshDraws: report.snapshot.meshDraws.length,
       lights: report.snapshot.lights.length,
+      environments: report.snapshot.environments.length,
       diagnostics: report.snapshot.diagnostics.length,
+    },
+    environment: {
+      authored: 1,
+      extracted: report.snapshot.environments.length,
+      handleKey: aperture.assetHandleKey(scene.environmentMap),
+      resourceKey:
+        scene.iblResources.diffuseTextureResource.resources[0]?.resource
+          ?.resourceKey,
     },
     resources: {
       materials: scene.cubes.length,
+      pipelineKeys: report.snapshot.meshDraws.map(
+        (draw) => draw.batchKey.pipelineKey,
+      ),
       standardTextureFeatures: [
         "baseColorTexture",
         "metallicRoughnessTexture",
         "occlusionTexture",
         "emissiveTexture",
+        "iblDiffuse",
       ],
       bindGroups:
         report.resources?.resources === null ||
@@ -416,6 +450,156 @@ function publishFrameStatus(
       height: scene.canvas.height,
     },
   });
+}
+
+function createShowcaseDiffuseIblResources(aperture, app) {
+  const cache = aperture.getOrCreateWebGpuAppEnvironmentResourceCache(app);
+  const device = app.initialization.device;
+  const diffuseResourceKey =
+    "texture:materials-showcase-studio:diffuse:texture";
+  const samplerResourceKey =
+    "texture:materials-showcase-studio:diffuse:sampler";
+  let diffuseTexture = cache.diffuseTextures.get(diffuseResourceKey);
+  let iblSampler = cache.samplers.get(samplerResourceKey);
+
+  if (diffuseTexture === undefined) {
+    diffuseTexture = createFaceColoredDiffuseCubeTexture(
+      device,
+      diffuseResourceKey,
+    );
+    cache.diffuseTextures.set(diffuseResourceKey, diffuseTexture);
+  }
+
+  if (iblSampler === undefined) {
+    iblSampler = createDiffuseIblSampler(device, samplerResourceKey);
+    cache.samplers.set(samplerResourceKey, iblSampler);
+  }
+
+  return {
+    bindGroupResource: {
+      ready: true,
+      status: "available",
+      standardMaterialCount: 1,
+      group: 4,
+      createdBindGroupCount: 0,
+      reusedBindGroupCount: 1,
+      sections: {
+        descriptorPlan: true,
+        layoutResource: true,
+        textureResources: true,
+        samplerResource: true,
+        bindGroupResource: true,
+        shaderSampling: true,
+      },
+      resource: {
+        group: 4,
+        resourceKey: "bind-group:standard/ibl/group-4/materials-showcase",
+        layoutKey: "standard/ibl/group-4",
+        bindGroup: { label: "standard/ibl/group-4/materials-showcase" },
+        entryResourceKeys: [diffuseResourceKey, samplerResourceKey],
+      },
+      diagnostics: [],
+    },
+    diffuseTextureResource: {
+      ready: true,
+      status: "available",
+      textureSlotCount: 1,
+      diffuseSlotCount: 1,
+      createdTextureCount: 1,
+      reusedTextureCount: 0,
+      sections: {
+        texturePreparation: true,
+        diffuseTextureResource: true,
+        gpuAllocation: true,
+        specularPrefiltering: false,
+        shaderSampling: true,
+      },
+      resources: [{ valid: true, resource: diffuseTexture, diagnostics: [] }],
+      diagnostics: [],
+    },
+    samplerResource: {
+      ready: true,
+      status: "available",
+      samplerDescriptorCount: 1,
+      createdSamplerCount: 1,
+      reusedSamplerCount: 0,
+      sections: {
+        samplerDescriptors: true,
+        gpuAllocation: true,
+        bindGroupLayout: true,
+        shaderSampling: true,
+      },
+      resources: [{ valid: true, resource: iblSampler, diagnostics: [] }],
+      diagnostics: [],
+    },
+  };
+}
+
+function createFaceColoredDiffuseCubeTexture(device, resourceKey) {
+  const texture = device.createTexture({
+    label: "materials-showcase-studio:diffuse-ibl",
+    size: [1, 1, 6],
+    format: "rgba8unorm",
+    usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST,
+    mipLevelCount: 1,
+  });
+  const faceColors = [
+    [220, 108, 52, 255],
+    [48, 136, 220, 255],
+    [228, 220, 126, 255],
+    [40, 92, 78, 255],
+    [186, 86, 214, 255],
+    [72, 80, 124, 255],
+  ];
+
+  faceColors.forEach((color, face) => {
+    const data = new Uint8Array(256);
+    data.set(color, 0);
+    device.queue.writeTexture(
+      { texture, origin: [0, 0, face] },
+      data,
+      { bytesPerRow: 256, rowsPerImage: 1 },
+      [1, 1, 1],
+    );
+  });
+
+  return {
+    resourceKey,
+    texture,
+    view: texture.createView({
+      label: "materials-showcase-studio:diffuse-ibl-view",
+      dimension: "cube",
+    }),
+    descriptor: {
+      label: "materials-showcase-studio:diffuse-ibl",
+      size: [1, 1, 6],
+      format: "rgba8unorm",
+      usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST,
+      mipLevelCount: 1,
+    },
+    viewDescriptor: { dimension: "cube" },
+  };
+}
+
+function createDiffuseIblSampler(device, resourceKey) {
+  const descriptor = {
+    label: "materials-showcase-studio:diffuse-ibl-sampler",
+    addressModeU: "clamp-to-edge",
+    addressModeV: "clamp-to-edge",
+    addressModeW: "clamp-to-edge",
+    magFilter: "linear",
+    minFilter: "linear",
+    mipmapFilter: "nearest",
+    lodMinClamp: 0,
+    lodMaxClamp: 0,
+    maxAnisotropy: 1,
+  };
+
+  return {
+    resourceKey,
+    sampler: device.createSampler(descriptor),
+    descriptor,
+  };
 }
 
 function publishStatus(status) {

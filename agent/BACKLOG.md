@@ -59,11 +59,13 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start with `task-2001`: render diffuse IBL on the spinning-cube example.
+Start with `task-2003`: render specular IBL on the spinning-cube example.
 
-The IBL infrastructure is already built — descriptors, bind groups, shader variants. Only shader wiring, pipeline-key extension, and bind-group routing remain to put direction-dependent diffuse-IBL pixels on screen in the spinning-cube example.
+`task-2001` is complete: the spinning-cube example now creates a renderer-owned face-colored diffuse IBL cube texture and sampler, routes it through the StandardMaterial diffuse IBL shader variant, and Playwright verifies direction-dependent face pixels.
+`task-2002` is complete: `withEnvironmentMap(handle)` is exported from runtime/core and materials-showcase now uses it with visible diffuse IBL routing.
 
 Reference anchors (read both before writing WGSL):
+
 - `references/three.js/src/extras/PMREMGenerator.js`
 - `references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/reflectionEnv.js`
 - `references/engine/src/scene/graphics/reproject-texture.js`
@@ -86,6 +88,8 @@ All MVP-track tasks are visible-feature tasks under `agent/WAKE.md` §9. Diagnos
 
 ### task-2001 — Render diffuse IBL on the spinning-cube example
 
+Status: completed 2026-05-19. See `agent/COMPLETED.md`.
+
 Category: `webgpu-render`
 Package/write-scope: `packages/webgpu/src/`, `examples/spinning-cube.js`, `test/e2e/spinning-cube.spec.ts`.
 Reference anchor: `references/three.js/src/extras/PMREMGenerator.js`, `references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/reflectionEnv.js`, `references/engine/src/scene/graphics/reproject-texture.js`. Compare at least two before writing WGSL.
@@ -103,6 +107,8 @@ Acceptance criteria:
 - `pnpm exec playwright test test/e2e/spinning-cube.spec.ts` passes.
 
 ### task-2002 — Add `withEnvironmentMap(handle)` runtime helper and adopt in materials-showcase
+
+Status: completed 2026-05-19. See `agent/COMPLETED.md`.
 
 Category: `runtime-orchestration`
 Package/write-scope: `packages/runtime/src/index.ts`, `examples/materials-showcase.js`, targeted tests.

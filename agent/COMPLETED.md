@@ -1,5 +1,67 @@
 # Completed Tasks
 
+## task-2002 — Add `withEnvironmentMap(handle)` runtime helper and adopt in materials-showcase
+
+Completed: 2026-05-19
+
+Summary:
+
+- Added `withEnvironmentMap(handle, options?)` to `@aperture-engine/runtime`
+  and the core re-export path.
+- The helper authors an ECS environment light with a stable environment-map
+  handle while keeping GPU resources renderer-owned.
+- Added runtime coverage proving extraction emits an `EnvironmentPacket` from
+  the helper.
+- Updated `examples/materials-showcase.js` to use the helper, register a ready
+  environment-map handle, create renderer-owned diffuse IBL cube resources, and
+  render the StandardMaterial cube through an `iblDiffuse` pipeline.
+- Fixed the showcase base-color fixture format to match its sRGB color-space
+  declaration so the StandardMaterial cube stays renderable.
+
+References inspected:
+
+- `packages/runtime/src/index.ts`
+- `references/bevy/crates/bevy_pbr/src/light_probe/environment_map.rs`
+- `references/bevy/crates/bevy_pbr/src/light_probe/mod.rs`
+
+Validation:
+
+- `node --check examples/materials-showcase.js`
+- `pnpm exec tsc -p packages/runtime/tsconfig.json --noEmit`
+- `pnpm exec vitest run test/runtime/runtime.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm exec playwright test test/e2e/materials-showcase.spec.ts`
+
+## task-2001 — Render diffuse IBL on the spinning-cube example
+
+Completed: 2026-05-19
+
+Summary:
+
+- Updated `examples/spinning-cube.js` to author a ready environment-map handle
+  and renderer-owned diffuse IBL resources for the app.
+- Created a face-colored WebGPU cube texture and sampler for diffuse IBL, reused
+  through the app environment-resource cache.
+- Routed those resources into `app.render(...)` so StandardMaterial selects the
+  existing `iblDiffuse` shader variant and executable combined light/IBL group 3
+  bind group.
+- Extended the browser status and Playwright test to assert one extracted
+  environment, the `standard|iblDiffuse|...` pipeline key, and measurable
+  face-color differences on the rendered cube.
+
+References inspected:
+
+- `references/three.js/src/extras/PMREMGenerator.js`
+- `references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/reflectionEnv.js`
+- `references/engine/src/scene/graphics/reproject-texture.js`
+
+Validation:
+
+- `node --check examples/spinning-cube.js`
+- `pnpm exec tsc -p packages/webgpu/tsconfig.json --noEmit`
+- `pnpm run typecheck:test`
+- `pnpm exec playwright test test/e2e/spinning-cube.spec.ts`
+
 ## task-1975 — Add visible buffer-backed GLB primitive replay proof
 
 Completed: 2026-05-19

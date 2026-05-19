@@ -60,7 +60,7 @@ A task is one vertical slice sized to fill the 55-minute window with real implem
 If your selected slice finishes in less than 55 minutes with time remaining, do not pick a new ceremonial task. In priority order:
 
 1. Extend the same slice with the next obvious thing a user would notice — more test coverage against visible outcomes, edge cases, example polish, related dead-code removal.
-2. Start the next slice from the backlog *only if* it is also a visible-feature slice and there is enough time to finish it cleanly.
+2. Start the next slice from the backlog _only if_ it is also a visible-feature slice and there is enough time to finish it cleanly.
 
 Never start a `plan-X`, `audit-X`, or `tracker-alignment-X` task to fill leftover time. If no visible-feature slice remains and you cannot extend the current one, stop early with a clean handoff. Stopping early with real work shipped is better than filling time with ceremony.
 
@@ -141,7 +141,7 @@ If validation fails, fix if straightforward. If not, stop and document the failu
 
 Do not run audits on a cadence. The standing audit is the test suite: `check:boundaries`, `typecheck`, `lint`, `vitest`, and `playwright`. If those pass, the architecture invariants are intact.
 
-File a real `audit-refactor` task only when implementation surfaces one of these *during a slice*:
+File a real `audit-refactor` task only when implementation surfaces one of these _during a slice_:
 
 - A package import crosses a boundary the typecheck didn't catch.
 - The snapshot leaks a non-JSON value the test didn't catch.
@@ -166,7 +166,7 @@ Before stopping:
 
 ## 9. Backlog Refill
 
-The backlog must always contain at least 5 ready tasks. Refill is required, but the *shape* of refill is constrained.
+The backlog must always contain at least 5 ready tasks. Refill is required, but the _shape_ of refill is constrained.
 
 **Required composition of the ready queue at all times:**
 
@@ -189,7 +189,7 @@ Acceptance criteria of the form `status.X.Y equals Z`, `report.diagnostics.lengt
 
 **If you cannot identify 3 visible-feature tasks** by comparing the current examples and public API against `docs/NORTH_STAR.md` and `docs/MEDIUM_LONG_TERM_GOALS.md`, that is a signal to stop and document the gap in handoff. Do not fill the queue with diagnostic work.
 
-Diagnostic tasks are allowed *only* when a real user-facing failure mode would otherwise be invisible, and only *after* the corresponding visible feature ships. Diagnostics follow visible features; they never precede them.
+Diagnostic tasks are allowed _only_ when a real user-facing failure mode would otherwise be invisible, and only _after_ the corresponding visible feature ships. Diagnostics follow visible features; they never precede them.
 
 Do not add vague tasks like "continue renderer."
 
@@ -230,8 +230,11 @@ Bad tasks:
 
 ```md
 ### task-NNNN — Make renderer better
+
 ### task-NNNN — Plan next route/glTF fidelity slice
+
 ### task-NNNN — Audit selected follow-up
+
 ### task-NNNN — Add JSON status projection for X
 ```
 

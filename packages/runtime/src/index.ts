@@ -20,6 +20,7 @@ import {
   type AnyEcsComponent,
   type ComponentInitialData,
   type EcsWorld,
+  type EnvironmentMapHandle,
   type Entity,
   type LocalTransformInput,
   type MaterialHandle,
@@ -30,6 +31,7 @@ import {
 import {
   Camera,
   Light,
+  LightKind,
   LightShadowSettings,
   Material,
   Mesh,
@@ -257,6 +259,17 @@ export function withLight(input: LightInput = {}): SpawnEntityInitializer {
     registerRenderAuthoringComponents(context.world);
     entity.addComponent(Light, createLight(input));
   };
+}
+
+export function withEnvironmentMap(
+  handle: EnvironmentMapHandle,
+  input: Omit<LightInput, "kind" | "environmentMap"> = {},
+): SpawnEntityInitializer {
+  return withLight({
+    ...input,
+    kind: LightKind.Environment,
+    environmentMap: handle,
+  });
 }
 
 export function withLightShadowSettings(

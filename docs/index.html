@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-19 06:08 PDT</dd>
+            <dd>2026-05-19 10:46 PDT</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -800,38 +800,44 @@
               specular pixel deltas plus the combined
               <code>iblDiffuse|iblSpecularProof|shadowMap</code> route, and draw
               commands still stay within groups 0 through 3 under Chrome's
-              four-bind-group limit. The source-side glTF path now also has a
-              minimal GLB fixture bridge: JSON plus BIN chunks can feed the
-              report-driven import contract, invalid containers stop before
-              import stages with structured diagnostics, and the browser GLTF
-              scene publishes JSON-safe GLB fixture status while ECS authoring
-              stays on the existing contract path. The wrapper now also reports
-              structured missing-BIN and unsupported external-buffer diagnostics
-              and exposes a JSON-safe report projection that omits raw container
-              bytes. GLB bufferView image sources now flow through the existing
-              asset-mapping contract with caller-provided decoded image data,
-              and the follow-up audit keeps full file loading, image decoding,
-              and compression deferred. Minimal GLB index-buffer fixture
-              coverage, malformed chunk-ordering diagnostics, bufferView image
-              JSON serialization coverage, mixed BIN plus caller-resolved
-              external buffer coverage, external-buffer JSON projection tests,
-              compact source-status helper adoption, and malformed status docs
-              are now in place. Compact source status also covers resolved and
-              missing external buffers, and the async GLB source-loader boundary
-              is now planned and started as a no-fetch, renderer-independent
-              facade. The browser GLTF scene now routes its inline fixture
-              through that facade and asserts loader-level source status.
-              No-fetch facade output now also carries compact mesh-construction
-              summaries for report-driven scene source readiness, and the
-              browser status honestly reports mesh construction as absent for
-              the current non-buffer-backed scene fixture. A buffer-backed GLB
-              source fixture slice is now planned to prove a ready mesh summary
-              without changing visible scene rendering. The browser status now
-              includes a separate buffer-backed source fixture proof with a
-              ready mesh-construction summary. No-fetch facade output can also
-              carry report-derived source-registration summaries without
-              registry mutation. No-fetch source-loader output now has compact
-              ECS command-plan summaries for provided plans, and the facade can
+              four-bind-group limit. The spinning-cube example now uses the same
+              diffuse IBL shader route with a renderer-owned face-colored cube
+              texture and Playwright verifies direction-dependent cube face
+              pixels. Materials-showcase now uses the public
+              <code>withEnvironmentMap(handle)</code> helper and renders its
+              StandardMaterial cube through the diffuse IBL route as well. The
+              source-side glTF path now also has a minimal GLB fixture bridge:
+              JSON plus BIN chunks can feed the report-driven import contract,
+              invalid containers stop before import stages with structured
+              diagnostics, and the browser GLTF scene publishes JSON-safe GLB
+              fixture status while ECS authoring stays on the existing contract
+              path. The wrapper now also reports structured missing-BIN and
+              unsupported external-buffer diagnostics and exposes a JSON-safe
+              report projection that omits raw container bytes. GLB bufferView
+              image sources now flow through the existing asset-mapping contract
+              with caller-provided decoded image data, and the follow-up audit
+              keeps full file loading, image decoding, and compression deferred.
+              Minimal GLB index-buffer fixture coverage, malformed
+              chunk-ordering diagnostics, bufferView image JSON serialization
+              coverage, mixed BIN plus caller-resolved external buffer coverage,
+              external-buffer JSON projection tests, compact source-status
+              helper adoption, and malformed status docs are now in place.
+              Compact source status also covers resolved and missing external
+              buffers, and the async GLB source-loader boundary is now planned
+              and started as a no-fetch, renderer-independent facade. The
+              browser GLTF scene now routes its inline fixture through that
+              facade and asserts loader-level source status. No-fetch facade
+              output now also carries compact mesh-construction summaries for
+              report-driven scene source readiness, and the browser status
+              honestly reports mesh construction as absent for the current
+              non-buffer-backed scene fixture. A buffer-backed GLB source
+              fixture slice is now planned to prove a ready mesh summary without
+              changing visible scene rendering. The browser status now includes
+              a separate buffer-backed source fixture proof with a ready
+              mesh-construction summary. No-fetch facade output can also carry
+              report-derived source-registration summaries without registry
+              mutation. No-fetch source-loader output now has compact ECS
+              command-plan summaries for provided plans, and the facade can
               attach them without ECS replay, registry mutation, or visible
               GLB-derived scene rendering changes. The command-plan summary
               adoption audit is complete, and report-only ECS replay readiness
@@ -1379,6 +1385,16 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">task-2001</span> Rendered diffuse IBL
+                on the spinning-cube example with face-difference Playwright
+                coverage.
+              </li>
+              <li>
+                <span class="badge green">task-2002</span> Added
+                <code>withEnvironmentMap(handle)</code> and adopted it in
+                materials-showcase.
+              </li>
               <li>
                 <span class="badge green">task-1975</span> Added visible
                 buffer-backed GLB primitive replay readback proof.
@@ -2927,16 +2943,16 @@
             <h3>Recommended next tasks</h3>
             <ul>
               <li>
-                <span class="badge amber">next</span> Audit visible
-                buffer-backed GLB primitive replay proof.
+                <span class="badge amber">next</span> Render specular IBL on the
+                spinning-cube example.
               </li>
               <li>
-                Confirm ECS ownership and source-loader/report boundaries, then
-                plan source-driven material mapping.
+                Reuse the existing placeholder specular IBL route before the
+                later GGX prefiltering slice.
               </li>
               <li>
-                Keep external loading, broad viewer behavior, and new material
-                systems deferred.
+                Keep GPU environment textures renderer-owned and ECS authoring
+                handle-based.
               </li>
             </ul>
           </article>

@@ -22,7 +22,17 @@ interface MaterialShowcaseStatus extends ExampleStatusBase {
     readonly indexedDrawCalls: number;
     readonly indexCount: number;
   };
+  readonly extraction?: {
+    readonly environments?: number;
+  };
+  readonly environment?: {
+    readonly authored: number;
+    readonly extracted: number;
+    readonly handleKey: string;
+    readonly resourceKey?: string;
+  };
   readonly resources?: {
+    readonly pipelineKeys?: readonly string[];
     readonly standardTextureFeatures?: readonly string[];
   };
 }
@@ -54,15 +64,26 @@ test("Playwright shows three spinning material showcase cubes", async ({
     ok: true,
     phase: "animate",
     renderingBackend: "webgpu-explicit",
-    materialModels: ["unlit", "standard-pbr", "matcap"],
+    materialModels: ["unlit", "standard-pbr-diffuse-ibl", "matcap"],
     animation: { spinningCubes: 3 },
+    extraction: { environments: 1 },
+    environment: {
+      authored: 1,
+      extracted: 1,
+      handleKey: "environment-map:materials-showcase-studio",
+      resourceKey: "texture:materials-showcase-studio:diffuse:texture",
+    },
     draw: { cubes: 3, indexedDrawCalls: 3, indexCount: 36 },
     resources: {
+      pipelineKeys: expect.arrayContaining([
+        expect.stringContaining("iblDiffuse"),
+      ]),
       standardTextureFeatures: [
         "baseColorTexture",
         "metallicRoughnessTexture",
         "occlusionTexture",
         "emissiveTexture",
+        "iblDiffuse",
       ],
     },
   });
@@ -89,9 +110,9 @@ test("Playwright shows three spinning material showcase cubes", async ({
 function expectVisibleMaterialRegions(screenshot: Buffer): void {
   const clear = { r: 4, g: 5, b: 7, a: 255 };
   const samples = {
-    unlit: strongestRegionSample(screenshot, 0.28, 0.43, 0.41, 0.65),
-    standard: strongestRegionSample(screenshot, 0.43, 0.43, 0.57, 0.65),
-    matcap: strongestRegionSample(screenshot, 0.57, 0.43, 0.73, 0.65),
+    unlit: strongestRegionSample(screenshot, 0.24, 0.4, 0.37, 0.68),
+    standard: strongestRegionSample(screenshot, 0.43, 0.4, 0.56, 0.68),
+    matcap: strongestRegionSample(screenshot, 0.6, 0.4, 0.74, 0.68),
   };
 
   for (const [name, sample] of Object.entries(samples)) {

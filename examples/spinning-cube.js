@@ -7,7 +7,7 @@ const spinRadiansPerSecond = 3;
 
 const baseStatus = {
   example: "ecs-spinning-cube",
-  materialModel: "standard-direct-lit",
+  materialModel: "standard-direct-lit-diffuse-ibl",
   canvas: {
     width: canvas?.width ?? 0,
     height: canvas?.height ?? 0,
@@ -79,6 +79,15 @@ function createLitSpinningCubeScene(aperture, app, canvasSize) {
   const material = assets.materials.standard.add(materialAsset, {
     id: "spinning-cube-standard",
   });
+  const environmentMap = aperture.createEnvironmentMapHandle(
+    "spinning-cube-studio",
+  );
+
+  app.assets.register(environmentMap, { label: "Spinning cube studio IBL" });
+  app.assets.markReady(environmentMap, {
+    label: "Spinning cube studio IBL",
+    diffuseResourceKey: "spinning-cube-studio/diffuse",
+  });
 
   app.registerSystem(aperture.SpinSystem);
 
@@ -124,12 +133,27 @@ function createLitSpinningCubeScene(aperture, app, canvasSize) {
     }),
   );
 
+  app.spawn(
+    aperture.withLight({
+      kind: aperture.LightKind.Environment,
+      color: [1, 1, 1, 1],
+      intensity: 1,
+      layerMask: 1,
+      environmentMap,
+    }),
+  );
+
+  const iblResources = createSpinningCubeDiffuseIblResources(aperture, app);
+
   return {
     cube,
     mesh,
     material,
     materialAsset,
-    authoredLights: 2,
+    environmentMap,
+    iblResources,
+    authoredLights: 3,
+    authoredEnvironments: 1,
   };
 }
 
@@ -157,6 +181,7 @@ function startAnimation(aperture, app, scene) {
       frame,
       clearColor,
       label: "ecs-spinning-cube-lit",
+      standardMaterialIblResources: scene.iblResources,
     });
     const status = createFrameStatus(
       aperture,
@@ -236,6 +261,16 @@ function createFrameStatus(
       kinds: snapshot.lights.map((light) => light.kind),
       gpuLights: standardResources?.lightGpuBuffers?.lightBuffer.count ?? 0,
     },
+    environment: {
+      authored: scene.authoredEnvironments,
+      extracted: snapshot.environments.length,
+      handleKey: aperture.assetHandleKey(scene.environmentMap),
+      resourceKey:
+        scene.iblResources.diffuseTextureResource.resources[0]?.resource
+          ?.resourceKey,
+      samplerKey:
+        scene.iblResources.samplerResource.resources[0]?.resource?.resourceKey,
+    },
     pipeline: {
       key: firstDraw?.batchKey.pipelineKey ?? null,
       cacheKey: report.pipeline?.resource?.cacheKey ?? null,
@@ -244,6 +279,8 @@ function createFrameStatus(
       materials: familyResourceCount(resources, "standard", 1),
       bindGroups: resources?.bindGroups.length ?? 0,
       lightBindGroup: standardResources?.lightBindGroup === undefined ? 0 : 1,
+      diffuseIblTexture:
+        standardResources?.standardMaterialIblBindGroup === undefined ? 0 : 1,
       reuse: report.resourceReuse,
     },
     renderWorld: {
@@ -332,9 +369,170 @@ function snapshotCounts(snapshot) {
     views: snapshot.views.length,
     meshDraws: snapshot.meshDraws.length,
     lights: snapshot.lights.length,
+    environments: snapshot.environments.length,
     transforms: snapshot.transforms.length / 16,
     viewMatrices: snapshot.viewMatrices.length / 16,
     diagnostics: snapshot.diagnostics.length,
+  };
+}
+
+function createSpinningCubeDiffuseIblResources(aperture, app) {
+  const cache = aperture.getOrCreateWebGpuAppEnvironmentResourceCache(app);
+  const device = app.initialization.device;
+  const diffuseResourceKey = "texture:spinning-cube-studio:diffuse:texture";
+  const samplerResourceKey = "texture:spinning-cube-studio:diffuse:sampler";
+  let diffuseTexture = cache.diffuseTextures.get(diffuseResourceKey);
+  let iblSampler = cache.samplers.get(samplerResourceKey);
+
+  if (diffuseTexture === undefined) {
+    diffuseTexture = createFaceColoredDiffuseCubeTexture(
+      device,
+      diffuseResourceKey,
+    );
+    cache.diffuseTextures.set(diffuseResourceKey, diffuseTexture);
+  }
+
+  if (iblSampler === undefined) {
+    iblSampler = createDiffuseIblSampler(device, samplerResourceKey);
+    cache.samplers.set(samplerResourceKey, iblSampler);
+  }
+
+  return {
+    bindGroupResource: {
+      ready: true,
+      status: "available",
+      standardMaterialCount: 1,
+      group: 4,
+      createdBindGroupCount: 0,
+      reusedBindGroupCount: 1,
+      sections: {
+        descriptorPlan: true,
+        layoutResource: true,
+        textureResources: true,
+        samplerResource: true,
+        bindGroupResource: true,
+        shaderSampling: true,
+      },
+      resource: {
+        group: 4,
+        resourceKey: "bind-group:standard/ibl/group-4/spinning-cube-studio",
+        layoutKey: "standard/ibl/group-4",
+        bindGroup: { label: "standard/ibl/group-4/spinning-cube-studio" },
+        entryResourceKeys: [diffuseResourceKey, samplerResourceKey],
+      },
+      diagnostics: [],
+    },
+    diffuseTextureResource: {
+      ready: true,
+      status: "available",
+      textureSlotCount: 1,
+      diffuseSlotCount: 1,
+      createdTextureCount: 1,
+      reusedTextureCount: 0,
+      sections: {
+        texturePreparation: true,
+        diffuseTextureResource: true,
+        gpuAllocation: true,
+        specularPrefiltering: false,
+        shaderSampling: true,
+      },
+      resources: [
+        {
+          valid: true,
+          resource: diffuseTexture,
+          diagnostics: [],
+        },
+      ],
+      diagnostics: [],
+    },
+    samplerResource: {
+      ready: true,
+      status: "available",
+      samplerDescriptorCount: 1,
+      createdSamplerCount: 1,
+      reusedSamplerCount: 0,
+      sections: {
+        samplerDescriptors: true,
+        gpuAllocation: true,
+        bindGroupLayout: true,
+        shaderSampling: true,
+      },
+      resources: [
+        {
+          valid: true,
+          resource: iblSampler,
+          diagnostics: [],
+        },
+      ],
+      diagnostics: [],
+    },
+  };
+}
+
+function createFaceColoredDiffuseCubeTexture(device, resourceKey) {
+  const texture = device.createTexture({
+    label: "spinning-cube-studio:diffuse-ibl",
+    size: [1, 1, 6],
+    format: "rgba8unorm",
+    usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST,
+    mipLevelCount: 1,
+  });
+  const faceColors = [
+    [230, 104, 48, 255],
+    [48, 132, 230, 255],
+    [230, 220, 120, 255],
+    [42, 94, 78, 255],
+    [190, 88, 210, 255],
+    [70, 78, 120, 255],
+  ];
+
+  faceColors.forEach((color, face) => {
+    const data = new Uint8Array(256);
+    data.set(color, 0);
+    device.queue.writeTexture(
+      { texture, origin: [0, 0, face] },
+      data,
+      { bytesPerRow: 256, rowsPerImage: 1 },
+      [1, 1, 1],
+    );
+  });
+
+  return {
+    resourceKey,
+    texture,
+    view: texture.createView({
+      label: "spinning-cube-studio:diffuse-ibl-view",
+      dimension: "cube",
+    }),
+    descriptor: {
+      label: "spinning-cube-studio:diffuse-ibl",
+      size: [1, 1, 6],
+      format: "rgba8unorm",
+      usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST,
+      mipLevelCount: 1,
+    },
+    viewDescriptor: { dimension: "cube" },
+  };
+}
+
+function createDiffuseIblSampler(device, resourceKey) {
+  const descriptor = {
+    label: "spinning-cube-studio:diffuse-ibl-sampler",
+    addressModeU: "clamp-to-edge",
+    addressModeV: "clamp-to-edge",
+    addressModeW: "clamp-to-edge",
+    magFilter: "linear",
+    minFilter: "linear",
+    mipmapFilter: "nearest",
+    lodMinClamp: 0,
+    lodMaxClamp: 0,
+    maxAnisotropy: 1,
+  };
+
+  return {
+    resourceKey,
+    sampler: device.createSampler(descriptor),
+    descriptor,
   };
 }
 

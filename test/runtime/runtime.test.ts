@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   Camera,
+  Light,
   LocalTransform,
   Material,
   Mesh,
@@ -19,6 +20,7 @@ import {
   createGltfSceneTraversalReport,
   createCamera,
   createExtractionApp,
+  createEnvironmentMapHandle,
   createMaterialHandle,
   createMeshHandle,
   createRenderAssetCollections,
@@ -26,6 +28,7 @@ import {
   createSimulationApp,
   createUnlitMaterialAsset,
   withCamera,
+  withEnvironmentMap,
   withMaterial,
   withMesh,
   withRenderLayer,
@@ -117,6 +120,36 @@ describe("runtime facade", () => {
     expect(snapshot.frame).toBe(7);
     expect(snapshot.views).toHaveLength(1);
     expect(snapshot.meshDraws).toHaveLength(1);
+    expect(snapshot.diagnostics).toEqual([]);
+  });
+
+  it("spawns an ECS-authored environment map light with a stable handle", () => {
+    const app = createExtractionApp({ worldOptions: { entityCapacity: 4 } });
+    const environmentMap = createEnvironmentMapHandle("studio");
+
+    app.assets.register(environmentMap);
+    app.assets.markReady(environmentMap, { label: "Studio" });
+    const environment = app.spawn(
+      withEnvironmentMap(environmentMap, {
+        intensity: 1.25,
+        color: [0.8, 0.9, 1, 1],
+        layerMask: 3,
+      }),
+    );
+
+    const snapshot = app.stepAndExtract(1 / 60, 1, 11);
+
+    expect(environment.hasComponent(Light)).toBe(true);
+    expect(environment.getValue(Light, "kind")).toBe("environment");
+    expect(environment.getValue(Light, "environmentMapId")).toBe(
+      assetHandleKey(environmentMap),
+    );
+    expect(snapshot.environments).toHaveLength(1);
+    expect(snapshot.environments[0]).toMatchObject({
+      handle: environmentMap,
+      intensity: 1.25,
+      layerMask: 3,
+    });
     expect(snapshot.diagnostics).toEqual([]);
   });
 

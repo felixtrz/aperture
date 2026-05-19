@@ -1,6 +1,95 @@
 # Agent Handoff
 
-Updated: 2026-05-19T17:32:15Z
+Updated: 2026-05-19T17:46:27Z
+
+## Current Run Update — 2026-05-19T17:46:27Z — Environment helper adopted in materials-showcase
+
+Completed `task-2002`.
+
+### What changed
+
+- Added `withEnvironmentMap(handle, options?)` to `@aperture-engine/runtime`.
+- Added runtime coverage proving the helper authors an environment light and
+  extraction emits a stable `EnvironmentPacket`.
+- Updated `examples/materials-showcase.js` to register a ready environment-map
+  handle, use `withEnvironmentMap(...)`, create renderer-owned diffuse IBL
+  texture/sampler resources, and render the StandardMaterial cube through an
+  `iblDiffuse` pipeline.
+- Fixed the showcase base-color texture format to `rgba8unorm-srgb` to match
+  its sRGB declaration, restoring the StandardMaterial cube to the render path.
+- Updated materials-showcase Playwright status assertions for extracted
+  environment data and `iblDiffuse` pipeline routing.
+
+### References inspected
+
+- `packages/runtime/src/index.ts`
+- `references/bevy/crates/bevy_pbr/src/light_probe/environment_map.rs`
+- `references/bevy/crates/bevy_pbr/src/light_probe/mod.rs`
+
+### Validation
+
+- `node --check examples/materials-showcase.js`
+- `pnpm exec tsc -p packages/runtime/tsconfig.json --noEmit`
+- `pnpm exec vitest run test/runtime/runtime.test.ts`
+- `pnpm run typecheck:test`
+- `pnpm exec playwright test test/e2e/materials-showcase.spec.ts`
+- First stop-hook attempt at `2026-05-19T17:55:01Z` passed build,
+  typecheck:test, full `vitest run`, and format, then failed lint on an unused
+  parameter in `examples/spinning-cube.js`; the unused parameter was removed
+  before rerunning the hook.
+
+### Known issues
+
+- Example IBL still uses a proof cube texture, not loaded environment assets.
+- Full specular PMREM/GGX remains deferred.
+
+### Recommended next task
+
+`task-2003 — Render specular IBL on the spinning-cube example`.
+
+## Current Run Update — 2026-05-19T17:39:32Z — Diffuse IBL visible on spinning cube
+
+Completed `task-2001`.
+
+### What changed
+
+- Checkpointed the accepted visible-feature protocol/backlog rewrite as commit
+  `ec71978`.
+- Updated `examples/spinning-cube.js` to author a ready environment-map handle
+  and create renderer-owned diffuse IBL resources through the WebGPU app
+  environment cache.
+- Added a face-colored WebGPU cube texture and sampler, then passed the resource
+  report into `app.render(...)` so StandardMaterial selects the existing
+  `standard|iblDiffuse|...` shader path.
+- Extended spinning-cube status with environment and diffuse IBL resource keys.
+- Updated Playwright to assert one extracted environment, the diffuse IBL
+  pipeline key, and direction-dependent face-color differences on the rendered
+  cube.
+- Updated public tracker pages for the new visible IBL proof.
+
+### References inspected
+
+- `references/three.js/src/extras/PMREMGenerator.js`
+- `references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/reflectionEnv.js`
+- `references/engine/src/scene/graphics/reproject-texture.js`
+
+### Validation
+
+- `node --check examples/spinning-cube.js`
+- `pnpm exec tsc -p packages/webgpu/tsconfig.json --noEmit`
+- `pnpm run typecheck:test`
+- `pnpm exec playwright test test/e2e/spinning-cube.spec.ts`
+
+### Known issues
+
+- Diffuse IBL uses a tiny face-colored proof cube texture in the example, not a
+  PMREM pipeline or loaded HDR environment.
+- Specular IBL remains the placeholder/proof route; full GGX prefiltering is
+  still deferred.
+
+### Recommended next task
+
+`task-2002 — Add withEnvironmentMap(handle) runtime helper and adopt in materials-showcase`.
 
 ## Current Run Update — 2026-05-19T17:32:15Z — Protocol rewrite accepted, continuing task-2001
 
@@ -92,6 +181,7 @@ The IBL infrastructure (descriptors, bind groups, shader variants) is already bu
 - `references/bevy/crates/bevy_gltf/src/lib.rs`
 
 For task-2001, the agent MUST first read:
+
 - `references/three.js/src/extras/PMREMGenerator.js`
 - `references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/reflectionEnv.js`
 - `references/engine/src/scene/graphics/reproject-texture.js`
