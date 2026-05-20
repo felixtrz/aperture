@@ -66,6 +66,43 @@
             home
           </button>
         </div>
+        <div
+          class="runtime-controls shadow-controls"
+          aria-label="Shadow controls"
+        >
+          <label>
+            <input id="glb-shadow-receiver-toggle" type="checkbox" checked />
+            <span>receive shadows</span>
+          </label>
+          <label>
+            <input id="glb-shadow-caster-toggle" type="checkbox" checked />
+            <span>cast shadows</span>
+          </label>
+        </div>
+        <div class="runtime-controls glb-viewer-controls" aria-label="IBL">
+          <label>
+            <input id="glb-ibl-toggle" type="checkbox" checked />
+            <span>environment IBL</span>
+          </label>
+        </div>
+        <div
+          class="runtime-controls glb-animation-controls"
+          aria-label="Animation"
+        >
+          <button id="glb-animation-toggle" type="button">pause</button>
+          <label>
+            <input
+              id="glb-animation-scrub"
+              type="range"
+              min="0"
+              max="0"
+              step="0.01"
+              value="0"
+              aria-label="Animation scrub time"
+            />
+            <span>scrub</span>
+          </label>
+        </div>
         <div class="light-control-grid" aria-label="Lighting">
           <label for="glb-point-light-intensity">
             <span>point</span>

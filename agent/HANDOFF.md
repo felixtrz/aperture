@@ -1,6 +1,85 @@
 # Agent Handoff
 
-Updated: 2026-05-20T01:12:11Z
+Updated: 2026-05-20T02:28:30Z
+
+## Current Run Update — 2026-05-20T02:28:30Z — GLB viewer live controls and query/status polish
+
+Completed `task-2031`, `task-2032`, `task-2033`, `task-2034`, and
+`task-2035`.
+
+### What changed
+
+- `examples/glb-viewer.html` now exposes live shadow caster/receiver checkboxes,
+  an IBL enable checkbox, and animation pause/scrub controls.
+- Shadow controls mutate ECS-authored `ShadowCaster` and `ShadowReceiver`
+  components for the lit brass sample. Viewer status now reports control state,
+  ECS caster/receiver counts, caster draw-list inclusion, and receiver route
+  support.
+- Fixed a renderer route bug uncovered by live shadow/IBL toggling:
+  StandardMaterial material bind groups are now scoped to pipeline keys, and
+  cached Standard frame resources no longer reuse incompatible pipeline/layout
+  state across live route changes.
+- IBL controls mutate the ECS-authored environment light state and gate the
+  renderer-owned IBL resources without making renderer state authoritative.
+- Animation controls pause/resume and scrub the active GLB clip by writing
+  replayed ECS `LocalTransform` values.
+- `glb-viewer` now publishes JSON-safe `gltf.metadata` counts for scenes, nodes,
+  meshes, primitives, materials, and animations, plus unsupported feature
+  diagnostics derived from parsed GLB/import reports.
+- `?asset=` query bootstrapping now selects committed viewer samples through the
+  same ECS replay path as the dropdown. Invalid sample IDs fall back to the
+  default sample and publish a JSON-safe selection diagnostic.
+- Updated `docs/index.html`, `docs/render-pipeline-comparison.html`,
+  `agent/BACKLOG.md`, and `agent/COMPLETED.md`.
+- Refilled the ready backlog with visible GLB viewer/IBL/animation fidelity
+  follow-ups `task-2036` through `task-2040`, followed by a scoped audit
+  `task-2041`.
+
+### References inspected
+
+- `references/bevy/examples/3d/shadow_caster_receiver.rs`
+- `references/three.js/src/renderers/common/Bindings.js`
+- `references/three.js/src/renderers/common/Pipeline.js`
+- `references/engine/src/platform/graphics/webgpu/webgpu-bind-group.js`
+- `references/engine/src/platform/graphics/webgpu/webgpu-render-pipeline.js`
+- `references/three.js/src/extras/PMREMGenerator.js`
+- `references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/reflectionEnv.js`
+- `references/bevy/crates/bevy_animation/src/lib.rs`
+- `references/bevy/crates/bevy_gltf/src/loader/mod.rs`
+- `references/three.js/examples/jsm/loaders/GLTFLoader.js`
+- `references/three.js/examples/webgl_loader_gltf.html`
+
+### Validation
+
+- `node --check examples/glb-viewer.js`
+- `pnpm run typecheck:test`
+- `pnpm exec vitest run test/webgpu/unlit-app-frame-resources.test.ts test/webgpu/pipeline-scoped-bind-groups.test.ts test/webgpu/render-pass-draw-list.test.ts`
+- `pnpm exec vitest run test/webgpu/queued-material-generic-app-adapter-contract.test.ts test/webgpu/webgpu-app.test.ts`
+- `pnpm run build`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts -g "ECS shadow controls"`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts -g "ECS IBL control"`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts -g "pauses and scrubs"`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts -g "fetched sample GLB viewer asset"`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts -g "sample GLB asset from the query string"`
+- `pnpm run check:progress`
+- `pnpm run check:examples`
+- `pnpm run build`
+- `pnpm run lint`
+- `pnpm run format:check`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts`
+- `git diff --check`
+
+### Known issues
+
+- No known runtime regressions.
+- Full PMREM/GGX specular prefiltering remains deferred; current IBL coverage
+  uses the existing deterministic specular-proof mip-chain path.
+- The GLB viewer remains example-local for animation playback controls; no
+  public animation player API was introduced.
+
+### Recommended next task
+
+`task-2036 — Add a GLB viewer roughness/IBL comparison sample`.
 
 ## Current Run Update — 2026-05-20T01:12:11Z — GLB viewer camera and light controls
 

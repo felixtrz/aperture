@@ -250,7 +250,7 @@ describe("generic app material adapter contract", () => {
     expect(prepared.bindGroups).toMatchObject([
       {
         group: 2,
-        resourceKey: "bind-group:preview",
+        resourceKey: "bind-group:preview|pipeline:test-preview|opaque",
       },
     ]);
     expect(appended).toHaveLength(1);

@@ -1,11 +1,11 @@
 {
   "state": "idle",
-  "currentTaskId": "task-2031",
+  "currentTaskId": "task-2036",
   "currentRunStartedAt": null,
-  "lastRunStartedAt": "2026-05-20T01:02:28Z",
+  "lastRunStartedAt": "2026-05-20T02:03:19Z",
   "lastResult": "stop-condition",
-  "lastCommit": "515fdb5",
+  "lastCommit": "7c2754c",
   "activePid": null,
-  "notes": "Completed task-2029 camera reset and task-2030 ECS light controls. Refilled visible GLB viewer backlog; recommended next is task-2031 live shadow caster/receiver controls.",
-  "lastRunFinishedAt": "2026-05-20T01:18:14Z"
+  "notes": "Completed task-2031 through task-2035: live GLB viewer shadow/IBL/animation controls, metadata status, sample query bootstrap, and pipeline-scoped StandardMaterial bind group reuse. Refilled visible backlog; recommended next is task-2036 roughness/IBL comparison sample.",
+  "lastRunFinishedAt": "2026-05-20T02:39:03Z"
 }

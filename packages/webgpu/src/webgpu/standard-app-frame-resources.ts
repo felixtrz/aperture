@@ -69,7 +69,11 @@ import {
 export interface CachedStandardAppFrameResources {
   readonly meshKey: string;
   readonly materialKey: string;
+  readonly pipelineKey: string;
+  readonly materialLayoutKey: string | null;
+  readonly lightLayoutKey: string | null;
   readonly standardMaterialIblBindGroupResourceKey: string | null;
+  readonly standardMaterialShadowReceiverResourceKey: string | null;
   readonly textureKeys: readonly string[];
   readonly samplerKeys: readonly string[];
   readonly viewByteLength: number;
@@ -148,6 +152,12 @@ export function createOrReuseStandardAppFrameResources(options: {
     standardMaterialIblBindGroupResourceKeyFromResources(
       options.standardMaterialIblResources,
     );
+  const standardMaterialShadowReceiverResourceKey =
+    standardMaterialShadowReceiverResourceKeyFromResources(
+      options.shadowReceiverResources,
+    );
+  const materialLayoutKey = options.materialLayout?.layoutKey ?? null;
+  const lightLayoutKey = options.lightLayout?.layoutKey ?? null;
   const viewDescriptorScratch =
     cached?.viewDescriptorScratch ?? createViewUniformBufferDescriptorScratch();
   const worldTransformDescriptorScratch =
@@ -180,8 +190,13 @@ export function createOrReuseStandardAppFrameResources(options: {
     cached !== null &&
     cached.meshKey === options.meshKey &&
     cached.materialKey === options.materialKey &&
+    cached.pipelineKey === options.pipelineKey &&
+    cached.materialLayoutKey === materialLayoutKey &&
+    cached.lightLayoutKey === lightLayoutKey &&
     cached.standardMaterialIblBindGroupResourceKey ===
       standardMaterialIblBindGroupResourceKey &&
+    cached.standardMaterialShadowReceiverResourceKey ===
+      standardMaterialShadowReceiverResourceKey &&
     sameStringList(
       cached.textureKeys,
       options.textureSamplerDependencies.textureKeys,
@@ -322,7 +337,11 @@ export function createOrReuseStandardAppFrameResources(options: {
     options.cache.current = {
       meshKey: options.meshKey,
       materialKey: options.materialKey,
+      pipelineKey: options.pipelineKey,
+      materialLayoutKey,
+      lightLayoutKey,
       standardMaterialIblBindGroupResourceKey,
+      standardMaterialShadowReceiverResourceKey,
       textureKeys: [...options.textureSamplerDependencies.textureKeys],
       samplerKeys: [...options.textureSamplerDependencies.samplerKeys],
       viewByteLength:
@@ -532,6 +551,22 @@ function standardMaterialIblBindGroupResourceKeyFromResources(
   return report?.status === "available" && report.resource !== null
     ? report.resource.resourceKey
     : null;
+}
+
+function standardMaterialShadowReceiverResourceKeyFromResources(
+  resources: StandardFrameShadowReceiverResources | undefined,
+): string | null {
+  if (resources === undefined) {
+    return null;
+  }
+
+  const matrixKey = resources.matrixBufferResource.resource?.resourceKey ?? "";
+  const depthKeys = resources.depthTextureResources.resources
+    .map((resource) => resource.resourceKey)
+    .join(",");
+  const samplerKey = resources.samplerResource.resource?.resourceKey ?? "";
+
+  return `${matrixKey}|${depthKeys}|${samplerKey}`;
 }
 
 function sourceVersionFromAssetKey(

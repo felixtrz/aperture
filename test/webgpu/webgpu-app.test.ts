@@ -1217,6 +1217,7 @@ describe("WebGPU app facade", () => {
         `material-buffer:prepared-material:${assetHandleKey(material)}`,
         assetHandleKey(texture),
         assetHandleKey(sampler),
+        "unlit|baseColorTexture|opaque|back|less|none",
       ],
     });
 
@@ -1696,6 +1697,7 @@ describe("WebGPU app facade", () => {
         `material-buffer:prepared-material:${assetHandleKey(material)}`,
         assetHandleKey(texture),
         assetHandleKey(sampler),
+        "matcap|matcapTexture|opaque|back|less|none",
       ],
     });
 
@@ -5524,6 +5526,7 @@ describe("WebGPU app facade", () => {
         `material-buffer:prepared-material:${assetHandleKey(material)}`,
         assetHandleKey(texture),
         assetHandleKey(sampler),
+        "standard|baseColorTexture|opaque|back|less|none",
       ],
     });
     expect(
@@ -5898,6 +5901,7 @@ describe("WebGPU app facade", () => {
         `material-buffer:prepared-material:${assetHandleKey(material)}`,
         assetHandleKey(texture),
         assetHandleKey(sampler),
+        "standard|metallicRoughnessTexture|opaque|back|less|none",
       ],
     });
 
@@ -6220,6 +6224,7 @@ describe("WebGPU app facade", () => {
         assetHandleKey(occlusionSampler),
         assetHandleKey(emissiveTexture),
         assetHandleKey(emissiveSampler),
+        "standard|emissiveTexture|occlusionTexture|opaque|back|less|none",
       ],
     });
 
@@ -6488,6 +6493,7 @@ describe("WebGPU app facade", () => {
         `material-buffer:prepared-material:${assetHandleKey(material)}`,
         assetHandleKey(texture),
         assetHandleKey(sampler),
+        "standard|normalTexture|opaque|back|less|none",
       ],
     });
 

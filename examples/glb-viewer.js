@@ -3,6 +3,13 @@ const assetSelect = document.querySelector("#glb-asset-select");
 const customUrlForm = document.querySelector("#glb-url-form");
 const customUrlInput = document.querySelector("#glb-url-input");
 const cameraResetButton = document.querySelector("#glb-camera-reset");
+const shadowReceiverToggle = document.querySelector(
+  "#glb-shadow-receiver-toggle",
+);
+const shadowCasterToggle = document.querySelector("#glb-shadow-caster-toggle");
+const iblToggle = document.querySelector("#glb-ibl-toggle");
+const animationToggleButton = document.querySelector("#glb-animation-toggle");
+const animationScrubInput = document.querySelector("#glb-animation-scrub");
 const pointLightIntensityInput = document.querySelector(
   "#glb-point-light-intensity",
 );
@@ -23,11 +30,18 @@ const shadowControls = {
   receiverEnabled: !exampleParams.has("disable-shadow-receiver"),
   casterEnabled: !exampleParams.has("disable-shadow-caster"),
 };
+const iblControls = {
+  enabled: enableIblSampling,
+};
 const shadowIntent = {
   mapSize: 512,
   depthBias: 0.0015,
   normalBias: 0.01,
 };
+const supportedMetadataExtensions = new Set([
+  "KHR_materials_unlit",
+  "KHR_texture_transform",
+]);
 let shadowDepthTextureResourceReport = null;
 const sampleAssets = [
   {
@@ -116,6 +130,7 @@ try {
 function createGlbViewerScene(aperture, app, targetCanvas) {
   const orbit = createOrbitControls(targetCanvas);
   const initialCustomUrl = readInitialCustomUrl();
+  const initialSampleSelection = readInitialSampleSelection();
   const cameraEntity = app.spawn(
     aperture.withTransform({ translation: [0, 0, 3.4] }),
     aperture.withCamera({
@@ -151,10 +166,11 @@ function createGlbViewerScene(aperture, app, targetCanvas) {
   };
 
   const scene = {
-    asset: sampleAssets[0],
+    asset: initialSampleSelection.asset,
     loadState: null,
     loadSequence: 0,
     initialCustomUrl,
+    sampleSelection: initialSampleSelection.status,
     active: null,
     orbit,
     cameraEntity,
@@ -173,6 +189,7 @@ function createGlbViewerScene(aperture, app, targetCanvas) {
       assetSelect.append(option);
     }
 
+    assetSelect.value = initialSampleSelection.asset.id;
     assetSelect.addEventListener("change", () => {
       loadSelectedAsset(aperture, app, scene).catch((error) => {
         scene.loadState = failure(
@@ -209,13 +226,20 @@ function createGlbViewerScene(aperture, app, targetCanvas) {
     });
   }
 
+  bindShadowControlInputs(aperture, scene);
+  bindIblControlInputs(aperture, scene);
+  bindAnimationControlInputs(aperture, scene);
   bindLightControlInputs(aperture, scene);
+  updateShadowControlInputs(scene);
+  updateIblControlInputs(scene);
+  updateAnimationControlInputs(scene);
 
   return scene;
 }
 
 async function loadInitialAsset(aperture, app, scene) {
   if (scene.initialCustomUrl !== null) {
+    scene.sampleSelection = emptySampleSelectionStatus();
     await loadAsset(aperture, app, scene, {
       id: "custom-url",
       label: "Custom URL",
@@ -225,7 +249,7 @@ async function loadInitialAsset(aperture, app, scene) {
     return;
   }
 
-  await loadSelectedAsset(aperture, app, scene);
+  await loadAsset(aperture, app, scene, scene.asset);
 }
 
 async function loadSelectedAsset(aperture, app, scene) {
@@ -233,6 +257,11 @@ async function loadSelectedAsset(aperture, app, scene) {
     sampleAssets.find((entry) => entry.id === assetSelect?.value) ??
     sampleAssets[0];
 
+  scene.sampleSelection = {
+    requestedAssetId: asset.id,
+    activeAssetId: asset.id,
+    diagnostics: [],
+  };
   await loadAsset(aperture, app, scene, asset);
 }
 
@@ -253,6 +282,7 @@ async function loadCustomUrlAsset(aperture, app, scene) {
     throw new Error("Custom GLB URL must end in .glb.");
   }
 
+  scene.sampleSelection = emptySampleSelectionStatus();
   await loadAsset(aperture, app, scene, {
     id: "custom-url",
     label: "Custom URL",
@@ -360,6 +390,9 @@ async function loadAsset(aperture, app, scene, asset) {
   };
   scene.loadState = null;
   setCameraResetEnabled(fit.status === "ready");
+  updateShadowControlInputs(scene);
+  updateIblControlInputs(scene);
+  updateAnimationControlInputs(scene);
 }
 
 function destroyActiveScene(scene) {
@@ -376,6 +409,9 @@ function destroyActiveScene(scene) {
   }
 
   scene.active = null;
+  updateShadowControlInputs(scene);
+  updateIblControlInputs(scene);
+  updateAnimationControlInputs(scene);
 }
 
 function createBrassShadowScene(aperture, app, replay, fit) {
@@ -486,16 +522,29 @@ function createBrassShadowScene(aperture, app, replay, fit) {
     ? app.spawn(
         aperture.withEnvironmentMap(environmentMap, {
           color: [1, 1, 1, 1],
-          intensity: 0.52,
+          intensity: iblControls.enabled ? 0.52 : 0,
           layerMask: 1,
         }),
       )
     : null;
 
+  if (environmentEntity !== null) {
+    setEnvironmentMapComponent(
+      aperture,
+      environmentEntity,
+      aperture.assetHandleKey(environmentMap),
+      iblControls.enabled,
+    );
+  }
+
   return {
     controls: shadowControls,
-    iblEnabled: enableIblSampling,
-    specularIblEnabled: enableIblSampling && enableSpecularIblSampling,
+    casterEntities: replayMeshEntities,
+    receiverEntities: [floorEntity],
+    iblControls,
+    iblAvailable: enableIblSampling,
+    specularIblAvailable: enableIblSampling && enableSpecularIblSampling,
+    environmentEntity,
     environmentMapKey: aperture.assetHandleKey(environmentMap),
     iblResources,
     floorMeshKey: aperture.assetHandleKey(floorMesh),
@@ -798,6 +847,7 @@ function startRendering(aperture, app, scene) {
         scene.active?.animation ?? null,
         frame / 60,
       );
+      updateAnimationControlInputs(scene);
       updateOrbitCamera(aperture, scene.cameraEntity, scene.orbit);
       const step = app.step(0, frame / 60);
       const report = await app.render({
@@ -805,11 +855,13 @@ function startRendering(aperture, app, scene) {
         clearColor,
         label: "glb-viewer-app",
         ...(scene.active?.shadowScene?.controls.receiverEnabled !== true ||
+        scene.active.shadowScene.controls.casterEnabled !== true ||
         standardMaterialShadowReceiverResources === null
           ? {}
           : { standardMaterialShadowReceiverResources }),
         ...(scene.active?.shadowScene?.iblResources === null ||
-        scene.active?.shadowScene?.iblResources === undefined
+        scene.active?.shadowScene?.iblResources === undefined ||
+        scene.active.shadowScene.iblControls.enabled !== true
           ? {}
           : {
               standardMaterialIblResources:
@@ -873,6 +925,10 @@ async function createStatus(aperture, app, scene, step, report, frame) {
       loading: scene.loadState?.phase === "loading",
       materialFamilies: createMaterialFamilyStatus(aperture, app, active),
     },
+    selection: {
+      ...scene.sampleSelection,
+      activeAssetId: scene.asset.id,
+    },
     source: {
       url: formatAssetUrl(active?.asset.url ?? scene.asset.url),
       ok: active?.loaded.ok ?? false,
@@ -907,6 +963,7 @@ async function createStatus(aperture, app, scene, step, report, frame) {
         created: active?.replay.created.length ?? 0,
         diagnostics: active?.replay.diagnostics.length ?? 0,
       },
+      metadata: createGltfMetadataStatus(active),
     },
     orbit: {
       yaw: Number(scene.orbit.yaw.toFixed(4)),
@@ -928,8 +985,13 @@ async function createStatus(aperture, app, scene, step, report, frame) {
       shadowRequests: report.snapshot.shadowRequests.length,
       diagnostics: report.snapshot.diagnostics.length,
     },
-    ibl: createIblStatus(active, reportJson),
-    shadow: createShadowStatus(active, report.snapshot.meshDraws, shadowFrame),
+    ibl: createIblStatus(aperture, active, reportJson),
+    shadow: createShadowStatus(
+      aperture,
+      active,
+      report.snapshot.meshDraws,
+      shadowFrame,
+    ),
     renderState: createRenderStateStatus(report.snapshot.meshDraws),
     draw: {
       packages: report.counts.drawPackages,
@@ -949,6 +1011,7 @@ async function createStatus(aperture, app, scene, step, report, frame) {
   return {
     standardMaterialShadowReceiverResources:
       active?.shadowScene?.controls.receiverEnabled === true &&
+      active.shadowScene.controls.casterEnabled === true &&
       shadowFrame !== null &&
       shadowFrame.receiverResources !== null
         ? shadowFrame.receiverResources
@@ -1238,7 +1301,7 @@ async function createViewerShadowFrame({
   };
 }
 
-function createIblStatus(active, reportJson) {
+function createIblStatus(aperture, active, reportJson) {
   const shadowScene = active?.shadowScene ?? null;
   const resources = shadowScene?.iblResources ?? null;
   const pipelineKeys = routedPipelineKeys(reportJson);
@@ -1256,8 +1319,17 @@ function createIblStatus(active, reportJson) {
   );
 
   return {
-    enabled: shadowScene?.iblEnabled === true,
-    specularProof: shadowScene?.specularIblEnabled === true,
+    enabled:
+      shadowScene?.iblAvailable === true &&
+      shadowScene.iblControls.enabled === true,
+    controls: {
+      enabled: shadowScene?.iblControls.enabled ?? iblControls.enabled,
+      available: shadowScene?.iblAvailable === true,
+    },
+    ecs: createIblEcsStatus(aperture, shadowScene),
+    specularProof:
+      shadowScene?.specularIblAvailable === true &&
+      shadowScene.iblControls.enabled === true,
     environmentMapKey: shadowScene?.environmentMapKey ?? null,
     resources: {
       diffuseTexture: diffuseKey,
@@ -1265,7 +1337,10 @@ function createIblStatus(active, reportJson) {
       sampler: samplerKey,
     },
     rendering: {
-      supported: shadowScene?.iblEnabled === true && diffuseRoute !== undefined,
+      supported:
+        shadowScene?.iblAvailable === true &&
+        shadowScene.iblControls.enabled === true &&
+        diffuseRoute !== undefined,
       diffusePipelineKey: diffuseRoute ?? null,
       specularPipelineKey: specularRoute ?? null,
       pipelineKeys,
@@ -1273,7 +1348,30 @@ function createIblStatus(active, reportJson) {
   };
 }
 
-function createShadowStatus(active, meshDraws, shadowFrame) {
+function createIblEcsStatus(aperture, shadowScene) {
+  const environmentEntity = shadowScene?.environmentEntity ?? null;
+
+  if (environmentEntity === null) {
+    return {
+      environmentMapKey: null,
+      intensity: null,
+      environmentEntityCount: 0,
+    };
+  }
+
+  const environmentMapId =
+    environmentEntity.getValue(aperture.Light, "environmentMapId") ?? "";
+
+  return {
+    environmentMapKey: environmentMapId === "" ? null : environmentMapId,
+    intensity: Number(
+      (environmentEntity.getValue(aperture.Light, "intensity") ?? 0).toFixed(3),
+    ),
+    environmentEntityCount: 1,
+  };
+}
+
+function createShadowStatus(aperture, active, meshDraws, shadowFrame) {
   const shadowScene = active?.shadowScene ?? null;
 
   if (shadowScene === null) {
@@ -1282,6 +1380,14 @@ function createShadowStatus(active, meshDraws, shadowFrame) {
       controls: {
         receiverEnabled: shadowControls.receiverEnabled,
         casterEnabled: shadowControls.casterEnabled,
+      },
+      ecs: {
+        casterEnabled: null,
+        receiverEnabled: null,
+        casterEntityCount: 0,
+        receiverEntityCount: 0,
+        enabledCasterEntityCount: 0,
+        enabledReceiverEntityCount: 0,
       },
       authoring: createShadowAuthoringStatus(meshDraws),
       requests: [],
@@ -1299,6 +1405,7 @@ function createShadowStatus(active, meshDraws, shadowFrame) {
       receiverEnabled: shadowScene.controls.receiverEnabled,
       casterEnabled: shadowScene.controls.casterEnabled,
     },
+    ecs: createShadowEcsStatus(aperture, shadowScene),
     floor: {
       meshKey: shadowScene.floorMeshKey,
       materialKey: shadowScene.floorMaterialKey,
@@ -1333,6 +1440,30 @@ function createShadowStatus(active, meshDraws, shadowFrame) {
       filter: "pcf-3x3",
       pipelineKey: shadowFrame?.route?.pipelineKey ?? null,
     },
+  };
+}
+
+function createShadowEcsStatus(aperture, shadowScene) {
+  const casterValues = shadowScene.casterEntities.map((entity) =>
+    entity.hasComponent(aperture.ShadowCaster)
+      ? entity.getValue(aperture.ShadowCaster, "enabled") !== false
+      : true,
+  );
+  const receiverValues = shadowScene.receiverEntities.map((entity) =>
+    entity.hasComponent(aperture.ShadowReceiver)
+      ? entity.getValue(aperture.ShadowReceiver, "enabled") !== false
+      : true,
+  );
+
+  return {
+    casterEnabled:
+      casterValues.length > 0 && casterValues.every((enabled) => enabled),
+    receiverEnabled:
+      receiverValues.length > 0 && receiverValues.every((enabled) => enabled),
+    casterEntityCount: casterValues.length,
+    receiverEntityCount: receiverValues.length,
+    enabledCasterEntityCount: casterValues.filter(Boolean).length,
+    enabledReceiverEntityCount: receiverValues.filter(Boolean).length,
   };
 }
 
@@ -1372,6 +1503,220 @@ function createLightingControlStatus(aperture, scene, snapshot) {
           : Number(pointPacket.intensity.toFixed(3)),
     },
   };
+}
+
+function bindShadowControlInputs(aperture, scene) {
+  if (shadowReceiverToggle instanceof HTMLInputElement) {
+    shadowReceiverToggle.checked = shadowControls.receiverEnabled;
+    shadowReceiverToggle.addEventListener("change", () => {
+      setSceneShadowReceiverEnabled(
+        aperture,
+        scene,
+        shadowReceiverToggle.checked,
+      );
+    });
+  }
+
+  if (shadowCasterToggle instanceof HTMLInputElement) {
+    shadowCasterToggle.checked = shadowControls.casterEnabled;
+    shadowCasterToggle.addEventListener("change", () => {
+      setSceneShadowCasterEnabled(aperture, scene, shadowCasterToggle.checked);
+    });
+  }
+}
+
+function updateShadowControlInputs(scene) {
+  const shadowScene = scene.active?.shadowScene ?? null;
+  const hasShadowScene = shadowScene !== null;
+  const receiverEnabled =
+    shadowScene?.controls.receiverEnabled ?? shadowControls.receiverEnabled;
+  const casterEnabled =
+    shadowScene?.controls.casterEnabled ?? shadowControls.casterEnabled;
+
+  if (shadowReceiverToggle instanceof HTMLInputElement) {
+    shadowReceiverToggle.checked = receiverEnabled;
+    shadowReceiverToggle.disabled = !hasShadowScene;
+  }
+
+  if (shadowCasterToggle instanceof HTMLInputElement) {
+    shadowCasterToggle.checked = casterEnabled;
+    shadowCasterToggle.disabled = !hasShadowScene;
+  }
+}
+
+function setSceneShadowReceiverEnabled(aperture, scene, enabled) {
+  shadowControls.receiverEnabled = enabled;
+  const shadowScene = scene.active?.shadowScene ?? null;
+
+  if (shadowScene !== null) {
+    shadowScene.controls.receiverEnabled = enabled;
+    for (const entity of shadowScene.receiverEntities) {
+      setShadowReceiverComponent(aperture, entity, enabled);
+    }
+  }
+
+  updateShadowControlInputs(scene);
+}
+
+function setSceneShadowCasterEnabled(aperture, scene, enabled) {
+  shadowControls.casterEnabled = enabled;
+  const shadowScene = scene.active?.shadowScene ?? null;
+
+  if (shadowScene !== null) {
+    shadowScene.controls.casterEnabled = enabled;
+    for (const entity of shadowScene.casterEntities) {
+      setShadowCasterComponent(aperture, entity, enabled);
+    }
+  }
+
+  updateShadowControlInputs(scene);
+}
+
+function setShadowCasterComponent(aperture, entity, enabled) {
+  if (entity.hasComponent(aperture.ShadowCaster)) {
+    entity.setValue(aperture.ShadowCaster, "enabled", enabled);
+    return;
+  }
+
+  entity.addComponent(aperture.ShadowCaster, { enabled });
+}
+
+function setShadowReceiverComponent(aperture, entity, enabled) {
+  if (entity.hasComponent(aperture.ShadowReceiver)) {
+    entity.setValue(aperture.ShadowReceiver, "enabled", enabled);
+    return;
+  }
+
+  entity.addComponent(aperture.ShadowReceiver, { enabled });
+}
+
+function bindIblControlInputs(aperture, scene) {
+  if (iblToggle instanceof HTMLInputElement) {
+    iblToggle.checked = iblControls.enabled;
+    iblToggle.addEventListener("change", () => {
+      setSceneIblEnabled(aperture, scene, iblToggle.checked);
+    });
+  }
+}
+
+function updateIblControlInputs(scene) {
+  const shadowScene = scene.active?.shadowScene ?? null;
+  const hasIblControls = shadowScene?.iblAvailable === true;
+  const enabled = shadowScene?.iblControls.enabled ?? iblControls.enabled;
+
+  if (iblToggle instanceof HTMLInputElement) {
+    iblToggle.checked = enabled;
+    iblToggle.disabled = !hasIblControls;
+  }
+}
+
+function setSceneIblEnabled(aperture, scene, enabled) {
+  iblControls.enabled = enabled;
+  const shadowScene = scene.active?.shadowScene ?? null;
+
+  if (shadowScene !== null && shadowScene.iblAvailable) {
+    shadowScene.iblControls.enabled = enabled;
+
+    if (shadowScene.environmentEntity !== null) {
+      setEnvironmentMapComponent(
+        aperture,
+        shadowScene.environmentEntity,
+        shadowScene.environmentMapKey,
+        enabled,
+      );
+    }
+  }
+
+  updateIblControlInputs(scene);
+}
+
+function setEnvironmentMapComponent(
+  aperture,
+  entity,
+  environmentMapKey,
+  enabled,
+) {
+  entity.setValue(
+    aperture.Light,
+    "environmentMapId",
+    enabled ? environmentMapKey : "",
+  );
+  entity.setValue(aperture.Light, "intensity", enabled ? 0.52 : 0);
+}
+
+function bindAnimationControlInputs(aperture, scene) {
+  if (animationToggleButton instanceof HTMLButtonElement) {
+    animationToggleButton.addEventListener("click", () => {
+      toggleActiveAnimationPlayback(aperture, scene);
+    });
+  }
+
+  if (animationScrubInput instanceof HTMLInputElement) {
+    animationScrubInput.addEventListener("input", () => {
+      scrubActiveAnimation(
+        aperture,
+        scene,
+        numberInputValue(animationScrubInput, 0),
+      );
+    });
+  }
+}
+
+function updateAnimationControlInputs(scene) {
+  const animation = scene.active?.animation ?? null;
+  const clip = animation?.activeClip ?? null;
+  const hasAnimation = animation !== null && clip !== null;
+
+  if (animationToggleButton instanceof HTMLButtonElement) {
+    animationToggleButton.disabled = !hasAnimation;
+    animationToggleButton.textContent =
+      animation?.status === "paused" ? "play" : "pause";
+  }
+
+  if (animationScrubInput instanceof HTMLInputElement) {
+    animationScrubInput.disabled = !hasAnimation;
+    animationScrubInput.max =
+      clip === null ? "0" : String(Number(clip.duration.toFixed(3)));
+    animationScrubInput.value =
+      animation === null ? "0" : String(Number(animation.time.toFixed(3)));
+  }
+}
+
+function toggleActiveAnimationPlayback(aperture, scene) {
+  const animation = scene.active?.animation ?? null;
+  const clip = animation?.activeClip ?? null;
+
+  if (animation === null || clip === null) {
+    updateAnimationControlInputs(scene);
+    return;
+  }
+
+  if (animation.status === "paused") {
+    animation.status = "playing";
+    animation.playbackOffset = animation.time - animation.lastElapsedSeconds;
+  } else {
+    animation.status = "paused";
+    updateActiveAnimation(aperture, animation, animation.lastElapsedSeconds);
+  }
+
+  updateAnimationControlInputs(scene);
+}
+
+function scrubActiveAnimation(aperture, scene, time) {
+  const animation = scene.active?.animation ?? null;
+  const clip = animation?.activeClip ?? null;
+
+  if (animation === null || clip === null) {
+    updateAnimationControlInputs(scene);
+    return;
+  }
+
+  const duration = Math.max(0, clip.duration);
+  animation.status = "paused";
+  animation.time = clamp(time, 0, duration);
+  animation.playbackOffset = animation.time - animation.lastElapsedSeconds;
+  updateActiveAnimation(aperture, animation, animation.lastElapsedSeconds);
+  updateAnimationControlInputs(scene);
 }
 
 function bindLightControlInputs(aperture, scene) {
@@ -1567,6 +1912,8 @@ function createGltfAnimationState(options) {
     clipCount: clips.length,
     activeClip,
     time: 0,
+    playbackOffset: 0,
+    lastElapsedSeconds: 0,
     animatedNodes: [],
   };
 }
@@ -1686,8 +2033,17 @@ function updateActiveAnimation(aperture, animation, elapsedSeconds) {
   }
 
   const duration = Math.max(0, clip.duration);
+  animation.lastElapsedSeconds = elapsedSeconds;
   const localTime =
-    duration > 0 ? ((elapsedSeconds % duration) + duration) % duration : 0;
+    animation.status === "paused"
+      ? clamp(animation.time, 0, duration)
+      : duration > 0
+        ? wrapTime(elapsedSeconds + animation.playbackOffset, duration)
+        : 0;
+  applyAnimationAtTime(aperture, animation, clip, localTime);
+}
+
+function applyAnimationAtTime(aperture, animation, clip, localTime) {
   const animatedNodes = [];
 
   for (const channel of clip.channels) {
@@ -1706,6 +2062,10 @@ function updateActiveAnimation(aperture, animation, elapsedSeconds) {
 
   animation.time = Number(localTime.toFixed(3));
   animation.animatedNodes = animatedNodes;
+}
+
+function wrapTime(time, duration) {
+  return duration > 0 ? ((time % duration) + duration) % duration : 0;
 }
 
 function sampleTranslationChannel(channel, time) {
@@ -1894,6 +2254,212 @@ function createHierarchyStatus(aperture, active) {
       };
     }),
   };
+}
+
+function createGltfMetadataStatus(active) {
+  const glbImportReport = active?.loaded.loader?.glbImportReport ?? null;
+  const importReport = glbImportReport?.importReport ?? null;
+  const root = glbImportReport?.container.container?.json ?? null;
+
+  if (!isRecord(root)) {
+    return {
+      status: "absent",
+      counts: {
+        scenes: 0,
+        nodes: 0,
+        meshes: 0,
+        primitives: 0,
+        materials: 0,
+        animations: 0,
+      },
+      extensions: {
+        used: [],
+        required: [],
+      },
+      unsupportedFeatureDiagnostics: [],
+    };
+  }
+
+  const meshes = arrayEntries(root.meshes);
+  const primitives = meshes.flatMap((mesh) =>
+    isRecord(mesh) ? arrayEntries(mesh.primitives) : [],
+  );
+  const extensionsUsed = stringArray(root.extensionsUsed);
+  const extensionsRequired = stringArray(root.extensionsRequired);
+
+  return {
+    status: "ready",
+    counts: {
+      scenes: arrayEntries(root.scenes).length,
+      nodes: arrayEntries(root.nodes).length,
+      meshes: meshes.length,
+      primitives: primitives.length,
+      materials: arrayEntries(root.materials).length,
+      animations: arrayEntries(root.animations).length,
+    },
+    extensions: {
+      used: extensionsUsed,
+      required: extensionsRequired,
+    },
+    unsupportedFeatureDiagnostics: createGltfUnsupportedFeatureDiagnostics({
+      root,
+      primitives,
+      extensionsUsed,
+      extensionsRequired,
+      importReport,
+      glbImportReport,
+    }),
+  };
+}
+
+function createGltfUnsupportedFeatureDiagnostics(input) {
+  const diagnostics = [
+    ...rootExtensionDiagnostics(input.extensionsUsed, input.extensionsRequired),
+    ...rootFeatureDiagnostics(input.root, input.primitives),
+    ...unsupportedImportDiagnostics(input.importReport),
+    ...unsupportedGlbDiagnostics(input.glbImportReport),
+  ];
+  const seen = new Set();
+
+  return diagnostics.filter((diagnostic) => {
+    const key = JSON.stringify(diagnostic);
+
+    if (seen.has(key)) {
+      return false;
+    }
+
+    seen.add(key);
+    return true;
+  });
+}
+
+function rootExtensionDiagnostics(extensionsUsed, extensionsRequired) {
+  const required = new Set(extensionsRequired);
+  const diagnostics = [];
+
+  for (const extensionName of extensionsUsed) {
+    if (supportedMetadataExtensions.has(extensionName)) {
+      continue;
+    }
+
+    diagnostics.push({
+      code: required.has(extensionName)
+        ? "gltfMetadata.unsupportedRequiredExtension"
+        : "gltfMetadata.unsupportedOptionalExtension",
+      severity: required.has(extensionName) ? "error" : "warning",
+      extensionName,
+      message: `glTF extension '${extensionName}' is not handled by the current GLB viewer import path.`,
+    });
+  }
+
+  return diagnostics;
+}
+
+function rootFeatureDiagnostics(root, primitives) {
+  const diagnostics = [];
+  const skins = arrayEntries(root.skins);
+  const cameras = arrayEntries(root.cameras);
+  const morphTargetPrimitiveCount = primitives.filter(
+    (primitive) =>
+      isRecord(primitive) && arrayEntries(primitive.targets).length > 0,
+  ).length;
+
+  if (skins.length > 0) {
+    diagnostics.push({
+      code: "gltfMetadata.unsupportedSkins",
+      severity: "warning",
+      count: skins.length,
+      message:
+        "GLB viewer metadata detected skins; skinning is not replayed yet.",
+    });
+  }
+
+  if (cameras.length > 0) {
+    diagnostics.push({
+      code: "gltfMetadata.unsupportedCameras",
+      severity: "warning",
+      count: cameras.length,
+      message:
+        "GLB viewer metadata detected cameras; imported cameras are not replayed yet.",
+    });
+  }
+
+  if (morphTargetPrimitiveCount > 0) {
+    diagnostics.push({
+      code: "gltfMetadata.unsupportedMorphTargets",
+      severity: "warning",
+      count: morphTargetPrimitiveCount,
+      message:
+        "GLB viewer metadata detected morph targets; morph animation is not replayed yet.",
+    });
+  }
+
+  return diagnostics;
+}
+
+function unsupportedImportDiagnostics(importReport) {
+  if (importReport === null) {
+    return [];
+  }
+
+  return [
+    ...filterUnsupportedDiagnostics(importReport.root?.diagnostics ?? []),
+    ...filterUnsupportedDiagnostics(
+      importReport.meshPrimitive?.diagnostics ?? [],
+    ),
+    ...filterUnsupportedDiagnostics(
+      importReport.accessorValidation?.diagnostics ?? [],
+    ),
+    ...filterUnsupportedDiagnostics(importReport.sceneTraversal.diagnostics),
+    ...filterUnsupportedDiagnostics(importReport.diagnostics),
+  ];
+}
+
+function unsupportedGlbDiagnostics(glbImportReport) {
+  if (glbImportReport === null) {
+    return [];
+  }
+
+  return [
+    ...filterUnsupportedDiagnostics(glbImportReport.container.diagnostics),
+    ...filterUnsupportedDiagnostics(glbImportReport.diagnostics),
+  ];
+}
+
+function filterUnsupportedDiagnostics(diagnostics) {
+  return diagnostics
+    .filter(
+      (diagnostic) =>
+        isRecord(diagnostic) &&
+        typeof diagnostic.code === "string" &&
+        diagnostic.code.toLowerCase().includes("unsupported"),
+    )
+    .map((diagnostic) => ({
+      code: diagnostic.code,
+      severity:
+        diagnostic.severity === "error" || diagnostic.severity === "warning"
+          ? diagnostic.severity
+          : "warning",
+      message: typeof diagnostic.message === "string" ? diagnostic.message : "",
+      ...diagnosticField(diagnostic, "field"),
+      ...diagnosticField(diagnostic, "extensionName"),
+      ...diagnosticNumberField(diagnostic, "meshIndex"),
+      ...diagnosticNumberField(diagnostic, "primitiveIndex"),
+      ...diagnosticNumberField(diagnostic, "accessorIndex"),
+    }));
+}
+
+function diagnosticField(diagnostic, field) {
+  return typeof diagnostic[field] === "string"
+    ? { [field]: diagnostic[field] }
+    : {};
+}
+
+function diagnosticNumberField(diagnostic, field) {
+  return typeof diagnostic[field] === "number" &&
+    Number.isFinite(diagnostic[field])
+    ? { [field]: diagnostic[field] }
+    : {};
 }
 
 function createMaterialFamilyStatus(aperture, app, active) {
@@ -2288,6 +2854,16 @@ function integerOrZero(value) {
     : 0;
 }
 
+function arrayEntries(value) {
+  return Array.isArray(value) ? value : [];
+}
+
+function stringArray(value) {
+  return Array.isArray(value)
+    ? value.filter((entry) => typeof entry === "string").sort()
+    : [];
+}
+
 function isRecord(value) {
   return value !== null && typeof value === "object" && !Array.isArray(value);
 }
@@ -2306,6 +2882,63 @@ function readInitialCustomUrl() {
   }
 
   return url;
+}
+
+function readInitialSampleSelection() {
+  const requestedAssetId = exampleParams.get("asset")?.trim() ?? null;
+
+  if (requestedAssetId === null || requestedAssetId.length === 0) {
+    const asset = sampleAssets[0];
+
+    return {
+      asset,
+      status: {
+        requestedAssetId: null,
+        activeAssetId: asset.id,
+        diagnostics: [],
+      },
+    };
+  }
+
+  const asset = sampleAssets.find((entry) => entry.id === requestedAssetId);
+
+  if (asset !== undefined) {
+    return {
+      asset,
+      status: {
+        requestedAssetId,
+        activeAssetId: asset.id,
+        diagnostics: [],
+      },
+    };
+  }
+
+  const fallback = sampleAssets[0];
+
+  return {
+    asset: fallback,
+    status: {
+      requestedAssetId,
+      activeAssetId: fallback.id,
+      diagnostics: [
+        {
+          code: "glbViewerSelection.unknownSampleAsset",
+          severity: "warning",
+          requestedAssetId,
+          fallbackAssetId: fallback.id,
+          message: `Sample asset '${requestedAssetId}' is not available; loaded '${fallback.id}'.`,
+        },
+      ],
+    },
+  };
+}
+
+function emptySampleSelectionStatus() {
+  return {
+    requestedAssetId: null,
+    activeAssetId: null,
+    diagnostics: [],
+  };
 }
 
 function formatAssetUrl(url) {

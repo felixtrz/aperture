@@ -8,7 +8,7 @@ import {
 } from "@aperture-engine/webgpu";
 
 describe("pipeline-scoped bind group scratch", () => {
-  it("reuses scoped wrapper records while preserving material group identity", () => {
+  it("reuses scoped wrapper records for every bind group", () => {
     const scratch = createPipelineScopedBindGroupScratch();
     const firstOutput: PipelineScopedBindGroupResource[] = [];
     const secondOutput: PipelineScopedBindGroupResource[] = [];
@@ -40,17 +40,20 @@ describe("pipeline-scoped bind group scratch", () => {
     expect(secondOutput[0]).toBe(firstView);
     expect(secondOutput[1]).toBe(firstWorld);
     expect(secondOutput[2]).toBe(firstMaterial);
-    expect(secondOutput[2]).toBe(bindGroups[2]);
     expect(secondOutput.map((bindGroup) => bindGroup.resourceKey)).toEqual([
       "view|pipeline:unlit|opaque",
       "world|pipeline:unlit|opaque",
-      "material",
+      "material|pipeline:unlit|opaque",
     ]);
     expect(secondOutput[0]?.entryResourceKeys).toBe(
       firstOutput[0]?.entryResourceKeys,
     );
     expect(secondOutput[0]?.entryResourceKeys).toEqual([
       "view",
+      "unlit|opaque",
+    ]);
+    expect(secondOutput[2]?.entryResourceKeys).toEqual([
+      "material",
       "unlit|opaque",
     ]);
   });

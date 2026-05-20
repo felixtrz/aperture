@@ -1,5 +1,140 @@
 # Completed Tasks
 
+## task-2035 — Add `?asset=` sample bootstrap to glb-viewer
+
+Completed: 2026-05-19
+
+Summary:
+
+- Added `?asset=` query parsing to `examples/glb-viewer.js` so committed sample IDs load through the same ECS replay/unload path as the dropdown.
+- Invalid sample IDs now fall back to the default sample and publish a JSON-safe selection diagnostic.
+- Added Playwright coverage for `?asset=brass` and invalid fallback rendering.
+
+References inspected:
+
+- `references/three.js/examples/webgl_loader_gltf.html`
+
+Validation:
+
+- `node --check examples/glb-viewer.js`
+- `pnpm run typecheck:test`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts -g "sample GLB asset from the query string"`
+
+Known follow-up:
+
+- `task-2036` should add a GLB viewer roughness/IBL comparison sample.
+
+## task-2034 — Add GLB viewer sample metadata status
+
+Completed: 2026-05-19
+
+Summary:
+
+- Added JSON-safe `gltf.metadata` status with scene, node, mesh, primitive, material, and animation counts derived from parsed GLB/import reports.
+- Added root extension and unsupported feature diagnostics without exposing binary buffers or GPU handles.
+- Extended GLB viewer Playwright coverage to verify metadata for animated, dual-primitive, mixed-alpha, and hierarchy samples.
+
+References inspected:
+
+- `references/bevy/crates/bevy_gltf/src/loader/mod.rs`
+- `references/three.js/examples/jsm/loaders/GLTFLoader.js`
+
+Validation:
+
+- `node --check examples/glb-viewer.js`
+- `pnpm run typecheck:test`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts -g "fetched sample GLB viewer asset"`
+
+Known follow-up:
+
+- `task-2035` should add sample query bootstrap support.
+
+## task-2033 — Add animation pause and scrub controls to glb-viewer
+
+Completed: 2026-05-19
+
+Summary:
+
+- Added pause/play and scrub controls to `examples/glb-viewer.html`.
+- Wired controls to example animation state that writes replayed ECS `LocalTransform` values for the active GLB clip.
+- Published playing/paused state, scrub time, active clip, and animated node transform values in viewer status.
+- Added Playwright coverage proving pause freezes pixels and scrub changes transform status plus rendered pixels.
+
+References inspected:
+
+- `references/bevy/crates/bevy_animation/src/lib.rs`
+- `references/three.js/examples/jsm/loaders/GLTFLoader.js`
+
+Validation:
+
+- `node --check examples/glb-viewer.js`
+- `pnpm run typecheck:test`
+- `pnpm run build`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts -g "pauses and scrubs"`
+
+Known follow-up:
+
+- `task-2034` should publish parsed GLB metadata status for viewer samples.
+
+## task-2032 — Add a live IBL enable control to glb-viewer
+
+Completed: 2026-05-19
+
+Summary:
+
+- Added a compact IBL enable checkbox for StandardMaterial viewer samples.
+- Toggling IBL now mutates the ECS-authored environment light state and gates renderer-owned IBL resources without making renderer state authoritative.
+- Viewer status reports IBL control state, ECS environment state, resource keys, and routed pipeline keys.
+- Added Playwright coverage proving brass-sample pixels respond to direct-lit versus IBL-enabled modes.
+
+References inspected:
+
+- `references/three.js/src/extras/PMREMGenerator.js`
+- `references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/reflectionEnv.js`
+
+Validation:
+
+- `node --check examples/glb-viewer.js`
+- `pnpm run typecheck:test`
+- `pnpm run build`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts -g "ECS IBL control"`
+
+Known follow-up:
+
+- `task-2033` should add animation pause and scrub controls.
+
+## task-2031 — Add live shadow caster/receiver controls to glb-viewer
+
+Completed: 2026-05-19
+
+Summary:
+
+- Added compact caster and receiver checkboxes for the lit brass GLB viewer sample.
+- Changing controls mutates ECS-authored `ShadowCaster` and `ShadowReceiver` components.
+- Viewer status reports live control state, ECS caster/receiver counts, caster draw-list inclusion, and receiver route support.
+- Fixed StandardMaterial live route changes by scoping material bind groups to pipeline keys and invalidating cached Standard frame resources across pipeline/layout changes.
+- Added Playwright and unit coverage for shadow toggles and pipeline-scoped material bind group reuse.
+
+References inspected:
+
+- `references/bevy/examples/3d/shadow_caster_receiver.rs`
+- `references/three.js/src/renderers/common/Bindings.js`
+- `references/three.js/src/renderers/common/Pipeline.js`
+- `references/engine/src/platform/graphics/webgpu/webgpu-bind-group.js`
+- `references/engine/src/platform/graphics/webgpu/webgpu-render-pipeline.js`
+
+Validation:
+
+- `node --check examples/glb-viewer.js`
+- `pnpm run typecheck:test`
+- `pnpm exec vitest run test/webgpu/unlit-app-frame-resources.test.ts test/webgpu/pipeline-scoped-bind-groups.test.ts test/webgpu/render-pass-draw-list.test.ts`
+- `pnpm run build`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts -g "ECS shadow controls"`
+
+Known follow-up:
+
+- `task-2032` should add a live IBL enable control.
+
 ## task-2030 — Add ECS light controls for the lit GLB viewer sample
 
 Completed: 2026-05-19

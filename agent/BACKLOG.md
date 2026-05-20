@@ -59,7 +59,7 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start with `task-2031`: add live shadow caster/receiver controls to glb-viewer.
+Start with `task-2036`: add a GLB viewer roughness/IBL comparison sample.
 
 `task-2001` is complete: the spinning-cube example now creates a renderer-owned face-colored diffuse IBL cube texture and sampler, routes it through the StandardMaterial diffuse IBL shader variant, and Playwright verifies direction-dependent face pixels.
 `task-2002` is complete: `withEnvironmentMap(handle)` is exported from runtime/core and materials-showcase now uses it with visible diffuse IBL routing.
@@ -554,6 +554,8 @@ Acceptance criteria:
 
 ### task-2031 — Add live shadow caster/receiver controls to glb-viewer
 
+Status: completed 2026-05-19. See `agent/COMPLETED.md`.
+
 Category: `runtime-orchestration`
 Package/write-scope: `examples/glb-viewer.html`, `examples/glb-viewer.js`, `test/e2e/glb-viewer.spec.ts`.
 Reference anchor: `references/bevy/examples/3d/shadow_caster_receiver.rs`.
@@ -566,6 +568,8 @@ Acceptance criteria:
 - Playwright toggles caster and receiver modes and verifies status plus receiver-region pixel changes without WebGPU validation warnings.
 
 ### task-2032 — Add a live IBL enable control to glb-viewer
+
+Status: completed 2026-05-19. See `agent/COMPLETED.md`.
 
 Category: `runtime-orchestration`
 Package/write-scope: `examples/glb-viewer.html`, `examples/glb-viewer.js`, `test/e2e/glb-viewer.spec.ts`.
@@ -580,6 +584,8 @@ Acceptance criteria:
 
 ### task-2033 — Add animation pause and scrub controls to glb-viewer
 
+Status: completed 2026-05-19. See `agent/COMPLETED.md`.
+
 Category: `runtime-orchestration`
 Package/write-scope: `examples/glb-viewer.html`, `examples/glb-viewer.js`, `test/e2e/glb-viewer.spec.ts`.
 Reference anchor: `references/bevy/crates/bevy_animation/src/lib.rs`; `references/three.js/examples/jsm/loaders/GLTFLoader.js`.
@@ -593,6 +599,8 @@ Acceptance criteria:
 
 ### task-2034 — Add GLB viewer sample metadata status
 
+Status: completed 2026-05-19. See `agent/COMPLETED.md`.
+
 Category: `render-bridge`
 Package/write-scope: `examples/glb-viewer.js`, `test/e2e/glb-viewer.spec.ts`, targeted asset report helpers only if needed.
 Reference anchor: `references/bevy/crates/bevy_gltf/src/loader/mod.rs`; `references/three.js/examples/jsm/loaders/GLTFLoader.js`.
@@ -605,6 +613,8 @@ Acceptance criteria:
 
 ### task-2035 — Add `?asset=` sample bootstrap to glb-viewer
 
+Status: completed 2026-05-19. See `agent/COMPLETED.md`.
+
 Category: `runtime-orchestration`
 Package/write-scope: `examples/glb-viewer.js`, `examples/glb-viewer.html`, `test/e2e/glb-viewer.spec.ts`.
 Reference anchor: `references/three.js/examples/webgl_loader_gltf.html` (model selection flow and stale-load guard).
@@ -616,6 +626,78 @@ Acceptance criteria:
 - Playwright covers a valid sample bootstrap and an invalid fallback with rendered pixels and selected-asset status.
 
 Future MVP slices (IBL composition quality, animation breadth, and performance reporting) remain candidates after these visible feature tasks.
+
+### task-2036 — Add a GLB viewer roughness/IBL comparison sample
+
+Category: `runtime-orchestration`
+Package/write-scope: `examples/assets`, `examples/glb-viewer.js`, `test/e2e/glb-viewer.spec.ts`.
+Reference anchor: `references/three.js/src/extras/PMREMGenerator.js`; `references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/reflectionEnv.js`.
+
+Acceptance criteria:
+
+- `glb-viewer` includes a committed two-primitive StandardMaterial GLB sample with visibly different roughness values on the same base material.
+- Viewer status reports the resolved roughness/material factors for both primitives without raw GPU handles.
+- Playwright verifies IBL-enabled pixels differ between glossy and rough regions and that disabling IBL changes the comparison.
+
+### task-2037 — Add a normal-mapped StandardMaterial GLB viewer sample
+
+Category: `runtime-orchestration`
+Package/write-scope: `examples/assets`, `examples/glb-viewer.js`, `test/e2e/glb-viewer.spec.ts`.
+Reference anchor: `references/bevy/crates/bevy_gltf/src/loader/mod.rs`; `references/three.js/examples/jsm/loaders/GLTFLoader.js`.
+
+Acceptance criteria:
+
+- `glb-viewer` includes a committed StandardMaterial GLB sample with a normal texture and tangent-backed mesh data.
+- Viewer status reports the normal texture/material readiness and routed pipeline key for the sample.
+- Playwright verifies the normal-mapped sample renders visible non-flat lighting compared with a scalar-control region.
+
+### task-2038 — Add a textured StandardMaterial GLB viewer sample
+
+Category: `runtime-orchestration`
+Package/write-scope: `examples/assets`, `examples/glb-viewer.js`, `test/e2e/glb-viewer.spec.ts`.
+Reference anchor: `references/bevy/crates/bevy_gltf/src/loader/gltf_ext/material.rs`; `references/three.js/examples/jsm/loaders/GLTFLoader.js`.
+
+Acceptance criteria:
+
+- `glb-viewer` includes a committed StandardMaterial GLB sample with base-color and metallic-roughness texture bindings.
+- Viewer status reports both texture-backed material slots and the routed combined texture pipeline key.
+- Playwright verifies textured pixels render and differ from an untextured material-control region.
+
+### task-2039 — Add animation speed control to glb-viewer
+
+Category: `runtime-orchestration`
+Package/write-scope: `examples/glb-viewer.html`, `examples/glb-viewer.js`, `test/e2e/glb-viewer.spec.ts`.
+Reference anchor: `references/bevy/crates/bevy_animation/src/lib.rs`; `references/three.js/examples/jsm/animation/AnimationClipCreator.js`.
+
+Acceptance criteria:
+
+- `glb-viewer` exposes a compact speed control for animated samples.
+- Changing speed updates example animation state that writes replayed ECS `LocalTransform` values, with no renderer-owned scene graph.
+- Playwright verifies speed 0 freezes pixels/status and a higher speed advances transform status faster than the default.
+
+### task-2040 — Add multi-clip animation selection to glb-viewer
+
+Category: `runtime-orchestration`
+Package/write-scope: `examples/assets`, `examples/glb-viewer.html`, `examples/glb-viewer.js`, `test/e2e/glb-viewer.spec.ts`.
+Reference anchor: `references/bevy/crates/bevy_animation/src/lib.rs`; `references/three.js/examples/jsm/loaders/GLTFLoader.js`.
+
+Acceptance criteria:
+
+- `glb-viewer` includes or loads a sample with at least two animation clips and exposes a compact clip selector.
+- Changing clips updates the example animation state and writes the selected clip into replayed ECS `LocalTransform` data.
+- Playwright verifies selected clip status and rendered pixels differ between two clips.
+
+### task-2041 — Audit GLB viewer control/status architecture
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research`, `examples/glb-viewer.js`, targeted tests only if a small corrective refactor is required.
+Reference anchor: `docs/NORTH_STAR.md`; `docs/ARCHITECTURE.md`; `docs/DECISIONS.md`; `references/bevy/crates/bevy_gltf/src/loader/mod.rs`.
+
+Acceptance criteria:
+
+- Confirm GLB viewer controls and status remain ECS-authored, JSON-safe, and free of renderer-owned authoritative scene state.
+- Check package-boundary drift from the live shadow, IBL, animation, metadata, and query-bootstrap slices.
+- Recommend the next visible GLB/IBL/animation fidelity slice.
 
 ## Ready Tasks By Category
 

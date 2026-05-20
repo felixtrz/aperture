@@ -36,11 +36,6 @@ export function appendPipelineScopedBindGroups(
   scratch: PipelineScopedBindGroupScratch,
 ): void {
   for (const bindGroup of bindGroups) {
-    if (bindGroup.group === 2) {
-      output.push(bindGroup);
-      continue;
-    }
-
     const scoped = scopedBindGroupAt(scratch);
 
     scoped.group = bindGroup.group;

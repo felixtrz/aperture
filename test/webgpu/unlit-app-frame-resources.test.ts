@@ -21,6 +21,7 @@ import {
   createDirectionalShadowMatrixComputationReport,
   createDirectionalShadowViewProjectionPlanReport,
   createMatcapMaterialBindGroupLayoutPlan,
+  createLightBindGroupLayoutDescriptor,
   createOrReuseMatcapAppFrameResources,
   createOrReuseStandardAppFrameResources,
   createOrReuseUnlitAppFrameResources,
@@ -39,6 +40,7 @@ import {
   createStandardLightShadowBindGroupLayoutDescriptor,
   createUnlitBindGroupLayoutMetadata,
   createUnlitMaterialAsset,
+  type LightBindGroupLayoutResource,
   type MatcapMaterialBindGroupLayoutResource,
   type StandardLightShadowBindGroupLayoutResource,
   type StandardMaterialBindGroupLayoutResource,
@@ -430,6 +432,69 @@ describe("unlit app frame-resource fallback diagnostics", () => {
     );
     expect(createdBindGroups).toHaveLength(4);
   });
+
+  it("does not reuse cached Standard frame resources across pipeline keys", () => {
+    const registry = new AssetRegistry();
+    const material = createMaterialHandle("standard-live-route");
+    const mesh = createMeshHandle("standard-live-route-box");
+    const createdBindGroups: unknown[] = [];
+    const device = deviceWithShadowResources({ createdBindGroups });
+    const cache = { current: null };
+    const preparedMeshes = createPreparedMeshGpuResourceCache();
+    const preparedMaterials = createPreparedScalarStandardMaterialCache();
+
+    registry.register(material);
+    registry.register(mesh);
+    const materialEntry = registry.markReady(
+      material,
+      createStandardMaterialAsset(),
+    );
+    const common = {
+      device,
+      cache,
+      snapshot: snapshotWithLight(),
+      mesh: createBoxMeshAsset({ label: "LiveRouteBox" }),
+      meshHandle: mesh,
+      meshKey: `${assetHandleKey(mesh)}@1`,
+      material: required(materialEntry.asset),
+      materialHandle: material,
+      materialKey: `${assetHandleKey(material)}@${materialEntry.version}`,
+      sourceMaterialKey: assetHandleKey(material),
+      assets: registry,
+      textureSamplerDependencies: emptyTextureSamplerDependencies(),
+      viewUniforms: validViewUniforms(),
+      worldTransforms: validTransforms(),
+      sharedLayouts: [sharedLayout(0), sharedLayout(1)],
+      materialLayout: standardMaterialLayout(),
+      preparedMeshes,
+      preparedScalarMaterials: preparedMaterials,
+    };
+    const direct = createOrReuseStandardAppFrameResources({
+      ...common,
+      pipelineKey: "standard|opaque|back|less|none",
+      lightLayout: standardLightLayout(),
+      reuse: standardReuseCounters(),
+    });
+    const shadow = createOrReuseStandardAppFrameResources({
+      ...common,
+      pipelineKey: "standard|shadowMap|opaque|back|less|none",
+      lightLayout: standardLightShadowLayout(),
+      shadowReceiverResources: standardShadowReceiverResources(device),
+      reuse: standardReuseCounters(),
+    });
+
+    expect(direct.valid).toBe(true);
+    expect(shadow.valid).toBe(true);
+    expect(shadow.resources?.materialBindGroup).not.toBe(
+      direct.resources?.materialBindGroup,
+    );
+    expect(shadow.resources?.materialBindGroup.bindGroup).not.toBe(
+      direct.resources?.materialBindGroup.bindGroup,
+    );
+    expect(shadow.resources?.lightBindGroup.layoutKey).toBe(
+      "webgpu-app/standard/lights-shadow/group-3",
+    );
+  });
 });
 
 function emptyTextureSamplerDependencies() {
@@ -589,6 +654,18 @@ function standardMaterialLayout(): StandardMaterialBindGroupLayoutResource {
     descriptor: createStandardMaterialBindGroupLayoutPlan(
       "layout:standard/material",
     ).layout,
+  };
+}
+
+function standardLightLayout(): LightBindGroupLayoutResource {
+  return {
+    group: 3,
+    layoutKey: "webgpu-app/standard/group-3",
+    layout: { group: 3 },
+    descriptor: createLightBindGroupLayoutDescriptor({
+      group: 3,
+      label: "webgpu-app/standard/group-3",
+    }),
   };
 }
 

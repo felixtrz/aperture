@@ -206,6 +206,46 @@ describe("render pass draw list planning", () => {
     ]);
   });
 
+  it("selects pipeline-scoped material bind groups for live route changes", () => {
+    const materialResourceKey = "material-buffer:Standard/uniform";
+    const directPipeline = "standard|opaque|back|less|none";
+    const shadowPipeline = "standard|shadowMap|opaque|back|less|none";
+    const plan = planRenderPassDrawList({
+      drawCommands: [
+        drawCommand(1, {
+          pipelineKey: directPipeline,
+          materialResourceKey,
+        }),
+        drawCommand(2, {
+          pipelineKey: shadowPipeline,
+          materialResourceKey,
+        }),
+      ],
+      pipelines: [pipeline(directPipeline), pipeline(shadowPipeline)],
+      bindGroups: [
+        ...pipelineScopedSharedBindGroups(directPipeline),
+        ...pipelineScopedSharedBindGroups(shadowPipeline),
+        {
+          ...materialBindGroup(materialResourceKey),
+          resourceKey: "bind-group:standard-direct-material",
+          entryResourceKeys: [materialResourceKey, directPipeline],
+        },
+        {
+          ...materialBindGroup(materialResourceKey),
+          resourceKey: "bind-group:standard-shadow-material",
+          entryResourceKeys: [materialResourceKey, shadowPipeline],
+        },
+        lightBindGroup(),
+      ],
+    });
+
+    expect(plan.valid).toBe(true);
+    expect(plan.draws.map((draw) => draw.bindGroupKeys[2])).toEqual([
+      "bind-group:standard-direct-material",
+      "bind-group:standard-shadow-material",
+    ]);
+  });
+
   it("can reuse caller-owned draw-list scratch on the frame hot path", () => {
     const scratch = createRenderPassDrawListScratch(2);
     const options = {

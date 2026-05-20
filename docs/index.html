@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-19 18:12 PDT</dd>
+            <dd>2026-05-19 19:28 PDT</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -926,10 +926,17 @@
               reset that restores the current asset's fitted orbit state, plus
               ECS-authored ambient and point-light controls whose component
               values are reflected in extracted light packets and browser pixel
-              response.
+              response. The viewer now also exposes live shadow caster/receiver
+              controls, an IBL toggle, and animation pause/scrub controls that
+              mutate ECS-authored state. It publishes JSON-safe GLB metadata
+              counts and unsupported-feature diagnostics, supports
+              <code>?asset=</code> sample bootstrapping with invalid-ID fallback
+              diagnostics, and the StandardMaterial route now scopes material
+              bind groups by pipeline key so live route changes do not reuse
+              incompatible layouts.
             </dd>
             <dt>Next focus</dt>
-            <dd>Add live shadow caster/receiver controls to glb-viewer</dd>
+            <dd>Add a GLB viewer roughness/IBL comparison sample</dd>
           </dl>
         </aside>
       </header>
@@ -1130,9 +1137,9 @@
                 <div class="label">webgpu-render</div>
                 <h3>backend resources</h3>
               </div>
-              <span class="percent">69%</span>
+              <span class="percent">70%</span>
             </div>
-            <div class="bar"><span style="width: 69%"></span></div>
+            <div class="bar"><span style="width: 70%"></span></div>
             <p>
               Backend buffers, pipelines, bind groups, queues, and app facade
               exist; directional shadow pass submission and 3x3 PCF sampling are
@@ -1144,7 +1151,9 @@
               viewer now submits a brass-sample directional shadow pass into a
               receiver floor and routes the same StandardMaterial sample through
               diffuse/specular-proof IBL, GLB viewer StandardMaterial alpha
-              blend routing is browser-proven, and profiling remains deferred.
+              blend routing is browser-proven, material bind groups are scoped
+              by pipeline key for live StandardMaterial route changes, and
+              profiling remains deferred.
             </p>
           </article>
           <article class="card track">
@@ -1153,18 +1162,20 @@
                 <div class="label">asset import</div>
                 <h3>GLB/glTF path</h3>
               </div>
-              <span class="percent">50%</span>
+              <span class="percent">53%</span>
             </div>
-            <div class="bar"><span style="width: 50%"></span></div>
+            <div class="bar"><span style="width: 53%"></span></div>
             <p>
               Container parsing, diagnostics, source registration, material
               mapping, URI loading, an eight-asset local GLB viewer path with
               lit StandardMaterial, animated, dual-primitive, hierarchy, and
               mixed alpha-state samples, custom URL plus query-URL loading, and
               bounds-driven camera fitting have landed. The viewer now includes
-              camera reset and ECS light controls, while the lit brass sample
-              adds a shadow-receiver floor and environment-map IBL through
-              ECS-authored scene state.
+              camera reset, ECS light controls, live shadow/IBL controls,
+              animation pause/scrub controls, parsed metadata status, and
+              <code>?asset=</code> sample bootstrapping, while the lit brass
+              sample adds a shadow-receiver floor and environment-map IBL
+              through ECS-authored scene state.
             </p>
           </article>
           <article class="card track">
@@ -1173,9 +1184,9 @@
                 <div class="label">examples/e2e</div>
                 <h3>browser proof points</h3>
               </div>
-              <span class="percent">57%</span>
+              <span class="percent">59%</span>
             </div>
-            <div class="bar"><span style="width: 57%"></span></div>
+            <div class="bar"><span style="width: 59%"></span></div>
             <p>
               Spinning cube, material showcase, GLTF scene, GLB viewer,
               diagnostics, queue phases, and WebGPU readback examples have
@@ -1185,7 +1196,8 @@
               GLB viewer receiver floor with IBL-enabled pixel comparison. GLB
               viewer coverage now also verifies mixed opaque/transparent
               StandardMaterial render-state routing, fitted-camera reset, and
-              ECS light-control pixel response.
+              ECS light, shadow, IBL, animation scrub, metadata, and
+              sample-query bootstrap responses.
             </p>
           </article>
           <article class="card track">
@@ -1242,14 +1254,17 @@
           <article class="phase">
             <div class="topline">
               <h3>2. collect</h3>
-              <span class="percent">75%</span>
+              <span class="percent">78%</span>
             </div>
-            <div class="bar"><span style="width: 75%"></span></div>
+            <div class="bar"><span style="width: 78%"></span></div>
             <p>
               Asset readiness and source-version dependency summaries exist for
               meshes, materials, textures, and samplers. GLB-shaped invalid
               texture/sampler mapping and delayed dependency browser diagnostics
-              now preserve slot, key, dependency-kind, and status context.
+              now preserve slot, key, dependency-kind, and status context. The
+              GLB viewer now fetches real GLB URLs, publishes parsed metadata
+              counts, and reports unsupported-feature diagnostics from import
+              reports without raw binary buffers.
             </p>
             <ul>
               <li>
@@ -1257,7 +1272,8 @@
                 assets.
               </li>
               <li>
-                Missing binary GLB loading and broader loader integration.
+                Missing broader loader integration beyond the current GLB
+                viewer/source-loader path.
               </li>
               <li>Missing automatic unload policy integration.</li>
             </ul>
@@ -1265,9 +1281,9 @@
           <article class="phase">
             <div class="topline">
               <h3>3. prepare</h3>
-              <span class="percent">76%</span>
+              <span class="percent">77%</span>
             </div>
-            <div class="bar"><span style="width: 76%"></span></div>
+            <div class="bar"><span style="width: 77%"></span></div>
             <p>
               Prepared mesh/material facades and WebGPU-private backend caches
               exist for built-in material families, with compact render-world
@@ -1358,7 +1374,10 @@
               <code>baseColorTexture</code> with screenshot/readback checks
               against untinted texture and clear color. Mapper-level glTF
               emissive-factor coverage now includes valid factor-only input and
-              invalid-field fallback diagnostics.
+              invalid-field fallback diagnostics. StandardMaterial app-frame
+              resource reuse now keys off pipeline and layout state so live GLB
+              viewer shadow/IBL route changes do not reuse incompatible prepared
+              bind groups.
             </p>
             <ul>
               <li>
@@ -1375,9 +1394,9 @@
           <article class="phase">
             <div class="topline">
               <h3>4. queue</h3>
-              <span class="percent">80%</span>
+              <span class="percent">82%</span>
             </div>
-            <div class="bar"><span style="width: 80%"></span></div>
+            <div class="bar"><span style="width: 82%"></span></div>
             <p>
               Material-family queueing, route diagnostics, resource key
               resolution, Standard transparent phases, app route reporting,
@@ -1406,7 +1425,10 @@
               now participates in the active built-in route table with
               renderer-owned pipeline/layout/frame resources, JSON-safe app
               material queue and routed resource summaries, and browser
-              pixel/readback coverage for the normal-encoded face color.
+              pixel/readback coverage for the normal-encoded face color. Live
+              StandardMaterial route changes now choose pipeline-scoped material
+              bind groups so shadow and IBL toggles can move between compatible
+              routes without WebGPU layout validation errors.
             </p>
             <ul>
               <li>
@@ -1425,9 +1447,9 @@
           <article class="phase">
             <div class="topline">
               <h3>5. sort</h3>
-              <span class="percent">58%</span>
+              <span class="percent">62%</span>
             </div>
-            <div class="bar"><span style="width: 58%"></span></div>
+            <div class="bar"><span style="width: 62%"></span></div>
             <p>
               Opaque queue sorting is stable and deterministic; alpha-test and
               transparent phase placement exists.
@@ -1452,12 +1474,16 @@
               pipeline, bind group, transform, light, mesh, and material
               resources. The app facade now attaches a single
               <code>depth24plus</code> forward-pass depth texture, clears it to
-              1.0, stores it, and reports JSON-safe depth metadata.
+              1.0, stores it, and reports JSON-safe depth metadata. GLB viewer
+              StandardMaterial routes now submit lit, IBL-enabled,
+              shadow-receiving, opaque, transparent, and animation-driven proof
+              paths with live control coverage.
             </p>
             <ul>
               <li>Missing render graph and multi-pass architecture.</li>
               <li>
-                Missing IBL, shadow, post-processing, and render-target passes.
+                Missing full PMREM/GGX IBL, post-processing, and render-target
+                passes.
               </li>
               <li>Missing GPU timing and submission reuse diagnostics.</li>
             </ul>
@@ -1476,6 +1502,32 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">task-2035</span> Added
+                <code>?asset=</code> sample bootstrapping to
+                <code>glb-viewer</code> with invalid-ID fallback diagnostics and
+                rendered pixel proof.
+              </li>
+              <li>
+                <span class="badge green">task-2034</span> Added JSON-safe GLB
+                metadata counts and unsupported-feature diagnostics to
+                <code>glb-viewer</code> status.
+              </li>
+              <li>
+                <span class="badge green">task-2033</span> Added animation
+                pause/play and scrub controls that write replayed ECS
+                <code>LocalTransform</code> data.
+              </li>
+              <li>
+                <span class="badge green">task-2032</span> Added a live IBL
+                toggle for the lit brass sample by mutating ECS environment-map
+                authoring state.
+              </li>
+              <li>
+                <span class="badge green">task-2031</span> Added live shadow
+                caster/receiver controls and fixed StandardMaterial pipeline
+                scoped bind-group reuse for live route changes.
+              </li>
               <li>
                 <span class="badge green">task-2030</span> Added compact ambient
                 and point-light sliders to <code>glb-viewer</code> that mutate
@@ -3173,17 +3225,17 @@
             <h3>Recommended next tasks</h3>
             <ul>
               <li>
-                <span class="badge amber">next</span> Add live shadow
-                caster/receiver controls to <code>glb-viewer</code>.
+                <span class="badge amber">next</span> Add a roughness/IBL
+                comparison GLB sample to <code>glb-viewer</code>.
               </li>
               <li>
-                Checkboxes should mutate ECS-authored
-                <code>ShadowCaster</code> and <code>ShadowReceiver</code>
-                component state for the lit brass sample.
+                The sample should contain glossy and rough StandardMaterial
+                primitives and report resolved material factors in JSON-safe
+                viewer status.
               </li>
               <li>
-                Use Playwright to verify draw-list/status changes plus receiver
-                pixel changes when caster or receiver mode is disabled.
+                Use Playwright to verify IBL-enabled glossy/rough pixels differ
+                and that disabling IBL changes the comparison.
               </li>
             </ul>
           </article>
@@ -3196,6 +3248,18 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-2031-2035</div>
+            <div>
+              <strong>GLB viewer live controls and status polished.</strong>
+              <span
+                >Shadow, IBL, and animation controls now mutate ECS-authored
+                state; the viewer reports parsed GLB metadata and supports
+                <code>?asset=</code> sample bootstrapping with fallback
+                diagnostics.</span
+              >
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-1317-1323</div>
             <div>

@@ -222,7 +222,7 @@ function findBindGroup(
   scratch: RenderPassDrawListScratch,
 ): UnlitBindGroupResource | undefined {
   if (group === 2) {
-    return findMaterialBindGroup(command, bindGroups, group);
+    return findMaterialBindGroup(command, bindGroups, group, scratch);
   }
 
   let firstCandidate: UnlitBindGroupResource | undefined;
@@ -253,17 +253,34 @@ function findMaterialBindGroup(
   command: DrawCommandDescriptor,
   bindGroups: readonly UnlitBindGroupResource[],
   group: number,
+  scratch: RenderPassDrawListScratch,
 ): UnlitBindGroupResource | undefined {
+  let firstCandidate: UnlitBindGroupResource | undefined;
+  let hasPipelineScopedCandidate = false;
+
   for (const bindGroup of bindGroups) {
-    if (
-      bindGroup.group === group &&
-      bindGroup.entryResourceKeys.includes(command.materialResourceKey)
-    ) {
+    if (bindGroup.group !== group) {
+      continue;
+    }
+
+    if (!bindGroup.entryResourceKeys.includes(command.materialResourceKey)) {
+      continue;
+    }
+
+    firstCandidate ??= bindGroup;
+
+    if (!hasPipelineScopedKey(bindGroup, scratch.pipelineKeys)) {
+      continue;
+    }
+
+    hasPipelineScopedCandidate = true;
+
+    if (bindGroup.entryResourceKeys.includes(command.pipelineKey)) {
       return bindGroup;
     }
   }
 
-  return undefined;
+  return hasPipelineScopedCandidate ? undefined : firstCandidate;
 }
 
 function hasPipelineScopedKey(
