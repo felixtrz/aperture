@@ -53,18 +53,18 @@ Task categories:
 - `docs-tooling`: docs, scripts, tests, validation, agent workflow.
 - `audit-refactor`: architecture drift checks and small corrective refactors.
 
-This run has a 55-minute work window. Completing one task before the 55-minute mark is not a reason to stop.
+This run has a 50-minute work window. Completing one task before the 50-minute mark is not a reason to stop.
 
-A task is one vertical slice sized to fill the 55-minute window with real implementation. A vertical slice ends in a user-visible change: new pixels in an example, a new public API surface a library user would call, a removed limitation, a deleted file or feature flag, or a measurable benchmark delta.
+A task is one vertical slice sized to fill the 50-minute window with real implementation. A vertical slice ends in a user-visible change: new pixels in an example, a new public API surface a library user would call, a removed limitation, a deleted file or feature flag, or a measurable benchmark delta.
 
-If your selected slice finishes in less than 55 minutes with time remaining, do not pick a new ceremonial task. In priority order:
+If your selected slice finishes in less than 50 minutes with time remaining, do not pick a new ceremonial task. In priority order:
 
 1. Extend the same slice with the next obvious thing a user would notice — more test coverage against visible outcomes, edge cases, example polish, related dead-code removal.
 2. Start the next slice from the backlog _only if_ it is also a visible-feature slice and there is enough time to finish it cleanly.
 
 Never start a `plan-X`, `audit-X`, or `tracker-alignment-X` task to fill leftover time. If no visible-feature slice remains and you cannot extend the current one, stop early with a clean handoff. Stopping early with real work shipped is better than filling time with ceremony.
 
-If 55 minutes or more have elapsed, no ready task remains, or a stop condition applies, proceed to the end-of-run review.
+If 50 minutes or more have elapsed, no ready task remains, or a stop condition applies, proceed to the end-of-run review.
 
 Do not start broad refactors except for explicitly scoped `audit-refactor`
 tasks.
@@ -171,7 +171,7 @@ When this happens, fix it in the current run as part of the slice. Do not file a
 
 ## 8. End-of-Run Review
 
-Only perform the end-of-run review when the 55-minute work window has elapsed, no ready task remains, or a stop condition applies.
+Only perform the end-of-run review when the 50-minute work window has elapsed, no ready task remains, or a stop condition applies.
 
 Before stopping:
 
@@ -271,6 +271,6 @@ fails, treat that as a stop-hook failure and document/fix it before stopping.
 
 If it returns a continuation request or records failures in `agent/logs`, address the failures if straightforward, update the handoff, and run it again.
 
-Stop after the 55-minute work window, an explicit stop condition, or exhausting ready work, then complete the handoff update and stop-hook verification.
+Stop after the 50-minute work window, an explicit stop condition, or exhausting ready work, then complete the handoff update and stop-hook verification.
 
 The next agent run should be able to continue from your handoff.

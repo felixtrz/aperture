@@ -1,6 +1,30 @@
 # Agent Handoff
 
-Updated: 2026-05-20T15:12:18Z
+Updated: 2026-05-20T15:52:17Z
+
+## Current Run Update — 2026-05-20T15:52:17Z — Stop-hook work-window default
+
+Adjusted the stop-hook continuation gate from a 55-minute default work window
+to a 50-minute default work window.
+
+### What changed
+
+- Updated `scripts/codex-stop-hook.sh` so
+  `STOP_HOOK_WORK_WINDOW_MINUTES` still overrides the gate, but the default is
+  now 50 minutes.
+- Aligned active agent protocol guidance in `AGENTS.md`, `agent/WAKE.md`,
+  `agent/STOP_CONDITIONS.md`, `agent/BACKLOG.md`, and
+  `scripts/STOP_HOOK_PROMPT.md` to the same 50-minute window.
+- Historical handoff entries still mention prior 55-minute behavior where they
+  describe earlier runs.
+
+### Validation
+
+- `bash -n scripts/codex-stop-hook.sh`
+
+### Recommended next task
+
+`task-2150 — Route normal maps through TEXCOORD_1`.
 
 ## Current Run Update — 2026-05-20T15:12:18Z — GLB vertex-color fidelity
 

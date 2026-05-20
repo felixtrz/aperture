@@ -2,9 +2,9 @@
 
 This file contains immediate executable tasks.
 
-Agents should work on one task at a time, but should continue into the next ready task when the current task finishes before the 55-minute run window has elapsed.
+Agents should work on one task at a time, but should continue into the next ready task when the current task finishes before the 50-minute run window has elapsed.
 
-Do not stop merely because one task is complete. Stop only when the 55-minute work window has elapsed, no ready task remains, or a stop condition applies.
+Do not stop merely because one task is complete. Stop only when the 50-minute work window has elapsed, no ready task remains, or a stop condition applies.
 
 When tasks are completed, move them to `agent/COMPLETED.md` or mark them complete here and summarize in handoff.
 

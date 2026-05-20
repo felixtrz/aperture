@@ -121,14 +121,14 @@ echo "Aperture stop hook started at $(date -u +"%Y-%m-%dT%H:%M:%SZ")"
 echo "Repository: $ROOT"
 echo "Log file: $LOG_FILE"
 
-work_window_minutes="${STOP_HOOK_WORK_WINDOW_MINUTES:-55}"
+work_window_minutes="${STOP_HOOK_WORK_WINDOW_MINUTES:-50}"
 echo "Stop gate work window: $work_window_minutes minute(s)"
 
 stop_gate_reason="$(WORK_WINDOW_MINUTES="$work_window_minutes" node <<'NODE'
 const fs = require("node:fs");
 
 const statusPath = "agent/STATUS.json";
-const workWindowMinutes = Number(process.env.WORK_WINDOW_MINUTES ?? 55);
+const workWindowMinutes = Number(process.env.WORK_WINDOW_MINUTES ?? 50);
 const status = JSON.parse(fs.readFileSync(statusPath, "utf8"));
 const startedAt = status.currentRunStartedAt ?? status.lastRunStartedAt;
 const stopConditionResult =

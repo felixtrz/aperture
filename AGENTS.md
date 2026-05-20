@@ -45,8 +45,8 @@ When you start:
 6. Add or update tests where practical.
 7. Run relevant validation for the work completed.
 8. After each coherent task, check elapsed run time.
-9. If less than 55 minutes have elapsed and no stop condition applies, select the next ready task and continue.
-10. If 55 minutes or more have elapsed, no ready task remains, or a stop condition applies, perform the end-of-run review.
+9. If less than 50 minutes have elapsed and no stop condition applies, select the next ready task and continue.
+10. If 50 minutes or more have elapsed, no ready task remains, or a stop condition applies, perform the end-of-run review.
 11. Update docs if architecture changes.
 12. Update `agent/HANDOFF.md`.
 13. Update `agent/BACKLOG.md`.
@@ -54,7 +54,7 @@ When you start:
 15. Ensure `agent/STATUS.json` is not left in `running` state.
 16. Stop.
 
-Completing one task is not, by itself, a reason to stop before the 55-minute work window has elapsed. Continue into the next ready task unless doing so would violate a stop condition, mix unrelated changes into an incoherent diff, or leave too little time to validate and hand off cleanly.
+Completing one task is not, by itself, a reason to stop before the 50-minute work window has elapsed. Continue into the next ready task unless doing so would violate a stop condition, mix unrelated changes into an incoherent diff, or leave too little time to validate and hand off cleanly.
 
 ## Public Progress Tracker
 
@@ -88,7 +88,7 @@ See `agent/WAKE.md` §9 for the authoritative rules. Summary:
 - If 3 visible-feature tasks cannot be identified by comparing the current examples and public API against `docs/NORTH_STAR.md` and `docs/MEDIUM_LONG_TERM_GOALS.md`, stop and document the gap in handoff. Do not fill the queue with diagnostic work.
 - Diagnostic tasks follow visible features; they never precede them.
 
-Each task should be a vertical slice sized to fill the 55-minute window with real implementation. If the slice finishes early, extend the same slice rather than starting a new ceremonial task (see WAKE.md §3).
+Each task should be a vertical slice sized to fill the 50-minute window with real implementation. If the slice finishes early, extend the same slice rather than starting a new ceremonial task (see WAKE.md §3).
 
 ## Stop-Hook / End-of-Run Requirements
 
@@ -114,8 +114,8 @@ upstream. It is not the only point at which commits may be made.
 
 Before stopping, first check the elapsed run time:
 
-- If less than 55 minutes have elapsed, a ready task remains, and no stop condition applies, do not finalize yet. Select the next ready task and continue.
-- If 55 minutes or more have elapsed, no ready task remains, or a stop condition applies, perform the end-of-run review below.
+- If less than 50 minutes have elapsed, a ready task remains, and no stop condition applies, do not finalize yet. Select the next ready task and continue.
+- If 50 minutes or more have elapsed, no ready task remains, or a stop condition applies, perform the end-of-run review below.
 
 When performing the end-of-run review:
 
@@ -164,7 +164,7 @@ Do not:
 
 ## Good Task Shape
 
-Every task is a vertical slice sized to fill a 55-minute window with real implementation. A vertical slice ends in a user-visible change: pixels in an example, a new public API surface, a removed limitation, a deleted file, or a measurable benchmark delta. Diagnostics, status projections, and audit markdown are not user-visible changes.
+Every task is a vertical slice sized to fill a 50-minute window with real implementation. A vertical slice ends in a user-visible change: pixels in an example, a new public API surface, a removed limitation, a deleted file, or a measurable benchmark delta. Diagnostics, status projections, and audit markdown are not user-visible changes.
 
 Good tasks:
 
