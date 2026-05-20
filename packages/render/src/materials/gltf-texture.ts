@@ -90,9 +90,46 @@ export type GltfImageDataResolverResult =
   | null
   | undefined;
 
+export type GltfImageDataResolverAsyncResult =
+  | GltfImageDataResolverResult
+  | PromiseLike<GltfImageDataResolverResult>;
+
 export type GltfImageDataResolver = (
   input: GltfImageDataResolverInput,
-) => GltfImageDataResolverResult;
+) => GltfImageDataResolverAsyncResult;
+
+export interface GltfImageFetchInput {
+  readonly uri: string;
+  readonly source: GltfImageSourceRef;
+  readonly mimeType?: string;
+}
+
+export type GltfImageFetchResult =
+  | ArrayBuffer
+  | ArrayBufferView
+  | Blob
+  | Response;
+
+export type GltfImageBytesFetcher = (
+  input: GltfImageFetchInput,
+) => PromiseLike<GltfImageFetchResult>;
+
+export interface GltfImageBytesDecoderInput {
+  readonly source: GltfImageSourceRef;
+  readonly bytes: Uint8Array;
+  readonly mimeType?: string;
+}
+
+export type GltfImageBytesDecoder = (
+  input: GltfImageBytesDecoderInput,
+) => GltfDecodedImageData | PromiseLike<GltfDecodedImageData>;
+
+export interface GltfTextureAsyncLoadSource {
+  readonly source: GltfImageSourceRef;
+  readonly bytes?: ArrayBuffer | ArrayBufferView;
+  readonly fetchImageBytes?: GltfImageBytesFetcher;
+  readonly decodeImageData?: GltfImageBytesDecoder;
+}
 
 export interface GltfTextureMappingOptions {
   readonly textureIndex: number;
@@ -134,9 +171,93 @@ const UNSUPPORTED_TEXTURE_EXTENSIONS = new Set([
   "EXT_texture_avif",
 ]);
 
+type PreparedGltfTextureMapping =
+  | {
+      readonly kind: "report";
+      readonly report: GltfTextureMappingReport;
+    }
+  | {
+      readonly kind: "image";
+      readonly options: GltfTextureMappingOptions;
+      readonly diagnostics: GltfTextureMappingDiagnostic[];
+      readonly texture: Record<string, unknown>;
+      readonly image: Record<string, unknown>;
+      readonly imageIndex: number;
+      readonly samplerIndex?: number | undefined;
+      readonly sampler: SamplerAsset | null;
+      readonly source: GltfImageSourceRef;
+    };
+
 export function createTextureAssetFromGltfTexture(
   options: GltfTextureMappingOptions,
 ): GltfTextureMappingReport {
+  const prepared = prepareGltfTextureMapping(options);
+
+  if (prepared.kind === "report") {
+    return prepared.report;
+  }
+
+  const decoded = resolveDecodedImage({
+    options,
+    image: prepared.image,
+    imageIndex: prepared.imageIndex,
+    source: prepared.source,
+    diagnostics: prepared.diagnostics,
+  });
+
+  return createTextureMappingReportFromDecoded({
+    ...prepared,
+    decoded,
+  });
+}
+
+export async function createTextureAssetFromGltfTextureAsync(
+  options: GltfTextureMappingOptions,
+): Promise<GltfTextureMappingReport> {
+  const prepared = prepareGltfTextureMapping(options);
+
+  if (prepared.kind === "report") {
+    return prepared.report;
+  }
+
+  const decoded = await resolveDecodedImageAsync({
+    options,
+    image: prepared.image,
+    imageIndex: prepared.imageIndex,
+    source: prepared.source,
+    diagnostics: prepared.diagnostics,
+  });
+
+  return createTextureMappingReportFromDecoded({
+    ...prepared,
+    decoded,
+  });
+}
+
+export async function loadGltfTextureAsync(
+  source: GltfTextureAsyncLoadSource,
+): Promise<GltfDecodedImageData> {
+  const bytes = await loadGltfImageBytes(source);
+  const mimeType = mimeTypeFromImageSource(source.source);
+  const decoder = source.decodeImageData ?? decodeImageBytesWithBrowserCanvas;
+  const image = await decoder({
+    source: source.source,
+    bytes,
+    ...(mimeType === undefined ? {} : { mimeType }),
+  });
+
+  if (!validDecodedImage(image)) {
+    throw new Error(
+      "Decoded glTF image data must include positive dimensions, row stride, and Uint8Array bytes.",
+    );
+  }
+
+  return image;
+}
+
+function prepareGltfTextureMapping(
+  options: GltfTextureMappingOptions,
+): PreparedGltfTextureMapping {
   const diagnostics: GltfTextureMappingDiagnostic[] = [];
   const textureIndex = options.textureIndex;
   const slot = options.slot;
@@ -151,7 +272,9 @@ export function createTextureAssetFromGltfTexture(
       value: toDiagnosticValue(textureIndex),
       message: "textureIndex must be a non-negative integer.",
     });
-    return result({ options, diagnostics, texture: null, sampler: null });
+    return preparedReport(
+      result({ options, diagnostics, texture: null, sampler: null }),
+    );
   }
 
   const texture = options.textures[textureIndex];
@@ -165,7 +288,9 @@ export function createTextureAssetFromGltfTexture(
       value: toDiagnosticValue(texture),
       message: `textures[${textureIndex}] must be an object.`,
     });
-    return result({ options, diagnostics, texture: null, sampler: null });
+    return preparedReport(
+      result({ options, diagnostics, texture: null, sampler: null }),
+    );
   }
 
   inspectTextureExtensions({
@@ -199,13 +324,15 @@ export function createTextureAssetFromGltfTexture(
   });
 
   if (imageIndex === null) {
-    return result({
-      options,
-      diagnostics,
-      texture: null,
-      sampler,
-      samplerIndex,
-    });
+    return preparedReport(
+      result({
+        options,
+        diagnostics,
+        texture: null,
+        sampler,
+        samplerIndex,
+      }),
+    );
   }
 
   const image = options.images[imageIndex];
@@ -220,14 +347,16 @@ export function createTextureAssetFromGltfTexture(
       value: toDiagnosticValue(image),
       message: `images[${imageIndex}] must be an object.`,
     });
-    return result({
-      options,
-      diagnostics,
-      texture: null,
-      sampler,
-      imageIndex,
-      samplerIndex,
-    });
+    return preparedReport(
+      result({
+        options,
+        diagnostics,
+        texture: null,
+        sampler,
+        imageIndex,
+        samplerIndex,
+      }),
+    );
   }
 
   const source = mapImageSource({
@@ -238,54 +367,73 @@ export function createTextureAssetFromGltfTexture(
     diagnostics,
   });
   if (source === null) {
-    return result({
-      options,
-      diagnostics,
-      texture: null,
-      sampler,
-      imageIndex,
-      samplerIndex,
-    });
+    return preparedReport(
+      result({
+        options,
+        diagnostics,
+        texture: null,
+        sampler,
+        imageIndex,
+        samplerIndex,
+      }),
+    );
   }
 
-  const decoded = resolveDecodedImage({
+  return {
+    kind: "image",
     options,
+    diagnostics,
+    texture,
     image,
     imageIndex,
+    samplerIndex,
+    sampler,
     source,
-    diagnostics,
-  });
-  if (decoded === null) {
+  };
+}
+
+function preparedReport(
+  report: GltfTextureMappingReport,
+): PreparedGltfTextureMapping {
+  return { kind: "report", report };
+}
+
+function createTextureMappingReportFromDecoded(
+  input: Extract<PreparedGltfTextureMapping, { readonly kind: "image" }> & {
+    readonly decoded: GltfDecodedImageData | null;
+  },
+): GltfTextureMappingReport {
+  if (input.decoded === null) {
     return result({
-      options,
-      diagnostics,
+      options: input.options,
+      diagnostics: input.diagnostics,
       texture: null,
-      sampler,
-      imageIndex,
-      samplerIndex,
+      sampler: input.sampler,
+      imageIndex: input.imageIndex,
+      samplerIndex: input.samplerIndex,
     });
   }
 
-  const slotInfo = textureSlotInfo(slot);
+  const slotInfo = textureSlotInfo(input.options.slot);
   const textureAsset = createTextureAsset({
-    label: textureLabel(options, texture, image),
+    label: textureLabel(input.options, input.texture, input.image),
     dimension: "2d",
-    width: decoded.width,
-    height: decoded.height,
-    format: decoded.format ?? slotInfo.format,
+    width: input.decoded.width,
+    height: input.decoded.height,
+    format: input.decoded.format ?? slotInfo.format,
     colorSpace: slotInfo.colorSpace,
     semantic: slotInfo.semantic,
     usage: ["sampled", "copy-dst"],
-    sourceData: decoded.sourceData,
+    sourceData: input.decoded.sourceData,
   });
 
   return result({
-    options,
-    diagnostics,
+    options: input.options,
+    diagnostics: input.diagnostics,
     texture: textureAsset,
-    sampler,
-    imageIndex,
-    samplerIndex,
+    sampler: input.sampler,
+    imageIndex: input.imageIndex,
+    samplerIndex: input.samplerIndex,
   });
 }
 
@@ -590,10 +738,77 @@ function resolveDecodedImage(input: {
     source: input.source,
   });
 
-  const image = normalizeResolvedImage({
+  if (isPromiseLike(resolved)) {
+    input.diagnostics.push({
+      code: "gltfTexture.imageResolverFailed",
+      severity: "error",
+      textureIndex: input.options.textureIndex,
+      slot: input.options.slot,
+      imageIndex: input.imageIndex,
+      message:
+        "Image data resolver returned a Promise; use createTextureAssetFromGltfTextureAsync() for async glTF texture mapping.",
+    });
+    return null;
+  }
+
+  return normalizeAndValidateDecodedImage({
     options: input.options,
     imageIndex: input.imageIndex,
     resolved,
+    diagnostics: input.diagnostics,
+  });
+}
+
+async function resolveDecodedImageAsync(input: {
+  readonly options: GltfTextureMappingOptions;
+  readonly image: Record<string, unknown>;
+  readonly imageIndex: number;
+  readonly source: GltfImageSourceRef;
+  readonly diagnostics: GltfTextureMappingDiagnostic[];
+}): Promise<GltfDecodedImageData | null> {
+  let resolved: GltfImageDataResolverResult;
+
+  try {
+    resolved = await input.options.resolveImageData({
+      textureIndex: input.options.textureIndex,
+      imageIndex: input.imageIndex,
+      slot: input.options.slot,
+      image: input.image,
+      source: input.source,
+    });
+  } catch (error) {
+    input.diagnostics.push({
+      code: "gltfTexture.imageResolverFailed",
+      severity: "error",
+      textureIndex: input.options.textureIndex,
+      slot: input.options.slot,
+      imageIndex: input.imageIndex,
+      message:
+        error instanceof Error
+          ? error.message
+          : `Image ${input.imageIndex} async resolver rejected.`,
+    });
+    return null;
+  }
+
+  return normalizeAndValidateDecodedImage({
+    options: input.options,
+    imageIndex: input.imageIndex,
+    resolved,
+    diagnostics: input.diagnostics,
+  });
+}
+
+function normalizeAndValidateDecodedImage(input: {
+  readonly options: GltfTextureMappingOptions;
+  readonly imageIndex: number;
+  readonly resolved: GltfImageDataResolverResult;
+  readonly diagnostics: GltfTextureMappingDiagnostic[];
+}): GltfDecodedImageData | null {
+  const image = normalizeResolvedImage({
+    options: input.options,
+    imageIndex: input.imageIndex,
+    resolved: input.resolved,
     diagnostics: input.diagnostics,
   });
 
@@ -742,6 +957,201 @@ function textureAssetToJsonValue(
   };
 }
 
+async function loadGltfImageBytes(
+  input: GltfTextureAsyncLoadSource,
+): Promise<Uint8Array> {
+  if (input.bytes !== undefined) {
+    return copyBytes(input.bytes);
+  }
+
+  if (input.source.kind === "uri") {
+    if (input.source.uri.startsWith("data:")) {
+      return decodeDataUriBytes(input.source.uri);
+    }
+
+    return fetchGltfImageBytes(input);
+  }
+
+  throw new Error(
+    `glTF bufferView image ${input.source.bufferView} requires bytes before async decode.`,
+  );
+}
+
+async function fetchGltfImageBytes(
+  input: GltfTextureAsyncLoadSource,
+): Promise<Uint8Array> {
+  if (input.source.kind !== "uri") {
+    throw new Error("Only glTF URI image sources can be fetched.");
+  }
+
+  const mimeType = mimeTypeFromImageSource(input.source);
+  const fetchResult =
+    input.fetchImageBytes === undefined
+      ? await fetchUriImageBytes(input.source.uri)
+      : await input.fetchImageBytes({
+          uri: input.source.uri,
+          source: input.source,
+          ...(mimeType === undefined ? {} : { mimeType }),
+        });
+
+  return bytesFromFetchResult(fetchResult);
+}
+
+async function fetchUriImageBytes(uri: string): Promise<GltfImageFetchResult> {
+  if (typeof fetch !== "function") {
+    throw new Error(
+      "No fetch implementation is available for glTF URI image loading.",
+    );
+  }
+
+  const response = await fetch(uri);
+
+  if (!response.ok) {
+    throw new Error(
+      `Fetching glTF image URI '${uri}' failed with HTTP ${response.status}.`,
+    );
+  }
+
+  return response;
+}
+
+async function bytesFromFetchResult(
+  resultValue: GltfImageFetchResult,
+): Promise<Uint8Array> {
+  if (isResponseLike(resultValue)) {
+    if (!resultValue.ok) {
+      throw new Error(
+        `Fetching glTF image failed with HTTP ${resultValue.status}.`,
+      );
+    }
+
+    return copyBytes(await resultValue.arrayBuffer());
+  }
+
+  if (isBlobLike(resultValue)) {
+    return copyBytes(await resultValue.arrayBuffer());
+  }
+
+  return copyBytes(resultValue);
+}
+
+async function decodeImageBytesWithBrowserCanvas(
+  input: GltfImageBytesDecoderInput,
+): Promise<GltfDecodedImageData> {
+  if (
+    typeof Blob === "undefined" ||
+    typeof createImageBitmap !== "function" ||
+    typeof document === "undefined"
+  ) {
+    throw new Error(
+      "No browser image decoder is available; provide decodeImageData for this glTF image source.",
+    );
+  }
+
+  const blobBuffer = new ArrayBuffer(input.bytes.byteLength);
+  new Uint8Array(blobBuffer).set(input.bytes);
+  const blob = new Blob([blobBuffer], {
+    ...(input.mimeType === undefined ? {} : { type: input.mimeType }),
+  });
+  const bitmap = await createImageBitmap(blob);
+
+  try {
+    const canvas = document.createElement("canvas");
+    canvas.width = bitmap.width;
+    canvas.height = bitmap.height;
+    const context = canvas.getContext("2d", { willReadFrequently: true });
+
+    if (context === null) {
+      throw new Error("Could not create a 2D canvas context for image decode.");
+    }
+
+    context.drawImage(bitmap, 0, 0);
+    const pixels = context.getImageData(0, 0, bitmap.width, bitmap.height);
+
+    return {
+      width: bitmap.width,
+      height: bitmap.height,
+      sourceData: {
+        bytes: new Uint8Array(pixels.data),
+        bytesPerRow: bitmap.width * 4,
+        rowsPerImage: bitmap.height,
+      },
+    };
+  } finally {
+    bitmap.close();
+  }
+}
+
+function decodeDataUriBytes(uri: string): Uint8Array {
+  const match = /^data:([^,]*),(.*)$/u.exec(uri);
+
+  if (match === null) {
+    throw new Error("Malformed glTF data URI image source.");
+  }
+
+  const metadata = match[1] ?? "";
+  const payload = match[2] ?? "";
+
+  if (metadata.split(";").includes("base64")) {
+    if (typeof atob !== "function") {
+      throw new Error(
+        "No base64 decoder is available for glTF data URI image.",
+      );
+    }
+
+    const binary = atob(decodeURIComponent(payload));
+    const bytes = new Uint8Array(binary.length);
+
+    for (let index = 0; index < binary.length; index += 1) {
+      bytes[index] = binary.charCodeAt(index);
+    }
+
+    return bytes;
+  }
+
+  const text = decodeURIComponent(payload);
+  const bytes = new Uint8Array(text.length);
+
+  for (let index = 0; index < text.length; index += 1) {
+    bytes[index] = text.charCodeAt(index) & 0xff;
+  }
+
+  return bytes;
+}
+
+function copyBytes(bytes: ArrayBuffer | ArrayBufferView): Uint8Array {
+  const view =
+    bytes instanceof ArrayBuffer
+      ? new Uint8Array(bytes)
+      : new Uint8Array(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+
+  return new Uint8Array(view);
+}
+
+function mimeTypeFromImageSource(
+  source: GltfImageSourceRef,
+): string | undefined {
+  return source.kind === "bufferView"
+    ? source.mimeType
+    : (source.mimeType ?? mimeTypeFromUri(source.uri));
+}
+
+function isResponseLike(value: unknown): value is Response {
+  return (
+    isRecord(value) &&
+    typeof value.arrayBuffer === "function" &&
+    typeof value.ok === "boolean"
+  );
+}
+
+function isBlobLike(value: unknown): value is Blob {
+  return (
+    isRecord(value) &&
+    typeof value.arrayBuffer === "function" &&
+    typeof value.size === "number"
+  );
+}
+
 function mimeTypeFromUri(uri: string): string | undefined {
   const dataPrefix = uri.match(/^data:([^;,]+)[;,]/u);
   if (dataPrefix?.[1] !== undefined) {
@@ -790,6 +1200,10 @@ function isImageDataResolverReport(
     !isDecodedImageData(value) &&
     ("image" in value || "diagnostics" in value)
   );
+}
+
+function isPromiseLike<T>(value: unknown): value is PromiseLike<T> {
+  return isRecord(value) && typeof value.then === "function";
 }
 
 function validDecodedImage(image: GltfDecodedImageData): boolean {

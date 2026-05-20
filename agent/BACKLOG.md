@@ -59,15 +59,15 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start with `task-3002`: Async image decode contract in the asset layer (part 1: contract).
+Start with `task-3003`: Async image decode wired through asset registry states (part 2: registry).
 
-Why this next: `task-3001` proved the raw `RenderSnapshot` crosses a module Worker boundary by structured clone. The next Tier 1 dependency is the async GLB image decode contract so real image assets can move through loading states instead of relying only on synchronous decoded image inputs.
+Why this next: `task-3002` added the Promise-capable glTF image decode contract and async texture mapping path. The next Tier 1 dependency is wiring that contract through the asset registry so real image assets publish `loading` and `ready` states instead of staying as caller-predecoded inputs.
 
 Reference anchors (read before writing):
 
-- `references/three.js/src/loaders/TextureLoader.js`
 - `references/engine/src/framework/handlers/texture.js`
 - `references/bevy/crates/bevy_image/src/image_loader.rs`
+- `references/three.js/src/loaders/TextureLoader.js`
 
 ## Strategic Focus — Pipeline Maturity Roadmap
 
@@ -78,7 +78,7 @@ Eleven cross-cutting gaps remain across the six phases. They are sequenced below
 **Tier 1 — Foundation (no dependencies, unlock the most):**
 
 1. Worker transport proof (task-3001) — shipped; proves the snapshot architecture's central claim
-2. Async image decode in the asset layer (task-3002, task-3003) — unlocks real-image GLBs without pre-decode
+2. Async image decode in the asset layer (task-3002 shipped, task-3003 next) — unlocks real-image GLBs without pre-decode
 3. Render targets / off-screen rendering (task-3004, task-3005, task-3006) — unlocks PMREM, picking, post-processing
 
 **Tier 2 — Quality leap (depends on Tier 1):**
@@ -108,19 +108,6 @@ The MVP track (task-2001 through task-2030) shipped successfully — completion 
 All roadmap task entries cite at least one specific reference file under `references/bevy`, `references/engine` (PlayCanvas), or `references/three.js`. The agent MUST read the cited references before writing implementation code (see `agent/WAKE.md` §4).
 
 ## Ready Tasks — Pipeline Maturity Roadmap
-
-### task-3002 — Async image decode contract in the asset layer (part 1: contract)
-
-Category: `render-bridge`
-Package/write-scope: `packages/render/src/materials/gltf-texture.ts`, targeted tests.
-Reference anchor: `references/three.js/src/loaders/TextureLoader.js`; `references/engine/src/framework/handlers/texture.js`; `references/bevy/crates/bevy_image/src/image_loader.rs`.
-Insertion point: `packages/render/src/materials/gltf-texture.ts:93` — `GltfImageDataResolver` callback type is currently synchronous. Extend to support `Promise<GltfDecodedImageData>` return.
-
-Acceptance criteria:
-
-- Public API `loadGltfTextureAsync(source)` callable, returns Promise that resolves to `GltfDecodedImageData`.
-- Test loads a base64 PNG bufferView and resolves to a ready decoded image.
-- The existing sync resolver remains supported (backwards-compatible overload).
 
 ### task-3003 — Async image decode wired through asset registry states (part 2: registry)
 

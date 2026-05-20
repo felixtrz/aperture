@@ -1,6 +1,59 @@
 # Agent Handoff
 
-Updated: 2026-05-20T23:17:29Z
+Updated: 2026-05-20T23:24:02Z
+
+## Current Run Update — 2026-05-20T23:24:02Z — Async glTF image decode contract
+
+Completed `task-3002`.
+
+### What changed
+
+- Extended `GltfImageDataResolver` so resolver implementations can return a
+  decoded image/report directly or a Promise of one.
+- Added `loadGltfTextureAsync(source)` in
+  `packages/render/src/materials/gltf-texture.ts`. It loads bytes from
+  caller-provided bufferView bytes, data URIs, or fetchable URI sources, then
+  decodes via browser canvas by default or an injected async decoder.
+- Added `createTextureAssetFromGltfTextureAsync()` so glTF texture mapping can
+  await Promise-based image resolvers. The existing synchronous
+  `createTextureAssetFromGltfTexture()` path still supports sync resolvers and
+  now reports an explicit diagnostic if an async resolver is passed there.
+- Added material tests for a base64 PNG bufferView through the async decode
+  contract, async resolver texture mapping, and the sync-mapper diagnostic.
+- Updated public tracker pages, backlog, and completed-task log. Recommended
+  next task is now `task-3003`.
+
+### Files touched
+
+- `agent/BACKLOG.md`
+- `agent/COMPLETED.md`
+- `agent/HANDOFF.md`
+- `agent/STATUS.json`
+- `docs/index.html`
+- `docs/render-pipeline-comparison.html`
+- `packages/render/src/materials/gltf-texture.ts`
+- `test/materials/gltf-texture.test.ts`
+
+### References inspected
+
+- `references/three.js/src/loaders/TextureLoader.js`
+- `references/engine/src/framework/handlers/texture.js`
+- `references/bevy/crates/bevy_image/src/image_loader.rs`
+
+### Validation
+
+- `pnpm exec prettier --write packages/render/src/materials/gltf-texture.ts test/materials/gltf-texture.test.ts`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec tsc -p packages/render/tsconfig.json --noEmit`
+- `pnpm exec vitest run test/materials/gltf-texture.test.ts`
+
+### Known issues
+
+- Registry-level `loading`/`ready` integration is still pending for `task-3003`.
+
+### Recommended next task
+
+`task-3003 — Async image decode wired through asset registry states (part 2: registry)`.
 
 ## Current Run Update — 2026-05-20T23:17:29Z — Worker snapshot transport proof
 

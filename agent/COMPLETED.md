@@ -1,5 +1,35 @@
 # Completed Tasks
 
+## task-3002 — Async image decode contract in the asset layer
+
+Completed: 2026-05-20
+
+Summary:
+
+- Extended `GltfImageDataResolver` to support Promise-returning resolvers while
+  keeping synchronous resolver call sites compatible.
+- Added `loadGltfTextureAsync(source)` for async image byte loading and decode,
+  with browser canvas decoding by default and an injectable decoder for tests
+  and future registry integration.
+- Added `createTextureAssetFromGltfTextureAsync()` so glTF texture mapping can
+  await async decoded image data, while the synchronous mapper now reports an
+  explicit diagnostic if an async resolver is passed accidentally.
+- Added material tests covering a base64 PNG bufferView through the async decode
+  contract, async resolver texture mapping, and the sync-mapper diagnostic.
+
+References inspected:
+
+- `references/three.js/src/loaders/TextureLoader.js`
+- `references/engine/src/framework/handlers/texture.js`
+- `references/bevy/crates/bevy_image/src/image_loader.rs`
+
+Validation:
+
+- `pnpm exec prettier --write packages/render/src/materials/gltf-texture.ts test/materials/gltf-texture.test.ts`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec tsc -p packages/render/tsconfig.json --noEmit`
+- `pnpm exec vitest run test/materials/gltf-texture.test.ts`
+
 ## task-3001 — Worker transport proof of the render snapshot
 
 Completed: 2026-05-20

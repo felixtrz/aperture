@@ -1,14 +1,18 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  createTextureAssetFromGltfTextureAsync,
   createTextureAssetFromGltfTexture,
   GLTF_SAMPLER_FILTER,
   GLTF_SAMPLER_WRAP,
   gltfTextureMappingReportToJson,
   gltfTextureMappingReportToJsonValue,
+  loadGltfTextureAsync,
   type GltfImageDataResolver,
 } from "@aperture-engine/core";
 
+const onePixelPngBase64 =
+  "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/p9sAAAAASUVORK5CYII=";
 const decodedImage = {
   width: 2,
   height: 2,
@@ -21,6 +25,43 @@ const decodedImage = {
 const resolveImageData: GltfImageDataResolver = () => decodedImage;
 
 describe("glTF texture mapping", () => {
+  it("loads a base64 PNG bufferView through the async image decode contract", async () => {
+    const image = await loadGltfTextureAsync({
+      source: { kind: "bufferView", bufferView: 0, mimeType: "image/png" },
+      bytes: pngBytesFromBase64(onePixelPngBase64),
+      decodeImageData: async ({ bytes, mimeType, source }) => {
+        const dimensions = pngDimensions(bytes);
+
+        expect(source).toMatchObject({
+          kind: "bufferView",
+          bufferView: 0,
+          mimeType: "image/png",
+        });
+        expect(mimeType).toBe("image/png");
+
+        return {
+          width: dimensions.width,
+          height: dimensions.height,
+          sourceData: {
+            bytes: new Uint8Array([255, 0, 0, 255]),
+            bytesPerRow: dimensions.width * 4,
+            rowsPerImage: dimensions.height,
+          },
+        };
+      },
+    });
+
+    expect(image).toMatchObject({
+      width: 1,
+      height: 1,
+      sourceData: {
+        bytesPerRow: 4,
+        rowsPerImage: 1,
+      },
+    });
+    expect(Array.from(image.sourceData.bytes)).toEqual([255, 0, 0, 255]);
+  });
+
   it("maps decoded GLB bufferView image data into a TextureAsset and SamplerAsset", () => {
     const report = createTextureAssetFromGltfTexture({
       textureIndex: 0,
@@ -63,6 +104,50 @@ describe("glTF texture mapping", () => {
       },
     });
     expect(report.texture?.sourceData?.bytes.byteLength).toBe(16);
+  });
+
+  it("maps decoded image data from an async resolver", async () => {
+    const report = await createTextureAssetFromGltfTextureAsync({
+      textureIndex: 0,
+      slot: "baseColorTexture",
+      textures: [{ source: 0, name: "AsyncBaseColorTexture" }],
+      images: [{ bufferView: 0, mimeType: "image/png" }],
+      resolveImageData: async () => decodedImage,
+    });
+
+    expect(report.valid).toBe(true);
+    expect(report.diagnostics).toEqual([]);
+    expect(report.texture).toMatchObject({
+      label: "AsyncBaseColorTexture",
+      width: 2,
+      height: 2,
+      format: "rgba8unorm-srgb",
+      colorSpace: "srgb",
+      semantic: "base-color",
+    });
+  });
+
+  it("keeps the sync mapper honest when an async resolver is passed", () => {
+    const report = createTextureAssetFromGltfTexture({
+      textureIndex: 0,
+      slot: "baseColorTexture",
+      textures: [{ source: 0 }],
+      images: [{ bufferView: 0, mimeType: "image/png" }],
+      resolveImageData: async () => decodedImage,
+    });
+
+    expect(report.valid).toBe(false);
+    expect(report.texture).toBeNull();
+    expect(report.diagnostics).toMatchObject([
+      {
+        code: "gltfTexture.imageResolverFailed",
+        severity: "error",
+        imageIndex: 0,
+      },
+    ]);
+    expect(report.diagnostics[0]?.message).toContain(
+      "createTextureAssetFromGltfTextureAsync",
+    );
   });
 
   it("maps data texture slots to data color space and default sampler state", () => {
@@ -160,3 +245,23 @@ describe("glTF texture mapping", () => {
     );
   });
 });
+
+function pngBytesFromBase64(base64: string): Uint8Array {
+  return new Uint8Array(Buffer.from(base64, "base64"));
+}
+
+function pngDimensions(bytes: Uint8Array): {
+  readonly width: number;
+  readonly height: number;
+} {
+  expect(Array.from(bytes.slice(0, 8))).toEqual([
+    0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a,
+  ]);
+
+  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+
+  return {
+    width: view.getUint32(16),
+    height: view.getUint32(20),
+  };
+}

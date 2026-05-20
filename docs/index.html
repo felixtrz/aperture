@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-20 23:14 UTC</dd>
+            <dd>2026-05-20 23:24 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -403,11 +403,15 @@
               extraction run in the Worker, the main thread submits the received
               <code>RenderSnapshot</code> through WebGPU, and Playwright checks
               typed-array preservation plus changing cube pixels without a
-              JSON.stringify round trip. Next up is the async image decode
-              contract in the render asset layer. The GLB viewer now renders
-              extended StandardMaterial combined texture routes: occlusion plus
-              normal, metallic-roughness plus emissive, alpha-blend plus normal,
-              UV1 metallic-roughness plus normal, base-color plus occlusion, and
+              JSON.stringify round trip. The render asset layer now exposes a
+              Promise-capable glTF image decode contract with
+              <code>loadGltfTextureAsync(source)</code> and async texture
+              mapping, while the existing synchronous resolver path remains
+              supported. Next up is wiring async decode through asset registry
+              loading and ready states. The GLB viewer now renders extended
+              StandardMaterial combined texture routes: occlusion plus normal,
+              metallic-roughness plus emissive, alpha-blend plus normal, UV1
+              metallic-roughness plus normal, base-color plus occlusion, and
               transformed base-color plus emissive, plus UV1 base-color plus
               occlusion, transformed metallic-roughness plus normal, base-color
               plus metallic-roughness plus emissive, alpha-blend plus emissive,
@@ -1391,22 +1395,23 @@
           <article class="phase">
             <div class="topline">
               <h3>2. collect</h3>
-              <span class="percent">78%</span>
+              <span class="percent">80%</span>
             </div>
-            <div class="bar"><span style="width: 78%"></span></div>
+            <div class="bar"><span style="width: 80%"></span></div>
             <p>
               Asset readiness and source-version dependency summaries exist for
               meshes, materials, textures, and samplers. GLB-shaped invalid
               texture/sampler mapping and delayed dependency browser diagnostics
-              now preserve slot, key, dependency-kind, and status context. The
-              GLB viewer now fetches real GLB URLs, publishes parsed metadata
-              counts, and reports unsupported-feature diagnostics from import
-              reports without raw binary buffers.
+              now preserve slot, key, dependency-kind, and status context. glTF
+              image resolution now has a Promise-capable decode contract and
+              async mapping path, while registry loading-state wiring is still
+              pending. The GLB viewer now fetches real GLB URLs, publishes
+              parsed metadata counts, and reports unsupported-feature
+              diagnostics from import reports without raw binary buffers.
             </p>
             <ul>
               <li>
-                Missing one generic change-set scheduler across all prepared
-                assets.
+                Missing registry-level async image loading state integration.
               </li>
               <li>
                 Missing broader loader integration beyond the current GLB
@@ -3737,16 +3742,16 @@
             <h3>Recommended next tasks</h3>
             <ul>
               <li>
-                <span class="badge amber">next</span> Add the async image decode
-                contract in the render asset layer.
+                <span class="badge amber">next</span> Wire async image decode
+                through asset registry states.
               </li>
               <li>
-                Add <code>loadGltfTextureAsync(source)</code> while keeping the
-                existing synchronous resolver path compatible.
+                Route glTF image decode through <code>markLoading()</code> and
+                <code>markReady()</code> for texture assets.
               </li>
               <li>
-                Cover a base64 PNG bufferView decode and keep the result
-                compatible with the asset registry state follow-up.
+                Add a real PNG bufferView GLB sample and prove browser status
+                observes loading, ready, and rendered pixels.
               </li>
             </ul>
           </article>
@@ -3759,6 +3764,17 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3002</div>
+            <div>
+              <strong>Async glTF image decode contract landed.</strong>
+              <span
+                >The render asset layer now exposes
+                <code>loadGltfTextureAsync(source)</code> and async texture
+                mapping while preserving the synchronous resolver path.</span
+              >
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3001</div>
             <div>
