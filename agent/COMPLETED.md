@@ -1,5 +1,60 @@
 # Completed Tasks
 
+## task-2030 — Add ECS light controls for the lit GLB viewer sample
+
+Completed: 2026-05-19
+
+Summary:
+
+- Added compact ambient and point-light range controls to `examples/glb-viewer.html`.
+- Wired the controls to mutate the existing ECS-authored `Light` component intensity fields for the viewer ambient and point lights.
+- Published JSON-safe lighting status covering control values, ECS component values, and extracted light packet values.
+- Added Playwright coverage that selects the lit brass sample, drives the controls to low and high intensity values, verifies ECS/extracted status, and proves the rendered brass model brightens.
+
+References inspected:
+
+- `references/bevy/crates/bevy_light/src/lib.rs`
+- `references/bevy/crates/bevy_pbr/src/render/light.rs`
+- `references/bevy/crates/bevy_pbr/src/light_probe/mod.rs`
+
+Validation:
+
+- `node --check examples/glb-viewer.js`
+- `pnpm run typecheck:test`
+- `pnpm run check:examples`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts`
+
+Known follow-up:
+
+- `task-2031` should add live GLB viewer shadow caster/receiver controls.
+
+## task-2029 — Add a camera reset control to glb-viewer
+
+Completed: 2026-05-19
+
+Summary:
+
+- Added a home camera control to `examples/glb-viewer.html`.
+- Extended the GLB viewer orbit fit status with fitted yaw, elevation, and reset availability.
+- Added reset behavior that restores the current asset's fitted target, yaw, elevation, distance, and zoom limits, then lets the existing ECS camera transform update path apply the camera state.
+- Extended Playwright coverage to drag and zoom the viewer, activate reset, verify status returns to the fitted state, and compare pixels against the original fitted view.
+
+References inspected:
+
+- `references/three.js/examples/webgl_loader_gltf.html`
+
+Validation:
+
+- `node --check examples/glb-viewer.js`
+- `pnpm run typecheck:test`
+- `pnpm run check:examples`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts -g "fetched sample GLB viewer asset"`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts`
+
+Known follow-up:
+
+- `task-2030` should add ECS light controls for the lit GLB viewer sample.
+
 ## task-2028 — Render a mixed alpha-state GLB sample in glb-viewer
 
 Completed: 2026-05-19

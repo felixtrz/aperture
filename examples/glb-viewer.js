@@ -2,10 +2,19 @@ const canvas = document.querySelector("#aperture-canvas");
 const assetSelect = document.querySelector("#glb-asset-select");
 const customUrlForm = document.querySelector("#glb-url-form");
 const customUrlInput = document.querySelector("#glb-url-input");
+const cameraResetButton = document.querySelector("#glb-camera-reset");
+const pointLightIntensityInput = document.querySelector(
+  "#glb-point-light-intensity",
+);
+const ambientIntensityInput = document.querySelector("#glb-ambient-intensity");
 const stateElement = document.querySelector("#example-state");
 const jsonElement = document.querySelector("#example-json");
 const exampleParams = new URLSearchParams(globalThis.location.search);
 const clearColor = [0.015, 0.025, 0.035, 1];
+const lightingControlDefaults = {
+  ambientIntensity: 0.24,
+  pointIntensity: 18,
+};
 const enableIblSampling = !exampleParams.has("disable-ibl-sampling");
 const enableSpecularIblSampling = !exampleParams.has(
   "disable-specular-ibl-sampling",
@@ -118,24 +127,28 @@ function createGlbViewerScene(aperture, app, targetCanvas) {
     }),
   );
   updateOrbitCamera(aperture, cameraEntity, orbit);
-  app.spawn(
+  const ambientLightEntity = app.spawn(
     aperture.withLight({
       kind: aperture.LightKind.Ambient,
       color: [0.48, 0.52, 0.58, 1],
-      intensity: 0.24,
+      intensity: lightingControlDefaults.ambientIntensity,
       layerMask: 1,
     }),
   );
-  app.spawn(
+  const pointLightEntity = app.spawn(
     aperture.withTransform({ translation: [0.2, 1.2, 3.4] }),
     aperture.withLight({
       kind: aperture.LightKind.Point,
       color: [1, 0.92, 0.76, 1],
-      intensity: 18,
+      intensity: lightingControlDefaults.pointIntensity,
       range: 8,
       layerMask: 1,
     }),
   );
+  const lightControls = {
+    ambientIntensity: lightingControlDefaults.ambientIntensity,
+    pointIntensity: lightingControlDefaults.pointIntensity,
+  };
 
   const scene = {
     asset: sampleAssets[0],
@@ -145,7 +158,12 @@ function createGlbViewerScene(aperture, app, targetCanvas) {
     active: null,
     orbit,
     cameraEntity,
+    ambientLightEntity,
+    pointLightEntity,
+    lightControls,
   };
+
+  setCameraResetEnabled(false);
 
   if (assetSelect !== null) {
     for (const asset of sampleAssets) {
@@ -183,6 +201,15 @@ function createGlbViewerScene(aperture, app, targetCanvas) {
       });
     });
   }
+
+  if (cameraResetButton instanceof HTMLButtonElement) {
+    cameraResetButton.addEventListener("click", () => {
+      resetOrbitToFit(scene.orbit);
+      updateOrbitCamera(aperture, cameraEntity, scene.orbit);
+    });
+  }
+
+  bindLightControlInputs(aperture, scene);
 
   return scene;
 }
@@ -250,6 +277,7 @@ async function loadAsset(aperture, app, scene, asset) {
       url: formatAssetUrl(asset.url),
     },
   };
+  setCameraResetEnabled(false);
   destroyActiveScene(scene);
 
   const loaded = await aperture.loadGlbFromUri(asset.url.href, {
@@ -331,6 +359,7 @@ async function loadAsset(aperture, app, scene, asset) {
     shadowScene,
   };
   scene.loadState = null;
+  setCameraResetEnabled(fit.status === "ready");
 }
 
 function destroyActiveScene(scene) {
@@ -881,11 +910,14 @@ async function createStatus(aperture, app, scene, step, report, frame) {
     },
     orbit: {
       yaw: Number(scene.orbit.yaw.toFixed(4)),
+      elevation: Number(scene.orbit.elevation.toFixed(4)),
       distance: Number(scene.orbit.distance.toFixed(3)),
       target: roundTuple(scene.orbit.target, 3),
       fit: scene.orbit.fit,
+      resetAvailable: scene.orbit.fit.status === "ready",
       dragging: scene.orbit.dragging,
     },
+    lighting: createLightingControlStatus(aperture, scene, report.snapshot),
     animation: createAnimationStatus(active?.animation ?? null),
     hierarchy: createHierarchyStatus(aperture, active),
     extraction: {
@@ -1302,6 +1334,98 @@ function createShadowStatus(active, meshDraws, shadowFrame) {
       pipelineKey: shadowFrame?.route?.pipelineKey ?? null,
     },
   };
+}
+
+function createLightingControlStatus(aperture, scene, snapshot) {
+  const ambientPacket = snapshot.lights.find(
+    (light) => light.kind === aperture.LightKind.Ambient,
+  );
+  const pointPacket = snapshot.lights.find(
+    (light) => light.kind === aperture.LightKind.Point,
+  );
+
+  return {
+    controls: {
+      ambientIntensity: Number(scene.lightControls.ambientIntensity.toFixed(3)),
+      pointIntensity: Number(scene.lightControls.pointIntensity.toFixed(3)),
+    },
+    ecs: {
+      ambientIntensity: Number(
+        (
+          scene.ambientLightEntity.getValue(aperture.Light, "intensity") ?? 0
+        ).toFixed(3),
+      ),
+      pointIntensity: Number(
+        (
+          scene.pointLightEntity.getValue(aperture.Light, "intensity") ?? 0
+        ).toFixed(3),
+      ),
+    },
+    extracted: {
+      ambientIntensity:
+        ambientPacket === undefined
+          ? null
+          : Number(ambientPacket.intensity.toFixed(3)),
+      pointIntensity:
+        pointPacket === undefined
+          ? null
+          : Number(pointPacket.intensity.toFixed(3)),
+    },
+  };
+}
+
+function bindLightControlInputs(aperture, scene) {
+  if (pointLightIntensityInput instanceof HTMLInputElement) {
+    pointLightIntensityInput.value = String(scene.lightControls.pointIntensity);
+    pointLightIntensityInput.addEventListener("input", () => {
+      setScenePointLightIntensity(
+        aperture,
+        scene,
+        numberInputValue(
+          pointLightIntensityInput,
+          scene.lightControls.pointIntensity,
+        ),
+      );
+    });
+  }
+
+  if (ambientIntensityInput instanceof HTMLInputElement) {
+    ambientIntensityInput.value = String(scene.lightControls.ambientIntensity);
+    ambientIntensityInput.addEventListener("input", () => {
+      setSceneAmbientIntensity(
+        aperture,
+        scene,
+        numberInputValue(
+          ambientIntensityInput,
+          scene.lightControls.ambientIntensity,
+        ),
+      );
+    });
+  }
+}
+
+function setScenePointLightIntensity(aperture, scene, value) {
+  scene.lightControls.pointIntensity = clamp(value, 0, 36);
+  scene.pointLightEntity.setValue(
+    aperture.Light,
+    "intensity",
+    scene.lightControls.pointIntensity,
+  );
+}
+
+function setSceneAmbientIntensity(aperture, scene, value) {
+  scene.lightControls.ambientIntensity = clamp(value, 0, 1);
+  scene.ambientLightEntity.setValue(
+    aperture.Light,
+    "intensity",
+    scene.lightControls.ambientIntensity,
+  );
+}
+
+function numberInputValue(input, fallback) {
+  const value = Number(input.value);
+
+  return Number.isFinite(value) ? value : fallback;
 }
 
 function routedPipelineKeys(reportJson) {
@@ -1894,6 +2018,8 @@ function createOrbitControls(targetCanvas) {
       status: "default",
       center: [0, 0, 0],
       size: [1, 1, 1],
+      yaw: 0,
+      elevation: 0.28,
       distance: 3.4,
       minDistance: 1.8,
       maxDistance: 6,
@@ -1968,6 +2094,23 @@ function updateOrbitCamera(aperture, cameraEntity, orbit) {
     ]);
 }
 
+function resetOrbitToFit(orbit) {
+  const fit = orbit.fit;
+
+  if (fit.status !== "ready") {
+    return false;
+  }
+
+  orbit.dragging = false;
+  orbit.yaw = fit.yaw;
+  orbit.elevation = fit.elevation;
+  orbit.distance = fit.distance;
+  orbit.minDistance = fit.minDistance;
+  orbit.maxDistance = fit.maxDistance;
+  orbit.target = [...fit.center];
+  return true;
+}
+
 function fitOrbitToReplayBounds(aperture, app, replay, orbit) {
   const bounds = computeReplayWorldBounds(aperture, app, replay);
 
@@ -1976,6 +2119,8 @@ function fitOrbitToReplayBounds(aperture, app, replay, orbit) {
       status: "missing-bounds",
       center: roundTuple(orbit.target, 3),
       size: [0, 0, 0],
+      yaw: Number(orbit.yaw.toFixed(4)),
+      elevation: Number(orbit.elevation.toFixed(4)),
       distance: Number(orbit.distance.toFixed(3)),
       minDistance: Number(orbit.minDistance.toFixed(3)),
       maxDistance: Number(orbit.maxDistance.toFixed(3)),
@@ -2012,12 +2157,20 @@ function fitOrbitToReplayBounds(aperture, app, replay, orbit) {
     status: "ready",
     center: roundTuple(center, 3),
     size: roundTuple(size, 3),
+    yaw: Number(orbit.yaw.toFixed(4)),
+    elevation: Number(orbit.elevation.toFixed(4)),
     distance: Number(distance.toFixed(3)),
     minDistance: Number(orbit.minDistance.toFixed(3)),
     maxDistance: Number(orbit.maxDistance.toFixed(3)),
   };
 
   return orbit.fit;
+}
+
+function setCameraResetEnabled(enabled) {
+  if (cameraResetButton instanceof HTMLButtonElement) {
+    cameraResetButton.disabled = !enabled;
+  }
 }
 
 function computeReplayWorldBounds(aperture, app, replay) {

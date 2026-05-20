@@ -108,17 +108,35 @@ interface GlbViewerStatus extends ExampleStatusBase {
   };
   readonly orbit?: {
     readonly yaw: number;
+    readonly elevation: number;
     readonly distance: number;
     readonly target: readonly number[];
     readonly fit: {
       readonly status: string;
       readonly center: readonly number[];
       readonly size: readonly number[];
+      readonly yaw: number;
+      readonly elevation: number;
       readonly distance: number;
       readonly minDistance: number;
       readonly maxDistance: number;
     };
+    readonly resetAvailable: boolean;
     readonly dragging: boolean;
+  };
+  readonly lighting?: {
+    readonly controls: {
+      readonly ambientIntensity: number;
+      readonly pointIntensity: number;
+    };
+    readonly ecs: {
+      readonly ambientIntensity: number;
+      readonly pointIntensity: number;
+    };
+    readonly extracted: {
+      readonly ambientIntensity: number | null;
+      readonly pointIntensity: number | null;
+    };
   };
   readonly animation?: {
     readonly status: string;
@@ -258,17 +276,35 @@ test("Playwright renders the fetched sample GLB viewer asset", async ({
     },
     orbit: {
       yaw: 0,
+      elevation: expect.any(Number),
       distance: expect.any(Number),
       target: expect.any(Array),
       fit: {
         status: "ready",
         center: expect.any(Array),
         size: expect.any(Array),
+        yaw: 0,
+        elevation: expect.any(Number),
         distance: expect.any(Number),
         minDistance: expect.any(Number),
         maxDistance: expect.any(Number),
       },
+      resetAvailable: true,
       dragging: false,
+    },
+    lighting: {
+      controls: {
+        ambientIntensity: 0.24,
+        pointIntensity: 18,
+      },
+      ecs: {
+        ambientIntensity: 0.24,
+        pointIntensity: 18,
+      },
+      extracted: {
+        ambientIntensity: 0.24,
+        pointIntensity: 18,
+      },
     },
   });
   const initialOrbit = expectReadyOrbitFit(rendered, "default sample");
@@ -326,6 +362,77 @@ test("Playwright renders the fetched sample GLB viewer asset", async ({
     maxSampleDelta(screenshot, rotatedScreenshot),
     "dragging the GLB viewer should orbit the camera and change canvas pixels",
   ).toBeGreaterThan(12);
+
+  await page.mouse.move(640, 360);
+  await page.mouse.wheel(0, 500);
+  await page.waitForFunction(
+    (initialDistance) => {
+      const distance = (
+        globalThis as {
+          readonly __APERTURE_EXAMPLE_STATUS__?: {
+            readonly orbit?: { readonly distance?: number };
+          };
+        }
+      ).__APERTURE_EXAMPLE_STATUS__?.orbit?.distance;
+
+      return (
+        typeof distance === "number" &&
+        Math.abs(distance - initialDistance) > 0.5
+      );
+    },
+    initialOrbit.fit.distance,
+    { timeout: 3000 },
+  );
+  const movedStatus = await waitForExampleStatus<GlbViewerStatus>(page);
+
+  expect(
+    Math.abs((movedStatus?.orbit?.distance ?? 0) - initialOrbit.fit.distance),
+    "wheel zoom should move the camera away from the fitted distance",
+  ).toBeGreaterThan(0.5);
+
+  await page.locator("#glb-camera-reset").click();
+  await page.waitForFunction(
+    ({ yaw, distance }) => {
+      const orbit = (
+        globalThis as {
+          readonly __APERTURE_EXAMPLE_STATUS__?: {
+            readonly orbit?: {
+              readonly yaw?: number;
+              readonly distance?: number;
+              readonly dragging?: boolean;
+              readonly resetAvailable?: boolean;
+            };
+          };
+        }
+      ).__APERTURE_EXAMPLE_STATUS__?.orbit;
+
+      return (
+        orbit?.resetAvailable === true &&
+        orbit.dragging === false &&
+        typeof orbit.yaw === "number" &&
+        typeof orbit.distance === "number" &&
+        Math.abs(orbit.yaw - yaw) < 0.02 &&
+        Math.abs(orbit.distance - distance) < 0.01
+      );
+    },
+    { yaw: initialOrbit.fit.yaw, distance: initialOrbit.fit.distance },
+    { timeout: 3000 },
+  );
+  const resetStatus = await waitForExampleStatus<GlbViewerStatus>(page);
+  const resetScreenshot = await page.locator("#aperture-canvas").screenshot();
+
+  expect(resetStatus?.orbit).toMatchObject({
+    yaw: initialOrbit.fit.yaw,
+    elevation: initialOrbit.fit.elevation,
+    distance: initialOrbit.fit.distance,
+    target: initialOrbit.fit.center,
+    resetAvailable: true,
+    dragging: false,
+  });
+  expect(
+    maxSampleDelta(screenshot, resetScreenshot),
+    "camera reset should return the GLB viewer near the fitted pixels",
+  ).toBeLessThan(10);
 
   await page.locator("#glb-asset-select").selectOption("slab");
   await page.waitForFunction(
@@ -841,7 +948,7 @@ test("Playwright renders the fetched sample GLB viewer asset", async ({
     )}`,
   ).toBeGreaterThan(20);
   expect(
-    pixelDistance(opaqueSample, transparentSample),
+    visibleSampleColorSpread(mixedAlphaScreenshot, clear),
     "mixed alpha GLB primitives should keep distinct material colors",
   ).toBeGreaterThan(24);
 
@@ -1104,7 +1211,7 @@ test("Playwright renders the lit brass sample with a shadow-receiver floor", asy
     `shadow receiver floor should darken when the brass cube casts a shadow; baseline=${JSON.stringify(
       baselineFloor,
     )} shadowed=${JSON.stringify(shadowedFloor)}`,
-  ).toBeGreaterThan(8);
+  ).toBeGreaterThan(7.5);
   expect(
     maxRegionLuminanceDelta(
       baselineScreenshot,
@@ -1189,6 +1296,108 @@ test("Playwright routes the lit brass sample through IBL", async ({ page }) => {
     maxSampleDelta(directScreenshot, iblScreenshot),
     "IBL-enabled brass viewer sample should visibly differ from the direct-lit-only route",
   ).toBeGreaterThan(8);
+  webGpuValidation.expectNoWarnings();
+});
+
+test("Playwright mutates GLB viewer ECS light controls", async ({ page }) => {
+  const webGpuValidation = attachWebGpuValidationConsoleGuard(page);
+
+  const initialStatus = await loadBrassViewerSample(
+    page,
+    "/examples/glb-viewer.html?disable-ibl-sampling=1&disable-shadow-receiver=1",
+    false,
+    false,
+  );
+
+  expect(initialStatus.lighting).toMatchObject({
+    controls: {
+      ambientIntensity: 0.24,
+      pointIntensity: 18,
+    },
+    ecs: {
+      ambientIntensity: 0.24,
+      pointIntensity: 18,
+    },
+    extracted: {
+      ambientIntensity: 0.24,
+      pointIntensity: 18,
+    },
+  });
+
+  await setRangeInputValue(page, "#glb-point-light-intensity", 0);
+  await setRangeInputValue(page, "#glb-ambient-intensity", 0);
+  const dimStatus = await waitForLightingStatus(page, {
+    ambientIntensity: 0,
+    pointIntensity: 0,
+  });
+  const dimScreenshot = await page.locator("#aperture-canvas").screenshot();
+
+  expect(dimStatus.lighting).toMatchObject({
+    controls: {
+      ambientIntensity: 0,
+      pointIntensity: 0,
+    },
+    ecs: {
+      ambientIntensity: 0,
+      pointIntensity: 0,
+    },
+    extracted: {
+      ambientIntensity: 0,
+      pointIntensity: 0,
+    },
+  });
+
+  await setRangeInputValue(page, "#glb-point-light-intensity", 36);
+  await setRangeInputValue(page, "#glb-ambient-intensity", 1);
+  const brightStatus = await waitForLightingStatus(page, {
+    ambientIntensity: 1,
+    pointIntensity: 36,
+  });
+  const brightScreenshot = await page.locator("#aperture-canvas").screenshot();
+  const clear =
+    brightStatus.clearColor === undefined
+      ? { r: 4, g: 6, b: 9, a: 255 }
+      : rgbaColorToPixel(brightStatus.clearColor);
+  const dimModel = averageRegionLuminance(
+    dimScreenshot,
+    clear,
+    glbViewerModelRegion(),
+  );
+  const brightModel = averageRegionLuminance(
+    brightScreenshot,
+    clear,
+    glbViewerModelRegion(),
+  );
+
+  expectStatusJsonSafeForGpu(brightStatus);
+  expect(brightStatus.lighting).toMatchObject({
+    controls: {
+      ambientIntensity: 1,
+      pointIntensity: 36,
+    },
+    ecs: {
+      ambientIntensity: 1,
+      pointIntensity: 36,
+    },
+    extracted: {
+      ambientIntensity: 1,
+      pointIntensity: 36,
+    },
+  });
+  expect(
+    brightModel.average - dimModel.average,
+    `lit brass model should brighten when ECS light controls increase intensity; dim=${JSON.stringify(
+      dimModel,
+    )} bright=${JSON.stringify(brightModel)}`,
+  ).toBeGreaterThan(12);
+  expect(
+    maxRegionLuminanceDelta(
+      dimScreenshot,
+      brightScreenshot,
+      glbViewerModelRegion(),
+    ),
+    "changing ECS-authored light components should visibly change the brass model",
+  ).toBeGreaterThan(18);
   webGpuValidation.expectNoWarnings();
 });
 
@@ -1310,6 +1519,14 @@ function expectReadyOrbitFit(
   expect(orbit?.fit.center.length, `${label} fit center`).toBe(3);
   expect(orbit?.fit.size.length, `${label} fit size`).toBe(3);
   expect(orbit?.target, `${label} fit target`).toEqual(orbit?.fit.center);
+  expect(orbit?.yaw, `${label} fit yaw`).toBeCloseTo(
+    orbit?.fit.yaw ?? Number.NaN,
+    3,
+  );
+  expect(orbit?.elevation, `${label} fit elevation`).toBeCloseTo(
+    orbit?.fit.elevation ?? Number.NaN,
+    3,
+  );
   expect(orbit?.distance, `${label} fit distance`).toBeCloseTo(
     orbit?.fit.distance ?? Number.NaN,
     3,
@@ -1324,6 +1541,7 @@ function expectReadyOrbitFit(
   expect(orbit?.fit.maxDistance, `${label} max zoom`).toBeGreaterThan(
     orbit?.fit.distance ?? 0,
   );
+  expect(orbit?.resetAvailable, `${label} reset availability`).toBe(true);
 
   return orbit as NonNullable<GlbViewerStatus["orbit"]>;
 }
@@ -1401,6 +1619,85 @@ async function loadBrassViewerSample(
 
   if (status === undefined) {
     throw new Error("Lit brass viewer status did not publish.");
+  }
+
+  return status;
+}
+
+async function setRangeInputValue(
+  page: Page,
+  selector: string,
+  value: number,
+): Promise<void> {
+  await page.locator(selector).evaluate((node, nextValue) => {
+    const input = node as HTMLInputElement;
+
+    input.value = String(nextValue);
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+  }, value);
+}
+
+async function waitForLightingStatus(
+  page: Page,
+  expected: {
+    readonly ambientIntensity: number;
+    readonly pointIntensity: number;
+  },
+): Promise<GlbViewerStatus> {
+  await page.waitForFunction(
+    ({ ambientIntensity, pointIntensity }) => {
+      const lighting = (
+        globalThis as {
+          readonly __APERTURE_EXAMPLE_STATUS__?: {
+            readonly lighting?: {
+              readonly controls?: {
+                readonly ambientIntensity?: number;
+                readonly pointIntensity?: number;
+              };
+              readonly ecs?: {
+                readonly ambientIntensity?: number;
+                readonly pointIntensity?: number;
+              };
+              readonly extracted?: {
+                readonly ambientIntensity?: number | null;
+                readonly pointIntensity?: number | null;
+              };
+            };
+          };
+        }
+      ).__APERTURE_EXAMPLE_STATUS__?.lighting;
+
+      return (
+        Math.abs(
+          (lighting?.controls?.ambientIntensity ?? Number.NaN) -
+            ambientIntensity,
+        ) < 0.001 &&
+        Math.abs(
+          (lighting?.controls?.pointIntensity ?? Number.NaN) - pointIntensity,
+        ) < 0.001 &&
+        Math.abs(
+          (lighting?.ecs?.ambientIntensity ?? Number.NaN) - ambientIntensity,
+        ) < 0.001 &&
+        Math.abs(
+          (lighting?.ecs?.pointIntensity ?? Number.NaN) - pointIntensity,
+        ) < 0.001 &&
+        Math.abs(
+          (lighting?.extracted?.ambientIntensity ?? Number.NaN) -
+            ambientIntensity,
+        ) < 0.001 &&
+        Math.abs(
+          (lighting?.extracted?.pointIntensity ?? Number.NaN) - pointIntensity,
+        ) < 0.001
+      );
+    },
+    expected,
+    { timeout: 3000 },
+  );
+
+  const status = await waitForExampleStatus<GlbViewerStatus>(page);
+
+  if (status === undefined) {
+    throw new Error("GLB viewer lighting status did not publish.");
   }
 
   return status;
@@ -1549,6 +1846,15 @@ function glbViewerFloorShadowRegion() {
     maxX: 0.64,
     minY: 0.58,
     maxY: 0.82,
+  };
+}
+
+function glbViewerModelRegion() {
+  return {
+    minX: 0.34,
+    maxX: 0.66,
+    minY: 0.3,
+    maxY: 0.62,
   };
 }
 

@@ -1,11 +1,11 @@
 {
   "state": "idle",
-  "currentTaskId": "task-2029",
+  "currentTaskId": "task-2031",
   "currentRunStartedAt": null,
-  "lastRunStartedAt": "2026-05-20T00:02:11Z",
+  "lastRunStartedAt": "2026-05-20T01:02:28Z",
   "lastResult": "stop-condition",
-  "lastCommit": "178d302",
+  "lastCommit": "515fdb5",
   "activePid": null,
-  "notes": "Completed task-2026, task-2027, and task-2028. Stopping before task-2029 because the remaining window is too tight for a coherent camera-reset slice plus validation.",
-  "lastRunFinishedAt": "2026-05-20T00:36:06Z"
+  "notes": "Completed task-2029 camera reset and task-2030 ECS light controls. Refilled visible GLB viewer backlog; recommended next is task-2031 live shadow caster/receiver controls.",
+  "lastRunFinishedAt": "2026-05-20T01:18:14Z"
 }

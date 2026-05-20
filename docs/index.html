@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-19 17:33 PDT</dd>
+            <dd>2026-05-19 18:12 PDT</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -922,10 +922,14 @@
               alpha-state StandardMaterial GLB sample with one opaque primitive
               and one transparent primitive, reports each primitive material's
               resolved render state and pipeline key, and proves both regions
-              render in Playwright.
+              render in Playwright. The viewer now also exposes a home camera
+              reset that restores the current asset's fitted orbit state, plus
+              ECS-authored ambient and point-light controls whose component
+              values are reflected in extracted light packets and browser pixel
+              response.
             </dd>
             <dt>Next focus</dt>
-            <dd>Add a camera reset control to glb-viewer</dd>
+            <dd>Add live shadow caster/receiver controls to glb-viewer</dd>
           </dl>
         </aside>
       </header>
@@ -1149,15 +1153,16 @@
                 <div class="label">asset import</div>
                 <h3>GLB/glTF path</h3>
               </div>
-              <span class="percent">49%</span>
+              <span class="percent">50%</span>
             </div>
-            <div class="bar"><span style="width: 49%"></span></div>
+            <div class="bar"><span style="width: 50%"></span></div>
             <p>
               Container parsing, diagnostics, source registration, material
               mapping, URI loading, an eight-asset local GLB viewer path with
               lit StandardMaterial, animated, dual-primitive, hierarchy, and
               mixed alpha-state samples, custom URL plus query-URL loading, and
-              bounds-driven camera fitting have landed. The lit brass sample now
+              bounds-driven camera fitting have landed. The viewer now includes
+              camera reset and ECS light controls, while the lit brass sample
               adds a shadow-receiver floor and environment-map IBL through
               ECS-authored scene state.
             </p>
@@ -1168,9 +1173,9 @@
                 <div class="label">examples/e2e</div>
                 <h3>browser proof points</h3>
               </div>
-              <span class="percent">56%</span>
+              <span class="percent">57%</span>
             </div>
-            <div class="bar"><span style="width: 56%"></span></div>
+            <div class="bar"><span style="width: 57%"></span></div>
             <p>
               Spinning cube, material showcase, GLTF scene, GLB viewer,
               diagnostics, queue phases, and WebGPU readback examples have
@@ -1179,7 +1184,8 @@
               transforms, combined IBL/shadow sampling, and a shadow-darkened
               GLB viewer receiver floor with IBL-enabled pixel comparison. GLB
               viewer coverage now also verifies mixed opaque/transparent
-              StandardMaterial render-state routing.
+              StandardMaterial render-state routing, fitted-camera reset, and
+              ECS light-control pixel response.
             </p>
           </article>
           <article class="card track">
@@ -1470,6 +1476,18 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">task-2030</span> Added compact ambient
+                and point-light sliders to <code>glb-viewer</code> that mutate
+                ECS <code>Light</code> components, publish extracted intensity
+                status, and prove lit brass pixels respond.
+              </li>
+              <li>
+                <span class="badge green">task-2029</span> Added a home camera
+                reset to <code>glb-viewer</code> that restores the current
+                asset's fitted orbit target, yaw, distance, and zoom limits with
+                Playwright status plus pixel proof.
+              </li>
               <li>
                 <span class="badge green">task-2028</span> Added a mixed
                 alpha-state StandardMaterial GLB sample to
@@ -3155,16 +3173,17 @@
             <h3>Recommended next tasks</h3>
             <ul>
               <li>
-                <span class="badge amber">next</span> Add a camera reset/home
-                control to <code>glb-viewer</code>.
+                <span class="badge amber">next</span> Add live shadow
+                caster/receiver controls to <code>glb-viewer</code>.
               </li>
               <li>
-                Reset should restore the current asset's fitted orbit target,
-                distance, yaw, and zoom limits.
+                Checkboxes should mutate ECS-authored
+                <code>ShadowCaster</code> and <code>ShadowReceiver</code>
+                component state for the lit brass sample.
               </li>
               <li>
-                Use Playwright to drag/zoom, reset, and verify status plus
-                rendered pixels return near the fitted view.
+                Use Playwright to verify draw-list/status changes plus receiver
+                pixel changes when caster or receiver mode is disabled.
               </li>
             </ul>
           </article>

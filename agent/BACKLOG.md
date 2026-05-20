@@ -59,7 +59,7 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start with `task-2029`: add a camera reset control to glb-viewer.
+Start with `task-2031`: add live shadow caster/receiver controls to glb-viewer.
 
 `task-2001` is complete: the spinning-cube example now creates a renderer-owned face-colored diffuse IBL cube texture and sampler, routes it through the StandardMaterial diffuse IBL shader variant, and Playwright verifies direction-dependent face pixels.
 `task-2002` is complete: `withEnvironmentMap(handle)` is exported from runtime/core and materials-showcase now uses it with visible diffuse IBL routing.
@@ -87,6 +87,8 @@ Start with `task-2029`: add a camera reset control to glb-viewer.
 `task-2026` is complete: the lit brass GLB viewer sample now adds ECS-authored shadow caster/receiver state, a simple StandardMaterial receiver floor, and a directional shadow pass; Playwright verifies the model and a shadow-darkened floor in one frame.
 `task-2027` is complete: the lit brass GLB viewer sample now authors an environment map and routes StandardMaterial model/floor draws through diffuse plus specular-proof IBL; Playwright compares direct-lit-only and IBL-enabled pixels.
 `task-2028` is complete: `glb-viewer` now includes a mixed alpha-state StandardMaterial GLB sample with one opaque primitive and one transparent primitive, JSON-safe per-primitive render-state/pipeline status, and Playwright proof for both visible regions.
+`task-2029` is complete: `glb-viewer` now includes a home camera reset control that restores the current asset's fitted orbit target, distance, yaw, and zoom limits; Playwright proves status and pixels return near the fitted view after drag/zoom.
+`task-2030` is complete: `glb-viewer` now exposes compact ambient and point-light sliders that mutate ECS-authored `Light` component intensities, report controls/ECS/extracted values, and visibly change the lit brass sample.
 
 Reference anchors (read both before writing WGSL):
 
@@ -524,6 +526,8 @@ Acceptance criteria:
 
 ### task-2029 — Add a camera reset control to glb-viewer
 
+Status: completed 2026-05-19. See `agent/COMPLETED.md`.
+
 Category: `runtime-orchestration`
 Package/write-scope: `examples/glb-viewer.html`, `examples/glb-viewer.js`, `test/e2e/glb-viewer.spec.ts`.
 Reference anchor: `references/three.js/examples/webgl_loader_gltf.html` (`fitCameraToSelection` and viewer camera reset behavior).
@@ -536,6 +540,8 @@ Acceptance criteria:
 
 ### task-2030 — Add ECS light controls for the lit GLB viewer sample
 
+Status: completed 2026-05-19. See `agent/COMPLETED.md`.
+
 Category: `runtime-orchestration`
 Package/write-scope: `examples/glb-viewer.html`, `examples/glb-viewer.js`, `test/e2e/glb-viewer.spec.ts`.
 Reference anchor: `references/bevy/crates/bevy_pbr/src/light_probe/mod.rs`; `references/bevy/crates/bevy_pbr/src/render/light.rs`.
@@ -545,6 +551,69 @@ Acceptance criteria:
 - `glb-viewer` exposes compact controls for the ECS-authored point light intensity and ambient fill used by StandardMaterial samples.
 - Changing controls mutates ECS light components rather than renderer-owned scene state.
 - Playwright verifies light status changes and the lit brass sample pixels respond measurably.
+
+### task-2031 — Add live shadow caster/receiver controls to glb-viewer
+
+Category: `runtime-orchestration`
+Package/write-scope: `examples/glb-viewer.html`, `examples/glb-viewer.js`, `test/e2e/glb-viewer.spec.ts`.
+Reference anchor: `references/bevy/examples/3d/shadow_caster_receiver.rs`.
+
+Acceptance criteria:
+
+- `glb-viewer` exposes compact caster and receiver checkboxes for the lit brass sample.
+- Changing controls mutates ECS-authored `ShadowCaster` and `ShadowReceiver` components rather than renderer-owned scene state.
+- Viewer status reports the live caster/receiver control state, caster draw-list changes, and receiver route support.
+- Playwright toggles caster and receiver modes and verifies status plus receiver-region pixel changes without WebGPU validation warnings.
+
+### task-2032 — Add a live IBL enable control to glb-viewer
+
+Category: `runtime-orchestration`
+Package/write-scope: `examples/glb-viewer.html`, `examples/glb-viewer.js`, `test/e2e/glb-viewer.spec.ts`.
+Reference anchor: `references/three.js/src/extras/PMREMGenerator.js`; `references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/reflectionEnv.js`.
+
+Acceptance criteria:
+
+- `glb-viewer` exposes a compact IBL enable toggle for StandardMaterial samples.
+- Toggling IBL updates ECS-authored environment-map state or the equivalent source authoring path without storing authoritative renderer state in ECS.
+- Viewer status reports the live IBL control state, environment extraction, and routed pipeline keys.
+- Playwright verifies direct-lit versus IBL-enabled brass pixels respond to the control.
+
+### task-2033 — Add animation pause and scrub controls to glb-viewer
+
+Category: `runtime-orchestration`
+Package/write-scope: `examples/glb-viewer.html`, `examples/glb-viewer.js`, `test/e2e/glb-viewer.spec.ts`.
+Reference anchor: `references/bevy/crates/bevy_animation/src/lib.rs`; `references/three.js/examples/jsm/loaders/GLTFLoader.js`.
+
+Acceptance criteria:
+
+- `glb-viewer` exposes pause/play and scrub controls for the animated GLB sample.
+- Controls update example animation state that writes replayed ECS `LocalTransform` data; no renderer-owned scene graph is introduced.
+- Viewer status reports paused/playing state, scrub time, active clip, and animated node transform values.
+- Playwright verifies paused pixels remain stable and scrubbing changes both transform status and rendered pixels.
+
+### task-2034 — Add GLB viewer sample metadata status
+
+Category: `render-bridge`
+Package/write-scope: `examples/glb-viewer.js`, `test/e2e/glb-viewer.spec.ts`, targeted asset report helpers only if needed.
+Reference anchor: `references/bevy/crates/bevy_gltf/src/loader/mod.rs`; `references/three.js/examples/jsm/loaders/GLTFLoader.js`.
+
+Acceptance criteria:
+
+- `glb-viewer` publishes JSON-safe metadata counts for loaded scenes: nodes, meshes, primitives, materials, animations, and unsupported feature diagnostics.
+- Metadata is derived from the parsed GLB/import reports and does not include raw binary buffers or GPU handles.
+- Playwright verifies metadata for at least the animated, dual-primitive, mixed-alpha, and hierarchy samples.
+
+### task-2035 — Add `?asset=` sample bootstrap to glb-viewer
+
+Category: `runtime-orchestration`
+Package/write-scope: `examples/glb-viewer.js`, `examples/glb-viewer.html`, `test/e2e/glb-viewer.spec.ts`.
+Reference anchor: `references/three.js/examples/webgl_loader_gltf.html` (model selection flow and stale-load guard).
+
+Acceptance criteria:
+
+- Opening `examples/glb-viewer.html?asset=brass` selects and loads the matching committed sample without using the custom URL path.
+- Invalid sample ids fall back to the default sample and report a JSON-safe selection diagnostic.
+- Playwright covers a valid sample bootstrap and an invalid fallback with rendered pixels and selected-asset status.
 
 Future MVP slices (IBL composition quality, animation breadth, and performance reporting) remain candidates after these visible feature tasks.
 

@@ -192,6 +192,10 @@ body {
   cursor: default;
 }
 
+.glb-viewer-controls {
+  grid-template-columns: 1fr;
+}
+
 .runtime-controls label {
   display: flex;
   min-width: 0;
@@ -218,6 +222,28 @@ body {
 
 .runtime-controls label:hover {
   background: #2a3440;
+}
+
+.light-control-grid {
+  display: grid;
+  gap: 10px;
+  font-size: 13px;
+}
+
+.light-control-grid label {
+  display: grid;
+  gap: 6px;
+  color: #9ca8b7;
+}
+
+.light-control-grid input {
+  width: 100%;
+  accent-color: #81d69d;
+}
+
+.light-control-grid input:focus-visible {
+  outline: 2px solid #81d69d;
+  outline-offset: 3px;
 }
 
 .example-links {

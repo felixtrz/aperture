@@ -57,6 +57,41 @@
             <button type="submit">load</button>
           </div>
         </form>
+        <div class="runtime-controls glb-viewer-controls" aria-label="Camera">
+          <button
+            id="glb-camera-reset"
+            type="button"
+            title="Reset camera to the current asset fit"
+          >
+            home
+          </button>
+        </div>
+        <div class="light-control-grid" aria-label="Lighting">
+          <label for="glb-point-light-intensity">
+            <span>point</span>
+            <input
+              id="glb-point-light-intensity"
+              type="range"
+              min="0"
+              max="36"
+              step="1"
+              value="18"
+              aria-label="Point light intensity"
+            />
+          </label>
+          <label for="glb-ambient-intensity">
+            <span>ambient</span>
+            <input
+              id="glb-ambient-intensity"
+              type="range"
+              min="0"
+              max="1"
+              step="0.02"
+              value="0.24"
+              aria-label="Ambient light intensity"
+            />
+          </label>
+        </div>
         <nav class="example-links" aria-label="Examples">
           <a href="/">clear</a>
           <a href="/examples/triangle.html">triangle</a>
