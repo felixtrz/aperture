@@ -1,5 +1,110 @@
 # Completed Tasks
 
+## task-2028 — Render a mixed alpha-state GLB sample in glb-viewer
+
+Completed: 2026-05-19
+
+Summary:
+
+- Added `examples/assets/mixed-alpha.glb`, a local GLB with two
+  StandardMaterial primitives: one opaque and one alpha-blended transparent
+  primitive.
+- Added the sample to `examples/glb-viewer.js` and extended viewer status with
+  JSON-safe per-primitive material resolution, alpha mode, blend preset, depth
+  write state, cull mode, and pipeline key.
+- Added render-state queue/pipeline status for the active viewer frame.
+- Extended GLB viewer Playwright coverage to select the sample, assert
+  `standard|opaque|back|less|none` and
+  `standard|blend|back|less|alpha`, and verify both primitive regions render
+  with distinct visible colors and no WebGPU validation warnings.
+
+References inspected:
+
+- `references/bevy/crates/bevy_gltf/src/loader/mod.rs`
+- `references/bevy/crates/bevy_gltf/src/loader/gltf_ext/material.rs`
+- `references/three.js/examples/jsm/loaders/GLTFLoader.js`
+
+Validation:
+
+- `node --check examples/glb-viewer.js`
+- GLB JSON parse check for `examples/assets/mixed-alpha.glb`
+- `pnpm run typecheck:test`
+- `pnpm run check:examples`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts`
+
+Known follow-up:
+
+- `task-2029` should add a reset/home control for the fitted GLB viewer camera.
+
+## task-2027 — Route glb-viewer StandardMaterial samples through IBL
+
+Completed: 2026-05-19
+
+Summary:
+
+- Added a brass-sample environment map authoring path to `examples/glb-viewer.js`
+  and kept it tied to ECS-authored environment light state.
+- Added renderer-owned diffuse cube and minimal specular-proof mip-chain IBL
+  resources for the GLB viewer.
+- Routed the lit brass model and receiver floor through
+  `standard|iblDiffuse|iblSpecularProof|...` pipeline keys while preserving the
+  existing directional shadow receiver route.
+- Published JSON-safe IBL status with environment handle, resource keys, and
+  active routed pipeline keys.
+- Added Playwright coverage comparing direct-lit-only and IBL-enabled brass
+  viewer pixels.
+
+References inspected:
+
+- `references/three.js/src/extras/PMREMGenerator.js`
+- `references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/reflectionEnv.js`
+
+Validation:
+
+- `node --check examples/glb-viewer.js`
+- `pnpm run typecheck:test`
+- `pnpm run check:examples`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts`
+
+Known follow-up:
+
+- `task-2028` should add a mixed alpha-state GLB sample to `glb-viewer`.
+
+## task-2026 — Add a shadow-receiver floor for the lit GLB viewer sample
+
+Completed: 2026-05-19
+
+Summary:
+
+- Added a brass-only ECS shadow scene in `examples/glb-viewer.js`: replayed
+  brass mesh entities are marked as shadow casters and non-receivers, and a
+  StandardMaterial receiver floor is spawned through ECS authoring helpers.
+- Added an ECS-authored directional shadow light plus the viewer-side
+  directional shadow pass/resource path so the floor routes through
+  `standard|shadowMap|opaque|back|less|none`.
+- Extended GLB viewer status with JSON-safe shadow request, caster draw-list,
+  command submission, authoring, and rendering status.
+- Added Playwright coverage comparing receiver-disabled and receiver-enabled
+  brass samples, proving the floor region darkens with no WebGPU validation
+  warnings.
+
+References inspected:
+
+- `references/bevy/examples/3d/shadow_caster_receiver.rs`
+- `references/engine/src/scene/renderer/shadow-renderer.js`
+
+Validation:
+
+- `node --check examples/glb-viewer.js`
+- `pnpm run typecheck:test`
+- `pnpm run check:examples`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts`
+
+Known follow-up:
+
+- `task-2027` should route GLB viewer StandardMaterial samples through the
+  existing renderer-owned IBL resource path.
+
 ## task-2025 — Preserve GLB node hierarchy transforms during viewer replay
 
 Completed: 2026-05-19

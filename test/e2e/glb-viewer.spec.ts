@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import type { Page } from "@playwright/test";
 
 import { pixelDistance, readPngPixel, rgbaColorToPixel } from "./png.js";
 import {
@@ -38,6 +39,7 @@ interface GlbViewerStatus extends ExampleStatusBase {
       readonly resolved: number;
       readonly diagnostics: number;
       readonly families: readonly MaterialFamilyStatus[];
+      readonly resolutions: readonly PrimitiveMaterialResolutionStatus[];
     };
     readonly commandPlan: {
       readonly valid: boolean;
@@ -54,7 +56,51 @@ interface GlbViewerStatus extends ExampleStatusBase {
     readonly views: number;
     readonly meshDraws: number;
     readonly lights: number;
+    readonly environments: number;
+    readonly shadowRequests: number;
     readonly diagnostics: number;
+  };
+  readonly ibl?: {
+    readonly enabled: boolean;
+    readonly specularProof: boolean;
+    readonly environmentMapKey: string | null;
+    readonly resources: {
+      readonly diffuseTexture: string | null;
+      readonly specularTexture: string | null;
+      readonly sampler: string | null;
+    };
+    readonly rendering: {
+      readonly supported: boolean;
+      readonly diffusePipelineKey: string | null;
+      readonly specularPipelineKey: string | null;
+      readonly pipelineKeys: readonly string[];
+    };
+  };
+  readonly shadow?: {
+    readonly enabled: boolean;
+    readonly controls: {
+      readonly receiverEnabled: boolean;
+      readonly casterEnabled: boolean;
+    };
+    readonly authoring: {
+      readonly drawCount: number;
+      readonly casterCount: number;
+      readonly receiverCount: number;
+      readonly disabledCasterCount: number;
+      readonly disabledReceiverCount: number;
+    };
+    readonly casterDrawList: {
+      readonly includedDrawCount: number;
+      readonly skippedDrawCount: number;
+    } | null;
+    readonly commandBufferSubmission: {
+      readonly status: string;
+    } | null;
+    readonly rendering: {
+      readonly supported: boolean;
+      readonly mode: string;
+      readonly pipelineKey: string | null;
+    };
   };
   readonly draw?: {
     readonly packages: number;
@@ -103,11 +149,28 @@ interface GlbViewerStatus extends ExampleStatusBase {
     readonly b: number;
     readonly a: number;
   };
+  readonly renderState?: {
+    readonly queues: readonly string[];
+    readonly pipelineKeys: readonly string[];
+  };
 }
 
 interface MaterialFamilyStatus {
   readonly family: string;
   readonly count: number;
+}
+
+interface PrimitiveMaterialResolutionStatus {
+  readonly meshIndex: number;
+  readonly primitiveIndex: number;
+  readonly materialIndex: number;
+  readonly materialHandleKey: string;
+  readonly family: string;
+  readonly alphaMode: string | null;
+  readonly blendPreset: string | null;
+  readonly depthWrite: boolean | null;
+  readonly cullMode: string | null;
+  readonly pipelineKey: string | null;
 }
 
 test("Playwright renders the fetched sample GLB viewer asset", async ({
@@ -147,6 +210,7 @@ test("Playwright renders the fetched sample GLB viewer asset", async ({
     "Lit brass cube",
     "Animated cube",
     "Dual primitive",
+    "Mixed alpha",
     "Hierarchy cube",
   ]);
   expect(rendered).toMatchObject({
@@ -343,6 +407,12 @@ test("Playwright renders the fetched sample GLB viewer asset", async ({
             };
             readonly source?: { readonly ok?: boolean };
             readonly extraction?: { readonly meshDraws?: number };
+            readonly ibl?: {
+              readonly rendering?: { readonly supported?: boolean };
+            };
+            readonly shadow?: {
+              readonly rendering?: { readonly supported?: boolean };
+            };
           };
         }
       ).__APERTURE_EXAMPLE_STATUS__;
@@ -351,7 +421,9 @@ test("Playwright renders the fetched sample GLB viewer asset", async ({
         status?.selectedAsset?.id === "brass" &&
         status.selectedAsset.loading === false &&
         status.source?.ok === true &&
-        status.extraction?.meshDraws === 1 &&
+        status.extraction?.meshDraws === 2 &&
+        status.ibl?.rendering?.supported === true &&
+        status.shadow?.rendering?.supported === true &&
         status.selectedAsset.materialFamilies?.some(
           (entry) => entry.family === "standard",
         ) === true
@@ -393,13 +465,57 @@ test("Playwright renders the fetched sample GLB viewer asset", async ({
     },
     extraction: {
       views: 1,
-      meshDraws: 1,
-      lights: 2,
+      meshDraws: 2,
+      lights: 3,
+      environments: 1,
+      shadowRequests: 1,
       diagnostics: 0,
     },
+    ibl: {
+      enabled: true,
+      specularProof: true,
+      environmentMapKey: "environment-map:glb-viewer-studio",
+      resources: {
+        diffuseTexture: "texture:glb-viewer-studio:diffuse:texture",
+        specularTexture: "texture:glb-viewer-studio:specular-proof:texture",
+        sampler: "texture:glb-viewer-studio:diffuse:sampler",
+      },
+      rendering: {
+        supported: true,
+        diffusePipelineKey: expect.stringContaining("iblDiffuse"),
+        specularPipelineKey: expect.stringContaining("iblSpecularProof"),
+      },
+    },
+    shadow: {
+      enabled: true,
+      controls: {
+        receiverEnabled: true,
+        casterEnabled: true,
+      },
+      authoring: {
+        drawCount: 2,
+        casterCount: 1,
+        receiverCount: 1,
+        disabledCasterCount: 1,
+        disabledReceiverCount: 1,
+      },
+      casterDrawList: {
+        includedDrawCount: 1,
+        skippedDrawCount: 1,
+      },
+      commandBufferSubmission: {
+        status: "submitted",
+      },
+      rendering: {
+        supported: true,
+        mode: "directional-depth-compare",
+        pipelineKey:
+          "standard|iblDiffuse|iblSpecularProof|shadowMap|opaque|back|less|none",
+      },
+    },
     draw: {
-      packages: 1,
-      drawCalls: 1,
+      packages: 2,
+      drawCalls: 2,
     },
   });
   expect(brassOrbit.fit.size).not.toEqual(slabOrbit.fit.size);
@@ -410,7 +526,12 @@ test("Playwright renders the fetched sample GLB viewer asset", async ({
   expect(
     routedPipelineKeys(brassStatus),
     "lit GLB sample should route through the StandardMaterial app path",
-  ).toContain("standard|opaque|back|less|none");
+  ).toEqual(
+    expect.arrayContaining([
+      "standard|iblDiffuse|iblSpecularProof|opaque|back|less|none",
+      "standard|iblDiffuse|iblSpecularProof|shadowMap|opaque|back|less|none",
+    ]),
+  );
   expect(
     maxSampleDelta(slabScreenshot, brassScreenshot),
     "lit StandardMaterial sample should render differently from the unlit slab",
@@ -592,6 +713,138 @@ test("Playwright renders the fetched sample GLB viewer asset", async ({
     "multi-primitive GLB should expose two visibly distinct material regions",
   ).toBeGreaterThan(30);
 
+  await page.locator("#glb-asset-select").selectOption("mixed-alpha");
+  await page.waitForFunction(
+    () => {
+      const status = (
+        globalThis as {
+          readonly __APERTURE_EXAMPLE_STATUS__?: {
+            readonly selectedAsset?: {
+              readonly id?: string;
+              readonly loading?: boolean;
+            };
+            readonly gltf?: {
+              readonly primitiveMaterials?: { readonly resolved?: number };
+            };
+            readonly extraction?: { readonly meshDraws?: number };
+            readonly renderState?: {
+              readonly pipelineKeys?: readonly string[];
+            };
+          };
+        }
+      ).__APERTURE_EXAMPLE_STATUS__;
+
+      return (
+        status?.selectedAsset?.id === "mixed-alpha" &&
+        status.selectedAsset.loading === false &&
+        status.gltf?.primitiveMaterials?.resolved === 2 &&
+        status.extraction?.meshDraws === 2 &&
+        status.renderState?.pipelineKeys?.includes(
+          "standard|blend|back|less|alpha",
+        ) === true
+      );
+    },
+    undefined,
+    { timeout: 5000 },
+  );
+  const mixedAlphaStatus = await waitForExampleStatus<GlbViewerStatus>(page);
+  const mixedAlphaScreenshot = await page
+    .locator("#aperture-canvas")
+    .screenshot();
+  const opaqueSample = strongestRegionSample(
+    mixedAlphaScreenshot,
+    clear,
+    0.3,
+    0.34,
+    0.5,
+    0.66,
+  );
+  const transparentSample = strongestRegionSample(
+    mixedAlphaScreenshot,
+    clear,
+    0.5,
+    0.34,
+    0.7,
+    0.66,
+  );
+
+  expect(mixedAlphaStatus).toMatchObject({
+    selectedAsset: {
+      id: "mixed-alpha",
+      label: "Mixed alpha",
+      source: "sample",
+      url: "/examples/assets/mixed-alpha.glb",
+      loading: false,
+      materialFamilies: [{ family: "standard", count: 2 }],
+    },
+    gltf: {
+      primitiveMaterials: {
+        valid: true,
+        resolved: 2,
+        diagnostics: 0,
+        families: [{ family: "standard", count: 2 }],
+        resolutions: [
+          {
+            meshIndex: 0,
+            primitiveIndex: 0,
+            materialIndex: 0,
+            family: "standard",
+            alphaMode: "opaque",
+            blendPreset: "none",
+            depthWrite: true,
+            cullMode: "back",
+            pipelineKey: "standard|opaque|back|less|none",
+          },
+          {
+            meshIndex: 0,
+            primitiveIndex: 1,
+            materialIndex: 1,
+            family: "standard",
+            alphaMode: "blend",
+            blendPreset: "alpha",
+            depthWrite: false,
+            cullMode: "back",
+            pipelineKey: "standard|blend|back|less|alpha",
+          },
+        ],
+      },
+      replay: { valid: true, diagnostics: 0 },
+    },
+    extraction: {
+      views: 1,
+      meshDraws: 2,
+      lights: 2,
+      diagnostics: 0,
+    },
+    renderState: {
+      queues: expect.arrayContaining(["opaque", "transparent"]),
+      pipelineKeys: expect.arrayContaining([
+        "standard|opaque|back|less|none",
+        "standard|blend|back|less|alpha",
+      ]),
+    },
+    draw: {
+      packages: 2,
+      drawCalls: 2,
+    },
+  });
+  expect(
+    pixelDistance(opaqueSample, clear),
+    `mixed alpha GLB opaque primitive should produce visible pixels; sample=${JSON.stringify(
+      opaqueSample,
+    )}`,
+  ).toBeGreaterThan(20);
+  expect(
+    pixelDistance(transparentSample, clear),
+    `mixed alpha GLB transparent primitive should produce visible pixels; sample=${JSON.stringify(
+      transparentSample,
+    )}`,
+  ).toBeGreaterThan(20);
+  expect(
+    pixelDistance(opaqueSample, transparentSample),
+    "mixed alpha GLB primitives should keep distinct material colors",
+  ).toBeGreaterThan(24);
+
   await page.locator("#glb-asset-select").selectOption("hierarchy");
   await page.waitForFunction(
     () => {
@@ -746,6 +999,199 @@ test("Playwright renders the fetched sample GLB viewer asset", async ({
   webGpuValidation.expectNoWarnings();
 });
 
+test("Playwright renders the lit brass sample with a shadow-receiver floor", async ({
+  page,
+}) => {
+  const webGpuValidation = attachWebGpuValidationConsoleGuard(page);
+
+  const baselineStatus = await loadBrassViewerSample(
+    page,
+    "/examples/glb-viewer.html?disable-shadow-receiver=1&disable-ibl-sampling=1",
+    false,
+    false,
+  );
+  const baselineScreenshot = await page
+    .locator("#aperture-canvas")
+    .screenshot();
+  const status = await loadBrassViewerSample(
+    page,
+    "/examples/glb-viewer.html?disable-ibl-sampling=1",
+    true,
+    false,
+  );
+  const shadowedScreenshot = await page
+    .locator("#aperture-canvas")
+    .screenshot();
+  const clear =
+    status.clearColor === undefined
+      ? { r: 4, g: 6, b: 9, a: 255 }
+      : rgbaColorToPixel(status.clearColor);
+  const floorRegion = glbViewerFloorShadowRegion();
+  const baselineFloor = averageRegionLuminance(
+    baselineScreenshot,
+    clear,
+    floorRegion,
+  );
+  const shadowedFloor = averageRegionLuminance(
+    shadowedScreenshot,
+    clear,
+    floorRegion,
+  );
+
+  expectStatusJsonSafeForGpu(status);
+  expect(status).toMatchObject({
+    selectedAsset: {
+      id: "brass",
+      materialFamilies: [{ family: "standard", count: 1 }],
+    },
+    extraction: {
+      views: 1,
+      meshDraws: 2,
+      lights: 3,
+      environments: 0,
+      shadowRequests: 1,
+      diagnostics: 0,
+    },
+    ibl: {
+      enabled: false,
+      specularProof: false,
+      rendering: {
+        supported: false,
+        diffusePipelineKey: null,
+        specularPipelineKey: null,
+      },
+    },
+    shadow: {
+      enabled: true,
+      controls: {
+        receiverEnabled: true,
+        casterEnabled: true,
+      },
+      authoring: {
+        drawCount: 2,
+        casterCount: 1,
+        receiverCount: 1,
+        disabledCasterCount: 1,
+        disabledReceiverCount: 1,
+      },
+      casterDrawList: {
+        includedDrawCount: 1,
+        skippedDrawCount: 1,
+      },
+      commandBufferSubmission: {
+        status: "submitted",
+      },
+      rendering: {
+        supported: true,
+        mode: "directional-depth-compare",
+        pipelineKey: "standard|shadowMap|opaque|back|less|none",
+      },
+    },
+    draw: {
+      packages: 2,
+      drawCalls: 2,
+    },
+  });
+  expect(baselineStatus.shadow?.rendering.supported).toBe(false);
+  expect(
+    shadowedFloor.visibleSamples,
+    `shadowed floor region should contain visible receiver samples; sample=${JSON.stringify(
+      shadowedFloor,
+    )}`,
+  ).toBeGreaterThan(6);
+  expect(
+    baselineFloor.average - shadowedFloor.average,
+    `shadow receiver floor should darken when the brass cube casts a shadow; baseline=${JSON.stringify(
+      baselineFloor,
+    )} shadowed=${JSON.stringify(shadowedFloor)}`,
+  ).toBeGreaterThan(8);
+  expect(
+    maxRegionLuminanceDelta(
+      baselineScreenshot,
+      shadowedScreenshot,
+      floorRegion,
+    ),
+    "enabling the receiver route should visibly change the floor region",
+  ).toBeGreaterThan(12);
+  webGpuValidation.expectNoWarnings();
+});
+
+test("Playwright routes the lit brass sample through IBL", async ({ page }) => {
+  const webGpuValidation = attachWebGpuValidationConsoleGuard(page);
+
+  const directStatus = await loadBrassViewerSample(
+    page,
+    "/examples/glb-viewer.html?disable-ibl-sampling=1",
+    true,
+    false,
+  );
+  const directScreenshot = await page.locator("#aperture-canvas").screenshot();
+  const iblStatus = await loadBrassViewerSample(
+    page,
+    "/examples/glb-viewer.html",
+    true,
+    true,
+  );
+  const iblScreenshot = await page.locator("#aperture-canvas").screenshot();
+
+  expectStatusJsonSafeForGpu(iblStatus);
+  expect(directStatus.ibl).toMatchObject({
+    enabled: false,
+    rendering: {
+      supported: false,
+    },
+  });
+  expect(iblStatus).toMatchObject({
+    selectedAsset: {
+      id: "brass",
+      materialFamilies: [{ family: "standard", count: 1 }],
+    },
+    extraction: {
+      meshDraws: 2,
+      lights: 3,
+      environments: 1,
+      shadowRequests: 1,
+      diagnostics: 0,
+    },
+    ibl: {
+      enabled: true,
+      specularProof: true,
+      environmentMapKey: "environment-map:glb-viewer-studio",
+      resources: {
+        diffuseTexture: "texture:glb-viewer-studio:diffuse:texture",
+        specularTexture: "texture:glb-viewer-studio:specular-proof:texture",
+        sampler: "texture:glb-viewer-studio:diffuse:sampler",
+      },
+      rendering: {
+        supported: true,
+        diffusePipelineKey: expect.stringContaining("iblDiffuse"),
+        specularPipelineKey: expect.stringContaining("iblSpecularProof"),
+      },
+    },
+    shadow: {
+      rendering: {
+        supported: true,
+        pipelineKey:
+          "standard|iblDiffuse|iblSpecularProof|shadowMap|opaque|back|less|none",
+      },
+    },
+  });
+  expect(
+    routedPipelineKeys(iblStatus),
+    "IBL-enabled brass route should stay within the StandardMaterial app route",
+  ).toEqual(
+    expect.arrayContaining([
+      "standard|iblDiffuse|iblSpecularProof|opaque|back|less|none",
+      "standard|iblDiffuse|iblSpecularProof|shadowMap|opaque|back|less|none",
+    ]),
+  );
+  expect(
+    maxSampleDelta(directScreenshot, iblScreenshot),
+    "IBL-enabled brass viewer sample should visibly differ from the direct-lit-only route",
+  ).toBeGreaterThan(8);
+  webGpuValidation.expectNoWarnings();
+});
+
 test("Playwright bootstraps a custom GLB URL from the query string", async ({
   page,
 }) => {
@@ -882,6 +1328,84 @@ function expectReadyOrbitFit(
   return orbit as NonNullable<GlbViewerStatus["orbit"]>;
 }
 
+async function loadBrassViewerSample(
+  page: Page,
+  url: string,
+  requireShadow: boolean,
+  requireIbl = true,
+): Promise<GlbViewerStatus> {
+  await page.goto(url);
+  const initialStatus = await waitForExampleStatus<GlbViewerStatus>(page);
+
+  expect(initialStatus, "GLB viewer status should publish").toBeDefined();
+
+  if (initialStatus === undefined) {
+    throw new Error("GLB viewer status did not publish.");
+  }
+
+  skipIfUnsupportedWebGpu(initialStatus);
+  await page.locator("#glb-asset-select").selectOption("brass");
+  await page.waitForFunction(
+    ({ shadowRequired, iblRequired }) => {
+      const status = (
+        globalThis as {
+          readonly __APERTURE_EXAMPLE_STATUS__?: {
+            readonly frame?: number;
+            readonly selectedAsset?: {
+              readonly id?: string;
+              readonly loading?: boolean;
+              readonly materialFamilies?: readonly {
+                readonly family?: string;
+              }[];
+            };
+            readonly source?: { readonly ok?: boolean };
+            readonly extraction?: {
+              readonly meshDraws?: number;
+              readonly shadowRequests?: number;
+            };
+            readonly ibl?: {
+              readonly rendering?: { readonly supported?: boolean };
+            };
+            readonly shadow?: {
+              readonly rendering?: { readonly supported?: boolean };
+            };
+          };
+        }
+      ).__APERTURE_EXAMPLE_STATUS__;
+
+      return (
+        (status?.frame ?? 0) >= 3 &&
+        status?.selectedAsset?.id === "brass" &&
+        status.selectedAsset.loading === false &&
+        status.source?.ok === true &&
+        status.extraction?.meshDraws === 2 &&
+        status.extraction?.shadowRequests === 1 &&
+        status.selectedAsset.materialFamilies?.some(
+          (entry) => entry.family === "standard",
+        ) === true &&
+        (iblRequired
+          ? status.ibl?.rendering?.supported === true
+          : status.ibl?.rendering?.supported === false) &&
+        (shadowRequired
+          ? status.shadow?.rendering?.supported === true
+          : status.shadow?.rendering?.supported === false)
+      );
+    },
+    { shadowRequired: requireShadow, iblRequired: requireIbl },
+    { timeout: 5000 },
+  );
+
+  const status = await waitForExampleStatus<GlbViewerStatus>(page);
+
+  expect(status, "lit brass viewer status should publish").toBeDefined();
+
+  if (status === undefined) {
+    throw new Error("Lit brass viewer status did not publish.");
+  }
+
+  return status;
+}
+
 function routedPipelineKeys(status: GlbViewerStatus | undefined): string[] {
   const routed = (
     status as
@@ -987,6 +1511,105 @@ function visibleSampleColorSpread(
   }
 
   return spread;
+}
+
+function strongestRegionSample(
+  screenshot: Buffer,
+  clear: ReturnType<typeof readPngPixel>,
+  minX: number,
+  minY: number,
+  maxX: number,
+  maxY: number,
+): ReturnType<typeof readPngPixel> {
+  let best = readPngPixel(screenshot, (minX + maxX) / 2, (minY + maxY) / 2);
+  let bestDistance = pixelDistance(best, clear);
+
+  for (let y = 0; y < 6; y += 1) {
+    for (let x = 0; x < 6; x += 1) {
+      const sample = readPngPixel(
+        screenshot,
+        minX + ((maxX - minX) * x) / 5,
+        minY + ((maxY - minY) * y) / 5,
+      );
+      const distance = pixelDistance(sample, clear);
+
+      if (distance > bestDistance) {
+        best = sample;
+        bestDistance = distance;
+      }
+    }
+  }
+
+  return best;
+}
+
+function glbViewerFloorShadowRegion() {
+  return {
+    minX: 0.36,
+    maxX: 0.64,
+    minY: 0.58,
+    maxY: 0.82,
+  };
+}
+
+function averageRegionLuminance(
+  screenshot: Buffer,
+  clear: ReturnType<typeof readPngPixel>,
+  region: ReturnType<typeof glbViewerFloorShadowRegion>,
+) {
+  let total = 0;
+  let visibleSamples = 0;
+
+  for (let y = 0; y < 6; y += 1) {
+    for (let x = 0; x < 6; x += 1) {
+      const sample = readPngPixel(
+        screenshot,
+        region.minX + ((region.maxX - region.minX) * x) / 5,
+        region.minY + ((region.maxY - region.minY) * y) / 5,
+      );
+
+      if (pixelDistance(sample, clear) <= 18) {
+        continue;
+      }
+
+      visibleSamples += 1;
+      total += luminance(sample);
+    }
+  }
+
+  return {
+    average: visibleSamples === 0 ? 0 : total / visibleSamples,
+    visibleSamples,
+  };
+}
+
+function maxRegionLuminanceDelta(
+  before: Buffer,
+  after: Buffer,
+  region: ReturnType<typeof glbViewerFloorShadowRegion>,
+): number {
+  let maxDelta = 0;
+
+  for (let y = 0; y < 6; y += 1) {
+    for (let x = 0; x < 6; x += 1) {
+      const xRatio = region.minX + ((region.maxX - region.minX) * x) / 5;
+      const yRatio = region.minY + ((region.maxY - region.minY) * y) / 5;
+
+      maxDelta = Math.max(
+        maxDelta,
+        Math.abs(
+          luminance(readPngPixel(before, xRatio, yRatio)) -
+            luminance(readPngPixel(after, xRatio, yRatio)),
+        ),
+      );
+    }
+  }
+
+  return maxDelta;
+}
+
+function luminance(sample: ReturnType<typeof readPngPixel>): number {
+  return sample.r * 0.2126 + sample.g * 0.7152 + sample.b * 0.0722;
 }
 
 function maxSampleDelta(before: Buffer, after: Buffer): number {

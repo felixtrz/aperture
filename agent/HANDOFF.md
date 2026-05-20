@@ -1,6 +1,79 @@
 # Agent Handoff
 
-Updated: 2026-05-19T23:30:22Z
+Updated: 2026-05-20T00:36:06Z
+
+## Current Run Update — 2026-05-20T00:36:06Z — GLB viewer brass shadow, IBL, and mixed alpha
+
+Completed `task-2026`, `task-2027`, and `task-2028`.
+
+### What changed
+
+- `examples/glb-viewer.js` now creates a brass-only ECS shadow scene when the
+  lit brass GLB sample is selected.
+- Replayed brass mesh entities are authored as shadow casters and non-receivers;
+  a simple StandardMaterial receiver floor is authored through ECS helpers.
+- Added an ECS-authored directional shadow light and reused the renderer-owned
+  directional shadow pass/resource path so the floor routes through
+  `standard|shadowMap|opaque|back|less|none`.
+- GLB viewer status now reports JSON-safe shadow request, caster draw-list,
+  command submission, authoring counts, and rendering support.
+- Extended GLB viewer Playwright coverage with a receiver-disabled baseline and
+  active receiver proof showing the floor darkens without WebGPU validation
+  warnings.
+- Added a brass-sample ECS-authored environment map path plus renderer-owned
+  diffuse cube and minimal specular-proof IBL resources.
+- Routed the lit brass model and receiver floor through
+  `standard|iblDiffuse|iblSpecularProof|...` pipeline keys while preserving the
+  directional shadow receiver route.
+- GLB viewer status now reports JSON-safe IBL environment/resource keys and
+  routed pipeline keys; Playwright compares direct-lit-only and IBL-enabled
+  brass pixels.
+- Added `examples/assets/mixed-alpha.glb`, a two-primitive StandardMaterial GLB
+  sample with one opaque primitive and one alpha-blended transparent primitive.
+- `glb-viewer` now reports JSON-safe per-primitive material resolution,
+  `alphaMode`, blend preset, depth-write state, cull mode, and pipeline key.
+- Extended GLB viewer Playwright coverage to assert the mixed sample routes
+  through `standard|opaque|back|less|none` and
+  `standard|blend|back|less|alpha`, with distinct visible primitive regions.
+- Updated `docs/index.html`, `docs/render-pipeline-comparison.html`,
+  `agent/BACKLOG.md`, and `agent/COMPLETED.md`.
+
+### References inspected
+
+- `references/bevy/examples/3d/shadow_caster_receiver.rs`
+- `references/engine/src/scene/renderer/shadow-renderer.js`
+- `references/three.js/src/extras/PMREMGenerator.js`
+- `references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/reflectionEnv.js`
+- `references/bevy/crates/bevy_gltf/src/loader/mod.rs`
+- `references/bevy/crates/bevy_gltf/src/loader/gltf_ext/material.rs`
+- `references/three.js/examples/jsm/loaders/GLTFLoader.js`
+
+### Validation
+
+- `node --check examples/glb-viewer.js`
+- `pnpm run typecheck:test`
+- `pnpm run check:examples`
+- `pnpm run check:progress`
+- `pnpm run lint`
+- `pnpm run format:check`
+- `pnpm run build`
+- GLB JSON parse check for `examples/assets/mixed-alpha.glb`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts -g "shadow-receiver floor"`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts`
+
+### Known issues
+
+- No known regressions from this slice.
+- The viewer shadow path intentionally reuses the existing directional
+  StandardMaterial receiver contract.
+- Full PMREM/GGX specular prefiltering remains deferred; the viewer uses the
+  existing specular-proof minimal mip-chain path.
+- Transparent viewer GLB coverage intentionally uses StandardMaterial because
+  the current app route rejects transparent UnlitMaterial draws.
+
+### Recommended next task
+
+`task-2029 — Add a camera reset control to glb-viewer`.
 
 ## Current Run Update — 2026-05-19T23:30:22Z — IBL/shadow proof and GLB viewer fidelity samples
 

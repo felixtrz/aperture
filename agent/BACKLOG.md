@@ -59,7 +59,7 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start with `task-2026`: add a shadow-receiver floor for the lit GLB viewer sample.
+Start with `task-2029`: add a camera reset control to glb-viewer.
 
 `task-2001` is complete: the spinning-cube example now creates a renderer-owned face-colored diffuse IBL cube texture and sampler, routes it through the StandardMaterial diffuse IBL shader variant, and Playwright verifies direction-dependent face pixels.
 `task-2002` is complete: `withEnvironmentMap(handle)` is exported from runtime/core and materials-showcase now uses it with visible diffuse IBL routing.
@@ -84,6 +84,9 @@ Start with `task-2026`: add a shadow-receiver floor for the lit GLB viewer sampl
 `task-2023` is complete: `glb-viewer` now includes an animated local GLB, applies the first translation clip to replayed ECS node transforms, reports active clip status, and Playwright proves transform status plus pixels move over time.
 `task-2024` is complete: `glb-viewer` now includes a dual-primitive GLB with two source materials, reports two resolved primitive materials and two extracted draws, and Playwright verifies two distinct visible material regions.
 `task-2025` is complete: `glb-viewer` now includes a parent/child hierarchy GLB, reports JSON-safe local and world transform summaries for replayed nodes, and Playwright verifies the child world transform depends on its parent.
+`task-2026` is complete: the lit brass GLB viewer sample now adds ECS-authored shadow caster/receiver state, a simple StandardMaterial receiver floor, and a directional shadow pass; Playwright verifies the model and a shadow-darkened floor in one frame.
+`task-2027` is complete: the lit brass GLB viewer sample now authors an environment map and routes StandardMaterial model/floor draws through diffuse plus specular-proof IBL; Playwright compares direct-lit-only and IBL-enabled pixels.
+`task-2028` is complete: `glb-viewer` now includes a mixed alpha-state StandardMaterial GLB sample with one opaque primitive and one transparent primitive, JSON-safe per-primitive render-state/pipeline status, and Playwright proof for both visible regions.
 
 Reference anchors (read both before writing WGSL):
 
@@ -479,6 +482,8 @@ Acceptance criteria:
 
 ### task-2026 — Add a shadow-receiver floor for the lit GLB viewer sample
 
+Status: completed 2026-05-19. See `agent/COMPLETED.md`.
+
 Category: `runtime-orchestration`
 Package/write-scope: `examples/glb-viewer.js`, `test/e2e/glb-viewer.spec.ts`, targeted WebGPU tests if routing changes.
 Reference anchor: `references/bevy/examples/3d/shadow_caster_receiver.rs`; `references/engine/src/scene/renderer/shadow-renderer.js`.
@@ -491,6 +496,8 @@ Acceptance criteria:
 
 ### task-2027 — Route glb-viewer StandardMaterial samples through IBL
 
+Status: completed 2026-05-19. See `agent/COMPLETED.md`.
+
 Category: `webgpu-render`
 Package/write-scope: `examples/glb-viewer.js`, `packages/webgpu/src/` if a route gap is exposed, `test/e2e/glb-viewer.spec.ts`.
 Reference anchor: `references/three.js/src/extras/PMREMGenerator.js`; `references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/reflectionEnv.js`.
@@ -502,6 +509,8 @@ Acceptance criteria:
 - Playwright verifies a visible pixel delta between direct-lit-only and IBL-enabled viewer states.
 
 ### task-2028 — Render a mixed alpha-state GLB sample in glb-viewer
+
+Status: completed 2026-05-19. See `agent/COMPLETED.md`.
 
 Category: `render-bridge`
 Package/write-scope: `examples/assets/`, `examples/glb-viewer.js`, `test/e2e/glb-viewer.spec.ts`, targeted render-state tests if needed.

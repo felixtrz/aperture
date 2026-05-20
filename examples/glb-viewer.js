@@ -6,6 +6,20 @@ const stateElement = document.querySelector("#example-state");
 const jsonElement = document.querySelector("#example-json");
 const exampleParams = new URLSearchParams(globalThis.location.search);
 const clearColor = [0.015, 0.025, 0.035, 1];
+const enableIblSampling = !exampleParams.has("disable-ibl-sampling");
+const enableSpecularIblSampling = !exampleParams.has(
+  "disable-specular-ibl-sampling",
+);
+const shadowControls = {
+  receiverEnabled: !exampleParams.has("disable-shadow-receiver"),
+  casterEnabled: !exampleParams.has("disable-shadow-caster"),
+};
+const shadowIntent = {
+  mapSize: 512,
+  depthBias: 0.0015,
+  normalBias: 0.01,
+};
+let shadowDepthTextureResourceReport = null;
 const sampleAssets = [
   {
     id: "cube",
@@ -41,6 +55,12 @@ const sampleAssets = [
     id: "dual",
     label: "Dual primitive",
     url: new URL("./assets/dual-primitive.glb", globalThis.location.href),
+    source: "sample",
+  },
+  {
+    id: "mixed-alpha",
+    label: "Mixed alpha",
+    url: new URL("./assets/mixed-alpha.glb", globalThis.location.href),
     source: "sample",
   },
   {
@@ -293,6 +313,10 @@ async function loadAsset(aperture, app, scene, asset) {
   updateActiveAnimation(aperture, animation, 0);
   aperture.resolveWorldTransforms(app.world);
   const fit = fitOrbitToReplayBounds(aperture, app, replay, scene.orbit);
+  const shadowScene =
+    asset.id === "brass"
+      ? createBrassShadowScene(aperture, app, replay, fit)
+      : null;
 
   scene.active = {
     asset,
@@ -304,6 +328,7 @@ async function loadAsset(aperture, app, scene, asset) {
     replay,
     animation,
     fit,
+    shadowScene,
   };
   scene.loadState = null;
 }
@@ -317,11 +342,424 @@ function destroyActiveScene(scene) {
     entity.destroy();
   }
 
+  for (const entity of scene.active.shadowScene?.entities ?? []) {
+    entity.destroy();
+  }
+
   scene.active = null;
+}
+
+function createBrassShadowScene(aperture, app, replay, fit) {
+  const assets = aperture.createRenderAssetCollections({
+    registry: app.assets,
+  });
+  const environmentMap =
+    aperture.createEnvironmentMapHandle("glb-viewer-studio");
+  const floorWidth = Math.max(2.4, fit.size[0] * 2.6);
+  const floorDepth = Math.max(1.8, fit.size[2] * 2.4);
+  const floorHeight = 0.12;
+  const floorMesh = assets.meshes.add(
+    aperture.createBoxMeshAsset({
+      label: "GlbViewerShadowReceiverFloor",
+      width: floorWidth,
+      height: floorHeight,
+      depth: floorDepth,
+    }),
+    { id: "glb-viewer-shadow-floor" },
+  );
+  const floorMaterial = assets.materials.standard.add(
+    aperture.createStandardMaterialAsset({
+      label: "GlbViewerShadowReceiverFloorStandard",
+      baseColorFactor: new Float32Array([0.82, 0.86, 0.78, 1]),
+      metallicFactor: 0,
+      roughnessFactor: 0.82,
+      emissiveFactor: [0, 0, 0],
+    }),
+    { id: "glb-viewer-shadow-floor-standard" },
+  );
+  const context = { app, world: app.world, assets: app.assets };
+  const replayMeshEntities = [];
+  const iblResources = enableIblSampling
+    ? createGlbViewerIblResources(aperture, app)
+    : null;
+
+  if (enableIblSampling) {
+    app.assets.register(environmentMap, { label: "GLB viewer studio IBL" });
+    app.assets.markReady(environmentMap, {
+      label: "GLB viewer studio IBL",
+      diffuseResourceKey: "glb-viewer-studio/diffuse",
+      specularResourceKey: "glb-viewer-studio/specular-proof",
+    });
+  }
+
+  for (const entity of replay.entitiesByKey.values()) {
+    if (
+      !entity.hasComponent(aperture.Mesh) ||
+      !entity.hasComponent(aperture.Material)
+    ) {
+      continue;
+    }
+
+    replayMeshEntities.push(entity);
+
+    if (entity.hasComponent(aperture.ShadowCaster)) {
+      entity.setValue(
+        aperture.ShadowCaster,
+        "enabled",
+        shadowControls.casterEnabled,
+      );
+    } else {
+      aperture.withShadowCaster(shadowControls.casterEnabled)(entity, context);
+    }
+
+    if (entity.hasComponent(aperture.ShadowReceiver)) {
+      entity.setValue(aperture.ShadowReceiver, "enabled", false);
+    } else {
+      aperture.withShadowReceiver(false)(entity, context);
+    }
+  }
+
+  const floorEntity = app.spawn(
+    aperture.withTransform({
+      translation: [
+        fit.center[0],
+        fit.center[1] - Math.max(0.62, fit.size[1] * 0.62),
+        fit.center[2] - 0.12,
+      ],
+    }),
+    aperture.withMesh(floorMesh),
+    aperture.withMaterial(floorMaterial),
+    aperture.withRenderLayer(1),
+    aperture.withVisibility(true),
+    aperture.withShadowCaster(false),
+    aperture.withShadowReceiver(shadowControls.receiverEnabled),
+  );
+  const lightEntity = app.spawn(
+    aperture.withTransform({
+      rotation: [-0.330366, -0.24321, -0.088521, 0.907673],
+    }),
+    aperture.withLight({
+      kind: aperture.LightKind.Directional,
+      color: [1, 0.94, 0.82, 1],
+      intensity: 1.8,
+      layerMask: 1,
+    }),
+    aperture.withLightShadowSettings({
+      enabled: true,
+      mapSize: shadowIntent.mapSize,
+      bias: shadowIntent.depthBias,
+      normalBias: shadowIntent.normalBias,
+      casterLayerMask: 1,
+      receiverLayerMask: 1,
+    }),
+  );
+  const environmentEntity = enableIblSampling
+    ? app.spawn(
+        aperture.withEnvironmentMap(environmentMap, {
+          color: [1, 1, 1, 1],
+          intensity: 0.52,
+          layerMask: 1,
+        }),
+      )
+    : null;
+
+  return {
+    controls: shadowControls,
+    iblEnabled: enableIblSampling,
+    specularIblEnabled: enableIblSampling && enableSpecularIblSampling,
+    environmentMapKey: aperture.assetHandleKey(environmentMap),
+    iblResources,
+    floorMeshKey: aperture.assetHandleKey(floorMesh),
+    floorMaterialKey: aperture.assetHandleKey(floorMaterial),
+    casterCount: replayMeshEntities.length,
+    entities:
+      environmentEntity === null
+        ? [floorEntity, lightEntity]
+        : [floorEntity, lightEntity, environmentEntity],
+  };
+}
+
+function createGlbViewerIblResources(aperture, app) {
+  const cache = aperture.getOrCreateWebGpuAppEnvironmentResourceCache(app);
+  const device = app.initialization.device;
+  const diffuseResourceKey = "texture:glb-viewer-studio:diffuse:texture";
+  const specularResourceKey =
+    "texture:glb-viewer-studio:specular-proof:texture";
+  const samplerResourceKey = "texture:glb-viewer-studio:diffuse:sampler";
+  let diffuseTexture = cache.diffuseTextures.get(diffuseResourceKey);
+  let specularTexture = cache.specularTextures.get(specularResourceKey);
+  let iblSampler = cache.samplers.get(samplerResourceKey);
+
+  if (diffuseTexture === undefined) {
+    diffuseTexture = createFaceColoredDiffuseCubeTexture(
+      device,
+      diffuseResourceKey,
+    );
+    cache.diffuseTextures.set(diffuseResourceKey, diffuseTexture);
+  }
+
+  if (enableSpecularIblSampling && specularTexture === undefined) {
+    specularTexture = createFaceColoredSpecularCubeTexture(
+      device,
+      specularResourceKey,
+    );
+    cache.specularTextures.set(specularResourceKey, specularTexture);
+  }
+
+  if (iblSampler === undefined) {
+    iblSampler = createDiffuseIblSampler(device, samplerResourceKey);
+    cache.samplers.set(samplerResourceKey, iblSampler);
+  }
+
+  return {
+    bindGroupResource: {
+      ready: true,
+      status: "available",
+      standardMaterialCount: 1,
+      group: 4,
+      createdBindGroupCount: 0,
+      reusedBindGroupCount: 1,
+      sections: {
+        descriptorPlan: true,
+        layoutResource: true,
+        textureResources: true,
+        samplerResource: true,
+        bindGroupResource: true,
+        shaderSampling: true,
+      },
+      resource: {
+        group: 4,
+        resourceKey: "bind-group:standard/ibl/group-4/glb-viewer-studio",
+        layoutKey: "standard/ibl/group-4",
+        bindGroup: { label: "standard/ibl/group-4/glb-viewer-studio" },
+        entryResourceKeys:
+          specularTexture === undefined
+            ? [diffuseResourceKey, samplerResourceKey]
+            : [diffuseResourceKey, specularResourceKey, samplerResourceKey],
+      },
+      diagnostics: [],
+    },
+    diffuseTextureResource: {
+      ready: true,
+      status: "available",
+      textureSlotCount: 1,
+      diffuseSlotCount: 1,
+      createdTextureCount: 1,
+      reusedTextureCount: 0,
+      sections: {
+        texturePreparation: true,
+        diffuseTextureResource: true,
+        gpuAllocation: true,
+        specularPrefiltering: false,
+        shaderSampling: true,
+      },
+      resources: [{ valid: true, resource: diffuseTexture, diagnostics: [] }],
+      diagnostics: [],
+    },
+    ...(specularTexture === undefined
+      ? {}
+      : {
+          specularTextureResource: {
+            ready: true,
+            status: "available",
+            textureSlotCount: 1,
+            specularSlotCount: 1,
+            createdTextureCount: 1,
+            reusedTextureCount: 0,
+            sections: {
+              texturePreparation: true,
+              specularTextureResource: true,
+              gpuAllocation: true,
+              proofUpload: true,
+              prefiltering: false,
+              bindGroupResource: false,
+              shaderSampling: true,
+            },
+            resources: [
+              { valid: true, resource: specularTexture, diagnostics: [] },
+            ],
+            diagnostics: [
+              {
+                code: "iblTextureResource.specularPrefilteringDeferred",
+                severity: "warning",
+                message:
+                  "Specular IBL texture resource uses a deterministic minimal mip chain; full PMREM/GGX prefiltering remains deferred.",
+              },
+            ],
+          },
+        }),
+    samplerResource: {
+      ready: true,
+      status: "available",
+      samplerDescriptorCount: 1,
+      createdSamplerCount: 1,
+      reusedSamplerCount: 0,
+      sections: {
+        samplerDescriptors: true,
+        gpuAllocation: true,
+        bindGroupLayout: true,
+        shaderSampling: true,
+      },
+      resources: [{ valid: true, resource: iblSampler, diagnostics: [] }],
+      diagnostics: [],
+    },
+  };
+}
+
+function createFaceColoredDiffuseCubeTexture(device, resourceKey) {
+  const texture = device.createTexture({
+    label: "glb-viewer-studio:diffuse-ibl",
+    size: [1, 1, 6],
+    format: "rgba8unorm",
+    usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST,
+    mipLevelCount: 1,
+  });
+  const faceColors = [
+    [238, 122, 56, 255],
+    [48, 138, 230, 255],
+    [235, 226, 126, 255],
+    [38, 82, 74, 255],
+    [198, 88, 218, 255],
+    [72, 80, 126, 255],
+  ];
+
+  faceColors.forEach((color, face) => {
+    const data = new Uint8Array(256);
+    data.set(color, 0);
+    device.queue.writeTexture(
+      { texture, origin: [0, 0, face] },
+      data,
+      { bytesPerRow: 256, rowsPerImage: 1 },
+      [1, 1, 1],
+    );
+  });
+
+  return {
+    resourceKey,
+    texture,
+    view: texture.createView({
+      label: "glb-viewer-studio:diffuse-ibl-view",
+      dimension: "cube",
+    }),
+    descriptor: {
+      label: "glb-viewer-studio:diffuse-ibl",
+      size: [1, 1, 6],
+      format: "rgba8unorm",
+      usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST,
+      mipLevelCount: 1,
+    },
+    viewDescriptor: { dimension: "cube" },
+  };
+}
+
+function createFaceColoredSpecularCubeTexture(device, resourceKey) {
+  const baseSize = 8;
+  const mipLevelCount = 4;
+  const texture = device.createTexture({
+    label: "glb-viewer-studio:specular-ibl-minimal-mip-chain",
+    size: [baseSize, baseSize, 6],
+    format: "rgba8unorm",
+    usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST,
+    mipLevelCount,
+  });
+  const mipFaceColors = [
+    [
+      [255, 246, 214, 255],
+      [82, 116, 168, 255],
+      [245, 238, 184, 255],
+      [28, 44, 56, 255],
+      [248, 214, 255, 255],
+      [44, 50, 76, 255],
+    ],
+    [
+      [218, 202, 178, 255],
+      [94, 118, 150, 255],
+      [220, 212, 172, 255],
+      [50, 66, 74, 255],
+      [214, 184, 220, 255],
+      [64, 70, 92, 255],
+    ],
+    [
+      [118, 114, 106, 255],
+      [84, 92, 106, 255],
+      [118, 116, 106, 255],
+      [62, 70, 76, 255],
+      [114, 104, 120, 255],
+      [68, 72, 84, 255],
+    ],
+    [
+      [42, 46, 52, 255],
+      [42, 46, 52, 255],
+      [42, 46, 52, 255],
+      [42, 46, 52, 255],
+      [42, 46, 52, 255],
+      [42, 46, 52, 255],
+    ],
+  ];
+
+  mipFaceColors.forEach((faceColors, mipLevel) => {
+    const mipSize = Math.max(1, baseSize >> mipLevel);
+
+    faceColors.forEach((color, face) => {
+      const data = new Uint8Array(256 * mipSize);
+
+      for (let row = 0; row < mipSize; row += 1) {
+        for (let column = 0; column < mipSize; column += 1) {
+          data.set(color, row * 256 + column * 4);
+        }
+      }
+
+      device.queue.writeTexture(
+        { texture, mipLevel, origin: [0, 0, face] },
+        data,
+        { bytesPerRow: 256, rowsPerImage: mipSize },
+        [mipSize, mipSize, 1],
+      );
+    });
+  });
+
+  return {
+    resourceKey,
+    texture,
+    view: texture.createView({
+      label: "glb-viewer-studio:specular-ibl-minimal-mip-chain-view",
+      dimension: "cube",
+    }),
+    descriptor: {
+      label: "glb-viewer-studio:specular-ibl-minimal-mip-chain",
+      size: [baseSize, baseSize, 6],
+      format: "rgba8unorm",
+      usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST,
+      mipLevelCount,
+    },
+    viewDescriptor: { dimension: "cube" },
+  };
+}
+
+function createDiffuseIblSampler(device, resourceKey) {
+  const descriptor = {
+    label: "glb-viewer-studio:diffuse-ibl-sampler",
+    addressModeU: "clamp-to-edge",
+    addressModeV: "clamp-to-edge",
+    addressModeW: "clamp-to-edge",
+    magFilter: "linear",
+    minFilter: "linear",
+    mipmapFilter: "linear",
+    lodMinClamp: 0,
+    lodMaxClamp: 3,
+    maxAnisotropy: 1,
+  };
+
+  return {
+    resourceKey,
+    sampler: device.createSampler(descriptor),
+    descriptor,
+  };
 }
 
 function startRendering(aperture, app, scene) {
   let frame = 0;
+  let standardMaterialShadowReceiverResources = null;
 
   const render = async () => {
     try {
@@ -337,9 +775,30 @@ function startRendering(aperture, app, scene) {
         frame,
         clearColor,
         label: "glb-viewer-app",
+        ...(scene.active?.shadowScene?.controls.receiverEnabled !== true ||
+        standardMaterialShadowReceiverResources === null
+          ? {}
+          : { standardMaterialShadowReceiverResources }),
+        ...(scene.active?.shadowScene?.iblResources === null ||
+        scene.active?.shadowScene?.iblResources === undefined
+          ? {}
+          : {
+              standardMaterialIblResources:
+                scene.active.shadowScene.iblResources,
+            }),
       });
 
-      publishStatus(createStatus(aperture, app, scene, step, report, frame));
+      const nextFrameResources = await createStatus(
+        aperture,
+        app,
+        scene,
+        step,
+        report,
+        frame,
+      );
+
+      standardMaterialShadowReceiverResources =
+        nextFrameResources.standardMaterialShadowReceiverResources;
       requestAnimationFrame(render);
     } catch (error) {
       publishStatus(
@@ -354,11 +813,18 @@ function startRendering(aperture, app, scene) {
   requestAnimationFrame(render);
 }
 
-function createStatus(aperture, app, scene, step, report, frame) {
+async function createStatus(aperture, app, scene, step, report, frame) {
   const reportJson = aperture.webGpuAppRenderReportToJsonValue(report);
   const active = scene.active;
+  const shadowFrame = await createViewerShadowFrame({
+    aperture,
+    app,
+    report,
+    reportJson,
+    active,
+  });
 
-  return {
+  publishStatus({
     example: "glb-viewer",
     ok: report.ok,
     phase: "render",
@@ -396,6 +862,11 @@ function createStatus(aperture, app, scene, step, report, frame) {
         resolved: active?.primitiveMaterials.resolved.length ?? 0,
         diagnostics: active?.primitiveMaterials.diagnostics.length ?? 0,
         families: createMaterialFamilyStatus(aperture, app, active),
+        resolutions: createPrimitiveMaterialResolutionStatus(
+          aperture,
+          app,
+          active,
+        ),
       },
       commandPlan: {
         valid: active?.commandPlan.valid ?? false,
@@ -421,8 +892,13 @@ function createStatus(aperture, app, scene, step, report, frame) {
       views: report.snapshot.views.length,
       meshDraws: report.snapshot.meshDraws.length,
       lights: report.snapshot.lights.length,
+      environments: report.snapshot.environments.length,
+      shadowRequests: report.snapshot.shadowRequests.length,
       diagnostics: report.snapshot.diagnostics.length,
     },
+    ibl: createIblStatus(active, reportJson),
+    shadow: createShadowStatus(active, report.snapshot.meshDraws, shadowFrame),
+    renderState: createRenderStateStatus(report.snapshot.meshDraws),
     draw: {
       packages: report.counts.drawPackages,
       drawCalls: reportJson.counts.drawCalls,
@@ -436,7 +912,526 @@ function createStatus(aperture, app, scene, step, report, frame) {
       width: canvas?.width ?? 0,
       height: canvas?.height ?? 0,
     },
+  });
+
+  return {
+    standardMaterialShadowReceiverResources:
+      active?.shadowScene?.controls.receiverEnabled === true &&
+      shadowFrame !== null &&
+      shadowFrame.receiverResources !== null
+        ? shadowFrame.receiverResources
+        : null,
   };
+}
+
+async function createViewerShadowFrame({
+  aperture,
+  app,
+  report,
+  reportJson,
+  active,
+}) {
+  const shadowScene = active?.shadowScene ?? null;
+
+  if (shadowScene === null) {
+    return null;
+  }
+
+  const shadowRequests = report.snapshot.shadowRequests.filter(
+    (request) => request.lightKind === "directional",
+  );
+  const shadowDescriptor = aperture.shadowMapDescriptorReportToJsonValue(
+    aperture.createShadowMapDescriptorReport({
+      shadowRequests,
+      descriptors: shadowRequests.map((request) => ({
+        shadowId: request.shadowId,
+        lightId: request.lightId,
+        mapSize: shadowIntent.mapSize,
+        depthBias: shadowIntent.depthBias,
+        normalBias: shadowIntent.normalBias,
+      })),
+    }),
+  );
+  const shadowTextures = aperture.shadowTextureResourceReportToJsonValue(
+    aperture.createShadowTextureResourceReport({
+      descriptors: shadowDescriptor,
+    }),
+  );
+
+  shadowDepthTextureResourceReport ??=
+    aperture.createShadowDepthTextureResourceReport({
+      device: app.initialization.device,
+      textures: shadowTextures,
+    });
+
+  const shadowDepthTextureResources =
+    aperture.shadowDepthTextureResourceReportToJsonValue(
+      shadowDepthTextureResourceReport,
+    );
+  const appEnvironmentResourceCache =
+    aperture.getOrCreateWebGpuAppEnvironmentResourceCache(app);
+  const shadowSamplerResourceReport =
+    aperture.createShadowSamplerResourceReport({
+      device: app.initialization.device,
+      resourceKey: "shadow-sampler:glb-viewer-directional",
+      cache: appEnvironmentResourceCache.shadowSamplers,
+    });
+  const shadowSamplerResource = aperture.shadowSamplerResourceReportToJsonValue(
+    shadowSamplerResourceReport,
+  );
+  const shadowPassPlan = aperture.shadowPassPlanReportToJsonValue(
+    aperture.createShadowPassPlanReport({
+      shadowRequests,
+      textures: shadowTextures,
+      submission: "ready",
+    }),
+  );
+  const shadowPassAttachments =
+    aperture.shadowPassAttachmentDescriptorReportToJsonValue(
+      aperture.createShadowPassAttachmentDescriptorReport({
+        shadowPassPlan,
+        depthTextureResources: shadowDepthTextureResourceReport,
+      }),
+    );
+  const shadowViewProjection =
+    aperture.directionalShadowViewProjectionPlanReportToJsonValue(
+      aperture.createDirectionalShadowViewProjectionPlanReport({
+        shadowRequests,
+        lights: report.snapshot.lights,
+        shadowPassPlan,
+        computation: "ready",
+      }),
+    );
+  const shadowMatrixComputation =
+    aperture.directionalShadowMatrixComputationReportToJsonValue(
+      aperture.createDirectionalShadowMatrixComputationReport({
+        viewProjection: shadowViewProjection,
+        transforms: report.snapshot.transforms,
+      }),
+    );
+  const shadowMatrixBuffer =
+    aperture.shadowMatrixBufferDescriptorReportToJsonValue(
+      aperture.createShadowMatrixBufferDescriptorReport({
+        viewProjection: shadowViewProjection,
+        upload: "ready",
+        resourceKey: "shadow-matrix-buffer:glb-viewer-directional",
+        label: "GlbViewerDirectionalShadowMatrices/storage",
+      }),
+    );
+  const shadowMatrixBufferResourceReport =
+    aperture.createShadowMatrixBufferResourceReport({
+      device: app.initialization.device,
+      descriptor: shadowMatrixBuffer,
+      matrices: shadowMatrixComputation,
+    });
+  const shadowMatrixBufferResource =
+    aperture.shadowMatrixBufferResourceReportToJsonValue(
+      shadowMatrixBufferResourceReport,
+    );
+  const shadowCasterDrawList =
+    aperture.shadowCasterDrawListPlanReportToJsonValue(
+      aperture.createShadowCasterDrawListPlanReport({
+        shadowRequests,
+        meshDraws: report.snapshot.meshDraws,
+        shadowPassPlan,
+        commandEncoding: "ready",
+      }),
+    );
+  const shadowCommandPlan =
+    aperture.shadowCasterCommandPlanReadinessReportToJsonValue(
+      aperture.createShadowCasterCommandPlanReadinessReport({
+        shadowPassPlan,
+        viewProjection: shadowViewProjection,
+        matrixBuffer: shadowMatrixBuffer,
+        casterDrawList: shadowCasterDrawList,
+        commandEncoding: "ready",
+      }),
+    );
+  const shadowPassCommandEncoding =
+    aperture.shadowPassCommandEncodingReportToJsonValue(
+      aperture.createShadowPassCommandEncodingReport({
+        shadowPassPlan,
+        depthTextureResources: shadowDepthTextureResourceReport,
+        matrixBufferResource: shadowMatrixBufferResourceReport,
+        casterDrawList: shadowCasterDrawList,
+        commandPlan: shadowCommandPlan,
+        commandEncoding: "ready",
+      }),
+    );
+  const shadowCasterPipelineDescriptor =
+    aperture.shadowCasterPipelineDescriptorReportToJsonValue(
+      aperture.createShadowCasterPipelineDescriptorReport({
+        commandEncoding: shadowPassCommandEncoding,
+      }),
+    );
+  const shadowCasterPipelineResourceReport =
+    aperture.createShadowCasterPipelineResourceReport({
+      device: app.initialization.device,
+      descriptor: shadowCasterPipelineDescriptor,
+      cache: appEnvironmentResourceCache.shadowCasterPipelines,
+    });
+  const shadowCasterPipelineResource =
+    aperture.shadowCasterPipelineResourceReportToJsonValue(
+      shadowCasterPipelineResourceReport,
+    );
+  const shadowCasterMatrixBindGroupResourceReport =
+    aperture.createShadowCasterMatrixBindGroupResourceReport({
+      device: app.initialization.device,
+      matrixBufferResource: shadowMatrixBufferResourceReport,
+      layout:
+        shadowCasterPipelineResourceReport.resource?.matrixBindGroupLayout,
+      cache: appEnvironmentResourceCache.shadowCasterMatrixBindGroups,
+    });
+  const shadowCasterMatrixBindGroupResource =
+    aperture.shadowCasterMatrixBindGroupResourceReportToJsonValue(
+      shadowCasterMatrixBindGroupResourceReport,
+    );
+  const shadowCasterFrameResources =
+    aperture.shadowCasterFrameResourceReadinessReportToJsonValue(
+      aperture.createShadowCasterFrameResourceReadinessReport({
+        casterDrawList: shadowCasterDrawList,
+        preparedMeshes: createShadowCasterPreparedMeshViews(report),
+        matrixBufferResource: shadowMatrixBufferResourceReport,
+        pipelineDescriptor: shadowCasterPipelineDescriptor,
+      }),
+    );
+  const shadowCasterCommandRecordPlan =
+    aperture.createShadowCasterCommandRecordPlanReport({
+      frameResources: shadowCasterFrameResources,
+      commandPlan: shadowCommandPlan,
+      pipelines:
+        shadowCasterPipelineResourceReport.resource === null
+          ? []
+          : [
+              {
+                pipelineKey:
+                  shadowCasterPipelineResourceReport.resource.pipelineKey,
+                resourceKey:
+                  shadowCasterPipelineResourceReport.resource.resourceKey,
+                pipeline: shadowCasterPipelineResourceReport.resource.pipeline,
+              },
+            ],
+      matrixBindGroups:
+        shadowCasterMatrixBindGroupResourceReport.resource === null
+          ? []
+          : [
+              {
+                matrixResourceKey:
+                  shadowCasterMatrixBindGroupResourceReport.resource
+                    .matrixResourceKey,
+                resourceKey:
+                  shadowCasterMatrixBindGroupResourceReport.resource
+                    .resourceKey,
+                group: shadowCasterMatrixBindGroupResourceReport.resource.group,
+                bindGroup:
+                  shadowCasterMatrixBindGroupResourceReport.resource.bindGroup,
+              },
+            ],
+      meshes: createShadowCasterExecutableMeshViews(report),
+    });
+  const shadowCasterCommandRecords =
+    aperture.shadowCasterCommandRecordPlanReportToJsonValue(
+      shadowCasterCommandRecordPlan,
+    );
+  const shadowPassCommandEncoderResource =
+    aperture.createCommandEncoderResource({
+      device: app.initialization.device,
+      label: "shadow-pass:glb-viewer-directional",
+    });
+  const shadowPassEncoderAssemblyReport =
+    aperture.createShadowPassEncoderAssemblyReport({
+      attachments: shadowPassAttachments,
+      frameResources: shadowCasterFrameResources,
+      commandEncoding: shadowPassCommandEncoding,
+      commands: shadowCasterCommandRecordPlan.commandRecords,
+      encoder: shadowPassCommandEncoderResource.resource?.encoder,
+      resolveDepthView: (attachment) =>
+        resolveShadowDepthView(shadowDepthTextureResourceReport, attachment),
+    });
+  const shadowPassEncoderAssembly =
+    aperture.shadowPassEncoderAssemblyReportToJsonValue(
+      shadowPassEncoderAssemblyReport,
+    );
+  const shadowPassCommandBufferSubmissionReport =
+    aperture.createShadowPassCommandBufferSubmissionReport({
+      assembly: shadowPassEncoderAssemblyReport,
+      encoder: shadowPassCommandEncoderResource.resource?.encoder,
+      queue: app.initialization.device.queue,
+      label: "shadow-pass:glb-viewer-directional",
+      submit: shadowScene.controls.casterEnabled,
+    });
+  const shadowPassCommandBufferSubmission =
+    aperture.shadowPassCommandBufferSubmissionReportToJsonValue(
+      shadowPassCommandBufferSubmissionReport,
+    );
+  const route = findDirectionalShadowRoute(reportJson);
+  const receiverResources =
+    shadowMatrixBufferResourceReport.resource !== null &&
+    shadowDepthTextureResourceReport.resources.some(
+      (resource) => resource.allocation.resource !== null,
+    ) &&
+    shadowSamplerResourceReport.resource !== null
+      ? {
+          shadowKind: "directional",
+          matrixBufferResource: shadowMatrixBufferResourceReport,
+          depthTextureResources: shadowDepthTextureResourceReport,
+          samplerResource: shadowSamplerResourceReport,
+        }
+      : null;
+
+  return {
+    descriptor: shadowDescriptor,
+    textures: shadowTextures,
+    depthTextureResources: shadowDepthTextureResources,
+    samplerResource: shadowSamplerResource,
+    passPlan: shadowPassPlan,
+    passAttachments: shadowPassAttachments,
+    viewProjection: shadowViewProjection,
+    matrixComputation: shadowMatrixComputation,
+    matrixBuffer: shadowMatrixBuffer,
+    matrixBufferResource: shadowMatrixBufferResource,
+    casterDrawList: shadowCasterDrawList,
+    commandPlan: shadowCommandPlan,
+    commandEncoding: shadowPassCommandEncoding,
+    pipelineDescriptor: shadowCasterPipelineDescriptor,
+    pipelineResource: shadowCasterPipelineResource,
+    matrixBindGroupResource: shadowCasterMatrixBindGroupResource,
+    frameResources: shadowCasterFrameResources,
+    commandRecords: shadowCasterCommandRecords,
+    encoderAssembly: shadowPassEncoderAssembly,
+    commandBufferSubmission: shadowPassCommandBufferSubmission,
+    commandBufferSubmissionReport: shadowPassCommandBufferSubmissionReport,
+    route,
+    receiverResources,
+  };
+}
+
+function createIblStatus(active, reportJson) {
+  const shadowScene = active?.shadowScene ?? null;
+  const resources = shadowScene?.iblResources ?? null;
+  const pipelineKeys = routedPipelineKeys(reportJson);
+  const diffuseKey =
+    resources?.diffuseTextureResource.resources[0]?.resource?.resourceKey ??
+    null;
+  const specularKey =
+    resources?.specularTextureResource?.resources[0]?.resource?.resourceKey ??
+    null;
+  const samplerKey =
+    resources?.samplerResource.resources[0]?.resource?.resourceKey ?? null;
+  const diffuseRoute = pipelineKeys.find((key) => key.includes("iblDiffuse"));
+  const specularRoute = pipelineKeys.find((key) =>
+    key.includes("iblSpecularProof"),
+  );
+
+  return {
+    enabled: shadowScene?.iblEnabled === true,
+    specularProof: shadowScene?.specularIblEnabled === true,
+    environmentMapKey: shadowScene?.environmentMapKey ?? null,
+    resources: {
+      diffuseTexture: diffuseKey,
+      specularTexture: specularKey,
+      sampler: samplerKey,
+    },
+    rendering: {
+      supported: shadowScene?.iblEnabled === true && diffuseRoute !== undefined,
+      diffusePipelineKey: diffuseRoute ?? null,
+      specularPipelineKey: specularRoute ?? null,
+      pipelineKeys,
+    },
+  };
+}
+
+function createShadowStatus(active, meshDraws, shadowFrame) {
+  const shadowScene = active?.shadowScene ?? null;
+
+  if (shadowScene === null) {
+    return {
+      enabled: false,
+      controls: {
+        receiverEnabled: shadowControls.receiverEnabled,
+        casterEnabled: shadowControls.casterEnabled,
+      },
+      authoring: createShadowAuthoringStatus(meshDraws),
+      requests: [],
+      rendering: {
+        supported: false,
+        mode: "absent",
+        pipelineKey: null,
+      },
+    };
+  }
+
+  return {
+    enabled: true,
+    controls: {
+      receiverEnabled: shadowScene.controls.receiverEnabled,
+      casterEnabled: shadowScene.controls.casterEnabled,
+    },
+    floor: {
+      meshKey: shadowScene.floorMeshKey,
+      materialKey: shadowScene.floorMaterialKey,
+    },
+    authoring: createShadowAuthoringStatus(meshDraws),
+    requests:
+      shadowFrame?.passPlan.passes.map((pass) => ({
+        shadowId: pass.shadowId,
+        lightId: pass.lightId,
+        casterLayerMask: pass.casterLayerMask,
+        receiverLayerMask: pass.receiverLayerMask,
+      })) ?? [],
+    descriptor: shadowFrame?.descriptor ?? null,
+    depthTextureResources: shadowFrame?.depthTextureResources ?? null,
+    samplerResource: shadowFrame?.samplerResource ?? null,
+    passPlan: shadowFrame?.passPlan ?? null,
+    viewProjection: shadowFrame?.viewProjection ?? null,
+    matrixComputation: shadowFrame?.matrixComputation ?? null,
+    casterDrawList: shadowFrame?.casterDrawList ?? null,
+    commandEncoding: shadowFrame?.commandEncoding ?? null,
+    pipelineResource: shadowFrame?.pipelineResource ?? null,
+    frameResources: shadowFrame?.frameResources ?? null,
+    encoderAssembly: shadowFrame?.encoderAssembly ?? null,
+    commandBufferSubmission: shadowFrame?.commandBufferSubmission ?? null,
+    rendering: {
+      supported:
+        shadowScene.controls.receiverEnabled &&
+        shadowScene.controls.casterEnabled &&
+        shadowFrame?.commandBufferSubmissionReport.status === "submitted" &&
+        shadowFrame.route !== null,
+      mode: "directional-depth-compare",
+      filter: "pcf-3x3",
+      pipelineKey: shadowFrame?.route?.pipelineKey ?? null,
+    },
+  };
+}
+
+function routedPipelineKeys(reportJson) {
+  const pipelines =
+    reportJson.diagnosticsSummary?.routedResourceSet?.byPipeline ?? [];
+
+  return pipelines.flatMap((pipeline) =>
+    typeof pipeline.pipelineKey === "string" ? [pipeline.pipelineKey] : [],
+  );
+}
+
+function createShadowAuthoringStatus(meshDraws) {
+  const casterCount = meshDraws.filter(
+    (draw) => draw.castsShadow !== false,
+  ).length;
+  const receiverCount = meshDraws.filter(
+    (draw) => draw.receivesShadow !== false,
+  ).length;
+
+  return {
+    drawCount: meshDraws.length,
+    casterCount,
+    receiverCount,
+    disabledCasterCount: meshDraws.length - casterCount,
+    disabledReceiverCount: meshDraws.length - receiverCount,
+  };
+}
+
+function createShadowCasterPreparedMeshViews(report) {
+  const meshResources = report.resources?.resources?.meshResources ?? [];
+  const preparedMeshEntries =
+    report.resourceReuse?.preparedMeshFacade?.entries ?? [];
+  const meshResourceByLabel = new Map(
+    meshResources.map((resource) => [resource.resourceKey, resource]),
+  );
+  const meshResourceByKey = new Map();
+
+  for (const entry of preparedMeshEntries) {
+    const resource = meshResourceByLabel.get(`mesh-buffer:${entry.label}`);
+
+    if (resource === undefined) {
+      continue;
+    }
+
+    meshResourceByKey.set(entry.assetKey, {
+      meshKey: entry.assetKey,
+      meshResourceKey: resource.resourceKey,
+      vertexBufferResourceKeys: resource.vertexBuffers.map(
+        (buffer) => buffer.resourceKey,
+      ),
+      indexBufferResourceKey: resource.indexBuffer?.resourceKey ?? null,
+    });
+  }
+
+  return [...meshResourceByKey.values()];
+}
+
+function createShadowCasterExecutableMeshViews(report) {
+  const meshResources = report.resources?.resources?.meshResources ?? [];
+  const preparedMeshEntries =
+    report.resourceReuse?.preparedMeshFacade?.entries ?? [];
+  const meshResourceByLabel = new Map(
+    meshResources.map((resource) => [resource.resourceKey, resource]),
+  );
+  const meshResourceByKey = new Map();
+
+  for (const entry of preparedMeshEntries) {
+    const resource = meshResourceByLabel.get(`mesh-buffer:${entry.label}`);
+
+    if (resource === undefined) {
+      continue;
+    }
+
+    meshResourceByKey.set(entry.assetKey, {
+      meshKey: entry.assetKey,
+      meshResourceKey: resource.resourceKey,
+      vertexBuffers: resource.vertexBuffers.map((buffer) => ({
+        resourceKey: buffer.resourceKey,
+        buffer: buffer.buffer,
+        vertexCount: buffer.vertexCount,
+      })),
+      indexBuffer:
+        resource.indexBuffer === undefined
+          ? null
+          : {
+              resourceKey: resource.indexBuffer.resourceKey,
+              buffer: resource.indexBuffer.buffer,
+              format: resource.indexBuffer.format,
+              indexCount: resource.indexBuffer.indexCount,
+            },
+    });
+  }
+
+  return [...meshResourceByKey.values()];
+}
+
+function resolveShadowDepthView(depthTextureResourceReport, attachment) {
+  for (const resource of depthTextureResourceReport.resources) {
+    if (
+      resource.shadowId !== attachment.shadowId ||
+      resource.lightId !== attachment.lightId
+    ) {
+      continue;
+    }
+
+    const attachmentView = resource.attachmentViews.find(
+      (view) => view.viewKey === attachment.viewKey,
+    );
+
+    if (attachmentView !== undefined) {
+      return attachmentView.view;
+    }
+
+    return resource.allocation.resource?.view ?? null;
+  }
+
+  return null;
+}
+
+function findDirectionalShadowRoute(reportJson) {
+  const pipelines =
+    reportJson.diagnosticsSummary?.routedResourceSet?.byPipeline ?? [];
+
+  return (
+    pipelines.find(
+      (pipeline) =>
+        pipeline.pipelineKey.includes("shadowMap") &&
+        !pipeline.pipelineKey.includes("pointShadowMap"),
+    ) ?? null
+  );
 }
 
 function createGltfAnimationState(options) {
@@ -785,9 +1780,9 @@ function createMaterialFamilyStatus(aperture, app, active) {
   const counts = new Map();
 
   for (const material of active.primitiveMaterials.resolved) {
-    const materialId = material.materialHandleKey.replace(/^material:/, "");
-    const entry = app.assets.get(aperture.createMaterialHandle(materialId));
-    const family = entry?.asset?.kind ?? "missing";
+    const family =
+      materialAssetFromHandleKey(aperture, app, material.materialHandleKey)
+        ?.kind ?? "missing";
 
     counts.set(family, (counts.get(family) ?? 0) + 1);
   }
@@ -797,9 +1792,100 @@ function createMaterialFamilyStatus(aperture, app, active) {
     .map(([family, count]) => ({ family, count }));
 }
 
+function createPrimitiveMaterialResolutionStatus(aperture, app, active) {
+  if (active === null) {
+    return [];
+  }
+
+  return active.primitiveMaterials.resolved
+    .map((resolution) => {
+      const material = materialAssetFromHandleKey(
+        aperture,
+        app,
+        resolution.materialHandleKey,
+      );
+      const renderState = material?.renderState ?? null;
+
+      return {
+        meshIndex: resolution.meshIndex,
+        primitiveIndex: resolution.primitiveIndex,
+        materialIndex: resolution.materialIndex,
+        materialHandleKey: resolution.materialHandleKey,
+        family: material?.kind ?? "missing",
+        alphaMode: renderState?.alphaMode ?? null,
+        blendPreset: renderState?.blend?.preset ?? null,
+        depthWrite: renderState?.depth?.write ?? null,
+        cullMode: renderState?.cullMode ?? null,
+        pipelineKey: material === null ? null : materialPipelineKey(material),
+      };
+    })
+    .sort(
+      (a, b) =>
+        a.meshIndex - b.meshIndex || a.primitiveIndex - b.primitiveIndex,
+    );
+}
+
+function createRenderStateStatus(meshDraws) {
+  return {
+    queues: meshDraws.map((draw) => draw.sortKey.queue),
+    pipelineKeys: meshDraws.map((draw) => draw.batchKey.pipelineKey),
+  };
+}
+
+function materialAssetFromHandleKey(aperture, app, materialHandleKey) {
+  const materialId = materialHandleKey.replace(/^material:/, "");
+
+  return (
+    app.assets.get(aperture.createMaterialHandle(materialId))?.asset ?? null
+  );
+}
+
+function materialPipelineKey(material) {
+  return [
+    material.kind,
+    ...materialPipelineFeatures(material),
+    material.renderState.alphaMode,
+    material.renderState.cullMode,
+    material.renderState.depth.compare,
+    material.renderState.blend.preset,
+  ].join("|");
+}
+
+function materialPipelineFeatures(material) {
+  const candidates = [
+    ["baseColorTexture", material.baseColorTexture],
+    ["metallicRoughnessTexture", material.metallicRoughnessTexture],
+    ["normalTexture", material.normalTexture],
+    ["occlusionTexture", material.occlusionTexture],
+    ["emissiveTexture", material.emissiveTexture],
+  ];
+  const features = candidates
+    .filter(
+      ([, binding]) =>
+        binding !== null && binding !== undefined && binding.texture !== null,
+    )
+    .map(([field]) => field);
+
+  if (
+    material.kind === "standard" &&
+    candidates.some(
+      ([, binding]) =>
+        binding !== null &&
+        binding !== undefined &&
+        binding.texture !== null &&
+        binding.texCoord === 1,
+    )
+  ) {
+    features.push("uv1");
+  }
+
+  return features.sort();
+}
+
 function createOrbitControls(targetCanvas) {
   const state = {
     yaw: 0,
+    elevation: 0.28,
     distance: 3.4,
     minDistance: 1.8,
     maxDistance: 6,
@@ -857,17 +1943,29 @@ function createOrbitControls(targetCanvas) {
 }
 
 function updateOrbitCamera(aperture, cameraEntity, orbit) {
-  const x = orbit.target[0] + Math.sin(orbit.yaw) * orbit.distance;
-  const y = orbit.target[1];
-  const z = orbit.target[2] + Math.cos(orbit.yaw) * orbit.distance;
+  const elevation = orbit.elevation ?? 0;
+  const elevationDistance = Math.cos(elevation) * orbit.distance;
+  const x = orbit.target[0] + Math.sin(orbit.yaw) * elevationDistance;
+  const y = orbit.target[1] + Math.sin(elevation) * orbit.distance;
+  const z = orbit.target[2] + Math.cos(orbit.yaw) * elevationDistance;
   const halfYaw = orbit.yaw * 0.5;
+  const halfPitch = -elevation * 0.5;
+  const yawSin = Math.sin(halfYaw);
+  const yawCos = Math.cos(halfYaw);
+  const pitchSin = Math.sin(halfPitch);
+  const pitchCos = Math.cos(halfPitch);
 
   cameraEntity
     .getVectorView(aperture.LocalTransform, "translation")
     .set([x, y, z]);
   cameraEntity
     .getVectorView(aperture.LocalTransform, "rotation")
-    .set([0, Math.sin(halfYaw), 0, Math.cos(halfYaw)]);
+    .set([
+      yawCos * pitchSin,
+      yawSin * pitchCos,
+      -yawSin * pitchSin,
+      yawCos * pitchCos,
+    ]);
 }
 
 function fitOrbitToReplayBounds(aperture, app, replay, orbit) {

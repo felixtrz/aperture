@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-19 15:58 PDT</dd>
+            <dd>2026-05-19 17:33 PDT</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -911,10 +911,21 @@
               first-clip translation playback writes replayed ECS transforms,
               multi-primitive replay reports two resolved source materials and
               two extracted draws, and hierarchy status exposes local/world
-              transforms for replayed nodes.
+              transforms for replayed nodes. The lit brass GLB viewer sample now
+              adds an ECS-authored shadow caster, directional shadow light, and
+              StandardMaterial receiver floor, then proves a shadow-darkened
+              floor in Playwright without making renderer state authoritative.
+              The same viewer sample now also authors an environment map and
+              routes its StandardMaterial model/floor draws through diffuse plus
+              specular-proof IBL, with Playwright comparing direct-lit-only and
+              IBL-enabled pixels. The viewer now also includes a mixed
+              alpha-state StandardMaterial GLB sample with one opaque primitive
+              and one transparent primitive, reports each primitive material's
+              resolved render state and pipeline key, and proves both regions
+              render in Playwright.
             </dd>
             <dt>Next focus</dt>
-            <dd>Add a shadow-receiver floor for the lit GLB viewer sample</dd>
+            <dd>Add a camera reset control to glb-viewer</dd>
           </dl>
         </aside>
       </header>
@@ -1115,9 +1126,9 @@
                 <div class="label">webgpu-render</div>
                 <h3>backend resources</h3>
               </div>
-              <span class="percent">66%</span>
+              <span class="percent">69%</span>
             </div>
-            <div class="bar"><span style="width: 66%"></span></div>
+            <div class="bar"><span style="width: 69%"></span></div>
             <p>
               Backend buffers, pipelines, bind groups, queues, and app facade
               exist; directional shadow pass submission and 3x3 PCF sampling are
@@ -1125,8 +1136,11 @@
               receiver proof, spot shadows now render through the 2D shadow
               path, combined directional/spot/point receiver bindings now render
               in one browser scene, shadow routing honors ECS caster/receiver
-              flags, combined IBL plus shadow routing is browser-proven, and
-              profiling remains deferred.
+              flags, combined IBL plus shadow routing is browser-proven, the GLB
+              viewer now submits a brass-sample directional shadow pass into a
+              receiver floor and routes the same StandardMaterial sample through
+              diffuse/specular-proof IBL, GLB viewer StandardMaterial alpha
+              blend routing is browser-proven, and profiling remains deferred.
             </p>
           </article>
           <article class="card track">
@@ -1135,15 +1149,17 @@
                 <div class="label">asset import</div>
                 <h3>GLB/glTF path</h3>
               </div>
-              <span class="percent">46%</span>
+              <span class="percent">49%</span>
             </div>
-            <div class="bar"><span style="width: 46%"></span></div>
+            <div class="bar"><span style="width: 49%"></span></div>
             <p>
               Container parsing, diagnostics, source registration, material
-              mapping, URI loading, a seven-asset local GLB viewer path with lit
-              StandardMaterial, animated, dual-primitive, and hierarchy samples,
-              custom URL plus query-URL loading, and bounds-driven camera
-              fitting have landed.
+              mapping, URI loading, an eight-asset local GLB viewer path with
+              lit StandardMaterial, animated, dual-primitive, hierarchy, and
+              mixed alpha-state samples, custom URL plus query-URL loading, and
+              bounds-driven camera fitting have landed. The lit brass sample now
+              adds a shadow-receiver floor and environment-map IBL through
+              ECS-authored scene state.
             </p>
           </article>
           <article class="card track">
@@ -1152,15 +1168,18 @@
                 <div class="label">examples/e2e</div>
                 <h3>browser proof points</h3>
               </div>
-              <span class="percent">53%</span>
+              <span class="percent">56%</span>
             </div>
-            <div class="bar"><span style="width: 53%"></span></div>
+            <div class="bar"><span style="width: 56%"></span></div>
             <p>
               Spinning cube, material showcase, GLTF scene, GLB viewer,
               diagnostics, queue phases, and WebGPU readback examples have
               Playwright coverage, including lit GLB viewer material-family
               routing, animation playback, multi-primitive replay, hierarchy
-              transforms, and combined IBL/shadow sampling.
+              transforms, combined IBL/shadow sampling, and a shadow-darkened
+              GLB viewer receiver floor with IBL-enabled pixel comparison. GLB
+              viewer coverage now also verifies mixed opaque/transparent
+              StandardMaterial render-state routing.
             </p>
           </article>
           <article class="card track">
@@ -1451,6 +1470,24 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">task-2028</span> Added a mixed
+                alpha-state StandardMaterial GLB sample to
+                <code>glb-viewer</code> with primitive render-state status and
+                Playwright proof for opaque and transparent regions.
+              </li>
+              <li>
+                <span class="badge green">task-2027</span> Routed the lit brass
+                <code>glb-viewer</code> sample through diffuse and
+                specular-proof IBL with direct-lit versus IBL-enabled Playwright
+                pixel proof.
+              </li>
+              <li>
+                <span class="badge green">task-2026</span> Added a brass-only
+                shadow-receiver floor to <code>glb-viewer</code> with
+                ECS-authored caster/receiver state, a directional shadow pass,
+                and Playwright shadow-darkening proof.
+              </li>
               <li>
                 <span class="badge green">task-2025</span> Added a hierarchy GLB
                 sample to <code>glb-viewer</code> and status proving child world
@@ -3118,16 +3155,16 @@
             <h3>Recommended next tasks</h3>
             <ul>
               <li>
-                <span class="badge amber">next</span> Add a shadow-receiver
-                floor for the lit GLB viewer sample.
+                <span class="badge amber">next</span> Add a camera reset/home
+                control to <code>glb-viewer</code>.
               </li>
               <li>
-                Keep the floor, caster flag, and receiver flag authored in ECS
-                while reusing the existing shadow route.
+                Reset should restore the current asset's fitted orbit target,
+                distance, yaw, and zoom limits.
               </li>
               <li>
-                Use Playwright to verify lit model pixels and a shadow-darkened
-                receiver floor in the same viewer frame.
+                Use Playwright to drag/zoom, reset, and verify status plus
+                rendered pixels return near the fitted view.
               </li>
             </ul>
           </article>

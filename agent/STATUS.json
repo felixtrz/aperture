@@ -1,11 +1,11 @@
 {
   "state": "idle",
-  "currentTaskId": "task-2026",
+  "currentTaskId": "task-2029",
   "currentRunStartedAt": null,
-  "lastRunStartedAt": "2026-05-19T23:03:37Z",
+  "lastRunStartedAt": "2026-05-20T00:02:11Z",
   "lastResult": "stop-condition",
   "lastCommit": "178d302",
   "activePid": null,
-  "notes": "Completed task-2021 through task-2025. Stopping before task-2026 because the next shadow/IBL viewer slices need a coherent validation window.",
-  "lastRunFinishedAt": "2026-05-19T23:32:45Z"
+  "notes": "Completed task-2026, task-2027, and task-2028. Stopping before task-2029 because the remaining window is too tight for a coherent camera-reset slice plus validation.",
+  "lastRunFinishedAt": "2026-05-20T00:36:06Z"
 }
