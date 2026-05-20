@@ -523,7 +523,13 @@ describe("built-in standard material WGSL shader metadata", () => {
       "baseColorSample.rgb * material.baseColorFactor.rgb",
     );
     expect(STANDARD_BASE_COLOR_METALLIC_ROUGHNESS_TEXTURED_MESH_WGSL).toContain(
+      "material.baseColorTextureOffset",
+    );
+    expect(STANDARD_BASE_COLOR_METALLIC_ROUGHNESS_TEXTURED_MESH_WGSL).toContain(
       "metallicRoughnessSample.b",
+    );
+    expect(STANDARD_BASE_COLOR_METALLIC_ROUGHNESS_TEXTURED_MESH_WGSL).toContain(
+      "material.metallicRoughnessTextureOffset",
     );
     expect(STANDARD_BASE_COLOR_METALLIC_ROUGHNESS_TEXTURED_MESH_WGSL).toContain(
       "material.metallicFactor * metallicRoughnessSample.b",
@@ -833,7 +839,13 @@ describe("built-in standard material WGSL shader metadata", () => {
     expect(shader.code).toContain(
       "material.roughnessFactor * metallicRoughnessSample.g",
     );
+    expect(shader.code).toContain("material.metallicRoughnessTextureOffset");
+    expect(shader.code).toContain("material.metallicRoughnessTextureScale");
+    expect(shader.code).toContain("material.metallicRoughnessTextureRotation");
     expect(shader.code).toContain("sampleTangentSpaceNormal");
+    expect(shader.code).toContain("material.normalTextureOffset");
+    expect(shader.code).toContain("material.normalTextureScale");
+    expect(shader.code).toContain("material.normalTextureRotation");
     expect(shader.code).toContain("textureSample(normalTexture, normalSampler");
     expect(
       shader.bindings.map((binding) => [
@@ -1015,6 +1027,65 @@ describe("built-in standard material WGSL shader metadata", () => {
     ]);
   });
 
+  it("combines StandardMaterial base-color, metallic-roughness, and emissive texture sampling", () => {
+    const shader = createStandardTextureVariantShader({
+      baseColorTexture: true,
+      metallicRoughnessTexture: true,
+      normalTexture: false,
+      occlusionTexture: false,
+      emissiveTexture: true,
+    });
+
+    expect(validateStandardShaderMetadata(shader)).toEqual({
+      valid: true,
+      diagnostics: [],
+    });
+    expect(
+      createStandardTextureShaderVariantKey({
+        baseColorTexture: true,
+        metallicRoughnessTexture: true,
+        normalTexture: false,
+        occlusionTexture: false,
+        emissiveTexture: true,
+      }),
+    ).toBe(
+      "direct-lit-metallic-roughness-base-color-metallic-roughness-emissive-texture",
+    );
+    expect(shader.label).toBe(
+      "aperture/standard-mesh-base-color-metallic-roughness-emissive-textured",
+    );
+    expect(shader.code).toContain("textureSample(baseColorTexture");
+    expect(shader.code).toContain(
+      "textureSample(\n    metallicRoughnessTexture",
+    );
+    expect(shader.code).toContain(
+      "textureSample(emissiveTexture, emissiveSampler, emissiveTextureUv)",
+    );
+    expect(shader.code).toContain(
+      "let color = ambientDiffuse + direct + emissive;",
+    );
+    expect(
+      shader.bindings.map((binding) => [
+        binding.id,
+        binding.group,
+        binding.binding,
+        binding.resource,
+      ]),
+    ).toEqual([
+      ["viewProjection", 0, 0, "uniform-buffer"],
+      ["worldTransforms", 1, 0, "read-only-storage-buffer"],
+      ["standardMaterial", 2, 0, "uniform-buffer"],
+      ["lightFloats", 3, 0, "read-only-storage-buffer"],
+      ["lightMetadata", 3, 1, "read-only-storage-buffer"],
+      ["baseColorTexture", 2, 1, "texture"],
+      ["baseColorSampler", 2, 2, "sampler"],
+      ["metallicRoughnessTexture", 2, 3, "texture"],
+      ["metallicRoughnessSampler", 2, 4, "sampler"],
+      ["emissiveTexture", 2, 9, "texture"],
+      ["emissiveSampler", 2, 10, "sampler"],
+    ]);
+  });
+
   it("generates TEXCOORD_1 texture variants for StandardMaterial", () => {
     const shader = createStandardTextureVariantShader({
       baseColorTexture: true,
@@ -1045,6 +1116,169 @@ describe("built-in standard material WGSL shader metadata", () => {
     expect(shader.code).toContain("fn standardTextureUv");
     expect(shader.code).toContain(
       "standardTextureUv(material.baseColorTexCoord, input.uv, input.uv1)",
+    );
+  });
+
+  it("routes StandardMaterial base-color plus occlusion textures through TEXCOORD_1", () => {
+    const shader = createStandardTextureVariantShader({
+      baseColorTexture: true,
+      metallicRoughnessTexture: false,
+      normalTexture: false,
+      occlusionTexture: true,
+      emissiveTexture: false,
+      texCoord1: true,
+    });
+
+    expect(validateStandardShaderMetadata(shader)).toEqual({
+      valid: true,
+      diagnostics: [],
+    });
+    expect(
+      createStandardTextureShaderVariantKey({
+        baseColorTexture: true,
+        metallicRoughnessTexture: false,
+        normalTexture: false,
+        occlusionTexture: true,
+        emissiveTexture: false,
+        texCoord1: true,
+      }),
+    ).toBe("direct-lit-metallic-roughness-base-color-occlusion-uv1-texture");
+    expect(shader.label).toBe(
+      "aperture/standard-mesh-base-color-occlusion-uv1-textured",
+    );
+    expect(shader.code).toContain("@location(4) uv1: vec2f");
+    expect(shader.code).toContain(
+      "standardTextureUv(material.baseColorTexCoord, input.uv, input.uv1)",
+    );
+    expect(shader.code).toContain(
+      "standardTextureUv(material.occlusionTexCoord, input.uv, input.uv1)",
+    );
+    expect(shader.code).toContain("textureSample(baseColorTexture");
+    expect(shader.code).toContain(
+      "textureSample(occlusionTexture, occlusionSampler, occlusionTextureUv)",
+    );
+    expect(shader.code).toContain(
+      "ambient * baseColor * (1.0 - metallic) * occlusion",
+    );
+    expect(
+      shader.bindings.map((binding) => [
+        binding.id,
+        binding.group,
+        binding.binding,
+        binding.resource,
+      ]),
+    ).toEqual([
+      ["viewProjection", 0, 0, "uniform-buffer"],
+      ["worldTransforms", 1, 0, "read-only-storage-buffer"],
+      ["standardMaterial", 2, 0, "uniform-buffer"],
+      ["lightFloats", 3, 0, "read-only-storage-buffer"],
+      ["lightMetadata", 3, 1, "read-only-storage-buffer"],
+      ["baseColorTexture", 2, 1, "texture"],
+      ["baseColorSampler", 2, 2, "sampler"],
+      ["occlusionTexture", 2, 7, "texture"],
+      ["occlusionSampler", 2, 8, "sampler"],
+    ]);
+  });
+
+  it("routes StandardMaterial base-color plus emissive textures through TEXCOORD_1", () => {
+    const shader = createStandardTextureVariantShader({
+      baseColorTexture: true,
+      metallicRoughnessTexture: false,
+      normalTexture: false,
+      occlusionTexture: false,
+      emissiveTexture: true,
+      texCoord1: true,
+    });
+
+    expect(validateStandardShaderMetadata(shader)).toEqual({
+      valid: true,
+      diagnostics: [],
+    });
+    expect(
+      createStandardTextureShaderVariantKey({
+        baseColorTexture: true,
+        metallicRoughnessTexture: false,
+        normalTexture: false,
+        occlusionTexture: false,
+        emissiveTexture: true,
+        texCoord1: true,
+      }),
+    ).toBe("direct-lit-metallic-roughness-base-color-emissive-uv1-texture");
+    expect(shader.label).toBe(
+      "aperture/standard-mesh-base-color-emissive-uv1-textured",
+    );
+    expect(shader.code).toContain("@location(4) uv1: vec2f");
+    expect(shader.code).toContain(
+      "standardTextureUv(material.baseColorTexCoord, input.uv, input.uv1)",
+    );
+    expect(shader.code).toContain(
+      "standardTextureUv(material.emissiveTexCoord, input.uv, input.uv1)",
+    );
+    expect(shader.code).toContain("textureSample(baseColorTexture");
+    expect(shader.code).toContain(
+      "textureSample(emissiveTexture, emissiveSampler, emissiveTextureUv)",
+    );
+    expect(shader.code).toContain(
+      "let color = ambientDiffuse + direct + emissive;",
+    );
+    expect(
+      shader.bindings.map((binding) => [
+        binding.id,
+        binding.group,
+        binding.binding,
+        binding.resource,
+      ]),
+    ).toEqual([
+      ["viewProjection", 0, 0, "uniform-buffer"],
+      ["worldTransforms", 1, 0, "read-only-storage-buffer"],
+      ["standardMaterial", 2, 0, "uniform-buffer"],
+      ["lightFloats", 3, 0, "read-only-storage-buffer"],
+      ["lightMetadata", 3, 1, "read-only-storage-buffer"],
+      ["baseColorTexture", 2, 1, "texture"],
+      ["baseColorSampler", 2, 2, "sampler"],
+      ["emissiveTexture", 2, 9, "texture"],
+      ["emissiveSampler", 2, 10, "sampler"],
+    ]);
+  });
+
+  it("routes StandardMaterial metallic-roughness plus emissive textures through TEXCOORD_1", () => {
+    const shader = createStandardTextureVariantShader({
+      baseColorTexture: false,
+      metallicRoughnessTexture: true,
+      normalTexture: false,
+      occlusionTexture: false,
+      emissiveTexture: true,
+      texCoord1: true,
+    });
+
+    expect(validateStandardShaderMetadata(shader)).toEqual({
+      valid: true,
+      diagnostics: [],
+    });
+    expect(
+      createStandardTextureShaderVariantKey({
+        baseColorTexture: false,
+        metallicRoughnessTexture: true,
+        normalTexture: false,
+        occlusionTexture: false,
+        emissiveTexture: true,
+        texCoord1: true,
+      }),
+    ).toBe(
+      "direct-lit-metallic-roughness-metallic-roughness-emissive-uv1-texture",
+    );
+    expect(shader.label).toBe(
+      "aperture/standard-mesh-metallic-roughness-emissive-uv1-textured",
+    );
+    expect(shader.code).toContain("@location(4) uv1: vec2f");
+    expect(shader.code).toContain(
+      "standardTextureUv(material.metallicRoughnessTexCoord, input.uv, input.uv1)",
+    );
+    expect(shader.code).toContain(
+      "standardTextureUv(material.emissiveTexCoord, input.uv, input.uv1)",
+    );
+    expect(shader.code).toContain(
+      "textureSample(emissiveTexture, emissiveSampler, emissiveTextureUv)",
     );
   });
 

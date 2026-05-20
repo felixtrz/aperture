@@ -1,6 +1,87 @@
 # Agent Handoff
 
-Updated: 2026-05-20T17:35:26Z
+Updated: 2026-05-20T18:50:30Z
+
+## Current Run Update — 2026-05-20T18:50:30Z — StandardMaterial UV1 and alpha/emissive fixture coverage
+
+Completed `task-2164`, `task-2165`, `task-2166`, `task-2167`, `task-2168`,
+`task-2169`, `task-2170`, and `task-2171`.
+
+### What changed
+
+- Added committed GLB viewer samples for StandardMaterial UV1 base-color plus
+  occlusion, transformed metallic-roughness plus normal, base-color plus
+  metallic-roughness plus emissive, alpha-blend plus emissive, and UV1
+  base-color plus emissive routes, then extended the run with transformed
+  base-color plus metallic-roughness and UV1 metallic-roughness plus emissive
+  routes after the stop hook requested more active work. A second continuation
+  completed alpha-mask plus metallic-roughness.
+- Added shader and pipeline descriptor coverage for the new StandardMaterial
+  route combinations, including UV1 base/emissive, UV1 base/occlusion,
+  transformed metallic/normal, triple base/metallic/emissive, and alpha-blend
+  depth-write policy.
+- Added focused Playwright coverage for JSON-safe texture-slot status,
+  UV1/transform metadata, alpha render state, tangent/UV1 mesh layouts, visible
+  pixel deltas, emissive contribution, and no WebGPU validation warnings.
+- Refilled the visible ready queue with `task-2172` through `task-2174`.
+  Recommended next task is
+  `task-2172 — Add base-color plus occlusion plus normal-texture GLB viewer sample`.
+
+### Files touched
+
+- `agent/BACKLOG.md`
+- `agent/COMPLETED.md`
+- `agent/HANDOFF.md`
+- `agent/STATUS.json`
+- `docs/index.html`
+- `docs/render-pipeline-comparison.html`
+- `examples/glb-viewer.js`
+- `examples/assets/standard-alpha-blend-emissive.glb`
+- `examples/assets/standard-alpha-metallic.glb`
+- `examples/assets/standard-base-metallic-transform.glb`
+- `examples/assets/standard-base-metallic-emissive.glb`
+- `examples/assets/standard-metallic-normal-transform.glb`
+- `examples/assets/standard-uv1-base-emissive.glb`
+- `examples/assets/standard-uv1-base-occlusion.glb`
+- `examples/assets/standard-uv1-metallic-emissive.glb`
+- `test/e2e/glb-viewer.spec.ts`
+- `test/webgpu/standard-pipeline-descriptor.test.ts`
+- `test/webgpu/standard-shader.test.ts`
+
+### References inspected
+
+- `references/three.js/examples/jsm/loaders/GLTFLoader.js`
+- `references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/base.js`
+- `references/engine/src/scene/shader-lib/wgsl/chunks/standard/frag/normalMap.js`
+
+### Validation
+
+- `node --check examples/glb-viewer.js`
+- `pnpm exec vitest run test/webgpu/standard-shader.test.ts test/webgpu/standard-pipeline-descriptor.test.ts`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts --grep "UV1 base-color plus occlusion textures"`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts --grep "transformed metallic-roughness plus normal textures"`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts --grep "base-color plus metallic-roughness plus emissive textures"`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts --grep "alpha-blend plus emissive"`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts --grep "UV1 base-color plus emissive textures"`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts --grep "transformed base-color plus metallic-roughness textures"`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts --grep "UV1 metallic-roughness plus emissive textures"`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts --grep "alpha-mask plus metallic-roughness textures"`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts --grep "UV1 base-color plus occlusion|transformed metallic-roughness plus normal|base-color plus metallic-roughness plus emissive|alpha-blend plus emissive|UV1 base-color plus emissive|transformed base-color plus metallic-roughness|UV1 metallic-roughness plus emissive"`
+- `pnpm test`
+- `pnpm run check:progress`
+- `pnpm run build`
+- `pnpm run lint`
+- `pnpm run format:check`
+
+### Known issues
+
+- None known after focused and broad validation. Stop-hook status is recorded in
+  the final automation response for this run.
+
+### Recommended next task
+
+`task-2172 — Add base-color plus occlusion plus normal-texture GLB viewer sample`.
 
 ## Current Run Update — 2026-05-20T17:27:31Z — Extended StandardMaterial combined texture routes
 

@@ -22884,3 +22884,172 @@ Validation:
 - `pnpm exec vitest run test/webgpu/standard-pipeline.test.ts test/webgpu/standard-pipeline-descriptor.test.ts`
 - `pnpm exec tsc --noEmit -p tsconfig.test.json`
 - `pnpm exec playwright test test/e2e/glb-viewer.spec.ts --grep "StandardMaterial route"`
+
+## task-2164 — Add UV1 base-color plus occlusion-texture GLB viewer sample
+
+Completed: 2026-05-20
+
+Summary:
+
+- Added `examples/assets/standard-uv1-base-occlusion.glb` and a GLB viewer
+  selector entry.
+- Added StandardMaterial shader and pipeline descriptor coverage for
+  `baseColorTexture` plus `occlusionTexture` through `TEXCOORD_1`.
+- Added Playwright coverage for JSON-safe UV1 texture-slot status,
+  `TEXCOORD_1` mesh layout, visible UV1/control pixel deltas, and no WebGPU
+  validation warnings.
+
+Validation:
+
+- `node --check examples/glb-viewer.js`
+- `pnpm exec vitest run test/webgpu/standard-shader.test.ts test/webgpu/standard-pipeline-descriptor.test.ts`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts --grep "UV1 base-color plus occlusion textures"`
+
+## task-2165 — Add transformed metallic-roughness plus normal-texture GLB viewer sample
+
+Completed: 2026-05-20
+
+Summary:
+
+- Added `examples/assets/standard-metallic-normal-transform.glb` and a GLB
+  viewer selector entry.
+- Extended StandardMaterial shader coverage to assert independent transform
+  uniforms for a metallic-roughness texture paired with a normal map.
+- Added Playwright coverage for `KHR_texture_transform` metadata, tangent mesh
+  layout, transformed/untransformed/control pixel deltas, and no WebGPU
+  validation warnings.
+
+Validation:
+
+- `node --check examples/glb-viewer.js`
+- `pnpm exec vitest run test/webgpu/standard-shader.test.ts test/webgpu/standard-pipeline-descriptor.test.ts`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts --grep "transformed metallic-roughness plus normal textures"`
+
+## task-2166 — Add base-color plus metallic-roughness plus emissive GLB viewer sample
+
+Completed: 2026-05-20
+
+Summary:
+
+- Added `examples/assets/standard-base-metallic-emissive.glb` and a GLB viewer
+  selector entry.
+- Added StandardMaterial shader and pipeline descriptor coverage for combined
+  base-color, metallic-roughness, and emissive texture sampling.
+- Added Playwright coverage for three texture-slot mappings, emissive
+  contribution after lighting, visible textured/control pixel deltas, and no
+  WebGPU validation warnings.
+
+Validation:
+
+- `node --check examples/glb-viewer.js`
+- `pnpm exec vitest run test/webgpu/standard-shader.test.ts test/webgpu/standard-pipeline-descriptor.test.ts`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts --grep "base-color plus metallic-roughness plus emissive textures"`
+
+## task-2167 — Add alpha-blend plus emissive-texture GLB viewer sample
+
+Completed: 2026-05-20
+
+Summary:
+
+- Added `examples/assets/standard-alpha-blend-emissive.glb` and a GLB viewer
+  selector entry.
+- Added StandardMaterial pipeline descriptor coverage proving the combined
+  base-color/emissive texture route preserves alpha blending and disables depth
+  writes.
+- Added Playwright coverage for alpha-blend/emissive status, transparent queue
+  routing, visible translucent pixels, and no WebGPU validation warnings.
+
+Validation:
+
+- `node --check examples/glb-viewer.js`
+- `pnpm exec vitest run test/webgpu/standard-shader.test.ts test/webgpu/standard-pipeline-descriptor.test.ts`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts --grep "alpha-blend plus emissive"`
+
+## task-2168 — Add UV1 base-color plus emissive-texture GLB viewer sample
+
+Completed: 2026-05-20
+
+Summary:
+
+- Added `examples/assets/standard-uv1-base-emissive.glb` and a GLB viewer
+  selector entry.
+- Added StandardMaterial shader and pipeline descriptor coverage for
+  `baseColorTexture` plus `emissiveTexture` through `TEXCOORD_1`.
+- Added Playwright coverage for UV1 base/emissive texture-slot status,
+  `TEXCOORD_1` mesh layout, emissive brightness, visible UV1/control pixel
+  deltas, and no WebGPU validation warnings.
+
+Validation:
+
+- `node --check examples/glb-viewer.js`
+- `pnpm exec vitest run test/webgpu/standard-shader.test.ts test/webgpu/standard-pipeline-descriptor.test.ts`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts --grep "UV1 base-color plus emissive textures"`
+
+## task-2169 — Add transformed base-color plus metallic-roughness GLB viewer sample
+
+Completed: 2026-05-20
+
+Summary:
+
+- Added `examples/assets/standard-base-metallic-transform.glb` and a GLB
+  viewer selector entry.
+- Extended StandardMaterial shader coverage to assert independent transform
+  uniforms for base-color and metallic-roughness texture sampling.
+- Added Playwright coverage for `KHR_texture_transform` metadata,
+  transformed/untransformed/control pixel deltas, combined base/metallic
+  pipeline routing, and no WebGPU validation warnings.
+
+Validation:
+
+- `node --check examples/glb-viewer.js`
+- `pnpm exec vitest run test/webgpu/standard-shader.test.ts test/webgpu/standard-pipeline-descriptor.test.ts`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts --grep "transformed base-color plus metallic-roughness textures"`
+
+## task-2170 — Add UV1 metallic-roughness plus emissive-texture GLB viewer sample
+
+Completed: 2026-05-20
+
+Summary:
+
+- Added `examples/assets/standard-uv1-metallic-emissive.glb` and a GLB viewer
+  selector entry.
+- Added StandardMaterial shader and pipeline descriptor coverage for
+  `metallicRoughnessTexture` plus `emissiveTexture` through `TEXCOORD_1`.
+- Added Playwright coverage for UV1 metallic/emissive texture-slot status,
+  `TEXCOORD_1` mesh layout, visible UV1/control pixel deltas, and no WebGPU
+  validation warnings.
+
+Validation:
+
+- `node --check examples/glb-viewer.js`
+- `pnpm exec vitest run test/webgpu/standard-shader.test.ts test/webgpu/standard-pipeline-descriptor.test.ts`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts --grep "UV1 metallic-roughness plus emissive textures"`
+
+## task-2171 — Add alpha-mask plus metallic-roughness-texture GLB viewer sample
+
+Completed: 2026-05-20
+
+Summary:
+
+- Added `examples/assets/standard-alpha-metallic.glb` and a GLB viewer selector
+  entry.
+- Added StandardMaterial pipeline descriptor coverage for alpha-masked
+  base-color plus metallic-roughness texture routing with depth writes and no
+  culling.
+- Added Playwright coverage for mask render-state status, metallic-roughness
+  texture contribution, masked clear-pixel behavior, and no WebGPU validation
+  warnings.
+
+Validation:
+
+- `node --check examples/glb-viewer.js`
+- `pnpm exec vitest run test/webgpu/standard-pipeline-descriptor.test.ts`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts --grep "alpha-mask plus metallic-roughness textures"`

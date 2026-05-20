@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-20 17:27 UTC</dd>
+            <dd>2026-05-20 18:41 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -402,11 +402,16 @@
               texture routes: occlusion plus normal, metallic-roughness plus
               emissive, alpha-blend plus normal, UV1 metallic-roughness plus
               normal, base-color plus occlusion, and transformed base-color plus
-              emissive. It also renders metallic-roughness plus normal textures,
-              UV1 base-color plus normal textures, base-color plus emissive
-              textures, and alpha-mask plus normal-map routes through committed
-              GLB samples with JSON-safe status and browser pixel proof. It also
-              renders normal maps through
+              emissive, plus UV1 base-color plus occlusion, transformed
+              metallic-roughness plus normal, base-color plus metallic-roughness
+              plus emissive, alpha-blend plus emissive, and UV1 base-color plus
+              emissive, transformed base-color plus metallic-roughness, UV1
+              metallic-roughness plus emissive, and alpha-mask plus
+              metallic-roughness. It also renders metallic-roughness plus normal
+              textures, UV1 base-color plus normal textures, base-color plus
+              emissive textures, and alpha-mask plus normal-map routes through
+              committed GLB samples with JSON-safe status and browser pixel
+              proof. It also renders normal maps through
               <code>TEXCOORD_1</code>, StandardMaterial base-color textures
               combined with <code>COLOR_0</code>, base-color plus normal
               textures, and transformed UV1 normal maps. The GLB viewer also
@@ -1404,9 +1409,9 @@
           <article class="phase">
             <div class="topline">
               <h3>3. prepare</h3>
-              <span class="percent">77%</span>
+              <span class="percent">78%</span>
             </div>
-            <div class="bar"><span style="width: 77%"></span></div>
+            <div class="bar"><span style="width: 78%"></span></div>
             <p>
               Prepared mesh/material facades and WebGPU-private backend caches
               exist for built-in material families, with compact render-world
@@ -1460,13 +1465,22 @@
               base-color plus occlusion plus emissive fixture now verifies three
               texture/sampler mappings, occlusion/emissive readiness, three
               prepared texture/sampler resources, and the combined
-              StandardMaterial pipeline key. Generic frame-resource buckets now
-              expose deterministic family summaries for app diagnostics, and
-              mixed built-in frame-resource preparation now pins deterministic
-              family buckets and pipeline-scoped bind group keys. App-level
-              mixed built-in frames now expose JSON-safe routed resource
-              summaries for two-family and three-family successful routes.
-              Built-in app resource adapter registration now has deterministic
+              StandardMaterial pipeline key. New UV1 base-color plus occlusion,
+              transformed metallic-roughness plus normal, base-color plus
+              metallic-roughness plus emissive, alpha-blend plus emissive, and
+              UV1 base-color plus emissive fixtures now pin their combined
+              pipeline keys, prepared texture/sampler slots, render state, and
+              browser pixel deltas; transformed base-color plus
+              metallic-roughness and UV1 metallic-roughness plus emissive add
+              the same proof for the next two StandardMaterial combinations, and
+              alpha-mask plus metallic-roughness now pins mask render-state plus
+              texture contribution. Generic frame-resource buckets now expose
+              deterministic family summaries for app diagnostics, and mixed
+              built-in frame-resource preparation now pins deterministic family
+              buckets and pipeline-scoped bind group keys. App-level mixed
+              built-in frames now expose JSON-safe routed resource summaries for
+              two-family and three-family successful routes. Built-in app
+              resource adapter registration now has deterministic
               duplicate-family and missing-family validation diagnostics, and
               app frame diagnostics now expose the default validation report
               without raw callbacks, app objects, or GPU handles. The stable app
@@ -1625,6 +1639,16 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">task-2164-2171</span> Added eight
+                committed StandardMaterial GLB viewer samples for UV1 base-color
+                plus occlusion, transformed metallic-roughness plus normal,
+                base-color plus metallic-roughness plus emissive, alpha-blend
+                plus emissive, UV1 base-color plus emissive, transformed
+                base-color plus metallic-roughness, and UV1 metallic-roughness
+                plus emissive routes, plus an alpha-mask plus metallic-roughness
+                route.
+              </li>
               <li>
                 <span class="badge green">task-2158-2163</span> Added six
                 committed StandardMaterial GLB viewer samples for occlusion plus

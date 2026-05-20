@@ -273,6 +273,15 @@ const sampleAssets = [
     source: "sample",
   },
   {
+    id: "standard-alpha-metallic",
+    label: "Alpha mask + MR",
+    url: new URL(
+      "./assets/standard-alpha-metallic.glb",
+      globalThis.location.href,
+    ),
+    source: "sample",
+  },
+  {
     id: "standard-occlusion-normal",
     label: "Occlusion + normal texture",
     url: new URL(
@@ -291,10 +300,37 @@ const sampleAssets = [
     source: "sample",
   },
   {
+    id: "standard-base-metallic-emissive",
+    label: "Base + MR + emissive",
+    url: new URL(
+      "./assets/standard-base-metallic-emissive.glb",
+      globalThis.location.href,
+    ),
+    source: "sample",
+  },
+  {
+    id: "standard-base-metallic-transform",
+    label: "Transformed base + MR",
+    url: new URL(
+      "./assets/standard-base-metallic-transform.glb",
+      globalThis.location.href,
+    ),
+    source: "sample",
+  },
+  {
     id: "standard-alpha-blend-normal",
     label: "Alpha blend + normal",
     url: new URL(
       "./assets/standard-alpha-blend-normal.glb",
+      globalThis.location.href,
+    ),
+    source: "sample",
+  },
+  {
+    id: "standard-alpha-blend-emissive",
+    label: "Alpha blend + emissive",
+    url: new URL(
+      "./assets/standard-alpha-blend-emissive.glb",
       globalThis.location.href,
     ),
     source: "sample",
@@ -309,10 +345,46 @@ const sampleAssets = [
     source: "sample",
   },
   {
+    id: "standard-uv1-metallic-emissive",
+    label: "UV1 MR + emissive",
+    url: new URL(
+      "./assets/standard-uv1-metallic-emissive.glb",
+      globalThis.location.href,
+    ),
+    source: "sample",
+  },
+  {
     id: "standard-base-occlusion",
     label: "Base + occlusion texture",
     url: new URL(
       "./assets/standard-base-occlusion.glb",
+      globalThis.location.href,
+    ),
+    source: "sample",
+  },
+  {
+    id: "standard-uv1-base-occlusion",
+    label: "UV1 base + occlusion",
+    url: new URL(
+      "./assets/standard-uv1-base-occlusion.glb",
+      globalThis.location.href,
+    ),
+    source: "sample",
+  },
+  {
+    id: "standard-uv1-base-emissive",
+    label: "UV1 base + emissive",
+    url: new URL(
+      "./assets/standard-uv1-base-emissive.glb",
+      globalThis.location.href,
+    ),
+    source: "sample",
+  },
+  {
+    id: "standard-metallic-normal-transform",
+    label: "Transformed MR + normal",
+    url: new URL(
+      "./assets/standard-metallic-normal-transform.glb",
       globalThis.location.href,
     ),
     source: "sample",
