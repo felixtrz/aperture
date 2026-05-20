@@ -529,15 +529,15 @@
 
 <section class="progress-status" aria-label="Aperture render pipeline status">
   <div class="status-head">
-  <h2>Current Aperture Render Pipeline Status · Updated 2026-05-20 · UV1 and alpha StandardMaterial GLB texture coverage</h2>
+  <h2>Current Aperture Render Pipeline Status · Updated 2026-05-20 · Worker snapshot transport proof</h2>
     <a href="index.html">Back to project tracker</a>
   </div>
-  <p>Latest GLB viewer work adds StandardMaterial UV1 base-color plus occlusion, transformed metallic-roughness plus normal, base-color plus metallic-roughness plus emissive, alpha-blend plus emissive, UV1 base-color plus emissive, transformed base-color plus metallic-roughness, UV1 metallic-roughness plus emissive, and alpha-mask plus metallic-roughness routes. The existing coverage also includes <code>occlusionTexture</code> plus <code>normalTexture</code>, <code>metallicRoughnessTexture</code> plus <code>emissiveTexture</code>, alpha-blend plus normal-map, UV1 metallic-roughness plus normal-map, <code>baseColorTexture</code> plus <code>occlusionTexture</code>, transformed base-color plus emissive, metallic-roughness plus normal, UV1 base-color plus normal, base-color plus emissive, alpha-mask plus normal, normal-map <code>TEXCOORD_1</code> routing, transformed UV1 normal-map sampling, a StandardMaterial <code>baseColorTexture</code> plus <code>COLOR_0</code> route with distinct shader labels, and a StandardMaterial <code>baseColorTexture</code> plus <code>normalTexture</code> combined route. These samples remain ECS-authored source assets replayed through extraction, material queueing, WebGPU pipeline selection, and JSON-safe status reports; package-level async image dependency management, full PBR resources, remaining combined texture families, and full PMREM/GGX IBL remain open.</p>
+  <p>Latest worker-cube work proves a raw <code>RenderSnapshot</code> can cross a module Worker boundary by structured clone. ECS authoring and extraction run in the Worker, the main thread receives typed arrays intact, and WebGPU submission renders changing cube pixels without a JSON stringify round trip. The GLB viewer StandardMaterial route coverage remains in place; package-level async image dependency management, render targets, full PMREM/GGX IBL, snapshot diffing, and performance telemetry remain open.</p>
   <div class="phase-status-grid">
     <div class="phase-status">
-      <div class="top"><b>1 · extract</b><span class="pct">80%</span></div>
-      <div class="bar"><span style="width:80%"></span></div>
-      <p>Working: ECS to snapshot packets, including StandardMaterial texture semantic/color-space/format diagnostics, missing-<code>TEXCOORD_1</code> extraction diagnostics surfaced through GLB viewer status, and ECS-authored shadow caster/receiver flags on mesh draws. Missing: richer visibility explanations, snapshot diffing, worker transport validation.</p>
+      <div class="top"><b>1 · extract</b><span class="pct">84%</span></div>
+      <div class="bar"><span style="width:84%"></span></div>
+      <p>Working: ECS to snapshot packets, including StandardMaterial texture semantic/color-space/format diagnostics, missing-<code>TEXCOORD_1</code> extraction diagnostics surfaced through GLB viewer status, ECS-authored shadow caster/receiver flags on mesh draws, and module Worker structured-clone transport with typed arrays preserved. Missing: richer visibility explanations, snapshot diffing and delta extraction.</p>
     </div>
     <div class="phase-status">
       <div class="top"><b>2 · collect</b><span class="pct">85%</span></div>

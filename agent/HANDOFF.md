@@ -1,6 +1,68 @@
 # Agent Handoff
 
-Updated: 2026-05-20T20:00:00Z
+Updated: 2026-05-20T23:17:29Z
+
+## Current Run Update — 2026-05-20T23:17:29Z — Worker snapshot transport proof
+
+Completed `task-3001`.
+
+### What changed
+
+- Added `examples/worker-cube.html`, `examples/worker-cube.main.js`, and
+  `examples/worker-cube.worker.js`. ECS authoring, spin updates, asset
+  registration, and render extraction run in a module Worker; the main thread
+  receives the raw structured-cloned `RenderSnapshot` and submits it through
+  `createWebGpuApp`.
+- Added a `/worker-modules/` route to `scripts/serve-examples.mjs` that serves
+  allowed workspace/package/dependency module files with known bare imports
+  rewritten to explicit same-origin URLs, because module workers do not inherit
+  the page import map.
+- Added `test/e2e/worker-cube.spec.ts` to prove typed arrays survive structured
+  clone, no JSON stringify round trip is used, the worker snapshot contains one
+  camera view and one debug-normal draw, and the center canvas pixel changes as
+  the worker-side cube spins.
+- Updated the examples index, `check:examples`, public progress tracker pages,
+  backlog, and completed-task log. Recommended next task is now `task-3002`.
+
+### Files touched
+
+- `agent/BACKLOG.md`
+- `agent/COMPLETED.md`
+- `agent/HANDOFF.md`
+- `agent/STATUS.json`
+- `docs/index.html`
+- `docs/render-pipeline-comparison.html`
+- `examples/index.html`
+- `examples/worker-cube.html`
+- `examples/worker-cube.main.js`
+- `examples/worker-cube.worker.js`
+- `package.json`
+- `scripts/serve-examples.mjs`
+- `test/e2e/worker-cube.spec.ts`
+- `test/scripts/serve-examples.test.mjs`
+
+### References inspected
+
+- `references/three.js/examples/webgl_worker_offscreencanvas.html`
+- `references/engine/src/framework/handlers/basis-worker.js`
+- `references/bevy/crates/bevy_tasks/src/lib.rs`
+
+### Validation
+
+- `pnpm exec prettier --write agent/BACKLOG.md agent/COMPLETED.md docs/index.html docs/render-pipeline-comparison.html examples/index.html examples/worker-cube.html examples/worker-cube.main.js examples/worker-cube.worker.js package.json scripts/serve-examples.mjs test/e2e/worker-cube.spec.ts test/scripts/serve-examples.test.mjs`
+- `pnpm run check:progress`
+- `pnpm run check:examples`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec vitest run test/scripts/serve-examples.test.mjs`
+- `pnpm exec playwright test test/e2e/worker-cube.spec.ts`
+
+### Known issues
+
+- None known for the worker snapshot proof.
+
+### Recommended next task
+
+`task-3002 — Async image decode contract in the asset layer (part 1: contract)`.
 
 ## Current Run Update — 2026-05-20T20:00:00Z — Pipeline Maturity Roadmap
 

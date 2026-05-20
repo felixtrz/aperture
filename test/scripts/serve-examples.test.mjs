@@ -13,6 +13,8 @@ import {
   parsePort,
   projectRoot,
   resolveStaticPath,
+  resolveWorkerModulePath,
+  rewriteWorkerModuleImports,
 } from "../../scripts/serve-examples.mjs";
 
 describe("examples static server helpers", () => {
@@ -32,6 +34,12 @@ describe("examples static server helpers", () => {
     expect(resolveStaticPath("/node_modules/elics/lib/index.js")).toBe(
       path.resolve(projectRoot, "node_modules/elics/lib/index.js"),
     );
+    expect(
+      resolveWorkerModulePath("/worker-modules/examples/triangle.js"),
+    ).toBe(path.resolve(projectRoot, "examples/triangle.js"));
+    expect(
+      resolveWorkerModulePath("/worker-modules/packages/core/dist/index.js"),
+    ).toBe(path.resolve(projectRoot, "packages/core/dist/index.js"));
     expect(
       resolveStaticPath(
         "/node_modules/wgpu-matrix/dist/3.x/wgpu-matrix.module.js",
@@ -73,6 +81,24 @@ describe("examples static server helpers", () => {
     );
     expect(contentTypeFor("dist/module.wasm")).toBe("application/wasm");
     expect(contentTypeFor("dist/asset.bin")).toBe("application/octet-stream");
+  });
+
+  it("rewrites known bare imports for module worker entrypoints", () => {
+    const source = [
+      'import * as core from "@aperture-engine/core";',
+      'export * from "@aperture-engine/render";',
+      'const runtime = await import("@aperture-engine/runtime");',
+      'import "elics";',
+    ].join("\n");
+
+    expect(rewriteWorkerModuleImports(source)).toBe(
+      [
+        'import * as core from "/worker-modules/packages/core/dist/index.js";',
+        'export * from "/worker-modules/packages/render/dist/index.js";',
+        'const runtime = await import("/worker-modules/packages/runtime/dist/index.js");',
+        'import "/worker-modules/node_modules/elics/lib/index.js";',
+      ].join("\n"),
+    );
   });
 
   it("parses valid ports and rejects invalid CLI values", () => {
@@ -133,9 +159,16 @@ describe("examples static server request handler", () => {
     await mkdir(path.join(tempRoot, "packages/core/dist"), {
       recursive: true,
     });
+    await mkdir(path.join(tempRoot, "packages/runtime/dist"), {
+      recursive: true,
+    });
     await writeFile(
       path.join(tempRoot, "packages/core/dist/index.js"),
       "export {};",
+    );
+    await writeFile(
+      path.join(tempRoot, "packages/runtime/dist/index.js"),
+      'import { createWorld } from "@aperture-engine/simulation";\nimport "wgpu-matrix";\nexport { createWorld };',
     );
     await writeFile(
       path.join(tempRoot, "node_modules/elics/lib/index.js"),
@@ -277,6 +310,26 @@ describe("examples static server request handler", () => {
       );
       expect(response.text()).toBe(dependency.body);
     }
+  });
+
+  it("serves import-rewritten module worker paths", async () => {
+    const response = await requestExample({
+      root: tempRoot,
+      method: "GET",
+      url: "/worker-modules/packages/runtime/dist/index.js",
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.headers["content-type"]).toBe(
+      "text/javascript; charset=utf-8",
+    );
+    expect(response.text()).toBe(
+      [
+        'import { createWorld } from "/worker-modules/packages/simulation/dist/index.js";',
+        'import "/worker-modules/node_modules/wgpu-matrix/dist/3.x/wgpu-matrix.module.js";',
+        "export { createWorld };",
+      ].join("\n"),
+    );
   });
 
   it("returns not found for allowed but missing files", async () => {

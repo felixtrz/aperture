@@ -59,13 +59,15 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start with `task-3001`: Worker transport proof of the render snapshot.
+Start with `task-3002`: Async image decode contract in the asset layer (part 1: contract).
 
-Why this first: `packages/render/src/rendering/snapshot.ts:154` claims the snapshot shape "can cross a future Worker boundary." Exploration confirms zero Worker code exists in `packages/`. This is the project's central architectural claim and the easiest one to validate — the snapshot is already structured-clone-safe by construction. One slice to build the proof example; if anything in the snapshot turns out to be non-postable, fix it at the source as part of the slice.
+Why this next: `task-3001` proved the raw `RenderSnapshot` crosses a module Worker boundary by structured clone. The next Tier 1 dependency is the async GLB image decode contract so real image assets can move through loading states instead of relying only on synchronous decoded image inputs.
 
-Reference anchors (read both before writing):
-- `references/three.js/examples/webgl_worker_offscreencanvas.html`
-- `references/engine/src/framework/handlers/basis-worker.js`
+Reference anchors (read before writing):
+
+- `references/three.js/src/loaders/TextureLoader.js`
+- `references/engine/src/framework/handlers/texture.js`
+- `references/bevy/crates/bevy_image/src/image_loader.rs`
 
 ## Strategic Focus — Pipeline Maturity Roadmap
 
@@ -74,24 +76,29 @@ The MVP renderer (IBL diffuse+specular, real GLB loading, multi-light PCF shadow
 Eleven cross-cutting gaps remain across the six phases. They are sequenced below by **dependency order, then impact**. The agent must work the roadmap in this order. New backlog tasks may not be invented outside the roadmap until every roadmap task has shipped.
 
 **Tier 1 — Foundation (no dependencies, unlock the most):**
-1. Worker transport proof (task-3001) — proves the snapshot architecture's central claim
+
+1. Worker transport proof (task-3001) — shipped; proves the snapshot architecture's central claim
 2. Async image decode in the asset layer (task-3002, task-3003) — unlocks real-image GLBs without pre-decode
 3. Render targets / off-screen rendering (task-3004, task-3005, task-3006) — unlocks PMREM, picking, post-processing
 
 **Tier 2 — Quality leap (depends on Tier 1):**
+
 4. PMREM/GGX specular prefilter (task-3007, task-3008, task-3009, task-3010) — depends on render targets
 5. Snapshot change-set / ECS change detection (task-3011, task-3012) — enables per-frame delta extraction
 
 **Tier 3 — Performance ceiling (independent):**
+
 6. Instancing (task-3013, task-3014, task-3015) — coalesce N identical draws into 1
 7. Batching (task-3016, task-3017, task-3018) — merge geometries sharing a pipeline-key
 8. Transparent sort phase report (task-3019) — close Phase 5 honesty gap
 
 **Tier 4 — Telemetry & hygiene (independent):**
+
 9. GPU timings via timestamp queries (task-3020, task-3021, task-3022, task-3023) — enables data-driven performance work
 10. Asset cache eviction / unload (task-3024, task-3025) — memory hygiene for long sessions
 
 **Tier 5 — Maturity (last):**
+
 11. Custom material adapter rendered end-to-end (task-3026, task-3027, task-3028, task-3029) — proves Phases 3+4 extensibility claim
 
 Total: 29 vertical slices. Each is a real implementation slice with a `Reference anchor:` from `references/bevy/`, `references/engine/` (PlayCanvas), or `references/three.js/`. Slices within a tier may be parallelizable; the agent should still process them in the order listed unless an explicit dependency note says otherwise.
@@ -101,20 +108,6 @@ The MVP track (task-2001 through task-2030) shipped successfully — completion 
 All roadmap task entries cite at least one specific reference file under `references/bevy`, `references/engine` (PlayCanvas), or `references/three.js`. The agent MUST read the cited references before writing implementation code (see `agent/WAKE.md` §4).
 
 ## Ready Tasks — Pipeline Maturity Roadmap
-
-### task-3001 — Worker transport proof of the render snapshot
-
-Category: `runtime-orchestration`
-Package/write-scope: `examples/worker-cube.html`, `examples/worker-cube.main.js`, `examples/worker-cube.worker.js`, `test/e2e/worker-cube.spec.ts`, possibly `packages/runtime/src/`.
-Reference anchor: `references/three.js/examples/webgl_worker_offscreencanvas.html`; `references/engine/src/framework/handlers/basis-worker.js`; `references/bevy/crates/bevy_tasks/src/lib.rs`.
-Insertion point: `packages/render/src/rendering/snapshot.ts` — confirm structured-clone safety of `RenderSnapshot` type while building proof.
-
-Acceptance criteria:
-
-- `examples/worker-cube.html` renders a spinning cube where ECS+extraction run in a Worker (`createSimulationApp` + `extractRenderSnapshot`) and the main thread receives the snapshot via `postMessage` and submits the frame via `createWebGpuApp`.
-- Playwright canvas readback at the center pixel changes between frames.
-- No JSON.stringify round-trip — must use structured clone directly.
-- If `postMessage` rejects any field, fix the snapshot type, don't serialize around it.
 
 ### task-3002 — Async image decode contract in the asset layer (part 1: contract)
 
@@ -214,7 +207,7 @@ Insertion point: `packages/webgpu/src/webgpu/ibl-texture-preparation.ts:55` — 
 
 Acceptance criteria:
 
-- Spinning-cube specular reflection responds to a *real* environment map (not the deterministic placeholder mip chain).
+- Spinning-cube specular reflection responds to a _real_ environment map (not the deterministic placeholder mip chain).
 - Two cubes with roughness 0.0 and 1.0 show visibly different reflection — sharp vs blurred — confirmed by Playwright pixel sampling.
 
 ### task-3010 — Real HDR env-map sample shipped through the IBL path (part 4: real env)

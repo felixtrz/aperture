@@ -1,5 +1,37 @@
 # Completed Tasks
 
+## task-3001 — Worker transport proof of the render snapshot
+
+Completed: 2026-05-20
+
+Summary:
+
+- Added `examples/worker-cube.html`, `examples/worker-cube.main.js`, and
+  `examples/worker-cube.worker.js` to run ECS authoring plus extraction in a
+  module Worker while the main thread submits the received `RenderSnapshot`
+  through the WebGPU app facade.
+- Added a worker-module route to the local examples server so module workers can
+  load Aperture package output and dependency modules through rewritten explicit
+  URLs without relying on page import maps.
+- Added Playwright coverage proving structured-cloned snapshots preserve
+  `Float32Array` transform/view buffers, avoid JSON round-tripping, produce one
+  camera view and one debug-normal mesh draw, and render changing cube pixels.
+
+References inspected:
+
+- `references/three.js/examples/webgl_worker_offscreencanvas.html`
+- `references/engine/src/framework/handlers/basis-worker.js`
+- `references/bevy/crates/bevy_tasks/src/lib.rs`
+
+Validation:
+
+- `node --check examples/worker-cube.main.js`
+- `node --check examples/worker-cube.worker.js`
+- `node --check scripts/serve-examples.mjs`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec vitest run test/scripts/serve-examples.test.mjs`
+- `pnpm exec playwright test test/e2e/worker-cube.spec.ts`
+
 ## task-2158 through task-2163 — StandardMaterial extended combined GLB texture routes
 
 Completed: 2026-05-20

@@ -393,63 +393,69 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-20 18:41 UTC</dd>
+            <dd>2026-05-20 23:14 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
-              The GLB viewer now renders extended StandardMaterial combined
-              texture routes: occlusion plus normal, metallic-roughness plus
-              emissive, alpha-blend plus normal, UV1 metallic-roughness plus
-              normal, base-color plus occlusion, and transformed base-color plus
-              emissive, plus UV1 base-color plus occlusion, transformed
-              metallic-roughness plus normal, base-color plus metallic-roughness
-              plus emissive, alpha-blend plus emissive, and UV1 base-color plus
-              emissive, transformed base-color plus metallic-roughness, UV1
-              metallic-roughness plus emissive, and alpha-mask plus
-              metallic-roughness. It also renders metallic-roughness plus normal
-              textures, UV1 base-color plus normal textures, base-color plus
-              emissive textures, and alpha-mask plus normal-map routes through
-              committed GLB samples with JSON-safe status and browser pixel
-              proof. It also renders normal maps through
-              <code>TEXCOORD_1</code>, StandardMaterial base-color textures
-              combined with <code>COLOR_0</code>, base-color plus normal
-              textures, and transformed UV1 normal maps. The GLB viewer also
-              renders compact visible status rows for material slots, decoded
-              images, unsupported features, animation, animation clips, animated
-              nodes, imported cameras, imported camera lists, live lights,
-              imported light lists, scene metadata, orbit fit, shadows, shadow
-              requests, IBL, IBL resources, draw/extraction state, imported
-              lights, primitive material resolution, primitive material-factor
-              details, material-alpha details, primitive texture slots, texture
-              handle keys, texture sampler state, texture transforms,
-              pipeline-token details, decoded-image details, unsupported-feature
-              details, mesh-draw identities, prepared-resource reuse, render
-              diagnostics, source loader state, source output summaries,
-              hierarchy transforms, replay stages, selected assets, selected
-              scenes, render-state details, and unsupported animation-channel
-              diagnostics. The latest audit confirms these status panels remain
-              JSON-safe projections of ECS, source asset, extraction, and
-              render-report data. It also proves same-origin URI texture decode
-              through the custom URL path, real-URI gallery previous/next
-              buttons, URL-persisted sample selection, and stale custom
-              image-decode clearing when switching back to committed samples.
-              The GLB viewer now includes unsupported morph-target, skinning,
-              primitive-mode, CUBICSPLINE animation, and multi-scene samples
-              that keep supported base meshes rendering while reporting
-              JSON-safe diagnostics and scene metadata. It also includes real
-              same-origin PNG/JPEG base-color, PNG normal-map, PNG emissive, PNG
-              metallic-roughness, PNG alpha-mask, and PNG occlusion URI image
-              decode, all-slot real URI texture coverage, occlusion and
-              metallic-roughness transform controls, sampler wrap controls, UV1
-              image-decode controls, alpha-mask plus emissive controls, normal
-              plus occlusion controls, alpha-blend texture, selector stress
-              coverage across real URI samples, selected-asset material-slot
-              summary counts, keyboard previous/next navigation across the real
-              URI texture gallery, rotated metallic-roughness transform,
-              transformed-vs-untransformed normal and emissive controls,
-              emissive StandardMaterial, occlusion/emissive texture, occlusion
-              texture-transform, normal transform, emissive transform,
+              The worker-cube example now proves the render snapshot can cross a
+              module Worker boundary by structured clone: ECS authoring and
+              extraction run in the Worker, the main thread submits the received
+              <code>RenderSnapshot</code> through WebGPU, and Playwright checks
+              typed-array preservation plus changing cube pixels without a
+              JSON.stringify round trip. Next up is the async image decode
+              contract in the render asset layer. The GLB viewer now renders
+              extended StandardMaterial combined texture routes: occlusion plus
+              normal, metallic-roughness plus emissive, alpha-blend plus normal,
+              UV1 metallic-roughness plus normal, base-color plus occlusion, and
+              transformed base-color plus emissive, plus UV1 base-color plus
+              occlusion, transformed metallic-roughness plus normal, base-color
+              plus metallic-roughness plus emissive, alpha-blend plus emissive,
+              and UV1 base-color plus emissive, transformed base-color plus
+              metallic-roughness, UV1 metallic-roughness plus emissive, and
+              alpha-mask plus metallic-roughness. It also renders
+              metallic-roughness plus normal textures, UV1 base-color plus
+              normal textures, base-color plus emissive textures, and alpha-mask
+              plus normal-map routes through committed GLB samples with
+              JSON-safe status and browser pixel proof. It also renders normal
+              maps through <code>TEXCOORD_1</code>, StandardMaterial base-color
+              textures combined with <code>COLOR_0</code>, base-color plus
+              normal textures, and transformed UV1 normal maps. The GLB viewer
+              also renders compact visible status rows for material slots,
+              decoded images, unsupported features, animation, animation clips,
+              animated nodes, imported cameras, imported camera lists, live
+              lights, imported light lists, scene metadata, orbit fit, shadows,
+              shadow requests, IBL, IBL resources, draw/extraction state,
+              imported lights, primitive material resolution, primitive
+              material-factor details, material-alpha details, primitive texture
+              slots, texture handle keys, texture sampler state, texture
+              transforms, pipeline-token details, decoded-image details,
+              unsupported-feature details, mesh-draw identities,
+              prepared-resource reuse, render diagnostics, source loader state,
+              source output summaries, hierarchy transforms, replay stages,
+              selected assets, selected scenes, render-state details, and
+              unsupported animation-channel diagnostics. The latest audit
+              confirms these status panels remain JSON-safe projections of ECS,
+              source asset, extraction, and render-report data. It also proves
+              same-origin URI texture decode through the custom URL path,
+              real-URI gallery previous/next buttons, URL-persisted sample
+              selection, and stale custom image-decode clearing when switching
+              back to committed samples. The GLB viewer now includes unsupported
+              morph-target, skinning, primitive-mode, CUBICSPLINE animation, and
+              multi-scene samples that keep supported base meshes rendering
+              while reporting JSON-safe diagnostics and scene metadata. It also
+              includes real same-origin PNG/JPEG base-color, PNG normal-map, PNG
+              emissive, PNG metallic-roughness, PNG alpha-mask, and PNG
+              occlusion URI image decode, all-slot real URI texture coverage,
+              occlusion and metallic-roughness transform controls, sampler wrap
+              controls, UV1 image-decode controls, alpha-mask plus emissive
+              controls, normal plus occlusion controls, alpha-blend texture,
+              selector stress coverage across real URI samples, selected-asset
+              material-slot summary counts, keyboard previous/next navigation
+              across the real URI texture gallery, rotated metallic-roughness
+              transform, transformed-vs-untransformed normal and emissive
+              controls, emissive StandardMaterial, occlusion/emissive texture,
+              occlusion texture-transform, normal transform, emissive transform,
               alpha-mask, sampler-state texture, texture-transform, missing-UV1,
               supported base-color UV1, metallic-roughness UV1, and normal-scale
               samples with routed material, texture, sampler, transform/control,
@@ -1306,13 +1312,14 @@
                 <div class="label">examples/e2e</div>
                 <h3>browser proof points</h3>
               </div>
-              <span class="percent">70%</span>
+              <span class="percent">72%</span>
             </div>
-            <div class="bar"><span style="width: 70%"></span></div>
+            <div class="bar"><span style="width: 72%"></span></div>
             <p>
-              Spinning cube, material showcase, GLTF scene, GLB viewer,
-              diagnostics, queue phases, and WebGPU readback examples have
-              Playwright coverage, including lit GLB viewer material-family
+              Spinning cube, material showcase, GLTF scene, GLB viewer, worker
+              cube, diagnostics, queue phases, and WebGPU readback examples have
+              Playwright coverage, including structured-cloned Worker snapshots
+              with preserved typed arrays, lit GLB viewer material-family
               routing, animation playback, multi-primitive replay, hierarchy
               transforms, combined IBL/shadow sampling, and a shadow-darkened
               GLB viewer receiver floor with IBL-enabled pixel comparison. GLB
@@ -1334,12 +1341,13 @@
                 <div class="label">future tracks</div>
                 <h3>worker, XR, physics</h3>
               </div>
-              <span class="percent">8%</span>
+              <span class="percent">10%</span>
             </div>
-            <div class="bar"><span style="width: 8%"></span></div>
+            <div class="bar"><span style="width: 10%"></span></div>
             <p>
-              Architecture preserves the boundary, but worker simulation, WebXR,
-              physics, animation, and editor tooling are not active yet.
+              The first Worker snapshot proof is active, while full worker
+              scheduling, WebXR, physics, animation, and editor tooling remain
+              future tracks.
             </p>
           </article>
         </div>
@@ -1362,17 +1370,18 @@
           <article class="phase">
             <div class="topline">
               <h3>1. extract</h3>
-              <span class="percent">78%</span>
+              <span class="percent">82%</span>
             </div>
-            <div class="bar"><span style="width: 78%"></span></div>
+            <div class="bar"><span style="width: 82%"></span></div>
             <p>
               ECS state produces serializable render snapshots with draw, view,
               light, environment, shadow request, bounds, and diagnostic
-              packets.
+              packets, now proven across a module Worker structured-clone
+              boundary.
             </p>
             <ul>
               <li>Missing richer visibility/culling explanations.</li>
-              <li>Missing snapshot diffing and worker transport validation.</li>
+              <li>Missing snapshot diffing and delta extraction.</li>
               <li>
                 Missing multi-view render-target coverage beyond current
                 foundations.
@@ -3728,17 +3737,16 @@
             <h3>Recommended next tasks</h3>
             <ul>
               <li>
-                <span class="badge amber">next</span> Add a UV1 base-color plus
-                occlusion-texture GLB viewer sample.
+                <span class="badge amber">next</span> Add the async image decode
+                contract in the render asset layer.
               </li>
               <li>
-                Verify both texture bindings declare <code>texCoord = 1</code>,
-                the mesh provides <code>TEXCOORD_1</code>, and the pipeline key
-                includes <code>uv1</code>.
+                Add <code>loadGltfTextureAsync(source)</code> while keeping the
+                existing synchronous resolver path compatible.
               </li>
               <li>
-                Check JSON-safe texture-slot status, visible UV1 pixels against
-                UV0/scalar controls, and WebGPU validation cleanliness.
+                Cover a base64 PNG bufferView decode and keep the result
+                compatible with the asset registry state follow-up.
               </li>
             </ul>
           </article>
@@ -3751,6 +3759,18 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3001</div>
+            <div>
+              <strong>Worker render snapshots are browser-proven.</strong>
+              <span
+                >The worker-cube example runs ECS and extraction in a module
+                Worker, structured-clones the raw <code>RenderSnapshot</code> to
+                the main thread, and submits changing cube pixels through
+                WebGPU.</span
+              >
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-2158-2163</div>
             <div>
