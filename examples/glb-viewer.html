@@ -44,6 +44,15 @@
           <span>asset</span>
           <select id="glb-asset-select" aria-label="GLB sample asset"></select>
         </label>
+        <label
+          id="glb-scene-select-row"
+          class="asset-select-row"
+          for="glb-scene-select"
+          hidden
+        >
+          <span>scene</span>
+          <select id="glb-scene-select" aria-label="GLB scene"></select>
+        </label>
         <div
           id="glb-selected-asset-summary"
           class="selected-asset-summary"
@@ -173,6 +182,16 @@
           aria-label="Render state summary"
         ></div>
         <div
+          id="glb-pipeline-token-summary"
+          class="pipeline-token-summary"
+          aria-label="Pipeline token summary"
+        ></div>
+        <div
+          id="glb-mesh-draw-summary"
+          class="mesh-draw-summary"
+          aria-label="Mesh draw summary"
+        ></div>
+        <div
           id="glb-prepared-resource-reuse-summary"
           class="prepared-resource-reuse-summary"
           aria-label="Prepared resource reuse summary"
@@ -216,6 +235,11 @@
           id="glb-primitive-texture-slot-summary"
           class="primitive-texture-slot-summary"
           aria-label="Primitive texture slot summary"
+        ></div>
+        <div
+          id="glb-texture-handle-summary"
+          class="texture-handle-summary"
+          aria-label="Texture handle summary"
         ></div>
         <div
           id="glb-texture-sampler-summary"

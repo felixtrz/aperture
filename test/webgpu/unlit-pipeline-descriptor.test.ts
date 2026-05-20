@@ -22,6 +22,12 @@ const TEXTURED_BATCH_KEY: BatchCompatibilityKey = {
   materialKey: "material:textured",
 };
 
+const VERTEX_COLOR_BATCH_KEY: BatchCompatibilityKey = {
+  ...BATCH_KEY,
+  meshLayoutKey: "POSITION,NORMAL,TEXCOORD_0,COLOR_0",
+  materialKey: "material:vertex-color",
+};
+
 describe("unlit pipeline descriptor planning", () => {
   it("creates descriptor-like data and a cache key for the MVP unlit pipeline", () => {
     const result = createUnlitPipelineDescriptorPlan({
@@ -125,6 +131,48 @@ describe("unlit pipeline descriptor planning", () => {
         ],
       },
       batch: TEXTURED_BATCH_KEY,
+    });
+  });
+
+  it("selects a vertex-color shader variant from the mesh layout", () => {
+    const factorOnly = createUnlitPipelineDescriptorPlan({
+      colorFormat: "bgra8unorm",
+      batchKey: BATCH_KEY,
+    });
+    const vertexColor = createUnlitPipelineDescriptorPlan({
+      colorFormat: "bgra8unorm",
+      batchKey: VERTEX_COLOR_BATCH_KEY,
+    });
+
+    expect(vertexColor.diagnostics).toEqual([]);
+    expect(vertexColor.plan?.descriptor).toMatchObject({
+      label: "aperture/unlit-mesh-vertex-color:bgra8unorm:triangle-list",
+      vertex: {
+        moduleLabel: "aperture/unlit-mesh-vertex-color",
+        buffers: ["POSITION", "NORMAL", "TEXCOORD_0", "COLOR_0"],
+      },
+      fragment: { moduleLabel: "aperture/unlit-mesh-vertex-color" },
+    });
+    expect(required(vertexColor.plan).cacheKey).not.toBe(
+      required(factorOnly.plan).cacheKey,
+    );
+    expect(
+      JSON.parse(required(vertexColor.plan).cacheKey) as unknown,
+    ).toMatchObject({
+      shader: {
+        label: "aperture/unlit-mesh-vertex-color",
+        family: "unlit",
+        variantKey: "vertexColor",
+      },
+      layouts: {
+        vertex: "POSITION,NORMAL,TEXCOORD_0,COLOR_0",
+        bindGroups: [
+          "unlit/group-0:view-uniform@0",
+          "unlit/group-1:world-transforms@0",
+          "unlit/group-2:material@0",
+        ],
+      },
+      batch: VERTEX_COLOR_BATCH_KEY,
     });
   });
 

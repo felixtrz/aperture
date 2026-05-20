@@ -3,6 +3,7 @@ import type { BatchCompatibilityKey } from "@aperture-engine/render";
 import {
   UNLIT_MESH_SHADER,
   UNLIT_TEXTURED_MESH_SHADER,
+  UNLIT_VERTEX_COLOR_MESH_SHADER,
   validateBuiltInShaderMetadata,
   type BuiltInShaderSourceModule,
 } from "./unlit-shader.js";
@@ -20,6 +21,7 @@ import {
 } from "./material-render-state.js";
 
 export const UNLIT_BASE_COLOR_TEXTURE_FEATURE = "baseColorTexture";
+export const UNLIT_VERTEX_COLOR_FEATURE = "vertexColor";
 
 export type UnlitPipelineDescriptorDiagnosticCode =
   | "unlitPipeline.missingShaderMetadata"
@@ -108,9 +110,7 @@ export function createUnlitPipelineDescriptorPlan(
   const keyInput: WebGpuRenderPipelineCacheKeyInput = {
     shaderLabel: shader.label,
     shaderFamily: "unlit",
-    shaderVariantKey: hasBaseColorTextureFeature(batchKey)
-      ? UNLIT_BASE_COLOR_TEXTURE_FEATURE
-      : "baseColorFactor",
+    shaderVariantKey: unlitShaderVariantKey(batchKey),
     colorFormats: [input.colorFormat],
     depthFormat: input.depthFormat ?? null,
     stencilFormat: null,
@@ -141,7 +141,7 @@ export function createUnlitPipelineDescriptorPlan(
     vertex: {
       moduleLabel: shader.label,
       entryPoint: shader.entryPoints.vertex,
-      buffers: ["POSITION", "NORMAL", "TEXCOORD_0"],
+      buffers: unlitVertexBufferSemantics(batchKey),
     },
     fragment: {
       moduleLabel: shader.label,
@@ -197,9 +197,44 @@ export function resolveUnlitShaderForBatchKey(
     return shader;
   }
 
-  return hasBaseColorTextureFeature(batchKey)
-    ? UNLIT_TEXTURED_MESH_SHADER
-    : UNLIT_MESH_SHADER;
+  if (hasBaseColorTextureFeature(batchKey)) {
+    return UNLIT_TEXTURED_MESH_SHADER;
+  }
+
+  if (hasUnlitVertexColorFeature(batchKey)) {
+    return UNLIT_VERTEX_COLOR_MESH_SHADER;
+  }
+
+  return UNLIT_MESH_SHADER;
+}
+
+export function hasUnlitVertexColorFeature(
+  batchKey: Partial<BatchCompatibilityKey> | null,
+): boolean {
+  return (
+    typeof batchKey?.meshLayoutKey === "string" &&
+    batchKey.meshLayoutKey.split(",").includes("COLOR_0")
+  );
+}
+
+function unlitShaderVariantKey(
+  batchKey: Partial<BatchCompatibilityKey> | null,
+): string {
+  if (hasBaseColorTextureFeature(batchKey)) {
+    return UNLIT_BASE_COLOR_TEXTURE_FEATURE;
+  }
+
+  return hasUnlitVertexColorFeature(batchKey)
+    ? UNLIT_VERTEX_COLOR_FEATURE
+    : "baseColorFactor";
+}
+
+function unlitVertexBufferSemantics(
+  batchKey: Partial<BatchCompatibilityKey> | null,
+): readonly string[] {
+  return hasUnlitVertexColorFeature(batchKey)
+    ? ["POSITION", "NORMAL", "TEXCOORD_0", "COLOR_0"]
+    : ["POSITION", "NORMAL", "TEXCOORD_0"];
 }
 
 function hasBaseColorTextureFeature(

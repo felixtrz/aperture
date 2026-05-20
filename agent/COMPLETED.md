@@ -22524,3 +22524,123 @@ Validation:
 
 - `pnpm exec tsc --noEmit -p tsconfig.test.json`
 - `pnpm exec playwright test test/e2e/glb-viewer.spec.ts -g "switches real URI texture"`
+
+## task-2135 through task-2139 — GLB viewer detail status rows
+
+Completed: 2026-05-20
+
+Summary:
+
+- Added visible texture handle-key rows for texture-backed primitive material
+  slots, showing slot, texture key, sampler key, and texCoord from existing
+  JSON-safe primitive material status.
+- Added visible pipeline-token rows by parsing per-primitive pipeline keys into
+  family, feature, alpha, cull, depth, and blend tokens.
+- Expanded decoded-image rows to include image index and source kind, and added
+  JSON-safe buffer-view image metadata for the embedded-texture sample without
+  exposing raw image bytes.
+- Expanded unsupported-feature rows to show diagnostic code, severity, and
+  compact detail text.
+- Added mesh-draw identity rows from extracted render-state data with render
+  ID, mesh key, material key, queue, and pipeline key.
+
+Validation:
+
+- `node --check examples/glb-viewer.js`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts --grep "texture handle-key rows"`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts --grep "texture handle-key rows|pipeline-token detail rows"`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts --grep "decoded-image summary rows"`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts --grep "unsupported-feature summary rows"`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts --grep "mesh-draw identity rows"`
+
+## task-2140 — GLB viewer status-panel boundary audit
+
+Completed: 2026-05-20
+
+Summary:
+
+- Added
+  `docs/research/GLB_VIEWER_STATUS_PANEL_DETAIL_ROWS_AUDIT_2026_05_20.md`.
+- Confirmed the expanded status panels remain projections of ECS, source asset,
+  extraction, and JSON-safe render report data.
+- Confirmed no raw image bytes, source buffers, GPU handles, mutable renderer
+  state, or hidden scene graph path were exposed.
+- Recommended shifting the next visible work back to rendered glTF scene
+  fidelity rather than continuing status-row expansion.
+
+Validation:
+
+- Documentation audit backed by the focused GLB viewer checks for `task-2135`
+  through `task-2139`.
+
+## task-2141 — GLB viewer selected-scene replay control
+
+Completed: 2026-05-20
+
+Summary:
+
+- Added a visible scene selector to `examples/glb-viewer.html` for GLB assets
+  that declare more than one glTF scene.
+- Changing the selector reloads the current asset with the requested
+  `sceneIndex`, destroys the previous replayed ECS scene, and replays the new
+  scene through the existing command-plan path.
+- The GLB viewer status now marks the selected glTF scene from the import
+  report instead of always treating the default scene as selected, and the
+  selector hides for single-scene assets.
+
+Validation:
+
+- `node --check examples/glb-viewer.js`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm run check:progress`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts --grep "selected scenes through ECS replay"`
+
+## task-2142 — External glTF JSON plus BIN viewer loading
+
+Completed: 2026-05-20
+
+Summary:
+
+- Added a no-fetch glTF source-loader facade and `loadGltfFromUri(...)` public
+  URI loader that fetches `.gltf` JSON plus same-origin external `.bin` buffers
+  without using the GLB container parser.
+- Passed resolved external buffer byte lengths into glTF accessor validation so
+  external buffers validate as first-class source data instead of unresolved
+  placeholders.
+- Added a committed `external-cube.gltf` plus `external-cube.bin` sample and
+  routed it through the GLB viewer's existing source asset registration, ECS
+  command-plan replay, extraction, and WebGPU draw path.
+
+Validation:
+
+- `node --check examples/glb-viewer.js`
+- `pnpm run build`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec vitest run test/assets/gltf-uri-loader.test.ts test/assets/glb-uri-loader.test.ts`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts --grep "external glTF JSON plus BIN"`
+
+## task-2143 — GLB vertex colors through unlit built-in material
+
+Completed: 2026-05-20
+
+Summary:
+
+- Added `COLOR_0` to the glTF primitive mapping, accessor validation, and mesh
+  asset construction path so decoded float32x4 vertex colors are preserved in
+  the interleaved mesh stream.
+- Added an unlit WebGPU vertex-color shader variant and matching 48-byte vertex
+  buffer layout selected from the extracted mesh layout key, keeping the route
+  driven by mesh attributes rather than renderer-owned source material state.
+- Added `examples/assets/vertex-color-quad.glb`, a GLB viewer sample using
+  per-vertex colors, plus JSON-safe mesh-attribute and mesh-layout status.
+- Added Playwright coverage proving distinct vertex-colored pixels and
+  JSON-safe mesh/material/render-state status for the sample.
+
+Validation:
+
+- `node --check examples/glb-viewer.js`
+- `pnpm exec vitest run test/assets/gltf-mesh-asset-construction.test.ts test/webgpu/unlit-pipeline.test.ts test/webgpu/unlit-pipeline-descriptor.test.ts`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts --grep "vertex colors"`
+- `pnpm run build`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`

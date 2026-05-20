@@ -438,6 +438,7 @@ function createMeshReports(options: GltfReportDrivenImportOptions): {
   const accessorValidation = validateGltfPrimitiveAccessorReferences({
     root: options.root,
     primitiveReport: meshPrimitive,
+    ...resolvedExternalBufferByteLengths(options),
   });
   const accessorDecoding = decodeGltfPrimitiveAccessors({
     validationReport: accessorValidation,
@@ -453,6 +454,32 @@ function createMeshReports(options: GltfReportDrivenImportOptions): {
     accessorDecoding,
     meshConstruction,
   };
+}
+
+function resolvedExternalBufferByteLengths(
+  options: GltfReportDrivenImportOptions,
+): { readonly externalBufferByteLengths?: ReadonlyMap<number, number> } {
+  if (!isRecord(options.root) || !Array.isArray(options.root.buffers)) {
+    return {};
+  }
+
+  const byteLengths = new Map<number, number>();
+
+  for (const [bufferIndex, buffer] of options.root.buffers.entries()) {
+    if (!isRecord(buffer) || typeof buffer.uri !== "string") {
+      continue;
+    }
+
+    const bytes = options.resolveBufferBytes?.(bufferIndex) ?? null;
+
+    if (bytes !== null) {
+      byteLengths.set(bufferIndex, byteLengthOf(bytes));
+    }
+  }
+
+  return byteLengths.size === 0
+    ? {}
+    : { externalBufferByteLengths: byteLengths };
 }
 
 function resolveGlbBufferBytes(
@@ -533,6 +560,10 @@ function createGlbBufferSourceDiagnostics(
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+
+function byteLengthOf(bytes: ArrayBuffer | ArrayBufferView): number {
+  return bytes instanceof ArrayBuffer ? bytes.byteLength : bytes.byteLength;
 }
 
 export function gltfReportDrivenImportReportToJson(

@@ -143,6 +143,34 @@ describe("glTF mesh source asset construction", () => {
     ]);
   });
 
+  it("preserves decoded COLOR_0 attributes for vertex-colored glTF meshes", () => {
+    const decodedReport = decodedFixture({
+      positions: new Float32Array([0, 0, 0, 1, 0, 0, 0, 1, 0]),
+      normals: new Float32Array([0, 0, 1, 0, 0, 1, 0, 0, 1]),
+      texcoords: new Float32Array([0, 0, 1, 0, 0, 1]),
+      colors: new Float32Array([1, 0, 0, 1, 0, 1, 0, 1, 0, 0, 1, 1]),
+      indices: new Uint16Array([0, 1, 2]),
+    });
+    const report = createMeshAssetsFromGltfDecodedAccessors({ decodedReport });
+    const stream = report.meshes[0]?.mesh?.vertexStreams[0];
+
+    expect(report.valid).toBe(true);
+    expect(stream).toMatchObject({
+      arrayStride: 48,
+      vertexCount: 3,
+      attributes: [
+        { semantic: "POSITION", format: "float32x3", offset: 0 },
+        { semantic: "NORMAL", format: "float32x3", offset: 12 },
+        { semantic: "TEXCOORD_0", format: "float32x2", offset: 24 },
+        { semantic: "COLOR_0", format: "float32x4", offset: 32 },
+      ],
+    });
+    expect(Array.from(stream?.data ?? [])).toEqual([
+      0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 1, 0,
+      1, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1,
+    ]);
+  });
+
   it("reports mismatched optional attribute counts", () => {
     const decodedReport = decodedFixture({
       positions: new Float32Array([0, 0, 0, 1, 0, 0]),
@@ -168,6 +196,7 @@ function decodedFixture(input: {
   readonly texcoords?: Float32Array;
   readonly texcoords1?: Float32Array;
   readonly tangents?: Float32Array;
+  readonly colors?: Float32Array;
   readonly indices?: Uint16Array;
 }): GltfAccessorDecodingReport {
   return {
@@ -252,6 +281,25 @@ function decodedFixture(input: {
                   expectedFormat: "float32x2" as const,
                   itemSize: 2,
                   array: input.texcoords1,
+                },
+              ]),
+          ...(input.colors === undefined
+            ? []
+            : [
+                {
+                  semantic: "COLOR_0" as const,
+                  accessorIndex: 5,
+                  bufferIndex: 0,
+                  sourceByteOffset:
+                    input.positions.byteLength +
+                    (input.normals?.byteLength ?? 0) +
+                    (input.texcoords?.byteLength ?? 0) +
+                    (input.tangents?.byteLength ?? 0) +
+                    (input.texcoords1?.byteLength ?? 0),
+                  sourceByteLength: input.colors.byteLength,
+                  expectedFormat: "float32x4" as const,
+                  itemSize: 4,
+                  array: input.colors,
                 },
               ]),
         ],

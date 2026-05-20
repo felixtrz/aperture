@@ -30,7 +30,8 @@ export type GltfMeshPrimitiveAttributeSemantic =
   | "NORMAL"
   | "TEXCOORD_0"
   | "TEXCOORD_1"
-  | "TANGENT";
+  | "TANGENT"
+  | "COLOR_0";
 
 export interface GltfMeshPrimitiveMappingDiagnostic {
   readonly layer: GltfMeshPrimitiveMappingLayer;
@@ -69,6 +70,7 @@ export interface GltfMeshPrimitiveAttributeReferences {
   readonly texcoord0?: GltfMeshPrimitiveAttributeReference;
   readonly texcoord1?: GltfMeshPrimitiveAttributeReference;
   readonly tangent?: GltfMeshPrimitiveAttributeReference;
+  readonly color0?: GltfMeshPrimitiveAttributeReference;
 }
 
 export interface GltfMeshPrimitiveIndexReference {
@@ -412,6 +414,7 @@ function mapAttributes(input: {
   const texcoord0 = mapAttributeReference(input, attributes, "TEXCOORD_0");
   const texcoord1 = mapAttributeReference(input, attributes, "TEXCOORD_1");
   const tangent = mapAttributeReference(input, attributes, "TANGENT");
+  const color0 = mapAttributeReference(input, attributes, "COLOR_0");
   const hasOptionalAttributeError = input.diagnostics.some(
     (diagnostic) =>
       diagnostic.severity === "error" &&
@@ -420,7 +423,8 @@ function mapAttributes(input: {
       (diagnostic.attribute === "NORMAL" ||
         diagnostic.attribute === "TEXCOORD_0" ||
         diagnostic.attribute === "TEXCOORD_1" ||
-        diagnostic.attribute === "TANGENT"),
+        diagnostic.attribute === "TANGENT" ||
+        diagnostic.attribute === "COLOR_0"),
   );
   if (hasOptionalAttributeError) {
     return null;
@@ -432,6 +436,7 @@ function mapAttributes(input: {
     ...(texcoord0 === null ? {} : { texcoord0 }),
     ...(texcoord1 === null ? {} : { texcoord1 }),
     ...(tangent === null ? {} : { tangent }),
+    ...(color0 === null ? {} : { color0 }),
   };
 }
 

@@ -59,7 +59,7 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start with `task-2135`: add GLB viewer texture handle-key detail rows.
+Start with `task-2144`: generate or route tangents for missing-tangent normal maps.
 
 `task-2001` is complete: the spinning-cube example now creates a renderer-owned face-colored diffuse IBL cube texture and sampler, routes it through the StandardMaterial diffuse IBL shader variant, and Playwright verifies direction-dependent face pixels.
 `task-2002` is complete: `withEnvironmentMap(handle)` is exported from runtime/core and materials-showcase now uses it with visible diffuse IBL routing.
@@ -2196,6 +2196,8 @@ Acceptance criteria:
 
 ### task-2135 — Add GLB viewer texture handle-key detail rows
 
+Status: completed 2026-05-20. See `agent/COMPLETED.md`.
+
 Category: `runtime-orchestration`
 Package/write-scope: `examples/glb-viewer.html`, `examples/glb-viewer.js`,
 `examples/styles.css`, `test/e2e/glb-viewer.spec.ts`.
@@ -2214,6 +2216,8 @@ Acceptance criteria:
   row clearing on scalar-only cube.
 
 ### task-2136 — Add GLB viewer pipeline-token detail rows
+
+Status: completed 2026-05-20. See `agent/COMPLETED.md`.
 
 Category: `runtime-orchestration`
 Package/write-scope: `examples/glb-viewer.html`, `examples/glb-viewer.js`,
@@ -2234,6 +2238,8 @@ Acceptance criteria:
 
 ### task-2137 — Add GLB viewer decoded-image detail rows
 
+Status: completed 2026-05-20. See `agent/COMPLETED.md`.
+
 Category: `runtime-orchestration`
 Package/write-scope: `examples/glb-viewer.html`, `examples/glb-viewer.js`,
 `examples/styles.css`, `test/e2e/glb-viewer.spec.ts`.
@@ -2251,6 +2257,8 @@ Acceptance criteria:
   scalar-only asset with no decoded images.
 
 ### task-2138 — Add GLB viewer unsupported-feature detail rows
+
+Status: completed 2026-05-20. See `agent/COMPLETED.md`.
 
 Category: `runtime-orchestration`
 Package/write-scope: `examples/glb-viewer.html`, `examples/glb-viewer.js`,
@@ -2271,6 +2279,8 @@ Acceptance criteria:
 
 ### task-2139 — Add GLB viewer mesh-draw identity rows
 
+Status: completed 2026-05-20. See `agent/COMPLETED.md`.
+
 Category: `runtime-orchestration`
 Package/write-scope: `examples/glb-viewer.html`, `examples/glb-viewer.js`,
 `examples/styles.css`, `test/e2e/glb-viewer.spec.ts`.
@@ -2288,6 +2298,8 @@ Acceptance criteria:
 
 ### task-2140 — Audit GLB viewer status-panel boundary after detail rows
 
+Status: completed 2026-05-20. See `agent/COMPLETED.md`.
+
 Category: `audit-refactor`
 Package/write-scope: `docs/research`, backlog/handoff only unless a tiny
 corrective UI/test change is required.
@@ -2303,6 +2315,100 @@ Acceptance criteria:
   mutable renderer state, or a hidden scene graph.
 - Recommend whether to continue detail-row UI work or shift back to a rendered
   glTF scene fidelity slice.
+
+### task-2141 — Add GLB viewer selected-scene replay control
+
+Status: completed 2026-05-20. See `agent/COMPLETED.md`.
+
+Category: `runtime-orchestration`
+Package/write-scope: `examples/glb-viewer.html`, `examples/glb-viewer.js`,
+`test/e2e/glb-viewer.spec.ts`.
+Reference anchor: `references/three.js/examples/jsm/loaders/GLTFLoader.js`;
+`references/bevy/crates/bevy_gltf/src/loader/gltf_ext/scene.rs`.
+
+Acceptance criteria:
+
+- The GLB viewer shows a scene selector for GLB assets with more than one glTF
+  scene and hides or disables it for single-scene assets.
+- Changing the selected scene destroys the previous replayed ECS scene and
+  replays only the newly selected glTF scene through the existing command-plan
+  path.
+- Playwright verifies the committed multi-scene sample switches visible pixels,
+  selected-scene status, and extracted draw counts without WebGPU warnings.
+
+### task-2142 — Render a committed external `.gltf` scene in GLB viewer
+
+Status: completed 2026-05-20. See `agent/COMPLETED.md`.
+
+Category: `render-bridge`
+Package/write-scope: `packages/render/src/assets`, `examples/assets`,
+`examples/glb-viewer.js`, `test/e2e/glb-viewer.spec.ts`.
+Reference anchor: `references/three.js/examples/jsm/loaders/GLTFLoader.js`;
+`references/bevy/crates/bevy_gltf/src/loader/mod.rs`.
+
+Acceptance criteria:
+
+- A public loader path can fetch a simple same-origin `.gltf` JSON file plus
+  its external `.bin` buffer without using the GLB container parser.
+- The GLB viewer includes a committed external-gltf sample that registers and
+  replays through the same ECS asset/material path as current GLB samples.
+- Playwright verifies visible rendered pixels, JSON-safe source-loader status,
+  and no raw fetched buffer exposure.
+
+### task-2143 — Render GLB vertex colors through a built-in material
+
+Status: completed 2026-05-20. See `agent/COMPLETED.md`.
+
+Category: `webgpu-render`
+Package/write-scope: `packages/render/src/assets`, `packages/webgpu/src`,
+`examples/assets`, `examples/glb-viewer.js`, `test/e2e/glb-viewer.spec.ts`.
+Reference anchor: `references/three.js/examples/jsm/loaders/GLTFLoader.js`;
+`references/bevy/crates/bevy_pbr/src/render/mesh.rs`.
+
+Acceptance criteria:
+
+- GLB mesh construction preserves a `COLOR_0` vertex attribute for a committed
+  sample with per-vertex color variation.
+- The selected built-in material route consumes vertex color data without adding
+  renderer-owned source material state.
+- Playwright verifies distinct vertex-colored pixels and JSON-safe mesh/material
+  status for the sample.
+
+### task-2144 — Generate or route tangents for missing-tangent normal maps
+
+Category: `render-bridge`
+Package/write-scope: `packages/render/src/assets`, `packages/webgpu/src`,
+`examples/assets`, `examples/glb-viewer.js`, `test/e2e/glb-viewer.spec.ts`.
+Reference anchor: `references/bevy/crates/bevy_gltf/src/loader/gltf_ext/material.rs`;
+`references/three.js/examples/jsm/loaders/GLTFLoader.js`.
+
+Acceptance criteria:
+
+- A committed normal-mapped GLB sample without authored `TANGENT` data renders
+  without silently dropping the normal texture.
+- The implementation either generates renderer-independent tangent attributes
+  during mesh construction or reports and tests a deliberate derivative-tangent
+  shader path.
+- Playwright verifies the normal-mapped region differs from a scalar/flat
+  control region and status explains the tangent path used.
+
+### task-2145 — Add GLB viewer imported-camera selection
+
+Category: `runtime-orchestration`
+Package/write-scope: `examples/assets`, `examples/glb-viewer.html`,
+`examples/glb-viewer.js`, `test/e2e/glb-viewer.spec.ts`.
+Reference anchor: `references/three.js/examples/jsm/loaders/GLTFLoader.js`;
+`references/bevy/crates/bevy_gltf/src/loader/mod.rs`.
+
+Acceptance criteria:
+
+- The GLB viewer includes a committed sample with at least two supported
+  perspective cameras.
+- The viewer exposes a compact imported-camera selector that switches the
+  ECS-authored camera transform/projection without bypassing the existing
+  imported-camera toggle.
+- Playwright verifies selected-camera status and a visible pixel/framing change
+  between cameras.
 
 ## Ready Tasks By Category
 

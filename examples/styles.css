@@ -83,6 +83,10 @@ body {
   font-size: 13px;
 }
 
+.asset-select-row[hidden] {
+  display: none;
+}
+
 .asset-select-row span {
   color: #9ca8b7;
 }
@@ -213,6 +217,8 @@ body {
 .ibl-resource-summary,
 .draw-summary,
 .render-state-summary,
+.pipeline-token-summary,
+.mesh-draw-summary,
 .prepared-resource-reuse-summary,
 .render-diagnostic-summary,
 .extraction-diagnostic-summary,
@@ -222,6 +228,7 @@ body {
 .material-factor-summary,
 .material-alpha-summary,
 .primitive-texture-slot-summary,
+.texture-handle-summary,
 .texture-sampler-summary,
 .texture-transform-summary,
 .source-loader-summary,
@@ -255,6 +262,8 @@ body {
 .ibl-resource-summary[hidden],
 .draw-summary[hidden],
 .render-state-summary[hidden],
+.pipeline-token-summary[hidden],
+.mesh-draw-summary[hidden],
 .prepared-resource-reuse-summary[hidden],
 .render-diagnostic-summary[hidden],
 .extraction-diagnostic-summary[hidden],
@@ -264,6 +273,7 @@ body {
 .material-factor-summary[hidden],
 .material-alpha-summary[hidden],
 .primitive-texture-slot-summary[hidden],
+.texture-handle-summary[hidden],
 .texture-sampler-summary[hidden],
 .texture-transform-summary[hidden],
 .source-loader-summary[hidden],
@@ -294,6 +304,8 @@ body {
 .ibl-resource-summary-row,
 .draw-summary-row,
 .render-state-summary-row,
+.pipeline-token-summary-row,
+.mesh-draw-summary-row,
 .prepared-resource-reuse-summary-row,
 .render-diagnostic-summary-row,
 .extraction-diagnostic-summary-row,
@@ -303,6 +315,7 @@ body {
 .material-factor-summary-row,
 .material-alpha-summary-row,
 .primitive-texture-slot-summary-row,
+.texture-handle-summary-row,
 .texture-sampler-summary-row,
 .texture-transform-summary-row,
 .source-loader-summary-row,
@@ -336,6 +349,8 @@ body {
 .ibl-resource-summary-row span,
 .draw-summary-row span,
 .render-state-summary-row span,
+.pipeline-token-summary-row span,
+.mesh-draw-summary-row span,
 .prepared-resource-reuse-summary-row span,
 .render-diagnostic-summary-row span,
 .extraction-diagnostic-summary-row span,
@@ -345,6 +360,7 @@ body {
 .material-factor-summary-row span,
 .material-alpha-summary-row span,
 .primitive-texture-slot-summary-row span,
+.texture-handle-summary-row span,
 .texture-sampler-summary-row span,
 .texture-transform-summary-row span,
 .source-loader-summary-row span,
@@ -375,6 +391,8 @@ body {
 .ibl-resource-summary-row strong,
 .draw-summary-row strong,
 .render-state-summary-row strong,
+.pipeline-token-summary-row strong,
+.mesh-draw-summary-row strong,
 .prepared-resource-reuse-summary-row strong,
 .render-diagnostic-summary-row strong,
 .extraction-diagnostic-summary-row strong,
@@ -384,6 +402,7 @@ body {
 .material-factor-summary-row strong,
 .material-alpha-summary-row strong,
 .primitive-texture-slot-summary-row strong,
+.texture-handle-summary-row strong,
 .texture-sampler-summary-row strong,
 .texture-transform-summary-row strong,
 .source-loader-summary-row strong,

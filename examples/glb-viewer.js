@@ -1,5 +1,7 @@
 const canvas = document.querySelector("#aperture-canvas");
 const assetSelect = document.querySelector("#glb-asset-select");
+const sceneSelectRow = document.querySelector("#glb-scene-select-row");
+const sceneSelect = document.querySelector("#glb-scene-select");
 const textureGalleryPreviousButton =
   document.querySelector("#glb-gallery-prev");
 const textureGalleryNextButton = document.querySelector("#glb-gallery-next");
@@ -78,6 +80,10 @@ const drawSummaryElement = document.querySelector("#glb-draw-summary");
 const renderStateSummaryElement = document.querySelector(
   "#glb-render-state-summary",
 );
+const pipelineTokenSummaryElement = document.querySelector(
+  "#glb-pipeline-token-summary",
+);
+const meshDrawSummaryElement = document.querySelector("#glb-mesh-draw-summary");
 const preparedResourceReuseSummaryElement = document.querySelector(
   "#glb-prepared-resource-reuse-summary",
 );
@@ -104,6 +110,9 @@ const materialAlphaSummaryElement = document.querySelector(
 );
 const primitiveTextureSlotSummaryElement = document.querySelector(
   "#glb-primitive-texture-slot-summary",
+);
+const textureHandleSummaryElement = document.querySelector(
+  "#glb-texture-handle-summary",
 );
 const textureSamplerSummaryElement = document.querySelector(
   "#glb-texture-sampler-summary",
@@ -288,6 +297,19 @@ const sampleAssets = [
     id: "multi-scene",
     label: "Multi-scene",
     url: new URL("./assets/multi-scene.glb", globalThis.location.href),
+    source: "sample",
+  },
+  {
+    id: "external-gltf",
+    label: "External glTF",
+    url: new URL("./assets/external-cube.gltf", globalThis.location.href),
+    source: "sample",
+    format: "gltf",
+  },
+  {
+    id: "vertex-color",
+    label: "Vertex color",
+    url: new URL("./assets/vertex-color-quad.glb", globalThis.location.href),
     source: "sample",
   },
   {
@@ -1142,6 +1164,7 @@ function createGlbViewerScene(aperture, app, targetCanvas) {
   };
 
   setCameraResetEnabled(false);
+  updateSceneSelectControl(scene);
 
   if (assetSelect !== null) {
     for (const asset of sampleAssets) {
@@ -1157,6 +1180,17 @@ function createGlbViewerScene(aperture, app, targetCanvas) {
         scene.loadState = failure(
           "glb-viewer-load-failed",
           error instanceof Error ? error.message : "GLB asset load failed.",
+        );
+      });
+    });
+  }
+
+  if (sceneSelect instanceof HTMLSelectElement) {
+    sceneSelect.addEventListener("change", () => {
+      loadSelectedScene(aperture, app, scene).catch((error) => {
+        scene.loadState = failure(
+          "glb-viewer-scene-load-failed",
+          error instanceof Error ? error.message : "GLB scene load failed.",
         );
       });
     });
@@ -1244,6 +1278,65 @@ async function loadSampleAsset(aperture, app, scene, asset) {
   }
 
   await loadAsset(aperture, app, scene, asset);
+}
+
+async function loadSelectedScene(aperture, app, scene) {
+  if (!(sceneSelect instanceof HTMLSelectElement)) {
+    return;
+  }
+
+  const sceneIndex = Number(sceneSelect.value);
+
+  if (!Number.isInteger(sceneIndex)) {
+    return;
+  }
+
+  await loadAsset(aperture, app, scene, scene.asset, { sceneIndex });
+}
+
+function updateSceneSelectControl(scene) {
+  if (
+    !(sceneSelect instanceof HTMLSelectElement) ||
+    !(sceneSelectRow instanceof HTMLElement)
+  ) {
+    return;
+  }
+
+  sceneSelect.replaceChildren();
+  const metadata = createGltfMetadataStatus(scene.active);
+  const scenes = arrayEntries(metadata.scene?.scenes);
+
+  if (scenes.length <= 1) {
+    sceneSelect.disabled = true;
+    sceneSelectRow.hidden = true;
+    return;
+  }
+
+  sceneSelect.disabled = false;
+  sceneSelectRow.hidden = false;
+
+  for (const sceneEntry of scenes) {
+    if (!isRecord(sceneEntry) || typeof sceneEntry.sceneIndex !== "number") {
+      continue;
+    }
+
+    const option = document.createElement("option");
+    const name =
+      typeof sceneEntry.name === "string" && sceneEntry.name.length > 0
+        ? sceneEntry.name
+        : `Scene ${sceneEntry.sceneIndex}`;
+
+    option.value = String(sceneEntry.sceneIndex);
+    option.textContent =
+      sceneEntry.sceneIndex === metadata.scene.defaultSceneIndex
+        ? `${name} (default)`
+        : name;
+    sceneSelect.append(option);
+
+    if (sceneEntry.selected === true) {
+      sceneSelect.value = option.value;
+    }
+  }
 }
 
 function bindRealUriTextureGalleryKeyboard(aperture, app, scene) {
@@ -1389,9 +1482,12 @@ async function loadCustomUrlAsset(aperture, app, scene) {
   });
 }
 
-async function loadAsset(aperture, app, scene, asset) {
+async function loadAsset(aperture, app, scene, asset, options = {}) {
   const loadSequence = scene.loadSequence + 1;
   const keyPrefix = `viewer-${asset.id}-${loadSequence}`;
+  const requestedSceneIndex = Number.isInteger(options.sceneIndex)
+    ? options.sceneIndex
+    : undefined;
 
   scene.loadSequence = loadSequence;
   scene.asset = asset;
@@ -1408,16 +1504,24 @@ async function loadAsset(aperture, app, scene, asset) {
   scene.cameraControls.importedEnabled = false;
   setCameraResetEnabled(false);
   destroyActiveScene(scene);
+  updateSceneSelectControl(scene);
 
-  const loaded = await loadGlbViewerAsset(aperture, asset, keyPrefix);
-  const importReport = loaded.loader?.glbImportReport.importReport ?? null;
+  const loaded = await loadViewerSourceAsset(
+    aperture,
+    asset,
+    keyPrefix,
+    requestedSceneIndex,
+  );
+  const importReport = loadedGltfImportReport(loaded);
 
   if (scene.loadSequence !== loadSequence) {
     return;
   }
 
   if (!loaded.ok || importReport === null) {
-    throw new Error(loaded.diagnostics[0]?.message ?? "GLB did not load.");
+    throw new Error(
+      loaded.diagnostics[0]?.message ?? "glTF asset did not load.",
+    );
   }
 
   if (
@@ -1425,7 +1529,7 @@ async function loadAsset(aperture, app, scene, asset) {
     importReport.meshConstruction === null ||
     importReport.meshPrimitive === null
   ) {
-    throw new Error("GLB did not produce renderable source assets.");
+    throw new Error("glTF asset did not produce renderable source assets.");
   }
 
   const registration = aperture.registerGltfSourceAssetsFromReports({
@@ -1437,7 +1541,7 @@ async function loadAsset(aperture, app, scene, asset) {
   const meshRegistration = registration.meshRegistration;
 
   if (sourceRegistration === null || meshRegistration === null) {
-    throw new Error("GLB source registration was not produced.");
+    throw new Error("glTF source registration was not produced.");
   }
 
   const primitiveMaterials =
@@ -1457,19 +1561,19 @@ async function loadAsset(aperture, app, scene, asset) {
   });
   const animation = createGltfAnimationState({
     aperture,
-    root: loaded.loader.glbImportReport.container.container.json,
-    binary: loaded.loader.glbImportReport.container.container.binaryChunk,
+    root: loaded.root,
+    binary: loaded.binary,
     keyPrefix,
     replay,
   });
   const importedCamera = createImportedCameraState({
-    root: loaded.loader.glbImportReport.container.container.json,
+    root: loaded.root,
     keyPrefix,
     targetCanvas: scene.targetCanvas,
   });
   const importedLights = createImportedLightsState({
     aperture,
-    root: loaded.loader.glbImportReport.container.container.json,
+    root: loaded.root,
     keyPrefix,
     replay,
     enabled: importedLightControls.enabled,
@@ -1491,6 +1595,7 @@ async function loadAsset(aperture, app, scene, asset) {
   scene.active = {
     asset,
     keyPrefix,
+    sceneIndex: importReport.sceneTraversal.sceneIndex,
     loaded,
     registration,
     primitiveMaterials,
@@ -1505,6 +1610,7 @@ async function loadAsset(aperture, app, scene, asset) {
   };
   scene.loadState = null;
   setCameraResetEnabled(fit.status === "ready");
+  updateSceneSelectControl(scene);
   updateShadowControlInputs(scene);
   updateIblControlInputs(scene);
   updateImportedCameraControlInputs(scene);
@@ -1512,7 +1618,43 @@ async function loadAsset(aperture, app, scene, asset) {
   updateImportedLightControlInputs(scene);
 }
 
-async function loadGlbViewerAsset(aperture, asset, keyPrefix) {
+async function loadViewerSourceAsset(aperture, asset, keyPrefix, sceneIndex) {
+  if (asset.format === "gltf") {
+    return loadGltfViewerAsset(aperture, asset, keyPrefix, sceneIndex);
+  }
+
+  return loadGlbViewerAsset(aperture, asset, keyPrefix, sceneIndex);
+}
+
+async function loadGltfViewerAsset(aperture, asset, keyPrefix, sceneIndex) {
+  const report = await aperture.loadGltfFromUri(asset.url.href, {
+    keyPrefix,
+    createAssetMapping: true,
+    createMeshAssets: true,
+    ...(sceneIndex === undefined ? {} : { sceneIndex }),
+  });
+
+  return {
+    ok: report.ok,
+    url: report.url,
+    byteLength: report.byteLength,
+    loader: report.loader,
+    root: report.loader?.root ?? null,
+    binary: null,
+    imageDecode: emptyImageDecodeStatus(),
+    diagnostics: report.diagnostics,
+  };
+}
+
+function loadedGltfImportReport(loaded) {
+  return (
+    loaded.loader?.gltfImportReport ??
+    loaded.loader?.glbImportReport?.importReport ??
+    null
+  );
+}
+
+async function loadGlbViewerAsset(aperture, asset, keyPrefix, sceneIndex) {
   const fetched = await fetchGlbViewerSourceBytes(asset.url);
 
   if (!fetched.ok) {
@@ -1521,6 +1663,8 @@ async function loadGlbViewerAsset(aperture, asset, keyPrefix) {
       url: asset.url.href,
       byteLength: null,
       loader: null,
+      root: null,
+      binary: null,
       imageDecode: emptyImageDecodeStatus(),
       diagnostics: fetched.diagnostics,
     };
@@ -1538,6 +1682,7 @@ async function loadGlbViewerAsset(aperture, asset, keyPrefix) {
     keyPrefix,
     createAssetMapping: true,
     createMeshAssets: true,
+    ...(sceneIndex === undefined ? {} : { sceneIndex }),
     resolveImageData: createGlbViewerImageDataResolver({
       assetUrl: asset.url,
       decodedByUrl: imageDecode.decodedByUrl,
@@ -1555,6 +1700,8 @@ async function loadGlbViewerAsset(aperture, asset, keyPrefix) {
     url: asset.url.href,
     byteLength: fetched.bytes.byteLength,
     loader,
+    root: loader.glbImportReport.container.container?.json ?? null,
+    binary: loader.glbImportReport.container.container?.binaryChunk ?? null,
     imageDecode: {
       decoded: imageDecode.decoded,
       diagnostics: imageDecode.diagnostics,
@@ -1647,7 +1794,21 @@ async function decodeSameOriginImages({ root, assetUrl }) {
   const diagnostics = [];
 
   for (const [imageIndex, image] of arrayEntries(root.images).entries()) {
-    if (!isRecord(image) || typeof image.uri !== "string") {
+    if (!isRecord(image)) {
+      continue;
+    }
+
+    if (typeof image.uri !== "string") {
+      const decodedEntry = decodeFallbackBufferViewImage(
+        imageIndex,
+        image,
+        assetUrl,
+      );
+
+      if (decodedEntry !== null) {
+        decoded.push(decodedEntry);
+      }
+
       continue;
     }
 
@@ -1689,6 +1850,45 @@ async function decodeSameOriginImages({ root, assetUrl }) {
   }
 
   return { decodedByUrl, decoded, diagnostics };
+}
+
+function decodeFallbackBufferViewImage(imageIndex, image, assetUrl) {
+  if (!Number.isInteger(image.bufferView)) {
+    return null;
+  }
+
+  const bufferViewIndex = image.bufferView;
+  const mimeType =
+    typeof image.mimeType === "string" ? image.mimeType : "unknown";
+  const imageData = resolveGlbViewerFallbackImageData({
+    image,
+    source: {
+      kind: "bufferView",
+      bufferView: bufferViewIndex,
+      mimeType,
+    },
+  });
+
+  if (
+    !isRecord(imageData) ||
+    typeof imageData.width !== "number" ||
+    typeof imageData.height !== "number" ||
+    !isRecord(imageData.sourceData) ||
+    !(imageData.sourceData.bytes instanceof Uint8Array)
+  ) {
+    return null;
+  }
+
+  return {
+    imageIndex,
+    sourceKind: "buffer-view",
+    uri: `bufferView:${bufferViewIndex}`,
+    url: `${formatAssetUrl(assetUrl)}#bufferView=${bufferViewIndex}`,
+    mimeType,
+    width: imageData.width,
+    height: imageData.height,
+    byteLength: imageData.sourceData.bytes.byteLength,
+  };
 }
 
 function emptyImageDecodeStatus() {
@@ -2462,6 +2662,7 @@ async function createStatus(aperture, app, scene, step, report, frame) {
         diagnostics: active?.replay.diagnostics.length ?? 0,
       },
       metadata: createGltfMetadataStatus(active),
+      meshAttributes: createGltfMeshAttributeStatus(active),
     },
     orbit: {
       yaw: Number(scene.orbit.yaw.toFixed(4)),
@@ -2493,7 +2694,7 @@ async function createStatus(aperture, app, scene, step, report, frame) {
       report.snapshot.meshDraws,
       shadowFrame,
     ),
-    renderState: createRenderStateStatus(report.snapshot.meshDraws),
+    renderState: createRenderStateStatus(aperture, report.snapshot.meshDraws),
     draw: {
       packages: report.counts.drawPackages,
       drawCalls: reportJson.counts.drawCalls,
@@ -4485,8 +4686,7 @@ function createHierarchyStatus(aperture, active) {
   }
 
   const nodes =
-    active.loaded.loader?.glbImportReport.importReport?.sceneTraversal.nodes ??
-    [];
+    loadedGltfImportReport(active.loaded)?.sceneTraversal.nodes ?? [];
 
   return {
     nodes: nodes.map((node) => {
@@ -4584,8 +4784,9 @@ function createImportedLightsStatus(scene, snapshot) {
 
 function createGltfMetadataStatus(active) {
   const glbImportReport = active?.loaded.loader?.glbImportReport ?? null;
-  const importReport = glbImportReport?.importReport ?? null;
-  const root = glbImportReport?.container.container?.json ?? null;
+  const importReport =
+    active == null ? null : loadedGltfImportReport(active.loaded);
+  const root = active?.loaded.root ?? null;
 
   if (!isRecord(root)) {
     return {
@@ -4613,6 +4814,8 @@ function createGltfMetadataStatus(active) {
   const scenes = arrayEntries(root.scenes);
   const defaultSceneIndex =
     integerOrNull(root.scene) ?? (scenes.length > 0 ? 0 : null);
+  const selectedSceneIndex =
+    importReport?.sceneTraversal.sceneIndex ?? defaultSceneIndex;
   const extensionsUsed = stringArray(root.extensionsUsed);
   const extensionsRequired = stringArray(root.extensionsRequired);
 
@@ -4631,7 +4834,7 @@ function createGltfMetadataStatus(active) {
       scenes: scenes.map((scene, sceneIndex) => ({
         sceneIndex,
         name: nodeNameOrNull(scene),
-        selected: sceneIndex === defaultSceneIndex,
+        selected: sceneIndex === selectedSceneIndex,
         rootNodeIndices: sceneRootNodeIndices(scene),
       })),
     },
@@ -4648,6 +4851,41 @@ function createGltfMetadataStatus(active) {
       glbImportReport,
     }),
   };
+}
+
+function createGltfMeshAttributeStatus(active) {
+  const importReport =
+    active == null ? null : loadedGltfImportReport(active.loaded);
+  const meshes = importReport?.meshConstruction?.meshes ?? [];
+
+  return meshes
+    .map((mesh) => ({
+      meshIndex: mesh.meshIndex,
+      primitiveIndex: mesh.primitiveIndex,
+      handleKey: mesh.handleKey,
+      streams:
+        mesh.mesh?.vertexStreams.map((stream) => ({
+          id: stream.id,
+          arrayStride: stream.arrayStride,
+          vertexCount: stream.vertexCount,
+          attributes: stream.attributes.map((attribute) => ({
+            semantic: attribute.semantic,
+            format: attribute.format,
+            offset: attribute.offset,
+          })),
+        })) ?? [],
+      indexBuffer:
+        mesh.mesh?.indexBuffer === undefined
+          ? null
+          : {
+              format: mesh.mesh.indexBuffer.format,
+              count: mesh.mesh.indexBuffer.data.length,
+            },
+    }))
+    .sort(
+      (a, b) =>
+        a.meshIndex - b.meshIndex || a.primitiveIndex - b.primitiveIndex,
+    );
 }
 
 function sceneRootNodeIndices(scene) {
@@ -5283,10 +5521,18 @@ function samplerStatus(app, samplerHandle) {
   };
 }
 
-function createRenderStateStatus(meshDraws) {
+function createRenderStateStatus(aperture, meshDraws) {
   return {
     queues: meshDraws.map((draw) => draw.sortKey.queue),
     pipelineKeys: meshDraws.map((draw) => draw.batchKey.pipelineKey),
+    draws: meshDraws.map((draw) => ({
+      renderId: draw.renderId,
+      meshKey: aperture.assetHandleKey(draw.mesh),
+      materialKey: aperture.assetHandleKey(draw.material),
+      queue: draw.sortKey.queue,
+      pipelineKey: draw.batchKey.pipelineKey,
+      meshLayoutKey: draw.batchKey.meshLayoutKey,
+    })),
   };
 }
 
@@ -5838,6 +6084,8 @@ function publishStatus(status) {
     renderState: status.renderState,
   });
   updateRenderStateSummaryPanel(status.renderState);
+  updatePipelineTokenSummaryPanel(status.gltf?.primitiveMaterials?.resolutions);
+  updateMeshDrawSummaryPanel(status.renderState?.draws);
   updatePreparedResourceReuseSummaryPanel(status.report?.resourceReuse);
   updateRenderDiagnosticSummaryPanel(status.report?.diagnosticsSummary);
   updateExtractionDiagnosticSummaryPanel(status.extraction?.diagnosticsList);
@@ -5853,6 +6101,7 @@ function publishStatus(status) {
   updatePrimitiveTextureSlotSummaryPanel(
     status.gltf?.primitiveMaterials?.resolutions,
   );
+  updateTextureHandleSummaryPanel(status.gltf?.primitiveMaterials?.resolutions);
   updateTextureSamplerSummaryPanel(
     status.gltf?.primitiveMaterials?.resolutions,
   );
@@ -5988,8 +6237,8 @@ function updateImageDecodeSummaryPanel(decodedImages) {
     element.className = "image-decode-summary-row";
     element.dataset.imageDecodeRow = String(image.imageIndex);
     element.dataset.imageDecodeUri = image.uri;
-    label.textContent = image.uri;
-    value.textContent = `${image.mimeType}, ${image.width}x${image.height}, ${image.byteLength} bytes`;
+    label.textContent = `image ${image.imageIndex}`;
+    value.textContent = `${image.sourceKind}, ${image.uri}, ${image.mimeType}, ${image.width}x${image.height}, ${image.byteLength} bytes`;
 
     element.append(label, value);
     imageDecodeSummaryElement.append(element);
@@ -6039,7 +6288,14 @@ function createUnsupportedFeatureRows({ diagnostics, importedCamera }) {
       key: `diagnostic-${index}`,
       code: diagnostic.code,
       label: unsupportedFeatureLabel(diagnostic.code),
-      value: formatUnsupportedFeatureDiagnostic(diagnostic),
+      value: formatUnsupportedFeatureDetail({
+        code: diagnostic.code,
+        severity:
+          typeof diagnostic.severity === "string"
+            ? diagnostic.severity
+            : "warning",
+        detail: formatUnsupportedFeatureDiagnostic(diagnostic),
+      }),
     });
   }
 
@@ -6061,11 +6317,19 @@ function createUnsupportedFeatureRows({ diagnostics, importedCamera }) {
       key: `camera-${index}`,
       code: "glbViewer.unsupportedImportedCamera",
       label: "camera",
-      value: `${name}: ${projection}, ${reason}`,
+      value: formatUnsupportedFeatureDetail({
+        code: "glbViewer.unsupportedImportedCamera",
+        severity: "warning",
+        detail: `${name}: ${projection}, ${reason}`,
+      }),
     });
   }
 
   return rows;
+}
+
+function formatUnsupportedFeatureDetail({ code, severity, detail }) {
+  return `code ${code}, severity ${severity}, detail ${detail}`;
 }
 
 function unsupportedFeatureLabel(code) {
@@ -6786,6 +7050,109 @@ function uniquePipelineKeys(pipelineKeys) {
   );
 }
 
+function updatePipelineTokenSummaryPanel(resolutions) {
+  if (!(pipelineTokenSummaryElement instanceof HTMLElement)) {
+    return;
+  }
+
+  pipelineTokenSummaryElement.replaceChildren();
+
+  for (const resolution of arrayEntries(resolutions)) {
+    if (!isRecord(resolution) || typeof resolution.pipelineKey !== "string") {
+      continue;
+    }
+
+    const tokens = parsePipelineKeyTokens(resolution.pipelineKey);
+
+    if (tokens === null) {
+      continue;
+    }
+
+    const meshIndex = resolution.meshIndex ?? "?";
+    const primitiveIndex = resolution.primitiveIndex ?? "?";
+    const element = document.createElement("div");
+    const label = document.createElement("span");
+    const value = document.createElement("strong");
+
+    element.className = "pipeline-token-summary-row";
+    element.dataset.pipelineTokenRow = `${meshIndex}:${primitiveIndex}`;
+    element.dataset.pipelineTokenFamily = tokens.family;
+    label.textContent = `mesh ${meshIndex} prim ${primitiveIndex}`;
+    value.textContent = formatPipelineTokenDescriptor(tokens);
+
+    element.append(label, value);
+    pipelineTokenSummaryElement.append(element);
+  }
+
+  pipelineTokenSummaryElement.hidden =
+    pipelineTokenSummaryElement.childElementCount === 0;
+}
+
+function parsePipelineKeyTokens(pipelineKey) {
+  const parts = pipelineKey.split("|");
+
+  if (parts.length < 5) {
+    return null;
+  }
+
+  return {
+    family: parts[0],
+    features: parts.slice(1, -4),
+    alpha: parts.at(-4),
+    cull: parts.at(-3),
+    depth: parts.at(-2),
+    blend: parts.at(-1),
+  };
+}
+
+function formatPipelineTokenDescriptor(tokens) {
+  const features =
+    tokens.features.length === 0 ? "none" : tokens.features.join(",");
+
+  return `family ${tokens.family}, features ${features}, alpha ${tokens.alpha}, cull ${tokens.cull}, depth ${tokens.depth}, blend ${tokens.blend}`;
+}
+
+function updateMeshDrawSummaryPanel(draws) {
+  if (!(meshDrawSummaryElement instanceof HTMLElement)) {
+    return;
+  }
+
+  meshDrawSummaryElement.replaceChildren();
+
+  for (const draw of arrayEntries(draws)) {
+    if (!isRecord(draw) || typeof draw.renderId !== "number") {
+      continue;
+    }
+
+    const element = document.createElement("div");
+    const label = document.createElement("span");
+    const value = document.createElement("strong");
+
+    element.className = "mesh-draw-summary-row";
+    element.dataset.meshDrawRow = String(draw.renderId);
+    label.textContent = `draw ${draw.renderId}`;
+    value.textContent = formatMeshDrawDescriptor(draw);
+
+    element.append(label, value);
+    meshDrawSummaryElement.append(element);
+  }
+
+  meshDrawSummaryElement.hidden =
+    meshDrawSummaryElement.childElementCount === 0;
+}
+
+function formatMeshDrawDescriptor(draw) {
+  return `render ${formatSummaryOptionalKey(
+    draw.renderId,
+  )}, mesh ${formatSummaryOptionalKey(
+    draw.meshKey,
+  )}, material ${formatSummaryOptionalKey(
+    draw.materialKey,
+  )}, queue ${formatSummaryOptionalKey(
+    draw.queue,
+  )}, pipeline ${formatSummaryOptionalKey(draw.pipelineKey)}`;
+}
+
 const preparedResourceReuseSummaryRows = [
   {
     key: "mesh-buffers",
@@ -7353,6 +7720,56 @@ function formatPrimitiveTextureSlot(slot) {
     : "none";
 
   return `texCoord ${texCoord}, transform ${hasTransform}, sampler ${sampler}`;
+}
+
+function updateTextureHandleSummaryPanel(resolutions) {
+  if (!(textureHandleSummaryElement instanceof HTMLElement)) {
+    return;
+  }
+
+  textureHandleSummaryElement.replaceChildren();
+
+  for (const resolution of arrayEntries(resolutions)) {
+    if (!isRecord(resolution) || !isRecord(resolution.textureSlots)) {
+      continue;
+    }
+
+    for (const [slotName, slot] of Object.entries(resolution.textureSlots)) {
+      if (!isRecord(slot)) {
+        continue;
+      }
+
+      const meshIndex = resolution.meshIndex ?? "?";
+      const primitiveIndex = resolution.primitiveIndex ?? "?";
+      const element = document.createElement("div");
+      const label = document.createElement("span");
+      const value = document.createElement("strong");
+
+      element.className = "texture-handle-summary-row";
+      element.dataset.textureHandleRow = `${meshIndex}:${primitiveIndex}:${slotName}`;
+      element.dataset.textureHandleSlotName = slotName;
+      label.textContent = `mesh ${meshIndex} prim ${primitiveIndex} ${formatTextureSlotLabel(
+        slotName,
+      )}`;
+      value.textContent = formatTextureHandleDescriptor(slotName, slot);
+
+      element.append(label, value);
+      textureHandleSummaryElement.append(element);
+    }
+  }
+
+  textureHandleSummaryElement.hidden =
+    textureHandleSummaryElement.childElementCount === 0;
+}
+
+function formatTextureHandleDescriptor(slotName, slot) {
+  return `slot ${formatTextureSlotLabel(
+    slotName,
+  )}, texture ${formatSummaryOptionalKey(
+    slot.textureKey,
+  )}, sampler ${formatSummaryOptionalKey(
+    slot.samplerKey,
+  )}, texCoord ${formatSummaryOptionalKey(slot.texCoord)}`;
 }
 
 function updateTextureSamplerSummaryPanel(resolutions) {

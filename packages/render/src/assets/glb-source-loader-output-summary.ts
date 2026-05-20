@@ -1,4 +1,7 @@
-import type { GltfReportDrivenGlbImportReport } from "./gltf-report-driven-import.js";
+import type {
+  GltfReportDrivenGlbImportReport,
+  GltfReportDrivenImportReport,
+} from "./gltf-report-driven-import.js";
 import type {
   GltfEcsAuthoringCommandPlan,
   GltfEcsAuthoringComponentName,
@@ -69,6 +72,16 @@ export function createGlbSourceLoaderOutputSummaryJsonValue(
   report: GltfReportDrivenGlbImportReport,
   options: GlbSourceLoaderOutputSummaryOptions = {},
 ): GlbSourceLoaderOutputSummaryJsonValue {
+  return createGltfSourceLoaderOutputSummaryJsonValue(
+    report.importReport,
+    options,
+  );
+}
+
+export function createGltfSourceLoaderOutputSummaryJsonValue(
+  report: GltfReportDrivenImportReport | null,
+  options: GlbSourceLoaderOutputSummaryOptions = {},
+): GlbSourceLoaderOutputSummaryJsonValue {
   return {
     meshConstruction: createMeshConstructionSummary(report),
     sourceRegistration: createSourceRegistrationSummary(
@@ -82,9 +95,8 @@ export function createGlbSourceLoaderOutputSummaryJsonValue(
 }
 
 function createMeshConstructionSummary(
-  report: GltfReportDrivenGlbImportReport,
+  importReport: GltfReportDrivenImportReport | null,
 ): GlbSourceLoaderMeshConstructionSummaryJsonValue {
-  const importReport = report.importReport;
   const meshConstruction = importReport?.meshConstruction ?? null;
 
   if (meshConstruction === null) {

@@ -1,11 +1,11 @@
 {
   "state": "idle",
   "currentTaskId": null,
-  "currentRunStartedAt": null,
-  "lastRunStartedAt": "2026-05-20T12:01:53Z",
-  "lastResult": "stop-condition",
-  "lastCommit": "0525a13",
+  "currentRunStartedAt": "2026-05-20T13:03:03Z",
+  "lastRunStartedAt": "2026-05-20T13:03:03Z",
+  "lastResult": "success",
+  "lastCommit": "0fb6422",
   "activePid": null,
-  "notes": "Completed task-2130 through task-2134; ready queue was exhausted and refilled. Recommended next task is task-2135 GLB texture handle-key detail rows.",
-  "lastRunFinishedAt": "2026-05-20T12:16:31Z"
+  "notes": "Completed task-2135 through task-2143; recommended next task is task-2144 missing-tangent normal-map routing.",
+  "lastRunFinishedAt": "2026-05-20T14:00:57Z"
 }

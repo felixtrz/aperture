@@ -157,6 +157,48 @@ fn fs_main(input: VertexOutput) -> @location(0) vec4f {
 }
 `.trim();
 
+export const UNLIT_VERTEX_COLOR_MESH_WGSL = `
+struct ViewProjectionUniform {
+  viewProjection: mat4x4f,
+  cameraPosition: vec4f,
+};
+
+struct UnlitMaterialUniform {
+  baseColorFactor: vec4f,
+};
+
+struct VertexInput {
+  @location(0) position: vec3f,
+  @location(1) normal: vec3f,
+  @location(2) uv: vec2f,
+  @location(5) color: vec4f,
+  @builtin(instance_index) instanceIndex: u32,
+};
+
+struct VertexOutput {
+  @builtin(position) position: vec4f,
+  @location(0) color: vec4f,
+};
+
+@group(0) @binding(0) var<uniform> view: ViewProjectionUniform;
+@group(1) @binding(0) var<storage, read> worldTransforms: array<mat4x4f>;
+@group(2) @binding(0) var<uniform> material: UnlitMaterialUniform;
+
+@vertex
+fn vs_main(input: VertexInput) -> VertexOutput {
+  var output: VertexOutput;
+  let world = worldTransforms[input.instanceIndex];
+  output.position = view.viewProjection * world * vec4f(input.position, 1.0);
+  output.color = input.color;
+  return output;
+}
+
+@fragment
+fn fs_main(input: VertexOutput) -> @location(0) vec4f {
+  return input.color * material.baseColorFactor;
+}
+`.trim();
+
 export const UNLIT_MESH_SHADER: BuiltInShaderSourceModule = {
   label: "aperture/unlit-mesh",
   code: UNLIT_MESH_WGSL,
@@ -187,6 +229,13 @@ export const UNLIT_MESH_SHADER: BuiltInShaderSourceModule = {
       resource: "uniform-buffer",
     },
   ],
+};
+
+export const UNLIT_VERTEX_COLOR_MESH_SHADER: BuiltInShaderSourceModule = {
+  label: "aperture/unlit-mesh-vertex-color",
+  code: UNLIT_VERTEX_COLOR_MESH_WGSL,
+  entryPoints: UNLIT_MESH_SHADER.entryPoints,
+  bindings: UNLIT_MESH_SHADER.bindings,
 };
 
 export const UNLIT_TEXTURED_MESH_SHADER: BuiltInShaderSourceModule = {

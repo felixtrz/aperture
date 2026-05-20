@@ -206,6 +206,7 @@ function collectAttributes(
     "TEXCOORD_0",
     "TANGENT",
     "TEXCOORD_1",
+    "COLOR_0",
   ] as const) {
     const decoded = primitive.attributes.find(
       (attribute) => attribute.semantic === semantic,
@@ -259,7 +260,8 @@ function packAttributes(
         | "NORMAL"
         | "TEXCOORD_0"
         | "TEXCOORD_1"
-        | "TANGENT",
+        | "TANGENT"
+        | "COLOR_0",
       format:
         source.decoded.itemSize === 2
           ? "float32x2"

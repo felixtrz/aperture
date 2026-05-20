@@ -61,7 +61,11 @@ export async function loadGlbFromUri(
     });
   }
 
-  const fetcher = options.fetch ?? globalThis.fetch;
+  const fetcher =
+    options.fetch ??
+    (globalThis.fetch === undefined
+      ? undefined
+      : (requestUrl: string) => globalThis.fetch(requestUrl));
 
   if (fetcher === undefined) {
     return failure(normalizedUrl, {

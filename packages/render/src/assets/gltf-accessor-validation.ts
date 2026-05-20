@@ -222,6 +222,12 @@ function validatePrimitive(
     primitive.attributes.texcoord1,
     attributes,
   );
+  appendOptionalAttribute(
+    context,
+    primitive,
+    primitive.attributes.color0,
+    attributes,
+  );
   const indices = validateIndexReference(context, primitive, primitive.indices);
 
   const hasNewError = context.diagnostics
@@ -597,6 +603,7 @@ function expectationForSemantic(
           }
         : null;
     case "TANGENT":
+    case "COLOR_0":
       return accessor.type === "VEC4" &&
         accessor.componentType === GLTF_COMPONENT_FLOAT
         ? {

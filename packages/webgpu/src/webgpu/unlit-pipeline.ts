@@ -7,6 +7,7 @@ import {
 } from "./shader.js";
 import {
   createUnlitPipelineDescriptorPlan,
+  hasUnlitVertexColorFeature,
   resolveUnlitShaderForBatchKey,
   type UnlitPipelineDescriptorDiagnostic,
 } from "./unlit-pipeline-descriptor.js";
@@ -32,6 +33,17 @@ export const UNLIT_PRIMITIVE_VERTEX_BUFFER_LAYOUT = {
     { shaderLocation: 0, offset: 0, format: "float32x3" },
     { shaderLocation: 1, offset: 12, format: "float32x3" },
     { shaderLocation: 2, offset: 24, format: "float32x2" },
+  ],
+} as const;
+
+export const UNLIT_VERTEX_COLOR_VERTEX_BUFFER_LAYOUT = {
+  arrayStride: 48,
+  stepMode: "vertex",
+  attributes: [
+    { shaderLocation: 0, offset: 0, format: "float32x3" },
+    { shaderLocation: 1, offset: 12, format: "float32x3" },
+    { shaderLocation: 2, offset: 24, format: "float32x2" },
+    { shaderLocation: 5, offset: 32, format: "float32x4" },
   ],
 } as const;
 
@@ -198,7 +210,7 @@ export function createBrowserUnlitRenderPipelineDescriptor(
     vertex: {
       module: input.shaderModule,
       entryPoint: shader.entryPoints.vertex,
-      buffers: [UNLIT_PRIMITIVE_VERTEX_BUFFER_LAYOUT],
+      buffers: [unlitVertexBufferLayout(input.batchKey)],
     },
     fragment: {
       module: input.shaderModule,
@@ -224,6 +236,16 @@ export function createBrowserUnlitRenderPipelineDescriptor(
     ...descriptor,
     depthStencil,
   };
+}
+
+function unlitVertexBufferLayout(
+  batchKey?: BatchCompatibilityKey,
+):
+  | typeof UNLIT_PRIMITIVE_VERTEX_BUFFER_LAYOUT
+  | typeof UNLIT_VERTEX_COLOR_VERTEX_BUFFER_LAYOUT {
+  return hasUnlitVertexColorFeature(batchKey ?? null)
+    ? UNLIT_VERTEX_COLOR_VERTEX_BUFFER_LAYOUT
+    : UNLIT_PRIMITIVE_VERTEX_BUFFER_LAYOUT;
 }
 
 function mapShaderDiagnostic(

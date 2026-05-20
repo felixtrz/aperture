@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-20 12:16 UTC</dd>
+            <dd>2026-05-20 14:00 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -405,11 +405,15 @@
               fit, shadows, shadow requests, IBL, IBL resources, draw/extraction
               state, imported lights, primitive material resolution, primitive
               material-factor details, material-alpha details, primitive texture
-              slots, texture sampler state, texture transforms,
+              slots, texture handle keys, texture sampler state, texture
+              transforms, pipeline-token details, decoded-image details,
+              unsupported-feature details, mesh-draw identities,
               prepared-resource reuse, render diagnostics, source loader state,
               source output summaries, hierarchy transforms, replay stages,
               selected assets, selected scenes, render-state details, and
-              unsupported animation-channel diagnostics. It also proves
+              unsupported animation-channel diagnostics. The latest audit
+              confirms these status panels remain JSON-safe projections of ECS,
+              source asset, extraction, and render-report data. It also proves
               same-origin URI texture decode through the custom URL path,
               real-URI gallery previous/next buttons, URL-persisted sample
               selection, and stale custom image-decode clearing when switching
@@ -989,17 +993,27 @@
               resolves a bufferView-backed base-color image without publishing
               raw image bytes. Imported punctual lights now attach ECS
               <code>Light</code> components to replayed glTF node entities and
-              report declared/replayed/extracted counts. It publishes JSON-safe
-              GLB metadata counts and unsupported-feature diagnostics, supports
-              <code>?asset=</code> sample bootstrapping with invalid-ID fallback
-              diagnostics, and the StandardMaterial route now scopes material
-              bind groups by pipeline key so live route changes do not reuse
-              incompatible layouts.
+              report declared/replayed/extracted counts. The viewer now also
+              shows a scene selector for multi-scene GLB assets and replays the
+              requested glTF scene through the existing ECS command-plan path.
+              The viewer can now also load a committed external
+              <code>.gltf</code> JSON file with a same-origin external
+              <code>.bin</code> buffer through the same source registration, ECS
+              replay, extraction, and WebGPU draw path as the GLB samples. It
+              now also renders a committed vertex-color GLB sample through an
+              unlit built-in shader variant selected from the extracted
+              <code>COLOR_0</code> mesh layout, with JSON-safe mesh attribute
+              and material route status. It publishes JSON-safe GLB metadata
+              counts and unsupported-feature diagnostics, supports
+              <code>?asset=</code>
+              sample bootstrapping with invalid-ID fallback diagnostics, and the
+              StandardMaterial route now scopes material bind groups by pipeline
+              key so live route changes do not reuse incompatible layouts.
             </dd>
             <dt>Next focus</dt>
             <dd>
-              Add GLB viewer texture handle-key detail rows from existing
-              JSON-safe primitive texture-slot status
+              Generate or route tangents for normal-mapped GLB assets that omit
+              authored tangent data
             </dd>
           </dl>
         </aside>
@@ -1584,6 +1598,31 @@
             <h3>Latest work in this update</h3>
             <ul>
               <li>
+                <span class="badge green">task-2143</span> Added
+                <code>COLOR_0</code> glTF mesh preservation, an unlit
+                vertex-color WebGPU shader route, and a committed vertex-color
+                GLB viewer sample with JSON-safe mesh/material status and
+                distinct browser pixels.
+              </li>
+              <li>
+                <span class="badge green">task-2142</span> Added a public glTF
+                URI loader for same-origin external JSON plus BIN files and a
+                committed externalized cube sample that renders through the GLB
+                viewer ECS replay path.
+              </li>
+              <li>
+                <span class="badge green">task-2141</span> Added a GLB viewer
+                scene selector for multi-scene assets that reloads the current
+                asset with the requested glTF scene index, replays it through
+                ECS, and hides for single-scene assets.
+              </li>
+              <li>
+                <span class="badge green">task-2135-2140</span> Added GLB viewer
+                texture handle-key, pipeline-token, decoded-image detail,
+                unsupported-feature detail, and mesh-draw identity rows, then
+                audited the expanded status-panel boundary.
+              </li>
+              <li>
                 <span class="badge green">task-2130-2134</span> Added GLB viewer
                 texture-sampler, texture-transform, material-alpha,
                 prepared-resource reuse, and render-diagnostics section rows
@@ -1615,9 +1654,9 @@
               </li>
               <li>
                 <span class="badge green">backlog</span> Refilled the next
-                visible status-panel tasks around texture handle keys, pipeline
-                tokens, decoded-image details, unsupported-feature details, and
-                mesh-draw identity rows.
+                visible queue with rendered glTF fidelity tasks: selected-scene
+                replay, external <code>.gltf</code> loading, vertex colors,
+                missing-tangent normal maps, and imported-camera selection.
               </li>
               <li>
                 <span class="badge green">task-2091</span> Added a Playwright

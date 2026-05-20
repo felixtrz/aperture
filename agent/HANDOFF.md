@@ -1,6 +1,136 @@
 # Agent Handoff
 
-Updated: 2026-05-20T12:16:31Z
+Updated: 2026-05-20T14:00:57Z
+
+## Current Run Update — 2026-05-20T14:00:57Z — GLB viewer detail rows, scene selection, external glTF, and vertex colors
+
+Completed `task-2135` through `task-2143`.
+
+### What changed
+
+- Added visible GLB viewer texture handle-key rows for texture-backed primitive
+  material slots: slot, texture key, sampler key, and texCoord.
+- Added per-primitive pipeline-token rows by parsing JSON-safe pipeline keys
+  into material family, feature tokens, alpha, cull, depth, and blend tokens.
+- Expanded decoded-image rows to include image index and source kind, and
+  published JSON-safe buffer-view decoded metadata for the embedded-texture
+  sample without exposing raw bytes.
+- Expanded unsupported-feature rows to show diagnostic code, severity, and
+  compact detail text.
+- Added mesh-draw identity rows from extracted render-state data: render ID,
+  mesh key, material key, queue, and pipeline key.
+- Added
+  `docs/research/GLB_VIEWER_STATUS_PANEL_DETAIL_ROWS_AUDIT_2026_05_20.md`,
+  confirming the expanded panels remain JSON-safe projections and recommending
+  the next work shift back to rendered glTF scene fidelity.
+- Added a GLB viewer scene selector for multi-scene assets. Changing the
+  selector reloads the current asset with the requested glTF `sceneIndex`,
+  destroys the previous replayed ECS scene, replays the selected scene through
+  the existing command-plan path, and updates selected-scene metadata.
+- Added a public `.gltf` URI loader path for same-origin external JSON plus
+  `.bin` buffers, backed by the existing report-driven glTF import path instead
+  of the GLB container parser.
+- Added a committed externalized cube `.gltf` plus `.bin` sample to the GLB
+  viewer and routed it through source registration, ECS replay, extraction, and
+  WebGPU rendering with JSON-safe source-loader status.
+- Added `COLOR_0` to the glTF primitive mapping, validation, and mesh asset
+  construction path so float32x4 vertex colors are preserved in the interleaved
+  mesh stream.
+- Added an unlit WebGPU vertex-color shader variant and matching 48-byte vertex
+  buffer layout selected from the extracted mesh layout key, keeping vertex
+  colors driven by mesh attributes rather than renderer-owned source material
+  state.
+- Added `examples/assets/vertex-color-quad.glb` and a GLB viewer sample that
+  publishes JSON-safe mesh-attribute/material/render-state status and renders
+  distinct vertex-colored pixels in Playwright.
+- Refilled the ready queue with visible glTF fidelity tasks. Recommended next
+  task is `task-2144 — Generate or route tangents for missing-tangent normal maps`.
+
+### Files touched
+
+- `agent/BACKLOG.md`
+- `agent/COMPLETED.md`
+- `agent/HANDOFF.md`
+- `agent/STATUS.json`
+- `docs/index.html`
+- `docs/research/GLB_VIEWER_STATUS_PANEL_DETAIL_ROWS_AUDIT_2026_05_20.md`
+- `examples/glb-viewer.html`
+- `examples/glb-viewer.js`
+- `examples/assets/external-cube.bin`
+- `examples/assets/external-cube.gltf`
+- `examples/assets/vertex-color-quad.glb`
+- `examples/styles.css`
+- `packages/render/src/assets/glb-source-loader-output-summary.ts`
+- `packages/render/src/assets/glb-uri-loader.ts`
+- `packages/render/src/assets/gltf-accessor-validation.ts`
+- `packages/render/src/assets/gltf-mesh-asset-construction.ts`
+- `packages/render/src/assets/gltf-mesh-primitive.ts`
+- `packages/render/src/assets/gltf-report-driven-import.ts`
+- `packages/render/src/assets/gltf-source-loader-facade.ts`
+- `packages/render/src/assets/gltf-uri-loader.ts`
+- `packages/render/src/assets/index.ts`
+- `packages/webgpu/src/webgpu/unlit-pipeline-descriptor.ts`
+- `packages/webgpu/src/webgpu/unlit-pipeline.ts`
+- `packages/webgpu/src/webgpu/unlit-shader.ts`
+- `test/assets/gltf-mesh-asset-construction.test.ts`
+- `test/assets/gltf-uri-loader.test.ts`
+- `test/e2e/glb-viewer.spec.ts`
+- `test/webgpu/unlit-pipeline-descriptor.test.ts`
+- `test/webgpu/unlit-pipeline.test.ts`
+
+### References inspected
+
+- `docs/NORTH_STAR.md`
+- `docs/ARCHITECTURE.md`
+- `docs/DECISIONS.md`
+- `references/bevy/crates/bevy_gltf/src/loader/gltf_ext/material.rs`
+- `references/bevy/crates/bevy_gltf/src/loader/gltf_ext/scene.rs`
+- `references/bevy/crates/bevy_gltf/src/loader/mod.rs`
+- `references/bevy/crates/bevy_pbr/src/render/mesh.rs`
+- `references/bevy/crates/bevy_render/src/extract_component.rs`
+- `references/bevy/crates/bevy_render/src/diagnostic/mod.rs`
+- `references/three.js/examples/jsm/loaders/GLTFLoader.js`
+- `references/engine/src/scene/renderer/renderer.js`
+
+### Validation
+
+- `node --check examples/glb-viewer.js`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm run check:progress`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts --grep "texture handle-key rows|pipeline-token detail rows|decoded-image summary rows|unsupported-feature summary rows|mesh-draw identity rows"` (5 passed)
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts --grep "selected scenes through ECS replay"` (1 passed)
+- `pnpm exec vitest run test/assets/gltf-uri-loader.test.ts test/assets/glb-uri-loader.test.ts` (2 files, 5 tests passed)
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts --grep "external glTF JSON plus BIN"` (1 passed)
+- `pnpm exec vitest run test/assets/gltf-mesh-asset-construction.test.ts test/webgpu/unlit-pipeline.test.ts test/webgpu/unlit-pipeline-descriptor.test.ts` (3 files, 16 tests passed)
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts --grep "vertex colors"` (1 passed)
+- `pnpm run build`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm run check:progress`
+- `pnpm run check` (package boundaries, progress tracker, build/typecheck,
+  test typecheck, example syntax, lint, format check, and `pnpm test`; 318
+  files and 1487 tests passed)
+- Attempted an in-app Browser visual check against the local examples server,
+  but the MCP Chrome profile was already locked by another process. The local
+  server was stopped afterward; the focused headed Playwright WebGPU test
+  remains the browser validation for this slice.
+
+### Known issues
+
+- No known regressions from these status-panel slices.
+- The GLB viewer status panel is now very dense. Continue with rendered glTF
+  scene fidelity unless a specific rendering failure needs another inspection
+  row.
+- The new `.gltf` URI loader intentionally supports same-origin external
+  buffer files for this slice. Data URI and cross-origin buffer support remain
+  blocked with typed diagnostics.
+- The vertex-color shader route currently covers unlit scalar base-color
+  material factors. Textured vertex-color modulation remains a future material
+  fidelity extension; textured meshes with `COLOR_0` still use the larger
+  vertex layout so their position/normal/UV offsets remain correct.
+
+### Recommended next task
+
+`task-2144 — Generate or route tangents for missing-tangent normal maps`.
 
 ## Current Run Update — 2026-05-20T12:16:31Z — GLB viewer texture/resource diagnostics rows
 
