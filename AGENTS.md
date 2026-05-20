@@ -110,7 +110,11 @@ When committing mid-run:
 
 The configured stop hook is a final safety net: it validates, checkpoints any
 remaining uncommitted changes, and pushes the current branch to its configured
-upstream. It is not the only point at which commits may be made.
+upstream. It is not the only point at which commits may be made. The repository
+stop hook enforces the same 50-minute default work window. If a different window
+is intentionally configured with `STOP_HOOK_WORK_WINDOW_MINUTES`, update
+`AGENTS.md`, `agent/WAKE.md`, and `scripts/STOP_HOOK_PROMPT.md` in the same
+change.
 
 Before stopping, first check the elapsed run time:
 
@@ -127,7 +131,9 @@ When performing the end-of-run review:
 6. Add new backlog items if needed.
 7. Recommend the next task.
 8. Update `agent/HANDOFF.md`.
-9. Ensure `agent/STATUS.json` is not left in `running` state.
+9. Run `pnpm run agent:finalize -- --result success --notes "<run summary>"`.
+   Use `failure`, `blocked`, or `stop-condition` instead of `success` when that
+   matches the handoff.
 
 The configured stop hook checkpoints any remaining uncommitted repository
 changes and pushes the current branch to its configured upstream. A failed push

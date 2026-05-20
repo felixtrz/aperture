@@ -16,6 +16,7 @@ exec 3>&1
 exec >>"$LOG_FILE" 2>&1
 
 failures=0
+failure_messages=()
 
 emit_success() {
   printf '{"continue":true}\n' >&3
@@ -26,8 +27,29 @@ emit_continue_request() {
   node -e 'console.log(JSON.stringify({ decision: "block", reason: process.argv[1] }))' "$reason" >&3
 }
 
+emit_failure_request() {
+  local details=""
+
+  for message in "${failure_messages[@]}"; do
+    if [[ -n "$details" ]]; then
+      details="$details; $message"
+    else
+      details="$message"
+    fi
+  done
+
+  if [[ -n "$details" ]]; then
+    emit_continue_request "Aperture stop hook found $failures issue(s): $details. Read $LOG_FILE, fix straightforward failures, and update the handoff before stopping."
+  else
+    emit_continue_request "Aperture stop hook found $failures issue(s). Read $LOG_FILE, fix straightforward failures, and update the handoff before stopping."
+  fi
+}
+
 fail() {
-  echo "ERROR: $*"
+  local message="$*"
+
+  echo "ERROR: $message"
+  failure_messages+=("$message")
   failures=$((failures + 1))
 }
 
@@ -124,7 +146,7 @@ echo "Log file: $LOG_FILE"
 work_window_minutes="${STOP_HOOK_WORK_WINDOW_MINUTES:-50}"
 echo "Stop gate work window: $work_window_minutes minute(s)"
 
-stop_gate_reason="$(WORK_WINDOW_MINUTES="$work_window_minutes" node <<'NODE'
+stop_gate_result="$(WORK_WINDOW_MINUTES="$work_window_minutes" node <<'NODE'
 const fs = require("node:fs");
 
 const statusPath = "agent/STATUS.json";
@@ -135,32 +157,54 @@ const stopConditionResult =
   status.lastResult === "blocked" || status.lastResult === "stop-condition";
 
 if (stopConditionResult) {
-  console.log(`stopCondition=${status.lastResult}`);
+  console.log(
+    JSON.stringify({ status: "stop-condition", result: status.lastResult }),
+  );
   process.exit(0);
 }
 
 if (typeof startedAt !== "string" || Number.isNaN(workWindowMinutes)) {
+  console.log(
+    JSON.stringify({
+      status: "skipped",
+      reason: "missing start timestamp or invalid work window",
+    }),
+  );
   process.exit(0);
 }
 
 const startedMs = Date.parse(startedAt);
 
 if (!Number.isFinite(startedMs)) {
+  console.log(
+    JSON.stringify({
+      status: "skipped",
+      reason: `invalid start timestamp: ${startedAt}`,
+    }),
+  );
   process.exit(0);
 }
 
 const elapsedMinutes = (Date.now() - startedMs) / 60000;
 const readyTaskCount = countReadyTasks("agent/BACKLOG.md");
+const gate = {
+  status:
+    elapsedMinutes < workWindowMinutes && readyTaskCount > 0 ? "blocked" : "ok",
+  elapsedMinutes: roundTenth(elapsedMinutes),
+  workWindowMinutes: roundTenth(workWindowMinutes),
+  remainingMinutes: roundTenth(Math.max(0, workWindowMinutes - elapsedMinutes)),
+  readyTaskCount,
+  startedAt,
+};
 
-console.log(
-  `elapsed=${elapsedMinutes.toFixed(1)} readyTasks=${readyTaskCount}`,
-);
+console.log(JSON.stringify(gate));
 
-if (elapsedMinutes < workWindowMinutes && readyTaskCount > 0) {
-  console.error(
-    `BLOCK: elapsed ${elapsedMinutes.toFixed(1)}m is below ${workWindowMinutes}m with ${readyTaskCount} ready task(s) remaining`,
-  );
+if (gate.status === "blocked") {
   process.exit(2);
+}
+
+function roundTenth(value) {
+  return Math.round(value * 10) / 10;
 }
 
 function countReadyTasks(backlogPath) {
@@ -190,13 +234,27 @@ NODE
 )"
 stop_gate_status=$?
 
-if [[ -n "$stop_gate_reason" ]]; then
-  echo "Stop gate: $stop_gate_reason"
+if [[ -n "$stop_gate_result" ]]; then
+  stop_gate_summary="$(node -e '
+const gate = JSON.parse(process.argv[1]);
+if (gate.status === "ok" || gate.status === "blocked") {
+  console.log(`elapsed=${gate.elapsedMinutes} required=${gate.workWindowMinutes} remaining=${gate.remainingMinutes} readyTasks=${gate.readyTaskCount}`);
+} else if (gate.status === "stop-condition") {
+  console.log(`stopCondition=${gate.result}`);
+} else {
+  console.log(`${gate.status}: ${gate.reason}`);
+}
+' "$stop_gate_result")"
+  echo "Stop gate: $stop_gate_summary"
 fi
 
 if ((stop_gate_status == 2)); then
   echo "Blocking stop attempt before elapsed work window is exhausted."
-  emit_continue_request "elapsed work window is not exhausted; do not wait, sleep, poll, or idle. Continue active repository work on the next coherent ready task until the work window is actually exhausted. It is OK if that work runs past the window; agent/STATUS.json and handoff state will block overlapping automation runs."
+  stop_gate_block_reason="$(node -e '
+const gate = JSON.parse(process.argv[1]);
+console.log(`Work window not exhausted: elapsed ${gate.elapsedMinutes}m of required ${gate.workWindowMinutes}m (${gate.remainingMinutes}m remaining), and ${gate.readyTaskCount} ready task(s) remain. Continue active repository work on the next coherent ready task; do not wait, sleep, poll, or idle. If a different window is intended, set STOP_HOOK_WORK_WINDOW_MINUTES and update AGENTS.md plus agent/WAKE.md to match.`);
+' "$stop_gate_result")"
+  emit_continue_request "$stop_gate_block_reason"
   exit 0
 elif ((stop_gate_status != 0)); then
   fail "stop gate elapsed-time check failed"
@@ -222,19 +280,44 @@ for file in "${required_files[@]}"; do
   fi
 done
 
-if ! node <<'NODE'; then
+if ! status_check_output="$(node <<'NODE'
 const fs = require("node:fs");
 
 const statusPath = "agent/STATUS.json";
 const status = JSON.parse(fs.readFileSync(statusPath, "utf8"));
 const readyTaskCount = countReadyTasks("agent/BACKLOG.md");
+const problems = [];
 
 if (status.state === "running") {
-  throw new Error(`${statusPath} is still in running state`);
+  problems.push(`${statusPath} state is "running"; expected "idle" before stopping`);
+} else if (status.state !== "idle") {
+  problems.push(`${statusPath} state is "${status.state}"; expected "idle" before stopping`);
 }
 
 if (status.activePid !== null) {
-  throw new Error(`${statusPath} still has activePid=${status.activePid}`);
+  problems.push(`${statusPath} activePid is ${status.activePid}; expected null`);
+}
+
+if (
+  status.currentRunStartedAt !== null &&
+  status.currentRunStartedAt !== undefined
+) {
+  problems.push(
+    `${statusPath} currentRunStartedAt is ${status.currentRunStartedAt}; expected null`,
+  );
+}
+
+if (status.currentTaskId !== null && status.currentTaskId !== undefined) {
+  problems.push(
+    `${statusPath} currentTaskId is ${status.currentTaskId}; expected null`,
+  );
+}
+
+if (problems.length > 0) {
+  console.log(
+    `${problems.join("; ")}. Run: pnpm run agent:finalize -- --result success --notes "completed <task or run summary>"`,
+  );
+  process.exit(1);
 }
 
 console.log(`Agent status: ${status.state}; lastResult: ${status.lastResult}`);
@@ -264,7 +347,11 @@ function countReadyTasks(backlogPath) {
   return count;
 }
 NODE
-  fail "agent/STATUS.json is invalid or not finalized"
+)"; then
+  echo "$status_check_output"
+  fail "$status_check_output"
+else
+  echo "$status_check_output"
 fi
 
 if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
@@ -288,7 +375,7 @@ fi
 
 if ((failures > 0)); then
   echo "Aperture stop hook failed with $failures issue(s)."
-  emit_continue_request "Aperture stop hook found $failures issue(s). Read $LOG_FILE, fix straightforward failures, and update the handoff before stopping."
+  emit_failure_request
   exit 0
 fi
 
@@ -300,7 +387,7 @@ fi
 
 if ((failures > 0)); then
   echo "Aperture stop hook failed with $failures issue(s)."
-  emit_continue_request "Aperture stop hook found $failures issue(s). Read $LOG_FILE, fix straightforward failures, and update the handoff before stopping."
+  emit_failure_request
   exit 0
 fi
 

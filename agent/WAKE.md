@@ -53,7 +53,7 @@ Task categories:
 - `docs-tooling`: docs, scripts, tests, validation, agent workflow.
 - `audit-refactor`: architecture drift checks and small corrective refactors.
 
-This run has a 50-minute work window. Completing one task before the 50-minute mark is not a reason to stop.
+This run has a 50-minute work window. Completing one task before the 50-minute mark is not a reason to stop. The stop hook enforces this same 50-minute default through `STOP_HOOK_WORK_WINDOW_MINUTES`; if that value changes, update this file, `AGENTS.md`, and `scripts/STOP_HOOK_PROMPT.md` together.
 
 A task is one vertical slice sized to fill the 50-minute window with real implementation. A vertical slice ends in a user-visible change: new pixels in an example, a new public API surface a library user would call, a removed limitation, a deleted file or feature flag, or a measurable benchmark delta.
 
@@ -182,6 +182,7 @@ Before stopping:
 - Update docs if architecture changed.
 - Add a decision record if a significant decision was made.
 - Verify the ready queue still meets the §9 composition rule (≥3 visible-feature, ≤1 plan, ≤1 audit, 0 tracker-alignment, Recommended Next Task is visible-feature, every visible-feature task has a `Reference anchor:` line). If not, fix it before stopping.
+- Finalize `agent/STATUS.json` with `pnpm run agent:finalize -- --result success --notes "<run summary>"`. Use `failure`, `blocked`, or `stop-condition` instead of `success` when that matches the handoff.
 
 ## 9. Backlog Refill
 
@@ -262,12 +263,14 @@ Bad tasks:
 Before returning your final response, run:
 
 ```bash
+pnpm run agent:finalize -- --result success --notes "<run summary>"
 scripts/codex-stop-hook.sh
 ```
 
-The stop hook validates required state, checkpoints any remaining uncommitted
-changes, and pushes the current branch to its configured upstream. If the push
-fails, treat that as a stop-hook failure and document/fix it before stopping.
+The finalizer clears active run fields in `agent/STATUS.json`. The stop hook
+then validates required state, checkpoints all repository changes, and pushes
+the current branch to its configured upstream. If the push fails, treat that as
+a stop-hook failure and document/fix it before stopping.
 
 If it returns a continuation request or records failures in `agent/logs`, address the failures if straightforward, update the handoff, and run it again.
 

@@ -6,6 +6,6 @@
   "lastResult": "success",
   "lastCommit": null,
   "activePid": null,
-  "notes": "Completed task-2164 through task-2171; recommended next task is task-2172 base-color plus occlusion plus normal-texture GLB viewer sample.",
-  "lastRunFinishedAt": "2026-05-20T18:57:00Z"
+  "notes": "Added agent status finalizer and clearer stop-hook diagnostics.",
+  "lastRunFinishedAt": "2026-05-20T19:13:28Z"
 }

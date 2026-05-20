@@ -59,6 +59,7 @@ cat > "$STATUS_FILE" <<EOF
 {
   "state": "running",
   "currentTaskId": "auto",
+  "currentRunStartedAt": "$RUN_STARTED_AT",
   "lastRunStartedAt": "$RUN_STARTED_AT",
   "lastRunFinishedAt": null,
   "lastResult": "in_progress",
@@ -80,6 +81,7 @@ if [[ "$CODEX_EXIT" -ne 0 ]]; then
 {
   "state": "idle",
   "currentTaskId": null,
+  "currentRunStartedAt": null,
   "lastRunStartedAt": "$RUN_STARTED_AT",
   "lastRunFinishedAt": "$(now)",
   "lastResult": "failure",
@@ -116,6 +118,7 @@ cat > "$STATUS_FILE" <<EOF
 {
   "state": "idle",
   "currentTaskId": null,
+  "currentRunStartedAt": null,
   "lastRunStartedAt": "$RUN_STARTED_AT",
   "lastRunFinishedAt": "$(now)",
   "lastResult": "success",

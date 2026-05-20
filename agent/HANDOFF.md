@@ -1,6 +1,61 @@
 # Agent Handoff
 
-Updated: 2026-05-20T18:50:30Z
+Updated: 2026-05-20T19:12:52Z
+
+## Current Run Update — 2026-05-20T19:11:10Z — Stop-hook status finalization and diagnostics
+
+Completed a user-requested docs/tooling fix after the stop-hook false-positive
+review.
+
+### What changed
+
+- Added `pnpm run agent:finalize`, backed by
+  `scripts/finalize-agent-status.mjs`, to finalize `agent/STATUS.json` before
+  running the stop hook. It sets `state` to `idle`, clears active run fields,
+  updates `lastRunFinishedAt`, and records a final `lastResult`.
+- Updated the stop hook to report exact elapsed/required/remaining work-window
+  minutes when the continuation gate blocks a stop.
+- Updated stop-hook status validation to name the exact invalid
+  `agent/STATUS.json` fields and include the `agent:finalize` command in the
+  rejection message.
+- Aligned agent instructions around the 50-minute default window and the new
+  finalizer command.
+
+### Files touched
+
+- `AGENTS.md`
+- `agent/HANDOFF.md`
+- `agent/WAKE.md`
+- `package.json`
+- `scripts/STOP_HOOK_PROMPT.md`
+- `scripts/codex-stop-hook.sh`
+- `scripts/codex_next_task_sh.md`
+- `scripts/finalize-agent-status.mjs`
+- `test/tooling/finalize-agent-status.test.mjs`
+
+### References inspected
+
+- Pure docs/tooling change; no external engine reference was needed.
+
+### Validation
+
+- `pnpm exec prettier --write AGENTS.md agent/WAKE.md scripts/STOP_HOOK_PROMPT.md scripts/codex_next_task_sh.md scripts/finalize-agent-status.mjs test/tooling/finalize-agent-status.test.mjs package.json`
+- `pnpm exec vitest run test/tooling/finalize-agent-status.test.mjs`
+- `bash -n scripts/codex-stop-hook.sh`
+- `node --check scripts/finalize-agent-status.mjs`
+- `STOP_HOOK_WORK_WINDOW_MINUTES=999 scripts/codex-stop-hook.sh`
+- `pnpm run lint`
+- `pnpm run format:check`
+- `pnpm run build`
+- `pnpm run agent:finalize -- --result success --notes "Added agent status finalizer and clearer stop-hook diagnostics."`
+
+### Known issues
+
+- None known before final stop-hook validation.
+
+### Recommended next task
+
+`task-2172 — Add base-color plus occlusion plus normal-texture GLB viewer sample`.
 
 ## Current Run Update — 2026-05-20T18:50:30Z — StandardMaterial UV1 and alpha/emissive fixture coverage
 

@@ -6,7 +6,7 @@ You must perform a final repository state evaluation and update the agent docs.
 
 ## Continuation Gate
 
-Before performing final stop updates, check elapsed time for this run using `agent/STATUS.json.lastRunStartedAt` when available, otherwise the best available run-start time from the current session.
+Before performing final stop updates, check elapsed time for this run using `agent/STATUS.json.lastRunStartedAt` when available, otherwise the best available run-start time from the current session. The default work window is 50 minutes; if `STOP_HOOK_WORK_WINDOW_MINUTES` intentionally changes that value, update this file, `AGENTS.md`, and `agent/WAKE.md` together.
 
 If all of the following are true, do not stop yet:
 
@@ -54,11 +54,16 @@ Update `agent/COMPLETED.md`:
 - Include date if available.
 - Include validation result.
 
-Update `agent/STATUS.json`:
+Finalize `agent/STATUS.json` after the handoff/backlog/completed docs are current:
 
-- Ensure state is not `running`.
-- Set `lastResult` to success, failure, or blocked.
-- Clear `activePid`.
+```bash
+pnpm run agent:finalize -- --result success --notes "<run summary>"
+```
+
+Use `failure`, `blocked`, or `stop-condition` instead of `success` when that
+matches the handoff. The finalizer sets `state` to `idle`, clears
+`currentTaskId`, `currentRunStartedAt`, and `activePid`, updates
+`lastRunFinishedAt`, and records the chosen `lastResult`.
 
 ## Backlog Refill Policy
 
