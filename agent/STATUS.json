@@ -1,11 +1,11 @@
 {
   "state": "idle",
-  "currentTaskId": "task-2036",
+  "currentTaskId": "task-2044",
   "currentRunStartedAt": null,
-  "lastRunStartedAt": "2026-05-20T02:03:19Z",
-  "lastResult": "stop-condition",
+  "lastRunStartedAt": "2026-05-20T03:02:49Z",
+  "lastResult": "completed",
   "lastCommit": "7c2754c",
   "activePid": null,
-  "notes": "Completed task-2031 through task-2035: live GLB viewer shadow/IBL/animation controls, metadata status, sample query bootstrap, and pipeline-scoped StandardMaterial bind group reuse. Refilled visible backlog; recommended next is task-2036 roughness/IBL comparison sample.",
-  "lastRunFinishedAt": "2026-05-20T02:39:03Z"
+  "notes": "Completed task-2036 through task-2043: GLB viewer material-fidelity samples and animation speed, clip, loop, and reverse controls. Recommended next: task-2044.",
+  "lastRunFinishedAt": "2026-05-20T03:57:56Z"
 }

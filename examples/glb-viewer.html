@@ -89,6 +89,29 @@
           class="runtime-controls glb-animation-controls"
           aria-label="Animation"
         >
+          <label>
+            <select id="glb-animation-clip" aria-label="Animation clip">
+              <option value="0">clip</option>
+            </select>
+            <span>clip</span>
+          </label>
+          <label>
+            <select id="glb-animation-loop" aria-label="Animation loop mode">
+              <option value="repeat">repeat</option>
+              <option value="once">once</option>
+            </select>
+            <span>loop</span>
+          </label>
+          <label>
+            <select
+              id="glb-animation-direction"
+              aria-label="Animation playback direction"
+            >
+              <option value="forward">forward</option>
+              <option value="reverse">reverse</option>
+            </select>
+            <span>dir</span>
+          </label>
           <button id="glb-animation-toggle" type="button">pause</button>
           <label>
             <input
@@ -101,6 +124,18 @@
               aria-label="Animation scrub time"
             />
             <span>scrub</span>
+          </label>
+          <label>
+            <input
+              id="glb-animation-speed"
+              type="range"
+              min="0"
+              max="2"
+              step="0.25"
+              value="1"
+              aria-label="Animation playback speed"
+            />
+            <span>speed</span>
           </label>
         </div>
         <div class="light-control-grid" aria-label="Lighting">

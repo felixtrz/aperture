@@ -1,6 +1,90 @@
 # Agent Handoff
 
-Updated: 2026-05-20T02:28:30Z
+Updated: 2026-05-20T03:57:56Z
+
+## Current Run Update — 2026-05-20T03:57:56Z — GLB viewer material fidelity and animation controls
+
+Completed `task-2036`, `task-2037`, `task-2038`, `task-2039`, `task-2040`,
+`task-2042`, and `task-2043`.
+
+### What changed
+
+- Added `examples/assets/roughness-ibl.glb`, a two-primitive metallic
+  StandardMaterial sample with glossy and rough regions.
+- `glb-viewer` now creates a non-shadow StandardMaterial IBL scene for the
+  roughness sample and reports JSON-safe material factors for primitive
+  material resolutions.
+- Added TANGENT support to GLB mesh primitive mapping, accessor
+  validation/decoding, and mesh asset construction.
+- Added `examples/assets/normal-map.glb`, a tangent-backed StandardMaterial
+  sample with a normal texture and scalar-control region.
+- Added `examples/assets/textured-standard.glb`, a StandardMaterial sample with
+  base-color and metallic-roughness texture bindings plus an untextured scalar
+  control.
+- The GLB viewer now resolves example-local synthetic image URIs for normal,
+  base-color, and metallic-roughness sample textures, and reports JSON-safe
+  texture slot status for primitive material resolutions.
+- Added a compact animation speed slider. Speed changes update the example
+  animation clock that writes replayed ECS `LocalTransform` values; no
+  renderer-owned scene graph was introduced.
+- Added `examples/assets/multi-clip.glb` plus a compact animation clip selector
+  for `glb-viewer`. Status now reports clip names and the active clip index,
+  and clip changes keep writing replayed ECS `LocalTransform` values.
+- Added animation loop mode and direction controls. Repeat/once and
+  forward/reverse playback update the same example animation clock and publish
+  JSON-safe loop, clamped, and direction status.
+- Updated `agent/BACKLOG.md` and `agent/COMPLETED.md`. The ready queue now
+  recommends `task-2044` and includes visible animation follow-ups before the
+  scoped audit item.
+
+### References inspected
+
+- `references/three.js/src/extras/PMREMGenerator.js`
+- `references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/reflectionEnv.js`
+- `references/bevy/crates/bevy_gltf/src/loader/mod.rs`
+- `references/bevy/crates/bevy_gltf/src/loader/gltf_ext/material.rs`
+- `references/three.js/examples/jsm/loaders/GLTFLoader.js`
+- `references/bevy/crates/bevy_animation/src/lib.rs`
+- `references/three.js/examples/jsm/animation/AnimationClipCreator.js`
+- `references/three.js/examples/jsm/loaders/GLTFLoader.js`
+- `references/three.js/src/animation/AnimationAction.js`
+
+### Validation
+
+- `node --check examples/glb-viewer.js`
+- GLB JSON parse checks for `examples/assets/roughness-ibl.glb`,
+  `examples/assets/normal-map.glb`, and
+  `examples/assets/textured-standard.glb`; GLB JSON parse check for
+  `examples/assets/multi-clip.glb`
+- `pnpm run typecheck:test`
+- `pnpm test`
+- `pnpm exec vitest run test/assets/gltf-mesh-asset-construction.test.ts test/assets/gltf-accessor-validation.test.ts test/assets/gltf-accessor-decoding.test.ts`
+- `pnpm run build`
+- `pnpm run check:examples`
+- `pnpm run check:progress`
+- `pnpm run lint`
+- `pnpm run format:check`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts -g "roughness regions"`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts -g "normal-mapped sample"`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts -g "textured StandardMaterial sample"`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts -g "animation playback speed"`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts -g "animation clips"`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts -g "loop modes"`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts -g "reverses GLB viewer animation"`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts`
+- `git diff --check`
+
+### Known issues
+
+- The GLB viewer image resolver remains example-local for committed synthetic
+  sample image URIs; this run did not add a general PNG/JPEG image decoder.
+- Full PMREM/GGX specular prefiltering remains deferred.
+- Rotation and scale animation channels remain unimplemented and are the
+  recommended next visible task.
+
+### Recommended next task
+
+`task-2044 — Add rotation and scale animation channel coverage to glb-viewer`.
 
 ## Current Run Update — 2026-05-20T02:28:30Z — GLB viewer live controls and query/status polish
 

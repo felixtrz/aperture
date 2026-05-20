@@ -9,7 +9,13 @@ const shadowReceiverToggle = document.querySelector(
 const shadowCasterToggle = document.querySelector("#glb-shadow-caster-toggle");
 const iblToggle = document.querySelector("#glb-ibl-toggle");
 const animationToggleButton = document.querySelector("#glb-animation-toggle");
+const animationClipSelect = document.querySelector("#glb-animation-clip");
+const animationLoopSelect = document.querySelector("#glb-animation-loop");
+const animationDirectionSelect = document.querySelector(
+  "#glb-animation-direction",
+);
 const animationScrubInput = document.querySelector("#glb-animation-scrub");
+const animationSpeedInput = document.querySelector("#glb-animation-speed");
 const pointLightIntensityInput = document.querySelector(
   "#glb-point-light-intensity",
 );
@@ -69,9 +75,33 @@ const sampleAssets = [
     source: "sample",
   },
   {
+    id: "roughness-ibl",
+    label: "Roughness IBL",
+    url: new URL("./assets/roughness-ibl.glb", globalThis.location.href),
+    source: "sample",
+  },
+  {
+    id: "normal-map",
+    label: "Normal map",
+    url: new URL("./assets/normal-map.glb", globalThis.location.href),
+    source: "sample",
+  },
+  {
+    id: "textured-standard",
+    label: "Textured standard",
+    url: new URL("./assets/textured-standard.glb", globalThis.location.href),
+    source: "sample",
+  },
+  {
     id: "animated",
     label: "Animated cube",
     url: new URL("./assets/animated-cube.glb", globalThis.location.href),
+    source: "sample",
+  },
+  {
+    id: "multi-clip",
+    label: "Multi-clip cube",
+    url: new URL("./assets/multi-clip.glb", globalThis.location.href),
     source: "sample",
   },
   {
@@ -314,6 +344,7 @@ async function loadAsset(aperture, app, scene, asset) {
     keyPrefix,
     createAssetMapping: true,
     createMeshAssets: true,
+    resolveImageData: resolveGlbViewerImageData,
   });
   const importReport = loaded.loader?.glbImportReport.importReport ?? null;
 
@@ -375,6 +406,11 @@ async function loadAsset(aperture, app, scene, asset) {
     asset.id === "brass"
       ? createBrassShadowScene(aperture, app, replay, fit)
       : null;
+  const iblScene =
+    shadowScene ??
+    (asset.id === "roughness-ibl"
+      ? createStandardIblScene(aperture, app)
+      : null);
 
   scene.active = {
     asset,
@@ -387,6 +423,7 @@ async function loadAsset(aperture, app, scene, asset) {
     animation,
     fit,
     shadowScene,
+    iblScene,
   };
   scene.loadState = null;
   setCameraResetEnabled(fit.status === "ready");
@@ -400,11 +437,23 @@ function destroyActiveScene(scene) {
     return;
   }
 
+  const destroyed = new Set();
+
   for (const entity of scene.active.replay.entitiesByKey.values()) {
+    destroyed.add(entity);
     entity.destroy();
   }
 
   for (const entity of scene.active.shadowScene?.entities ?? []) {
+    destroyed.add(entity);
+    entity.destroy();
+  }
+
+  for (const entity of scene.active.iblScene?.entities ?? []) {
+    if (destroyed.has(entity)) {
+      continue;
+    }
+
     entity.destroy();
   }
 
@@ -412,6 +461,52 @@ function destroyActiveScene(scene) {
   updateShadowControlInputs(scene);
   updateIblControlInputs(scene);
   updateAnimationControlInputs(scene);
+}
+
+function createStandardIblScene(aperture, app) {
+  const environmentMap =
+    aperture.createEnvironmentMapHandle("glb-viewer-studio");
+  const iblResources = enableIblSampling
+    ? createGlbViewerIblResources(aperture, app)
+    : null;
+
+  if (enableIblSampling) {
+    app.assets.register(environmentMap, { label: "GLB viewer studio IBL" });
+    app.assets.markReady(environmentMap, {
+      label: "GLB viewer studio IBL",
+      diffuseResourceKey: "glb-viewer-studio/diffuse",
+      specularResourceKey: "glb-viewer-studio/specular-proof",
+    });
+  }
+
+  const environmentEntity = enableIblSampling
+    ? app.spawn(
+        aperture.withEnvironmentMap(environmentMap, {
+          color: [1, 1, 1, 1],
+          intensity: iblControls.enabled ? 0.52 : 0,
+          layerMask: 1,
+        }),
+      )
+    : null;
+
+  if (environmentEntity !== null) {
+    setEnvironmentMapComponent(
+      aperture,
+      environmentEntity,
+      aperture.assetHandleKey(environmentMap),
+      iblControls.enabled,
+    );
+  }
+
+  return {
+    iblControls,
+    iblAvailable: enableIblSampling,
+    specularIblAvailable: enableIblSampling && enableSpecularIblSampling,
+    environmentEntity,
+    environmentMapKey: aperture.assetHandleKey(environmentMap),
+    iblResources,
+    entities: environmentEntity === null ? [] : [environmentEntity],
+  };
 }
 
 function createBrassShadowScene(aperture, app, replay, fit) {
@@ -859,13 +954,12 @@ function startRendering(aperture, app, scene) {
         standardMaterialShadowReceiverResources === null
           ? {}
           : { standardMaterialShadowReceiverResources }),
-        ...(scene.active?.shadowScene?.iblResources === null ||
-        scene.active?.shadowScene?.iblResources === undefined ||
-        scene.active.shadowScene.iblControls.enabled !== true
+        ...(scene.active?.iblScene?.iblResources === null ||
+        scene.active?.iblScene?.iblResources === undefined ||
+        scene.active.iblScene.iblControls.enabled !== true
           ? {}
           : {
-              standardMaterialIblResources:
-                scene.active.shadowScene.iblResources,
+              standardMaterialIblResources: scene.active.iblScene.iblResources,
             }),
       });
 
@@ -1302,8 +1396,8 @@ async function createViewerShadowFrame({
 }
 
 function createIblStatus(aperture, active, reportJson) {
-  const shadowScene = active?.shadowScene ?? null;
-  const resources = shadowScene?.iblResources ?? null;
+  const iblScene = active?.iblScene ?? null;
+  const resources = iblScene?.iblResources ?? null;
   const pipelineKeys = routedPipelineKeys(reportJson);
   const diffuseKey =
     resources?.diffuseTextureResource.resources[0]?.resource?.resourceKey ??
@@ -1320,17 +1414,16 @@ function createIblStatus(aperture, active, reportJson) {
 
   return {
     enabled:
-      shadowScene?.iblAvailable === true &&
-      shadowScene.iblControls.enabled === true,
+      iblScene?.iblAvailable === true && iblScene.iblControls.enabled === true,
     controls: {
-      enabled: shadowScene?.iblControls.enabled ?? iblControls.enabled,
-      available: shadowScene?.iblAvailable === true,
+      enabled: iblScene?.iblControls.enabled ?? iblControls.enabled,
+      available: iblScene?.iblAvailable === true,
     },
-    ecs: createIblEcsStatus(aperture, shadowScene),
+    ecs: createIblEcsStatus(aperture, iblScene),
     specularProof:
-      shadowScene?.specularIblAvailable === true &&
-      shadowScene.iblControls.enabled === true,
-    environmentMapKey: shadowScene?.environmentMapKey ?? null,
+      iblScene?.specularIblAvailable === true &&
+      iblScene.iblControls.enabled === true,
+    environmentMapKey: iblScene?.environmentMapKey ?? null,
     resources: {
       diffuseTexture: diffuseKey,
       specularTexture: specularKey,
@@ -1338,8 +1431,8 @@ function createIblStatus(aperture, active, reportJson) {
     },
     rendering: {
       supported:
-        shadowScene?.iblAvailable === true &&
-        shadowScene.iblControls.enabled === true &&
+        iblScene?.iblAvailable === true &&
+        iblScene.iblControls.enabled === true &&
         diffuseRoute !== undefined,
       diffusePipelineKey: diffuseRoute ?? null,
       specularPipelineKey: specularRoute ?? null,
@@ -1600,9 +1693,9 @@ function bindIblControlInputs(aperture, scene) {
 }
 
 function updateIblControlInputs(scene) {
-  const shadowScene = scene.active?.shadowScene ?? null;
-  const hasIblControls = shadowScene?.iblAvailable === true;
-  const enabled = shadowScene?.iblControls.enabled ?? iblControls.enabled;
+  const iblScene = scene.active?.iblScene ?? null;
+  const hasIblControls = iblScene?.iblAvailable === true;
+  const enabled = iblScene?.iblControls.enabled ?? iblControls.enabled;
 
   if (iblToggle instanceof HTMLInputElement) {
     iblToggle.checked = enabled;
@@ -1612,16 +1705,16 @@ function updateIblControlInputs(scene) {
 
 function setSceneIblEnabled(aperture, scene, enabled) {
   iblControls.enabled = enabled;
-  const shadowScene = scene.active?.shadowScene ?? null;
+  const iblScene = scene.active?.iblScene ?? null;
 
-  if (shadowScene !== null && shadowScene.iblAvailable) {
-    shadowScene.iblControls.enabled = enabled;
+  if (iblScene !== null && iblScene.iblAvailable) {
+    iblScene.iblControls.enabled = enabled;
 
-    if (shadowScene.environmentEntity !== null) {
+    if (iblScene.environmentEntity !== null) {
       setEnvironmentMapComponent(
         aperture,
-        shadowScene.environmentEntity,
-        shadowScene.environmentMapKey,
+        iblScene.environmentEntity,
+        iblScene.environmentMapKey,
         enabled,
       );
     }
@@ -1645,9 +1738,35 @@ function setEnvironmentMapComponent(
 }
 
 function bindAnimationControlInputs(aperture, scene) {
+  if (animationClipSelect instanceof HTMLSelectElement) {
+    animationClipSelect.addEventListener("change", () => {
+      selectActiveAnimationClip(
+        aperture,
+        scene,
+        Number.parseInt(animationClipSelect.value, 10),
+      );
+    });
+  }
+
   if (animationToggleButton instanceof HTMLButtonElement) {
     animationToggleButton.addEventListener("click", () => {
       toggleActiveAnimationPlayback(aperture, scene);
+    });
+  }
+
+  if (animationLoopSelect instanceof HTMLSelectElement) {
+    animationLoopSelect.addEventListener("change", () => {
+      setActiveAnimationLoopMode(aperture, scene, animationLoopSelect.value);
+    });
+  }
+
+  if (animationDirectionSelect instanceof HTMLSelectElement) {
+    animationDirectionSelect.addEventListener("change", () => {
+      setActiveAnimationDirection(
+        aperture,
+        scene,
+        animationDirectionSelect.value,
+      );
     });
   }
 
@@ -1660,6 +1779,16 @@ function bindAnimationControlInputs(aperture, scene) {
       );
     });
   }
+
+  if (animationSpeedInput instanceof HTMLInputElement) {
+    animationSpeedInput.addEventListener("input", () => {
+      setActiveAnimationSpeed(
+        aperture,
+        scene,
+        numberInputValue(animationSpeedInput, 1),
+      );
+    });
+  }
 }
 
 function updateAnimationControlInputs(scene) {
@@ -1667,10 +1796,46 @@ function updateAnimationControlInputs(scene) {
   const clip = animation?.activeClip ?? null;
   const hasAnimation = animation !== null && clip !== null;
 
+  if (animationClipSelect instanceof HTMLSelectElement) {
+    animationClipSelect.disabled = !hasAnimation || animation.clips.length < 2;
+    const nextClips = animation?.clips ?? [];
+    const optionsCurrent =
+      animationClipSelect.options.length === nextClips.length &&
+      nextClips.every(
+        (entry, index) =>
+          animationClipSelect.options[index]?.textContent === entry.name,
+      );
+
+    if (!optionsCurrent) {
+      animationClipSelect.replaceChildren(
+        ...nextClips.map((entry, index) => {
+          const option = document.createElement("option");
+          option.value = String(index);
+          option.textContent = entry.name;
+          return option;
+        }),
+      );
+    }
+
+    animationClipSelect.value = hasAnimation
+      ? String(animation.activeClipIndex)
+      : "";
+  }
+
   if (animationToggleButton instanceof HTMLButtonElement) {
     animationToggleButton.disabled = !hasAnimation;
     animationToggleButton.textContent =
       animation?.status === "paused" ? "play" : "pause";
+  }
+
+  if (animationLoopSelect instanceof HTMLSelectElement) {
+    animationLoopSelect.disabled = !hasAnimation;
+    animationLoopSelect.value = animation?.loopMode ?? "repeat";
+  }
+
+  if (animationDirectionSelect instanceof HTMLSelectElement) {
+    animationDirectionSelect.disabled = !hasAnimation;
+    animationDirectionSelect.value = animation?.direction ?? "forward";
   }
 
   if (animationScrubInput instanceof HTMLInputElement) {
@@ -1680,6 +1845,37 @@ function updateAnimationControlInputs(scene) {
     animationScrubInput.value =
       animation === null ? "0" : String(Number(animation.time.toFixed(3)));
   }
+
+  if (animationSpeedInput instanceof HTMLInputElement) {
+    animationSpeedInput.disabled = !hasAnimation;
+    animationSpeedInput.value =
+      animation === null ? "1" : String(Number(animation.speed.toFixed(2)));
+  }
+}
+
+function selectActiveAnimationClip(aperture, scene, clipIndex) {
+  const animation = scene.active?.animation ?? null;
+
+  if (
+    animation === null ||
+    !Number.isInteger(clipIndex) ||
+    clipIndex < 0 ||
+    clipIndex >= animation.clips.length
+  ) {
+    updateAnimationControlInputs(scene);
+    return;
+  }
+
+  animation.activeClipIndex = clipIndex;
+  animation.activeClip = animation.clips[clipIndex];
+  animation.status = "playing";
+  animation.time = 0;
+  animation.clamped = false;
+  animation.playbackOffset =
+    animation.time -
+    animation.lastElapsedSeconds * animationSignedSpeed(animation);
+  updateActiveAnimation(aperture, animation, animation.lastElapsedSeconds);
+  updateAnimationControlInputs(scene);
 }
 
 function toggleActiveAnimationPlayback(aperture, scene) {
@@ -1693,7 +1889,10 @@ function toggleActiveAnimationPlayback(aperture, scene) {
 
   if (animation.status === "paused") {
     animation.status = "playing";
-    animation.playbackOffset = animation.time - animation.lastElapsedSeconds;
+    animation.clamped = false;
+    animation.playbackOffset =
+      animation.time -
+      animation.lastElapsedSeconds * animationSignedSpeed(animation);
   } else {
     animation.status = "paused";
     updateActiveAnimation(aperture, animation, animation.lastElapsedSeconds);
@@ -1714,8 +1913,63 @@ function scrubActiveAnimation(aperture, scene, time) {
   const duration = Math.max(0, clip.duration);
   animation.status = "paused";
   animation.time = clamp(time, 0, duration);
-  animation.playbackOffset = animation.time - animation.lastElapsedSeconds;
+  animation.clamped = false;
+  animation.playbackOffset =
+    animation.time -
+    animation.lastElapsedSeconds * animationSignedSpeed(animation);
   updateActiveAnimation(aperture, animation, animation.lastElapsedSeconds);
+  updateAnimationControlInputs(scene);
+}
+
+function setActiveAnimationSpeed(aperture, scene, speed) {
+  const animation = scene.active?.animation ?? null;
+  const clip = animation?.activeClip ?? null;
+
+  if (animation === null || clip === null) {
+    updateAnimationControlInputs(scene);
+    return;
+  }
+
+  updateActiveAnimation(aperture, animation, animation.lastElapsedSeconds);
+  animation.speed = clamp(speed, 0, 2);
+  animation.playbackOffset =
+    animation.time -
+    animation.lastElapsedSeconds * animationSignedSpeed(animation);
+  updateAnimationControlInputs(scene);
+}
+
+function setActiveAnimationDirection(aperture, scene, direction) {
+  const animation = scene.active?.animation ?? null;
+  const clip = animation?.activeClip ?? null;
+
+  if (animation === null || clip === null) {
+    updateAnimationControlInputs(scene);
+    return;
+  }
+
+  updateActiveAnimation(aperture, animation, animation.lastElapsedSeconds);
+  animation.direction = direction === "reverse" ? "reverse" : "forward";
+  animation.clamped = false;
+  animation.playbackOffset =
+    animation.time -
+    animation.lastElapsedSeconds * animationSignedSpeed(animation);
+  updateAnimationControlInputs(scene);
+}
+
+function setActiveAnimationLoopMode(aperture, scene, loopMode) {
+  const animation = scene.active?.animation ?? null;
+  const clip = animation?.activeClip ?? null;
+
+  if (animation === null || clip === null) {
+    updateAnimationControlInputs(scene);
+    return;
+  }
+
+  updateActiveAnimation(aperture, animation, animation.lastElapsedSeconds);
+  animation.loopMode = loopMode === "once" ? "once" : "repeat";
+  animation.playbackOffset =
+    animation.time -
+    animation.lastElapsedSeconds * animationSignedSpeed(animation);
   updateAnimationControlInputs(scene);
 }
 
@@ -1910,8 +2164,14 @@ function createGltfAnimationState(options) {
   return {
     status: activeClip === null ? "absent" : "playing",
     clipCount: clips.length,
+    clips,
+    activeClipIndex: activeClip === null ? -1 : 0,
     activeClip,
     time: 0,
+    speed: 1,
+    direction: "forward",
+    loopMode: "repeat",
+    clamped: false,
     playbackOffset: 0,
     lastElapsedSeconds: 0,
     animatedNodes: [],
@@ -2034,12 +2294,24 @@ function updateActiveAnimation(aperture, animation, elapsedSeconds) {
 
   const duration = Math.max(0, clip.duration);
   animation.lastElapsedSeconds = elapsedSeconds;
+  const signedSpeed = animationSignedSpeed(animation);
+  const unboundedTime = elapsedSeconds * signedSpeed + animation.playbackOffset;
+  const clamped =
+    animation.status !== "paused" &&
+    animation.loopMode === "once" &&
+    duration > 0 &&
+    (signedSpeed >= 0 ? unboundedTime >= duration : unboundedTime <= 0);
   const localTime =
     animation.status === "paused"
       ? clamp(animation.time, 0, duration)
-      : duration > 0
-        ? wrapTime(elapsedSeconds + animation.playbackOffset, duration)
-        : 0;
+      : clamped
+        ? signedSpeed >= 0
+          ? duration
+          : 0
+        : duration > 0
+          ? wrapTime(unboundedTime, duration)
+          : 0;
+  animation.clamped = clamped;
   applyAnimationAtTime(aperture, animation, clip, localTime);
 }
 
@@ -2105,8 +2377,14 @@ function createAnimationStatus(animation) {
     return {
       status: "absent",
       clipCount: 0,
+      clips: [],
+      activeClipIndex: -1,
       activeClipName: null,
       time: 0,
+      speed: 1,
+      direction: "forward",
+      loopMode: "repeat",
+      clamped: false,
       duration: 0,
       channelCount: 0,
       animatedNodes: [],
@@ -2116,12 +2394,26 @@ function createAnimationStatus(animation) {
   return {
     status: animation.status,
     clipCount: animation.clipCount,
+    clips: animation.clips.map((entry, index) => ({
+      index,
+      name: entry.name,
+      duration: Number(entry.duration.toFixed(3)),
+    })),
+    activeClipIndex: animation.activeClipIndex,
     activeClipName: clip.name,
     time: animation.time,
+    speed: Number(animation.speed.toFixed(2)),
+    direction: animation.direction,
+    loopMode: animation.loopMode,
+    clamped: animation.clamped,
     duration: Number(clip.duration.toFixed(3)),
     channelCount: clip.channels.length,
     animatedNodes: animation.animatedNodes,
   };
+}
+
+function animationSignedSpeed(animation) {
+  return animation.speed * (animation.direction === "reverse" ? -1 : 1);
 }
 
 function readGltfFloatAccessorTuples(
@@ -2507,12 +2799,136 @@ function createPrimitiveMaterialResolutionStatus(aperture, app, active) {
         depthWrite: renderState?.depth?.write ?? null,
         cullMode: renderState?.cullMode ?? null,
         pipelineKey: material === null ? null : materialPipelineKey(material),
+        factors: material === null ? null : materialFactorStatus(material),
+        textureSlots:
+          material === null
+            ? null
+            : materialTextureSlotStatus(aperture, material),
       };
     })
     .sort(
       (a, b) =>
         a.meshIndex - b.meshIndex || a.primitiveIndex - b.primitiveIndex,
     );
+}
+
+function resolveGlbViewerImageData(input) {
+  if (
+    input.source.kind === "uri" &&
+    input.source.uri === "aperture-base-color-checker.png"
+  ) {
+    return {
+      width: 2,
+      height: 2,
+      format: "rgba8unorm-srgb",
+      sourceData: {
+        bytes: new Uint8Array([
+          255, 94, 82, 255, 74, 194, 255, 255, 255, 216, 90, 255, 52, 214, 145,
+          255,
+        ]),
+        bytesPerRow: 8,
+        rowsPerImage: 2,
+      },
+    };
+  }
+
+  if (
+    input.source.kind === "uri" &&
+    input.source.uri === "aperture-metallic-roughness-checker.png"
+  ) {
+    return {
+      width: 2,
+      height: 2,
+      format: "rgba8unorm",
+      sourceData: {
+        bytes: new Uint8Array([
+          0, 38, 18, 255, 0, 218, 96, 255, 0, 112, 48, 255, 0, 246, 12, 255,
+        ]),
+        bytesPerRow: 8,
+        rowsPerImage: 2,
+      },
+    };
+  }
+
+  if (
+    input.source.kind === "uri" &&
+    input.source.uri === "aperture-normal-checker.png"
+  ) {
+    return {
+      width: 2,
+      height: 2,
+      format: "rgba8unorm",
+      sourceData: {
+        bytes: new Uint8Array([
+          255, 0, 255, 255, 0, 255, 255, 255, 255, 255, 255, 255, 128, 128, 255,
+          255,
+        ]),
+        bytesPerRow: 8,
+        rowsPerImage: 2,
+      },
+    };
+  }
+
+  return {
+    image: null,
+    diagnostics: [
+      {
+        code: "gltfTexture.imageResolverFailed",
+        severity: "warning",
+        message: `GLB viewer image '${input.source.kind === "uri" ? input.source.uri : input.source.bufferView}' has no example-local decoded image data.`,
+      },
+    ],
+  };
+}
+
+function materialFactorStatus(material) {
+  return {
+    baseColorFactor:
+      material.baseColorFactor === undefined
+        ? null
+        : roundTuple(Array.from(material.baseColorFactor), 3),
+    metallicFactor:
+      material.kind === "standard"
+        ? Number(material.metallicFactor.toFixed(3))
+        : null,
+    roughnessFactor:
+      material.kind === "standard"
+        ? Number(material.roughnessFactor.toFixed(3))
+        : null,
+    emissiveFactor:
+      material.kind === "standard"
+        ? roundTuple(Array.from(material.emissiveFactor), 3)
+        : null,
+  };
+}
+
+function materialTextureSlotStatus(aperture, material) {
+  return {
+    baseColorTexture: textureBindingStatus(aperture, material.baseColorTexture),
+    metallicRoughnessTexture: textureBindingStatus(
+      aperture,
+      material.metallicRoughnessTexture,
+    ),
+    normalTexture: textureBindingStatus(aperture, material.normalTexture),
+    occlusionTexture: textureBindingStatus(aperture, material.occlusionTexture),
+    emissiveTexture: textureBindingStatus(aperture, material.emissiveTexture),
+  };
+}
+
+function textureBindingStatus(aperture, binding) {
+  if (binding === null || binding === undefined || binding.texture === null) {
+    return null;
+  }
+
+  return {
+    textureKey: aperture.assetHandleKey(binding.texture),
+    samplerKey:
+      binding.sampler === null
+        ? null
+        : aperture.assetHandleKey(binding.sampler),
+    texCoord: binding.texCoord ?? 0,
+    hasTransform: binding.transform !== undefined,
+  };
 }
 
 function createRenderStateStatus(meshDraws) {

@@ -9,18 +9,20 @@ describe("glTF accessor and buffer reference validation", () => {
   it("plans byte ranges and expected formats for a valid primitive", () => {
     const root = {
       asset: { version: "2.0" },
-      buffers: [{ byteLength: 128 }],
+      buffers: [{ byteLength: 160 }],
       bufferViews: [
         { buffer: 0, byteOffset: 0, byteLength: 36 },
         { buffer: 0, byteOffset: 36, byteLength: 36 },
         { buffer: 0, byteOffset: 72, byteLength: 24 },
-        { buffer: 0, byteOffset: 96, byteLength: 3 },
+        { buffer: 0, byteOffset: 96, byteLength: 48 },
+        { buffer: 0, byteOffset: 144, byteLength: 3 },
       ],
       accessors: [
         { bufferView: 0, componentType: 5126, type: "VEC3", count: 3 },
         { bufferView: 1, componentType: 5126, type: "VEC3", count: 3 },
         { bufferView: 2, componentType: 5126, type: "VEC2", count: 3 },
-        { bufferView: 3, componentType: 5121, type: "SCALAR", count: 3 },
+        { bufferView: 3, componentType: 5126, type: "VEC4", count: 3 },
+        { bufferView: 4, componentType: 5121, type: "SCALAR", count: 3 },
       ],
       meshes: [
         {
@@ -30,8 +32,9 @@ describe("glTF accessor and buffer reference validation", () => {
                 POSITION: 0,
                 NORMAL: 1,
                 TEXCOORD_0: 2,
+                TANGENT: 3,
               },
-              indices: 3,
+              indices: 4,
             },
           ],
         },
@@ -41,7 +44,7 @@ describe("glTF accessor and buffer reference validation", () => {
     const report = validateGltfPrimitiveAccessorReferences({
       root,
       primitiveReport,
-      binaryChunkByteLength: 128,
+      binaryChunkByteLength: 160,
     });
 
     expect(report.valid).toBe(true);
@@ -74,11 +77,17 @@ describe("glTF accessor and buffer reference validation", () => {
             byteOffset: 72,
             expectedFormat: "float32x2",
           },
+          {
+            semantic: "TANGENT",
+            accessorIndex: 3,
+            byteOffset: 96,
+            expectedFormat: "float32x4",
+          },
         ],
         indices: {
           semantic: "INDICES",
-          accessorIndex: 3,
-          byteOffset: 96,
+          accessorIndex: 4,
+          byteOffset: 144,
           byteLength: 3,
           expectedFormat: "uint8-to-uint16",
         },

@@ -201,7 +201,7 @@ function collectAttributes(
   const sources: AttributeSource[] = [{ decoded: position, offset: 0 }];
   let offset = position.itemSize * 4;
 
-  for (const semantic of ["NORMAL", "TEXCOORD_0"] as const) {
+  for (const semantic of ["NORMAL", "TEXCOORD_0", "TANGENT"] as const) {
     const decoded = primitive.attributes.find(
       (attribute) => attribute.semantic === semantic,
     );
@@ -249,8 +249,17 @@ function packAttributes(
 
   for (const source of sources) {
     descriptors.push({
-      semantic: source.decoded.semantic as "POSITION" | "NORMAL" | "TEXCOORD_0",
-      format: source.decoded.itemSize === 2 ? "float32x2" : "float32x3",
+      semantic: source.decoded.semantic as
+        | "POSITION"
+        | "NORMAL"
+        | "TEXCOORD_0"
+        | "TANGENT",
+      format:
+        source.decoded.itemSize === 2
+          ? "float32x2"
+          : source.decoded.itemSize === 4
+            ? "float32x4"
+            : "float32x3",
       offset: source.offset,
     });
     for (let vertex = 0; vertex < vertexCount; vertex += 1) {

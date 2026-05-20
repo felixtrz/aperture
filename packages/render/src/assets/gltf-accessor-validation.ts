@@ -52,6 +52,7 @@ export interface GltfValidatedAccessorReference {
   readonly expectedFormat:
     | "float32x2"
     | "float32x3"
+    | "float32x4"
     | "uint8-to-uint16"
     | "uint16"
     | "uint32";
@@ -207,6 +208,12 @@ function validatePrimitive(
     context,
     primitive,
     primitive.attributes.texcoord0,
+    attributes,
+  );
+  appendOptionalAttribute(
+    context,
+    primitive,
+    primitive.attributes.tangent,
     attributes,
   );
   const indices = validateIndexReference(context, primitive, primitive.indices);
@@ -580,6 +587,15 @@ function expectationForSemantic(
             type: "VEC2",
             componentTypes: [GLTF_COMPONENT_FLOAT],
             expectedFormat: "float32x2",
+          }
+        : null;
+    case "TANGENT":
+      return accessor.type === "VEC4" &&
+        accessor.componentType === GLTF_COMPONENT_FLOAT
+        ? {
+            type: "VEC4",
+            componentTypes: [GLTF_COMPONENT_FLOAT],
+            expectedFormat: "float32x4",
           }
         : null;
     case "INDICES":

@@ -1,5 +1,194 @@
 # Completed Tasks
 
+## task-2043 — Add reverse animation playback to glb-viewer
+
+Completed: 2026-05-20
+
+Summary:
+
+- Added a compact forward/reverse animation direction control to `examples/glb-viewer.html`.
+- Routed direction through the existing speed/loop clock using signed playback speed while continuing to write replayed ECS `LocalTransform` values.
+- Published JSON-safe animation direction status.
+- Added Playwright coverage proving reverse playback moves animation time and transform status backward from a scrubbed point.
+
+References inspected:
+
+- `references/bevy/crates/bevy_animation/src/lib.rs`
+- `references/three.js/src/animation/AnimationAction.js`
+
+Validation:
+
+- `node --check examples/glb-viewer.js`
+- `pnpm run typecheck:test`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts -g "reverses GLB viewer animation"`
+
+Known follow-up:
+
+- `task-2044` should add rotation and scale animation channel coverage.
+
+## task-2042 — Add animation loop-mode control to glb-viewer
+
+Completed: 2026-05-20
+
+Summary:
+
+- Added compact repeat/once loop mode controls to `examples/glb-viewer.html`.
+- Extended example animation state with loop mode and clamped-at-end status.
+- Kept loop behavior in the example clock that writes replayed ECS `LocalTransform` values.
+- Added Playwright coverage proving repeat wraps while once mode holds final status and pixels.
+
+References inspected:
+
+- `references/bevy/crates/bevy_animation/src/lib.rs`
+- `references/three.js/src/animation/AnimationAction.js`
+
+Validation:
+
+- `node --check examples/glb-viewer.js`
+- `pnpm run typecheck:test`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts -g "loop modes"`
+
+Known follow-up:
+
+- `task-2043` should add reverse animation playback to `glb-viewer`.
+
+## task-2040 — Add multi-clip animation selection to glb-viewer
+
+Completed: 2026-05-20
+
+Summary:
+
+- Added `examples/assets/multi-clip.glb`, a local two-clip animation sample derived from the animated cube fixture.
+- Added a compact animation clip selector to `examples/glb-viewer.html`.
+- Extended animation state/status with clip list and active clip index while keeping playback writes on replayed ECS `LocalTransform` values.
+- Added Playwright coverage proving switching from `SlideX` to `RiseY` changes selected clip status and rendered pixels.
+
+References inspected:
+
+- `references/bevy/crates/bevy_animation/src/lib.rs`
+- `references/three.js/examples/jsm/loaders/GLTFLoader.js`
+
+Validation:
+
+- `node --check examples/glb-viewer.js`
+- GLB JSON parse check for `examples/assets/multi-clip.glb`
+- `pnpm run typecheck:test`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts -g "animation clips"`
+
+Known follow-up:
+
+- `task-2042` should add loop-mode control to `glb-viewer`.
+
+## task-2039 — Add animation speed control to glb-viewer
+
+Completed: 2026-05-20
+
+Summary:
+
+- Added a compact animation speed slider to `examples/glb-viewer.html`.
+- Wired speed into the example animation clock so sampled GLB transforms continue to write replayed ECS `LocalTransform` values without renderer-owned scene state.
+- Published JSON-safe animation speed status.
+- Added Playwright coverage proving speed 0 freezes status/pixels and speed 2 advances faster than speed 1 over the same frame count.
+
+References inspected:
+
+- `references/bevy/crates/bevy_animation/src/lib.rs`
+- `references/three.js/examples/jsm/animation/AnimationClipCreator.js`
+
+Validation:
+
+- `node --check examples/glb-viewer.js`
+- `pnpm run typecheck:test`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts -g "animation playback speed"`
+
+Known follow-up:
+
+- `task-2040` should add multi-clip animation selection to `glb-viewer`.
+
+## task-2038 — Add a textured StandardMaterial GLB viewer sample
+
+Completed: 2026-05-20
+
+Summary:
+
+- Added `examples/assets/textured-standard.glb`, a two-primitive StandardMaterial sample with base-color and metallic-roughness texture bindings plus an untextured scalar control.
+- Added example-local decoded image fixtures for the sample's synthetic texture URIs.
+- Extended GLB viewer material status with JSON-safe texture slot data and Playwright coverage for the combined texture pipeline key and visible textured pixels.
+
+References inspected:
+
+- `references/bevy/crates/bevy_gltf/src/loader/gltf_ext/material.rs`
+- `references/bevy/crates/bevy_gltf/src/loader/mod.rs`
+- `references/three.js/examples/jsm/loaders/GLTFLoader.js`
+
+Validation:
+
+- `node --check examples/glb-viewer.js`
+- GLB JSON parse check for `examples/assets/textured-standard.glb`
+- `pnpm run typecheck:test`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts -g "textured StandardMaterial sample"`
+
+Known follow-up:
+
+- `task-2039` should add animation speed control to `glb-viewer`.
+
+## task-2037 — Add a normal-mapped StandardMaterial GLB viewer sample
+
+Completed: 2026-05-20
+
+Summary:
+
+- Added TANGENT support to GLB mesh primitive mapping, accessor validation/decoding, and mesh asset construction.
+- Added `examples/assets/normal-map.glb`, a tangent-backed StandardMaterial sample with a normal texture and scalar control region.
+- Added example-local decoded normal image data and GLB viewer status for texture-backed material slots.
+- Added targeted asset tests and Playwright coverage proving the normal-mapped region renders differently from the scalar control.
+
+References inspected:
+
+- `references/bevy/crates/bevy_gltf/src/loader/mod.rs`
+- `references/three.js/examples/jsm/loaders/GLTFLoader.js`
+
+Validation:
+
+- `node --check examples/glb-viewer.js`
+- GLB JSON parse check for `examples/assets/normal-map.glb`
+- `pnpm run typecheck:test`
+- `pnpm exec vitest run test/assets/gltf-mesh-asset-construction.test.ts test/assets/gltf-accessor-validation.test.ts test/assets/gltf-accessor-decoding.test.ts`
+- `pnpm run build`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts -g "normal-mapped sample"`
+
+Known follow-up:
+
+- `task-2038` should add a textured StandardMaterial GLB viewer sample.
+
+## task-2036 — Add a GLB viewer roughness/IBL comparison sample
+
+Completed: 2026-05-20
+
+Summary:
+
+- Added `examples/assets/roughness-ibl.glb`, a two-primitive metallic StandardMaterial sample with glossy and rough material factors.
+- Added a StandardMaterial IBL scene path for the roughness sample separate from the brass-only shadow scene.
+- Published JSON-safe material factor status for primitive material resolutions.
+- Added Playwright coverage comparing glossy and rough regions with IBL enabled and proving disabling IBL changes the sample.
+
+References inspected:
+
+- `references/three.js/src/extras/PMREMGenerator.js`
+- `references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/reflectionEnv.js`
+
+Validation:
+
+- `node --check examples/glb-viewer.js`
+- GLB JSON parse check for `examples/assets/roughness-ibl.glb`
+- `pnpm run typecheck:test`
+- `pnpm run build`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts -g "roughness regions"`
+
+Known follow-up:
+
+- `task-2037` should add a normal-mapped StandardMaterial GLB viewer sample.
+
 ## task-2035 — Add `?asset=` sample bootstrap to glb-viewer
 
 Completed: 2026-05-19

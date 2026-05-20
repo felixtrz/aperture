@@ -275,6 +275,8 @@ function decodeShape(
       return { itemSize: 2, sourceComponentBytes: 4, output: "float32" };
     case "float32x3":
       return { itemSize: 3, sourceComponentBytes: 4, output: "float32" };
+    case "float32x4":
+      return { itemSize: 4, sourceComponentBytes: 4, output: "float32" };
     case "uint8-to-uint16":
       return { itemSize: 1, sourceComponentBytes: 1, output: "uint16" };
     case "uint16":
@@ -306,6 +308,7 @@ function readComponent(
   switch (expectedFormat) {
     case "float32x2":
     case "float32x3":
+    case "float32x4":
       return view.getFloat32(byteOffset, true);
     case "uint8-to-uint16":
       return view.getUint8(byteOffset);
@@ -344,6 +347,7 @@ function arrayTypeForExpectedFormat(
   switch (expectedFormat) {
     case "float32x2":
     case "float32x3":
+    case "float32x4":
       return "Float32Array";
     case "uint8-to-uint16":
     case "uint16":

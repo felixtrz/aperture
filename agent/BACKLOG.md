@@ -59,7 +59,7 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start with `task-2036`: add a GLB viewer roughness/IBL comparison sample.
+Start with `task-2044`: add rotation and scale animation channel coverage to glb-viewer.
 
 `task-2001` is complete: the spinning-cube example now creates a renderer-owned face-colored diffuse IBL cube texture and sampler, routes it through the StandardMaterial diffuse IBL shader variant, and Playwright verifies direction-dependent face pixels.
 `task-2002` is complete: `withEnvironmentMap(handle)` is exported from runtime/core and materials-showcase now uses it with visible diffuse IBL routing.
@@ -629,6 +629,8 @@ Future MVP slices (IBL composition quality, animation breadth, and performance r
 
 ### task-2036 — Add a GLB viewer roughness/IBL comparison sample
 
+Status: completed 2026-05-20. See `agent/COMPLETED.md`.
+
 Category: `runtime-orchestration`
 Package/write-scope: `examples/assets`, `examples/glb-viewer.js`, `test/e2e/glb-viewer.spec.ts`.
 Reference anchor: `references/three.js/src/extras/PMREMGenerator.js`; `references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/reflectionEnv.js`.
@@ -640,6 +642,8 @@ Acceptance criteria:
 - Playwright verifies IBL-enabled pixels differ between glossy and rough regions and that disabling IBL changes the comparison.
 
 ### task-2037 — Add a normal-mapped StandardMaterial GLB viewer sample
+
+Status: completed 2026-05-20. See `agent/COMPLETED.md`.
 
 Category: `runtime-orchestration`
 Package/write-scope: `examples/assets`, `examples/glb-viewer.js`, `test/e2e/glb-viewer.spec.ts`.
@@ -653,6 +657,8 @@ Acceptance criteria:
 
 ### task-2038 — Add a textured StandardMaterial GLB viewer sample
 
+Status: completed 2026-05-20. See `agent/COMPLETED.md`.
+
 Category: `runtime-orchestration`
 Package/write-scope: `examples/assets`, `examples/glb-viewer.js`, `test/e2e/glb-viewer.spec.ts`.
 Reference anchor: `references/bevy/crates/bevy_gltf/src/loader/gltf_ext/material.rs`; `references/three.js/examples/jsm/loaders/GLTFLoader.js`.
@@ -664,6 +670,8 @@ Acceptance criteria:
 - Playwright verifies textured pixels render and differ from an untextured material-control region.
 
 ### task-2039 — Add animation speed control to glb-viewer
+
+Status: completed 2026-05-20. See `agent/COMPLETED.md`.
 
 Category: `runtime-orchestration`
 Package/write-scope: `examples/glb-viewer.html`, `examples/glb-viewer.js`, `test/e2e/glb-viewer.spec.ts`.
@@ -677,6 +685,8 @@ Acceptance criteria:
 
 ### task-2040 — Add multi-clip animation selection to glb-viewer
 
+Status: completed 2026-05-20. See `agent/COMPLETED.md`.
+
 Category: `runtime-orchestration`
 Package/write-scope: `examples/assets`, `examples/glb-viewer.html`, `examples/glb-viewer.js`, `test/e2e/glb-viewer.spec.ts`.
 Reference anchor: `references/bevy/crates/bevy_animation/src/lib.rs`; `references/three.js/examples/jsm/loaders/GLTFLoader.js`.
@@ -686,6 +696,49 @@ Acceptance criteria:
 - `glb-viewer` includes or loads a sample with at least two animation clips and exposes a compact clip selector.
 - Changing clips updates the example animation state and writes the selected clip into replayed ECS `LocalTransform` data.
 - Playwright verifies selected clip status and rendered pixels differ between two clips.
+
+### task-2042 — Add animation loop-mode control to glb-viewer
+
+Status: completed 2026-05-20. See `agent/COMPLETED.md`.
+
+Category: `runtime-orchestration`
+Package/write-scope: `examples/glb-viewer.html`, `examples/glb-viewer.js`, `test/e2e/glb-viewer.spec.ts`.
+Reference anchor: `references/bevy/crates/bevy_animation/src/lib.rs`; `references/three.js/src/animation/AnimationAction.js`.
+
+Acceptance criteria:
+
+- `glb-viewer` exposes compact repeat/once loop controls for animated samples.
+- Loop mode updates example animation state that writes replayed ECS `LocalTransform` values, with no renderer-owned scene graph.
+- Viewer status reports the active loop mode and whether playback is clamped at the clip end.
+- Playwright verifies repeat wraps animation time while once mode holds the final transform and pixels stable after reaching the end.
+
+### task-2043 — Add reverse animation playback to glb-viewer
+
+Status: completed 2026-05-20. See `agent/COMPLETED.md`.
+
+Category: `runtime-orchestration`
+Package/write-scope: `examples/glb-viewer.html`, `examples/glb-viewer.js`, `test/e2e/glb-viewer.spec.ts`.
+Reference anchor: `references/bevy/crates/bevy_animation/src/lib.rs`; `references/three.js/src/animation/AnimationAction.js`.
+
+Acceptance criteria:
+
+- `glb-viewer` exposes a compact reverse-playback control for animated samples.
+- Reverse playback updates example animation time and replayed ECS `LocalTransform` values without renderer-owned scene state.
+- Viewer status reports direction and signed playback speed.
+- Playwright verifies reverse playback moves transform status and rendered pixels opposite the forward direction.
+
+### task-2044 — Add rotation and scale animation channel coverage to glb-viewer
+
+Category: `runtime-orchestration`
+Package/write-scope: `examples/assets`, `examples/glb-viewer.js`, `test/e2e/glb-viewer.spec.ts`.
+Reference anchor: `references/bevy/crates/bevy_animation/src/lib.rs`; `references/three.js/examples/jsm/loaders/GLTFLoader.js`.
+
+Acceptance criteria:
+
+- `glb-viewer` includes or loads a sample with rotation and scale animation channels.
+- The example animation sampler applies GLB rotation and scale channels to replayed ECS `LocalTransform` data in addition to translation.
+- Viewer status reports animated channel paths and sampled values for rotation and scale.
+- Playwright verifies rotation/scale status and rendered pixels change without introducing a renderer-owned scene graph.
 
 ### task-2041 — Audit GLB viewer control/status architecture
 
