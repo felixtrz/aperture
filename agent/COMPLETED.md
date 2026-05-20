@@ -1,5 +1,226 @@
 # Completed Tasks
 
+## task-2067 — Audit GLB viewer UV1 and expanded texture-status slices
+
+Completed: 2026-05-20
+
+Summary:
+
+- Added
+  `docs/research/GLB_VIEWER_UV1_EXPANDED_TEXTURE_STATUS_AUDIT_2026_05_20.md`.
+- Confirmed supported UV1, alpha-mask, metallic-roughness UV1, normal-scale,
+  and occlusion-transform viewer slices keep ECS as the source of truth, expose
+  only JSON-safe status, and leave GPU resources backend-owned.
+- Recommended a visible real-image decode path as the next GLB viewer fidelity
+  task.
+
+Validation:
+
+- `pnpm run check:boundaries`
+- `pnpm run check:examples`
+
+## task-2066 — Add texture-transform-on-occlusion GLB viewer sample
+
+Completed: 2026-05-20
+
+Summary:
+
+- Added `examples/assets/occlusion-transform.glb`, a StandardMaterial GLB
+  sample with `KHR_texture_transform` on `occlusionTexture` plus a scalar
+  control primitive.
+- Added example-local decoded bytes for `aperture-occlusion-checker.png` and
+  exposed JSON-safe `occlusionStrength` material factor status.
+- Added Playwright coverage for occlusion texture transform metadata, sampler
+  status, pipeline key, and visible pixel difference from the scalar control.
+
+Validation:
+
+- `node --check examples/glb-viewer.js`
+- GLB JSON/header check for `examples/assets/occlusion-transform.glb`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts -g "occlusion texture transform sample"`
+
+## task-2065 — Add normal-scale GLB viewer sample
+
+Completed: 2026-05-20
+
+Summary:
+
+- Added `examples/assets/normal-scale.glb`, a tangent-backed StandardMaterial
+  GLB sample with non-default `normalTexture.scale` and a flat control
+  primitive.
+- Exposed JSON-safe `normalScale` material factor status in `glb-viewer`.
+- Added Playwright coverage for normal texture readiness, `normalScale: 3.5`,
+  and visible scalar-vs-normal pixel differences.
+
+Validation:
+
+- `node --check examples/glb-viewer.js`
+- GLB JSON/header check for `examples/assets/normal-scale.glb`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts -g "normal-scale texture sample"`
+
+## task-2064 — Add metallic-roughness UV1 GLB viewer sample
+
+Completed: 2026-05-20
+
+Summary:
+
+- Added `examples/assets/metallic-roughness-uv1.glb`, a StandardMaterial GLB
+  sample whose metallic-roughness texture requests `TEXCOORD_1`.
+- Added the sample to `glb-viewer` and verified JSON-safe
+  `metallicRoughnessTexture.texCoord: 1` status without missing-UV1
+  diagnostics.
+- Added Playwright coverage proving the UV1 metallic-roughness pipeline key and
+  visible pixel difference from a scalar control primitive.
+
+Validation:
+
+- `node --check examples/glb-viewer.js`
+- GLB JSON/header check for `examples/assets/metallic-roughness-uv1.glb`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts -g "metallic-roughness texture through TEXCOORD_1"`
+
+## task-2063 — Add alpha-mask texture GLB viewer sample
+
+Completed: 2026-05-20
+
+Summary:
+
+- Added `examples/assets/alpha-mask.glb`, a StandardMaterial GLB sample with
+  `alphaMode: "MASK"`, `alphaCutoff: 0.5`, a base-color alpha texture, and a
+  scalar control primitive.
+- Added example-local decoded bytes for `aperture-alpha-mask-checker.png` and
+  exposed JSON-safe `alphaCutoff` material resolution status.
+- Added Playwright coverage for alpha-mask pipeline state, texture/sampler
+  status, visible opaque pixels, and a clear-color masked probe.
+
+Validation:
+
+- `node --check examples/glb-viewer.js`
+- GLB JSON/header check for `examples/assets/alpha-mask.glb`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts -g "alpha-mask texture sample"`
+
+## task-2062 — Preserve TEXCOORD_1 GLB mesh attributes and add supported UV1 viewer sample
+
+Completed: 2026-05-20
+
+Summary:
+
+- Preserved `TEXCOORD_1` through GLB primitive parsing, accessor validation, and
+  mesh asset construction/packing.
+- Added `examples/assets/uv1-base-color.glb`, a StandardMaterial GLB sample
+  whose base-color texture requests `TEXCOORD_1` and whose mesh provides UV1
+  data.
+- Added unit and Playwright coverage for packed UV1 vertex layout, UV1 pipeline
+  key/status, visible UV1 pixels, and absence of missing-UV1 diagnostics.
+
+Validation:
+
+- GLB JSON/header check for `examples/assets/uv1-base-color.glb`
+- `pnpm exec vitest run test/assets/gltf-mesh-asset-construction.test.ts test/assets/gltf-mesh-primitive.test.ts test/assets/gltf-accessor-validation.test.ts`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts -g "base-color texture through TEXCOORD_1"`
+
+## task-2061 — Add occlusion/emissive texture GLB viewer sample
+
+Completed: 2026-05-20
+
+Summary:
+
+- Added `examples/assets/occlusion-emissive.glb`, a two-primitive
+  StandardMaterial GLB sample with occlusion and emissive texture bindings plus
+  a scalar control primitive.
+- Added the sample to `glb-viewer` and verified JSON-safe texture-slot status
+  for `occlusionTexture` and `emissiveTexture`, emissive factor metadata, and
+  the combined texture pipeline key.
+- Added Playwright coverage proving visible textured/emissive pixels and a
+  difference from the scalar control primitive.
+
+References inspected:
+
+- `references/bevy/crates/bevy_gltf/src/loader/gltf_ext/material.rs`
+- `references/three.js/examples/jsm/loaders/GLTFLoader.js`
+
+Validation:
+
+- `node --check examples/glb-viewer.js`
+- GLB JSON/header check for `examples/assets/occlusion-emissive.glb`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts -g "missing TEXCOORD_1|occlusion and emissive"`
+
+Known follow-up:
+
+- `task-2062` should preserve `TEXCOORD_1` GLB mesh attributes and add a
+  supported UV1 viewer sample.
+
+## task-2060 — Audit GLB unsupported-feature and sampler-status slices
+
+Completed: 2026-05-20
+
+Summary:
+
+- Added
+  `docs/research/GLB_VIEWER_UNSUPPORTED_SAMPLER_STATUS_AUDIT_2026_05_20.md`,
+  confirming recent unsupported-feature, sampler, texture-transform,
+  missing-UV1, and occlusion/emissive viewer slices remain ECS-authored,
+  JSON-safe, renderer-derived, and WebGPU-only.
+- Confirmed unsupported primitive and missing-UV1 diagnostics skip only affected
+  primitives while supported/control primitives still render.
+- Recommended supported UV1 GLB viewer coverage as the next visible fidelity
+  task.
+
+References inspected:
+
+- `docs/NORTH_STAR.md`
+- `docs/ARCHITECTURE.md`
+- `docs/DECISIONS.md`
+- `references/bevy/crates/bevy_gltf/src/loader/mod.rs`
+- `references/bevy/crates/bevy_gltf/src/loader/gltf_ext/material.rs`
+- `references/three.js/examples/jsm/loaders/GLTFLoader.js`
+
+Validation:
+
+- `pnpm run check:boundaries`
+
+Known follow-up:
+
+- `task-2062` should preserve `TEXCOORD_1` GLB mesh attributes and add a
+  supported UV1 viewer sample.
+
+## task-2059 — Add missing TEXCOORD_1 GLB viewer diagnostic sample
+
+Completed: 2026-05-20
+
+Summary:
+
+- Added `examples/assets/missing-texcoord1.glb`, a two-primitive
+  StandardMaterial GLB sample where one base-color texture requests
+  `TEXCOORD_1` without mesh UV1 data and the scalar control primitive still
+  renders.
+- Added sanitized extraction diagnostics to GLB viewer status so
+  `render.standardMaterialTexture.missingTexCoord1` is visible without exposing
+  non-serializable state.
+- Added Playwright coverage proving the missing-UV1 diagnostic, skipped affected
+  primitive, and visible control pixels.
+
+References inspected:
+
+- `references/bevy/crates/bevy_gltf/src/loader/gltf_ext/material.rs`
+- `references/three.js/examples/jsm/loaders/GLTFLoader.js`
+
+Validation:
+
+- `node --check examples/glb-viewer.js`
+- GLB JSON/header check for `examples/assets/missing-texcoord1.glb`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts -g "missing TEXCOORD_1"`
+
+Known follow-up:
+
+- `task-2060` audited the recent unsupported-feature and texture-status slices.
+
 ## task-2058 — Add texture-transform GLB viewer sample
 
 Completed: 2026-05-20

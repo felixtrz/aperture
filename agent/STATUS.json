@@ -1,11 +1,11 @@
 {
   "state": "idle",
   "currentTaskId": null,
-  "currentRunStartedAt": null,
-  "lastRunStartedAt": "2026-05-20T05:02:23Z",
-  "lastResult": "completed",
+  "currentRunStartedAt": "2026-05-20T06:04:29Z",
+  "lastRunStartedAt": "2026-05-20T06:04:29Z",
+  "lastResult": "stop-condition",
   "lastCommit": "7c2754c",
   "activePid": null,
-  "notes": "Completed task-2049 through task-2058: GLB viewer unsupported morph/skinning/orthographic/primitive-mode/CUBICSPLINE diagnostics, multi-scene metadata, texture-transform metadata, emissive StandardMaterial sample, sampler-state sample/status, and import/status architecture audit. Recommended next: task-2059.",
-  "lastRunFinishedAt": "2026-05-20T05:59:21Z"
+  "notes": "Completed task-2059 through task-2067. Stopped before task-2068 because the remaining window was not enough to complete and validate the larger same-origin PNG decode slice coherently.",
+  "lastRunFinishedAt": "2026-05-20T06:42:04Z"
 }

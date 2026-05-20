@@ -1,6 +1,80 @@
 # Agent Handoff
 
-Updated: 2026-05-20T05:59:21Z
+Updated: 2026-05-20T06:42:04Z
+
+## Current Run Update — 2026-05-20T06:42:04Z — GLB viewer UV1, alpha-mask, normal-scale, occlusion-transform, and texture-status coverage
+
+Completed `task-2059`, `task-2060`, `task-2061`, `task-2062`, `task-2063`,
+`task-2064`, `task-2065`, `task-2066`, and `task-2067`.
+
+### What changed
+
+- Added `examples/assets/missing-texcoord1.glb`, surfacing sanitized
+  `render.standardMaterialTexture.missingTexCoord1` extraction diagnostics while
+  the scalar control primitive still renders.
+- Added `examples/assets/occlusion-emissive.glb`, proving occlusion and
+  emissive texture-slot readiness plus emissive factor status in `glb-viewer`.
+- Preserved `TEXCOORD_1` through GLB primitive parsing, accessor validation, and
+  mesh asset construction/packing.
+- Added `examples/assets/uv1-base-color.glb` and
+  `examples/assets/metallic-roughness-uv1.glb`, proving base-color and
+  metallic-roughness textures can route through UV1 without missing-UV1
+  diagnostics.
+- Added `examples/assets/alpha-mask.glb`, `examples/assets/normal-scale.glb`,
+  and `examples/assets/occlusion-transform.glb`, plus JSON-safe `alphaCutoff`,
+  `normalScale`, `occlusionStrength`, sampler, and texture-transform status.
+- Added example-local decoded image bytes for alpha-mask and occlusion checker
+  fixtures.
+- Added
+  `docs/research/GLB_VIEWER_UNSUPPORTED_SAMPLER_STATUS_AUDIT_2026_05_20.md`
+  and
+  `docs/research/GLB_VIEWER_UV1_EXPANDED_TEXTURE_STATUS_AUDIT_2026_05_20.md`.
+- Updated `docs/index.html`, `docs/render-pipeline-comparison.html`,
+  `agent/BACKLOG.md`, and `agent/COMPLETED.md`. The recommended next task is
+  now `task-2068`.
+
+### References inspected
+
+- `references/bevy/crates/bevy_gltf/src/loader/mod.rs`
+- `references/bevy/crates/bevy_gltf/src/loader/gltf_ext/material.rs`
+- `references/three.js/examples/jsm/loaders/GLTFLoader.js`
+- `docs/NORTH_STAR.md`
+- `docs/ARCHITECTURE.md`
+- `docs/DECISIONS.md`
+
+### Validation
+
+- `node --check examples/glb-viewer.js`
+- GLB JSON/header checks for `examples/assets/missing-texcoord1.glb`,
+  `examples/assets/occlusion-emissive.glb`, `examples/assets/uv1-base-color.glb`,
+  `examples/assets/alpha-mask.glb`,
+  `examples/assets/metallic-roughness-uv1.glb`,
+  `examples/assets/normal-scale.glb`, and
+  `examples/assets/occlusion-transform.glb`
+- `pnpm exec vitest run test/assets/gltf-mesh-asset-construction.test.ts test/assets/gltf-mesh-primitive.test.ts test/assets/gltf-accessor-validation.test.ts`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts -g "missing TEXCOORD_1|base-color texture through TEXCOORD_1|alpha-mask texture sample|metallic-roughness texture through TEXCOORD_1|normal-scale texture sample|occlusion texture transform sample|occlusion and emissive"`
+- `pnpm run check:boundaries`
+- `pnpm run check:examples`
+- `pnpm run check:progress`
+- `pnpm run build`
+- `pnpm run lint`
+- `pnpm run format:check`
+- `pnpm test` (317 files, 1482 tests passed)
+
+### Known issues
+
+- No known regressions from this run.
+- The new deterministic GLB texture fixtures still rely on
+  `resolveGlbViewerImageData` for synthetic URI bytes. `task-2068` should
+  replace one synthetic path with a real same-origin PNG decode route.
+- Stopped before starting `task-2068` because the remaining run window was not
+  enough to complete and validate that larger image-decode vertical slice
+  coherently.
+
+### Recommended next task
+
+`task-2068 — Decode a same-origin PNG URI texture for a GLB viewer sample`.
 
 ## Current Run Update — 2026-05-20T05:59:21Z — GLB viewer unsupported-feature, CUBICSPLINE, multi-scene, texture-transform, and sampler-status coverage
 

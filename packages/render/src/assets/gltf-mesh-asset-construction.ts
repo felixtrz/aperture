@@ -201,7 +201,12 @@ function collectAttributes(
   const sources: AttributeSource[] = [{ decoded: position, offset: 0 }];
   let offset = position.itemSize * 4;
 
-  for (const semantic of ["NORMAL", "TEXCOORD_0", "TANGENT"] as const) {
+  for (const semantic of [
+    "NORMAL",
+    "TEXCOORD_0",
+    "TANGENT",
+    "TEXCOORD_1",
+  ] as const) {
     const decoded = primitive.attributes.find(
       (attribute) => attribute.semantic === semantic,
     );
@@ -253,6 +258,7 @@ function packAttributes(
         | "POSITION"
         | "NORMAL"
         | "TEXCOORD_0"
+        | "TEXCOORD_1"
         | "TANGENT",
       format:
         source.decoded.itemSize === 2

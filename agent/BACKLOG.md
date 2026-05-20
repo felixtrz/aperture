@@ -59,7 +59,7 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start with `task-2059`: add a missing TEXCOORD_1 GLB viewer diagnostic sample.
+Start with `task-2068`: decode a same-origin PNG URI texture for a GLB viewer sample.
 
 `task-2001` is complete: the spinning-cube example now creates a renderer-owned face-colored diffuse IBL cube texture and sampler, routes it through the StandardMaterial diffuse IBL shader variant, and Playwright verifies direction-dependent face pixels.
 `task-2002` is complete: `withEnvironmentMap(handle)` is exported from runtime/core and materials-showcase now uses it with visible diffuse IBL routing.
@@ -967,6 +967,8 @@ Acceptance criteria:
 
 ### task-2059 — Add missing TEXCOORD_1 GLB viewer diagnostic sample
 
+Status: completed 2026-05-20. See `agent/COMPLETED.md`.
+
 Category: `render-bridge`
 Package/write-scope: `examples/assets`, `examples/glb-viewer.js`, `test/e2e/glb-viewer.spec.ts`.
 Reference anchor: `references/bevy/crates/bevy_gltf/src/loader/gltf_ext/material.rs`; `references/three.js/examples/jsm/loaders/GLTFLoader.js`.
@@ -980,6 +982,8 @@ Acceptance criteria:
 
 ### task-2060 — Audit GLB unsupported-feature and sampler-status slices
 
+Status: completed 2026-05-20. See `agent/COMPLETED.md`.
+
 Category: `audit-refactor`
 Package/write-scope: `docs/research`, targeted examples/tests only if a small corrective refactor is required.
 Reference anchor: `docs/NORTH_STAR.md`; `docs/ARCHITECTURE.md`; `docs/DECISIONS.md`; `references/bevy/crates/bevy_gltf/src/loader/mod.rs`; `references/three.js/examples/jsm/loaders/GLTFLoader.js`.
@@ -988,6 +992,161 @@ Acceptance criteria:
 
 - Confirm unsupported morph, skin, orthographic camera, primitive-mode, emissive, and sampler-status viewer slices preserve ECS authority, render extraction boundaries, JSON-safe status, and WebGPU-only backend ownership.
 - Check that warning diagnostics do not incorrectly block supported primitives or base meshes.
+- Recommend the next visible GLB viewer fidelity task.
+
+### task-2061 — Add occlusion/emissive texture GLB viewer sample
+
+Status: completed 2026-05-20. See `agent/COMPLETED.md`.
+
+Category: `render-bridge`
+Package/write-scope: `examples/assets`, `examples/glb-viewer.js`, `test/e2e/glb-viewer.spec.ts`.
+Reference anchor: `references/bevy/crates/bevy_gltf/src/loader/gltf_ext/material.rs`; `references/three.js/examples/jsm/loaders/GLTFLoader.js`.
+
+Acceptance criteria:
+
+- `glb-viewer` includes a committed StandardMaterial GLB sample with an occlusion texture and emissive texture/factor on one primitive plus a scalar control primitive.
+- Viewer status reports JSON-safe `occlusionTexture` and `emissiveTexture` slot readiness plus emissive factor metadata for the textured primitive.
+- The sample remains ECS-authored through GLB replay and WebGPU resources stay backend-owned.
+- Playwright verifies visible textured/emissive pixels and a difference from the scalar control primitive.
+
+### task-2062 — Preserve TEXCOORD_1 GLB mesh attributes and add supported UV1 viewer sample
+
+Status: completed 2026-05-20. See `agent/COMPLETED.md`.
+
+Category: `render-bridge`
+Package/write-scope: `packages/render/src/assets`, `examples/assets`, `examples/glb-viewer.js`, `test/e2e/glb-viewer.spec.ts`, targeted asset tests.
+Reference anchor: `references/bevy/crates/bevy_gltf/src/loader/gltf_ext/material.rs`; `references/three.js/examples/jsm/loaders/GLTFLoader.js`.
+
+Acceptance criteria:
+
+- GLB mesh asset construction preserves `TEXCOORD_1` vertex attributes for primitives that provide UV1 data.
+- `glb-viewer` includes a committed StandardMaterial GLB sample whose base-color texture requests `TEXCOORD_1` and whose mesh provides matching UV1 data.
+- Viewer status reports a `standard|baseColorTexture|uv1|...` pipeline key and JSON-safe texture-slot `texCoord: 1` without missing-UV1 diagnostics.
+- Playwright verifies visible UV1-textured pixels and a difference from a scalar control primitive.
+
+### task-2063 — Add alpha-mask texture GLB viewer sample
+
+Status: completed 2026-05-20. See `agent/COMPLETED.md`.
+
+Category: `render-bridge`
+Package/write-scope: `examples/assets`, `examples/glb-viewer.js`, `test/e2e/glb-viewer.spec.ts`.
+Reference anchor: `references/bevy/crates/bevy_gltf/src/loader/gltf_ext/material.rs`; `references/three.js/examples/jsm/loaders/GLTFLoader.js`.
+
+Acceptance criteria:
+
+- `glb-viewer` includes a committed StandardMaterial GLB sample with `alphaMode: "MASK"`, an alpha-cutoff base-color texture, and a scalar/control primitive.
+- Viewer status reports JSON-safe alpha mode, alpha cutoff, texture-slot readiness, and the alpha-mask pipeline key.
+- The sample remains ECS-authored through GLB replay and WebGPU resources stay backend-owned.
+- Playwright verifies visible opaque/masked pixel regions and a difference from the scalar control primitive.
+
+### task-2064 — Add metallic-roughness UV1 GLB viewer sample
+
+Status: completed 2026-05-20. See `agent/COMPLETED.md`.
+
+Category: `render-bridge`
+Package/write-scope: `examples/assets`, `examples/glb-viewer.js`, `test/e2e/glb-viewer.spec.ts`, targeted asset tests only if needed.
+Reference anchor: `references/bevy/crates/bevy_gltf/src/loader/gltf_ext/material.rs`; `references/three.js/examples/jsm/loaders/GLTFLoader.js`.
+
+Acceptance criteria:
+
+- `glb-viewer` includes a committed StandardMaterial GLB sample whose metallic-roughness texture requests `TEXCOORD_1` and whose mesh provides matching UV1 data.
+- Viewer status reports JSON-safe metallic-roughness texture-slot `texCoord: 1`, material factors, and a UV1 pipeline key.
+- The sample remains ECS-authored through GLB replay and WebGPU resources stay backend-owned.
+- Playwright verifies visible roughness/metallic pixel differences against a scalar control primitive.
+
+### task-2065 — Add normal-scale GLB viewer sample
+
+Status: completed 2026-05-20. See `agent/COMPLETED.md`.
+
+Category: `render-bridge`
+Package/write-scope: `examples/assets`, `examples/glb-viewer.js`, `test/e2e/glb-viewer.spec.ts`.
+Reference anchor: `references/bevy/crates/bevy_gltf/src/loader/gltf_ext/material.rs`; `references/three.js/examples/jsm/loaders/GLTFLoader.js`.
+
+Acceptance criteria:
+
+- `glb-viewer` includes a committed tangent-backed StandardMaterial GLB sample with a normal texture and non-default `normalTexture.scale`.
+- Viewer status reports JSON-safe normal texture slot readiness and normal-scale factor metadata.
+- The sample remains ECS-authored through GLB replay and WebGPU resources stay backend-owned.
+- Playwright verifies the normal-scaled region renders differently from a scalar or flat-normal control primitive.
+
+### task-2066 — Add texture-transform-on-occlusion GLB viewer sample
+
+Status: completed 2026-05-20. See `agent/COMPLETED.md`.
+
+Category: `render-bridge`
+Package/write-scope: `examples/assets`, `examples/glb-viewer.js`, `test/e2e/glb-viewer.spec.ts`.
+Reference anchor: `references/bevy/crates/bevy_gltf/src/loader/gltf_ext/material.rs`; `references/three.js/examples/jsm/loaders/GLTFLoader.js`.
+
+Acceptance criteria:
+
+- `glb-viewer` includes a committed StandardMaterial GLB sample with `KHR_texture_transform` on an `occlusionTexture` and a scalar/control primitive.
+- Viewer status reports JSON-safe occlusion texture transform metadata, texture-slot readiness, and material factors.
+- The sample remains ECS-authored through GLB replay and WebGPU resources stay backend-owned.
+- Playwright verifies transformed occlusion texture pixels differ from a scalar control primitive.
+
+### task-2067 — Audit GLB viewer UV1 and expanded texture-status slices
+
+Status: completed 2026-05-20. See `agent/COMPLETED.md`.
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research`, targeted examples/tests only if a small corrective refactor is required.
+Reference anchor: `docs/NORTH_STAR.md`; `docs/ARCHITECTURE.md`; `docs/DECISIONS.md`; `references/bevy/crates/bevy_gltf/src/loader/mod.rs`; `references/bevy/crates/bevy_gltf/src/loader/gltf_ext/material.rs`; `references/three.js/examples/jsm/loaders/GLTFLoader.js`.
+
+Acceptance criteria:
+
+- Confirm the supported UV1, alpha-mask, metallic-roughness UV1, normal-scale, and occlusion-transform viewer slices preserve ECS authority, render extraction boundaries, JSON-safe status, and WebGPU-only backend ownership.
+- Check that UV1 mesh attributes stay renderer-independent source data and that missing-UV1 diagnostics still skip only affected primitives.
+- Recommend the next visible GLB viewer fidelity task.
+
+### task-2068 — Decode a same-origin PNG URI texture for a GLB viewer sample
+
+Category: `render-bridge`
+Package/write-scope: `examples/assets`, `examples/glb-viewer.js`, targeted texture-loading tests if practical, `test/e2e/glb-viewer.spec.ts`.
+Reference anchor: `references/bevy/crates/bevy_gltf/src/loader/mod.rs`; `references/three.js/examples/jsm/loaders/GLTFLoader.js`.
+
+Acceptance criteria:
+
+- `glb-viewer` includes at least one committed GLB sample whose texture points to a real same-origin PNG asset instead of an example-local synthetic byte resolver branch.
+- The viewer decodes that PNG into the existing renderer-independent texture source data before GLB replay/material registration.
+- Viewer status remains JSON-safe and reports the decoded texture slot without exposing image, GPU texture, or sampler objects.
+- Playwright verifies visible textured pixels and no regression in ECS-authored replay or WebGPU backend ownership.
+
+### task-2069 — Add an alpha-blend texture GLB viewer sample
+
+Category: `render-bridge`
+Package/write-scope: `examples/assets`, `examples/glb-viewer.js`, `test/e2e/glb-viewer.spec.ts`.
+Reference anchor: `references/bevy/crates/bevy_gltf/src/loader/gltf_ext/material.rs`; `references/three.js/examples/jsm/loaders/GLTFLoader.js`.
+
+Acceptance criteria:
+
+- `glb-viewer` includes a committed StandardMaterial GLB sample with `alphaMode: "BLEND"`, a base-color texture with translucent alpha, and an opaque/scalar control primitive.
+- Viewer status reports JSON-safe alpha mode, blend preset, depth-write state, texture-slot readiness, and the alpha-blend pipeline key.
+- The sample remains ECS-authored through GLB replay and WebGPU resources stay backend-owned.
+- Playwright verifies visible translucent pixels differ from both clear color and the opaque control primitive.
+
+### task-2070 — Add rotated metallic-roughness transform GLB viewer sample
+
+Category: `render-bridge`
+Package/write-scope: `examples/assets`, `examples/glb-viewer.js`, `test/e2e/glb-viewer.spec.ts`.
+Reference anchor: `references/bevy/crates/bevy_gltf/src/loader/gltf_ext/material.rs`; `references/three.js/examples/jsm/loaders/GLTFLoader.js`.
+
+Acceptance criteria:
+
+- `glb-viewer` includes a committed StandardMaterial GLB sample with `KHR_texture_transform.rotation` on `pbrMetallicRoughness.metallicRoughnessTexture` and a scalar/control primitive.
+- Viewer status reports JSON-safe metallic-roughness texture transform metadata, texture-slot readiness, and material factors.
+- The sample remains ECS-authored through GLB replay and WebGPU resources stay backend-owned.
+- Playwright verifies transformed metallic/roughness pixels differ from a scalar control primitive.
+
+### task-2071 — Audit GLB viewer real-image and alpha-state follow-ups
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research`, targeted examples/tests only if a small corrective refactor is required.
+Reference anchor: `docs/NORTH_STAR.md`; `docs/ARCHITECTURE.md`; `docs/DECISIONS.md`; `references/bevy/crates/bevy_gltf/src/loader/mod.rs`; `references/three.js/examples/jsm/loaders/GLTFLoader.js`.
+
+Acceptance criteria:
+
+- Confirm the real-image decode, alpha-blend texture, and rotated metallic-roughness transform viewer slices preserve ECS authority, render extraction boundaries, JSON-safe status, and WebGPU-only backend ownership.
+- Check that decoded image bytes remain source texture data and that prepared GPU textures remain backend-owned.
 - Recommend the next visible GLB viewer fidelity task.
 
 ## Ready Tasks By Category

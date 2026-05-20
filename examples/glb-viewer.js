@@ -92,6 +92,12 @@ const sampleAssets = [
     source: "sample",
   },
   {
+    id: "normal-scale",
+    label: "Normal scale",
+    url: new URL("./assets/normal-scale.glb", globalThis.location.href),
+    source: "sample",
+  },
+  {
     id: "textured-standard",
     label: "Textured standard",
     url: new URL("./assets/textured-standard.glb", globalThis.location.href),
@@ -185,6 +191,24 @@ const sampleAssets = [
     source: "sample",
   },
   {
+    id: "occlusion-emissive",
+    label: "Occlusion emissive",
+    url: new URL("./assets/occlusion-emissive.glb", globalThis.location.href),
+    source: "sample",
+  },
+  {
+    id: "occlusion-transform",
+    label: "Occlusion transform",
+    url: new URL("./assets/occlusion-transform.glb", globalThis.location.href),
+    source: "sample",
+  },
+  {
+    id: "alpha-mask",
+    label: "Alpha mask",
+    url: new URL("./assets/alpha-mask.glb", globalThis.location.href),
+    source: "sample",
+  },
+  {
     id: "sampler-state",
     label: "Sampler state",
     url: new URL("./assets/sampler-state.glb", globalThis.location.href),
@@ -194,6 +218,27 @@ const sampleAssets = [
     id: "texture-transform",
     label: "Texture transform",
     url: new URL("./assets/texture-transform.glb", globalThis.location.href),
+    source: "sample",
+  },
+  {
+    id: "missing-texcoord1",
+    label: "Missing UV1",
+    url: new URL("./assets/missing-texcoord1.glb", globalThis.location.href),
+    source: "sample",
+  },
+  {
+    id: "uv1-base-color",
+    label: "UV1 base color",
+    url: new URL("./assets/uv1-base-color.glb", globalThis.location.href),
+    source: "sample",
+  },
+  {
+    id: "metallic-roughness-uv1",
+    label: "Metallic roughness UV1",
+    url: new URL(
+      "./assets/metallic-roughness-uv1.glb",
+      globalThis.location.href,
+    ),
     source: "sample",
   },
   {
@@ -1195,6 +1240,7 @@ async function createStatus(aperture, app, scene, step, report, frame) {
       environments: report.snapshot.environments.length,
       shadowRequests: report.snapshot.shadowRequests.length,
       diagnostics: report.snapshot.diagnostics.length,
+      diagnosticsList: renderDiagnosticsStatus(report.snapshot.diagnostics),
     },
     ibl: createIblStatus(aperture, active, reportJson),
     shadow: createShadowStatus(
@@ -1228,6 +1274,48 @@ async function createStatus(aperture, app, scene, step, report, frame) {
         ? shadowFrame.receiverResources
         : null,
   };
+}
+
+function renderDiagnosticsStatus(diagnostics) {
+  return diagnostics.map((diagnostic) => ({
+    code: diagnostic.code,
+    severity: diagnostic.severity,
+    message: diagnostic.message,
+    ...diagnosticEntityStatus(diagnostic.entity),
+    ...diagnosticOptionalString(diagnostic, "assetKey"),
+    ...diagnosticOptionalString(diagnostic, "materialKey"),
+    ...diagnosticOptionalString(diagnostic, "meshKey"),
+    ...diagnosticOptionalString(diagnostic, "textureKey"),
+    ...diagnosticOptionalString(diagnostic, "samplerKey"),
+    ...diagnosticOptionalString(diagnostic, "field"),
+    ...diagnosticOptionalNumber(diagnostic, "texCoord"),
+  }));
+}
+
+function diagnosticEntityStatus(entity) {
+  if (entity === undefined || entity === null) {
+    return {};
+  }
+
+  return {
+    entity: {
+      index: entity.index,
+      generation: entity.generation,
+    },
+  };
+}
+
+function diagnosticOptionalString(diagnostic, field) {
+  return typeof diagnostic[field] === "string"
+    ? { [field]: diagnostic[field] }
+    : {};
+}
+
+function diagnosticOptionalNumber(diagnostic, field) {
+  return typeof diagnostic[field] === "number" &&
+    Number.isFinite(diagnostic[field])
+    ? { [field]: diagnostic[field] }
+    : {};
 }
 
 async function createViewerShadowFrame({
@@ -3493,6 +3581,7 @@ function createPrimitiveMaterialResolutionStatus(aperture, app, active) {
         materialHandleKey: resolution.materialHandleKey,
         family: material?.kind ?? "missing",
         alphaMode: renderState?.alphaMode ?? null,
+        alphaCutoff: renderState?.alphaCutoff ?? null,
         blendPreset: renderState?.blend?.preset ?? null,
         depthWrite: renderState?.depth?.write ?? null,
         cullMode: renderState?.cullMode ?? null,
@@ -3532,6 +3621,25 @@ function resolveGlbViewerImageData(input) {
 
   if (
     input.source.kind === "uri" &&
+    input.source.uri === "aperture-alpha-mask-checker.png"
+  ) {
+    return {
+      width: 2,
+      height: 2,
+      format: "rgba8unorm-srgb",
+      sourceData: {
+        bytes: new Uint8Array([
+          255, 118, 64, 255, 80, 160, 255, 0, 255, 220, 80, 0, 58, 220, 142,
+          255,
+        ]),
+        bytesPerRow: 8,
+        rowsPerImage: 2,
+      },
+    };
+  }
+
+  if (
+    input.source.kind === "uri" &&
     input.source.uri === "aperture-metallic-roughness-checker.png"
   ) {
     return {
@@ -3541,6 +3649,25 @@ function resolveGlbViewerImageData(input) {
       sourceData: {
         bytes: new Uint8Array([
           0, 38, 18, 255, 0, 218, 96, 255, 0, 112, 48, 255, 0, 246, 12, 255,
+        ]),
+        bytesPerRow: 8,
+        rowsPerImage: 2,
+      },
+    };
+  }
+
+  if (
+    input.source.kind === "uri" &&
+    input.source.uri === "aperture-occlusion-checker.png"
+  ) {
+    return {
+      width: 2,
+      height: 2,
+      format: "rgba8unorm",
+      sourceData: {
+        bytes: new Uint8Array([
+          255, 180, 180, 255, 64, 180, 180, 255, 160, 180, 180, 255, 24, 180,
+          180, 255,
         ]),
         bytesPerRow: 8,
         rowsPerImage: 2,
@@ -3612,6 +3739,14 @@ function materialFactorStatus(material) {
     roughnessFactor:
       material.kind === "standard"
         ? Number(material.roughnessFactor.toFixed(3))
+        : null,
+    normalScale:
+      material.kind === "standard"
+        ? Number(material.normalScale.toFixed(3))
+        : null,
+    occlusionStrength:
+      material.kind === "standard"
+        ? Number(material.occlusionStrength.toFixed(3))
         : null,
     emissiveFactor:
       material.kind === "standard"

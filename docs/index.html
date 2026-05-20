@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-20 05:59 UTC</dd>
+            <dd>2026-05-20 06:35 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -402,13 +402,17 @@
               orthographic-camera, primitive-mode, CUBICSPLINE animation, and
               multi-scene samples that keep supported base meshes rendering
               while reporting JSON-safe diagnostics and scene metadata. It also
-              includes emissive StandardMaterial, sampler-state texture, and
-              texture-transform samples with routed material, texture, sampler,
-              and transform status. Existing roughness/IBL, normal-map, and
-              base-color plus metallic-roughness StandardMaterial samples keep
-              JSON-safe factor and texture-slot status. GLB mesh construction
-              preserves tangent attributes for normal mapping, and animation
-              playback now has speed, clip-selection, loop, reverse,
+              includes emissive StandardMaterial, occlusion/emissive texture,
+              occlusion texture-transform, alpha-mask, sampler-state texture,
+              texture-transform, missing-UV1, supported base-color UV1,
+              metallic-roughness UV1, and normal-scale samples with routed
+              material, texture, sampler, transform, alpha, UV1, and sanitized
+              extraction-diagnostic status. Existing roughness/IBL, normal-map,
+              and base-color plus metallic-roughness StandardMaterial samples
+              keep JSON-safe factor and texture-slot status. GLB mesh
+              construction now preserves <code>TEXCOORD_1</code> alongside
+              tangent attributes for texture routing and normal mapping, and
+              animation playback now has speed, clip-selection, loop, reverse,
               rotation/scale, and STEP interpolation coverage that change the
               example animation clock while continuing to write replayed ECS
               <code>LocalTransform</code> values. The viewer can now switch to a
@@ -1197,20 +1201,23 @@
             <div class="bar"><span style="width: 65%"></span></div>
             <p>
               Container parsing, diagnostics, source registration, material
-              mapping, URI loading, and a twenty-six-asset local GLB viewer path
-              with lit StandardMaterial, animated, multi-clip, rotation/scale,
-              STEP interpolation, imported-camera, embedded-image texture,
-              imported-light, unsupported morph-target/skinning/orthographic
+              mapping, URI loading, and a thirty-three-asset local GLB viewer
+              path with lit StandardMaterial, animated, multi-clip,
+              rotation/scale, STEP interpolation, imported-camera,
+              embedded-image texture, imported-light, unsupported
+              morph-target/skinning/orthographic
               camera/primitive-mode/CUBICSPLINE diagnostics, multi-scene
               metadata/default-scene rendering, emissive StandardMaterial,
-              sampler-state texture status, texture-transform metadata,
-              dual-primitive, hierarchy, and mixed alpha-state samples, custom
-              URL plus query-URL loading, and bounds-driven camera fitting have
-              landed. The viewer now includes camera reset, ECS light controls,
-              live shadow/IBL controls, animation
-              pause/scrub/speed/loop/direction controls, imported camera
-              transform/projection replay, imported punctual light replay,
-              parsed metadata status, and
+              occlusion/emissive texture status, occlusion texture transforms,
+              alpha-mask status, sampler-state texture status, texture-transform
+              metadata, missing-UV1 extraction diagnostics, supported base-color
+              UV1, metallic-roughness UV1, normal-scale, dual-primitive,
+              hierarchy, and mixed alpha-state samples, custom URL plus
+              query-URL loading, and bounds-driven camera fitting have landed.
+              The viewer now includes camera reset, ECS light controls, live
+              shadow/IBL controls, animation pause/scrub/speed/loop/direction
+              controls, imported camera transform/projection replay, imported
+              punctual light replay, parsed metadata status, and
               <code>?asset=</code> sample bootstrapping, while the lit brass
               sample adds a shadow-receiver floor and environment-map IBL
               through ECS-authored scene state.
@@ -1546,6 +1553,53 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">task-2067</span> Audited the UV1,
+                alpha-mask, normal-scale, and occlusion-transform viewer slices
+                for ECS authority, JSON-safe status, and WebGPU resource
+                ownership.
+              </li>
+              <li>
+                <span class="badge green">task-2066</span> Added an occlusion
+                texture-transform GLB sample with JSON-safe transform metadata,
+                occlusion strength, sampler status, and pixel proof.
+              </li>
+              <li>
+                <span class="badge green">task-2065</span> Added a normal-scale
+                GLB sample and exposed JSON-safe <code>normalScale</code> factor
+                status with scalar-control browser coverage.
+              </li>
+              <li>
+                <span class="badge green">task-2064</span> Added a
+                metallic-roughness GLB sample that samples through
+                <code>TEXCOORD_1</code> and renders against a scalar control.
+              </li>
+              <li>
+                <span class="badge green">task-2063</span> Added an alpha-mask
+                texture GLB sample with alpha cutoff/render-state status and
+                opaque/masked pixel proof.
+              </li>
+              <li>
+                <span class="badge green">task-2062</span> Preserved
+                <code>TEXCOORD_1</code> mesh attributes through GLB mesh asset
+                construction and added a supported UV1 base-color viewer sample.
+              </li>
+              <li>
+                <span class="badge green">task-2061</span> Added an
+                occlusion/emissive StandardMaterial GLB sample with JSON-safe
+                texture-slot status and scalar-control pixel proof.
+              </li>
+              <li>
+                <span class="badge green">task-2060</span> Audited recent GLB
+                viewer unsupported-feature and texture-status slices for ECS
+                authority, JSON safety, and WebGPU resource ownership.
+              </li>
+              <li>
+                <span class="badge green">task-2059</span> Added a missing
+                <code>TEXCOORD_1</code> GLB sample whose affected primitive
+                reports the extraction diagnostic while a control primitive
+                still renders.
+              </li>
               <li>
                 <span class="badge green">task-2058</span> Added a
                 texture-transform GLB sample and JSON-safe offset, scale, and
@@ -3391,16 +3445,16 @@
             <h3>Recommended next tasks</h3>
             <ul>
               <li>
-                <span class="badge amber">next</span> Add a missing TEXCOORD_1
-                GLB viewer diagnostic sample.
+                <span class="badge amber">next</span> Add a same-origin PNG URI
+                decode path for GLB viewer textures.
               </li>
               <li>
-                The next sample should request <code>TEXCOORD_1</code> for one
-                texture binding without providing mesh UV1 data.
+                Replace one synthetic resolver-only GLB texture fixture with a
+                committed PNG asset decoded through the viewer source path.
               </li>
               <li>
-                Use Playwright to verify the diagnostic and supported control
-                pixels in the same sample.
+                Use Playwright to verify visible textured pixels, JSON-safe
+                source status, and unchanged WebGPU backend ownership.
               </li>
             </ul>
           </article>
@@ -3413,6 +3467,37 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-2062-2067</div>
+            <div>
+              <strong
+                >GLB viewer UV1 and expanded texture-status samples
+                landed.</strong
+              >
+              <span
+                >Supported UV1 mesh attributes, alpha-mask cutoff status,
+                metallic-roughness UV1 sampling, normal-scale factor status,
+                occlusion texture transforms, and a focused architecture audit
+                now have JSON-safe viewer coverage and focused Playwright
+                proof.</span
+              >
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="task-id">task-2059-2061</div>
+            <div>
+              <strong
+                >GLB viewer texture diagnostics and material-status samples
+                landed.</strong
+              >
+              <span
+                >Missing UV1 extraction diagnostics, occlusion/emissive texture
+                status, and the focused unsupported-feature/material-status
+                audit now have JSON-safe viewer coverage and focused Playwright
+                proof.</span
+              >
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-2049-2058</div>
             <div>
