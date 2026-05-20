@@ -78,6 +78,12 @@ const drawSummaryElement = document.querySelector("#glb-draw-summary");
 const renderStateSummaryElement = document.querySelector(
   "#glb-render-state-summary",
 );
+const preparedResourceReuseSummaryElement = document.querySelector(
+  "#glb-prepared-resource-reuse-summary",
+);
+const renderDiagnosticSummaryElement = document.querySelector(
+  "#glb-render-diagnostic-summary",
+);
 const extractionDiagnosticSummaryElement = document.querySelector(
   "#glb-extraction-diagnostic-summary",
 );
@@ -93,8 +99,17 @@ const primitiveMaterialSummaryElement = document.querySelector(
 const materialFactorSummaryElement = document.querySelector(
   "#glb-material-factor-summary",
 );
+const materialAlphaSummaryElement = document.querySelector(
+  "#glb-material-alpha-summary",
+);
 const primitiveTextureSlotSummaryElement = document.querySelector(
   "#glb-primitive-texture-slot-summary",
+);
+const textureSamplerSummaryElement = document.querySelector(
+  "#glb-texture-sampler-summary",
+);
+const textureTransformSummaryElement = document.querySelector(
+  "#glb-texture-transform-summary",
 );
 const sourceLoaderSummaryElement = document.querySelector(
   "#glb-source-loader-summary",
@@ -5823,6 +5838,8 @@ function publishStatus(status) {
     renderState: status.renderState,
   });
   updateRenderStateSummaryPanel(status.renderState);
+  updatePreparedResourceReuseSummaryPanel(status.report?.resourceReuse);
+  updateRenderDiagnosticSummaryPanel(status.report?.diagnosticsSummary);
   updateExtractionDiagnosticSummaryPanel(status.extraction?.diagnosticsList);
   updateImportedLightSummaryPanel(status.importedLights);
   updateImportedLightListSummaryPanel(status.importedLights);
@@ -5832,7 +5849,14 @@ function publishStatus(status) {
   updateMaterialFactorSummaryPanel(
     status.gltf?.primitiveMaterials?.resolutions,
   );
+  updateMaterialAlphaSummaryPanel(status.gltf?.primitiveMaterials?.resolutions);
   updatePrimitiveTextureSlotSummaryPanel(
+    status.gltf?.primitiveMaterials?.resolutions,
+  );
+  updateTextureSamplerSummaryPanel(
+    status.gltf?.primitiveMaterials?.resolutions,
+  );
+  updateTextureTransformSummaryPanel(
     status.gltf?.primitiveMaterials?.resolutions,
   );
   updateSourceLoaderSummaryPanel(status.source);
@@ -6762,6 +6786,205 @@ function uniquePipelineKeys(pipelineKeys) {
   );
 }
 
+const preparedResourceReuseSummaryRows = [
+  {
+    key: "mesh-buffers",
+    label: "mesh buffers",
+    value: (reuse) =>
+      `buffers ${formatReuseCount(reuse.meshBuffersCreated)}/${formatReuseCount(
+        reuse.meshBuffersReused,
+      )}, prepared ${formatReuseCount(
+        reuse.preparedMeshBuffersCreated,
+      )}/${formatReuseCount(
+        reuse.preparedMeshBuffersReused,
+      )}, facade ${arrayEntries(reuse.preparedMeshFacade?.entries).length}`,
+  },
+  {
+    key: "material-buffers",
+    label: "material buffers",
+    value: (reuse) =>
+      `buffers ${formatReuseCount(
+        reuse.materialBuffersCreated,
+      )}/${formatReuseCount(
+        reuse.materialBuffersReused,
+      )}, prepared ${formatReuseCount(
+        reuse.preparedMaterialBuffersCreated,
+      )}/${formatReuseCount(
+        reuse.preparedMaterialBuffersReused,
+      )}, facade ${arrayEntries(reuse.preparedMaterialFacade?.entries).length}`,
+  },
+  {
+    key: "bind-groups",
+    label: "bind groups",
+    value: (reuse) =>
+      `frame ${formatReuseCount(reuse.bindGroupsCreated)}/${formatReuseCount(
+        reuse.bindGroupsReused,
+      )}, material ${formatReuseCount(
+        reuse.preparedMaterialBindGroupsCreated,
+      )}/${formatReuseCount(reuse.preparedMaterialBindGroupsReused)}`,
+  },
+  {
+    key: "textures",
+    label: "textures",
+    value: (reuse) =>
+      `resources ${formatReuseCount(
+        reuse.textureResourcesCreated,
+      )}/${formatReuseCount(reuse.textureResourcesReused)}`,
+  },
+  {
+    key: "samplers",
+    label: "samplers",
+    value: (reuse) =>
+      `resources ${formatReuseCount(
+        reuse.samplerResourcesCreated,
+      )}/${formatReuseCount(reuse.samplerResourcesReused)}`,
+  },
+];
+
+function updatePreparedResourceReuseSummaryPanel(reuse) {
+  if (!(preparedResourceReuseSummaryElement instanceof HTMLElement)) {
+    return;
+  }
+
+  preparedResourceReuseSummaryElement.replaceChildren();
+
+  if (!isRecord(reuse)) {
+    preparedResourceReuseSummaryElement.hidden = true;
+    return;
+  }
+
+  preparedResourceReuseSummaryElement.hidden = false;
+
+  for (const row of preparedResourceReuseSummaryRows) {
+    const element = document.createElement("div");
+    const label = document.createElement("span");
+    const value = document.createElement("strong");
+
+    element.className = "prepared-resource-reuse-summary-row";
+    element.dataset.preparedResourceReuseRow = row.key;
+    label.textContent = row.label;
+    value.textContent = row.value(reuse);
+
+    element.append(label, value);
+    preparedResourceReuseSummaryElement.append(element);
+  }
+}
+
+function formatReuseCount(value) {
+  return typeof value === "number" && Number.isFinite(value)
+    ? String(value)
+    : "0";
+}
+
+function updateRenderDiagnosticSummaryPanel(summary) {
+  if (!(renderDiagnosticSummaryElement instanceof HTMLElement)) {
+    return;
+  }
+
+  renderDiagnosticSummaryElement.replaceChildren();
+
+  if (!isRecord(summary)) {
+    renderDiagnosticSummaryElement.hidden = true;
+    return;
+  }
+
+  if (isRecord(summary.materialQueue)) {
+    appendRenderDiagnosticSummaryRow({
+      key: "materialQueue",
+      label: "material queue",
+      value: formatMaterialQueueDiagnosticSummary(summary.materialQueue),
+    });
+  }
+
+  if (isRecord(summary.routedResourceSet)) {
+    appendRenderDiagnosticSummaryRow({
+      key: "routedResourceSet",
+      label: "routed resources",
+      value: formatRoutedResourceDiagnosticSummary(summary.routedResourceSet),
+    });
+  }
+
+  if (isRecord(summary.directLighting)) {
+    appendRenderDiagnosticSummaryRow({
+      key: "directLighting",
+      label: "direct lighting",
+      value: formatDirectLightingDiagnosticSummary(summary.directLighting),
+    });
+  }
+
+  if (isRecord(summary.builtInAppResourceAdapters)) {
+    appendRenderDiagnosticSummaryRow({
+      key: "builtInAppResourceAdapters",
+      label: "built-in adapters",
+      value: formatBuiltInAdapterDiagnosticSummary(
+        summary.builtInAppResourceAdapters,
+      ),
+    });
+  }
+
+  renderDiagnosticSummaryElement.hidden =
+    renderDiagnosticSummaryElement.childElementCount === 0;
+}
+
+function appendRenderDiagnosticSummaryRow(row) {
+  const element = document.createElement("div");
+  const label = document.createElement("span");
+  const value = document.createElement("strong");
+
+  element.className = "render-diagnostic-summary-row";
+  element.dataset.renderDiagnosticRow = row.key;
+  label.textContent = row.label;
+  value.textContent = row.value;
+
+  element.append(label, value);
+  renderDiagnosticSummaryElement.append(element);
+}
+
+function formatMaterialQueueDiagnosticSummary(queue) {
+  return `${formatReuseCount(queue.itemCount)} items, phases ${formatBucketCounts(
+    queue.byPhase,
+    "phase",
+  )}, families ${formatBucketCounts(queue.byFamily, "family")}`;
+}
+
+function formatRoutedResourceDiagnosticSummary(resources) {
+  return `${formatReuseCount(
+    resources.itemCount,
+  )} items, families ${formatBucketCounts(
+    resources.byFamily,
+    "family",
+  )}, pipelines ${arrayEntries(resources.byPipeline).length}`;
+}
+
+function formatDirectLightingDiagnosticSummary(lighting) {
+  const counts = isRecord(lighting.lightCounts) ? lighting.lightCounts : {};
+  const sections = isRecord(lighting.sections) ? lighting.sections : {};
+
+  return `ready ${lighting.ready === true}, direct ${formatReuseCount(
+    counts.direct,
+  )}, ambient ${formatReuseCount(
+    counts.ambient,
+  )}, resources ${sections.lightGpuBuffers === true}/${
+    sections.lightBindGroup === true
+  }`;
+}
+
+function formatBuiltInAdapterDiagnosticSummary(adapters) {
+  return `valid ${adapters.valid === true}, registered ${
+    arrayEntries(adapters.registeredFamilies).length
+  }, expected ${
+    arrayEntries(adapters.expectedFamilies).length
+  }, diagnostics ${arrayEntries(adapters.diagnostics).length}`;
+}
+
+function formatBucketCounts(buckets, key) {
+  const rows = arrayEntries(buckets)
+    .filter((bucket) => isRecord(bucket) && typeof bucket[key] === "string")
+    .map((bucket) => `${bucket[key]} ${formatReuseCount(bucket.itemCount)}`);
+
+  return rows.length === 0 ? "none" : rows.join(", ");
+}
+
 function updateExtractionDiagnosticSummaryPanel(diagnostics) {
   if (!(extractionDiagnosticSummaryElement instanceof HTMLElement)) {
     return;
@@ -7033,6 +7256,49 @@ function formatMaterialFactorDescriptor(factors) {
   )}, emissive ${formatSummaryTuple(factors.emissiveFactor)}`;
 }
 
+function updateMaterialAlphaSummaryPanel(resolutions) {
+  if (!(materialAlphaSummaryElement instanceof HTMLElement)) {
+    return;
+  }
+
+  materialAlphaSummaryElement.replaceChildren();
+
+  for (const resolution of arrayEntries(resolutions)) {
+    if (!isRecord(resolution)) {
+      continue;
+    }
+
+    const element = document.createElement("div");
+    const label = document.createElement("span");
+    const value = document.createElement("strong");
+    const meshIndex = resolution.meshIndex ?? "?";
+    const primitiveIndex = resolution.primitiveIndex ?? "?";
+
+    element.className = "material-alpha-summary-row";
+    element.dataset.materialAlphaRow = `${meshIndex}:${primitiveIndex}`;
+    label.textContent = `mesh ${meshIndex} prim ${primitiveIndex}`;
+    value.textContent = formatMaterialAlphaDescriptor(resolution);
+
+    element.append(label, value);
+    materialAlphaSummaryElement.append(element);
+  }
+
+  materialAlphaSummaryElement.hidden =
+    materialAlphaSummaryElement.childElementCount === 0;
+}
+
+function formatMaterialAlphaDescriptor(resolution) {
+  return `mode ${formatSummaryOptionalKey(
+    resolution.alphaMode,
+  )}, cutoff ${formatSummaryOptionalKey(
+    resolution.alphaCutoff,
+  )}, blend ${formatSummaryOptionalKey(
+    resolution.blendPreset,
+  )}, depthWrite ${formatSummaryOptionalKey(
+    resolution.depthWrite,
+  )}, cull ${formatSummaryOptionalKey(resolution.cullMode)}`;
+}
+
 function updatePrimitiveTextureSlotSummaryPanel(resolutions) {
   if (!(primitiveTextureSlotSummaryElement instanceof HTMLElement)) {
     return;
@@ -7087,6 +7353,110 @@ function formatPrimitiveTextureSlot(slot) {
     : "none";
 
   return `texCoord ${texCoord}, transform ${hasTransform}, sampler ${sampler}`;
+}
+
+function updateTextureSamplerSummaryPanel(resolutions) {
+  if (!(textureSamplerSummaryElement instanceof HTMLElement)) {
+    return;
+  }
+
+  textureSamplerSummaryElement.replaceChildren();
+
+  for (const resolution of arrayEntries(resolutions)) {
+    if (!isRecord(resolution) || !isRecord(resolution.textureSlots)) {
+      continue;
+    }
+
+    for (const [slotName, slot] of Object.entries(resolution.textureSlots)) {
+      if (!isRecord(slot)) {
+        continue;
+      }
+
+      const meshIndex = resolution.meshIndex ?? "?";
+      const primitiveIndex = resolution.primitiveIndex ?? "?";
+      const element = document.createElement("div");
+      const label = document.createElement("span");
+      const value = document.createElement("strong");
+
+      element.className = "texture-sampler-summary-row";
+      element.dataset.textureSamplerRow = `${meshIndex}:${primitiveIndex}:${slotName}`;
+      element.dataset.textureSamplerSlotName = slotName;
+      label.textContent = `mesh ${meshIndex} prim ${primitiveIndex} ${formatTextureSlotLabel(
+        slotName,
+      )}`;
+      value.textContent = formatTextureSamplerDescriptor(slot);
+
+      element.append(label, value);
+      textureSamplerSummaryElement.append(element);
+    }
+  }
+
+  textureSamplerSummaryElement.hidden =
+    textureSamplerSummaryElement.childElementCount === 0;
+}
+
+function formatTextureSamplerDescriptor(slot) {
+  const sampler = isRecord(slot.sampler) ? slot.sampler : null;
+
+  return `address ${formatSummaryOptionalKey(
+    sampler?.addressModeU,
+  )}/${formatSummaryOptionalKey(
+    sampler?.addressModeV,
+  )}/${formatSummaryOptionalKey(
+    sampler?.addressModeW,
+  )}, filters ${formatSummaryOptionalKey(
+    sampler?.magFilter,
+  )}/${formatSummaryOptionalKey(sampler?.minFilter)}/${formatSummaryOptionalKey(
+    sampler?.mipmapFilter,
+  )}, anisotropy ${formatSummaryOptionalKey(sampler?.maxAnisotropy)}`;
+}
+
+function updateTextureTransformSummaryPanel(resolutions) {
+  if (!(textureTransformSummaryElement instanceof HTMLElement)) {
+    return;
+  }
+
+  textureTransformSummaryElement.replaceChildren();
+
+  for (const resolution of arrayEntries(resolutions)) {
+    if (!isRecord(resolution) || !isRecord(resolution.textureSlots)) {
+      continue;
+    }
+
+    for (const [slotName, slot] of Object.entries(resolution.textureSlots)) {
+      if (!isRecord(slot) || !isRecord(slot.transform)) {
+        continue;
+      }
+
+      const meshIndex = resolution.meshIndex ?? "?";
+      const primitiveIndex = resolution.primitiveIndex ?? "?";
+      const element = document.createElement("div");
+      const label = document.createElement("span");
+      const value = document.createElement("strong");
+
+      element.className = "texture-transform-summary-row";
+      element.dataset.textureTransformRow = `${meshIndex}:${primitiveIndex}:${slotName}`;
+      element.dataset.textureTransformSlotName = slotName;
+      label.textContent = `mesh ${meshIndex} prim ${primitiveIndex} ${formatTextureSlotLabel(
+        slotName,
+      )}`;
+      value.textContent = formatTextureTransformDescriptor(slot.transform);
+
+      element.append(label, value);
+      textureTransformSummaryElement.append(element);
+    }
+  }
+
+  textureTransformSummaryElement.hidden =
+    textureTransformSummaryElement.childElementCount === 0;
+}
+
+function formatTextureTransformDescriptor(transform) {
+  return `offset ${formatSummaryTuple(
+    transform.offset,
+  )}, scale ${formatSummaryTuple(
+    transform.scale,
+  )}, rotation ${formatSummaryOptionalKey(transform.rotation)}`;
 }
 
 function updateSourceLoaderSummaryPanel(source) {

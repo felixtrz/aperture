@@ -1,5 +1,36 @@
 # Completed Tasks
 
+## task-2130 through task-2134 — GLB viewer texture, alpha, resource, and diagnostic rows
+
+Completed: 2026-05-20
+
+Summary:
+
+- Added visible GLB viewer texture-sampler rows for slot sampler address modes,
+  filter modes, and anisotropy from existing JSON-safe primitive texture-slot
+  status.
+- Added visible texture-transform rows for offset, scale, and rotation on slots
+  with transform metadata, plus material-alpha rows for alpha mode/cutoff,
+  blend preset, depth write, and cull mode.
+- Added prepared-resource reuse rows from `report.resourceReuse` and render
+  diagnostics section rows from `report.diagnosticsSummary`, without exposing
+  raw GPU handles or renderer-owned state.
+- Refilled the visible-feature queue with follow-up GLB viewer detail rows and
+  added an audit task after the visible queue.
+
+References inspected:
+
+- `references/bevy/crates/bevy_gltf/src/loader/gltf_ext/material.rs`
+- `references/bevy/crates/bevy_render/src/diagnostic/mod.rs`
+- `references/three.js/examples/jsm/loaders/GLTFLoader.js`
+- `references/engine/src/scene/renderer/renderer.js`
+
+Validation:
+
+- `node --check examples/glb-viewer.js`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts --grep "render-diagnostics section rows|prepared-resource reuse rows|material-alpha rows|texture-sampler rows|texture-transform rows"` (5 passed)
+
 ## task-2115 through task-2129 — GLB viewer expanded status panels
 
 Completed: 2026-05-20

@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-20 11:57 UTC</dd>
+            <dd>2026-05-20 12:16 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -404,10 +404,12 @@
               lists, live lights, imported light lists, scene metadata, orbit
               fit, shadows, shadow requests, IBL, IBL resources, draw/extraction
               state, imported lights, primitive material resolution, primitive
-              material-factor details, primitive texture slots, source loader
-              state, source output summaries, hierarchy transforms, replay
-              stages, selected assets, selected scenes, render-state details,
-              and unsupported animation-channel diagnostics. It also proves
+              material-factor details, material-alpha details, primitive texture
+              slots, texture sampler state, texture transforms,
+              prepared-resource reuse, render diagnostics, source loader state,
+              source output summaries, hierarchy transforms, replay stages,
+              selected assets, selected scenes, render-state details, and
+              unsupported animation-channel diagnostics. It also proves
               same-origin URI texture decode through the custom URL path,
               real-URI gallery previous/next buttons, URL-persisted sample
               selection, and stale custom image-decode clearing when switching
@@ -996,8 +998,8 @@
             </dd>
             <dt>Next focus</dt>
             <dd>
-              Add GLB viewer texture-sampler detail rows from existing JSON-safe
-              primitive texture-slot sampler status
+              Add GLB viewer texture handle-key detail rows from existing
+              JSON-safe primitive texture-slot status
             </dd>
           </dl>
         </aside>
@@ -1582,6 +1584,12 @@
             <h3>Latest work in this update</h3>
             <ul>
               <li>
+                <span class="badge green">task-2130-2134</span> Added GLB viewer
+                texture-sampler, texture-transform, material-alpha,
+                prepared-resource reuse, and render-diagnostics section rows
+                from existing JSON-safe status and render reports.
+              </li>
+              <li>
                 <span class="badge green">task-2115-2129</span> Added replay
                 stage, texture gallery, extraction diagnostic, primitive
                 texture-slot, selected scene/asset, render-state, source-output,
@@ -1607,9 +1615,9 @@
               </li>
               <li>
                 <span class="badge green">backlog</span> Refilled the next
-                visible status-panel tasks around texture samplers, texture
-                transforms, material alpha, prepared-resource reuse, and render
-                diagnostics.
+                visible status-panel tasks around texture handle keys, pipeline
+                tokens, decoded-image details, unsupported-feature details, and
+                mesh-draw identity rows.
               </li>
               <li>
                 <span class="badge green">task-2091</span> Added a Playwright

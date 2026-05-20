@@ -59,7 +59,7 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start with `task-2130`: add GLB viewer texture-sampler detail rows.
+Start with `task-2135`: add GLB viewer texture handle-key detail rows.
 
 `task-2001` is complete: the spinning-cube example now creates a renderer-owned face-colored diffuse IBL cube texture and sampler, routes it through the StandardMaterial diffuse IBL shader variant, and Playwright verifies direction-dependent face pixels.
 `task-2002` is complete: `withEnvironmentMap(handle)` is exported from runtime/core and materials-showcase now uses it with visible diffuse IBL routing.
@@ -2096,6 +2096,8 @@ Acceptance criteria:
 
 ### task-2130 — Add GLB viewer texture-sampler detail rows
 
+Status: completed 2026-05-20. See `agent/COMPLETED.md`.
+
 Category: `runtime-orchestration`
 Package/write-scope: `examples/glb-viewer.html`, `examples/glb-viewer.js`,
 `examples/styles.css`, `test/e2e/glb-viewer.spec.ts`.
@@ -2115,6 +2117,8 @@ Acceptance criteria:
 
 ### task-2131 — Add GLB viewer texture-transform detail rows
 
+Status: completed 2026-05-20. See `agent/COMPLETED.md`.
+
 Category: `runtime-orchestration`
 Package/write-scope: `examples/glb-viewer.html`, `examples/glb-viewer.js`,
 `examples/styles.css`, `test/e2e/glb-viewer.spec.ts`.
@@ -2132,6 +2136,8 @@ Acceptance criteria:
   transform-control samples.
 
 ### task-2132 — Add GLB viewer material-alpha detail rows
+
+Status: completed 2026-05-20. See `agent/COMPLETED.md`.
 
 Category: `runtime-orchestration`
 Package/write-scope: `examples/glb-viewer.html`, `examples/glb-viewer.js`,
@@ -2151,6 +2157,8 @@ Acceptance criteria:
 
 ### task-2133 — Add GLB viewer prepared-resource reuse rows
 
+Status: completed 2026-05-20. See `agent/COMPLETED.md`.
+
 Category: `runtime-orchestration`
 Package/write-scope: `examples/glb-viewer.html`, `examples/glb-viewer.js`,
 `examples/styles.css`, `test/e2e/glb-viewer.spec.ts`.
@@ -2168,6 +2176,8 @@ Acceptance criteria:
 
 ### task-2134 — Add GLB viewer render-diagnostics section rows
 
+Status: completed 2026-05-20. See `agent/COMPLETED.md`.
+
 Category: `runtime-orchestration`
 Package/write-scope: `examples/glb-viewer.html`, `examples/glb-viewer.js`,
 `examples/styles.css`, `test/e2e/glb-viewer.spec.ts`.
@@ -2183,6 +2193,116 @@ Acceptance criteria:
   and clear when the report is absent.
 - Playwright verifies rows on StandardMaterial, imported-light, and scalar-only
   samples.
+
+### task-2135 — Add GLB viewer texture handle-key detail rows
+
+Category: `runtime-orchestration`
+Package/write-scope: `examples/glb-viewer.html`, `examples/glb-viewer.js`,
+`examples/styles.css`, `test/e2e/glb-viewer.spec.ts`.
+Reference anchor: `references/bevy/crates/bevy_gltf/src/loader/gltf_ext/material.rs`;
+`references/three.js/examples/jsm/loaders/GLTFLoader.js`.
+
+Acceptance criteria:
+
+- The GLB viewer status panel shows compact per-texture-slot handle rows with
+  slot, texture key, sampler key, and texCoord for texture-backed primitive
+  material slots.
+- Rows are derived from existing JSON-safe
+  `gltf.primitiveMaterials.resolutions[].textureSlots.*` status and do not
+  expose texture objects, sampler objects, image bytes, or GPU handles.
+- Playwright verifies rows on all-slot URI textures, sampler wrap controls, and
+  row clearing on scalar-only cube.
+
+### task-2136 — Add GLB viewer pipeline-token detail rows
+
+Category: `runtime-orchestration`
+Package/write-scope: `examples/glb-viewer.html`, `examples/glb-viewer.js`,
+`examples/styles.css`, `test/e2e/glb-viewer.spec.ts`.
+Reference anchor: `references/bevy/crates/bevy_pbr/src/render/mesh.rs`;
+`references/engine/src/scene/renderer/renderer.js`.
+
+Acceptance criteria:
+
+- The GLB viewer status panel shows compact per-primitive pipeline-token rows
+  for material family, feature tokens, alpha token, cull token, depth token, and
+  blend token parsed from each JSON-safe pipeline key.
+- Rows are derived from existing
+  `gltf.primitiveMaterials.resolutions[].pipelineKey` status and clear on
+  missing pipeline keys.
+- Playwright verifies rows on all-slot URI textures, mixed alpha, and unlit
+  scalar cube.
+
+### task-2137 — Add GLB viewer decoded-image detail rows
+
+Category: `runtime-orchestration`
+Package/write-scope: `examples/glb-viewer.html`, `examples/glb-viewer.js`,
+`examples/styles.css`, `test/e2e/glb-viewer.spec.ts`.
+Reference anchor: `references/bevy/crates/bevy_gltf/src/loader/mod.rs`;
+`references/three.js/examples/jsm/loaders/GLTFLoader.js`.
+
+Acceptance criteria:
+
+- The GLB viewer status panel shows compact per-decoded-image rows with image
+  index, source kind, URI, MIME type, dimensions, and byte length.
+- Rows are derived from existing JSON-safe `source.imageDecode.decoded` status
+  and do not expose raw image bytes, ImageBitmap objects, texture objects, or
+  GPU handles.
+- Playwright verifies rows on all-slot URI textures, embedded texture, and a
+  scalar-only asset with no decoded images.
+
+### task-2138 — Add GLB viewer unsupported-feature detail rows
+
+Category: `runtime-orchestration`
+Package/write-scope: `examples/glb-viewer.html`, `examples/glb-viewer.js`,
+`examples/styles.css`, `test/e2e/glb-viewer.spec.ts`.
+Reference anchor: `references/bevy/crates/bevy_gltf/src/loader/mod.rs`;
+`references/three.js/examples/jsm/loaders/GLTFLoader.js`.
+
+Acceptance criteria:
+
+- The GLB viewer status panel shows compact unsupported-feature detail rows with
+  diagnostic code, severity, and the most specific mesh/primitive/field detail
+  available.
+- Rows are derived from existing JSON-safe
+  `gltf.metadata.unsupportedFeatureDiagnostics` status and clear on supported
+  assets.
+- Playwright verifies rows on unsupported primitive, morph target, and scalar
+  cube samples.
+
+### task-2139 — Add GLB viewer mesh-draw identity rows
+
+Category: `runtime-orchestration`
+Package/write-scope: `examples/glb-viewer.html`, `examples/glb-viewer.js`,
+`examples/styles.css`, `test/e2e/glb-viewer.spec.ts`.
+Reference anchor: `references/bevy/crates/bevy_render/src/extract_component.rs`;
+`references/engine/src/scene/renderer/renderer.js`.
+
+Acceptance criteria:
+
+- The GLB viewer status panel shows compact per-draw rows with render ID,
+  mesh key, material key, queue, and pipeline key for extracted mesh draws.
+- Rows are derived from JSON-safe extraction/render-state data and do not make
+  the renderer own ECS or gameplay state.
+- Playwright verifies rows on dual primitive, mixed alpha, and custom URL
+  samples.
+
+### task-2140 — Audit GLB viewer status-panel boundary after detail rows
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research`, backlog/handoff only unless a tiny
+corrective UI/test change is required.
+Reference anchor: `docs/NORTH_STAR.md`; `docs/ARCHITECTURE.md`;
+`references/bevy/crates/bevy_render/src/diagnostic/mod.rs`;
+`references/engine/src/scene/renderer/renderer.js`.
+
+Acceptance criteria:
+
+- Confirm the expanded GLB viewer status panels remain projections of ECS,
+  extraction, source asset, or JSON-safe render report data.
+- Confirm panels do not expose raw image bytes, source buffers, GPU handles,
+  mutable renderer state, or a hidden scene graph.
+- Recommend whether to continue detail-row UI work or shift back to a rendered
+  glTF scene fidelity slice.
 
 ## Ready Tasks By Category
 

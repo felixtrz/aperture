@@ -1,6 +1,65 @@
 # Agent Handoff
 
-Updated: 2026-05-20T11:57:30Z
+Updated: 2026-05-20T12:16:31Z
+
+## Current Run Update — 2026-05-20T12:16:31Z — GLB viewer texture/resource diagnostics rows
+
+Completed `task-2130` through `task-2134`.
+
+### What changed
+
+- Added visible GLB viewer texture-sampler rows for address modes, filter
+  modes, and anisotropy from existing JSON-safe primitive texture-slot sampler
+  status.
+- Added texture-transform rows for offset, scale, and rotation; material-alpha
+  rows for alpha mode/cutoff, blend preset, depth write, and cull mode.
+- Added prepared-resource reuse rows from `report.resourceReuse` and
+  render-diagnostics section rows from `report.diagnosticsSummary`.
+- Refilled the visible-feature queue. The recommended next task is now
+  `task-2135 — Add GLB viewer texture handle-key detail rows`; `task-2140`
+  is an audit follow-up behind the visible queue.
+- No raw image bytes, source buffers, GPU handles, or mutable renderer state are
+  exposed by the new panels.
+
+### Files touched
+
+- `agent/BACKLOG.md`
+- `agent/COMPLETED.md`
+- `agent/HANDOFF.md`
+- `agent/STATUS.json`
+- `docs/index.html`
+- `examples/glb-viewer.html`
+- `examples/glb-viewer.js`
+- `examples/styles.css`
+- `test/e2e/glb-viewer.spec.ts`
+
+### References inspected
+
+- `references/bevy/crates/bevy_gltf/src/loader/gltf_ext/material.rs`
+- `references/bevy/crates/bevy_render/src/diagnostic/mod.rs`
+- `references/three.js/examples/jsm/loaders/GLTFLoader.js`
+- `references/engine/src/scene/renderer/renderer.js`
+
+### Validation
+
+- `node --check examples/glb-viewer.js`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm run check:progress`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts --grep "render-diagnostics section rows|prepared-resource reuse rows|material-alpha rows|texture-sampler rows|texture-transform rows"` (5 passed)
+- `pnpm run check` (package boundaries, progress tracker, build/typecheck,
+  test typecheck, example syntax, lint, format check, and `pnpm test`; 317
+  files and 1482 tests passed)
+
+### Known issues
+
+- No known regressions from these status-panel slices.
+- The GLB viewer status panel remains dense; `task-2140` should audit whether
+  the next work should keep adding detail rows or shift back to rendered glTF
+  scene fidelity.
+
+### Recommended next task
+
+`task-2135 — Add GLB viewer texture handle-key detail rows`.
 
 ## Current Run Update — 2026-05-20T11:57:30Z — Expanded GLB viewer status panels
 

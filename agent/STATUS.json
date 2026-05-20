@@ -2,10 +2,10 @@
   "state": "idle",
   "currentTaskId": null,
   "currentRunStartedAt": null,
-  "lastRunStartedAt": "2026-05-20T11:02:48Z",
-  "lastResult": "completed",
+  "lastRunStartedAt": "2026-05-20T12:01:53Z",
+  "lastResult": "stop-condition",
   "lastCommit": "0525a13",
   "activePid": null,
-  "notes": "Completed task-2115 through task-2129; recommended next task is task-2130 GLB texture-sampler detail rows.",
-  "lastRunFinishedAt": "2026-05-20T11:57:30Z"
+  "notes": "Completed task-2130 through task-2134; ready queue was exhausted and refilled. Recommended next task is task-2135 GLB texture handle-key detail rows.",
+  "lastRunFinishedAt": "2026-05-20T12:16:31Z"
 }
