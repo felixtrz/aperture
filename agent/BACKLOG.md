@@ -59,7 +59,7 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start with `task-2049`: add a morph-target unsupported-feature viewer sample.
+Start with `task-2059`: add a missing TEXCOORD_1 GLB viewer diagnostic sample.
 
 `task-2001` is complete: the spinning-cube example now creates a renderer-owned face-colored diffuse IBL cube texture and sampler, routes it through the StandardMaterial diffuse IBL shader variant, and Playwright verifies direction-dependent face pixels.
 `task-2002` is complete: `withEnvironmentMap(handle)` is exported from runtime/core and materials-showcase now uses it with visible diffuse IBL routing.
@@ -818,6 +818,8 @@ Acceptance criteria:
 
 ### task-2049 — Add morph-target unsupported-feature viewer sample
 
+Status: completed 2026-05-20. See `agent/COMPLETED.md`.
+
 Category: `render-bridge`
 Package/write-scope: `examples/assets`, `examples/glb-viewer.js`, `test/e2e/glb-viewer.spec.ts`.
 Reference anchor: `references/bevy/crates/bevy_gltf/src/loader/mod.rs`; `references/three.js/examples/jsm/loaders/GLTFLoader.js`.
@@ -831,6 +833,8 @@ Acceptance criteria:
 
 ### task-2050 — Audit imported camera/light/embedded-image viewer slices
 
+Status: completed 2026-05-20. See `docs/research/GLB_VIEWER_IMPORT_STATUS_AUDIT_2026_05_20.md`.
+
 Category: `audit-refactor`
 Package/write-scope: `docs/research`, targeted examples/tests only if a small corrective refactor is required.
 Reference anchor: `docs/NORTH_STAR.md`; `docs/ARCHITECTURE.md`; `docs/DECISIONS.md`; `references/bevy/crates/bevy_gltf/src/loader/mod.rs`.
@@ -840,6 +844,151 @@ Acceptance criteria:
 - Confirm imported cameras, lights, embedded images, and unsupported-feature samples preserve ECS authority, render extraction boundaries, JSON-safe status, and WebGPU-only backend ownership.
 - Check package-boundary drift after the next three to five visible GLB viewer fidelity slices.
 - Recommend the next visible scene-import or animation fidelity task.
+
+### task-2051 — Add skinning unsupported-feature viewer sample
+
+Status: completed 2026-05-20. See `agent/COMPLETED.md`.
+
+Category: `render-bridge`
+Package/write-scope: `examples/assets`, `examples/glb-viewer.js`, `test/e2e/glb-viewer.spec.ts`.
+Reference anchor: `references/bevy/crates/bevy_gltf/src/loader/mod.rs`; `references/three.js/examples/jsm/loaders/GLTFLoader.js`.
+
+Acceptance criteria:
+
+- `glb-viewer` includes a committed GLB sample with skin and joint metadata while still rendering an unskinned base mesh.
+- Viewer status reports JSON-safe unsupported skinning diagnostics with skin, joint, and inverse-bind-matrix counts.
+- The diagnostic does not block rendering supported mesh/material data.
+- Playwright verifies both the visible base mesh and the unsupported-feature diagnostic.
+
+### task-2052 — Add unsupported orthographic-camera viewer sample
+
+Status: completed 2026-05-20. See `agent/COMPLETED.md`.
+
+Category: `runtime-orchestration`
+Package/write-scope: `examples/assets`, `examples/glb-viewer.js`, `test/e2e/glb-viewer.spec.ts`.
+Reference anchor: `references/bevy/crates/bevy_gltf/src/loader/mod.rs`; `references/three.js/examples/jsm/loaders/GLTFLoader.js`.
+
+Acceptance criteria:
+
+- `glb-viewer` includes a committed GLB sample with an orthographic camera node and a visible base mesh.
+- Imported-camera status reports the camera as unsupported without enabling the imported-camera control.
+- The fitted orbit camera continues rendering the mesh through ECS-authored state.
+- Playwright verifies visible pixels and the unsupported orthographic-camera status.
+
+### task-2053 — Add unsupported primitive-mode viewer sample
+
+Status: completed 2026-05-20. See `agent/COMPLETED.md`.
+
+Category: `render-bridge`
+Package/write-scope: `examples/assets`, `examples/glb-viewer.js`, `test/e2e/glb-viewer.spec.ts`.
+Reference anchor: `references/bevy/crates/bevy_gltf/src/loader/mod.rs`; `references/three.js/examples/jsm/loaders/GLTFLoader.js`.
+
+Acceptance criteria:
+
+- `glb-viewer` includes a committed GLB sample with one supported triangle primitive and one unsupported non-triangle primitive.
+- Viewer status reports a JSON-safe unsupported primitive-mode diagnostic for the non-triangle primitive.
+- The supported primitive still registers, replays, extracts, and renders.
+- Playwright verifies visible pixels from the supported primitive and the unsupported-mode diagnostic.
+
+### task-2054 — Add emissive StandardMaterial GLB viewer sample
+
+Status: completed 2026-05-20. See `agent/COMPLETED.md`.
+
+Category: `runtime-orchestration`
+Package/write-scope: `examples/assets`, `examples/glb-viewer.js`, `test/e2e/glb-viewer.spec.ts`.
+Reference anchor: `references/bevy/crates/bevy_gltf/src/loader/gltf_ext/material.rs`; `references/three.js/examples/jsm/loaders/GLTFLoader.js`.
+
+Acceptance criteria:
+
+- `glb-viewer` includes a committed StandardMaterial GLB sample with a non-zero emissive factor and a scalar control region.
+- Viewer status reports the emissive factor through primitive material resolution status.
+- The sample renders through the StandardMaterial app route without new renderer-owned source state.
+- Playwright verifies visible emissive-factor status and a pixel difference from the scalar control region.
+
+### task-2055 — Add sampler-state textured GLB viewer sample
+
+Status: completed 2026-05-20. See `agent/COMPLETED.md`.
+
+Category: `render-bridge`
+Package/write-scope: `packages/render/src/assets`, `examples/assets`, `examples/glb-viewer.js`, `test/e2e/glb-viewer.spec.ts`.
+Reference anchor: `references/bevy/crates/bevy_gltf/src/loader/gltf_ext/material.rs`; `references/three.js/examples/jsm/loaders/GLTFLoader.js`.
+
+Acceptance criteria:
+
+- `glb-viewer` includes a committed textured StandardMaterial GLB sample with non-default sampler wrap/filter metadata.
+- Viewer status reports JSON-safe sampler metadata for the routed texture slot.
+- Texture and sampler source assets remain renderer-independent; WebGPU resource creation stays in the backend path.
+- Playwright verifies visible textured pixels and the non-default sampler metadata.
+
+### task-2056 — Add CUBICSPLINE animation unsupported-feature viewer sample
+
+Status: completed 2026-05-20. See `agent/COMPLETED.md`.
+
+Category: `runtime-orchestration`
+Package/write-scope: `examples/assets`, `examples/glb-viewer.js`, `test/e2e/glb-viewer.spec.ts`.
+Reference anchor: `references/bevy/crates/bevy_animation/src/lib.rs`; `references/bevy/crates/bevy_gltf/src/loader/mod.rs`; `references/three.js/examples/jsm/loaders/GLTFLoader.js`.
+
+Acceptance criteria:
+
+- `glb-viewer` includes a committed GLB sample with a `CUBICSPLINE` animation sampler and a visible base mesh.
+- Viewer animation status reports a JSON-safe unsupported interpolation diagnostic without exposing raw keyframe buffers.
+- The unsupported interpolation does not create renderer-owned animation state or block base mesh rendering.
+- Playwright verifies visible pixels and the unsupported `CUBICSPLINE` interpolation status.
+
+### task-2057 — Add multi-scene GLB viewer status sample
+
+Status: completed 2026-05-20. See `agent/COMPLETED.md`.
+
+Category: `render-bridge`
+Package/write-scope: `examples/assets`, `examples/glb-viewer.js`, `test/e2e/glb-viewer.spec.ts`.
+Reference anchor: `references/bevy/crates/bevy_gltf/src/loader/mod.rs`; `references/three.js/examples/jsm/loaders/GLTFLoader.js`.
+
+Acceptance criteria:
+
+- `glb-viewer` includes a committed GLB sample with at least two scenes and a default scene.
+- Viewer status reports JSON-safe scene count, default scene index, and replayed root-node identifiers.
+- The viewer renders only the selected/default scene through ECS replay state.
+- Playwright verifies visible pixels from the default scene and the reported scene metadata.
+
+### task-2058 — Add texture-transform GLB viewer sample
+
+Status: completed 2026-05-20. See `agent/COMPLETED.md`.
+
+Category: `render-bridge`
+Package/write-scope: `examples/assets`, `examples/glb-viewer.js`, `test/e2e/glb-viewer.spec.ts`.
+Reference anchor: `references/bevy/crates/bevy_gltf/src/loader/gltf_ext/material.rs`; `references/three.js/examples/jsm/loaders/GLTFLoader.js`.
+
+Acceptance criteria:
+
+- `glb-viewer` includes a committed StandardMaterial GLB sample with `KHR_texture_transform` on a base-color texture and a scalar/control region.
+- Viewer status reports JSON-safe texture transform metadata for the routed texture slot.
+- The transform remains renderer-independent source metadata and WebGPU resource creation stays in the backend path.
+- Playwright verifies transformed-texture status and a visible pixel difference from the control region.
+
+### task-2059 — Add missing TEXCOORD_1 GLB viewer diagnostic sample
+
+Category: `render-bridge`
+Package/write-scope: `examples/assets`, `examples/glb-viewer.js`, `test/e2e/glb-viewer.spec.ts`.
+Reference anchor: `references/bevy/crates/bevy_gltf/src/loader/gltf_ext/material.rs`; `references/three.js/examples/jsm/loaders/GLTFLoader.js`.
+
+Acceptance criteria:
+
+- `glb-viewer` includes a committed GLB sample where one StandardMaterial texture binding requests `TEXCOORD_1` without matching mesh UV1 data.
+- Viewer status reports the existing JSON-safe missing-TEXCOORD diagnostic for the affected texture slot.
+- A supported control primitive in the same sample still registers, replays, extracts, and renders.
+- Playwright verifies visible control pixels and the missing-TEXCOORD diagnostic.
+
+### task-2060 — Audit GLB unsupported-feature and sampler-status slices
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research`, targeted examples/tests only if a small corrective refactor is required.
+Reference anchor: `docs/NORTH_STAR.md`; `docs/ARCHITECTURE.md`; `docs/DECISIONS.md`; `references/bevy/crates/bevy_gltf/src/loader/mod.rs`; `references/three.js/examples/jsm/loaders/GLTFLoader.js`.
+
+Acceptance criteria:
+
+- Confirm unsupported morph, skin, orthographic camera, primitive-mode, emissive, and sampler-status viewer slices preserve ECS authority, render extraction boundaries, JSON-safe status, and WebGPU-only backend ownership.
+- Check that warning diagnostics do not incorrectly block supported primitives or base meshes.
+- Recommend the next visible GLB viewer fidelity task.
 
 ## Ready Tasks By Category
 

@@ -393,13 +393,19 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-20 04:58 UTC</dd>
+            <dd>2026-05-20 05:59 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
-              The GLB viewer now includes roughness/IBL, normal-map, and
-              base-color plus metallic-roughness StandardMaterial samples with
+              The GLB viewer now includes unsupported morph-target, skinning,
+              orthographic-camera, primitive-mode, CUBICSPLINE animation, and
+              multi-scene samples that keep supported base meshes rendering
+              while reporting JSON-safe diagnostics and scene metadata. It also
+              includes emissive StandardMaterial, sampler-state texture, and
+              texture-transform samples with routed material, texture, sampler,
+              and transform status. Existing roughness/IBL, normal-map, and
+              base-color plus metallic-roughness StandardMaterial samples keep
               JSON-safe factor and texture-slot status. GLB mesh construction
               preserves tangent attributes for normal mapping, and animation
               playback now has speed, clip-selection, loop, reverse,
@@ -1186,18 +1192,22 @@
                 <div class="label">asset import</div>
                 <h3>GLB/glTF path</h3>
               </div>
-              <span class="percent">58%</span>
+              <span class="percent">65%</span>
             </div>
-            <div class="bar"><span style="width: 58%"></span></div>
+            <div class="bar"><span style="width: 65%"></span></div>
             <p>
               Container parsing, diagnostics, source registration, material
-              mapping, URI loading, and a seventeen-asset local GLB viewer path
+              mapping, URI loading, and a twenty-six-asset local GLB viewer path
               with lit StandardMaterial, animated, multi-clip, rotation/scale,
               STEP interpolation, imported-camera, embedded-image texture,
-              imported-light, dual-primitive, hierarchy, and mixed alpha-state
-              samples, custom URL plus query-URL loading, and bounds-driven
-              camera fitting have landed. The viewer now includes camera reset,
-              ECS light controls, live shadow/IBL controls, animation
+              imported-light, unsupported morph-target/skinning/orthographic
+              camera/primitive-mode/CUBICSPLINE diagnostics, multi-scene
+              metadata/default-scene rendering, emissive StandardMaterial,
+              sampler-state texture status, texture-transform metadata,
+              dual-primitive, hierarchy, and mixed alpha-state samples, custom
+              URL plus query-URL loading, and bounds-driven camera fitting have
+              landed. The viewer now includes camera reset, ECS light controls,
+              live shadow/IBL controls, animation
               pause/scrub/speed/loop/direction controls, imported camera
               transform/projection replay, imported punctual light replay,
               parsed metadata status, and
@@ -1212,9 +1222,9 @@
                 <div class="label">examples/e2e</div>
                 <h3>browser proof points</h3>
               </div>
-              <span class="percent">64%</span>
+              <span class="percent">70%</span>
             </div>
-            <div class="bar"><span style="width: 64%"></span></div>
+            <div class="bar"><span style="width: 70%"></span></div>
             <p>
               Spinning cube, material showcase, GLTF scene, GLB viewer,
               diagnostics, queue phases, and WebGPU readback examples have
@@ -1223,11 +1233,15 @@
               transforms, combined IBL/shadow sampling, and a shadow-darkened
               GLB viewer receiver floor with IBL-enabled pixel comparison. GLB
               viewer coverage now also verifies mixed opaque/transparent
-              StandardMaterial render-state routing, fitted-camera reset, and
-              ECS light, shadow, IBL, animation scrub/speed/loop/direction,
-              rotation/scale and STEP channel playback, imported glTF camera
-              switching, embedded-image texture routing, imported punctual light
-              extraction, metadata, and sample-query bootstrap responses.
+              StandardMaterial routing, unsupported morph/skinning/camera/mode
+              diagnostics, CUBICSPLINE interpolation status, multi-scene
+              default-scene metadata, texture-transform metadata, emissive
+              factors, and non-default sampler metadata. StandardMaterial
+              render-state routing, fitted-camera reset, and ECS light, shadow,
+              IBL, animation scrub/speed/loop/direction, rotation/scale and STEP
+              channel playback, imported glTF camera switching, embedded-image
+              texture routing, imported punctual light extraction, metadata, and
+              sample-query bootstrap responses.
             </p>
           </article>
           <article class="card track">
@@ -1532,6 +1546,55 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">task-2058</span> Added a
+                texture-transform GLB sample and JSON-safe offset, scale, and
+                rotation status for the transformed base-color texture slot.
+              </li>
+              <li>
+                <span class="badge green">task-2057</span> Added a multi-scene
+                GLB sample and status for default scene index, selected scene,
+                and root node identifiers.
+              </li>
+              <li>
+                <span class="badge green">task-2056</span> Added a CUBICSPLINE
+                animation GLB sample and JSON-safe unsupported interpolation
+                status while preserving visible base mesh rendering.
+              </li>
+              <li>
+                <span class="badge green">task-2055</span> Added a sampler-state
+                textured GLB sample and JSON-safe status for non-default
+                wrap/filter sampler metadata.
+              </li>
+              <li>
+                <span class="badge green">task-2054</span> Added an emissive
+                StandardMaterial GLB sample with scalar-control pixel proof.
+              </li>
+              <li>
+                <span class="badge green">task-2053</span> Added an unsupported
+                primitive-mode GLB sample and changed primitive-mode failures to
+                warnings so supported primitives still render.
+              </li>
+              <li>
+                <span class="badge green">task-2052</span> Added an
+                orthographic-camera GLB sample that reports unsupported imported
+                camera status while rendering through the fitted orbit camera.
+              </li>
+              <li>
+                <span class="badge green">task-2051</span> Added a skinning GLB
+                sample that reports skin, joint, and inverse-bind counts while
+                rendering the unskinned base mesh.
+              </li>
+              <li>
+                <span class="badge green">task-2050</span> Audited imported
+                camera, light, embedded-image, and morph-target viewer status
+                boundaries.
+              </li>
+              <li>
+                <span class="badge green">task-2049</span> Added a morph-target
+                GLB sample that reports unsupported morph metadata without
+                blocking base mesh rendering.
+              </li>
               <li>
                 <span class="badge green">task-2048</span> Added an
                 imported-light GLB sample and browser proof that
@@ -3328,16 +3391,16 @@
             <h3>Recommended next tasks</h3>
             <ul>
               <li>
-                <span class="badge amber">next</span> Add a morph-target
-                unsupported-feature viewer sample.
+                <span class="badge amber">next</span> Add a missing TEXCOORD_1
+                GLB viewer diagnostic sample.
               </li>
               <li>
-                The next sample should include morph-target metadata while still
-                rendering the base mesh through the existing GLB replay path.
+                The next sample should request <code>TEXCOORD_1</code> for one
+                texture binding without providing mesh UV1 data.
               </li>
               <li>
-                Use Playwright to verify the JSON-safe unsupported-feature
-                diagnostic and visible base mesh rendering.
+                Use Playwright to verify the diagnostic and supported control
+                pixels in the same sample.
               </li>
             </ul>
           </article>
@@ -3350,6 +3413,22 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-2049-2058</div>
+            <div>
+              <strong
+                >GLB viewer unsupported-feature and material-status samples
+                landed.</strong
+              >
+              <span
+                >Morph targets, skinning, orthographic cameras, unsupported
+                primitive modes, CUBICSPLINE interpolation, multi-scene
+                metadata, texture transforms, emissive factors, and
+                sampler-state metadata now have JSON-safe viewer status and
+                focused Playwright proof.</span
+              >
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-2036-2045</div>
             <div>

@@ -1,6 +1,110 @@
 # Agent Handoff
 
-Updated: 2026-05-20T04:58:45Z
+Updated: 2026-05-20T05:59:21Z
+
+## Current Run Update — 2026-05-20T05:59:21Z — GLB viewer unsupported-feature, CUBICSPLINE, multi-scene, texture-transform, and sampler-status coverage
+
+Completed `task-2049`, `task-2050`, `task-2051`, `task-2052`, `task-2053`,
+`task-2054`, `task-2055`, `task-2056`, `task-2057`, and `task-2058`.
+
+### What changed
+
+- Added `examples/assets/morph-target.glb`, `examples/assets/skinning.glb`,
+  `examples/assets/orthographic-camera.glb`, and
+  `examples/assets/unsupported-primitive-mode.glb` as committed GLB viewer
+  samples for unsupported feature/status coverage.
+- Unsupported morph-target diagnostics now include JSON-safe target and
+  primitive counts. Unsupported skinning diagnostics now include skin, joint,
+  and inverse-bind-matrix counts.
+- Unsupported primitive modes now warn and skip only the affected primitive, so
+  supported primitives in the same GLB still register, replay, extract, and
+  render.
+- Added `examples/assets/emissive-standard.glb`, a two-region
+  StandardMaterial sample proving emissive-factor status and visible emissive
+  pixel differences.
+- Added `examples/assets/sampler-state.glb`, a textured StandardMaterial sample
+  with non-default sampler wrap/filter metadata.
+- GLB viewer texture-slot status now publishes JSON-safe sampler metadata next
+  to the existing sampler key.
+- Added `examples/assets/cubic-spline.glb`, a visible unlit GLB sample with a
+  `CUBICSPLINE` translation animation sampler.
+- GLB viewer animation status now reports JSON-safe unsupported channel entries
+  for non-LINEAR/STEP interpolation instead of silently treating those channels
+  as absent.
+- Added `examples/assets/multi-scene.glb`, a two-scene GLB sample whose default
+  scene renders one visible unlit mesh.
+- GLB viewer metadata status now reports default scene index, selected scene
+  flags, scene names, and root node indices without replaying non-default scene
+  nodes.
+- Added `examples/assets/texture-transform.glb`, a StandardMaterial sample with
+  `KHR_texture_transform` on a base-color texture and a scalar control
+  primitive.
+- GLB viewer texture-slot status now reports JSON-safe transform metadata
+  (`offset`, `scale`, and `rotation`).
+- Added
+  `docs/research/GLB_VIEWER_IMPORT_STATUS_AUDIT_2026_05_20.md`, confirming the
+  imported camera/light/embedded-image/morph-target slices remain
+  ECS-authored, renderer-derived, JSON-safe, and WebGPU-only.
+- Updated `docs/index.html`, `docs/render-pipeline-comparison.html`,
+  `agent/BACKLOG.md`, and `agent/COMPLETED.md`. The recommended next task is
+  now `task-2059`.
+
+### References inspected
+
+- `references/bevy/crates/bevy_animation/src/lib.rs`
+- `references/bevy/crates/bevy_gltf/src/loader/mod.rs`
+- `references/bevy/crates/bevy_gltf/src/loader/gltf_ext/material.rs`
+- `references/three.js/examples/jsm/loaders/GLTFLoader.js`
+- `docs/NORTH_STAR.md`
+- `docs/ARCHITECTURE.md`
+- `docs/DECISIONS.md`
+
+### Validation
+
+- `node --check examples/glb-viewer.js`
+- GLB JSON/header checks for `examples/assets/morph-target.glb`,
+  `examples/assets/skinning.glb`,
+  `examples/assets/orthographic-camera.glb`,
+  `examples/assets/unsupported-primitive-mode.glb`,
+  `examples/assets/emissive-standard.glb`, and
+  `examples/assets/sampler-state.glb`; GLB JSON/header check for
+  `examples/assets/cubic-spline.glb`, `examples/assets/multi-scene.glb`, and
+  `examples/assets/texture-transform.glb`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm run check:boundaries`
+- `pnpm run check:examples`
+- `pnpm run check:progress`
+- `pnpm run build`
+- `pnpm run lint`
+- `pnpm run format:check`
+- `pnpm test` (317 files, 1481 tests passed)
+- `pnpm exec vitest run test/assets/gltf-mesh-primitive.test.ts`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts -g "morph targets"`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts -g "unsupported skinning"`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts -g "orthographic imported camera"`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts -g "unsupported primitive mode"`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts -g "emissive StandardMaterial"`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts -g "sampler state"`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts -g "CUBICSPLINE"`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts -g "multi-scene"`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts -g "texture-transform"`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts` (30 tests passed)
+- In-app browser sanity opened
+  `/examples/glb-viewer.html?asset=sampler-state` and read the status panel:
+  selected asset `sampler-state`, 2 extracted mesh draws, 2 draw calls, and a
+  ready base-color sampler with `clamp-to-edge`/`mirror-repeat` wrapping.
+
+### Known issues
+
+- No known regressions from this run.
+- Missing TEXCOORD_1 viewer diagnostics, texture-transform viewer proof, full
+  image decode, and real skin/morph rendering remain deferred.
+- The GLB viewer still has example-local image URI resolution for committed
+  synthetic texture samples.
+
+### Recommended next task
+
+`task-2059 — Add missing TEXCOORD_1 GLB viewer diagnostic sample`.
 
 ## Current Run Update — 2026-05-20T04:58:45Z — GLB viewer transform animation, cameras, embedded texture, and imported lights
 

@@ -368,14 +368,14 @@ function mapTopology(input: {
   input.diagnostics.push({
     layer: "mesh",
     code: "gltfMesh.unsupportedPrimitiveMode",
-    severity: "error",
+    severity: "warning",
     meshIndex: input.meshIndex,
     primitiveIndex: input.primitiveIndex,
     field: `meshes[${input.meshIndex}].primitives[${input.primitiveIndex}].mode`,
     ...(typeof mode === "number"
       ? { mode }
       : { value: toDiagnosticValue(mode) }),
-    message: `glTF mesh ${input.meshIndex} primitive ${input.primitiveIndex} uses unsupported primitive mode '${String(mode)}'; only TRIANGLES mode 4 is supported by this mapper.`,
+    message: `glTF mesh ${input.meshIndex} primitive ${input.primitiveIndex} uses unsupported primitive mode '${String(mode)}'; only TRIANGLES mode 4 is rendered by this mapper, so this primitive is skipped.`,
   });
   return null;
 }

@@ -134,9 +134,66 @@ const sampleAssets = [
     source: "sample",
   },
   {
+    id: "cubic-spline",
+    label: "CUBICSPLINE animation",
+    url: new URL("./assets/cubic-spline.glb", globalThis.location.href),
+    source: "sample",
+  },
+  {
+    id: "multi-scene",
+    label: "Multi-scene",
+    url: new URL("./assets/multi-scene.glb", globalThis.location.href),
+    source: "sample",
+  },
+  {
     id: "imported-camera",
     label: "Imported camera",
     url: new URL("./assets/imported-camera.glb", globalThis.location.href),
+    source: "sample",
+  },
+  {
+    id: "morph-target",
+    label: "Morph target",
+    url: new URL("./assets/morph-target.glb", globalThis.location.href),
+    source: "sample",
+  },
+  {
+    id: "skinning",
+    label: "Skin metadata",
+    url: new URL("./assets/skinning.glb", globalThis.location.href),
+    source: "sample",
+  },
+  {
+    id: "orthographic-camera",
+    label: "Orthographic camera",
+    url: new URL("./assets/orthographic-camera.glb", globalThis.location.href),
+    source: "sample",
+  },
+  {
+    id: "unsupported-primitive",
+    label: "Unsupported primitive",
+    url: new URL(
+      "./assets/unsupported-primitive-mode.glb",
+      globalThis.location.href,
+    ),
+    source: "sample",
+  },
+  {
+    id: "emissive-standard",
+    label: "Emissive standard",
+    url: new URL("./assets/emissive-standard.glb", globalThis.location.href),
+    source: "sample",
+  },
+  {
+    id: "sampler-state",
+    label: "Sampler state",
+    url: new URL("./assets/sampler-state.glb", globalThis.location.href),
+    source: "sample",
+  },
+  {
+    id: "texture-transform",
+    label: "Texture transform",
+    url: new URL("./assets/texture-transform.glb", globalThis.location.href),
     source: "sample",
   },
   {
@@ -2240,7 +2297,8 @@ function findDirectionalShadowRoute(reportJson) {
 }
 
 function createGltfAnimationState(options) {
-  const clips = parseGltfAnimationClips(options);
+  const parsed = parseGltfAnimationClips(options);
+  const clips = parsed.clips;
   const activeClip = clips[0] ?? null;
 
   return {
@@ -2257,6 +2315,7 @@ function createGltfAnimationState(options) {
     playbackOffset: 0,
     lastElapsedSeconds: 0,
     animatedNodes: [],
+    unsupportedChannels: parsed.unsupportedChannels,
   };
 }
 
@@ -2600,10 +2659,14 @@ function parseGltfAnimationClips({
   replay,
 }) {
   if (!isRecord(root) || !Array.isArray(root.animations)) {
-    return [];
+    return {
+      clips: [],
+      unsupportedChannels: [],
+    };
   }
 
   const clips = [];
+  const unsupportedChannels = [];
 
   root.animations.forEach((animation, animationIndex) => {
     if (!isRecord(animation)) {
@@ -2618,7 +2681,7 @@ function parseGltfAnimationClips({
       : [];
     const parsedChannels = [];
 
-    channels.forEach((channel) => {
+    channels.forEach((channel, channelIndex) => {
       if (!isRecord(channel) || !isRecord(channel.target)) {
         return;
       }
@@ -2638,6 +2701,29 @@ function parseGltfAnimationClips({
 
       const sampler = samplers[samplerIndex];
       if (!isRecord(sampler)) {
+        return;
+      }
+
+      const interpolation =
+        typeof sampler.interpolation === "string"
+          ? sampler.interpolation
+          : "LINEAR";
+
+      if (interpolation !== "LINEAR" && interpolation !== "STEP") {
+        unsupportedChannels.push({
+          code: "gltfAnimation.unsupportedInterpolation",
+          animationIndex,
+          animationName:
+            typeof animation.name === "string" && animation.name.length > 0
+              ? animation.name
+              : null,
+          channelIndex,
+          samplerIndex,
+          nodeIndex,
+          path,
+          interpolation,
+          message: `GLB viewer animation channel uses ${interpolation} interpolation, which is not replayed yet.`,
+        });
         return;
       }
 
@@ -2675,10 +2761,7 @@ function parseGltfAnimationClips({
         nodeIndex,
         entityKey,
         path,
-        interpolation:
-          typeof sampler.interpolation === "string"
-            ? sampler.interpolation
-            : "LINEAR",
+        interpolation,
         times,
         values,
         entity,
@@ -2701,7 +2784,10 @@ function parseGltfAnimationClips({
     });
   });
 
-  return clips;
+  return {
+    clips,
+    unsupportedChannels,
+  };
 }
 
 function updateActiveAnimation(aperture, animation, elapsedSeconds) {
@@ -2868,6 +2954,8 @@ function createAnimationStatus(animation) {
       duration: 0,
       channelCount: 0,
       animatedNodes: [],
+      unsupportedChannelCount: animation?.unsupportedChannels?.length ?? 0,
+      unsupportedChannels: animation?.unsupportedChannels ?? [],
     };
   }
 
@@ -2889,6 +2977,8 @@ function createAnimationStatus(animation) {
     duration: Number(clip.duration.toFixed(3)),
     channelCount: clip.channels.length,
     animatedNodes: animation.animatedNodes,
+    unsupportedChannelCount: animation.unsupportedChannels.length,
+    unsupportedChannels: animation.unsupportedChannels,
   };
 }
 
@@ -3119,18 +3209,30 @@ function createGltfMetadataStatus(active) {
   const primitives = meshes.flatMap((mesh) =>
     isRecord(mesh) ? arrayEntries(mesh.primitives) : [],
   );
+  const scenes = arrayEntries(root.scenes);
+  const defaultSceneIndex =
+    integerOrNull(root.scene) ?? (scenes.length > 0 ? 0 : null);
   const extensionsUsed = stringArray(root.extensionsUsed);
   const extensionsRequired = stringArray(root.extensionsRequired);
 
   return {
     status: "ready",
     counts: {
-      scenes: arrayEntries(root.scenes).length,
+      scenes: scenes.length,
       nodes: arrayEntries(root.nodes).length,
       meshes: meshes.length,
       primitives: primitives.length,
       materials: arrayEntries(root.materials).length,
       animations: arrayEntries(root.animations).length,
+    },
+    scene: {
+      defaultSceneIndex,
+      scenes: scenes.map((scene, sceneIndex) => ({
+        sceneIndex,
+        name: nodeNameOrNull(scene),
+        selected: sceneIndex === defaultSceneIndex,
+        rootNodeIndices: sceneRootNodeIndices(scene),
+      })),
     },
     extensions: {
       used: extensionsUsed,
@@ -3145,6 +3247,17 @@ function createGltfMetadataStatus(active) {
       glbImportReport,
     }),
   };
+}
+
+function sceneRootNodeIndices(scene) {
+  if (!isRecord(scene)) {
+    return [];
+  }
+
+  return arrayEntries(scene.nodes).flatMap((nodeIndex) => {
+    const index = integerOrNull(nodeIndex);
+    return index === null ? [] : [index];
+  });
 }
 
 function createGltfUnsupportedFeatureDiagnostics(input) {
@@ -3193,32 +3306,84 @@ function rootExtensionDiagnostics(extensionsUsed, extensionsRequired) {
 function rootFeatureDiagnostics(root, primitives) {
   const diagnostics = [];
   const skins = arrayEntries(root.skins);
-  const morphTargetPrimitiveCount = primitives.filter(
-    (primitive) =>
-      isRecord(primitive) && arrayEntries(primitive.targets).length > 0,
-  ).length;
+  const skinStats = countSkinMetadata(root, skins);
+  const morphTargetStats = countMorphTargetPrimitives(primitives);
 
-  if (skins.length > 0) {
+  if (skinStats.skinCount > 0) {
     diagnostics.push({
       code: "gltfMetadata.unsupportedSkins",
       severity: "warning",
-      count: skins.length,
-      message:
-        "GLB viewer metadata detected skins; skinning is not replayed yet.",
+      count: skinStats.skinCount,
+      skinCount: skinStats.skinCount,
+      jointCount: skinStats.jointCount,
+      inverseBindMatrixCount: skinStats.inverseBindMatrixCount,
+      message: `GLB viewer metadata detected ${skinStats.skinCount} skin(s), ${skinStats.jointCount} joint reference(s), and ${skinStats.inverseBindMatrixCount} inverse bind matrix row(s); skinning is not replayed yet.`,
     });
   }
 
-  if (morphTargetPrimitiveCount > 0) {
+  if (morphTargetStats.targetCount > 0) {
     diagnostics.push({
       code: "gltfMetadata.unsupportedMorphTargets",
       severity: "warning",
-      count: morphTargetPrimitiveCount,
-      message:
-        "GLB viewer metadata detected morph targets; morph animation is not replayed yet.",
+      count: morphTargetStats.targetCount,
+      targetCount: morphTargetStats.targetCount,
+      primitiveCount: morphTargetStats.primitiveCount,
+      message: `GLB viewer metadata detected ${morphTargetStats.targetCount} morph target(s) across ${morphTargetStats.primitiveCount} primitive(s); morph animation is not replayed yet.`,
     });
   }
 
   return diagnostics;
+}
+
+function countSkinMetadata(root, skins) {
+  const accessors = arrayEntries(root.accessors);
+  let jointCount = 0;
+  let inverseBindMatrixCount = 0;
+
+  for (const skin of skins) {
+    if (!isRecord(skin)) {
+      continue;
+    }
+
+    jointCount += arrayEntries(skin.joints).length;
+
+    const inverseBindAccessorIndex = integerOrNull(skin.inverseBindMatrices);
+    const inverseBindAccessor =
+      inverseBindAccessorIndex === null
+        ? null
+        : accessors[inverseBindAccessorIndex];
+
+    if (isRecord(inverseBindAccessor)) {
+      inverseBindMatrixCount += integerOrZero(inverseBindAccessor.count);
+    }
+  }
+
+  return {
+    skinCount: skins.length,
+    jointCount,
+    inverseBindMatrixCount,
+  };
+}
+
+function countMorphTargetPrimitives(primitives) {
+  let primitiveCount = 0;
+  let targetCount = 0;
+
+  for (const primitive of primitives) {
+    if (!isRecord(primitive)) {
+      continue;
+    }
+
+    const targets = arrayEntries(primitive.targets);
+    if (targets.length === 0) {
+      continue;
+    }
+
+    primitiveCount += 1;
+    targetCount += targets.length;
+  }
+
+  return { primitiveCount, targetCount };
 }
 
 function unsupportedImportDiagnostics(importReport) {
@@ -3270,6 +3435,7 @@ function filterUnsupportedDiagnostics(diagnostics) {
       ...diagnosticNumberField(diagnostic, "meshIndex"),
       ...diagnosticNumberField(diagnostic, "primitiveIndex"),
       ...diagnosticNumberField(diagnostic, "accessorIndex"),
+      ...diagnosticNumberField(diagnostic, "mode"),
     }));
 }
 
@@ -3335,7 +3501,7 @@ function createPrimitiveMaterialResolutionStatus(aperture, app, active) {
         textureSlots:
           material === null
             ? null
-            : materialTextureSlotStatus(aperture, material),
+            : materialTextureSlotStatus(aperture, app, material),
       };
     })
     .sort(
@@ -3454,23 +3620,39 @@ function materialFactorStatus(material) {
   };
 }
 
-function materialTextureSlotStatus(aperture, material) {
+function materialTextureSlotStatus(aperture, app, material) {
   return {
-    baseColorTexture: textureBindingStatus(aperture, material.baseColorTexture),
+    baseColorTexture: textureBindingStatus(
+      aperture,
+      app,
+      material.baseColorTexture,
+    ),
     metallicRoughnessTexture: textureBindingStatus(
       aperture,
+      app,
       material.metallicRoughnessTexture,
     ),
-    normalTexture: textureBindingStatus(aperture, material.normalTexture),
-    occlusionTexture: textureBindingStatus(aperture, material.occlusionTexture),
-    emissiveTexture: textureBindingStatus(aperture, material.emissiveTexture),
+    normalTexture: textureBindingStatus(aperture, app, material.normalTexture),
+    occlusionTexture: textureBindingStatus(
+      aperture,
+      app,
+      material.occlusionTexture,
+    ),
+    emissiveTexture: textureBindingStatus(
+      aperture,
+      app,
+      material.emissiveTexture,
+    ),
   };
 }
 
-function textureBindingStatus(aperture, binding) {
+function textureBindingStatus(aperture, app, binding) {
   if (binding === null || binding === undefined || binding.texture === null) {
     return null;
   }
+
+  const sampler =
+    binding.sampler === null ? null : samplerStatus(app, binding.sampler);
 
   return {
     textureKey: aperture.assetHandleKey(binding.texture),
@@ -3478,8 +3660,48 @@ function textureBindingStatus(aperture, binding) {
       binding.sampler === null
         ? null
         : aperture.assetHandleKey(binding.sampler),
+    sampler,
     texCoord: binding.texCoord ?? 0,
     hasTransform: binding.transform !== undefined,
+    transform: textureTransformStatus(binding.transform),
+  };
+}
+
+function textureTransformStatus(transform) {
+  if (transform === undefined) {
+    return null;
+  }
+
+  return {
+    offset:
+      transform.offset === undefined ? null : roundTuple(transform.offset, 3),
+    scale:
+      transform.scale === undefined ? null : roundTuple(transform.scale, 3),
+    rotation:
+      transform.rotation === undefined
+        ? null
+        : Number(transform.rotation.toFixed(3)),
+  };
+}
+
+function samplerStatus(app, samplerHandle) {
+  const sampler = app.assets.get(samplerHandle)?.asset ?? null;
+
+  if (sampler === null) {
+    return {
+      status: "missing",
+    };
+  }
+
+  return {
+    status: "ready",
+    addressModeU: sampler.addressModeU,
+    addressModeV: sampler.addressModeV,
+    addressModeW: sampler.addressModeW,
+    magFilter: sampler.magFilter,
+    minFilter: sampler.minFilter,
+    mipmapFilter: sampler.mipmapFilter,
+    maxAnisotropy: sampler.maxAnisotropy,
   };
 }
 

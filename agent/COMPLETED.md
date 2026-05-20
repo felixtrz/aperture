@@ -1,5 +1,230 @@
 # Completed Tasks
 
+## task-2058 — Add texture-transform GLB viewer sample
+
+Completed: 2026-05-20
+
+Summary:
+
+- Added `examples/assets/texture-transform.glb`, a local StandardMaterial GLB
+  sample with `KHR_texture_transform` on a base-color texture and a scalar
+  control primitive.
+- Extended GLB viewer texture-slot status with JSON-safe transform metadata
+  (`offset`, `scale`, and `rotation`) alongside the existing texture/sampler
+  status.
+- Added Playwright coverage proving transform status, visible transformed
+  texture pixels, and a difference from the scalar control region.
+
+References inspected:
+
+- `references/bevy/crates/bevy_gltf/src/loader/gltf_ext/material.rs`
+- `references/three.js/examples/jsm/loaders/GLTFLoader.js`
+
+Validation:
+
+- GLB JSON/header check for `examples/assets/texture-transform.glb`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts -g "texture-transform"`
+
+Known follow-up:
+
+- `task-2059` should add a missing TEXCOORD_1 GLB viewer diagnostic sample.
+
+## task-2057 — Add multi-scene GLB viewer status sample
+
+Completed: 2026-05-20
+
+Summary:
+
+- Added `examples/assets/multi-scene.glb`, a local two-scene GLB sample whose
+  default scene renders one visible unlit mesh.
+- Added JSON-safe scene metadata to GLB viewer status, including scene count,
+  default scene index, selected scene flag, scene names, and root node indices.
+- Added Playwright coverage proving the default scene renders while status
+  reports both scenes and the selected/default root node.
+
+References inspected:
+
+- `references/bevy/crates/bevy_gltf/src/loader/mod.rs`
+- `references/three.js/examples/jsm/loaders/GLTFLoader.js`
+
+Validation:
+
+- GLB JSON/header check for `examples/assets/multi-scene.glb`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts -g "multi-scene"`
+
+Known follow-up:
+
+- `task-2058` should add a texture-transform GLB viewer sample.
+
+## task-2056 — Add CUBICSPLINE animation unsupported-feature viewer sample
+
+Completed: 2026-05-20
+
+Summary:
+
+- Added `examples/assets/cubic-spline.glb`, a local GLB sample with a
+  `CUBICSPLINE` translation animation sampler and a visible unlit base mesh.
+- Added JSON-safe unsupported animation-channel status for non-LINEAR/STEP
+  interpolation without creating renderer-owned animation state.
+- Added Playwright coverage proving visible base mesh rendering plus the
+  unsupported `CUBICSPLINE` interpolation status.
+
+References inspected:
+
+- `references/bevy/crates/bevy_animation/src/lib.rs`
+- `references/bevy/crates/bevy_gltf/src/loader/mod.rs`
+- `references/three.js/examples/jsm/loaders/GLTFLoader.js`
+
+Validation:
+
+- `node --check examples/glb-viewer.js`
+- GLB JSON/header check for `examples/assets/cubic-spline.glb`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts -g "CUBICSPLINE"`
+
+Known follow-up:
+
+- `task-2057` should add a multi-scene GLB viewer status sample.
+
+## task-2055 — Add sampler-state textured GLB viewer sample
+
+Completed: 2026-05-20
+
+Summary:
+
+- Added `examples/assets/sampler-state.glb`, a local textured StandardMaterial
+  GLB sample with non-default wrap/filter sampler metadata and a scalar control.
+- Published JSON-safe sampler metadata from GLB viewer texture-slot status,
+  including address modes, filter modes, and max anisotropy.
+- Added Playwright coverage proving visible textured pixels and non-default
+  sampler status without moving WebGPU resource ownership out of the backend.
+
+Validation:
+
+- `node --check examples/glb-viewer.js`
+- GLB JSON/header check for `examples/assets/sampler-state.glb`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts -g "sampler state"`
+
+Known follow-up:
+
+- `task-2056` should add a CUBICSPLINE unsupported-interpolation sample.
+
+## task-2054 — Add emissive StandardMaterial GLB viewer sample
+
+Completed: 2026-05-20
+
+Summary:
+
+- Added `examples/assets/emissive-standard.glb`, a two-primitive
+  StandardMaterial sample with emissive-factor and scalar-control regions.
+- Added the sample to `glb-viewer` and verified emissive factor status through
+  primitive material resolution output.
+- Added Playwright coverage proving the emissive region renders differently
+  from the scalar control through the StandardMaterial app route.
+
+Validation:
+
+- `node --check examples/glb-viewer.js`
+- GLB JSON/header check for `examples/assets/emissive-standard.glb`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts -g "emissive StandardMaterial"`
+
+## task-2053 — Add unsupported primitive-mode viewer sample
+
+Completed: 2026-05-20
+
+Summary:
+
+- Added `examples/assets/unsupported-primitive-mode.glb`, a local GLB sample
+  with one supported triangle primitive and one unsupported line primitive.
+- Changed unsupported primitive modes from fatal planning errors to warnings for
+  the affected primitive, allowing supported primitives in the same GLB to
+  register, replay, extract, and render.
+- Added targeted asset tests and Playwright coverage for the warning plus
+  visible supported primitive.
+
+Validation:
+
+- `node --check examples/glb-viewer.js`
+- GLB JSON/header check for `examples/assets/unsupported-primitive-mode.glb`
+- `pnpm exec vitest run test/assets/gltf-mesh-primitive.test.ts`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts -g "unsupported primitive mode"`
+
+## task-2052 — Add unsupported orthographic-camera viewer sample
+
+Completed: 2026-05-20
+
+Summary:
+
+- Added `examples/assets/orthographic-camera.glb`, a local GLB sample with an
+  orthographic camera node and a visible base mesh.
+- Added GLB viewer and Playwright coverage proving unsupported orthographic
+  camera status while the fitted orbit camera continues to render ECS-authored
+  mesh state.
+
+Validation:
+
+- `node --check examples/glb-viewer.js`
+- GLB JSON/header check for `examples/assets/orthographic-camera.glb`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts -g "orthographic imported camera"`
+
+## task-2051 — Add skinning unsupported-feature viewer sample
+
+Completed: 2026-05-20
+
+Summary:
+
+- Added `examples/assets/skinning.glb`, a local GLB sample with skin, joint,
+  and inverse-bind-matrix metadata while still rendering an unskinned base mesh.
+- Extended unsupported skinning diagnostics with JSON-safe skin, joint, and
+  inverse-bind-matrix counts.
+- Added Playwright coverage proving visible base mesh rendering plus the
+  unsupported skinning diagnostic.
+
+Validation:
+
+- `node --check examples/glb-viewer.js`
+- GLB JSON/header check for `examples/assets/skinning.glb`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts -g "unsupported skinning"`
+
+## task-2050 — Audit imported camera/light/embedded-image viewer slices
+
+Completed: 2026-05-20
+
+Summary:
+
+- Added
+  `docs/research/GLB_VIEWER_IMPORT_STATUS_AUDIT_2026_05_20.md`, confirming the
+  imported camera, embedded image, imported light, and morph-target status
+  slices remain ECS-authored, JSON-safe, renderer-derived, and WebGPU-only.
+- Recommended skinning unsupported-feature coverage as the next visible GLB
+  viewer fidelity slice.
+
+Validation:
+
+- `pnpm run check:boundaries`
+
+## task-2049 — Add morph-target unsupported-feature viewer sample
+
+Completed: 2026-05-20
+
+Summary:
+
+- Added `examples/assets/morph-target.glb`, a local GLB sample with morph-target
+  metadata while still rendering the base mesh.
+- Tightened unsupported morph-target diagnostics to publish JSON-safe target and
+  primitive counts.
+- Added Playwright coverage proving visible base mesh rendering plus the
+  unsupported morph-target diagnostic.
+
+Validation:
+
+- `node --check examples/glb-viewer.js`
+- GLB JSON/header check for `examples/assets/morph-target.glb`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts -g "morph targets"`
+
 ## task-2048 — Replay glTF punctual lights in glb-viewer
 
 Completed: 2026-05-20

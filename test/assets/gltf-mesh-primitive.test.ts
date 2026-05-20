@@ -82,13 +82,58 @@ describe("glTF mesh primitive mapping report", () => {
     expect(report.diagnostics).toMatchObject([
       {
         code: "gltfMesh.unsupportedPrimitiveMode",
-        severity: "error",
+        severity: "warning",
         mode: 5,
       },
       {
         code: "gltfMesh.missingPosition",
         severity: "error",
         attribute: "POSITION",
+      },
+    ]);
+  });
+
+  it("skips unsupported primitive modes without blocking supported primitive plans", () => {
+    const report = createGltfMeshPrimitiveMappingReport({
+      root: {
+        asset: { version: "2.0" },
+        accessors: [{}, {}, {}],
+        meshes: [
+          {
+            primitives: [
+              {
+                attributes: { POSITION: 0, NORMAL: 1 },
+                indices: 2,
+              },
+              {
+                mode: 1,
+                attributes: { POSITION: 0 },
+              },
+            ],
+          },
+        ],
+      },
+    });
+
+    expect(report.valid).toBe(true);
+    expect(report.meshes).toMatchObject([
+      {
+        meshIndex: 0,
+        primitiveIndex: 0,
+        topology: "triangle-list",
+      },
+    ]);
+    expect(report.diagnostics).toMatchObject([
+      {
+        code: "gltfMesh.unresolvedAccessorData",
+        severity: "warning",
+        primitiveIndex: 0,
+      },
+      {
+        code: "gltfMesh.unsupportedPrimitiveMode",
+        severity: "warning",
+        primitiveIndex: 1,
+        mode: 1,
       },
     ]);
   });
