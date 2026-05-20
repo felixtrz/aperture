@@ -198,6 +198,33 @@ interface GlbViewerStatus extends ExampleStatusBase {
     };
     readonly cameras: readonly unknown[];
   };
+  readonly importedLights?: {
+    readonly status: string;
+    readonly enabled: boolean;
+    readonly declaredCount: number;
+    readonly replayedCount: number;
+    readonly extractedCount: number;
+    readonly kinds: readonly {
+      readonly kind: string;
+      readonly count: number;
+    }[];
+    readonly lights: readonly {
+      readonly status: string;
+      readonly supported: boolean;
+      readonly nodeIndex: number;
+      readonly lightIndex: number;
+      readonly entityKey: string;
+      readonly name: string | null;
+      readonly nodeName: string | null;
+      readonly lightName: string | null;
+      readonly kind: string;
+      readonly color?: readonly number[];
+      readonly rawIntensity?: number;
+      readonly intensity?: number;
+      readonly range?: number;
+      readonly extracted: boolean;
+    }[];
+  };
   readonly lighting?: {
     readonly controls: {
       readonly ambientIntensity: number;
@@ -335,6 +362,7 @@ test("Playwright renders the fetched sample GLB viewer asset", async ({
     "Normal map",
     "Textured standard",
     "Embedded texture",
+    "Imported light",
     "Animated cube",
     "Multi-clip cube",
     "Rotate/scale cube",
@@ -3353,6 +3381,114 @@ test("Playwright renders an embedded-image GLB texture sample", async ({
   webGpuValidation.expectNoWarnings();
 });
 
+test("Playwright replays glTF punctual lights in the GLB viewer", async ({
+  page,
+}) => {
+  const webGpuValidation = attachWebGpuValidationConsoleGuard(page);
+
+  await page.goto(
+    "/examples/glb-viewer.html?asset=imported-light&disable-imported-lights=1",
+  );
+  await waitForImportedLightStatus(page, { enabled: false });
+  const defaultStatus = await waitForExampleStatus<GlbViewerStatus>(page);
+  const defaultScreenshot = await page.locator("#aperture-canvas").screenshot();
+
+  expectStatusJsonSafeForGpu(defaultStatus);
+  expect(defaultStatus).toMatchObject({
+    selectedAsset: {
+      id: "imported-light",
+      label: "Imported light",
+      source: "sample",
+      url: "/examples/assets/imported-light.glb",
+      loading: false,
+      materialFamilies: [{ family: "standard", count: 1 }],
+    },
+    importedLights: {
+      status: "ready",
+      enabled: false,
+      declaredCount: 1,
+      replayedCount: 1,
+      extractedCount: 0,
+      kinds: [{ kind: "point", count: 1 }],
+      lights: [
+        {
+          status: "ready",
+          supported: true,
+          nodeIndex: 1,
+          lightIndex: 0,
+          entityKey: expect.stringMatching(
+            /^viewer-imported-light-\d+:node:1$/,
+          ),
+          name: "ImportedWarmPoint",
+          nodeName: "ImportedWarmPointNode",
+          lightName: "ImportedWarmPoint",
+          kind: "point",
+          color: [1, 0.18, 0.06, 1],
+          rawIntensity: 9,
+          intensity: expect.any(Number),
+          range: 5,
+          extracted: false,
+        },
+      ],
+    },
+    gltf: {
+      metadata: {
+        counts: {
+          nodes: 2,
+          meshes: 1,
+          primitives: 1,
+          materials: 1,
+          animations: 0,
+        },
+        extensions: {
+          used: ["KHR_lights_punctual"],
+          required: [],
+        },
+        unsupportedFeatureDiagnostics: [],
+      },
+    },
+    extraction: {
+      meshDraws: 1,
+      lights: 2,
+      diagnostics: 0,
+    },
+  });
+
+  await page.goto("/examples/glb-viewer.html?asset=imported-light");
+  await waitForImportedLightStatus(page, { enabled: true });
+  const importedStatus = await waitForExampleStatus<GlbViewerStatus>(page);
+  const importedScreenshot = await page
+    .locator("#aperture-canvas")
+    .screenshot();
+
+  expect(importedStatus?.importedLights).toMatchObject({
+    status: "ready",
+    enabled: true,
+    declaredCount: 1,
+    replayedCount: 1,
+    extractedCount: 1,
+    kinds: [{ kind: "point", count: 1 }],
+    lights: [
+      {
+        kind: "point",
+        rawIntensity: 9,
+        range: 5,
+        extracted: true,
+      },
+    ],
+  });
+  expect(importedStatus?.extraction).toMatchObject({
+    meshDraws: 1,
+    lights: 3,
+    diagnostics: 0,
+  });
+  expect(
+    maxSampleDelta(defaultScreenshot, importedScreenshot),
+    "replayed glTF punctual light should visibly change the StandardMaterial sample",
+  ).toBeGreaterThan(8);
+  webGpuValidation.expectNoWarnings();
+});
+
 test("Playwright mutates GLB viewer ECS light controls", async ({ page }) => {
   const webGpuValidation = attachWebGpuValidationConsoleGuard(page);
 
@@ -4181,6 +4317,67 @@ async function waitForStepAnimationStatus(
 
   if (status === undefined) {
     throw new Error("GLB viewer STEP animation status did not publish.");
+  }
+
+  return status;
+}
+
+async function waitForImportedLightStatus(
+  page: Page,
+  expected: { readonly enabled: boolean },
+): Promise<GlbViewerStatus> {
+  await page.waitForFunction(
+    ({ enabled }) => {
+      const current = (
+        globalThis as {
+          readonly __APERTURE_EXAMPLE_STATUS__?: {
+            readonly frame?: number;
+            readonly selectedAsset?: {
+              readonly id?: string;
+              readonly loading?: boolean;
+            };
+            readonly importedLights?: {
+              readonly status?: string;
+              readonly enabled?: boolean;
+              readonly declaredCount?: number;
+              readonly replayedCount?: number;
+              readonly extractedCount?: number;
+              readonly lights?: readonly {
+                readonly kind?: string;
+                readonly extracted?: boolean;
+              }[];
+            };
+            readonly extraction?: {
+              readonly meshDraws?: number;
+              readonly lights?: number;
+            };
+          };
+        }
+      ).__APERTURE_EXAMPLE_STATUS__;
+
+      return (
+        (current?.frame ?? 0) >= 3 &&
+        current?.selectedAsset?.id === "imported-light" &&
+        current.selectedAsset.loading === false &&
+        current.importedLights?.status === "ready" &&
+        current.importedLights.enabled === enabled &&
+        current.importedLights.declaredCount === 1 &&
+        current.importedLights.replayedCount === 1 &&
+        current.importedLights.extractedCount === (enabled ? 1 : 0) &&
+        current.importedLights.lights?.[0]?.kind === "point" &&
+        current.importedLights.lights[0].extracted === enabled &&
+        current.extraction?.meshDraws === 1 &&
+        current.extraction.lights === (enabled ? 3 : 2)
+      );
+    },
+    expected,
+    { timeout: 5000 },
+  );
+
+  const status = await waitForExampleStatus<GlbViewerStatus>(page);
+
+  if (status === undefined) {
+    throw new Error("GLB viewer imported light status did not publish.");
   }
 
   return status;

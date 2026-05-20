@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-20 04:47 UTC</dd>
+            <dd>2026-05-20 04:58 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -409,12 +409,14 @@
               parsed glTF perspective camera by mutating the same ECS camera
               transform/projection state, and now includes a GLB sample whose
               base-color image comes from an embedded image
-              <code>bufferView</code>. Existing shadow, IBL, query, metadata,
-              and pause/scrub viewer controls remain ECS-authored, JSON-safe,
-              and browser-covered after a focused architecture audit. The GLTF
-              scene vertical-slice plan, JSON-safe scene import contract, and
-              first browser fixture are now in place. The fixture renders plane,
-              box, and cone primitives with StandardMaterial and UnlitMaterial
+              <code>bufferView</code>. It now also replays
+              <code>KHR_lights_punctual</code> point-light nodes as ECS-authored
+              light components. Existing shadow, IBL, query, metadata, and
+              pause/scrub viewer controls remain ECS-authored, JSON-safe, and
+              browser-covered after a focused architecture audit. The GLTF scene
+              vertical-slice plan, JSON-safe scene import contract, and first
+              browser fixture are now in place. The fixture renders plane, box,
+              and cone primitives with StandardMaterial and UnlitMaterial
               through ECS authoring commands, extraction, render-world
               preparation, queue/sort, and WebGPU submission. The fixture now
               also reports extracted environment-map readiness and a
@@ -948,15 +950,17 @@
               mutating the ECS camera transform/projection and reporting
               JSON-safe camera metadata. The embedded-texture sample now
               resolves a bufferView-backed base-color image without publishing
-              raw image bytes. It publishes JSON-safe GLB metadata counts and
-              unsupported-feature diagnostics, supports
+              raw image bytes. Imported punctual lights now attach ECS
+              <code>Light</code> components to replayed glTF node entities and
+              report declared/replayed/extracted counts. It publishes JSON-safe
+              GLB metadata counts and unsupported-feature diagnostics, supports
               <code>?asset=</code> sample bootstrapping with invalid-ID fallback
               diagnostics, and the StandardMaterial route now scopes material
               bind groups by pipeline key so live route changes do not reuse
               incompatible layouts.
             </dd>
             <dt>Next focus</dt>
-            <dd>Replay glTF punctual lights in glb-viewer</dd>
+            <dd>Add a morph-target unsupported-feature viewer sample</dd>
           </dl>
         </aside>
       </header>
@@ -1182,19 +1186,20 @@
                 <div class="label">asset import</div>
                 <h3>GLB/glTF path</h3>
               </div>
-              <span class="percent">57%</span>
+              <span class="percent">58%</span>
             </div>
-            <div class="bar"><span style="width: 57%"></span></div>
+            <div class="bar"><span style="width: 58%"></span></div>
             <p>
               Container parsing, diagnostics, source registration, material
-              mapping, URI loading, and a sixteen-asset local GLB viewer path
+              mapping, URI loading, and a seventeen-asset local GLB viewer path
               with lit StandardMaterial, animated, multi-clip, rotation/scale,
               STEP interpolation, imported-camera, embedded-image texture,
-              dual-primitive, hierarchy, and mixed alpha-state samples, custom
-              URL plus query-URL loading, and bounds-driven camera fitting have
-              landed. The viewer now includes camera reset, ECS light controls,
-              live shadow/IBL controls, animation pause/scrub/speed/loop/
-              direction controls, imported camera transform/projection replay,
+              imported-light, dual-primitive, hierarchy, and mixed alpha-state
+              samples, custom URL plus query-URL loading, and bounds-driven
+              camera fitting have landed. The viewer now includes camera reset,
+              ECS light controls, live shadow/IBL controls, animation
+              pause/scrub/speed/loop/direction controls, imported camera
+              transform/projection replay, imported punctual light replay,
               parsed metadata status, and
               <code>?asset=</code> sample bootstrapping, while the lit brass
               sample adds a shadow-receiver floor and environment-map IBL
@@ -1207,9 +1212,9 @@
                 <div class="label">examples/e2e</div>
                 <h3>browser proof points</h3>
               </div>
-              <span class="percent">63%</span>
+              <span class="percent">64%</span>
             </div>
-            <div class="bar"><span style="width: 63%"></span></div>
+            <div class="bar"><span style="width: 64%"></span></div>
             <p>
               Spinning cube, material showcase, GLTF scene, GLB viewer,
               diagnostics, queue phases, and WebGPU readback examples have
@@ -1221,8 +1226,8 @@
               StandardMaterial render-state routing, fitted-camera reset, and
               ECS light, shadow, IBL, animation scrub/speed/loop/direction,
               rotation/scale and STEP channel playback, imported glTF camera
-              switching, embedded-image texture routing, metadata, and
-              sample-query bootstrap responses.
+              switching, embedded-image texture routing, imported punctual light
+              extraction, metadata, and sample-query bootstrap responses.
             </p>
           </article>
           <article class="card track">
@@ -1527,6 +1532,13 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">task-2048</span> Added an
+                imported-light GLB sample and browser proof that
+                <code>KHR_lights_punctual</code> point lights become
+                ECS-authored light components and visibly alter StandardMaterial
+                pixels.
+              </li>
               <li>
                 <span class="badge green">task-2047</span> Added an
                 embedded-image StandardMaterial GLB sample and browser proof for
@@ -3316,17 +3328,16 @@
             <h3>Recommended next tasks</h3>
             <ul>
               <li>
-                <span class="badge amber">next</span> Replay glTF punctual
-                lights in <code>glb-viewer</code>.
+                <span class="badge amber">next</span> Add a morph-target
+                unsupported-feature viewer sample.
               </li>
               <li>
-                The next sample should include
-                <code>KHR_lights_punctual</code> point or directional light data
-                and convert it into ECS-authored light components.
+                The next sample should include morph-target metadata while still
+                rendering the base mesh through the existing GLB replay path.
               </li>
               <li>
-                Use Playwright to verify imported-light status, extracted light
-                packets, and a visible lighting difference from viewer defaults.
+                Use Playwright to verify the JSON-safe unsupported-feature
+                diagnostic and visible base mesh rendering.
               </li>
             </ul>
           </article>

@@ -42,6 +42,7 @@ const shadowControls = {
 const iblControls = {
   enabled: enableIblSampling,
 };
+const enableImportedLights = !exampleParams.has("disable-imported-lights");
 const shadowIntent = {
   mapSize: 512,
   depthBias: 0.0015,
@@ -50,6 +51,7 @@ const shadowIntent = {
 const supportedMetadataExtensions = new Set([
   "KHR_materials_unlit",
   "KHR_texture_transform",
+  "KHR_lights_punctual",
 ]);
 let shadowDepthTextureResourceReport = null;
 const sampleAssets = [
@@ -99,6 +101,12 @@ const sampleAssets = [
     id: "embedded-texture",
     label: "Embedded texture",
     url: new URL("./assets/embedded-texture.glb", globalThis.location.href),
+    source: "sample",
+  },
+  {
+    id: "imported-light",
+    label: "Imported light",
+    url: new URL("./assets/imported-light.glb", globalThis.location.href),
     source: "sample",
   },
   {
@@ -437,6 +445,13 @@ async function loadAsset(aperture, app, scene, asset) {
     keyPrefix,
     targetCanvas: scene.targetCanvas,
   });
+  const importedLights = createImportedLightsState({
+    aperture,
+    root: loaded.loader.glbImportReport.container.container.json,
+    keyPrefix,
+    replay,
+    enabled: enableImportedLights,
+  });
 
   updateActiveAnimation(aperture, animation, 0);
   aperture.resolveWorldTransforms(app.world);
@@ -461,6 +476,7 @@ async function loadAsset(aperture, app, scene, asset) {
     replay,
     animation,
     importedCamera,
+    importedLights,
     fit,
     shadowScene,
     iblScene,
@@ -1111,6 +1127,7 @@ async function createStatus(aperture, app, scene, step, report, frame) {
       dragging: scene.orbit.dragging,
     },
     importedCamera: createImportedCameraStatus(scene),
+    importedLights: createImportedLightsStatus(scene, report.snapshot),
     lighting: createLightingControlStatus(aperture, scene, report.snapshot),
     animation: createAnimationStatus(active?.animation ?? null),
     hierarchy: createHierarchyStatus(aperture, active),
@@ -2390,6 +2407,191 @@ function createImportedCameraDescriptor({
   };
 }
 
+function createImportedLightsState({
+  aperture,
+  root,
+  keyPrefix,
+  replay,
+  enabled,
+}) {
+  if (!isRecord(root)) {
+    return {
+      status: "absent",
+      enabled,
+      declaredCount: 0,
+      lights: [],
+    };
+  }
+
+  const rootExtensions = isRecord(root.extensions) ? root.extensions : {};
+  const punctual = isRecord(rootExtensions.KHR_lights_punctual)
+    ? rootExtensions.KHR_lights_punctual
+    : null;
+  const lightDefs = punctual === null ? [] : arrayEntries(punctual.lights);
+  const nodes = arrayEntries(root.nodes);
+  const lights = [];
+
+  nodes.forEach((node, nodeIndex) => {
+    if (!isRecord(node) || !isRecord(node.extensions)) {
+      return;
+    }
+
+    const nodeLight = isRecord(node.extensions.KHR_lights_punctual)
+      ? node.extensions.KHR_lights_punctual
+      : null;
+    const lightIndex = integerOrNull(nodeLight?.light);
+
+    if (lightIndex === null) {
+      return;
+    }
+
+    const light = lightDefs[lightIndex];
+    const entityKey = `${keyPrefix}:node:${nodeIndex}`;
+    const entity = replay.entitiesByKey.get(entityKey) ?? null;
+
+    if (!isRecord(light)) {
+      lights.push({
+        status: "invalid",
+        supported: false,
+        nodeIndex,
+        lightIndex,
+        entityKey,
+        name: nodeNameOrNull(node),
+        nodeName: nodeNameOrNull(node),
+        lightName: null,
+        kind: "unknown",
+        reason: "missing-light",
+        extracted: false,
+      });
+      return;
+    }
+
+    const descriptor = createImportedLightDescriptor({
+      node,
+      nodeIndex,
+      light,
+      lightIndex,
+      entityKey,
+      entity,
+    });
+
+    if (enabled && descriptor.status === "ready" && entity !== null) {
+      setImportedLightComponent(aperture, entity, descriptor);
+    }
+
+    lights.push(descriptor);
+  });
+
+  const readyCount = lights.filter((light) => light.status === "ready").length;
+
+  return {
+    status:
+      readyCount > 0 ? "ready" : lights.length > 0 ? "unsupported" : "absent",
+    enabled,
+    declaredCount: lightDefs.length,
+    lights,
+  };
+}
+
+function createImportedLightDescriptor({
+  node,
+  nodeIndex,
+  light,
+  lightIndex,
+  entityKey,
+  entity,
+}) {
+  const kind = importedLightKind(light.type);
+  const nodeName = nodeNameOrNull(node);
+  const lightName = nodeNameOrNull(light);
+  const base = {
+    nodeIndex,
+    lightIndex,
+    entityKey,
+    entity:
+      entity === null
+        ? null
+        : { index: entity.index, generation: entity.generation },
+    name: lightName ?? nodeName,
+    nodeName,
+    lightName,
+    kind: typeof light.type === "string" ? light.type : "unknown",
+  };
+
+  if (kind === null) {
+    return {
+      ...base,
+      status: "unsupported",
+      supported: false,
+      reason: "unsupported-light-kind",
+      extracted: false,
+    };
+  }
+
+  const rawIntensity = numberOrNull(light.intensity) ?? 1;
+  const intensity =
+    kind === "point" || kind === "spot"
+      ? rawIntensity * Math.PI * 4
+      : rawIntensity;
+  const range =
+    kind === "point" || kind === "spot"
+      ? (numberOrNull(light.range) ?? 20)
+      : (numberOrNull(light.range) ?? 10);
+  const spot = isRecord(light.spot) ? light.spot : {};
+
+  return {
+    ...base,
+    status: entity === null ? "missing-node" : "ready",
+    supported: entity !== null,
+    kind,
+    color: [...tupleOrDefault(light.color, [1, 1, 1]), 1],
+    rawIntensity: Number(rawIntensity.toFixed(3)),
+    intensity: Number(intensity.toFixed(3)),
+    range: Number(range.toFixed(3)),
+    innerConeAngle: Number((numberOrNull(spot.innerConeAngle) ?? 0).toFixed(3)),
+    outerConeAngle: Number(
+      (numberOrNull(spot.outerConeAngle) ?? Math.PI / 4).toFixed(3),
+    ),
+    extracted: false,
+  };
+}
+
+function setImportedLightComponent(aperture, entity, light) {
+  const input = {
+    kind: light.kind,
+    color: light.color,
+    intensity: light.intensity,
+    range: light.range,
+    innerConeAngle: light.innerConeAngle,
+    outerConeAngle: light.outerConeAngle,
+    layerMask: 1,
+  };
+
+  if (!entity.hasComponent(aperture.Light)) {
+    entity.addComponent(aperture.Light, input);
+    return;
+  }
+
+  entity.setValue(aperture.Light, "kind", input.kind);
+  entity.getVectorView(aperture.Light, "color").set(input.color);
+  entity.setValue(aperture.Light, "intensity", input.intensity);
+  entity.setValue(aperture.Light, "range", input.range);
+  entity.setValue(aperture.Light, "innerConeAngle", input.innerConeAngle);
+  entity.setValue(aperture.Light, "outerConeAngle", input.outerConeAngle);
+  entity.setValue(aperture.Light, "layerMask", input.layerMask);
+}
+
+function importedLightKind(value) {
+  switch (value) {
+    case "directional":
+    case "point":
+    case "spot":
+      return value;
+    default:
+      return null;
+  }
+}
+
 function parseGltfAnimationClips({
   aperture,
   root,
@@ -2845,6 +3047,47 @@ function createImportedCameraStatus(scene) {
     },
     selected: importedCamera.selected,
     cameras: importedCamera.cameras,
+  };
+}
+
+function createImportedLightsStatus(scene, snapshot) {
+  const importedLights = scene.active?.importedLights ?? {
+    status: "absent",
+    enabled: enableImportedLights,
+    declaredCount: 0,
+    lights: [],
+  };
+  const extracted = new Set(
+    snapshot.lights.map(
+      (light) => `${light.entity.index}:${light.entity.generation}`,
+    ),
+  );
+  const lights = importedLights.lights.map((light) => ({
+    ...light,
+    extracted:
+      light.entity !== null &&
+      extracted.has(`${light.entity.index}:${light.entity.generation}`),
+  }));
+  const kindCounts = new Map();
+
+  for (const light of lights) {
+    if (light.status !== "ready") {
+      continue;
+    }
+
+    kindCounts.set(light.kind, (kindCounts.get(light.kind) ?? 0) + 1);
+  }
+
+  return {
+    status: importedLights.status,
+    enabled: importedLights.enabled,
+    declaredCount: importedLights.declaredCount,
+    replayedCount: lights.filter((light) => light.status === "ready").length,
+    extractedCount: lights.filter((light) => light.extracted).length,
+    kinds: Array.from(kindCounts.entries())
+      .map(([kind, count]) => ({ kind, count }))
+      .sort((a, b) => a.kind.localeCompare(b.kind)),
+    lights,
   };
 }
 

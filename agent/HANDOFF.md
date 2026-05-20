@@ -1,11 +1,12 @@
 # Agent Handoff
 
-Updated: 2026-05-20T04:47:55Z
+Updated: 2026-05-20T04:58:45Z
 
-## Current Run Update — 2026-05-20T04:47:55Z — GLB viewer transform animation, cameras, and embedded texture
+## Current Run Update — 2026-05-20T04:58:45Z — GLB viewer transform animation, cameras, embedded texture, and imported lights
 
 Completed `task-2044`, `task-2041`, `task-2045`, `task-2046`, and
-`task-2047`.
+`task-2047`; resumed after the default 55-minute stop gate and completed
+`task-2048`.
 
 ### What changed
 
@@ -43,13 +44,21 @@ Completed `task-2044`, `task-2041`, `task-2045`, `task-2046`, and
 - Added Playwright coverage proving embedded texture-slot readiness, the
   `standard|baseColorTexture` route, visible texture variation, and a pixel
   difference from a scalar StandardMaterial control primitive.
+- Added `examples/assets/imported-light.glb`, a committed StandardMaterial GLB
+  sample with `KHR_lights_punctual` point-light data.
+- Added GLB viewer replay of supported glTF punctual light node attachments by
+  adding ECS-authored `Light` components to replayed glTF node entities.
+- GLB viewer status now reports JSON-safe imported light declared/replayed/
+  extracted counts, kinds, colors, ranges, and intensity values.
+- Added Playwright coverage proving imported-light extraction and visible pixel
+  differences against the same sample rendered with only viewer default lights.
 - Added
   `docs/research/GLB_VIEWER_CONTROL_STATUS_ARCHITECTURE_AUDIT_2026_05_20.md`.
   The audit confirmed GLB viewer controls/status remain ECS-authored,
   JSON-safe, and package-boundary aligned.
 - Updated `docs/index.html`, `docs/render-pipeline-comparison.html`,
   `agent/BACKLOG.md`, and `agent/COMPLETED.md`. The recommended next task is
-  now `task-2048`.
+  now `task-2049`.
 
 ### References inspected
 
@@ -67,7 +76,8 @@ Completed `task-2044`, `task-2041`, `task-2045`, `task-2046`, and
 - GLB JSON/header checks for `examples/assets/rotation-scale.glb`,
   `examples/assets/step-animation.glb`, and
   `examples/assets/imported-camera.glb`; GLB JSON/header check for
-  `examples/assets/embedded-texture.glb`
+  `examples/assets/embedded-texture.glb` and
+  `examples/assets/imported-light.glb`
 - `pnpm run typecheck:test`
 - `pnpm run check:examples`
 - `pnpm run build`
@@ -79,7 +89,8 @@ Completed `task-2044`, `task-2041`, `task-2045`, `task-2046`, and
 - `pnpm exec playwright test test/e2e/glb-viewer.spec.ts -g "STEP animation channels"`
 - `pnpm exec playwright test test/e2e/glb-viewer.spec.ts -g "imported glTF camera"`
 - `pnpm exec playwright test test/e2e/glb-viewer.spec.ts -g "embedded-image"`
-- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts` (20 tests passed)
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts -g "punctual lights"`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts` (21 tests passed)
 - Attempted in-app browser sanity check for
   `/examples/glb-viewer.html?asset=rotation-scale`; the MCP browser profile was
   locked by another Chromium instance, so the full Playwright browser suite is
@@ -88,14 +99,14 @@ Completed `task-2044`, `task-2041`, `task-2045`, `task-2046`, and
 ### Known issues
 
 - No known regressions from this run.
-- Full GLB image decode, imported glTF punctual lights, morph targets, skins,
-  and cubic-spline animation remain deferred.
+- Full GLB image decode, morph targets, skins, and cubic-spline animation remain
+  deferred.
 - The GLB viewer still has example-local image URI resolution for committed
   synthetic texture samples.
 
 ### Recommended next task
 
-`task-2048 — Replay glTF punctual lights in glb-viewer`.
+`task-2049 — Add morph-target unsupported-feature viewer sample`.
 
 ## Current Run Update — 2026-05-20T03:57:56Z — GLB viewer material fidelity and animation controls
 

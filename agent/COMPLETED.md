@@ -1,5 +1,39 @@
 # Completed Tasks
 
+## task-2048 — Replay glTF punctual lights in glb-viewer
+
+Completed: 2026-05-20
+
+Summary:
+
+- Added `examples/assets/imported-light.glb`, a local StandardMaterial GLB
+  sample with `KHR_lights_punctual` point-light data.
+- Parsed glTF punctual light node attachments in `glb-viewer` and attached
+  ECS-authored `Light` components to replayed glTF node entities when imported
+  lights are enabled.
+- Added JSON-safe imported light status with declared, replayed, extracted,
+  kind, color, range, and intensity data.
+- Added Playwright coverage proving imported-light extraction and visible
+  StandardMaterial pixel differences against the same sample rendered with only
+  viewer default lights.
+
+References inspected:
+
+- `references/bevy/crates/bevy_gltf/src/loader/mod.rs`
+- `references/three.js/examples/jsm/loaders/GLTFLoader.js`
+
+Validation:
+
+- `node --check examples/glb-viewer.js`
+- GLB JSON/header check for `examples/assets/imported-light.glb`
+- `pnpm run typecheck:test`
+- `pnpm run check:examples`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts -g "punctual lights"`
+
+Known follow-up:
+
+- `task-2049` should add a morph-target unsupported-feature viewer sample.
+
 ## task-2047 — Render an embedded-image textured GLB sample in glb-viewer
 
 Completed: 2026-05-20

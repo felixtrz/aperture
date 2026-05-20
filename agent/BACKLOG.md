@@ -59,7 +59,7 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start with `task-2048`: replay glTF punctual lights in glb-viewer.
+Start with `task-2049`: add a morph-target unsupported-feature viewer sample.
 
 `task-2001` is complete: the spinning-cube example now creates a renderer-owned face-colored diffuse IBL cube texture and sampler, routes it through the StandardMaterial diffuse IBL shader variant, and Playwright verifies direction-dependent face pixels.
 `task-2002` is complete: `withEnvironmentMap(handle)` is exported from runtime/core and materials-showcase now uses it with visible diffuse IBL routing.
@@ -802,6 +802,8 @@ Acceptance criteria:
 - Playwright verifies textured pixels differ from a scalar-control region.
 
 ### task-2048 — Replay glTF punctual lights in glb-viewer
+
+Status: completed 2026-05-20. See `agent/COMPLETED.md`.
 
 Category: `runtime-orchestration`
 Package/write-scope: `packages/render/src/assets`, `examples/assets`, `examples/glb-viewer.js`, `test/e2e/glb-viewer.spec.ts`.
