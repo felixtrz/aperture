@@ -13,30 +13,21 @@ grab bag of isolated WebGPU demos.
 
 ## Current Steering
 
-After the current documentation, audit, guardrail, GLB-container planning, and
-DebugNormal metadata queue, prioritize a narrow but complete glTF scene
-vertical slice: one browser/test application should render multiple glTF/GLB
-primitive meshes, transforms, and built-in material families through the normal
-ECS -> extraction -> render-world preparation -> queue/sort -> WebGPU submit
-path. This is now the shortest path to useful test applications.
+The MVP renderer (IBL diffuse+specular, real GLB loading with viewer, multi-light PCF shadows, animation playback) is complete. 86 GLB sample assets exist exercising the texture/material matrix.
 
-The desired sequence is:
+The current top-level target is **closing the 11 cross-cutting gaps** identified in `docs/render-pipeline-comparison.html` to bring every render-pipeline phase to ≥95% completion. Tracked as the Pipeline Maturity Roadmap in `agent/BACKLOG.md` (tasks task-3001 through task-3029).
 
-1. Define and implement the glTF scene vertical-slice contract: simple
-   uncompressed glTF/GLB-derived data, multiple mesh primitives, node
-   transforms, stable asset handles, and ECS-authored renderables.
-2. Render different primitive shapes with different built-in material families
-   in one scene, starting with `UnlitMaterial`, `StandardMaterial`, and existing
-   diagnostic families where useful.
-3. Expand StandardMaterial only where the scene slice needs it: base-color and
-   metallic-roughness textures, normal map/tangents, emissive, occlusion, UV set
-   handling, sampler behavior, color-space rules, and structured diagnostics.
-4. Add IBL/environment lighting and a first shadow-map path for StandardMaterial
-   as part of the same glTF scene milestone once the scene can render multiple
-   primitives/materials through the real app path.
-5. Defer public custom shader/material APIs, shader graphs, app-owned adapter
-   facades, and broad custom material work unless they directly unblock this
-   built-in glTF scene path.
+The roadmap, in dependency order:
+
+1. **Tier 1 — Foundation.** Worker transport proof; async image decode; off-screen render targets.
+2. **Tier 2 — Quality leap.** PMREM/GGX prefilter (depends on render targets); ECS change detection + snapshot diffing.
+3. **Tier 3 — Performance ceiling.** Instancing; batching; transparent sort phase report.
+4. **Tier 4 — Telemetry & hygiene.** GPU timestamp queries; asset cache eviction.
+5. **Tier 5 — Maturity.** Custom material adapter end-to-end; custom material source validation.
+
+The agent works the roadmap in strict order per `agent/WAKE.md` §9 (Roadmap-strict refill). New visible-feature tasks outside the roadmap are not invented until the roadmap is complete.
+
+Combinatorial test coverage (additional GLB sample permutations, additional texture/material combinations) is **paused**. After the roadmap ships, sample-coverage work may resume if any specific pipeline behavior remains unproven.
 
 ## Post-Proof-Point Priority
 
@@ -161,3 +152,5 @@ When adding future tasks after the proof point:
 - Do not add broad engine features without a narrow acceptance test.
 - Update this document or `docs/DECISIONS.md` when material/import priorities
   change.
+
+While the Pipeline Maturity Roadmap is active, backlog refill is governed by `agent/WAKE.md` §9 (Roadmap-strict refill). The "Add audit-refactor tasks after every few implementation slices" bullet is suspended for the duration of the roadmap.

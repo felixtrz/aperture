@@ -1,6 +1,57 @@
 # Agent Handoff
 
-Updated: 2026-05-20T19:12:52Z
+Updated: 2026-05-20T20:00:00Z
+
+## Current Run Update — 2026-05-20T20:00:00Z — Pipeline Maturity Roadmap
+
+Direction shift. The MVP renderer is complete (IBL, real GLB loading + viewer, multi-light PCF shadows, animation playback, 86 sample GLBs). The new top-level target is closing the 11 cross-cutting gaps tracked in `docs/render-pipeline-comparison.html` to bring every render-pipeline phase to ≥95% completion.
+
+### What changed
+
+- `agent/BACKLOG.md` — Strategic Focus replaced with Pipeline Maturity Roadmap. 29 new ready tasks added (task-3001 through task-3029), grouped into 5 tiers by dependency. The 3 queued GLB-matrix sample tasks (task-2172, task-2173, task-2174) marked superseded. The 9 audit tasks listed in the plan (task-2041, 2050, 2060, 2067, 2071, 2075, 2079, 2094, 2140) had already shipped on 2026-05-20 — no action needed.
+- `agent/WAKE.md` §9 — added a Roadmap-strict refill clause: while the Pipeline Maturity Roadmap is active, the agent must pick the next roadmap task in dependency order and may not invent tasks outside the roadmap.
+- `docs/MEDIUM_LONG_TERM_GOALS.md` — Current Steering rewritten to reflect that the MVP is done and the roadmap is the new top-level target. Backlog Creation Rules note added.
+
+### Roadmap tiers (29 slices total, ~24-28 agent runs)
+
+- **Tier 1 — Foundation (6 slices):** worker transport, async image decode, off-screen render targets.
+- **Tier 2 — Quality leap (6 slices):** PMREM/GGX prefilter, ECS change detection + snapshot diffing.
+- **Tier 3 — Performance ceiling (7 slices):** instancing, batching, transparent sort phase report.
+- **Tier 4 — Telemetry & hygiene (6 slices):** GPU timestamp queries, asset cache eviction.
+- **Tier 5 — Maturity (4 slices):** custom material adapter end-to-end + validation.
+
+Each task entry in BACKLOG.md includes: category, package/write-scope, reference anchor (from `references/bevy`, `references/engine`, `references/three.js`), insertion point in current Aperture code, and visible-feature acceptance criteria.
+
+### Recommended next task
+
+`task-3001` — Worker transport proof of the render snapshot. Build a new `examples/worker-cube.html` where ECS+extraction run in a Web Worker and the main thread receives the snapshot via `postMessage` and submits the frame. The snapshot is already designed to be structured-clone-safe (`packages/render/src/rendering/snapshot.ts:154`); this slice proves it. If anything turns out to be non-postable, fix the snapshot type, don't serialize around it.
+
+### References to read before writing
+
+- `references/three.js/examples/webgl_worker_offscreencanvas.html`
+- `references/engine/src/framework/handlers/basis-worker.js`
+
+### Tier ordering
+
+- Tier 1: task-3001 → 3002 → 3003 → 3004 → 3005 → 3006
+- Tier 2: task-3007 → 3008 → 3009 → 3010 (depends on 3005, optionally 3003); parallel: task-3011 → 3012
+- Tier 3: task-3013 → 3014 → 3015; task-3016 → 3017 → 3018; task-3019 (independent)
+- Tier 4: task-3020 → 3021 → 3022 → 3023; task-3024 → 3025
+- Tier 5: task-3026 → 3027 → 3028 → 3029
+
+The agent must process tiers in order, but within a tier may follow any consistent ordering that respects dependencies.
+
+### Code-state findings from planning exploration
+
+Several gaps are smaller than the percentages suggest because infrastructure already exists:
+
+- `ViewPacket.renderTarget` field exists in the snapshot — render target work is wiring, not greenfield.
+- `instanceCount` parameter is already wired through `drawIndexed()` but hardcoded to 1.
+- `BatchCompatibilityKey` is computed but unused — batching is post-sort grouping, not new infrastructure.
+- `RenderSnapshot` is structured-clone-safe by construction — worker proof is mostly building the example, not refactoring the snapshot.
+- The `RenderAssetAdapter` contract exists; only metadata adapters use it today; tier 5 builds the first real custom material.
+- `RenderAssetAdapter.unload()` callback exists in the contract but is never invoked anywhere — task-3024 wires it up.
+- Asset registry `markLoading()` / `markReady()` exist but textures don't use them — task-3003 wires async decode through them.
 
 ## Current Run Update — 2026-05-20T19:11:10Z — Stop-hook status finalization and diagnostics
 

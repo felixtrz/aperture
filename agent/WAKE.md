@@ -197,6 +197,17 @@ The backlog must always contain at least 5 ready tasks. Refill is required, but 
 - The **Recommended Next Task** must always be a visible-feature task.
 - Every visible-feature task entry must include a `Reference anchor:` line naming at least one specific file path under `references/bevy`, `references/engine`, or `references/three.js`.
 
+**Roadmap-strict refill (active while a Pipeline Maturity Roadmap exists in `agent/BACKLOG.md`).**
+
+When `agent/BACKLOG.md` contains a `## Strategic Focus — Pipeline Maturity Roadmap` section listing unfinished roadmap tasks, the agent MUST:
+
+1. Pick the next ready roadmap task in the order listed (tier ascending, then within-tier order).
+2. Refuse to invent new backlog tasks outside the roadmap until every roadmap task has shipped. The composition rule (≥3 visible-feature tasks ready) is satisfied by the roadmap itself; do not add GLB-sample-variant tasks, route-coverage tasks, or any other non-roadmap visible-feature task during this period.
+3. When the slice completes, advance to the next roadmap task in order. Append a follow-up entry only if the just-completed slice surfaces a *concrete blocker* (e.g., a typecheck failure in a referenced module) that must be fixed before the next roadmap task can proceed. Such follow-ups must be filed under the same tier as the slice that surfaced them.
+4. If a roadmap task's dependencies are unmet (e.g., task-3007 depends on task-3005), skip to the next task whose dependencies are met. Do not invent new tasks to "unblock" — the dependency declaration is authoritative.
+
+When every roadmap task has shipped, this section becomes inactive. The agent may then resume regular refill per the composition rule. Until then, the roadmap is the sole source of work.
+
 **Acceptance-criteria template for a visible-feature task.** Must include at least one of:
 
 - "Playwright screenshot in `examples/X.html` matches reference / shows non-trivial pixels in region (x, y, w, h)."
@@ -208,6 +219,8 @@ The backlog must always contain at least 5 ready tasks. Refill is required, but 
 Acceptance criteria of the form `status.X.Y equals Z`, `report.diagnostics.length === N`, or `summary.X.status === "ready"` are **diagnostic**, not visible-feature, criteria.
 
 **If you cannot identify 3 visible-feature tasks** by comparing the current examples and public API against `docs/NORTH_STAR.md` and `docs/MEDIUM_LONG_TERM_GOALS.md`, that is a signal to stop and document the gap in handoff. Do not fill the queue with diagnostic work.
+
+Note: when the Pipeline Maturity Roadmap is active, this clause is moot — the roadmap supplies the next 20+ visible-feature tasks. The clause re-activates only after the roadmap is fully shipped.
 
 Diagnostic tasks are allowed _only_ when a real user-facing failure mode would otherwise be invisible, and only _after_ the corresponding visible feature ships. Diagnostics follow visible features; they never precede them.
 

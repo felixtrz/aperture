@@ -59,57 +59,421 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start with `task-2172`: add a base-color plus occlusion plus normal-texture
-GLB viewer sample.
+Start with `task-3001`: Worker transport proof of the render snapshot.
 
-`task-2001` is complete: the spinning-cube example now creates a renderer-owned face-colored diffuse IBL cube texture and sampler, routes it through the StandardMaterial diffuse IBL shader variant, and Playwright verifies direction-dependent face pixels.
-`task-2002` is complete: `withEnvironmentMap(handle)` is exported from runtime/core and materials-showcase now uses it with visible diffuse IBL routing.
-`task-2003` is complete: the spinning-cube example now creates renderer-owned specular IBL resources, routes StandardMaterial through `iblSpecularProof`, and Playwright verifies visible specular response.
-`task-2004` is complete: the specular IBL proof now samples a minimal roughness-addressed mip chain, and the spinning-cube example includes glossy/rough probes with Playwright pixel comparison.
-`task-2005` is complete: the GLTF scene buffer-backed primitive now resolves its source GLB material, registers a prefixed material handle, and publishes/asserts the GLB-authored base-color factor.
-`task-2006` is complete: `loadGlbFromUri(url, options)` is exported from `@aperture-engine/render`, fetches GLB bytes into the existing no-fetch facade, and reports typed URL/fetch/HTTP/read/loader diagnostics.
-`task-2007` is complete: `examples/glb-viewer.html` fetches `examples/assets/cube.glb` with `loadGlbFromUri(...)`, registers/replays the GLB source assets through ECS, and Playwright verifies a visible rendered draw.
-`task-2008` is complete: `glb-viewer` has pointer-drag orbit and wheel zoom controls over the ECS camera transform, with Playwright proving drag changes rendered pixels.
-`task-2009` is complete: `glb-viewer` has a three-asset selector, destroys the previous replayed ECS scene before loading the next GLB, and Playwright proves switched assets render different pixels.
-`task-2010` is complete: `gltf-scene` now reports active directional shadow rendering through the submitted shadow depth pass and StandardMaterial shadow-map pipeline, and Playwright asserts the receiver region darkens.
-`task-2011` is complete: StandardMaterial directional shadow sampling now uses a 3x3 PCF comparison filter, publishes the active PCF mode in `gltf-scene`, and targeted browser coverage still passes.
-`task-2017` is complete: StandardMaterial point-shadow sampling now compares against clamped projected cube-face receiver depth instead of a constant occupancy reference, and Playwright samples named receiver coordinates to prove near wall pixels remain lit while mid/far samples darken without WebGPU warnings.
-`task-2013` is complete: `examples/spot-shadow.html` now extracts spot shadow requests, plans a single 2D shadow pass with a perspective spot matrix, routes StandardMaterial spot lighting plus receiver sampling, and Playwright verifies lit and shadowed receiver samples without WebGPU warnings.
-`task-2014` is complete: `examples/multi-light-shadow.html` now submits directional, spot, and point shadow passes into one browser-safe StandardMaterial receiver route, and Playwright verifies six named receiver samples in one scene.
-`task-2016` is complete: `examples/glb-viewer.html` now accepts a typed custom `.glb` URL, loads it through the same ECS replay/unload path as the sample selector, reports the selected URL in JSON-safe status, and Playwright verifies a local custom URL swaps rendered pixels.
-`task-2018` is complete: `withShadowCaster()` and `withShadowReceiver()` are public runtime helpers, extracted mesh draws carry JSON-safe caster/receiver flags, and the GLTF scene toggles now update ECS-authored flags that drive caster draw-list and receiver pipeline routing.
-`task-2019` is complete: `examples/glb-viewer.html?url=...` now seeds the custom URL field, loads through the same guarded ECS replay path, and Playwright verifies query-driven initial render status and pixels.
-`task-2020` is complete: `glb-viewer` now fits its orbit target, distance, and zoom limits from replayed GLB mesh bounds, reports JSON-safe fit status, and Playwright verifies differently sized GLBs remain visibly framed near the render center.
-`task-2021` is complete: `gltf-scene` now proves the combined StandardMaterial `iblDiffuse|iblSpecularProof|shadowMap` browser route with draw bind groups bounded to groups 0 through 3 and Playwright-covered IBL plus receiver-shadow samples.
-`task-2022` is complete: `glb-viewer` now includes a lit brass StandardMaterial GLB sample, ECS-authored lights, material-family status, and Playwright coverage proving the StandardMaterial sample renders differently from unlit samples.
-`task-2023` is complete: `glb-viewer` now includes an animated local GLB, applies the first translation clip to replayed ECS node transforms, reports active clip status, and Playwright proves transform status plus pixels move over time.
-`task-2024` is complete: `glb-viewer` now includes a dual-primitive GLB with two source materials, reports two resolved primitive materials and two extracted draws, and Playwright verifies two distinct visible material regions.
-`task-2025` is complete: `glb-viewer` now includes a parent/child hierarchy GLB, reports JSON-safe local and world transform summaries for replayed nodes, and Playwright verifies the child world transform depends on its parent.
-`task-2026` is complete: the lit brass GLB viewer sample now adds ECS-authored shadow caster/receiver state, a simple StandardMaterial receiver floor, and a directional shadow pass; Playwright verifies the model and a shadow-darkened floor in one frame.
-`task-2027` is complete: the lit brass GLB viewer sample now authors an environment map and routes StandardMaterial model/floor draws through diffuse plus specular-proof IBL; Playwright compares direct-lit-only and IBL-enabled pixels.
-`task-2028` is complete: `glb-viewer` now includes a mixed alpha-state StandardMaterial GLB sample with one opaque primitive and one transparent primitive, JSON-safe per-primitive render-state/pipeline status, and Playwright proof for both visible regions.
-`task-2029` is complete: `glb-viewer` now includes a home camera reset control that restores the current asset's fitted orbit target, distance, yaw, and zoom limits; Playwright proves status and pixels return near the fitted view after drag/zoom.
-`task-2030` is complete: `glb-viewer` now exposes compact ambient and point-light sliders that mutate ECS-authored `Light` component intensities, report controls/ECS/extracted values, and visibly change the lit brass sample.
+Why this first: `packages/render/src/rendering/snapshot.ts:154` claims the snapshot shape "can cross a future Worker boundary." Exploration confirms zero Worker code exists in `packages/`. This is the project's central architectural claim and the easiest one to validate — the snapshot is already structured-clone-safe by construction. One slice to build the proof example; if anything in the snapshot turns out to be non-postable, fix it at the source as part of the slice.
 
-Reference anchors (read both before writing WGSL):
+Reference anchors (read both before writing):
+- `references/three.js/examples/webgl_worker_offscreencanvas.html`
+- `references/engine/src/framework/handlers/basis-worker.js`
 
-- `references/three.js/src/extras/PMREMGenerator.js`
-- `references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/reflectionEnv.js`
-- `references/engine/src/scene/graphics/reproject-texture.js`
+## Strategic Focus — Pipeline Maturity Roadmap
 
-## Strategic Focus — MVP Renderer
+The MVP renderer (IBL diffuse+specular, real GLB loading, multi-light PCF shadows, animation playback) is shipped. The current top-level target is to bring every render-pipeline phase to 100% completion as tracked in `docs/render-pipeline-comparison.html`.
 
-Target: a credible MVP renderer that ships three capabilities. In priority order:
+Eleven cross-cutting gaps remain across the six phases. They are sequenced below by **dependency order, then impact**. The agent must work the roadmap in this order. New backlog tasks may not be invented outside the roadmap until every roadmap task has shipped.
 
-1. **Image-based lighting (IBL).** Diffuse + specular environment lighting visible in the spinning-cube, materials-showcase, and GLTF-scene examples. Infrastructure (descriptors, bind groups, shader variants) already exists; only shader wiring, pipeline-key extension, and bind-group routing remain.
+**Tier 1 — Foundation (no dependencies, unlock the most):**
+1. Worker transport proof (task-3001) — proves the snapshot architecture's central claim
+2. Async image decode in the asset layer (task-3002, task-3003) — unlocks real-image GLBs without pre-decode
+3. Render targets / off-screen rendering (task-3004, task-3005, task-3006) — unlocks PMREM, picking, post-processing
 
-2. **Real GLB scene loading and rendering.** A glTF viewer comparable to existing engine sample viewers: fetch any `.glb` URL, parse it, register assets, replay ECS authoring commands, render. Camera navigation and multi-asset switching included. Animation playback queued for post-MVP.
+**Tier 2 — Quality leap (depends on Tier 1):**
+4. PMREM/GGX specular prefilter (task-3007, task-3008, task-3009, task-3010) — depends on render targets
+5. Snapshot change-set / ECS change detection (task-3011, task-3012) — enables per-frame delta extraction
 
-3. **Complete shadow path.** Multi-light (directional + point + spot) with PCF soft shadows. Single directional shadow path is closest to ready; soft-shadow and multi-light extensions follow.
+**Tier 3 — Performance ceiling (independent):**
+6. Instancing (task-3013, task-3014, task-3015) — coalesce N identical draws into 1
+7. Batching (task-3016, task-3017, task-3018) — merge geometries sharing a pipeline-key
+8. Transparent sort phase report (task-3019) — close Phase 5 honesty gap
 
-These three tracks are the only acceptable subjects for the Recommended Next Task. Other work (route boundaries, generic adapter families, broader material extensibility, container format edge cases) is **deferred** until all three MVP tracks land.
+**Tier 4 — Telemetry & hygiene (independent):**
+9. GPU timings via timestamp queries (task-3020, task-3021, task-3022, task-3023) — enables data-driven performance work
+10. Asset cache eviction / unload (task-3024, task-3025) — memory hygiene for long sessions
 
-All MVP-track tasks are visible-feature tasks under `agent/WAKE.md` §9. Diagnostic and audit work follows the visible feature, never precedes it. Every task entry below cites at least one specific reference file under `references/bevy`, `references/engine` (PlayCanvas), or `references/three.js`. The agent MUST read the cited references before writing implementation code (see `agent/WAKE.md` §4).
+**Tier 5 — Maturity (last):**
+11. Custom material adapter rendered end-to-end (task-3026, task-3027, task-3028, task-3029) — proves Phases 3+4 extensibility claim
+
+Total: 29 vertical slices. Each is a real implementation slice with a `Reference anchor:` from `references/bevy/`, `references/engine/` (PlayCanvas), or `references/three.js/`. Slices within a tier may be parallelizable; the agent should still process them in the order listed unless an explicit dependency note says otherwise.
+
+The MVP track (task-2001 through task-2030) shipped successfully — completion details are preserved in `agent/COMPLETED.md` and the per-task entries that follow under "Ready Tasks — MVP Tracks" are kept for historical reference. The combinatorial GLB-matrix queue (task-2172, task-2173, task-2174) is superseded by this roadmap.
+
+All roadmap task entries cite at least one specific reference file under `references/bevy`, `references/engine` (PlayCanvas), or `references/three.js`. The agent MUST read the cited references before writing implementation code (see `agent/WAKE.md` §4).
+
+## Ready Tasks — Pipeline Maturity Roadmap
+
+### task-3001 — Worker transport proof of the render snapshot
+
+Category: `runtime-orchestration`
+Package/write-scope: `examples/worker-cube.html`, `examples/worker-cube.main.js`, `examples/worker-cube.worker.js`, `test/e2e/worker-cube.spec.ts`, possibly `packages/runtime/src/`.
+Reference anchor: `references/three.js/examples/webgl_worker_offscreencanvas.html`; `references/engine/src/framework/handlers/basis-worker.js`; `references/bevy/crates/bevy_tasks/src/lib.rs`.
+Insertion point: `packages/render/src/rendering/snapshot.ts` — confirm structured-clone safety of `RenderSnapshot` type while building proof.
+
+Acceptance criteria:
+
+- `examples/worker-cube.html` renders a spinning cube where ECS+extraction run in a Worker (`createSimulationApp` + `extractRenderSnapshot`) and the main thread receives the snapshot via `postMessage` and submits the frame via `createWebGpuApp`.
+- Playwright canvas readback at the center pixel changes between frames.
+- No JSON.stringify round-trip — must use structured clone directly.
+- If `postMessage` rejects any field, fix the snapshot type, don't serialize around it.
+
+### task-3002 — Async image decode contract in the asset layer (part 1: contract)
+
+Category: `render-bridge`
+Package/write-scope: `packages/render/src/materials/gltf-texture.ts`, targeted tests.
+Reference anchor: `references/three.js/src/loaders/TextureLoader.js`; `references/engine/src/framework/handlers/texture.js`; `references/bevy/crates/bevy_image/src/image_loader.rs`.
+Insertion point: `packages/render/src/materials/gltf-texture.ts:93` — `GltfImageDataResolver` callback type is currently synchronous. Extend to support `Promise<GltfDecodedImageData>` return.
+
+Acceptance criteria:
+
+- Public API `loadGltfTextureAsync(source)` callable, returns Promise that resolves to `GltfDecodedImageData`.
+- Test loads a base64 PNG bufferView and resolves to a ready decoded image.
+- The existing sync resolver remains supported (backwards-compatible overload).
+
+### task-3003 — Async image decode wired through asset registry states (part 2: registry)
+
+Category: `render-bridge`
+Package/write-scope: `packages/simulation/src/assets/registry.ts`, `packages/render/src/assets/`, `examples/glb-viewer.js`, targeted tests.
+Reference anchor: `references/engine/src/framework/handlers/texture.js`; `references/bevy/crates/bevy_image/src/image_loader.rs`; `references/three.js/src/loaders/TextureLoader.js`.
+Insertion point: `packages/simulation/src/assets/registry.ts:61` — `markLoading()` / `markReady()` already exist but textures don't use them. Wire async decode through registry state machine.
+
+Acceptance criteria:
+
+- `examples/glb-viewer.html` loads a `.glb` containing a real PNG bufferView texture (commit one such sample).
+- During decode, asset reports `loading`; after decode, reports `ready` and renders.
+- Playwright observes both states.
+
+### task-3004 — Off-screen render target abstraction (part 1: attachment factory)
+
+Category: `webgpu-render`
+Package/write-scope: `packages/webgpu/src/webgpu/current-texture-view.ts`, targeted tests.
+Reference anchor: `references/three.js/src/renderers/WebGLRenderTarget.js`; `references/engine/src/platform/graphics/render-target.js`; `references/bevy/crates/bevy_render/src/texture/gpu_image.rs`.
+Insertion point: `packages/webgpu/src/webgpu/current-texture-view.ts` — `createCurrentTextureColorTarget()` hardcodes swapchain. Add `createOffscreenColorTarget(texture)` alternative path.
+
+Acceptance criteria:
+
+- Public function accepts a pre-allocated `GPUTexture` and returns a render-pass color attachment descriptor.
+- Test renders a single triangle to an off-screen texture, then reads pixels via `mapAsync` and asserts color.
+
+### task-3005 — Off-screen render target consumed by ViewPacket (part 2: wiring)
+
+Category: `webgpu-render`
+Package/write-scope: `packages/webgpu/src/webgpu/app.ts`, `packages/webgpu/src/webgpu/current-texture-view.ts`.
+Reference anchor: `references/three.js/src/renderers/WebGLRenderTarget.js`; `references/engine/src/platform/graphics/render-target.js`.
+Insertion point: app render path — check `ViewPacket.renderTarget` (already in the snapshot type) and route to off-screen attachment when present.
+
+Acceptance criteria:
+
+- When a Camera in ECS has `renderTargetId` set, the WebGPU layer renders that view to the associated off-screen texture instead of the swapchain.
+- Test asserts both swapchain and off-screen targets receive draws in a mixed scene.
+
+### task-3006 — Off-screen render-target example: render-to-texture in canvas
+
+Category: `runtime-orchestration`
+Package/write-scope: `examples/render-to-texture.html`, `examples/render-to-texture.js`, `test/e2e/render-to-texture.spec.ts`.
+Reference anchor: `references/three.js/examples/webgpu_rtt.html` if present, else `references/three.js/examples/webgl_rtt.html`; `references/engine/src/scene/composition/layer-composition.js`.
+Insertion point: new example using task-3004/3005 plumbing.
+
+Acceptance criteria:
+
+- Example shows a scene rendered into an off-screen 256×256 texture, then displayed as a textured quad in the main canvas.
+- Playwright pixel sample at the quad's center confirms the off-screen render reached the screen.
+
+### task-3007 — PMREM compute pass: bind-group + compute pipeline (part 1: pipeline)
+
+Category: `webgpu-render`
+Package/write-scope: `packages/webgpu/src/webgpu/`, new file `pmrem-compute-pipeline.ts`, targeted tests.
+Dependencies: task-3004, task-3005.
+Reference anchor: `references/three.js/src/extras/PMREMGenerator.js`; `references/engine/src/scene/graphics/reproject-texture.js`; `references/bevy/crates/bevy_pbr/src/light_probe/environment_map.rs`.
+Insertion point: new compute pipeline that GGX-importance-samples an env cubemap.
+
+Acceptance criteria:
+
+- Function `createPmremComputePipeline(device)` returns a pipeline and bind group layout.
+- Test dispatches against a constant-color cubemap and asserts output mip 0 matches input.
+
+### task-3008 — PMREM mip-chain dispatch (part 2: roughness mips)
+
+Category: `webgpu-render`
+Package/write-scope: `packages/webgpu/src/webgpu/pmrem-compute-pipeline.ts`, targeted tests.
+Dependencies: task-3007.
+Reference anchor: `references/three.js/src/extras/PMREMGenerator.js` (specular mip loop).
+Insertion point: extend pipeline from 3007 to dispatch one pass per roughness mip level.
+
+Acceptance criteria:
+
+- Given a synthetic env cubemap with two distinct colors, generated mip N has more blur than mip 0.
+- Test asserts mip-2 sampling produces a different result from mip-0 sampling at the same direction.
+
+### task-3009 — Replace placeholder specular IBL with real PMREM output (part 3: wiring)
+
+Category: `webgpu-render`
+Package/write-scope: `packages/webgpu/src/webgpu/ibl-texture-preparation.ts`, `examples/spinning-cube.js`.
+Dependencies: task-3008.
+Reference anchor: `references/three.js/src/extras/PMREMGenerator.js`.
+Insertion point: `packages/webgpu/src/webgpu/ibl-texture-preparation.ts:55` — `sections.prefiltering` is hardcoded false. Compute real mips via 3007/3008 pipeline.
+
+Acceptance criteria:
+
+- Spinning-cube specular reflection responds to a *real* environment map (not the deterministic placeholder mip chain).
+- Two cubes with roughness 0.0 and 1.0 show visibly different reflection — sharp vs blurred — confirmed by Playwright pixel sampling.
+
+### task-3010 — Real HDR env-map sample shipped through the IBL path (part 4: real env)
+
+Category: `runtime-orchestration`
+Package/write-scope: `examples/assets/`, `examples/spinning-cube.js` or new `examples/pmrem-showcase.html`.
+Dependencies: task-3009; optionally task-3003 if HDR is loaded as bytes.
+Reference anchor: `references/three.js/examples/webgpu_loader_gltf_iridescence.html` (uses real HDR env) or similar; `references/engine/examples/` IBL sample.
+Insertion point: commit a small HDR or RGBE env-map asset, load via async path, prefilter via PMREM.
+
+Acceptance criteria:
+
+- A real environment map (not synthetic) drives IBL on a metallic cube.
+- Playwright pixel readback shows env-map color reflected on the cube surface where physically expected.
+
+### task-3011 — ECS change-detection: entity version tracking (part 1: ECS layer)
+
+Category: `simulation`
+Package/write-scope: `packages/simulation/src/`, targeted tests.
+Reference anchor: `references/bevy/crates/bevy_ecs/src/change_detection/mod.rs`; `references/engine/src/platform/graphics/version.js`; `references/three.js/src/materials/Material.js` (needsUpdate pattern).
+Insertion point: ECS layer needs a per-entity version counter that increments when any component on that entity is written. Possibly extend the existing component-write API in elics.
+
+Acceptance criteria:
+
+- Public API `world.entityVersion(entity) → number` returns a monotonic counter that increments on component writes.
+- Test asserts version changes after each `entity.setValue(...)`.
+
+### task-3012 — Snapshot extraction skips unchanged entities (part 2: extraction early-exit)
+
+Category: `render-bridge`
+Package/write-scope: `packages/render/src/rendering/extraction.ts`, targeted tests + benchmark.
+Dependencies: task-3011.
+Reference anchor: `references/bevy/crates/bevy_ecs/src/change_detection/mod.rs`; `references/three.js/src/renderers/common/RenderList.js`.
+Insertion point: `extractRenderSnapshot` — cache last-frame entity versions; reuse packet data for entities whose version is unchanged.
+
+Acceptance criteria:
+
+- Scene with 1,000 static entities extracts in <50% the time of a scene where all 1,000 entities are dirty. Benchmark assertion (microbenchmark, not Playwright).
+- Snapshot output is byte-identical to full-extract output for the same world state.
+
+### task-3013 — Instancing: per-instance transform buffer (part 1: buffer layout)
+
+Category: `webgpu-render`
+Package/write-scope: `packages/webgpu/src/webgpu/`, new file `instance-buffer.ts`, targeted tests.
+Reference anchor: `references/three.js/src/objects/InstancedMesh.js`; `references/engine/src/scene/mesh-instance.js`; `references/bevy/crates/bevy_render/src/extract_instances.rs`.
+Insertion point: new GPU buffer + vertex layout for per-instance model matrices.
+
+Acceptance criteria:
+
+- Pipeline accepts an instance buffer of mat4 transforms.
+- Test draws 4 cubes via `drawIndexed(... , 4)` reading positions from the instance buffer; canvas shows 4 cubes in distinct screen positions.
+
+### task-3014 — Instancing: batch grouping in render queue (part 2: coalesce)
+
+Category: `render-bridge`
+Package/write-scope: `packages/render/src/rendering/render-queue.ts`, `packages/webgpu/src/webgpu/render-pass-draw-list.ts`.
+Dependencies: task-3013.
+Reference anchor: `references/bevy/crates/bevy_render/src/extract_instances.rs`; `references/engine/src/scene/mesh-instance.js`.
+Insertion point: `packages/render/src/rendering/render-queue.ts:104` post-sort — group records with identical `BatchCompatibilityKey` (already computed but unused). `packages/webgpu/src/webgpu/render-pass-draw-list.ts:174` — replace hardcoded `instanceCount = 1` with grouped instance count.
+
+Acceptance criteria:
+
+- A scene with 100 entities sharing one mesh+material produces 1 draw call, not 100.
+- Test asserts WebGPU draw-call count via existing draw-list inspection.
+
+### task-3015 — Instancing example: 1,000 instances of a single mesh
+
+Category: `runtime-orchestration`
+Package/write-scope: `examples/instancing.html`, `examples/instancing.js`, `test/e2e/instancing.spec.ts`.
+Dependencies: task-3014.
+Reference anchor: `references/three.js/examples/webgpu_instance_mesh.html` if present; `references/engine/examples/graphics/instancing.html`.
+Insertion point: new example spawning 1,000 ECS entities with same mesh+material.
+
+Acceptance criteria:
+
+- Example renders a grid of 1,000 cubes.
+- Playwright asserts canvas pixels in multiple regions confirm distinct cube placements.
+- Draw-call count reported in status is 1 (or N for N pipeline-key groups), not 1,000.
+
+### task-3016 — Batching: merged geometry buffer for static draws (part 1: merge primitive)
+
+Category: `render-bridge`
+Package/write-scope: `packages/render/src/rendering/`, new helper `mesh-merge.ts`, targeted tests.
+Reference anchor: `references/three.js/src/objects/BatchedMesh.js`; `references/engine/src/scene/batching/batch-manager.js`; `references/bevy/crates/bevy_render/src/batching/mod.rs`.
+Insertion point: new merge helper that consolidates N meshes sharing a vertex layout into one buffer with sub-ranges.
+
+Acceptance criteria:
+
+- Given 4 distinct mesh handles sharing layout, produces one merged vertex buffer plus per-sub-mesh draw ranges.
+- Test renders the merged buffer; canvas matches per-mesh draws pixel-for-pixel.
+
+### task-3017 — Batching wired into queue for non-instanced draws (part 2: queue integration)
+
+Category: `render-bridge`
+Package/write-scope: `packages/render/src/rendering/render-queue.ts`.
+Dependencies: task-3016.
+Reference anchor: `references/bevy/crates/bevy_render/src/batching/mod.rs`; `references/engine/src/scene/batching/batch-manager.js`.
+Insertion point: queue post-sort — for adjacent records sharing pipeline+material but with distinct meshes, merge into batched draw.
+
+Acceptance criteria:
+
+- A scene with 20 distinct meshes sharing one material+pipeline produces ≤5 draw calls (some batching benefit; exact count depends on layout compatibility).
+- No visual regression vs unbatched.
+
+### task-3018 — Batching example: heterogeneous scene under one material
+
+Category: `runtime-orchestration`
+Package/write-scope: `examples/batching.html`, `examples/batching.js`, `test/e2e/batching.spec.ts`.
+Dependencies: task-3017.
+Reference anchor: `references/three.js/examples/webgpu_batchedmesh.html` if present.
+Insertion point: new example with 20+ distinct shapes sharing one StandardMaterial.
+
+Acceptance criteria:
+
+- Renders 20+ distinct shapes; draw-call count reported in status is significantly less than 20.
+- Playwright asserts visible distinct shapes at named coordinates.
+
+### task-3019 — Transparent sort phase report
+
+Category: `render-bridge`
+Package/write-scope: `packages/render/src/rendering/render-queue.ts`, targeted tests.
+Reference anchor: `references/three.js/src/renderers/common/RenderList.js`; `references/engine/src/platform/graphics/blend-state.js`; `references/bevy/crates/bevy_core_pipeline/src/core_3d/main_transparent_pass_3d_node.rs`.
+Insertion point: `packages/render/src/rendering/render-queue.ts:36` — extend `RenderQueuePlan` with a `sortPhases` field: `{ phase: "opaque" | "transparent", recordCount, durationUs? }[]`.
+
+Acceptance criteria:
+
+- Plan output now includes sort-phase telemetry.
+- Test asserts a mixed opaque+transparent scene produces two phases with correct counts.
+- Surfaces in app diagnostics JSON.
+
+### task-3020 — GPU timestamp query set creation (part 1: query infra)
+
+Category: `webgpu-render`
+Package/write-scope: `packages/webgpu/src/webgpu/`, new file `gpu-timing.ts`, targeted tests.
+Reference anchor: `references/three.js/src/renderers/webgpu/utils/WebGPUTimestampQueryPool.js`; `references/engine/src/platform/graphics/gpu-profiler.js`.
+Insertion point: new module that creates `GPUQuerySet` with `'timestamp'` type and exposes write/resolve helpers.
+
+Acceptance criteria:
+
+- Public API creates a query set; test writes timestamps around a no-op compute dispatch, resolves to a buffer, reads back two distinct positive timestamps.
+- Falls back gracefully if `timestamp-query` feature is unavailable.
+
+### task-3021 — Timestamp writes around render passes (part 2: pass instrumentation)
+
+Category: `webgpu-render`
+Package/write-scope: `packages/webgpu/src/webgpu/`, integration with main render path.
+Dependencies: task-3020.
+Reference anchor: `references/engine/src/platform/graphics/gpu-profiler.js`.
+Insertion point: render path — wrap shadow pass, main pass, post pass with timestamp writes.
+
+Acceptance criteria:
+
+- A frame submission produces a per-pass timing report.
+- Test asserts shadow-pass timing is non-zero when shadows are enabled and zero (or absent) when disabled.
+
+### task-3022 — Timing readback + JSON report (part 3: surfacing)
+
+Category: `webgpu-render`
+Package/write-scope: `packages/webgpu/src/webgpu/app-diagnostics-summary.ts`.
+Dependencies: task-3021.
+Reference anchor: `references/bevy/crates/bevy_diagnostic/src/frame_time_diagnostics_plugin.rs`.
+Insertion point: extend app diagnostics summary with `gpuTimings: { pass, microseconds }[]`.
+
+Acceptance criteria:
+
+- `app.getDiagnostics()` includes per-pass GPU timings.
+- Playwright asserts the shadow pass and main pass both appear with positive microsecond values in the gltf-scene example.
+
+### task-3023 — GPU timings example panel: per-pass overlay
+
+Category: `runtime-orchestration`
+Package/write-scope: `examples/gpu-profiler.html`, `examples/gpu-profiler.js`, `test/e2e/gpu-profiler.spec.ts`.
+Dependencies: task-3022.
+Reference anchor: `references/engine/src/platform/graphics/gpu-profiler.js`.
+Insertion point: new example with on-screen DOM overlay showing per-pass µs.
+
+Acceptance criteria:
+
+- Example renders a moderate scene with a DOM overlay showing live GPU timings.
+- Playwright asserts the overlay shows ≥2 named passes with positive values, and the values change between frames.
+
+### task-3024 — Asset unregister API (part 1: registry)
+
+Category: `simulation`
+Package/write-scope: `packages/simulation/src/assets/registry.ts`, targeted tests.
+Reference anchor: `references/bevy/crates/bevy_asset/src/assets.rs`; `references/engine/src/framework/asset/asset-registry.js`; `references/three.js/src/loaders/Cache.js`.
+Insertion point: registry — add `unregister(handle)` mirror of `register()`; invokes optional `RenderAssetAdapter.unload()` callback (already in the adapter contract but never called).
+
+Acceptance criteria:
+
+- `world.assets.unregister(handle)` removes the asset; subsequent `get(handle)` returns null.
+- The optional `unload()` callback on the adapter is invoked.
+- Test asserts the lifecycle.
+
+### task-3025 — Unload wired into glb-viewer asset switching (part 2: example use)
+
+Category: `runtime-orchestration`
+Package/write-scope: `examples/glb-viewer.js`, targeted tests.
+Dependencies: task-3024.
+Reference anchor: `references/engine/src/framework/asset/asset-registry.js`.
+Insertion point: glb-viewer's asset-switching path — call `unregister` on previous scene's assets when switching.
+
+Acceptance criteria:
+
+- Switching between two `.glb` samples in glb-viewer causes the previous sample's asset handles to be unregistered.
+- Test asserts the asset registry size returns to baseline after switching N times (no monotonic growth).
+
+### task-3026 — Custom material adapter contract proof (part 1: minimal example)
+
+Category: `render-bridge`
+Package/write-scope: `packages/render/src/assets/preparation.ts`, new test/example, targeted tests.
+Reference anchor: `references/three.js/src/materials/ShaderMaterial.js`; `references/engine/src/scene/materials/shader-material.js`; `references/bevy/crates/bevy_pbr/src/material.rs`.
+Insertion point: `packages/render/src/assets/preparation.ts:81` — `RenderAssetAdapter` contract exists, only metadata adapters present. Build a real `WaterMaterial` (or similar) adapter that wraps custom WGSL.
+
+Acceptance criteria:
+
+- New adapter registered via the existing app adapter registration path.
+- Test asserts the adapter produces a valid pipeline + bind group from a WGSL string.
+
+### task-3027 — Custom material rendered through the full pipeline (part 2: end-to-end)
+
+Category: `webgpu-render`
+Package/write-scope: `packages/webgpu/src/webgpu/`, custom material example.
+Dependencies: task-3026.
+Reference anchor: `references/three.js/src/materials/ShaderMaterial.js`; `references/engine/src/scene/materials/shader-material.js`.
+Insertion point: WebGPU side of the custom material — pipeline-key generation, bind-group instantiation.
+
+Acceptance criteria:
+
+- The custom material from task-3026 renders end-to-end in an example.
+- WebGPU emits no validation warnings.
+- Playwright pixel sample confirms the custom shader's distinctive output (e.g., scrolling water normal pattern).
+
+### task-3028 — Custom material example: visible WaterMaterial
+
+Category: `runtime-orchestration`
+Package/write-scope: `examples/custom-material.html`, `examples/custom-material.js`, `test/e2e/custom-material.spec.ts`.
+Dependencies: task-3027.
+Reference anchor: `references/three.js/examples/webgpu_water.html` if present.
+Insertion point: new example using the custom adapter.
+
+Acceptance criteria:
+
+- Example renders a plane with a scrolling water effect driven by user WGSL.
+- Playwright pixel readback at the same coordinate across two frames differs (proving animation via the custom shader).
+
+### task-3029 — Custom material source validation in package (the documented missing piece)
+
+Category: `render-bridge`
+Package/write-scope: `packages/render/src/assets/`, targeted tests.
+Dependencies: task-3028.
+Reference anchor: `references/bevy/crates/bevy_pbr/src/material.rs` (Material::specialize signature & validation); `references/engine/src/scene/materials/shader-material.js`.
+Insertion point: replace test-only guardrail with package-level `validateCustomMaterialSource(source)` returning structured diagnostics for bad input (missing entrypoint, type mismatch, etc.).
+
+Acceptance criteria:
+
+- Public validator catches at least 3 named bad-input cases with typed diagnostics.
+- Test asserts each diagnostic shape.
+- Adoption: the custom material example from task-3028 uses the validator and reports a typed error when given intentionally-broken WGSL.
 
 ## Ready Tasks — MVP Tracks
 
@@ -2936,6 +3300,8 @@ Acceptance criteria:
 
 ### task-2172 — Add base-color plus occlusion plus normal-texture GLB viewer sample
 
+Status: superseded 2026-05-20 — replaced by Pipeline Maturity Roadmap (see Strategic Focus). The GLB-matrix sample coverage track is paused until all roadmap tasks ship.
+
 Category: `webgpu-render`
 Package/write-scope: `packages/webgpu/src`, `examples/assets`,
 `examples/glb-viewer.js`, `test/e2e/glb-viewer.spec.ts`, targeted tests.
@@ -2956,6 +3322,8 @@ Acceptance criteria:
 
 ### task-2173 — Add transformed emissive plus normal-texture GLB viewer sample
 
+Status: superseded 2026-05-20 — replaced by Pipeline Maturity Roadmap (see Strategic Focus). The GLB-matrix sample coverage track is paused until all roadmap tasks ship.
+
 Category: `webgpu-render`
 Package/write-scope: `packages/webgpu/src`, `examples/assets`,
 `examples/glb-viewer.js`, `test/e2e/glb-viewer.spec.ts`, targeted tests.
@@ -2975,6 +3343,8 @@ Acceptance criteria:
   lighting difference, and no WebGPU validation warnings.
 
 ### task-2174 — Add alpha-blend plus metallic-roughness-texture GLB viewer sample
+
+Status: superseded 2026-05-20 — replaced by Pipeline Maturity Roadmap (see Strategic Focus). The GLB-matrix sample coverage track is paused until all roadmap tasks ship.
 
 Category: `webgpu-render`
 Package/write-scope: `packages/webgpu/src`, `examples/assets`,
