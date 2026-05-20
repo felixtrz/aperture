@@ -1,6 +1,121 @@
 # Agent Handoff
 
-Updated: 2026-05-20T06:42:04Z
+Updated: 2026-05-20T07:46:33Z
+
+## Current Run Update — 2026-05-20T07:46:33Z — GLB viewer real image decode and transformed texture-slot coverage
+
+Completed `task-2068`, `task-2069`, `task-2070`, `task-2071`, `task-2072`,
+`task-2073`, `task-2074`, `task-2075`, `task-2076`, `task-2077`,
+`task-2078`, `task-2080`, `task-2081`, and `task-2082`.
+
+### What changed
+
+- Added real same-origin URI image decode coverage in `glb-viewer`: PNG
+  (`examples/assets/uri-png-texture.glb` plus
+  `examples/assets/aperture-uri-base-color-checker.png`) and JPEG
+  (`examples/assets/uri-jpeg-texture.glb` plus
+  `examples/assets/aperture-jpeg-base-color-checker.jpg`) now predecode to
+  renderer-independent RGBA source bytes before GLB replay/material
+  registration.
+- Added JSON-safe `source.imageDecode` status with image index, URI, URL, MIME
+  type, dimensions, and decoded byte length only.
+- Added `examples/assets/alpha-blend-texture.glb` and
+  `examples/assets/aperture-alpha-blend-checker.png`, proving textured
+  `alphaMode: "BLEND"` routing, transparent queue state, alpha blend preset,
+  and depth-write behavior.
+- Added transformed texture-slot GLB viewer samples:
+  `examples/assets/rotated-metallic-roughness-transform.glb`,
+  `examples/assets/normal-transform.glb`, and
+  `examples/assets/emissive-transform.glb`.
+- Added transformed-vs-untransformed GLB viewer control samples:
+  `examples/assets/normal-transform-controls.glb` and
+  `examples/assets/emissive-transform-controls.glb`, each with transformed,
+  untransformed, and scalar/flat control primitives.
+- Added `examples/assets/aperture-normal-checker.png`, so the existing
+  `normal-map.glb` sample now exercises real same-origin PNG decode for
+  `normalTexture` instead of synthetic fallback bytes.
+- Added `examples/assets/aperture-base-color-checker.png`, so the existing
+  `emissive-transform.glb` sample now exercises real same-origin PNG decode for
+  `emissiveTexture` instead of synthetic fallback bytes.
+- Added `examples/assets/aperture-metallic-roughness-checker.png`, so the
+  existing `rotated-metallic-roughness-transform.glb` sample now exercises real
+  same-origin PNG decode for `metallicRoughnessTexture` instead of synthetic
+  fallback bytes.
+- Added `examples/assets/aperture-alpha-mask-checker.png`, so the existing
+  `alpha-mask.glb` sample now exercises real same-origin PNG decode for its
+  alpha-mask `baseColorTexture` instead of synthetic fallback bytes.
+- Added Playwright coverage for decoded PNG/JPEG texture pixels,
+  alpha-blended textured pixels, rotated metallic-roughness transform status,
+  normal/emissive texture transform status, transformed-vs-untransformed
+  normal/emissive control pixels, real normal-map image decode status, and real
+  emissive image decode status, real metallic-roughness image decode status,
+  and real alpha-mask image decode status.
+- Added
+  `docs/research/GLB_VIEWER_REAL_IMAGE_ALPHA_STATE_AUDIT_2026_05_20.md` and
+  `docs/research/GLB_VIEWER_IMAGE_DECODE_TRANSFORMED_SLOT_AUDIT_2026_05_20.md`.
+- Updated public progress trackers, backlog, and completed-task records. The
+  recommended next task is now `task-2083`.
+
+### References inspected
+
+- `references/bevy/crates/bevy_gltf/src/loader/mod.rs`
+- `references/bevy/crates/bevy_gltf/src/loader/gltf_ext/material.rs`
+- `references/three.js/examples/jsm/loaders/GLTFLoader.js`
+- `docs/NORTH_STAR.md`
+- `docs/ARCHITECTURE.md`
+- `docs/DECISIONS.md`
+
+### Validation
+
+- GLB/JPEG/PNG JSON/header checks for new assets:
+  `uri-png-texture.glb`, `uri-jpeg-texture.glb`,
+  `alpha-blend-texture.glb`, `rotated-metallic-roughness-transform.glb`,
+  `normal-transform.glb`, `emissive-transform.glb`,
+  `normal-transform-controls.glb`, `emissive-transform-controls.glb`,
+  `aperture-uri-base-color-checker.png`,
+  `aperture-jpeg-base-color-checker.jpg`, and
+  `aperture-alpha-blend-checker.png`, and
+  `aperture-normal-checker.png`, `aperture-base-color-checker.png`, and
+  `aperture-metallic-roughness-checker.png`, and
+  `aperture-alpha-mask-checker.png`.
+- `node --check examples/glb-viewer.js`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm run check:progress`
+- `pnpm run build`
+- `pnpm run check:examples`
+- `pnpm run lint`
+- `pnpm run format:check`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts -g "same-origin PNG URI|same-origin JPEG URI|alpha-blend texture sample|rotated metallic-roughness|transformed normal texture|emissive texture transform"` (6 passed)
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts -g "transformed and untransformed normal texture controls"`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts -g "transformed and untransformed emissive texture controls"`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts -g "normal-mapped sample"`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts -g "emissive texture transform"`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts -g "rotated metallic-roughness"`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts -g "alpha-mask texture sample"`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts` (45 passed)
+- `pnpm test` (317 files, 1482 tests passed)
+- `pnpm run check`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "transformed normal texture|transformed emissive texture|texture transform"` (3 passed)
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts` failed in unrelated existing scenarios:
+  `renders a mapped base-color texture` and
+  `reports invalid sampler enum values before registration`.
+
+### Known issues
+
+- No known regressions from this run.
+- Same-origin image decode is still example-local and predecode-based; a
+  package-level async image dependency pipeline remains future work.
+- Older deterministic fixtures can still fall back silently to synthetic image
+  bytes when a same-origin image fetch misses. Keep this distinction explicit
+  before promoting URI image decode into package-level loader code.
+- A full `standard-gltf-texture.spec.ts` browser run is not green as of this
+  handoff; the targeted transformed-texture subset passed, but unrelated
+  base-color and invalid-sampler-enum cases failed and should be treated as a
+  separate investigation.
+
+### Recommended next task
+
+`task-2083 — Add a real same-origin occlusion URI texture GLB viewer sample`.
 
 ## Current Run Update — 2026-05-20T06:42:04Z — GLB viewer UV1, alpha-mask, normal-scale, occlusion-transform, and texture-status coverage
 

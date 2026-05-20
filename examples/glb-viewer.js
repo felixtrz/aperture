@@ -98,6 +98,21 @@ const sampleAssets = [
     source: "sample",
   },
   {
+    id: "normal-transform",
+    label: "Normal transform",
+    url: new URL("./assets/normal-transform.glb", globalThis.location.href),
+    source: "sample",
+  },
+  {
+    id: "normal-transform-controls",
+    label: "Normal transform controls",
+    url: new URL(
+      "./assets/normal-transform-controls.glb",
+      globalThis.location.href,
+    ),
+    source: "sample",
+  },
+  {
     id: "textured-standard",
     label: "Textured standard",
     url: new URL("./assets/textured-standard.glb", globalThis.location.href),
@@ -107,6 +122,18 @@ const sampleAssets = [
     id: "embedded-texture",
     label: "Embedded texture",
     url: new URL("./assets/embedded-texture.glb", globalThis.location.href),
+    source: "sample",
+  },
+  {
+    id: "uri-png-texture",
+    label: "URI PNG texture",
+    url: new URL("./assets/uri-png-texture.glb", globalThis.location.href),
+    source: "sample",
+  },
+  {
+    id: "uri-jpeg-texture",
+    label: "URI JPEG texture",
+    url: new URL("./assets/uri-jpeg-texture.glb", globalThis.location.href),
     source: "sample",
   },
   {
@@ -197,6 +224,21 @@ const sampleAssets = [
     source: "sample",
   },
   {
+    id: "emissive-transform",
+    label: "Emissive transform",
+    url: new URL("./assets/emissive-transform.glb", globalThis.location.href),
+    source: "sample",
+  },
+  {
+    id: "emissive-transform-controls",
+    label: "Emissive transform controls",
+    url: new URL(
+      "./assets/emissive-transform-controls.glb",
+      globalThis.location.href,
+    ),
+    source: "sample",
+  },
+  {
     id: "occlusion-transform",
     label: "Occlusion transform",
     url: new URL("./assets/occlusion-transform.glb", globalThis.location.href),
@@ -206,6 +248,12 @@ const sampleAssets = [
     id: "alpha-mask",
     label: "Alpha mask",
     url: new URL("./assets/alpha-mask.glb", globalThis.location.href),
+    source: "sample",
+  },
+  {
+    id: "alpha-blend-texture",
+    label: "Alpha blend texture",
+    url: new URL("./assets/alpha-blend-texture.glb", globalThis.location.href),
     source: "sample",
   },
   {
@@ -237,6 +285,15 @@ const sampleAssets = [
     label: "Metallic roughness UV1",
     url: new URL(
       "./assets/metallic-roughness-uv1.glb",
+      globalThis.location.href,
+    ),
+    source: "sample",
+  },
+  {
+    id: "rotated-metallic-roughness-transform",
+    label: "Rotated MR transform",
+    url: new URL(
+      "./assets/rotated-metallic-roughness-transform.glb",
       globalThis.location.href,
     ),
     source: "sample",
@@ -484,12 +541,7 @@ async function loadAsset(aperture, app, scene, asset) {
   setCameraResetEnabled(false);
   destroyActiveScene(scene);
 
-  const loaded = await aperture.loadGlbFromUri(asset.url.href, {
-    keyPrefix,
-    createAssetMapping: true,
-    createMeshAssets: true,
-    resolveImageData: resolveGlbViewerImageData,
-  });
+  const loaded = await loadGlbViewerAsset(aperture, asset, keyPrefix);
   const importReport = loaded.loader?.glbImportReport.importReport ?? null;
 
   if (scene.loadSequence !== loadSequence) {
@@ -589,6 +641,325 @@ async function loadAsset(aperture, app, scene, asset) {
   updateIblControlInputs(scene);
   updateImportedCameraControlInputs(scene);
   updateAnimationControlInputs(scene);
+}
+
+async function loadGlbViewerAsset(aperture, asset, keyPrefix) {
+  const fetched = await fetchGlbViewerSourceBytes(asset.url);
+
+  if (!fetched.ok) {
+    return {
+      ok: false,
+      url: asset.url.href,
+      byteLength: null,
+      loader: null,
+      imageDecode: emptyImageDecodeStatus(),
+      diagnostics: fetched.diagnostics,
+    };
+  }
+
+  const preflight = aperture.createNoFetchGlbSourceLoaderReport({
+    source: fetched.bytes,
+  });
+  const imageDecode = await decodeSameOriginImages({
+    root: preflight.glbImportReport.container.container?.json ?? null,
+    assetUrl: asset.url,
+  });
+  const loader = aperture.createNoFetchGlbSourceLoaderReport({
+    source: fetched.bytes,
+    keyPrefix,
+    createAssetMapping: true,
+    createMeshAssets: true,
+    resolveImageData: createGlbViewerImageDataResolver({
+      assetUrl: asset.url,
+      decodedByUrl: imageDecode.decodedByUrl,
+    }),
+  });
+  const loaderDiagnostics = loader.status.diagnostics.map((diagnostic) => ({
+    code: "loadGlbFromUri.loaderDiagnostic",
+    severity: "error",
+    loaderCode: diagnostic.code,
+    message: diagnostic.message,
+  }));
+
+  return {
+    ok: loader.status.status === "loaded" && loaderDiagnostics.length === 0,
+    url: asset.url.href,
+    byteLength: fetched.bytes.byteLength,
+    loader,
+    imageDecode: {
+      decoded: imageDecode.decoded,
+      diagnostics: imageDecode.diagnostics,
+    },
+    diagnostics: loaderDiagnostics,
+  };
+}
+
+async function fetchGlbViewerSourceBytes(url) {
+  const fetcher = globalThis.fetch;
+
+  if (fetcher === undefined) {
+    return {
+      ok: false,
+      diagnostics: [
+        {
+          code: "loadGlbFromUri.fetchUnavailable",
+          severity: "error",
+          message:
+            "GLB URI loading requires globalThis.fetch or an explicit fetch option.",
+        },
+      ],
+    };
+  }
+
+  let response;
+
+  try {
+    response = await fetcher(url.href);
+  } catch (error) {
+    return {
+      ok: false,
+      diagnostics: [
+        {
+          code: "loadGlbFromUri.fetchFailed",
+          severity: "error",
+          message:
+            error instanceof Error
+              ? error.message
+              : `Fetching GLB URI '${url.href}' failed.`,
+        },
+      ],
+    };
+  }
+
+  if (!response.ok) {
+    return {
+      ok: false,
+      diagnostics: [
+        {
+          code: "loadGlbFromUri.httpError",
+          severity: "error",
+          status: response.status,
+          statusText: response.statusText,
+          message: `Fetching GLB URI '${url.href}' failed with HTTP ${response.status}.`,
+        },
+      ],
+    };
+  }
+
+  try {
+    return { ok: true, bytes: await response.arrayBuffer(), diagnostics: [] };
+  } catch (error) {
+    return {
+      ok: false,
+      diagnostics: [
+        {
+          code: "loadGlbFromUri.readFailed",
+          severity: "error",
+          message:
+            error instanceof Error
+              ? error.message
+              : `Reading GLB URI '${url.href}' response bytes failed.`,
+        },
+      ],
+    };
+  }
+}
+
+async function decodeSameOriginImages({ root, assetUrl }) {
+  if (!isRecord(root)) {
+    return {
+      decodedByUrl: new Map(),
+      ...emptyImageDecodeStatus(),
+    };
+  }
+
+  const decodedByUrl = new Map();
+  const decoded = [];
+  const diagnostics = [];
+
+  for (const [imageIndex, image] of arrayEntries(root.images).entries()) {
+    if (!isRecord(image) || typeof image.uri !== "string") {
+      continue;
+    }
+
+    const resolved = sameOriginSupportedImageUrl(image, assetUrl);
+
+    if (resolved === null) {
+      continue;
+    }
+
+    const result = await decodeSameOriginImage(resolved.url);
+
+    if (result === null) {
+      continue;
+    }
+
+    if (result.ok) {
+      decodedByUrl.set(resolved.url.href, result.image);
+      decoded.push({
+        imageIndex,
+        sourceKind: "same-origin-uri",
+        uri: image.uri,
+        url: formatAssetUrl(resolved.url),
+        mimeType: resolved.mimeType,
+        width: result.image.width,
+        height: result.image.height,
+        byteLength: result.image.sourceData.bytes.byteLength,
+      });
+      continue;
+    }
+
+    diagnostics.push({
+      code: "glbViewerImageDecode.failed",
+      severity: "warning",
+      imageIndex,
+      uri: image.uri,
+      url: formatAssetUrl(resolved.url),
+      message: result.message,
+    });
+  }
+
+  return { decodedByUrl, decoded, diagnostics };
+}
+
+function emptyImageDecodeStatus() {
+  return {
+    decoded: [],
+    diagnostics: [],
+  };
+}
+
+function sameOriginSupportedImageUrl(image, assetUrl) {
+  const mimeType =
+    typeof image.mimeType === "string" ? image.mimeType.toLowerCase() : null;
+
+  if (
+    mimeType !== null &&
+    mimeType !== "image/png" &&
+    mimeType !== "image/jpeg"
+  ) {
+    return null;
+  }
+
+  let imageUrl;
+
+  try {
+    imageUrl = new URL(image.uri, assetUrl.href);
+  } catch {
+    return null;
+  }
+
+  if (imageUrl.origin !== globalThis.location.origin) {
+    return null;
+  }
+
+  const path = imageUrl.pathname.toLowerCase();
+  const inferredMimeType = path.endsWith(".png")
+    ? "image/png"
+    : path.endsWith(".jpg") || path.endsWith(".jpeg")
+      ? "image/jpeg"
+      : null;
+
+  if (mimeType === null && inferredMimeType === null) {
+    return null;
+  }
+
+  return { url: imageUrl, mimeType: mimeType ?? inferredMimeType };
+}
+
+async function decodeSameOriginImage(imageUrl) {
+  let response;
+
+  try {
+    response = await fetch(imageUrl.href);
+  } catch (error) {
+    return {
+      ok: false,
+      message:
+        error instanceof Error
+          ? error.message
+          : `Fetching image URI '${imageUrl.href}' failed.`,
+    };
+  }
+
+  if (!response.ok) {
+    return null;
+  }
+
+  try {
+    const blob = await response.blob();
+    const bitmap = await createImageBitmap(blob);
+    const canvasElement = document.createElement("canvas");
+    canvasElement.width = bitmap.width;
+    canvasElement.height = bitmap.height;
+    const context = canvasElement.getContext("2d", {
+      willReadFrequently: true,
+    });
+
+    if (context === null) {
+      bitmap.close();
+      return {
+        ok: false,
+        message: `Could not create a 2D canvas context for image URI '${formatAssetUrl(
+          imageUrl,
+        )}'.`,
+      };
+    }
+
+    context.drawImage(bitmap, 0, 0);
+    const pixels = context.getImageData(0, 0, bitmap.width, bitmap.height);
+    const image = {
+      width: bitmap.width,
+      height: bitmap.height,
+      sourceData: {
+        bytes: new Uint8Array(pixels.data),
+        bytesPerRow: bitmap.width * 4,
+        rowsPerImage: bitmap.height,
+      },
+    };
+
+    bitmap.close();
+    return { ok: true, image };
+  } catch (error) {
+    return {
+      ok: false,
+      message:
+        error instanceof Error
+          ? error.message
+          : `Decoding image URI '${imageUrl.href}' failed.`,
+    };
+  }
+}
+
+function createGlbViewerImageDataResolver({ assetUrl, decodedByUrl }) {
+  return (input) => {
+    if (input.source.kind === "uri") {
+      const resolved = sameOriginSupportedImageUrl(input.source, assetUrl);
+      const decoded =
+        resolved === null
+          ? null
+          : (decodedByUrl.get(resolved.url.href) ?? null);
+
+      if (decoded !== null) {
+        return cloneDecodedImageData(decoded);
+      }
+    }
+
+    return resolveGlbViewerFallbackImageData(input);
+  };
+}
+
+function cloneDecodedImageData(image) {
+  return {
+    width: image.width,
+    height: image.height,
+    ...(image.format === undefined ? {} : { format: image.format }),
+    sourceData: {
+      bytes: new Uint8Array(image.sourceData.bytes),
+      bytesPerRow: image.sourceData.bytesPerRow,
+      rowsPerImage: image.sourceData.rowsPerImage,
+    },
+  };
 }
 
 function destroyActiveScene(scene) {
@@ -1189,6 +1560,7 @@ async function createStatus(aperture, app, scene, step, report, frame) {
       byteLength: active?.loaded.byteLength ?? null,
       status: active?.loaded.loader?.status ?? null,
       outputSummary: active?.loaded.loader?.outputSummary ?? null,
+      imageDecode: active?.loaded.imageDecode ?? emptyImageDecodeStatus(),
       diagnostics: active?.loaded.diagnostics ?? [],
     },
     gltf: {
@@ -3599,7 +3971,7 @@ function createPrimitiveMaterialResolutionStatus(aperture, app, active) {
     );
 }
 
-function resolveGlbViewerImageData(input) {
+function resolveGlbViewerFallbackImageData(input) {
   if (
     input.source.kind === "uri" &&
     input.source.uri === "aperture-base-color-checker.png"

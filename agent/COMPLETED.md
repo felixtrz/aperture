@@ -1,5 +1,370 @@
 # Completed Tasks
 
+## task-2082 — Decode a same-origin alpha-mask URI texture for a GLB viewer sample
+
+Completed: 2026-05-20
+
+Summary:
+
+- Added `examples/assets/aperture-alpha-mask-checker.png`, matching the
+  existing deterministic alpha-mask fixture bytes as a real committed
+  same-origin PNG.
+- The existing `alpha-mask.glb` viewer sample now exercises browser image
+  decode for an alpha-mask `baseColorTexture` URI before GLB replay/material
+  registration.
+- Extended Playwright coverage to assert JSON-safe alpha-mask image decode
+  metadata alongside visible masked pixels.
+
+References inspected:
+
+- `references/bevy/crates/bevy_gltf/src/loader/mod.rs`
+- `references/three.js/examples/jsm/loaders/GLTFLoader.js`
+
+Validation:
+
+- `file examples/assets/aperture-alpha-mask-checker.png`
+- `node --check examples/glb-viewer.js`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts -g "alpha-mask texture sample"`
+
+## task-2081 — Decode a same-origin metallic-roughness URI texture for a GLB viewer sample
+
+Completed: 2026-05-20
+
+Summary:
+
+- Added `examples/assets/aperture-metallic-roughness-checker.png`, matching
+  the existing deterministic metallic-roughness fixture bytes as a real
+  committed same-origin PNG.
+- The existing `rotated-metallic-roughness-transform.glb` viewer sample now
+  exercises browser image decode for a `metallicRoughnessTexture` URI before
+  GLB replay/material registration.
+- Extended Playwright coverage to assert JSON-safe metallic-roughness image
+  decode metadata alongside visible transformed metallic-roughness pixels.
+
+References inspected:
+
+- `references/bevy/crates/bevy_gltf/src/loader/mod.rs`
+- `references/three.js/examples/jsm/loaders/GLTFLoader.js`
+
+Validation:
+
+- `file examples/assets/aperture-metallic-roughness-checker.png`
+- `node --check examples/glb-viewer.js`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts -g "rotated metallic-roughness"`
+
+## task-2080 — Decode a same-origin emissive URI texture for a GLB viewer sample
+
+Completed: 2026-05-20
+
+Summary:
+
+- Added `examples/assets/aperture-base-color-checker.png`, matching the
+  existing deterministic base-color/emissive fixture bytes as a real committed
+  same-origin PNG.
+- The existing `emissive-transform.glb` viewer sample now exercises browser
+  image decode for an `emissiveTexture` URI before GLB replay/material
+  registration.
+- Extended Playwright coverage to assert JSON-safe emissive image decode
+  metadata alongside visible transformed emissive pixels.
+
+References inspected:
+
+- `references/bevy/crates/bevy_gltf/src/loader/mod.rs`
+- `references/three.js/examples/jsm/loaders/GLTFLoader.js`
+
+Validation:
+
+- `file examples/assets/aperture-base-color-checker.png`
+- `node --check examples/glb-viewer.js`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts -g "emissive texture transform"`
+
+## task-2078 — Decode a same-origin normal-map URI texture for a GLB viewer sample
+
+Completed: 2026-05-20
+
+Summary:
+
+- Added `examples/assets/aperture-normal-checker.png`, matching the existing
+  deterministic normal-map fixture bytes as a real committed same-origin PNG.
+- The existing `normal-map.glb` viewer sample now exercises browser image
+  decode for a `normalTexture` URI before GLB replay/material registration.
+- Extended Playwright coverage to assert JSON-safe normal-map image decode
+  metadata alongside visible normal-mapped pixels.
+
+References inspected:
+
+- `references/bevy/crates/bevy_gltf/src/loader/mod.rs`
+- `references/three.js/examples/jsm/loaders/GLTFLoader.js`
+
+Validation:
+
+- `file examples/assets/aperture-normal-checker.png`
+- `node --check examples/glb-viewer.js`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts -g "normal-mapped sample"`
+
+## task-2077 — Add transformed-vs-untransformed emissive texture GLB viewer controls
+
+Completed: 2026-05-20
+
+Summary:
+
+- Added `examples/assets/emissive-transform-controls.glb`, a
+  three-primitive StandardMaterial sample with transformed emissive texture,
+  untransformed emissive texture, and scalar control primitives.
+- Added the sample to `glb-viewer` and exposed JSON-safe per-primitive
+  emissive texture transform, emissive factor, texture-slot, and pipeline-key
+  status.
+- Added Playwright coverage proving transformed emissive pixels differ from
+  both the untransformed emissive control and the scalar control.
+
+References inspected:
+
+- `references/bevy/crates/bevy_gltf/src/loader/gltf_ext/material.rs`
+- `references/three.js/examples/jsm/loaders/GLTFLoader.js`
+
+Validation:
+
+- `node --check examples/glb-viewer.js`
+- GLB JSON/header check for
+  `examples/assets/emissive-transform-controls.glb`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts -g "transformed and untransformed emissive texture controls"`
+
+## task-2076 — Add transformed-vs-untransformed normal texture GLB viewer controls
+
+Completed: 2026-05-20
+
+Summary:
+
+- Added `examples/assets/normal-transform-controls.glb`, a tangent-backed
+  three-primitive StandardMaterial sample with transformed normal texture,
+  untransformed normal texture, and flat control primitives.
+- Added the sample to `glb-viewer` and exposed JSON-safe per-primitive normal
+  texture transform, normal-scale, texture-slot, and pipeline-key status.
+- Added Playwright coverage proving transformed normal pixels differ from both
+  the untransformed normal control and the flat control.
+
+References inspected:
+
+- `references/bevy/crates/bevy_gltf/src/loader/gltf_ext/material.rs`
+- `references/three.js/examples/jsm/loaders/GLTFLoader.js`
+
+Validation:
+
+- `node --check examples/glb-viewer.js`
+- GLB JSON/header check for `examples/assets/normal-transform-controls.glb`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts -g "transformed and untransformed normal texture controls"`
+
+## task-2075 — Audit GLB viewer image-decode and transformed-slot follow-ups
+
+Completed: 2026-05-20
+
+Summary:
+
+- Added
+  `docs/research/GLB_VIEWER_IMAGE_DECODE_TRANSFORMED_SLOT_AUDIT_2026_05_20.md`.
+- Confirmed same-origin JPEG decode, transformed normal texture metadata, and
+  transformed emissive texture metadata remain ECS-authored, JSON-safe,
+  renderer-derived, and WebGPU-only.
+- Recommended follow-up GLB viewer controls that compare transformed and
+  untransformed texture slots directly.
+
+References inspected:
+
+- `docs/NORTH_STAR.md`
+- `docs/ARCHITECTURE.md`
+- `docs/DECISIONS.md`
+- `references/bevy/crates/bevy_gltf/src/loader/mod.rs`
+- `references/bevy/crates/bevy_gltf/src/loader/gltf_ext/material.rs`
+- `references/three.js/examples/jsm/loaders/GLTFLoader.js`
+
+Validation:
+
+- Audit backed by the targeted validation runs for `task-2072`, `task-2073`,
+  and `task-2074`.
+
+## task-2074 — Add emissive texture-transform GLB viewer sample
+
+Completed: 2026-05-20
+
+Summary:
+
+- Added `examples/assets/emissive-transform.glb`, a StandardMaterial GLB sample
+  with `KHR_texture_transform` on `emissiveTexture`.
+- Added the sample to `glb-viewer` and exposed JSON-safe emissive factor,
+  texture-slot transform, and pipeline-key status.
+- Added Playwright coverage proving visible transformed emissive pixels differ
+  from the scalar control primitive.
+
+References inspected:
+
+- `references/bevy/crates/bevy_gltf/src/loader/gltf_ext/material.rs`
+- `references/three.js/examples/jsm/loaders/GLTFLoader.js`
+
+Validation:
+
+- `node --check examples/glb-viewer.js`
+- GLB JSON/header check for `examples/assets/emissive-transform.glb`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts -g "emissive texture transform"`
+
+## task-2073 — Add normal-texture transform GLB viewer sample
+
+Completed: 2026-05-20
+
+Summary:
+
+- Added `examples/assets/normal-transform.glb`, a tangent-backed
+  StandardMaterial GLB sample with `KHR_texture_transform` on `normalTexture`.
+- Added the sample to `glb-viewer` and exposed JSON-safe normal-scale,
+  texture-slot transform, and pipeline-key status.
+- Added Playwright coverage proving visible transformed normal pixels differ
+  from the flat control primitive.
+
+References inspected:
+
+- `references/bevy/crates/bevy_gltf/src/loader/gltf_ext/material.rs`
+- `references/three.js/examples/jsm/loaders/GLTFLoader.js`
+
+Validation:
+
+- `node --check examples/glb-viewer.js`
+- GLB JSON/header check for `examples/assets/normal-transform.glb`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts -g "transformed normal texture"`
+
+## task-2072 — Decode a same-origin JPEG URI texture for a GLB viewer sample
+
+Completed: 2026-05-20
+
+Summary:
+
+- Added `examples/assets/uri-jpeg-texture.glb` and
+  `examples/assets/aperture-jpeg-base-color-checker.jpg`.
+- Broadened `glb-viewer` same-origin image predecode from PNG-only to PNG/JPEG
+  while keeping decoded image bytes in the renderer-independent source texture
+  path.
+- Added Playwright coverage proving JSON-safe JPEG decode metadata and visible
+  textured pixels that differ from the scalar control primitive.
+
+References inspected:
+
+- `references/bevy/crates/bevy_gltf/src/loader/mod.rs`
+- `references/three.js/examples/jsm/loaders/GLTFLoader.js`
+
+Validation:
+
+- `node --check examples/glb-viewer.js`
+- GLB JSON/header check for `examples/assets/uri-jpeg-texture.glb`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts -g "same-origin JPEG URI"`
+
+## task-2071 — Audit GLB viewer real-image and alpha-state follow-ups
+
+Completed: 2026-05-20
+
+Summary:
+
+- Added
+  `docs/research/GLB_VIEWER_REAL_IMAGE_ALPHA_STATE_AUDIT_2026_05_20.md`.
+- Confirmed same-origin PNG decode, alpha-blend texture rendering, and rotated
+  metallic-roughness texture-transform status remain ECS-authored,
+  renderer-derived, JSON-safe, and WebGPU-only.
+- Recommended continuing with visible GLB image/texture-slot fidelity slices.
+
+References inspected:
+
+- `docs/NORTH_STAR.md`
+- `docs/ARCHITECTURE.md`
+- `docs/DECISIONS.md`
+- `references/bevy/crates/bevy_gltf/src/loader/mod.rs`
+- `references/bevy/crates/bevy_gltf/src/loader/gltf_ext/material.rs`
+- `references/three.js/examples/jsm/loaders/GLTFLoader.js`
+
+Validation:
+
+- Audit backed by the targeted validation runs for `task-2068`, `task-2069`,
+  and `task-2070`.
+
+## task-2070 — Add rotated metallic-roughness transform GLB viewer sample
+
+Completed: 2026-05-20
+
+Summary:
+
+- Added `examples/assets/rotated-metallic-roughness-transform.glb`, a
+  StandardMaterial GLB sample with `KHR_texture_transform.rotation` on
+  `pbrMetallicRoughness.metallicRoughnessTexture`.
+- Added the sample to `glb-viewer` and exposed JSON-safe rotated transform,
+  material-factor, texture-slot, and pipeline-key status.
+- Added Playwright coverage proving visible textured pixels and a difference
+  from the scalar control primitive.
+
+References inspected:
+
+- `references/bevy/crates/bevy_gltf/src/loader/gltf_ext/material.rs`
+- `references/three.js/examples/jsm/loaders/GLTFLoader.js`
+
+Validation:
+
+- `node --check examples/glb-viewer.js`
+- GLB JSON/header check for
+  `examples/assets/rotated-metallic-roughness-transform.glb`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts -g "rotated metallic-roughness"`
+
+## task-2069 — Add an alpha-blend texture GLB viewer sample
+
+Completed: 2026-05-20
+
+Summary:
+
+- Added `examples/assets/alpha-blend-texture.glb` and
+  `examples/assets/aperture-alpha-blend-checker.png`.
+- Added a StandardMaterial GLB viewer sample with `alphaMode: "BLEND"`, a
+  translucent base-color texture, and an opaque scalar control primitive.
+- Added Playwright coverage for JSON-safe blend/depth-write/texture-slot status,
+  transparent queue routing, and visible translucent pixels.
+
+References inspected:
+
+- `references/bevy/crates/bevy_gltf/src/loader/gltf_ext/material.rs`
+- `references/three.js/examples/jsm/loaders/GLTFLoader.js`
+
+Validation:
+
+- `node --check examples/glb-viewer.js`
+- GLB JSON/header check for `examples/assets/alpha-blend-texture.glb`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts -g "alpha-blend texture sample"`
+
+## task-2068 — Decode a same-origin PNG URI texture for a GLB viewer sample
+
+Completed: 2026-05-20
+
+Summary:
+
+- Added `examples/assets/uri-png-texture.glb` and
+  `examples/assets/aperture-uri-base-color-checker.png`.
+- Reworked `glb-viewer` loading so it fetches GLB bytes, predecodes same-origin
+  PNG URI images into renderer-independent source texture bytes, and then runs
+  the existing no-fetch source-asset mapping/replay path.
+- Added JSON-safe `source.imageDecode` status and Playwright coverage proving
+  the decoded URI texture renders without exposing raw image or GPU objects.
+
+References inspected:
+
+- `references/bevy/crates/bevy_gltf/src/loader/mod.rs`
+- `references/three.js/examples/jsm/loaders/GLTFLoader.js`
+
+Validation:
+
+- `node --check examples/glb-viewer.js`
+- GLB JSON/header check for `examples/assets/uri-png-texture.glb`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm run check:examples`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts -g "same-origin PNG URI"`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts -g "fetched sample GLB viewer asset|textured StandardMaterial sample|same-origin PNG URI"`
+
 ## task-2067 — Audit GLB viewer UV1 and expanded texture-status slices
 
 Completed: 2026-05-20

@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-20 06:35 UTC</dd>
+            <dd>2026-05-20 07:27 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -402,19 +402,24 @@
               orthographic-camera, primitive-mode, CUBICSPLINE animation, and
               multi-scene samples that keep supported base meshes rendering
               while reporting JSON-safe diagnostics and scene metadata. It also
-              includes emissive StandardMaterial, occlusion/emissive texture,
-              occlusion texture-transform, alpha-mask, sampler-state texture,
-              texture-transform, missing-UV1, supported base-color UV1,
-              metallic-roughness UV1, and normal-scale samples with routed
-              material, texture, sampler, transform, alpha, UV1, and sanitized
-              extraction-diagnostic status. Existing roughness/IBL, normal-map,
-              and base-color plus metallic-roughness StandardMaterial samples
-              keep JSON-safe factor and texture-slot status. GLB mesh
-              construction now preserves <code>TEXCOORD_1</code> alongside
-              tangent attributes for texture routing and normal mapping, and
-              animation playback now has speed, clip-selection, loop, reverse,
-              rotation/scale, and STEP interpolation coverage that change the
-              example animation clock while continuing to write replayed ECS
+              includes real same-origin PNG/JPEG base-color, PNG normal-map, PNG
+              emissive, PNG metallic-roughness, and PNG alpha-mask URI image
+              decode, alpha-blend texture, rotated metallic-roughness transform,
+              transformed-vs-untransformed normal and emissive controls,
+              emissive StandardMaterial, occlusion/emissive texture, occlusion
+              texture-transform, normal transform, emissive transform,
+              alpha-mask, sampler-state texture, texture-transform, missing-UV1,
+              supported base-color UV1, metallic-roughness UV1, and normal-scale
+              samples with routed material, texture, sampler, transform/control,
+              alpha, UV1, image-decode, and sanitized extraction-diagnostic
+              status. Existing roughness/IBL, normal-map, and base-color plus
+              metallic-roughness StandardMaterial samples keep JSON-safe factor
+              and texture-slot status. GLB mesh construction now preserves
+              <code>TEXCOORD_1</code> alongside tangent attributes for texture
+              routing and normal mapping, and animation playback now has speed,
+              clip-selection, loop, reverse, rotation/scale, and STEP
+              interpolation coverage that change the example animation clock
+              while continuing to write replayed ECS
               <code>LocalTransform</code> values. The viewer can now switch to a
               parsed glTF perspective camera by mutating the same ECS camera
               transform/projection state, and now includes a GLB sample whose
@@ -970,7 +975,9 @@
               incompatible layouts.
             </dd>
             <dt>Next focus</dt>
-            <dd>Add a morph-target unsupported-feature viewer sample</dd>
+            <dd>
+              Add a real same-origin occlusion URI texture GLB viewer sample
+            </dd>
           </dl>
         </aside>
       </header>

@@ -1,11 +1,11 @@
 {
   "state": "idle",
   "currentTaskId": null,
-  "currentRunStartedAt": "2026-05-20T06:04:29Z",
-  "lastRunStartedAt": "2026-05-20T06:04:29Z",
-  "lastResult": "stop-condition",
+  "currentRunStartedAt": "2026-05-20T07:01:33Z",
+  "lastRunStartedAt": "2026-05-20T07:01:33Z",
+  "lastResult": "completed",
   "lastCommit": "7c2754c",
   "activePid": null,
-  "notes": "Completed task-2059 through task-2067. Stopped before task-2068 because the remaining window was not enough to complete and validate the larger same-origin PNG decode slice coherently.",
-  "lastRunFinishedAt": "2026-05-20T06:42:04Z"
+  "notes": "Completed task-2068 through task-2082: real base-color/normal/emissive/metallic-roughness/alpha-mask image decode, alpha-blend texture, transformed metallic-roughness/normal/emissive slots, transformed-vs-untransformed normal/emissive controls, audits, tracker updates, and backlog refill. Recommended next: task-2083.",
+  "lastRunFinishedAt": "2026-05-20T07:56:25Z"
 }

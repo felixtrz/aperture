@@ -529,9 +529,10 @@
 
 <section class="progress-status" aria-label="Aperture render pipeline status">
   <div class="status-head">
-    <h2>Current Aperture Render Pipeline Status · Updated 2026-05-20 · GLB viewer UV1 mesh attributes, alpha-mask, normal-scale, occlusion-transform, and texture diagnostics active</h2>
+    <h2>Current Aperture Render Pipeline Status · Updated 2026-05-20 · GLB viewer real base-color/normal/emissive/MR/alpha image decode active</h2>
     <a href="index.html">Back to project tracker</a>
   </div>
+  <p>Latest GLB viewer work adds JSON-safe same-origin PNG/JPEG base-color URI image decode, same-origin PNG normal-map, emissive, metallic-roughness, and alpha-mask URI image decode, alpha-blend texture coverage, rotated metallic-roughness transform coverage, transformed normal/emissive texture-slot samples, and direct transformed-vs-untransformed normal/emissive controls. These are still source-asset and StandardMaterial route proofs; package-level async image decode, real occlusion URI decode, and full PBR resources remain open.</p>
   <div class="phase-status-grid">
     <div class="phase-status">
       <div class="top"><b>1 · extract</b><span class="pct">80%</span></div>
