@@ -28,6 +28,12 @@ const VERTEX_COLOR_BATCH_KEY: BatchCompatibilityKey = {
   materialKey: "material:vertex-color",
 };
 
+const TEXTURED_VERTEX_COLOR_BATCH_KEY: BatchCompatibilityKey = {
+  ...TEXTURED_BATCH_KEY,
+  meshLayoutKey: "POSITION,NORMAL,TEXCOORD_0,COLOR_0",
+  materialKey: "material:textured-vertex-color",
+};
+
 describe("unlit pipeline descriptor planning", () => {
   it("creates descriptor-like data and a cache key for the MVP unlit pipeline", () => {
     const result = createUnlitPipelineDescriptorPlan({
@@ -173,6 +179,51 @@ describe("unlit pipeline descriptor planning", () => {
         ],
       },
       batch: VERTEX_COLOR_BATCH_KEY,
+    });
+  });
+
+  it("combines textured and vertex-color shader variants", () => {
+    const textured = createUnlitPipelineDescriptorPlan({
+      colorFormat: "bgra8unorm",
+      batchKey: TEXTURED_BATCH_KEY,
+    });
+    const texturedVertexColor = createUnlitPipelineDescriptorPlan({
+      colorFormat: "bgra8unorm",
+      batchKey: TEXTURED_VERTEX_COLOR_BATCH_KEY,
+    });
+
+    expect(texturedVertexColor.diagnostics).toEqual([]);
+    expect(texturedVertexColor.plan?.descriptor).toMatchObject({
+      label:
+        "aperture/unlit-mesh-textured-vertex-color:bgra8unorm:triangle-list",
+      vertex: {
+        moduleLabel: "aperture/unlit-mesh-textured-vertex-color",
+        buffers: ["POSITION", "NORMAL", "TEXCOORD_0", "COLOR_0"],
+      },
+      fragment: {
+        moduleLabel: "aperture/unlit-mesh-textured-vertex-color",
+      },
+    });
+    expect(required(texturedVertexColor.plan).cacheKey).not.toBe(
+      required(textured.plan).cacheKey,
+    );
+    expect(
+      JSON.parse(required(texturedVertexColor.plan).cacheKey) as unknown,
+    ).toMatchObject({
+      shader: {
+        label: "aperture/unlit-mesh-textured-vertex-color",
+        family: "unlit",
+        variantKey: "baseColorTexture+vertexColor",
+      },
+      layouts: {
+        vertex: "POSITION,NORMAL,TEXCOORD_0,COLOR_0",
+        bindGroups: [
+          "unlit/group-0:view-uniform@0",
+          "unlit/group-1:world-transforms@0",
+          "unlit/group-2:material-textured@0,1,2",
+        ],
+      },
+      batch: TEXTURED_VERTEX_COLOR_BATCH_KEY,
     });
   });
 

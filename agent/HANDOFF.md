@@ -1,6 +1,136 @@
 # Agent Handoff
 
-Updated: 2026-05-20T14:00:57Z
+Updated: 2026-05-20T15:10:14Z
+
+## Current Run Update — 2026-05-20T15:10:14Z — GLB vertex-color fidelity
+
+Completed `task-2144`, `task-2145`, `task-2146`, `task-2147`,
+`task-2148`, and `task-2149`.
+
+### What changed
+
+- Added opt-in tangent generation in glTF mesh asset construction for primitives
+  whose source material uses a normal texture but whose mesh omits authored
+  `TANGENT` data.
+- Wired the report-driven GLB viewer import path to request tangent generation
+  only for normal-textured primitives, keeping scalar/control primitives
+  untouched.
+- Added `examples/assets/normal-map-missing-tangent.glb` and a GLB viewer sample
+  that proves generated tangents keep the normal-map path visible.
+- Added JSON-safe tangent-path status for authored, generated, skipped, and
+  absent cases on each GLB viewer mesh attribute row.
+- Added `examples/assets/multi-camera.glb` and a compact imported-camera
+  selector to the GLB viewer camera controls.
+- The imported-camera selector changes the selected ECS-authored camera
+  transform/projection while preserving the existing imported-camera toggle as
+  the explicit view gate.
+- Added one-shot URL bootstrapping for imported-camera controls:
+  `camera=<index>` seeds the selected imported camera, and
+  `imported-camera=1` starts the viewer in imported-camera mode when supported.
+- Cleared stale imported-camera URL parameters when users pick a committed
+  sample manually from the asset selector.
+- Added a combined unlit WebGPU shader variant for meshes that have both
+  `baseColorTexture` in the material pipeline key and `COLOR_0` in the mesh
+  layout.
+- Added `examples/assets/textured-vertex-color.glb`, a committed GLB viewer
+  sample that combines an external base-color PNG URI with vertex colors.
+- The combined unlit shader multiplies base-color factor, sampled texture, and
+  vertex color while reusing the existing textured bind group layout and
+  vertex-color buffer layout.
+- Added a StandardMaterial vertex-color shader feature for scalar lit GLB
+  meshes with `COLOR_0`.
+- Added `examples/assets/standard-vertex-color.glb`, a committed lit
+  StandardMaterial GLB viewer sample using vertex colors.
+- Promoted the existing orthographic-camera GLB sample to a supported imported
+  camera path by translating glTF `xmag`/`ymag` into ECS-authored
+  `aspect` plus `orthographicHeight`.
+- The imported-camera toggle now applies orthographic projection through the
+  same ECS camera transform/projection component path used by perspective
+  imports, and the unsupported-feature panel no longer reports the sample as
+  unsupported.
+- Recommended next task is
+  `task-2150 — Route normal maps through TEXCOORD_1`.
+
+### Files touched
+
+- `agent/BACKLOG.md`
+- `agent/COMPLETED.md`
+- `agent/HANDOFF.md`
+- `agent/STATUS.json`
+- `docs/index.html`
+- `docs/render-pipeline-comparison.html`
+- `examples/glb-viewer.html`
+- `examples/glb-viewer.js`
+- `examples/assets/multi-camera.glb`
+- `examples/assets/normal-map-missing-tangent.glb`
+- `examples/assets/standard-vertex-color.glb`
+- `examples/assets/textured-vertex-color.glb`
+- `packages/render/src/assets/gltf-mesh-asset-construction.ts`
+- `packages/render/src/assets/gltf-report-driven-import.ts`
+- `packages/webgpu/src/webgpu/unlit-pipeline-descriptor.ts`
+- `packages/webgpu/src/webgpu/unlit-shader.ts`
+- `packages/webgpu/src/webgpu/standard-pipeline-descriptor.ts`
+- `packages/webgpu/src/webgpu/standard-pipeline.ts`
+- `packages/webgpu/src/webgpu/standard-shader.ts`
+- `test/assets/gltf-mesh-asset-construction.test.ts`
+- `test/e2e/glb-viewer.spec.ts`
+- `test/webgpu/unlit-pipeline-descriptor.test.ts`
+- `test/webgpu/unlit-pipeline.test.ts`
+- `test/webgpu/standard-pipeline-descriptor.test.ts`
+- `test/webgpu/standard-pipeline.test.ts`
+
+### References inspected
+
+- `references/bevy/crates/bevy_gltf/src/loader/mod.rs`
+- `references/bevy/crates/bevy_gltf/src/loader/gltf_ext/material.rs`
+- `references/bevy/crates/bevy_render/src/camera.rs`
+- `references/bevy/crates/bevy_pbr/src/render/mesh.rs`
+- `references/three.js/examples/jsm/loaders/GLTFLoader.js`
+- `references/engine/src/scene/geometry/geometry-utils.js`
+- `references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/base.js`
+- `references/engine/src/scene/shader-lib/wgsl/chunks/standard/frag/normalMap.js`
+
+### Validation
+
+- `node --check examples/glb-viewer.js`
+- `pnpm exec vitest run test/assets/gltf-mesh-asset-construction.test.ts test/assets/gltf-report-driven-import.test.ts` (2 files, 16 tests passed)
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts --grep "generated tangents"` (1 passed)
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts --grep "imported cameras"` (1 passed)
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts --grep "fetched sample GLB viewer asset|generated tangents|imported cameras"` (3 passed)
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts --grep "imported camera from URL|imported cameras"` (2 passed)
+- `pnpm exec vitest run test/webgpu/unlit-pipeline.test.ts test/webgpu/unlit-pipeline-descriptor.test.ts` (2 files, 12 tests passed)
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts --grep "textured vertex colors"` (1 passed)
+- `pnpm exec vitest run test/webgpu/standard-pipeline.test.ts test/webgpu/standard-pipeline-descriptor.test.ts` (2 files, 21 tests passed)
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts --grep "StandardMaterial route"` (1 passed)
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts --grep "orthographic imported camera|unsupported-feature summary rows|imported-camera list rows"` (3 passed)
+- `pnpm run check:progress`
+- `pnpm exec vitest run test/webgpu/unlit-pipeline.test.ts test/webgpu/unlit-pipeline-descriptor.test.ts test/assets/gltf-mesh-asset-construction.test.ts test/assets/gltf-report-driven-import.test.ts` (4 files, 28 tests passed)
+- `pnpm run build`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts --grep "fetched sample GLB viewer asset|StandardMaterial route|textured vertex colors|generated tangents|imported cameras|imported camera from URL"` (6 passed)
+- `pnpm run format:check`
+- `pnpm run lint`
+
+### Known issues
+
+- The broad GLB viewer smoke path now has an explicit 60-second timeout because
+  it exercises many sample switches and normally completes in about 36 seconds
+  on the headed WebGPU project.
+- Generated tangents currently cover indexed triangle primitives with
+  `POSITION`, `NORMAL`, and `TEXCOORD_0`. Skipped cases publish JSON-safe
+  diagnostics instead of silently claiming a tangent path.
+- The StandardMaterial vertex-color path currently covers the scalar
+  base-color route. Combining StandardMaterial textures and `COLOR_0` remains a
+  future fidelity extension.
+- Normal maps that declare `normalTexture.texCoord = 1` still need a dedicated
+  route through `TEXCOORD_1`.
+- Stopped before starting `task-2150` to keep this already-large continuation
+  checkpoint coherent after the stale `running` status and dirty-tree
+  continuation state were resolved.
+
+### Recommended next task
+
+`task-2150 — Route normal maps through TEXCOORD_1`.
 
 ## Current Run Update — 2026-05-20T14:00:57Z — GLB viewer detail rows, scene selection, external glTF, and vertex colors
 

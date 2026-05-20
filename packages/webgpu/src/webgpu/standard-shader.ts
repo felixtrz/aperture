@@ -42,6 +42,7 @@ export interface StandardTextureShaderFeatures {
   readonly iblDiffuse?: boolean;
   readonly iblSpecularProof?: boolean;
   readonly texCoord1?: boolean;
+  readonly vertexColor?: boolean;
 }
 
 export const STANDARD_MATERIAL_MVP_LIGHTING_MODEL = {
@@ -704,6 +705,10 @@ export function createStandardTextureShaderVariantKey(
     names.push("uv1");
   }
 
+  if (features.vertexColor === true) {
+    names.push("vertex-color");
+  }
+
   return `${STANDARD_DIRECT_LIGHT_SHADER_VARIANT}-${names.join("-")}-texture`;
 }
 
@@ -940,6 +945,55 @@ fn saturate(value: f32) -> f32 {`,
   let baseColor = baseColorSample.rgb * material.baseColorFactor.rgb;
   let alpha = baseColorSample.a * material.baseColorFactor.a;`,
     );
+  }
+
+  if (features.vertexColor === true) {
+    code = code
+      .replace(
+        `struct VertexInput {
+  @location(0) position: vec3f,
+  @location(1) normal: vec3f,
+  @location(2) uv: vec2f,`,
+        `struct VertexInput {
+  @location(0) position: vec3f,
+  @location(1) normal: vec3f,
+  @location(2) uv: vec2f,
+  @location(5) color: vec4f,`,
+      )
+      .replace(
+        `struct VertexOutput {
+  @builtin(position) position: vec4f,
+  @location(0) worldPosition: vec3f,
+  @location(1) worldNormal: vec3f,
+  @location(2) uv: vec2f,`,
+        `struct VertexOutput {
+  @builtin(position) position: vec4f,
+  @location(0) worldPosition: vec3f,
+  @location(1) worldNormal: vec3f,
+  @location(2) uv: vec2f,
+  @location(6) vertexColor: vec4f,`,
+      )
+      .replace(
+        `  output.uv = input.uv;`,
+        `  output.uv = input.uv;
+  output.vertexColor = input.color;`,
+      );
+
+    if (features.baseColorTexture) {
+      code = code.replace(
+        `  let baseColor = baseColorSample.rgb * material.baseColorFactor.rgb;
+  let alpha = baseColorSample.a * material.baseColorFactor.a;`,
+        `  let baseColor = baseColorSample.rgb * material.baseColorFactor.rgb * input.vertexColor.rgb;
+  let alpha = baseColorSample.a * material.baseColorFactor.a * input.vertexColor.a;`,
+      );
+    } else {
+      code = code.replace(
+        `  let baseColor = material.baseColorFactor.rgb;
+  let alpha = material.baseColorFactor.a;`,
+        `  let baseColor = material.baseColorFactor.rgb * input.vertexColor.rgb;
+  let alpha = material.baseColorFactor.a * input.vertexColor.a;`,
+      );
+    }
   }
 
   if (features.metallicRoughnessTexture) {
@@ -1517,6 +1571,10 @@ function standardTextureFeatureNames(
     names.push("uv1");
   }
 
+  if (features.vertexColor === true) {
+    names.push("vertex-color");
+  }
+
   return names;
 }
 
@@ -1533,7 +1591,8 @@ function hasAnyStandardTextureFeature(
     features.pointShadowMap === true ||
     features.iblDiffuse === true ||
     features.iblSpecularProof === true ||
-    features.texCoord1 === true
+    features.texCoord1 === true ||
+    features.vertexColor === true
   );
 }
 

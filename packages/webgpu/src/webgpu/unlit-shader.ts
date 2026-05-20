@@ -199,6 +199,52 @@ fn fs_main(input: VertexOutput) -> @location(0) vec4f {
 }
 `.trim();
 
+export const UNLIT_TEXTURED_VERTEX_COLOR_MESH_WGSL = `
+struct ViewProjectionUniform {
+  viewProjection: mat4x4f,
+  cameraPosition: vec4f,
+};
+
+struct UnlitMaterialUniform {
+  baseColorFactor: vec4f,
+};
+
+struct VertexInput {
+  @location(0) position: vec3f,
+  @location(1) normal: vec3f,
+  @location(2) uv: vec2f,
+  @location(5) color: vec4f,
+  @builtin(instance_index) instanceIndex: u32,
+};
+
+struct VertexOutput {
+  @builtin(position) position: vec4f,
+  @location(0) uv: vec2f,
+  @location(1) color: vec4f,
+};
+
+@group(0) @binding(0) var<uniform> view: ViewProjectionUniform;
+@group(1) @binding(0) var<storage, read> worldTransforms: array<mat4x4f>;
+@group(2) @binding(0) var<uniform> material: UnlitMaterialUniform;
+@group(2) @binding(1) var baseColorTexture: texture_2d<f32>;
+@group(2) @binding(2) var baseColorSampler: sampler;
+
+@vertex
+fn vs_main(input: VertexInput) -> VertexOutput {
+  var output: VertexOutput;
+  let world = worldTransforms[input.instanceIndex];
+  output.position = view.viewProjection * world * vec4f(input.position, 1.0);
+  output.uv = input.uv;
+  output.color = input.color;
+  return output;
+}
+
+@fragment
+fn fs_main(input: VertexOutput) -> @location(0) vec4f {
+  return textureSample(baseColorTexture, baseColorSampler, input.uv) * input.color * material.baseColorFactor;
+}
+`.trim();
+
 export const UNLIT_MESH_SHADER: BuiltInShaderSourceModule = {
   label: "aperture/unlit-mesh",
   code: UNLIT_MESH_WGSL,
@@ -263,6 +309,14 @@ export const UNLIT_TEXTURED_MESH_SHADER: BuiltInShaderSourceModule = {
     },
   ],
 };
+
+export const UNLIT_TEXTURED_VERTEX_COLOR_MESH_SHADER: BuiltInShaderSourceModule =
+  {
+    label: "aperture/unlit-mesh-textured-vertex-color",
+    code: UNLIT_TEXTURED_VERTEX_COLOR_MESH_WGSL,
+    entryPoints: UNLIT_TEXTURED_MESH_SHADER.entryPoints,
+    bindings: UNLIT_TEXTURED_MESH_SHADER.bindings,
+  };
 
 export const UNLIT_MESH_WITH_LIGHT_BINDINGS_SHADER: BuiltInShaderSourceModule =
   {

@@ -115,6 +115,48 @@ describe("glTF mesh source asset construction", () => {
     ]);
   });
 
+  it("generates TANGENT attributes for requested normal-mapped glTF primitives", () => {
+    const decodedReport = decodedFixture({
+      positions: new Float32Array([0, 0, 0, 1, 0, 0, 0, 1, 0]),
+      normals: new Float32Array([0, 0, 1, 0, 0, 1, 0, 0, 1]),
+      texcoords: new Float32Array([0, 0, 1, 0, 0, 1]),
+      indices: new Uint16Array([0, 1, 2]),
+    });
+    const report = createMeshAssetsFromGltfDecodedAccessors({
+      decodedReport,
+      generateMissingTangentsFor: [
+        { meshIndex: 0, primitiveIndex: 0, reason: "normalTexture" },
+      ],
+    });
+    const stream = report.meshes[0]?.mesh?.vertexStreams[0];
+
+    expect(report.valid).toBe(true);
+    expect(report.diagnostics).toMatchObject([
+      {
+        code: "gltfMeshAsset.generatedTangents",
+        severity: "warning",
+        semantic: "TANGENT",
+        reason: "normalTexture",
+        tangentPath: "generated-mesh-attribute",
+        vertexCount: 3,
+      },
+    ]);
+    expect(stream).toMatchObject({
+      arrayStride: 48,
+      vertexCount: 3,
+      attributes: [
+        { semantic: "POSITION", format: "float32x3", offset: 0 },
+        { semantic: "NORMAL", format: "float32x3", offset: 12 },
+        { semantic: "TEXCOORD_0", format: "float32x2", offset: 24 },
+        { semantic: "TANGENT", format: "float32x4", offset: 32 },
+      ],
+    });
+    expect(Array.from(stream?.data ?? [])).toEqual([
+      0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 1, 0, 0, 1, 0,
+      1, 0, 0, 0, 1, 0, 1, 1, 0, 0, 1,
+    ]);
+  });
+
   it("preserves decoded TEXCOORD_1 attributes for UV1 glTF textures", () => {
     const decodedReport = decodedFixture({
       positions: new Float32Array([0, 0, 0, 1, 0, 0, 0, 1, 0]),

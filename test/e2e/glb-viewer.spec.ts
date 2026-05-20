@@ -252,6 +252,9 @@ interface GlbViewerStatus extends ExampleStatusBase {
     readonly controls: {
       readonly available: boolean;
       readonly enabled: boolean;
+      readonly readyCount: number;
+      readonly selectedCameraIndex: number | null;
+      readonly selectedNodeIndex: number | null;
     };
     readonly selected: null | {
       readonly status: string;
@@ -263,8 +266,11 @@ interface GlbViewerStatus extends ExampleStatusBase {
       readonly nodeName: string | null;
       readonly cameraName: string | null;
       readonly projection: string;
-      readonly yfov: number;
-      readonly aspect: number;
+      readonly yfov?: number;
+      readonly xmag?: number;
+      readonly ymag?: number;
+      readonly aspect?: number;
+      readonly orthographicHeight?: number;
       readonly near: number;
       readonly far: number;
       readonly translation: readonly number[];
@@ -435,6 +441,12 @@ interface GltfMeshAttributeStatus {
   readonly meshIndex: number;
   readonly primitiveIndex: number;
   readonly handleKey: string;
+  readonly tangentPath: {
+    readonly status: string;
+    readonly path: string | null;
+    readonly reason: string | null;
+    readonly diagnosticCode: string | null;
+  };
   readonly streams: readonly {
     readonly id: string;
     readonly arrayStride: number;
@@ -490,7 +502,10 @@ interface ImportedCameraDescriptorStatus {
   readonly projection: string;
   readonly reason?: string;
   readonly yfov?: number;
+  readonly xmag?: number;
+  readonly ymag?: number;
   readonly aspect?: number;
+  readonly orthographicHeight?: number;
   readonly near?: number;
   readonly far?: number;
   readonly translation?: readonly number[];
@@ -603,6 +618,8 @@ interface TextureSlotStatus {
 test("Playwright renders the fetched sample GLB viewer asset", async ({
   page,
 }) => {
+  test.setTimeout(60_000);
+
   const webGpuValidation = attachWebGpuValidationConsoleGuard(page);
 
   await page.goto("/examples/glb-viewer.html");
@@ -637,6 +654,7 @@ test("Playwright renders the fetched sample GLB viewer asset", async ({
     "Lit brass cube",
     "Roughness IBL",
     "Normal map",
+    "Normal map generated tangents",
     "Normal scale",
     "Normal transform",
     "Normal transform controls",
@@ -654,7 +672,10 @@ test("Playwright renders the fetched sample GLB viewer asset", async ({
     "Multi-scene",
     "External glTF",
     "Vertex color",
+    "Textured vertex color",
+    "Standard vertex color",
     "Imported camera",
+    "Imported cameras",
     "Morph target",
     "Skin metadata",
     "Orthographic camera",
@@ -3139,6 +3160,406 @@ test("Playwright renders GLB viewer vertex colors through the unlit route", asyn
   webGpuValidation.expectNoWarnings();
 });
 
+test("Playwright renders GLB viewer textured vertex colors through the unlit route", async ({
+  page,
+}) => {
+  const webGpuValidation = attachWebGpuValidationConsoleGuard(page);
+
+  await page.goto("/examples/glb-viewer.html?asset=textured-vertex-color");
+  const initialStatus = await waitForExampleStatus<GlbViewerStatus>(page);
+
+  expect(
+    initialStatus,
+    "textured vertex-color status should publish",
+  ).toBeDefined();
+
+  if (initialStatus === undefined) {
+    throw new Error("Textured vertex-color status did not publish.");
+  }
+
+  skipIfUnsupportedWebGpu(initialStatus);
+  await page.waitForFunction(
+    () => {
+      const status = (
+        globalThis as {
+          readonly __APERTURE_EXAMPLE_STATUS__?: {
+            readonly frame?: number;
+            readonly selectedAsset?: {
+              readonly id?: string;
+              readonly loading?: boolean;
+            };
+            readonly source?: {
+              readonly outputSummary?: {
+                readonly meshConstruction?: {
+                  readonly status?: string;
+                  readonly vertexCount?: number;
+                  readonly indexCount?: number;
+                };
+              } | null;
+              readonly imageDecode?: {
+                readonly decoded?: readonly unknown[];
+              };
+            };
+            readonly gltf?: {
+              readonly primitiveMaterials?: {
+                readonly resolutions?: readonly {
+                  readonly pipelineKey?: string;
+                  readonly textureSlots?: {
+                    readonly baseColorTexture?: {
+                      readonly textureKey?: string;
+                      readonly texCoord?: number;
+                    } | null;
+                  };
+                }[];
+              };
+              readonly meshAttributes?: readonly {
+                readonly streams?: readonly {
+                  readonly arrayStride?: number;
+                  readonly attributes?: readonly {
+                    readonly semantic?: string;
+                    readonly format?: string;
+                    readonly offset?: number;
+                  }[];
+                }[];
+              }[];
+            };
+            readonly renderState?: {
+              readonly draws?: readonly {
+                readonly pipelineKey?: string;
+                readonly meshLayoutKey?: string;
+              }[];
+            };
+            readonly extraction?: { readonly meshDraws?: number };
+            readonly draw?: { readonly drawCalls?: number };
+          };
+        }
+      ).__APERTURE_EXAMPLE_STATUS__;
+      const attributes =
+        status?.gltf?.meshAttributes?.[0]?.streams?.[0]?.attributes ?? [];
+      const resolution = status?.gltf?.primitiveMaterials?.resolutions?.[0];
+
+      return (
+        (status?.frame ?? 0) >= 3 &&
+        status?.selectedAsset?.id === "textured-vertex-color" &&
+        status.selectedAsset.loading === false &&
+        status.source?.outputSummary?.meshConstruction?.status === "ready" &&
+        status.source.outputSummary.meshConstruction.vertexCount === 4 &&
+        status.source.outputSummary.meshConstruction.indexCount === 6 &&
+        (status.source.imageDecode?.decoded?.length ?? 0) === 1 &&
+        attributes.some(
+          (attribute) =>
+            attribute.semantic === "COLOR_0" &&
+            attribute.format === "float32x4" &&
+            attribute.offset === 32,
+        ) &&
+        status.gltf?.meshAttributes?.[0]?.streams?.[0]?.arrayStride === 48 &&
+        resolution?.pipelineKey ===
+          "unlit|baseColorTexture|opaque|none|less|none" &&
+        resolution?.textureSlots?.baseColorTexture?.texCoord === 0 &&
+        status.renderState?.draws?.[0]?.pipelineKey ===
+          "unlit|baseColorTexture|opaque|none|less|none" &&
+        status.renderState?.draws?.[0]?.meshLayoutKey ===
+          "POSITION,NORMAL,TEXCOORD_0,COLOR_0" &&
+        status.extraction?.meshDraws === 1 &&
+        status.draw?.drawCalls === 1
+      );
+    },
+    undefined,
+    { timeout: 5000 },
+  );
+
+  const status = await waitForExampleStatus<GlbViewerStatus>(page);
+
+  expectStatusJsonSafeForGpu(status);
+  expect(status).toMatchObject({
+    selectedAsset: {
+      id: "textured-vertex-color",
+      label: "Textured vertex color",
+      source: "sample",
+      url: "/examples/assets/textured-vertex-color.glb",
+      loading: false,
+      materialFamilies: [{ family: "unlit", count: 1 }],
+      materialSlotSummary: {
+        textureSlots: {
+          baseColorTexture: {
+            count: 1,
+            uv0: 1,
+            uv1: 0,
+            otherUv: 0,
+          },
+        },
+      },
+    },
+    gltf: {
+      primitiveMaterials: {
+        families: [{ family: "unlit", count: 1 }],
+        resolutions: [
+          {
+            family: "unlit",
+            pipelineKey: "unlit|baseColorTexture|opaque|none|less|none",
+            textureSlots: {
+              baseColorTexture: {
+                texCoord: 0,
+                textureKey: expect.stringMatching(
+                  /^texture:viewer-textured-vertex-color-\d+:texture:0:baseColorTexture$/,
+                ),
+              },
+            },
+          },
+        ],
+      },
+      meshAttributes: [
+        {
+          streams: [
+            {
+              arrayStride: 48,
+              attributes: expect.arrayContaining([
+                { semantic: "POSITION", format: "float32x3", offset: 0 },
+                { semantic: "NORMAL", format: "float32x3", offset: 12 },
+                { semantic: "TEXCOORD_0", format: "float32x2", offset: 24 },
+                { semantic: "COLOR_0", format: "float32x4", offset: 32 },
+              ]),
+            },
+          ],
+        },
+      ],
+    },
+    renderState: {
+      pipelineKeys: ["unlit|baseColorTexture|opaque|none|less|none"],
+      draws: [
+        {
+          pipelineKey: "unlit|baseColorTexture|opaque|none|less|none",
+          meshLayoutKey: "POSITION,NORMAL,TEXCOORD_0,COLOR_0",
+        },
+      ],
+    },
+    extraction: { meshDraws: 1, diagnostics: 0 },
+    draw: { drawCalls: 1 },
+  });
+
+  const screenshot = await page.locator("#aperture-canvas").screenshot();
+  const clear =
+    status?.clearColor === undefined
+      ? { r: 4, g: 6, b: 9, a: 255 }
+      : rgbaColorToPixel(status.clearColor);
+  const upperLeft = strongestRegionSample(
+    screenshot,
+    clear,
+    0.3,
+    0.32,
+    0.48,
+    0.5,
+  );
+  const lowerRight = strongestRegionSample(
+    screenshot,
+    clear,
+    0.52,
+    0.5,
+    0.7,
+    0.68,
+  );
+
+  expect(
+    pixelDistance(upperLeft, clear),
+    `textured vertex-color upper-left region should render visible pixels; sample=${JSON.stringify(
+      upperLeft,
+    )}`,
+  ).toBeGreaterThan(20);
+  expect(
+    pixelDistance(lowerRight, clear),
+    `textured vertex-color lower-right region should render visible pixels; sample=${JSON.stringify(
+      lowerRight,
+    )}`,
+  ).toBeGreaterThan(20);
+  expect(
+    pixelDistance(upperLeft, lowerRight),
+    `textured vertex-color regions should differ; upperLeft=${JSON.stringify(
+      upperLeft,
+    )} lowerRight=${JSON.stringify(lowerRight)}`,
+  ).toBeGreaterThan(25);
+  webGpuValidation.expectNoWarnings();
+});
+
+test("Playwright renders GLB viewer vertex colors through the StandardMaterial route", async ({
+  page,
+}) => {
+  const webGpuValidation = attachWebGpuValidationConsoleGuard(page);
+
+  await page.goto("/examples/glb-viewer.html?asset=standard-vertex-color");
+  const initialStatus = await waitForExampleStatus<GlbViewerStatus>(page);
+
+  expect(
+    initialStatus,
+    "standard vertex-color status should publish",
+  ).toBeDefined();
+
+  if (initialStatus === undefined) {
+    throw new Error("Standard vertex-color status did not publish.");
+  }
+
+  skipIfUnsupportedWebGpu(initialStatus);
+  await page.waitForFunction(
+    () => {
+      const status = (
+        globalThis as {
+          readonly __APERTURE_EXAMPLE_STATUS__?: {
+            readonly frame?: number;
+            readonly selectedAsset?: {
+              readonly id?: string;
+              readonly loading?: boolean;
+            };
+            readonly gltf?: {
+              readonly primitiveMaterials?: {
+                readonly resolutions?: readonly {
+                  readonly family?: string;
+                  readonly pipelineKey?: string;
+                }[];
+              };
+              readonly meshAttributes?: readonly {
+                readonly streams?: readonly {
+                  readonly arrayStride?: number;
+                  readonly attributes?: readonly {
+                    readonly semantic?: string;
+                    readonly format?: string;
+                    readonly offset?: number;
+                  }[];
+                }[];
+              }[];
+            };
+            readonly renderState?: {
+              readonly draws?: readonly {
+                readonly pipelineKey?: string;
+                readonly meshLayoutKey?: string;
+              }[];
+            };
+            readonly extraction?: { readonly meshDraws?: number };
+            readonly draw?: { readonly drawCalls?: number };
+          };
+        }
+      ).__APERTURE_EXAMPLE_STATUS__;
+      const attributes =
+        status?.gltf?.meshAttributes?.[0]?.streams?.[0]?.attributes ?? [];
+      const resolution = status?.gltf?.primitiveMaterials?.resolutions?.[0];
+
+      return (
+        (status?.frame ?? 0) >= 3 &&
+        status?.selectedAsset?.id === "standard-vertex-color" &&
+        status.selectedAsset.loading === false &&
+        attributes.some(
+          (attribute) =>
+            attribute.semantic === "COLOR_0" &&
+            attribute.format === "float32x4" &&
+            attribute.offset === 32,
+        ) &&
+        status.gltf?.meshAttributes?.[0]?.streams?.[0]?.arrayStride === 48 &&
+        resolution?.family === "standard" &&
+        resolution?.pipelineKey === "standard|opaque|none|less|none" &&
+        status.renderState?.draws?.[0]?.pipelineKey ===
+          "standard|opaque|none|less|none" &&
+        status.renderState?.draws?.[0]?.meshLayoutKey ===
+          "POSITION,NORMAL,TEXCOORD_0,COLOR_0" &&
+        status.extraction?.meshDraws === 1 &&
+        status.draw?.drawCalls === 1
+      );
+    },
+    undefined,
+    { timeout: 5000 },
+  );
+
+  const status = await waitForExampleStatus<GlbViewerStatus>(page);
+
+  expectStatusJsonSafeForGpu(status);
+  expect(status).toMatchObject({
+    selectedAsset: {
+      id: "standard-vertex-color",
+      label: "Standard vertex color",
+      source: "sample",
+      url: "/examples/assets/standard-vertex-color.glb",
+      loading: false,
+      materialFamilies: [{ family: "standard", count: 1 }],
+    },
+    gltf: {
+      primitiveMaterials: {
+        families: [{ family: "standard", count: 1 }],
+        resolutions: [
+          {
+            family: "standard",
+            pipelineKey: "standard|opaque|none|less|none",
+          },
+        ],
+      },
+      meshAttributes: [
+        {
+          streams: [
+            {
+              arrayStride: 48,
+              attributes: expect.arrayContaining([
+                { semantic: "POSITION", format: "float32x3", offset: 0 },
+                { semantic: "NORMAL", format: "float32x3", offset: 12 },
+                { semantic: "TEXCOORD_0", format: "float32x2", offset: 24 },
+                { semantic: "COLOR_0", format: "float32x4", offset: 32 },
+              ]),
+            },
+          ],
+        },
+      ],
+    },
+    renderState: {
+      pipelineKeys: ["standard|opaque|none|less|none"],
+      draws: [
+        {
+          pipelineKey: "standard|opaque|none|less|none",
+          meshLayoutKey: "POSITION,NORMAL,TEXCOORD_0,COLOR_0",
+        },
+      ],
+    },
+    extraction: { meshDraws: 1, diagnostics: 0 },
+    draw: { drawCalls: 1 },
+  });
+
+  const screenshot = await page.locator("#aperture-canvas").screenshot();
+  const clear =
+    status?.clearColor === undefined
+      ? { r: 4, g: 6, b: 9, a: 255 }
+      : rgbaColorToPixel(status.clearColor);
+  const upperLeft = strongestRegionSample(
+    screenshot,
+    clear,
+    0.3,
+    0.32,
+    0.48,
+    0.5,
+  );
+  const lowerRight = strongestRegionSample(
+    screenshot,
+    clear,
+    0.52,
+    0.5,
+    0.7,
+    0.68,
+  );
+
+  expect(
+    pixelDistance(upperLeft, clear),
+    `standard vertex-color upper-left region should render visible pixels; sample=${JSON.stringify(
+      upperLeft,
+    )}`,
+  ).toBeGreaterThan(12);
+  expect(
+    pixelDistance(lowerRight, clear),
+    `standard vertex-color lower-right region should render visible pixels; sample=${JSON.stringify(
+      lowerRight,
+    )}`,
+  ).toBeGreaterThan(12);
+  expect(
+    pixelDistance(upperLeft, lowerRight),
+    `standard vertex-color regions should differ; upperLeft=${JSON.stringify(
+      upperLeft,
+    )} lowerRight=${JSON.stringify(lowerRight)}`,
+  ).toBeGreaterThan(18);
+  webGpuValidation.expectNoWarnings();
+});
+
 test("Playwright switches GLB viewer to an imported glTF camera", async ({
   page,
 }) => {
@@ -3290,6 +3711,341 @@ test("Playwright switches GLB viewer to an imported glTF camera", async ({
   expect(
     maxSampleDelta(orbitScreenshot, importedScreenshot),
     "enabling the imported glTF camera should visibly change GLB viewer pixels",
+  ).toBeGreaterThan(8);
+  webGpuValidation.expectNoWarnings();
+});
+
+test("Playwright selects between GLB viewer imported cameras", async ({
+  page,
+}) => {
+  const webGpuValidation = attachWebGpuValidationConsoleGuard(page);
+
+  await page.goto("/examples/glb-viewer.html?asset=multi-camera");
+  const initialStatus = await waitForExampleStatus<GlbViewerStatus>(page);
+
+  expect(
+    initialStatus,
+    "multi-camera viewer status should publish",
+  ).toBeDefined();
+
+  if (initialStatus === undefined) {
+    throw new Error("Multi-camera viewer status did not publish.");
+  }
+
+  skipIfUnsupportedWebGpu(initialStatus);
+  await page.waitForFunction(
+    () => {
+      const status = (
+        globalThis as {
+          readonly __APERTURE_EXAMPLE_STATUS__?: {
+            readonly frame?: number;
+            readonly selectedAsset?: {
+              readonly id?: string;
+              readonly loading?: boolean;
+            };
+            readonly importedCamera?: {
+              readonly status?: string;
+              readonly controls?: {
+                readonly available?: boolean;
+                readonly enabled?: boolean;
+                readonly readyCount?: number;
+                readonly selectedCameraIndex?: number | null;
+              };
+              readonly selected?: {
+                readonly cameraIndex?: number;
+                readonly cameraName?: string | null;
+                readonly yfov?: number;
+              } | null;
+              readonly cameras?: readonly unknown[];
+            };
+            readonly extraction?: { readonly meshDraws?: number };
+          };
+        }
+      ).__APERTURE_EXAMPLE_STATUS__;
+
+      return (
+        (status?.frame ?? 0) >= 3 &&
+        status?.selectedAsset?.id === "multi-camera" &&
+        status.selectedAsset.loading === false &&
+        status.importedCamera?.status === "ready" &&
+        status.importedCamera.controls?.available === true &&
+        status.importedCamera.controls.enabled === false &&
+        status.importedCamera.controls.readyCount === 2 &&
+        status.importedCamera.controls.selectedCameraIndex === 0 &&
+        status.importedCamera.selected?.cameraIndex === 0 &&
+        status.importedCamera.selected.cameraName === "WidePerspective" &&
+        Math.abs((status.importedCamera.selected.yfov ?? 0) - 0.72) < 0.001 &&
+        status.extraction?.meshDraws === 1
+      );
+    },
+    undefined,
+    { timeout: 5000 },
+  );
+
+  await expect(page.locator("#glb-imported-camera-select option")).toHaveText([
+    "WidePerspective",
+    "TightPerspective",
+  ]);
+
+  const orbitStatus = await waitForExampleStatus<GlbViewerStatus>(page);
+
+  expectStatusJsonSafeForGpu(orbitStatus);
+  expect(orbitStatus).toMatchObject({
+    selectedAsset: {
+      id: "multi-camera",
+      label: "Imported cameras",
+      source: "sample",
+      url: "/examples/assets/multi-camera.glb",
+      loading: false,
+    },
+    importedCamera: {
+      status: "ready",
+      controls: {
+        available: true,
+        enabled: false,
+        readyCount: 2,
+        selectedCameraIndex: 0,
+        selectedNodeIndex: 1,
+      },
+      selected: {
+        status: "ready",
+        supported: true,
+        nodeIndex: 1,
+        cameraIndex: 0,
+        name: "WidePerspective",
+        nodeName: "WideCameraNode",
+        cameraName: "WidePerspective",
+        projection: "perspective",
+        yfov: 0.72,
+        aspect: 1.7777778,
+        near: 0.1,
+        far: 50,
+      },
+      cameras: [
+        expect.objectContaining({
+          status: "ready",
+          cameraIndex: 0,
+          cameraName: "WidePerspective",
+        }),
+        expect.objectContaining({
+          status: "ready",
+          cameraIndex: 1,
+          cameraName: "TightPerspective",
+          yfov: 0.38,
+        }),
+      ],
+    },
+    gltf: {
+      metadata: {
+        counts: {
+          nodes: 3,
+          meshes: 1,
+          primitives: 1,
+          materials: 1,
+        },
+      },
+    },
+    extraction: {
+      meshDraws: 1,
+      diagnostics: 0,
+    },
+  });
+
+  await page.locator("#glb-imported-camera-toggle").click();
+  await page.waitForFunction(
+    () => {
+      const importedCamera = (
+        globalThis as {
+          readonly __APERTURE_EXAMPLE_STATUS__?: {
+            readonly importedCamera?: {
+              readonly controls?: { readonly enabled?: boolean };
+            };
+          };
+        }
+      ).__APERTURE_EXAMPLE_STATUS__?.importedCamera;
+
+      return importedCamera?.controls?.enabled === true;
+    },
+    undefined,
+    { timeout: 3000 },
+  );
+  const wideScreenshot = await page.locator("#aperture-canvas").screenshot();
+
+  await page.locator("#glb-imported-camera-select").selectOption("1");
+  await page.waitForFunction(
+    () => {
+      const importedCamera = (
+        globalThis as {
+          readonly __APERTURE_EXAMPLE_STATUS__?: {
+            readonly importedCamera?: {
+              readonly controls?: {
+                readonly enabled?: boolean;
+                readonly selectedCameraIndex?: number | null;
+              };
+              readonly selected?: {
+                readonly cameraIndex?: number;
+                readonly cameraName?: string | null;
+                readonly yfov?: number;
+              } | null;
+            };
+          };
+        }
+      ).__APERTURE_EXAMPLE_STATUS__?.importedCamera;
+
+      return (
+        importedCamera?.controls?.enabled === true &&
+        importedCamera.controls.selectedCameraIndex === 1 &&
+        importedCamera.selected?.cameraIndex === 1 &&
+        importedCamera.selected.cameraName === "TightPerspective" &&
+        Math.abs((importedCamera.selected.yfov ?? 0) - 0.38) < 0.001
+      );
+    },
+    undefined,
+    { timeout: 3000 },
+  );
+
+  const tightStatus = await waitForExampleStatus<GlbViewerStatus>(page);
+  const tightScreenshot = await page.locator("#aperture-canvas").screenshot();
+
+  expect(tightStatus?.importedCamera).toMatchObject({
+    controls: {
+      available: true,
+      enabled: true,
+      readyCount: 2,
+      selectedCameraIndex: 1,
+      selectedNodeIndex: 2,
+    },
+    selected: {
+      nodeIndex: 2,
+      cameraIndex: 1,
+      cameraName: "TightPerspective",
+      yfov: 0.38,
+    },
+  });
+  expect(
+    maxSampleDelta(wideScreenshot, tightScreenshot),
+    "switching imported cameras should visibly change GLB viewer framing",
+  ).toBeGreaterThan(8);
+  webGpuValidation.expectNoWarnings();
+});
+
+test("Playwright bootstraps GLB viewer imported camera from URL", async ({
+  page,
+}) => {
+  const webGpuValidation = attachWebGpuValidationConsoleGuard(page);
+
+  await page.goto("/examples/glb-viewer.html?asset=multi-camera&camera=1");
+  await page.waitForFunction(
+    () => {
+      const status = (
+        globalThis as {
+          readonly __APERTURE_EXAMPLE_STATUS__?: {
+            readonly selectedAsset?: {
+              readonly id?: string;
+              readonly loading?: boolean;
+            };
+            readonly importedCamera?: {
+              readonly controls?: {
+                readonly enabled?: boolean;
+                readonly selectedCameraIndex?: number | null;
+              };
+              readonly selected?: {
+                readonly cameraIndex?: number;
+                readonly cameraName?: string | null;
+              } | null;
+            };
+            readonly extraction?: { readonly meshDraws?: number };
+          };
+        }
+      ).__APERTURE_EXAMPLE_STATUS__;
+
+      return (
+        status?.selectedAsset?.id === "multi-camera" &&
+        status.selectedAsset.loading === false &&
+        status.importedCamera?.controls?.enabled === false &&
+        status.importedCamera.controls.selectedCameraIndex === 1 &&
+        status.importedCamera.selected?.cameraIndex === 1 &&
+        status.importedCamera.selected.cameraName === "TightPerspective" &&
+        status.extraction?.meshDraws === 1
+      );
+    },
+    undefined,
+    { timeout: 5000 },
+  );
+
+  await expect(page.locator("#glb-imported-camera-select")).toHaveValue("1");
+  await expect(page.locator("#glb-imported-camera-toggle")).not.toBeChecked();
+
+  const orbitScreenshot = await page.locator("#aperture-canvas").screenshot();
+
+  await page.goto(
+    "/examples/glb-viewer.html?asset=multi-camera&camera=1&imported-camera=1",
+  );
+  await page.waitForFunction(
+    () => {
+      const status = (
+        globalThis as {
+          readonly __APERTURE_EXAMPLE_STATUS__?: {
+            readonly selectedAsset?: {
+              readonly id?: string;
+              readonly loading?: boolean;
+            };
+            readonly importedCamera?: {
+              readonly controls?: {
+                readonly enabled?: boolean;
+                readonly selectedCameraIndex?: number | null;
+              };
+              readonly selected?: {
+                readonly cameraIndex?: number;
+                readonly cameraName?: string | null;
+                readonly yfov?: number;
+              } | null;
+            };
+            readonly extraction?: { readonly meshDraws?: number };
+          };
+        }
+      ).__APERTURE_EXAMPLE_STATUS__;
+
+      return (
+        status?.selectedAsset?.id === "multi-camera" &&
+        status.selectedAsset.loading === false &&
+        status.importedCamera?.controls?.enabled === true &&
+        status.importedCamera.controls.selectedCameraIndex === 1 &&
+        status.importedCamera.selected?.cameraIndex === 1 &&
+        status.importedCamera.selected.cameraName === "TightPerspective" &&
+        Math.abs((status.importedCamera.selected.yfov ?? 0) - 0.38) < 0.001 &&
+        status.extraction?.meshDraws === 1
+      );
+    },
+    undefined,
+    { timeout: 5000 },
+  );
+
+  await expect(page.locator("#glb-imported-camera-select")).toHaveValue("1");
+  await expect(page.locator("#glb-imported-camera-toggle")).toBeChecked();
+
+  const importedStatus = await waitForExampleStatus<GlbViewerStatus>(page);
+  const importedScreenshot = await page
+    .locator("#aperture-canvas")
+    .screenshot();
+
+  expect(importedStatus?.importedCamera).toMatchObject({
+    controls: {
+      available: true,
+      enabled: true,
+      readyCount: 2,
+      selectedCameraIndex: 1,
+      selectedNodeIndex: 2,
+    },
+    selected: {
+      cameraIndex: 1,
+      cameraName: "TightPerspective",
+      yfov: 0.38,
+    },
+  });
+  expect(
+    maxSampleDelta(orbitScreenshot, importedScreenshot),
+    "URL-enabled imported camera should visibly change GLB viewer framing",
   ).toBeGreaterThan(8);
   webGpuValidation.expectNoWarnings();
 });
@@ -3579,7 +4335,7 @@ test("Playwright reports unsupported skinning while rendering the base GLB mesh"
   webGpuValidation.expectNoWarnings();
 });
 
-test("Playwright reports an unsupported orthographic imported camera while rendering with the fitted orbit camera", async ({
+test("Playwright applies a GLB viewer orthographic imported camera", async ({
   page,
 }) => {
   const webGpuValidation = attachWebGpuValidationConsoleGuard(page);
@@ -3610,11 +4366,12 @@ test("Playwright reports an unsupported orthographic imported camera while rende
                 readonly available?: boolean;
                 readonly enabled?: boolean;
               };
-              readonly selected?: unknown;
-              readonly cameras?: readonly {
-                readonly status?: string;
-                readonly reason?: string;
-              }[];
+              readonly selected?: {
+                readonly projection?: string;
+                readonly xmag?: number;
+                readonly ymag?: number;
+                readonly orthographicHeight?: number;
+              } | null;
             };
             readonly extraction?: { readonly meshDraws?: number };
           };
@@ -3625,15 +4382,15 @@ test("Playwright reports an unsupported orthographic imported camera while rende
         (status?.frame ?? 0) >= 3 &&
         status?.selectedAsset?.id === "orthographic-camera" &&
         status.selectedAsset.loading === false &&
-        status.importedCamera?.status === "unsupported" &&
-        status.importedCamera.controls?.available === false &&
+        status.importedCamera?.status === "ready" &&
+        status.importedCamera.controls?.available === true &&
         status.importedCamera.controls.enabled === false &&
-        status.importedCamera.selected === null &&
-        status.importedCamera.cameras?.some(
-          (camera) =>
-            camera.status === "unsupported" &&
-            camera.reason === "orthographic-camera",
-        ) === true &&
+        status.importedCamera.selected?.projection === "orthographic" &&
+        Math.abs((status.importedCamera.selected.xmag ?? 0) - 1.8) < 0.001 &&
+        Math.abs((status.importedCamera.selected.ymag ?? 0) - 1.2) < 0.001 &&
+        Math.abs(
+          (status.importedCamera.selected.orthographicHeight ?? 0) - 2.4,
+        ) < 0.001 &&
         status.extraction?.meshDraws === 1
       );
     },
@@ -3670,16 +4427,36 @@ test("Playwright reports an unsupported orthographic imported camera while rende
       materialFamilies: [{ family: "unlit", count: 1 }],
     },
     importedCamera: {
-      status: "unsupported",
+      status: "ready",
       controls: {
-        available: false,
+        available: true,
         enabled: false,
       },
-      selected: null,
+      selected: {
+        status: "ready",
+        supported: true,
+        nodeIndex: 1,
+        cameraIndex: 0,
+        entityKey: expect.stringMatching(
+          /^viewer-orthographic-camera-\d+:node:1$/,
+        ),
+        name: "UnsupportedOrthoCamera",
+        nodeName: "UnsupportedOrthographicCameraNode",
+        cameraName: "UnsupportedOrthoCamera",
+        projection: "orthographic",
+        xmag: 1.8,
+        ymag: 1.2,
+        aspect: 1.5,
+        orthographicHeight: 2.4,
+        near: 0.1,
+        far: 50,
+        translation: [0, 0.2, 3.2],
+        rotation: [0, 0, 0, 1],
+      },
       cameras: [
         {
-          status: "unsupported",
-          supported: false,
+          status: "ready",
+          supported: true,
           nodeIndex: 1,
           cameraIndex: 0,
           entityKey: expect.stringMatching(
@@ -3689,7 +4466,12 @@ test("Playwright reports an unsupported orthographic imported camera while rende
           nodeName: "UnsupportedOrthographicCameraNode",
           cameraName: "UnsupportedOrthoCamera",
           projection: "orthographic",
-          reason: "orthographic-camera",
+          xmag: 1.8,
+          ymag: 1.2,
+          aspect: 1.5,
+          orthographicHeight: 2.4,
+          near: 0.1,
+          far: 50,
         },
       ],
     },
@@ -3719,10 +4501,63 @@ test("Playwright reports an unsupported orthographic imported camera while rende
   });
   expect(
     pixelDistance(center, clear),
-    `orthographic-camera base mesh should render through the fitted orbit camera; sample=${JSON.stringify(
+    `orthographic-camera base mesh should render through the fitted orbit camera before enabling import; sample=${JSON.stringify(
       center,
     )}`,
   ).toBeGreaterThan(20);
+
+  await page.locator("#glb-imported-camera-toggle").click();
+  await page.waitForFunction(
+    () => {
+      const importedCamera = (
+        globalThis as {
+          readonly __APERTURE_EXAMPLE_STATUS__?: {
+            readonly importedCamera?: {
+              readonly controls?: { readonly enabled?: boolean };
+              readonly selected?: {
+                readonly projection?: string;
+                readonly orthographicHeight?: number;
+              } | null;
+            };
+          };
+        }
+      ).__APERTURE_EXAMPLE_STATUS__?.importedCamera;
+
+      return (
+        importedCamera?.controls?.enabled === true &&
+        importedCamera.selected?.projection === "orthographic" &&
+        Math.abs((importedCamera.selected.orthographicHeight ?? 0) - 2.4) <
+          0.001
+      );
+    },
+    undefined,
+    { timeout: 3000 },
+  );
+  const importedStatus = await waitForExampleStatus<GlbViewerStatus>(page);
+  const importedScreenshot = await page
+    .locator("#aperture-canvas")
+    .screenshot();
+
+  expect(importedStatus?.importedCamera).toMatchObject({
+    status: "ready",
+    controls: {
+      available: true,
+      enabled: true,
+    },
+    selected: {
+      projection: "orthographic",
+      xmag: 1.8,
+      ymag: 1.2,
+      aspect: 1.5,
+      orthographicHeight: 2.4,
+      near: 0.1,
+      far: 50,
+    },
+  });
+  expect(
+    maxSampleDelta(screenshot, importedScreenshot),
+    "enabling the orthographic imported camera should visibly change GLB viewer framing",
+  ).toBeGreaterThan(8);
   webGpuValidation.expectNoWarnings();
 });
 
@@ -9380,6 +10215,169 @@ test("Playwright renders the GLB viewer normal-mapped sample", async ({
   webGpuValidation.expectNoWarnings();
 });
 
+test("Playwright renders GLB viewer normal maps with generated tangents", async ({
+  page,
+}) => {
+  const webGpuValidation = attachWebGpuValidationConsoleGuard(page);
+
+  const status = await loadNormalMapViewerSample(
+    page,
+    "normal-map-missing-tangent",
+  );
+  const screenshot = await page.locator("#aperture-canvas").screenshot();
+  const clear =
+    status.clearColor === undefined
+      ? { r: 4, g: 6, b: 9, a: 255 }
+      : rgbaColorToPixel(status.clearColor);
+  const normalA = readPngPixel(screenshot, 0.38, 0.46);
+  const normalB = readPngPixel(screenshot, 0.46, 0.58);
+  const flatA = readPngPixel(screenshot, 0.56, 0.46);
+  const flatB = readPngPixel(screenshot, 0.64, 0.58);
+
+  expectStatusJsonSafeForGpu(status);
+  expect(status).toMatchObject({
+    selectedAsset: {
+      id: "normal-map-missing-tangent",
+      label: "Normal map generated tangents",
+      source: "sample",
+      url: "/examples/assets/normal-map-missing-tangent.glb",
+      loading: false,
+      materialFamilies: [{ family: "standard", count: 2 }],
+    },
+    source: {
+      ok: true,
+      outputSummary: {
+        meshConstruction: {
+          status: "ready",
+          meshCount: 2,
+          submeshCount: 2,
+          vertexCount: 8,
+          indexCount: 12,
+          diagnosticsCount: 1,
+        },
+      },
+    },
+    gltf: {
+      primitiveMaterials: {
+        valid: true,
+        resolved: 2,
+        diagnostics: 0,
+        resolutions: [
+          {
+            meshIndex: 0,
+            primitiveIndex: 0,
+            family: "standard",
+            pipelineKey: "standard|normalTexture|opaque|back|less|none",
+            textureSlots: {
+              normalTexture: {
+                texCoord: 0,
+                hasTransform: false,
+              },
+            },
+          },
+          {
+            meshIndex: 0,
+            primitiveIndex: 1,
+            family: "standard",
+            pipelineKey: "standard|opaque|back|less|none",
+            textureSlots: {
+              normalTexture: null,
+            },
+          },
+        ],
+      },
+      meshAttributes: [
+        {
+          meshIndex: 0,
+          primitiveIndex: 0,
+          tangentPath: {
+            status: "generated",
+            path: "generated-mesh-attribute",
+            reason: "normalTexture",
+            diagnosticCode: "gltfMeshAsset.generatedTangents",
+          },
+          streams: [
+            {
+              arrayStride: 48,
+              vertexCount: 4,
+              attributes: expect.arrayContaining([
+                { semantic: "POSITION", format: "float32x3", offset: 0 },
+                { semantic: "NORMAL", format: "float32x3", offset: 12 },
+                { semantic: "TEXCOORD_0", format: "float32x2", offset: 24 },
+                { semantic: "TANGENT", format: "float32x4", offset: 32 },
+              ]),
+            },
+          ],
+        },
+        {
+          meshIndex: 0,
+          primitiveIndex: 1,
+          tangentPath: {
+            status: "absent",
+            path: null,
+            reason: null,
+            diagnosticCode: null,
+          },
+          streams: [
+            {
+              arrayStride: 32,
+              vertexCount: 4,
+              attributes: expect.not.arrayContaining([
+                expect.objectContaining({ semantic: "TANGENT" }),
+              ]),
+            },
+          ],
+        },
+      ],
+      replay: { valid: true, diagnostics: 0 },
+    },
+    extraction: {
+      meshDraws: 2,
+      diagnostics: 0,
+    },
+    renderState: {
+      pipelineKeys: expect.arrayContaining([
+        "standard|normalTexture|opaque|back|less|none",
+        "standard|opaque|back|less|none",
+      ]),
+      draws: expect.arrayContaining([
+        expect.objectContaining({
+          pipelineKey: "standard|normalTexture|opaque|back|less|none",
+          meshLayoutKey: "POSITION,NORMAL,TEXCOORD_0,TANGENT",
+        }),
+        expect.objectContaining({
+          pipelineKey: "standard|opaque|back|less|none",
+          meshLayoutKey: "POSITION,NORMAL,TEXCOORD_0",
+        }),
+      ]),
+    },
+    draw: {
+      drawCalls: 2,
+    },
+  });
+  expect(
+    pixelDistance(normalA, clear),
+    `generated-tangent normal-map region should render visible pixels; sample=${JSON.stringify(
+      normalA,
+    )}`,
+  ).toBeGreaterThan(20);
+  expect(
+    pixelDistance(flatA, clear),
+    `flat control region should render visible pixels; sample=${JSON.stringify(
+      flatA,
+    )}`,
+  ).toBeGreaterThan(20);
+  expect(
+    pixelDistance(normalA, normalB),
+    "generated-tangent normal-mapped region should show non-flat lighting variation",
+  ).toBeGreaterThan(8);
+  expect(
+    pixelDistance(normalA, flatA) + pixelDistance(normalB, flatB),
+    "generated-tangent normal-mapped primitive should differ from the scalar material control",
+  ).toBeGreaterThan(20);
+  webGpuValidation.expectNoWarnings();
+});
+
 test("Playwright renders a GLB viewer normal-scale texture sample", async ({
   page,
 }) => {
@@ -11659,14 +12657,6 @@ test("Playwright renders GLB viewer unsupported-feature summary rows", async ({
   );
 
   await waitForUnsupportedSample({
-    assetId: "orthographic-camera",
-    code: "glbViewer.unsupportedImportedCamera",
-  });
-  await expect(
-    unsupportedRow("glbViewer.unsupportedImportedCamera"),
-  ).toContainText("orthographic, orthographic-camera");
-
-  await waitForUnsupportedSample({
     assetId: "unsupported-primitive",
     code: "gltfMesh.unsupportedPrimitiveMode",
   });
@@ -12514,7 +13504,7 @@ test("Playwright renders GLB viewer imported-camera list rows", async ({
   await page.locator("#glb-asset-select").selectOption("orthographic-camera");
   const orthographicStatus = await waitForCameraListRows({
     id: "orthographic-camera",
-    status: "unsupported",
+    status: "ready",
     cameraCount: 1,
   });
   const orthographicCamera = orthographicStatus.importedCamera?.cameras[0];
@@ -17955,8 +18945,11 @@ async function loadRoughnessIblViewerSample(
   return status;
 }
 
-async function loadNormalMapViewerSample(page: Page): Promise<GlbViewerStatus> {
-  await page.goto("/examples/glb-viewer.html?asset=normal-map");
+async function loadNormalMapViewerSample(
+  page: Page,
+  assetId = "normal-map",
+): Promise<GlbViewerStatus> {
+  await page.goto(`/examples/glb-viewer.html?asset=${assetId}`);
   const initialStatus = await waitForExampleStatus<GlbViewerStatus>(page);
 
   expect(initialStatus, "GLB viewer status should publish").toBeDefined();
@@ -17967,7 +18960,7 @@ async function loadNormalMapViewerSample(page: Page): Promise<GlbViewerStatus> {
 
   skipIfUnsupportedWebGpu(initialStatus);
   await page.waitForFunction(
-    () => {
+    (expectedAssetId) => {
       const status = (
         globalThis as {
           readonly __APERTURE_EXAMPLE_STATUS__?: {
@@ -17999,7 +18992,7 @@ async function loadNormalMapViewerSample(page: Page): Promise<GlbViewerStatus> {
 
       return (
         (status?.frame ?? 0) >= 3 &&
-        status?.selectedAsset?.id === "normal-map" &&
+        status?.selectedAsset?.id === expectedAssetId &&
         status.selectedAsset.loading === false &&
         status.source?.ok === true &&
         status.gltf?.primitiveMaterials?.resolved === 2 &&
@@ -18012,7 +19005,7 @@ async function loadNormalMapViewerSample(page: Page): Promise<GlbViewerStatus> {
         ) === true
       );
     },
-    undefined,
+    assetId,
     { timeout: 5000 },
   );
 

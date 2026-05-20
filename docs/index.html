@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-20 14:00 UTC</dd>
+            <dd>2026-05-20 15:10 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -418,38 +418,37 @@
               real-URI gallery previous/next buttons, URL-persisted sample
               selection, and stale custom image-decode clearing when switching
               back to committed samples. The GLB viewer now includes unsupported
-              morph-target, skinning, orthographic-camera, primitive-mode,
-              CUBICSPLINE animation, and multi-scene samples that keep supported
-              base meshes rendering while reporting JSON-safe diagnostics and
-              scene metadata. It also includes real same-origin PNG/JPEG
-              base-color, PNG normal-map, PNG emissive, PNG metallic-roughness,
-              PNG alpha-mask, and PNG occlusion URI image decode, all-slot real
-              URI texture coverage, occlusion and metallic-roughness transform
-              controls, sampler wrap controls, UV1 image-decode controls,
-              alpha-mask plus emissive controls, normal plus occlusion controls,
-              alpha-blend texture, selector stress coverage across real URI
-              samples, selected-asset material-slot summary counts, keyboard
-              previous/next navigation across the real URI texture gallery,
-              rotated metallic-roughness transform, transformed-vs-untransformed
-              normal and emissive controls, emissive StandardMaterial,
-              occlusion/emissive texture, occlusion texture-transform, normal
-              transform, emissive transform, alpha-mask, sampler-state texture,
-              texture-transform, missing-UV1, supported base-color UV1,
-              metallic-roughness UV1, and normal-scale samples with routed
-              material, texture, sampler, transform/control, alpha, UV1,
-              image-decode, and sanitized extraction-diagnostic status. Existing
-              roughness/IBL, normal-map, and base-color plus metallic-roughness
-              StandardMaterial samples keep JSON-safe factor and texture-slot
-              status. GLB mesh construction now preserves
+              morph-target, skinning, primitive-mode, CUBICSPLINE animation, and
+              multi-scene samples that keep supported base meshes rendering
+              while reporting JSON-safe diagnostics and scene metadata. It also
+              includes real same-origin PNG/JPEG base-color, PNG normal-map, PNG
+              emissive, PNG metallic-roughness, PNG alpha-mask, and PNG
+              occlusion URI image decode, all-slot real URI texture coverage,
+              occlusion and metallic-roughness transform controls, sampler wrap
+              controls, UV1 image-decode controls, alpha-mask plus emissive
+              controls, normal plus occlusion controls, alpha-blend texture,
+              selector stress coverage across real URI samples, selected-asset
+              material-slot summary counts, keyboard previous/next navigation
+              across the real URI texture gallery, rotated metallic-roughness
+              transform, transformed-vs-untransformed normal and emissive
+              controls, emissive StandardMaterial, occlusion/emissive texture,
+              occlusion texture-transform, normal transform, emissive transform,
+              alpha-mask, sampler-state texture, texture-transform, missing-UV1,
+              supported base-color UV1, metallic-roughness UV1, and normal-scale
+              samples with routed material, texture, sampler, transform/control,
+              alpha, UV1, image-decode, and sanitized extraction-diagnostic
+              status. Existing roughness/IBL, normal-map, and base-color plus
+              metallic-roughness StandardMaterial samples keep JSON-safe factor
+              and texture-slot status. GLB mesh construction now preserves
               <code>TEXCOORD_1</code> alongside tangent attributes for texture
               routing and normal mapping, and animation playback now has speed,
               clip-selection, loop, reverse, rotation/scale, and STEP
               interpolation coverage that change the example animation clock
               while continuing to write replayed ECS
               <code>LocalTransform</code> values. The viewer can now switch to a
-              parsed glTF perspective camera by mutating the same ECS camera
-              transform/projection state, and now includes a GLB sample whose
-              base-color image comes from an embedded image
+              parsed glTF perspective or orthographic camera by mutating the
+              same ECS camera transform/projection state, and now includes a GLB
+              sample whose base-color image comes from an embedded image
               <code>bufferView</code>. It now also replays
               <code>KHR_lights_punctual</code> point-light nodes as ECS-authored
               light components. Existing shadow, IBL, query, metadata, and
@@ -1003,18 +1002,33 @@
               now also renders a committed vertex-color GLB sample through an
               unlit built-in shader variant selected from the extracted
               <code>COLOR_0</code> mesh layout, with JSON-safe mesh attribute
-              and material route status. It publishes JSON-safe GLB metadata
-              counts and unsupported-feature diagnostics, supports
+              and material route status. Normal-mapped GLB primitives that omit
+              authored tangents now get renderer-independent generated
+              <code>TANGENT</code> attributes when the source material needs a
+              normal texture, and the viewer publishes which tangent path was
+              used. Imported glTF camera support now includes a compact
+              multi-camera selector that switches the selected ECS camera
+              transform/projection while preserving the existing imported-camera
+              toggle gate; URL parameters can now seed the selected imported
+              camera and opt into imported-camera mode for direct deep links. It
+              now also renders a committed GLB sample that combines
+              <code>COLOR_0</code> vertex colors with an unlit base-color
+              texture, using a combined WebGPU shader variant that multiplies
+              factor, texture, and vertex color. StandardMaterial now also has a
+              scalar vertex-color route for lit GLB meshes that include
+              <code>COLOR_0</code>. Imported orthographic cameras are now
+              supported by translating glTF <code>xmag</code>/<code>ymag</code>
+              into ECS-authored <code>aspect</code> and
+              <code>orthographicHeight</code>, with browser proof that the
+              imported camera changes framing. It publishes JSON-safe GLB
+              metadata counts and unsupported-feature diagnostics, supports
               <code>?asset=</code>
               sample bootstrapping with invalid-ID fallback diagnostics, and the
               StandardMaterial route now scopes material bind groups by pipeline
               key so live route changes do not reuse incompatible layouts.
             </dd>
             <dt>Next focus</dt>
-            <dd>
-              Generate or route tangents for normal-mapped GLB assets that omit
-              authored tangent data
-            </dd>
+            <dd>Route normal maps through TEXCOORD_1</dd>
           </dl>
         </aside>
       </header>
@@ -1597,6 +1611,44 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">task-2149</span> Promoted the
+                orthographic-camera GLB sample to a supported imported-camera
+                path by translating glTF <code>xmag</code>/<code>ymag</code>
+                into ECS <code>aspect</code> plus
+                <code>orthographicHeight</code>.
+              </li>
+              <li>
+                <span class="badge green">task-2148</span> Added a
+                StandardMaterial vertex-color route and committed lit GLB viewer
+                sample that multiplies <code>COLOR_0</code> into the scalar base
+                color path.
+              </li>
+              <li>
+                <span class="badge green">task-2147</span> Added a textured
+                unlit vertex-color shader route and a committed GLB viewer
+                sample that multiplies base-color factor, texture color, and
+                <code>COLOR_0</code>.
+              </li>
+              <li>
+                <span class="badge green">task-2146</span> Added URL
+                bootstrapping for the GLB viewer imported-camera selector:
+                <code>camera=</code> seeds selection and
+                <code>imported-camera=1</code> starts in imported-camera mode
+                when supported.
+              </li>
+              <li>
+                <span class="badge green">task-2145</span> Added a committed
+                multi-camera GLB sample and an imported-camera selector that
+                changes the selected ECS camera transform/projection without
+                bypassing the existing imported-camera toggle.
+              </li>
+              <li>
+                <span class="badge green">task-2144</span> Added opt-in tangent
+                generation for normal-mapped GLB primitives that omit authored
+                tangents, plus JSON-safe tangent-path status and browser pixel
+                proof.
+              </li>
               <li>
                 <span class="badge green">task-2143</span> Added
                 <code>COLOR_0</code> glTF mesh preservation, an unlit
@@ -3581,19 +3633,17 @@
             <h3>Recommended next tasks</h3>
             <ul>
               <li>
-                <span class="badge amber">next</span> Add GLB viewer
-                texture-sampler detail rows.
+                <span class="badge amber">next</span> Route normal maps through
+                <code>TEXCOORD_1</code> in the GLB viewer.
               </li>
               <li>
-                Use existing JSON-safe
-                <code
-                  >gltf.primitiveMaterials.resolutions[].textureSlots.*.sampler</code
-                >
-                status for compact texture-sampler rows.
+                Add a committed StandardMaterial GLB sample whose
+                <code>normalTexture.texCoord</code> points at
+                <code>TEXCOORD_1</code>.
               </li>
               <li>
-                Verify rows across sampler wrap controls, all-slot URI textures,
-                and scalar-only cube.
+                Verify JSON-safe texCoord-1 texture-slot status and visible
+                pixels against a texCoord-0 or scalar control.
               </li>
             </ul>
           </article>
@@ -3606,6 +3656,62 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-2149</div>
+            <div>
+              <strong>Imported orthographic cameras are supported.</strong>
+              <span
+                >The GLB viewer now applies glTF orthographic camera
+                <code>xmag</code>/<code>ymag</code> through ECS-authored camera
+                state, with JSON-safe status and browser framing proof.</span
+              >
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="task-id">task-2148</div>
+            <div>
+              <strong>StandardMaterial vertex colors render.</strong>
+              <span
+                >Lit StandardMaterial meshes can now consume
+                <code>COLOR_0</code> in the scalar base-color path, with a
+                committed GLB viewer sample and browser pixel proof.</span
+              >
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="task-id">task-2147</div>
+            <div>
+              <strong>Textured unlit vertex colors render.</strong>
+              <span
+                >The unlit WebGPU route now combines base-color textures with
+                <code>COLOR_0</code> vertex colors, backed by a committed GLB
+                viewer sample and browser pixel proof.</span
+              >
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="task-id">task-2146</div>
+            <div>
+              <strong>Imported-camera deep links added.</strong>
+              <span
+                >GLB viewer URLs can seed the selected imported camera and opt
+                into imported-camera mode while preserving the existing manual
+                toggle semantics.</span
+              >
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="task-id">task-2144-2145</div>
+            <div>
+              <strong>GLB normal-map and camera fidelity improved.</strong>
+              <span
+                >Missing-tangent normal-map primitives now receive generated
+                mesh tangents when needed, and multi-camera GLB assets can
+                switch between imported perspective cameras through the
+                ECS-authored camera path.</span
+              >
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-2115-2129</div>
             <div>

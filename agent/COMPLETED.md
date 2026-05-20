@@ -1,5 +1,31 @@
 # Completed Tasks
 
+## task-2149 — Supported imported orthographic cameras in GLB viewer
+
+Completed: 2026-05-20
+
+Summary:
+
+- Promoted the existing `orthographic-camera` GLB sample from an
+  unsupported-feature-only diagnostic to a ready imported-camera path.
+- Translated glTF orthographic `xmag`/`ymag` into Aperture ECS camera
+  `aspect` plus `orthographicHeight`, preserving the ECS-authored camera
+  transform/projection boundary used by perspective imports.
+- Updated the GLB viewer status and summary/list rows so orthographic cameras
+  publish JSON-safe ready descriptors instead of unsupported rows.
+
+References inspected:
+
+- `references/bevy/crates/bevy_gltf/src/loader/mod.rs`
+- `references/bevy/crates/bevy_render/src/camera.rs`
+- `references/three.js/examples/jsm/loaders/GLTFLoader.js`
+
+Validation:
+
+- `node --check examples/glb-viewer.js`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts --grep "orthographic imported camera|unsupported-feature summary rows|imported-camera list rows"` (3 passed)
+
 ## task-2130 through task-2134 — GLB viewer texture, alpha, resource, and diagnostic rows
 
 Completed: 2026-05-20
@@ -22644,3 +22670,120 @@ Validation:
 - `pnpm exec playwright test test/e2e/glb-viewer.spec.ts --grep "vertex colors"`
 - `pnpm run build`
 - `pnpm exec tsc --noEmit -p tsconfig.test.json`
+
+## task-2144 — Generate or route tangents for missing-tangent normal maps
+
+Completed: 2026-05-20
+
+Summary:
+
+- Added opt-in renderer-independent tangent generation during glTF mesh asset
+  construction for primitives whose source material uses a normal texture but
+  whose mesh omits authored `TANGENT` data.
+- Threaded normal-texture material inspection through the report-driven GLB
+  viewer import path so scalar/control primitives remain untouched.
+- Published JSON-safe tangent-path status for authored, generated, skipped, and
+  absent cases, including generation diagnostics.
+- Added `examples/assets/normal-map-missing-tangent.glb` and a GLB viewer sample
+  proving generated tangents keep normal-map rendering visible.
+
+Validation:
+
+- `node --check examples/glb-viewer.js`
+- `pnpm exec vitest run test/assets/gltf-mesh-asset-construction.test.ts test/assets/gltf-report-driven-import.test.ts`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts --grep "generated tangents"`
+
+## task-2145 — Add GLB viewer imported-camera selection
+
+Completed: 2026-05-20
+
+Summary:
+
+- Added `examples/assets/multi-camera.glb`, with two perspective cameras aimed
+  at the same scene using different fields of view.
+- Added a compact imported-camera selector to the GLB viewer camera controls.
+  It changes the selected imported camera while preserving the existing
+  imported-camera toggle as the explicit gate for applying that ECS-authored
+  camera.
+- Published JSON-safe imported-camera control status for ready camera count,
+  selected camera index, and selected node index.
+- Added Playwright coverage proving selector options, selected-camera status,
+  toggle behavior, and visible framing differences between cameras.
+
+Validation:
+
+- `node --check examples/glb-viewer.js`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts --grep "imported cameras"`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts --grep "fetched sample GLB viewer asset|generated tangents|imported cameras"`
+
+## task-2146 — Add GLB viewer imported-camera URL bootstrap
+
+Completed: 2026-05-20
+
+Summary:
+
+- Added one-shot URL bootstrapping for imported-camera controls:
+  `camera=<index>` seeds the selected imported camera, while
+  `imported-camera=1` starts in imported-camera mode when a supported camera is
+  available.
+- Kept the imported-camera toggle as the explicit view gate. A `camera=1` URL
+  selects the camera but still renders the orbit camera until the URL or user
+  enables imported-camera mode.
+- Cleared stale `camera` and `imported-camera` query parameters when users pick
+  a sample manually from the asset selector.
+- Added Playwright coverage for selector state, toggle state, JSON-safe selected
+  camera status, and visible deep-linked camera framing.
+
+Validation:
+
+- `node --check examples/glb-viewer.js`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts --grep "imported camera from URL|imported cameras"`
+
+## task-2147 — Render textured unlit vertex colors
+
+Completed: 2026-05-20
+
+Summary:
+
+- Added a combined unlit WebGPU shader variant for meshes whose material route
+  needs `baseColorTexture` and whose extracted mesh layout includes `COLOR_0`.
+- The combined variant multiplies base-color factor, sampled base-color
+  texture, and vertex color while reusing the existing textured material bind
+  group layout and the existing 48-byte vertex-color buffer layout.
+- Added `examples/assets/textured-vertex-color.glb`, a committed GLB sample that
+  combines an external base-color PNG URI with `COLOR_0`.
+- Added GLB viewer Playwright coverage proving JSON-safe texture/material/mesh
+  status, the combined pipeline key, and visibly different textured
+  vertex-color regions.
+
+Validation:
+
+- `node --check examples/glb-viewer.js`
+- `pnpm exec vitest run test/webgpu/unlit-pipeline.test.ts test/webgpu/unlit-pipeline-descriptor.test.ts`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts --grep "textured vertex colors"`
+
+## task-2148 — Render StandardMaterial vertex colors
+
+Completed: 2026-05-20
+
+Summary:
+
+- Added a StandardMaterial shader feature for `COLOR_0` mesh layouts that
+  multiplies vertex color into the base color and alpha path.
+- Added a StandardMaterial vertex-color vertex buffer layout for scalar
+  StandardMaterial meshes with `POSITION,NORMAL,TEXCOORD_0,COLOR_0`.
+- Added `examples/assets/standard-vertex-color.glb`, a committed lit
+  StandardMaterial GLB sample using vertex colors.
+- Added unit and Playwright coverage proving the StandardMaterial variant,
+  vertex layout, JSON-safe mesh/material status, and visible lit vertex-color
+  pixels.
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/standard-pipeline.test.ts test/webgpu/standard-pipeline-descriptor.test.ts`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts --grep "StandardMaterial route"`

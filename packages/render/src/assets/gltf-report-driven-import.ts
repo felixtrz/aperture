@@ -46,6 +46,7 @@ import {
   gltfMeshAssetConstructionReportToJsonValue,
   type GltfMeshAssetConstructionReport,
   type GltfMeshAssetConstructionReportJsonValue,
+  type GltfMeshAssetTangentGenerationRequest,
 } from "./gltf-mesh-asset-construction.js";
 import {
   parseGlbContainer,
@@ -446,6 +447,10 @@ function createMeshReports(options: GltfReportDrivenImportOptions): {
   });
   const meshConstruction = createMeshAssetsFromGltfDecodedAccessors({
     decodedReport: accessorDecoding,
+    generateMissingTangentsFor: createMissingTangentGenerationRequests(
+      options.root,
+      meshPrimitive,
+    ),
   });
 
   return {
@@ -454,6 +459,43 @@ function createMeshReports(options: GltfReportDrivenImportOptions): {
     accessorDecoding,
     meshConstruction,
   };
+}
+
+function createMissingTangentGenerationRequests(
+  root: unknown,
+  meshPrimitive: GltfMeshPrimitiveMappingReport,
+): readonly GltfMeshAssetTangentGenerationRequest[] {
+  if (!isRecord(root) || !Array.isArray(root.materials)) {
+    return [];
+  }
+
+  const requests: GltfMeshAssetTangentGenerationRequest[] = [];
+
+  for (const mesh of meshPrimitive.meshes) {
+    if (
+      mesh.materialIndex === null ||
+      !gltfMaterialNeedsTangents(root.materials, mesh.materialIndex)
+    ) {
+      continue;
+    }
+
+    requests.push({
+      meshIndex: mesh.meshIndex,
+      primitiveIndex: mesh.primitiveIndex,
+      reason: "normalTexture",
+    });
+  }
+
+  return requests;
+}
+
+function gltfMaterialNeedsTangents(
+  materials: readonly unknown[],
+  materialIndex: number,
+): boolean {
+  const material = materials[materialIndex];
+
+  return isRecord(material) && isRecord(material.normalTexture);
 }
 
 function resolvedExternalBufferByteLengths(

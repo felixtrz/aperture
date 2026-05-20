@@ -48,6 +48,17 @@ export const STANDARD_TEXCOORD1_PRIMITIVE_VERTEX_BUFFER_LAYOUT = {
   ],
 } as const;
 
+export const STANDARD_VERTEX_COLOR_PRIMITIVE_VERTEX_BUFFER_LAYOUT = {
+  arrayStride: 48,
+  stepMode: "vertex",
+  attributes: [
+    { shaderLocation: 0, offset: 0, format: "float32x3" },
+    { shaderLocation: 1, offset: 12, format: "float32x3" },
+    { shaderLocation: 2, offset: 24, format: "float32x2" },
+    { shaderLocation: 5, offset: 32, format: "float32x4" },
+  ],
+} as const;
+
 export const STANDARD_TANGENT_TEXCOORD1_PRIMITIVE_VERTEX_BUFFER_LAYOUT = {
   arrayStride: 56,
   stepMode: "vertex",
@@ -257,11 +268,13 @@ function standardPrimitiveVertexBufferLayout(
   | typeof UNLIT_PRIMITIVE_VERTEX_BUFFER_LAYOUT
   | typeof STANDARD_TANGENT_PRIMITIVE_VERTEX_BUFFER_LAYOUT
   | typeof STANDARD_TEXCOORD1_PRIMITIVE_VERTEX_BUFFER_LAYOUT
+  | typeof STANDARD_VERTEX_COLOR_PRIMITIVE_VERTEX_BUFFER_LAYOUT
   | typeof STANDARD_TANGENT_TEXCOORD1_PRIMITIVE_VERTEX_BUFFER_LAYOUT {
   const needsTangents = shader.bindings.some(
     (binding) => binding.id === "normalTexture",
   );
   const needsTexCoord1 = shader.code.includes("@location(4) uv1: vec2f");
+  const needsVertexColor = shader.code.includes("@location(5) color: vec4f");
 
   if (needsTangents && needsTexCoord1) {
     return STANDARD_TANGENT_TEXCOORD1_PRIMITIVE_VERTEX_BUFFER_LAYOUT;
@@ -273,6 +286,10 @@ function standardPrimitiveVertexBufferLayout(
 
   if (needsTexCoord1) {
     return STANDARD_TEXCOORD1_PRIMITIVE_VERTEX_BUFFER_LAYOUT;
+  }
+
+  if (needsVertexColor) {
+    return STANDARD_VERTEX_COLOR_PRIMITIVE_VERTEX_BUFFER_LAYOUT;
   }
 
   return UNLIT_PRIMITIVE_VERTEX_BUFFER_LAYOUT;

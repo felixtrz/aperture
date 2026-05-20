@@ -3,6 +3,7 @@ import type { BatchCompatibilityKey } from "@aperture-engine/render";
 import {
   UNLIT_MESH_SHADER,
   UNLIT_TEXTURED_MESH_SHADER,
+  UNLIT_TEXTURED_VERTEX_COLOR_MESH_SHADER,
   UNLIT_VERTEX_COLOR_MESH_SHADER,
   validateBuiltInShaderMetadata,
   type BuiltInShaderSourceModule,
@@ -22,6 +23,7 @@ import {
 
 export const UNLIT_BASE_COLOR_TEXTURE_FEATURE = "baseColorTexture";
 export const UNLIT_VERTEX_COLOR_FEATURE = "vertexColor";
+export const UNLIT_TEXTURED_VERTEX_COLOR_FEATURE = `${UNLIT_BASE_COLOR_TEXTURE_FEATURE}+${UNLIT_VERTEX_COLOR_FEATURE}`;
 
 export type UnlitPipelineDescriptorDiagnosticCode =
   | "unlitPipeline.missingShaderMetadata"
@@ -197,6 +199,13 @@ export function resolveUnlitShaderForBatchKey(
     return shader;
   }
 
+  if (
+    hasBaseColorTextureFeature(batchKey) &&
+    hasUnlitVertexColorFeature(batchKey)
+  ) {
+    return UNLIT_TEXTURED_VERTEX_COLOR_MESH_SHADER;
+  }
+
   if (hasBaseColorTextureFeature(batchKey)) {
     return UNLIT_TEXTURED_MESH_SHADER;
   }
@@ -221,7 +230,9 @@ function unlitShaderVariantKey(
   batchKey: Partial<BatchCompatibilityKey> | null,
 ): string {
   if (hasBaseColorTextureFeature(batchKey)) {
-    return UNLIT_BASE_COLOR_TEXTURE_FEATURE;
+    return hasUnlitVertexColorFeature(batchKey)
+      ? UNLIT_TEXTURED_VERTEX_COLOR_FEATURE
+      : UNLIT_BASE_COLOR_TEXTURE_FEATURE;
   }
 
   return hasUnlitVertexColorFeature(batchKey)

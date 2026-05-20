@@ -289,6 +289,9 @@ function standardTextureFeatures(
     iblDiffuse: tokens.includes("iblDiffuse"),
     iblSpecularProof: tokens.includes("iblSpecularProof"),
     texCoord1: tokens.includes("uv1"),
+    vertexColor:
+      typeof batchKey?.meshLayoutKey === "string" &&
+      batchKey.meshLayoutKey.split(",").includes("COLOR_0"),
   };
 }
 
@@ -303,6 +306,10 @@ function standardVertexBufferSemantics(
 
   if (features.texCoord1 === true) {
     semantics.push("TEXCOORD_1");
+  }
+
+  if (features.vertexColor === true) {
+    semantics.push("COLOR_0");
   }
 
   return semantics;

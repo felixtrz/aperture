@@ -5,6 +5,7 @@ import {
   STANDARD_MESH_WGSL,
   STANDARD_TANGENT_PRIMITIVE_VERTEX_BUFFER_LAYOUT,
   STANDARD_TEXCOORD1_PRIMITIVE_VERTEX_BUFFER_LAYOUT,
+  STANDARD_VERTEX_COLOR_PRIMITIVE_VERTEX_BUFFER_LAYOUT,
   UNLIT_PRIMITIVE_VERTEX_BUFFER_LAYOUT,
   createBrowserStandardRenderPipelineDescriptor,
   createStandardRenderPipelineResource,
@@ -120,6 +121,31 @@ describe("browser standard material pipeline bridge", () => {
       module: shaderModule,
       entryPoint: "vs_main",
       buffers: [STANDARD_TEXCOORD1_PRIMITIVE_VERTEX_BUFFER_LAYOUT],
+    });
+  });
+
+  it("uses a vertex-color primitive vertex layout for COLOR_0 standard shaders", () => {
+    const shaderModule = {
+      compilationInfo: async () => ({ messages: [] }),
+    };
+    const shader = createStandardTextureVariantShader({
+      baseColorTexture: false,
+      metallicRoughnessTexture: false,
+      normalTexture: false,
+      occlusionTexture: false,
+      emissiveTexture: false,
+      vertexColor: true,
+    });
+    const descriptor = createBrowserStandardRenderPipelineDescriptor({
+      shader,
+      shaderModule,
+      colorFormat: "bgra8unorm",
+    });
+
+    expect(descriptor.vertex).toMatchObject({
+      module: shaderModule,
+      entryPoint: "vs_main",
+      buffers: [STANDARD_VERTEX_COLOR_PRIMITIVE_VERTEX_BUFFER_LAYOUT],
     });
   });
 

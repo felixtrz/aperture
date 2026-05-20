@@ -8,6 +8,9 @@ const textureGalleryNextButton = document.querySelector("#glb-gallery-next");
 const customUrlForm = document.querySelector("#glb-url-form");
 const customUrlInput = document.querySelector("#glb-url-input");
 const cameraResetButton = document.querySelector("#glb-camera-reset");
+const importedCameraSelect = document.querySelector(
+  "#glb-imported-camera-select",
+);
 const importedCameraToggle = document.querySelector(
   "#glb-imported-camera-toggle",
 );
@@ -204,6 +207,15 @@ const sampleAssets = [
     source: "sample",
   },
   {
+    id: "normal-map-missing-tangent",
+    label: "Normal map generated tangents",
+    url: new URL(
+      "./assets/normal-map-missing-tangent.glb",
+      globalThis.location.href,
+    ),
+    source: "sample",
+  },
+  {
     id: "normal-scale",
     label: "Normal scale",
     url: new URL("./assets/normal-scale.glb", globalThis.location.href),
@@ -313,9 +325,33 @@ const sampleAssets = [
     source: "sample",
   },
   {
+    id: "textured-vertex-color",
+    label: "Textured vertex color",
+    url: new URL(
+      "./assets/textured-vertex-color.glb",
+      globalThis.location.href,
+    ),
+    source: "sample",
+  },
+  {
+    id: "standard-vertex-color",
+    label: "Standard vertex color",
+    url: new URL(
+      "./assets/standard-vertex-color.glb",
+      globalThis.location.href,
+    ),
+    source: "sample",
+  },
+  {
     id: "imported-camera",
     label: "Imported camera",
     url: new URL("./assets/imported-camera.glb", globalThis.location.href),
+    source: "sample",
+  },
+  {
+    id: "multi-camera",
+    label: "Imported cameras",
+    url: new URL("./assets/multi-camera.glb", globalThis.location.href),
     source: "sample",
   },
   {
@@ -665,8 +701,11 @@ const importedCameraSummaryRows = [
   },
   {
     key: "fov",
-    label: "fov",
-    value: (importedCamera) => String(importedCamera.selected.yfov),
+    label: "fov/height",
+    value: (importedCamera) =>
+      importedCamera.selected.projection === "orthographic"
+        ? String(importedCamera.selected.orthographicHeight)
+        : String(importedCamera.selected.yfov),
   },
   {
     key: "range",
@@ -678,7 +717,7 @@ const importedCameraSummaryRows = [
     key: "aspect",
     label: "aspect",
     value: (importedCamera) =>
-      String(Number(importedCamera.selected.aspect.toFixed(3))),
+      String(Number((importedCamera.selected.aspect ?? 0).toFixed(3))),
   },
 ];
 const lightingSummaryRows = [
@@ -1113,6 +1152,7 @@ function createGlbViewerScene(aperture, app, targetCanvas) {
   const orbit = createOrbitControls(targetCanvas);
   const initialCustomUrl = readInitialCustomUrl();
   const initialSampleSelection = readInitialSampleSelection();
+  const initialImportedCameraControls = readInitialImportedCameraControls();
   const cameraEntity = app.spawn(
     aperture.withTransform({ translation: [0, 0, 3.4] }),
     aperture.withCamera({
@@ -1156,7 +1196,10 @@ function createGlbViewerScene(aperture, app, targetCanvas) {
     active: null,
     targetCanvas,
     orbit,
-    cameraControls: { importedEnabled: false },
+    cameraControls: {
+      importedEnabled: false,
+      bootstrap: initialImportedCameraControls,
+    },
     cameraEntity,
     ambientLightEntity,
     pointLightEntity,
@@ -1571,6 +1614,7 @@ async function loadAsset(aperture, app, scene, asset, options = {}) {
     keyPrefix,
     targetCanvas: scene.targetCanvas,
   });
+  applyImportedCameraBootstrap(scene, importedCamera);
   const importedLights = createImportedLightsState({
     aperture,
     root: loaded.root,
@@ -3350,6 +3394,29 @@ function setShadowReceiverComponent(aperture, entity, enabled) {
 }
 
 function bindImportedCameraControlInputs(aperture, scene) {
+  if (importedCameraSelect instanceof HTMLSelectElement) {
+    importedCameraSelect.addEventListener("change", () => {
+      const cameraIndex = integerOrNull(Number(importedCameraSelect.value));
+      const importedCamera = scene.active?.importedCamera ?? null;
+      const selected =
+        cameraIndex === null || importedCamera === null
+          ? null
+          : (importedCamera.cameras.find(
+              (camera) =>
+                camera.status === "ready" && camera.cameraIndex === cameraIndex,
+            ) ?? null);
+
+      if (selected === null || importedCamera === null) {
+        updateImportedCameraControlInputs(scene);
+        return;
+      }
+
+      importedCamera.selected = selected;
+      updateViewerCamera(aperture, scene);
+      updateImportedCameraControlInputs(scene);
+    });
+  }
+
   if (importedCameraToggle instanceof HTMLInputElement) {
     importedCameraToggle.addEventListener("change", () => {
       scene.cameraControls.importedEnabled =
@@ -3361,14 +3428,74 @@ function bindImportedCameraControlInputs(aperture, scene) {
   }
 }
 
+function applyImportedCameraBootstrap(scene, importedCamera) {
+  const bootstrap = scene.cameraControls.bootstrap;
+
+  if (bootstrap?.pending !== true) {
+    return;
+  }
+
+  bootstrap.pending = false;
+
+  if (bootstrap.selectedCameraIndex !== null) {
+    const selected =
+      importedCamera.cameras.find(
+        (camera) =>
+          camera.status === "ready" &&
+          camera.cameraIndex === bootstrap.selectedCameraIndex,
+      ) ?? null;
+
+    if (selected !== null) {
+      importedCamera.selected = selected;
+    }
+  }
+
+  scene.cameraControls.importedEnabled =
+    bootstrap.importedEnabled === true && importedCamera.selected !== null;
+}
+
 function updateImportedCameraControlInputs(scene) {
   const available = scene.active?.importedCamera?.selected !== null;
+
+  updateImportedCameraSelectControl(scene);
 
   if (importedCameraToggle instanceof HTMLInputElement) {
     importedCameraToggle.disabled = !available;
     importedCameraToggle.checked =
       available && scene.cameraControls.importedEnabled;
   }
+}
+
+function updateImportedCameraSelectControl(scene) {
+  if (!(importedCameraSelect instanceof HTMLSelectElement)) {
+    return;
+  }
+
+  const importedCamera = scene.active?.importedCamera ?? null;
+  const readyCameras =
+    importedCamera?.cameras.filter((camera) => camera.status === "ready") ?? [];
+  importedCameraSelect.replaceChildren();
+
+  if (readyCameras.length === 0) {
+    importedCameraSelect.disabled = true;
+    importedCameraSelect.append(new Option("camera", ""));
+    return;
+  }
+
+  importedCameraSelect.disabled = readyCameras.length < 2;
+
+  for (const camera of readyCameras) {
+    const label =
+      camera.name ??
+      camera.cameraName ??
+      camera.nodeName ??
+      `camera ${camera.cameraIndex}`;
+    importedCameraSelect.append(new Option(label, String(camera.cameraIndex)));
+  }
+
+  importedCameraSelect.value = String(
+    importedCamera?.selected?.cameraIndex ?? readyCameras[0].cameraIndex,
+  );
 }
 
 function bindImportedLightControlInputs(aperture, scene) {
@@ -4009,15 +4136,43 @@ function createImportedCameraDescriptor({
     projection,
   };
 
-  if (projection !== "perspective" || !isRecord(camera.perspective)) {
+  if (projection === "perspective") {
+    return createPerspectiveImportedCameraDescriptor({
+      base,
+      node,
+      perspective: camera.perspective,
+      targetCanvas,
+    });
+  }
+
+  if (projection === "orthographic") {
+    return createOrthographicImportedCameraDescriptor({
+      base,
+      node,
+      orthographic: camera.orthographic,
+    });
+  }
+
+  return {
+    ...base,
+    status: "unsupported",
+    supported: false,
+    reason: "missing-perspective-parameters",
+  };
+}
+
+function createPerspectiveImportedCameraDescriptor({
+  base,
+  node,
+  perspective,
+  targetCanvas,
+}) {
+  if (!isRecord(perspective)) {
     return {
       ...base,
       status: "unsupported",
       supported: false,
-      reason:
-        projection === "orthographic"
-          ? "orthographic-camera"
-          : "missing-perspective-parameters",
+      reason: "missing-perspective-parameters",
     };
   }
 
@@ -4025,8 +4180,8 @@ function createImportedCameraDescriptor({
     0.0001,
     targetCanvas.width / Math.max(1, targetCanvas.height),
   );
-  const yfov = numberOrNull(camera.perspective.yfov);
-  const near = numberOrNull(camera.perspective.znear);
+  const yfov = numberOrNull(perspective.yfov);
+  const near = numberOrNull(perspective.znear);
 
   if (yfov === null || yfov <= 0 || yfov >= Math.PI || near === null) {
     return {
@@ -4037,8 +4192,8 @@ function createImportedCameraDescriptor({
     };
   }
 
-  const aspect = numberOrNull(camera.perspective.aspectRatio) ?? fallbackAspect;
-  const far = numberOrNull(camera.perspective.zfar) ?? 1000;
+  const aspect = numberOrNull(perspective.aspectRatio) ?? fallbackAspect;
+  const far = numberOrNull(perspective.zfar) ?? 1000;
 
   if (aspect <= 0 || far <= near) {
     return {
@@ -4057,6 +4212,70 @@ function createImportedCameraDescriptor({
     aspect,
     near,
     far,
+    ...createImportedCameraTransformDescriptor(node),
+  };
+}
+
+function createOrthographicImportedCameraDescriptor({
+  base,
+  node,
+  orthographic,
+}) {
+  if (!isRecord(orthographic)) {
+    return {
+      ...base,
+      status: "unsupported",
+      supported: false,
+      reason: "missing-orthographic-parameters",
+    };
+  }
+
+  const xmag = numberOrNull(orthographic.xmag);
+  const ymag = numberOrNull(orthographic.ymag);
+  const near = numberOrNull(orthographic.znear);
+  const far = numberOrNull(orthographic.zfar);
+
+  if (
+    xmag === null ||
+    xmag <= 0 ||
+    ymag === null ||
+    ymag <= 0 ||
+    near === null ||
+    far === null
+  ) {
+    return {
+      ...base,
+      status: "invalid",
+      supported: false,
+      reason: "invalid-orthographic-parameters",
+    };
+  }
+
+  if (far <= near) {
+    return {
+      ...base,
+      status: "invalid",
+      supported: false,
+      reason: "invalid-orthographic-clip",
+    };
+  }
+
+  return {
+    ...base,
+    status: "ready",
+    supported: true,
+    xmag,
+    ymag,
+    aspect: xmag / ymag,
+    orthographicHeight: ymag * 2,
+    near,
+    far,
+    ...createImportedCameraTransformDescriptor(node),
+  };
+}
+
+function createImportedCameraTransformDescriptor(node) {
+  return {
     translation: roundTuple(tupleOrDefault(node.translation, [0, 0, 0]), 4),
     rotation: roundTuple(
       normalizeAnimationValue(
@@ -4735,6 +4954,11 @@ function createImportedCameraStatus(scene) {
     controls: {
       available,
       enabled,
+      readyCount: importedCamera.cameras.filter(
+        (camera) => camera.status === "ready",
+      ).length,
+      selectedCameraIndex: importedCamera.selected?.cameraIndex ?? null,
+      selectedNodeIndex: importedCamera.selected?.nodeIndex ?? null,
     },
     selected: importedCamera.selected,
     cameras: importedCamera.cameras,
@@ -4857,12 +5081,14 @@ function createGltfMeshAttributeStatus(active) {
   const importReport =
     active == null ? null : loadedGltfImportReport(active.loaded);
   const meshes = importReport?.meshConstruction?.meshes ?? [];
+  const diagnostics = importReport?.meshConstruction?.diagnostics ?? [];
 
   return meshes
     .map((mesh) => ({
       meshIndex: mesh.meshIndex,
       primitiveIndex: mesh.primitiveIndex,
       handleKey: mesh.handleKey,
+      tangentPath: createMeshTangentPathStatus(mesh, diagnostics),
       streams:
         mesh.mesh?.vertexStreams.map((stream) => ({
           id: stream.id,
@@ -4886,6 +5112,59 @@ function createGltfMeshAttributeStatus(active) {
       (a, b) =>
         a.meshIndex - b.meshIndex || a.primitiveIndex - b.primitiveIndex,
     );
+}
+
+function createMeshTangentPathStatus(mesh, diagnostics) {
+  const generated = diagnostics.find(
+    (diagnostic) =>
+      diagnostic.meshIndex === mesh.meshIndex &&
+      diagnostic.primitiveIndex === mesh.primitiveIndex &&
+      diagnostic.code === "gltfMeshAsset.generatedTangents",
+  );
+  const skipped = diagnostics.find(
+    (diagnostic) =>
+      diagnostic.meshIndex === mesh.meshIndex &&
+      diagnostic.primitiveIndex === mesh.primitiveIndex &&
+      diagnostic.code === "gltfMeshAsset.tangentGenerationSkipped",
+  );
+  const hasTangents =
+    mesh.mesh?.vertexStreams.some((stream) =>
+      stream.attributes.some((attribute) => attribute.semantic === "TANGENT"),
+    ) ?? false;
+
+  if (generated !== undefined) {
+    return {
+      status: "generated",
+      path: generated.tangentPath ?? "generated-mesh-attribute",
+      reason: generated.reason ?? null,
+      diagnosticCode: generated.code,
+    };
+  }
+
+  if (skipped !== undefined) {
+    return {
+      status: "skipped",
+      path: null,
+      reason: skipped.reason ?? null,
+      diagnosticCode: skipped.code,
+    };
+  }
+
+  if (hasTangents) {
+    return {
+      status: "authored",
+      path: "authored-mesh-attribute",
+      reason: null,
+      diagnosticCode: null,
+    };
+  }
+
+  return {
+    status: "absent",
+    path: null,
+    reason: null,
+    diagnosticCode: null,
+  };
 }
 
 function sceneRootNodeIndices(scene) {
@@ -5676,13 +5955,23 @@ function applyOrbitCamera(aperture, cameraEntity, orbit, targetCanvas) {
 }
 
 function applyImportedCamera(aperture, cameraEntity, importedCamera) {
-  setCameraProjection(aperture, cameraEntity, {
-    projection: "perspective",
-    fovYRadians: importedCamera.yfov,
-    aspect: importedCamera.aspect,
-    near: importedCamera.near,
-    far: importedCamera.far,
-  });
+  if (importedCamera.projection === "orthographic") {
+    setCameraProjection(aperture, cameraEntity, {
+      projection: "orthographic",
+      aspect: importedCamera.aspect,
+      orthographicHeight: importedCamera.orthographicHeight,
+      near: importedCamera.near,
+      far: importedCamera.far,
+    });
+  } else {
+    setCameraProjection(aperture, cameraEntity, {
+      projection: "perspective",
+      fovYRadians: importedCamera.yfov,
+      aspect: importedCamera.aspect,
+      near: importedCamera.near,
+      far: importedCamera.far,
+    });
+  }
   cameraEntity
     .getVectorView(aperture.LocalTransform, "translation")
     .set(importedCamera.translation);
@@ -5694,8 +5983,21 @@ function applyImportedCamera(aperture, cameraEntity, importedCamera) {
 
 function setCameraProjection(aperture, cameraEntity, projection) {
   cameraEntity.setValue(aperture.Camera, "projection", projection.projection);
-  cameraEntity.setValue(aperture.Camera, "fovYRadians", projection.fovYRadians);
+  if (typeof projection.fovYRadians === "number") {
+    cameraEntity.setValue(
+      aperture.Camera,
+      "fovYRadians",
+      projection.fovYRadians,
+    );
+  }
   cameraEntity.setValue(aperture.Camera, "aspect", projection.aspect);
+  if (typeof projection.orthographicHeight === "number") {
+    cameraEntity.setValue(
+      aperture.Camera,
+      "orthographicHeight",
+      projection.orthographicHeight,
+    );
+  }
   cameraEntity.setValue(aperture.Camera, "near", projection.near);
   cameraEntity.setValue(aperture.Camera, "far", projection.far);
 }
@@ -6021,6 +6323,36 @@ function readInitialSampleSelection() {
   };
 }
 
+function readInitialImportedCameraControls() {
+  const rawCameraIndex = exampleParams.get("camera")?.trim() ?? "";
+  const selectedCameraIndex =
+    rawCameraIndex.length === 0 ? null : integerOrNull(Number(rawCameraIndex));
+
+  return {
+    pending: true,
+    selectedCameraIndex,
+    importedEnabled: queryFlagEnabled("imported-camera"),
+  };
+}
+
+function queryFlagEnabled(name) {
+  const rawValue = exampleParams.get(name);
+
+  if (rawValue === null) {
+    return false;
+  }
+
+  const value = rawValue.trim().toLowerCase();
+
+  return (
+    value.length === 0 ||
+    value === "1" ||
+    value === "true" ||
+    value === "yes" ||
+    value === "on"
+  );
+}
+
 function emptySampleSelectionStatus() {
   return {
     requestedAssetId: null,
@@ -6032,6 +6364,8 @@ function emptySampleSelectionStatus() {
 function persistSampleAssetSelection(assetId) {
   const params = new URLSearchParams(globalThis.location.search);
   params.delete("url");
+  params.delete("camera");
+  params.delete("imported-camera");
   params.set("asset", assetId);
 
   const query = params.toString();

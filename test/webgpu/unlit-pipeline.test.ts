@@ -5,6 +5,7 @@ import {
   createUnlitRenderPipelineResource,
   UNLIT_MESH_WGSL,
   UNLIT_TEXTURED_MESH_WGSL,
+  UNLIT_TEXTURED_VERTEX_COLOR_MESH_WGSL,
   UNLIT_VERTEX_COLOR_MESH_WGSL,
   UNLIT_PRIMITIVE_VERTEX_BUFFER_LAYOUT,
   UNLIT_VERTEX_COLOR_VERTEX_BUFFER_LAYOUT,
@@ -33,6 +34,12 @@ const VERTEX_COLOR_BATCH_KEY: BatchCompatibilityKey = {
   ...BATCH_KEY,
   meshLayoutKey: "POSITION,NORMAL,TEXCOORD_0,COLOR_0",
   materialKey: "material:vertex-color",
+};
+
+const TEXTURED_VERTEX_COLOR_BATCH_KEY: BatchCompatibilityKey = {
+  ...TEXTURED_BATCH_KEY,
+  meshLayoutKey: "POSITION,NORMAL,TEXCOORD_0,COLOR_0",
+  materialKey: "material:textured-vertex-color",
 };
 
 describe("browser unlit pipeline bridge", () => {
@@ -193,6 +200,51 @@ describe("browser unlit pipeline bridge", () => {
       {
         label: "aperture/unlit-mesh-vertex-color",
         code: UNLIT_VERTEX_COLOR_MESH_WGSL,
+      },
+    ]);
+    expect(pipelineDescriptors[0]).toMatchObject({
+      vertex: {
+        entryPoint: "vs_main",
+        buffers: [UNLIT_VERTEX_COLOR_VERTEX_BUFFER_LAYOUT],
+      },
+      fragment: { entryPoint: "fs_main" },
+    });
+  });
+
+  it("creates the combined textured vertex-color shader and vertex layout", async () => {
+    const shaderDescriptors: WebGpuShaderCreateDescriptor[] = [];
+    const pipelineDescriptors: WebGpuRenderPipelineCreateDescriptor[] = [];
+    const device = {
+      createShaderModule(descriptor: WebGpuShaderCreateDescriptor) {
+        shaderDescriptors.push(descriptor);
+        return { compilationInfo: async () => ({ messages: [] }) };
+      },
+      createRenderPipeline(descriptor: WebGpuRenderPipelineCreateDescriptor) {
+        pipelineDescriptors.push(descriptor);
+        return { kind: "render-pipeline" };
+      },
+    };
+
+    const result = await createUnlitRenderPipelineResource({
+      device,
+      colorFormat: "bgra8unorm",
+      batchKey: TEXTURED_VERTEX_COLOR_BATCH_KEY,
+    });
+
+    expect(result.diagnostics).toEqual([]);
+    expect(result.resource).toMatchObject({
+      cacheKey: expect.stringContaining(
+        "aperture/unlit-mesh-textured-vertex-color",
+      ),
+      descriptor: {
+        label:
+          "aperture/unlit-mesh-textured-vertex-color:bgra8unorm:triangle-list",
+      },
+    });
+    expect(shaderDescriptors).toEqual([
+      {
+        label: "aperture/unlit-mesh-textured-vertex-color",
+        code: UNLIT_TEXTURED_VERTEX_COLOR_MESH_WGSL,
       },
     ]);
     expect(pipelineDescriptors[0]).toMatchObject({

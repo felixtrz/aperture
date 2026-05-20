@@ -59,7 +59,7 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start with `task-2144`: generate or route tangents for missing-tangent normal maps.
+Start with `task-2150`: route normal maps through TEXCOORD_1.
 
 `task-2001` is complete: the spinning-cube example now creates a renderer-owned face-colored diffuse IBL cube texture and sampler, routes it through the StandardMaterial diffuse IBL shader variant, and Playwright verifies direction-dependent face pixels.
 `task-2002` is complete: `withEnvironmentMap(handle)` is exported from runtime/core and materials-showcase now uses it with visible diffuse IBL routing.
@@ -2376,6 +2376,8 @@ Acceptance criteria:
 
 ### task-2144 — Generate or route tangents for missing-tangent normal maps
 
+Status: completed 2026-05-20. See `agent/COMPLETED.md`.
+
 Category: `render-bridge`
 Package/write-scope: `packages/render/src/assets`, `packages/webgpu/src`,
 `examples/assets`, `examples/glb-viewer.js`, `test/e2e/glb-viewer.spec.ts`.
@@ -2394,6 +2396,8 @@ Acceptance criteria:
 
 ### task-2145 — Add GLB viewer imported-camera selection
 
+Status: completed 2026-05-20. See `agent/COMPLETED.md`.
+
 Category: `runtime-orchestration`
 Package/write-scope: `examples/assets`, `examples/glb-viewer.html`,
 `examples/glb-viewer.js`, `test/e2e/glb-viewer.spec.ts`.
@@ -2409,6 +2413,102 @@ Acceptance criteria:
   imported-camera toggle.
 - Playwright verifies selected-camera status and a visible pixel/framing change
   between cameras.
+
+### task-2146 — Add GLB viewer imported-camera URL bootstrap
+
+Status: completed 2026-05-20. See `agent/COMPLETED.md`.
+
+Category: `runtime-orchestration`
+Package/write-scope: `examples/glb-viewer.js`, `examples/glb-viewer.html`,
+`test/e2e/glb-viewer.spec.ts`.
+Reference anchor: `references/three.js/examples/jsm/loaders/GLTFLoader.js`;
+`references/bevy/crates/bevy_render/src/camera.rs`.
+
+Acceptance criteria:
+
+- `examples/glb-viewer.html?asset=multi-camera&camera=1` seeds the selected
+  imported-camera selector from the URL without bypassing the imported-camera
+  toggle.
+- A URL flag can also start with imported-camera mode enabled, using the same
+  ECS-authored camera transform/projection path as the manual toggle.
+- Playwright verifies selector value, JSON-safe selected-camera status, toggle
+  state, and a visible framing/pixel change for the deep-linked camera.
+
+### task-2147 — Render textured unlit vertex colors
+
+Status: completed 2026-05-20. See `agent/COMPLETED.md`.
+
+Category: `webgpu-render`
+Package/write-scope: `packages/webgpu/src`, `packages/render/src/assets`,
+`examples/assets`, `examples/glb-viewer.js`, `test/e2e/glb-viewer.spec.ts`,
+targeted WebGPU tests.
+Reference anchor: `references/three.js/examples/jsm/loaders/GLTFLoader.js`;
+`references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/base.js`.
+
+Acceptance criteria:
+
+- A committed GLB sample combines `COLOR_0` with an unlit base-color texture.
+- The unlit WebGPU route multiplies base-color factor, texture color, and
+  vertex color without adding renderer-owned source material state.
+- Playwright verifies JSON-safe mesh/material/pipeline status and visibly
+  different textured vertex-color regions.
+
+### task-2148 — Render StandardMaterial vertex colors
+
+Status: completed 2026-05-20. See `agent/COMPLETED.md`.
+
+Category: `webgpu-render`
+Package/write-scope: `packages/webgpu/src`, `packages/render/src/assets`,
+`examples/assets`, `examples/glb-viewer.js`, `test/e2e/glb-viewer.spec.ts`,
+targeted WebGPU tests.
+Reference anchor: `references/bevy/crates/bevy_pbr/src/render/mesh.rs`;
+`references/three.js/src/materials/MeshStandardMaterial.js`.
+
+Acceptance criteria:
+
+- A committed lit StandardMaterial GLB sample preserves and routes `COLOR_0`
+  through the standard material shader path.
+- Pipeline/layout selection stays derived from extracted mesh attributes and
+  material family state.
+- Playwright verifies lit vertex-color pixels, JSON-safe mesh layout status,
+  and no WebGPU validation warnings.
+
+### task-2149 — Support imported orthographic cameras in GLB viewer
+
+Status: completed 2026-05-20. See `agent/COMPLETED.md`.
+
+Category: `runtime-orchestration`
+Package/write-scope: `packages/render/src/assets`, `examples/assets`,
+`examples/glb-viewer.js`, `test/e2e/glb-viewer.spec.ts`.
+Reference anchor: `references/three.js/examples/jsm/loaders/GLTFLoader.js`;
+`references/bevy/crates/bevy_render/src/camera.rs`.
+
+Acceptance criteria:
+
+- The existing orthographic-camera GLB sample becomes a supported imported
+  camera path instead of an unsupported-feature-only diagnostic.
+- The imported-camera toggle applies the glTF orthographic projection through
+  ECS-authored camera state.
+- Playwright verifies JSON-safe orthographic camera status and a visible
+  framing/pixel change compared with the fitted orbit camera.
+
+### task-2150 — Route normal maps through TEXCOORD_1
+
+Category: `webgpu-render`
+Package/write-scope: `packages/render/src/assets`, `packages/webgpu/src`,
+`examples/assets`, `examples/glb-viewer.js`, `test/e2e/glb-viewer.spec.ts`,
+targeted tests.
+Reference anchor: `references/three.js/examples/jsm/loaders/GLTFLoader.js`;
+`references/engine/src/scene/shader-lib/wgsl/chunks/standard/frag/normalMap.js`.
+
+Acceptance criteria:
+
+- A committed StandardMaterial GLB sample uses `normalTexture.texCoord = 1`
+  with `TEXCOORD_1` mesh data.
+- The normal-map shader route samples the declared coordinate set while keeping
+  texture-slot status JSON-safe.
+- Playwright verifies texCoord-1 status, distinct pixels against a texCoord-0
+  or scalar control, and no WebGPU validation warnings.
 
 ## Ready Tasks By Category
 

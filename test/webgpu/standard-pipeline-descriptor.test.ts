@@ -486,6 +486,52 @@ describe("standard material pipeline descriptor planning", () => {
     });
   });
 
+  it("specializes vertex-color variants from COLOR_0 mesh layout", () => {
+    const batchKey = {
+      ...STANDARD_BATCH_KEY,
+      meshLayoutKey: "POSITION,NORMAL,TEXCOORD_0,COLOR_0",
+      materialKey: "material:standard-vertex-color",
+    };
+    const featurePlan = createStandardPipelineShaderFeaturePlan(batchKey);
+    const descriptor = createStandardPipelineDescriptorPlan({
+      colorFormat: "bgra8unorm",
+      batchKey,
+    });
+
+    expect(featurePlan).toMatchObject({
+      variantKey: `${STANDARD_DIRECT_LIGHT_SHADER_VARIANT}-vertex-color-texture`,
+      shader: {
+        label: "aperture/standard-mesh-vertex-color-textured",
+      },
+      features: {
+        vertexColor: true,
+      },
+    });
+    expect(descriptor.diagnostics).toEqual([]);
+    expect(descriptor.plan?.descriptor).toMatchObject({
+      label:
+        "aperture/standard-mesh-vertex-color-textured:bgra8unorm:triangle-list",
+      vertex: {
+        moduleLabel: "aperture/standard-mesh-vertex-color-textured",
+        buffers: ["POSITION", "NORMAL", "TEXCOORD_0", "COLOR_0"],
+      },
+      fragment: {
+        moduleLabel: "aperture/standard-mesh-vertex-color-textured",
+      },
+    });
+    expect(
+      JSON.parse(required(descriptor.plan).cacheKey) as unknown,
+    ).toMatchObject({
+      shader: {
+        variantKey: `${STANDARD_DIRECT_LIGHT_SHADER_VARIANT}-vertex-color-texture`,
+      },
+      layouts: {
+        vertex: "POSITION,NORMAL,TEXCOORD_0,COLOR_0",
+      },
+      batch: batchKey,
+    });
+  });
+
   it("specializes TEXCOORD_1 variants with UV1 vertex attributes", () => {
     const featurePlan = createStandardPipelineShaderFeaturePlan({
       ...STANDARD_BATCH_KEY,
