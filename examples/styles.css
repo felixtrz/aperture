@@ -192,6 +192,85 @@ body {
   cursor: default;
 }
 
+.material-slot-summary,
+.image-decode-summary,
+.unsupported-feature-summary,
+.animation-summary,
+.imported-camera-summary,
+.light-summary,
+.metadata-summary,
+.orbit-summary,
+.shadow-summary,
+.ibl-summary,
+.draw-summary {
+  display: grid;
+  gap: 6px;
+  padding-block: 2px;
+  font-size: 12px;
+}
+
+.material-slot-summary[hidden],
+.image-decode-summary[hidden],
+.unsupported-feature-summary[hidden],
+.animation-summary[hidden],
+.imported-camera-summary[hidden],
+.light-summary[hidden],
+.metadata-summary[hidden],
+.orbit-summary[hidden],
+.shadow-summary[hidden],
+.ibl-summary[hidden],
+.draw-summary[hidden] {
+  display: none;
+}
+
+.material-slot-summary-row,
+.image-decode-summary-row,
+.unsupported-feature-summary-row,
+.animation-summary-row,
+.imported-camera-summary-row,
+.light-summary-row,
+.metadata-summary-row,
+.orbit-summary-row,
+.shadow-summary-row,
+.ibl-summary-row,
+.draw-summary-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.material-slot-summary-row span,
+.image-decode-summary-row span,
+.unsupported-feature-summary-row span,
+.animation-summary-row span,
+.imported-camera-summary-row span,
+.light-summary-row span,
+.metadata-summary-row span,
+.orbit-summary-row span,
+.shadow-summary-row span,
+.ibl-summary-row span,
+.draw-summary-row span {
+  color: #9ca8b7;
+}
+
+.material-slot-summary-row strong,
+.image-decode-summary-row strong,
+.unsupported-feature-summary-row strong,
+.animation-summary-row strong,
+.imported-camera-summary-row strong,
+.light-summary-row strong,
+.metadata-summary-row strong,
+.orbit-summary-row strong,
+.shadow-summary-row strong,
+.ibl-summary-row strong,
+.draw-summary-row strong {
+  text-align: right;
+  font-size: 12px;
+  font-weight: 650;
+  overflow-wrap: anywhere;
+}
+
 .glb-viewer-controls {
   grid-template-columns: 1fr;
 }

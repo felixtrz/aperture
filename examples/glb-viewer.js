@@ -1,5 +1,8 @@
 const canvas = document.querySelector("#aperture-canvas");
 const assetSelect = document.querySelector("#glb-asset-select");
+const textureGalleryPreviousButton =
+  document.querySelector("#glb-gallery-prev");
+const textureGalleryNextButton = document.querySelector("#glb-gallery-next");
 const customUrlForm = document.querySelector("#glb-url-form");
 const customUrlInput = document.querySelector("#glb-url-input");
 const cameraResetButton = document.querySelector("#glb-camera-reset");
@@ -23,6 +26,27 @@ const pointLightIntensityInput = document.querySelector(
   "#glb-point-light-intensity",
 );
 const ambientIntensityInput = document.querySelector("#glb-ambient-intensity");
+const materialSlotSummaryElement = document.querySelector(
+  "#glb-material-slot-summary",
+);
+const imageDecodeSummaryElement = document.querySelector(
+  "#glb-image-decode-summary",
+);
+const unsupportedFeatureSummaryElement = document.querySelector(
+  "#glb-unsupported-feature-summary",
+);
+const animationSummaryElement = document.querySelector(
+  "#glb-animation-summary",
+);
+const importedCameraSummaryElement = document.querySelector(
+  "#glb-imported-camera-summary",
+);
+const lightSummaryElement = document.querySelector("#glb-light-summary");
+const metadataSummaryElement = document.querySelector("#glb-metadata-summary");
+const orbitSummaryElement = document.querySelector("#glb-orbit-summary");
+const shadowSummaryElement = document.querySelector("#glb-shadow-summary");
+const iblSummaryElement = document.querySelector("#glb-ibl-summary");
+const drawSummaryElement = document.querySelector("#glb-draw-summary");
 const stateElement = document.querySelector("#example-state");
 const jsonElement = document.querySelector("#example-json");
 const exampleParams = new URLSearchParams(globalThis.location.search);
@@ -390,6 +414,311 @@ const realUriTextureGalleryAssetIds = [
 const realUriTextureGalleryAssets = realUriTextureGalleryAssetIds
   .map((assetId) => sampleAssets.find((asset) => asset.id === assetId))
   .filter((asset) => asset !== undefined);
+const materialSlotSummaryRows = [
+  {
+    key: "materials",
+    label: "materials",
+    value: (summary) =>
+      `${summary.materialCount} total, ${summary.scalarOnlyMaterialCount} scalar`,
+  },
+  {
+    key: "baseColorTexture",
+    label: "base color",
+    value: (summary) => formatTextureSlotSummary(summary, "baseColorTexture"),
+  },
+  {
+    key: "metallicRoughnessTexture",
+    label: "metal rough",
+    value: (summary) =>
+      formatTextureSlotSummary(summary, "metallicRoughnessTexture"),
+  },
+  {
+    key: "normalTexture",
+    label: "normal",
+    value: (summary) => formatTextureSlotSummary(summary, "normalTexture"),
+  },
+  {
+    key: "occlusionTexture",
+    label: "occlusion",
+    value: (summary) => formatTextureSlotSummary(summary, "occlusionTexture"),
+  },
+  {
+    key: "emissiveTexture",
+    label: "emissive",
+    value: (summary) => formatTextureSlotSummary(summary, "emissiveTexture"),
+  },
+  {
+    key: "alphaModes",
+    label: "alpha",
+    value: (summary) =>
+      `opaque ${summary.alphaModes.opaque}, mask ${summary.alphaModes.mask}, blend ${summary.alphaModes.blend}`,
+  },
+  {
+    key: "uv1Usage",
+    label: "uv1",
+    value: (summary) =>
+      `materials ${summary.uv1Usage.materials}, slots ${summary.uv1Usage.textureSlots}`,
+  },
+];
+const animationSummaryRows = [
+  {
+    key: "clip",
+    label: "clip",
+    value: (animation) => animation.activeClipName ?? "none",
+  },
+  {
+    key: "mode",
+    label: "mode",
+    value: (animation) =>
+      `${animation.status}, ${animation.loopMode}, ${animation.direction}`,
+  },
+  {
+    key: "time",
+    label: "time",
+    value: (animation) =>
+      `${Number(animation.time.toFixed(3))} / ${animation.duration}`,
+  },
+  {
+    key: "speed",
+    label: "speed",
+    value: (animation) => String(animation.speed),
+  },
+  {
+    key: "channels",
+    label: "channels",
+    value: (animation) =>
+      `${animation.channelCount} channels, ${animation.clipCount} clips`,
+  },
+];
+const importedCameraSummaryRows = [
+  {
+    key: "camera",
+    label: "camera",
+    value: (importedCamera) =>
+      importedCamera.selected.name ??
+      importedCamera.selected.cameraName ??
+      `camera ${importedCamera.selected.cameraIndex}`,
+  },
+  {
+    key: "state",
+    label: "state",
+    value: (importedCamera) =>
+      importedCamera.controls.enabled ? "imported" : "orbit",
+  },
+  {
+    key: "fov",
+    label: "fov",
+    value: (importedCamera) => String(importedCamera.selected.yfov),
+  },
+  {
+    key: "range",
+    label: "range",
+    value: (importedCamera) =>
+      `${importedCamera.selected.near} - ${importedCamera.selected.far}`,
+  },
+  {
+    key: "aspect",
+    label: "aspect",
+    value: (importedCamera) =>
+      String(Number(importedCamera.selected.aspect.toFixed(3))),
+  },
+];
+const lightingSummaryRows = [
+  {
+    key: "ambient",
+    label: "ambient",
+    value: ({ lighting }) =>
+      `control ${lighting.controls.ambientIntensity}, ecs ${lighting.ecs.ambientIntensity}, extracted ${formatOptionalLightIntensity(
+        lighting.extracted.ambientIntensity,
+      )}`,
+  },
+  {
+    key: "point",
+    label: "point",
+    value: ({ lighting }) =>
+      `control ${lighting.controls.pointIntensity}, ecs ${lighting.ecs.pointIntensity}, extracted ${formatOptionalLightIntensity(
+        lighting.extracted.pointIntensity,
+      )}`,
+  },
+  {
+    key: "lights",
+    label: "lights",
+    value: ({ extraction }) => `${extraction?.lights ?? 0} extracted`,
+  },
+];
+const metadataSummaryRows = [
+  {
+    key: "scene",
+    label: "scene",
+    value: (metadata) =>
+      `${metadata.counts.scenes} scenes, ${metadata.counts.nodes} nodes`,
+  },
+  {
+    key: "mesh",
+    label: "mesh",
+    value: (metadata) =>
+      `${metadata.counts.meshes} meshes, ${metadata.counts.primitives} primitives`,
+  },
+  {
+    key: "material",
+    label: "material",
+    value: (metadata) => `${metadata.counts.materials} materials`,
+  },
+  {
+    key: "animation",
+    label: "animation",
+    value: (metadata) => `${metadata.counts.animations} animations`,
+  },
+  {
+    key: "extensions",
+    label: "extensions",
+    value: (metadata) =>
+      `used ${metadata.extensions.used.length}, required ${metadata.extensions.required.length}`,
+  },
+];
+const orbitSummaryRows = [
+  {
+    key: "status",
+    label: "fit",
+    value: (orbit) => orbit.fit.status,
+  },
+  {
+    key: "center",
+    label: "center",
+    value: (orbit) => formatSummaryTuple(orbit.fit.center),
+  },
+  {
+    key: "size",
+    label: "size",
+    value: (orbit) => formatSummaryTuple(orbit.fit.size),
+  },
+  {
+    key: "distance",
+    label: "distance",
+    value: (orbit) => String(orbit.distance),
+  },
+  {
+    key: "zoom",
+    label: "zoom",
+    value: (orbit) => `${orbit.fit.minDistance} - ${orbit.fit.maxDistance}`,
+  },
+];
+const shadowSummaryRows = [
+  {
+    key: "controls",
+    label: "controls",
+    value: (shadow) =>
+      `receiver ${shadow.controls.receiverEnabled}, caster ${shadow.controls.casterEnabled}`,
+  },
+  {
+    key: "ecs",
+    label: "ecs",
+    value: (shadow) =>
+      `receiver ${shadow.ecs.receiverEnabled}, caster ${shadow.ecs.casterEnabled}`,
+  },
+  {
+    key: "authoring",
+    label: "authoring",
+    value: (shadow) =>
+      `${shadow.authoring.casterCount} casters, ${shadow.authoring.receiverCount} receivers`,
+  },
+  {
+    key: "drawList",
+    label: "draw list",
+    value: (shadow) =>
+      isRecord(shadow.casterDrawList)
+        ? `${shadow.casterDrawList.includedDrawCount} included, ${shadow.casterDrawList.skippedDrawCount} skipped`
+        : "none",
+  },
+  {
+    key: "rendering",
+    label: "rendering",
+    value: (shadow) =>
+      `supported ${shadow.rendering.supported}, ${shadow.rendering.mode}`,
+  },
+  {
+    key: "submission",
+    label: "submit",
+    value: (shadow) =>
+      isRecord(shadow.commandBufferSubmission)
+        ? shadow.commandBufferSubmission.status
+        : "none",
+  },
+];
+const iblSummaryRows = [
+  {
+    key: "controls",
+    label: "controls",
+    value: (ibl) =>
+      `enabled ${ibl.controls.enabled}, available ${ibl.controls.available}`,
+  },
+  {
+    key: "environment",
+    label: "environment",
+    value: (ibl) =>
+      `${formatSummaryOptionalKey(
+        ibl.ecs.environmentMapKey,
+      )}, intensity ${formatSummaryOptionalKey(ibl.ecs.intensity)}`,
+  },
+  {
+    key: "resources",
+    label: "resources",
+    value: (ibl) =>
+      `diffuse ${formatSummaryOptionalKey(
+        ibl.resources.diffuseTexture,
+      )}, specular ${formatSummaryOptionalKey(
+        ibl.resources.specularTexture,
+      )}, sampler ${formatSummaryOptionalKey(ibl.resources.sampler)}`,
+  },
+  {
+    key: "rendering",
+    label: "rendering",
+    value: (ibl) =>
+      `supported ${ibl.rendering.supported}, specular ${ibl.specularProof}`,
+  },
+  {
+    key: "pipelines",
+    label: "pipelines",
+    value: (ibl) =>
+      `diffuse ${formatIblPipelineToken(
+        ibl.rendering.diffusePipelineKey,
+        "iblDiffuse",
+      )}, specular ${formatIblPipelineToken(
+        ibl.rendering.specularPipelineKey,
+        "iblSpecularProof",
+      )}`,
+  },
+];
+const drawSummaryRows = [
+  {
+    key: "extraction",
+    label: "extraction",
+    value: ({ extraction }) =>
+      `${extraction.views} views, ${extraction.meshDraws} draws, ${extraction.lights} lights, ${extraction.environments} envs`,
+  },
+  {
+    key: "draw",
+    label: "draw",
+    value: ({ draw }) => `${draw.packages} packages, ${draw.drawCalls} calls`,
+  },
+  {
+    key: "materials",
+    label: "materials",
+    value: ({ selectedAsset }) =>
+      formatMaterialFamilySummary(selectedAsset.materialFamilies),
+  },
+  {
+    key: "queues",
+    label: "queues",
+    value: ({ renderState }) => formatCountSummary(renderState.queues),
+  },
+  {
+    key: "pipelines",
+    label: "pipelines",
+    value: ({ renderState }) =>
+      formatPipelineKeySummary(renderState.pipelineKeys),
+  },
+];
 
 try {
   const [core, webgpu] = await Promise.all([
@@ -500,6 +829,7 @@ function createGlbViewerScene(aperture, app, targetCanvas) {
   }
 
   bindRealUriTextureGalleryKeyboard(aperture, app, scene);
+  bindRealUriTextureGalleryButtons(aperture, app, scene);
 
   if (customUrlForm !== null) {
     if (
@@ -571,6 +901,7 @@ async function loadSampleAsset(aperture, app, scene, asset) {
     activeAssetId: asset.id,
     diagnostics: [],
   };
+  persistSampleAssetSelection(asset.id);
 
   if (assetSelect instanceof HTMLSelectElement) {
     assetSelect.value = asset.id;
@@ -592,6 +923,48 @@ function bindRealUriTextureGalleryKeyboard(aperture, app, scene) {
     event.preventDefault();
     const direction = event.key === "ArrowRight" ? 1 : -1;
 
+    loadRealUriTextureGalleryOffset(aperture, app, scene, direction).catch(
+      (error) => {
+        scene.loadState = failure(
+          "glb-viewer-gallery-load-failed",
+          error instanceof Error
+            ? error.message
+            : "GLB gallery asset load failed.",
+        );
+      },
+    );
+  });
+}
+
+function bindRealUriTextureGalleryButtons(aperture, app, scene) {
+  bindRealUriTextureGalleryButton(
+    textureGalleryPreviousButton,
+    aperture,
+    app,
+    scene,
+    -1,
+  );
+  bindRealUriTextureGalleryButton(
+    textureGalleryNextButton,
+    aperture,
+    app,
+    scene,
+    1,
+  );
+}
+
+function bindRealUriTextureGalleryButton(
+  button,
+  aperture,
+  app,
+  scene,
+  direction,
+) {
+  if (!(button instanceof HTMLButtonElement)) {
+    return;
+  }
+
+  button.addEventListener("click", () => {
     loadRealUriTextureGalleryOffset(aperture, app, scene, direction).catch(
       (error) => {
         scene.loadState = failure(
@@ -5019,6 +5392,19 @@ function emptySampleSelectionStatus() {
   };
 }
 
+function persistSampleAssetSelection(assetId) {
+  const params = new URLSearchParams(globalThis.location.search);
+  params.delete("url");
+  params.set("asset", assetId);
+
+  const query = params.toString();
+  const nextUrl = `${globalThis.location.pathname}${
+    query.length > 0 ? `?${query}` : ""
+  }${globalThis.location.hash}`;
+
+  globalThis.history.replaceState(null, "", nextUrl);
+}
+
 function formatAssetUrl(url) {
   if (url.origin === globalThis.location.origin) {
     return url.pathname;
@@ -5029,6 +5415,28 @@ function formatAssetUrl(url) {
 
 function publishStatus(status) {
   globalThis.__APERTURE_EXAMPLE_STATUS__ = status;
+  updateMaterialSlotSummaryPanel(status.selectedAsset?.materialSlotSummary);
+  updateImageDecodeSummaryPanel(status.source?.imageDecode?.decoded);
+  updateUnsupportedFeatureSummaryPanel({
+    diagnostics: status.gltf?.metadata?.unsupportedFeatureDiagnostics,
+    importedCamera: status.importedCamera,
+  });
+  updateAnimationSummaryPanel(status.animation);
+  updateImportedCameraSummaryPanel(status.importedCamera);
+  updateLightingSummaryPanel({
+    lighting: status.lighting,
+    extraction: status.extraction,
+  });
+  updateMetadataSummaryPanel(status.gltf?.metadata);
+  updateOrbitSummaryPanel(status.orbit);
+  updateShadowSummaryPanel(status.shadow);
+  updateIblSummaryPanel(status.ibl);
+  updateDrawSummaryPanel({
+    selectedAsset: status.selectedAsset,
+    extraction: status.extraction,
+    draw: status.draw,
+    renderState: status.renderState,
+  });
 
   if (stateElement !== null) {
     stateElement.textContent = status.ok ? "ready" : "failed";
@@ -5037,6 +5445,495 @@ function publishStatus(status) {
   if (jsonElement !== null) {
     jsonElement.textContent = JSON.stringify(status, null, 2);
   }
+}
+
+function updateMaterialSlotSummaryPanel(summary) {
+  if (!(materialSlotSummaryElement instanceof HTMLElement)) {
+    return;
+  }
+
+  materialSlotSummaryElement.replaceChildren();
+
+  if (summary === undefined || summary === null) {
+    materialSlotSummaryElement.hidden = true;
+    return;
+  }
+
+  materialSlotSummaryElement.hidden = false;
+
+  for (const row of materialSlotSummaryRows) {
+    const element = document.createElement("div");
+    const label = document.createElement("span");
+    const value = document.createElement("strong");
+
+    element.className = "material-slot-summary-row";
+    element.dataset.summaryRow = row.key;
+    label.textContent = row.label;
+    value.textContent = row.value(summary);
+
+    element.append(label, value);
+    materialSlotSummaryElement.append(element);
+  }
+}
+
+function formatTextureSlotSummary(summary, slotName) {
+  const slot = summary.textureSlots[slotName];
+
+  return `${slot.count} total, uv0 ${slot.uv0}, uv1 ${slot.uv1}, other ${slot.otherUv}`;
+}
+
+function updateImageDecodeSummaryPanel(decodedImages) {
+  if (!(imageDecodeSummaryElement instanceof HTMLElement)) {
+    return;
+  }
+
+  imageDecodeSummaryElement.replaceChildren();
+
+  if (!Array.isArray(decodedImages) || decodedImages.length === 0) {
+    imageDecodeSummaryElement.hidden = true;
+    return;
+  }
+
+  imageDecodeSummaryElement.hidden = false;
+
+  for (const image of decodedImages) {
+    const element = document.createElement("div");
+    const label = document.createElement("span");
+    const value = document.createElement("strong");
+
+    element.className = "image-decode-summary-row";
+    element.dataset.imageDecodeRow = String(image.imageIndex);
+    element.dataset.imageDecodeUri = image.uri;
+    label.textContent = image.uri;
+    value.textContent = `${image.mimeType}, ${image.width}x${image.height}, ${image.byteLength} bytes`;
+
+    element.append(label, value);
+    imageDecodeSummaryElement.append(element);
+  }
+}
+
+function updateUnsupportedFeatureSummaryPanel({ diagnostics, importedCamera }) {
+  if (!(unsupportedFeatureSummaryElement instanceof HTMLElement)) {
+    return;
+  }
+
+  unsupportedFeatureSummaryElement.replaceChildren();
+  const rows = createUnsupportedFeatureRows({ diagnostics, importedCamera });
+
+  if (rows.length === 0) {
+    unsupportedFeatureSummaryElement.hidden = true;
+    return;
+  }
+
+  unsupportedFeatureSummaryElement.hidden = false;
+
+  for (const row of rows) {
+    const element = document.createElement("div");
+    const label = document.createElement("span");
+    const value = document.createElement("strong");
+
+    element.className = "unsupported-feature-summary-row";
+    element.dataset.unsupportedFeatureRow = row.key;
+    element.dataset.unsupportedFeatureCode = row.code;
+    label.textContent = row.label;
+    value.textContent = row.value;
+
+    element.append(label, value);
+    unsupportedFeatureSummaryElement.append(element);
+  }
+}
+
+function createUnsupportedFeatureRows({ diagnostics, importedCamera }) {
+  const rows = [];
+
+  for (const [index, diagnostic] of arrayEntries(diagnostics).entries()) {
+    if (!isRecord(diagnostic) || typeof diagnostic.code !== "string") {
+      continue;
+    }
+
+    rows.push({
+      key: `diagnostic-${index}`,
+      code: diagnostic.code,
+      label: unsupportedFeatureLabel(diagnostic.code),
+      value: formatUnsupportedFeatureDiagnostic(diagnostic),
+    });
+  }
+
+  for (const [index, camera] of arrayEntries(
+    importedCamera?.cameras,
+  ).entries()) {
+    if (!isRecord(camera) || camera.status !== "unsupported") {
+      continue;
+    }
+
+    const reason =
+      typeof camera.reason === "string" ? camera.reason : "unsupported-camera";
+    const projection =
+      typeof camera.projection === "string" ? camera.projection : "camera";
+    const name =
+      typeof camera.name === "string" ? camera.name : `camera ${index}`;
+
+    rows.push({
+      key: `camera-${index}`,
+      code: "glbViewer.unsupportedImportedCamera",
+      label: "camera",
+      value: `${name}: ${projection}, ${reason}`,
+    });
+  }
+
+  return rows;
+}
+
+function unsupportedFeatureLabel(code) {
+  switch (code) {
+    case "gltfMetadata.unsupportedMorphTargets":
+      return "morph";
+    case "gltfMetadata.unsupportedSkins":
+      return "skin";
+    case "gltfMesh.unsupportedPrimitiveMode":
+      return "primitive";
+    default:
+      return "unsupported";
+  }
+}
+
+function formatUnsupportedFeatureDiagnostic(diagnostic) {
+  switch (diagnostic.code) {
+    case "gltfMetadata.unsupportedMorphTargets":
+      return `${diagnostic.targetCount ?? 0} targets, ${
+        diagnostic.primitiveCount ?? 0
+      } primitives`;
+    case "gltfMetadata.unsupportedSkins":
+      return `${diagnostic.skinCount ?? 0} skins, ${
+        diagnostic.jointCount ?? 0
+      } joints, ${diagnostic.inverseBindMatrixCount ?? 0} inverse binds`;
+    case "gltfMesh.unsupportedPrimitiveMode":
+      return `mesh ${diagnostic.meshIndex ?? "?"}, primitive ${
+        diagnostic.primitiveIndex ?? "?"
+      }, mode ${diagnostic.mode ?? "?"}`;
+    default:
+      return typeof diagnostic.message === "string"
+        ? diagnostic.message
+        : diagnostic.code;
+  }
+}
+
+function updateAnimationSummaryPanel(animation) {
+  if (!(animationSummaryElement instanceof HTMLElement)) {
+    return;
+  }
+
+  animationSummaryElement.replaceChildren();
+
+  if (
+    !isRecord(animation) ||
+    animation.status === "absent" ||
+    animation.activeClipName === null
+  ) {
+    animationSummaryElement.hidden = true;
+    return;
+  }
+
+  animationSummaryElement.hidden = false;
+
+  for (const row of animationSummaryRows) {
+    const element = document.createElement("div");
+    const label = document.createElement("span");
+    const value = document.createElement("strong");
+
+    element.className = "animation-summary-row";
+    element.dataset.animationSummaryRow = row.key;
+    label.textContent = row.label;
+    value.textContent = row.value(animation);
+
+    element.append(label, value);
+    animationSummaryElement.append(element);
+  }
+}
+
+function updateImportedCameraSummaryPanel(importedCamera) {
+  if (!(importedCameraSummaryElement instanceof HTMLElement)) {
+    return;
+  }
+
+  importedCameraSummaryElement.replaceChildren();
+
+  if (!isRecord(importedCamera) || !isRecord(importedCamera.selected)) {
+    importedCameraSummaryElement.hidden = true;
+    return;
+  }
+
+  importedCameraSummaryElement.hidden = false;
+
+  for (const row of importedCameraSummaryRows) {
+    const element = document.createElement("div");
+    const label = document.createElement("span");
+    const value = document.createElement("strong");
+
+    element.className = "imported-camera-summary-row";
+    element.dataset.importedCameraSummaryRow = row.key;
+    label.textContent = row.label;
+    value.textContent = row.value(importedCamera);
+
+    element.append(label, value);
+    importedCameraSummaryElement.append(element);
+  }
+}
+
+function updateLightingSummaryPanel(summary) {
+  if (!(lightSummaryElement instanceof HTMLElement)) {
+    return;
+  }
+
+  lightSummaryElement.replaceChildren();
+
+  if (!isRecord(summary.lighting)) {
+    lightSummaryElement.hidden = true;
+    return;
+  }
+
+  lightSummaryElement.hidden = false;
+
+  for (const row of lightingSummaryRows) {
+    const element = document.createElement("div");
+    const label = document.createElement("span");
+    const value = document.createElement("strong");
+
+    element.className = "light-summary-row";
+    element.dataset.lightSummaryRow = row.key;
+    label.textContent = row.label;
+    value.textContent = row.value(summary);
+
+    element.append(label, value);
+    lightSummaryElement.append(element);
+  }
+}
+
+function formatOptionalLightIntensity(value) {
+  return typeof value === "number" ? String(value) : "none";
+}
+
+function updateMetadataSummaryPanel(metadata) {
+  if (!(metadataSummaryElement instanceof HTMLElement)) {
+    return;
+  }
+
+  metadataSummaryElement.replaceChildren();
+
+  if (
+    !isRecord(metadata) ||
+    !isRecord(metadata.counts) ||
+    !isRecord(metadata.extensions)
+  ) {
+    metadataSummaryElement.hidden = true;
+    return;
+  }
+
+  metadataSummaryElement.hidden = false;
+
+  for (const row of metadataSummaryRows) {
+    const element = document.createElement("div");
+    const label = document.createElement("span");
+    const value = document.createElement("strong");
+
+    element.className = "metadata-summary-row";
+    element.dataset.metadataSummaryRow = row.key;
+    label.textContent = row.label;
+    value.textContent = row.value(metadata);
+
+    element.append(label, value);
+    metadataSummaryElement.append(element);
+  }
+}
+
+function updateOrbitSummaryPanel(orbit) {
+  if (!(orbitSummaryElement instanceof HTMLElement)) {
+    return;
+  }
+
+  orbitSummaryElement.replaceChildren();
+
+  if (!isRecord(orbit) || !isRecord(orbit.fit)) {
+    orbitSummaryElement.hidden = true;
+    return;
+  }
+
+  orbitSummaryElement.hidden = false;
+
+  for (const row of orbitSummaryRows) {
+    const element = document.createElement("div");
+    const label = document.createElement("span");
+    const value = document.createElement("strong");
+
+    element.className = "orbit-summary-row";
+    element.dataset.orbitSummaryRow = row.key;
+    label.textContent = row.label;
+    value.textContent = row.value(orbit);
+
+    element.append(label, value);
+    orbitSummaryElement.append(element);
+  }
+}
+
+function formatSummaryTuple(values) {
+  return Array.isArray(values)
+    ? values.map((value) => Number(value.toFixed(3))).join(", ")
+    : "none";
+}
+
+function updateShadowSummaryPanel(shadow) {
+  if (!(shadowSummaryElement instanceof HTMLElement)) {
+    return;
+  }
+
+  shadowSummaryElement.replaceChildren();
+
+  if (
+    !isRecord(shadow) ||
+    shadow.enabled !== true ||
+    !isRecord(shadow.controls) ||
+    !isRecord(shadow.ecs) ||
+    !isRecord(shadow.authoring) ||
+    !isRecord(shadow.rendering)
+  ) {
+    shadowSummaryElement.hidden = true;
+    return;
+  }
+
+  shadowSummaryElement.hidden = false;
+
+  for (const row of shadowSummaryRows) {
+    const element = document.createElement("div");
+    const label = document.createElement("span");
+    const value = document.createElement("strong");
+
+    element.className = "shadow-summary-row";
+    element.dataset.shadowSummaryRow = row.key;
+    label.textContent = row.label;
+    value.textContent = row.value(shadow);
+
+    element.append(label, value);
+    shadowSummaryElement.append(element);
+  }
+}
+
+function updateIblSummaryPanel(ibl) {
+  if (!(iblSummaryElement instanceof HTMLElement)) {
+    return;
+  }
+
+  iblSummaryElement.replaceChildren();
+
+  if (
+    !isRecord(ibl) ||
+    !isRecord(ibl.controls) ||
+    ibl.controls.available !== true ||
+    !isRecord(ibl.ecs) ||
+    !isRecord(ibl.resources) ||
+    !isRecord(ibl.rendering)
+  ) {
+    iblSummaryElement.hidden = true;
+    return;
+  }
+
+  iblSummaryElement.hidden = false;
+
+  for (const row of iblSummaryRows) {
+    const element = document.createElement("div");
+    const label = document.createElement("span");
+    const value = document.createElement("strong");
+
+    element.className = "ibl-summary-row";
+    element.dataset.iblSummaryRow = row.key;
+    label.textContent = row.label;
+    value.textContent = row.value(ibl);
+
+    element.append(label, value);
+    iblSummaryElement.append(element);
+  }
+}
+
+function formatSummaryOptionalKey(value) {
+  return value === null || value === undefined || value === ""
+    ? "none"
+    : String(value);
+}
+
+function formatIblPipelineToken(pipelineKey, token) {
+  return typeof pipelineKey === "string" && pipelineKey.includes(token)
+    ? token
+    : "none";
+}
+
+function updateDrawSummaryPanel(summary) {
+  if (!(drawSummaryElement instanceof HTMLElement)) {
+    return;
+  }
+
+  drawSummaryElement.replaceChildren();
+
+  if (
+    !isRecord(summary.selectedAsset) ||
+    !isRecord(summary.extraction) ||
+    !isRecord(summary.draw) ||
+    !isRecord(summary.renderState) ||
+    !Array.isArray(summary.selectedAsset.materialFamilies) ||
+    !Array.isArray(summary.renderState.queues) ||
+    !Array.isArray(summary.renderState.pipelineKeys)
+  ) {
+    drawSummaryElement.hidden = true;
+    return;
+  }
+
+  drawSummaryElement.hidden = false;
+
+  for (const row of drawSummaryRows) {
+    const element = document.createElement("div");
+    const label = document.createElement("span");
+    const value = document.createElement("strong");
+
+    element.className = "draw-summary-row";
+    element.dataset.drawSummaryRow = row.key;
+    label.textContent = row.label;
+    value.textContent = row.value(summary);
+
+    element.append(label, value);
+    drawSummaryElement.append(element);
+  }
+}
+
+function formatMaterialFamilySummary(families) {
+  const rows = arrayEntries(families)
+    .filter((family) => isRecord(family) && typeof family.family === "string")
+    .map((family) => `${family.family} ${family.count ?? 0}`);
+
+  return rows.length === 0 ? "none" : rows.join(", ");
+}
+
+function formatCountSummary(values) {
+  const counts = new Map();
+
+  for (const value of arrayEntries(values)) {
+    if (typeof value !== "string") {
+      continue;
+    }
+
+    counts.set(value, (counts.get(value) ?? 0) + 1);
+  }
+
+  return counts.size === 0
+    ? "none"
+    : Array.from(counts, ([key, count]) => `${key} ${count}`).join(", ");
+}
+
+function formatPipelineKeySummary(pipelineKeys) {
+  const uniqueKeys = Array.from(
+    new Set(
+      arrayEntries(pipelineKeys).filter((key) => typeof key === "string"),
+    ),
+  );
+
+  return uniqueKeys.length === 0 ? "none" : uniqueKeys.join(" | ");
 }
 
 function failure(reason, message) {

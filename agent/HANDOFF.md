@@ -1,6 +1,75 @@
 # Agent Handoff
 
-Updated: 2026-05-20T09:14:00Z
+Updated: 2026-05-20T10:48:00Z
+
+## Current Run Update — 2026-05-20T10:48:00Z — GLB viewer custom URL and status panel polish
+
+Completed `task-2095` through `task-2109`.
+
+### What changed
+
+- Proved `/examples/glb-viewer.html?url=/examples/assets/uri-png-texture.glb`
+  loads through the custom URL path, keeps `selectedAsset.source` as `custom`,
+  reports same-origin decoded-image metadata, and renders visible textured
+  pixels.
+- Added previous/next buttons for the real-URI texture gallery, and sample
+  selection now persists to `?asset=<sample-id>` without overwriting custom
+  `url=` loads.
+- Added Playwright coverage proving custom URL to sample switching clears stale
+  decoded-image state and preserves the normal ECS replay/unload path.
+- Rendered the GLB viewer's JSON-safe status into visible compact panels for:
+  material slots, decoded images, unsupported features, animation, imported
+  cameras, live lights, scene metadata, orbit fit, shadows, IBL, and
+  draw/extraction state.
+- Fixed status-summary hidden styling so grid-based summary panels respect the
+  `hidden` attribute.
+- Refilled the visible-feature ready queue. The recommended next task is now
+  `task-2110`.
+
+### Files touched
+
+- `agent/BACKLOG.md`
+- `agent/COMPLETED.md`
+- `agent/HANDOFF.md`
+- `agent/STATUS.json`
+- `docs/index.html`
+- `examples/glb-viewer.html`
+- `examples/glb-viewer.js`
+- `examples/styles.css`
+- `test/e2e/glb-viewer.spec.ts`
+
+### References inspected
+
+- `references/three.js/examples/jsm/loaders/GLTFLoader.js`
+- `references/three.js/examples/webgl_loader_gltf.html`
+- `references/bevy/crates/bevy_gltf/src/loader/mod.rs`
+- Existing GLB viewer status and ECS control patterns for lights, cameras,
+  animation, shadows, IBL, extraction, and render-state reporting.
+
+### Validation
+
+- `node --check examples/glb-viewer.js`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts --grep "custom GLB URL|gallery.*button|persists GLB viewer sample selection|clears custom URI texture decode state"` (focused variants run during implementation)
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts --grep "draw and extraction summary rows|IBL summary rows|shadow summary rows|orbit-fit summary rows|scene metadata summary rows|live light summary rows|imported-camera summary rows|animation summary rows|unsupported-feature summary rows|decoded-image summary rows|material-slot summary rows"` (11 passed)
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts --grep "draw and extraction summary rows|IBL summary rows|shadow summary rows|orbit-fit summary rows|scene metadata summary rows|live light summary rows|imported-camera summary rows|animation summary rows|unsupported-feature summary rows|decoded-image summary rows|material-slot summary rows|custom GLB URL|gallery.*button|persists GLB viewer sample selection|clears custom URI texture decode state"` (16 passed)
+- `pnpm run check:progress`
+- `pnpm run check` (package boundaries, progress tracker, build/typecheck,
+  test typecheck, example syntax, lint, format check, and `pnpm test`; 317
+  files and 1482 tests passed)
+
+### Known issues
+
+- No known regressions from this run.
+- Same-origin image decode remains example-local/predecode-based. A package-level
+  async image dependency pipeline remains future work.
+- The GLB viewer status panel now has many compact sections. The next few slices
+  should continue turning already JSON-safe status into focused visible panels
+  only where it helps interactive debugging.
+
+### Recommended next task
+
+`task-2110 — Add GLB viewer imported-light status rows`.
 
 ## Current Run Update — 2026-05-20T09:14:00Z — GLB viewer material-slot summaries and real URI texture gallery navigation
 

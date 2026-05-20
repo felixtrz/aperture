@@ -10506,6 +10506,1355 @@ test("Playwright reports selected GLB viewer material-slot summaries", async ({
   webGpuValidation.expectNoWarnings();
 });
 
+test("Playwright renders GLB viewer material-slot summary rows", async ({
+  page,
+}) => {
+  const webGpuValidation = attachWebGpuValidationConsoleGuard(page);
+
+  await page.goto("/examples/glb-viewer.html?asset=all-slot-uri-textures");
+  const initialStatus = await waitForExampleStatus<GlbViewerStatus>(page);
+
+  expect(initialStatus, "GLB viewer status should publish").toBeDefined();
+
+  if (initialStatus === undefined) {
+    throw new Error("GLB viewer status did not publish.");
+  }
+
+  skipIfUnsupportedWebGpu(initialStatus);
+
+  async function waitForSummaryRows(id: string, materialCount: number) {
+    await page.waitForFunction(
+      ({ id, materialCount }) => {
+        const status = (
+          globalThis as {
+            readonly __APERTURE_EXAMPLE_STATUS__?: {
+              readonly frame?: number;
+              readonly selectedAsset?: {
+                readonly id?: string;
+                readonly loading?: boolean;
+                readonly materialSlotSummary?: MaterialSlotSummaryStatus;
+              };
+            };
+          }
+        ).__APERTURE_EXAMPLE_STATUS__;
+
+        return (
+          (status?.frame ?? 0) >= 3 &&
+          status?.selectedAsset?.id === id &&
+          status.selectedAsset.loading === false &&
+          status.selectedAsset.materialSlotSummary?.materialCount ===
+            materialCount
+        );
+      },
+      { id, materialCount },
+      { timeout: 5000 },
+    );
+
+    const status = await waitForExampleStatus<GlbViewerStatus>(page);
+
+    expect(status, `${id} summary-row status should publish`).toBeDefined();
+
+    if (status === undefined) {
+      throw new Error(`${id} summary-row status did not publish.`);
+    }
+
+    expectStatusJsonSafeForGpu(status);
+
+    return status;
+  }
+
+  const summaryPanel = page.locator("#glb-material-slot-summary");
+  const summaryRow = (key: string) =>
+    summaryPanel.locator(`[data-summary-row="${key}"]`);
+
+  const allSlotStatus = await waitForSummaryRows("all-slot-uri-textures", 2);
+
+  expect(allSlotStatus.selectedAsset?.materialSlotSummary).toMatchObject({
+    materialCount: 2,
+    scalarOnlyMaterialCount: 1,
+    textureSlots: {
+      baseColorTexture: { count: 1, uv0: 1, uv1: 0, otherUv: 0 },
+      metallicRoughnessTexture: { count: 1, uv0: 1, uv1: 0, otherUv: 0 },
+      normalTexture: { count: 1, uv0: 1, uv1: 0, otherUv: 0 },
+      occlusionTexture: { count: 1, uv0: 1, uv1: 0, otherUv: 0 },
+      emissiveTexture: { count: 1, uv0: 1, uv1: 0, otherUv: 0 },
+    },
+    alphaModes: { opaque: 2, mask: 0, blend: 0 },
+    uv1Usage: { materials: 0, textureSlots: 0 },
+  });
+  await expect(summaryRow("materials")).toContainText("2 total, 1 scalar");
+  await expect(summaryRow("baseColorTexture")).toContainText(
+    "1 total, uv0 1, uv1 0, other 0",
+  );
+  await expect(summaryRow("metallicRoughnessTexture")).toContainText(
+    "1 total, uv0 1, uv1 0, other 0",
+  );
+  await expect(summaryRow("normalTexture")).toContainText(
+    "1 total, uv0 1, uv1 0, other 0",
+  );
+  await expect(summaryRow("occlusionTexture")).toContainText(
+    "1 total, uv0 1, uv1 0, other 0",
+  );
+  await expect(summaryRow("emissiveTexture")).toContainText(
+    "1 total, uv0 1, uv1 0, other 0",
+  );
+  await expect(summaryRow("alphaModes")).toContainText(
+    "opaque 2, mask 0, blend 0",
+  );
+  await expect(summaryRow("uv1Usage")).toContainText("materials 0, slots 0");
+
+  await page.locator("#glb-asset-select").selectOption("brass");
+  const brassStatus = await waitForSummaryRows("brass", 1);
+
+  expect(brassStatus.selectedAsset?.materialSlotSummary).toMatchObject({
+    materialCount: 1,
+    scalarOnlyMaterialCount: 1,
+    textureSlots: {
+      baseColorTexture: { count: 0, uv0: 0, uv1: 0, otherUv: 0 },
+      metallicRoughnessTexture: { count: 0, uv0: 0, uv1: 0, otherUv: 0 },
+      normalTexture: { count: 0, uv0: 0, uv1: 0, otherUv: 0 },
+      occlusionTexture: { count: 0, uv0: 0, uv1: 0, otherUv: 0 },
+      emissiveTexture: { count: 0, uv0: 0, uv1: 0, otherUv: 0 },
+    },
+    alphaModes: { opaque: 1, mask: 0, blend: 0 },
+    uv1Usage: { materials: 0, textureSlots: 0 },
+  });
+  await expect(summaryRow("materials")).toContainText("1 total, 1 scalar");
+  await expect(summaryRow("baseColorTexture")).toContainText(
+    "0 total, uv0 0, uv1 0, other 0",
+  );
+  await expect(summaryRow("metallicRoughnessTexture")).toContainText(
+    "0 total, uv0 0, uv1 0, other 0",
+  );
+  await expect(summaryRow("normalTexture")).toContainText(
+    "0 total, uv0 0, uv1 0, other 0",
+  );
+  await expect(summaryRow("occlusionTexture")).toContainText(
+    "0 total, uv0 0, uv1 0, other 0",
+  );
+  await expect(summaryRow("emissiveTexture")).toContainText(
+    "0 total, uv0 0, uv1 0, other 0",
+  );
+  await expect(summaryRow("alphaModes")).toContainText(
+    "opaque 1, mask 0, blend 0",
+  );
+  await expect(summaryRow("uv1Usage")).toContainText("materials 0, slots 0");
+  webGpuValidation.expectNoWarnings();
+});
+
+test("Playwright renders GLB viewer decoded-image summary rows", async ({
+  page,
+}) => {
+  const webGpuValidation = attachWebGpuValidationConsoleGuard(page);
+
+  async function waitForDecodedImageRows({
+    url,
+    selectedId,
+    uris,
+  }: {
+    readonly url: string;
+    readonly selectedId: string;
+    readonly uris: readonly string[];
+  }) {
+    await page.goto(url);
+    const initialStatus = await waitForExampleStatus<GlbViewerStatus>(page);
+
+    expect(initialStatus, "GLB viewer status should publish").toBeDefined();
+
+    if (initialStatus === undefined) {
+      throw new Error("GLB viewer status did not publish.");
+    }
+
+    skipIfUnsupportedWebGpu(initialStatus);
+    await page.waitForFunction(
+      ({ selectedId, uris }) => {
+        const status = (
+          globalThis as {
+            readonly __APERTURE_EXAMPLE_STATUS__?: {
+              readonly frame?: number;
+              readonly selectedAsset?: {
+                readonly id?: string;
+                readonly loading?: boolean;
+              };
+              readonly source?: {
+                readonly imageDecode?: {
+                  readonly decoded?: readonly { readonly uri?: string }[];
+                  readonly diagnostics?: readonly unknown[];
+                };
+              };
+            };
+          }
+        ).__APERTURE_EXAMPLE_STATUS__;
+        const decodedUris =
+          status?.source?.imageDecode?.decoded?.map((entry) => entry.uri) ?? [];
+
+        return (
+          (status?.frame ?? 0) >= 3 &&
+          status?.selectedAsset?.id === selectedId &&
+          status.selectedAsset.loading === false &&
+          decodedUris.length === uris.length &&
+          uris.every((uri) => decodedUris.includes(uri)) &&
+          status.source?.imageDecode?.diagnostics?.length === 0
+        );
+      },
+      { selectedId, uris },
+      { timeout: 5000 },
+    );
+
+    const status = await waitForExampleStatus<GlbViewerStatus>(page);
+
+    expect(
+      status,
+      `${selectedId} decoded-image row status should publish`,
+    ).toBeDefined();
+
+    if (status === undefined) {
+      throw new Error(
+        `${selectedId} decoded-image row status did not publish.`,
+      );
+    }
+
+    expectStatusJsonSafeForGpu(status);
+    expect(
+      status.source?.imageDecode.decoded.map((entry) => entry.uri).sort(),
+    ).toEqual([...uris].sort());
+
+    return status;
+  }
+
+  const summaryPanel = page.locator("#glb-image-decode-summary");
+  const imageRow = (uri: string) =>
+    summaryPanel.locator(`[data-image-decode-uri="${uri}"]`);
+  const allSlotUris = [
+    "aperture-uri-base-color-checker.png",
+    "aperture-metallic-roughness-checker.png",
+    "aperture-normal-checker.png",
+    "aperture-occlusion-checker.png",
+    "aperture-base-color-checker.png",
+  ] as const;
+
+  await waitForDecodedImageRows({
+    url: "/examples/glb-viewer.html?asset=all-slot-uri-textures",
+    selectedId: "all-slot-uri-textures",
+    uris: allSlotUris,
+  });
+  await expect(summaryPanel.locator("[data-image-decode-row]")).toHaveCount(5);
+  await expect(imageRow("aperture-uri-base-color-checker.png")).toContainText(
+    "image/png, 2x2, 16 bytes",
+  );
+  await expect(
+    imageRow("aperture-metallic-roughness-checker.png"),
+  ).toContainText("image/png, 2x2, 16 bytes");
+  await expect(imageRow("aperture-normal-checker.png")).toContainText(
+    "image/png, 2x2, 16 bytes",
+  );
+  await expect(imageRow("aperture-occlusion-checker.png")).toContainText(
+    "image/png, 2x2, 16 bytes",
+  );
+  await expect(imageRow("aperture-base-color-checker.png")).toContainText(
+    "image/png, 2x2, 16 bytes",
+  );
+
+  await waitForDecodedImageRows({
+    url: `/examples/glb-viewer.html?url=${encodeURIComponent(
+      "/examples/assets/uri-png-texture.glb",
+    )}`,
+    selectedId: "custom-url",
+    uris: ["aperture-uri-base-color-checker.png"],
+  });
+  await expect(summaryPanel.locator("[data-image-decode-row]")).toHaveCount(1);
+  await expect(imageRow("aperture-uri-base-color-checker.png")).toContainText(
+    "image/png, 2x2, 16 bytes",
+  );
+  webGpuValidation.expectNoWarnings();
+});
+
+test("Playwright renders GLB viewer unsupported-feature summary rows", async ({
+  page,
+}) => {
+  const webGpuValidation = attachWebGpuValidationConsoleGuard(page);
+  const summaryPanel = page.locator("#glb-unsupported-feature-summary");
+  const unsupportedRow = (code: string) =>
+    summaryPanel.locator(`[data-unsupported-feature-code="${code}"]`);
+
+  async function waitForUnsupportedSample({
+    assetId,
+    code,
+  }: {
+    readonly assetId: string;
+    readonly code: string;
+  }) {
+    await page.goto(`/examples/glb-viewer.html?asset=${assetId}`);
+    const initialStatus = await waitForExampleStatus<GlbViewerStatus>(page);
+
+    expect(initialStatus, "GLB viewer status should publish").toBeDefined();
+
+    if (initialStatus === undefined) {
+      throw new Error("GLB viewer status did not publish.");
+    }
+
+    skipIfUnsupportedWebGpu(initialStatus);
+    await page.waitForFunction(
+      ({ assetId, code }) => {
+        const status = (
+          globalThis as {
+            readonly __APERTURE_EXAMPLE_STATUS__?: {
+              readonly frame?: number;
+              readonly selectedAsset?: {
+                readonly id?: string;
+                readonly loading?: boolean;
+              };
+              readonly importedCamera?: {
+                readonly cameras?: readonly {
+                  readonly status?: string;
+                  readonly reason?: string;
+                }[];
+              };
+              readonly gltf?: {
+                readonly metadata?: {
+                  readonly unsupportedFeatureDiagnostics?: readonly {
+                    readonly code?: string;
+                  }[];
+                };
+              };
+              readonly extraction?: {
+                readonly meshDraws?: number;
+                readonly diagnostics?: number;
+              };
+            };
+          }
+        ).__APERTURE_EXAMPLE_STATUS__;
+        const metadataCodes =
+          status?.gltf?.metadata?.unsupportedFeatureDiagnostics?.map(
+            (diagnostic) => diagnostic.code,
+          ) ?? [];
+        const hasUnsupportedCamera =
+          status?.importedCamera?.cameras?.some(
+            (camera) =>
+              camera.status === "unsupported" &&
+              camera.reason === "orthographic-camera",
+          ) === true;
+
+        return (
+          (status?.frame ?? 0) >= 3 &&
+          status?.selectedAsset?.id === assetId &&
+          status.selectedAsset.loading === false &&
+          status.extraction?.meshDraws === 1 &&
+          status.extraction.diagnostics === 0 &&
+          (metadataCodes.includes(code) ||
+            (code === "glbViewer.unsupportedImportedCamera" &&
+              hasUnsupportedCamera))
+        );
+      },
+      { assetId, code },
+      { timeout: 5000 },
+    );
+
+    const status = await waitForExampleStatus<GlbViewerStatus>(page);
+
+    expect(
+      status,
+      `${assetId} unsupported-row status should publish`,
+    ).toBeDefined();
+
+    if (status === undefined) {
+      throw new Error(`${assetId} unsupported-row status did not publish.`);
+    }
+
+    expectStatusJsonSafeForGpu(status);
+  }
+
+  await waitForUnsupportedSample({
+    assetId: "morph-target",
+    code: "gltfMetadata.unsupportedMorphTargets",
+  });
+  await expect(
+    unsupportedRow("gltfMetadata.unsupportedMorphTargets"),
+  ).toContainText("2 targets, 1 primitives");
+
+  await waitForUnsupportedSample({
+    assetId: "skinning",
+    code: "gltfMetadata.unsupportedSkins",
+  });
+  await expect(unsupportedRow("gltfMetadata.unsupportedSkins")).toContainText(
+    "1 skins, 2 joints, 2 inverse binds",
+  );
+
+  await waitForUnsupportedSample({
+    assetId: "orthographic-camera",
+    code: "glbViewer.unsupportedImportedCamera",
+  });
+  await expect(
+    unsupportedRow("glbViewer.unsupportedImportedCamera"),
+  ).toContainText("orthographic, orthographic-camera");
+
+  await waitForUnsupportedSample({
+    assetId: "unsupported-primitive",
+    code: "gltfMesh.unsupportedPrimitiveMode",
+  });
+  await expect(
+    unsupportedRow("gltfMesh.unsupportedPrimitiveMode"),
+  ).toContainText("mesh 0, primitive 1, mode 1");
+
+  await page.goto("/examples/glb-viewer.html?asset=cube");
+  await page.waitForFunction(
+    () => {
+      const status = (
+        globalThis as {
+          readonly __APERTURE_EXAMPLE_STATUS__?: {
+            readonly frame?: number;
+            readonly selectedAsset?: {
+              readonly id?: string;
+              readonly loading?: boolean;
+            };
+            readonly gltf?: {
+              readonly metadata?: {
+                readonly unsupportedFeatureDiagnostics?: readonly unknown[];
+              };
+            };
+          };
+        }
+      ).__APERTURE_EXAMPLE_STATUS__;
+
+      return (
+        (status?.frame ?? 0) >= 3 &&
+        status?.selectedAsset?.id === "cube" &&
+        status.selectedAsset.loading === false &&
+        status.gltf?.metadata?.unsupportedFeatureDiagnostics?.length === 0
+      );
+    },
+    undefined,
+    { timeout: 5000 },
+  );
+  await expect(
+    summaryPanel.locator("[data-unsupported-feature-row]"),
+  ).toHaveCount(0);
+  webGpuValidation.expectNoWarnings();
+});
+
+test("Playwright renders GLB viewer animation summary rows", async ({
+  page,
+}) => {
+  const webGpuValidation = attachWebGpuValidationConsoleGuard(page);
+  const summaryPanel = page.locator("#glb-animation-summary");
+  const animationRow = (key: string) =>
+    summaryPanel.locator(`[data-animation-summary-row="${key}"]`);
+
+  await page.goto("/examples/glb-viewer.html?asset=animated");
+  const initialStatus = await waitForExampleStatus<GlbViewerStatus>(page);
+
+  expect(initialStatus, "GLB viewer status should publish").toBeDefined();
+
+  if (initialStatus === undefined) {
+    throw new Error("GLB viewer status did not publish.");
+  }
+
+  skipIfUnsupportedWebGpu(initialStatus);
+
+  async function waitForAnimationRows({
+    direction,
+    speed,
+  }: {
+    readonly direction: string;
+    readonly speed: number;
+  }) {
+    await page.waitForFunction(
+      ({ direction, speed }) => {
+        const status = (
+          globalThis as {
+            readonly __APERTURE_EXAMPLE_STATUS__?: {
+              readonly frame?: number;
+              readonly selectedAsset?: {
+                readonly id?: string;
+                readonly loading?: boolean;
+              };
+              readonly animation?: {
+                readonly status?: string;
+                readonly activeClipName?: string | null;
+                readonly direction?: string;
+                readonly speed?: number;
+                readonly duration?: number;
+                readonly channelCount?: number;
+              };
+            };
+          }
+        ).__APERTURE_EXAMPLE_STATUS__;
+
+        return (
+          (status?.frame ?? 0) >= 3 &&
+          status?.selectedAsset?.id === "animated" &&
+          status.selectedAsset.loading === false &&
+          status.animation?.status === "playing" &&
+          status.animation.activeClipName === "SlideX" &&
+          status.animation.direction === direction &&
+          Math.abs((status.animation.speed ?? Number.NaN) - speed) < 0.001 &&
+          status.animation.duration === 4 &&
+          status.animation.channelCount === 1
+        );
+      },
+      { direction, speed },
+      { timeout: 5000 },
+    );
+
+    const status = await waitForExampleStatus<GlbViewerStatus>(page);
+
+    expect(status, "animation summary-row status should publish").toBeDefined();
+
+    if (status === undefined) {
+      throw new Error("Animation summary-row status did not publish.");
+    }
+
+    expectStatusJsonSafeForGpu(status);
+  }
+
+  await waitForAnimationRows({ direction: "forward", speed: 1 });
+  await expect(animationRow("clip")).toContainText("SlideX");
+  await expect(animationRow("mode")).toContainText("playing, repeat, forward");
+  await expect(animationRow("time")).toContainText("/ 4");
+  await expect(animationRow("speed")).toContainText("1");
+  await expect(animationRow("channels")).toContainText("1 channels, 1 clips");
+
+  await setSelectInputValue(page, "#glb-animation-direction", "reverse");
+  await waitForAnimationRows({ direction: "reverse", speed: 1 });
+  await expect(animationRow("mode")).toContainText("playing, repeat, reverse");
+
+  await setRangeInputValue(page, "#glb-animation-speed", 2);
+  await waitForAnimationRows({ direction: "reverse", speed: 2 });
+  await expect(animationRow("speed")).toContainText("2");
+
+  await page.locator("#glb-asset-select").selectOption("cube");
+  await page.waitForFunction(
+    () => {
+      const status = (
+        globalThis as {
+          readonly __APERTURE_EXAMPLE_STATUS__?: {
+            readonly frame?: number;
+            readonly selectedAsset?: {
+              readonly id?: string;
+              readonly loading?: boolean;
+            };
+            readonly animation?: { readonly status?: string };
+          };
+        }
+      ).__APERTURE_EXAMPLE_STATUS__;
+
+      return (
+        (status?.frame ?? 0) >= 3 &&
+        status?.selectedAsset?.id === "cube" &&
+        status.selectedAsset.loading === false &&
+        status.animation?.status === "absent"
+      );
+    },
+    undefined,
+    { timeout: 5000 },
+  );
+  await expect(
+    summaryPanel.locator("[data-animation-summary-row]"),
+  ).toHaveCount(0);
+  webGpuValidation.expectNoWarnings();
+});
+
+test("Playwright renders GLB viewer imported-camera summary rows", async ({
+  page,
+}) => {
+  const webGpuValidation = attachWebGpuValidationConsoleGuard(page);
+  const summaryPanel = page.locator("#glb-imported-camera-summary");
+  const cameraRow = (key: string) =>
+    summaryPanel.locator(`[data-imported-camera-summary-row="${key}"]`);
+
+  await page.goto("/examples/glb-viewer.html?asset=imported-camera");
+  const initialStatus = await waitForExampleStatus<GlbViewerStatus>(page);
+
+  expect(initialStatus, "GLB viewer status should publish").toBeDefined();
+
+  if (initialStatus === undefined) {
+    throw new Error("GLB viewer status did not publish.");
+  }
+
+  skipIfUnsupportedWebGpu(initialStatus);
+
+  async function waitForCameraRows(enabled: boolean) {
+    await page.waitForFunction(
+      (enabled) => {
+        const status = (
+          globalThis as {
+            readonly __APERTURE_EXAMPLE_STATUS__?: {
+              readonly frame?: number;
+              readonly selectedAsset?: {
+                readonly id?: string;
+                readonly loading?: boolean;
+              };
+              readonly importedCamera?: {
+                readonly status?: string;
+                readonly controls?: {
+                  readonly available?: boolean;
+                  readonly enabled?: boolean;
+                };
+                readonly selected?: {
+                  readonly name?: string | null;
+                  readonly projection?: string;
+                  readonly yfov?: number;
+                  readonly near?: number;
+                  readonly far?: number;
+                } | null;
+              };
+            };
+          }
+        ).__APERTURE_EXAMPLE_STATUS__;
+
+        return (
+          (status?.frame ?? 0) >= 3 &&
+          status?.selectedAsset?.id === "imported-camera" &&
+          status.selectedAsset.loading === false &&
+          status.importedCamera?.status === "ready" &&
+          status.importedCamera.controls?.available === true &&
+          status.importedCamera.controls.enabled === enabled &&
+          status.importedCamera.selected?.name === "ImportedPerspective" &&
+          status.importedCamera.selected.projection === "perspective" &&
+          Math.abs((status.importedCamera.selected.yfov ?? 0) - 0.72) < 0.001 &&
+          status.importedCamera.selected.near === 0.1 &&
+          status.importedCamera.selected.far === 50
+        );
+      },
+      enabled,
+      { timeout: 5000 },
+    );
+
+    const status = await waitForExampleStatus<GlbViewerStatus>(page);
+
+    expect(
+      status,
+      "imported-camera summary-row status should publish",
+    ).toBeDefined();
+
+    if (status === undefined) {
+      throw new Error("Imported-camera summary-row status did not publish.");
+    }
+
+    expectStatusJsonSafeForGpu(status);
+  }
+
+  await waitForCameraRows(false);
+  await expect(cameraRow("camera")).toContainText("ImportedPerspective");
+  await expect(cameraRow("state")).toContainText("orbit");
+  await expect(cameraRow("fov")).toContainText("0.72");
+  await expect(cameraRow("range")).toContainText("0.1 - 50");
+  await expect(cameraRow("aspect")).toContainText("1.778");
+
+  await page.locator("#glb-imported-camera-toggle").click();
+  await waitForCameraRows(true);
+  await expect(cameraRow("state")).toContainText("imported");
+
+  await page.locator("#glb-asset-select").selectOption("cube");
+  await page.waitForFunction(
+    () => {
+      const status = (
+        globalThis as {
+          readonly __APERTURE_EXAMPLE_STATUS__?: {
+            readonly frame?: number;
+            readonly selectedAsset?: {
+              readonly id?: string;
+              readonly loading?: boolean;
+            };
+            readonly importedCamera?: { readonly status?: string };
+          };
+        }
+      ).__APERTURE_EXAMPLE_STATUS__;
+
+      return (
+        (status?.frame ?? 0) >= 3 &&
+        status?.selectedAsset?.id === "cube" &&
+        status.selectedAsset.loading === false &&
+        status.importedCamera?.status === "absent"
+      );
+    },
+    undefined,
+    { timeout: 5000 },
+  );
+  await expect(
+    summaryPanel.locator("[data-imported-camera-summary-row]"),
+  ).toHaveCount(0);
+  webGpuValidation.expectNoWarnings();
+});
+
+test("Playwright renders GLB viewer live light summary rows", async ({
+  page,
+}) => {
+  const webGpuValidation = attachWebGpuValidationConsoleGuard(page);
+  const summaryPanel = page.locator("#glb-light-summary");
+  const lightRow = (key: string) =>
+    summaryPanel.locator(`[data-light-summary-row="${key}"]`);
+
+  await loadBrassViewerSample(
+    page,
+    "/examples/glb-viewer.html?disable-ibl-sampling=1&disable-shadow-receiver=1",
+    false,
+    false,
+  );
+  await expect(lightRow("ambient")).toContainText(
+    "control 0.24, ecs 0.24, extracted 0.24",
+  );
+  await expect(lightRow("point")).toContainText(
+    "control 18, ecs 18, extracted 18",
+  );
+  await expect(lightRow("lights")).toContainText("3 extracted");
+
+  await setRangeInputValue(page, "#glb-point-light-intensity", 0);
+  await setRangeInputValue(page, "#glb-ambient-intensity", 0);
+  const dimStatus = await waitForLightingStatus(page, {
+    ambientIntensity: 0,
+    pointIntensity: 0,
+  });
+
+  expectStatusJsonSafeForGpu(dimStatus);
+  await expect(lightRow("ambient")).toContainText(
+    "control 0, ecs 0, extracted 0",
+  );
+  await expect(lightRow("point")).toContainText(
+    "control 0, ecs 0, extracted 0",
+  );
+
+  await setRangeInputValue(page, "#glb-point-light-intensity", 36);
+  await setRangeInputValue(page, "#glb-ambient-intensity", 1);
+  const brightStatus = await waitForLightingStatus(page, {
+    ambientIntensity: 1,
+    pointIntensity: 36,
+  });
+
+  expectStatusJsonSafeForGpu(brightStatus);
+  await expect(lightRow("ambient")).toContainText(
+    "control 1, ecs 1, extracted 1",
+  );
+  await expect(lightRow("point")).toContainText(
+    "control 36, ecs 36, extracted 36",
+  );
+  await expect(lightRow("lights")).toContainText("3 extracted");
+
+  await page.goto("/examples/glb-viewer.html?asset=imported-light");
+  const importedStatus = await waitForImportedLightStatus(page, {
+    enabled: true,
+  });
+
+  expectStatusJsonSafeForGpu(importedStatus);
+  await expect(lightRow("ambient")).toContainText(
+    "control 0.24, ecs 0.24, extracted 0.24",
+  );
+  await expect(lightRow("point")).toContainText(
+    "control 18, ecs 18, extracted 18",
+  );
+  await expect(lightRow("lights")).toContainText("3 extracted");
+  webGpuValidation.expectNoWarnings();
+});
+
+test("Playwright renders GLB viewer scene metadata summary rows", async ({
+  page,
+}) => {
+  const webGpuValidation = attachWebGpuValidationConsoleGuard(page);
+  const summaryPanel = page.locator("#glb-metadata-summary");
+  const metadataRow = (key: string) =>
+    summaryPanel.locator(`[data-metadata-summary-row="${key}"]`);
+
+  async function waitForMetadataRows({
+    assetId,
+    scenes,
+    nodes,
+    meshes,
+    primitives,
+    materials,
+    animations,
+    usedExtensions,
+    requiredExtensions,
+  }: {
+    readonly assetId: string;
+    readonly scenes: number;
+    readonly nodes: number;
+    readonly meshes: number;
+    readonly primitives: number;
+    readonly materials: number;
+    readonly animations: number;
+    readonly usedExtensions: number;
+    readonly requiredExtensions: number;
+  }) {
+    await page.goto(`/examples/glb-viewer.html?asset=${assetId}`);
+    const initialStatus = await waitForExampleStatus<GlbViewerStatus>(page);
+
+    expect(initialStatus, "GLB viewer status should publish").toBeDefined();
+
+    if (initialStatus === undefined) {
+      throw new Error("GLB viewer status did not publish.");
+    }
+
+    skipIfUnsupportedWebGpu(initialStatus);
+    await page.waitForFunction(
+      ({
+        assetId,
+        scenes,
+        nodes,
+        meshes,
+        primitives,
+        materials,
+        animations,
+      }) => {
+        const status = (
+          globalThis as {
+            readonly __APERTURE_EXAMPLE_STATUS__?: {
+              readonly frame?: number;
+              readonly selectedAsset?: {
+                readonly id?: string;
+                readonly loading?: boolean;
+              };
+              readonly gltf?: {
+                readonly metadata?: {
+                  readonly counts?: {
+                    readonly scenes?: number;
+                    readonly nodes?: number;
+                    readonly meshes?: number;
+                    readonly primitives?: number;
+                    readonly materials?: number;
+                    readonly animations?: number;
+                  };
+                };
+              };
+            };
+          }
+        ).__APERTURE_EXAMPLE_STATUS__;
+        const counts = status?.gltf?.metadata?.counts;
+
+        return (
+          (status?.frame ?? 0) >= 3 &&
+          status?.selectedAsset?.id === assetId &&
+          status.selectedAsset.loading === false &&
+          counts?.scenes === scenes &&
+          counts.nodes === nodes &&
+          counts.meshes === meshes &&
+          counts.primitives === primitives &&
+          counts.materials === materials &&
+          counts.animations === animations
+        );
+      },
+      {
+        assetId,
+        scenes,
+        nodes,
+        meshes,
+        primitives,
+        materials,
+        animations,
+      },
+      { timeout: 5000 },
+    );
+
+    const status = await waitForExampleStatus<GlbViewerStatus>(page);
+
+    expect(
+      status,
+      `${assetId} metadata-row status should publish`,
+    ).toBeDefined();
+
+    if (status === undefined) {
+      throw new Error(`${assetId} metadata-row status did not publish.`);
+    }
+
+    expectStatusJsonSafeForGpu(status);
+    await expect(metadataRow("scene")).toContainText(
+      `${scenes} scenes, ${nodes} nodes`,
+    );
+    await expect(metadataRow("mesh")).toContainText(
+      `${meshes} meshes, ${primitives} primitives`,
+    );
+    await expect(metadataRow("material")).toContainText(
+      `${materials} materials`,
+    );
+    await expect(metadataRow("animation")).toContainText(
+      `${animations} animations`,
+    );
+    await expect(metadataRow("extensions")).toContainText(
+      `used ${usedExtensions}, required ${requiredExtensions}`,
+    );
+  }
+
+  await waitForMetadataRows({
+    assetId: "multi-scene",
+    scenes: 2,
+    nodes: 2,
+    meshes: 2,
+    primitives: 2,
+    materials: 2,
+    animations: 0,
+    usedExtensions: 1,
+    requiredExtensions: 0,
+  });
+  await waitForMetadataRows({
+    assetId: "all-slot-uri-textures",
+    scenes: 1,
+    nodes: 1,
+    meshes: 1,
+    primitives: 2,
+    materials: 2,
+    animations: 0,
+    usedExtensions: 0,
+    requiredExtensions: 0,
+  });
+  webGpuValidation.expectNoWarnings();
+});
+
+test("Playwright renders GLB viewer orbit-fit summary rows", async ({
+  page,
+}) => {
+  const webGpuValidation = attachWebGpuValidationConsoleGuard(page);
+  const summaryPanel = page.locator("#glb-orbit-summary");
+  const orbitRow = (key: string) =>
+    summaryPanel.locator(`[data-orbit-summary-row="${key}"]`);
+  const formatTuple = (values: readonly number[]) =>
+    values.map((value) => Number(value.toFixed(3))).join(", ");
+
+  await page.goto("/examples/glb-viewer.html?asset=cube");
+  const initialStatus = await waitForExampleStatus<GlbViewerStatus>(page);
+
+  expect(initialStatus, "GLB viewer status should publish").toBeDefined();
+
+  if (initialStatus === undefined) {
+    throw new Error("GLB viewer status did not publish.");
+  }
+
+  skipIfUnsupportedWebGpu(initialStatus);
+
+  await page.waitForFunction(
+    () => {
+      const status = (
+        globalThis as {
+          readonly __APERTURE_EXAMPLE_STATUS__?: {
+            readonly frame?: number;
+            readonly selectedAsset?: {
+              readonly id?: string;
+              readonly loading?: boolean;
+            };
+            readonly orbit?: {
+              readonly fit?: { readonly status?: string };
+            };
+          };
+        }
+      ).__APERTURE_EXAMPLE_STATUS__;
+
+      return (
+        (status?.frame ?? 0) >= 3 &&
+        status?.selectedAsset?.id === "cube" &&
+        status.selectedAsset.loading === false &&
+        status.orbit?.fit?.status === "ready"
+      );
+    },
+    undefined,
+    { timeout: 5000 },
+  );
+  const cubeStatus = await waitForExampleStatus<GlbViewerStatus>(page);
+  const cubeOrbit = expectReadyOrbitFit(cubeStatus, "cube orbit summary");
+
+  await expect(orbitRow("status")).toContainText("ready");
+  await expect(orbitRow("center")).toContainText(
+    formatTuple(cubeOrbit.fit.center),
+  );
+  await expect(orbitRow("size")).toContainText(formatTuple(cubeOrbit.fit.size));
+  await expect(orbitRow("distance")).toContainText(String(cubeOrbit.distance));
+  await expect(orbitRow("zoom")).toContainText(
+    `${cubeOrbit.fit.minDistance} - ${cubeOrbit.fit.maxDistance}`,
+  );
+
+  await page.locator("#glb-asset-select").selectOption("brass");
+  await page.waitForFunction(
+    () => {
+      const status = (
+        globalThis as {
+          readonly __APERTURE_EXAMPLE_STATUS__?: {
+            readonly frame?: number;
+            readonly selectedAsset?: {
+              readonly id?: string;
+              readonly loading?: boolean;
+            };
+            readonly orbit?: {
+              readonly fit?: { readonly status?: string };
+            };
+          };
+        }
+      ).__APERTURE_EXAMPLE_STATUS__;
+
+      return (
+        (status?.frame ?? 0) >= 3 &&
+        status?.selectedAsset?.id === "brass" &&
+        status.selectedAsset.loading === false &&
+        status.orbit?.fit?.status === "ready"
+      );
+    },
+    undefined,
+    { timeout: 5000 },
+  );
+  const brassStatus = await waitForExampleStatus<GlbViewerStatus>(page);
+  const brassOrbit = expectReadyOrbitFit(brassStatus, "brass orbit summary");
+
+  expect(brassOrbit.fit.size).not.toEqual(cubeOrbit.fit.size);
+  await expect(orbitRow("size")).toContainText(
+    formatTuple(brassOrbit.fit.size),
+  );
+
+  await page.locator("#aperture-canvas").hover();
+  await page.mouse.wheel(0, -300);
+  await page.locator("#glb-camera-reset").click();
+  await page.waitForFunction(
+    () => {
+      const orbit = (
+        globalThis as {
+          readonly __APERTURE_EXAMPLE_STATUS__?: {
+            readonly orbit?: {
+              readonly distance?: number;
+              readonly fit?: { readonly distance?: number };
+            };
+          };
+        }
+      ).__APERTURE_EXAMPLE_STATUS__?.orbit;
+
+      return (
+        Math.abs((orbit?.distance ?? 0) - (orbit?.fit?.distance ?? 1)) < 0.001
+      );
+    },
+    undefined,
+    { timeout: 3000 },
+  );
+  const resetStatus = await waitForExampleStatus<GlbViewerStatus>(page);
+  const resetOrbit = expectReadyOrbitFit(resetStatus, "reset orbit summary");
+
+  await expect(orbitRow("distance")).toContainText(String(resetOrbit.distance));
+  webGpuValidation.expectNoWarnings();
+});
+
+test("Playwright renders GLB viewer shadow summary rows", async ({ page }) => {
+  const webGpuValidation = attachWebGpuValidationConsoleGuard(page);
+  const summaryPanel = page.locator("#glb-shadow-summary");
+  const shadowRow = (key: string) =>
+    summaryPanel.locator(`[data-shadow-summary-row="${key}"]`);
+
+  const initialStatus = await loadBrassViewerSample(
+    page,
+    "/examples/glb-viewer.html?disable-ibl-sampling=1",
+    true,
+    false,
+  );
+
+  expect(initialStatus.shadow).toMatchObject({
+    controls: {
+      receiverEnabled: true,
+      casterEnabled: true,
+    },
+    rendering: {
+      supported: true,
+      mode: "directional-depth-compare",
+    },
+  });
+  await expect(shadowRow("controls")).toContainText(
+    "receiver true, caster true",
+  );
+  await expect(shadowRow("ecs")).toContainText("receiver true, caster true");
+  await expect(shadowRow("authoring")).toContainText("1 casters, 1 receivers");
+  await expect(shadowRow("drawList")).toContainText("1 included, 1 skipped");
+  await expect(shadowRow("rendering")).toContainText(
+    "supported true, directional-depth-compare",
+  );
+  await expect(shadowRow("submission")).toContainText("submitted");
+
+  await page.locator("#glb-shadow-caster-toggle").setChecked(false);
+  await waitForShadowControlStatus(page, {
+    receiverEnabled: true,
+    casterEnabled: false,
+    supported: false,
+    casterCount: 0,
+    receiverCount: 1,
+    includedDrawCount: 0,
+  });
+
+  await expect(shadowRow("controls")).toContainText(
+    "receiver true, caster false",
+  );
+  await expect(shadowRow("ecs")).toContainText("receiver true, caster false");
+  await expect(shadowRow("authoring")).toContainText("0 casters, 1 receivers");
+  await expect(shadowRow("drawList")).toContainText("0 included, 2 skipped");
+  await expect(shadowRow("rendering")).toContainText(
+    "supported false, directional-depth-compare",
+  );
+  await expect(shadowRow("submission")).toContainText("ready");
+
+  await page.locator("#glb-shadow-caster-toggle").setChecked(true);
+  await waitForShadowControlStatus(page, {
+    receiverEnabled: true,
+    casterEnabled: true,
+    supported: true,
+    casterCount: 1,
+    receiverCount: 1,
+    includedDrawCount: 1,
+  });
+
+  await page.locator("#glb-shadow-receiver-toggle").setChecked(false);
+  await waitForShadowControlStatus(page, {
+    receiverEnabled: false,
+    casterEnabled: true,
+    supported: false,
+    casterCount: 1,
+    receiverCount: 0,
+    includedDrawCount: 1,
+  });
+
+  await expect(shadowRow("controls")).toContainText(
+    "receiver false, caster true",
+  );
+  await expect(shadowRow("ecs")).toContainText("receiver false, caster true");
+  await expect(shadowRow("authoring")).toContainText("1 casters, 0 receivers");
+  await expect(shadowRow("rendering")).toContainText(
+    "supported false, directional-depth-compare",
+  );
+
+  await page.locator("#glb-asset-select").selectOption("cube");
+  await page.waitForFunction(
+    () => {
+      const status = (
+        globalThis as {
+          readonly __APERTURE_EXAMPLE_STATUS__?: {
+            readonly frame?: number;
+            readonly selectedAsset?: {
+              readonly id?: string;
+              readonly loading?: boolean;
+            };
+            readonly shadow?: {
+              readonly enabled?: boolean;
+            };
+          };
+        }
+      ).__APERTURE_EXAMPLE_STATUS__;
+
+      return (
+        (status?.frame ?? 0) >= 3 &&
+        status?.selectedAsset?.id === "cube" &&
+        status.selectedAsset.loading === false &&
+        status.shadow?.enabled === false
+      );
+    },
+    undefined,
+    { timeout: 5000 },
+  );
+
+  await expect(summaryPanel.locator("[data-shadow-summary-row]")).toHaveCount(
+    0,
+  );
+  await expect(summaryPanel).toBeHidden();
+  webGpuValidation.expectNoWarnings();
+});
+
+test("Playwright renders GLB viewer IBL summary rows", async ({ page }) => {
+  const webGpuValidation = attachWebGpuValidationConsoleGuard(page);
+  const summaryPanel = page.locator("#glb-ibl-summary");
+  const iblRow = (key: string) =>
+    summaryPanel.locator(`[data-ibl-summary-row="${key}"]`);
+
+  const initialStatus = await loadBrassViewerSample(
+    page,
+    "/examples/glb-viewer.html",
+    true,
+    true,
+  );
+
+  expect(initialStatus.ibl).toMatchObject({
+    enabled: true,
+    controls: {
+      enabled: true,
+      available: true,
+    },
+    ecs: {
+      environmentMapKey: "environment-map:glb-viewer-studio",
+      intensity: 0.52,
+    },
+    rendering: {
+      supported: true,
+      diffusePipelineKey: expect.stringContaining("iblDiffuse"),
+      specularPipelineKey: expect.stringContaining("iblSpecularProof"),
+    },
+  });
+  await expect(iblRow("controls")).toContainText(
+    "enabled true, available true",
+  );
+  await expect(iblRow("environment")).toContainText(
+    "environment-map:glb-viewer-studio, intensity 0.52",
+  );
+  await expect(iblRow("resources")).toContainText("diffuse");
+  await expect(iblRow("resources")).toContainText("specular");
+  await expect(iblRow("resources")).toContainText("sampler");
+  await expect(iblRow("rendering")).toContainText("supported true");
+  await expect(iblRow("rendering")).toContainText("specular true");
+  await expect(iblRow("pipelines")).toContainText("iblDiffuse");
+  await expect(iblRow("pipelines")).toContainText("iblSpecularProof");
+
+  await page.locator("#glb-ibl-toggle").setChecked(false);
+  await waitForIblControlStatus(page, {
+    enabled: false,
+    supported: false,
+    environmentMapKey: null,
+    intensity: 0,
+  });
+
+  await expect(iblRow("controls")).toContainText(
+    "enabled false, available true",
+  );
+  await expect(iblRow("environment")).toContainText("none, intensity 0");
+  await expect(iblRow("rendering")).toContainText("supported false");
+  await expect(iblRow("rendering")).toContainText("specular false");
+  await expect(iblRow("pipelines")).toContainText(
+    "diffuse none, specular none",
+  );
+
+  await page.locator("#glb-asset-select").selectOption("cube");
+  await page.waitForFunction(
+    () => {
+      const status = (
+        globalThis as {
+          readonly __APERTURE_EXAMPLE_STATUS__?: {
+            readonly frame?: number;
+            readonly selectedAsset?: {
+              readonly id?: string;
+              readonly loading?: boolean;
+            };
+            readonly ibl?: {
+              readonly controls?: { readonly available?: boolean };
+            };
+          };
+        }
+      ).__APERTURE_EXAMPLE_STATUS__;
+
+      return (
+        (status?.frame ?? 0) >= 3 &&
+        status?.selectedAsset?.id === "cube" &&
+        status.selectedAsset.loading === false &&
+        status.ibl?.controls?.available === false
+      );
+    },
+    undefined,
+    { timeout: 5000 },
+  );
+
+  await expect(summaryPanel.locator("[data-ibl-summary-row]")).toHaveCount(0);
+  await expect(summaryPanel).toBeHidden();
+  webGpuValidation.expectNoWarnings();
+});
+
+test("Playwright renders GLB viewer draw and extraction summary rows", async ({
+  page,
+}) => {
+  const webGpuValidation = attachWebGpuValidationConsoleGuard(page);
+  const summaryPanel = page.locator("#glb-draw-summary");
+  const drawRow = (key: string) =>
+    summaryPanel.locator(`[data-draw-summary-row="${key}"]`);
+  const waitForDrawSummary = async (expected: {
+    readonly id: string;
+    readonly source: string;
+    readonly meshDraws: number;
+    readonly drawCalls: number;
+  }) => {
+    await page.waitForFunction(
+      ({ id, source, meshDraws, drawCalls }) => {
+        const status = (
+          globalThis as {
+            readonly __APERTURE_EXAMPLE_STATUS__?: {
+              readonly frame?: number;
+              readonly selectedAsset?: {
+                readonly id?: string;
+                readonly source?: string;
+                readonly loading?: boolean;
+              };
+              readonly source?: { readonly ok?: boolean };
+              readonly extraction?: { readonly meshDraws?: number };
+              readonly draw?: { readonly drawCalls?: number };
+              readonly renderState?: {
+                readonly pipelineKeys?: readonly string[];
+              };
+            };
+          }
+        ).__APERTURE_EXAMPLE_STATUS__;
+
+        return (
+          (status?.frame ?? 0) >= 3 &&
+          status?.selectedAsset?.id === id &&
+          status.selectedAsset.source === source &&
+          status.selectedAsset.loading === false &&
+          status.source?.ok === true &&
+          status.extraction?.meshDraws === meshDraws &&
+          status.draw?.drawCalls === drawCalls &&
+          (status.renderState?.pipelineKeys?.length ?? 0) >= 1
+        );
+      },
+      expected,
+      { timeout: 5000 },
+    );
+
+    const status = await waitForExampleStatus<GlbViewerStatus>(page);
+
+    expect(
+      status,
+      `${expected.id} draw summary status should publish`,
+    ).toBeDefined();
+
+    if (status === undefined) {
+      throw new Error(`${expected.id} draw summary status did not publish.`);
+    }
+
+    expectStatusJsonSafeForGpu(status);
+    return status;
+  };
+
+  await page.goto(
+    "/examples/glb-viewer.html?asset=all-slot-uri-textures&disable-ibl-sampling=1",
+  );
+  const initialStatus = await waitForExampleStatus<GlbViewerStatus>(page);
+
+  expect(initialStatus, "GLB viewer status should publish").toBeDefined();
+
+  if (initialStatus === undefined) {
+    throw new Error("GLB viewer status did not publish.");
+  }
+
+  skipIfUnsupportedWebGpu(initialStatus);
+  await waitForDrawSummary({
+    id: "all-slot-uri-textures",
+    source: "sample",
+    meshDraws: 2,
+    drawCalls: 2,
+  });
+  await expect(drawRow("extraction")).toContainText("1 views, 2 draws");
+  await expect(drawRow("draw")).toContainText("2 packages, 2 calls");
+  await expect(drawRow("materials")).toContainText("standard 2");
+  await expect(drawRow("queues")).toContainText("opaque 2");
+  await expect(drawRow("pipelines")).toContainText("standard");
+
+  await page.locator("#glb-asset-select").selectOption("brass");
+  await waitForDrawSummary({
+    id: "brass",
+    source: "sample",
+    meshDraws: 2,
+    drawCalls: 2,
+  });
+  await expect(drawRow("materials")).toContainText("standard 1");
+  await expect(drawRow("pipelines")).toContainText("shadowMap");
+
+  await page
+    .locator("#glb-url-input")
+    .fill("/examples/assets/sapphire-pillar.glb");
+  await page.locator("#glb-url-form button").click();
+  await waitForDrawSummary({
+    id: "custom-url",
+    source: "custom",
+    meshDraws: 1,
+    drawCalls: 1,
+  });
+  await expect(drawRow("extraction")).toContainText("1 views, 1 draws");
+  await expect(drawRow("draw")).toContainText("1 packages, 1 calls");
+  await expect(drawRow("materials")).toContainText("unlit 1");
+  await expect(drawRow("pipelines")).toContainText("unlit");
+  webGpuValidation.expectNoWarnings();
+});
+
 test("Playwright navigates the real URI texture gallery with keyboard controls", async ({
   page,
 }) => {
@@ -10678,6 +12027,186 @@ test("Playwright navigates the real URI texture gallery with keyboard controls",
   expect(
     maxSampleDelta(alphaEmissive, normalOcclusion),
     "ArrowRight should replace the alpha/emissive gallery asset with normal/occlusion pixels",
+  ).toBeGreaterThan(10);
+  webGpuValidation.expectNoWarnings();
+});
+
+test("Playwright navigates the real URI texture gallery with button controls", async ({
+  page,
+}) => {
+  const webGpuValidation = attachWebGpuValidationConsoleGuard(page);
+  const samples = [
+    {
+      id: "all-slot-uri-textures",
+      index: 0,
+      drawCount: 2,
+      uris: [
+        "aperture-uri-base-color-checker.png",
+        "aperture-metallic-roughness-checker.png",
+      ],
+    },
+    {
+      id: "alpha-mask-emissive-controls",
+      index: 1,
+      drawCount: 3,
+      uris: [
+        "aperture-alpha-mask-checker.png",
+        "aperture-base-color-checker.png",
+      ],
+    },
+    {
+      id: "normal-occlusion-controls",
+      index: 2,
+      drawCount: 3,
+      uris: ["aperture-normal-checker.png", "aperture-occlusion-control.png"],
+    },
+  ] as const;
+
+  await page.goto(`/examples/glb-viewer.html?asset=${samples[0].id}`);
+  const initialStatus = await waitForExampleStatus<GlbViewerStatus>(page);
+
+  expect(initialStatus, "GLB viewer status should publish").toBeDefined();
+
+  if (initialStatus === undefined) {
+    throw new Error("GLB viewer status did not publish.");
+  }
+
+  skipIfUnsupportedWebGpu(initialStatus);
+  await expect(page.locator("#glb-gallery-prev")).toBeVisible();
+  await expect(page.locator("#glb-gallery-next")).toBeVisible();
+
+  async function waitForGallerySample(sample: (typeof samples)[number]) {
+    await page.waitForFunction(
+      ({ id, index, drawCount, uris }) => {
+        const status = (
+          globalThis as {
+            readonly __APERTURE_EXAMPLE_STATUS__?: {
+              readonly frame?: number;
+              readonly selectedAsset?: {
+                readonly id?: string;
+                readonly loading?: boolean;
+              };
+              readonly selection?: {
+                readonly requestedAssetId?: string | null;
+                readonly activeAssetId?: string | null;
+              };
+              readonly textureGallery?: {
+                readonly active?: boolean;
+                readonly activeIndex?: number | null;
+                readonly activeAssetId?: string | null;
+                readonly sampleIds?: readonly string[];
+              };
+              readonly source?: {
+                readonly ok?: boolean;
+                readonly imageDecode?: {
+                  readonly decoded?: readonly { readonly uri?: string }[];
+                  readonly diagnostics?: readonly unknown[];
+                };
+              };
+              readonly gltf?: {
+                readonly primitiveMaterials?: {
+                  readonly resolved?: number;
+                  readonly diagnostics?: number;
+                };
+              };
+              readonly extraction?: {
+                readonly meshDraws?: number;
+                readonly diagnostics?: number;
+              };
+              readonly draw?: { readonly drawCalls?: number };
+            };
+          }
+        ).__APERTURE_EXAMPLE_STATUS__;
+        const decodedUris = new Set(
+          status?.source?.imageDecode?.decoded?.map((entry) => entry.uri) ?? [],
+        );
+
+        return (
+          (status?.frame ?? 0) >= 3 &&
+          status?.selectedAsset?.id === id &&
+          status.selectedAsset.loading === false &&
+          status.selection?.requestedAssetId === id &&
+          status.selection.activeAssetId === id &&
+          status.textureGallery?.active === true &&
+          status.textureGallery.activeIndex === index &&
+          status.textureGallery.activeAssetId === id &&
+          status.textureGallery.sampleIds?.[index] === id &&
+          status.source?.ok === true &&
+          uris.every((uri) => decodedUris.has(uri)) &&
+          status.source.imageDecode?.diagnostics?.length === 0 &&
+          status.gltf?.primitiveMaterials?.resolved === drawCount &&
+          status.gltf.primitiveMaterials.diagnostics === 0 &&
+          status.extraction?.meshDraws === drawCount &&
+          status.extraction.diagnostics === 0 &&
+          status.draw?.drawCalls === drawCount
+        );
+      },
+      sample,
+      { timeout: 5000 },
+    );
+
+    const status = await waitForExampleStatus<GlbViewerStatus>(page);
+
+    expect(
+      status,
+      `${sample.id} gallery button status should publish`,
+    ).toBeDefined();
+
+    if (status === undefined) {
+      throw new Error(`${sample.id} gallery button status did not publish.`);
+    }
+
+    expectStatusJsonSafeForGpu(status);
+    expect(status).toMatchObject({
+      selectedAsset: {
+        id: sample.id,
+        source: "sample",
+        loading: false,
+      },
+      selection: {
+        requestedAssetId: sample.id,
+        activeAssetId: sample.id,
+      },
+      textureGallery: {
+        id: "real-uri-textures",
+        count: 5,
+        active: true,
+        activeIndex: sample.index,
+        activeAssetId: sample.id,
+      },
+      gltf: {
+        primitiveMaterials: {
+          resolved: sample.drawCount,
+          diagnostics: 0,
+        },
+      },
+      extraction: {
+        meshDraws: sample.drawCount,
+        diagnostics: 0,
+      },
+      draw: {
+        drawCalls: sample.drawCount,
+      },
+    });
+
+    return page.locator("#aperture-canvas").screenshot();
+  }
+
+  const allSlot = await waitForGallerySample(samples[0]);
+  await page.locator("#glb-gallery-next").click();
+  const alphaEmissive = await waitForGallerySample(samples[1]);
+  await page.locator("#glb-gallery-next").click();
+  const normalOcclusion = await waitForGallerySample(samples[2]);
+  await page.locator("#glb-gallery-prev").click();
+  await waitForGallerySample(samples[1]);
+
+  expect(
+    maxSampleDelta(allSlot, alphaEmissive),
+    "next gallery button should replace the all-slot asset with alpha/emissive pixels",
+  ).toBeGreaterThan(10);
+  expect(
+    maxSampleDelta(alphaEmissive, normalOcclusion),
+    "next gallery button should replace the alpha/emissive asset with normal/occlusion pixels",
   ).toBeGreaterThan(10);
   webGpuValidation.expectNoWarnings();
 });
@@ -11165,6 +12694,535 @@ test("Playwright bootstraps a custom GLB URL from the query string", async ({
     pixelDistance(strongestNearCenterSample(screenshot, clear), clear),
     "query-loaded GLB should be visibly framed near the center",
   ).toBeGreaterThan(20);
+  webGpuValidation.expectNoWarnings();
+});
+
+test("Playwright decodes a same-origin URI texture from a custom GLB URL", async ({
+  page,
+}) => {
+  const webGpuValidation = attachWebGpuValidationConsoleGuard(page);
+
+  await page.goto(
+    `/examples/glb-viewer.html?url=${encodeURIComponent(
+      "/examples/assets/uri-png-texture.glb",
+    )}`,
+  );
+
+  await page.waitForFunction(
+    () => {
+      const status = (
+        globalThis as {
+          readonly __APERTURE_EXAMPLE_STATUS__?: {
+            readonly frame?: number;
+            readonly selectedAsset?: {
+              readonly id?: string;
+              readonly source?: string;
+              readonly loading?: boolean;
+              readonly materialSlotSummary?: MaterialSlotSummaryStatus;
+            };
+            readonly source?: {
+              readonly ok?: boolean;
+              readonly imageDecode?: {
+                readonly decoded?: readonly {
+                  readonly uri?: string;
+                  readonly width?: number;
+                  readonly height?: number;
+                }[];
+                readonly diagnostics?: readonly unknown[];
+              };
+            };
+            readonly gltf?: {
+              readonly primitiveMaterials?: {
+                readonly resolved?: number;
+                readonly diagnostics?: number;
+              };
+            };
+            readonly extraction?: {
+              readonly meshDraws?: number;
+              readonly diagnostics?: number;
+            };
+            readonly draw?: { readonly drawCalls?: number };
+          };
+        }
+      ).__APERTURE_EXAMPLE_STATUS__;
+      const summary = status?.selectedAsset?.materialSlotSummary;
+
+      return (
+        (status?.frame ?? 0) >= 3 &&
+        status?.selectedAsset?.id === "custom-url" &&
+        status.selectedAsset.source === "custom" &&
+        status.selectedAsset.loading === false &&
+        status.source?.ok === true &&
+        status.source.imageDecode?.decoded?.some(
+          (entry) =>
+            entry.uri === "aperture-uri-base-color-checker.png" &&
+            entry.width === 2 &&
+            entry.height === 2,
+        ) === true &&
+        status.source.imageDecode.diagnostics?.length === 0 &&
+        status.gltf?.primitiveMaterials?.resolved === 2 &&
+        status.gltf.primitiveMaterials.diagnostics === 0 &&
+        status.extraction?.meshDraws === 2 &&
+        status.extraction.diagnostics === 0 &&
+        status.draw?.drawCalls === 2 &&
+        summary?.materialCount === 2 &&
+        summary.textureSlots.baseColorTexture.count === 1
+      );
+    },
+    undefined,
+    { timeout: 5000 },
+  );
+
+  const status = await waitForExampleStatus<GlbViewerStatus>(page);
+
+  expect(
+    status,
+    "custom URI PNG texture viewer status should publish",
+  ).toBeDefined();
+
+  if (status === undefined) {
+    throw new Error("Custom URI PNG texture viewer status did not publish.");
+  }
+
+  const screenshot = await page.locator("#aperture-canvas").screenshot();
+  const clear =
+    status.clearColor === undefined
+      ? { r: 4, g: 6, b: 9, a: 255 }
+      : rgbaColorToPixel(status.clearColor);
+  const textureWarm = readPngPixel(screenshot, 0.35, 0.43);
+  const textureCool = readPngPixel(screenshot, 0.46, 0.57);
+  const scalarControl = readPngPixel(screenshot, 0.64, 0.5);
+  const serializedStatus = JSON.stringify(status);
+
+  expectStatusJsonSafeForGpu(status);
+  expect(serializedStatus).not.toContain("Uint8Array");
+  expect(serializedStatus).not.toContain("[255,74,74");
+  expect(status).toMatchObject({
+    selectedAsset: {
+      id: "custom-url",
+      label: "Custom URL",
+      source: "custom",
+      url: "/examples/assets/uri-png-texture.glb",
+      loading: false,
+      materialFamilies: [{ family: "standard", count: 2 }],
+      materialSlotSummary: {
+        materialCount: 2,
+        registeredMaterialCount: 2,
+        missingMaterialCount: 0,
+        scalarOnlyMaterialCount: 1,
+        textureSlots: {
+          baseColorTexture: { count: 1, uv0: 1, uv1: 0, otherUv: 0 },
+          metallicRoughnessTexture: { count: 0, uv0: 0, uv1: 0, otherUv: 0 },
+          normalTexture: { count: 0, uv0: 0, uv1: 0, otherUv: 0 },
+          occlusionTexture: { count: 0, uv0: 0, uv1: 0, otherUv: 0 },
+          emissiveTexture: { count: 0, uv0: 0, uv1: 0, otherUv: 0 },
+        },
+        alphaModes: { opaque: 2, mask: 0, blend: 0 },
+        uv1Usage: { materials: 0, textureSlots: 0 },
+      },
+    },
+    selection: {
+      requestedAssetId: null,
+      activeAssetId: "custom-url",
+      diagnostics: [],
+    },
+    textureGallery: {
+      id: "real-uri-textures",
+      count: 5,
+      active: false,
+      activeIndex: null,
+      activeAssetId: null,
+    },
+    source: {
+      ok: true,
+      status: {
+        status: "loaded",
+        sourceKind: "glb",
+        diagnostics: [],
+      },
+      imageDecode: {
+        decoded: [
+          {
+            imageIndex: 0,
+            sourceKind: "same-origin-uri",
+            uri: "aperture-uri-base-color-checker.png",
+            url: "/examples/assets/aperture-uri-base-color-checker.png",
+            mimeType: "image/png",
+            width: 2,
+            height: 2,
+            byteLength: 16,
+          },
+        ],
+        diagnostics: [],
+      },
+      diagnostics: [],
+    },
+    gltf: {
+      primitiveMaterials: {
+        valid: true,
+        resolved: 2,
+        diagnostics: 0,
+        families: [{ family: "standard", count: 2 }],
+        resolutions: [
+          {
+            meshIndex: 0,
+            primitiveIndex: 0,
+            materialIndex: 0,
+            family: "standard",
+            alphaMode: "opaque",
+            pipelineKey: "standard|baseColorTexture|opaque|back|less|none",
+            textureSlots: {
+              baseColorTexture: {
+                textureKey: expect.stringMatching(
+                  /^texture:viewer-custom-url-\d+:texture:0:baseColorTexture$/,
+                ),
+                samplerKey: expect.stringMatching(
+                  /^sampler:viewer-custom-url-\d+:sampler:0:baseColorTexture$/,
+                ),
+                texCoord: 0,
+                hasTransform: false,
+              },
+            },
+          },
+          {
+            meshIndex: 0,
+            primitiveIndex: 1,
+            materialIndex: 1,
+            family: "standard",
+            alphaMode: "opaque",
+            pipelineKey: "standard|opaque|back|less|none",
+            textureSlots: {
+              baseColorTexture: null,
+            },
+          },
+        ],
+      },
+      replay: { valid: true, diagnostics: 0 },
+    },
+    extraction: {
+      views: 1,
+      meshDraws: 2,
+      lights: 2,
+      diagnostics: 0,
+    },
+    renderState: {
+      pipelineKeys: expect.arrayContaining([
+        "standard|baseColorTexture|opaque|back|less|none",
+        "standard|opaque|back|less|none",
+      ]),
+    },
+    draw: {
+      packages: 2,
+      drawCalls: 2,
+    },
+  });
+  await expect(page.locator("#glb-url-input")).toHaveValue(
+    "http://127.0.0.1:4173/examples/assets/uri-png-texture.glb",
+  );
+  const customUrl = new URL(page.url());
+  expect(customUrl.searchParams.get("url")).toBe(
+    "/examples/assets/uri-png-texture.glb",
+  );
+  expect(customUrl.searchParams.has("asset")).toBe(false);
+  expect(
+    pixelDistance(textureWarm, clear),
+    `custom URI PNG texture should render visible pixels; sample=${JSON.stringify(
+      textureWarm,
+    )}`,
+  ).toBeGreaterThan(20);
+  expect(
+    pixelDistance(textureWarm, textureCool),
+    "custom GLB same-origin PNG decode should create visible base-color variation",
+  ).toBeGreaterThan(12);
+  expect(
+    pixelDistance(textureWarm, scalarControl) +
+      pixelDistance(textureCool, scalarControl),
+    "custom GLB textured primitive should differ from the scalar control region",
+  ).toBeGreaterThan(30);
+  webGpuValidation.expectNoWarnings();
+});
+
+test("Playwright persists GLB viewer sample selection in the URL", async ({
+  page,
+}) => {
+  const webGpuValidation = attachWebGpuValidationConsoleGuard(page);
+
+  await page.goto("/examples/glb-viewer.html");
+  const initialStatus = await waitForExampleStatus<GlbViewerStatus>(page);
+
+  expect(initialStatus, "GLB viewer status should publish").toBeDefined();
+
+  if (initialStatus === undefined) {
+    throw new Error("GLB viewer status did not publish.");
+  }
+
+  skipIfUnsupportedWebGpu(initialStatus);
+
+  async function waitForSelectedSample(id: string, drawCount: number) {
+    await page.waitForFunction(
+      ({ id, drawCount }) => {
+        const status = (
+          globalThis as {
+            readonly __APERTURE_EXAMPLE_STATUS__?: {
+              readonly frame?: number;
+              readonly selectedAsset?: {
+                readonly id?: string;
+                readonly source?: string;
+                readonly loading?: boolean;
+              };
+              readonly selection?: {
+                readonly requestedAssetId?: string | null;
+                readonly activeAssetId?: string | null;
+              };
+              readonly extraction?: {
+                readonly meshDraws?: number;
+                readonly diagnostics?: number;
+              };
+            };
+          }
+        ).__APERTURE_EXAMPLE_STATUS__;
+
+        return (
+          (status?.frame ?? 0) >= 3 &&
+          status?.selectedAsset?.id === id &&
+          status.selectedAsset.source === "sample" &&
+          status.selectedAsset.loading === false &&
+          status.selection?.requestedAssetId === id &&
+          status.selection.activeAssetId === id &&
+          status.extraction?.meshDraws === drawCount &&
+          status.extraction.diagnostics === 0
+        );
+      },
+      { id, drawCount },
+      { timeout: 5000 },
+    );
+
+    const status = await waitForExampleStatus<GlbViewerStatus>(page);
+
+    expect(status, `${id} persisted status should publish`).toBeDefined();
+
+    if (status === undefined) {
+      throw new Error(`${id} persisted status did not publish.`);
+    }
+
+    expectStatusJsonSafeForGpu(status);
+    expect(status.selectedAsset).toMatchObject({
+      id,
+      source: "sample",
+      loading: false,
+    });
+
+    return status;
+  }
+
+  await page.locator("#glb-asset-select").selectOption("brass");
+  await waitForSelectedSample("brass", 2);
+  let persistedUrl = new URL(page.url());
+  expect(persistedUrl.pathname).toBe("/examples/glb-viewer.html");
+  expect(persistedUrl.searchParams.get("asset")).toBe("brass");
+  expect(persistedUrl.searchParams.has("url")).toBe(false);
+
+  await page.reload();
+  await waitForSelectedSample("brass", 2);
+  await expect(page.locator("#glb-asset-select")).toHaveValue("brass");
+
+  await page.goto("/examples/glb-viewer.html?asset=all-slot-uri-textures");
+  await waitForSelectedSample("all-slot-uri-textures", 2);
+  await page.locator("#glb-gallery-next").click();
+  await waitForSelectedSample("alpha-mask-emissive-controls", 3);
+  persistedUrl = new URL(page.url());
+  expect(persistedUrl.searchParams.get("asset")).toBe(
+    "alpha-mask-emissive-controls",
+  );
+  expect(persistedUrl.searchParams.has("url")).toBe(false);
+
+  await page.reload();
+  await waitForSelectedSample("alpha-mask-emissive-controls", 3);
+  await expect(page.locator("#glb-asset-select")).toHaveValue(
+    "alpha-mask-emissive-controls",
+  );
+  webGpuValidation.expectNoWarnings();
+});
+
+test("Playwright clears custom URI texture decode state when switching to a sample", async ({
+  page,
+}) => {
+  const webGpuValidation = attachWebGpuValidationConsoleGuard(page);
+
+  await page.goto(
+    `/examples/glb-viewer.html?url=${encodeURIComponent(
+      "/examples/assets/uri-png-texture.glb",
+    )}`,
+  );
+  const initialStatus = await waitForExampleStatus<GlbViewerStatus>(page);
+
+  expect(initialStatus, "GLB viewer status should publish").toBeDefined();
+
+  if (initialStatus === undefined) {
+    throw new Error("GLB viewer status did not publish.");
+  }
+
+  skipIfUnsupportedWebGpu(initialStatus);
+
+  async function waitForActiveAsset({
+    id,
+    source,
+    drawCount,
+    uris,
+  }: {
+    readonly id: string;
+    readonly source: "custom" | "sample";
+    readonly drawCount: number;
+    readonly uris: readonly string[];
+  }) {
+    await page.waitForFunction(
+      ({ id, source, drawCount, uris }) => {
+        const status = (
+          globalThis as {
+            readonly __APERTURE_EXAMPLE_STATUS__?: {
+              readonly frame?: number;
+              readonly selectedAsset?: {
+                readonly id?: string;
+                readonly source?: string;
+                readonly loading?: boolean;
+              };
+              readonly source?: {
+                readonly ok?: boolean;
+                readonly imageDecode?: {
+                  readonly decoded?: readonly { readonly uri?: string }[];
+                  readonly diagnostics?: readonly unknown[];
+                };
+              };
+              readonly gltf?: {
+                readonly primitiveMaterials?: {
+                  readonly resolved?: number;
+                  readonly diagnostics?: number;
+                };
+              };
+              readonly extraction?: {
+                readonly meshDraws?: number;
+                readonly diagnostics?: number;
+              };
+              readonly draw?: { readonly drawCalls?: number };
+            };
+          }
+        ).__APERTURE_EXAMPLE_STATUS__;
+        const decodedUris =
+          status?.source?.imageDecode?.decoded?.map((entry) => entry.uri) ?? [];
+
+        return (
+          (status?.frame ?? 0) >= 3 &&
+          status?.selectedAsset?.id === id &&
+          status.selectedAsset.source === source &&
+          status.selectedAsset.loading === false &&
+          status.source?.ok === true &&
+          decodedUris.length === uris.length &&
+          uris.every((uri) => decodedUris.includes(uri)) &&
+          status.source.imageDecode?.diagnostics?.length === 0 &&
+          status.gltf?.primitiveMaterials?.resolved === drawCount &&
+          status.gltf.primitiveMaterials.diagnostics === 0 &&
+          status.extraction?.meshDraws === drawCount &&
+          status.extraction.diagnostics === 0 &&
+          status.draw?.drawCalls === drawCount
+        );
+      },
+      { id, source, drawCount, uris },
+      { timeout: 5000 },
+    );
+
+    const status = await waitForExampleStatus<GlbViewerStatus>(page);
+
+    expect(status, `${id} active asset status should publish`).toBeDefined();
+
+    if (status === undefined) {
+      throw new Error(`${id} active asset status did not publish.`);
+    }
+
+    const decodedUris = (status.source?.imageDecode.decoded ?? [])
+      .map((entry) => entry.uri)
+      .sort();
+
+    expectStatusJsonSafeForGpu(status);
+    expect(decodedUris).toEqual([...uris].sort());
+    expect(status).toMatchObject({
+      selectedAsset: {
+        id,
+        source,
+        loading: false,
+      },
+      source: {
+        ok: true,
+        imageDecode: { diagnostics: [] },
+      },
+      gltf: {
+        primitiveMaterials: {
+          resolved: drawCount,
+          diagnostics: 0,
+        },
+      },
+      extraction: {
+        meshDraws: drawCount,
+        diagnostics: 0,
+      },
+      draw: {
+        drawCalls: drawCount,
+      },
+    });
+
+    return page.locator("#aperture-canvas").screenshot();
+  }
+
+  const customScreenshot = await waitForActiveAsset({
+    id: "custom-url",
+    source: "custom",
+    drawCount: 2,
+    uris: ["aperture-uri-base-color-checker.png"],
+  });
+
+  await page
+    .locator("#glb-asset-select")
+    .selectOption("normal-occlusion-controls");
+  const sampleScreenshot = await waitForActiveAsset({
+    id: "normal-occlusion-controls",
+    source: "sample",
+    drawCount: 3,
+    uris: ["aperture-normal-checker.png", "aperture-occlusion-control.png"],
+  });
+
+  const status = await waitForExampleStatus<GlbViewerStatus>(page);
+
+  expect(status).toMatchObject({
+    selectedAsset: {
+      id: "normal-occlusion-controls",
+      label: "Normal occlusion controls",
+      source: "sample",
+      url: "/examples/assets/normal-occlusion-controls.glb",
+      loading: false,
+    },
+    selection: {
+      requestedAssetId: "normal-occlusion-controls",
+      activeAssetId: "normal-occlusion-controls",
+      diagnostics: [],
+    },
+    textureGallery: {
+      active: true,
+      activeIndex: 2,
+      activeAssetId: "normal-occlusion-controls",
+    },
+  });
+  expect(
+    status?.source?.imageDecode.decoded.some(
+      (entry) => entry.uri === "aperture-uri-base-color-checker.png",
+    ),
+  ).toBe(false);
+  expect(new URL(page.url()).searchParams.get("asset")).toBe(
+    "normal-occlusion-controls",
+  );
+  expect(new URL(page.url()).searchParams.has("url")).toBe(false);
+  expect(
+    maxSampleDelta(customScreenshot, sampleScreenshot),
+    "switching from custom URI PNG to a committed sample should replace rendered pixels",
+  ).toBeGreaterThan(8);
   webGpuValidation.expectNoWarnings();
 });
 

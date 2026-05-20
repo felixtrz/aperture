@@ -1,5 +1,279 @@
 # Completed Tasks
 
+## task-2109 — Add GLB viewer draw/extraction status rows
+
+Completed: 2026-05-20
+
+Summary:
+
+- Added a visible GLB viewer draw summary panel for extraction counts, draw
+  package/call counts, material-family counts, render queues, and active
+  pipeline keys.
+- Rows are derived from existing JSON-safe `selectedAsset`, `extraction`,
+  `draw`, and `renderState` status.
+- Added Playwright coverage switching all-slot, brass, and custom URL samples.
+
+Validation:
+
+- `node --check examples/glb-viewer.js`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts --grep "draw and extraction summary rows|IBL summary rows|shadow summary rows|orbit-fit summary rows|scene metadata summary rows|live light summary rows|imported-camera summary rows|animation summary rows|unsupported-feature summary rows|decoded-image summary rows|material-slot summary rows"`
+
+## task-2108 — Add GLB viewer IBL status rows
+
+Completed: 2026-05-20
+
+Summary:
+
+- Added a visible GLB viewer IBL summary panel for control availability,
+  live ECS environment-map key/intensity, diffuse/specular resource keys, and
+  diffuse/specular pipeline support.
+- Kept disabled IBL visible on IBL-capable assets while clearing the panel for
+  assets without IBL authoring.
+- Added Playwright coverage for lit brass IBL rows, the IBL toggle, and panel
+  clearing on an unlit sample.
+
+Validation:
+
+- `node --check examples/glb-viewer.js`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts --grep "IBL summary rows|mutates GLB viewer ECS IBL control|routes the lit brass sample through IBL"`
+
+## task-2107 — Add GLB viewer shadow status rows
+
+Completed: 2026-05-20
+
+Summary:
+
+- Added a visible GLB viewer shadow summary panel for caster/receiver controls,
+  ECS caster/receiver flags, authoring counts, caster draw-list counts,
+  receiver support, and submission state.
+- Fixed summary-panel hidden-state styling so `hidden` panels are not
+  overridden by summary grid classes.
+- Added Playwright coverage for live caster/receiver toggles and row clearing
+  on a sample without shadow authoring.
+
+Validation:
+
+- `node --check examples/glb-viewer.js`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts --grep "shadow summary rows|orbit-fit summary rows|scene metadata summary rows|live light summary rows|imported-camera summary rows|animation summary rows|unsupported-feature summary rows|decoded-image summary rows|material-slot summary rows|custom GLB URL|gallery.*button|persists GLB viewer sample selection|clears custom URI texture decode state"`
+
+## task-2106 — Add GLB viewer orbit-fit status rows
+
+Completed: 2026-05-20
+
+Summary:
+
+- Added visible orbit-fit rows for fit status, center, size, distance, and
+  zoom range.
+- Added Playwright coverage proving rows update when switching cube to brass
+  and after camera reset.
+
+Validation:
+
+- `node --check examples/glb-viewer.js`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- Focused GLB viewer status-row Playwright suite.
+
+## task-2105 — Add GLB viewer scene metadata status rows
+
+Completed: 2026-05-20
+
+Summary:
+
+- Added visible GLB metadata rows for scene/node, mesh/primitive, material,
+  animation, and extension counts.
+- Added Playwright coverage for metadata rows on multi-scene and
+  texture-heavy samples.
+
+Validation:
+
+- `node --check examples/glb-viewer.js`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- Focused GLB viewer status-row Playwright suite.
+
+## task-2104 — Add GLB viewer live light status rows
+
+Completed: 2026-05-20
+
+Summary:
+
+- Added visible light rows for ambient and point-light control/ECS/extracted
+  intensity plus extracted light counts.
+- Added Playwright coverage for row updates as live light controls mutate ECS
+  light components.
+
+Validation:
+
+- `node --check examples/glb-viewer.js`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- Focused GLB viewer status-row Playwright suite.
+
+## task-2103 — Add GLB viewer imported camera status rows
+
+Completed: 2026-05-20
+
+Summary:
+
+- Added visible imported-camera rows for selected camera, orbit/imported state,
+  FOV, near/far range, and aspect.
+- Added Playwright coverage for the imported-camera sample, control toggling,
+  and row clearing on a sample without cameras.
+
+Validation:
+
+- `node --check examples/glb-viewer.js`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- Focused GLB viewer status-row Playwright suite.
+
+## task-2102 — Add GLB viewer animation status rows
+
+Completed: 2026-05-20
+
+Summary:
+
+- Added visible animation rows for clip, playback mode, sampled time, speed,
+  and channel counts.
+- Added Playwright coverage for clip/direction/scrub updates and row clearing
+  on a non-animated sample.
+
+Validation:
+
+- `node --check examples/glb-viewer.js`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- Focused GLB viewer status-row Playwright suite.
+
+## task-2101 — Add GLB viewer unsupported-feature status rows
+
+Completed: 2026-05-20
+
+Summary:
+
+- Added visible unsupported-feature rows for morph targets, skinning,
+  orthographic imported cameras, and unsupported primitive modes.
+- Rows are derived from existing JSON-safe metadata/imported-camera
+  diagnostics and clear on clean samples.
+
+Validation:
+
+- `node --check examples/glb-viewer.js`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- Focused GLB viewer status-row Playwright suite.
+
+## task-2100 — Render decoded-image summary rows in the GLB viewer status panel
+
+Completed: 2026-05-20
+
+Summary:
+
+- Added visible decoded-image rows for URI, MIME type, dimensions, and byte
+  length from `source.imageDecode.decoded`.
+- Added Playwright coverage for all-slot sample images and the custom URL
+  same-origin URI texture path.
+
+Validation:
+
+- `node --check examples/glb-viewer.js`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- Focused GLB viewer status-row Playwright suite.
+
+## task-2099 — Prove custom URL to sample switch clears texture decode state
+
+Completed: 2026-05-20
+
+Summary:
+
+- Added Playwright coverage that starts from a custom URL real-URI texture GLB,
+  switches to a committed sample, and verifies stale custom decoded-image state
+  is gone.
+- Confirmed selected source, decoded URI sets, draw counts, URL persistence,
+  and visible pixels update through the normal ECS replay/unload path.
+
+Validation:
+
+- `node --check examples/glb-viewer.js`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- Focused custom URL/sample-switch Playwright coverage.
+
+## task-2098 — Render material-slot summary rows in the GLB viewer status panel
+
+Completed: 2026-05-20
+
+Summary:
+
+- Rendered the existing JSON-safe material-slot summary as compact visible
+  status-panel rows for texture slots, alpha modes, and UV1 usage.
+- Added Playwright coverage switching all-slot and scalar-only samples while
+  verifying visible rows and status JSON update together.
+
+Validation:
+
+- `node --check examples/glb-viewer.js`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- Focused material-slot Playwright coverage.
+
+## task-2097 — Persist GLB viewer sample selection in the URL
+
+Completed: 2026-05-20
+
+Summary:
+
+- Selecting a sample or navigating the real-URI gallery now updates the address
+  bar to `?asset=<sample-id>` using `history.replaceState`.
+- Custom URL loads keep the `url=` flow intact and are not overwritten by
+  sample-selection persistence.
+- Added Playwright coverage for reload restoration and custom URL behavior.
+
+Validation:
+
+- `node --check examples/glb-viewer.js`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- Focused GLB viewer URL-persistence Playwright coverage.
+
+## task-2096 — Add real URI texture gallery button controls
+
+Completed: 2026-05-20
+
+Summary:
+
+- Added compact previous/next controls for the real-URI texture gallery.
+- Button navigation reuses the sample selector replay/unload path and reports
+  the active gallery index/sample ID.
+- Added Playwright coverage for previous/next clicks, decoded metadata, draw
+  counts, visible pixels, and WebGPU warning checks.
+
+Validation:
+
+- `node --check examples/glb-viewer.js`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- Focused gallery button Playwright coverage.
+
+## task-2095 — Prove custom URL same-origin URI texture decode
+
+Completed: 2026-05-20
+
+Summary:
+
+- Added Playwright coverage for
+  `/examples/glb-viewer.html?url=/examples/assets/uri-png-texture.glb`.
+- Verified the custom URL path reports `selectedAsset.source: "custom"`,
+  JSON-safe decoded-image metadata for `aperture-uri-base-color-checker.png`,
+  material-slot summary counts, active draws, visible textured pixels, and no
+  WebGPU validation warnings.
+
+References inspected:
+
+- `references/three.js/examples/jsm/loaders/GLTFLoader.js`
+- `references/three.js/examples/webgl_loader_gltf.html`
+- `references/bevy/crates/bevy_gltf/src/loader/mod.rs`
+
+Validation:
+
+- `node --check examples/glb-viewer.js`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- Focused custom URL GLB viewer Playwright coverage.
+
 ## task-2093 — Add GLB viewer real URI texture gallery keyboard navigation
 
 Completed: 2026-05-20

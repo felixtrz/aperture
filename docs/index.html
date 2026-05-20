@@ -393,34 +393,42 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-20 09:12 UTC</dd>
+            <dd>2026-05-20 10:48 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
-              The GLB viewer now includes unsupported morph-target, skinning,
-              orthographic-camera, primitive-mode, CUBICSPLINE animation, and
-              multi-scene samples that keep supported base meshes rendering
-              while reporting JSON-safe diagnostics and scene metadata. It also
-              includes real same-origin PNG/JPEG base-color, PNG normal-map, PNG
-              emissive, PNG metallic-roughness, PNG alpha-mask, and PNG
-              occlusion URI image decode, all-slot real URI texture coverage,
-              occlusion and metallic-roughness transform controls, sampler wrap
-              controls, UV1 image-decode controls, alpha-mask plus emissive
-              controls, normal plus occlusion controls, alpha-blend texture,
-              selector stress coverage across real URI samples, selected-asset
-              material-slot summary counts, keyboard previous/next navigation
-              across the real URI texture gallery, rotated metallic-roughness
-              transform, transformed-vs-untransformed normal and emissive
-              controls, emissive StandardMaterial, occlusion/emissive texture,
-              occlusion texture-transform, normal transform, emissive transform,
-              alpha-mask, sampler-state texture, texture-transform, missing-UV1,
-              supported base-color UV1, metallic-roughness UV1, and normal-scale
-              samples with routed material, texture, sampler, transform/control,
-              alpha, UV1, image-decode, and sanitized extraction-diagnostic
-              status. Existing roughness/IBL, normal-map, and base-color plus
-              metallic-roughness StandardMaterial samples keep JSON-safe factor
-              and texture-slot status. GLB mesh construction now preserves
+              The GLB viewer now renders compact visible status rows for
+              material slots, decoded images, unsupported features, animation,
+              imported cameras, live lights, scene metadata, orbit fit, shadows,
+              IBL, and draw/extraction state. It also proves same-origin URI
+              texture decode through the custom URL path, real-URI gallery
+              previous/next buttons, URL-persisted sample selection, and stale
+              custom image-decode clearing when switching back to committed
+              samples. The GLB viewer now includes unsupported morph-target,
+              skinning, orthographic-camera, primitive-mode, CUBICSPLINE
+              animation, and multi-scene samples that keep supported base meshes
+              rendering while reporting JSON-safe diagnostics and scene
+              metadata. It also includes real same-origin PNG/JPEG base-color,
+              PNG normal-map, PNG emissive, PNG metallic-roughness, PNG
+              alpha-mask, and PNG occlusion URI image decode, all-slot real URI
+              texture coverage, occlusion and metallic-roughness transform
+              controls, sampler wrap controls, UV1 image-decode controls,
+              alpha-mask plus emissive controls, normal plus occlusion controls,
+              alpha-blend texture, selector stress coverage across real URI
+              samples, selected-asset material-slot summary counts, keyboard
+              previous/next navigation across the real URI texture gallery,
+              rotated metallic-roughness transform, transformed-vs-untransformed
+              normal and emissive controls, emissive StandardMaterial,
+              occlusion/emissive texture, occlusion texture-transform, normal
+              transform, emissive transform, alpha-mask, sampler-state texture,
+              texture-transform, missing-UV1, supported base-color UV1,
+              metallic-roughness UV1, and normal-scale samples with routed
+              material, texture, sampler, transform/control, alpha, UV1,
+              image-decode, and sanitized extraction-diagnostic status. Existing
+              roughness/IBL, normal-map, and base-color plus metallic-roughness
+              StandardMaterial samples keep JSON-safe factor and texture-slot
+              status. GLB mesh construction now preserves
               <code>TEXCOORD_1</code> alongside tangent attributes for texture
               routing and normal mapping, and animation playback now has speed,
               clip-selection, loop, reverse, rotation/scale, and STEP
@@ -982,7 +990,8 @@
             </dd>
             <dt>Next focus</dt>
             <dd>
-              Add an alpha-mask plus emissive real URI GLB viewer control sample
+              Add GLB viewer imported-light status rows from existing JSON-safe
+              light metadata
             </dd>
           </dl>
         </aside>
@@ -1566,6 +1575,24 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">task-2100-2109</span> Added visible
+                GLB viewer status rows for decoded images, unsupported features,
+                animation, imported cameras, live lights, scene metadata, orbit
+                fit, shadows, IBL, and draw/extraction state.
+              </li>
+              <li>
+                <span class="badge green">task-2095-2099</span> Proved custom
+                URL same-origin URI texture decode, added gallery previous/next
+                buttons, persisted sample selections in the URL, and verified
+                sample switches clear stale custom decoded-image state.
+              </li>
+              <li>
+                <span class="badge green">backlog</span> Refilled the next
+                visible status-panel tasks around imported lights, primitive
+                material resolution, source-loader state, hierarchy, and
+                animation-channel diagnostics.
+              </li>
               <li>
                 <span class="badge green">task-2091</span> Added a Playwright
                 stress path that switches one GLB viewer session across
@@ -3489,16 +3516,16 @@
             <h3>Recommended next tasks</h3>
             <ul>
               <li>
-                <span class="badge amber">next</span> Prove same-origin URI
-                texture decode through the GLB viewer custom URL flow.
+                <span class="badge amber">next</span> Add GLB viewer
+                imported-light status rows.
               </li>
               <li>
-                Load a local custom URL that references a committed PNG texture
-                and keep the replay/unload path identical to sample assets.
+                Use existing JSON-safe <code>importedLights</code> status for
+                declared, replayed, extracted, and kind-count rows.
               </li>
               <li>
-                Assert JSON-safe image-decode metadata, selected custom source,
-                active draw counts, and visible textured pixels in Playwright.
+                Verify rows on an imported-lights sample and clearing on a
+                sample without imported-light authoring.
               </li>
             </ul>
           </article>
@@ -3511,6 +3538,19 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-2095-2109</div>
+            <div>
+              <strong>GLB viewer custom URL and status panels polished.</strong>
+              <span
+                >Custom URL URI texture decode, gallery buttons, URL-persisted
+                sample selection, custom-to-sample image-decode clearing, and
+                visible status rows for material, image, unsupported-feature,
+                animation, camera, light, metadata, orbit, shadow, IBL, and draw
+                state now have focused Playwright coverage.</span
+              >
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-2062-2067</div>
             <div>

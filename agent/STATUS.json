@@ -1,11 +1,11 @@
 {
   "state": "idle",
   "currentTaskId": null,
-  "currentRunStartedAt": "2026-05-20T08:03:04Z",
-  "lastRunStartedAt": "2026-05-20T09:04:50Z",
+  "currentRunStartedAt": null,
+  "lastRunStartedAt": "2026-05-20T10:01:36Z",
   "lastResult": "completed",
-  "lastCommit": "7c2754c",
+  "lastCommit": "1e77ab9",
   "activePid": null,
-  "notes": "Completed task-2092 and task-2093. Recommended next task: task-2095 custom URL same-origin URI texture decode proof.",
-  "lastRunFinishedAt": "2026-05-20T09:16:25Z"
+  "notes": "Completed task-2095 through task-2109; recommended next task is task-2110 GLB imported-light status rows.",
+  "lastRunFinishedAt": "2026-05-20T10:47:59Z"
 }
