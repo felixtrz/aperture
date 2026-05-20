@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-20 08:58 UTC</dd>
+            <dd>2026-05-20 09:12 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -408,18 +408,19 @@
               occlusion and metallic-roughness transform controls, sampler wrap
               controls, UV1 image-decode controls, alpha-mask plus emissive
               controls, normal plus occlusion controls, alpha-blend texture,
-              selector stress coverage across real URI samples, rotated
-              metallic-roughness transform, transformed-vs-untransformed normal
-              and emissive controls, emissive StandardMaterial,
-              occlusion/emissive texture, occlusion texture-transform, normal
-              transform, emissive transform, alpha-mask, sampler-state texture,
-              texture-transform, missing-UV1, supported base-color UV1,
-              metallic-roughness UV1, and normal-scale samples with routed
-              material, texture, sampler, transform/control, alpha, UV1,
-              image-decode, and sanitized extraction-diagnostic status. Existing
-              roughness/IBL, normal-map, and base-color plus metallic-roughness
-              StandardMaterial samples keep JSON-safe factor and texture-slot
-              status. GLB mesh construction now preserves
+              selector stress coverage across real URI samples, selected-asset
+              material-slot summary counts, keyboard previous/next navigation
+              across the real URI texture gallery, rotated metallic-roughness
+              transform, transformed-vs-untransformed normal and emissive
+              controls, emissive StandardMaterial, occlusion/emissive texture,
+              occlusion texture-transform, normal transform, emissive transform,
+              alpha-mask, sampler-state texture, texture-transform, missing-UV1,
+              supported base-color UV1, metallic-roughness UV1, and normal-scale
+              samples with routed material, texture, sampler, transform/control,
+              alpha, UV1, image-decode, and sanitized extraction-diagnostic
+              status. Existing roughness/IBL, normal-map, and base-color plus
+              metallic-roughness StandardMaterial samples keep JSON-safe factor
+              and texture-slot status. GLB mesh construction now preserves
               <code>TEXCOORD_1</code> alongside tangent attributes for texture
               routing and normal mapping, and animation playback now has speed,
               clip-selection, loop, reverse, rotation/scale, and STEP
@@ -3488,17 +3489,16 @@
             <h3>Recommended next tasks</h3>
             <ul>
               <li>
-                <span class="badge amber">next</span> Add a GLB viewer
-                material-slot summary for the selected asset.
+                <span class="badge amber">next</span> Prove same-origin URI
+                texture decode through the GLB viewer custom URL flow.
               </li>
               <li>
-                Count active base-color, metallic-roughness, normal, occlusion,
-                emissive, alpha-mode, and UV1 usage from registered source
-                material assets.
+                Load a local custom URL that references a committed PNG texture
+                and keep the replay/unload path identical to sample assets.
               </li>
               <li>
-                Keep the summary JSON-safe and cover all-slot, sampler-wrap,
-                UV1, and scalar-only viewer samples in Playwright.
+                Assert JSON-safe image-decode metadata, selected custom source,
+                active draw counts, and visible textured pixels in Playwright.
               </li>
             </ul>
           </article>

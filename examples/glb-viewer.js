@@ -380,6 +380,16 @@ const sampleAssets = [
     source: "sample",
   },
 ];
+const realUriTextureGalleryAssetIds = [
+  "all-slot-uri-textures",
+  "alpha-mask-emissive-controls",
+  "normal-occlusion-controls",
+  "sampler-wrap-controls",
+  "uv1-image-decode-controls",
+];
+const realUriTextureGalleryAssets = realUriTextureGalleryAssetIds
+  .map((assetId) => sampleAssets.find((asset) => asset.id === assetId))
+  .filter((asset) => asset !== undefined);
 
 try {
   const [core, webgpu] = await Promise.all([
@@ -489,6 +499,8 @@ function createGlbViewerScene(aperture, app, targetCanvas) {
     });
   }
 
+  bindRealUriTextureGalleryKeyboard(aperture, app, scene);
+
   if (customUrlForm !== null) {
     if (
       customUrlInput instanceof HTMLInputElement &&
@@ -550,12 +562,96 @@ async function loadSelectedAsset(aperture, app, scene) {
     sampleAssets.find((entry) => entry.id === assetSelect?.value) ??
     sampleAssets[0];
 
+  await loadSampleAsset(aperture, app, scene, asset);
+}
+
+async function loadSampleAsset(aperture, app, scene, asset) {
   scene.sampleSelection = {
     requestedAssetId: asset.id,
     activeAssetId: asset.id,
     diagnostics: [],
   };
+
+  if (assetSelect instanceof HTMLSelectElement) {
+    assetSelect.value = asset.id;
+  }
+
   await loadAsset(aperture, app, scene, asset);
+}
+
+function bindRealUriTextureGalleryKeyboard(aperture, app, scene) {
+  globalThis.addEventListener("keydown", (event) => {
+    if (isEditableKeyboardTarget(event.target)) {
+      return;
+    }
+
+    if (event.key !== "ArrowRight" && event.key !== "ArrowLeft") {
+      return;
+    }
+
+    event.preventDefault();
+    const direction = event.key === "ArrowRight" ? 1 : -1;
+
+    loadRealUriTextureGalleryOffset(aperture, app, scene, direction).catch(
+      (error) => {
+        scene.loadState = failure(
+          "glb-viewer-gallery-load-failed",
+          error instanceof Error
+            ? error.message
+            : "GLB gallery asset load failed.",
+        );
+      },
+    );
+  });
+}
+
+function isEditableKeyboardTarget(target) {
+  if (!(target instanceof Element)) {
+    return false;
+  }
+
+  if (target instanceof HTMLInputElement) {
+    return true;
+  }
+
+  if (target instanceof HTMLTextAreaElement) {
+    return true;
+  }
+
+  if (target instanceof HTMLSelectElement) {
+    return true;
+  }
+
+  return target.hasAttribute("contenteditable");
+}
+
+async function loadRealUriTextureGalleryOffset(
+  aperture,
+  app,
+  scene,
+  direction,
+) {
+  if (scene.asset.source !== "sample") {
+    return;
+  }
+
+  const currentIndex = realUriTextureGalleryAssets.findIndex(
+    (asset) => asset.id === scene.asset.id,
+  );
+  const nextIndex =
+    currentIndex === -1
+      ? 0
+      : positiveModulo(
+          currentIndex + direction,
+          realUriTextureGalleryAssets.length,
+        );
+  const asset = realUriTextureGalleryAssets[nextIndex];
+
+  if (asset === undefined) {
+    return;
+  }
+
+  await loadSampleAsset(aperture, app, scene, asset);
 }
 
 async function loadCustomUrlAsset(aperture, app, scene) {
@@ -1612,11 +1708,13 @@ async function createStatus(aperture, app, scene, step, report, frame) {
       url: formatAssetUrl(scene.asset.url),
       loading: scene.loadState?.phase === "loading",
       materialFamilies: createMaterialFamilyStatus(aperture, app, active),
+      materialSlotSummary: createMaterialSlotSummary(aperture, app, active),
     },
     selection: {
       ...scene.sampleSelection,
       activeAssetId: scene.asset.id,
     },
+    textureGallery: createRealUriTextureGalleryStatus(scene),
     source: {
       url: formatAssetUrl(active?.asset.url ?? scene.asset.url),
       ok: active?.loaded.ok ?? false,
@@ -1725,6 +1823,22 @@ function renderDiagnosticsStatus(diagnostics) {
     ...diagnosticOptionalString(diagnostic, "field"),
     ...diagnosticOptionalNumber(diagnostic, "texCoord"),
   }));
+}
+
+function createRealUriTextureGalleryStatus(scene) {
+  const activeIndex = realUriTextureGalleryAssets.findIndex(
+    (asset) => asset.id === scene.asset.id,
+  );
+  const active = activeIndex >= 0 && scene.asset.source === "sample";
+
+  return {
+    id: "real-uri-textures",
+    count: realUriTextureGalleryAssets.length,
+    active,
+    activeIndex: active ? activeIndex : null,
+    activeAssetId: active ? scene.asset.id : null,
+    sampleIds: realUriTextureGalleryAssets.map((asset) => asset.id),
+  };
 }
 
 function diagnosticEntityStatus(entity) {
@@ -3995,6 +4109,136 @@ function createMaterialFamilyStatus(aperture, app, active) {
     .map(([family, count]) => ({ family, count }));
 }
 
+const materialTextureSlotNames = [
+  "baseColorTexture",
+  "metallicRoughnessTexture",
+  "normalTexture",
+  "occlusionTexture",
+  "emissiveTexture",
+];
+
+function createMaterialSlotSummary(aperture, app, active) {
+  const summary = emptyMaterialSlotSummary();
+
+  if (active === null) {
+    return summary;
+  }
+
+  summary.materialCount = active.primitiveMaterials.resolved.length;
+
+  for (const resolution of active.primitiveMaterials.resolved) {
+    const material = materialAssetFromHandleKey(
+      aperture,
+      app,
+      resolution.materialHandleKey,
+    );
+
+    if (material === null) {
+      summary.missingMaterialCount += 1;
+      continue;
+    }
+
+    summary.registeredMaterialCount += 1;
+    updateAlphaModeSummary(summary.alphaModes, material.renderState.alphaMode);
+
+    let texturedSlotCount = 0;
+    let materialUsesUv1 = false;
+
+    for (const slotName of materialTextureSlotNames) {
+      const binding = materialTextureBindingForSlot(material, slotName);
+
+      if (binding === null || binding.texture === null) {
+        continue;
+      }
+
+      texturedSlotCount += 1;
+
+      const texCoord = binding.texCoord ?? 0;
+      updateTextureSlotCount(summary.textureSlots[slotName], texCoord);
+
+      if (texCoord === 1) {
+        summary.uv1Usage.textureSlots += 1;
+        materialUsesUv1 = true;
+      }
+    }
+
+    if (texturedSlotCount === 0) {
+      summary.scalarOnlyMaterialCount += 1;
+    }
+
+    if (materialUsesUv1) {
+      summary.uv1Usage.materials += 1;
+    }
+  }
+
+  return summary;
+}
+
+function emptyMaterialSlotSummary() {
+  return {
+    materialCount: 0,
+    registeredMaterialCount: 0,
+    missingMaterialCount: 0,
+    scalarOnlyMaterialCount: 0,
+    textureSlots: Object.fromEntries(
+      materialTextureSlotNames.map((slotName) => [
+        slotName,
+        { count: 0, uv0: 0, uv1: 0, otherUv: 0 },
+      ]),
+    ),
+    alphaModes: {
+      opaque: 0,
+      mask: 0,
+      blend: 0,
+    },
+    uv1Usage: {
+      materials: 0,
+      textureSlots: 0,
+    },
+  };
+}
+
+function updateAlphaModeSummary(alphaModes, alphaMode) {
+  if (alphaMode === "opaque" || alphaMode === "mask" || alphaMode === "blend") {
+    alphaModes[alphaMode] += 1;
+  }
+}
+
+function updateTextureSlotCount(slotSummary, texCoord) {
+  slotSummary.count += 1;
+
+  if (texCoord === 0) {
+    slotSummary.uv0 += 1;
+    return;
+  }
+
+  if (texCoord === 1) {
+    slotSummary.uv1 += 1;
+    return;
+  }
+
+  slotSummary.otherUv += 1;
+}
+
+function materialTextureBindingForSlot(material, slotName) {
+  switch (slotName) {
+    case "baseColorTexture":
+      return material.baseColorTexture ?? null;
+    case "metallicRoughnessTexture":
+      return material.kind === "standard"
+        ? material.metallicRoughnessTexture
+        : null;
+    case "normalTexture":
+      return material.kind === "standard" ? material.normalTexture : null;
+    case "occlusionTexture":
+      return material.kind === "standard" ? material.occlusionTexture : null;
+    case "emissiveTexture":
+      return material.kind === "standard" ? material.emissiveTexture : null;
+    default:
+      return null;
+  }
+}
+
 function createPrimitiveMaterialResolutionStatus(aperture, app, active) {
   if (active === null) {
     return [];
@@ -4696,6 +4940,10 @@ function nodeNameOrNull(value) {
 
 function isRecord(value) {
   return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+
+function positiveModulo(value, modulus) {
+  return ((value % modulus) + modulus) % modulus;
 }
 
 function readInitialCustomUrl() {

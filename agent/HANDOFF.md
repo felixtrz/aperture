@@ -1,6 +1,66 @@
 # Agent Handoff
 
-Updated: 2026-05-20T08:58:10Z
+Updated: 2026-05-20T09:14:00Z
+
+## Current Run Update — 2026-05-20T09:14:00Z — GLB viewer material-slot summaries and real URI texture gallery navigation
+
+Completed `task-2092` and `task-2093`.
+
+### What changed
+
+- Added `selectedAsset.materialSlotSummary` to `examples/glb-viewer.js`.
+  The summary is derived from registered source material assets and reports
+  count-only material totals, scalar-only totals, per-slot texture counts,
+  alpha-mode counts, and UV1 usage without exposing texture bytes, image
+  objects, GPU handles, or renderer-owned state.
+- Added focused Playwright coverage for material-slot summaries on
+  `all-slot-uri-textures`, `sampler-wrap-controls`,
+  `uv1-image-decode-controls`, and scalar-only `brass`.
+- Added ArrowLeft/ArrowRight keyboard navigation across a fixed real-URI
+  texture gallery subset:
+  `all-slot-uri-textures`, `alpha-mask-emissive-controls`,
+  `normal-occlusion-controls`, `sampler-wrap-controls`, and
+  `uv1-image-decode-controls`.
+- Added JSON-safe `textureGallery` status with gallery ID, count, active index,
+  active sample ID, and sample ID order.
+- Added `aria-keyshortcuts` metadata to the GLB viewer canvas.
+- Extended Playwright coverage to verify keyboard next/previous navigation uses
+  the normal ECS replay/unload path, updates decoded image metadata and draw
+  counts for the active sample, changes pixels across transitions, and avoids
+  WebGPU validation warnings.
+- Updated public progress trackers, completed-task records, and refilled the
+  ready queue. The recommended next task is now `task-2095`.
+
+### References inspected
+
+- `references/bevy/crates/bevy_gltf/src/loader/mod.rs`
+- `references/bevy/crates/bevy_gltf/src/loader/gltf_ext/material.rs`
+- `references/three.js/examples/jsm/loaders/GLTFLoader.js`
+- `references/three.js/examples/webgl_loader_gltf.html`
+
+### Validation
+
+- `node --check examples/glb-viewer.js`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts -g "material-slot summaries"`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts -g "keyboard controls"`
+- `pnpm run check:progress`
+- `pnpm run check:examples`
+- `pnpm run lint`
+- `pnpm exec prettier --write docs/index.html examples/glb-viewer.js`
+- `pnpm run format:check`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts -g "material-slot summaries|keyboard controls"`
+
+### Known issues
+
+- No known regressions from this run.
+- Same-origin image decode remains example-local/predecode-based. `task-2095`
+  should prove that path through a custom URL real-URI texture asset before
+  promoting the behavior into a package-level async image dependency pipeline.
+
+### Recommended next task
+
+`task-2095 — Prove custom URL same-origin URI texture decode`.
 
 ## Current Run Update — 2026-05-20T08:58:10Z — GLB viewer real URI texture controls expanded
 

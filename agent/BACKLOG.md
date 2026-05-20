@@ -59,7 +59,7 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start with `task-2092`: add a GLB viewer material-slot summary for the selected asset.
+Start with `task-2095`: prove same-origin URI texture decode through the GLB viewer custom URL flow.
 
 `task-2001` is complete: the spinning-cube example now creates a renderer-owned face-colored diffuse IBL cube texture and sampler, routes it through the StandardMaterial diffuse IBL shader variant, and Playwright verifies direction-dependent face pixels.
 `task-2002` is complete: `withEnvironmentMap(handle)` is exported from runtime/core and materials-showcase now uses it with visible diffuse IBL routing.
@@ -1451,6 +1451,8 @@ Acceptance criteria:
 
 ### task-2092 — Add GLB viewer material-slot summary for selected asset
 
+Status: completed 2026-05-20. See `agent/COMPLETED.md`.
+
 Category: `runtime-orchestration`
 Package/write-scope: `examples/glb-viewer.js`, `test/e2e/glb-viewer.spec.ts`.
 Reference anchor: `references/bevy/crates/bevy_gltf/src/loader/mod.rs`; `references/bevy/crates/bevy_gltf/src/loader/gltf_ext/material.rs`; `references/three.js/examples/jsm/loaders/GLTFLoader.js`.
@@ -1462,6 +1464,8 @@ Acceptance criteria:
 - Playwright verifies the summary on the all-slot, sampler-wrap, UV1, and scalar-only samples.
 
 ### task-2093 — Add GLB viewer real URI texture gallery keyboard navigation
+
+Status: completed 2026-05-20. See `agent/COMPLETED.md`.
 
 Category: `runtime-orchestration`
 Package/write-scope: `examples/glb-viewer.js`, `examples/glb-viewer.html`, `test/e2e/glb-viewer.spec.ts`.
@@ -1487,6 +1491,66 @@ Acceptance criteria:
 - Confirm the all-slot, occlusion-control, metallic-roughness-control, sampler-control, and UV1-control GLB viewer slices preserve ECS authority, render extraction boundaries, JSON-safe status, and WebGPU-only backend ownership.
 - Check that decoded image bytes remain source texture data and that controls do not introduce renderer-owned source state.
 - Recommend the next visible GLB viewer fidelity task.
+
+### task-2095 — Prove custom URL same-origin URI texture decode
+
+Category: `runtime-orchestration`
+Package/write-scope: `examples/glb-viewer.js`, `test/e2e/glb-viewer.spec.ts`, existing `examples/assets`.
+Reference anchor: `references/three.js/examples/jsm/loaders/GLTFLoader.js`; `references/three.js/examples/webgl_loader_gltf.html`; `references/bevy/crates/bevy_gltf/src/loader/mod.rs`.
+
+Acceptance criteria:
+
+- `/examples/glb-viewer.html?url=/examples/assets/uri-png-texture.glb` loads through the custom URL path and keeps `selectedAsset.source` as `custom`.
+- Viewer status reports JSON-safe same-origin image-decode metadata for `aperture-uri-base-color-checker.png`, material-slot summary counts, and active draws only for the custom asset.
+- Playwright verifies visible textured pixels and no WebGPU validation warnings.
+
+### task-2096 — Add real URI texture gallery button controls
+
+Category: `runtime-orchestration`
+Package/write-scope: `examples/glb-viewer.html`, `examples/glb-viewer.js`, `test/e2e/glb-viewer.spec.ts`.
+Reference anchor: `references/three.js/examples/webgl_loader_gltf.html`; `references/three.js/examples/jsm/loaders/GLTFLoader.js`; `references/bevy/crates/bevy_gltf/src/loader/mod.rs`.
+
+Acceptance criteria:
+
+- GLB viewer exposes compact previous/next controls for the committed real-URI texture gallery without changing the custom URL form.
+- Button clicks use the same sample replay/unload path as selector and keyboard navigation, and status reports the active gallery index/sample ID.
+- Playwright clicks both controls and verifies selected asset IDs, decoded image metadata, extracted draw counts, and visible pixel changes.
+
+### task-2097 — Persist GLB viewer sample selection in the URL
+
+Category: `runtime-orchestration`
+Package/write-scope: `examples/glb-viewer.js`, `test/e2e/glb-viewer.spec.ts`.
+Reference anchor: `references/three.js/examples/webgl_loader_gltf.html`; `references/three.js/examples/jsm/loaders/GLTFLoader.js`; `references/bevy/crates/bevy_gltf/src/loader/mod.rs`.
+
+Acceptance criteria:
+
+- Selecting a sample or navigating the real-URI texture gallery updates the address bar to `?asset=<sample-id>` with `history.replaceState`.
+- Reloading that URL restores the same selected asset through the normal initial sample-selection path.
+- Custom URL loads keep the `url=` flow intact and are not overwritten by sample-selection persistence.
+
+### task-2098 — Render material-slot summary rows in the GLB viewer status panel
+
+Category: `runtime-orchestration`
+Package/write-scope: `examples/glb-viewer.html`, `examples/glb-viewer.js`, `examples/styles.css`, `test/e2e/glb-viewer.spec.ts`.
+Reference anchor: `references/bevy/crates/bevy_gltf/src/loader/mod.rs`; `references/bevy/crates/bevy_gltf/src/loader/gltf_ext/material.rs`; `references/three.js/examples/jsm/loaders/GLTFLoader.js`.
+
+Acceptance criteria:
+
+- The status panel shows compact material-slot counts for base color, metallic-roughness, normal, occlusion, emissive, alpha modes, and UV1 usage for the active asset.
+- The displayed rows are derived from the same JSON-safe selected-asset material-slot summary and do not expose image bytes or GPU resources.
+- Playwright switches between all-slot and scalar-only samples and verifies the visible rows and status JSON update together.
+
+### task-2099 — Prove custom URL to sample switch clears texture decode state
+
+Category: `runtime-orchestration`
+Package/write-scope: `examples/glb-viewer.js`, `test/e2e/glb-viewer.spec.ts`, existing `examples/assets`.
+Reference anchor: `references/three.js/examples/webgl_loader_gltf.html`; `references/three.js/examples/jsm/loaders/GLTFLoader.js`; `references/bevy/crates/bevy_gltf/src/loader/mod.rs`.
+
+Acceptance criteria:
+
+- Starting from a custom URL real-URI texture asset, selecting a committed real-URI texture sample unloads the custom replayed scene and updates `selectedAsset.source` back to `sample`.
+- Viewer status shows decoded image metadata only for the active sample and no stale custom URL image entries.
+- Playwright verifies selected asset IDs, active draw counts, decoded URI sets, and visible pixel changes across the custom-to-sample switch.
 
 ## Ready Tasks By Category
 

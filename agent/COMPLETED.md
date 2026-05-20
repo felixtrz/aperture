@@ -1,5 +1,62 @@
 # Completed Tasks
 
+## task-2093 — Add GLB viewer real URI texture gallery keyboard navigation
+
+Completed: 2026-05-20
+
+Summary:
+
+- Added ArrowLeft/ArrowRight navigation for a fixed real-URI texture gallery
+  subset in `examples/glb-viewer.js`.
+- The keyboard path reuses the existing sample replay/unload flow and updates
+  the sample selector to the active gallery asset.
+- Added JSON-safe `textureGallery` status with gallery ID, count, active index,
+  active sample ID, and sample ID order.
+- Added `aria-keyshortcuts` metadata to the GLB viewer canvas.
+- Extended Playwright coverage to navigate next/previous across three real-URI
+  texture samples and assert selected asset IDs, gallery status, decoded image
+  metadata, draw counts, pixel changes, and no WebGPU warnings.
+
+References inspected:
+
+- `references/three.js/examples/webgl_loader_gltf.html`
+- `references/three.js/examples/jsm/loaders/GLTFLoader.js`
+- `references/bevy/crates/bevy_gltf/src/loader/mod.rs`
+
+Validation:
+
+- `node --check examples/glb-viewer.js`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts -g "keyboard controls"`
+
+## task-2092 — Add GLB viewer material-slot summary for selected asset
+
+Completed: 2026-05-20
+
+Summary:
+
+- Added a compact JSON-safe `selectedAsset.materialSlotSummary` to
+  `examples/glb-viewer.js`.
+- The summary is derived from registered source material assets already used by
+  primitive material resolution and reports material counts, scalar-only
+  material count, per-slot texture counts, alpha-mode counts, and UV1 usage.
+- Kept the summary count-only, with no texture bytes, image objects, GPU
+  handles, or renderer-owned state.
+- Extended Playwright coverage for all-slot, sampler-wrap, UV1 image-decode,
+  and scalar-only GLB viewer samples.
+
+References inspected:
+
+- `references/bevy/crates/bevy_gltf/src/loader/mod.rs`
+- `references/bevy/crates/bevy_gltf/src/loader/gltf_ext/material.rs`
+- `references/three.js/examples/jsm/loaders/GLTFLoader.js`
+
+Validation:
+
+- `node --check examples/glb-viewer.js`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts -g "material-slot summaries"`
+
 ## task-2082 — Decode a same-origin alpha-mask URI texture for a GLB viewer sample
 
 Completed: 2026-05-20
