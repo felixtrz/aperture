@@ -203,7 +203,7 @@ When `agent/BACKLOG.md` contains a `## Strategic Focus — Pipeline Maturity Roa
 
 1. Pick the next ready roadmap task in the order listed (tier ascending, then within-tier order).
 2. Refuse to invent new backlog tasks outside the roadmap until every roadmap task has shipped. The composition rule (≥3 visible-feature tasks ready) is satisfied by the roadmap itself; do not add GLB-sample-variant tasks, route-coverage tasks, or any other non-roadmap visible-feature task during this period.
-3. When the slice completes, advance to the next roadmap task in order. Append a follow-up entry only if the just-completed slice surfaces a *concrete blocker* (e.g., a typecheck failure in a referenced module) that must be fixed before the next roadmap task can proceed. Such follow-ups must be filed under the same tier as the slice that surfaced them.
+3. When the slice completes, advance to the next roadmap task in order. Append a follow-up entry only if the just-completed slice surfaces a _concrete blocker_ (e.g., a typecheck failure in a referenced module) that must be fixed before the next roadmap task can proceed. Such follow-ups must be filed under the same tier as the slice that surfaced them.
 4. If a roadmap task's dependencies are unmet (e.g., task-3007 depends on task-3005), skip to the next task whose dependencies are met. Do not invent new tasks to "unblock" — the dependency declaration is authoritative.
 
 When every roadmap task has shipped, this section becomes inactive. The agent may then resume regular refill per the composition rule. Until then, the roadmap is the sole source of work.

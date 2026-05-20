@@ -1,6 +1,61 @@
 # Agent Handoff
 
-Updated: 2026-05-20T23:24:02Z
+Updated: 2026-05-20T23:34:13Z
+
+## Current Run Update — 2026-05-20T23:34:13Z — Async GLB image decode registry states
+
+Completed `task-3003`.
+
+### What changed
+
+- Updated GLB viewer bufferView image predecode so embedded PNG image bytes are
+  sliced from the GLB binary chunk and decoded via `loadGltfTextureAsync()`
+  instead of the old example-local fallback path.
+- Added decoded-bufferView image lookup to the GLB viewer image resolver so the
+  existing synchronous glTF asset mapping path receives the async-decoded image.
+- Updated source registration so an existing `loading` texture entry is promoted
+  to `ready` during registration instead of being skipped as a duplicate.
+- Added GLB viewer JSON-safe status fields for embedded bufferView textures:
+  `decodeMode`, `textureHandleKey`, `registryStatusBeforeRegistration`,
+  `registryStatusAfterRegistration`, and `assetStates`.
+- Updated public tracker pages, backlog, and completed-task log. Recommended
+  next task is now `task-3004`.
+
+### Files touched
+
+- `agent/BACKLOG.md`
+- `agent/COMPLETED.md`
+- `agent/HANDOFF.md`
+- `agent/STATUS.json`
+- `agent/WAKE.md`
+- `docs/index.html`
+- `docs/render-pipeline-comparison.html`
+- `examples/glb-viewer.js`
+- `packages/render/src/assets/gltf-source-registration.ts`
+- `test/assets/gltf-source-registration.test.ts`
+- `test/e2e/glb-viewer.spec.ts`
+
+### References inspected
+
+- `references/engine/src/framework/handlers/texture.js`
+- `references/bevy/crates/bevy_image/src/image_loader.rs`
+- `references/three.js/src/loaders/TextureLoader.js`
+
+### Validation
+
+- `node --check examples/glb-viewer.js`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec vitest run test/assets/gltf-source-registration.test.ts test/materials/gltf-texture.test.ts`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts --grep "embedded-image GLB texture|decoded-image summary rows"`
+
+### Known issues
+
+- Broader package-level async image loading remains open; next roadmap task
+  moves to off-screen render-target groundwork.
+
+### Recommended next task
+
+`task-3004 — Off-screen render target abstraction (part 1: attachment factory)`.
 
 ## Current Run Update — 2026-05-20T23:24:02Z — Async glTF image decode contract
 
@@ -29,6 +84,7 @@ Completed `task-3002`.
 - `agent/COMPLETED.md`
 - `agent/HANDOFF.md`
 - `agent/STATUS.json`
+- `agent/WAKE.md`
 - `docs/index.html`
 - `docs/render-pipeline-comparison.html`
 - `packages/render/src/materials/gltf-texture.ts`
@@ -46,6 +102,12 @@ Completed `task-3002`.
 - `pnpm exec tsc --noEmit -p tsconfig.test.json`
 - `pnpm exec tsc -p packages/render/tsconfig.json --noEmit`
 - `pnpm exec vitest run test/materials/gltf-texture.test.ts`
+- `pnpm run build`
+- `pnpm run lint`
+- `pnpm test` (319 files, 1528 tests)
+- `pnpm run format:check` initially reported one existing style issue in
+  `agent/WAKE.md`; ran `pnpm exec prettier --write agent/WAKE.md`, then
+  `pnpm run format:check` passed.
 
 ### Known issues
 

@@ -1,5 +1,36 @@
 # Completed Tasks
 
+## task-3003 — Async image decode wired through asset registry states
+
+Completed: 2026-05-20
+
+Summary:
+
+- Updated GLB viewer embedded bufferView image handling to decode real PNG bytes
+  through `loadGltfTextureAsync()` and feed the decoded image back into the glTF
+  texture resolver.
+- Added texture registry loading-to-ready promotion for decoded GLB viewer
+  textures: pre-registered loading texture entries are promoted to ready during
+  source registration instead of being treated as duplicate keys.
+- Added JSON-safe GLB viewer status evidence for `decodeMode`,
+  `textureHandleKey`, `registryStatusBeforeRegistration`,
+  `registryStatusAfterRegistration`, and `assetStates`.
+- Added source-registration unit coverage for loading texture promotion and
+  Playwright coverage on the existing embedded-texture GLB sample.
+
+References inspected:
+
+- `references/engine/src/framework/handlers/texture.js`
+- `references/bevy/crates/bevy_image/src/image_loader.rs`
+- `references/three.js/src/loaders/TextureLoader.js`
+
+Validation:
+
+- `node --check examples/glb-viewer.js`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec vitest run test/assets/gltf-source-registration.test.ts test/materials/gltf-texture.test.ts`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts --grep "embedded-image GLB texture|decoded-image summary rows"`
+
 ## task-3002 — Async image decode contract in the asset layer
 
 Completed: 2026-05-20

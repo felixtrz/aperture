@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-20 23:24 UTC</dd>
+            <dd>2026-05-20 23:34 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -407,59 +407,63 @@
               Promise-capable glTF image decode contract with
               <code>loadGltfTextureAsync(source)</code> and async texture
               mapping, while the existing synchronous resolver path remains
-              supported. Next up is wiring async decode through asset registry
-              loading and ready states. The GLB viewer now renders extended
-              StandardMaterial combined texture routes: occlusion plus normal,
-              metallic-roughness plus emissive, alpha-blend plus normal, UV1
-              metallic-roughness plus normal, base-color plus occlusion, and
-              transformed base-color plus emissive, plus UV1 base-color plus
-              occlusion, transformed metallic-roughness plus normal, base-color
-              plus metallic-roughness plus emissive, alpha-blend plus emissive,
-              and UV1 base-color plus emissive, transformed base-color plus
-              metallic-roughness, UV1 metallic-roughness plus emissive, and
-              alpha-mask plus metallic-roughness. It also renders
-              metallic-roughness plus normal textures, UV1 base-color plus
-              normal textures, base-color plus emissive textures, and alpha-mask
-              plus normal-map routes through committed GLB samples with
-              JSON-safe status and browser pixel proof. It also renders normal
-              maps through <code>TEXCOORD_1</code>, StandardMaterial base-color
-              textures combined with <code>COLOR_0</code>, base-color plus
-              normal textures, and transformed UV1 normal maps. The GLB viewer
-              also renders compact visible status rows for material slots,
-              decoded images, unsupported features, animation, animation clips,
-              animated nodes, imported cameras, imported camera lists, live
-              lights, imported light lists, scene metadata, orbit fit, shadows,
-              shadow requests, IBL, IBL resources, draw/extraction state,
-              imported lights, primitive material resolution, primitive
-              material-factor details, material-alpha details, primitive texture
-              slots, texture handle keys, texture sampler state, texture
-              transforms, pipeline-token details, decoded-image details,
-              unsupported-feature details, mesh-draw identities,
-              prepared-resource reuse, render diagnostics, source loader state,
-              source output summaries, hierarchy transforms, replay stages,
-              selected assets, selected scenes, render-state details, and
-              unsupported animation-channel diagnostics. The latest audit
-              confirms these status panels remain JSON-safe projections of ECS,
-              source asset, extraction, and render-report data. It also proves
-              same-origin URI texture decode through the custom URL path,
-              real-URI gallery previous/next buttons, URL-persisted sample
-              selection, and stale custom image-decode clearing when switching
-              back to committed samples. The GLB viewer now includes unsupported
-              morph-target, skinning, primitive-mode, CUBICSPLINE animation, and
-              multi-scene samples that keep supported base meshes rendering
-              while reporting JSON-safe diagnostics and scene metadata. It also
-              includes real same-origin PNG/JPEG base-color, PNG normal-map, PNG
-              emissive, PNG metallic-roughness, PNG alpha-mask, and PNG
-              occlusion URI image decode, all-slot real URI texture coverage,
-              occlusion and metallic-roughness transform controls, sampler wrap
-              controls, UV1 image-decode controls, alpha-mask plus emissive
-              controls, normal plus occlusion controls, alpha-blend texture,
-              selector stress coverage across real URI samples, selected-asset
-              material-slot summary counts, keyboard previous/next navigation
-              across the real URI texture gallery, rotated metallic-roughness
-              transform, transformed-vs-untransformed normal and emissive
-              controls, emissive StandardMaterial, occlusion/emissive texture,
-              occlusion texture-transform, normal transform, emissive transform,
+              supported. The GLB viewer now decodes the embedded PNG bufferView
+              texture through that async path, records actual registry
+              loading-to-ready promotion for the texture handle, and keeps
+              rendering the StandardMaterial sample. Next up is the first
+              off-screen render-target attachment factory. The GLB viewer now
+              renders extended StandardMaterial combined texture routes:
+              occlusion plus normal, metallic-roughness plus emissive,
+              alpha-blend plus normal, UV1 metallic-roughness plus normal,
+              base-color plus occlusion, and transformed base-color plus
+              emissive, plus UV1 base-color plus occlusion, transformed
+              metallic-roughness plus normal, base-color plus metallic-roughness
+              plus emissive, alpha-blend plus emissive, and UV1 base-color plus
+              emissive, transformed base-color plus metallic-roughness, UV1
+              metallic-roughness plus emissive, and alpha-mask plus
+              metallic-roughness. It also renders metallic-roughness plus normal
+              textures, UV1 base-color plus normal textures, base-color plus
+              emissive textures, and alpha-mask plus normal-map routes through
+              committed GLB samples with JSON-safe status and browser pixel
+              proof. It also renders normal maps through
+              <code>TEXCOORD_1</code>, StandardMaterial base-color textures
+              combined with <code>COLOR_0</code>, base-color plus normal
+              textures, and transformed UV1 normal maps. The GLB viewer also
+              renders compact visible status rows for material slots, decoded
+              images, unsupported features, animation, animation clips, animated
+              nodes, imported cameras, imported camera lists, live lights,
+              imported light lists, scene metadata, orbit fit, shadows, shadow
+              requests, IBL, IBL resources, draw/extraction state, imported
+              lights, primitive material resolution, primitive material-factor
+              details, material-alpha details, primitive texture slots, texture
+              handle keys, texture sampler state, texture transforms,
+              pipeline-token details, decoded-image details, unsupported-feature
+              details, mesh-draw identities, prepared-resource reuse, render
+              diagnostics, source loader state, source output summaries,
+              hierarchy transforms, replay stages, selected assets, selected
+              scenes, render-state details, and unsupported animation-channel
+              diagnostics. The latest audit confirms these status panels remain
+              JSON-safe projections of ECS, source asset, extraction, and
+              render-report data. It also proves same-origin URI texture decode
+              through the custom URL path, real-URI gallery previous/next
+              buttons, URL-persisted sample selection, and stale custom
+              image-decode clearing when switching back to committed samples.
+              The GLB viewer now includes unsupported morph-target, skinning,
+              primitive-mode, CUBICSPLINE animation, and multi-scene samples
+              that keep supported base meshes rendering while reporting
+              JSON-safe diagnostics and scene metadata. It also includes real
+              same-origin PNG/JPEG base-color, PNG normal-map, PNG emissive, PNG
+              metallic-roughness, PNG alpha-mask, and PNG occlusion URI image
+              decode, all-slot real URI texture coverage, occlusion and
+              metallic-roughness transform controls, sampler wrap controls, UV1
+              image-decode controls, alpha-mask plus emissive controls, normal
+              plus occlusion controls, alpha-blend texture, selector stress
+              coverage across real URI samples, selected-asset material-slot
+              summary counts, keyboard previous/next navigation across the real
+              URI texture gallery, rotated metallic-roughness transform,
+              transformed-vs-untransformed normal and emissive controls,
+              emissive StandardMaterial, occlusion/emissive texture, occlusion
+              texture-transform, normal transform, emissive transform,
               alpha-mask, sampler-state texture, texture-transform, missing-UV1,
               supported base-color UV1, metallic-roughness UV1, and normal-scale
               samples with routed material, texture, sampler, transform/control,
@@ -1395,23 +1399,23 @@
           <article class="phase">
             <div class="topline">
               <h3>2. collect</h3>
-              <span class="percent">80%</span>
+              <span class="percent">83%</span>
             </div>
-            <div class="bar"><span style="width: 80%"></span></div>
+            <div class="bar"><span style="width: 83%"></span></div>
             <p>
               Asset readiness and source-version dependency summaries exist for
               meshes, materials, textures, and samplers. GLB-shaped invalid
               texture/sampler mapping and delayed dependency browser diagnostics
               now preserve slot, key, dependency-kind, and status context. glTF
-              image resolution now has a Promise-capable decode contract and
-              async mapping path, while registry loading-state wiring is still
-              pending. The GLB viewer now fetches real GLB URLs, publishes
-              parsed metadata counts, and reports unsupported-feature
+              image resolution now has a Promise-capable decode contract, async
+              mapping path, and GLB viewer bufferView PNG loading-to-ready
+              registry proof. The GLB viewer now fetches real GLB URLs,
+              publishes parsed metadata counts, and reports unsupported-feature
               diagnostics from import reports without raw binary buffers.
             </p>
             <ul>
               <li>
-                Missing registry-level async image loading state integration.
+                Missing broader package-level async image loading integration.
               </li>
               <li>
                 Missing broader loader integration beyond the current GLB
@@ -3742,16 +3746,16 @@
             <h3>Recommended next tasks</h3>
             <ul>
               <li>
-                <span class="badge amber">next</span> Wire async image decode
-                through asset registry states.
+                <span class="badge amber">next</span> Add the off-screen render
+                target attachment factory.
               </li>
               <li>
-                Route glTF image decode through <code>markLoading()</code> and
-                <code>markReady()</code> for texture assets.
+                Add <code>createOffscreenColorTarget(texture)</code> beside the
+                swapchain color-target path.
               </li>
               <li>
-                Add a real PNG bufferView GLB sample and prove browser status
-                observes loading, ready, and rendered pixels.
+                Read pixels back from an off-screen texture in a focused WebGPU
+                test.
               </li>
             </ul>
           </article>
@@ -3764,6 +3768,17 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3003</div>
+            <div>
+              <strong>Async GLB image decode reaches registry states.</strong>
+              <span
+                >The embedded-texture GLB now decodes its real PNG bufferView
+                through the async contract, promotes the texture registry entry
+                from loading to ready, and renders through Playwright.</span
+              >
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3002</div>
             <div>

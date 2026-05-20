@@ -59,6 +59,11 @@ interface GlbViewerStatus extends ExampleStatusBase {
       readonly decoded: readonly {
         readonly imageIndex: number;
         readonly sourceKind: string;
+        readonly decodeMode?: string;
+        readonly assetStates?: readonly string[];
+        readonly textureHandleKey?: string;
+        readonly registryStatusBeforeRegistration?: string;
+        readonly registryStatusAfterRegistration?: string;
         readonly uri: string;
         readonly url: string;
         readonly mimeType: string;
@@ -984,7 +989,16 @@ test("Playwright renders the fetched sample GLB viewer asset", async ({
                 readonly family?: string;
               }[];
             };
-            readonly source?: { readonly ok?: boolean };
+            readonly source?: {
+              readonly ok?: boolean;
+              readonly imageDecode?: {
+                readonly decoded?: readonly {
+                  readonly uri?: string;
+                  readonly decodeMode?: string;
+                  readonly assetStates?: readonly string[];
+                }[];
+              };
+            };
             readonly extraction?: { readonly meshDraws?: number };
             readonly ibl?: {
               readonly rendering?: { readonly supported?: boolean };
@@ -18153,6 +18167,31 @@ test("Playwright renders an embedded-image GLB texture sample", async ({
       url: "/examples/assets/embedded-texture.glb",
       loading: false,
       materialFamilies: [{ family: "standard", count: 2 }],
+    },
+    source: {
+      ok: true,
+      imageDecode: {
+        decoded: [
+          {
+            imageIndex: 0,
+            sourceKind: "buffer-view",
+            decodeMode: "async-buffer-view",
+            assetStates: ["loading", "ready"],
+            textureHandleKey: expect.stringMatching(
+              /^texture:viewer-embedded-texture-\d+:texture:0:baseColorTexture$/,
+            ),
+            registryStatusBeforeRegistration: "loading",
+            registryStatusAfterRegistration: "ready",
+            uri: "bufferView:8",
+            url: "/examples/assets/embedded-texture.glb#bufferView=8",
+            mimeType: "image/png",
+            width: 2,
+            height: 2,
+            byteLength: 16,
+          },
+        ],
+        diagnostics: [],
+      },
     },
     gltf: {
       metadata: {

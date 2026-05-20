@@ -1767,10 +1767,22 @@ async function loadAsset(aperture, app, scene, asset, options = {}) {
     throw new Error("glTF asset did not produce renderable source assets.");
   }
 
+  markGlbViewerDecodedTexturesLoading({
+    aperture,
+    registry: app.assets,
+    assetMapping: importReport.assetMapping,
+    imageDecode: loaded.imageDecode,
+  });
   const registration = aperture.registerGltfSourceAssetsFromReports({
     registry: app.assets,
     assetMapping: importReport.assetMapping,
     meshConstruction: importReport.meshConstruction,
+  });
+  markGlbViewerDecodedTexturesReady({
+    aperture,
+    registry: app.assets,
+    assetMapping: importReport.assetMapping,
+    imageDecode: loaded.imageDecode,
   });
   const sourceRegistration = registration.sourceRegistration;
   const meshRegistration = registration.meshRegistration;
@@ -1854,6 +1866,78 @@ async function loadAsset(aperture, app, scene, asset, options = {}) {
   updateImportedLightControlInputs(scene);
 }
 
+function markGlbViewerDecodedTexturesLoading({
+  aperture,
+  registry,
+  assetMapping,
+  imageDecode,
+}) {
+  for (const texture of assetMapping.textures) {
+    const decoded = decodedImageStatusForTexture(texture, imageDecode);
+
+    if (decoded === null || texture.texture === null) {
+      continue;
+    }
+
+    const handle = aperture.createTextureHandle(texture.handleKey);
+
+    if (!registry.has(handle)) {
+      registry.register(handle, {
+        label: texture.texture.label,
+      });
+    }
+
+    registry.markLoading(handle);
+    decoded.textureHandleKey = aperture.assetHandleKey(handle);
+    decoded.registryStatusBeforeRegistration = registry.getStatus(handle);
+    decoded.assetStates = uniqueStrings([
+      ...(Array.isArray(decoded.assetStates) ? decoded.assetStates : []),
+      "loading",
+    ]);
+  }
+}
+
+function markGlbViewerDecodedTexturesReady({
+  aperture,
+  registry,
+  assetMapping,
+  imageDecode,
+}) {
+  for (const texture of assetMapping.textures) {
+    const decoded = decodedImageStatusForTexture(texture, imageDecode);
+
+    if (decoded === null) {
+      continue;
+    }
+
+    const handle = aperture.createTextureHandle(texture.handleKey);
+    const status = registry.getStatus(handle) ?? "missing";
+
+    decoded.textureHandleKey = aperture.assetHandleKey(handle);
+    decoded.registryStatusAfterRegistration = status;
+    decoded.assetStates = uniqueStrings([
+      ...(Array.isArray(decoded.assetStates) ? decoded.assetStates : []),
+      status,
+    ]);
+  }
+}
+
+function decodedImageStatusForTexture(texture, imageDecode) {
+  const imageIndex = texture.report.imageIndex;
+
+  if (!Number.isInteger(imageIndex)) {
+    return null;
+  }
+
+  return (
+    imageDecode.decoded.find((entry) => entry.imageIndex === imageIndex) ?? null
+  );
+}
+
+function uniqueStrings(values) {
+  return [...new Set(values.filter((value) => typeof value === "string"))];
+}
+
 async function loadViewerSourceAsset(aperture, asset, keyPrefix, sceneIndex) {
   if (asset.format === "gltf") {
     return loadGltfViewerAsset(aperture, asset, keyPrefix, sceneIndex);
@@ -1909,8 +1993,11 @@ async function loadGlbViewerAsset(aperture, asset, keyPrefix, sceneIndex) {
   const preflight = aperture.createNoFetchGlbSourceLoaderReport({
     source: fetched.bytes,
   });
+  const preflightContainer = preflight.glbImportReport.container.container;
   const imageDecode = await decodeSameOriginImages({
-    root: preflight.glbImportReport.container.container?.json ?? null,
+    aperture,
+    root: preflightContainer?.json ?? null,
+    binary: preflightContainer?.binaryChunk ?? null,
     assetUrl: asset.url,
   });
   const loader = aperture.createNoFetchGlbSourceLoaderReport({
@@ -1922,6 +2009,7 @@ async function loadGlbViewerAsset(aperture, asset, keyPrefix, sceneIndex) {
     resolveImageData: createGlbViewerImageDataResolver({
       assetUrl: asset.url,
       decodedByUrl: imageDecode.decodedByUrl,
+      decodedByBufferView: imageDecode.decodedByBufferView,
     }),
   });
   const loaderDiagnostics = loader.status.diagnostics.map((diagnostic) => ({
@@ -2017,15 +2105,17 @@ async function fetchGlbViewerSourceBytes(url) {
   }
 }
 
-async function decodeSameOriginImages({ root, assetUrl }) {
+async function decodeSameOriginImages({ aperture, root, binary, assetUrl }) {
   if (!isRecord(root)) {
     return {
       decodedByUrl: new Map(),
+      decodedByBufferView: new Map(),
       ...emptyImageDecodeStatus(),
     };
   }
 
   const decodedByUrl = new Map();
+  const decodedByBufferView = new Map();
   const decoded = [];
   const diagnostics = [];
 
@@ -2035,14 +2125,29 @@ async function decodeSameOriginImages({ root, assetUrl }) {
     }
 
     if (typeof image.uri !== "string") {
-      const decodedEntry = decodeFallbackBufferViewImage(
+      const decodedEntry = await decodeBufferViewImage({
+        aperture,
+        root,
+        binary,
+        imageIndex,
+        image,
+        assetUrl,
+      });
+
+      if (decodedEntry !== null) {
+        decodedByBufferView.set(decodedEntry.bufferView, decodedEntry.image);
+        decoded.push(decodedEntry.status);
+        continue;
+      }
+
+      const fallbackEntry = decodeFallbackBufferViewImage(
         imageIndex,
         image,
         assetUrl,
       );
 
-      if (decodedEntry !== null) {
-        decoded.push(decodedEntry);
+      if (fallbackEntry !== null) {
+        decoded.push(fallbackEntry);
       }
 
       continue;
@@ -2085,7 +2190,82 @@ async function decodeSameOriginImages({ root, assetUrl }) {
     });
   }
 
-  return { decodedByUrl, decoded, diagnostics };
+  return { decodedByUrl, decodedByBufferView, decoded, diagnostics };
+}
+
+async function decodeBufferViewImage({
+  aperture,
+  root,
+  binary,
+  imageIndex,
+  image,
+  assetUrl,
+}) {
+  if (
+    !Number.isInteger(image.bufferView) ||
+    typeof image.mimeType !== "string"
+  ) {
+    return null;
+  }
+
+  const bufferViewIndex = image.bufferView;
+  const bytes = bufferViewBytes(root, binary, bufferViewIndex);
+
+  if (bytes === null) {
+    return null;
+  }
+
+  const imageData = await aperture.loadGltfTextureAsync({
+    source: {
+      kind: "bufferView",
+      bufferView: bufferViewIndex,
+      mimeType: image.mimeType,
+    },
+    bytes,
+  });
+
+  return {
+    bufferView: bufferViewIndex,
+    image: imageData,
+    status: {
+      imageIndex,
+      sourceKind: "buffer-view",
+      decodeMode: "async-buffer-view",
+      assetStates: ["loading", "ready"],
+      uri: `bufferView:${bufferViewIndex}`,
+      url: `${formatAssetUrl(assetUrl)}#bufferView=${bufferViewIndex}`,
+      mimeType: image.mimeType,
+      width: imageData.width,
+      height: imageData.height,
+      byteLength: imageData.sourceData.bytes.byteLength,
+    },
+  };
+}
+
+function bufferViewBytes(root, binary, bufferViewIndex) {
+  if (!(binary instanceof Uint8Array)) {
+    return null;
+  }
+
+  const bufferView = arrayEntries(root.bufferViews)[bufferViewIndex];
+
+  if (!isRecord(bufferView)) {
+    return null;
+  }
+
+  const byteOffset = integerOrZero(bufferView.byteOffset);
+  const byteLength = integerOrNull(bufferView.byteLength);
+
+  if (
+    byteLength === null ||
+    byteOffset < 0 ||
+    byteLength < 0 ||
+    byteOffset + byteLength > binary.byteLength
+  ) {
+    return null;
+  }
+
+  return binary.slice(byteOffset, byteOffset + byteLength);
 }
 
 function decodeFallbackBufferViewImage(imageIndex, image, assetUrl) {
@@ -2236,7 +2416,11 @@ async function decodeSameOriginImage(imageUrl) {
   }
 }
 
-function createGlbViewerImageDataResolver({ assetUrl, decodedByUrl }) {
+function createGlbViewerImageDataResolver({
+  assetUrl,
+  decodedByUrl,
+  decodedByBufferView,
+}) {
   return (input) => {
     if (input.source.kind === "uri") {
       const resolved = sameOriginSupportedImageUrl(input.source, assetUrl);
@@ -2244,6 +2428,14 @@ function createGlbViewerImageDataResolver({ assetUrl, decodedByUrl }) {
         resolved === null
           ? null
           : (decodedByUrl.get(resolved.url.href) ?? null);
+
+      if (decoded !== null) {
+        return cloneDecodedImageData(decoded);
+      }
+    }
+
+    if (input.source.kind === "bufferView") {
+      const decoded = decodedByBufferView.get(input.source.bufferView) ?? null;
 
       if (decoded !== null) {
         return cloneDecodedImageData(decoded);

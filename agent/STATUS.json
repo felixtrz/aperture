@@ -1,11 +1,11 @@
 {
   "state": "running",
-  "currentTaskId": "task-3002",
+  "currentTaskId": "task-3003",
   "currentRunStartedAt": "2026-05-20T23:01:41Z",
   "lastRunStartedAt": "2026-05-20T23:01:41Z",
   "lastResult": "success",
   "lastCommit": null,
   "activePid": 0,
-  "notes": "Direction shift to Pipeline Maturity Roadmap. MVP renderer is complete (IBL, GLB viewer, multi-light PCF shadows, animation playback, 86 sample GLBs). 29 roadmap tasks (task-3001 through task-3029) seeded in BACKLOG.md across 5 tiers by dependency order. Queued GLB-matrix tasks (task-2172, task-2173, task-2174) marked superseded; the 9 audit tasks named in the plan had already shipped on 2026-05-20. WAKE.md §9 now requires roadmap-strict refill: agent picks next roadmap task in dependency order and may not invent tasks outside the roadmap until all 29 ship. Recommended next task is task-3001 (worker transport proof). The agent MUST read references/three.js/examples/webgl_worker_offscreencanvas.html and references/engine/src/framework/handlers/basis-worker.js before writing. Expected scope: ~24-28 runs to ship the full roadmap.",
-  "lastRunFinishedAt": "2026-05-20T20:00:00Z"
+  "notes": "Completed task-3001 worker snapshot transport proof and task-3002 async glTF image decode contract. Focused tests, build, lint, full vitest, progress check, and format check pass. Next task is task-3003 registry loading-state wiring.",
+  "lastRunFinishedAt": "2026-05-20T23:28:07Z"
 }

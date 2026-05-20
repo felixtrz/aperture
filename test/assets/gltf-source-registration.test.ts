@@ -109,6 +109,33 @@ describe("glTF source asset registration", () => {
     ]);
   });
 
+  it("promotes pre-registered loading texture assets to ready", () => {
+    const registry = new AssetRegistry();
+    const mapping = createValidMappingReport();
+    const loadingTexture = createTextureHandle(
+      "gltf:texture:0:baseColorTexture",
+    );
+
+    registry.register(loadingTexture);
+    registry.markLoading(loadingTexture);
+
+    const registration = registerGltfSourceAssetsFromMappingReport({
+      registry,
+      report: mapping,
+    });
+
+    expect(registration.valid).toBe(true);
+    expect(registration.skipped).toEqual([]);
+    expect(registration.written[0]).toMatchObject({
+      kind: "texture",
+      registeredHandleKey: "texture:gltf:texture:0:baseColorTexture",
+    });
+    expect(registry.getStatus(loadingTexture)).toBe("ready");
+    expect(registry.get(loadingTexture)?.asset).toBe(
+      mapping.textures[0]?.texture,
+    );
+  });
+
   it("skips invalid planned entries without mutating the registry", () => {
     const registry = new AssetRegistry();
     const mapping = createGltfAssetMappingReport({

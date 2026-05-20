@@ -185,7 +185,9 @@ function registerTexture(input: {
     return;
   }
 
-  if (input.registry.has(handle)) {
+  const existingEntry = input.registry.get(handle);
+
+  if (existingEntry !== undefined && existingEntry.status !== "loading") {
     skipDuplicate({
       diagnostics: input.diagnostics,
       skipped: input.skipped,
@@ -201,10 +203,12 @@ function registerTexture(input: {
   const registryDiagnostics = assetDiagnosticsFromMappingDiagnostics(
     input.texture.report.diagnostics,
   );
-  input.registry.register<"texture", typeof input.texture.texture>(handle, {
-    label: input.texture.texture.label,
-    diagnostics: registryDiagnostics,
-  });
+  if (existingEntry === undefined) {
+    input.registry.register<"texture", typeof input.texture.texture>(handle, {
+      label: input.texture.texture.label,
+      diagnostics: registryDiagnostics,
+    });
+  }
   input.registry.markReady(handle, input.texture.texture, registryDiagnostics);
   input.written.push({
     kind: "texture",
