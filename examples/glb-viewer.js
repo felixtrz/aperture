@@ -29,8 +29,14 @@ const ambientIntensityInput = document.querySelector("#glb-ambient-intensity");
 const importedLightToggle = document.querySelector(
   "#glb-imported-light-toggle",
 );
+const selectedAssetSummaryElement = document.querySelector(
+  "#glb-selected-asset-summary",
+);
 const materialSlotSummaryElement = document.querySelector(
   "#glb-material-slot-summary",
+);
+const textureGallerySummaryElement = document.querySelector(
+  "#glb-texture-gallery-summary",
 );
 const imageDecodeSummaryElement = document.querySelector(
   "#glb-image-decode-summary",
@@ -41,20 +47,66 @@ const unsupportedFeatureSummaryElement = document.querySelector(
 const animationSummaryElement = document.querySelector(
   "#glb-animation-summary",
 );
+const animationClipSummaryElement = document.querySelector(
+  "#glb-animation-clip-summary",
+);
+const animationNodeSummaryElement = document.querySelector(
+  "#glb-animation-node-summary",
+);
+const animationChannelSummaryElement = document.querySelector(
+  "#glb-animation-channel-summary",
+);
 const importedCameraSummaryElement = document.querySelector(
   "#glb-imported-camera-summary",
 );
+const importedCameraListSummaryElement = document.querySelector(
+  "#glb-imported-camera-list-summary",
+);
 const lightSummaryElement = document.querySelector("#glb-light-summary");
 const metadataSummaryElement = document.querySelector("#glb-metadata-summary");
+const sceneSummaryElement = document.querySelector("#glb-scene-summary");
 const orbitSummaryElement = document.querySelector("#glb-orbit-summary");
 const shadowSummaryElement = document.querySelector("#glb-shadow-summary");
+const shadowRequestSummaryElement = document.querySelector(
+  "#glb-shadow-request-summary",
+);
 const iblSummaryElement = document.querySelector("#glb-ibl-summary");
+const iblResourceSummaryElement = document.querySelector(
+  "#glb-ibl-resource-summary",
+);
 const drawSummaryElement = document.querySelector("#glb-draw-summary");
+const renderStateSummaryElement = document.querySelector(
+  "#glb-render-state-summary",
+);
+const extractionDiagnosticSummaryElement = document.querySelector(
+  "#glb-extraction-diagnostic-summary",
+);
 const importedLightSummaryElement = document.querySelector(
   "#glb-imported-light-summary",
 );
+const importedLightListSummaryElement = document.querySelector(
+  "#glb-imported-light-list-summary",
+);
 const primitiveMaterialSummaryElement = document.querySelector(
   "#glb-primitive-material-summary",
+);
+const materialFactorSummaryElement = document.querySelector(
+  "#glb-material-factor-summary",
+);
+const primitiveTextureSlotSummaryElement = document.querySelector(
+  "#glb-primitive-texture-slot-summary",
+);
+const sourceLoaderSummaryElement = document.querySelector(
+  "#glb-source-loader-summary",
+);
+const sourceOutputSummaryElement = document.querySelector(
+  "#glb-source-output-summary",
+);
+const hierarchySummaryElement = document.querySelector(
+  "#glb-hierarchy-summary",
+);
+const replayStageSummaryElement = document.querySelector(
+  "#glb-replay-stage-summary",
 );
 const stateElement = document.querySelector("#example-state");
 const jsonElement = document.querySelector("#example-json");
@@ -426,6 +478,28 @@ const realUriTextureGalleryAssetIds = [
 const realUriTextureGalleryAssets = realUriTextureGalleryAssetIds
   .map((assetId) => sampleAssets.find((asset) => asset.id === assetId))
   .filter((asset) => asset !== undefined);
+const selectedAssetSummaryRows = [
+  {
+    key: "source",
+    label: "source",
+    value: (asset) => formatSummaryOptionalKey(asset.source),
+  },
+  {
+    key: "loading",
+    label: "loading",
+    value: (asset) => String(asset.loading),
+  },
+  {
+    key: "url",
+    label: "url",
+    value: (asset) => formatSummaryOptionalKey(asset.url),
+  },
+  {
+    key: "materials",
+    label: "materials",
+    value: (asset) => formatMaterialFamilySummary(asset.materialFamilies),
+  },
+];
 const materialSlotSummaryRows = [
   {
     key: "materials",
@@ -472,6 +546,31 @@ const materialSlotSummaryRows = [
       `materials ${summary.uv1Usage.materials}, slots ${summary.uv1Usage.textureSlots}`,
   },
 ];
+const textureGallerySummaryRows = [
+  {
+    key: "state",
+    label: "gallery",
+    value: (gallery) => `active ${gallery.active}, count ${gallery.count}`,
+  },
+  {
+    key: "position",
+    label: "position",
+    value: (gallery) =>
+      `index ${formatSummaryOptionalKey(gallery.activeIndex)} / ${
+        gallery.count
+      }`,
+  },
+  {
+    key: "asset",
+    label: "asset",
+    value: (gallery) => formatSummaryOptionalKey(gallery.activeAssetId),
+  },
+  {
+    key: "samples",
+    label: "samples",
+    value: (gallery) => `${arrayEntries(gallery.sampleIds).length} available`,
+  },
+];
 const animationSummaryRows = [
   {
     key: "clip",
@@ -500,6 +599,16 @@ const animationSummaryRows = [
     label: "channels",
     value: (animation) =>
       `${animation.channelCount} channels, ${animation.clipCount} clips`,
+  },
+];
+const animationClipSummaryRows = [
+  {
+    key: (clip, index) => String(clip.index ?? index),
+    label: (clip, index) => `clip ${clip.index ?? index}`,
+    value: (clip, index) =>
+      `#${clip.index ?? index}, ${formatSummaryOptionalKey(
+        clip.name,
+      )}, ${formatAnimationClipDuration(clip.duration)}s`,
   },
 ];
 const importedCameraSummaryRows = [
@@ -586,6 +695,33 @@ const metadataSummaryRows = [
     label: "extensions",
     value: (metadata) =>
       `used ${metadata.extensions.used.length}, required ${metadata.extensions.required.length}`,
+  },
+];
+const sceneSummaryRows = [
+  {
+    key: "default",
+    label: "default",
+    value: (scene) => formatSummaryOptionalKey(scene.defaultSceneIndex),
+  },
+  {
+    key: "selected",
+    label: "selected",
+    value: (scene) =>
+      formatSummaryOptionalKey(selectedSceneStatus(scene)?.sceneIndex),
+  },
+  {
+    key: "roots",
+    label: "roots",
+    value: (scene) =>
+      `${arrayEntries(selectedSceneStatus(scene)?.rootNodeIndices).length} roots`,
+  },
+  {
+    key: "firstRoot",
+    label: "first root",
+    value: (scene) =>
+      formatSummaryOptionalKey(
+        arrayEntries(selectedSceneStatus(scene)?.rootNodeIndices)[0],
+      ),
   },
 ];
 const orbitSummaryRows = [
@@ -701,6 +837,37 @@ const iblSummaryRows = [
       )}`,
   },
 ];
+const iblResourceSummaryRows = [
+  {
+    key: "state",
+    label: "state",
+    value: (ibl) =>
+      `enabled ${ibl.enabled}, key ${formatSummaryOptionalKey(
+        ibl.environmentMapKey,
+      )}`,
+  },
+  {
+    key: "diffuse",
+    label: "diffuse",
+    value: (ibl) => formatSummaryOptionalKey(ibl.resources.diffuseTexture),
+  },
+  {
+    key: "specular",
+    label: "specular",
+    value: (ibl) => formatSummaryOptionalKey(ibl.resources.specularTexture),
+  },
+  {
+    key: "sampler",
+    label: "sampler",
+    value: (ibl) => formatSummaryOptionalKey(ibl.resources.sampler),
+  },
+  {
+    key: "pipelines",
+    label: "pipelines",
+    value: (ibl) =>
+      arrayEntries(ibl.rendering.pipelineKeys).join(" | ") || "none",
+  },
+];
 const drawSummaryRows = [
   {
     key: "extraction",
@@ -731,6 +898,25 @@ const drawSummaryRows = [
       formatPipelineKeySummary(renderState.pipelineKeys),
   },
 ];
+const renderStateSummaryRows = [
+  {
+    key: "queues",
+    label: "queues",
+    value: (renderState) => formatCountSummary(renderState.queues),
+  },
+  {
+    key: "pipelineCount",
+    label: "pipelines",
+    value: (renderState) =>
+      `${uniquePipelineKeys(renderState.pipelineKeys).length} unique`,
+  },
+  {
+    key: "pipelineKeys",
+    label: "keys",
+    value: (renderState) =>
+      uniquePipelineKeys(renderState.pipelineKeys).join(" | ") || "none",
+  },
+];
 const importedLightSummaryRows = [
   {
     key: "controls",
@@ -756,6 +942,100 @@ const importedLightSummaryRows = [
     label: "first",
     value: ({ importedLights }) =>
       formatImportedLightDescriptor(importedLights.lights[0]),
+  },
+];
+const sourceLoaderSummaryRows = [
+  {
+    key: "kind",
+    label: "source",
+    value: (source) => formatSourceKind(source),
+  },
+  {
+    key: "bytes",
+    label: "bytes",
+    value: (source) => formatSourceByteLength(source),
+  },
+  {
+    key: "loader",
+    label: "loader",
+    value: (source) => formatLoaderStatus(source),
+  },
+  {
+    key: "imageDiagnostics",
+    label: "image diag",
+    value: (source) =>
+      String(arrayEntries(source.imageDecode?.diagnostics).length),
+  },
+  {
+    key: "sourceDiagnostics",
+    label: "source diag",
+    value: (source) => String(arrayEntries(source.diagnostics).length),
+  },
+];
+const sourceOutputSummaryRows = [
+  {
+    key: "meshConstruction",
+    label: "mesh",
+    value: (summary) =>
+      `${summary.meshConstruction.status}, meshes ${summary.meshConstruction.meshCount}, submeshes ${summary.meshConstruction.submeshCount}`,
+  },
+  {
+    key: "sourceRegistration",
+    label: "registration",
+    value: (summary) =>
+      `${summary.sourceRegistration.status}, written ${summary.sourceRegistration.writtenCount}, skipped ${summary.sourceRegistration.skippedCount}, diagnostics ${summary.sourceRegistration.diagnosticsCount}`,
+  },
+  {
+    key: "commandPlan",
+    label: "commands",
+    value: (summary) =>
+      `${summary.ecsCommandPlan.status}, commands ${summary.ecsCommandPlan.commandCount}, deps ${summary.ecsCommandPlan.dependencyCount}`,
+  },
+  {
+    key: "replayReadiness",
+    label: "readiness",
+    value: (summary) =>
+      `${summary.ecsReplayReadiness.status}, creates ${summary.ecsReplayReadiness.expectedCreateEntityCount}, adds ${summary.ecsReplayReadiness.expectedAddComponentCount}`,
+  },
+];
+const hierarchySummaryRows = [
+  {
+    key: "nodes",
+    label: "nodes",
+    value: (hierarchy) => `${arrayEntries(hierarchy.nodes).length} replayed`,
+  },
+  {
+    key: "parented",
+    label: "parented",
+    value: (hierarchy) =>
+      `${hierarchyChildNodes(hierarchy).length} node${
+        hierarchyChildNodes(hierarchy).length === 1 ? "" : "s"
+      }`,
+  },
+  {
+    key: "firstChild",
+    label: "first child",
+    value: (hierarchy) => formatFirstHierarchyChild(hierarchy),
+  },
+];
+const replayStageSummaryRows = [
+  {
+    key: "registration",
+    label: "registration",
+    value: ({ registration }) =>
+      `valid ${registration.valid}, diagnostics ${registration.diagnostics}`,
+  },
+  {
+    key: "commandPlan",
+    label: "command plan",
+    value: ({ commandPlan }) =>
+      `valid ${commandPlan.valid}, commands ${commandPlan.commands}, deps ${commandPlan.dependencies}`,
+  },
+  {
+    key: "replay",
+    label: "replay",
+    value: ({ replay }) =>
+      `valid ${replay.valid}, created ${replay.created}, diagnostics ${replay.diagnostics}`,
   },
 ];
 
@@ -5511,6 +5791,8 @@ function formatAssetUrl(url) {
 
 function publishStatus(status) {
   globalThis.__APERTURE_EXAMPLE_STATUS__ = status;
+  updateSelectedAssetSummaryPanel(status.selectedAsset);
+  updateTextureGallerySummaryPanel(status.textureGallery);
   updateMaterialSlotSummaryPanel(status.selectedAsset?.materialSlotSummary);
   updateImageDecodeSummaryPanel(status.source?.imageDecode?.decoded);
   updateUnsupportedFeatureSummaryPanel({
@@ -5518,25 +5800,45 @@ function publishStatus(status) {
     importedCamera: status.importedCamera,
   });
   updateAnimationSummaryPanel(status.animation);
+  updateAnimationClipSummaryPanel(status.animation);
+  updateAnimationNodeSummaryPanel(status.animation);
+  updateAnimationChannelSummaryPanel(status.animation);
   updateImportedCameraSummaryPanel(status.importedCamera);
+  updateImportedCameraListSummaryPanel(status.importedCamera);
   updateLightingSummaryPanel({
     lighting: status.lighting,
     extraction: status.extraction,
   });
   updateMetadataSummaryPanel(status.gltf?.metadata);
+  updateSceneSummaryPanel(status.gltf?.metadata?.scene);
   updateOrbitSummaryPanel(status.orbit);
   updateShadowSummaryPanel(status.shadow);
+  updateShadowRequestSummaryPanel(status.shadow);
   updateIblSummaryPanel(status.ibl);
+  updateIblResourceSummaryPanel(status.ibl);
   updateDrawSummaryPanel({
     selectedAsset: status.selectedAsset,
     extraction: status.extraction,
     draw: status.draw,
     renderState: status.renderState,
   });
+  updateRenderStateSummaryPanel(status.renderState);
+  updateExtractionDiagnosticSummaryPanel(status.extraction?.diagnosticsList);
   updateImportedLightSummaryPanel(status.importedLights);
+  updateImportedLightListSummaryPanel(status.importedLights);
   updatePrimitiveMaterialSummaryPanel(
     status.gltf?.primitiveMaterials?.resolutions,
   );
+  updateMaterialFactorSummaryPanel(
+    status.gltf?.primitiveMaterials?.resolutions,
+  );
+  updatePrimitiveTextureSlotSummaryPanel(
+    status.gltf?.primitiveMaterials?.resolutions,
+  );
+  updateSourceLoaderSummaryPanel(status.source);
+  updateSourceOutputSummaryPanel(status.source?.outputSummary);
+  updateHierarchySummaryPanel(status.hierarchy);
+  updateReplayStageSummaryPanel(status.gltf);
 
   if (stateElement !== null) {
     stateElement.textContent = status.ok ? "ready" : "failed";
@@ -5544,6 +5846,35 @@ function publishStatus(status) {
 
   if (jsonElement !== null) {
     jsonElement.textContent = JSON.stringify(status, null, 2);
+  }
+}
+
+function updateSelectedAssetSummaryPanel(asset) {
+  if (!(selectedAssetSummaryElement instanceof HTMLElement)) {
+    return;
+  }
+
+  selectedAssetSummaryElement.replaceChildren();
+
+  if (!isRecord(asset)) {
+    selectedAssetSummaryElement.hidden = true;
+    return;
+  }
+
+  selectedAssetSummaryElement.hidden = false;
+
+  for (const row of selectedAssetSummaryRows) {
+    const element = document.createElement("div");
+    const label = document.createElement("span");
+    const value = document.createElement("strong");
+
+    element.className = "selected-asset-summary-row";
+    element.dataset.selectedAssetSummaryRow = row.key;
+    label.textContent = row.label;
+    value.textContent = row.value(asset);
+
+    element.append(label, value);
+    selectedAssetSummaryElement.append(element);
   }
 }
 
@@ -5573,6 +5904,35 @@ function updateMaterialSlotSummaryPanel(summary) {
 
     element.append(label, value);
     materialSlotSummaryElement.append(element);
+  }
+}
+
+function updateTextureGallerySummaryPanel(gallery) {
+  if (!(textureGallerySummaryElement instanceof HTMLElement)) {
+    return;
+  }
+
+  textureGallerySummaryElement.replaceChildren();
+
+  if (!isRecord(gallery)) {
+    textureGallerySummaryElement.hidden = true;
+    return;
+  }
+
+  textureGallerySummaryElement.hidden = false;
+
+  for (const row of textureGallerySummaryRows) {
+    const element = document.createElement("div");
+    const label = document.createElement("span");
+    const value = document.createElement("strong");
+
+    element.className = "texture-gallery-summary-row";
+    element.dataset.textureGallerySummaryRow = row.key;
+    label.textContent = row.label;
+    value.textContent = row.value(gallery);
+
+    element.append(label, value);
+    textureGallerySummaryElement.append(element);
   }
 }
 
@@ -5751,6 +6111,172 @@ function updateAnimationSummaryPanel(animation) {
   }
 }
 
+function updateAnimationClipSummaryPanel(animation) {
+  if (!(animationClipSummaryElement instanceof HTMLElement)) {
+    return;
+  }
+
+  animationClipSummaryElement.replaceChildren();
+  const clips = arrayEntries(animation?.clips);
+
+  if (clips.length === 0) {
+    animationClipSummaryElement.hidden = true;
+    return;
+  }
+
+  animationClipSummaryElement.hidden = false;
+
+  for (const [index, clip] of clips.entries()) {
+    if (!isRecord(clip)) {
+      continue;
+    }
+
+    for (const row of animationClipSummaryRows) {
+      const element = document.createElement("div");
+      const label = document.createElement("span");
+      const value = document.createElement("strong");
+      const key = row.key(clip, index);
+
+      element.className = "animation-clip-summary-row";
+      element.dataset.animationClipRow = key;
+      label.textContent = row.label(clip, index);
+      value.textContent = row.value(clip, index);
+
+      element.append(label, value);
+      animationClipSummaryElement.append(element);
+    }
+  }
+}
+
+function formatAnimationClipDuration(duration) {
+  return typeof duration === "number" && Number.isFinite(duration)
+    ? String(duration)
+    : "unknown";
+}
+
+function updateAnimationNodeSummaryPanel(animation) {
+  if (!(animationNodeSummaryElement instanceof HTMLElement)) {
+    return;
+  }
+
+  animationNodeSummaryElement.replaceChildren();
+  const nodes = arrayEntries(animation?.animatedNodes);
+
+  if (nodes.length === 0) {
+    animationNodeSummaryElement.hidden = true;
+    return;
+  }
+
+  animationNodeSummaryElement.hidden = false;
+
+  for (const [index, node] of nodes.entries()) {
+    if (!isRecord(node)) {
+      continue;
+    }
+
+    const element = document.createElement("div");
+    const label = document.createElement("span");
+    const value = document.createElement("strong");
+    const nodeIndex =
+      typeof node.nodeIndex === "number" ? node.nodeIndex : index;
+
+    element.className = "animation-node-summary-row";
+    element.dataset.animationNodeRow = `${nodeIndex}:${formatSummaryOptionalKey(
+      node.path,
+    )}`;
+    label.textContent = `node ${nodeIndex}`;
+    value.textContent = formatAnimationNodeDescriptor(node);
+
+    element.append(label, value);
+    animationNodeSummaryElement.append(element);
+  }
+}
+
+function formatAnimationNodeDescriptor(node) {
+  const path = formatSummaryOptionalKey(node.path);
+  const interpolation = formatSummaryOptionalKey(node.interpolation);
+  const value = formatSummaryTuple(node.value);
+
+  return `${path}, ${interpolation}, ${value}`;
+}
+
+function updateAnimationChannelSummaryPanel(animation) {
+  if (!(animationChannelSummaryElement instanceof HTMLElement)) {
+    return;
+  }
+
+  animationChannelSummaryElement.replaceChildren();
+  const unsupportedChannels = arrayEntries(animation?.unsupportedChannels);
+
+  if (unsupportedChannels.length === 0) {
+    animationChannelSummaryElement.hidden = true;
+    return;
+  }
+
+  animationChannelSummaryElement.hidden = false;
+  appendAnimationChannelSummaryRow({
+    key: "count",
+    label: "unsupported",
+    value: `${unsupportedChannels.length} channel${
+      unsupportedChannels.length === 1 ? "" : "s"
+    }`,
+  });
+
+  for (const [index, channel] of unsupportedChannels.entries()) {
+    if (!isRecord(channel)) {
+      continue;
+    }
+
+    appendAnimationChannelSummaryRow({
+      key: `channel-${index}`,
+      label: `channel ${channel.channelIndex ?? index}`,
+      value: formatUnsupportedAnimationChannel(channel),
+      channelIndex: index,
+      code: channel.code,
+    });
+  }
+}
+
+function appendAnimationChannelSummaryRow({
+  key,
+  label,
+  value,
+  channelIndex,
+  code,
+}) {
+  const element = document.createElement("div");
+  const labelElement = document.createElement("span");
+  const valueElement = document.createElement("strong");
+
+  element.className = "animation-channel-summary-row";
+  element.dataset.animationChannelSummaryRow = key;
+
+  if (channelIndex !== undefined) {
+    element.dataset.animationChannelRow = String(channelIndex);
+  }
+
+  if (typeof code === "string") {
+    element.dataset.animationChannelCode = code;
+  }
+
+  labelElement.textContent = label;
+  valueElement.textContent = value;
+
+  element.append(labelElement, valueElement);
+  animationChannelSummaryElement.append(element);
+}
+
+function formatUnsupportedAnimationChannel(channel) {
+  const path = formatSummaryOptionalKey(channel.path);
+  const interpolation = formatSummaryOptionalKey(channel.interpolation);
+  const nodeIndex =
+    typeof channel.nodeIndex === "number" ? channel.nodeIndex : "unknown";
+  const samplerIndex =
+    typeof channel.samplerIndex === "number" ? channel.samplerIndex : "unknown";
+
+  return `${path}, ${interpolation}, node ${nodeIndex}, sampler ${samplerIndex}`;
+}
+
 function updateImportedCameraSummaryPanel(importedCamera) {
   if (!(importedCameraSummaryElement instanceof HTMLElement)) {
     return;
@@ -5778,6 +6304,60 @@ function updateImportedCameraSummaryPanel(importedCamera) {
     element.append(label, value);
     importedCameraSummaryElement.append(element);
   }
+}
+
+function updateImportedCameraListSummaryPanel(importedCamera) {
+  if (!(importedCameraListSummaryElement instanceof HTMLElement)) {
+    return;
+  }
+
+  importedCameraListSummaryElement.replaceChildren();
+  const cameras = arrayEntries(importedCamera?.cameras);
+
+  if (cameras.length === 0) {
+    importedCameraListSummaryElement.hidden = true;
+    return;
+  }
+
+  importedCameraListSummaryElement.hidden = false;
+
+  for (const [index, camera] of cameras.entries()) {
+    if (!isRecord(camera)) {
+      continue;
+    }
+
+    const element = document.createElement("div");
+    const label = document.createElement("span");
+    const value = document.createElement("strong");
+    const cameraIndex =
+      typeof camera.cameraIndex === "number" ? camera.cameraIndex : index;
+
+    element.className = "imported-camera-list-summary-row";
+    element.dataset.importedCameraListRow = String(cameraIndex);
+    label.textContent = `camera ${cameraIndex}`;
+    value.textContent = formatImportedCameraListDescriptor(camera, index);
+
+    element.append(label, value);
+    importedCameraListSummaryElement.append(element);
+  }
+}
+
+function formatImportedCameraListDescriptor(camera, index) {
+  const cameraIndex =
+    typeof camera.cameraIndex === "number" ? camera.cameraIndex : index;
+  const nodeIndex =
+    typeof camera.nodeIndex === "number" ? camera.nodeIndex : "unknown";
+  const name = formatSummaryOptionalKey(
+    camera.name ?? camera.cameraName ?? camera.nodeName,
+  );
+  const projection = formatSummaryOptionalKey(camera.projection);
+  const status = formatSummaryOptionalKey(camera.status);
+  const reason =
+    typeof camera.reason === "string" && camera.reason.length > 0
+      ? `, ${camera.reason}`
+      : "";
+
+  return `${name}, ${projection}, ${status}, node ${nodeIndex}, camera ${cameraIndex}${reason}`;
 }
 
 function updateLightingSummaryPanel(summary) {
@@ -5844,6 +6424,41 @@ function updateMetadataSummaryPanel(metadata) {
     element.append(label, value);
     metadataSummaryElement.append(element);
   }
+}
+
+function updateSceneSummaryPanel(scene) {
+  if (!(sceneSummaryElement instanceof HTMLElement)) {
+    return;
+  }
+
+  sceneSummaryElement.replaceChildren();
+
+  if (!isRecord(scene) || !Array.isArray(scene.scenes)) {
+    sceneSummaryElement.hidden = true;
+    return;
+  }
+
+  sceneSummaryElement.hidden = false;
+
+  for (const row of sceneSummaryRows) {
+    const element = document.createElement("div");
+    const label = document.createElement("span");
+    const value = document.createElement("strong");
+
+    element.className = "scene-summary-row";
+    element.dataset.sceneSummaryRow = row.key;
+    label.textContent = row.label;
+    value.textContent = row.value(scene);
+
+    element.append(label, value);
+    sceneSummaryElement.append(element);
+  }
+}
+
+function selectedSceneStatus(scene) {
+  return arrayEntries(scene?.scenes).find(
+    (candidate) => isRecord(candidate) && candidate.selected === true,
+  );
 }
 
 function updateOrbitSummaryPanel(orbit) {
@@ -5917,6 +6532,51 @@ function updateShadowSummaryPanel(shadow) {
   }
 }
 
+function updateShadowRequestSummaryPanel(shadow) {
+  if (!(shadowRequestSummaryElement instanceof HTMLElement)) {
+    return;
+  }
+
+  shadowRequestSummaryElement.replaceChildren();
+  const requests = arrayEntries(shadow?.requests);
+
+  if (!isRecord(shadow) || requests.length === 0) {
+    shadowRequestSummaryElement.hidden = true;
+    return;
+  }
+
+  shadowRequestSummaryElement.hidden = false;
+
+  for (const [index, request] of requests.entries()) {
+    if (!isRecord(request)) {
+      continue;
+    }
+
+    const element = document.createElement("div");
+    const label = document.createElement("span");
+    const value = document.createElement("strong");
+
+    element.className = "shadow-request-summary-row";
+    element.dataset.shadowRequestRow = String(index);
+    label.textContent = `request ${index}`;
+    value.textContent = formatShadowRequestDescriptor(shadow, request);
+
+    element.append(label, value);
+    shadowRequestSummaryElement.append(element);
+  }
+}
+
+function formatShadowRequestDescriptor(shadow, request) {
+  const mode = formatSummaryOptionalKey(shadow.rendering?.mode);
+  const supported = shadow.rendering?.supported === true;
+  const casters = shadow.authoring?.casterCount ?? 0;
+  const receivers = shadow.authoring?.receiverCount ?? 0;
+  const shadowId = formatSummaryOptionalKey(request.shadowId);
+  const lightId = formatSummaryOptionalKey(request.lightId);
+
+  return `${mode}, supported ${supported}, casters ${casters}, receivers ${receivers}, shadow ${shadowId}, light ${lightId}`;
+}
+
 function updateIblSummaryPanel(ibl) {
   if (!(iblSummaryElement instanceof HTMLElement)) {
     return;
@@ -5950,6 +6610,35 @@ function updateIblSummaryPanel(ibl) {
 
     element.append(label, value);
     iblSummaryElement.append(element);
+  }
+}
+
+function updateIblResourceSummaryPanel(ibl) {
+  if (!(iblResourceSummaryElement instanceof HTMLElement)) {
+    return;
+  }
+
+  iblResourceSummaryElement.replaceChildren();
+
+  if (!isRecord(ibl) || !isRecord(ibl.resources) || !isRecord(ibl.rendering)) {
+    iblResourceSummaryElement.hidden = true;
+    return;
+  }
+
+  iblResourceSummaryElement.hidden = false;
+
+  for (const row of iblResourceSummaryRows) {
+    const element = document.createElement("div");
+    const label = document.createElement("span");
+    const value = document.createElement("strong");
+
+    element.className = "ibl-resource-summary-row";
+    element.dataset.iblResourceSummaryRow = row.key;
+    label.textContent = row.label;
+    value.textContent = row.value(ibl);
+
+    element.append(label, value);
+    iblResourceSummaryElement.append(element);
   }
 }
 
@@ -6027,13 +6716,111 @@ function formatCountSummary(values) {
 }
 
 function formatPipelineKeySummary(pipelineKeys) {
-  const uniqueKeys = Array.from(
+  const uniqueKeys = uniquePipelineKeys(pipelineKeys);
+
+  return uniqueKeys.length === 0 ? "none" : uniqueKeys.join(" | ");
+}
+
+function updateRenderStateSummaryPanel(renderState) {
+  if (!(renderStateSummaryElement instanceof HTMLElement)) {
+    return;
+  }
+
+  renderStateSummaryElement.replaceChildren();
+
+  if (
+    !isRecord(renderState) ||
+    !Array.isArray(renderState.queues) ||
+    !Array.isArray(renderState.pipelineKeys)
+  ) {
+    renderStateSummaryElement.hidden = true;
+    return;
+  }
+
+  renderStateSummaryElement.hidden = false;
+
+  for (const row of renderStateSummaryRows) {
+    const element = document.createElement("div");
+    const label = document.createElement("span");
+    const value = document.createElement("strong");
+
+    element.className = "render-state-summary-row";
+    element.dataset.renderStateSummaryRow = row.key;
+    label.textContent = row.label;
+    value.textContent = row.value(renderState);
+
+    element.append(label, value);
+    renderStateSummaryElement.append(element);
+  }
+}
+
+function uniquePipelineKeys(pipelineKeys) {
+  return Array.from(
     new Set(
       arrayEntries(pipelineKeys).filter((key) => typeof key === "string"),
     ),
   );
+}
 
-  return uniqueKeys.length === 0 ? "none" : uniqueKeys.join(" | ");
+function updateExtractionDiagnosticSummaryPanel(diagnostics) {
+  if (!(extractionDiagnosticSummaryElement instanceof HTMLElement)) {
+    return;
+  }
+
+  extractionDiagnosticSummaryElement.replaceChildren();
+
+  if (!Array.isArray(diagnostics) || diagnostics.length === 0) {
+    extractionDiagnosticSummaryElement.hidden = true;
+    return;
+  }
+
+  extractionDiagnosticSummaryElement.hidden = false;
+
+  for (const [index, diagnostic] of diagnostics.entries()) {
+    if (!isRecord(diagnostic)) {
+      continue;
+    }
+
+    const element = document.createElement("div");
+    const label = document.createElement("span");
+    const value = document.createElement("strong");
+
+    element.className = "extraction-diagnostic-summary-row";
+    element.dataset.extractionDiagnosticRow = String(index);
+    element.dataset.extractionDiagnosticCode = formatSummaryOptionalKey(
+      diagnostic.code,
+    );
+    label.textContent = `diagnostic ${index + 1}`;
+    value.textContent = formatExtractionDiagnostic(diagnostic);
+
+    element.append(label, value);
+    extractionDiagnosticSummaryElement.append(element);
+  }
+
+  if (extractionDiagnosticSummaryElement.childElementCount === 0) {
+    extractionDiagnosticSummaryElement.hidden = true;
+  }
+}
+
+function formatExtractionDiagnostic(diagnostic) {
+  const code = formatSummaryOptionalKey(diagnostic.code);
+  const field = formatSummaryOptionalKey(diagnostic.field);
+  const texCoord = formatSummaryOptionalKey(diagnostic.texCoord);
+  const material = formatDiagnosticContextKey(diagnostic.materialKey);
+  const mesh = formatDiagnosticContextKey(diagnostic.meshKey);
+  const texture = formatDiagnosticContextKey(diagnostic.textureKey);
+
+  return `${code}, field ${field}, texCoord ${texCoord}, material ${material}, mesh ${mesh}, texture ${texture}`;
+}
+
+function formatDiagnosticContextKey(value) {
+  if (typeof value !== "string" || value.length === 0) {
+    return "none";
+  }
+
+  const parts = value.split(":");
+
+  return parts.slice(Math.max(0, parts.length - 2)).join(":");
 }
 
 function updateImportedLightSummaryPanel(importedLights) {
@@ -6070,6 +6857,42 @@ function updateImportedLightSummaryPanel(importedLights) {
   }
 }
 
+function updateImportedLightListSummaryPanel(importedLights) {
+  if (!(importedLightListSummaryElement instanceof HTMLElement)) {
+    return;
+  }
+
+  importedLightListSummaryElement.replaceChildren();
+  const lights = arrayEntries(importedLights?.lights);
+
+  if (lights.length === 0) {
+    importedLightListSummaryElement.hidden = true;
+    return;
+  }
+
+  importedLightListSummaryElement.hidden = false;
+
+  for (const [index, light] of lights.entries()) {
+    if (!isRecord(light)) {
+      continue;
+    }
+
+    const element = document.createElement("div");
+    const label = document.createElement("span");
+    const value = document.createElement("strong");
+    const lightIndex =
+      typeof light.lightIndex === "number" ? light.lightIndex : index;
+
+    element.className = "imported-light-list-summary-row";
+    element.dataset.importedLightListRow = String(lightIndex);
+    label.textContent = `light ${lightIndex}`;
+    value.textContent = formatImportedLightListDescriptor(light, index);
+
+    element.append(label, value);
+    importedLightListSummaryElement.append(element);
+  }
+}
+
 function formatImportedLightKinds(importedLights) {
   const rows = arrayEntries(importedLights.kinds)
     .filter((entry) => isRecord(entry) && typeof entry.kind === "string")
@@ -6091,6 +6914,23 @@ function formatImportedLightDescriptor(light) {
   const range = typeof light.range === "number" ? light.range : "none";
 
   return `${name}: ${kind}, extracted ${extracted}, intensity ${intensity}, range ${range}`;
+}
+
+function formatImportedLightListDescriptor(light, index) {
+  const lightIndex =
+    typeof light.lightIndex === "number" ? light.lightIndex : index;
+  const nodeIndex =
+    typeof light.nodeIndex === "number" ? light.nodeIndex : "unknown";
+  const name = formatSummaryOptionalKey(
+    light.name ?? light.lightName ?? light.nodeName,
+  );
+  const kind = formatSummaryOptionalKey(light.kind);
+  const extracted = light.extracted === true;
+  const intensity =
+    typeof light.rawIntensity === "number" ? light.rawIntensity : "none";
+  const range = typeof light.range === "number" ? light.range : "none";
+
+  return `${name}: ${kind}, extracted ${extracted}, node ${nodeIndex}, light ${lightIndex}, intensity ${intensity}, range ${range}`;
 }
 
 function updatePrimitiveMaterialSummaryPanel(resolutions) {
@@ -6142,6 +6982,291 @@ function formatPrimitiveMaterialResolution(resolution) {
   const pipelineKey = formatSummaryOptionalKey(resolution.pipelineKey);
 
   return `material ${materialIndex}, ${family}, ${alphaMode}, ${pipelineKey}`;
+}
+
+function updateMaterialFactorSummaryPanel(resolutions) {
+  if (!(materialFactorSummaryElement instanceof HTMLElement)) {
+    return;
+  }
+
+  materialFactorSummaryElement.replaceChildren();
+
+  for (const resolution of arrayEntries(resolutions)) {
+    if (!isRecord(resolution) || !isRecord(resolution.factors)) {
+      continue;
+    }
+
+    const element = document.createElement("div");
+    const label = document.createElement("span");
+    const value = document.createElement("strong");
+    const meshIndex = resolution.meshIndex ?? "?";
+    const primitiveIndex = resolution.primitiveIndex ?? "?";
+
+    element.className = "material-factor-summary-row";
+    element.dataset.materialFactorRow = `${meshIndex}:${primitiveIndex}`;
+    label.textContent = `mesh ${meshIndex} prim ${primitiveIndex}`;
+    value.textContent = formatMaterialFactorDescriptor(resolution.factors);
+
+    element.append(label, value);
+    materialFactorSummaryElement.append(element);
+  }
+
+  if (materialFactorSummaryElement.childElementCount === 0) {
+    materialFactorSummaryElement.hidden = true;
+    return;
+  }
+
+  materialFactorSummaryElement.hidden = false;
+}
+
+function formatMaterialFactorDescriptor(factors) {
+  return `base ${formatSummaryTuple(
+    factors.baseColorFactor,
+  )}, metal ${formatSummaryOptionalKey(
+    factors.metallicFactor,
+  )}, rough ${formatSummaryOptionalKey(
+    factors.roughnessFactor,
+  )}, normal ${formatSummaryOptionalKey(
+    factors.normalScale,
+  )}, occlusion ${formatSummaryOptionalKey(
+    factors.occlusionStrength,
+  )}, emissive ${formatSummaryTuple(factors.emissiveFactor)}`;
+}
+
+function updatePrimitiveTextureSlotSummaryPanel(resolutions) {
+  if (!(primitiveTextureSlotSummaryElement instanceof HTMLElement)) {
+    return;
+  }
+
+  primitiveTextureSlotSummaryElement.replaceChildren();
+
+  for (const resolution of arrayEntries(resolutions)) {
+    if (!isRecord(resolution) || !isRecord(resolution.textureSlots)) {
+      continue;
+    }
+
+    for (const [slotName, slot] of Object.entries(resolution.textureSlots)) {
+      if (!isRecord(slot)) {
+        continue;
+      }
+
+      const meshIndex = resolution.meshIndex ?? "?";
+      const primitiveIndex = resolution.primitiveIndex ?? "?";
+      const element = document.createElement("div");
+      const label = document.createElement("span");
+      const value = document.createElement("strong");
+
+      element.className = "primitive-texture-slot-summary-row";
+      element.dataset.primitiveTextureSlotRow = `${meshIndex}:${primitiveIndex}:${slotName}`;
+      element.dataset.primitiveTextureSlotName = slotName;
+      label.textContent = `mesh ${meshIndex} prim ${primitiveIndex} ${formatTextureSlotLabel(
+        slotName,
+      )}`;
+      value.textContent = formatPrimitiveTextureSlot(slot);
+
+      element.append(label, value);
+      primitiveTextureSlotSummaryElement.append(element);
+    }
+  }
+
+  primitiveTextureSlotSummaryElement.hidden =
+    primitiveTextureSlotSummaryElement.childElementCount === 0;
+}
+
+function formatTextureSlotLabel(slotName) {
+  return slotName.replace(/Texture$/, "").replace(/[A-Z]/g, (letter) => {
+    return ` ${letter.toLowerCase()}`;
+  });
+}
+
+function formatPrimitiveTextureSlot(slot) {
+  const texCoord = formatSummaryOptionalKey(slot.texCoord);
+  const hasTransform = slot.hasTransform === true;
+  const sampler = isRecord(slot.sampler)
+    ? formatSummaryOptionalKey(slot.sampler.status)
+    : "none";
+
+  return `texCoord ${texCoord}, transform ${hasTransform}, sampler ${sampler}`;
+}
+
+function updateSourceLoaderSummaryPanel(source) {
+  if (!(sourceLoaderSummaryElement instanceof HTMLElement)) {
+    return;
+  }
+
+  sourceLoaderSummaryElement.replaceChildren();
+
+  if (!isRecord(source)) {
+    sourceLoaderSummaryElement.hidden = true;
+    return;
+  }
+
+  sourceLoaderSummaryElement.hidden = false;
+
+  for (const row of sourceLoaderSummaryRows) {
+    const element = document.createElement("div");
+    const label = document.createElement("span");
+    const value = document.createElement("strong");
+
+    element.className = "source-loader-summary-row";
+    element.dataset.sourceLoaderSummaryRow = row.key;
+    label.textContent = row.label;
+    value.textContent = row.value(source);
+
+    element.append(label, value);
+    sourceLoaderSummaryElement.append(element);
+  }
+}
+
+function formatSourceKind(source) {
+  return isRecord(source.status)
+    ? formatSummaryOptionalKey(source.status.sourceKind)
+    : "none";
+}
+
+function formatSourceByteLength(source) {
+  const byteLength =
+    typeof source.byteLength === "number"
+      ? source.byteLength
+      : isRecord(source.status) && typeof source.status.byteLength === "number"
+        ? source.status.byteLength
+        : null;
+
+  return byteLength === null ? "none" : `${byteLength} bytes`;
+}
+
+function formatLoaderStatus(source) {
+  return isRecord(source.status)
+    ? formatSummaryOptionalKey(source.status.status)
+    : "none";
+}
+
+function updateSourceOutputSummaryPanel(summary) {
+  if (!(sourceOutputSummaryElement instanceof HTMLElement)) {
+    return;
+  }
+
+  sourceOutputSummaryElement.replaceChildren();
+
+  if (
+    !isRecord(summary) ||
+    !isRecord(summary.meshConstruction) ||
+    !isRecord(summary.sourceRegistration) ||
+    !isRecord(summary.ecsCommandPlan) ||
+    !isRecord(summary.ecsReplayReadiness)
+  ) {
+    sourceOutputSummaryElement.hidden = true;
+    return;
+  }
+
+  sourceOutputSummaryElement.hidden = false;
+
+  for (const row of sourceOutputSummaryRows) {
+    const element = document.createElement("div");
+    const label = document.createElement("span");
+    const value = document.createElement("strong");
+
+    element.className = "source-output-summary-row";
+    element.dataset.sourceOutputSummaryRow = row.key;
+    label.textContent = row.label;
+    value.textContent = row.value(summary);
+
+    element.append(label, value);
+    sourceOutputSummaryElement.append(element);
+  }
+}
+
+function updateHierarchySummaryPanel(hierarchy) {
+  if (!(hierarchySummaryElement instanceof HTMLElement)) {
+    return;
+  }
+
+  hierarchySummaryElement.replaceChildren();
+
+  if (!isRecord(hierarchy) || !Array.isArray(hierarchy.nodes)) {
+    hierarchySummaryElement.hidden = true;
+    return;
+  }
+
+  hierarchySummaryElement.hidden = false;
+
+  for (const row of hierarchySummaryRows) {
+    const element = document.createElement("div");
+    const label = document.createElement("span");
+    const value = document.createElement("strong");
+
+    element.className = "hierarchy-summary-row";
+    element.dataset.hierarchySummaryRow = row.key;
+    label.textContent = row.label;
+    value.textContent = row.value(hierarchy);
+
+    element.append(label, value);
+    hierarchySummaryElement.append(element);
+  }
+}
+
+function hierarchyChildNodes(hierarchy) {
+  const entityKeys = new Set(
+    arrayEntries(hierarchy.nodes)
+      .filter((node) => isRecord(node) && typeof node.entityKey === "string")
+      .map((node) => node.entityKey),
+  );
+
+  return arrayEntries(hierarchy.nodes).filter(
+    (node) =>
+      isRecord(node) &&
+      typeof node.parentEntityKey === "string" &&
+      entityKeys.has(node.parentEntityKey),
+  );
+}
+
+function formatFirstHierarchyChild(hierarchy) {
+  const child = hierarchyChildNodes(hierarchy)[0];
+
+  if (!isRecord(child)) {
+    return "none";
+  }
+
+  const nodeIndex =
+    typeof child.nodeIndex === "number" ? child.nodeIndex : "unknown";
+
+  return `node ${nodeIndex}: local ${formatSummaryTuple(
+    child.localTranslation,
+  )}, world ${formatSummaryTuple(child.worldTranslation)}`;
+}
+
+function updateReplayStageSummaryPanel(gltf) {
+  if (!(replayStageSummaryElement instanceof HTMLElement)) {
+    return;
+  }
+
+  replayStageSummaryElement.replaceChildren();
+
+  if (
+    !isRecord(gltf) ||
+    !isRecord(gltf.registration) ||
+    !isRecord(gltf.commandPlan) ||
+    !isRecord(gltf.replay)
+  ) {
+    replayStageSummaryElement.hidden = true;
+    return;
+  }
+
+  replayStageSummaryElement.hidden = false;
+
+  for (const row of replayStageSummaryRows) {
+    const element = document.createElement("div");
+    const label = document.createElement("span");
+    const value = document.createElement("strong");
+
+    element.className = "replay-stage-summary-row";
+    element.dataset.replayStageSummaryRow = row.key;
+    label.textContent = row.label;
+    value.textContent = row.value(gltf);
+
+    element.append(label, value);
+    replayStageSummaryElement.append(element);
+  }
 }
 
 function failure(reason, message) {

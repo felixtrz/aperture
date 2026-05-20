@@ -2,10 +2,10 @@
   "state": "idle",
   "currentTaskId": null,
   "currentRunStartedAt": null,
-  "lastRunStartedAt": "2026-05-20T10:01:36Z",
+  "lastRunStartedAt": "2026-05-20T11:02:48Z",
   "lastResult": "completed",
   "lastCommit": "0525a13",
   "activePid": null,
-  "notes": "Completed task-2110 and task-2111 after stop-hook continuation; recommended next task is task-2112 GLB source-loader status rows.",
-  "lastRunFinishedAt": "2026-05-20T10:59:11Z"
+  "notes": "Completed task-2115 through task-2129; recommended next task is task-2130 GLB texture-sampler detail rows.",
+  "lastRunFinishedAt": "2026-05-20T11:57:30Z"
 }

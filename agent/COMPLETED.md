@@ -1,5 +1,80 @@
 # Completed Tasks
 
+## task-2115 through task-2129 — GLB viewer expanded status panels
+
+Completed: 2026-05-20
+
+Summary:
+
+- Added visible GLB viewer status panels for replay stage, texture gallery,
+  extraction diagnostics, primitive texture-slot routing, selected scene,
+  selected asset, render-state detail, source-output summary, animation clip
+  list, imported camera list, imported light list, animated node list, shadow
+  requests, IBL resources, and material-factor rows.
+- Rows are derived from existing JSON-safe example status and clear or report
+  `none` when their source status is absent; no raw source buffers, image bytes,
+  GPU handles, or renderer-owned state are exposed.
+- Refilled the visible-feature queue with follow-up GLB viewer status slices.
+
+References inspected:
+
+- `references/bevy/crates/bevy_gltf/src/loader/mod.rs`
+- `references/bevy/crates/bevy_transform/src/systems.rs`
+- `references/bevy/crates/bevy_animation/src/lib.rs`
+- `references/bevy/crates/bevy_render/src/extract_component.rs`
+- `references/bevy/crates/bevy_gltf/src/loader/gltf_ext/material.rs`
+- `references/bevy/crates/bevy_pbr/src/render/mesh.rs`
+- `references/three.js/examples/jsm/loaders/GLTFLoader.js`
+- `references/three.js/examples/webgl_loader_gltf.html`
+- `references/three.js/src/extras/PMREMGenerator.js`
+- `references/engine/src/scene/renderer/renderer.js`
+- `references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/reflectionEnv.js`
+
+Validation:
+
+- `node --check examples/glb-viewer.js`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- Focused Playwright runs for each new panel slice, including replay-stage,
+  texture-gallery, extraction diagnostics, primitive texture-slot routes,
+  selected-scene, selected-asset, render-state, source-output, animation
+  clip/node rows, imported camera/light rows, shadow-request rows, IBL resource
+  rows, and material-factor rows.
+- `pnpm run check` (package boundaries, progress tracker, build/typecheck,
+  test typecheck, example syntax, lint, format check, and `pnpm test`; 317
+  files and 1482 tests passed)
+
+## task-2112 through task-2114 — GLB viewer loader, hierarchy, and animation diagnostic rows
+
+Completed: 2026-05-20
+
+Summary:
+
+- Added a visible GLB viewer source-loader summary panel for source kind, byte
+  length, loader status, image-decode diagnostic count, and source diagnostic
+  count from existing JSON-safe `source` status.
+- Added a visible hierarchy summary panel for replayed node count,
+  parented-node count, and the first actual parent-child local/world
+  translation from existing JSON-safe `hierarchy.nodes` status.
+- Added a visible animation-channel diagnostic panel for unsupported animation
+  channel counts and compact path/interpolation/node/sampler rows from existing
+  JSON-safe animation status.
+- Added Playwright coverage proving all three panels update or clear across
+  sample loads, custom URL loads, hierarchy/non-hierarchy assets, and
+  unsupported/supported animation assets.
+
+References inspected:
+
+- `references/three.js/examples/jsm/loaders/GLTFLoader.js`
+- `references/bevy/crates/bevy_gltf/src/loader/mod.rs`
+- `references/bevy/crates/bevy_transform/src/systems.rs`
+- `references/bevy/crates/bevy_animation/src/lib.rs`
+
+Validation:
+
+- `node --check examples/glb-viewer.js`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts --grep "source-loader status rows|hierarchy summary rows|animation-channel diagnostic rows|unsupported CUBICSPLINE animation"` (4 passed)
+
 ## task-2111 — Add GLB viewer primitive material-resolution rows
 
 Completed: 2026-05-20

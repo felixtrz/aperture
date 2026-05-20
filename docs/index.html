@@ -393,42 +393,48 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-20 10:58 UTC</dd>
+            <dd>2026-05-20 11:57 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
               The GLB viewer now renders compact visible status rows for
               material slots, decoded images, unsupported features, animation,
-              imported cameras, live lights, scene metadata, orbit fit, shadows,
-              IBL, draw/extraction state, imported lights, and primitive
-              material resolution. It also proves same-origin URI texture decode
-              through the custom URL path, real-URI gallery previous/next
-              buttons, URL-persisted sample selection, and stale custom
-              image-decode clearing when switching back to committed samples.
-              The GLB viewer now includes unsupported morph-target, skinning,
-              orthographic-camera, primitive-mode, CUBICSPLINE animation, and
-              multi-scene samples that keep supported base meshes rendering
-              while reporting JSON-safe diagnostics and scene metadata. It also
-              includes real same-origin PNG/JPEG base-color, PNG normal-map, PNG
-              emissive, PNG metallic-roughness, PNG alpha-mask, and PNG
-              occlusion URI image decode, all-slot real URI texture coverage,
-              occlusion and metallic-roughness transform controls, sampler wrap
-              controls, UV1 image-decode controls, alpha-mask plus emissive
-              controls, normal plus occlusion controls, alpha-blend texture,
-              selector stress coverage across real URI samples, selected-asset
-              material-slot summary counts, keyboard previous/next navigation
-              across the real URI texture gallery, rotated metallic-roughness
-              transform, transformed-vs-untransformed normal and emissive
-              controls, emissive StandardMaterial, occlusion/emissive texture,
-              occlusion texture-transform, normal transform, emissive transform,
-              alpha-mask, sampler-state texture, texture-transform, missing-UV1,
-              supported base-color UV1, metallic-roughness UV1, and normal-scale
-              samples with routed material, texture, sampler, transform/control,
-              alpha, UV1, image-decode, and sanitized extraction-diagnostic
-              status. Existing roughness/IBL, normal-map, and base-color plus
-              metallic-roughness StandardMaterial samples keep JSON-safe factor
-              and texture-slot status. GLB mesh construction now preserves
+              animation clips, animated nodes, imported cameras, imported camera
+              lists, live lights, imported light lists, scene metadata, orbit
+              fit, shadows, shadow requests, IBL, IBL resources, draw/extraction
+              state, imported lights, primitive material resolution, primitive
+              material-factor details, primitive texture slots, source loader
+              state, source output summaries, hierarchy transforms, replay
+              stages, selected assets, selected scenes, render-state details,
+              and unsupported animation-channel diagnostics. It also proves
+              same-origin URI texture decode through the custom URL path,
+              real-URI gallery previous/next buttons, URL-persisted sample
+              selection, and stale custom image-decode clearing when switching
+              back to committed samples. The GLB viewer now includes unsupported
+              morph-target, skinning, orthographic-camera, primitive-mode,
+              CUBICSPLINE animation, and multi-scene samples that keep supported
+              base meshes rendering while reporting JSON-safe diagnostics and
+              scene metadata. It also includes real same-origin PNG/JPEG
+              base-color, PNG normal-map, PNG emissive, PNG metallic-roughness,
+              PNG alpha-mask, and PNG occlusion URI image decode, all-slot real
+              URI texture coverage, occlusion and metallic-roughness transform
+              controls, sampler wrap controls, UV1 image-decode controls,
+              alpha-mask plus emissive controls, normal plus occlusion controls,
+              alpha-blend texture, selector stress coverage across real URI
+              samples, selected-asset material-slot summary counts, keyboard
+              previous/next navigation across the real URI texture gallery,
+              rotated metallic-roughness transform, transformed-vs-untransformed
+              normal and emissive controls, emissive StandardMaterial,
+              occlusion/emissive texture, occlusion texture-transform, normal
+              transform, emissive transform, alpha-mask, sampler-state texture,
+              texture-transform, missing-UV1, supported base-color UV1,
+              metallic-roughness UV1, and normal-scale samples with routed
+              material, texture, sampler, transform/control, alpha, UV1,
+              image-decode, and sanitized extraction-diagnostic status. Existing
+              roughness/IBL, normal-map, and base-color plus metallic-roughness
+              StandardMaterial samples keep JSON-safe factor and texture-slot
+              status. GLB mesh construction now preserves
               <code>TEXCOORD_1</code> alongside tangent attributes for texture
               routing and normal mapping, and animation playback now has speed,
               clip-selection, loop, reverse, rotation/scale, and STEP
@@ -990,8 +996,8 @@
             </dd>
             <dt>Next focus</dt>
             <dd>
-              Add GLB viewer source-loader status rows from existing JSON-safe
-              source metadata
+              Add GLB viewer texture-sampler detail rows from existing JSON-safe
+              primitive texture-slot sampler status
             </dd>
           </dl>
         </aside>
@@ -1576,6 +1582,19 @@
             <h3>Latest work in this update</h3>
             <ul>
               <li>
+                <span class="badge green">task-2115-2129</span> Added replay
+                stage, texture gallery, extraction diagnostic, primitive
+                texture-slot, selected scene/asset, render-state, source-output,
+                animation clip/node, imported camera/light list, shadow-request,
+                IBL resource, and material-factor rows from existing JSON-safe
+                GLB viewer status.
+              </li>
+              <li>
+                <span class="badge green">task-2112-2114</span> Added visible
+                source-loader, hierarchy, and unsupported animation-channel
+                diagnostic rows from existing JSON-safe GLB viewer status.
+              </li>
+              <li>
                 <span class="badge green">task-2110-2111</span> Added imported
                 light status rows with an ECS light toggle and primitive
                 material-resolution rows for mesh/primitive material mapping.
@@ -1587,16 +1606,10 @@
                 fit, shadows, IBL, and draw/extraction state.
               </li>
               <li>
-                <span class="badge green">task-2095-2099</span> Proved custom
-                URL same-origin URI texture decode, added gallery previous/next
-                buttons, persisted sample selections in the URL, and verified
-                sample switches clear stale custom decoded-image state.
-              </li>
-              <li>
                 <span class="badge green">backlog</span> Refilled the next
-                visible status-panel tasks around imported lights, primitive
-                material resolution, source-loader state, hierarchy, and
-                animation-channel diagnostics.
+                visible status-panel tasks around texture samplers, texture
+                transforms, material alpha, prepared-resource reuse, and render
+                diagnostics.
               </li>
               <li>
                 <span class="badge green">task-2091</span> Added a Playwright
@@ -3522,15 +3535,18 @@
             <ul>
               <li>
                 <span class="badge amber">next</span> Add GLB viewer
-                source-loader status rows.
+                texture-sampler detail rows.
               </li>
               <li>
-                Use existing JSON-safe <code>source</code> status for source
-                kind, byte length, loader status, and diagnostics counts.
+                Use existing JSON-safe
+                <code
+                  >gltf.primitiveMaterials.resolutions[].textureSlots.*.sampler</code
+                >
+                status for compact texture-sampler rows.
               </li>
               <li>
-                Verify rows across clean sample, custom URL, and
-                unsupported-feature sample loads.
+                Verify rows across sampler wrap controls, all-slot URI textures,
+                and scalar-only cube.
               </li>
             </ul>
           </article>
@@ -3543,6 +3559,30 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-2115-2129</div>
+            <div>
+              <strong>GLB viewer status panels expanded.</strong>
+              <span
+                >Replay stage, texture gallery, extraction diagnostic, primitive
+                texture-slot, selected scene/asset, render-state, source-output,
+                animation clip/node, imported camera/light list, shadow-request,
+                IBL resource, and material-factor rows now render from existing
+                JSON-safe status.</span
+              >
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="task-id">task-2112-2114</div>
+            <div>
+              <strong>GLB viewer loader and hierarchy rows added.</strong>
+              <span
+                >Source-loader, hierarchy transform, and unsupported
+                animation-channel diagnostics now render as compact visible rows
+                while staying derived from JSON-safe status.</span
+              >
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-2110-2111</div>
             <div>

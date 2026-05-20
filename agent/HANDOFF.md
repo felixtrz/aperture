@@ -1,6 +1,128 @@
 # Agent Handoff
 
-Updated: 2026-05-20T10:58:00Z
+Updated: 2026-05-20T11:57:30Z
+
+## Current Run Update — 2026-05-20T11:57:30Z — Expanded GLB viewer status panels
+
+Completed `task-2115` through `task-2129`.
+
+### What changed
+
+- Added visible GLB viewer panels for replay stages, texture-gallery state,
+  extraction diagnostics, primitive texture-slot routing, selected scenes,
+  selected assets, render-state details, source-output summaries, animation
+  clip lists, imported camera lists, imported light lists, animated node rows,
+  shadow requests, IBL resources, and material-factor rows.
+- Every panel is derived from existing JSON-safe example status. The UI does
+  not expose raw source buffers, image bytes, mutable renderer state, or GPU
+  handles.
+- Refilled the visible-feature backlog. The recommended next task is now
+  `task-2130 — Add GLB viewer texture-sampler detail rows`.
+
+### Files touched
+
+- `agent/BACKLOG.md`
+- `agent/COMPLETED.md`
+- `agent/HANDOFF.md`
+- `agent/STATUS.json`
+- `docs/index.html`
+- `examples/glb-viewer.html`
+- `examples/glb-viewer.js`
+- `examples/styles.css`
+- `test/e2e/glb-viewer.spec.ts`
+
+### References inspected
+
+- `references/bevy/crates/bevy_gltf/src/loader/mod.rs`
+- `references/bevy/crates/bevy_transform/src/systems.rs`
+- `references/bevy/crates/bevy_animation/src/lib.rs`
+- `references/bevy/crates/bevy_render/src/extract_component.rs`
+- `references/bevy/crates/bevy_gltf/src/loader/gltf_ext/material.rs`
+- `references/bevy/crates/bevy_pbr/src/render/mesh.rs`
+- `references/three.js/examples/jsm/loaders/GLTFLoader.js`
+- `references/three.js/examples/webgl_loader_gltf.html`
+- `references/three.js/src/extras/PMREMGenerator.js`
+- `references/engine/src/scene/renderer/renderer.js`
+- `references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/reflectionEnv.js`
+
+### Validation
+
+- `node --check examples/glb-viewer.js`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- Focused Playwright coverage for each new panel slice, including replay-stage,
+  texture-gallery, extraction diagnostics, primitive texture-slot routes,
+  selected-scene, selected-asset, render-state, source-output, animation
+  clip/node rows, imported camera/light list rows, shadow-request rows, IBL
+  resource rows, and material-factor rows.
+- `pnpm run check:progress`
+- `pnpm run check` (package boundaries, progress tracker, build/typecheck,
+  test typecheck, example syntax, lint, format check, and `pnpm test`; 317
+  files and 1482 tests passed)
+
+### Known issues
+
+- No known regressions from these status-panel slices.
+- `task-2130` remains ready and should continue the same visible-status track
+  with texture-sampler detail rows.
+
+## Current Run Update — 2026-05-20T11:10:26Z — GLB viewer loader, hierarchy, and animation diagnostic rows
+
+Completed `task-2112`, `task-2113`, and `task-2114`.
+
+### What changed
+
+- Added a visible source-loader summary panel for source kind, byte length,
+  loader status, image-decode diagnostic count, and source diagnostic count from
+  existing JSON-safe `source` status.
+- Added a visible hierarchy summary panel for replayed node count,
+  parented-node count, and the first actual parent-child local/world
+  translation from existing JSON-safe `hierarchy.nodes` status.
+- Added a visible animation-channel diagnostic panel for unsupported animation
+  channel counts and compact path/interpolation/node/sampler rows from existing
+  JSON-safe animation status.
+- Refilled the ready queue with five concrete GLB viewer status/fidelity
+  follow-ups. The recommended next task is now `task-2115`.
+
+### Files touched
+
+- `agent/BACKLOG.md`
+- `agent/COMPLETED.md`
+- `agent/HANDOFF.md`
+- `agent/STATUS.json`
+- `docs/index.html`
+- `examples/glb-viewer.html`
+- `examples/glb-viewer.js`
+- `examples/styles.css`
+- `test/e2e/glb-viewer.spec.ts`
+
+### References inspected
+
+- `references/three.js/examples/jsm/loaders/GLTFLoader.js`
+- `references/bevy/crates/bevy_gltf/src/loader/mod.rs`
+- `references/bevy/crates/bevy_transform/src/systems.rs`
+- `references/bevy/crates/bevy_animation/src/lib.rs`
+
+### Validation
+
+- `node --check examples/glb-viewer.js`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts --grep "source-loader status rows|primitive material-resolution rows|decoded-image summary rows"` (3 passed)
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts --grep "source-loader status rows|hierarchy summary rows|parent/child hierarchy"` (2 passed)
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts --grep "source-loader status rows|hierarchy summary rows|animation-channel diagnostic rows|unsupported CUBICSPLINE animation"` (4 passed)
+- `pnpm run check` (package boundaries, progress tracker, build/typecheck,
+  test typecheck, example syntax, lint, format check, and `pnpm test`; 317
+  files and 1482 tests passed)
+
+### Known issues
+
+- No known regressions from these status-row slices.
+- The GLB viewer status panel remains intentionally dense; future slices should
+  keep using already JSON-safe status and avoid exposing raw source, image, or
+  GPU handles.
+
+### Recommended next task
+
+`task-2115 — Add GLB viewer replay-stage status rows`.
 
 ## Current Run Update — 2026-05-20T10:58:00Z — Continued GLB viewer light and material status rows
 
