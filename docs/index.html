@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-20 07:27 UTC</dd>
+            <dd>2026-05-20 08:58 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -403,18 +403,23 @@
               multi-scene samples that keep supported base meshes rendering
               while reporting JSON-safe diagnostics and scene metadata. It also
               includes real same-origin PNG/JPEG base-color, PNG normal-map, PNG
-              emissive, PNG metallic-roughness, and PNG alpha-mask URI image
-              decode, alpha-blend texture, rotated metallic-roughness transform,
-              transformed-vs-untransformed normal and emissive controls,
-              emissive StandardMaterial, occlusion/emissive texture, occlusion
-              texture-transform, normal transform, emissive transform,
-              alpha-mask, sampler-state texture, texture-transform, missing-UV1,
-              supported base-color UV1, metallic-roughness UV1, and normal-scale
-              samples with routed material, texture, sampler, transform/control,
-              alpha, UV1, image-decode, and sanitized extraction-diagnostic
-              status. Existing roughness/IBL, normal-map, and base-color plus
-              metallic-roughness StandardMaterial samples keep JSON-safe factor
-              and texture-slot status. GLB mesh construction now preserves
+              emissive, PNG metallic-roughness, PNG alpha-mask, and PNG
+              occlusion URI image decode, all-slot real URI texture coverage,
+              occlusion and metallic-roughness transform controls, sampler wrap
+              controls, UV1 image-decode controls, alpha-mask plus emissive
+              controls, normal plus occlusion controls, alpha-blend texture,
+              selector stress coverage across real URI samples, rotated
+              metallic-roughness transform, transformed-vs-untransformed normal
+              and emissive controls, emissive StandardMaterial,
+              occlusion/emissive texture, occlusion texture-transform, normal
+              transform, emissive transform, alpha-mask, sampler-state texture,
+              texture-transform, missing-UV1, supported base-color UV1,
+              metallic-roughness UV1, and normal-scale samples with routed
+              material, texture, sampler, transform/control, alpha, UV1,
+              image-decode, and sanitized extraction-diagnostic status. Existing
+              roughness/IBL, normal-map, and base-color plus metallic-roughness
+              StandardMaterial samples keep JSON-safe factor and texture-slot
+              status. GLB mesh construction now preserves
               <code>TEXCOORD_1</code> alongside tangent attributes for texture
               routing and normal mapping, and animation playback now has speed,
               clip-selection, loop, reverse, rotation/scale, and STEP
@@ -976,7 +981,7 @@
             </dd>
             <dt>Next focus</dt>
             <dd>
-              Add a real same-origin occlusion URI texture GLB viewer sample
+              Add an alpha-mask plus emissive real URI GLB viewer control sample
             </dd>
           </dl>
         </aside>
@@ -1560,6 +1565,37 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">task-2091</span> Added a Playwright
+                stress path that switches one GLB viewer session across
+                all-slot, alpha/emissive, and normal/occlusion real URI samples
+                while checking decoded metadata, draw counts, and pixel changes.
+              </li>
+              <li>
+                <span class="badge green">task-2089-2090</span> Added alpha-mask
+                plus emissive and normal plus occlusion real URI GLB viewer
+                control samples with committed image assets, tangent-backed
+                normal-map geometry, and Playwright pixel/status coverage.
+              </li>
+              <li>
+                <span class="badge green">task-2084-2088</span> Added all-slot
+                real URI texture, occlusion transform-control,
+                metallic-roughness transform-control, sampler wrap-control, and
+                UV1 image-decode-control GLB viewer samples with pixel and
+                JSON-safe status coverage.
+              </li>
+              <li>
+                <span class="badge green">task-2083</span> Added a committed
+                real same-origin occlusion checker PNG for the GLB viewer
+                occlusion-transform sample and asserted JSON-safe image decode
+                status.
+              </li>
+              <li>
+                <span class="badge green">task-2079</span> Audited transformed
+                normal/emissive controls and real normal-map image decode for
+                ECS authority, JSON-safe status, and WebGPU-owned prepared
+                resources.
+              </li>
               <li>
                 <span class="badge green">task-2067</span> Audited the UV1,
                 alpha-mask, normal-scale, and occlusion-transform viewer slices
@@ -3452,16 +3488,17 @@
             <h3>Recommended next tasks</h3>
             <ul>
               <li>
-                <span class="badge amber">next</span> Add a same-origin PNG URI
-                decode path for GLB viewer textures.
+                <span class="badge amber">next</span> Add a GLB viewer
+                material-slot summary for the selected asset.
               </li>
               <li>
-                Replace one synthetic resolver-only GLB texture fixture with a
-                committed PNG asset decoded through the viewer source path.
+                Count active base-color, metallic-roughness, normal, occlusion,
+                emissive, alpha-mode, and UV1 usage from registered source
+                material assets.
               </li>
               <li>
-                Use Playwright to verify visible textured pixels, JSON-safe
-                source status, and unchanged WebGPU backend ownership.
+                Keep the summary JSON-safe and cover all-slot, sampler-wrap,
+                UV1, and scalar-only viewer samples in Playwright.
               </li>
             </ul>
           </article>

@@ -1,11 +1,11 @@
 {
   "state": "idle",
   "currentTaskId": null,
-  "currentRunStartedAt": "2026-05-20T07:01:33Z",
+  "currentRunStartedAt": "2026-05-20T08:03:04Z",
   "lastRunStartedAt": "2026-05-20T07:01:33Z",
   "lastResult": "completed",
   "lastCommit": "7c2754c",
   "activePid": null,
-  "notes": "Completed task-2068 through task-2082: real base-color/normal/emissive/metallic-roughness/alpha-mask image decode, alpha-blend texture, transformed metallic-roughness/normal/emissive slots, transformed-vs-untransformed normal/emissive controls, audits, tracker updates, and backlog refill. Recommended next: task-2083.",
-  "lastRunFinishedAt": "2026-05-20T07:56:25Z"
+  "notes": "Completed task-2083, task-2079, task-2084 through task-2091, and task-2094. Recommended next task: task-2092 GLB viewer material-slot summary for selected asset.",
+  "lastRunFinishedAt": "2026-05-20T08:58:10Z"
 }

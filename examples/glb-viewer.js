@@ -137,6 +137,15 @@ const sampleAssets = [
     source: "sample",
   },
   {
+    id: "all-slot-uri-textures",
+    label: "All-slot URI textures",
+    url: new URL(
+      "./assets/all-slot-uri-textures.glb",
+      globalThis.location.href,
+    ),
+    source: "sample",
+  },
+  {
     id: "imported-light",
     label: "Imported light",
     url: new URL("./assets/imported-light.glb", globalThis.location.href),
@@ -245,9 +254,36 @@ const sampleAssets = [
     source: "sample",
   },
   {
+    id: "occlusion-transform-controls",
+    label: "Occlusion transform controls",
+    url: new URL(
+      "./assets/occlusion-transform-controls.glb",
+      globalThis.location.href,
+    ),
+    source: "sample",
+  },
+  {
+    id: "normal-occlusion-controls",
+    label: "Normal occlusion controls",
+    url: new URL(
+      "./assets/normal-occlusion-controls.glb",
+      globalThis.location.href,
+    ),
+    source: "sample",
+  },
+  {
     id: "alpha-mask",
     label: "Alpha mask",
     url: new URL("./assets/alpha-mask.glb", globalThis.location.href),
+    source: "sample",
+  },
+  {
+    id: "alpha-mask-emissive-controls",
+    label: "Alpha mask emissive controls",
+    url: new URL(
+      "./assets/alpha-mask-emissive-controls.glb",
+      globalThis.location.href,
+    ),
     source: "sample",
   },
   {
@@ -260,6 +296,15 @@ const sampleAssets = [
     id: "sampler-state",
     label: "Sampler state",
     url: new URL("./assets/sampler-state.glb", globalThis.location.href),
+    source: "sample",
+  },
+  {
+    id: "sampler-wrap-controls",
+    label: "Sampler wrap controls",
+    url: new URL(
+      "./assets/sampler-wrap-controls.glb",
+      globalThis.location.href,
+    ),
     source: "sample",
   },
   {
@@ -281,6 +326,15 @@ const sampleAssets = [
     source: "sample",
   },
   {
+    id: "uv1-image-decode-controls",
+    label: "UV1 image decode controls",
+    url: new URL(
+      "./assets/uv1-image-decode-controls.glb",
+      globalThis.location.href,
+    ),
+    source: "sample",
+  },
+  {
     id: "metallic-roughness-uv1",
     label: "Metallic roughness UV1",
     url: new URL(
@@ -294,6 +348,15 @@ const sampleAssets = [
     label: "Rotated MR transform",
     url: new URL(
       "./assets/rotated-metallic-roughness-transform.glb",
+      globalThis.location.href,
+    ),
+    source: "sample",
+  },
+  {
+    id: "metallic-roughness-transform-controls",
+    label: "MR transform controls",
+    url: new URL(
+      "./assets/metallic-roughness-transform-controls.glb",
       globalThis.location.href,
     ),
     source: "sample",

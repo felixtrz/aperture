@@ -1,6 +1,111 @@
 # Agent Handoff
 
-Updated: 2026-05-20T07:46:33Z
+Updated: 2026-05-20T08:58:10Z
+
+## Current Run Update — 2026-05-20T08:58:10Z — GLB viewer real URI texture controls expanded
+
+Completed `task-2083`, `task-2079`, `task-2084`, `task-2085`,
+`task-2086`, `task-2087`, `task-2088`, `task-2094`, `task-2089`, and
+`task-2090`, and `task-2091`.
+
+### What changed
+
+- Added `examples/assets/aperture-occlusion-checker.png`, so
+  `examples/assets/occlusion-transform.glb` now resolves its
+  `occlusionTexture` from a real same-origin PNG instead of the synthetic
+  fallback resolver.
+- Extended the GLB viewer occlusion-transform Playwright test to assert
+  JSON-safe `source.imageDecode` metadata for
+  `aperture-occlusion-checker.png`, occlusion strength, texture-slot readiness,
+  and visible occlusion-textured pixels without exposing raw decoded bytes or
+  GPU handles.
+- Added
+  `docs/research/GLB_VIEWER_TRANSFORM_CONTROLS_REAL_NORMAL_AUDIT_2026_05_20.md`,
+  confirming transformed-vs-untransformed normal/emissive controls and real
+  normal-map image decode preserve ECS authority, render extraction boundaries,
+  JSON-safe status, and WebGPU-owned prepared resources.
+- Added `examples/assets/all-slot-uri-textures.glb`, proving all five
+  StandardMaterial URI texture slots decode from same-origin PNG images and
+  reach the expected texture-enabled pipeline variant.
+- Added transformed-vs-untransformed GLB viewer controls for occlusion and
+  metallic-roughness URI textures:
+  `examples/assets/occlusion-transform-controls.glb` and
+  `examples/assets/metallic-roughness-transform-controls.glb`.
+- Added `examples/assets/sampler-wrap-controls.glb`, proving repeat and clamp
+  sampler modes produce distinct rendered pixels from real URI textures over
+  out-of-range UVs.
+- Added `examples/assets/uv1-image-decode-controls.glb`, proving real URI image
+  decode can feed both UV0 and UV1 texture coordinates without producing
+  missing-UV1 diagnostics.
+- Added `examples/assets/alpha-mask-emissive-controls.glb`, proving combined
+  alpha-mask base-color URI data plus real emissive URI data against
+  alpha-mask-only and scalar controls.
+- Added `examples/assets/aperture-occlusion-control.png` and
+  `examples/assets/normal-occlusion-controls.glb`, proving a tangent-backed
+  normal+occlusion URI texture control against normal-only and scalar controls.
+- Added a GLB viewer Playwright stress path that switches one page session
+  across all-slot, alpha/emissive, and normal/occlusion real URI samples while
+  proving decoded-image metadata, active draw counts, and pixels update for the
+  selected sample only.
+- Added
+  `docs/research/GLB_VIEWER_REAL_URI_TEXTURE_CONTROLS_AUDIT_2026_05_20.md`,
+  confirming the all-slot, transform-control, sampler-control, and UV1-control
+  slices preserve ECS authority, render extraction boundaries, JSON-safe status,
+  and WebGPU-owned prepared resources.
+- Added the new GLB viewer samples to the selector in `examples/glb-viewer.js`
+  and extended `test/e2e/glb-viewer.spec.ts` with focused pixel and status
+  assertions.
+- Updated public progress trackers, backlog, and completed-task records. The
+  recommended next task is now `task-2092`.
+
+### References inspected
+
+- `references/bevy/crates/bevy_gltf/src/loader/mod.rs`
+- `references/bevy/crates/bevy_gltf/src/loader/gltf_ext/material.rs`
+- `references/three.js/examples/jsm/loaders/GLTFLoader.js`
+- `docs/NORTH_STAR.md`
+- `docs/ARCHITECTURE.md`
+- `docs/DECISIONS.md`
+
+### Validation
+
+- `file examples/assets/aperture-occlusion-checker.png`
+- GLB JSON/header sanity checks for `all-slot-uri-textures.glb`,
+  `occlusion-transform-controls.glb`,
+  `metallic-roughness-transform-controls.glb`,
+  `sampler-wrap-controls.glb`, `uv1-image-decode-controls.glb`,
+  `alpha-mask-emissive-controls.glb`, and
+  `normal-occlusion-controls.glb`.
+- `file examples/assets/aperture-occlusion-control.png`
+- `node --check examples/glb-viewer.js`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts -g "occlusion texture transform"`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts -g "occlusion texture transform|transformed and untransformed normal texture controls|transformed and untransformed emissive texture controls|normal-mapped sample"` (4 passed)
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts -g "all StandardMaterial URI texture slots"`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts -g "all StandardMaterial URI texture slots|transformed and untransformed occlusion texture controls|transformed and untransformed metallic-roughness texture controls"` (3 passed)
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts -g "repeat and clamp sampler wrap controls"`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts -g "all StandardMaterial URI texture slots|transformed and untransformed occlusion texture controls|transformed and untransformed metallic-roughness texture controls|repeat and clamp sampler wrap controls|UV0 and UV1 image-decode controls"` (5 passed)
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts -g "all StandardMaterial URI texture slots|transformed and untransformed occlusion texture controls|transformed and untransformed metallic-roughness texture controls|repeat and clamp sampler wrap controls|UV0 and UV1 image-decode controls|occlusion texture transform|normal-mapped sample|transformed and untransformed normal texture controls|transformed and untransformed emissive texture controls"` (9 passed)
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts -g "alpha-mask plus emissive URI controls"`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts -g "normal plus occlusion URI controls"`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts -g "switches real URI texture"`
+- `pnpm run check` (package boundaries, progress tracker, build/typecheck,
+  test typecheck, example syntax, lint, format check, and `pnpm test`; 317
+  files and 1482 tests passed)
+
+### Known issues
+
+- No known regressions from this run.
+- Same-origin image decode is still example-local and predecode-based; a
+  package-level async image dependency pipeline remains future work.
+- Older deterministic fixtures can still use fallback image branches. New GLB
+  viewer fidelity tasks should prefer committed same-origin image files and
+  assert `source.imageDecode` when the slice is meant to prove browser image
+  decode.
+
+### Recommended next task
+
+`task-2092 — Add GLB viewer material-slot summary for selected asset`.
 
 ## Current Run Update — 2026-05-20T07:46:33Z — GLB viewer real image decode and transformed texture-slot coverage
 

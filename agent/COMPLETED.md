@@ -21885,3 +21885,156 @@ Summary:
 Validation:
 
 - Documentation-only audit; covered by final formatting and progress checks.
+
+## task-2083 — Real same-origin occlusion URI texture in GLB viewer
+
+Completed: 2026-05-20
+
+Summary:
+
+- Added `examples/assets/aperture-occlusion-checker.png`, so the existing
+  `occlusion-transform.glb` sample now resolves its `occlusionTexture` from a
+  real same-origin PNG instead of the example fallback resolver.
+- Extended the GLB viewer occlusion-transform browser coverage to assert
+  JSON-safe `source.imageDecode` metadata, occlusion strength, texture-slot
+  readiness, and visible occlusion-textured pixels without exposing raw decoded
+  bytes or GPU handles.
+
+Validation:
+
+- `file examples/assets/aperture-occlusion-checker.png`
+- `node --check examples/glb-viewer.js`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts -g "occlusion texture transform"`
+
+## task-2079 — GLB viewer transform-control and real-normal-image audit
+
+Completed: 2026-05-20
+
+Summary:
+
+- Added
+  `docs/research/GLB_VIEWER_TRANSFORM_CONTROLS_REAL_NORMAL_AUDIT_2026_05_20.md`.
+- Confirmed transformed-vs-untransformed normal/emissive controls and real
+  normal-map image decode preserve ECS authority, render extraction boundaries,
+  JSON-safe status, and WebGPU-owned prepared resources.
+- Refilled the ready queue with visible GLB viewer fidelity tasks beginning at
+  `task-2084`.
+
+Validation:
+
+- Documentation audit backed by the targeted GLB viewer checks from
+  `task-2083`.
+
+## task-2084 through task-2088 — GLB viewer real URI texture controls
+
+Completed: 2026-05-20
+
+Summary:
+
+- Added `examples/assets/all-slot-uri-textures.glb`, proving real same-origin
+  URI image decode and StandardMaterial routing for base-color,
+  metallic-roughness, normal, occlusion, and emissive slots in one GLB viewer
+  sample.
+- Added `examples/assets/occlusion-transform-controls.glb` and
+  `examples/assets/metallic-roughness-transform-controls.glb`, each with
+  transformed, untransformed, and scalar-control primitives.
+- Added `examples/assets/sampler-wrap-controls.glb`, comparing repeat and
+  clamp sampler variants over out-of-range UVs with a scalar control.
+- Added `examples/assets/uv1-image-decode-controls.glb`, comparing UV0, UV1,
+  and scalar-control base-color sampling while asserting no missing-UV1
+  extraction diagnostics.
+- Added all samples to `glb-viewer` and covered them with Playwright pixel and
+  JSON-safe status assertions.
+
+Validation:
+
+- GLB JSON/header sanity checks for the new sample files.
+- `node --check examples/glb-viewer.js`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts -g "all StandardMaterial URI texture slots|transformed and untransformed occlusion texture controls|transformed and untransformed metallic-roughness texture controls|repeat and clamp sampler wrap controls|UV0 and UV1 image-decode controls"` (5 passed)
+
+## task-2094 — GLB viewer real URI texture controls audit
+
+Completed: 2026-05-20
+
+Summary:
+
+- Added
+  `docs/research/GLB_VIEWER_REAL_URI_TEXTURE_CONTROLS_AUDIT_2026_05_20.md`.
+- Confirmed the all-slot, occlusion-control, metallic-roughness-control,
+  sampler-control, and UV1-control GLB viewer slices preserve ECS authority,
+  render extraction boundaries, JSON-safe status, and WebGPU-only backend
+  ownership.
+- Recommended `task-2089` as the next visible GLB viewer fidelity task.
+
+Validation:
+
+- Documentation audit backed by the targeted GLB viewer checks from
+  `task-2084` through `task-2088`.
+
+## task-2089 — Alpha-mask plus emissive real URI GLB viewer controls
+
+Completed: 2026-05-20
+
+Summary:
+
+- Added `examples/assets/alpha-mask-emissive-controls.glb`, a
+  three-primitive StandardMaterial sample with combined alpha-mask and
+  emissive URI textures, an alpha-mask-only control, and a scalar control.
+- Added the sample to `glb-viewer` and exposed JSON-safe image decode,
+  alpha-mask render-state, emissive factor, and texture-slot readiness status.
+- Extended Playwright coverage to prove the combined, alpha-mask-only, and
+  scalar-control panels render visibly different pixels without raw image bytes
+  or GPU resources in status.
+
+Validation:
+
+- GLB JSON/header sanity check for `alpha-mask-emissive-controls.glb`.
+- `node --check examples/glb-viewer.js`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts -g "alpha-mask plus emissive URI controls"`
+
+## task-2090 — Normal plus occlusion real URI GLB viewer controls
+
+Completed: 2026-05-20
+
+Summary:
+
+- Added `examples/assets/aperture-occlusion-control.png`, a committed
+  same-origin PNG with deterministic low occlusion values for visual control
+  coverage.
+- Added `examples/assets/normal-occlusion-controls.glb`, a three-primitive
+  StandardMaterial sample with tangent-backed combined normal+occlusion,
+  normal-only, and scalar-control panels.
+- Added the sample to `glb-viewer` and covered JSON-safe image decode,
+  normal-scale, occlusion-strength, texture-slot readiness, and visible control
+  differences in Playwright.
+
+Validation:
+
+- `file examples/assets/aperture-occlusion-control.png`
+- GLB JSON/header sanity check for `normal-occlusion-controls.glb`.
+- `node --check examples/glb-viewer.js`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts -g "normal plus occlusion URI controls"`
+
+## task-2091 — Real URI texture unload/reload stress sample switch
+
+Completed: 2026-05-20
+
+Summary:
+
+- Added Playwright coverage that switches one GLB viewer session across the
+  all-slot URI texture sample, alpha-mask plus emissive controls, and
+  normal plus occlusion controls.
+- The test waits for each selected sample's decoded image metadata, resolved
+  primitive count, extracted mesh draw count, and draw-call count to match only
+  the active replayed sample.
+- Pixel comparisons across each switch prove rendered output changes without
+  WebGPU validation warnings.
+
+Validation:
+
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts -g "switches real URI texture"`
