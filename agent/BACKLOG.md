@@ -59,15 +59,14 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start with `task-3004`: Off-screen render target abstraction (part 1: attachment factory).
+Start with `task-3005`: Off-screen render target consumed by ViewPacket (part 2: wiring).
 
-Why this next: `task-3003` wired the async image decode path through the GLB viewer's real bufferView PNG route and registry loading-to-ready promotion. The next Tier 1 dependency is the render-target foundation needed for PMREM, picking, and post-processing.
+Why this next: `task-3004` added the off-screen color attachment factory and browser readback proof. The next Tier 1 dependency is wiring existing `ViewPacket.renderTarget` data into the WebGPU app render path so cameras can target registered off-screen textures.
 
 Reference anchors (read before writing):
 
 - `references/three.js/src/renderers/WebGLRenderTarget.js`
 - `references/engine/src/platform/graphics/render-target.js`
-- `references/bevy/crates/bevy_render/src/texture/gpu_image.rs`
 
 ## Strategic Focus — Pipeline Maturity Roadmap
 
@@ -79,7 +78,7 @@ Eleven cross-cutting gaps remain across the six phases. They are sequenced below
 
 1. Worker transport proof (task-3001) — shipped; proves the snapshot architecture's central claim
 2. Async image decode in the asset layer (task-3002 and task-3003 shipped) — unlocks real-image GLBs without pre-decode
-3. Render targets / off-screen rendering (task-3004, task-3005, task-3006) — unlocks PMREM, picking, post-processing
+3. Render targets / off-screen rendering (task-3004 shipped, task-3005 and task-3006 next) — unlocks PMREM, picking, post-processing
 
 **Tier 2 — Quality leap (depends on Tier 1):**
 
@@ -108,18 +107,6 @@ The MVP track (task-2001 through task-2030) shipped successfully — completion 
 All roadmap task entries cite at least one specific reference file under `references/bevy`, `references/engine` (PlayCanvas), or `references/three.js`. The agent MUST read the cited references before writing implementation code (see `agent/WAKE.md` §4).
 
 ## Ready Tasks — Pipeline Maturity Roadmap
-
-### task-3004 — Off-screen render target abstraction (part 1: attachment factory)
-
-Category: `webgpu-render`
-Package/write-scope: `packages/webgpu/src/webgpu/current-texture-view.ts`, targeted tests.
-Reference anchor: `references/three.js/src/renderers/WebGLRenderTarget.js`; `references/engine/src/platform/graphics/render-target.js`; `references/bevy/crates/bevy_render/src/texture/gpu_image.rs`.
-Insertion point: `packages/webgpu/src/webgpu/current-texture-view.ts` — `createCurrentTextureColorTarget()` hardcodes swapchain. Add `createOffscreenColorTarget(texture)` alternative path.
-
-Acceptance criteria:
-
-- Public function accepts a pre-allocated `GPUTexture` and returns a render-pass color attachment descriptor.
-- Test renders a single triangle to an off-screen texture, then reads pixels via `mapAsync` and asserts color.
 
 ### task-3005 — Off-screen render target consumed by ViewPacket (part 2: wiring)
 

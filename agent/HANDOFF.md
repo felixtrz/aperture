@@ -1,6 +1,60 @@
 # Agent Handoff
 
-Updated: 2026-05-20T23:34:13Z
+Updated: 2026-05-20T23:43:42Z
+
+## Current Run Update — 2026-05-20T23:43:42Z — Off-screen color target attachment proof
+
+Completed `task-3004`.
+
+### What changed
+
+- Added `createOffscreenColorTarget(texture)` beside the existing swapchain
+  current-texture color target path in `@aperture-engine/webgpu`.
+- Shared color attachment option handling between current-texture and
+  off-screen targets so clear/load/store options stay consistent.
+- Added diagnostics for missing off-screen textures and missing texture views.
+- Added a browser WebGPU proof that renders a raw triangle into an explicit
+  `GPUTexture`, copies it to a readback buffer, and asserts the center pixel.
+- Updated public tracker pages, backlog, and completed-task log. Recommended
+  next task is now `task-3005`.
+
+### Files touched
+
+- `agent/BACKLOG.md`
+- `agent/COMPLETED.md`
+- `agent/HANDOFF.md`
+- `agent/STATUS.json`
+- `docs/index.html`
+- `docs/render-pipeline-comparison.html`
+- `packages/webgpu/src/webgpu/current-texture-view.ts`
+- `test/e2e/offscreen-color-target.spec.ts`
+- `test/webgpu/current-texture-view.test.ts`
+
+### References inspected
+
+- `references/three.js/src/renderers/WebGLRenderTarget.js`
+- `references/engine/src/platform/graphics/render-target.js`
+- `references/bevy/crates/bevy_render/src/texture/gpu_image.rs`
+
+### Validation
+
+- `pnpm exec prettier --write packages/webgpu/src/webgpu/current-texture-view.ts test/webgpu/current-texture-view.test.ts test/e2e/offscreen-color-target.spec.ts agent/BACKLOG.md docs/index.html docs/render-pipeline-comparison.html agent/STATUS.json`
+- `pnpm run check:progress`
+- `pnpm run build`
+- `pnpm run lint`
+- `pnpm run format:check`
+- `pnpm exec playwright test test/e2e/offscreen-color-target.spec.ts`
+- `pnpm exec vitest run test/webgpu/current-texture-view.test.ts`
+- `pnpm test` (319 files, 1531 tests)
+
+### Known issues
+
+- `ViewPacket.renderTarget` is still not consumed by the WebGPU app render path;
+  this remains the next render-target slice.
+
+### Recommended next task
+
+`task-3005 — Off-screen render target consumed by ViewPacket (part 2: wiring)`.
 
 ## Current Run Update — 2026-05-20T23:34:13Z — Async GLB image decode registry states
 

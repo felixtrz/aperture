@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-20 23:34 UTC</dd>
+            <dd>2026-05-20 23:39 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -410,10 +410,13 @@
               supported. The GLB viewer now decodes the embedded PNG bufferView
               texture through that async path, records actual registry
               loading-to-ready promotion for the texture handle, and keeps
-              rendering the StandardMaterial sample. Next up is the first
-              off-screen render-target attachment factory. The GLB viewer now
-              renders extended StandardMaterial combined texture routes:
-              occlusion plus normal, metallic-roughness plus emissive,
+              rendering the StandardMaterial sample. The WebGPU package now
+              exposes <code>createOffscreenColorTarget(texture)</code>, and
+              Playwright renders a raw triangle into an off-screen texture then
+              reads back its pixels. Next up is wiring
+              <code>ViewPacket.renderTarget</code> into the app render path. The
+              GLB viewer now renders extended StandardMaterial combined texture
+              routes: occlusion plus normal, metallic-roughness plus emissive,
               alpha-blend plus normal, UV1 metallic-roughness plus normal,
               base-color plus occlusion, and transformed base-color plus
               emissive, plus UV1 base-color plus occlusion, transformed
@@ -1621,9 +1624,9 @@
           <article class="phase">
             <div class="topline">
               <h3>6. submit</h3>
-              <span class="percent">58%</span>
+              <span class="percent">61%</span>
             </div>
-            <div class="bar"><span style="width: 58%"></span></div>
+            <div class="bar"><span style="width: 61%"></span></div>
             <p>
               WebGPU command submission renders the current proof paths with
               pipeline, bind group, transform, light, mesh, and material
@@ -1632,7 +1635,8 @@
               1.0, stores it, and reports JSON-safe depth metadata. GLB viewer
               StandardMaterial routes now submit lit, IBL-enabled,
               shadow-receiving, opaque, transparent, and animation-driven proof
-              paths with live control coverage.
+              paths with live control coverage. Off-screen color target
+              attachment creation now has browser readback proof.
             </p>
             <ul>
               <li>Missing render graph and multi-pass architecture.</li>
@@ -3746,16 +3750,15 @@
             <h3>Recommended next tasks</h3>
             <ul>
               <li>
-                <span class="badge amber">next</span> Add the off-screen render
-                target attachment factory.
+                <span class="badge amber">next</span> Route
+                <code>ViewPacket.renderTarget</code> through the WebGPU app.
               </li>
               <li>
-                Add <code>createOffscreenColorTarget(texture)</code> beside the
-                swapchain color-target path.
+                Render camera-targeted views into registered off-screen textures
+                instead of the swapchain.
               </li>
               <li>
-                Read pixels back from an off-screen texture in a focused WebGPU
-                test.
+                Prove a mixed swapchain/off-screen scene receives both draws.
               </li>
             </ul>
           </article>
@@ -3768,6 +3771,19 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3004</div>
+            <div>
+              <strong
+                >Off-screen color target attachment factory landed.</strong
+              >
+              <span
+                >WebGPU now creates render-pass color targets from explicit
+                textures, and Playwright reads back a triangle rendered into an
+                off-screen texture.</span
+              >
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3003</div>
             <div>

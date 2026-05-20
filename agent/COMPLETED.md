@@ -1,5 +1,36 @@
 # Completed Tasks
 
+## task-3004 — Off-screen render target abstraction (part 1: attachment factory)
+
+Completed: 2026-05-20
+
+Summary:
+
+- Added `createOffscreenColorTarget(texture)` in `@aperture-engine/webgpu` so
+  callers can derive a render-pass color attachment from an explicit
+  off-screen texture instead of only the swapchain current texture.
+- Shared clear/load/store attachment option handling with the existing
+  `createCurrentTextureColorTarget()` path.
+- Added diagnostics for missing off-screen textures and missing texture views.
+- Added browser WebGPU coverage that renders a raw triangle into an explicit
+  `GPUTexture`, copies it to a readback buffer, and asserts the center pixel.
+
+References inspected:
+
+- `references/three.js/src/renderers/WebGLRenderTarget.js`
+- `references/engine/src/platform/graphics/render-target.js`
+- `references/bevy/crates/bevy_render/src/texture/gpu_image.rs`
+
+Validation:
+
+- `pnpm run check:progress`
+- `pnpm run build`
+- `pnpm run lint`
+- `pnpm run format:check`
+- `pnpm exec playwright test test/e2e/offscreen-color-target.spec.ts`
+- `pnpm exec vitest run test/webgpu/current-texture-view.test.ts`
+- `pnpm test` (319 files, 1531 tests)
+
 ## task-3003 — Async image decode wired through asset registry states
 
 Completed: 2026-05-20
