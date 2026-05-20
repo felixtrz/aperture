@@ -122,6 +122,16 @@
           class="draw-summary"
           aria-label="Draw summary"
         ></div>
+        <div
+          id="glb-imported-light-summary"
+          class="imported-light-summary"
+          aria-label="Imported light summary"
+        ></div>
+        <div
+          id="glb-primitive-material-summary"
+          class="primitive-material-summary"
+          aria-label="Primitive material summary"
+        ></div>
         <form class="asset-url-row" id="glb-url-form">
           <label for="glb-url-input">url</label>
           <div class="asset-url-controls">
@@ -222,6 +232,10 @@
           </label>
         </div>
         <div class="light-control-grid" aria-label="Lighting">
+          <label for="glb-imported-light-toggle">
+            <span>imported</span>
+            <input id="glb-imported-light-toggle" type="checkbox" checked />
+          </label>
           <label for="glb-point-light-intensity">
             <span>point</span>
             <input

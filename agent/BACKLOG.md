@@ -59,7 +59,7 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start with `task-2110`: add GLB viewer imported-light status rows.
+Start with `task-2112`: add GLB viewer source-loader status rows.
 
 `task-2001` is complete: the spinning-cube example now creates a renderer-owned face-colored diffuse IBL cube texture and sampler, routes it through the StandardMaterial diffuse IBL shader variant, and Playwright verifies direction-dependent face pixels.
 `task-2002` is complete: `withEnvironmentMap(handle)` is exported from runtime/core and materials-showcase now uses it with visible diffuse IBL routing.
@@ -1704,6 +1704,8 @@ Acceptance criteria:
 
 ### task-2110 — Add GLB viewer imported-light status rows
 
+Status: completed 2026-05-20. See `agent/COMPLETED.md`.
+
 Category: `runtime-orchestration`
 Package/write-scope: `examples/glb-viewer.html`, `examples/glb-viewer.js`,
 `examples/styles.css`, `test/e2e/glb-viewer.spec.ts`.
@@ -1720,6 +1722,8 @@ Acceptance criteria:
   sample without imported-light authoring.
 
 ### task-2111 — Add GLB viewer primitive material-resolution rows
+
+Status: completed 2026-05-20. See `agent/COMPLETED.md`.
 
 Category: `runtime-orchestration`
 Package/write-scope: `examples/glb-viewer.html`, `examples/glb-viewer.js`,

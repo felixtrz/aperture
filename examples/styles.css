@@ -202,7 +202,9 @@ body {
 .orbit-summary,
 .shadow-summary,
 .ibl-summary,
-.draw-summary {
+.draw-summary,
+.imported-light-summary,
+.primitive-material-summary {
   display: grid;
   gap: 6px;
   padding-block: 2px;
@@ -219,7 +221,9 @@ body {
 .orbit-summary[hidden],
 .shadow-summary[hidden],
 .ibl-summary[hidden],
-.draw-summary[hidden] {
+.draw-summary[hidden],
+.imported-light-summary[hidden],
+.primitive-material-summary[hidden] {
   display: none;
 }
 
@@ -233,7 +237,9 @@ body {
 .orbit-summary-row,
 .shadow-summary-row,
 .ibl-summary-row,
-.draw-summary-row {
+.draw-summary-row,
+.imported-light-summary-row,
+.primitive-material-summary-row {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
@@ -250,7 +256,9 @@ body {
 .orbit-summary-row span,
 .shadow-summary-row span,
 .ibl-summary-row span,
-.draw-summary-row span {
+.draw-summary-row span,
+.imported-light-summary-row span,
+.primitive-material-summary-row span {
   color: #9ca8b7;
 }
 
@@ -264,7 +272,9 @@ body {
 .orbit-summary-row strong,
 .shadow-summary-row strong,
 .ibl-summary-row strong,
-.draw-summary-row strong {
+.draw-summary-row strong,
+.imported-light-summary-row strong,
+.primitive-material-summary-row strong {
   text-align: right;
   font-size: 12px;
   font-weight: 650;

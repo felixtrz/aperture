@@ -1,5 +1,54 @@
 # Completed Tasks
 
+## task-2111 — Add GLB viewer primitive material-resolution rows
+
+Completed: 2026-05-20
+
+Summary:
+
+- Added a visible GLB viewer primitive material-resolution panel with one row
+  per resolved primitive material.
+- Rows show mesh/primitive index, source material index, material family, alpha
+  mode, and pipeline key from existing JSON-safe
+  `gltf.primitiveMaterials.resolutions` status.
+- Added Playwright coverage for dual-material, mixed-alpha, and custom URL
+  samples.
+
+References inspected:
+
+- `references/bevy/crates/bevy_gltf/src/loader/mod.rs`
+- `references/three.js/examples/jsm/loaders/GLTFLoader.js`
+
+Validation:
+
+- `node --check examples/glb-viewer.js`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts --grep "primitive material-resolution rows|draw and extraction summary rows|imported-light summary rows|replays glTF punctual lights"`
+
+## task-2110 — Add GLB viewer imported-light status rows
+
+Completed: 2026-05-20
+
+Summary:
+
+- Added a visible GLB viewer imported-light summary panel for declared,
+  replayed, extracted, and kind-count status.
+- Added an imported-light checkbox that adds/removes the imported ECS
+  `Light` component on replayed glTF node entities.
+- Added Playwright coverage for imported-light rows, toggle-driven extracted
+  counts, and row clearing on a sample without imported-light authoring.
+
+References inspected:
+
+- `references/bevy/crates/bevy_pbr/src/render/light.rs`
+- `references/bevy/crates/bevy_gltf/src/loader/mod.rs`
+
+Validation:
+
+- `node --check examples/glb-viewer.js`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts --grep "imported-light summary rows|replays glTF punctual lights|live light summary rows"`
+
 ## task-2109 — Add GLB viewer draw/extraction status rows
 
 Completed: 2026-05-20

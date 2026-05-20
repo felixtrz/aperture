@@ -26,6 +26,9 @@ const pointLightIntensityInput = document.querySelector(
   "#glb-point-light-intensity",
 );
 const ambientIntensityInput = document.querySelector("#glb-ambient-intensity");
+const importedLightToggle = document.querySelector(
+  "#glb-imported-light-toggle",
+);
 const materialSlotSummaryElement = document.querySelector(
   "#glb-material-slot-summary",
 );
@@ -47,6 +50,12 @@ const orbitSummaryElement = document.querySelector("#glb-orbit-summary");
 const shadowSummaryElement = document.querySelector("#glb-shadow-summary");
 const iblSummaryElement = document.querySelector("#glb-ibl-summary");
 const drawSummaryElement = document.querySelector("#glb-draw-summary");
+const importedLightSummaryElement = document.querySelector(
+  "#glb-imported-light-summary",
+);
+const primitiveMaterialSummaryElement = document.querySelector(
+  "#glb-primitive-material-summary",
+);
 const stateElement = document.querySelector("#example-state");
 const jsonElement = document.querySelector("#example-json");
 const exampleParams = new URLSearchParams(globalThis.location.search);
@@ -67,6 +76,9 @@ const iblControls = {
   enabled: enableIblSampling,
 };
 const enableImportedLights = !exampleParams.has("disable-imported-lights");
+const importedLightControls = {
+  enabled: enableImportedLights,
+};
 const shadowIntent = {
   mapSize: 512,
   depthBias: 0.0015,
@@ -719,6 +731,33 @@ const drawSummaryRows = [
       formatPipelineKeySummary(renderState.pipelineKeys),
   },
 ];
+const importedLightSummaryRows = [
+  {
+    key: "controls",
+    label: "controls",
+    value: ({ importedLights }) =>
+      `enabled ${importedLights.enabled}, available ${
+        importedLights.declaredCount > 0
+      }`,
+  },
+  {
+    key: "counts",
+    label: "counts",
+    value: ({ importedLights }) =>
+      `declared ${importedLights.declaredCount}, replayed ${importedLights.replayedCount}, extracted ${importedLights.extractedCount}`,
+  },
+  {
+    key: "kinds",
+    label: "kinds",
+    value: ({ importedLights }) => formatImportedLightKinds(importedLights),
+  },
+  {
+    key: "first",
+    label: "first",
+    value: ({ importedLights }) =>
+      formatImportedLightDescriptor(importedLights.lights[0]),
+  },
+];
 
 try {
   const [core, webgpu] = await Promise.all([
@@ -863,11 +902,13 @@ function createGlbViewerScene(aperture, app, targetCanvas) {
   bindShadowControlInputs(aperture, scene);
   bindIblControlInputs(aperture, scene);
   bindAnimationControlInputs(aperture, scene);
+  bindImportedLightControlInputs(aperture, scene);
   bindLightControlInputs(aperture, scene);
   updateShadowControlInputs(scene);
   updateIblControlInputs(scene);
   updateImportedCameraControlInputs(scene);
   updateAnimationControlInputs(scene);
+  updateImportedLightControlInputs(scene);
 
   return scene;
 }
@@ -1136,7 +1177,7 @@ async function loadAsset(aperture, app, scene, asset) {
     root: loaded.loader.glbImportReport.container.container.json,
     keyPrefix,
     replay,
-    enabled: enableImportedLights,
+    enabled: importedLightControls.enabled,
   });
 
   updateActiveAnimation(aperture, animation, 0);
@@ -1173,6 +1214,7 @@ async function loadAsset(aperture, app, scene, asset) {
   updateIblControlInputs(scene);
   updateImportedCameraControlInputs(scene);
   updateAnimationControlInputs(scene);
+  updateImportedLightControlInputs(scene);
 }
 
 async function loadGlbViewerAsset(aperture, asset, keyPrefix) {
@@ -1524,6 +1566,7 @@ function destroyActiveScene(scene) {
   updateIblControlInputs(scene);
   updateImportedCameraControlInputs(scene);
   updateAnimationControlInputs(scene);
+  updateImportedLightControlInputs(scene);
 }
 
 function createStandardIblScene(aperture, app) {
@@ -2830,6 +2873,59 @@ function updateImportedCameraControlInputs(scene) {
     importedCameraToggle.checked =
       available && scene.cameraControls.importedEnabled;
   }
+}
+
+function bindImportedLightControlInputs(aperture, scene) {
+  if (importedLightToggle instanceof HTMLInputElement) {
+    importedLightToggle.checked = importedLightControls.enabled;
+    importedLightToggle.addEventListener("change", () => {
+      setSceneImportedLightsEnabled(
+        aperture,
+        scene,
+        importedLightToggle.checked,
+      );
+    });
+  }
+}
+
+function updateImportedLightControlInputs(scene) {
+  const importedLights = scene.active?.importedLights ?? null;
+  const available = importedLights !== null && importedLights.declaredCount > 0;
+  const enabled = importedLights?.enabled ?? importedLightControls.enabled;
+
+  if (importedLightToggle instanceof HTMLInputElement) {
+    importedLightToggle.disabled = !available;
+    importedLightToggle.checked = enabled;
+  }
+}
+
+function setSceneImportedLightsEnabled(aperture, scene, enabled) {
+  importedLightControls.enabled = enabled;
+  const active = scene.active;
+
+  if (active !== null && active.importedLights.declaredCount > 0) {
+    active.importedLights.enabled = enabled;
+
+    for (const light of active.importedLights.lights) {
+      if (light.status !== "ready") {
+        continue;
+      }
+
+      const entity = active.replay.entitiesByKey.get(light.entityKey) ?? null;
+
+      if (entity === null) {
+        continue;
+      }
+
+      if (enabled) {
+        setImportedLightComponent(aperture, entity, light);
+      } else if (entity.hasComponent(aperture.Light)) {
+        entity.removeComponent(aperture.Light);
+      }
+    }
+  }
+
+  updateImportedLightControlInputs(scene);
 }
 
 function bindIblControlInputs(aperture, scene) {
@@ -4153,7 +4249,7 @@ function createImportedCameraStatus(scene) {
 function createImportedLightsStatus(scene, snapshot) {
   const importedLights = scene.active?.importedLights ?? {
     status: "absent",
-    enabled: enableImportedLights,
+    enabled: importedLightControls.enabled,
     declaredCount: 0,
     lights: [],
   };
@@ -5437,6 +5533,10 @@ function publishStatus(status) {
     draw: status.draw,
     renderState: status.renderState,
   });
+  updateImportedLightSummaryPanel(status.importedLights);
+  updatePrimitiveMaterialSummaryPanel(
+    status.gltf?.primitiveMaterials?.resolutions,
+  );
 
   if (stateElement !== null) {
     stateElement.textContent = status.ok ? "ready" : "failed";
@@ -5934,6 +6034,114 @@ function formatPipelineKeySummary(pipelineKeys) {
   );
 
   return uniqueKeys.length === 0 ? "none" : uniqueKeys.join(" | ");
+}
+
+function updateImportedLightSummaryPanel(importedLights) {
+  if (!(importedLightSummaryElement instanceof HTMLElement)) {
+    return;
+  }
+
+  importedLightSummaryElement.replaceChildren();
+
+  if (
+    !isRecord(importedLights) ||
+    importedLights.declaredCount <= 0 ||
+    !Array.isArray(importedLights.lights) ||
+    !Array.isArray(importedLights.kinds)
+  ) {
+    importedLightSummaryElement.hidden = true;
+    return;
+  }
+
+  importedLightSummaryElement.hidden = false;
+
+  for (const row of importedLightSummaryRows) {
+    const element = document.createElement("div");
+    const label = document.createElement("span");
+    const value = document.createElement("strong");
+
+    element.className = "imported-light-summary-row";
+    element.dataset.importedLightSummaryRow = row.key;
+    label.textContent = row.label;
+    value.textContent = row.value({ importedLights });
+
+    element.append(label, value);
+    importedLightSummaryElement.append(element);
+  }
+}
+
+function formatImportedLightKinds(importedLights) {
+  const rows = arrayEntries(importedLights.kinds)
+    .filter((entry) => isRecord(entry) && typeof entry.kind === "string")
+    .map((entry) => `${entry.kind} ${entry.count ?? 0}`);
+
+  return rows.length === 0 ? "none" : rows.join(", ");
+}
+
+function formatImportedLightDescriptor(light) {
+  if (!isRecord(light)) {
+    return "none";
+  }
+
+  const name = formatSummaryOptionalKey(light.name ?? light.nodeName);
+  const kind = formatSummaryOptionalKey(light.kind);
+  const extracted = light.extracted === true;
+  const intensity =
+    typeof light.rawIntensity === "number" ? light.rawIntensity : "none";
+  const range = typeof light.range === "number" ? light.range : "none";
+
+  return `${name}: ${kind}, extracted ${extracted}, intensity ${intensity}, range ${range}`;
+}
+
+function updatePrimitiveMaterialSummaryPanel(resolutions) {
+  if (!(primitiveMaterialSummaryElement instanceof HTMLElement)) {
+    return;
+  }
+
+  primitiveMaterialSummaryElement.replaceChildren();
+
+  if (!Array.isArray(resolutions) || resolutions.length === 0) {
+    primitiveMaterialSummaryElement.hidden = true;
+    return;
+  }
+
+  primitiveMaterialSummaryElement.hidden = false;
+
+  for (const resolution of resolutions) {
+    if (!isRecord(resolution)) {
+      continue;
+    }
+
+    const element = document.createElement("div");
+    const label = document.createElement("span");
+    const value = document.createElement("strong");
+    const meshIndex = resolution.meshIndex ?? "?";
+    const primitiveIndex = resolution.primitiveIndex ?? "?";
+
+    element.className = "primitive-material-summary-row";
+    element.dataset.primitiveMaterialRow = `${meshIndex}:${primitiveIndex}`;
+    label.textContent = `mesh ${meshIndex} prim ${primitiveIndex}`;
+    value.textContent = formatPrimitiveMaterialResolution(resolution);
+
+    element.append(label, value);
+    primitiveMaterialSummaryElement.append(element);
+  }
+
+  if (primitiveMaterialSummaryElement.childElementCount === 0) {
+    primitiveMaterialSummaryElement.hidden = true;
+  }
+}
+
+function formatPrimitiveMaterialResolution(resolution) {
+  const materialIndex =
+    typeof resolution.materialIndex === "number"
+      ? resolution.materialIndex
+      : "none";
+  const family = formatSummaryOptionalKey(resolution.family);
+  const alphaMode = formatSummaryOptionalKey(resolution.alphaMode);
+  const pipelineKey = formatSummaryOptionalKey(resolution.pipelineKey);
+
+  return `material ${materialIndex}, ${family}, ${alphaMode}, ${pipelineKey}`;
 }
 
 function failure(reason, message) {

@@ -1,6 +1,67 @@
 # Agent Handoff
 
-Updated: 2026-05-20T10:48:00Z
+Updated: 2026-05-20T10:58:00Z
+
+## Current Run Update — 2026-05-20T10:58:00Z — Continued GLB viewer light and material status rows
+
+Completed `task-2110` and `task-2111` after the stop hook requested continued
+active work.
+
+### What changed
+
+- Added a visible imported-light summary panel for declared, replayed,
+  extracted, and kind-count status from existing JSON-safe `importedLights`
+  data.
+- Added an imported-light checkbox that mutates ECS-authored light state by
+  adding/removing the imported `Light` component on replayed glTF node
+  entities.
+- Added a visible primitive material-resolution panel with per-primitive rows
+  for mesh/primitive index, source material index, material family, alpha mode,
+  and pipeline key.
+- Reused existing JSON-safe `gltf.primitiveMaterials.resolutions` status; no
+  material assets, source buffers, image bytes, or GPU handles are exposed in
+  the UI.
+- The recommended next task is now `task-2112`.
+
+### Files touched
+
+- `agent/BACKLOG.md`
+- `agent/COMPLETED.md`
+- `agent/HANDOFF.md`
+- `agent/STATUS.json`
+- `docs/index.html`
+- `examples/glb-viewer.html`
+- `examples/glb-viewer.js`
+- `examples/styles.css`
+- `test/e2e/glb-viewer.spec.ts`
+
+### References inspected
+
+- `references/bevy/crates/bevy_pbr/src/render/light.rs`
+- `references/bevy/crates/bevy_gltf/src/loader/mod.rs`
+- `references/three.js/examples/jsm/loaders/GLTFLoader.js`
+
+### Validation
+
+- `node --check examples/glb-viewer.js`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts --grep "imported-light summary rows|replays glTF punctual lights|live light summary rows"` (3 passed)
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts --grep "primitive material-resolution rows|draw and extraction summary rows|imported-light summary rows|replays glTF punctual lights"` (4 passed)
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts --grep "primitive material-resolution rows|imported-light summary rows|replays glTF punctual lights|live light summary rows|draw and extraction summary rows"` (5 passed)
+- `pnpm run check` (package boundaries, progress tracker, build/typecheck,
+  test typecheck, example syntax, lint, format check, and `pnpm test`; 317
+  files and 1482 tests passed)
+
+### Known issues
+
+- No known regressions from the continued slices.
+- The GLB viewer status panel is intentionally dense now; the next status-row
+  tasks should stay focused on already JSON-safe status that improves
+  debugging.
+
+### Recommended next task
+
+`task-2112 — Add GLB viewer source-loader status rows`.
 
 ## Current Run Update — 2026-05-20T10:48:00Z — GLB viewer custom URL and status panel polish
 

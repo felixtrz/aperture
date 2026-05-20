@@ -11855,6 +11855,113 @@ test("Playwright renders GLB viewer draw and extraction summary rows", async ({
   webGpuValidation.expectNoWarnings();
 });
 
+test("Playwright renders GLB viewer primitive material-resolution rows", async ({
+  page,
+}) => {
+  const webGpuValidation = attachWebGpuValidationConsoleGuard(page);
+  const summaryPanel = page.locator("#glb-primitive-material-summary");
+  const materialRow = (meshIndex: number, primitiveIndex: number) =>
+    summaryPanel.locator(
+      `[data-primitive-material-row="${meshIndex}:${primitiveIndex}"]`,
+    );
+  const waitForPrimitiveMaterialRows = async (
+    id: string,
+    resolved: number,
+    source = "sample",
+  ) => {
+    await page.waitForFunction(
+      ({ id, resolved, source }) => {
+        const status = (
+          globalThis as {
+            readonly __APERTURE_EXAMPLE_STATUS__?: {
+              readonly frame?: number;
+              readonly selectedAsset?: {
+                readonly id?: string;
+                readonly source?: string;
+                readonly loading?: boolean;
+              };
+              readonly gltf?: {
+                readonly primitiveMaterials?: {
+                  readonly resolved?: number;
+                  readonly resolutions?: readonly unknown[];
+                };
+              };
+            };
+          }
+        ).__APERTURE_EXAMPLE_STATUS__;
+
+        return (
+          (status?.frame ?? 0) >= 3 &&
+          status?.selectedAsset?.id === id &&
+          status.selectedAsset.source === source &&
+          status.selectedAsset.loading === false &&
+          status.gltf?.primitiveMaterials?.resolved === resolved &&
+          status.gltf.primitiveMaterials.resolutions?.length === resolved
+        );
+      },
+      { id, resolved, source },
+      { timeout: 5000 },
+    );
+
+    const status = await waitForExampleStatus<GlbViewerStatus>(page);
+
+    expect(
+      status,
+      `${id} primitive material status should publish`,
+    ).toBeDefined();
+
+    if (status === undefined) {
+      throw new Error(`${id} primitive material status did not publish.`);
+    }
+
+    expectStatusJsonSafeForGpu(status);
+    return status;
+  };
+
+  await page.goto("/examples/glb-viewer.html?asset=dual");
+  const initialStatus = await waitForExampleStatus<GlbViewerStatus>(page);
+
+  expect(initialStatus, "GLB viewer status should publish").toBeDefined();
+
+  if (initialStatus === undefined) {
+    throw new Error("GLB viewer status did not publish.");
+  }
+
+  skipIfUnsupportedWebGpu(initialStatus);
+  await waitForPrimitiveMaterialRows("dual", 2);
+  await expect(
+    summaryPanel.locator("[data-primitive-material-row]"),
+  ).toHaveCount(2);
+  await expect(materialRow(0, 0)).toContainText(
+    "material 0, unlit, opaque, unlit|opaque|back|less|none",
+  );
+  await expect(materialRow(0, 1)).toContainText(
+    "material 1, unlit, opaque, unlit|opaque|back|less|none",
+  );
+
+  await page.locator("#glb-asset-select").selectOption("mixed-alpha");
+  await waitForPrimitiveMaterialRows("mixed-alpha", 2);
+  await expect(materialRow(0, 0)).toContainText(
+    "material 0, standard, opaque, standard|opaque|back|less|none",
+  );
+  await expect(materialRow(0, 1)).toContainText(
+    "material 1, standard, blend, standard|blend|back|less|alpha",
+  );
+
+  await page
+    .locator("#glb-url-input")
+    .fill("/examples/assets/sapphire-pillar.glb");
+  await page.locator("#glb-url-form button").click();
+  await waitForPrimitiveMaterialRows("custom-url", 1, "custom");
+  await expect(
+    summaryPanel.locator("[data-primitive-material-row]"),
+  ).toHaveCount(1);
+  await expect(materialRow(0, 0)).toContainText(
+    "material 0, unlit, opaque, unlit|opaque|back|less|none",
+  );
+  webGpuValidation.expectNoWarnings();
+});
+
 test("Playwright navigates the real URI texture gallery with keyboard controls", async ({
   page,
 }) => {
@@ -12485,6 +12592,92 @@ test("Playwright replays glTF punctual lights in the GLB viewer", async ({
     maxSampleDelta(defaultScreenshot, importedScreenshot),
     "replayed glTF punctual light should visibly change the StandardMaterial sample",
   ).toBeGreaterThan(8);
+  webGpuValidation.expectNoWarnings();
+});
+
+test("Playwright renders GLB viewer imported-light summary rows", async ({
+  page,
+}) => {
+  const webGpuValidation = attachWebGpuValidationConsoleGuard(page);
+  const summaryPanel = page.locator("#glb-imported-light-summary");
+  const importedLightRow = (key: string) =>
+    summaryPanel.locator(`[data-imported-light-summary-row="${key}"]`);
+
+  await page.goto("/examples/glb-viewer.html?asset=imported-light");
+  await waitForImportedLightStatus(page, { enabled: true });
+
+  await expect(importedLightRow("controls")).toContainText(
+    "enabled true, available true",
+  );
+  await expect(importedLightRow("counts")).toContainText(
+    "declared 1, replayed 1, extracted 1",
+  );
+  await expect(importedLightRow("kinds")).toContainText("point 1");
+  await expect(importedLightRow("first")).toContainText(
+    "ImportedWarmPoint: point, extracted true, intensity 9, range 5",
+  );
+
+  await page.locator("#glb-imported-light-toggle").setChecked(false);
+  const disabledStatus = await waitForImportedLightStatus(page, {
+    enabled: false,
+  });
+
+  expect(disabledStatus.importedLights).toMatchObject({
+    enabled: false,
+    extractedCount: 0,
+    lights: [{ extracted: false }],
+  });
+  await expect(importedLightRow("controls")).toContainText(
+    "enabled false, available true",
+  );
+  await expect(importedLightRow("counts")).toContainText(
+    "declared 1, replayed 1, extracted 0",
+  );
+  await expect(importedLightRow("first")).toContainText(
+    "ImportedWarmPoint: point, extracted false, intensity 9, range 5",
+  );
+
+  await page.locator("#glb-imported-light-toggle").setChecked(true);
+  await waitForImportedLightStatus(page, { enabled: true });
+  await expect(importedLightRow("counts")).toContainText(
+    "declared 1, replayed 1, extracted 1",
+  );
+
+  await page.locator("#glb-asset-select").selectOption("cube");
+  await page.waitForFunction(
+    () => {
+      const status = (
+        globalThis as {
+          readonly __APERTURE_EXAMPLE_STATUS__?: {
+            readonly frame?: number;
+            readonly selectedAsset?: {
+              readonly id?: string;
+              readonly loading?: boolean;
+            };
+            readonly importedLights?: {
+              readonly status?: string;
+              readonly declaredCount?: number;
+            };
+          };
+        }
+      ).__APERTURE_EXAMPLE_STATUS__;
+
+      return (
+        (status?.frame ?? 0) >= 3 &&
+        status?.selectedAsset?.id === "cube" &&
+        status.selectedAsset.loading === false &&
+        status.importedLights?.status === "absent" &&
+        status.importedLights.declaredCount === 0
+      );
+    },
+    undefined,
+    { timeout: 5000 },
+  );
+
+  await expect(
+    summaryPanel.locator("[data-imported-light-summary-row]"),
+  ).toHaveCount(0);
+  await expect(summaryPanel).toBeHidden();
   webGpuValidation.expectNoWarnings();
 });
 

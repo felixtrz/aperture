@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-05-20T10:01:36Z",
   "lastResult": "completed",
-  "lastCommit": "1e77ab9",
+  "lastCommit": "0525a13",
   "activePid": null,
-  "notes": "Completed task-2095 through task-2109; recommended next task is task-2110 GLB imported-light status rows.",
-  "lastRunFinishedAt": "2026-05-20T10:47:59Z"
+  "notes": "Completed task-2110 and task-2111 after stop-hook continuation; recommended next task is task-2112 GLB source-loader status rows.",
+  "lastRunFinishedAt": "2026-05-20T10:59:11Z"
 }
