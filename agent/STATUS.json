@@ -1,11 +1,11 @@
 {
-  "state": "running",
-  "currentTaskId": "task-3004",
-  "currentRunStartedAt": "2026-05-20T23:01:41Z",
+  "state": "idle",
+  "currentTaskId": null,
+  "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-05-20T23:01:41Z",
   "lastResult": "success",
   "lastCommit": null,
-  "activePid": 0,
-  "notes": "Completed task-3001 worker snapshot transport proof, task-3002 async glTF image decode contract, task-3003 registry loading-state wiring, and task-3004 off-screen color target attachment factory. Build, lint, format, full Vitest, targeted unit, Playwright, and progress checks pass. Next task is task-3005 ViewPacket render-target wiring.",
-  "lastRunFinishedAt": "2026-05-20T23:28:07Z"
+  "activePid": null,
+  "notes": "Completed task-3001 worker snapshot transport, task-3002 async glTF image decode, task-3003 GLB registry loading-to-ready decode wiring, and task-3004 off-screen color target attachment proof. Build, lint, format check, full Vitest, targeted unit, Playwright, and progress checks passed. Next task: task-3005 ViewPacket render-target wiring.",
+  "lastRunFinishedAt": "2026-05-20T23:52:11Z"
 }
