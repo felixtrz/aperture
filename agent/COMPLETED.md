@@ -1,5 +1,68 @@
 # Completed Tasks
 
+## task-2154 through task-2157 — StandardMaterial combined GLB texture routes
+
+Completed: 2026-05-20
+
+Summary:
+
+- Added committed GLB viewer samples for StandardMaterial
+  `metallicRoughnessTexture` plus `normalTexture`, UV1 `baseColorTexture` plus
+  `normalTexture`, `baseColorTexture` plus `emissiveTexture`, and alpha-mask
+  plus `normalTexture`.
+- Added focused shader and pipeline descriptor coverage for new combined
+  texture variants, including metallic/normal tangent requirements, UV1
+  base/normal sampling, and base/emissive contribution ordering.
+- Added Playwright coverage for JSON-safe texture-slot status, mesh-layout
+  status, mask render state, visible pixel deltas, and clean WebGPU validation.
+
+References inspected:
+
+- `references/three.js/examples/jsm/loaders/GLTFLoader.js`
+- `references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/base.js`
+- `references/engine/src/scene/shader-lib/wgsl/chunks/standard/frag/normalMap.js`
+
+Validation:
+
+- `node --check examples/glb-viewer.js`
+- `pnpm exec vitest run test/webgpu/standard-shader.test.ts test/webgpu/standard-pipeline-descriptor.test.ts`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts --grep "metallic-roughness texture plus normal map"`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts --grep "base-color plus normal textures through TEXCOORD_1"`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts --grep "base-color texture plus emissive texture"`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts --grep "alpha-mask plus normal-map sample"`
+
+## task-2150 through task-2153 — StandardMaterial combined GLB texture fidelity
+
+Completed: 2026-05-20
+
+Summary:
+
+- Added committed GLB viewer samples for normal maps through `TEXCOORD_1`,
+  StandardMaterial `baseColorTexture` plus `COLOR_0`, StandardMaterial
+  `baseColorTexture` plus `normalTexture`, and transformed UV1 normal maps.
+- Fixed StandardMaterial shader variant label specialization so
+  `baseColorTexture` plus `COLOR_0` receives a distinct shader/pipeline label
+  instead of reusing the base-color-only label.
+- Added focused shader, pipeline descriptor, mesh-construction, and Playwright
+  coverage for combined texture routes, tangent/UV1 mesh layouts, JSON-safe
+  texture-slot status, and WebGPU validation cleanliness.
+
+References inspected:
+
+- `references/three.js/examples/jsm/loaders/GLTFLoader.js`
+- `references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/base.js`
+- `references/engine/src/scene/shader-lib/wgsl/chunks/standard/frag/normalMap.js`
+
+Validation:
+
+- `node --check examples/glb-viewer.js`
+- `pnpm exec vitest run test/assets/gltf-mesh-asset-construction.test.ts test/webgpu/standard-shader.test.ts test/webgpu/standard-pipeline.test.ts`
+- `pnpm exec vitest run test/webgpu/standard-shader.test.ts test/webgpu/standard-pipeline-descriptor.test.ts test/webgpu/standard-pipeline.test.ts`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts --grep "normal map through TEXCOORD_1"`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts --grep "textured vertex colors through the StandardMaterial route"`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts --grep "base-color texture plus normal map"`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts --grep "transformed UV1 normal map"`
+
 ## task-2149 — Supported imported orthographic cameras in GLB viewer
 
 Completed: 2026-05-20

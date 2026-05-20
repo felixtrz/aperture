@@ -4,6 +4,7 @@ import {
   STANDARD_SHADOW_RECEIVER_MESH_WGSL,
   STANDARD_MESH_WGSL,
   STANDARD_TANGENT_PRIMITIVE_VERTEX_BUFFER_LAYOUT,
+  STANDARD_TANGENT_TEXCOORD1_PRIMITIVE_VERTEX_BUFFER_LAYOUT,
   STANDARD_TEXCOORD1_PRIMITIVE_VERTEX_BUFFER_LAYOUT,
   STANDARD_VERTEX_COLOR_PRIMITIVE_VERTEX_BUFFER_LAYOUT,
   UNLIT_PRIMITIVE_VERTEX_BUFFER_LAYOUT,
@@ -121,6 +122,31 @@ describe("browser standard material pipeline bridge", () => {
       module: shaderModule,
       entryPoint: "vs_main",
       buffers: [STANDARD_TEXCOORD1_PRIMITIVE_VERTEX_BUFFER_LAYOUT],
+    });
+  });
+
+  it("uses a tangent plus TEXCOORD_1 layout for UV1 normal-map standard shaders", () => {
+    const shaderModule = {
+      compilationInfo: async () => ({ messages: [] }),
+    };
+    const shader = createStandardTextureVariantShader({
+      baseColorTexture: false,
+      metallicRoughnessTexture: false,
+      normalTexture: true,
+      occlusionTexture: false,
+      emissiveTexture: false,
+      texCoord1: true,
+    });
+    const descriptor = createBrowserStandardRenderPipelineDescriptor({
+      shader,
+      shaderModule,
+      colorFormat: "bgra8unorm",
+    });
+
+    expect(descriptor.vertex).toMatchObject({
+      module: shaderModule,
+      entryPoint: "vs_main",
+      buffers: [STANDARD_TANGENT_TEXCOORD1_PRIMITIVE_VERTEX_BUFFER_LAYOUT],
     });
   });
 

@@ -486,6 +486,74 @@ describe("standard material pipeline descriptor planning", () => {
     });
   });
 
+  it("specializes metallic-roughness plus normal-map variants with tangent vertex attributes", () => {
+    const batchKey: BatchCompatibilityKey = {
+      ...STANDARD_BATCH_KEY,
+      pipelineKey:
+        "standard|metallicRoughnessTexture|normalTexture|opaque|back|less|none",
+      meshLayoutKey: "POSITION,NORMAL,TEXCOORD_0,TANGENT",
+      materialKey: "material:standard-metallic-normal",
+    };
+    const featurePlan = createStandardPipelineShaderFeaturePlan(batchKey);
+    const descriptor = createStandardPipelineDescriptorPlan({
+      colorFormat: "bgra8unorm",
+      batchKey,
+    });
+
+    expect(featurePlan).toMatchObject({
+      variantKey:
+        "direct-lit-metallic-roughness-metallic-roughness-normal-map-texture",
+      shader: {
+        label: "aperture/standard-mesh-metallic-roughness-normal-map-textured",
+      },
+      features: {
+        metallicRoughnessTexture: true,
+        normalTexture: true,
+      },
+      normalMap: {
+        authored: true,
+        requiresTangents: true,
+        output: "tangent-space-normal-mapping",
+      },
+    });
+    expect(descriptor.diagnostics).toEqual([]);
+    expect(descriptor.plan?.descriptor).toMatchObject({
+      label:
+        "aperture/standard-mesh-metallic-roughness-normal-map-textured:bgra8unorm:triangle-list",
+      vertex: {
+        moduleLabel:
+          "aperture/standard-mesh-metallic-roughness-normal-map-textured",
+        buffers: ["POSITION", "NORMAL", "TEXCOORD_0", "TANGENT"],
+      },
+      fragment: {
+        moduleLabel:
+          "aperture/standard-mesh-metallic-roughness-normal-map-textured",
+      },
+    });
+    expect(
+      JSON.parse(required(descriptor.plan).cacheKey) as unknown,
+    ).toMatchObject({
+      shader: {
+        variantKey:
+          "direct-lit-metallic-roughness-metallic-roughness-normal-map-texture",
+      },
+      layouts: {
+        vertex: "POSITION,NORMAL,TEXCOORD_0,TANGENT",
+        bindGroups: [
+          "standard/group-0:view-uniform@0",
+          "standard/group-1:world-transforms@0",
+          "standard/group-2:material-metallic-roughness-normal-map-texture@0,3,4,5,6",
+          "lights/group-3:light-floats@0,light-metadata@1",
+        ],
+      },
+      material: {
+        pipelineKey:
+          "standard|metallicRoughnessTexture|normalTexture|opaque|back|less|none",
+      },
+      batch: batchKey,
+    });
+  });
+
   it("specializes vertex-color variants from COLOR_0 mesh layout", () => {
     const batchKey = {
       ...STANDARD_BATCH_KEY,
@@ -529,6 +597,43 @@ describe("standard material pipeline descriptor planning", () => {
         vertex: "POSITION,NORMAL,TEXCOORD_0,COLOR_0",
       },
       batch: batchKey,
+    });
+  });
+
+  it("specializes textured vertex-color variants from material and mesh layout", () => {
+    const batchKey = {
+      ...STANDARD_BATCH_KEY,
+      pipelineKey: "standard|baseColorTexture|opaque|none|less|none",
+      meshLayoutKey: "POSITION,NORMAL,TEXCOORD_0,COLOR_0",
+      materialKey: "material:standard-textured-vertex-color",
+    };
+    const featurePlan = createStandardPipelineShaderFeaturePlan(batchKey);
+    const descriptor = createStandardPipelineDescriptorPlan({
+      colorFormat: "bgra8unorm",
+      batchKey,
+    });
+
+    expect(featurePlan).toMatchObject({
+      variantKey: `${STANDARD_DIRECT_LIGHT_SHADER_VARIANT}-base-color-vertex-color-texture`,
+      shader: {
+        label: "aperture/standard-mesh-base-color-vertex-color-textured",
+      },
+      features: {
+        baseColorTexture: true,
+        vertexColor: true,
+      },
+    });
+    expect(descriptor.diagnostics).toEqual([]);
+    expect(descriptor.plan?.descriptor).toMatchObject({
+      label:
+        "aperture/standard-mesh-base-color-vertex-color-textured:bgra8unorm:triangle-list",
+      vertex: {
+        moduleLabel: "aperture/standard-mesh-base-color-vertex-color-textured",
+        buffers: ["POSITION", "NORMAL", "TEXCOORD_0", "COLOR_0"],
+      },
+      fragment: {
+        moduleLabel: "aperture/standard-mesh-base-color-vertex-color-textured",
+      },
     });
   });
 

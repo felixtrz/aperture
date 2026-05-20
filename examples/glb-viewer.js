@@ -216,6 +216,63 @@ const sampleAssets = [
     source: "sample",
   },
   {
+    id: "normal-map-uv1",
+    label: "Normal map UV1",
+    url: new URL("./assets/normal-map-uv1.glb", globalThis.location.href),
+    source: "sample",
+  },
+  {
+    id: "normal-map-uv1-transform",
+    label: "Normal map UV1 transform",
+    url: new URL(
+      "./assets/normal-map-uv1-transform.glb",
+      globalThis.location.href,
+    ),
+    source: "sample",
+  },
+  {
+    id: "standard-base-normal",
+    label: "Base + normal texture",
+    url: new URL("./assets/standard-base-normal.glb", globalThis.location.href),
+    source: "sample",
+  },
+  {
+    id: "standard-uv1-base-normal",
+    label: "UV1 base + normal",
+    url: new URL(
+      "./assets/standard-uv1-base-normal.glb",
+      globalThis.location.href,
+    ),
+    source: "sample",
+  },
+  {
+    id: "standard-metallic-normal",
+    label: "MR + normal texture",
+    url: new URL(
+      "./assets/standard-metallic-normal.glb",
+      globalThis.location.href,
+    ),
+    source: "sample",
+  },
+  {
+    id: "standard-base-emissive",
+    label: "Base + emissive texture",
+    url: new URL(
+      "./assets/standard-base-emissive.glb",
+      globalThis.location.href,
+    ),
+    source: "sample",
+  },
+  {
+    id: "standard-alpha-normal",
+    label: "Alpha mask + normal",
+    url: new URL(
+      "./assets/standard-alpha-normal.glb",
+      globalThis.location.href,
+    ),
+    source: "sample",
+  },
+  {
     id: "normal-scale",
     label: "Normal scale",
     url: new URL("./assets/normal-scale.glb", globalThis.location.href),
@@ -338,6 +395,15 @@ const sampleAssets = [
     label: "Standard vertex color",
     url: new URL(
       "./assets/standard-vertex-color.glb",
+      globalThis.location.href,
+    ),
+    source: "sample",
+  },
+  {
+    id: "standard-textured-vertex-color",
+    label: "Standard textured vertex color",
+    url: new URL(
+      "./assets/standard-textured-vertex-color.glb",
       globalThis.location.href,
     ),
     source: "sample",

@@ -583,7 +583,8 @@ export function createStandardTextureShaderVariantKey(
     !features.emissiveTexture &&
     features.shadowMap !== true &&
     features.pointShadowMap !== true &&
-    features.texCoord1 !== true
+    features.texCoord1 !== true &&
+    features.vertexColor !== true
   ) {
     return STANDARD_METALLIC_ROUGHNESS_TEXTURE_SHADER_VARIANT;
   }
@@ -598,7 +599,8 @@ export function createStandardTextureShaderVariantKey(
     features.pointShadowMap !== true &&
     features.iblDiffuse !== true &&
     features.iblSpecularProof !== true &&
-    features.texCoord1 !== true
+    features.texCoord1 !== true &&
+    features.vertexColor !== true
   ) {
     return STANDARD_SHADOW_MAP_SHADER_VARIANT;
   }
@@ -613,7 +615,8 @@ export function createStandardTextureShaderVariantKey(
     !features.emissiveTexture &&
     features.iblDiffuse !== true &&
     features.iblSpecularProof !== true &&
-    features.texCoord1 !== true
+    features.texCoord1 !== true &&
+    features.vertexColor !== true
   ) {
     return STANDARD_POINT_SHADOW_MAP_SHADER_VARIANT;
   }
@@ -628,7 +631,8 @@ export function createStandardTextureShaderVariantKey(
     !features.emissiveTexture &&
     features.iblDiffuse !== true &&
     features.iblSpecularProof !== true &&
-    features.texCoord1 !== true
+    features.texCoord1 !== true &&
+    features.vertexColor !== true
   ) {
     return STANDARD_MULTI_SHADOW_MAP_SHADER_VARIANT;
   }
@@ -643,7 +647,8 @@ export function createStandardTextureShaderVariantKey(
     !features.emissiveTexture &&
     features.shadowMap !== true &&
     features.pointShadowMap !== true &&
-    features.texCoord1 !== true
+    features.texCoord1 !== true &&
+    features.vertexColor !== true
   ) {
     return STANDARD_DIFFUSE_IBL_SHADER_VARIANT;
   }
@@ -658,7 +663,8 @@ export function createStandardTextureShaderVariantKey(
     !features.emissiveTexture &&
     features.shadowMap !== true &&
     features.pointShadowMap !== true &&
-    features.texCoord1 !== true
+    features.texCoord1 !== true &&
+    features.vertexColor !== true
   ) {
     return STANDARD_SPECULAR_IBL_PROOF_SHADER_VARIANT;
   }
@@ -1415,7 +1421,8 @@ function standardTextureVariantShaderLabel(
     features.pointShadowMap !== true &&
     features.iblDiffuse !== true &&
     features.iblSpecularProof !== true &&
-    features.texCoord1 !== true
+    features.texCoord1 !== true &&
+    features.vertexColor !== true
   ) {
     return "aperture/standard-mesh-base-color-textured";
   }
@@ -1430,7 +1437,8 @@ function standardTextureVariantShaderLabel(
     features.pointShadowMap !== true &&
     features.iblDiffuse !== true &&
     features.iblSpecularProof !== true &&
-    features.texCoord1 !== true
+    features.texCoord1 !== true &&
+    features.vertexColor !== true
   ) {
     return "aperture/standard-mesh-metallic-roughness-textured";
   }
@@ -1444,7 +1452,8 @@ function standardTextureVariantShaderLabel(
     features.shadowMap !== true &&
     features.pointShadowMap !== true &&
     features.iblSpecularProof !== true &&
-    features.texCoord1 !== true
+    features.texCoord1 !== true &&
+    features.vertexColor !== true
   ) {
     return "aperture/standard-mesh-base-color-metallic-roughness-textured";
   }
@@ -1458,7 +1467,8 @@ function standardTextureVariantShaderLabel(
     !features.emissiveTexture &&
     features.pointShadowMap !== true &&
     features.iblDiffuse !== true &&
-    features.texCoord1 !== true
+    features.texCoord1 !== true &&
+    features.vertexColor !== true
   ) {
     return "aperture/standard-mesh-shadow-receiver";
   }
@@ -1472,7 +1482,8 @@ function standardTextureVariantShaderLabel(
     !features.occlusionTexture &&
     !features.emissiveTexture &&
     features.iblDiffuse !== true &&
-    features.texCoord1 !== true
+    features.texCoord1 !== true &&
+    features.vertexColor !== true
   ) {
     return "aperture/standard-mesh-point-shadow-receiver";
   }
@@ -1486,7 +1497,8 @@ function standardTextureVariantShaderLabel(
     !features.occlusionTexture &&
     !features.emissiveTexture &&
     features.iblDiffuse !== true &&
-    features.texCoord1 !== true
+    features.texCoord1 !== true &&
+    features.vertexColor !== true
   ) {
     return "aperture/standard-mesh-multi-shadow-receiver";
   }
@@ -1501,7 +1513,8 @@ function standardTextureVariantShaderLabel(
     !features.emissiveTexture &&
     features.shadowMap !== true &&
     features.pointShadowMap !== true &&
-    features.texCoord1 !== true
+    features.texCoord1 !== true &&
+    features.vertexColor !== true
   ) {
     return "aperture/standard-mesh-diffuse-ibl";
   }
@@ -1516,7 +1529,8 @@ function standardTextureVariantShaderLabel(
     !features.emissiveTexture &&
     features.shadowMap !== true &&
     features.pointShadowMap !== true &&
-    features.texCoord1 !== true
+    features.texCoord1 !== true &&
+    features.vertexColor !== true
   ) {
     return "aperture/standard-mesh-diffuse-specular-ibl-proof";
   }

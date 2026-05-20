@@ -1,6 +1,159 @@
 # Agent Handoff
 
-Updated: 2026-05-20T15:52:17Z
+Updated: 2026-05-20T16:52:54Z
+
+## Current Run Continuation — 2026-05-20T16:47:00Z — Extended StandardMaterial GLB texture routes
+
+The stop hook requested continuation after the first checkpoint attempt, so this
+run continued past `task-2153` and completed `task-2154`, `task-2155`,
+`task-2156`, and `task-2157`.
+
+### What changed
+
+- Added committed GLB viewer samples for StandardMaterial
+  `metallicRoughnessTexture` plus `normalTexture`, UV1 `baseColorTexture` plus
+  `normalTexture`, `baseColorTexture` plus `emissiveTexture`, and alpha-mask
+  plus `normalTexture`.
+- Added shader/pipeline descriptor coverage for the new combined routes,
+  including metallic/normal tangent requirements, UV1 base/normal sampling, and
+  base/emissive contribution ordering.
+- Added focused Playwright coverage for JSON-safe texture-slot status,
+  mesh-layout status, mask render state, visible pixel deltas, and clean WebGPU
+  validation.
+- Updated the public tracker pages and backlog. Recommended next task is
+  `task-2158 — Add StandardMaterial occlusion plus normal-map GLB viewer sample`.
+
+### Files touched
+
+- `agent/BACKLOG.md`
+- `agent/COMPLETED.md`
+- `agent/HANDOFF.md`
+- `agent/STATUS.json`
+- `docs/index.html`
+- `docs/render-pipeline-comparison.html`
+- `examples/glb-viewer.js`
+- `examples/assets/standard-alpha-normal.glb`
+- `examples/assets/standard-base-emissive.glb`
+- `examples/assets/standard-metallic-normal.glb`
+- `examples/assets/standard-uv1-base-normal.glb`
+- `packages/webgpu/src/webgpu/standard-shader.ts`
+- `test/assets/gltf-mesh-asset-construction.test.ts`
+- `test/e2e/glb-viewer.spec.ts`
+- `test/webgpu/standard-pipeline-descriptor.test.ts`
+- `test/webgpu/standard-pipeline.test.ts`
+- `test/webgpu/standard-shader.test.ts`
+
+### References inspected
+
+- `references/three.js/examples/jsm/loaders/GLTFLoader.js`
+- `references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/base.js`
+- `references/engine/src/scene/shader-lib/wgsl/chunks/standard/frag/normalMap.js`
+
+### Validation
+
+- `node --check examples/glb-viewer.js`
+- `pnpm exec vitest run test/webgpu/standard-shader.test.ts test/webgpu/standard-pipeline-descriptor.test.ts`
+- `pnpm exec vitest run test/webgpu/standard-shader.test.ts`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts --grep "metallic-roughness texture plus normal map"`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts --grep "base-color plus normal textures through TEXCOORD_1"`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts --grep "base-color texture plus emissive texture"`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts --grep "alpha-mask plus normal-map sample"`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts --grep "metallic-roughness texture plus normal map|base-color plus normal textures through TEXCOORD_1|base-color texture plus emissive texture|alpha-mask plus normal-map sample"` (4 passed)
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm run check:progress`
+- `pnpm run build`
+- `pnpm run lint`
+- `pnpm run format:check`
+
+### Known issues
+
+- The next ready task is `task-2158`. Note that the older
+  `normal-occlusion-controls` sample already covers a similar route; the next
+  slice should either add a dedicated StandardMaterial occlusion/normal sample
+  matching the new task wording or retire the duplicate with an explicit
+  backlog note.
+
+### Recommended next task
+
+`task-2158 — Add StandardMaterial occlusion plus normal-map GLB viewer sample`.
+
+## Current Run Update — 2026-05-20T16:29:23Z — StandardMaterial combined GLB texture fidelity
+
+Completed `task-2150`, `task-2151`, `task-2152`, and `task-2153`.
+
+### What changed
+
+- Added committed GLB viewer samples for normal maps through `TEXCOORD_1`,
+  transformed UV1 normal maps, StandardMaterial `baseColorTexture` plus
+  `COLOR_0`, and StandardMaterial `baseColorTexture` plus `normalTexture`.
+- Added the samples to `examples/glb-viewer.js` so the visible sample selector
+  exercises these material routes through fetch, glTF import, ECS replay,
+  extraction, and WebGPU rendering.
+- Fixed StandardMaterial shader variant specialization so
+  `baseColorTexture` plus `COLOR_0` gets a distinct shader/pipeline label
+  instead of reusing the base-color-only fast path.
+- Added mesh-construction coverage for interleaved `TANGENT` plus `TEXCOORD_1`
+  layouts, shader/pipeline coverage for combined texture routes, and focused
+  Playwright coverage for the four new GLB viewer samples.
+- Updated the public progress dashboard and render-pipeline comparison page to
+  reflect the newly covered StandardMaterial texture combinations.
+- Refilled the ready queue with visible StandardMaterial GLB fidelity tasks.
+  Recommended next task is
+  `task-2154 — StandardMaterial metallic-roughness plus normal-texture GLB viewer sample`.
+
+### Files touched
+
+- `agent/BACKLOG.md`
+- `agent/COMPLETED.md`
+- `agent/HANDOFF.md`
+- `agent/STATUS.json`
+- `docs/index.html`
+- `docs/render-pipeline-comparison.html`
+- `examples/glb-viewer.js`
+- `examples/assets/normal-map-uv1.glb`
+- `examples/assets/normal-map-uv1-transform.glb`
+- `examples/assets/standard-base-normal.glb`
+- `examples/assets/standard-textured-vertex-color.glb`
+- `packages/webgpu/src/webgpu/standard-shader.ts`
+- `test/assets/gltf-mesh-asset-construction.test.ts`
+- `test/e2e/glb-viewer.spec.ts`
+- `test/webgpu/standard-pipeline-descriptor.test.ts`
+- `test/webgpu/standard-pipeline.test.ts`
+- `test/webgpu/standard-shader.test.ts`
+
+### References inspected
+
+- `references/three.js/examples/jsm/loaders/GLTFLoader.js`
+- `references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/base.js`
+- `references/engine/src/scene/shader-lib/wgsl/chunks/standard/frag/normalMap.js`
+
+### Validation
+
+- `node --check examples/glb-viewer.js`
+- `pnpm exec vitest run test/assets/gltf-mesh-asset-construction.test.ts test/webgpu/standard-shader.test.ts test/webgpu/standard-pipeline.test.ts`
+- `pnpm exec vitest run test/webgpu/standard-shader.test.ts test/webgpu/standard-pipeline-descriptor.test.ts test/webgpu/standard-pipeline.test.ts`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts --grep "normal map through TEXCOORD_1"`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts --grep "textured vertex colors through the StandardMaterial route"`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts --grep "base-color texture plus normal map"`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts --grep "transformed UV1 normal map"`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts --grep "normal map through TEXCOORD_1|textured vertex colors through the StandardMaterial route|base-color texture plus normal map|transformed UV1 normal map"` (4 passed)
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm run check:progress`
+- `pnpm run build`
+- `pnpm run lint`
+- `pnpm run format:check`
+
+### Known issues
+
+- Broad GLB viewer coverage still uses focused Playwright grep runs for these
+  slices; the broader smoke path remains heavier because it switches many
+  sample assets.
+- Remaining StandardMaterial texture-combination fidelity is tracked in
+  `task-2154` through `task-2158`.
+
+### Recommended next task
+
+`task-2154 — StandardMaterial metallic-roughness plus normal-texture GLB viewer sample`.
 
 ## Current Run Update — 2026-05-20T15:52:17Z — Stop-hook work-window default
 
