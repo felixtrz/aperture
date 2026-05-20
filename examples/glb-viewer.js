@@ -273,6 +273,60 @@ const sampleAssets = [
     source: "sample",
   },
   {
+    id: "standard-occlusion-normal",
+    label: "Occlusion + normal texture",
+    url: new URL(
+      "./assets/standard-occlusion-normal.glb",
+      globalThis.location.href,
+    ),
+    source: "sample",
+  },
+  {
+    id: "standard-metallic-emissive",
+    label: "MR + emissive texture",
+    url: new URL(
+      "./assets/standard-metallic-emissive.glb",
+      globalThis.location.href,
+    ),
+    source: "sample",
+  },
+  {
+    id: "standard-alpha-blend-normal",
+    label: "Alpha blend + normal",
+    url: new URL(
+      "./assets/standard-alpha-blend-normal.glb",
+      globalThis.location.href,
+    ),
+    source: "sample",
+  },
+  {
+    id: "standard-uv1-metallic-normal",
+    label: "UV1 MR + normal",
+    url: new URL(
+      "./assets/standard-uv1-metallic-normal.glb",
+      globalThis.location.href,
+    ),
+    source: "sample",
+  },
+  {
+    id: "standard-base-occlusion",
+    label: "Base + occlusion texture",
+    url: new URL(
+      "./assets/standard-base-occlusion.glb",
+      globalThis.location.href,
+    ),
+    source: "sample",
+  },
+  {
+    id: "standard-base-emissive-transform",
+    label: "Transformed base + emissive",
+    url: new URL(
+      "./assets/standard-base-emissive-transform.glb",
+      globalThis.location.href,
+    ),
+    source: "sample",
+  },
+  {
     id: "normal-scale",
     label: "Normal scale",
     url: new URL("./assets/normal-scale.glb", globalThis.location.href),

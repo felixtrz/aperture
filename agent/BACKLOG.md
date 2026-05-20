@@ -59,8 +59,8 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start with `task-2158`: add a StandardMaterial occlusion plus normal-map GLB
-viewer sample.
+Start with `task-2164`: add a UV1 base-color plus occlusion-texture GLB viewer
+sample.
 
 `task-2001` is complete: the spinning-cube example now creates a renderer-owned face-colored diffuse IBL cube texture and sampler, routes it through the StandardMaterial diffuse IBL shader variant, and Playwright verifies direction-dependent face pixels.
 `task-2002` is complete: `withEnvironmentMap(handle)` is exported from runtime/core and materials-showcase now uses it with visible diffuse IBL routing.
@@ -2655,6 +2655,8 @@ Acceptance criteria:
 
 ### task-2158 — Add StandardMaterial occlusion plus normal-map GLB viewer sample
 
+Status: completed 2026-05-20. See `agent/COMPLETED.md`.
+
 Category: `webgpu-render`
 Package/write-scope: `packages/webgpu/src`, `examples/assets`,
 `examples/glb-viewer.js`, `test/e2e/glb-viewer.spec.ts`, targeted tests.
@@ -2672,6 +2674,8 @@ Acceptance criteria:
   validation warnings.
 
 ### task-2159 — Add StandardMaterial metallic-roughness plus emissive-texture GLB viewer sample
+
+Status: completed 2026-05-20. See `agent/COMPLETED.md`.
 
 Category: `webgpu-render`
 Package/write-scope: `packages/webgpu/src`, `examples/assets`,
@@ -2691,6 +2695,8 @@ Acceptance criteria:
 
 ### task-2160 — Add StandardMaterial alpha-blend plus normal-map GLB viewer sample
 
+Status: completed 2026-05-20. See `agent/COMPLETED.md`.
+
 Category: `webgpu-render`
 Package/write-scope: `packages/webgpu/src`, `examples/assets`,
 `examples/glb-viewer.js`, `test/e2e/glb-viewer.spec.ts`, targeted tests.
@@ -2708,6 +2714,8 @@ Acceptance criteria:
   status, and no WebGPU validation warnings.
 
 ### task-2161 — Add UV1 metallic-roughness plus normal-texture GLB viewer sample
+
+Status: completed 2026-05-20. See `agent/COMPLETED.md`.
 
 Category: `webgpu-render`
 Package/write-scope: `packages/webgpu/src`, `examples/assets`,
@@ -2727,6 +2735,8 @@ Acceptance criteria:
 
 ### task-2162 — Add StandardMaterial base-color plus occlusion-texture GLB viewer sample
 
+Status: completed 2026-05-20. See `agent/COMPLETED.md`.
+
 Category: `webgpu-render`
 Package/write-scope: `packages/webgpu/src`, `examples/assets`,
 `examples/glb-viewer.js`, `test/e2e/glb-viewer.spec.ts`, targeted tests.
@@ -2744,6 +2754,8 @@ Acceptance criteria:
 
 ### task-2163 — Add transformed base-color plus emissive-texture GLB viewer sample
 
+Status: completed 2026-05-20. See `agent/COMPLETED.md`.
+
 Category: `webgpu-render`
 Package/write-scope: `packages/webgpu/src`, `examples/assets`,
 `examples/glb-viewer.js`, `test/e2e/glb-viewer.spec.ts`, targeted tests.
@@ -2759,6 +2771,97 @@ Acceptance criteria:
   other slot remains untransformed, with JSON-safe transform status.
 - Playwright verifies transform metadata, visible transformed-vs-untransformed
   pixel differences, and no WebGPU validation warnings.
+
+### task-2164 — Add UV1 base-color plus occlusion-texture GLB viewer sample
+
+Category: `webgpu-render`
+Package/write-scope: `packages/webgpu/src`, `examples/assets`,
+`examples/glb-viewer.js`, `test/e2e/glb-viewer.spec.ts`, targeted tests.
+Reference anchor: `references/three.js/examples/jsm/loaders/GLTFLoader.js`;
+`references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/base.js`.
+
+Acceptance criteria:
+
+- A committed StandardMaterial GLB sample combines `baseColorTexture` and
+  `occlusionTexture` where both texture bindings declare `texCoord = 1`.
+- The mesh provides `TEXCOORD_1`, the combined pipeline key includes `uv1`, and
+  the JSON-safe status reports both UV1 texture slots without extraction
+  diagnostics.
+- Playwright verifies visible UV1 pixels against a UV0/scalar control and no
+  WebGPU validation warnings.
+
+### task-2165 — Add transformed metallic-roughness plus normal-texture GLB viewer sample
+
+Category: `webgpu-render`
+Package/write-scope: `packages/webgpu/src`, `examples/assets`,
+`examples/glb-viewer.js`, `test/e2e/glb-viewer.spec.ts`, targeted tests.
+Reference anchor: `references/three.js/examples/jsm/loaders/GLTFLoader.js`;
+`references/engine/src/scene/shader-lib/wgsl/chunks/standard/frag/normalMap.js`;
+`references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/base.js`.
+
+Acceptance criteria:
+
+- A committed StandardMaterial GLB sample combines `metallicRoughnessTexture`
+  and `normalTexture` where at least the metallic-roughness slot carries
+  `KHR_texture_transform` metadata.
+- The transformed metallic-roughness slot and untransformed normal slot both
+  route through the same StandardMaterial pipeline without renderer-owned source
+  material state.
+- Playwright verifies transform metadata, tangent mesh-layout status, visible
+  transformed-vs-control pixel differences, and no WebGPU validation warnings.
+
+### task-2166 — Add base-color plus metallic-roughness plus emissive GLB viewer sample
+
+Category: `webgpu-render`
+Package/write-scope: `packages/webgpu/src`, `examples/assets`,
+`examples/glb-viewer.js`, `test/e2e/glb-viewer.spec.ts`, targeted tests.
+Reference anchor: `references/three.js/examples/jsm/loaders/GLTFLoader.js`;
+`references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/base.js`.
+
+Acceptance criteria:
+
+- A committed StandardMaterial GLB sample combines `baseColorTexture`,
+  `metallicRoughnessTexture`, and `emissiveTexture` on one primitive plus
+  simpler controls.
+- The shader route applies base-color and metallic/roughness sampling before
+  lighting, then emissive texture contribution after lighting.
+- Playwright verifies texture-slot status, visible textured/control pixel
+  deltas, emissive contribution, and no WebGPU validation warnings.
+
+### task-2167 — Add alpha-blend plus emissive-texture GLB viewer sample
+
+Category: `webgpu-render`
+Package/write-scope: `packages/webgpu/src`, `examples/assets`,
+`examples/glb-viewer.js`, `test/e2e/glb-viewer.spec.ts`, targeted tests.
+Reference anchor: `references/three.js/examples/jsm/loaders/GLTFLoader.js`;
+`references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/base.js`.
+
+Acceptance criteria:
+
+- A committed StandardMaterial GLB sample combines `alphaMode: "BLEND"`, a
+  base-color alpha texture, and `emissiveTexture` on one primitive plus an
+  opaque control.
+- The selected pipeline keeps alpha blending, depth-write policy, and emissive
+  texture contribution active in JSON-safe status.
+- Playwright verifies translucent pixels, emissive contribution, render-state
+  status, and no WebGPU validation warnings.
+
+### task-2168 — Add UV1 base-color plus emissive-texture GLB viewer sample
+
+Category: `webgpu-render`
+Package/write-scope: `packages/webgpu/src`, `examples/assets`,
+`examples/glb-viewer.js`, `test/e2e/glb-viewer.spec.ts`, targeted tests.
+Reference anchor: `references/three.js/examples/jsm/loaders/GLTFLoader.js`;
+`references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/base.js`.
+
+Acceptance criteria:
+
+- A committed StandardMaterial GLB sample combines `baseColorTexture` and
+  `emissiveTexture` where both texture bindings declare `texCoord = 1`.
+- The mesh provides `TEXCOORD_1`, the combined pipeline key includes `uv1`, and
+  the JSON-safe status reports independent UV1 base/emissive slots.
+- Playwright verifies visible UV1 pixels against a UV0/scalar control,
+  emissive contribution, and no WebGPU validation warnings.
 
 ## Ready Tasks By Category
 

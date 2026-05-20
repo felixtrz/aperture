@@ -709,6 +709,56 @@ describe("built-in standard material WGSL shader metadata", () => {
     ]);
   });
 
+  it("combines StandardMaterial base-color texture sampling with occlusion texture sampling", () => {
+    const shader = createStandardTextureVariantShader({
+      baseColorTexture: true,
+      metallicRoughnessTexture: false,
+      normalTexture: false,
+      occlusionTexture: true,
+      emissiveTexture: false,
+    });
+
+    expect(validateStandardShaderMetadata(shader)).toEqual({
+      valid: true,
+      diagnostics: [],
+    });
+    expect(
+      createStandardTextureShaderVariantKey({
+        baseColorTexture: true,
+        metallicRoughnessTexture: false,
+        normalTexture: false,
+        occlusionTexture: true,
+        emissiveTexture: false,
+      }),
+    ).toBe("direct-lit-metallic-roughness-base-color-occlusion-texture");
+    expect(shader.label).toBe(
+      "aperture/standard-mesh-base-color-occlusion-textured",
+    );
+    expect(shader.code).toContain("textureSample(baseColorTexture");
+    expect(shader.code).toContain("occlusionSample.r");
+    expect(shader.code).toContain(
+      "ambient * baseColor * (1.0 - metallic) * occlusion",
+    );
+    expect(
+      shader.bindings.map((binding) => [
+        binding.id,
+        binding.group,
+        binding.binding,
+        binding.resource,
+      ]),
+    ).toEqual([
+      ["viewProjection", 0, 0, "uniform-buffer"],
+      ["worldTransforms", 1, 0, "read-only-storage-buffer"],
+      ["standardMaterial", 2, 0, "uniform-buffer"],
+      ["lightFloats", 3, 0, "read-only-storage-buffer"],
+      ["lightMetadata", 3, 1, "read-only-storage-buffer"],
+      ["baseColorTexture", 2, 1, "texture"],
+      ["baseColorSampler", 2, 2, "sampler"],
+      ["occlusionTexture", 2, 7, "texture"],
+      ["occlusionSampler", 2, 8, "sampler"],
+    ]);
+  });
+
   it("routes StandardMaterial base-color plus normal textures through TEXCOORD_1", () => {
     const shader = createStandardTextureVariantShader({
       baseColorTexture: true,
@@ -802,6 +852,114 @@ describe("built-in standard material WGSL shader metadata", () => {
       ["metallicRoughnessSampler", 2, 4, "sampler"],
       ["normalTexture", 2, 5, "texture"],
       ["normalSampler", 2, 6, "sampler"],
+    ]);
+  });
+
+  it("combines StandardMaterial occlusion texture sampling with normal mapping", () => {
+    const shader = createStandardTextureVariantShader({
+      baseColorTexture: false,
+      metallicRoughnessTexture: false,
+      normalTexture: true,
+      occlusionTexture: true,
+      emissiveTexture: false,
+    });
+
+    expect(validateStandardShaderMetadata(shader)).toEqual({
+      valid: true,
+      diagnostics: [],
+    });
+    expect(
+      createStandardTextureShaderVariantKey({
+        baseColorTexture: false,
+        metallicRoughnessTexture: false,
+        normalTexture: true,
+        occlusionTexture: true,
+        emissiveTexture: false,
+      }),
+    ).toBe("direct-lit-metallic-roughness-normal-map-occlusion-texture");
+    expect(shader.label).toBe(
+      "aperture/standard-mesh-normal-map-occlusion-textured",
+    );
+    expect(shader.code).toContain("sampleTangentSpaceNormal");
+    expect(shader.code).toContain("textureSample(normalTexture, normalSampler");
+    expect(shader.code).toContain("occlusionSample.r");
+    expect(shader.code).toContain(
+      "ambient * baseColor * (1.0 - metallic) * occlusion",
+    );
+    expect(
+      shader.bindings.map((binding) => [
+        binding.id,
+        binding.group,
+        binding.binding,
+        binding.resource,
+      ]),
+    ).toEqual([
+      ["viewProjection", 0, 0, "uniform-buffer"],
+      ["worldTransforms", 1, 0, "read-only-storage-buffer"],
+      ["standardMaterial", 2, 0, "uniform-buffer"],
+      ["lightFloats", 3, 0, "read-only-storage-buffer"],
+      ["lightMetadata", 3, 1, "read-only-storage-buffer"],
+      ["normalTexture", 2, 5, "texture"],
+      ["normalSampler", 2, 6, "sampler"],
+      ["occlusionTexture", 2, 7, "texture"],
+      ["occlusionSampler", 2, 8, "sampler"],
+    ]);
+  });
+
+  it("combines StandardMaterial metallic-roughness sampling with emissive texture contribution", () => {
+    const shader = createStandardTextureVariantShader({
+      baseColorTexture: false,
+      metallicRoughnessTexture: true,
+      normalTexture: false,
+      occlusionTexture: false,
+      emissiveTexture: true,
+    });
+
+    expect(validateStandardShaderMetadata(shader)).toEqual({
+      valid: true,
+      diagnostics: [],
+    });
+    expect(
+      createStandardTextureShaderVariantKey({
+        baseColorTexture: false,
+        metallicRoughnessTexture: true,
+        normalTexture: false,
+        occlusionTexture: false,
+        emissiveTexture: true,
+      }),
+    ).toBe("direct-lit-metallic-roughness-metallic-roughness-emissive-texture");
+    expect(shader.label).toBe(
+      "aperture/standard-mesh-metallic-roughness-emissive-textured",
+    );
+    expect(shader.code).toContain(
+      "material.metallicFactor * metallicRoughnessSample.b",
+    );
+    expect(shader.code).toContain(
+      "material.roughnessFactor * metallicRoughnessSample.g",
+    );
+    expect(shader.code).toContain(
+      "material.emissiveFactor * emissiveSample.rgb",
+    );
+    expect(shader.code).toContain(
+      "let color = ambientDiffuse + direct + emissive",
+    );
+    expect(
+      shader.bindings.map((binding) => [
+        binding.id,
+        binding.group,
+        binding.binding,
+        binding.resource,
+      ]),
+    ).toEqual([
+      ["viewProjection", 0, 0, "uniform-buffer"],
+      ["worldTransforms", 1, 0, "read-only-storage-buffer"],
+      ["standardMaterial", 2, 0, "uniform-buffer"],
+      ["lightFloats", 3, 0, "read-only-storage-buffer"],
+      ["lightMetadata", 3, 1, "read-only-storage-buffer"],
+      ["metallicRoughnessTexture", 2, 3, "texture"],
+      ["metallicRoughnessSampler", 2, 4, "sampler"],
+      ["emissiveTexture", 2, 9, "texture"],
+      ["emissiveSampler", 2, 10, "sampler"],
     ]);
   });
 

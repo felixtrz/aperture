@@ -393,16 +393,20 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-20 16:47 UTC</dd>
+            <dd>2026-05-20 17:27 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
-              The GLB viewer now renders StandardMaterial metallic-roughness
-              plus normal textures, UV1 base-color plus normal textures,
-              base-color plus emissive textures, and alpha-mask plus normal-map
-              routes through committed GLB samples with JSON-safe status and
-              browser pixel proof. It also renders normal maps through
+              The GLB viewer now renders extended StandardMaterial combined
+              texture routes: occlusion plus normal, metallic-roughness plus
+              emissive, alpha-blend plus normal, UV1 metallic-roughness plus
+              normal, base-color plus occlusion, and transformed base-color plus
+              emissive. It also renders metallic-roughness plus normal textures,
+              UV1 base-color plus normal textures, base-color plus emissive
+              textures, and alpha-mask plus normal-map routes through committed
+              GLB samples with JSON-safe status and browser pixel proof. It also
+              renders normal maps through
               <code>TEXCOORD_1</code>, StandardMaterial base-color textures
               combined with <code>COLOR_0</code>, base-color plus normal
               textures, and transformed UV1 normal maps. The GLB viewer also
@@ -1621,6 +1625,13 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">task-2158-2163</span> Added six
+                committed StandardMaterial GLB viewer samples for occlusion plus
+                normal, metallic-roughness plus emissive, alpha-blend plus
+                normal, UV1 metallic-roughness plus normal, base-color plus
+                occlusion, and transformed base-color plus emissive routes.
+              </li>
               <li>
                 <span class="badge green">task-2157</span> Added a committed
                 StandardMaterial alpha-mask plus normal-map GLB sample with
@@ -3693,18 +3704,17 @@
             <h3>Recommended next tasks</h3>
             <ul>
               <li>
-                <span class="badge amber">next</span> Add a dedicated
-                StandardMaterial occlusion plus normal-map GLB viewer sample.
+                <span class="badge amber">next</span> Add a UV1 base-color plus
+                occlusion-texture GLB viewer sample.
               </li>
               <li>
-                Verify one primitive combines
-                <code>occlusionTexture</code> and <code>normalTexture</code>
-                while a scalar/control region still renders.
+                Verify both texture bindings declare <code>texCoord = 1</code>,
+                the mesh provides <code>TEXCOORD_1</code>, and the pipeline key
+                includes <code>uv1</code>.
               </li>
               <li>
-                Check JSON-safe texture-slot status, tangent mesh layout,
-                occlusion darkening, normal-map response, and WebGPU validation
-                cleanliness.
+                Check JSON-safe texture-slot status, visible UV1 pixels against
+                UV0/scalar controls, and WebGPU validation cleanliness.
               </li>
             </ul>
           </article>
@@ -3717,6 +3727,21 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-2158-2163</div>
+            <div>
+              <strong
+                >Extended combined StandardMaterial GLB routes render.</strong
+              >
+              <span
+                >GLB viewer samples now prove occlusion plus normal,
+                metallic-roughness plus emissive, alpha-blend plus normal, UV1
+                metallic-roughness plus normal, base-color plus occlusion, and
+                transformed base-color plus emissive routes with JSON-safe
+                status and browser pixel proof.</span
+              >
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-2154-2157</div>
             <div>

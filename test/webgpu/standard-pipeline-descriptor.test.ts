@@ -554,6 +554,307 @@ describe("standard material pipeline descriptor planning", () => {
     });
   });
 
+  it("specializes occlusion plus normal-map variants with tangent vertex attributes", () => {
+    const batchKey: BatchCompatibilityKey = {
+      ...STANDARD_BATCH_KEY,
+      pipelineKey:
+        "standard|normalTexture|occlusionTexture|opaque|back|less|none",
+      meshLayoutKey: "POSITION,NORMAL,TEXCOORD_0,TANGENT",
+      materialKey: "material:standard-occlusion-normal",
+    };
+    const featurePlan = createStandardPipelineShaderFeaturePlan(batchKey);
+    const descriptor = createStandardPipelineDescriptorPlan({
+      colorFormat: "bgra8unorm",
+      batchKey,
+    });
+
+    expect(featurePlan).toMatchObject({
+      variantKey: "direct-lit-metallic-roughness-normal-map-occlusion-texture",
+      shader: {
+        label: "aperture/standard-mesh-normal-map-occlusion-textured",
+      },
+      features: {
+        normalTexture: true,
+        occlusionTexture: true,
+      },
+      normalMap: {
+        authored: true,
+        requiresTangents: true,
+        output: "tangent-space-normal-mapping",
+      },
+    });
+    expect(descriptor.diagnostics).toEqual([]);
+    expect(descriptor.plan?.descriptor).toMatchObject({
+      label:
+        "aperture/standard-mesh-normal-map-occlusion-textured:bgra8unorm:triangle-list",
+      vertex: {
+        moduleLabel: "aperture/standard-mesh-normal-map-occlusion-textured",
+        buffers: ["POSITION", "NORMAL", "TEXCOORD_0", "TANGENT"],
+      },
+      fragment: {
+        moduleLabel: "aperture/standard-mesh-normal-map-occlusion-textured",
+      },
+    });
+    expect(
+      JSON.parse(required(descriptor.plan).cacheKey) as unknown,
+    ).toMatchObject({
+      shader: {
+        variantKey:
+          "direct-lit-metallic-roughness-normal-map-occlusion-texture",
+      },
+      layouts: {
+        vertex: "POSITION,NORMAL,TEXCOORD_0,TANGENT",
+        bindGroups: [
+          "standard/group-0:view-uniform@0",
+          "standard/group-1:world-transforms@0",
+          "standard/group-2:material-normal-map-occlusion-texture@0,5,6,7,8",
+          "lights/group-3:light-floats@0,light-metadata@1",
+        ],
+      },
+      material: {
+        pipelineKey:
+          "standard|normalTexture|occlusionTexture|opaque|back|less|none",
+      },
+      batch: batchKey,
+    });
+  });
+
+  it("specializes metallic-roughness plus emissive texture variants", () => {
+    const batchKey: BatchCompatibilityKey = {
+      ...STANDARD_BATCH_KEY,
+      pipelineKey:
+        "standard|emissiveTexture|metallicRoughnessTexture|opaque|back|less|none",
+      meshLayoutKey: "POSITION,NORMAL,TEXCOORD_0",
+      materialKey: "material:standard-metallic-emissive",
+    };
+    const featurePlan = createStandardPipelineShaderFeaturePlan(batchKey);
+    const descriptor = createStandardPipelineDescriptorPlan({
+      colorFormat: "bgra8unorm",
+      batchKey,
+    });
+
+    expect(featurePlan).toMatchObject({
+      variantKey:
+        "direct-lit-metallic-roughness-metallic-roughness-emissive-texture",
+      shader: {
+        label: "aperture/standard-mesh-metallic-roughness-emissive-textured",
+      },
+      features: {
+        metallicRoughnessTexture: true,
+        emissiveTexture: true,
+      },
+      normalMap: {
+        authored: false,
+        requiresTangents: false,
+        output: "unchanged",
+      },
+    });
+    expect(descriptor.diagnostics).toEqual([]);
+    expect(descriptor.plan?.descriptor).toMatchObject({
+      label:
+        "aperture/standard-mesh-metallic-roughness-emissive-textured:bgra8unorm:triangle-list",
+      vertex: {
+        moduleLabel:
+          "aperture/standard-mesh-metallic-roughness-emissive-textured",
+        buffers: ["POSITION", "NORMAL", "TEXCOORD_0"],
+      },
+      fragment: {
+        moduleLabel:
+          "aperture/standard-mesh-metallic-roughness-emissive-textured",
+      },
+    });
+    expect(
+      JSON.parse(required(descriptor.plan).cacheKey) as unknown,
+    ).toMatchObject({
+      shader: {
+        variantKey:
+          "direct-lit-metallic-roughness-metallic-roughness-emissive-texture",
+      },
+      layouts: {
+        vertex: "POSITION,NORMAL,TEXCOORD_0",
+        bindGroups: [
+          "standard/group-0:view-uniform@0",
+          "standard/group-1:world-transforms@0",
+          "standard/group-2:material-metallic-roughness-emissive-texture@0,3,4,9,10",
+          "lights/group-3:light-floats@0,light-metadata@1",
+        ],
+      },
+      material: {
+        pipelineKey:
+          "standard|emissiveTexture|metallicRoughnessTexture|opaque|back|less|none",
+      },
+      batch: batchKey,
+    });
+  });
+
+  it("specializes alpha-blended base-color plus normal-map variants without depth writes", () => {
+    const batchKey: BatchCompatibilityKey = {
+      ...STANDARD_BATCH_KEY,
+      pipelineKey:
+        "standard|baseColorTexture|normalTexture|blend|none|less|alpha",
+      meshLayoutKey: "POSITION,NORMAL,TEXCOORD_0,TANGENT",
+      materialKey: "material:standard-alpha-blend-normal",
+    };
+    const featurePlan = createStandardPipelineShaderFeaturePlan(batchKey);
+    const descriptor = createStandardPipelineDescriptorPlan({
+      colorFormat: "bgra8unorm",
+      depthFormat: "depth24plus",
+      batchKey,
+    });
+
+    expect(featurePlan).toMatchObject({
+      variantKey: "direct-lit-metallic-roughness-base-color-normal-map-texture",
+      shader: {
+        label: "aperture/standard-mesh-base-color-normal-map-textured",
+      },
+      features: {
+        baseColorTexture: true,
+        normalTexture: true,
+      },
+      normalMap: {
+        authored: true,
+        requiresTangents: true,
+        output: "tangent-space-normal-mapping",
+      },
+    });
+    expect(descriptor.diagnostics).toEqual([]);
+    expect(descriptor.plan?.descriptor).toMatchObject({
+      label:
+        "aperture/standard-mesh-base-color-normal-map-textured:bgra8unorm:triangle-list",
+      vertex: {
+        moduleLabel: "aperture/standard-mesh-base-color-normal-map-textured",
+        buffers: ["POSITION", "NORMAL", "TEXCOORD_0", "TANGENT"],
+      },
+      fragment: {
+        moduleLabel: "aperture/standard-mesh-base-color-normal-map-textured",
+        targets: [
+          {
+            format: "bgra8unorm",
+            blend: {
+              color: {
+                srcFactor: "src-alpha",
+                dstFactor: "one-minus-src-alpha",
+                operation: "add",
+              },
+              alpha: {
+                srcFactor: "one",
+                dstFactor: "one-minus-src-alpha",
+                operation: "add",
+              },
+            },
+          },
+        ],
+      },
+      primitive: {
+        cullMode: "none",
+      },
+      depthStencil: {
+        format: "depth24plus",
+        depthWriteEnabled: false,
+        depthCompare: "less",
+      },
+    });
+    expect(
+      JSON.parse(required(descriptor.plan).cacheKey) as unknown,
+    ).toMatchObject({
+      shader: {
+        variantKey:
+          "direct-lit-metallic-roughness-base-color-normal-map-texture",
+      },
+      layouts: {
+        vertex: "POSITION,NORMAL,TEXCOORD_0,TANGENT",
+        bindGroups: [
+          "standard/group-0:view-uniform@0",
+          "standard/group-1:world-transforms@0",
+          "standard/group-2:material-base-color-normal-map-texture@0,1,2,5,6",
+          "lights/group-3:light-floats@0,light-metadata@1",
+        ],
+      },
+      material: {
+        pipelineKey:
+          "standard|baseColorTexture|normalTexture|blend|none|less|alpha",
+      },
+      batch: batchKey,
+    });
+  });
+
+  it("specializes UV1 metallic-roughness plus normal-map variants", () => {
+    const batchKey: BatchCompatibilityKey = {
+      ...STANDARD_BATCH_KEY,
+      pipelineKey:
+        "standard|metallicRoughnessTexture|normalTexture|uv1|opaque|back|less|none",
+      meshLayoutKey: "POSITION,NORMAL,TEXCOORD_0,TANGENT,TEXCOORD_1",
+      materialKey: "material:standard-uv1-metallic-normal",
+    };
+    const featurePlan = createStandardPipelineShaderFeaturePlan(batchKey);
+    const descriptor = createStandardPipelineDescriptorPlan({
+      colorFormat: "bgra8unorm",
+      batchKey,
+    });
+
+    expect(featurePlan).toMatchObject({
+      variantKey:
+        "direct-lit-metallic-roughness-metallic-roughness-normal-map-uv1-texture",
+      shader: {
+        label:
+          "aperture/standard-mesh-metallic-roughness-normal-map-uv1-textured",
+      },
+      features: {
+        metallicRoughnessTexture: true,
+        normalTexture: true,
+        texCoord1: true,
+      },
+      normalMap: {
+        authored: true,
+        requiresTangents: true,
+        output: "tangent-space-normal-mapping",
+      },
+    });
+    expect(featurePlan.shader.code).toContain("@location(4) uv1: vec2f");
+    expect(featurePlan.shader.code).toContain(
+      "standardTextureUv(material.metallicRoughnessTexCoord, input.uv, input.uv1)",
+    );
+    expect(featurePlan.shader.code).toContain(
+      "standardTextureUv(material.normalTexCoord, input.uv, input.uv1)",
+    );
+    expect(descriptor.diagnostics).toEqual([]);
+    expect(descriptor.plan?.descriptor).toMatchObject({
+      label:
+        "aperture/standard-mesh-metallic-roughness-normal-map-uv1-textured:bgra8unorm:triangle-list",
+      vertex: {
+        moduleLabel:
+          "aperture/standard-mesh-metallic-roughness-normal-map-uv1-textured",
+        buffers: ["POSITION", "NORMAL", "TEXCOORD_0", "TANGENT", "TEXCOORD_1"],
+      },
+      fragment: {
+        moduleLabel:
+          "aperture/standard-mesh-metallic-roughness-normal-map-uv1-textured",
+      },
+    });
+    expect(
+      JSON.parse(required(descriptor.plan).cacheKey) as unknown,
+    ).toMatchObject({
+      shader: {
+        variantKey:
+          "direct-lit-metallic-roughness-metallic-roughness-normal-map-uv1-texture",
+      },
+      layouts: {
+        vertex: "POSITION,NORMAL,TEXCOORD_0,TANGENT,TEXCOORD_1",
+        bindGroups: [
+          "standard/group-0:view-uniform@0",
+          "standard/group-1:world-transforms@0",
+          "standard/group-2:material-metallic-roughness-normal-map-texture@0,3,4,5,6",
+          "lights/group-3:light-floats@0,light-metadata@1",
+        ],
+      },
+      material: {
+        pipelineKey:
+          "standard|metallicRoughnessTexture|normalTexture|uv1|opaque|back|less|none",
+      },
+      batch: batchKey,
+    });
+  });
+
   it("specializes vertex-color variants from COLOR_0 mesh layout", () => {
     const batchKey = {
       ...STANDARD_BATCH_KEY,

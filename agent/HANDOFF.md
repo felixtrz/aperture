@@ -1,6 +1,77 @@
 # Agent Handoff
 
-Updated: 2026-05-20T16:52:54Z
+Updated: 2026-05-20T17:27:31Z
+
+## Current Run Update — 2026-05-20T17:27:31Z — Extended StandardMaterial combined texture routes
+
+Completed `task-2158`, `task-2159`, `task-2160`, `task-2161`,
+`task-2162`, and `task-2163`.
+
+### What changed
+
+- Added committed GLB viewer samples for StandardMaterial occlusion plus normal,
+  metallic-roughness plus emissive, alpha-blend plus normal, UV1
+  metallic-roughness plus normal, base-color plus occlusion, and transformed
+  base-color plus emissive texture routes.
+- Added shader/pipeline descriptor coverage for the new combinations, including
+  normal/occlusion bindings, metallic/emissive contribution ordering,
+  alpha-blend depth-write policy, UV1 metallic/normal shader features, and
+  base/occlusion ambient modulation.
+- Added focused Playwright coverage for JSON-safe texture-slot status,
+  UV1/transform metadata, alpha render state, tangent/UV1 mesh layouts, visible
+  pixel deltas, and no WebGPU validation warnings.
+- Refilled the visible ready queue with `task-2164` through `task-2168`.
+  Recommended next task is
+  `task-2164 — Add UV1 base-color plus occlusion-texture GLB viewer sample`.
+
+### Files touched
+
+- `agent/BACKLOG.md`
+- `agent/COMPLETED.md`
+- `agent/HANDOFF.md`
+- `agent/STATUS.json`
+- `docs/index.html`
+- `docs/render-pipeline-comparison.html`
+- `examples/glb-viewer.js`
+- `examples/assets/standard-alpha-blend-normal.glb`
+- `examples/assets/standard-base-emissive-transform.glb`
+- `examples/assets/standard-base-occlusion.glb`
+- `examples/assets/standard-metallic-emissive.glb`
+- `examples/assets/standard-occlusion-normal.glb`
+- `examples/assets/standard-uv1-metallic-normal.glb`
+- `test/e2e/glb-viewer.spec.ts`
+- `test/webgpu/standard-pipeline-descriptor.test.ts`
+- `test/webgpu/standard-shader.test.ts`
+
+### References inspected
+
+- `references/three.js/examples/jsm/loaders/GLTFLoader.js`
+- `references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/base.js`
+- `references/engine/src/scene/shader-lib/wgsl/chunks/standard/frag/normalMap.js`
+
+### Validation
+
+- `node --check examples/glb-viewer.js`
+- `pnpm exec vitest run test/webgpu/standard-shader.test.ts test/webgpu/standard-pipeline-descriptor.test.ts`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts --grep "StandardMaterial occlusion plus normal map"`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts --grep "StandardMaterial occlusion plus normal map|metallic-roughness texture plus emissive texture"`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts --grep "alpha-blend texture plus normal map"`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts --grep "UV1 metallic-roughness plus normal textures"`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts --grep "base-color texture plus occlusion texture"`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts --grep "transformed base-color plus emissive texture"`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm run check:progress`
+- `pnpm run build`
+- `pnpm run lint`
+- `pnpm run format:check`
+
+### Known issues
+
+- The stop hook is still pending at this handoff-update point.
+
+### Recommended next task
+
+`task-2164 — Add UV1 base-color plus occlusion-texture GLB viewer sample`.
 
 ## Current Run Continuation — 2026-05-20T16:47:00Z — Extended StandardMaterial GLB texture routes
 

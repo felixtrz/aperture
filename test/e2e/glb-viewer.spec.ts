@@ -5424,6 +5424,864 @@ test("Playwright renders a GLB viewer base-color texture plus emissive texture",
   webGpuValidation.expectNoWarnings();
 });
 
+test("Playwright renders a GLB viewer metallic-roughness texture plus emissive texture", async ({
+  page,
+}) => {
+  const webGpuValidation = attachWebGpuValidationConsoleGuard(page);
+
+  await page.goto("/examples/glb-viewer.html?asset=standard-metallic-emissive");
+  const initialStatus = await waitForExampleStatus<GlbViewerStatus>(page);
+
+  expect(initialStatus, "GLB viewer status should publish").toBeDefined();
+
+  if (initialStatus === undefined) {
+    throw new Error("GLB viewer status did not publish.");
+  }
+
+  skipIfUnsupportedWebGpu(initialStatus);
+  await page.waitForFunction(
+    () => {
+      const status = (
+        globalThis as {
+          readonly __APERTURE_EXAMPLE_STATUS__?: {
+            readonly frame?: number;
+            readonly selectedAsset?: {
+              readonly id?: string;
+              readonly loading?: boolean;
+              readonly materialFamilies?: readonly {
+                readonly family?: string;
+                readonly count?: number;
+              }[];
+            };
+            readonly source?: {
+              readonly ok?: boolean;
+              readonly imageDecode?: {
+                readonly decoded?: readonly {
+                  readonly uri?: string;
+                }[];
+              };
+            };
+            readonly gltf?: {
+              readonly primitiveMaterials?: {
+                readonly resolved?: number;
+                readonly resolutions?: readonly {
+                  readonly pipelineKey?: string | null;
+                  readonly textureSlots?: {
+                    readonly metallicRoughnessTexture?: TextureSlotStatus | null;
+                    readonly emissiveTexture?: TextureSlotStatus | null;
+                  } | null;
+                  readonly factors?: {
+                    readonly emissiveFactor?: readonly number[] | null;
+                  } | null;
+                }[];
+              };
+            };
+            readonly extraction?: {
+              readonly meshDraws?: number;
+              readonly diagnostics?: number;
+            };
+            readonly renderState?: {
+              readonly pipelineKeys?: readonly string[];
+            };
+            readonly draw?: { readonly drawCalls?: number };
+          };
+        }
+      ).__APERTURE_EXAMPLE_STATUS__;
+      const decodedUris = new Set(
+        status?.source?.imageDecode?.decoded?.map((entry) => entry.uri) ?? [],
+      );
+      const resolutions = status?.gltf?.primitiveMaterials?.resolutions ?? [];
+      const combined = resolutions[0] ?? null;
+      const metallicOnly = resolutions[1] ?? null;
+      const scalar = resolutions[2] ?? null;
+      const combinedPipelineKey =
+        "standard|emissiveTexture|metallicRoughnessTexture|opaque|back|less|none";
+
+      return (
+        (status?.frame ?? 0) >= 3 &&
+        status?.selectedAsset?.id === "standard-metallic-emissive" &&
+        status.selectedAsset.loading === false &&
+        status.selectedAsset.materialFamilies?.some(
+          (entry) => entry.family === "standard" && entry.count === 3,
+        ) === true &&
+        status.source?.ok === true &&
+        decodedUris.has("aperture-metallic-roughness-checker.png") &&
+        decodedUris.has("aperture-base-color-checker.png") &&
+        status.gltf?.primitiveMaterials?.resolved === 3 &&
+        combined?.pipelineKey === combinedPipelineKey &&
+        combined.textureSlots?.metallicRoughnessTexture?.texCoord === 0 &&
+        combined.textureSlots?.emissiveTexture?.texCoord === 0 &&
+        combined.factors?.emissiveFactor?.[0] === 0.85 &&
+        metallicOnly?.pipelineKey ===
+          "standard|metallicRoughnessTexture|opaque|back|less|none" &&
+        metallicOnly.textureSlots?.metallicRoughnessTexture?.texCoord === 0 &&
+        metallicOnly.textureSlots?.emissiveTexture === null &&
+        scalar?.pipelineKey === "standard|opaque|back|less|none" &&
+        status.renderState?.pipelineKeys?.includes(combinedPipelineKey) ===
+          true &&
+        status.extraction?.meshDraws === 3 &&
+        status.extraction.diagnostics === 0 &&
+        status.draw?.drawCalls === 3
+      );
+    },
+    undefined,
+    { timeout: 5000 },
+  );
+
+  const status = await waitForExampleStatus<GlbViewerStatus>(page);
+
+  expect(
+    status,
+    "metallic-roughness plus emissive viewer status should publish",
+  ).toBeDefined();
+
+  if (status === undefined) {
+    throw new Error(
+      "Metallic-roughness plus emissive viewer status did not publish.",
+    );
+  }
+
+  const screenshot = await page.locator("#aperture-canvas").screenshot();
+  const clear =
+    status.clearColor === undefined
+      ? { r: 4, g: 6, b: 9, a: 255 }
+      : rgbaColorToPixel(status.clearColor);
+  const combinedRegion = { minX: 0.2, minY: 0.34, maxX: 0.39, maxY: 0.66 };
+  const metallicOnlyRegion = {
+    minX: 0.41,
+    minY: 0.34,
+    maxX: 0.6,
+    maxY: 0.66,
+  };
+  const scalarRegion = { minX: 0.62, minY: 0.34, maxX: 0.81, maxY: 0.66 };
+  const combinedA = readPngPixel(screenshot, 0.28, 0.46);
+  const combinedB = readPngPixel(screenshot, 0.36, 0.58);
+  const metallicOnlyA = readPngPixel(screenshot, 0.48, 0.46);
+  const metallicOnlyB = readPngPixel(screenshot, 0.56, 0.58);
+  const combined = strongestRegionSample(
+    screenshot,
+    clear,
+    combinedRegion.minX,
+    combinedRegion.minY,
+    combinedRegion.maxX,
+    combinedRegion.maxY,
+  );
+  const metallicOnly = strongestRegionSample(
+    screenshot,
+    clear,
+    metallicOnlyRegion.minX,
+    metallicOnlyRegion.minY,
+    metallicOnlyRegion.maxX,
+    metallicOnlyRegion.maxY,
+  );
+  const scalar = strongestRegionSample(
+    screenshot,
+    clear,
+    scalarRegion.minX,
+    scalarRegion.minY,
+    scalarRegion.maxX,
+    scalarRegion.maxY,
+  );
+  const combinedLuminance = averageRegionLuminance(
+    screenshot,
+    clear,
+    combinedRegion,
+  );
+  const metallicOnlyLuminance = averageRegionLuminance(
+    screenshot,
+    clear,
+    metallicOnlyRegion,
+  );
+  const combinedPipelineKey =
+    "standard|emissiveTexture|metallicRoughnessTexture|opaque|back|less|none";
+
+  expectStatusJsonSafeForGpu(status);
+  expect(status).toMatchObject({
+    selectedAsset: {
+      id: "standard-metallic-emissive",
+      label: "MR + emissive texture",
+      source: "sample",
+      url: "/examples/assets/standard-metallic-emissive.glb",
+      loading: false,
+      materialFamilies: [{ family: "standard", count: 3 }],
+    },
+    source: {
+      ok: true,
+      imageDecode: {
+        decoded: expect.arrayContaining([
+          {
+            imageIndex: 0,
+            sourceKind: "same-origin-uri",
+            uri: "aperture-metallic-roughness-checker.png",
+            url: "/examples/assets/aperture-metallic-roughness-checker.png",
+            mimeType: "image/png",
+            width: 2,
+            height: 2,
+            byteLength: 16,
+          },
+          {
+            imageIndex: 1,
+            sourceKind: "same-origin-uri",
+            uri: "aperture-base-color-checker.png",
+            url: "/examples/assets/aperture-base-color-checker.png",
+            mimeType: "image/png",
+            width: 2,
+            height: 2,
+            byteLength: 16,
+          },
+        ]),
+        diagnostics: [],
+      },
+    },
+    gltf: {
+      primitiveMaterials: {
+        valid: true,
+        resolved: 3,
+        diagnostics: 0,
+        families: [{ family: "standard", count: 3 }],
+        resolutions: [
+          {
+            meshIndex: 0,
+            primitiveIndex: 0,
+            materialIndex: 0,
+            family: "standard",
+            alphaMode: "opaque",
+            pipelineKey: combinedPipelineKey,
+            factors: {
+              baseColorFactor: [0.72, 0.68, 0.58, 1],
+              metallicFactor: 1,
+              roughnessFactor: 1,
+              emissiveFactor: [0.85, 0.26, 0.08],
+            },
+            textureSlots: {
+              metallicRoughnessTexture: {
+                textureKey: expect.stringMatching(
+                  /^texture:viewer-standard-metallic-emissive-\d+:texture:0:metallicRoughnessTexture$/,
+                ),
+                samplerKey: expect.stringMatching(
+                  /^sampler:viewer-standard-metallic-emissive-\d+:sampler:0:metallicRoughnessTexture$/,
+                ),
+                texCoord: 0,
+                hasTransform: false,
+              },
+              emissiveTexture: {
+                textureKey: expect.stringMatching(
+                  /^texture:viewer-standard-metallic-emissive-\d+:texture:1:emissiveTexture$/,
+                ),
+                samplerKey: expect.stringMatching(
+                  /^sampler:viewer-standard-metallic-emissive-\d+:sampler:1:emissiveTexture$/,
+                ),
+                texCoord: 0,
+                hasTransform: false,
+              },
+            },
+          },
+          {
+            meshIndex: 0,
+            primitiveIndex: 1,
+            materialIndex: 1,
+            family: "standard",
+            alphaMode: "opaque",
+            pipelineKey:
+              "standard|metallicRoughnessTexture|opaque|back|less|none",
+            textureSlots: {
+              metallicRoughnessTexture: { texCoord: 0 },
+              emissiveTexture: null,
+            },
+          },
+          {
+            meshIndex: 0,
+            primitiveIndex: 2,
+            materialIndex: 2,
+            family: "standard",
+            alphaMode: "opaque",
+            pipelineKey: "standard|opaque|back|less|none",
+            textureSlots: {
+              metallicRoughnessTexture: null,
+              emissiveTexture: null,
+            },
+          },
+        ],
+      },
+      replay: { valid: true, diagnostics: 0 },
+    },
+    extraction: { meshDraws: 3, diagnostics: 0 },
+    renderState: {
+      pipelineKeys: expect.arrayContaining([
+        combinedPipelineKey,
+        "standard|metallicRoughnessTexture|opaque|back|less|none",
+        "standard|opaque|back|less|none",
+      ]),
+    },
+    draw: { drawCalls: 3 },
+  });
+  expect(
+    pixelDistance(combined, clear),
+    `combined metallic/emissive region should render visible pixels; sample=${JSON.stringify(
+      combined,
+    )}`,
+  ).toBeGreaterThan(20);
+  expect(
+    pixelDistance(combinedA, combinedB),
+    "combined metallic/emissive primitive should show emissive texture variation",
+  ).toBeGreaterThan(4);
+  expect(
+    pixelDistance(metallicOnlyA, metallicOnlyB),
+    "metallic-roughness control should show metallic/roughness texture variation",
+  ).toBeGreaterThan(4);
+  expect(
+    combinedLuminance.average - metallicOnlyLuminance.average,
+    `emissive texture should brighten the combined panel; combined=${JSON.stringify(
+      combinedLuminance,
+    )} metallicOnly=${JSON.stringify(metallicOnlyLuminance)}`,
+  ).toBeGreaterThan(4);
+  expect(
+    pixelDistance(combined, scalar) + pixelDistance(metallicOnly, scalar),
+    "metallic/emissive StandardMaterial sample should differ from the scalar control",
+  ).toBeGreaterThan(24);
+  webGpuValidation.expectNoWarnings();
+});
+
+test("Playwright renders a GLB viewer transformed base-color plus emissive texture", async ({
+  page,
+}) => {
+  const webGpuValidation = attachWebGpuValidationConsoleGuard(page);
+
+  await page.goto(
+    "/examples/glb-viewer.html?asset=standard-base-emissive-transform",
+  );
+  const initialStatus = await waitForExampleStatus<GlbViewerStatus>(page);
+
+  expect(initialStatus, "GLB viewer status should publish").toBeDefined();
+
+  if (initialStatus === undefined) {
+    throw new Error("GLB viewer status did not publish.");
+  }
+
+  skipIfUnsupportedWebGpu(initialStatus);
+  await page.waitForFunction(
+    () => {
+      const status = (
+        globalThis as {
+          readonly __APERTURE_EXAMPLE_STATUS__?: {
+            readonly frame?: number;
+            readonly selectedAsset?: {
+              readonly id?: string;
+              readonly loading?: boolean;
+              readonly materialFamilies?: readonly {
+                readonly family?: string;
+                readonly count?: number;
+              }[];
+            };
+            readonly source?: {
+              readonly ok?: boolean;
+              readonly imageDecode?: {
+                readonly decoded?: readonly { readonly uri?: string }[];
+              };
+            };
+            readonly gltf?: {
+              readonly metadata?: {
+                readonly extensions?: {
+                  readonly used?: readonly string[];
+                };
+              };
+              readonly primitiveMaterials?: {
+                readonly resolved?: number;
+                readonly resolutions?: readonly {
+                  readonly pipelineKey?: string | null;
+                  readonly textureSlots?: {
+                    readonly baseColorTexture?: TextureSlotStatus | null;
+                    readonly emissiveTexture?: TextureSlotStatus | null;
+                  } | null;
+                }[];
+              };
+            };
+            readonly extraction?: {
+              readonly meshDraws?: number;
+              readonly diagnostics?: number;
+            };
+            readonly renderState?: {
+              readonly pipelineKeys?: readonly string[];
+            };
+            readonly draw?: { readonly drawCalls?: number };
+          };
+        }
+      ).__APERTURE_EXAMPLE_STATUS__;
+      const decodedUris = new Set(
+        status?.source?.imageDecode?.decoded?.map((entry) => entry.uri) ?? [],
+      );
+      const transformed =
+        status?.gltf?.primitiveMaterials?.resolutions?.[0]?.textureSlots ??
+        null;
+      const untransformed =
+        status?.gltf?.primitiveMaterials?.resolutions?.[1]?.textureSlots ??
+        null;
+      const pipelineKey =
+        "standard|baseColorTexture|emissiveTexture|opaque|back|less|none";
+
+      return (
+        (status?.frame ?? 0) >= 3 &&
+        status?.selectedAsset?.id === "standard-base-emissive-transform" &&
+        status.selectedAsset.loading === false &&
+        status.selectedAsset.materialFamilies?.some(
+          (entry) => entry.family === "standard" && entry.count === 2,
+        ) === true &&
+        status.source?.ok === true &&
+        decodedUris.has("aperture-uri-base-color-checker.png") &&
+        decodedUris.has("aperture-base-color-checker.png") &&
+        status.gltf?.metadata?.extensions?.used?.includes(
+          "KHR_texture_transform",
+        ) === true &&
+        status.gltf.primitiveMaterials?.resolved === 2 &&
+        status.gltf.primitiveMaterials.resolutions?.[0]?.pipelineKey ===
+          pipelineKey &&
+        status.gltf.primitiveMaterials.resolutions?.[1]?.pipelineKey ===
+          pipelineKey &&
+        transformed?.baseColorTexture?.hasTransform === true &&
+        transformed.baseColorTexture.transform?.offset?.[0] === 0.5 &&
+        transformed.baseColorTexture.transform.scale?.[0] === 0.5 &&
+        transformed.emissiveTexture?.hasTransform === false &&
+        untransformed?.baseColorTexture?.hasTransform === false &&
+        untransformed.emissiveTexture?.hasTransform === false &&
+        status.renderState?.pipelineKeys?.includes(pipelineKey) === true &&
+        status.extraction?.meshDraws === 2 &&
+        status.extraction.diagnostics === 0 &&
+        status.draw?.drawCalls === 2
+      );
+    },
+    undefined,
+    { timeout: 5000 },
+  );
+
+  const status = await waitForExampleStatus<GlbViewerStatus>(page);
+
+  expect(
+    status,
+    "transformed base plus emissive viewer status should publish",
+  ).toBeDefined();
+
+  if (status === undefined) {
+    throw new Error(
+      "Transformed base plus emissive viewer status did not publish.",
+    );
+  }
+
+  const screenshot = await page.locator("#aperture-canvas").screenshot();
+  const clear =
+    status.clearColor === undefined
+      ? { r: 4, g: 6, b: 9, a: 255 }
+      : rgbaColorToPixel(status.clearColor);
+  const transformed = strongestRegionSample(
+    screenshot,
+    clear,
+    0.27,
+    0.34,
+    0.46,
+    0.66,
+  );
+  const untransformed = strongestRegionSample(
+    screenshot,
+    clear,
+    0.54,
+    0.34,
+    0.73,
+    0.66,
+  );
+  const pipelineKey =
+    "standard|baseColorTexture|emissiveTexture|opaque|back|less|none";
+
+  expectStatusJsonSafeForGpu(status);
+  expect(status).toMatchObject({
+    selectedAsset: {
+      id: "standard-base-emissive-transform",
+      label: "Transformed base + emissive",
+      source: "sample",
+      url: "/examples/assets/standard-base-emissive-transform.glb",
+      loading: false,
+      materialFamilies: [{ family: "standard", count: 2 }],
+    },
+    gltf: {
+      metadata: {
+        extensions: {
+          used: ["KHR_texture_transform"],
+        },
+      },
+      primitiveMaterials: {
+        valid: true,
+        resolved: 2,
+        diagnostics: 0,
+        families: [{ family: "standard", count: 2 }],
+        resolutions: [
+          {
+            meshIndex: 0,
+            primitiveIndex: 0,
+            materialIndex: 0,
+            family: "standard",
+            pipelineKey,
+            textureSlots: {
+              baseColorTexture: {
+                texCoord: 0,
+                hasTransform: true,
+                transform: {
+                  offset: [0.5, 0],
+                  scale: [0.5, 1],
+                  rotation: 0,
+                },
+              },
+              emissiveTexture: {
+                texCoord: 0,
+                hasTransform: false,
+                transform: null,
+              },
+            },
+          },
+          {
+            meshIndex: 0,
+            primitiveIndex: 1,
+            materialIndex: 1,
+            family: "standard",
+            pipelineKey,
+            textureSlots: {
+              baseColorTexture: {
+                texCoord: 0,
+                hasTransform: false,
+                transform: null,
+              },
+              emissiveTexture: {
+                texCoord: 0,
+                hasTransform: false,
+                transform: null,
+              },
+            },
+          },
+        ],
+      },
+      replay: { valid: true, diagnostics: 0 },
+    },
+    extraction: { meshDraws: 2, diagnostics: 0 },
+    renderState: {
+      pipelineKeys: expect.arrayContaining([pipelineKey]),
+    },
+    draw: { drawCalls: 2 },
+  });
+  expect(
+    pixelDistance(transformed, clear),
+    `transformed base/emissive region should render visible pixels; sample=${JSON.stringify(
+      transformed,
+    )}`,
+  ).toBeGreaterThan(20);
+  expect(
+    pixelDistance(untransformed, clear),
+    `untransformed base/emissive control should render visible pixels; sample=${JSON.stringify(
+      untransformed,
+    )}`,
+  ).toBeGreaterThan(20);
+  expect(
+    pixelDistance(transformed, untransformed),
+    "transformed base-color slot should visibly differ from the untransformed base/emissive control",
+  ).toBeGreaterThan(8);
+  webGpuValidation.expectNoWarnings();
+});
+
+test("Playwright renders a GLB viewer base-color texture plus occlusion texture", async ({
+  page,
+}) => {
+  const webGpuValidation = attachWebGpuValidationConsoleGuard(page);
+
+  await page.goto("/examples/glb-viewer.html?asset=standard-base-occlusion");
+  const initialStatus = await waitForExampleStatus<GlbViewerStatus>(page);
+
+  expect(initialStatus, "GLB viewer status should publish").toBeDefined();
+
+  if (initialStatus === undefined) {
+    throw new Error("GLB viewer status did not publish.");
+  }
+
+  skipIfUnsupportedWebGpu(initialStatus);
+  await page.waitForFunction(
+    () => {
+      const status = (
+        globalThis as {
+          readonly __APERTURE_EXAMPLE_STATUS__?: {
+            readonly frame?: number;
+            readonly selectedAsset?: {
+              readonly id?: string;
+              readonly loading?: boolean;
+              readonly materialFamilies?: readonly {
+                readonly family?: string;
+                readonly count?: number;
+              }[];
+            };
+            readonly source?: {
+              readonly ok?: boolean;
+              readonly imageDecode?: {
+                readonly decoded?: readonly { readonly uri?: string }[];
+              };
+            };
+            readonly gltf?: {
+              readonly primitiveMaterials?: {
+                readonly resolved?: number;
+                readonly resolutions?: readonly {
+                  readonly pipelineKey?: string | null;
+                  readonly textureSlots?: {
+                    readonly baseColorTexture?: TextureSlotStatus | null;
+                    readonly occlusionTexture?: TextureSlotStatus | null;
+                  } | null;
+                  readonly factors?: {
+                    readonly occlusionStrength?: number | null;
+                  } | null;
+                }[];
+              };
+            };
+            readonly extraction?: {
+              readonly meshDraws?: number;
+              readonly diagnostics?: number;
+            };
+            readonly renderState?: {
+              readonly pipelineKeys?: readonly string[];
+            };
+            readonly draw?: { readonly drawCalls?: number };
+          };
+        }
+      ).__APERTURE_EXAMPLE_STATUS__;
+      const decodedUris = new Set(
+        status?.source?.imageDecode?.decoded?.map((entry) => entry.uri) ?? [],
+      );
+      const resolutions = status?.gltf?.primitiveMaterials?.resolutions ?? [];
+      const combined = resolutions[0] ?? null;
+      const baseOnly = resolutions[1] ?? null;
+      const scalar = resolutions[2] ?? null;
+      const combinedPipelineKey =
+        "standard|baseColorTexture|occlusionTexture|opaque|back|less|none";
+
+      return (
+        (status?.frame ?? 0) >= 3 &&
+        status?.selectedAsset?.id === "standard-base-occlusion" &&
+        status.selectedAsset.loading === false &&
+        status.selectedAsset.materialFamilies?.some(
+          (entry) => entry.family === "standard" && entry.count === 3,
+        ) === true &&
+        status.source?.ok === true &&
+        decodedUris.has("aperture-base-color-checker.png") &&
+        decodedUris.has("aperture-occlusion-control.png") &&
+        status.gltf?.primitiveMaterials?.resolved === 3 &&
+        combined?.pipelineKey === combinedPipelineKey &&
+        combined.textureSlots?.baseColorTexture?.texCoord === 0 &&
+        combined.textureSlots?.occlusionTexture?.texCoord === 0 &&
+        combined.factors?.occlusionStrength === 0.72 &&
+        baseOnly?.pipelineKey ===
+          "standard|baseColorTexture|opaque|back|less|none" &&
+        baseOnly.textureSlots?.baseColorTexture?.texCoord === 0 &&
+        baseOnly.textureSlots?.occlusionTexture === null &&
+        scalar?.pipelineKey === "standard|opaque|back|less|none" &&
+        status.renderState?.pipelineKeys?.includes(combinedPipelineKey) ===
+          true &&
+        status.extraction?.meshDraws === 3 &&
+        status.extraction.diagnostics === 0 &&
+        status.draw?.drawCalls === 3
+      );
+    },
+    undefined,
+    { timeout: 5000 },
+  );
+
+  const status = await waitForExampleStatus<GlbViewerStatus>(page);
+
+  expect(
+    status,
+    "base-color plus occlusion viewer status should publish",
+  ).toBeDefined();
+
+  if (status === undefined) {
+    throw new Error("Base-color plus occlusion viewer status did not publish.");
+  }
+
+  const screenshot = await page.locator("#aperture-canvas").screenshot();
+  const clear =
+    status.clearColor === undefined
+      ? { r: 4, g: 6, b: 9, a: 255 }
+      : rgbaColorToPixel(status.clearColor);
+  const combinedRegion = { minX: 0.2, minY: 0.34, maxX: 0.39, maxY: 0.66 };
+  const baseOnlyRegion = { minX: 0.41, minY: 0.34, maxX: 0.6, maxY: 0.66 };
+  const scalarRegion = { minX: 0.62, minY: 0.34, maxX: 0.81, maxY: 0.66 };
+  const combinedA = readPngPixel(screenshot, 0.28, 0.46);
+  const combinedB = readPngPixel(screenshot, 0.36, 0.58);
+  const combined = strongestRegionSample(
+    screenshot,
+    clear,
+    combinedRegion.minX,
+    combinedRegion.minY,
+    combinedRegion.maxX,
+    combinedRegion.maxY,
+  );
+  const baseOnly = strongestRegionSample(
+    screenshot,
+    clear,
+    baseOnlyRegion.minX,
+    baseOnlyRegion.minY,
+    baseOnlyRegion.maxX,
+    baseOnlyRegion.maxY,
+  );
+  const scalar = strongestRegionSample(
+    screenshot,
+    clear,
+    scalarRegion.minX,
+    scalarRegion.minY,
+    scalarRegion.maxX,
+    scalarRegion.maxY,
+  );
+  const combinedLuminance = averageRegionLuminance(
+    screenshot,
+    clear,
+    combinedRegion,
+  );
+  const baseOnlyLuminance = averageRegionLuminance(
+    screenshot,
+    clear,
+    baseOnlyRegion,
+  );
+  const combinedPipelineKey =
+    "standard|baseColorTexture|occlusionTexture|opaque|back|less|none";
+
+  expectStatusJsonSafeForGpu(status);
+  expect(status).toMatchObject({
+    selectedAsset: {
+      id: "standard-base-occlusion",
+      label: "Base + occlusion texture",
+      source: "sample",
+      url: "/examples/assets/standard-base-occlusion.glb",
+      loading: false,
+      materialFamilies: [{ family: "standard", count: 3 }],
+    },
+    source: {
+      ok: true,
+      imageDecode: {
+        decoded: expect.arrayContaining([
+          {
+            imageIndex: 0,
+            sourceKind: "same-origin-uri",
+            uri: "aperture-base-color-checker.png",
+            url: "/examples/assets/aperture-base-color-checker.png",
+            mimeType: "image/png",
+            width: 2,
+            height: 2,
+            byteLength: 16,
+          },
+          {
+            imageIndex: 1,
+            sourceKind: "same-origin-uri",
+            uri: "aperture-occlusion-control.png",
+            url: "/examples/assets/aperture-occlusion-control.png",
+            mimeType: "image/png",
+            width: 2,
+            height: 2,
+            byteLength: 16,
+          },
+        ]),
+        diagnostics: [],
+      },
+    },
+    gltf: {
+      primitiveMaterials: {
+        valid: true,
+        resolved: 3,
+        diagnostics: 0,
+        families: [{ family: "standard", count: 3 }],
+        resolutions: [
+          {
+            meshIndex: 0,
+            primitiveIndex: 0,
+            materialIndex: 0,
+            family: "standard",
+            pipelineKey: combinedPipelineKey,
+            factors: {
+              baseColorFactor: [1, 1, 1, 1],
+              metallicFactor: 0,
+              roughnessFactor: 0.58,
+              occlusionStrength: 0.72,
+            },
+            textureSlots: {
+              baseColorTexture: {
+                textureKey: expect.stringMatching(
+                  /^texture:viewer-standard-base-occlusion-\d+:texture:0:baseColorTexture$/,
+                ),
+                samplerKey: expect.stringMatching(
+                  /^sampler:viewer-standard-base-occlusion-\d+:sampler:0:baseColorTexture$/,
+                ),
+                texCoord: 0,
+                hasTransform: false,
+              },
+              occlusionTexture: {
+                textureKey: expect.stringMatching(
+                  /^texture:viewer-standard-base-occlusion-\d+:texture:1:occlusionTexture$/,
+                ),
+                samplerKey: expect.stringMatching(
+                  /^sampler:viewer-standard-base-occlusion-\d+:sampler:1:occlusionTexture$/,
+                ),
+                texCoord: 0,
+                hasTransform: false,
+              },
+            },
+          },
+          {
+            meshIndex: 0,
+            primitiveIndex: 1,
+            materialIndex: 1,
+            family: "standard",
+            pipelineKey: "standard|baseColorTexture|opaque|back|less|none",
+            textureSlots: {
+              baseColorTexture: { texCoord: 0 },
+              occlusionTexture: null,
+            },
+          },
+          {
+            meshIndex: 0,
+            primitiveIndex: 2,
+            materialIndex: 2,
+            family: "standard",
+            pipelineKey: "standard|opaque|back|less|none",
+            textureSlots: {
+              baseColorTexture: null,
+              occlusionTexture: null,
+            },
+          },
+        ],
+      },
+      replay: { valid: true, diagnostics: 0 },
+    },
+    extraction: { meshDraws: 3, diagnostics: 0 },
+    renderState: {
+      pipelineKeys: expect.arrayContaining([
+        combinedPipelineKey,
+        "standard|baseColorTexture|opaque|back|less|none",
+        "standard|opaque|back|less|none",
+      ]),
+    },
+    draw: { drawCalls: 3 },
+  });
+  expect(
+    pixelDistance(combined, clear),
+    `base/occlusion textured region should render visible pixels; sample=${JSON.stringify(
+      combined,
+    )}`,
+  ).toBeGreaterThan(20);
+  expect(
+    pixelDistance(combinedA, combinedB),
+    "base/occlusion primitive should show texture variation",
+  ).toBeGreaterThan(4);
+  expect(
+    Math.abs(baseOnlyLuminance.average - combinedLuminance.average),
+    `occlusion should visibly change the combined panel; combined=${JSON.stringify(
+      combinedLuminance,
+    )} baseOnly=${JSON.stringify(baseOnlyLuminance)}`,
+  ).toBeGreaterThan(20);
+  expect(
+    pixelDistance(combined, scalar) + pixelDistance(baseOnly, scalar),
+    "base/occlusion StandardMaterial sample should differ from the scalar control",
+  ).toBeGreaterThan(24);
+  webGpuValidation.expectNoWarnings();
+});
+
 test("Playwright renders a GLB viewer occlusion and emissive texture sample", async ({
   page,
 }) => {
@@ -7031,6 +7889,387 @@ test("Playwright renders GLB viewer normal plus occlusion URI controls", async (
   webGpuValidation.expectNoWarnings();
 });
 
+test("Playwright renders a GLB viewer StandardMaterial occlusion plus normal map", async ({
+  page,
+}) => {
+  const webGpuValidation = attachWebGpuValidationConsoleGuard(page);
+
+  await page.goto("/examples/glb-viewer.html?asset=standard-occlusion-normal");
+  const initialStatus = await waitForExampleStatus<GlbViewerStatus>(page);
+
+  expect(initialStatus, "GLB viewer status should publish").toBeDefined();
+
+  if (initialStatus === undefined) {
+    throw new Error("GLB viewer status did not publish.");
+  }
+
+  skipIfUnsupportedWebGpu(initialStatus);
+  await page.waitForFunction(
+    () => {
+      const status = (
+        globalThis as {
+          readonly __APERTURE_EXAMPLE_STATUS__?: {
+            readonly frame?: number;
+            readonly selectedAsset?: {
+              readonly id?: string;
+              readonly loading?: boolean;
+              readonly materialFamilies?: readonly {
+                readonly family?: string;
+                readonly count?: number;
+              }[];
+            };
+            readonly source?: {
+              readonly ok?: boolean;
+              readonly imageDecode?: {
+                readonly decoded?: readonly {
+                  readonly uri?: string;
+                }[];
+              };
+            };
+            readonly gltf?: {
+              readonly primitiveMaterials?: {
+                readonly resolved?: number;
+                readonly resolutions?: readonly {
+                  readonly pipelineKey?: string | null;
+                  readonly textureSlots?: {
+                    readonly normalTexture?: TextureSlotStatus | null;
+                    readonly occlusionTexture?: TextureSlotStatus | null;
+                  } | null;
+                }[];
+              };
+              readonly meshAttributes?: readonly {
+                readonly streams?: readonly {
+                  readonly arrayStride?: number;
+                  readonly attributes?: readonly {
+                    readonly semantic?: string;
+                    readonly offset?: number;
+                  }[];
+                }[];
+              }[];
+            };
+            readonly extraction?: {
+              readonly meshDraws?: number;
+              readonly diagnostics?: number;
+            };
+            readonly renderState?: {
+              readonly pipelineKeys?: readonly string[];
+              readonly draws?: readonly {
+                readonly pipelineKey?: string;
+                readonly meshLayoutKey?: string;
+              }[];
+            };
+            readonly draw?: { readonly drawCalls?: number };
+          };
+        }
+      ).__APERTURE_EXAMPLE_STATUS__;
+      const decodedUris = new Set(
+        status?.source?.imageDecode?.decoded?.map((entry) => entry.uri) ?? [],
+      );
+      const resolutions = status?.gltf?.primitiveMaterials?.resolutions ?? [];
+      const combined = resolutions[0] ?? null;
+      const normalOnly = resolutions[1] ?? null;
+      const scalar = resolutions[2] ?? null;
+      const attributes =
+        status?.gltf?.meshAttributes?.[0]?.streams?.[0]?.attributes ?? [];
+      const combinedPipelineKey =
+        "standard|normalTexture|occlusionTexture|opaque|back|less|none";
+
+      return (
+        (status?.frame ?? 0) >= 3 &&
+        status?.selectedAsset?.id === "standard-occlusion-normal" &&
+        status.selectedAsset.loading === false &&
+        status.selectedAsset.materialFamilies?.some(
+          (entry) => entry.family === "standard" && entry.count === 3,
+        ) === true &&
+        status.source?.ok === true &&
+        decodedUris.has("aperture-normal-checker.png") &&
+        decodedUris.has("aperture-occlusion-control.png") &&
+        status.gltf?.primitiveMaterials?.resolved === 3 &&
+        combined?.pipelineKey === combinedPipelineKey &&
+        combined.textureSlots?.normalTexture?.texCoord === 0 &&
+        combined.textureSlots?.occlusionTexture?.texCoord === 0 &&
+        normalOnly?.pipelineKey ===
+          "standard|normalTexture|opaque|back|less|none" &&
+        normalOnly.textureSlots?.normalTexture?.texCoord === 0 &&
+        normalOnly.textureSlots?.occlusionTexture === null &&
+        scalar?.pipelineKey === "standard|opaque|back|less|none" &&
+        attributes.some(
+          (attribute) =>
+            attribute.semantic === "TANGENT" && attribute.offset === 32,
+        ) &&
+        status.gltf?.meshAttributes?.[0]?.streams?.[0]?.arrayStride === 48 &&
+        status.renderState?.pipelineKeys?.includes(combinedPipelineKey) ===
+          true &&
+        status.renderState.draws?.some(
+          (draw) =>
+            draw.pipelineKey === combinedPipelineKey &&
+            draw.meshLayoutKey === "POSITION,NORMAL,TEXCOORD_0,TANGENT",
+        ) === true &&
+        status.extraction?.meshDraws === 3 &&
+        status.extraction.diagnostics === 0 &&
+        status.draw?.drawCalls === 3
+      );
+    },
+    undefined,
+    { timeout: 5000 },
+  );
+
+  const status = await waitForExampleStatus<GlbViewerStatus>(page);
+
+  expect(
+    status,
+    "StandardMaterial occlusion plus normal viewer status should publish",
+  ).toBeDefined();
+
+  if (status === undefined) {
+    throw new Error(
+      "StandardMaterial occlusion plus normal viewer status did not publish.",
+    );
+  }
+
+  const screenshot = await page.locator("#aperture-canvas").screenshot();
+  const clear =
+    status.clearColor === undefined
+      ? { r: 4, g: 6, b: 9, a: 255 }
+      : rgbaColorToPixel(status.clearColor);
+  const combinedRegion = { minX: 0.2, minY: 0.34, maxX: 0.39, maxY: 0.66 };
+  const normalOnlyRegion = {
+    minX: 0.41,
+    minY: 0.34,
+    maxX: 0.6,
+    maxY: 0.66,
+  };
+  const scalarRegion = { minX: 0.62, minY: 0.34, maxX: 0.81, maxY: 0.66 };
+  const combinedA = readPngPixel(screenshot, 0.28, 0.46);
+  const combinedB = readPngPixel(screenshot, 0.36, 0.58);
+  const combined = strongestRegionSample(
+    screenshot,
+    clear,
+    combinedRegion.minX,
+    combinedRegion.minY,
+    combinedRegion.maxX,
+    combinedRegion.maxY,
+  );
+  const normalOnly = strongestRegionSample(
+    screenshot,
+    clear,
+    normalOnlyRegion.minX,
+    normalOnlyRegion.minY,
+    normalOnlyRegion.maxX,
+    normalOnlyRegion.maxY,
+  );
+  const scalar = strongestRegionSample(
+    screenshot,
+    clear,
+    scalarRegion.minX,
+    scalarRegion.minY,
+    scalarRegion.maxX,
+    scalarRegion.maxY,
+  );
+  const combinedLuminance = averageRegionLuminance(
+    screenshot,
+    clear,
+    combinedRegion,
+  );
+  const normalOnlyLuminance = averageRegionLuminance(
+    screenshot,
+    clear,
+    normalOnlyRegion,
+  );
+  const combinedPipelineKey =
+    "standard|normalTexture|occlusionTexture|opaque|back|less|none";
+  const normalOnlyPipelineKey = "standard|normalTexture|opaque|back|less|none";
+
+  expectStatusJsonSafeForGpu(status);
+  expect(status).toMatchObject({
+    selectedAsset: {
+      id: "standard-occlusion-normal",
+      label: "Occlusion + normal texture",
+      source: "sample",
+      url: "/examples/assets/standard-occlusion-normal.glb",
+      loading: false,
+      materialFamilies: [{ family: "standard", count: 3 }],
+    },
+    source: {
+      ok: true,
+      imageDecode: {
+        decoded: expect.arrayContaining([
+          {
+            imageIndex: 0,
+            sourceKind: "same-origin-uri",
+            uri: "aperture-normal-checker.png",
+            url: "/examples/assets/aperture-normal-checker.png",
+            mimeType: "image/png",
+            width: 2,
+            height: 2,
+            byteLength: 16,
+          },
+          {
+            imageIndex: 1,
+            sourceKind: "same-origin-uri",
+            uri: "aperture-occlusion-control.png",
+            url: "/examples/assets/aperture-occlusion-control.png",
+            mimeType: "image/png",
+            width: 2,
+            height: 2,
+            byteLength: 16,
+          },
+        ]),
+        diagnostics: [],
+      },
+    },
+    gltf: {
+      metadata: {
+        status: "ready",
+        counts: {
+          scenes: 1,
+          nodes: 1,
+          meshes: 1,
+          primitives: 3,
+          materials: 3,
+          animations: 0,
+        },
+        unsupportedFeatureDiagnostics: [],
+      },
+      primitiveMaterials: {
+        valid: true,
+        resolved: 3,
+        diagnostics: 0,
+        families: [{ family: "standard", count: 3 }],
+        resolutions: [
+          {
+            meshIndex: 0,
+            primitiveIndex: 0,
+            materialIndex: 0,
+            family: "standard",
+            alphaMode: "opaque",
+            pipelineKey: combinedPipelineKey,
+            factors: {
+              baseColorFactor: [0.78, 0.72, 0.62, 1],
+              metallicFactor: 0,
+              roughnessFactor: 0.65,
+              normalScale: 1.75,
+              occlusionStrength: 1,
+            },
+            textureSlots: {
+              normalTexture: {
+                textureKey: expect.stringMatching(
+                  /^texture:viewer-standard-occlusion-normal-\d+:texture:0:normalTexture$/,
+                ),
+                samplerKey: expect.stringMatching(
+                  /^sampler:viewer-standard-occlusion-normal-\d+:sampler:0:normalTexture$/,
+                ),
+                texCoord: 0,
+                hasTransform: false,
+              },
+              occlusionTexture: {
+                textureKey: expect.stringMatching(
+                  /^texture:viewer-standard-occlusion-normal-\d+:texture:1:occlusionTexture$/,
+                ),
+                samplerKey: expect.stringMatching(
+                  /^sampler:viewer-standard-occlusion-normal-\d+:sampler:1:occlusionTexture$/,
+                ),
+                texCoord: 0,
+                hasTransform: false,
+              },
+            },
+          },
+          {
+            meshIndex: 0,
+            primitiveIndex: 1,
+            materialIndex: 1,
+            family: "standard",
+            alphaMode: "opaque",
+            pipelineKey: normalOnlyPipelineKey,
+            textureSlots: {
+              normalTexture: {
+                textureKey: expect.stringMatching(
+                  /^texture:viewer-standard-occlusion-normal-\d+:texture:0:normalTexture$/,
+                ),
+                samplerKey: expect.stringMatching(
+                  /^sampler:viewer-standard-occlusion-normal-\d+:sampler:0:normalTexture$/,
+                ),
+                texCoord: 0,
+                hasTransform: false,
+              },
+              occlusionTexture: null,
+            },
+          },
+          {
+            meshIndex: 0,
+            primitiveIndex: 2,
+            materialIndex: 2,
+            family: "standard",
+            alphaMode: "opaque",
+            pipelineKey: "standard|opaque|back|less|none",
+            textureSlots: {
+              normalTexture: null,
+              occlusionTexture: null,
+            },
+          },
+        ],
+      },
+      replay: { valid: true, diagnostics: 0 },
+    },
+    extraction: {
+      meshDraws: 3,
+      diagnostics: 0,
+      diagnosticsList: [],
+    },
+    renderState: {
+      pipelineKeys: expect.arrayContaining([
+        combinedPipelineKey,
+        normalOnlyPipelineKey,
+        "standard|opaque|back|less|none",
+      ]),
+    },
+    draw: {
+      packages: 3,
+      drawCalls: 3,
+    },
+  });
+  expect(status.gltf?.meshAttributes).toEqual(
+    expect.arrayContaining([
+      expect.objectContaining({
+        meshIndex: 0,
+        primitiveIndex: 0,
+        streams: expect.arrayContaining([
+          expect.objectContaining({
+            arrayStride: 48,
+            attributes: expect.arrayContaining([
+              { semantic: "POSITION", format: "float32x3", offset: 0 },
+              { semantic: "NORMAL", format: "float32x3", offset: 12 },
+              { semantic: "TEXCOORD_0", format: "float32x2", offset: 24 },
+              { semantic: "TANGENT", format: "float32x4", offset: 32 },
+            ]),
+          }),
+        ]),
+      }),
+    ]),
+  );
+  expect(
+    pixelDistance(combined, clear),
+    `combined normal/occlusion region should render visible pixels; sample=${JSON.stringify(
+      combined,
+    )}`,
+  ).toBeGreaterThan(20);
+  expect(
+    pixelDistance(combinedA, combinedB),
+    "combined normal/occlusion primitive should show normal-map lighting variation",
+  ).toBeGreaterThan(4);
+  expect(
+    normalOnlyLuminance.average - combinedLuminance.average,
+    `occlusion should darken the combined panel; combined=${JSON.stringify(
+      combinedLuminance,
+    )} normalOnly=${JSON.stringify(normalOnlyLuminance)}`,
+  ).toBeGreaterThan(4);
+  expect(
+    pixelDistance(combined, scalar) + pixelDistance(normalOnly, scalar),
+    "normal/occlusion StandardMaterial sample should differ from the scalar control",
+  ).toBeGreaterThan(24);
+  webGpuValidation.expectNoWarnings();
+});
+
 test("Playwright renders a GLB viewer alpha-mask texture sample", async ({
   page,
 }) => {
@@ -8122,6 +9361,332 @@ test("Playwright renders a GLB viewer alpha-blend texture sample", async ({
     pixelDistance(translucentA, opaqueControl) +
       pixelDistance(translucentB, opaqueControl),
     "alpha-blend texture should differ from the opaque control primitive",
+  ).toBeGreaterThan(24);
+  webGpuValidation.expectNoWarnings();
+});
+
+test("Playwright renders a GLB viewer alpha-blend texture plus normal map", async ({
+  page,
+}) => {
+  const webGpuValidation = attachWebGpuValidationConsoleGuard(page);
+
+  await page.goto(
+    "/examples/glb-viewer.html?asset=standard-alpha-blend-normal",
+  );
+  const initialStatus = await waitForExampleStatus<GlbViewerStatus>(page);
+
+  expect(initialStatus, "GLB viewer status should publish").toBeDefined();
+
+  if (initialStatus === undefined) {
+    throw new Error("GLB viewer status did not publish.");
+  }
+
+  skipIfUnsupportedWebGpu(initialStatus);
+  await page.waitForFunction(
+    () => {
+      const status = (
+        globalThis as {
+          readonly __APERTURE_EXAMPLE_STATUS__?: {
+            readonly frame?: number;
+            readonly selectedAsset?: {
+              readonly id?: string;
+              readonly loading?: boolean;
+              readonly materialFamilies?: readonly {
+                readonly family?: string;
+                readonly count?: number;
+              }[];
+            };
+            readonly source?: {
+              readonly ok?: boolean;
+              readonly imageDecode?: {
+                readonly decoded?: readonly { readonly uri?: string }[];
+              };
+            };
+            readonly gltf?: {
+              readonly primitiveMaterials?: {
+                readonly resolved?: number;
+                readonly resolutions?: readonly {
+                  readonly alphaMode?: string | null;
+                  readonly blendPreset?: string | null;
+                  readonly depthWrite?: boolean | null;
+                  readonly cullMode?: string | null;
+                  readonly pipelineKey?: string | null;
+                  readonly textureSlots?: {
+                    readonly baseColorTexture?: TextureSlotStatus | null;
+                    readonly normalTexture?: TextureSlotStatus | null;
+                  } | null;
+                }[];
+              };
+              readonly meshAttributes?: readonly {
+                readonly streams?: readonly {
+                  readonly arrayStride?: number;
+                  readonly attributes?: readonly {
+                    readonly semantic?: string;
+                    readonly offset?: number;
+                  }[];
+                }[];
+              }[];
+            };
+            readonly extraction?: {
+              readonly meshDraws?: number;
+              readonly diagnostics?: number;
+            };
+            readonly renderState?: {
+              readonly queues?: readonly string[];
+              readonly pipelineKeys?: readonly string[];
+              readonly draws?: readonly {
+                readonly pipelineKey?: string;
+                readonly meshLayoutKey?: string;
+              }[];
+            };
+            readonly draw?: { readonly drawCalls?: number };
+          };
+        }
+      ).__APERTURE_EXAMPLE_STATUS__;
+      const decodedUris = new Set(
+        status?.source?.imageDecode?.decoded?.map((entry) => entry.uri) ?? [],
+      );
+      const resolutions = status?.gltf?.primitiveMaterials?.resolutions ?? [];
+      const combined = resolutions[0] ?? null;
+      const opaqueBase = resolutions[1] ?? null;
+      const scalar = resolutions[2] ?? null;
+      const attributes =
+        status?.gltf?.meshAttributes?.[0]?.streams?.[0]?.attributes ?? [];
+      const combinedPipelineKey =
+        "standard|baseColorTexture|normalTexture|blend|none|less|alpha";
+
+      return (
+        (status?.frame ?? 0) >= 3 &&
+        status?.selectedAsset?.id === "standard-alpha-blend-normal" &&
+        status.selectedAsset.loading === false &&
+        status.selectedAsset.materialFamilies?.some(
+          (entry) => entry.family === "standard" && entry.count === 3,
+        ) === true &&
+        status.source?.ok === true &&
+        decodedUris.has("aperture-alpha-mask-checker.png") &&
+        decodedUris.has("aperture-normal-checker.png") &&
+        status.gltf?.primitiveMaterials?.resolved === 3 &&
+        combined?.pipelineKey === combinedPipelineKey &&
+        combined.alphaMode === "blend" &&
+        combined.blendPreset === "alpha" &&
+        combined.depthWrite === false &&
+        combined.cullMode === "none" &&
+        combined.textureSlots?.baseColorTexture?.texCoord === 0 &&
+        combined.textureSlots?.normalTexture?.texCoord === 0 &&
+        opaqueBase?.pipelineKey ===
+          "standard|baseColorTexture|opaque|none|less|none" &&
+        opaqueBase.textureSlots?.baseColorTexture?.texCoord === 0 &&
+        opaqueBase.textureSlots?.normalTexture === null &&
+        scalar?.pipelineKey === "standard|opaque|none|less|none" &&
+        attributes.some(
+          (attribute) =>
+            attribute.semantic === "TANGENT" && attribute.offset === 32,
+        ) &&
+        status.gltf?.meshAttributes?.[0]?.streams?.[0]?.arrayStride === 48 &&
+        status.renderState?.queues?.includes("transparent") === true &&
+        status.renderState.pipelineKeys?.includes(combinedPipelineKey) ===
+          true &&
+        status.renderState.draws?.some(
+          (draw) =>
+            draw.pipelineKey === combinedPipelineKey &&
+            draw.meshLayoutKey === "POSITION,NORMAL,TEXCOORD_0,TANGENT",
+        ) === true &&
+        status.extraction?.meshDraws === 3 &&
+        status.extraction.diagnostics === 0 &&
+        status.draw?.drawCalls === 3
+      );
+    },
+    undefined,
+    { timeout: 5000 },
+  );
+
+  const status = await waitForExampleStatus<GlbViewerStatus>(page);
+
+  expect(
+    status,
+    "alpha-blend plus normal viewer status should publish",
+  ).toBeDefined();
+
+  if (status === undefined) {
+    throw new Error("Alpha-blend plus normal viewer status did not publish.");
+  }
+
+  const screenshot = await page.locator("#aperture-canvas").screenshot();
+  const clear =
+    status.clearColor === undefined
+      ? { r: 4, g: 6, b: 9, a: 255 }
+      : rgbaColorToPixel(status.clearColor);
+  const translucentA = readPngPixel(screenshot, 0.28, 0.46);
+  const translucentB = readPngPixel(screenshot, 0.36, 0.58);
+  const combined = strongestRegionSample(
+    screenshot,
+    clear,
+    0.2,
+    0.34,
+    0.39,
+    0.66,
+  );
+  const opaqueBase = strongestRegionSample(
+    screenshot,
+    clear,
+    0.41,
+    0.34,
+    0.6,
+    0.66,
+  );
+  const scalar = strongestRegionSample(
+    screenshot,
+    clear,
+    0.62,
+    0.34,
+    0.81,
+    0.66,
+  );
+  const combinedPipelineKey =
+    "standard|baseColorTexture|normalTexture|blend|none|less|alpha";
+
+  expectStatusJsonSafeForGpu(status);
+  expect(status).toMatchObject({
+    selectedAsset: {
+      id: "standard-alpha-blend-normal",
+      label: "Alpha blend + normal",
+      source: "sample",
+      url: "/examples/assets/standard-alpha-blend-normal.glb",
+      loading: false,
+      materialFamilies: [{ family: "standard", count: 3 }],
+    },
+    source: {
+      ok: true,
+      imageDecode: {
+        decoded: expect.arrayContaining([
+          {
+            imageIndex: 0,
+            sourceKind: "same-origin-uri",
+            uri: "aperture-alpha-mask-checker.png",
+            url: "/examples/assets/aperture-alpha-mask-checker.png",
+            mimeType: "image/png",
+            width: 2,
+            height: 2,
+            byteLength: 16,
+          },
+          {
+            imageIndex: 1,
+            sourceKind: "same-origin-uri",
+            uri: "aperture-normal-checker.png",
+            url: "/examples/assets/aperture-normal-checker.png",
+            mimeType: "image/png",
+            width: 2,
+            height: 2,
+            byteLength: 16,
+          },
+        ]),
+        diagnostics: [],
+      },
+    },
+    gltf: {
+      primitiveMaterials: {
+        valid: true,
+        resolved: 3,
+        diagnostics: 0,
+        families: [{ family: "standard", count: 3 }],
+        resolutions: [
+          {
+            meshIndex: 0,
+            primitiveIndex: 0,
+            materialIndex: 0,
+            family: "standard",
+            alphaMode: "blend",
+            alphaCutoff: 0.5,
+            blendPreset: "alpha",
+            depthWrite: false,
+            cullMode: "none",
+            pipelineKey: combinedPipelineKey,
+            factors: {
+              baseColorFactor: [1, 1, 1, 1],
+              metallicFactor: 0,
+              roughnessFactor: 0.62,
+              normalScale: 2.5,
+            },
+            textureSlots: {
+              baseColorTexture: {
+                textureKey: expect.stringMatching(
+                  /^texture:viewer-standard-alpha-blend-normal-\d+:texture:0:baseColorTexture$/,
+                ),
+                samplerKey: expect.stringMatching(
+                  /^sampler:viewer-standard-alpha-blend-normal-\d+:sampler:0:baseColorTexture$/,
+                ),
+                texCoord: 0,
+                hasTransform: false,
+              },
+              normalTexture: {
+                textureKey: expect.stringMatching(
+                  /^texture:viewer-standard-alpha-blend-normal-\d+:texture:1:normalTexture$/,
+                ),
+                samplerKey: expect.stringMatching(
+                  /^sampler:viewer-standard-alpha-blend-normal-\d+:sampler:1:normalTexture$/,
+                ),
+                texCoord: 0,
+                hasTransform: false,
+              },
+            },
+          },
+          {
+            meshIndex: 0,
+            primitiveIndex: 1,
+            materialIndex: 1,
+            family: "standard",
+            alphaMode: "opaque",
+            pipelineKey: "standard|baseColorTexture|opaque|none|less|none",
+            textureSlots: {
+              baseColorTexture: { texCoord: 0 },
+              normalTexture: null,
+            },
+          },
+          {
+            meshIndex: 0,
+            primitiveIndex: 2,
+            materialIndex: 2,
+            family: "standard",
+            alphaMode: "opaque",
+            pipelineKey: "standard|opaque|none|less|none",
+            textureSlots: {
+              baseColorTexture: null,
+              normalTexture: null,
+            },
+          },
+        ],
+      },
+      replay: { valid: true, diagnostics: 0 },
+    },
+    extraction: { meshDraws: 3, diagnostics: 0 },
+    renderState: {
+      queues: expect.arrayContaining(["opaque", "transparent"]),
+      pipelineKeys: expect.arrayContaining([
+        combinedPipelineKey,
+        "standard|baseColorTexture|opaque|none|less|none",
+        "standard|opaque|none|less|none",
+      ]),
+    },
+    draw: { drawCalls: 3 },
+  });
+  expect(
+    pixelDistance(combined, clear),
+    `alpha-blend normal region should render visible pixels; sample=${JSON.stringify(
+      combined,
+    )}`,
+  ).toBeGreaterThan(10);
+  expect(
+    pixelDistance(translucentA, translucentB),
+    "alpha-blend normal primitive should show normal-map or alpha texture variation",
+  ).toBeGreaterThan(4);
+  expect(
+    pixelDistance(translucentA, opaqueBase) +
+      pixelDistance(translucentB, opaqueBase),
+    "alpha-blend normal primitive should differ from the opaque base control",
+  ).toBeGreaterThan(18);
+  expect(
+    pixelDistance(combined, scalar) + pixelDistance(opaqueBase, scalar),
+    "alpha-blend normal sample should differ from the scalar control",
   ).toBeGreaterThan(24);
   webGpuValidation.expectNoWarnings();
 });
@@ -11864,6 +13429,357 @@ test("Playwright renders GLB viewer base-color plus normal textures through TEXC
   expect(
     pixelDistance(uv0, scalar) + pixelDistance(uv1, scalar),
     "textured UV controls should differ from the scalar material control",
+  ).toBeGreaterThan(24);
+  webGpuValidation.expectNoWarnings();
+});
+
+test("Playwright renders GLB viewer UV1 metallic-roughness plus normal textures", async ({
+  page,
+}) => {
+  const webGpuValidation = attachWebGpuValidationConsoleGuard(page);
+
+  await page.goto(
+    "/examples/glb-viewer.html?asset=standard-uv1-metallic-normal",
+  );
+  const initialStatus = await waitForExampleStatus<GlbViewerStatus>(page);
+
+  expect(initialStatus, "GLB viewer status should publish").toBeDefined();
+
+  if (initialStatus === undefined) {
+    throw new Error("GLB viewer status did not publish.");
+  }
+
+  skipIfUnsupportedWebGpu(initialStatus);
+  await page.waitForFunction(
+    () => {
+      const status = (
+        globalThis as {
+          readonly __APERTURE_EXAMPLE_STATUS__?: {
+            readonly frame?: number;
+            readonly selectedAsset?: {
+              readonly id?: string;
+              readonly loading?: boolean;
+              readonly materialFamilies?: readonly {
+                readonly family?: string;
+                readonly count?: number;
+              }[];
+            };
+            readonly source?: {
+              readonly ok?: boolean;
+              readonly imageDecode?: {
+                readonly decoded?: readonly { readonly uri?: string }[];
+              };
+            };
+            readonly gltf?: {
+              readonly primitiveMaterials?: {
+                readonly resolved?: number;
+                readonly resolutions?: readonly {
+                  readonly pipelineKey?: string | null;
+                  readonly textureSlots?: {
+                    readonly metallicRoughnessTexture?: TextureSlotStatus | null;
+                    readonly normalTexture?: TextureSlotStatus | null;
+                  } | null;
+                }[];
+              };
+              readonly meshAttributes?: readonly {
+                readonly streams?: readonly {
+                  readonly arrayStride?: number;
+                  readonly attributes?: readonly {
+                    readonly semantic?: string;
+                    readonly offset?: number;
+                  }[];
+                }[];
+              }[];
+            };
+            readonly extraction?: {
+              readonly meshDraws?: number;
+              readonly diagnostics?: number;
+              readonly diagnosticsList?: readonly { readonly code?: string }[];
+            };
+            readonly renderState?: {
+              readonly pipelineKeys?: readonly string[];
+              readonly draws?: readonly {
+                readonly pipelineKey?: string;
+                readonly meshLayoutKey?: string;
+              }[];
+            };
+            readonly draw?: { readonly drawCalls?: number };
+          };
+        }
+      ).__APERTURE_EXAMPLE_STATUS__;
+      const resolutions = status?.gltf?.primitiveMaterials?.resolutions ?? [];
+      const uv0 = resolutions[0]?.textureSlots ?? null;
+      const uv1 = resolutions[1]?.textureSlots ?? null;
+      const scalar = resolutions[2]?.textureSlots ?? null;
+      const decodedUris = new Set(
+        status?.source?.imageDecode?.decoded?.map((entry) => entry.uri) ?? [],
+      );
+      const uv1PipelineKey =
+        "standard|metallicRoughnessTexture|normalTexture|uv1|opaque|back|less|none";
+      const attributes =
+        status?.gltf?.meshAttributes?.[1]?.streams?.[0]?.attributes ?? [];
+
+      return (
+        (status?.frame ?? 0) >= 3 &&
+        status?.selectedAsset?.id === "standard-uv1-metallic-normal" &&
+        status.selectedAsset.loading === false &&
+        status.selectedAsset.materialFamilies?.some(
+          (entry) => entry.family === "standard" && entry.count === 3,
+        ) === true &&
+        status.source?.ok === true &&
+        decodedUris.has("aperture-metallic-roughness-checker.png") &&
+        decodedUris.has("aperture-normal-checker.png") &&
+        status.gltf?.primitiveMaterials?.resolved === 3 &&
+        resolutions[0]?.pipelineKey ===
+          "standard|metallicRoughnessTexture|opaque|back|less|none" &&
+        resolutions[1]?.pipelineKey === uv1PipelineKey &&
+        uv0?.metallicRoughnessTexture?.texCoord === 0 &&
+        uv0.normalTexture === null &&
+        uv1?.metallicRoughnessTexture?.texCoord === 1 &&
+        uv1.normalTexture?.texCoord === 1 &&
+        scalar?.metallicRoughnessTexture === null &&
+        scalar.normalTexture === null &&
+        attributes.some(
+          (attribute) =>
+            attribute.semantic === "TEXCOORD_1" && attribute.offset === 48,
+        ) &&
+        status.gltf?.meshAttributes?.[1]?.streams?.[0]?.arrayStride === 56 &&
+        status.extraction?.meshDraws === 3 &&
+        status.extraction.diagnostics === 0 &&
+        status.extraction.diagnosticsList?.some(
+          (diagnostic) =>
+            diagnostic.code ===
+            "render.standardMaterialTexture.missingTexCoord1",
+        ) !== true &&
+        status.renderState?.pipelineKeys?.includes(uv1PipelineKey) === true &&
+        status.renderState.draws?.some(
+          (draw) =>
+            draw.pipelineKey === uv1PipelineKey &&
+            draw.meshLayoutKey ===
+              "POSITION,NORMAL,TEXCOORD_0,TANGENT,TEXCOORD_1",
+        ) === true &&
+        status.draw?.drawCalls === 3
+      );
+    },
+    undefined,
+    { timeout: 5000 },
+  );
+
+  const status = await waitForExampleStatus<GlbViewerStatus>(page);
+
+  expect(
+    status,
+    "UV1 metallic/normal viewer status should publish",
+  ).toBeDefined();
+
+  if (status === undefined) {
+    throw new Error("UV1 metallic/normal viewer status did not publish.");
+  }
+
+  const screenshot = await page.locator("#aperture-canvas").screenshot();
+  const clear =
+    status.clearColor === undefined
+      ? { r: 4, g: 6, b: 9, a: 255 }
+      : rgbaColorToPixel(status.clearColor);
+  const uv0 = readPngPixel(screenshot, 0.28, 0.5);
+  const uv1 = readPngPixel(screenshot, 0.49, 0.5);
+  const scalar = readPngPixel(screenshot, 0.72, 0.5);
+  const uv1PipelineKey =
+    "standard|metallicRoughnessTexture|normalTexture|uv1|opaque|back|less|none";
+
+  expectStatusJsonSafeForGpu(status);
+  expect(status).toMatchObject({
+    selectedAsset: {
+      id: "standard-uv1-metallic-normal",
+      label: "UV1 MR + normal",
+      source: "sample",
+      url: "/examples/assets/standard-uv1-metallic-normal.glb",
+      loading: false,
+      materialFamilies: [{ family: "standard", count: 3 }],
+      materialSlotSummary: {
+        textureSlots: {
+          metallicRoughnessTexture: {
+            count: 2,
+            uv0: 1,
+            uv1: 1,
+            otherUv: 0,
+          },
+          normalTexture: {
+            count: 1,
+            uv0: 0,
+            uv1: 1,
+            otherUv: 0,
+          },
+        },
+        uv1Usage: {
+          materials: 1,
+          textureSlots: 2,
+        },
+      },
+    },
+    source: {
+      ok: true,
+      imageDecode: {
+        decoded: expect.arrayContaining([
+          {
+            imageIndex: 0,
+            sourceKind: "same-origin-uri",
+            uri: "aperture-metallic-roughness-checker.png",
+            url: "/examples/assets/aperture-metallic-roughness-checker.png",
+            mimeType: "image/png",
+            width: 2,
+            height: 2,
+            byteLength: 16,
+          },
+          {
+            imageIndex: 1,
+            sourceKind: "same-origin-uri",
+            uri: "aperture-normal-checker.png",
+            url: "/examples/assets/aperture-normal-checker.png",
+            mimeType: "image/png",
+            width: 2,
+            height: 2,
+            byteLength: 16,
+          },
+        ]),
+        diagnostics: [],
+      },
+    },
+    gltf: {
+      primitiveMaterials: {
+        valid: true,
+        resolved: 3,
+        diagnostics: 0,
+        families: [{ family: "standard", count: 3 }],
+        resolutions: [
+          {
+            meshIndex: 0,
+            primitiveIndex: 0,
+            materialIndex: 0,
+            family: "standard",
+            pipelineKey:
+              "standard|metallicRoughnessTexture|opaque|back|less|none",
+            textureSlots: {
+              metallicRoughnessTexture: {
+                textureKey: expect.stringMatching(
+                  /^texture:viewer-standard-uv1-metallic-normal-\d+:texture:0:metallicRoughnessTexture$/,
+                ),
+                samplerKey: expect.stringMatching(
+                  /^sampler:viewer-standard-uv1-metallic-normal-\d+:sampler:0:metallicRoughnessTexture$/,
+                ),
+                texCoord: 0,
+                hasTransform: false,
+              },
+              normalTexture: null,
+            },
+          },
+          {
+            meshIndex: 0,
+            primitiveIndex: 1,
+            materialIndex: 1,
+            family: "standard",
+            pipelineKey: uv1PipelineKey,
+            textureSlots: {
+              metallicRoughnessTexture: {
+                textureKey: expect.stringMatching(
+                  /^texture:viewer-standard-uv1-metallic-normal-\d+:texture:0:metallicRoughnessTexture$/,
+                ),
+                samplerKey: expect.stringMatching(
+                  /^sampler:viewer-standard-uv1-metallic-normal-\d+:sampler:0:metallicRoughnessTexture$/,
+                ),
+                texCoord: 1,
+                hasTransform: false,
+              },
+              normalTexture: {
+                textureKey: expect.stringMatching(
+                  /^texture:viewer-standard-uv1-metallic-normal-\d+:texture:1:normalTexture$/,
+                ),
+                samplerKey: expect.stringMatching(
+                  /^sampler:viewer-standard-uv1-metallic-normal-\d+:sampler:1:normalTexture$/,
+                ),
+                texCoord: 1,
+                hasTransform: false,
+              },
+            },
+          },
+          {
+            meshIndex: 0,
+            primitiveIndex: 2,
+            materialIndex: 2,
+            family: "standard",
+            pipelineKey: "standard|opaque|back|less|none",
+            textureSlots: {
+              metallicRoughnessTexture: null,
+              normalTexture: null,
+            },
+          },
+        ],
+      },
+      replay: { valid: true, diagnostics: 0 },
+    },
+    extraction: {
+      meshDraws: 3,
+      diagnostics: 0,
+      diagnosticsList: [],
+    },
+    renderState: {
+      pipelineKeys: expect.arrayContaining([
+        "standard|metallicRoughnessTexture|opaque|back|less|none",
+        uv1PipelineKey,
+        "standard|opaque|back|less|none",
+      ]),
+      draws: expect.arrayContaining([
+        expect.objectContaining({
+          pipelineKey: uv1PipelineKey,
+          meshLayoutKey: "POSITION,NORMAL,TEXCOORD_0,TANGENT,TEXCOORD_1",
+        }),
+      ]),
+    },
+    draw: {
+      packages: 3,
+      drawCalls: 3,
+    },
+  });
+  expect(status.gltf?.meshAttributes).toEqual(
+    expect.arrayContaining([
+      expect.objectContaining({
+        meshIndex: 0,
+        primitiveIndex: 1,
+        streams: expect.arrayContaining([
+          expect.objectContaining({
+            arrayStride: 56,
+            vertexCount: 4,
+            attributes: expect.arrayContaining([
+              { semantic: "POSITION", format: "float32x3", offset: 0 },
+              { semantic: "NORMAL", format: "float32x3", offset: 12 },
+              { semantic: "TEXCOORD_0", format: "float32x2", offset: 24 },
+              { semantic: "TANGENT", format: "float32x4", offset: 32 },
+              { semantic: "TEXCOORD_1", format: "float32x2", offset: 48 },
+            ]),
+          }),
+        ]),
+      }),
+    ]),
+  );
+  expect(
+    pixelDistance(uv0, clear),
+    `UV0 metallic control should render visible pixels; sample=${JSON.stringify(
+      uv0,
+    )}`,
+  ).toBeGreaterThan(20);
+  expect(
+    pixelDistance(uv1, clear),
+    `UV1 metallic/normal region should render visible pixels; sample=${JSON.stringify(
+      uv1,
+    )}`,
+  ).toBeGreaterThan(20);
+  expect(
+    pixelDistance(uv0, uv1),
+    "metallic-roughness and normal textures routed through UV1 should differ from the UV0 control",
+  ).toBeGreaterThan(6);
+  expect(
+    pixelDistance(uv0, scalar) + pixelDistance(uv1, scalar),
+    "textured metallic UV controls should differ from the scalar material control",
   ).toBeGreaterThan(24);
   webGpuValidation.expectNoWarnings();
 });

@@ -1,5 +1,39 @@
 # Completed Tasks
 
+## task-2158 through task-2163 — StandardMaterial extended combined GLB texture routes
+
+Completed: 2026-05-20
+
+Summary:
+
+- Added committed GLB viewer samples for StandardMaterial occlusion plus normal,
+  metallic-roughness plus emissive, alpha-blend plus normal, UV1
+  metallic-roughness plus normal, base-color plus occlusion, and transformed
+  base-color plus emissive texture routes.
+- Added focused shader and pipeline descriptor coverage for the new combined
+  texture variants, including occlusion/normal, metallic/emissive,
+  alpha-blend/normal render state, UV1 metallic/normal, and base/occlusion
+  shader behavior.
+- Added Playwright coverage for JSON-safe texture-slot status, UV1/transform
+  metadata, alpha-blend render state, tangent/UV1 mesh layouts, visible pixel
+  deltas, and clean WebGPU validation.
+
+References inspected:
+
+- `references/three.js/examples/jsm/loaders/GLTFLoader.js`
+- `references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/base.js`
+- `references/engine/src/scene/shader-lib/wgsl/chunks/standard/frag/normalMap.js`
+
+Validation:
+
+- `node --check examples/glb-viewer.js`
+- `pnpm exec vitest run test/webgpu/standard-shader.test.ts test/webgpu/standard-pipeline-descriptor.test.ts`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts --grep "StandardMaterial occlusion plus normal map|metallic-roughness texture plus emissive texture"`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts --grep "alpha-blend texture plus normal map"`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts --grep "UV1 metallic-roughness plus normal textures"`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts --grep "base-color texture plus occlusion texture"`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts --grep "transformed base-color plus emissive texture"`
+
 ## task-2154 through task-2157 — StandardMaterial combined GLB texture routes
 
 Completed: 2026-05-20
