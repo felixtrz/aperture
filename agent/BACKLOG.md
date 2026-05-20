@@ -59,7 +59,7 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start with `task-2044`: add rotation and scale animation channel coverage to glb-viewer.
+Start with `task-2048`: replay glTF punctual lights in glb-viewer.
 
 `task-2001` is complete: the spinning-cube example now creates a renderer-owned face-colored diffuse IBL cube texture and sampler, routes it through the StandardMaterial diffuse IBL shader variant, and Playwright verifies direction-dependent face pixels.
 `task-2002` is complete: `withEnvironmentMap(handle)` is exported from runtime/core and materials-showcase now uses it with visible diffuse IBL routing.
@@ -729,6 +729,8 @@ Acceptance criteria:
 
 ### task-2044 — Add rotation and scale animation channel coverage to glb-viewer
 
+Status: completed 2026-05-20. See `agent/COMPLETED.md`.
+
 Category: `runtime-orchestration`
 Package/write-scope: `examples/assets`, `examples/glb-viewer.js`, `test/e2e/glb-viewer.spec.ts`.
 Reference anchor: `references/bevy/crates/bevy_animation/src/lib.rs`; `references/three.js/examples/jsm/loaders/GLTFLoader.js`.
@@ -742,6 +744,8 @@ Acceptance criteria:
 
 ### task-2041 — Audit GLB viewer control/status architecture
 
+Status: completed 2026-05-20. See `docs/research/GLB_VIEWER_CONTROL_STATUS_ARCHITECTURE_AUDIT_2026_05_20.md`.
+
 Category: `audit-refactor`
 Package/write-scope: `docs/research`, `examples/glb-viewer.js`, targeted tests only if a small corrective refactor is required.
 Reference anchor: `docs/NORTH_STAR.md`; `docs/ARCHITECTURE.md`; `docs/DECISIONS.md`; `references/bevy/crates/bevy_gltf/src/loader/mod.rs`.
@@ -751,6 +755,89 @@ Acceptance criteria:
 - Confirm GLB viewer controls and status remain ECS-authored, JSON-safe, and free of renderer-owned authoritative scene state.
 - Check package-boundary drift from the live shadow, IBL, animation, metadata, and query-bootstrap slices.
 - Recommend the next visible GLB/IBL/animation fidelity slice.
+
+### task-2045 — Add STEP interpolation animation coverage to glb-viewer
+
+Status: completed 2026-05-20. See `agent/COMPLETED.md`.
+
+Category: `runtime-orchestration`
+Package/write-scope: `examples/assets`, `examples/glb-viewer.js`, `test/e2e/glb-viewer.spec.ts`.
+Reference anchor: `references/bevy/crates/bevy_animation/src/lib.rs`; `references/three.js/examples/jsm/loaders/GLTFLoader.js`.
+
+Acceptance criteria:
+
+- `glb-viewer` includes a committed GLB sample with at least one `STEP` animation sampler.
+- The example animation sampler holds the previous keyframe value until the next key time while continuing to write replayed ECS `LocalTransform` values.
+- Viewer status reports the stepped channel path, interpolation mode, and sampled value.
+- Playwright verifies held status/pixels before the step and changed status/pixels after the step, with no renderer-owned scene graph.
+
+### task-2046 — Replay an imported glTF camera in glb-viewer
+
+Status: completed 2026-05-20. See `agent/COMPLETED.md`.
+
+Category: `runtime-orchestration`
+Package/write-scope: `examples/assets`, `examples/glb-viewer.html`, `examples/glb-viewer.js`, `test/e2e/glb-viewer.spec.ts`.
+Reference anchor: `references/bevy/crates/bevy_gltf/src/loader/mod.rs`; `references/three.js/examples/jsm/loaders/GLTFLoader.js`.
+
+Acceptance criteria:
+
+- `glb-viewer` includes a committed GLB sample with a perspective camera node.
+- A compact viewer control can switch from fitted orbit camera to the imported camera by mutating the ECS camera transform/projection state.
+- Viewer status reports imported camera metadata and whether the ECS camera is currently using it.
+- Playwright verifies imported-camera status and a visible pixel difference from the fitted orbit view.
+
+### task-2047 — Render an embedded-image textured GLB sample in glb-viewer
+
+Status: completed 2026-05-20. See `agent/COMPLETED.md`.
+
+Category: `render-bridge`
+Package/write-scope: `packages/render/src/assets`, `examples/assets`, `examples/glb-viewer.js`, `test/e2e/glb-viewer.spec.ts`.
+Reference anchor: `references/bevy/crates/bevy_gltf/src/loader/mod.rs`; `references/three.js/examples/jsm/loaders/GLTFLoader.js`.
+
+Acceptance criteria:
+
+- `glb-viewer` includes a committed StandardMaterial GLB sample whose base-color texture image is stored in a GLB `bufferView` instead of an example-local synthetic URI.
+- The source image bytes resolve through the GLB import path without exposing raw bytes in status.
+- Viewer status reports the embedded image/texture slot readiness and routed texture pipeline key.
+- Playwright verifies textured pixels differ from a scalar-control region.
+
+### task-2048 — Replay glTF punctual lights in glb-viewer
+
+Category: `runtime-orchestration`
+Package/write-scope: `packages/render/src/assets`, `examples/assets`, `examples/glb-viewer.js`, `test/e2e/glb-viewer.spec.ts`.
+Reference anchor: `references/bevy/crates/bevy_gltf/src/loader/mod.rs`; `references/three.js/examples/jsm/loaders/GLTFLoader.js`.
+
+Acceptance criteria:
+
+- `glb-viewer` includes a committed GLB sample with `KHR_lights_punctual` point or directional light data.
+- Replay creates ECS-authored `Light` components from supported glTF light nodes without storing renderer-owned light state in ECS.
+- Viewer status reports imported light counts, kinds, intensities, and extracted light packet counts.
+- Playwright verifies the imported-light sample renders visibly differently from the same material under the viewer default lights.
+
+### task-2049 — Add morph-target unsupported-feature viewer sample
+
+Category: `render-bridge`
+Package/write-scope: `examples/assets`, `examples/glb-viewer.js`, `test/e2e/glb-viewer.spec.ts`.
+Reference anchor: `references/bevy/crates/bevy_gltf/src/loader/mod.rs`; `references/three.js/examples/jsm/loaders/GLTFLoader.js`.
+
+Acceptance criteria:
+
+- `glb-viewer` includes a committed GLB sample with morph-target metadata while still rendering the base mesh.
+- Viewer status reports a JSON-safe unsupported morph-target diagnostic with target count and no raw buffers.
+- The diagnostic does not block rendering of supported mesh/material data.
+- Playwright verifies both the visible base mesh and the unsupported-feature diagnostic.
+
+### task-2050 — Audit imported camera/light/embedded-image viewer slices
+
+Category: `audit-refactor`
+Package/write-scope: `docs/research`, targeted examples/tests only if a small corrective refactor is required.
+Reference anchor: `docs/NORTH_STAR.md`; `docs/ARCHITECTURE.md`; `docs/DECISIONS.md`; `references/bevy/crates/bevy_gltf/src/loader/mod.rs`.
+
+Acceptance criteria:
+
+- Confirm imported cameras, lights, embedded images, and unsupported-feature samples preserve ECS authority, render extraction boundaries, JSON-safe status, and WebGPU-only backend ownership.
+- Check package-boundary drift after the next three to five visible GLB viewer fidelity slices.
+- Recommend the next visible scene-import or animation fidelity task.
 
 ## Ready Tasks By Category
 

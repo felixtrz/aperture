@@ -1,11 +1,11 @@
 {
   "state": "idle",
-  "currentTaskId": "task-2044",
+  "currentTaskId": null,
   "currentRunStartedAt": null,
-  "lastRunStartedAt": "2026-05-20T03:02:49Z",
+  "lastRunStartedAt": "2026-05-20T04:02:56Z",
   "lastResult": "completed",
   "lastCommit": "7c2754c",
   "activePid": null,
-  "notes": "Completed task-2036 through task-2043: GLB viewer material-fidelity samples and animation speed, clip, loop, and reverse controls. Recommended next: task-2044.",
-  "lastRunFinishedAt": "2026-05-20T03:57:56Z"
+  "notes": "Completed task-2044, task-2041, task-2045, task-2046, and task-2047: GLB viewer transform animation, STEP, imported-camera, embedded texture samples plus control/status architecture audit. Recommended next: task-2048.",
+  "lastRunFinishedAt": "2026-05-20T04:47:55Z"
 }

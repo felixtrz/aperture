@@ -173,6 +173,31 @@ interface GlbViewerStatus extends ExampleStatusBase {
     readonly resetAvailable: boolean;
     readonly dragging: boolean;
   };
+  readonly importedCamera?: {
+    readonly status: string;
+    readonly controls: {
+      readonly available: boolean;
+      readonly enabled: boolean;
+    };
+    readonly selected: null | {
+      readonly status: string;
+      readonly supported: boolean;
+      readonly nodeIndex: number;
+      readonly cameraIndex: number;
+      readonly entityKey: string;
+      readonly name: string | null;
+      readonly nodeName: string | null;
+      readonly cameraName: string | null;
+      readonly projection: string;
+      readonly yfov: number;
+      readonly aspect: number;
+      readonly near: number;
+      readonly far: number;
+      readonly translation: readonly number[];
+      readonly rotation: readonly number[];
+    };
+    readonly cameras: readonly unknown[];
+  };
   readonly lighting?: {
     readonly controls: {
       readonly ambientIntensity: number;
@@ -208,6 +233,7 @@ interface GlbViewerStatus extends ExampleStatusBase {
       readonly nodeIndex: number;
       readonly entityKey: string;
       readonly path: string;
+      readonly interpolation?: string;
       readonly value: readonly number[];
     }[];
   };
@@ -308,8 +334,12 @@ test("Playwright renders the fetched sample GLB viewer asset", async ({
     "Roughness IBL",
     "Normal map",
     "Textured standard",
+    "Embedded texture",
     "Animated cube",
     "Multi-clip cube",
+    "Rotate/scale cube",
+    "Step animation",
+    "Imported camera",
     "Dual primitive",
     "Mixed alpha",
     "Hierarchy cube",
@@ -1628,6 +1658,480 @@ test("Playwright switches GLB viewer animation clips", async ({ page }) => {
   webGpuValidation.expectNoWarnings();
 });
 
+test("Playwright applies GLB viewer rotation and scale animation channels", async ({
+  page,
+}) => {
+  const webGpuValidation = attachWebGpuValidationConsoleGuard(page);
+
+  await page.goto("/examples/glb-viewer.html?asset=rotation-scale");
+  const initialStatus = await waitForExampleStatus<GlbViewerStatus>(page);
+
+  expect(initialStatus, "GLB viewer status should publish").toBeDefined();
+
+  if (initialStatus === undefined) {
+    throw new Error("GLB viewer status did not publish.");
+  }
+
+  skipIfUnsupportedWebGpu(initialStatus);
+  await page.waitForFunction(
+    () => {
+      const status = (
+        globalThis as {
+          readonly __APERTURE_EXAMPLE_STATUS__?: {
+            readonly frame?: number;
+            readonly selectedAsset?: {
+              readonly id?: string;
+              readonly loading?: boolean;
+            };
+            readonly animation?: {
+              readonly activeClipName?: string | null;
+              readonly channelCount?: number;
+              readonly animatedNodes?: readonly {
+                readonly path?: string;
+                readonly value?: readonly number[];
+              }[];
+            };
+            readonly extraction?: { readonly meshDraws?: number };
+          };
+        }
+      ).__APERTURE_EXAMPLE_STATUS__;
+      const nodes = status?.animation?.animatedNodes ?? [];
+      const rotation = nodes.find((entry) => entry.path === "rotation")?.value;
+      const scale = nodes.find((entry) => entry.path === "scale")?.value;
+
+      return (
+        (status?.frame ?? 0) >= 3 &&
+        status?.selectedAsset?.id === "rotation-scale" &&
+        status.selectedAsset.loading === false &&
+        status.animation?.activeClipName === "SpinAndPulse" &&
+        status.animation.channelCount === 2 &&
+        rotation?.length === 4 &&
+        scale?.length === 3 &&
+        status.extraction?.meshDraws === 1
+      );
+    },
+    undefined,
+    { timeout: 5000 },
+  );
+
+  const startStatus = await waitForExampleStatus<GlbViewerStatus>(page);
+  const startScreenshot = await page.locator("#aperture-canvas").screenshot();
+  const startRotation = animatedChannelValue(startStatus, "rotation");
+  const startScale = animatedChannelValue(startStatus, "scale");
+  const startRotationY = tupleComponent(startRotation, 1, "rotation.y");
+  const startScaleX = tupleComponent(startScale, 0, "scale.x");
+
+  expectStatusJsonSafeForGpu(startStatus);
+  expect(startStatus).toMatchObject({
+    selectedAsset: {
+      id: "rotation-scale",
+      label: "Rotate/scale cube",
+      source: "sample",
+      url: "/examples/assets/rotation-scale.glb",
+      loading: false,
+      materialFamilies: [{ family: "unlit", count: 1 }],
+    },
+    animation: {
+      status: "playing",
+      clipCount: 1,
+      activeClipIndex: 0,
+      activeClipName: "SpinAndPulse",
+      duration: 4,
+      channelCount: 2,
+      animatedNodes: expect.arrayContaining([
+        expect.objectContaining({
+          nodeIndex: 0,
+          entityKey: expect.stringMatching(
+            /^viewer-rotation-scale-\d+:node:0$/,
+          ),
+          path: "rotation",
+          value: expect.any(Array),
+        }),
+        expect.objectContaining({
+          nodeIndex: 0,
+          entityKey: expect.stringMatching(
+            /^viewer-rotation-scale-\d+:node:0$/,
+          ),
+          path: "scale",
+          value: expect.any(Array),
+        }),
+      ]),
+    },
+    gltf: {
+      metadata: {
+        counts: {
+          animations: 1,
+        },
+      },
+    },
+    extraction: {
+      meshDraws: 1,
+      diagnostics: 0,
+    },
+  });
+  expect(startRotation.length).toBe(4);
+  expect(startScale.length).toBe(3);
+
+  await page.waitForFunction(
+    ({ rotationY, scaleX }) => {
+      if (typeof rotationY !== "number" || typeof scaleX !== "number") {
+        return false;
+      }
+
+      const nodes =
+        (
+          globalThis as {
+            readonly __APERTURE_EXAMPLE_STATUS__?: {
+              readonly animation?: {
+                readonly animatedNodes?: readonly {
+                  readonly path?: string;
+                  readonly value?: readonly number[];
+                }[];
+              };
+            };
+          }
+        ).__APERTURE_EXAMPLE_STATUS__?.animation?.animatedNodes ?? [];
+      const rotation = nodes.find((entry) => entry.path === "rotation")?.value;
+      const scale = nodes.find((entry) => entry.path === "scale")?.value;
+
+      return (
+        typeof rotation?.[1] === "number" &&
+        typeof scale?.[0] === "number" &&
+        Math.abs(rotation[1] - rotationY) > 0.08 &&
+        Math.abs(scale[0] - scaleX) > 0.12
+      );
+    },
+    {
+      rotationY: startRotationY,
+      scaleX: startScaleX,
+    },
+    { timeout: 3000 },
+  );
+  const laterStatus = await waitForExampleStatus<GlbViewerStatus>(page);
+  const laterScreenshot = await page.locator("#aperture-canvas").screenshot();
+
+  expect(
+    Math.abs(
+      animationChannelComponent(laterStatus, "rotation", 1) - startRotationY,
+    ),
+    "rotation channel status should change over time",
+  ).toBeGreaterThan(0.08);
+  expect(
+    Math.abs(animationChannelComponent(laterStatus, "scale", 0) - startScaleX),
+    "scale channel status should change over time",
+  ).toBeGreaterThan(0.12);
+  expect(
+    maxSampleDelta(startScreenshot, laterScreenshot),
+    "rotation/scale animation should visibly change rendered pixels",
+  ).toBeGreaterThan(8);
+  webGpuValidation.expectNoWarnings();
+});
+
+test("Playwright holds and steps GLB viewer STEP animation channels", async ({
+  page,
+}) => {
+  const webGpuValidation = attachWebGpuValidationConsoleGuard(page);
+
+  await page.goto("/examples/glb-viewer.html?asset=step-animation");
+  const initialStatus = await waitForExampleStatus<GlbViewerStatus>(page);
+
+  expect(initialStatus, "GLB viewer status should publish").toBeDefined();
+
+  if (initialStatus === undefined) {
+    throw new Error("GLB viewer status did not publish.");
+  }
+
+  skipIfUnsupportedWebGpu(initialStatus);
+  await page.waitForFunction(
+    () => {
+      const status = (
+        globalThis as {
+          readonly __APERTURE_EXAMPLE_STATUS__?: {
+            readonly frame?: number;
+            readonly selectedAsset?: {
+              readonly id?: string;
+              readonly loading?: boolean;
+            };
+            readonly animation?: {
+              readonly activeClipName?: string | null;
+              readonly channelCount?: number;
+              readonly animatedNodes?: readonly {
+                readonly path?: string;
+                readonly interpolation?: string;
+                readonly value?: readonly number[];
+              }[];
+            };
+            readonly extraction?: { readonly meshDraws?: number };
+          };
+        }
+      ).__APERTURE_EXAMPLE_STATUS__;
+      const scale = status?.animation?.animatedNodes?.find(
+        (entry) => entry.path === "scale",
+      );
+
+      return (
+        (status?.frame ?? 0) >= 3 &&
+        status?.selectedAsset?.id === "step-animation" &&
+        status.selectedAsset.loading === false &&
+        status.animation?.activeClipName === "SteppedScale" &&
+        status.animation.channelCount === 1 &&
+        scale?.interpolation === "STEP" &&
+        scale.value?.length === 3 &&
+        status.extraction?.meshDraws === 1
+      );
+    },
+    undefined,
+    { timeout: 5000 },
+  );
+
+  const loadedStatus = await waitForExampleStatus<GlbViewerStatus>(page);
+
+  expectStatusJsonSafeForGpu(loadedStatus);
+  expect(loadedStatus).toMatchObject({
+    selectedAsset: {
+      id: "step-animation",
+      label: "Step animation",
+      source: "sample",
+      url: "/examples/assets/step-animation.glb",
+      loading: false,
+      materialFamilies: [{ family: "unlit", count: 1 }],
+    },
+    animation: {
+      status: "playing",
+      clipCount: 1,
+      activeClipIndex: 0,
+      activeClipName: "SteppedScale",
+      duration: 2,
+      channelCount: 1,
+      animatedNodes: [
+        {
+          nodeIndex: 0,
+          entityKey: expect.stringMatching(
+            /^viewer-step-animation-\d+:node:0$/,
+          ),
+          path: "scale",
+          interpolation: "STEP",
+          value: expect.any(Array),
+        },
+      ],
+    },
+    gltf: {
+      metadata: {
+        counts: {
+          animations: 1,
+        },
+      },
+    },
+    extraction: {
+      meshDraws: 1,
+      diagnostics: 0,
+    },
+  });
+
+  await page.locator("#glb-animation-toggle").click();
+  await waitForStepAnimationStatus(page, { status: "paused" });
+  await setRangeInputValue(page, "#glb-animation-scrub", 0.5);
+  const beforeStepStatus = await waitForStepAnimationStatus(page, {
+    status: "paused",
+    time: 0.5,
+  });
+  const beforeStepScreenshot = await page
+    .locator("#aperture-canvas")
+    .screenshot();
+
+  await setRangeInputValue(page, "#glb-animation-scrub", 0.9);
+  const heldStatus = await waitForStepAnimationStatus(page, {
+    status: "paused",
+    time: 0.9,
+  });
+  const heldScreenshot = await page.locator("#aperture-canvas").screenshot();
+
+  expect(animationChannelComponent(beforeStepStatus, "scale", 0)).toBeCloseTo(
+    0.62,
+    2,
+  );
+  expect(animationChannelComponent(heldStatus, "scale", 0)).toBeCloseTo(
+    0.62,
+    2,
+  );
+  expect(
+    maxSampleDelta(beforeStepScreenshot, heldScreenshot),
+    "STEP interpolation should hold rendered pixels before the next keyframe",
+  ).toBeLessThan(4);
+
+  await setRangeInputValue(page, "#glb-animation-scrub", 1.1);
+  const steppedStatus = await waitForStepAnimationStatus(page, {
+    status: "paused",
+    time: 1.1,
+  });
+  const steppedScreenshot = await page.locator("#aperture-canvas").screenshot();
+
+  expect(animationChannelComponent(steppedStatus, "scale", 0)).toBeCloseTo(
+    1.42,
+    2,
+  );
+  expect(
+    maxSampleDelta(heldScreenshot, steppedScreenshot),
+    "STEP interpolation should visibly change rendered pixels after the keyframe",
+  ).toBeGreaterThan(8);
+  webGpuValidation.expectNoWarnings();
+});
+
+test("Playwright switches GLB viewer to an imported glTF camera", async ({
+  page,
+}) => {
+  const webGpuValidation = attachWebGpuValidationConsoleGuard(page);
+
+  await page.goto("/examples/glb-viewer.html?asset=imported-camera");
+  const initialStatus = await waitForExampleStatus<GlbViewerStatus>(page);
+
+  expect(initialStatus, "GLB viewer status should publish").toBeDefined();
+
+  if (initialStatus === undefined) {
+    throw new Error("GLB viewer status did not publish.");
+  }
+
+  skipIfUnsupportedWebGpu(initialStatus);
+  await page.waitForFunction(
+    () => {
+      const status = (
+        globalThis as {
+          readonly __APERTURE_EXAMPLE_STATUS__?: {
+            readonly frame?: number;
+            readonly selectedAsset?: {
+              readonly id?: string;
+              readonly loading?: boolean;
+            };
+            readonly importedCamera?: {
+              readonly status?: string;
+              readonly controls?: {
+                readonly available?: boolean;
+                readonly enabled?: boolean;
+              };
+              readonly selected?: {
+                readonly projection?: string;
+                readonly yfov?: number;
+              } | null;
+            };
+            readonly extraction?: { readonly meshDraws?: number };
+          };
+        }
+      ).__APERTURE_EXAMPLE_STATUS__;
+
+      return (
+        (status?.frame ?? 0) >= 3 &&
+        status?.selectedAsset?.id === "imported-camera" &&
+        status.selectedAsset.loading === false &&
+        status.importedCamera?.status === "ready" &&
+        status.importedCamera.controls?.available === true &&
+        status.importedCamera.controls.enabled === false &&
+        status.importedCamera.selected?.projection === "perspective" &&
+        Math.abs((status.importedCamera.selected.yfov ?? 0) - 0.72) < 0.001 &&
+        status.extraction?.meshDraws === 1
+      );
+    },
+    undefined,
+    { timeout: 5000 },
+  );
+
+  const orbitStatus = await waitForExampleStatus<GlbViewerStatus>(page);
+  const orbitScreenshot = await page.locator("#aperture-canvas").screenshot();
+
+  expectStatusJsonSafeForGpu(orbitStatus);
+  expect(orbitStatus).toMatchObject({
+    selectedAsset: {
+      id: "imported-camera",
+      label: "Imported camera",
+      source: "sample",
+      url: "/examples/assets/imported-camera.glb",
+      loading: false,
+      materialFamilies: [{ family: "unlit", count: 1 }],
+    },
+    importedCamera: {
+      status: "ready",
+      controls: {
+        available: true,
+        enabled: false,
+      },
+      selected: {
+        status: "ready",
+        supported: true,
+        nodeIndex: 1,
+        cameraIndex: 0,
+        entityKey: expect.stringMatching(/^viewer-imported-camera-\d+:node:1$/),
+        name: "ImportedPerspective",
+        nodeName: "ImportedCameraNode",
+        cameraName: "ImportedPerspective",
+        projection: "perspective",
+        yfov: 0.72,
+        aspect: 1.7777778,
+        near: 0.1,
+        far: 50,
+        translation: [2.2, 1, 2.5],
+        rotation: expect.any(Array),
+      },
+    },
+    gltf: {
+      metadata: {
+        counts: {
+          nodes: 2,
+          meshes: 1,
+          primitives: 1,
+          materials: 1,
+          animations: 0,
+        },
+        unsupportedFeatureDiagnostics: [],
+      },
+    },
+    extraction: {
+      meshDraws: 1,
+      diagnostics: 0,
+    },
+  });
+
+  await page.locator("#glb-imported-camera-toggle").click();
+  await page.waitForFunction(
+    () => {
+      const importedCamera = (
+        globalThis as {
+          readonly __APERTURE_EXAMPLE_STATUS__?: {
+            readonly importedCamera?: {
+              readonly controls?: { readonly enabled?: boolean };
+            };
+          };
+        }
+      ).__APERTURE_EXAMPLE_STATUS__?.importedCamera;
+
+      return importedCamera?.controls?.enabled === true;
+    },
+    undefined,
+    { timeout: 3000 },
+  );
+  const importedStatus = await waitForExampleStatus<GlbViewerStatus>(page);
+  const importedScreenshot = await page
+    .locator("#aperture-canvas")
+    .screenshot();
+
+  expect(importedStatus?.importedCamera).toMatchObject({
+    status: "ready",
+    controls: {
+      available: true,
+      enabled: true,
+    },
+    selected: {
+      projection: "perspective",
+      yfov: 0.72,
+      near: 0.1,
+      far: 50,
+    },
+  });
+  expect(
+    maxSampleDelta(orbitScreenshot, importedScreenshot),
+    "enabling the imported glTF camera should visibly change GLB viewer pixels",
+  ).toBeGreaterThan(8);
+  webGpuValidation.expectNoWarnings();
+});
+
 test("Playwright clamps and repeats GLB viewer animation loop modes", async ({
   page,
 }) => {
@@ -2664,6 +3168,191 @@ test("Playwright renders the GLB viewer textured StandardMaterial sample", async
   webGpuValidation.expectNoWarnings();
 });
 
+test("Playwright renders an embedded-image GLB texture sample", async ({
+  page,
+}) => {
+  const webGpuValidation = attachWebGpuValidationConsoleGuard(page);
+
+  await page.goto("/examples/glb-viewer.html?asset=embedded-texture");
+  const initialStatus = await waitForExampleStatus<GlbViewerStatus>(page);
+
+  expect(initialStatus, "GLB viewer status should publish").toBeDefined();
+
+  if (initialStatus === undefined) {
+    throw new Error("GLB viewer status did not publish.");
+  }
+
+  skipIfUnsupportedWebGpu(initialStatus);
+  await page.waitForFunction(
+    () => {
+      const status = (
+        globalThis as {
+          readonly __APERTURE_EXAMPLE_STATUS__?: {
+            readonly frame?: number;
+            readonly selectedAsset?: {
+              readonly id?: string;
+              readonly loading?: boolean;
+              readonly materialFamilies?: readonly {
+                readonly family?: string;
+                readonly count?: number;
+              }[];
+            };
+            readonly source?: { readonly ok?: boolean };
+            readonly gltf?: {
+              readonly primitiveMaterials?: {
+                readonly resolved?: number;
+              };
+            };
+            readonly extraction?: { readonly meshDraws?: number };
+            readonly renderState?: {
+              readonly pipelineKeys?: readonly string[];
+            };
+          };
+        }
+      ).__APERTURE_EXAMPLE_STATUS__;
+
+      return (
+        (status?.frame ?? 0) >= 3 &&
+        status?.selectedAsset?.id === "embedded-texture" &&
+        status.selectedAsset.loading === false &&
+        status.source?.ok === true &&
+        status.gltf?.primitiveMaterials?.resolved === 2 &&
+        status.extraction?.meshDraws === 2 &&
+        status.renderState?.pipelineKeys?.includes(
+          "standard|baseColorTexture|opaque|back|less|none",
+        ) === true &&
+        status.selectedAsset.materialFamilies?.some(
+          (entry) => entry.family === "standard" && entry.count === 2,
+        ) === true
+      );
+    },
+    undefined,
+    { timeout: 5000 },
+  );
+
+  const status = await waitForExampleStatus<GlbViewerStatus>(page);
+
+  expect(status, "embedded texture viewer status should publish").toBeDefined();
+
+  if (status === undefined) {
+    throw new Error("Embedded texture viewer status did not publish.");
+  }
+
+  const screenshot = await page.locator("#aperture-canvas").screenshot();
+  const clear =
+    status.clearColor === undefined
+      ? { r: 4, g: 6, b: 9, a: 255 }
+      : rgbaColorToPixel(status.clearColor);
+  const textureWarm = readPngPixel(screenshot, 0.35, 0.43);
+  const textureCool = readPngPixel(screenshot, 0.46, 0.57);
+  const scalarControl = readPngPixel(screenshot, 0.64, 0.5);
+  const serializedStatus = JSON.stringify(status);
+
+  expectStatusJsonSafeForGpu(status);
+  expect(serializedStatus).not.toContain("Uint8Array");
+  expect(serializedStatus).not.toContain("[255,74,74");
+  expect(status).toMatchObject({
+    selectedAsset: {
+      id: "embedded-texture",
+      label: "Embedded texture",
+      source: "sample",
+      url: "/examples/assets/embedded-texture.glb",
+      loading: false,
+      materialFamilies: [{ family: "standard", count: 2 }],
+    },
+    gltf: {
+      metadata: {
+        status: "ready",
+        counts: {
+          scenes: 1,
+          nodes: 1,
+          meshes: 1,
+          primitives: 2,
+          materials: 2,
+          animations: 0,
+        },
+        extensions: {
+          used: [],
+          required: [],
+        },
+        unsupportedFeatureDiagnostics: [],
+      },
+      primitiveMaterials: {
+        valid: true,
+        resolved: 2,
+        diagnostics: 0,
+        families: [{ family: "standard", count: 2 }],
+        resolutions: [
+          {
+            meshIndex: 0,
+            primitiveIndex: 0,
+            materialIndex: 0,
+            family: "standard",
+            alphaMode: "opaque",
+            pipelineKey: "standard|baseColorTexture|opaque|back|less|none",
+            textureSlots: {
+              baseColorTexture: {
+                textureKey: expect.stringMatching(
+                  /^texture:viewer-embedded-texture-\d+:texture:0:baseColorTexture$/,
+                ),
+                samplerKey: expect.stringMatching(
+                  /^sampler:viewer-embedded-texture-\d+:sampler:0:baseColorTexture$/,
+                ),
+                texCoord: 0,
+                hasTransform: false,
+              },
+            },
+          },
+          {
+            meshIndex: 0,
+            primitiveIndex: 1,
+            materialIndex: 1,
+            family: "standard",
+            alphaMode: "opaque",
+            pipelineKey: "standard|opaque|back|less|none",
+            textureSlots: {
+              baseColorTexture: null,
+            },
+          },
+        ],
+      },
+      replay: { valid: true, diagnostics: 0 },
+    },
+    extraction: {
+      views: 1,
+      meshDraws: 2,
+      lights: 2,
+      diagnostics: 0,
+    },
+    renderState: {
+      pipelineKeys: expect.arrayContaining([
+        "standard|baseColorTexture|opaque|back|less|none",
+        "standard|opaque|back|less|none",
+      ]),
+    },
+    draw: {
+      packages: 2,
+      drawCalls: 2,
+    },
+  });
+  expect(
+    pixelDistance(textureWarm, clear),
+    `embedded texture should render visible pixels; sample=${JSON.stringify(
+      textureWarm,
+    )}`,
+  ).toBeGreaterThan(20);
+  expect(
+    pixelDistance(textureWarm, textureCool),
+    "embedded base-color texture should create visible variation",
+  ).toBeGreaterThan(12);
+  expect(
+    pixelDistance(textureWarm, scalarControl) +
+      pixelDistance(textureCool, scalarControl),
+    "embedded textured primitive should differ from the scalar control region",
+  ).toBeGreaterThan(30);
+  webGpuValidation.expectNoWarnings();
+});
+
 test("Playwright mutates GLB viewer ECS light controls", async ({ page }) => {
   const webGpuValidation = attachWebGpuValidationConsoleGuard(page);
 
@@ -3433,6 +4122,105 @@ async function waitForAnimationControlStatus(
   }
 
   return status;
+}
+
+async function waitForStepAnimationStatus(
+  page: Page,
+  expected: {
+    readonly status: "playing" | "paused";
+    readonly time?: number;
+  },
+): Promise<GlbViewerStatus> {
+  await page.waitForFunction(
+    ({ status, time }) => {
+      const current = (
+        globalThis as {
+          readonly __APERTURE_EXAMPLE_STATUS__?: {
+            readonly selectedAsset?: {
+              readonly id?: string;
+              readonly loading?: boolean;
+            };
+            readonly animation?: {
+              readonly status?: string;
+              readonly time?: number;
+              readonly activeClipName?: string | null;
+              readonly animatedNodes?: readonly {
+                readonly path?: string;
+                readonly interpolation?: string;
+                readonly value?: readonly number[];
+              }[];
+            };
+            readonly extraction?: { readonly meshDraws?: number };
+          };
+        }
+      ).__APERTURE_EXAMPLE_STATUS__;
+      const scale = current?.animation?.animatedNodes?.find(
+        (entry) => entry.path === "scale",
+      );
+      const timeMatches =
+        typeof time === "number"
+          ? Math.abs((current?.animation?.time ?? Number.NaN) - time) < 0.03
+          : true;
+
+      return (
+        current?.selectedAsset?.id === "step-animation" &&
+        current.selectedAsset.loading === false &&
+        current.extraction?.meshDraws === 1 &&
+        current.animation?.status === status &&
+        current.animation.activeClipName === "SteppedScale" &&
+        scale?.interpolation === "STEP" &&
+        typeof scale.value?.[0] === "number" &&
+        timeMatches
+      );
+    },
+    expected,
+    { timeout: 5000 },
+  );
+
+  const status = await waitForExampleStatus<GlbViewerStatus>(page);
+
+  if (status === undefined) {
+    throw new Error("GLB viewer STEP animation status did not publish.");
+  }
+
+  return status;
+}
+
+function animatedChannelValue(
+  status: GlbViewerStatus | undefined,
+  path: string,
+): readonly number[] {
+  const value = status?.animation?.animatedNodes.find(
+    (entry) => entry.path === path,
+  )?.value;
+
+  if (value === undefined) {
+    throw new Error(`Animation channel '${path}' did not publish.`);
+  }
+
+  return value;
+}
+
+function animationChannelComponent(
+  status: GlbViewerStatus | undefined,
+  path: string,
+  index: number,
+): number {
+  return tupleComponent(animatedChannelValue(status, path), index, path);
+}
+
+function tupleComponent(
+  value: readonly number[],
+  index: number,
+  label: string,
+): number {
+  const component = value[index];
+
+  if (typeof component !== "number") {
+    throw new Error(`Animation channel '${label}' component ${index} missing.`);
+  }
+
+  return component;
 }
 
 async function waitForAnimationFrameAdvance(

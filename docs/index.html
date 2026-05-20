@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-20 03:30 UTC</dd>
+            <dd>2026-05-20 04:47 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -402,37 +402,43 @@
               base-color plus metallic-roughness StandardMaterial samples with
               JSON-safe factor and texture-slot status. GLB mesh construction
               preserves tangent attributes for normal mapping, and animation
-              playback now has speed and clip-selection controls that change the
+              playback now has speed, clip-selection, loop, reverse,
+              rotation/scale, and STEP interpolation coverage that change the
               example animation clock while continuing to write replayed ECS
-              <code>LocalTransform</code> values. Existing shadow, IBL, query,
-              metadata, and pause/scrub viewer controls remain ECS-authored and
-              browser-covered. The GLTF scene vertical-slice plan, JSON-safe
-              scene import contract, and first browser fixture are now in place.
-              The fixture renders plane, box, and cone primitives with
-              StandardMaterial and UnlitMaterial through ECS authoring commands,
-              extraction, render-world preparation, queue/sort, and WebGPU
-              submission. The fixture now also reports extracted environment-map
-              readiness and a renderer-owned IBL descriptor report with
-              diffuse/specular resource keys or unsupported placeholders, plus a
-              directional shadow request, renderer-owned shadow-map descriptors,
-              and shadow resource/pass readiness diagnostics. StandardMaterial
-              IBL and directional shadow sampling are now active in the GLTF
-              scene, and a new point-shadow example allocates a cube depth
-              texture, submits six point-light shadow faces, routes
-              StandardMaterial through a point-shadow cube-map sampling variant,
-              and compares the receiver against projected cube-face depth so
-              near wall pixels remain lit while far-side samples darken. A new
-              spot-shadow example now uses the single-pass 2D shadow resource
-              path, computes a perspective spot view-projection from the ECS
-              light transform, routes StandardMaterial spot lighting plus
-              receiver sampling, and Playwright verifies lit and shadowed
-              receiver samples. A new multi-light shadow example now binds
-              directional, spot, and point receiver resources in one
-              browser-safe group 3 StandardMaterial route, submits all three
-              shadow pass families, and Playwright verifies six named receiver
-              samples in one scene. Broader PMREM remains deferred. The GLTF
-              scene now exposes live caster/receiver shadow toggles, now driven
-              by public <code>withShadowCaster</code> and
+              <code>LocalTransform</code> values. The viewer can now switch to a
+              parsed glTF perspective camera by mutating the same ECS camera
+              transform/projection state, and now includes a GLB sample whose
+              base-color image comes from an embedded image
+              <code>bufferView</code>. Existing shadow, IBL, query, metadata,
+              and pause/scrub viewer controls remain ECS-authored, JSON-safe,
+              and browser-covered after a focused architecture audit. The GLTF
+              scene vertical-slice plan, JSON-safe scene import contract, and
+              first browser fixture are now in place. The fixture renders plane,
+              box, and cone primitives with StandardMaterial and UnlitMaterial
+              through ECS authoring commands, extraction, render-world
+              preparation, queue/sort, and WebGPU submission. The fixture now
+              also reports extracted environment-map readiness and a
+              renderer-owned IBL descriptor report with diffuse/specular
+              resource keys or unsupported placeholders, plus a directional
+              shadow request, renderer-owned shadow-map descriptors, and shadow
+              resource/pass readiness diagnostics. StandardMaterial IBL and
+              directional shadow sampling are now active in the GLTF scene, and
+              a new point-shadow example allocates a cube depth texture, submits
+              six point-light shadow faces, routes StandardMaterial through a
+              point-shadow cube-map sampling variant, and compares the receiver
+              against projected cube-face depth so near wall pixels remain lit
+              while far-side samples darken. A new spot-shadow example now uses
+              the single-pass 2D shadow resource path, computes a perspective
+              spot view-projection from the ECS light transform, routes
+              StandardMaterial spot lighting plus receiver sampling, and
+              Playwright verifies lit and shadowed receiver samples. A new
+              multi-light shadow example now binds directional, spot, and point
+              receiver resources in one browser-safe group 3 StandardMaterial
+              route, submits all three shadow pass families, and Playwright
+              verifies six named receiver samples in one scene. Broader PMREM
+              remains deferred. The GLTF scene now exposes live caster/receiver
+              shadow toggles, now driven by public
+              <code>withShadowCaster</code> and
               <code>withShadowReceiver</code> ECS authoring helpers. Extraction
               publishes caster/receiver flags on mesh draws, shadow caster
               planning skips disabled casters, StandardMaterial shadow routing
@@ -935,18 +941,22 @@
               ECS-authored ambient and point-light controls whose component
               values are reflected in extracted light packets and browser pixel
               response. The viewer now also exposes live shadow caster/receiver
-              controls, an IBL toggle, and animation pause/scrub controls that
-              mutate ECS-authored state. It publishes JSON-safe GLB metadata
-              counts and unsupported-feature diagnostics, supports
+              controls, an IBL toggle, and animation pause/scrub/speed/loop/
+              direction controls plus rotation/scale and STEP channel playback
+              that mutate ECS-authored state. The viewer can now switch from the
+              fitted orbit camera to an imported glTF perspective camera by
+              mutating the ECS camera transform/projection and reporting
+              JSON-safe camera metadata. The embedded-texture sample now
+              resolves a bufferView-backed base-color image without publishing
+              raw image bytes. It publishes JSON-safe GLB metadata counts and
+              unsupported-feature diagnostics, supports
               <code>?asset=</code> sample bootstrapping with invalid-ID fallback
               diagnostics, and the StandardMaterial route now scopes material
               bind groups by pipeline key so live route changes do not reuse
               incompatible layouts.
             </dd>
             <dt>Next focus</dt>
-            <dd>
-              Add rotation and scale animation channel coverage to glb-viewer
-            </dd>
+            <dd>Replay glTF punctual lights in glb-viewer</dd>
           </dl>
         </aside>
       </header>
@@ -1172,17 +1182,20 @@
                 <div class="label">asset import</div>
                 <h3>GLB/glTF path</h3>
               </div>
-              <span class="percent">53%</span>
+              <span class="percent">57%</span>
             </div>
-            <div class="bar"><span style="width: 53%"></span></div>
+            <div class="bar"><span style="width: 57%"></span></div>
             <p>
               Container parsing, diagnostics, source registration, material
-              mapping, URI loading, an eight-asset local GLB viewer path with
-              lit StandardMaterial, animated, dual-primitive, hierarchy, and
-              mixed alpha-state samples, custom URL plus query-URL loading, and
-              bounds-driven camera fitting have landed. The viewer now includes
-              camera reset, ECS light controls, live shadow/IBL controls,
-              animation pause/scrub controls, parsed metadata status, and
+              mapping, URI loading, and a sixteen-asset local GLB viewer path
+              with lit StandardMaterial, animated, multi-clip, rotation/scale,
+              STEP interpolation, imported-camera, embedded-image texture,
+              dual-primitive, hierarchy, and mixed alpha-state samples, custom
+              URL plus query-URL loading, and bounds-driven camera fitting have
+              landed. The viewer now includes camera reset, ECS light controls,
+              live shadow/IBL controls, animation pause/scrub/speed/loop/
+              direction controls, imported camera transform/projection replay,
+              parsed metadata status, and
               <code>?asset=</code> sample bootstrapping, while the lit brass
               sample adds a shadow-receiver floor and environment-map IBL
               through ECS-authored scene state.
@@ -1194,9 +1207,9 @@
                 <div class="label">examples/e2e</div>
                 <h3>browser proof points</h3>
               </div>
-              <span class="percent">59%</span>
+              <span class="percent">63%</span>
             </div>
-            <div class="bar"><span style="width: 59%"></span></div>
+            <div class="bar"><span style="width: 63%"></span></div>
             <p>
               Spinning cube, material showcase, GLTF scene, GLB viewer,
               diagnostics, queue phases, and WebGPU readback examples have
@@ -1206,7 +1219,9 @@
               GLB viewer receiver floor with IBL-enabled pixel comparison. GLB
               viewer coverage now also verifies mixed opaque/transparent
               StandardMaterial render-state routing, fitted-camera reset, and
-              ECS light, shadow, IBL, animation scrub, metadata, and
+              ECS light, shadow, IBL, animation scrub/speed/loop/direction,
+              rotation/scale and STEP channel playback, imported glTF camera
+              switching, embedded-image texture routing, metadata, and
               sample-query bootstrap responses.
             </p>
           </article>
@@ -1512,6 +1527,35 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">task-2047</span> Added an
+                embedded-image StandardMaterial GLB sample and browser proof for
+                bufferView-backed base-color texture readiness, visible texture
+                variation, and scalar-control pixel differences.
+              </li>
+              <li>
+                <span class="badge green">task-2046</span> Added an
+                imported-camera GLB sample, compact toggle, JSON-safe camera
+                status, and Playwright proof that enabling the glTF camera
+                visibly changes pixels from the fitted orbit view.
+              </li>
+              <li>
+                <span class="badge green">task-2045</span> Added a STEP
+                animation GLB sample and status/pixel coverage proving held
+                transform values before a keyframe and a visible step after it.
+              </li>
+              <li>
+                <span class="badge green">task-2044</span> Added a
+                rotation/scale animated GLB sample and broadened the viewer
+                sampler to write translation, rotation, and scale channels into
+                replayed ECS <code>LocalTransform</code> values.
+              </li>
+              <li>
+                <span class="badge green">task-2041</span> Audited GLB viewer
+                control/status architecture and refilled visible follow-ups
+                around animation interpolation, imported cameras/lights, and
+                embedded images.
+              </li>
               <li>
                 <span class="badge green">task-2043</span> Added reverse
                 animation playback with signed speed status and browser proof
@@ -3272,17 +3316,17 @@
             <h3>Recommended next tasks</h3>
             <ul>
               <li>
-                <span class="badge amber">next</span> Add rotation and scale
-                animation channel coverage to <code>glb-viewer</code>.
+                <span class="badge amber">next</span> Replay glTF punctual
+                lights in <code>glb-viewer</code>.
               </li>
               <li>
-                The next sample should animate rotation and scale in addition to
-                translation while continuing to update replayed ECS transform
-                state.
+                The next sample should include
+                <code>KHR_lights_punctual</code> point or directional light data
+                and convert it into ECS-authored light components.
               </li>
               <li>
-                Use Playwright to verify rotation/scale status and rendered
-                pixels change without introducing renderer-owned scene state.
+                Use Playwright to verify imported-light status, extracted light
+                packets, and a visible lighting difference from viewer defaults.
               </li>
             </ul>
           </article>
@@ -3296,7 +3340,7 @@
         </div>
         <article class="card timeline">
           <div class="timeline-item">
-            <div class="task-id">task-2036-2043</div>
+            <div class="task-id">task-2036-2045</div>
             <div>
               <strong
                 >GLB viewer material fidelity and animation controls
@@ -3305,8 +3349,8 @@
               <span
                 >Roughness/IBL, normal-map, and textured StandardMaterial
                 samples now publish JSON-safe material status; speed,
-                clip-selection, loop, and reverse controls update replayed ECS
-                transforms.</span
+                clip-selection, loop, reverse, rotation/scale, and STEP
+                animation coverage update replayed ECS transforms.</span
               >
             </div>
           </div>

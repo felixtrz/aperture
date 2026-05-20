@@ -1,6 +1,101 @@
 # Agent Handoff
 
-Updated: 2026-05-20T03:57:56Z
+Updated: 2026-05-20T04:47:55Z
+
+## Current Run Update — 2026-05-20T04:47:55Z — GLB viewer transform animation, cameras, and embedded texture
+
+Completed `task-2044`, `task-2041`, `task-2045`, `task-2046`, and
+`task-2047`.
+
+### What changed
+
+- Added `examples/assets/rotation-scale.glb`, a committed unlit GLB sample with
+  `rotation` and `scale` animation channels.
+- Extended `examples/glb-viewer.js` animation parsing from translation-only to
+  `translation`, `rotation`, and `scale` channel paths. Sampled values continue
+  to write replayed ECS `LocalTransform` fields.
+- Added quaternion normalization and shortest-path interpolation for rotation
+  channel sampling, while preserving `STEP` sampler handling for follow-up
+  coverage.
+- Added Playwright coverage proving the rotation/scale sample reports both
+  channel paths and changes rendered pixels without a renderer-owned scene
+  graph.
+- Added `examples/assets/step-animation.glb`, a committed unlit GLB sample with
+  a `STEP` scale animation sampler.
+- GLB viewer animated node status now includes each channel's interpolation
+  mode, and Playwright verifies held STEP status/pixels before a keyframe and
+  changed status/pixels after it.
+- Added `examples/assets/imported-camera.glb`, a committed GLB sample with a
+  perspective camera node.
+- Added a compact imported-camera toggle to `glb-viewer`. Enabling it mutates
+  the viewer ECS camera transform/projection from the parsed glTF camera
+  metadata; disabling/resetting returns to the fitted orbit camera.
+- GLB viewer status now reports JSON-safe imported camera availability, enabled
+  state, selected camera metadata, transform, and perspective projection values.
+- Removed the metadata warning that treated glTF cameras as unsupported in the
+  viewer once the perspective-camera replay path landed.
+- Added Playwright coverage proving imported-camera status and a visible pixel
+  difference from the fitted orbit view.
+- Added `examples/assets/embedded-texture.glb`, a committed StandardMaterial GLB
+  sample whose base-color image is stored in an image `bufferView`.
+- Extended the GLB viewer image resolver for that named bufferView-backed PNG
+  source while keeping raw image/container bytes out of published viewer status.
+- Added Playwright coverage proving embedded texture-slot readiness, the
+  `standard|baseColorTexture` route, visible texture variation, and a pixel
+  difference from a scalar StandardMaterial control primitive.
+- Added
+  `docs/research/GLB_VIEWER_CONTROL_STATUS_ARCHITECTURE_AUDIT_2026_05_20.md`.
+  The audit confirmed GLB viewer controls/status remain ECS-authored,
+  JSON-safe, and package-boundary aligned.
+- Updated `docs/index.html`, `docs/render-pipeline-comparison.html`,
+  `agent/BACKLOG.md`, and `agent/COMPLETED.md`. The recommended next task is
+  now `task-2048`.
+
+### References inspected
+
+- `references/bevy/crates/bevy_animation/src/lib.rs`
+- `references/bevy/crates/bevy_gltf/src/loader/mod.rs`
+- `references/bevy/crates/bevy_render/src/camera.rs`
+- `references/three.js/examples/jsm/loaders/GLTFLoader.js`
+- `docs/NORTH_STAR.md`
+- `docs/ARCHITECTURE.md`
+- `docs/DECISIONS.md`
+
+### Validation
+
+- `node --check examples/glb-viewer.js`
+- GLB JSON/header checks for `examples/assets/rotation-scale.glb`,
+  `examples/assets/step-animation.glb`, and
+  `examples/assets/imported-camera.glb`; GLB JSON/header check for
+  `examples/assets/embedded-texture.glb`
+- `pnpm run typecheck:test`
+- `pnpm run check:examples`
+- `pnpm run build`
+- `pnpm test`
+- `pnpm run lint`
+- `pnpm run format:check`
+- `pnpm run check:progress`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts -g "rotation and scale animation channels"`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts -g "STEP animation channels"`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts -g "imported glTF camera"`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts -g "embedded-image"`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts` (20 tests passed)
+- Attempted in-app browser sanity check for
+  `/examples/glb-viewer.html?asset=rotation-scale`; the MCP browser profile was
+  locked by another Chromium instance, so the full Playwright browser suite is
+  the visual verification for this run.
+
+### Known issues
+
+- No known regressions from this run.
+- Full GLB image decode, imported glTF punctual lights, morph targets, skins,
+  and cubic-spline animation remain deferred.
+- The GLB viewer still has example-local image URI resolution for committed
+  synthetic texture samples.
+
+### Recommended next task
+
+`task-2048 — Replay glTF punctual lights in glb-viewer`.
 
 ## Current Run Update — 2026-05-20T03:57:56Z — GLB viewer material fidelity and animation controls
 

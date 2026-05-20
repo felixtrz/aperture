@@ -1,5 +1,172 @@
 # Completed Tasks
 
+## task-2047 — Render an embedded-image textured GLB sample in glb-viewer
+
+Completed: 2026-05-20
+
+Summary:
+
+- Added `examples/assets/embedded-texture.glb`, a local StandardMaterial GLB
+  sample whose base-color image is stored in an image `bufferView`.
+- Extended the GLB viewer image resolver to handle that named bufferView-backed
+  PNG source with decoded 2x2 texture data, keeping raw image/container bytes
+  out of viewer status.
+- Added the sample to the GLB viewer selector.
+- Added Playwright coverage proving texture-slot readiness, the
+  `standard|baseColorTexture` route, visible embedded texture variation, and a
+  pixel difference from a scalar StandardMaterial control primitive.
+
+References inspected:
+
+- `references/bevy/crates/bevy_gltf/src/loader/mod.rs`
+- `references/three.js/examples/jsm/loaders/GLTFLoader.js`
+
+Validation:
+
+- `node --check examples/glb-viewer.js`
+- GLB JSON/header check for `examples/assets/embedded-texture.glb`
+- `pnpm run typecheck:test`
+- `pnpm run check:examples`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts -g "embedded-image"`
+
+Known follow-up:
+
+- `task-2048` should replay glTF punctual lights in `glb-viewer`.
+
+## task-2046 — Replay an imported glTF camera in glb-viewer
+
+Completed: 2026-05-20
+
+Summary:
+
+- Added `examples/assets/imported-camera.glb`, a local unlit GLB sample with a
+  perspective camera node.
+- Added a compact imported-camera toggle to `glb-viewer`; enabling it mutates
+  the viewer ECS camera transform/projection instead of creating renderer-owned
+  authoritative camera state.
+- Added JSON-safe imported camera status with availability, enabled state,
+  camera metadata, transform, and projection values.
+- Removed the viewer metadata warning that treated glTF cameras as unsupported
+  once the example replay path could use perspective camera nodes.
+- Added Playwright coverage proving the imported camera status and a visible
+  pixel difference from the fitted orbit view.
+
+References inspected:
+
+- `references/bevy/crates/bevy_gltf/src/loader/mod.rs`
+- `references/bevy/crates/bevy_render/src/camera.rs`
+- `references/three.js/examples/jsm/loaders/GLTFLoader.js`
+
+Validation:
+
+- `node --check examples/glb-viewer.js`
+- GLB JSON/header check for `examples/assets/imported-camera.glb`
+- `pnpm run typecheck:test`
+- `pnpm run check:examples`
+- `pnpm run build`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts -g "imported glTF camera"`
+
+Known follow-up:
+
+- `task-2047` should render an embedded-image textured GLB sample in
+  `glb-viewer`.
+
+## task-2045 — Add STEP interpolation animation coverage to glb-viewer
+
+Completed: 2026-05-20
+
+Summary:
+
+- Added `examples/assets/step-animation.glb`, a local unlit GLB sample with a
+  `STEP` scale animation sampler.
+- Added per-channel interpolation status to GLB viewer animated node status.
+- Added Playwright coverage proving the STEP sampler holds transform status and
+  rendered pixels before the next keyframe, then changes status and pixels after
+  the stepped keyframe.
+
+References inspected:
+
+- `references/bevy/crates/bevy_animation/src/lib.rs`
+- `references/bevy/crates/bevy_gltf/src/loader/mod.rs`
+- `references/three.js/examples/jsm/loaders/GLTFLoader.js`
+
+Validation:
+
+- `node --check examples/glb-viewer.js`
+- GLB JSON/header checks for `examples/assets/rotation-scale.glb` and
+  `examples/assets/step-animation.glb`
+- `pnpm run typecheck:test`
+- `pnpm run check:examples`
+- `pnpm run build`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts -g "STEP animation channels"`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts`
+
+Known follow-up:
+
+- `task-2046` should replay an imported glTF camera in `glb-viewer`.
+
+## task-2041 — Audit GLB viewer control/status architecture
+
+Completed: 2026-05-20
+
+Summary:
+
+- Added `docs/research/GLB_VIEWER_CONTROL_STATUS_ARCHITECTURE_AUDIT_2026_05_20.md`.
+- Confirmed GLB viewer controls continue to mutate ECS-authored state or example playback state that writes replayed ECS `LocalTransform` values.
+- Confirmed JSON-safe status avoids raw GLB bytes and raw GPU handles while renderer-owned IBL/shadow resources remain inputs to `app.render(...)`.
+- Refilled the ready queue with visible GLB viewer follow-ups before the next audit.
+
+References inspected:
+
+- `docs/NORTH_STAR.md`
+- `docs/ARCHITECTURE.md`
+- `docs/DECISIONS.md`
+- `references/bevy/crates/bevy_gltf/src/loader/mod.rs`
+- `references/bevy/crates/bevy_animation/src/lib.rs`
+- `references/three.js/examples/jsm/loaders/GLTFLoader.js`
+
+Validation:
+
+- Audit-only; implementation validation is listed under `task-2044`.
+
+Known follow-up:
+
+- `task-2045` should add STEP interpolation animation coverage to `glb-viewer`.
+
+## task-2044 — Add rotation and scale animation channel coverage to glb-viewer
+
+Completed: 2026-05-20
+
+Summary:
+
+- Added `examples/assets/rotation-scale.glb`, a local GLB sample with rotation and scale animation channels.
+- Extended the example animation sampler to parse and apply `translation`, `rotation`, and `scale` channels to replayed ECS `LocalTransform` data.
+- Added quaternion normalization/shortest-path interpolation for sampled rotation values and preserved stepped interpolation handling.
+- Added Playwright coverage proving rotation/scale status and rendered pixels change without introducing renderer-owned scene state.
+
+References inspected:
+
+- `references/bevy/crates/bevy_animation/src/lib.rs`
+- `references/bevy/crates/bevy_gltf/src/loader/mod.rs`
+- `references/three.js/examples/jsm/loaders/GLTFLoader.js`
+
+Validation:
+
+- `node --check examples/glb-viewer.js`
+- GLB JSON parse/header check for `examples/assets/rotation-scale.glb`
+- `pnpm run typecheck:test`
+- `pnpm run check:examples`
+- `pnpm run build`
+- `pnpm test`
+- `pnpm run lint`
+- `pnpm run format:check`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts -g "rotation and scale animation channels"`
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts`
+
+Known follow-up:
+
+- `task-2045` should add STEP interpolation animation coverage to `glb-viewer`.
+
 ## task-2043 — Add reverse animation playback to glb-viewer
 
 Completed: 2026-05-20

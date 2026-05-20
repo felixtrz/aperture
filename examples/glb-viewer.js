@@ -3,6 +3,9 @@ const assetSelect = document.querySelector("#glb-asset-select");
 const customUrlForm = document.querySelector("#glb-url-form");
 const customUrlInput = document.querySelector("#glb-url-input");
 const cameraResetButton = document.querySelector("#glb-camera-reset");
+const importedCameraToggle = document.querySelector(
+  "#glb-imported-camera-toggle",
+);
 const shadowReceiverToggle = document.querySelector(
   "#glb-shadow-receiver-toggle",
 );
@@ -93,6 +96,12 @@ const sampleAssets = [
     source: "sample",
   },
   {
+    id: "embedded-texture",
+    label: "Embedded texture",
+    url: new URL("./assets/embedded-texture.glb", globalThis.location.href),
+    source: "sample",
+  },
+  {
     id: "animated",
     label: "Animated cube",
     url: new URL("./assets/animated-cube.glb", globalThis.location.href),
@@ -102,6 +111,24 @@ const sampleAssets = [
     id: "multi-clip",
     label: "Multi-clip cube",
     url: new URL("./assets/multi-clip.glb", globalThis.location.href),
+    source: "sample",
+  },
+  {
+    id: "rotation-scale",
+    label: "Rotate/scale cube",
+    url: new URL("./assets/rotation-scale.glb", globalThis.location.href),
+    source: "sample",
+  },
+  {
+    id: "step-animation",
+    label: "Step animation",
+    url: new URL("./assets/step-animation.glb", globalThis.location.href),
+    source: "sample",
+  },
+  {
+    id: "imported-camera",
+    label: "Imported camera",
+    url: new URL("./assets/imported-camera.glb", globalThis.location.href),
     source: "sample",
   },
   {
@@ -202,7 +229,9 @@ function createGlbViewerScene(aperture, app, targetCanvas) {
     initialCustomUrl,
     sampleSelection: initialSampleSelection.status,
     active: null,
+    targetCanvas,
     orbit,
+    cameraControls: { importedEnabled: false },
     cameraEntity,
     ambientLightEntity,
     pointLightEntity,
@@ -251,17 +280,21 @@ function createGlbViewerScene(aperture, app, targetCanvas) {
 
   if (cameraResetButton instanceof HTMLButtonElement) {
     cameraResetButton.addEventListener("click", () => {
+      scene.cameraControls.importedEnabled = false;
       resetOrbitToFit(scene.orbit);
-      updateOrbitCamera(aperture, cameraEntity, scene.orbit);
+      updateImportedCameraControlInputs(scene);
+      updateViewerCamera(aperture, scene);
     });
   }
 
+  bindImportedCameraControlInputs(aperture, scene);
   bindShadowControlInputs(aperture, scene);
   bindIblControlInputs(aperture, scene);
   bindAnimationControlInputs(aperture, scene);
   bindLightControlInputs(aperture, scene);
   updateShadowControlInputs(scene);
   updateIblControlInputs(scene);
+  updateImportedCameraControlInputs(scene);
   updateAnimationControlInputs(scene);
 
   return scene;
@@ -337,6 +370,7 @@ async function loadAsset(aperture, app, scene, asset) {
       url: formatAssetUrl(asset.url),
     },
   };
+  scene.cameraControls.importedEnabled = false;
   setCameraResetEnabled(false);
   destroyActiveScene(scene);
 
@@ -398,6 +432,11 @@ async function loadAsset(aperture, app, scene, asset) {
     keyPrefix,
     replay,
   });
+  const importedCamera = createImportedCameraState({
+    root: loaded.loader.glbImportReport.container.container.json,
+    keyPrefix,
+    targetCanvas: scene.targetCanvas,
+  });
 
   updateActiveAnimation(aperture, animation, 0);
   aperture.resolveWorldTransforms(app.world);
@@ -421,6 +460,7 @@ async function loadAsset(aperture, app, scene, asset) {
     commandPlan,
     replay,
     animation,
+    importedCamera,
     fit,
     shadowScene,
     iblScene,
@@ -429,6 +469,7 @@ async function loadAsset(aperture, app, scene, asset) {
   setCameraResetEnabled(fit.status === "ready");
   updateShadowControlInputs(scene);
   updateIblControlInputs(scene);
+  updateImportedCameraControlInputs(scene);
   updateAnimationControlInputs(scene);
 }
 
@@ -460,6 +501,7 @@ function destroyActiveScene(scene) {
   scene.active = null;
   updateShadowControlInputs(scene);
   updateIblControlInputs(scene);
+  updateImportedCameraControlInputs(scene);
   updateAnimationControlInputs(scene);
 }
 
@@ -943,7 +985,7 @@ function startRendering(aperture, app, scene) {
         frame / 60,
       );
       updateAnimationControlInputs(scene);
-      updateOrbitCamera(aperture, scene.cameraEntity, scene.orbit);
+      updateViewerCamera(aperture, scene);
       const step = app.step(0, frame / 60);
       const report = await app.render({
         frame,
@@ -1068,6 +1110,7 @@ async function createStatus(aperture, app, scene, step, report, frame) {
       resetAvailable: scene.orbit.fit.status === "ready",
       dragging: scene.orbit.dragging,
     },
+    importedCamera: createImportedCameraStatus(scene),
     lighting: createLightingControlStatus(aperture, scene, report.snapshot),
     animation: createAnimationStatus(active?.animation ?? null),
     hierarchy: createHierarchyStatus(aperture, active),
@@ -1683,6 +1726,28 @@ function setShadowReceiverComponent(aperture, entity, enabled) {
   entity.addComponent(aperture.ShadowReceiver, { enabled });
 }
 
+function bindImportedCameraControlInputs(aperture, scene) {
+  if (importedCameraToggle instanceof HTMLInputElement) {
+    importedCameraToggle.addEventListener("change", () => {
+      scene.cameraControls.importedEnabled =
+        importedCameraToggle.checked &&
+        scene.active?.importedCamera?.selected !== null;
+      updateViewerCamera(aperture, scene);
+      updateImportedCameraControlInputs(scene);
+    });
+  }
+}
+
+function updateImportedCameraControlInputs(scene) {
+  const available = scene.active?.importedCamera?.selected !== null;
+
+  if (importedCameraToggle instanceof HTMLInputElement) {
+    importedCameraToggle.disabled = !available;
+    importedCameraToggle.checked =
+      available && scene.cameraControls.importedEnabled;
+  }
+}
+
 function bindIblControlInputs(aperture, scene) {
   if (iblToggle instanceof HTMLInputElement) {
     iblToggle.checked = iblControls.enabled;
@@ -2178,6 +2243,153 @@ function createGltfAnimationState(options) {
   };
 }
 
+function createImportedCameraState({ root, keyPrefix, targetCanvas }) {
+  if (!isRecord(root)) {
+    return {
+      status: "absent",
+      cameras: [],
+      selected: null,
+    };
+  }
+
+  const cameras = arrayEntries(root.cameras);
+  const nodes = arrayEntries(root.nodes);
+  const importedCameras = [];
+
+  nodes.forEach((node, nodeIndex) => {
+    if (!isRecord(node)) {
+      return;
+    }
+
+    const cameraIndex = integerOrNull(node.camera);
+    if (cameraIndex === null) {
+      return;
+    }
+
+    const camera = cameras[cameraIndex];
+    if (!isRecord(camera)) {
+      importedCameras.push({
+        status: "invalid",
+        supported: false,
+        nodeIndex,
+        cameraIndex,
+        entityKey: `${keyPrefix}:node:${nodeIndex}`,
+        name: nodeNameOrNull(node),
+        nodeName: nodeNameOrNull(node),
+        cameraName: null,
+        projection: "unknown",
+        reason: "missing-camera",
+      });
+      return;
+    }
+
+    importedCameras.push(
+      createImportedCameraDescriptor({
+        node,
+        nodeIndex,
+        camera,
+        cameraIndex,
+        keyPrefix,
+        targetCanvas,
+      }),
+    );
+  });
+
+  const selected =
+    importedCameras.find((camera) => camera.status === "ready") ?? null;
+
+  return {
+    status:
+      selected !== null
+        ? "ready"
+        : importedCameras.length > 0
+          ? "unsupported"
+          : "absent",
+    cameras: importedCameras,
+    selected,
+  };
+}
+
+function createImportedCameraDescriptor({
+  node,
+  nodeIndex,
+  camera,
+  cameraIndex,
+  keyPrefix,
+  targetCanvas,
+}) {
+  const projection = typeof camera.type === "string" ? camera.type : "unknown";
+  const cameraName = nodeNameOrNull(camera);
+  const nodeName = nodeNameOrNull(node);
+  const base = {
+    nodeIndex,
+    cameraIndex,
+    entityKey: `${keyPrefix}:node:${nodeIndex}`,
+    name: cameraName ?? nodeName,
+    nodeName,
+    cameraName,
+    projection,
+  };
+
+  if (projection !== "perspective" || !isRecord(camera.perspective)) {
+    return {
+      ...base,
+      status: "unsupported",
+      supported: false,
+      reason:
+        projection === "orthographic"
+          ? "orthographic-camera"
+          : "missing-perspective-parameters",
+    };
+  }
+
+  const fallbackAspect = Math.max(
+    0.0001,
+    targetCanvas.width / Math.max(1, targetCanvas.height),
+  );
+  const yfov = numberOrNull(camera.perspective.yfov);
+  const near = numberOrNull(camera.perspective.znear);
+
+  if (yfov === null || yfov <= 0 || yfov >= Math.PI || near === null) {
+    return {
+      ...base,
+      status: "invalid",
+      supported: false,
+      reason: "invalid-perspective-parameters",
+    };
+  }
+
+  const aspect = numberOrNull(camera.perspective.aspectRatio) ?? fallbackAspect;
+  const far = numberOrNull(camera.perspective.zfar) ?? 1000;
+
+  if (aspect <= 0 || far <= near) {
+    return {
+      ...base,
+      status: "invalid",
+      supported: false,
+      reason: "invalid-perspective-clip",
+    };
+  }
+
+  return {
+    ...base,
+    status: "ready",
+    supported: true,
+    yfov,
+    aspect,
+    near,
+    far,
+    translation: roundTuple(tupleOrDefault(node.translation, [0, 0, 0]), 4),
+    rotation: roundTuple(
+      normalizeAnimationValue(
+        "rotation",
+        tupleOrDefault(node.rotation, [0, 0, 0, 1]),
+      ),
+      6,
+    ),
+  };
+}
+
 function parseGltfAnimationClips({
   aperture,
   root,
@@ -2212,11 +2424,12 @@ function parseGltfAnimationClips({
       const samplerIndex = integerOrNull(channel.sampler);
       const nodeIndex = integerOrNull(channel.target.node);
       const path = channel.target.path;
+      const accessorType = animationAccessorTypeForPath(path);
 
       if (
         samplerIndex === null ||
         nodeIndex === null ||
-        path !== "translation"
+        accessorType === null
       ) {
         return;
       }
@@ -2238,18 +2451,18 @@ function parseGltfAnimationClips({
         inputAccessor,
         "SCALAR",
       ).map((tuple) => tuple[0]);
-      const translations = readGltfFloatAccessorTuples(
+      const values = readGltfFloatAccessorTuples(
         root,
         binary,
         outputAccessor,
-        "VEC3",
+        accessorType,
       );
       const entityKey = `${keyPrefix}:node:${nodeIndex}`;
       const entity = replay.entitiesByKey.get(entityKey) ?? null;
 
       if (
         times.length < 2 ||
-        times.length !== translations.length ||
+        times.length !== values.length ||
         entity === null ||
         !entity.hasComponent(aperture.LocalTransform)
       ) {
@@ -2260,8 +2473,12 @@ function parseGltfAnimationClips({
         nodeIndex,
         entityKey,
         path,
+        interpolation:
+          typeof sampler.interpolation === "string"
+            ? sampler.interpolation
+            : "LINEAR",
         times,
-        translations,
+        values,
         entity,
       });
     });
@@ -2319,16 +2536,17 @@ function applyAnimationAtTime(aperture, animation, clip, localTime) {
   const animatedNodes = [];
 
   for (const channel of clip.channels) {
-    const translation = sampleTranslationChannel(channel, localTime);
+    const value = sampleAnimationChannel(channel, localTime);
 
     channel.entity
-      .getVectorView(aperture.LocalTransform, "translation")
-      .set(translation);
+      .getVectorView(aperture.LocalTransform, channel.path)
+      .set(value);
     animatedNodes.push({
       nodeIndex: channel.nodeIndex,
       entityKey: channel.entityKey,
       path: channel.path,
-      value: roundTuple(translation, 3),
+      interpolation: channel.interpolation,
+      value: roundTuple(value, 3),
     });
   }
 
@@ -2340,9 +2558,9 @@ function wrapTime(time, duration) {
   return duration > 0 ? ((time % duration) + duration) % duration : 0;
 }
 
-function sampleTranslationChannel(channel, time) {
+function sampleAnimationChannel(channel, time) {
   if (time <= channel.times[0]) {
-    return channel.translations[0];
+    return normalizeAnimationValue(channel.path, channel.values[0]);
   }
 
   for (let index = 1; index < channel.times.length; index += 1) {
@@ -2353,21 +2571,81 @@ function sampleTranslationChannel(channel, time) {
     }
 
     const previousTime = channel.times[index - 1];
-    const previous = channel.translations[index - 1];
-    const next = channel.translations[index];
+    const previous = channel.values[index - 1];
+    const next = channel.values[index];
     const t =
       nextTime === previousTime
         ? 0
         : (time - previousTime) / (nextTime - previousTime);
 
-    return [
-      previous[0] + (next[0] - previous[0]) * t,
-      previous[1] + (next[1] - previous[1]) * t,
-      previous[2] + (next[2] - previous[2]) * t,
-    ];
+    if (channel.interpolation === "STEP") {
+      return normalizeAnimationValue(channel.path, previous);
+    }
+
+    return normalizeAnimationValue(
+      channel.path,
+      interpolateAnimationTuple(channel.path, previous, next, t),
+    );
   }
 
-  return channel.translations.at(-1) ?? [0, 0, 0];
+  return normalizeAnimationValue(
+    channel.path,
+    channel.values.at(-1) ?? defaultAnimationValue(channel.path),
+  );
+}
+
+function interpolateAnimationTuple(path, previous, next, t) {
+  const adjustedNext =
+    path === "rotation" && quaternionDot(previous, next) < 0
+      ? next.map((component) => -component)
+      : next;
+
+  return previous.map(
+    (component, index) => component + (adjustedNext[index] - component) * t,
+  );
+}
+
+function normalizeAnimationValue(path, value) {
+  if (path !== "rotation") {
+    return value;
+  }
+
+  const length = Math.hypot(value[0], value[1], value[2], value[3]);
+
+  if (length <= 0 || !Number.isFinite(length)) {
+    return [0, 0, 0, 1];
+  }
+
+  return [
+    value[0] / length,
+    value[1] / length,
+    value[2] / length,
+    value[3] / length,
+  ];
+}
+
+function quaternionDot(a, b) {
+  return a[0] * b[0] + a[1] * b[1] + a[2] * b[2] + a[3] * b[3];
+}
+
+function defaultAnimationValue(path) {
+  return path === "rotation"
+    ? [0, 0, 0, 1]
+    : path === "scale"
+      ? [1, 1, 1]
+      : [0, 0, 0];
+}
+
+function animationAccessorTypeForPath(path) {
+  switch (path) {
+    case "translation":
+    case "scale":
+      return "VEC3";
+    case "rotation":
+      return "VEC4";
+    default:
+      return null;
+  }
 }
 
 function createAnimationStatus(animation) {
@@ -2501,6 +2779,8 @@ function componentCountForAccessorType(type) {
       return 1;
     case "VEC3":
       return 3;
+    case "VEC4":
+      return 4;
     default:
       return null;
   }
@@ -2545,6 +2825,26 @@ function createHierarchyStatus(aperture, active) {
               ),
       };
     }),
+  };
+}
+
+function createImportedCameraStatus(scene) {
+  const importedCamera = scene.active?.importedCamera ?? {
+    status: "absent",
+    cameras: [],
+    selected: null,
+  };
+  const available = importedCamera.selected !== null;
+  const enabled = available && scene.cameraControls.importedEnabled;
+
+  return {
+    status: importedCamera.status,
+    controls: {
+      available,
+      enabled,
+    },
+    selected: importedCamera.selected,
+    cameras: importedCamera.cameras,
   };
 }
 
@@ -2650,7 +2950,6 @@ function rootExtensionDiagnostics(extensionsUsed, extensionsRequired) {
 function rootFeatureDiagnostics(root, primitives) {
   const diagnostics = [];
   const skins = arrayEntries(root.skins);
-  const cameras = arrayEntries(root.cameras);
   const morphTargetPrimitiveCount = primitives.filter(
     (primitive) =>
       isRecord(primitive) && arrayEntries(primitive.targets).length > 0,
@@ -2663,16 +2962,6 @@ function rootFeatureDiagnostics(root, primitives) {
       count: skins.length,
       message:
         "GLB viewer metadata detected skins; skinning is not replayed yet.",
-    });
-  }
-
-  if (cameras.length > 0) {
-    diagnostics.push({
-      code: "gltfMetadata.unsupportedCameras",
-      severity: "warning",
-      count: cameras.length,
-      message:
-        "GLB viewer metadata detected cameras; imported cameras are not replayed yet.",
     });
   }
 
@@ -2869,6 +3158,26 @@ function resolveGlbViewerImageData(input) {
     };
   }
 
+  if (
+    input.source.kind === "bufferView" &&
+    input.source.mimeType === "image/png" &&
+    input.image.name === "EmbeddedBaseColorChecker"
+  ) {
+    return {
+      width: 2,
+      height: 2,
+      format: "rgba8unorm-srgb",
+      sourceData: {
+        bytes: new Uint8Array([
+          255, 74, 74, 255, 74, 176, 255, 255, 255, 222, 78, 255, 56, 220, 142,
+          255,
+        ]),
+        bytesPerRow: 8,
+        rowsPerImage: 2,
+      },
+    };
+  }
+
   return {
     image: null,
     diagnostics: [
@@ -3048,6 +3357,58 @@ function createOrbitControls(targetCanvas) {
   );
 
   return state;
+}
+
+function updateViewerCamera(aperture, scene) {
+  const selectedImportedCamera = scene.active?.importedCamera?.selected ?? null;
+
+  if (scene.cameraControls.importedEnabled && selectedImportedCamera !== null) {
+    applyImportedCamera(aperture, scene.cameraEntity, selectedImportedCamera);
+    return;
+  }
+
+  applyOrbitCamera(
+    aperture,
+    scene.cameraEntity,
+    scene.orbit,
+    scene.targetCanvas,
+  );
+}
+
+function applyOrbitCamera(aperture, cameraEntity, orbit, targetCanvas) {
+  setCameraProjection(aperture, cameraEntity, {
+    projection: "perspective",
+    fovYRadians: Math.PI / 3,
+    aspect: targetCanvas.width / Math.max(1, targetCanvas.height),
+    near: 0.1,
+    far: 100,
+  });
+  updateOrbitCamera(aperture, cameraEntity, orbit);
+}
+
+function applyImportedCamera(aperture, cameraEntity, importedCamera) {
+  setCameraProjection(aperture, cameraEntity, {
+    projection: "perspective",
+    fovYRadians: importedCamera.yfov,
+    aspect: importedCamera.aspect,
+    near: importedCamera.near,
+    far: importedCamera.far,
+  });
+  cameraEntity
+    .getVectorView(aperture.LocalTransform, "translation")
+    .set(importedCamera.translation);
+  cameraEntity
+    .getVectorView(aperture.LocalTransform, "rotation")
+    .set(importedCamera.rotation);
+  cameraEntity.getVectorView(aperture.LocalTransform, "scale").set([1, 1, 1]);
+}
+
+function setCameraProjection(aperture, cameraEntity, projection) {
+  cameraEntity.setValue(aperture.Camera, "projection", projection.projection);
+  cameraEntity.setValue(aperture.Camera, "fovYRadians", projection.fovYRadians);
+  cameraEntity.setValue(aperture.Camera, "aspect", projection.aspect);
+  cameraEntity.setValue(aperture.Camera, "near", projection.near);
+  cameraEntity.setValue(aperture.Camera, "far", projection.far);
 }
 
 function updateOrbitCamera(aperture, cameraEntity, orbit) {
@@ -3258,6 +3619,10 @@ function clamp(value, min, max) {
   return Math.min(Math.max(value, min), max);
 }
 
+function numberOrNull(value) {
+  return typeof value === "number" && Number.isFinite(value) ? value : null;
+}
+
 function integerOrNull(value) {
   return Number.isInteger(value) && typeof value === "number" && value >= 0
     ? value
@@ -3278,6 +3643,20 @@ function stringArray(value) {
   return Array.isArray(value)
     ? value.filter((entry) => typeof entry === "string").sort()
     : [];
+}
+
+function tupleOrDefault(value, fallback) {
+  return Array.isArray(value) &&
+    value.length === fallback.length &&
+    value.every((component) => Number.isFinite(component))
+    ? [...value]
+    : [...fallback];
+}
+
+function nodeNameOrNull(value) {
+  return typeof value.name === "string" && value.name.length > 0
+    ? value.name
+    : null;
 }
 
 function isRecord(value) {
