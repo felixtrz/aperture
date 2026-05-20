@@ -1,6 +1,6 @@
 # Agent Handoff
 
-Updated: 2026-05-20T17:27:31Z
+Updated: 2026-05-20T17:34:09Z
 
 ## Current Run Update — 2026-05-20T17:27:31Z — Extended StandardMaterial combined texture routes
 
@@ -64,10 +64,11 @@ Completed `task-2158`, `task-2159`, `task-2160`, `task-2161`,
 - `pnpm run build`
 - `pnpm run lint`
 - `pnpm run format:check`
+- `scripts/codex-stop-hook.sh`
 
 ### Known issues
 
-- The stop hook is still pending at this handoff-update point.
+- None known. Stop hook checkpointed and pushed `2132216`.
 
 ### Recommended next task
 
