@@ -58,6 +58,7 @@ import {
 } from "@aperture-engine/render";
 
 export * from "./simulation-worker.js";
+export * from "./shared-snapshot-transport.js";
 
 export interface SpawnContext {
   readonly app: SimulationApp;

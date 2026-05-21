@@ -44,13 +44,21 @@ the runtime architecture:
 Users who need GPU presentation should import `@aperture-engine/webgpu`
 explicitly alongside `@aperture-engine/core` or focused package imports.
 
-The default browser application shape is `createWebGpuApp` from
-`@aperture-engine/webgpu`. User code should author ECS entities and typed source
-assets, register systems, and call the app facade to step/extract/render. The
-facade is convenience orchestration over the same ECS/render-extraction/WebGPU
-boundary; it must not become a hidden scene graph or make WebGPU state part of
-the authoritative ECS world. Lower-level WebGPU helpers remain backend and test
-surfaces.
+The default browser application shape is worker-by-default:
+
+- Main thread imports `createWebGpuApp` from `@aperture-engine/webgpu`, owns the
+  canvas, registers renderer-side source assets, and consumes worker snapshots.
+- Worker thread imports `createExtractionApp` from `@aperture-engine/core`,
+  authors ECS entities/components/assets, runs systems, resolves transforms, and
+  extracts `RenderSnapshot` data.
+- The boundary is structured-clone/transferable snapshot data plus explicit
+  command messages. `createWebGpuApp()` no longer exposes main-thread
+  `spawn`, `world`, or `assets` APIs.
+
+The WebGPU facade is convenience orchestration over the same
+ECS/render-extraction/WebGPU boundary; it must not become a hidden scene graph or
+make WebGPU state part of the authoritative ECS world. Lower-level WebGPU
+helpers remain backend and test surfaces.
 
 ## Bevy-Inspired Bridge
 
@@ -327,7 +335,7 @@ A typical single-threaded frame:
 13. Cleanup
 ```
 
-A future split-thread frame:
+The default browser split-thread frame:
 
 ```text
 Worker:
@@ -351,18 +359,25 @@ Main:
 
 The renderer must never require direct access to the authoritative ECS world.
 
-Future worker mode should use:
+Default worker mode currently uses transferable typed-array `postMessage`
+snapshots. High-scale worker mode is opt-in and builds on the shared transport
+foundation now exposed by runtime and render:
 
-- SharedArrayBuffer for hot data paths.
-- Atomics for coarse synchronization.
-- Double/triple-buffered snapshots.
+- `createSharedSnapshotTransport({ maxEntities, maxViews })` allocates
+  double-buffered SharedArrayBuffer storage for transforms and view matrices.
+- Atomics publish complete frames through a SeqLock-style header.
+- `encodeSnapshotPackets()` writes view, mesh, light, environment, shadow, and
+  bounds packet metadata as fixed-stride `Uint32Array` records.
 - Input command ring buffer.
-- Render snapshot publication.
+- Render snapshot publication through `createWebGpuApp({
+transport: "shared-array-buffer" })`.
 - `postMessage` for cold-path data such as debug names, asset metadata, and errors.
 
 Hot data candidates:
 
 - transforms
+- view matrices
+- fixed-stride render packet metadata
 - visibility flags
 - instance data
 - input samples
@@ -454,4 +469,5 @@ These should not be violated without updating `docs/DECISIONS.md`:
 5. Transform hierarchy belongs to ECS.
 6. GPU resources belong to renderer/backend.
 7. Render extraction is a first-class boundary.
-8. Future worker simulation must remain possible.
+8. Worker simulation remains the browser default; renderer APIs must preserve
+   the snapshot/command boundary.

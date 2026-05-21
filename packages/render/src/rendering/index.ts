@@ -18,6 +18,7 @@ export * from "./snapshot.js";
 export * from "./snapshot-clone.js";
 export * from "./snapshot-diagnostics.js";
 export * from "./snapshot-inspection.js";
+export * from "./snapshot-packed-encoding.js";
 export * from "./snapshot-prepared-meshes.js";
 export * from "./snapshot-prepared-materials.js";
 export * from "./transform-pack.js";

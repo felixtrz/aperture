@@ -27,7 +27,7 @@ const examplePages = [
   },
   {
     file: "examples/multi-entity.html",
-    script: "./multi-entity.js",
+    script: "./multi-entity.main.js",
     title: "Aperture ECS Multi-Entity Scene",
     canvasLabel: "Aperture WebGPU multi-entity canvas",
     exampleName: "ecs multi entity",
@@ -114,7 +114,7 @@ describe("browser example navigation", () => {
   });
 
   it("keeps manual browser modules wired to the shared WebGPU readback helper", async () => {
-    for (const file of ["examples/main.js", "examples/multi-entity.js"]) {
+    for (const file of ["examples/main.js", "examples/multi-entity.main.js"]) {
       const script = await readExamplePage(file);
 
       expect(script, `${file} should import readback helper`).toContain(

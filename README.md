@@ -19,13 +19,162 @@ authoring, render extraction, WebGPU submission, and browser examples. The
 public headless entrypoint is `@aperture-engine/core`; GPU presentation is
 available explicitly through `@aperture-engine/webgpu`.
 
-For browser rendering examples, the preferred user-facing path is
-`createWebGpuApp` from `@aperture-engine/webgpu`. Author scenes by spawning ECS
-entities with transform, camera, mesh, material, light, visibility, and system
-components; create mesh/material/texture/sampler data through typed asset
-collections; then let the app facade step ECS, extract a render snapshot, prepare
-WebGPU resources, and submit the frame. Direct WebGPU helpers remain backend and
-test surfaces, not the default application API.
+For browser rendering, the default shape is worker-by-default:
+
+- Main thread: owns the canvas, WebGPU app, renderer-side source assets, and
+  input/UI.
+- Worker thread: owns `createExtractionApp()`, ECS entities, systems, transform
+  updates, and render extraction.
+- Boundary: the worker posts transferable `RenderSnapshot` typed arrays; the
+  renderer consumes snapshots and never owns gameplay state.
+
+## Quick Start
+
+Create a renderer main module:
+
+```js
+import {
+  AssetRegistry,
+  createBoxMeshAsset,
+  createDebugNormalMaterialAsset,
+  createRenderAssetCollections,
+  createSimulationWorker,
+} from "@aperture-engine/core";
+import { createWebGpuApp } from "@aperture-engine/webgpu";
+
+const canvas = document.querySelector("#aperture-canvas");
+
+if (!(canvas instanceof HTMLCanvasElement)) {
+  throw new Error("Missing canvas.");
+}
+
+const sourceAssets = new AssetRegistry();
+const assets = createRenderAssetCollections({ registry: sourceAssets });
+
+assets.meshes.add(
+  createBoxMeshAsset({ label: "Cube", width: 1.4, height: 1.4, depth: 1.4 }),
+  { id: "cube" },
+);
+assets.materials.debugNormal.add(
+  createDebugNormalMaterialAsset({ label: "CubeNormals" }),
+  { id: "cube-normal" },
+);
+
+const simulationWorker = createSimulationWorker(
+  new Worker(new URL("./simulation.worker.js", import.meta.url), {
+    type: "module",
+  }),
+  { entityCapacity: 16 },
+);
+
+const created = await createWebGpuApp({
+  canvas,
+  sourceAssets,
+  simulationWorker,
+  autoStart: true,
+});
+
+if (!created.ok) {
+  throw new Error(created.message);
+}
+```
+
+Create the matching simulation worker:
+
+```js
+import {
+  SIMULATION_WORKER_PROTOCOL,
+  SpinSystem,
+  createBoxMeshAsset,
+  createDebugNormalMaterialAsset,
+  createExtractionApp,
+  createRenderAssetCollections,
+  renderSnapshotTransferList,
+  withCamera,
+  withMaterial,
+  withMesh,
+  withRenderLayer,
+  withSpin,
+  withTransform,
+  withVisibility,
+} from "@aperture-engine/core";
+
+let port = null;
+let app = null;
+let frame = 0;
+
+self.onmessage = (event) => {
+  if (event.data?.type !== SIMULATION_WORKER_PROTOCOL.connect) {
+    return;
+  }
+
+  port = event.data.port;
+  port.onmessage = (message) => {
+    if (message.data?.type === SIMULATION_WORKER_PROTOCOL.start) {
+      startSimulation(message.data.options ?? {});
+    }
+  };
+  port.start?.();
+};
+
+function startSimulation(options) {
+  if (app !== null || port === null) {
+    return;
+  }
+
+  app = createExtractionApp({
+    worldOptions: { entityCapacity: options.entityCapacity ?? 16 },
+  });
+  const assets = createRenderAssetCollections({ registry: app.assets });
+  const mesh = assets.meshes.add(
+    createBoxMeshAsset({ label: "Cube", width: 1.4, height: 1.4, depth: 1.4 }),
+    { id: "cube" },
+  );
+  const material = assets.materials.debugNormal.add(
+    createDebugNormalMaterialAsset({ label: "CubeNormals" }),
+    { id: "cube-normal" },
+  );
+
+  app.registerSystem(SpinSystem);
+  app.spawn(
+    withTransform({ translation: [0, 0, 3] }),
+    withCamera({ aspect: 16 / 9, near: 0.1, far: 100, layerMask: 1 }),
+  );
+  app.spawn(
+    withTransform(),
+    withMesh(mesh),
+    withMaterial(material),
+    withRenderLayer(1),
+    withVisibility(true),
+    withSpin({ radiansPerSecond: 1.8, axis: [0.4, 1, 0.2] }),
+  );
+
+  setInterval(postFrame, 16);
+}
+
+function postFrame() {
+  if (app === null || port === null) {
+    return;
+  }
+
+  frame += 1;
+  const snapshot = app.stepAndExtract(1 / 60, frame / 60, frame);
+
+  port.postMessage(
+    {
+      type: SIMULATION_WORKER_PROTOCOL.snapshot,
+      frame,
+      snapshot,
+    },
+    renderSnapshotTransferList(snapshot),
+  );
+}
+```
+
+See [`docs/AUTHORING.md`](docs/AUTHORING.md) for the full authoring model,
+command messages, one-off scenes, animated scenes, and migration notes for the
+removed main-thread WebGPU app authoring surface. Direct WebGPU helpers remain
+backend and test surfaces, not the default application API.
 
 ## Development
 
@@ -81,23 +230,24 @@ Then open `http://127.0.0.1:4173/`. The local server uses Node built-ins only
 and serves the browser harness from `examples/` plus the built package from
 `dist/`. The initial clear example exercises the low-level WebGPU initialization
 path. New user-facing examples should prefer `createWebGpuApp`, ECS-authored
-entities, typed assets, and systems.
+entities, typed assets, systems, and the worker-split main/worker shape.
 
 The ECS triangle example is available at
-`http://127.0.0.1:4173/examples/triangle.html`. It authors a camera and mesh
-entity in ECS, extracts a render snapshot, uploads unlit GPU resources, and
-submits a WebGPU draw from derived render-world data.
+`http://127.0.0.1:4173/examples/triangle.html`. Its worker authors a camera and
+mesh entity in ECS and extracts a render snapshot; the main thread uploads
+unlit GPU resources and submits a WebGPU draw from derived render-world data.
 
 The ECS multi-entity example is available at
-`http://127.0.0.1:4173/examples/multi-entity.html`. It renders two ECS mesh
-entities through the same snapshot, render-world binding, and WebGPU unlit draw
-path with distinct transforms and materials.
+`http://127.0.0.1:4173/examples/multi-entity.html`. Its worker owns the large
+scenario ECS matrix and extraction path; the main thread renders received
+snapshots through the manual render-world binding and WebGPU unlit draw path.
 
 The ECS spinning cube example is available at
 `http://127.0.0.1:4173/examples/spinning-cube.html`. It renders a lit
-`StandardMaterial` box mesh through `createWebGpuApp`, extracts ambient and
-directional lights from ECS, and updates the authoritative ECS transform every
-animation frame before WebGPU consumes the derived render snapshot.
+`StandardMaterial` box mesh through `createWebGpuApp`; the worker extracts
+ambient, directional, and environment lights from ECS and updates the
+authoritative ECS transform every animation frame before WebGPU consumes the
+derived render snapshot.
 
 The material showcase example is available at
 `http://127.0.0.1:4173/examples/materials-showcase.html`. It renders unlit,

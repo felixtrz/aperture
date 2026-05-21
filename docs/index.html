@@ -393,15 +393,27 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-21 19:33 UTC</dd>
+            <dd>2026-05-21 20:35 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
-              Spinning cube, multi-light shadow, and GLB viewer now use
-              worker-by-default flagship example entries: each page loads a
-              main-thread renderer module, registers renderer-side source
-              assets, and consumes transferable
+              Runtime now exposes
+              <code
+                >createSharedSnapshotTransport({ maxEntities, maxViews })</code
+              >
+              as the opt-in SharedArrayBuffer transport foundation: worker and
+              main-thread views share double-buffered transform/view-matrix
+              storage, publish frames through a SeqLock-style header, and throw
+              typed unsupported diagnostics when SAB or cross-origin isolation
+              is unavailable. The render bridge now also exports fixed-stride
+              <code>Uint32Array</code> packet encoding for view, mesh, light,
+              environment, shadow, and bounds packets, with handle/string
+              registry ids and round-trip tests. The next slice is opt-in WebGPU
+              app integration for SAB transport. Spinning cube, multi-light
+              shadow, and GLB viewer now use worker-by-default flagship example
+              entries: each page loads a main-thread renderer module, registers
+              renderer-side source assets, and consumes transferable
               <code>RenderSnapshot</code> buffers from a module Worker that owns
               <code>createExtractionApp()</code>, ECS authoring, and stepping.
               The GLB viewer split keeps loader controls, asset switching,
@@ -418,28 +430,30 @@
               <code>spot-shadow</code>, and
               <code>standard-texture-control</code>,
               <code>standard-gltf-texture</code>, <code>app-diagnostics</code>,
-              <code>gltf-scene</code>, <code>triangle</code>, and
-              <code>custom-material</code> to the same shape: point/spot shadow
-              pages keep renderer-owned shadow resources and UI toggles on the
-              main thread while workers own ECS scene extraction, the
-              texture-control page shares source asset registration between main
-              and worker before rendering worker snapshots with readback
-              samples, the glTF texture fixture now shares its scenario setup
-              across renderer and worker modules, app diagnostics runs each
-              scenario from worker-owned extraction snapshots, and the GLTF
-              scene worker owns ECS replay, shadow authoring toggles, stepping,
-              and extraction while the main entry keeps WebGPU IBL/shadow
-              resources, and the triangle page now requests a worker-owned ECS
-              snapshot before submitting the unlit or custom WGSL draw through
-              its low-level WebGPU proof path, and the custom-material page now
-              drives its animated WaterMaterial resources from a worker-owned
-              plane snapshot. Their status JSON now reports worker snapshot
-              counts and typed-array preservation, and static example tests
-              prevent ECS spawning from drifting back into those main files. The
-              temporary main-thread renderer bridge has been deleted. The WebGPU
-              app facade now requires a worker-shaped snapshot producer and no
-              longer exposes main-thread ECS authoring APIs: <code>spawn</code>,
-              <code>world</code>, and
+              <code>gltf-scene</code>, <code>triangle</code>,
+              <code>custom-material</code>, and <code>multi-entity</code> to the
+              same shape: point/spot shadow pages keep renderer-owned shadow
+              resources and UI toggles on the main thread while workers own ECS
+              scene extraction, the texture-control page shares source asset
+              registration between main and worker before rendering worker
+              snapshots with readback samples, the glTF texture fixture now
+              shares its scenario setup across renderer and worker modules, app
+              diagnostics runs each scenario from worker-owned extraction
+              snapshots, the GLTF scene worker owns ECS replay, shadow authoring
+              toggles, stepping, and extraction while the main entry keeps
+              WebGPU IBL/shadow resources, the triangle page now requests a
+              worker-owned ECS snapshot before submitting the unlit or custom
+              WGSL draw through its low-level WebGPU proof path, the
+              custom-material page now drives its animated WaterMaterial
+              resources from a worker-owned plane snapshot, and the multi-entity
+              matrix now requests worker-owned scenario snapshots before running
+              its manual render/resource diagnostic paths. Their status JSON now
+              reports worker snapshot counts and typed-array preservation, and
+              static example tests prevent ECS spawning from drifting back into
+              those main files. The temporary main-thread renderer bridge has
+              been deleted. The WebGPU app facade now requires a worker-shaped
+              snapshot producer and no longer exposes main-thread ECS authoring
+              APIs: <code>spawn</code>, <code>world</code>, and
               <code>assets</code>
               are removed from the returned renderer app. It consumes
               renderer-side source assets plus worker-produced
@@ -1196,7 +1210,7 @@
               key so live route changes do not reuse incompatible layouts.
             </dd>
             <dt>Next focus</dt>
-            <dd>bulk-migrate remaining examples to worker-by-default shape</dd>
+            <dd>integrate SAB transport mode</dd>
           </dl>
         </aside>
       </header>
@@ -1867,7 +1881,36 @@
             <h3>Latest work in this update</h3>
             <ul>
               <li>
-                <span class="badge amber">task-3035 partial</span> Migrated
+                <span class="badge green">task-3038</span> Added
+                <code>encodeSnapshotPackets()</code> and
+                <code>decodeSnapshotPackets()</code> with a canonical
+                fixed-stride <code>Uint32Array</code> stream for view, mesh,
+                light, environment, shadow, and bounds packets. Tests cover
+                random packet round trips, stride byte counts, caller-owned
+                buffer reuse, registry tables for handles/strings, malformed
+                buffers, and keeping diagnostics strings outside the SAB packet
+                layout.
+              </li>
+              <li>
+                <span class="badge green">task-3037</span> Added
+                <code
+                  >createSharedSnapshotTransport({ maxEntities, maxViews
+                  })</code
+                >
+                in runtime with writer/reader views, double-buffered
+                SharedArrayBuffer storage for transforms and view matrices, a
+                SeqLock-style header, typed unsupported-environment diagnostics,
+                and no-tear monotonic frame-read tests.
+              </li>
+              <li>
+                <span class="badge green">task-3036</span> Added
+                <code>docs/AUTHORING.md</code>, rewrote the README quick-start
+                around a worker-split spinning cube, and updated architecture
+                docs so the worker boundary is described as the default browser
+                contract rather than a future option.
+              </li>
+              <li>
+                <span class="badge green">task-3035</span> Migrated
                 <code>debug-normal-app</code>, <code>depth-app-overlap</code>,
                 <code>standard-queue-phases</code>, <code>instancing</code>,
                 <code>instance-tint</code>, <code>batching</code>,
@@ -1878,17 +1921,18 @@
                 <code>standard-texture-control</code>,
                 <code>standard-gltf-texture</code>,
                 <code>app-diagnostics</code>, <code>gltf-scene</code>,
-                <code>triangle</code>, and <code>custom-material</code>. Browser
-                smokes now prove worker snapshots, preserved typed arrays,
-                expected draw counts, render-target output, GPU timing overlays,
-                matcap playback, material-showcase IBL status, point/spot shadow
-                compare pipelines, StandardMaterial texture-control readback
-                status, glTF base-color/normal texture rendering, app-facade
-                diagnostic reports, GLTF scene IBL/shadow status, triangle
-                unlit/custom WGSL draw submission, and animated WaterMaterial
-                rendering across the migrated batch. The temporary renderer
-                compatibility bridge was deleted after the GLTF scene moved off
-                it.
+                <code>triangle</code>, <code>custom-material</code>, and
+                <code>multi-entity</code>. Browser smokes now prove worker
+                snapshots, preserved typed arrays, expected draw counts,
+                render-target output, GPU timing overlays, matcap playback,
+                material-showcase IBL status, point/spot shadow compare
+                pipelines, StandardMaterial texture-control readback status,
+                glTF base-color/normal texture rendering, app-facade diagnostic
+                reports, GLTF scene IBL/shadow status, triangle unlit/custom
+                WGSL draw submission, animated WaterMaterial rendering, and the
+                multi-entity manual render matrix across the migrated batch. The
+                temporary renderer compatibility bridge was deleted after the
+                GLTF scene moved off it.
               </li>
               <li>
                 <span class="badge green">task-3034</span> Migrated spinning
@@ -4030,20 +4074,17 @@
             <h3>Recommended next tasks</h3>
             <ul>
               <li>
-                <span class="badge amber">next</span> Bulk-migrate the remaining
-                examples to the worker-by-default shape.
+                <span class="badge amber">next</span> Integrate opt-in SAB
+                transport mode into <code>createWebGpuApp</code>.
               </li>
               <li>
-                Use the flagship migrations as the template: each example that
-                authors ECS state should gain a renderer-only main entry, a
-                worker-owned extraction entry, and transferable snapshot status.
-                The remaining batch is the lower-level manual
-                <code>multi-entity</code> example, which still authors ECS on
-                the main thread.
+                Use the runtime shared transport plus render packet encoding
+                behind <code>transport: "shared-array-buffer"</code>, while
+                keeping the default transferable mode unchanged.
               </li>
               <li>
-                The temporary main-thread compatibility bridge has been deleted;
-                keep it from returning while finishing the manual examples.
+                Add a browser proof and deployment diagnostics for the COOP+COEP
+                requirement so unsupported pages fail explicitly.
               </li>
             </ul>
           </article>

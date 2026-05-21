@@ -6066,7 +6066,7 @@ test("standard glTF texture fixture reports invalid sampler enum values before r
         textureIndex: 0,
         slot: "baseColorTexture",
         source: {
-          wrapS: 33071,
+          wrapS: "repeat",
         },
         mapped: {
           kind: "sampler",

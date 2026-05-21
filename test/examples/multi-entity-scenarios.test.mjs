@@ -61,7 +61,10 @@ describe("multi-entity example scenarios", () => {
 });
 
 async function readExampleScript() {
-  return readFile(path.join(projectRoot, "examples/multi-entity.js"), "utf8");
+  return readFile(
+    path.join(projectRoot, "examples/multi-entity.main.js"),
+    "utf8",
+  );
 }
 
 function extractKnownScenarios(script) {

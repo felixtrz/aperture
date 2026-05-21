@@ -24,6 +24,18 @@ test("ECS multi-entity example publishes three-draw frame status", async ({
     ok: true,
     phase: "submit",
     renderingBackend: "webgpu-explicit",
+    worker: { running: false, scenario: "default", frame: 1 },
+    transport: {
+      mode: "structured-clone-postMessage",
+      snapshotsReceived: 1,
+      typedArraysPreserved: {
+        transforms: true,
+        viewMatrices: true,
+        viewsArray: true,
+        meshDrawsArray: true,
+        diagnosticsArray: true,
+      },
+    },
     extraction: { views: 1, meshDraws: 3, diagnostics: 1 },
     resources: { materials: 3, bindGroups: 5 },
     binding: { planned: 3, applied: 3, ready: 3, diagnostics: 0 },

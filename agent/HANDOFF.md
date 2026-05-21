@@ -1,6 +1,143 @@
 # Agent Handoff
 
-Updated: 2026-05-21T19:50:14Z
+Updated: 2026-05-21T20:50:15Z
+
+## Current Run Update — 2026-05-21T20:40:49Z — Worker default complete; SAB transport foundation advanced
+
+Completed `task-3035`, `task-3036`, `task-3037`, and `task-3038`.
+
+### What changed
+
+- Finished the remaining `multi-entity` worker-by-default migration. The HTML
+  now loads `multi-entity.main.js`; `multi-entity.js` remains a thin legacy
+  import. The main entry owns manual WebGPU resource/pipeline/readback paths and
+  requests worker-produced scenario snapshots, while `multi-entity.worker.js`
+  owns scenario ECS world creation, extraction, and cloneable scene metadata.
+- Added the worker-by-default authoring documentation. `README.md` now starts
+  from a worker-split browser app, `docs/AUTHORING.md` documents main/worker
+  authoring patterns, and `docs/ARCHITECTURE.md` states that browser rendering
+  is worker-by-default.
+- Added `createSharedSnapshotTransport({ maxEntities, maxViews })` in runtime.
+  It allocates double-buffered SharedArrayBuffer storage for transforms and view
+  matrices, publishes complete frames through a SeqLock-style `Int32Array`
+  header, and throws typed `shared-snapshot-transport-unsupported` errors when
+  SAB or cross-origin isolation is unavailable.
+- Added render snapshot packet encoding in
+  `packages/render/src/rendering/snapshot-packed-encoding.ts`. View, mesh draw,
+  light, environment, shadow request, and bounds packets now have a canonical
+  fixed-stride `Uint32Array` stream with word/byte stride constants and
+  handle/string registry ids.
+- Updated static tests after the multi-entity split so navigation and scenario
+  registry checks inspect `multi-entity.main.js`.
+- Updated the `standard-gltf-texture` invalid-sampler-enum e2e expectation so
+  it matches the intentionally invalid raw glTF source value
+  `wrapS: "repeat"` preserved in worker-published status.
+- Updated public tracker pages, backlog, and completed-task log. Recommended
+  next task is `task-3039`.
+
+### Files touched
+
+- `README.md`
+- `agent/BACKLOG.md`
+- `agent/COMPLETED.md`
+- `agent/HANDOFF.md`
+- `docs/AUTHORING.md`
+- `docs/ARCHITECTURE.md`
+- `docs/index.html`
+- `docs/render-pipeline-comparison.html`
+- `examples/multi-entity.html`
+- `examples/multi-entity.js`
+- `examples/multi-entity.main.js`
+- `examples/multi-entity.worker.js`
+- `package.json`
+- `packages/render/src/rendering/index.ts`
+- `packages/render/src/rendering/snapshot-packed-encoding.ts`
+- `packages/runtime/src/index.ts`
+- `packages/runtime/src/shared-snapshot-transport.ts`
+- `test/e2e/ecs-multi-entity-status.spec.ts`
+- `test/e2e/standard-gltf-texture.spec.ts`
+- `test/examples/multi-entity-scenarios.test.mjs`
+- `test/examples/navigation.test.mjs`
+- `test/examples/worker-split-examples.test.mjs`
+- `test/rendering/snapshot-packed-encoding.test.ts`
+- `test/runtime/shared-snapshot-transport.test.ts`
+
+### References inspected
+
+- `examples/worker-cube.main.js`
+- `examples/worker-cube.worker.js`
+- `references/three.js/examples/webgl_worker_offscreencanvas.html`
+- `references/bevy/crates/bevy_render/src/lib.rs`
+- `references/bevy/crates/bevy_tasks/src/lib.rs`
+- `references/bevy/crates/bevy_render/src/extract_instances.rs`
+- `references/engine/src/scene/mesh-instance.js`
+- `references/engine/src/framework/handlers/basis-worker.js`
+- MDN Cross-Origin-Opener-Policy and Cross-Origin-Embedder-Policy pages for the
+  COOP+COEP requirements behind cross-origin isolation and SharedArrayBuffer.
+
+### Validation
+
+- `pnpm run check`
+- `pnpm run check:examples`
+- `pnpm run check:progress`
+- `pnpm exec vitest run test/examples/worker-split-examples.test.mjs`
+- `pnpm exec vitest run test/examples/navigation.test.mjs test/examples/multi-entity-scenarios.test.mjs`
+- `pnpm exec vitest run test/rendering/snapshot-packed-encoding.test.ts`
+- `pnpm exec vitest run test/runtime/shared-snapshot-transport.test.ts`
+- `pnpm exec vitest run test/rendering/snapshot-packed-encoding.test.ts test/runtime/shared-snapshot-transport.test.ts`
+- `pnpm exec tsc --noEmit -p packages/runtime/tsconfig.json`
+- `pnpm exec tsc --noEmit -p packages/render/tsconfig.json`
+- `pnpm exec tsc --noEmit -p packages/core/tsconfig.json`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec eslint examples/multi-entity.main.js examples/multi-entity.worker.js test/examples/worker-split-examples.test.mjs`
+- `pnpm exec eslint packages/runtime/src/shared-snapshot-transport.ts test/runtime/shared-snapshot-transport.test.ts packages/render/src/rendering/snapshot-packed-encoding.ts test/rendering/snapshot-packed-encoding.test.ts`
+- `pnpm exec playwright test test/e2e/ecs-multi-entity-status.spec.ts test/e2e/ecs-multi-entity-pixels.spec.ts --project=chrome-webgpu-headed`
+- `pnpm exec playwright test test/e2e/lighting-routing.spec.ts --project=chrome-webgpu-headed`
+- `pnpm exec playwright test test/e2e/scenario-routing.spec.ts test/e2e/resource-binding-routing.spec.ts test/e2e/visibility-routing.spec.ts test/e2e/texture-routing.spec.ts test/e2e/primitive-routing.spec.ts test/e2e/camera-routing.spec.ts --project=chrome-webgpu-headed`
+- `pnpm exec playwright test test/e2e/texture-dependency-routing.spec.ts test/e2e/texture-resource-routing.spec.ts test/e2e/missing-texture-resource.spec.ts test/e2e/invalid-texture-upload.spec.ts test/e2e/shared-sampler-asset-routing.spec.ts test/e2e/shared-texture-asset-routing.spec.ts test/e2e/texture-asset-routing.ts test/e2e/texture-upload-routing.spec.ts --project=chrome-webgpu-headed`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts:5979 --project=chrome-webgpu-headed`
+- A combined headed command for `basic-status`, `ecs-triangle`, and
+  `custom-material` reached 5 passed tests before `gltf-scene.spec.ts` showed
+  the pre-existing headed Playwright hang risk and was terminated. The five
+  completed tests were: WebGPU clear status, ECS triangle status, custom
+  WaterMaterial animation, custom WGSL validation failure, and ECS triangle
+  pixels.
+
+### Known issues
+
+- No known failing validation remains after the final `pnpm run check`.
+- `gltf-scene.spec.ts` still has the previously documented headed Playwright
+  hang risk when run in a combined command. This run terminated that command
+  after the other five tests in the command passed and no `gltf-scene` progress
+  appeared.
+- `task-3039` is intentionally not implemented yet. The next agent should avoid
+  partial integration unless it can complete the SAB mode, browser proof, and
+  fallback diagnostics coherently.
+- The ready queue has only `task-3039` from the current roadmap. I did not add
+  post-roadmap tasks because `agent/BACKLOG.md` says new tasks outside the
+  roadmap should not be invented until every roadmap task has shipped.
+
+### Recommended next task
+
+Start `task-3039`: integrate opt-in SharedArrayBuffer transport into
+`createWebGpuApp`.
+
+Concrete context for the next slice:
+
+- `createWebGpuApp` currently subscribes to `simulationWorker.onSnapshot()` and
+  renders transferred `RenderSnapshot` objects directly.
+- `scripts/serve-examples.mjs` already sets
+  `Cross-Origin-Opener-Policy: same-origin` and
+  `Cross-Origin-Embedder-Policy: require-corp` on normal example and worker
+  module responses, so an example server proof can likely reuse the current
+  host path.
+- The default mode must remain transferable and embedded-safe. SAB should be an
+  explicit `transport: "shared-array-buffer"` opt-in with typed unsupported
+  diagnostics when `crossOriginIsolated` or `SharedArrayBuffer` is unavailable.
+- Runtime has transforms/view-matrix shared buffers; render has packet encoding.
+  Integration still needs packet shared-buffer allocation/public worker protocol,
+  app facade option threading, an example, docs, and a 10,000-entity transport
+  microbenchmark.
 
 ## Current Run Update — 2026-05-21T19:38:18Z — Manual worker migration advanced
 

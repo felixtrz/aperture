@@ -59,10 +59,14 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Continue `task-3035`: finish migrating the lower-level manual examples to the
-worker-by-default shape.
+Start `task-3039`: integrate opt-in SharedArrayBuffer transport into
+`createWebGpuApp`.
 
-Why this next: `createWebGpuApp()` now requires a worker-shaped snapshot producer and no longer exposes main-thread ECS authoring APIs. The flagship examples prove the two-file main/worker shape; the remaining browser-facing samples should now use the same renderer-only path.
+Why this next: the runtime now allocates double-buffered SAB snapshot memory and
+the render bridge now has fixed-stride `Uint32Array` packet encoding. The next
+dependency is wiring those pieces behind an explicit
+`transport: "shared-array-buffer"` WebGPU app mode with deployment diagnostics
+and a browser proof.
 
 Progress so far: `spinning-cube`, `multi-light-shadow`, and `glb-viewer` now
 use renderer-only `*.main.js` files plus ECS/extraction-owned `*.worker.js`
@@ -72,17 +76,20 @@ have also been migrated as the first bulk examples. Later slices migrated
 `batching`, `render-to-texture`, `gpu-profiler`, `matcap-app`,
 `materials-showcase`, `point-shadow`, `spot-shadow`,
 `standard-texture-control`, `standard-gltf-texture`, `app-diagnostics`,
-`gltf-scene`, `triangle`, and `custom-material`. The temporary main-thread
-compatibility helper has been deleted. The remaining manual example
-(`multi-entity`) still authors/extracts ECS state on the main thread through
-lower-level render-path code and needs a separate worker-split pass.
+`gltf-scene`, `triangle`, `custom-material`, and `multi-entity`. The temporary
+main-thread compatibility helper has been deleted, and the README plus
+`docs/AUTHORING.md` now document the worker-by-default authoring shape.
+`createSharedSnapshotTransport({ maxEntities, maxViews })` now provides
+worker/main writer and reader views backed by double-buffered `SharedArrayBuffer`
+storage, typed unsupported diagnostics, and monotonic no-tear read coverage.
+`encodeSnapshotPackets()` now packs view, mesh, light, environment, shadow, and
+bounds packets into fixed-stride `Uint32Array` records with handle/string
+registry ids and round-trip tests.
 
 Reference anchors (read before writing):
 
-- `examples/worker-cube.html`
-- `examples/worker-cube.main.js`
-- `examples/worker-cube.worker.js`
-- `references/three.js/examples/webgl_worker_offscreencanvas.html`
+- `references/engine/src/framework/handlers/basis-worker.js`
+- MDN `Cross-Origin-Opener-Policy` and `Cross-Origin-Embedder-Policy` docs
 
 ## Strategic Focus — Pipeline Maturity Roadmap
 
@@ -122,11 +129,11 @@ Eleven cross-cutting gaps remain across the six phases. They are sequenced below
 
 **Tier 7 — Worker-by-default migration + transferable transport (queued after Tier 6):**
 
-13. Worker-by-default architecture (task-3032, task-3033, and task-3034 shipped; task-3035 and task-3036 remain) — removes main-thread ECS mode entirely. ECS authoring and extraction always run in a Web Worker. The main thread becomes a renderer-only consumer that receives snapshots via transferable typed-array `postMessage`. `createWebGpuApp` now requires a worker-shaped snapshot producer and no longer exposes `spawn`, `world`, or `assets` on the WebGPU app. All existing examples migrate to the new two-file shape (main + worker). Transferable transport (zero-copy `ArrayBuffer` transfer for `transforms` and `viewMatrices`) is bundled into the redesign — there is no point shipping the worker-default mode with an unoptimized transport. No HTTP header changes; default transport works in any deployment including embedded.
+13. Worker-by-default architecture (task-3032 through task-3036 shipped) — removes main-thread ECS mode entirely. ECS authoring and extraction always run in a Web Worker. The main thread becomes a renderer-only consumer that receives snapshots via transferable typed-array `postMessage`. `createWebGpuApp` now requires a worker-shaped snapshot producer and no longer exposes `spawn`, `world`, or `assets` on the WebGPU app. All existing examples use the new two-file shape (main + worker). Transferable transport (zero-copy `ArrayBuffer` transfer for `transforms` and `viewMatrices`) is bundled into the redesign. No HTTP header changes; default transport works in any deployment including embedded.
 
 **Tier 8 — SharedArrayBuffer transport (opt-in, queued after Tier 7):**
 
-14. SAB snapshot transport (task-3037, task-3038, task-3039) — opt-in `createWebGpuApp({ transport: "shared-array-buffer" })` mode where transforms, view matrices, and packet metadata live in `SharedArrayBuffer`s with SeqLock synchronization. Requires COOP+COEP HTTP headers on the host page (documented as a deployment constraint). Default transport stays transferable so embedded use cases continue to work without header changes. Closes the per-frame transport overhead to effectively zero for any entity count; the win is meaningful at ~10K+ visible entities. Apps below that scale should stay on the default transport.
+14. SAB snapshot transport (task-3037 and task-3038 shipped; task-3039 remains) — opt-in `createWebGpuApp({ transport: "shared-array-buffer" })` mode where transforms, view matrices, and packet metadata live in `SharedArrayBuffer`s with SeqLock synchronization. Requires COOP+COEP HTTP headers on the host page (documented as a deployment constraint). Default transport stays transferable so embedded use cases continue to work without header changes. Closes the per-frame transport overhead to effectively zero for any entity count; the win is meaningful at ~10K+ visible entities. Apps below that scale should stay on the default transport.
 
 Total: 39 vertical slices (29 in Tiers 1-5 + 2 in Tier 6 + 5 in Tier 7 + 3 in Tier 8). Each is a real implementation slice with a `Reference anchor:` from `references/bevy/`, `references/engine/` (PlayCanvas), or `references/three.js/`. Slices within a tier may be parallelizable; the agent should still process them in the order listed unless an explicit dependency note says otherwise.
 
@@ -372,6 +379,8 @@ Acceptance criteria:
 
 ### task-3035 — Bulk-migrate remaining examples to worker-by-default shape
 
+Status: completed 2026-05-21. See `agent/COMPLETED.md`.
+
 Category: `runtime-orchestration`
 Package/write-scope: `examples/{triangle,multi-entity,materials-showcase,matcap-app,debug-normal-app,depth-app-overlap,standard-*,app-diagnostics,point-shadow,spot-shadow,render-to-texture,instancing,batching,gltf-scene,…}.*`, corresponding Playwright specs.
 Dependencies: task-3034.
@@ -431,7 +440,17 @@ readback; the worker owns ECS world setup, camera/plane/material placeholder
 authoring, extraction, and transferable snapshot delivery. Direct Chrome/WebGPU
 smoke covered the animated path and `?broken=wgsl` validation path with typed
 arrays preserved for the rendered path and the expected missing fragment entry
-diagnostic for the broken path. `multi-entity` remains unfinished.
+diagnostic for the broken path.
+Completion note 2026-05-21: Migrated `multi-entity` to the manual-render
+worker-snapshot shape. The page now loads `multi-entity.main.js`, keeps the
+large WebGPU resource/planning/readback matrix on the main thread, and requests
+scenario snapshots from `multi-entity.worker.js`, which owns every ECS world
+factory and extraction path. The legacy `multi-entity.js` is now a thin import,
+static worker-split checks cover the entry, and Playwright proves default
+pixels, resource-binding diagnostics, primitive/camera/visibility routing,
+lighting/environment/shadow routing, texture routing, texture-dependency
+diagnostics, and multi-textured/manual resource cases through the worker
+boundary.
 
 Acceptance criteria:
 
@@ -442,6 +461,8 @@ Acceptance criteria:
   longer need the temporary main-thread compatibility bridge.
 
 ### task-3036 — Worker-by-default migration guide + public docs update
+
+Status: completed 2026-05-21. See `agent/COMPLETED.md`.
 
 Category: `docs-tooling`
 Package/write-scope: `README.md`, `docs/ARCHITECTURE.md`, new `docs/AUTHORING.md`, `agent/HANDOFF.md`.
@@ -457,6 +478,8 @@ Acceptance criteria:
 
 ### task-3037 — SharedArrayBuffer snapshot allocation + SeqLock header (Tier 8 part 1: shared memory + sync)
 
+Status: completed 2026-05-21. See `agent/COMPLETED.md`.
+
 Category: `runtime-orchestration`
 Package/write-scope: `packages/runtime/src/`, new file `packages/runtime/src/shared-snapshot-transport.ts`, targeted tests.
 Dependencies: task-3033 (the renderer/worker split must already be the default).
@@ -471,6 +494,8 @@ Acceptance criteria:
 - Falls back gracefully when `SharedArrayBuffer` is unavailable (test in a non-COOP+COEP environment confirms the typed error fires).
 
 ### task-3038 — SAB-backed packet encoding (Tier 8 part 2: Uint32Array packet layout)
+
+Status: completed 2026-05-21. See `agent/COMPLETED.md`.
 
 Category: `render-bridge`
 Package/write-scope: `packages/render/src/rendering/snapshot.ts`, new helper `packages/render/src/rendering/snapshot-packed-encoding.ts`, targeted tests.

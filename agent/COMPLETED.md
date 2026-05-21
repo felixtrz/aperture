@@ -1,5 +1,133 @@
 # Completed Tasks
 
+## task-3038 — SAB-backed packet encoding
+
+Completed: 2026-05-21
+
+Summary:
+
+- Added `snapshot-packed-encoding.ts` to the render bridge with a canonical
+  `Uint32Array` packet stream for view, mesh draw, light, environment, shadow
+  request, and bounds packets.
+- Documented and exported fixed word/byte strides for every packet type, plus a
+  header carrying packet counts and a versioned magic value.
+- Added a handle/string registry so asset handles, pipeline keys, material keys,
+  mesh keys, and layout keys encode as small integers suitable for a shared
+  memory buffer rather than per-frame strings.
+- Kept diagnostic strings outside the SAB packet area and documented why they
+  remain rare transferable structured-clone payloads.
+- Added round-trip, stride, caller-buffer reuse, registry-table, malformed
+  buffer, and diagnostic-transport tests.
+
+References inspected:
+
+- `references/bevy/crates/bevy_render/src/extract_instances.rs`
+- `references/engine/src/scene/mesh-instance.js`
+
+Validation:
+
+- `pnpm exec vitest run test/rendering/snapshot-packed-encoding.test.ts`
+- `pnpm exec vitest run test/rendering/snapshot-packed-encoding.test.ts test/runtime/shared-snapshot-transport.test.ts`
+- `pnpm exec tsc --noEmit -p packages/render/tsconfig.json`
+- `pnpm exec tsc --noEmit -p packages/core/tsconfig.json`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec eslint packages/render/src/rendering/snapshot-packed-encoding.ts test/rendering/snapshot-packed-encoding.test.ts`
+
+## task-3037 — SharedArrayBuffer snapshot allocation + SeqLock header
+
+Completed: 2026-05-21
+
+Summary:
+
+- Added `createSharedSnapshotTransport({ maxEntities, maxViews })` in runtime,
+  with separate writer and reader views over double-buffered
+  `SharedArrayBuffer` storage for transform matrices and view matrices.
+- Added a small `Int32Array` header that publishes frames through a SeqLock-style
+  odd/even sequence, frame counter, active-buffer index, and payload lengths.
+- Added typed construction failures with code
+  `shared-snapshot-transport-unsupported` for missing `SharedArrayBuffer` or
+  missing cross-origin isolation, so SAB mode can fail explicitly instead of
+  silently falling back.
+- Exported the transport API from `@aperture-engine/runtime` and covered
+  monotonic 1,000-frame writer/reader simulation, torn-read rejection,
+  capacity checks, and unsupported-environment diagnostics.
+
+References inspected:
+
+- `references/bevy/crates/bevy_tasks/src/lib.rs`
+- MDN `SharedArrayBuffer` and `Atomics` API references
+
+Validation:
+
+- `pnpm exec vitest run test/runtime/shared-snapshot-transport.test.ts`
+- `pnpm exec tsc --noEmit -p packages/runtime/tsconfig.json`
+- `pnpm exec tsc --noEmit -p packages/core/tsconfig.json`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec eslint packages/runtime/src/shared-snapshot-transport.ts test/runtime/shared-snapshot-transport.test.ts`
+
+## task-3036 — Worker-by-default migration guide + public docs update
+
+Completed: 2026-05-21
+
+Summary:
+
+- Rewrote the README quick-start so the first example is a worker-split
+  spinning cube: renderer main owns `createWebGpuApp()`, source assets, and a
+  `createSimulationWorker()`; the worker owns `createExtractionApp()`,
+  ECS spawning, systems, stepping, extraction, and transferable snapshots.
+- Added `docs/AUTHORING.md` covering the browser file shape, renderer main,
+  simulation worker, one-off scenes, animated scenes, main-to-worker commands,
+  and migration from the removed main-thread WebGPU app authoring surface.
+- Updated `docs/ARCHITECTURE.md` so the worker boundary is documented as the
+  default browser API contract, with transferable snapshot transport now and
+  SharedArrayBuffer transport as the future high-scale path.
+- Updated the public progress tracker to point next at the SAB transport
+  foundation.
+
+Validation:
+
+- `pnpm run check:progress`
+- `pnpm exec prettier --check README.md docs/AUTHORING.md docs/ARCHITECTURE.md docs/index.html docs/render-pipeline-comparison.html agent/BACKLOG.md agent/COMPLETED.md`
+- `pnpm run check:examples`
+- `pnpm exec vitest run test/examples/worker-split-examples.test.mjs`
+
+## task-3035 — Bulk-migrate remaining examples to worker-by-default shape
+
+Completed: 2026-05-21
+
+Summary:
+
+- Migrated the final manual `multi-entity` example to a worker-snapshot
+  producer while keeping its lower-level WebGPU resource, command, and readback
+  matrix on the main thread.
+- Added `examples/multi-entity.main.js` and
+  `examples/multi-entity.worker.js`; the worker owns all scenario world
+  factories, ECS authoring, and `extractRenderSnapshot()` calls, while the main
+  entry renders or reports the received scenario result.
+- Preserved `examples/multi-entity.js` as a thin compatibility import and
+  extended static worker-split coverage plus example syntax checks for the new
+  files.
+- Added status assertions that prove the default multi-entity scene crosses the
+  worker boundary with preserved typed arrays.
+
+References inspected:
+
+- `examples/worker-cube.main.js`
+- `examples/worker-cube.worker.js`
+- `references/three.js/examples/webgl_worker_offscreencanvas.html`
+- `references/bevy/crates/bevy_render/src/lib.rs`
+
+Validation:
+
+- `pnpm run check:examples`
+- `pnpm exec vitest run test/examples/worker-split-examples.test.mjs`
+- `pnpm exec eslint examples/multi-entity.main.js examples/multi-entity.worker.js test/examples/worker-split-examples.test.mjs`
+- `pnpm exec playwright test test/e2e/ecs-multi-entity-status.spec.ts test/e2e/ecs-multi-entity-pixels.spec.ts --project=chrome-webgpu-headed`
+- `pnpm exec playwright test test/e2e/missing-resource.spec.ts test/e2e/missing-mesh-resource.spec.ts --project=chrome-webgpu-headed`
+- `pnpm exec playwright test test/e2e/missing-resource.spec.ts test/e2e/missing-mesh-resource.spec.ts test/e2e/missing-mesh-asset.spec.ts test/e2e/missing-material-asset.spec.ts test/e2e/layer-mismatch.spec.ts test/e2e/disabled-renderable.spec.ts test/e2e/visibility-routing.spec.ts test/e2e/primitive-routing.spec.ts test/e2e/camera-routing.spec.ts --project=chrome-webgpu-headed`
+- `pnpm exec playwright test test/e2e/lighting-routing.spec.ts --project=chrome-webgpu-headed`
+- `pnpm exec playwright test test/e2e/lighting-routing.spec.ts test/e2e/texture-routing.spec.ts test/e2e/texture-dependency-asset-status.spec.ts test/e2e/missing-texture-resource.spec.ts test/e2e/multi-textured-unlit.spec.ts test/e2e/textured-unlit.spec.ts test/e2e/textured-unlit-tint.spec.ts test/e2e/sampler-filter-address.spec.ts test/e2e/sampler-v-address.spec.ts test/e2e/mixed-unlit-pipelines.spec.ts --project=chrome-webgpu-headed`
+
 ## task-3034 — Migrate flagship examples to worker-by-default shape
 
 Completed: 2026-05-21

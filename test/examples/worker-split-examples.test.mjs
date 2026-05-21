@@ -39,6 +39,14 @@ const workerSplitExamples = [
     requestSnapshot: "requestCustomWaterSnapshot",
   },
   {
+    html: "examples/multi-entity.html",
+    main: "examples/multi-entity.main.js",
+    worker: "examples/multi-entity.worker.js",
+    legacy: "examples/multi-entity.js",
+    mode: "manual-render",
+    requestSnapshot: "requestMultiEntityWorkerScenario",
+  },
+  {
     html: "examples/multi-light-shadow.html",
     main: "examples/multi-light-shadow.main.js",
     worker: "examples/multi-light-shadow.worker.js",
