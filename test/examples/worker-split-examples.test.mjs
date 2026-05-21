@@ -112,6 +112,12 @@ const workerSplitExamples = [
     worker: "examples/standard-texture-control.worker.js",
     legacy: "examples/standard-texture-control.js",
   },
+  {
+    html: "examples/standard-gltf-texture.html",
+    main: "examples/standard-gltf-texture.main.js",
+    worker: "examples/standard-gltf-texture.worker.js",
+    legacy: "examples/standard-gltf-texture.js",
+  },
 ];
 
 describe("worker-split examples", () => {

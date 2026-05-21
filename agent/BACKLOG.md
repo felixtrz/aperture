@@ -68,8 +68,11 @@ Progress so far: `spinning-cube`, `multi-light-shadow`, and `glb-viewer` now
 use renderer-only `*.main.js` files plus ECS/extraction-owned `*.worker.js`
 files, with transferable snapshot status assertions. `debug-normal-app`,
 `depth-app-overlap`, `standard-queue-phases`, `instancing`, and `instance-tint`
-have also been migrated as the first bulk examples. The remaining examples
-still use the temporary main-thread compatibility helper and should continue to
+have also been migrated as the first bulk examples. Later slices migrated
+`batching`, `render-to-texture`, `gpu-profiler`, `matcap-app`,
+`materials-showcase`, `point-shadow`, `spot-shadow`,
+`standard-texture-control`, and `standard-gltf-texture`. The remaining examples
+still using the temporary main-thread compatibility helper should continue to
 be migrated mechanically from the established template.
 
 Reference anchors (read before writing):
@@ -390,6 +393,13 @@ between main and worker and renders worker snapshots with readback samples.
 Focused browser smokes reached expected point/spot shadow compare pipelines,
 ready and normal-map texture-control rendering, and the expected missing-texture
 failure with transferred typed arrays preserved.
+Progress note 2026-05-21: Migrated `standard-gltf-texture` to the same
+worker-by-default shape. The main entry registers renderer-side glTF texture
+source assets and renders transferable snapshots from a worker-owned extraction
+app, while a shared scene module keeps the large scenario matrix in one place.
+Targeted Playwright smoke covers mapped base-color and normal texture scenarios
+through the worker boundary, with static worker-split coverage guarding against
+main-thread ECS spawning.
 
 Acceptance criteria:
 

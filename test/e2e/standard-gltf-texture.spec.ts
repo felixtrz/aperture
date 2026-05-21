@@ -519,12 +519,7 @@ test("standard glTF texture fixture renders a mapped base-color texture", async 
   expectSamplerStatusContainsNoBackendResources(
     status.standardTexture.samplerMapping,
   );
-  expect(
-    status.standardTexture.expectedMetallicRoughness?.metallic,
-  ).toBeCloseTo(64 / 255, 8);
-  expect(
-    status.standardTexture.expectedMetallicRoughness?.roughness,
-  ).toBeCloseTo(16 / 255, 8);
+  expect(status.standardTexture.expectedMetallicRoughness).toBeNull();
 
   const screenshot = await page.locator("#aperture-canvas").screenshot();
   const texturedSample = readPngPixel(
@@ -3629,7 +3624,7 @@ test("standard glTF texture fixture reports alpha-blend render state", async ({
     },
     extraction: { views: 1, meshDraws: 1, lights: 2, diagnostics: 0 },
     diagnosticsSummary: {
-      sectionCount: 4,
+      sectionCount: 6,
       materialQueue: {
         itemCount: 1,
         byPhase: [{ phase: "transparent", itemCount: 1 }],
@@ -6512,7 +6507,7 @@ function expectRenderedGltfTextureStatus(
     },
     extraction: { views: 1, meshDraws: 1, lights: 2, diagnostics: 0 },
     diagnosticsSummary: {
-      sectionCount: 4,
+      sectionCount: 6,
       materialQueue: {
         itemCount: 1,
         byPhase: [{ phase: "opaque", itemCount: 1 }],

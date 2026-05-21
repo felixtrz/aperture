@@ -1,6 +1,77 @@
 # Agent Handoff
 
-Updated: 2026-05-21T18:22:30Z
+Updated: 2026-05-21T18:31:25Z
+
+## Current Run Update — 2026-05-21T18:31:25Z — Standard glTF texture worker migration advanced
+
+Advanced `task-3035` but did not finish it.
+
+### What changed
+
+- Migrated `standard-gltf-texture` to the worker-by-default shape.
+- Split the large glTF texture fixture into a shared scenario module,
+  renderer-only `standard-gltf-texture.main.js`, worker-owned
+  `standard-gltf-texture.worker.js`, and a thin legacy compatibility import.
+- The main entry creates the WebGPU renderer app, registers renderer-side glTF
+  texture source assets, receives a transferable worker snapshot, and publishes
+  worker/transport status.
+- The worker entry owns `createExtractionApp()`, ECS camera/light/mesh spawning,
+  stepping, extraction, and `renderSnapshotTransferList(...)` buffer transfer.
+- Updated static worker-split coverage, example syntax checks, public tracker
+  pages, and the `standard-gltf-texture` e2e expectations that changed under
+  the explicit renderer app path.
+
+### Files touched in this partial slice
+
+- `agent/BACKLOG.md`
+- `agent/HANDOFF.md`
+- `docs/index.html`
+- `docs/render-pipeline-comparison.html`
+- `examples/standard-gltf-texture.html`
+- `examples/standard-gltf-texture.js`
+- `examples/standard-gltf-texture-scene.js`
+- `examples/standard-gltf-texture.main.js`
+- `examples/standard-gltf-texture.worker.js`
+- `package.json`
+- `test/e2e/standard-gltf-texture.spec.ts`
+- `test/examples/worker-split-examples.test.mjs`
+
+### References inspected
+
+- `examples/worker-cube.main.js`
+- `examples/worker-cube.worker.js`
+- `references/three.js/examples/webgl_worker_offscreencanvas.html`
+- `references/bevy/crates/bevy_render/src/lib.rs`
+
+### Validation
+
+- `pnpm run check:examples`
+- `pnpm exec vitest run test/examples/worker-split-examples.test.mjs test/examples/navigation.test.mjs`
+- `pnpm run build`
+- `pnpm run typecheck:test`
+- `pnpm run lint`
+- `pnpm run format:check`
+- `pnpm run check:progress`
+- `pnpm run check`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "renders a mapped (base-color|normal) texture"`
+
+### Known issues
+
+- `task-3035` remains incomplete. Remaining examples still using the temporary
+  `examples/example-renderer-app.js` bridge include `app-diagnostics` and
+  `gltf-scene`.
+- Lower-level manual examples (`triangle`, `multi-entity`, `custom-material`)
+  still author/extract on the main thread without the temporary app bridge; they
+  need separate judgment during the final worker-by-default sweep.
+- `standard-texture-control?scenario=base-color-transform` remains a
+  pre-existing stale expected-failure case relative to the current finite
+  texture-transform support path; this migration did not change that contract.
+
+### Recommended next task
+
+Continue `task-3035` with `gltf-scene` or `app-diagnostics`. `gltf-scene` is
+the largest remaining bridge example; `app-diagnostics` is the smallest
+remaining temporary-helper consumer.
 
 ## Current Run Update — 2026-05-21T18:22:30Z — Shadow and texture worker migration advanced
 

@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-21 18:20 UTC</dd>
+            <dd>2026-05-21 18:31 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -416,17 +416,19 @@
               renderer-only main entries plus worker-owned ECS/extraction
               entries. This run also moved <code>point-shadow</code>,
               <code>spot-shadow</code>, and
-              <code>standard-texture-control</code> to the same shape:
-              point/spot shadow pages keep renderer-owned shadow resources and
-              UI toggles on the main thread while workers own ECS scene
-              extraction, and the texture-control page shares source asset
-              registration between main and worker before rendering worker
-              snapshots with readback samples. Their status JSON now reports
-              worker snapshot counts and typed-array preservation, and static
-              example tests prevent ECS spawning from drifting back into those
-              main files. The WebGPU app facade now requires a worker-shaped
-              snapshot producer and no longer exposes main-thread ECS authoring
-              APIs: <code>spawn</code>, <code>world</code>, and
+              <code>standard-texture-control</code>, and
+              <code>standard-gltf-texture</code> to the same shape: point/spot
+              shadow pages keep renderer-owned shadow resources and UI toggles
+              on the main thread while workers own ECS scene extraction, the
+              texture-control page shares source asset registration between main
+              and worker before rendering worker snapshots with readback
+              samples, and the glTF texture fixture now shares its scenario
+              setup across renderer and worker modules. Their status JSON now
+              reports worker snapshot counts and typed-array preservation, and
+              static example tests prevent ECS spawning from drifting back into
+              those main files. The WebGPU app facade now requires a
+              worker-shaped snapshot producer and no longer exposes main-thread
+              ECS authoring APIs: <code>spawn</code>, <code>world</code>, and
               <code>assets</code>
               are removed from the returned renderer app. It consumes
               renderer-side source assets plus worker-produced
@@ -1861,13 +1863,15 @@
                 <code>render-to-texture</code>, <code>gpu-profiler</code>,
                 <code>matcap-app</code>, and <code>materials-showcase</code> to
                 the worker-by-default example shape, then migrated
-                <code>point-shadow</code>, <code>spot-shadow</code>, and
-                <code>standard-texture-control</code>. Browser smokes now prove
+                <code>point-shadow</code>, <code>spot-shadow</code>,
+                <code>standard-texture-control</code>, and
+                <code>standard-gltf-texture</code>. Browser smokes now prove
                 worker snapshots, preserved typed arrays, expected draw counts,
                 render-target output, GPU timing overlays, matcap playback,
                 material-showcase IBL status, point/spot shadow compare
-                pipelines, and StandardMaterial texture readback status across
-                the migrated batch.
+                pipelines, StandardMaterial texture-control readback status, and
+                glTF base-color/normal texture rendering across the migrated
+                batch.
               </li>
               <li>
                 <span class="badge green">task-3034</span> Migrated spinning
@@ -4017,9 +4021,9 @@
                 authors ECS state should gain a renderer-only main entry, a
                 worker-owned extraction entry, and transferable snapshot status.
                 The next useful batch is the richer remaining examples:
-                <code>gltf-scene</code>, <code>standard-gltf-texture</code>,
-                <code>app-diagnostics</code>, and the lower-level manual
-                examples that still author ECS on the main thread.
+                <code>gltf-scene</code>, <code>app-diagnostics</code>, and the
+                lower-level manual examples that still author ECS on the main
+                thread.
               </li>
               <li>
                 Delete the temporary main-thread compatibility bridge once no
