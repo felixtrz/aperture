@@ -373,10 +373,13 @@ Dependencies: task-3034.
 Reference anchor: `references/three.js/examples/webgl_worker_offscreencanvas.html` for the transferable worker shape; `references/bevy/crates/bevy_render/src/lib.rs` for renderer/app separation; the flagship migrations from task-3034 as the per-example template; `examples/worker-cube.{main,worker}.js` as the canonical Aperture shape.
 Insertion point: mechanical migration. Each example becomes a `*.main.js` + `*.worker.js` pair following the template established in task-3034. Examples that don't use ECS authoring (pure diagnostic / WebGPU-init tests) may keep a single-file shape but must still talk to a (possibly minimal) worker.
 Progress note 2026-05-21: Migrated `debug-normal-app`, `depth-app-overlap`,
-`standard-queue-phases`, `instancing`, and `instance-tint` to renderer-only
-main entries plus worker-owned ECS/extraction entries. Static checks and browser
-smokes prove transferable typed arrays for all five, including the 1,000-entity
-instancing snapshot and the 256-entity instance-tint snapshot.
+`standard-queue-phases`, `instancing`, `instance-tint`, `batching`,
+`render-to-texture`, `gpu-profiler`, `matcap-app`, and
+`materials-showcase` to renderer-only main entries plus worker-owned
+ECS/extraction entries. Static checks and browser smokes prove transferable
+typed arrays for the migrated examples, including the 1,000-entity instancing
+snapshot, 256-entity instance-tint snapshot, render-target snapshots, timestamp
+query overlays, matcap playback, and material-showcase IBL status.
 
 Acceptance criteria:
 

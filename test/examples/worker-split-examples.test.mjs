@@ -64,6 +64,36 @@ const workerSplitExamples = [
     worker: "examples/instance-tint.worker.js",
     legacy: "examples/instance-tint.js",
   },
+  {
+    html: "examples/batching.html",
+    main: "examples/batching.main.js",
+    worker: "examples/batching.worker.js",
+    legacy: "examples/batching.js",
+  },
+  {
+    html: "examples/render-to-texture.html",
+    main: "examples/render-to-texture.main.js",
+    worker: "examples/render-to-texture.worker.js",
+    legacy: "examples/render-to-texture.js",
+  },
+  {
+    html: "examples/gpu-profiler.html",
+    main: "examples/gpu-profiler.main.js",
+    worker: "examples/gpu-profiler.worker.js",
+    legacy: "examples/gpu-profiler.js",
+  },
+  {
+    html: "examples/matcap-app.html",
+    main: "examples/matcap-app.main.js",
+    worker: "examples/matcap-app.worker.js",
+    legacy: "examples/matcap-app.js",
+  },
+  {
+    html: "examples/materials-showcase.html",
+    main: "examples/materials-showcase.main.js",
+    worker: "examples/materials-showcase.worker.js",
+    legacy: "examples/materials-showcase.js",
+  },
 ];
 
 describe("worker-split examples", () => {

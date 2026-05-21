@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-21 16:40 UTC</dd>
+            <dd>2026-05-21 17:25 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -407,16 +407,19 @@
               The GLB viewer split keeps loader controls, asset switching,
               animation, IBL, shadow, and status UI intact while moving GLB
               replay and extraction into <code>glb-viewer.worker.js</code>. The
-              first bulk migration slice also moved
+              first bulk migration slices also moved
               <code>debug-normal-app</code>, <code>depth-app-overlap</code>,
               <code>standard-queue-phases</code>, <code>instancing</code>, and
-              <code>instance-tint</code> to renderer-only main entries plus
-              worker-owned ECS/extraction entries. Their status JSON now reports
-              worker snapshot counts and typed-array preservation, and static
-              example tests prevent ECS spawning from drifting back into those
-              main files. The WebGPU app facade now requires a worker-shaped
-              snapshot producer and no longer exposes main-thread ECS authoring
-              APIs: <code>spawn</code>, <code>world</code>, and
+              <code>instance-tint</code>, then <code>batching</code>,
+              <code>render-to-texture</code>, <code>gpu-profiler</code>,
+              <code>matcap-app</code>, and <code>materials-showcase</code> to
+              renderer-only main entries plus worker-owned ECS/extraction
+              entries. Their status JSON now reports worker snapshot counts and
+              typed-array preservation, and static example tests prevent ECS
+              spawning from drifting back into those main files. The WebGPU app
+              facade now requires a worker-shaped snapshot producer and no
+              longer exposes main-thread ECS authoring APIs: <code>spawn</code>,
+              <code>world</code>, and
               <code>assets</code>
               are removed from the returned renderer app. It consumes
               renderer-side source assets plus worker-produced
@@ -1846,10 +1849,14 @@
               <li>
                 <span class="badge amber">task-3035 partial</span> Migrated
                 <code>debug-normal-app</code>, <code>depth-app-overlap</code>,
-                <code>standard-queue-phases</code>, <code>instancing</code>, and
-                <code>instance-tint</code> to the worker-by-default example
-                shape. Browser smokes now prove worker snapshots, preserved
-                typed arrays, and expected draw counts for all five.
+                <code>standard-queue-phases</code>, <code>instancing</code>,
+                <code>instance-tint</code>, <code>batching</code>,
+                <code>render-to-texture</code>, <code>gpu-profiler</code>,
+                <code>matcap-app</code>, and <code>materials-showcase</code> to
+                the worker-by-default example shape. Browser smokes now prove
+                worker snapshots, preserved typed arrays, expected draw counts,
+                render-target output, GPU timing overlays, matcap playback, and
+                material-showcase IBL status across the migrated batch.
               </li>
               <li>
                 <span class="badge green">task-3034</span> Migrated spinning
@@ -3999,8 +4006,10 @@
                 authors ECS state should gain a renderer-only main entry, a
                 worker-owned extraction entry, and transferable snapshot status.
                 The next useful batch is the richer remaining examples such as
-                batching, render-to-texture, GPU profiler, material showcase,
-                GLTF scene, shadow examples, texture controls, and diagnostics.
+                GLTF scene, point/spot shadow examples, StandardMaterial texture
+                controls, standard GLTF texture coverage, diagnostics, and the
+                lower-level manual examples that still author ECS on the main
+                thread.
               </li>
               <li>
                 Delete the temporary main-thread compatibility bridge once no

@@ -1,6 +1,122 @@
 # Agent Handoff
 
-Updated: 2026-05-21T16:50:03Z
+Updated: 2026-05-21T17:28:00Z
+
+## Current Run Update — 2026-05-21T17:28:00Z — Bulk worker migration advanced
+
+Advanced `task-3035` but did not finish it.
+
+### What changed
+
+- Migrated five more examples to the worker-by-default shape:
+  `batching`, `render-to-texture`, `gpu-profiler`, `matcap-app`, and
+  `materials-showcase`.
+- Each migrated example now has a renderer-only `*.main.js` entry, a
+  worker-owned `*.worker.js` entry for ECS authoring/extraction, and a thin
+  legacy `*.js` compatibility import.
+- Added small per-example shared asset modules where both main and worker need
+  identical source asset registration while keeping all ECS spawning in worker
+  entries.
+- Kept renderer-owned resources on the main thread:
+  - `render-to-texture` creates the offscreen GPU texture and screen blit on
+    the renderer side while the worker authors the render-target camera and
+    plane snapshot.
+  - `gpu-profiler` keeps timestamp-query rendering and overlay DOM updates on
+    the renderer side while the worker owns the two-view cube scene.
+  - `materials-showcase` keeps executable IBL GPU texture/sampler resources on
+    the renderer side while the worker authors material/environment ECS state.
+- Updated `check:examples`, worker-split static coverage, public tracker pages,
+  and backlog progress notes for the expanded partial migration.
+
+### Files touched in this partial slice
+
+- `agent/BACKLOG.md`
+- `agent/HANDOFF.md`
+- `docs/index.html`
+- `docs/render-pipeline-comparison.html`
+- `examples/batching.html`
+- `examples/batching.js`
+- `examples/batching-assets.js`
+- `examples/batching.main.js`
+- `examples/batching.worker.js`
+- `examples/gpu-profiler.html`
+- `examples/gpu-profiler.js`
+- `examples/gpu-profiler-assets.js`
+- `examples/gpu-profiler.main.js`
+- `examples/gpu-profiler.worker.js`
+- `examples/matcap-app.html`
+- `examples/matcap-app.js`
+- `examples/matcap-app-assets.js`
+- `examples/matcap-app.main.js`
+- `examples/matcap-app.worker.js`
+- `examples/materials-showcase.html`
+- `examples/materials-showcase.js`
+- `examples/materials-showcase-assets.js`
+- `examples/materials-showcase.main.js`
+- `examples/materials-showcase.worker.js`
+- `examples/render-to-texture.html`
+- `examples/render-to-texture.js`
+- `examples/render-to-texture-assets.js`
+- `examples/render-to-texture.main.js`
+- `examples/render-to-texture.worker.js`
+- `package.json`
+- `test/examples/worker-split-examples.test.mjs`
+
+### References inspected
+
+- `examples/worker-cube.main.js`
+- `examples/worker-cube.worker.js`
+- `references/three.js/examples/webgl_worker_offscreencanvas.html`
+- `references/bevy/crates/bevy_render/src/lib.rs`
+
+### Validation
+
+- `pnpm run check:examples`
+- `pnpm exec vitest run test/examples/worker-split-examples.test.mjs`
+- `pnpm run lint`
+- `pnpm run format:check`
+- `pnpm run build`
+- `pnpm run typecheck:test`
+- `pnpm test`
+- `pnpm run check`
+- `pnpm run check:progress`
+- Playwright specs reached assertions successfully for:
+  `batching`, `gpu-profiler`, `matcap-app`, and `render-to-texture`. As noted
+  in the previous run, the Playwright process stayed open after all four tests
+  printed pass lines in this environment, so it was killed after assertion
+  output.
+- Direct Chrome/WebGPU smoke reached ready status for all five examples changed
+  this run:
+  `batching`, `matcap-app`, `render-to-texture`, `gpu-profiler`, and
+  `materials-showcase`. The smoke printed expected phases/draw counts and
+  confirmed transferred typed arrays. Chrome again kept the Node process open
+  after all checks printed, so it was killed after successful output.
+- A focused direct `materials-showcase` frame-progression check reached frame 13
+  with `ok: true`, `phase: "animate"`, one extracted environment, and preserved
+  typed arrays. The official headed Playwright `materials-showcase` spec did not
+  reach a pass line within 90 seconds in this environment, so it was stopped;
+  this needs a retry in a non-hanging browser runner if that exact spec result
+  is required.
+
+### Known issues
+
+- `task-3035` remains incomplete. Remaining examples using the temporary
+  `examples/example-renderer-app.js` bridge include `app-diagnostics`,
+  `gltf-scene`, `point-shadow`, `spot-shadow`, `standard-texture-control`, and
+  `standard-gltf-texture`.
+- Lower-level manual examples (`triangle`, `multi-entity`, `custom-material`)
+  do not use the temporary app bridge but still author/extract on the main
+  thread; they need separate judgment during the final worker-by-default sweep.
+- Several migrated examples now use small duplicated/shared asset-registration
+  modules. That keeps the migration explicit; broad consolidation should wait
+  until the remaining examples finish and common shapes are clearer.
+
+### Recommended next task
+
+Continue `task-3035` with the next rich batch. A practical next slice is either
+`point-shadow` plus `spot-shadow` together, or
+`standard-texture-control` plus `standard-gltf-texture` if prioritizing
+StandardMaterial texture coverage.
 
 ## Current Run Update — 2026-05-21T16:41:29Z — Remaining example worker migration started
 
