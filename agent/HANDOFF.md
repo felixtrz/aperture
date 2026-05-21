@@ -1,6 +1,184 @@
 # Agent Handoff
 
-Updated: 2026-05-21T15:49:09Z
+Updated: 2026-05-21T16:50:03Z
+
+## Current Run Update — 2026-05-21T16:41:29Z — Remaining example worker migration started
+
+Advanced `task-3035` but did not finish it.
+
+### What changed
+
+- Migrated five remaining examples to the worker-by-default shape:
+  `debug-normal-app`, `depth-app-overlap`, `standard-queue-phases`,
+  `instancing`, and `instance-tint`.
+- Each migrated example now has a renderer-only `*.main.js` entry, a
+  worker-owned `*.worker.js` entry for ECS authoring/extraction, and a thin
+  legacy `*.js` compatibility import.
+- The main entries mirror renderer-side source assets, create renderer-only
+  WebGPU apps, render worker-produced transferable snapshots, and publish
+  worker/transport status without calling `app.spawn(...)`.
+- The worker entries own `createExtractionApp()`, scene spawning, stepping, and
+  `renderSnapshotTransferList(...)` posting. The migrated performance examples
+  preserve their existing high-entity-count contracts: `instancing` still
+  renders 1,000 ECS boxes as one draw, and `instance-tint` still renders 256
+  tinted ECS boxes as one draw.
+- Updated `check:examples`, static worker-split coverage, public tracker pages,
+  and backlog progress notes for the partial `task-3035` migration.
+
+### Files touched in this partial slice
+
+- `agent/BACKLOG.md`
+- `agent/HANDOFF.md`
+- `docs/index.html`
+- `docs/render-pipeline-comparison.html`
+- `examples/debug-normal-app.html`
+- `examples/debug-normal-app.js`
+- `examples/debug-normal-app.main.js`
+- `examples/debug-normal-app.worker.js`
+- `examples/depth-app-overlap.html`
+- `examples/depth-app-overlap.js`
+- `examples/depth-app-overlap.main.js`
+- `examples/depth-app-overlap.worker.js`
+- `examples/instance-tint.html`
+- `examples/instance-tint.js`
+- `examples/instance-tint.main.js`
+- `examples/instance-tint.worker.js`
+- `examples/instancing.html`
+- `examples/instancing.js`
+- `examples/instancing.main.js`
+- `examples/instancing.worker.js`
+- `examples/standard-queue-phases.html`
+- `examples/standard-queue-phases.js`
+- `examples/standard-queue-phases.main.js`
+- `examples/standard-queue-phases.worker.js`
+- `package.json`
+- `test/examples/worker-split-examples.test.mjs`
+
+### References inspected
+
+- `references/three.js/examples/webgl_worker_offscreencanvas.html`
+- `references/bevy/crates/bevy_render/src/lib.rs`
+- Existing Aperture worker-split examples:
+  `examples/worker-cube.{main,worker}.js`,
+  `examples/spinning-cube.{main,worker}.js`, and
+  `examples/glb-viewer.{main,worker}.js`
+
+### Validation
+
+- `pnpm run check:examples`
+- `pnpm exec vitest run test/examples/worker-split-examples.test.mjs test/examples/navigation.test.mjs`
+- `pnpm run lint`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm run format:check`
+- `pnpm run check`
+- `pnpm run check:progress`
+- Consolidated headless Chromium smoke across GLB viewer plus the five
+  migrated `task-3035` examples: all reported `ok: true`, expected draw counts,
+  preserved typed arrays, and no validation console messages.
+- Headless Chromium smokes:
+  - `/examples/debug-normal-app.html`: one draw call, one mesh draw, worker
+    snapshot, preserved typed arrays, no validation console messages.
+  - `/examples/depth-app-overlap.html`: two draw calls, two mesh draws, worker
+    snapshot, preserved typed arrays, no validation console messages.
+  - `/examples/standard-queue-phases.html`: frame 3, four draw calls,
+    expected queue/pipeline keys, preserved typed arrays, no validation console
+    messages.
+  - `/examples/instancing.html`: 1,000 mesh draws grouped to one draw call,
+    worker snapshot, preserved typed arrays, no validation console messages.
+  - `/examples/instance-tint.html`: 256 mesh draws grouped to one draw call,
+    instance-tint pipeline, preserved typed arrays, no validation console
+    messages.
+
+### Known issues
+
+- `task-3035` remains incomplete. Remaining examples still using
+  `examples/example-renderer-app.js` include richer scenes such as batching,
+  render-to-texture, GPU profiler, matcap/material showcase, GLTF scene,
+  point/spot shadow, texture controls, app diagnostics, and related standard
+  material examples.
+- Several migrated examples now duplicate small asset-registration helpers
+  between main and worker. That keeps the slice explicit and reviewable; helper
+  extraction should wait until more migrations land and common shapes are clear.
+
+### Recommended next task
+
+Continue `task-3035` with the next small batch of remaining examples. A good
+next slice is either batching/render-to-texture/gpu-profiler if keeping to
+small app proofs, or matcap/materials-showcase if prioritizing material-route
+coverage.
+
+## Current Run Update — 2026-05-21T16:22:48Z — GLB viewer worker split
+
+Completed `task-3034`.
+
+### What changed
+
+- Split `examples/glb-viewer.html` to load a renderer-only
+  `examples/glb-viewer.main.js` entry and preserved `examples/glb-viewer.js` as
+  a thin compatibility import.
+- Added `examples/glb-viewer.worker.js`, which owns `createExtractionApp()`,
+  GLB replay, ECS authoring, orbit/control state, animation stepping,
+  IBL/shadow authoring, extraction, and transferable `RenderSnapshot` posting.
+- Kept the GLB viewer's page-facing controls and status surface intact:
+  sample switching, custom URLs, imported-camera selection, animation controls,
+  light controls, IBL/shadow toggles, renderer diagnostics, and summary panels
+  now communicate with the worker while the main thread only renders snapshots.
+- Extended static example tests and `check:examples` so GLB viewer joins the
+  worker-split flagship coverage and main-thread ECS authoring does not drift
+  back into the flagship main entries.
+- Updated the public tracker pages, backlog, and completed-task record to mark
+  `task-3034` complete and recommend `task-3035`.
+
+### Files touched
+
+- `agent/BACKLOG.md`
+- `agent/COMPLETED.md`
+- `agent/HANDOFF.md`
+- `docs/index.html`
+- `docs/render-pipeline-comparison.html`
+- `examples/glb-viewer.html`
+- `examples/glb-viewer.js`
+- `examples/glb-viewer.main.js`
+- `examples/glb-viewer.worker.js`
+- `package.json`
+- `test/examples/worker-split-examples.test.mjs`
+
+### References inspected
+
+- `examples/worker-cube.html`
+- `examples/worker-cube.main.js`
+- `examples/worker-cube.worker.js`
+- `references/three.js/examples/webgl_worker_offscreencanvas.html`
+- `references/bevy/crates/bevy_render/src/lib.rs`
+
+### Validation
+
+- `pnpm exec vitest run test/examples/worker-split-examples.test.mjs test/examples/navigation.test.mjs`
+- `pnpm run check:examples`
+- `pnpm run lint`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm run check:progress`
+- `pnpm run check`
+- Headless Chromium smoke: `/examples/glb-viewer.html?asset=cube` reached
+  render phase with one mesh draw, one draw call, worker snapshots, and
+  preserved typed arrays.
+- Headless Chromium smoke: `/examples/glb-viewer.html?asset=brass` reached
+  render phase with two mesh draws, two draw calls, worker snapshots, IBL/shadow
+  readiness, and preserved typed arrays.
+
+### Known issues
+
+- The migrated GLB viewer intentionally retains copied helper surfaces in the
+  main/worker split, guarded by file-level unused-variable lint disables. A
+  later cleanup can extract common helpers once the remaining examples are
+  migrated.
+- The Codex Browser MCP call could not attach to the already-in-use browser
+  profile in this environment, so GLB viewer browser validation used direct
+  Playwright/Chromium smoke scripts instead.
+
+### Recommended next task
+
+`task-3035 — Bulk-migrate remaining examples to worker-by-default shape`.
 
 ## Current Run Update — 2026-05-21T15:36:17Z — Flagship worker-split examples
 

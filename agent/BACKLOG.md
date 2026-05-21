@@ -59,15 +59,18 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Continue `task-3034`: finish the GLB viewer worker-by-default split.
+Start `task-3035`: bulk-migrate the remaining examples to the
+worker-by-default shape.
 
-Why this next: `createWebGpuApp()` now requires a worker-shaped snapshot producer and no longer exposes main-thread ECS authoring APIs. The next vertical slice should migrate the flagship examples to the new two-file main/worker shape so browser-facing samples use the renderer-only path.
+Why this next: `createWebGpuApp()` now requires a worker-shaped snapshot producer and no longer exposes main-thread ECS authoring APIs. The flagship examples prove the two-file main/worker shape; the remaining browser-facing samples should now use the same renderer-only path.
 
-Progress so far: `spinning-cube` and `multi-light-shadow` now use
-renderer-only `*.main.js` files plus ECS/extraction-owned `*.worker.js` files,
-with transferable snapshot status assertions. The GLB viewer sample catalog and
-same-origin image decode path are prepared for worker use, but GLB viewer still
-uses the temporary main-thread compatibility helper.
+Progress so far: `spinning-cube`, `multi-light-shadow`, and `glb-viewer` now
+use renderer-only `*.main.js` files plus ECS/extraction-owned `*.worker.js`
+files, with transferable snapshot status assertions. `debug-normal-app`,
+`depth-app-overlap`, `standard-queue-phases`, `instancing`, and `instance-tint`
+have also been migrated as the first bulk examples. The remaining examples
+still use the temporary main-thread compatibility helper and should continue to
+be migrated mechanically from the established template.
 
 Reference anchors (read before writing):
 
@@ -114,7 +117,7 @@ Eleven cross-cutting gaps remain across the six phases. They are sequenced below
 
 **Tier 7 — Worker-by-default migration + transferable transport (queued after Tier 6):**
 
-13. Worker-by-default architecture (task-3032 and task-3033 shipped; task-3034, task-3035, task-3036 remain) — removes main-thread ECS mode entirely. ECS authoring and extraction always run in a Web Worker. The main thread becomes a renderer-only consumer that receives snapshots via transferable typed-array `postMessage`. `createWebGpuApp` now requires a worker-shaped snapshot producer and no longer exposes `spawn`, `world`, or `assets` on the WebGPU app. All existing examples migrate to the new two-file shape (main + worker). Transferable transport (zero-copy `ArrayBuffer` transfer for `transforms` and `viewMatrices`) is bundled into the redesign — there is no point shipping the worker-default mode with an unoptimized transport. No HTTP header changes; default transport works in any deployment including embedded.
+13. Worker-by-default architecture (task-3032, task-3033, and task-3034 shipped; task-3035 and task-3036 remain) — removes main-thread ECS mode entirely. ECS authoring and extraction always run in a Web Worker. The main thread becomes a renderer-only consumer that receives snapshots via transferable typed-array `postMessage`. `createWebGpuApp` now requires a worker-shaped snapshot producer and no longer exposes `spawn`, `world`, or `assets` on the WebGPU app. All existing examples migrate to the new two-file shape (main + worker). Transferable transport (zero-copy `ArrayBuffer` transfer for `transforms` and `viewMatrices`) is bundled into the redesign — there is no point shipping the worker-default mode with an unoptimized transport. No HTTP header changes; default transport works in any deployment including embedded.
 
 **Tier 8 — SharedArrayBuffer transport (opt-in, queued after Tier 7):**
 
@@ -340,15 +343,18 @@ Acceptance criteria:
 
 ### task-3034 — Migrate flagship examples to worker-by-default shape
 
+Status: completed 2026-05-21. See `agent/COMPLETED.md`.
+
 Category: `runtime-orchestration`
 Package/write-scope: `examples/spinning-cube.{html,main.js,worker.js}`, `examples/glb-viewer.{html,main.js,worker.js}`, `examples/multi-light-shadow.{html,main.js,worker.js}`, corresponding `test/e2e/*.spec.ts`.
 Dependencies: task-3033.
 Reference anchor: `examples/worker-cube.html` + `examples/worker-cube.{main,worker}.js` (the canonical Aperture worker-split pattern shipped in task-3001); `references/three.js/examples/webgl_worker_offscreencanvas.html` for the boilerplate shape.
 Insertion point: split each flagship example into a `*.main.js` (canvas owner, calls `createWebGpuApp`) and a `*.worker.js` (calls `createSimulationApp`, spawns entities, extracts snapshots, posts). Update the HTML to load the main entry; update Playwright specs as needed.
-Progress note 2026-05-21: `spinning-cube` and `multi-light-shadow` now use the
-worker-split shape and status/tests prove transferable snapshot transport. GLB
-viewer still needs the real split; its sample catalog and same-origin image
-decode path have been made worker-ready as prep.
+Completion note 2026-05-21: `spinning-cube`, `multi-light-shadow`, and
+`glb-viewer` now use the worker-split shape and status/tests prove
+transferable snapshot transport. GLB viewer keeps its loader, controls,
+animation, IBL, shadow, and status surface while moving GLB replay, ECS
+authoring, stepping, and extraction into `examples/glb-viewer.worker.js`.
 
 Acceptance criteria:
 
@@ -364,8 +370,13 @@ Acceptance criteria:
 Category: `runtime-orchestration`
 Package/write-scope: `examples/{triangle,multi-entity,materials-showcase,matcap-app,debug-normal-app,depth-app-overlap,standard-*,app-diagnostics,point-shadow,spot-shadow,render-to-texture,instancing,batching,gltf-scene,…}.*`, corresponding Playwright specs.
 Dependencies: task-3034.
-Reference anchor: the flagship migrations from task-3034 as the per-example template; `examples/worker-cube.{main,worker}.js` as the canonical shape.
+Reference anchor: `references/three.js/examples/webgl_worker_offscreencanvas.html` for the transferable worker shape; `references/bevy/crates/bevy_render/src/lib.rs` for renderer/app separation; the flagship migrations from task-3034 as the per-example template; `examples/worker-cube.{main,worker}.js` as the canonical Aperture shape.
 Insertion point: mechanical migration. Each example becomes a `*.main.js` + `*.worker.js` pair following the template established in task-3034. Examples that don't use ECS authoring (pure diagnostic / WebGPU-init tests) may keep a single-file shape but must still talk to a (possibly minimal) worker.
+Progress note 2026-05-21: Migrated `debug-normal-app`, `depth-app-overlap`,
+`standard-queue-phases`, `instancing`, and `instance-tint` to renderer-only
+main entries plus worker-owned ECS/extraction entries. Static checks and browser
+smokes prove transferable typed arrays for all five, including the 1,000-entity
+instancing snapshot and the 256-entity instance-tint snapshot.
 
 Acceptance criteria:
 

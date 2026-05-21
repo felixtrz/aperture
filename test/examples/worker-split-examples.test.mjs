@@ -28,9 +28,45 @@ const workerSplitExamples = [
     worker: "examples/multi-light-shadow.worker.js",
     legacy: "examples/multi-light-shadow.js",
   },
+  {
+    html: "examples/glb-viewer.html",
+    main: "examples/glb-viewer.main.js",
+    worker: "examples/glb-viewer.worker.js",
+    legacy: "examples/glb-viewer.js",
+  },
+  {
+    html: "examples/debug-normal-app.html",
+    main: "examples/debug-normal-app.main.js",
+    worker: "examples/debug-normal-app.worker.js",
+    legacy: "examples/debug-normal-app.js",
+  },
+  {
+    html: "examples/depth-app-overlap.html",
+    main: "examples/depth-app-overlap.main.js",
+    worker: "examples/depth-app-overlap.worker.js",
+    legacy: "examples/depth-app-overlap.js",
+  },
+  {
+    html: "examples/standard-queue-phases.html",
+    main: "examples/standard-queue-phases.main.js",
+    worker: "examples/standard-queue-phases.worker.js",
+    legacy: "examples/standard-queue-phases.js",
+  },
+  {
+    html: "examples/instancing.html",
+    main: "examples/instancing.main.js",
+    worker: "examples/instancing.worker.js",
+    legacy: "examples/instancing.js",
+  },
+  {
+    html: "examples/instance-tint.html",
+    main: "examples/instance-tint.main.js",
+    worker: "examples/instance-tint.worker.js",
+    legacy: "examples/instance-tint.js",
+  },
 ];
 
-describe("worker-split flagship examples", () => {
+describe("worker-split examples", () => {
   it("loads main-thread renderer entries from HTML", async () => {
     for (const example of workerSplitExamples) {
       const html = await readWorkspaceFile(example.html);
@@ -81,13 +117,16 @@ describe("worker-split flagship examples", () => {
   });
 
   it("keeps the GLB viewer sample catalog shareable for the worker split", async () => {
-    const [viewer, catalog] = await Promise.all([
-      readWorkspaceFile("examples/glb-viewer.js"),
+    const [main, worker, catalog] = await Promise.all([
+      readWorkspaceFile("examples/glb-viewer.main.js"),
+      readWorkspaceFile("examples/glb-viewer.worker.js"),
       readWorkspaceFile("examples/glb-viewer-assets.js"),
     ]);
 
-    expect(viewer).toContain('from "./glb-viewer-assets.js";');
-    expect(viewer).not.toContain("const sampleAssets = [");
+    expect(main).toContain('from "./glb-viewer-assets.js";');
+    expect(worker).toContain('from "./glb-viewer-assets.js";');
+    expect(main).not.toContain("const sampleAssets = [");
+    expect(worker).not.toContain("const sampleAssets = [");
     expect(catalog).toContain("export const sampleAssets = [");
     expect(catalog).toContain("export function getDefaultSampleAsset()");
     expect(catalog).toContain("export function findSampleAssetById(assetId)");
@@ -119,7 +158,7 @@ describe("worker-split flagship examples", () => {
   });
 
   it("keeps the GLB viewer image decode path worker-compatible", async () => {
-    const viewer = await readWorkspaceFile("examples/glb-viewer.js");
+    const viewer = await readWorkspaceFile("examples/glb-viewer.worker.js");
 
     expect(viewer).toContain("globalThis.fetch");
     expect(viewer).toContain("globalThis.createImageBitmap");

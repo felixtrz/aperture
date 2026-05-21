@@ -1,5 +1,48 @@
 # Completed Tasks
 
+## task-3034 — Migrate flagship examples to worker-by-default shape
+
+Completed: 2026-05-21
+
+Summary:
+
+- Migrated `examples/glb-viewer.html` to load a renderer-only
+  `examples/glb-viewer.main.js` entry while preserving
+  `examples/glb-viewer.js` as a thin compatibility import.
+- Added `examples/glb-viewer.worker.js`, which owns `createExtractionApp()`,
+  GLB replay, ECS authoring, controls state, animation stepping, IBL/shadow
+  authoring, extraction, and transferable `RenderSnapshot` posting.
+- Kept GLB viewer loader controls, sample switching, custom URLs,
+  imported-camera controls, animation controls, light controls, IBL/shadow
+  status, renderer diagnostics, and summary panels working from the main
+  thread by sending commands to the worker and rendering received snapshots.
+- Extended static example checks so the three flagship examples now cover
+  worker-split entrypoints, main-thread renderer ownership, worker-side ECS
+  ownership, GLB catalog/image-decode readiness, and absence of
+  main-thread `app.spawn(...)` calls.
+
+References inspected:
+
+- `examples/worker-cube.html`
+- `examples/worker-cube.main.js`
+- `examples/worker-cube.worker.js`
+- `references/three.js/examples/webgl_worker_offscreencanvas.html`
+- `references/bevy/crates/bevy_render/src/lib.rs`
+
+Validation:
+
+- `pnpm exec vitest run test/examples/worker-split-examples.test.mjs test/examples/navigation.test.mjs`
+- `pnpm run check:examples`
+- `pnpm run lint`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm run check`
+- Headless Chromium smoke: `/examples/glb-viewer.html?asset=cube` reached
+  render phase with one mesh draw, one draw call, worker snapshots, and
+  preserved typed arrays.
+- Headless Chromium smoke: `/examples/glb-viewer.html?asset=brass` reached
+  render phase with two mesh draws, two draw calls, worker snapshots, IBL/shadow
+  readiness, and preserved typed arrays.
+
 ## task-3033 — `createWebGpuApp` redesigned as renderer-only + transferable transport
 
 Completed: 2026-05-21

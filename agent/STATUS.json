@@ -6,6 +6,6 @@
   "lastResult": "success",
   "lastCommit": "458f5f8",
   "activePid": null,
-  "notes": "Advanced task-3034: spinning-cube and multi-light-shadow now use worker-split renderer/main entries with transferable snapshots; GLB viewer catalog/decode path prepared for worker split; GLB viewer remains next.",
-  "lastRunFinishedAt": "2026-05-21T15:49:28Z"
+  "notes": "Completed task-3034 GLB viewer worker split; advanced task-3035 by migrating debug-normal-app, depth-app-overlap, standard-queue-phases, instancing, and instance-tint to worker-by-default; validation passed.",
+  "lastRunFinishedAt": "2026-05-21T16:50:21Z"
 }
