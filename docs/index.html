@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-21 02:13 UTC</dd>
+            <dd>2026-05-21 03:33 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -439,7 +439,17 @@
               <code>mergeMeshAssetsForBatch()</code>, which validates compatible
               static mesh layouts, merges vertex/index data, records per-source
               submesh ranges, and has a browser proof that the merged buffer
-              renders pixel-identical to separate per-mesh draws. The GLB viewer
+              renders pixel-identical to separate per-mesh draws. Static
+              batching now reaches queue planning and a visible browser example:
+              twenty heterogeneous StandardMaterial shapes are reduced to five
+              static merged draw records and five submitted WebGPU draw calls
+              with Playwright pixel samples. Queue plans and successful WebGPU
+              app diagnostics now surface JSON-safe opaque/transparent
+              sort-phase counts, including transparent StandardMaterial app
+              frames. WebGPU now exposes standalone timestamp query
+              infrastructure that creates timestamp query sets, resolves them
+              into readback buffers, and gracefully reports unsupported devices
+              when <code>timestamp-query</code> is unavailable. The GLB viewer
               now renders extended StandardMaterial combined texture routes:
               occlusion plus normal, metallic-roughness plus emissive,
               alpha-blend plus normal, UV1 metallic-roughness plus normal,
@@ -1406,9 +1416,9 @@
           <article class="phase">
             <div class="topline">
               <h3>1. extract</h3>
-              <span class="percent">85%</span>
+              <span class="percent">90%</span>
             </div>
-            <div class="bar"><span style="width: 85%"></span></div>
+            <div class="bar"><span style="width: 90%"></span></div>
             <p>
               ECS state produces serializable render snapshots with draw, view,
               light, environment, shadow request, bounds, and diagnostic
@@ -1579,9 +1589,9 @@
           <article class="phase">
             <div class="topline">
               <h3>4. queue</h3>
-              <span class="percent">85%</span>
+              <span class="percent">90%</span>
             </div>
-            <div class="bar"><span style="width: 85%"></span></div>
+            <div class="bar"><span style="width: 90%"></span></div>
             <p>
               Material-family queueing, route diagnostics, resource key
               resolution, Standard transparent phases, app route reporting,
@@ -1617,48 +1627,48 @@
               mesh/material-identical queue and draw-list records now coalesce
               into one instanced draw when their transform slots are contiguous.
               Static mesh batching now has a renderer-independent merge
-              primitive with per-source submesh ranges and pixel-parity browser
-              proof; queue integration remains the next batching slice.
+              primitive, queue-level static merged records, and a browser
+              example that renders 20 source shapes as five draw calls. Queue
+              plans now also publish opaque/transparent sort-phase counts for
+              diagnostics.
             </p>
             <ul>
               <li>
                 Missing app-level generic material adapter route boundary.
               </li>
+              <li>Missing multi-material primitive queue rules.</li>
               <li>
-                Missing queue-integrated static batching and multi-material
-                primitive queue rules.
-              </li>
-              <li>
-                Missing mature queue diagnostics for all future material
-                families.
+                Missing GPU timestamp telemetry for per-pass performance
+                reporting.
               </li>
             </ul>
           </article>
           <article class="phase">
             <div class="topline">
               <h3>5. sort</h3>
-              <span class="percent">62%</span>
+              <span class="percent">70%</span>
             </div>
-            <div class="bar"><span style="width: 62%"></span></div>
+            <div class="bar"><span style="width: 70%"></span></div>
             <p>
               Opaque queue sorting is stable and deterministic; alpha-test and
-              transparent phase placement exists.
+              transparent phase placement exists, and queue/app diagnostics now
+              report opaque and transparent phase counts.
             </p>
             <ul>
               <li>
                 Missing complete transparent ordering policy and tie-break
                 diagnostics.
               </li>
-              <li>Missing phase-specialized sorting reports.</li>
+              <li>Missing phase duration telemetry.</li>
               <li>Missing batching and pipeline pressure summaries.</li>
             </ul>
           </article>
           <article class="phase">
             <div class="topline">
               <h3>6. submit</h3>
-              <span class="percent">63%</span>
+              <span class="percent">89%</span>
             </div>
-            <div class="bar"><span style="width: 63%"></span></div>
+            <div class="bar"><span style="width: 89%"></span></div>
             <p>
               WebGPU command submission renders the current proof paths with
               pipeline, bind group, transform, light, mesh, and material
@@ -1677,7 +1687,10 @@
               instancing example now proves 1,000 ECS-authored boxes through one
               grouped draw call. A static mesh merge browser proof now renders a
               merged vertex/index buffer pixel-identical to separate per-mesh
-              draws.
+              draws, and the batching example now submits 20 heterogeneous
+              StandardMaterial source shapes as five draw calls. Standalone GPU
+              timestamp query resources now support creation, resolve/copy, and
+              readback behind feature detection.
             </p>
             <ul>
               <li>Missing render graph and multi-pass architecture.</li>
@@ -1685,7 +1698,9 @@
                 Missing full GGX importance sampling, post-processing, and
                 broader environment asset preparation.
               </li>
-              <li>Missing GPU timing and submission reuse diagnostics.</li>
+              <li>
+                Missing render-pass timestamp writes and timing JSON surfacing.
+              </li>
             </ul>
           </article>
         </div>
@@ -1702,6 +1717,16 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">task-3018</span> Added a static
+                batching example that renders 20 heterogeneous StandardMaterial
+                source shapes as five submitted WebGPU draw calls.
+              </li>
+              <li>
+                <span class="badge green">task-3017</span> Added opt-in
+                static-merged queue records with source render IDs and mesh
+                resource keys.
+              </li>
               <li>
                 <span class="badge green">task-2164-2171</span> Added eight
                 committed StandardMaterial GLB viewer samples for UV1 base-color
@@ -3791,13 +3816,13 @@
             <h3>Recommended next tasks</h3>
             <ul>
               <li>
-                <span class="badge amber">next</span> Wire static batching into
-                queue/draw planning.
+                <span class="badge amber">next</span> Add GPU timestamp query
+                writes around render passes.
               </li>
+              <li>Instrument shadow and main passes with timestamp writes.</li>
               <li>
-                Reduce compatible non-instanced draws using merged mesh buffers.
+                Report absent timings cleanly when the feature is disabled.
               </li>
-              <li>Keep batching separate from ECS ownership.</li>
             </ul>
           </article>
         </div>
@@ -3809,6 +3834,46 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3020</div>
+            <div>
+              <strong>GPU timestamp query infrastructure landed.</strong>
+              <span
+                >WebGPU can now allocate timestamp queries, resolve readback
+                buffers, and report unsupported devices cleanly.</span
+              >
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="task-id">task-3019</div>
+            <div>
+              <strong>Transparent sort phase diagnostics landed.</strong>
+              <span
+                >Render queue plans and WebGPU app diagnostics now report
+                opaque/transparent phase counts.</span
+              >
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="task-id">task-3018</div>
+            <div>
+              <strong>Batching example renders 20 shapes in five draws.</strong>
+              <span
+                >A visible StandardMaterial app proof reports queue-planned
+                static batches and five submitted WebGPU draw calls.</span
+              >
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="task-id">task-3017</div>
+            <div>
+              <strong>Static batching reached queue planning.</strong>
+              <span
+                >Render-queue records now track static merged batches with
+                source render IDs and mesh resource keys.</span
+              >
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3016</div>
             <div>

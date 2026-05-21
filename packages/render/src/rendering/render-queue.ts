@@ -32,22 +32,47 @@ export interface RenderQueueRecord {
   readonly sortKey: RenderWorldReadyDraw["packet"]["sortKey"];
   readonly transformPackedOffset: number;
   readonly instanceCount: number;
+  readonly drawKind: "single" | "instanced" | "static-merged";
+  readonly sourceRecordCount: number;
+  readonly sourceRenderIds: readonly number[];
+  readonly sourceMeshResourceKeys: readonly string[];
+}
+
+export interface RenderQueueSortPhaseReport {
+  readonly phase: RenderQueueKind;
+  readonly recordCount: number;
+  readonly durationUs?: number;
 }
 
 export interface RenderQueuePlan {
   readonly records: readonly RenderQueueRecord[];
   readonly diagnostics: readonly RenderDiagnostic[];
+  readonly sortPhases: readonly RenderQueueSortPhaseReport[];
 }
 
 export interface PlanRenderQueueOptions {
   readonly scope?: Partial<RenderQueueScope>;
+  readonly staticBatching?: RenderQueueStaticBatchingOptions;
+}
+
+export interface RenderQueueStaticBatchingOptions {
+  readonly enabled?: boolean;
+  readonly maxRecordsPerBatch?: number;
 }
 
 export interface RenderQueueScratch {
   readonly records: RenderQueueRecord[];
   readonly diagnostics: RenderDiagnostic[];
+  readonly sortPhases: RenderQueueSortPhaseReport[];
+  readonly sortPhasePool: RenderQueueSortPhaseReport[];
   readonly recordPool: RenderQueueRecord[];
   readonly plan: RenderQueuePlan;
+}
+
+interface MutableRenderQueueSortPhaseReport {
+  phase: RenderQueueKind;
+  recordCount: number;
+  durationUs?: number;
 }
 
 interface MutableRenderQueueRecord {
@@ -65,6 +90,10 @@ interface MutableRenderQueueRecord {
   sortKey: RenderWorldReadyDraw["packet"]["sortKey"];
   transformPackedOffset: number;
   instanceCount: number;
+  drawKind: "single" | "instanced" | "static-merged";
+  sourceRecordCount: number;
+  readonly sourceRenderIds: number[];
+  readonly sourceMeshResourceKeys: string[];
 }
 
 export function planRenderQueueRecords(
@@ -76,13 +105,18 @@ export function planRenderQueueRecords(
 
   writeRenderQueueRecords(readiness, transforms, scratch, options);
 
-  return { records: scratch.records, diagnostics: scratch.diagnostics };
+  return scratch.plan;
 }
 
 export function createRenderQueueScratch(capacity = 0): RenderQueueScratch {
   const recordPool: RenderQueueRecord[] = [];
   const records: RenderQueueRecord[] = [];
   const diagnostics: RenderDiagnostic[] = [];
+  const sortPhases: RenderQueueSortPhaseReport[] = [];
+  const sortPhasePool: RenderQueueSortPhaseReport[] = [
+    { phase: "opaque", recordCount: 0 },
+    { phase: "transparent", recordCount: 0 },
+  ];
 
   for (let i = 0; i < capacity; i += 1) {
     recordPool.push(createEmptyRecord());
@@ -91,8 +125,10 @@ export function createRenderQueueScratch(capacity = 0): RenderQueueScratch {
   return {
     records,
     diagnostics,
+    sortPhases,
+    sortPhasePool,
     recordPool,
-    plan: { records, diagnostics },
+    plan: { records, diagnostics, sortPhases },
   };
 }
 
@@ -105,6 +141,12 @@ export function writeRenderQueueRecords(
   writeUnsortedRenderQueueRecords(readiness, transforms, scratch, options);
   sortRenderQueueRecords(scratch.records);
   coalesceRenderQueueRecords(scratch.records);
+  batchStaticRenderQueueRecords(scratch.records, options?.staticBatching);
+  writeRenderQueueSortPhases(
+    scratch.records,
+    scratch.sortPhases,
+    scratch.sortPhasePool,
+  );
 
   return scratch.plan;
 }
@@ -117,10 +159,11 @@ export function writeUnsortedRenderQueueRecords(
 ): RenderQueuePlan {
   const viewId = options?.scope?.viewId ?? DEFAULT_RENDER_QUEUE_VIEW_ID;
   const passId = options?.scope?.passId ?? DEFAULT_RENDER_QUEUE_PASS_ID;
-  const queueKind = options?.scope?.queueKind ?? "opaque";
+  const queueKindOverride = options?.scope?.queueKind;
 
   scratch.records.length = 0;
   scratch.diagnostics.length = 0;
+  scratch.sortPhases.length = 0;
 
   for (const diagnostic of transforms.diagnostics) {
     scratch.diagnostics.push(diagnostic);
@@ -156,7 +199,8 @@ export function writeUnsortedRenderQueueRecords(
     record.renderId = draw.renderId;
     record.viewId = viewId;
     record.passId = passId;
-    record.queueKind = queueKind;
+    record.queueKind =
+      queueKindOverride ?? renderQueueKindFromSortKey(draw.packet.sortKey);
     record.packet = draw.packet;
     record.meshResourceKey = draw.meshResourceKey;
     record.materialResourceKey = draw.materialResourceKey;
@@ -167,6 +211,12 @@ export function writeUnsortedRenderQueueRecords(
     record.sortKey = draw.packet.sortKey;
     record.transformPackedOffset = transformPackedOffset;
     record.instanceCount = 1;
+    record.drawKind = "single";
+    record.sourceRecordCount = 1;
+    record.sourceRenderIds.length = 0;
+    record.sourceRenderIds.push(draw.renderId);
+    record.sourceMeshResourceKeys.length = 0;
+    record.sourceMeshResourceKeys.push(draw.meshResourceKey);
     scratch.records.push(record);
   }
 
@@ -201,6 +251,9 @@ export function coalesceRenderQueueRecords(
 
     if (canCoalesceRenderQueueRecord(previous, record)) {
       previous.instanceCount += record.instanceCount;
+      previous.drawKind = "instanced";
+      previous.sourceRecordCount += record.sourceRecordCount;
+      appendSources(previous, record);
       continue;
     }
 
@@ -210,6 +263,84 @@ export function coalesceRenderQueueRecords(
 
   records.length = writeIndex;
   return records;
+}
+
+export function batchStaticRenderQueueRecords(
+  records: RenderQueueRecord[],
+  options?: RenderQueueStaticBatchingOptions,
+): RenderQueueRecord[] {
+  if (!options?.enabled || records.length < 2) {
+    return records;
+  }
+
+  const maxRecordsPerBatch = Math.max(
+    1,
+    Math.floor(options.maxRecordsPerBatch ?? 4),
+  );
+  let writeIndex = 1;
+
+  for (let readIndex = 1; readIndex < records.length; readIndex += 1) {
+    const previous = records[writeIndex - 1] as
+      | MutableRenderQueueRecord
+      | undefined;
+    const record = records[readIndex];
+
+    if (previous === undefined || record === undefined) {
+      continue;
+    }
+
+    if (canBatchStaticRenderQueueRecord(previous, record, maxRecordsPerBatch)) {
+      previous.drawKind = "static-merged";
+      previous.sourceRecordCount += record.sourceRecordCount;
+      appendSources(previous, record);
+      continue;
+    }
+
+    records[writeIndex] = record;
+    writeIndex += 1;
+  }
+
+  records.length = writeIndex;
+  return records;
+}
+
+export function writeRenderQueueSortPhases(
+  records: readonly RenderQueueRecord[],
+  output: RenderQueueSortPhaseReport[],
+  pool: RenderQueueSortPhaseReport[] = [],
+): readonly RenderQueueSortPhaseReport[] {
+  output.length = 0;
+
+  let opaque = 0;
+  let transparent = 0;
+
+  for (const record of records) {
+    if (record.queueKind === "transparent") {
+      transparent += 1;
+    } else {
+      opaque += 1;
+    }
+  }
+
+  if (opaque > 0) {
+    const phase = sortPhaseAt(pool, output.length);
+
+    phase.phase = "opaque";
+    phase.recordCount = opaque;
+    delete phase.durationUs;
+    output.push(phase);
+  }
+
+  if (transparent > 0) {
+    const phase = sortPhaseAt(pool, output.length);
+
+    phase.phase = "transparent";
+    phase.recordCount = transparent;
+    delete phase.durationUs;
+    output.push(phase);
+  }
+
+  return output;
 }
 
 function findPackedTransformOffset(
@@ -223,6 +354,12 @@ function findPackedTransformOffset(
   }
 
   return undefined;
+}
+
+function renderQueueKindFromSortKey(
+  sortKey: RenderWorldReadyDraw["packet"]["sortKey"],
+): RenderQueueKind {
+  return sortKey.queue === "transparent" ? "transparent" : "opaque";
 }
 
 function canCoalesceRenderQueueRecord(
@@ -242,6 +379,48 @@ function canCoalesceRenderQueueRecord(
     previous.transformPackedOffset + previous.instanceCount * 16 ===
       record.transformPackedOffset
   );
+}
+
+function canBatchStaticRenderQueueRecord(
+  previous: RenderQueueRecord,
+  record: RenderQueueRecord,
+  maxRecordsPerBatch: number,
+): boolean {
+  return (
+    maxRecordsPerBatch > 1 &&
+    previous.queueKind === "opaque" &&
+    record.queueKind === "opaque" &&
+    previous.drawKind !== "instanced" &&
+    record.drawKind === "single" &&
+    previous.instanceCount === 1 &&
+    record.instanceCount === 1 &&
+    previous.sourceRecordCount + record.sourceRecordCount <=
+      maxRecordsPerBatch &&
+    previous.viewId === record.viewId &&
+    previous.passId === record.passId &&
+    previous.meshResourceKey !== record.meshResourceKey &&
+    previous.materialResourceKey === record.materialResourceKey &&
+    previous.pipelineKey === record.pipelineKey &&
+    previous.materialKey === record.materialKey &&
+    previous.meshLayoutKey === record.meshLayoutKey &&
+    batchKeysMatch(previous.batchKey, record.batchKey) &&
+    !previous.batchKey.instanced &&
+    !previous.batchKey.skinned &&
+    !previous.batchKey.morphed
+  );
+}
+
+function appendSources(
+  previous: MutableRenderQueueRecord,
+  record: RenderQueueRecord,
+): void {
+  for (const renderId of record.sourceRenderIds) {
+    previous.sourceRenderIds.push(renderId);
+  }
+
+  for (const meshResourceKey of record.sourceMeshResourceKeys) {
+    previous.sourceMeshResourceKeys.push(meshResourceKey);
+  }
 }
 
 function batchKeysMatch(
@@ -277,6 +456,25 @@ function recordAt(
   return record;
 }
 
+function sortPhaseAt(
+  pool: RenderQueueSortPhaseReport[],
+  index: number,
+): MutableRenderQueueSortPhaseReport {
+  const existing = pool[index] as MutableRenderQueueSortPhaseReport | undefined;
+
+  if (existing !== undefined) {
+    return existing;
+  }
+
+  const phase: MutableRenderQueueSortPhaseReport = {
+    phase: "opaque",
+    recordCount: 0,
+  };
+
+  pool.push(phase);
+  return phase;
+}
+
 function createEmptyRecord(): MutableRenderQueueRecord {
   return {
     renderId: 0,
@@ -293,5 +491,9 @@ function createEmptyRecord(): MutableRenderQueueRecord {
     sortKey: null as unknown as RenderWorldReadyDraw["packet"]["sortKey"],
     transformPackedOffset: 0,
     instanceCount: 1,
+    drawKind: "single",
+    sourceRecordCount: 1,
+    sourceRenderIds: [],
+    sourceMeshResourceKeys: [],
   };
 }

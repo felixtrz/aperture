@@ -45,6 +45,7 @@ import {
   type PreparedMeshStore,
   type PreparedMeshStoreJsonValue,
   type RenderSnapshot,
+  type RenderQueueSortPhaseReport,
   type StandardMaterialAsset,
   type UnlitMaterialAsset,
 } from "@aperture-engine/render";
@@ -1779,6 +1780,9 @@ function createQueuedBuiltInAppDiagnosticsSummary(input: {
         ? {}
         : { byFamily: input.resources.byFamilySummary },
     ),
+    renderQueueSortPhases: createQueuedBuiltInAppSortPhaseSummary(
+      input.resourceSet.items,
+    ),
     builtInAppResourceAdapters: QUEUED_BUILT_IN_APP_RESOURCE_ADAPTER_VALIDATION,
     ...(hasStandardRoute
       ? {
@@ -1794,6 +1798,33 @@ function createQueuedBuiltInAppDiagnosticsSummary(input: {
         }
       : {}),
   });
+}
+
+function createQueuedBuiltInAppSortPhaseSummary(
+  items: readonly QueuedBuiltInAppResourceItem[],
+): readonly RenderQueueSortPhaseReport[] {
+  let opaque = 0;
+  let transparent = 0;
+
+  for (const item of items) {
+    if (item.queueItem.renderPhase === "transparent") {
+      transparent += 1;
+    } else {
+      opaque += 1;
+    }
+  }
+
+  const phases: RenderQueueSortPhaseReport[] = [];
+
+  if (opaque > 0) {
+    phases.push({ phase: "opaque", recordCount: opaque });
+  }
+
+  if (transparent > 0) {
+    phases.push({ phase: "transparent", recordCount: transparent });
+  }
+
+  return phases;
 }
 
 function createQueuedBuiltInRouteFailureDiagnosticsSummary(

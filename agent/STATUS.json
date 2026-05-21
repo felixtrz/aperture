@@ -2,10 +2,10 @@
   "state": "idle",
   "currentTaskId": null,
   "currentRunStartedAt": null,
-  "lastRunStartedAt": "2026-05-21T03:00:33Z",
+  "lastRunStartedAt": "2026-05-21T03:02:55Z",
   "lastResult": "stop-condition",
   "lastCommit": null,
   "activePid": null,
-  "notes": "Manual user-directed SessionStart hook hardening completed; stop instead of continuing into unrelated backlog work.",
-  "lastRunFinishedAt": "2026-05-21T03:01:31Z"
+  "notes": "Completed tasks 3017-3020: static batching queue integration and example, transparent sort phase diagnostics, and GPU timestamp query infrastructure. Stopping before task-3021 because remaining window is too small for validated render-pass instrumentation.",
+  "lastRunFinishedAt": "2026-05-21T03:36:45Z"
 }

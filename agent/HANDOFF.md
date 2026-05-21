@@ -1,6 +1,189 @@
 # Agent Handoff
 
-Updated: 2026-05-21T02:59:45Z
+Updated: 2026-05-21T03:33:31Z
+
+## Current Run Update — 2026-05-21T03:33:31Z — GPU timestamp query infrastructure
+
+Completed `task-3020`.
+
+### What changed
+
+- Added `packages/webgpu/src/webgpu/gpu-timing.ts` with timestamp query
+  resource creation, timestamp write helpers, resolve/copy commands, and
+  BigInt readback utilities.
+- The helper allocates a timestamp `querySet`, query-resolve buffer, and
+  map-read result buffer when `timestamp-query` is available.
+- Unsupported devices now return JSON-safe diagnostics instead of throwing when
+  `timestamp-query` is unavailable.
+- Added fake-device tests that write timestamps around a no-op compute dispatch,
+  resolve/copy the query set, and read back two distinct positive timestamps.
+
+### Files touched
+
+- `agent/BACKLOG.md`
+- `agent/COMPLETED.md`
+- `agent/HANDOFF.md`
+- `docs/index.html`
+- `docs/render-pipeline-comparison.html`
+- `packages/webgpu/src/webgpu/gpu-timing.ts`
+- `packages/webgpu/src/webgpu/index.ts`
+- `test/webgpu/gpu-timing.test.ts`
+
+### References inspected
+
+- `references/three.js/src/renderers/webgpu/utils/WebGPUTimestampQueryPool.js`
+- `references/engine/src/platform/graphics/gpu-profiler.js`
+
+### Validation
+
+- `pnpm exec vitest run test/webgpu/gpu-timing.test.ts`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm run check`
+
+### Known issues
+
+- This slice creates timestamp query infrastructure only. It does not yet wire
+  timestamps around actual render passes or expose timing summaries in frame
+  diagnostics.
+- I did not start `task-3021` because it needs render-path instrumentation plus
+  shadow-specific validation, and the remaining window would risk an
+  unvalidated partial integration.
+
+### Recommended next task
+
+`task-3021 — Timestamp writes around render passes (part 2: pass instrumentation)`.
+
+## Current Run Update — 2026-05-21T03:26:04Z — Transparent sort phase diagnostics
+
+Completed `task-3019`.
+
+### What changed
+
+- Extended `RenderQueuePlan` with `sortPhases`, a JSON-safe
+  opaque/transparent phase count report with optional future duration fields.
+- Queue records now derive `queueKind` from each packet sort key by default:
+  `transparent` stays transparent, while `opaque` and `alpha-test` count as
+  opaque unless a caller overrides queue scope.
+- Added app diagnostics JSON field `renderQueueSortPhases` for successful
+  queued built-in WebGPU app frames.
+- Added tests for mixed opaque/transparent queue plans and transparent
+  StandardMaterial app diagnostics.
+- Updated the public tracker and backlog. Recommended next task is now
+  `task-3020`.
+
+### Files touched
+
+- `agent/BACKLOG.md`
+- `agent/COMPLETED.md`
+- `agent/HANDOFF.md`
+- `docs/index.html`
+- `docs/render-pipeline-comparison.html`
+- `packages/render/src/rendering/render-frame-phases.ts`
+- `packages/render/src/rendering/render-queue.ts`
+- `packages/webgpu/src/webgpu/app-diagnostics-summary.ts`
+- `packages/webgpu/src/webgpu/app.ts`
+- `test/rendering/render-frame-phases.test.ts`
+- `test/rendering/render-queue.test.ts`
+- `test/webgpu/app-diagnostics-summary.test.ts`
+- `test/webgpu/webgpu-app.test.ts`
+
+### References inspected
+
+- `references/three.js/src/renderers/common/RenderList.js`
+- `references/engine/src/platform/graphics/blend-state.js`
+- `references/bevy/crates/bevy_core_pipeline/src/core_3d/main_transparent_pass_3d_node.rs`
+
+### Validation
+
+- `pnpm exec vitest run test/rendering/render-queue.test.ts test/rendering/render-frame-phases.test.ts test/webgpu/app-diagnostics-summary.test.ts test/webgpu/webgpu-app.test.ts --testNamePattern "..."`
+- `pnpm exec vitest run test/rendering/render-queue.test.ts test/rendering/render-frame-phases.test.ts test/webgpu/app-diagnostics-summary.test.ts`
+- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+
+### Known issues
+
+- Sort telemetry reports phase counts only; per-phase timings remain the
+  `task-3020`/`task-3021`/`task-3022` follow-up path.
+- Transparent ordering policy is still whatever `compareRenderSortKeys()`
+  currently implements. This slice surfaces counts, not new alpha-compositing
+  policy.
+
+### Recommended next task
+
+`task-3020 — GPU timestamp query set creation (part 1: query infra)`.
+
+## Current Run Update — 2026-05-21T03:12:19Z — Queue-integrated static batching and browser proof
+
+Completed `task-3017` and `task-3018`.
+
+### What changed
+
+- Added opt-in static batching to `packages/render/src/rendering/render-queue.ts`.
+  Queue records now carry `drawKind`, source record counts, source render IDs,
+  and source mesh resource keys.
+- Static batching compacts adjacent opaque, non-instanced, non-skinned,
+  non-morphed records with matching pipeline/material/layout compatibility into
+  `static-merged` records. The default max is four source records per static
+  batch.
+- Threaded static batching through the named sort phase helper in
+  `packages/render/src/rendering/render-frame-phases.ts`.
+- Added `examples/batching.html` and `examples/batching.js`: 20 heterogeneous
+  StandardMaterial source shapes are merged into five static mesh assets and
+  submitted as five WebGPU draw calls. The status also publishes the 20-to-5
+  queue static-batch plan.
+- Added Playwright coverage for the batching example and updated public tracker
+  pages. Recommended next task is now `task-3019`.
+
+### Files touched
+
+- `agent/BACKLOG.md`
+- `agent/COMPLETED.md`
+- `agent/HANDOFF.md`
+- `docs/index.html`
+- `docs/render-pipeline-comparison.html`
+- `examples/batching.html`
+- `examples/batching.js`
+- `examples/index.html`
+- `examples/instancing.html`
+- `package.json`
+- `packages/render/src/rendering/render-frame-phases.ts`
+- `packages/render/src/rendering/render-queue.ts`
+- `test/e2e/batching.spec.ts`
+- `test/rendering/render-frame-phases.test.ts`
+- `test/rendering/render-queue.test.ts`
+
+### References inspected
+
+- `references/bevy/crates/bevy_render/src/batching/mod.rs`
+- `references/engine/src/scene/batching/batch-manager.js`
+
+### Validation
+
+- `pnpm exec vitest run test/rendering/render-queue.test.ts`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec vitest run test/rendering/render-queue.test.ts test/rendering/render-frame-phases.test.ts`
+- `pnpm run check:examples`
+- `pnpm run build`
+- `pnpm exec playwright test test/e2e/batching.spec.ts`
+- `pnpm run check:progress`
+
+### Known issues
+
+- This desktop wake reused an existing session, so the configured
+  `SessionStart` hook did not fire before the wake prompt. I ran the committed
+  `scripts/codex-start-hook.sh` once to put `agent/STATUS.json` into the
+  expected `running` state for this cycle. Future new sessions should still get
+  this from the Codex hook automatically.
+- Static queue batching is intentionally opt-in. The browser example proves the
+  merged-buffer path, but the WebGPU frame planner still does not build merged
+  GPU resources automatically from arbitrary app-authored source entities.
+- The example collapses merged meshes to one app-facing submesh because the
+  current draw-command path does not yet consume per-submesh index ranges.
+  Multi-material primitive queue rules remain open.
+
+### Recommended next task
+
+`task-3019 — Transparent sort phase report`.
 
 ## Current Run Update — 2026-05-21T02:59:45Z — Run-start hook status hardening
 

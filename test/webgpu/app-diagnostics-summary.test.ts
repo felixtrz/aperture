@@ -31,21 +31,27 @@ describe("WebGPU app diagnostics summary", () => {
     const materialQueueRoute = materialQueueRouteSummary();
     const routedResourceSet = routedResourceSetSummary();
     const renderFrameQueue = renderFrameQueueSummary();
+    const renderQueueSortPhases = [
+      { phase: "opaque" as const, recordCount: 2 },
+      { phase: "transparent" as const, recordCount: 1 },
+    ];
     const directLighting = directLightingSummary();
     const summary = createWebGpuAppDiagnosticsSummary({
       materialQueue,
       materialQueueRoute,
       routedResourceSet,
       renderFrameQueue,
+      renderQueueSortPhases,
       directLighting,
     });
 
     expect(summary).toEqual({
-      sectionCount: 5,
+      sectionCount: 6,
       materialQueue,
       materialQueueRoute,
       routedResourceSet,
       renderFrameQueue,
+      renderQueueSortPhases,
       directLighting,
     });
     const serialized = JSON.stringify(summary);

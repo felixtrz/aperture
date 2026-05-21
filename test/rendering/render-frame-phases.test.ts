@@ -60,23 +60,48 @@ describe("render frame phase helpers", () => {
     expect(sorted.records.map((record) => record.renderId)).toEqual([7, 9]);
     expect(sorted.records).toBe(queued.records);
   });
+
+  it("can apply static batching during the named sort phase", () => {
+    const scratch = createRenderQueueScratch(4);
+
+    writeRenderFrameQueuePhase(
+      readiness([1, 2, 3, 4], (renderId) => `mesh:${renderId}`),
+      transforms([1, 2, 3, 4]),
+      scratch,
+    );
+    const sorted = writeRenderFrameSortPhase(scratch, {
+      staticBatching: { enabled: true, maxRecordsPerBatch: 2 },
+    });
+
+    expect(sorted.records).toHaveLength(2);
+    expect(sorted.records.map((record) => record.drawKind)).toEqual([
+      "static-merged",
+      "static-merged",
+    ]);
+    expect(sorted.records.map((record) => record.sourceRecordCount)).toEqual([
+      2, 2,
+    ]);
+  });
 });
 
 function readiness(
   renderIds: readonly number[],
+  meshResourceKey: (renderId: number) => string = () => "mesh:cube",
 ): RenderWorldDrawReadinessReport {
   return {
-    ready: renderIds.map(readyDraw),
+    ready: renderIds.map((renderId) =>
+      readyDraw(renderId, meshResourceKey(renderId)),
+    ),
     blocked: [],
     diagnostics: [],
   };
 }
 
-function readyDraw(renderId: number) {
+function readyDraw(renderId: number, meshResourceKey = "mesh:cube") {
   return {
     renderId,
     packet: packet(renderId),
-    meshResourceKey: "mesh:cube",
+    meshResourceKey,
     materialResourceKey: "material:white",
     batchKey: BATCH_KEY,
   };

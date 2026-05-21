@@ -4,7 +4,9 @@ import type {
   RenderQueueScratch,
 } from "./render-queue.js";
 import {
+  batchStaticRenderQueueRecords,
   sortRenderQueueRecords,
+  writeRenderQueueSortPhases,
   writeUnsortedRenderQueueRecords,
 } from "./render-queue.js";
 import type { RenderWorldDrawReadinessReport } from "./render-world.js";
@@ -103,17 +105,26 @@ export function writeRenderFrameQueuePhase(
     phase: "queue",
     records: plan.records,
     diagnostics: plan.diagnostics,
+    sortPhases: plan.sortPhases,
   };
 }
 
 export function writeRenderFrameSortPhase(
   scratch: RenderQueueScratch,
+  options?: PlanRenderQueueOptions,
 ): RenderFrameSortPhaseResult {
   sortRenderQueueRecords(scratch.records);
+  batchStaticRenderQueueRecords(scratch.records, options?.staticBatching);
+  writeRenderQueueSortPhases(
+    scratch.records,
+    scratch.sortPhases,
+    scratch.sortPhasePool,
+  );
 
   return {
     phase: "sort",
     records: scratch.records,
     diagnostics: scratch.diagnostics,
+    sortPhases: scratch.sortPhases,
   };
 }

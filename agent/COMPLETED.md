@@ -1,5 +1,112 @@
 # Completed Tasks
 
+## task-3020 — GPU timestamp query set creation (part 1: query infra)
+
+Completed: 2026-05-21
+
+Summary:
+
+- Added `packages/webgpu/src/webgpu/gpu-timing.ts`, a standalone timestamp
+  query resource module for creating timestamp `GPUQuerySet` resources,
+  resolve/readback buffers, timestamp write commands, resolve/copy commands,
+  and BigInt readback.
+- Exported the GPU timing helpers through the WebGPU package barrel.
+- Added fake-device coverage proving two positive, distinct timestamps can be
+  written around a no-op compute dispatch, resolved, copied, mapped, and read
+  back.
+- Added graceful unsupported-feature behavior when `timestamp-query` is absent.
+
+References inspected:
+
+- `references/three.js/src/renderers/webgpu/utils/WebGPUTimestampQueryPool.js`
+- `references/engine/src/platform/graphics/gpu-profiler.js`
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/gpu-timing.test.ts`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm run check`
+
+## task-3019 — Transparent sort phase report
+
+Completed: 2026-05-21
+
+Summary:
+
+- Extended `RenderQueuePlan` with JSON-safe `sortPhases` telemetry containing
+  opaque/transparent phase names and record counts.
+- Queue records now derive `queueKind` from packet sort keys by default, with
+  `alpha-test` folded into the opaque sort phase and `transparent` counted
+  separately.
+- App diagnostics JSON now surfaces `renderQueueSortPhases` for successful
+  queued built-in WebGPU app frames.
+- Added focused tests for mixed opaque/transparent queue plans and transparent
+  StandardMaterial app diagnostics.
+
+References inspected:
+
+- `references/three.js/src/renderers/common/RenderList.js`
+- `references/engine/src/platform/graphics/blend-state.js`
+- `references/bevy/crates/bevy_core_pipeline/src/core_3d/main_transparent_pass_3d_node.rs`
+
+Validation:
+
+- `pnpm exec vitest run test/rendering/render-queue.test.ts test/rendering/render-frame-phases.test.ts test/webgpu/app-diagnostics-summary.test.ts`
+- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+
+## task-3018 — Batching example: heterogeneous scene under one material
+
+Completed: 2026-05-21
+
+Summary:
+
+- Added `examples/batching.html` and `examples/batching.js`.
+- The example builds 20 heterogeneous StandardMaterial source shapes, merges
+  them into five static mesh assets, and renders the visible scene through the
+  WebGPU app path in five submitted draw calls.
+- The browser status publishes the queue static-batch plan, including 20 source
+  records compacted into five `static-merged` records.
+- Added Playwright coverage that verifies JSON-safe status, no WebGPU
+  validation warnings, reduced draw-call count, and visible pixels at named
+  shape coordinates.
+
+References inspected:
+
+- `references/bevy/crates/bevy_render/src/batching/mod.rs`
+- `references/engine/src/scene/batching/batch-manager.js`
+
+Validation:
+
+- `pnpm run check:examples`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec playwright test test/e2e/batching.spec.ts`
+
+## task-3017 — Batching wired into queue for non-instanced draws (part 2: queue integration)
+
+Completed: 2026-05-21
+
+Summary:
+
+- Extended `RenderQueueRecord` with `drawKind`, source record counts, source
+  render IDs, and source mesh resource keys.
+- Added opt-in static queue batching that compacts adjacent opaque,
+  non-instanced, non-skinned, non-morphed records with matching
+  pipeline/material/layout compatibility into `static-merged` records.
+- Threaded the static batching option through the named sort phase helper.
+- Added focused tests proving 20 distinct opaque mesh records plan as five
+  static batches while transparent and animated records remain unbatched.
+
+References inspected:
+
+- `references/bevy/crates/bevy_render/src/batching/mod.rs`
+- `references/engine/src/scene/batching/batch-manager.js`
+
+Validation:
+
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec vitest run test/rendering/render-queue.test.ts test/rendering/render-frame-phases.test.ts`
+
 ## task-3016 — Batching: merged geometry buffer for static draws (part 1: merge primitive)
 
 Completed: 2026-05-21

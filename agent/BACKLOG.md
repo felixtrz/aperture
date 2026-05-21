@@ -59,14 +59,13 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start with `task-3017`: Batching wired into queue for non-instanced draws (part 2: queue integration).
+Start with `task-3021`: Timestamp writes around render passes (part 2: pass instrumentation).
 
-Why this next: `task-3016` added the renderer-independent merged mesh primitive and browser pixel-parity proof. The next roadmap gap is consuming that primitive from queue/draw planning so compatible non-instanced static draws actually reduce draw calls.
+Why this next: `task-3020` shipped standalone timestamp query resources, resolve, and readback helpers. The next roadmap gap is wiring those helpers around real render passes so frame reports can start producing per-pass GPU timing evidence.
 
 Reference anchors (read before writing):
 
-- `references/engine/src/scene/batching/batch-manager.js`
-- `references/bevy/crates/bevy_render/src/batching/mod.rs`
+- `references/engine/src/platform/graphics/gpu-profiler.js`
 
 ## Strategic Focus — Pipeline Maturity Roadmap
 
@@ -88,12 +87,12 @@ Eleven cross-cutting gaps remain across the six phases. They are sequenced below
 **Tier 3 — Performance ceiling (independent):**
 
 6. Instancing (task-3013, task-3014, and task-3015 shipped) — visible 1,000-instance app proof
-7. Batching (task-3016 shipped; task-3017 and task-3018 remain) — merge geometries sharing a pipeline-key
-8. Transparent sort phase report (task-3019) — close Phase 5 honesty gap
+7. Batching (task-3016, task-3017, and task-3018 shipped) — merge geometries sharing a pipeline-key
+8. Transparent sort phase report (task-3019 shipped) — closes Phase 5 honesty gap
 
 **Tier 4 — Telemetry & hygiene (independent):**
 
-9. GPU timings via timestamp queries (task-3020, task-3021, task-3022, task-3023) — enables data-driven performance work
+9. GPU timings via timestamp queries (task-3020 shipped; task-3021, task-3022, task-3023 remain) — enables data-driven performance work
 10. Asset cache eviction / unload (task-3024, task-3025) — memory hygiene for long sessions
 
 **Tier 5 — Maturity (last):**
@@ -107,57 +106,6 @@ The MVP track (task-2001 through task-2030) shipped successfully — completion 
 All roadmap task entries cite at least one specific reference file under `references/bevy`, `references/engine` (PlayCanvas), or `references/three.js`. The agent MUST read the cited references before writing implementation code (see `agent/WAKE.md` §4).
 
 ## Ready Tasks — Pipeline Maturity Roadmap
-
-### task-3017 — Batching wired into queue for non-instanced draws (part 2: queue integration)
-
-Category: `render-bridge`
-Package/write-scope: `packages/render/src/rendering/render-queue.ts`.
-Dependencies: task-3016.
-Reference anchor: `references/bevy/crates/bevy_render/src/batching/mod.rs`; `references/engine/src/scene/batching/batch-manager.js`.
-Insertion point: queue post-sort — for adjacent records sharing pipeline+material but with distinct meshes, merge into batched draw.
-
-Acceptance criteria:
-
-- A scene with 20 distinct meshes sharing one material+pipeline produces ≤5 draw calls (some batching benefit; exact count depends on layout compatibility).
-- No visual regression vs unbatched.
-
-### task-3018 — Batching example: heterogeneous scene under one material
-
-Category: `runtime-orchestration`
-Package/write-scope: `examples/batching.html`, `examples/batching.js`, `test/e2e/batching.spec.ts`.
-Dependencies: task-3017.
-Reference anchor: `references/three.js/examples/webgpu_batchedmesh.html` if present.
-Insertion point: new example with 20+ distinct shapes sharing one StandardMaterial.
-
-Acceptance criteria:
-
-- Renders 20+ distinct shapes; draw-call count reported in status is significantly less than 20.
-- Playwright asserts visible distinct shapes at named coordinates.
-
-### task-3019 — Transparent sort phase report
-
-Category: `render-bridge`
-Package/write-scope: `packages/render/src/rendering/render-queue.ts`, targeted tests.
-Reference anchor: `references/three.js/src/renderers/common/RenderList.js`; `references/engine/src/platform/graphics/blend-state.js`; `references/bevy/crates/bevy_core_pipeline/src/core_3d/main_transparent_pass_3d_node.rs`.
-Insertion point: `packages/render/src/rendering/render-queue.ts:36` — extend `RenderQueuePlan` with a `sortPhases` field: `{ phase: "opaque" | "transparent", recordCount, durationUs? }[]`.
-
-Acceptance criteria:
-
-- Plan output now includes sort-phase telemetry.
-- Test asserts a mixed opaque+transparent scene produces two phases with correct counts.
-- Surfaces in app diagnostics JSON.
-
-### task-3020 — GPU timestamp query set creation (part 1: query infra)
-
-Category: `webgpu-render`
-Package/write-scope: `packages/webgpu/src/webgpu/`, new file `gpu-timing.ts`, targeted tests.
-Reference anchor: `references/three.js/src/renderers/webgpu/utils/WebGPUTimestampQueryPool.js`; `references/engine/src/platform/graphics/gpu-profiler.js`.
-Insertion point: new module that creates `GPUQuerySet` with `'timestamp'` type and exposes write/resolve helpers.
-
-Acceptance criteria:
-
-- Public API creates a query set; test writes timestamps around a no-op compute dispatch, resolves to a buffer, reads back two distinct positive timestamps.
-- Falls back gracefully if `timestamp-query` feature is unavailable.
 
 ### task-3021 — Timestamp writes around render passes (part 2: pass instrumentation)
 

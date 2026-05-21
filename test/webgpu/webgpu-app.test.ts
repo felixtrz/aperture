@@ -2196,7 +2196,7 @@ describe("WebGPU app facade", () => {
     expect(
       webGpuAppRenderReportToJsonValue(frame).diagnosticsSummary,
     ).toMatchObject({
-      sectionCount: 3,
+      sectionCount: 4,
       materialQueue: {
         itemCount: 2,
         byPhase: [{ phase: "opaque", itemCount: 2 }],
@@ -2241,6 +2241,7 @@ describe("WebGPU app facade", () => {
         registeredFamilies: ["unlit", "matcap", "standard", "debug-normal"],
         diagnostics: [],
       },
+      renderQueueSortPhases: [{ phase: "opaque", recordCount: 2 }],
     });
     expect(
       JSON.stringify(
@@ -3074,7 +3075,7 @@ describe("WebGPU app facade", () => {
     expect(diagnosticsSummary).not.toHaveProperty("unlitResourceSet");
     expect(diagnosticsSummary).not.toHaveProperty("matcapResourceSet");
     expect(diagnosticsSummary).toMatchObject({
-      sectionCount: 4,
+      sectionCount: 5,
       materialQueue: {
         itemCount: 3,
         byPhase: [{ phase: "opaque", itemCount: 3 }],
@@ -3131,6 +3132,7 @@ describe("WebGPU app facade", () => {
             "bind-group:lights/group-3/light-buffer:main",
         },
       },
+      renderQueueSortPhases: [{ phase: "opaque", recordCount: 3 }],
     });
     expect(JSON.stringify(diagnosticsSummary)).not.toMatch(
       /GPUBuffer|GPUTexture|Three Family Unlit|Three Family Standard|Three Family Matcap|ThreeFamilyCube|standardResourceSet|unlitResourceSet|matcapResourceSet/,
@@ -3615,7 +3617,7 @@ describe("WebGPU app facade", () => {
     ).toBe(1);
     expect(webGpuAppRenderReportToJsonValue(frame)).toMatchObject({
       diagnosticsSummary: {
-        sectionCount: 3,
+        sectionCount: 4,
         materialQueue: {
           itemCount: 2,
           byFamily: expect.arrayContaining([
@@ -3646,6 +3648,7 @@ describe("WebGPU app facade", () => {
             }),
           ]),
         },
+        renderQueueSortPhases: [{ phase: "opaque", recordCount: 2 }],
       },
     });
     expect(JSON.parse(webGpuAppRenderReportToJson(frame))).toMatchObject({
@@ -4713,7 +4716,7 @@ describe("WebGPU app facade", () => {
       },
       diagnostics: [],
       diagnosticsSummary: {
-        sectionCount: 4,
+        sectionCount: 5,
         materialQueue: {
           itemCount: 1,
           byPhase: [{ phase: "opaque", itemCount: 1 }],
@@ -4765,6 +4768,7 @@ describe("WebGPU app facade", () => {
           },
           diagnostics: [],
         },
+        renderQueueSortPhases: [{ phase: "opaque", recordCount: 1 }],
       },
       resourceReuse: {
         pipelineMisses: 1,
@@ -5469,6 +5473,14 @@ describe("WebGPU app facade", () => {
       diagnostics: 0,
     });
     expect(
+      webGpuAppRenderReportToJsonValue(frame).diagnosticsSummary,
+    ).toMatchObject({
+      renderQueueSortPhases: [
+        { phase: "opaque", recordCount: 2 },
+        { phase: "transparent", recordCount: 2 },
+      ],
+    });
+    expect(
       queuedFamilyResourceCount(frame.resources?.resources, "standard"),
     ).toBe(4);
     expect(queuedBindGroupResourceKeys(frame.resources?.resources, 3)).toEqual([
@@ -5641,7 +5653,7 @@ describe("WebGPU app facade", () => {
     expect(
       webGpuAppRenderReportToJsonValue(frame).diagnosticsSummary,
     ).toMatchObject({
-      sectionCount: 4,
+      sectionCount: 5,
       routedResourceSet: {
         itemCount: 1,
         byFamily: [{ family: "standard", itemCount: 1 }],
@@ -5661,6 +5673,7 @@ describe("WebGPU app facade", () => {
             "bind-group:lights/group-3/light-buffer:main",
         },
       },
+      renderQueueSortPhases: [{ phase: "opaque", recordCount: 1 }],
     });
     expect(
       JSON.stringify(

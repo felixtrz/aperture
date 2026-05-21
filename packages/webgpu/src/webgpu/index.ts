@@ -53,6 +53,7 @@ export * from "./frame-report.js";
 export * from "./render-frame-plan.js";
 export * from "./render-frame-phases.js";
 export * from "./frame-readiness.js";
+export * from "./gpu-timing.js";
 export * from "./material-dependency-diagnostics-summary.js";
 export * from "./material-dependency-readiness.js";
 export * from "./material-render-state.js";

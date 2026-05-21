@@ -57,6 +57,7 @@ describe("render queue records", () => {
         meshLayoutKey: "mesh-layout:cube",
       },
     ]);
+    expect(plan.sortPhases).toEqual([{ phase: "opaque", recordCount: 2 }]);
   });
 
   it("supports explicit view, pass, and queue scope", () => {
@@ -76,6 +77,7 @@ describe("render queue records", () => {
         queueKind: "transparent",
       },
     ]);
+    expect(plan.sortPhases).toEqual([{ phase: "transparent", recordCount: 1 }]);
   });
 
   it("coalesces compatible records with contiguous transform slots", () => {
@@ -97,8 +99,12 @@ describe("render queue records", () => {
       renderId: 1,
       meshResourceKey: "mesh:cube",
       instanceCount: 100,
+      drawKind: "instanced",
+      sourceRecordCount: 100,
       transformPackedOffset: 0,
     });
+    expect(plan.records[0]?.sourceRenderIds).toEqual(renderIds);
+    expect(plan.sortPhases).toEqual([{ phase: "opaque", recordCount: 1 }]);
   });
 
   it("does not coalesce compatible records with non-contiguous transform slots", () => {
@@ -122,6 +128,132 @@ describe("render queue records", () => {
     );
 
     expect(plan.records.map((record) => record.instanceCount)).toEqual([1, 1]);
+    expect(plan.records.map((record) => record.drawKind)).toEqual([
+      "single",
+      "single",
+    ]);
+    expect(plan.sortPhases).toEqual([{ phase: "opaque", recordCount: 2 }]);
+  });
+
+  it("plans static merged batches for adjacent distinct opaque meshes", () => {
+    const renderIds = Array.from({ length: 20 }, (_, index) => index + 1);
+    const plan = planRenderQueueRecords(
+      {
+        ready: renderIds.map((renderId) =>
+          readyDraw(renderId, {
+            meshResourceKey: `mesh:distinct-${renderId}`,
+          }),
+        ),
+        blocked: [],
+        diagnostics: [],
+      },
+      transforms(renderIds),
+      { staticBatching: { enabled: true } },
+    );
+
+    expect(plan.diagnostics).toEqual([]);
+    expect(plan.records).toHaveLength(5);
+    expect(plan.records.map((record) => record.drawKind)).toEqual([
+      "static-merged",
+      "static-merged",
+      "static-merged",
+      "static-merged",
+      "static-merged",
+    ]);
+    expect(plan.records.map((record) => record.sourceRecordCount)).toEqual([
+      4, 4, 4, 4, 4,
+    ]);
+    expect(plan.records[0]?.sourceRenderIds).toEqual([1, 2, 3, 4]);
+    expect(plan.records[0]?.sourceMeshResourceKeys).toEqual([
+      "mesh:distinct-1",
+      "mesh:distinct-2",
+      "mesh:distinct-3",
+      "mesh:distinct-4",
+    ]);
+    expect(plan.records.every((record) => record.instanceCount === 1)).toBe(
+      true,
+    );
+    expect(plan.sortPhases).toEqual([{ phase: "opaque", recordCount: 5 }]);
+  });
+
+  it("reports opaque and transparent sort phases for mixed queues", () => {
+    const plan = planRenderQueueRecords(
+      {
+        ready: [
+          readyDraw(1),
+          readyDraw(2, { queue: "transparent" }),
+          readyDraw(3),
+          readyDraw(4, { queue: "transparent" }),
+        ],
+        blocked: [],
+        diagnostics: [],
+      },
+      transforms([1, 2, 3, 4]),
+    );
+
+    expect(plan.records.map((record) => record.queueKind)).toEqual([
+      "opaque",
+      "opaque",
+      "transparent",
+      "transparent",
+    ]);
+    expect(plan.sortPhases).toEqual([
+      { phase: "opaque", recordCount: 2 },
+      { phase: "transparent", recordCount: 2 },
+    ]);
+  });
+
+  it("does not plan static merged batches for transparent or animated records", () => {
+    const renderIds = [1, 2, 3, 4];
+    const transparent = planRenderQueueRecords(
+      {
+        ready: renderIds.map((renderId) =>
+          readyDraw(renderId, {
+            meshResourceKey: `mesh:transparent-${renderId}`,
+          }),
+        ),
+        blocked: [],
+        diagnostics: [],
+      },
+      transforms(renderIds),
+      {
+        scope: { queueKind: "transparent" },
+        staticBatching: { enabled: true },
+      },
+    );
+    const skinned = planRenderQueueRecords(
+      {
+        ready: renderIds.map((renderId) =>
+          readyDraw(renderId, {
+            meshResourceKey: `mesh:skinned-${renderId}`,
+            batchKey: { ...BATCH_KEY, skinned: true },
+          }),
+        ),
+        blocked: [],
+        diagnostics: [],
+      },
+      transforms(renderIds),
+      { staticBatching: { enabled: true } },
+    );
+
+    expect(transparent.records).toHaveLength(4);
+    expect(transparent.records.map((record) => record.drawKind)).toEqual([
+      "single",
+      "single",
+      "single",
+      "single",
+    ]);
+    expect(transparent.sortPhases).toEqual([
+      { phase: "transparent", recordCount: 4 },
+    ]);
+    expect(skinned.records).toHaveLength(4);
+    expect(skinned.records.map((record) => record.drawKind)).toEqual([
+      "single",
+      "single",
+      "single",
+      "single",
+    ]);
+    expect(skinned.sortPhases).toEqual([{ phase: "opaque", recordCount: 4 }]);
   });
 
   it("can reuse caller-owned scratch records on a steady-state hot path", () => {
@@ -178,18 +310,28 @@ function readiness(
 
 function readyDraw(
   renderId: number,
-  overrides: { readonly meshResourceKey?: string } = {},
+  overrides: {
+    readonly meshResourceKey?: string;
+    readonly batchKey?: BatchCompatibilityKey;
+    readonly queue?: "opaque" | "alpha-test" | "transparent";
+  } = {},
 ) {
+  const batchKey = overrides.batchKey ?? BATCH_KEY;
+
   return {
     renderId,
-    packet: packet(renderId),
+    packet: packet(renderId, batchKey, overrides.queue),
     meshResourceKey: overrides.meshResourceKey ?? `mesh:${renderId}`,
     materialResourceKey: "material:white",
-    batchKey: BATCH_KEY,
+    batchKey,
   };
 }
 
-function packet(renderId: number) {
+function packet(
+  renderId: number,
+  batchKey = BATCH_KEY,
+  queue: "opaque" | "alpha-test" | "transparent" = "opaque",
+) {
   return {
     renderId,
     entity: { index: renderId, generation: 1 },
@@ -200,8 +342,8 @@ function packet(renderId: number) {
     worldTransformOffset: renderId * 16,
     boundsIndex: -1,
     layerMask: 1,
-    sortKey: sortKey(renderId),
-    batchKey: BATCH_KEY,
+    sortKey: sortKey(renderId, queue),
+    batchKey,
   };
 }
 
@@ -217,8 +359,12 @@ function transforms(renderIds: readonly number[]): PackedSnapshotTransforms {
   };
 }
 
-function sortKey(renderId: number) {
+function sortKey(
+  renderId: number,
+  queue: "opaque" | "alpha-test" | "transparent" = "opaque",
+) {
   return createRenderSortKey({
+    queue,
     stableId: renderId,
     order: renderId,
     pipelineKey: "pipeline:unlit",
