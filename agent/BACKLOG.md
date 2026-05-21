@@ -59,13 +59,12 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start `task-3041`: extend snapshot change-set reporting beyond mesh packets.
+Start `task-3042`: add a render-packet inspector example.
 
-Why this next: task-3039 completed the Tier 8 SAB transport integration and
-task-3040 added the first post-roadmap visibility explanation surface. The next
-remaining visible feature should continue closing the extraction gap by making
-snapshot delta reporting cover views, lights, environments, shadow requests, and
-bounds instead of mesh packets only.
+Why this next: task-3041 added JSON-safe per-family snapshot change-set counts
+and surfaced them through `worker-cube`. The next visible slice should make the
+snapshot packet stream easier to inspect in a dedicated example instead of
+requiring agents to infer packet state from renderer internals.
 
 Progress so far: `spinning-cube`, `multi-light-shadow`, and `glb-viewer` now
 use renderer-only `*.main.js` files plus ECS/extraction-owned `*.worker.js`
@@ -90,11 +89,14 @@ typed fallback diagnostics, and is proven by `examples/sab-cube.html`.
 `explainRenderSnapshotEntity(snapshot, entity)` now reports rendered/skipped
 status and stable reason strings, and the disabled visible peer scenario
 publishes explanations for both the rendered and skipped entities.
+`createRenderSnapshotChangeSet(previous, next)` now reports changed, unchanged,
+and removed counts for views, mesh draws, lights, environments, shadow requests,
+and bounds; `examples/worker-cube.html` publishes these counts in status.
 
 Reference anchors (read before writing):
 
-- `references/engine/src/framework/handlers/basis-worker.js`
-- MDN `Cross-Origin-Opener-Policy` and `Cross-Origin-Embedder-Policy` docs
+- `references/engine/src/scene/renderer/renderer.js`
+- `references/bevy/crates/bevy_render/src/view/visibility/mod.rs`
 
 ## Strategic Focus — Pipeline Maturity Roadmap
 
@@ -140,7 +142,13 @@ Eleven cross-cutting gaps remain across the six phases. They are sequenced below
 
 14. SAB snapshot transport (task-3037, task-3038, and task-3039 shipped) — opt-in `createWebGpuApp({ transport: "shared-array-buffer" })` mode where transforms, view matrices, and packet metadata live in `SharedArrayBuffer`s with SeqLock synchronization. Requires COOP+COEP HTTP headers on the host page (documented as a deployment constraint). Default transport stays transferable so embedded use cases continue to work without header changes. Closes the per-frame transport overhead to effectively zero for any entity count; the win is meaningful at ~10K+ visible entities. Apps below that scale should stay on the default transport.
 
-Total: 39 vertical slices (29 in Tiers 1-5 + 2 in Tier 6 + 5 in Tier 7 + 3 in Tier 8). Each is a real implementation slice with a `Reference anchor:` from `references/bevy/`, `references/engine/` (PlayCanvas), or `references/three.js/`. Slices within a tier may be parallelizable; the agent should still process them in the order listed unless an explicit dependency note says otherwise.
+**Tier 9 — Scale & extensibility polish (queued after Tier 8):**
+
+15. Frustum culling (task-3043) — per-camera AABB-vs-frustum test in extraction; skip draws for entities outside the view frustum. Today every visible entity is extracted regardless of camera position. At 10K+ spatially-distributed entities this becomes the largest CPU cost in extraction. Single foundational slice; uses the `BoundsPacket` data the snapshot already carries.
+
+16. Per-instance custom attributes (task-3044, task-3045) — generalizes the Tier 6 `InstanceTint` pattern to support arbitrary user-defined per-instance data: vec3/vec4 channels declared by custom materials, packed into parallel instance buffers, consumed by user WGSL via instance-rate vertex attributes. Unlocks particle systems, vegetation with per-blade wind phase, VFX with per-instance animation parameters. Builds on the Tier 5 custom material adapter + Tier 6 instance-attribute infrastructure.
+
+Total: 42 vertical slices (29 in Tiers 1-5 + 2 in Tier 6 + 5 in Tier 7 + 3 in Tier 8 + 3 in Tier 9). Each is a real implementation slice with a `Reference anchor:` from `references/bevy/`, `references/engine/` (PlayCanvas), or `references/three.js/`. Slices within a tier may be parallelizable; the agent should still process them in the order listed unless an explicit dependency note says otherwise.
 
 The MVP track (task-2001 through task-2030) shipped successfully — completion details are preserved in `agent/COMPLETED.md` and the per-task entries that follow under "Ready Tasks — MVP Tracks" are kept for historical reference. The combinatorial GLB-matrix queue (task-2172, task-2173, task-2174) is superseded by this roadmap.
 
@@ -549,6 +557,8 @@ Acceptance criteria:
 
 ### task-3041 — Extend snapshot change-set beyond mesh packets
 
+Status: completed 2026-05-21. See `agent/COMPLETED.md`.
+
 Category: `render-bridge`
 Package/write-scope: `packages/render/src/rendering/`, targeted tests and one example status surface.
 Reference anchor: `references/bevy/crates/bevy_render/src/extract_instances.rs` (flat extracted instance data and changed visibility lists).
@@ -572,6 +582,51 @@ Acceptance criteria:
 - Example renders visible pixels from worker-authored ECS state.
 - Status JSON lists at least one draw packet, one view packet, bounds, and one skipped-entity explanation.
 - Playwright asserts visible pixels and JSON-safe packet-inspector status.
+
+### task-3043 — Frustum culling in extraction (Tier 9)
+
+Category: `render-bridge`
+Package/write-scope: `packages/render/src/rendering/extraction.ts`, `packages/render/src/rendering/snapshot.ts` (frustum-plane scratch types), targeted tests + Vitest microbenchmark, new or extended example to demonstrate cull-skip.
+Reference anchor: `references/bevy/crates/bevy_render/src/view/visibility/mod.rs` (Bevy's ECS-side view-visibility computation); `references/engine/src/scene/frustum.js` + `references/engine/src/scene/renderer/forward-renderer.js` (PlayCanvas frustum primitives and per-mesh-instance cull check); `references/three.js/src/math/Frustum.js` + `references/three.js/src/core/Object3D.js` (three.js's frustum + per-Object3D `frustumCulled` flag).
+Insertion point: in `extractRenderSnapshot`, compute frustum planes from each camera's view-projection matrix once per frame. Use the entity's world AABB (already in `BoundsPacket`) for an AABB-vs-frustum test. Entities outside ALL camera frustums get skipped — no `MeshDrawPacket` produced, but record a skipped-count diagnostic for the inspector. The existing layer-mask check still applies on top.
+
+Acceptance criteria:
+
+- A new or extended example places ≥100 entities spread across a wide spatial region; the camera looks at one side. `pnpm exec playwright test` asserts that the snapshot's `meshDraws` count is materially smaller than the total spawn count, AND that the visible region renders correctly.
+- Microbenchmark (Vitest, headless): for 1,000 entities where the camera sees 200 of them, extraction is measurably faster (≥30% reduction) than the no-cull baseline.
+- A `cullStats` field appears in the snapshot report: `{ tested, culled, included }` per view. Visible in app diagnostics.
+- A per-Camera opt-out flag (`withCamera({ frustumCulling: false })` or equivalent) lets users disable culling for cases where they know the camera sees everything.
+- No regression in any existing example — Playwright baseline pixel readbacks remain stable.
+
+### task-3044 — Per-instance custom attributes contract (Tier 9 part 1)
+
+Category: `render-bridge`
+Package/write-scope: `packages/render/src/`, `packages/webgpu/src/webgpu/`, `packages/runtime/src/index.ts`, extension to the custom-material-adapter contract from Tier 5, targeted tests.
+Dependencies: Tier 5 (custom material adapter, ✅ shipped) and Tier 6 (`InstanceTint` infrastructure, ✅ shipped).
+Reference anchor: `references/three.js/src/core/InstancedBufferAttribute.js` (per-instance attribute declaration + buffer layout); `references/bevy/crates/bevy_render/src/extract_instances.rs` (per-entity → render-world instance extraction with arbitrary data); `references/engine/src/scene/mesh-instance.js` (PlayCanvas per-instance attribute assembly).
+Insertion point: extend the custom material adapter contract so a custom material declares its per-instance attribute layout (e.g., `instanceAttributes: [{ name: "wind", format: "float32x3" }, { name: "phase", format: "float32" }]`). Add a generic `withInstanceData(materialKind, data)` helper to `@aperture-engine/runtime` that attaches typed per-entity component data. Extraction packs the declared attributes into a parallel `Float32Array` mirroring the existing transform packing. WebGPU layer binds the parallel buffer as an additional instance-rate vertex buffer and exposes the attributes to the user's WGSL via `@location(N)`.
+
+Acceptance criteria:
+
+- Public APIs `defineInstanceAttributes(...)` on the custom material adapter and `withInstanceData(materialKind, { name: value, ... })` on the runtime are exported and typed.
+- Vitest covers: attribute declaration → extraction pack → buffer offset arithmetic round-trips correctly; pipeline-key includes a hash of the declared attribute layout so two custom materials with different per-instance attributes get distinct pipelines.
+- `pnpm exec tsc -p packages/render/tsconfig.json --noEmit`, `pnpm exec tsc -p packages/runtime/tsconfig.json --noEmit`, and `pnpm exec tsc -p packages/webgpu/tsconfig.json --noEmit` all pass.
+- Two entities sharing the same custom material handle but different `withInstanceData` values still coalesce into one draw call (parallel-buffer slice consumed alongside the transform slice).
+
+### task-3045 — Per-instance custom attributes visible example (Tier 9 part 2)
+
+Category: `runtime-orchestration`
+Package/write-scope: `examples/instance-attributes.html`, `examples/instance-attributes.main.js`, `examples/instance-attributes.worker.js`, `test/e2e/instance-attributes.spec.ts`. Custom material WGSL lives in the example.
+Dependencies: task-3044.
+Reference anchor: `references/three.js/examples/webgpu_instancing_morph.html` if present, else `references/three.js/examples/webgl_instancing_dynamic.html`; `references/engine/examples/graphics/instancing.html`.
+Insertion point: new example that spawns ≥500 entities sharing one custom material (a simple wind-sway shader). Per-entity `withInstanceData(...)` carries a `phase: number` and a `swayAmount: number` so each instance animates independently. The custom WGSL reads these as instance-rate attributes and offsets vertex positions accordingly.
+
+Acceptance criteria:
+
+- `examples/instance-attributes.html` renders ≥500 entities visibly swaying with phase-offset motion driven by per-instance data.
+- Playwright readback at three named coordinates across two animation frames asserts the pixel content changes (proving the per-instance data drove the shader).
+- Draw-call count in app diagnostics is ≤ N/16 (the swarm collapsed into a small number of instanced draws — proving per-instance data didn't break coalescing).
+- The example uses one `withMesh(...)` and one custom material handle for all 500 entities. No per-instance material allocation.
 
 ## Ready Tasks — MVP Tracks
 

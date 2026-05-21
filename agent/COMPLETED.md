@@ -1,5 +1,34 @@
 # Completed Tasks
 
+## task-3041 — Extend snapshot change-set beyond mesh packets
+
+Completed: 2026-05-21
+
+Summary:
+
+- Added public `createRenderSnapshotChangeSet(previous, next)` to the render
+  snapshot surface.
+- The helper reports `changed`, `unchanged`, and `removed` counts for views,
+  mesh draws, lights, environments, shadow requests, bounds, and total packets.
+- Packet signatures include matrix and instance-tint buffer slices, while
+  ignoring offset-only relocation fields so reports track semantic snapshot
+  changes rather than transient packed-buffer locations.
+- `examples/worker-cube.html` now publishes the JSON-safe change-set in status
+  while keeping transferable snapshot transport as the rendered data path.
+
+References inspected:
+
+- `references/bevy/crates/bevy_render/src/extract_instances.rs`
+
+Validation:
+
+- `pnpm exec vitest run test/rendering/snapshot-change-set.test.ts`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec eslint packages/render/src/rendering/snapshot-change-set.ts test/rendering/snapshot-change-set.test.ts examples/worker-cube.worker.js examples/worker-cube.main.js`
+- `pnpm run check:examples`
+- `pnpm run format:check`
+- `pnpm exec playwright test test/e2e/worker-cube.spec.ts --project=chrome-webgpu-headed --timeout=60000` was attempted; local headed Chrome reached the new status but failed on WebGPU command-buffer console warnings, then hung during cleanup and was terminated.
+
 ## task-3040 — Explain rendered vs skipped snapshot entities
 
 Completed: 2026-05-21

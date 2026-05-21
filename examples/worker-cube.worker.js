@@ -61,7 +61,7 @@ async function handleMessage(message) {
         throw new Error("Worker scene has not been initialized.");
       }
 
-      const snapshotMessage = createSnapshotMessage(scene, data);
+      const snapshotMessage = createSnapshotMessage(aperture, scene, data);
       self.postMessage(
         snapshotMessage,
         aperture.renderSnapshotTransferList(snapshotMessage.snapshot),
@@ -119,6 +119,7 @@ function createWorkerScene(aperture, canvasSize) {
     materialAsset: assets.materialAsset,
     firstTimestamp: null,
     previousTimestamp: null,
+    previousSnapshot: null,
   };
 }
 
@@ -143,7 +144,7 @@ function registerWorkerCubeAssets(aperture, registry) {
   return { mesh, material, materialAsset };
 }
 
-function createSnapshotMessage(workerScene, data) {
+function createSnapshotMessage(aperture, workerScene, data) {
   const timestamp = finiteNumber(data.timestamp, 0);
 
   if (workerScene.firstTimestamp === null) {
@@ -163,11 +164,18 @@ function createSnapshotMessage(workerScene, data) {
     elapsedSeconds,
     frame,
   );
+  const changeSet = aperture.createRenderSnapshotChangeSet(
+    workerScene.previousSnapshot,
+    snapshot,
+  );
+
+  workerScene.previousSnapshot = structuredClone(snapshot);
 
   return {
     type: "snapshot",
     frame,
     snapshot,
+    changeSet,
     animation: {
       frames: frame,
       elapsedSeconds,

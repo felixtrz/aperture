@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-21 21:20 UTC</dd>
+            <dd>2026-05-21 21:40 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -407,10 +407,13 @@
               <code>examples/sab-cube.html</code> proves the COOP+COEP browser
               path with a spinning cube, packet registry status, and a 10,000
               entity transport microbenchmark showing zero per-frame SAB
-              transfer bytes. Spinning cube, multi-light shadow, and GLB viewer
-              now use worker-by-default flagship example entries: each page
-              loads a main-thread renderer module, registers renderer-side
-              source assets, and consumes transferable
+              transfer bytes. Snapshot change-set reporting now covers views,
+              mesh draws, lights, environments, shadow requests, and bounds,
+              with <code>worker-cube</code> publishing JSON-safe changed,
+              unchanged, and removed packet counts. Spinning cube, multi-light
+              shadow, and GLB viewer now use worker-by-default flagship example
+              entries: each page loads a main-thread renderer module, registers
+              renderer-side source assets, and consumes transferable
               <code>RenderSnapshot</code> buffers from a module Worker that owns
               <code>createExtractionApp()</code>, ECS authoring, and stepping.
               The GLB viewer split keeps loader controls, asset switching,
@@ -4078,14 +4081,14 @@
             <h3>Recommended next tasks</h3>
             <ul>
               <li>
-                <span class="badge amber">next</span> Refill the post-roadmap
-                visible-feature queue from the North Star and current pipeline
-                gaps.
+                <span class="badge amber">next</span> Build
+                <code>task-3042</code>, a render-packet inspector example that
+                publishes draw, view, light, environment, bounds, queue-key, and
+                skipped-entity status.
               </li>
               <li>
-                Prefer small user-facing slices such as richer visibility
-                explanations, broader snapshot delta extraction, or a new
-                inspectable render/debug example.
+                Follow-up visible slices now include frustum culling and
+                generalized per-instance custom attributes.
               </li>
               <li>
                 Keep the recommended next task visible-feature first; avoid

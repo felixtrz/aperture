@@ -253,6 +253,7 @@ function createFrameStatus(
       commands: report.counts.drawCommands,
       drawCalls: report.counts.drawCalls,
     },
+    changeSet: message.changeSet ?? null,
     animation: message.animation,
     diagnosticsSummary: reportJson.diagnosticsSummary,
     diagnostics: reportJson.diagnostics,

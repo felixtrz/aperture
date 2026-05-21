@@ -1,6 +1,61 @@
 # Agent Handoff
 
-Updated: 2026-05-21T21:28:00Z
+Updated: 2026-05-21T21:40:20Z
+
+## Current Run Update — 2026-05-21T21:40:20Z — Snapshot change-set families shipped
+
+Completed `task-3041`.
+
+### What changed
+
+- Added public `createRenderSnapshotChangeSet(previous, next)` in
+  `packages/render/src/rendering/snapshot-change-set.ts`.
+- Change-set reports now cover views, mesh draws, lights, environments, shadow
+  requests, bounds, and total packet counts with `changed`, `unchanged`, and
+  `removed` fields.
+- Packet signatures include view/light/mesh matrix buffer slices and instance
+  tint slices, while ignoring offset-only relocation fields.
+- `examples/worker-cube.worker.js` computes a change-set before transferring
+  each snapshot, keeps a structured-cloned previous snapshot for the next
+  frame, and `worker-cube.main.js` publishes the JSON-safe counts in status.
+- `agent/BACKLOG.md` now marks `task-3041` complete and recommends
+  `task-3042` next. The visible-feature queue also contains Tier 9 follow-ups
+  for frustum culling and custom per-instance attributes.
+
+### References inspected
+
+- `references/bevy/crates/bevy_render/src/extract_instances.rs`
+
+### Validation
+
+- `pnpm exec vitest run test/rendering/snapshot-change-set.test.ts`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec eslint packages/render/src/rendering/snapshot-change-set.ts test/rendering/snapshot-change-set.test.ts examples/worker-cube.worker.js examples/worker-cube.main.js`
+- `pnpm run check:examples`
+- `pnpm run format:check`
+
+### Known issues
+
+- `pnpm exec playwright test test/e2e/worker-cube.spec.ts --project=chrome-webgpu-headed --timeout=60000` was attempted. Local headed Chrome reached the new `changeSet` status in `worker-cube`, then failed on repeated WebGPU `Invalid CommandBuffer` console warnings and hung during cleanup; the process tree was terminated. This remains a local headed-browser validation caveat, not a unit/build failure.
+- The prior headed Playwright shutdown hang risk remains.
+
+### Recommended next task
+
+Start `task-3042`: add a render-packet inspector example.
+
+Concrete context for the next slice:
+
+- Bevy's visibility module stores visible entity classes with sorted current,
+  added, and removed lists. The inspector should mirror that explicit packet
+  table shape rather than reconstructing a scene graph.
+- PlayCanvas' renderer collects visible mesh instances/lights before render
+  passes. The Aperture version should present already-derived
+  `RenderSnapshot` packets: views, mesh draws, lights, environments, shadow
+  requests, bounds, queue/sort keys, and skipped-entity explanations.
+- `examples/multi-entity.{main,worker}.js` already has useful status helpers
+  for snapshot counts, diagnostic codes, and skipped explanations, but
+  `task-3042` should be a smaller dedicated example instead of expanding the
+  existing scenario matrix.
 
 ## Current Run Update — 2026-05-21T21:28:00Z — SAB app transport and entity explanations shipped
 
