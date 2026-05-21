@@ -89,6 +89,57 @@ describe("WebGPU support boundary", () => {
     });
   });
 
+  it("requests timestamp-query automatically when the adapter exposes it", async () => {
+    const descriptors: unknown[] = [];
+    const device: WebGpuDeviceLike = {};
+    const gpu = fakeGpu({
+      features: {
+        has: (feature) => feature === "timestamp-query",
+      },
+      requestDevice: async (descriptor) => {
+        descriptors.push(descriptor);
+        return device;
+      },
+    });
+
+    const result = await initializeWebGpu({
+      environment: { navigator: { gpu } },
+      context: fakeContext(),
+      deviceDescriptor: { label: "timed-device", requiredFeatures: ["foo"] },
+    });
+
+    expect(result).toMatchObject({ ok: true });
+    expect(descriptors).toEqual([
+      {
+        label: "timed-device",
+        requiredFeatures: ["foo", "timestamp-query"],
+      },
+    ]);
+  });
+
+  it("does not request timestamp-query when disabled", async () => {
+    const descriptors: unknown[] = [];
+    const device: WebGpuDeviceLike = {};
+    const gpu = fakeGpu({
+      features: {
+        has: (feature) => feature === "timestamp-query",
+      },
+      requestDevice: async (descriptor) => {
+        descriptors.push(descriptor);
+        return device;
+      },
+    });
+
+    const result = await initializeWebGpu({
+      environment: { navigator: { gpu } },
+      context: fakeContext(),
+      timestampQuery: false,
+    });
+
+    expect(result).toMatchObject({ ok: true });
+    expect(descriptors).toEqual([undefined]);
+  });
+
   it("reports canvas configuration failures distinctly", async () => {
     const gpu = fakeGpu(fakeAdapter());
 

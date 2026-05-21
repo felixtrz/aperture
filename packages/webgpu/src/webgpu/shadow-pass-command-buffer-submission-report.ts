@@ -3,6 +3,12 @@ import {
   type CommandBufferResource,
   type CommandEncoderFinishLike,
 } from "./command-buffer.js";
+import {
+  resolveGpuTimestampQueries,
+  type GpuTimestampCommandEncoderLike,
+  type GpuTimestampCommandReport,
+  type GpuTimestampQueryResources,
+} from "./gpu-timing.js";
 import { submitCommandBuffers, type QueueSubmitLike } from "./queue-submit.js";
 import type { ShadowPassEncoderAssemblyReport } from "./shadow-pass-encoder-assembly-report.js";
 
@@ -44,7 +50,19 @@ export interface ShadowPassCommandBufferSubmissionReport {
     readonly shaderSampling: false;
   };
   readonly commandBufferKeys: readonly string[];
+  readonly gpuTiming?: ShadowPassCommandBufferGpuTimingReport;
   readonly diagnostics: readonly ShadowPassCommandBufferSubmissionDiagnostic[];
+}
+
+export interface ShadowPassCommandBufferGpuTimingOptions {
+  readonly resources: GpuTimestampQueryResources;
+  readonly queryCount?: number;
+}
+
+export interface ShadowPassCommandBufferGpuTimingReport {
+  readonly queryCount: number;
+  readonly resolve: GpuTimestampCommandReport | null;
+  readonly diagnostics: readonly GpuTimestampCommandReport["diagnostics"][number][];
 }
 
 export type ShadowPassCommandBufferSubmissionReportJsonValue =
@@ -56,6 +74,7 @@ export interface CreateShadowPassCommandBufferSubmissionReportOptions {
   readonly queue?: QueueSubmitLike;
   readonly label?: string;
   readonly submit?: boolean;
+  readonly gpuTiming?: ShadowPassCommandBufferGpuTimingOptions;
 }
 
 export function createShadowPassCommandBufferSubmissionReport(
@@ -107,6 +126,10 @@ export function createShadowPassCommandBufferSubmissionReport(
     });
   }
 
+  const gpuTiming = resolveShadowPassCommandBufferGpuTiming(
+    options.encoder,
+    options.gpuTiming,
+  );
   const finish = finishCommandEncoder({
     encoder: options.encoder,
     label: options.label ?? "shadow-pass:command-buffer",
@@ -119,6 +142,7 @@ export function createShadowPassCommandBufferSubmissionReport(
       commandBuffers: [],
       submittedCommandBuffers: 0,
       skippedSubmissions: 0,
+      ...(gpuTiming === undefined ? {} : { gpuTiming }),
       diagnostics: [
         {
           code: "shadowPassCommandBufferSubmission.finishFailed",
@@ -140,6 +164,7 @@ export function createShadowPassCommandBufferSubmissionReport(
       commandBuffers,
       submittedCommandBuffers: 0,
       skippedSubmissions: commandBuffers.length,
+      ...(gpuTiming === undefined ? {} : { gpuTiming }),
       diagnostics: [
         {
           code: "shadowPassCommandBufferSubmission.queueSubmissionDeferred",
@@ -164,6 +189,7 @@ export function createShadowPassCommandBufferSubmissionReport(
       commandBuffers,
       submittedCommandBuffers: submit.submitted,
       skippedSubmissions: submit.skipped,
+      ...(gpuTiming === undefined ? {} : { gpuTiming }),
       diagnostics: [
         {
           code: "shadowPassCommandBufferSubmission.submitFailed",
@@ -182,6 +208,7 @@ export function createShadowPassCommandBufferSubmissionReport(
     commandBuffers,
     submittedCommandBuffers: submit.submitted,
     skippedSubmissions: submit.skipped,
+    ...(gpuTiming === undefined ? {} : { gpuTiming }),
     diagnostics: [shaderSamplingDeferredDiagnostic()],
   });
 }
@@ -195,6 +222,17 @@ export function shadowPassCommandBufferSubmissionReportToJsonValue(
     counts: { ...value.counts },
     sections: { ...value.sections },
     commandBufferKeys: [...value.commandBufferKeys],
+    ...(value.gpuTiming === undefined
+      ? {}
+      : {
+          gpuTiming: {
+            queryCount: value.gpuTiming.queryCount,
+            resolve: value.gpuTiming.resolve,
+            diagnostics: value.gpuTiming.diagnostics.map((diagnostic) => ({
+              ...diagnostic,
+            })),
+          },
+        }),
     diagnostics: value.diagnostics.map((diagnostic) => ({ ...diagnostic })),
   };
 }
@@ -213,6 +251,7 @@ function report(input: {
   readonly commandBuffers: readonly CommandBufferResource[];
   readonly submittedCommandBuffers: number;
   readonly skippedSubmissions: number;
+  readonly gpuTiming?: ShadowPassCommandBufferGpuTimingReport;
   readonly diagnostics: readonly ShadowPassCommandBufferSubmissionDiagnostic[];
 }): ShadowPassCommandBufferSubmissionReport {
   return {
@@ -236,7 +275,30 @@ function report(input: {
       shaderSampling: false,
     },
     commandBufferKeys: input.commandBuffers.map((buffer) => buffer.resourceKey),
+    ...(input.gpuTiming === undefined ? {} : { gpuTiming: input.gpuTiming }),
     diagnostics: input.diagnostics,
+  };
+}
+
+function resolveShadowPassCommandBufferGpuTiming(
+  encoder: CommandEncoderFinishLike & GpuTimestampCommandEncoderLike,
+  options: ShadowPassCommandBufferGpuTimingOptions | undefined,
+): ShadowPassCommandBufferGpuTimingReport | undefined {
+  if (options === undefined) {
+    return undefined;
+  }
+
+  const queryCount = options.queryCount ?? options.resources.queryCount;
+  const resolve = resolveGpuTimestampQueries(
+    encoder,
+    options.resources,
+    queryCount,
+  );
+
+  return {
+    queryCount,
+    resolve,
+    diagnostics: resolve.diagnostics,
   };
 }
 

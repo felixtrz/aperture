@@ -91,6 +91,15 @@ import {
   type FrameBoundaryReadbackResult,
   type FrameBoundaryReadbackSampleRequest,
 } from "./frame-boundary.js";
+import {
+  createGpuPassTimingReport,
+  createGpuTimestampQueryResources,
+  readGpuTimestampQueryResults,
+  type GpuPassTimingReport,
+  type GpuTimestampQueryDiagnostic,
+  type GpuTimestampQueryDeviceLike,
+  type GpuTimestampQueryResources,
+} from "./gpu-timing.js";
 import type { CurrentTextureLike } from "./current-texture-view.js";
 import {
   createOrReuseWebGpuDepthTexture,
@@ -362,6 +371,7 @@ export interface WebGpuAppRenderReport {
   readonly renderTargets?: readonly WebGpuAppRenderTargetSubmissionReport[];
   readonly depthAttachment?: WebGpuAppDepthAttachmentReport;
   readonly readback?: FrameBoundaryReadbackResult;
+  readonly gpuTimings?: GpuPassTimingReport;
 }
 
 export type WebGpuAppJsonValue =
@@ -382,6 +392,7 @@ export interface WebGpuAppRenderReportJsonValue {
   readonly depthAttachment?: WebGpuAppDepthAttachmentReport;
   readonly renderTargets?: readonly WebGpuAppRenderTargetSubmissionReport[];
   readonly readback?: WebGpuAppJsonValue;
+  readonly gpuTimings?: GpuPassTimingReport;
   readonly materialDependencyReadiness?: readonly MaterialAssetDependencyReadinessReportJsonValue[];
 }
 
@@ -1227,9 +1238,16 @@ interface WebGpuAppFrameBoundaryAssemblyResult {
   readonly renderTargets: readonly WebGpuAppRenderTargetSubmissionReport[];
   readonly depthAttachment?: WebGpuAppDepthAttachmentReport;
   readonly readbackBoundary: FrameBoundaryAssemblyReport | null;
+  readonly gpuTimingReadbacks: readonly WebGpuAppGpuTimingReadback[];
+  readonly gpuTimingDiagnostics: readonly GpuTimestampQueryDiagnostic[];
   readonly plannedCommands: number;
   readonly drawCalls: number;
   readonly diagnostics: readonly unknown[];
+}
+
+interface WebGpuAppGpuTimingReadback {
+  readonly passName: string;
+  readonly resources: GpuTimestampQueryResources;
 }
 
 async function renderQueuedBuiltInWebGpuAppFrame(options: {
@@ -1349,6 +1367,17 @@ async function renderQueuedBuiltInWebGpuAppFrame(options: {
   });
 
   await waitForSubmittedWork(options.app.initialization.device);
+  const gpuTimings = await readWebGpuAppGpuTimings({
+    readbacks: boundaries.gpuTimingReadbacks,
+    diagnostics: boundaries.gpuTimingDiagnostics,
+  });
+  const frameDiagnosticsSummary =
+    gpuTimings === undefined
+      ? diagnosticsSummary
+      : createWebGpuAppDiagnosticsSummaryWithGpuTimings(
+          diagnosticsSummary,
+          gpuTimings,
+        );
   const frameOk =
     framePlan.apply.diagnostics.length === 0 &&
     framePlan.bindingPlan.diagnostics.length === 0 &&
@@ -1375,8 +1404,9 @@ async function renderQueuedBuiltInWebGpuAppFrame(options: {
       ? {}
       : { depthAttachment: boundaries.depthAttachment }),
     ...(readback === undefined ? {} : { readback }),
+    ...(gpuTimings === undefined ? {} : { gpuTimings }),
     resourceReuse: options.reuse,
-    diagnosticsSummary,
+    diagnosticsSummary: frameDiagnosticsSummary,
     drawPackages: framePlan.packages.packages.length,
     drawCommands: boundaries.plannedCommands,
     drawCalls: boundaries.drawCalls,
@@ -1415,6 +1445,8 @@ function assembleWebGpuAppFrameBoundaries(options: {
       boundaries: [],
       renderTargets: [],
       readbackBoundary: null,
+      gpuTimingReadbacks: [],
+      gpuTimingDiagnostics: [],
       plannedCommands: 0,
       drawCalls: 0,
       diagnostics: targetPlan.diagnostics,
@@ -1427,6 +1459,8 @@ function assembleWebGpuAppFrameBoundaries(options: {
   let firstBoundary: FrameBoundaryAssemblyReport | null = null;
   let firstDepthAttachment: WebGpuAppDepthAttachmentReport | undefined;
   let readbackBoundary: FrameBoundaryAssemblyReport | null = null;
+  const gpuTimingReadbacks: WebGpuAppGpuTimingReadback[] = [];
+  const gpuTimingDiagnostics: GpuTimestampQueryDiagnostic[] = [];
   let plannedCommands = 0;
   let drawCalls = 0;
 
@@ -1446,6 +1480,20 @@ function assembleWebGpuAppFrameBoundaries(options: {
       options.readbackSamples !== undefined &&
       readbackBoundary === null &&
       target.source === "swapchain";
+    const gpuTiming = createWebGpuAppGpuTimingForTarget(
+      options.app,
+      options.label,
+      target,
+    );
+    gpuTimingDiagnostics.push(...gpuTiming.diagnostics);
+
+    if (gpuTiming.resources !== null) {
+      gpuTimingReadbacks.push({
+        passName: gpuTiming.passName,
+        resources: gpuTiming.resources,
+      });
+    }
+
     const boundary = assembleFrameBoundary({
       context: options.app.initialization.context as Parameters<
         typeof assembleFrameBoundary
@@ -1472,6 +1520,14 @@ function assembleWebGpuAppFrameBoundaries(options: {
         depthLoadOp: "clear",
         depthStoreOp: "store",
       },
+      ...(gpuTiming.resources === null
+        ? {}
+        : {
+            gpuTiming: {
+              passName: gpuTiming.passName,
+              resources: gpuTiming.resources,
+            },
+          }),
       ...(includeReadback
         ? {
             readback: {
@@ -1530,10 +1586,113 @@ function assembleWebGpuAppFrameBoundaries(options: {
       ? {}
       : { depthAttachment: firstDepthAttachment }),
     readbackBoundary,
+    gpuTimingReadbacks,
+    gpuTimingDiagnostics,
     plannedCommands,
     drawCalls,
     diagnostics,
   };
+}
+
+function createWebGpuAppGpuTimingForTarget(
+  app: WebGpuApp,
+  label: string,
+  target: WebGpuAppFrameBoundaryTarget,
+): {
+  readonly passName: string;
+  readonly resources: GpuTimestampQueryResources | null;
+  readonly diagnostics: readonly GpuTimestampQueryDiagnostic[];
+} {
+  const passName =
+    target.renderTargetKey === null ? "main" : `main:${target.renderTargetKey}`;
+  const created = createGpuTimestampQueryResources({
+    device: app.initialization.device as GpuTimestampQueryDeviceLike,
+    label: `${label}:${passName}:gpu-timing`,
+    queryCount: 2,
+  });
+
+  return {
+    passName,
+    resources: created.resources,
+    diagnostics: created.diagnostics,
+  };
+}
+
+async function readWebGpuAppGpuTimings(input: {
+  readonly readbacks: readonly WebGpuAppGpuTimingReadback[];
+  readonly diagnostics: readonly GpuTimestampQueryDiagnostic[];
+}): Promise<GpuPassTimingReport | undefined> {
+  if (input.readbacks.length === 0) {
+    return undefined;
+  }
+
+  if (input.readbacks.length === 1) {
+    const readback = input.readbacks[0];
+
+    if (readback === undefined) {
+      return undefined;
+    }
+
+    return createGpuPassTimingReport({
+      passNames: [readback.passName],
+      readback: await readGpuTimestampQueryResults(readback.resources),
+      diagnostics: input.diagnostics,
+    });
+  }
+
+  const passReports: GpuPassTimingReport[] = [];
+
+  for (const readback of input.readbacks) {
+    passReports.push(
+      createGpuPassTimingReport({
+        passNames: [readback.passName],
+        readback: await readGpuTimestampQueryResults(readback.resources),
+      }),
+    );
+  }
+
+  return {
+    ready:
+      input.diagnostics.length === 0 &&
+      passReports.every((report) => report.ready),
+    supported: passReports.some((report) => report.supported),
+    queryCount: passReports.reduce((sum, report) => sum + report.queryCount, 0),
+    passes: passReports.flatMap((report) => report.passes),
+    diagnostics: [
+      ...input.diagnostics,
+      ...passReports.flatMap((report) => report.diagnostics),
+    ],
+  };
+}
+
+function createWebGpuAppDiagnosticsSummaryWithGpuTimings(
+  summary: WebGpuAppDiagnosticsSummary,
+  gpuTimings: GpuPassTimingReport,
+): WebGpuAppDiagnosticsSummary {
+  return createWebGpuAppDiagnosticsSummary({
+    ...(summary.materialQueue === undefined
+      ? {}
+      : { materialQueue: summary.materialQueue }),
+    ...(summary.materialQueueRoute === undefined
+      ? {}
+      : { materialQueueRoute: summary.materialQueueRoute }),
+    ...(summary.routedResourceSet === undefined
+      ? {}
+      : { routedResourceSet: summary.routedResourceSet }),
+    ...(summary.builtInAppResourceAdapters === undefined
+      ? {}
+      : { builtInAppResourceAdapters: summary.builtInAppResourceAdapters }),
+    ...(summary.renderFrameQueue === undefined
+      ? {}
+      : { renderFrameQueue: summary.renderFrameQueue }),
+    ...(summary.renderQueueSortPhases === undefined
+      ? {}
+      : { renderQueueSortPhases: summary.renderQueueSortPhases }),
+    gpuTimings,
+    ...(summary.directLighting === undefined
+      ? {}
+      : { directLighting: summary.directLighting }),
+  });
 }
 
 function createWebGpuAppFrameBoundaryTargets(
@@ -2812,6 +2971,9 @@ export function webGpuAppRenderReportToJsonValue(
     ...(report.readback === undefined
       ? {}
       : { readback: toWebGpuAppJsonValue(report.readback) }),
+    ...(report.gpuTimings === undefined
+      ? {}
+      : { gpuTimings: report.gpuTimings }),
     ...(materialDependencyReadiness.length === 0
       ? {}
       : { materialDependencyReadiness }),
@@ -2885,6 +3047,7 @@ function renderReport(input: {
   readonly renderTargets?: readonly WebGpuAppRenderTargetSubmissionReport[];
   readonly depthAttachment?: WebGpuAppDepthAttachmentReport;
   readonly readback?: FrameBoundaryReadbackResult;
+  readonly gpuTimings?: GpuPassTimingReport;
   readonly drawPackages?: number;
   readonly drawCommands?: number;
   readonly drawCalls?: number;
@@ -2917,6 +3080,7 @@ function renderReport(input: {
       ? {}
       : { depthAttachment: input.depthAttachment }),
     ...(input.readback === undefined ? {} : { readback: input.readback }),
+    ...(input.gpuTimings === undefined ? {} : { gpuTimings: input.gpuTimings }),
   };
 }
 

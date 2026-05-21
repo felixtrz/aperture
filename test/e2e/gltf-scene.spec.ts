@@ -816,6 +816,14 @@ interface GltfSceneStatus extends ExampleStatusBase {
     readonly drawCalls: number;
     readonly indexedDrawCalls: number;
   };
+  readonly gpuTimings?: {
+    readonly ready: boolean;
+    readonly supported: boolean;
+    readonly passes: readonly {
+      readonly pass: string;
+      readonly microseconds: number;
+    }[];
+  };
   readonly shadow?: {
     readonly requests: readonly {
       readonly shadowId: number;
@@ -3516,6 +3524,32 @@ test("Playwright shows the GLTF scene fixture through the app path", async ({
   expect(JSON.stringify(status.source?.glbFixture)).not.toContain("Uint8Array");
   expect(JSON.stringify(status.source?.glbFixture)).not.toContain(
     "Float32Array",
+  );
+  const gpuTimings = status.gpuTimings;
+  const mainTiming = gpuTimings?.passes.find((pass) => pass.pass === "main");
+  const shadowTiming = gpuTimings?.passes.find(
+    (pass) => pass.pass === "shadow",
+  );
+  const reportGpuTimings = (
+    status as {
+      readonly report?: {
+        readonly diagnosticsSummary?: {
+          readonly gpuTimings?: GltfSceneStatus["gpuTimings"];
+        };
+      };
+    }
+  ).report?.diagnosticsSummary?.gpuTimings;
+
+  expect(gpuTimings?.supported, JSON.stringify(gpuTimings)).toBe(true);
+  expect(mainTiming?.microseconds, JSON.stringify(gpuTimings)).toBeGreaterThan(
+    0,
+  );
+  expect(
+    shadowTiming?.microseconds,
+    JSON.stringify(gpuTimings),
+  ).toBeGreaterThan(0);
+  expect(reportGpuTimings?.passes.map((pass) => pass.pass)).toEqual(
+    expect.arrayContaining(["main", "shadow"]),
   );
 
   const screenshot = await page.locator("#aperture-canvas").screenshot();

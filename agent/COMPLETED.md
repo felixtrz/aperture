@@ -1,5 +1,59 @@
 # Completed Tasks
 
+## task-3022 — Timing readback + JSON report (part 3: surfacing)
+
+Completed: 2026-05-21
+
+Summary:
+
+- Surfaced per-pass GPU timing reports through `WebGpuAppRenderReport` and
+  `diagnosticsSummary.gpuTimings`.
+- Added automatic `timestamp-query` request negotiation when the adapter
+  exposes the feature.
+- Updated `examples/gltf-scene.js` to publish a combined main-pass plus shadow
+  pass timing report in JSON-safe example status.
+- Added coverage for diagnostics summaries, app JSON projection, and
+  browser-probed GLTF scene timing status.
+
+References inspected:
+
+- `references/bevy/crates/bevy_diagnostic/src/frame_time_diagnostics_plugin.rs`
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/gpu-pass-timing.test.ts test/webgpu/gpu-timing.test.ts test/webgpu/app-diagnostics-summary.test.ts test/webgpu/index.test.ts test/webgpu/webgpu-app.test.ts`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm run examples:build`
+- Playwright browser probe of `examples/gltf-scene.html` reached frame 3 and
+  reported `main` and `shadow` timing passes in
+  `report.diagnosticsSummary.gpuTimings`. The headed Chrome process hung during
+  shutdown, so the full `test/e2e/gltf-scene.spec.ts` run was interrupted.
+
+## task-3021 — Timestamp writes around render passes (part 2: pass instrumentation)
+
+Completed: 2026-05-21
+
+Summary:
+
+- Added optional GPU timestamp query instrumentation to main frame-boundary
+  render-pass assembly.
+- Added shadow-pass timestamp writes during shadow encoder assembly and query
+  resolve during shadow command-buffer submission.
+- Added JSON-safe pass timing reports with a minimum measurable positive
+  duration for devices that quantize very short timestamp pairs to zero.
+- Added fake-device tests covering main pass timing, shadow pass timing, and
+  no-shadow behavior.
+
+References inspected:
+
+- `references/engine/src/platform/graphics/gpu-profiler.js`
+- `references/three.js/src/renderers/webgpu/utils/WebGPUTimestampQueryPool.js`
+
+Validation:
+
+- `pnpm exec vitest run test/webgpu/gpu-pass-timing.test.ts test/webgpu/gpu-timing.test.ts test/webgpu/frame-boundary.test.ts test/webgpu/shadow-pass-encoder-assembly-report.test.ts test/webgpu/shadow-pass-command-buffer-submission-report.test.ts`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+
 ## task-3020 — GPU timestamp query set creation (part 1: query infra)
 
 Completed: 2026-05-21

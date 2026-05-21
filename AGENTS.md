@@ -35,17 +35,11 @@ The goal is a modern 3D runtime where:
 
 ## Autonomous Work Protocol
 
-Project config wires Codex's `SessionStart` hook to the repository start hook:
-
-```bash
-bash /Users/felixz/Projects/aperture/scripts/codex-start-hook.sh --task-id auto --quiet --notes "Autonomous Codex run started by SessionStart hook."
-```
-
-The configured hook records `agent/STATUS.json.currentRunStartedAt` for the
-whole chat/run. It is intentionally a run-start action, not a per-turn action.
-Do not also call it from an external scheduler when Codex hooks are enabled. If
-a run starts and `currentRunStartedAt` is missing, stop and fix the
-`.codex/config.toml` hook setup instead of manually backfilling the timestamp.
+There is no run-start hook. Do not write `currentRunStartedAt` at wake time.
+`agent/STATUS.json.currentRunStartedAt` should remain `null` unless a future,
+explicitly documented workflow reintroduces active-run ownership. The stop hook
+uses the wall-clock minute of the current hour, not an elapsed runtime
+timestamp, to decide whether final stopping is allowed.
 
 When you start:
 
@@ -56,9 +50,11 @@ When you start:
 5. Work on one coherent task at a time.
 6. Add or update tests where practical.
 7. Run relevant validation for the work completed.
-8. After each coherent task, check elapsed run time.
-9. If less than 50 minutes have elapsed and no stop condition applies, select the next ready task and continue.
-10. If 50 minutes or more have elapsed, no ready task remains, or a stop condition applies, perform the end-of-run review.
+8. After each coherent task, check the current minute of the hour.
+9. If the current minute is before `:50`, a ready task remains, and no stop
+   condition applies, select the next ready task and continue.
+10. If the current minute is `:50` or later, no ready task remains, or a stop
+    condition applies, perform the end-of-run review.
 11. Update docs if architecture changes.
 12. Update `agent/HANDOFF.md`.
 13. Update `agent/BACKLOG.md`.
@@ -66,7 +62,10 @@ When you start:
 15. Ensure `agent/STATUS.json` is not left in `running` state.
 16. Stop.
 
-Completing one task is not, by itself, a reason to stop before the 50-minute work window has elapsed. Continue into the next ready task unless doing so would violate a stop condition, mix unrelated changes into an incoherent diff, or leave too little time to validate and hand off cleanly.
+Completing one task is not, by itself, a reason to stop before the minute-50
+gate opens. Continue into the next ready task unless doing so would violate a
+stop condition, mix unrelated changes into an incoherent diff, or leave too
+little time to validate and hand off cleanly.
 
 ## Public Progress Tracker
 
@@ -100,7 +99,9 @@ See `agent/WAKE.md` §9 for the authoritative rules. Summary:
 - If 3 visible-feature tasks cannot be identified by comparing the current examples and public API against `docs/NORTH_STAR.md` and `docs/MEDIUM_LONG_TERM_GOALS.md`, stop and document the gap in handoff. Do not fill the queue with diagnostic work.
 - Diagnostic tasks follow visible features; they never precede them.
 
-Each task should be a vertical slice sized to fill the 50-minute window with real implementation. If the slice finishes early, extend the same slice rather than starting a new ceremonial task (see WAKE.md §3).
+Each task should be a vertical slice sized to make meaningful progress before
+the minute-50 stop gate. If the slice finishes early, extend the same slice
+rather than starting a new ceremonial task (see WAKE.md §3).
 
 ## Stop-Hook / End-of-Run Requirements
 
@@ -117,21 +118,26 @@ When committing mid-run:
   it.
 - Do not commit known-broken or partially validated work unless the handoff
   explicitly documents the blocker and the user has asked for a checkpoint.
-- Continue working after the commit if the work window remains open and ready
+- Continue working after the commit if the minute-50 gate is not open and ready
   visible-feature work is available.
 
 The configured stop hook is a final safety net: it validates, checkpoints any
 remaining uncommitted changes, and pushes the current branch to its configured
 upstream. It is not the only point at which commits may be made. The repository
-stop hook enforces the same 50-minute default work window. If a different window
-is intentionally configured with `STOP_HOOK_WORK_WINDOW_MINUTES`, update
-`AGENTS.md`, `agent/WAKE.md`, and `scripts/STOP_HOOK_PROMPT.md` in the same
-change.
+stop hook enforces the minute-50 gate: if the current minute of the hour is less
+than 50 and ready tasks remain, it blocks final stopping and tells the agent to
+continue active work without waiting, sleeping, polling, or idling.
 
-Before stopping, first check the elapsed run time:
+Before stopping, first check the current minute of the hour:
 
-- If less than 50 minutes have elapsed, a ready task remains, and no stop condition applies, do not finalize yet. Select the next ready task and continue.
-- If 50 minutes or more have elapsed, no ready task remains, or a stop condition applies, perform the end-of-run review below.
+- If the current minute is before `:50`, a ready task remains, and no stop
+  condition applies, do not finalize yet. Select the next ready task and
+  continue.
+- If a stop condition applies before `:50`, document it in handoff, but do not
+  use `lastResult=stop-condition` as a stop-hook bypass; the hook still blocks
+  while ready tasks remain.
+- If the current minute is `:50` or later, or no ready task remains, perform the
+  end-of-run review below.
 
 When performing the end-of-run review:
 
@@ -145,8 +151,7 @@ When performing the end-of-run review:
 8. Update `agent/HANDOFF.md`.
 9. Run `pnpm run agent:finalize -- --result success --notes "<run summary>"`.
    Use `failure`, `blocked`, or `stop-condition` instead of `success` when that
-   matches the handoff. The finalizer rejects `success` and `failure` if the
-   run-start hook did not record a valid `currentRunStartedAt`.
+   matches the handoff.
 
 The configured stop hook checkpoints any remaining uncommitted repository
 changes and pushes the current branch to its configured upstream. A failed push
@@ -185,7 +190,11 @@ Do not:
 
 ## Good Task Shape
 
-Every task is a vertical slice sized to fill a 50-minute window with real implementation. A vertical slice ends in a user-visible change: pixels in an example, a new public API surface, a removed limitation, a deleted file, or a measurable benchmark delta. Diagnostics, status projections, and audit markdown are not user-visible changes.
+Every task is a vertical slice sized to make real implementation progress before
+the minute-50 stop gate. A vertical slice ends in a user-visible change: pixels
+in an example, a new public API surface, a removed limitation, a deleted file,
+or a measurable benchmark delta. Diagnostics, status projections, and audit
+markdown are not user-visible changes.
 
 Good tasks:
 

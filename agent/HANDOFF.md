@@ -1,6 +1,145 @@
 # Agent Handoff
 
-Updated: 2026-05-21T03:33:31Z
+Updated: 2026-05-21T04:38:33Z
+
+## Current Run Update — 2026-05-21T04:38:33Z — GPU pass timing diagnostics
+
+Completed `task-3021` and `task-3022`.
+
+### What changed
+
+- Added timestamp query writes around main app render-pass boundaries and
+  shadow pass encoder assembly, with query resolve before command-buffer finish.
+- Added JSON-safe `GpuPassTimingReport` helpers and surfaced per-pass
+  `gpuTimings` on `WebGpuAppRenderReport` plus
+  `diagnosticsSummary.gpuTimings`.
+- Added automatic `timestamp-query` device-feature negotiation when the adapter
+  exposes the feature.
+- Updated `examples/gltf-scene.js` so status publishes a combined `main` and
+  `shadow` timing report.
+- Updated public tracker pages and marked `task-3021`/`task-3022` complete.
+- Preserved the user-added backlog tiers/tasks (`task-3030` through
+  `task-3039`) and included them in the current worktree as requested.
+
+### Files touched
+
+- `agent/BACKLOG.md`
+- `agent/COMPLETED.md`
+- `agent/HANDOFF.md`
+- `docs/index.html`
+- `docs/render-pipeline-comparison.html`
+- `examples/gltf-scene.js`
+- `packages/webgpu/src/webgpu/app-diagnostics-summary.ts`
+- `packages/webgpu/src/webgpu/app.ts`
+- `packages/webgpu/src/webgpu/frame-boundary.ts`
+- `packages/webgpu/src/webgpu/gpu-timing.ts`
+- `packages/webgpu/src/webgpu/index.ts`
+- `packages/webgpu/src/webgpu/shadow-pass-command-buffer-submission-report.ts`
+- `packages/webgpu/src/webgpu/shadow-pass-encoder-assembly-report.ts`
+- `test/e2e/gltf-scene.spec.ts`
+- `test/webgpu/app-diagnostics-summary.test.ts`
+- `test/webgpu/gpu-pass-timing.test.ts`
+- `test/webgpu/index.test.ts`
+- `test/webgpu/webgpu-app.test.ts`
+
+The worktree also still contains the prior stop-hook/minute-gate tooling
+changes from the previous run; those were known existing changes and were not
+reverted.
+
+### References inspected
+
+- `references/engine/src/platform/graphics/gpu-profiler.js`
+- `references/three.js/src/renderers/webgpu/utils/WebGPUTimestampQueryPool.js`
+- `references/bevy/crates/bevy_diagnostic/src/frame_time_diagnostics_plugin.rs`
+
+### Validation
+
+- `pnpm exec vitest run test/webgpu/gpu-pass-timing.test.ts test/webgpu/gpu-timing.test.ts test/webgpu/frame-boundary.test.ts test/webgpu/shadow-pass-encoder-assembly-report.test.ts test/webgpu/shadow-pass-command-buffer-submission-report.test.ts`
+- `pnpm exec vitest run test/webgpu/gpu-pass-timing.test.ts test/webgpu/gpu-timing.test.ts test/webgpu/app-diagnostics-summary.test.ts test/webgpu/index.test.ts test/webgpu/webgpu-app.test.ts`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm run examples:build`
+- Browser probe via Playwright/Chrome against
+  `http://127.0.0.1:4173/examples/gltf-scene.html` reached frame 3 and
+  reported `main` and `shadow` timing entries in both top-level status and
+  `report.diagnosticsSummary.gpuTimings`.
+- `pnpm run check:progress`
+- `pnpm run check`
+
+### Known issues
+
+- The full headed `pnpm exec playwright test test/e2e/gltf-scene.spec.ts` run
+  produced no failure output but hung during/after browser execution and was
+  interrupted. A direct Playwright browser probe validated the expected GLTF
+  timing status instead.
+- Chrome on this machine can quantize short timestamp pairs so one side of the
+  pair reads as zero. The timing report now floors valid zero-duration pairs to
+  `0.001` microseconds so instrumented passes remain positive without reporting
+  absurd deltas from incomplete pairs.
+
+### Recommended next task
+
+`task-3023 — GPU timings example panel: per-pass overlay`.
+
+## Current Run Update — 2026-05-21T03:45:02Z — Stop hook minute gate simplification
+
+User-requested tooling change after the stop hook could be bypassed by
+finalizing with `lastResult=stop-condition`.
+
+### What changed
+
+- Removed the Codex `SessionStart` hook and the repository start-hook scripts.
+- Removed `pnpm run agent:start` and the start-hook tests.
+- Replaced elapsed-runtime stop-hook gating with a current minute-of-hour gate:
+  if the current minute is before `:50` and ready tasks remain, the stop hook
+  blocks and tells the agent to continue active work without waiting, sleeping,
+  polling, or idling.
+- Removed the `lastResult=stop-condition` bypass from the stop gate.
+- Relaxed `agent:finalize` so `success` and `failure` no longer require
+  `currentRunStartedAt`.
+- Updated active agent docs to stop referring to run-start timestamps and the
+  old 50-minute elapsed-runtime window.
+
+### Files touched
+
+- `.codex/config.toml`
+- `AGENTS.md`
+- `agent/BACKLOG.md`
+- `agent/HANDOFF.md`
+- `agent/STOP_CONDITIONS.md`
+- `agent/WAKE.md`
+- `package.json`
+- `scripts/STOP_HOOK_PROMPT.md`
+- `scripts/codex-stop-hook.sh`
+- `scripts/codex_next_task_sh.md`
+- `scripts/finalize-agent-status.mjs`
+- `scripts/stop-gate.mjs`
+- `test/tooling/finalize-agent-status.test.mjs`
+- `test/tooling/stop-gate.test.mjs`
+
+### Validation
+
+- `pnpm exec prettier --write AGENTS.md agent/BACKLOG.md agent/HANDOFF.md agent/STOP_CONDITIONS.md agent/WAKE.md package.json scripts/STOP_HOOK_PROMPT.md scripts/codex_next_task_sh.md scripts/finalize-agent-status.mjs scripts/stop-gate.mjs test/tooling/finalize-agent-status.test.mjs test/tooling/stop-gate.test.mjs`
+- `pnpm exec vitest run test/tooling/finalize-agent-status.test.mjs test/tooling/stop-gate.test.mjs`
+- `bash -n scripts/codex-stop-hook.sh`
+- `node --check scripts/finalize-agent-status.mjs`
+- `node --check scripts/stop-gate.mjs`
+- `node scripts/stop-gate.mjs` before minute `:50` returned blocked with
+  `readyTaskCount: 9`.
+- `pnpm run check`
+- `scripts/codex-stop-hook.sh` before minute `:50` returned
+  `{"decision":"block", ...}` with the anti-idling continuation message and did
+  not run checkpoint/push.
+- `pnpm run check:progress`
+- `pnpm exec vitest run test/tooling/finalize-agent-status.test.mjs test/tooling/stop-gate.test.mjs`
+
+### Known issues
+
+- Historical handoff entries still mention the removed start-hook experiment as
+  past work; the current active docs and config now supersede that path.
+
+### Recommended next task
+
+Resume `task-3021 — Timestamp writes around render passes (part 2: pass instrumentation)`.
 
 ## Current Run Update — 2026-05-21T03:33:31Z — GPU timestamp query infrastructure
 

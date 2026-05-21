@@ -624,6 +624,11 @@ async function publishFrameStatus(aperture, app, scene, step, report, frame) {
     aperture.shadowCasterCommandRecordPlanReportToJsonValue(
       shadowCasterCommandRecordPlan,
     );
+  const shadowGpuTimingResources = aperture.createGpuTimestampQueryResources({
+    device: app.initialization.device,
+    label: "gltf-scene:shadow:gpu-timing",
+    queryCount: 2,
+  });
   const shadowPassCommandEncoderResource =
     aperture.createCommandEncoderResource({
       device: app.initialization.device,
@@ -638,6 +643,13 @@ async function publishFrameStatus(aperture, app, scene, step, report, frame) {
       encoder: shadowPassCommandEncoderResource.resource?.encoder,
       resolveDepthView: (attachment) =>
         resolveShadowDepthView(shadowDepthTextureResourceReport, attachment),
+      ...(shadowGpuTimingResources.resources === null
+        ? {}
+        : {
+            gpuTiming: {
+              resources: shadowGpuTimingResources.resources,
+            },
+          }),
     });
   const shadowPassEncoderAssembly =
     aperture.shadowPassEncoderAssemblyReportToJsonValue(
@@ -650,11 +662,34 @@ async function publishFrameStatus(aperture, app, scene, step, report, frame) {
       queue: app.initialization.device.queue,
       label: "shadow-pass:directional",
       submit: true,
+      ...(shadowGpuTimingResources.resources === null
+        ? {}
+        : {
+            gpuTiming: {
+              resources: shadowGpuTimingResources.resources,
+            },
+          }),
     });
   const shadowPassCommandBufferSubmission =
     aperture.shadowPassCommandBufferSubmissionReportToJsonValue(
       shadowPassCommandBufferSubmissionReport,
     );
+  const shadowGpuTimings = await readShadowGpuTimingReport(
+    aperture,
+    app,
+    shadowGpuTimingResources,
+    shadowPassEncoderAssemblyReport,
+    shadowPassCommandBufferSubmissionReport,
+  );
+  const gpuTimings = mergeGpuTimingReports(
+    reportJson.gpuTimings ?? reportJson.diagnosticsSummary?.gpuTimings ?? null,
+    shadowGpuTimings,
+  );
+
+  if (gpuTimings !== null) {
+    attachGpuTimingsToReportJson(reportJson, gpuTimings);
+  }
+
   const shadowDepthProbeReport = await aperture.createShadowDepthProbeReport({
     device: app.initialization.device,
     samples: shadowProjectionCoverage.records,
@@ -913,6 +948,7 @@ async function publishFrameStatus(aperture, app, scene, step, report, frame) {
       bindGroups: report.resources?.resources?.bindGroups.length ?? 0,
       reuse: report.resourceReuse,
     },
+    gpuTimings,
     draw: {
       packages: report.counts.drawPackages,
       commands: report.counts.drawCommands,
@@ -1189,6 +1225,65 @@ function findStandardMaterialIblRoutedResource(report) {
   }
 
   return null;
+}
+
+async function readShadowGpuTimingReport(
+  aperture,
+  app,
+  resourcesResult,
+  assemblyReport,
+  submissionReport,
+) {
+  if (resourcesResult.resources === null) {
+    return resourcesResult.diagnostics.length === 0
+      ? null
+      : aperture.createUnsupportedGpuPassTimingReport({
+          queryCount: 2,
+          diagnostics: resourcesResult.diagnostics,
+        });
+  }
+
+  await app.initialization.device.queue?.onSubmittedWorkDone?.();
+
+  return aperture.createGpuPassTimingReport({
+    passNames: ["shadow"],
+    readback: await aperture.readGpuTimestampQueryResults(
+      resourcesResult.resources,
+    ),
+    diagnostics: [
+      ...(assemblyReport.gpuTiming?.diagnostics ?? []),
+      ...(submissionReport.gpuTiming?.diagnostics ?? []),
+    ],
+  });
+}
+
+function mergeGpuTimingReports(main, shadow) {
+  if (main === null && shadow === null) {
+    return null;
+  }
+
+  const reports = [main, shadow].filter(Boolean);
+
+  return {
+    ready: reports.every((report) => report.ready),
+    supported: reports.some((report) => report.supported),
+    queryCount: reports.reduce((sum, report) => sum + report.queryCount, 0),
+    passes: reports.flatMap((report) => report.passes),
+    diagnostics: reports.flatMap((report) => report.diagnostics),
+  };
+}
+
+function attachGpuTimingsToReportJson(reportJson, gpuTimings) {
+  const hadGpuTimings = reportJson.diagnosticsSummary?.gpuTimings !== undefined;
+
+  reportJson.gpuTimings = gpuTimings;
+  reportJson.diagnosticsSummary = {
+    ...(reportJson.diagnosticsSummary ?? { sectionCount: 0 }),
+    sectionCount:
+      (reportJson.diagnosticsSummary?.sectionCount ?? 0) +
+      (hadGpuTimings ? 0 : 1),
+    gpuTimings,
+  };
 }
 
 function normalizeStatus(status) {

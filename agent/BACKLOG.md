@@ -2,9 +2,9 @@
 
 This file contains immediate executable tasks.
 
-Agents should work on one task at a time, but should continue into the next ready task when the current task finishes before the 50-minute run window has elapsed.
+Agents should work on one task at a time, but should continue into the next ready task when the current task finishes before the minute-50 stop gate opens.
 
-Do not stop merely because one task is complete. Stop only when the 50-minute work window has elapsed, no ready task remains, or a stop condition applies.
+Do not stop merely because one task is complete. Stop only when the current minute is `:50` or later, no ready task remains, or a stop condition applies.
 
 When tasks are completed, move them to `agent/COMPLETED.md` or mark them complete here and summarize in handoff.
 
@@ -59,9 +59,9 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start with `task-3021`: Timestamp writes around render passes (part 2: pass instrumentation).
+Start with `task-3023`: GPU timings example panel: per-pass overlay.
 
-Why this next: `task-3020` shipped standalone timestamp query resources, resolve, and readback helpers. The next roadmap gap is wiring those helpers around real render passes so frame reports can start producing per-pass GPU timing evidence.
+Why this next: `task-3021` and `task-3022` wired timestamp query writes around main/shadow render passes and surfaced JSON-safe `gpuTimings` reports through app diagnostics. The next roadmap gap is a user-facing example panel that displays those live per-pass timings.
 
 Reference anchors (read before writing):
 
@@ -92,14 +92,26 @@ Eleven cross-cutting gaps remain across the six phases. They are sequenced below
 
 **Tier 4 — Telemetry & hygiene (independent):**
 
-9. GPU timings via timestamp queries (task-3020 shipped; task-3021, task-3022, task-3023 remain) — enables data-driven performance work
+9. GPU timings via timestamp queries (task-3020, task-3021, and task-3022 shipped; task-3023 remains) — enables data-driven performance work
 10. Asset cache eviction / unload (task-3024, task-3025) — memory hygiene for long sessions
 
-**Tier 5 — Maturity (last):**
+**Tier 5 — Maturity:**
 
 11. Custom material adapter rendered end-to-end (task-3026, task-3027, task-3028, task-3029) — proves Phases 3+4 extensibility claim
 
-Total: 29 vertical slices. Each is a real implementation slice with a `Reference anchor:` from `references/bevy/`, `references/engine/` (PlayCanvas), or `references/three.js/`. Slices within a tier may be parallelizable; the agent should still process them in the order listed unless an explicit dependency note says otherwise.
+**Tier 6 — Post-roadmap polish (queued after Tier 5):**
+
+12. Per-instance tint (task-3030, task-3031) — demonstrates Aperture's ECS-as-source-of-truth advantage over three.js's `InstancedMesh`: 1,000 entities with one material handle and per-entity `InstanceTint` components coalesce into 1 draw call while each pixel reads its tint. Uses the existing instance-buffer infrastructure from Tier 3 plus the pipeline-key system; no architectural changes.
+
+**Tier 7 — Worker-by-default migration + transferable transport (queued after Tier 6):**
+
+13. Worker-by-default architecture (task-3032, task-3033, task-3034, task-3035, task-3036) — removes main-thread ECS mode entirely. ECS authoring and extraction always run in a Web Worker. The main thread becomes a renderer-only consumer that receives snapshots via transferable typed-array `postMessage`. `createWebGpuApp` is redesigned to require a `SimulationWorker` instance. All existing examples migrate to the new two-file shape (main + worker). Transferable transport (zero-copy `ArrayBuffer` transfer for `transforms` and `viewMatrices`) is bundled into the redesign — there is no point shipping the worker-default mode with an unoptimized transport. No HTTP header changes; default transport works in any deployment including embedded.
+
+**Tier 8 — SharedArrayBuffer transport (opt-in, queued after Tier 7):**
+
+14. SAB snapshot transport (task-3037, task-3038, task-3039) — opt-in `createWebGpuApp({ transport: "shared-array-buffer" })` mode where transforms, view matrices, and packet metadata live in `SharedArrayBuffer`s with SeqLock synchronization. Requires COOP+COEP HTTP headers on the host page (documented as a deployment constraint). Default transport stays transferable so embedded use cases continue to work without header changes. Closes the per-frame transport overhead to effectively zero for any entity count; the win is meaningful at ~10K+ visible entities. Apps below that scale should stay on the default transport.
+
+Total: 39 vertical slices (29 in Tiers 1-5 + 2 in Tier 6 + 5 in Tier 7 + 3 in Tier 8). Each is a real implementation slice with a `Reference anchor:` from `references/bevy/`, `references/engine/` (PlayCanvas), or `references/three.js/`. Slices within a tier may be parallelizable; the agent should still process them in the order listed unless an explicit dependency note says otherwise.
 
 The MVP track (task-2001 through task-2030) shipped successfully — completion details are preserved in `agent/COMPLETED.md` and the per-task entries that follow under "Ready Tasks — MVP Tracks" are kept for historical reference. The combinatorial GLB-matrix queue (task-2172, task-2173, task-2174) is superseded by this roadmap.
 
@@ -108,6 +120,8 @@ All roadmap task entries cite at least one specific reference file under `refere
 ## Ready Tasks — Pipeline Maturity Roadmap
 
 ### task-3021 — Timestamp writes around render passes (part 2: pass instrumentation)
+
+Status: completed 2026-05-21. See `agent/COMPLETED.md`.
 
 Category: `webgpu-render`
 Package/write-scope: `packages/webgpu/src/webgpu/`, integration with main render path.
@@ -121,6 +135,8 @@ Acceptance criteria:
 - Test asserts shadow-pass timing is non-zero when shadows are enabled and zero (or absent) when disabled.
 
 ### task-3022 — Timing readback + JSON report (part 3: surfacing)
+
+Status: completed 2026-05-21. See `agent/COMPLETED.md`.
 
 Category: `webgpu-render`
 Package/write-scope: `packages/webgpu/src/webgpu/app-diagnostics-summary.ts`.
@@ -224,6 +240,153 @@ Acceptance criteria:
 - Public validator catches at least 3 named bad-input cases with typed diagnostics.
 - Test asserts each diagnostic shape.
 - Adoption: the custom material example from task-3028 uses the validator and reports a typed error when given intentionally-broken WGSL.
+
+### task-3030 — Per-instance tint component + extraction + WGSL sampling (part 1: contract)
+
+Category: `render-bridge`
+Package/write-scope: `packages/render/src/`, `packages/webgpu/src/webgpu/`, `packages/runtime/src/index.ts`, `packages/webgpu/src/webgpu/standard-shader.ts`, targeted tests.
+Dependencies: Tier 3 instancing (task-3013, task-3014) — uses the existing instance-buffer infrastructure.
+Reference anchor: `references/three.js/src/objects/InstancedMesh.js` (`setColorAt` + `instanceColor` buffer pattern for the per-instance attribute layout); `references/bevy/crates/bevy_render/src/extract_instances.rs` (per-entity → render-world instance extraction); `references/engine/src/scene/mesh-instance.js` (per-instance buffer assembly).
+Insertion point: new `InstanceTint` typed ECS component in `packages/render/src/`; extraction packs per-entity vec4 into a parallel `Float32Array` mirroring the existing `transformPackedOffset` layout. Extend `StandardMaterialPipelineKey` with `instanceTintEnabled`. Add a `withInstanceTint(color)` helper to `packages/runtime/src/index.ts` mirroring the existing `withX` patterns. WebGPU side: instance-rate vertex buffer plus shader `@location(N) instanceTint: vec4f` consumed by the StandardMaterial fragment path.
+
+Acceptance criteria:
+
+- Public API `withInstanceTint([r, g, b, a])` exported from `@aperture-engine/runtime`, typed.
+- Two entities with the same mesh + material but different `InstanceTint` colors still coalesce into one draw call (existing `canCoalesceRenderQueueRecord` rule unchanged — the per-instance buffer is read alongside the transform buffer).
+- Vitest covers extraction packing (per-entity color appears at the expected offset in the packed buffer) and pipeline-key shape (`instanceTintEnabled` toggles correctly).
+- `pnpm exec tsc -p packages/render/tsconfig.json --noEmit` and `pnpm exec tsc -p packages/runtime/tsconfig.json --noEmit` pass.
+
+### task-3031 — Per-instance tint visible example (part 2: gradient swarm)
+
+Category: `runtime-orchestration`
+Package/write-scope: `examples/instance-tint.html`, `examples/instance-tint.js`, `test/e2e/instance-tint.spec.ts`. Optionally extend `examples/instancing.html` instead if the agent prefers one example over two.
+Dependencies: task-3030.
+Reference anchor: `references/three.js/examples/webgpu_instance_mesh.html` if present, else `references/three.js/examples/webgl_instancing_dynamic.html`; `references/engine/examples/graphics/instancing.html`.
+Insertion point: new example spawning a grid of N (≥256) entities with one shared mesh+material and a per-entity `withInstanceTint(...)` computed from grid position (e.g., HSV-to-RGB sweep so the swarm renders as a visible color gradient).
+
+Acceptance criteria:
+
+- `examples/instance-tint.html` renders a grid of distinctly-colored cubes (or similar mesh) where each cube's color is per-instance.
+- Playwright reads back pixels at ≥3 named coordinates and asserts the colors are visibly different (e.g., red region, green region, blue region) — proving per-instance tint reached the shader.
+- Draw-call count reported in app diagnostics is ≤ N/16 (i.e., the swarm collapsed into a small number of instanced draws, not one draw per entity).
+- The example uses _one_ `withMesh(...)` handle and _one_ `withMaterial(...)` handle across all entities — no per-instance material allocation.
+
+### task-3032 — `createSimulationWorker` runtime helper
+
+Category: `runtime-orchestration`
+Package/write-scope: `packages/runtime/src/`, new file `packages/runtime/src/simulation-worker.ts`, targeted tests.
+Dependencies: task-3001 (worker proof) — should already exist.
+Reference anchor: `references/three.js/examples/webgl_worker_offscreencanvas.html` (worker boot + message-channel boilerplate); `references/engine/src/framework/handlers/basis-worker.js` (PlayCanvas's worker wrapper as the API-surface analogue); MDN `Worker` + `MessageChannel` docs for the canonical API contract.
+Insertion point: new public API `createSimulationWorker(workerEntry, options)` that wraps a `Worker` instance, owns the `MessageChannel`, and exposes a clean two-method surface — `start({ entityCapacity, ... })` and `onSnapshot(callback)`. The wrapped worker entry runs `createSimulationApp` internally and posts snapshots in the agreed shape. Includes a buffer-pool helper (`createRenderSnapshotBufferPool(n)`) so the worker has fresh `transforms` / `viewMatrices` buffers after each `postMessage` neuters its previous ones.
+
+Acceptance criteria:
+
+- `createSimulationWorker(workerEntry, { entityCapacity })` returns a typed handle with `start()`, `onSnapshot()`, `terminate()`.
+- Vitest test boots a tiny worker entry that spawns one entity, extracts one snapshot, and asserts the main thread receives a structurally-valid snapshot via the `onSnapshot` callback.
+- Buffer pool round-trips ≥60 frames without exhausting; tests assert no memory growth.
+- Public API exported from `@aperture-engine/runtime`.
+
+### task-3033 — `createWebGpuApp` redesigned as renderer-only + transferable transport
+
+Category: `runtime-orchestration`
+Package/write-scope: `packages/runtime/src/`, `packages/webgpu/src/webgpu/app.ts`, `packages/core/src/index.ts` (re-exports), targeted tests.
+Dependencies: task-3032.
+Reference anchor: `references/bevy/crates/bevy_render/src/lib.rs` (Bevy's render-world / main-world separation — the renderer is a consumer of extracted state, not the authoring API); `references/three.js/examples/webgl_worker_offscreencanvas.html` (canonical transferable-buffer postMessage shape).
+Insertion point: redesign `createWebGpuApp({ canvas, simulationWorker })` to require a `SimulationWorker` from task-3032. Remove all main-thread ECS API from the returned app (no `app.spawn`, no `app.world`, no `app.assets` on main). The returned object exposes `start()`, `stop()`, `getDiagnostics()`, and internally subscribes to the worker's snapshots, runs the WebGPU consumption path, and submits frames. Snapshot crossings use `self.postMessage(snapshot, [snapshot.transforms.buffer, snapshot.viewMatrices.buffer])` for zero-copy transfer of the typed arrays.
+
+Acceptance criteria:
+
+- `createWebGpuApp` signature requires `simulationWorker` parameter; main-thread `spawn`/`world`/`assets` API surface is removed from the WebGPU app type.
+- `createSimulationApp` remains available for the worker side (and for headless tests).
+- Microbenchmark: per-frame transport cost on a synthetic 1,000-entity snapshot is ≥80% lower than a structured-clone baseline.
+- Typecheck across all packages passes after the API change.
+
+### task-3034 — Migrate flagship examples to worker-by-default shape
+
+Category: `runtime-orchestration`
+Package/write-scope: `examples/spinning-cube.{html,main.js,worker.js}`, `examples/glb-viewer.{html,main.js,worker.js}`, `examples/multi-light-shadow.{html,main.js,worker.js}`, corresponding `test/e2e/*.spec.ts`.
+Dependencies: task-3033.
+Reference anchor: `examples/worker-cube.html` + `examples/worker-cube.{main,worker}.js` (the canonical Aperture worker-split pattern shipped in task-3001); `references/three.js/examples/webgl_worker_offscreencanvas.html` for the boilerplate shape.
+Insertion point: split each flagship example into a `*.main.js` (canvas owner, calls `createWebGpuApp`) and a `*.worker.js` (calls `createSimulationApp`, spawns entities, extracts snapshots, posts). Update the HTML to load the main entry; update Playwright specs as needed.
+
+Acceptance criteria:
+
+- All three flagship examples render correctly via the worker boundary.
+- Playwright pixel assertions remain green.
+- No example contains main-thread `app.spawn(...)` calls anymore.
+
+### task-3035 — Bulk-migrate remaining examples to worker-by-default shape
+
+Category: `runtime-orchestration`
+Package/write-scope: `examples/{triangle,multi-entity,materials-showcase,matcap-app,debug-normal-app,depth-app-overlap,standard-*,app-diagnostics,point-shadow,spot-shadow,render-to-texture,instancing,batching,gltf-scene,…}.*`, corresponding Playwright specs.
+Dependencies: task-3034.
+Reference anchor: the flagship migrations from task-3034 as the per-example template; `examples/worker-cube.{main,worker}.js` as the canonical shape.
+Insertion point: mechanical migration. Each example becomes a `*.main.js` + `*.worker.js` pair following the template established in task-3034. Examples that don't use ECS authoring (pure diagnostic / WebGPU-init tests) may keep a single-file shape but must still talk to a (possibly minimal) worker.
+
+Acceptance criteria:
+
+- All remaining examples migrated; `pnpm run check:examples` passes for the new files.
+- All Playwright specs remain green.
+- No main-thread `app.spawn(...)` calls anywhere under `examples/`.
+
+### task-3036 — Worker-by-default migration guide + public docs update
+
+Category: `docs-tooling`
+Package/write-scope: `README.md`, `docs/ARCHITECTURE.md`, new `docs/AUTHORING.md`, `agent/HANDOFF.md`.
+Dependencies: task-3035.
+Reference anchor: not applicable (docs-only task; exempt per WAKE.md §4).
+Insertion point: rewrite the README quick-start to show the worker-split pattern. Add `docs/AUTHORING.md` documenting how to write a simulation worker and a renderer main script. Update `docs/ARCHITECTURE.md` to reflect that the worker boundary is now a core API contract, not an opt-in optimization. Add a migration section for any external users still on the old main-thread API (probably none, but document for completeness).
+
+Acceptance criteria:
+
+- README's first code example is a working worker-split spinning cube.
+- `docs/AUTHORING.md` exists and covers: writing a worker entry, common patterns (one-off scene vs animated scene), how to add user systems in the worker, how to send custom commands from main to worker.
+- `pnpm run check:progress` passes.
+
+### task-3037 — SharedArrayBuffer snapshot allocation + SeqLock header (Tier 8 part 1: shared memory + sync)
+
+Category: `runtime-orchestration`
+Package/write-scope: `packages/runtime/src/`, new file `packages/runtime/src/shared-snapshot-transport.ts`, targeted tests.
+Dependencies: task-3033 (the renderer/worker split must already be the default).
+Reference anchor: `references/bevy/crates/bevy_tasks/src/lib.rs` (Bevy's thread-pool + frame-fence patterns inform the SeqLock structure); MDN `SharedArrayBuffer` + `Atomics` reference for the synchronization API contract; the WHATWG SeqLock pattern (well-documented; the agent may need to cite a specific reference SeqLock implementation from a games / WebAssembly context — flag in handoff if no suitable reference exists in the local mirrors).
+Insertion point: new module that allocates `SharedArrayBuffer`s for `transforms` (sized for `MAX_ENTITIES * 16 * 4 * 2` for double-buffering), `viewMatrices`, and a small `Int32Array` header carrying a frame counter and SeqLock sequence number. Provide `writeFrame(writer)` + `readLatestFrame(reader)` helpers that wrap the Atomics dance.
+
+Acceptance criteria:
+
+- Public API `createSharedSnapshotTransport({ maxEntities, maxViews })` returns an object with two views: one for the writer (worker), one for the reader (main).
+- Test simulates a writer in setInterval and a reader in requestAnimationFrame; reader observes a monotonically increasing frame number with no torn reads across 1,000 iterations.
+- Detects COOP+COEP unavailability at construction time and throws a typed error ("shared-snapshot-transport-unsupported") rather than failing silently.
+- Falls back gracefully when `SharedArrayBuffer` is unavailable (test in a non-COOP+COEP environment confirms the typed error fires).
+
+### task-3038 — SAB-backed packet encoding (Tier 8 part 2: Uint32Array packet layout)
+
+Category: `render-bridge`
+Package/write-scope: `packages/render/src/rendering/snapshot.ts`, new helper `packages/render/src/rendering/snapshot-packed-encoding.ts`, targeted tests.
+Dependencies: task-3037.
+Reference anchor: `references/bevy/crates/bevy_render/src/extract_instances.rs` (Bevy's flat instance-data layout informs the encoding); `references/engine/src/scene/mesh-instance.js` (PlayCanvas's per-instance integer field packing).
+Insertion point: define a canonical integer-only encoding for `MeshDrawPacket`, `ViewPacket`, `LightPacket`, `EnvironmentPacket`, `ShadowRequestPacket`, `BoundsPacket` so the packet arrays can live in a `Uint32Array` view of a `SharedArrayBuffer`. Each packet becomes a fixed-stride record; handles encode as small integers (registry-side mapping table communicated once at startup, not per frame). Provide `encodePackets(packets, buffer)` and `decodePackets(buffer, count)` helpers.
+
+Acceptance criteria:
+
+- Round-trip test: random snapshot → encode → decode → equal to original (deep equality on all packet fields).
+- Encoded stride is documented per packet type; total bytes per packet is asserted in tests so future changes are caught.
+- Diagnostic strings remain in a separate transferable area (diagnostics are rare; structured clone is acceptable for them). Document why.
+
+### task-3039 — Opt-in SAB transport mode in createWebGpuApp (Tier 8 part 3: integration + example)
+
+Category: `runtime-orchestration`
+Package/write-scope: `packages/runtime/src/`, `packages/webgpu/src/webgpu/app.ts`, `examples/sab-cube.{html,main.js,worker.js}`, `test/e2e/sab-cube.spec.ts`, documentation in `docs/`.
+Dependencies: task-3037, task-3038.
+Reference anchor: `references/engine/src/framework/handlers/basis-worker.js` (PlayCanvas worker integration as the API-surface analogue); MDN `Cross-Origin-Opener-Policy` + `Cross-Origin-Embedder-Policy` docs (cited for the deployment-constraint documentation).
+Insertion point: extend `createWebGpuApp({ transport })` with `"transferable"` (the default, no change) and `"shared-array-buffer"` (new). The new mode uses the shared transport from task-3037 and packet encoding from task-3038. Add a new example demonstrating the opt-in mode. Document COOP+COEP requirement in `docs/`.
+
+Acceptance criteria:
+
+- `createWebGpuApp({ transport: "shared-array-buffer", ... })` succeeds when COOP+COEP are set; reports a typed unsupported diagnostic and offers fallback to `"transferable"` otherwise.
+- `examples/sab-cube.html` renders a spinning cube via SAB transport when served with COOP+COEP headers (the examples server may need a small flag to enable these for this example only).
+- Microbenchmark: per-frame transport cost on a 10,000-entity scene is ≥95% lower than the transferable mode.
+- `docs/` includes a short page explaining the trade-off (zero per-frame transport cost vs. COOP+COEP deployment constraint).
+- Default `createWebGpuApp({ ... })` behavior is unchanged — embedded use cases continue to work without modifying HTTP headers.
 
 ## Ready Tasks — MVP Tracks
 

@@ -35,6 +35,7 @@ describe("WebGPU app diagnostics summary", () => {
       { phase: "opaque" as const, recordCount: 2 },
       { phase: "transparent" as const, recordCount: 1 },
     ];
+    const gpuTimings = gpuTimingSummary();
     const directLighting = directLightingSummary();
     const summary = createWebGpuAppDiagnosticsSummary({
       materialQueue,
@@ -42,16 +43,18 @@ describe("WebGPU app diagnostics summary", () => {
       routedResourceSet,
       renderFrameQueue,
       renderQueueSortPhases,
+      gpuTimings,
       directLighting,
     });
 
     expect(summary).toEqual({
-      sectionCount: 6,
+      sectionCount: 7,
       materialQueue,
       materialQueueRoute,
       routedResourceSet,
       renderFrameQueue,
       renderQueueSortPhases,
+      gpuTimings,
       directLighting,
     });
     const serialized = JSON.stringify(summary);
@@ -255,6 +258,23 @@ function materialQueueRouteSummary() {
         materialFamily: "debug-normal",
       },
     ],
+  };
+}
+
+function gpuTimingSummary() {
+  return {
+    ready: true,
+    supported: true,
+    queryCount: 2,
+    passes: [
+      {
+        pass: "main",
+        startQuery: 0,
+        endQuery: 1,
+        microseconds: 42,
+      },
+    ],
+    diagnostics: [],
   };
 }
 

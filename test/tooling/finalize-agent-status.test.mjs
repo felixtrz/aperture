@@ -78,7 +78,7 @@ describe("agent status finalizer", () => {
     expect(finalizedStatus.notes).toBe("Already finalized.");
   });
 
-  it("rejects success finalization when the start hook was missed", () => {
+  it("allows success finalization without an active start timestamp", () => {
     const statusPath = createStatusFile({
       state: "idle",
       currentTaskId: null,
@@ -94,12 +94,19 @@ describe("agent status finalizer", () => {
       finalizeAgentStatus({
         statusPath,
         result: "success",
-        notes: "This should not pass.",
+        notes: "Completed without start hook.",
         now: "2026-05-21T02:35:00Z",
       }),
-    ).toThrow(
-      'Cannot finalize result "success" without a valid currentRunStartedAt',
-    );
+    ).not.toThrow();
+
+    expect(JSON.parse(fs.readFileSync(statusPath, "utf8"))).toMatchObject({
+      state: "idle",
+      currentRunStartedAt: null,
+      lastRunStartedAt: "2026-05-20T18:04:05Z",
+      lastRunFinishedAt: "2026-05-21T02:35:00Z",
+      lastResult: "success",
+      notes: "Completed without start hook.",
+    });
   });
 
   it("rejects non-final result values", () => {

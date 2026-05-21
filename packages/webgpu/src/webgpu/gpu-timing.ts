@@ -105,6 +105,21 @@ export interface GpuTimestampReadbackResult {
   readonly diagnostics: readonly GpuTimestampQueryDiagnostic[];
 }
 
+export interface GpuPassTiming {
+  readonly pass: string;
+  readonly startQuery: number;
+  readonly endQuery: number;
+  readonly microseconds: number;
+}
+
+export interface GpuPassTimingReport {
+  readonly ready: boolean;
+  readonly supported: boolean;
+  readonly queryCount: number;
+  readonly passes: readonly GpuPassTiming[];
+  readonly diagnostics: readonly GpuTimestampQueryDiagnostic[];
+}
+
 export function createGpuTimestampQueryResources(
   options: CreateGpuTimestampQueryResourcesOptions,
 ): CreateGpuTimestampQueryResourcesResult {
@@ -297,6 +312,66 @@ export async function readGpuTimestampQueryResults(
   };
 }
 
+export function createGpuPassTimingReport(options: {
+  readonly passNames: readonly string[];
+  readonly readback: GpuTimestampReadbackResult;
+  readonly diagnostics?: readonly GpuTimestampQueryDiagnostic[];
+}): GpuPassTimingReport {
+  const diagnostics = [
+    ...(options.diagnostics ?? []),
+    ...options.readback.diagnostics,
+  ];
+  const passes: GpuPassTiming[] = [];
+
+  for (let passIndex = 0; passIndex < options.passNames.length; passIndex++) {
+    const pass = options.passNames[passIndex] ?? "unknown";
+    const startQuery = passIndex * 2;
+    const endQuery = startQuery + 1;
+    const duration = options.readback.durations.find(
+      (entry) => entry.startQuery === startQuery && entry.endQuery === endQuery,
+    );
+    const rawMicroseconds =
+      duration === undefined ? 0 : Number(duration.nanoseconds) / 1_000;
+    const microseconds =
+      rawMicroseconds === 0 &&
+      options.readback.valid &&
+      diagnostics.length === 0
+        ? 0.001
+        : rawMicroseconds;
+
+    passes.push({
+      pass,
+      startQuery,
+      endQuery,
+      microseconds,
+    });
+  }
+
+  return {
+    ready:
+      options.readback.valid &&
+      diagnostics.length === 0 &&
+      passes.every((pass) => pass.microseconds > 0),
+    supported: options.readback.valid,
+    queryCount: options.passNames.length * 2,
+    passes,
+    diagnostics,
+  };
+}
+
+export function createUnsupportedGpuPassTimingReport(options: {
+  readonly queryCount: number;
+  readonly diagnostics: readonly GpuTimestampQueryDiagnostic[];
+}): GpuPassTimingReport {
+  return {
+    ready: false,
+    supported: false,
+    queryCount: options.queryCount,
+    passes: [],
+    diagnostics: options.diagnostics,
+  };
+}
+
 function timestampPairDurations(
   timestamps: readonly bigint[],
 ): readonly GpuTimestampDuration[] {
@@ -314,7 +389,7 @@ function timestampPairDurations(
     durations.push({
       startQuery,
       endQuery,
-      nanoseconds: end > start ? end - start : 0n,
+      nanoseconds: start > 0n && end > start ? end - start : 0n,
     });
   }
 

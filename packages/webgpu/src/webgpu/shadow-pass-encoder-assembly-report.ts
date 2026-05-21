@@ -2,6 +2,12 @@ import {
   executeRenderPassCommands,
   type RenderPassCommandExecutionReport,
 } from "./render-pass-command-executor.js";
+import {
+  writeGpuTimestampQuery,
+  type GpuTimestampCommandEncoderLike,
+  type GpuTimestampCommandReport,
+  type GpuTimestampQueryResources,
+} from "./gpu-timing.js";
 import type { RenderPassCommand } from "./render-pass-commands.js";
 import {
   beginPlannedRenderPass,
@@ -62,6 +68,26 @@ export interface ShadowPassEncoderAssemblyRecord {
   readonly ended: boolean;
 }
 
+export interface ShadowPassGpuTimingOptions {
+  readonly resources: GpuTimestampQueryResources;
+  readonly startQuery?: number;
+}
+
+export interface ShadowPassGpuTimingCommandRecord {
+  readonly passKey: string;
+  readonly startQuery: number;
+  readonly endQuery: number;
+  readonly writeStart: GpuTimestampCommandReport | null;
+  readonly writeEnd: GpuTimestampCommandReport | null;
+  readonly diagnostics: readonly GpuTimestampCommandReport["diagnostics"][number][];
+}
+
+export interface ShadowPassGpuTimingCommandReport {
+  readonly queryCount: number;
+  readonly records: readonly ShadowPassGpuTimingCommandRecord[];
+  readonly diagnostics: readonly GpuTimestampCommandReport["diagnostics"][number][];
+}
+
 export interface ShadowPassEncoderAssemblyReport {
   readonly ready: boolean;
   readonly status: ShadowPassEncoderAssemblyStatus;
@@ -87,6 +113,7 @@ export interface ShadowPassEncoderAssemblyReport {
     readonly shaderSampling: false;
   };
   readonly records: readonly ShadowPassEncoderAssemblyRecord[];
+  readonly gpuTiming?: ShadowPassGpuTimingCommandReport;
   readonly diagnostics: readonly ShadowPassEncoderAssemblyDiagnostic[];
 }
 
@@ -102,6 +129,7 @@ export interface CreateShadowPassEncoderAssemblyReportOptions {
   readonly resolveDepthView?: (
     attachment: ShadowPassDepthAttachmentDescriptor,
   ) => unknown | null;
+  readonly gpuTiming?: ShadowPassGpuTimingOptions;
 }
 
 export function createShadowPassEncoderAssemblyReport(
@@ -123,6 +151,7 @@ export function createShadowPassEncoderAssemblyReport(
     options.commands.map((record) => [record.passKey, record.commands]),
   );
   const records: ShadowPassEncoderAssemblyRecord[] = [];
+  const gpuTimingRecords: ShadowPassGpuTimingCommandRecord[] = [];
 
   if (options.attachments.attachmentCount === 0) {
     diagnostics.push({
@@ -190,9 +219,21 @@ export function createShadowPassEncoderAssemblyReport(
     const assembled =
       options.encoder === undefined || depthView === null
         ? null
-        : assemblePass(options.encoder, attachment, depthView, commands);
+        : assemblePass(
+            options.encoder,
+            attachment,
+            depthView,
+            commands,
+            createShadowPassGpuTimingRecordOptions(
+              options.gpuTiming,
+              records.length,
+            ),
+          );
 
     diagnostics.push(...(assembled?.diagnostics ?? []));
+    if (assembled?.gpuTiming !== undefined) {
+      gpuTimingRecords.push(assembled.gpuTiming);
+    }
     records.push({
       passKey: attachment.passKey,
       shadowId: attachment.shadowId,
@@ -240,6 +281,14 @@ export function createShadowPassEncoderAssemblyReport(
     frameResources: options.frameResources,
     commandEncoding: options.commandEncoding,
     records,
+    ...(options.gpuTiming === undefined
+      ? {}
+      : {
+          gpuTiming: createShadowPassGpuTimingCommandReport(
+            gpuTimingRecords,
+            options.gpuTiming.resources.queryCount,
+          ),
+        }),
     diagnostics,
   });
 }
@@ -253,6 +302,17 @@ export function shadowPassEncoderAssemblyReportToJsonValue(
     counts: { ...value.counts },
     sections: { ...value.sections },
     records: value.records.map((record) => ({ ...record })),
+    ...(value.gpuTiming === undefined
+      ? {}
+      : {
+          gpuTiming: {
+            queryCount: value.gpuTiming.queryCount,
+            records: value.gpuTiming.records.map((record) => ({ ...record })),
+            diagnostics: value.gpuTiming.diagnostics.map((diagnostic) => ({
+              ...diagnostic,
+            })),
+          },
+        }),
     diagnostics: value.diagnostics.map((diagnostic) => ({ ...diagnostic })),
   };
 }
@@ -264,14 +324,16 @@ export function shadowPassEncoderAssemblyReportToJson(
 }
 
 function assemblePass(
-  encoder: RenderPassCommandEncoderLike,
+  encoder: RenderPassCommandEncoderLike & GpuTimestampCommandEncoderLike,
   attachment: ShadowPassDepthAttachmentDescriptor,
   depthView: unknown,
   commands: readonly RenderPassCommand[],
+  gpuTiming: ShadowPassGpuTimingRecordOptions | null,
 ): {
   readonly begun: boolean;
   readonly ended: boolean;
   readonly execution: RenderPassCommandExecutionReport;
+  readonly gpuTiming?: ShadowPassGpuTimingCommandRecord;
   readonly diagnostics: readonly ShadowPassEncoderAssemblyDiagnostic[];
 } | null {
   const plan: RenderPassAttachmentDescriptorPlan = {
@@ -283,6 +345,14 @@ function assemblePass(
       depthStoreOp: attachment.depthStoreOp,
     },
   };
+  const writeStart =
+    gpuTiming === null
+      ? null
+      : writeGpuTimestampQuery(
+          encoder,
+          gpuTiming.resources,
+          gpuTiming.startQuery,
+        );
   const begin = beginPlannedRenderPass({ encoder, plan });
 
   if (begin.pass === null) {
@@ -290,6 +360,16 @@ function assemblePass(
       begun: false,
       ended: false,
       execution: emptyExecution(),
+      ...(gpuTiming === null
+        ? {}
+        : {
+            gpuTiming: createShadowPassGpuTimingRecord(
+              attachment.passKey,
+              gpuTiming,
+              writeStart,
+              null,
+            ),
+          }),
       diagnostics: begin.diagnostics.map((diagnostic) => ({
         code: "shadowPassEncoderAssembly.beginFailed",
         severity: "warning",
@@ -306,6 +386,14 @@ function assemblePass(
     commands,
   });
   const end = endPlannedRenderPass(begin.pass);
+  const writeEnd =
+    gpuTiming === null
+      ? null
+      : writeGpuTimestampQuery(
+          encoder,
+          gpuTiming.resources,
+          gpuTiming.endQuery,
+        );
   const diagnostics: ShadowPassEncoderAssemblyDiagnostic[] = [
     ...execution.diagnostics.map((diagnostic) => ({
       code: "shadowPassEncoderAssembly.commandExecutionFailed" as const,
@@ -329,6 +417,16 @@ function assemblePass(
     begun: begin.valid,
     ended: end.ended,
     execution,
+    ...(gpuTiming === null
+      ? {}
+      : {
+          gpuTiming: createShadowPassGpuTimingRecord(
+            attachment.passKey,
+            gpuTiming,
+            writeStart,
+            writeEnd,
+          ),
+        }),
     diagnostics,
   };
 }
@@ -352,6 +450,7 @@ function report(input: {
   readonly frameResources: ShadowCasterFrameResourceReadinessReport;
   readonly commandEncoding: ShadowPassCommandEncodingReport;
   readonly records: readonly ShadowPassEncoderAssemblyRecord[];
+  readonly gpuTiming?: ShadowPassGpuTimingCommandReport;
   readonly diagnostics: readonly ShadowPassEncoderAssemblyDiagnostic[];
 }): ShadowPassEncoderAssemblyReport {
   const commandCount = input.records.reduce(
@@ -392,6 +491,60 @@ function report(input: {
       shaderSampling: false,
     },
     records: input.records,
+    ...(input.gpuTiming === undefined ? {} : { gpuTiming: input.gpuTiming }),
     diagnostics: input.diagnostics,
+  };
+}
+
+interface ShadowPassGpuTimingRecordOptions {
+  readonly resources: GpuTimestampQueryResources;
+  readonly startQuery: number;
+  readonly endQuery: number;
+}
+
+function createShadowPassGpuTimingRecordOptions(
+  options: ShadowPassGpuTimingOptions | undefined,
+  passIndex: number,
+): ShadowPassGpuTimingRecordOptions | null {
+  if (options === undefined) {
+    return null;
+  }
+
+  const startQuery = (options.startQuery ?? 0) + passIndex * 2;
+
+  return {
+    resources: options.resources,
+    startQuery,
+    endQuery: startQuery + 1,
+  };
+}
+
+function createShadowPassGpuTimingRecord(
+  passKey: string,
+  options: ShadowPassGpuTimingRecordOptions,
+  writeStart: GpuTimestampCommandReport | null,
+  writeEnd: GpuTimestampCommandReport | null,
+): ShadowPassGpuTimingCommandRecord {
+  return {
+    passKey,
+    startQuery: options.startQuery,
+    endQuery: options.endQuery,
+    writeStart,
+    writeEnd,
+    diagnostics: [
+      ...(writeStart?.diagnostics ?? []),
+      ...(writeEnd?.diagnostics ?? []),
+    ],
+  };
+}
+
+function createShadowPassGpuTimingCommandReport(
+  records: readonly ShadowPassGpuTimingCommandRecord[],
+  queryCount: number,
+): ShadowPassGpuTimingCommandReport {
+  return {
+    queryCount,
+    records,
+    diagnostics: records.flatMap((record) => record.diagnostics),
   };
 }

@@ -6,14 +6,9 @@ Follow this protocol exactly.
 
 ## 0. Run-Start Preconditions
 
-`.codex/config.toml` must run `scripts/codex-start-hook.sh` through Codex's
-`SessionStart` hook before this wake prompt is sent to the model. That hook
-records the whole chat/run start in `agent/STATUS.json.currentRunStartedAt`.
-
-This is a run-start hook, not a per-turn hook. If `currentRunStartedAt` is
-missing when this prompt begins, treat the repo hook config as misconfigured:
-update `agent/HANDOFF.md` with the reason and stop instead of manually
-backfilling the timestamp.
+There is no run-start hook. Do not write `agent/STATUS.json.currentRunStartedAt`
+at wake time. The stop hook uses the current wall-clock minute of the hour, not
+an elapsed runtime timestamp, to decide whether final stopping is allowed.
 
 ## 1. Read Context
 
@@ -37,12 +32,8 @@ Before changing files:
 
 - Check whether another run appears active.
 - Check whether the working tree has unexpected changes.
-- Confirm `agent/STATUS.json` says `running` with a valid
-  `currentRunStartedAt` for this run. This is the expected state after the
-  `SessionStart` hook.
-- Treat `STATUS.json` as unsafe if it is still `idle`, if
-  `currentRunStartedAt` is missing/invalid, or if it appears to describe a
-  different active run.
+- Treat `agent/STATUS.json` as unsafe if it says `running`, if `activePid`
+  appears live, or if it otherwise appears to describe a different active run.
 
 If unsafe, update `agent/HANDOFF.md` with the reason and stop.
 
@@ -69,18 +60,30 @@ Task categories:
 - `docs-tooling`: docs, scripts, tests, validation, agent workflow.
 - `audit-refactor`: architecture drift checks and small corrective refactors.
 
-This run has a 50-minute work window. Completing one task before the 50-minute mark is not a reason to stop. The stop hook enforces this same 50-minute default through `STOP_HOOK_WORK_WINDOW_MINUTES`; if that value changes, update this file, `AGENTS.md`, and `scripts/STOP_HOOK_PROMPT.md` together.
+This repository uses a minute-50 stop gate. Completing one task before minute
+`:50` of the current hour is not a reason to stop when ready work remains. The
+stop hook blocks final stopping before minute `:50` if ready tasks remain and
+tells the agent to continue active work without waiting, sleeping, polling, or
+idling.
 
-A task is one vertical slice sized to fill the 50-minute window with real implementation. A vertical slice ends in a user-visible change: new pixels in an example, a new public API surface a library user would call, a removed limitation, a deleted file or feature flag, or a measurable benchmark delta.
+A task is one vertical slice sized to make real implementation progress before
+the minute-50 stop gate. A vertical slice ends in a user-visible change: new
+pixels in an example, a new public API surface a library user would call, a
+removed limitation, a deleted file or feature flag, or a measurable benchmark
+delta.
 
-If your selected slice finishes in less than 50 minutes with time remaining, do not pick a new ceremonial task. In priority order:
+If your selected slice finishes before minute `:50` with time remaining, do not
+pick a new ceremonial task. In priority order:
 
 1. Extend the same slice with the next obvious thing a user would notice — more test coverage against visible outcomes, edge cases, example polish, related dead-code removal.
 2. Start the next slice from the backlog _only if_ it is also a visible-feature slice and there is enough time to finish it cleanly.
 
 Never start a `plan-X`, `audit-X`, or `tracker-alignment-X` task to fill leftover time. If no visible-feature slice remains and you cannot extend the current one, stop early with a clean handoff. Stopping early with real work shipped is better than filling time with ceremony.
 
-If 50 minutes or more have elapsed, no ready task remains, or a stop condition applies, proceed to the end-of-run review.
+If a stop condition applies before `:50`, document it in handoff, but do not use
+`lastResult=stop-condition` as a stop-hook bypass; the hook still blocks while
+ready tasks remain. If the current minute is `:50` or later, or no ready task
+remains, proceed to the end-of-run review.
 
 Do not start broad refactors except for explicitly scoped `audit-refactor`
 tasks.
@@ -166,8 +169,8 @@ Rules:
 - Do not wait for the final stop hook just to create the first commit.
 - Do not use interim commits to hide failing validation or incomplete
   scaffolding.
-- After committing, continue active work if the work window remains open and a
-  ready visible-feature task remains.
+- After committing, continue active work if the minute-50 gate is not open and
+  a ready visible-feature task remains.
 
 The stop hook remains a final safety net that commits any remaining
 uncommitted changes and pushes the branch. It is not the only commit point.
@@ -187,7 +190,9 @@ When this happens, fix it in the current run as part of the slice. Do not file a
 
 ## 8. End-of-Run Review
 
-Only perform the end-of-run review when the 50-minute work window has elapsed, no ready task remains, or a stop condition applies.
+Only perform the end-of-run review when the current minute is `:50` or later, or
+no ready task remains. Stop conditions before `:50` must be documented, but they
+do not bypass the stop hook while ready tasks remain.
 
 Before stopping:
 
@@ -199,8 +204,6 @@ Before stopping:
 - Add a decision record if a significant decision was made.
 - Verify the ready queue still meets the §9 composition rule (≥3 visible-feature, ≤1 plan, ≤1 audit, 0 tracker-alignment, Recommended Next Task is visible-feature, every visible-feature task has a `Reference anchor:` line). If not, fix it before stopping.
 - Finalize `agent/STATUS.json` with `pnpm run agent:finalize -- --result success --notes "<run summary>"`. Use `failure`, `blocked`, or `stop-condition` instead of `success` when that matches the handoff.
-  The finalizer rejects `success` and `failure` when the run-start hook did not
-  set a valid `currentRunStartedAt`.
 
 ## 9. Backlog Refill
 
@@ -308,6 +311,7 @@ If those fixes took more than a few minutes or changed the handoff/status
 context, rerun `pnpm run agent:finalize -- --result <result> --notes "<run summary>"`
 before rerunning the stop hook so `lastRunFinishedAt` stays fresh.
 
-Stop after the 50-minute work window, an explicit stop condition, or exhausting ready work, then complete the handoff update and stop-hook verification.
+Stop after the minute-50 gate opens or after exhausting ready work, then
+complete the handoff update and stop-hook verification.
 
 The next agent run should be able to continue from your handoff.

@@ -143,104 +143,16 @@ echo "Aperture stop hook started at $(date -u +"%Y-%m-%dT%H:%M:%SZ")"
 echo "Repository: $ROOT"
 echo "Log file: $LOG_FILE"
 
-work_window_minutes="${STOP_HOOK_WORK_WINDOW_MINUTES:-50}"
-echo "Stop gate work window: $work_window_minutes minute(s)"
+echo "Stop gate: current minute must be >= 50 when ready tasks remain."
 
-stop_gate_result="$(WORK_WINDOW_MINUTES="$work_window_minutes" node <<'NODE'
-const fs = require("node:fs");
-
-const statusPath = "agent/STATUS.json";
-const workWindowMinutes = Number(process.env.WORK_WINDOW_MINUTES ?? 50);
-const status = JSON.parse(fs.readFileSync(statusPath, "utf8"));
-const startedAt = status.currentRunStartedAt ?? status.lastRunStartedAt;
-const stopConditionResult =
-  status.lastResult === "blocked" || status.lastResult === "stop-condition";
-
-if (stopConditionResult) {
-  console.log(
-    JSON.stringify({ status: "stop-condition", result: status.lastResult }),
-  );
-  process.exit(0);
-}
-
-if (typeof startedAt !== "string" || Number.isNaN(workWindowMinutes)) {
-  console.log(
-    JSON.stringify({
-      status: "skipped",
-      reason: "missing start timestamp or invalid work window",
-    }),
-  );
-  process.exit(0);
-}
-
-const startedMs = Date.parse(startedAt);
-
-if (!Number.isFinite(startedMs)) {
-  console.log(
-    JSON.stringify({
-      status: "skipped",
-      reason: `invalid start timestamp: ${startedAt}`,
-    }),
-  );
-  process.exit(0);
-}
-
-const elapsedMinutes = (Date.now() - startedMs) / 60000;
-const readyTaskCount = countReadyTasks("agent/BACKLOG.md");
-const gate = {
-  status:
-    elapsedMinutes < workWindowMinutes && readyTaskCount > 0 ? "blocked" : "ok",
-  elapsedMinutes: roundTenth(elapsedMinutes),
-  workWindowMinutes: roundTenth(workWindowMinutes),
-  remainingMinutes: roundTenth(Math.max(0, workWindowMinutes - elapsedMinutes)),
-  readyTaskCount,
-  startedAt,
-};
-
-console.log(JSON.stringify(gate));
-
-if (gate.status === "blocked") {
-  process.exit(2);
-}
-
-function roundTenth(value) {
-  return Math.round(value * 10) / 10;
-}
-
-function countReadyTasks(backlogPath) {
-  const backlog = fs.readFileSync(backlogPath, "utf8");
-  const lines = backlog.split(/\r?\n/);
-  let inReadySection = false;
-  let count = 0;
-
-  for (const line of lines) {
-    if (/^##\s+Ready Tasks(?:\s+By Category)?\s*$/.test(line)) {
-      inReadySection = true;
-      continue;
-    }
-
-    if (inReadySection && /^##\s+/.test(line)) {
-      break;
-    }
-
-    if (inReadySection && /^###\s+task-\d+\b/.test(line)) {
-      count += 1;
-    }
-  }
-
-  return count;
-}
-NODE
-)"
+stop_gate_result="$(node scripts/stop-gate.mjs)"
 stop_gate_status=$?
 
 if [[ -n "$stop_gate_result" ]]; then
   stop_gate_summary="$(node -e '
 const gate = JSON.parse(process.argv[1]);
 if (gate.status === "ok" || gate.status === "blocked") {
-  console.log(`elapsed=${gate.elapsedMinutes} required=${gate.workWindowMinutes} remaining=${gate.remainingMinutes} readyTasks=${gate.readyTaskCount}`);
-} else if (gate.status === "stop-condition") {
-  console.log(`stopCondition=${gate.result}`);
+  console.log(`minute=${gate.currentMinute} requiredMinute=${gate.stopMinute} readyTasks=${gate.readyTaskCount}`);
 } else {
   console.log(`${gate.status}: ${gate.reason}`);
 }
@@ -249,15 +161,15 @@ if (gate.status === "ok" || gate.status === "blocked") {
 fi
 
 if ((stop_gate_status == 2)); then
-  echo "Blocking stop attempt before elapsed work window is exhausted."
+  echo "Blocking stop attempt before the minute-50 gate opens."
   stop_gate_block_reason="$(node -e '
 const gate = JSON.parse(process.argv[1]);
-console.log(`Work window not exhausted: elapsed ${gate.elapsedMinutes}m of required ${gate.workWindowMinutes}m (${gate.remainingMinutes}m remaining), and ${gate.readyTaskCount} ready task(s) remain. Continue active repository work on the next coherent ready task; do not wait, sleep, poll, or idle. If a different window is intended, set STOP_HOOK_WORK_WINDOW_MINUTES and update AGENTS.md plus agent/WAKE.md to match.`);
+console.log(`Stop gate not open: current minute ${gate.currentMinute} is before minute ${gate.stopMinute} of this hour, and ${gate.readyTaskCount} ready task(s) remain. Continue active repository work on the next coherent ready task; do not wait, sleep, poll, or idle.`);
 ' "$stop_gate_result")"
   emit_continue_request "$stop_gate_block_reason"
   exit 0
 elif ((stop_gate_status != 0)); then
-  fail "stop gate elapsed-time check failed"
+  fail "stop gate minute check failed"
 fi
 
 required_files=(

@@ -49,10 +49,6 @@ trap cleanup EXIT
 RUN_ID="$(date -u +"%Y%m%dT%H%M%SZ")"
 LOG_FILE="$LOG_DIR/$RUN_ID.log"
 
-# .codex/config.toml runs scripts/codex-start-hook.sh through the
-# SessionStart hook. Do not call it here as well, or a second startup hook would
-# be treated as an overlapping active run.
-
 echo "Starting Codex run $RUN_ID"
 
 set +e

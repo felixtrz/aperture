@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-21 03:33 UTC</dd>
+            <dd>2026-05-21 04:37 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -449,12 +449,16 @@
               frames. WebGPU now exposes standalone timestamp query
               infrastructure that creates timestamp query sets, resolves them
               into readback buffers, and gracefully reports unsupported devices
-              when <code>timestamp-query</code> is unavailable. The GLB viewer
-              now renders extended StandardMaterial combined texture routes:
-              occlusion plus normal, metallic-roughness plus emissive,
-              alpha-blend plus normal, UV1 metallic-roughness plus normal,
-              base-color plus occlusion, and transformed base-color plus
-              emissive, plus UV1 base-color plus occlusion, transformed
+              when <code>timestamp-query</code> is unavailable. Timestamp writes
+              now wrap the main app pass and submitted shadow passes, and
+              successful app frames can surface JSON-safe
+              <code>gpuTimings</code> diagnostics. The GLTF scene status now
+              publishes both <code>main</code> and <code>shadow</code> timing
+              entries. The GLB viewer now renders extended StandardMaterial
+              combined texture routes: occlusion plus normal, metallic-roughness
+              plus emissive, alpha-blend plus normal, UV1 metallic-roughness
+              plus normal, base-color plus occlusion, and transformed base-color
+              plus emissive, plus UV1 base-color plus occlusion, transformed
               metallic-roughness plus normal, base-color plus metallic-roughness
               plus emissive, alpha-blend plus emissive, and UV1 base-color plus
               emissive, transformed base-color plus metallic-roughness, UV1
@@ -1638,8 +1642,8 @@
               </li>
               <li>Missing multi-material primitive queue rules.</li>
               <li>
-                Missing GPU timestamp telemetry for per-pass performance
-                reporting.
+                Missing GPU timing overlay example for live performance
+                inspection.
               </li>
             </ul>
           </article>
@@ -1666,9 +1670,9 @@
           <article class="phase">
             <div class="topline">
               <h3>6. submit</h3>
-              <span class="percent">89%</span>
+              <span class="percent">91%</span>
             </div>
-            <div class="bar"><span style="width: 89%"></span></div>
+            <div class="bar"><span style="width: 91%"></span></div>
             <p>
               WebGPU command submission renders the current proof paths with
               pipeline, bind group, transform, light, mesh, and material
@@ -1690,7 +1694,9 @@
               draws, and the batching example now submits 20 heterogeneous
               StandardMaterial source shapes as five draw calls. Standalone GPU
               timestamp query resources now support creation, resolve/copy, and
-              readback behind feature detection.
+              readback behind feature detection, and the WebGPU app now reports
+              per-pass timings for main and shadow pass submissions when
+              timestamp queries are available.
             </p>
             <ul>
               <li>Missing render graph and multi-pass architecture.</li>
@@ -1698,9 +1704,7 @@
                 Missing full GGX importance sampling, post-processing, and
                 broader environment asset preparation.
               </li>
-              <li>
-                Missing render-pass timestamp writes and timing JSON surfacing.
-              </li>
+              <li>Missing user-facing GPU profiler overlay example.</li>
             </ul>
           </article>
         </div>
@@ -3816,13 +3820,11 @@
             <h3>Recommended next tasks</h3>
             <ul>
               <li>
-                <span class="badge amber">next</span> Add GPU timestamp query
-                writes around render passes.
+                <span class="badge amber">next</span> Add GPU timings example
+                panel.
               </li>
-              <li>Instrument shadow and main passes with timestamp writes.</li>
-              <li>
-                Report absent timings cleanly when the feature is disabled.
-              </li>
+              <li>Show live main/shadow pass timings in the browser.</li>
+              <li>Keep timing diagnostics JSON-safe and feature-gated.</li>
             </ul>
           </article>
         </div>
@@ -3834,6 +3836,26 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3022</div>
+            <div>
+              <strong>GPU timings surfaced in app diagnostics.</strong>
+              <span
+                >App reports now expose JSON-safe per-pass timings, and the GLTF
+                scene publishes main plus shadow timing entries.</span
+              >
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="task-id">task-3021</div>
+            <div>
+              <strong>Main and shadow passes are timestamped.</strong>
+              <span
+                >Frame-boundary and shadow-pass submission paths now write and
+                resolve timestamp queries around real render passes.</span
+              >
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3020</div>
             <div>

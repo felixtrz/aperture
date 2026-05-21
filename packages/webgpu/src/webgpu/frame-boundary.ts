@@ -30,6 +30,13 @@ import {
 } from "./render-pass-command-executor.js";
 import type { RenderPassCommand } from "./render-pass-commands.js";
 import {
+  resolveGpuTimestampQueries,
+  writeGpuTimestampQuery,
+  type GpuTimestampCommandEncoderLike,
+  type GpuTimestampCommandReport,
+  type GpuTimestampQueryResources,
+} from "./gpu-timing.js";
+import {
   beginPlannedRenderPass,
   endPlannedRenderPass,
   type BeginRenderPassResult,
@@ -169,6 +176,25 @@ export interface AssembleFrameBoundaryOptions {
   readonly clearColor?: readonly number[];
   readonly depthTarget?: RenderPassDepthAttachmentInput | null;
   readonly readback?: FrameBoundaryReadbackOptions;
+  readonly gpuTiming?: FrameBoundaryGpuTimingOptions;
+}
+
+export interface FrameBoundaryGpuTimingOptions {
+  readonly passName: string;
+  readonly resources: GpuTimestampQueryResources;
+  readonly startQuery?: number;
+  readonly endQuery?: number;
+  readonly resolveQueryCount?: number;
+}
+
+export interface FrameBoundaryGpuTimingCommandReport {
+  readonly pass: string;
+  readonly startQuery: number;
+  readonly endQuery: number;
+  readonly writeStart: GpuTimestampCommandReport | null;
+  readonly writeEnd: GpuTimestampCommandReport | null;
+  readonly resolve: GpuTimestampCommandReport | null;
+  readonly diagnostics: readonly GpuTimestampCommandReport["diagnostics"][number][];
 }
 
 export interface FrameBoundaryAssemblyReport {
@@ -182,6 +208,7 @@ export interface FrameBoundaryAssemblyReport {
   readonly finish: FinishCommandEncoderResult | null;
   readonly submit: SubmitCommandBuffersReport | null;
   readonly readback?: FrameBoundaryReadbackPlan | null;
+  readonly gpuTiming?: FrameBoundaryGpuTimingCommandReport | null;
 }
 
 export function assembleFrameBoundary(
@@ -223,8 +250,13 @@ export function assembleFrameBoundary(
   const encoderHandle = encoder?.resource?.encoder as
     | (RenderPassCommandEncoderLike &
         CommandEncoderFinishLike &
-        FrameBoundaryReadbackCommandEncoderLike)
+        FrameBoundaryReadbackCommandEncoderLike &
+        GpuTimestampCommandEncoderLike)
     | undefined;
+  const gpuTimingStart = writeFrameBoundaryGpuTimingStart(
+    encoderHandle,
+    options.gpuTiming,
+  );
   const begin =
     attachments?.plan === undefined || encoderHandle === undefined
       ? null
@@ -244,6 +276,14 @@ export function assembleFrameBoundary(
     pass === null
       ? null
       : endPlannedRenderPass(pass as RenderPassEncoderWithEndLike);
+  const gpuTimingEnd = writeFrameBoundaryGpuTimingEnd(
+    encoderHandle,
+    options.gpuTiming,
+  );
+  const gpuTimingResolve = resolveFrameBoundaryGpuTiming(
+    encoderHandle,
+    options.gpuTiming,
+  );
   const readback =
     options.readback === undefined
       ? null
@@ -288,6 +328,96 @@ export function assembleFrameBoundary(
     finish,
     submit,
     readback,
+    gpuTiming:
+      options.gpuTiming === undefined
+        ? null
+        : createFrameBoundaryGpuTimingCommandReport(
+            options.gpuTiming,
+            gpuTimingStart,
+            gpuTimingEnd,
+            gpuTimingResolve,
+          ),
+  };
+}
+
+function writeFrameBoundaryGpuTimingStart(
+  encoder:
+    | (RenderPassCommandEncoderLike &
+        CommandEncoderFinishLike &
+        FrameBoundaryReadbackCommandEncoderLike &
+        GpuTimestampCommandEncoderLike)
+    | undefined,
+  options: FrameBoundaryGpuTimingOptions | undefined,
+): GpuTimestampCommandReport | null {
+  if (options === undefined || encoder === undefined) {
+    return null;
+  }
+
+  return writeGpuTimestampQuery(
+    encoder,
+    options.resources,
+    options.startQuery ?? 0,
+  );
+}
+
+function writeFrameBoundaryGpuTimingEnd(
+  encoder:
+    | (RenderPassCommandEncoderLike &
+        CommandEncoderFinishLike &
+        FrameBoundaryReadbackCommandEncoderLike &
+        GpuTimestampCommandEncoderLike)
+    | undefined,
+  options: FrameBoundaryGpuTimingOptions | undefined,
+): GpuTimestampCommandReport | null {
+  if (options === undefined || encoder === undefined) {
+    return null;
+  }
+
+  return writeGpuTimestampQuery(
+    encoder,
+    options.resources,
+    options.endQuery ?? (options.startQuery ?? 0) + 1,
+  );
+}
+
+function resolveFrameBoundaryGpuTiming(
+  encoder:
+    | (RenderPassCommandEncoderLike &
+        CommandEncoderFinishLike &
+        FrameBoundaryReadbackCommandEncoderLike &
+        GpuTimestampCommandEncoderLike)
+    | undefined,
+  options: FrameBoundaryGpuTimingOptions | undefined,
+): GpuTimestampCommandReport | null {
+  if (options === undefined || encoder === undefined) {
+    return null;
+  }
+
+  return resolveGpuTimestampQueries(
+    encoder,
+    options.resources,
+    options.resolveQueryCount ?? options.resources.queryCount,
+  );
+}
+
+function createFrameBoundaryGpuTimingCommandReport(
+  options: FrameBoundaryGpuTimingOptions,
+  writeStart: GpuTimestampCommandReport | null,
+  writeEnd: GpuTimestampCommandReport | null,
+  resolve: GpuTimestampCommandReport | null,
+): FrameBoundaryGpuTimingCommandReport {
+  return {
+    pass: options.passName,
+    startQuery: options.startQuery ?? 0,
+    endQuery: options.endQuery ?? (options.startQuery ?? 0) + 1,
+    writeStart,
+    writeEnd,
+    resolve,
+    diagnostics: [
+      ...(writeStart?.diagnostics ?? []),
+      ...(writeEnd?.diagnostics ?? []),
+      ...(resolve?.diagnostics ?? []),
+    ],
   };
 }
 

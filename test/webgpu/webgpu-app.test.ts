@@ -226,6 +226,66 @@ describe("WebGPU app facade", () => {
     expectPreparedMeshFacadeSummary(sourceVersionFrame, { totalEntries: 1 });
   });
 
+  it("surfaces per-pass GPU timings in the app diagnostics summary", async () => {
+    const events: string[] = [];
+    const { canvas, environment } = webGpuHarness(events, {
+      timestampQuery: true,
+    });
+    const created = await createWebGpuApp({
+      canvas,
+      environment,
+      worldOptions: { entityCapacity: 8 },
+    });
+
+    expect(created.ok).toBe(true);
+
+    if (!created.ok) {
+      return;
+    }
+
+    const app = created.app;
+    const assets = createRenderAssetCollections({ registry: app.assets });
+    const mesh = assets.meshes.add(createBoxMeshAsset({ label: "TimedCube" }));
+    const material = assets.materials.unlit.add(
+      createUnlitMaterialAsset({ label: "TimedWhite" }),
+    );
+
+    app.spawn(
+      withTransform({ translation: [0, 0, 5] }),
+      withCamera({ priority: 0, layerMask: 1 }),
+    );
+    app.spawn(
+      withTransform(),
+      withMesh(mesh),
+      withMaterial(material),
+      withRenderLayer(1),
+      withVisibility(true),
+    );
+
+    const frame = await app.stepAndRender(1 / 60, 1, 21);
+    const json = webGpuAppRenderReportToJsonValue(frame);
+
+    expect(frame.ok).toBe(true);
+    expect(frame.gpuTimings).toMatchObject({
+      ready: true,
+      supported: true,
+      queryCount: 2,
+      passes: [{ pass: "main", startQuery: 0, endQuery: 1 }],
+      diagnostics: [],
+    });
+    expect(frame.gpuTimings?.passes[0]?.microseconds).toBeGreaterThan(0);
+    expect(json.diagnosticsSummary?.gpuTimings).toEqual(json.gpuTimings);
+    expect(json.diagnosticsSummary?.gpuTimings?.passes[0]).toMatchObject({
+      pass: "main",
+    });
+    expect(
+      json.diagnosticsSummary?.gpuTimings?.passes[0]?.microseconds,
+    ).toBeGreaterThan(0);
+    expect(events).toContain("encoder:timestamp:0");
+    expect(events).toContain("encoder:timestamp:1");
+    expect(events).toContain("encoder:resolve:2");
+  });
+
   it("submits ViewPacket render targets to registered off-screen textures and the swapchain", async () => {
     const events: string[] = [];
     const { canvas, environment } = webGpuHarness(events);
@@ -6974,8 +7034,16 @@ describe("WebGPU app facade", () => {
   });
 });
 
-function webGpuHarness(events: string[]) {
+function webGpuHarness(
+  events: string[],
+  options: { readonly timestampQuery?: boolean } = {},
+) {
+  let timestamp = 1_000n;
   const device = {
+    features: {
+      has: (feature: string) =>
+        feature === "timestamp-query" && options.timestampQuery === true,
+    },
     queue: {
       writeBuffer: (buffer: unknown) => {
         events.push(`queue:writeBuffer:${bufferLabel(buffer)}`);
@@ -7010,9 +7078,32 @@ function webGpuHarness(events: string[]) {
         getBindGroupLayout: (group: number) => ({ group }),
       };
     },
-    createBuffer: (descriptor: { readonly label?: string }) => {
+    createQuerySet: (descriptor: {
+      readonly label?: string;
+      readonly type: "timestamp";
+      readonly count: number;
+    }) => {
+      events.push(`device:querySet:${descriptor.label ?? "unlabeled"}`);
+      return {
+        descriptor,
+        timestamps: Array.from({ length: descriptor.count }, () => 0n),
+      };
+    },
+    createBuffer: (descriptor: {
+      readonly label?: string;
+      readonly size?: number;
+    }) => {
       events.push(`device:buffer:${descriptor.label ?? "unlabeled"}`);
-      return { descriptor };
+      const bytes = new ArrayBuffer(descriptor.size ?? 0);
+
+      return {
+        descriptor,
+        bytes,
+        mapAsync: async () => {},
+        getMappedRange: (offset = 0, size = bytes.byteLength) =>
+          bytes.slice(offset, offset + size),
+        unmap: () => {},
+      };
     },
     createTexture: (descriptor: { readonly label?: string }) => {
       const label = descriptor.label ?? "unlabeled";
@@ -7037,6 +7128,12 @@ function webGpuHarness(events: string[]) {
     createCommandEncoder: () => {
       events.push("device:encoder");
       return {
+        writeTimestamp: (querySet: unknown, queryIndex: number) => {
+          events.push(`encoder:timestamp:${queryIndex}`);
+          (querySet as { readonly timestamps: bigint[] }).timestamps[
+            queryIndex
+          ] = timestamp += 1_000n;
+        },
         beginRenderPass: () => {
           events.push("encoder:begin");
           return {
@@ -7055,6 +7152,44 @@ function webGpuHarness(events: string[]) {
         finish: () => {
           events.push("encoder:finish");
           return { commandBuffer: true };
+        },
+        resolveQuerySet: (
+          querySet: unknown,
+          firstQuery: number,
+          queryCount: number,
+          destination: unknown,
+        ) => {
+          events.push(`encoder:resolve:${queryCount}`);
+          const timestamps = (querySet as { readonly timestamps: bigint[] })
+            .timestamps;
+          const destinationValues = new BigUint64Array(
+            (destination as { readonly bytes: ArrayBuffer }).bytes,
+          );
+
+          for (let index = 0; index < queryCount; index += 1) {
+            destinationValues[index] = timestamps[firstQuery + index] ?? 0n;
+          }
+        },
+        copyBufferToBuffer: (
+          source: unknown,
+          sourceOffset: number,
+          destination: unknown,
+          destinationOffset: number,
+          size: number,
+        ) => {
+          events.push(`encoder:copyBuffer:${size}`);
+          const sourceBytes = new Uint8Array(
+            (source as { readonly bytes: ArrayBuffer }).bytes,
+            sourceOffset,
+            size,
+          );
+          const destinationBytes = new Uint8Array(
+            (destination as { readonly bytes: ArrayBuffer }).bytes,
+            destinationOffset,
+            size,
+          );
+
+          destinationBytes.set(sourceBytes);
         },
       };
     },
@@ -7079,6 +7214,7 @@ function webGpuHarness(events: string[]) {
     navigator: {
       gpu: {
         requestAdapter: async () => ({
+          features: device.features,
           requestDevice: async () => device,
         }),
         getPreferredCanvasFormat: () => "bgra8unorm",

@@ -227,6 +227,9 @@ export interface WebGpuLike {
 }
 
 export interface WebGpuAdapterLike {
+  readonly features?: {
+    readonly has?: (feature: string) => boolean;
+  };
   requestDevice(descriptor?: unknown): Promise<WebGpuDeviceLike>;
 }
 
@@ -258,6 +261,7 @@ export interface InitializeWebGpuOptions {
   readonly context?: WebGpuCanvasContextLike;
   readonly adapterOptions?: unknown;
   readonly deviceDescriptor?: unknown;
+  readonly timestampQuery?: "auto" | boolean;
   readonly alphaMode?: "opaque" | "premultiplied";
   readonly textureUsage?: number;
 }
@@ -302,7 +306,13 @@ export async function initializeWebGpu(
   let device: WebGpuDeviceLike;
 
   try {
-    device = await adapter.requestDevice(options.deviceDescriptor);
+    device = await adapter.requestDevice(
+      deviceDescriptorWithTimestampQuery(
+        adapter,
+        options.deviceDescriptor,
+        options.timestampQuery ?? "auto",
+      ),
+    );
   } catch (cause) {
     return failure("device-request-failed", cause);
   }
@@ -351,6 +361,58 @@ export async function initializeWebGpu(
 
 function defaultEnvironment(): WebGpuEnvironment {
   return globalThis as unknown as WebGpuEnvironment;
+}
+
+function deviceDescriptorWithTimestampQuery(
+  adapter: WebGpuAdapterLike,
+  descriptor: unknown,
+  mode: "auto" | boolean,
+): unknown {
+  if (mode === false) {
+    return descriptor;
+  }
+
+  const supported = adapter.features?.has?.("timestamp-query") === true;
+
+  if (!supported && mode !== true) {
+    return descriptor;
+  }
+
+  const source =
+    typeof descriptor === "object" && descriptor !== null ? descriptor : {};
+  const requiredFeatures = requiredFeatureList(source);
+
+  if (requiredFeatures.includes("timestamp-query")) {
+    return descriptor;
+  }
+
+  return {
+    ...source,
+    requiredFeatures: [...requiredFeatures, "timestamp-query"],
+  };
+}
+
+function requiredFeatureList(descriptor: object): string[] {
+  const candidate = (descriptor as { readonly requiredFeatures?: unknown })
+    .requiredFeatures;
+
+  if (Array.isArray(candidate)) {
+    return candidate.filter(
+      (feature): feature is string => typeof feature === "string",
+    );
+  }
+
+  if (
+    candidate !== null &&
+    typeof candidate === "object" &&
+    Symbol.iterator in candidate
+  ) {
+    return Array.from(candidate as Iterable<unknown>).filter(
+      (feature): feature is string => typeof feature === "string",
+    );
+  }
+
+  return [];
 }
 
 function failure(

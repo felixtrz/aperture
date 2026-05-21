@@ -5,6 +5,7 @@ import type {
 } from "@aperture-engine/render";
 import type { QueuedBuiltInAppResourceAdapterRegistryValidationJsonValue } from "./built-in-material-app-resource-adapter.js";
 import type { DirectLightReadinessReport } from "./direct-light-readiness.js";
+import type { GpuPassTimingReport } from "./gpu-timing.js";
 import type { WebGpuAppMaterialQueueRouteReportJsonValue } from "./material-queue-route-report.js";
 import type { QueuedMaterialFrameResourceSetSummary } from "./queued-material-frame-resource-set-summary.js";
 import type { RenderFrameQueueDiagnosticsSummary } from "./render-frame-plan.js";
@@ -16,6 +17,7 @@ export interface WebGpuAppDiagnosticsSummaryInput {
   readonly builtInAppResourceAdapters?: QueuedBuiltInAppResourceAdapterRegistryValidationJsonValue;
   readonly renderFrameQueue?: RenderFrameQueueDiagnosticsSummary;
   readonly renderQueueSortPhases?: readonly RenderQueueSortPhaseReport[];
+  readonly gpuTimings?: GpuPassTimingReport;
   readonly directLighting?: DirectLightReadinessReport;
 }
 
@@ -27,6 +29,7 @@ export interface WebGpuAppDiagnosticsSummary {
   readonly builtInAppResourceAdapters?: QueuedBuiltInAppResourceAdapterRegistryValidationJsonValue;
   readonly renderFrameQueue?: RenderFrameQueueDiagnosticsSummary;
   readonly renderQueueSortPhases?: readonly RenderQueueSortPhaseReport[];
+  readonly gpuTimings?: GpuPassTimingReport;
   readonly directLighting?: DirectLightReadinessReport;
 }
 
@@ -65,6 +68,11 @@ export function createWebGpuAppDiagnosticsSummary(
   if (input.renderQueueSortPhases !== undefined) {
     summary.sectionCount += 1;
     summary.renderQueueSortPhases = input.renderQueueSortPhases;
+  }
+
+  if (input.gpuTimings !== undefined) {
+    summary.sectionCount += 1;
+    summary.gpuTimings = input.gpuTimings;
   }
 
   if (input.directLighting !== undefined) {
