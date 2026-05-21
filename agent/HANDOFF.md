@@ -1,6 +1,57 @@
 # Agent Handoff
 
-Updated: 2026-05-21T23:16:44Z
+Updated: 2026-05-21T23:49:00Z
+
+## Current Run Update — 2026-05-21T23:49:00Z — Tonemap operators selectable
+
+Completed `task-3050`.
+
+### What changed
+
+- Added `output-stage-tonemap` helpers for `none`, Linear, Reinhard, ACES, AgX,
+  and Neutral operators.
+- Added `createWebGpuApp({ tonemap })`; StandardMaterial shader labels and app
+  pipeline cache keys now include the selected `tonemap:*` token.
+- Updated spinning-cube to accept `?tonemap=...`, report tonemap status, and
+  expose an opt-in GPU readback probe for tonemap comparisons.
+- Added a small emissive floor to the spinning-cube materials so visual probes
+  remain distinguishable from clear color across rotations.
+- Updated public tracker pages, backlog, and completed-task log. Recommended
+  next task is now `task-3051`.
+
+### References inspected
+
+- `references/three.js/src/constants.js`
+- `references/three.js/src/renderers/shaders/ShaderChunk/tonemapping_pars_fragment.glsl.js`
+- `references/engine/src/scene/constants.js`
+- `references/engine/src/scene/shader-lib/wgsl/chunks/common/frag/tonemapping/`
+
+### Validation
+
+- `node --check examples/spinning-cube.main.js`
+- `node --check examples/spinning-cube.worker.js`
+- `pnpm exec tsc --noEmit -p packages/webgpu/tsconfig.json`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec vitest run test/webgpu/output-stage-tonemap.test.ts test/webgpu/standard-pipeline.test.ts test/webgpu/webgpu-app.test.ts`
+- `pnpm exec eslint packages/webgpu/src/webgpu/output-stage-tonemap.ts packages/webgpu/src/webgpu/standard-pipeline.ts packages/webgpu/src/webgpu/app.ts test/webgpu/output-stage-tonemap.test.ts test/webgpu/standard-pipeline.test.ts test/webgpu/webgpu-app.test.ts examples/spinning-cube.main.js examples/spinning-cube.worker.js test/e2e/spinning-cube.spec.ts`
+- `pnpm run build`
+- Direct Playwright browser smoke against `examples:serve` compared
+  `?tonemap=linear` vs `?tonemap=aces`: both status payloads reported the
+  selected operator, both pipeline cache keys included the matching
+  `tonemap:*` token, and the readback pixel distance was `317.97`.
+
+### Known issues
+
+- The headed Playwright test-runner process hung during local artifact/browser
+  shutdown for the spinning-cube spec, so it was killed after producing useful
+  failure/artifact output. The direct Playwright smoke completed the actual
+  tonemap assertions, but its browser close also needed cleanup. Re-check the
+  runner before relying on the new `spinning-cube.spec.ts` test as a full-file
+  validation gate.
+
+### Recommended next task
+
+Start `task-3051`: sRGB pipeline + color-space audit.
 
 ## Current Run Update — 2026-05-21T23:16:44Z — Instance attributes example shipped
 

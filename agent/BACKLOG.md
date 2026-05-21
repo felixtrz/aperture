@@ -59,12 +59,12 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start `task-3050`: add the tonemap operator pipeline.
+Start `task-3051`: sRGB pipeline + color-space audit.
 
-Why this next: task-3045 completed Tier 9 by proving custom per-instance
-attributes in browser through a worker-split custom WGSL example. The next
-strict roadmap slice is Tier 10 output-stage and color management, starting with
-configurable tonemap operators.
+Why this next: task-3050 added configurable tonemap operators to the
+StandardMaterial WebGPU output path. The next strict roadmap slice audits the
+linear-to-display color-space path so tonemap output is encoded correctly and
+texture color-space invariants are explicit.
 
 Progress so far: `spinning-cube`, `multi-light-shadow`, and `glb-viewer` now
 use renderer-only `*.main.js` files plus ECS/extraction-owned `*.worker.js`
@@ -695,7 +695,7 @@ Acceptance criteria:
 - Draw-call count in app diagnostics is ≤ N/16 (the swarm collapsed into a small number of instanced draws — proving per-instance data didn't break coalescing).
 - The example uses one `withMesh(...)` and one custom material handle for all 500 entities. No per-instance material allocation.
 
-### task-3050 — Tonemap operator pipeline (Tier 10 part 1)
+### task-3050 — Tonemap operator pipeline (Tier 10 part 1) — Completed 2026-05-21
 
 Category: `webgpu-render`
 Package/write-scope: `packages/webgpu/src/webgpu/output-stage-*.ts` (new), `packages/runtime/src/index.ts`, targeted tests.

@@ -468,6 +468,25 @@ describe("WebGPU app facade", () => {
     });
   });
 
+  it("stores the selected output tonemap operator on renderer-only apps", async () => {
+    const events: string[] = [];
+    const { canvas, environment } = webGpuHarness(events);
+    const created = await createRendererOnlyWebGpuApp({
+      canvas,
+      environment,
+      simulationWorker: createManualSimulationWorker(),
+      tonemap: "aces",
+    });
+
+    expect(created.ok).toBe(true);
+
+    if (!created.ok) {
+      return;
+    }
+
+    expect(created.app.tonemap).toBe("aces");
+  });
+
   it("initializes WebGPU and renders the unlit queue path from ECS-authored entities", async () => {
     const events: string[] = [];
     const { canvas, environment } = webGpuHarness(events);

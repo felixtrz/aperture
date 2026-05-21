@@ -7,6 +7,9 @@ const jsonElement = document.querySelector("#example-json");
 const clearColor = [0.015, 0.025, 0.035, 1];
 const spinAxis = [0.35, 1, 0.2];
 const spinRadiansPerSecond = 3;
+const searchParams = new URLSearchParams(window.location.search);
+const requestedTonemap = searchParams.get("tonemap");
+const tonemapReadbackSample = { id: "tonemap-probe", x: 0.54, y: 0.5 };
 const environmentAsset = {
   path: "./assets/pisa-studio-rgbe-cube.hdr",
   url: new URL("./assets/pisa-studio-rgbe-cube.hdr", import.meta.url),
@@ -33,11 +36,16 @@ try {
   if (canvas === null) {
     publishStatus(failure("canvas", "canvas-unavailable", "Canvas missing."));
   } else {
+    const tonemap = aperture.resolveTonemapOperator(requestedTonemap);
+    const readbackUsage = aperture.createReadbackCanvasTextureUsage();
+    const enableTonemapReadback = requestedTonemap !== null && readbackUsage.ok;
     const sourceAssets = new aperture.AssetRegistry();
     const created = await aperture.createWebGpuApp({
       canvas,
       simulationWorker: createNoopSimulationWorker(),
       sourceAssets,
+      tonemap,
+      ...(enableTonemapReadback ? { textureUsage: readbackUsage.usage } : {}),
     });
 
     if (!created.ok) {
@@ -55,7 +63,13 @@ try {
           created.app,
           sourceAssets,
         );
-        startWorkerSnapshotLoop(aperture, created.app, scene);
+        startWorkerSnapshotLoop(
+          aperture,
+          created.app,
+          scene,
+          enableTonemapReadback,
+          readbackUsage,
+        );
       } catch (error) {
         publishStatus(environmentFailure(error));
       }
@@ -96,7 +110,7 @@ async function createLitSpinningCubePresentationScene(
     baseColorFactor: new Float32Array([1, 0.55, 0.25, 1]),
     metallicFactor: 0.82,
     roughnessFactor: 0.18,
-    emissiveFactor: [0.015, 0.01, 0.005],
+    emissiveFactor: [0.12, 0.06, 0.025],
   });
   const material = assets.materials.standard.add(materialAsset, {
     id: "spinning-cube-standard",
@@ -106,14 +120,14 @@ async function createLitSpinningCubePresentationScene(
     baseColorFactor: new Float32Array([1, 0.55, 0.25, 1]),
     metallicFactor: 0.92,
     roughnessFactor: 0,
-    emissiveFactor: [0, 0, 0],
+    emissiveFactor: [0.04, 0.035, 0.03],
   });
   const roughMaterialAsset = aperture.createStandardMaterialAsset({
     label: "SpinningCubeRoughProbe",
     baseColorFactor: new Float32Array([1, 0.55, 0.25, 1]),
     metallicFactor: 0.92,
     roughnessFactor: 1,
-    emissiveFactor: [0, 0, 0],
+    emissiveFactor: [0.04, 0.035, 0.03],
   });
   assets.materials.standard.add(glossyMaterialAsset, {
     id: "spinning-cube-glossy-probe",
@@ -154,7 +168,13 @@ async function createLitSpinningCubePresentationScene(
   };
 }
 
-function startWorkerSnapshotLoop(aperture, app, scene) {
+function startWorkerSnapshotLoop(
+  aperture,
+  app,
+  scene,
+  enableTonemapReadback,
+  readbackUsage,
+) {
   const worker = new Worker(
     "/worker-modules/examples/spinning-cube.worker.js",
     {
@@ -170,7 +190,16 @@ function startWorkerSnapshotLoop(aperture, app, scene) {
   };
 
   worker.addEventListener("message", (event) => {
-    void handleWorkerMessage(aperture, app, scene, worker, loop, event.data);
+    void handleWorkerMessage(
+      aperture,
+      app,
+      scene,
+      worker,
+      loop,
+      event.data,
+      enableTonemapReadback,
+      readbackUsage,
+    );
   });
   worker.addEventListener("error", (event) => {
     publishStatus(
@@ -198,6 +227,8 @@ async function handleWorkerMessage(
   worker,
   loop,
   message,
+  enableTonemapReadback,
+  readbackUsage,
 ) {
   if (message?.type === "ready") {
     loop.workerReady = true;
@@ -229,8 +260,20 @@ async function handleWorkerMessage(
     clearColor,
     label: "ecs-spinning-cube-lit",
     standardMaterialIblResources: scene.iblResources,
+    ...(enableTonemapReadback
+      ? { readbackSamples: [tonemapReadbackSample] }
+      : {}),
   });
-  const status = createFrameStatus(aperture, app, scene, report, loop, message);
+  const status = createFrameStatus(
+    aperture,
+    app,
+    scene,
+    report,
+    loop,
+    message,
+    enableTonemapReadback,
+    readbackUsage,
+  );
 
   publishStatus(status);
 
@@ -256,7 +299,16 @@ function requestWorkerFrame(worker, loop) {
   });
 }
 
-function createFrameStatus(aperture, app, scene, report, loop, message) {
+function createFrameStatus(
+  aperture,
+  app,
+  scene,
+  report,
+  loop,
+  message,
+  enableTonemapReadback,
+  readbackUsage,
+) {
   const snapshot = report.snapshot;
   const firstDraw = snapshot.meshDraws[0];
   const resources = report.resources?.resources ?? null;
@@ -274,6 +326,11 @@ function createFrameStatus(aperture, app, scene, report, loop, message) {
     apertureVersion: aperture.APERTURE_VERSION,
     renderingBackend: aperture.APERTURE_IDENTITY.renderingBackend,
     format: app.initialization.format,
+    tonemap: {
+      operator: app.tonemap,
+      requested: requestedTonemap,
+      pipelineKey: `tonemap:${app.tonemap}`,
+    },
     clearColor: {
       r: clearColor[0],
       g: clearColor[1],
@@ -328,6 +385,20 @@ function createFrameStatus(aperture, app, scene, report, loop, message) {
       key: firstDraw?.batchKey.pipelineKey ?? null,
       cacheKey: report.pipeline?.resource?.cacheKey ?? null,
     },
+    ...(requestedTonemap === null
+      ? {}
+      : {
+          readback:
+            report.readback ??
+            (enableTonemapReadback
+              ? {
+                  ok: false,
+                  reason: "readback-unavailable",
+                  message:
+                    "The spinning cube frame did not produce a tonemap readback sample.",
+                }
+              : readbackUsage),
+        }),
     resources: {
       materials: familyResourceCount(resources, "standard", 1),
       bindGroups: resources?.bindGroups.length ?? 0,

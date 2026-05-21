@@ -192,7 +192,7 @@ function registerSceneAssets(aperture, registry) {
     baseColorFactor: new Float32Array([1, 0.55, 0.25, 1]),
     metallicFactor: 0.82,
     roughnessFactor: 0.18,
-    emissiveFactor: [0.015, 0.01, 0.005],
+    emissiveFactor: [0.12, 0.06, 0.025],
   });
   const material = assets.materials.standard.add(materialAsset, {
     id: "spinning-cube-standard",
@@ -203,7 +203,7 @@ function registerSceneAssets(aperture, registry) {
       baseColorFactor: new Float32Array([1, 0.55, 0.25, 1]),
       metallicFactor: 0.92,
       roughnessFactor: 0,
-      emissiveFactor: [0, 0, 0],
+      emissiveFactor: [0.04, 0.035, 0.03],
     }),
     { id: "spinning-cube-glossy-probe" },
   );
@@ -213,7 +213,7 @@ function registerSceneAssets(aperture, registry) {
       baseColorFactor: new Float32Array([1, 0.55, 0.25, 1]),
       metallicFactor: 0.92,
       roughnessFactor: 1,
-      emissiveFactor: [0, 0, 0],
+      emissiveFactor: [0.04, 0.035, 0.03],
     }),
     { id: "spinning-cube-rough-probe" },
   );

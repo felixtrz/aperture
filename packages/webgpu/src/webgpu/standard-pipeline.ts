@@ -17,6 +17,11 @@ import {
   createStandardMeshShaderModuleDescriptor,
   STANDARD_MESH_SHADER,
 } from "./standard-shader.js";
+import {
+  applyOutputTonemapToStandardShader,
+  DEFAULT_TONEMAP_OPERATOR,
+  type TonemapOperator,
+} from "./output-stage-tonemap.js";
 import { INSTANCE_TINT_VERTEX_BUFFER_LAYOUT } from "./instance-tint-buffer.js";
 import {
   createWebGpuShaderModule,
@@ -101,6 +106,7 @@ export interface CreateStandardRenderPipelineResourceOptions {
   readonly depthFormat?: string | null;
   readonly batchKey: BatchCompatibilityKey;
   readonly shader?: BuiltInShaderSourceModule;
+  readonly tonemap?: TonemapOperator;
 }
 
 export interface StandardRenderPipelineResource {
@@ -122,9 +128,9 @@ export interface StandardRenderPipelineDeviceLike
 export async function createStandardRenderPipelineResource(
   options: CreateStandardRenderPipelineResourceOptions,
 ): Promise<CreateStandardRenderPipelineResourceResult> {
-  const shader = resolveStandardShaderForBatchKey(
-    options.batchKey,
-    options.shader,
+  const shader = applyOutputTonemapToStandardShader(
+    resolveStandardShaderForBatchKey(options.batchKey, options.shader),
+    options.tonemap ?? DEFAULT_TONEMAP_OPERATOR,
   );
   const descriptorPlan = createStandardPipelineDescriptorPlan({
     shader,

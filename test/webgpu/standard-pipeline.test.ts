@@ -12,6 +12,7 @@ import {
   createBrowserStandardRenderPipelineDescriptor,
   createStandardRenderPipelineResource,
   createStandardTextureVariantShader,
+  createTonemapPipelineKey,
   type BatchCompatibilityKey,
   type WebGpuRenderPipelineCreateDescriptor,
   type WebGpuShaderCreateDescriptor,
@@ -314,6 +315,47 @@ describe("browser standard material pipeline bridge", () => {
       },
       primitive: { topology: "triangle-list", cullMode: "back" },
     });
+  });
+
+  it("includes selected output tonemap operators in standard pipeline identity", async () => {
+    const shaderModule = {
+      compilationInfo: async () => ({ messages: [] }),
+    };
+    const pipeline = { kind: "standard-tonemapped-render-pipeline" };
+    const shaderDescriptors: WebGpuShaderCreateDescriptor[] = [];
+    const pipelineDescriptors: WebGpuRenderPipelineCreateDescriptor[] = [];
+    const device = {
+      createShaderModule(descriptor: WebGpuShaderCreateDescriptor) {
+        shaderDescriptors.push(descriptor);
+        return shaderModule;
+      },
+      createRenderPipeline(descriptor: WebGpuRenderPipelineCreateDescriptor) {
+        pipelineDescriptors.push(descriptor);
+        return pipeline;
+      },
+    };
+
+    const result = await createStandardRenderPipelineResource({
+      device,
+      colorFormat: "bgra8unorm",
+      depthFormat: "depth24plus",
+      batchKey: STANDARD_BATCH_KEY,
+      tonemap: "aces",
+    });
+
+    expect(result.diagnostics).toEqual([]);
+    expect(required(result.resource).cacheKey).toContain(
+      createTonemapPipelineKey("aces"),
+    );
+    expect(shaderDescriptors[0]).toMatchObject({
+      label: `aperture/standard-mesh|${createTonemapPipelineKey("aces")}`,
+    });
+    expect(shaderDescriptors[0]?.code).toContain(
+      "return vec4f(apertureOutputTonemap(color), alpha);",
+    );
+    expect(pipelineDescriptors[0]?.label).toBe(
+      `aperture/standard-mesh|${createTonemapPipelineKey("aces")}:bgra8unorm:triangle-list`,
+    );
   });
 
   it("selects a shadow receiver shader and browser-safe group 3 layout key for shadowMap pipeline keys", async () => {

@@ -199,6 +199,11 @@ import {
   type CreateStandardRenderPipelineResourceResult,
 } from "./standard-pipeline.js";
 import {
+  createTonemapPipelineKey,
+  resolveTonemapOperator,
+  type TonemapOperator,
+} from "./output-stage-tonemap.js";
+import {
   createMultiMaterialUnlitFrameGpuResources,
   type CreateMultiMaterialUnlitFrameGpuResourcesResult,
 } from "./unlit-frame-resources.js";
@@ -548,6 +553,7 @@ export interface WebGpuApp {
   readonly canvas: WebGpuCanvasLike;
   readonly initialization: WebGpuInitializationSuccess;
   readonly renderWorld: RenderWorld;
+  readonly tonemap: TonemapOperator;
   start(options?: WebGpuAppStartOptions): void;
   stop(): void;
   getDiagnostics(): WebGpuAppDiagnostics;
@@ -568,6 +574,7 @@ export interface CreateWebGpuAppOptions extends Omit<
   readonly workerStartOptions?: WebGpuAppStartOptions;
   readonly transport?: WebGpuAppSnapshotTransportMode;
   readonly sharedSnapshotTransport?: WebGpuAppSharedSnapshotTransportOptions;
+  readonly tonemap?: TonemapOperator;
 }
 
 export interface CreateWebGpuAppSuccess {
@@ -609,6 +616,7 @@ export async function createWebGpuApp(
 
   const sourceAssets = options.sourceAssets ?? new AssetRegistry();
   const renderWorld = new RenderWorld();
+  const tonemap = resolveTonemapOperator(options.tonemap);
   const resourceCache = createWebGpuAppResourceCache();
   const snapshotTransport = createWebGpuAppSnapshotTransport({
     ...(options.transport === undefined ? {} : { mode: options.transport }),
@@ -627,6 +635,7 @@ export async function createWebGpuApp(
     canvas: options.canvas,
     initialization,
     renderWorld,
+    tonemap,
     start(startOptions = {}) {
       if (running) {
         return;
@@ -833,6 +842,9 @@ async function getOrCreateWebGpuAppPipeline(options: {
     options.app.initialization.format,
     WEBGPU_APP_DEPTH_FORMAT,
     options.pipelineKey,
+    options.kind === "standard"
+      ? createTonemapPipelineKey(options.app.tonemap)
+      : "tonemap:none",
   ].join("|");
   const cached = options.cache.pipelines.get(key);
 
@@ -852,6 +864,7 @@ async function getOrCreateWebGpuAppPipeline(options: {
           colorFormat: options.app.initialization.format,
           depthFormat: WEBGPU_APP_DEPTH_FORMAT,
           batchKey: options.batchKey,
+          tonemap: options.app.tonemap,
         })
       : options.kind === "debug-normal"
         ? await createDebugNormalRenderPipelineResource({

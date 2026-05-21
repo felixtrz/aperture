@@ -6,6 +6,6 @@
   "lastResult": "success",
   "lastCommit": "a1e1e10",
   "activePid": null,
-  "notes": "Completed task-3042 through task-3044: render packet inspector, extraction frustum culling, and the custom per-instance attribute contract; validation passed; next task is task-3045 visible instance-attributes example.",
-  "lastRunFinishedAt": "2026-05-21T22:51:14Z"
+  "notes": "Completed task-3050: selectable StandardMaterial tonemap operators, spinning-cube tonemap status/readback probe, tests and tracker updates; next task is task-3051 sRGB pipeline + color-space audit.",
+  "lastRunFinishedAt": "2026-05-21T23:50:41Z"
 }

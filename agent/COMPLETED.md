@@ -1,5 +1,24 @@
 # Completed Tasks
 
+## task-3050 — Tonemap operator pipeline
+
+Completed: 2026-05-21
+
+- Added `packages/webgpu/src/webgpu/output-stage-tonemap.ts` with `none`,
+  Linear, Reinhard, ACES, AgX, and Neutral operators plus parser/key helpers.
+- Added `createWebGpuApp({ tonemap })` support and made StandardMaterial shader
+  labels/app pipeline cache keys include the selected `tonemap:*` token.
+- Updated `examples/spinning-cube.html?tonemap=...` to publish tonemap status
+  and GPU readback samples; added a small emissive floor so visual probes stay
+  visible across rotations.
+- Added Vitest coverage for operator WGSL generation, pipeline-key inclusion,
+  and app option storage; added Playwright coverage for selectable tonemap
+  readback differences.
+- Validation run: targeted WebGPU/test TypeScript, targeted Vitest, targeted
+  ESLint, `pnpm run build`, and a direct Playwright browser smoke comparing
+  Linear vs ACES readback/status/cache-key output passed. The Playwright test
+  runner process hung during headed artifact shutdown locally and was killed.
+
 ## task-3045 — Per-instance custom attributes visible example
 
 Completed: 2026-05-21

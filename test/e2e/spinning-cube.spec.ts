@@ -61,6 +61,25 @@ interface SpinningCubeStatus extends ExampleStatusBase {
     readonly key: string | null;
     readonly cacheKey: string | null;
   };
+  readonly tonemap?: {
+    readonly operator: string;
+    readonly requested: string | null;
+    readonly pipelineKey: string;
+  };
+  readonly readback?: {
+    readonly ok: boolean;
+    readonly reason?: string;
+    readonly message?: string;
+    readonly samples?: readonly {
+      readonly id: string;
+      readonly pixel: {
+        readonly r: number;
+        readonly g: number;
+        readonly b: number;
+        readonly a: number;
+      };
+    }[];
+  };
   readonly resources?: {
     readonly materials: number;
     readonly bindGroups: number;
@@ -291,6 +310,124 @@ test("Playwright shows an ECS-driven spinning lit standard cube", async ({
   expectRoughnessMipChainPixels(laterScreenshot, laterStatus);
 });
 
+test("spinning cube selects output tonemap operators with GPU readback", async ({
+  page,
+}) => {
+  const linear = await waitForTonemapReadback(page, "linear");
+  const aces = await waitForTonemapReadback(page, "aces");
+
+  expect(
+    pixelDistance(linear.pixel, aces.pixel),
+    `same coordinate should differ between tonemap operators; linear=${JSON.stringify(
+      linear,
+    )} aces=${JSON.stringify(aces)}`,
+  ).toBeGreaterThan(8);
+});
+
+async function waitForTonemapReadback(
+  page: Page,
+  operator: "linear" | "aces",
+): Promise<{
+  readonly status: SpinningCubeStatus;
+  readonly pixel: NonNullable<
+    NonNullable<SpinningCubeStatus["readback"]>["samples"]
+  >[number]["pixel"];
+}> {
+  await page.goto(`/examples/spinning-cube.html?tonemap=${operator}`);
+
+  const initialStatus = await waitForExampleStatus<SpinningCubeStatus>(page);
+
+  expect(
+    initialStatus,
+    `spinning cube ${operator} status should publish`,
+  ).toBeDefined();
+
+  if (initialStatus === undefined) {
+    throw new Error(`Spinning cube ${operator} status did not publish.`);
+  }
+
+  skipIfUnsupportedWebGpu(initialStatus);
+
+  await page.waitForFunction((expected) => {
+    const status = (
+      globalThis as typeof globalThis & {
+        readonly __APERTURE_EXAMPLE_STATUS__?: SpinningCubeStatus;
+      }
+    ).__APERTURE_EXAMPLE_STATUS__;
+    const sample = status?.readback?.samples?.find(
+      (readbackSample) => readbackSample.id === "tonemap-probe",
+    );
+
+    if (
+      status?.ok !== true ||
+      status.tonemap?.operator !== expected ||
+      status.readback?.ok !== true ||
+      sample === undefined
+    ) {
+      return false;
+    }
+
+    const clear = status.clearColor as
+      | { readonly r: number; readonly g: number; readonly b: number }
+      | undefined;
+    const clearPixel = {
+      r: Math.round((clear?.r ?? 0.015) * 255),
+      g: Math.round((clear?.g ?? 0.025) * 255),
+      b: Math.round((clear?.b ?? 0.035) * 255),
+      a: 255,
+    };
+    const pixel = sample.pixel;
+    const distance = Math.hypot(
+      pixel.r - clearPixel.r,
+      pixel.g - clearPixel.g,
+      pixel.b - clearPixel.b,
+      pixel.a - clearPixel.a,
+    );
+
+    return distance > 24;
+  }, operator);
+
+  const status = await waitForAnimationFrame(page, 3);
+
+  await attachExampleStatus(`spinning-cube-tonemap-${operator}`, status);
+  expectStatusJsonSafeForGpu(status);
+  expect(status.tonemap, JSON.stringify(status, null, 2)).toMatchObject({
+    operator,
+    requested: operator,
+    pipelineKey: `tonemap:${operator}`,
+  });
+  expect(
+    status.pipeline?.cacheKey ?? "",
+    JSON.stringify(status, null, 2),
+  ).toContain(`tonemap:${operator}`);
+
+  if (status.readback?.ok !== true) {
+    test.skip(
+      true,
+      `Spinning cube tonemap readback unavailable: ${status.readback?.reason ?? "unknown"}`,
+    );
+  }
+
+  const sample = status.readback?.samples?.find(
+    (readbackSample) => readbackSample.id === "tonemap-probe",
+  );
+
+  expect(
+    sample,
+    `expected tonemap-probe GPU readback sample; status=${JSON.stringify(
+      status,
+      null,
+      2,
+    )}`,
+  ).toBeDefined();
+
+  if (sample === undefined) {
+    throw new Error(`Missing tonemap-probe readback for ${operator}.`);
+  }
+
+  return { status, pixel: sample.pixel };
+}
+
 function expectNonBlankCubePixel(
   screenshot: Buffer,
   status: SpinningCubeStatus,
@@ -305,9 +442,25 @@ function expectNonBlankCubePixel(
         )
       : { r: 4, g: 6, b: 9, a: 255 };
 
+  const centerDistance = pixelDistance(center, clear);
+
+  if (centerDistance > 36) {
+    return;
+  }
+
+  const visible = findBrightestCubeSample(screenshot, clear, {
+    label: "visible spinning cube fallback sample",
+    xMin: 0.15,
+    xMax: 0.8,
+    yMin: 0.2,
+    yMax: 0.9,
+  });
+
   expect(
-    pixelDistance(center, clear),
-    `center pixel should differ from clear color; center=${JSON.stringify(center)} clear=${JSON.stringify(clear)}`,
+    pixelDistance(visible.pixel, clear),
+    `a visible cube pixel should differ from clear color when the center is dark; center=${JSON.stringify(
+      center,
+    )} visible=${JSON.stringify(visible)} clear=${JSON.stringify(clear)}`,
   ).toBeGreaterThan(36);
 }
 

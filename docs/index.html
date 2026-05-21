@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-21 23:13 UTC</dd>
+            <dd>2026-05-21 23:49 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -1231,7 +1231,7 @@
               key so live route changes do not reuse incompatible layouts.
             </dd>
             <dt>Next focus</dt>
-            <dd>task-3050 tonemap operator pipeline</dd>
+            <dd>task-3051 sRGB pipeline + color-space audit</dd>
           </dl>
         </aside>
       </header>
@@ -4143,12 +4143,13 @@
             <ul>
               <li>
                 <span class="badge amber">next</span> Build
-                <code>task-3050</code>, the tonemap operator pipeline with
-                configurable output-stage operators.
+                <code>task-3051</code>, the sRGB pipeline and color-space audit
+                on top of the new tonemap hook.
               </li>
               <li>
-                Follow-up visible slices include the sRGB/color-space audit,
-                native RGBE <code>.hdr</code> loading, and a tonemap showcase.
+                Follow-up visible slices include native RGBE <code>.hdr</code>
+                loading, a tonemap showcase, and bloom/auto-exposure output
+                work.
               </li>
               <li>
                 Keep the recommended next task visible-feature first; avoid
@@ -4165,6 +4166,17 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3050</div>
+            <div>
+              <strong>Tonemap operators are selectable.</strong>
+              <span>
+                <code>createWebGpuApp({ tonemap })</code> now supports none,
+                Linear, Reinhard, ACES, AgX, and Neutral operators with
+                pipeline-keyed StandardMaterial shader output.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3045</div>
             <div>
