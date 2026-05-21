@@ -211,10 +211,25 @@ test("renders ECS ViewPacket targets to off-screen texture and swapchain", async
     const webGpuCanvas = canvas as unknown as Parameters<
       typeof webgpu.createWebGpuApp
     >[0]["canvas"];
+    const simulation = aperture.createExtractionApp({
+      worldOptions: { entityCapacity: 8 },
+    });
+    const simulationWorker: Parameters<
+      typeof webgpu.createWebGpuApp
+    >[0]["simulationWorker"] = {
+      start() {},
+      onSnapshot() {
+        return () => {};
+      },
+      onError() {
+        return () => {};
+      },
+    };
     const created = await aperture.createWebGpuApp({
       canvas: webGpuCanvas,
       textureUsage: textureUsage.RENDER_ATTACHMENT | textureUsage.COPY_SRC,
-      worldOptions: { entityCapacity: 8 },
+      simulationWorker,
+      sourceAssets: simulation.assets,
     });
 
     if (!created.ok) {
@@ -237,7 +252,7 @@ test("renders ECS ViewPacket targets to off-screen texture and swapchain", async
       usage: textureUsage.RENDER_ATTACHMENT | textureUsage.COPY_SRC,
     });
     const assets = aperture.createRenderAssetCollections({
-      registry: app.assets,
+      registry: simulation.assets,
     });
     const mesh = assets.meshes.add(
       aperture.createBoxMeshAsset({ label: "ViewTargetCube" }),
@@ -250,8 +265,8 @@ test("renders ECS ViewPacket targets to off-screen texture and swapchain", async
     );
     const renderTarget = aperture.createRenderTargetHandle("e2e-offscreen");
 
-    app.assets.register(renderTarget);
-    app.assets.markReady(
+    simulation.assets.register(renderTarget);
+    simulation.assets.markReady(
       renderTarget,
       aperture.createWebGpuAppRenderTargetAsset({
         texture: offscreenTexture,
@@ -262,7 +277,7 @@ test("renders ECS ViewPacket targets to off-screen texture and swapchain", async
       }),
     );
 
-    app.spawn(
+    simulation.spawn(
       aperture.withTransform({ translation: [0, 0, 5] }),
       aperture.withCamera({
         priority: 0,
@@ -271,20 +286,19 @@ test("renders ECS ViewPacket targets to off-screen texture and swapchain", async
         renderTargetId: aperture.assetHandleKey(renderTarget),
       }),
     );
-    app.spawn(
+    simulation.spawn(
       aperture.withTransform({ translation: [0, 0, 5] }),
       aperture.withCamera({ priority: 1, layerMask: 1, aspect: 1 }),
     );
-    app.spawn(
+    simulation.spawn(
       aperture.withTransform(),
       aperture.withMesh(mesh),
       aperture.withMaterial(material),
       aperture.withRenderLayer(1),
       aperture.withVisibility(true),
     );
-    app.step(1 / 60, 1);
-
-    const frame = await app.render({
+    const snapshot = simulation.stepAndExtract(1 / 60, 1, 17);
+    const frame = await app.renderSnapshot(snapshot, {
       frame: 17,
       clearColor: [0, 0, 0, 1],
       readbackSamples: [{ id: "swapchain-center", x: 0.5, y: 0.5 }],

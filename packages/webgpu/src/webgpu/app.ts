@@ -1,16 +1,7 @@
 import {
   AssetRegistry,
   assetHandleKey,
-  createMaterialHandle,
-  createWorld,
-  registerMetadataComponents,
-  registerTransformComponents,
-  resolveWorldTransforms,
-  type EcsWorld,
-  type Entity,
   type RenderTargetHandle,
-  type TransformResolutionReport,
-  type WorldOptions,
 } from "@aperture-engine/simulation";
 import {
   RenderWorld,
@@ -22,15 +13,12 @@ import {
   createPackedSnapshotInstanceTintsScratch,
   createPackedSnapshotViewUniformsScratch,
   createMaterialDependencyReadinessReport,
-  extractRenderSnapshot,
-  Material,
   materialDependencyReadinessReportToJsonValue,
   prepareSnapshotMeshes,
   prepareSnapshotMaterials,
   preparedMeshStoreSummaryToJsonValue,
   preparedMaterialStoreSummaryToJsonValue,
   writeMaterialQueueFromSnapshot,
-  registerRenderAuthoringComponents,
   writePackedSnapshotTransforms,
   writePackedSnapshotInstanceTintsForVertexBuffer,
   writePackedSnapshotViewUniforms,
@@ -239,21 +227,6 @@ import {
   type WebGpuInitializationSuccess,
 } from "./index.js";
 
-export interface WebGpuAppStepResult {
-  readonly transform: TransformResolutionReport;
-}
-
-export interface WebGpuAppSpawnContext {
-  readonly app: WebGpuApp;
-  readonly world: EcsWorld;
-  readonly assets: AssetRegistry;
-}
-
-export type WebGpuAppEntityInitializer = (
-  entity: Entity,
-  context: WebGpuAppSpawnContext,
-) => void;
-
 export interface WebGpuAppRenderOptions {
   readonly frame?: number;
   readonly snapshot?: RenderSnapshot;
@@ -357,6 +330,46 @@ export interface WebGpuAppDrawResourceSet {
 export interface WebGpuAppDrawResourceSetPlan {
   readonly sets: readonly WebGpuAppDrawResourceSet[];
   readonly drawCount: number;
+}
+
+export interface WebGpuAppSimulationWorkerSnapshotEvent {
+  readonly snapshot: RenderSnapshot;
+  readonly frame: number;
+  readonly message?: unknown;
+}
+
+export interface WebGpuAppSimulationWorkerErrorEvent {
+  readonly reason: string;
+  readonly message: string;
+  readonly source?: string;
+  readonly raw?: unknown;
+}
+
+export type WebGpuAppSimulationWorkerSnapshotCallback = (
+  event: WebGpuAppSimulationWorkerSnapshotEvent,
+) => void;
+
+export type WebGpuAppSimulationWorkerErrorCallback = (
+  event: WebGpuAppSimulationWorkerErrorEvent,
+) => void;
+
+export interface WebGpuAppSimulationWorker {
+  start(options?: Record<string, unknown>): void;
+  onSnapshot(callback: WebGpuAppSimulationWorkerSnapshotCallback): () => void;
+  onError(callback: WebGpuAppSimulationWorkerErrorCallback): () => void;
+}
+
+export type WebGpuAppStartOptions = Record<string, unknown>;
+
+export interface WebGpuAppWorkerRenderErrorDiagnostic {
+  readonly code: "webGpuApp.workerSnapshotRenderFailed";
+  readonly message: string;
+  readonly reason: string;
+}
+
+export interface WebGpuAppDiagnostics {
+  readonly lastFrame: WebGpuAppRenderReportJsonValue | null;
+  readonly lastError: WebGpuAppWorkerRenderErrorDiagnostic | null;
 }
 
 export interface WebGpuAppRenderReport {
@@ -477,6 +490,11 @@ interface MultiUnlitAppResourceSet {
   readonly materialKeys: readonly string[];
 }
 
+interface WebGpuAppRenderContext {
+  readonly app: WebGpuApp;
+  readonly sourceAssets: AssetRegistry;
+}
+
 interface WebGpuAppPipelinePlanResult {
   readonly ok: true;
   readonly status: "miss";
@@ -487,6 +505,7 @@ interface WebGpuAppPipelinePlanResult {
 
 interface QueuedBuiltInTextureSamplerPreparationOptions {
   readonly app: WebGpuApp;
+  readonly assets: AssetRegistry;
   readonly cache: QueuedBuiltInAppResourcePreparationCache;
   readonly item: QueuedBuiltInAppResourceItem;
   readonly reuse: WebGpuAppResourceReuseReport;
@@ -494,6 +513,7 @@ interface QueuedBuiltInTextureSamplerPreparationOptions {
 
 interface QueuedBuiltInFrameResourcePreparationOptions {
   readonly app: WebGpuApp;
+  readonly assets: AssetRegistry;
   readonly cache: QueuedBuiltInAppResourcePreparationCache;
   readonly preparedMaterials: PreparedBuiltInMaterialStore;
   readonly snapshot: RenderSnapshot;
@@ -516,20 +536,15 @@ type QueuedBuiltInAppResourcePreparationCache = Omit<
 >;
 
 export interface WebGpuApp {
-  readonly world: EcsWorld;
-  readonly assets: AssetRegistry;
   readonly canvas: WebGpuCanvasLike;
   readonly initialization: WebGpuInitializationSuccess;
   readonly renderWorld: RenderWorld;
-  spawn(...initializers: WebGpuAppEntityInitializer[]): Entity;
-  registerSystem(system: Parameters<EcsWorld["registerSystem"]>[0]): WebGpuApp;
-  step(delta?: number, time?: number): WebGpuAppStepResult;
-  extract(frame?: number): RenderSnapshot;
-  render(options?: WebGpuAppRenderOptions): Promise<WebGpuAppRenderReport>;
-  stepAndRender(
-    delta?: number,
-    time?: number,
-    frame?: number,
+  start(options?: WebGpuAppStartOptions): void;
+  stop(): void;
+  getDiagnostics(): WebGpuAppDiagnostics;
+  renderSnapshot(
+    snapshot: RenderSnapshot,
+    options?: Omit<WebGpuAppRenderOptions, "snapshot">,
   ): Promise<WebGpuAppRenderReport>;
 }
 
@@ -538,9 +553,10 @@ export interface CreateWebGpuAppOptions extends Omit<
   "canvas"
 > {
   readonly canvas: WebGpuCanvasLike;
-  readonly assets?: AssetRegistry;
-  readonly world?: EcsWorld;
-  readonly worldOptions?: Partial<WorldOptions>;
+  readonly simulationWorker: WebGpuAppSimulationWorker;
+  readonly sourceAssets?: AssetRegistry;
+  readonly autoStart?: boolean;
+  readonly workerStartOptions?: WebGpuAppStartOptions;
 }
 
 export interface CreateWebGpuAppSuccess {
@@ -580,51 +596,83 @@ export async function createWebGpuApp(
     return initialization;
   }
 
-  const world = options.world ?? createWorld(options.worldOptions);
-  const assets = options.assets ?? new AssetRegistry();
+  const sourceAssets = options.sourceAssets ?? new AssetRegistry();
   const renderWorld = new RenderWorld();
   const resourceCache = createWebGpuAppResourceCache();
-
-  registerTransformComponents(world);
-  registerMetadataComponents(world);
-  registerRenderAuthoringComponents(world);
+  let running = false;
+  let unsubscribeSnapshot: (() => void) | null = null;
+  let unsubscribeError: (() => void) | null = null;
+  let renderQueue: Promise<void> = Promise.resolve();
+  let latestReport: WebGpuAppRenderReport | null = null;
+  let latestWorkerError: WebGpuAppWorkerRenderErrorDiagnostic | null = null;
 
   const app: WebGpuApp = {
-    world,
-    assets,
     canvas: options.canvas,
     initialization,
     renderWorld,
-    spawn(...initializers) {
-      const entity = world.createEntity();
-      const context: WebGpuAppSpawnContext = { app, world, assets };
-
-      for (const initializer of initializers) {
-        initializer(entity, context);
+    start(startOptions = {}) {
+      if (running) {
+        return;
       }
 
-      return entity;
+      running = true;
+      unsubscribeSnapshot = options.simulationWorker.onSnapshot((event) => {
+        renderQueue = renderQueue
+          .then(async () => {
+            await app.renderSnapshot(event.snapshot, { frame: event.frame });
+          })
+          .catch((error: unknown) => {
+            latestWorkerError = {
+              code: "webGpuApp.workerSnapshotRenderFailed",
+              reason: "webgpu-app.render-snapshot-failed",
+              message:
+                error instanceof Error
+                  ? error.message
+                  : "Rendering a worker-produced snapshot failed.",
+            };
+          });
+      });
+      unsubscribeError = options.simulationWorker.onError((event) => {
+        latestWorkerError = {
+          code: "webGpuApp.workerSnapshotRenderFailed",
+          reason: event.reason,
+          message: event.message,
+        };
+      });
+      options.simulationWorker.start({
+        ...(options.workerStartOptions ?? {}),
+        ...startOptions,
+      });
     },
-    registerSystem(system) {
-      world.registerSystem(system);
-      return this;
+    stop() {
+      if (!running) {
+        return;
+      }
+
+      running = false;
+      unsubscribeSnapshot?.();
+      unsubscribeSnapshot = null;
+      unsubscribeError?.();
+      unsubscribeError = null;
     },
-    step(delta = 0, time = 0) {
-      world.update(delta, time);
-      return { transform: resolveWorldTransforms(world) };
+    getDiagnostics() {
+      return {
+        lastFrame:
+          latestReport === null
+            ? null
+            : webGpuAppRenderReportToJsonValue(latestReport),
+        lastError: latestWorkerError,
+      };
     },
-    extract(frame = 0) {
-      return extractRenderSnapshot(world, assets, { frame });
-    },
-    async render(renderOptions = {}) {
+    async renderSnapshot(snapshot, renderOptions = {}) {
       const report = await renderWebGpuAppFrame(
-        app,
+        { app, sourceAssets },
         resourceCache,
-        renderOptions,
+        { ...renderOptions, snapshot },
       );
 
       prepareSnapshotMeshes({
-        registry: assets,
+        registry: sourceAssets,
         snapshot: report.snapshot,
         meshes: resourceCache.preparedMeshFacade,
         pruneUnreferenced: true,
@@ -636,7 +684,7 @@ export async function createWebGpuApp(
         resourceCache,
       );
       prepareSnapshotMaterials({
-        registry: assets,
+        registry: sourceAssets,
         snapshot: report.snapshot,
         materials: resourceCache.preparedMaterialFacade,
         pruneUnreferenced: true,
@@ -654,11 +702,9 @@ export async function createWebGpuApp(
         resourceCache,
       );
 
+      latestReport = report;
+      latestWorkerError = null;
       return report;
-    },
-    async stepAndRender(delta = 0, time = 0, frame = 0) {
-      this.step(delta, time);
-      return this.render({ frame });
     },
   };
 
@@ -667,7 +713,36 @@ export async function createWebGpuApp(
     resourceCache.environmentResources,
   );
 
+  if (options.autoStart === true) {
+    app.start(options.workerStartOptions);
+  }
+
   return { ok: true, app, initialization };
+}
+
+function createEmptyRenderSnapshot(frame: number): RenderSnapshot {
+  return {
+    frame,
+    views: [],
+    meshDraws: [],
+    lights: [],
+    environments: [],
+    shadowRequests: [],
+    bounds: [],
+    transforms: new Float32Array(0),
+    instanceTints: new Float32Array(0),
+    viewMatrices: new Float32Array(0),
+    diagnostics: [],
+    report: {
+      views: 0,
+      meshDraws: 0,
+      lights: 0,
+      environments: 0,
+      shadowRequests: 0,
+      bounds: 0,
+      diagnostics: 0,
+    },
+  };
 }
 
 function createWebGpuAppResourceCache(): WebGpuAppResourceCache {
@@ -1003,6 +1078,7 @@ function createMultiUnlitAppFrameResources(options: {
 
 function collectMultiUnlitAppResourceSet(options: {
   readonly app: WebGpuApp;
+  readonly assets: AssetRegistry;
   readonly snapshot: RenderSnapshot;
   readonly plan: WebGpuAppDrawResourceSetPlan;
   readonly firstDraw: RenderSnapshot["meshDraws"][number];
@@ -1035,9 +1111,7 @@ function collectMultiUnlitAppResourceSet(options: {
       return null;
     }
 
-    const entry = options.app.assets.get<"material", MaterialAsset>(
-      draw.material,
-    );
+    const entry = options.assets.get<"material", MaterialAsset>(draw.material);
 
     if (
       entry === undefined ||
@@ -1053,7 +1127,7 @@ function collectMultiUnlitAppResourceSet(options: {
     materialKeys.push(assetHandleKey(draw.material));
   }
 
-  const meshEntry = options.app.assets.get<"mesh", MeshAsset>(
+  const meshEntry = options.assets.get<"mesh", MeshAsset>(
     options.firstDraw.mesh,
   );
 
@@ -1081,7 +1155,7 @@ const QUEUED_BUILT_IN_MATERIAL_ADAPTERS =
     families: createQueuedBuiltInAppResourceFamilyAdapterTable({
       prepareUnlitTextureSamplerResources: (options) =>
         prepareUnlitAppTextureSamplerResources({
-          assets: options.app.assets,
+          assets: options.assets,
           device: options.app.initialization.device,
           cache: options.cache,
           material: options.item.material as UnlitMaterialAsset,
@@ -1089,7 +1163,7 @@ const QUEUED_BUILT_IN_MATERIAL_ADAPTERS =
         }),
       prepareMatcapTextureSamplerResources: (options) =>
         prepareMatcapAppTextureSamplerResources({
-          assets: options.app.assets,
+          assets: options.assets,
           device: options.app.initialization.device,
           cache: options.cache,
           material: options.item.material as MatcapMaterialAsset,
@@ -1097,7 +1171,7 @@ const QUEUED_BUILT_IN_MATERIAL_ADAPTERS =
         }),
       prepareStandardTextureSamplerResources: (options) =>
         prepareStandardAppTextureSamplerResources({
-          assets: options.app.assets,
+          assets: options.assets,
           device: options.app.initialization.device,
           cache: options.cache,
           material: options.item.material as StandardMaterialAsset,
@@ -1120,7 +1194,7 @@ const QUEUED_BUILT_IN_MATERIAL_ADAPTERS =
           pipelineKey: options.item.draw.batchKey.pipelineKey,
           preparedMeshes: options.cache.preparedMeshes,
           preparedScalarMaterials: options.preparedMaterials.unlit,
-          assets: options.app.assets,
+          assets: options.assets,
           textureSamplerDependencies: options.textureSamplerDependencies,
           viewUniforms: options.viewUniforms,
           worldTransforms: options.worldTransforms,
@@ -1140,7 +1214,7 @@ const QUEUED_BUILT_IN_MATERIAL_ADAPTERS =
           sourceMaterialKey: options.item.sourceMaterialKey,
           frame: options.snapshot.frame,
           pipelineKey: options.item.draw.batchKey.pipelineKey,
-          assets: options.app.assets,
+          assets: options.assets,
           textureSamplerDependencies: options.textureSamplerDependencies,
           viewUniforms: options.viewUniforms,
           worldTransforms: options.worldTransforms,
@@ -1167,7 +1241,7 @@ const QUEUED_BUILT_IN_MATERIAL_ADAPTERS =
           materialKey: options.item.materialKey,
           sourceMaterialKey: options.item.sourceMaterialKey,
           pipelineKey: options.item.draw.batchKey.pipelineKey,
-          assets: options.app.assets,
+          assets: options.assets,
           textureSamplerDependencies: options.textureSamplerDependencies,
           viewUniforms: options.viewUniforms,
           worldTransforms: options.worldTransforms,
@@ -1207,7 +1281,7 @@ const QUEUED_BUILT_IN_MATERIAL_ADAPTERS =
           sourceMaterialKey: options.item.sourceMaterialKey,
           frame: options.snapshot.frame,
           pipelineKey: options.item.draw.batchKey.pipelineKey,
-          assets: options.app.assets,
+          assets: options.assets,
           viewUniforms: options.viewUniforms,
           worldTransforms: options.worldTransforms,
           sharedLayouts: options.layouts.sharedLayouts,
@@ -1266,6 +1340,7 @@ interface WebGpuAppGpuTimingReadback {
 
 async function renderQueuedBuiltInWebGpuAppFrame(options: {
   readonly app: WebGpuApp;
+  readonly assets: AssetRegistry;
   readonly cache: WebGpuAppResourceCache;
   readonly snapshot: RenderSnapshot;
   readonly resourceSet: QueuedBuiltInAppResourceSet;
@@ -1377,6 +1452,7 @@ async function renderQueuedBuiltInWebGpuAppFrame(options: {
   });
   const boundaries = assembleWebGpuAppFrameBoundaries({
     app: options.app,
+    assets: options.assets,
     cache: options.cache,
     snapshot: options.snapshot,
     commands: framePlan.commandPlan.commands,
@@ -1449,6 +1525,7 @@ async function renderQueuedBuiltInWebGpuAppFrame(options: {
 
 function assembleWebGpuAppFrameBoundaries(options: {
   readonly app: WebGpuApp;
+  readonly assets: AssetRegistry;
   readonly cache: WebGpuAppResourceCache;
   readonly snapshot: RenderSnapshot;
   readonly commands: readonly RenderPassCommand[];
@@ -1458,6 +1535,7 @@ function assembleWebGpuAppFrameBoundaries(options: {
 }): WebGpuAppFrameBoundaryAssemblyResult {
   const targetPlan = createWebGpuAppFrameBoundaryTargets(
     options.app,
+    options.assets,
     options.snapshot,
   );
 
@@ -1720,6 +1798,7 @@ function createWebGpuAppDiagnosticsSummaryWithGpuTimings(
 
 function createWebGpuAppFrameBoundaryTargets(
   app: WebGpuApp,
+  assets: AssetRegistry,
   snapshot: RenderSnapshot,
 ): {
   readonly targets: readonly WebGpuAppFrameBoundaryTarget[];
@@ -1742,7 +1821,7 @@ function createWebGpuAppFrameBoundaryTargets(
     }
 
     const renderTargetKey = assetHandleKey(view.renderTarget);
-    const entry = app.assets.get<"render-target", WebGpuAppRenderTargetAsset>(
+    const entry = assets.get<"render-target", WebGpuAppRenderTargetAsset>(
       view.renderTarget,
     );
 
@@ -2050,6 +2129,7 @@ function createQueuedBuiltInRouteFailureDiagnosticsSummary(
 
 async function prepareQueuedBuiltInFrameResources(options: {
   readonly app: WebGpuApp;
+  readonly assets: AssetRegistry;
   readonly cache: WebGpuAppResourceCache;
   readonly snapshot: RenderSnapshot;
   readonly resourceSet: QueuedBuiltInAppResourceSet;
@@ -2103,6 +2183,7 @@ async function prepareQueuedBuiltInFrameResources(options: {
         createPreparedMaterialTextureSamplerDependencies(
           item.adapter.prepareTextureSamplerResources({
             app: options.app,
+            assets: options.assets,
             cache: options.cache,
             item,
             reuse: options.reuse,
@@ -2118,6 +2199,7 @@ async function prepareQueuedBuiltInFrameResources(options: {
       }) =>
         createQueuedBuiltInFrameResourceOptions({
           app: options.app,
+          assets: options.assets,
           cache: options.cache,
           snapshot: options.snapshot,
           item,
@@ -2146,6 +2228,7 @@ async function prepareQueuedBuiltInFrameResources(options: {
 
 function createQueuedBuiltInFrameResourceOptions(input: {
   readonly app: WebGpuApp;
+  readonly assets: AssetRegistry;
   readonly cache: WebGpuAppResourceCache;
   readonly snapshot: RenderSnapshot;
   readonly item: QueuedBuiltInAppResourceItem;
@@ -2162,6 +2245,7 @@ function createQueuedBuiltInFrameResourceOptions(input: {
 }): QueuedBuiltInFrameResourcePreparationOptions {
   return {
     app: input.app,
+    assets: input.assets,
     cache: input.cache,
     preparedMaterials: input.cache.preparedMaterials,
     snapshot: input.snapshot,
@@ -2208,12 +2292,29 @@ function createWebGpuAppPipelinePlanResult(
 }
 
 async function renderWebGpuAppFrame(
-  app: WebGpuApp,
+  context: WebGpuAppRenderContext,
   resourceCache: WebGpuAppResourceCache,
   options: WebGpuAppRenderOptions,
 ): Promise<WebGpuAppRenderReport> {
+  const { app, sourceAssets } = context;
   const reuse = createWebGpuAppResourceReuseReport();
-  const extractedSnapshot = options.snapshot ?? app.extract(options.frame ?? 0);
+  const extractedSnapshot = options.snapshot;
+
+  if (extractedSnapshot === undefined) {
+    return renderReport({
+      ok: false,
+      snapshot: createEmptyRenderSnapshot(options.frame ?? 0),
+      resourceReuse: reuse,
+      diagnostics: [
+        {
+          code: "webGpuApp.missingSnapshot",
+          message:
+            "Renderer-only WebGPU app rendering requires a RenderSnapshot from the simulation worker.",
+        },
+      ],
+    });
+  }
+
   const shadowSnapshot = hasReadyStandardShadowReceiverResources(
     options.standardMaterialShadowReceiverResources,
   )
@@ -2239,7 +2340,7 @@ async function renderWebGpuAppFrame(
 
   if (firstDraw === undefined || firstView === undefined) {
     const materialDependencyDiagnostics = diagnoseSnapshotMaterialDependencies(
-      app,
+      sourceAssets,
       snapshot,
     );
 
@@ -2260,7 +2361,7 @@ async function renderWebGpuAppFrame(
   }
 
   const snapshotMaterialDependencyDiagnostics =
-    diagnoseSnapshotMaterialDependencies(app, snapshot);
+    diagnoseSnapshotMaterialDependencies(sourceAssets, snapshot);
 
   if (snapshotMaterialDependencyDiagnostics.length > 0) {
     return renderReport({
@@ -2274,8 +2375,8 @@ async function renderWebGpuAppFrame(
     });
   }
 
-  const meshEntry = app.assets.get<"mesh", MeshAsset>(firstDraw.mesh);
-  const materialEntry = app.assets.get<"material", MaterialAsset>(
+  const meshEntry = sourceAssets.get<"mesh", MeshAsset>(firstDraw.mesh);
+  const materialEntry = sourceAssets.get<"material", MaterialAsset>(
     firstDraw.material,
   );
   const mesh = meshEntry?.asset ?? null;
@@ -2296,7 +2397,7 @@ async function renderWebGpuAppFrame(
   }
 
   const materialDependencyReadiness = createMaterialDependencyReadinessReport({
-    registry: app.assets,
+    registry: sourceAssets,
     material: firstDraw.material,
   });
 
@@ -2334,6 +2435,7 @@ async function renderWebGpuAppFrame(
 
   const multiUnlit = collectMultiUnlitAppResourceSet({
     app,
+    assets: sourceAssets,
     snapshot,
     plan: resourceSetPlan,
     firstDraw,
@@ -2344,12 +2446,12 @@ async function renderWebGpuAppFrame(
 
   if (shouldUseQueuedBuiltInRoute) {
     prepareSnapshotMeshes({
-      registry: app.assets,
+      registry: sourceAssets,
       snapshot,
       meshes: resourceCache.preparedMeshFacade,
     });
     prepareSnapshotMaterials({
-      registry: app.assets,
+      registry: sourceAssets,
       snapshot,
       materials: resourceCache.preparedMaterialFacade,
     });
@@ -2357,7 +2459,7 @@ async function renderWebGpuAppFrame(
 
   const queuedBuiltIn = shouldUseQueuedBuiltInRoute
     ? collectQueuedBuiltInAppResourceSet({
-        assets: app.assets,
+        assets: sourceAssets,
         snapshot,
         materialQueueScratch: resourceCache.frameScratch.materialQueue,
         routeScratch: resourceCache.frameScratch.queueRoute,
@@ -2385,6 +2487,7 @@ async function renderWebGpuAppFrame(
   if (queuedBuiltIn !== null && queuedBuiltIn.resourceSet !== null) {
     return renderQueuedBuiltInWebGpuAppFrame({
       app,
+      assets: sourceAssets,
       cache: resourceCache,
       snapshot,
       resourceSet: queuedBuiltIn.resourceSet,
@@ -2512,6 +2615,7 @@ async function renderWebGpuAppFrame(
       ? emptyPreparedAppTextureSamplerResources()
       : singleBuiltInItem.adapter.prepareTextureSamplerResources({
           app,
+          assets: sourceAssets,
           cache: resourceCache,
           item: singleBuiltInItem,
           reuse,
@@ -2568,6 +2672,7 @@ async function renderWebGpuAppFrame(
 
     resources = item.adapter.createFrameResources({
       app,
+      assets: sourceAssets,
       cache: resourceCache,
       preparedMaterials: resourceCache.preparedMaterials,
       snapshot,
@@ -2661,6 +2766,7 @@ async function renderWebGpuAppFrame(
   });
   const boundaries = assembleWebGpuAppFrameBoundaries({
     app,
+    assets: sourceAssets,
     cache: resourceCache,
     snapshot,
     commands: framePlan.commandPlan.commands,
@@ -2912,53 +3018,62 @@ export function createWebGpuAppDrawResourceSetPlan(
 }
 
 function diagnoseSnapshotMaterialDependencies(
-  app: WebGpuApp,
+  assets: AssetRegistry,
   snapshot: RenderSnapshot,
 ): WebGpuAppMaterialDependencyDiagnostic[] {
-  const blockedEntities = new Set(
-    snapshot.diagnostics
-      .filter((diagnostic) => isMaterialDependencyRenderDiagnostic(diagnostic))
-      .map((diagnostic) => renderEntityRefKey(diagnostic.entity))
-      .filter((key) => key !== null),
-  );
-
-  if (blockedEntities.size === 0) {
-    return [];
-  }
-
-  const query = app.world.queryManager.registerQuery({ required: [Material] });
   const diagnostics: WebGpuAppMaterialDependencyDiagnostic[] = [];
   const seenMaterialKeys = new Set<string>();
 
-  for (const entity of query.entities) {
-    const entityKey = `${entity.index}:${entity.generation}`;
-
-    if (!blockedEntities.has(entityKey)) {
-      continue;
-    }
-
-    const material = parseAppMaterialHandle(
-      entity.getValue(Material, "materialId") ?? "",
-    );
-
-    if (material === null) {
-      continue;
-    }
-
-    const report = createMaterialDependencyReadinessReport({
-      registry: app.assets,
-      material,
+  for (const draw of snapshot.meshDraws) {
+    pushMaterialDependencyDiagnostic(assets, draw.material, {
+      diagnostics,
+      seenMaterialKeys,
     });
+  }
 
-    if (report.ready || seenMaterialKeys.has(report.materialKey)) {
-      continue;
+  if (
+    diagnostics.length === 0 &&
+    snapshot.diagnostics.some(isMaterialDependencyRenderDiagnostic)
+  ) {
+    for (const entry of assets.list({ kind: "material", status: "ready" })) {
+      if (entry.asset === null) {
+        continue;
+      }
+
+      pushMaterialDependencyDiagnostic(
+        assets,
+        entry.handle as Parameters<
+          typeof createMaterialDependencyReadinessReport
+        >[0]["material"],
+        { diagnostics, seenMaterialKeys },
+      );
     }
-
-    seenMaterialKeys.add(report.materialKey);
-    diagnostics.push(createWebGpuAppMaterialDependencyDiagnostic(report));
   }
 
   return diagnostics;
+}
+
+function pushMaterialDependencyDiagnostic(
+  assets: AssetRegistry,
+  material: Parameters<
+    typeof createMaterialDependencyReadinessReport
+  >[0]["material"],
+  output: {
+    readonly diagnostics: WebGpuAppMaterialDependencyDiagnostic[];
+    readonly seenMaterialKeys: Set<string>;
+  },
+): void {
+  const report = createMaterialDependencyReadinessReport({
+    registry: assets,
+    material,
+  });
+
+  if (report.ready || output.seenMaterialKeys.has(report.materialKey)) {
+    return;
+  }
+
+  output.seenMaterialKeys.add(report.materialKey);
+  output.diagnostics.push(createWebGpuAppMaterialDependencyDiagnostic(report));
 }
 
 function createWebGpuAppMaterialDependencyDiagnostic(
@@ -2981,7 +3096,6 @@ function isMaterialDependencyRenderDiagnostic(
   diagnostic: unknown,
 ): diagnostic is {
   readonly code: string;
-  readonly entity?: { readonly index: number; readonly generation: number };
 } {
   if (typeof diagnostic !== "object" || diagnostic === null) {
     return false;
@@ -2997,20 +3111,6 @@ function isMaterialDependencyRenderDiagnostic(
       code.startsWith("render.texture.") ||
       code.startsWith("render.sampler."))
   );
-}
-
-function renderEntityRefKey(
-  entity: { readonly index: number; readonly generation: number } | undefined,
-): string | null {
-  return entity === undefined ? null : `${entity.index}:${entity.generation}`;
-}
-
-function parseAppMaterialHandle(value: string) {
-  const prefix = "material:";
-
-  return value.startsWith(prefix) && value.length > prefix.length
-    ? createMaterialHandle(value.slice(prefix.length))
-    : null;
 }
 
 export function webGpuAppRenderReportToJsonValue(

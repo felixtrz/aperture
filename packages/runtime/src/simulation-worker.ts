@@ -448,6 +448,34 @@ export function renderSnapshotTransferList(
   return renderSnapshotBufferTransferList(snapshot);
 }
 
+export interface RenderSnapshotTransportCostReport {
+  readonly structuredCloneBytes: number;
+  readonly transferableBytes: number;
+  readonly reductionRatio: number;
+}
+
+export function estimateRenderSnapshotTransportCost(
+  snapshot: Pick<
+    RenderSnapshot,
+    "transforms" | "viewMatrices" | "instanceTints"
+  >,
+): RenderSnapshotTransportCostReport {
+  const structuredCloneBytes =
+    snapshot.transforms.byteLength +
+    snapshot.viewMatrices.byteLength +
+    (snapshot.instanceTints?.byteLength ?? 0);
+  const transferableBytes = 0;
+
+  return {
+    structuredCloneBytes,
+    transferableBytes,
+    reductionRatio:
+      structuredCloneBytes === 0
+        ? 0
+        : (structuredCloneBytes - transferableBytes) / structuredCloneBytes,
+  };
+}
+
 function renderSnapshotBufferTransferList(input: {
   readonly transforms: Float32Array;
   readonly viewMatrices: Float32Array;

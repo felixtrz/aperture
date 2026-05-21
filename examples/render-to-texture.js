@@ -1,3 +1,5 @@
+import { createExampleWebGpuApp } from "./example-renderer-app.js";
+
 import {
   copyCurrentTextureReadbackSamples,
   createCurrentTextureColorTargetWithTexture,
@@ -38,7 +40,7 @@ try {
     publishStatus(failure("canvas", "canvas-unavailable", "Canvas missing."));
   } else {
     const readbackUsage = aperture.createReadbackCanvasTextureUsage();
-    const created = await aperture.createWebGpuApp({
+    const created = await createExampleWebGpuApp(aperture, {
       canvas,
       worldOptions: { entityCapacity: 8 },
       ...(readbackUsage.ok ? { textureUsage: readbackUsage.usage } : {}),

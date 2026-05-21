@@ -61,7 +61,11 @@ async function handleMessage(message) {
         throw new Error("Worker scene has not been initialized.");
       }
 
-      self.postMessage(createSnapshotMessage(scene, data));
+      const snapshotMessage = createSnapshotMessage(scene, data);
+      self.postMessage(
+        snapshotMessage,
+        aperture.renderSnapshotTransferList(snapshotMessage.snapshot),
+      );
     }
   } catch (error) {
     self.postMessage({

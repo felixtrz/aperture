@@ -22,9 +22,11 @@ try {
   if (canvas === null) {
     publishStatus(failure("canvas", "canvas-unavailable", "Canvas missing."));
   } else {
+    const sourceAssets = new aperture.AssetRegistry();
     const created = await aperture.createWebGpuApp({
       canvas,
-      worldOptions: { entityCapacity: 1 },
+      simulationWorker: createNoopSimulationWorker(),
+      sourceAssets,
     });
 
     if (!created.ok) {
@@ -34,7 +36,7 @@ try {
         renderingBackend: aperture.APERTURE_IDENTITY.renderingBackend,
       });
     } else {
-      const scene = registerPresentationAssets(aperture, created.app);
+      const scene = registerPresentationAssets(aperture, sourceAssets);
 
       startWorkerSnapshotLoop(aperture, created.app, scene);
     }
@@ -51,9 +53,21 @@ try {
   );
 }
 
-function registerPresentationAssets(aperture, app) {
+function createNoopSimulationWorker() {
+  return {
+    start() {},
+    onSnapshot() {
+      return () => {};
+    },
+    onError() {
+      return () => {};
+    },
+  };
+}
+
+function registerPresentationAssets(aperture, sourceAssets) {
   const assets = aperture.createRenderAssetCollections({
-    registry: app.assets,
+    registry: sourceAssets,
   });
   const mesh = assets.meshes.add(
     aperture.createBoxMeshAsset({
@@ -145,8 +159,7 @@ async function handleWorkerMessage(
 
   const snapshot = message.snapshot;
   const typedSnapshot = inspectStructuredCloneSnapshot(snapshot);
-  const report = await app.render({
-    snapshot,
+  const report = await app.renderSnapshot(snapshot, {
     clearColor,
     label: "worker-cube-snapshot",
   });

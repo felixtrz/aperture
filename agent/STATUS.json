@@ -6,6 +6,6 @@
   "lastResult": "success",
   "lastCommit": "458f5f8",
   "activePid": null,
-  "notes": "Completed task-3031 instance-tint browser proof and task-3032 createSimulationWorker runtime helper. Full pnpm run check passed; worker-cube Playwright retry hung in known runner path and was killed. Next task: task-3033 renderer-only createWebGpuApp worker transport.",
-  "lastRunFinishedAt": "2026-05-21T08:51:50Z"
+  "notes": "Completed task-3033 renderer-only createWebGpuApp worker transport; preserved temporary example compatibility bridge; next task task-3034 flagship worker migration.",
+  "lastRunFinishedAt": "2026-05-21T14:50:12Z"
 }

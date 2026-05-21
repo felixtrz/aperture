@@ -393,14 +393,22 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-21 08:41 UTC</dd>
+            <dd>2026-05-21 14:24 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
-              The worker-cube example now proves the render snapshot can cross a
-              module Worker boundary by structured clone: ECS authoring and
-              extraction run in the Worker, the main thread submits the received
+              The WebGPU app facade now requires a worker-shaped snapshot
+              producer and no longer exposes main-thread ECS authoring APIs:
+              <code>spawn</code>, <code>world</code>, and <code>assets</code>
+              are removed from the returned renderer app. It consumes
+              renderer-side source assets plus worker-produced
+              <code>RenderSnapshot</code> data through <code>start()</code>,
+              <code>stop()</code>, <code>getDiagnostics()</code>, and
+              <code>renderSnapshot()</code>. The worker-cube example now proves
+              the render snapshot can cross a module Worker boundary by
+              structured clone: ECS authoring and extraction run in the Worker,
+              the main thread submits the received
               <code>RenderSnapshot</code> through WebGPU, and Playwright checks
               typed-array preservation plus changing cube pixels without a
               JSON.stringify round trip. The render asset layer now exposes a
@@ -1148,7 +1156,7 @@
               key so live route changes do not reuse incompatible layouts.
             </dd>
             <dt>Next focus</dt>
-            <dd>renderer-only createWebGpuApp worker transport</dd>
+            <dd>flagship examples worker-by-default migration</dd>
           </dl>
         </aside>
       </header>
@@ -1225,7 +1233,9 @@
               and named red/green/blue pixel samples.
               <code>createSimulationWorker()</code> now provides the typed
               worker snapshot subscription API needed for the renderer-only
-              WebGPU app migration. Richer app-level adapter routing, passes,
+              WebGPU app migration, and <code>createWebGpuApp()</code> now
+              consumes that worker-shaped snapshot producer without exposing
+              main-thread ECS state. Richer app-level adapter routing, passes,
               and prepared GPU resource lifetime policy remain.
             </p>
           </article>
@@ -3939,14 +3949,16 @@
             <h3>Recommended next tasks</h3>
             <ul>
               <li>
-                <span class="badge amber">next</span> Add per-instance tint
-                component and extraction.
+                <span class="badge amber">next</span> Migrate flagship examples
+                to worker-by-default shape.
               </li>
               <li>
-                Pack per-entity tint data alongside the instance transform path.
+                Split spinning-cube, GLB viewer, and multi-light shadow into
+                main-thread renderer entries plus worker ECS entries.
               </li>
               <li>
-                Keep same mesh/material instances coalesced into one draw call.
+                Keep Playwright pixel assertions green across the worker
+                boundary.
               </li>
             </ul>
           </article>
@@ -3959,6 +3971,16 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3033</div>
+            <div>
+              <strong>WebGPU app is renderer-only.</strong>
+              <span>
+                <code>createWebGpuApp()</code> now requires a worker snapshot
+                producer and hides main-thread ECS authoring state.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3032</div>
             <div>

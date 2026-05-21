@@ -1,3 +1,5 @@
+import { createExampleWebGpuApp } from "./example-renderer-app.js";
+
 const canvas = document.querySelector("#aperture-canvas");
 const stateElement = document.querySelector("#example-state");
 const jsonElement = document.querySelector("#example-json");
@@ -91,7 +93,7 @@ try {
 }
 
 async function runMixedMaterialScenario(aperture, canvasElement) {
-  const created = await aperture.createWebGpuApp({
+  const created = await createExampleWebGpuApp(aperture, {
     canvas: canvasElement,
     worldOptions: { entityCapacity: 8 },
   });
@@ -165,7 +167,7 @@ async function runMixedMaterialScenario(aperture, canvasElement) {
 }
 
 async function runMixedMaterialSuccessScenario(aperture, canvasElement) {
-  const created = await aperture.createWebGpuApp({
+  const created = await createExampleWebGpuApp(aperture, {
     canvas: canvasElement,
     worldOptions: { entityCapacity: 8 },
   });
@@ -272,7 +274,7 @@ async function runMixedMaterialSuccessScenario(aperture, canvasElement) {
 }
 
 async function runMaterialDependencyScenario(aperture, canvasElement) {
-  const created = await aperture.createWebGpuApp({
+  const created = await createExampleWebGpuApp(aperture, {
     canvas: canvasElement,
     worldOptions: { entityCapacity: 8 },
   });
@@ -335,7 +337,7 @@ async function runMaterialDependencyScenario(aperture, canvasElement) {
 }
 
 async function runStandardMaterialDependencyScenario(aperture, canvasElement) {
-  const created = await aperture.createWebGpuApp({
+  const created = await createExampleWebGpuApp(aperture, {
     canvas: canvasElement,
     worldOptions: { entityCapacity: 10 },
   });

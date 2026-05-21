@@ -59,16 +59,16 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start with `task-3033`: `createWebGpuApp` redesigned as renderer-only + transferable transport.
+Start with `task-3034`: Migrate flagship examples to worker-by-default shape.
 
-Why this next: `createSimulationWorker()` now wraps Worker startup, MessageChannel snapshot delivery, termination, and reusable transferred-buffer allocation. The next vertical slice should make `createWebGpuApp` consume that typed worker handle so WebGPU becomes a renderer-only view over worker-produced snapshots.
+Why this next: `createWebGpuApp()` now requires a worker-shaped snapshot producer and no longer exposes main-thread ECS authoring APIs. The next vertical slice should migrate the flagship examples to the new two-file main/worker shape so browser-facing samples use the renderer-only path.
 
 Reference anchors (read before writing):
 
-- `references/bevy/crates/bevy_render/src/lib.rs`
+- `examples/worker-cube.html`
+- `examples/worker-cube.main.js`
+- `examples/worker-cube.worker.js`
 - `references/three.js/examples/webgl_worker_offscreencanvas.html`
-- Existing Aperture `packages/webgpu/src/webgpu/app.ts`
-- Existing Aperture `examples/worker-cube.main.js` and `examples/worker-cube.worker.js`
 
 ## Strategic Focus — Pipeline Maturity Roadmap
 
@@ -108,7 +108,7 @@ Eleven cross-cutting gaps remain across the six phases. They are sequenced below
 
 **Tier 7 — Worker-by-default migration + transferable transport (queued after Tier 6):**
 
-13. Worker-by-default architecture (task-3032 shipped; task-3033, task-3034, task-3035, task-3036 remain) — removes main-thread ECS mode entirely. ECS authoring and extraction always run in a Web Worker. The main thread becomes a renderer-only consumer that receives snapshots via transferable typed-array `postMessage`. `createWebGpuApp` is redesigned to require a `SimulationWorker` instance. All existing examples migrate to the new two-file shape (main + worker). Transferable transport (zero-copy `ArrayBuffer` transfer for `transforms` and `viewMatrices`) is bundled into the redesign — there is no point shipping the worker-default mode with an unoptimized transport. No HTTP header changes; default transport works in any deployment including embedded.
+13. Worker-by-default architecture (task-3032 and task-3033 shipped; task-3034, task-3035, task-3036 remain) — removes main-thread ECS mode entirely. ECS authoring and extraction always run in a Web Worker. The main thread becomes a renderer-only consumer that receives snapshots via transferable typed-array `postMessage`. `createWebGpuApp` now requires a worker-shaped snapshot producer and no longer exposes `spawn`, `world`, or `assets` on the WebGPU app. All existing examples migrate to the new two-file shape (main + worker). Transferable transport (zero-copy `ArrayBuffer` transfer for `transforms` and `viewMatrices`) is bundled into the redesign — there is no point shipping the worker-default mode with an unoptimized transport. No HTTP header changes; default transport works in any deployment including embedded.
 
 **Tier 8 — SharedArrayBuffer transport (opt-in, queued after Tier 7):**
 
@@ -317,6 +317,8 @@ Acceptance criteria:
 
 ### task-3033 — `createWebGpuApp` redesigned as renderer-only + transferable transport
 
+Status: completed 2026-05-21. See `agent/COMPLETED.md`.
+
 Category: `runtime-orchestration`
 Package/write-scope: `packages/runtime/src/`, `packages/webgpu/src/webgpu/app.ts`, `packages/core/src/index.ts` (re-exports), targeted tests.
 Dependencies: task-3032.
@@ -343,6 +345,9 @@ Acceptance criteria:
 - All three flagship examples render correctly via the worker boundary.
 - Playwright pixel assertions remain green.
 - No example contains main-thread `app.spawn(...)` calls anymore.
+- Remove the temporary `examples/example-renderer-app.js` compatibility helper
+  from these flagship examples once they no longer need main-thread ECS
+  authoring; the helper may remain for non-flagship examples until task-3035.
 
 ### task-3035 — Bulk-migrate remaining examples to worker-by-default shape
 
@@ -357,6 +362,8 @@ Acceptance criteria:
 - All remaining examples migrated; `pnpm run check:examples` passes for the new files.
 - All Playwright specs remain green.
 - No main-thread `app.spawn(...)` calls anywhere under `examples/`.
+- Delete `examples/example-renderer-app.js` after the remaining examples no
+  longer need the temporary main-thread compatibility bridge.
 
 ### task-3036 — Worker-by-default migration guide + public docs update
 

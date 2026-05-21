@@ -1,3 +1,5 @@
+import { createExampleWebGpuApp } from "./example-renderer-app.js";
+
 const canvas = document.querySelector("#aperture-canvas");
 const stateElement = document.querySelector("#example-state");
 const jsonElement = document.querySelector("#example-json");
@@ -25,7 +27,7 @@ try {
     publishStatus(failure("canvas-unavailable", "Canvas missing."));
   } else {
     const readbackUsage = aperture.createReadbackCanvasTextureUsage();
-    const created = await aperture.createWebGpuApp({
+    const created = await createExampleWebGpuApp(aperture, {
       canvas,
       worldOptions: { entityCapacity: 8 },
       ...(readbackUsage.ok ? { textureUsage: readbackUsage.usage } : {}),

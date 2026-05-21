@@ -1,6 +1,122 @@
 # Agent Handoff
 
-Updated: 2026-05-21T08:51:18Z
+Updated: 2026-05-21T14:50:00Z
+
+## Current Run Update — 2026-05-21T14:50:00Z — Renderer-only WebGPU app transport
+
+Recovered and completed `task-3033` after the prior crash left a coherent
+unfinished diff.
+
+### What changed
+
+- Redesigned `createWebGpuApp()` so the returned WebGPU app is renderer-only:
+  it requires a worker-shaped `simulationWorker`, consumes renderer-side
+  `sourceAssets`, and no longer exposes `world`, `assets`, `spawn`, `step`, or
+  `extract`.
+- Added the public renderer facade methods `start()`, `stop()`,
+  `getDiagnostics()`, and `renderSnapshot(snapshot, options)`.
+- Reworked WebGPU app rendering to diagnose material dependencies from snapshot
+  draw material handles plus source-asset readiness, without querying
+  main-thread ECS state.
+- Added `estimateRenderSnapshotTransportCost()` and tests showing transferable
+  typed-array snapshot buffers avoid the structured-clone byte copy for a
+  synthetic 1,000-entity snapshot.
+- Updated the worker-cube example to transfer snapshot typed-array buffers and
+  updated offscreen render-target coverage to use `createExtractionApp()` plus
+  `renderSnapshot()`.
+- Added a temporary `examples/example-renderer-app.js` compatibility helper so
+  still-unmigrated app-facade examples can keep rendering through the new
+  renderer-only WebGPU app contract until tasks `task-3034` and `task-3035`
+  perform the real worker splits.
+- Updated the public trackers, backlog, and completed-task records. Recommended
+  next task is now `task-3034`.
+
+### Files touched
+
+- `.codex/config.toml`
+- `.codex/hooks.json`
+- `agent/BACKLOG.md`
+- `agent/COMPLETED.md`
+- `agent/HANDOFF.md`
+- `agent/STATUS.json`
+- `docs/index.html`
+- `docs/render-pipeline-comparison.html`
+- `examples/example-renderer-app.js`
+- `examples/app-diagnostics.js`
+- `examples/batching.js`
+- `examples/debug-normal-app.js`
+- `examples/depth-app-overlap.js`
+- `examples/glb-viewer.js`
+- `examples/gltf-scene.js`
+- `examples/gpu-profiler.js`
+- `examples/instance-tint.js`
+- `examples/instancing.js`
+- `examples/materials-showcase.js`
+- `examples/matcap-app.js`
+- `examples/multi-light-shadow.js`
+- `examples/point-shadow.js`
+- `examples/render-to-texture.js`
+- `examples/spinning-cube.js`
+- `examples/spot-shadow.js`
+- `examples/standard-gltf-texture.js`
+- `examples/standard-queue-phases.js`
+- `examples/standard-texture-control.js`
+- `examples/worker-cube.main.js`
+- `examples/worker-cube.worker.js`
+- `package.json`
+- `packages/runtime/src/simulation-worker.ts`
+- `packages/webgpu/src/webgpu/app.ts`
+- `test/e2e/offscreen-color-target.spec.ts`
+- `test/runtime/simulation-worker.test.ts`
+- `test/webgpu/webgpu-app.test.ts`
+
+### References inspected
+
+- `references/bevy/crates/bevy_render/src/lib.rs`
+- `references/three.js/examples/webgl_worker_offscreencanvas.html`
+- Existing Aperture `packages/webgpu/src/webgpu/app.ts`
+- Existing Aperture `packages/runtime/src/simulation-worker.ts`
+- Existing Aperture `examples/worker-cube.main.js` and
+  `examples/worker-cube.worker.js`
+
+### Validation
+
+- `pnpm exec tsc --noEmit -p packages/webgpu/tsconfig.json`
+- `pnpm exec tsc --noEmit -p packages/runtime/tsconfig.json`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec vitest run test/runtime/simulation-worker.test.ts test/webgpu/webgpu-app.test.ts`
+- `pnpm --filter @aperture-engine/runtime build`
+- `pnpm --filter @aperture-engine/webgpu build`
+- `pnpm run check:examples`
+- `pnpm run check:progress`
+- `pnpm run check`
+- `pnpm exec playwright test test/e2e/offscreen-color-target.spec.ts --timeout=45000`
+- Attempted `pnpm exec playwright test test/e2e/worker-cube.spec.ts --timeout=45000`;
+  it hung again in the known headed Playwright runner path and was killed. No
+  worker-cube/example-server process from that attempt remains running.
+- Attempted focused headed Playwright checks for `spinning-cube` and
+  `multi-light-shadow`; `multi-light-shadow` printed its passing assertion, but
+  both Playwright processes hung during/after browser execution and were killed.
+  No processes from those attempts remain running.
+
+### Known issues
+
+- `task-3034` still needs to migrate `spinning-cube`, `glb-viewer`, and
+  `multi-light-shadow` to true two-file worker-by-default examples. `task-3035`
+  should migrate the remaining examples and delete
+  `examples/example-renderer-app.js`. The helper is only a temporary bridge for
+  examples that still author ECS state on the main thread.
+- Several focused headed Playwright specs can still hang in this environment
+  after browser execution; use the full `pnpm run check`, targeted runtime
+  worker tests, and passing offscreen-render-target Playwright test as the
+  reliable validation for this slice unless the headed runner is repaired.
+- `.codex/config.toml` was deleted and `.codex/hooks.json` was present before
+  this recovery work. The files encode the same stop-hook command in the newer
+  hooks format; no task code depends on that migration.
+
+### Recommended next task
+
+`task-3034 — Migrate flagship examples to worker-by-default shape`.
 
 ## Current Run Update — 2026-05-21T08:51:18Z — Simulation worker runtime helper
 

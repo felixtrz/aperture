@@ -1,3 +1,5 @@
+import { createExampleWebGpuApp } from "./example-renderer-app.js";
+
 const canvas = document.querySelector("#aperture-canvas");
 const stateElement = document.querySelector("#example-state");
 const jsonElement = document.querySelector("#example-json");
@@ -20,7 +22,7 @@ try {
   if (canvas === null) {
     publishStatus(failure("canvas-unavailable", "Canvas missing."));
   } else {
-    const created = await aperture.createWebGpuApp({
+    const created = await createExampleWebGpuApp(aperture, {
       canvas,
       worldOptions: { entityCapacity: instanceCount + 8 },
     });

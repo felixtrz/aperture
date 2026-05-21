@@ -8,6 +8,7 @@ import {
   createRenderSnapshotBufferPool,
   createSimulationWorker,
   createUnlitMaterialAsset,
+  estimateRenderSnapshotTransportCost,
   withCamera,
   withMaterial,
   withMesh,
@@ -107,6 +108,19 @@ describe("createSimulationWorker", () => {
       allocations: 2,
     });
   });
+
+  it("estimates transferable snapshot transport as at least 80% cheaper than cloning typed arrays", () => {
+    const snapshot = createSyntheticSnapshot(1_000);
+    const report = estimateRenderSnapshotTransportCost(snapshot);
+
+    expect(report.structuredCloneBytes).toBe(
+      snapshot.transforms.byteLength +
+        snapshot.viewMatrices.byteLength +
+        (snapshot.instanceTints?.byteLength ?? 0),
+    );
+    expect(report.transferableBytes).toBe(0);
+    expect(report.reductionRatio).toBeGreaterThanOrEqual(0.8);
+  });
 });
 
 function createOneEntitySnapshot(entityCapacity: number): RenderSnapshot {
@@ -144,6 +158,16 @@ function createOneEntitySnapshot(entityCapacity: number): RenderSnapshot {
   );
 
   return app.stepAndExtract(1 / 60, 1, 1);
+}
+
+function createSyntheticSnapshot(
+  entityCount: number,
+): Pick<RenderSnapshot, "transforms" | "viewMatrices" | "instanceTints"> {
+  return {
+    transforms: new Float32Array(entityCount * 16),
+    viewMatrices: new Float32Array(48),
+    instanceTints: new Float32Array(entityCount * 4),
+  };
 }
 
 function nextSnapshot(

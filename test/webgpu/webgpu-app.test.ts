@@ -13,6 +13,7 @@ import {
   createTextureAsset,
   createTextureHandle,
   createUnlitMaterialAsset,
+  createExtractionApp,
   Light,
   LightKind,
   LocalTransform,
@@ -28,20 +29,215 @@ import {
   type MeshAsset,
   type MeshDrawPacket,
   type RenderSnapshot,
+  type SpawnEntityInitializer,
+  type CreateExtractionAppOptions,
+  type Entity,
 } from "@aperture-engine/core";
 import {
   createQueuedMaterialAdapterRegistry,
-  createWebGpuApp,
+  createWebGpuApp as createRendererOnlyWebGpuApp,
   createWebGpuAppRenderTargetAsset,
   createWebGpuAppDiagnosticsSummary,
   createWebGpuAppDrawResourceSetPlan,
   queuedBuiltInAppResourceAdapterRegistryValidationReportToJsonValue,
   validateQueuedBuiltInAppResourceAdapterRegistry,
+  type CreateWebGpuAppOptions,
+  type CreateWebGpuAppResult,
+  type WebGpuApp,
+  type WebGpuAppRenderOptions,
+  type WebGpuAppRenderReport,
+  type WebGpuAppSimulationWorker,
+  type WebGpuAppSimulationWorkerSnapshotCallback,
+  type WebGpuAppSimulationWorkerErrorCallback,
   webGpuAppRenderReportToJson,
   webGpuAppRenderReportToJsonValue,
 } from "@aperture-engine/webgpu";
 
+type LegacyCreateWebGpuAppOptions = Omit<
+  CreateWebGpuAppOptions,
+  "simulationWorker" | "sourceAssets" | "autoStart" | "workerStartOptions"
+> & {
+  readonly worldOptions?: CreateExtractionAppOptions["worldOptions"];
+};
+
+type LegacyWebGpuApp = WebGpuApp &
+  ReturnType<typeof createExtractionApp> & {
+    render(options?: WebGpuAppRenderOptions): Promise<WebGpuAppRenderReport>;
+    stepAndRender(
+      delta?: number,
+      time?: number,
+      frame?: number,
+    ): Promise<WebGpuAppRenderReport>;
+  };
+
+type LegacyCreateWebGpuAppResult =
+  | (Omit<Extract<CreateWebGpuAppResult, { ok: true }>, "app"> & {
+      readonly app: LegacyWebGpuApp;
+    })
+  | Extract<CreateWebGpuAppResult, { ok: false }>;
+
+async function createWebGpuApp(
+  options: LegacyCreateWebGpuAppOptions,
+): Promise<LegacyCreateWebGpuAppResult> {
+  const extraction = createExtractionApp({
+    ...(options.worldOptions === undefined
+      ? {}
+      : { worldOptions: options.worldOptions }),
+  });
+  const simulationWorker = createManualSimulationWorker();
+  const { worldOptions: _worldOptions, ...rendererOptions } = options;
+  const created = await createRendererOnlyWebGpuApp({
+    ...rendererOptions,
+    simulationWorker,
+    sourceAssets: extraction.assets,
+  });
+
+  if (!created.ok) {
+    return created;
+  }
+
+  const renderer = created.app;
+  const legacyApp: LegacyWebGpuApp = {
+    ...renderer,
+    world: extraction.world,
+    assets: extraction.assets,
+    spawn(...initializers: SpawnEntityInitializer[]): Entity {
+      return extraction.spawn(...initializers);
+    },
+    registerSystem(system) {
+      extraction.registerSystem(system);
+      return legacyApp;
+    },
+    step(delta = 0, time = 0) {
+      return extraction.step(delta, time);
+    },
+    extract(frame = 0) {
+      return extraction.extract(frame);
+    },
+    stepAndExtract(delta = 0, time = 0, frame = 0) {
+      return extraction.stepAndExtract(delta, time, frame);
+    },
+    async render(renderOptions = {}) {
+      const { snapshot: explicitSnapshot, ...rendererRenderOptions } =
+        renderOptions;
+      const snapshot =
+        explicitSnapshot ?? extraction.extract(renderOptions.frame ?? 0);
+
+      return renderer.renderSnapshot(snapshot, rendererRenderOptions);
+    },
+    async stepAndRender(delta = 0, time = 0, frame = 0) {
+      const snapshot = extraction.stepAndExtract(delta, time, frame);
+
+      return renderer.renderSnapshot(snapshot, { frame });
+    },
+  };
+
+  return { ...created, app: legacyApp };
+}
+
+function createManualSimulationWorker(): WebGpuAppSimulationWorker & {
+  emitSnapshot(snapshot: RenderSnapshot, frame?: number): void;
+} {
+  const snapshotCallbacks =
+    new Set<WebGpuAppSimulationWorkerSnapshotCallback>();
+  const errorCallbacks = new Set<WebGpuAppSimulationWorkerErrorCallback>();
+
+  return {
+    start() {},
+    onSnapshot(callback) {
+      snapshotCallbacks.add(callback);
+      return () => {
+        snapshotCallbacks.delete(callback);
+      };
+    },
+    onError(callback) {
+      errorCallbacks.add(callback);
+      return () => {
+        errorCallbacks.delete(callback);
+      };
+    },
+    emitSnapshot(snapshot, frame = snapshot.frame) {
+      void errorCallbacks;
+      for (const callback of snapshotCallbacks) {
+        callback({ snapshot, frame });
+      }
+    },
+  };
+}
+
+async function waitForCondition(
+  predicate: () => boolean,
+  timeoutMs = 100,
+): Promise<void> {
+  const startedAt = Date.now();
+
+  while (!predicate()) {
+    if (Date.now() - startedAt > timeoutMs) {
+      throw new Error("Timed out waiting for condition.");
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, 0));
+  }
+}
+
 describe("WebGPU app facade", () => {
+  it("creates a renderer-only app that consumes worker snapshots without ECS authoring APIs", async () => {
+    const events: string[] = [];
+    const { canvas, environment } = webGpuHarness(events);
+    const simulation = createExtractionApp({
+      worldOptions: { entityCapacity: 8 },
+    });
+    const sourceAssets = createRenderAssetCollections({
+      registry: simulation.assets,
+    });
+    const mesh = sourceAssets.meshes.add(createBoxMeshAsset({ label: "Cube" }));
+    const material = sourceAssets.materials.unlit.add(
+      createUnlitMaterialAsset({ label: "White" }),
+    );
+    const worker = createManualSimulationWorker();
+    const created = await createRendererOnlyWebGpuApp({
+      canvas,
+      environment,
+      simulationWorker: worker,
+      sourceAssets: simulation.assets,
+    });
+
+    expect(created.ok).toBe(true);
+
+    if (!created.ok) {
+      return;
+    }
+
+    const app = created.app;
+
+    expect("world" in app).toBe(false);
+    expect("assets" in app).toBe(false);
+    expect("spawn" in app).toBe(false);
+
+    simulation.spawn(
+      withTransform({ translation: [0, 0, 5] }),
+      withCamera({ priority: 0, layerMask: 1 }),
+    );
+    simulation.spawn(
+      withTransform(),
+      withMesh(mesh),
+      withMaterial(material),
+      withRenderLayer(1),
+      withVisibility(true),
+    );
+
+    app.start();
+    worker.emitSnapshot(simulation.stepAndExtract(1 / 60, 1, 7));
+    await waitForCondition(() => app.getDiagnostics().lastFrame !== null);
+
+    const diagnostics = app.getDiagnostics();
+
+    expect(diagnostics.lastError).toBeNull();
+    expect(diagnostics.lastFrame?.ok).toBe(true);
+    expect(diagnostics.lastFrame?.frame).toBe(7);
+    app.stop();
+  });
+
   it("initializes WebGPU and renders the unlit queue path from ECS-authored entities", async () => {
     const events: string[] = [];
     const { canvas, environment } = webGpuHarness(events);

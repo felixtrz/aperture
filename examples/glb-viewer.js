@@ -1,3 +1,5 @@
+import { createExampleWebGpuApp } from "./example-renderer-app.js";
+
 const canvas = document.querySelector("#aperture-canvas");
 const assetSelect = document.querySelector("#glb-asset-select");
 const sceneSelectRow = document.querySelector("#glb-scene-select-row");
@@ -1317,7 +1319,7 @@ try {
   if (canvas === null) {
     publishStatus(failure("canvas-unavailable", "Canvas missing."));
   } else {
-    const created = await aperture.createWebGpuApp({
+    const created = await createExampleWebGpuApp(aperture, {
       canvas,
       worldOptions: { entityCapacity: 16 },
     });

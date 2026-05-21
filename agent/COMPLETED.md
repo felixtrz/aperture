@@ -1,5 +1,41 @@
 # Completed Tasks
 
+## task-3033 — `createWebGpuApp` redesigned as renderer-only + transferable transport
+
+Completed: 2026-05-21
+
+Summary:
+
+- Redesigned `createWebGpuApp()` to require a worker-shaped
+  `simulationWorker` and renderer-side `sourceAssets`, removing `world`,
+  `assets`, `spawn`, `step`, and `extract` from the returned WebGPU app API.
+- Added `start()`, `stop()`, `getDiagnostics()`, and
+  `renderSnapshot(snapshot, options)` so the WebGPU facade subscribes to worker
+  snapshots and remains a renderer-only consumer of extracted state.
+- Kept material dependency checks renderer-side by validating dependencies from
+  snapshot draw material handles and source-asset readiness rather than querying
+  main-thread ECS.
+- Added a transfer-cost estimate helper proving typed-array transferable
+  buffers avoid the structured-clone byte copy for a synthetic 1,000-entity
+  snapshot.
+
+References inspected:
+
+- `references/bevy/crates/bevy_render/src/lib.rs`
+- `references/three.js/examples/webgl_worker_offscreencanvas.html`
+- Existing Aperture `packages/webgpu/src/webgpu/app.ts`
+- Existing Aperture `packages/runtime/src/simulation-worker.ts`
+
+Validation:
+
+- `pnpm exec tsc --noEmit -p packages/webgpu/tsconfig.json`
+- `pnpm exec tsc --noEmit -p packages/runtime/tsconfig.json`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm --filter @aperture-engine/runtime build`
+- `pnpm --filter @aperture-engine/webgpu build`
+- `pnpm exec vitest run test/runtime/simulation-worker.test.ts`
+- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts`
+
 ## task-3032 — `createSimulationWorker` runtime helper
 
 Completed: 2026-05-21
