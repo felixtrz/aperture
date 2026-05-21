@@ -21,6 +21,9 @@ Completed `task-3041`.
 - `agent/BACKLOG.md` now marks `task-3041` complete and recommends
   `task-3042` next. The visible-feature queue also contains Tier 9 follow-ups
   for frustum culling and custom per-instance attributes.
+- A late backlog-only roadmap expansion for future Tier 10-20 work appeared
+  after the feature commit. It is Markdown-only, passed Prettier check, and does
+  not change the recommended next task.
 
 ### References inspected
 
@@ -33,6 +36,10 @@ Completed `task-3041`.
 - `pnpm exec eslint packages/render/src/rendering/snapshot-change-set.ts test/rendering/snapshot-change-set.test.ts examples/worker-cube.worker.js examples/worker-cube.main.js`
 - `pnpm run check:examples`
 - `pnpm run format:check`
+- First stop-hook attempt failed because the late backlog expansion needed
+  Prettier formatting; fixed with `pnpm exec prettier --write
+agent/BACKLOG.md`
+  before rerunning finalizer/stop hook.
 
 ### Known issues
 

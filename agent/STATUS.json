@@ -6,6 +6,6 @@
   "lastResult": "success",
   "lastCommit": "458f5f8",
   "activePid": null,
-  "notes": "Completed task-3035 through task-3038: multi-entity worker migration, worker authoring docs, SharedArrayBuffer transport foundation, and fixed-stride SAB packet encoding. Full check and targeted headed Playwright smokes passed; next task is task-3039 SAB app integration.",
-  "lastRunFinishedAt": "2026-05-21T20:50:44Z"
+  "notes": "Completed task-3039 through task-3041: SAB app transport integration, skipped-entity explanations, and snapshot change-set family reports; full check passed; fixed late backlog formatting after first stop-hook attempt; next task is task-3042 render-packet inspector.",
+  "lastRunFinishedAt": "2026-05-21T21:51:48Z"
 }

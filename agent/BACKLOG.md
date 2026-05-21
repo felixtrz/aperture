@@ -148,7 +148,51 @@ Eleven cross-cutting gaps remain across the six phases. They are sequenced below
 
 16. Per-instance custom attributes (task-3044, task-3045) — generalizes the Tier 6 `InstanceTint` pattern to support arbitrary user-defined per-instance data: vec3/vec4 channels declared by custom materials, packed into parallel instance buffers, consumed by user WGSL via instance-rate vertex attributes. Unlocks particle systems, vegetation with per-blade wind phase, VFX with per-instance animation parameters. Builds on the Tier 5 custom material adapter + Tier 6 instance-attribute infrastructure.
 
-Total: 42 vertical slices (29 in Tiers 1-5 + 2 in Tier 6 + 5 in Tier 7 + 3 in Tier 8 + 3 in Tier 9). Each is a real implementation slice with a `Reference anchor:` from `references/bevy/`, `references/engine/` (PlayCanvas), or `references/three.js/`. Slices within a tier may be parallelizable; the agent should still process them in the order listed unless an explicit dependency note says otherwise.
+**Tier 10 — Output stage & color management (queued after Tier 9):**
+
+17. Tonemap operators + sRGB pipeline audit + HDR loader (task-3050, task-3051, task-3052, task-3053) — single biggest visual-quality improvement now that real PMREM HDR IBL is in. Adds Linear, Reinhard, ACES, AgX, Neutral tonemap operators configurable per app. Audits the linear → sRGB pipeline through extracted snapshots. Adds a native `.hdr` (RGBE) loader so users can drop env maps directly. Output-stage demo example compares operators side by side. Closes gaps #2 and #15 from the audit.
+
+**Tier 11 — GPU skeletal skinning + morph targets (queued after Tier 10):**
+
+18. Skinning shader + morph blending + visible character (task-3054, task-3055, task-3056, task-3057, task-3058) — adds GPU vertex skinning that consumes the joint/weight attributes already in the mesh schema, plus morph target blending. glb-viewer demonstrates a rigged character animating with vertex deformation and a morph-target sample with shape blending. Required for any character-driven app. Closes gaps #3 and #6.
+
+**Tier 12 — Compressed assets + real-world glTF (queued after Tier 11):**
+
+19. KTX2/BasisU + Draco + Meshopt decoders (task-3059, task-3060, task-3061, task-3062) — integrates the standard wasm transcoders so Aperture can load production glTF assets. glb-viewer demonstrates loading a Khronos sample asset with compressed textures and Draco-compressed geometry. Today the loader detects these formats and emits unsupported diagnostics; this closes that gap. Closes gaps #4 and #10.
+
+**Tier 13 — MRT + picking + raycasting (queued after Tier 12):**
+
+20. Multi-render-target + ID buffer + picking API (task-3063, task-3064, task-3065, task-3066) — adds multi-render-target support to render passes, ID-buffer rendering for screen-space picking, and public `app.pick(x, y) → entity` API. Also adds a math-side raycaster for non-screen-space queries. Required for any interactive 3D app. Closes gaps #5 and #11.
+
+**Tier 14 — Post-processing foundation + FXAA + bloom (queued after Tier 13):**
+
+21. Post-pass framework + FXAA + bloom + demo (task-3067, task-3068, task-3069, task-3070) — adds the post-pass framework (render-to-intermediate-target chain feeding the output stage from Tier 10), plus first two effects (FXAA, bloom). Demonstrated via a post-effects example that toggles the chain on and off. Closes gap #1 and the FXAA portion of gap #17.
+
+**Tier 15 — Animation blending + cross-fade (queued after Tier 14):**
+
+22. Weighted blending + cross-fade API (task-3071, task-3072, task-3073) — extends the existing animation playback path with weighted clip blending and a cross-fade API. glb-viewer demonstrates cross-fade between two clips (e.g., walk → run). Required for any character-animation app. Closes gap #7.
+
+**Tier 16 — Area lights + CSM (queued after Tier 15):**
+
+23. Rect/disk/sphere area lights + cascaded shadow maps (task-3074, task-3075, task-3076, task-3077) — adds `RectAreaLight` with LTC (Linearly-Transformed Cosines) integration plus disk/sphere area light variants, and cascaded shadow maps (1-4 cascades) for directional lights. Outdoor scene example with both. Required for architectural visualization and outdoor scenes. Closes gaps #8 and #9.
+
+**Tier 17 — Scene atmosphere (sprites, skybox, fog) (queued after Tier 16):**
+
+24. Sprite component + skybox-as-scene-element + fog (task-3078, task-3079, task-3080, task-3081) — adds camera-facing billboarded sprites, a rendered skybox (cube-map background visible behind the scene, distinct from IBL), and fog (linear / exponential / exponential-squared). Outdoor atmosphere example combines all three. Closes gaps #12, #13, and #14.
+
+**Tier 18 — PBR material extensions (queued after Tier 17):**
+
+25. Clearcoat + transmission + sheen + iridescence (task-3082, task-3083, task-3084, task-3085) — extends StandardMaterial with the standard glTF PBR extensions: clearcoat (car paint, varnish), transmission (glass, refractive surfaces), sheen (fabric microfiber), iridescence (thin films). Each gets a visible example surface in glb-viewer or a dedicated demo. Closes gap #16.
+
+**Tier 19 — Advanced antialiasing (queued after Tier 18):**
+
+26. MSAA + TAA (task-3086, task-3087) — adds MSAA support in render passes (4×/8× configurable per app) and TAA (temporal antialiasing) with motion vectors. Bookends Tier 14's FXAA at the high-quality end. Closes the MSAA and TAA portions of gap #17.
+
+**Tier 20 — Screen-space effects (queued after Tier 19):**
+
+27. SSAO + SSR + DOF (task-3088, task-3089, task-3090) — adds screen-space ambient occlusion, screen-space reflections, and depth-of-field (bokeh) as post-pass effects on top of the Tier 14 framework. Closes gap #18.
+
+Total: 83 vertical slices (29 in Tiers 1-5 + 2 in Tier 6 + 5 in Tier 7 + 3 in Tier 8 + 3 in Tier 9 + 4 in Tier 10 + 5 in Tier 11 + 4 in Tier 12 + 4 in Tier 13 + 4 in Tier 14 + 3 in Tier 15 + 4 in Tier 16 + 4 in Tier 17 + 4 in Tier 18 + 2 in Tier 19 + 3 in Tier 20). Each is a real implementation slice with a `Reference anchor:` from `references/bevy/`, `references/engine/` (PlayCanvas), or `references/three.js/`. Slices within a tier may be parallelizable; the agent should still process them in the order listed unless an explicit dependency note says otherwise.
 
 The MVP track (task-2001 through task-2030) shipped successfully — completion details are preserved in `agent/COMPLETED.md` and the per-task entries that follow under "Ready Tasks — MVP Tracks" are kept for historical reference. The combinatorial GLB-matrix queue (task-2172, task-2173, task-2174) is superseded by this roadmap.
 
@@ -627,6 +671,527 @@ Acceptance criteria:
 - Playwright readback at three named coordinates across two animation frames asserts the pixel content changes (proving the per-instance data drove the shader).
 - Draw-call count in app diagnostics is ≤ N/16 (the swarm collapsed into a small number of instanced draws — proving per-instance data didn't break coalescing).
 - The example uses one `withMesh(...)` and one custom material handle for all 500 entities. No per-instance material allocation.
+
+### task-3050 — Tonemap operator pipeline (Tier 10 part 1)
+
+Category: `webgpu-render`
+Package/write-scope: `packages/webgpu/src/webgpu/output-stage-*.ts` (new), `packages/runtime/src/index.ts`, targeted tests.
+Reference anchor: `references/three.js/src/constants.js` (operator constants) + `references/three.js/src/renderers/shaders/ShaderChunk/tonemapping_pars_fragment.glsl.js` (operator implementations); `references/engine/src/scene/constants.js` (PlayCanvas tonemap enum) + `references/engine/src/scene/shader-lib/wgsl/chunks/common/frag/tonemapping/`.
+Insertion point: new output-stage module that wraps the final color attachment write with a tonemap pass. Configurable per app via `createWebGpuApp({ tonemap: "aces" | "agx" | "reinhard" | "neutral" | "linear" | "none" })`.
+
+Acceptance criteria:
+
+- Public API `createWebGpuApp({ tonemap })` accepts at least 5 operators including ACES, AgX, Reinhard, Neutral, Linear/None.
+- Vitest covers shader chunk generation per operator + pipeline-key inclusion.
+- Spinning-cube example renders with measurably different output under each operator (Playwright pixel readback at the same coordinate differs by ≥ N units between operators).
+
+### task-3051 — sRGB pipeline + color-space audit (Tier 10 part 2)
+
+Category: `webgpu-render`
+Package/write-scope: `packages/render/src/materials/types.ts`, `packages/webgpu/src/webgpu/`, targeted tests + diagnostic updates.
+Dependencies: task-3050.
+Reference anchor: `references/three.js/src/constants.js` (`SRGBColorSpace`, `LinearSRGBColorSpace`); `references/engine/src/platform/graphics/webgpu/webgpu-graphics-device.js` (PlayCanvas swapchain format selection).
+Insertion point: audit every texture sampling site, every render-target format, and the swapchain configuration to confirm correct linear→sRGB encoding. Add explicit color-space metadata to texture descriptors. Diagnostics flag mismatches.
+
+Acceptance criteria:
+
+- Documented color-space invariants in `docs/`: texture color spaces (sRGB for base color/emissive, linear for normal/MR/occlusion), linear rendering, sRGB output encoding.
+- Diagnostics catch mismatches (e.g., sRGB texture sampled as linear).
+- Tonemap output goes through correct sRGB encoding when display is sRGB.
+
+### task-3052 — HDR `.hdr` (RGBE) loader (Tier 10 part 3)
+
+Category: `render-bridge`
+Package/write-scope: `packages/render/src/assets/hdr-rgbe-loader.ts` (new), `examples/assets/` (commit a sample `.hdr`), targeted tests.
+Reference anchor: `references/three.js/examples/jsm/loaders/RGBELoader.js`; `references/engine/src/framework/parsers/texture/hdr.js` if present, else parsers under `references/engine/src/framework/parsers/texture/`.
+Insertion point: new public API `loadHdrFromUri(url)` parsing the RGBE format into a `Float32Array` cube/equirect texture suitable for the IBL path from task-3010.
+
+Acceptance criteria:
+
+- Public API `loadHdrFromUri(url)` exported from `@aperture-engine/render` returns a typed result with HDR pixel data.
+- Test loads a small committed `.hdr` and asserts pixel values match expected RGBE-decoded floats.
+- Spinning-cube (or new pmrem-showcase) example loads the `.hdr` directly without pre-conversion.
+
+### task-3053 — Output-stage tonemap comparison example (Tier 10 part 4)
+
+Category: `runtime-orchestration`
+Package/write-scope: `examples/tonemap-showcase.{html,main.js,worker.js}`, `test/e2e/tonemap-showcase.spec.ts`.
+Dependencies: task-3050, task-3052.
+Reference anchor: `references/three.js/examples/webgpu_tonemapping.html` if present; `references/engine/examples/` HDR tonemap demo.
+Insertion point: new example with a high-dynamic-range scene (real HDR env + bright direct light + multiple roughness probes). UI lets the user cycle tonemap operators; Playwright captures pixels under each.
+
+Acceptance criteria:
+
+- Example renders under ≥4 named operators (ACES, AgX, Reinhard, Linear).
+- Playwright pixel comparison shows ≥ N-unit difference between operators at the same coordinate.
+- Bright highlights (specular reflections from HDR env) tonemap correctly under ACES/AgX (no blowout).
+
+### task-3054 — GPU skinning shader variant (Tier 11 part 1)
+
+Category: `webgpu-render`
+Package/write-scope: `packages/webgpu/src/webgpu/standard-shader.ts` + new `standard-skinning-*.ts`, targeted tests.
+Reference anchor: `references/three.js/src/renderers/shaders/ShaderChunk/skinning_pars_vertex.glsl.js` + `skinning_vertex.glsl.js`; `references/engine/src/scene/shader-lib/wgsl/chunks/common/vert/skin*.js`.
+Insertion point: extend StandardMaterial vertex shader with a `skinned` pipeline-key variant that reads joint indices + weights from vertex attributes and a bone-matrix storage buffer, deforming the position + normal accordingly.
+
+Acceptance criteria:
+
+- New `skinnedEnabled` flag in `StandardMaterialPipelineKey`.
+- Vitest covers shader generation + pipeline-key shape.
+- Synthetic test deforms a known cube via known bone matrices; readback confirms vertex positions match expected deformed positions.
+
+### task-3055 — Skinning bind group + bone matrix buffer (Tier 11 part 2)
+
+Category: `webgpu-render`
+Package/write-scope: `packages/webgpu/src/webgpu/`, `packages/render/src/rendering/extraction.ts` (skinning extraction), targeted tests.
+Dependencies: task-3054.
+Reference anchor: `references/engine/src/scene/skin-instance.js` (PlayCanvas per-instance bone matrices); `references/three.js/src/objects/Skeleton.js` (three.js bone matrix array).
+Insertion point: extract per-entity bone matrices from the ECS skeleton state into a packed storage buffer, bind to the skinned pipeline at slot 5 (or a free slot).
+
+Acceptance criteria:
+
+- Snapshot extraction includes a packed `bones` Float32Array alongside `transforms`.
+- WebGPU layer binds the bones buffer per draw via a storage-buffer bind group.
+- Test with one skinned entity confirms bone matrices reach the shader (readback or pixel check via known deformation).
+
+### task-3056 — Morph target shader variant + interpolation (Tier 11 part 3)
+
+Category: `webgpu-render`
+Package/write-scope: `packages/webgpu/src/webgpu/standard-shader.ts`, `packages/render/src/mesh/`, targeted tests.
+Reference anchor: `references/three.js/src/renderers/shaders/ShaderChunk/morphtarget_*.glsl.js`; `references/engine/src/scene/morph.js` + `morph-instance.js`.
+Insertion point: extend the vertex shader with a `morphed` pipeline-key variant that reads N morph target attribute streams + per-entity weights, blending them into the base position/normal.
+
+Acceptance criteria:
+
+- New `morphedEnabled` flag in `StandardMaterialPipelineKey`.
+- Vitest confirms morph blending math matches a known weighted-blend computation.
+- Synthetic test with two morph targets and known weights produces expected interpolated positions.
+
+### task-3057 — Visible skinned character in glb-viewer (Tier 11 part 4)
+
+Category: `runtime-orchestration`
+Package/write-scope: `examples/glb-viewer.{main.js,worker.js}`, commit a rigged GLB sample to `examples/assets/`, `test/e2e/glb-viewer.spec.ts`.
+Dependencies: task-3054, task-3055.
+Reference anchor: `references/three.js/examples/webgpu_skinning.html` if present, else `references/three.js/examples/webgl_animation_skinning_blending.html`; Khronos sample rigged character.
+Insertion point: extend glb-viewer's sample list with a rigged character (e.g., a simple stick figure or a Khronos sample). Animation system drives bone matrices each frame; rendered character visibly deforms.
+
+Acceptance criteria:
+
+- glb-viewer plays the rigged sample with visible skeletal deformation.
+- Playwright readback at the character's silhouette shows different pixel content at two animation frames.
+- Draw call count remains 1 per primitive (skinning doesn't break batching for single-entity meshes).
+
+### task-3058 — Visible morph target in glb-viewer (Tier 11 part 5)
+
+Category: `runtime-orchestration`
+Package/write-scope: `examples/glb-viewer.{main.js,worker.js}`, commit a morph-target GLB sample, `test/e2e/glb-viewer.spec.ts`.
+Dependencies: task-3056.
+Reference anchor: Khronos morph-target sample (`MorphPrimitivesTest` or similar); `references/three.js/examples/webgl_morphtargets.html`.
+Insertion point: extend glb-viewer with a morph-target sample. UI exposes morph weight sliders.
+
+Acceptance criteria:
+
+- glb-viewer plays the morph sample; UI sliders change weights live.
+- Playwright drives the slider, asserts pixel content changes at the morphed region.
+
+### task-3059 — KTX2 / BasisU texture decoder integration (Tier 12 part 1)
+
+Category: `render-bridge`
+Package/write-scope: `packages/render/src/assets/ktx2-decoder.ts` (new) + wasm transcoder integration, targeted tests.
+Reference anchor: `references/three.js/examples/jsm/loaders/KTX2Loader.js`; `references/engine/src/framework/parsers/texture/ktx2.js`.
+Insertion point: integrate the Khronos `basis_universal` wasm transcoder. Add `ktx2` to the recognized texture formats; the gltf loader's existing `KHR_texture_basisu` detection path replaces the "unsupported" diagnostic with a real decode.
+
+Acceptance criteria:
+
+- Public API decodes a `.ktx2` file to a `GPUTexture`-uploadable representation.
+- Test loads a committed `.ktx2` sample and asserts decoded pixel dimensions/format.
+- glTF with `KHR_texture_basisu` loads successfully in glb-viewer.
+
+### task-3060 — Draco mesh decoder integration (Tier 12 part 2)
+
+Category: `render-bridge`
+Package/write-scope: `packages/render/src/assets/draco-decoder.ts` (new) + wasm transcoder, targeted tests.
+Reference anchor: `references/three.js/examples/jsm/loaders/DRACOLoader.js`; PlayCanvas Draco support (search `references/engine/src/`).
+Insertion point: integrate google/draco wasm decoder. The gltf loader's `KHR_draco_mesh_compression` detection path replaces the "unsupported" diagnostic with real decoding.
+
+Acceptance criteria:
+
+- Public API decodes a Draco-compressed mesh into vertex/index buffers.
+- Test loads a Draco-compressed glTF and asserts decoded primitive counts.
+- glb-viewer loads a Draco sample.
+
+### task-3061 — Meshopt decoder integration (Tier 12 part 3)
+
+Category: `render-bridge`
+Package/write-scope: `packages/render/src/assets/meshopt-decoder.ts` (new) + wasm transcoder, targeted tests.
+Reference anchor: `references/three.js/examples/jsm/libs/meshopt_decoder.module.js`; meshoptimizer project docs.
+Insertion point: integrate `meshoptimizer` wasm decoder for `EXT_meshopt_compression`.
+
+Acceptance criteria:
+
+- Public API decodes meshopt-compressed buffers.
+- Test with a meshopt-compressed sample passes.
+- glb-viewer loads a meshopt sample.
+
+### task-3062 — Real-world glTF sample in glb-viewer (Tier 12 part 4)
+
+Category: `runtime-orchestration`
+Package/write-scope: `examples/glb-viewer.{main.js,worker.js}`, commit one Khronos sample using KTX2 + Draco, `test/e2e/glb-viewer.spec.ts`.
+Dependencies: task-3059, task-3060.
+Reference anchor: Khronos glTF Sample Assets (https://github.com/KhronosGroup/glTF-Sample-Assets); pick one that exercises KTX2 + Draco (e.g., "BoomBox").
+Insertion point: add a "production glTF" entry to the sample selector that loads the real-world compressed asset.
+
+Acceptance criteria:
+
+- glb-viewer loads and renders a Khronos sample with KTX2 textures + Draco-compressed mesh.
+- Playwright asserts non-trivial pixel content and zero "unsupported" diagnostics.
+
+### task-3063 — Multiple render target support in render passes (Tier 13 part 1)
+
+Category: `webgpu-render`
+Package/write-scope: `packages/webgpu/src/webgpu/render-pass-commands.ts`, `packages/webgpu/src/webgpu/current-texture-view.ts`, targeted tests.
+Reference anchor: `references/three.js/src/renderers/WebGLMultipleRenderTargets.js`; PlayCanvas MRT in `references/engine/src/platform/graphics/`.
+Insertion point: extend the color-attachment factory from task-3004/3005 to support N color attachments in one render pass.
+
+Acceptance criteria:
+
+- Render pass accepts ≥2 color attachments.
+- Test renders to two off-screen targets in one pass with different shader outputs; reads back both.
+
+### task-3064 — ID-buffer rendering for picking (Tier 13 part 2)
+
+Category: `webgpu-render`
+Package/write-scope: `packages/webgpu/src/webgpu/id-buffer-*.ts` (new), `packages/render/src/rendering/extraction.ts` (entity ID packet field), targeted tests.
+Dependencies: task-3063.
+Reference anchor: `references/engine/src/scene/picker-id.js`; common WebGPU ID-buffer picking patterns.
+Insertion point: render a second target with entity ID per fragment (uint32) alongside the color target. Snapshot extraction exposes entity IDs in a way the renderer can pack into the shader.
+
+Acceptance criteria:
+
+- Test renders a scene with 3 known entities; reads the ID buffer at known coordinates; asserts the correct entity ID is at each.
+- ID texture format documented (`r32uint`).
+
+### task-3065 — Public `app.pick(x, y)` API (Tier 13 part 3)
+
+Category: `runtime-orchestration`
+Package/write-scope: `packages/runtime/src/`, `packages/webgpu/src/webgpu/app.ts`, targeted tests.
+Dependencies: task-3064.
+Reference anchor: `references/engine/src/framework/components/camera/component.js` (PlayCanvas pick API).
+Insertion point: public method `app.pick(x, y) → Promise<Entity | null>` that reads back the ID buffer at the given canvas coordinate and returns the resolved ECS entity.
+
+Acceptance criteria:
+
+- Public API typed and exported.
+- Test calls `app.pick(...)` on a known scene; asserts correct entity returned.
+- Returns `null` for empty/background pixels.
+
+### task-3066 — Math-side raycaster API (Tier 13 part 4)
+
+Category: `simulation`
+Package/write-scope: `packages/simulation/src/raycaster.ts` (new), targeted tests.
+Reference anchor: `references/three.js/src/core/Raycaster.js` + `references/three.js/src/math/Ray.js`; PlayCanvas ray-mesh intersection helpers.
+Insertion point: pure ECS-side raycaster that takes a ray origin + direction and tests against entities with renderable bounds (using `BoundsPacket`-equivalent data). Returns hits sorted by distance.
+
+Acceptance criteria:
+
+- Public API `raycast(world, origin, direction)` returns sorted hits.
+- Test casts a known ray through a known scene; asserts hit list matches expected.
+- No GPU dependency — runs in the worker.
+
+### task-3067 — Post-pass framework (Tier 14 part 1)
+
+Category: `webgpu-render`
+Package/write-scope: `packages/webgpu/src/webgpu/post-pass-*.ts` (new), targeted tests.
+Dependencies: task-3050 (output stage), task-3063 (MRT for some passes).
+Reference anchor: `references/three.js/examples/jsm/postprocessing/EffectComposer.js`; PlayCanvas post-effect chain in `references/engine/scripts/posteffects/`.
+Insertion point: chain of render-to-texture passes feeding the output stage. Each pass consumes the previous pass's output as input.
+
+Acceptance criteria:
+
+- Public API `createWebGpuApp({ postEffects: [...] })` accepts an ordered effect list.
+- Test with a no-op pass (input == output) confirms chain works end-to-end.
+- Framework documented with how to write a custom post effect.
+
+### task-3068 — FXAA post effect (Tier 14 part 2)
+
+Category: `webgpu-render`
+Package/write-scope: `packages/webgpu/src/webgpu/post-fxaa.ts` (new), targeted tests.
+Dependencies: task-3067.
+Reference anchor: `references/three.js/examples/jsm/postprocessing/FXAAPass.js` + `references/three.js/examples/jsm/shaders/FXAAShader.js`; PlayCanvas `references/engine/scripts/posteffects/posteffect-fxaa.js`.
+Insertion point: new post effect implementing FXAA fragment shader.
+
+Acceptance criteria:
+
+- FXAA effect registers via the post-pass framework.
+- Test renders a high-contrast edge scene; pixel comparison shows FXAA reduces aliasing.
+
+### task-3069 — Bloom post effect (Tier 14 part 3)
+
+Category: `webgpu-render`
+Package/write-scope: `packages/webgpu/src/webgpu/post-bloom.ts` (new), targeted tests.
+Dependencies: task-3067.
+Reference anchor: `references/three.js/examples/jsm/postprocessing/UnrealBloomPass.js`; PlayCanvas `references/engine/scripts/posteffects/posteffect-bloom.js`.
+Insertion point: bloom pass with threshold + blur + composite.
+
+Acceptance criteria:
+
+- Bloom effect registers via the post-pass framework.
+- Test with a bright emissive sphere shows visible bloom glow extending beyond the sphere's silhouette.
+
+### task-3070 — Post-effects demo example (Tier 14 part 4)
+
+Category: `runtime-orchestration`
+Package/write-scope: `examples/post-effects.{html,main.js,worker.js}`, `test/e2e/post-effects.spec.ts`.
+Dependencies: task-3068, task-3069.
+Reference anchor: `references/three.js/examples/webgpu_postprocessing.html` if present.
+Insertion point: new example with toggleable post chain (FXAA on/off, bloom on/off). Renders a bright scene to showcase.
+
+Acceptance criteria:
+
+- Example renders with both effects enabled and disabled.
+- Playwright toggles each effect and asserts pixel differences in expected regions.
+
+### task-3071 — Animation weighted clip blending (Tier 15 part 1)
+
+Category: `simulation`
+Package/write-scope: `packages/runtime/src/animation-*.ts` (or `examples/glb-viewer` if animation lives in example), targeted tests.
+Reference anchor: `references/three.js/src/animation/AnimationAction.js` (weight field); `references/three.js/src/animation/AnimationMixer.js` (action weights).
+Insertion point: extend animation playback to support N simultaneously-active clips each with a weight 0-1, blending output ECS transforms.
+
+Acceptance criteria:
+
+- Public API supports per-clip weight.
+- Test plays two clips at weight 0.5 each on the same entity; asserts the blended transform is the weighted average.
+
+### task-3072 — Cross-fade API (Tier 15 part 2)
+
+Category: `simulation`
+Package/write-scope: `packages/runtime/src/`, targeted tests.
+Dependencies: task-3071.
+Reference anchor: `references/three.js/src/animation/AnimationAction.js` (`crossFadeTo`).
+Insertion point: public `crossFadeTo(clipA, clipB, durationSeconds)` that animates the weights of A → 0 and B → 1 over the duration.
+
+Acceptance criteria:
+
+- Public API typed and exported.
+- Test cross-fades over 1 second; asserts weights interpolate correctly at the halfway point.
+
+### task-3073 — Visible cross-fade in glb-viewer (Tier 15 part 3)
+
+Category: `runtime-orchestration`
+Package/write-scope: `examples/glb-viewer.{main.js,worker.js}`, `test/e2e/glb-viewer.spec.ts`, commit a GLB with ≥2 clips.
+Dependencies: task-3072.
+Reference anchor: `references/three.js/examples/webgl_animation_skinning_blending.html`.
+Insertion point: extend glb-viewer with a "cross-fade" UI between two clips of the same rigged character.
+
+Acceptance criteria:
+
+- Playwright triggers cross-fade; pixel readback at multiple frames shows the character transitioning between the two clips' poses.
+
+### task-3074 — RectAreaLight + LTC (Tier 16 part 1)
+
+Category: `webgpu-render`
+Package/write-scope: `packages/render/src/rendering/authoring.ts` (`LightKind.RectArea`), `packages/webgpu/src/webgpu/`, LTC LUT textures, targeted tests.
+Reference anchor: `references/three.js/src/lights/RectAreaLight.js` + `references/three.js/examples/jsm/lights/RectAreaLightUniformsLib.js` (LTC LUT setup); `references/engine/src/scene/lighting/` (PlayCanvas area light LUT integration).
+Insertion point: new light kind `rect-area` with width/height. LTC (Linearly-Transformed Cosines) lookup textures bound in the StandardMaterial fragment shader's lighting loop.
+
+Acceptance criteria:
+
+- New `LightKind.RectArea` extracts correctly with width/height + transform.
+- Visible example shows a rect area light illuminating a surface with the characteristic LTC area-light shape.
+
+### task-3075 — Disk and sphere area lights (Tier 16 part 2)
+
+Category: `webgpu-render`
+Package/write-scope: extends task-3074.
+Dependencies: task-3074.
+Reference anchor: `references/engine/src/scene/light.js` (LIGHTSHAPE_DISK, LIGHTSHAPE_SPHERE).
+Insertion point: extend `LightKind.RectArea` with shape variants (disk, sphere).
+
+Acceptance criteria:
+
+- New light shapes render correctly; pixel readback distinguishes rect/disk/sphere illumination patterns.
+
+### task-3076 — Cascaded shadow maps for directional lights (Tier 16 part 3)
+
+Category: `webgpu-render`
+Package/write-scope: `packages/webgpu/src/webgpu/directional-shadow-*.ts`, targeted tests.
+Reference anchor: `references/engine/src/scene/renderer/shadow-renderer-directional.js` (PlayCanvas CSM with up to 4 cascades); `references/bevy/crates/bevy_pbr/src/render/shadows.rs` (Bevy CSM).
+Insertion point: extend the directional shadow path to render N cascades (1-4 configurable) with distance-based selection in the receiver shader.
+
+Acceptance criteria:
+
+- `LightShadowSettings.cascadeCount` (1-4) supported.
+- Outdoor scene with foreground + far background shows sharp shadows in both, proving the cascades are sampled by distance.
+
+### task-3077 — Outdoor scene example with CSM + area light (Tier 16 part 4)
+
+Category: `runtime-orchestration`
+Package/write-scope: `examples/outdoor-scene.{html,main.js,worker.js}`, `test/e2e/outdoor-scene.spec.ts`.
+Dependencies: task-3074, task-3076.
+Reference anchor: `references/three.js/examples/webgpu_lights_rectarealight.html`; PlayCanvas architectural visualization examples.
+Insertion point: new outdoor example combining CSM directional shadow + RectAreaLight (e.g., a window).
+
+Acceptance criteria:
+
+- Renders an outdoor-style scene with directional sun + window area light.
+- Playwright asserts shadow quality at multiple distances (CSM working) AND visible LTC area-light contribution.
+
+### task-3078 — Sprite component + billboard renderer (Tier 17 part 1)
+
+Category: `render-bridge`
+Package/write-scope: `packages/render/src/rendering/authoring.ts` (`Sprite` component), `packages/webgpu/src/webgpu/sprite-pipeline-*.ts`, targeted tests.
+Reference anchor: `references/three.js/src/objects/Sprite.js` + `references/three.js/src/materials/SpriteMaterial.js`; `references/engine/src/scene/sprite.js`.
+Insertion point: new ECS component `Sprite { texture, color, sizeMode }`. New render pipeline that draws camera-facing billboard quads.
+
+Acceptance criteria:
+
+- `withSprite({ texture, size, color })` runtime helper exported.
+- Sprites render facing the camera; rotating the camera doesn't change their screen orientation.
+- Playwright asserts sprite pixels at expected screen positions.
+
+### task-3079 — Skybox-as-scene-element (Tier 17 part 2)
+
+Category: `webgpu-render`
+Package/write-scope: `packages/webgpu/src/webgpu/skybox-pipeline-*.ts` (new), `packages/render/src/rendering/authoring.ts` (`Skybox` component), targeted tests.
+Reference anchor: `references/three.js/src/scenes/Scene.js` (`background` property); `references/engine/src/scene/skybox/sky.js`.
+Insertion point: new ECS component `Skybox { cubeTextureHandle }`. Render pass draws the skybox at infinite depth before opaque geometry.
+
+Acceptance criteria:
+
+- Example with a cube-map background shows the env visible through scene gaps and in non-occluded regions.
+- Playwright asserts background pixels match the skybox color/texture (distinct from clear color).
+
+### task-3080 — Fog (linear + exponential + exponential-squared) (Tier 17 part 3)
+
+Category: `webgpu-render`
+Package/write-scope: `packages/render/src/rendering/authoring.ts` (`Fog` component or scene-level setting), `packages/webgpu/src/webgpu/standard-shader.ts`, targeted tests.
+Reference anchor: `references/three.js/src/scenes/Fog.js` + `FogExp2.js`; `references/engine/src/scene/fog-params.js`.
+Insertion point: fog params communicated through extraction; StandardMaterial fragment shader blends fog color by depth.
+
+Acceptance criteria:
+
+- Three fog modes selectable; visible falloff at distance.
+- Playwright asserts distant pixels fade toward fog color compared to near pixels.
+
+### task-3081 — Outdoor atmosphere example (Tier 17 part 4)
+
+Category: `runtime-orchestration`
+Package/write-scope: `examples/atmosphere.{html,main.js,worker.js}`, `test/e2e/atmosphere.spec.ts`.
+Dependencies: task-3078, task-3079, task-3080.
+Reference anchor: `references/three.js/examples/webgpu_skybox.html` and `webgl_fog.html`.
+Insertion point: new example combining skybox + fog + sprite billboards (e.g., distance markers).
+
+Acceptance criteria:
+
+- All three features visibly active in one scene; Playwright asserts each.
+
+### task-3082 — Clearcoat extension (Tier 18 part 1)
+
+Category: `webgpu-render`
+Package/write-scope: `packages/render/src/materials/types.ts` (StandardMaterial clearcoat fields), `packages/webgpu/src/webgpu/standard-shader.ts`, targeted tests + example.
+Reference anchor: `references/three.js/src/materials/MeshPhysicalMaterial.js` (clearcoat fields); `references/engine/src/scene/materials/standard-material.js` clearcoat path; glTF `KHR_materials_clearcoat` extension.
+Insertion point: extend StandardMaterial with `clearcoatFactor`, `clearcoatRoughnessFactor`, optional `clearcoatNormalTexture`. Adds clearcoat BRDF lobe in fragment shader.
+
+Acceptance criteria:
+
+- Material schema + shader compile both variants (clearcoat on/off).
+- Visible example shows a car-paint-like surface with clearcoat highlight distinct from base specular.
+
+### task-3083 — Transmission extension (Tier 18 part 2)
+
+Category: `webgpu-render`
+Package/write-scope: extends Tier 18 part 1.
+Reference anchor: `references/three.js/src/materials/MeshPhysicalMaterial.js` (transmission); glTF `KHR_materials_transmission`.
+Insertion point: thin-walled transmission for glass-like surfaces. Requires a grab-pass (sample of the back buffer) for refraction.
+
+Acceptance criteria:
+
+- Visible glass sphere example with transmission; background visible through the sphere.
+
+### task-3084 — Sheen extension (Tier 18 part 3)
+
+Category: `webgpu-render`
+Package/write-scope: extends Tier 18 part 1.
+Reference anchor: `references/three.js/src/materials/MeshPhysicalMaterial.js` (sheen); glTF `KHR_materials_sheen`.
+Insertion point: sheen BRDF lobe (Charlie distribution) for fabric.
+
+Acceptance criteria:
+
+- Visible fabric example with characteristic sheen rim-light.
+
+### task-3085 — Iridescence extension (Tier 18 part 4)
+
+Category: `webgpu-render`
+Package/write-scope: extends Tier 18 part 1.
+Reference anchor: `references/three.js/src/materials/MeshPhysicalMaterial.js` (iridescence); glTF `KHR_materials_iridescence`.
+Insertion point: thin-film iridescence via wavelength-dependent reflectance.
+
+Acceptance criteria:
+
+- Visible iridescent surface (e.g., soap bubble or oil slick).
+
+### task-3086 — MSAA support in render passes (Tier 19 part 1)
+
+Category: `webgpu-render`
+Package/write-scope: `packages/webgpu/src/webgpu/`, configurable via `createWebGpuApp({ msaa: 1 | 4 | 8 })`, targeted tests.
+Reference anchor: `references/three.js/src/renderers/WebGLRenderTarget.js` (samples field); `references/engine/src/platform/graphics/render-target.js`.
+Insertion point: render to a multisampled color target, resolve to single-sample for the output stage.
+
+Acceptance criteria:
+
+- MSAA 4× and 8× both functional.
+- Playwright shows anti-aliased edges at 4× vs aliased at 1×.
+
+### task-3087 — TAA (temporal antialiasing) with motion vectors (Tier 19 part 2)
+
+Category: `webgpu-render`
+Package/write-scope: `packages/webgpu/src/webgpu/post-taa.ts` (new), motion-vector G-buffer attachment in main pass, targeted tests.
+Dependencies: task-3063, task-3067.
+Reference anchor: `references/three.js/examples/jsm/postprocessing/TAARenderPass.js`; modern TAA reference implementations.
+Insertion point: motion vector output as a second color target; TAA post-pass blends with history buffer based on motion vectors.
+
+Acceptance criteria:
+
+- Visible reduction in temporal aliasing on a moving camera scene.
+- Playwright video-frame comparison shows TAA frames smoother than non-TAA.
+
+### task-3088 — SSAO (screen-space ambient occlusion) (Tier 20 part 1)
+
+Category: `webgpu-render`
+Package/write-scope: `packages/webgpu/src/webgpu/post-ssao.ts` (new), depth attachment access from main pass, targeted tests.
+Dependencies: task-3067.
+Reference anchor: `references/three.js/examples/jsm/postprocessing/SSAOPass.js`; `references/engine/scripts/posteffects/posteffect-ssao.js`.
+Insertion point: SSAO sampling kernel reading the depth buffer; output multiplied into ambient term.
+
+Acceptance criteria:
+
+- Visible darkening in crevices and contact regions.
+- Playwright asserts pixels in expected concave regions are darker with SSAO on vs off.
+
+### task-3089 — SSR (screen-space reflections) (Tier 20 part 2)
+
+Category: `webgpu-render`
+Package/write-scope: `packages/webgpu/src/webgpu/post-ssr.ts` (new), targeted tests.
+Dependencies: task-3067.
+Reference anchor: `references/three.js/examples/jsm/postprocessing/SSRPass.js`.
+Insertion point: screen-space ray marching against the depth buffer to reflect visible geometry.
+
+Acceptance criteria:
+
+- Visible reflections on a glossy floor surface; reflected scene geometry recognizable.
+
+### task-3090 — Depth of field (bokeh) (Tier 20 part 3)
+
+Category: `webgpu-render`
+Package/write-scope: `packages/webgpu/src/webgpu/post-dof.ts` (new), targeted tests.
+Dependencies: task-3067.
+Reference anchor: `references/three.js/examples/jsm/postprocessing/BokehPass.js`; `references/engine/scripts/posteffects/posteffect-bokeh.js`.
+Insertion point: depth-aware blur using camera focus distance + aperture as controls.
+
+Acceptance criteria:
+
+- Visible focus/defocus on a scene with foreground + background.
+- Playwright asserts background pixels are blurred while foreground stays sharp.
 
 ## Ready Tasks — MVP Tracks
 
