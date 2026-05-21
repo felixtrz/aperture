@@ -118,6 +118,13 @@ const workerSplitExamples = [
     worker: "examples/standard-gltf-texture.worker.js",
     legacy: "examples/standard-gltf-texture.js",
   },
+  {
+    html: "examples/app-diagnostics.html",
+    main: "examples/app-diagnostics.main.js",
+    worker: "examples/app-diagnostics.worker.js",
+    legacy: "examples/app-diagnostics.js",
+    shared: "examples/app-diagnostics-scene.js",
+  },
 ];
 
 describe("worker-split examples", () => {
@@ -133,10 +140,14 @@ describe("worker-split examples", () => {
 
   it("keeps ECS authoring in worker files", async () => {
     for (const example of workerSplitExamples) {
-      const [main, worker] = await Promise.all([
+      const [main, worker, shared] = await Promise.all([
         readWorkspaceFile(example.main),
         readWorkspaceFile(example.worker),
+        example.shared === undefined
+          ? Promise.resolve("")
+          : readWorkspaceFile(example.shared),
       ]);
+      const workerSpawnSource = `${worker}\n${shared}`;
 
       expect(
         main,
@@ -156,9 +167,10 @@ describe("worker-split examples", () => {
         worker,
         `${example.worker} should transfer snapshot buffers`,
       ).toContain("renderSnapshotTransferList");
-      expect(worker, `${example.worker} should spawn ECS entities`).toMatch(
-        /\bapp\.spawn\s*\(/,
-      );
+      expect(
+        workerSpawnSource,
+        `${example.worker} should spawn ECS entities`,
+      ).toMatch(/\bapp\.spawn\s*\(/);
     }
   });
 

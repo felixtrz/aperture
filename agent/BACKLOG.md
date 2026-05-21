@@ -71,9 +71,10 @@ files, with transferable snapshot status assertions. `debug-normal-app`,
 have also been migrated as the first bulk examples. Later slices migrated
 `batching`, `render-to-texture`, `gpu-profiler`, `matcap-app`,
 `materials-showcase`, `point-shadow`, `spot-shadow`,
-`standard-texture-control`, and `standard-gltf-texture`. The remaining examples
-still using the temporary main-thread compatibility helper should continue to
-be migrated mechanically from the established template.
+`standard-texture-control`, `standard-gltf-texture`, and `app-diagnostics`.
+The remaining examples still using the temporary main-thread compatibility
+helper should continue to be migrated mechanically from the established
+template.
 
 Reference anchors (read before writing):
 
@@ -400,6 +401,12 @@ app, while a shared scene module keeps the large scenario matrix in one place.
 Targeted Playwright smoke covers mapped base-color and normal texture scenarios
 through the worker boundary, with static worker-split coverage guarding against
 main-thread ECS spawning.
+Progress note 2026-05-21: Migrated `app-diagnostics` to the same
+worker-by-default shape. The main entry now creates renderer-only WebGPU apps
+for each diagnostic scenario while module workers own extraction app setup,
+asset-mirrored ECS authoring, stepping, and transferable snapshot delivery.
+The existing app-diagnostics Playwright spec passes against the worker-split
+page and status now includes per-scenario worker/transport evidence.
 
 Acceptance criteria:
 

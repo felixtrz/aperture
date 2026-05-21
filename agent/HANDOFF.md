@@ -1,6 +1,72 @@
 # Agent Handoff
 
-Updated: 2026-05-21T18:31:25Z
+Updated: 2026-05-21T18:43:11Z
+
+## Current Run Update — 2026-05-21T18:43:11Z — App diagnostics worker migration advanced
+
+Advanced `task-3035` but did not finish it.
+
+### What changed
+
+- Migrated `app-diagnostics` to the worker-by-default shape.
+- Split the page into `app-diagnostics.main.js`,
+  `app-diagnostics.worker.js`, `app-diagnostics-scene.js`, and a thin legacy
+  compatibility import.
+- The main entry still owns WebGPU app creation and app-facade status/report
+  projection, but each diagnostic scenario now renders a transferable
+  `RenderSnapshot` produced by a module Worker.
+- The worker owns `createExtractionApp()`, mirrored source asset registration,
+  ECS camera/light/mesh spawning, stepping, extraction, and transfer-list
+  generation.
+- Static worker-split coverage now allows a declared shared scene module to
+  contain the repeated `app.spawn(...)` calls while keeping the renderer main
+  free of ECS authoring.
+
+### Files touched in this partial slice
+
+- `agent/BACKLOG.md`
+- `agent/HANDOFF.md`
+- `docs/index.html`
+- `docs/render-pipeline-comparison.html`
+- `examples/app-diagnostics.html`
+- `examples/app-diagnostics.js`
+- `examples/app-diagnostics-scene.js`
+- `examples/app-diagnostics.main.js`
+- `examples/app-diagnostics.worker.js`
+- `package.json`
+- `test/examples/worker-split-examples.test.mjs`
+
+### References inspected
+
+- `examples/worker-cube.main.js`
+- `examples/worker-cube.worker.js`
+- `references/three.js/examples/webgl_worker_offscreencanvas.html`
+- `references/bevy/crates/bevy_render/src/lib.rs`
+
+### Validation
+
+- `pnpm run check:examples`
+- `pnpm exec vitest run test/examples/worker-split-examples.test.mjs test/examples/navigation.test.mjs`
+- `pnpm run lint`
+- `pnpm run format:check`
+- `pnpm run check`
+- `pnpm exec playwright test test/e2e/app-diagnostics.spec.ts`
+
+### Known issues
+
+- `task-3035` remains incomplete. The remaining temporary-helper consumer is
+  `gltf-scene`.
+- Lower-level manual examples (`triangle`, `multi-entity`, `custom-material`)
+  still author/extract on the main thread without the temporary app bridge; they
+  need separate judgment during the final worker-by-default sweep.
+- `standard-texture-control?scenario=base-color-transform` remains a
+  pre-existing stale expected-failure case relative to the current finite
+  texture-transform support path; this migration did not change that contract.
+
+### Recommended next task
+
+Continue `task-3035` with `gltf-scene`, then decide how to handle the lower
+level manual examples before deleting `examples/example-renderer-app.js`.
 
 ## Current Run Update — 2026-05-21T18:31:25Z — Standard glTF texture worker migration advanced
 
