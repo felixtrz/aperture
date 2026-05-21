@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-05-21T03:02:55Z",
   "lastResult": "success",
-  "lastCommit": "458f5f8",
+  "lastCommit": "a1e1e10",
   "activePid": null,
-  "notes": "Completed task-3039 through task-3041: SAB app transport integration, skipped-entity explanations, and snapshot change-set family reports; full check passed; fixed late backlog formatting after first stop-hook attempt; next task is task-3042 render-packet inspector.",
-  "lastRunFinishedAt": "2026-05-21T21:51:48Z"
+  "notes": "Completed task-3042 through task-3044: render packet inspector, extraction frustum culling, and the custom per-instance attribute contract; validation passed; next task is task-3045 visible instance-attributes example.",
+  "lastRunFinishedAt": "2026-05-21T22:51:14Z"
 }

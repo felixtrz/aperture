@@ -1,6 +1,89 @@
 # Agent Handoff
 
-Updated: 2026-05-21T22:40:00Z
+Updated: 2026-05-21T22:50:07Z
+
+## End-of-Run Review — 2026-05-21T22:50:07Z — Tier 9 packet/culling/attribute slices shipped
+
+Completed `task-3042`, `task-3043`, and `task-3044`; stopped after the
+minute-50 gate opened.
+
+### What changed
+
+- Added the worker-split render packet inspector example with JSON-safe packet
+  tables, skipped-entity explanations, queue/batch keys, bounds, lights,
+  environments, and culling stats.
+- Added extraction-time camera frustum culling with per-view `cullStats` and a
+  camera opt-out flag.
+- Added the generic custom per-instance attribute contract: public
+  `defineInstanceAttributes(...)`, runtime `withInstanceData(...)`, extraction
+  packets, transform-aligned packing, WebGPU instance-attribute buffers, custom
+  WGSL pipeline layouts, and draw-command binding.
+- Used the remaining pre-stop-gate time to inspect `task-3045` references and
+  current example patterns; no `task-3045` code was started.
+
+### Files touched
+
+- `examples/render-packet-inspector.html`,
+  `examples/render-packet-inspector.main.js`,
+  `examples/render-packet-inspector.worker.js`
+- `packages/render/src/assets/preparation.ts`,
+  `packages/render/src/materials/instance-attributes.ts`,
+  `packages/render/src/rendering/authoring.ts`,
+  `packages/render/src/rendering/extraction.ts`,
+  `packages/render/src/rendering/snapshot.ts`,
+  `packages/render/src/rendering/transform-pack.ts`
+- `packages/runtime/src/index.ts`, `packages/runtime/src/simulation-worker.ts`
+- `packages/webgpu/src/webgpu/custom-wgsl-material.ts`,
+  `packages/webgpu/src/webgpu/draw-command.ts`,
+  `packages/webgpu/src/webgpu/instance-attribute-buffer.ts`,
+  `packages/webgpu/src/webgpu/resource-keys.ts`
+- `test/assets/render-asset-preparation.test.ts`,
+  `test/rendering/extraction.test.ts`,
+  `test/rendering/transform-pack.test.ts`,
+  `test/webgpu/custom-wgsl-material.test.ts`,
+  `test/webgpu/draw-command.test.ts`,
+  `test/e2e/render-packet-inspector.spec.ts`,
+  `test/examples/worker-split-examples.test.mjs`
+- `docs/index.html`, `docs/render-pipeline-comparison.html`,
+  `agent/BACKLOG.md`, `agent/COMPLETED.md`, `agent/HANDOFF.md`
+
+### Validation
+
+- `pnpm run check` passed after `task-3044` landed.
+- Additional post-gate/current-state checks passed:
+  `pnpm run check:progress`, `pnpm run format:check`,
+  `pnpm exec tsc --noEmit -p tsconfig.test.json`, `pnpm run build`,
+  `pnpm exec vitest run test/rendering/transform-pack.test.ts test/rendering/extraction.test.ts`,
+  `pnpm run lint`, `pnpm test`, `pnpm run check:examples`, and
+  `pnpm run check:boundaries`.
+
+### Known issues
+
+- `task-3045` remains the next visible feature; it should add the browser
+  example that proves custom WGSL consumes the new per-instance data.
+- The existing local headed-Playwright shutdown risk remains for some specs,
+  though this run's render-packet-inspector Playwright spec exited cleanly.
+
+### References pre-read for `task-3045`
+
+- `references/three.js/examples/webgpu_instancing_morph.html`
+- `references/three.js/examples/webgl_instancing_dynamic.html`
+- `references/engine/examples/src/examples/graphics/instancing-custom.example.mjs`
+- `references/engine/examples/src/examples/graphics/instancing-custom.transform-instancing.wgsl.vert`
+- Existing Aperture patterns:
+  `examples/instance-tint.{html,main.js,worker.js}`,
+  `examples/custom-material.{html,main.js,worker.js}`,
+  `test/e2e/instance-tint.spec.ts`, and
+  `test/e2e/custom-material.spec.ts`
+
+### Recommended next task
+
+Start `task-3045`: add `examples/instance-attributes.*` as a worker-split
+custom WGSL example. Reuse the custom-material manual WebGPU path, add
+`phase` and `swayAmount` float attributes via `defineInstanceAttributes(...)`,
+spawn at least 500 entities with one mesh and one custom material handle,
+pack/bind the generic instance-attribute buffer, and assert animated
+per-instance pixel changes in Playwright.
 
 ## Current Run Update — 2026-05-21T22:40:00Z — Custom instance attribute contract shipped
 
