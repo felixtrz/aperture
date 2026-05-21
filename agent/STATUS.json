@@ -3,9 +3,9 @@
   "currentTaskId": null,
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-05-21T03:02:55Z",
-  "lastResult": "stop-condition",
+  "lastResult": "success",
   "lastCommit": null,
   "activePid": null,
-  "notes": "Completed tasks 3017-3020: static batching queue integration and example, transparent sort phase diagnostics, and GPU timestamp query infrastructure. Stopping before task-3021 because remaining window is too small for validated render-pass instrumentation.",
-  "lastRunFinishedAt": "2026-05-21T03:36:45Z"
+  "notes": "Completed GPU pass timing diagnostics and GPU profiler overlay example; next task is task-3024 asset unregister API. Formatted user optimization notes for stop-hook validation.",
+  "lastRunFinishedAt": "2026-05-21T04:57:26Z"
 }

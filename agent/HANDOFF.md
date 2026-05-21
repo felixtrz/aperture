@@ -57,11 +57,12 @@ Completed `task-3023`.
 
 - Headed Chrome/Playwright can hang during shutdown after WebGPU examples. This
   also happened during the GLTF timing probe earlier in the run.
-- Untracked optimization markdown files are present in the worktree:
+- Optimization markdown files were present in the worktree:
   `OPTIMIZATIONS_CULLING_AND_SCALE.md`, `OPTIMIZATIONS_GPU_PIPELINE.md`,
   `OPTIMIZATIONS_INSTANCING_AND_BATCHING.md`, and
   `OPTIMIZATIONS_TRANSPORT_AND_UPLOAD.md`. They appear unrelated to the
-  profiler slice and were preserved.
+  profiler slice; only Prettier formatting was applied so the repository-wide
+  stop-hook format check can pass.
 
 ### Recommended next task
 
