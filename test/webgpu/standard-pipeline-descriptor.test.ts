@@ -137,6 +137,16 @@ describe("standard material pipeline descriptor planning", () => {
     });
   });
 
+  it("recognizes the instance tint StandardMaterial pipeline feature", () => {
+    const featurePlan = createStandardPipelineShaderFeaturePlan({
+      ...STANDARD_BATCH_KEY,
+      pipelineKey: "standard|instance-tint|opaque|back|less|none",
+    });
+
+    expect(featurePlan.features.instanceTint).toBe(true);
+    expect(featurePlan.variantKey).toContain("instance-tint");
+  });
+
   it("derives cache keys and descriptor render state from standard alpha, depth, and cull tokens", () => {
     const opaque = required(
       createStandardPipelineDescriptorPlan({

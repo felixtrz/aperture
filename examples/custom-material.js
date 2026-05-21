@@ -9,17 +9,16 @@ import {
 const canvas = document.querySelector("#aperture-canvas");
 const stateElement = document.querySelector("#example-state");
 const jsonElement = document.querySelector("#example-json");
-const clearColor = { r: 0.015, g: 0.025, b: 0.035, a: 1 };
-const scenario =
-  new URLSearchParams(window.location.search).get("material") === "custom-wgsl"
-    ? "custom-wgsl"
-    : "unlit";
-const customMaterialUniformColor = [0.02, 0.74, 0.95, 1];
+const clearColor = { r: 0.01, g: 0.018, b: 0.028, a: 1 };
+const waterBaseColor = [0.02, 0.46, 0.9, 1];
+const recentSamples = [];
+const brokenMode =
+  new URLSearchParams(window.location.search).get("broken") === "wgsl";
 
 const baseStatus = {
-  example: scenario === "custom-wgsl" ? "custom-wgsl-material" : "ecs-triangle",
-  scenario,
-  availableScenarios: ["unlit", "custom-wgsl"],
+  example: "custom-material",
+  scenario: "water-material",
+  mode: brokenMode ? "broken-wgsl" : "animated-water",
   canvas: {
     width: canvas?.width ?? 0,
     height: canvas?.height ?? 0,
@@ -53,17 +52,16 @@ try {
         renderingBackend: aperture.APERTURE_IDENTITY.renderingBackend,
       });
     } else {
-      publishStatus(
-        await renderTriangleScene(
-          aperture,
-          initialized,
-          {
-            width: canvas.width,
-            height: canvas.height,
-          },
-          readbackUsage,
-        ),
-      );
+      const scene = await createCustomWaterScene(aperture, initialized, {
+        width: canvas.width,
+        height: canvas.height,
+      });
+
+      if (!scene.ok) {
+        publishStatus(scene.status);
+      } else {
+        startAnimation(aperture, initialized, scene, readbackUsage);
+      }
     }
   }
 } catch (error) {
@@ -78,225 +76,8 @@ try {
   );
 }
 
-async function renderTriangleScene(
-  aperture,
-  initialized,
-  canvasSize,
-  readbackUsage,
-) {
-  if (scenario === "custom-wgsl") {
-    return renderCustomWgslTriangleScene(
-      aperture,
-      initialized,
-      canvasSize,
-      readbackUsage,
-    );
-  }
-
-  const { world, assets, mesh, material } = createTriangleWorld(
-    aperture,
-    canvasSize,
-  );
-  const snapshot = aperture.extractRenderSnapshot(world, assets, { frame: 1 });
-  const firstDraw = snapshot.meshDraws[0];
-  const firstView = snapshot.views[0];
-
-  if (firstDraw === undefined || firstView === undefined) {
-    return {
-      ...failure(
-        "extract",
-        "empty-snapshot",
-        "The ECS triangle scene did not extract a drawable view and mesh.",
-      ),
-      extraction: snapshotCounts(snapshot),
-      diagnostics: snapshot.diagnostics,
-    };
-  }
-
-  const pipelineResource = await aperture.createUnlitRenderPipelineResource({
-    device: initialized.device,
-    colorFormat: initialized.format,
-    batchKey: firstDraw.batchKey,
-  });
-
-  if (!pipelineResource.valid || pipelineResource.resource === null) {
-    return {
-      ...failure(
-        "pipeline",
-        "pipeline-unavailable",
-        "The unlit render pipeline could not be created.",
-      ),
-      diagnostics: pipelineResource.diagnostics,
-      extraction: snapshotCounts(snapshot),
-    };
-  }
-
-  const pipeline = pipelineResource.resource.pipeline;
-
-  if (typeof pipeline.getBindGroupLayout !== "function") {
-    return failure(
-      "pipeline-layouts",
-      "pipeline-layouts-unavailable",
-      "The unlit pipeline does not expose bind group layouts.",
-    );
-  }
-
-  const packedViews = aperture.packSnapshotViewUniforms(snapshot);
-  const packedTransforms = aperture.packSnapshotTransforms(snapshot);
-  const frameResources = aperture.createUnlitFrameGpuResources({
-    device: initialized.device,
-    mesh,
-    viewUniforms: packedViews,
-    worldTransforms: packedTransforms,
-    material,
-    layouts: [0, 1, 2].map((group) => ({
-      group,
-      layoutKey: `unlit/pipeline-layout-${group}`,
-      layout: pipeline.getBindGroupLayout(group),
-    })),
-  });
-
-  if (!frameResources.valid || frameResources.resources === null) {
-    return {
-      ...failure(
-        "resources",
-        "frame-resources-unavailable",
-        "The ECS triangle frame resources could not be uploaded.",
-      ),
-      diagnostics: frameResources.diagnostics,
-      extraction: snapshotCounts(snapshot),
-    };
-  }
-
-  const renderWorld = new aperture.RenderWorld();
-  const apply = renderWorld.applySnapshot(snapshot);
-  const bindingPlan = aperture.planInjectedRenderFrameSnapshotResourceBindings({
-    snapshot,
-    resolveMeshResourceKey: (draw) =>
-      draw.mesh.id === "triangle"
-        ? frameResources.resources.mesh.resourceKey
-        : null,
-    resolveMaterialResourceKey: (draw) =>
-      draw.material.id === "triangle"
-        ? frameResources.resources.material.resourceKey
-        : null,
-  });
-  const bindingResults = bindingPlan.bindings.map((binding) =>
-    renderWorld.updateResourceBindings(binding.renderId, binding.update),
-  );
-  const readiness = renderWorld.createDrawReadinessReport();
-  const packages = aperture.planRenderWorldDrawPackages(
-    readiness,
-    packedTransforms,
-  );
-  const drawCommands = aperture.createDrawCommandDescriptors(
-    packages.packages,
-    [frameResources.resources.mesh],
-  );
-  const pipelineResult = {
-    ok: true,
-    status: "miss",
-    key: firstDraw.batchKey.pipelineKey,
-    pipeline,
-    diagnostics: [],
-  };
-  const drawList = aperture.planRenderPassDrawList({
-    drawCommands: drawCommands.descriptors,
-    pipelines: [pipelineResult],
-    bindGroups: frameResources.resources.bindGroups,
-  });
-  const resources = aperture.resolveRenderPassResources({
-    drawList: drawList.draws,
-    pipelines: [pipelineResult],
-    bindGroups: frameResources.resources.bindGroups,
-    meshResources: [frameResources.resources.mesh],
-  });
-  const commandPlan = aperture.planRenderPassCommands({
-    draws: resources.draws,
-  });
-
-  if (
-    !drawList.valid ||
-    !resources.valid ||
-    !commandPlan.valid ||
-    commandPlan.drawCount === 0
-  ) {
-    return {
-      ...failure(
-        "draw-plan",
-        "draw-plan-unavailable",
-        "The ECS triangle draw plan did not produce a drawable command stream.",
-      ),
-      extraction: snapshotCounts(snapshot),
-      diagnostics: [
-        ...packages.diagnostics,
-        ...drawCommands.diagnostics,
-        ...drawList.diagnostics,
-        ...resources.diagnostics,
-        ...commandPlan.diagnostics,
-      ],
-    };
-  }
-
-  const submitted = await submitTriangleFrame(
-    aperture,
-    initialized,
-    commandPlan,
-    canvasSize,
-    readbackUsage,
-  );
-
-  if (!submitted.ok) {
-    return {
-      ...failure("submit", submitted.reason, submitted.message),
-      extraction: snapshotCounts(snapshot),
-      diagnostics: submitted.diagnostics,
-    };
-  }
-
-  return {
-    ...baseStatus,
-    ok: true,
-    phase: "submit",
-    apertureVersion: aperture.APERTURE_VERSION,
-    renderingBackend: aperture.APERTURE_IDENTITY.renderingBackend,
-    format: initialized.format,
-    clearColor,
-    extraction: snapshotCounts(snapshot),
-    binding: {
-      planned: bindingPlan.bindings.length,
-      applied: bindingResults.filter((result) => result.ok).length,
-      diagnostics: bindingPlan.diagnostics.length,
-    },
-    renderWorld: {
-      active: apply.active,
-      ready: readiness.ready.length,
-      blocked: readiness.blocked.length,
-    },
-    draw: {
-      packages: packages.packages.length,
-      descriptors: drawCommands.descriptors.length,
-      drawList: drawList.draws.length,
-      resolved: resources.draws.length,
-    },
-    command: {
-      commands: commandPlan.commands.length,
-      drawCount: commandPlan.drawCount,
-      indexedDrawCount: commandPlan.indexedDrawCount,
-      nonIndexedDrawCount: commandPlan.nonIndexedDrawCount,
-    },
-    submission: submitted.summary,
-    readback: submitted.readback,
-  };
-}
-
-async function renderCustomWgslTriangleScene(
-  aperture,
-  initialized,
-  canvasSize,
-  readbackUsage,
-) {
-  const { world, assets, mesh, materialHandle } = createTriangleWorld(
+async function createCustomWaterScene(aperture, initialized, canvasSize) {
+  const { world, assets, mesh, materialHandle } = createWaterWorld(
     aperture,
     canvasSize,
   );
@@ -307,18 +88,42 @@ async function renderCustomWgslTriangleScene(
   const firstView = extractedSnapshot.views[0];
 
   if (firstDraw === undefined || firstView === undefined) {
-    return {
+    return sceneFailure({
       ...failure(
         "extract",
         "empty-snapshot",
-        "The custom WGSL triangle scene did not extract a drawable view and mesh.",
+        "The custom material scene did not extract a drawable view and mesh.",
       ),
       extraction: snapshotCounts(extractedSnapshot),
       diagnostics: extractedSnapshot.diagnostics,
-    };
+    });
   }
 
-  const customSource = createCustomWgslTriangleMaterial(aperture);
+  const customSource = createWaterMaterialSource(aperture, {
+    brokenWgsl: brokenMode,
+  });
+  const sourceDiagnostics = aperture.validateCustomMaterialSource(
+    customSource,
+    {
+      assetKey: aperture.assetHandleKey(materialHandle),
+      expectedFamily: "custom-water",
+    },
+  );
+
+  if (sourceDiagnostics.length > 0) {
+    return sceneFailure({
+      ...failure(
+        "validate-custom-material",
+        "custom-material-source-invalid",
+        "The WaterMaterial source failed package validation.",
+      ),
+      customMaterialValidation: {
+        diagnostics: sourceDiagnostics.length,
+        codes: sourceDiagnostics.map((diagnostic) => diagnostic.code),
+      },
+      diagnostics: sourceDiagnostics,
+    });
+  }
 
   assets.markReady(materialHandle, customSource);
 
@@ -334,32 +139,29 @@ async function renderCustomWgslTriangleScene(
   const preparedMaterial = customPreparation.entry?.prepared ?? null;
 
   if (customPreparation.outcome !== "prepared" || preparedMaterial === null) {
-    return {
+    return sceneFailure({
       ...failure(
         "prepare-custom-material",
         "custom-material-prepare-failed",
-        "The custom WGSL material could not be prepared from its source asset.",
+        "The WaterMaterial WGSL source could not be prepared.",
       ),
       extraction: snapshotCounts(extractedSnapshot),
       diagnostics: customPreparation.diagnostics,
-    };
+    });
   }
 
-  const uniformResource = createCustomMaterialUniformResource({
+  const uniform = createWaterUniformResource({
     aperture,
     device: initialized.device,
     material: preparedMaterial,
+    time: 0,
   });
 
-  if (!uniformResource.ok) {
-    return {
-      ...failure(
-        "custom-uniform",
-        uniformResource.reason,
-        uniformResource.message,
-      ),
+  if (!uniform.ok) {
+    return sceneFailure({
+      ...failure("water-uniform", uniform.reason, uniform.message),
       extraction: snapshotCounts(extractedSnapshot),
-    };
+    });
   }
 
   const customResources =
@@ -367,19 +169,19 @@ async function renderCustomWgslTriangleScene(
       device: initialized.device,
       material: preparedMaterial,
       colorFormat: initialized.format,
-      resources: [uniformResource.resource],
+      resources: [uniform.resource],
     });
 
   if (!customResources.valid || customResources.resources === null) {
-    return {
+    return sceneFailure({
       ...failure(
         "custom-resources",
         "custom-material-resources-unavailable",
-        "The custom WGSL pipeline or material bind group could not be created.",
+        "The WaterMaterial WebGPU resources could not be created.",
       ),
       extraction: snapshotCounts(extractedSnapshot),
       diagnostics: customResources.diagnostics,
-    };
+    });
   }
 
   const snapshot = rewriteSnapshotForCustomMaterial(
@@ -389,7 +191,7 @@ async function renderCustomWgslTriangleScene(
   );
   const packedViews = aperture.packSnapshotViewUniforms(snapshot);
   const packedTransforms = aperture.packSnapshotTransforms(snapshot);
-  const frameResources = createCustomWgslFrameResources({
+  const frameResources = createCustomWaterFrameResources({
     aperture,
     device: initialized.device,
     mesh,
@@ -399,15 +201,15 @@ async function renderCustomWgslTriangleScene(
   });
 
   if (!frameResources.valid || frameResources.resources === null) {
-    return {
+    return sceneFailure({
       ...failure(
         "resources",
         "custom-frame-resources-unavailable",
-        "The custom WGSL frame resources could not be uploaded.",
+        "The WaterMaterial frame resources could not be uploaded.",
       ),
       extraction: snapshotCounts(snapshot),
       diagnostics: frameResources.diagnostics,
-    };
+    });
   }
 
   const renderWorld = new aperture.RenderWorld();
@@ -415,11 +217,13 @@ async function renderCustomWgslTriangleScene(
   const bindingPlan = aperture.planInjectedRenderFrameSnapshotResourceBindings({
     snapshot,
     resolveMeshResourceKey: (draw) =>
-      draw.mesh.id === "triangle"
+      draw.mesh.id === "custom-water-plane"
         ? frameResources.resources.mesh.resourceKey
         : null,
     resolveMaterialResourceKey: (draw) =>
-      draw.material.id === "triangle" ? preparedMaterial.materialKey : null,
+      draw.material.id === "custom-water-material"
+        ? preparedMaterial.materialKey
+        : null,
   });
   const bindingResults = bindingPlan.bindings.map((binding) =>
     renderWorld.updateResourceBindings(binding.renderId, binding.update),
@@ -465,11 +269,11 @@ async function renderCustomWgslTriangleScene(
     !commandPlan.valid ||
     commandPlan.drawCount === 0
   ) {
-    return {
+    return sceneFailure({
       ...failure(
         "draw-plan",
         "custom-draw-plan-unavailable",
-        "The custom WGSL draw plan did not produce a drawable command stream.",
+        "The WaterMaterial draw plan did not produce a drawable command stream.",
       ),
       extraction: snapshotCounts(snapshot),
       diagnostics: [
@@ -479,73 +283,119 @@ async function renderCustomWgslTriangleScene(
         ...resources.diagnostics,
         ...commandPlan.diagnostics,
       ],
-    };
-  }
-
-  const submitted = await submitTriangleFrame(
-    aperture,
-    initialized,
-    commandPlan,
-    canvasSize,
-    readbackUsage,
-  );
-
-  if (!submitted.ok) {
-    return {
-      ...failure("submit", submitted.reason, submitted.message),
-      extraction: snapshotCounts(snapshot),
-      diagnostics: submitted.diagnostics,
-    };
+    });
   }
 
   return {
-    ...baseStatus,
     ok: true,
-    phase: "submit",
-    apertureVersion: aperture.APERTURE_VERSION,
-    renderingBackend: aperture.APERTURE_IDENTITY.renderingBackend,
-    format: initialized.format,
-    clearColor,
-    customMaterial: {
-      family: preparedMaterial.materialFamily,
-      sourceMaterialKey: preparedMaterial.sourceMaterialKey,
-      materialResourceKey: preparedMaterial.materialKey,
-      pipelineKey: preparedMaterial.pipeline.pipelineKey,
-      bindGroupResourceKey: customResources.resources.bindGroup.resourceKey,
-      uniformColor: customMaterialUniformColor,
-      diagnostics:
-        customPreparation.diagnostics.length +
-        customResources.diagnostics.length,
+    snapshot,
+    canvasSize,
+    uniform,
+    preparedMaterial,
+    customResources: customResources.resources,
+    counts: {
+      extraction: snapshotCounts(snapshot),
+      binding: {
+        planned: bindingPlan.bindings.length,
+        applied: bindingResults.filter((result) => result.ok).length,
+        diagnostics: bindingPlan.diagnostics.length,
+      },
+      renderWorld: {
+        active: apply.active,
+        ready: readiness.ready.length,
+        blocked: readiness.blocked.length,
+      },
+      draw: {
+        packages: packages.packages.length,
+        descriptors: drawCommands.descriptors.length,
+        drawList: drawList.draws.length,
+        resolved: resources.draws.length,
+      },
+      command: {
+        commands: commandPlan.commands.length,
+        drawCount: commandPlan.drawCount,
+        indexedDrawCount: commandPlan.indexedDrawCount,
+        nonIndexedDrawCount: commandPlan.nonIndexedDrawCount,
+      },
     },
-    extraction: snapshotCounts(snapshot),
-    binding: {
-      planned: bindingPlan.bindings.length,
-      applied: bindingResults.filter((result) => result.ok).length,
-      diagnostics: bindingPlan.diagnostics.length,
-    },
-    renderWorld: {
-      active: apply.active,
-      ready: readiness.ready.length,
-      blocked: readiness.blocked.length,
-    },
-    draw: {
-      packages: packages.packages.length,
-      descriptors: drawCommands.descriptors.length,
-      drawList: drawList.draws.length,
-      resolved: resources.draws.length,
-    },
-    command: {
-      commands: commandPlan.commands.length,
-      drawCount: commandPlan.drawCount,
-      indexedDrawCount: commandPlan.indexedDrawCount,
-      nonIndexedDrawCount: commandPlan.nonIndexedDrawCount,
-    },
-    submission: submitted.summary,
-    readback: submitted.readback,
+    sourceDiagnostics,
+    diagnostics:
+      customPreparation.diagnostics.length + customResources.diagnostics.length,
+    commandPlan,
   };
 }
 
-async function submitTriangleFrame(
+function startAnimation(aperture, initialized, scene, readbackUsage) {
+  let firstTimestamp = null;
+  let previousTimestamp = null;
+  let frame = 0;
+
+  const render = async (timestamp) => {
+    if (firstTimestamp === null) {
+      firstTimestamp = timestamp;
+      previousTimestamp = timestamp;
+    }
+
+    const elapsedSeconds = (timestamp - firstTimestamp) / 1000;
+    const deltaSeconds =
+      previousTimestamp === null ? 0 : (timestamp - previousTimestamp) / 1000;
+    const shaderTime = frame * 0.18;
+
+    previousTimestamp = timestamp;
+    frame += 1;
+
+    const uniformWrite = scene.uniform.write(shaderTime);
+
+    if (!uniformWrite.ok) {
+      publishStatus(
+        failure("uniform-update", uniformWrite.reason, uniformWrite.message),
+      );
+      return;
+    }
+
+    try {
+      const submitted = await submitCustomMaterialFrame(
+        aperture,
+        initialized,
+        scene.commandPlan,
+        scene.canvasSize,
+        readbackUsage,
+      );
+
+      if (!submitted.ok) {
+        publishStatus({
+          ...failure("submit", submitted.reason, submitted.message),
+          diagnostics: submitted.diagnostics,
+        });
+        return;
+      }
+
+      publishAnimatedStatus({
+        aperture,
+        initialized,
+        scene,
+        submitted,
+        frame,
+        elapsedSeconds,
+        deltaSeconds,
+        shaderTime,
+      });
+      requestAnimationFrame(render);
+    } catch (error) {
+      publishStatus(
+        failure(
+          "animate",
+          "custom-material-animation-failed",
+          error instanceof Error ? error.message : "Custom material failed.",
+        ),
+      );
+    }
+  };
+
+  requestAnimationFrame(render);
+}
+
+async function submitCustomMaterialFrame(
   aperture,
   initialized,
   commandPlan,
@@ -579,7 +429,7 @@ async function submitTriangleFrame(
 
   const encoderResource = aperture.createCommandEncoderResource({
     device: initialized.device,
-    label: "ecs-triangle",
+    label: "custom-water-material",
   });
 
   if (!encoderResource.valid || encoderResource.resource === null) {
@@ -621,7 +471,7 @@ async function submitTriangleFrame(
     : readbackUsage;
   const finished = aperture.finishCommandEncoder({
     encoder: encoderResource.resource.encoder,
-    label: "ecs-triangle",
+    label: "custom-water-material",
   });
 
   if (!execution.valid || !end.valid || !finished.valid) {
@@ -662,15 +512,76 @@ async function submitTriangleFrame(
   };
 }
 
-function createTriangleWorld(aperture, canvasSize) {
+function publishAnimatedStatus({
+  aperture,
+  initialized,
+  scene,
+  submitted,
+  frame,
+  elapsedSeconds,
+  deltaSeconds,
+  shaderTime,
+}) {
+  const centerSample = submitted.readback.ok
+    ? submitted.readback.samples.find((sample) => sample.id === "center")
+    : undefined;
+
+  if (centerSample !== undefined) {
+    recentSamples.push({
+      frame,
+      shaderTime,
+      pixel: centerSample.pixel,
+    });
+
+    if (recentSamples.length > 6) {
+      recentSamples.shift();
+    }
+  }
+
+  publishStatus({
+    ...baseStatus,
+    ok: true,
+    phase: "animate",
+    apertureVersion: aperture.APERTURE_VERSION,
+    renderingBackend: aperture.APERTURE_IDENTITY.renderingBackend,
+    format: initialized.format,
+    clearColor,
+    customMaterial: {
+      family: scene.preparedMaterial.materialFamily,
+      sourceMaterialKey: scene.preparedMaterial.sourceMaterialKey,
+      materialResourceKey: scene.preparedMaterial.materialKey,
+      pipelineKey: scene.preparedMaterial.pipeline.pipelineKey,
+      bindGroupResourceKey: scene.customResources.bindGroup.resourceKey,
+      uniformColor: waterBaseColor,
+      validationDiagnostics: scene.sourceDiagnostics.length,
+      diagnostics: scene.diagnostics,
+    },
+    animation: {
+      frame,
+      elapsedSeconds,
+      deltaSeconds,
+      shaderTime,
+      samples: [...recentSamples],
+    },
+    extraction: scene.counts.extraction,
+    binding: scene.counts.binding,
+    renderWorld: scene.counts.renderWorld,
+    draw: scene.counts.draw,
+    command: scene.counts.command,
+    submission: submitted.summary,
+    readback: submitted.readback,
+  });
+}
+
+function createWaterWorld(aperture, canvasSize) {
   const world = aperture.createWorld({ entityCapacity: 8 });
   const assets = new aperture.AssetRegistry();
-  const meshHandle = aperture.createMeshHandle("triangle");
-  const materialHandle = aperture.createMaterialHandle("triangle");
-  const mesh = createTriangleMesh();
+  const meshHandle = aperture.createMeshHandle("custom-water-plane");
+  const materialHandle = aperture.createMaterialHandle("custom-water-material");
+  const mesh = createWaterPlaneMesh();
   const material = aperture.createUnlitMaterialAsset({
-    label: "TriangleMaterial",
-    baseColorFactor: new Float32Array([1, 0.18, 0.09, 1]),
+    label: "WaterMaterialExtractionPlaceholder",
+    baseColorFactor: new Float32Array([0.02, 0.46, 0.9, 1]),
   });
 
   aperture.registerTransformComponents(world);
@@ -683,7 +594,7 @@ function createTriangleWorld(aperture, canvasSize) {
 
   const camera = world.createEntity();
   const cameraTransform = aperture.createRootTransform({
-    translation: [0, 0, 2.5],
+    translation: [0, 0, 2.45],
   });
 
   camera.addComponent(aperture.WorldTransform, cameraTransform.world);
@@ -698,45 +609,45 @@ function createTriangleWorld(aperture, canvasSize) {
     }),
   );
 
-  const triangle = world.createEntity();
-  const triangleTransform = aperture.createRootTransform();
+  const plane = world.createEntity();
+  const planeTransform = aperture.createRootTransform();
 
-  triangle.addComponent(aperture.WorldTransform, triangleTransform.world);
-  triangle.addComponent(aperture.Mesh, {
+  plane.addComponent(aperture.WorldTransform, planeTransform.world);
+  plane.addComponent(aperture.Mesh, {
     meshId: aperture.assetHandleKey(meshHandle),
   });
-  triangle.addComponent(aperture.Material, {
+  plane.addComponent(aperture.Material, {
     materialId: aperture.assetHandleKey(materialHandle),
   });
-  triangle.addComponent(aperture.RenderLayer, { mask: 1 });
-  triangle.addComponent(aperture.Visibility);
+  plane.addComponent(aperture.RenderLayer, { mask: 1 });
+  plane.addComponent(aperture.Visibility);
 
-  return { world, assets, mesh, material, materialHandle };
+  return { world, assets, mesh, materialHandle };
 }
 
-function createTriangleMesh() {
+function createWaterPlaneMesh() {
   return {
     kind: "mesh",
-    label: "Triangle",
+    label: "CustomWaterPlane",
     vertexStreams: [
       {
         id: "primitive-interleaved",
         arrayStride: 32,
-        vertexCount: 3,
+        vertexCount: 4,
         attributes: [
           { semantic: "POSITION", format: "float32x3", offset: 0 },
           { semantic: "NORMAL", format: "float32x3", offset: 12 },
           { semantic: "TEXCOORD_0", format: "float32x2", offset: 24 },
         ],
         data: new Float32Array([
-          0, 0.72, 0, 0, 0, 1, 0.5, 0, -0.72, -0.55, 0, 0, 0, 1, 0, 1, 0.72,
-          -0.55, 0, 0, 0, 1, 1, 1,
+          -1.35, -0.75, 0, 0, 0, 1, 0, 1, 1.35, -0.75, 0, 0, 0, 1, 1, 1, 1.35,
+          0.75, 0, 0, 0, 1, 1, 0, -1.35, 0.75, 0, 0, 0, 1, 0, 0,
         ]),
       },
     ],
     indexBuffer: {
       format: "uint16",
-      data: new Uint16Array([0, 1, 2]),
+      data: new Uint16Array([0, 1, 2, 0, 2, 3]),
     },
     submeshes: [
       {
@@ -744,21 +655,21 @@ function createTriangleMesh() {
         topology: "triangle-list",
         materialSlot: 0,
         vertexStart: 0,
-        vertexCount: 3,
+        vertexCount: 4,
         indexStart: 0,
-        indexCount: 3,
+        indexCount: 6,
       },
     ],
     materialSlots: [{ index: 0, label: "default" }],
-    localAabb: { min: [-0.72, -0.55, 0], max: [0.72, 0.72, 0] },
-    localSphere: { center: [0, 0, 0], radius: 0.9 },
+    localAabb: { min: [-1.35, -0.75, 0], max: [1.35, 0.75, 0] },
+    localSphere: { center: [0, 0, 0], radius: 1.55 },
   };
 }
 
-function createCustomWgslTriangleMaterial(aperture) {
+function createWaterMaterialSource(aperture, options = {}) {
   return {
     family: "custom-water",
-    label: "Custom WGSL Water Triangle",
+    label: "Custom WaterMaterial",
     renderState: aperture.createDefaultRenderState({
       cullMode: "none",
     }),
@@ -769,8 +680,9 @@ struct ViewProjectionUniform {
   cameraPosition: vec4f,
 };
 
-struct CustomMaterialUniform {
+struct WaterMaterialUniform {
   color: vec4f,
+  params: vec4f,
 };
 
 struct VertexInput {
@@ -787,7 +699,7 @@ struct VertexOutput {
 
 @group(0) @binding(0) var<uniform> view: ViewProjectionUniform;
 @group(1) @binding(0) var<storage, read> worldTransforms: array<mat4x4f>;
-@group(2) @binding(0) var<uniform> material: CustomMaterialUniform;
+@group(2) @binding(0) var<uniform> material: WaterMaterialUniform;
 
 @vertex
 fn vs_main(input: VertexInput) -> VertexOutput {
@@ -799,13 +711,19 @@ fn vs_main(input: VertexInput) -> VertexOutput {
 }
 
 @fragment
-fn fs_main(input: VertexOutput) -> @location(0) vec4f {
-  let customColor = vec3f(
-    material.color.r + input.uv.x * 0.2,
-    material.color.g + input.uv.y * 0.2,
-    material.color.b
-  );
-  return vec4f(customColor, material.color.a);
+fn ${options.brokenWgsl ? "broken_fs_main" : "fs_main"}(input: VertexOutput) -> @location(0) vec4f {
+  let phase = material.params.x;
+  let flow = material.params.yz;
+  let scale = material.params.w;
+  let waveA = sin((input.uv.x + phase * flow.x) * scale * 6.2831853);
+  let waveB = cos((input.uv.y + phase * flow.y) * scale * 5.1);
+  let ripple = sin((input.uv.x + input.uv.y) * scale * 3.7 + phase * 5.8);
+  let height = waveA * 0.12 + waveB * 0.10 + ripple * 0.08;
+  let foam = smoothstep(0.12, 0.24, height + 0.18);
+  let deep = vec3f(0.0, 0.18, 0.34);
+  let shallow = material.color.rgb;
+  let water = mix(deep, shallow, clamp(0.52 + height, 0.0, 1.0));
+  return vec4f(water + foam * vec3f(0.18, 0.28, 0.34), material.color.a);
 }
       `.trim(),
       vertexEntryPoint: "vs_main",
@@ -816,20 +734,20 @@ fn fs_main(input: VertexOutput) -> @location(0) vec4f {
         binding: 0,
         kind: "uniform-buffer",
         visibility: ["fragment"],
-        label: "customMaterialUniform",
+        label: "waterMaterialUniform",
       },
     ],
   };
 }
 
-function createCustomMaterialUniformResource({ aperture, device, material }) {
+function createWaterUniformResource({ aperture, device, material, time }) {
   const binding = material.bindGroup.entries[0];
 
   if (binding === undefined) {
     return {
       ok: false,
       reason: "custom-material-binding-missing",
-      message: "The custom WGSL material did not declare binding 0.",
+      message: "The WaterMaterial did not declare binding 0.",
     };
   }
 
@@ -837,13 +755,14 @@ function createCustomMaterialUniformResource({ aperture, device, material }) {
     UNIFORM: 0x40,
     COPY_DST: 0x08,
   };
+  const initialData = encodeWaterUniform(time);
   const buffer = aperture.createWebGpuBuffer({
     device,
     descriptor: {
       label: `${material.label}/uniform`,
-      size: customMaterialUniformColor.length * Float32Array.BYTES_PER_ELEMENT,
+      size: initialData.byteLength,
       usage: bufferUsage.UNIFORM | bufferUsage.COPY_DST,
-      initialData: new Float32Array(customMaterialUniformColor),
+      initialData,
     },
   });
 
@@ -861,7 +780,41 @@ function createCustomMaterialUniformResource({ aperture, device, material }) {
       resourceKey: binding.resourceKey,
       resource: { buffer: buffer.buffer },
     },
+    write(timeSeconds) {
+      if (typeof device.queue?.writeBuffer !== "function") {
+        return {
+          ok: false,
+          reason: "queue-write-buffer-unavailable",
+          message: "WaterMaterial animation requires queue.writeBuffer.",
+        };
+      }
+
+      const data = encodeWaterUniform(timeSeconds);
+
+      device.queue.writeBuffer(
+        buffer.buffer,
+        0,
+        data.buffer,
+        data.byteOffset,
+        data.byteLength,
+      );
+
+      return { ok: true };
+    },
   };
+}
+
+function encodeWaterUniform(timeSeconds) {
+  return new Float32Array([
+    waterBaseColor[0],
+    waterBaseColor[1],
+    waterBaseColor[2],
+    waterBaseColor[3],
+    timeSeconds,
+    0.9,
+    -0.55,
+    1.9,
+  ]);
 }
 
 function rewriteSnapshotForCustomMaterial(aperture, snapshot, material) {
@@ -890,7 +843,7 @@ function rewriteSnapshotForCustomMaterial(aperture, snapshot, material) {
   };
 }
 
-function createCustomWgslFrameResources({
+function createCustomWaterFrameResources({
   aperture,
   device,
   mesh,
@@ -971,7 +924,7 @@ function createCustomWgslFrameResources({
     plan: sharedPlan,
     layouts: [0, 1].map((group) => ({
       group,
-      layoutKey: `custom-wgsl/pipeline-layout-${group}`,
+      layoutKey: `custom-water/pipeline-layout-${group}`,
       layout: pipeline.getBindGroupLayout(group),
     })),
     buffers: [
@@ -1014,6 +967,10 @@ function snapshotCounts(snapshot) {
     viewMatrices: snapshot.viewMatrices.length / 16,
     diagnostics: snapshot.diagnostics.length,
   };
+}
+
+function sceneFailure(status) {
+  return { ok: false, status };
 }
 
 function stepFailure(reason, message, diagnostics) {

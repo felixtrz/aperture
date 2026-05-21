@@ -59,15 +59,15 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start with `task-3027`: Custom material rendered through the full pipeline (part 2: end-to-end).
+Start with `task-3030`: Per-instance tint component + extraction + WGSL sampling (part 1: contract).
 
-Why this next: `task-3026` proved the custom WGSL material source-to-prepared-resource adapter contract, and the first `task-3027` slice added a WebGPU helper that instantiates shader modules, render pipelines, and group-2 material bind groups from prepared custom WGSL metadata. The next roadmap gap is wiring that helper through an app route and proving a browser-visible render path.
+Why this next: Tier 5 custom material adapter work is complete through source validation. The next visible roadmap slice demonstrates Aperture's ECS-as-source-of-truth advantage by adding per-entity tint data that still coalesces compatible instances into one draw call.
 
 Reference anchors (read before writing):
 
-- `references/three.js/src/materials/ShaderMaterial.js`
-- `references/engine/src/scene/materials/shader-material.js`
-- `references/bevy/crates/bevy_pbr/src/material.rs`
+- `references/three.js/src/objects/InstancedMesh.js`
+- `references/bevy/crates/bevy_render/src/extract_instances.rs`
+- `references/engine/src/scene/mesh-instance.js`
 
 ## Strategic Focus — Pipeline Maturity Roadmap
 
@@ -212,13 +212,14 @@ Acceptance criteria:
 
 ### task-3027 — Custom material rendered through the full pipeline (part 2: end-to-end)
 
+Status: completed 2026-05-21. See `agent/COMPLETED.md`.
+
 Category: `webgpu-render`
 Package/write-scope: `packages/webgpu/src/webgpu/`, custom material example.
 Dependencies: task-3026.
 Reference anchor: `references/three.js/src/materials/ShaderMaterial.js`; `references/engine/src/scene/materials/shader-material.js`.
 Insertion point: WebGPU side of the custom material — pipeline-key generation, bind-group instantiation.
-Progress note 2026-05-21: `packages/webgpu/src/webgpu/custom-wgsl-material.ts` now creates browser pipeline descriptors, live injected-device render pipelines, and pipeline-owned group-2 bind groups from `PreparedCustomWgslMaterial`. Remaining work is the app route and visible browser proof.
-Implementation note: the smallest next proof can reuse the explicit `examples/triangle.js` render-world/draw-list/command assembly with a custom WGSL material prepared through `createCustomWgslMaterialRenderAssetAdapter()`, a tiny uniform buffer for binding 0, and readback at a distinctive shader color.
+Completion note 2026-05-21: the triangle example now exposes `?material=custom-wgsl`, prepares a custom WGSL source through `createCustomWgslMaterialRenderAssetAdapter()`, creates a tiny uniform buffer for binding 0, instantiates live shader/pipeline/group-2 resources with `createCustomWgslMaterialRenderResources()`, and submits through the existing render-world/draw-list/command helpers with a distinctive browser readback color.
 
 Acceptance criteria:
 
@@ -228,11 +229,14 @@ Acceptance criteria:
 
 ### task-3028 — Custom material example: visible WaterMaterial
 
+Status: completed 2026-05-21. See `agent/COMPLETED.md`.
+
 Category: `runtime-orchestration`
 Package/write-scope: `examples/custom-material.html`, `examples/custom-material.js`, `test/e2e/custom-material.spec.ts`.
 Dependencies: task-3027.
 Reference anchor: `references/three.js/examples/webgpu_water.html` if present.
 Insertion point: new example using the custom adapter.
+Completion note 2026-05-21: added `examples/custom-material.html` and `examples/custom-material.js`, which render a WaterMaterial-style plane through the custom WGSL adapter/resource path, update a uniform every frame, and publish readback samples proving frame-to-frame pixel changes.
 
 Acceptance criteria:
 
@@ -241,11 +245,14 @@ Acceptance criteria:
 
 ### task-3029 — Custom material source validation in package (the documented missing piece)
 
+Status: completed 2026-05-21. See `agent/COMPLETED.md`.
+
 Category: `render-bridge`
 Package/write-scope: `packages/render/src/assets/`, targeted tests.
 Dependencies: task-3028.
 Reference anchor: `references/bevy/crates/bevy_pbr/src/material.rs` (Material::specialize signature & validation); `references/engine/src/scene/materials/shader-material.js`.
 Insertion point: replace test-only guardrail with package-level `validateCustomMaterialSource(source)` returning structured diagnostics for bad input (missing entrypoint, type mismatch, etc.).
+Completion note 2026-05-21: `validateCustomMaterialSource()` is now exported from the render package, adapter preparation uses it, unit tests cover typed bad-input diagnostics, and the custom-material example reports a typed broken-WGSL status before resource preparation.
 
 Acceptance criteria:
 
@@ -260,6 +267,7 @@ Package/write-scope: `packages/render/src/`, `packages/webgpu/src/webgpu/`, `pac
 Dependencies: Tier 3 instancing (task-3013, task-3014) — uses the existing instance-buffer infrastructure.
 Reference anchor: `references/three.js/src/objects/InstancedMesh.js` (`setColorAt` + `instanceColor` buffer pattern for the per-instance attribute layout); `references/bevy/crates/bevy_render/src/extract_instances.rs` (per-entity → render-world instance extraction); `references/engine/src/scene/mesh-instance.js` (per-instance buffer assembly).
 Insertion point: new `InstanceTint` typed ECS component in `packages/render/src/`; extraction packs per-entity vec4 into a parallel `Float32Array` mirroring the existing `transformPackedOffset` layout. Extend `StandardMaterialPipelineKey` with `instanceTintEnabled`. Add a `withInstanceTint(color)` helper to `packages/runtime/src/index.ts` mirroring the existing `withX` patterns. WebGPU side: instance-rate vertex buffer plus shader `@location(N) instanceTint: vec4f` consumed by the StandardMaterial fragment path.
+Progress note 2026-05-21: `InstanceTint`, `createInstanceTint()`, `withInstanceTint()`, `RenderSnapshot.instanceTints`, `MeshDrawPacket.instanceTintOffset`, `packSnapshotInstanceTints()`, extraction packing, StandardMaterial `instance-tint` pipeline-key feature toggling, and WebGPU StandardMaterial feature parsing/variant-key recognition are implemented with targeted render/runtime/WebGPU tests. Remaining acceptance is the WebGPU-side instance-rate tint buffer and StandardMaterial WGSL sampling.
 
 Acceptance criteria:
 

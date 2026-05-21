@@ -51,6 +51,7 @@ export interface MeshDrawPacket {
   readonly submesh: number;
   readonly materialSlot: number;
   readonly worldTransformOffset: number;
+  readonly instanceTintOffset?: number;
   readonly boundsIndex: number;
   readonly layerMask: number;
   readonly castsShadow?: boolean;
@@ -162,6 +163,7 @@ export interface RenderSnapshot {
   readonly shadowRequests: readonly ShadowRequestPacket[];
   readonly bounds: readonly BoundsPacket[];
   readonly transforms: Float32Array;
+  readonly instanceTints?: Float32Array;
   readonly viewMatrices: Float32Array;
   readonly diagnostics: readonly RenderDiagnostic[];
   readonly report: RenderSnapshotReport;

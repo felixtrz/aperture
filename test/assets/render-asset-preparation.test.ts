@@ -23,6 +23,7 @@ import {
   RenderWorld,
   prepareRenderAsset,
   unloadPreparedRenderAsset,
+  validateCustomMaterialSource,
   type MaterialHandle,
   type MeshAsset,
   type MeshHandle,
@@ -371,6 +372,80 @@ describe("render asset preparation contract", () => {
     expect(failed.diagnostics.map((diagnostic) => diagnostic.code)).toEqual([
       "renderAsset.customWgslMaterial.missingVertexEntryPoint",
       "renderAsset.customWgslMaterial.missingFragmentEntryPoint",
+    ]);
+  });
+
+  it("exposes package-level custom material source diagnostics", () => {
+    const diagnostics = validateCustomMaterialSource(
+      {
+        family: "custom.water",
+        label: " ",
+        renderState: createDefaultRenderState(),
+        shader: {
+          code: `
+            @vertex
+            fn only_vertex() -> @builtin(position) vec4f {
+              return vec4f(0.0, 0.0, 0.0, 1.0);
+            }
+          `,
+          vertexEntryPoint: "vs_main",
+          fragmentEntryPoint: "fs_main",
+        },
+        bindings: [
+          {
+            binding: 0,
+            kind: "uniform-buffer",
+            visibility: ["fragment"],
+          },
+          {
+            binding: 0,
+            kind: "uniform-buffer",
+            visibility: [],
+          },
+          {
+            binding: -1,
+            kind: "uniform-buffer",
+            visibility: ["fragment"],
+          },
+        ],
+      },
+      {
+        assetKey: "material:broken-water",
+        expectedFamily: "custom.water",
+      },
+    );
+
+    expect(diagnostics).toMatchObject([
+      {
+        code: "renderAsset.customWgslMaterial.invalidLabel",
+        severity: "error",
+        assetKey: "material:broken-water",
+      },
+      {
+        code: "renderAsset.customWgslMaterial.missingVertexEntryPoint",
+        severity: "error",
+        assetKey: "material:broken-water",
+      },
+      {
+        code: "renderAsset.customWgslMaterial.missingFragmentEntryPoint",
+        severity: "error",
+        assetKey: "material:broken-water",
+      },
+      {
+        code: "renderAsset.customWgslMaterial.duplicateBinding",
+        severity: "error",
+        assetKey: "material:broken-water",
+      },
+      {
+        code: "renderAsset.customWgslMaterial.invalidBindingVisibility",
+        severity: "error",
+        assetKey: "material:broken-water",
+      },
+      {
+        code: "renderAsset.customWgslMaterial.invalidBinding",
+        severity: "error",
+        assetKey: "material:broken-water",
+      },
     ]);
   });
 

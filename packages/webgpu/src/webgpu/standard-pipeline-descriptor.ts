@@ -289,6 +289,7 @@ function standardTextureFeatures(
     iblDiffuse: tokens.includes("iblDiffuse"),
     iblSpecularProof: tokens.includes("iblSpecularProof"),
     texCoord1: tokens.includes("uv1"),
+    instanceTint: tokens.includes("instance-tint"),
     vertexColor:
       typeof batchKey?.meshLayoutKey === "string" &&
       batchKey.meshLayoutKey.split(",").includes("COLOR_0"),

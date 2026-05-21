@@ -6,6 +6,6 @@
   "lastResult": "success",
   "lastCommit": "458f5f8",
   "activePid": null,
-  "notes": "Completed task-3024 asset unregister, task-3025 GLB viewer cleanup, task-3026 custom WGSL adapter contract, and advanced task-3027 with WebGPU custom WGSL resource bridge; pnpm run check passed.",
-  "lastRunFinishedAt": "2026-05-21T05:51:30Z"
+  "notes": "Completed task-3027 custom WGSL browser route, task-3028 animated custom-material example, and task-3029 package custom material validation; advanced task-3030 per-instance tint extraction contract. pnpm run check and targeted Playwright custom material specs passed.",
+  "lastRunFinishedAt": "2026-05-21T06:50:09Z"
 }

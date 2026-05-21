@@ -424,6 +424,11 @@ export interface CustomWgslMaterialSource {
   readonly bindings?: readonly CustomWgslBindingDeclaration[];
 }
 
+export interface ValidateCustomMaterialSourceOptions {
+  readonly assetKey?: string;
+  readonly expectedFamily?: string;
+}
+
 export interface PreparedCustomWgslBindingLayoutEntry {
   readonly binding: number;
   readonly kind: CustomWgslBindingKind;
@@ -824,11 +829,10 @@ export function createCustomWgslMaterialRenderAssetAdapter(
         };
       }
 
-      const diagnostics = validateCustomWgslMaterialSource(
-        input.source,
-        input.assetKey,
-        family,
-      );
+      const diagnostics = validateCustomMaterialSource(input.source, {
+        assetKey: input.assetKey,
+        expectedFamily: family,
+      });
 
       if (diagnostics.length > 0) {
         return {
@@ -858,6 +862,17 @@ export function createCustomWgslMaterialRenderAssetAdapter(
       };
     },
   };
+}
+
+export function validateCustomMaterialSource(
+  source: CustomWgslMaterialSource,
+  options: ValidateCustomMaterialSourceOptions = {},
+): readonly RenderAssetPreparationDiagnostic[] {
+  return validateCustomWgslMaterialSource(
+    source,
+    options.assetKey ?? "material:custom-material",
+    options.expectedFamily ?? source.family,
+  );
 }
 
 export function createRenderAssetDependencyState<

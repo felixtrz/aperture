@@ -1,6 +1,253 @@
 # Agent Handoff
 
-Updated: 2026-05-21T05:51:15Z
+Updated: 2026-05-21T06:47:25Z
+
+## Current Run Update — 2026-05-21T06:42:55Z — Per-instance tint extraction contract
+
+Advanced `task-3030`; do not mark it complete yet.
+
+### What changed
+
+- Added `InstanceTint` and `createInstanceTint()` in render authoring, plus
+  runtime `withInstanceTint(color)`.
+- Extraction now packs per-entity tint colors into
+  `RenderSnapshot.instanceTints`, records `MeshDrawPacket.instanceTintOffset`,
+  preserves cached extraction for tinted entities, and adds an
+  `instance-tint` StandardMaterial pipeline-key feature when a StandardMaterial
+  entity carries a tint.
+- Added `packSnapshotInstanceTints()` as the tint-buffer mirror of transform
+  packing.
+- WebGPU StandardMaterial pipeline feature planning now recognizes
+  `instance-tint` in the pipeline key and exposes it in the shader variant key.
+- Added focused runtime/extraction tests proving helper authoring, packed tint
+  offsets, shared pipeline key for same mesh/material tinted instances, packed
+  tint data, and StandardMaterial feature parsing.
+
+### Files touched
+
+- `agent/BACKLOG.md`
+- `agent/HANDOFF.md`
+- `packages/render/src/rendering/authoring.ts`
+- `packages/render/src/rendering/extraction.ts`
+- `packages/render/src/rendering/snapshot.ts`
+- `packages/render/src/rendering/transform-pack.ts`
+- `packages/runtime/src/index.ts`
+- `packages/webgpu/src/webgpu/standard-pipeline-descriptor.ts`
+- `packages/webgpu/src/webgpu/standard-shader.ts`
+- `test/rendering/extraction.test.ts`
+- `test/runtime/runtime.test.ts`
+- `test/webgpu/standard-pipeline-descriptor.test.ts`
+
+### References inspected
+
+- `references/three.js/src/objects/InstancedMesh.js`
+- `references/bevy/crates/bevy_render/src/extract_instances.rs`
+- `references/engine/src/scene/mesh-instance.js`
+- Existing Aperture transform packing, extraction, and render queue contracts.
+- StandardMaterial shader feature planning and pipeline descriptor code.
+
+### Validation
+
+- `pnpm exec vitest run test/rendering/extraction.test.ts test/runtime/runtime.test.ts test/rendering/transform-pack.test.ts`
+- `pnpm exec tsc --noEmit -p packages/render/tsconfig.json`
+- `pnpm exec tsc -p packages/render/tsconfig.json`
+- `pnpm exec tsc --noEmit -p packages/runtime/tsconfig.json`
+- `pnpm exec vitest run test/webgpu/standard-pipeline-descriptor.test.ts test/rendering/extraction.test.ts test/runtime/runtime.test.ts`
+- `pnpm exec tsc --noEmit -p packages/webgpu/tsconfig.json`
+- `pnpm run check`
+
+### Known issues
+
+- Remaining `task-3030` acceptance: add the WebGPU-side instance-rate tint
+  buffer and consume `instanceTint` in the StandardMaterial WGSL fragment path.
+- No visible per-instance tint example has been started; that remains
+  `task-3031` after the WebGPU contract is complete.
+
+### Recommended next task
+
+Continue `task-3030`: wire the packed instance tint buffer into WebGPU
+StandardMaterial resources and shader sampling.
+
+## Current Run Update — 2026-05-21T06:30:15Z — Custom material source validation
+
+Completed `task-3029`.
+
+### What changed
+
+- Exported `validateCustomMaterialSource()` from
+  `packages/render/src/assets/preparation.ts` and routed
+  `createCustomWgslMaterialRenderAssetAdapter()` through it.
+- Added package-level tests for typed custom material source diagnostics:
+  invalid label, missing vertex entrypoint, missing fragment entrypoint,
+  duplicate binding, empty binding visibility, and invalid binding index.
+- Updated `examples/custom-material.js` to validate before preparation and added
+  a `?broken=wgsl` path that reports a typed
+  `custom-material-source-invalid` status without creating custom WebGPU
+  resources.
+- Extended `test/e2e/custom-material.spec.ts` to cover both the animated
+  success path and the broken-WGSL validation failure.
+- Updated the public trackers, backlog, and completed-task log. Recommended
+  next task is now `task-3030`.
+
+### Files touched
+
+- `agent/BACKLOG.md`
+- `agent/COMPLETED.md`
+- `agent/HANDOFF.md`
+- `docs/index.html`
+- `docs/render-pipeline-comparison.html`
+- `examples/custom-material.js`
+- `packages/render/src/assets/preparation.ts`
+- `test/assets/render-asset-preparation.test.ts`
+- `test/e2e/custom-material.spec.ts`
+
+### References inspected
+
+- `references/bevy/crates/bevy_pbr/src/material.rs`
+- `references/engine/src/scene/materials/shader-material.js`
+- `packages/render/src/assets/preparation.ts`
+- `examples/custom-material.js`
+
+### Validation
+
+- `pnpm exec vitest run test/assets/render-asset-preparation.test.ts`
+- `pnpm exec tsc --noEmit -p packages/render/tsconfig.json`
+- `node --check examples/custom-material.js`
+- `pnpm exec playwright test test/e2e/custom-material.spec.ts --timeout=45000`
+
+### Known issues
+
+- Public app-owned custom material facades remain deferred; the current public
+  addition is the source validator plus the low-level custom source adapter.
+- The next roadmap slice is per-instance tint extraction and shader plumbing.
+
+### Recommended next task
+
+`task-3030 — Per-instance tint component + extraction + WGSL sampling (part 1: contract)`.
+
+## Current Run Update — 2026-05-21T06:24:38Z — Animated WaterMaterial example
+
+Completed `task-3028`.
+
+### What changed
+
+- Added `examples/custom-material.html` and `examples/custom-material.js`, a
+  dedicated WaterMaterial-style custom WGSL example.
+- The example keeps ECS as the authoring source, extracts one plane draw,
+  prepares a custom WGSL material source, creates live WebGPU shader-module,
+  render-pipeline, uniform-buffer, and group-2 material bind-group resources,
+  updates the custom material uniform every frame, and submits through the
+  render-world/draw-list/resource/command path.
+- Added `test/e2e/custom-material.spec.ts`, which waits for animated readback
+  samples, asserts JSON-safe custom material status, proves the center pixel
+  changes across frames, and checks for no WebGPU validation warnings.
+- Linked the new example from the example nav, added it to `check:examples`,
+  and updated the public tracker/backlog/completed logs. Recommended next task
+  is now `task-3029`.
+
+### Files touched
+
+- `agent/BACKLOG.md`
+- `agent/COMPLETED.md`
+- `agent/HANDOFF.md`
+- `docs/index.html`
+- `docs/render-pipeline-comparison.html`
+- `examples/custom-material.html`
+- `examples/custom-material.js`
+- `examples/index.html`
+- `examples/triangle.html`
+- `examples/triangle.js`
+- `package.json`
+- `test/e2e/custom-material.spec.ts`
+- `test/e2e/custom-wgsl-material.spec.ts`
+
+### References inspected
+
+- `references/bevy/crates/bevy_pbr/src/material.rs`
+- `references/three.js/examples/webgpu_water.html`
+- `examples/triangle.js`
+- `test/e2e/custom-wgsl-material.spec.ts`
+
+### Validation
+
+- `node --check examples/custom-material.js`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec playwright test test/e2e/custom-material.spec.ts --timeout=45000`
+- In-app browser opened `http://127.0.0.1:4173/examples/custom-material.html`;
+  the visual check showed the animated water plane and ready status. The only
+  browser console error was the local server's unrelated `favicon.ico` 403.
+- `pnpm run check:examples`
+
+### Known issues
+
+- `task-3029` remains: move custom source validation into package-level API and
+  wire the custom-material example to surface typed broken-WGSL diagnostics.
+- The example still uses the explicit low-level render path from the triangle
+  proof; a public app-owned custom material facade remains a later design step.
+
+### Recommended next task
+
+`task-3029 — Custom material source validation in package (the documented missing piece)`.
+
+## Current Run Update — 2026-05-21T06:16:10Z — Custom WGSL browser route
+
+Completed `task-3027`.
+
+### What changed
+
+- Added a `?material=custom-wgsl` route to `examples/triangle.js` and linked it
+  from the triangle and examples index pages.
+- The route prepares a custom WGSL source through
+  `createCustomWgslMaterialRenderAssetAdapter()`, creates live WebGPU shader
+  module, render pipeline, uniform-buffer, and group-2 material bind-group
+  resources, rewrites the extracted packet pipeline key to the prepared custom
+  key, and submits through the existing render-world/draw-list/resource/command
+  helpers.
+- Added `test/e2e/custom-wgsl-material.spec.ts` to assert JSON-safe custom
+  material status, sample the distinctive shader color, and guard against
+  WebGPU validation warnings.
+- Updated the public progress trackers, backlog, and completed-task log.
+
+### Files touched
+
+- `agent/BACKLOG.md`
+- `agent/COMPLETED.md`
+- `agent/HANDOFF.md`
+- `docs/index.html`
+- `docs/render-pipeline-comparison.html`
+- `examples/index.html`
+- `examples/triangle.html`
+- `examples/triangle.js`
+- `test/e2e/custom-wgsl-material.spec.ts`
+
+### References inspected
+
+- `references/three.js/src/materials/ShaderMaterial.js`
+- `references/engine/src/scene/materials/shader-material.js`
+- `packages/webgpu/src/webgpu/custom-wgsl-material.ts`
+- `examples/triangle.js`
+
+### Validation
+
+- `pnpm exec prettier --write examples/triangle.js examples/triangle.html examples/index.html test/e2e/custom-wgsl-material.spec.ts`
+- `node --check examples/triangle.js`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec vitest run test/assets/render-asset-preparation.test.ts test/webgpu/custom-wgsl-material.test.ts`
+- `pnpm run check:examples`
+- `pnpm exec playwright test test/e2e/custom-wgsl-material.spec.ts --timeout=45000`
+- `pnpm exec playwright test test/e2e/ecs-triangle.spec.ts --timeout=45000`
+- `pnpm run lint`
+- `pnpm run build`
+
+### Known issues
+
+- The proof route is intentionally low-level and triangle-scoped. The next
+  visible roadmap slice is a dedicated animated WaterMaterial-style example.
+- Package-level custom material source validation remains `task-3029`.
+
+### Recommended next task
+
+`task-3028 — Custom material example: visible WaterMaterial`.
 
 ## Current Run Update — 2026-05-21T05:51:15Z — Custom WGSL WebGPU resource bridge
 

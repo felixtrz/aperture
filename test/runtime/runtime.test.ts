@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   Camera,
+  InstanceTint,
   Light,
   LocalTransform,
   Material,
@@ -31,6 +32,7 @@ import {
   createUnlitMaterialAsset,
   withCamera,
   withEnvironmentMap,
+  withInstanceTint,
   withMaterial,
   withMesh,
   withRenderLayer,
@@ -108,6 +110,7 @@ describe("runtime facade", () => {
       withShadowCaster(false),
       withShadowReceiver(true),
       withVisibility(true),
+      withInstanceTint([0.9, 0.25, 0.4, 1]),
       withSpin({ radiansPerSecond: Math.PI, axis: [0, 1, 0] }),
     );
 
@@ -117,6 +120,7 @@ describe("runtime facade", () => {
     expect(cube.hasComponent(Material)).toBe(true);
     expect(cube.hasComponent(ShadowCaster)).toBe(true);
     expect(cube.hasComponent(ShadowReceiver)).toBe(true);
+    expect(cube.hasComponent(InstanceTint)).toBe(true);
     expect(cube.hasComponent(Spin)).toBe(true);
     expect(cube.getValue(Mesh, "meshId")).toBe(assetHandleKey(mesh));
     expect(cube.getValue(Material, "materialId")).toBe(
@@ -124,6 +128,12 @@ describe("runtime facade", () => {
     );
     expect(cube.getValue(ShadowCaster, "enabled")).toBe(false);
     expect(cube.getValue(ShadowReceiver, "enabled")).toBe(true);
+    expect(Array.from(cube.getVectorView(InstanceTint, "color"))).toEqual([
+      expect.closeTo(0.9, 5),
+      0.25,
+      expect.closeTo(0.4, 5),
+      1,
+    ]);
     expect(
       Array.from(cube.getVectorView(LocalTransform, "rotation")),
     ).not.toEqual([0, 0, 0, 1]);
@@ -132,8 +142,15 @@ describe("runtime facade", () => {
     expect(snapshot.meshDraws).toHaveLength(1);
     expect(snapshot.meshDraws[0]).toMatchObject({
       castsShadow: false,
+      instanceTintOffset: 0,
       receivesShadow: true,
     });
+    expect(Array.from(snapshot.instanceTints ?? [])).toEqual([
+      expect.closeTo(0.9, 5),
+      0.25,
+      expect.closeTo(0.4, 5),
+      1,
+    ]);
     expect(snapshot.diagnostics).toEqual([]);
   });
 

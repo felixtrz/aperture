@@ -66,6 +66,10 @@ export interface LightShadowSettingsInput {
   readonly receiverLayerMask?: number;
 }
 
+export interface InstanceTintInput {
+  readonly color?: Vec4Like;
+}
+
 export type RenderAuthoringDiagnosticCode =
   | "camera.invalidProjection"
   | "camera.invalidViewport"
@@ -128,6 +132,14 @@ export const RenderOrder = defineComponent(
     value: { type: EcsType.Int32, default: 0 },
   },
   "Stable authoring order hint consumed by render sorting.",
+);
+
+export const InstanceTint = defineComponent(
+  "aperture.render.instanceTint",
+  {
+    color: { type: EcsType.Color, default: tuple4(1, 1, 1, 1) },
+  },
+  "Per-entity tint packed for instanced StandardMaterial draws.",
 );
 
 export const Camera = defineComponent(
@@ -211,6 +223,7 @@ export function registerRenderAuthoringComponents(world: EcsWorld): EcsWorld {
   world.registerComponent(Visibility);
   world.registerComponent(RenderLayer);
   world.registerComponent(RenderOrder);
+  world.registerComponent(InstanceTint);
   world.registerComponent(Light);
   world.registerComponent(ShadowCaster);
   world.registerComponent(ShadowReceiver);
@@ -268,6 +281,14 @@ export function createLightShadowSettings(
     normalBias: input.normalBias ?? 0,
     casterLayerMask: input.casterLayerMask ?? -1,
     receiverLayerMask: input.receiverLayerMask ?? -1,
+  };
+}
+
+export function createInstanceTint(
+  input: InstanceTintInput = {},
+): ComponentInitialData<typeof InstanceTint> {
+  return {
+    color: toTuple4(input.color ?? [1, 1, 1, 1]),
   };
 }
 

@@ -17,6 +17,19 @@ export interface PackedSnapshotTransforms {
   readonly diagnostics: readonly RenderDiagnostic[];
 }
 
+export interface PackedInstanceTintOffset {
+  readonly renderId: number;
+  readonly sourceOffset: number;
+  readonly packedOffset: number;
+}
+
+export interface PackedSnapshotInstanceTints {
+  readonly data: Float32Array;
+  readonly floatCount: number;
+  readonly offsets: readonly PackedInstanceTintOffset[];
+  readonly diagnostics: readonly RenderDiagnostic[];
+}
+
 export interface PackedSnapshotTransformsScratch {
   data: Float32Array;
   readonly offsets: PackedTransformOffset[];
@@ -63,6 +76,45 @@ export function packSnapshotTransforms(
   return {
     data: new Float32Array(snapshot.transforms),
     floatCount: snapshot.transforms.length,
+    offsets,
+    diagnostics,
+  };
+}
+
+export function packSnapshotInstanceTints(
+  snapshot: Pick<RenderSnapshot, "meshDraws" | "instanceTints">,
+): PackedSnapshotInstanceTints {
+  const source = snapshot.instanceTints ?? new Float32Array(0);
+  const offsets: PackedInstanceTintOffset[] = [];
+  const diagnostics: RenderDiagnostic[] = [];
+
+  for (const draw of snapshot.meshDraws) {
+    const sourceOffset = draw.instanceTintOffset;
+
+    if (sourceOffset === undefined) {
+      continue;
+    }
+
+    if (!hasVec4(source, sourceOffset)) {
+      diagnostics.push({
+        code: "renderInstanceTintPack.missingTint",
+        message: `Render id ${draw.renderId} references instance tint offset ${sourceOffset}, but tint buffer length is ${source.length}.`,
+        severity: "warning",
+        entity: draw.entity,
+      });
+      continue;
+    }
+
+    offsets.push({
+      renderId: draw.renderId,
+      sourceOffset,
+      packedOffset: sourceOffset,
+    });
+  }
+
+  return {
+    data: new Float32Array(source),
+    floatCount: source.length,
     offsets,
     diagnostics,
   };
@@ -173,6 +225,10 @@ function hasTransform(transforms: Float32Array, offset: number): boolean {
   return (
     Number.isInteger(offset) && offset >= 0 && offset + 16 <= transforms.length
   );
+}
+
+function hasVec4(values: Float32Array, offset: number): boolean {
+  return Number.isInteger(offset) && offset >= 0 && offset + 4 <= values.length;
 }
 
 function missingTransformDiagnostic(

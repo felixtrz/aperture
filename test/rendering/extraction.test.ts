@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   AssetRegistry,
   Camera,
+  InstanceTint,
   Light,
   LightKind,
   LightShadowSettings,
@@ -32,6 +33,7 @@ import {
   createUnlitMaterialAsset,
   createWorld,
   extractRenderSnapshot,
+  packSnapshotInstanceTints,
   registerMetadataComponents,
   registerRenderAuthoringComponents,
   registerTransformComponents,
@@ -117,6 +119,72 @@ describe("render extraction", () => {
       staticMs,
       `cached static extraction ${staticMs.toFixed(3)}ms should be <50% of dirty extraction ${dirtyMs.toFixed(3)}ms`,
     ).toBeLessThan(dirtyMs * 0.5);
+  });
+
+  it("packs per-entity instance tint alongside extracted StandardMaterial draws", () => {
+    const world = createRuntimeWorld();
+    const assets = createReadyAssets({
+      materialAsset: createStandardMaterialAsset(),
+    });
+
+    createCameraEntity(world, { priority: 0, layerMask: 1 });
+    const warm = createMeshEntity(world, {
+      meshId: "mesh:cube",
+      materialId: "material:unlit",
+      layerMask: 1,
+    });
+    const cool = createMeshEntity(world, {
+      meshId: "mesh:cube",
+      materialId: "material:unlit",
+      layerMask: 1,
+    });
+
+    warm.addComponent(InstanceTint, { color: [1, 0.35, 0.2, 1] });
+    cool.addComponent(InstanceTint, { color: [0.2, 0.65, 1, 1] });
+
+    const snapshot = extractRenderSnapshot(world, assets, { frame: 13 });
+    const packedTints = packSnapshotInstanceTints(snapshot);
+
+    expect(snapshot.meshDraws).toHaveLength(2);
+    expect(Array.from(snapshot.instanceTints ?? [])).toEqual([
+      1,
+      expect.closeTo(0.35, 5),
+      expect.closeTo(0.2, 5),
+      1,
+      expect.closeTo(0.2, 5),
+      expect.closeTo(0.65, 5),
+      1,
+      1,
+    ]);
+    expect(snapshot.meshDraws.map((draw) => draw.instanceTintOffset)).toEqual([
+      0, 4,
+    ]);
+    expect(
+      snapshot.meshDraws.every((draw) =>
+        draw.batchKey.pipelineKey.includes("instance-tint"),
+      ),
+    ).toBe(true);
+    expect(
+      new Set(snapshot.meshDraws.map((draw) => draw.batchKey.pipelineKey)).size,
+    ).toBe(1);
+    expect(packedTints).toMatchObject({
+      floatCount: 8,
+      diagnostics: [],
+      offsets: [
+        { renderId: snapshot.meshDraws[0]?.renderId, packedOffset: 0 },
+        { renderId: snapshot.meshDraws[1]?.renderId, packedOffset: 4 },
+      ],
+    });
+    expect(Array.from(packedTints.data)).toEqual([
+      1,
+      expect.closeTo(0.35, 5),
+      expect.closeTo(0.2, 5),
+      1,
+      expect.closeTo(0.2, 5),
+      expect.closeTo(0.65, 5),
+      1,
+      1,
+    ]);
   });
 
   it("stores distinct view, projection, and view-projection matrices", () => {

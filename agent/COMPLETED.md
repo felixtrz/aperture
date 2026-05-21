@@ -1,5 +1,99 @@
 # Completed Tasks
 
+## task-3029 — Custom material source validation in package (the documented missing piece)
+
+Completed: 2026-05-21
+
+Summary:
+
+- Exported `validateCustomMaterialSource()` from the render package and routed
+  custom WGSL adapter preparation through it.
+- Added focused tests for typed custom source diagnostics covering invalid
+  labels, missing WGSL entrypoints, duplicate bindings, empty visibility, and
+  invalid binding indices.
+- The custom-material example now has a `?broken=wgsl` path that reports typed
+  validation diagnostics before resource preparation; Playwright covers the
+  failure status and the animated success path.
+
+References inspected:
+
+- `references/bevy/crates/bevy_pbr/src/material.rs`
+- `references/engine/src/scene/materials/shader-material.js`
+- `packages/render/src/assets/preparation.ts`
+- `examples/custom-material.js`
+
+Validation:
+
+- `pnpm exec vitest run test/assets/render-asset-preparation.test.ts`
+- `pnpm exec tsc --noEmit -p packages/render/tsconfig.json`
+- `node --check examples/custom-material.js`
+- `pnpm exec playwright test test/e2e/custom-material.spec.ts --timeout=45000`
+
+## task-3028 — Custom material example: visible WaterMaterial
+
+Completed: 2026-05-21
+
+Summary:
+
+- Added `examples/custom-material.html` and `examples/custom-material.js`, a
+  dedicated WaterMaterial-style custom WGSL example.
+- The example prepares a custom material source, creates live WebGPU
+  shader/pipeline/group-2 resources, updates a material uniform every frame,
+  and submits through the render-world, draw-list, resource-resolution, and
+  command helpers.
+- Added Playwright coverage that waits for animated readback samples, asserts
+  the custom material route status, and confirms the center pixel changes
+  across frames with no WebGPU validation warnings.
+
+References inspected:
+
+- `references/bevy/crates/bevy_pbr/src/material.rs`
+- `references/three.js/examples/webgpu_water.html`
+- `examples/triangle.js`
+- `test/e2e/custom-wgsl-material.spec.ts`
+
+Validation:
+
+- `node --check examples/custom-material.js`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec playwright test test/e2e/custom-material.spec.ts --timeout=45000`
+- In-app browser opened `/examples/custom-material.html`; visual check showed
+  the animated water plane and ready status.
+- `pnpm run check:examples`
+
+## task-3027 — Custom material rendered through the full pipeline (part 2: end-to-end)
+
+Completed: 2026-05-21
+
+Summary:
+
+- Added a `?material=custom-wgsl` route to the triangle example that prepares a
+  custom WGSL material source through the render asset adapter path.
+- The route creates live WebGPU shader-module, render-pipeline, uniform-buffer,
+  and group-2 material bind-group resources, then submits them through the
+  existing render-world, draw-list, resource-resolution, and command helpers.
+- Added Playwright coverage that asserts JSON-safe custom material status,
+  samples the distinctive shader output, and verifies there are no WebGPU
+  validation warnings.
+
+References inspected:
+
+- `references/three.js/src/materials/ShaderMaterial.js`
+- `references/engine/src/scene/materials/shader-material.js`
+- `packages/webgpu/src/webgpu/custom-wgsl-material.ts`
+- `examples/triangle.js`
+
+Validation:
+
+- `node --check examples/triangle.js`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec vitest run test/assets/render-asset-preparation.test.ts test/webgpu/custom-wgsl-material.test.ts`
+- `pnpm run check:examples`
+- `pnpm exec playwright test test/e2e/custom-wgsl-material.spec.ts --timeout=45000`
+- `pnpm exec playwright test test/e2e/ecs-triangle.spec.ts --timeout=45000`
+- `pnpm run lint`
+- `pnpm run build`
+
 ## task-3026 — Custom material adapter contract proof (part 1: minimal example)
 
 Completed: 2026-05-21

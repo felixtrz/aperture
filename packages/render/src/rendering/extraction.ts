@@ -45,6 +45,7 @@ import {
 } from "@aperture-engine/simulation";
 import {
   Camera,
+  InstanceTint,
   Light,
   LightShadowSettings,
   Material,
@@ -98,6 +99,7 @@ interface CachedMeshDrawEntity {
   readonly entityVersion: number;
   readonly cameraLayerMask: number;
   readonly worldMatrix: readonly number[];
+  readonly instanceTint: readonly number[] | null;
   readonly bounds: Omit<BoundsPacket, "boundsId">;
   readonly draws: readonly MeshDrawPacketTemplate[];
 }
@@ -124,6 +126,7 @@ export function extractRenderSnapshot(
 
   const diagnostics: RenderDiagnostic[] = [];
   const transforms: number[] = [];
+  const instanceTints: number[] = [];
   const viewMatrices: number[] = [];
   const bounds: BoundsPacket[] = [];
   const views = extractViews(world, viewMatrices, diagnostics);
@@ -145,6 +148,7 @@ export function extractRenderSnapshot(
     world,
     assets,
     transforms,
+    instanceTints,
     bounds,
     diagnostics,
     cameraLayerMask,
@@ -160,6 +164,7 @@ export function extractRenderSnapshot(
     shadowRequests,
     bounds,
     transforms: new Float32Array(transforms),
+    instanceTints: new Float32Array(instanceTints),
     viewMatrices: new Float32Array(viewMatrices),
     diagnostics,
     report: {
@@ -449,6 +454,7 @@ function extractMeshDraws(
   world: EcsWorld,
   assets: AssetRegistry,
   transforms: number[],
+  instanceTints: number[],
   bounds: BoundsPacket[],
   diagnostics: RenderDiagnostic[],
   cameraLayerMask: number,
@@ -469,7 +475,13 @@ function extractMeshDraws(
       cached.entityVersion === entityVersion &&
       cached.cameraLayerMask === cameraLayerMask
     ) {
-      appendCachedMeshDrawEntity(cached, transforms, bounds, draws);
+      appendCachedMeshDrawEntity(
+        cached,
+        transforms,
+        instanceTints,
+        bounds,
+        draws,
+      );
       continue;
     }
 
@@ -547,6 +559,7 @@ function extractMeshDraws(
 
     const worldMatrix = readWorldMatrix(entity);
     const worldTransformOffset = pushMatrix(transforms, worldMatrix);
+    const instanceTintOffset = pushInstanceTint(instanceTints, entity);
     const boundsIndex = pushBounds(
       bounds,
       entity,
@@ -623,6 +636,21 @@ function extractMeshDraws(
       }
 
       const queue = materialQueue(materialEntry.asset);
+      const baseMaterialPipeline = createMaterialPipelineKeyInput(
+        materialEntry.asset,
+      );
+      const materialPipeline =
+        instanceTintOffset !== undefined &&
+        materialEntry.asset.kind === "standard"
+          ? {
+              ...baseMaterialPipeline,
+              features: [
+                ...baseMaterialPipeline.features,
+                "instance-tint",
+              ].sort(),
+            }
+          : baseMaterialPipeline;
+
       const stableId =
         createStableRenderId(entityRef(entity)) + submesh.materialSlot;
       const normalMapReadiness = validateStandardNormalMapReadiness({
@@ -646,6 +674,7 @@ function extractMeshDraws(
         submesh: submesh.materialSlot,
         materialSlot: submesh.materialSlot,
         worldTransformOffset,
+        ...(instanceTintOffset === undefined ? {} : { instanceTintOffset }),
         boundsIndex,
         layerMask,
         castsShadow,
@@ -661,7 +690,7 @@ function extractMeshDraws(
           stableId,
         }),
         batchKey: createBatchCompatibilityKey({
-          materialPipeline: createMaterialPipelineKeyInput(materialEntry.asset),
+          materialPipeline,
           materialKey,
           meshLayoutKey: meshEntry.asset.vertexStreams
             .flatMap((stream) =>
@@ -687,6 +716,10 @@ function extractMeshDraws(
           entityVersion,
           cameraLayerMask,
           worldMatrix: Array.from(worldMatrix),
+          instanceTint:
+            instanceTintOffset === undefined
+              ? null
+              : instanceTints.slice(instanceTintOffset, instanceTintOffset + 4),
           bounds: {
             entity: sourceBounds.entity,
             localAabb: sourceBounds.localAabb,
@@ -706,10 +739,15 @@ function extractMeshDraws(
 function appendCachedMeshDrawEntity(
   cached: CachedMeshDrawEntity,
   transforms: number[],
+  instanceTints: number[],
   bounds: BoundsPacket[],
   draws: MeshDrawPacket[],
 ): void {
   const worldTransformOffset = pushMatrix(transforms, cached.worldMatrix);
+  const instanceTintOffset =
+    cached.instanceTint === null
+      ? undefined
+      : pushVec4(instanceTints, cached.instanceTint);
   const boundsIndex = bounds.length;
 
   bounds.push({
@@ -721,6 +759,7 @@ function appendCachedMeshDrawEntity(
     draws.push({
       ...draw,
       worldTransformOffset,
+      ...(instanceTintOffset === undefined ? {} : { instanceTintOffset }),
       boundsIndex,
     });
   }
@@ -737,6 +776,9 @@ function createMeshDrawPacketTemplate(
     submesh: draw.submesh,
     materialSlot: draw.materialSlot,
     layerMask: draw.layerMask,
+    ...(draw.instanceTintOffset === undefined
+      ? {}
+      : { instanceTintOffset: draw.instanceTintOffset }),
     ...(draw.castsShadow === undefined
       ? {}
       : { castsShadow: draw.castsShadow }),
@@ -1201,6 +1243,23 @@ function lightInput(entity: Entity): LightInput {
 function pushMatrix(values: number[], matrix: Mat4): number {
   const offset = values.length;
   values.push(...matrix);
+  return offset;
+}
+
+function pushInstanceTint(
+  values: number[],
+  entity: Entity,
+): number | undefined {
+  if (!entity.hasComponent(InstanceTint)) {
+    return undefined;
+  }
+
+  return pushVec4(values, entity.getVectorView(InstanceTint, "color"));
+}
+
+function pushVec4(values: number[], vector: ArrayLike<number>): number {
+  const offset = values.length;
+  values.push(vector[0] ?? 1, vector[1] ?? 1, vector[2] ?? 1, vector[3] ?? 1);
   return offset;
 }
 

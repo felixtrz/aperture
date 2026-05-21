@@ -43,6 +43,7 @@ export interface StandardTextureShaderFeatures {
   readonly iblSpecularProof?: boolean;
   readonly texCoord1?: boolean;
   readonly vertexColor?: boolean;
+  readonly instanceTint?: boolean;
 }
 
 export const STANDARD_MATERIAL_MVP_LIGHTING_MODEL = {
@@ -713,6 +714,10 @@ export function createStandardTextureShaderVariantKey(
 
   if (features.vertexColor === true) {
     names.push("vertex-color");
+  }
+
+  if (features.instanceTint === true) {
+    names.push("instance-tint");
   }
 
   return `${STANDARD_DIRECT_LIGHT_SHADER_VARIANT}-${names.join("-")}-texture`;
@@ -1606,7 +1611,8 @@ function hasAnyStandardTextureFeature(
     features.iblDiffuse === true ||
     features.iblSpecularProof === true ||
     features.texCoord1 === true ||
-    features.vertexColor === true
+    features.vertexColor === true ||
+    features.instanceTint === true
   );
 }
 

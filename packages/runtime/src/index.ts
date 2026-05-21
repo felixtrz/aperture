@@ -26,10 +26,12 @@ import {
   type MaterialHandle,
   type MeshHandle,
   type TransformResolutionReport,
+  type Vec4Like,
   type WorldOptions,
 } from "@aperture-engine/simulation";
 import {
   Camera,
+  InstanceTint,
   Light,
   LightKind,
   LightShadowSettings,
@@ -41,6 +43,7 @@ import {
   ShadowReceiver,
   Visibility,
   createCamera,
+  createInstanceTint,
   createLight,
   createLightShadowSettings,
   extractRenderSnapshot,
@@ -315,6 +318,13 @@ export function withRenderOrder(value = 0): SpawnEntityInitializer {
   return (entity, context) => {
     registerRenderAuthoringComponents(context.world);
     entity.addComponent(RenderOrder, { value });
+  };
+}
+
+export function withInstanceTint(color: Vec4Like): SpawnEntityInitializer {
+  return (entity, context) => {
+    registerRenderAuthoringComponents(context.world);
+    entity.addComponent(InstanceTint, createInstanceTint({ color }));
   };
 }
 
