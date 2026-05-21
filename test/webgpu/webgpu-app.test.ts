@@ -6,6 +6,7 @@ import {
   createDebugNormalMaterialAsset,
   createMatcapMaterialAsset,
   createRenderAssetCollections,
+  createRenderTargetHandle,
   createSamplerHandle,
   createSamplerAsset,
   createStandardMaterialAsset,
@@ -31,6 +32,7 @@ import {
 import {
   createQueuedMaterialAdapterRegistry,
   createWebGpuApp,
+  createWebGpuAppRenderTargetAsset,
   createWebGpuAppDiagnosticsSummary,
   createWebGpuAppDrawResourceSetPlan,
   queuedBuiltInAppResourceAdapterRegistryValidationReportToJsonValue,
@@ -222,6 +224,113 @@ describe("WebGPU app facade", () => {
       standard: 0,
     });
     expectPreparedMeshFacadeSummary(sourceVersionFrame, { totalEntries: 1 });
+  });
+
+  it("submits ViewPacket render targets to registered off-screen textures and the swapchain", async () => {
+    const events: string[] = [];
+    const { canvas, environment } = webGpuHarness(events);
+    const created = await createWebGpuApp({
+      canvas,
+      environment,
+      worldOptions: { entityCapacity: 8 },
+    });
+
+    expect(created.ok).toBe(true);
+
+    if (!created.ok) {
+      return;
+    }
+
+    const app = created.app;
+    const assets = createRenderAssetCollections({ registry: app.assets });
+    const mesh = assets.meshes.add(
+      createBoxMeshAsset({ label: "RenderTargetCube" }),
+    );
+    const material = assets.materials.unlit.add(
+      createUnlitMaterialAsset({ label: "RenderTargetWhite" }),
+    );
+    const renderTarget = createRenderTargetHandle("mixed-offscreen");
+    const offscreenTexture = {
+      createView: () => {
+        events.push("offscreen:view");
+        return { label: "offscreen-view" };
+      },
+    };
+
+    app.assets.register(renderTarget);
+    app.assets.markReady(
+      renderTarget,
+      createWebGpuAppRenderTargetAsset({
+        texture: offscreenTexture,
+        width: 1,
+        height: 1,
+        format: "bgra8unorm",
+        label: "Mixed offscreen",
+      }),
+    );
+
+    app.spawn(
+      withTransform({ translation: [0, 0, 5] }),
+      withCamera({
+        priority: 0,
+        layerMask: 1,
+        renderTargetId: assetHandleKey(renderTarget),
+      }),
+    );
+    app.spawn(
+      withTransform({ translation: [0, 0, 5] }),
+      withCamera({ priority: 1, layerMask: 1 }),
+    );
+    app.spawn(
+      withTransform(),
+      withMesh(mesh),
+      withMaterial(material),
+      withRenderLayer(1),
+      withVisibility(true),
+    );
+
+    const frame = await app.stepAndRender(1 / 60, 1, 16);
+    const json = webGpuAppRenderReportToJsonValue(frame);
+
+    expect(frame.ok).toBe(true);
+    expect(frame.counts).toMatchObject({
+      views: 2,
+      meshDraws: 1,
+      drawCalls: 2,
+      diagnostics: 0,
+    });
+    expect(frame.boundaries).toHaveLength(2);
+    expect(frame.renderTargets).toEqual([
+      {
+        viewId: frame.snapshot.views[0]?.viewId,
+        source: "offscreen",
+        renderTargetKey: assetHandleKey(renderTarget),
+        width: 1,
+        height: 1,
+        format: "bgra8unorm",
+        ok: true,
+        drawCalls: 1,
+      },
+      {
+        viewId: frame.snapshot.views[1]?.viewId,
+        source: "swapchain",
+        renderTargetKey: null,
+        width: 1,
+        height: 1,
+        format: "bgra8unorm",
+        ok: true,
+        drawCalls: 1,
+      },
+    ]);
+    expect(json.renderTargets).toEqual(frame.renderTargets);
+    expect(events).toContain("offscreen:view");
+    expect(events).toContain("texture:view");
+    expect(events.filter((event) => event === "queue:submit:1")).toHaveLength(
+      2,
+    );
+    expect(
+      events.filter((event) => event.startsWith("pass:draw")),
+    ).toHaveLength(2);
   });
 
   it("reuses prepared scalar unlit mesh buffers across frame-resource misses", async () => {

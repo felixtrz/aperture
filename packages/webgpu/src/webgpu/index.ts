@@ -77,6 +77,7 @@ export * from "./mvp-frame-readiness.js";
 export * from "./pipeline-cache.js";
 export * from "./pipeline-cache-integration.js";
 export * from "./pipeline-scoped-bind-groups.js";
+export * from "./pmrem-compute-pipeline.js";
 export * from "./point-shadow-matrix-computation.js";
 export * from "./point-shadow-view-projection-plan.js";
 export * from "./spot-shadow-matrix-computation.js";

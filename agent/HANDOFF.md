@@ -1,6 +1,95 @@
 # Agent Handoff
 
-Updated: 2026-05-20T23:43:42Z
+Updated: 2026-05-21T00:46:31Z
+
+## Current Run Update — 2026-05-21T00:46:31Z — Render targets through PMREM IBL wiring
+
+Completed `task-3005`, `task-3006`, `task-3007`, `task-3008`, and `task-3009`.
+
+### What changed
+
+- Wired `ViewPacket.renderTarget` through the WebGPU app render path. Registered
+  render-target assets now submit to explicit off-screen textures while
+  `renderTarget: null` views continue using the swapchain.
+- Added target-specific depth attachments, per-view layer filtering, JSON-safe
+  render-target submission reports, and diagnostics for missing/not-ready/invalid
+  render-target assets.
+- Added `examples/render-to-texture.html` and `.js`: an ECS-authored off-screen
+  pass renders into a 256x256 texture, then a narrow WebGPU screen pass samples
+  that texture onto a centered main-canvas quad.
+- Added `createPmremComputePipeline()` and `createPmremComputeDispatchSize()` in
+  `@aperture-engine/webgpu`.
+- Added browser WebGPU proofs that PMREM compute writes a constant cubemap color
+  into mip 0 and writes a rougher mip 2 for a two-color synthetic cubemap.
+- Wired the spinning-cube specular IBL proof path through generated PMREM mips
+  instead of the deterministic hand-authored placeholder chain.
+- The spinning-cube example now publishes `environment.specularPrefiltering:
+true` when PMREM output is generated and proves roughness-dependent reflection
+  with roughness `0.0` and `1.0` probe cubes.
+- Updated public tracker pages, backlog, completed-task log, examples index, and
+  `check:examples`. Recommended next task is now `task-3010`.
+
+### Files touched
+
+- `agent/BACKLOG.md`
+- `agent/COMPLETED.md`
+- `agent/HANDOFF.md`
+- `agent/STATUS.json`
+- `docs/index.html`
+- `docs/render-pipeline-comparison.html`
+- `examples/index.html`
+- `examples/render-to-texture.html`
+- `examples/render-to-texture.js`
+- `examples/spinning-cube.js`
+- `package.json`
+- `packages/webgpu/src/webgpu/app.ts`
+- `packages/webgpu/src/webgpu/frame-boundary.ts`
+- `packages/webgpu/src/webgpu/index.ts`
+- `packages/webgpu/src/webgpu/pmrem-compute-pipeline.ts`
+- `test/e2e/offscreen-color-target.spec.ts`
+- `test/e2e/pmrem-compute-pipeline.spec.ts`
+- `test/e2e/render-to-texture.spec.ts`
+- `test/e2e/spinning-cube.spec.ts`
+- `test/webgpu/frame-boundary.test.ts`
+- `test/webgpu/webgpu-app.test.ts`
+
+### References inspected
+
+- `references/three.js/src/renderers/WebGLRenderTarget.js`
+- `references/engine/src/platform/graphics/render-target.js`
+- `references/three.js/examples/webgpu_rtt.html`
+- `references/engine/src/scene/composition/layer-composition.js`
+- `references/three.js/src/extras/PMREMGenerator.js`
+- `references/engine/src/scene/graphics/reproject-texture.js`
+- `references/bevy/crates/bevy_pbr/src/light_probe/environment_map.rs`
+
+### Validation
+
+- `pnpm run check:progress`
+- `pnpm run build`
+- `pnpm run check:examples`
+- `pnpm run lint`
+- `pnpm run format:check`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts --testNamePattern "ViewPacket render targets"`
+- `pnpm exec playwright test test/e2e/offscreen-color-target.spec.ts test/e2e/render-to-texture.spec.ts test/e2e/pmrem-compute-pipeline.spec.ts`
+- `pnpm exec playwright test test/e2e/pmrem-compute-pipeline.spec.ts test/e2e/spinning-cube.spec.ts`
+- `pnpm exec playwright test test/e2e/spinning-cube.spec.ts`
+- `pnpm exec playwright test test/e2e/offscreen-color-target.spec.ts test/e2e/render-to-texture.spec.ts test/e2e/pmrem-compute-pipeline.spec.ts test/e2e/spinning-cube.spec.ts`
+- `pnpm run check`
+- `pnpm test` (319 files, 1533 tests)
+
+### Known issues
+
+- The current mip-chain proof uses a simple face-average roughness blend. Full
+  GGX importance sampling remains in later PMREM work.
+- `task-3009` is wired through the spinning-cube proof resource path. A package
+  level IBL texture-preparation helper remains useful once `task-3010` adds a
+  real environment asset.
+
+### Recommended next task
+
+`task-3010 — Real HDR env-map sample shipped through the IBL path (part 4: real env)`.
 
 ## Current Run Update — 2026-05-20T23:43:42Z — Off-screen color target attachment proof
 

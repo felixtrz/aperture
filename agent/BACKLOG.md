@@ -59,14 +59,14 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start with `task-3005`: Off-screen render target consumed by ViewPacket (part 2: wiring).
+Start with `task-3010`: Real HDR env-map sample shipped through the IBL path (part 4: real env).
 
-Why this next: `task-3004` added the off-screen color attachment factory and browser readback proof. The next Tier 1 dependency is wiring existing `ViewPacket.renderTarget` data into the WebGPU app render path so cameras can target registered off-screen textures.
+Why this next: `task-3009` wires generated PMREM mips into the spinning-cube specular IBL path. The next dependency is proving the same path with a real environment asset instead of the synthetic face-colored proof cubemap.
 
 Reference anchors (read before writing):
 
-- `references/three.js/src/renderers/WebGLRenderTarget.js`
-- `references/engine/src/platform/graphics/render-target.js`
+- `references/three.js/examples/webgpu_loader_gltf_iridescence.html`
+- `references/engine/examples/`
 
 ## Strategic Focus — Pipeline Maturity Roadmap
 
@@ -78,11 +78,11 @@ Eleven cross-cutting gaps remain across the six phases. They are sequenced below
 
 1. Worker transport proof (task-3001) — shipped; proves the snapshot architecture's central claim
 2. Async image decode in the asset layer (task-3002 and task-3003 shipped) — unlocks real-image GLBs without pre-decode
-3. Render targets / off-screen rendering (task-3004 shipped, task-3005 and task-3006 next) — unlocks PMREM, picking, post-processing
+3. Render targets / off-screen rendering (task-3004, task-3005, and task-3006 shipped) — unlocks PMREM, picking, post-processing
 
 **Tier 2 — Quality leap (depends on Tier 1):**
 
-4. PMREM/GGX specular prefilter (task-3007, task-3008, task-3009, task-3010) — depends on render targets
+4. PMREM/GGX specular prefilter (task-3007, task-3008, and task-3009 shipped, task-3010 next) — depends on render targets
 5. Snapshot change-set / ECS change detection (task-3011, task-3012) — enables per-frame delta extraction
 
 **Tier 3 — Performance ceiling (independent):**
@@ -107,69 +107,6 @@ The MVP track (task-2001 through task-2030) shipped successfully — completion 
 All roadmap task entries cite at least one specific reference file under `references/bevy`, `references/engine` (PlayCanvas), or `references/three.js`. The agent MUST read the cited references before writing implementation code (see `agent/WAKE.md` §4).
 
 ## Ready Tasks — Pipeline Maturity Roadmap
-
-### task-3005 — Off-screen render target consumed by ViewPacket (part 2: wiring)
-
-Category: `webgpu-render`
-Package/write-scope: `packages/webgpu/src/webgpu/app.ts`, `packages/webgpu/src/webgpu/current-texture-view.ts`.
-Reference anchor: `references/three.js/src/renderers/WebGLRenderTarget.js`; `references/engine/src/platform/graphics/render-target.js`.
-Insertion point: app render path — check `ViewPacket.renderTarget` (already in the snapshot type) and route to off-screen attachment when present.
-
-Acceptance criteria:
-
-- When a Camera in ECS has `renderTargetId` set, the WebGPU layer renders that view to the associated off-screen texture instead of the swapchain.
-- Test asserts both swapchain and off-screen targets receive draws in a mixed scene.
-
-### task-3006 — Off-screen render-target example: render-to-texture in canvas
-
-Category: `runtime-orchestration`
-Package/write-scope: `examples/render-to-texture.html`, `examples/render-to-texture.js`, `test/e2e/render-to-texture.spec.ts`.
-Reference anchor: `references/three.js/examples/webgpu_rtt.html` if present, else `references/three.js/examples/webgl_rtt.html`; `references/engine/src/scene/composition/layer-composition.js`.
-Insertion point: new example using task-3004/3005 plumbing.
-
-Acceptance criteria:
-
-- Example shows a scene rendered into an off-screen 256×256 texture, then displayed as a textured quad in the main canvas.
-- Playwright pixel sample at the quad's center confirms the off-screen render reached the screen.
-
-### task-3007 — PMREM compute pass: bind-group + compute pipeline (part 1: pipeline)
-
-Category: `webgpu-render`
-Package/write-scope: `packages/webgpu/src/webgpu/`, new file `pmrem-compute-pipeline.ts`, targeted tests.
-Dependencies: task-3004, task-3005.
-Reference anchor: `references/three.js/src/extras/PMREMGenerator.js`; `references/engine/src/scene/graphics/reproject-texture.js`; `references/bevy/crates/bevy_pbr/src/light_probe/environment_map.rs`.
-Insertion point: new compute pipeline that GGX-importance-samples an env cubemap.
-
-Acceptance criteria:
-
-- Function `createPmremComputePipeline(device)` returns a pipeline and bind group layout.
-- Test dispatches against a constant-color cubemap and asserts output mip 0 matches input.
-
-### task-3008 — PMREM mip-chain dispatch (part 2: roughness mips)
-
-Category: `webgpu-render`
-Package/write-scope: `packages/webgpu/src/webgpu/pmrem-compute-pipeline.ts`, targeted tests.
-Dependencies: task-3007.
-Reference anchor: `references/three.js/src/extras/PMREMGenerator.js` (specular mip loop).
-Insertion point: extend pipeline from 3007 to dispatch one pass per roughness mip level.
-
-Acceptance criteria:
-
-- Given a synthetic env cubemap with two distinct colors, generated mip N has more blur than mip 0.
-- Test asserts mip-2 sampling produces a different result from mip-0 sampling at the same direction.
-
-### task-3009 — Replace placeholder specular IBL with real PMREM output (part 3: wiring)
-
-Category: `webgpu-render`
-Package/write-scope: `packages/webgpu/src/webgpu/ibl-texture-preparation.ts`, `examples/spinning-cube.js`.
-Dependencies: task-3008.
-Reference anchor: `references/three.js/src/extras/PMREMGenerator.js`.
-Insertion point: `packages/webgpu/src/webgpu/ibl-texture-preparation.ts:55` — `sections.prefiltering` is hardcoded false. Compute real mips via 3007/3008 pipeline.
-
-Acceptance criteria:
-
-- Spinning-cube specular reflection responds to a _real_ environment map (not the deterministic placeholder mip chain).
-- Two cubes with roughness 0.0 and 1.0 show visibly different reflection — sharp vs blurred — confirmed by Playwright pixel sampling.
 
 ### task-3010 — Real HDR env-map sample shipped through the IBL path (part 4: real env)
 

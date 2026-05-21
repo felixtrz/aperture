@@ -11,8 +11,10 @@ import {
 } from "./command-encoder.js";
 import {
   createCurrentTextureColorTarget,
+  createOffscreenColorTarget,
   type CreateCurrentTextureColorTargetResult,
   type CurrentTextureContextLike,
+  type CurrentTextureLike,
 } from "./current-texture-view.js";
 import { submitCommandBuffers, type QueueSubmitLike } from "./queue-submit.js";
 import type { SubmitCommandBuffersReport } from "./queue-submit.js";
@@ -87,7 +89,7 @@ export interface FrameBoundaryReadbackSample {
 
 export interface FrameBoundaryReadbackSuccess {
   readonly ok: true;
-  readonly source: "current-texture";
+  readonly source: FrameBoundaryColorTargetSource;
   readonly format: string;
   readonly bytesPerRow: number;
   readonly samples: readonly FrameBoundaryReadbackSample[];
@@ -120,7 +122,7 @@ export interface FrameBoundaryReadbackCommandEncoderLike {
 
 interface FrameBoundaryReadbackCopyPlan {
   readonly ok: true;
-  readonly source: "current-texture";
+  readonly source: FrameBoundaryColorTargetSource;
   readonly format: string;
   readonly byteOrder: TextureByteOrder;
   readonly bytesPerRow: number;
@@ -136,6 +138,23 @@ type FrameBoundaryReadbackPlan =
   | FrameBoundaryReadbackCopyPlan
   | FrameBoundaryReadbackFailure;
 
+export type FrameBoundaryColorTargetSource =
+  | "current-texture"
+  | "offscreen-target";
+
+export interface FrameBoundaryCurrentTextureTarget {
+  readonly source: "current-texture";
+}
+
+export interface FrameBoundaryOffscreenTarget {
+  readonly source: "offscreen-target";
+  readonly texture: CurrentTextureLike | null | undefined;
+}
+
+export type FrameBoundaryColorTarget =
+  | FrameBoundaryCurrentTextureTarget
+  | FrameBoundaryOffscreenTarget;
+
 type TextureByteOrder = "rgba" | "bgra";
 
 const readbackBytesPerRow = 256;
@@ -146,6 +165,7 @@ export interface AssembleFrameBoundaryOptions {
   readonly queue: QueueSubmitLike;
   readonly commands: readonly RenderPassCommand[];
   readonly label: string;
+  readonly colorTarget?: FrameBoundaryColorTarget;
   readonly clearColor?: readonly number[];
   readonly depthTarget?: RenderPassDepthAttachmentInput | null;
   readonly readback?: FrameBoundaryReadbackOptions;
@@ -167,13 +187,23 @@ export interface FrameBoundaryAssemblyReport {
 export function assembleFrameBoundary(
   options: AssembleFrameBoundaryOptions,
 ): FrameBoundaryAssemblyReport {
-  const texture = createCurrentTextureColorTarget({
-    context: options.context,
-    loadOp: "clear",
-    ...(options.clearColor === undefined
-      ? {}
-      : { clearColor: options.clearColor }),
-  });
+  const colorTarget = options.colorTarget ?? { source: "current-texture" };
+  const texture =
+    colorTarget.source === "offscreen-target"
+      ? createOffscreenColorTarget({
+          texture: colorTarget.texture,
+          loadOp: "clear",
+          ...(options.clearColor === undefined
+            ? {}
+            : { clearColor: options.clearColor }),
+        })
+      : createCurrentTextureColorTarget({
+          context: options.context,
+          loadOp: "clear",
+          ...(options.clearColor === undefined
+            ? {}
+            : { clearColor: options.clearColor }),
+        });
   const attachments =
     texture.target === null
       ? null
@@ -220,6 +250,7 @@ export function assembleFrameBoundary(
       : createFrameBoundaryReadbackCopyPlan({
           device: options.device,
           encoder: encoderHandle,
+          source: colorTarget.source,
           texture: texture.texture,
           readback: options.readback,
         });
@@ -347,6 +378,7 @@ function createFrameBoundaryReadbackCopyPlan(options: {
         CommandEncoderFinishLike &
         FrameBoundaryReadbackCommandEncoderLike)
     | undefined;
+  readonly source: FrameBoundaryColorTargetSource;
   readonly texture: unknown;
   readonly readback: FrameBoundaryReadbackOptions;
 }): FrameBoundaryReadbackPlan {
@@ -383,7 +415,9 @@ function createFrameBoundaryReadbackCopyPlan(options: {
   if (options.encoder?.copyTextureToBuffer === undefined) {
     return readbackFailure(
       "copy-texture-to-buffer-unavailable",
-      "WebGPU command encoder cannot copy the current texture into readback buffers.",
+      `WebGPU command encoder cannot copy the ${readbackSourceLabel(
+        options.source,
+      )} into readback buffers.`,
       false,
     );
   }
@@ -437,7 +471,9 @@ function createFrameBoundaryReadbackCopyPlan(options: {
     } catch (cause) {
       return readbackFailure(
         "copy-texture-to-buffer-unavailable",
-        `WebGPU current-texture copy failed: ${messageFromCause(cause)}`,
+        `WebGPU ${readbackSourceLabel(options.source)} copy failed: ${messageFromCause(
+          cause,
+        )}`,
         false,
       );
     }
@@ -447,7 +483,7 @@ function createFrameBoundaryReadbackCopyPlan(options: {
 
   return {
     ok: true,
-    source: "current-texture",
+    source: options.source,
     format: options.readback.format,
     byteOrder,
     bytesPerRow: readbackBytesPerRow,
@@ -509,6 +545,12 @@ function textureByteOrder(format: string): TextureByteOrder | null {
     default:
       return null;
   }
+}
+
+function readbackSourceLabel(source: FrameBoundaryColorTargetSource): string {
+  return source === "offscreen-target"
+    ? "off-screen target"
+    : "current texture";
 }
 
 function sampleOrigin(

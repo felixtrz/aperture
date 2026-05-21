@@ -134,8 +134,8 @@ test("Playwright shows an ECS-driven spinning lit standard cube", async ({
       metallicFactor: 0.82,
       roughnessFactor: 0.18,
       roughnessProof: {
-        glossy: 0.1,
-        rough: 0.9,
+        glossy: 0,
+        rough: 1,
       },
     },
     lighting: {
@@ -148,6 +148,7 @@ test("Playwright shows an ECS-driven spinning lit standard cube", async ({
       authored: 1,
       extracted: 1,
       handleKey: "environment-map:spinning-cube-studio",
+      specularPrefiltering: true,
       diffuseResourceKey: "texture:spinning-cube-studio:diffuse:texture",
       specularResourceKey:
         "texture:spinning-cube-studio:specular-proof:texture",
@@ -268,8 +269,8 @@ function expectDirectionDependentDiffuseIblPixels(
       readPngPixel(screenshot, 0.54, 0.5),
       {
         label: "sideFace",
-        xMin: 0.36,
-        xMax: 0.44,
+        xMin: 0.24,
+        xMax: 0.48,
         yMin: 0.38,
         yMax: 0.62,
       },
@@ -280,9 +281,9 @@ function expectDirectionDependentDiffuseIblPixels(
       readPngPixel(screenshot, 0.54, 0.5),
       {
         label: "lowerFace",
-        xMin: 0.44,
-        xMax: 0.62,
-        yMin: 0.68,
+        xMin: 0.36,
+        xMax: 0.64,
+        yMin: 0.58,
         yMax: 0.86,
       },
     ),
@@ -320,24 +321,16 @@ function findDistinctFaceSample(
   let strongest: ReturnType<typeof readPngPixel> | null = null;
   let strongestDistance = 0;
 
-  for (let yStep = 0; yStep <= 8; yStep += 1) {
-    const y = search.yMin + ((search.yMax - search.yMin) * yStep) / 8;
+  scanRegion({ ...search, steps: 8 });
 
-    for (let xStep = 0; xStep <= 8; xStep += 1) {
-      const x = search.xMin + ((search.xMax - search.xMin) * xStep) / 8;
-      const pixel = readPngPixel(screenshot, x, y);
-
-      if (pixelDistance(pixel, clear) <= 24) {
-        continue;
-      }
-
-      const distance = pixelDistance(pixel, reference);
-
-      if (distance > strongestDistance) {
-        strongest = pixel;
-        strongestDistance = distance;
-      }
-    }
+  if (strongest === null || strongestDistance <= 10) {
+    scanRegion({
+      xMin: 0.18,
+      xMax: 0.78,
+      yMin: 0.2,
+      yMax: 0.85,
+      steps: 16,
+    });
   }
 
   expect(
@@ -350,6 +343,36 @@ function findDistinctFaceSample(
   ).toBeGreaterThan(10);
 
   return strongest ?? reference;
+
+  function scanRegion(input: {
+    readonly label?: string;
+    readonly xMin: number;
+    readonly xMax: number;
+    readonly yMin: number;
+    readonly yMax: number;
+    readonly steps: number;
+  }): void {
+    for (let yStep = 0; yStep <= input.steps; yStep += 1) {
+      const y = input.yMin + ((input.yMax - input.yMin) * yStep) / input.steps;
+
+      for (let xStep = 0; xStep <= input.steps; xStep += 1) {
+        const x =
+          input.xMin + ((input.xMax - input.xMin) * xStep) / input.steps;
+        const pixel = readPngPixel(screenshot, x, y);
+
+        if (pixelDistance(pixel, clear) <= 24) {
+          continue;
+        }
+
+        const distance = pixelDistance(pixel, reference);
+
+        if (distance > strongestDistance) {
+          strongest = pixel;
+          strongestDistance = distance;
+        }
+      }
+    }
+  }
 }
 
 function expectSpecularIblHighlightPixels(

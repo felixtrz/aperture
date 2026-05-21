@@ -22,6 +22,43 @@ describe("frame boundary assembly helper", () => {
     expect(events).toEqual(["begin", "draw", "end", "finish", "submit:1"]);
   });
 
+  it("assembles an off-screen color target boundary", () => {
+    const events: string[] = [];
+    const offscreenTexture = {
+      createView: () => {
+        events.push("offscreen:view");
+        return { label: "offscreen-view" };
+      },
+    };
+    const report = assembleFrameBoundary({
+      context: { getCurrentTexture: () => null },
+      device: device(events),
+      queue: { submit: (buffers) => events.push(`submit:${buffers.length}`) },
+      commands: [drawCommand()],
+      label: "offscreen-frame",
+      colorTarget: {
+        source: "offscreen-target",
+        texture: offscreenTexture,
+      },
+      clearColor: [0.1, 0.2, 0.3, 1],
+    });
+
+    expect(report.valid).toBe(true);
+    expect(report.texture.texture).toBe(offscreenTexture);
+    expect(report.attachments?.plan?.colorAttachments[0]).toMatchObject({
+      view: { label: "offscreen-view" },
+      clearValue: { r: 0.1, g: 0.2, b: 0.3, a: 1 },
+    });
+    expect(events).toEqual([
+      "offscreen:view",
+      "begin",
+      "draw",
+      "end",
+      "finish",
+      "submit:1",
+    ]);
+  });
+
   it("stops at texture view acquisition failures", () => {
     const report = assembleFrameBoundary({
       context: { getCurrentTexture: () => ({}) },

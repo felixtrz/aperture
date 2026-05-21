@@ -1,5 +1,140 @@
 # Completed Tasks
 
+## task-3009 — Replace placeholder specular IBL with real PMREM output (part 3: wiring)
+
+Completed: 2026-05-21
+
+Summary:
+
+- Wired the spinning-cube specular IBL proof path through the PMREM compute
+  pipeline instead of the deterministic hand-authored placeholder mip chain.
+- The example now reports `specularPrefiltering: true` when PMREM output is
+  generated, with a fallback diagnostic only if compute pipeline creation fails.
+- Updated the glossy and rough probe cubes to roughness `0.0` and `1.0`, then
+  broadened Playwright pixel sampling to prove visible roughness-dependent
+  reflection differences against the generated PMREM mips.
+- Tuned the PMREM proof shader's rough-mip energy curve so high mips remain
+  visible while still reading back as clearly different from sharp mip 0.
+
+References inspected:
+
+- `references/three.js/src/extras/PMREMGenerator.js`
+- `references/engine/src/scene/graphics/reproject-texture.js`
+- `references/bevy/crates/bevy_pbr/src/light_probe/environment_map.rs`
+
+Validation:
+
+- `node --check examples/spinning-cube.js`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec playwright test test/e2e/pmrem-compute-pipeline.spec.ts test/e2e/spinning-cube.spec.ts`
+- `pnpm exec playwright test test/e2e/spinning-cube.spec.ts`
+
+## task-3008 — PMREM mip-chain dispatch (part 2: roughness mips)
+
+Completed: 2026-05-21
+
+Summary:
+
+- Extended the PMREM compute shader so higher output mips blend the selected
+  cubemap direction toward a six-face average, giving the mip-chain proof a
+  measurable rougher output.
+- Added dispatch sizing for smaller mip targets and reused the same compute
+  pipeline across mip 0 and mip 2 output views.
+- Added Playwright WebGPU coverage with a two-color synthetic cubemap proving
+  mip 0 remains sharp while mip 2 differs at the same direction.
+
+References inspected:
+
+- `references/three.js/src/extras/PMREMGenerator.js`
+- `references/engine/src/scene/graphics/reproject-texture.js`
+
+Validation:
+
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec playwright test test/e2e/pmrem-compute-pipeline.spec.ts`
+
+## task-3007 — PMREM compute pass: bind-group + compute pipeline (part 1: pipeline)
+
+Completed: 2026-05-21
+
+Summary:
+
+- Added `createPmremComputePipeline()` in `@aperture-engine/webgpu`, returning
+  a shader module, bind group layout, pipeline layout, compute pipeline,
+  storage format, and workgroup size.
+- Added a small dispatch-size helper for PMREM compute workgroups.
+- Added Playwright WebGPU coverage that writes a constant-color cubemap through
+  the compute pipeline into mip 0 and reads back the expected pixel.
+
+References inspected:
+
+- `references/three.js/src/extras/PMREMGenerator.js`
+- `references/engine/src/scene/graphics/reproject-texture.js`
+- `references/bevy/crates/bevy_pbr/src/light_probe/environment_map.rs`
+
+Validation:
+
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec playwright test test/e2e/pmrem-compute-pipeline.spec.ts`
+
+## task-3006 — Off-screen render-target example: render-to-texture in canvas
+
+Completed: 2026-05-21
+
+Summary:
+
+- Added `examples/render-to-texture.html` and `examples/render-to-texture.js`.
+- The example renders an ECS-authored unlit plane into a registered 256x256
+  off-screen render target via `ViewPacket.renderTarget`.
+- A narrow WebGPU screen pass samples the off-screen texture onto a centered
+  canvas quad, with JSON-safe status reporting for the off-screen pass,
+  render-target asset, screen quad, and readback sample.
+- Added Playwright coverage proving the canvas quad center samples the
+  off-screen render target.
+
+References inspected:
+
+- `references/three.js/examples/webgpu_rtt.html`
+- `references/engine/src/scene/composition/layer-composition.js`
+
+Validation:
+
+- `node --check examples/render-to-texture.js`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec playwright test test/e2e/render-to-texture.spec.ts`
+
+## task-3005 — Off-screen render target consumed by ViewPacket (part 2: wiring)
+
+Completed: 2026-05-21
+
+Summary:
+
+- Added a registered WebGPU render-target asset contract so the app render path
+  can resolve ECS-derived `ViewPacket.renderTarget` handles to explicit
+  off-screen `GPUTexture` targets.
+- Updated frame-boundary assembly to submit either swapchain current textures or
+  off-screen color targets, with target-source readback reporting and
+  target-specific depth attachments.
+- Routed each extracted view packet through its selected target, preserving
+  swapchain behavior for `renderTarget: null` and filtering draw commands by
+  each view's layer mask.
+- Added JSON-safe render-target submission reports and diagnostics for missing,
+  not-ready, invalid, and format-mismatched render-target assets.
+- Added unit and Playwright coverage proving a mixed scene draws into both an
+  off-screen texture and the swapchain.
+
+References inspected:
+
+- `references/three.js/src/renderers/WebGLRenderTarget.js`
+- `references/engine/src/platform/graphics/render-target.js`
+
+Validation:
+
+- `pnpm exec prettier --write packages/webgpu/src/webgpu/app.ts packages/webgpu/src/webgpu/frame-boundary.ts test/webgpu/frame-boundary.test.ts test/webgpu/webgpu-app.test.ts test/e2e/offscreen-color-target.spec.ts agent/STATUS.json`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec vitest run test/webgpu/frame-boundary.test.ts test/webgpu/webgpu-app.test.ts --testNamePattern "off-screen color target boundary|ViewPacket render targets"`
+- `pnpm exec playwright test test/e2e/offscreen-color-target.spec.ts`
+
 ## task-3004 — Off-screen render target abstraction (part 1: attachment factory)
 
 Completed: 2026-05-20

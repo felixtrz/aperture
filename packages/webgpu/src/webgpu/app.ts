@@ -8,6 +8,7 @@ import {
   resolveWorldTransforms,
   type EcsWorld,
   type Entity,
+  type RenderTargetHandle,
   type TransformResolutionReport,
   type WorldOptions,
 } from "@aperture-engine/simulation";
@@ -89,6 +90,7 @@ import {
   type FrameBoundaryReadbackResult,
   type FrameBoundaryReadbackSampleRequest,
 } from "./frame-boundary.js";
+import type { CurrentTextureLike } from "./current-texture-view.js";
 import {
   createOrReuseWebGpuDepthTexture,
   createWebGpuDepthTextureCacheSlot,
@@ -214,6 +216,7 @@ import {
   writeRenderFramePlanFromSnapshot,
   type RenderFramePlanScratch,
 } from "./render-frame-plan.js";
+import type { RenderPassCommand } from "./render-pass-commands.js";
 import { parseMaterialPipelineRenderStateTokens } from "./material-render-state.js";
 import {
   initializeWebGpu,
@@ -248,6 +251,22 @@ export interface WebGpuAppRenderOptions {
   readonly standardMaterialIblResources?: StandardFrameIblResources;
 }
 
+export interface WebGpuAppRenderTargetAssetInput {
+  readonly texture: CurrentTextureLike;
+  readonly width: number;
+  readonly height: number;
+  readonly format?: string;
+  readonly label?: string;
+}
+
+export interface WebGpuAppRenderTargetAsset {
+  readonly texture: CurrentTextureLike;
+  readonly width: number;
+  readonly height: number;
+  readonly format?: string;
+  readonly label?: string;
+}
+
 export interface WebGpuAppRenderCounts {
   readonly views: number;
   readonly meshDraws: number;
@@ -263,6 +282,17 @@ export interface WebGpuAppDepthAttachmentReport {
   readonly width: number;
   readonly height: number;
   readonly opaquePipelineDepthWriteCount: number;
+}
+
+export interface WebGpuAppRenderTargetSubmissionReport {
+  readonly viewId: number;
+  readonly source: "swapchain" | "offscreen";
+  readonly renderTargetKey: string | null;
+  readonly width: number;
+  readonly height: number;
+  readonly format: string;
+  readonly ok: boolean;
+  readonly drawCalls: number;
 }
 
 export interface WebGpuAppResourceReuseReport {
@@ -327,6 +357,8 @@ export interface WebGpuAppRenderReport {
   readonly pipeline: WebGpuAppPipelineResourceResult | null;
   readonly resources: WebGpuAppFrameResourcesResult | null;
   readonly boundary: FrameBoundaryAssemblyReport | null;
+  readonly boundaries?: readonly FrameBoundaryAssemblyReport[];
+  readonly renderTargets?: readonly WebGpuAppRenderTargetSubmissionReport[];
   readonly depthAttachment?: WebGpuAppDepthAttachmentReport;
   readonly readback?: FrameBoundaryReadbackResult;
 }
@@ -347,6 +379,7 @@ export interface WebGpuAppRenderReportJsonValue {
   readonly diagnosticsSummary?: WebGpuAppDiagnosticsSummary;
   readonly resourceReuse: WebGpuAppResourceReuseReport;
   readonly depthAttachment?: WebGpuAppDepthAttachmentReport;
+  readonly renderTargets?: readonly WebGpuAppRenderTargetSubmissionReport[];
   readonly readback?: WebGpuAppJsonValue;
   readonly materialDependencyReadiness?: readonly MaterialAssetDependencyReadinessReportJsonValue[];
 }
@@ -383,6 +416,7 @@ interface WebGpuAppResourceCache {
   readonly standardFrame: StandardAppFrameResourceCacheSlot;
   readonly debugNormalFrame: DebugNormalAppFrameResourceCacheSlot;
   readonly depth: WebGpuDepthTextureCacheSlot;
+  readonly depthByRenderTarget: Map<string, WebGpuDepthTextureCacheSlot>;
 }
 
 interface WebGpuAppFrameScratch {
@@ -396,6 +430,7 @@ interface WebGpuAppFrameScratch {
   readonly materialQueue: MaterialQueueScratch;
   readonly queueRoute: QueuedBuiltInAppRouteCollectorScratch;
   readonly queuedBuiltInFrameResources: QueuedBuiltInFrameResourceScratch<WebGpuAppPipelinePlanResult>;
+  readonly viewCommands: RenderPassCommand[];
 }
 
 interface WebGpuAppPipelineLayouts {
@@ -496,6 +531,26 @@ export interface CreateWebGpuAppSuccess {
 }
 
 export type CreateWebGpuAppResult = CreateWebGpuAppSuccess | WebGpuFailure;
+
+export function createWebGpuAppRenderTargetAsset(
+  input: WebGpuAppRenderTargetAssetInput,
+): WebGpuAppRenderTargetAsset {
+  if (!Number.isInteger(input.width) || input.width <= 0) {
+    throw new RangeError("WebGPU app render target width must be positive.");
+  }
+
+  if (!Number.isInteger(input.height) || input.height <= 0) {
+    throw new RangeError("WebGPU app render target height must be positive.");
+  }
+
+  return Object.freeze({
+    texture: input.texture,
+    width: input.width,
+    height: input.height,
+    ...(input.format === undefined ? {} : { format: input.format }),
+    ...(input.label === undefined ? {} : { label: input.label }),
+  });
+}
 
 export async function createWebGpuApp(
   options: CreateWebGpuAppOptions,
@@ -617,6 +672,7 @@ function createWebGpuAppResourceCache(): WebGpuAppResourceCache {
     debugNormalFrame:
       createWebGpuAppFrameResourceCacheSlot<CachedDebugNormalAppFrameResources>(),
     depth: createWebGpuDepthTextureCacheSlot(),
+    depthByRenderTarget: new Map(),
   };
 }
 
@@ -635,6 +691,7 @@ function createWebGpuAppFrameScratch(): WebGpuAppFrameScratch {
     queueRoute: createQueuedBuiltInAppRouteCollectorScratch(),
     queuedBuiltInFrameResources:
       createQueuedBuiltInFrameResourceScratch<WebGpuAppPipelinePlanResult>(),
+    viewCommands: [],
   };
 }
 
@@ -1143,6 +1200,37 @@ const QUEUED_BUILT_IN_APP_RESOURCE_ADAPTER_VALIDATION =
     ),
   );
 
+type WebGpuAppFrameBoundaryTarget =
+  | {
+      readonly source: "swapchain";
+      readonly view: RenderSnapshot["views"][number];
+      readonly renderTargetKey: null;
+      readonly width: number;
+      readonly height: number;
+      readonly format: string;
+    }
+  | {
+      readonly source: "offscreen";
+      readonly view: RenderSnapshot["views"][number];
+      readonly renderTargetKey: string;
+      readonly texture: CurrentTextureLike;
+      readonly width: number;
+      readonly height: number;
+      readonly format: string;
+    };
+
+interface WebGpuAppFrameBoundaryAssemblyResult {
+  readonly valid: boolean;
+  readonly boundary: FrameBoundaryAssemblyReport | null;
+  readonly boundaries: readonly FrameBoundaryAssemblyReport[];
+  readonly renderTargets: readonly WebGpuAppRenderTargetSubmissionReport[];
+  readonly depthAttachment?: WebGpuAppDepthAttachmentReport;
+  readonly readbackBoundary: FrameBoundaryAssemblyReport | null;
+  readonly plannedCommands: number;
+  readonly drawCalls: number;
+  readonly diagnostics: readonly unknown[];
+}
+
 async function renderQueuedBuiltInWebGpuAppFrame(options: {
   readonly app: WebGpuApp;
   readonly cache: WebGpuAppResourceCache;
@@ -1245,37 +1333,18 @@ async function renderQueuedBuiltInWebGpuAppFrame(options: {
     bindGroups: prepared.resources.bindGroups,
     scratch: options.cache.frameScratch.framePlan,
   });
-  const depthAttachment = createWebGpuAppDepthAttachment(
-    options.app,
-    options.cache,
-  );
-  const boundary = assembleFrameBoundary({
-    context: options.app.initialization.context as Parameters<
-      typeof assembleFrameBoundary
-    >[0]["context"],
-    device: options.app.initialization.device as Parameters<
-      typeof assembleFrameBoundary
-    >[0]["device"],
-    queue: (options.app.initialization.device as { readonly queue: unknown })
-      .queue as Parameters<typeof assembleFrameBoundary>[0]["queue"],
+  const boundaries = assembleWebGpuAppFrameBoundaries({
+    app: options.app,
+    cache: options.cache,
+    snapshot: options.snapshot,
     commands: framePlan.commandPlan.commands,
     label: options.label ?? "aperture-webgpu-app",
-    clearColor: options.clearColor ?? [0, 0, 0, 1],
-    depthTarget: {
-      view: depthAttachment.view,
-      depthClearValue: 1,
-      depthLoadOp: "clear",
-      depthStoreOp: "store",
-    },
+    ...(options.clearColor === undefined
+      ? {}
+      : { clearColor: options.clearColor }),
     ...(options.readbackSamples === undefined
       ? {}
-      : {
-          readback: {
-            format: options.app.initialization.format,
-            ...webGpuAppCanvasDimensions(options.app.canvas),
-            samples: options.readbackSamples,
-          },
-        }),
+      : { readbackSamples: options.readbackSamples }),
   });
 
   await waitForSubmittedWork(options.app.initialization.device);
@@ -1287,9 +1356,9 @@ async function renderQueuedBuiltInWebGpuAppFrame(options: {
     framePlan.drawList.valid &&
     framePlan.resources.valid &&
     framePlan.commandPlan.valid &&
-    boundary.valid;
+    boundaries.valid;
   const readback = await mapFrameBoundaryReadbackSamples(
-    boundary.readback,
+    boundaries.readbackBoundary?.readback,
     frameOk,
   );
 
@@ -1298,17 +1367,18 @@ async function renderQueuedBuiltInWebGpuAppFrame(options: {
     snapshot: options.snapshot,
     pipeline: prepared.firstPipeline,
     resources: prepared.resourcesResult,
-    boundary,
-    depthAttachment: createWebGpuAppDepthAttachmentReport(
-      options.snapshot,
-      depthAttachment,
-    ),
+    boundary: boundaries.boundary,
+    boundaries: boundaries.boundaries,
+    renderTargets: boundaries.renderTargets,
+    ...(boundaries.depthAttachment === undefined
+      ? {}
+      : { depthAttachment: boundaries.depthAttachment }),
     ...(readback === undefined ? {} : { readback }),
     resourceReuse: options.reuse,
     diagnosticsSummary,
     drawPackages: framePlan.packages.packages.length,
-    drawCommands: framePlan.commandPlan.commands.length,
-    drawCalls: framePlan.commandPlan.drawCount,
+    drawCommands: boundaries.plannedCommands,
+    drawCalls: boundaries.drawCalls,
     diagnostics: [
       ...options.snapshot.diagnostics,
       ...framePlan.bindingPlan.diagnostics,
@@ -1318,6 +1388,125 @@ async function renderQueuedBuiltInWebGpuAppFrame(options: {
       ...framePlan.drawList.diagnostics,
       ...framePlan.resources.diagnostics,
       ...framePlan.commandPlan.diagnostics,
+      ...boundaries.diagnostics,
+    ],
+  });
+}
+
+function assembleWebGpuAppFrameBoundaries(options: {
+  readonly app: WebGpuApp;
+  readonly cache: WebGpuAppResourceCache;
+  readonly snapshot: RenderSnapshot;
+  readonly commands: readonly RenderPassCommand[];
+  readonly label: string;
+  readonly clearColor?: readonly number[];
+  readonly readbackSamples?: readonly FrameBoundaryReadbackSampleRequest[];
+}): WebGpuAppFrameBoundaryAssemblyResult {
+  const targetPlan = createWebGpuAppFrameBoundaryTargets(
+    options.app,
+    options.snapshot,
+  );
+
+  if (targetPlan.diagnostics.length > 0) {
+    return {
+      valid: false,
+      boundary: null,
+      boundaries: [],
+      renderTargets: [],
+      readbackBoundary: null,
+      plannedCommands: 0,
+      drawCalls: 0,
+      diagnostics: targetPlan.diagnostics,
+    };
+  }
+
+  const boundaries: FrameBoundaryAssemblyReport[] = [];
+  const renderTargets: WebGpuAppRenderTargetSubmissionReport[] = [];
+  const diagnostics: unknown[] = [];
+  let firstBoundary: FrameBoundaryAssemblyReport | null = null;
+  let firstDepthAttachment: WebGpuAppDepthAttachmentReport | undefined;
+  let readbackBoundary: FrameBoundaryAssemblyReport | null = null;
+  let plannedCommands = 0;
+  let drawCalls = 0;
+
+  for (const target of targetPlan.targets) {
+    const commands = writeCommandsForView(
+      options.commands,
+      options.snapshot,
+      target.view,
+      options.cache.frameScratch.viewCommands,
+    );
+    const depthAttachment = createWebGpuAppDepthAttachmentForTarget(
+      options.app,
+      options.cache,
+      target,
+    );
+    const includeReadback =
+      options.readbackSamples !== undefined &&
+      readbackBoundary === null &&
+      target.source === "swapchain";
+    const boundary = assembleFrameBoundary({
+      context: options.app.initialization.context as Parameters<
+        typeof assembleFrameBoundary
+      >[0]["context"],
+      device: options.app.initialization.device as Parameters<
+        typeof assembleFrameBoundary
+      >[0]["device"],
+      queue: (options.app.initialization.device as { readonly queue: unknown })
+        .queue as Parameters<typeof assembleFrameBoundary>[0]["queue"],
+      commands,
+      label: `${options.label}:${target.renderTargetKey ?? "swapchain"}`,
+      ...(target.source === "offscreen"
+        ? {
+            colorTarget: {
+              source: "offscreen-target" as const,
+              texture: target.texture,
+            },
+          }
+        : {}),
+      clearColor: options.clearColor ?? target.view.clearColor,
+      depthTarget: {
+        view: depthAttachment.view,
+        depthClearValue: target.view.clearDepth,
+        depthLoadOp: "clear",
+        depthStoreOp: "store",
+      },
+      ...(includeReadback
+        ? {
+            readback: {
+              format: target.format,
+              width: target.width,
+              height: target.height,
+              samples: options.readbackSamples,
+            },
+          }
+        : {}),
+    });
+
+    firstBoundary ??= boundary;
+    firstDepthAttachment ??= createWebGpuAppDepthAttachmentReport(
+      options.snapshot,
+      depthAttachment,
+    );
+
+    if (boundary.readback !== null && boundary.readback !== undefined) {
+      readbackBoundary = boundary;
+    }
+
+    boundaries.push(boundary);
+    renderTargets.push({
+      viewId: target.view.viewId,
+      source: target.source,
+      renderTargetKey: target.renderTargetKey,
+      width: target.width,
+      height: target.height,
+      format: target.format,
+      ok: boundary.valid,
+      drawCalls: boundary.execution?.drawCalls ?? 0,
+    });
+    plannedCommands += commands.length;
+    drawCalls += countDrawCommands(commands);
+    diagnostics.push(
       ...boundary.texture.diagnostics,
       ...(boundary.attachments?.diagnostics ?? []),
       ...(boundary.encoder?.diagnostics ?? []),
@@ -1326,8 +1515,245 @@ async function renderQueuedBuiltInWebGpuAppFrame(options: {
       ...(boundary.end?.diagnostics ?? []),
       ...(boundary.finish?.diagnostics ?? []),
       ...(boundary.submit?.diagnostics ?? []),
-    ],
-  });
+    );
+  }
+
+  return {
+    valid:
+      targetPlan.targets.length > 0 &&
+      boundaries.every((boundary) => boundary.valid),
+    boundary: firstBoundary,
+    boundaries,
+    renderTargets,
+    ...(firstDepthAttachment === undefined
+      ? {}
+      : { depthAttachment: firstDepthAttachment }),
+    readbackBoundary,
+    plannedCommands,
+    drawCalls,
+    diagnostics,
+  };
+}
+
+function createWebGpuAppFrameBoundaryTargets(
+  app: WebGpuApp,
+  snapshot: RenderSnapshot,
+): {
+  readonly targets: readonly WebGpuAppFrameBoundaryTarget[];
+  readonly diagnostics: readonly unknown[];
+} {
+  const targets: WebGpuAppFrameBoundaryTarget[] = [];
+  const diagnostics: unknown[] = [];
+  const canvasDimensions = webGpuAppCanvasDimensions(app.canvas);
+
+  for (const view of snapshot.views) {
+    if (view.renderTarget === null) {
+      targets.push({
+        source: "swapchain",
+        view,
+        renderTargetKey: null,
+        ...canvasDimensions,
+        format: app.initialization.format,
+      });
+      continue;
+    }
+
+    const renderTargetKey = assetHandleKey(view.renderTarget);
+    const entry = app.assets.get<"render-target", WebGpuAppRenderTargetAsset>(
+      view.renderTarget,
+    );
+
+    if (entry === undefined) {
+      diagnostics.push(
+        createWebGpuAppRenderTargetDiagnostic({
+          code: "webGpuApp.renderTargetMissing",
+          viewId: view.viewId,
+          renderTarget: view.renderTarget,
+          message: `View ${view.viewId} targets missing render target asset '${renderTargetKey}'.`,
+        }),
+      );
+      continue;
+    }
+
+    if (entry.status !== "ready" || entry.asset === null) {
+      diagnostics.push(
+        createWebGpuAppRenderTargetDiagnostic({
+          code: "webGpuApp.renderTargetNotReady",
+          viewId: view.viewId,
+          renderTarget: view.renderTarget,
+          status: entry.status,
+          message: `View ${view.viewId} targets render target '${renderTargetKey}' with status '${entry.status}', expected 'ready'.`,
+        }),
+      );
+      continue;
+    }
+
+    const asset = entry.asset;
+
+    if (!isWebGpuAppRenderTargetAsset(asset)) {
+      diagnostics.push(
+        createWebGpuAppRenderTargetDiagnostic({
+          code: "webGpuApp.renderTargetInvalid",
+          viewId: view.viewId,
+          renderTarget: view.renderTarget,
+          message: `View ${view.viewId} targets render target '${renderTargetKey}' without a valid WebGPU texture and dimensions.`,
+        }),
+      );
+      continue;
+    }
+
+    const assetFormat = asset.format ?? app.initialization.format;
+
+    if (assetFormat !== app.initialization.format) {
+      diagnostics.push(
+        createWebGpuAppRenderTargetDiagnostic({
+          code: "webGpuApp.renderTargetFormatMismatch",
+          viewId: view.viewId,
+          renderTarget: view.renderTarget,
+          message: `View ${view.viewId} targets render target '${renderTargetKey}' with format '${assetFormat}', but the app pipeline format is '${app.initialization.format}'.`,
+        }),
+      );
+      continue;
+    }
+
+    targets.push({
+      source: "offscreen",
+      view,
+      renderTargetKey,
+      texture: asset.texture,
+      width: asset.width,
+      height: asset.height,
+      format: assetFormat,
+    });
+  }
+
+  return { targets, diagnostics };
+}
+
+function createWebGpuAppRenderTargetDiagnostic(input: {
+  readonly code:
+    | "webGpuApp.renderTargetMissing"
+    | "webGpuApp.renderTargetNotReady"
+    | "webGpuApp.renderTargetInvalid"
+    | "webGpuApp.renderTargetFormatMismatch";
+  readonly viewId: number;
+  readonly renderTarget: RenderTargetHandle;
+  readonly message: string;
+  readonly status?: string;
+}): {
+  readonly code: typeof input.code;
+  readonly message: string;
+  readonly viewId: number;
+  readonly renderTargetKey: string;
+  readonly status?: string;
+} {
+  return {
+    code: input.code,
+    message: input.message,
+    viewId: input.viewId,
+    renderTargetKey: assetHandleKey(input.renderTarget),
+    ...(input.status === undefined ? {} : { status: input.status }),
+  };
+}
+
+function isWebGpuAppRenderTargetAsset(
+  value: unknown,
+): value is WebGpuAppRenderTargetAsset {
+  if (typeof value !== "object" || value === null) {
+    return false;
+  }
+
+  const asset = value as Partial<WebGpuAppRenderTargetAsset>;
+  const width = asset.width;
+  const height = asset.height;
+
+  return (
+    typeof asset.texture === "object" &&
+    asset.texture !== null &&
+    typeof asset.texture.createView === "function" &&
+    width !== undefined &&
+    Number.isInteger(width) &&
+    width > 0 &&
+    height !== undefined &&
+    Number.isInteger(height) &&
+    height > 0 &&
+    (asset.format === undefined || typeof asset.format === "string")
+  );
+}
+
+function writeCommandsForView(
+  commands: readonly RenderPassCommand[],
+  snapshot: RenderSnapshot,
+  view: RenderSnapshot["views"][number],
+  target: RenderPassCommand[],
+): readonly RenderPassCommand[] {
+  target.length = 0;
+
+  for (const command of commands) {
+    if (isRenderPassCommandVisibleToView(command, snapshot, view)) {
+      target.push(command);
+    }
+  }
+
+  return target;
+}
+
+function isRenderPassCommandVisibleToView(
+  command: RenderPassCommand,
+  snapshot: RenderSnapshot,
+  view: RenderSnapshot["views"][number],
+): boolean {
+  const draw = snapshot.meshDraws.find(
+    (packet) => packet.renderId === command.renderId,
+  );
+
+  return draw === undefined || (draw.layerMask & view.layerMask) !== 0;
+}
+
+function countDrawCommands(commands: readonly RenderPassCommand[]): number {
+  let count = 0;
+
+  for (const command of commands) {
+    if (command.kind === "draw" || command.kind === "drawIndexed") {
+      count += 1;
+    }
+  }
+
+  return count;
+}
+
+function createWebGpuAppDepthAttachmentForTarget(
+  app: WebGpuApp,
+  resourceCache: WebGpuAppResourceCache,
+  target: WebGpuAppFrameBoundaryTarget,
+): CachedWebGpuDepthTextureResource {
+  return createOrReuseWebGpuDepthTexture({
+    device: app.initialization.device as Parameters<
+      typeof createOrReuseWebGpuDepthTexture
+    >[0]["device"],
+    cache: depthCacheSlotForTarget(resourceCache, target),
+    width: target.width,
+    height: target.height,
+    format: WEBGPU_APP_DEPTH_FORMAT,
+  }).resource;
+}
+
+function depthCacheSlotForTarget(
+  resourceCache: WebGpuAppResourceCache,
+  target: WebGpuAppFrameBoundaryTarget,
+): WebGpuDepthTextureCacheSlot {
+  if (target.source === "swapchain") {
+    return resourceCache.depth;
+  }
+
+  let slot = resourceCache.depthByRenderTarget.get(target.renderTargetKey);
+
+  if (slot === undefined) {
+    slot = createWebGpuDepthTextureCacheSlot();
+    resourceCache.depthByRenderTarget.set(target.renderTargetKey, slot);
+  }
+
+  return slot;
 }
 
 function createQueuedBuiltInAppDiagnosticsSummary(input: {
@@ -1975,34 +2401,18 @@ async function renderWebGpuAppFrame(
     bindGroups: frameResources.bindGroups,
     scratch: resourceCache.frameScratch.framePlan,
   });
-  const depthAttachment = createWebGpuAppDepthAttachment(app, resourceCache);
-  const boundary = assembleFrameBoundary({
-    context: app.initialization.context as Parameters<
-      typeof assembleFrameBoundary
-    >[0]["context"],
-    device: app.initialization.device as Parameters<
-      typeof assembleFrameBoundary
-    >[0]["device"],
-    queue: (app.initialization.device as { readonly queue: unknown })
-      .queue as Parameters<typeof assembleFrameBoundary>[0]["queue"],
+  const boundaries = assembleWebGpuAppFrameBoundaries({
+    app,
+    cache: resourceCache,
+    snapshot,
     commands: framePlan.commandPlan.commands,
     label: options.label ?? "aperture-webgpu-app",
-    clearColor: options.clearColor ?? [0, 0, 0, 1],
-    depthTarget: {
-      view: depthAttachment.view,
-      depthClearValue: 1,
-      depthLoadOp: "clear",
-      depthStoreOp: "store",
-    },
+    ...(options.clearColor === undefined
+      ? {}
+      : { clearColor: options.clearColor }),
     ...(options.readbackSamples === undefined
       ? {}
-      : {
-          readback: {
-            format: app.initialization.format,
-            ...webGpuAppCanvasDimensions(app.canvas),
-            samples: options.readbackSamples,
-          },
-        }),
+      : { readbackSamples: options.readbackSamples }),
   });
 
   await waitForSubmittedWork(app.initialization.device);
@@ -2014,9 +2424,9 @@ async function renderWebGpuAppFrame(
     framePlan.drawList.valid &&
     framePlan.resources.valid &&
     framePlan.commandPlan.valid &&
-    boundary.valid;
+    boundaries.valid;
   const readback = await mapFrameBoundaryReadbackSamples(
-    boundary.readback,
+    boundaries.readbackBoundary?.readback,
     frameOk,
   );
 
@@ -2025,16 +2435,17 @@ async function renderWebGpuAppFrame(
     snapshot,
     pipeline,
     resources,
-    boundary,
-    depthAttachment: createWebGpuAppDepthAttachmentReport(
-      snapshot,
-      depthAttachment,
-    ),
+    boundary: boundaries.boundary,
+    boundaries: boundaries.boundaries,
+    renderTargets: boundaries.renderTargets,
+    ...(boundaries.depthAttachment === undefined
+      ? {}
+      : { depthAttachment: boundaries.depthAttachment }),
     ...(readback === undefined ? {} : { readback }),
     resourceReuse: reuse,
     drawPackages: framePlan.packages.packages.length,
-    drawCommands: framePlan.commandPlan.commands.length,
-    drawCalls: framePlan.commandPlan.drawCount,
+    drawCommands: boundaries.plannedCommands,
+    drawCalls: boundaries.drawCalls,
     diagnostics: [
       ...snapshot.diagnostics,
       ...framePlan.bindingPlan.diagnostics,
@@ -2044,14 +2455,7 @@ async function renderWebGpuAppFrame(
       ...framePlan.drawList.diagnostics,
       ...framePlan.resources.diagnostics,
       ...framePlan.commandPlan.diagnostics,
-      ...boundary.texture.diagnostics,
-      ...(boundary.attachments?.diagnostics ?? []),
-      ...(boundary.encoder?.diagnostics ?? []),
-      ...(boundary.begin?.diagnostics ?? []),
-      ...(boundary.execution?.diagnostics ?? []),
-      ...(boundary.end?.diagnostics ?? []),
-      ...(boundary.finish?.diagnostics ?? []),
-      ...(boundary.submit?.diagnostics ?? []),
+      ...boundaries.diagnostics,
     ],
   });
 }
@@ -2371,6 +2775,9 @@ export function webGpuAppRenderReportToJsonValue(
     ...(report.depthAttachment === undefined
       ? {}
       : { depthAttachment: report.depthAttachment }),
+    ...(report.renderTargets === undefined
+      ? {}
+      : { renderTargets: report.renderTargets }),
     ...(report.readback === undefined
       ? {}
       : { readback: toWebGpuAppJsonValue(report.readback) }),
@@ -2443,6 +2850,8 @@ function renderReport(input: {
   readonly pipeline?: WebGpuAppPipelineResourceResult | null;
   readonly resources?: WebGpuAppFrameResourcesResult | null;
   readonly boundary?: FrameBoundaryAssemblyReport | null;
+  readonly boundaries?: readonly FrameBoundaryAssemblyReport[];
+  readonly renderTargets?: readonly WebGpuAppRenderTargetSubmissionReport[];
   readonly depthAttachment?: WebGpuAppDepthAttachmentReport;
   readonly readback?: FrameBoundaryReadbackResult;
   readonly drawPackages?: number;
@@ -2469,25 +2878,15 @@ function renderReport(input: {
     pipeline: input.pipeline ?? null,
     resources: input.resources ?? null,
     boundary: input.boundary ?? null,
+    ...(input.boundaries === undefined ? {} : { boundaries: input.boundaries }),
+    ...(input.renderTargets === undefined
+      ? {}
+      : { renderTargets: input.renderTargets }),
     ...(input.depthAttachment === undefined
       ? {}
       : { depthAttachment: input.depthAttachment }),
     ...(input.readback === undefined ? {} : { readback: input.readback }),
   };
-}
-
-function createWebGpuAppDepthAttachment(
-  app: WebGpuApp,
-  resourceCache: WebGpuAppResourceCache,
-): CachedWebGpuDepthTextureResource {
-  return createOrReuseWebGpuDepthTexture({
-    device: app.initialization.device as Parameters<
-      typeof createOrReuseWebGpuDepthTexture
-    >[0]["device"],
-    cache: resourceCache.depth,
-    ...webGpuAppCanvasDimensions(app.canvas),
-    format: WEBGPU_APP_DEPTH_FORMAT,
-  }).resource;
 }
 
 function createWebGpuAppDepthAttachmentReport(
@@ -2527,10 +2926,13 @@ function webGpuAppCanvasDimensions(canvas: WebGpuCanvasLike): {
     readonly width?: unknown;
     readonly height?: unknown;
   };
-  const width = typeof dimensions.width === "number" ? dimensions.width : 0;
-  const height = typeof dimensions.height === "number" ? dimensions.height : 0;
+  const width = typeof dimensions.width === "number" ? dimensions.width : 1;
+  const height = typeof dimensions.height === "number" ? dimensions.height : 1;
 
-  return { width, height };
+  return {
+    width: Math.max(1, Math.floor(width)),
+    height: Math.max(1, Math.floor(height)),
+  };
 }
 
 function createWebGpuAppResourceReuseReport(): WebGpuAppResourceReuseReport {

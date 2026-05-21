@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-20 23:39 UTC</dd>
+            <dd>2026-05-21 00:46 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -413,9 +413,19 @@
               rendering the StandardMaterial sample. The WebGPU package now
               exposes <code>createOffscreenColorTarget(texture)</code>, and
               Playwright renders a raw triangle into an off-screen texture then
-              reads back its pixels. Next up is wiring
-              <code>ViewPacket.renderTarget</code> into the app render path. The
-              GLB viewer now renders extended StandardMaterial combined texture
+              reads back its pixels. The WebGPU app now consumes
+              <code>ViewPacket.renderTarget</code>: registered render-target
+              assets render into explicit off-screen textures while swapchain
+              cameras keep targeting the canvas, and mixed-target tests prove
+              both receive draws. The render-to-texture example now displays a
+              256x256 off-screen ECS pass on a main-canvas textured quad, and
+              Playwright checks the quad center pixel. The PMREM compute path
+              now creates an executable bind-group/compute pipeline and proves
+              mip 0 plus a rougher mip 2 with browser readback, and the
+              spinning-cube example now uses generated PMREM mips for its
+              specular IBL proof with glossy and rough probe cubes. Next up is
+              proving the same path with a real environment asset. The GLB
+              viewer now renders extended StandardMaterial combined texture
               routes: occlusion plus normal, metallic-roughness plus emissive,
               alpha-blend plus normal, UV1 metallic-roughness plus normal,
               base-color plus occlusion, and transformed base-color plus
@@ -1635,14 +1645,16 @@
               1.0, stores it, and reports JSON-safe depth metadata. GLB viewer
               StandardMaterial routes now submit lit, IBL-enabled,
               shadow-receiving, opaque, transparent, and animation-driven proof
-              paths with live control coverage. Off-screen color target
-              attachment creation now has browser readback proof.
+              paths with live control coverage. Off-screen ViewPacket render
+              targets and the render-to-texture example now have Playwright
+              proof, and PMREM compute has mip 0 plus mip-chain browser readback
+              proof plus spinning-cube specular IBL wiring.
             </p>
             <ul>
               <li>Missing render graph and multi-pass architecture.</li>
               <li>
-                Missing full PMREM/GGX IBL, post-processing, and render-target
-                passes.
+                Missing real environment asset coverage, full GGX importance
+                sampling, and post-processing.
               </li>
               <li>Missing GPU timing and submission reuse diagnostics.</li>
             </ul>
@@ -3750,15 +3762,15 @@
             <h3>Recommended next tasks</h3>
             <ul>
               <li>
-                <span class="badge amber">next</span> Route
-                <code>ViewPacket.renderTarget</code> through the WebGPU app.
+                <span class="badge amber">next</span> Ship a real HDR
+                environment-map sample through the IBL path.
               </li>
               <li>
-                Render camera-targeted views into registered off-screen textures
-                instead of the swapchain.
+                Load the environment asset and prefilter it through the PMREM
+                path.
               </li>
               <li>
-                Prove a mixed swapchain/off-screen scene receives both draws.
+                Prove reflected environment colors with Playwright pixels.
               </li>
             </ul>
           </article>
@@ -3771,6 +3783,62 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3009</div>
+            <div>
+              <strong>PMREM output now drives spinning-cube IBL.</strong>
+              <span
+                >The specular IBL proof path uses generated PMREM mips, reports
+                prefiltering status, and proves glossy-vs-rough reflection
+                pixels.</span
+              >
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="task-id">task-3008</div>
+            <div>
+              <strong>PMREM mip-chain proof runs in WebGPU.</strong>
+              <span
+                >The compute pipeline now writes a sharp mip 0 and a rougher mip
+                2 from a synthetic cubemap, with Playwright readback
+                coverage.</span
+              >
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="task-id">task-3007</div>
+            <div>
+              <strong>PMREM compute pipeline landed.</strong>
+              <span
+                >WebGPU now exposes a PMREM compute pipeline and dispatch
+                helper, and browser coverage proves constant cubemap color
+                reaches mip 0.</span
+              >
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="task-id">task-3006</div>
+            <div>
+              <strong
+                >Render-to-texture example displays off-screen output.</strong
+              >
+              <span
+                >The example renders an ECS pass into a 256x256 off-screen
+                target and samples it onto a main-canvas quad.</span
+              >
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="task-id">task-3005</div>
+            <div>
+              <strong>ViewPacket render targets reach WebGPU.</strong>
+              <span
+                >The app render path now submits camera-targeted off-screen
+                textures and swapchain views from the ECS-derived view packet
+                list, with mixed-target readback proof.</span
+              >
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3004</div>
             <div>

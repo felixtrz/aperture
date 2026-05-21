@@ -2,10 +2,10 @@
   "state": "idle",
   "currentTaskId": null,
   "currentRunStartedAt": null,
-  "lastRunStartedAt": "2026-05-20T23:01:41Z",
+  "lastRunStartedAt": "2026-05-21T00:02:52Z",
   "lastResult": "success",
   "lastCommit": null,
   "activePid": null,
-  "notes": "Completed task-3001 worker snapshot transport, task-3002 async glTF image decode, task-3003 GLB registry loading-to-ready decode wiring, and task-3004 off-screen color target attachment proof. Build, lint, format check, full Vitest, targeted unit, Playwright, and progress checks passed. Next task: task-3005 ViewPacket render-target wiring.",
-  "lastRunFinishedAt": "2026-05-20T23:52:11Z"
+  "notes": "Completed task-3005 through task-3009: ViewPacket render-target wiring, render-to-texture example, PMREM compute pipeline and mip proof, and spinning-cube PMREM specular IBL wiring. Validation passed: pnpm run check plus targeted Playwright render-target/PMREM/spinning-cube specs.",
+  "lastRunFinishedAt": "2026-05-21T00:53:17Z"
 }

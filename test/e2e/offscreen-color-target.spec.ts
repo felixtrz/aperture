@@ -161,3 +161,234 @@ test("renders a triangle into an off-screen color target and reads pixels", asyn
   expect(center[1]).toBeLessThan(90);
   expect(center[3]).toBe(255);
 });
+
+test("renders ECS ViewPacket targets to off-screen texture and swapchain", async ({
+  page,
+}) => {
+  await page.goto("/examples/");
+
+  const result = await page.evaluate(async () => {
+    if (navigator.gpu === undefined) {
+      return { ok: false, reason: "webgpu-unavailable" };
+    }
+
+    const canvas = document.querySelector(
+      "#aperture-canvas",
+    ) as HTMLCanvasElement | null;
+
+    if (canvas === null) {
+      return { ok: false, reason: "canvas-unavailable" };
+    }
+
+    canvas.width = 96;
+    canvas.height = 96;
+
+    const [core, webgpu] = await Promise.all([
+      import("@aperture-engine/core"),
+      import("@aperture-engine/webgpu"),
+    ]);
+    const aperture = { ...core, ...webgpu };
+    const browserGlobals = globalThis as unknown as {
+      readonly GPUTextureUsage?: {
+        readonly COPY_SRC: number;
+        readonly RENDER_ATTACHMENT: number;
+      };
+      readonly GPUBufferUsage?: {
+        readonly MAP_READ: number;
+        readonly COPY_DST: number;
+      };
+      readonly GPUMapMode?: { readonly READ: number };
+    };
+    const textureUsage = browserGlobals.GPUTextureUsage ?? {
+      COPY_SRC: 0x01,
+      RENDER_ATTACHMENT: 0x10,
+    };
+    const bufferUsage = browserGlobals.GPUBufferUsage ?? {
+      MAP_READ: 0x01,
+      COPY_DST: 0x08,
+    };
+    const mapMode = browserGlobals.GPUMapMode ?? { READ: 0x01 };
+    const webGpuCanvas = canvas as unknown as Parameters<
+      typeof webgpu.createWebGpuApp
+    >[0]["canvas"];
+    const created = await aperture.createWebGpuApp({
+      canvas: webGpuCanvas,
+      textureUsage: textureUsage.RENDER_ATTACHMENT | textureUsage.COPY_SRC,
+      worldOptions: { entityCapacity: 8 },
+    });
+
+    if (!created.ok) {
+      return {
+        ok: false,
+        reason: created.reason,
+        message: created.message,
+      };
+    }
+
+    const app = created.app;
+    const device = app.initialization.device as GPUDevice;
+    const format = app.initialization.format as GPUTextureFormat;
+    const width = 96;
+    const height = 96;
+    const offscreenTexture = device.createTexture({
+      label: "aperture-e2e-view-target-offscreen",
+      size: { width, height },
+      format,
+      usage: textureUsage.RENDER_ATTACHMENT | textureUsage.COPY_SRC,
+    });
+    const assets = aperture.createRenderAssetCollections({
+      registry: app.assets,
+    });
+    const mesh = assets.meshes.add(
+      aperture.createBoxMeshAsset({ label: "ViewTargetCube" }),
+    );
+    const material = assets.materials.unlit.add(
+      aperture.createUnlitMaterialAsset({
+        label: "ViewTargetGreen",
+        baseColorFactor: [0.05, 0.85, 0.18, 1],
+      }),
+    );
+    const renderTarget = aperture.createRenderTargetHandle("e2e-offscreen");
+
+    app.assets.register(renderTarget);
+    app.assets.markReady(
+      renderTarget,
+      aperture.createWebGpuAppRenderTargetAsset({
+        texture: offscreenTexture,
+        width,
+        height,
+        format,
+        label: "E2E offscreen target",
+      }),
+    );
+
+    app.spawn(
+      aperture.withTransform({ translation: [0, 0, 5] }),
+      aperture.withCamera({
+        priority: 0,
+        layerMask: 1,
+        aspect: 1,
+        renderTargetId: aperture.assetHandleKey(renderTarget),
+      }),
+    );
+    app.spawn(
+      aperture.withTransform({ translation: [0, 0, 5] }),
+      aperture.withCamera({ priority: 1, layerMask: 1, aspect: 1 }),
+    );
+    app.spawn(
+      aperture.withTransform(),
+      aperture.withMesh(mesh),
+      aperture.withMaterial(material),
+      aperture.withRenderLayer(1),
+      aperture.withVisibility(true),
+    );
+    app.step(1 / 60, 1);
+
+    const frame = await app.render({
+      frame: 17,
+      clearColor: [0, 0, 0, 1],
+      readbackSamples: [{ id: "swapchain-center", x: 0.5, y: 0.5 }],
+    });
+    const offscreenCenter = await readTexturePixel({
+      device,
+      texture: offscreenTexture,
+      format,
+      width,
+      height,
+      x: 0.5,
+      y: 0.5,
+      bufferUsage,
+      mapMode,
+    });
+
+    offscreenTexture.destroy();
+
+    return {
+      ok: frame.ok,
+      counts: frame.counts,
+      renderTargets: frame.renderTargets,
+      readback: frame.readback,
+      offscreenCenter,
+      diagnostics: frame.diagnostics,
+    };
+
+    async function readTexturePixel(options: {
+      readonly device: GPUDevice;
+      readonly texture: GPUTexture;
+      readonly format: GPUTextureFormat;
+      readonly width: number;
+      readonly height: number;
+      readonly x: number;
+      readonly y: number;
+      readonly bufferUsage: {
+        readonly MAP_READ: number;
+        readonly COPY_DST: number;
+      };
+      readonly mapMode: { readonly READ: number };
+    }): Promise<readonly number[]> {
+      const bytesPerRow = 256;
+      const origin = {
+        x: Math.floor(options.width * options.x),
+        y: Math.floor(options.height * options.y),
+        z: 0,
+      };
+      const buffer = options.device.createBuffer({
+        label: "aperture-e2e-view-target-offscreen-readback",
+        size: bytesPerRow,
+        usage: options.bufferUsage.COPY_DST | options.bufferUsage.MAP_READ,
+      });
+      const encoder = options.device.createCommandEncoder({
+        label: "aperture-e2e-view-target-offscreen-readback",
+      });
+
+      encoder.copyTextureToBuffer(
+        { texture: options.texture, origin },
+        { buffer, bytesPerRow, rowsPerImage: 1 },
+        { width: 1, height: 1, depthOrArrayLayers: 1 },
+      );
+      options.device.queue.submit([encoder.finish()]);
+      await buffer.mapAsync(options.mapMode.READ);
+
+      const bytes = new Uint8Array(buffer.getMappedRange()).slice(0, 4);
+      const pixel = options.format.startsWith("bgra")
+        ? [bytes[2] ?? 0, bytes[1] ?? 0, bytes[0] ?? 0, bytes[3] ?? 0]
+        : [bytes[0] ?? 0, bytes[1] ?? 0, bytes[2] ?? 0, bytes[3] ?? 0];
+
+      buffer.unmap();
+      return pixel;
+    }
+  });
+
+  if (!result.ok && result.reason === "webgpu-unavailable") {
+    test.skip(true, "WebGPU is not available in this browser.");
+  }
+
+  if (!result.ok && result.reason === "adapter-unavailable") {
+    test.skip(true, "WebGPU adapter is not available in this browser.");
+  }
+
+  if (!result.ok) {
+    expect(result).toMatchObject({ ok: true });
+    return;
+  }
+
+  expect(result.counts).toMatchObject({
+    views: 2,
+    meshDraws: 1,
+    drawCalls: 2,
+    diagnostics: 0,
+  });
+  expect(result.renderTargets).toMatchObject([
+    { source: "offscreen", drawCalls: 1, ok: true },
+    { source: "swapchain", drawCalls: 1, ok: true },
+  ]);
+
+  const swapchainCenter =
+    result.readback?.ok === true ? result.readback.samples[0]?.pixel : null;
+  const offscreenCenter = result.offscreenCenter ?? [];
+
+  expect(swapchainCenter?.g ?? 0).toBeGreaterThan(120);
+  expect(swapchainCenter?.r ?? 255).toBeLessThan(80);
+  expect(offscreenCenter[1] ?? 0).toBeGreaterThan(120);
+  expect(offscreenCenter[0] ?? 255).toBeLessThan(80);
+});

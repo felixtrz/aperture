@@ -83,14 +83,14 @@ function createLitSpinningCubeScene(aperture, app, canvasSize) {
     label: "SpinningCubeGlossyProbe",
     baseColorFactor: new Float32Array([1, 0.55, 0.25, 1]),
     metallicFactor: 0.92,
-    roughnessFactor: 0.1,
+    roughnessFactor: 0,
     emissiveFactor: [0, 0, 0],
   });
   const roughMaterialAsset = aperture.createStandardMaterialAsset({
     label: "SpinningCubeRoughProbe",
     baseColorFactor: new Float32Array([1, 0.55, 0.25, 1]),
     metallicFactor: 0.92,
-    roughnessFactor: 0.9,
+    roughnessFactor: 1,
     emissiveFactor: [0, 0, 0],
   });
   const glossyMaterial = assets.materials.standard.add(glossyMaterialAsset, {
@@ -314,6 +314,8 @@ function createFrameStatus(
       authored: scene.authoredEnvironments,
       extracted: snapshot.environments.length,
       handleKey: aperture.assetHandleKey(scene.environmentMap),
+      specularPrefiltering:
+        scene.iblResources.specularTextureResource.sections.prefiltering,
       diffuseResourceKey:
         scene.iblResources.diffuseTextureResource.resources[0]?.resource
           ?.resourceKey,
@@ -454,6 +456,7 @@ function createSpinningCubeIblResources(aperture, app) {
 
   if (specularTexture === undefined) {
     specularTexture = createFaceColoredSpecularCubeTexture(
+      aperture,
       device,
       specularResourceKey,
     );
@@ -528,8 +531,8 @@ function createSpinningCubeIblResources(aperture, app) {
         texturePreparation: true,
         specularTextureResource: true,
         gpuAllocation: true,
-        proofUpload: true,
-        prefiltering: false,
+        proofUpload: !specularTexture.prefiltered,
+        prefiltering: specularTexture.prefiltered,
         bindGroupResource: false,
         shaderSampling: true,
       },
@@ -540,14 +543,16 @@ function createSpinningCubeIblResources(aperture, app) {
           diagnostics: [],
         },
       ],
-      diagnostics: [
-        {
-          code: "iblTextureResource.specularPrefilteringDeferred",
-          severity: "warning",
-          message:
-            "Specular IBL texture resource uses a deterministic minimal mip chain; full PMREM/GGX prefiltering remains deferred.",
-        },
-      ],
+      diagnostics: specularTexture.prefiltered
+        ? []
+        : [
+            {
+              code: "iblTextureResource.specularPrefilteringDeferred",
+              severity: "warning",
+              message:
+                "Specular IBL texture resource fell back to a deterministic minimal mip chain; full PMREM/GGX prefiltering remains deferred.",
+            },
+          ],
     },
     samplerResource: {
       ready: true,
@@ -573,25 +578,159 @@ function createSpinningCubeIblResources(aperture, app) {
   };
 }
 
-function createFaceColoredSpecularCubeTexture(device, resourceKey) {
+function createFaceColoredSpecularCubeTexture(aperture, device, resourceKey) {
+  const baseSize = 8;
+  const mipLevelCount = 4;
+  const usage = resolveTextureUsage(aperture);
+  const bufferUsage = resolveBufferUsage();
+  const pipeline = aperture.createPmremComputePipeline({
+    device,
+    storageFormat: "rgba8unorm",
+    label: "spinning-cube-studio:pmrem",
+  });
+
+  if (!pipeline.valid || pipeline.resource === null) {
+    return createFaceColoredSpecularFallbackCubeTexture(
+      device,
+      resourceKey,
+      usage,
+    );
+  }
+
+  const source = device.createTexture({
+    label: "spinning-cube-studio:specular-ibl-source",
+    size: [baseSize, baseSize, 6],
+    format: "rgba8unorm",
+    usage: usage.TEXTURE_BINDING | usage.COPY_DST,
+  });
+  const texture = device.createTexture({
+    label: "spinning-cube-studio:specular-ibl-pmrem-mip-chain",
+    size: [baseSize, baseSize, 6],
+    format: "rgba8unorm",
+    usage:
+      usage.TEXTURE_BINDING | usage.STORAGE_BINDING | usage.RENDER_ATTACHMENT,
+    mipLevelCount,
+  });
+  const faceColors = specularSourceFaceColors();
+
+  faceColors.forEach((color, face) => {
+    const data = new Uint8Array(256 * baseSize);
+
+    for (let row = 0; row < baseSize; row += 1) {
+      for (let column = 0; column < baseSize; column += 1) {
+        data.set(color, row * 256 + column * 4);
+      }
+    }
+
+    device.queue.writeTexture(
+      { texture: source, origin: [0, 0, face] },
+      data,
+      { bytesPerRow: 256, rowsPerImage: baseSize },
+      [baseSize, baseSize, 1],
+    );
+  });
+
+  const sampler = device.createSampler({
+    label: "spinning-cube-studio:pmrem-source-sampler",
+    addressModeU: "clamp-to-edge",
+    addressModeV: "clamp-to-edge",
+    addressModeW: "clamp-to-edge",
+    magFilter: "nearest",
+    minFilter: "nearest",
+  });
+  const sourceView = source.createView({
+    label: "spinning-cube-studio:pmrem-source-view",
+    dimension: "cube",
+  });
+  const encoder = device.createCommandEncoder({
+    label: "spinning-cube-studio:pmrem-dispatch",
+  });
+  const pass = encoder.beginComputePass({
+    label: "spinning-cube-studio:pmrem-mip-chain",
+  });
+
+  pass.setPipeline(pipeline.resource.pipeline);
+
+  for (let mipLevel = 0; mipLevel < mipLevelCount; mipLevel += 1) {
+    const mipSize = Math.max(1, baseSize >> mipLevel);
+    const params = device.createBuffer({
+      label: `spinning-cube-studio:pmrem-mip-${mipLevel}-params`,
+      size: 16,
+      usage: bufferUsage.UNIFORM | bufferUsage.COPY_DST,
+    });
+
+    device.queue.writeBuffer(
+      params,
+      0,
+      new Uint32Array([mipSize, mipSize, 6, mipLevel]),
+    );
+
+    const bindGroup = device.createBindGroup({
+      label: `spinning-cube-studio:pmrem-mip-${mipLevel}`,
+      layout: pipeline.resource.bindGroupLayout,
+      entries: [
+        { binding: 0, resource: sampler },
+        { binding: 1, resource: sourceView },
+        {
+          binding: 2,
+          resource: texture.createView({
+            dimension: "2d-array",
+            baseMipLevel: mipLevel,
+            mipLevelCount: 1,
+          }),
+        },
+        { binding: 3, resource: { buffer: params } },
+      ],
+    });
+    const dispatch = aperture.createPmremComputeDispatchSize({
+      width: mipSize,
+      height: mipSize,
+      layers: 6,
+    });
+
+    pass.setBindGroup(0, bindGroup);
+    pass.dispatchWorkgroups(dispatch.x, dispatch.y, dispatch.z);
+  }
+
+  pass.end();
+  device.queue.submit([encoder.finish()]);
+
+  return {
+    resourceKey,
+    texture,
+    view: texture.createView({
+      label: "spinning-cube-studio:specular-ibl-pmrem-mip-chain-view",
+      dimension: "cube",
+    }),
+    descriptor: {
+      label: "spinning-cube-studio:specular-ibl-pmrem-mip-chain",
+      size: [baseSize, baseSize, 6],
+      format: "rgba8unorm",
+      usage:
+        usage.TEXTURE_BINDING | usage.STORAGE_BINDING | usage.RENDER_ATTACHMENT,
+      mipLevelCount,
+    },
+    viewDescriptor: { dimension: "cube" },
+    prefiltered: true,
+  };
+}
+
+function createFaceColoredSpecularFallbackCubeTexture(
+  device,
+  resourceKey,
+  usage,
+) {
   const baseSize = 8;
   const mipLevelCount = 4;
   const texture = device.createTexture({
     label: "spinning-cube-studio:specular-ibl-minimal-mip-chain",
     size: [baseSize, baseSize, 6],
     format: "rgba8unorm",
-    usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST,
+    usage: usage.TEXTURE_BINDING | usage.COPY_DST,
     mipLevelCount,
   });
   const mipFaceColors = [
-    [
-      [255, 245, 210, 255],
-      [70, 105, 155, 255],
-      [245, 240, 190, 255],
-      [26, 42, 54, 255],
-      [245, 210, 255, 255],
-      [42, 48, 72, 255],
-    ],
+    specularSourceFaceColors(),
     [
       [218, 202, 176, 255],
       [92, 116, 148, 255],
@@ -650,11 +789,31 @@ function createFaceColoredSpecularCubeTexture(device, resourceKey) {
       label: "spinning-cube-studio:specular-ibl-minimal-mip-chain",
       size: [baseSize, baseSize, 6],
       format: "rgba8unorm",
-      usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST,
+      usage: usage.TEXTURE_BINDING | usage.COPY_DST,
       mipLevelCount,
     },
     viewDescriptor: { dimension: "cube" },
+    prefiltered: false,
   };
+}
+
+function specularSourceFaceColors() {
+  return [
+    [255, 245, 210, 255],
+    [70, 105, 155, 255],
+    [245, 240, 190, 255],
+    [26, 42, 54, 255],
+    [245, 210, 255, 255],
+    [42, 48, 72, 255],
+  ];
+}
+
+function resolveTextureUsage(aperture) {
+  return globalThis.GPUTextureUsage ?? aperture.WEBGPU_TEXTURE_USAGE_FLAGS;
+}
+
+function resolveBufferUsage() {
+  return globalThis.GPUBufferUsage ?? { UNIFORM: 0x40, COPY_DST: 0x08 };
 }
 
 function createFaceColoredDiffuseCubeTexture(device, resourceKey) {
