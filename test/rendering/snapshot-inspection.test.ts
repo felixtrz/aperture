@@ -10,6 +10,7 @@ import {
   createRenderTargetHandle,
   createStableRenderId,
   createUnlitMaterialAsset,
+  explainRenderSnapshotEntity,
   inspectRenderSnapshot,
   type EnvironmentPacket,
   type MeshDrawPacket,
@@ -76,6 +77,70 @@ describe("render snapshot inspection report", () => {
     expect(report.diagnostics.map((diagnostic) => diagnostic.code)).toEqual([
       "render.assetMissing",
     ]);
+  });
+
+  it("explains rendered, skipped, and unknown entities", () => {
+    const rendered = packet(3, "plane", "white");
+    const invisibleEntity = { index: 4, generation: 0 };
+    const disabledEntity = { index: 5, generation: 0 };
+    const inspected = {
+      ...snapshot({ meshDraws: [rendered] }),
+      diagnostics: [
+        {
+          code: "render.invisible",
+          message: "invisible",
+          severity: "info" as const,
+          entity: invisibleEntity,
+        },
+        {
+          code: "render.disabled",
+          message: "disabled",
+          severity: "info" as const,
+          entity: disabledEntity,
+        },
+      ],
+    };
+
+    expect(explainRenderSnapshotEntity(inspected, rendered.entity)).toEqual({
+      entity: rendered.entity,
+      status: "rendered",
+      rendered: true,
+      skipped: false,
+      drawCount: 1,
+      renderIds: [rendered.renderId],
+      diagnosticCodes: [],
+      reasons: [],
+    });
+    expect(explainRenderSnapshotEntity(inspected, invisibleEntity)).toEqual({
+      entity: invisibleEntity,
+      status: "skipped",
+      rendered: false,
+      skipped: true,
+      drawCount: 0,
+      renderIds: [],
+      diagnosticCodes: ["render.invisible"],
+      reasons: ["visibility-hidden"],
+    });
+    expect(explainRenderSnapshotEntity(inspected, disabledEntity)).toEqual({
+      entity: disabledEntity,
+      status: "skipped",
+      rendered: false,
+      skipped: true,
+      drawCount: 0,
+      renderIds: [],
+      diagnosticCodes: ["render.disabled"],
+      reasons: ["disabled"],
+    });
+    expect(
+      explainRenderSnapshotEntity(inspected, { index: 99, generation: 0 }),
+    ).toMatchObject({
+      status: "unknown",
+      rendered: false,
+      skipped: false,
+      drawCount: 0,
+      diagnosticCodes: [],
+      reasons: [],
+    });
   });
 });
 

@@ -13,7 +13,10 @@ import {
   createTextureAsset,
   createTextureHandle,
   createUnlitMaterialAsset,
+  createSharedSnapshotTransportViews,
+  createSnapshotPacketRegistry,
   createExtractionApp,
+  encodeSnapshotPackets,
   Light,
   LightKind,
   LocalTransform,
@@ -29,6 +32,7 @@ import {
   type MeshAsset,
   type MeshDrawPacket,
   type RenderSnapshot,
+  type SharedSnapshotTransportBuffers,
   type SpawnEntityInitializer,
   type CreateExtractionAppOptions,
   type Entity,
@@ -165,6 +169,121 @@ function createManualSimulationWorker(): WebGpuAppSimulationWorker & {
   };
 }
 
+function createSharedSnapshotManualSimulationWorker(
+  snapshot: RenderSnapshot,
+): WebGpuAppSimulationWorker & {
+  readonly startedTransportMode: "shared-array-buffer" | null;
+} {
+  const snapshotCallbacks =
+    new Set<WebGpuAppSimulationWorkerSnapshotCallback>();
+  const errorCallbacks = new Set<WebGpuAppSimulationWorkerErrorCallback>();
+  let startedTransportMode: "shared-array-buffer" | null = null;
+
+  return {
+    get startedTransportMode() {
+      return startedTransportMode;
+    },
+    start(options = {}) {
+      const transport = readSharedSnapshotTransportBuffers(options);
+
+      if (transport === null) {
+        for (const callback of errorCallbacks) {
+          callback({
+            reason: "test.shared-transport-missing",
+            message: "Expected SharedArrayBuffer transport start payload.",
+          });
+        }
+        return;
+      }
+
+      const shared = createSharedSnapshotTransportViews(transport);
+      const registry = createSnapshotPacketRegistry();
+      const encoded = encodeSnapshotPackets(snapshot, { registry });
+
+      startedTransportMode = "shared-array-buffer";
+      shared.writer.writeFrame({
+        frame: snapshot.frame,
+        transforms: snapshot.transforms,
+        ...(snapshot.instanceTints === undefined
+          ? {}
+          : { instanceTints: snapshot.instanceTints }),
+        viewMatrices: snapshot.viewMatrices,
+        packetWords: encoded.words,
+      });
+
+      for (const callback of snapshotCallbacks) {
+        callback({
+          frame: snapshot.frame,
+          snapshot: createPlaceholderSnapshot(snapshot.frame),
+          message: {
+            type: "aperture.simulation.snapshot",
+            frame: snapshot.frame,
+            snapshot: createPlaceholderSnapshot(snapshot.frame),
+            transport: {
+              mode: "shared-array-buffer",
+              registry: registry.snapshot(),
+              diagnostics: snapshot.diagnostics,
+            },
+          },
+        });
+      }
+    },
+    onSnapshot(callback) {
+      snapshotCallbacks.add(callback);
+      return () => {
+        snapshotCallbacks.delete(callback);
+      };
+    },
+    onError(callback) {
+      errorCallbacks.add(callback);
+      return () => {
+        errorCallbacks.delete(callback);
+      };
+    },
+  };
+}
+
+function readSharedSnapshotTransportBuffers(
+  value: Record<string, unknown>,
+): SharedSnapshotTransportBuffers | null {
+  const transport = value.transport;
+
+  if (
+    typeof transport !== "object" ||
+    transport === null ||
+    !("mode" in transport) ||
+    transport.mode !== "shared-array-buffer"
+  ) {
+    return null;
+  }
+
+  return transport as unknown as SharedSnapshotTransportBuffers;
+}
+
+function createPlaceholderSnapshot(frame: number): RenderSnapshot {
+  return {
+    frame,
+    views: [],
+    meshDraws: [],
+    lights: [],
+    environments: [],
+    shadowRequests: [],
+    bounds: [],
+    transforms: new Float32Array(0),
+    viewMatrices: new Float32Array(0),
+    diagnostics: [],
+    report: {
+      views: 0,
+      meshDraws: 0,
+      lights: 0,
+      environments: 0,
+      shadowRequests: 0,
+      bounds: 0,
+      diagnostics: 0,
+    },
+  };
+}
+
 async function waitForCondition(
   predicate: () => boolean,
   timeoutMs = 100,
@@ -236,6 +355,117 @@ describe("WebGPU app facade", () => {
     expect(diagnostics.lastFrame?.ok).toBe(true);
     expect(diagnostics.lastFrame?.frame).toBe(7);
     app.stop();
+  });
+
+  it("consumes opt-in SharedArrayBuffer snapshots through createWebGpuApp", async () => {
+    const events: string[] = [];
+    const { canvas, environment } = webGpuHarness(events);
+    const simulation = createExtractionApp({
+      worldOptions: { entityCapacity: 8 },
+    });
+    const sourceAssets = createRenderAssetCollections({
+      registry: simulation.assets,
+    });
+    const mesh = sourceAssets.meshes.add(createBoxMeshAsset({ label: "Cube" }));
+    const material = sourceAssets.materials.unlit.add(
+      createUnlitMaterialAsset({ label: "White" }),
+    );
+
+    simulation.spawn(
+      withTransform({ translation: [0, 0, 5] }),
+      withCamera({ priority: 0, layerMask: 1 }),
+    );
+    simulation.spawn(
+      withTransform(),
+      withMesh(mesh),
+      withMaterial(material),
+      withRenderLayer(1),
+      withVisibility(true),
+    );
+
+    const worker = createSharedSnapshotManualSimulationWorker(
+      simulation.stepAndExtract(1 / 60, 1, 11),
+    );
+    const created = await createRendererOnlyWebGpuApp({
+      canvas,
+      environment,
+      simulationWorker: worker,
+      sourceAssets: simulation.assets,
+      transport: "shared-array-buffer",
+      sharedSnapshotTransport: {
+        maxEntities: 8,
+        maxViews: 2,
+        maxPacketWords: 2048,
+        requireCrossOriginIsolated: false,
+      },
+    });
+
+    expect(created.ok).toBe(true);
+
+    if (!created.ok) {
+      return;
+    }
+
+    const app = created.app;
+
+    app.start();
+    await waitForCondition(() => app.getDiagnostics().lastFrame !== null);
+
+    const diagnostics = app.getDiagnostics();
+
+    expect(worker.startedTransportMode).toBe("shared-array-buffer");
+    expect(diagnostics.transport).toMatchObject({
+      requested: "shared-array-buffer",
+      active: "shared-array-buffer",
+      fallback: null,
+      sharedArrayBuffer: {
+        supported: true,
+      },
+    });
+    expect(diagnostics.lastFrame?.ok).toBe(true);
+    expect(diagnostics.lastFrame?.frame).toBe(11);
+    expect(diagnostics.lastFrame?.counts).toMatchObject({
+      views: 1,
+      meshDraws: 1,
+      drawCalls: 1,
+    });
+    app.stop();
+  });
+
+  it("falls back to transferable diagnostics when SAB is unavailable", async () => {
+    const events: string[] = [];
+    const { canvas, environment } = webGpuHarness(events);
+    const created = await createRendererOnlyWebGpuApp({
+      canvas,
+      environment,
+      simulationWorker: createManualSimulationWorker(),
+      transport: "shared-array-buffer",
+      sharedSnapshotTransport: {
+        maxEntities: 1,
+        maxViews: 1,
+        sharedArrayBufferConstructor: null,
+        requireCrossOriginIsolated: false,
+      },
+    });
+
+    expect(created.ok).toBe(true);
+
+    if (!created.ok) {
+      return;
+    }
+
+    expect(created.app.getDiagnostics().transport).toMatchObject({
+      requested: "shared-array-buffer",
+      active: "transferable",
+      fallback: "transferable",
+      sharedArrayBuffer: {
+        supported: false,
+        diagnostic: {
+          code: "webGpuApp.sharedSnapshotTransportUnsupported",
+          reason: "shared-array-buffer-unavailable",
+        },
+      },
+    });
   });
 
   it("initializes WebGPU and renders the unlit queue path from ECS-authored entities", async () => {

@@ -393,27 +393,24 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-21 20:35 UTC</dd>
+            <dd>2026-05-21 21:20 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
-              Runtime now exposes
-              <code
-                >createSharedSnapshotTransport({ maxEntities, maxViews })</code
-              >
-              as the opt-in SharedArrayBuffer transport foundation: worker and
-              main-thread views share double-buffered transform/view-matrix
-              storage, publish frames through a SeqLock-style header, and throw
-              typed unsupported diagnostics when SAB or cross-origin isolation
-              is unavailable. The render bridge now also exports fixed-stride
-              <code>Uint32Array</code> packet encoding for view, mesh, light,
-              environment, shadow, and bounds packets, with handle/string
-              registry ids and round-trip tests. The next slice is opt-in WebGPU
-              app integration for SAB transport. Spinning cube, multi-light
-              shadow, and GLB viewer now use worker-by-default flagship example
-              entries: each page loads a main-thread renderer module, registers
-              renderer-side source assets, and consumes transferable
+              Opt-in SharedArrayBuffer transport is now wired through
+              <code>createWebGpuApp({ transport: "shared-array-buffer" })</code
+              >. The WebGPU app allocates shared snapshot storage, passes it to
+              the worker during <code>app.start()</code>, decodes fixed-stride
+              packet words from the shared buffer, and reports typed fallback
+              diagnostics when SAB or cross-origin isolation is unavailable.
+              <code>examples/sab-cube.html</code> proves the COOP+COEP browser
+              path with a spinning cube, packet registry status, and a 10,000
+              entity transport microbenchmark showing zero per-frame SAB
+              transfer bytes. Spinning cube, multi-light shadow, and GLB viewer
+              now use worker-by-default flagship example entries: each page
+              loads a main-thread renderer module, registers renderer-side
+              source assets, and consumes transferable
               <code>RenderSnapshot</code> buffers from a module Worker that owns
               <code>createExtractionApp()</code>, ECS authoring, and stepping.
               The GLB viewer split keeps loader controls, asset switching,
@@ -1210,7 +1207,7 @@
               key so live route changes do not reuse incompatible layouts.
             </dd>
             <dt>Next focus</dt>
-            <dd>integrate SAB transport mode</dd>
+            <dd>refill post-roadmap visible feature queue</dd>
           </dl>
         </aside>
       </header>
@@ -1547,21 +1544,23 @@
           <article class="phase">
             <div class="topline">
               <h3>1. extract</h3>
-              <span class="percent">91%</span>
+              <span class="percent">94%</span>
             </div>
-            <div class="bar"><span style="width: 91%"></span></div>
+            <div class="bar"><span style="width: 94%"></span></div>
             <p>
               ECS state produces serializable render snapshots with draw, view,
               light, environment, shadow request, bounds, and diagnostic
-              packets, now proven across a module Worker structured-clone
-              boundary. Entity versions now increment on component writes, and
-              cached extraction can reuse unchanged mesh packet templates with
-              fresh snapshot offsets. Per-entity
+              packets, now proven across module Worker structured-clone and
+              opt-in SharedArrayBuffer boundaries. Entity versions now increment
+              on component writes, and cached extraction can reuse unchanged
+              mesh packet templates with fresh snapshot offsets. Per-entity
               <code>InstanceTint</code> components now extract into a snapshot
               tint buffer and annotate mesh draw packets with tint offsets.
+              Snapshot inspection can now explain rendered and skipped entities
+              with stable diagnostic reasons.
             </p>
             <ul>
-              <li>Missing richer visibility/culling explanations.</li>
+              <li>Missing broader visibility/culling explanations.</li>
               <li>Missing snapshot diffing and delta extraction.</li>
               <li>
                 Missing multi-view render-target coverage beyond current
@@ -1881,15 +1880,20 @@
             <h3>Latest work in this update</h3>
             <ul>
               <li>
-                <span class="badge green">task-3038</span> Added
-                <code>encodeSnapshotPackets()</code> and
-                <code>decodeSnapshotPackets()</code> with a canonical
-                fixed-stride <code>Uint32Array</code> stream for view, mesh,
-                light, environment, shadow, and bounds packets. Tests cover
-                random packet round trips, stride byte counts, caller-owned
-                buffer reuse, registry tables for handles/strings, malformed
-                buffers, and keeping diagnostics strings outside the SAB packet
-                layout.
+                <span class="badge green">task-3040</span> Added
+                <code>explainRenderSnapshotEntity()</code> so status surfaces
+                can explain rendered, skipped, and unknown entities with draw
+                counts, diagnostic codes, and stable reasons. The disabled peer
+                scenario now publishes explanations for both the rendered and
+                skipped entities.
+              </li>
+              <li>
+                <span class="badge green">task-3039</span> Integrated opt-in SAB
+                transport into <code>createWebGpuApp()</code>, added typed
+                fallback diagnostics, extended shared snapshot storage with
+                instance-tint and packet-word buffers, and added
+                <code>examples/sab-cube.html</code> with a COOP+COEP browser
+                proof.
               </li>
               <li>
                 <span class="badge green">task-3037</span> Added
@@ -1898,9 +1902,9 @@
                   })</code
                 >
                 in runtime with writer/reader views, double-buffered
-                SharedArrayBuffer storage for transforms and view matrices, a
-                SeqLock-style header, typed unsupported-environment diagnostics,
-                and no-tear monotonic frame-read tests.
+                SharedArrayBuffer storage, a SeqLock-style header, typed
+                unsupported-environment diagnostics, and no-tear monotonic
+                frame-read tests.
               </li>
               <li>
                 <span class="badge green">task-3036</span> Added
@@ -4074,17 +4078,18 @@
             <h3>Recommended next tasks</h3>
             <ul>
               <li>
-                <span class="badge amber">next</span> Integrate opt-in SAB
-                transport mode into <code>createWebGpuApp</code>.
+                <span class="badge amber">next</span> Refill the post-roadmap
+                visible-feature queue from the North Star and current pipeline
+                gaps.
               </li>
               <li>
-                Use the runtime shared transport plus render packet encoding
-                behind <code>transport: "shared-array-buffer"</code>, while
-                keeping the default transferable mode unchanged.
+                Prefer small user-facing slices such as richer visibility
+                explanations, broader snapshot delta extraction, or a new
+                inspectable render/debug example.
               </li>
               <li>
-                Add a browser proof and deployment diagnostics for the COOP+COEP
-                requirement so unsupported pages fail explicitly.
+                Keep the recommended next task visible-feature first; avoid
+                diagnostic-only queue refill.
               </li>
             </ul>
           </article>

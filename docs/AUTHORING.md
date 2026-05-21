@@ -151,6 +151,22 @@ function postSnapshot() {
 `renderSnapshotTransferList(snapshot)` transfers the hot typed-array buffers so
 the main thread receives `Float32Array` data without JSON serialization.
 
+## Optional SharedArrayBuffer Transport
+
+Large scenes can opt into
+`createWebGpuApp({ transport: "shared-array-buffer" })`. In that mode,
+`app.start()` passes shared snapshot
+buffers to the worker. The worker attaches with
+`createSharedSnapshotTransportViews()`, writes transforms, view matrices,
+optional instance tints, and `encodeSnapshotPackets()` output, then posts a
+small frame message containing the packet registry snapshot.
+
+This mode requires `Cross-Origin-Opener-Policy: same-origin` and
+`Cross-Origin-Embedder-Policy: require-corp`; otherwise `createWebGpuApp()`
+reports a typed fallback diagnostic and uses the default transferable transport.
+See [`SHARED_ARRAY_BUFFER_TRANSPORT.md`](./SHARED_ARRAY_BUFFER_TRANSPORT.md)
+and `examples/sab-cube.html` for the complete pattern.
+
 ## Common Patterns
 
 One-off scene:

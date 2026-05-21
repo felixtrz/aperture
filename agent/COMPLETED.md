@@ -1,5 +1,67 @@
 # Completed Tasks
 
+## task-3040 — Explain rendered vs skipped snapshot entities
+
+Completed: 2026-05-21
+
+Summary:
+
+- Added public `explainRenderSnapshotEntity(snapshot, entity)` to the render
+  snapshot inspection surface.
+- The helper reports rendered/skipped/unknown status, draw count, render IDs,
+  diagnostic codes, and stable reason strings such as `disabled` and
+  `visibility-hidden`.
+- Updated the multi-entity disabled visible peer scenario to publish
+  explanations for both the rendered peer and skipped disabled peer.
+
+References inspected:
+
+- `references/bevy/crates/bevy_render/src/view/visibility/mod.rs`
+
+Validation:
+
+- `pnpm run build`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm run check:examples`
+- `pnpm exec vitest run test/rendering/snapshot-inspection.test.ts`
+- `pnpm exec playwright test test/e2e/disabled-visible-peer.spec.ts --project=chrome-webgpu-headed`
+
+## task-3039 — Opt-in SAB transport mode in createWebGpuApp
+
+Completed: 2026-05-21
+
+Summary:
+
+- Added `transport: "shared-array-buffer"` to `createWebGpuApp()` while keeping
+  transferable snapshots as the default.
+- Added WebGPU app transport diagnostics that report requested/active mode,
+  successful SAB layout, and typed fallback diagnostics for missing
+  `SharedArrayBuffer` or missing cross-origin isolation.
+- Extended runtime shared snapshot transport to carry optional instance-tint
+  floats and fixed-stride packet words, and added
+  `createSharedSnapshotTransportViews()` so workers can attach to app-provided
+  shared buffers.
+- Added `examples/sab-cube.html`, `examples/sab-cube.main.js`, and
+  `examples/sab-cube.worker.js`, proving a spinning cube rendered from
+  worker-authored ECS snapshots through SAB transforms, view matrices, and
+  packet metadata.
+- Added `docs/SHARED_ARRAY_BUFFER_TRANSPORT.md` and updated authoring/progress
+  docs with the COOP+COEP deployment constraint and trade-off.
+
+References inspected:
+
+- `references/engine/src/framework/handlers/basis-worker.js`
+- MDN `Cross-Origin-Opener-Policy`
+- MDN `Cross-Origin-Embedder-Policy`
+
+Validation:
+
+- `pnpm run build`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm run check:examples`
+- `pnpm exec vitest run test/runtime/shared-snapshot-transport.test.ts test/webgpu/webgpu-app.test.ts test/examples/worker-split-examples.test.mjs`
+- `pnpm exec playwright test test/e2e/sab-cube.spec.ts --project=chrome-webgpu-headed` reached 1 passed test; the local headed Playwright runner then hung during shutdown and was terminated, matching the existing headed-close risk.
+
 ## task-3038 — SAB-backed packet encoding
 
 Completed: 2026-05-21

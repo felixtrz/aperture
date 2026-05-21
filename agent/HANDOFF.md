@@ -1,6 +1,46 @@
 # Agent Handoff
 
-Updated: 2026-05-21T20:50:15Z
+Updated: 2026-05-21T21:28:00Z
+
+## Current Run Update — 2026-05-21T21:28:00Z — SAB app transport and entity explanations shipped
+
+Completed `task-3039` and `task-3040`.
+
+### What changed
+
+- Added opt-in `createWebGpuApp({ transport: "shared-array-buffer" })` support. The WebGPU app now allocates shared snapshot storage, passes it to the worker during `app.start()`, decodes packet metadata from shared packet words, and reports typed fallback diagnostics when SAB or cross-origin isolation is unavailable.
+- Extended runtime shared snapshot transport with optional instance-tint and packet-word buffers plus `createSharedSnapshotTransportViews()` for worker-side attachment to app-provided buffers.
+- Added `examples/sab-cube.html`, `sab-cube.main.js`, and `sab-cube.worker.js`. The example renders a worker-authored spinning cube through SAB transforms, view matrices, and packet metadata, and publishes packet registry/write reports plus a 10,000-entity transport microbenchmark.
+- Added `docs/SHARED_ARRAY_BUFFER_TRANSPORT.md` and updated authoring/public tracker docs for COOP+COEP deployment constraints.
+- Refilled the post-roadmap visible-feature queue with `task-3040`, `task-3041`, and `task-3042`.
+- Added public `explainRenderSnapshotEntity(snapshot, entity)` and surfaced rendered/skipped explanations in the `disabled-visible-peer` status.
+
+### References inspected
+
+- `references/engine/src/framework/handlers/basis-worker.js`
+- `references/bevy/crates/bevy_render/src/view/visibility/mod.rs`
+- MDN Cross-Origin-Opener-Policy and Cross-Origin-Embedder-Policy pages for the COOP+COEP requirement behind cross-origin isolation and SharedArrayBuffer.
+
+### Validation
+
+- `pnpm run build`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm run check:examples`
+- `pnpm run check:progress`
+- `pnpm exec eslint packages/render/src/rendering/snapshot-inspection.ts test/rendering/snapshot-inspection.test.ts examples/sab-cube.main.js examples/sab-cube.worker.js examples/multi-entity.main.js examples/multi-entity.worker.js test/e2e/sab-cube.spec.ts test/e2e/disabled-visible-peer.spec.ts packages/webgpu/src/webgpu/app-snapshot-transport.ts test/webgpu/webgpu-app.test.ts test/runtime/shared-snapshot-transport.test.ts test/examples/worker-split-examples.test.mjs`
+- `pnpm exec vitest run test/runtime/shared-snapshot-transport.test.ts test/webgpu/webgpu-app.test.ts test/examples/worker-split-examples.test.mjs test/rendering/snapshot-inspection.test.ts`
+- `pnpm exec playwright test test/e2e/sab-cube.spec.ts --project=chrome-webgpu-headed` reached 1 passed test, then the local headed runner hung during shutdown and was terminated. This matches the existing headed-close risk.
+- `pnpm exec playwright test test/e2e/disabled-visible-peer.spec.ts --project=chrome-webgpu-headed`
+- `pnpm run format:check`
+
+### Known issues
+
+- The in-app Browser tool could not open the SAB example because the MCP browser profile was already in use by another Playwright MCP process. The headed Playwright SAB spec itself reached its pass assertion.
+- The headed Playwright shutdown hang risk remains for some commands; `disabled-visible-peer` exited cleanly, while `sab-cube` did not after reporting the test passed.
+
+### Recommended next task
+
+Start `task-3041`: extend snapshot change-set reporting beyond mesh packets.
 
 ## Current Run Update — 2026-05-21T20:40:49Z — Worker default complete; SAB transport foundation advanced
 

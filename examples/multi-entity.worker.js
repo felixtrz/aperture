@@ -1320,11 +1320,24 @@ function createDisabledVisiblePeerWorld(aperture, canvasSize) {
     }),
   );
 
-  addPrimitiveEntity(aperture, world, meshHandle, visibleHandle, [0, 0, 0]);
-  addPrimitiveEntity(aperture, world, meshHandle, disabledHandle, [0, 0, 0], {
-    enabled: false,
-    renderOrder: 10,
-  });
+  const visibleEntity = addPrimitiveEntity(
+    aperture,
+    world,
+    meshHandle,
+    visibleHandle,
+    [0, 0, 0],
+  );
+  const disabledEntity = addPrimitiveEntity(
+    aperture,
+    world,
+    meshHandle,
+    disabledHandle,
+    [0, 0, 0],
+    {
+      enabled: false,
+      renderOrder: 10,
+    },
+  );
 
   return {
     world,
@@ -1341,6 +1354,8 @@ function createDisabledVisiblePeerWorld(aperture, canvasSize) {
       authored: 2,
       enabled: 1,
       disabled: 1,
+      visibleEntity: entityRef(visibleEntity),
+      disabledEntity: entityRef(disabledEntity),
       disabledMaterialKey: aperture.assetHandleKey(disabledHandle),
       disabledMaterialColor,
     },
@@ -4435,6 +4450,12 @@ function addPrimitiveEntity(
   entity.addComponent(aperture.Visibility, {
     visible: options.visible ?? true,
   });
+
+  return entity;
+}
+
+function entityRef(entity) {
+  return { index: entity.index, generation: entity.generation };
 }
 
 function createUvRangePlaneMeshAsset(options) {

@@ -171,6 +171,14 @@ import {
   type WebGpuAppDiagnosticsSummary,
 } from "./app-diagnostics-summary.js";
 import {
+  createWebGpuAppSnapshotTransport,
+  createWebGpuAppSnapshotTransportStartPayload,
+  readWebGpuAppSharedSnapshot,
+  type WebGpuAppSharedSnapshotTransportOptions,
+  type WebGpuAppSnapshotTransportDiagnostics,
+  type WebGpuAppSnapshotTransportMode,
+} from "./app-snapshot-transport.js";
+import {
   createDirectLightReadinessReport,
   directLightReadinessResourceStateFromStandardFrameResources,
 } from "./direct-light-readiness.js";
@@ -370,6 +378,7 @@ export interface WebGpuAppWorkerRenderErrorDiagnostic {
 export interface WebGpuAppDiagnostics {
   readonly lastFrame: WebGpuAppRenderReportJsonValue | null;
   readonly lastError: WebGpuAppWorkerRenderErrorDiagnostic | null;
+  readonly transport: WebGpuAppSnapshotTransportDiagnostics;
 }
 
 export interface WebGpuAppRenderReport {
@@ -557,6 +566,8 @@ export interface CreateWebGpuAppOptions extends Omit<
   readonly sourceAssets?: AssetRegistry;
   readonly autoStart?: boolean;
   readonly workerStartOptions?: WebGpuAppStartOptions;
+  readonly transport?: WebGpuAppSnapshotTransportMode;
+  readonly sharedSnapshotTransport?: WebGpuAppSharedSnapshotTransportOptions;
 }
 
 export interface CreateWebGpuAppSuccess {
@@ -599,6 +610,12 @@ export async function createWebGpuApp(
   const sourceAssets = options.sourceAssets ?? new AssetRegistry();
   const renderWorld = new RenderWorld();
   const resourceCache = createWebGpuAppResourceCache();
+  const snapshotTransport = createWebGpuAppSnapshotTransport({
+    ...(options.transport === undefined ? {} : { mode: options.transport }),
+    ...(options.sharedSnapshotTransport === undefined
+      ? {}
+      : { sharedSnapshotTransport: options.sharedSnapshotTransport }),
+  });
   let running = false;
   let unsubscribeSnapshot: (() => void) | null = null;
   let unsubscribeError: (() => void) | null = null;
@@ -619,7 +636,13 @@ export async function createWebGpuApp(
       unsubscribeSnapshot = options.simulationWorker.onSnapshot((event) => {
         renderQueue = renderQueue
           .then(async () => {
-            await app.renderSnapshot(event.snapshot, { frame: event.frame });
+            const sharedSnapshot = readWebGpuAppSharedSnapshot(
+              snapshotTransport,
+              event.message,
+            );
+            const snapshot = sharedSnapshot ?? event.snapshot;
+
+            await app.renderSnapshot(snapshot, { frame: snapshot.frame });
           })
           .catch((error: unknown) => {
             latestWorkerError = {
@@ -639,9 +662,15 @@ export async function createWebGpuApp(
           message: event.message,
         };
       });
+      const transportStartPayload =
+        createWebGpuAppSnapshotTransportStartPayload(snapshotTransport);
+
       options.simulationWorker.start({
         ...(options.workerStartOptions ?? {}),
         ...startOptions,
+        ...(transportStartPayload === null
+          ? {}
+          : { transport: transportStartPayload }),
       });
     },
     stop() {
@@ -662,6 +691,7 @@ export async function createWebGpuApp(
             ? null
             : webGpuAppRenderReportToJsonValue(latestReport),
         lastError: latestWorkerError,
+        transport: snapshotTransport.diagnostics,
       };
     },
     async renderSnapshot(snapshot, renderOptions = {}) {

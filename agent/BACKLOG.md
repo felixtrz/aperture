@@ -59,14 +59,13 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start `task-3039`: integrate opt-in SharedArrayBuffer transport into
-`createWebGpuApp`.
+Start `task-3041`: extend snapshot change-set reporting beyond mesh packets.
 
-Why this next: the runtime now allocates double-buffered SAB snapshot memory and
-the render bridge now has fixed-stride `Uint32Array` packet encoding. The next
-dependency is wiring those pieces behind an explicit
-`transport: "shared-array-buffer"` WebGPU app mode with deployment diagnostics
-and a browser proof.
+Why this next: task-3039 completed the Tier 8 SAB transport integration and
+task-3040 added the first post-roadmap visibility explanation surface. The next
+remaining visible feature should continue closing the extraction gap by making
+snapshot delta reporting cover views, lights, environments, shadow requests, and
+bounds instead of mesh packets only.
 
 Progress so far: `spinning-cube`, `multi-light-shadow`, and `glb-viewer` now
 use renderer-only `*.main.js` files plus ECS/extraction-owned `*.worker.js`
@@ -85,6 +84,12 @@ storage, typed unsupported diagnostics, and monotonic no-tear read coverage.
 `encodeSnapshotPackets()` now packs view, mesh, light, environment, shadow, and
 bounds packets into fixed-stride `Uint32Array` records with handle/string
 registry ids and round-trip tests.
+`createWebGpuApp({ transport: "shared-array-buffer" })` now allocates shared
+transport storage, passes it to workers, decodes shared packet metadata, reports
+typed fallback diagnostics, and is proven by `examples/sab-cube.html`.
+`explainRenderSnapshotEntity(snapshot, entity)` now reports rendered/skipped
+status and stable reason strings, and the disabled visible peer scenario
+publishes explanations for both the rendered and skipped entities.
 
 Reference anchors (read before writing):
 
@@ -133,7 +138,7 @@ Eleven cross-cutting gaps remain across the six phases. They are sequenced below
 
 **Tier 8 — SharedArrayBuffer transport (opt-in, queued after Tier 7):**
 
-14. SAB snapshot transport (task-3037 and task-3038 shipped; task-3039 remains) — opt-in `createWebGpuApp({ transport: "shared-array-buffer" })` mode where transforms, view matrices, and packet metadata live in `SharedArrayBuffer`s with SeqLock synchronization. Requires COOP+COEP HTTP headers on the host page (documented as a deployment constraint). Default transport stays transferable so embedded use cases continue to work without header changes. Closes the per-frame transport overhead to effectively zero for any entity count; the win is meaningful at ~10K+ visible entities. Apps below that scale should stay on the default transport.
+14. SAB snapshot transport (task-3037, task-3038, and task-3039 shipped) — opt-in `createWebGpuApp({ transport: "shared-array-buffer" })` mode where transforms, view matrices, and packet metadata live in `SharedArrayBuffer`s with SeqLock synchronization. Requires COOP+COEP HTTP headers on the host page (documented as a deployment constraint). Default transport stays transferable so embedded use cases continue to work without header changes. Closes the per-frame transport overhead to effectively zero for any entity count; the win is meaningful at ~10K+ visible entities. Apps below that scale should stay on the default transport.
 
 Total: 39 vertical slices (29 in Tiers 1-5 + 2 in Tier 6 + 5 in Tier 7 + 3 in Tier 8). Each is a real implementation slice with a `Reference anchor:` from `references/bevy/`, `references/engine/` (PlayCanvas), or `references/three.js/`. Slices within a tier may be parallelizable; the agent should still process them in the order listed unless an explicit dependency note says otherwise.
 
@@ -511,6 +516,8 @@ Acceptance criteria:
 
 ### task-3039 — Opt-in SAB transport mode in createWebGpuApp (Tier 8 part 3: integration + example)
 
+Status: completed 2026-05-21. See `agent/COMPLETED.md`.
+
 Category: `runtime-orchestration`
 Package/write-scope: `packages/runtime/src/`, `packages/webgpu/src/webgpu/app.ts`, `examples/sab-cube.{html,main.js,worker.js}`, `test/e2e/sab-cube.spec.ts`, documentation in `docs/`.
 Dependencies: task-3037, task-3038.
@@ -524,6 +531,47 @@ Acceptance criteria:
 - Microbenchmark: per-frame transport cost on a 10,000-entity scene is ≥95% lower than the transferable mode.
 - `docs/` includes a short page explaining the trade-off (zero per-frame transport cost vs. COOP+COEP deployment constraint).
 - Default `createWebGpuApp({ ... })` behavior is unchanged — embedded use cases continue to work without modifying HTTP headers.
+
+### task-3040 — Explain rendered vs skipped snapshot entities
+
+Status: completed 2026-05-21. See `agent/COMPLETED.md`.
+
+Category: `render-bridge`
+Package/write-scope: `packages/render/src/rendering/snapshot-inspection.ts`, `examples/multi-entity.{main,worker}.js`, targeted tests.
+Reference anchor: `references/bevy/crates/bevy_render/src/view/visibility/mod.rs` (visible/skipped entity lists and change-list reporting).
+Insertion point: add a JSON-safe helper that explains whether an entity appears in `RenderSnapshot.meshDraws` or was skipped by extraction diagnostics, then surface it in the existing invisible/disabled multi-entity scenarios.
+
+Acceptance criteria:
+
+- Public helper reports `rendered`, `skipped`, matching draw count, diagnostic codes, and stable reason strings for an entity.
+- Unit tests cover rendered, invisible, disabled, and unknown entity cases.
+- Existing browser status for `disabled-visible-peer` or `render-layer-filter` includes the explanation for at least one skipped entity.
+
+### task-3041 — Extend snapshot change-set beyond mesh packets
+
+Category: `render-bridge`
+Package/write-scope: `packages/render/src/rendering/`, targeted tests and one example status surface.
+Reference anchor: `references/bevy/crates/bevy_render/src/extract_instances.rs` (flat extracted instance data and changed visibility lists).
+Insertion point: extend the current snapshot change-set/delta extraction helpers so views, lights, environments, shadow requests, and bounds can report unchanged/changed packet counts alongside mesh packet reuse.
+
+Acceptance criteria:
+
+- Change-set reports include per-packet-family `changed`, `unchanged`, and `removed` counts.
+- A repeated frame with unchanged camera/light/environment data reports zero changed packets for those families.
+- A small example or status path publishes the JSON-safe change-set counts.
+
+### task-3042 — Add a render-packet inspector example
+
+Category: `runtime-orchestration`
+Package/write-scope: `examples/render-packet-inspector.{html,main.js,worker.js}`, `test/e2e/render-packet-inspector.spec.ts`.
+Reference anchor: `references/engine/src/scene/renderer/renderer.js` (renderer visibility/culling list assembly); `references/bevy/crates/bevy_render/src/view/visibility/mod.rs`.
+Insertion point: new worker-split example that renders a small scene and publishes an inspectable packet table/status for draws, lights, environments, bounds, queue keys, and skipped entities.
+
+Acceptance criteria:
+
+- Example renders visible pixels from worker-authored ECS state.
+- Status JSON lists at least one draw packet, one view packet, bounds, and one skipped-entity explanation.
+- Playwright asserts visible pixels and JSON-safe packet-inspector status.
 
 ## Ready Tasks — MVP Tracks
 

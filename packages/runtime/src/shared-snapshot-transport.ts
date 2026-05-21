@@ -1,4 +1,5 @@
 const TRANSFORM_FLOATS_PER_ENTITY = 16;
+const INSTANCE_TINT_FLOATS_PER_ENTITY = 4;
 const VIEW_MATRIX_FLOATS_PER_VIEW = 48;
 const BUFFER_COUNT = 2;
 
@@ -8,6 +9,8 @@ const enum HeaderIndex {
   ActiveBuffer = 2,
   TransformFloats = 3,
   ViewMatrixFloats = 4,
+  InstanceTintFloats = 5,
+  PacketWords = 6,
 }
 
 const HEADER_INT32_COUNT = 8;
@@ -15,6 +18,8 @@ const HEADER_INT32_COUNT = 8;
 export interface CreateSharedSnapshotTransportOptions {
   readonly maxEntities: number;
   readonly maxViews: number;
+  readonly maxInstanceTints?: number;
+  readonly maxPacketWords?: number;
   readonly requireCrossOriginIsolated?: boolean;
   readonly crossOriginIsolated?: boolean;
   readonly sharedArrayBufferConstructor?: SharedArrayBufferConstructor | null;
@@ -24,17 +29,23 @@ export interface SharedSnapshotTransportLayout {
   readonly buffers: number;
   readonly headerInt32Count: number;
   readonly transformFloatsPerEntity: number;
+  readonly instanceTintFloatsPerTint: number;
   readonly viewMatrixFloatsPerView: number;
   readonly maxEntities: number;
   readonly maxViews: number;
+  readonly maxInstanceTints: number;
   readonly transformFloatsPerBuffer: number;
+  readonly instanceTintFloatsPerBuffer: number;
   readonly viewMatrixFloatsPerBuffer: number;
+  readonly packetWordsPerBuffer: number;
 }
 
 export interface SharedSnapshotFrameInput {
   readonly frame: number;
   readonly transforms: ArrayLike<number>;
+  readonly instanceTints?: ArrayLike<number>;
   readonly viewMatrices: ArrayLike<number>;
+  readonly packetWords?: ArrayLike<number>;
 }
 
 export interface SharedSnapshotWriteReport {
@@ -42,7 +53,9 @@ export interface SharedSnapshotWriteReport {
   readonly sequence: number;
   readonly bufferIndex: number;
   readonly transformFloats: number;
+  readonly instanceTintFloats: number;
   readonly viewMatrixFloats: number;
+  readonly packetWords: number;
 }
 
 export interface SharedSnapshotReadFrame {
@@ -50,20 +63,26 @@ export interface SharedSnapshotReadFrame {
   readonly sequence: number;
   readonly bufferIndex: number;
   readonly transforms: Float32Array;
+  readonly instanceTints: Float32Array;
   readonly viewMatrices: Float32Array;
+  readonly packetWords: Uint32Array;
 }
 
 export interface SharedSnapshotTransportWriter {
   readonly header: Int32Array;
   readonly transforms: Float32Array;
+  readonly instanceTints: Float32Array;
   readonly viewMatrices: Float32Array;
+  readonly packetWords: Uint32Array;
   writeFrame(frame: SharedSnapshotFrameInput): SharedSnapshotWriteReport;
 }
 
 export interface SharedSnapshotTransportReader {
   readonly header: Int32Array;
   readonly transforms: Float32Array;
+  readonly instanceTints: Float32Array;
   readonly viewMatrices: Float32Array;
+  readonly packetWords: Uint32Array;
   readLatestFrame(): SharedSnapshotReadFrame | null;
 }
 
@@ -72,9 +91,20 @@ export interface SharedSnapshotTransport {
   readonly layout: SharedSnapshotTransportLayout;
   readonly headerBuffer: SharedArrayBuffer;
   readonly transformBuffer: SharedArrayBuffer;
+  readonly instanceTintBuffer: SharedArrayBuffer;
   readonly viewMatrixBuffer: SharedArrayBuffer;
+  readonly packetBuffer: SharedArrayBuffer;
   readonly writer: SharedSnapshotTransportWriter;
   readonly reader: SharedSnapshotTransportReader;
+}
+
+export interface SharedSnapshotTransportBuffers {
+  readonly layout: SharedSnapshotTransportLayout;
+  readonly headerBuffer: SharedArrayBuffer;
+  readonly transformBuffer: SharedArrayBuffer;
+  readonly instanceTintBuffer: SharedArrayBuffer;
+  readonly viewMatrixBuffer: SharedArrayBuffer;
+  readonly packetBuffer: SharedArrayBuffer;
 }
 
 export type SharedSnapshotTransportUnsupportedReason =
@@ -126,7 +156,12 @@ export function createSharedSnapshotTransport(
     );
   }
 
-  const layout = createLayout(options.maxEntities, options.maxViews);
+  const layout = createLayout({
+    maxEntities: options.maxEntities,
+    maxViews: options.maxViews,
+    maxInstanceTints: options.maxInstanceTints ?? options.maxEntities,
+    maxPacketWords: options.maxPacketWords ?? 0,
+  });
   const headerBuffer = new SharedArrayBufferCtor(
     HEADER_INT32_COUNT * Int32Array.BYTES_PER_ELEMENT,
   );
@@ -135,39 +170,111 @@ export function createSharedSnapshotTransport(
       BUFFER_COUNT *
       Float32Array.BYTES_PER_ELEMENT,
   );
+  const instanceTintBuffer = new SharedArrayBufferCtor(
+    layout.instanceTintFloatsPerBuffer *
+      BUFFER_COUNT *
+      Float32Array.BYTES_PER_ELEMENT,
+  );
   const viewMatrixBuffer = new SharedArrayBufferCtor(
     layout.viewMatrixFloatsPerBuffer *
       BUFFER_COUNT *
       Float32Array.BYTES_PER_ELEMENT,
   );
+  const packetBuffer = new SharedArrayBufferCtor(
+    layout.packetWordsPerBuffer * BUFFER_COUNT * Uint32Array.BYTES_PER_ELEMENT,
+  );
   const header = new Int32Array(headerBuffer);
   const transforms = new Float32Array(transformBuffer);
+  const instanceTints = new Float32Array(instanceTintBuffer);
   const viewMatrices = new Float32Array(viewMatrixBuffer);
+  const packetWords = new Uint32Array(packetBuffer);
 
   return {
     mode: "shared-array-buffer",
     layout,
     headerBuffer,
     transformBuffer,
+    instanceTintBuffer,
     viewMatrixBuffer,
-    writer: createWriter(layout, header, transforms, viewMatrices),
-    reader: createReader(layout, header, transforms, viewMatrices),
+    packetBuffer,
+    writer: createWriter(
+      layout,
+      header,
+      transforms,
+      instanceTints,
+      viewMatrices,
+      packetWords,
+    ),
+    reader: createReader(
+      layout,
+      header,
+      transforms,
+      instanceTints,
+      viewMatrices,
+      packetWords,
+    ),
   };
 }
 
-function createLayout(
-  maxEntities: number,
-  maxViews: number,
-): SharedSnapshotTransportLayout {
+export function createSharedSnapshotTransportViews(
+  input: SharedSnapshotTransportBuffers,
+): SharedSnapshotTransport {
+  const header = new Int32Array(input.headerBuffer);
+  const transforms = new Float32Array(input.transformBuffer);
+  const instanceTints = new Float32Array(input.instanceTintBuffer);
+  const viewMatrices = new Float32Array(input.viewMatrixBuffer);
+  const packetWords = new Uint32Array(input.packetBuffer);
+
+  return {
+    mode: "shared-array-buffer",
+    layout: input.layout,
+    headerBuffer: input.headerBuffer,
+    transformBuffer: input.transformBuffer,
+    instanceTintBuffer: input.instanceTintBuffer,
+    viewMatrixBuffer: input.viewMatrixBuffer,
+    packetBuffer: input.packetBuffer,
+    writer: createWriter(
+      input.layout,
+      header,
+      transforms,
+      instanceTints,
+      viewMatrices,
+      packetWords,
+    ),
+    reader: createReader(
+      input.layout,
+      header,
+      transforms,
+      instanceTints,
+      viewMatrices,
+      packetWords,
+    ),
+  };
+}
+
+function createLayout(options: {
+  readonly maxEntities: number;
+  readonly maxViews: number;
+  readonly maxInstanceTints: number;
+  readonly maxPacketWords: number;
+}): SharedSnapshotTransportLayout {
+  validateNonNegativeInteger(options.maxInstanceTints, "maxInstanceTints");
+  validateNonNegativeInteger(options.maxPacketWords, "maxPacketWords");
+
   return {
     buffers: BUFFER_COUNT,
     headerInt32Count: HEADER_INT32_COUNT,
     transformFloatsPerEntity: TRANSFORM_FLOATS_PER_ENTITY,
+    instanceTintFloatsPerTint: INSTANCE_TINT_FLOATS_PER_ENTITY,
     viewMatrixFloatsPerView: VIEW_MATRIX_FLOATS_PER_VIEW,
-    maxEntities,
-    maxViews,
-    transformFloatsPerBuffer: maxEntities * TRANSFORM_FLOATS_PER_ENTITY,
-    viewMatrixFloatsPerBuffer: maxViews * VIEW_MATRIX_FLOATS_PER_VIEW,
+    maxEntities: options.maxEntities,
+    maxViews: options.maxViews,
+    maxInstanceTints: options.maxInstanceTints,
+    transformFloatsPerBuffer: options.maxEntities * TRANSFORM_FLOATS_PER_ENTITY,
+    instanceTintFloatsPerBuffer:
+      options.maxInstanceTints * INSTANCE_TINT_FLOATS_PER_ENTITY,
+    viewMatrixFloatsPerBuffer: options.maxViews * VIEW_MATRIX_FLOATS_PER_VIEW,
+    packetWordsPerBuffer: options.maxPacketWords,
   };
 }
 
@@ -175,12 +282,16 @@ function createWriter(
   layout: SharedSnapshotTransportLayout,
   header: Int32Array,
   transforms: Float32Array,
+  instanceTints: Float32Array,
   viewMatrices: Float32Array,
+  packetWords: Uint32Array,
 ): SharedSnapshotTransportWriter {
   return {
     header,
     transforms,
+    instanceTints,
     viewMatrices,
+    packetWords,
     writeFrame(frame) {
       validateFrameInput(layout, frame);
 
@@ -193,7 +304,9 @@ function createWriter(
       writeSharedFrameBuffers(
         layout,
         transforms,
+        instanceTints,
         viewMatrices,
+        packetWords,
         nextBuffer,
         frame,
       );
@@ -209,6 +322,16 @@ function createWriter(
         HeaderIndex.ViewMatrixFloats,
         frame.viewMatrices.length,
       );
+      Atomics.store(
+        header,
+        HeaderIndex.InstanceTintFloats,
+        frame.instanceTints?.length ?? 0,
+      );
+      Atomics.store(
+        header,
+        HeaderIndex.PacketWords,
+        frame.packetWords?.length ?? 0,
+      );
 
       const completeSequence = writeSequence + 1;
 
@@ -220,7 +343,9 @@ function createWriter(
         sequence: completeSequence,
         bufferIndex: nextBuffer,
         transformFloats: frame.transforms.length,
+        instanceTintFloats: frame.instanceTints?.length ?? 0,
         viewMatrixFloats: frame.viewMatrices.length,
+        packetWords: frame.packetWords?.length ?? 0,
       };
     },
   };
@@ -230,12 +355,16 @@ function createReader(
   layout: SharedSnapshotTransportLayout,
   header: Int32Array,
   transforms: Float32Array,
+  instanceTints: Float32Array,
   viewMatrices: Float32Array,
+  packetWords: Uint32Array,
 ): SharedSnapshotTransportReader {
   return {
     header,
     transforms,
+    instanceTints,
     viewMatrices,
+    packetWords,
     readLatestFrame() {
       for (let attempt = 0; attempt < 3; attempt += 1) {
         const sequenceBefore = Atomics.load(header, HeaderIndex.Sequence);
@@ -254,8 +383,16 @@ function createReader(
           header,
           HeaderIndex.ViewMatrixFloats,
         );
+        const instanceTintFloats = Atomics.load(
+          header,
+          HeaderIndex.InstanceTintFloats,
+        );
+        const packetWordCount = Atomics.load(header, HeaderIndex.PacketWords);
         const transformOffset = bufferIndex * layout.transformFloatsPerBuffer;
+        const instanceTintOffset =
+          bufferIndex * layout.instanceTintFloatsPerBuffer;
         const viewMatrixOffset = bufferIndex * layout.viewMatrixFloatsPerBuffer;
+        const packetOffset = bufferIndex * layout.packetWordsPerBuffer;
         const sequenceAfter = Atomics.load(header, HeaderIndex.Sequence);
 
         if (sequenceBefore !== sequenceAfter || sequenceAfter % 2 !== 0) {
@@ -270,9 +407,17 @@ function createReader(
             transformOffset,
             transformOffset + transformFloats,
           ),
+          instanceTints: instanceTints.subarray(
+            instanceTintOffset,
+            instanceTintOffset + instanceTintFloats,
+          ),
           viewMatrices: viewMatrices.subarray(
             viewMatrixOffset,
             viewMatrixOffset + viewMatrixFloats,
+          ),
+          packetWords: packetWords.subarray(
+            packetOffset,
+            packetOffset + packetWordCount,
           ),
         };
       }
@@ -285,19 +430,40 @@ function createReader(
 function writeSharedFrameBuffers(
   layout: SharedSnapshotTransportLayout,
   transforms: Float32Array,
+  instanceTints: Float32Array,
   viewMatrices: Float32Array,
+  packetWords: Uint32Array,
   bufferIndex: number,
   frame: SharedSnapshotFrameInput,
 ): void {
   const transformOffset = bufferIndex * layout.transformFloatsPerBuffer;
+  const instanceTintOffset = bufferIndex * layout.instanceTintFloatsPerBuffer;
   const viewMatrixOffset = bufferIndex * layout.viewMatrixFloatsPerBuffer;
+  const packetOffset = bufferIndex * layout.packetWordsPerBuffer;
 
   for (let index = 0; index < frame.transforms.length; index += 1) {
     transforms[transformOffset + index] = frame.transforms[index] ?? 0;
   }
 
+  const frameInstanceTints = frame.instanceTints;
+
+  if (frameInstanceTints !== undefined) {
+    for (let index = 0; index < frameInstanceTints.length; index += 1) {
+      instanceTints[instanceTintOffset + index] =
+        frameInstanceTints[index] ?? 0;
+    }
+  }
+
   for (let index = 0; index < frame.viewMatrices.length; index += 1) {
     viewMatrices[viewMatrixOffset + index] = frame.viewMatrices[index] ?? 0;
+  }
+
+  const framePacketWords = frame.packetWords;
+
+  if (framePacketWords !== undefined) {
+    for (let index = 0; index < framePacketWords.length; index += 1) {
+      packetWords[packetOffset + index] = framePacketWords[index] ?? 0;
+    }
   }
 }
 
@@ -318,10 +484,34 @@ function validateFrameInput(
       `Shared snapshot view-matrix frame has ${frame.viewMatrices.length} floats; capacity is ${layout.viewMatrixFloatsPerBuffer}.`,
     );
   }
+
+  if (
+    frame.instanceTints !== undefined &&
+    frame.instanceTints.length > layout.instanceTintFloatsPerBuffer
+  ) {
+    throw new RangeError(
+      `Shared snapshot instance-tint frame has ${frame.instanceTints.length} floats; capacity is ${layout.instanceTintFloatsPerBuffer}.`,
+    );
+  }
+
+  if (
+    frame.packetWords !== undefined &&
+    frame.packetWords.length > layout.packetWordsPerBuffer
+  ) {
+    throw new RangeError(
+      `Shared snapshot packet frame has ${frame.packetWords.length} words; capacity is ${layout.packetWordsPerBuffer}.`,
+    );
+  }
 }
 
 function validatePositiveInteger(value: number, label: string): void {
   if (!Number.isInteger(value) || value <= 0) {
     throw new RangeError(`Shared snapshot transport ${label} must be > 0.`);
+  }
+}
+
+function validateNonNegativeInteger(value: number, label: string): void {
+  if (!Number.isInteger(value) || value < 0) {
+    throw new RangeError(`Shared snapshot transport ${label} must be >= 0.`);
   }
 }

@@ -23,6 +23,13 @@ const workerSplitExamples = [
     legacy: "examples/spinning-cube.js",
   },
   {
+    html: "examples/sab-cube.html",
+    main: "examples/sab-cube.main.js",
+    worker: "examples/sab-cube.worker.js",
+    legacy: "examples/sab-cube.js",
+    mode: "shared-array-buffer",
+  },
+  {
     html: "examples/triangle.html",
     main: "examples/triangle.main.js",
     worker: "examples/triangle.worker.js",
@@ -199,6 +206,22 @@ describe("worker-split examples", () => {
           workerSpawnSource,
           `${example.worker} should create ECS entities`,
         ).toMatch(/\bworld\.createEntity\s*\(/);
+      } else if (example.mode === "shared-array-buffer") {
+        expect(main, `${example.main} should opt into SAB transport`).toContain(
+          'transport: "shared-array-buffer"',
+        );
+        expect(
+          worker,
+          `${example.worker} should attach to shared snapshot buffers`,
+        ).toContain("createSharedSnapshotTransportViews");
+        expect(
+          worker,
+          `${example.worker} should encode fixed-stride packets`,
+        ).toContain("encodeSnapshotPackets");
+        expect(
+          workerSpawnSource,
+          `${example.worker} should spawn ECS entities`,
+        ).toMatch(/\bapp\.spawn\s*\(/);
       } else {
         expect(
           main,
@@ -215,8 +238,16 @@ describe("worker-split examples", () => {
       }
       expect(
         worker,
-        `${example.worker} should transfer snapshot buffers`,
-      ).toContain("renderSnapshotTransferList");
+        `${example.worker} should ${
+          example.mode === "shared-array-buffer"
+            ? "write shared snapshot buffers"
+            : "transfer snapshot buffers"
+        }`,
+      ).toContain(
+        example.mode === "shared-array-buffer"
+          ? "sharedTransport.writer.writeFrame"
+          : "renderSnapshotTransferList",
+      );
     }
   });
 
