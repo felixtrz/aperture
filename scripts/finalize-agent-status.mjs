@@ -8,6 +8,7 @@ const FINAL_RESULTS = new Set([
   "blocked",
   "stop-condition",
 ]);
+const RESULTS_REQUIRING_ACTIVE_RUN = new Set(["success", "failure"]);
 
 export function finalizeAgentStatus({
   statusPath = "agent/STATUS.json",
@@ -27,10 +28,19 @@ export function finalizeAgentStatus({
   const resolvedStatusPath = path.resolve(statusPath);
   const status = JSON.parse(fs.readFileSync(resolvedStatusPath, "utf8"));
   const finishedAt = toIsoSeconds(now);
-  const runStartedAt =
-    typeof status.currentRunStartedAt === "string"
-      ? status.currentRunStartedAt
-      : (status.lastRunStartedAt ?? null);
+  const hasCurrentRunStartedAt =
+    typeof status.currentRunStartedAt === "string" &&
+    Number.isFinite(Date.parse(status.currentRunStartedAt));
+
+  if (RESULTS_REQUIRING_ACTIVE_RUN.has(result) && !hasCurrentRunStartedAt) {
+    throw new Error(
+      `Cannot finalize result "${result}" without a valid currentRunStartedAt. Run pnpm run agent:start before the automation wake prompt.`,
+    );
+  }
+
+  const runStartedAt = hasCurrentRunStartedAt
+    ? status.currentRunStartedAt
+    : (status.lastRunStartedAt ?? null);
 
   const finalizedStatus = {
     ...status,

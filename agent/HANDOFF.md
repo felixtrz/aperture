@@ -1,6 +1,76 @@
 # Agent Handoff
 
-Updated: 2026-05-21T02:13:16Z
+Updated: 2026-05-21T02:59:45Z
+
+## Current Run Update — 2026-05-21T02:59:45Z — Run-start hook status hardening
+
+User-requested docs/tooling hardening after the stop hook accepted a stale
+`lastRunStartedAt`/`lastRunFinishedAt` path from the previous automation run.
+
+### What changed
+
+- Added a dedicated run-start status writer:
+  `scripts/start-agent-status.mjs`.
+- Added `scripts/codex-start-hook.sh` and `pnpm run agent:start`.
+- Wired `.codex/config.toml` `SessionStart` with matcher `startup` to run the
+  start hook quietly before the wake prompt reaches the model.
+- Hardened `scripts/finalize-agent-status.mjs` so `success` and `failure`
+  cannot finalize unless a valid `currentRunStartedAt` was recorded by the
+  start hook.
+- Hardened `scripts/codex-stop-hook.sh` so stale finalized status is rejected
+  before checkpointing/pushing.
+- Updated agent workflow docs and the example `codex-next-task.sh` wrapper so
+  the repo config owns run-start status instead of ad hoc JSON writes.
+
+### Files touched
+
+- `.codex/config.toml`
+- `AGENTS.md`
+- `agent/HANDOFF.md`
+- `agent/WAKE.md`
+- `package.json`
+- `scripts/STOP_HOOK_PROMPT.md`
+- `scripts/codex-start-hook.sh`
+- `scripts/codex-stop-hook.sh`
+- `scripts/codex_next_task_sh.md`
+- `scripts/finalize-agent-status.mjs`
+- `scripts/start-agent-status.mjs`
+- `test/tooling/finalize-agent-status.test.mjs`
+- `test/tooling/start-agent-status.test.mjs`
+
+### References inspected
+
+- Local Codex CLI binary strings for hook event names and command hook output
+  behavior.
+- OpenAI Codex source for `SessionStart` matcher/output behavior:
+  `codex-rs/hooks/src/events/session_start.rs`.
+
+### Validation
+
+- `pnpm exec prettier --write package.json scripts/start-agent-status.mjs scripts/finalize-agent-status.mjs test/tooling/start-agent-status.test.mjs test/tooling/finalize-agent-status.test.mjs AGENTS.md agent/WAKE.md scripts/STOP_HOOK_PROMPT.md scripts/codex_next_task_sh.md`
+- `pnpm exec vitest run test/tooling/start-agent-status.test.mjs test/tooling/finalize-agent-status.test.mjs`
+- `bash -n scripts/codex-start-hook.sh scripts/codex-stop-hook.sh`
+- `node --check scripts/start-agent-status.mjs && node --check scripts/finalize-agent-status.mjs`
+- `pnpm run typecheck:test`
+- `codex debug prompt-input --disable codex_hooks "config parse smoke" >/tmp/aperture-codex-prompt-input.json`
+- Quiet hook smoke with a temporary status file.
+- `git diff --check`
+- `pnpm run lint`
+
+### Known issues
+
+- This chat started before the new `SessionStart` hook existed, so the first
+  stop-hook attempt correctly reported stale finalized status. The current
+  in-flight session will be bootstrapped through `pnpm run agent:start` once so
+  `pnpm run agent:finalize` can record a fresh finish timestamp. Because this
+  was a user-directed tooling patch rather than a normal backlog work cycle,
+  final status is recorded as `stop-condition` to avoid starting unrelated
+  ready backlog work after the patch is complete. Future sessions should get
+  `currentRunStartedAt` directly from the configured `SessionStart` hook.
+
+### Recommended next task
+
+`task-3017 — Batching wired into queue for non-instanced draws (part 2: queue integration)`.
 
 ## Current Run Update — 2026-05-21T02:13:16Z — Static mesh merge primitive proof
 

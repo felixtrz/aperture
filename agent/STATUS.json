@@ -2,10 +2,10 @@
   "state": "idle",
   "currentTaskId": null,
   "currentRunStartedAt": null,
-  "lastRunStartedAt": "2026-05-21T01:03:04Z",
-  "lastResult": "success",
+  "lastRunStartedAt": "2026-05-21T03:00:33Z",
+  "lastResult": "stop-condition",
   "lastCommit": null,
   "activePid": null,
-  "notes": "Completed task-3016: static mesh merge primitive with layout validation, submesh ranges, uint32 index promotion, unit coverage, WebGPU pixel-parity proof, tracker/backlog updates; next task task-3017 queue integration.",
-  "lastRunFinishedAt": "2026-05-21T02:19:27Z"
+  "notes": "Manual user-directed SessionStart hook hardening completed; stop instead of continuing into unrelated backlog work.",
+  "lastRunFinishedAt": "2026-05-21T03:01:31Z"
 }

@@ -10,15 +10,10 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 
 LOCK_FILE="agent/lock"
-STATUS_FILE="agent/STATUS.json"
 LOG_DIR="agent/logs"
 PROMPT_FILE="agent/WAKE.md"
 
 mkdir -p "$LOG_DIR"
-
-now() {
-  date -u +"%Y-%m-%dT%H:%M:%SZ"
-}
 
 is_pid_alive() {
   local pid="$1"
@@ -53,21 +48,10 @@ trap cleanup EXIT
 
 RUN_ID="$(date -u +"%Y%m%dT%H%M%SZ")"
 LOG_FILE="$LOG_DIR/$RUN_ID.log"
-RUN_STARTED_AT="$(now)"
 
-cat > "$STATUS_FILE" <<EOF
-{
-  "state": "running",
-  "currentTaskId": "auto",
-  "currentRunStartedAt": "$RUN_STARTED_AT",
-  "lastRunStartedAt": "$RUN_STARTED_AT",
-  "lastRunFinishedAt": null,
-  "lastResult": "in_progress",
-  "lastCommit": null,
-  "activePid": $$,
-  "notes": "Autonomous Codex run started."
-}
-EOF
+# .codex/config.toml runs scripts/codex-start-hook.sh through the
+# SessionStart hook. Do not call it here as well, or a second startup hook would
+# be treated as an overlapping active run.
 
 echo "Starting Codex run $RUN_ID"
 
@@ -77,19 +61,9 @@ CODEX_EXIT=${PIPESTATUS[0]}
 set -e
 
 if [[ "$CODEX_EXIT" -ne 0 ]]; then
-  cat > "$STATUS_FILE" <<EOF
-{
-  "state": "idle",
-  "currentTaskId": null,
-  "currentRunStartedAt": null,
-  "lastRunStartedAt": "$RUN_STARTED_AT",
-  "lastRunFinishedAt": "$(now)",
-  "lastResult": "failure",
-  "lastCommit": null,
-  "activePid": null,
-  "notes": "Codex exited with code $CODEX_EXIT. See $LOG_FILE."
-}
-EOF
+  pnpm run agent:finalize -- \
+    --result failure \
+    --notes "Codex exited with code $CODEX_EXIT. See $LOG_FILE."
   exit "$CODEX_EXIT"
 fi
 
@@ -114,19 +88,10 @@ fi
 
 git push
 
-cat > "$STATUS_FILE" <<EOF
-{
-  "state": "idle",
-  "currentTaskId": null,
-  "currentRunStartedAt": null,
-  "lastRunStartedAt": "$RUN_STARTED_AT",
-  "lastRunFinishedAt": "$(now)",
-  "lastResult": "success",
-  "lastCommit": "$LAST_COMMIT",
-  "activePid": null,
-  "notes": "Autonomous Codex run completed. See $LOG_FILE."
-}
-EOF
+pnpm run agent:finalize -- \
+  --result success \
+  --commit "$LAST_COMMIT" \
+  --notes "Autonomous Codex run completed. See $LOG_FILE."
 
 echo "Codex run completed."
 ```

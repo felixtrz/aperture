@@ -1,7 +1,17 @@
 [features]
 hooks = true
+codex_hooks = true
 
 [hooks]
+
+[[hooks.SessionStart]]
+matcher = "startup"
+
+[[hooks.SessionStart.hooks]]
+type = "command"
+command = "bash /Users/felixz/Projects/aperture/scripts/codex-start-hook.sh --task-id auto --quiet --notes 'Autonomous Codex run started by SessionStart hook.'"
+timeout = 30
+statusMessage = "recording Aperture run start"
 
 [[hooks.Stop]]
 
@@ -9,4 +19,4 @@ hooks = true
 type = "command"
 command = "bash /Users/felixz/Projects/aperture/scripts/codex-stop-hook.sh"
 timeout = 300
-statusMessage = "checking Aperture minute-45 stop gate"
+statusMessage = "checking Aperture minute-50 stop gate"

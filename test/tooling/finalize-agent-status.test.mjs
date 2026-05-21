@@ -55,7 +55,7 @@ describe("agent status finalizer", () => {
     );
   });
 
-  it("keeps the existing last run start when no current run is active", () => {
+  it("allows blocked finalization when no current run is active", () => {
     const statusPath = createStatusFile({
       state: "idle",
       currentTaskId: null,
@@ -76,6 +76,30 @@ describe("agent status finalizer", () => {
     expect(finalizedStatus.lastRunStartedAt).toBe("2026-05-20T18:04:05Z");
     expect(finalizedStatus.lastResult).toBe("blocked");
     expect(finalizedStatus.notes).toBe("Already finalized.");
+  });
+
+  it("rejects success finalization when the start hook was missed", () => {
+    const statusPath = createStatusFile({
+      state: "idle",
+      currentTaskId: null,
+      currentRunStartedAt: null,
+      lastRunStartedAt: "2026-05-20T18:04:05Z",
+      lastRunFinishedAt: "2026-05-20T18:57:00Z",
+      lastResult: "success",
+      activePid: null,
+      notes: "Previous run.",
+    });
+
+    expect(() =>
+      finalizeAgentStatus({
+        statusPath,
+        result: "success",
+        notes: "This should not pass.",
+        now: "2026-05-21T02:35:00Z",
+      }),
+    ).toThrow(
+      'Cannot finalize result "success" without a valid currentRunStartedAt',
+    );
   });
 
   it("rejects non-final result values", () => {

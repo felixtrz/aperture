@@ -286,6 +286,10 @@ const fs = require("node:fs");
 const statusPath = "agent/STATUS.json";
 const status = JSON.parse(fs.readFileSync(statusPath, "utf8"));
 const readyTaskCount = countReadyTasks("agent/BACKLOG.md");
+const finalResults = new Set(["success", "failure", "blocked", "stop-condition"]);
+const maxFinalizedStatusAgeMinutes = Number(
+  process.env.STOP_HOOK_FINALIZED_STATUS_MAX_AGE_MINUTES ?? 30,
+);
 const problems = [];
 
 if (status.state === "running") {
@@ -311,6 +315,33 @@ if (status.currentTaskId !== null && status.currentTaskId !== undefined) {
   problems.push(
     `${statusPath} currentTaskId is ${status.currentTaskId}; expected null`,
   );
+}
+
+if (!finalResults.has(status.lastResult)) {
+  problems.push(
+    `${statusPath} lastResult is ${status.lastResult}; expected a finalized result`,
+  );
+}
+
+const lastRunFinishedMs = Date.parse(status.lastRunFinishedAt ?? "");
+
+if (!Number.isFinite(maxFinalizedStatusAgeMinutes)) {
+  problems.push("STOP_HOOK_FINALIZED_STATUS_MAX_AGE_MINUTES is invalid");
+} else if (!Number.isFinite(lastRunFinishedMs)) {
+  problems.push(
+    `${statusPath} lastRunFinishedAt is ${status.lastRunFinishedAt}; expected a valid finalizer timestamp`,
+  );
+} else {
+  const finalizedAgeMinutes = (Date.now() - lastRunFinishedMs) / 60000;
+
+  if (
+    finalizedAgeMinutes < -1 ||
+    finalizedAgeMinutes > maxFinalizedStatusAgeMinutes
+  ) {
+    problems.push(
+      `${statusPath} lastRunFinishedAt is stale (${status.lastRunFinishedAt}); rerun pnpm run agent:finalize after updating handoff`,
+    );
+  }
 }
 
 if (problems.length > 0) {

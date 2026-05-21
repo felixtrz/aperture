@@ -35,6 +35,18 @@ The goal is a modern 3D runtime where:
 
 ## Autonomous Work Protocol
 
+Project config wires Codex's `SessionStart` hook to the repository start hook:
+
+```bash
+bash /Users/felixz/Projects/aperture/scripts/codex-start-hook.sh --task-id auto --quiet --notes "Autonomous Codex run started by SessionStart hook."
+```
+
+The configured hook records `agent/STATUS.json.currentRunStartedAt` for the
+whole chat/run. It is intentionally a run-start action, not a per-turn action.
+Do not also call it from an external scheduler when Codex hooks are enabled. If
+a run starts and `currentRunStartedAt` is missing, stop and fix the
+`.codex/config.toml` hook setup instead of manually backfilling the timestamp.
+
 When you start:
 
 1. Check `agent/STATUS.json`.
@@ -133,12 +145,15 @@ When performing the end-of-run review:
 8. Update `agent/HANDOFF.md`.
 9. Run `pnpm run agent:finalize -- --result success --notes "<run summary>"`.
    Use `failure`, `blocked`, or `stop-condition` instead of `success` when that
-   matches the handoff.
+   matches the handoff. The finalizer rejects `success` and `failure` if the
+   run-start hook did not record a valid `currentRunStartedAt`.
 
 The configured stop hook checkpoints any remaining uncommitted repository
 changes and pushes the current branch to its configured upstream. A failed push
 is a stop-hook failure; document it and fix it when straightforward before
-treating the run as finished.
+treating the run as finished. If stop-hook fixes take more than a few minutes
+or change handoff/status context, rerun the finalizer before rerunning the stop
+hook so `lastRunFinishedAt` remains fresh.
 
 ## Hard Constraints
 

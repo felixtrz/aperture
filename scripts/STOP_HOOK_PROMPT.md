@@ -6,7 +6,17 @@ You must perform a final repository state evaluation and update the agent docs.
 
 ## Continuation Gate
 
-Before performing final stop updates, check elapsed time for this run using `agent/STATUS.json.lastRunStartedAt` when available, otherwise the best available run-start time from the current session. The default work window is 50 minutes; if `STOP_HOOK_WORK_WINDOW_MINUTES` intentionally changes that value, update this file, `AGENTS.md`, and `agent/WAKE.md` together.
+Before performing final stop updates, check elapsed time for this run using
+`agent/STATUS.json.currentRunStartedAt`. `.codex/config.toml` should have set
+that value by running `scripts/codex-start-hook.sh` through Codex's
+`SessionStart` hook before the wake prompt was sent. Do not use a stale
+`lastRunStartedAt` as a substitute for an active run start; if
+`currentRunStartedAt` is missing, document the start-hook failure and stop with
+a blocked result.
+
+The default work window is 50 minutes; if `STOP_HOOK_WORK_WINDOW_MINUTES`
+intentionally changes that value, update this file, `AGENTS.md`, and
+`agent/WAKE.md` together.
 
 If all of the following are true, do not stop yet:
 
@@ -63,7 +73,11 @@ pnpm run agent:finalize -- --result success --notes "<run summary>"
 Use `failure`, `blocked`, or `stop-condition` instead of `success` when that
 matches the handoff. The finalizer sets `state` to `idle`, clears
 `currentTaskId`, `currentRunStartedAt`, and `activePid`, updates
-`lastRunFinishedAt`, and records the chosen `lastResult`.
+`lastRunFinishedAt`, and records the chosen `lastResult`. The finalizer rejects
+`success` and `failure` if `scripts/codex-start-hook.sh` did not record a valid
+`currentRunStartedAt`. The stop hook also requires the finalized
+`lastRunFinishedAt` timestamp to be fresh, so rerun the finalizer after fixing
+any stop-hook failures that change handoff or status context.
 
 ## Backlog Refill Policy
 

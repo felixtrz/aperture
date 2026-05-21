@@ -4,6 +4,17 @@ You are waking up for one autonomous work cycle on this repository.
 
 Follow this protocol exactly.
 
+## 0. Run-Start Preconditions
+
+`.codex/config.toml` must run `scripts/codex-start-hook.sh` through Codex's
+`SessionStart` hook before this wake prompt is sent to the model. That hook
+records the whole chat/run start in `agent/STATUS.json.currentRunStartedAt`.
+
+This is a run-start hook, not a per-turn hook. If `currentRunStartedAt` is
+missing when this prompt begins, treat the repo hook config as misconfigured:
+update `agent/HANDOFF.md` with the reason and stop instead of manually
+backfilling the timestamp.
+
 ## 1. Read Context
 
 Read:
@@ -26,7 +37,12 @@ Before changing files:
 
 - Check whether another run appears active.
 - Check whether the working tree has unexpected changes.
-- Check whether `agent/STATUS.json` says `running`.
+- Confirm `agent/STATUS.json` says `running` with a valid
+  `currentRunStartedAt` for this run. This is the expected state after the
+  `SessionStart` hook.
+- Treat `STATUS.json` as unsafe if it is still `idle`, if
+  `currentRunStartedAt` is missing/invalid, or if it appears to describe a
+  different active run.
 
 If unsafe, update `agent/HANDOFF.md` with the reason and stop.
 
@@ -183,6 +199,8 @@ Before stopping:
 - Add a decision record if a significant decision was made.
 - Verify the ready queue still meets the §9 composition rule (≥3 visible-feature, ≤1 plan, ≤1 audit, 0 tracker-alignment, Recommended Next Task is visible-feature, every visible-feature task has a `Reference anchor:` line). If not, fix it before stopping.
 - Finalize `agent/STATUS.json` with `pnpm run agent:finalize -- --result success --notes "<run summary>"`. Use `failure`, `blocked`, or `stop-condition` instead of `success` when that matches the handoff.
+  The finalizer rejects `success` and `failure` when the run-start hook did not
+  set a valid `currentRunStartedAt`.
 
 ## 9. Backlog Refill
 
@@ -286,6 +304,9 @@ the current branch to its configured upstream. If the push fails, treat that as
 a stop-hook failure and document/fix it before stopping.
 
 If it returns a continuation request or records failures in `agent/logs`, address the failures if straightforward, update the handoff, and run it again.
+If those fixes took more than a few minutes or changed the handoff/status
+context, rerun `pnpm run agent:finalize -- --result <result> --notes "<run summary>"`
+before rerunning the stop hook so `lastRunFinishedAt` stays fresh.
 
 Stop after the 50-minute work window, an explicit stop condition, or exhausting ready work, then complete the handoff update and stop-hook verification.
 
