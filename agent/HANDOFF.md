@@ -1,8 +1,8 @@
 # Agent Handoff
 
-Updated: 2026-05-21T08:46:02Z
+Updated: 2026-05-21T08:51:18Z
 
-## Current Run Update — 2026-05-21T08:46:02Z — Simulation worker runtime helper
+## Current Run Update — 2026-05-21T08:51:18Z — Simulation worker runtime helper
 
 Completed `task-3032`.
 
@@ -60,12 +60,19 @@ Completed `task-3032`.
 - `pnpm run check:progress`
 - `pnpm run lint`
 - `pnpm run check`
+- Attempted `pnpm exec playwright test test/e2e/worker-cube.spec.ts --timeout=45000`;
+  it hung in the known headed Playwright runner path and was killed after the
+  full workspace check had already passed. No worker-cube/example-server
+  process from that attempt remains running.
 
 ### Known issues
 
 - `createWebGpuApp` still accepts and owns main-thread ECS state. `task-3033`
   should convert it to consume a `SimulationWorker` and render worker-produced
   snapshots.
+- The existing worker-cube Playwright spec can still hang in this environment;
+  use the full `pnpm run check` result and targeted runtime worker tests as the
+  reliable validation for this slice unless the browser runner is repaired.
 
 ### Recommended next task
 

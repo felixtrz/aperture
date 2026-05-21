@@ -6,6 +6,6 @@
   "lastResult": "success",
   "lastCommit": "458f5f8",
   "activePid": null,
-  "notes": "Completed task-3030 per-instance tint WebGPU contract: packed tint buffers, WebGPU resource binding, StandardMaterial instance-tint layout/shader sampling, docs/backlog/completed updates. Full pnpm run check passed; task-3031 remains next for visible browser proof.",
-  "lastRunFinishedAt": "2026-05-21T07:53:59Z"
+  "notes": "Completed task-3031 instance-tint browser proof and task-3032 createSimulationWorker runtime helper. Full pnpm run check passed; worker-cube Playwright retry hung in known runner path and was killed. Next task: task-3033 renderer-only createWebGpuApp worker transport.",
+  "lastRunFinishedAt": "2026-05-21T08:51:50Z"
 }
