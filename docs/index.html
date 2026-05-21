@@ -393,12 +393,20 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-21 22:40 UTC</dd>
+            <dd>2026-05-21 23:13 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
-              The render-packet inspector example now renders a worker-authored
+              The new <code>instance-attributes</code> example renders 576
+              worker-authored entities sharing one mesh and one custom WGSL
+              material. Each entity carries ECS-owned
+              <code>withInstanceData(...)</code> values for
+              <code>phase</code> and <code>swayAmount</code>; the main-thread
+              renderer prepares the custom instance-rate vertex buffer, WGSL
+              consumes it, readback samples change across animation frames, and
+              the render pass collapses the swarm to one indexed draw call. The
+              render-packet inspector example now renders a worker-authored
               snapshot while publishing JSON-safe packet tables for views,
               draws, lights, environments, bounds, queue keys, handles,
               skipped-entity explanations, and culling stats. Extraction now
@@ -1223,7 +1231,7 @@
               key so live route changes do not reuse incompatible layouts.
             </dd>
             <dt>Next focus</dt>
-            <dd>task-3045 per-instance custom attributes visible example</dd>
+            <dd>task-3050 tonemap operator pipeline</dd>
           </dl>
         </aside>
       </header>
@@ -1877,7 +1885,10 @@
               StandardMaterial <code>instance-tint</code> pipelines now bind an
               instance-rate tint vertex buffer and sample it in WGSL to multiply
               base color and alpha; the instance-tint example now proves those
-              values visibly across a 256-box gradient swarm.
+              values visibly across a 256-box gradient swarm. Custom WGSL
+              pipelines now also bind generic instance-attribute buffers; the
+              instance-attributes example proves 576 ECS-authored phase/sway
+              rows through one custom material and one instanced draw.
             </p>
             <ul>
               <li>Missing render graph and multi-pass architecture.</li>
@@ -1904,6 +1915,13 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">task-3045</span> Added
+                <code>instance-attributes</code>, a worker-split custom WGSL
+                example where 576 entities share one mesh/material while
+                per-entity <code>phase</code> and <code>swayAmount</code>
+                attributes animate visible pixels through one draw call.
+              </li>
               <li>
                 <span class="badge green">task-3044</span> Added
                 <code>defineInstanceAttributes(...)</code>,
@@ -4125,14 +4143,12 @@
             <ul>
               <li>
                 <span class="badge amber">next</span> Build
-                <code>task-3045</code>, the visible per-instance custom
-                attributes example with a custom WGSL material consuming
-                per-instance data.
+                <code>task-3050</code>, the tonemap operator pipeline with
+                configurable output-stage operators.
               </li>
               <li>
-                Follow-up visible slices include
-                <code>task-3045</code>, a swaying custom-material example that
-                consumes those instance attributes in WGSL.
+                Follow-up visible slices include the sRGB/color-space audit,
+                native RGBE <code>.hdr</code> loading, and a tonemap showcase.
               </li>
               <li>
                 Keep the recommended next task visible-feature first; avoid
@@ -4149,6 +4165,17 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3045</div>
+            <div>
+              <strong>Custom instance attributes are visible.</strong>
+              <span>
+                A worker-split custom WGSL example renders 576 ECS-authored
+                phase/sway rows through one mesh, one material, and one
+                instanced draw call.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3044</div>
             <div>

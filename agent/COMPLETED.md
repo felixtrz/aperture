@@ -1,5 +1,42 @@
 # Completed Tasks
 
+## task-3045 — Per-instance custom attributes visible example
+
+Completed: 2026-05-21
+
+Summary:
+
+- Added `examples/instance-attributes.html` with renderer-main and worker-owned
+  ECS/extraction modules.
+- Worker ECS spawns 576 entities sharing one mesh and one custom material
+  handle, with ECS-owned `InstanceData` fields for `phase` and `swayAmount`.
+- Main-thread WebGPU prepares the custom WGSL material, packs generic instance
+  attributes, uploads the instance-rate vertex buffer, and renders the swarm as
+  one coalesced indexed draw.
+- Added Playwright coverage proving three named readback samples change across
+  animation frames and the draw-call count remains ≤ N/16.
+- Extended render-pass resource resolution so generic instance-attribute GPU
+  buffers resolve like the existing instance-tint buffer path.
+
+References inspected:
+
+- `references/three.js/examples/webgpu_instancing_morph.html`
+- `references/three.js/examples/webgl_instancing_dynamic.html`
+- `references/engine/examples/src/examples/graphics/instancing-custom.example.mjs`
+- `references/engine/examples/src/examples/graphics/instancing-custom.transform-instancing.wgsl.vert`
+
+Validation:
+
+- `node --check examples/instance-attributes.main.js`
+- `node --check examples/instance-attributes.worker.js`
+- `pnpm exec tsc --noEmit -p packages/webgpu/tsconfig.json`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec vitest run test/webgpu/render-pass-resources.test.ts test/examples/worker-split-examples.test.mjs`
+- `pnpm run build`
+- `pnpm run check:examples`
+- `pnpm exec eslint packages/webgpu/src/webgpu/render-pass-resources.ts test/webgpu/render-pass-resources.test.ts examples/instance-attributes.main.js examples/instance-attributes.worker.js test/e2e/instance-attributes.spec.ts test/examples/worker-split-examples.test.mjs`
+- `pnpm exec playwright test test/e2e/instance-attributes.spec.ts --project=chrome-webgpu-headed --timeout=60000`
+
 ## task-3044 — Per-instance custom attributes contract
 
 Completed: 2026-05-21

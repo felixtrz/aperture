@@ -1,6 +1,58 @@
 # Agent Handoff
 
-Updated: 2026-05-21T22:50:07Z
+Updated: 2026-05-21T23:16:44Z
+
+## Current Run Update — 2026-05-21T23:16:44Z — Instance attributes example shipped
+
+Completed `task-3045`.
+
+### What changed
+
+- Added `examples/instance-attributes.html` plus renderer-main and worker-owned
+  ECS/extraction modules.
+- Worker ECS now spawns 576 entities sharing one mesh and one custom material
+  handle. Each entity owns `InstanceData` values for `phase` and `swayAmount`.
+- Main-thread WebGPU prepares the custom WGSL source, packs generic
+  instance-attribute packets into an instance-rate vertex buffer, binds it with
+  the custom pipeline, and submits the swarm as one coalesced indexed draw.
+- Added Playwright coverage proving three named readback samples change across
+  animation frames and draw calls stay ≤ N/16.
+- Extended render-pass resource resolution so generic instance-attribute GPU
+  buffers resolve like the existing instance-tint buffer path.
+- Updated public tracker pages, backlog, and completed-task log. Recommended
+  next task is now `task-3050`.
+
+### References inspected
+
+- `references/three.js/examples/webgpu_instancing_morph.html`
+- `references/three.js/examples/webgl_instancing_dynamic.html`
+- `references/engine/examples/src/examples/graphics/instancing-custom.example.mjs`
+- `references/engine/examples/src/examples/graphics/instancing-custom.transform-instancing.wgsl.vert`
+
+### Validation
+
+- `node --check examples/instance-attributes.main.js`
+- `node --check examples/instance-attributes.worker.js`
+- `pnpm exec tsc --noEmit -p packages/webgpu/tsconfig.json`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec vitest run test/webgpu/render-pass-resources.test.ts test/examples/worker-split-examples.test.mjs`
+- `pnpm run build`
+- `pnpm run check:examples`
+- `pnpm exec eslint packages/webgpu/src/webgpu/render-pass-resources.ts test/webgpu/render-pass-resources.test.ts examples/instance-attributes.main.js examples/instance-attributes.worker.js test/e2e/instance-attributes.spec.ts test/examples/worker-split-examples.test.mjs`
+- `pnpm exec playwright test test/e2e/instance-attributes.spec.ts --project=chrome-webgpu-headed --timeout=60000`
+- `pnpm run check:progress`
+- `pnpm run format:check`
+
+### Known issues
+
+- No new known issues from this slice.
+- The previous local headed-Playwright shutdown caveat remains generally
+  relevant, but the new `instance-attributes` spec exited cleanly twice.
+
+### Recommended next task
+
+Start `task-3050`: tonemap operator pipeline. This is the first Tier 10
+output-stage/color-management slice.
 
 ## End-of-Run Review — 2026-05-21T22:50:07Z — Tier 9 packet/culling/attribute slices shipped
 

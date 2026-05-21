@@ -59,13 +59,12 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start `task-3045`: add the visible per-instance custom attributes example.
+Start `task-3050`: add the tonemap operator pipeline.
 
-Why this next: task-3042 added a dedicated packet-inspector worker example, and
-task-3043 added extraction-time frustum culling plus per-view `cullStats`.
-task-3044 generalized the existing `InstanceTint` path into a typed custom
-per-instance attribute contract. The next visible slice should prove the
-contract in browser with a custom WGSL material consuming per-instance data.
+Why this next: task-3045 completed Tier 9 by proving custom per-instance
+attributes in browser through a worker-split custom WGSL example. The next
+strict roadmap slice is Tier 10 output-stage and color management, starting with
+configurable tonemap operators.
 
 Progress so far: `spinning-cube`, `multi-light-shadow`, and `glb-viewer` now
 use renderer-only `*.main.js` files plus ECS/extraction-owned `*.worker.js`
@@ -103,7 +102,10 @@ Custom WGSL material sources can now declare typed per-instance attribute
 layouts with `defineInstanceAttributes(...)`, runtime entities can attach data
 with `withInstanceData(materialKind, values)`, extraction carries named
 attribute packets, and WebGPU can create/bind the resulting instance-rate
-vertex buffer.
+vertex buffer. `examples/instance-attributes.html` now proves that contract with
+576 ECS-authored entities sharing one mesh and one custom WGSL material, browser
+readbacks at three sample points changing across frames, and one indexed draw
+after draw-list coalescing.
 
 Reference anchors (read before writing):
 
@@ -159,7 +161,7 @@ Eleven cross-cutting gaps remain across the six phases. They are sequenced below
 
 15. Frustum culling (task-3043 shipped) — per-camera AABB-vs-frustum test in extraction; skip draws for entities outside the view frustum. At 10K+ spatially-distributed entities this becomes the largest CPU cost in extraction. Single foundational slice; uses the `BoundsPacket` data the snapshot already carries.
 
-16. Per-instance custom attributes (task-3044, task-3045) — generalizes the Tier 6 `InstanceTint` pattern to support arbitrary user-defined per-instance data: vec3/vec4 channels declared by custom materials, packed into parallel instance buffers, consumed by user WGSL via instance-rate vertex attributes. Unlocks particle systems, vegetation with per-blade wind phase, VFX with per-instance animation parameters. Builds on the Tier 5 custom material adapter + Tier 6 instance-attribute infrastructure.
+16. Per-instance custom attributes (task-3044 and task-3045 shipped) — generalizes the Tier 6 `InstanceTint` pattern to support arbitrary user-defined per-instance data: vec3/vec4 channels declared by custom materials, packed into parallel instance buffers, consumed by user WGSL via instance-rate vertex attributes. Unlocks particle systems, vegetation with per-blade wind phase, VFX with per-instance animation parameters. Builds on the Tier 5 custom material adapter + Tier 6 instance-attribute infrastructure.
 
 **Tier 10 — Output stage & color management (queued after Tier 9):**
 
@@ -677,6 +679,8 @@ Acceptance criteria:
 - Two entities sharing the same custom material handle but different `withInstanceData` values still coalesce into one draw call (parallel-buffer slice consumed alongside the transform slice).
 
 ### task-3045 — Per-instance custom attributes visible example (Tier 9 part 2)
+
+Status: completed 2026-05-21. See `agent/COMPLETED.md`.
 
 Category: `runtime-orchestration`
 Package/write-scope: `examples/instance-attributes.html`, `examples/instance-attributes.main.js`, `examples/instance-attributes.worker.js`, `test/e2e/instance-attributes.spec.ts`. Custom material WGSL lives in the example.

@@ -102,6 +102,14 @@ const workerSplitExamples = [
     legacy: "examples/instance-tint.js",
   },
   {
+    html: "examples/instance-attributes.html",
+    main: "examples/instance-attributes.main.js",
+    worker: "examples/instance-attributes.worker.js",
+    legacy: "examples/instance-attributes.js",
+    mode: "manual-render",
+    requestSnapshot: "requestInstanceAttributeSnapshot",
+  },
+  {
     html: "examples/batching.html",
     main: "examples/batching.main.js",
     worker: "examples/batching.worker.js",
