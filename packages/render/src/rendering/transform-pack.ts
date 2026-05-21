@@ -1,4 +1,6 @@
+import type { InstanceAttributeLayout } from "../materials/index.js";
 import type {
+  InstanceAttributePacket,
   MeshDrawPacket,
   RenderDiagnostic,
   RenderSnapshot,
@@ -30,6 +32,20 @@ export interface PackedSnapshotInstanceTints {
   readonly diagnostics: readonly RenderDiagnostic[];
 }
 
+export interface PackedInstanceAttributeOffset {
+  readonly renderId: number;
+  readonly sourcePacketIndex: number;
+  readonly packedOffset: number;
+}
+
+export interface PackedSnapshotInstanceAttributes {
+  readonly layout: InstanceAttributeLayout;
+  readonly data: Float32Array;
+  readonly floatCount: number;
+  readonly offsets: readonly PackedInstanceAttributeOffset[];
+  readonly diagnostics: readonly RenderDiagnostic[];
+}
+
 export interface PackedSnapshotTransformsScratch {
   data: Float32Array;
   readonly offsets: PackedTransformOffset[];
@@ -45,6 +61,14 @@ export interface PackedSnapshotInstanceTintsScratch {
   readonly diagnostics: RenderDiagnostic[];
   readonly offsetPool: PackedInstanceTintOffset[];
   readonly result: PackedSnapshotInstanceTints;
+}
+
+export interface PackedSnapshotInstanceAttributesScratch {
+  data: Float32Array;
+  readonly offsets: PackedInstanceAttributeOffset[];
+  readonly diagnostics: RenderDiagnostic[];
+  readonly offsetPool: PackedInstanceAttributeOffset[];
+  readonly result: PackedSnapshotInstanceAttributes;
 }
 
 interface MutablePackedTransformOffset {
@@ -70,6 +94,20 @@ interface MutablePackedSnapshotInstanceTints {
   data: Float32Array;
   floatCount: number;
   offsets: readonly PackedInstanceTintOffset[];
+  diagnostics: readonly RenderDiagnostic[];
+}
+
+interface MutablePackedInstanceAttributeOffset {
+  renderId: number;
+  sourcePacketIndex: number;
+  packedOffset: number;
+}
+
+interface MutablePackedSnapshotInstanceAttributes {
+  layout: InstanceAttributeLayout;
+  data: Float32Array;
+  floatCount: number;
+  offsets: readonly PackedInstanceAttributeOffset[];
   diagnostics: readonly RenderDiagnostic[];
 }
 
@@ -152,6 +190,24 @@ export function packSnapshotInstanceTintsForVertexBuffer(
   );
 }
 
+export function packSnapshotInstanceAttributesForVertexBuffer(
+  snapshot: Pick<
+    RenderSnapshot,
+    "meshDraws" | "instanceAttributes" | "instanceAttributePackets"
+  >,
+  transforms: PackedSnapshotTransforms,
+  layout: InstanceAttributeLayout,
+  options: { readonly materialKind?: string } = {},
+): PackedSnapshotInstanceAttributes {
+  return writePackedSnapshotInstanceAttributesForVertexBuffer(
+    snapshot,
+    transforms,
+    layout,
+    createPackedSnapshotInstanceAttributesScratch(),
+    options,
+  );
+}
+
 export function createPackedSnapshotTransformsScratch(
   floatCapacity = 0,
   offsetCapacity = 0,
@@ -194,6 +250,39 @@ export function createPackedSnapshotInstanceTintsScratch(
     diagnostics,
     offsetPool,
     result: { data, floatCount: 0, offsets, diagnostics },
+  };
+}
+
+export function createPackedSnapshotInstanceAttributesScratch(
+  floatCapacity = 0,
+  offsetCapacity = 0,
+): PackedSnapshotInstanceAttributesScratch {
+  const offsets: PackedInstanceAttributeOffset[] = [];
+  const diagnostics: RenderDiagnostic[] = [];
+  const offsetPool: PackedInstanceAttributeOffset[] = [];
+  const data = new Float32Array(floatCapacity);
+
+  for (let i = 0; i < offsetCapacity; i += 1) {
+    offsetPool.push(createEmptyInstanceAttributeOffset());
+  }
+
+  return {
+    data,
+    offsets,
+    diagnostics,
+    offsetPool,
+    result: {
+      layout: {
+        attributes: [],
+        stride: 0,
+        strideFloats: 0,
+        layoutKey: "",
+      },
+      data,
+      floatCount: 0,
+      offsets,
+      diagnostics,
+    },
   };
 }
 
@@ -304,6 +393,128 @@ export function writePackedSnapshotInstanceTintsForVertexBuffer(
   return scratch.result;
 }
 
+export function writePackedSnapshotInstanceAttributesForVertexBuffer(
+  snapshot: Pick<
+    RenderSnapshot,
+    "meshDraws" | "instanceAttributes" | "instanceAttributePackets"
+  >,
+  transforms: PackedSnapshotTransforms,
+  layout: InstanceAttributeLayout,
+  scratch: PackedSnapshotInstanceAttributesScratch,
+  options: { readonly materialKind?: string } = {},
+): PackedSnapshotInstanceAttributes {
+  const result = scratch.result as MutablePackedSnapshotInstanceAttributes;
+  const source = snapshot.instanceAttributes ?? new Float32Array(0);
+  const packets = snapshot.instanceAttributePackets ?? [];
+  const instanceCount = Math.ceil((transforms.floatCount ?? 0) / 16);
+  const requiredFloats = instanceCount * layout.strideFloats;
+
+  scratch.offsets.length = 0;
+  scratch.diagnostics.length = 0;
+  ensureInstanceAttributeDataCapacity(scratch, requiredFloats);
+  scratch.data.fill(0, 0, requiredFloats);
+
+  for (const draw of snapshot.meshDraws) {
+    const packetIndex = draw.instanceAttributePacketIndex;
+
+    if (packetIndex === undefined) {
+      continue;
+    }
+
+    const packet = packets[packetIndex];
+
+    if (packet === undefined) {
+      scratch.diagnostics.push({
+        code: "renderInstanceAttributePack.missingPacket",
+        message: `Render id ${draw.renderId} references instance attribute packet ${packetIndex}, but only ${packets.length} packets exist.`,
+        severity: "warning",
+        entity: draw.entity,
+      });
+      continue;
+    }
+
+    if (
+      options.materialKind !== undefined &&
+      packet.materialKind !== options.materialKind
+    ) {
+      continue;
+    }
+
+    const transformPackedOffset = findTransformPackedOffset(
+      transforms,
+      draw.renderId,
+    );
+
+    if (
+      transformPackedOffset === undefined ||
+      transformPackedOffset < 0 ||
+      transformPackedOffset % 16 !== 0
+    ) {
+      scratch.diagnostics.push({
+        code: "renderInstanceAttributePack.missingPackedTransform",
+        message: `Render id ${draw.renderId} references instance attributes, but no aligned packed transform offset was found.`,
+        severity: "warning",
+        entity: draw.entity,
+      });
+      continue;
+    }
+
+    const packedOffset = (transformPackedOffset / 16) * layout.strideFloats;
+
+    for (const attribute of layout.attributes) {
+      const field = findInstanceAttributeField(packet, attribute.name);
+
+      if (field === undefined) {
+        scratch.diagnostics.push({
+          code: "renderInstanceAttributePack.missingAttribute",
+          message: `Render id ${draw.renderId} is missing instance attribute '${attribute.name}'.`,
+          severity: "warning",
+          entity: draw.entity,
+        });
+        continue;
+      }
+
+      if (field.components !== attribute.components) {
+        scratch.diagnostics.push({
+          code: "renderInstanceAttributePack.componentMismatch",
+          message: `Render id ${draw.renderId} instance attribute '${attribute.name}' has ${field.components} components; expected ${attribute.components}.`,
+          severity: "warning",
+          entity: draw.entity,
+        });
+        continue;
+      }
+
+      if (!hasInstanceAttributeValues(source, field)) {
+        scratch.diagnostics.push({
+          code: "renderInstanceAttributePack.missingValues",
+          message: `Render id ${draw.renderId} instance attribute '${attribute.name}' references offset ${field.offset}, but attribute buffer length is ${source.length}.`,
+          severity: "warning",
+          entity: draw.entity,
+        });
+        continue;
+      }
+
+      scratch.data.set(
+        source.subarray(field.offset, field.offset + field.components),
+        packedOffset + attribute.floatOffset,
+      );
+    }
+
+    const offset = instanceAttributeOffsetAt(scratch, scratch.offsets.length);
+
+    offset.renderId = draw.renderId;
+    offset.sourcePacketIndex = packetIndex;
+    offset.packedOffset = packedOffset;
+    scratch.offsets.push(offset);
+  }
+
+  result.layout = layout;
+  result.data = scratch.data;
+  result.floatCount = requiredFloats;
+
+  return scratch.result;
+}
+
 function ensureTransformDataCapacity(
   scratch: PackedSnapshotTransformsScratch,
   required: number,
@@ -326,6 +537,23 @@ function ensureTransformDataCapacity(
 
 function ensureInstanceTintDataCapacity(
   scratch: PackedSnapshotInstanceTintsScratch,
+  required: number,
+): void {
+  if (scratch.data.length >= required) {
+    return;
+  }
+
+  let capacity = Math.max(4, scratch.data.length);
+
+  while (capacity < required) {
+    capacity *= 2;
+  }
+
+  scratch.data = new Float32Array(capacity);
+}
+
+function ensureInstanceAttributeDataCapacity(
+  scratch: PackedSnapshotInstanceAttributesScratch,
   required: number,
 ): void {
   if (scratch.data.length >= required) {
@@ -377,12 +605,34 @@ function instanceTintOffsetAt(
   return offset;
 }
 
+function instanceAttributeOffsetAt(
+  scratch: PackedSnapshotInstanceAttributesScratch,
+  index: number,
+): MutablePackedInstanceAttributeOffset {
+  const existing = scratch.offsetPool[index] as
+    | MutablePackedInstanceAttributeOffset
+    | undefined;
+
+  if (existing !== undefined) {
+    return existing;
+  }
+
+  const offset = createEmptyInstanceAttributeOffset();
+
+  scratch.offsetPool.push(offset);
+  return offset;
+}
+
 function createEmptyOffset(): MutablePackedTransformOffset {
   return { renderId: 0, sourceOffset: 0, packedOffset: 0 };
 }
 
 function createEmptyInstanceTintOffset(): MutablePackedInstanceTintOffset {
   return { renderId: 0, sourceOffset: 0, packedOffset: 0 };
+}
+
+function createEmptyInstanceAttributeOffset(): MutablePackedInstanceAttributeOffset {
+  return { renderId: 0, sourcePacketIndex: 0, packedOffset: 0 };
 }
 
 function findTransformPackedOffset(
@@ -406,6 +656,24 @@ function hasTransform(transforms: Float32Array, offset: number): boolean {
 
 function hasVec4(values: Float32Array, offset: number): boolean {
   return Number.isInteger(offset) && offset >= 0 && offset + 4 <= values.length;
+}
+
+function findInstanceAttributeField(
+  packet: InstanceAttributePacket,
+  name: string,
+): InstanceAttributePacket["fields"][number] | undefined {
+  return packet.fields.find((field) => field.name === name);
+}
+
+function hasInstanceAttributeValues(
+  values: Float32Array,
+  field: InstanceAttributePacket["fields"][number],
+): boolean {
+  return (
+    Number.isInteger(field.offset) &&
+    field.offset >= 0 &&
+    field.offset + field.components <= values.length
+  );
 }
 
 function missingTransformDiagnostic(

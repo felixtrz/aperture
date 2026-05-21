@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 
 import {
   createDefaultRenderState,
+  createInstanceAttributeLayout,
+  defineInstanceAttributes,
   type PreparedCustomWgslMaterial,
 } from "@aperture-engine/render";
 import {
@@ -74,6 +76,37 @@ describe("custom WGSL material WebGPU resources", () => {
     });
 
     expect(descriptor).not.toHaveProperty("depthStencil");
+  });
+
+  it("adds instance-rate vertex buffers for custom instance attributes", () => {
+    const material = customWaterMaterial(
+      required(
+        createInstanceAttributeLayout(
+          defineInstanceAttributes([
+            { name: "wind", format: "float32x3" },
+            { name: "phase", format: "float32" },
+          ]),
+        ),
+      ),
+    );
+    const descriptor = createBrowserCustomWgslMaterialPipelineDescriptor({
+      material,
+      shaderModule: { kind: "shader-module" },
+      colorFormat: "bgra8unorm",
+      depthFormat: null,
+    });
+
+    expect((descriptor.vertex as { buffers?: unknown }).buffers).toEqual([
+      UNLIT_PRIMITIVE_VERTEX_BUFFER_LAYOUT,
+      {
+        arrayStride: 16,
+        stepMode: "instance",
+        attributes: [
+          { shaderLocation: 6, offset: 0, format: "float32x3" },
+          { shaderLocation: 7, offset: 12, format: "float32" },
+        ],
+      },
+    ]);
   });
 
   it("creates shader module, render pipeline, and material bind group through an injected device", async () => {
@@ -197,7 +230,9 @@ describe("custom WGSL material WebGPU resources", () => {
   });
 });
 
-function customWaterMaterial(): PreparedCustomWgslMaterial {
+function customWaterMaterial(
+  instanceAttributes: PreparedCustomWgslMaterial["pipeline"]["instanceAttributes"] = null,
+): PreparedCustomWgslMaterial {
   const renderState = createDefaultRenderState({
     cullMode: "none",
   });
@@ -240,11 +275,12 @@ function customWaterMaterial(): PreparedCustomWgslMaterial {
     },
     pipeline: {
       pipelineKey:
-        "custom-water|shader:abc123|vs:vs_main|fs:fs_main|bindings:0:uniform-buffer|opaque|none|less|none",
+        "custom-water|shader:abc123|vs:vs_main|fs:fs_main|instance-attributes:none|bindings:0:uniform-buffer|opaque|none|less|none",
       shaderModuleKey: "custom-wgsl-module:material:water:shader",
       vertexEntryPoint: "vs_main",
       fragmentEntryPoint: "fs_main",
       renderState,
+      instanceAttributes,
     },
     bindGroupLayout: {
       resourceKey:
@@ -272,4 +308,12 @@ function customWaterMaterial(): PreparedCustomWgslMaterial {
       ],
     },
   };
+}
+
+function required<T>(value: T | null | undefined): T {
+  if (value === null || value === undefined) {
+    throw new Error("Expected value to be present.");
+  }
+
+  return value;
 }

@@ -1,6 +1,51 @@
 # Agent Handoff
 
-Updated: 2026-05-21T22:25:00Z
+Updated: 2026-05-21T22:40:00Z
+
+## Current Run Update — 2026-05-21T22:40:00Z — Custom instance attribute contract shipped
+
+Completed `task-3044`.
+
+### What changed
+
+- Added public `defineInstanceAttributes(...)` for custom WGSL material sources.
+  Prepared custom materials now carry normalized instance-attribute layouts and
+  include the layout hash in their pipeline key.
+- Added `InstanceData` authoring and runtime
+  `withInstanceData(materialKind, values)`, storing named scalar/vec instance
+  values as ECS-owned data.
+- Extended render snapshots with `instanceAttributes` and
+  `instanceAttributePackets`, and added
+  `packSnapshotInstanceAttributesForVertexBuffer(...)` to pack those values into
+  transform-aligned instance-rate rows.
+- Added WebGPU generic instance-attribute buffer descriptors/resources, custom
+  WGSL pipeline vertex-buffer layout integration, and draw-command binding for
+  `instance-attributes:*` pipeline keys.
+
+### References inspected
+
+- `references/three.js/src/core/InstancedBufferAttribute.js`
+- `references/bevy/crates/bevy_render/src/extract_instances.rs`
+- `references/engine/src/scene/mesh-instance.js`
+
+### Validation
+
+- `pnpm run build`
+- `pnpm exec tsc --noEmit -p packages/render/tsconfig.json`
+- `pnpm exec tsc --noEmit -p packages/runtime/tsconfig.json`
+- `pnpm exec tsc --noEmit -p packages/webgpu/tsconfig.json`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec vitest run test/rendering/transform-pack.test.ts test/rendering/extraction.test.ts test/assets/render-asset-preparation.test.ts test/webgpu/custom-wgsl-material.test.ts test/webgpu/draw-command.test.ts`
+- `pnpm exec eslint packages/render/src/materials/instance-attributes.ts packages/render/src/assets/preparation.ts packages/render/src/rendering/authoring.ts packages/render/src/rendering/snapshot.ts packages/render/src/rendering/extraction.ts packages/render/src/rendering/transform-pack.ts packages/runtime/src/index.ts packages/runtime/src/simulation-worker.ts packages/webgpu/src/webgpu/instance-attribute-buffer.ts packages/webgpu/src/webgpu/resource-keys.ts packages/webgpu/src/webgpu/custom-wgsl-material.ts packages/webgpu/src/webgpu/draw-command.ts test/rendering/transform-pack.test.ts test/rendering/extraction.test.ts test/assets/render-asset-preparation.test.ts test/webgpu/custom-wgsl-material.test.ts test/webgpu/draw-command.test.ts`
+
+### Known issues
+
+- `task-3045` is not started yet. It should add the visible browser example
+  that proves a custom WGSL material consumes the new per-instance data.
+
+### Recommended next task
+
+Start `task-3045`: per-instance custom attributes visible example.
 
 ## Current Run Update — 2026-05-21T22:25:00Z — Packet inspector and frustum culling shipped
 

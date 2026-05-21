@@ -59,13 +59,13 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start `task-3044`: add the per-instance custom attributes contract.
+Start `task-3045`: add the visible per-instance custom attributes example.
 
 Why this next: task-3042 added a dedicated packet-inspector worker example, and
-task-3043 added extraction-time frustum culling plus per-view `cullStats`. The
-next visible slice should generalize the existing `InstanceTint` path into a
-typed custom per-instance attribute contract before adding the visible swaying
-example.
+task-3043 added extraction-time frustum culling plus per-view `cullStats`.
+task-3044 generalized the existing `InstanceTint` path into a typed custom
+per-instance attribute contract. The next visible slice should prove the
+contract in browser with a custom WGSL material consuming per-instance data.
 
 Progress so far: `spinning-cube`, `multi-light-shadow`, and `glb-viewer` now
 use renderer-only `*.main.js` files plus ECS/extraction-owned `*.worker.js`
@@ -99,12 +99,17 @@ explanations, and culling stats. Extraction now builds camera frustum planes
 from view-projection matrices, skips renderables outside all matching camera
 frustums, reports per-view `cullStats`, and supports camera opt-out with
 `frustumCulling: false`.
+Custom WGSL material sources can now declare typed per-instance attribute
+layouts with `defineInstanceAttributes(...)`, runtime entities can attach data
+with `withInstanceData(materialKind, values)`, extraction carries named
+attribute packets, and WebGPU can create/bind the resulting instance-rate
+vertex buffer.
 
 Reference anchors (read before writing):
 
-- `references/three.js/src/core/InstancedBufferAttribute.js`
-- `references/bevy/crates/bevy_render/src/extract_instances.rs`
-- `references/engine/src/scene/mesh-instance.js`
+- `references/three.js/examples/webgpu_instancing_morph.html` if present, else
+  `references/three.js/examples/webgl_instancing_dynamic.html`
+- `references/engine/examples/graphics/instancing.html`
 
 ## Strategic Focus — Pipeline Maturity Roadmap
 
@@ -655,6 +660,8 @@ Acceptance criteria:
 - No regression in any existing example — Playwright baseline pixel readbacks remain stable.
 
 ### task-3044 — Per-instance custom attributes contract (Tier 9 part 1)
+
+Status: completed 2026-05-21. See `agent/COMPLETED.md`.
 
 Category: `render-bridge`
 Package/write-scope: `packages/render/src/`, `packages/webgpu/src/webgpu/`, `packages/runtime/src/index.ts`, extension to the custom-material-adapter contract from Tier 5, targeted tests.

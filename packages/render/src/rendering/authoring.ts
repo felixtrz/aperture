@@ -9,6 +9,7 @@ import {
   type EnvironmentMapHandle,
 } from "@aperture-engine/simulation";
 import type { Vec4Like } from "@aperture-engine/simulation";
+import type { InstanceDataValues } from "../materials/index.js";
 
 export const CameraProjection = {
   Perspective: "perspective",
@@ -69,6 +70,11 @@ export interface LightShadowSettingsInput {
 
 export interface InstanceTintInput {
   readonly color?: Vec4Like;
+}
+
+export interface InstanceDataInput {
+  readonly materialKind: string;
+  readonly values: InstanceDataValues;
 }
 
 export type RenderAuthoringDiagnosticCode =
@@ -141,6 +147,15 @@ export const InstanceTint = defineComponent(
     color: { type: EcsType.Color, default: tuple4(1, 1, 1, 1) },
   },
   "Per-entity tint packed for instanced StandardMaterial draws.",
+);
+
+export const InstanceData = defineComponent(
+  "aperture.render.instanceData",
+  {
+    materialKind: { type: EcsType.String, default: "" },
+    valuesJson: { type: EcsType.String, default: "{}" },
+  },
+  "Per-entity named instance data packed for custom material instance attributes.",
 );
 
 export const Camera = defineComponent(
@@ -226,6 +241,7 @@ export function registerRenderAuthoringComponents(world: EcsWorld): EcsWorld {
   world.registerComponent(RenderLayer);
   world.registerComponent(RenderOrder);
   world.registerComponent(InstanceTint);
+  world.registerComponent(InstanceData);
   world.registerComponent(Light);
   world.registerComponent(ShadowCaster);
   world.registerComponent(ShadowReceiver);
@@ -292,6 +308,15 @@ export function createInstanceTint(
 ): ComponentInitialData<typeof InstanceTint> {
   return {
     color: toTuple4(input.color ?? [1, 1, 1, 1]),
+  };
+}
+
+export function createInstanceData(
+  input: InstanceDataInput,
+): ComponentInitialData<typeof InstanceData> {
+  return {
+    materialKind: input.materialKind,
+    valuesJson: JSON.stringify(input.values),
   };
 }
 

@@ -6,6 +6,7 @@ import {
   createBoxMeshAsset,
   createCustomWgslMaterialRenderAssetAdapter,
   createDefaultRenderState,
+  defineInstanceAttributes,
   createMatcapMaterialAsset,
   createMaterialHandle,
   createMaterialMetadataRenderAssetAdapter,
@@ -274,6 +275,10 @@ describe("render asset preparation contract", () => {
           label: "waterUniforms",
         },
       ],
+      instanceAttributes: defineInstanceAttributes([
+        { name: "wind", format: "float32x3" },
+        { name: "phase", format: "float32" },
+      ]),
     };
 
     registry.register<"material", CustomWgslMaterialSource>(handle);
@@ -307,6 +312,23 @@ describe("render asset preparation contract", () => {
         vertexEntryPoint: "vs_main",
         fragmentEntryPoint: "fs_main",
         renderState: source.renderState,
+        instanceAttributes: {
+          strideFloats: 4,
+          attributes: [
+            {
+              name: "wind",
+              format: "float32x3",
+              shaderLocation: 6,
+              floatOffset: 0,
+            },
+            {
+              name: "phase",
+              format: "float32",
+              shaderLocation: 7,
+              floatOffset: 3,
+            },
+          ],
+        },
       },
       bindGroupLayout: {
         entries: [
@@ -334,7 +356,42 @@ describe("render asset preparation contract", () => {
     expect(prepared.entry?.prepared.pipeline.pipelineKey).toContain(
       "bindings:0:uniform-buffer|blend|none|less|alpha",
     );
+    expect(prepared.entry?.prepared.pipeline.pipelineKey).toContain(
+      "instance-attributes:",
+    );
     expect(store.get(handle)?.prepared.shader.code).toContain("fn fs_main");
+  });
+
+  it("uses the custom instance attribute layout in the custom pipeline key", () => {
+    const source = (attributes: ReturnType<typeof defineInstanceAttributes>) =>
+      ({
+        family: "custom.wind",
+        label: "Wind Material",
+        renderState: createDefaultRenderState(),
+        shader: {
+          code: `
+            @vertex fn vs_main() -> @builtin(position) vec4f { return vec4f(); }
+            @fragment fn fs_main() -> @location(0) vec4f { return vec4f(1.0); }
+          `,
+          vertexEntryPoint: "vs_main",
+          fragmentEntryPoint: "fs_main",
+        },
+        instanceAttributes: attributes,
+      }) satisfies CustomWgslMaterialSource;
+    const first = prepareCustomSource(
+      "a",
+      source(defineInstanceAttributes([{ name: "phase", format: "float32" }])),
+    );
+    const second = prepareCustomSource(
+      "b",
+      source(
+        defineInstanceAttributes([{ name: "phase", format: "float32x2" }]),
+      ),
+    );
+
+    expect(first.pipeline.pipelineKey).not.toBe(second.pipeline.pipelineKey);
+    expect(first.pipeline.instanceAttributes?.strideFloats).toBe(1);
+    expect(second.pipeline.instanceAttributes?.strideFloats).toBe(2);
   });
 
   it("diagnoses invalid custom WGSL material entry points", () => {
@@ -890,6 +947,34 @@ function snapshotWithDraw(
       diagnostics: 0,
     },
   };
+}
+
+function prepareCustomSource(
+  id: string,
+  source: CustomWgslMaterialSource,
+): PreparedCustomWgslMaterial {
+  const registry = new AssetRegistry();
+  const handle = createMaterialHandle(id);
+  const store = new PreparedRenderAssetStore<
+    "material",
+    PreparedCustomWgslMaterial
+  >();
+
+  registry.register<"material", CustomWgslMaterialSource>(handle);
+  registry.markReady(handle, source);
+
+  const prepared = prepareRenderAsset({
+    registry,
+    adapter: createCustomWgslMaterialRenderAssetAdapter(source.family),
+    store,
+    handle,
+  });
+
+  if (prepared.entry === null || prepared.entry === undefined) {
+    throw new Error("Expected custom material source to prepare.");
+  }
+
+  return prepared.entry.prepared;
 }
 
 function invalidMeshAsset(): MeshAsset {

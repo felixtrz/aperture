@@ -9,7 +9,10 @@ import {
   type MeshHandle,
 } from "@aperture-engine/simulation";
 import {
+  createInstanceAttributeLayout,
   createPreparedMaterialResourceDescriptor,
+  type InstanceAttributeLayout,
+  type InstanceAttributeLayoutInput,
   type MaterialAsset,
   type MaterialKind,
   type PreparedMaterialResourceDescriptor,
@@ -422,6 +425,7 @@ export interface CustomWgslMaterialSource {
   readonly renderState: RenderStateDescriptor;
   readonly shader: CustomWgslShaderSource;
   readonly bindings?: readonly CustomWgslBindingDeclaration[];
+  readonly instanceAttributes?: InstanceAttributeLayoutInput;
 }
 
 export interface ValidateCustomMaterialSourceOptions {
@@ -461,6 +465,7 @@ export interface PreparedCustomWgslMaterial {
     readonly vertexEntryPoint: string;
     readonly fragmentEntryPoint: string;
     readonly renderState: RenderStateDescriptor;
+    readonly instanceAttributes: InstanceAttributeLayout | null;
   };
   readonly bindGroupLayout: {
     readonly resourceKey: string;
@@ -903,8 +908,15 @@ function createPreparedCustomWgslMaterial(input: {
   readonly assetKey: string;
 }): PreparedCustomWgslMaterial {
   const shaderHash = stableStringHash(input.source.shader.code);
+  const instanceAttributes = createInstanceAttributeLayout(
+    input.source.instanceAttributes,
+  );
   const moduleKey = `custom-wgsl-module:${input.assetKey}:${shaderHash}`;
-  const pipelineKey = customWgslMaterialPipelineKey(input.source, shaderHash);
+  const pipelineKey = customWgslMaterialPipelineKey(
+    input.source,
+    shaderHash,
+    instanceAttributes,
+  );
   const bindGroupLayoutResourceKey = `custom-wgsl-bind-group-layout:${input.assetKey}:${pipelineKey}`;
   const bindGroupResourceKey = `custom-wgsl-bind-group:${input.assetKey}:${pipelineKey}`;
   const bindings = [...(input.source.bindings ?? [])].sort(
@@ -936,6 +948,7 @@ function createPreparedCustomWgslMaterial(input: {
       vertexEntryPoint: input.source.shader.vertexEntryPoint,
       fragmentEntryPoint: input.source.shader.fragmentEntryPoint,
       renderState: input.source.renderState,
+      instanceAttributes,
     },
     bindGroupLayout: {
       resourceKey: bindGroupLayoutResourceKey,
@@ -1054,12 +1067,14 @@ function containsWgslEntrypoint(code: string, entryPoint: string): boolean {
 function customWgslMaterialPipelineKey(
   source: CustomWgslMaterialSource,
   shaderHash: string,
+  instanceAttributes: InstanceAttributeLayout | null,
 ): string {
   return [
     source.family,
     `shader:${shaderHash}`,
     `vs:${source.shader.vertexEntryPoint}`,
     `fs:${source.shader.fragmentEntryPoint}`,
+    `instance-attributes:${instanceAttributes?.layoutKey ?? "none"}`,
     `bindings:${(source.bindings ?? [])
       .map((binding) => `${binding.binding}:${binding.kind}`)
       .sort()

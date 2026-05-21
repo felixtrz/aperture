@@ -52,6 +52,7 @@ export interface MeshDrawPacket {
   readonly materialSlot: number;
   readonly worldTransformOffset: number;
   readonly instanceTintOffset?: number;
+  readonly instanceAttributePacketIndex?: number;
   readonly boundsIndex: number;
   readonly layerMask: number;
   readonly castsShadow?: boolean;
@@ -96,6 +97,19 @@ export interface BoundsPacket {
   readonly worldAabb: Aabb;
   readonly localSphere: BoundingSphere;
   readonly worldSphere: BoundingSphere;
+}
+
+export interface InstanceAttributeFieldPacket {
+  readonly name: string;
+  readonly offset: number;
+  readonly components: number;
+}
+
+export interface InstanceAttributePacket {
+  readonly packetIndex: number;
+  readonly entity: RenderEntityRef;
+  readonly materialKind: string;
+  readonly fields: readonly InstanceAttributeFieldPacket[];
 }
 
 export interface RenderSortKey {
@@ -173,6 +187,8 @@ export interface RenderSnapshot {
   readonly bounds: readonly BoundsPacket[];
   readonly transforms: Float32Array;
   readonly instanceTints?: Float32Array;
+  readonly instanceAttributes?: Float32Array;
+  readonly instanceAttributePackets?: readonly InstanceAttributePacket[];
   readonly viewMatrices: Float32Array;
   readonly diagnostics: readonly RenderDiagnostic[];
   readonly report: RenderSnapshotReport;

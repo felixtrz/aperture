@@ -18,6 +18,7 @@ import {
   type WebGpuShaderDiagnostic,
   type WebGpuShaderFailureReason,
 } from "./shader.js";
+import { createInstanceAttributeVertexBufferLayout } from "./instance-attribute-buffer.js";
 import { UNLIT_PRIMITIVE_VERTEX_BUFFER_LAYOUT } from "./unlit-pipeline.js";
 
 const WEBGPU_SHADER_STAGE_VERTEX = 1;
@@ -270,7 +271,15 @@ export function createBrowserCustomWgslMaterialPipelineDescriptor(
     vertex: {
       module: input.shaderModule,
       entryPoint: input.material.shader.vertexEntryPoint,
-      buffers: [UNLIT_PRIMITIVE_VERTEX_BUFFER_LAYOUT],
+      buffers:
+        input.material.pipeline.instanceAttributes === null
+          ? [UNLIT_PRIMITIVE_VERTEX_BUFFER_LAYOUT]
+          : [
+              UNLIT_PRIMITIVE_VERTEX_BUFFER_LAYOUT,
+              createInstanceAttributeVertexBufferLayout(
+                input.material.pipeline.instanceAttributes,
+              ),
+            ],
     },
     fragment: {
       module: input.shaderModule,

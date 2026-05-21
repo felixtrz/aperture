@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-21 22:25 UTC</dd>
+            <dd>2026-05-21 22:40 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -405,7 +405,12 @@
               builds camera frustum planes from view-projection matrices, skips
               mesh draws outside every matching camera view, reports per-view
               <code>cullStats</code>, and exposes
-              <code>frustumCulling: false</code> as a camera opt-out. Opt-in
+              <code>frustumCulling: false</code> as a camera opt-out. Custom
+              WGSL materials can now declare per-instance attribute layouts with
+              <code>defineInstanceAttributes(...)</code>, runtime entities can
+              attach named data with <code>withInstanceData(...)</code>,
+              extraction carries those values in snapshot attribute packets, and
+              WebGPU can bind the packed instance-rate vertex buffer. Opt-in
               SharedArrayBuffer transport is now wired through
               <code>createWebGpuApp({ transport: "shared-array-buffer" })</code
               >. The WebGPU app allocates shared snapshot storage, passes it to
@@ -1218,7 +1223,7 @@
               key so live route changes do not reuse incompatible layouts.
             </dd>
             <dt>Next focus</dt>
-            <dd>task-3044 per-instance custom attributes contract</dd>
+            <dd>task-3045 per-instance custom attributes visible example</dd>
           </dl>
         </aside>
       </header>
@@ -1429,8 +1434,9 @@
             <p>
               Snapshots, draw packets, lights, environments, bounds,
               diagnostics, shadow authoring flags, per-view cull stats,
-              extraction-time frustum culling, and render-world prepared facade
-              summaries with a prepare-and-bind report adapter are active.
+              extraction-time frustum culling, custom instance-attribute
+              packets, and render-world prepared facade summaries with a
+              prepare-and-bind report adapter are active.
             </p>
           </article>
           <article class="card track">
@@ -1568,10 +1574,12 @@
               mesh packet templates with fresh snapshot offsets. Per-entity
               <code>InstanceTint</code> components now extract into a snapshot
               tint buffer and annotate mesh draw packets with tint offsets.
-              Snapshot inspection can now explain rendered and skipped entities
-              with stable diagnostic reasons. Per-camera frustum planes now skip
-              outside-view mesh draws during extraction and publish per-view
-              <code>cullStats</code>.
+              Named <code>InstanceData</code> values now extract into custom
+              instance-attribute packets and a parallel float buffer for
+              transform-aligned packing. Snapshot inspection can now explain
+              rendered and skipped entities with stable diagnostic reasons.
+              Per-camera frustum planes now skip outside-view mesh draws during
+              extraction and publish per-view <code>cullStats</code>.
             </p>
             <ul>
               <li>
@@ -1896,6 +1904,13 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">task-3044</span> Added
+                <code>defineInstanceAttributes(...)</code>,
+                <code>withInstanceData(...)</code>, snapshot attribute packets,
+                transform-aligned instance-attribute packing, and WebGPU
+                instance-rate buffer binding for custom WGSL material pipelines.
+              </li>
               <li>
                 <span class="badge green">task-3043</span> Added extraction-time
                 frustum culling, per-view <code>cullStats</code>, and a camera
@@ -4110,9 +4125,9 @@
             <ul>
               <li>
                 <span class="badge amber">next</span> Build
-                <code>task-3044</code>, the per-instance custom attributes
-                contract that generalizes the current
-                <code>InstanceTint</code> path for custom materials.
+                <code>task-3045</code>, the visible per-instance custom
+                attributes example with a custom WGSL material consuming
+                per-instance data.
               </li>
               <li>
                 Follow-up visible slices include
@@ -4134,6 +4149,17 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3044</div>
+            <div>
+              <strong>Custom instance attributes are contracted.</strong>
+              <span>
+                Custom WGSL material sources can declare instance layouts,
+                entities can attach named instance data, and WebGPU can bind the
+                packed instance-rate buffer.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3043</div>
             <div>

@@ -31,6 +31,7 @@ import {
 } from "@aperture-engine/simulation";
 import {
   Camera,
+  InstanceData,
   InstanceTint,
   Light,
   LightKind,
@@ -43,6 +44,7 @@ import {
   ShadowReceiver,
   Visibility,
   createCamera,
+  createInstanceData,
   createInstanceTint,
   createLight,
   createLightShadowSettings,
@@ -52,6 +54,7 @@ import {
   type CameraInput,
   type GltfEcsAuthoringCommandPlan,
   type GltfEcsCommandReplayReport,
+  type InstanceDataValues,
   type LightInput,
   type LightShadowSettingsInput,
   type RenderSnapshot,
@@ -328,6 +331,19 @@ export function withInstanceTint(color: Vec4Like): SpawnEntityInitializer {
   return (entity, context) => {
     registerRenderAuthoringComponents(context.world);
     entity.addComponent(InstanceTint, createInstanceTint({ color }));
+  };
+}
+
+export function withInstanceData(
+  materialKind: string,
+  values: InstanceDataValues,
+): SpawnEntityInitializer {
+  return (entity, context) => {
+    registerRenderAuthoringComponents(context.world);
+    entity.addComponent(
+      InstanceData,
+      createInstanceData({ materialKind, values }),
+    );
   };
 }
 

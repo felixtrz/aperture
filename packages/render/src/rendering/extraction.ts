@@ -45,6 +45,7 @@ import {
 } from "@aperture-engine/simulation";
 import {
   Camera,
+  InstanceData,
   InstanceTint,
   Light,
   LightShadowSettings,
@@ -70,6 +71,7 @@ import {
   createStableRenderId,
   type BoundsPacket,
   type EnvironmentPacket,
+  type InstanceAttributePacket,
   type LightPacket,
   type MeshDrawPacket,
   type RenderDiagnostic,
@@ -93,7 +95,7 @@ export interface RenderExtractionCache {
 
 type MeshDrawPacketTemplate = Omit<
   MeshDrawPacket,
-  "worldTransformOffset" | "boundsIndex"
+  "worldTransformOffset" | "boundsIndex" | "instanceAttributePacketIndex"
 >;
 
 interface CachedMeshDrawEntity {
@@ -155,6 +157,8 @@ export function extractRenderSnapshot(
   const diagnostics: RenderDiagnostic[] = [];
   const transforms: number[] = [];
   const instanceTints: number[] = [];
+  const instanceAttributes: number[] = [];
+  const instanceAttributePackets: InstanceAttributePacket[] = [];
   const viewMatrices: number[] = [];
   const bounds: BoundsPacket[] = [];
   const viewCullContexts: ViewCullContext[] = [];
@@ -184,6 +188,8 @@ export function extractRenderSnapshot(
     assets,
     transforms,
     instanceTints,
+    instanceAttributes,
+    instanceAttributePackets,
     bounds,
     diagnostics,
     cameraLayerMask,
@@ -202,6 +208,12 @@ export function extractRenderSnapshot(
     bounds,
     transforms: new Float32Array(transforms),
     instanceTints: new Float32Array(instanceTints),
+    ...(instanceAttributes.length === 0
+      ? {}
+      : { instanceAttributes: new Float32Array(instanceAttributes) }),
+    ...(instanceAttributePackets.length === 0
+      ? {}
+      : { instanceAttributePackets }),
     viewMatrices: new Float32Array(viewMatrices),
     diagnostics,
     report: {
@@ -515,6 +527,8 @@ function extractMeshDraws(
   assets: AssetRegistry,
   transforms: number[],
   instanceTints: number[],
+  instanceAttributes: number[],
+  instanceAttributePackets: InstanceAttributePacket[],
   bounds: BoundsPacket[],
   diagnostics: RenderDiagnostic[],
   cameraLayerMask: number,
@@ -619,17 +633,6 @@ function extractMeshDraws(
       continue;
     }
 
-    const meshValidation = validateMeshAsset(meshEntry.asset);
-
-    if (!meshValidation.valid) {
-      for (const meshDiagnostic of meshValidation.diagnostics) {
-        diagnostics.push(
-          diagnostic(`render.${meshDiagnostic.code}`, entity, meshHandle),
-        );
-      }
-      continue;
-    }
-
     const worldMatrix = readWorldMatrix(entity);
     const boundsPacket = createBoundsPacket(
       bounds.length,
@@ -648,8 +651,25 @@ function extractMeshDraws(
       continue;
     }
 
+    const meshValidation = validateMeshAsset(meshEntry.asset);
+
+    if (!meshValidation.valid) {
+      for (const meshDiagnostic of meshValidation.diagnostics) {
+        diagnostics.push(
+          diagnostic(`render.${meshDiagnostic.code}`, entity, meshHandle),
+        );
+      }
+      continue;
+    }
+
     const worldTransformOffset = pushMatrix(transforms, worldMatrix);
     const instanceTintOffset = pushInstanceTint(instanceTints, entity);
+    const instanceAttributePacketIndex = pushInstanceAttributePacket(
+      instanceAttributes,
+      instanceAttributePackets,
+      diagnostics,
+      entity,
+    );
     const boundsIndex = bounds.length;
 
     bounds.push(boundsPacket);
@@ -763,6 +783,9 @@ function extractMeshDraws(
         materialSlot: submesh.materialSlot,
         worldTransformOffset,
         ...(instanceTintOffset === undefined ? {} : { instanceTintOffset }),
+        ...(instanceAttributePacketIndex === undefined
+          ? {}
+          : { instanceAttributePacketIndex }),
         boundsIndex,
         layerMask,
         castsShadow,
@@ -795,7 +818,8 @@ function extractMeshDraws(
     if (
       cache !== undefined &&
       entityDraws.length > 0 &&
-      diagnostics.length === entityDiagnosticsStart
+      diagnostics.length === entityDiagnosticsStart &&
+      !entity.hasComponent(InstanceData)
     ) {
       const sourceBounds = bounds[boundsIndex];
 
@@ -1482,6 +1506,88 @@ function pushInstanceTint(
   }
 
   return pushVec4(values, entity.getVectorView(InstanceTint, "color"));
+}
+
+function pushInstanceAttributePacket(
+  values: number[],
+  packets: InstanceAttributePacket[],
+  diagnostics: RenderDiagnostic[],
+  entity: Entity,
+): number | undefined {
+  if (!entity.hasComponent(InstanceData)) {
+    return undefined;
+  }
+
+  const materialKind = entity.getValue(InstanceData, "materialKind") ?? "";
+  const valuesJson = entity.getValue(InstanceData, "valuesJson") ?? "{}";
+  const fields: InstanceAttributePacket["fields"][number][] = [];
+  let parsed: unknown;
+
+  try {
+    parsed = JSON.parse(valuesJson);
+  } catch {
+    diagnostics.push(diagnostic("render.instanceData.invalidJson", entity));
+    return undefined;
+  }
+
+  if (parsed === null || typeof parsed !== "object" || Array.isArray(parsed)) {
+    diagnostics.push(diagnostic("render.instanceData.invalidValues", entity));
+    return undefined;
+  }
+
+  for (const name of Object.keys(parsed).sort()) {
+    const source = (parsed as Record<string, unknown>)[name];
+    const components = instanceDataComponents(source);
+
+    if (components === null) {
+      diagnostics.push(diagnostic("render.instanceData.invalidValue", entity));
+      continue;
+    }
+
+    const offset = values.length;
+
+    values.push(...components);
+    fields.push({
+      name,
+      offset,
+      components: components.length,
+    });
+  }
+
+  if (fields.length === 0) {
+    return undefined;
+  }
+
+  const packetIndex = packets.length;
+
+  packets.push({
+    packetIndex,
+    entity: entityRef(entity),
+    materialKind,
+    fields,
+  });
+
+  return packetIndex;
+}
+
+function instanceDataComponents(value: unknown): readonly number[] | null {
+  const raw = Array.isArray(value) ? value : [value];
+
+  if (raw.length < 1 || raw.length > 4) {
+    return null;
+  }
+
+  const components: number[] = [];
+
+  for (const component of raw) {
+    if (typeof component !== "number" || !Number.isFinite(component)) {
+      return null;
+    }
+
+    components.push(component);
+  }
+
+  return components;
 }
 
 function pushVec4(values: number[], vector: ArrayLike<number>): number {

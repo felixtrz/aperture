@@ -442,7 +442,7 @@ export function copyRenderSnapshotIntoBufferLease(
 export function renderSnapshotTransferList(
   snapshot: Pick<
     RenderSnapshot,
-    "transforms" | "viewMatrices" | "instanceTints"
+    "transforms" | "viewMatrices" | "instanceTints" | "instanceAttributes"
   >,
 ): Transferable[] {
   return renderSnapshotBufferTransferList(snapshot);
@@ -457,13 +457,14 @@ export interface RenderSnapshotTransportCostReport {
 export function estimateRenderSnapshotTransportCost(
   snapshot: Pick<
     RenderSnapshot,
-    "transforms" | "viewMatrices" | "instanceTints"
+    "transforms" | "viewMatrices" | "instanceTints" | "instanceAttributes"
   >,
 ): RenderSnapshotTransportCostReport {
   const structuredCloneBytes =
     snapshot.transforms.byteLength +
     snapshot.viewMatrices.byteLength +
-    (snapshot.instanceTints?.byteLength ?? 0);
+    (snapshot.instanceTints?.byteLength ?? 0) +
+    (snapshot.instanceAttributes?.byteLength ?? 0);
   const transferableBytes = 0;
 
   return {
@@ -480,6 +481,7 @@ function renderSnapshotBufferTransferList(input: {
   readonly transforms: Float32Array;
   readonly viewMatrices: Float32Array;
   readonly instanceTints?: Float32Array;
+  readonly instanceAttributes?: Float32Array;
 }): Transferable[] {
   const transfer: Transferable[] = [
     input.transforms.buffer as ArrayBuffer,
@@ -488,6 +490,13 @@ function renderSnapshotBufferTransferList(input: {
 
   if (input.instanceTints !== undefined && input.instanceTints.byteLength > 0) {
     transfer.push(input.instanceTints.buffer as ArrayBuffer);
+  }
+
+  if (
+    input.instanceAttributes !== undefined &&
+    input.instanceAttributes.byteLength > 0
+  ) {
+    transfer.push(input.instanceAttributes.buffer as ArrayBuffer);
   }
 
   return transfer;

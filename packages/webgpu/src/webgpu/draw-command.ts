@@ -1,9 +1,12 @@
 import type { RenderWorldDrawPackage } from "@aperture-engine/render";
+import type { InstanceAttributeGpuBufferResource } from "./instance-attribute-buffer.js";
 import type { InstanceTintGpuBufferResource } from "./instance-tint-buffer.js";
 import type { MeshGpuBufferResource } from "./mesh-buffer-resources.js";
 
 export type DrawCommandDescriptorDiagnosticCode =
   | "drawCommand.missingMeshResource"
+  | "drawCommand.missingInstanceAttributeResource"
+  | "drawCommand.missingInstanceAttributePacket"
   | "drawCommand.missingInstanceTintResource"
   | "drawCommand.missingInstanceTintOffset";
 
@@ -34,6 +37,7 @@ export interface DrawCommandDescriptorPlan {
 
 export interface CreateDrawCommandDescriptorOptions {
   readonly instanceTintResources?: readonly InstanceTintGpuBufferResource[];
+  readonly instanceAttributeResources?: readonly InstanceAttributeGpuBufferResource[];
 }
 
 export interface DrawCommandDescriptorScratch {
@@ -137,6 +141,21 @@ export function writeDrawCommandDescriptors(
       continue;
     }
 
+    if (
+      hasPipelineFeaturePrefix(
+        drawPackage.batchKey.pipelineKey,
+        "instance-attributes:",
+      ) &&
+      appendInstanceAttributeBufferKey(
+        drawPackage,
+        descriptor,
+        options,
+        scratch,
+      ) === false
+    ) {
+      continue;
+    }
+
     descriptor.vertexCount = mesh.vertexCount;
     descriptor.indexBufferKey = mesh.indexBuffer?.resourceKey ?? null;
     descriptor.indexCount = mesh.indexBuffer?.indexCount ?? null;
@@ -145,6 +164,38 @@ export function writeDrawCommandDescriptors(
   }
 
   return scratch.plan;
+}
+
+function appendInstanceAttributeBufferKey(
+  drawPackage: RenderWorldDrawPackage,
+  descriptor: MutableDrawCommandDescriptor,
+  options: CreateDrawCommandDescriptorOptions,
+  scratch: DrawCommandDescriptorScratch,
+): boolean {
+  const instanceAttributes = options.instanceAttributeResources?.[0];
+
+  if (drawPackage.packet.instanceAttributePacketIndex === undefined) {
+    scratch.diagnostics.push({
+      code: "drawCommand.missingInstanceAttributePacket",
+      renderId: drawPackage.renderId,
+      resourceKey: drawPackage.materialResourceKey,
+      message: `Render id ${drawPackage.renderId} uses an instance-attribute pipeline but has no instance attribute packet.`,
+    });
+    return false;
+  }
+
+  if (instanceAttributes === undefined) {
+    scratch.diagnostics.push({
+      code: "drawCommand.missingInstanceAttributeResource",
+      renderId: drawPackage.renderId,
+      resourceKey: drawPackage.materialResourceKey,
+      message: `Render id ${drawPackage.renderId} uses an instance-attribute pipeline but no instance attribute vertex buffer is available.`,
+    });
+    return false;
+  }
+
+  descriptor.vertexBufferKeys.push(instanceAttributes.resourceKey);
+  return true;
 }
 
 function appendInstanceTintBufferKey(
@@ -181,6 +232,15 @@ function appendInstanceTintBufferKey(
 
 function hasPipelineFeature(pipelineKey: string, feature: string): boolean {
   return pipelineKey.split("|").includes(feature);
+}
+
+function hasPipelineFeaturePrefix(
+  pipelineKey: string,
+  featurePrefix: string,
+): boolean {
+  return pipelineKey
+    .split("|")
+    .some((feature) => feature.startsWith(featurePrefix));
 }
 
 function descriptorAt(

@@ -13,5 +13,6 @@ export * from "./standard-texture-readiness.js";
 export * from "./standard-sampler-fidelity.js";
 export * from "./standard-texture-sampler-alignment.js";
 export * from "./gltf-sampler.js";
+export * from "./instance-attributes.js";
 export * from "./gltf-material.js";
 export * from "./gltf-texture.js";

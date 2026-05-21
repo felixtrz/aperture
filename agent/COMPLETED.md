@@ -1,5 +1,39 @@
 # Completed Tasks
 
+## task-3044 — Per-instance custom attributes contract
+
+Completed: 2026-05-21
+
+Summary:
+
+- Added public `defineInstanceAttributes(...)` for custom WGSL material sources,
+  with normalized shader locations, byte offsets, stride, and layout keys.
+- Added `withInstanceData(materialKind, values)` and an ECS `InstanceData`
+  authoring component so runtime entities can carry named scalar/vec instance
+  values without allocating per-entity materials.
+- Extended extraction and snapshots with named instance-attribute packets plus a
+  parallel `Float32Array` stream, and added transform-aligned packing for
+  instance-rate vertex buffers.
+- Added WebGPU descriptor/resource helpers for generic instance-attribute
+  vertex buffers, custom WGSL pipeline vertex-buffer layout integration, and
+  draw-command binding for `instance-attributes:*` pipeline keys.
+
+References inspected:
+
+- `references/three.js/src/core/InstancedBufferAttribute.js`
+- `references/bevy/crates/bevy_render/src/extract_instances.rs`
+- `references/engine/src/scene/mesh-instance.js`
+
+Validation:
+
+- `pnpm run build`
+- `pnpm exec tsc --noEmit -p packages/render/tsconfig.json`
+- `pnpm exec tsc --noEmit -p packages/runtime/tsconfig.json`
+- `pnpm exec tsc --noEmit -p packages/webgpu/tsconfig.json`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec vitest run test/rendering/transform-pack.test.ts test/rendering/extraction.test.ts test/assets/render-asset-preparation.test.ts test/webgpu/custom-wgsl-material.test.ts test/webgpu/draw-command.test.ts`
+- `pnpm exec eslint packages/render/src/materials/instance-attributes.ts packages/render/src/assets/preparation.ts packages/render/src/rendering/authoring.ts packages/render/src/rendering/snapshot.ts packages/render/src/rendering/extraction.ts packages/render/src/rendering/transform-pack.ts packages/runtime/src/index.ts packages/runtime/src/simulation-worker.ts packages/webgpu/src/webgpu/instance-attribute-buffer.ts packages/webgpu/src/webgpu/resource-keys.ts packages/webgpu/src/webgpu/custom-wgsl-material.ts packages/webgpu/src/webgpu/draw-command.ts test/rendering/transform-pack.test.ts test/rendering/extraction.test.ts test/assets/render-asset-preparation.test.ts test/webgpu/custom-wgsl-material.test.ts test/webgpu/draw-command.test.ts`
+
 ## task-3043 — Frustum culling in extraction
 
 Completed: 2026-05-21

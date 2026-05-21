@@ -7,12 +7,16 @@ import {
   createMeshHandle,
   createRenderSortKey,
   createUnlitMaterialAsset,
+  defineInstanceAttributes,
+  createInstanceAttributeLayout,
   createPackedSnapshotInstanceTintsScratch,
   createPackedSnapshotTransformsScratch,
+  packSnapshotInstanceAttributesForVertexBuffer,
   packSnapshotInstanceTintsForVertexBuffer,
   packSnapshotTransforms,
   writePackedSnapshotInstanceTintsForVertexBuffer,
   writePackedSnapshotTransforms,
+  type InstanceAttributePacket,
   type MeshDrawPacket,
   type RenderSnapshot,
 } from "@aperture-engine/core";
@@ -167,12 +171,59 @@ describe("render snapshot transform packing", () => {
       0, 0, 1, 1,
     ]);
   });
+
+  it("packs custom instance attributes into transform-aligned vertex buffer slots", () => {
+    const layout = required(
+      createInstanceAttributeLayout(
+        defineInstanceAttributes([
+          { name: "wind", format: "float32x3" },
+          { name: "phase", format: "float32" },
+        ]),
+      ),
+    );
+    const first = packet(1, 0, undefined, 0);
+    const second = packet(2, 16, undefined, 1);
+    const currentSnapshot = snapshot(
+      [first, second],
+      matrices([1, 2]),
+      undefined,
+      new Float32Array([1, 2, 3, 0.25, 4, 5, 6, 0.75]),
+      [
+        instancePacket(0, first, "custom-wind", [
+          { name: "phase", offset: 3, components: 1 },
+          { name: "wind", offset: 0, components: 3 },
+        ]),
+        instancePacket(1, second, "custom-wind", [
+          { name: "phase", offset: 7, components: 1 },
+          { name: "wind", offset: 4, components: 3 },
+        ]),
+      ],
+    );
+    const transforms = packSnapshotTransforms(currentSnapshot);
+    const packed = packSnapshotInstanceAttributesForVertexBuffer(
+      currentSnapshot,
+      transforms,
+      layout,
+      { materialKind: "custom-wind" },
+    );
+
+    expect(layout.strideFloats).toBe(4);
+    expect(packed.offsets).toEqual([
+      { renderId: first.renderId, sourcePacketIndex: 0, packedOffset: 0 },
+      { renderId: second.renderId, sourcePacketIndex: 1, packedOffset: 4 },
+    ]);
+    expect(Array.from(packed.data.subarray(0, packed.floatCount))).toEqual([
+      1, 2, 3, 0.25, 4, 5, 6, 0.75,
+    ]);
+    expect(packed.diagnostics).toEqual([]);
+  });
 });
 
 function packet(
   seed: number,
   worldTransformOffset: number,
   instanceTintOffset?: number,
+  instanceAttributePacketIndex?: number,
 ): MeshDrawPacket {
   const mesh = createMeshHandle(`mesh-${seed}`);
   const material = createMaterialHandle(`material-${seed}`);
@@ -197,6 +248,9 @@ function packet(
       topology: "triangle-list",
     }),
     ...(instanceTintOffset === undefined ? {} : { instanceTintOffset }),
+    ...(instanceAttributePacketIndex === undefined
+      ? {}
+      : { instanceAttributePacketIndex }),
   };
 }
 
@@ -204,6 +258,8 @@ function snapshot(
   meshDraws: readonly MeshDrawPacket[],
   transforms: readonly number[],
   instanceTints?: readonly number[],
+  instanceAttributes?: Float32Array,
+  instanceAttributePackets?: readonly InstanceAttributePacket[],
 ): RenderSnapshot {
   return {
     frame: 1,
@@ -217,6 +273,10 @@ function snapshot(
     ...(instanceTints === undefined
       ? {}
       : { instanceTints: new Float32Array(instanceTints) }),
+    ...(instanceAttributes === undefined ? {} : { instanceAttributes }),
+    ...(instanceAttributePackets === undefined
+      ? {}
+      : { instanceAttributePackets }),
     viewMatrices: new Float32Array(0),
     diagnostics: [],
     report: {
@@ -231,10 +291,32 @@ function snapshot(
   };
 }
 
+function instancePacket(
+  packetIndex: number,
+  draw: MeshDrawPacket,
+  materialKind: string,
+  fields: InstanceAttributePacket["fields"],
+): InstanceAttributePacket {
+  return {
+    packetIndex,
+    entity: draw.entity,
+    materialKind,
+    fields,
+  };
+}
+
 function matrices(seeds: readonly number[]): number[] {
   return seeds.flatMap((seed) => matrix(seed));
 }
 
 function matrix(seed: number): number[] {
   return Array.from({ length: 16 }, (_, index) => seed * 100 + index);
+}
+
+function required<T>(value: T | null | undefined): T {
+  if (value === null || value === undefined) {
+    throw new Error("Expected value to be present.");
+  }
+
+  return value;
 }

@@ -111,6 +111,36 @@ describe("draw command descriptor planning", () => {
     expect(result.descriptors[0]?.vertexBufferKeys).toEqual(["mesh:a/vertex"]);
   });
 
+  it("appends the custom instance attribute vertex buffer for instance-attribute pipelines", () => {
+    const result = createDrawCommandDescriptors(
+      [drawPackage(1, "mesh:a", "custom|instance-attributes:abc123|opaque")],
+      [meshResource("mesh:a", true)],
+      {
+        instanceAttributeResources: [
+          {
+            streamId: "instanceAttributes",
+            resourceKey: "instance-attribute-buffer:frame",
+            buffer: {},
+            vertexCount: 1,
+            layout: {
+              attributes: [],
+              stride: 16,
+              strideFloats: 4,
+              layoutKey: "abc123",
+            },
+            offsets: [{ renderId: 1, sourcePacketIndex: 0, packedOffset: 0 }],
+          },
+        ],
+      },
+    );
+
+    expect(result.diagnostics).toEqual([]);
+    expect(result.descriptors[0]?.vertexBufferKeys).toEqual([
+      "mesh:a/vertex",
+      "instance-attribute-buffer:frame",
+    ]);
+  });
+
   it("diagnoses instance-tint pipelines without a tint buffer", () => {
     const result = createDrawCommandDescriptors(
       [
@@ -170,7 +200,7 @@ function drawPackage(
     batchKey: { ...BATCH, pipelineKey },
     meshResourceKey,
     materialResourceKey: "material:a",
-    packet: { instanceTintOffset: 0 },
+    packet: { instanceTintOffset: 0, instanceAttributePacketIndex: 0 },
     transformPackedOffset: renderId * 16,
   } as unknown as RenderWorldDrawPackage;
 }

@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   AssetRegistry,
   Camera,
+  InstanceData,
   InstanceTint,
   Light,
   LightKind,
@@ -17,6 +18,7 @@ import {
   createBoxMeshAsset,
   createCamera,
   createEnvironmentMapHandle,
+  createInstanceData,
   createLight,
   createLightShadowSettings,
   createMaterialHandle,
@@ -184,6 +186,67 @@ describe("render extraction", () => {
       expect.closeTo(0.65, 5),
       1,
       1,
+    ]);
+  });
+
+  it("extracts named custom instance data into snapshot attribute packets", () => {
+    const world = createRuntimeWorld();
+    const assets = createReadyAssets();
+
+    createCameraEntity(world, { priority: 0, layerMask: 1 });
+    const first = createMeshEntity(world, {
+      meshId: "mesh:cube",
+      materialId: "material:unlit",
+      layerMask: 1,
+    });
+    const second = createMeshEntity(world, {
+      meshId: "mesh:cube",
+      materialId: "material:unlit",
+      layerMask: 1,
+    });
+
+    first.addComponent(
+      InstanceData,
+      createInstanceData({
+        materialKind: "custom-wind",
+        values: { wind: [1, 2, 3], phase: 0.25 },
+      }),
+    );
+    second.addComponent(
+      InstanceData,
+      createInstanceData({
+        materialKind: "custom-wind",
+        values: { wind: [4, 5, 6], phase: 0.75 },
+      }),
+    );
+
+    const snapshot = extractRenderSnapshot(world, assets);
+
+    expect(snapshot.meshDraws).toHaveLength(2);
+    expect(
+      new Set(snapshot.meshDraws.map((draw) => draw.batchKey.pipelineKey)).size,
+    ).toBe(1);
+    expect(
+      snapshot.meshDraws.map((draw) => draw.instanceAttributePacketIndex),
+    ).toEqual([0, 1]);
+    expect(Array.from(snapshot.instanceAttributes ?? [])).toEqual([
+      0.25, 1, 2, 3, 0.75, 4, 5, 6,
+    ]);
+    expect(snapshot.instanceAttributePackets).toMatchObject([
+      {
+        materialKind: "custom-wind",
+        fields: [
+          { name: "phase", offset: 0, components: 1 },
+          { name: "wind", offset: 1, components: 3 },
+        ],
+      },
+      {
+        materialKind: "custom-wind",
+        fields: [
+          { name: "phase", offset: 4, components: 1 },
+          { name: "wind", offset: 5, components: 3 },
+        ],
+      },
     ]);
   });
 
