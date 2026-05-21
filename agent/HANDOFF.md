@@ -88,15 +88,32 @@ Advanced `task-3035` but did not finish it.
 - Direct Chrome/WebGPU smoke reached ready status for all five examples changed
   this run:
   `batching`, `matcap-app`, `render-to-texture`, `gpu-profiler`, and
-  `materials-showcase`. The smoke printed expected phases/draw counts and
-  confirmed transferred typed arrays. Chrome again kept the Node process open
-  after all checks printed, so it was killed after successful output.
+  `materials-showcase`. The final headless smoke exited cleanly after printing
+  expected phases/draw counts and confirming transferred typed arrays.
 - A focused direct `materials-showcase` frame-progression check reached frame 13
   with `ok: true`, `phase: "animate"`, one extracted environment, and preserved
   typed arrays. The official headed Playwright `materials-showcase` spec did not
   reach a pass line within 90 seconds in this environment, so it was stopped;
   this needs a retry in a non-hanging browser runner if that exact spec result
   is required.
+- Baseline direct smokes for the still-unmigrated shadow examples reached:
+  `point-shadow` frame 2 with `point-depth-cube-compare`, and `spot-shadow`
+  frame 3 with `spot-depth-compare`. Use those as quick sanity targets when
+  migrating the shadow pair next.
+- Baseline direct smokes for the still-unmigrated StandardMaterial texture
+  examples reached: `standard-texture-control` default scenario rendered with
+  two mesh draws, and `standard-gltf-texture` default scenario rendered with one
+  mesh draw. Representative texture scenarios also reached expected states:
+  standard texture control `normal-map` rendered, standard texture control
+  `missing-texture` expected-failure, standard GLTF texture `normal-map`
+  rendered, and standard GLTF texture `base-color-transform`
+  expected-failure.
+- Baseline direct smokes for the larger still-unmigrated pages reached:
+  `app-diagnostics` with `phase: "diagnostics-ready"` and `gltf-scene` frame 4
+  with four draw calls.
+- Baseline direct smokes for the manual low-level examples reached:
+  `triangle` default unlit submit, `multi-entity` default submit, and
+  `custom-material` animated WaterMaterial.
 
 ### Known issues
 
