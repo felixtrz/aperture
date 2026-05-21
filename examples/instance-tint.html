@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Aperture Static Batching</title>
+    <title>Aperture Instance Tint</title>
     <link rel="stylesheet" href="./styles.css" />
     <script type="importmap">
       {
@@ -24,19 +24,19 @@
     <main class="runtime-shell">
       <section
         class="viewport-panel"
-        aria-label="Aperture static batching runtime"
+        aria-label="Aperture instance tint runtime"
       >
         <canvas
           id="aperture-canvas"
           width="960"
           height="540"
-          aria-label="Aperture WebGPU static batching canvas"
+          aria-label="Aperture WebGPU per-instance tint canvas"
         ></canvas>
       </section>
       <aside class="status-panel" aria-label="Runtime status">
         <div class="status-row">
           <span>example</span>
-          <strong id="example-name">static batching</strong>
+          <strong id="example-name">instance tint</strong>
         </div>
         <div class="status-row">
           <span>state</span>
@@ -54,6 +54,6 @@
         <pre id="example-json">{}</pre>
       </aside>
     </main>
-    <script type="module" src="./batching.js"></script>
+    <script type="module" src="./instance-tint.js"></script>
   </body>
 </html>

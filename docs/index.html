@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-21 07:23 UTC</dd>
+            <dd>2026-05-21 08:30 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -491,7 +491,11 @@
               snapshots, packs into transform-aligned instance-rate WebGPU
               buffers, binds beside mesh vertex buffers for
               <code>instance-tint</code> StandardMaterial pipelines, and
-              multiplies StandardMaterial base color and alpha in WGSL. The GLB
+              multiplies StandardMaterial base color and alpha in WGSL. The new
+              instance-tint example renders a 256-box ECS-authored gradient
+              swarm with one shared mesh/material and one submitted draw call,
+              and Playwright samples red, green, and blue regions to prove
+              per-instance pixels. The GLB
               viewer now renders extended StandardMaterial combined texture
               routes: occlusion plus normal, metallic-roughness plus emissive,
               alpha-blend plus normal, UV1 metallic-roughness plus normal,
@@ -1141,7 +1145,7 @@
               key so live route changes do not reuse incompatible layouts.
             </dd>
             <dt>Next focus</dt>
-            <dd>Per-instance tint gradient swarm browser proof</dd>
+            <dd>createSimulationWorker runtime helper</dd>
           </dl>
         </aside>
       </header>
@@ -1213,8 +1217,10 @@
               Per-instance tint now uses ECS-authored component data, extracted
               snapshot buffers, WebGPU-owned instance-rate tint resources, and
               StandardMaterial shader sampling without allocating one material
-              per color. Richer app-level adapter routing, passes, and prepared
-              GPU resource lifetime policy remain.
+              per color. The instance-tint example proves that route in browser
+              with 256 boxes, one shared mesh/material, one submitted draw call,
+              and named red/green/blue pixel samples. Richer app-level adapter
+              routing, passes, and prepared GPU resource lifetime policy remain.
             </p>
           </article>
           <article class="card metric">
@@ -1776,7 +1782,8 @@
               plane by changing a fragment uniform across frames.
               StandardMaterial <code>instance-tint</code> pipelines now bind an
               instance-rate tint vertex buffer and sample it in WGSL to multiply
-              base color and alpha.
+              base color and alpha; the instance-tint example now proves those
+              values visibly across a 256-box gradient swarm.
             </p>
             <ul>
               <li>Missing render graph and multi-pass architecture.</li>
@@ -1804,16 +1811,22 @@
             <h3>Latest work in this update</h3>
             <ul>
               <li>
+                <span class="badge green">task-3031</span> Added the
+                instance-tint gradient swarm proof: 256 ECS-authored boxes share
+                one mesh/material, submit as one draw, and show distinct
+                per-instance red/green/blue pixel regions.
+              </li>
+              <li>
+                <span class="badge amber">next</span> Build the
+                <code>createSimulationWorker</code> runtime helper that wraps a
+                Worker, owns snapshot subscription, and prepares the
+                worker-by-default migration.
+              </li>
+              <li>
                 <span class="badge green">task-3030</span> Completed the
                 per-instance tint contract from ECS authoring through extracted
                 snapshot tint data, WebGPU instance-rate buffers, and
                 StandardMaterial WGSL sampling.
-              </li>
-              <li>
-                <span class="badge amber">next</span> Build the
-                <code>instance-tint</code> gradient swarm example and prove
-                distinct per-instance pixels while keeping a shared mesh and
-                material.
               </li>
               <li>
                 <span class="badge green">task-3018</span> Added a static
@@ -3934,6 +3947,16 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3031</div>
+            <div>
+              <strong>Per-instance tint is visible in browser.</strong>
+              <span>
+                The instance-tint example renders a 256-box gradient swarm from
+                one shared mesh/material and one submitted draw call.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3030</div>
             <div>

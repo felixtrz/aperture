@@ -59,15 +59,15 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start with `task-3031`: Per-instance tint visible example (part 2: gradient swarm).
+Start with `task-3032`: `createSimulationWorker` runtime helper.
 
-Why this next: The per-instance tint authoring, extraction, packed buffer, WebGPU resource, pipeline-layout, and StandardMaterial WGSL contract are complete. The next visible roadmap slice should prove the feature on-screen with a shared mesh/material swarm whose pixels differ only because ECS-authored per-entity tint data reached the shader.
+Why this next: Tier 6 per-instance tint is now complete through a visible browser proof. The next roadmap tier starts the worker-by-default migration by wrapping Worker startup, snapshot subscription, termination, and reusable transferred-buffer allocation behind a typed runtime API before `createWebGpuApp` becomes renderer-only.
 
 Reference anchors (read before writing):
 
-- `references/three.js/examples/webgpu_instance_mesh.html` if present, else `references/three.js/examples/webgl_instancing_dynamic.html`
-- `references/engine/examples/graphics/instancing.html`
-- Existing Aperture `examples/instancing.js` and `test/e2e/instancing.spec.ts`
+- `references/three.js/examples/webgl_worker_offscreencanvas.html`
+- `references/engine/src/framework/handlers/basis-worker.js`
+- Existing Aperture `examples/worker-cube.main.js` and `examples/worker-cube.worker.js`
 
 ## Strategic Focus — Pipeline Maturity Roadmap
 
@@ -103,7 +103,7 @@ Eleven cross-cutting gaps remain across the six phases. They are sequenced below
 
 **Tier 6 — Post-roadmap polish (queued after Tier 5):**
 
-12. Per-instance tint (task-3030 shipped, task-3031 next) — demonstrates Aperture's ECS-as-source-of-truth advantage over three.js's `InstancedMesh`: 1,000 entities with one material handle and per-entity `InstanceTint` components coalesce into 1 draw call while each pixel reads its tint. Uses the existing instance-buffer infrastructure from Tier 3 plus the pipeline-key system; no architectural changes.
+12. Per-instance tint (task-3030 and task-3031 shipped) — demonstrates Aperture's ECS-as-source-of-truth advantage over three.js's `InstancedMesh`: entities with one material handle and per-entity `InstanceTint` components coalesce into 1 draw call while each pixel reads its tint. Uses the existing instance-buffer infrastructure from Tier 3 plus the pipeline-key system; no architectural changes.
 
 **Tier 7 — Worker-by-default migration + transferable transport (queued after Tier 6):**
 
@@ -280,11 +280,14 @@ Acceptance criteria:
 
 ### task-3031 — Per-instance tint visible example (part 2: gradient swarm)
 
+Status: completed 2026-05-21. See `agent/COMPLETED.md`.
+
 Category: `runtime-orchestration`
 Package/write-scope: `examples/instance-tint.html`, `examples/instance-tint.js`, `test/e2e/instance-tint.spec.ts`. Optionally extend `examples/instancing.html` instead if the agent prefers one example over two.
 Dependencies: task-3030.
 Reference anchor: `references/three.js/examples/webgpu_instance_mesh.html` if present, else `references/three.js/examples/webgl_instancing_dynamic.html`; `references/engine/examples/graphics/instancing.html`.
 Insertion point: new example spawning a grid of N (≥256) entities with one shared mesh+material and a per-entity `withInstanceTint(...)` computed from grid position (e.g., HSV-to-RGB sweep so the swarm renders as a visible color gradient).
+Completion note 2026-05-21: added `examples/instance-tint.html` and `examples/instance-tint.js`, which render 256 ECS-authored cubes sharing one mesh/material through one submitted StandardMaterial `instance-tint` draw. Playwright samples red, green, and blue regions, verifies one shared mesh/material handle, asserts the `standard|instance-tint|opaque|none|less|none` pipeline key, and guards against per-entity draw calls. The slice also fixed the StandardMaterial instance-tint WGSL alpha mutability rewrite so the tint path renders instead of producing a black canvas.
 
 Acceptance criteria:
 

@@ -204,8 +204,12 @@ describe("browser standard material pipeline bridge", () => {
     });
     expect(shader.code).toContain("@location(6) instanceTint: vec4f");
     expect(shader.code).toContain(
+      "var alpha = material.baseColorFactor.a;",
+    );
+    expect(shader.code).toContain(
       "baseColor = baseColor * input.instanceTint.rgb",
     );
+    expect(shader.code).toContain("alpha = alpha * input.instanceTint.a");
   });
 
   it("builds browser descriptors for opaque, mask, and alpha-blend standard render states", () => {

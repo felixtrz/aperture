@@ -1,6 +1,74 @@
 # Agent Handoff
 
-Updated: 2026-05-21T07:52:27Z
+Updated: 2026-05-21T08:34:49Z
+
+## Current Run Update — 2026-05-21T08:34:49Z — Per-instance tint gradient swarm proof
+
+Completed `task-3031`.
+
+### What changed
+
+- Added `examples/instance-tint.html` and `examples/instance-tint.js`, a
+  visible 16x16 grid of ECS-authored cubes that all share one mesh handle and
+  one StandardMaterial handle while each entity supplies `withInstanceTint(...)`.
+- Added `test/e2e/instance-tint.spec.ts` to prove the visible red/green/blue
+  regions come from per-instance tint data, the route uses the
+  `standard|instance-tint|opaque|none|less|none` pipeline key, and the 256
+  entities submit through one grouped WebGPU draw with no validation warnings.
+- Fixed the StandardMaterial instance-tint WGSL rewrite so the generated
+  `fs_main` declares mutable `baseColor` and `alpha`; the previous string
+  replacement could mutate the GGX helper's `alpha` instead, leaving the tint
+  path black.
+- Added the instance-tint page to example navigation and syntax checks.
+- Updated public trackers, backlog, and completed-task records. Recommended
+  next task is now `task-3032`.
+
+### Files touched
+
+- `agent/BACKLOG.md`
+- `agent/COMPLETED.md`
+- `agent/HANDOFF.md`
+- `docs/index.html`
+- `docs/render-pipeline-comparison.html`
+- `examples/batching.html`
+- `examples/index.html`
+- `examples/instance-tint.html`
+- `examples/instance-tint.js`
+- `examples/instancing.html`
+- `package.json`
+- `packages/webgpu/src/webgpu/standard-shader.ts`
+- `test/e2e/instance-tint.spec.ts`
+- `test/webgpu/standard-pipeline.test.ts`
+
+### References inspected
+
+- `references/three.js/examples/webgpu_instance_mesh.html`
+- `references/engine/examples/src/examples/graphics/instancing-custom.example.mjs`
+- `references/engine/examples/src/examples/graphics/multi-draw-instanced.example.mjs`
+- Existing Aperture `examples/instancing.js`, `examples/instancing.html`, and
+  `test/e2e/instancing.spec.ts`.
+
+### Validation
+
+- `node --check examples/instance-tint.js`
+- `pnpm run check:examples`
+- `pnpm run build`
+- `pnpm --filter @aperture-engine/webgpu build`
+- `pnpm exec vitest run test/webgpu/standard-pipeline.test.ts test/webgpu/standard-pipeline-descriptor.test.ts test/webgpu/instance-tint-buffer.test.ts test/webgpu/draw-command.test.ts test/webgpu/render-pass-resources.test.ts`
+- `pnpm exec tsc --noEmit -p packages/webgpu/tsconfig.json`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec playwright test test/e2e/instance-tint.spec.ts --timeout=45000`
+- `pnpm run check:progress`
+- In-app browser status check for `/examples/instance-tint.html?v=2` confirmed
+  one draw call, the instance-tint pipeline key, and red/green/blue samples.
+
+### Known issues
+
+- None for this slice.
+
+### Recommended next task
+
+`task-3032 — createSimulationWorker runtime helper`.
 
 ## End-of-Run Update — 2026-05-21T07:52:27Z — Per-instance tint WebGPU contract
 

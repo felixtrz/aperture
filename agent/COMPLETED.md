@@ -1,5 +1,44 @@
 # Completed Tasks
 
+## task-3031 — Per-instance tint visible example (part 2: gradient swarm)
+
+Completed: 2026-05-21
+
+Summary:
+
+- Added `examples/instance-tint.html` and `examples/instance-tint.js`, a
+  visible 16x16 grid of ECS-authored cubes using one shared mesh handle, one
+  shared StandardMaterial handle, and per-entity `withInstanceTint(...)`.
+- The example publishes JSON-safe status for instance count, shared handles,
+  pipeline keys, draw counts, and named red/green/blue pixel samples.
+- Added Playwright coverage proving the swarm uses the
+  `standard|instance-tint|opaque|none|less|none` pipeline, collapses to one
+  submitted draw, and renders distinct red/green/blue regions without WebGPU
+  validation warnings.
+- Fixed the StandardMaterial instance-tint shader rewrite so the generated WGSL
+  makes the fragment `alpha` mutable in `fs_main` instead of accidentally
+  rewriting the GGX helper's local `alpha`.
+
+References inspected:
+
+- `references/three.js/examples/webgpu_instance_mesh.html`
+- `references/engine/examples/src/examples/graphics/instancing-custom.example.mjs`
+- `references/engine/examples/src/examples/graphics/multi-draw-instanced.example.mjs`
+- Existing Aperture `examples/instancing.js` and
+  `test/e2e/instancing.spec.ts`
+
+Validation:
+
+- `node --check examples/instance-tint.js`
+- `pnpm run check:examples`
+- `pnpm --filter @aperture-engine/webgpu build`
+- `pnpm exec vitest run test/webgpu/standard-pipeline.test.ts test/webgpu/standard-pipeline-descriptor.test.ts test/webgpu/instance-tint-buffer.test.ts test/webgpu/draw-command.test.ts test/webgpu/render-pass-resources.test.ts`
+- `pnpm exec tsc --noEmit -p packages/webgpu/tsconfig.json`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec playwright test test/e2e/instance-tint.spec.ts --timeout=45000`
+- In-app browser status check for `/examples/instance-tint.html?v=2` confirmed
+  one draw call, the instance-tint pipeline key, and red/green/blue samples.
+
 ## task-3030 — Per-instance tint component + extraction + WGSL sampling (part 1: contract)
 
 Completed: 2026-05-21

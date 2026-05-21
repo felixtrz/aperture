@@ -1044,8 +1044,11 @@ fn saturate(value: f32) -> f32 {`,
         `  output.uv = input.uv;
   output.instanceTint = input.instanceTint;`,
       )
-      .replace(`  let baseColor =`, `  var baseColor =`)
-      .replace(`  let alpha =`, `  var alpha =`)
+      .replace(
+        /  let baseColor = ([^;]+);\n  let alpha = ([^;]+);/u,
+        `  var baseColor = $1;
+  var alpha = $2;`,
+      )
       .replace(
         `  if ((material.featureFlags & STANDARD_FEATURE_ALPHA_MASK) != 0u && alpha < material.alphaCutoff) {`,
         `  baseColor = baseColor * input.instanceTint.rgb;
