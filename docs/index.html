@@ -393,14 +393,24 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-21 14:24 UTC</dd>
+            <dd>2026-05-21 15:49 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
-              The WebGPU app facade now requires a worker-shaped snapshot
-              producer and no longer exposes main-thread ECS authoring APIs:
-              <code>spawn</code>, <code>world</code>, and <code>assets</code>
+              Spinning cube and multi-light shadow now use worker-by-default
+              flagship example entries: each page loads a main-thread renderer
+              module, registers renderer-side source assets, and consumes
+              transferable <code>RenderSnapshot</code> buffers from a module
+              Worker that owns <code>createExtractionApp()</code>, ECS
+              authoring, and stepping. Their status JSON now reports worker
+              snapshot counts and typed-array preservation, and static example
+              tests prevent ECS spawning from drifting back into those main
+              files. The GLB viewer worker split remains the open flagship
+              migration item. The WebGPU app facade now requires a worker-shaped
+              snapshot producer and no longer exposes main-thread ECS authoring
+              APIs: <code>spawn</code>, <code>world</code>, and
+              <code>assets</code>
               are removed from the returned renderer app. It consumes
               renderer-side source assets plus worker-produced
               <code>RenderSnapshot</code> data through <code>start()</code>,
@@ -1156,7 +1166,7 @@
               key so live route changes do not reuse incompatible layouts.
             </dd>
             <dt>Next focus</dt>
-            <dd>flagship examples worker-by-default migration</dd>
+            <dd>finish GLB viewer worker-by-default migration</dd>
           </dl>
         </aside>
       </header>
@@ -1827,16 +1837,31 @@
             <h3>Latest work in this update</h3>
             <ul>
               <li>
+                <span class="badge amber">task-3034 partial</span> Migrated
+                spinning cube and multi-light shadow to worker-by-default
+                example shape with renderer-only <code>*.main.js</code> entries,
+                ECS-owned <code>*.worker.js</code> entries, transferable
+                snapshot transport, and status/spec guards proving the worker
+                boundary. The shared worker transport status probe now lives in
+                one helper.
+              </li>
+              <li>
+                <span class="badge amber">GLB prep</span> Externalized the GLB
+                viewer sample catalog and made its same-origin image decode path
+                prefer worker globals plus <code>OffscreenCanvas</code>, keeping
+                the next viewer split focused on ECS command/control transport.
+              </li>
+              <li>
+                <span class="badge green">task-3033</span> Redesigned
+                <code>createWebGpuApp</code> to consume a worker-shaped snapshot
+                producer and submit worker-produced snapshots as a renderer-only
+                main-thread app.
+              </li>
+              <li>
                 <span class="badge green">task-3032</span> Added
                 <code>createSimulationWorker()</code>, MessageChannel snapshot
                 subscriptions, termination handling, and a recyclable
                 transferable snapshot buffer pool.
-              </li>
-              <li>
-                <span class="badge amber">next</span> Redesign
-                <code>createWebGpuApp</code> to consume a
-                <code>SimulationWorker</code> and submit worker-produced
-                snapshots as a renderer-only main-thread app.
               </li>
               <li>
                 <span class="badge green">task-3031</span> Added the
@@ -3949,16 +3974,18 @@
             <h3>Recommended next tasks</h3>
             <ul>
               <li>
-                <span class="badge amber">next</span> Migrate flagship examples
-                to worker-by-default shape.
+                <span class="badge amber">next</span> Finish the flagship
+                worker-by-default migration by splitting GLB viewer.
               </li>
               <li>
-                Split spinning-cube, GLB viewer, and multi-light shadow into
-                main-thread renderer entries plus worker ECS entries.
+                Keep the GLB viewer's loader, controls, asset switching,
+                animation, IBL, and shadow status intact while moving ECS
+                authoring and extraction behind a worker boundary. Its sample
+                catalog and image decode path are already worker-ready.
               </li>
               <li>
-                Keep Playwright pixel assertions green across the worker
-                boundary.
+                Then use the fixed-scene migrations as the template for the
+                remaining examples in <code>task-3035</code>.
               </li>
             </ul>
           </article>

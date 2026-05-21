@@ -25,6 +25,28 @@ interface MultiLightShadowStatus extends ExampleStatusBase {
     readonly shadowRequests: number;
     readonly diagnostics: number;
   };
+  readonly worker?: {
+    readonly running: boolean;
+    readonly snapshotsReceived: number;
+    readonly scene: {
+      readonly wallMeshKey: string;
+      readonly casterMeshKeys: {
+        readonly directional: string;
+        readonly spot: string;
+        readonly point: string;
+      };
+    } | null;
+  };
+  readonly transport?: {
+    readonly mode: string;
+    readonly typedArraysPreserved: {
+      readonly transforms: boolean;
+      readonly viewMatrices: boolean;
+      readonly viewsArray: boolean;
+      readonly meshDrawsArray: boolean;
+      readonly diagnosticsArray: boolean;
+    };
+  };
   readonly shadow?: {
     readonly requests: readonly {
       readonly lightKind: string;
@@ -138,6 +160,27 @@ test("Playwright renders a combined directional, spot, and point shadow scene", 
       lights: 4,
       shadowRequests: 3,
       diagnostics: 0,
+    },
+    worker: {
+      running: true,
+      scene: {
+        wallMeshKey: "mesh:multi-shadow-wall",
+        casterMeshKeys: {
+          directional: "mesh:multi-shadow-directional-cube",
+          spot: "mesh:multi-shadow-spot-cube",
+          point: "mesh:multi-shadow-point-cube",
+        },
+      },
+    },
+    transport: {
+      mode: "transferable-postMessage",
+      typedArraysPreserved: {
+        transforms: true,
+        viewMatrices: true,
+        viewsArray: true,
+        meshDrawsArray: true,
+        diagnosticsArray: true,
+      },
     },
     shadow: {
       requests: [

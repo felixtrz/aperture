@@ -1,3 +1,5 @@
+import { createNoopSimulationWorker } from "./noop-simulation-worker.js";
+
 export async function createExampleWebGpuApp(aperture, options) {
   const { worldOptions, ...webGpuOptions } = options;
   const simulation = aperture.createExtractionApp({
@@ -51,17 +53,5 @@ export async function createExampleWebGpuApp(aperture, options) {
     ok: true,
     app,
     initialization: created.initialization,
-  };
-}
-
-function createNoopSimulationWorker() {
-  return {
-    start() {},
-    onSnapshot() {
-      return () => {};
-    },
-    onError() {
-      return () => {};
-    },
   };
 }

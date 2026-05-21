@@ -59,9 +59,15 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start with `task-3034`: Migrate flagship examples to worker-by-default shape.
+Continue `task-3034`: finish the GLB viewer worker-by-default split.
 
 Why this next: `createWebGpuApp()` now requires a worker-shaped snapshot producer and no longer exposes main-thread ECS authoring APIs. The next vertical slice should migrate the flagship examples to the new two-file main/worker shape so browser-facing samples use the renderer-only path.
+
+Progress so far: `spinning-cube` and `multi-light-shadow` now use
+renderer-only `*.main.js` files plus ECS/extraction-owned `*.worker.js` files,
+with transferable snapshot status assertions. The GLB viewer sample catalog and
+same-origin image decode path are prepared for worker use, but GLB viewer still
+uses the temporary main-thread compatibility helper.
 
 Reference anchors (read before writing):
 
@@ -339,6 +345,10 @@ Package/write-scope: `examples/spinning-cube.{html,main.js,worker.js}`, `example
 Dependencies: task-3033.
 Reference anchor: `examples/worker-cube.html` + `examples/worker-cube.{main,worker}.js` (the canonical Aperture worker-split pattern shipped in task-3001); `references/three.js/examples/webgl_worker_offscreencanvas.html` for the boilerplate shape.
 Insertion point: split each flagship example into a `*.main.js` (canvas owner, calls `createWebGpuApp`) and a `*.worker.js` (calls `createSimulationApp`, spawns entities, extracts snapshots, posts). Update the HTML to load the main entry; update Playwright specs as needed.
+Progress note 2026-05-21: `spinning-cube` and `multi-light-shadow` now use the
+worker-split shape and status/tests prove transferable snapshot transport. GLB
+viewer still needs the real split; its sample catalog and same-origin image
+decode path have been made worker-ready as prep.
 
 Acceptance criteria:
 

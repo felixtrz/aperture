@@ -1,6 +1,102 @@
 # Agent Handoff
 
-Updated: 2026-05-21T14:50:00Z
+Updated: 2026-05-21T15:49:09Z
+
+## Current Run Update — 2026-05-21T15:36:17Z — Flagship worker-split examples
+
+Advanced `task-3034` but did not finish it; the GLB viewer split remains.
+
+### What changed
+
+- Migrated `examples/spinning-cube.html` and
+  `examples/multi-light-shadow.html` to renderer-only `*.main.js` entries plus
+  ECS/extraction-owned `*.worker.js` entries.
+- Kept their legacy `*.js` module names as thin compatibility imports.
+- The migrated main-thread entries now mirror renderer-side source assets,
+  create renderer-owned WebGPU resources, consume worker-produced
+  `RenderSnapshot`s through `app.renderSnapshot(...)`, and publish worker
+  snapshot counts plus typed-array transport status.
+- Added `examples/noop-simulation-worker.js` for temporary renderer bootstrap
+  shims, including the full `start`/`onSnapshot`/`onError`/`terminate`
+  worker-shaped surface, and `examples/snapshot-transport-status.js` for
+  shared transport preservation reporting.
+- Extracted the GLB viewer sample catalog plus default/id lookup helpers to
+  `examples/glb-viewer-assets.js` and made same-origin GLB image decoding
+  prefer worker globals plus `OffscreenCanvas`, so the next GLB split does not
+  need to untangle those loader dependencies.
+- Added static/example tests covering worker-split HTML entrypoints, main vs
+  worker ECS ownership, legacy wrappers, GLB catalog shareability, and GLB
+  image-decode worker readiness. The GLB catalog test also guards unique ids and
+  URL-backed sample entries.
+- Updated public tracker pages to show `task-3034` as partial and recommend
+  finishing the GLB viewer worker split next.
+
+### Files touched
+
+- `agent/BACKLOG.md`
+- `agent/HANDOFF.md`
+- `docs/index.html`
+- `docs/render-pipeline-comparison.html`
+- `examples/example-renderer-app.js`
+- `examples/glb-viewer-assets.js`
+- `examples/glb-viewer.js`
+- `examples/multi-light-shadow.html`
+- `examples/multi-light-shadow.js`
+- `examples/multi-light-shadow.main.js`
+- `examples/multi-light-shadow.worker.js`
+- `examples/noop-simulation-worker.js`
+- `examples/snapshot-transport-status.js`
+- `examples/spinning-cube.html`
+- `examples/spinning-cube.js`
+- `examples/spinning-cube.main.js`
+- `examples/spinning-cube.worker.js`
+- `examples/worker-cube.main.js`
+- `package.json`
+- `test/e2e/multi-light-shadow.spec.ts`
+- `test/e2e/spinning-cube.spec.ts`
+- `test/examples/navigation.test.mjs`
+- `test/examples/worker-split-examples.test.mjs`
+
+### References inspected
+
+- `examples/worker-cube.html`
+- `examples/worker-cube.main.js`
+- `examples/worker-cube.worker.js`
+- `references/three.js/examples/webgl_worker_offscreencanvas.html`
+- `references/bevy/crates/bevy_render/src/lib.rs`
+
+### Validation
+
+- `pnpm run check:examples`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm --filter @aperture-engine/webgpu build`
+- `pnpm --filter @aperture-engine/runtime build`
+- `pnpm exec vitest run test/runtime/simulation-worker.test.ts test/webgpu/webgpu-app.test.ts`
+- `pnpm exec vitest run test/examples/worker-split-examples.test.mjs test/examples/navigation.test.mjs`
+- `pnpm run check:progress`
+- `pnpm run check`
+- In-app browser smoke checks:
+  - `/examples/spinning-cube.html`: worker running, snapshots increasing,
+    transferable postMessage typed arrays preserved, 3 draw calls.
+  - `/examples/multi-light-shadow.html`: worker running, snapshots increasing,
+    transferable postMessage typed arrays preserved, 4 draw calls and 3 shadow
+    requests.
+  - `/examples/glb-viewer.html?asset=cube`: GLB viewer still reaches render
+    phase with one draw call after the loader prep changes.
+
+### Known issues
+
+- `task-3034` is still incomplete. `examples/glb-viewer.js` still uses
+  `createExampleWebGpuApp()` and main-thread `app.spawn(...)`; the next slice
+  should split GLB viewer controls/commands/status from worker-owned ECS
+  authoring and extraction.
+- The focused headed Playwright CLI path for some examples still hangs after
+  browser execution in this environment. In-app browser smoke checks are the
+  reliable browser validation used for this run.
+
+### Recommended next task
+
+Continue `task-3034` by migrating GLB viewer to the worker-by-default shape.
 
 ## Current Run Update — 2026-05-21T14:50:00Z — Renderer-only WebGPU app transport
 

@@ -34,7 +34,7 @@ const examplePages = [
   },
   {
     file: "examples/spinning-cube.html",
-    script: "./spinning-cube.js",
+    script: "./spinning-cube.main.js",
     title: "Aperture ECS Spinning Cube",
     canvasLabel: "Aperture WebGPU spinning cube canvas",
     exampleName: "ecs spinning cube",

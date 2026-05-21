@@ -1,3 +1,6 @@
+import { createNoopSimulationWorker } from "./noop-simulation-worker.js";
+import { inspectStructuredCloneSnapshot } from "./snapshot-transport-status.js";
+
 const canvas = document.querySelector("#aperture-canvas");
 const stateElement = document.querySelector("#example-state");
 const jsonElement = document.querySelector("#example-json");
@@ -51,18 +54,6 @@ try {
         : "The built Aperture workspace packages could not be imported.",
     ),
   );
-}
-
-function createNoopSimulationWorker() {
-  return {
-    start() {},
-    onSnapshot() {
-      return () => {};
-    },
-    onError() {
-      return () => {};
-    },
-  };
 }
 
 function registerPresentationAssets(aperture, sourceAssets) {
@@ -266,16 +257,6 @@ function createFrameStatus(
     diagnosticsSummary: reportJson.diagnosticsSummary,
     diagnostics: reportJson.diagnostics,
     resourceReuse: reportJson.resourceReuse,
-  };
-}
-
-function inspectStructuredCloneSnapshot(snapshot) {
-  return {
-    transforms: snapshot?.transforms instanceof Float32Array,
-    viewMatrices: snapshot?.viewMatrices instanceof Float32Array,
-    viewsArray: Array.isArray(snapshot?.views),
-    meshDrawsArray: Array.isArray(snapshot?.meshDraws),
-    diagnosticsArray: Array.isArray(snapshot?.diagnostics),
   };
 }
 

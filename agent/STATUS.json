@@ -6,6 +6,6 @@
   "lastResult": "success",
   "lastCommit": "458f5f8",
   "activePid": null,
-  "notes": "Completed task-3033 renderer-only createWebGpuApp worker transport; preserved temporary example compatibility bridge; next task task-3034 flagship worker migration.",
-  "lastRunFinishedAt": "2026-05-21T14:50:12Z"
+  "notes": "Advanced task-3034: spinning-cube and multi-light-shadow now use worker-split renderer/main entries with transferable snapshots; GLB viewer catalog/decode path prepared for worker split; GLB viewer remains next.",
+  "lastRunFinishedAt": "2026-05-21T15:49:28Z"
 }

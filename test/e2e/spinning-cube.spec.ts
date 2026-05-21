@@ -84,6 +84,26 @@ interface SpinningCubeStatus extends ExampleStatusBase {
   readonly renderWorld?: {
     readonly active: number;
   };
+  readonly worker?: {
+    readonly running: boolean;
+    readonly snapshotsReceived: number;
+    readonly scene: {
+      readonly meshKey: string;
+      readonly materialKey: string;
+      readonly materialKind: string;
+      readonly environmentMapKey: string;
+    } | null;
+  };
+  readonly transport?: {
+    readonly mode: string;
+    readonly typedArraysPreserved: {
+      readonly transforms: boolean;
+      readonly viewMatrices: boolean;
+      readonly viewsArray: boolean;
+      readonly meshDrawsArray: boolean;
+      readonly diagnosticsArray: boolean;
+    };
+  };
   readonly draw?: {
     readonly packages: number;
     readonly commands: number;
@@ -187,6 +207,25 @@ test("Playwright shows an ECS-driven spinning lit standard cube", async ({
       specularIblTexture: 1,
     },
     renderWorld: { active: 3 },
+    worker: {
+      running: true,
+      scene: {
+        meshKey: "mesh:spinning-cube",
+        materialKey: "material:spinning-cube-standard",
+        materialKind: "standard",
+        environmentMapKey: "environment-map:spinning-cube-pisa-studio",
+      },
+    },
+    transport: {
+      mode: "transferable-postMessage",
+      typedArraysPreserved: {
+        transforms: true,
+        viewMatrices: true,
+        viewsArray: true,
+        meshDrawsArray: true,
+        diagnosticsArray: true,
+      },
+    },
     draw: { packages: 3, drawCalls: 3 },
     command: { drawCount: 3, indexedDrawCount: 3 },
     submission: { commandBuffers: 1, drawCalls: 3, indexedDrawCalls: 3 },
