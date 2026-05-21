@@ -1,6 +1,110 @@
 # Agent Handoff
 
-Updated: 2026-05-21T00:46:31Z
+Updated: 2026-05-21T01:49:00Z
+
+## Current Run Update — 2026-05-21T01:49:00Z — Real RGBE IBL, cached extraction, and instancing proof
+
+Completed `task-3010`, `task-3011`, `task-3012`, `task-3013`, `task-3014`,
+and `task-3015`.
+
+### What changed
+
+- Added `examples/assets/pisa-studio-rgbe-cube.hdr`, a compact RGBE cube atlas
+  derived from the local three.js Pisa HDR references, and updated
+  `examples/spinning-cube.js` to fetch/decode it, upload real diffuse/specular
+  IBL cube textures, and run the PMREM compute path over the loaded source.
+- Added generation-scoped ECS entity version tracking to worlds created by
+  `createWorld()`, including component writes, typed-vector writes, destroys,
+  and explicit transform-resolution writes only when matrix columns change.
+- Added `createRenderExtractionCache()` and optional cached extraction so
+  unchanged mesh entities reuse packet/world-matrix/bounds templates while each
+  produced `RenderSnapshot` remains self-contained.
+- Added `packages/webgpu/src/webgpu/instance-buffer.ts` with mat4 instance
+  transform packing and a WebGPU vertex-buffer layout helper, plus a browser
+  proof that one indexed cube draw renders four instances.
+- Added conservative render-queue and WebGPU draw-list coalescing: compatible
+  mesh/material-identical records now become one grouped draw only when their
+  transform packed offsets are contiguous 16-float matrix slots.
+- Added `examples/instancing.html` and `.js`, spawning 1,000 ECS-authored boxes
+  sharing one mesh/material and proving the app path reports one grouped draw.
+- Updated public tracker pages, backlog, and completed-task log. Recommended
+  next task is now `task-3016`.
+
+### Files touched
+
+- `agent/BACKLOG.md`
+- `agent/COMPLETED.md`
+- `agent/HANDOFF.md`
+- `agent/STATUS.json`
+- `docs/index.html`
+- `docs/render-pipeline-comparison.html`
+- `examples/assets/pisa-studio-rgbe-cube.hdr`
+- `examples/index.html`
+- `examples/instancing.html`
+- `examples/instancing.js`
+- `examples/spinning-cube.js`
+- `package.json`
+- `packages/render/src/rendering/extraction.ts`
+- `packages/render/src/rendering/render-queue.ts`
+- `packages/simulation/src/ecs/index.ts`
+- `packages/simulation/src/transform/resolution.ts`
+- `packages/webgpu/src/webgpu/index.ts`
+- `packages/webgpu/src/webgpu/instance-buffer.ts`
+- `packages/webgpu/src/webgpu/render-pass-draw-list.ts`
+- `test/e2e/instance-buffer.spec.ts`
+- `test/e2e/instancing.spec.ts`
+- `test/e2e/spinning-cube.spec.ts`
+- `test/ecs/entity-version.test.ts`
+- `test/rendering/extraction.test.ts`
+- `test/rendering/render-queue.test.ts`
+- `test/webgpu/fixtures/ecs-snapshot-render-frame.test.ts`
+- `test/webgpu/fixtures/snapshot-render-frame.test.ts`
+- `test/webgpu/render-frame-plan.test.ts`
+- `test/webgpu/render-frame-snapshot-runner.test.ts`
+- `test/webgpu/render-pass-draw-list.test.ts`
+- `test/webgpu/webgpu-app.test.ts`
+
+### References inspected
+
+- `references/three.js/examples/webgpu_loader_gltf_iridescence.html`
+- `references/three.js/examples/textures/cube/pisaHDR/*.hdr`
+- `references/engine/examples/assets/cubemaps/*env-atlas.png`
+- `references/bevy/crates/bevy_ecs/src/change_detection/mod.rs`
+- `references/engine/src/platform/graphics/version.js`
+- `references/three.js/src/materials/Material.js`
+- `references/three.js/src/renderers/common/RenderList.js`
+- `references/three.js/src/objects/InstancedMesh.js`
+- `references/engine/src/scene/mesh-instance.js`
+- `references/bevy/crates/bevy_render/src/extract_instances.rs`
+- `references/bevy/crates/bevy_render/src/batching/mod.rs`
+- `references/engine/examples/src/examples/graphics/instancing-basic.example.mjs`
+
+### Validation
+
+- `node --check examples/spinning-cube.js`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec playwright test test/e2e/spinning-cube.spec.ts`
+- `pnpm exec vitest run test/ecs/entity-version.test.ts test/transform/resolution.test.ts test/runtime/runtime.test.ts`
+- `pnpm exec vitest run test/rendering/extraction.test.ts`
+- `pnpm exec playwright test test/e2e/instance-buffer.spec.ts`
+- `pnpm exec playwright test test/e2e/instancing.spec.ts`
+- `pnpm exec vitest run test/rendering/render-queue.test.ts test/webgpu/render-pass-draw-list.test.ts`
+- `pnpm exec vitest run test/webgpu/render-frame-plan.test.ts test/webgpu/render-frame-snapshot-runner.test.ts test/webgpu/webgpu-app.test.ts test/webgpu/fixtures/ecs-snapshot-render-frame.test.ts test/webgpu/fixtures/snapshot-render-frame.test.ts`
+- `pnpm run check:progress`
+- `pnpm run check` (320 files, 1541 tests)
+
+### Known issues
+
+- PMREM still uses the current simple roughness mip blend; full GGX importance
+  sampling remains open.
+- Instancing coalescing is deliberately conservative. It only groups contiguous
+  transform slots and does not yet build a remapped instance-transform buffer
+  for non-contiguous compatible draws.
+- The next roadmap area is batching for non-instanced static draws.
+
+### Recommended next task
+
+`task-3016 — Batching: merged geometry buffer for static draws (part 1: merge primitive)`.
 
 ## Current Run Update — 2026-05-21T00:46:31Z — Render targets through PMREM IBL wiring
 

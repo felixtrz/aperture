@@ -81,6 +81,36 @@ import {
 
 export interface RenderExtractionOptions {
   readonly frame?: number;
+  readonly cache?: RenderExtractionCache;
+}
+
+export interface RenderExtractionCache {
+  readonly meshDrawEntities: Map<string, CachedMeshDrawEntity>;
+  clear(): void;
+}
+
+type MeshDrawPacketTemplate = Omit<
+  MeshDrawPacket,
+  "worldTransformOffset" | "boundsIndex"
+>;
+
+interface CachedMeshDrawEntity {
+  readonly entityVersion: number;
+  readonly cameraLayerMask: number;
+  readonly worldMatrix: readonly number[];
+  readonly bounds: Omit<BoundsPacket, "boundsId">;
+  readonly draws: readonly MeshDrawPacketTemplate[];
+}
+
+export function createRenderExtractionCache(): RenderExtractionCache {
+  const meshDrawEntities = new Map<string, CachedMeshDrawEntity>();
+
+  return {
+    meshDrawEntities,
+    clear() {
+      meshDrawEntities.clear();
+    },
+  };
 }
 
 export function extractRenderSnapshot(
@@ -118,6 +148,7 @@ export function extractRenderSnapshot(
     bounds,
     diagnostics,
     cameraLayerMask,
+    options.cache,
   ).sort((a, b) => compareRenderSortKeys(a.sortKey, b.sortKey));
 
   return {
@@ -421,6 +452,7 @@ function extractMeshDraws(
   bounds: BoundsPacket[],
   diagnostics: RenderDiagnostic[],
   cameraLayerMask: number,
+  cache: RenderExtractionCache | undefined,
 ): MeshDrawPacket[] {
   const query = world.queryManager.registerQuery({
     required: [Mesh, Material],
@@ -428,6 +460,21 @@ function extractMeshDraws(
   const draws: MeshDrawPacket[] = [];
 
   for (const entity of sortedEntities(query.entities)) {
+    const cacheKey = entityCacheKey(entity);
+    const entityVersion = world.entityVersion(entity);
+    const cached = cache?.meshDrawEntities.get(cacheKey);
+
+    if (
+      cached !== undefined &&
+      cached.entityVersion === entityVersion &&
+      cached.cameraLayerMask === cameraLayerMask
+    ) {
+      appendCachedMeshDrawEntity(cached, transforms, bounds, draws);
+      continue;
+    }
+
+    cache?.meshDrawEntities.delete(cacheKey);
+
     if (
       entity.hasComponent(Enabled) &&
       entity.getValue(Enabled, "value") === false
@@ -506,6 +553,8 @@ function extractMeshDraws(
       meshEntry.asset,
       worldMatrix,
     );
+    const entityDiagnosticsStart = diagnostics.length;
+    const entityDraws: MeshDrawPacket[] = [];
 
     for (const submesh of meshEntry.asset.submeshes) {
       const materialHandle = parseMaterialHandle(
@@ -589,7 +638,7 @@ function extractMeshDraws(
         continue;
       }
 
-      draws.push({
+      entityDraws.push({
         renderId: stableId,
         entity: entityRef(entity),
         mesh: meshHandle,
@@ -623,9 +672,80 @@ function extractMeshDraws(
         }),
       });
     }
+
+    draws.push(...entityDraws);
+
+    if (
+      cache !== undefined &&
+      entityDraws.length > 0 &&
+      diagnostics.length === entityDiagnosticsStart
+    ) {
+      const sourceBounds = bounds[boundsIndex];
+
+      if (sourceBounds !== undefined) {
+        cache.meshDrawEntities.set(cacheKey, {
+          entityVersion,
+          cameraLayerMask,
+          worldMatrix: Array.from(worldMatrix),
+          bounds: {
+            entity: sourceBounds.entity,
+            localAabb: sourceBounds.localAabb,
+            worldAabb: sourceBounds.worldAabb,
+            localSphere: sourceBounds.localSphere,
+            worldSphere: sourceBounds.worldSphere,
+          },
+          draws: entityDraws.map(createMeshDrawPacketTemplate),
+        });
+      }
+    }
   }
 
   return draws;
+}
+
+function appendCachedMeshDrawEntity(
+  cached: CachedMeshDrawEntity,
+  transforms: number[],
+  bounds: BoundsPacket[],
+  draws: MeshDrawPacket[],
+): void {
+  const worldTransformOffset = pushMatrix(transforms, cached.worldMatrix);
+  const boundsIndex = bounds.length;
+
+  bounds.push({
+    boundsId: boundsIndex,
+    ...cached.bounds,
+  });
+
+  for (const draw of cached.draws) {
+    draws.push({
+      ...draw,
+      worldTransformOffset,
+      boundsIndex,
+    });
+  }
+}
+
+function createMeshDrawPacketTemplate(
+  draw: MeshDrawPacket,
+): MeshDrawPacketTemplate {
+  return {
+    renderId: draw.renderId,
+    entity: draw.entity,
+    mesh: draw.mesh,
+    material: draw.material,
+    submesh: draw.submesh,
+    materialSlot: draw.materialSlot,
+    layerMask: draw.layerMask,
+    ...(draw.castsShadow === undefined
+      ? {}
+      : { castsShadow: draw.castsShadow }),
+    ...(draw.receivesShadow === undefined
+      ? {}
+      : { receivesShadow: draw.receivesShadow }),
+    sortKey: draw.sortKey,
+    batchKey: draw.batchKey,
+  };
 }
 
 function validateStandardNormalMapReadiness(input: {
@@ -1116,6 +1236,10 @@ function sortedEntities(entities: Iterable<Entity>): Entity[] {
   return [...entities].sort(
     (a, b) => a.index - b.index || a.generation - b.generation,
   );
+}
+
+function entityCacheKey(entity: Entity): string {
+  return `${entity.index}:${entity.generation}`;
 }
 
 function entityRef(entity: Entity): RenderEntityRef {

@@ -1,5 +1,176 @@
 # Completed Tasks
 
+## task-3015 — Instancing example: 1,000 instances of a single mesh
+
+Completed: 2026-05-21
+
+Summary:
+
+- Added `examples/instancing.html` and `examples/instancing.js`.
+- The example spawns 1,000 ECS entities sharing one box mesh and one unlit
+  material, then renders them through the WebGPU app path.
+- The published status reports 1,000 extracted mesh draws and one grouped draw
+  call after the instancing coalescing path.
+- Added a Playwright proof that checks JSON-safe status, verifies draw-call
+  coalescing, and samples screenshot regions for visible cube pixels.
+
+References inspected:
+
+- `references/three.js/examples/webgpu_instance_mesh.html` was listed in the
+  backlog but is not present in the local reference checkout.
+- `references/engine/examples/src/examples/graphics/instancing-basic.example.mjs`
+
+Validation:
+
+- `pnpm run check:examples`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec playwright test test/e2e/instancing.spec.ts`
+
+## task-3014 — Instancing: batch grouping in render queue (part 2: coalesce)
+
+Completed: 2026-05-21
+
+Summary:
+
+- Added post-sort render-queue coalescing for compatible records that share the
+  same view/pass/queue scope, resource keys, batch key, and contiguous
+  16-float transform slots.
+- Updated the WebGPU render-pass draw-list planner so compatible draw commands
+  fold into one record with `instanceCount > 1` instead of one draw per entity.
+- Kept batching conservative: commands with transform gaps, different buffers,
+  material resources, or bind-group resources remain separate draws.
+- Added focused tests proving 100 mesh/material-identical records produce one
+  instanced draw while non-contiguous transforms do not coalesce.
+
+References inspected:
+
+- `references/bevy/crates/bevy_render/src/extract_instances.rs`
+- `references/bevy/crates/bevy_render/src/batching/mod.rs`
+- `references/engine/src/scene/mesh-instance.js`
+
+Validation:
+
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec vitest run test/rendering/render-queue.test.ts test/webgpu/render-pass-draw-list.test.ts`
+- `pnpm exec prettier --write packages/render/src/rendering/render-queue.ts packages/webgpu/src/webgpu/render-pass-draw-list.ts test/rendering/render-queue.test.ts test/webgpu/render-pass-draw-list.test.ts`
+
+## task-3013 — Instancing: per-instance transform buffer (part 1: buffer layout)
+
+Completed: 2026-05-21
+
+Summary:
+
+- Added `packages/webgpu/src/webgpu/instance-buffer.ts` with a
+  `createInstanceTransformVertexBufferLayout()` helper for mat4 per-instance
+  vertex attributes and `createInstanceTransformData()` for packed transform
+  arrays.
+- Exported the helper from `@aperture-engine/webgpu`.
+- Added a Playwright WebGPU proof that creates one indexed cube pipeline with a
+  position vertex buffer plus instance transform buffer, calls
+  `drawIndexed(indexCount, 4)`, and reads back four differently colored cube
+  instances in distinct canvas regions.
+
+References inspected:
+
+- `references/three.js/src/objects/InstancedMesh.js`
+- `references/engine/src/scene/mesh-instance.js`
+- `references/bevy/crates/bevy_render/src/extract_instances.rs`
+
+Validation:
+
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec playwright test test/e2e/instance-buffer.spec.ts`
+- `pnpm exec prettier --write packages/webgpu/src/webgpu/instance-buffer.ts packages/webgpu/src/webgpu/index.ts test/e2e/instance-buffer.spec.ts`
+
+## task-3012 — Snapshot extraction skips unchanged entities (part 2: extraction early-exit)
+
+Completed: 2026-05-21
+
+Summary:
+
+- Added explicit `createRenderExtractionCache()` support for
+  `extractRenderSnapshot()`.
+- Cached successful mesh-draw extraction per entity generation/version and
+  camera-layer mask, reusing draw templates, world matrices, and bounds data
+  when the entity version is unchanged.
+- Reused packets still receive fresh transform and bounds offsets so each
+  `RenderSnapshot` remains self-contained and structured-clone friendly.
+- Added extraction coverage proving cached output is byte-identical to a full
+  extraction for the same world state and that 1,000 unchanged entities extract
+  in less than half the time of 1,000 dirty entities.
+
+References inspected:
+
+- `references/bevy/crates/bevy_ecs/src/change_detection/mod.rs`
+- `references/three.js/src/renderers/common/RenderList.js`
+
+Validation:
+
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec vitest run test/rendering/extraction.test.ts`
+- `pnpm exec prettier --write packages/render/src/rendering/extraction.ts test/rendering/extraction.test.ts`
+
+## task-3011 — ECS change-detection: entity version tracking (part 1: ECS layer)
+
+Completed: 2026-05-21
+
+Summary:
+
+- Added `entityVersion(entity)` and `markEntityChanged(entity)` to Aperture
+  worlds created by `createWorld()`.
+- Wrapped EliCS entity writes at the Aperture world boundary so
+  `addComponent`, `setValue`, `removeComponent`, `destroy`, and typed-vector
+  `set()` calls increment a generation-scoped monotonic entity version.
+- Updated transform resolution to write resolved `WorldTransform` columns only
+  when values actually change, then mark the entity changed once for the
+  changed resolved transform.
+- Added focused ECS tests covering scalar component writes, vector writes,
+  transform resolution stability, and recycled entity generation version reset.
+
+References inspected:
+
+- `references/bevy/crates/bevy_ecs/src/change_detection/mod.rs`
+- `references/engine/src/platform/graphics/version.js`
+- `references/three.js/src/materials/Material.js`
+
+Validation:
+
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec vitest run test/ecs/entity-version.test.ts test/transform/resolution.test.ts test/runtime/runtime.test.ts`
+- `pnpm exec prettier --write test/ecs/entity-version.test.ts packages/simulation/src/ecs/index.ts packages/simulation/src/transform/resolution.ts`
+
+## task-3010 — Real HDR env-map sample shipped through the IBL path (part 4: real env)
+
+Completed: 2026-05-21
+
+Summary:
+
+- Added `examples/assets/pisa-studio-rgbe-cube.hdr`, a compact 8x8-per-face
+  RGBE cube atlas downsampled from the local three.js Pisa HDR cube-map
+  reference.
+- Updated the spinning-cube example to fetch and decode that RGBE atlas,
+  split it into six cube faces, upload real environment pixels into diffuse and
+  specular IBL cube textures, and run the existing PMREM compute mip generation
+  over the loaded source texture.
+- Published JSON-safe environment source metadata in the example status,
+  including asset path, face order, face size, and per-face averages.
+- Updated the Playwright spinning-cube proof to assert the real RGBE source
+  metadata and preserve reflected-environment pixel readbacks for diffuse,
+  specular, and roughness-dependent IBL.
+
+References inspected:
+
+- `references/three.js/examples/webgpu_loader_gltf_iridescence.html`
+- `references/three.js/examples/textures/cube/pisaHDR/*.hdr`
+- `references/engine/examples/assets/cubemaps/*env-atlas.png`
+
+Validation:
+
+- `node --check examples/spinning-cube.js`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec prettier --write examples/spinning-cube.js test/e2e/spinning-cube.spec.ts`
+- `pnpm exec playwright test test/e2e/spinning-cube.spec.ts`
+
 ## task-3009 — Replace placeholder specular IBL with real PMREM output (part 3: wiring)
 
 Completed: 2026-05-21

@@ -55,22 +55,25 @@ describe("render frame snapshot planning helper", () => {
       apply: { ready: true, counts: { active: 2, created: 2 } },
       prepare: { ready: true, counts: { planned: 2, applied: 2 } },
       queue: { ready: true, counts: { ready: 2, blocked: 0, packages: 2 } },
-      resolve: { ready: true, counts: { descriptors: 2, resolved: 2 } },
-      command: { ready: true, counts: { drawCount: 2 } },
-      submit: { ready: true, counts: { submitted: 0, plannedDraws: 2 } },
+      resolve: { ready: true, counts: { descriptors: 2, resolved: 1 } },
+      command: { ready: true, counts: { drawCount: 1 } },
+      submit: { ready: true, counts: { submitted: 0, plannedDraws: 1 } },
     });
     expect(result.summary.counts).toMatchObject({
       apply: { active: 2, created: 2 },
       binding: { planned: 2, applied: 2, ready: 2, blocked: 0 },
-      draw: { packages: 2, descriptors: 2, drawList: 2, resolved: 2 },
-      command: { drawCount: 2, nonIndexedDrawCount: 2 },
+      draw: { packages: 2, descriptors: 2, drawList: 1, resolved: 1 },
+      command: { drawCount: 1, nonIndexedDrawCount: 1 },
     });
-    expect(result.commandPlan.drawCount).toBe(2);
+    expect(result.commandPlan.drawCount).toBe(1);
     expect(
       result.commandPlan.commands
         .filter((command) => command.kind === "draw")
-        .map((command) => command.renderId),
-    ).toEqual([7, 9]);
+        .map((command) => ({
+          renderId: command.renderId,
+          instanceCount: command.instanceCount,
+        })),
+    ).toEqual([{ renderId: 7, instanceCount: 2 }]);
   });
 
   it("can reuse caller-owned summary scratch across frame plans", () => {

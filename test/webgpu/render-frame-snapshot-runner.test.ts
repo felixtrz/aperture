@@ -40,9 +40,12 @@ describe("injected render frame snapshot runner", () => {
     ]);
     expect(report.readiness.ready.map((draw) => draw.renderId)).toEqual([7, 9]);
     expect(report.frame.frame.frame.frame.execution.counts).toMatchObject({
-      commands: 12,
-      drawCalls: 2,
+      commands: 6,
+      drawCalls: 1,
     });
+    expect(report.frame.frame.frame.drawList.draws).toMatchObject([
+      { renderId: 7, instanceCount: 2 },
+    ]);
   });
 
   it("reports duplicate render ids during snapshot apply", () => {

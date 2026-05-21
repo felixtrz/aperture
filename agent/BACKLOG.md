@@ -59,14 +59,15 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start with `task-3010`: Real HDR env-map sample shipped through the IBL path (part 4: real env).
+Start with `task-3016`: Batching: merged geometry buffer for static draws (part 1: merge primitive).
 
-Why this next: `task-3009` wires generated PMREM mips into the spinning-cube specular IBL path. The next dependency is proving the same path with a real environment asset instead of the synthetic face-colored proof cubemap.
+Why this next: `task-3015` added the visible ECS-authored 1,000-instance proof. The next roadmap gap is non-instanced batching for distinct meshes that share compatible geometry layouts.
 
 Reference anchors (read before writing):
 
-- `references/three.js/examples/webgpu_loader_gltf_iridescence.html`
-- `references/engine/examples/`
+- `references/three.js/src/objects/BatchedMesh.js`
+- `references/engine/src/scene/batching/batch-manager.js`
+- `references/bevy/crates/bevy_render/src/batching/mod.rs`
 
 ## Strategic Focus — Pipeline Maturity Roadmap
 
@@ -82,12 +83,12 @@ Eleven cross-cutting gaps remain across the six phases. They are sequenced below
 
 **Tier 2 — Quality leap (depends on Tier 1):**
 
-4. PMREM/GGX specular prefilter (task-3007, task-3008, and task-3009 shipped, task-3010 next) — depends on render targets
-5. Snapshot change-set / ECS change detection (task-3011, task-3012) — enables per-frame delta extraction
+4. PMREM/GGX specular prefilter (task-3007, task-3008, task-3009, and task-3010 shipped) — depends on render targets
+5. Snapshot change-set / ECS change detection (task-3011 and task-3012 shipped) — enables per-frame delta extraction
 
 **Tier 3 — Performance ceiling (independent):**
 
-6. Instancing (task-3013, task-3014, task-3015) — coalesce N identical draws into 1
+6. Instancing (task-3013, task-3014, and task-3015 shipped) — visible 1,000-instance app proof
 7. Batching (task-3016, task-3017, task-3018) — merge geometries sharing a pipeline-key
 8. Transparent sort phase report (task-3019) — close Phase 5 honesty gap
 
@@ -107,83 +108,6 @@ The MVP track (task-2001 through task-2030) shipped successfully — completion 
 All roadmap task entries cite at least one specific reference file under `references/bevy`, `references/engine` (PlayCanvas), or `references/three.js`. The agent MUST read the cited references before writing implementation code (see `agent/WAKE.md` §4).
 
 ## Ready Tasks — Pipeline Maturity Roadmap
-
-### task-3010 — Real HDR env-map sample shipped through the IBL path (part 4: real env)
-
-Category: `runtime-orchestration`
-Package/write-scope: `examples/assets/`, `examples/spinning-cube.js` or new `examples/pmrem-showcase.html`.
-Dependencies: task-3009; optionally task-3003 if HDR is loaded as bytes.
-Reference anchor: `references/three.js/examples/webgpu_loader_gltf_iridescence.html` (uses real HDR env) or similar; `references/engine/examples/` IBL sample.
-Insertion point: commit a small HDR or RGBE env-map asset, load via async path, prefilter via PMREM.
-
-Acceptance criteria:
-
-- A real environment map (not synthetic) drives IBL on a metallic cube.
-- Playwright pixel readback shows env-map color reflected on the cube surface where physically expected.
-
-### task-3011 — ECS change-detection: entity version tracking (part 1: ECS layer)
-
-Category: `simulation`
-Package/write-scope: `packages/simulation/src/`, targeted tests.
-Reference anchor: `references/bevy/crates/bevy_ecs/src/change_detection/mod.rs`; `references/engine/src/platform/graphics/version.js`; `references/three.js/src/materials/Material.js` (needsUpdate pattern).
-Insertion point: ECS layer needs a per-entity version counter that increments when any component on that entity is written. Possibly extend the existing component-write API in elics.
-
-Acceptance criteria:
-
-- Public API `world.entityVersion(entity) → number` returns a monotonic counter that increments on component writes.
-- Test asserts version changes after each `entity.setValue(...)`.
-
-### task-3012 — Snapshot extraction skips unchanged entities (part 2: extraction early-exit)
-
-Category: `render-bridge`
-Package/write-scope: `packages/render/src/rendering/extraction.ts`, targeted tests + benchmark.
-Dependencies: task-3011.
-Reference anchor: `references/bevy/crates/bevy_ecs/src/change_detection/mod.rs`; `references/three.js/src/renderers/common/RenderList.js`.
-Insertion point: `extractRenderSnapshot` — cache last-frame entity versions; reuse packet data for entities whose version is unchanged.
-
-Acceptance criteria:
-
-- Scene with 1,000 static entities extracts in <50% the time of a scene where all 1,000 entities are dirty. Benchmark assertion (microbenchmark, not Playwright).
-- Snapshot output is byte-identical to full-extract output for the same world state.
-
-### task-3013 — Instancing: per-instance transform buffer (part 1: buffer layout)
-
-Category: `webgpu-render`
-Package/write-scope: `packages/webgpu/src/webgpu/`, new file `instance-buffer.ts`, targeted tests.
-Reference anchor: `references/three.js/src/objects/InstancedMesh.js`; `references/engine/src/scene/mesh-instance.js`; `references/bevy/crates/bevy_render/src/extract_instances.rs`.
-Insertion point: new GPU buffer + vertex layout for per-instance model matrices.
-
-Acceptance criteria:
-
-- Pipeline accepts an instance buffer of mat4 transforms.
-- Test draws 4 cubes via `drawIndexed(... , 4)` reading positions from the instance buffer; canvas shows 4 cubes in distinct screen positions.
-
-### task-3014 — Instancing: batch grouping in render queue (part 2: coalesce)
-
-Category: `render-bridge`
-Package/write-scope: `packages/render/src/rendering/render-queue.ts`, `packages/webgpu/src/webgpu/render-pass-draw-list.ts`.
-Dependencies: task-3013.
-Reference anchor: `references/bevy/crates/bevy_render/src/extract_instances.rs`; `references/engine/src/scene/mesh-instance.js`.
-Insertion point: `packages/render/src/rendering/render-queue.ts:104` post-sort — group records with identical `BatchCompatibilityKey` (already computed but unused). `packages/webgpu/src/webgpu/render-pass-draw-list.ts:174` — replace hardcoded `instanceCount = 1` with grouped instance count.
-
-Acceptance criteria:
-
-- A scene with 100 entities sharing one mesh+material produces 1 draw call, not 100.
-- Test asserts WebGPU draw-call count via existing draw-list inspection.
-
-### task-3015 — Instancing example: 1,000 instances of a single mesh
-
-Category: `runtime-orchestration`
-Package/write-scope: `examples/instancing.html`, `examples/instancing.js`, `test/e2e/instancing.spec.ts`.
-Dependencies: task-3014.
-Reference anchor: `references/three.js/examples/webgpu_instance_mesh.html` if present; `references/engine/examples/graphics/instancing.html`.
-Insertion point: new example spawning 1,000 ECS entities with same mesh+material.
-
-Acceptance criteria:
-
-- Example renders a grid of 1,000 cubes.
-- Playwright asserts canvas pixels in multiple regions confirm distinct cube placements.
-- Draw-call count reported in status is 1 (or N for N pipeline-key groups), not 1,000.
 
 ### task-3016 — Batching: merged geometry buffer for static draws (part 1: merge primitive)
 

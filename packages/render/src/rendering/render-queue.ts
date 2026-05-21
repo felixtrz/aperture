@@ -31,6 +31,7 @@ export interface RenderQueueRecord {
   readonly batchKey: RenderWorldReadyDraw["batchKey"];
   readonly sortKey: RenderWorldReadyDraw["packet"]["sortKey"];
   readonly transformPackedOffset: number;
+  readonly instanceCount: number;
 }
 
 export interface RenderQueuePlan {
@@ -63,6 +64,7 @@ interface MutableRenderQueueRecord {
   batchKey: RenderWorldReadyDraw["batchKey"];
   sortKey: RenderWorldReadyDraw["packet"]["sortKey"];
   transformPackedOffset: number;
+  instanceCount: number;
 }
 
 export function planRenderQueueRecords(
@@ -102,6 +104,7 @@ export function writeRenderQueueRecords(
 ): RenderQueuePlan {
   writeUnsortedRenderQueueRecords(readiness, transforms, scratch, options);
   sortRenderQueueRecords(scratch.records);
+  coalesceRenderQueueRecords(scratch.records);
 
   return scratch.plan;
 }
@@ -163,6 +166,7 @@ export function writeUnsortedRenderQueueRecords(
     record.batchKey = draw.batchKey;
     record.sortKey = draw.packet.sortKey;
     record.transformPackedOffset = transformPackedOffset;
+    record.instanceCount = 1;
     scratch.records.push(record);
   }
 
@@ -173,6 +177,38 @@ export function sortRenderQueueRecords(
   records: RenderQueueRecord[],
 ): RenderQueueRecord[] {
   records.sort((a, b) => compareRenderSortKeys(a.sortKey, b.sortKey));
+  return records;
+}
+
+export function coalesceRenderQueueRecords(
+  records: RenderQueueRecord[],
+): RenderQueueRecord[] {
+  if (records.length < 2) {
+    return records;
+  }
+
+  let writeIndex = 1;
+
+  for (let readIndex = 1; readIndex < records.length; readIndex += 1) {
+    const previous = records[writeIndex - 1] as
+      | MutableRenderQueueRecord
+      | undefined;
+    const record = records[readIndex];
+
+    if (previous === undefined || record === undefined) {
+      continue;
+    }
+
+    if (canCoalesceRenderQueueRecord(previous, record)) {
+      previous.instanceCount += record.instanceCount;
+      continue;
+    }
+
+    records[writeIndex] = record;
+    writeIndex += 1;
+  }
+
+  records.length = writeIndex;
   return records;
 }
 
@@ -187,6 +223,40 @@ function findPackedTransformOffset(
   }
 
   return undefined;
+}
+
+function canCoalesceRenderQueueRecord(
+  previous: RenderQueueRecord,
+  record: RenderQueueRecord,
+): boolean {
+  return (
+    previous.viewId === record.viewId &&
+    previous.passId === record.passId &&
+    previous.queueKind === record.queueKind &&
+    previous.meshResourceKey === record.meshResourceKey &&
+    previous.materialResourceKey === record.materialResourceKey &&
+    previous.pipelineKey === record.pipelineKey &&
+    previous.materialKey === record.materialKey &&
+    previous.meshLayoutKey === record.meshLayoutKey &&
+    batchKeysMatch(previous.batchKey, record.batchKey) &&
+    previous.transformPackedOffset + previous.instanceCount * 16 ===
+      record.transformPackedOffset
+  );
+}
+
+function batchKeysMatch(
+  a: RenderWorldReadyDraw["batchKey"],
+  b: RenderWorldReadyDraw["batchKey"],
+): boolean {
+  return (
+    a.pipelineKey === b.pipelineKey &&
+    a.materialKey === b.materialKey &&
+    a.meshLayoutKey === b.meshLayoutKey &&
+    a.topology === b.topology &&
+    a.instanced === b.instanced &&
+    a.skinned === b.skinned &&
+    a.morphed === b.morphed
+  );
 }
 
 function recordAt(
@@ -222,5 +292,6 @@ function createEmptyRecord(): MutableRenderQueueRecord {
     batchKey: null as unknown as RenderWorldReadyDraw["batchKey"],
     sortKey: null as unknown as RenderWorldReadyDraw["packet"]["sortKey"],
     transformPackedOffset: 0,
+    instanceCount: 1,
   };
 }

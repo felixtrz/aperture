@@ -642,7 +642,7 @@ describe("WebGPU app facade", () => {
     expect(frame.counts).toMatchObject({
       meshDraws: 2,
       drawPackages: 2,
-      drawCalls: 2,
+      drawCalls: 1,
       diagnostics: 0,
     });
     expect(createWebGpuAppDrawResourceSetPlan(frame.snapshot)).toMatchObject({
@@ -670,7 +670,7 @@ describe("WebGPU app facade", () => {
     ]);
     expect(
       events.filter((event) => event.startsWith("pass:draw")),
-    ).toHaveLength(2);
+    ).toHaveLength(1);
   });
 
   it("reuses scalar unlit prepared material resources across frame-resource cache misses", async () => {

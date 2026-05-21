@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-21 00:46 UTC</dd>
+            <dd>2026-05-21 01:49 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -422,61 +422,71 @@
               Playwright checks the quad center pixel. The PMREM compute path
               now creates an executable bind-group/compute pipeline and proves
               mip 0 plus a rougher mip 2 with browser readback, and the
-              spinning-cube example now uses generated PMREM mips for its
-              specular IBL proof with glossy and rough probe cubes. Next up is
-              proving the same path with a real environment asset. The GLB
-              viewer now renders extended StandardMaterial combined texture
-              routes: occlusion plus normal, metallic-roughness plus emissive,
-              alpha-blend plus normal, UV1 metallic-roughness plus normal,
-              base-color plus occlusion, and transformed base-color plus
-              emissive, plus UV1 base-color plus occlusion, transformed
-              metallic-roughness plus normal, base-color plus metallic-roughness
-              plus emissive, alpha-blend plus emissive, and UV1 base-color plus
-              emissive, transformed base-color plus metallic-roughness, UV1
-              metallic-roughness plus emissive, and alpha-mask plus
-              metallic-roughness. It also renders metallic-roughness plus normal
-              textures, UV1 base-color plus normal textures, base-color plus
-              emissive textures, and alpha-mask plus normal-map routes through
-              committed GLB samples with JSON-safe status and browser pixel
-              proof. It also renders normal maps through
-              <code>TEXCOORD_1</code>, StandardMaterial base-color textures
-              combined with <code>COLOR_0</code>, base-color plus normal
-              textures, and transformed UV1 normal maps. The GLB viewer also
-              renders compact visible status rows for material slots, decoded
-              images, unsupported features, animation, animation clips, animated
-              nodes, imported cameras, imported camera lists, live lights,
-              imported light lists, scene metadata, orbit fit, shadows, shadow
-              requests, IBL, IBL resources, draw/extraction state, imported
-              lights, primitive material resolution, primitive material-factor
-              details, material-alpha details, primitive texture slots, texture
-              handle keys, texture sampler state, texture transforms,
-              pipeline-token details, decoded-image details, unsupported-feature
-              details, mesh-draw identities, prepared-resource reuse, render
-              diagnostics, source loader state, source output summaries,
-              hierarchy transforms, replay stages, selected assets, selected
-              scenes, render-state details, and unsupported animation-channel
-              diagnostics. The latest audit confirms these status panels remain
-              JSON-safe projections of ECS, source asset, extraction, and
-              render-report data. It also proves same-origin URI texture decode
-              through the custom URL path, real-URI gallery previous/next
-              buttons, URL-persisted sample selection, and stale custom
-              image-decode clearing when switching back to committed samples.
-              The GLB viewer now includes unsupported morph-target, skinning,
-              primitive-mode, CUBICSPLINE animation, and multi-scene samples
-              that keep supported base meshes rendering while reporting
-              JSON-safe diagnostics and scene metadata. It also includes real
-              same-origin PNG/JPEG base-color, PNG normal-map, PNG emissive, PNG
-              metallic-roughness, PNG alpha-mask, and PNG occlusion URI image
-              decode, all-slot real URI texture coverage, occlusion and
-              metallic-roughness transform controls, sampler wrap controls, UV1
-              image-decode controls, alpha-mask plus emissive controls, normal
-              plus occlusion controls, alpha-blend texture, selector stress
-              coverage across real URI samples, selected-asset material-slot
-              summary counts, keyboard previous/next navigation across the real
-              URI texture gallery, rotated metallic-roughness transform,
-              transformed-vs-untransformed normal and emissive controls,
-              emissive StandardMaterial, occlusion/emissive texture, occlusion
-              texture-transform, normal transform, emissive transform,
+              spinning-cube example now loads a compact Pisa RGBE HDR cube
+              atlas, uploads its real environment pixels into diffuse/specular
+              IBL cube textures, and uses generated PMREM mips for glossy and
+              rough probe cubes. ECS worlds now expose monotonic
+              generation-scoped entity versions for component writes, including
+              typed-vector writes, and extraction can now use an explicit cache
+              to reuse unchanged mesh packets while keeping snapshots
+              self-contained. WebGPU now has a per-instance mat4 vertex-buffer
+              layout helper with a browser proof that one indexed cube draw
+              renders four instances, and compatible render-queue/draw-list
+              records now coalesce into one instanced draw when their transform
+              slots are contiguous. The instancing example now renders 1,000
+              ECS-authored boxes sharing one mesh/material while reporting one
+              grouped WebGPU draw call. The GLB viewer now renders extended
+              StandardMaterial combined texture routes: occlusion plus normal,
+              metallic-roughness plus emissive, alpha-blend plus normal, UV1
+              metallic-roughness plus normal, base-color plus occlusion, and
+              transformed base-color plus emissive, plus UV1 base-color plus
+              occlusion, transformed metallic-roughness plus normal, base-color
+              plus metallic-roughness plus emissive, alpha-blend plus emissive,
+              and UV1 base-color plus emissive, transformed base-color plus
+              metallic-roughness, UV1 metallic-roughness plus emissive, and
+              alpha-mask plus metallic-roughness. It also renders
+              metallic-roughness plus normal textures, UV1 base-color plus
+              normal textures, base-color plus emissive textures, and alpha-mask
+              plus normal-map routes through committed GLB samples with
+              JSON-safe status and browser pixel proof. It also renders normal
+              maps through <code>TEXCOORD_1</code>, StandardMaterial base-color
+              textures combined with <code>COLOR_0</code>, base-color plus
+              normal textures, and transformed UV1 normal maps. The GLB viewer
+              also renders compact visible status rows for material slots,
+              decoded images, unsupported features, animation, animation clips,
+              animated nodes, imported cameras, imported camera lists, live
+              lights, imported light lists, scene metadata, orbit fit, shadows,
+              shadow requests, IBL, IBL resources, draw/extraction state,
+              imported lights, primitive material resolution, primitive
+              material-factor details, material-alpha details, primitive texture
+              slots, texture handle keys, texture sampler state, texture
+              transforms, pipeline-token details, decoded-image details,
+              unsupported-feature details, mesh-draw identities,
+              prepared-resource reuse, render diagnostics, source loader state,
+              source output summaries, hierarchy transforms, replay stages,
+              selected assets, selected scenes, render-state details, and
+              unsupported animation-channel diagnostics. The latest audit
+              confirms these status panels remain JSON-safe projections of ECS,
+              source asset, extraction, and render-report data. It also proves
+              same-origin URI texture decode through the custom URL path,
+              real-URI gallery previous/next buttons, URL-persisted sample
+              selection, and stale custom image-decode clearing when switching
+              back to committed samples. The GLB viewer now includes unsupported
+              morph-target, skinning, primitive-mode, CUBICSPLINE animation, and
+              multi-scene samples that keep supported base meshes rendering
+              while reporting JSON-safe diagnostics and scene metadata. It also
+              includes real same-origin PNG/JPEG base-color, PNG normal-map, PNG
+              emissive, PNG metallic-roughness, PNG alpha-mask, and PNG
+              occlusion URI image decode, all-slot real URI texture coverage,
+              occlusion and metallic-roughness transform controls, sampler wrap
+              controls, UV1 image-decode controls, alpha-mask plus emissive
+              controls, normal plus occlusion controls, alpha-blend texture,
+              selector stress coverage across real URI samples, selected-asset
+              material-slot summary counts, keyboard previous/next navigation
+              across the real URI texture gallery, rotated metallic-roughness
+              transform, transformed-vs-untransformed normal and emissive
+              controls, emissive StandardMaterial, occlusion/emissive texture,
+              occlusion texture-transform, normal transform, emissive transform,
               alpha-mask, sampler-state texture, texture-transform, missing-UV1,
               supported base-color UV1, metallic-roughness UV1, and normal-scale
               samples with routed material, texture, sampler, transform/control,
@@ -924,44 +934,44 @@
               <code>iblDiffuse|iblSpecularProof|shadowMap</code> route, and draw
               commands still stay within groups 0 through 3 under Chrome's
               four-bind-group limit. The spinning-cube example now uses the same
-              diffuse/specular IBL shader route with renderer-owned face-colored
-              cube textures and Playwright verifies direction-dependent cube
-              face pixels plus glossy/rough probe differences.
-              Materials-showcase now uses the public
-              <code>withEnvironmentMap(handle)</code> helper and renders its
-              StandardMaterial cube through the diffuse IBL route as well. The
-              source-side glTF path now also has a minimal GLB fixture bridge:
-              JSON plus BIN chunks can feed the report-driven import contract,
-              invalid containers stop before import stages with structured
-              diagnostics, and the browser GLTF scene publishes JSON-safe GLB
-              fixture status while ECS authoring stays on the existing contract
-              path. The wrapper now also reports structured missing-BIN and
-              unsupported external-buffer diagnostics and exposes a JSON-safe
-              report projection that omits raw container bytes. GLB bufferView
-              image sources now flow through the existing asset-mapping contract
-              with caller-provided decoded image data, and the follow-up audit
-              keeps full file loading, image decoding, and compression deferred.
-              Minimal GLB index-buffer fixture coverage, malformed
-              chunk-ordering diagnostics, bufferView image JSON serialization
-              coverage, mixed BIN plus caller-resolved external buffer coverage,
-              external-buffer JSON projection tests, compact source-status
-              helper adoption, and malformed status docs are now in place.
-              Compact source status also covers resolved and missing external
-              buffers, and the async GLB source-loader boundary is now planned
-              and started as a no-fetch, renderer-independent facade. The
-              browser GLTF scene now routes its inline fixture through that
-              facade and asserts loader-level source status. No-fetch facade
-              output now also carries compact mesh-construction summaries for
-              report-driven scene source readiness, and the browser status
-              honestly reports mesh construction as absent for the current
-              non-buffer-backed scene fixture. A buffer-backed GLB source
-              fixture slice is now planned to prove a ready mesh summary without
-              changing visible scene rendering. The browser status now includes
-              a separate buffer-backed source fixture proof with a ready
-              mesh-construction summary. No-fetch facade output can also carry
-              report-derived source-registration summaries without registry
-              mutation. No-fetch source-loader output now has compact ECS
-              command-plan summaries for provided plans, and the facade can
+              diffuse/specular IBL shader route with renderer-owned cube
+              textures populated from a loaded Pisa RGBE HDR atlas, and
+              Playwright verifies direction-dependent environment pixels plus
+              glossy/rough probe differences. Materials-showcase now uses the
+              public <code>withEnvironmentMap(handle)</code> helper and renders
+              its StandardMaterial cube through the diffuse IBL route as well.
+              The source-side glTF path now also has a minimal GLB fixture
+              bridge: JSON plus BIN chunks can feed the report-driven import
+              contract, invalid containers stop before import stages with
+              structured diagnostics, and the browser GLTF scene publishes
+              JSON-safe GLB fixture status while ECS authoring stays on the
+              existing contract path. The wrapper now also reports structured
+              missing-BIN and unsupported external-buffer diagnostics and
+              exposes a JSON-safe report projection that omits raw container
+              bytes. GLB bufferView image sources now flow through the existing
+              asset-mapping contract with caller-provided decoded image data,
+              and the follow-up audit keeps full file loading, image decoding,
+              and compression deferred. Minimal GLB index-buffer fixture
+              coverage, malformed chunk-ordering diagnostics, bufferView image
+              JSON serialization coverage, mixed BIN plus caller-resolved
+              external buffer coverage, external-buffer JSON projection tests,
+              compact source-status helper adoption, and malformed status docs
+              are now in place. Compact source status also covers resolved and
+              missing external buffers, and the async GLB source-loader boundary
+              is now planned and started as a no-fetch, renderer-independent
+              facade. The browser GLTF scene now routes its inline fixture
+              through that facade and asserts loader-level source status.
+              No-fetch facade output now also carries compact mesh-construction
+              summaries for report-driven scene source readiness, and the
+              browser status honestly reports mesh construction as absent for
+              the current non-buffer-backed scene fixture. A buffer-backed GLB
+              source fixture slice is now planned to prove a ready mesh summary
+              without changing visible scene rendering. The browser status now
+              includes a separate buffer-backed source fixture proof with a
+              ready mesh-construction summary. No-fetch facade output can also
+              carry report-derived source-registration summaries without
+              registry mutation. No-fetch source-loader output now has compact
+              ECS command-plan summaries for provided plans, and the facade can
               attach them without ECS replay, registry mutation, or visible
               GLB-derived scene rendering changes. The command-plan summary
               adoption audit is complete, and report-only ECS replay readiness
@@ -1391,14 +1401,16 @@
           <article class="phase">
             <div class="topline">
               <h3>1. extract</h3>
-              <span class="percent">82%</span>
+              <span class="percent">85%</span>
             </div>
-            <div class="bar"><span style="width: 82%"></span></div>
+            <div class="bar"><span style="width: 85%"></span></div>
             <p>
               ECS state produces serializable render snapshots with draw, view,
               light, environment, shadow request, bounds, and diagnostic
               packets, now proven across a module Worker structured-clone
-              boundary.
+              boundary. Entity versions now increment on component writes, and
+              cached extraction can reuse unchanged mesh packet templates with
+              fresh snapshot offsets.
             </p>
             <ul>
               <li>Missing richer visibility/culling explanations.</li>
@@ -1562,9 +1574,9 @@
           <article class="phase">
             <div class="topline">
               <h3>4. queue</h3>
-              <span class="percent">82%</span>
+              <span class="percent">84%</span>
             </div>
-            <div class="bar"><span style="width: 82%"></span></div>
+            <div class="bar"><span style="width: 84%"></span></div>
             <p>
               Material-family queueing, route diagnostics, resource key
               resolution, Standard transparent phases, app route reporting,
@@ -1596,15 +1608,16 @@
               pixel/readback coverage for the normal-encoded face color. Live
               StandardMaterial route changes now choose pipeline-scoped material
               bind groups so shadow and IBL toggles can move between compatible
-              routes without WebGPU layout validation errors.
+              routes without WebGPU layout validation errors. Compatible
+              mesh/material-identical queue and draw-list records now coalesce
+              into one instanced draw when their transform slots are contiguous.
             </p>
             <ul>
               <li>
                 Missing app-level generic material adapter route boundary.
               </li>
               <li>
-                Missing instancing, batching, and multi-material primitive queue
-                rules.
+                Missing batching and multi-material primitive queue rules.
               </li>
               <li>
                 Missing mature queue diagnostics for all future material
@@ -1634,9 +1647,9 @@
           <article class="phase">
             <div class="topline">
               <h3>6. submit</h3>
-              <span class="percent">61%</span>
+              <span class="percent">63%</span>
             </div>
-            <div class="bar"><span style="width: 61%"></span></div>
+            <div class="bar"><span style="width: 63%"></span></div>
             <p>
               WebGPU command submission renders the current proof paths with
               pipeline, bind group, transform, light, mesh, and material
@@ -1648,13 +1661,18 @@
               paths with live control coverage. Off-screen ViewPacket render
               targets and the render-to-texture example now have Playwright
               proof, and PMREM compute has mip 0 plus mip-chain browser readback
-              proof plus spinning-cube specular IBL wiring.
+              proof plus spinning-cube real RGBE environment-map IBL wiring. The
+              first instance-transform buffer proof renders four indexed cube
+              instances from one draw, and render-pass draw-list planning now
+              emits grouped instance counts for compatible contiguous draws. The
+              instancing example now proves 1,000 ECS-authored boxes through one
+              grouped draw call.
             </p>
             <ul>
               <li>Missing render graph and multi-pass architecture.</li>
               <li>
-                Missing real environment asset coverage, full GGX importance
-                sampling, and post-processing.
+                Missing full GGX importance sampling, post-processing, and
+                broader environment asset preparation.
               </li>
               <li>Missing GPU timing and submission reuse diagnostics.</li>
             </ul>
@@ -3762,16 +3780,13 @@
             <h3>Recommended next tasks</h3>
             <ul>
               <li>
-                <span class="badge amber">next</span> Ship a real HDR
-                environment-map sample through the IBL path.
+                <span class="badge amber">next</span> Start static geometry
+                batching with a merge primitive.
               </li>
               <li>
-                Load the environment asset and prefilter it through the PMREM
-                path.
+                Merge compatible vertex/index buffers into one draw range.
               </li>
-              <li>
-                Prove reflected environment colors with Playwright pixels.
-              </li>
+              <li>Keep batching separate from ECS ownership.</li>
             </ul>
           </article>
         </div>
@@ -3783,6 +3798,70 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3015</div>
+            <div>
+              <strong>Instancing example renders 1,000 boxes.</strong>
+              <span
+                >A visible app-path example proves 1,000 ECS entities sharing
+                one mesh/material submit as one grouped draw.</span
+              >
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="task-id">task-3014</div>
+            <div>
+              <strong>Compatible draws now coalesce for instancing.</strong>
+              <span
+                >Render-queue and draw-list planners fold contiguous
+                mesh/material-identical records into one grouped draw.</span
+              >
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="task-id">task-3013</div>
+            <div>
+              <strong
+                >Instance transform buffer proof renders four cubes.</strong
+              >
+              <span
+                >WebGPU now exposes a mat4 instance-buffer layout helper and a
+                browser proof for one indexed draw with four instances.</span
+              >
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="task-id">task-3012</div>
+            <div>
+              <strong>Cached extraction skips unchanged mesh entities.</strong>
+              <span
+                >An explicit extraction cache reuses mesh packet templates by
+                entity version while preserving byte-identical snapshots.</span
+              >
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="task-id">task-3011</div>
+            <div>
+              <strong>ECS entity versions now track writes.</strong>
+              <span
+                >Aperture worlds expose monotonic entity versions for component
+                and vector writes, with stable transform-resolution
+                bumping.</span
+              >
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="task-id">task-3010</div>
+            <div>
+              <strong>Real RGBE environment drives spinning-cube IBL.</strong>
+              <span
+                >The example loads a compact Pisa HDR cube atlas, uploads real
+                environment pixels, runs PMREM mips, and proves reflected colors
+                in Playwright.</span
+              >
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3009</div>
             <div>

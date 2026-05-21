@@ -47,7 +47,7 @@ const TransformResolutionSystemBase = createSystem({
 export class TransformResolutionSystem extends TransformResolutionSystemBase {
   override update(_delta: number, _time: number): void {
     this.globals[TRANSFORM_RESOLUTION_REPORT_KEY] = resolveWorldTransforms(
-      this.world,
+      this.world as EcsWorld,
     );
   }
 }
@@ -144,7 +144,7 @@ export function resolveWorldTransforms(
       }
     }
 
-    writeWorldTransform(entity, matrix);
+    writeWorldTransform(world, entity, matrix);
     worldMatrices.set(entity, matrix);
     visiting.delete(entity);
     return matrix;
@@ -217,25 +217,64 @@ function readPackedParent(entity: Entity): number {
   return packed;
 }
 
-function writeWorldTransform(entity: Entity, matrix: Mat4Like): void {
-  writeColumn(entity.getVectorView(WorldTransform, "col0"), matrix, 0);
-  writeColumn(entity.getVectorView(WorldTransform, "col1"), matrix, 1);
-  writeColumn(entity.getVectorView(WorldTransform, "col2"), matrix, 2);
-  writeColumn(entity.getVectorView(WorldTransform, "col3"), matrix, 3);
+function writeWorldTransform(
+  world: EcsWorld,
+  entity: Entity,
+  matrix: Mat4Like,
+): void {
+  const col0Changed = writeColumn(
+    entity.getVectorView(WorldTransform, "col0"),
+    matrix,
+    0,
+  );
+  const col1Changed = writeColumn(
+    entity.getVectorView(WorldTransform, "col1"),
+    matrix,
+    1,
+  );
+  const col2Changed = writeColumn(
+    entity.getVectorView(WorldTransform, "col2"),
+    matrix,
+    2,
+  );
+  const col3Changed = writeColumn(
+    entity.getVectorView(WorldTransform, "col3"),
+    matrix,
+    3,
+  );
+  const changed = col0Changed || col1Changed || col2Changed || col3Changed;
+
+  if (changed) {
+    world.markEntityChanged(entity);
+  }
 }
 
 function writeColumn(
-  out: ArrayLike<number> & { set(values: ArrayLike<number>): void },
+  out: ArrayLike<number> & { [index: number]: number },
   matrix: Mat4Like,
   column: number,
-): void {
+): boolean {
   const offset = column * 4;
-  out.set([
-    read(matrix, offset),
-    read(matrix, offset + 1),
-    read(matrix, offset + 2),
-    read(matrix, offset + 3),
-  ]);
+  const next0 = read(matrix, offset);
+  const next1 = read(matrix, offset + 1);
+  const next2 = read(matrix, offset + 2);
+  const next3 = read(matrix, offset + 3);
+
+  if (
+    out[0] === next0 &&
+    out[1] === next1 &&
+    out[2] === next2 &&
+    out[3] === next3
+  ) {
+    return false;
+  }
+
+  out[0] = next0;
+  out[1] = next1;
+  out[2] = next2;
+  out[3] = next3;
+
+  return true;
 }
 
 function read(values: ArrayLike<number>, index: number): number {

@@ -3,8 +3,8 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Aperture Browser Harness</title>
-    <link rel="stylesheet" href="/examples/styles.css" />
+    <title>Aperture Instancing</title>
+    <link rel="stylesheet" href="./styles.css" />
     <script type="importmap">
       {
         "imports": {
@@ -22,18 +22,18 @@
   </head>
   <body>
     <main class="runtime-shell">
-      <section class="viewport-panel" aria-label="Aperture browser runtime">
+      <section class="viewport-panel" aria-label="Aperture instancing runtime">
         <canvas
           id="aperture-canvas"
           width="960"
           height="540"
-          aria-label="Aperture WebGPU canvas"
+          aria-label="Aperture WebGPU instancing canvas"
         ></canvas>
       </section>
       <aside class="status-panel" aria-label="Runtime status">
         <div class="status-row">
           <span>example</span>
-          <strong id="example-name">webgpu clear</strong>
+          <strong id="example-name">instancing</strong>
         </div>
         <div class="status-row">
           <span>state</span>
@@ -45,21 +45,10 @@
           <a href="/examples/multi-entity.html">multi entity</a>
           <a href="/examples/spinning-cube.html">spinning cube</a>
           <a href="/examples/instancing.html">instancing</a>
-          <a href="/examples/render-to-texture.html">render texture</a>
-          <a href="/examples/worker-cube.html">worker cube</a>
-          <a href="/examples/matcap-app.html">matcap app</a>
-          <a href="/examples/materials-showcase.html">materials</a>
-          <a href="/examples/gltf-scene.html">gltf scene</a>
-          <a href="/examples/point-shadow.html">point shadow</a>
-          <a href="/examples/spot-shadow.html">spot shadow</a>
-          <a href="/examples/glb-viewer.html">glb viewer</a>
-          <a href="/examples/standard-texture-control.html">standard texture</a>
-          <a href="/examples/standard-gltf-texture.html">glTF texture</a>
-          <a href="/examples/app-diagnostics.html">diagnostics</a>
         </nav>
         <pre id="example-json">{}</pre>
       </aside>
     </main>
-    <script type="module" src="/examples/main.js"></script>
+    <script type="module" src="./instancing.js"></script>
   </body>
 </html>

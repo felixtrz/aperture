@@ -23,16 +23,18 @@ describe("snapshot injected render frame fixture", () => {
       7, 9,
     ]);
     expect(report.frame.frame.descriptors.descriptors).toHaveLength(2);
-    expect(report.frame.frame.frame.drawList.draws).toHaveLength(2);
+    expect(report.frame.frame.frame.drawList.draws).toMatchObject([
+      { renderId: 7, instanceCount: 2 },
+    ]);
     expect(report.frame.frame.frame.frame.execution.counts).toMatchObject({
-      commands: 12,
-      executedCommands: 12,
-      drawCalls: 2,
+      commands: 6,
+      executedCommands: 6,
+      drawCalls: 1,
     });
     expect(report.frame.frame.frame.frame.summary.counts).toMatchObject({
-      plannedDraws: 2,
-      drawCalls: 2,
-      commands: 12,
+      plannedDraws: 1,
+      drawCalls: 1,
+      commands: 6,
     });
   });
 

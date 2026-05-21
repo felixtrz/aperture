@@ -27,6 +27,7 @@ import {
   createTextureAsset,
   createTextureHandle,
   createRootTransform,
+  createRenderExtractionCache,
   createStableRenderId,
   createUnlitMaterialAsset,
   createWorld,
@@ -69,6 +70,53 @@ describe("render extraction", () => {
       bounds: 1,
       diagnostics: 0,
     });
+  });
+
+  it("reuses unchanged entity versions during cached mesh extraction", () => {
+    const entityCount = 1000;
+    const world = createRuntimeWorld(entityCount + 2);
+    const assets = createReadyAssets();
+    const entities: Array<ReturnType<typeof createMeshEntity>> = [];
+
+    createCameraEntity(world, { priority: 0, layerMask: 1 });
+
+    for (let index = 0; index < entityCount; index += 1) {
+      entities.push(
+        createMeshEntity(world, {
+          meshId: "mesh:cube",
+          materialId: "material:unlit",
+          layerMask: 1,
+        }),
+      );
+    }
+
+    const cache = createRenderExtractionCache();
+    const full = extractRenderSnapshot(world, assets, { frame: 11 });
+
+    extractRenderSnapshot(world, assets, { frame: 11, cache });
+    const cached = extractRenderSnapshot(world, assets, { frame: 11, cache });
+
+    expect(stableSnapshotValue(cached)).toEqual(stableSnapshotValue(full));
+    expect(cache.meshDrawEntities.size).toBe(entityCount);
+
+    const staticMs = measureCachedExtraction(() => {
+      extractRenderSnapshot(world, assets, { frame: 12, cache });
+    });
+    const dirtyMs = measureCachedExtraction(
+      () => {
+        extractRenderSnapshot(world, assets, { frame: 12, cache });
+      },
+      () => {
+        for (const entity of entities) {
+          entity.setValue(Visibility, "visible", true);
+        }
+      },
+    );
+
+    expect(
+      staticMs,
+      `cached static extraction ${staticMs.toFixed(3)}ms should be <50% of dirty extraction ${dirtyMs.toFixed(3)}ms`,
+    ).toBeLessThan(dirtyMs * 0.5);
   });
 
   it("stores distinct view, projection, and view-projection matrices", () => {
@@ -1586,12 +1634,43 @@ describe("render extraction", () => {
   });
 });
 
-function createRuntimeWorld(): ReturnType<typeof createWorld> {
-  const world = createWorld({ entityCapacity: 16 });
+function createRuntimeWorld(
+  entityCapacity = 16,
+): ReturnType<typeof createWorld> {
+  const world = createWorld({ entityCapacity });
   registerTransformComponents(world);
   registerMetadataComponents(world);
   registerRenderAuthoringComponents(world);
   return world;
+}
+
+function stableSnapshotValue(
+  snapshot: ReturnType<typeof extractRenderSnapshot>,
+): unknown {
+  return {
+    ...snapshot,
+    transforms: Array.from(snapshot.transforms),
+    viewMatrices: Array.from(snapshot.viewMatrices),
+  };
+}
+
+function measureCachedExtraction(
+  run: () => void,
+  prepare: () => void = () => {},
+  iterations = 5,
+): number {
+  let total = 0;
+
+  for (let iteration = 0; iteration < iterations; iteration += 1) {
+    prepare();
+
+    const start = performance.now();
+
+    run();
+    total += performance.now() - start;
+  }
+
+  return total / iterations;
 }
 
 function createReadyAssets(

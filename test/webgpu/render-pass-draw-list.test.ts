@@ -97,6 +97,56 @@ describe("render pass draw list planning", () => {
     expect(plan.draws.map((draw) => draw.renderId)).toEqual([3, 1, 2]);
   });
 
+  it("coalesces compatible draw commands into one instanced draw", () => {
+    const drawCommands = Array.from({ length: 100 }, (_, index) =>
+      drawCommand(index + 1, {
+        meshResourceKey: "mesh:cube",
+        vertexBufferKeys: ["mesh:cube/vertex"],
+        indexBufferKey: "mesh:cube/index",
+        transformPackedOffset: index * 16,
+      }),
+    );
+    const plan = planRenderPassDrawList({
+      drawCommands,
+      pipelines: [pipeline("pipeline:unlit")],
+      bindGroups: bindGroups("material:white"),
+    });
+
+    expect(plan.valid).toBe(true);
+    expect(plan.diagnostics).toEqual([]);
+    expect(plan.draws).toHaveLength(1);
+    expect(plan.draws[0]).toMatchObject({
+      renderId: 1,
+      meshResourceKey: "mesh:cube",
+      instanceCount: 100,
+      transformPackedOffset: 0,
+    });
+  });
+
+  it("keeps separate draws when compatible commands have transform gaps", () => {
+    const plan = planRenderPassDrawList({
+      drawCommands: [
+        drawCommand(1, {
+          meshResourceKey: "mesh:cube",
+          vertexBufferKeys: ["mesh:cube/vertex"],
+          indexBufferKey: "mesh:cube/index",
+          transformPackedOffset: 0,
+        }),
+        drawCommand(2, {
+          meshResourceKey: "mesh:cube",
+          vertexBufferKeys: ["mesh:cube/vertex"],
+          indexBufferKey: "mesh:cube/index",
+          transformPackedOffset: 48,
+        }),
+      ],
+      pipelines: [pipeline("pipeline:unlit")],
+      bindGroups: bindGroups("material:white"),
+    });
+
+    expect(plan.draws).toHaveLength(2);
+    expect(plan.draws.map((draw) => draw.instanceCount)).toEqual([1, 1]);
+  });
+
   it("prefers pipeline-specific shared bind groups when present", () => {
     const plan = planRenderPassDrawList({
       drawCommands: [
@@ -282,13 +332,16 @@ function drawCommand(
     renderId,
     pipelineKey: overrides.pipelineKey ?? "pipeline:unlit",
     topology: "triangle-list",
-    meshResourceKey: `mesh:${renderId}`,
+    meshResourceKey: overrides.meshResourceKey ?? `mesh:${renderId}`,
     materialResourceKey: overrides.materialResourceKey ?? "material:white",
-    vertexBufferKeys: [`mesh:${renderId}/vertex`],
+    vertexBufferKeys: overrides.vertexBufferKeys ?? [`mesh:${renderId}/vertex`],
     vertexCount: overrides.vertexCount ?? 24,
-    indexBufferKey: `mesh:${renderId}/index`,
-    indexCount: 6,
-    transformPackedOffset: renderId * 16,
+    indexBufferKey:
+      overrides.indexBufferKey === undefined
+        ? `mesh:${renderId}/index`
+        : overrides.indexBufferKey,
+    indexCount: overrides.indexCount ?? 6,
+    transformPackedOffset: overrides.transformPackedOffset ?? renderId * 16,
   };
 }
 

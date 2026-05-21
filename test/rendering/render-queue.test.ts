@@ -78,6 +78,52 @@ describe("render queue records", () => {
     ]);
   });
 
+  it("coalesces compatible records with contiguous transform slots", () => {
+    const renderIds = Array.from({ length: 100 }, (_, index) => index + 1);
+    const plan = planRenderQueueRecords(
+      {
+        ready: renderIds.map((renderId) =>
+          readyDraw(renderId, { meshResourceKey: "mesh:cube" }),
+        ),
+        blocked: [],
+        diagnostics: [],
+      },
+      transforms(renderIds),
+    );
+
+    expect(plan.diagnostics).toEqual([]);
+    expect(plan.records).toHaveLength(1);
+    expect(plan.records[0]).toMatchObject({
+      renderId: 1,
+      meshResourceKey: "mesh:cube",
+      instanceCount: 100,
+      transformPackedOffset: 0,
+    });
+  });
+
+  it("does not coalesce compatible records with non-contiguous transform slots", () => {
+    const plan = planRenderQueueRecords(
+      {
+        ready: [
+          readyDraw(1, { meshResourceKey: "mesh:cube" }),
+          readyDraw(2, { meshResourceKey: "mesh:cube" }),
+        ],
+        blocked: [],
+        diagnostics: [],
+      },
+      {
+        data: new Float32Array(64),
+        offsets: [
+          { renderId: 1, sourceOffset: 0, packedOffset: 0 },
+          { renderId: 2, sourceOffset: 48, packedOffset: 48 },
+        ],
+        diagnostics: [],
+      },
+    );
+
+    expect(plan.records.map((record) => record.instanceCount)).toEqual([1, 1]);
+  });
+
   it("can reuse caller-owned scratch records on a steady-state hot path", () => {
     const scratch = createRenderQueueScratch(2);
     const first = writeRenderQueueRecords(
@@ -124,17 +170,20 @@ function readiness(
   renderIds: readonly number[],
 ): RenderWorldDrawReadinessReport {
   return {
-    ready: renderIds.map(readyDraw),
+    ready: renderIds.map((renderId) => readyDraw(renderId)),
     blocked: [],
     diagnostics: [],
   };
 }
 
-function readyDraw(renderId: number) {
+function readyDraw(
+  renderId: number,
+  overrides: { readonly meshResourceKey?: string } = {},
+) {
   return {
     renderId,
     packet: packet(renderId),
-    meshResourceKey: "mesh:cube",
+    meshResourceKey: overrides.meshResourceKey ?? `mesh:${renderId}`,
     materialResourceKey: "material:white",
     batchKey: BATCH_KEY,
   };

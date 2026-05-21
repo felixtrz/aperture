@@ -41,6 +41,18 @@ interface SpinningCubeStatus extends ExampleStatusBase {
     readonly authored: number;
     readonly extracted: number;
     readonly handleKey: string;
+    readonly specularPrefiltering?: boolean;
+    readonly source?: {
+      readonly kind: string;
+      readonly asset: string;
+      readonly label: string;
+      readonly width: number;
+      readonly height: number;
+      readonly faceSize: number;
+      readonly faceCount: number;
+      readonly faceOrder: readonly string[];
+      readonly faceAverages: readonly (readonly number[])[];
+    };
     readonly diffuseResourceKey?: string;
     readonly specularResourceKey?: string;
     readonly samplerKey?: string;
@@ -147,12 +159,22 @@ test("Playwright shows an ECS-driven spinning lit standard cube", async ({
     environment: {
       authored: 1,
       extracted: 1,
-      handleKey: "environment-map:spinning-cube-studio",
+      handleKey: "environment-map:spinning-cube-pisa-studio",
       specularPrefiltering: true,
-      diffuseResourceKey: "texture:spinning-cube-studio:diffuse:texture",
+      diffuseResourceKey: "texture:spinning-cube-pisa-studio:diffuse:texture",
       specularResourceKey:
-        "texture:spinning-cube-studio:specular-proof:texture",
-      samplerKey: "texture:spinning-cube-studio:diffuse:sampler",
+        "texture:spinning-cube-pisa-studio:specular-proof:texture",
+      samplerKey: "texture:spinning-cube-pisa-studio:diffuse:sampler",
+      source: {
+        kind: "radiance-rgbe-cube-atlas",
+        asset: "./assets/pisa-studio-rgbe-cube.hdr",
+        label: "Pisa HDR studio cube atlas",
+        width: 48,
+        height: 8,
+        faceSize: 8,
+        faceCount: 6,
+        faceOrder: ["px", "nx", "py", "ny", "pz", "nz"],
+      },
     },
     pipeline: {
       key: "standard|iblDiffuse|iblSpecularProof|opaque|back|less|none",
@@ -170,6 +192,7 @@ test("Playwright shows an ECS-driven spinning lit standard cube", async ({
     submission: { commandBuffers: 1, drawCalls: 3, indexedDrawCalls: 3 },
   });
   expect(initialStatus.resources?.reuse).toBeDefined();
+  expectRealHdrEnvironmentSource(initialStatus);
 
   const firstAnimatedStatus = await waitForAnimationFrame(page, 3);
   const firstFrame = firstAnimatedStatus.animation?.frames ?? 0;
@@ -298,12 +321,28 @@ function expectDirectionDependentDiffuseIblPixels(
 
   expect(
     pixelDistance(samples.sideFace, samples.frontFace),
-    `side and front face samples should differ under face-colored diffuse IBL; samples=${JSON.stringify(samples)}`,
+    `side and front face samples should differ under real RGBE diffuse IBL; samples=${JSON.stringify(samples)}`,
   ).toBeGreaterThan(10);
   expect(
     pixelDistance(samples.frontFace, samples.lowerFace),
-    `front and lower face samples should differ under face-colored diffuse IBL; samples=${JSON.stringify(samples)}`,
+    `front and lower face samples should differ under real RGBE diffuse IBL; samples=${JSON.stringify(samples)}`,
   ).toBeGreaterThan(10);
+}
+
+function expectRealHdrEnvironmentSource(status: SpinningCubeStatus): void {
+  const source = status.environment?.source;
+
+  expect(source, JSON.stringify(status, null, 2)).toBeDefined();
+  expect(source?.faceAverages, JSON.stringify(source, null, 2)).toHaveLength(6);
+
+  const averageTokens = new Set(
+    source?.faceAverages.map((average) => average.slice(0, 3).join(",")) ?? [],
+  );
+
+  expect(
+    averageTokens.size,
+    `real environment face averages should not collapse to one synthetic color; source=${JSON.stringify(source)}`,
+  ).toBeGreaterThanOrEqual(4);
 }
 
 function findDistinctFaceSample(
@@ -339,7 +378,7 @@ function findDistinctFaceSample(
   ).not.toBeNull();
   expect(
     strongestDistance,
-    `${search.label} should differ from the front face under face-colored diffuse IBL; pixel=${JSON.stringify(strongest)} reference=${JSON.stringify(reference)}`,
+    `${search.label} should differ from the front face under real RGBE diffuse IBL; pixel=${JSON.stringify(strongest)} reference=${JSON.stringify(reference)}`,
   ).toBeGreaterThan(10);
 
   return strongest ?? reference;

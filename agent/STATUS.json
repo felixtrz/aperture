@@ -2,10 +2,10 @@
   "state": "idle",
   "currentTaskId": null,
   "currentRunStartedAt": null,
-  "lastRunStartedAt": "2026-05-21T00:02:52Z",
+  "lastRunStartedAt": "2026-05-21T01:03:04Z",
   "lastResult": "success",
   "lastCommit": null,
   "activePid": null,
-  "notes": "Completed task-3005 through task-3009: ViewPacket render-target wiring, render-to-texture example, PMREM compute pipeline and mip proof, and spinning-cube PMREM specular IBL wiring. Validation passed: pnpm run check plus targeted Playwright render-target/PMREM/spinning-cube specs.",
-  "lastRunFinishedAt": "2026-05-21T00:53:17Z"
+  "notes": "Completed task-3010 through task-3015: real RGBE IBL asset path, ECS entity versions, cached extraction, instance transform buffer proof, conservative contiguous instanced draw coalescing, and the 1,000-box instancing example. Validation passed: pnpm run check plus targeted Playwright/Vitest checks.",
+  "lastRunFinishedAt": "2026-05-21T01:53:09Z"
 }

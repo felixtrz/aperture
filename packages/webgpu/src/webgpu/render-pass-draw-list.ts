@@ -150,6 +150,13 @@ export function writeRenderPassDrawList(
       continue;
     }
 
+    const previous = scratch.draws[scratch.draws.length - 1];
+
+    if (canCoalesceDrawListRecord(previous, command, bindGroups)) {
+      (previous as MutableRenderPassDrawListRecord).instanceCount += 1;
+      continue;
+    }
+
     const record = drawListRecordAt(scratch, scratch.draws.length);
 
     record.renderId = command.renderId;
@@ -180,6 +187,63 @@ export function writeRenderPassDrawList(
     scratch.diagnostics.length === 0;
 
   return scratch.plan;
+}
+
+function canCoalesceDrawListRecord(
+  previous: RenderPassDrawListRecord | undefined,
+  command: DrawCommandDescriptor,
+  bindGroups: readonly UnlitBindGroupResource[],
+): boolean {
+  if (previous === undefined) {
+    return false;
+  }
+
+  return (
+    previous.pipelineKey === command.pipelineKey &&
+    previous.meshResourceKey === command.meshResourceKey &&
+    previous.materialResourceKey === command.materialResourceKey &&
+    previous.vertexCount === command.vertexCount &&
+    previous.indexBufferKey === command.indexBufferKey &&
+    previous.indexCount === command.indexCount &&
+    previous.transformPackedOffset + previous.instanceCount * 16 ===
+      command.transformPackedOffset &&
+    stringArraysMatch(previous.vertexBufferKeys, command.vertexBufferKeys) &&
+    bindGroupKeysMatch(previous.bindGroupKeys, bindGroups)
+  );
+}
+
+function stringArraysMatch(
+  a: readonly string[],
+  b: readonly string[],
+): boolean {
+  if (a.length !== b.length) {
+    return false;
+  }
+
+  for (let index = 0; index < a.length; index += 1) {
+    if (a[index] !== b[index]) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+function bindGroupKeysMatch(
+  a: readonly string[],
+  b: readonly UnlitBindGroupResource[],
+): boolean {
+  if (a.length !== b.length) {
+    return false;
+  }
+
+  for (let index = 0; index < a.length; index += 1) {
+    if (a[index] !== b[index]?.resourceKey) {
+      return false;
+    }
+  }
+
+  return true;
 }
 
 function resolveBindGroups(

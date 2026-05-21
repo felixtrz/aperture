@@ -4,6 +4,12 @@ const jsonElement = document.querySelector("#example-json");
 const clearColor = [0.015, 0.025, 0.035, 1];
 const spinAxis = [0.35, 1, 0.2];
 const spinRadiansPerSecond = 3;
+const environmentAsset = {
+  path: "./assets/pisa-studio-rgbe-cube.hdr",
+  url: new URL("./assets/pisa-studio-rgbe-cube.hdr", import.meta.url),
+  label: "Pisa HDR studio cube atlas",
+  faceOrder: ["px", "nx", "py", "ny", "pz", "nz"],
+};
 
 const baseStatus = {
   example: "ecs-spinning-cube",
@@ -36,12 +42,17 @@ try {
         renderingBackend: aperture.APERTURE_IDENTITY.renderingBackend,
       });
     } else {
-      const scene = createLitSpinningCubeScene(aperture, created.app, {
-        width: canvas.width,
-        height: canvas.height,
-      });
+      let scene;
 
-      startAnimation(aperture, created.app, scene);
+      try {
+        scene = await createLitSpinningCubeScene(aperture, created.app, {
+          width: canvas.width,
+          height: canvas.height,
+        });
+        startAnimation(aperture, created.app, scene);
+      } catch (error) {
+        publishStatus(environmentFailure(error));
+      }
     }
   }
 } catch (error) {
@@ -56,7 +67,8 @@ try {
   );
 }
 
-function createLitSpinningCubeScene(aperture, app, canvasSize) {
+async function createLitSpinningCubeScene(aperture, app, canvasSize) {
+  const environmentSource = await loadRgbeCubeEnvironment(environmentAsset);
   const assets = aperture.createRenderAssetCollections({
     registry: app.assets,
   });
@@ -100,14 +112,16 @@ function createLitSpinningCubeScene(aperture, app, canvasSize) {
     id: "spinning-cube-rough-probe",
   });
   const environmentMap = aperture.createEnvironmentMapHandle(
-    "spinning-cube-studio",
+    "spinning-cube-pisa-studio",
   );
 
-  app.assets.register(environmentMap, { label: "Spinning cube studio IBL" });
+  app.assets.register(environmentMap, {
+    label: "Spinning cube Pisa HDR studio IBL",
+  });
   app.assets.markReady(environmentMap, {
-    label: "Spinning cube studio IBL",
-    diffuseResourceKey: "spinning-cube-studio/diffuse",
-    specularResourceKey: "spinning-cube-studio/specular-proof",
+    label: "Spinning cube Pisa HDR studio IBL",
+    diffuseResourceKey: "spinning-cube-pisa-studio/diffuse",
+    specularResourceKey: "spinning-cube-pisa-studio/specular-proof",
   });
 
   app.registerSystem(aperture.SpinSystem);
@@ -186,7 +200,11 @@ function createLitSpinningCubeScene(aperture, app, canvasSize) {
     }),
   );
 
-  const iblResources = createSpinningCubeIblResources(aperture, app);
+  const iblResources = createSpinningCubeIblResources(
+    aperture,
+    app,
+    environmentSource,
+  );
 
   return {
     cube,
@@ -196,6 +214,7 @@ function createLitSpinningCubeScene(aperture, app, canvasSize) {
     glossyMaterialAsset,
     roughMaterialAsset,
     environmentMap,
+    environmentSource,
     iblResources,
     authoredLights: 3,
     authoredEnvironments: 1,
@@ -314,6 +333,17 @@ function createFrameStatus(
       authored: scene.authoredEnvironments,
       extracted: snapshot.environments.length,
       handleKey: aperture.assetHandleKey(scene.environmentMap),
+      source: {
+        kind: scene.environmentSource.kind,
+        asset: scene.environmentSource.assetPath,
+        label: scene.environmentSource.label,
+        width: scene.environmentSource.width,
+        height: scene.environmentSource.height,
+        faceSize: scene.environmentSource.faceSize,
+        faceCount: scene.environmentSource.faces.length,
+        faceOrder: scene.environmentSource.faceOrder,
+        faceAverages: scene.environmentSource.faceAverages,
+      },
       specularPrefiltering:
         scene.iblResources.specularTextureResource.sections.prefiltering,
       diffuseResourceKey:
@@ -435,30 +465,34 @@ function snapshotCounts(snapshot) {
   };
 }
 
-function createSpinningCubeIblResources(aperture, app) {
+function createSpinningCubeIblResources(aperture, app, environmentSource) {
   const cache = aperture.getOrCreateWebGpuAppEnvironmentResourceCache(app);
   const device = app.initialization.device;
-  const diffuseResourceKey = "texture:spinning-cube-studio:diffuse:texture";
+  const diffuseResourceKey =
+    "texture:spinning-cube-pisa-studio:diffuse:texture";
   const specularResourceKey =
-    "texture:spinning-cube-studio:specular-proof:texture";
-  const samplerResourceKey = "texture:spinning-cube-studio:diffuse:sampler";
+    "texture:spinning-cube-pisa-studio:specular-proof:texture";
+  const samplerResourceKey =
+    "texture:spinning-cube-pisa-studio:diffuse:sampler";
   let diffuseTexture = cache.diffuseTextures.get(diffuseResourceKey);
   let specularTexture = cache.specularTextures.get(specularResourceKey);
   let iblSampler = cache.samplers.get(samplerResourceKey);
 
   if (diffuseTexture === undefined) {
-    diffuseTexture = createFaceColoredDiffuseCubeTexture(
+    diffuseTexture = createRealEnvironmentDiffuseCubeTexture(
       device,
       diffuseResourceKey,
+      environmentSource,
     );
     cache.diffuseTextures.set(diffuseResourceKey, diffuseTexture);
   }
 
   if (specularTexture === undefined) {
-    specularTexture = createFaceColoredSpecularCubeTexture(
+    specularTexture = createRealEnvironmentSpecularCubeTexture(
       aperture,
       device,
       specularResourceKey,
+      environmentSource,
     );
     cache.specularTextures.set(specularResourceKey, specularTexture);
   }
@@ -486,9 +520,12 @@ function createSpinningCubeIblResources(aperture, app) {
       },
       resource: {
         group: 4,
-        resourceKey: "bind-group:standard/ibl/group-4/spinning-cube-studio",
+        resourceKey:
+          "bind-group:standard/ibl/group-4/spinning-cube-pisa-studio",
         layoutKey: "standard/ibl/group-4",
-        bindGroup: { label: "standard/ibl/group-4/spinning-cube-studio" },
+        bindGroup: {
+          label: "standard/ibl/group-4/spinning-cube-pisa-studio",
+        },
         entryResourceKeys: [
           diffuseResourceKey,
           specularResourceKey,
@@ -578,60 +615,60 @@ function createSpinningCubeIblResources(aperture, app) {
   };
 }
 
-function createFaceColoredSpecularCubeTexture(aperture, device, resourceKey) {
-  const baseSize = 8;
+function createRealEnvironmentSpecularCubeTexture(
+  aperture,
+  device,
+  resourceKey,
+  environmentSource,
+) {
+  const baseSize = environmentSource.faceSize;
   const mipLevelCount = 4;
   const usage = resolveTextureUsage(aperture);
   const bufferUsage = resolveBufferUsage();
   const pipeline = aperture.createPmremComputePipeline({
     device,
     storageFormat: "rgba8unorm",
-    label: "spinning-cube-studio:pmrem",
+    label: "spinning-cube-pisa-studio:pmrem",
   });
 
   if (!pipeline.valid || pipeline.resource === null) {
-    return createFaceColoredSpecularFallbackCubeTexture(
+    return createRealEnvironmentSpecularFallbackCubeTexture(
       device,
       resourceKey,
       usage,
+      environmentSource,
     );
   }
 
   const source = device.createTexture({
-    label: "spinning-cube-studio:specular-ibl-source",
+    label: "spinning-cube-pisa-studio:specular-ibl-source",
     size: [baseSize, baseSize, 6],
     format: "rgba8unorm",
     usage: usage.TEXTURE_BINDING | usage.COPY_DST,
   });
   const texture = device.createTexture({
-    label: "spinning-cube-studio:specular-ibl-pmrem-mip-chain",
+    label: "spinning-cube-pisa-studio:specular-ibl-pmrem-mip-chain",
     size: [baseSize, baseSize, 6],
     format: "rgba8unorm",
     usage:
       usage.TEXTURE_BINDING | usage.STORAGE_BINDING | usage.RENDER_ATTACHMENT,
     mipLevelCount,
   });
-  const faceColors = specularSourceFaceColors();
+  const faceUploads = environmentSource.faces.map((face) =>
+    createPaddedFaceUpload(face.rgba, baseSize),
+  );
 
-  faceColors.forEach((color, face) => {
-    const data = new Uint8Array(256 * baseSize);
-
-    for (let row = 0; row < baseSize; row += 1) {
-      for (let column = 0; column < baseSize; column += 1) {
-        data.set(color, row * 256 + column * 4);
-      }
-    }
-
+  faceUploads.forEach((upload, face) => {
     device.queue.writeTexture(
       { texture: source, origin: [0, 0, face] },
-      data,
-      { bytesPerRow: 256, rowsPerImage: baseSize },
+      upload.data,
+      { bytesPerRow: upload.bytesPerRow, rowsPerImage: baseSize },
       [baseSize, baseSize, 1],
     );
   });
 
   const sampler = device.createSampler({
-    label: "spinning-cube-studio:pmrem-source-sampler",
+    label: "spinning-cube-pisa-studio:pmrem-source-sampler",
     addressModeU: "clamp-to-edge",
     addressModeV: "clamp-to-edge",
     addressModeW: "clamp-to-edge",
@@ -639,14 +676,14 @@ function createFaceColoredSpecularCubeTexture(aperture, device, resourceKey) {
     minFilter: "nearest",
   });
   const sourceView = source.createView({
-    label: "spinning-cube-studio:pmrem-source-view",
+    label: "spinning-cube-pisa-studio:pmrem-source-view",
     dimension: "cube",
   });
   const encoder = device.createCommandEncoder({
-    label: "spinning-cube-studio:pmrem-dispatch",
+    label: "spinning-cube-pisa-studio:pmrem-dispatch",
   });
   const pass = encoder.beginComputePass({
-    label: "spinning-cube-studio:pmrem-mip-chain",
+    label: "spinning-cube-pisa-studio:pmrem-mip-chain",
   });
 
   pass.setPipeline(pipeline.resource.pipeline);
@@ -654,7 +691,7 @@ function createFaceColoredSpecularCubeTexture(aperture, device, resourceKey) {
   for (let mipLevel = 0; mipLevel < mipLevelCount; mipLevel += 1) {
     const mipSize = Math.max(1, baseSize >> mipLevel);
     const params = device.createBuffer({
-      label: `spinning-cube-studio:pmrem-mip-${mipLevel}-params`,
+      label: `spinning-cube-pisa-studio:pmrem-mip-${mipLevel}-params`,
       size: 16,
       usage: bufferUsage.UNIFORM | bufferUsage.COPY_DST,
     });
@@ -666,7 +703,7 @@ function createFaceColoredSpecularCubeTexture(aperture, device, resourceKey) {
     );
 
     const bindGroup = device.createBindGroup({
-      label: `spinning-cube-studio:pmrem-mip-${mipLevel}`,
+      label: `spinning-cube-pisa-studio:pmrem-mip-${mipLevel}`,
       layout: pipeline.resource.bindGroupLayout,
       entries: [
         { binding: 0, resource: sampler },
@@ -699,11 +736,11 @@ function createFaceColoredSpecularCubeTexture(aperture, device, resourceKey) {
     resourceKey,
     texture,
     view: texture.createView({
-      label: "spinning-cube-studio:specular-ibl-pmrem-mip-chain-view",
+      label: "spinning-cube-pisa-studio:specular-ibl-pmrem-mip-chain-view",
       dimension: "cube",
     }),
     descriptor: {
-      label: "spinning-cube-studio:specular-ibl-pmrem-mip-chain",
+      label: "spinning-cube-pisa-studio:specular-ibl-pmrem-mip-chain",
       size: [baseSize, baseSize, 6],
       format: "rgba8unorm",
       usage:
@@ -715,78 +752,50 @@ function createFaceColoredSpecularCubeTexture(aperture, device, resourceKey) {
   };
 }
 
-function createFaceColoredSpecularFallbackCubeTexture(
+function createRealEnvironmentSpecularFallbackCubeTexture(
   device,
   resourceKey,
   usage,
+  environmentSource,
 ) {
-  const baseSize = 8;
+  const baseSize = environmentSource.faceSize;
   const mipLevelCount = 4;
   const texture = device.createTexture({
-    label: "spinning-cube-studio:specular-ibl-minimal-mip-chain",
+    label: "spinning-cube-pisa-studio:specular-ibl-minimal-mip-chain",
     size: [baseSize, baseSize, 6],
     format: "rgba8unorm",
     usage: usage.TEXTURE_BINDING | usage.COPY_DST,
     mipLevelCount,
   });
-  const mipFaceColors = [
-    specularSourceFaceColors(),
-    [
-      [218, 202, 176, 255],
-      [92, 116, 148, 255],
-      [218, 210, 170, 255],
-      [50, 66, 74, 255],
-      [214, 184, 220, 255],
-      [64, 70, 92, 255],
-    ],
-    [
-      [116, 112, 104, 255],
-      [84, 92, 106, 255],
-      [116, 114, 104, 255],
-      [62, 70, 76, 255],
-      [112, 102, 118, 255],
-      [68, 72, 84, 255],
-    ],
-    [
-      [42, 46, 52, 255],
-      [42, 46, 52, 255],
-      [42, 46, 52, 255],
-      [42, 46, 52, 255],
-      [42, 46, 52, 255],
-      [42, 46, 52, 255],
-    ],
-  ];
-
-  mipFaceColors.forEach((faceColors, mipLevel) => {
+  for (let mipLevel = 0; mipLevel < mipLevelCount; mipLevel += 1) {
     const mipSize = Math.max(1, baseSize >> mipLevel);
 
-    faceColors.forEach((color, face) => {
-      const data = new Uint8Array(256 * mipSize);
-
-      for (let row = 0; row < mipSize; row += 1) {
-        for (let column = 0; column < mipSize; column += 1) {
-          data.set(color, row * 256 + column * 4);
-        }
-      }
+    environmentSource.faces.forEach((sourceFace, face) => {
+      const upload = createFallbackMipUpload(
+        sourceFace.rgba,
+        environmentSource.faceAverages[face],
+        baseSize,
+        mipSize,
+      );
 
       device.queue.writeTexture(
         { texture, mipLevel, origin: [0, 0, face] },
-        data,
-        { bytesPerRow: 256, rowsPerImage: mipSize },
+        upload.data,
+        { bytesPerRow: upload.bytesPerRow, rowsPerImage: mipSize },
         [mipSize, mipSize, 1],
       );
     });
-  });
+  }
 
   return {
     resourceKey,
     texture,
     view: texture.createView({
-      label: "spinning-cube-studio:specular-ibl-minimal-mip-chain-view",
+      label: "spinning-cube-pisa-studio:specular-ibl-minimal-mip-chain-view",
       dimension: "cube",
     }),
     descriptor: {
-      label: "spinning-cube-studio:specular-ibl-minimal-mip-chain",
+      label: "spinning-cube-pisa-studio:specular-ibl-minimal-mip-chain",
       size: [baseSize, baseSize, 6],
       format: "rgba8unorm",
       usage: usage.TEXTURE_BINDING | usage.COPY_DST,
@@ -797,17 +806,6 @@ function createFaceColoredSpecularFallbackCubeTexture(
   };
 }
 
-function specularSourceFaceColors() {
-  return [
-    [255, 245, 210, 255],
-    [70, 105, 155, 255],
-    [245, 240, 190, 255],
-    [26, 42, 54, 255],
-    [245, 210, 255, 255],
-    [42, 48, 72, 255],
-  ];
-}
-
 function resolveTextureUsage(aperture) {
   return globalThis.GPUTextureUsage ?? aperture.WEBGPU_TEXTURE_USAGE_FLAGS;
 }
@@ -816,24 +814,19 @@ function resolveBufferUsage() {
   return globalThis.GPUBufferUsage ?? { UNIFORM: 0x40, COPY_DST: 0x08 };
 }
 
-function createFaceColoredDiffuseCubeTexture(device, resourceKey) {
+function createRealEnvironmentDiffuseCubeTexture(
+  device,
+  resourceKey,
+  environmentSource,
+) {
   const texture = device.createTexture({
-    label: "spinning-cube-studio:diffuse-ibl",
+    label: "spinning-cube-pisa-studio:diffuse-ibl",
     size: [1, 1, 6],
     format: "rgba8unorm",
     usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST,
     mipLevelCount: 1,
   });
-  const faceColors = [
-    [230, 104, 48, 255],
-    [48, 132, 230, 255],
-    [230, 220, 120, 255],
-    [42, 94, 78, 255],
-    [190, 88, 210, 255],
-    [70, 78, 120, 255],
-  ];
-
-  faceColors.forEach((color, face) => {
+  environmentSource.faceAverages.forEach((color, face) => {
     const data = new Uint8Array(256);
     data.set(color, 0);
     device.queue.writeTexture(
@@ -848,11 +841,11 @@ function createFaceColoredDiffuseCubeTexture(device, resourceKey) {
     resourceKey,
     texture,
     view: texture.createView({
-      label: "spinning-cube-studio:diffuse-ibl-view",
+      label: "spinning-cube-pisa-studio:diffuse-ibl-view",
       dimension: "cube",
     }),
     descriptor: {
-      label: "spinning-cube-studio:diffuse-ibl",
+      label: "spinning-cube-pisa-studio:diffuse-ibl",
       size: [1, 1, 6],
       format: "rgba8unorm",
       usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST,
@@ -864,7 +857,7 @@ function createFaceColoredDiffuseCubeTexture(device, resourceKey) {
 
 function createDiffuseIblSampler(device, resourceKey) {
   const descriptor = {
-    label: "spinning-cube-studio:diffuse-ibl-sampler",
+    label: "spinning-cube-pisa-studio:diffuse-ibl-sampler",
     addressModeU: "clamp-to-edge",
     addressModeV: "clamp-to-edge",
     addressModeW: "clamp-to-edge",
@@ -881,6 +874,196 @@ function createDiffuseIblSampler(device, resourceKey) {
     sampler: device.createSampler(descriptor),
     descriptor,
   };
+}
+
+async function loadRgbeCubeEnvironment(asset) {
+  const response = await fetch(asset.url);
+
+  if (!response.ok) {
+    throw new Error(
+      `Could not load ${asset.path}: ${response.status} ${response.statusText}`,
+    );
+  }
+
+  return decodeRgbeCubeAtlas(await response.arrayBuffer(), asset);
+}
+
+function decodeRgbeCubeAtlas(arrayBuffer, asset) {
+  const bytes = new Uint8Array(arrayBuffer);
+  const header = decodeAsciiHeader(bytes);
+  const match = /(?:^|\n)([-+]Y)\s+(\d+)\s+([-+]X)\s+(\d+)\n/.exec(header.text);
+
+  if (match === null) {
+    throw new Error(`Radiance HDR asset ${asset.path} has no size line.`);
+  }
+
+  const height = Number(match[2]);
+  const width = Number(match[4]);
+  const faceCount = asset.faceOrder.length;
+
+  if (height <= 0 || width <= 0 || width % faceCount !== 0) {
+    throw new Error(
+      `Radiance HDR asset ${asset.path} must be a horizontal cube atlas.`,
+    );
+  }
+
+  const faceSize = width / faceCount;
+
+  if (faceSize !== height) {
+    throw new Error(
+      `Radiance HDR asset ${asset.path} must contain square cube faces.`,
+    );
+  }
+
+  const pixelBytes = bytes.subarray(header.endOffset);
+
+  if (pixelBytes.length < width * height * 4) {
+    throw new Error(
+      `Radiance HDR asset ${asset.path} ended before pixel data.`,
+    );
+  }
+
+  const faces = asset.faceOrder.map((name, faceIndex) => {
+    const rgba = new Uint8Array(faceSize * faceSize * 4);
+
+    for (let y = 0; y < faceSize; y += 1) {
+      for (let x = 0; x < faceSize; x += 1) {
+        const src = (y * width + faceIndex * faceSize + x) * 4;
+        const dst = (y * faceSize + x) * 4;
+
+        rgba.set(
+          rgbeToDisplayRgba(
+            pixelBytes[src],
+            pixelBytes[src + 1],
+            pixelBytes[src + 2],
+            pixelBytes[src + 3],
+          ),
+          dst,
+        );
+      }
+    }
+
+    return {
+      name,
+      rgba,
+    };
+  });
+  const faceAverages = faces.map((face) => averageRgba(face.rgba));
+
+  return {
+    kind: "radiance-rgbe-cube-atlas",
+    assetPath: asset.path,
+    label: asset.label,
+    width,
+    height,
+    faceSize,
+    faceOrder: [...asset.faceOrder],
+    faces,
+    faceAverages,
+  };
+}
+
+function decodeAsciiHeader(bytes) {
+  for (let index = 0; index < bytes.length - 1; index += 1) {
+    if (bytes[index] === 0x0a && bytes[index + 1] === 0x2d) {
+      const nextNewline = bytes.indexOf(0x0a, index + 1);
+
+      if (nextNewline !== -1) {
+        return {
+          text: new TextDecoder("ascii").decode(
+            bytes.subarray(0, nextNewline + 1),
+          ),
+          endOffset: nextNewline + 1,
+        };
+      }
+    }
+  }
+
+  throw new Error("Radiance HDR header does not contain a resolution line.");
+}
+
+function rgbeToDisplayRgba(r, g, b, e) {
+  if (e === 0) {
+    return [0, 0, 0, 255];
+  }
+
+  const scale = Math.pow(2, e - 128) / 256;
+
+  return [
+    linearToDisplayByte((r + 0.5) * scale),
+    linearToDisplayByte((g + 0.5) * scale),
+    linearToDisplayByte((b + 0.5) * scale),
+    255,
+  ];
+}
+
+function linearToDisplayByte(value) {
+  const mapped = 1 - Math.exp(-Math.max(0, value) * 1.15);
+  return Math.max(0, Math.min(255, Math.round(mapped ** (1 / 2.2) * 255)));
+}
+
+function averageRgba(rgba) {
+  let r = 0;
+  let g = 0;
+  let b = 0;
+  const pixelCount = rgba.length / 4;
+
+  for (let offset = 0; offset < rgba.length; offset += 4) {
+    r += rgba[offset];
+    g += rgba[offset + 1];
+    b += rgba[offset + 2];
+  }
+
+  return [
+    Math.round(r / pixelCount),
+    Math.round(g / pixelCount),
+    Math.round(b / pixelCount),
+    255,
+  ];
+}
+
+function createPaddedFaceUpload(rgba, size) {
+  const bytesPerRow = alignTo(size * 4, 256);
+  const data = new Uint8Array(bytesPerRow * size);
+
+  for (let row = 0; row < size; row += 1) {
+    data.set(
+      rgba.subarray(row * size * 4, (row + 1) * size * 4),
+      row * bytesPerRow,
+    );
+  }
+
+  return { data, bytesPerRow };
+}
+
+function createFallbackMipUpload(sourceRgba, faceAverage, baseSize, mipSize) {
+  const bytesPerRow = alignTo(mipSize * 4, 256);
+  const data = new Uint8Array(bytesPerRow * mipSize);
+  const sourceStep = baseSize / mipSize;
+
+  for (let y = 0; y < mipSize; y += 1) {
+    for (let x = 0; x < mipSize; x += 1) {
+      const sourceX = Math.min(baseSize - 1, Math.floor(x * sourceStep));
+      const sourceY = Math.min(baseSize - 1, Math.floor(y * sourceStep));
+      const source = (sourceY * baseSize + sourceX) * 4;
+      const target = y * bytesPerRow + x * 4;
+
+      data[target] = Math.round((sourceRgba[source] + faceAverage[0]) * 0.5);
+      data[target + 1] = Math.round(
+        (sourceRgba[source + 1] + faceAverage[1]) * 0.5,
+      );
+      data[target + 2] = Math.round(
+        (sourceRgba[source + 2] + faceAverage[2]) * 0.5,
+      );
+      data[target + 3] = 255;
+    }
+  }
+
+  return { data, bytesPerRow };
+}
+
+function alignTo(value, alignment) {
+  return Math.ceil(value / alignment) * alignment;
 }
 
 function diagnosticToJson(diagnostic) {
@@ -910,6 +1093,16 @@ function animationFailure(error) {
     error instanceof Error
       ? error.message
       : "The lit spinning cube animation frame failed.",
+  );
+}
+
+function environmentFailure(error) {
+  return failure(
+    "environment-load",
+    "environment-asset-failed",
+    error instanceof Error
+      ? error.message
+      : "The real HDR environment map asset could not be loaded.",
   );
 }
 
