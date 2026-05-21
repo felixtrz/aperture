@@ -1,6 +1,6 @@
 # Agent Handoff
 
-Updated: 2026-05-21T17:28:00Z
+Updated: 2026-05-21T17:50:11Z
 
 ## Current Run Update — 2026-05-21T17:28:00Z — Bulk worker migration advanced
 
@@ -73,12 +73,15 @@ Advanced `task-3035` but did not finish it.
 
 - `pnpm run check:examples`
 - `pnpm exec vitest run test/examples/worker-split-examples.test.mjs`
+- `pnpm exec vitest run test/examples/worker-split-examples.test.mjs test/examples/navigation.test.mjs`
 - `pnpm run lint`
 - `pnpm run format:check`
 - `pnpm run build`
 - `pnpm run typecheck:test`
 - `pnpm test`
 - `pnpm run check`
+- `pnpm run check` again after stopping the temporary examples server
+- Final `pnpm run check` at the minute-50 stop gate
 - `pnpm run check:progress`
 - Playwright specs reached assertions successfully for:
   `batching`, `gpu-profiler`, `matcap-app`, and `render-to-texture`. As noted
@@ -90,6 +93,10 @@ Advanced `task-3035` but did not finish it.
   `batching`, `matcap-app`, `render-to-texture`, `gpu-profiler`, and
   `materials-showcase`. The final headless smoke exited cleanly after printing
   expected phases/draw counts and confirming transferred typed arrays.
+- A final direct Chrome/WebGPU smoke after the post-cleanup `pnpm run check`
+  again reached `ok` status for all five migrated examples. Its headed Chrome
+  process then hung during close, matching the earlier local runner issue, and
+  was killed only after the success statuses had printed.
 - A focused direct `materials-showcase` frame-progression check reached frame 13
   with `ok: true`, `phase: "animate"`, one extracted environment, and preserved
   typed arrays. The official headed Playwright `materials-showcase` spec did not
