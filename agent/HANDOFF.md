@@ -1,6 +1,134 @@
 # Agent Handoff
 
-Updated: 2026-05-21T18:43:11Z
+Updated: 2026-05-21T19:50:14Z
+
+## Current Run Update — 2026-05-21T19:38:18Z — Manual worker migration advanced
+
+Advanced `task-3035` but did not finish it.
+
+### What changed
+
+- Migrated `gltf-scene` to the worker-by-default shape and deleted
+  `examples/example-renderer-app.js`.
+- Split `gltf-scene` into `gltf-scene.main.js`, `gltf-scene.worker.js`, and a
+  thin legacy compatibility import. The main entry now owns WebGPU IBL/shadow
+  resources plus renderer-side source asset registration, while the worker owns
+  `createExtractionApp()`, GLTF ECS replay, shadow caster/receiver authoring
+  toggles, stepping, extraction, and transferable snapshot delivery.
+- Migrated `triangle` to the manual-render worker-snapshot shape. The main
+  entry keeps the existing low-level WebGPU unlit/custom-WGSL submission paths
+  but requests the extracted ECS snapshot from `triangle.worker.js`.
+- Migrated `custom-material` to the same manual-render worker-snapshot shape.
+  The main entry keeps WaterMaterial source validation/preparation, pipeline and
+  bind-group creation, per-frame uniform writes, and readback; the worker owns
+  camera/plane ECS authoring and extraction.
+- Updated HTML entries, example syntax checks, worker-split/static navigation
+  tests, public tracker pages, and backlog notes. Only `multi-entity` remains
+  as a main-thread ECS manual example under `task-3035`.
+
+### Files touched in this partial slice
+
+- `agent/BACKLOG.md`
+- `agent/HANDOFF.md`
+- `docs/index.html`
+- `docs/render-pipeline-comparison.html`
+- `examples/custom-material.html`
+- `examples/custom-material.js`
+- `examples/custom-material.main.js`
+- `examples/custom-material.worker.js`
+- `examples/example-renderer-app.js`
+- `examples/gltf-scene.html`
+- `examples/gltf-scene.js`
+- `examples/gltf-scene.main.js`
+- `examples/gltf-scene.worker.js`
+- `examples/triangle.html`
+- `examples/triangle.js`
+- `examples/triangle.main.js`
+- `examples/triangle.worker.js`
+- `package.json`
+- `test/examples/navigation.test.mjs`
+- `test/examples/worker-split-examples.test.mjs`
+
+### References inspected
+
+- `examples/worker-cube.main.js`
+- `examples/worker-cube.worker.js`
+- `references/three.js/examples/webgl_worker_offscreencanvas.html`
+- `references/bevy/crates/bevy_render/src/lib.rs`
+
+### Validation
+
+- `pnpm run check:examples`
+- `pnpm exec vitest run test/examples/worker-split-examples.test.mjs`
+- `pnpm exec vitest run test/examples/navigation.test.mjs test/examples/worker-split-examples.test.mjs`
+- `pnpm exec eslint examples/custom-material.main.js examples/custom-material.worker.js test/examples/worker-split-examples.test.mjs`
+- `pnpm run check:progress`
+- `pnpm run lint`
+- `pnpm run format:check`
+- `pnpm run check`
+- `pnpm exec playwright test test/e2e/ecs-triangle.spec.ts test/e2e/custom-material.spec.ts --project=chrome-webgpu-headed`
+- `pnpm exec playwright test test/e2e/basic-status.spec.ts --project=chrome-webgpu-headed`
+- `pnpm exec playwright test test/e2e/ecs-multi-entity-status.spec.ts test/e2e/ecs-multi-entity-pixels.spec.ts --project=chrome-webgpu-headed`
+- `pnpm exec playwright test test/e2e/scenario-routing.spec.ts test/e2e/resource-binding-routing.spec.ts test/e2e/visibility-routing.spec.ts test/e2e/texture-routing.spec.ts test/e2e/primitive-routing.spec.ts test/e2e/camera-routing.spec.ts --project=chrome-webgpu-headed`
+- `pnpm exec playwright test test/e2e/lighting-routing.spec.ts test/e2e/texture-dependency-routing.spec.ts test/e2e/texture-resource-routing.spec.ts test/e2e/missing-texture-resource.spec.ts test/e2e/invalid-texture-upload.spec.ts --project=chrome-webgpu-headed`
+- `pnpm exec playwright test test/e2e/multi-textured-unlit.spec.ts test/e2e/textured-unlit.spec.ts test/e2e/textured-unlit-tint.spec.ts test/e2e/sampler-filter-address.spec.ts test/e2e/sampler-v-address.spec.ts --project=chrome-webgpu-headed`
+- `pnpm exec playwright test test/e2e/extraction-routing.spec.ts test/e2e/mesh-asset-status.spec.ts test/e2e/material-asset-status.spec.ts test/e2e/missing-mesh-asset.spec.ts test/e2e/missing-material-asset.spec.ts test/e2e/missing-resource.spec.ts test/e2e/missing-mesh-resource.spec.ts test/e2e/layer-mismatch.spec.ts test/e2e/disabled-renderable.spec.ts test/e2e/disabled-visible-peer.spec.ts test/e2e/render-layer-filter.spec.ts test/e2e/render-order-overlap.spec.ts test/e2e/depth-overlap.spec.ts --project=chrome-webgpu-headed`
+- `pnpm exec playwright test test/e2e/box-primitive.spec.ts test/e2e/sphere-primitive.spec.ts test/e2e/cylinder-cone-primitive.spec.ts test/e2e/capsule-torus-primitive.spec.ts test/e2e/perspective-fov-camera.spec.ts test/e2e/orthographic-camera.spec.ts --project=chrome-webgpu-headed`
+- `pnpm exec playwright test test/e2e/shared-sampler-asset-routing.spec.ts test/e2e/shared-texture-asset-routing.spec.ts test/e2e/texture-asset-routing.ts test/e2e/texture-upload-routing.spec.ts --project=chrome-webgpu-headed`
+- Direct Chrome/WebGPU smoke for `gltf-scene.html`: ready status with preserved
+  typed arrays, four mesh draws, one shadow request, active IBL, and expected
+  receiver/caster shadow-depth probe status.
+- Direct Chrome/WebGPU smoke for `gltf-scene.html?disable-shadow-receiver=1`:
+  receiver disabled in main/worker status, zero receivers, and no shadow-map
+  pipeline.
+- Direct Chrome/WebGPU smoke for `triangle.html` and
+  `triangle.html?material=custom-wgsl`: both rendered one draw with readback,
+  worker scene status, and preserved snapshot typed arrays.
+- Direct Chrome/WebGPU smoke for `custom-material.html` and
+  `custom-material.html?broken=wgsl`: animated path reached frame 4 with
+  readback and preserved typed arrays; broken path reported the expected
+  `renderAsset.customWgslMaterial.missingFragmentEntryPoint` diagnostic.
+
+### Known issues
+
+- `task-3035` remains incomplete. `multi-entity` is the only remaining
+  main-thread ECS authoring example and is a large 5,300-line scenario matrix.
+- `app-diagnostics-scene.js` still contains `app.spawn(...)`, but it is a
+  shared worker scene module and is covered by the worker-split test exception.
+- The local headed Playwright runner still has the previously documented close
+  / hang risk. A rerun of
+  `pnpm exec playwright test test/e2e/gltf-scene.spec.ts --project=chrome-webgpu-headed`
+  produced no progress for over a minute and was terminated; direct
+  Chrome/WebGPU smoke scripts were used for the changed `gltf-scene` browser
+  paths.
+- `standard-texture-control?scenario=base-color-transform` remains a
+  pre-existing stale expected-failure case relative to the current finite
+  texture-transform support path; this migration did not change that contract.
+
+### Recommended next task
+
+Finish `task-3035` with `multi-entity`. The practical path is to keep its
+renderer-side resource/pipeline/readback code on the main thread, move the
+scenario world builders and snapshot extraction behind a `multi-entity.worker.js`
+request/response protocol, and add a manual-render worker-split test entry like
+`triangle` and `custom-material`.
+
+Concrete `multi-entity` split notes from this run's inspection:
+
+- Main-thread rendering functions to keep in `multi-entity.main.js`:
+  `renderMultiEntityScene` after snapshot/resource input is available,
+  `createScenePipelineResources`, `createPipelineScopedSharedBindGroups`,
+  `createSceneTextureResources`, `submitMultiEntityFrame`, `createDepthTarget`,
+  and the status projection helpers below the submit path.
+- Worker-owned ECS functions to move/call from `multi-entity.worker.js`:
+  `createMultiEntityWorld`, `renderWorldScene` scenario builders, all
+  `create*World(...)` scenario factories, and status-only extraction helpers
+  that currently call `extractRenderSnapshot(...)`.
+- The worker response probably needs more than a snapshot: the main renderer
+  also needs cloneable scene resource data such as `mesh`, `meshHandle`,
+  `materials`, texture/sampler metadata, expected draw counts, readback sample
+  points, and scenario-specific status fields. Avoid sending `World` or
+  `AssetRegistry` instances across the boundary.
 
 ## Current Run Update — 2026-05-21T18:43:11Z — App diagnostics worker migration advanced
 

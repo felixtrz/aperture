@@ -6,6 +6,6 @@
   "lastResult": "success",
   "lastCommit": "458f5f8",
   "activePid": null,
-  "notes": "Migrated standard-gltf-texture and app-diagnostics to worker-by-default main/worker shape; full check and targeted Playwright smokes passed; remaining task-3035 bridge consumer is gltf-scene plus manual examples.",
-  "lastRunFinishedAt": "2026-05-21T18:50:07Z"
+  "notes": "Migrated gltf-scene, triangle, and custom-material to worker-owned ECS snapshots; deleted the temporary renderer bridge; full check and targeted WebGPU Playwright baselines passed; multi-entity remains.",
+  "lastRunFinishedAt": "2026-05-21T19:50:25Z"
 }

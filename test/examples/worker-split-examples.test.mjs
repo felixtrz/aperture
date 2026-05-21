@@ -23,6 +23,22 @@ const workerSplitExamples = [
     legacy: "examples/spinning-cube.js",
   },
   {
+    html: "examples/triangle.html",
+    main: "examples/triangle.main.js",
+    worker: "examples/triangle.worker.js",
+    legacy: "examples/triangle.js",
+    mode: "manual-render",
+    requestSnapshot: "requestTriangleSnapshot",
+  },
+  {
+    html: "examples/custom-material.html",
+    main: "examples/custom-material.main.js",
+    worker: "examples/custom-material.worker.js",
+    legacy: "examples/custom-material.js",
+    mode: "manual-render",
+    requestSnapshot: "requestCustomWaterSnapshot",
+  },
+  {
     html: "examples/multi-light-shadow.html",
     main: "examples/multi-light-shadow.main.js",
     worker: "examples/multi-light-shadow.worker.js",
@@ -125,6 +141,12 @@ const workerSplitExamples = [
     legacy: "examples/app-diagnostics.js",
     shared: "examples/app-diagnostics-scene.js",
   },
+  {
+    html: "examples/gltf-scene.html",
+    main: "examples/gltf-scene.main.js",
+    worker: "examples/gltf-scene.worker.js",
+    legacy: "examples/gltf-scene.js",
+  },
 ];
 
 describe("worker-split examples", () => {
@@ -156,21 +178,37 @@ describe("worker-split examples", () => {
       expect(main, `${example.main} should not spawn ECS entities`).not.toMatch(
         /\bapp\.spawn\s*\(/,
       );
-      expect(main, `${example.main} should render worker snapshots`).toContain(
-        "app.renderSnapshot",
-      );
-      expect(
-        worker,
-        `${example.worker} should own extraction app setup`,
-      ).toContain("createExtractionApp");
+      if (example.mode === "manual-render") {
+        expect(
+          main,
+          `${example.main} should request worker snapshots`,
+        ).toContain(example.requestSnapshot);
+        expect(
+          worker,
+          `${example.worker} should own manual ECS setup`,
+        ).toContain("createWorld");
+        expect(
+          workerSpawnSource,
+          `${example.worker} should create ECS entities`,
+        ).toMatch(/\bworld\.createEntity\s*\(/);
+      } else {
+        expect(
+          main,
+          `${example.main} should render worker snapshots`,
+        ).toContain("app.renderSnapshot");
+        expect(
+          worker,
+          `${example.worker} should own extraction app setup`,
+        ).toContain("createExtractionApp");
+        expect(
+          workerSpawnSource,
+          `${example.worker} should spawn ECS entities`,
+        ).toMatch(/\bapp\.spawn\s*\(/);
+      }
       expect(
         worker,
         `${example.worker} should transfer snapshot buffers`,
       ).toContain("renderSnapshotTransferList");
-      expect(
-        workerSpawnSource,
-        `${example.worker} should spawn ECS entities`,
-      ).toMatch(/\bapp\.spawn\s*\(/);
     }
   });
 

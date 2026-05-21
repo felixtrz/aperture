@@ -20,7 +20,7 @@ const examplePages = [
   },
   {
     file: "examples/triangle.html",
-    script: "./triangle.js",
+    script: "./triangle.main.js",
     title: "Aperture ECS Triangle",
     canvasLabel: "Aperture WebGPU triangle canvas",
     exampleName: "ecs triangle",
@@ -114,11 +114,7 @@ describe("browser example navigation", () => {
   });
 
   it("keeps manual browser modules wired to the shared WebGPU readback helper", async () => {
-    for (const file of [
-      "examples/main.js",
-      "examples/triangle.js",
-      "examples/multi-entity.js",
-    ]) {
+    for (const file of ["examples/main.js", "examples/multi-entity.js"]) {
       const script = await readExamplePage(file);
 
       expect(script, `${file} should import readback helper`).toContain(

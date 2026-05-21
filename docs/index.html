@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-21 18:43 UTC</dd>
+            <dd>2026-05-21 19:33 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -417,20 +417,29 @@
               entries. This run also moved <code>point-shadow</code>,
               <code>spot-shadow</code>, and
               <code>standard-texture-control</code>,
-              <code>standard-gltf-texture</code>, and
-              <code>app-diagnostics</code> to the same shape: point/spot shadow
+              <code>standard-gltf-texture</code>, <code>app-diagnostics</code>,
+              <code>gltf-scene</code>, <code>triangle</code>, and
+              <code>custom-material</code> to the same shape: point/spot shadow
               pages keep renderer-owned shadow resources and UI toggles on the
               main thread while workers own ECS scene extraction, the
               texture-control page shares source asset registration between main
               and worker before rendering worker snapshots with readback
               samples, the glTF texture fixture now shares its scenario setup
-              across renderer and worker modules, and app diagnostics runs each
-              scenario from worker-owned extraction snapshots. Their status JSON
-              now reports worker snapshot counts and typed-array preservation,
-              and static example tests prevent ECS spawning from drifting back
-              into those main files. The WebGPU app facade now requires a
-              worker-shaped snapshot producer and no longer exposes main-thread
-              ECS authoring APIs: <code>spawn</code>, <code>world</code>, and
+              across renderer and worker modules, app diagnostics runs each
+              scenario from worker-owned extraction snapshots, and the GLTF
+              scene worker owns ECS replay, shadow authoring toggles, stepping,
+              and extraction while the main entry keeps WebGPU IBL/shadow
+              resources, and the triangle page now requests a worker-owned ECS
+              snapshot before submitting the unlit or custom WGSL draw through
+              its low-level WebGPU proof path, and the custom-material page now
+              drives its animated WaterMaterial resources from a worker-owned
+              plane snapshot. Their status JSON now reports worker snapshot
+              counts and typed-array preservation, and static example tests
+              prevent ECS spawning from drifting back into those main files. The
+              temporary main-thread renderer bridge has been deleted. The WebGPU
+              app facade now requires a worker-shaped snapshot producer and no
+              longer exposes main-thread ECS authoring APIs: <code>spawn</code>,
+              <code>world</code>, and
               <code>assets</code>
               are removed from the returned renderer app. It consumes
               renderer-side source assets plus worker-produced
@@ -1867,14 +1876,19 @@
                 the worker-by-default example shape, then migrated
                 <code>point-shadow</code>, <code>spot-shadow</code>,
                 <code>standard-texture-control</code>,
-                <code>standard-gltf-texture</code>, and
-                <code>app-diagnostics</code>. Browser smokes now prove worker
-                snapshots, preserved typed arrays, expected draw counts,
-                render-target output, GPU timing overlays, matcap playback,
-                material-showcase IBL status, point/spot shadow compare
-                pipelines, StandardMaterial texture-control readback status,
-                glTF base-color/normal texture rendering, and app-facade
-                diagnostic reports across the migrated batch.
+                <code>standard-gltf-texture</code>,
+                <code>app-diagnostics</code>, <code>gltf-scene</code>,
+                <code>triangle</code>, and <code>custom-material</code>. Browser
+                smokes now prove worker snapshots, preserved typed arrays,
+                expected draw counts, render-target output, GPU timing overlays,
+                matcap playback, material-showcase IBL status, point/spot shadow
+                compare pipelines, StandardMaterial texture-control readback
+                status, glTF base-color/normal texture rendering, app-facade
+                diagnostic reports, GLTF scene IBL/shadow status, triangle
+                unlit/custom WGSL draw submission, and animated WaterMaterial
+                rendering across the migrated batch. The temporary renderer
+                compatibility bridge was deleted after the GLTF scene moved off
+                it.
               </li>
               <li>
                 <span class="badge green">task-3034</span> Migrated spinning
@@ -4023,13 +4037,13 @@
                 Use the flagship migrations as the template: each example that
                 authors ECS state should gain a renderer-only main entry, a
                 worker-owned extraction entry, and transferable snapshot status.
-                The next useful batch is <code>gltf-scene</code> plus the
-                lower-level manual examples that still author ECS on the main
-                thread.
+                The remaining batch is the lower-level manual
+                <code>multi-entity</code> example, which still authors ECS on
+                the main thread.
               </li>
               <li>
-                Delete the temporary main-thread compatibility bridge once no
-                remaining examples depend on it.
+                The temporary main-thread compatibility bridge has been deleted;
+                keep it from returning while finishing the manual examples.
               </li>
             </ul>
           </article>

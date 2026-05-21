@@ -59,7 +59,7 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start `task-3035`: bulk-migrate the remaining examples to the
+Continue `task-3035`: finish migrating the lower-level manual examples to the
 worker-by-default shape.
 
 Why this next: `createWebGpuApp()` now requires a worker-shaped snapshot producer and no longer exposes main-thread ECS authoring APIs. The flagship examples prove the two-file main/worker shape; the remaining browser-facing samples should now use the same renderer-only path.
@@ -71,10 +71,11 @@ files, with transferable snapshot status assertions. `debug-normal-app`,
 have also been migrated as the first bulk examples. Later slices migrated
 `batching`, `render-to-texture`, `gpu-profiler`, `matcap-app`,
 `materials-showcase`, `point-shadow`, `spot-shadow`,
-`standard-texture-control`, `standard-gltf-texture`, and `app-diagnostics`.
-The remaining examples still using the temporary main-thread compatibility
-helper should continue to be migrated mechanically from the established
-template.
+`standard-texture-control`, `standard-gltf-texture`, `app-diagnostics`,
+`gltf-scene`, `triangle`, and `custom-material`. The temporary main-thread
+compatibility helper has been deleted. The remaining manual example
+(`multi-entity`) still authors/extracts ECS state on the main thread through
+lower-level render-path code and needs a separate worker-split pass.
 
 Reference anchors (read before writing):
 
@@ -407,6 +408,30 @@ for each diagnostic scenario while module workers own extraction app setup,
 asset-mirrored ECS authoring, stepping, and transferable snapshot delivery.
 The existing app-diagnostics Playwright spec passes against the worker-split
 page and status now includes per-scenario worker/transport evidence.
+Progress note 2026-05-21: Migrated `gltf-scene` to the same
+worker-by-default shape and deleted `examples/example-renderer-app.js`. The
+main entry now registers renderer-side glTF source assets and owns WebGPU
+IBL/shadow resources, while the worker owns `createExtractionApp()`, GLTF ECS
+replay, shadow caster/receiver authoring toggles, stepping, extraction, and
+transferable snapshot delivery. Direct Chrome/WebGPU smoke reached ready status
+with preserved typed arrays, four mesh draws, one shadow request, active IBL,
+and expected receiver/caster shadow-depth probe status. The lower-level manual
+examples remain the unfinished part of this task.
+Progress note 2026-05-21: Migrated `triangle` to a worker snapshot producer
+while preserving its low-level manual render-path proof. The main entry owns
+WebGPU initialization, resource creation, unlit/custom WGSL pipeline submission,
+and readback; the worker owns ECS world setup, camera/mesh/material authoring,
+extraction, and transferable snapshot delivery. Direct Chrome/WebGPU smoke
+covered both `triangle.html` and `triangle.html?material=custom-wgsl` with
+typed arrays preserved, one draw, successful readback, and no WebGPU validation
+warnings. `custom-material` was then migrated in the same manual-render style:
+the main entry owns WebGPU initialization, custom WGSL source validation,
+preparation, pipeline/bind-group resources, per-frame uniform writes, and
+readback; the worker owns ECS world setup, camera/plane/material placeholder
+authoring, extraction, and transferable snapshot delivery. Direct Chrome/WebGPU
+smoke covered the animated path and `?broken=wgsl` validation path with typed
+arrays preserved for the rendered path and the expected missing fragment entry
+diagnostic for the broken path. `multi-entity` remains unfinished.
 
 Acceptance criteria:
 
