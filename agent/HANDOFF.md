@@ -1,8 +1,8 @@
 # Agent Handoff
 
-Updated: 2026-05-21T05:32:00Z
+Updated: 2026-05-21T05:51:15Z
 
-## Current Run Update — 2026-05-21T05:32:00Z — Custom WGSL WebGPU resource bridge
+## Current Run Update — 2026-05-21T05:51:15Z — Custom WGSL WebGPU resource bridge
 
 Advanced `task-3027`; do not mark it complete yet.
 
@@ -73,6 +73,12 @@ Advanced `task-3027`; do not mark it complete yet.
 
 Continue `task-3027`: wire the prepared custom WGSL resource helper into an app
 route and prove a distinctive shader output in a browser example.
+
+### End-of-run checkpoint
+
+- Feature commit: `458f5f8` (`feat: add asset unregister and custom material bridge`).
+- Final broad validation passed with `pnpm run check`.
+- Stop gate opened at minute `:50`; no additional feature task was started.
 
 ## Current Run Update — 2026-05-21T05:20:52Z — Custom WGSL material adapter contract
 

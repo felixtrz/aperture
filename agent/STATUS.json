@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-05-21T03:02:55Z",
   "lastResult": "success",
-  "lastCommit": null,
+  "lastCommit": "458f5f8",
   "activePid": null,
-  "notes": "Completed GPU pass timing diagnostics and GPU profiler overlay example; next task is task-3024 asset unregister API. Formatted user optimization notes for stop-hook validation.",
-  "lastRunFinishedAt": "2026-05-21T04:57:26Z"
+  "notes": "Completed task-3024 asset unregister, task-3025 GLB viewer cleanup, task-3026 custom WGSL adapter contract, and advanced task-3027 with WebGPU custom WGSL resource bridge; pnpm run check passed.",
+  "lastRunFinishedAt": "2026-05-21T05:51:30Z"
 }
