@@ -32,6 +32,12 @@ interface GlbViewerStatus extends ExampleStatusBase {
       readonly fallbackAssetId?: string;
     }[];
   };
+  readonly assetRegistry?: {
+    readonly total: number;
+    readonly activeRegistered: number;
+    readonly staleRegistered: number;
+    readonly activeKeys: readonly string[];
+  };
   readonly textureGallery?: {
     readonly id: string;
     readonly count: number;
@@ -785,6 +791,7 @@ test("Playwright renders the fetched sample GLB viewer asset", async ({
     },
   });
   const initialOrbit = expectReadyOrbitFit(rendered, "default sample");
+  expectNoStaleGlbViewerAssets(rendered, "default sample");
 
   const screenshot = await page.locator("#aperture-canvas").screenshot();
   const clear =
@@ -938,6 +945,7 @@ test("Playwright renders the fetched sample GLB viewer asset", async ({
   const slabStatus = await waitForExampleStatus<GlbViewerStatus>(page);
   const slabScreenshot = await page.locator("#aperture-canvas").screenshot();
   const slabOrbit = expectReadyOrbitFit(slabStatus, "slab sample");
+  expectNoStaleGlbViewerAssets(slabStatus, "slab sample");
 
   expect(slabStatus).toMatchObject({
     selectedAsset: {
@@ -1028,6 +1036,7 @@ test("Playwright renders the fetched sample GLB viewer asset", async ({
   const brassStatus = await waitForExampleStatus<GlbViewerStatus>(page);
   const brassScreenshot = await page.locator("#aperture-canvas").screenshot();
   const brassOrbit = expectReadyOrbitFit(brassStatus, "lit brass sample");
+  expectNoStaleGlbViewerAssets(brassStatus, "lit brass sample");
 
   expect(brassStatus).toMatchObject({
     selectedAsset: {
@@ -1168,6 +1177,7 @@ test("Playwright renders the fetched sample GLB viewer asset", async ({
     .screenshot();
   const animatedStartX =
     animatedStartStatus?.animation?.animatedNodes[0]?.value[0] ?? 0;
+  expectNoStaleGlbViewerAssets(animatedStartStatus, "animated sample");
 
   expect(animatedStartStatus).toMatchObject({
     selectedAsset: {
@@ -25726,6 +25736,27 @@ function expectReadyOrbitFit(
   expect(orbit?.resetAvailable, `${label} reset availability`).toBe(true);
 
   return orbit as NonNullable<GlbViewerStatus["orbit"]>;
+}
+
+function expectNoStaleGlbViewerAssets(
+  status: GlbViewerStatus | undefined,
+  label: string,
+): void {
+  expect(
+    status?.assetRegistry,
+    `${label} should publish asset registry`,
+  ).toBeDefined();
+  expect(
+    status?.assetRegistry?.activeRegistered ?? 0,
+    `${label} active registry count`,
+  ).toBeGreaterThan(0);
+  expect(
+    status?.assetRegistry?.staleRegistered,
+    `${label} stale registry count`,
+  ).toBe(0);
+  expect(status?.assetRegistry?.total, `${label} total registry count`).toBe(
+    status?.assetRegistry?.activeRegistered,
+  );
 }
 
 async function loadBrassViewerSample(

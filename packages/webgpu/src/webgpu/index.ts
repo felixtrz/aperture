@@ -17,6 +17,7 @@ export * from "./command-buffer.js";
 export * from "./command-encoder.js";
 export * from "./command-submission-metrics.js";
 export * from "./current-texture-view.js";
+export * from "./custom-wgsl-material.js";
 export * from "./debug-normal-pipeline-descriptor.js";
 export * from "./debug-normal-app-frame-resources.js";
 export * from "./debug-normal-bind-group.js";

@@ -101,6 +101,12 @@ describe("typed asset collections", () => {
       version: 2,
       diagnostics: [],
     });
+
+    expect(assets.meshes.unregister(handle)).toMatchObject({
+      handle,
+      status: "ready",
+    });
+    expect(assets.meshes.get(handle)).toBeUndefined();
   });
 
   it("records material texture dependencies in the underlying registry", () => {

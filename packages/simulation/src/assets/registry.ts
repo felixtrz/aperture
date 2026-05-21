@@ -42,6 +42,22 @@ export class AssetRegistry {
     return entry;
   }
 
+  unregister<TKind extends AssetKind, TAsset = unknown>(
+    handle: AssetHandle<TKind>,
+  ): AssetRegistryEntry<TKind, TAsset> | undefined {
+    const key = assetHandleKey(handle);
+    const entry = this.#entries.get(key) as
+      | AssetRegistryEntry<TKind, TAsset>
+      | undefined;
+
+    if (entry === undefined) {
+      return undefined;
+    }
+
+    this.#entries.delete(key);
+    return entry;
+  }
+
   has(handle: AssetHandle): boolean {
     return this.#entries.has(assetHandleKey(handle));
   }

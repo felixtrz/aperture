@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-21 04:53 UTC</dd>
+            <dd>2026-05-21 05:32 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -456,58 +456,76 @@
               publishes both <code>main</code> and <code>shadow</code> timing
               entries, and the new GPU profiler example renders swapchain plus
               offscreen StandardMaterial passes while showing live per-pass
-              microsecond values in a DOM overlay. The GLB viewer now renders
-              extended StandardMaterial combined texture routes: occlusion plus
-              normal, metallic-roughness plus emissive, alpha-blend plus normal,
-              UV1 metallic-roughness plus normal, base-color plus occlusion, and
-              transformed base-color plus emissive, plus UV1 base-color plus
-              occlusion, transformed metallic-roughness plus normal, base-color
-              plus metallic-roughness plus emissive, alpha-blend plus emissive,
-              and UV1 base-color plus emissive, transformed base-color plus
-              metallic-roughness, UV1 metallic-roughness plus emissive, and
-              alpha-mask plus metallic-roughness. It also renders
-              metallic-roughness plus normal textures, UV1 base-color plus
-              normal textures, base-color plus emissive textures, and alpha-mask
-              plus normal-map routes through committed GLB samples with
-              JSON-safe status and browser pixel proof. It also renders normal
-              maps through <code>TEXCOORD_1</code>, StandardMaterial base-color
-              textures combined with <code>COLOR_0</code>, base-color plus
-              normal textures, and transformed UV1 normal maps. The GLB viewer
-              also renders compact visible status rows for material slots,
-              decoded images, unsupported features, animation, animation clips,
-              animated nodes, imported cameras, imported camera lists, live
-              lights, imported light lists, scene metadata, orbit fit, shadows,
-              shadow requests, IBL, IBL resources, draw/extraction state,
-              imported lights, primitive material resolution, primitive
-              material-factor details, material-alpha details, primitive texture
-              slots, texture handle keys, texture sampler state, texture
-              transforms, pipeline-token details, decoded-image details,
-              unsupported-feature details, mesh-draw identities,
-              prepared-resource reuse, render diagnostics, source loader state,
-              source output summaries, hierarchy transforms, replay stages,
-              selected assets, selected scenes, render-state details, and
-              unsupported animation-channel diagnostics. The latest audit
-              confirms these status panels remain JSON-safe projections of ECS,
-              source asset, extraction, and render-report data. It also proves
-              same-origin URI texture decode through the custom URL path,
-              real-URI gallery previous/next buttons, URL-persisted sample
-              selection, and stale custom image-decode clearing when switching
-              back to committed samples. The GLB viewer now includes unsupported
-              morph-target, skinning, primitive-mode, CUBICSPLINE animation, and
-              multi-scene samples that keep supported base meshes rendering
-              while reporting JSON-safe diagnostics and scene metadata. It also
-              includes real same-origin PNG/JPEG base-color, PNG normal-map, PNG
-              emissive, PNG metallic-roughness, PNG alpha-mask, and PNG
-              occlusion URI image decode, all-slot real URI texture coverage,
-              occlusion and metallic-roughness transform controls, sampler wrap
-              controls, UV1 image-decode controls, alpha-mask plus emissive
-              controls, normal plus occlusion controls, alpha-blend texture,
-              selector stress coverage across real URI samples, selected-asset
-              material-slot summary counts, keyboard previous/next navigation
-              across the real URI texture gallery, rotated metallic-roughness
-              transform, transformed-vs-untransformed normal and emissive
-              controls, emissive StandardMaterial, occlusion/emissive texture,
-              occlusion texture-transform, normal transform, emissive transform,
+              microsecond values in a DOM overlay. Asset cache hygiene now has a
+              source-registry unregister API, typed collection delegation, and
+              render-preparation unload hooks for prepared resources whose
+              source assets disappear. The GLB viewer now unregisters the prior
+              scene's registered mesh, material, texture, sampler, floor, and
+              environment handles while switching samples, and publishes
+              JSON-safe active/stale asset registry counts that stay flat across
+              cube → slab → brass → animated browser switching. The render
+              bridge now has a custom WGSL material adapter contract proof:
+              data-only custom material sources can prepare shader module
+              metadata, stable pipeline keys, bind-group layout metadata, and
+              bind-group resource keys through the existing
+              <code>RenderAssetAdapter</code> path, with typed diagnostics for
+              missing WGSL entrypoints and invalid binding declarations. WebGPU
+              now has a resource bridge for that prepared metadata: shader
+              module creation, browser pipeline descriptors, live render
+              pipeline creation, and pipeline-owned group-2 material bind-group
+              creation are covered by injected-device tests. The GLB viewer now
+              renders extended StandardMaterial combined texture routes:
+              occlusion plus normal, metallic-roughness plus emissive,
+              alpha-blend plus normal, UV1 metallic-roughness plus normal,
+              base-color plus occlusion, and transformed base-color plus
+              emissive, plus UV1 base-color plus occlusion, transformed
+              metallic-roughness plus normal, base-color plus metallic-roughness
+              plus emissive, alpha-blend plus emissive, and UV1 base-color plus
+              emissive, transformed base-color plus metallic-roughness, UV1
+              metallic-roughness plus emissive, and alpha-mask plus
+              metallic-roughness. It also renders metallic-roughness plus normal
+              textures, UV1 base-color plus normal textures, base-color plus
+              emissive textures, and alpha-mask plus normal-map routes through
+              committed GLB samples with JSON-safe status and browser pixel
+              proof. It also renders normal maps through
+              <code>TEXCOORD_1</code>, StandardMaterial base-color textures
+              combined with <code>COLOR_0</code>, base-color plus normal
+              textures, and transformed UV1 normal maps. The GLB viewer also
+              renders compact visible status rows for material slots, decoded
+              images, unsupported features, animation, animation clips, animated
+              nodes, imported cameras, imported camera lists, live lights,
+              imported light lists, scene metadata, orbit fit, shadows, shadow
+              requests, IBL, IBL resources, draw/extraction state, imported
+              lights, primitive material resolution, primitive material-factor
+              details, material-alpha details, primitive texture slots, texture
+              handle keys, texture sampler state, texture transforms,
+              pipeline-token details, decoded-image details, unsupported-feature
+              details, mesh-draw identities, prepared-resource reuse, render
+              diagnostics, source loader state, source output summaries,
+              hierarchy transforms, replay stages, selected assets, selected
+              scenes, render-state details, and unsupported animation-channel
+              diagnostics. The latest audit confirms these status panels remain
+              JSON-safe projections of ECS, source asset, extraction, and
+              render-report data. It also proves same-origin URI texture decode
+              through the custom URL path, real-URI gallery previous/next
+              buttons, URL-persisted sample selection, and stale custom
+              image-decode clearing when switching back to committed samples.
+              The GLB viewer now includes unsupported morph-target, skinning,
+              primitive-mode, CUBICSPLINE animation, and multi-scene samples
+              that keep supported base meshes rendering while reporting
+              JSON-safe diagnostics and scene metadata. It also includes real
+              same-origin PNG/JPEG base-color, PNG normal-map, PNG emissive, PNG
+              metallic-roughness, PNG alpha-mask, and PNG occlusion URI image
+              decode, all-slot real URI texture coverage, occlusion and
+              metallic-roughness transform controls, sampler wrap controls, UV1
+              image-decode controls, alpha-mask plus emissive controls, normal
+              plus occlusion controls, alpha-blend texture, selector stress
+              coverage across real URI samples, selected-asset material-slot
+              summary counts, keyboard previous/next navigation across the real
+              URI texture gallery, rotated metallic-roughness transform,
+              transformed-vs-untransformed normal and emissive controls,
+              emissive StandardMaterial, occlusion/emissive texture, occlusion
+              texture-transform, normal transform, emissive transform,
               alpha-mask, sampler-state texture, texture-transform, missing-UV1,
               supported base-color UV1, metallic-roughness UV1, and normal-scale
               samples with routed material, texture, sampler, transform/control,
@@ -1140,9 +1158,9 @@
           </article>
           <article class="card metric">
             <div class="label">render pipeline</div>
-            <div class="value">82%</div>
-            <div class="bar" aria-label="82 percent complete">
-              <span style="width: 82%"></span>
+            <div class="value">85%</div>
+            <div class="bar" aria-label="85 percent complete">
+              <span style="width: 85%"></span>
             </div>
             <p>
               The ECS-to-WebGPU spine is usable, app route reporting runs
@@ -1167,15 +1185,22 @@
               resource adapters now share explicit typed registry metadata.
               Built-in app resource adapter registry validation now reports
               duplicate and missing family diagnostics without exposing
-              callbacks or renderer resources. Richer app-level adapter routing,
-              passes, and resource lifetime policy remain.
+              callbacks or renderer resources. Source registry unregister and
+              GLB viewer scene-switch cleanup now keep long-session source
+              assets from growing monotonically. The first custom WGSL material
+              source now prepares renderer-independent pipeline and bind-group
+              descriptors through the render-asset adapter contract, and WebGPU
+              can now instantiate the matching shader module, render pipeline,
+              and group-2 material bind group from that prepared metadata.
+              Richer app-level adapter routing, passes, and prepared GPU
+              resource lifetime policy remain.
             </p>
           </article>
           <article class="card metric">
             <div class="label">material system</div>
-            <div class="value">60%</div>
-            <div class="bar" aria-label="60 percent complete">
-              <span style="width: 60%"></span>
+            <div class="value">62%</div>
+            <div class="bar" aria-label="62 percent complete">
+              <span style="width: 62%"></span>
             </div>
             <p>
               Unlit, Matcap, DebugNormal, and direct-lit StandardMaterial paths
@@ -1258,7 +1283,10 @@
               summaries on the successful path, and the alpha-blend texture
               fixture verifies translucent blended pixels without claiming full
               transparency sorting. The double-sided alpha-blend fixture also
-              pins no-cull transparent backface diagnostics.
+              pins no-cull transparent backface diagnostics. Custom WGSL
+              material metadata now crosses from render-asset preparation into
+              WebGPU shader, pipeline, and bind-group resource creation helpers;
+              app-level routing remains the next gap.
             </p>
           </article>
         </div>
@@ -1445,9 +1473,9 @@
           <article class="phase">
             <div class="topline">
               <h3>2. collect</h3>
-              <span class="percent">83%</span>
+              <span class="percent">84%</span>
             </div>
-            <div class="bar"><span style="width: 83%"></span></div>
+            <div class="bar"><span style="width: 84%"></span></div>
             <p>
               Asset readiness and source-version dependency summaries exist for
               meshes, materials, textures, and samplers. GLB-shaped invalid
@@ -1455,9 +1483,12 @@
               now preserve slot, key, dependency-kind, and status context. glTF
               image resolution now has a Promise-capable decode contract, async
               mapping path, and GLB viewer bufferView PNG loading-to-ready
-              registry proof. The GLB viewer now fetches real GLB URLs,
-              publishes parsed metadata counts, and reports unsupported-feature
-              diagnostics from import reports without raw binary buffers.
+              registry proof. Source asset unregister is now explicit, and GLB
+              viewer scene switching reports active/stale registry counts while
+              unregistering the previous scene's source handles. The GLB viewer
+              now fetches real GLB URLs, publishes parsed metadata counts, and
+              reports unsupported-feature diagnostics from import reports
+              without raw binary buffers.
             </p>
             <ul>
               <li>
@@ -1467,25 +1498,33 @@
                 Missing broader loader integration beyond the current GLB
                 viewer/source-loader path.
               </li>
-              <li>Missing automatic unload policy integration.</li>
+              <li>Missing broader automatic unload policy integration.</li>
             </ul>
           </article>
           <article class="phase">
             <div class="topline">
               <h3>3. prepare</h3>
-              <span class="percent">78%</span>
+              <span class="percent">81%</span>
             </div>
-            <div class="bar"><span style="width: 78%"></span></div>
+            <div class="bar"><span style="width: 81%"></span></div>
             <p>
               Prepared mesh/material facades and WebGPU-private backend caches
               exist for built-in material families, with compact render-world
               prepared resource summaries, prepare-and-bind summary consumers,
               and StandardMaterial texture/sampler fidelity diagnostics covered.
-              GLB-derived occlusion/emissive fixtures and alpha-mask
-              double-sided diagnostics now run through the app facade. The
-              GLB-derived alpha-mask texture fixture now verifies one opaque
-              pixel and one masked clear pixel; a scalar masked backface fixture
-              verifies no-cull visibility, and the alpha-blend fixture now pins
+              Preparation now also invokes adapter unload hooks when a
+              previously prepared source asset becomes missing or non-ready. A
+              custom WGSL material source can now prepare shader module
+              metadata, pipeline descriptors, bind-group layout metadata, and
+              bind-group resource keys through the same adapter contract. WebGPU
+              can now instantiate those prepared custom WGSL descriptors into a
+              shader module, render pipeline, and group-2 bind group, though the
+              app route still needs a visible browser proof. GLB-derived
+              occlusion/emissive fixtures and alpha-mask double-sided
+              diagnostics now run through the app facade. The GLB-derived
+              alpha-mask texture fixture now verifies one opaque pixel and one
+              masked clear pixel; a scalar masked backface fixture verifies
+              no-cull visibility, and the alpha-blend fixture now pins
               transparent StandardMaterial render-state mapping plus translucent
               blended pixel/readback behavior and double-sided backface output;
               the alpha-blend texture, alpha-mask texture, and alpha-mask
@@ -3825,11 +3864,16 @@
             <h3>Recommended next tasks</h3>
             <ul>
               <li>
-                <span class="badge amber">next</span> Add asset unregister API.
+                <span class="badge amber">next</span> Render custom material
+                end-to-end.
               </li>
-              <li>Remove registry entries and invoke adapter unload hooks.</li>
               <li>
-                Keep the unload path ready for GLB viewer asset switching.
+                Wire the custom WGSL resource helper into an app-level material
+                route.
+              </li>
+              <li>
+                Add a browser-visible material proof before the standalone
+                example.
               </li>
             </ul>
           </article>
@@ -3842,6 +3886,38 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3026</div>
+            <div>
+              <strong
+                >Custom WGSL adapter contract prepares descriptors.</strong
+              >
+              <span>
+                Data-only custom material sources now prepare shader, pipeline,
+                and bind-group metadata through the render asset adapter path.
+              </span>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="task-id">task-3025</div>
+            <div>
+              <strong>GLB viewer unregisters switched scene assets.</strong>
+              <span
+                >Scene switching now keeps source registry counts flat and
+                reports active versus stale handles in example status.</span
+              >
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="task-id">task-3024</div>
+            <div>
+              <strong>Asset unregister and unload hooks landed.</strong>
+              <span
+                >Source registries can remove handles, and render preparation
+                invokes adapter unload callbacks when sources disappear.</span
+              >
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3023</div>
             <div>

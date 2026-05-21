@@ -116,6 +116,29 @@ describe("asset handles and registry", () => {
     expect(registry.getStatus(missing)).toBeUndefined();
   });
 
+  it("unregisters assets and returns the removed entry", () => {
+    const registry = new AssetRegistry();
+    const mesh = createMeshHandle("temporary");
+
+    registry.register(mesh, { label: "Temporary Mesh" });
+    registry.markReady(mesh, { vertexCount: 24 });
+
+    const removed = registry.unregister(mesh);
+
+    expect(removed).toMatchObject({
+      handle: mesh,
+      kind: "mesh",
+      label: "Temporary Mesh",
+      status: "ready",
+      version: 1,
+      asset: { vertexCount: 24 },
+    });
+    expect(registry.has(mesh)).toBe(false);
+    expect(registry.get(mesh)).toBeUndefined();
+    expect(registry.getStatus(mesh)).toBeUndefined();
+    expect(registry.unregister(mesh)).toBeUndefined();
+  });
+
   it("keeps handles with the same id but different kinds separate", () => {
     const registry = new AssetRegistry();
     const mesh = createMeshHandle("shared-id");

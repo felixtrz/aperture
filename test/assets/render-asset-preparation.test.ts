@@ -4,7 +4,10 @@ import {
   AssetRegistry,
   PreparedRenderAssetStore,
   createBoxMeshAsset,
+  createCustomWgslMaterialRenderAssetAdapter,
+  createDefaultRenderState,
   createMatcapMaterialAsset,
+  createMaterialHandle,
   createMaterialMetadataRenderAssetAdapter,
   createMeshHandle,
   createPreparedMeshStore,
@@ -23,6 +26,8 @@ import {
   type MaterialHandle,
   type MeshAsset,
   type MeshHandle,
+  type CustomWgslMaterialSource,
+  type PreparedCustomWgslMaterial,
   type RenderAssetAdapter,
   type RenderSnapshot,
 } from "@aperture-engine/core";
@@ -164,6 +169,209 @@ describe("render asset preparation contract", () => {
     });
     expect(skipped.diagnostics[0]?.code).toBe("renderAsset.source.loading");
     expect(store.has(handle)).toBe(false);
+  });
+
+  it("unloads prepared assets through the adapter when source assets are unregistered", () => {
+    const registry = new AssetRegistry();
+    const handle = createMeshHandle("unregistered");
+    const store = new PreparedRenderAssetStore<
+      "mesh",
+      { readonly revision: number }
+    >();
+    const unloaded: string[] = [];
+    const adapter: RenderAssetAdapter<
+      "mesh",
+      { readonly revision: number },
+      { readonly revision: number }
+    > = {
+      kind: "mesh",
+      family: "mock.mesh",
+      prepare(input) {
+        return {
+          status: "prepared",
+          prepared: { revision: input.source.revision },
+        };
+      },
+      unload(input) {
+        unloaded.push(input.assetKey);
+        return {
+          diagnostics: [
+            {
+              code: "renderAsset.unloaded",
+              message: `Unloaded ${input.assetKey}.`,
+              severity: "info",
+              assetKey: input.assetKey,
+            },
+          ],
+        };
+      },
+    };
+
+    registry.register(handle);
+    registry.markReady(handle, { revision: 1 });
+    prepareRenderAsset({ registry, adapter, store, handle });
+
+    registry.unregister(handle);
+
+    const skipped = prepareRenderAsset({ registry, adapter, store, handle });
+
+    expect(skipped).toMatchObject({
+      outcome: "skipped",
+      assetKey: "mesh:unregistered",
+    });
+    expect(skipped.diagnostics.map((diagnostic) => diagnostic.code)).toEqual([
+      "renderAsset.sourceMissing",
+      "renderAsset.unloaded",
+    ]);
+    expect(unloaded).toEqual(["mesh:unregistered"]);
+    expect(store.has(handle)).toBe(false);
+  });
+
+  it("prepares a custom WGSL material descriptor through the render asset adapter contract", () => {
+    const registry = new AssetRegistry();
+    const handle = createMaterialHandle("water");
+    const store = new PreparedRenderAssetStore<
+      "material",
+      PreparedCustomWgslMaterial
+    >();
+    const adapter = createCustomWgslMaterialRenderAssetAdapter("custom.water");
+    const source: CustomWgslMaterialSource = {
+      family: "custom.water",
+      label: "Water Material",
+      renderState: createDefaultRenderState({
+        cullMode: "none",
+        depth: {
+          test: true,
+          write: false,
+          compare: "less",
+        },
+        blend: { preset: "alpha" },
+        alphaMode: "blend",
+      }),
+      shader: {
+        code: `
+          @group(2) @binding(0) var<uniform> water: vec4f;
+
+          @vertex
+          fn vs_main() -> @builtin(position) vec4f {
+            return vec4f(0.0, 0.0, 0.0, 1.0);
+          }
+
+          @fragment
+          fn fs_main() -> @location(0) vec4f {
+            return water;
+          }
+        `,
+        vertexEntryPoint: "vs_main",
+        fragmentEntryPoint: "fs_main",
+      },
+      bindings: [
+        {
+          binding: 0,
+          kind: "uniform-buffer",
+          visibility: ["fragment"],
+          label: "waterUniforms",
+        },
+      ],
+    };
+
+    registry.register<"material", CustomWgslMaterialSource>(handle);
+    registry.markReady(handle, source);
+
+    const prepared = prepareRenderAsset({
+      registry,
+      adapter,
+      store,
+      handle,
+    });
+
+    expect(prepared).toMatchObject({
+      outcome: "prepared",
+      assetKey: "material:water",
+      action: "created",
+      diagnostics: [],
+    });
+    expect(prepared.entry?.prepared).toMatchObject({
+      resourceFamily: "custom-wgsl-material",
+      sourceMaterialKey: "material:water",
+      label: "Water Material",
+      materialFamily: "custom.water",
+      shader: {
+        language: "wgsl",
+        vertexEntryPoint: "vs_main",
+        fragmentEntryPoint: "fs_main",
+      },
+      pipeline: {
+        pipelineKey: expect.stringContaining("custom.water|shader:"),
+        vertexEntryPoint: "vs_main",
+        fragmentEntryPoint: "fs_main",
+        renderState: source.renderState,
+      },
+      bindGroupLayout: {
+        entries: [
+          {
+            binding: 0,
+            kind: "uniform-buffer",
+            visibility: ["fragment"],
+            label: "waterUniforms",
+          },
+        ],
+      },
+      bindGroup: {
+        layoutResourceKey: expect.stringContaining(
+          "custom-wgsl-bind-group-layout:material:water",
+        ),
+        entries: [
+          {
+            binding: 0,
+            kind: "uniform-buffer",
+            resourceKey: "material:water:binding:0",
+          },
+        ],
+      },
+    });
+    expect(prepared.entry?.prepared.pipeline.pipelineKey).toContain(
+      "bindings:0:uniform-buffer|blend|none|less|alpha",
+    );
+    expect(store.get(handle)?.prepared.shader.code).toContain("fn fs_main");
+  });
+
+  it("diagnoses invalid custom WGSL material entry points", () => {
+    const registry = new AssetRegistry();
+    const handle = createMaterialHandle("broken-water");
+    const store = new PreparedRenderAssetStore<
+      "material",
+      PreparedCustomWgslMaterial
+    >();
+    const adapter = createCustomWgslMaterialRenderAssetAdapter("custom.water");
+
+    registry.register<"material", CustomWgslMaterialSource>(handle);
+    registry.markReady(handle, {
+      family: "custom.water",
+      label: "Broken Water",
+      renderState: createDefaultRenderState(),
+      shader: {
+        code: "fn only_main() -> vec4f { return vec4f(1.0); }",
+        vertexEntryPoint: "vs_main",
+        fragmentEntryPoint: "fs_main",
+      },
+    });
+
+    const failed = prepareRenderAsset({
+      registry,
+      adapter,
+      store,
+      handle,
+    });
+
+    expect(failed).toMatchObject({
+      outcome: "failed",
+      assetKey: "material:broken-water",
+    });
+    expect(failed.diagnostics.map((diagnostic) => diagnostic.code)).toEqual([
+      "renderAsset.customWgslMaterial.missingVertexEntryPoint",
+      "renderAsset.customWgslMaterial.missingFragmentEntryPoint",
+    ]);
   });
 
   it("retries material preparation until dependencies are ready", () => {

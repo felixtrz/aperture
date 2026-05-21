@@ -59,15 +59,15 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start with `task-3024`: Asset unregister API (part 1: registry).
+Start with `task-3027`: Custom material rendered through the full pipeline (part 2: end-to-end).
 
-Why this next: `task-3023` added the visible GPU profiler overlay, so the timing telemetry tier is complete. The next roadmap gap is asset cache hygiene: add a registry-level unregister path before wiring GLB viewer asset switching into unload behavior.
+Why this next: `task-3026` proved the custom WGSL material source-to-prepared-resource adapter contract, and the first `task-3027` slice added a WebGPU helper that instantiates shader modules, render pipelines, and group-2 material bind groups from prepared custom WGSL metadata. The next roadmap gap is wiring that helper through an app route and proving a browser-visible render path.
 
 Reference anchors (read before writing):
 
-- `references/bevy/crates/bevy_asset/src/assets.rs`
-- `references/engine/src/framework/asset/asset-registry.js`
-- `references/three.js/src/loaders/Cache.js`
+- `references/three.js/src/materials/ShaderMaterial.js`
+- `references/engine/src/scene/materials/shader-material.js`
+- `references/bevy/crates/bevy_pbr/src/material.rs`
 
 ## Strategic Focus — Pipeline Maturity Roadmap
 
@@ -168,6 +168,8 @@ Acceptance criteria:
 
 ### task-3024 — Asset unregister API (part 1: registry)
 
+Status: completed 2026-05-21. See `agent/COMPLETED.md`.
+
 Category: `simulation`
 Package/write-scope: `packages/simulation/src/assets/registry.ts`, targeted tests.
 Reference anchor: `references/bevy/crates/bevy_asset/src/assets.rs`; `references/engine/src/framework/asset/asset-registry.js`; `references/three.js/src/loaders/Cache.js`.
@@ -181,6 +183,8 @@ Acceptance criteria:
 
 ### task-3025 — Unload wired into glb-viewer asset switching (part 2: example use)
 
+Status: completed 2026-05-21. See `agent/COMPLETED.md`.
+
 Category: `runtime-orchestration`
 Package/write-scope: `examples/glb-viewer.js`, targeted tests.
 Dependencies: task-3024.
@@ -193,6 +197,8 @@ Acceptance criteria:
 - Test asserts the asset registry size returns to baseline after switching N times (no monotonic growth).
 
 ### task-3026 — Custom material adapter contract proof (part 1: minimal example)
+
+Status: completed 2026-05-21. See `agent/COMPLETED.md`.
 
 Category: `render-bridge`
 Package/write-scope: `packages/render/src/assets/preparation.ts`, new test/example, targeted tests.
@@ -211,6 +217,8 @@ Package/write-scope: `packages/webgpu/src/webgpu/`, custom material example.
 Dependencies: task-3026.
 Reference anchor: `references/three.js/src/materials/ShaderMaterial.js`; `references/engine/src/scene/materials/shader-material.js`.
 Insertion point: WebGPU side of the custom material — pipeline-key generation, bind-group instantiation.
+Progress note 2026-05-21: `packages/webgpu/src/webgpu/custom-wgsl-material.ts` now creates browser pipeline descriptors, live injected-device render pipelines, and pipeline-owned group-2 bind groups from `PreparedCustomWgslMaterial`. Remaining work is the app route and visible browser proof.
+Implementation note: the smallest next proof can reuse the explicit `examples/triangle.js` render-world/draw-list/command assembly with a custom WGSL material prepared through `createCustomWgslMaterialRenderAssetAdapter()`, a tiny uniform buffer for binding 0, and readback at a distinctive shader color.
 
 Acceptance criteria:
 

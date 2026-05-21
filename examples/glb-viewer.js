@@ -1738,7 +1738,7 @@ async function loadAsset(aperture, app, scene, asset, options = {}) {
   };
   scene.cameraControls.importedEnabled = false;
   setCameraResetEnabled(false);
-  destroyActiveScene(scene);
+  destroyActiveScene(aperture, app, scene);
   updateSceneSelectControl(scene);
 
   const loaded = await loadViewerSourceAsset(
@@ -1855,6 +1855,11 @@ async function loadAsset(aperture, app, scene, asset, options = {}) {
     fit,
     shadowScene,
     iblScene,
+    registeredAssetKeys: collectActiveRegisteredAssetKeys(
+      registration,
+      shadowScene,
+      iblScene,
+    ),
   };
   scene.loadState = null;
   setCameraResetEnabled(fit.status === "ready");
@@ -1920,6 +1925,19 @@ function markGlbViewerDecodedTexturesReady({
       status,
     ]);
   }
+}
+
+function collectActiveRegisteredAssetKeys(registration, shadowScene, iblScene) {
+  return uniqueStrings([
+    ...arrayEntries(registration.sourceRegistration?.written).map(
+      (entry) => entry.registeredHandleKey,
+    ),
+    ...arrayEntries(registration.meshRegistration?.written).map(
+      (entry) => entry.registeredHandleKey,
+    ),
+    ...arrayEntries(shadowScene?.registeredAssetKeys),
+    ...arrayEntries(iblScene?.registeredAssetKeys),
+  ]);
 }
 
 function decodedImageStatusForTexture(texture, imageDecode) {
@@ -2459,7 +2477,7 @@ function cloneDecodedImageData(image) {
   };
 }
 
-function destroyActiveScene(scene) {
+function destroyActiveScene(aperture, app, scene) {
   if (scene.active === null) {
     return;
   }
@@ -2484,12 +2502,42 @@ function destroyActiveScene(scene) {
     entity.destroy();
   }
 
+  unregisterActiveSceneAssets(aperture, app, scene.active);
   scene.active = null;
   updateShadowControlInputs(scene);
   updateIblControlInputs(scene);
   updateImportedCameraControlInputs(scene);
   updateAnimationControlInputs(scene);
   updateImportedLightControlInputs(scene);
+}
+
+function unregisterActiveSceneAssets(aperture, app, active) {
+  for (const key of active.registeredAssetKeys ?? []) {
+    const handle = assetHandleFromKey(aperture, key);
+
+    if (handle === null) {
+      continue;
+    }
+
+    app.assets.unregister(handle);
+  }
+}
+
+function assetHandleFromKey(aperture, key) {
+  const delimiter = key.indexOf(":");
+
+  if (delimiter <= 0 || delimiter === key.length - 1) {
+    return null;
+  }
+
+  try {
+    return aperture.deserializeAssetHandle({
+      kind: key.slice(0, delimiter),
+      id: key.slice(delimiter + 1),
+    });
+  } catch {
+    return null;
+  }
 }
 
 function createStandardIblScene(aperture, app) {
@@ -2535,6 +2583,9 @@ function createStandardIblScene(aperture, app) {
     environmentMapKey: aperture.assetHandleKey(environmentMap),
     iblResources,
     entities: environmentEntity === null ? [] : [environmentEntity],
+    registeredAssetKeys: enableIblSampling
+      ? [aperture.assetHandleKey(environmentMap)]
+      : [],
   };
 }
 
@@ -2674,6 +2725,11 @@ function createBrassShadowScene(aperture, app, replay, fit) {
     floorMeshKey: aperture.assetHandleKey(floorMesh),
     floorMaterialKey: aperture.assetHandleKey(floorMaterial),
     casterCount: replayMeshEntities.length,
+    registeredAssetKeys: [
+      aperture.assetHandleKey(floorMesh),
+      aperture.assetHandleKey(floorMaterial),
+      ...(enableIblSampling ? [aperture.assetHandleKey(environmentMap)] : []),
+    ],
     entities:
       environmentEntity === null
         ? [floorEntity, lightEntity]
@@ -3053,6 +3109,7 @@ async function createStatus(aperture, app, scene, step, report, frame) {
       ...scene.sampleSelection,
       activeAssetId: scene.asset.id,
     },
+    assetRegistry: createAssetRegistryStatus(app, active),
     textureGallery: createRealUriTextureGalleryStatus(scene),
     source: {
       url: formatAssetUrl(active?.asset.url ?? scene.asset.url),
@@ -3146,6 +3203,18 @@ async function createStatus(aperture, app, scene, step, report, frame) {
       shadowFrame.receiverResources !== null
         ? shadowFrame.receiverResources
         : null,
+  };
+}
+
+function createAssetRegistryStatus(app, active) {
+  const manifest = app.assets.createManifestReport();
+  const activeKeys = uniqueStrings(active?.registeredAssetKeys ?? []);
+
+  return {
+    total: manifest.total,
+    activeRegistered: activeKeys.length,
+    staleRegistered: Math.max(0, manifest.total - activeKeys.length),
+    activeKeys,
   };
 }
 

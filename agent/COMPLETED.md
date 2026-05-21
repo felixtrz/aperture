@@ -1,5 +1,87 @@
 # Completed Tasks
 
+## task-3026 — Custom material adapter contract proof (part 1: minimal example)
+
+Completed: 2026-05-21
+
+Summary:
+
+- Added a renderer-independent `CustomWgslMaterialSource` contract and
+  `createCustomWgslMaterialRenderAssetAdapter(family)`.
+- The adapter validates family, label, WGSL entrypoints, and binding
+  declarations, then prepares JSON-safe shader module, pipeline, bind-group
+  layout, and bind-group descriptor metadata.
+- Added focused tests proving a `custom.water` WGSL material prepares through
+  the existing `prepareRenderAsset()` adapter path and invalid entrypoints fail
+  with typed diagnostics.
+
+References inspected:
+
+- `references/three.js/src/materials/ShaderMaterial.js`
+- `references/engine/src/scene/materials/shader-material.js`
+- `references/bevy/crates/bevy_pbr/src/material.rs`
+
+Validation:
+
+- `pnpm exec vitest run test/assets/render-asset-preparation.test.ts`
+- `pnpm exec tsc --noEmit -p packages/render/tsconfig.json`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+
+## task-3025 — Unload wired into glb-viewer asset switching (part 2: example use)
+
+Completed: 2026-05-21
+
+Summary:
+
+- GLB viewer scene teardown now unregisters source mesh, material, texture,
+  sampler, shadow-floor, and environment-map handles registered by the previous
+  active scene.
+- The viewer publishes a JSON-safe `assetRegistry` status with total active and
+  stale registry counts.
+- Browser status proof switches cube → slab → brass → animated and keeps
+  `staleRegistered` at 0 after each switch.
+
+References inspected:
+
+- `references/engine/src/framework/asset/asset-registry.js`
+
+Validation:
+
+- `node --check examples/glb-viewer.js`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- Direct Playwright/Chrome probe of `examples/glb-viewer.html` switched cube →
+  slab → brass → animated and reported registry totals of 2, 2, 5, and 2 with
+  no stale entries.
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts -g "renders the fetched sample GLB viewer asset" --timeout=60000`
+  hung in the known headed Chrome runner path and was killed after the browser
+  proof above showed the expected status values.
+
+## task-3024 — Asset unregister API (part 1: registry)
+
+Completed: 2026-05-21
+
+Summary:
+
+- Added `AssetRegistry.unregister(handle)` and a typed-collection mirror.
+- Unregister removes the source entry and returns the removed registry entry
+  using Aperture's existing absent-value convention (`get()` returns
+  `undefined` for missing handles).
+- Render asset preparation now calls adapter `unload()` when a previously
+  prepared source asset becomes missing, non-ready, retrying, or failed.
+
+References inspected:
+
+- `references/bevy/crates/bevy_asset/src/assets.rs`
+- `references/engine/src/framework/asset/asset-registry.js`
+- `references/three.js/src/loaders/Cache.js`
+
+Validation:
+
+- `pnpm exec vitest run test/assets/registry.test.ts test/assets/typed-collections.test.ts test/assets/render-asset-preparation.test.ts`
+- `pnpm exec tsc --noEmit -p packages/simulation/tsconfig.json`
+- `pnpm exec tsc --noEmit -p packages/render/tsconfig.json`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+
 ## task-3023 — GPU timings example panel: per-pass overlay
 
 Completed: 2026-05-21

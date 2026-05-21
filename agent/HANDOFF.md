@@ -1,6 +1,189 @@
 # Agent Handoff
 
-Updated: 2026-05-21T04:53:24Z
+Updated: 2026-05-21T05:32:00Z
+
+## Current Run Update — 2026-05-21T05:32:00Z — Custom WGSL WebGPU resource bridge
+
+Advanced `task-3027`; do not mark it complete yet.
+
+### What changed
+
+- Added `packages/webgpu/src/webgpu/custom-wgsl-material.ts` and exported it
+  from `@aperture-engine/webgpu`.
+- The helper turns a `PreparedCustomWgslMaterial` into browser WebGPU resource
+  descriptors and live injected-device resources: shader module, render
+  pipeline, pipeline-owned group-2 material bind group, and JSON-safe
+  diagnostics.
+- The custom group-2 bind group now advertises material-level match keys in
+  `entryResourceKeys`, so the existing render-pass draw-list matcher can route
+  a future custom material resource key without a special-case lookup.
+- Fixed custom WGSL material pipeline-key ordering so binding-layout metadata
+  appears before the final render-state tokens; this keeps the existing
+  WebGPU render-state parser correct.
+- Added focused WebGPU tests for descriptor planning, live pipeline plus bind
+  group creation through a fake device, and missing binding-resource
+  diagnostics.
+
+### Files touched
+
+- `packages/render/src/assets/preparation.ts`
+- `packages/webgpu/src/webgpu/custom-wgsl-material.ts`
+- `packages/webgpu/src/webgpu/index.ts`
+- `test/assets/render-asset-preparation.test.ts`
+- `test/webgpu/custom-wgsl-material.test.ts`
+
+### References inspected
+
+- `references/three.js/src/materials/ShaderMaterial.js`
+- `references/engine/src/scene/materials/shader-material.js`
+- `references/engine/src/platform/graphics/webgpu/webgpu-render-pipeline.js`
+- `references/engine/src/platform/graphics/webgpu/webgpu-bind-group.js`
+- `packages/webgpu/src/webgpu/unlit-pipeline.ts`
+- `packages/webgpu/src/webgpu/matcap-pipeline.ts`
+- `packages/webgpu/src/webgpu/matcap-bind-group.ts`
+- `packages/webgpu/src/webgpu/material-render-state.ts`
+
+### Validation
+
+- `pnpm exec vitest run test/assets/render-asset-preparation.test.ts test/webgpu/custom-wgsl-material.test.ts`
+- `pnpm exec tsc -p packages/render/tsconfig.json`
+- `pnpm exec tsc --noEmit -p packages/webgpu/tsconfig.json`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec tsc -p packages/webgpu/tsconfig.json`
+- `pnpm run check`
+
+### Known issues
+
+- `task-3027` still needs the app-level route/example: custom WGSL resources can
+  be created from prepared metadata, but they are not yet collected by
+  `WebGpuApp`, routed through frame resources, or proven by a browser pixel
+  sample.
+- The narrowest visible proof path appears to be cloning the low-level
+  `examples/triangle.js` command assembly: prepare a `CustomWgslMaterialSource`
+  through `createCustomWgslMaterialRenderAssetAdapter()`, create a tiny uniform
+  buffer for `material:water:binding:0`, instantiate resources with
+  `createCustomWgslMaterialRenderResources()`, then feed the resulting pipeline
+  and group-2 bind group into the existing render-world/draw-list/command
+  helpers with a distinctive readback color.
+- The local headed Playwright Chrome runner previously hung on the GLB viewer
+  spec in this run; a direct Chrome probe verified the GLB asset-registry
+  cleanup instead.
+
+### Recommended next task
+
+Continue `task-3027`: wire the prepared custom WGSL resource helper into an app
+route and prove a distinctive shader output in a browser example.
+
+## Current Run Update — 2026-05-21T05:20:52Z — Custom WGSL material adapter contract
+
+Completed `task-3026`.
+
+### What changed
+
+- Added `CustomWgslMaterialSource` and prepared custom WGSL material descriptor
+  types in `packages/render/src/assets/preparation.ts`.
+- Added `createCustomWgslMaterialRenderAssetAdapter(family)`, which prepares
+  WGSL shader module metadata, pipeline descriptors, bind-group layout metadata,
+  and bind-group resource keys through the existing `prepareRenderAsset()` path.
+- Added validation for adapter family mismatch, blank labels, missing WGSL
+  vertex/fragment entrypoints, invalid binding indices, duplicate bindings, and
+  empty binding visibility.
+- Added focused tests for a `custom.water` WGSL material and invalid
+  entrypoints.
+- Updated backlog and completed-task log. Recommended next task is now
+  `task-3027`.
+
+### Files touched
+
+- `agent/BACKLOG.md`
+- `agent/COMPLETED.md`
+- `agent/HANDOFF.md`
+- `packages/render/src/assets/preparation.ts`
+- `test/assets/render-asset-preparation.test.ts`
+
+### References inspected
+
+- `references/three.js/src/materials/ShaderMaterial.js`
+- `references/engine/src/scene/materials/shader-material.js`
+- `references/bevy/crates/bevy_pbr/src/material.rs`
+
+### Validation
+
+- `pnpm exec vitest run test/assets/render-asset-preparation.test.ts`
+- `pnpm exec tsc --noEmit -p packages/render/tsconfig.json`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+
+### Known issues
+
+- This is a renderer-independent adapter contract proof only. It does not yet
+  instantiate WebGPU shader modules, pipelines, bind groups, or draw a custom
+  material in an app. That remains `task-3027`.
+
+### Recommended next task
+
+`task-3027 — Custom material rendered through the full pipeline (part 2: end-to-end)`.
+
+## Current Run Update — 2026-05-21T05:13:50Z — Asset cache unregister and GLB viewer cleanup
+
+Completed `task-3024` and `task-3025`.
+
+### What changed
+
+- Added `AssetRegistry.unregister(handle)` plus typed-collection delegation.
+- Render asset preparation now invokes adapter `unload()` when a prepared
+  source asset becomes missing, non-ready, retrying, or failed.
+- GLB viewer scene teardown now unregisters the previous scene's registered
+  GLB source handles plus brass floor and IBL environment handles.
+- GLB viewer status now publishes JSON-safe `assetRegistry` totals:
+  `total`, `activeRegistered`, `staleRegistered`, and `activeKeys`.
+- Updated backlog, completed-task log, and public progress trackers.
+  Recommended next task is now `task-3026`.
+
+### Files touched
+
+- `agent/BACKLOG.md`
+- `agent/COMPLETED.md`
+- `agent/HANDOFF.md`
+- `docs/index.html`
+- `docs/render-pipeline-comparison.html`
+- `examples/glb-viewer.js`
+- `packages/render/src/assets/preparation.ts`
+- `packages/simulation/src/assets/collections.ts`
+- `packages/simulation/src/assets/registry.ts`
+- `test/assets/registry.test.ts`
+- `test/assets/render-asset-preparation.test.ts`
+- `test/assets/typed-collections.test.ts`
+- `test/e2e/glb-viewer.spec.ts`
+
+### References inspected
+
+- `references/bevy/crates/bevy_asset/src/assets.rs`
+- `references/engine/src/framework/asset/asset-registry.js`
+- `references/three.js/src/loaders/Cache.js`
+
+### Validation
+
+- `pnpm exec vitest run test/assets/registry.test.ts test/assets/typed-collections.test.ts test/assets/render-asset-preparation.test.ts`
+- `pnpm exec tsc --noEmit -p packages/simulation/tsconfig.json`
+- `pnpm exec tsc --noEmit -p packages/render/tsconfig.json`
+- `node --check examples/glb-viewer.js`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec prettier --check examples/glb-viewer.js test/e2e/glb-viewer.spec.ts packages/simulation/src/assets/registry.ts packages/simulation/src/assets/collections.ts packages/render/src/assets/preparation.ts test/assets/registry.test.ts test/assets/typed-collections.test.ts test/assets/render-asset-preparation.test.ts`
+- Direct Playwright/Chrome probe of `examples/glb-viewer.html` switched cube →
+  slab → brass → animated and reported registry totals of 2, 2, 5, and 2 with
+  `staleRegistered: 0` throughout.
+
+### Known issues
+
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts -g "renders the fetched sample GLB viewer asset" --timeout=60000`
+  hung in the known headed Chrome runner path and was killed. The direct browser
+  probe above validated the new status fields and switching behavior.
+- The GLB viewer unregister path removes source registry entries. Deeper GPU
+  prepared-resource/cache eviction remains future work.
+
+### Recommended next task
+
+`task-3026 — Custom material adapter contract proof (part 1: minimal example)`.
 
 ## Current Run Update — 2026-05-21T04:53:24Z — GPU profiler overlay example
 

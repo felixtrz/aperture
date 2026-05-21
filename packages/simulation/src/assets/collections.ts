@@ -92,6 +92,13 @@ export class TypedAssetCollection<TKind extends AssetKind, TAsset> {
     return this.#registry.has(handle);
   }
 
+  unregister(
+    handle: AssetHandle<TKind>,
+  ): AssetRegistryEntry<TKind, TAsset> | undefined {
+    this.assertHandleKind(handle);
+    return this.#registry.unregister<TKind, TAsset>(handle);
+  }
+
   get(
     handle: AssetHandle<TKind>,
   ): AssetRegistryEntry<TKind, TAsset> | undefined {
