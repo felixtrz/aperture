@@ -380,6 +380,16 @@ ECS/extraction entries. Static checks and browser smokes prove transferable
 typed arrays for the migrated examples, including the 1,000-entity instancing
 snapshot, 256-entity instance-tint snapshot, render-target snapshots, timestamp
 query overlays, matcap playback, and material-showcase IBL status.
+Progress note 2026-05-21: Migrated `point-shadow`, `spot-shadow`, and
+`standard-texture-control` to the same worker-by-default shape. The point/spot
+shadow pages keep renderer-owned shadow depth textures, samplers, caster
+pipelines, matrix buffers, receiver resources, and UI toggles on the main
+thread while worker snapshots own ECS scene authoring and extraction. The
+StandardMaterial texture control page now shares source-asset registration
+between main and worker and renders worker snapshots with readback samples.
+Focused browser smokes reached expected point/spot shadow compare pipelines,
+ready and normal-map texture-control rendering, and the expected missing-texture
+failure with transferred typed arrays preserved.
 
 Acceptance criteria:
 

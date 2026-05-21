@@ -1,6 +1,102 @@
 # Agent Handoff
 
-Updated: 2026-05-21T17:50:11Z
+Updated: 2026-05-21T18:22:30Z
+
+## Current Run Update — 2026-05-21T18:22:30Z — Shadow and texture worker migration advanced
+
+Advanced `task-3035` but did not finish it.
+
+### What changed
+
+- Migrated three more examples to the worker-by-default shape:
+  `point-shadow`, `spot-shadow`, and `standard-texture-control`.
+- `point-shadow` and `spot-shadow` now have renderer-only `*.main.js` files,
+  worker-owned `*.worker.js` files, and thin legacy `*.js` compatibility
+  imports.
+- Added `examples/single-light-shadow-assets.js` so point/spot main and worker
+  entries register identical source mesh/material assets while ECS spawning
+  stays worker-owned.
+- Kept renderer-owned shadow resources on the main thread for point/spot:
+  depth textures/views, shadow samplers, caster pipelines, matrix buffers,
+  shadow command encoding/submission, receiver resources, and DOM toggles remain
+  renderer-side while the worker owns ECS scene authoring and extraction.
+- Split `standard-texture-control` into `standard-texture-control.main.js`,
+  `standard-texture-control.worker.js`, and
+  `standard-texture-control-scene.js`. Main and worker share source asset
+  registration; only the worker creates the extraction app and spawns
+  camera/light/mesh entities.
+- Updated `check:examples`, worker-split static coverage, public tracker pages,
+  and backlog progress notes for this partial migration.
+
+### Files touched in this partial slice
+
+- `agent/BACKLOG.md`
+- `agent/HANDOFF.md`
+- `docs/index.html`
+- `docs/render-pipeline-comparison.html`
+- `examples/point-shadow.html`
+- `examples/point-shadow.js`
+- `examples/point-shadow.main.js`
+- `examples/point-shadow.worker.js`
+- `examples/single-light-shadow-assets.js`
+- `examples/spot-shadow.html`
+- `examples/spot-shadow.js`
+- `examples/spot-shadow.main.js`
+- `examples/spot-shadow.worker.js`
+- `examples/standard-texture-control.html`
+- `examples/standard-texture-control.js`
+- `examples/standard-texture-control-scene.js`
+- `examples/standard-texture-control.main.js`
+- `examples/standard-texture-control.worker.js`
+- `package.json`
+- `test/examples/worker-split-examples.test.mjs`
+
+### References inspected
+
+- `examples/worker-cube.main.js`
+- `examples/worker-cube.worker.js`
+- `references/three.js/examples/webgl_worker_offscreencanvas.html`
+- `references/bevy/crates/bevy_render/src/lib.rs`
+
+### Validation
+
+- `pnpm run check:examples`
+- `pnpm exec vitest run test/examples/worker-split-examples.test.mjs test/examples/navigation.test.mjs`
+- `pnpm run build`
+- `pnpm run typecheck:test`
+- `pnpm run lint`
+- `pnpm run format:check`
+- `pnpm run check:progress`
+- `pnpm run check`
+- Direct Chrome/WebGPU smoke for `point-shadow` and `spot-shadow`: both reached
+  frame 3 with worker snapshots, transferred typed arrays, two mesh draws, one
+  shadow request, and the expected `point-depth-cube-compare` /
+  `spot-depth-compare` StandardMaterial pipeline keys. One Chrome close hung
+  after success output and the leftover node wrapper was killed, matching the
+  previously documented local browser-runner issue.
+- Direct Chrome/WebGPU smoke for `standard-texture-control`: ready and
+  `normal-map` scenarios rendered with two mesh draws/two draw calls; the
+  `missing-texture` scenario preserved the expected failure with transferred
+  typed arrays.
+
+### Known issues
+
+- `task-3035` remains incomplete. Remaining examples still using the temporary
+  `examples/example-renderer-app.js` bridge include `app-diagnostics`,
+  `gltf-scene`, and `standard-gltf-texture`.
+- Lower-level manual examples (`triangle`, `multi-entity`, `custom-material`)
+  still author/extract on the main thread without the temporary app bridge; they
+  need separate judgment during the final worker-by-default sweep.
+- `standard-texture-control?scenario=base-color-transform` remains a
+  pre-existing stale expected-failure case relative to the current finite
+  texture-transform support path; this migration did not change that contract.
+
+### Recommended next task
+
+Continue `task-3035` with one of the remaining larger bridge examples. The next
+practical slice is likely `standard-gltf-texture` if keeping to one-frame
+texture coverage, or `app-diagnostics` if prioritizing deletion of the
+temporary compatibility helper.
 
 ## Current Run Update — 2026-05-21T17:28:00Z — Bulk worker migration advanced
 

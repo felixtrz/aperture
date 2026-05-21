@@ -94,6 +94,24 @@ const workerSplitExamples = [
     worker: "examples/materials-showcase.worker.js",
     legacy: "examples/materials-showcase.js",
   },
+  {
+    html: "examples/point-shadow.html",
+    main: "examples/point-shadow.main.js",
+    worker: "examples/point-shadow.worker.js",
+    legacy: "examples/point-shadow.js",
+  },
+  {
+    html: "examples/spot-shadow.html",
+    main: "examples/spot-shadow.main.js",
+    worker: "examples/spot-shadow.worker.js",
+    legacy: "examples/spot-shadow.js",
+  },
+  {
+    html: "examples/standard-texture-control.html",
+    main: "examples/standard-texture-control.main.js",
+    worker: "examples/standard-texture-control.worker.js",
+    legacy: "examples/standard-texture-control.js",
+  },
 ];
 
 describe("worker-split examples", () => {
