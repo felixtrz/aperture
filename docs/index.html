@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-21 01:49 UTC</dd>
+            <dd>2026-05-21 02:13 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -435,58 +435,63 @@
               records now coalesce into one instanced draw when their transform
               slots are contiguous. The instancing example now renders 1,000
               ECS-authored boxes sharing one mesh/material while reporting one
-              grouped WebGPU draw call. The GLB viewer now renders extended
-              StandardMaterial combined texture routes: occlusion plus normal,
-              metallic-roughness plus emissive, alpha-blend plus normal, UV1
-              metallic-roughness plus normal, base-color plus occlusion, and
-              transformed base-color plus emissive, plus UV1 base-color plus
-              occlusion, transformed metallic-roughness plus normal, base-color
-              plus metallic-roughness plus emissive, alpha-blend plus emissive,
-              and UV1 base-color plus emissive, transformed base-color plus
-              metallic-roughness, UV1 metallic-roughness plus emissive, and
-              alpha-mask plus metallic-roughness. It also renders
-              metallic-roughness plus normal textures, UV1 base-color plus
-              normal textures, base-color plus emissive textures, and alpha-mask
-              plus normal-map routes through committed GLB samples with
-              JSON-safe status and browser pixel proof. It also renders normal
-              maps through <code>TEXCOORD_1</code>, StandardMaterial base-color
-              textures combined with <code>COLOR_0</code>, base-color plus
-              normal textures, and transformed UV1 normal maps. The GLB viewer
-              also renders compact visible status rows for material slots,
-              decoded images, unsupported features, animation, animation clips,
-              animated nodes, imported cameras, imported camera lists, live
-              lights, imported light lists, scene metadata, orbit fit, shadows,
-              shadow requests, IBL, IBL resources, draw/extraction state,
-              imported lights, primitive material resolution, primitive
-              material-factor details, material-alpha details, primitive texture
-              slots, texture handle keys, texture sampler state, texture
-              transforms, pipeline-token details, decoded-image details,
-              unsupported-feature details, mesh-draw identities,
-              prepared-resource reuse, render diagnostics, source loader state,
-              source output summaries, hierarchy transforms, replay stages,
-              selected assets, selected scenes, render-state details, and
-              unsupported animation-channel diagnostics. The latest audit
-              confirms these status panels remain JSON-safe projections of ECS,
-              source asset, extraction, and render-report data. It also proves
-              same-origin URI texture decode through the custom URL path,
-              real-URI gallery previous/next buttons, URL-persisted sample
-              selection, and stale custom image-decode clearing when switching
-              back to committed samples. The GLB viewer now includes unsupported
-              morph-target, skinning, primitive-mode, CUBICSPLINE animation, and
-              multi-scene samples that keep supported base meshes rendering
-              while reporting JSON-safe diagnostics and scene metadata. It also
-              includes real same-origin PNG/JPEG base-color, PNG normal-map, PNG
-              emissive, PNG metallic-roughness, PNG alpha-mask, and PNG
-              occlusion URI image decode, all-slot real URI texture coverage,
-              occlusion and metallic-roughness transform controls, sampler wrap
-              controls, UV1 image-decode controls, alpha-mask plus emissive
-              controls, normal plus occlusion controls, alpha-blend texture,
-              selector stress coverage across real URI samples, selected-asset
-              material-slot summary counts, keyboard previous/next navigation
-              across the real URI texture gallery, rotated metallic-roughness
-              transform, transformed-vs-untransformed normal and emissive
-              controls, emissive StandardMaterial, occlusion/emissive texture,
-              occlusion texture-transform, normal transform, emissive transform,
+              grouped WebGPU draw call. The render bridge now exposes
+              <code>mergeMeshAssetsForBatch()</code>, which validates compatible
+              static mesh layouts, merges vertex/index data, records per-source
+              submesh ranges, and has a browser proof that the merged buffer
+              renders pixel-identical to separate per-mesh draws. The GLB viewer
+              now renders extended StandardMaterial combined texture routes:
+              occlusion plus normal, metallic-roughness plus emissive,
+              alpha-blend plus normal, UV1 metallic-roughness plus normal,
+              base-color plus occlusion, and transformed base-color plus
+              emissive, plus UV1 base-color plus occlusion, transformed
+              metallic-roughness plus normal, base-color plus metallic-roughness
+              plus emissive, alpha-blend plus emissive, and UV1 base-color plus
+              emissive, transformed base-color plus metallic-roughness, UV1
+              metallic-roughness plus emissive, and alpha-mask plus
+              metallic-roughness. It also renders metallic-roughness plus normal
+              textures, UV1 base-color plus normal textures, base-color plus
+              emissive textures, and alpha-mask plus normal-map routes through
+              committed GLB samples with JSON-safe status and browser pixel
+              proof. It also renders normal maps through
+              <code>TEXCOORD_1</code>, StandardMaterial base-color textures
+              combined with <code>COLOR_0</code>, base-color plus normal
+              textures, and transformed UV1 normal maps. The GLB viewer also
+              renders compact visible status rows for material slots, decoded
+              images, unsupported features, animation, animation clips, animated
+              nodes, imported cameras, imported camera lists, live lights,
+              imported light lists, scene metadata, orbit fit, shadows, shadow
+              requests, IBL, IBL resources, draw/extraction state, imported
+              lights, primitive material resolution, primitive material-factor
+              details, material-alpha details, primitive texture slots, texture
+              handle keys, texture sampler state, texture transforms,
+              pipeline-token details, decoded-image details, unsupported-feature
+              details, mesh-draw identities, prepared-resource reuse, render
+              diagnostics, source loader state, source output summaries,
+              hierarchy transforms, replay stages, selected assets, selected
+              scenes, render-state details, and unsupported animation-channel
+              diagnostics. The latest audit confirms these status panels remain
+              JSON-safe projections of ECS, source asset, extraction, and
+              render-report data. It also proves same-origin URI texture decode
+              through the custom URL path, real-URI gallery previous/next
+              buttons, URL-persisted sample selection, and stale custom
+              image-decode clearing when switching back to committed samples.
+              The GLB viewer now includes unsupported morph-target, skinning,
+              primitive-mode, CUBICSPLINE animation, and multi-scene samples
+              that keep supported base meshes rendering while reporting
+              JSON-safe diagnostics and scene metadata. It also includes real
+              same-origin PNG/JPEG base-color, PNG normal-map, PNG emissive, PNG
+              metallic-roughness, PNG alpha-mask, and PNG occlusion URI image
+              decode, all-slot real URI texture coverage, occlusion and
+              metallic-roughness transform controls, sampler wrap controls, UV1
+              image-decode controls, alpha-mask plus emissive controls, normal
+              plus occlusion controls, alpha-blend texture, selector stress
+              coverage across real URI samples, selected-asset material-slot
+              summary counts, keyboard previous/next navigation across the real
+              URI texture gallery, rotated metallic-roughness transform,
+              transformed-vs-untransformed normal and emissive controls,
+              emissive StandardMaterial, occlusion/emissive texture, occlusion
+              texture-transform, normal transform, emissive transform,
               alpha-mask, sampler-state texture, texture-transform, missing-UV1,
               supported base-color UV1, metallic-roughness UV1, and normal-scale
               samples with routed material, texture, sampler, transform/control,
@@ -1574,9 +1579,9 @@
           <article class="phase">
             <div class="topline">
               <h3>4. queue</h3>
-              <span class="percent">84%</span>
+              <span class="percent">85%</span>
             </div>
-            <div class="bar"><span style="width: 84%"></span></div>
+            <div class="bar"><span style="width: 85%"></span></div>
             <p>
               Material-family queueing, route diagnostics, resource key
               resolution, Standard transparent phases, app route reporting,
@@ -1611,13 +1616,17 @@
               routes without WebGPU layout validation errors. Compatible
               mesh/material-identical queue and draw-list records now coalesce
               into one instanced draw when their transform slots are contiguous.
+              Static mesh batching now has a renderer-independent merge
+              primitive with per-source submesh ranges and pixel-parity browser
+              proof; queue integration remains the next batching slice.
             </p>
             <ul>
               <li>
                 Missing app-level generic material adapter route boundary.
               </li>
               <li>
-                Missing batching and multi-material primitive queue rules.
+                Missing queue-integrated static batching and multi-material
+                primitive queue rules.
               </li>
               <li>
                 Missing mature queue diagnostics for all future material
@@ -1666,7 +1675,9 @@
               instances from one draw, and render-pass draw-list planning now
               emits grouped instance counts for compatible contiguous draws. The
               instancing example now proves 1,000 ECS-authored boxes through one
-              grouped draw call.
+              grouped draw call. A static mesh merge browser proof now renders a
+              merged vertex/index buffer pixel-identical to separate per-mesh
+              draws.
             </p>
             <ul>
               <li>Missing render graph and multi-pass architecture.</li>
@@ -3780,11 +3791,11 @@
             <h3>Recommended next tasks</h3>
             <ul>
               <li>
-                <span class="badge amber">next</span> Start static geometry
-                batching with a merge primitive.
+                <span class="badge amber">next</span> Wire static batching into
+                queue/draw planning.
               </li>
               <li>
-                Merge compatible vertex/index buffers into one draw range.
+                Reduce compatible non-instanced draws using merged mesh buffers.
               </li>
               <li>Keep batching separate from ECS ownership.</li>
             </ul>
@@ -3798,6 +3809,16 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3016</div>
+            <div>
+              <strong>Static mesh merge primitive landed.</strong>
+              <span
+                >The render bridge can merge compatible mesh buffers with
+                submesh ranges and a browser pixel-parity proof.</span
+              >
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3015</div>
             <div>

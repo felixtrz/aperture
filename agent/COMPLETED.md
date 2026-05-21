@@ -1,5 +1,38 @@
 # Completed Tasks
 
+## task-3016 — Batching: merged geometry buffer for static draws (part 1: merge primitive)
+
+Completed: 2026-05-21
+
+Summary:
+
+- Added `packages/render/src/rendering/mesh-merge.ts` with
+  `mergeMeshAssetsForBatch()`, a renderer-independent helper that validates
+  compatible vertex layouts/material slots/topology, concatenates vertex and
+  index buffers, promotes merged indices to `uint32` when needed, and records
+  per-source submesh ranges.
+- Exported the helper through the render barrel so `@aperture-engine/core` and
+  `@aperture-engine/webgpu` can use it without moving GPU ownership into the
+  render package.
+- Added focused unit coverage for four distinct mesh handles, index promotion,
+  and incompatible layout diagnostics.
+- Added a Playwright WebGPU proof that renders four source meshes into one
+  texture, renders the merged buffer into another texture, and asserts the
+  readback bytes are pixel-identical.
+
+References inspected:
+
+- `references/three.js/src/objects/BatchedMesh.js`
+- `references/engine/src/scene/batching/batch-manager.js`
+- `references/bevy/crates/bevy_render/src/batching/mod.rs`
+
+Validation:
+
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec vitest run test/rendering/mesh-merge.test.ts`
+- `pnpm exec playwright test test/e2e/mesh-merge.spec.ts`
+- `pnpm run check`
+
 ## task-3015 — Instancing example: 1,000 instances of a single mesh
 
 Completed: 2026-05-21

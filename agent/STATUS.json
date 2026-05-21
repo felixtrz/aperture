@@ -6,6 +6,6 @@
   "lastResult": "success",
   "lastCommit": null,
   "activePid": null,
-  "notes": "Completed task-3010 through task-3015: real RGBE IBL asset path, ECS entity versions, cached extraction, instance transform buffer proof, conservative contiguous instanced draw coalescing, and the 1,000-box instancing example. Validation passed: pnpm run check plus targeted Playwright/Vitest checks.",
-  "lastRunFinishedAt": "2026-05-21T01:53:09Z"
+  "notes": "Completed task-3016: static mesh merge primitive with layout validation, submesh ranges, uint32 index promotion, unit coverage, WebGPU pixel-parity proof, tracker/backlog updates; next task task-3017 queue integration.",
+  "lastRunFinishedAt": "2026-05-21T02:19:27Z"
 }

@@ -1,6 +1,65 @@
 # Agent Handoff
 
-Updated: 2026-05-21T01:49:00Z
+Updated: 2026-05-21T02:13:16Z
+
+## Current Run Update — 2026-05-21T02:13:16Z — Static mesh merge primitive proof
+
+Completed `task-3016`.
+
+### What changed
+
+- Added `packages/render/src/rendering/mesh-merge.ts` with
+  `mergeMeshAssetsForBatch()`, a renderer-independent static batching primitive
+  that validates compatible mesh layouts/material slots/topology, concatenates
+  vertex streams and index buffers, promotes merged indices to `uint32` when the
+  combined vertex count exceeds `uint16`, and records per-source submesh ranges.
+- Exported the helper through the render barrel so the public core/WebGPU
+  package surfaces can use it without making the render package own GPU state.
+- Added targeted Vitest coverage for four distinct mesh handles, index
+  promotion, and incompatible layout diagnostics.
+- Added a Playwright WebGPU proof that renders four source meshes and the
+  merged mesh into separate off-screen textures and asserts byte-for-byte pixel
+  parity.
+- Updated public tracker pages, backlog, and completed-task log. Recommended
+  next task is now `task-3017`.
+
+### Files touched
+
+- `agent/BACKLOG.md`
+- `agent/COMPLETED.md`
+- `agent/HANDOFF.md`
+- `docs/index.html`
+- `docs/render-pipeline-comparison.html`
+- `packages/render/src/rendering/index.ts`
+- `packages/render/src/rendering/mesh-merge.ts`
+- `test/e2e/mesh-merge.spec.ts`
+- `test/rendering/mesh-merge.test.ts`
+
+### References inspected
+
+- `references/three.js/src/objects/BatchedMesh.js`
+- `references/engine/src/scene/batching/batch-manager.js`
+- `references/bevy/crates/bevy_render/src/batching/mod.rs`
+
+### Validation
+
+- `pnpm exec prettier --write packages/render/src/rendering/mesh-merge.ts packages/render/src/rendering/index.ts test/rendering/mesh-merge.test.ts test/e2e/mesh-merge.spec.ts`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec vitest run test/rendering/mesh-merge.test.ts`
+- `pnpm exec playwright test test/e2e/mesh-merge.spec.ts`
+- `pnpm run check` (321 files, 1544 tests)
+
+### Known issues
+
+- `task-3016` only creates the merge primitive. It does not yet make the queue
+  or draw package path consume merged mesh resources for non-instanced static
+  draw reduction.
+- The merge primitive intentionally stays renderer-independent and does not
+  create WebGPU buffers.
+
+### Recommended next task
+
+`task-3017 — Batching wired into queue for non-instanced draws (part 2: queue integration)`.
 
 ## Current Run Update — 2026-05-21T01:49:00Z — Real RGBE IBL, cached extraction, and instancing proof
 

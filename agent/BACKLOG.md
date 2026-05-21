@@ -59,13 +59,12 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start with `task-3016`: Batching: merged geometry buffer for static draws (part 1: merge primitive).
+Start with `task-3017`: Batching wired into queue for non-instanced draws (part 2: queue integration).
 
-Why this next: `task-3015` added the visible ECS-authored 1,000-instance proof. The next roadmap gap is non-instanced batching for distinct meshes that share compatible geometry layouts.
+Why this next: `task-3016` added the renderer-independent merged mesh primitive and browser pixel-parity proof. The next roadmap gap is consuming that primitive from queue/draw planning so compatible non-instanced static draws actually reduce draw calls.
 
 Reference anchors (read before writing):
 
-- `references/three.js/src/objects/BatchedMesh.js`
 - `references/engine/src/scene/batching/batch-manager.js`
 - `references/bevy/crates/bevy_render/src/batching/mod.rs`
 
@@ -89,7 +88,7 @@ Eleven cross-cutting gaps remain across the six phases. They are sequenced below
 **Tier 3 — Performance ceiling (independent):**
 
 6. Instancing (task-3013, task-3014, and task-3015 shipped) — visible 1,000-instance app proof
-7. Batching (task-3016, task-3017, task-3018) — merge geometries sharing a pipeline-key
+7. Batching (task-3016 shipped; task-3017 and task-3018 remain) — merge geometries sharing a pipeline-key
 8. Transparent sort phase report (task-3019) — close Phase 5 honesty gap
 
 **Tier 4 — Telemetry & hygiene (independent):**
@@ -108,18 +107,6 @@ The MVP track (task-2001 through task-2030) shipped successfully — completion 
 All roadmap task entries cite at least one specific reference file under `references/bevy`, `references/engine` (PlayCanvas), or `references/three.js`. The agent MUST read the cited references before writing implementation code (see `agent/WAKE.md` §4).
 
 ## Ready Tasks — Pipeline Maturity Roadmap
-
-### task-3016 — Batching: merged geometry buffer for static draws (part 1: merge primitive)
-
-Category: `render-bridge`
-Package/write-scope: `packages/render/src/rendering/`, new helper `mesh-merge.ts`, targeted tests.
-Reference anchor: `references/three.js/src/objects/BatchedMesh.js`; `references/engine/src/scene/batching/batch-manager.js`; `references/bevy/crates/bevy_render/src/batching/mod.rs`.
-Insertion point: new merge helper that consolidates N meshes sharing a vertex layout into one buffer with sub-ranges.
-
-Acceptance criteria:
-
-- Given 4 distinct mesh handles sharing layout, produces one merged vertex buffer plus per-sub-mesh draw ranges.
-- Test renders the merged buffer; canvas matches per-mesh draws pixel-for-pixel.
 
 ### task-3017 — Batching wired into queue for non-instanced draws (part 2: queue integration)
 

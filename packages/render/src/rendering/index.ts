@@ -3,6 +3,7 @@ export * from "./batching-report.js";
 export * from "./draw-package.js";
 export * from "./extraction.js";
 export * from "./material-queue.js";
+export * from "./mesh-merge.js";
 export * from "./package-inspection.js";
 export * from "./prepared-mesh-queue-resolver.js";
 export * from "./prepared-material-queue-resolver.js";
