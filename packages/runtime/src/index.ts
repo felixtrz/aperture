@@ -57,6 +57,8 @@ import {
   type RenderSnapshot,
 } from "@aperture-engine/render";
 
+export * from "./simulation-worker.js";
+
 export interface SpawnContext {
   readonly app: SimulationApp;
   readonly world: EcsWorld;

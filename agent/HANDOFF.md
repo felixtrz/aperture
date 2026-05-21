@@ -1,6 +1,75 @@
 # Agent Handoff
 
-Updated: 2026-05-21T08:34:49Z
+Updated: 2026-05-21T08:46:02Z
+
+## Current Run Update — 2026-05-21T08:46:02Z — Simulation worker runtime helper
+
+Completed `task-3032`.
+
+### What changed
+
+- Added `packages/runtime/src/simulation-worker.ts` and exported it from
+  `@aperture-engine/runtime`/`@aperture-engine/core`.
+- Added `createSimulationWorker(workerEntry, options)`, a typed wrapper that
+  owns a `MessageChannel`, sends a worker connect message, exposes
+  `start()`, `onSnapshot()`, `onError()`, and `terminate()`, and validates that
+  snapshot messages carry structured `RenderSnapshot` buffers.
+- Added `createRenderSnapshotBufferPool()`, `renderSnapshotTransferList()`, and
+  `copyRenderSnapshotIntoBufferLease()` so worker-side extraction can recycle
+  transfer buffers after `postMessage` detaches the previous frame's typed
+  arrays.
+- Added `test/runtime/simulation-worker.test.ts`, covering a MessageChannel
+  inline worker entry that builds an extraction app and posts one renderable
+  snapshot, plus 60 transfer/recycle buffer-pool round trips with stable
+  allocation counts.
+- Normalized the instance-tint shader regex/test formatting that the full
+  workspace lint/format check flagged after the previous slice.
+- Updated the public tracker, backlog, and completed-task records. Recommended
+  next task is now `task-3033`.
+
+### Files touched
+
+- `agent/BACKLOG.md`
+- `agent/COMPLETED.md`
+- `agent/HANDOFF.md`
+- `docs/index.html`
+- `packages/runtime/src/index.ts`
+- `packages/runtime/src/simulation-worker.ts`
+- `packages/webgpu/src/webgpu/standard-shader.ts`
+- `test/runtime/simulation-worker.test.ts`
+- `test/webgpu/standard-pipeline.test.ts`
+
+### References inspected
+
+- `references/three.js/examples/webgl_worker_offscreencanvas.html`
+- `references/three.js/examples/jsm/offscreen/offscreen.js`
+- `references/engine/src/framework/handlers/basis-worker.js`
+- Existing Aperture `examples/worker-cube.main.js` and
+  `examples/worker-cube.worker.js`.
+
+### Validation
+
+- `pnpm exec vitest run test/runtime/simulation-worker.test.ts`
+- `pnpm exec vitest run test/runtime/runtime.test.ts test/runtime/simulation-worker.test.ts`
+- `pnpm exec vitest run test/runtime/simulation-worker.test.ts test/webgpu/standard-pipeline.test.ts`
+- `pnpm exec tsc --noEmit -p packages/runtime/tsconfig.json`
+- `pnpm exec tsc --noEmit -p packages/webgpu/tsconfig.json`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm --filter @aperture-engine/runtime build`
+- `pnpm --filter @aperture-engine/core build`
+- `pnpm run check:progress`
+- `pnpm run lint`
+- `pnpm run check`
+
+### Known issues
+
+- `createWebGpuApp` still accepts and owns main-thread ECS state. `task-3033`
+  should convert it to consume a `SimulationWorker` and render worker-produced
+  snapshots.
+
+### Recommended next task
+
+`task-3033 — createWebGpuApp redesigned as renderer-only + transferable transport`.
 
 ## Current Run Update — 2026-05-21T08:34:49Z — Per-instance tint gradient swarm proof
 

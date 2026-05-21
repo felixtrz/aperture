@@ -1045,7 +1045,7 @@ fn saturate(value: f32) -> f32 {`,
   output.instanceTint = input.instanceTint;`,
       )
       .replace(
-        /  let baseColor = ([^;]+);\n  let alpha = ([^;]+);/u,
+        / {2}let baseColor = ([^;]+);\n {2}let alpha = ([^;]+);/u,
         `  var baseColor = $1;
   var alpha = $2;`,
       )

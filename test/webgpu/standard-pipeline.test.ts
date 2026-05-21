@@ -203,9 +203,7 @@ describe("browser standard material pipeline bridge", () => {
       ],
     });
     expect(shader.code).toContain("@location(6) instanceTint: vec4f");
-    expect(shader.code).toContain(
-      "var alpha = material.baseColorFactor.a;",
-    );
+    expect(shader.code).toContain("var alpha = material.baseColorFactor.a;");
     expect(shader.code).toContain(
       "baseColor = baseColor * input.instanceTint.rgb",
     );

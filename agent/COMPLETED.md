@@ -1,5 +1,42 @@
 # Completed Tasks
 
+## task-3032 — `createSimulationWorker` runtime helper
+
+Completed: 2026-05-21
+
+Summary:
+
+- Added `packages/runtime/src/simulation-worker.ts` with the public
+  `createSimulationWorker(workerEntry, options)` helper, typed protocol
+  constants, snapshot/error subscription callbacks, and termination handling.
+- The helper owns a `MessageChannel`, sends a connect message to the worker, and
+  receives `RenderSnapshot` messages through the port so main-thread rendering
+  can subscribe without owning ECS state.
+- Added `createRenderSnapshotBufferPool()`, transfer-list helpers, and
+  `copyRenderSnapshotIntoBufferLease()` so worker code can recycle fresh
+  transform/view-matrix buffers after transfer detaches the previous frame's
+  buffers.
+- Exported the new API through `@aperture-engine/runtime` and therefore
+  `@aperture-engine/core`.
+
+References inspected:
+
+- `references/three.js/examples/webgl_worker_offscreencanvas.html`
+- `references/three.js/examples/jsm/offscreen/offscreen.js`
+- `references/engine/src/framework/handlers/basis-worker.js`
+- Existing Aperture `examples/worker-cube.main.js` and
+  `examples/worker-cube.worker.js`
+
+Validation:
+
+- `pnpm exec vitest run test/runtime/simulation-worker.test.ts`
+- `pnpm exec vitest run test/runtime/runtime.test.ts test/runtime/simulation-worker.test.ts`
+- `pnpm exec tsc --noEmit -p packages/runtime/tsconfig.json`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm --filter @aperture-engine/runtime build`
+- `pnpm --filter @aperture-engine/core build`
+- `pnpm run check`
+
 ## task-3031 — Per-instance tint visible example (part 2: gradient swarm)
 
 Completed: 2026-05-21

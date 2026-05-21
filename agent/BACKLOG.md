@@ -59,14 +59,15 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start with `task-3032`: `createSimulationWorker` runtime helper.
+Start with `task-3033`: `createWebGpuApp` redesigned as renderer-only + transferable transport.
 
-Why this next: Tier 6 per-instance tint is now complete through a visible browser proof. The next roadmap tier starts the worker-by-default migration by wrapping Worker startup, snapshot subscription, termination, and reusable transferred-buffer allocation behind a typed runtime API before `createWebGpuApp` becomes renderer-only.
+Why this next: `createSimulationWorker()` now wraps Worker startup, MessageChannel snapshot delivery, termination, and reusable transferred-buffer allocation. The next vertical slice should make `createWebGpuApp` consume that typed worker handle so WebGPU becomes a renderer-only view over worker-produced snapshots.
 
 Reference anchors (read before writing):
 
+- `references/bevy/crates/bevy_render/src/lib.rs`
 - `references/three.js/examples/webgl_worker_offscreencanvas.html`
-- `references/engine/src/framework/handlers/basis-worker.js`
+- Existing Aperture `packages/webgpu/src/webgpu/app.ts`
 - Existing Aperture `examples/worker-cube.main.js` and `examples/worker-cube.worker.js`
 
 ## Strategic Focus — Pipeline Maturity Roadmap
@@ -107,7 +108,7 @@ Eleven cross-cutting gaps remain across the six phases. They are sequenced below
 
 **Tier 7 — Worker-by-default migration + transferable transport (queued after Tier 6):**
 
-13. Worker-by-default architecture (task-3032, task-3033, task-3034, task-3035, task-3036) — removes main-thread ECS mode entirely. ECS authoring and extraction always run in a Web Worker. The main thread becomes a renderer-only consumer that receives snapshots via transferable typed-array `postMessage`. `createWebGpuApp` is redesigned to require a `SimulationWorker` instance. All existing examples migrate to the new two-file shape (main + worker). Transferable transport (zero-copy `ArrayBuffer` transfer for `transforms` and `viewMatrices`) is bundled into the redesign — there is no point shipping the worker-default mode with an unoptimized transport. No HTTP header changes; default transport works in any deployment including embedded.
+13. Worker-by-default architecture (task-3032 shipped; task-3033, task-3034, task-3035, task-3036 remain) — removes main-thread ECS mode entirely. ECS authoring and extraction always run in a Web Worker. The main thread becomes a renderer-only consumer that receives snapshots via transferable typed-array `postMessage`. `createWebGpuApp` is redesigned to require a `SimulationWorker` instance. All existing examples migrate to the new two-file shape (main + worker). Transferable transport (zero-copy `ArrayBuffer` transfer for `transforms` and `viewMatrices`) is bundled into the redesign — there is no point shipping the worker-default mode with an unoptimized transport. No HTTP header changes; default transport works in any deployment including embedded.
 
 **Tier 8 — SharedArrayBuffer transport (opt-in, queued after Tier 7):**
 
@@ -298,11 +299,14 @@ Acceptance criteria:
 
 ### task-3032 — `createSimulationWorker` runtime helper
 
+Status: completed 2026-05-21. See `agent/COMPLETED.md`.
+
 Category: `runtime-orchestration`
 Package/write-scope: `packages/runtime/src/`, new file `packages/runtime/src/simulation-worker.ts`, targeted tests.
 Dependencies: task-3001 (worker proof) — should already exist.
 Reference anchor: `references/three.js/examples/webgl_worker_offscreencanvas.html` (worker boot + message-channel boilerplate); `references/engine/src/framework/handlers/basis-worker.js` (PlayCanvas's worker wrapper as the API-surface analogue); MDN `Worker` + `MessageChannel` docs for the canonical API contract.
 Insertion point: new public API `createSimulationWorker(workerEntry, options)` that wraps a `Worker` instance, owns the `MessageChannel`, and exposes a clean two-method surface — `start({ entityCapacity, ... })` and `onSnapshot(callback)`. The wrapped worker entry runs `createSimulationApp` internally and posts snapshots in the agreed shape. Includes a buffer-pool helper (`createRenderSnapshotBufferPool(n)`) so the worker has fresh `transforms` / `viewMatrices` buffers after each `postMessage` neuters its previous ones.
+Completion note 2026-05-21: `packages/runtime/src/simulation-worker.ts` now exports `createSimulationWorker()`, the typed simulation-worker message protocol, snapshot/error subscription APIs, `terminate()`, `createRenderSnapshotBufferPool()`, buffer transfer-list helpers, and `copyRenderSnapshotIntoBufferLease()`. Tests cover a MessageChannel-backed inline worker entry that creates an extraction app, spawns a renderable entity, and posts a structurally valid snapshot, plus 60 transferable-buffer recycle round trips with stable allocation counts.
 
 Acceptance criteria:
 
