@@ -59,12 +59,13 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start `task-3042`: add a render-packet inspector example.
+Start `task-3044`: add the per-instance custom attributes contract.
 
-Why this next: task-3041 added JSON-safe per-family snapshot change-set counts
-and surfaced them through `worker-cube`. The next visible slice should make the
-snapshot packet stream easier to inspect in a dedicated example instead of
-requiring agents to infer packet state from renderer internals.
+Why this next: task-3042 added a dedicated packet-inspector worker example, and
+task-3043 added extraction-time frustum culling plus per-view `cullStats`. The
+next visible slice should generalize the existing `InstanceTint` path into a
+typed custom per-instance attribute contract before adding the visible swaying
+example.
 
 Progress so far: `spinning-cube`, `multi-light-shadow`, and `glb-viewer` now
 use renderer-only `*.main.js` files plus ECS/extraction-owned `*.worker.js`
@@ -92,11 +93,18 @@ publishes explanations for both the rendered and skipped entities.
 `createRenderSnapshotChangeSet(previous, next)` now reports changed, unchanged,
 and removed counts for views, mesh draws, lights, environments, shadow requests,
 and bounds; `examples/worker-cube.html` publishes these counts in status.
+`examples/render-packet-inspector.html` now renders worker-authored packets and
+publishes JSON-safe views, draws, bounds, queue keys, handles, skipped-entity
+explanations, and culling stats. Extraction now builds camera frustum planes
+from view-projection matrices, skips renderables outside all matching camera
+frustums, reports per-view `cullStats`, and supports camera opt-out with
+`frustumCulling: false`.
 
 Reference anchors (read before writing):
 
-- `references/engine/src/scene/renderer/renderer.js`
-- `references/bevy/crates/bevy_render/src/view/visibility/mod.rs`
+- `references/three.js/src/core/InstancedBufferAttribute.js`
+- `references/bevy/crates/bevy_render/src/extract_instances.rs`
+- `references/engine/src/scene/mesh-instance.js`
 
 ## Strategic Focus — Pipeline Maturity Roadmap
 
@@ -144,7 +152,7 @@ Eleven cross-cutting gaps remain across the six phases. They are sequenced below
 
 **Tier 9 — Scale & extensibility polish (queued after Tier 8):**
 
-15. Frustum culling (task-3043) — per-camera AABB-vs-frustum test in extraction; skip draws for entities outside the view frustum. Today every visible entity is extracted regardless of camera position. At 10K+ spatially-distributed entities this becomes the largest CPU cost in extraction. Single foundational slice; uses the `BoundsPacket` data the snapshot already carries.
+15. Frustum culling (task-3043 shipped) — per-camera AABB-vs-frustum test in extraction; skip draws for entities outside the view frustum. At 10K+ spatially-distributed entities this becomes the largest CPU cost in extraction. Single foundational slice; uses the `BoundsPacket` data the snapshot already carries.
 
 16. Per-instance custom attributes (task-3044, task-3045) — generalizes the Tier 6 `InstanceTint` pattern to support arbitrary user-defined per-instance data: vec3/vec4 channels declared by custom materials, packed into parallel instance buffers, consumed by user WGSL via instance-rate vertex attributes. Unlocks particle systems, vegetation with per-blade wind phase, VFX with per-instance animation parameters. Builds on the Tier 5 custom material adapter + Tier 6 instance-attribute infrastructure.
 
@@ -616,6 +624,8 @@ Acceptance criteria:
 
 ### task-3042 — Add a render-packet inspector example
 
+Status: completed 2026-05-21. See `agent/COMPLETED.md`.
+
 Category: `runtime-orchestration`
 Package/write-scope: `examples/render-packet-inspector.{html,main.js,worker.js}`, `test/e2e/render-packet-inspector.spec.ts`.
 Reference anchor: `references/engine/src/scene/renderer/renderer.js` (renderer visibility/culling list assembly); `references/bevy/crates/bevy_render/src/view/visibility/mod.rs`.
@@ -628,6 +638,8 @@ Acceptance criteria:
 - Playwright asserts visible pixels and JSON-safe packet-inspector status.
 
 ### task-3043 — Frustum culling in extraction (Tier 9)
+
+Status: completed 2026-05-21. See `agent/COMPLETED.md`.
 
 Category: `render-bridge`
 Package/write-scope: `packages/render/src/rendering/extraction.ts`, `packages/render/src/rendering/snapshot.ts` (frustum-plane scratch types), targeted tests + Vitest microbenchmark, new or extended example to demonstrate cull-skip.

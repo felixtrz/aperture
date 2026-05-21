@@ -1,6 +1,60 @@
 # Agent Handoff
 
-Updated: 2026-05-21T21:40:20Z
+Updated: 2026-05-21T22:25:00Z
+
+## Current Run Update — 2026-05-21T22:25:00Z — Packet inspector and frustum culling shipped
+
+Completed `task-3042` and `task-3043`.
+
+### What changed
+
+- Added `examples/render-packet-inspector.html` plus renderer-main and
+  worker-owned ECS/extraction modules. The example renders a worker snapshot and
+  publishes JSON-safe views, mesh draws, lights, environments, bounds,
+  queue/batch keys, asset handles, diagnostics, and skipped-entity
+  explanations.
+- Added extraction-time frustum culling. Cameras now build frustum planes from
+  their view-projection matrices, mesh world AABBs are tested against matching
+  camera layers, and entities outside all matching views do not emit
+  `MeshDrawPacket`s.
+- Added `CameraInput.frustumCulling` / `Camera.frustumCulling`, defaulting on,
+  as an opt-out for scenes where authors know the camera sees everything.
+- Added `RenderSnapshot.report.cullStats` with per-view `tested`, `culled`, and
+  `included` counts. The packet inspector publishes those stats and proves 120
+  culling probes are skipped while the visible cube still renders.
+- Updated `package.json` example syntax checks, worker-split static coverage,
+  the public tracker pages, backlog, and completed-task log.
+
+### References inspected
+
+- `references/engine/src/scene/renderer/renderer.js`
+- `references/engine/src/core/shape/frustum.js`
+- `references/engine/src/scene/mesh-instance.js`
+- `references/three.js/src/math/Frustum.js`
+- `references/three.js/src/renderers/WebGLRenderer.js`
+- `references/three.js/src/core/Object3D.js`
+- `references/bevy/crates/bevy_render/src/view/visibility/mod.rs`
+
+### Validation
+
+- `pnpm run build`
+- `pnpm exec vitest run test/rendering/extraction.test.ts`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec eslint packages/render/src/rendering/extraction.ts packages/render/src/rendering/authoring.ts packages/render/src/rendering/snapshot.ts test/rendering/extraction.test.ts examples/render-packet-inspector.main.js examples/render-packet-inspector.worker.js test/e2e/render-packet-inspector.spec.ts test/examples/worker-split-examples.test.mjs`
+- `pnpm run check:examples`
+- `pnpm exec vitest run test/examples/worker-split-examples.test.mjs`
+- `pnpm exec playwright test test/e2e/render-packet-inspector.spec.ts --project=chrome-webgpu-headed --timeout=60000`
+
+### Known issues
+
+- The headed Playwright shutdown hang risk from prior runs remains, but this
+  run's render-packet-inspector e2e exited cleanly.
+- `task-3044` is not started yet. It should build the per-instance custom
+  attributes contract before the visible swaying example in `task-3045`.
+
+### Recommended next task
+
+Start `task-3044`: per-instance custom attributes contract.
 
 ## Current Run Update — 2026-05-21T21:40:20Z — Snapshot change-set families shipped
 

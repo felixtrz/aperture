@@ -30,6 +30,12 @@ const workerSplitExamples = [
     mode: "shared-array-buffer",
   },
   {
+    html: "examples/render-packet-inspector.html",
+    main: "examples/render-packet-inspector.main.js",
+    worker: "examples/render-packet-inspector.worker.js",
+    legacy: "examples/render-packet-inspector.js",
+  },
+  {
     html: "examples/triangle.html",
     main: "examples/triangle.main.js",
     worker: "examples/triangle.worker.js",

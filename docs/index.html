@@ -393,12 +393,20 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-21 21:40 UTC</dd>
+            <dd>2026-05-21 22:25 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
-              Opt-in SharedArrayBuffer transport is now wired through
+              The render-packet inspector example now renders a worker-authored
+              snapshot while publishing JSON-safe packet tables for views,
+              draws, lights, environments, bounds, queue keys, handles,
+              skipped-entity explanations, and culling stats. Extraction now
+              builds camera frustum planes from view-projection matrices, skips
+              mesh draws outside every matching camera view, reports per-view
+              <code>cullStats</code>, and exposes
+              <code>frustumCulling: false</code> as a camera opt-out. Opt-in
+              SharedArrayBuffer transport is now wired through
               <code>createWebGpuApp({ transport: "shared-array-buffer" })</code
               >. The WebGPU app allocates shared snapshot storage, passes it to
               the worker during <code>app.start()</code>, decodes fixed-stride
@@ -1210,7 +1218,7 @@
               key so live route changes do not reuse incompatible layouts.
             </dd>
             <dt>Next focus</dt>
-            <dd>refill post-roadmap visible feature queue</dd>
+            <dd>task-3044 per-instance custom attributes contract</dd>
           </dl>
         </aside>
       </header>
@@ -1245,9 +1253,9 @@
           </article>
           <article class="card metric">
             <div class="label">render pipeline</div>
-            <div class="value">86%</div>
-            <div class="bar" aria-label="86 percent complete">
-              <span style="width: 86%"></span>
+            <div class="value">87%</div>
+            <div class="bar" aria-label="87 percent complete">
+              <span style="width: 87%"></span>
             </div>
             <p>
               The ECS-to-WebGPU spine is usable, app route reporting runs
@@ -1415,14 +1423,14 @@
                 <div class="label">render bridge</div>
                 <h3>extraction and snapshots</h3>
               </div>
-              <span class="percent">70%</span>
+              <span class="percent">72%</span>
             </div>
-            <div class="bar"><span style="width: 70%"></span></div>
+            <div class="bar"><span style="width: 72%"></span></div>
             <p>
               Snapshots, draw packets, lights, environments, bounds,
-              diagnostics, shadow authoring flags, and render-world prepared
-              facade summaries with a prepare-and-bind report adapter are
-              active.
+              diagnostics, shadow authoring flags, per-view cull stats,
+              extraction-time frustum culling, and render-world prepared facade
+              summaries with a prepare-and-bind report adapter are active.
             </p>
           </article>
           <article class="card track">
@@ -1489,26 +1497,27 @@
                 <div class="label">examples/e2e</div>
                 <h3>browser proof points</h3>
               </div>
-              <span class="percent">72%</span>
+              <span class="percent">74%</span>
             </div>
-            <div class="bar"><span style="width: 72%"></span></div>
+            <div class="bar"><span style="width: 74%"></span></div>
             <p>
               Spinning cube, material showcase, GLTF scene, GLB viewer, worker
               cube, diagnostics, queue phases, and WebGPU readback examples have
               Playwright coverage, including structured-cloned Worker snapshots
               with preserved typed arrays, lit GLB viewer material-family
-              routing, animation playback, multi-primitive replay, hierarchy
-              transforms, combined IBL/shadow sampling, and a shadow-darkened
-              GLB viewer receiver floor with IBL-enabled pixel comparison. GLB
-              viewer coverage now also verifies mixed opaque/transparent
-              StandardMaterial routing, unsupported morph/skinning/camera/mode
-              diagnostics, CUBICSPLINE interpolation status, multi-scene
-              default-scene metadata, texture-transform metadata, emissive
-              factors, and non-default sampler metadata. StandardMaterial
-              render-state routing, fitted-camera reset, and ECS light, shadow,
-              IBL, animation scrub/speed/loop/direction, rotation/scale and STEP
-              channel playback, imported glTF camera switching, embedded-image
-              texture routing, imported punctual light extraction, metadata, and
+              routing, render-packet inspector tables, culling stats, animation
+              playback, multi-primitive replay, hierarchy transforms, combined
+              IBL/shadow sampling, and a shadow-darkened GLB viewer receiver
+              floor with IBL-enabled pixel comparison. GLB viewer coverage now
+              also verifies mixed opaque/transparent StandardMaterial routing,
+              unsupported morph/skinning/camera/mode diagnostics, CUBICSPLINE
+              interpolation status, multi-scene default-scene metadata,
+              texture-transform metadata, emissive factors, and non-default
+              sampler metadata. StandardMaterial render-state routing,
+              fitted-camera reset, and ECS light, shadow, IBL, animation
+              scrub/speed/loop/direction, rotation/scale and STEP channel
+              playback, imported glTF camera switching, embedded-image texture
+              routing, imported punctual light extraction, metadata, and
               sample-query bootstrap responses.
             </p>
           </article>
@@ -1547,9 +1556,9 @@
           <article class="phase">
             <div class="topline">
               <h3>1. extract</h3>
-              <span class="percent">94%</span>
+              <span class="percent">96%</span>
             </div>
-            <div class="bar"><span style="width: 94%"></span></div>
+            <div class="bar"><span style="width: 96%"></span></div>
             <p>
               ECS state produces serializable render snapshots with draw, view,
               light, environment, shadow request, bounds, and diagnostic
@@ -1560,11 +1569,16 @@
               <code>InstanceTint</code> components now extract into a snapshot
               tint buffer and annotate mesh draw packets with tint offsets.
               Snapshot inspection can now explain rendered and skipped entities
-              with stable diagnostic reasons.
+              with stable diagnostic reasons. Per-camera frustum planes now skip
+              outside-view mesh draws during extraction and publish per-view
+              <code>cullStats</code>.
             </p>
             <ul>
-              <li>Missing broader visibility/culling explanations.</li>
-              <li>Missing snapshot diffing and delta extraction.</li>
+              <li>
+                Missing broader visibility explanations beyond current cull
+                stats.
+              </li>
+              <li>Missing a generic change-set scheduler.</li>
               <li>
                 Missing multi-view render-target coverage beyond current
                 foundations.
@@ -1882,6 +1896,20 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">task-3043</span> Added extraction-time
+                frustum culling, per-view <code>cullStats</code>, and a camera
+                <code>frustumCulling: false</code> opt-out. The packet inspector
+                proves 120 outside-view probes are skipped while the visible
+                cube still renders.
+              </li>
+              <li>
+                <span class="badge green">task-3042</span> Added
+                <code>render-packet-inspector</code>, a worker-split example
+                that renders a snapshot and publishes JSON-safe packet tables
+                for views, draws, lights, environments, bounds, queue keys,
+                handles, diagnostics, and skipped-entity explanations.
+              </li>
               <li>
                 <span class="badge green">task-3040</span> Added
                 <code>explainRenderSnapshotEntity()</code> so status surfaces
@@ -4082,13 +4110,14 @@
             <ul>
               <li>
                 <span class="badge amber">next</span> Build
-                <code>task-3042</code>, a render-packet inspector example that
-                publishes draw, view, light, environment, bounds, queue-key, and
-                skipped-entity status.
+                <code>task-3044</code>, the per-instance custom attributes
+                contract that generalizes the current
+                <code>InstanceTint</code> path for custom materials.
               </li>
               <li>
-                Follow-up visible slices now include frustum culling and
-                generalized per-instance custom attributes.
+                Follow-up visible slices include
+                <code>task-3045</code>, a swaying custom-material example that
+                consumes those instance attributes in WGSL.
               </li>
               <li>
                 Keep the recommended next task visible-feature first; avoid
@@ -4105,6 +4134,27 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3043</div>
+            <div>
+              <strong>Extraction culls outside-view renderables.</strong>
+              <span>
+                Camera frustum planes now skip mesh draws outside all matching
+                views and report per-view <code>cullStats</code>.
+              </span>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="task-id">task-3042</div>
+            <div>
+              <strong>Render packet inspector is live.</strong>
+              <span>
+                The worker-split inspector renders a snapshot and publishes
+                JSON-safe packet tables, handles, cull stats, and skipped entity
+                explanations.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3033</div>
             <div>

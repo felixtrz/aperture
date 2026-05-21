@@ -78,6 +78,7 @@ import {
   type RenderSnapshot,
   type ShadowRequestPacket,
   type ViewPacket,
+  type ViewCullStats,
 } from "./snapshot.js";
 
 export interface RenderExtractionOptions {
@@ -98,10 +99,37 @@ type MeshDrawPacketTemplate = Omit<
 interface CachedMeshDrawEntity {
   readonly entityVersion: number;
   readonly cameraLayerMask: number;
+  readonly viewCullSignature: number;
+  readonly layerMask: number;
   readonly worldMatrix: readonly number[];
   readonly instanceTint: readonly number[] | null;
   readonly bounds: Omit<BoundsPacket, "boundsId">;
   readonly draws: readonly MeshDrawPacketTemplate[];
+}
+
+interface FrustumPlane {
+  readonly x: number;
+  readonly y: number;
+  readonly z: number;
+  readonly constant: number;
+}
+
+interface MutableViewCullStats {
+  viewId: number;
+  camera: RenderEntityRef;
+  tested: number;
+  culled: number;
+  included: number;
+}
+
+interface ViewCullContext {
+  readonly viewId: number;
+  readonly camera: RenderEntityRef;
+  readonly priority: number;
+  readonly layerMask: number;
+  readonly frustumCulling: boolean;
+  readonly planes: readonly FrustumPlane[];
+  readonly stats: MutableViewCullStats;
 }
 
 export function createRenderExtractionCache(): RenderExtractionCache {
@@ -129,11 +157,18 @@ export function extractRenderSnapshot(
   const instanceTints: number[] = [];
   const viewMatrices: number[] = [];
   const bounds: BoundsPacket[] = [];
-  const views = extractViews(world, viewMatrices, diagnostics);
+  const viewCullContexts: ViewCullContext[] = [];
+  const views = extractViews(
+    world,
+    viewMatrices,
+    diagnostics,
+    viewCullContexts,
+  );
   const cameraLayerMask = views.reduce(
     (mask, view) => mask | view.layerMask,
     0,
   );
+  const viewCullSignature = createViewCullSignature(viewCullContexts);
   const environments: EnvironmentPacket[] = [];
   const shadowRequests: ShadowRequestPacket[] = [];
   const lights = extractLights(
@@ -152,6 +187,8 @@ export function extractRenderSnapshot(
     bounds,
     diagnostics,
     cameraLayerMask,
+    viewCullContexts,
+    viewCullSignature,
     options.cache,
   ).sort((a, b) => compareRenderSortKeys(a.sortKey, b.sortKey));
 
@@ -175,6 +212,9 @@ export function extractRenderSnapshot(
       shadowRequests: shadowRequests.length,
       bounds: bounds.length,
       diagnostics: diagnostics.length,
+      cullStats: viewCullContexts.map(
+        (context): ViewCullStats => ({ ...context.stats }),
+      ),
     },
   };
 }
@@ -183,6 +223,7 @@ function extractViews(
   world: EcsWorld,
   viewMatrices: number[],
   diagnostics: RenderDiagnostic[],
+  viewCullContexts: ViewCullContext[],
 ): ViewPacket[] {
   const query = world.queryManager.registerQuery({ required: [Camera] });
   const views: ViewPacket[] = [];
@@ -203,7 +244,9 @@ function extractViews(
     }
 
     const layerMask = entity.getValue(Camera, "layerMask") ?? 1;
-
+    const camera = entityRef(entity);
+    const viewId = createStableRenderId(camera);
+    const priority = entity.getValue(Camera, "priority") ?? 0;
     const worldMatrix = readWorldMatrix(entity);
     const viewMatrix = invertMat4(worldMatrix) ?? identityMat4();
     const projection = entity.getValue(Camera, "projection");
@@ -228,17 +271,31 @@ function extractViews(
             readCameraNumber(entity, "near"),
             readCameraNumber(entity, "far"),
           );
+    const viewProjectionMatrix = multiplyMat4(projectionMatrix, viewMatrix);
     const viewOffset = pushMatrix(viewMatrices, viewMatrix);
     const projectionOffset = pushMatrix(viewMatrices, projectionMatrix);
-    const viewProjectionOffset = pushMatrix(
-      viewMatrices,
-      multiplyMat4(projectionMatrix, viewMatrix),
-    );
+    const viewProjectionOffset = pushMatrix(viewMatrices, viewProjectionMatrix);
+
+    viewCullContexts.push({
+      viewId,
+      camera,
+      priority,
+      layerMask,
+      frustumCulling: entity.getValue(Camera, "frustumCulling") !== false,
+      planes: createFrustumPlanes(viewProjectionMatrix),
+      stats: {
+        viewId,
+        camera,
+        tested: 0,
+        culled: 0,
+        included: 0,
+      },
+    });
 
     views.push({
-      viewId: createStableRenderId(entityRef(entity)),
-      camera: entityRef(entity),
-      priority: entity.getValue(Camera, "priority") ?? 0,
+      viewId,
+      camera,
+      priority,
       layerMask,
       viewMatrixOffset: viewOffset,
       projectionMatrixOffset: projectionOffset,
@@ -267,6 +324,9 @@ function extractViews(
     });
   }
 
+  viewCullContexts.sort(
+    (a, b) => a.priority - b.priority || a.viewId - b.viewId,
+  );
   return views.sort((a, b) => a.priority - b.priority || a.viewId - b.viewId);
 }
 
@@ -458,6 +518,8 @@ function extractMeshDraws(
   bounds: BoundsPacket[],
   diagnostics: RenderDiagnostic[],
   cameraLayerMask: number,
+  viewCullContexts: readonly ViewCullContext[],
+  viewCullSignature: number,
   cache: RenderExtractionCache | undefined,
 ): MeshDrawPacket[] {
   const query = world.queryManager.registerQuery({
@@ -473,8 +535,19 @@ function extractMeshDraws(
     if (
       cached !== undefined &&
       cached.entityVersion === entityVersion &&
-      cached.cameraLayerMask === cameraLayerMask
+      cached.cameraLayerMask === cameraLayerMask &&
+      cached.viewCullSignature === viewCullSignature
     ) {
+      if (
+        !isVisibleInAnyMatchingView(
+          cached.bounds.worldAabb,
+          cached.layerMask,
+          viewCullContexts,
+        )
+      ) {
+        continue;
+      }
+
       appendCachedMeshDrawEntity(
         cached,
         transforms,
@@ -558,14 +631,29 @@ function extractMeshDraws(
     }
 
     const worldMatrix = readWorldMatrix(entity);
-    const worldTransformOffset = pushMatrix(transforms, worldMatrix);
-    const instanceTintOffset = pushInstanceTint(instanceTints, entity);
-    const boundsIndex = pushBounds(
-      bounds,
+    const boundsPacket = createBoundsPacket(
+      bounds.length,
       entity,
       meshEntry.asset,
       worldMatrix,
     );
+
+    if (
+      !isVisibleInAnyMatchingView(
+        boundsPacket.worldAabb,
+        layerMask,
+        viewCullContexts,
+      )
+    ) {
+      continue;
+    }
+
+    const worldTransformOffset = pushMatrix(transforms, worldMatrix);
+    const instanceTintOffset = pushInstanceTint(instanceTints, entity);
+    const boundsIndex = bounds.length;
+
+    bounds.push(boundsPacket);
+
     const entityDiagnosticsStart = diagnostics.length;
     const entityDraws: MeshDrawPacket[] = [];
 
@@ -715,6 +803,8 @@ function extractMeshDraws(
         cache.meshDrawEntities.set(cacheKey, {
           entityVersion,
           cameraLayerMask,
+          viewCullSignature,
+          layerMask,
           worldMatrix: Array.from(worldMatrix),
           instanceTint:
             instanceTintOffset === undefined
@@ -788,6 +878,140 @@ function createMeshDrawPacketTemplate(
     sortKey: draw.sortKey,
     batchKey: draw.batchKey,
   };
+}
+
+function isVisibleInAnyMatchingView(
+  worldAabb: Aabb,
+  layerMask: number,
+  viewCullContexts: readonly ViewCullContext[],
+): boolean {
+  let matchedView = false;
+  let includedInAnyView = false;
+
+  for (const context of viewCullContexts) {
+    if ((context.layerMask & layerMask) === 0) {
+      continue;
+    }
+
+    matchedView = true;
+
+    if (!context.frustumCulling) {
+      context.stats.included += 1;
+      includedInAnyView = true;
+      continue;
+    }
+
+    context.stats.tested += 1;
+
+    if (aabbIntersectsFrustum(worldAabb, context.planes)) {
+      context.stats.included += 1;
+      includedInAnyView = true;
+    } else {
+      context.stats.culled += 1;
+    }
+  }
+
+  return !matchedView || includedInAnyView;
+}
+
+function aabbIntersectsFrustum(
+  aabb: Aabb,
+  planes: readonly FrustumPlane[],
+): boolean {
+  for (const plane of planes) {
+    const x = plane.x > 0 ? readVec3(aabb.max, 0) : readVec3(aabb.min, 0);
+    const y = plane.y > 0 ? readVec3(aabb.max, 1) : readVec3(aabb.min, 1);
+    const z = plane.z > 0 ? readVec3(aabb.max, 2) : readVec3(aabb.min, 2);
+
+    if (plane.x * x + plane.y * y + plane.z * z + plane.constant < 0) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+function createFrustumPlanes(matrix: Mat4): readonly FrustumPlane[] {
+  const m0 = readMat4(matrix, 0);
+  const m1 = readMat4(matrix, 1);
+  const m2 = readMat4(matrix, 2);
+  const m3 = readMat4(matrix, 3);
+  const m4 = readMat4(matrix, 4);
+  const m5 = readMat4(matrix, 5);
+  const m6 = readMat4(matrix, 6);
+  const m7 = readMat4(matrix, 7);
+  const m8 = readMat4(matrix, 8);
+  const m9 = readMat4(matrix, 9);
+  const m10 = readMat4(matrix, 10);
+  const m11 = readMat4(matrix, 11);
+  const m12 = readMat4(matrix, 12);
+  const m13 = readMat4(matrix, 13);
+  const m14 = readMat4(matrix, 14);
+  const m15 = readMat4(matrix, 15);
+
+  return [
+    normalizePlane(m3 - m0, m7 - m4, m11 - m8, m15 - m12),
+    normalizePlane(m3 + m0, m7 + m4, m11 + m8, m15 + m12),
+    normalizePlane(m3 + m1, m7 + m5, m11 + m9, m15 + m13),
+    normalizePlane(m3 - m1, m7 - m5, m11 - m9, m15 - m13),
+    normalizePlane(m3 - m2, m7 - m6, m11 - m10, m15 - m14),
+    normalizePlane(m2, m6, m10, m14),
+  ];
+}
+
+function readMat4(matrix: Mat4, index: number): number {
+  return matrix[index] ?? 0;
+}
+
+function normalizePlane(
+  x: number | undefined,
+  y: number | undefined,
+  z: number | undefined,
+  constant: number | undefined,
+): FrustumPlane {
+  const nx = x ?? 0;
+  const ny = y ?? 0;
+  const nz = z ?? 0;
+  const d = constant ?? 0;
+  const length = Math.hypot(nx, ny, nz);
+
+  if (length === 0) {
+    return { x: nx, y: ny, z: nz, constant: d };
+  }
+
+  return {
+    x: nx / length,
+    y: ny / length,
+    z: nz / length,
+    constant: d / length,
+  };
+}
+
+function createViewCullSignature(
+  viewCullContexts: readonly ViewCullContext[],
+): number {
+  let hash = 2_166_136_261;
+
+  for (const context of viewCullContexts) {
+    hash = hashCullNumber(hash, context.viewId);
+    hash = hashCullNumber(hash, context.layerMask);
+    hash = hashCullNumber(hash, context.frustumCulling ? 1 : 0);
+
+    for (const plane of context.planes) {
+      hash = hashCullNumber(hash, plane.x);
+      hash = hashCullNumber(hash, plane.y);
+      hash = hashCullNumber(hash, plane.z);
+      hash = hashCullNumber(hash, plane.constant);
+    }
+  }
+
+  return hash >>> 0;
+}
+
+function hashCullNumber(hash: number, value: number): number {
+  const scaled = Number.isFinite(value) ? Math.trunc(value * 1_000_000) : 0;
+
+  return Math.imul(hash ^ scaled, 16_777_619) >>> 0;
 }
 
 function validateStandardNormalMapReadiness(input: {
@@ -1116,26 +1340,24 @@ function validateEnvironmentMapAssetState(
   return true;
 }
 
-function pushBounds(
-  bounds: BoundsPacket[],
+function createBoundsPacket(
+  boundsId: number,
   entity: Entity,
   mesh: MeshAsset,
   worldMatrix: Mat4,
-): number {
+): BoundsPacket {
   const localAabb = mesh.localAabb as Aabb;
   const localSphere = mesh.localSphere as BoundingSphere;
   const center = transformPoint(worldMatrix, localSphere.center);
-  const packet: BoundsPacket = {
-    boundsId: bounds.length,
+
+  return {
+    boundsId,
     entity: entityRef(entity),
     localAabb,
     worldAabb: transformAabb(localAabb, worldMatrix),
     localSphere,
     worldSphere: { center, radius: localSphere.radius },
   };
-
-  bounds.push(packet);
-  return packet.boundsId;
 }
 
 function readWorldMatrix(entity: Entity): Mat4 {
@@ -1146,6 +1368,10 @@ function readWorldMatrix(entity: Entity): Mat4 {
   matrix.set(entity.getVectorView(WorldTransform, "col2"), 8);
   matrix.set(entity.getVectorView(WorldTransform, "col3"), 12);
   return matrix;
+}
+
+function readVec3(values: Aabb["min"], index: 0 | 1 | 2): number {
+  return values[index] ?? 0;
 }
 
 function readCameraNumber(
@@ -1221,6 +1447,7 @@ function cameraInput(entity: Entity): CameraInput {
       number,
     ],
     layerMask: entity.getValue(Camera, "layerMask") ?? 1,
+    frustumCulling: entity.getValue(Camera, "frustumCulling") !== false,
   };
 }
 

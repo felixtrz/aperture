@@ -322,6 +322,130 @@ describe("render extraction", () => {
     ]);
   });
 
+  it("culls renderables outside all matching camera frustums and reports per-view stats", () => {
+    const world = createRuntimeWorld();
+
+    createCameraEntity(world, {
+      priority: 0,
+      layerMask: 1,
+      translation: [0, 0, 5],
+    });
+    const visible = createMeshEntity(world, {
+      meshId: "mesh:cube",
+      materialId: "material:unlit",
+      layerMask: 1,
+      translation: [0, 0, 0],
+    });
+    createMeshEntity(world, {
+      meshId: "mesh:cube",
+      materialId: "material:unlit",
+      layerMask: 1,
+      translation: [120, 0, 0],
+    });
+
+    const snapshot = extractRenderSnapshot(world, createReadyAssets());
+
+    expect(snapshot.meshDraws.map((draw) => draw.entity.index)).toEqual([
+      visible.index,
+    ]);
+    expect(snapshot.bounds).toHaveLength(1);
+    expect(snapshot.diagnostics).toEqual([]);
+    expect(snapshot.report.cullStats).toMatchObject([
+      {
+        tested: 2,
+        culled: 1,
+        included: 1,
+      },
+    ]);
+  });
+
+  it("allows cameras to opt out of frustum culling", () => {
+    const world = createRuntimeWorld();
+
+    createCameraEntity(world, {
+      priority: 0,
+      layerMask: 1,
+      translation: [0, 0, 5],
+      frustumCulling: false,
+    });
+    createMeshEntity(world, {
+      meshId: "mesh:cube",
+      materialId: "material:unlit",
+      layerMask: 1,
+      translation: [0, 0, 0],
+    });
+    createMeshEntity(world, {
+      meshId: "mesh:cube",
+      materialId: "material:unlit",
+      layerMask: 1,
+      translation: [120, 0, 0],
+    });
+
+    const snapshot = extractRenderSnapshot(world, createReadyAssets());
+
+    expect(snapshot.meshDraws).toHaveLength(2);
+    expect(snapshot.report.cullStats).toMatchObject([
+      {
+        tested: 0,
+        culled: 0,
+        included: 2,
+      },
+    ]);
+  });
+
+  it("microbenchmarks frustum culling against an opt-out baseline", () => {
+    const totalEntities = 1000;
+    const visibleEntities = 200;
+    const culled = createFrustumCullingFixture({
+      totalEntities,
+      visibleEntities,
+      frustumCulling: true,
+    });
+
+    expect(
+      extractRenderSnapshot(culled.world, culled.assets).report,
+    ).toMatchObject({
+      meshDraws: visibleEntities,
+      cullStats: [{ tested: totalEntities, culled: 800, included: 200 }],
+    });
+    const culledMs = measureCachedExtraction(
+      () => {
+        extractRenderSnapshot(culled.world, culled.assets);
+      },
+      undefined,
+      8,
+    );
+
+    const baseline = createFrustumCullingFixture({
+      totalEntities,
+      visibleEntities,
+      frustumCulling: false,
+    });
+
+    expect(
+      extractRenderSnapshot(baseline.world, baseline.assets).report,
+    ).toMatchObject({
+      meshDraws: totalEntities,
+      cullStats: [{ tested: 0, culled: 0, included: totalEntities }],
+    });
+    const baselineMs = measureCachedExtraction(
+      () => {
+        extractRenderSnapshot(baseline.world, baseline.assets);
+      },
+      undefined,
+      8,
+    );
+
+    expect(
+      culledMs,
+      `culled extraction ${culledMs.toFixed(
+        3,
+      )}ms should be at least 30% faster than opt-out baseline ${baselineMs.toFixed(
+        3,
+      )}ms`,
+    ).toBeLessThan(baselineMs * 0.7);
+  });
+
   it("skips missing mesh handles with diagnostics", () => {
     const world = createRuntimeWorld();
 
@@ -1833,6 +1957,43 @@ function createTwoRenderableTextureDependencyFixture(
   return { assets, world };
 }
 
+function createFrustumCullingFixture(input: {
+  readonly totalEntities: number;
+  readonly visibleEntities: number;
+  readonly frustumCulling: boolean;
+}): {
+  readonly assets: AssetRegistry;
+  readonly camera: ReturnType<typeof createCameraEntity>;
+  readonly world: ReturnType<typeof createWorld>;
+} {
+  const world = createRuntimeWorld(input.totalEntities + 8);
+  const assets = createReadyAssets();
+
+  const camera = createCameraEntity(world, {
+    priority: 0,
+    layerMask: 1,
+    translation: [0, 0, 5],
+    ...(input.frustumCulling ? {} : { frustumCulling: false }),
+  });
+
+  for (let index = 0; index < input.totalEntities; index += 1) {
+    const visible = index < input.visibleEntities;
+    const column = index % 20;
+    const row = Math.floor(index / 20);
+
+    createMeshEntity(world, {
+      meshId: "mesh:cube",
+      materialId: "material:unlit",
+      layerMask: 1,
+      translation: visible
+        ? [(column - 10) * 0.18, (row % 10) * 0.18 - 0.9, 0]
+        : [120 + index, 0, 0],
+    });
+  }
+
+  return { assets, camera, world };
+}
+
 function createCameraEntity(
   world: ReturnType<typeof createWorld>,
   input: {
@@ -1840,6 +2001,7 @@ function createCameraEntity(
     readonly layerMask: number;
     readonly translation?: readonly [number, number, number];
     readonly renderTargetId?: string;
+    readonly frustumCulling?: boolean;
   },
 ) {
   const entity = world.createEntity();
@@ -1857,6 +2019,9 @@ function createCameraEntity(
       ...(input.renderTargetId === undefined
         ? {}
         : { renderTargetId: input.renderTargetId }),
+      ...(input.frustumCulling === undefined
+        ? {}
+        : { frustumCulling: input.frustumCulling }),
     }),
   );
   return entity;
@@ -1868,10 +2033,14 @@ function createMeshEntity(
     readonly meshId: string;
     readonly materialId: string;
     readonly layerMask: number;
+    readonly translation?: readonly [number, number, number];
   },
 ) {
   const entity = world.createEntity();
-  const root = createRootTransform();
+  const root =
+    input.translation === undefined
+      ? createRootTransform()
+      : createRootTransform({ translation: input.translation });
 
   entity.addComponent(WorldTransform, root.world);
   entity.addComponent(Mesh, {

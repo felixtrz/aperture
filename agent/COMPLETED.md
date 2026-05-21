@@ -1,5 +1,71 @@
 # Completed Tasks
 
+## task-3043 — Frustum culling in extraction
+
+Completed: 2026-05-21
+
+Summary:
+
+- Added per-camera frustum-plane construction during render extraction and
+  skips mesh draws whose world AABB falls outside every matching camera view.
+- Added `CameraInput.frustumCulling` / `Camera.frustumCulling`, defaulting on,
+  so camera authors can opt out when they know all renderables are visible.
+- Added `RenderSnapshot.report.cullStats` with per-view `tested`, `culled`,
+  and `included` counts, and surfaced those stats through the render-packet
+  inspector status.
+- Kept cached mesh extraction packet output stable while replaying cull tests
+  on cache hits so report stats remain accurate.
+
+References inspected:
+
+- `references/engine/src/core/shape/frustum.js`
+- `references/engine/src/scene/renderer/renderer.js`
+- `references/engine/src/scene/mesh-instance.js`
+- `references/three.js/src/math/Frustum.js`
+- `references/three.js/src/renderers/WebGLRenderer.js`
+- `references/three.js/src/core/Object3D.js`
+- `references/bevy/crates/bevy_render/src/view/visibility/mod.rs`
+
+Validation:
+
+- `pnpm run build`
+- `pnpm exec vitest run test/rendering/extraction.test.ts`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec eslint packages/render/src/rendering/extraction.ts packages/render/src/rendering/authoring.ts packages/render/src/rendering/snapshot.ts test/rendering/extraction.test.ts examples/render-packet-inspector.main.js examples/render-packet-inspector.worker.js test/e2e/render-packet-inspector.spec.ts test/examples/worker-split-examples.test.mjs`
+- `pnpm run check:examples`
+- `pnpm exec vitest run test/examples/worker-split-examples.test.mjs`
+- `pnpm exec playwright test test/e2e/render-packet-inspector.spec.ts --project=chrome-webgpu-headed --timeout=60000`
+
+## task-3042 — Add a render-packet inspector example
+
+Completed: 2026-05-21
+
+Summary:
+
+- Added `examples/render-packet-inspector.html` with renderer-main and
+  worker-owned ECS/extraction modules.
+- The worker produces a small scene with a rendered cube, skipped disabled peer,
+  ambient light, environment map, and culling probes; the main thread renders
+  the worker snapshot through WebGPU.
+- The example publishes JSON-safe packet status for views, draws, lights,
+  environments, bounds, queue/batch keys, asset handles, diagnostics, and
+  skipped-entity explanations.
+- Added Playwright and static worker-split coverage so the example stays on the
+  worker-by-default path.
+
+References inspected:
+
+- `references/engine/src/scene/renderer/renderer.js`
+- `references/bevy/crates/bevy_render/src/view/visibility/mod.rs`
+
+Validation:
+
+- `pnpm run check:examples`
+- `pnpm exec vitest run test/examples/worker-split-examples.test.mjs`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec eslint examples/render-packet-inspector.main.js examples/render-packet-inspector.worker.js test/e2e/render-packet-inspector.spec.ts test/examples/worker-split-examples.test.mjs`
+- `pnpm exec playwright test test/e2e/render-packet-inspector.spec.ts --project=chrome-webgpu-headed --timeout=60000`
+
 ## task-3041 — Extend snapshot change-set beyond mesh packets
 
 Completed: 2026-05-21

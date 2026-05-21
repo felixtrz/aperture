@@ -44,6 +44,7 @@ export interface CameraInput {
   readonly layerMask?: number;
   readonly priority?: number;
   readonly renderTargetId?: string;
+  readonly frustumCulling?: boolean;
 }
 
 export interface LightInput {
@@ -164,6 +165,7 @@ export const Camera = defineComponent(
     layerMask: { type: EcsType.Int32, default: 1 },
     priority: { type: EcsType.Int32, default: 0 },
     renderTargetId: { type: EcsType.String, default: "" },
+    frustumCulling: { type: EcsType.Boolean, default: true },
   },
   "Renderer-independent camera authoring component.",
 );
@@ -250,6 +252,7 @@ export function createCamera(
     layerMask: input.layerMask ?? 1,
     priority: input.priority ?? 0,
     renderTargetId: input.renderTargetId ?? "",
+    frustumCulling: input.frustumCulling ?? true,
   };
 }
 

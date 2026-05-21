@@ -150,6 +150,15 @@ export interface RenderSnapshotReport {
   readonly shadowRequests: number;
   readonly bounds: number;
   readonly diagnostics: number;
+  readonly cullStats?: readonly ViewCullStats[];
+}
+
+export interface ViewCullStats {
+  readonly viewId: number;
+  readonly camera: RenderEntityRef;
+  readonly tested: number;
+  readonly culled: number;
+  readonly included: number;
 }
 
 // RenderSnapshot is intentionally made of structured-clone-friendly packet arrays
