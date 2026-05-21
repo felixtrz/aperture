@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-21 06:30 UTC</dd>
+            <dd>2026-05-21 07:23 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -486,10 +486,16 @@
               <code>validateCustomMaterialSource()</code>, and the
               custom-material example reports typed diagnostics for a
               deliberately broken WGSL entrypoint before any GPU resource work.
-              The GLB viewer now renders extended StandardMaterial combined
-              texture routes: occlusion plus normal, metallic-roughness plus
-              emissive, alpha-blend plus normal, UV1 metallic-roughness plus
-              normal, base-color plus occlusion, and transformed base-color plus
+              Per-instance tint authoring now crosses the full render contract:
+              ECS-authored <code>InstanceTint</code> data extracts into
+              snapshots, packs into transform-aligned instance-rate WebGPU
+              buffers, binds beside mesh vertex buffers for
+              <code>instance-tint</code> StandardMaterial pipelines, and
+              multiplies StandardMaterial base color and alpha in WGSL. The GLB
+              viewer now renders extended StandardMaterial combined texture
+              routes: occlusion plus normal, metallic-roughness plus emissive,
+              alpha-blend plus normal, UV1 metallic-roughness plus normal,
+              base-color plus occlusion, and transformed base-color plus
               emissive, plus UV1 base-color plus occlusion, transformed
               metallic-roughness plus normal, base-color plus metallic-roughness
               plus emissive, alpha-blend plus emissive, and UV1 base-color plus
@@ -1135,7 +1141,7 @@
               key so live route changes do not reuse incompatible layouts.
             </dd>
             <dt>Next focus</dt>
-            <dd>Route normal maps through TEXCOORD_1</dd>
+            <dd>Per-instance tint gradient swarm browser proof</dd>
           </dl>
         </aside>
       </header>
@@ -1170,9 +1176,9 @@
           </article>
           <article class="card metric">
             <div class="label">render pipeline</div>
-            <div class="value">85%</div>
-            <div class="bar" aria-label="85 percent complete">
-              <span style="width: 85%"></span>
+            <div class="value">86%</div>
+            <div class="bar" aria-label="86 percent complete">
+              <span style="width: 86%"></span>
             </div>
             <p>
               The ECS-to-WebGPU spine is usable, app route reporting runs
@@ -1204,8 +1210,11 @@
               descriptors through the render-asset adapter contract, and WebGPU
               can now instantiate the matching shader module, render pipeline,
               and group-2 material bind group from that prepared metadata.
-              Richer app-level adapter routing, passes, and prepared GPU
-              resource lifetime policy remain.
+              Per-instance tint now uses ECS-authored component data, extracted
+              snapshot buffers, WebGPU-owned instance-rate tint resources, and
+              StandardMaterial shader sampling without allocating one material
+              per color. Richer app-level adapter routing, passes, and prepared
+              GPU resource lifetime policy remain.
             </p>
           </article>
           <article class="card metric">
@@ -1462,16 +1471,18 @@
           <article class="phase">
             <div class="topline">
               <h3>1. extract</h3>
-              <span class="percent">90%</span>
+              <span class="percent">91%</span>
             </div>
-            <div class="bar"><span style="width: 90%"></span></div>
+            <div class="bar"><span style="width: 91%"></span></div>
             <p>
               ECS state produces serializable render snapshots with draw, view,
               light, environment, shadow request, bounds, and diagnostic
               packets, now proven across a module Worker structured-clone
               boundary. Entity versions now increment on component writes, and
               cached extraction can reuse unchanged mesh packet templates with
-              fresh snapshot offsets.
+              fresh snapshot offsets. Per-entity
+              <code>InstanceTint</code> components now extract into a snapshot
+              tint buffer and annotate mesh draw packets with tint offsets.
             </p>
             <ul>
               <li>Missing richer visibility/culling explanations.</li>
@@ -1516,9 +1527,9 @@
           <article class="phase">
             <div class="topline">
               <h3>3. prepare</h3>
-              <span class="percent">83%</span>
+              <span class="percent">84%</span>
             </div>
-            <div class="bar"><span style="width: 83%"></span></div>
+            <div class="bar"><span style="width: 84%"></span></div>
             <p>
               Prepared mesh/material facades and WebGPU-private backend caches
               exist for built-in material families, with compact render-world
@@ -1536,19 +1547,21 @@
               Playwright readback of the custom shader output. Package-level
               custom material source validation now returns typed diagnostics
               for broken source declarations, and the custom-material example
-              uses it before preparing resources. GLB-derived occlusion/emissive
-              fixtures and alpha-mask double-sided diagnostics now run through
-              the app facade. The GLB-derived alpha-mask texture fixture now
-              verifies one opaque pixel and one masked clear pixel; a scalar
-              masked backface fixture verifies no-cull visibility, and the
-              alpha-blend fixture now pins transparent StandardMaterial
-              render-state mapping plus translucent blended pixel/readback
-              behavior and double-sided backface output; the alpha-blend
-              texture, alpha-mask texture, and alpha-mask backface fixtures now
-              pin exact JSON-safe source and mapped render-state status,
-              including cutoff, culling, blend, and depth. App-level built-in
-              pipelines now receive a non-null depth format and the frame
-              boundary receives an app-managed
+              uses it before preparing resources. StandardMaterial
+              <code>instance-tint</code> pipelines now prepare an instance-rate
+              tint vertex buffer alongside transform resources. GLB-derived
+              occlusion/emissive fixtures and alpha-mask double-sided
+              diagnostics now run through the app facade. The GLB-derived
+              alpha-mask texture fixture now verifies one opaque pixel and one
+              masked clear pixel; a scalar masked backface fixture verifies
+              no-cull visibility, and the alpha-blend fixture now pins
+              transparent StandardMaterial render-state mapping plus translucent
+              blended pixel/readback behavior and double-sided backface output;
+              the alpha-blend texture, alpha-mask texture, and alpha-mask
+              backface fixtures now pin exact JSON-safe source and mapped
+              render-state status, including cutoff, culling, blend, and depth.
+              App-level built-in pipelines now receive a non-null depth format
+              and the frame boundary receives an app-managed
               <code>depth24plus</code> attachment. Normal and occlusion
               transformed texture fixtures now pin exact JSON-safe transform,
               readiness slot, texCoord, sampler, and pipeline status. Queued app
@@ -1728,9 +1741,9 @@
           <article class="phase">
             <div class="topline">
               <h3>6. submit</h3>
-              <span class="percent">93%</span>
+              <span class="percent">94%</span>
             </div>
-            <div class="bar"><span style="width: 93%"></span></div>
+            <div class="bar"><span style="width: 94%"></span></div>
             <p>
               WebGPU command submission renders the current proof paths with
               pipeline, bind group, transform, light, mesh, and material
@@ -1761,6 +1774,9 @@
               the shared render-world, draw-list, and command path, and the
               custom-material example now proves an animated WaterMaterial-style
               plane by changing a fragment uniform across frames.
+              StandardMaterial <code>instance-tint</code> pipelines now bind an
+              instance-rate tint vertex buffer and sample it in WGSL to multiply
+              base color and alpha.
             </p>
             <ul>
               <li>Missing render graph and multi-pass architecture.</li>
@@ -1787,6 +1803,18 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">task-3030</span> Completed the
+                per-instance tint contract from ECS authoring through extracted
+                snapshot tint data, WebGPU instance-rate buffers, and
+                StandardMaterial WGSL sampling.
+              </li>
+              <li>
+                <span class="badge amber">next</span> Build the
+                <code>instance-tint</code> gradient swarm example and prove
+                distinct per-instance pixels while keeping a shared mesh and
+                material.
+              </li>
               <li>
                 <span class="badge green">task-3018</span> Added a static
                 batching example that renders 20 heterogeneous StandardMaterial
@@ -3906,6 +3934,16 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3030</div>
+            <div>
+              <strong>Per-instance tint contract reached WebGPU.</strong>
+              <span>
+                ECS tint components now pack into instance-rate buffers and
+                StandardMaterial WGSL samples them during draw submission.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3029</div>
             <div>

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   STANDARD_SHADOW_RECEIVER_MESH_WGSL,
+  INSTANCE_TINT_VERTEX_BUFFER_LAYOUT,
   STANDARD_MESH_WGSL,
   STANDARD_TANGENT_PRIMITIVE_VERTEX_BUFFER_LAYOUT,
   STANDARD_TANGENT_TEXCOORD1_PRIMITIVE_VERTEX_BUFFER_LAYOUT,
@@ -173,6 +174,38 @@ describe("browser standard material pipeline bridge", () => {
       entryPoint: "vs_main",
       buffers: [STANDARD_VERTEX_COLOR_PRIMITIVE_VERTEX_BUFFER_LAYOUT],
     });
+  });
+
+  it("adds an instance-rate tint vertex layout for instance tint shaders", () => {
+    const shaderModule = {
+      compilationInfo: async () => ({ messages: [] }),
+    };
+    const shader = createStandardTextureVariantShader({
+      baseColorTexture: false,
+      metallicRoughnessTexture: false,
+      normalTexture: false,
+      occlusionTexture: false,
+      emissiveTexture: false,
+      instanceTint: true,
+    });
+    const descriptor = createBrowserStandardRenderPipelineDescriptor({
+      shader,
+      shaderModule,
+      colorFormat: "bgra8unorm",
+    });
+
+    expect(descriptor.vertex).toMatchObject({
+      module: shaderModule,
+      entryPoint: "vs_main",
+      buffers: [
+        UNLIT_PRIMITIVE_VERTEX_BUFFER_LAYOUT,
+        INSTANCE_TINT_VERTEX_BUFFER_LAYOUT,
+      ],
+    });
+    expect(shader.code).toContain("@location(6) instanceTint: vec4f");
+    expect(shader.code).toContain(
+      "baseColor = baseColor * input.instanceTint.rgb",
+    );
   });
 
   it("builds browser descriptors for opaque, mask, and alpha-blend standard render states", () => {

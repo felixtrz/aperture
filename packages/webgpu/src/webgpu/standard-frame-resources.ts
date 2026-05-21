@@ -2,6 +2,7 @@ import {
   createMeshGpuUploadPlan,
   type MeshAsset,
   type MeshUploadPlanDiagnostic,
+  type PackedSnapshotInstanceTints,
   type PackedSnapshotTransforms,
   type PackedSnapshotViewUniforms,
   type RenderSnapshot,
@@ -21,6 +22,13 @@ import {
   type CreateSnapshotLightGpuBuffersDiagnostic,
   type CreateSnapshotLightGpuBuffersResult,
 } from "./lighting-resource-plan.js";
+import {
+  createInstanceTintBufferDescriptor,
+  createInstanceTintGpuBuffer,
+  type InstanceTintBufferDescriptorDiagnostic,
+  type InstanceTintGpuBufferDiagnostic,
+  type InstanceTintGpuBufferResource,
+} from "./instance-tint-buffer.js";
 import {
   createMeshGpuBuffers,
   type MeshGpuBufferCreationDiagnostic,
@@ -104,6 +112,7 @@ export type StandardFrameGpuResourceDiagnosticCode =
   | "standardFrameResources.missingMesh"
   | "standardFrameResources.missingViewUniforms"
   | "standardFrameResources.missingWorldTransforms"
+  | "standardFrameResources.missingInstanceTints"
   | "standardFrameResources.missingMaterial"
   | "standardFrameResources.missingLights";
 
@@ -121,6 +130,8 @@ export type CreateStandardFrameGpuResourcesDiagnostic =
   | ViewUniformGpuBufferDiagnostic
   | WorldTransformBufferDescriptorDiagnostic
   | WorldTransformGpuBufferDiagnostic
+  | InstanceTintBufferDescriptorDiagnostic
+  | InstanceTintGpuBufferDiagnostic
   | StandardMaterialPackingDiagnostic
   | StandardMaterialBufferDescriptorDiagnostic
   | StandardMaterialGpuBufferDiagnostic
@@ -145,6 +156,7 @@ export interface CreateStandardFrameGpuResourcesOptions {
   readonly preparedMesh?: MeshGpuBufferResource | undefined;
   readonly viewUniforms: PackedSnapshotViewUniforms | null;
   readonly worldTransforms: PackedSnapshotTransforms | null;
+  readonly instanceTints?: PackedSnapshotInstanceTints | null;
   readonly material: StandardMaterialAsset | null;
   readonly preparedMaterial?:
     | PreparedStandardFrameMaterialResources
@@ -184,6 +196,7 @@ export interface StandardFrameGpuResources {
   readonly mesh: MeshGpuBufferResource;
   readonly viewUniform: ViewUniformGpuBufferResource;
   readonly worldTransforms: WorldTransformGpuBufferResource;
+  readonly instanceTints?: InstanceTintGpuBufferResource;
   readonly material: StandardMaterialGpuBufferResource;
   readonly lightGpuBuffers: CreateSnapshotLightGpuBuffersResult;
   readonly materialBindGroup: StandardMaterialBindGroupResource;
@@ -212,6 +225,7 @@ export function createStandardFrameGpuResources(
   const mesh = createMeshResource(options, diagnostics);
   const viewUniform = createViewUniformResource(options, diagnostics);
   const worldTransforms = createWorldTransformResource(options, diagnostics);
+  const instanceTints = createInstanceTintResource(options, diagnostics);
   const material =
     options.preparedMaterial?.material ??
     createMaterialResource(options, diagnostics);
@@ -250,6 +264,8 @@ export function createStandardFrameGpuResources(
     mesh === null ||
     viewUniform === null ||
     worldTransforms === null ||
+    (requiresInstanceTintBuffer(options.pipelineKey) &&
+      instanceTints === null) ||
     material === null ||
     !sharedBindGroups.valid ||
     materialBindGroup === null ||
@@ -266,6 +282,7 @@ export function createStandardFrameGpuResources(
       mesh,
       viewUniform,
       worldTransforms,
+      ...(instanceTints === null ? {} : { instanceTints }),
       material,
       lightGpuBuffers,
       materialBindGroup,
@@ -281,6 +298,10 @@ export function createStandardFrameGpuResources(
     },
     diagnostics,
   };
+}
+
+function requiresInstanceTintBuffer(pipelineKey: string): boolean {
+  return pipelineKey.split("|").includes("instance-tint");
 }
 
 function resolveStandardMaterialIblBindGroupResource(
@@ -386,6 +407,40 @@ function createWorldTransformResource(
   diagnostics.push(...descriptor.diagnostics);
 
   const resource = createWorldTransformGpuBuffer({
+    device: options.device,
+    plan: descriptor.plan,
+  });
+
+  diagnostics.push(...resource.diagnostics);
+
+  return resource.valid ? resource.resource : null;
+}
+
+function createInstanceTintResource(
+  options: Pick<
+    CreateStandardFrameGpuResourcesOptions,
+    "device" | "instanceTints" | "pipelineKey"
+  >,
+  diagnostics: CreateStandardFrameGpuResourcesDiagnostic[],
+): InstanceTintGpuBufferResource | null {
+  if (!requiresInstanceTintBuffer(options.pipelineKey)) {
+    return null;
+  }
+
+  if (options.instanceTints === undefined || options.instanceTints === null) {
+    diagnostics.push({
+      code: "standardFrameResources.missingInstanceTints",
+      message:
+        "Standard frame GPU resource creation requires packed instance tints for an instance-tint pipeline.",
+    });
+    return null;
+  }
+
+  const descriptor = createInstanceTintBufferDescriptor(options.instanceTints);
+
+  diagnostics.push(...descriptor.diagnostics);
+
+  const resource = createInstanceTintGpuBuffer({
     device: options.device,
     plan: descriptor.plan,
   });

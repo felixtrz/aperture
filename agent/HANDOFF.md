@@ -1,6 +1,171 @@
 # Agent Handoff
 
-Updated: 2026-05-21T06:47:25Z
+Updated: 2026-05-21T07:52:27Z
+
+## End-of-Run Update — 2026-05-21T07:52:27Z — Per-instance tint WebGPU contract
+
+Completed `task-3030`.
+
+### What changed
+
+- Added transform-aligned packed instance tint vertex-buffer data so WebGPU
+  `firstInstance` addressing reads the tint for the same packed slot as each
+  world transform, with default white in untinted slots.
+- Added a WebGPU instance-rate tint buffer resource/layout, resource key, draw
+  command binding, render-pass resource resolution, and StandardMaterial frame
+  resource creation for `instance-tint` pipelines.
+- Updated StandardMaterial pipeline descriptor/layout/shader generation so the
+  `instance-tint` feature adds an instance-rate `vec4` vertex attribute and
+  multiplies base color and alpha in WGSL.
+- Hardened diagnostics so tint buffer creation reports tint-pack problems
+  without turning unrelated transform-pack diagnostics into tint failures.
+- Updated public trackers, backlog, and completed-task records. Recommended
+  next task remains `task-3031`.
+
+### Files touched
+
+- `agent/BACKLOG.md`
+- `agent/COMPLETED.md`
+- `agent/HANDOFF.md`
+- `docs/index.html`
+- `docs/render-pipeline-comparison.html`
+- `packages/render/src/rendering/transform-pack.ts`
+- `packages/webgpu/src/webgpu/app.ts`
+- `packages/webgpu/src/webgpu/draw-command.ts`
+- `packages/webgpu/src/webgpu/index.ts`
+- `packages/webgpu/src/webgpu/instance-tint-buffer.ts`
+- `packages/webgpu/src/webgpu/queued-built-in-frame-resource-set.ts`
+- `packages/webgpu/src/webgpu/render-frame-plan.ts`
+- `packages/webgpu/src/webgpu/render-pass-resources.ts`
+- `packages/webgpu/src/webgpu/resource-keys.ts`
+- `packages/webgpu/src/webgpu/standard-app-frame-resources.ts`
+- `packages/webgpu/src/webgpu/standard-frame-resources.ts`
+- `packages/webgpu/src/webgpu/standard-pipeline-descriptor.ts`
+- `packages/webgpu/src/webgpu/standard-pipeline.ts`
+- `packages/webgpu/src/webgpu/standard-shader.ts`
+- `test/rendering/transform-pack.test.ts`
+- `test/webgpu/draw-command.test.ts`
+- `test/webgpu/instance-tint-buffer.test.ts`
+- `test/webgpu/render-pass-resources.test.ts`
+- `test/webgpu/standard-pipeline-descriptor.test.ts`
+- `test/webgpu/standard-pipeline.test.ts`
+- `test/webgpu/unlit-app-frame-resources.test.ts`
+
+### References inspected
+
+- `references/three.js/src/objects/InstancedMesh.js`
+- `references/bevy/crates/bevy_render/src/extract_instances.rs`
+- `references/engine/src/scene/mesh-instance.js`
+- Existing Aperture transform packing, StandardMaterial frame resources,
+  pipeline descriptors, draw command planning, and render-pass resource
+  resolution.
+
+### Validation
+
+- `pnpm exec tsc --noEmit -p packages/render/tsconfig.json`
+- `pnpm --filter @aperture-engine/render build`
+- `pnpm exec tsc --noEmit -p packages/webgpu/tsconfig.json`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec vitest run test/rendering/transform-pack.test.ts test/webgpu/instance-tint-buffer.test.ts test/webgpu/draw-command.test.ts test/webgpu/render-pass-resources.test.ts test/webgpu/standard-pipeline.test.ts test/webgpu/standard-pipeline-descriptor.test.ts test/webgpu/unlit-app-frame-resources.test.ts test/rendering/extraction.test.ts test/runtime/runtime.test.ts`
+- `pnpm run check:progress`
+- `pnpm run check`
+
+### Known issues
+
+- No visible per-instance tint browser example exists yet. An initial
+  `task-3031` browser proof attempt produced a successful WebGPU report
+  (`standard|instance-tint|opaque|none|less|none`, one draw call, zero
+  diagnostics) but a black canvas in Playwright/Chrome; the unvalidated example
+  files were not kept in this checkpoint.
+- `standard-app-frame-resources` intentionally avoids reusing cached resources
+  for `instance-tint` pipelines for now so per-frame tint changes cannot reuse
+  stale GPU buffers. A later hot-path pass can replace this with targeted
+  buffer updates.
+
+### Recommended next task
+
+`task-3031 — Per-instance tint visible example (part 2: gradient swarm)`.
+
+## Current Run Update — 2026-05-21T07:23:29Z — Per-instance tint WebGPU contract
+
+Completed `task-3030`.
+
+### What changed
+
+- Added transform-aligned packed instance tint vertex-buffer data so WebGPU
+  `firstInstance` addressing reads the tint for the same packed slot as each
+  world transform, with default white in untinted slots.
+- Added a WebGPU instance-rate tint buffer resource/layout, resource key, draw
+  command binding, render-pass resource resolution, and StandardMaterial frame
+  resource creation for `instance-tint` pipelines.
+- Updated StandardMaterial pipeline descriptor/layout/shader generation so the
+  `instance-tint` feature adds an instance-rate `vec4` vertex attribute and
+  multiplies base color and alpha in WGSL.
+- Hardened diagnostics so tint buffer creation reports tint-pack problems
+  without turning unrelated transform-pack diagnostics into tint failures.
+- Updated public trackers, backlog, and completed-task records. Recommended
+  next task is now `task-3031`.
+
+### Files touched
+
+- `agent/BACKLOG.md`
+- `agent/COMPLETED.md`
+- `agent/HANDOFF.md`
+- `docs/index.html`
+- `docs/render-pipeline-comparison.html`
+- `packages/render/src/rendering/transform-pack.ts`
+- `packages/webgpu/src/webgpu/app.ts`
+- `packages/webgpu/src/webgpu/draw-command.ts`
+- `packages/webgpu/src/webgpu/index.ts`
+- `packages/webgpu/src/webgpu/instance-tint-buffer.ts`
+- `packages/webgpu/src/webgpu/queued-built-in-frame-resource-set.ts`
+- `packages/webgpu/src/webgpu/render-frame-plan.ts`
+- `packages/webgpu/src/webgpu/render-pass-resources.ts`
+- `packages/webgpu/src/webgpu/resource-keys.ts`
+- `packages/webgpu/src/webgpu/standard-app-frame-resources.ts`
+- `packages/webgpu/src/webgpu/standard-frame-resources.ts`
+- `packages/webgpu/src/webgpu/standard-pipeline-descriptor.ts`
+- `packages/webgpu/src/webgpu/standard-pipeline.ts`
+- `packages/webgpu/src/webgpu/standard-shader.ts`
+- `test/rendering/transform-pack.test.ts`
+- `test/webgpu/draw-command.test.ts`
+- `test/webgpu/instance-tint-buffer.test.ts`
+- `test/webgpu/render-pass-resources.test.ts`
+- `test/webgpu/standard-pipeline-descriptor.test.ts`
+- `test/webgpu/standard-pipeline.test.ts`
+- `test/webgpu/unlit-app-frame-resources.test.ts`
+
+### References inspected
+
+- `references/three.js/src/objects/InstancedMesh.js`
+- `references/bevy/crates/bevy_render/src/extract_instances.rs`
+- `references/engine/src/scene/mesh-instance.js`
+- Existing Aperture transform packing, StandardMaterial frame resources,
+  pipeline descriptors, draw command planning, and render-pass resource
+  resolution.
+
+### Validation
+
+- `pnpm exec tsc --noEmit -p packages/render/tsconfig.json`
+- `pnpm --filter @aperture-engine/render build`
+- `pnpm exec tsc --noEmit -p packages/webgpu/tsconfig.json`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec vitest run test/rendering/transform-pack.test.ts test/webgpu/draw-command.test.ts test/webgpu/instance-tint-buffer.test.ts`
+- `pnpm exec vitest run test/rendering/transform-pack.test.ts test/webgpu/instance-tint-buffer.test.ts test/webgpu/draw-command.test.ts test/webgpu/render-pass-resources.test.ts test/webgpu/standard-pipeline.test.ts test/webgpu/standard-pipeline-descriptor.test.ts test/webgpu/unlit-app-frame-resources.test.ts test/rendering/extraction.test.ts test/runtime/runtime.test.ts`
+- `pnpm run check`
+
+### Known issues
+
+- No visible per-instance tint browser example exists yet. `task-3031` should
+  add the gradient swarm example and Playwright pixel proof.
+- `standard-app-frame-resources` intentionally avoids reusing cached resources
+  for `instance-tint` pipelines for now so per-frame tint changes cannot reuse
+  stale GPU buffers. A later hot-path pass can replace this with targeted
+  buffer updates.
+
+### Recommended next task
+
+`task-3031 — Per-instance tint visible example (part 2: gradient swarm)`.
 
 ## Current Run Update — 2026-05-21T06:42:55Z — Per-instance tint extraction contract
 

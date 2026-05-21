@@ -71,6 +71,67 @@ describe("draw command descriptor planning", () => {
     ]);
   });
 
+  it("appends the instance tint vertex buffer for instance-tint pipelines", () => {
+    const result = createDrawCommandDescriptors(
+      [
+        drawPackage(
+          1,
+          "mesh:a",
+          "standard|instance-tint|opaque|back|less|none",
+        ),
+      ],
+      [meshResource("mesh:a", true)],
+      {
+        instanceTintResources: [
+          {
+            streamId: "instanceTint",
+            resourceKey: "instance-tint-buffer:frame",
+            buffer: {},
+            vertexCount: 2,
+            offsets: [{ renderId: 1, sourceOffset: 0, packedOffset: 0 }],
+          },
+        ],
+      },
+    );
+
+    expect(result.diagnostics).toEqual([]);
+    expect(result.descriptors[0]?.vertexBufferKeys).toEqual([
+      "mesh:a/vertex",
+      "instance-tint-buffer:frame",
+    ]);
+  });
+
+  it("does not treat substring matches as an instance-tint feature", () => {
+    const result = createDrawCommandDescriptors(
+      [drawPackage(1, "mesh:a", "standard|not-instance-tint|opaque")],
+      [meshResource("mesh:a", true)],
+    );
+
+    expect(result.diagnostics).toEqual([]);
+    expect(result.descriptors[0]?.vertexBufferKeys).toEqual(["mesh:a/vertex"]);
+  });
+
+  it("diagnoses instance-tint pipelines without a tint buffer", () => {
+    const result = createDrawCommandDescriptors(
+      [
+        drawPackage(
+          1,
+          "mesh:a",
+          "standard|instance-tint|opaque|back|less|none",
+        ),
+      ],
+      [meshResource("mesh:a", true)],
+    );
+
+    expect(result.descriptors).toEqual([]);
+    expect(result.diagnostics).toMatchObject([
+      {
+        code: "drawCommand.missingInstanceTintResource",
+        renderId: 1,
+      },
+    ]);
+  });
+
   it("can reuse caller-owned descriptor scratch on the frame hot path", () => {
     const scratch = createDrawCommandDescriptorScratch(2);
     const packages = [drawPackage(1, "mesh:a"), drawPackage(2, "mesh:a")];
@@ -102,12 +163,14 @@ describe("draw command descriptor planning", () => {
 function drawPackage(
   renderId: number,
   meshResourceKey: string,
+  pipelineKey = "unlit",
 ): RenderWorldDrawPackage {
   return {
     renderId,
-    batchKey: BATCH,
+    batchKey: { ...BATCH, pipelineKey },
     meshResourceKey,
     materialResourceKey: "material:a",
+    packet: { instanceTintOffset: 0 },
     transformPackedOffset: renderId * 16,
   } as unknown as RenderWorldDrawPackage;
 }

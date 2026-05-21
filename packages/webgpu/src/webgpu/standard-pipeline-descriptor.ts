@@ -313,6 +313,10 @@ function standardVertexBufferSemantics(
     semantics.push("COLOR_0");
   }
 
+  if (features.instanceTint === true) {
+    semantics.push("INSTANCE_TINT");
+  }
+
   return semantics;
 }
 

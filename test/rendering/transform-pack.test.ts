@@ -7,8 +7,11 @@ import {
   createMeshHandle,
   createRenderSortKey,
   createUnlitMaterialAsset,
+  createPackedSnapshotInstanceTintsScratch,
   createPackedSnapshotTransformsScratch,
+  packSnapshotInstanceTintsForVertexBuffer,
   packSnapshotTransforms,
+  writePackedSnapshotInstanceTintsForVertexBuffer,
   writePackedSnapshotTransforms,
   type MeshDrawPacket,
   type RenderSnapshot,
@@ -90,9 +93,87 @@ describe("render snapshot transform packing", () => {
       ...matrix(2),
     ]);
   });
+
+  it("packs instance tints into transform-aligned vertex buffer slots", () => {
+    const first = packet(1, 0);
+    const second = packet(2, 16, 0);
+    const transforms = packSnapshotTransforms(
+      snapshot([first, second], matrices([1, 2]), [0.25, 0.5, 0.75, 1]),
+    );
+    const result = packSnapshotInstanceTintsForVertexBuffer(
+      snapshot([first, second], matrices([1, 2]), [0.25, 0.5, 0.75, 1]),
+      transforms,
+    );
+
+    expect(result.floatCount).toBe(8);
+    expect(Array.from(result.data.subarray(0, result.floatCount))).toEqual([
+      1, 1, 1, 1, 0.25, 0.5, 0.75, 1,
+    ]);
+    expect(result.offsets).toEqual([
+      { renderId: second.renderId, sourceOffset: 0, packedOffset: 4 },
+    ]);
+    expect(result.diagnostics).toEqual([]);
+  });
+
+  it("only reports tint-specific diagnostics while transform diagnostics remain separate", () => {
+    const tinted = packet(1, 0, 0);
+    const missingUntinted = packet(2, 16);
+    const currentSnapshot = snapshot(
+      [tinted, missingUntinted],
+      matrix(1),
+      [0.25, 0.5, 0.75, 1],
+    );
+    const transforms = packSnapshotTransforms(currentSnapshot);
+    const result = packSnapshotInstanceTintsForVertexBuffer(
+      currentSnapshot,
+      transforms,
+    );
+
+    expect(transforms.diagnostics).toMatchObject([
+      { code: "renderTransformPack.missingTransform" },
+    ]);
+    expect(result.diagnostics).toEqual([]);
+    expect(Array.from(result.data.subarray(0, result.floatCount))).toEqual([
+      0.25, 0.5, 0.75, 1,
+    ]);
+  });
+
+  it("can reuse caller-owned instance tint pack scratch", () => {
+    const scratch = createPackedSnapshotInstanceTintsScratch(8, 1);
+    const firstSnapshot = snapshot(
+      [packet(1, 0, 0), packet(2, 16, 4)],
+      matrices([1, 2]),
+      [1, 0, 0, 1, 0, 1, 0, 1],
+    );
+    const firstTransforms = packSnapshotTransforms(firstSnapshot);
+    const first = writePackedSnapshotInstanceTintsForVertexBuffer(
+      firstSnapshot,
+      firstTransforms,
+      scratch,
+    );
+    const firstData = first.data;
+    const secondSnapshot = snapshot([packet(3, 0, 0)], matrix(3), [0, 0, 1, 1]);
+    const secondTransforms = packSnapshotTransforms(secondSnapshot);
+    const second = writePackedSnapshotInstanceTintsForVertexBuffer(
+      secondSnapshot,
+      secondTransforms,
+      scratch,
+    );
+
+    expect(second).toBe(first);
+    expect(second.data).toBe(firstData);
+    expect(second.floatCount).toBe(4);
+    expect(Array.from(second.data.subarray(0, second.floatCount))).toEqual([
+      0, 0, 1, 1,
+    ]);
+  });
 });
 
-function packet(seed: number, worldTransformOffset: number): MeshDrawPacket {
+function packet(
+  seed: number,
+  worldTransformOffset: number,
+  instanceTintOffset?: number,
+): MeshDrawPacket {
   const mesh = createMeshHandle(`mesh-${seed}`);
   const material = createMaterialHandle(`material-${seed}`);
 
@@ -115,12 +196,14 @@ function packet(seed: number, worldTransformOffset: number): MeshDrawPacket {
       meshLayoutKey: "p3n3uv2",
       topology: "triangle-list",
     }),
+    ...(instanceTintOffset === undefined ? {} : { instanceTintOffset }),
   };
 }
 
 function snapshot(
   meshDraws: readonly MeshDrawPacket[],
   transforms: readonly number[],
+  instanceTints?: readonly number[],
 ): RenderSnapshot {
   return {
     frame: 1,
@@ -131,6 +214,9 @@ function snapshot(
     shadowRequests: [],
     bounds: [],
     transforms: new Float32Array(transforms),
+    ...(instanceTints === undefined
+      ? {}
+      : { instanceTints: new Float32Array(instanceTints) }),
     viewMatrices: new Float32Array(0),
     diagnostics: [],
     report: {

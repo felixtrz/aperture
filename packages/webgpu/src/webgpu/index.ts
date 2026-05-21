@@ -42,6 +42,7 @@ export * from "./ibl-sampler-resource.js";
 export * from "./ibl-texture-preparation.js";
 export * from "./ibl-texture-resource.js";
 export * from "./instance-buffer.js";
+export * from "./instance-tint-buffer.js";
 export * from "./frame-boundary.js";
 export * from "./frame-boundary-diagnostics.js";
 export * from "./frame-boundary-diagnostics-merge.js";

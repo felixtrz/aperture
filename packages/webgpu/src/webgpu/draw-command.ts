@@ -1,8 +1,11 @@
 import type { RenderWorldDrawPackage } from "@aperture-engine/render";
+import type { InstanceTintGpuBufferResource } from "./instance-tint-buffer.js";
 import type { MeshGpuBufferResource } from "./mesh-buffer-resources.js";
 
 export type DrawCommandDescriptorDiagnosticCode =
-  "drawCommand.missingMeshResource";
+  | "drawCommand.missingMeshResource"
+  | "drawCommand.missingInstanceTintResource"
+  | "drawCommand.missingInstanceTintOffset";
 
 export interface DrawCommandDescriptorDiagnostic {
   readonly code: DrawCommandDescriptorDiagnosticCode;
@@ -29,6 +32,10 @@ export interface DrawCommandDescriptorPlan {
   readonly diagnostics: readonly DrawCommandDescriptorDiagnostic[];
 }
 
+export interface CreateDrawCommandDescriptorOptions {
+  readonly instanceTintResources?: readonly InstanceTintGpuBufferResource[];
+}
+
 export interface DrawCommandDescriptorScratch {
   readonly descriptors: DrawCommandDescriptor[];
   readonly diagnostics: DrawCommandDescriptorDiagnostic[];
@@ -53,10 +60,11 @@ interface MutableDrawCommandDescriptor {
 export function createDrawCommandDescriptors(
   packages: readonly RenderWorldDrawPackage[],
   meshResources: readonly MeshGpuBufferResource[],
+  options: CreateDrawCommandDescriptorOptions = {},
 ): DrawCommandDescriptorPlan {
   const scratch = createDrawCommandDescriptorScratch();
 
-  writeDrawCommandDescriptors(packages, meshResources, scratch);
+  writeDrawCommandDescriptors(packages, meshResources, scratch, options);
 
   return scratch.plan;
 }
@@ -85,6 +93,7 @@ export function writeDrawCommandDescriptors(
   packages: readonly RenderWorldDrawPackage[],
   meshResources: readonly MeshGpuBufferResource[],
   scratch: DrawCommandDescriptorScratch,
+  options: CreateDrawCommandDescriptorOptions = {},
 ): DrawCommandDescriptorPlan {
   scratch.descriptors.length = 0;
   scratch.diagnostics.length = 0;
@@ -120,6 +129,14 @@ export function writeDrawCommandDescriptors(
       descriptor.vertexBufferKeys.push(buffer.resourceKey);
     }
 
+    if (
+      hasPipelineFeature(drawPackage.batchKey.pipelineKey, "instance-tint") &&
+      appendInstanceTintBufferKey(drawPackage, descriptor, options, scratch) ===
+        false
+    ) {
+      continue;
+    }
+
     descriptor.vertexCount = mesh.vertexCount;
     descriptor.indexBufferKey = mesh.indexBuffer?.resourceKey ?? null;
     descriptor.indexCount = mesh.indexBuffer?.indexCount ?? null;
@@ -128,6 +145,42 @@ export function writeDrawCommandDescriptors(
   }
 
   return scratch.plan;
+}
+
+function appendInstanceTintBufferKey(
+  drawPackage: RenderWorldDrawPackage,
+  descriptor: MutableDrawCommandDescriptor,
+  options: CreateDrawCommandDescriptorOptions,
+  scratch: DrawCommandDescriptorScratch,
+): boolean {
+  const instanceTint = options.instanceTintResources?.[0];
+
+  if (drawPackage.packet.instanceTintOffset === undefined) {
+    scratch.diagnostics.push({
+      code: "drawCommand.missingInstanceTintOffset",
+      renderId: drawPackage.renderId,
+      resourceKey: drawPackage.materialResourceKey,
+      message: `Render id ${drawPackage.renderId} uses an instance-tint pipeline but has no instance tint packet offset.`,
+    });
+    return false;
+  }
+
+  if (instanceTint === undefined) {
+    scratch.diagnostics.push({
+      code: "drawCommand.missingInstanceTintResource",
+      renderId: drawPackage.renderId,
+      resourceKey: drawPackage.materialResourceKey,
+      message: `Render id ${drawPackage.renderId} uses an instance-tint pipeline but no instance tint vertex buffer is available.`,
+    });
+    return false;
+  }
+
+  descriptor.vertexBufferKeys.push(instanceTint.resourceKey);
+  return true;
+}
+
+function hasPipelineFeature(pipelineKey: string, feature: string): boolean {
+  return pipelineKey.split("|").includes(feature);
 }
 
 function descriptorAt(

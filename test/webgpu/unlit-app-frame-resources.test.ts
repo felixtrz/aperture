@@ -375,6 +375,53 @@ describe("unlit app frame-resource fallback diagnostics", () => {
     });
   });
 
+  it("creates Standard frame resources with an instance tint vertex buffer", () => {
+    const registry = new AssetRegistry();
+    const material = createMaterialHandle("standard-instance-tint");
+    const mesh = createMeshHandle("standard-instance-tint-box");
+    const createdBuffers: unknown[] = [];
+    const device = deviceWithShadowResources({ createdBuffers });
+
+    registry.register(material);
+    registry.register(mesh);
+    const materialEntry = registry.markReady(
+      material,
+      createStandardMaterialAsset(),
+    );
+    const result = createOrReuseStandardAppFrameResources({
+      device,
+      cache: { current: null },
+      snapshot: snapshotWithLight(),
+      mesh: createBoxMeshAsset({ label: "InstanceTintBox" }),
+      meshHandle: mesh,
+      meshKey: `${assetHandleKey(mesh)}@1`,
+      material: required(materialEntry.asset),
+      materialHandle: material,
+      materialKey: `${assetHandleKey(material)}@${materialEntry.version}`,
+      sourceMaterialKey: assetHandleKey(material),
+      pipelineKey: "standard|instance-tint|opaque|back|less|none",
+      assets: registry,
+      textureSamplerDependencies: emptyTextureSamplerDependencies(),
+      viewUniforms: validViewUniforms(),
+      worldTransforms: validTransforms(),
+      instanceTints: validInstanceTints(),
+      sharedLayouts: [sharedLayout(0), sharedLayout(1)],
+      materialLayout: standardMaterialLayout(),
+      lightLayout: standardLightLayout(),
+      preparedMeshes: createPreparedMeshGpuResourceCache(),
+      preparedScalarMaterials: createPreparedScalarStandardMaterialCache(),
+      reuse: standardReuseCounters(),
+    });
+
+    expect(result.valid).toBe(true);
+    expect(result.resources?.instanceTints).toMatchObject({
+      streamId: "instanceTint",
+      resourceKey: "instance-tint-buffer:InstanceTints/vertex",
+      vertexCount: 1,
+    });
+    expect(createdBuffers.length).toBeGreaterThanOrEqual(4);
+  });
+
   it("routes shadowMap Standard frame resources through the combined light/shadow group 3 bind group", () => {
     const registry = new AssetRegistry();
     const material = createMaterialHandle("standard-shadow-receiver");
@@ -551,6 +598,15 @@ function validTransforms() {
   return {
     data: identityTransform(),
     floatCount: 16,
+    offsets: [{ renderId: 1, sourceOffset: 0, packedOffset: 0 }],
+    diagnostics: [],
+  };
+}
+
+function validInstanceTints() {
+  return {
+    data: new Float32Array([0.2, 0.4, 0.8, 1]),
+    floatCount: 4,
     offsets: [{ renderId: 1, sourceOffset: 0, packedOffset: 0 }],
     diagnostics: [],
   };
@@ -769,7 +825,8 @@ function identityTransform(): Float32Array {
 }
 
 function deviceWithShadowResources(captures: {
-  readonly createdBindGroups: unknown[];
+  readonly createdBindGroups?: unknown[];
+  readonly createdBuffers?: unknown[];
 }): TextureGpuDeviceLike &
   WebGpuBufferDeviceLike & {
     createBindGroup: (descriptor: unknown) => unknown;
@@ -779,13 +836,17 @@ function deviceWithShadowResources(captures: {
     queue: {
       writeBuffer: () => undefined,
     },
-    createBuffer: (descriptor) => ({ descriptor }),
+    createBuffer: (descriptor) => {
+      const buffer = { descriptor };
+      captures.createdBuffers?.push(buffer);
+      return buffer;
+    },
     createTexture: (descriptor) => ({
       createView: () => ({ descriptor }),
     }),
     createSampler: (descriptor) => ({ descriptor }),
     createBindGroup: (descriptor) => {
-      captures.createdBindGroups.push(descriptor);
+      captures.createdBindGroups?.push(descriptor);
       return { descriptor };
     },
   };

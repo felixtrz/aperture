@@ -5,6 +5,7 @@ export type WebGpuResourceKeyKind =
   | "material-buffer"
   | "view-uniform-buffer"
   | "world-transform-buffer"
+  | "instance-tint-buffer"
   | "shader-module"
   | "render-pipeline"
   | "bind-group"
@@ -52,6 +53,10 @@ export function viewUniformBufferResourceKey(label: string): string {
 
 export function worldTransformBufferResourceKey(label: string): string {
   return webGpuResourceKey("world-transform-buffer", label);
+}
+
+export function instanceTintBufferResourceKey(label: string): string {
+  return webGpuResourceKey("instance-tint-buffer", label);
 }
 
 export function shaderModuleResourceKey(label: string): string {

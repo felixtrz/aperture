@@ -59,15 +59,15 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start with `task-3030`: Per-instance tint component + extraction + WGSL sampling (part 1: contract).
+Start with `task-3031`: Per-instance tint visible example (part 2: gradient swarm).
 
-Why this next: Tier 5 custom material adapter work is complete through source validation. The next visible roadmap slice demonstrates Aperture's ECS-as-source-of-truth advantage by adding per-entity tint data that still coalesces compatible instances into one draw call.
+Why this next: The per-instance tint authoring, extraction, packed buffer, WebGPU resource, pipeline-layout, and StandardMaterial WGSL contract are complete. The next visible roadmap slice should prove the feature on-screen with a shared mesh/material swarm whose pixels differ only because ECS-authored per-entity tint data reached the shader.
 
 Reference anchors (read before writing):
 
-- `references/three.js/src/objects/InstancedMesh.js`
-- `references/bevy/crates/bevy_render/src/extract_instances.rs`
-- `references/engine/src/scene/mesh-instance.js`
+- `references/three.js/examples/webgpu_instance_mesh.html` if present, else `references/three.js/examples/webgl_instancing_dynamic.html`
+- `references/engine/examples/graphics/instancing.html`
+- Existing Aperture `examples/instancing.js` and `test/e2e/instancing.spec.ts`
 
 ## Strategic Focus — Pipeline Maturity Roadmap
 
@@ -103,7 +103,7 @@ Eleven cross-cutting gaps remain across the six phases. They are sequenced below
 
 **Tier 6 — Post-roadmap polish (queued after Tier 5):**
 
-12. Per-instance tint (task-3030, task-3031) — demonstrates Aperture's ECS-as-source-of-truth advantage over three.js's `InstancedMesh`: 1,000 entities with one material handle and per-entity `InstanceTint` components coalesce into 1 draw call while each pixel reads its tint. Uses the existing instance-buffer infrastructure from Tier 3 plus the pipeline-key system; no architectural changes.
+12. Per-instance tint (task-3030 shipped, task-3031 next) — demonstrates Aperture's ECS-as-source-of-truth advantage over three.js's `InstancedMesh`: 1,000 entities with one material handle and per-entity `InstanceTint` components coalesce into 1 draw call while each pixel reads its tint. Uses the existing instance-buffer infrastructure from Tier 3 plus the pipeline-key system; no architectural changes.
 
 **Tier 7 — Worker-by-default migration + transferable transport (queued after Tier 6):**
 
@@ -262,12 +262,14 @@ Acceptance criteria:
 
 ### task-3030 — Per-instance tint component + extraction + WGSL sampling (part 1: contract)
 
+Status: completed 2026-05-21. See `agent/COMPLETED.md`.
+
 Category: `render-bridge`
 Package/write-scope: `packages/render/src/`, `packages/webgpu/src/webgpu/`, `packages/runtime/src/index.ts`, `packages/webgpu/src/webgpu/standard-shader.ts`, targeted tests.
 Dependencies: Tier 3 instancing (task-3013, task-3014) — uses the existing instance-buffer infrastructure.
 Reference anchor: `references/three.js/src/objects/InstancedMesh.js` (`setColorAt` + `instanceColor` buffer pattern for the per-instance attribute layout); `references/bevy/crates/bevy_render/src/extract_instances.rs` (per-entity → render-world instance extraction); `references/engine/src/scene/mesh-instance.js` (per-instance buffer assembly).
 Insertion point: new `InstanceTint` typed ECS component in `packages/render/src/`; extraction packs per-entity vec4 into a parallel `Float32Array` mirroring the existing `transformPackedOffset` layout. Extend `StandardMaterialPipelineKey` with `instanceTintEnabled`. Add a `withInstanceTint(color)` helper to `packages/runtime/src/index.ts` mirroring the existing `withX` patterns. WebGPU side: instance-rate vertex buffer plus shader `@location(N) instanceTint: vec4f` consumed by the StandardMaterial fragment path.
-Progress note 2026-05-21: `InstanceTint`, `createInstanceTint()`, `withInstanceTint()`, `RenderSnapshot.instanceTints`, `MeshDrawPacket.instanceTintOffset`, `packSnapshotInstanceTints()`, extraction packing, StandardMaterial `instance-tint` pipeline-key feature toggling, and WebGPU StandardMaterial feature parsing/variant-key recognition are implemented with targeted render/runtime/WebGPU tests. Remaining acceptance is the WebGPU-side instance-rate tint buffer and StandardMaterial WGSL sampling.
+Completion note 2026-05-21: `InstanceTint`, `createInstanceTint()`, `withInstanceTint()`, `RenderSnapshot.instanceTints`, `MeshDrawPacket.instanceTintOffset`, tint extraction packing, StandardMaterial `instance-tint` pipeline-key feature toggling, transform-aligned packed tint vertex data, WebGPU instance-rate tint buffer resources, draw-command/resource-plan tint buffer binding, StandardMaterial pipeline layout selection, and WGSL tint sampling are implemented with targeted render/runtime/WebGPU tests. The visible browser proof remains task-3031.
 
 Acceptance criteria:
 

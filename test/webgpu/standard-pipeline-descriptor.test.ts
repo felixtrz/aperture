@@ -142,9 +142,20 @@ describe("standard material pipeline descriptor planning", () => {
       ...STANDARD_BATCH_KEY,
       pipelineKey: "standard|instance-tint|opaque|back|less|none",
     });
+    const descriptor = createStandardPipelineDescriptorPlan({
+      colorFormat: "bgra8unorm",
+      batchKey: {
+        ...STANDARD_BATCH_KEY,
+        pipelineKey: "standard|instance-tint|opaque|back|less|none",
+      },
+    });
 
     expect(featurePlan.features.instanceTint).toBe(true);
     expect(featurePlan.variantKey).toContain("instance-tint");
+    expect(descriptor.diagnostics).toEqual([]);
+    expect(descriptor.plan?.descriptor.vertex).toMatchObject({
+      buffers: ["POSITION", "NORMAL", "TEXCOORD_0", "INSTANCE_TINT"],
+    });
   });
 
   it("derives cache keys and descriptor render state from standard alpha, depth, and cull tokens", () => {

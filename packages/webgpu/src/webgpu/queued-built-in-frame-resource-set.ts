@@ -1,4 +1,5 @@
 import type {
+  PackedSnapshotInstanceTints,
   PackedSnapshotTransforms,
   PackedSnapshotViewUniforms,
 } from "@aperture-engine/render";
@@ -108,6 +109,7 @@ export interface PrepareQueuedBuiltInFrameResourceSetCallbacks<
     readonly textureSamplerDependencies: PreparedMaterialTextureSamplerDependencies;
     readonly viewUniforms: PackedSnapshotViewUniforms;
     readonly worldTransforms: PackedSnapshotTransforms;
+    readonly instanceTints?: PackedSnapshotInstanceTints | null;
     readonly layouts: TPipelineLayouts;
   }): TFrameOptions;
 }
@@ -122,6 +124,7 @@ export interface PrepareQueuedBuiltInFrameResourceSetOptions<
   readonly scratch: QueuedBuiltInFrameResourceScratch<TPipelinePlanResult>;
   readonly viewUniforms: PackedSnapshotViewUniforms;
   readonly worldTransforms: PackedSnapshotTransforms;
+  readonly instanceTints?: PackedSnapshotInstanceTints | null;
   readonly callbacks: PrepareQueuedBuiltInFrameResourceSetCallbacks<
     TPipelineResult,
     TPipelinePlanResult,
@@ -213,6 +216,9 @@ export async function prepareQueuedBuiltInFrameResourceSet<
           ...input,
           viewUniforms: options.viewUniforms,
           worldTransforms: options.worldTransforms,
+          ...(options.instanceTints === undefined
+            ? {}
+            : { instanceTints: options.instanceTints }),
         }),
       createFrameResources: ({ item, options: frameOptions }) =>
         item.adapter.createFrameResources(

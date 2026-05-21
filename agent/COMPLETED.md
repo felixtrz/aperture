@@ -1,5 +1,37 @@
 # Completed Tasks
 
+## task-3030 — Per-instance tint component + extraction + WGSL sampling (part 1: contract)
+
+Completed: 2026-05-21
+
+Summary:
+
+- Added `InstanceTint`, `createInstanceTint()`, runtime
+  `withInstanceTint(color)`, `RenderSnapshot.instanceTints`, and
+  `MeshDrawPacket.instanceTintOffset` so ECS-authored tint data crosses the
+  extraction boundary without changing mesh/material ownership.
+- Packed instance tints into transform-aligned instance-rate vertex buffer
+  slots, preserving default white for untinted transform slots so WebGPU
+  `firstInstance` addressing remains correct.
+- Wired StandardMaterial `instance-tint` pipeline keys through WebGPU frame
+  resources, draw command/resource resolution, pipeline vertex-buffer layouts,
+  and WGSL base-color/alpha multiplication.
+
+References inspected:
+
+- `references/three.js/src/objects/InstancedMesh.js`
+- `references/bevy/crates/bevy_render/src/extract_instances.rs`
+- `references/engine/src/scene/mesh-instance.js`
+
+Validation:
+
+- `pnpm exec vitest run test/rendering/transform-pack.test.ts test/webgpu/draw-command.test.ts test/webgpu/instance-tint-buffer.test.ts`
+- `pnpm exec tsc --noEmit -p packages/render/tsconfig.json`
+- `pnpm exec tsc --noEmit -p packages/webgpu/tsconfig.json`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm exec vitest run test/rendering/transform-pack.test.ts test/webgpu/instance-tint-buffer.test.ts test/webgpu/draw-command.test.ts test/webgpu/render-pass-resources.test.ts test/webgpu/standard-pipeline.test.ts test/webgpu/standard-pipeline-descriptor.test.ts test/webgpu/unlit-app-frame-resources.test.ts test/rendering/extraction.test.ts test/runtime/runtime.test.ts`
+- `pnpm run check`
+
 ## task-3029 — Custom material source validation in package (the documented missing piece)
 
 Completed: 2026-05-21

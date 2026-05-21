@@ -6,6 +6,7 @@ import type {
 import { assetHandleKey } from "@aperture-engine/simulation";
 import type {
   MeshAsset,
+  PackedSnapshotInstanceTints,
   PackedSnapshotTransforms,
   PackedSnapshotViewUniforms,
   RenderSnapshot,
@@ -135,6 +136,7 @@ export function createOrReuseStandardAppFrameResources(options: {
   readonly textureSamplerDependencies: PreparedMaterialTextureSamplerDependencies;
   readonly viewUniforms: PackedSnapshotViewUniforms;
   readonly worldTransforms: PackedSnapshotTransforms;
+  readonly instanceTints?: PackedSnapshotInstanceTints | null;
   readonly sharedLayouts: readonly UnlitBindGroupLayoutResource[];
   readonly materialLayout: StandardMaterialBindGroupLayoutResource | null;
   readonly lightLayout:
@@ -217,6 +219,7 @@ export function createOrReuseStandardAppFrameResources(options: {
       lightDescriptor.plan.source.floats.byteLength &&
     cached.lightMetadataByteLength ===
       lightDescriptor.plan.source.metadata.byteLength &&
+    !requiresInstanceTintBuffer(options.pipelineKey) &&
     writeBufferData(
       options.device,
       cached.result.resources.viewUniform.buffer,
@@ -294,6 +297,9 @@ export function createOrReuseStandardAppFrameResources(options: {
       : { preparedMaterial: preparedMaterial.resource }),
     viewUniforms: options.viewUniforms,
     worldTransforms: options.worldTransforms,
+    ...(options.instanceTints === undefined
+      ? {}
+      : { instanceTints: options.instanceTints }),
     sharedLayouts: options.sharedLayouts,
     materialLayout: options.materialLayout,
     lightLayout: options.lightLayout,
@@ -368,6 +374,10 @@ export function createOrReuseStandardAppFrameResources(options: {
     result,
     preparedMaterialFallbackDiagnostics,
   );
+}
+
+function requiresInstanceTintBuffer(pipelineKey: string): boolean {
+  return pipelineKey.split("|").includes("instance-tint");
 }
 
 type PreparedStandardMaterialUse = PreparedAppMaterialResourceUse<

@@ -19,6 +19,7 @@ import {
   createPreparedMaterialStore,
   createMaterialQueueScratch,
   createPackedSnapshotTransformsScratch,
+  createPackedSnapshotInstanceTintsScratch,
   createPackedSnapshotViewUniformsScratch,
   createMaterialDependencyReadinessReport,
   extractRenderSnapshot,
@@ -31,6 +32,7 @@ import {
   writeMaterialQueueFromSnapshot,
   registerRenderAuthoringComponents,
   writePackedSnapshotTransforms,
+  writePackedSnapshotInstanceTintsForVertexBuffer,
   writePackedSnapshotViewUniforms,
   type MaterialQueueScratch,
   type MaterialAssetDependencyReadinessReportJsonValue,
@@ -39,6 +41,7 @@ import {
   type MaterialAsset,
   type MeshAsset,
   type PackedSnapshotTransforms,
+  type PackedSnapshotInstanceTints,
   type PackedSnapshotViewUniforms,
   type PreparedMaterialStore,
   type PreparedMaterialStoreJsonValue,
@@ -438,6 +441,9 @@ interface WebGpuAppFrameScratch {
   readonly worldTransforms: ReturnType<
     typeof createPackedSnapshotTransformsScratch
   >;
+  readonly instanceTints: ReturnType<
+    typeof createPackedSnapshotInstanceTintsScratch
+  >;
   readonly framePlan: RenderFramePlanScratch;
   readonly materialQueue: MaterialQueueScratch;
   readonly queueRoute: QueuedBuiltInAppRouteCollectorScratch;
@@ -495,6 +501,7 @@ interface QueuedBuiltInFrameResourcePreparationOptions {
   readonly textureSamplerDependencies: PreparedMaterialTextureSamplerDependencies;
   readonly viewUniforms: PackedSnapshotViewUniforms;
   readonly worldTransforms: PackedSnapshotTransforms;
+  readonly instanceTints?: PackedSnapshotInstanceTints | null;
   readonly layouts: WebGpuAppPipelineLayouts;
   readonly standardMaterialShadowReceiverResources?:
     | StandardFrameShadowReceiverResources
@@ -698,6 +705,7 @@ function createWebGpuAppFrameScratch(): WebGpuAppFrameScratch {
   return {
     viewUniforms: createPackedSnapshotViewUniformsScratch(),
     worldTransforms: createPackedSnapshotTransformsScratch(),
+    instanceTints: createPackedSnapshotInstanceTintsScratch(),
     framePlan: createRenderFramePlanScratch(),
     materialQueue: createMaterialQueueScratch(),
     queueRoute: createQueuedBuiltInAppRouteCollectorScratch(),
@@ -1136,6 +1144,9 @@ const QUEUED_BUILT_IN_MATERIAL_ADAPTERS =
           textureSamplerDependencies: options.textureSamplerDependencies,
           viewUniforms: options.viewUniforms,
           worldTransforms: options.worldTransforms,
+          ...(options.instanceTints === undefined
+            ? {}
+            : { instanceTints: options.instanceTints }),
           sharedLayouts: options.layouts.sharedLayouts,
           materialLayout: options.layouts
             .materialLayout as MatcapMaterialBindGroupLayoutResource | null,
@@ -1160,6 +1171,9 @@ const QUEUED_BUILT_IN_MATERIAL_ADAPTERS =
           textureSamplerDependencies: options.textureSamplerDependencies,
           viewUniforms: options.viewUniforms,
           worldTransforms: options.worldTransforms,
+          ...(options.instanceTints === undefined
+            ? {}
+            : { instanceTints: options.instanceTints }),
           sharedLayouts: options.layouts.sharedLayouts,
           materialLayout: options.layouts
             .materialLayout as StandardMaterialBindGroupLayoutResource | null,
@@ -1272,10 +1286,16 @@ async function renderQueuedBuiltInWebGpuAppFrame(options: {
     options.snapshot,
     options.cache.frameScratch.worldTransforms,
   );
+  const packedInstanceTints = writePackedSnapshotInstanceTintsForVertexBuffer(
+    options.snapshot,
+    packedTransforms,
+    options.cache.frameScratch.instanceTints,
+  );
   const prepared = await prepareQueuedBuiltInFrameResources({
     ...options,
     viewUniforms: packedViews,
     worldTransforms: packedTransforms,
+    instanceTints: packedInstanceTints,
     ...(options.standardMaterialShadowReceiverResources === undefined
       ? {}
       : {
@@ -1306,6 +1326,7 @@ async function renderQueuedBuiltInWebGpuAppFrame(options: {
         ...options.snapshot.diagnostics,
         ...packedViews.diagnostics,
         ...packedTransforms.diagnostics,
+        ...packedInstanceTints.diagnostics,
         ...prepared.diagnostics,
       ],
     });
@@ -1334,6 +1355,7 @@ async function renderQueuedBuiltInWebGpuAppFrame(options: {
         ...options.snapshot.diagnostics,
         ...packedViews.diagnostics,
         ...packedTransforms.diagnostics,
+        ...packedInstanceTints.diagnostics,
         ...queue.diagnostics,
       ],
     });
@@ -1348,6 +1370,7 @@ async function renderQueuedBuiltInWebGpuAppFrame(options: {
     resolveMaterialResourceKey: (draw) =>
       prepared.materialResourceKeys.get(assetHandleKey(draw.material)) ?? null,
     meshResources: prepared.resources.meshResources,
+    instanceTintResources: collectInstanceTintResources(prepared.resources),
     pipelines: prepared.pipelineResults,
     bindGroups: prepared.resources.bindGroups,
     scratch: options.cache.frameScratch.framePlan,
@@ -1959,6 +1982,30 @@ function createQueuedBuiltInAppDiagnosticsSummary(input: {
   });
 }
 
+function collectInstanceTintResources(
+  resources: QueuedBuiltInFrameResources,
+): NonNullable<
+  QueuedBuiltInFrameResources["standard"][number]["instanceTints"]
+>[] {
+  const result: NonNullable<
+    QueuedBuiltInFrameResources["standard"][number]["instanceTints"]
+  >[] = [];
+  const seen = new Set<string>();
+
+  for (const standard of resources.standard) {
+    const instanceTints = standard.instanceTints;
+
+    if (instanceTints === undefined || seen.has(instanceTints.resourceKey)) {
+      continue;
+    }
+
+    seen.add(instanceTints.resourceKey);
+    result.push(instanceTints);
+  }
+
+  return result;
+}
+
 function createQueuedBuiltInAppSortPhaseSummary(
   items: readonly QueuedBuiltInAppResourceItem[],
 ): readonly RenderQueueSortPhaseReport[] {
@@ -2009,6 +2056,7 @@ async function prepareQueuedBuiltInFrameResources(options: {
   readonly reuse: WebGpuAppResourceReuseReport;
   readonly viewUniforms: PackedSnapshotViewUniforms;
   readonly worldTransforms: PackedSnapshotTransforms;
+  readonly instanceTints?: PackedSnapshotInstanceTints | null;
   readonly standardMaterialShadowReceiverResources?:
     | StandardFrameShadowReceiverResources
     | undefined;
@@ -2028,6 +2076,9 @@ async function prepareQueuedBuiltInFrameResources(options: {
     scratch: options.cache.frameScratch.queuedBuiltInFrameResources,
     viewUniforms: options.viewUniforms,
     worldTransforms: options.worldTransforms,
+    ...(options.instanceTints === undefined
+      ? {}
+      : { instanceTints: options.instanceTints }),
     callbacks: {
       getPipeline: (item) =>
         getOrCreateWebGpuAppPipeline({
@@ -2062,6 +2113,7 @@ async function prepareQueuedBuiltInFrameResources(options: {
         textureSamplerDependencies,
         viewUniforms,
         worldTransforms,
+        instanceTints,
         layouts,
       }) =>
         createQueuedBuiltInFrameResourceOptions({
@@ -2072,6 +2124,7 @@ async function prepareQueuedBuiltInFrameResources(options: {
           textureSamplerDependencies,
           viewUniforms,
           worldTransforms,
+          ...(instanceTints === undefined ? {} : { instanceTints }),
           layouts,
           ...(options.standardMaterialShadowReceiverResources === undefined
             ? {}
@@ -2099,6 +2152,7 @@ function createQueuedBuiltInFrameResourceOptions(input: {
   readonly textureSamplerDependencies: PreparedMaterialTextureSamplerDependencies;
   readonly viewUniforms: PackedSnapshotViewUniforms;
   readonly worldTransforms: PackedSnapshotTransforms;
+  readonly instanceTints?: PackedSnapshotInstanceTints | null;
   readonly layouts: WebGpuAppPipelineLayouts;
   readonly standardMaterialShadowReceiverResources?:
     | StandardFrameShadowReceiverResources
@@ -2115,6 +2169,9 @@ function createQueuedBuiltInFrameResourceOptions(input: {
     textureSamplerDependencies: input.textureSamplerDependencies,
     viewUniforms: input.viewUniforms,
     worldTransforms: input.worldTransforms,
+    ...(input.instanceTints === undefined
+      ? {}
+      : { instanceTints: input.instanceTints }),
     layouts: input.layouts,
     ...(input.standardMaterialShadowReceiverResources === undefined
       ? {}
@@ -2410,6 +2467,11 @@ async function renderWebGpuAppFrame(
     snapshot,
     resourceCache.frameScratch.worldTransforms,
   );
+  const packedInstanceTints = writePackedSnapshotInstanceTintsForVertexBuffer(
+    snapshot,
+    packedTransforms,
+    resourceCache.frameScratch.instanceTints,
+  );
   const meshKey = sourceAssetCacheKey(firstDraw.mesh, meshEntry?.version ?? -1);
   const materialKey = sourceAssetCacheKey(
     firstDraw.material,
@@ -2465,6 +2527,7 @@ async function renderWebGpuAppFrame(
         ...snapshot.diagnostics,
         ...packedViews.diagnostics,
         ...packedTransforms.diagnostics,
+        ...packedInstanceTints.diagnostics,
         ...preparedTextures.diagnostics,
       ],
     });
@@ -2512,6 +2575,7 @@ async function renderWebGpuAppFrame(
       textureSamplerDependencies,
       viewUniforms: packedViews,
       worldTransforms: packedTransforms,
+      instanceTints: packedInstanceTints,
       layouts,
       ...(options.standardMaterialShadowReceiverResources === undefined
         ? {}
@@ -2538,6 +2602,7 @@ async function renderWebGpuAppFrame(
       diagnostics: [
         ...packedViews.diagnostics,
         ...packedTransforms.diagnostics,
+        ...packedInstanceTints.diagnostics,
         ...resources.diagnostics,
       ],
     });
@@ -2587,6 +2652,9 @@ async function renderWebGpuAppFrame(
     resolveMaterialResourceKey: (draw) =>
       materialResourceKeys.get(assetHandleKey(draw.material)) ?? null,
     meshResources: [frameResources.mesh],
+    ...("instanceTints" in frameResources
+      ? { instanceTintResources: [frameResources.instanceTints] }
+      : {}),
     pipelines: [pipelineResult],
     bindGroups: frameResources.bindGroups,
     scratch: resourceCache.frameScratch.framePlan,

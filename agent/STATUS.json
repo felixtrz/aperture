@@ -6,6 +6,6 @@
   "lastResult": "success",
   "lastCommit": "458f5f8",
   "activePid": null,
-  "notes": "Completed task-3027 custom WGSL browser route, task-3028 animated custom-material example, and task-3029 package custom material validation; advanced task-3030 per-instance tint extraction contract. pnpm run check and targeted Playwright custom material specs passed.",
-  "lastRunFinishedAt": "2026-05-21T06:50:09Z"
+  "notes": "Completed task-3030 per-instance tint WebGPU contract: packed tint buffers, WebGPU resource binding, StandardMaterial instance-tint layout/shader sampling, docs/backlog/completed updates. Full pnpm run check passed; task-3031 remains next for visible browser proof.",
+  "lastRunFinishedAt": "2026-05-21T07:53:59Z"
 }

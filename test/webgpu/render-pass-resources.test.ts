@@ -142,6 +142,37 @@ describe("render pass resource resolution", () => {
     ]);
   });
 
+  it("resolves instance tint vertex buffers outside mesh resources", () => {
+    const vertexBuffer = { label: "vertex" };
+    const tintBuffer = { label: "instance-tint" };
+    const result = resolveRenderPassResources({
+      drawList: [
+        {
+          ...drawListRecord(1),
+          vertexBufferKeys: ["mesh:1/vertex", "instance-tint-buffer:frame"],
+        },
+      ],
+      pipelines: [pipeline("pipeline:unlit")],
+      bindGroups: bindGroups(),
+      meshResources: [meshResource(1, vertexBuffer)],
+      instanceTintResources: [
+        {
+          streamId: "instanceTint",
+          resourceKey: "instance-tint-buffer:frame",
+          buffer: tintBuffer,
+          vertexCount: 2,
+          offsets: [{ renderId: 1, sourceOffset: 0, packedOffset: 0 }],
+        },
+      ],
+    });
+
+    expect(result.valid).toBe(true);
+    expect(result.draws[0]?.vertexBuffers).toMatchObject([
+      { resourceKey: "mesh:1/vertex", buffer: vertexBuffer },
+      { resourceKey: "instance-tint-buffer:frame", buffer: tintBuffer },
+    ]);
+  });
+
   it("can reuse caller-owned resource scratch on the frame hot path", () => {
     const scratch = createResolveRenderPassResourcesScratch(2);
     const options = {

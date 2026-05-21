@@ -1,5 +1,6 @@
 import type { MeshGpuBufferResource } from "./mesh-buffer-resources.js";
 import type { GetOrCreateRenderPipelineResult } from "./pipeline-cache-integration.js";
+import type { InstanceTintGpuBufferResource } from "./instance-tint-buffer.js";
 import type {
   RenderPassDrawListDiagnostic,
   RenderPassDrawListRecord,
@@ -59,6 +60,7 @@ export interface ResolveRenderPassResourcesOptions {
   readonly pipelines: readonly GetOrCreateRenderPipelineResult[];
   readonly bindGroups: readonly UnlitBindGroupResource[];
   readonly meshResources: readonly MeshGpuBufferResource[];
+  readonly instanceTintResources?: readonly InstanceTintGpuBufferResource[];
 }
 
 export interface ResolveRenderPassResourcesResult {
@@ -345,6 +347,10 @@ function indexResources(
     if (mesh.indexBuffer !== undefined) {
       scratch.indexBuffers.set(mesh.indexBuffer.resourceKey, mesh.indexBuffer);
     }
+  }
+
+  for (const buffer of options.instanceTintResources ?? []) {
+    scratch.vertexBuffers.set(buffer.resourceKey, buffer);
   }
 }
 

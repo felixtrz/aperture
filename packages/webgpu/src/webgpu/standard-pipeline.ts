@@ -17,6 +17,7 @@ import {
   createStandardMeshShaderModuleDescriptor,
   STANDARD_MESH_SHADER,
 } from "./standard-shader.js";
+import { INSTANCE_TINT_VERTEX_BUFFER_LAYOUT } from "./instance-tint-buffer.js";
 import {
   createWebGpuShaderModule,
   type WebGpuShaderDeviceLike,
@@ -234,7 +235,7 @@ export function createBrowserStandardRenderPipelineDescriptor(
     vertex: {
       module: input.shaderModule,
       entryPoint: shader.entryPoints.vertex,
-      buffers: [standardPrimitiveVertexBufferLayout(shader)],
+      buffers: standardVertexBufferLayouts(shader),
     },
     fragment: {
       module: input.shaderModule,
@@ -293,6 +294,23 @@ function standardPrimitiveVertexBufferLayout(
   }
 
   return UNLIT_PRIMITIVE_VERTEX_BUFFER_LAYOUT;
+}
+
+function standardVertexBufferLayouts(
+  shader: BuiltInShaderSourceModule,
+):
+  | readonly [ReturnType<typeof standardPrimitiveVertexBufferLayout>]
+  | readonly [
+      ReturnType<typeof standardPrimitiveVertexBufferLayout>,
+      typeof INSTANCE_TINT_VERTEX_BUFFER_LAYOUT,
+    ] {
+  const primitive = standardPrimitiveVertexBufferLayout(shader);
+
+  if (!shader.code.includes("@location(6) instanceTint: vec4f")) {
+    return [primitive];
+  }
+
+  return [primitive, INSTANCE_TINT_VERTEX_BUFFER_LAYOUT];
 }
 
 function mapShaderDiagnostic(

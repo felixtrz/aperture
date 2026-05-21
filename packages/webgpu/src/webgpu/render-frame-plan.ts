@@ -19,6 +19,7 @@ import {
   type DrawCommandDescriptorScratch,
 } from "./draw-command.js";
 import type { MeshGpuBufferResource } from "./mesh-buffer-resources.js";
+import type { InstanceTintGpuBufferResource } from "./instance-tint-buffer.js";
 import type { GetOrCreateRenderPipelineResult } from "./pipeline-cache-integration.js";
 import {
   createRenderPassCommandScratch,
@@ -64,6 +65,7 @@ export interface PlanRenderFrameFromSnapshotInput {
   readonly resolveMeshResourceKey: (draw: MeshDrawPacket) => string | null;
   readonly resolveMaterialResourceKey: (draw: MeshDrawPacket) => string | null;
   readonly meshResources: readonly MeshGpuBufferResource[];
+  readonly instanceTintResources?: readonly InstanceTintGpuBufferResource[];
   readonly pipelines: readonly GetOrCreateRenderPipelineResult[];
   readonly bindGroups: readonly UnlitBindGroupResource[];
   readonly requiredBindGroupGroups?: readonly number[];
@@ -242,6 +244,9 @@ export function writeRenderFramePlanFromSnapshot(
     packages.packages,
     input.meshResources,
     input.scratch.drawCommandScratch,
+    input.instanceTintResources === undefined
+      ? {}
+      : { instanceTintResources: input.instanceTintResources },
   );
   const drawList = writeRenderPassDrawList(
     {
@@ -260,6 +265,9 @@ export function writeRenderFramePlanFromSnapshot(
       pipelines: input.pipelines,
       bindGroups: input.bindGroups,
       meshResources: input.meshResources,
+      ...(input.instanceTintResources === undefined
+        ? {}
+        : { instanceTintResources: input.instanceTintResources }),
     },
     input.scratch.resourcesScratch,
   );
