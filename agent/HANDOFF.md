@@ -1,6 +1,71 @@
 # Agent Handoff
 
-Updated: 2026-05-21T04:38:33Z
+Updated: 2026-05-21T04:53:24Z
+
+## Current Run Update — 2026-05-21T04:53:24Z — GPU profiler overlay example
+
+Completed `task-3023`.
+
+### What changed
+
+- Added `examples/gpu-profiler.html` and `examples/gpu-profiler.js`.
+- The new example renders a 25-cube StandardMaterial scene through two
+  WebGPU-app frame-boundary targets: the swapchain `main` pass and an offscreen
+  `main:render-target:gpu-profiler-offscreen` pass.
+- Added a DOM overlay that displays live per-pass microsecond values from
+  `WebGpuAppRenderReport.gpuTimings`, including per-pass sample/change counts.
+- Added `test/e2e/gpu-profiler.spec.ts` to assert two named positive pass
+  timings and changing values across frames.
+- Added the new example to `pnpm run check:examples`.
+- Updated backlog, completed-task log, and public progress trackers. Recommended
+  next task is now `task-3024`.
+
+### Files touched
+
+- `agent/BACKLOG.md`
+- `agent/COMPLETED.md`
+- `agent/HANDOFF.md`
+- `docs/index.html`
+- `docs/render-pipeline-comparison.html`
+- `examples/gpu-profiler.html`
+- `examples/gpu-profiler.js`
+- `examples/styles.css`
+- `package.json`
+- `test/e2e/gpu-profiler.spec.ts`
+
+### References inspected
+
+- `references/engine/src/platform/graphics/gpu-profiler.js`
+- Existing local examples: `examples/render-to-texture.js`,
+  `examples/spinning-cube.js`, and `examples/app-diagnostics.js`
+
+### Validation
+
+- `node --check examples/gpu-profiler.js`
+- `pnpm run check:examples`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm run lint`
+- `pnpm run examples:build`
+- Direct Chrome/Playwright probe of `examples/gpu-profiler.html` reached frame 8
+  and reported `main` plus `main:render-target:gpu-profiler-offscreen` pass
+  timings. The offscreen timing changed across samples.
+- `pnpm exec playwright test test/e2e/gpu-profiler.spec.ts --timeout=45000`
+  printed a passing test result; the headed Chrome runner then hung during
+  shutdown and was killed.
+
+### Known issues
+
+- Headed Chrome/Playwright can hang during shutdown after WebGPU examples. This
+  also happened during the GLTF timing probe earlier in the run.
+- Untracked optimization markdown files are present in the worktree:
+  `OPTIMIZATIONS_CULLING_AND_SCALE.md`, `OPTIMIZATIONS_GPU_PIPELINE.md`,
+  `OPTIMIZATIONS_INSTANCING_AND_BATCHING.md`, and
+  `OPTIMIZATIONS_TRANSPORT_AND_UPLOAD.md`. They appear unrelated to the
+  profiler slice and were preserved.
+
+### Recommended next task
+
+`task-3024 — Asset unregister API (part 1: registry)`.
 
 ## Current Run Update — 2026-05-21T04:38:33Z — GPU pass timing diagnostics
 

@@ -59,13 +59,15 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start with `task-3023`: GPU timings example panel: per-pass overlay.
+Start with `task-3024`: Asset unregister API (part 1: registry).
 
-Why this next: `task-3021` and `task-3022` wired timestamp query writes around main/shadow render passes and surfaced JSON-safe `gpuTimings` reports through app diagnostics. The next roadmap gap is a user-facing example panel that displays those live per-pass timings.
+Why this next: `task-3023` added the visible GPU profiler overlay, so the timing telemetry tier is complete. The next roadmap gap is asset cache hygiene: add a registry-level unregister path before wiring GLB viewer asset switching into unload behavior.
 
 Reference anchors (read before writing):
 
-- `references/engine/src/platform/graphics/gpu-profiler.js`
+- `references/bevy/crates/bevy_asset/src/assets.rs`
+- `references/engine/src/framework/asset/asset-registry.js`
+- `references/three.js/src/loaders/Cache.js`
 
 ## Strategic Focus — Pipeline Maturity Roadmap
 
@@ -92,7 +94,7 @@ Eleven cross-cutting gaps remain across the six phases. They are sequenced below
 
 **Tier 4 — Telemetry & hygiene (independent):**
 
-9. GPU timings via timestamp queries (task-3020, task-3021, and task-3022 shipped; task-3023 remains) — enables data-driven performance work
+9. GPU timings via timestamp queries (task-3020, task-3021, task-3022, and task-3023 shipped) — enables data-driven performance work
 10. Asset cache eviction / unload (task-3024, task-3025) — memory hygiene for long sessions
 
 **Tier 5 — Maturity:**
@@ -150,6 +152,8 @@ Acceptance criteria:
 - Playwright asserts the shadow pass and main pass both appear with positive microsecond values in the gltf-scene example.
 
 ### task-3023 — GPU timings example panel: per-pass overlay
+
+Status: completed 2026-05-21. See `agent/COMPLETED.md`.
 
 Category: `runtime-orchestration`
 Package/write-scope: `examples/gpu-profiler.html`, `examples/gpu-profiler.js`, `test/e2e/gpu-profiler.spec.ts`.

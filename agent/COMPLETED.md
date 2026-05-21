@@ -1,5 +1,37 @@
 # Completed Tasks
 
+## task-3023 — GPU timings example panel: per-pass overlay
+
+Completed: 2026-05-21
+
+Summary:
+
+- Added `examples/gpu-profiler.html` and `examples/gpu-profiler.js`, a visible
+  StandardMaterial scene that renders both swapchain and offscreen views.
+- Added a DOM overlay that reads `WebGpuAppRenderReport.gpuTimings`, shows live
+  per-pass microsecond values, and tracks per-pass sample/change counts.
+- Added Playwright coverage for the overlay, positive `main` plus offscreen pass
+  timings, and timing values changing between frames.
+- Added the profiler example to example syntax validation.
+
+References inspected:
+
+- `references/engine/src/platform/graphics/gpu-profiler.js`
+
+Validation:
+
+- `node --check examples/gpu-profiler.js`
+- `pnpm run check:examples`
+- `pnpm exec tsc --noEmit -p tsconfig.test.json`
+- `pnpm run lint`
+- `pnpm run examples:build`
+- Direct Chrome/Playwright probe of `examples/gpu-profiler.html` reached frame 8
+  and reported `main` plus `main:render-target:gpu-profiler-offscreen` pass
+  timings, with the offscreen value changing across samples.
+- `pnpm exec playwright test test/e2e/gpu-profiler.spec.ts --timeout=45000`
+  printed a passing test result, then the headed Chrome runner hung during
+  shutdown and was killed.
+
 ## task-3022 — Timing readback + JSON report (part 3: surfacing)
 
 Completed: 2026-05-21

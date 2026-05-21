@@ -513,6 +513,73 @@ body {
   backdrop-filter: blur(8px);
 }
 
+.gpu-profiler-overlay {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  width: min(280px, calc(100% - 36px));
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid rgb(255 255 255 / 16%);
+  background: rgb(12 15 19 / 82%);
+  backdrop-filter: blur(8px);
+}
+
+.gpu-profiler-header,
+.gpu-profiler-pass-list li {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.gpu-profiler-header {
+  color: #9ca8b7;
+  font-size: 12px;
+  text-transform: uppercase;
+}
+
+.gpu-profiler-header strong {
+  color: #edf2f7;
+  font-size: 12px;
+  text-transform: none;
+}
+
+.gpu-profiler-pass-list {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.gpu-profiler-pass-list li {
+  min-width: 0;
+  padding-block: 2px;
+  color: #d7dee8;
+  font:
+    12px/1.4 ui-monospace,
+    "SFMono-Regular",
+    Consolas,
+    "Liberation Mono",
+    monospace;
+}
+
+.gpu-profiler-pass-list span {
+  min-width: 0;
+  overflow: hidden;
+  color: #9ca8b7;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.gpu-profiler-pass-list strong {
+  flex: none;
+  color: #81d69d;
+  font-weight: 650;
+}
+
 #example-json {
   overflow: auto;
   max-height: calc(100vh - 160px);
