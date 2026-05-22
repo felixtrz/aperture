@@ -1,6 +1,57 @@
 # Agent Handoff
 
-Updated: 2026-05-22T04:28:49Z
+Updated: 2026-05-22T04:36:40Z
+
+## Current Run Update — 2026-05-22T04:36:40Z — Draco decoder helper started
+
+Partial progress on `task-3060`.
+
+### What changed
+
+- Added `packages/render/src/assets/draco-decoder.ts` and exported it through
+  the render/core public surface.
+- Added `createDracoMeshDecoder(...)`, which loads caller-provided Draco
+  `draco_wasm_wrapper.js` + `draco_decoder.wasm` assets and decodes triangular
+  Draco meshes into renderer-independent index and attribute typed arrays.
+- Added attribute decode requests that can target default Draco attribute kinds
+  or glTF-style unique attribute IDs, matching the way
+  `KHR_draco_mesh_compression.attributes` maps semantics to Draco ids.
+- Added committed test fixtures under `test/assets/fixtures/draco/`, including
+  `bunny.drc`, the glTF Draco WASM wrapper/decoder pair, and
+  `heart_draco.glb` for compressed bufferView coverage.
+
+### References inspected
+
+- `references/three.js/examples/jsm/loaders/DRACOLoader.js`
+- `references/three.js/examples/jsm/loaders/GLTFLoader.js`
+  `GLTFDracoMeshCompressionExtension`
+- `references/three.js/examples/jsm/libs/draco/`
+- `references/engine/src/framework/parsers/draco-decoder.js`
+- `references/engine/src/framework/parsers/draco-worker.js`
+- `references/engine/src/framework/parsers/glb-parser.js` Draco mesh path
+
+Common pattern adapted: both three.js and PlayCanvas load the Draco WASM wrapper
+once, then decode compressed primitive buffers into plain typed arrays keyed by
+either default Draco attribute kinds or glTF unique attribute ids. Aperture now
+has that decoder as a renderer-independent asset helper; the remaining work is
+to feed its output into the existing glTF accessor/mesh-construction reports.
+
+### Validation
+
+- `pnpm exec tsc --noEmit -p packages/render/tsconfig.json` passed.
+- `pnpm exec tsc --noEmit -p tsconfig.test.json` passed.
+- `pnpm exec vitest run test/assets/draco-decoder.test.ts` passed.
+- `pnpm run build` passed.
+- `pnpm run lint` passed.
+- `pnpm run format:check` passed.
+
+### Remaining `task-3060` work
+
+- Teach the glTF report/import path to branch compressed primitives through the
+  Draco decoder instead of validating nonexistent accessor bufferViews.
+- Mark `KHR_draco_mesh_compression` supported only when the replay path can
+  produce real `MeshAsset` data.
+- Add a visible Draco GLB viewer sample and Playwright status/pixel proof.
 
 ## Current Run Update — 2026-05-22T04:28:49Z — BasisU KTX2 textures shipped
 

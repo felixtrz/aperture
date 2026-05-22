@@ -21,6 +21,7 @@ export * from "./glb-source-loader-status.js";
 export * from "./glb-uri-loader.js";
 export * from "./hdr-rgbe-loader.js";
 export * from "./ktx2-decoder.js";
+export * from "./draco-decoder.js";
 export * from "./gltf-source-loader-facade.js";
 export * from "./gltf-uri-loader.js";
 export * from "./glb-container.js";

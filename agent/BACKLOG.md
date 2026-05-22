@@ -857,6 +857,12 @@ Acceptance criteria:
 
 ### task-3060 — Draco mesh decoder integration (Tier 12 part 2)
 
+Partial progress 2026-05-22: public `createDracoMeshDecoder(...)` support is in
+place with committed Draco JS/WASM fixtures plus `.drc` and GLB bufferView
+decode coverage. Remaining work is to thread that decoder through
+`KHR_draco_mesh_compression` glTF primitive replay and add the visible
+`glb-viewer` sample.
+
 Category: `render-bridge`
 Package/write-scope: `packages/render/src/assets/draco-decoder.ts` (new) + wasm transcoder, targeted tests.
 Reference anchor: `references/three.js/examples/jsm/loaders/DRACOLoader.js`; PlayCanvas Draco support (search `references/engine/src/`).
