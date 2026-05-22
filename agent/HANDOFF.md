@@ -53,6 +53,23 @@ leaving the public app facade for the next slice.
 Start `task-3065`: add the public `app.pick(x, y)` API that reads the ID buffer
 and maps the result back to an ECS entity or `null`.
 
+### task-3065 preflight notes
+
+- Primary insertion point is `packages/webgpu/src/webgpu/app.ts`: extend the
+  `WebGpuApp` interface and `createWebGpuApp(...)` object with `pick(x, y)`.
+- `frame-boundary.ts` readback currently supports only RGBA/BGRA color pixels
+  through `textureByteOrder(...)`; `app.pick(...)` will need either a focused
+  `r32uint` readback helper or an extension of the existing readback result
+  model that can return uint IDs.
+- The app path already keeps the last rendered `RenderSnapshot` in
+  `WebGpuAppRenderReport.snapshot`, and `MeshDrawPacket.entity` plus
+  `createWebGpuIdBufferIdForEntity(...)` are enough to map ID-buffer readback
+  values back to ECS entity refs.
+- Unit coverage can reuse the `test/webgpu/webgpu-app.test.ts` harness, but the
+  mock command encoder currently lacks `copyTextureToBuffer`; browser coverage
+  should mirror `test/e2e/id-buffer.spec.ts` for the real `r32uint` texture
+  readback.
+
 ## Current Run Update — 2026-05-22T06:31:00Z — MRT render-pass proof shipped
 
 Completed `task-3063` after `task-3062`.
