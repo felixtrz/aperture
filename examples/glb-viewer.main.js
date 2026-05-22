@@ -37,6 +37,8 @@ const animationDirectionSelect = document.querySelector(
 );
 const animationScrubInput = document.querySelector("#glb-animation-scrub");
 const animationSpeedInput = document.querySelector("#glb-animation-speed");
+const morphWeight0Input = document.querySelector("#glb-morph-weight-0");
+const morphWeight1Input = document.querySelector("#glb-morph-weight-1");
 const pointLightIntensityInput = document.querySelector(
   "#glb-point-light-intensity",
 );
@@ -71,6 +73,7 @@ const animationNodeSummaryElement = document.querySelector(
 const animationChannelSummaryElement = document.querySelector(
   "#glb-animation-channel-summary",
 );
+const morphSummaryElement = document.querySelector("#glb-morph-summary");
 const importedCameraSummaryElement = document.querySelector(
   "#glb-imported-camera-summary",
 );
@@ -320,6 +323,24 @@ const animationClipSummaryRows = [
       `#${clip.index ?? index}, ${formatSummaryOptionalKey(
         clip.name,
       )}, ${formatAnimationClipDuration(clip.duration)}s`,
+  },
+];
+const morphSummaryRows = [
+  {
+    key: "status",
+    label: "status",
+    value: (morphing) => morphing.status,
+  },
+  {
+    key: "targets",
+    label: "targets",
+    value: (morphing) =>
+      `${morphing.targetCount} targets, ${morphing.morphedEntities} entities`,
+  },
+  {
+    key: "weights",
+    label: "weights",
+    value: (morphing) => formatSummaryTuple(morphing.weights),
   },
 ];
 const importedCameraSummaryRows = [
@@ -1003,6 +1024,12 @@ function bindMainControls(aperture, state) {
   bindMainInputCommand(animationSpeedInput, "animation-speed", (node) =>
     numberInputValue(node, 1),
   );
+  bindMainInputCommand(morphWeight0Input, "morph-weight-0", (node) =>
+    numberInputValue(node, 0),
+  );
+  bindMainInputCommand(morphWeight1Input, "morph-weight-1", (node) =>
+    numberInputValue(node, 0),
+  );
   bindMainInputCommand(importedLightToggle, "imported-light", (node) =>
     Boolean(node.checked),
   );
@@ -1620,6 +1647,7 @@ function updateMainControlsFromStatus(status) {
   setInputValue(animationDirectionSelect, status.animation?.direction);
   setInputValue(animationScrubInput, status.animation?.time);
   setInputValue(animationSpeedInput, status.animation?.speed);
+  updateMainMorphInputs(status);
   setInputValue(
     pointLightIntensityInput,
     status.lighting?.controls?.pointIntensity,
@@ -1630,6 +1658,23 @@ function updateMainControlsFromStatus(status) {
   );
   updateMainImportedCameraSelect(status);
   updateMainAnimationClipSelect(status);
+}
+
+function updateMainMorphInputs(status) {
+  const morphing = status.morphing;
+  const enabled = morphing?.status === "ready";
+  const weights = arrayEntries(morphing?.weights);
+
+  setInputValue(morphWeight0Input, weights[0]);
+  setInputValue(morphWeight1Input, weights[1]);
+
+  if (morphWeight0Input instanceof HTMLInputElement) {
+    morphWeight0Input.disabled = !enabled;
+  }
+
+  if (morphWeight1Input instanceof HTMLInputElement) {
+    morphWeight1Input.disabled = !enabled || (morphing?.targetCount ?? 0) < 2;
+  }
 }
 
 function updateMainSceneSelectControl(status) {
@@ -6159,14 +6204,14 @@ function rootFeatureDiagnostics(root, primitives) {
   const diagnostics = [];
   const morphTargetStats = countMorphTargetPrimitives(primitives);
 
-  if (morphTargetStats.targetCount > 0) {
+  if (morphTargetStats.targetCount > 2) {
     diagnostics.push({
-      code: "gltfMetadata.unsupportedMorphTargets",
+      code: "gltfMetadata.partiallySupportedMorphTargets",
       severity: "warning",
       count: morphTargetStats.targetCount,
       targetCount: morphTargetStats.targetCount,
       primitiveCount: morphTargetStats.primitiveCount,
-      message: `GLB viewer metadata detected ${morphTargetStats.targetCount} morph target(s) across ${morphTargetStats.primitiveCount} primitive(s); morph animation is not replayed yet.`,
+      message: `GLB viewer metadata detected ${morphTargetStats.targetCount} morph target(s) across ${morphTargetStats.primitiveCount} primitive(s); the current standard material path renders the first two targets.`,
     });
   }
 
@@ -7318,6 +7363,7 @@ function publishStatus(status) {
   updateAnimationClipSummaryPanel(status.animation);
   updateAnimationNodeSummaryPanel(status.animation);
   updateAnimationChannelSummaryPanel(status.animation);
+  updateMorphSummaryPanel(status.morphing);
   updateImportedCameraSummaryPanel(status.importedCamera);
   updateImportedCameraListSummaryPanel(status.importedCamera);
   updateLightingSummaryPanel({
@@ -7530,6 +7576,35 @@ function updateUnsupportedFeatureSummaryPanel({ diagnostics, importedCamera }) {
   }
 }
 
+function updateMorphSummaryPanel(morphing) {
+  if (!(morphSummaryElement instanceof HTMLElement)) {
+    return;
+  }
+
+  morphSummaryElement.replaceChildren();
+
+  if (!isRecord(morphing) || morphing.status === "absent") {
+    morphSummaryElement.hidden = true;
+    return;
+  }
+
+  morphSummaryElement.hidden = false;
+
+  for (const row of morphSummaryRows) {
+    const element = document.createElement("div");
+    const label = document.createElement("span");
+    const value = document.createElement("strong");
+
+    element.className = "morph-summary-row";
+    element.dataset.morphSummaryRow = row.key;
+    label.textContent = row.label;
+    value.textContent = row.value(morphing);
+
+    element.append(label, value);
+    morphSummaryElement.append(element);
+  }
+}
+
 function createUnsupportedFeatureRows({ diagnostics, importedCamera }) {
   const rows = [];
 
@@ -7588,6 +7663,7 @@ function formatUnsupportedFeatureDetail({ code, severity, detail }) {
 
 function unsupportedFeatureLabel(code) {
   switch (code) {
+    case "gltfMetadata.partiallySupportedMorphTargets":
     case "gltfMetadata.unsupportedMorphTargets":
       return "morph";
     case "gltfMetadata.unsupportedSkins":
@@ -7601,6 +7677,7 @@ function unsupportedFeatureLabel(code) {
 
 function formatUnsupportedFeatureDiagnostic(diagnostic) {
   switch (diagnostic.code) {
+    case "gltfMetadata.partiallySupportedMorphTargets":
     case "gltfMetadata.unsupportedMorphTargets":
       return `${diagnostic.targetCount ?? 0} targets, ${
         diagnostic.primitiveCount ?? 0

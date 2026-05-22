@@ -33,7 +33,11 @@ export type GltfMeshPrimitiveAttributeSemantic =
   | "TANGENT"
   | "COLOR_0"
   | "JOINTS_0"
-  | "WEIGHTS_0";
+  | "WEIGHTS_0"
+  | "MORPH_POSITION_0"
+  | "MORPH_NORMAL_0"
+  | "MORPH_POSITION_1"
+  | "MORPH_NORMAL_1";
 
 export interface GltfMeshPrimitiveMappingDiagnostic {
   readonly layer: GltfMeshPrimitiveMappingLayer;
@@ -75,6 +79,10 @@ export interface GltfMeshPrimitiveAttributeReferences {
   readonly color0?: GltfMeshPrimitiveAttributeReference;
   readonly joints0?: GltfMeshPrimitiveAttributeReference;
   readonly weights0?: GltfMeshPrimitiveAttributeReference;
+  readonly morphPosition0?: GltfMeshPrimitiveAttributeReference;
+  readonly morphNormal0?: GltfMeshPrimitiveAttributeReference;
+  readonly morphPosition1?: GltfMeshPrimitiveAttributeReference;
+  readonly morphNormal1?: GltfMeshPrimitiveAttributeReference;
 }
 
 export interface GltfMeshPrimitiveIndexReference {
@@ -421,6 +429,7 @@ function mapAttributes(input: {
   const color0 = mapAttributeReference(input, attributes, "COLOR_0");
   const joints0 = mapAttributeReference(input, attributes, "JOINTS_0");
   const weights0 = mapAttributeReference(input, attributes, "WEIGHTS_0");
+  const morphTargets = mapMorphTargetAttributeReferences(input);
   const hasOptionalAttributeError = input.diagnostics.some(
     (diagnostic) =>
       diagnostic.severity === "error" &&
@@ -432,7 +441,11 @@ function mapAttributes(input: {
         diagnostic.attribute === "TANGENT" ||
         diagnostic.attribute === "COLOR_0" ||
         diagnostic.attribute === "JOINTS_0" ||
-        diagnostic.attribute === "WEIGHTS_0"),
+        diagnostic.attribute === "WEIGHTS_0" ||
+        diagnostic.attribute === "MORPH_POSITION_0" ||
+        diagnostic.attribute === "MORPH_NORMAL_0" ||
+        diagnostic.attribute === "MORPH_POSITION_1" ||
+        diagnostic.attribute === "MORPH_NORMAL_1"),
   );
   if (hasOptionalAttributeError) {
     return null;
@@ -447,7 +460,101 @@ function mapAttributes(input: {
     ...(color0 === null ? {} : { color0 }),
     ...(joints0 === null ? {} : { joints0 }),
     ...(weights0 === null ? {} : { weights0 }),
+    ...(morphTargets.morphPosition0 === null
+      ? {}
+      : { morphPosition0: morphTargets.morphPosition0 }),
+    ...(morphTargets.morphNormal0 === null
+      ? {}
+      : { morphNormal0: morphTargets.morphNormal0 }),
+    ...(morphTargets.morphPosition1 === null
+      ? {}
+      : { morphPosition1: morphTargets.morphPosition1 }),
+    ...(morphTargets.morphNormal1 === null
+      ? {}
+      : { morphNormal1: morphTargets.morphNormal1 }),
   };
+}
+
+function mapMorphTargetAttributeReferences(input: {
+  readonly root: Record<string, unknown>;
+  readonly primitive: Record<string, unknown>;
+  readonly meshIndex: number;
+  readonly primitiveIndex: number;
+  readonly diagnostics: GltfMeshPrimitiveMappingDiagnostic[];
+}): {
+  readonly morphPosition0: GltfMeshPrimitiveAttributeReference | null;
+  readonly morphNormal0: GltfMeshPrimitiveAttributeReference | null;
+  readonly morphPosition1: GltfMeshPrimitiveAttributeReference | null;
+  readonly morphNormal1: GltfMeshPrimitiveAttributeReference | null;
+} {
+  const targets = Array.isArray(input.primitive.targets)
+    ? input.primitive.targets
+    : [];
+  const target0 = isRecord(targets[0]) ? targets[0] : {};
+  const target1 = isRecord(targets[1]) ? targets[1] : {};
+
+  return {
+    morphPosition0: mapTargetAttributeReference(
+      input,
+      target0,
+      "POSITION",
+      "MORPH_POSITION_0",
+    ),
+    morphNormal0: mapTargetAttributeReference(
+      input,
+      target0,
+      "NORMAL",
+      "MORPH_NORMAL_0",
+    ),
+    morphPosition1: mapTargetAttributeReference(
+      input,
+      target1,
+      "POSITION",
+      "MORPH_POSITION_1",
+    ),
+    morphNormal1: mapTargetAttributeReference(
+      input,
+      target1,
+      "NORMAL",
+      "MORPH_NORMAL_1",
+    ),
+  };
+}
+
+function mapTargetAttributeReference(
+  input: {
+    readonly root: Record<string, unknown>;
+    readonly meshIndex: number;
+    readonly primitiveIndex: number;
+    readonly diagnostics: GltfMeshPrimitiveMappingDiagnostic[];
+  },
+  target: Record<string, unknown>,
+  targetSemantic: "POSITION" | "NORMAL",
+  semantic: GltfMeshPrimitiveAttributeSemantic,
+): GltfMeshPrimitiveAttributeReference | null {
+  const accessorIndex = target[targetSemantic];
+
+  if (accessorIndex === undefined) {
+    return null;
+  }
+
+  if (!validAccessorReference(input.root, accessorIndex)) {
+    input.diagnostics.push({
+      layer: "mesh",
+      code: "gltfMesh.invalidAccessorReference",
+      severity: "error",
+      meshIndex: input.meshIndex,
+      primitiveIndex: input.primitiveIndex,
+      attribute: semantic,
+      field: `meshes[${input.meshIndex}].primitives[${input.primitiveIndex}].targets.${targetSemantic}`,
+      value: toDiagnosticValue(accessorIndex),
+      ...(typeof accessorIndex === "number" ? { accessorIndex } : {}),
+      message: `glTF mesh ${input.meshIndex} primitive ${input.primitiveIndex} has an invalid ${semantic} accessor reference.`,
+    });
+    return null;
+  }
+
+  return { semantic, accessorIndex };
 }
 
 function mapAttributeReference(

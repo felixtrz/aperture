@@ -1,6 +1,105 @@
 # Agent Handoff
 
-Updated: 2026-05-22T02:47:02Z
+Updated: 2026-05-22T03:50:02Z
+
+## Current Run Update — 2026-05-22T03:36:00Z — Visible GLB morph targets shipped
+
+Completed `task-3058`.
+
+### What changed
+
+- Replaced the GLB viewer morph metadata diagnostic fixture with a visible
+  StandardMaterial morph-target GLB sample that includes
+  POSITION/NORMAL/TEXCOORD_0, indices, and two POSITION/NORMAL primitive target
+  delta streams.
+- Extended glTF primitive mapping, accessor validation, and mesh construction so
+  the first two morph target streams pack into the StandardMaterial morph vertex
+  layout with stride 80 and `MeshAsset.morphTargets` metadata.
+- Added ECS `MorphTargetWeights` authoring/extraction, snapshot
+  `morphTargetWeights` transfer support, runtime `withMorphTargetWeights(...)`,
+  and draw-scoped WebGPU morph weight storage-buffer resources at group 1
+  binding 2.
+- Updated `glb-viewer` worker/main UI and status so live sliders update ECS
+  morph weights, the sample routes through
+  `standard|morphed|opaque|none|less|none`, and two-target morphs are no longer
+  reported as unsupported.
+- Updated public tracker pages, backlog, and completed-task log. Recommended
+  next task is now `task-3059`.
+
+### References inspected
+
+- `references/three.js/examples/webgpu_morphtargets.html`
+- `references/three.js/examples/webgl_morphtargets.html`
+- `references/engine/src/scene/morph-instance.js`
+- `references/engine/src/scene/morph.js`
+
+Common pattern adapted: morphable meshes keep target delta streams with the
+geometry while render instances carry mutable per-target weights; Aperture maps
+that into ECS-authored weight components, extracted snapshot weight buffers, and
+renderer-owned WebGPU storage resources.
+
+### Validation
+
+- `node --check examples/glb-viewer.worker.js` passed.
+- `node --check examples/glb-viewer.main.js` passed.
+- `pnpm exec tsc --noEmit -p packages/render/tsconfig.json` passed.
+- `pnpm exec tsc --noEmit -p packages/runtime/tsconfig.json` passed.
+- `pnpm exec tsc --noEmit -p packages/webgpu/tsconfig.json` passed.
+- `pnpm exec vitest run test/assets/gltf-mesh-primitive.test.ts test/assets/gltf-accessor-validation.test.ts test/assets/gltf-mesh-asset-construction.test.ts test/webgpu/morph-target-weight-buffer.test.ts`
+  passed.
+- `pnpm run build` passed.
+- `pnpm run typecheck:test` passed.
+- `pnpm run lint` passed.
+- `pnpm run format:check` passed.
+- `pnpm run check:examples` passed.
+- `pnpm test` passed with all 335 files / 1,656 tests.
+- Direct headed Chrome WebGPU smoke against
+  `examples/glb-viewer.html?asset=morph-target` passed: status reported
+  `morphing.status: "ready"`, target count 2, one morphed entity, the
+  `standard|morphed|opaque|none|less|none` pipeline, one draw, zero unsupported
+  diagnostics, stride 80, and a large slider-driven screenshot sample delta.
+
+### Known issues
+
+- The targeted headed Playwright command hit the existing local Chrome teardown
+  hang path and was killed; the direct headed Chrome smoke above verified the
+  same morph status and pixel contract.
+- The in-app Browser MCP was unavailable because the shared browser was already
+  locked by another code agent. Direct Playwright/Chrome smoke was used instead.
+- The direct smoke reported existing local GPU timestamp-query allocation
+  warnings on this Chrome/Metal setup. The rendered frame still reported
+  `ok: true`, one draw, and zero unsupported morph diagnostics.
+
+### Recommended next task
+
+Continue `task-3059`: integrate BasisU WASM transcoding so the existing
+`KHR_texture_basisu` path can load supercompressed production textures, then
+wire a compressed GLB viewer sample.
+
+### task-3059 partial checkpoint
+
+- Added `packages/render/src/assets/ktx2-decoder.ts` with KTX2 identifier,
+  header, level-index parsing, uncompressed 2D RGBA8/RGBA8-sRGB payload decode,
+  and explicit errors for BasisU supercompression that still needs a transcoder.
+- Exported the decoder through `@aperture-engine/render` /
+  `@aperture-engine/core`.
+- Updated glTF texture mapping so `image/ktx2` sources are accepted, `.ktx2`
+  URIs infer the KTX2 MIME type, and `KHR_texture_basisu.source` selects the
+  extension image instead of emitting the old unsupported-extension diagnostic.
+- Added targeted tests proving uncompressed KTX2 decode, explicit BasisU
+  limitation reporting, sync resolver honesty, and async
+  `KHR_texture_basisu` image/ktx2 mapping through `loadGltfTextureAsync(...)`.
+- Added a data-URI coverage path proving `loadGltfTextureAsync(...)` can infer
+  `image/ktx2` and decode KTX2 bytes without a caller-provided buffer.
+
+Validation for this partial `task-3059` slice:
+
+- `pnpm exec tsc --noEmit -p packages/render/tsconfig.json` passed.
+- `pnpm exec vitest run test/assets/ktx2-decoder.test.ts test/materials/gltf-texture.test.ts`
+  passed.
+- `pnpm exec vitest run test/materials/gltf-texture.test.ts` passed after the
+  data-URI coverage addition.
+- `pnpm run format:check` passed.
 
 ## Current Run Update — 2026-05-22T02:36:58Z — Visible GLB skinning shipped
 

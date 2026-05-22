@@ -52,6 +52,7 @@ import {
   LightShadowSettings,
   Material,
   Mesh,
+  MorphTargetWeights,
   RenderLayer,
   RenderOrder,
   ShadowCaster,
@@ -164,6 +165,7 @@ export function extractRenderSnapshot(
   const diagnostics: RenderDiagnostic[] = [];
   const transforms: number[] = [];
   const bones: number[] = [];
+  const morphTargetWeights: number[] = [];
   const instanceTints: number[] = [];
   const instanceAttributes: number[] = [];
   const instanceAttributePackets: InstanceAttributePacket[] = [];
@@ -196,6 +198,7 @@ export function extractRenderSnapshot(
     assets,
     transforms,
     bones,
+    morphTargetWeights,
     instanceTints,
     instanceAttributes,
     instanceAttributePackets,
@@ -217,6 +220,9 @@ export function extractRenderSnapshot(
     bounds,
     transforms: new Float32Array(transforms),
     ...(bones.length === 0 ? {} : { bones: new Float32Array(bones) }),
+    ...(morphTargetWeights.length === 0
+      ? {}
+      : { morphTargetWeights: new Float32Array(morphTargetWeights) }),
     instanceTints: new Float32Array(instanceTints),
     ...(instanceAttributes.length === 0
       ? {}
@@ -537,6 +543,7 @@ function extractMeshDraws(
   assets: AssetRegistry,
   transforms: number[],
   bones: number[],
+  morphTargetWeights: number[],
   instanceTints: number[],
   instanceAttributes: number[],
   instanceAttributePackets: InstanceAttributePacket[],
@@ -687,6 +694,24 @@ function extractMeshDraws(
       continue;
     }
 
+    const morphWeights = readMorphTargetWeights(
+      entity,
+      meshEntry.asset,
+      diagnostics,
+    );
+
+    if (morphWeights === null) {
+      continue;
+    }
+
+    if (morphWeights !== undefined) {
+      pushMorphTargetWeights(
+        morphTargetWeights,
+        worldTransformOffset,
+        morphWeights,
+      );
+    }
+
     const boneMatrixOffset =
       skinning === undefined ? undefined : pushBoneMatrices(bones, skinning);
     const boundsIndex = bounds.length;
@@ -771,6 +796,7 @@ function extractMeshDraws(
         material: materialEntry.asset,
         instanceTint: instanceTintOffset !== undefined,
         skinned: skinning !== undefined,
+        morphed: morphWeights !== undefined,
       });
 
       const stableId =
@@ -831,6 +857,9 @@ function extractMeshDraws(
           topology: submesh.topology,
           skinned:
             skinning !== undefined && materialEntry.asset.kind === "standard",
+          morphed:
+            morphWeights !== undefined &&
+            materialEntry.asset.kind === "standard",
         }),
       });
     }
@@ -842,7 +871,8 @@ function extractMeshDraws(
       entityDraws.length > 0 &&
       diagnostics.length === entityDiagnosticsStart &&
       !entity.hasComponent(InstanceData) &&
-      !entity.hasComponent(Skin)
+      !entity.hasComponent(Skin) &&
+      morphWeights === undefined
     ) {
       const sourceBounds = bounds[boundsIndex];
 
@@ -1657,15 +1687,85 @@ function pushBoneMatrices(values: number[], skinning: SkinExtraction): number {
   return offset;
 }
 
+function readMorphTargetWeights(
+  entity: Entity,
+  mesh: MeshAsset,
+  diagnostics: RenderDiagnostic[],
+): readonly [number, number, number, number] | undefined | null {
+  if (!meshHasStandardMorphTargetAttributes(mesh)) {
+    return undefined;
+  }
+
+  if (!entity.hasComponent(MorphTargetWeights)) {
+    return [0, 0, 0, 0];
+  }
+
+  const weightsJson =
+    entity.getValue(MorphTargetWeights, "weightsJson") ?? "[]";
+  let parsed: unknown;
+
+  try {
+    parsed = JSON.parse(weightsJson);
+  } catch {
+    diagnostics.push(
+      diagnostic("render.morphTargetWeights.invalidJson", entity),
+    );
+    return null;
+  }
+
+  if (!Array.isArray(parsed)) {
+    diagnostics.push(
+      diagnostic("render.morphTargetWeights.invalidWeights", entity),
+    );
+    return null;
+  }
+
+  const weights = parseFiniteNumberArray(parsed);
+
+  if (weights === null) {
+    diagnostics.push(
+      diagnostic("render.morphTargetWeights.invalidWeights", entity),
+    );
+    return null;
+  }
+
+  return [
+    clamp(weights[0] ?? 0, -1, 1),
+    clamp(weights[1] ?? 0, -1, 1),
+    clamp(weights[2] ?? 0, -1, 1),
+    clamp(weights[3] ?? 0, -1, 1),
+  ];
+}
+
+function pushMorphTargetWeights(
+  values: number[],
+  worldTransformOffset: number,
+  weights: readonly [number, number, number, number],
+): number {
+  const packedOffset = (worldTransformOffset / 16) * 4;
+
+  while (values.length < packedOffset + 4) {
+    values.push(0);
+  }
+
+  values[packedOffset] = weights[0];
+  values[packedOffset + 1] = weights[1];
+  values[packedOffset + 2] = weights[2];
+  values[packedOffset + 3] = weights[3];
+
+  return packedOffset;
+}
+
 function createExtractedMaterialPipelineKeyInput(input: {
   readonly base: MaterialPipelineKeyInput;
   readonly material: MaterialAsset;
   readonly instanceTint: boolean;
   readonly skinned: boolean;
+  readonly morphed: boolean;
 }): MaterialPipelineKeyInput {
   if (
     input.material.kind !== "standard" ||
-    (!input.instanceTint && !input.skinned)
+    (!input.instanceTint && !input.skinned && !input.morphed)
   ) {
     return input.base;
   }
@@ -1680,6 +1780,10 @@ function createExtractedMaterialPipelineKeyInput(input: {
     features.add("skinned");
   }
 
+  if (input.morphed) {
+    features.add("morphed");
+  }
+
   return {
     ...input.base,
     features: [...features].sort(),
@@ -1688,10 +1792,25 @@ function createExtractedMaterialPipelineKeyInput(input: {
 
 function meshHasVertexSemantic(
   mesh: MeshAsset,
-  semantic: "JOINTS_0" | "WEIGHTS_0",
+  semantic:
+    | "JOINTS_0"
+    | "WEIGHTS_0"
+    | "MORPH_POSITION_0"
+    | "MORPH_NORMAL_0"
+    | "MORPH_POSITION_1"
+    | "MORPH_NORMAL_1",
 ): boolean {
   return mesh.vertexStreams.some((stream) =>
     stream.attributes.some((attribute) => attribute.semantic === semantic),
+  );
+}
+
+function meshHasStandardMorphTargetAttributes(mesh: MeshAsset): boolean {
+  return (
+    meshHasVertexSemantic(mesh, "MORPH_POSITION_0") &&
+    meshHasVertexSemantic(mesh, "MORPH_NORMAL_0") &&
+    meshHasVertexSemantic(mesh, "MORPH_POSITION_1") &&
+    meshHasVertexSemantic(mesh, "MORPH_NORMAL_1")
   );
 }
 
@@ -1707,6 +1826,10 @@ function parseFiniteNumberArray(values: readonly unknown[]): number[] | null {
   }
 
   return result;
+}
+
+function clamp(value: number, min: number, max: number): number {
+  return Math.min(max, Math.max(min, value));
 }
 
 function instanceDataComponents(value: unknown): readonly number[] | null {

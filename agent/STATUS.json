@@ -6,6 +6,6 @@
   "lastResult": "success",
   "lastCommit": "a1e1e10",
   "activePid": null,
-  "notes": "Completed task-3057 visible GLB skinning: imported JOINTS_0/WEIGHTS_0, packed mixed skinned mesh streams, added GLB viewer Skin palette animation/status, updated tests/docs/backlog, and validated with pnpm run check plus direct headed Chrome skinning smoke.",
-  "lastRunFinishedAt": "2026-05-22T02:50:10Z"
+  "notes": "Completed task-3058 visible GLB morph targets and checkpointed task-3059: KTX2 decode, data URI load, and KHR_texture_basisu image/ktx2 routing. BasisU WASM transcoding plus compressed GLB viewer sample remain next.",
+  "lastRunFinishedAt": "2026-05-22T03:50:29Z"
 }

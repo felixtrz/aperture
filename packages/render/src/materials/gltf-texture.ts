@@ -13,6 +13,7 @@ import type {
   TextureSemantic,
   TextureSourceData,
 } from "./types.js";
+import { decodeKtx2TextureData } from "../assets/ktx2-decoder.js";
 
 export type GltfTextureMappingDiagnosticSeverity = "error" | "warning";
 
@@ -164,9 +165,12 @@ export interface GltfTextureMappingReportJsonValue {
   readonly diagnostics: readonly GltfTextureMappingDiagnostic[];
 }
 
-const SUPPORTED_IMAGE_MIME_TYPES = new Set(["image/png", "image/jpeg"]);
+const SUPPORTED_IMAGE_MIME_TYPES = new Set([
+  "image/png",
+  "image/jpeg",
+  "image/ktx2",
+]);
 const UNSUPPORTED_TEXTURE_EXTENSIONS = new Set([
-  "KHR_texture_basisu",
   "EXT_texture_webp",
   "EXT_texture_avif",
 ]);
@@ -493,6 +497,24 @@ function mapImageIndex(input: {
   readonly slot: GltfMaterialTextureSlot;
   readonly diagnostics: GltfTextureMappingDiagnostic[];
 }): number | null {
+  const basisuSource = textureBasisuSource(input.texture);
+  if (basisuSource !== undefined) {
+    if (isNonNegativeInteger(basisuSource)) {
+      return basisuSource;
+    }
+
+    input.diagnostics.push({
+      code: "gltfTexture.invalidTextureSource",
+      severity: "error",
+      textureIndex: input.textureIndex,
+      slot: input.slot,
+      field: `textures[${input.textureIndex}].extensions.KHR_texture_basisu.source`,
+      value: toDiagnosticValue(basisuSource),
+      message: `textures[${input.textureIndex}].extensions.KHR_texture_basisu.source must be a non-negative image index.`,
+    });
+    return null;
+  }
+
   if (isNonNegativeInteger(input.texture.source)) {
     return input.texture.source;
   }
@@ -507,6 +529,14 @@ function mapImageIndex(input: {
     message: `textures[${input.textureIndex}].source must be a non-negative image index.`,
   });
   return null;
+}
+
+function textureBasisuSource(texture: Record<string, unknown>): unknown {
+  const extensions = recordField(texture, "extensions");
+  if (extensions === undefined) {
+    return undefined;
+  }
+  return recordField(extensions, "KHR_texture_basisu")?.source;
 }
 
 function mapSamplerIndex(input: {
@@ -1038,6 +1068,10 @@ async function bytesFromFetchResult(
 async function decodeImageBytesWithBrowserCanvas(
   input: GltfImageBytesDecoderInput,
 ): Promise<GltfDecodedImageData> {
+  if (input.mimeType === "image/ktx2") {
+    return decodeKtx2TextureData(input.bytes);
+  }
+
   if (
     typeof Blob === "undefined" ||
     typeof createImageBitmap !== "function" ||
@@ -1163,6 +1197,9 @@ function mimeTypeFromUri(uri: string): string | undefined {
   }
   if (lower.endsWith(".jpg") || lower.endsWith(".jpeg")) {
     return "image/jpeg";
+  }
+  if (lower.endsWith(".ktx2")) {
+    return "image/ktx2";
   }
   return undefined;
 }

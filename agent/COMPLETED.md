@@ -1,5 +1,24 @@
 # Completed Tasks
 
+## task-3058 — Visible morph target in glb-viewer
+
+Completed: 2026-05-22
+
+- Replaced the GLB viewer morph metadata diagnostic fixture with a visible
+  StandardMaterial morph-target sample in `examples/assets/morph-target.glb`.
+- Mapped the first two glTF primitive target POSITION/NORMAL accessors through
+  primitive mapping, accessor validation, and mesh construction into the
+  StandardMaterial morph vertex stream.
+- Added ECS `MorphTargetWeights` authoring/extraction, snapshot
+  `morphTargetWeights` transfer support, runtime `withMorphTargetWeights(...)`,
+  and WebGPU morph weight storage-buffer resources at group 1 binding 2.
+- Updated GLB viewer worker/main status and UI so sliders change live morph
+  weights without reporting morph targets as unsupported.
+- Validation run: build, lint, format check, test typecheck, full Vitest,
+  targeted render/runtime/WebGPU TypeScript, targeted importer/WebGPU Vitest,
+  example syntax checks, and a direct headed Chrome smoke with slider-driven
+  pixel-delta assertions passed.
+
 ## task-3057 — Visible skinned character in glb-viewer
 
 Completed: 2026-05-22

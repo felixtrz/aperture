@@ -8,6 +8,7 @@ import type {
 import type {
   MeshAsset,
   MeshIndexBufferDescriptor,
+  MeshMorphTargetDescriptor,
   MeshVertexAttributeDescriptor,
 } from "../mesh/index.js";
 
@@ -192,6 +193,7 @@ function createMeshAssetFromPrimitive(
     return null;
   }
   const skinning = createMeshSkinningSchema(packed.descriptors);
+  const morphTargets = createMeshMorphTargetDescriptors(packed.descriptors);
 
   return {
     kind: "mesh",
@@ -221,6 +223,7 @@ function createMeshAssetFromPrimitive(
     localAabb: bounds.aabb,
     localSphere: bounds.sphere,
     ...(skinning === null ? {} : { skinning }),
+    ...(morphTargets.length === 0 ? {} : { morphTargets }),
   };
 }
 
@@ -237,6 +240,37 @@ function createMeshSkinningSchema(
   return hasJoints0 && hasWeights0
     ? { joints0: "JOINTS_0", weights0: "WEIGHTS_0" }
     : null;
+}
+
+function createMeshMorphTargetDescriptors(
+  descriptors: readonly MeshVertexAttributeDescriptor[],
+): NonNullable<MeshAsset["morphTargets"]> {
+  const semantics = new Set(
+    descriptors.map((descriptor) => descriptor.semantic),
+  );
+  const targets: MeshMorphTargetDescriptor[] = [];
+
+  if (semantics.has("MORPH_POSITION_0")) {
+    targets.push({
+      label: "target0",
+      positionSemantic: "MORPH_POSITION_0",
+      ...(semantics.has("MORPH_NORMAL_0")
+        ? { normalSemantic: "MORPH_NORMAL_0" }
+        : {}),
+    });
+  }
+
+  if (semantics.has("MORPH_POSITION_1")) {
+    targets.push({
+      label: "target1",
+      positionSemantic: "MORPH_POSITION_1",
+      ...(semantics.has("MORPH_NORMAL_1")
+        ? { normalSemantic: "MORPH_NORMAL_1" }
+        : {}),
+    });
+  }
+
+  return targets;
 }
 
 function collectAttributes(
@@ -271,11 +305,17 @@ function collectAttributes(
     "TEXCOORD_0",
     "JOINTS_0",
     "WEIGHTS_0",
+    "MORPH_POSITION_0",
+    "MORPH_NORMAL_0",
+    "MORPH_POSITION_1",
+    "MORPH_NORMAL_1",
     "TANGENT",
     "TEXCOORD_1",
     "COLOR_0",
   ] as const) {
-    const decoded = decodedBySemantic.get(semantic);
+    const decoded =
+      decodedBySemantic.get(semantic) ??
+      createZeroMorphAccessor(semantic, primitive, decodedBySemantic);
     if (decoded === undefined) {
       continue;
     }
@@ -300,6 +340,34 @@ function collectAttributes(
   }
 
   return sources;
+}
+
+function createZeroMorphAccessor(
+  semantic: string,
+  primitive: GltfDecodedPrimitiveAccessors,
+  decodedBySemantic: ReadonlyMap<string, GltfDecodedAccessor>,
+): GltfDecodedAccessor | undefined {
+  const requiredByPosition =
+    semantic === "MORPH_NORMAL_0"
+      ? decodedBySemantic.has("MORPH_POSITION_0")
+      : semantic === "MORPH_POSITION_1" || semantic === "MORPH_NORMAL_1"
+        ? decodedBySemantic.has("MORPH_POSITION_0")
+        : false;
+
+  if (!requiredByPosition) {
+    return undefined;
+  }
+
+  return {
+    semantic: semantic as GltfDecodedAccessor["semantic"],
+    accessorIndex: -1,
+    bufferIndex: -1,
+    sourceByteOffset: 0,
+    sourceByteLength: 0,
+    expectedFormat: "float32x3",
+    itemSize: 3,
+    array: new Float32Array(primitive.vertexCount * 3),
+  };
 }
 
 function generateMissingTangents(

@@ -189,6 +189,7 @@ export interface RenderSnapshot {
   readonly bounds: readonly BoundsPacket[];
   readonly transforms: Float32Array;
   readonly bones?: Float32Array;
+  readonly morphTargetWeights?: Float32Array;
   readonly instanceTints?: Float32Array;
   readonly instanceAttributes?: Float32Array;
   readonly instanceAttributePackets?: readonly InstanceAttributePacket[];

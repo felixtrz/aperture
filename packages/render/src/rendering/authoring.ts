@@ -81,6 +81,10 @@ export interface SkinInput {
   readonly jointMatrices: ArrayLike<number>;
 }
 
+export interface MorphTargetWeightsInput {
+  readonly weights: ArrayLike<number>;
+}
+
 export type RenderAuthoringDiagnosticCode =
   | "camera.invalidProjection"
   | "camera.invalidViewport"
@@ -171,6 +175,15 @@ export const Skin = defineComponent(
   "Renderer-independent per-entity skin palette stored as serialized joint matrices.",
 );
 
+export const MorphTargetWeights = defineComponent(
+  "aperture.render.morphTargetWeights",
+  {
+    targetCount: { type: EcsType.Int32, default: 0 },
+    weightsJson: { type: EcsType.String, default: "[]" },
+  },
+  "Renderer-independent per-entity morph target weights stored as serialized scalar values.",
+);
+
 export const Camera = defineComponent(
   "aperture.render.camera",
   {
@@ -256,6 +269,7 @@ export function registerRenderAuthoringComponents(world: EcsWorld): EcsWorld {
   world.registerComponent(InstanceTint);
   world.registerComponent(InstanceData);
   world.registerComponent(Skin);
+  world.registerComponent(MorphTargetWeights);
   world.registerComponent(Light);
   world.registerComponent(ShadowCaster);
   world.registerComponent(ShadowReceiver);
@@ -342,6 +356,17 @@ export function createSkin(
   return {
     jointCount: Math.floor(jointMatrices.length / 16),
     jointMatricesJson: JSON.stringify(jointMatrices),
+  };
+}
+
+export function createMorphTargetWeights(
+  input: MorphTargetWeightsInput,
+): ComponentInitialData<typeof MorphTargetWeights> {
+  const weights = Array.from(input.weights);
+
+  return {
+    targetCount: weights.length,
+    weightsJson: JSON.stringify(weights),
   };
 }
 

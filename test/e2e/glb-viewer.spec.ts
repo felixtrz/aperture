@@ -368,6 +368,24 @@ interface GlbViewerStatus extends ExampleStatusBase {
       readonly jointNodeIndices: readonly number[];
     }[];
   };
+  readonly morphing?: {
+    readonly status: string;
+    readonly targetCount: number;
+    readonly supportedTargetCount: number;
+    readonly morphedEntities: number;
+    readonly weights: readonly number[];
+    readonly targetNames: readonly string[];
+    readonly entries?: readonly {
+      readonly nodeIndex: number;
+      readonly meshIndex: number;
+      readonly primitiveIndex: number;
+      readonly entityKey: string;
+      readonly targetCount: number;
+      readonly declaredTargetCount: number;
+      readonly targetNames: readonly string[];
+      readonly weights: readonly number[];
+    }[];
+  };
   readonly hierarchy?: {
     readonly nodes: readonly {
       readonly nodeIndex: number;
@@ -4341,7 +4359,7 @@ test("Playwright bootstraps GLB viewer imported camera from URL", async ({
   webGpuValidation.expectNoWarnings();
 });
 
-test("Playwright reports unsupported morph targets while rendering the base GLB mesh", async ({
+test("Playwright renders visible morph target weights from the GLB viewer", async ({
   page,
 }) => {
   const webGpuValidation = attachWebGpuValidationConsoleGuard(page);
@@ -4366,21 +4384,40 @@ test("Playwright reports unsupported morph targets while rendering the base GLB 
               readonly id?: string;
               readonly loading?: boolean;
             };
+            readonly morphing?: {
+              readonly status?: string;
+              readonly targetCount?: number;
+              readonly morphedEntities?: number;
+            };
             readonly source?: { readonly ok?: boolean };
             readonly gltf?: {
               readonly metadata?: {
                 readonly unsupportedFeatureDiagnostics?: readonly {
                   readonly code?: string;
-                  readonly targetCount?: number;
-                  readonly primitiveCount?: number;
                 }[];
               };
+              readonly meshAttributes?: readonly {
+                readonly streams?: readonly {
+                  readonly arrayStride?: number;
+                  readonly attributes?: readonly {
+                    readonly semantic?: string;
+                  }[];
+                }[];
+              }[];
               readonly primitiveMaterials?: { readonly resolved?: number };
             };
             readonly extraction?: { readonly meshDraws?: number };
+            readonly renderState?: {
+              readonly pipelineKeys?: readonly string[];
+            };
+            readonly draw?: { readonly drawCalls?: number };
           };
         }
       ).__APERTURE_EXAMPLE_STATUS__;
+      const semantics =
+        status?.gltf?.meshAttributes?.[0]?.streams?.[0]?.attributes?.map(
+          (attribute) => attribute.semantic,
+        ) ?? [];
 
       return (
         (status?.frame ?? 0) >= 3 &&
@@ -4388,13 +4425,20 @@ test("Playwright reports unsupported morph targets while rendering the base GLB 
         status.selectedAsset.loading === false &&
         status.source?.ok === true &&
         status.gltf?.primitiveMaterials?.resolved === 1 &&
+        status.gltf?.metadata?.unsupportedFeatureDiagnostics?.length === 0 &&
+        status.gltf?.meshAttributes?.[0]?.streams?.[0]?.arrayStride === 80 &&
+        semantics.includes("MORPH_POSITION_0") &&
+        semantics.includes("MORPH_NORMAL_0") &&
+        semantics.includes("MORPH_POSITION_1") &&
+        semantics.includes("MORPH_NORMAL_1") &&
+        status.morphing?.status === "ready" &&
+        status.morphing.targetCount === 2 &&
+        status.morphing.morphedEntities === 1 &&
         status.extraction?.meshDraws === 1 &&
-        status.gltf?.metadata?.unsupportedFeatureDiagnostics?.some(
-          (diagnostic) =>
-            diagnostic.code === "gltfMetadata.unsupportedMorphTargets" &&
-            diagnostic.targetCount === 2 &&
-            diagnostic.primitiveCount === 1,
-        ) === true
+        status.renderState?.pipelineKeys?.includes(
+          "standard|morphed|opaque|none|less|none",
+        ) === true &&
+        status.draw?.drawCalls === 1
       );
     },
     undefined,
@@ -4427,7 +4471,7 @@ test("Playwright reports unsupported morph targets while rendering the base GLB 
       source: "sample",
       url: "/examples/assets/morph-target.glb",
       loading: false,
-      materialFamilies: [{ family: "unlit", count: 1 }],
+      materialFamilies: [{ family: "standard", count: 1 }],
     },
     gltf: {
       metadata: {
@@ -4441,26 +4485,48 @@ test("Playwright reports unsupported morph targets while rendering the base GLB 
           animations: 0,
         },
         extensions: {
-          used: ["KHR_materials_unlit"],
+          used: [],
           required: [],
         },
-        unsupportedFeatureDiagnostics: [
-          {
-            code: "gltfMetadata.unsupportedMorphTargets",
-            severity: "warning",
-            count: 2,
-            targetCount: 2,
-            primitiveCount: 1,
-          },
-        ],
+        unsupportedFeatureDiagnostics: [],
       },
       primitiveMaterials: {
         valid: true,
         resolved: 1,
         diagnostics: 0,
-        families: [{ family: "unlit", count: 1 }],
+        families: [{ family: "standard", count: 1 }],
       },
+      meshAttributes: [
+        {
+          streams: [
+            {
+              arrayStride: 80,
+              attributes: [
+                { semantic: "POSITION", offset: 0 },
+                { semantic: "NORMAL", offset: 12 },
+                { semantic: "TEXCOORD_0", offset: 24 },
+                { semantic: "MORPH_POSITION_0", offset: 32 },
+                { semantic: "MORPH_NORMAL_0", offset: 44 },
+                { semantic: "MORPH_POSITION_1", offset: 56 },
+                { semantic: "MORPH_NORMAL_1", offset: 68 },
+              ],
+            },
+          ],
+          indexBuffer: {
+            format: "uint16",
+            count: 6,
+          },
+        },
+      ],
       replay: { valid: true, diagnostics: 0 },
+    },
+    morphing: {
+      status: "ready",
+      targetCount: 2,
+      supportedTargetCount: 2,
+      morphedEntities: 1,
+      weights: [0, 0],
+      targetNames: ["slide", "stretch"],
     },
     extraction: {
       views: 1,
@@ -4473,12 +4539,56 @@ test("Playwright reports unsupported morph targets while rendering the base GLB 
       drawCalls: 1,
     },
   });
+  expect(status.renderState?.pipelineKeys).toContain(
+    "standard|morphed|opaque|none|less|none",
+  );
   expect(
     pixelDistance(center, clear),
-    `morph target base mesh should still render visible pixels; sample=${JSON.stringify(
+    `morph target mesh should render visible pixels; sample=${JSON.stringify(
       center,
     )}`,
   ).toBeGreaterThan(20);
+
+  await expect(page.locator("#glb-morph-weight-0")).toBeEnabled();
+  const baseScreenshot = screenshot;
+
+  await page.locator("#glb-morph-weight-0").evaluate((node) => {
+    if (!(node instanceof HTMLInputElement)) {
+      throw new Error("Morph target weight input was not an HTML input.");
+    }
+
+    node.value = "1";
+    node.dispatchEvent(new Event("input", { bubbles: true }));
+  });
+  await page.waitForFunction(
+    () => {
+      const status = (
+        globalThis as {
+          readonly __APERTURE_EXAMPLE_STATUS__?: {
+            readonly morphing?: { readonly weights?: readonly number[] };
+          };
+        }
+      ).__APERTURE_EXAMPLE_STATUS__;
+
+      return (status?.morphing?.weights?.[0] ?? 0) > 0.99;
+    },
+    undefined,
+    { timeout: 5000 },
+  );
+
+  const morphedStatus = await waitForExampleStatus<GlbViewerStatus>(page);
+  const morphedScreenshot = await page.locator("#aperture-canvas").screenshot();
+
+  expect(morphedStatus?.morphing).toMatchObject({
+    status: "ready",
+    targetCount: 2,
+    morphedEntities: 1,
+    weights: [1, 0],
+  });
+  expect(
+    maxSampleDelta(baseScreenshot, morphedScreenshot),
+    "morph target weight slider should visibly move rendered pixels",
+  ).toBeGreaterThan(8);
   webGpuValidation.expectNoWarnings();
 });
 
@@ -19678,20 +19788,6 @@ test("Playwright renders GLB viewer unsupported-feature summary rows", async ({
 
     expectStatusJsonSafeForGpu(status);
   }
-
-  await waitForUnsupportedSample({
-    assetId: "morph-target",
-    code: "gltfMetadata.unsupportedMorphTargets",
-  });
-  await expect(
-    unsupportedRow("gltfMetadata.unsupportedMorphTargets"),
-  ).toContainText("code gltfMetadata.unsupportedMorphTargets");
-  await expect(
-    unsupportedRow("gltfMetadata.unsupportedMorphTargets"),
-  ).toContainText("severity warning");
-  await expect(
-    unsupportedRow("gltfMetadata.unsupportedMorphTargets"),
-  ).toContainText("2 targets, 1 primitives");
 
   await waitForUnsupportedSample({
     assetId: "unsupported-primitive",

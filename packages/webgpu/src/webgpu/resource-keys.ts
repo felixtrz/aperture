@@ -6,6 +6,7 @@ export type WebGpuResourceKeyKind =
   | "view-uniform-buffer"
   | "world-transform-buffer"
   | "skinning-joint-buffer"
+  | "morph-target-weight-buffer"
   | "instance-tint-buffer"
   | "instance-attribute-buffer"
   | "shader-module"
@@ -59,6 +60,10 @@ export function worldTransformBufferResourceKey(label: string): string {
 
 export function skinningJointBufferResourceKey(label: string): string {
   return webGpuResourceKey("skinning-joint-buffer", label);
+}
+
+export function morphTargetWeightBufferResourceKey(label: string): string {
+  return webGpuResourceKey("morph-target-weight-buffer", label);
 }
 
 export function instanceTintBufferResourceKey(label: string): string {

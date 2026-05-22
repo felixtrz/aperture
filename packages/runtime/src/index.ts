@@ -38,6 +38,7 @@ import {
   LightShadowSettings,
   Material,
   Mesh,
+  MorphTargetWeights,
   RenderLayer,
   RenderOrder,
   ShadowCaster,
@@ -49,6 +50,7 @@ import {
   createInstanceTint,
   createLight,
   createLightShadowSettings,
+  createMorphTargetWeights,
   createSkin,
   extractRenderSnapshot,
   replayGltfEcsAuthoringCommands,
@@ -59,6 +61,7 @@ import {
   type InstanceDataValues,
   type LightInput,
   type LightShadowSettingsInput,
+  type MorphTargetWeightsInput,
   type RenderSnapshot,
   type SkinInput,
 } from "@aperture-engine/render";
@@ -354,6 +357,15 @@ export function withSkin(input: SkinInput): SpawnEntityInitializer {
   return (entity, context) => {
     registerRenderAuthoringComponents(context.world);
     entity.addComponent(Skin, createSkin(input));
+  };
+}
+
+export function withMorphTargetWeights(
+  input: MorphTargetWeightsInput,
+): SpawnEntityInitializer {
+  return (entity, context) => {
+    registerRenderAuthoringComponents(context.world);
+    entity.addComponent(MorphTargetWeights, createMorphTargetWeights(input));
   };
 }
 

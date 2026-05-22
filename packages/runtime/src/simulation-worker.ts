@@ -445,6 +445,7 @@ export function renderSnapshotTransferList(
     | "transforms"
     | "viewMatrices"
     | "bones"
+    | "morphTargetWeights"
     | "instanceTints"
     | "instanceAttributes"
   >,
@@ -464,6 +465,7 @@ export function estimateRenderSnapshotTransportCost(
     | "transforms"
     | "viewMatrices"
     | "bones"
+    | "morphTargetWeights"
     | "instanceTints"
     | "instanceAttributes"
   >,
@@ -472,6 +474,7 @@ export function estimateRenderSnapshotTransportCost(
     snapshot.transforms.byteLength +
     snapshot.viewMatrices.byteLength +
     (snapshot.bones?.byteLength ?? 0) +
+    (snapshot.morphTargetWeights?.byteLength ?? 0) +
     (snapshot.instanceTints?.byteLength ?? 0) +
     (snapshot.instanceAttributes?.byteLength ?? 0);
   const transferableBytes = 0;
@@ -490,6 +493,7 @@ function renderSnapshotBufferTransferList(input: {
   readonly transforms: Float32Array;
   readonly viewMatrices: Float32Array;
   readonly bones?: Float32Array;
+  readonly morphTargetWeights?: Float32Array;
   readonly instanceTints?: Float32Array;
   readonly instanceAttributes?: Float32Array;
 }): Transferable[] {
@@ -504,6 +508,13 @@ function renderSnapshotBufferTransferList(input: {
 
   if (input.bones !== undefined && input.bones.byteLength > 0) {
     transfer.push(input.bones.buffer as ArrayBuffer);
+  }
+
+  if (
+    input.morphTargetWeights !== undefined &&
+    input.morphTargetWeights.byteLength > 0
+  ) {
+    transfer.push(input.morphTargetWeights.buffer as ArrayBuffer);
   }
 
   if (

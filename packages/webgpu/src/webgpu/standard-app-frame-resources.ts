@@ -223,6 +223,7 @@ export function createOrReuseStandardAppFrameResources(options: {
       lightDescriptor.plan.source.metadata.byteLength &&
     !requiresInstanceTintBuffer(options.pipelineKey) &&
     !requiresSkinningJointBuffer(options.pipelineKey) &&
+    !requiresMorphTargetWeightBuffer(options.pipelineKey) &&
     writeBufferData(
       options.device,
       cached.result.resources.viewUniform.buffer,
@@ -386,6 +387,10 @@ function requiresInstanceTintBuffer(pipelineKey: string): boolean {
 
 function requiresSkinningJointBuffer(pipelineKey: string): boolean {
   return pipelineKey.split("|").includes("skinned");
+}
+
+function requiresMorphTargetWeightBuffer(pipelineKey: string): boolean {
+  return pipelineKey.split("|").includes("morphed");
 }
 
 type PreparedStandardMaterialUse = PreparedAppMaterialResourceUse<

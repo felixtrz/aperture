@@ -38,6 +38,13 @@ import {
   type SkinningJointGpuBufferResource,
 } from "./skinning-joint-buffer.js";
 import {
+  createMorphTargetWeightBufferDescriptor,
+  createMorphTargetWeightGpuBuffer,
+  type MorphTargetWeightBufferDescriptorDiagnostic,
+  type MorphTargetWeightGpuBufferDiagnostic,
+  type MorphTargetWeightGpuBufferResource,
+} from "./morph-target-weight-buffer.js";
+import {
   createMeshGpuBuffers,
   type MeshGpuBufferCreationDiagnostic,
   type MeshGpuBufferResource,
@@ -140,6 +147,8 @@ export type CreateStandardFrameGpuResourcesDiagnostic =
   | WorldTransformGpuBufferDiagnostic
   | SkinningJointBufferDescriptorDiagnostic
   | SkinningJointGpuBufferDiagnostic
+  | MorphTargetWeightBufferDescriptorDiagnostic
+  | MorphTargetWeightGpuBufferDiagnostic
   | InstanceTintBufferDescriptorDiagnostic
   | InstanceTintGpuBufferDiagnostic
   | StandardMaterialPackingDiagnostic
@@ -209,6 +218,7 @@ export interface StandardFrameGpuResources {
   readonly worldTransforms: WorldTransformGpuBufferResource;
   readonly instanceTints?: InstanceTintGpuBufferResource;
   readonly skinningJointMatrices?: SkinningJointGpuBufferResource;
+  readonly morphTargetWeights?: MorphTargetWeightGpuBufferResource;
   readonly material: StandardMaterialGpuBufferResource;
   readonly lightGpuBuffers: CreateSnapshotLightGpuBuffersResult;
   readonly materialBindGroup: StandardMaterialBindGroupResource;
@@ -242,6 +252,10 @@ export function createStandardFrameGpuResources(
     options,
     diagnostics,
   );
+  const morphTargetWeights = createMorphTargetWeightResource(
+    options,
+    diagnostics,
+  );
   const material =
     options.preparedMaterial?.material ??
     createMaterialResource(options, diagnostics);
@@ -250,6 +264,7 @@ export function createStandardFrameGpuResources(
     viewUniform,
     worldTransforms,
     skinningJointMatrices,
+    morphTargetWeights,
     diagnostics,
   );
   const materialBindGroup =
@@ -285,6 +300,8 @@ export function createStandardFrameGpuResources(
       instanceTints === null) ||
     (requiresSkinningJointBuffer(options.pipelineKey) &&
       skinningJointMatrices === null) ||
+    (requiresMorphTargetWeightBuffer(options.pipelineKey) &&
+      morphTargetWeights === null) ||
     material === null ||
     !sharedBindGroups.valid ||
     materialBindGroup === null ||
@@ -303,6 +320,7 @@ export function createStandardFrameGpuResources(
       worldTransforms,
       ...(instanceTints === null ? {} : { instanceTints }),
       ...(skinningJointMatrices === null ? {} : { skinningJointMatrices }),
+      ...(morphTargetWeights === null ? {} : { morphTargetWeights }),
       material,
       lightGpuBuffers,
       materialBindGroup,
@@ -326,6 +344,10 @@ function requiresInstanceTintBuffer(pipelineKey: string): boolean {
 
 function requiresSkinningJointBuffer(pipelineKey: string): boolean {
   return pipelineKey.split("|").includes("skinned");
+}
+
+function requiresMorphTargetWeightBuffer(pipelineKey: string): boolean {
+  return pipelineKey.split("|").includes("morphed");
 }
 
 function resolveStandardMaterialIblBindGroupResource(
@@ -513,6 +535,45 @@ function createSkinningJointResource(
   return resource.valid ? resource.resource : null;
 }
 
+function createMorphTargetWeightResource(
+  options: Pick<
+    CreateStandardFrameGpuResourcesOptions,
+    "device" | "snapshot" | "draw" | "pipelineKey"
+  >,
+  diagnostics: CreateStandardFrameGpuResourcesDiagnostic[],
+): MorphTargetWeightGpuBufferResource | null {
+  if (!requiresMorphTargetWeightBuffer(options.pipelineKey)) {
+    return null;
+  }
+
+  if (options.draw === undefined) {
+    diagnostics.push({
+      code: "morphTargetWeightBuffer.missingData",
+      renderId: 0,
+      field: "draw",
+      message:
+        "Standard frame GPU resource creation requires a draw packet for a morphed pipeline.",
+    });
+    return null;
+  }
+
+  const descriptor = createMorphTargetWeightBufferDescriptor(
+    options.snapshot,
+    options.draw,
+  );
+
+  diagnostics.push(...descriptor.diagnostics);
+
+  const resource = createMorphTargetWeightGpuBuffer({
+    device: options.device,
+    plan: descriptor.plan,
+  });
+
+  diagnostics.push(...resource.diagnostics);
+
+  return resource.valid ? resource.resource : null;
+}
+
 function createMaterialResource(
   options: Pick<CreateStandardFrameGpuResourcesOptions, "device" | "material">,
   diagnostics: CreateStandardFrameGpuResourcesDiagnostic[],
@@ -547,6 +608,7 @@ function createSharedBindGroups(
   viewUniform: ViewUniformGpuBufferResource | null,
   worldTransforms: WorldTransformGpuBufferResource | null,
   skinningJointMatrices: SkinningJointGpuBufferResource | null,
+  morphTargetWeights: MorphTargetWeightGpuBufferResource | null,
   diagnostics: CreateStandardFrameGpuResourcesDiagnostic[],
 ): CreateUnlitBindGroupsResult {
   const plan = createSharedBindGroupDescriptorPlan({
@@ -555,6 +617,11 @@ function createSharedBindGroups(
     ...(requiresSkinningJointBuffer(options.pipelineKey)
       ? {
           skinningJointResourceKey: skinningJointMatrices?.resourceKey ?? null,
+        }
+      : {}),
+    ...(requiresMorphTargetWeightBuffer(options.pipelineKey)
+      ? {
+          morphTargetWeightResourceKey: morphTargetWeights?.resourceKey ?? null,
         }
       : {}),
   });
@@ -589,6 +656,14 @@ function createSharedBindGroups(
             {
               resourceKey: skinningJointMatrices.resourceKey,
               buffer: skinningJointMatrices.buffer,
+            },
+          ]),
+      ...(morphTargetWeights === null
+        ? []
+        : [
+            {
+              resourceKey: morphTargetWeights.resourceKey,
+              buffer: morphTargetWeights.buffer,
             },
           ]),
     ],
@@ -830,6 +905,7 @@ function createSharedBindGroupDescriptorPlan(input: {
   readonly viewUniformResourceKey: string | null;
   readonly worldTransformResourceKey: string | null;
   readonly skinningJointResourceKey?: string | null;
+  readonly morphTargetWeightResourceKey?: string | null;
 }): UnlitBindGroupDescriptorPlan {
   const diagnostics: UnlitBindGroupDescriptorDiagnostic[] = [];
   const entries: UnlitBindGroupDescriptorEntry[] = [];
@@ -874,6 +950,21 @@ function createSharedBindGroupDescriptorPlan(input: {
       group: 1,
       binding: 1,
       resourceKey: input.skinningJointResourceKey,
+      resourceKind: "buffer",
+    });
+  }
+
+  if (input.morphTargetWeightResourceKey === null) {
+    diagnostics.push({
+      code: "unlitBindGroup.missingTransformResource",
+      message:
+        "Standard morphed shared bind group planning requires a morph target weight buffer.",
+    });
+  } else if (input.morphTargetWeightResourceKey !== undefined) {
+    entries.push({
+      group: 1,
+      binding: 2,
+      resourceKey: input.morphTargetWeightResourceKey,
       resourceKind: "buffer",
     });
   }

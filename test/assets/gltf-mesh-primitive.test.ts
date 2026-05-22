@@ -213,4 +213,42 @@ describe("glTF mesh primitive mapping report", () => {
       },
     ]);
   });
+
+  it("maps the first two glTF morph target POSITION and NORMAL accessors", () => {
+    const report = createGltfMeshPrimitiveMappingReport({
+      root: {
+        asset: { version: "2.0" },
+        accessors: [{}, {}, {}, {}, {}, {}, {}, {}],
+        meshes: [
+          {
+            primitives: [
+              {
+                attributes: {
+                  POSITION: 0,
+                  NORMAL: 1,
+                  TEXCOORD_0: 2,
+                },
+                indices: 3,
+                targets: [
+                  { POSITION: 4, NORMAL: 5 },
+                  { POSITION: 6, NORMAL: 7 },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    });
+
+    expect(report.valid).toBe(true);
+    expect(report.meshes[0]?.attributes).toMatchObject({
+      position: { semantic: "POSITION", accessorIndex: 0 },
+      normal: { semantic: "NORMAL", accessorIndex: 1 },
+      texcoord0: { semantic: "TEXCOORD_0", accessorIndex: 2 },
+      morphPosition0: { semantic: "MORPH_POSITION_0", accessorIndex: 4 },
+      morphNormal0: { semantic: "MORPH_NORMAL_0", accessorIndex: 5 },
+      morphPosition1: { semantic: "MORPH_POSITION_1", accessorIndex: 6 },
+      morphNormal1: { semantic: "MORPH_NORMAL_1", accessorIndex: 7 },
+    });
+  });
 });

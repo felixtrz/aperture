@@ -59,17 +59,21 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start `task-3058`: Visible morph target in glb-viewer.
+Start `task-3059`: KTX2 / BasisU texture decoder integration.
 
-Why this next: the Tier 11 skinning path now has a visible GLB viewer proof.
-`task-3057` replaced the old skinning metadata diagnostic sample with a visible
-StandardMaterial skinned-character GLB path: the importer maps
+Why this next: the Tier 11 skinning and morph-target paths now have visible GLB
+viewer proofs. `task-3057` replaced the old skinning metadata diagnostic sample
+with a visible StandardMaterial skinned-character GLB path: the importer maps
 `JOINTS_0`/`WEIGHTS_0`, packs the mixed vertex stream, attaches ECS `Skin`
 palettes, and proves animated joint matrices with a headed Chrome pixel smoke.
-`task-3056` already added the first StandardMaterial `morphed` shader variant
-with two delta target streams and draw-instance morph weights. The next visible
-gap is driving a GLB morph-target sample through the viewer with live weights
-instead of reporting unsupported morph metadata.
+`task-3058` replaced the morph metadata diagnostic sample with a visible
+StandardMaterial morph-target path: the importer maps two morph target streams,
+attaches ECS `MorphTargetWeights`, publishes live slider state, and proves
+slider-driven pixel changes. The next visible gap is compressed glTF texture
+support via KTX2 / BasisU. A partial `task-3059` slice now parses uncompressed
+KTX2 RGBA8/RGBA8-sRGB payloads and routes `KHR_texture_basisu.source` to
+`image/ktx2`; BasisU WASM transcoding and a compressed GLB viewer sample remain
+open.
 
 Progress so far: `spinning-cube`, `multi-light-shadow`, and `glb-viewer` now
 use renderer-only `*.main.js` files plus ECS/extraction-owned `*.worker.js`
@@ -119,14 +123,15 @@ worker-authored HDR scene. StandardMaterial now has a `skinned` shader variant
 with JOINTS_0/WEIGHTS_0 vertex attributes, browser-safe group-1 joint matrix
 metadata, ECS `Skin` palette extraction into snapshot `bones`, draw-scoped
 skinning joint storage buffers, a `morphed` shader variant with two
-position/normal delta target streams, visible GLB viewer skinning import and
-animation, and targeted shader/pipeline/resource/interpolation tests.
+position/normal delta target streams, visible GLB viewer skinning and morph
+imports, live morph weight controls, and targeted
+shader/pipeline/resource/importer tests.
 
 Reference anchors (read before writing):
 
-- Khronos morph-target sample (`MorphPrimitivesTest` or similar).
-- `references/three.js/examples/webgl_morphtargets.html`.
-- Existing Aperture `glb-viewer` sample asset/status wiring.
+- `references/three.js/examples/jsm/loaders/KTX2Loader.js`.
+- `references/engine/src/framework/parsers/texture/ktx2.js`.
+- Existing Aperture glTF texture decode and unsupported-extension diagnostics.
 
 ## Strategic Focus — Pipeline Maturity Roadmap
 
@@ -821,6 +826,8 @@ Acceptance criteria:
 - Draw call count remains 1 per primitive (skinning doesn't break batching for single-entity meshes).
 
 ### task-3058 — Visible morph target in glb-viewer (Tier 11 part 5)
+
+Status: completed 2026-05-22. See `agent/COMPLETED.md`.
 
 Category: `runtime-orchestration`
 Package/write-scope: `examples/glb-viewer.{main.js,worker.js}`, commit a morph-target GLB sample, `test/e2e/glb-viewer.spec.ts`.

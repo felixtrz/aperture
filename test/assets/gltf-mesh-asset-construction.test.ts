@@ -301,6 +301,64 @@ describe("glTF mesh source asset construction", () => {
     expect(view.getFloat32(vertex2 + 40, true)).toBe(1);
   });
 
+  it("packs morph target attributes into the standard morphed stream layout", () => {
+    const decodedReport = decodedFixture({
+      positions: new Float32Array([
+        -0.5, -0.5, 0, 0.5, -0.5, 0, 0.5, 0.5, 0, -0.5, 0.5, 0,
+      ]),
+      normals: new Float32Array([0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1]),
+      texcoords: new Float32Array([0, 1, 1, 1, 1, 0, 0, 0]),
+      morphPosition0: new Float32Array([
+        0.4, 0, 0, 0.4, 0, 0, 0.4, 0, 0, 0.4, 0, 0,
+      ]),
+      morphNormal0: new Float32Array(12),
+      morphPosition1: new Float32Array([
+        0, -0.2, 0, 0, -0.2, 0, 0, 0.3, 0, 0, 0.3, 0,
+      ]),
+      morphNormal1: new Float32Array(12),
+      indices: new Uint16Array([0, 1, 2, 0, 2, 3]),
+    });
+    const report = createMeshAssetsFromGltfDecodedAccessors({ decodedReport });
+    const mesh = report.meshes[0]?.mesh;
+    const stream = mesh?.vertexStreams[0];
+
+    expect(report.valid).toBe(true);
+    expect(report.diagnostics).toEqual([]);
+    expect(mesh?.morphTargets).toEqual([
+      {
+        label: "target0",
+        positionSemantic: "MORPH_POSITION_0",
+        normalSemantic: "MORPH_NORMAL_0",
+      },
+      {
+        label: "target1",
+        positionSemantic: "MORPH_POSITION_1",
+        normalSemantic: "MORPH_NORMAL_1",
+      },
+    ]);
+    expect(stream).toMatchObject({
+      arrayStride: 80,
+      vertexCount: 4,
+      attributes: [
+        { semantic: "POSITION", format: "float32x3", offset: 0 },
+        { semantic: "NORMAL", format: "float32x3", offset: 12 },
+        { semantic: "TEXCOORD_0", format: "float32x2", offset: 24 },
+        { semantic: "MORPH_POSITION_0", format: "float32x3", offset: 32 },
+        { semantic: "MORPH_NORMAL_0", format: "float32x3", offset: 44 },
+        { semantic: "MORPH_POSITION_1", format: "float32x3", offset: 56 },
+        { semantic: "MORPH_NORMAL_1", format: "float32x3", offset: 68 },
+      ],
+    });
+    expect(stream?.data).toBeInstanceOf(Float32Array);
+    if (!(stream?.data instanceof Float32Array)) {
+      throw new Error("Expected morphed mesh stream data to be float-packed.");
+    }
+
+    expect(stream.data[32 / 4]).toBeCloseTo(0.4);
+    expect(stream.data[(56 + 4) / 4]).toBeCloseTo(-0.2);
+    expect(stream.data[(3 * 80 + 56 + 4) / 4]).toBeCloseTo(0.3);
+  });
+
   it("reports mismatched optional attribute counts", () => {
     const decodedReport = decodedFixture({
       positions: new Float32Array([0, 0, 0, 1, 0, 0]),
@@ -329,6 +387,10 @@ function decodedFixture(input: {
   readonly colors?: Float32Array;
   readonly joints?: Uint16Array;
   readonly weights?: Float32Array;
+  readonly morphPosition0?: Float32Array;
+  readonly morphNormal0?: Float32Array;
+  readonly morphPosition1?: Float32Array;
+  readonly morphNormal1?: Float32Array;
   readonly indices?: Uint16Array;
 }): GltfAccessorDecodingReport {
   const attributes: GltfAccessorDecodingReport["primitives"][number]["attributes"][number][] =
@@ -367,6 +429,18 @@ function decodedFixture(input: {
   }
   if (input.weights !== undefined) {
     addAttribute("WEIGHTS_0", input.weights, "float32x4", 4);
+  }
+  if (input.morphPosition0 !== undefined) {
+    addAttribute("MORPH_POSITION_0", input.morphPosition0, "float32x3", 3);
+  }
+  if (input.morphNormal0 !== undefined) {
+    addAttribute("MORPH_NORMAL_0", input.morphNormal0, "float32x3", 3);
+  }
+  if (input.morphPosition1 !== undefined) {
+    addAttribute("MORPH_POSITION_1", input.morphPosition1, "float32x3", 3);
+  }
+  if (input.morphNormal1 !== undefined) {
+    addAttribute("MORPH_NORMAL_1", input.morphNormal1, "float32x3", 3);
   }
   if (input.tangents !== undefined) {
     addAttribute("TANGENT", input.tangents, "float32x4", 4);

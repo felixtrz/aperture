@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-22 02:32 UTC</dd>
+            <dd>2026-05-22 03:36 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -411,16 +411,18 @@
               <code>Skin</code> palettes, extracts snapshot
               <code>bones</code> data with per-draw offsets, and binds
               draw-scoped joint-matrix storage buffers through browser-safe
-              group 1 binding 1. The StandardMaterial shader planner now also
-              has a <code>morphed</code> variant that reads two position/normal
-              delta target streams plus per-instance morph weights from group 1
-              binding 2. The render-packet inspector example now renders a
-              worker-authored snapshot while publishing JSON-safe packet tables
-              for views, draws, lights, environments, bounds, queue keys,
-              handles, skipped-entity explanations, and culling stats.
-              Extraction now builds camera frustum planes from view-projection
-              matrices, skips mesh draws outside every matching camera view,
-              reports per-view <code>cullStats</code>, and exposes
+              group 1 binding 1. The StandardMaterial morph path now imports the
+              first two GLB morph target delta streams, exposes live
+              <code>glb-viewer</code> weight sliders, attaches ECS-authored
+              <code>MorphTargetWeights</code>, and renders through group 1
+              binding 2 with a <code>standard|morphed</code> pipeline. The
+              render-packet inspector example now renders a worker-authored
+              snapshot while publishing JSON-safe packet tables for views,
+              draws, lights, environments, bounds, queue keys, handles,
+              skipped-entity explanations, and culling stats. Extraction now
+              builds camera frustum planes from view-projection matrices, skips
+              mesh draws outside every matching camera view, reports per-view
+              <code>cullStats</code>, and exposes
               <code>frustumCulling: false</code> as a camera opt-out. Custom
               WGSL materials can now declare per-instance attribute layouts with
               <code>defineInstanceAttributes(...)</code>, runtime entities can
@@ -626,31 +628,32 @@
               same-origin URI texture decode through the custom URL path,
               real-URI gallery previous/next buttons, URL-persisted sample
               selection, and stale custom image-decode clearing when switching
-              back to committed samples. The GLB viewer now includes unsupported
-              morph-target, skinning, primitive-mode, CUBICSPLINE animation, and
-              multi-scene samples that keep supported base meshes rendering
-              while reporting JSON-safe diagnostics and scene metadata. It also
-              includes real same-origin PNG/JPEG base-color, PNG normal-map, PNG
-              emissive, PNG metallic-roughness, PNG alpha-mask, and PNG
-              occlusion URI image decode, all-slot real URI texture coverage,
-              occlusion and metallic-roughness transform controls, sampler wrap
-              controls, UV1 image-decode controls, alpha-mask plus emissive
-              controls, normal plus occlusion controls, alpha-blend texture,
-              selector stress coverage across real URI samples, selected-asset
-              material-slot summary counts, keyboard previous/next navigation
-              across the real URI texture gallery, rotated metallic-roughness
-              transform, transformed-vs-untransformed normal and emissive
-              controls, emissive StandardMaterial, occlusion/emissive texture,
-              occlusion texture-transform, normal transform, emissive transform,
-              alpha-mask, sampler-state texture, texture-transform, missing-UV1,
-              supported base-color UV1, metallic-roughness UV1, and normal-scale
-              samples with routed material, texture, sampler, transform/control,
-              alpha, UV1, image-decode, and sanitized extraction-diagnostic
-              status. Existing roughness/IBL, normal-map, and base-color plus
-              metallic-roughness StandardMaterial samples keep JSON-safe factor
-              and texture-slot status, while the latest combined samples extend
-              coverage across metallic/normal, UV1 base/normal, base/emissive,
-              and alpha-mask/normal routes. GLB mesh construction now preserves
+              back to committed samples. The GLB viewer now includes visible
+              morph-target and skinning samples, plus primitive-mode,
+              CUBICSPLINE animation, and multi-scene samples that keep supported
+              base meshes rendering while reporting JSON-safe diagnostics and
+              scene metadata. It also includes real same-origin PNG/JPEG
+              base-color, PNG normal-map, PNG emissive, PNG metallic-roughness,
+              PNG alpha-mask, and PNG occlusion URI image decode, all-slot real
+              URI texture coverage, occlusion and metallic-roughness transform
+              controls, sampler wrap controls, UV1 image-decode controls,
+              alpha-mask plus emissive controls, normal plus occlusion controls,
+              alpha-blend texture, selector stress coverage across real URI
+              samples, selected-asset material-slot summary counts, keyboard
+              previous/next navigation across the real URI texture gallery,
+              rotated metallic-roughness transform, transformed-vs-untransformed
+              normal and emissive controls, emissive StandardMaterial,
+              occlusion/emissive texture, occlusion texture-transform, normal
+              transform, emissive transform, alpha-mask, sampler-state texture,
+              texture-transform, missing-UV1, supported base-color UV1,
+              metallic-roughness UV1, and normal-scale samples with routed
+              material, texture, sampler, transform/control, alpha, UV1,
+              image-decode, and sanitized extraction-diagnostic status. Existing
+              roughness/IBL, normal-map, and base-color plus metallic-roughness
+              StandardMaterial samples keep JSON-safe factor and texture-slot
+              status, while the latest combined samples extend coverage across
+              metallic/normal, UV1 base/normal, base/emissive, and
+              alpha-mask/normal routes. GLB mesh construction now preserves
               <code>TEXCOORD_1</code> alongside tangent attributes for texture
               routing and normal mapping, and animation playback now has speed,
               clip-selection, loop, reverse, rotation/scale, and STEP
@@ -1239,7 +1242,7 @@
               key so live route changes do not reuse incompatible layouts.
             </dd>
             <dt>Next focus</dt>
-            <dd>task-3058 visible morph target in glb-viewer</dd>
+            <dd>task-3059 KTX2 / BasisU texture decoder integration</dd>
           </dl>
         </aside>
       </header>
@@ -1494,8 +1497,8 @@
               mapping, URI loading, and a broad local GLB viewer path with lit
               StandardMaterial, animated, multi-clip, rotation/scale, STEP
               interpolation, imported-camera, embedded-image texture,
-              imported-light, visible skinned-character, unsupported
-              morph-target/orthographic camera/primitive-mode/CUBICSPLINE
+              imported-light, visible skinned-character, visible morph-target,
+              unsupported orthographic camera/primitive-mode/CUBICSPLINE
               diagnostics, multi-scene metadata/default-scene rendering,
               emissive StandardMaterial, occlusion/emissive texture status,
               occlusion texture transforms, alpha-mask status, sampler-state
@@ -1927,12 +1930,11 @@
             <h3>Latest work in this update</h3>
             <ul>
               <li>
-                <span class="badge green">task-3057</span> Replaced the GLB
-                viewer skinning metadata fixture with a visible StandardMaterial
-                skinned-character sample. The loader now maps
-                <code>JOINTS_0</code>/<code>WEIGHTS_0</code>, packs the mixed
-                vertex stream, creates ECS <code>Skin</code> palettes, and
-                animates joint matrices with a browser pixel proof.
+                <span class="badge green">task-3058</span> Replaced the GLB
+                viewer morph metadata fixture with a visible StandardMaterial
+                morph-target sample. The loader now maps two morph target
+                streams, attaches ECS <code>MorphTargetWeights</code>, and
+                drives live weight sliders with browser pixel proof.
               </li>
               <li>
                 <span class="badge green">task-3045</span> Added
@@ -4162,12 +4164,12 @@
             <ul>
               <li>
                 <span class="badge amber">next</span> Build
-                <code>task-3057</code>, a visible rigged character path in
-                <code>glb-viewer</code>.
+                <code>task-3059</code>, KTX2 / BasisU texture decoder
+                integration for compressed glTF textures.
               </li>
               <li>
-                Follow-up visible slices add a morph-target sample in
-                <code>glb-viewer</code>, then move into KTX2/BasisU.
+                Follow-up visible slices add Draco and meshopt decoders, then a
+                real-world compressed glTF sample in <code>glb-viewer</code>.
               </li>
               <li>
                 Keep the recommended next task visible-feature first; avoid
@@ -4184,6 +4186,17 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3058</div>
+            <div>
+              <strong>GLB morph targets are visible.</strong>
+              <span>
+                <code>glb-viewer</code> now imports two morph target streams,
+                exposes live weight sliders, and renders a committed sample
+                through the StandardMaterial morphed pipeline.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3056</div>
             <div>

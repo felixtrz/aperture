@@ -142,6 +142,84 @@ describe("glTF accessor and buffer reference validation", () => {
     ]);
   });
 
+  it("validates morph target POSITION and NORMAL accessors as float vec3 attributes", () => {
+    const root = {
+      asset: { version: "2.0" },
+      buffers: [{ byteLength: 248 }],
+      bufferViews: [
+        { buffer: 0, byteOffset: 0, byteLength: 36 },
+        { buffer: 0, byteOffset: 36, byteLength: 36 },
+        { buffer: 0, byteOffset: 72, byteLength: 24 },
+        { buffer: 0, byteOffset: 96, byteLength: 6 },
+        { buffer: 0, byteOffset: 104, byteLength: 36 },
+        { buffer: 0, byteOffset: 140, byteLength: 36 },
+        { buffer: 0, byteOffset: 176, byteLength: 36 },
+        { buffer: 0, byteOffset: 212, byteLength: 36 },
+      ],
+      accessors: [
+        { bufferView: 0, componentType: 5126, type: "VEC3", count: 3 },
+        { bufferView: 1, componentType: 5126, type: "VEC3", count: 3 },
+        { bufferView: 2, componentType: 5126, type: "VEC2", count: 3 },
+        { bufferView: 3, componentType: 5123, type: "SCALAR", count: 3 },
+        { bufferView: 4, componentType: 5126, type: "VEC3", count: 3 },
+        { bufferView: 5, componentType: 5126, type: "VEC3", count: 3 },
+        { bufferView: 6, componentType: 5126, type: "VEC3", count: 3 },
+        { bufferView: 7, componentType: 5126, type: "VEC3", count: 3 },
+      ],
+      meshes: [
+        {
+          primitives: [
+            {
+              attributes: {
+                POSITION: 0,
+                NORMAL: 1,
+                TEXCOORD_0: 2,
+              },
+              indices: 3,
+              targets: [
+                { POSITION: 4, NORMAL: 5 },
+                { POSITION: 6, NORMAL: 7 },
+              ],
+            },
+          ],
+        },
+      ],
+    };
+    const report = validateGltfPrimitiveAccessorReferences({
+      root,
+      primitiveReport: createGltfMeshPrimitiveMappingReport({ root }),
+      binaryChunkByteLength: 248,
+    });
+
+    expect(report.valid).toBe(true);
+    expect(report.diagnostics).toEqual([]);
+    expect(report.primitives[0]?.attributes).toMatchObject([
+      { semantic: "POSITION", accessorIndex: 0, expectedFormat: "float32x3" },
+      { semantic: "NORMAL", accessorIndex: 1, expectedFormat: "float32x3" },
+      { semantic: "TEXCOORD_0", accessorIndex: 2, expectedFormat: "float32x2" },
+      {
+        semantic: "MORPH_POSITION_0",
+        accessorIndex: 4,
+        expectedFormat: "float32x3",
+      },
+      {
+        semantic: "MORPH_NORMAL_0",
+        accessorIndex: 5,
+        expectedFormat: "float32x3",
+      },
+      {
+        semantic: "MORPH_POSITION_1",
+        accessorIndex: 6,
+        expectedFormat: "float32x3",
+      },
+      {
+        semantic: "MORPH_NORMAL_1",
+        accessorIndex: 7,
+        expectedFormat: "float32x3",
+      },
+    ]);
+  });
+
   it("reports unsupported semantic formats and sparse deferral", () => {
     const unsupportedRoot = {
       asset: { version: "2.0" },

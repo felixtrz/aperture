@@ -225,6 +225,30 @@ function validatePrimitive(
   appendOptionalAttribute(
     context,
     primitive,
+    primitive.attributes.morphPosition0,
+    attributes,
+  );
+  appendOptionalAttribute(
+    context,
+    primitive,
+    primitive.attributes.morphNormal0,
+    attributes,
+  );
+  appendOptionalAttribute(
+    context,
+    primitive,
+    primitive.attributes.morphPosition1,
+    attributes,
+  );
+  appendOptionalAttribute(
+    context,
+    primitive,
+    primitive.attributes.morphNormal1,
+    attributes,
+  );
+  appendOptionalAttribute(
+    context,
+    primitive,
     primitive.attributes.tangent,
     attributes,
   );
@@ -596,6 +620,10 @@ function expectationForSemantic(
   switch (semantic) {
     case "POSITION":
     case "NORMAL":
+    case "MORPH_POSITION_0":
+    case "MORPH_POSITION_1":
+    case "MORPH_NORMAL_0":
+    case "MORPH_NORMAL_1":
       return accessor.type === "VEC3" &&
         accessor.componentType === GLTF_COMPONENT_FLOAT
         ? {

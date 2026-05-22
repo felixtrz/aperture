@@ -181,11 +181,11 @@ describe("glTF texture mapping", () => {
       textures: [
         {
           source: 0,
-          extensions: { KHR_texture_basisu: { source: 1 } },
+          extensions: { EXT_texture_webp: { source: 1 } },
         },
       ],
       images: [{ bufferView: 4, mimeType: "image/png" }],
-      extensionsRequired: ["KHR_texture_basisu"],
+      extensionsRequired: ["EXT_texture_webp"],
       resolveImageData: () => ({
         diagnostics: [
           {
@@ -202,7 +202,7 @@ describe("glTF texture mapping", () => {
       {
         code: "gltfTexture.unsupportedRequiredTextureExtension",
         severity: "error",
-        extensionName: "KHR_texture_basisu",
+        extensionName: "EXT_texture_webp",
       },
       {
         code: "gltfTexture.imageResolverFailed",
@@ -211,6 +211,112 @@ describe("glTF texture mapping", () => {
         message: "Decoded image data was not available.",
       },
     ]);
+  });
+
+  it("maps KHR_texture_basisu image sources through image/ktx2 decode", () => {
+    const ktx2Bytes = createKtx2Rgba8Bytes({
+      vkFormat: 43,
+      width: 1,
+      height: 1,
+      pixels: new Uint8Array([12, 34, 56, 255]),
+    });
+    const report = createTextureAssetFromGltfTexture({
+      textureIndex: 0,
+      slot: "baseColorTexture",
+      textures: [{ extensions: { KHR_texture_basisu: { source: 1 } } }],
+      images: [
+        { bufferView: 0, mimeType: "image/png" },
+        { bufferView: 1, mimeType: "image/ktx2" },
+      ],
+      extensionsRequired: ["KHR_texture_basisu"],
+      resolveImageData: ({ source }) => {
+        expect(source).toEqual({
+          kind: "bufferView",
+          bufferView: 1,
+          mimeType: "image/ktx2",
+        });
+        return loadGltfTextureAsync({
+          source,
+          bytes: ktx2Bytes,
+        });
+      },
+    });
+
+    expect(report.valid).toBe(false);
+    expect(report.texture).toBeNull();
+    expect(report.diagnostics).toMatchObject([
+      {
+        code: "gltfTexture.imageResolverFailed",
+        severity: "error",
+      },
+    ]);
+    expect(report.diagnostics[0]?.message).toContain(
+      "createTextureAssetFromGltfTextureAsync",
+    );
+  });
+
+  it("maps async KHR_texture_basisu image sources through image/ktx2 decode", async () => {
+    const ktx2Bytes = createKtx2Rgba8Bytes({
+      vkFormat: 43,
+      width: 1,
+      height: 1,
+      pixels: new Uint8Array([12, 34, 56, 255]),
+    });
+    const report = await createTextureAssetFromGltfTextureAsync({
+      textureIndex: 0,
+      slot: "baseColorTexture",
+      textures: [{ extensions: { KHR_texture_basisu: { source: 1 } } }],
+      images: [
+        { bufferView: 0, mimeType: "image/png" },
+        { bufferView: 1, mimeType: "image/ktx2" },
+      ],
+      extensionsRequired: ["KHR_texture_basisu"],
+      resolveImageData: ({ source }) =>
+        loadGltfTextureAsync({
+          source,
+          bytes: ktx2Bytes,
+        }),
+    });
+
+    expect(report.valid).toBe(true);
+    expect(report.diagnostics).toEqual([]);
+    expect(report.imageIndex).toBe(1);
+    expect(report.texture).toMatchObject({
+      width: 1,
+      height: 1,
+      format: "rgba8unorm-srgb",
+      colorSpace: "srgb",
+      semantic: "base-color",
+    });
+    expect(Array.from(report.texture?.sourceData?.bytes ?? [])).toEqual([
+      12, 34, 56, 255,
+    ]);
+  });
+
+  it("loads image/ktx2 data URIs through the built-in KTX2 decoder", async () => {
+    const ktx2Bytes = createKtx2Rgba8Bytes({
+      vkFormat: 37,
+      width: 1,
+      height: 1,
+      pixels: new Uint8Array([1, 2, 3, 255]),
+    });
+    const image = await loadGltfTextureAsync({
+      source: {
+        kind: "uri",
+        uri: `data:image/ktx2;base64,${Buffer.from(ktx2Bytes).toString("base64")}`,
+      },
+    });
+
+    expect(image).toMatchObject({
+      width: 1,
+      height: 1,
+      format: "rgba8unorm",
+      sourceData: {
+        bytesPerRow: 4,
+        rowsPerImage: 1,
+      },
+    });
+    expect(Array.from(image.sourceData.bytes)).toEqual([1, 2, 3, 255]);
   });
 
   it("reports invalid image and sampler metadata with JSON-safe output", () => {
@@ -264,4 +370,33 @@ function pngDimensions(bytes: Uint8Array): {
     width: view.getUint32(16),
     height: view.getUint32(20),
   };
+}
+
+function createKtx2Rgba8Bytes(input: {
+  readonly vkFormat: number;
+  readonly width: number;
+  readonly height: number;
+  readonly pixels: Uint8Array;
+}): Uint8Array {
+  const headerByteLength = 80;
+  const levelIndexByteLength = 24;
+  const dataOffset = headerByteLength + levelIndexByteLength;
+  const bytes = new Uint8Array(dataOffset + input.pixels.byteLength);
+  bytes.set(
+    [0xab, 0x4b, 0x54, 0x58, 0x20, 0x32, 0x30, 0xbb, 0x0d, 0x0a, 0x1a, 0x0a],
+    0,
+  );
+
+  const view = new DataView(bytes.buffer);
+  view.setUint32(12, input.vkFormat, true);
+  view.setUint32(16, 1, true);
+  view.setUint32(20, input.width, true);
+  view.setUint32(24, input.height, true);
+  view.setUint32(36, 1, true);
+  view.setUint32(40, 1, true);
+  view.setBigUint64(80, BigInt(dataOffset), true);
+  view.setBigUint64(88, BigInt(input.pixels.byteLength), true);
+  view.setBigUint64(96, BigInt(input.pixels.byteLength), true);
+  bytes.set(input.pixels, dataOffset);
+  return bytes;
 }

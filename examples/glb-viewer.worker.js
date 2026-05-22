@@ -56,6 +56,8 @@ const animationDirectionSelect = document.querySelector(
 );
 const animationScrubInput = document.querySelector("#glb-animation-scrub");
 const animationSpeedInput = document.querySelector("#glb-animation-speed");
+const morphWeight0Input = document.querySelector("#glb-morph-weight-0");
+const morphWeight1Input = document.querySelector("#glb-morph-weight-1");
 const pointLightIntensityInput = document.querySelector(
   "#glb-point-light-intensity",
 );
@@ -90,6 +92,7 @@ const animationNodeSummaryElement = document.querySelector(
 const animationChannelSummaryElement = document.querySelector(
   "#glb-animation-channel-summary",
 );
+const morphSummaryElement = document.querySelector("#glb-morph-summary");
 const importedCameraSummaryElement = document.querySelector(
   "#glb-imported-camera-summary",
 );
@@ -339,6 +342,24 @@ const animationClipSummaryRows = [
       `#${clip.index ?? index}, ${formatSummaryOptionalKey(
         clip.name,
       )}, ${formatAnimationClipDuration(clip.duration)}s`,
+  },
+];
+const morphSummaryRows = [
+  {
+    key: "status",
+    label: "status",
+    value: (morphing) => morphing.status,
+  },
+  {
+    key: "targets",
+    label: "targets",
+    value: (morphing) =>
+      `${morphing.targetCount} targets, ${morphing.morphedEntities} entities`,
+  },
+  {
+    key: "weights",
+    label: "weights",
+    value: (morphing) => formatSummaryTuple(morphing.weights),
   },
 ];
 const importedCameraSummaryRows = [
@@ -974,6 +995,12 @@ function handleGlbWorkerCommand(aperture, scene, data) {
     case "animation-speed":
       setActiveAnimationSpeed(aperture, scene, Number(data.value));
       return;
+    case "morph-weight-0":
+      setSceneMorphWeight(aperture, scene, 0, Number(data.value));
+      return;
+    case "morph-weight-1":
+      setSceneMorphWeight(aperture, scene, 1, Number(data.value));
+      return;
     case "imported-light":
       setSceneImportedLightsEnabled(aperture, scene, data.value === true);
       return;
@@ -1148,6 +1175,7 @@ function createWorkerFrameStatus(aperture, scene, step, snapshot, frame) {
     lighting: createLightingControlStatus(aperture, scene, snapshot),
     animation: createAnimationStatus(active?.animation ?? null),
     skinning: createSkinningStatus(active?.skinning ?? null),
+    morphing: createMorphingStatus(active?.morphing ?? null),
     hierarchy: createHierarchyStatus(aperture, active),
     extraction: {
       views: snapshot.views.length,
@@ -1750,6 +1778,13 @@ async function loadAsset(aperture, app, scene, asset, options = {}) {
     replay,
     primitiveMaterials,
   });
+  const morphing = createGltfMorphTargetState({
+    aperture,
+    root: loaded.root,
+    keyPrefix,
+    replay,
+    primitiveMaterials,
+  });
 
   updateActiveAnimation(aperture, animation, 0);
   updateProceduralSkinningAnimation(aperture, skinning, 0);
@@ -1777,6 +1812,7 @@ async function loadAsset(aperture, app, scene, asset, options = {}) {
     replay,
     animation,
     skinning,
+    morphing,
     importedCamera,
     importedLights,
     fit,
@@ -4683,6 +4719,200 @@ function updateSkinningPalettesFromWorld(aperture, skinning) {
   }
 }
 
+function createGltfMorphTargetState({
+  aperture,
+  root,
+  keyPrefix,
+  replay,
+  primitiveMaterials,
+}) {
+  if (!isRecord(root)) {
+    return {
+      status: "absent",
+      targetCount: 0,
+      entries: [],
+      weights: [],
+      targetNames: [],
+    };
+  }
+
+  const meshes = arrayEntries(root.meshes);
+  if (meshes.length === 0) {
+    return {
+      status: "absent",
+      targetCount: 0,
+      entries: [],
+      weights: [],
+      targetNames: [],
+    };
+  }
+
+  const nodes = arrayEntries(root.nodes);
+  const entries = [];
+  let declaredTargetCount = 0;
+  let firstTargetNames = [];
+  let firstWeights = [];
+
+  nodes.forEach((node, nodeIndex) => {
+    if (!isRecord(node)) {
+      return;
+    }
+
+    const meshIndex = integerOrNull(node.mesh);
+    if (meshIndex === null) {
+      return;
+    }
+
+    const mesh = meshes[meshIndex];
+    if (!isRecord(mesh)) {
+      return;
+    }
+
+    const primitives = arrayEntries(mesh.primitives);
+    const meshTargetNames = morphTargetNames(mesh);
+    const meshWeights = morphTargetWeights(mesh.weights);
+    const resolved = arrayEntries(primitiveMaterials.resolved).filter(
+      (entry) => entry.meshIndex === meshIndex,
+    );
+
+    for (const primitive of resolved) {
+      const primitiveIndex = integerOrNull(primitive.primitiveIndex);
+      if (primitiveIndex === null) {
+        continue;
+      }
+
+      const primitiveRecord = primitives[primitiveIndex];
+      if (!isRecord(primitiveRecord)) {
+        continue;
+      }
+
+      const targets = arrayEntries(primitiveRecord.targets);
+      if (targets.length === 0) {
+        continue;
+      }
+
+      const supportedTargetCount = Math.min(targets.length, 2);
+      const targetNames =
+        meshTargetNames.length > 0
+          ? meshTargetNames.slice(0, supportedTargetCount)
+          : Array.from(
+              { length: supportedTargetCount },
+              (_, index) => `target ${index}`,
+            );
+      const weights = Array.from({ length: supportedTargetCount }, (_, index) =>
+        clamp(meshWeights[index] ?? 0, 0, 1),
+      );
+      const entityKey = `${keyPrefix}:node:${nodeIndex}:mesh:${meshIndex}:primitive:${primitiveIndex}`;
+      const entity = replay.entitiesByKey.get(entityKey) ?? null;
+
+      declaredTargetCount = Math.max(declaredTargetCount, targets.length);
+
+      if (firstTargetNames.length === 0) {
+        firstTargetNames = targetNames;
+        firstWeights = weights;
+      }
+
+      if (entity === null) {
+        continue;
+      }
+
+      setEntityMorphTargetWeights(aperture, entity, weights);
+      entries.push({
+        nodeIndex,
+        meshIndex,
+        primitiveIndex,
+        entityKey,
+        entity,
+        targetCount: supportedTargetCount,
+        declaredTargetCount: targets.length,
+        targetNames,
+        weights,
+      });
+    }
+  });
+
+  return {
+    status:
+      declaredTargetCount === 0
+        ? "absent"
+        : entries.length > 0
+          ? "ready"
+          : "unsupported",
+    targetCount: declaredTargetCount,
+    supportedTargetCount: Math.min(declaredTargetCount, 2),
+    entries,
+    weights: firstWeights,
+    targetNames: firstTargetNames,
+  };
+}
+
+function setSceneMorphWeight(aperture, scene, index, value) {
+  const morphing = scene.active?.morphing ?? null;
+
+  if (morphing?.status !== "ready" || !Number.isInteger(index) || index < 0) {
+    return;
+  }
+
+  if (index >= (morphing.supportedTargetCount ?? morphing.targetCount)) {
+    return;
+  }
+
+  const weight = clamp(finiteNumber(value, 0), 0, 1);
+
+  while (morphing.weights.length <= index) {
+    morphing.weights.push(0);
+  }
+
+  morphing.weights[index] = Number(weight.toFixed(3));
+
+  for (const entry of morphing.entries) {
+    if (index >= entry.targetCount) {
+      continue;
+    }
+
+    while (entry.weights.length <= index) {
+      entry.weights.push(0);
+    }
+
+    entry.weights[index] = morphing.weights[index];
+    setEntityMorphTargetWeights(aperture, entry.entity, entry.weights);
+  }
+}
+
+function setEntityMorphTargetWeights(aperture, entity, weights) {
+  const input = aperture.createMorphTargetWeights({ weights });
+
+  if (!entity.hasComponent(aperture.MorphTargetWeights)) {
+    entity.addComponent(aperture.MorphTargetWeights, input);
+    return;
+  }
+
+  entity.setValue(
+    aperture.MorphTargetWeights,
+    "targetCount",
+    input.targetCount,
+  );
+  entity.setValue(
+    aperture.MorphTargetWeights,
+    "weightsJson",
+    input.weightsJson,
+  );
+}
+
+function morphTargetNames(mesh) {
+  const extras = isRecord(mesh.extras) ? mesh.extras : {};
+  return arrayEntries(extras.targetNames).flatMap((name, index) =>
+    typeof name === "string" && name.length > 0 ? [name] : [`target ${index}`],
+  );
+}
+
+function morphTargetWeights(weights) {
+  return arrayEntries(weights).flatMap((weight) => {
+    const value = numberOrNull(weight);
+    return value === null ? [] : [value];
+  });
+}
+
 function createSkinningStatus(skinning) {
   if (skinning === null) {
     return {
@@ -4707,6 +4937,39 @@ function createSkinningStatus(skinning) {
       primitiveIndex: entry.primitiveIndex,
       entityKey: entry.entityKey,
       jointNodeIndices: entry.jointNodeIndices,
+    })),
+  };
+}
+
+function createMorphingStatus(morphing) {
+  if (morphing === null) {
+    return {
+      status: "absent",
+      targetCount: 0,
+      supportedTargetCount: 0,
+      morphedEntities: 0,
+      weights: [],
+      targetNames: [],
+      entries: [],
+    };
+  }
+
+  return {
+    status: morphing.status,
+    targetCount: morphing.targetCount,
+    supportedTargetCount: morphing.supportedTargetCount ?? morphing.targetCount,
+    morphedEntities: morphing.entries.length,
+    weights: roundTuple(morphing.weights, 3),
+    targetNames: morphing.targetNames,
+    entries: morphing.entries.map((entry) => ({
+      nodeIndex: entry.nodeIndex,
+      meshIndex: entry.meshIndex,
+      primitiveIndex: entry.primitiveIndex,
+      entityKey: entry.entityKey,
+      targetCount: entry.targetCount,
+      declaredTargetCount: entry.declaredTargetCount,
+      targetNames: entry.targetNames,
+      weights: roundTuple(entry.weights, 3),
     })),
   };
 }
@@ -5890,14 +6153,14 @@ function rootFeatureDiagnostics(root, primitives) {
   const diagnostics = [];
   const morphTargetStats = countMorphTargetPrimitives(primitives);
 
-  if (morphTargetStats.targetCount > 0) {
+  if (morphTargetStats.targetCount > 2) {
     diagnostics.push({
-      code: "gltfMetadata.unsupportedMorphTargets",
+      code: "gltfMetadata.partiallySupportedMorphTargets",
       severity: "warning",
       count: morphTargetStats.targetCount,
       targetCount: morphTargetStats.targetCount,
       primitiveCount: morphTargetStats.primitiveCount,
-      message: `GLB viewer metadata detected ${morphTargetStats.targetCount} morph target(s) across ${morphTargetStats.primitiveCount} primitive(s); morph animation is not replayed yet.`,
+      message: `GLB viewer metadata detected ${morphTargetStats.targetCount} morph target(s) across ${morphTargetStats.primitiveCount} primitive(s); the current standard material path renders the first two targets.`,
     });
   }
 
@@ -7071,6 +7334,7 @@ function publishStatus(status) {
   updateAnimationClipSummaryPanel(status.animation);
   updateAnimationNodeSummaryPanel(status.animation);
   updateAnimationChannelSummaryPanel(status.animation);
+  updateMorphSummaryPanel(status.morphing);
   updateImportedCameraSummaryPanel(status.importedCamera);
   updateImportedCameraListSummaryPanel(status.importedCamera);
   updateLightingSummaryPanel({
@@ -7283,6 +7547,35 @@ function updateUnsupportedFeatureSummaryPanel({ diagnostics, importedCamera }) {
   }
 }
 
+function updateMorphSummaryPanel(morphing) {
+  if (!(morphSummaryElement instanceof HTMLElement)) {
+    return;
+  }
+
+  morphSummaryElement.replaceChildren();
+
+  if (!isRecord(morphing) || morphing.status === "absent") {
+    morphSummaryElement.hidden = true;
+    return;
+  }
+
+  morphSummaryElement.hidden = false;
+
+  for (const row of morphSummaryRows) {
+    const element = document.createElement("div");
+    const label = document.createElement("span");
+    const value = document.createElement("strong");
+
+    element.className = "morph-summary-row";
+    element.dataset.morphSummaryRow = row.key;
+    label.textContent = row.label;
+    value.textContent = row.value(morphing);
+
+    element.append(label, value);
+    morphSummaryElement.append(element);
+  }
+}
+
 function createUnsupportedFeatureRows({ diagnostics, importedCamera }) {
   const rows = [];
 
@@ -7341,6 +7634,7 @@ function formatUnsupportedFeatureDetail({ code, severity, detail }) {
 
 function unsupportedFeatureLabel(code) {
   switch (code) {
+    case "gltfMetadata.partiallySupportedMorphTargets":
     case "gltfMetadata.unsupportedMorphTargets":
       return "morph";
     case "gltfMetadata.unsupportedSkins":
@@ -7354,6 +7648,7 @@ function unsupportedFeatureLabel(code) {
 
 function formatUnsupportedFeatureDiagnostic(diagnostic) {
   switch (diagnostic.code) {
+    case "gltfMetadata.partiallySupportedMorphTargets":
     case "gltfMetadata.unsupportedMorphTargets":
       return `${diagnostic.targetCount ?? 0} targets, ${
         diagnostic.primitiveCount ?? 0

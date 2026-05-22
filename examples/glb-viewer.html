@@ -122,6 +122,40 @@
           aria-label="Animation channel summary"
         ></div>
         <div
+          class="runtime-controls glb-morph-controls"
+          aria-label="Morph target controls"
+        >
+          <label for="glb-morph-weight-0">
+            <span>morph 0</span>
+            <input
+              id="glb-morph-weight-0"
+              type="range"
+              min="0"
+              max="1"
+              step="0.01"
+              value="0"
+              disabled
+            />
+          </label>
+          <label for="glb-morph-weight-1">
+            <span>morph 1</span>
+            <input
+              id="glb-morph-weight-1"
+              type="range"
+              min="0"
+              max="1"
+              step="0.01"
+              value="0"
+              disabled
+            />
+          </label>
+        </div>
+        <div
+          id="glb-morph-summary"
+          class="morph-summary"
+          aria-label="Morph target summary"
+        ></div>
+        <div
           id="glb-imported-camera-summary"
           class="imported-camera-summary"
           aria-label="Imported camera summary"
