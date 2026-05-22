@@ -96,6 +96,7 @@ export * from "./point-shadow-matrix-computation.js";
 export * from "./point-shadow-view-projection-plan.js";
 export * from "./spot-shadow-matrix-computation.js";
 export * from "./spot-shadow-view-projection-plan.js";
+export * from "./sprite-pipeline.js";
 export * from "./prepared-mesh-cache.js";
 export * from "./prepared-resource-app-reuse-alignment-summary.js";
 export * from "./prepared-resource-lifetime-alignment-summary.js";

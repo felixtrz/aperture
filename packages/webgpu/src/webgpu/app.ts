@@ -49,6 +49,7 @@ import {
   prepareMatcapAppTextureSamplerResources,
   prepareStandardAppTextureSamplerResources,
   prepareUnlitAppTextureSamplerResources,
+  prepareAppSamplerResource,
   emptyPreparedAppTextureSamplerResources,
   sourceAssetCacheKey,
   writeAppTextureSamplerResourceCacheSummary,
@@ -2220,6 +2221,27 @@ function createSpriteFrameResources(options: {
   });
 
   for (const draw of options.spriteDraws) {
+    const sampler =
+      draw.sampler === undefined || draw.sampler === null
+        ? {
+            cacheKey: "sprite:default-sampler",
+            resource: defaultSampler,
+          }
+        : prepareAppSamplerResource({
+            assets: options.assets,
+            device: options.app.initialization.device,
+            cache: options.cache,
+            handle: draw.sampler,
+            reuse: options.reuse,
+            diagnostics: diagnostics as Parameters<
+              typeof prepareAppSamplerResource
+            >[0]["diagnostics"],
+          });
+
+    if (sampler === null) {
+      continue;
+    }
+
     const texture = prepareAppTextureResource({
       assets: options.assets,
       device: options.app.initialization.device,
@@ -2241,7 +2263,7 @@ function createSpriteFrameResources(options: {
       entries: [
         { binding: 0, resource: { buffer: spriteBuffer.buffer } },
         { binding: 1, resource: texture.resource.view },
-        { binding: 2, resource: defaultSampler.sampler },
+        { binding: 2, resource: sampler.resource.sampler },
       ],
     });
 
@@ -2270,7 +2292,7 @@ function createSpriteFrameResources(options: {
         kind: "setBindGroup",
         renderId: draw.renderId,
         index: 2,
-        resourceKey: `sprite:${texture.cacheKey}`,
+        resourceKey: `sprite:${texture.cacheKey}:${sampler.cacheKey}`,
         bindGroup: spriteBindGroup,
       },
       {

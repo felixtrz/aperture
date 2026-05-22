@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-22 13:35 UTC</dd>
+            <dd>2026-05-22 14:13 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -1298,9 +1298,15 @@
               receiver shadows in headed Chrome. The outdoor scene proof now
               combines the same directional CSM receiver path with a
               RectAreaLight contribution in one worker-authored browser scene.
+              Tier 17 has started with ECS-authored sprites:
+              <code>Sprite</code> authoring extracts snapshot
+              <code>spriteDraws</code>, the WebGPU sprite path builds
+              camera-facing billboard quads from the active camera, and
+              <code>examples/sprite-billboard.html</code> proves stable readback
+              quadrants across front and orbit camera snapshots.
             </dd>
             <dt>Next focus</dt>
-            <dd>task-3078 sprite component + billboard renderer</dd>
+            <dd>task-3079 skybox-as-scene-element</dd>
           </dl>
         </aside>
       </header>
@@ -4264,20 +4270,16 @@
             <ul>
               <li>
                 <span class="badge amber">next</span> Build
-                <code>task-3078</code>, a sprite component plus billboard
-                renderer.
+                <code>task-3079</code>, a skybox-as-scene-element path.
               </li>
               <li>
-                Anchor on Three.js <code>Sprite</code>/<code
-                  >SpriteMaterial</code
-                >
-                and PlayCanvas sprite mesh generation while keeping ECS
-                authoring data-only.
+                Anchor on Three.js <code>Scene.background</code> and PlayCanvas
+                skybox rendering while keeping cube texture handles authored in
+                ECS and GPU resources renderer-owned.
               </li>
               <li>
-                Add <code>withSprite({ texture, size, color })</code> and a
-                browser proof that rotating the camera leaves sprite screen
-                orientation stable.
+                Add a browser proof that a rendered background is visible behind
+                scene geometry and distinct from the clear color.
               </li>
             </ul>
           </article>
@@ -4290,6 +4292,18 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3078</div>
+            <div>
+              <strong>Sprite billboard renderer shipped.</strong>
+              <span>
+                ECS <code>Sprite</code> authoring now reaches WebGPU as
+                camera-facing textured quads, with
+                <code>examples/sprite-billboard.html</code> proving stable
+                screen-space quadrants across camera orbit.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3077</div>
             <div>

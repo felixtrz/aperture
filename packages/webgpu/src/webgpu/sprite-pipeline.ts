@@ -11,7 +11,7 @@ import type {
 
 export const SPRITE_PIPELINE_KEY = "aperture/sprite-billboard";
 
-const SPRITE_WGSL = `
+export const SPRITE_WGSL = `
 struct ViewProjectionUniform {
   viewProjection: mat4x4f,
   cameraPosition: vec4f,
@@ -46,6 +46,16 @@ fn quadUv(vertexIndex: u32) -> vec2f {
   return vec2f(u[vertexIndex], v[vertexIndex]);
 }
 
+fn safeNormalize(value: vec3f, fallback: vec3f) -> vec3f {
+  let lengthValue = length(value);
+
+  if (lengthValue > 0.0001) {
+    return value / lengthValue;
+  }
+
+  return fallback;
+}
+
 @vertex
 fn vs_main(
   @builtin(vertex_index) vertexIndex: u32,
@@ -54,7 +64,16 @@ fn vs_main(
   let world = worldTransforms[instanceIndex];
   let sprite = sprites[instanceIndex];
   let local = quadPosition(vertexIndex);
-  let worldPosition = (world * vec4f(local.x * sprite.size.x, local.y * sprite.size.y, 0.0, 1.0)).xyz;
+  let center = world[3].xyz;
+  let toCamera = safeNormalize(view.cameraPosition.xyz - center, vec3f(0.0, 0.0, 1.0));
+  let worldUp = vec3f(0.0, 1.0, 0.0);
+  let right = safeNormalize(cross(worldUp, toCamera), vec3f(1.0, 0.0, 0.0));
+  let up = safeNormalize(cross(toCamera, right), worldUp);
+  let scale = vec2f(length(world[0].xyz), length(world[1].xyz));
+  let billboardOffset =
+    right * local.x * sprite.size.x * scale.x +
+    up * local.y * sprite.size.y * scale.y;
+  let worldPosition = center + billboardOffset;
   var output: VertexOutput;
   output.position = view.viewProjection * vec4f(worldPosition, 1.0);
   output.uv = quadUv(vertexIndex);

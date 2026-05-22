@@ -1,5 +1,28 @@
 # Completed Tasks
 
+## task-3078 — Sprite component + billboard renderer
+
+Completed: 2026-05-22
+
+- Completed the sprite bridge started in the previous run: ECS `Sprite`
+  authoring, `withSprite({ texture, sampler, size, color })`, snapshot
+  `spriteDraws`, bounds, sorting, and extraction validation now feed a
+  browser-visible WebGPU path.
+- Replaced the sprite shader's transformed-plane behavior with a camera-facing
+  billboard basis built from the active camera position, preserving ECS
+  transform translation/scale while keeping sprite GPU resources renderer-owned.
+- Wired authored sprite samplers through the WebGPU frame-resource path instead
+  of always using the default sampler.
+- Added `examples/sprite-billboard.html` with renderer-only main-thread
+  orchestration, worker-owned ECS authoring/extraction, a quadrant texture
+  sprite, and front/orbit camera snapshots.
+- Added `test/e2e/sprite-billboard.spec.ts`, which proves headed Chrome WebGPU
+  renders one sprite draw in both camera states and keeps the same quadrant
+  readbacks stable after camera orbit.
+- Validation run: targeted sprite pipeline/extraction Vitest coverage,
+  typecheck, test typecheck, example syntax checks, diff checks, and focused
+  headed Chrome WebGPU Playwright coverage passed.
+
 ## task-3077 — Outdoor scene example with CSM + area light
 
 Completed: 2026-05-22

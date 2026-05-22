@@ -59,14 +59,15 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start `task-3078`: Sprite component + billboard renderer.
+Start `task-3079`: Skybox-as-scene-element.
 
-Why this next: Tier 16 now has RectAreaLight/LTC, rect/disk/sphere area-light
-shape metadata, executable directional CSM, and the combined
-`examples/outdoor-scene.html` proof for multiple-distance CSM shadows plus
-visible RectAreaLight contribution. Tier 17 begins scene-atmosphere work. The
-next visible gap is ECS-authored sprites that render as camera-facing billboards
-without introducing a scene graph or letting the renderer own app state.
+Why this next: Tier 16 has RectAreaLight/LTC, rect/disk/sphere area-light shape
+metadata, executable directional CSM, and the combined
+`examples/outdoor-scene.html` proof. Tier 17 has started with ECS-authored
+sprites and `examples/sprite-billboard.html`, which proves camera-facing
+billboards without introducing a scene graph or letting the renderer own app
+state. The next visible gap is a rendered skybox background authored as data and
+prepared/submitted by the WebGPU renderer.
 
 Progress so far: `spinning-cube`, `multi-light-shadow`, and `glb-viewer` now
 use renderer-only `*.main.js` files plus ECS/extraction-owned `*.worker.js`
@@ -122,9 +123,8 @@ shader/pipeline/resource/importer tests.
 
 Reference anchors (read before writing):
 
-- `references/three.js/src/objects/Sprite.js`.
-- `references/three.js/src/materials/SpriteMaterial.js`.
-- `references/engine/src/scene/sprite.js`.
+- `references/three.js/src/scenes/Scene.js`.
+- `references/engine/src/scene/skybox/sky.js`.
 
 ## Strategic Focus — Pipeline Maturity Roadmap
 
@@ -1114,6 +1114,8 @@ Acceptance criteria:
 - Playwright asserts shadow quality at multiple distances (CSM working) AND visible LTC area-light contribution.
 
 ### task-3078 — Sprite component + billboard renderer (Tier 17 part 1)
+
+Status: completed 2026-05-22. See `agent/COMPLETED.md`.
 
 Category: `render-bridge`
 Package/write-scope: `packages/render/src/rendering/authoring.ts` (`Sprite` component), `packages/webgpu/src/webgpu/sprite-pipeline-*.ts`, targeted tests.
