@@ -4,8 +4,8 @@
   "currentRunStartedAt": null,
   "lastRunStartedAt": "2026-05-21T03:02:55Z",
   "lastResult": "success",
-  "lastCommit": "a1e1e10",
+  "lastCommit": "97cf00e",
   "activePid": null,
-  "notes": "Completed task-3058 visible GLB morph targets and checkpointed task-3059: KTX2 decode, data URI load, and KHR_texture_basisu image/ktx2 routing. BasisU WASM transcoding plus compressed GLB viewer sample remain next.",
-  "lastRunFinishedAt": "2026-05-22T03:50:29Z"
+  "notes": "Completed task-3059 BasisU KTX2 texture decoding and GLB viewer proof; started task-3060 with public Draco decoder plus glTF accessor bridge. Next: thread KHR_draco_mesh_compression through glTF replay and add visible GLB viewer sample.",
+  "lastRunFinishedAt": "2026-05-22T04:50:20Z"
 }
