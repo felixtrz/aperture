@@ -59,13 +59,13 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start `task-3071`: Animation weighted clip blending.
+Start `task-3074`: RectAreaLight + LTC.
 
-Why this next: Tier 14 now has the renderer-owned post-pass chain, built-in
-FXAA, built-in bloom, and a worker-authored post-effects demo with toggle
-coverage. The next visible gap is Tier 15 animation blending: multiple active
-clips should be able to contribute weighted transform output before the public
-cross-fade facade and GLB viewer UI build on it.
+Why this next: Tier 15 now has public weighted animation clip blending,
+cross-fade transition weights, and a visible `glb-viewer` cross-fade control
+that blends the multi-clip sample before ECS transform extraction. The next
+visible gap is Tier 16 area lighting: RectAreaLight authoring should extract
+through ECS light packets and render with renderer-owned LTC resources.
 
 Progress so far: `spinning-cube`, `multi-light-shadow`, and `glb-viewer` now
 use renderer-only `*.main.js` files plus ECS/extraction-owned `*.worker.js`
@@ -121,9 +121,10 @@ shader/pipeline/resource/importer tests.
 
 Reference anchors (read before writing):
 
-- `references/three.js/src/renderers/WebGLMultipleRenderTargets.js`.
-- PlayCanvas MRT patterns under `references/engine/src/platform/graphics/`.
-- Existing Aperture render target and render-pass command helpers.
+- `references/three.js/src/lights/RectAreaLight.js`.
+- `references/three.js/examples/jsm/lights/RectAreaLightUniformsLib.js`.
+- PlayCanvas area-light LUT integration under
+  `references/engine/src/scene/lighting/`.
 
 ## Strategic Focus — Pipeline Maturity Roadmap
 
@@ -197,7 +198,7 @@ Eleven cross-cutting gaps remain across the six phases. They are sequenced below
 
 **Tier 15 — Animation blending + cross-fade (queued after Tier 14):**
 
-22. Weighted blending + cross-fade API (task-3071, task-3072, task-3073) — extends the existing animation playback path with weighted clip blending and a cross-fade API. glb-viewer demonstrates cross-fade between two clips (e.g., walk → run). Required for any character-animation app. Closes gap #7.
+22. Weighted blending + cross-fade API (task-3071, task-3072, task-3073) — shipped; extends the existing animation playback path with weighted clip blending and a cross-fade API. glb-viewer demonstrates cross-fade between two clips (e.g., walk → run). Required for any character-animation app. Closes gap #7.
 
 **Tier 16 — Area lights + CSM (queued after Tier 15):**
 
@@ -997,7 +998,7 @@ Acceptance criteria:
 - Example renders with both effects enabled and disabled.
 - Playwright toggles each effect and asserts pixel differences in expected regions.
 
-### task-3071 — Animation weighted clip blending (Tier 15 part 1)
+### task-3071 — Animation weighted clip blending (Tier 15 part 1) — Completed 2026-05-22
 
 Category: `simulation`
 Package/write-scope: `packages/runtime/src/animation-*.ts` (or `examples/glb-viewer` if animation lives in example), targeted tests.
@@ -1009,7 +1010,7 @@ Acceptance criteria:
 - Public API supports per-clip weight.
 - Test plays two clips at weight 0.5 each on the same entity; asserts the blended transform is the weighted average.
 
-### task-3072 — Cross-fade API (Tier 15 part 2)
+### task-3072 — Cross-fade API (Tier 15 part 2) — Completed 2026-05-22
 
 Category: `simulation`
 Package/write-scope: `packages/runtime/src/`, targeted tests.
@@ -1022,7 +1023,7 @@ Acceptance criteria:
 - Public API typed and exported.
 - Test cross-fades over 1 second; asserts weights interpolate correctly at the halfway point.
 
-### task-3073 — Visible cross-fade in glb-viewer (Tier 15 part 3)
+### task-3073 — Visible cross-fade in glb-viewer (Tier 15 part 3) — Completed 2026-05-22
 
 Category: `runtime-orchestration`
 Package/write-scope: `examples/glb-viewer.{main.js,worker.js}`, `test/e2e/glb-viewer.spec.ts`, commit a GLB with ≥2 clips.

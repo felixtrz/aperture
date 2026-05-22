@@ -325,6 +325,19 @@ interface GlbViewerStatus extends ExampleStatusBase {
     }[];
     readonly activeClipIndex: number;
     readonly activeClipName: string | null;
+    readonly activeClipWeights?: readonly {
+      readonly index: number;
+      readonly name: string;
+      readonly weight: number;
+    }[];
+    readonly crossFade?: {
+      readonly fromClipIndex: number;
+      readonly fromClipName: string;
+      readonly toClipIndex: number;
+      readonly toClipName: string;
+      readonly elapsed: number;
+      readonly duration: number;
+    } | null;
     readonly time: number;
     readonly speed: number;
     readonly direction: string;
@@ -2072,6 +2085,166 @@ test("Playwright switches GLB viewer animation clips", async ({ page }) => {
     maxSampleDelta(slideScreenshot, riseScreenshot),
     "switching animation clips should visibly change the replayed GLB transform",
   ).toBeGreaterThan(8);
+  webGpuValidation.expectNoWarnings();
+});
+
+test("Playwright cross-fades GLB viewer animation clips", async ({ page }) => {
+  const webGpuValidation = attachWebGpuValidationConsoleGuard(page);
+
+  await page.goto("/examples/glb-viewer.html?asset=multi-clip");
+  const initialStatus = await waitForExampleStatus<GlbViewerStatus>(page);
+
+  expect(initialStatus, "GLB viewer status should publish").toBeDefined();
+
+  if (initialStatus === undefined) {
+    throw new Error("GLB viewer status did not publish.");
+  }
+
+  skipIfUnsupportedWebGpu(initialStatus);
+  await page.waitForFunction(
+    () => {
+      const status = (
+        globalThis as {
+          readonly __APERTURE_EXAMPLE_STATUS__?: {
+            readonly frame?: number;
+            readonly selectedAsset?: {
+              readonly id?: string;
+              readonly loading?: boolean;
+            };
+            readonly animation?: {
+              readonly clipCount?: number;
+              readonly activeClipIndex?: number;
+            };
+          };
+        }
+      ).__APERTURE_EXAMPLE_STATUS__;
+
+      return (
+        (status?.frame ?? 0) >= 3 &&
+        status?.selectedAsset?.id === "multi-clip" &&
+        status.selectedAsset.loading === false &&
+        status.animation?.clipCount === 2 &&
+        status.animation.activeClipIndex === 0
+      );
+    },
+    undefined,
+    { timeout: 5000 },
+  );
+
+  await page.locator("#glb-animation-cross-fade").click();
+  await page.waitForFunction(
+    () => {
+      const animation = (
+        globalThis as {
+          readonly __APERTURE_EXAMPLE_STATUS__?: {
+            readonly animation?: {
+              readonly activeClipIndex?: number;
+              readonly activeClipName?: string | null;
+              readonly activeClipWeights?: readonly {
+                readonly index?: number;
+                readonly weight?: number;
+              }[];
+              readonly animatedNodes?: readonly {
+                readonly interpolation?: string;
+                readonly contributors?: readonly unknown[];
+              }[];
+              readonly crossFade?: {
+                readonly fromClipName?: string;
+                readonly toClipName?: string;
+                readonly elapsed?: number;
+                readonly duration?: number;
+              } | null;
+            };
+          };
+        }
+      ).__APERTURE_EXAMPLE_STATUS__?.animation;
+      const weights = animation?.activeClipWeights ?? [];
+
+      return (
+        animation?.activeClipIndex === 1 &&
+        animation.activeClipName === "RiseY" &&
+        animation.crossFade?.fromClipName === "SlideX" &&
+        animation.crossFade.toClipName === "RiseY" &&
+        (animation.crossFade.elapsed ?? 0) > 0.2 &&
+        (animation.crossFade.elapsed ?? 0) <
+          (animation.crossFade.duration ?? 1) &&
+        weights.some((entry) => entry.index === 0 && (entry.weight ?? 0) > 0) &&
+        weights.some((entry) => entry.index === 1 && (entry.weight ?? 0) > 0) &&
+        animation.animatedNodes?.[0]?.interpolation === "BLEND" &&
+        animation.animatedNodes[0]?.contributors?.length === 2
+      );
+    },
+    undefined,
+    { timeout: 5000 },
+  );
+  const blendedStatus = await waitForExampleStatus<GlbViewerStatus>(page);
+  const blendedValue = blendedStatus?.animation?.animatedNodes[0]?.value ?? [];
+
+  expect(blendedStatus?.animation).toMatchObject({
+    activeClipIndex: 1,
+    activeClipName: "RiseY",
+    crossFade: {
+      fromClipName: "SlideX",
+      toClipName: "RiseY",
+      duration: 1,
+    },
+  });
+  expect(blendedStatus?.animation?.animatedNodes[0]).toMatchObject({
+    interpolation: "BLEND",
+    contributors: expect.arrayContaining([
+      expect.objectContaining({ clipId: "0:SlideX" }),
+      expect.objectContaining({ clipId: "1:RiseY" }),
+    ]),
+  });
+  expect(
+    Math.abs(blendedValue[0] ?? 0),
+    "cross-fade midpoint should retain source clip X contribution",
+  ).toBeGreaterThan(0.05);
+  expect(
+    Math.abs(blendedValue[1] ?? 0),
+    "cross-fade midpoint should include target clip Y contribution",
+  ).toBeGreaterThan(0.01);
+  expect(blendedStatus?.animation?.activeClipWeights).toEqual(
+    expect.arrayContaining([
+      expect.objectContaining({ index: 0, name: "SlideX" }),
+      expect.objectContaining({ index: 1, name: "RiseY" }),
+    ]),
+  );
+
+  await page.waitForFunction(
+    () => {
+      const animation = (
+        globalThis as {
+          readonly __APERTURE_EXAMPLE_STATUS__?: {
+            readonly animation?: {
+              readonly activeClipIndex?: number;
+              readonly activeClipName?: string | null;
+              readonly activeClipWeights?: readonly {
+                readonly index?: number;
+                readonly weight?: number;
+              }[];
+              readonly crossFade?: unknown;
+            };
+          };
+        }
+      ).__APERTURE_EXAMPLE_STATUS__?.animation;
+
+      return (
+        animation?.activeClipIndex === 1 &&
+        animation.activeClipName === "RiseY" &&
+        animation.crossFade === null &&
+        animation.activeClipWeights?.length === 1 &&
+        animation.activeClipWeights[0]?.index === 1 &&
+        animation.activeClipWeights[0]?.weight === 1
+      );
+    },
+    undefined,
+    { timeout: 5000 },
+  );
+  const riseStatus = await waitForExampleStatus<GlbViewerStatus>(page);
+  const riseValue = riseStatus?.animation?.animatedNodes[0]?.value ?? [];
+
+  expect(riseValue[1] ?? 0).toBeGreaterThan(blendedValue[1] ?? 0);
   webGpuValidation.expectNoWarnings();
 });
 

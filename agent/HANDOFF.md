@@ -1,6 +1,129 @@
 # Agent Handoff
 
-Updated: 2026-05-22T08:46:24Z
+Updated: 2026-05-22T09:44:52Z
+
+## Current Run Update — 2026-05-22T09:44:52Z — Animation blending shipped
+
+Completed `task-3071`, `task-3072`, and `task-3073`.
+
+### What changed
+
+- Added `packages/runtime/src/animation-blending.ts` with public, data-only
+  weighted clip sample blending for translation, scale, and quaternion rotation.
+  Weights are clamped, contributors are normalized, and quaternion blending
+  applies sign correction before normalization.
+- Added public `crossFadeTo(...)` and `sampleAnimationCrossFade(...)` helpers
+  for deterministic source-to-target animation transition weights.
+- Exported the animation blending and cross-fade helpers through
+  `@aperture-engine/runtime`.
+- Updated `examples/glb-viewer.worker.js` and the mirrored historical
+  `examples/glb-viewer.main.js` animation path so all sampled clip channels are
+  blended once per entity/path before writing ECS local transforms.
+- Added a `glb-viewer` cross-fade control that blends the existing multi-clip
+  sample from `SlideX` to `RiseY` and publishes JSON-safe `activeClipWeights`,
+  `crossFade`, and per-node blend contributor status.
+- Added unit coverage for weighted translation blending, quaternion sign
+  correction, weight clamping, and halfway cross-fade weights. Added browser
+  coverage for GLB viewer cross-fade status and blended transform contributors.
+- Updated the public tracker pages, backlog, and completed-task log. Recommended
+  next task is now `task-3074`.
+
+### References inspected
+
+- `references/three.js/src/animation/AnimationAction.js`
+- `references/three.js/src/animation/AnimationMixer.js`
+- `references/three.js/src/animation/PropertyMixer.js`
+- `references/bevy/crates/bevy_animation/src/graph.rs`
+- `references/bevy/crates/bevy_animation/src/transition.rs`
+
+Common pattern adapted: Three tracks independent action weights and accumulates
+all action contributions per property before applying the final value, while
+Bevy keeps blend/transition weights as data that feed animation graph sampling.
+Aperture uses the same weighted-accumulation idea without adopting an object
+scene graph: the worker-side GLB animation code samples plain clip data,
+normalizes contributors per target/path, writes one ECS transform result, and
+lets rendering remain a derived snapshot view.
+
+### Validation
+
+- `pnpm exec vitest run test/runtime/animation-blending.test.ts --reporter=dot`
+  passed.
+- `pnpm exec tsc --noEmit -p packages/runtime/tsconfig.json` passed.
+- `pnpm exec tsc --noEmit -p tsconfig.test.json` passed.
+- `node --check examples/glb-viewer.main.js` passed.
+- `node --check examples/glb-viewer.worker.js` passed.
+- `pnpm run build` passed.
+- `pnpm run check:examples` passed.
+- `pnpm run lint` passed.
+- `pnpm run format:check` passed.
+- `pnpm run check` passed, covering package boundaries, progress tracker
+  freshness, build/typecheck, test typecheck, example syntax checks, lint,
+  format check, and all 343 Vitest files / 1,690 tests.
+- Focused GLB viewer cross-fade Playwright assertion printed a pass checkmark.
+  The local headed Chrome runner then hit the existing teardown hang and was
+  stopped after the assertion completed.
+- A direct headless browser status probe exited cleanly and confirmed mid-fade
+  `SlideX` + `RiseY` weights, `BLEND` interpolation with both contributors, and
+  final `RiseY` weight `1` with `crossFade: null`.
+
+### Known issues
+
+- No architecture blockers for the animation blending slice.
+- The local headed Chrome teardown hang remains for some focused GLB viewer
+  Playwright runs after assertions pass; this is the same runner issue noted in
+  recent compressed-asset handoffs.
+
+### Recommended next task
+
+Start `task-3074`: add RectAreaLight authoring and LTC renderer integration.
+Inspect `references/three.js/src/lights/RectAreaLight.js`,
+`references/three.js/examples/jsm/lights/RectAreaLightUniformsLib.js`, and
+PlayCanvas area-light LUT integration under
+`references/engine/src/scene/lighting/`. Keep the slice narrow: ECS light
+extraction, renderer-owned LTC resources, and one visible StandardMaterial
+surface proof.
+
+### task-3074 preflight notes
+
+- Three's `RectAreaLight` adds `width` and `height` to the light data model and
+  treats area-light power as intensity times area times pi. It also requires
+  renderer-side LTC LUT initialization before the light is usable.
+- Three's `webgpu_lights_rectarealight.html` initializes WebGPU LTC textures
+  once, then places multiple colored `RectAreaLight` instances around glossy
+  geometry. That is a good shape for the first visible Aperture proof, though
+  Aperture should author it through ECS worker code rather than a scene graph.
+- Three's `RectAreaLightTexturesLib` uses two 64x64 RGBA LTC lookup textures;
+  PlayCanvas similarly creates two renderer-owned 64x64 RGBA16F LUT textures and
+  binds them as area-light uniforms/resources. Aperture should keep these as
+  WebGPU resources, not ECS components.
+- PlayCanvas packs area light shape plus world-space half-width and half-height
+  axes derived from the light transform. That maps cleanly to Aperture's
+  snapshot boundary: ECS can author `width`/`height`, extraction can preserve
+  the world transform plus dimensions, and WebGPU can derive or pack half-axis
+  vectors for shader use.
+- The PlayCanvas WGSL path computes material/view-dependent LTC values before
+  the light loop, then each area light evaluates its own rect coordinates for
+  diffuse and specular. The Aperture shader change should therefore add a small
+  StandardMaterial area-light evaluation path rather than treating RectAreaLight
+  as a punctual point light with a wider radius.
+- Aperture insertion points are `packages/render/src/rendering/authoring.ts`
+  (`LightKind`, `LightInput`, `Light` component fields, validation),
+  `packages/render/src/rendering/snapshot.ts` (`LightPacket`),
+  `packages/render/src/rendering/extraction.ts`, packed snapshot encoding, and
+  `packages/webgpu/src/webgpu/light-packing.ts` / `standard-shader.ts`.
+- Current light GPU packing has `PACKED_LIGHT_FLOAT_STRIDE = 8` for color,
+  intensity, range, and spot cone angles, and `PACKED_LIGHT_METADATA_STRIDE = 6`
+  for kind, transform offset, layer mask, light id, and entity ref. RectAreaLight
+  needs either a stride extension or a separate area-light payload; update
+  `light-shader-metadata`, packing tests, and snapshot encoding tests with the
+  chosen layout.
+- The first code slice should add `LightKind.RectArea` with `width`/`height`
+  extraction and JSON/packed snapshot coverage before changing the shader. Then
+  add LTC texture resource creation and group-3 bindings, followed by the
+  visible StandardMaterial proof.
+- No task-3074 implementation was started in this run because the remaining
+  pre-`:50` window was only enough for reference and insertion-point discovery
+  after the completed animation diff had already passed broad validation.
 
 ## Current Run Update — 2026-05-22T08:46:24Z — Post effects shipped
 

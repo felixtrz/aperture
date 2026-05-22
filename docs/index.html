@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-22 08:40 UTC</dd>
+            <dd>2026-05-22 09:30 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -1276,10 +1276,16 @@
               post-pass intermediate textures, built-in copy, FXAA, and bloom
               effects, JSON-safe post-effect reports, final-pass readback, and
               <code>examples/post-effects.html</code> with worker-authored
-              toggles and browser pixel-delta proof.
+              toggles and browser pixel-delta proof. Tier 15 now has public
+              weighted animation clip blending helpers, a typed
+              <code>crossFadeTo(...)</code> weight API, GLB viewer
+              per-clip-weight status, and a cross-fade control that blends the
+              committed multi-clip sample from <code>SlideX</code> to
+              <code>RiseY</code> without moving animation state into the
+              renderer.
             </dd>
             <dt>Next focus</dt>
-            <dd>task-3071 Animation weighted clip blending</dd>
+            <dd>task-3074 RectAreaLight + LTC</dd>
           </dl>
         </aside>
       </header>
@@ -1529,9 +1535,9 @@
                 <div class="label">asset import</div>
                 <h3>GLB/glTF path</h3>
               </div>
-              <span class="percent">66%</span>
+              <span class="percent">68%</span>
             </div>
-            <div class="bar"><span style="width: 66%"></span></div>
+            <div class="bar"><span style="width: 68%"></span></div>
             <p>
               Container parsing, diagnostics, source registration, material
               mapping, URI loading, and a broad local GLB viewer path with lit
@@ -1548,7 +1554,8 @@
               samples, custom URL plus query-URL loading, and bounds-driven
               camera fitting have landed. The viewer now includes camera reset,
               ECS light controls, live shadow/IBL controls, animation
-              pause/scrub/speed/loop/direction controls, imported camera
+              pause/scrub/speed/loop/direction controls, weighted multi-clip
+              blending, cross-fade status/control, imported camera
               transform/projection replay, imported punctual light replay,
               parsed metadata status, and
               <code>?asset=</code> sample bootstrapping, while the lit brass
@@ -1565,9 +1572,9 @@
                 <div class="label">examples/e2e</div>
                 <h3>browser proof points</h3>
               </div>
-              <span class="percent">76%</span>
+              <span class="percent">77%</span>
             </div>
-            <div class="bar"><span style="width: 76%"></span></div>
+            <div class="bar"><span style="width: 77%"></span></div>
             <p>
               Spinning cube, material showcase, GLTF scene, GLB viewer, worker
               cube, diagnostics, queue phases, and WebGPU readback examples have
@@ -1584,8 +1591,9 @@
               emissive factors, and non-default sampler metadata.
               StandardMaterial render-state routing, fitted-camera reset, and
               ECS light, shadow, IBL, animation scrub/speed/loop/direction,
-              rotation/scale and STEP channel playback, imported glTF camera
-              switching, embedded-image texture routing, imported punctual light
+              rotation/scale and STEP channel playback, weighted cross-fade
+              status for the multi-clip sample, imported glTF camera switching,
+              embedded-image texture routing, imported punctual light
               extraction, metadata, sample-query bootstrap responses, and a
               focused browser assertion that <code>app.pick(...)</code> resolves
               a known rendered entity while returning <code>null</code> for
@@ -1978,6 +1986,22 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">task-3073</span> Added a
+                <code>glb-viewer</code> cross-fade control that blends the
+                multi-clip sample from <code>SlideX</code> to
+                <code>RiseY</code> and reports live per-clip weights.
+              </li>
+              <li>
+                <span class="badge green">task-3072</span> Added the public
+                <code>crossFadeTo(...)</code> and
+                <code>sampleAnimationCrossFade(...)</code> runtime weight API.
+              </li>
+              <li>
+                <span class="badge green">task-3071</span> Added public weighted
+                animation clip sample blending and routed GLB viewer transform
+                writes through per-clip weights.
+              </li>
               <li>
                 <span class="badge green">task-3070</span> Added
                 <code>examples/post-effects.html</code>, a worker-authored scene
@@ -4222,17 +4246,16 @@
             <ul>
               <li>
                 <span class="badge amber">next</span> Build
-                <code>task-3071</code>, animation weighted clip blending for
-                multiple active clips.
+                <code>task-3074</code>, RectAreaLight authoring and LTC renderer
+                integration.
               </li>
               <li>
-                Anchor on Three.js animation action weights and the existing
-                Aperture GLB animation playback path.
+                Anchor on Three.js <code>RectAreaLight</code> and LTC uniform
+                setup plus PlayCanvas area-light LUT integration.
               </li>
               <li>
-                Keep the slice pure simulation/runtime first: typed API,
-                deterministic transform blending, and targeted tests before
-                adding cross-fade UI.
+                Keep the slice narrow: ECS light extraction, renderer-owned LUT
+                resources, and one visible StandardMaterial surface proof.
               </li>
             </ul>
           </article>
@@ -4245,6 +4268,39 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3073</div>
+            <div>
+              <strong>GLB viewer cross-fade shipped.</strong>
+              <span>
+                The multi-clip sample now has a cross-fade control that blends
+                <code>SlideX</code> into <code>RiseY</code> and publishes
+                JSON-safe active weights plus blend contributors.
+              </span>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="task-id">task-3072</div>
+            <div>
+              <strong>Animation cross-fade API shipped.</strong>
+              <span>
+                Runtime now exports <code>crossFadeTo(...)</code> and
+                <code>sampleAnimationCrossFade(...)</code> for deterministic
+                transition weights.
+              </span>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="task-id">task-3071</div>
+            <div>
+              <strong>Weighted clip blending shipped.</strong>
+              <span>
+                Runtime exposes weighted transform blending for translation,
+                scale, and quaternion rotation, and the GLB viewer applies
+                blended samples before ECS transform extraction.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3070</div>
             <div>

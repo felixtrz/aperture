@@ -1,5 +1,45 @@
 # Completed Tasks
 
+## task-3073 — Visible cross-fade in glb-viewer
+
+Completed: 2026-05-22
+
+- Added a `glb-viewer` cross-fade control and worker command that transitions
+  the existing multi-clip sample from `SlideX` to `RiseY`.
+- Routed active GLB animation sampling through per-clip weights so blended
+  transform samples are applied once per entity/path before render extraction.
+- Published JSON-safe `activeClipWeights`, `crossFade`, and per-node blend
+  contributor status for browser assertions.
+- Added Playwright coverage for the visible cross-fade status path. The focused
+  headed Chrome assertion passed, but the local runner hit the existing teardown
+  hang and was stopped after the checkmark; a headless browser status probe also
+  confirmed mid-fade and final weights.
+
+## task-3072 — Cross-fade API
+
+Completed: 2026-05-22
+
+- Added the public `crossFadeTo(fromClipId, toClipId, durationSeconds)` helper
+  and `sampleAnimationCrossFade(...)` for deterministic transition weights.
+- Exported the helpers through `@aperture-engine/runtime`.
+- Added unit coverage asserting a one-second cross-fade produces equal source
+  and target weights at the halfway point.
+
+## task-3071 — Animation weighted clip blending
+
+Completed: 2026-05-22
+
+- Added public data-only weighted animation clip sample blending for
+  translation, scale, and quaternion rotation, with clamped weights, normalized
+  contributors, and quaternion sign correction.
+- Exported the blending helpers through `@aperture-engine/runtime`.
+- Updated the GLB viewer animation path to keep a single-clip behavior as a
+  one-contributor blend while enabling multiple weighted clips on the same
+  entity/path.
+- Validation run: targeted runtime blending Vitest coverage passed, runtime and
+  test TypeScript checks passed, GLB viewer main/worker syntax checks passed,
+  build passed, and example/lint/format checks passed.
+
 ## task-3070 — Post-effects demo example
 
 Completed: 2026-05-22

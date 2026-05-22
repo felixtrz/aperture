@@ -49,6 +49,9 @@ const shadowReceiverToggle = document.querySelector(
 const shadowCasterToggle = document.querySelector("#glb-shadow-caster-toggle");
 const iblToggle = document.querySelector("#glb-ibl-toggle");
 const animationToggleButton = document.querySelector("#glb-animation-toggle");
+const animationCrossFadeButton = document.querySelector(
+  "#glb-animation-cross-fade",
+);
 const animationClipSelect = document.querySelector("#glb-animation-clip");
 const animationLoopSelect = document.querySelector("#glb-animation-loop");
 const animationDirectionSelect = document.querySelector(
@@ -989,6 +992,9 @@ function handleGlbWorkerCommand(aperture, scene, data) {
       return;
     case "animation-toggle":
       toggleActiveAnimationPlayback(aperture, scene);
+      return;
+    case "animation-cross-fade":
+      startActiveAnimationCrossFade(aperture, scene);
       return;
     case "animation-loop":
       setActiveAnimationLoopMode(aperture, scene, data.value);
@@ -4237,6 +4243,11 @@ function updateAnimationControlInputs(scene) {
       animation?.status === "paused" ? "play" : "pause";
   }
 
+  if (animationCrossFadeButton instanceof HTMLButtonElement) {
+    animationCrossFadeButton.disabled =
+      !hasAnimation || (animation?.clipCount ?? 0) < 2;
+  }
+
   if (animationLoopSelect instanceof HTMLSelectElement) {
     animationLoopSelect.disabled = !hasAnimation;
     animationLoopSelect.value = animation?.loopMode ?? "repeat";
@@ -4277,6 +4288,11 @@ function selectActiveAnimationClip(aperture, scene, clipIndex) {
 
   animation.activeClipIndex = clipIndex;
   animation.activeClip = animation.clips[clipIndex];
+  animation.activeClipWeights = createSingleActiveAnimationClipWeights(
+    animation.clips,
+    clipIndex,
+  );
+  animation.crossFade = null;
   animation.status = "playing";
   animation.time = 0;
   animation.clamped = false;
@@ -4577,6 +4593,11 @@ function createGltfAnimationState(options) {
     clips,
     activeClipIndex: activeClip === null ? -1 : 0,
     activeClip,
+    activeClipWeights: createSingleActiveAnimationClipWeights(
+      clips,
+      activeClip === null ? -1 : 0,
+    ),
+    crossFade: null,
     time: 0,
     speed: 1,
     direction: "forward",
@@ -5643,29 +5664,187 @@ function updateActiveAnimation(aperture, animation, elapsedSeconds) {
           ? wrapTime(unboundedTime, duration)
           : 0;
   animation.clamped = clamped;
+  updateAnimationCrossFadeWeights(aperture, animation, elapsedSeconds);
   applyAnimationAtTime(aperture, animation, clip, localTime);
 }
 
 function applyAnimationAtTime(aperture, animation, clip, localTime) {
   const animatedNodes = [];
+  const samples = [];
+  const channelsByKey = new Map();
 
-  for (const channel of clip.channels) {
-    const value = sampleAnimationChannel(channel, localTime);
+  for (const clipWeight of activeAnimationClipWeights(animation)) {
+    const weightedClip = animation.clips[clipWeight.clipIndex] ?? null;
+
+    if (weightedClip === null || clipWeight.weight <= 0) {
+      continue;
+    }
+
+    const clipTime =
+      weightedClip === clip
+        ? localTime
+        : animationClipLocalTime(animation, weightedClip, localTime);
+
+    for (const channel of weightedClip.channels) {
+      const value = sampleAnimationChannel(channel, clipTime);
+      const key = animationChannelKey(channel.entityKey, channel.path);
+
+      channelsByKey.set(key, channelsByKey.get(key) ?? channel);
+      samples.push({
+        clipId: `${clipWeight.clipIndex}:${weightedClip.name}`,
+        targetId: channel.entityKey,
+        path: channel.path,
+        weight: clipWeight.weight,
+        value,
+      });
+    }
+  }
+
+  const blendedChannels = aperture.blendAnimationClipSamples(samples);
+
+  for (const blendedChannel of blendedChannels) {
+    const channel = channelsByKey.get(
+      animationChannelKey(blendedChannel.targetId, blendedChannel.path),
+    );
+
+    if (channel === undefined) {
+      continue;
+    }
 
     channel.entity
       .getVectorView(aperture.LocalTransform, channel.path)
-      .set(value);
+      .set(blendedChannel.value);
     animatedNodes.push({
       nodeIndex: channel.nodeIndex,
       entityKey: channel.entityKey,
       path: channel.path,
-      interpolation: channel.interpolation,
-      value: roundTuple(value, 3),
+      interpolation:
+        blendedChannel.contributors.length > 1
+          ? "BLEND"
+          : channel.interpolation,
+      value: roundTuple(blendedChannel.value, 3),
+      weight: blendedChannel.weight,
+      contributors: blendedChannel.contributors,
     });
   }
 
   animation.time = Number(localTime.toFixed(3));
   animation.animatedNodes = animatedNodes;
+}
+
+function startActiveAnimationCrossFade(aperture, scene, durationSeconds = 1) {
+  const animation = scene.active?.animation ?? null;
+  const clip = animation?.activeClip ?? null;
+
+  if (animation === null || clip === null || animation.clips.length < 2) {
+    updateAnimationControlInputs(scene);
+    return;
+  }
+
+  updateActiveAnimation(aperture, animation, animation.lastElapsedSeconds);
+  const fromClipIndex = animation.activeClipIndex;
+  const toClipIndex = (fromClipIndex + 1) % animation.clips.length;
+
+  animation.activeClipIndex = toClipIndex;
+  animation.activeClip = animation.clips[toClipIndex];
+  animation.crossFade = {
+    fromClipIndex,
+    toClipIndex,
+    startedAt: animation.lastElapsedSeconds,
+    durationSeconds,
+    fade: aperture.crossFadeTo(
+      String(fromClipIndex),
+      String(toClipIndex),
+      durationSeconds,
+    ),
+  };
+  animation.status = "playing";
+  animation.clamped = false;
+  animation.playbackOffset =
+    animation.time -
+    animation.lastElapsedSeconds * animationSignedSpeed(animation);
+  updateAnimationCrossFadeWeights(
+    aperture,
+    animation,
+    animation.lastElapsedSeconds,
+  );
+  updateActiveAnimation(aperture, animation, animation.lastElapsedSeconds);
+  updateAnimationControlInputs(scene);
+}
+
+function updateAnimationCrossFadeWeights(aperture, animation, elapsedSeconds) {
+  const crossFade = animation.crossFade;
+
+  if (crossFade === null || crossFade === undefined) {
+    return;
+  }
+
+  const weights = aperture.sampleAnimationCrossFade(
+    crossFade.fade,
+    elapsedSeconds - crossFade.startedAt,
+  );
+  animation.activeClipWeights = animation.clips.map((_clip, clipIndex) => {
+    const weight = weights.find((entry) => entry.clipId === String(clipIndex));
+
+    return weight?.weight ?? 0;
+  });
+
+  if (elapsedSeconds - crossFade.startedAt >= crossFade.durationSeconds) {
+    animation.crossFade = null;
+    animation.activeClipIndex = crossFade.toClipIndex;
+    animation.activeClip = animation.clips[crossFade.toClipIndex];
+    animation.activeClipWeights = createSingleActiveAnimationClipWeights(
+      animation.clips,
+      crossFade.toClipIndex,
+    );
+  }
+}
+
+function createSingleActiveAnimationClipWeights(clips, activeClipIndex) {
+  return clips.map((_clip, index) => (index === activeClipIndex ? 1 : 0));
+}
+
+function activeAnimationClipWeights(animation) {
+  const weights = Array.isArray(animation.activeClipWeights)
+    ? animation.activeClipWeights
+    : [];
+  const weightedClips = [];
+
+  weights.forEach((weight, clipIndex) => {
+    if (Number.isFinite(weight) && weight > 0) {
+      weightedClips.push({ clipIndex, weight });
+    }
+  });
+
+  if (weightedClips.length > 0) {
+    return weightedClips;
+  }
+
+  return animation.activeClipIndex >= 0
+    ? [{ clipIndex: animation.activeClipIndex, weight: 1 }]
+    : [];
+}
+
+function animationClipLocalTime(animation, clip, localTime) {
+  const duration = Math.max(0, clip.duration);
+
+  if (duration <= 0) {
+    return 0;
+  }
+
+  if (
+    animation.status === "paused" ||
+    animation.loopMode === "once" ||
+    animation.clamped
+  ) {
+    return clamp(localTime, 0, duration);
+  }
+
+  return wrapTime(localTime, duration);
+}
+
+function animationChannelKey(entityKey, path) {
+  return `${entityKey}\u0000${path}`;
 }
 
 function wrapTime(time, duration) {
@@ -5772,6 +5951,8 @@ function createAnimationStatus(animation) {
       clips: [],
       activeClipIndex: -1,
       activeClipName: null,
+      activeClipWeights: [],
+      crossFade: null,
       time: 0,
       speed: 1,
       direction: "forward",
@@ -5795,6 +5976,33 @@ function createAnimationStatus(animation) {
     })),
     activeClipIndex: animation.activeClipIndex,
     activeClipName: clip.name,
+    activeClipWeights: activeAnimationClipWeights(animation).map(
+      ({ clipIndex, weight }) => ({
+        index: clipIndex,
+        name: animation.clips[clipIndex]?.name ?? `Animation${clipIndex}`,
+        weight: Number(weight.toFixed(3)),
+      }),
+    ),
+    crossFade:
+      animation.crossFade === null || animation.crossFade === undefined
+        ? null
+        : {
+            fromClipIndex: animation.crossFade.fromClipIndex,
+            fromClipName:
+              animation.clips[animation.crossFade.fromClipIndex]?.name ??
+              `Animation${animation.crossFade.fromClipIndex}`,
+            toClipIndex: animation.crossFade.toClipIndex,
+            toClipName:
+              animation.clips[animation.crossFade.toClipIndex]?.name ??
+              `Animation${animation.crossFade.toClipIndex}`,
+            elapsed: Number(
+              Math.max(
+                0,
+                animation.lastElapsedSeconds - animation.crossFade.startedAt,
+              ).toFixed(3),
+            ),
+            duration: Number(animation.crossFade.durationSeconds.toFixed(3)),
+          },
     time: animation.time,
     speed: Number(animation.speed.toFixed(2)),
     direction: animation.direction,
