@@ -6,6 +6,6 @@
   "lastResult": "success",
   "lastCommit": "97cf00e",
   "activePid": null,
-  "notes": "Completed task-3060 Draco and task-3061 Meshopt decoder integrations; GLB viewer compressed geometry samples pass focused assertions; pnpm run check passes; next task task-3062 real-world compressed glTF sample.",
-  "lastRunFinishedAt": "2026-05-22T05:50:12Z"
+  "notes": "Completed task-3062 real-world compressed GLB viewer sample, task-3063 MRT render-pass proof, and task-3064 ID-buffer render proof; documented task-3065 app.pick preflight as the next slice.",
+  "lastRunFinishedAt": "2026-05-22T06:51:03Z"
 }

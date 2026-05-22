@@ -1,6 +1,6 @@
 # Agent Handoff
 
-Updated: 2026-05-22T06:40:00Z
+Updated: 2026-05-22T06:50:00Z
 
 ## Current Run Update — 2026-05-22T06:40:00Z — ID-buffer render proof shipped
 
@@ -42,6 +42,10 @@ leaving the public app facade for the next slice.
 - `pnpm run check:progress` passed.
 - Focused Playwright ID-buffer assertion passed:
   `pnpm exec playwright test test/e2e/id-buffer.spec.ts --reporter=list`.
+- Broad end-of-run validation also passed: `pnpm test`, `pnpm run check`, and
+  combined focused Playwright coverage for `test/e2e/offscreen-color-target.spec.ts`
+  plus `test/e2e/id-buffer.spec.ts`.
+- A final `pnpm run format:check` passed after the `task-3065` preflight note.
 
 ### Known issues
 
@@ -65,6 +69,10 @@ and maps the result back to an ECS entity or `null`.
   `WebGpuAppRenderReport.snapshot`, and `MeshDrawPacket.entity` plus
   `createWebGpuIdBufferIdForEntity(...)` are enough to map ID-buffer readback
   values back to ECS entity refs.
+- Reference check: `references/engine/src/framework/components/camera/component.js`
+  routes screen-space camera helpers through the application canvas client size;
+  keep `app.pick(x, y)` in the same screen/canvas coordinate convention before
+  converting to ID-buffer texture pixels.
 - Unit coverage can reuse the `test/webgpu/webgpu-app.test.ts` harness, but the
   mock command encoder currently lacks `copyTextureToBuffer`; browser coverage
   should mirror `test/e2e/id-buffer.spec.ts` for the real `r32uint` texture
