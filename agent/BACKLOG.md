@@ -59,13 +59,13 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start `task-3064`: ID-buffer rendering for picking.
+Start `task-3065`: Public `app.pick(x, y)` API.
 
-Why this next: `task-3063` established the render-pass MRT foundation by
-planning multiple ordered color attachments and proving one WebGPU pass can
-write different fragment outputs into two off-screen targets with browser
-readback. The next visible Tier 13 gap is the ID buffer that uses that MRT
-foundation for screen-space picking.
+Why this next: `task-3063` established the render-pass MRT foundation, and
+`task-3064` added the `r32uint` ID-buffer proof that renders three stable ECS
+entity IDs into a second color attachment with browser readback. The next
+visible Tier 13 gap is the public app facade that reads that ID buffer for a
+screen-space pick request.
 
 Progress so far: `spinning-cube`, `multi-light-shadow`, and `glb-viewer` now
 use renderer-only `*.main.js` files plus ECS/extraction-owned `*.worker.js`
@@ -189,7 +189,7 @@ Eleven cross-cutting gaps remain across the six phases. They are sequenced below
 
 **Tier 13 — MRT + picking + raycasting (queued after Tier 12):**
 
-20. Multi-render-target + ID buffer + picking API (task-3063, task-3064, task-3065, task-3066) — task-3063 shipped render-pass MRT support; remaining slices add ID-buffer rendering for screen-space picking, public `app.pick(x, y) → entity`, and a math-side raycaster for non-screen-space queries. Required for any interactive 3D app. Closes gaps #5 and #11.
+20. Multi-render-target + ID buffer + picking API (task-3063, task-3064, task-3065, task-3066) — task-3063 shipped render-pass MRT support and task-3064 shipped the `r32uint` ID-buffer proof; remaining slices add public `app.pick(x, y) → entity` and a math-side raycaster for non-screen-space queries. Required for any interactive 3D app. Closes gaps #5 and #11.
 
 **Tier 14 — Post-processing foundation + FXAA + bloom (queued after Tier 13):**
 
@@ -904,7 +904,7 @@ Acceptance criteria:
 - Render pass accepts ≥2 color attachments.
 - Test renders to two off-screen targets in one pass with different shader outputs; reads back both.
 
-### task-3064 — ID-buffer rendering for picking (Tier 13 part 2)
+### task-3064 — ID-buffer rendering for picking (Tier 13 part 2) — Completed 2026-05-22
 
 Category: `webgpu-render`
 Package/write-scope: `packages/webgpu/src/webgpu/id-buffer-*.ts` (new), `packages/render/src/rendering/extraction.ts` (entity ID packet field), targeted tests.

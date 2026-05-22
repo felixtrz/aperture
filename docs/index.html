@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-22 06:31 UTC</dd>
+            <dd>2026-05-22 06:40 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -1261,10 +1261,13 @@
               key so live route changes do not reuse incompatible layouts.
               Render-pass MRT groundwork now plans ordered color attachments and
               has a browser proof that one WebGPU pass writes different fragment
-              outputs into two off-screen targets with readback from both.
+              outputs into two off-screen targets with readback from both. The
+              ID-buffer path now documents <code>r32uint</code> targets and
+              proves three stable ECS entity IDs can be rendered into a second
+              color attachment and read back for picking.
             </dd>
             <dt>Next focus</dt>
-            <dd>task-3064 ID-buffer rendering for picking</dd>
+            <dd>task-3065 Public app.pick API</dd>
           </dl>
         </aside>
       </header>
@@ -4194,17 +4197,18 @@
             <ul>
               <li>
                 <span class="badge amber">next</span> Build
-                <code>task-3064</code>, ID-buffer rendering on top of the new
-                MRT render-pass path.
+                <code>task-3065</code>, the public
+                <code>app.pick(x, y)</code> facade on top of the ID-buffer
+                proof.
               </li>
               <li>
-                Use the plural off-screen color-target helper and the two-target
+                Use the <code>r32uint</code> ID-buffer helper and three-entity
                 Playwright proof as the baseline.
               </li>
               <li>
-                Keep the slice narrow: render entity IDs into an
-                <code>r32uint</code> attachment before adding the public picking
-                facade in <code>task-3065</code>.
+                Keep the slice narrow: one pick readback returning an entity or
+                <code>null</code>, then leave math-side raycasting to
+                <code>task-3066</code>.
               </li>
             </ul>
           </article>
@@ -4217,6 +4221,17 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3064</div>
+            <div>
+              <strong>ID-buffer render proof shipped.</strong>
+              <span>
+                A WebGPU <code>r32uint</code> attachment now carries stable ECS
+                entity IDs, with browser readback proving three known pick
+                regions.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3063</div>
             <div>

@@ -1,5 +1,23 @@
 # Completed Tasks
 
+## task-3064 — ID-buffer rendering for picking
+
+Completed: 2026-05-22
+
+- Added `WEBGPU_ID_BUFFER_FORMAT = "r32uint"` and ID-buffer helpers for stable
+  ECS entity ID derivation, draw-entry creation, and readback ID lookup.
+- Exported the helper through the WebGPU package surface.
+- Added unit coverage proving IDs derive from `createStableRenderId(entity)` and
+  readback IDs map back to draw entries.
+- Added a Playwright WebGPU proof that renders three known ECS entity IDs into
+  an `r32uint` attachment alongside a normal color target in one pass, then
+  reads back all three IDs at known screen regions.
+- Validation run: targeted ID-buffer Vitest coverage passed,
+  `pnpm exec tsc --noEmit -p tsconfig.test.json` passed,
+  `pnpm run build` passed, `pnpm run lint` passed,
+  `pnpm run format:check` passed, `pnpm run check:progress` passed, and the
+  focused Playwright ID-buffer assertion passed.
+
 ## task-3063 — Multiple render target support in render passes
 
 Completed: 2026-05-22

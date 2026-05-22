@@ -1,6 +1,57 @@
 # Agent Handoff
 
-Updated: 2026-05-22T06:31:00Z
+Updated: 2026-05-22T06:40:00Z
+
+## Current Run Update — 2026-05-22T06:40:00Z — ID-buffer render proof shipped
+
+Completed `task-3064` after `task-3063`.
+
+### What changed
+
+- Added `packages/webgpu/src/webgpu/id-buffer.ts` with
+  `WEBGPU_ID_BUFFER_FORMAT = "r32uint"`, an empty-ID sentinel, stable ECS
+  entity-ID derivation, draw-entry creation, and ID lookup helpers.
+- Exported the ID-buffer helpers through the WebGPU package surface.
+- Added unit coverage proving ID-buffer entries derive from
+  `createStableRenderId(entity)` and can be looked up after readback.
+- Added Playwright coverage that renders three known ECS entity IDs into an
+  `r32uint` color attachment alongside a normal color target in one WebGPU pass
+  and reads the IDs back at three named screen regions.
+- Updated public tracker pages, backlog, and completed-task log. Recommended
+  next task is now `task-3065`.
+
+### References inspected
+
+- `references/engine/src/scene/picker-id.js`
+- `references/engine/src/framework/graphics/render-pass-picker.js`
+- `references/engine/src/scene/shader-lib/wgsl/chunks/common/frag/pick.js`
+- `references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/pass-other/litOtherMain.js`
+
+Common pattern adapted: PlayCanvas assigns stable picker IDs, renders a picking
+pass, and maps readback IDs back to scene objects. Aperture now keeps the ID as
+ECS-derived packet data and proves the GPU `r32uint` target/readback path while
+leaving the public app facade for the next slice.
+
+### Validation
+
+- `pnpm exec vitest run test/webgpu/id-buffer.test.ts --reporter=dot` passed.
+- `pnpm exec tsc --noEmit -p tsconfig.test.json` passed.
+- `pnpm run build` passed.
+- `pnpm run lint` passed.
+- `pnpm run format:check` passed.
+- `pnpm run check:progress` passed.
+- Focused Playwright ID-buffer assertion passed:
+  `pnpm exec playwright test test/e2e/id-buffer.spec.ts --reporter=list`.
+
+### Known issues
+
+- The ID-buffer proof is a focused WebGPU path. The public
+  `app.pick(x, y)` facade is still `task-3065`.
+
+### Recommended next task
+
+Start `task-3065`: add the public `app.pick(x, y)` API that reads the ID buffer
+and maps the result back to an ECS entity or `null`.
 
 ## Current Run Update — 2026-05-22T06:31:00Z — MRT render-pass proof shipped
 
