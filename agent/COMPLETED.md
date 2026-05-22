@@ -1,5 +1,220 @@
 # Completed Tasks
 
+## User-directed loading/rendering audit — Native compressed KTX2 textures
+
+Completed: 2026-05-22
+
+- Added library-owned KTX2/Basis texture-compression routing for
+  `loadGltfFromUri()`, `loadGlbFromUri()`, and glTF async texture creation.
+- Requested WebGPU texture-compression features automatically during app
+  initialization and derived Basis transcoder support from adapter features.
+- Transcoded Basis ETC1S/UASTC textures to native ETC2, BC7, or ASTC formats
+  when supported, while preserving the RGBA fallback path.
+- Added block-compressed texture upload validation for WebGPU texture resources,
+  including bytes-per-row and block-row checks.
+- Moved the GLB viewer off its custom KTX2 decode callback; it now supplies only
+  library-owned transcoder creation and texture-compression support options.
+- Validation run: focused KTX2/WebGPU texture/index tests, broader texture/URI
+  loader tests, package and test typechecks, lint, example syntax checks, format
+  check, diff whitespace check, and direct Chrome/WebGPU GLB viewer proof for
+  `basis-ktx2-texture` creating an `etc2-rgba8unorm-srgb` texture.
+
+## User-directed loading/rendering audit — Shadow-caster source streams
+
+Completed: 2026-05-22
+
+- Carried extracted `meshLayoutKey` values into shadow caster draw-list records.
+- Added layout-specialized depth-only shadow caster pipeline descriptors and
+  live pipeline resources while preserving the legacy single `descriptor` and
+  `resource` fields for compatibility.
+- Made shadow frame-resource readiness choose the matching pipeline key per
+  caster draw, including padded `stride=...,POSITION@offset` source layouts.
+- Updated GLB viewer and GLTF scene shadow setup to pass the existing caster
+  draw-list report into the library-owned descriptor/resource path.
+- Validation run: focused and broader shadow WebGPU Vitest coverage, package
+  and test typechecks, lint, example syntax checks, GLTF scene headed Chrome
+  WebGPU shadow probe, and CesiumMan GLB viewer square-canvas probe.
+
+## User-directed loading/rendering audit — Padded source bufferViews
+
+Completed: 2026-05-22
+
+- Preserved padded/nonzero-offset glTF source bufferViews as direct
+  source-backed `MeshAsset` vertex streams when attributes are non-overlapping
+  and fit inside the source stride.
+- Added explicit `stride=<bytes>,SEMANTIC[:format]@<offset>` mesh layout keys
+  for padded streams while preserving the compact historical layout key for
+  tightly packed streams.
+- Taught Standard, Unlit, ID-pick, and DebugNormal WebGPU routes to honor the
+  explicit source stride/offset layout form.
+- Validation run: focused mesh/extraction/Standard/Unlit/ID-pick/DebugNormal
+  Vitest coverage, broader accessor/import/extraction/WebGPU coverage, and
+  package/test typechecks.
+
+## User-directed loading/rendering audit — Multi-stream source bufferViews
+
+Completed: 2026-05-22
+
+- Preserved multiple tightly packed glTF source bufferViews as separate
+  source-backed `MeshAsset` vertex streams instead of repacking them into one
+  Aperture-owned stream.
+- Added stream-aware Unlit WebGPU vertex layout derivation, including compact
+  `COLOR_0` formats split across stream separators.
+- Routed ID-buffer picking, Matcap, and DebugNormal browser descriptors through
+  stream-aware built-in layouts, and updated vertex-color layout detection to
+  recognize `|` stream separators.
+- Left padded source layouts to the follow-up padded-bufferView slice, now
+  completed above.
+- Validation run: focused accessor/import/extraction/Standard/Unlit/ID-pick/
+  Matcap/DebugNormal Vitest coverage plus package and test typechecks.
+
+## User-directed loading/rendering audit — Direct source bufferView streams
+
+Completed: 2026-05-22
+
+- Made report-driven glTF import use source-view accessor storage by default
+  for source-owned loads.
+- Carried source bufferView metadata through accessor decoding while keeping
+  JSON projections compact; raw source bytes are summarized instead of
+  serialized.
+- Preserved a tightly interleaved glTF source bufferView directly as a
+  `MeshAsset` vertex stream when the source offsets and stride exactly match
+  the concrete layout key, avoiding the extra Aperture-owned interleaving copy.
+- Kept padded source layouts on the existing safe repack path until WebGPU
+  pipeline keys can represent arbitrary stream offsets.
+- Validation run: targeted accessor/mesh/import/extraction/Standard pipeline
+  Vitest coverage, package and test typechecks, lint, example syntax checks,
+  direct browser probes for `hard_table.glb` and CesiumMan, and one known
+  pre-existing GLB viewer e2e asset-list assertion failure after render status
+  had already reached `ok: true`.
+
+## User-directed loading/rendering audit — StandardMaterial dynamic vertex layouts
+
+Completed: 2026-05-22
+
+- Changed StandardMaterial browser pipeline descriptors to derive vertex buffer
+  layouts from concrete extracted `meshLayoutKey` tokens when available.
+- Computed stride and offsets from actual mesh attribute order, including
+  compact `COLOR_0`, `JOINTS_0`, and `WEIGHTS_0` format tokens.
+- Covered a combined skinned + normal-map tangent + compact vertex-color layout
+  so built-in StandardMaterial no longer needs a hand-written constant for each
+  feature permutation.
+- Preserved existing fixed layout constants as fallbacks for legacy symbolic
+  layout keys.
+- Validation run: focused Standard pipeline Vitest coverage, broader
+  accessor/mesh/extraction/WebGPU coverage, package and test typechecks, lint,
+  example syntax checks, and direct browser probes for CesiumMan plus
+  `hard_table.glb`.
+
+## User-directed loading/rendering audit — Compact skinning streams
+
+Completed: 2026-05-22
+
+- Preserved compact glTF `JOINTS_0` accessors as `uint8x4` or `uint16x4`
+  instead of widening byte joints during decode.
+- Added normalized `UNSIGNED_BYTE` and `UNSIGNED_SHORT` `WEIGHTS_0` support as
+  `unorm8x4` and `unorm16x4`, while still rejecting unnormalized integer
+  weights.
+- Kept compact skin streams through validation, decode, mesh construction,
+  extraction layout keys, and StandardMaterial skinned WebGPU vertex layouts.
+- Verified the local skinned sample and Khronos CesiumMan through
+  `glb-viewer`; both reached one draw, zero source/extraction diagnostics, ready
+  skinning, and a square 1024x1024 canvas.
+- Validation run: focused accessor/mesh/extraction/Standard pipeline Vitest
+  coverage, package and test typechecks, lint, example syntax checks, and
+  direct browser probes.
+
+## User-directed loading/rendering audit — Compact COLOR_0 and GPU timing cache
+
+Completed: 2026-05-22
+
+- Added compact glTF `COLOR_0` support for `VEC3 + FLOAT`, normalized
+  `UNSIGNED_BYTE`, and normalized `UNSIGNED_SHORT` accessors.
+- Kept compact color streams compact through decode, mesh construction,
+  extraction layout keys, WebGPU unlit/StandardMaterial vertex layouts, and
+  ID-buffer picking layouts instead of expanding them to `float32x4`.
+- Verified `examples/assets/hard_table.glb` loads and renders in
+  `glb-viewer` with `meshLayoutKey:
+"POSITION,NORMAL,TEXCOORD_0,COLOR_0:unorm8x4"`, a square canvas, transferable
+  source assets, zero source diagnostics, and nonblack browser pixels.
+- Cached GPU timestamp query resources per app pass and added validation-error
+  scoped creation, avoiding per-frame timestamp resource allocation and
+  preventing repeated invalid command submissions on devices that expose but
+  cannot allocate timestamp queries.
+- Validation run: focused asset/rendering/WebGPU Vitest coverage, package and
+  test typechecks, lint, example syntax checks, progress tracker check, diff
+  whitespace check, and direct browser probe.
+
+## task-3091 — External glTF/GLB URI loading in the asset layer
+
+Completed: 2026-05-22
+
+- Extended `loadGltfFromUri()` to fetch external image URIs relative to the
+  source `.gltf`, merge caller-provided `externalImageBytes`, decode external,
+  data URI, and bufferView images through one status path, and report typed
+  image fetch/read/HTTP/unsupported-URI diagnostics.
+- Added bounded concurrent external image decode, concurrent fetching for
+  independent external buffers/images, and cross-category scheduling so
+  external image URI fetches no longer wait for all external buffers to finish;
+  this reduced the observed FlightHelmet loader probe from roughly 2.9s to
+  roughly 1.9s under the local browser probe before the later coalescing fix.
+- Added same-URL external buffer/image fetch coalescing and repeated image
+  decode coalescing inside `loadGltfFromUri()`, matching the dependency/cache
+  behavior found in three.js and PlayCanvas for duplicate resources while still
+  reporting diagnostics per referencing image/buffer.
+- Moved the GLB viewer's hand-written source/image loading path into
+  `loadGlbFromUri()`: the library now fetches GLB bytes, fetches external
+  buffers/images, decodes embedded bufferView images, lazily creates
+  Draco/Meshopt decoders only when extensions require them, reports external
+  image status, and exposes reusable source/external-byte/decode caches.
+- Removed the remaining main/worker duplicate source load in `glb-viewer`: the
+  worker now performs the URI fetch/parse/decode once and posts source-asset
+  reports to main for renderer-side asset registration before frame snapshots
+  resume.
+- Removed avoidable encoded-image byte clones in the async texture path:
+  provided/fetched byte ranges are passed to decoders as views, and GLB/glTF
+  bufferView images use `subarray()` instead of copying slices.
+- Removed the remaining decoded-image byte clone in the source-loader resolver
+  path: URI loaders and no-fetch facades now pass the decoded RGBA byte array
+  through to texture source data directly.
+- Removed the browser canvas decoder's final decoded RGBA clone by wrapping
+  `ImageData.data` in a `Uint8Array` view instead of copying it.
+- Added a tightly packed accessor fast path: float/uint16/uint32 accessors now
+  decode through native typed-array construction instead of per-component
+  `DataView` loops, defaulting to compact range copies for worker handoff
+  safety while exposing opt-in `source-view` zero-copy mode for callers that can
+  safely retain source buffer ownership through report-driven import and the
+  URI/no-fetch loader option surface.
+- Reused single-attribute mesh streams directly when decoded glTF data is
+  already packed for the target stream, avoiding one extra mesh-construction
+  repack in that case.
+- Retired the main-thread GLB viewer source loader calls, leaving the viewer
+  main file to register worker-provided source reports instead of calling
+  `loadGltfFromUri()` / `loadGlbFromUri()` itself.
+- Added a transferable source-asset report package for worker-to-main GLB
+  viewer handoff: texture bytes, vertex streams, and index buffers move to the
+  main renderer registration path by transfer list, while the worker keeps
+  metadata-only reports for ECS replay/extraction and status. Subrange typed
+  array views are compacted before transfer so source-view accessors do not
+  move an entire shared GLB backing buffer by accident.
+- Keyed external URI image decode cache entries by resolved URL instead of a
+  per-load byte object id, so repeated image URLs still reuse decode work when
+  material/image order changes across loads.
+- Added Khronos FlightHelmet, DamagedHelmet, CesiumMan, MorphPrimitives, and A
+  Beautiful Game GLB viewer catalog entries, preserving Khronos source
+  selection and square 1:1 canvas presentation.
+- Added affine glTF matrix-node decomposition into ECS TRS authoring after
+  CesiumMan exposed the old matrix-deferred path as a real-world render
+  blocker.
+- Fixed the CesiumMan bent-back pose: the viewer's procedural demo skinning now
+  runs only for skins without parsed glTF animation clips, so CesiumMan keeps
+  its imported upright skeleton.
+- Validation run: focused Vitest importer/math coverage, package/test
+  typechecks, package boundary check, example syntax checks, progress tracker
+  check, and a direct Chrome/WebGPU probe proving CesiumMan reaches render with
+  one mesh draw, one draw call, ready skinning, square canvas, and non-clear
+  pixels.
+
 ## task-3078 — Sprite component + billboard renderer
 
 Completed: 2026-05-22

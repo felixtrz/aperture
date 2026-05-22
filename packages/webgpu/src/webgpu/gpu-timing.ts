@@ -26,6 +26,8 @@ export interface GpuTimestampFeatureSetLike {
 
 export interface GpuTimestampQueryDeviceLike {
   readonly features?: GpuTimestampFeatureSetLike;
+  readonly pushErrorScope?: (filter: "validation") => void;
+  readonly popErrorScope?: () => Promise<{ readonly message?: string } | null>;
   readonly createQuerySet?: (descriptor: {
     readonly label?: string;
     readonly type: "timestamp";
@@ -192,6 +194,33 @@ export function createGpuTimestampQueryResources(
       message: `GPU timestamp query resource creation failed: ${String(cause)}`,
     });
   }
+}
+
+export async function createGpuTimestampQueryResourcesChecked(
+  options: CreateGpuTimestampQueryResourcesOptions,
+): Promise<CreateGpuTimestampQueryResourcesResult> {
+  if (
+    options.device.pushErrorScope === undefined ||
+    options.device.popErrorScope === undefined
+  ) {
+    return createGpuTimestampQueryResources(options);
+  }
+
+  options.device.pushErrorScope("validation");
+  const created = createGpuTimestampQueryResources(options);
+  const validationError = await options.device.popErrorScope();
+
+  if (validationError === null) {
+    return created;
+  }
+
+  return createUnsupportedResult({
+    code: "gpuTiming.resourceCreationFailed",
+    severity: "warning",
+    message: `GPU timestamp query resource creation failed validation: ${
+      validationError.message ?? "unknown validation error"
+    }`,
+  });
 }
 
 export function writeGpuTimestampQuery(

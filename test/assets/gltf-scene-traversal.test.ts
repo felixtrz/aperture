@@ -120,7 +120,7 @@ describe("glTF scene traversal report", () => {
     ]);
   });
 
-  it("reports malformed transforms and deferred matrix decomposition", () => {
+  it("reports malformed transforms and decomposes supported matrix transforms", () => {
     const malformed = createGltfSceneTraversalReport({
       root: {
         asset: { version: "2.0" },
@@ -139,6 +139,17 @@ describe("glTF scene traversal report", () => {
         ],
       },
     });
+    const unsupportedMatrix = createGltfSceneTraversalReport({
+      root: {
+        asset: { version: "2.0" },
+        scenes: [{ nodes: [0] }],
+        nodes: [
+          {
+            matrix: [1, 0, 0, 0, 0.5, 1, 0, 0, 0, 0, 1, 0, 4, 5, 6, 1],
+          },
+        ],
+      },
+    });
 
     expect(malformed.valid).toBe(false);
     expect(malformed.nodes[0]).toMatchObject({ localTransform: null });
@@ -152,14 +163,21 @@ describe("glTF scene traversal report", () => {
     expect(matrix.valid).toBe(true);
     expect(matrix.nodes[0]).toMatchObject({
       localTransform: {
-        kind: "matrix",
-        decomposed: false,
+        kind: "trs",
+        translation: [4, 5, 6],
+        rotation: [0, 0, 0, 1],
+        scale: [1, 1, 1],
       },
     });
-    expect(matrix.diagnostics).toMatchObject([
+    expect(matrix.diagnostics).toEqual([]);
+    expect(unsupportedMatrix.valid).toBe(false);
+    expect(unsupportedMatrix.nodes[0]).toMatchObject({
+      localTransform: null,
+    });
+    expect(unsupportedMatrix.diagnostics).toMatchObject([
       {
         code: "gltfScene.unsupportedMatrixDecomposition",
-        severity: "warning",
+        severity: "error",
         nodeIndex: 0,
       },
     ]);

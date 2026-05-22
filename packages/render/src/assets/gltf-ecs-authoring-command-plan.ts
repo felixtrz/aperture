@@ -79,7 +79,6 @@ export interface GltfVisibilityCommandValue {
 export type GltfEcsAuthoringDiagnosticCode =
   | "gltfEcsAuthoring.invalidTraversalReport"
   | "gltfEcsAuthoring.missingSceneRoot"
-  | "gltfEcsAuthoring.matrixTransformDeferred"
   | "gltfEcsAuthoring.nodeSkippedByAncestor"
   | "gltfEcsAuthoring.missingMeshRegistration"
   | "gltfEcsAuthoring.skippedMeshRegistration"
@@ -185,11 +184,6 @@ export function createGltfEcsAuthoringCommandPlan(
         skipped,
         skippedEntityKeys,
       });
-      continue;
-    }
-
-    if (node.localTransform?.kind === "matrix") {
-      skipMatrixNode({ node, diagnostics, skipped, skippedEntityKeys });
       continue;
     }
 
@@ -534,31 +528,6 @@ function skipUnresolvedPrimitiveMaterial(input: {
   });
 }
 
-function skipMatrixNode(input: {
-  readonly node: GltfTraversedNode;
-  readonly diagnostics: GltfEcsAuthoringDiagnostic[];
-  readonly skipped: GltfSkippedEcsAuthoringEntry[];
-  readonly skippedEntityKeys: Set<string>;
-}): void {
-  const diagnostic: GltfEcsAuthoringDiagnostic = {
-    code: "gltfEcsAuthoring.matrixTransformDeferred",
-    severity: "error",
-    message: `Node '${input.node.entityKey}' was skipped because matrix transform decomposition is not implemented.`,
-    nodeIndex: input.node.nodeIndex,
-    entityKey: input.node.entityKey,
-    parentEntityKey: input.node.parentEntityKey,
-  };
-  input.diagnostics.push(diagnostic);
-  input.skipped.push({
-    entityKey: input.node.entityKey,
-    reason: diagnostic.code,
-    nodeIndex: input.node.nodeIndex,
-    parentEntityKey: input.node.parentEntityKey,
-    diagnostics: [diagnostic],
-  });
-  input.skippedEntityKeys.add(input.node.entityKey);
-}
-
 function skipNodeByAncestor(input: {
   readonly node: GltfTraversedNode;
   readonly diagnostics: GltfEcsAuthoringDiagnostic[];
@@ -587,7 +556,7 @@ function skipNodeByAncestor(input: {
 function localTransformValue(
   transform: GltfNodeLocalTransform | null,
 ): GltfLocalTransformCommandValue {
-  if (transform === null || transform.kind === "matrix") {
+  if (transform === null) {
     return identityLocalTransform();
   }
 

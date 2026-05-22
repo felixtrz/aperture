@@ -22,7 +22,7 @@ import {
   type WebGpuShaderDiagnostic,
   type WebGpuShaderFailureReason,
 } from "./shader.js";
-import { UNLIT_PRIMITIVE_VERTEX_BUFFER_LAYOUT } from "./unlit-pipeline.js";
+import { resolveUnlitVertexBufferLayouts } from "./unlit-pipeline.js";
 import type { BuiltInShaderSourceModule } from "./unlit-shader.js";
 
 export type MatcapRenderPipelineDiagnosticCode =
@@ -185,7 +185,7 @@ export function createBrowserMatcapRenderPipelineDescriptor(
     vertex: {
       module: input.shaderModule,
       entryPoint: shader.entryPoints.vertex,
-      buffers: [UNLIT_PRIMITIVE_VERTEX_BUFFER_LAYOUT],
+      buffers: resolveUnlitVertexBufferLayouts(input.batchKey),
     },
     fragment: {
       module: input.shaderModule,

@@ -33,7 +33,19 @@ export type TextureFormat =
   | "bgra8unorm-srgb"
   | "r8unorm"
   | "rg8unorm"
-  | "rgba16float";
+  | "rgba16float"
+  | "bc1-rgba-unorm"
+  | "bc1-rgba-unorm-srgb"
+  | "bc3-rgba-unorm"
+  | "bc3-rgba-unorm-srgb"
+  | "bc7-rgba-unorm"
+  | "bc7-rgba-unorm-srgb"
+  | "etc2-rgb8unorm"
+  | "etc2-rgb8unorm-srgb"
+  | "etc2-rgba8unorm"
+  | "etc2-rgba8unorm-srgb"
+  | "astc-4x4-unorm"
+  | "astc-4x4-unorm-srgb";
 export type TextureUsage = "sampled" | "copy-dst" | "render-attachment";
 export type SamplerAddressMode = "clamp-to-edge" | "repeat" | "mirror-repeat";
 export type SamplerFilterMode = "nearest" | "linear";

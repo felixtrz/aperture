@@ -51,6 +51,7 @@ describe("shadow caster draw-list planning", () => {
               renderId: 1,
               meshKey: "mesh:mesh-1",
               materialKey: "material:material-1",
+              meshLayoutKey: "mesh-1",
               submesh: 0,
               layerMask: 1,
             },

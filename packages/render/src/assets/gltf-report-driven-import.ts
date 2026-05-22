@@ -18,6 +18,7 @@ import {
   type GltfAccessorDecodingDiagnostic,
   type GltfDecodedPrimitiveAccessors,
   type GltfAccessorDecodingReportJsonValue,
+  type GltfAccessorStorageMode,
 } from "./gltf-accessor-decoding.js";
 import {
   gltfAccessorValidationReportToJsonValue,
@@ -104,6 +105,7 @@ export interface GltfReportDrivenImportOptions {
   ) => ArrayBuffer | ArrayBufferView | null | undefined;
   readonly dracoDecoder?: DracoMeshDecoder;
   readonly meshoptDecoder?: MeshoptBufferDecoder;
+  readonly accessorStorageMode?: GltfAccessorStorageMode;
   readonly provided?: Partial<GltfLoaderOrchestrationReportOptions>;
 }
 
@@ -477,6 +479,7 @@ function createMeshReports(options: GltfReportDrivenImportOptions): {
   const uncompressedAccessorDecoding = decodeGltfPrimitiveAccessors({
     validationReport: accessorValidation,
     resolveBufferBytes: resolveMeshBufferBytes,
+    storageMode: options.accessorStorageMode ?? "source-view",
   });
   const dracoAccessorDecoding = decodeGltfDracoPrimitiveAccessors({
     root: meshRoot,

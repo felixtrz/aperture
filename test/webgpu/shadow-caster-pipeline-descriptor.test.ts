@@ -43,6 +43,7 @@ describe("shadow caster pipeline descriptor metadata", () => {
         },
         vertex: {
           buffers: ["POSITION"],
+          meshLayoutKey: null,
           matrixBufferLayoutKey:
             "shadow-caster/group-0:directional-shadow-matrices@0",
         },
@@ -62,6 +63,42 @@ describe("shadow caster pipeline descriptor metadata", () => {
         },
         colorTargets: [],
       },
+      descriptors: [
+        {
+          pipelineKey:
+            "shadow-caster/depth-only/depth24plus/triangle-list/none",
+          label: "shadow-caster-depth-only:depth24plus:triangle-list",
+          shader: {
+            family: "shadow-caster",
+            label: "shadow-caster-depth-only",
+            entryPoints: {
+              vertex: "vs_main",
+              fragment: "fs_main",
+            },
+          },
+          vertex: {
+            buffers: ["POSITION"],
+            meshLayoutKey: null,
+            matrixBufferLayoutKey:
+              "shadow-caster/group-0:directional-shadow-matrices@0",
+          },
+          index: {
+            required: true,
+            format: "uint32",
+          },
+          primitive: {
+            topology: "triangle-list",
+            cullMode: "none",
+            frontFace: "ccw",
+          },
+          depthStencil: {
+            format: "depth24plus",
+            depthWriteEnabled: true,
+            depthCompare: "less-equal",
+          },
+          colorTargets: [],
+        },
+      ],
       diagnostics: [
         {
           code: "shadowCasterPipelineDescriptor.passSubmissionDeferred",
@@ -108,6 +145,41 @@ describe("shadow caster pipeline descriptor metadata", () => {
         },
       ],
     });
+  });
+
+  it("specializes descriptor keys by caster mesh layout", () => {
+    const json = shadowCasterPipelineDescriptorReportToJsonValue(
+      createShadowCasterPipelineDescriptorReport({
+        commandEncoding: commandEncoding("ready"),
+        meshLayoutKeys: [
+          "POSITION,NORMAL,TEXCOORD_0",
+          "stride=40,POSITION@4,NORMAL@20,TEXCOORD_0@32",
+          "POSITION,NORMAL,TEXCOORD_0",
+        ],
+      }),
+    );
+
+    expect(json.descriptorCount).toBe(2);
+    expect(json.descriptors.map((descriptor) => descriptor.vertex)).toEqual([
+      {
+        buffers: ["POSITION"],
+        meshLayoutKey: "POSITION,NORMAL,TEXCOORD_0",
+        matrixBufferLayoutKey:
+          "shadow-caster/group-0:directional-shadow-matrices@0",
+      },
+      {
+        buffers: ["POSITION"],
+        meshLayoutKey: "stride=40,POSITION@4,NORMAL@20,TEXCOORD_0@32",
+        matrixBufferLayoutKey:
+          "shadow-caster/group-0:directional-shadow-matrices@0",
+      },
+    ]);
+    expect(
+      json.descriptors.map((descriptor) => descriptor.pipelineKey),
+    ).toEqual([
+      "shadow-caster/depth-only/depth24plus/triangle-list/none/mesh-layout:POSITION%2CNORMAL%2CTEXCOORD_0",
+      "shadow-caster/depth-only/depth24plus/triangle-list/none/mesh-layout:stride%3D40%2CPOSITION%404%2CNORMAL%4020%2CTEXCOORD_0%4032",
+    ]);
   });
 
   it("reports missing command records and unsupported topology", () => {

@@ -87,6 +87,16 @@ describe("shadow caster pipeline resource", () => {
         shaderModuleKey: "shader-module:shadow-caster-depth-only",
         label: "shadow-caster-depth-only:depth24plus:triangle-list",
       },
+      resources: [
+        {
+          pipelineKey:
+            "shadow-caster/depth-only/depth24plus/triangle-list/none",
+          resourceKey:
+            "render-pipeline:shadow-caster/depth-only/depth24plus/triangle-list/none",
+          shaderModuleKey: "shader-module:shadow-caster-depth-only",
+          label: "shadow-caster-depth-only:depth24plus:triangle-list",
+        },
+      ],
       diagnostics: [
         {
           code: "shadowCasterPipelineResource.passSubmissionDeferred",
@@ -129,6 +139,56 @@ describe("shadow caster pipeline resource", () => {
     expect(second.resource).toBe(first.resource);
   });
 
+  it("creates layout-specialized shadow pipelines for padded source streams", () => {
+    const pipelineDescriptors: WebGpuRenderPipelineCreateDescriptor[] = [];
+    const shaderModule = { compilationInfo: async () => ({ messages: [] }) };
+    const report = createShadowCasterPipelineResourceReport({
+      device: {
+        createShaderModule() {
+          return shaderModule;
+        },
+        createRenderPipeline(descriptor) {
+          pipelineDescriptors.push(descriptor);
+          return { type: "render-pipeline" };
+        },
+      },
+      descriptor: createShadowCasterPipelineDescriptorReport({
+        commandEncoding: commandEncoding(),
+        meshLayoutKeys: [
+          "POSITION,NORMAL,TEXCOORD_0",
+          "stride=40,POSITION@4,NORMAL@20,TEXCOORD_0@32",
+        ],
+      }),
+    });
+
+    expect(report.resources).toHaveLength(2);
+    expect(report.createdPipelineCount).toBe(2);
+    expect(pipelineDescriptors.map((descriptor) => descriptor.vertex)).toEqual([
+      {
+        module: shaderModule,
+        entryPoint: "vs_main",
+        buffers: [
+          {
+            arrayStride: 32,
+            stepMode: "vertex",
+            attributes: [{ shaderLocation: 0, offset: 0, format: "float32x3" }],
+          },
+        ],
+      },
+      {
+        module: shaderModule,
+        entryPoint: "vs_main",
+        buffers: [
+          {
+            arrayStride: 40,
+            stepMode: "vertex",
+            attributes: [{ shaderLocation: 0, offset: 4, format: "float32x3" }],
+          },
+        ],
+      },
+    ]);
+  });
+
   it("reports missing descriptor and device methods", () => {
     const missingDescriptor = shadowCasterPipelineResourceReportToJsonValue(
       createShadowCasterPipelineResourceReport({
@@ -139,6 +199,7 @@ describe("shadow caster pipeline resource", () => {
           status: "missing",
           descriptorCount: 0,
           descriptor: null,
+          descriptors: [],
         },
       }),
     );

@@ -42,6 +42,8 @@ export interface GltfValidatedAccessorReference {
   readonly accessorIndex: number;
   readonly bufferViewIndex: number;
   readonly bufferIndex: number;
+  readonly bufferViewByteOffset: number;
+  readonly bufferViewByteLength: number;
   readonly byteOffset: number;
   readonly byteLength: number;
   readonly componentType: number;
@@ -53,6 +55,10 @@ export interface GltfValidatedAccessorReference {
     | "float32x2"
     | "float32x3"
     | "float32x4"
+    | "unorm8x4"
+    | "unorm16x4"
+    | "uint8x4"
+    | "uint16x4"
     | "uint8-to-uint16"
     | "uint16"
     | "uint32";
@@ -448,8 +454,9 @@ function validateAccessorReference(
     return null;
   }
 
-  const requiredByteLength =
-    count === 0 ? 0 : byteOffset + (count - 1) * byteStride + elementByteSize;
+  const sourceByteLength =
+    count === 0 ? 0 : (count - 1) * byteStride + elementByteSize;
+  const requiredByteLength = byteOffset + sourceByteLength;
   if (requiredByteLength > bufferView.byteLength) {
     pushDiagnostic(context, primitive, input, {
       code: "gltfAccessor.accessorRangeOutOfBounds",
@@ -469,8 +476,10 @@ function validateAccessorReference(
     accessorIndex: input.accessorIndex,
     bufferViewIndex,
     bufferIndex: bufferView.bufferIndex,
+    bufferViewByteOffset: bufferView.byteOffset,
+    bufferViewByteLength: bufferView.byteLength,
     byteOffset: bufferView.byteOffset + byteOffset,
-    byteLength: requiredByteLength,
+    byteLength: sourceByteLength,
     componentType,
     accessorType,
     count,
@@ -647,7 +656,6 @@ function expectationForSemantic(
           }
         : null;
     case "TANGENT":
-    case "COLOR_0":
       return accessor.type === "VEC4" &&
         accessor.componentType === GLTF_COMPONENT_FLOAT
         ? {
@@ -656,6 +664,48 @@ function expectationForSemantic(
             expectedFormat: "float32x4",
           }
         : null;
+    case "COLOR_0":
+      if (
+        accessor.type === "VEC3" &&
+        accessor.componentType === GLTF_COMPONENT_FLOAT
+      ) {
+        return {
+          type: "VEC3",
+          componentTypes: [GLTF_COMPONENT_FLOAT],
+          expectedFormat: "float32x3",
+        };
+      }
+      if (
+        accessor.type === "VEC4" &&
+        accessor.componentType === GLTF_COMPONENT_FLOAT
+      ) {
+        return {
+          type: "VEC4",
+          componentTypes: [GLTF_COMPONENT_FLOAT],
+          expectedFormat: "float32x4",
+        };
+      }
+      if (accessor.type !== "VEC3" && accessor.type !== "VEC4") {
+        return null;
+      }
+      if (accessor.normalized !== true) {
+        return null;
+      }
+      if (accessor.componentType === GLTF_COMPONENT_UNSIGNED_BYTE) {
+        return {
+          type: accessor.type,
+          componentTypes: [GLTF_COMPONENT_UNSIGNED_BYTE],
+          expectedFormat: "unorm8x4",
+        };
+      }
+      if (accessor.componentType === GLTF_COMPONENT_UNSIGNED_SHORT) {
+        return {
+          type: accessor.type,
+          componentTypes: [GLTF_COMPONENT_UNSIGNED_SHORT],
+          expectedFormat: "unorm16x4",
+        };
+      }
+      return null;
     case "JOINTS_0":
       if (accessor.type !== "VEC4") {
         return null;
@@ -664,26 +714,46 @@ function expectationForSemantic(
         return {
           type: "VEC4",
           componentTypes: [GLTF_COMPONENT_UNSIGNED_BYTE],
-          expectedFormat: "uint8-to-uint16",
+          expectedFormat: "uint8x4",
         };
       }
       if (accessor.componentType === GLTF_COMPONENT_UNSIGNED_SHORT) {
         return {
           type: "VEC4",
           componentTypes: [GLTF_COMPONENT_UNSIGNED_SHORT],
-          expectedFormat: "uint16",
+          expectedFormat: "uint16x4",
         };
       }
       return null;
     case "WEIGHTS_0":
-      return accessor.type === "VEC4" &&
-        accessor.componentType === GLTF_COMPONENT_FLOAT
-        ? {
-            type: "VEC4",
-            componentTypes: [GLTF_COMPONENT_FLOAT],
-            expectedFormat: "float32x4",
-          }
-        : null;
+      if (accessor.type !== "VEC4") {
+        return null;
+      }
+      if (accessor.componentType === GLTF_COMPONENT_FLOAT) {
+        return {
+          type: "VEC4",
+          componentTypes: [GLTF_COMPONENT_FLOAT],
+          expectedFormat: "float32x4",
+        };
+      }
+      if (accessor.normalized !== true) {
+        return null;
+      }
+      if (accessor.componentType === GLTF_COMPONENT_UNSIGNED_BYTE) {
+        return {
+          type: "VEC4",
+          componentTypes: [GLTF_COMPONENT_UNSIGNED_BYTE],
+          expectedFormat: "unorm8x4",
+        };
+      }
+      if (accessor.componentType === GLTF_COMPONENT_UNSIGNED_SHORT) {
+        return {
+          type: "VEC4",
+          componentTypes: [GLTF_COMPONENT_UNSIGNED_SHORT],
+          expectedFormat: "unorm16x4",
+        };
+      }
+      return null;
     case "INDICES":
       if (accessor.type !== "SCALAR") {
         return null;

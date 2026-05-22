@@ -186,7 +186,25 @@ Eleven cross-cutting gaps remain across the six phases. They are sequenced below
 
 **Tier 12 — Compressed assets + real-world glTF (queued after Tier 11):**
 
-19. KTX2/BasisU + Draco + Meshopt decoders (task-3059, task-3060, task-3061, task-3062) — shipped; integrates the standard wasm transcoders so Aperture can load production glTF assets. BasisU, Draco, Meshopt, and a real Khronos KTX2 + Draco sample path now render in glb-viewer. Closes gaps #4 and #10.
+19. KTX2/BasisU + Draco + Meshopt decoders (task-3059, task-3060, task-3061, task-3062) — shipped; integrates the standard wasm transcoders so Aperture can load production glTF assets. BasisU, Draco, Meshopt, and a real Khronos KTX2 + Draco sample path now render in glb-viewer. KTX2/Basis now targets native WebGPU ETC2/BC7/ASTC compressed texture formats when adapter features allow it, with RGBA fallback. Closes gaps #4 and #10.
+
+19b. External glTF/GLB URI loading (task-3091) — shipped. `loadGltfFromUri()` now resolves, fetches, and decodes external image URIs for real-world `.gltf` assets, supports caller-provided external image bytes, starts external buffer and image URI fetches together, coalesces duplicate same-URL external buffer/image fetches, and keeps data URI / bufferView images on the same decode-status path with repeated image decode coalescing. `loadGlbFromUri()` now owns GLB source fetching, external buffer/image fetching, embedded bufferView image decode, lazy Draco/Meshopt decoder creation, and reusable URI load caches. The worker-owned GLB viewer now loads source data once, transfers texture bytes plus mesh vertex/index buffers to main-thread renderer registration, and keeps metadata-only reports for worker-side ECS replay/extraction instead of repeating URI fetch/parse/decode work. Subrange typed-array views are compacted before transfer so source-view accessors do not move an entire shared GLB backing buffer by accident. Encoded image byte ranges plus decoded image byte arrays reach texture registration without extra JS clones, and the browser canvas decoder wraps `ImageData.data` instead of copying the final decoded RGBA payload. Tightly packed float/uint16/uint32 accessors now decode through native typed-array construction instead of per-component `DataView` loops, with compact copies by default, an opt-in `source-view` zero-copy mode threaded through report-driven import and URI/no-fetch loaders for safe caller-owned buffers, and single-attribute mesh streams reused without another repack. The main viewer no longer calls the URI loaders directly. The GLB viewer catalog now includes Khronos FlightHelmet, DamagedHelmet, CesiumMan, MorphPrimitives, and A Beautiful Game coverage, with square-canvas browser proof, matrix-node TRS decomposition for CesiumMan, and procedural demo skinning disabled for assets that provide real glTF animation clips.
+
+19c. Compact COLOR_0 vertex color formats (task-3092) — shipped for the primary color set. `COLOR_0` now accepts `VEC3 + FLOAT`, `VEC4 + FLOAT`, normalized `UNSIGNED_BYTE`, and normalized `UNSIGNED_SHORT` accessors; compact streams flow through decoder, mesh construction, extraction layout keys, WebGPU unlit/StandardMaterial layouts, and ID picking without float expansion. `examples/assets/hard_table.glb` now renders through `glb-viewer` with `COLOR_0:unorm8x4`. Follow-up candidate: secondary `COLOR_1` authoring if built-in shaders need a second color set.
+
+19d. Compact skinned glTF vertex formats — shipped for `JOINTS_0` / `WEIGHTS_0`. `JOINTS_0` now preserves `UNSIGNED_BYTE` as `uint8x4` and `UNSIGNED_SHORT` as `uint16x4`; `WEIGHTS_0` accepts normalized `UNSIGNED_BYTE` and normalized `UNSIGNED_SHORT` as `unorm8x4` / `unorm16x4` alongside `float32x4`. Compact skin streams flow through decode, mesh construction, extraction layout keys, and StandardMaterial skinned WebGPU layouts. Browser probes for the local skinning sample and Khronos CesiumMan both reach one draw with zero source/extraction diagnostics and square canvas output.
+
+19e. Dynamic StandardMaterial vertex layout derivation — shipped. Browser StandardMaterial pipelines now derive primitive vertex buffer layouts from concrete extracted `meshLayoutKey` tokens when available, computing attribute offsets and stride from actual mesh stream order and compact format tokens. This covers combined feature permutations such as skinned + normal-map tangent + compact vertex color without adding a new fixed constant for each combination.
+
+19f. Direct tightly packed glTF source bufferViews — shipped. Report-driven glTF import now uses source-view accessor storage by default for source-owned loads, decoder reports carry source bufferView metadata without serializing raw source bytes into JSON projections, and mesh construction preserves tightly packed source bufferViews directly as mesh vertex streams when offsets and stride exactly match the concrete layout key. Padded source layouts were completed in 19h.
+
+19g. Stream-aware built-in vertex layouts — shipped. Unlit, ID-buffer picking, Matcap, and DebugNormal browser pipeline descriptors now derive WebGPU vertex buffer layouts from stream-aware `meshLayoutKey` tokens, and Standard/Unlit vertex-color feature detection recognizes `|` stream separators. Shadow-caster source-stream specialization was completed in 19i.
+
+19h. Padded glTF source bufferView layouts — shipped. Mesh construction now preserves padded/nonzero-offset glTF source bufferViews as direct source-backed vertex streams when attributes are non-overlapping and fit inside the source stride. Extraction emits explicit `stride=<bytes>,SEMANTIC[:format]@<offset>` layout keys for padded streams, mesh upload validation uses actual attribute coverage, and Standard, Unlit, ID-pick, and DebugNormal WebGPU routes honor the explicit stride/offset layout form. Shadow-caster source-stream specialization was completed in 19i.
+
+19i. Shadow-caster source-stream specialization — shipped. Shadow caster draw-list records now carry each draw's `meshLayoutKey`; depth-only shadow pipeline descriptors and live pipeline resources specialize per unique mesh layout; frame-resource readiness selects the matching pipeline key per caster draw, including padded `stride=...,POSITION@offset` source streams; and the GLB viewer/GLTF scene examples pass existing caster draw-list reports into the library-owned shadow descriptor/resource path.
+
+19j. Native compressed KTX2/Basis texture route — shipped. `loadGltfFromUri()`, `loadGlbFromUri()`, and glTF texture creation now own lazy Basis KTX2 transcoder creation and pass WebGPU adapter texture-compression support into decode. Basis ETC1S/UASTC targets native ETC2, BC7, or ASTC payloads when supported, cache keys include the compression feature set, WebGPU initialization requests optional texture-compression features automatically, compressed upload validation handles block rows/byte strides, and `glb-viewer` no longer owns a custom KTX2 decode callback. Browser proof for `basis-ktx2-texture` creates an `etc2-rgba8unorm-srgb` WebGPU texture with a square canvas and zero Aperture diagnostics.
 
 **Tier 13 — MRT + picking + raycasting (queued after Tier 12):**
 
@@ -220,7 +238,7 @@ Eleven cross-cutting gaps remain across the six phases. They are sequenced below
 
 27. SSAO + SSR + DOF (task-3088, task-3089, task-3090) — adds screen-space ambient occlusion, screen-space reflections, and depth-of-field (bokeh) as post-pass effects on top of the Tier 14 framework. Closes gap #18.
 
-Total: 83 vertical slices (29 in Tiers 1-5 + 2 in Tier 6 + 5 in Tier 7 + 3 in Tier 8 + 3 in Tier 9 + 4 in Tier 10 + 5 in Tier 11 + 4 in Tier 12 + 4 in Tier 13 + 4 in Tier 14 + 3 in Tier 15 + 4 in Tier 16 + 4 in Tier 17 + 4 in Tier 18 + 2 in Tier 19 + 3 in Tier 20). Each is a real implementation slice with a `Reference anchor:` from `references/bevy/`, `references/engine/` (PlayCanvas), or `references/three.js/`. Slices within a tier may be parallelizable; the agent should still process them in the order listed unless an explicit dependency note says otherwise.
+Total: 85 vertical slices (29 in Tiers 1-5 + 2 in Tier 6 + 5 in Tier 7 + 3 in Tier 8 + 3 in Tier 9 + 4 in Tier 10 + 5 in Tier 11 + 4 in Tier 12 + 2 shipped Tier 12 follow-ups (task-3091 and task-3092) + 4 in Tier 13 + 4 in Tier 14 + 3 in Tier 15 + 4 in Tier 16 + 4 in Tier 17 + 4 in Tier 18 + 2 in Tier 19 + 3 in Tier 20). Each is a real implementation slice with a `Reference anchor:` from `references/bevy/`, `references/engine/` (PlayCanvas), or `references/three.js/`. Slices within a tier may be parallelizable; the agent should still process them in the order listed unless an explicit dependency note says otherwise.
 
 The MVP track (task-2001 through task-2030) shipped successfully — completion details are preserved in `agent/COMPLETED.md` and the per-task entries that follow under "Ready Tasks — MVP Tracks" are kept for historical reference. The combinatorial GLB-matrix queue (task-2172, task-2173, task-2174) is superseded by this roadmap.
 
@@ -1277,6 +1295,76 @@ Acceptance criteria:
 
 - Visible focus/defocus on a scene with foreground + background.
 - Playwright asserts background pixels are blurred while foreground stays sharp.
+
+### task-3091 — External glTF image-URI fetching in loadGltfFromUri (Tier 12 follow-up)
+
+Status: completed 2026-05-22 — `loadGltfFromUri()` now fetches and decodes external image URIs, accepts `externalImageBytes`, preserves data URI and bufferView image decode paths, fetches independent external resources concurrently, and powers visible Khronos FlightHelmet / CesiumMan GLB viewer proofs. `loadGlbFromUri()` owns the matching GLB source/external-image/bufferView/decode path with reusable caches. The worker viewer loads source data once, transfers texture bytes plus mesh vertex/index buffers to main for renderer registration, and keeps metadata-only source reports for ECS replay/extraction. Subrange typed-array views are compacted before transfer so source-view accessors do not move an entire shared GLB backing buffer by accident. The image decode path now avoids extra JS byte clones for provided/fetched ranges and the final browser-canvas `ImageData.data` RGBA payload, and tightly packed accessors use native typed-array construction with compact-copy/source-view modes. Matrix-node TRS decomposition was completed as an adjacent real-world GLB blocker uncovered by CesiumMan validation.
+
+Category: `render-bridge`
+Package/write-scope: `packages/render/src/assets/gltf-uri-loader.ts`, `packages/render/src/assets/gltf-source-loader-facade.ts` (extend with `externalImageBytes` option mirroring the existing `externalBufferBytes`), `packages/render/src/materials/gltf-texture.ts` (decode wiring), `examples/glb-viewer.main.js` + `examples/glb-viewer.worker.js` (visible end-to-end), targeted tests.
+Dependencies: task-3003 (async image decode shipped in Tier 1), task-3059 (KTX2 decoder for compressed image variants).
+Reference anchor: `references/three.js/examples/jsm/loaders/GLTFLoader.js` — the canonical "fetch external images relative to glTF source URL" implementation; `references/engine/src/framework/parsers/glb-parser.js` + PlayCanvas asset registry image-handler path; the existing `fetchExternalBuffers()` function in `packages/render/src/assets/gltf-uri-loader.ts` as the structural template.
+
+Insertion point: in `loadGltfFromUri()` after `fetchExternalBuffers()`, add a parallel `fetchExternalImages()` step that:
+
+1. Walks `parsed.root.images` looking for entries with a `uri` field (skipping bufferView-backed images and data-URI-embedded images, both of which already work).
+2. Resolves each URI relative to the source URL (same resolution as buffers).
+3. Fetches the bytes via the same `fetcher` function.
+4. Routes the result through the existing async image decoder (the Tier 1 `markLoading` → `markReady` lifecycle).
+5. Merges with any caller-provided `externalImageBytes` (parallel to `externalBufferBytes`).
+6. Emits typed diagnostics: `loadGltfFromUri.imageFetchFailed`, `loadGltfFromUri.imageHttpError`, `loadGltfFromUri.imageReadFailed`, `loadGltfFromUri.unsupportedImageUri` (for unsupported scheme/format).
+
+Acceptance criteria:
+
+- Real-world Khronos FlightHelmet sample (https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Assets/main/Models/FlightHelmet/glTF/FlightHelmet.gltf) loads end-to-end in glb-viewer with **all 18+ external PNG textures correctly applied** to the helmet's PBR materials.
+- Playwright pixel readback at named coordinates on the helmet confirms textured materials (not flat white).
+- Vitest covers: image-URI extraction from `images[]`; relative-URL resolution against source URL; data-URI passthrough (existing path); bufferView-backed image passthrough (existing path); error diagnostic emission on fetch failure.
+- The new `externalImageBytes` option lets callers pre-provide bytes (useful for headless/test scenarios), mirroring `externalBufferBytes`.
+- Existing GLB-only flow continues to work (no regression on the 30+ committed `.glb` samples in glb-viewer).
+- `loadGlbFromUri.html` and other examples that load embedded-image `.glb`s continue to render unchanged.
+
+### task-3092 — Expand COLOR_0 vertex color format support (Tier 12 follow-up)
+
+Status: shipped for `COLOR_0` on 2026-05-22. `COLOR_1` is not yet consumed by
+the built-in material shaders and should be scoped as a separate visible slice
+if secondary color-set rendering becomes a target.
+
+Category: `render-bridge`
+Package/write-scope: `packages/render/src/assets/gltf-accessor-validation.ts`, `packages/render/src/assets/gltf-accessor-decoding.ts`, `packages/render/src/assets/gltf-mesh-asset-construction.ts`, `packages/webgpu/src/webgpu/` (vertex attribute layout if needed), targeted tests + a committed sample asset.
+
+Dependencies: none.
+
+Reference anchor: `references/three.js/src/loaders/GLTFLoader.js` (search for `COLOR_0` handling — three.js accepts all spec-compliant formats); glTF 2.0 spec section on vertex attribute accessors (COLOR_0/COLOR_1 explicitly allow VEC3 or VEC4 in float, unsigned byte normalized, or unsigned short normalized); `references/engine/src/scene/mesh.js` (PlayCanvas color attribute decoding patterns).
+
+Background: `gltf-accessor-validation.ts` previously accepted only `VEC4 + FLOAT` (`expectedFormat: "float32x4"`) for COLOR_0. Any glTF that used the most common compact color encoding — `UNSIGNED_BYTE` (componentType 5121) normalized, which is Blender's default vertex-color export — produced a `gltfAccessor.unsupportedSemanticFormat` error that cascaded through mesh primitive validation, asset mapping, and the entire import. The concrete example was `examples/assets/hard_table.glb` (Blender-exported, VEC4 unsigned-byte-normalized COLOR_0).
+
+Implemented result: `expectationForSemantic` for `COLOR_0` accepts the primary
+color-set format matrix:
+
+- `VEC3` + `FLOAT` → `float32x3`
+- `VEC4` + `FLOAT` → `float32x4` (already supported)
+- `VEC3` + `UNSIGNED_BYTE` normalized → `unorm8x4` padded
+- `VEC4` + `UNSIGNED_BYTE` normalized → `unorm8x4`
+- `VEC3` + `UNSIGNED_SHORT` normalized → `unorm16x4` padded
+- `VEC4` + `UNSIGNED_SHORT` normalized → `unorm16x4`
+
+The decoder keeps normalized bytes/uint16 values as normalized GPU vertex data;
+only VEC3 normalized inputs are padded to x4 alpha max. Mesh construction wires
+those formats through, and WebGPU layouts declare matching `float32x3`,
+`unorm8x4`, or `unorm16x4` formats.
+
+Acceptance criteria status:
+
+- `examples/assets/hard_table.glb` loads end-to-end and renders with textured
+  vertex-color pixels through the default GLB viewer URL.
+- Vitest covers validator acceptance, decoder padding/source-view behavior, mesh
+  construction, extraction layout keys, and WebGPU layout selection for compact
+  `COLOR_0`.
+- The diagnostic `gltfAccessor.unsupportedSemanticFormat` for `COLOR_0` is now
+  reserved for truly unsupported color formats such as unnormalized integer
+  colors or signed-byte colors.
+- Separate future work is required for visible `COLOR_1` rendering if the
+  runtime decides to expose secondary color sets in built-in materials.
 
 ## Ready Tasks — MVP Tracks
 

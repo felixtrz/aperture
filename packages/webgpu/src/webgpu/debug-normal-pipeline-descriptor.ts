@@ -230,7 +230,12 @@ function validateDebugNormalVertexLayout(
     return;
   }
 
-  const attributes = new Set(layout.split(",").filter((part) => part !== ""));
+  const attributes = new Set(
+    layout
+      .split(/[|,]/)
+      .map(meshLayoutTokenSemantic)
+      .filter((part) => part !== ""),
+  );
 
   for (const semantic of ["POSITION", "NORMAL"] as const) {
     if (!attributes.has(semantic)) {
@@ -241,6 +246,14 @@ function validateDebugNormalVertexLayout(
       });
     }
   }
+}
+
+function meshLayoutTokenSemantic(token: string): string {
+  if (token.startsWith("stride=")) {
+    return "";
+  }
+
+  return token.split("@")[0]?.split(":")[0] ?? "";
 }
 
 function parsePipelineTokens(

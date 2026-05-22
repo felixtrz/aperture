@@ -11,6 +11,8 @@ export type MeshVertexFormat =
   | "float32x2"
   | "float32x3"
   | "float32x4"
+  | "unorm8x4"
+  | "unorm16x4"
   | "uint16x4"
   | "uint8x4";
 
@@ -49,6 +51,7 @@ export interface MeshVertexStreamDescriptor {
 export interface MeshIndexBufferDescriptor {
   readonly format: MeshIndexFormat;
   readonly data: Uint16Array | Uint32Array;
+  readonly indexCount?: number;
 }
 
 export interface MeshSubmeshDescriptor {

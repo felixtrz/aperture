@@ -188,9 +188,6 @@ const supportedMetadataExtensions = new Set([
   "EXT_meshopt_compression",
   "KHR_meshopt_compression",
 ]);
-let basisKtx2TranscoderPromise = null;
-let dracoMeshDecoderPromise = null;
-let meshoptDecoderPromise = null;
 let shadowDepthTextureResourceReport = null;
 const realUriTextureGalleryAssetIds = [
   "all-slot-uri-textures",
@@ -804,7 +801,14 @@ try {
     if (!created.ok) {
       publishStatus(failure(created.reason, created.message));
     } else {
-      startGlbViewerMain(aperture, created.app, sourceAssets);
+      startGlbViewerMain(
+        aperture,
+        created.app,
+        sourceAssets,
+        aperture.createKtx2TextureCompressionSupportFromFeatures(
+          created.app.initialization.adapter.features,
+        ),
+      );
     }
   }
 } catch (error) {
@@ -816,10 +820,11 @@ try {
   );
 }
 
-function startGlbViewerMain(aperture, app, sourceAssets) {
+function startGlbViewerMain(aperture, app, sourceAssets, textureCompression) {
   const state = {
     app,
     sourceAssets,
+    textureCompression,
     worker: new Worker("/worker-modules/examples/glb-viewer.worker.js", {
       name: "aperture-glb-viewer-simulation",
       type: "module",
@@ -829,8 +834,10 @@ function startGlbViewerMain(aperture, app, sourceAssets) {
     workerReady: false,
     workerScene: null,
     loadSequence: 0,
+    currentKeyPrefix: null,
     currentAsset: null,
     currentSceneIndex: undefined,
+    currentSourceTransfer: null,
     activeRegisteredAssetKeys: [],
     latestStatus: null,
     loading: Promise.resolve(),
@@ -863,6 +870,9 @@ function startGlbViewerMain(aperture, app, sourceAssets) {
           label: "Custom URL",
           url: initialCustomUrl,
           source: "custom",
+          format: initialCustomUrl.pathname.toLowerCase().endsWith(".gltf")
+            ? "gltf"
+            : "glb",
         };
   const initialSceneIndex = undefined;
 
@@ -870,35 +880,25 @@ function startGlbViewerMain(aperture, app, sourceAssets) {
     assetSelect.value = initialSampleSelection.asset.id;
   }
 
-  state.loading = loadMainSourceAssets(aperture, state, initialAsset, {
+  const initialLoad = beginMainAssetLoad(aperture, state, initialAsset, {
     sceneIndex: initialSceneIndex,
-  })
-    .then((load) => {
-      state.currentAsset = initialAsset;
-      state.currentSceneIndex = initialSceneIndex;
-      state.worker.postMessage({
-        type: "init",
-        canvas: canvasSizeForWorker(),
-        initial: {
-          asset: serializeViewerAsset(initialAsset),
-          keyPrefix: load.keyPrefix,
-          sceneIndex: initialSceneIndex,
-          sampleSelection:
-            initialCustomUrl === null
-              ? initialSampleSelection.status
-              : emptySampleSelectionStatus(),
-          importedCamera: readInitialImportedCameraControls(),
-        },
-      });
-    })
-    .catch((error) => {
-      publishStatus(
-        failure(
-          "glb-viewer-load-failed",
-          error instanceof Error ? error.message : "GLB asset load failed.",
-        ),
-      );
-    });
+  });
+
+  state.worker.postMessage({
+    type: "init",
+    canvas: canvasSizeForWorker(),
+    textureCompression: state.textureCompression,
+    initial: {
+      asset: serializeViewerAsset(initialAsset),
+      keyPrefix: initialLoad.keyPrefix,
+      sceneIndex: initialSceneIndex,
+      sampleSelection:
+        initialCustomUrl === null
+          ? initialSampleSelection.status
+          : emptySampleSelectionStatus(),
+      importedCamera: readInitialImportedCameraControls(),
+    },
+  });
 }
 
 function populateMainAssetSelect() {
@@ -1198,13 +1198,14 @@ async function queueMainCustomUrlLoad(aperture, state) {
   const rawUrl = customUrlInput.value.trim();
 
   if (rawUrl.length === 0) {
-    throw new Error("Custom GLB URL is empty.");
+    throw new Error("Custom glTF URL is empty.");
   }
 
   const url = new URL(rawUrl, globalThis.location.href);
 
-  if (!url.pathname.toLowerCase().endsWith(".glb")) {
-    throw new Error("Custom GLB URL must end in .glb.");
+  const pathname = url.pathname.toLowerCase();
+  if (!pathname.endsWith(".glb") && !pathname.endsWith(".gltf")) {
+    throw new Error("Custom glTF URL must end in .glb or .gltf.");
   }
 
   await queueMainAssetLoad(aperture, state, {
@@ -1212,21 +1213,20 @@ async function queueMainCustomUrlLoad(aperture, state) {
     label: "Custom URL",
     url,
     source: "custom",
+    format: url.pathname.toLowerCase().endsWith(".gltf") ? "gltf" : "glb",
   });
 }
 
 async function queueMainAssetLoad(aperture, state, asset, options = {}) {
-  const load = await loadMainSourceAssets(aperture, state, asset, options);
+  const load = beginMainAssetLoad(aperture, state, asset, options);
 
-  state.currentAsset = asset;
-  state.currentSceneIndex = options.sceneIndex;
   state.worker.postMessage({
     type: "load-asset",
     asset: serializeViewerAsset(asset),
     keyPrefix: load.keyPrefix,
     sceneIndex: options.sceneIndex,
     sampleSelection:
-      asset.source === "sample"
+      asset.source !== "custom"
         ? {
             requestedAssetId: asset.id,
             activeAssetId: asset.id,
@@ -1236,52 +1236,62 @@ async function queueMainAssetLoad(aperture, state, asset, options = {}) {
   });
 }
 
-async function loadMainSourceAssets(aperture, state, asset, options = {}) {
+function beginMainAssetLoad(aperture, state, asset, options = {}) {
   const loadSequence = state.loadSequence + 1;
   const keyPrefix = `viewer-${asset.id}-${loadSequence}`;
 
   state.loadSequence = loadSequence;
+  state.currentKeyPrefix = keyPrefix;
+  state.currentAsset = asset;
+  state.currentSceneIndex = options.sceneIndex;
+  state.currentSourceTransfer = null;
+  state.workerReady = false;
   unregisterMainActiveAssets(aperture, state);
   state.standardMaterialShadowReceiverResources = null;
 
-  const loaded = await loadViewerSourceAsset(
-    aperture,
-    asset,
-    keyPrefix,
-    options.sceneIndex,
-  );
-  const importReport = loadedGltfImportReport(loaded);
+  return { keyPrefix };
+}
 
-  if (!loaded.ok || importReport === null) {
-    throw new Error(
-      loaded.diagnostics[0]?.message ?? "glTF asset did not load.",
-    );
+function registerMainSourceAssetsFromWorker(aperture, state, message) {
+  if (message.keyPrefix !== state.currentKeyPrefix) {
+    return;
   }
 
+  const assetMapping = message.assetMapping ?? null;
+  const meshConstruction = message.meshConstruction ?? null;
+  state.currentSourceTransfer = message.transfer ?? null;
+
   if (
-    importReport.assetMapping === null ||
-    importReport.meshConstruction === null ||
-    importReport.meshPrimitive === null
+    message.ok !== true ||
+    assetMapping === null ||
+    meshConstruction === null
   ) {
-    throw new Error("glTF asset did not produce renderable source assets.");
+    publishStatus(
+      failure(
+        "glb-viewer-load-failed",
+        message.diagnostics?.[0]?.message ??
+          "glTF asset did not produce renderable source assets.",
+      ),
+    );
+    return;
   }
 
   markGlbViewerDecodedTexturesLoading({
     aperture,
     registry: state.sourceAssets,
-    assetMapping: importReport.assetMapping,
-    imageDecode: loaded.imageDecode,
+    assetMapping,
+    imageDecode: message.imageDecode ?? emptyImageDecodeStatus(),
   });
   const registration = aperture.registerGltfSourceAssetsFromReports({
     registry: state.sourceAssets,
-    assetMapping: importReport.assetMapping,
-    meshConstruction: importReport.meshConstruction,
+    assetMapping,
+    meshConstruction,
   });
   markGlbViewerDecodedTexturesReady({
     aperture,
     registry: state.sourceAssets,
-    assetMapping: importReport.assetMapping,
-    imageDecode: loaded.imageDecode,
+    assetMapping,
+    imageDecode: message.imageDecode ?? emptyImageDecodeStatus(),
   });
 
   state.activeRegisteredAssetKeys = collectActiveRegisteredAssetKeys(
@@ -1289,8 +1299,6 @@ async function loadMainSourceAssets(aperture, state, asset, options = {}) {
     null,
     null,
   );
-
-  return { keyPrefix, loaded, registration };
 }
 
 function unregisterMainActiveAssets(aperture, state) {
@@ -1306,6 +1314,11 @@ function unregisterMainActiveAssets(aperture, state) {
 }
 
 async function handleGlbWorkerMessage(aperture, state, message) {
+  if (message?.type === "source-assets") {
+    registerMainSourceAssetsFromWorker(aperture, state, message);
+    return;
+  }
+
   if (message?.type === "ready") {
     state.workerReady = true;
     state.workerScene = message.scene ?? null;
@@ -1502,6 +1515,7 @@ function createMainFrameStatus({
       jsonRoundTrip: false,
       snapshotsReceived: state.receivedSnapshots,
       typedArraysPreserved: typedSnapshot,
+      sourceAssets: state.currentSourceTransfer,
     },
     worker: {
       running: state.workerReady,
@@ -1973,6 +1987,9 @@ async function loadInitialAsset(aperture, app, scene) {
       label: "Custom URL",
       url: scene.initialCustomUrl,
       source: "custom",
+      format: scene.initialCustomUrl.pathname.toLowerCase().endsWith(".gltf")
+        ? "gltf"
+        : "glb",
     });
     return;
   }
@@ -2186,13 +2203,14 @@ async function loadCustomUrlAsset(aperture, app, scene) {
   const rawUrl = customUrlInput.value.trim();
 
   if (rawUrl.length === 0) {
-    throw new Error("Custom GLB URL is empty.");
+    throw new Error("Custom glTF URL is empty.");
   }
 
   const url = new URL(rawUrl, globalThis.location.href);
 
-  if (!url.pathname.toLowerCase().endsWith(".glb")) {
-    throw new Error("Custom GLB URL must end in .glb.");
+  const pathname = url.pathname.toLowerCase();
+  if (!pathname.endsWith(".glb") && !pathname.endsWith(".gltf")) {
+    throw new Error("Custom glTF URL must end in .glb or .gltf.");
   }
 
   scene.sampleSelection = emptySampleSelectionStatus();
@@ -2201,161 +2219,19 @@ async function loadCustomUrlAsset(aperture, app, scene) {
     label: "Custom URL",
     url,
     source: "custom",
+    format: url.pathname.toLowerCase().endsWith(".gltf") ? "gltf" : "glb",
   });
 }
 
 async function loadAsset(aperture, app, scene, asset, options = {}) {
-  const loadSequence = scene.loadSequence + 1;
-  const keyPrefix = `viewer-${asset.id}-${loadSequence}`;
-  const requestedSceneIndex = Number.isInteger(options.sceneIndex)
-    ? options.sceneIndex
-    : undefined;
-
-  scene.loadSequence = loadSequence;
-  scene.asset = asset;
-  scene.loadState = {
-    ok: true,
-    phase: "loading",
-    asset: {
-      id: asset.id,
-      label: asset.label,
-      source: asset.source,
-      url: formatAssetUrl(asset.url),
-    },
-  };
-  scene.cameraControls.importedEnabled = false;
-  setCameraResetEnabled(false);
-  destroyActiveScene(aperture, app, scene);
-  updateSceneSelectControl(scene);
-
-  const loaded = await loadViewerSourceAsset(
-    aperture,
-    asset,
-    keyPrefix,
-    requestedSceneIndex,
+  void aperture;
+  void app;
+  void scene;
+  void asset;
+  void options;
+  throw new Error(
+    "The GLB viewer main-thread asset loader is retired; source loading is worker-owned.",
   );
-  const importReport = loadedGltfImportReport(loaded);
-
-  if (scene.loadSequence !== loadSequence) {
-    return;
-  }
-
-  if (!loaded.ok || importReport === null) {
-    throw new Error(
-      loaded.diagnostics[0]?.message ?? "glTF asset did not load.",
-    );
-  }
-
-  if (
-    importReport.assetMapping === null ||
-    importReport.meshConstruction === null ||
-    importReport.meshPrimitive === null
-  ) {
-    throw new Error("glTF asset did not produce renderable source assets.");
-  }
-
-  markGlbViewerDecodedTexturesLoading({
-    aperture,
-    registry: app.assets,
-    assetMapping: importReport.assetMapping,
-    imageDecode: loaded.imageDecode,
-  });
-  const registration = aperture.registerGltfSourceAssetsFromReports({
-    registry: app.assets,
-    assetMapping: importReport.assetMapping,
-    meshConstruction: importReport.meshConstruction,
-  });
-  markGlbViewerDecodedTexturesReady({
-    aperture,
-    registry: app.assets,
-    assetMapping: importReport.assetMapping,
-    imageDecode: loaded.imageDecode,
-  });
-  const sourceRegistration = registration.sourceRegistration;
-  const meshRegistration = registration.meshRegistration;
-
-  if (sourceRegistration === null || meshRegistration === null) {
-    throw new Error("glTF source registration was not produced.");
-  }
-
-  const primitiveMaterials =
-    aperture.createGltfPrimitiveMaterialResolutionReport({
-      primitiveReport: importReport.meshPrimitive,
-      registrationReport: sourceRegistration,
-      keyPrefix,
-    });
-  const commandPlan = aperture.createGltfEcsAuthoringCommandPlan({
-    traversalReport: importReport.sceneTraversal,
-    meshRegistrationReport: meshRegistration,
-    primitiveMaterialReport: primitiveMaterials,
-  });
-  const replay = aperture.applyGltfEcsCommandPlanToApp({
-    app,
-    plan: commandPlan,
-  });
-  const animation = createGltfAnimationState({
-    aperture,
-    root: loaded.root,
-    binary: loaded.binary,
-    keyPrefix,
-    replay,
-  });
-  const importedCamera = createImportedCameraState({
-    root: loaded.root,
-    keyPrefix,
-    targetCanvas: scene.targetCanvas,
-  });
-  applyImportedCameraBootstrap(scene, importedCamera);
-  const importedLights = createImportedLightsState({
-    aperture,
-    root: loaded.root,
-    keyPrefix,
-    replay,
-    enabled: importedLightControls.enabled,
-  });
-
-  updateActiveAnimation(aperture, animation, 0);
-  aperture.resolveWorldTransforms(app.world);
-  const fit = fitOrbitToReplayBounds(aperture, app, replay, scene.orbit);
-  const shadowScene =
-    asset.id === "brass"
-      ? createBrassShadowScene(aperture, app, replay, fit)
-      : null;
-  const iblScene =
-    shadowScene ??
-    (asset.id === "roughness-ibl"
-      ? createStandardIblScene(aperture, app)
-      : null);
-
-  scene.active = {
-    asset,
-    keyPrefix,
-    sceneIndex: importReport.sceneTraversal.sceneIndex,
-    loaded,
-    registration,
-    primitiveMaterials,
-    commandPlan,
-    replay,
-    animation,
-    importedCamera,
-    importedLights,
-    fit,
-    shadowScene,
-    iblScene,
-    registeredAssetKeys: collectActiveRegisteredAssetKeys(
-      registration,
-      shadowScene,
-      iblScene,
-    ),
-  };
-  scene.loadState = null;
-  setCameraResetEnabled(fit.status === "ready");
-  updateSceneSelectControl(scene);
-  updateShadowControlInputs(scene);
-  updateIblControlInputs(scene);
-  updateImportedCameraControlInputs(scene);
-  updateAnimationControlInputs(scene);
-  updateImportedLightControlInputs(scene);
 }
 
 function markGlbViewerDecodedTexturesLoading({
@@ -2443,34 +2319,6 @@ function uniqueStrings(values) {
   return [...new Set(values.filter((value) => typeof value === "string"))];
 }
 
-async function loadViewerSourceAsset(aperture, asset, keyPrefix, sceneIndex) {
-  if (asset.format === "gltf") {
-    return loadGltfViewerAsset(aperture, asset, keyPrefix, sceneIndex);
-  }
-
-  return loadGlbViewerAsset(aperture, asset, keyPrefix, sceneIndex);
-}
-
-async function loadGltfViewerAsset(aperture, asset, keyPrefix, sceneIndex) {
-  const report = await aperture.loadGltfFromUri(asset.url.href, {
-    keyPrefix,
-    createAssetMapping: true,
-    createMeshAssets: true,
-    ...(sceneIndex === undefined ? {} : { sceneIndex }),
-  });
-
-  return {
-    ok: report.ok,
-    url: report.url,
-    byteLength: report.byteLength,
-    loader: report.loader,
-    root: report.loader?.root ?? null,
-    binary: null,
-    imageDecode: emptyImageDecodeStatus(),
-    diagnostics: report.diagnostics,
-  };
-}
-
 function loadedGltfImportReport(loaded) {
   return (
     loaded.loader?.gltfImportReport ??
@@ -2479,610 +2327,10 @@ function loadedGltfImportReport(loaded) {
   );
 }
 
-async function loadGlbViewerAsset(aperture, asset, keyPrefix, sceneIndex) {
-  const fetched = await fetchGlbViewerSourceBytes(asset.url);
-
-  if (!fetched.ok) {
-    return {
-      ok: false,
-      url: asset.url.href,
-      byteLength: null,
-      loader: null,
-      root: null,
-      binary: null,
-      imageDecode: emptyImageDecodeStatus(),
-      diagnostics: fetched.diagnostics,
-    };
-  }
-
-  const preflight = aperture.createNoFetchGlbSourceLoaderReport({
-    source: fetched.bytes,
-  });
-  const preflightContainer = preflight.glbImportReport.container.container;
-  const imageDecode = await decodeSameOriginImages({
-    aperture,
-    root: preflightContainer?.json ?? null,
-    binary: preflightContainer?.binaryChunk ?? null,
-    assetUrl: asset.url,
-  });
-  const dracoDecoder = gltfUsesDraco(preflightContainer?.json)
-    ? await getGlbViewerDracoMeshDecoder(aperture)
-    : undefined;
-  const meshoptDecoder = gltfUsesMeshopt(preflightContainer?.json)
-    ? await getGlbViewerMeshoptDecoder(aperture)
-    : undefined;
-  const loader = aperture.createNoFetchGlbSourceLoaderReport({
-    source: fetched.bytes,
-    keyPrefix,
-    createAssetMapping: true,
-    createMeshAssets: true,
-    ...(sceneIndex === undefined ? {} : { sceneIndex }),
-    ...(dracoDecoder === undefined ? {} : { dracoDecoder }),
-    ...(meshoptDecoder === undefined ? {} : { meshoptDecoder }),
-    resolveImageData: createGlbViewerImageDataResolver({
-      assetUrl: asset.url,
-      decodedByUrl: imageDecode.decodedByUrl,
-      decodedByBufferView: imageDecode.decodedByBufferView,
-    }),
-  });
-  const loaderDiagnostics = loader.status.diagnostics.map((diagnostic) => ({
-    code: "loadGlbFromUri.loaderDiagnostic",
-    severity: "error",
-    loaderCode: diagnostic.code,
-    message: diagnostic.message,
-  }));
-
-  return {
-    ok: loader.status.status === "loaded" && loaderDiagnostics.length === 0,
-    url: asset.url.href,
-    byteLength: fetched.bytes.byteLength,
-    loader,
-    root: loader.glbImportReport.container.container?.json ?? null,
-    binary: loader.glbImportReport.container.container?.binaryChunk ?? null,
-    imageDecode: {
-      decoded: imageDecode.decoded,
-      diagnostics: imageDecode.diagnostics,
-    },
-    diagnostics: loaderDiagnostics,
-  };
-}
-
-async function fetchGlbViewerSourceBytes(url) {
-  const fetcher = globalThis.fetch;
-
-  if (fetcher === undefined) {
-    return {
-      ok: false,
-      diagnostics: [
-        {
-          code: "loadGlbFromUri.fetchUnavailable",
-          severity: "error",
-          message:
-            "GLB URI loading requires globalThis.fetch or an explicit fetch option.",
-        },
-      ],
-    };
-  }
-
-  let response;
-
-  try {
-    response = await fetcher(url.href);
-  } catch (error) {
-    return {
-      ok: false,
-      diagnostics: [
-        {
-          code: "loadGlbFromUri.fetchFailed",
-          severity: "error",
-          message:
-            error instanceof Error
-              ? error.message
-              : `Fetching GLB URI '${url.href}' failed.`,
-        },
-      ],
-    };
-  }
-
-  if (!response.ok) {
-    return {
-      ok: false,
-      diagnostics: [
-        {
-          code: "loadGlbFromUri.httpError",
-          severity: "error",
-          status: response.status,
-          statusText: response.statusText,
-          message: `Fetching GLB URI '${url.href}' failed with HTTP ${response.status}.`,
-        },
-      ],
-    };
-  }
-
-  try {
-    return { ok: true, bytes: await response.arrayBuffer(), diagnostics: [] };
-  } catch (error) {
-    return {
-      ok: false,
-      diagnostics: [
-        {
-          code: "loadGlbFromUri.readFailed",
-          severity: "error",
-          message:
-            error instanceof Error
-              ? error.message
-              : `Reading GLB URI '${url.href}' response bytes failed.`,
-        },
-      ],
-    };
-  }
-}
-
-async function decodeSameOriginImages({ aperture, root, binary, assetUrl }) {
-  if (!isRecord(root)) {
-    return {
-      decodedByUrl: new Map(),
-      decodedByBufferView: new Map(),
-      ...emptyImageDecodeStatus(),
-    };
-  }
-
-  const decodedByUrl = new Map();
-  const decodedByBufferView = new Map();
-  const decoded = [];
-  const diagnostics = [];
-
-  for (const [imageIndex, image] of arrayEntries(root.images).entries()) {
-    if (!isRecord(image)) {
-      continue;
-    }
-
-    if (typeof image.uri !== "string") {
-      const decodedEntry = await decodeBufferViewImage({
-        aperture,
-        root,
-        binary,
-        imageIndex,
-        image,
-        assetUrl,
-      });
-
-      if (decodedEntry !== null) {
-        decodedByBufferView.set(decodedEntry.bufferView, decodedEntry.image);
-        decoded.push(decodedEntry.status);
-        continue;
-      }
-
-      const fallbackEntry = decodeFallbackBufferViewImage(
-        imageIndex,
-        image,
-        assetUrl,
-      );
-
-      if (fallbackEntry !== null) {
-        decoded.push(fallbackEntry);
-      }
-
-      continue;
-    }
-
-    const resolved = sameOriginSupportedImageUrl(image, assetUrl);
-
-    if (resolved === null) {
-      continue;
-    }
-
-    const result = await decodeSameOriginImage(resolved.url);
-
-    if (result === null) {
-      continue;
-    }
-
-    if (result.ok) {
-      decodedByUrl.set(resolved.url.href, result.image);
-      decoded.push({
-        imageIndex,
-        sourceKind: "same-origin-uri",
-        uri: image.uri,
-        url: formatAssetUrl(resolved.url),
-        mimeType: resolved.mimeType,
-        width: result.image.width,
-        height: result.image.height,
-        byteLength: result.image.sourceData.bytes.byteLength,
-      });
-      continue;
-    }
-
-    diagnostics.push({
-      code: "glbViewerImageDecode.failed",
-      severity: "warning",
-      imageIndex,
-      uri: image.uri,
-      url: formatAssetUrl(resolved.url),
-      message: result.message,
-    });
-  }
-
-  return { decodedByUrl, decodedByBufferView, decoded, diagnostics };
-}
-
-async function decodeBufferViewImage({
-  aperture,
-  root,
-  binary,
-  imageIndex,
-  image,
-  assetUrl,
-}) {
-  if (
-    !Number.isInteger(image.bufferView) ||
-    typeof image.mimeType !== "string"
-  ) {
-    return null;
-  }
-
-  const bufferViewIndex = image.bufferView;
-  const bytes = bufferViewBytes(root, binary, bufferViewIndex);
-
-  if (bytes === null) {
-    return null;
-  }
-
-  const imageData = await aperture.loadGltfTextureAsync({
-    source: {
-      kind: "bufferView",
-      bufferView: bufferViewIndex,
-      mimeType: image.mimeType,
-    },
-    bytes,
-    ...(image.mimeType === "image/ktx2"
-      ? { decodeImageData: createGlbViewerKtx2ImageDecoder(aperture) }
-      : {}),
-  });
-
-  return {
-    bufferView: bufferViewIndex,
-    image: imageData,
-    status: {
-      imageIndex,
-      sourceKind: "buffer-view",
-      decodeMode: "async-buffer-view",
-      assetStates: ["loading", "ready"],
-      uri: `bufferView:${bufferViewIndex}`,
-      url: `${formatAssetUrl(assetUrl)}#bufferView=${bufferViewIndex}`,
-      mimeType: image.mimeType,
-      width: imageData.width,
-      height: imageData.height,
-      byteLength: imageData.sourceData.bytes.byteLength,
-    },
-  };
-}
-
-function createGlbViewerKtx2ImageDecoder(aperture) {
-  return async (input) =>
-    aperture.decodeKtx2TextureDataAsync(input.bytes, {
-      basisTranscoder: await getGlbViewerBasisKtx2Transcoder(aperture),
-    });
-}
-
-function getGlbViewerBasisKtx2Transcoder(aperture) {
-  basisKtx2TranscoderPromise ??= aperture.createBasisUniversalKtx2Transcoder({
-    jsUrl: new URL("./assets/basis/basis_transcoder.js", import.meta.url).href,
-    wasmUrl: new URL("./assets/basis/basis_transcoder.wasm", import.meta.url)
-      .href,
-  });
-  return basisKtx2TranscoderPromise;
-}
-
-function getGlbViewerDracoMeshDecoder(aperture) {
-  dracoMeshDecoderPromise ??= aperture.createDracoMeshDecoder({
-    jsUrl: new URL("./assets/draco/draco_wasm_wrapper.js", import.meta.url)
-      .href,
-    wasmUrl: new URL("./assets/draco/draco_decoder.wasm", import.meta.url).href,
-  });
-  return dracoMeshDecoderPromise;
-}
-
-function getGlbViewerMeshoptDecoder(aperture) {
-  meshoptDecoderPromise ??= aperture.createMeshoptDecoder({
-    jsUrl: new URL(
-      "./assets/meshopt/meshopt_decoder.module.js",
-      import.meta.url,
-    ).href,
-  });
-  return meshoptDecoderPromise;
-}
-
-function gltfUsesDraco(root) {
-  return (
-    isRecord(root) &&
-    (stringArray(root.extensionsUsed).includes("KHR_draco_mesh_compression") ||
-      stringArray(root.extensionsRequired).includes(
-        "KHR_draco_mesh_compression",
-      ))
-  );
-}
-
-function gltfUsesMeshopt(root) {
-  if (!isRecord(root)) {
-    return false;
-  }
-
-  const used = stringArray(root.extensionsUsed);
-  const required = stringArray(root.extensionsRequired);
-
-  return (
-    used.includes("EXT_meshopt_compression") ||
-    used.includes("KHR_meshopt_compression") ||
-    required.includes("EXT_meshopt_compression") ||
-    required.includes("KHR_meshopt_compression")
-  );
-}
-
-function bufferViewBytes(root, binary, bufferViewIndex) {
-  if (!(binary instanceof Uint8Array)) {
-    return null;
-  }
-
-  const bufferView = arrayEntries(root.bufferViews)[bufferViewIndex];
-
-  if (!isRecord(bufferView)) {
-    return null;
-  }
-
-  const byteOffset = integerOrZero(bufferView.byteOffset);
-  const byteLength = integerOrNull(bufferView.byteLength);
-
-  if (
-    byteLength === null ||
-    byteOffset < 0 ||
-    byteLength < 0 ||
-    byteOffset + byteLength > binary.byteLength
-  ) {
-    return null;
-  }
-
-  return binary.slice(byteOffset, byteOffset + byteLength);
-}
-
-function decodeFallbackBufferViewImage(imageIndex, image, assetUrl) {
-  if (!Number.isInteger(image.bufferView)) {
-    return null;
-  }
-
-  const bufferViewIndex = image.bufferView;
-  const mimeType =
-    typeof image.mimeType === "string" ? image.mimeType : "unknown";
-  const imageData = resolveGlbViewerFallbackImageData({
-    image,
-    source: {
-      kind: "bufferView",
-      bufferView: bufferViewIndex,
-      mimeType,
-    },
-  });
-
-  if (
-    !isRecord(imageData) ||
-    typeof imageData.width !== "number" ||
-    typeof imageData.height !== "number" ||
-    !isRecord(imageData.sourceData) ||
-    !(imageData.sourceData.bytes instanceof Uint8Array)
-  ) {
-    return null;
-  }
-
-  return {
-    imageIndex,
-    sourceKind: "buffer-view",
-    uri: `bufferView:${bufferViewIndex}`,
-    url: `${formatAssetUrl(assetUrl)}#bufferView=${bufferViewIndex}`,
-    mimeType,
-    width: imageData.width,
-    height: imageData.height,
-    byteLength: imageData.sourceData.bytes.byteLength,
-  };
-}
-
 function emptyImageDecodeStatus() {
   return {
     decoded: [],
     diagnostics: [],
-  };
-}
-
-function sameOriginSupportedImageUrl(image, assetUrl) {
-  const mimeType =
-    typeof image.mimeType === "string" ? image.mimeType.toLowerCase() : null;
-
-  if (
-    mimeType !== null &&
-    mimeType !== "image/png" &&
-    mimeType !== "image/jpeg"
-  ) {
-    return null;
-  }
-
-  let imageUrl;
-
-  try {
-    imageUrl = new URL(image.uri, assetUrl.href);
-  } catch {
-    return null;
-  }
-
-  if (imageUrl.origin !== globalThis.location.origin) {
-    return null;
-  }
-
-  const path = imageUrl.pathname.toLowerCase();
-  const inferredMimeType = path.endsWith(".png")
-    ? "image/png"
-    : path.endsWith(".jpg") || path.endsWith(".jpeg")
-      ? "image/jpeg"
-      : null;
-
-  if (mimeType === null && inferredMimeType === null) {
-    return null;
-  }
-
-  return { url: imageUrl, mimeType: mimeType ?? inferredMimeType };
-}
-
-async function decodeSameOriginImage(imageUrl) {
-  const fetcher = globalThis.fetch;
-  const imageBitmapFactory = globalThis.createImageBitmap;
-  let response;
-
-  if (fetcher === undefined) {
-    return {
-      ok: false,
-      message: "Decoding same-origin GLB image URIs requires globalThis.fetch.",
-    };
-  }
-
-  if (imageBitmapFactory === undefined) {
-    return {
-      ok: false,
-      message:
-        "Decoding same-origin GLB image URIs requires globalThis.createImageBitmap.",
-    };
-  }
-
-  try {
-    response = await fetcher(imageUrl.href);
-  } catch (error) {
-    return {
-      ok: false,
-      message:
-        error instanceof Error
-          ? error.message
-          : `Fetching image URI '${imageUrl.href}' failed.`,
-    };
-  }
-
-  if (!response.ok) {
-    return null;
-  }
-
-  try {
-    const blob = await response.blob();
-    const bitmap = await imageBitmapFactory(blob);
-    const canvasElement = createImageDecodeCanvas(bitmap.width, bitmap.height);
-
-    if (canvasElement === null) {
-      bitmap.close();
-      return {
-        ok: false,
-        message: `Decoding image URI '${formatAssetUrl(
-          imageUrl,
-        )}' requires OffscreenCanvas or a document canvas.`,
-      };
-    }
-
-    const context = canvasElement.getContext("2d", {
-      willReadFrequently: true,
-    });
-
-    if (context === null) {
-      bitmap.close();
-      return {
-        ok: false,
-        message: `Could not create a 2D canvas context for image URI '${formatAssetUrl(
-          imageUrl,
-        )}'.`,
-      };
-    }
-
-    context.drawImage(bitmap, 0, 0);
-    const pixels = context.getImageData(0, 0, bitmap.width, bitmap.height);
-    const image = {
-      width: bitmap.width,
-      height: bitmap.height,
-      sourceData: {
-        bytes: new Uint8Array(pixels.data),
-        bytesPerRow: bitmap.width * 4,
-        rowsPerImage: bitmap.height,
-      },
-    };
-
-    bitmap.close();
-    return { ok: true, image };
-  } catch (error) {
-    return {
-      ok: false,
-      message:
-        error instanceof Error
-          ? error.message
-          : `Decoding image URI '${imageUrl.href}' failed.`,
-    };
-  }
-}
-
-function createImageDecodeCanvas(width, height) {
-  const OffscreenCanvasConstructor = globalThis.OffscreenCanvas;
-
-  if (typeof OffscreenCanvasConstructor === "function") {
-    return new OffscreenCanvasConstructor(width, height);
-  }
-
-  const documentRef = globalThis.document;
-
-  if (
-    documentRef === undefined ||
-    typeof documentRef.createElement !== "function"
-  ) {
-    return null;
-  }
-
-  const canvasElement = documentRef.createElement("canvas");
-
-  canvasElement.width = width;
-  canvasElement.height = height;
-
-  return canvasElement;
-}
-
-function createGlbViewerImageDataResolver({
-  assetUrl,
-  decodedByUrl,
-  decodedByBufferView,
-}) {
-  return (input) => {
-    if (input.source.kind === "uri") {
-      const resolved = sameOriginSupportedImageUrl(input.source, assetUrl);
-      const decoded =
-        resolved === null
-          ? null
-          : (decodedByUrl.get(resolved.url.href) ?? null);
-
-      if (decoded !== null) {
-        return cloneDecodedImageData(decoded);
-      }
-    }
-
-    if (input.source.kind === "bufferView") {
-      const decoded = decodedByBufferView.get(input.source.bufferView) ?? null;
-
-      if (decoded !== null) {
-        return cloneDecodedImageData(decoded);
-      }
-    }
-
-    return resolveGlbViewerFallbackImageData(input);
-  };
-}
-
-function cloneDecodedImageData(image) {
-  return {
-    width: image.width,
-    height: image.height,
-    ...(image.format === undefined ? {} : { format: image.format }),
-    sourceData: {
-      bytes: new Uint8Array(image.sourceData.bytes),
-      bytesPerRow: image.sourceData.bytesPerRow,
-      rowsPerImage: image.sourceData.rowsPerImage,
-    },
   };
 }
 
@@ -4023,6 +3271,7 @@ async function createViewerShadowFrame({
     aperture.shadowCasterPipelineDescriptorReportToJsonValue(
       aperture.createShadowCasterPipelineDescriptorReport({
         commandEncoding: shadowPassCommandEncoding,
+        casterDrawList: shadowCasterDrawList,
       }),
     );
   const shadowCasterPipelineResourceReport =
@@ -4060,18 +3309,13 @@ async function createViewerShadowFrame({
     aperture.createShadowCasterCommandRecordPlanReport({
       frameResources: shadowCasterFrameResources,
       commandPlan: shadowCommandPlan,
-      pipelines:
-        shadowCasterPipelineResourceReport.resource === null
-          ? []
-          : [
-              {
-                pipelineKey:
-                  shadowCasterPipelineResourceReport.resource.pipelineKey,
-                resourceKey:
-                  shadowCasterPipelineResourceReport.resource.resourceKey,
-                pipeline: shadowCasterPipelineResourceReport.resource.pipeline,
-              },
-            ],
+      pipelines: shadowCasterPipelineResourceReport.resources.map(
+        (resource) => ({
+          pipelineKey: resource.pipelineKey,
+          resourceKey: resource.resourceKey,
+          pipeline: resource.pipeline,
+        }),
+      ),
       matrixBindGroups:
         shadowCasterMatrixBindGroupResourceReport.resource === null
           ? []
@@ -6375,7 +5619,9 @@ function createGltfMeshAttributeStatus(active) {
           ? null
           : {
               format: mesh.mesh.indexBuffer.format,
-              count: mesh.mesh.indexBuffer.data.length,
+              count:
+                mesh.mesh.indexBuffer.indexCount ??
+                mesh.mesh.indexBuffer.data.length,
             },
     }))
     .sort(
@@ -6813,133 +6059,6 @@ function createPrimitiveMaterialResolutionStatus(aperture, app, active) {
       (a, b) =>
         a.meshIndex - b.meshIndex || a.primitiveIndex - b.primitiveIndex,
     );
-}
-
-function resolveGlbViewerFallbackImageData(input) {
-  if (
-    input.source.kind === "uri" &&
-    input.source.uri === "aperture-base-color-checker.png"
-  ) {
-    return {
-      width: 2,
-      height: 2,
-      format: "rgba8unorm-srgb",
-      sourceData: {
-        bytes: new Uint8Array([
-          255, 94, 82, 255, 74, 194, 255, 255, 255, 216, 90, 255, 52, 214, 145,
-          255,
-        ]),
-        bytesPerRow: 8,
-        rowsPerImage: 2,
-      },
-    };
-  }
-
-  if (
-    input.source.kind === "uri" &&
-    input.source.uri === "aperture-alpha-mask-checker.png"
-  ) {
-    return {
-      width: 2,
-      height: 2,
-      format: "rgba8unorm-srgb",
-      sourceData: {
-        bytes: new Uint8Array([
-          255, 118, 64, 255, 80, 160, 255, 0, 255, 220, 80, 0, 58, 220, 142,
-          255,
-        ]),
-        bytesPerRow: 8,
-        rowsPerImage: 2,
-      },
-    };
-  }
-
-  if (
-    input.source.kind === "uri" &&
-    input.source.uri === "aperture-metallic-roughness-checker.png"
-  ) {
-    return {
-      width: 2,
-      height: 2,
-      format: "rgba8unorm",
-      sourceData: {
-        bytes: new Uint8Array([
-          0, 38, 18, 255, 0, 218, 96, 255, 0, 112, 48, 255, 0, 246, 12, 255,
-        ]),
-        bytesPerRow: 8,
-        rowsPerImage: 2,
-      },
-    };
-  }
-
-  if (
-    input.source.kind === "uri" &&
-    input.source.uri === "aperture-occlusion-checker.png"
-  ) {
-    return {
-      width: 2,
-      height: 2,
-      format: "rgba8unorm",
-      sourceData: {
-        bytes: new Uint8Array([
-          255, 180, 180, 255, 64, 180, 180, 255, 160, 180, 180, 255, 24, 180,
-          180, 255,
-        ]),
-        bytesPerRow: 8,
-        rowsPerImage: 2,
-      },
-    };
-  }
-
-  if (
-    input.source.kind === "uri" &&
-    input.source.uri === "aperture-normal-checker.png"
-  ) {
-    return {
-      width: 2,
-      height: 2,
-      format: "rgba8unorm",
-      sourceData: {
-        bytes: new Uint8Array([
-          255, 0, 255, 255, 0, 255, 255, 255, 255, 255, 255, 255, 128, 128, 255,
-          255,
-        ]),
-        bytesPerRow: 8,
-        rowsPerImage: 2,
-      },
-    };
-  }
-
-  if (
-    input.source.kind === "bufferView" &&
-    input.source.mimeType === "image/png" &&
-    input.image.name === "EmbeddedBaseColorChecker"
-  ) {
-    return {
-      width: 2,
-      height: 2,
-      format: "rgba8unorm-srgb",
-      sourceData: {
-        bytes: new Uint8Array([
-          255, 74, 74, 255, 74, 176, 255, 255, 255, 222, 78, 255, 56, 220, 142,
-          255,
-        ]),
-        bytesPerRow: 8,
-        rowsPerImage: 2,
-      },
-    };
-  }
-
-  return {
-    image: null,
-    diagnostics: [
-      {
-        code: "gltfTexture.imageResolverFailed",
-        severity: "warning",
-        message: `GLB viewer image '${input.source.kind === "uri" ? input.source.uri : input.source.bufferView}' has no example-local decoded image data.`,
-      },
-    ],
-  };
 }
 
 function materialFactorStatus(material) {
@@ -7518,12 +6637,17 @@ function readInitialCustomUrl() {
   const rawUrl = exampleParams.get("url");
 
   if (rawUrl === null || rawUrl.trim().length === 0) {
-    return null;
+    if (exampleParams.has("asset")) {
+      return null;
+    }
+
+    return new URL("./assets/hard_table.glb", globalThis.location.href);
   }
 
   const url = new URL(rawUrl.trim(), globalThis.location.href);
 
-  if (!url.pathname.toLowerCase().endsWith(".glb")) {
+  const pathname = url.pathname.toLowerCase();
+  if (!pathname.endsWith(".glb") && !pathname.endsWith(".gltf")) {
     return null;
   }
 

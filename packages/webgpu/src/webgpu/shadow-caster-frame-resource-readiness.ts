@@ -1,6 +1,11 @@
 import type { ShadowCasterDrawListPlanReport } from "./shadow-caster-draw-list-plan.js";
-import type { ShadowCasterPipelineDescriptorReport } from "./shadow-caster-pipeline-descriptor.js";
+import type {
+  ShadowCasterPipelineDescriptorMetadata,
+  ShadowCasterPipelineDescriptorReport,
+} from "./shadow-caster-pipeline-descriptor.js";
 import type { ShadowMatrixBufferResourceReport } from "./shadow-matrix-buffer-resource.js";
+
+const DEFAULT_MESH_LAYOUT_DESCRIPTOR_KEY = "__default_shadow_caster_layout__";
 
 export type ShadowCasterFrameResourceReadinessStatus =
   | "ready"
@@ -33,6 +38,7 @@ export interface ShadowCasterPreparedMeshResourceView {
 export interface ShadowCasterFrameResourceRecord {
   readonly renderId: number;
   readonly meshKey: string;
+  readonly meshLayoutKey: string;
   readonly passKey: string;
   readonly meshResourceKey: string | null;
   readonly vertexBufferResourceKeys: readonly string[];
@@ -92,12 +98,18 @@ export function createShadowCasterFrameResourceReadinessReport(
   const preparedByMesh = new Map(
     options.preparedMeshes.map((mesh) => [mesh.meshKey, mesh]),
   );
-  const pipelineKey =
-    options.pipelineDescriptor.descriptor?.pipelineKey ?? null;
+  const pipelineDescriptors =
+    options.pipelineDescriptor.descriptors.length > 0
+      ? options.pipelineDescriptor.descriptors
+      : options.pipelineDescriptor.descriptor === null
+        ? []
+        : [options.pipelineDescriptor.descriptor];
+  const pipelineDescriptorByLayout =
+    createPipelineDescriptorByLayout(pipelineDescriptors);
   const matrixResourceKey =
     options.matrixBufferResource.resource?.resourceKey ?? null;
 
-  if (pipelineKey === null) {
+  if (pipelineDescriptors.length === 0) {
     diagnostics.push({
       code: "shadowCasterFrameResource.missingPipelineDescriptor",
       severity: "warning",
@@ -120,6 +132,14 @@ export function createShadowCasterFrameResourceReadinessReport(
   for (const list of options.casterDrawList.lists) {
     for (const draw of list.draws) {
       const prepared = preparedByMesh.get(draw.meshKey);
+      const pipelineDescriptor =
+        pipelineDescriptors.length === 0
+          ? null
+          : resolvePipelineDescriptorForLayout(
+              draw.meshLayoutKey,
+              pipelineDescriptorByLayout,
+            );
+      const pipelineKey = pipelineDescriptor?.pipelineKey ?? null;
 
       if (prepared === undefined) {
         diagnostics.push({
@@ -131,9 +151,20 @@ export function createShadowCasterFrameResourceReadinessReport(
         });
       }
 
+      if (pipelineDescriptors.length > 0 && pipelineDescriptor === null) {
+        diagnostics.push({
+          code: "shadowCasterFrameResource.missingPipelineDescriptor",
+          severity: "warning",
+          renderId: draw.renderId,
+          meshKey: draw.meshKey,
+          message: `Shadow caster draw '${draw.renderId}' has no depth-only pipeline descriptor for mesh layout '${draw.meshLayoutKey}'.`,
+        });
+      }
+
       records.push({
         renderId: draw.renderId,
         meshKey: draw.meshKey,
+        meshLayoutKey: draw.meshLayoutKey,
         passKey: list.passKey,
         meshResourceKey: prepared?.meshResourceKey ?? null,
         vertexBufferResourceKeys: prepared?.vertexBufferResourceKeys ?? [],
@@ -149,7 +180,7 @@ export function createShadowCasterFrameResourceReadinessReport(
     }
   }
 
-  if (pipelineKey !== null) {
+  if (pipelineDescriptors.length > 0) {
     diagnostics.push({
       code: "shadowCasterFrameResource.pipelineCreationDeferred",
       severity: "warning",
@@ -184,7 +215,7 @@ export function createShadowCasterFrameResourceReadinessReport(
         : "ready",
     records,
     diagnostics,
-    pipelineDescriptors: pipelineKey === null ? 0 : 1,
+    pipelineDescriptors: pipelineDescriptors.length,
     matrixBuffers: matrixResourceKey === null ? 0 : 1,
   });
 }
@@ -248,4 +279,26 @@ function report(input: {
     records: input.records,
     diagnostics: input.diagnostics,
   };
+}
+
+function createPipelineDescriptorByLayout(
+  descriptors: readonly ShadowCasterPipelineDescriptorMetadata[],
+): ReadonlyMap<string, ShadowCasterPipelineDescriptorMetadata> {
+  return new Map(
+    descriptors.map((descriptor) => [
+      descriptor.vertex.meshLayoutKey ?? DEFAULT_MESH_LAYOUT_DESCRIPTOR_KEY,
+      descriptor,
+    ]),
+  );
+}
+
+function resolvePipelineDescriptorForLayout(
+  meshLayoutKey: string,
+  descriptors: ReadonlyMap<string, ShadowCasterPipelineDescriptorMetadata>,
+): ShadowCasterPipelineDescriptorMetadata | null {
+  return (
+    descriptors.get(meshLayoutKey) ??
+    descriptors.get(DEFAULT_MESH_LAYOUT_DESCRIPTOR_KEY) ??
+    null
+  );
 }

@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-22 14:13 UTC</dd>
+            <dd>2026-05-22 21:23 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -417,11 +417,12 @@
               <code>MorphTargetWeights</code>, and renders through group 1
               binding 2 with a <code>standard|morphed</code> pipeline. The Tier
               12 compressed-texture path now decodes BasisU-compressed KTX2
-              images through a caller-configured Basis Universal transcoder,
-              routes <code>KHR_texture_basisu</code> images through async
-              texture mapping, and proves a committed compressed GLB sample in
-              <code>glb-viewer</code>. The Tier 12 compressed-geometry path now
-              decodes <code>KHR_draco_mesh_compression</code> primitives through
+              images through library-owned URI/texture loading, selects
+              WebGPU-native ETC2/BC7/ASTC texture formats when adapter features
+              allow it, falls back to RGBA8 when they do not, and proves a
+              committed compressed GLB sample in <code>glb-viewer</code>. The
+              Tier 12 compressed-geometry path now decodes
+              <code>KHR_draco_mesh_compression</code> primitives through
               caller-provided Draco JS/WASM assets, feeds the decoded arrays
               through normal mesh construction, and renders a committed
               Draco-compressed GLB sample in <code>glb-viewer</code>. Meshopt
@@ -435,13 +436,56 @@
               <code>glb-viewer</code>: 33 KTX2/BasisU images decode, 15 Draco
               source meshes build, 49 ECS draw packets extract, and the browser
               proof renders visible StandardMaterial pixels with zero
-              unsupported-feature diagnostics. The render-packet inspector
-              example now renders a worker-authored snapshot while publishing
-              JSON-safe packet tables for views, draws, lights, environments,
-              bounds, queue keys, handles, skipped-entity explanations, and
-              culling stats. Extraction now builds camera frustum planes from
-              view-projection matrices, skips mesh draws outside every matching
-              camera view, reports per-view <code>cullStats</code>, and exposes
+              unsupported-feature diagnostics. Real-world Khronos glTF/GLB
+              samples now cover external image URI fetching and decode,
+              concurrent external buffer/image dependency scheduling, duplicate
+              URI fetch/decode coalescing inside one load, matrix-node TRS
+              decomposition, GLB source/external-image/decode work through
+              <code>loadGlbFromUri()</code> instead of viewer-local loading
+              code, reusable URI load caches for repeated viewer selections, a
+              worker-owned single source-load handoff to main-thread renderer
+              asset registration, encoded image byte ranges passed to decoders
+              without extra JS clones, tightly packed accessor decode through
+              native typed-array construction with a source-view path that is
+              now the report-driven import default for source-owned glTF loads,
+              mesh construction that preserves glTF source bufferViews directly
+              as one or more vertex streams, including padded/nonzero-offset
+              streams whose explicit stride and attribute offsets are carried in
+              the concrete pipeline key instead of repacking them into a new
+              Aperture-owned interleaved stream, transferable worker-to-main
+              source-asset reports for texture bytes plus mesh vertex/index
+              buffers, metadata-only worker reports for ECS replay/extraction
+              after transfer, compacted subrange views so source-view accessors
+              do not transfer whole shared GLB buffers by accident, browser
+              canvas image decode that wraps <code>ImageData.data</code> instead
+              of copying the final decoded RGBA payload, compact
+              <code>COLOR_0</code> glTF vertex colors preserved as
+              <code>float32x3</code>, <code>unorm8x4</code>, or
+              <code>unorm16x4</code> GPU vertex streams instead of expanded
+              float colors, compact <code>JOINTS_0</code> /
+              <code>WEIGHTS_0</code> streams preserved as <code>uint8x4</code>,
+              <code>uint16x4</code>, <code>unorm8x4</code>,
+              <code>unorm16x4</code>, or <code>float32x4</code> through
+              StandardMaterial skinned layouts, StandardMaterial vertex buffer
+              layouts derived from concrete <code>meshLayoutKey</code> tokens so
+              combined skinning, tangent, UV1, vertex-color, and morph feature
+              permutations use the actual stream offsets instead of a fixed
+              layout matrix, Unlit/ID-pick/Matcap/DebugNormal vertex layouts now
+              derive from stream-aware <code>meshLayoutKey</code> tokens, and
+              cached GPU timestamp resources with validation-error preflight so
+              unsupported timing paths do not keep submitting invalid command
+              buffers, square <code>glb-viewer</code> canvas display, and
+              visible FlightHelmet, DamagedHelmet, CesiumMan, MorphPrimitives,
+              and A Beautiful Game rendering paths. CesiumMan now preserves its
+              imported upright pose because the viewer's procedural demo
+              skinning only runs for skins without parsed glTF animation clips.
+              The render-packet inspector example now renders a worker-authored
+              snapshot while publishing JSON-safe packet tables for views,
+              draws, lights, environments, bounds, queue keys, handles,
+              skipped-entity explanations, and culling stats. Extraction now
+              builds camera frustum planes from view-projection matrices, skips
+              mesh draws outside every matching camera view, reports per-view
+              <code>cullStats</code>, and exposes
               <code>frustumCulling: false</code> as a camera opt-out. Custom
               WGSL materials can now declare per-instance attribute layouts with
               <code>defineInstanceAttributes(...)</code>, runtime entities can
@@ -1556,9 +1600,9 @@
                 <div class="label">asset import</div>
                 <h3>GLB/glTF path</h3>
               </div>
-              <span class="percent">68%</span>
+              <span class="percent">70%</span>
             </div>
-            <div class="bar"><span style="width: 68%"></span></div>
+            <div class="bar"><span style="width: 70%"></span></div>
             <p>
               Container parsing, diagnostics, source registration, material
               mapping, URI loading, and a broad local GLB viewer path with lit
@@ -1585,6 +1629,11 @@
               decodes <code>JOINTS_0</code>/<code>WEIGHTS_0</code>, attaches ECS
               <code>Skin</code> palettes to the replayed primitive, and animates
               visible pixels through the StandardMaterial skinned route.
+              Real-world URI loading now lives in the library for both
+              <code>.gltf</code> and <code>.glb</code>, with worker-owned GLB
+              viewer source loading, source-report handoff to main renderer
+              registration, same-URL fetch/decode coalescing, and zero-copy
+              encoded image byte ranges into the decode step.
             </p>
           </article>
           <article class="card track">
@@ -1690,9 +1739,9 @@
           <article class="phase">
             <div class="topline">
               <h3>2. collect</h3>
-              <span class="percent">85%</span>
+              <span class="percent">95%</span>
             </div>
-            <div class="bar"><span style="width: 85%"></span></div>
+            <div class="bar"><span style="width: 95%"></span></div>
             <p>
               Asset readiness and source-version dependency summaries exist for
               meshes, materials, textures, and samplers. GLB-shaped invalid
@@ -1707,14 +1756,36 @@
               handles. The GLB viewer now fetches real GLB URLs, publishes
               parsed metadata counts, and reports unsupported-feature
               diagnostics from import reports without raw binary buffers.
+              <code>loadGltfFromUri()</code> now fetches and decodes external
+              image URIs, coalesces same-URL external buffer/image fetches, and
+              reuses equivalent image decode promises inside one load while
+              starting external buffers and image URI fetches together.
+              <code>loadGlbFromUri()</code> now provides the same library-owned
+              path for GLB source bytes, external buffers/images, bufferView
+              images, and lazy compression decoders, while the worker viewer
+              transfers source-asset texture bytes plus mesh vertex/index
+              buffers to the main renderer and keeps metadata-only reports for
+              ECS replay/extraction instead of loading the same model twice.
+              Subrange typed-array views are compacted before transfer so
+              source-view accessors do not move an entire shared GLB backing
+              buffer by accident, and browser canvas image decode now wraps
+              <code>ImageData.data</code> instead of copying the final decoded
+              RGBA payload. KTX2/Basis texture loading is now library-owned by
+              the URI and texture helpers: BasisU ETC1S/UASTC payloads target
+              native WebGPU ETC2, BC7, or ASTC formats when available and keep
+              RGBA8 as the fallback route.
             </p>
             <ul>
               <li>
-                Missing broader package-level async image loading integration.
+                Tightly packed and padded/nonzero-offset glTF source bufferViews
+                now bind directly in forward, pick, debug, and shadow-caster
+                routes with layout-specialized pipeline keys.
               </li>
               <li>
-                Missing broader loader integration beyond the current GLB
-                viewer/source-loader path.
+                Native compressed KTX2 uploads are proven in the GLB viewer: the
+                Basis sample creates an
+                <code>etc2-rgba8unorm-srgb</code> WebGPU texture on the local
+                Chrome/WebGPU probe.
               </li>
               <li>Missing broader automatic unload policy integration.</li>
             </ul>
@@ -2010,6 +2081,13 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">loading</span> Preserved glTF source
+                bufferViews as direct mesh streams, including padded/nonzero
+                offsets via explicit stride/attribute layout keys, and added
+                stream-aware built-in WebGPU layouts for Standard, Unlit,
+                ID-pick, Matcap, and DebugNormal.
+              </li>
               <li>
                 <span class="badge green">task-3073</span> Added a
                 <code>glb-viewer</code> cross-fade control that blends the
@@ -4293,6 +4371,27 @@
         </div>
         <article class="card timeline">
           <div class="timeline-item">
+            <div class="task-id">audit</div>
+            <div>
+              <strong>GLB loader/render pipeline audit tightened.</strong>
+              <span>
+                Padded and tightly packed glTF source bufferViews now bind
+                directly through explicit stream layout keys in forward, pick,
+                debug, and depth-only shadow-caster routes. Compact glTF
+                <code>COLOR_0</code> vertex colors now flow through validation,
+                decode, mesh packing, extraction keys, and WebGPU layouts
+                without float expansion; <code>hard_table.glb</code> renders
+                through <code>glb-viewer</code>. Compact <code>JOINTS_0</code> /
+                <code>WEIGHTS_0</code> streams now stay in their glTF
+                byte/ushort or normalized GPU formats through the
+                StandardMaterial skinned path, and StandardMaterial pipeline
+                descriptors now derive combined vertex layouts from concrete
+                mesh layout keys. GPU timestamp query resources are cached and
+                validation-gated to avoid repeated invalid timing submissions.
+              </span>
+            </div>
+          </div>
+          <div class="timeline-item">
             <div class="task-id">task-3078</div>
             <div>
               <strong>Sprite billboard renderer shipped.</strong>
@@ -4468,6 +4567,41 @@
                 Ordered off-screen color targets now feed one WebGPU render
                 pass, with Playwright proving two distinct fragment outputs and
                 readbacks from both textures.
+              </span>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="task-id">task-3091</div>
+            <div>
+              <strong>Real-world glTF URI assets load and render.</strong>
+              <span>
+                <code>loadGltfFromUri()</code> now fetches and decodes external
+                image URIs, coalesces duplicate external URI fetch/decode work,
+                starts buffer and image dependencies together; the matching
+                <code>loadGlbFromUri()</code> path now owns external
+                image/bufferView image decode, lazy Draco/Meshopt resolution,
+                reusable URI caches, and decoded image byte reuse. The main GLB
+                viewer no longer calls the URI loaders directly; source loading
+                is worker-owned. The catalog includes Khronos FlightHelmet,
+                DamagedHelmet, CesiumMan, MorphPrimitives, and A Beautiful Game;
+                CesiumMan's imported pose stays upright because procedural demo
+                skinning is disabled when real glTF animation clips are present.
+              </span>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="task-id">audit</div>
+            <div>
+              <strong
+                >KTX2/Basis now uses native compressed WebGPU textures.</strong
+              >
+              <span>
+                The URI loaders own Basis KTX2 transcoder creation and choose
+                ETC2, BC7, or ASTC when the adapter exposes texture-compression
+                features. <code>glb-viewer</code> no longer carries custom KTX2
+                decode logic, and the local browser proof creates an
+                <code>etc2-rgba8unorm-srgb</code> texture for the committed
+                Basis sample.
               </span>
             </div>
           </div>

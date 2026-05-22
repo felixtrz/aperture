@@ -117,7 +117,7 @@ function createVertexUploadDescriptor(
     return [];
   }
 
-  const expectedByteLength = stream.vertexCount * stream.arrayStride;
+  const expectedByteLength = requiredVertexStreamByteLength(stream);
 
   if (
     !Number.isFinite(stream.arrayStride) ||
@@ -147,6 +147,43 @@ function createVertexUploadDescriptor(
       attributes: stream.attributes,
     },
   ];
+}
+
+function requiredVertexStreamByteLength(
+  stream: MeshVertexStreamDescriptor,
+): number {
+  if (stream.vertexCount === 0) {
+    return 0;
+  }
+
+  return stream.attributes.reduce(
+    (length, attribute) =>
+      Math.max(
+        length,
+        (stream.vertexCount - 1) * stream.arrayStride +
+          attribute.offset +
+          meshVertexFormatByteSize(attribute.format),
+      ),
+    0,
+  );
+}
+
+function meshVertexFormatByteSize(
+  format: MeshVertexStreamDescriptor["attributes"][number]["format"],
+): number {
+  switch (format) {
+    case "uint8x4":
+    case "unorm8x4":
+      return 4;
+    case "uint16x4":
+    case "unorm16x4":
+    case "float32x2":
+      return 8;
+    case "float32x3":
+      return 12;
+    case "float32x4":
+      return 16;
+  }
 }
 
 function createIndexUploadDescriptor(

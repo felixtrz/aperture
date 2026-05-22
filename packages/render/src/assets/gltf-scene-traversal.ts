@@ -1,3 +1,5 @@
+import { decomposeTrsMatrix } from "@aperture-engine/simulation";
+
 import {
   gltfRootValidationReportToJsonValue,
   validateGltfRootForAssetMapping,
@@ -46,35 +48,12 @@ export interface GltfSceneTraversalOptions {
   readonly keyPrefix?: string;
 }
 
-export type GltfNodeLocalTransform =
-  | {
-      readonly kind: "trs";
-      readonly translation: readonly [number, number, number];
-      readonly rotation: readonly [number, number, number, number];
-      readonly scale: readonly [number, number, number];
-    }
-  | {
-      readonly kind: "matrix";
-      readonly matrix: readonly [
-        number,
-        number,
-        number,
-        number,
-        number,
-        number,
-        number,
-        number,
-        number,
-        number,
-        number,
-        number,
-        number,
-        number,
-        number,
-        number,
-      ];
-      readonly decomposed: false;
-    };
+export type GltfNodeLocalTransform = {
+  readonly kind: "trs";
+  readonly translation: readonly [number, number, number];
+  readonly rotation: readonly [number, number, number, number];
+  readonly scale: readonly [number, number, number];
+};
 
 export interface GltfTraversedNode {
   readonly nodeIndex: number;
@@ -564,16 +543,26 @@ function readLocalTransform(input: {
       return null;
     }
 
-    input.state.diagnostics.push({
-      code: "gltfScene.unsupportedMatrixDecomposition",
-      severity: "warning",
-      sceneIndex: input.state.sceneIndex,
-      nodeIndex: input.nodeIndex,
-      entityKey: input.entityKey,
-      field: `nodes[${input.nodeIndex}].matrix`,
-      message: `glTF node ${input.nodeIndex} uses matrix transform data; ECS TRS command authoring is deferred until matrix decomposition is implemented.`,
-    });
-    return { kind: "matrix", matrix, decomposed: false };
+    const decomposed = decomposeTrsMatrix(matrix);
+    if (decomposed === null) {
+      input.state.diagnostics.push({
+        code: "gltfScene.unsupportedMatrixDecomposition",
+        severity: "error",
+        sceneIndex: input.state.sceneIndex,
+        nodeIndex: input.nodeIndex,
+        entityKey: input.entityKey,
+        field: `nodes[${input.nodeIndex}].matrix`,
+        message: `glTF node ${input.nodeIndex} matrix must be decomposable to an affine TRS transform.`,
+      });
+      return null;
+    }
+
+    return {
+      kind: "trs",
+      translation: tuple3FromArray(decomposed.translation),
+      rotation: tuple4FromArray(decomposed.rotation),
+      scale: tuple3FromArray(decomposed.scale),
+    };
   }
 
   const translation = tuple3(input.node.translation, [0, 0, 0]);
@@ -736,6 +725,37 @@ function tuple16(
     value[14] as number,
     value[15] as number,
   ];
+}
+
+function tuple3FromArray(
+  value: ArrayLike<number>,
+): readonly [number, number, number] {
+  return [
+    readArrayNumber(value, 0),
+    readArrayNumber(value, 1),
+    readArrayNumber(value, 2),
+  ];
+}
+
+function tuple4FromArray(
+  value: ArrayLike<number>,
+): readonly [number, number, number, number] {
+  return [
+    readArrayNumber(value, 0),
+    readArrayNumber(value, 1),
+    readArrayNumber(value, 2),
+    readArrayNumber(value, 3),
+  ];
+}
+
+function readArrayNumber(value: ArrayLike<number>, index: number): number {
+  const item = value[index];
+
+  if (item === undefined) {
+    throw new RangeError(`Expected numeric value at index ${index}.`);
+  }
+
+  return item;
 }
 
 function isFiniteNumber(value: unknown): value is number {

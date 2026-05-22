@@ -352,6 +352,93 @@ describe("texture GPU resource creation", () => {
     }
   });
 
+  it("accepts block-compressed texture upload layouts", () => {
+    const writes: unknown[] = [];
+    const descriptor = textureDescriptor({
+      format: "etc2-rgb8unorm-srgb",
+      size: [40, 40, 1],
+    });
+    const result = createTextureGpuResource({
+      device: {
+        createTexture: () => textureWithView({ label: "ktx2-view" }),
+        queue: {
+          writeTexture: (destination, data, layout, size) => {
+            writes.push({ destination, data, layout, size });
+          },
+        },
+      },
+      resourceKey: "texture:basis-ktx2",
+      descriptor,
+      upload: {
+        data: new Uint8Array(800),
+        bytesPerRow: 80,
+        rowsPerImage: 10,
+      },
+    });
+
+    expect(result.valid).toBe(true);
+    expect(result.diagnostics).toEqual([]);
+    expect(writes).toMatchObject([
+      {
+        layout: { bytesPerRow: 80, rowsPerImage: 10 },
+        size: [40, 40, 1],
+      },
+    ]);
+  });
+
+  it("validates block-compressed texture row strides and block rows", () => {
+    const cases = [
+      {
+        upload: {
+          data: new Uint8Array(800),
+          bytesPerRow: 79,
+          rowsPerImage: 10,
+        },
+        code: "textureResource.invalidBytesPerRow",
+        message: "at least 80 bytes",
+      },
+      {
+        upload: { data: new Uint8Array(800), bytesPerRow: 80, rowsPerImage: 9 },
+        code: "textureResource.invalidRowsPerImage",
+        message: "at least 10 row(s)",
+      },
+      {
+        upload: {
+          data: new Uint8Array(799),
+          bytesPerRow: 80,
+          rowsPerImage: 10,
+        },
+        code: "textureResource.uploadDataTooSmall",
+        message: "at least 800 byte(s)",
+      },
+    ] as const;
+
+    for (const fixture of cases) {
+      const result = createTextureGpuResource({
+        device: {
+          createTexture: () => textureWithView({}),
+          queue: { writeTexture: () => undefined },
+        },
+        resourceKey: "texture:invalid-ktx2",
+        descriptor: textureDescriptor({
+          format: "etc2-rgb8unorm-srgb",
+          size: [40, 40, 1],
+        }),
+        upload: fixture.upload,
+      });
+
+      expect(result.valid).toBe(false);
+      expect(result.resource).toBeNull();
+      expect(result.diagnostics).toEqual([
+        {
+          code: fixture.code,
+          resourceKey: "texture:invalid-ktx2",
+          message: expect.stringContaining(fixture.message),
+        },
+      ]);
+    }
+  });
+
   it("keeps unknown texture formats on positive-integer row-stride validation", () => {
     const writes: unknown[] = [];
     const descriptor = textureDescriptor({

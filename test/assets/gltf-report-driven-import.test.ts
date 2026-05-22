@@ -158,6 +158,31 @@ describe("glTF report-driven import facade", () => {
     );
   });
 
+  it("threads source-view accessor storage through mesh construction", () => {
+    const { root, bytes } = rootWithTriangleMesh();
+    const report = createGltfReportDrivenImportReport({
+      root,
+      createMeshAssets: true,
+      resolveBufferBytes: () => bytes,
+      accessorStorageMode: "source-view",
+    });
+    const position =
+      report.accessorDecoding?.primitives[0]?.attributes[0]?.array;
+    const vertexStream =
+      report.meshConstruction?.meshes[0]?.mesh?.vertexStreams[0];
+
+    expect(report.valid).toBe(true);
+    expect(position).toBeInstanceOf(Float32Array);
+    expect(position?.buffer).toBe(bytes.buffer);
+    expect(vertexStream).toMatchObject({
+      id: "gltf-source-buffer-view:0:0:12",
+      arrayStride: 12,
+      attributes: [{ semantic: "POSITION", format: "float32x3", offset: 0 }],
+    });
+    expect(vertexStream?.data).toBeInstanceOf(Uint8Array);
+    expect(vertexStream?.data.buffer).toBe(bytes.buffer);
+  });
+
   it("reports missing buffer bytes through mesh decoding reports", () => {
     const { root } = rootWithTriangleMesh();
     const report = createGltfReportDrivenImportReport({

@@ -231,6 +231,39 @@ export const sampleAssets = [
     source: "sample",
   },
   {
+    id: "flight-helmet-gltf",
+    label: "Khronos Flight Helmet glTF",
+    url: new URL(
+      "https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Assets/main/Models/FlightHelmet/glTF/FlightHelmet.gltf",
+    ),
+    source: "khronos",
+    format: "gltf",
+  },
+  {
+    id: "damaged-helmet-glb",
+    label: "Khronos Damaged Helmet GLB",
+    url: new URL(
+      "https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Assets/main/Models/DamagedHelmet/glTF-Binary/DamagedHelmet.glb",
+    ),
+    source: "khronos",
+  },
+  {
+    id: "cesium-man-glb",
+    label: "Khronos Cesium Man GLB",
+    url: new URL(
+      "https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Assets/main/Models/CesiumMan/glTF-Binary/CesiumMan.glb",
+    ),
+    source: "khronos",
+  },
+  {
+    id: "morph-primitives-glb",
+    label: "Khronos Morph Primitives GLB",
+    url: new URL(
+      "https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Assets/main/Models/MorphPrimitivesTest/glTF-Binary/MorphPrimitivesTest.glb",
+    ),
+    source: "khronos",
+  },
+  {
     id: "embedded-texture",
     label: "Embedded texture",
     url: new URL("./assets/embedded-texture.glb", import.meta.url),

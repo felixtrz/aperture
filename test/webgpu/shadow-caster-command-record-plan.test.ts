@@ -267,6 +267,7 @@ function frameResources(
           {
             renderId: 101,
             meshKey: "mesh:gltf-cube",
+            meshLayoutKey: "POSITION,NORMAL,TEXCOORD_0",
             passKey: "shadow-pass:7:light:11",
             meshResourceKey: "mesh-buffer:gltf-cube",
             vertexBufferResourceKeys: ["mesh-vertex-buffer:gltf-cube/position"],

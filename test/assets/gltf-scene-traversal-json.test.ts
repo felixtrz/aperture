@@ -42,9 +42,10 @@ describe("glTF scene traversal report JSON", () => {
           depth: 0,
           label: "MatrixRoot",
           localTransform: {
-            kind: "matrix",
-            matrix: [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 7, 8, 9, 1],
-            decomposed: false,
+            kind: "trs",
+            translation: [7, 8, 9],
+            rotation: [0, 0, 0, 1],
+            scale: [1, 1, 1],
           },
           meshIndex: null,
           childNodeIndices: [1],
@@ -65,18 +66,7 @@ describe("glTF scene traversal report JSON", () => {
           childNodeIndices: [],
         },
       ],
-      diagnostics: [
-        {
-          code: "gltfScene.unsupportedMatrixDecomposition",
-          severity: "warning",
-          sceneIndex: 0,
-          nodeIndex: 0,
-          entityKey: "gltf:node:0",
-          field: "nodes[0].matrix",
-          message:
-            "glTF node 0 uses matrix transform data; ECS TRS command authoring is deferred until matrix decomposition is implemented.",
-        },
-      ],
+      diagnostics: [],
     });
     expect(JSON.parse(gltfSceneTraversalReportToJson(report))).toEqual(
       gltfSceneTraversalReportToJsonValue(report),

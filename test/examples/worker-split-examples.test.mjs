@@ -321,7 +321,7 @@ describe("worker-split examples", () => {
         false,
       );
       expect(asset.label.length).toBeGreaterThan(0);
-      expect(asset.source).toBe("sample");
+      expect(["sample", "khronos"]).toContain(asset.source);
       expect(asset.url).toBeInstanceOf(URL);
       expect(asset.url.pathname).toMatch(/\.(glb|gltf)$/);
       ids.add(asset.id);
@@ -334,12 +334,15 @@ describe("worker-split examples", () => {
 
   it("keeps the GLB viewer image decode path worker-compatible", async () => {
     const viewer = await readWorkspaceFile("examples/glb-viewer.worker.js");
+    const texture = await readWorkspaceFile(
+      "packages/render/src/materials/gltf-texture.ts",
+    );
 
-    expect(viewer).toContain("globalThis.fetch");
-    expect(viewer).toContain("globalThis.createImageBitmap");
-    expect(viewer).toContain("globalThis.OffscreenCanvas");
-    expect(viewer).toContain("createImageDecodeCanvas");
-    expect(viewer).toContain("requires OffscreenCanvas or a document canvas");
+    expect(viewer).toContain("createGlbViewerImageDecoder");
+    expect(viewer).toContain("loadGlbFromUri");
+    expect(texture).toContain('typeof createImageBitmap !== "function"');
+    expect(texture).toContain('typeof OffscreenCanvas === "function"');
+    expect(texture).toContain('typeof document !== "undefined"');
   });
 
   it("keeps the no-op simulation worker compatible with renderer bootstrap", async () => {

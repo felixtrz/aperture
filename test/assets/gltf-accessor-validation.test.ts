@@ -87,7 +87,7 @@ describe("glTF accessor and buffer reference validation", () => {
             semantic: "JOINTS_0",
             accessorIndex: 3,
             byteOffset: 96,
-            expectedFormat: "uint8-to-uint16",
+            expectedFormat: "uint8x4",
           },
           {
             semantic: "WEIGHTS_0",
@@ -109,6 +109,255 @@ describe("glTF accessor and buffer reference validation", () => {
           byteLength: 3,
           expectedFormat: "uint8-to-uint16",
         },
+      },
+    ]);
+  });
+
+  it("accepts compact COLOR_0 accessors without float expansion", () => {
+    const cases = [
+      {
+        accessorType: "VEC3",
+        componentType: 5126,
+        colorByteLength: 36,
+        expectedFormat: "float32x3",
+        normalized: false,
+      },
+      {
+        accessorType: "VEC3",
+        componentType: 5121,
+        colorByteLength: 9,
+        expectedFormat: "unorm8x4",
+        normalized: true,
+      },
+      {
+        accessorType: "VEC4",
+        componentType: 5121,
+        colorByteLength: 12,
+        expectedFormat: "unorm8x4",
+        normalized: true,
+      },
+      {
+        accessorType: "VEC3",
+        componentType: 5123,
+        colorByteLength: 18,
+        expectedFormat: "unorm16x4",
+        normalized: true,
+      },
+      {
+        accessorType: "VEC4",
+        componentType: 5123,
+        colorByteLength: 24,
+        expectedFormat: "unorm16x4",
+        normalized: true,
+      },
+    ] as const;
+
+    for (const testCase of cases) {
+      const root = {
+        asset: { version: "2.0" },
+        buffers: [{ byteLength: 36 + testCase.colorByteLength }],
+        bufferViews: [
+          { buffer: 0, byteOffset: 0, byteLength: 36 },
+          {
+            buffer: 0,
+            byteOffset: 36,
+            byteLength: testCase.colorByteLength,
+          },
+        ],
+        accessors: [
+          { bufferView: 0, componentType: 5126, type: "VEC3", count: 3 },
+          {
+            bufferView: 1,
+            componentType: testCase.componentType,
+            type: testCase.accessorType,
+            count: 3,
+            ...(testCase.normalized ? { normalized: true } : {}),
+          },
+        ],
+        meshes: [
+          {
+            primitives: [{ attributes: { POSITION: 0, COLOR_0: 1 } }],
+          },
+        ],
+      };
+      const report = validateGltfPrimitiveAccessorReferences({
+        root,
+        primitiveReport: createGltfMeshPrimitiveMappingReport({ root }),
+      });
+
+      expect(report.valid).toBe(true);
+      expect(report.diagnostics).toEqual([]);
+      expect(report.primitives[0]?.attributes).toContainEqual(
+        expect.objectContaining({
+          semantic: "COLOR_0",
+          accessorType: testCase.accessorType,
+          componentType: testCase.componentType,
+          expectedFormat: testCase.expectedFormat,
+          normalized: testCase.normalized,
+        }),
+      );
+    }
+  });
+
+  it("rejects unnormalized integer COLOR_0 accessors", () => {
+    const root = {
+      asset: { version: "2.0" },
+      buffers: [{ byteLength: 48 }],
+      bufferViews: [
+        { buffer: 0, byteOffset: 0, byteLength: 36 },
+        { buffer: 0, byteOffset: 36, byteLength: 12 },
+      ],
+      accessors: [
+        { bufferView: 0, componentType: 5126, type: "VEC3", count: 3 },
+        { bufferView: 1, componentType: 5121, type: "VEC4", count: 3 },
+      ],
+      meshes: [
+        {
+          primitives: [{ attributes: { POSITION: 0, COLOR_0: 1 } }],
+        },
+      ],
+    };
+    const report = validateGltfPrimitiveAccessorReferences({
+      root,
+      primitiveReport: createGltfMeshPrimitiveMappingReport({ root }),
+    });
+
+    expect(report.valid).toBe(false);
+    expect(report.primitives).toEqual([]);
+    expect(report.diagnostics).toMatchObject([
+      {
+        code: "gltfAccessor.unsupportedSemanticFormat",
+        semantic: "COLOR_0",
+      },
+    ]);
+  });
+
+  it("accepts compact skinning accessors without expanding glTF storage", () => {
+    const cases = [
+      {
+        jointsComponentType: 5121,
+        jointsByteLength: 12,
+        jointsExpectedFormat: "uint8x4",
+        weightsComponentType: 5121,
+        weightsByteLength: 12,
+        weightsExpectedFormat: "unorm8x4",
+      },
+      {
+        jointsComponentType: 5123,
+        jointsByteLength: 24,
+        jointsExpectedFormat: "uint16x4",
+        weightsComponentType: 5123,
+        weightsByteLength: 24,
+        weightsExpectedFormat: "unorm16x4",
+      },
+      {
+        jointsComponentType: 5123,
+        jointsByteLength: 24,
+        jointsExpectedFormat: "uint16x4",
+        weightsComponentType: 5126,
+        weightsByteLength: 48,
+        weightsExpectedFormat: "float32x4",
+      },
+    ] as const;
+
+    for (const testCase of cases) {
+      const byteLength =
+        36 + testCase.jointsByteLength + testCase.weightsByteLength;
+      const root = {
+        asset: { version: "2.0" },
+        buffers: [{ byteLength }],
+        bufferViews: [
+          { buffer: 0, byteOffset: 0, byteLength: 36 },
+          {
+            buffer: 0,
+            byteOffset: 36,
+            byteLength: testCase.jointsByteLength,
+          },
+          {
+            buffer: 0,
+            byteOffset: 36 + testCase.jointsByteLength,
+            byteLength: testCase.weightsByteLength,
+          },
+        ],
+        accessors: [
+          { bufferView: 0, componentType: 5126, type: "VEC3", count: 3 },
+          {
+            bufferView: 1,
+            componentType: testCase.jointsComponentType,
+            type: "VEC4",
+            count: 3,
+          },
+          {
+            bufferView: 2,
+            componentType: testCase.weightsComponentType,
+            type: "VEC4",
+            count: 3,
+            ...(testCase.weightsComponentType === 5126
+              ? {}
+              : { normalized: true }),
+          },
+        ],
+        meshes: [
+          {
+            primitives: [
+              { attributes: { POSITION: 0, JOINTS_0: 1, WEIGHTS_0: 2 } },
+            ],
+          },
+        ],
+      };
+      const report = validateGltfPrimitiveAccessorReferences({
+        root,
+        primitiveReport: createGltfMeshPrimitiveMappingReport({ root }),
+      });
+
+      expect(report.valid).toBe(true);
+      expect(report.diagnostics).toEqual([]);
+      expect(report.primitives[0]?.attributes).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            semantic: "JOINTS_0",
+            componentType: testCase.jointsComponentType,
+            expectedFormat: testCase.jointsExpectedFormat,
+          }),
+          expect.objectContaining({
+            semantic: "WEIGHTS_0",
+            componentType: testCase.weightsComponentType,
+            expectedFormat: testCase.weightsExpectedFormat,
+          }),
+        ]),
+      );
+    }
+  });
+
+  it("rejects unnormalized integer WEIGHTS_0 accessors", () => {
+    const root = {
+      asset: { version: "2.0" },
+      buffers: [{ byteLength: 48 }],
+      bufferViews: [
+        { buffer: 0, byteOffset: 0, byteLength: 36 },
+        { buffer: 0, byteOffset: 36, byteLength: 12 },
+      ],
+      accessors: [
+        { bufferView: 0, componentType: 5126, type: "VEC3", count: 3 },
+        { bufferView: 1, componentType: 5121, type: "VEC4", count: 3 },
+      ],
+      meshes: [
+        {
+          primitives: [{ attributes: { POSITION: 0, WEIGHTS_0: 1 } }],
+        },
+      ],
+    };
+    const report = validateGltfPrimitiveAccessorReferences({
+      root,
+      primitiveReport: createGltfMeshPrimitiveMappingReport({ root }),
+    });
+
+    expect(report.valid).toBe(false);
+    expect(report.primitives).toEqual([]);
+    expect(report.diagnostics).toMatchObject([
+      {
+        code: "gltfAccessor.unsupportedSemanticFormat",
+        semantic: "WEIGHTS_0",
       },
     ]);
   });

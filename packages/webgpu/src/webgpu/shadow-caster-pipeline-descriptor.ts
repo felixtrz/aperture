@@ -1,5 +1,6 @@
 import type { MeshIndexFormat, MeshTopology } from "@aperture-engine/render";
 
+import type { ShadowCasterDrawListPlanReport } from "./shadow-caster-draw-list-plan.js";
 import type { ShadowPassCommandEncodingReport } from "./shadow-pass-command-encoding-report.js";
 
 export type ShadowCasterPipelineDescriptorStatus =
@@ -35,6 +36,7 @@ export interface ShadowCasterPipelineDescriptorMetadata {
   };
   readonly vertex: {
     readonly buffers: readonly ["POSITION"];
+    readonly meshLayoutKey: string | null;
     readonly matrixBufferLayoutKey: "shadow-caster/group-0:directional-shadow-matrices@0";
   };
   readonly index: {
@@ -71,6 +73,7 @@ export interface ShadowCasterPipelineDescriptorReport {
     readonly shaderSampling: false;
   };
   readonly descriptor: ShadowCasterPipelineDescriptorMetadata | null;
+  readonly descriptors: readonly ShadowCasterPipelineDescriptorMetadata[];
   readonly diagnostics: readonly ShadowCasterPipelineDescriptorDiagnostic[];
 }
 
@@ -79,10 +82,15 @@ export type ShadowCasterPipelineDescriptorReportJsonValue =
 
 export interface CreateShadowCasterPipelineDescriptorReportOptions {
   readonly commandEncoding: ShadowPassCommandEncodingReport;
+  readonly casterDrawList?: ShadowCasterDrawListPlanReport;
+  readonly meshLayoutKeys?: readonly string[];
   readonly topology?: MeshTopology;
   readonly depthFormat?: "depth24plus" | "";
   readonly indexFormat?: MeshIndexFormat;
 }
+
+const SHADOW_CASTER_DEPTH_ONLY_PIPELINE_KEY =
+  "shadow-caster/depth-only/depth24plus/triangle-list/none";
 
 export function createShadowCasterPipelineDescriptorReport(
   options: CreateShadowCasterPipelineDescriptorReportOptions,
@@ -92,6 +100,7 @@ export function createShadowCasterPipelineDescriptorReport(
       status: "not-required",
       commandRecordCount: 0,
       descriptor: null,
+      descriptors: [],
       diagnostics: [],
     });
   }
@@ -153,10 +162,12 @@ export function createShadowCasterPipelineDescriptorReport(
       diagnostic.code === "shadowCasterPipelineDescriptor.missingDepthFormat" ||
       diagnostic.code === "shadowCasterPipelineDescriptor.unsupportedTopology",
   );
-  const descriptor =
+  const descriptors =
     hasBlockingDiagnostics || depthFormat !== "depth24plus"
-      ? null
-      : createDescriptor(options.indexFormat ?? "uint32");
+      ? []
+      : collectMeshLayoutKeys(options).map((meshLayoutKey) =>
+          createDescriptor(options.indexFormat ?? "uint32", meshLayoutKey),
+        );
   const status = determineStatus(
     options.commandEncoding.status,
     hasBlockingDiagnostics,
@@ -165,7 +176,8 @@ export function createShadowCasterPipelineDescriptorReport(
   return report({
     status,
     commandRecordCount: options.commandEncoding.records.length,
-    descriptor,
+    descriptor: descriptors[0] ?? null,
+    descriptors,
     diagnostics,
   });
 }
@@ -179,27 +191,8 @@ export function shadowCasterPipelineDescriptorReportToJsonValue(
     commandRecordCount: value.commandRecordCount,
     descriptorCount: value.descriptorCount,
     sections: { ...value.sections },
-    descriptor:
-      value.descriptor === null
-        ? null
-        : {
-            pipelineKey: value.descriptor.pipelineKey,
-            label: value.descriptor.label,
-            shader: {
-              family: value.descriptor.shader.family,
-              label: value.descriptor.shader.label,
-              entryPoints: { ...value.descriptor.shader.entryPoints },
-            },
-            vertex: {
-              buffers: [...value.descriptor.vertex.buffers] as ["POSITION"],
-              matrixBufferLayoutKey:
-                value.descriptor.vertex.matrixBufferLayoutKey,
-            },
-            index: { ...value.descriptor.index },
-            primitive: { ...value.descriptor.primitive },
-            depthStencil: { ...value.descriptor.depthStencil },
-            colorTargets: [],
-          },
+    descriptor: descriptorToJsonValue(value.descriptor),
+    descriptors: value.descriptors.map(descriptorMetadataToJsonValue),
     diagnostics: value.diagnostics.map((diagnostic) => ({ ...diagnostic })),
   };
 }
@@ -212,10 +205,11 @@ export function shadowCasterPipelineDescriptorReportToJson(
 
 function createDescriptor(
   indexFormat: MeshIndexFormat,
+  meshLayoutKey: string | null,
 ): ShadowCasterPipelineDescriptorMetadata {
   return {
-    pipelineKey: "shadow-caster/depth-only/depth24plus/triangle-list/none",
-    label: "shadow-caster-depth-only:depth24plus:triangle-list",
+    pipelineKey: shadowCasterPipelineKeyForMeshLayoutKey(meshLayoutKey),
+    label: shadowCasterPipelineLabelForMeshLayoutKey(meshLayoutKey),
     shader: {
       family: "shadow-caster",
       label: "shadow-caster-depth-only",
@@ -226,6 +220,7 @@ function createDescriptor(
     },
     vertex: {
       buffers: ["POSITION"],
+      meshLayoutKey,
       matrixBufferLayoutKey:
         "shadow-caster/group-0:directional-shadow-matrices@0",
     },
@@ -247,6 +242,89 @@ function createDescriptor(
   };
 }
 
+export function shadowCasterPipelineKeyForMeshLayoutKey(
+  meshLayoutKey?: string | null,
+): string {
+  const normalized = normalizeMeshLayoutKey(meshLayoutKey);
+
+  return normalized === null
+    ? SHADOW_CASTER_DEPTH_ONLY_PIPELINE_KEY
+    : `${SHADOW_CASTER_DEPTH_ONLY_PIPELINE_KEY}/mesh-layout:${encodeURIComponent(normalized)}`;
+}
+
+function shadowCasterPipelineLabelForMeshLayoutKey(
+  meshLayoutKey: string | null,
+): string {
+  const normalized = normalizeMeshLayoutKey(meshLayoutKey);
+
+  return normalized === null
+    ? "shadow-caster-depth-only:depth24plus:triangle-list"
+    : `shadow-caster-depth-only:depth24plus:triangle-list:${normalized}`;
+}
+
+function collectMeshLayoutKeys(
+  options: CreateShadowCasterPipelineDescriptorReportOptions,
+): readonly (string | null)[] {
+  const sourceKeys =
+    options.meshLayoutKeys ??
+    options.casterDrawList?.lists.flatMap((list) =>
+      list.draws.map((draw) => draw.meshLayoutKey),
+    ) ??
+    [];
+  const normalizedKeys = unique(
+    sourceKeys.flatMap((key) => {
+      const normalized = normalizeMeshLayoutKey(key);
+
+      return normalized === null ? [] : [normalized];
+    }),
+  );
+
+  return normalizedKeys.length > 0 ? normalizedKeys : [null];
+}
+
+function normalizeMeshLayoutKey(meshLayoutKey?: string | null): string | null {
+  if (meshLayoutKey === undefined || meshLayoutKey === null) {
+    return null;
+  }
+
+  const trimmed = meshLayoutKey.trim();
+
+  return trimmed.length > 0 ? trimmed : null;
+}
+
+function descriptorToJsonValue(
+  descriptor: ShadowCasterPipelineDescriptorMetadata | null,
+): ShadowCasterPipelineDescriptorMetadata | null {
+  return descriptor === null ? null : descriptorMetadataToJsonValue(descriptor);
+}
+
+function descriptorMetadataToJsonValue(
+  descriptor: ShadowCasterPipelineDescriptorMetadata,
+): ShadowCasterPipelineDescriptorMetadata {
+  return {
+    pipelineKey: descriptor.pipelineKey,
+    label: descriptor.label,
+    shader: {
+      family: descriptor.shader.family,
+      label: descriptor.shader.label,
+      entryPoints: { ...descriptor.shader.entryPoints },
+    },
+    vertex: {
+      buffers: [...descriptor.vertex.buffers] as ["POSITION"],
+      meshLayoutKey: descriptor.vertex.meshLayoutKey,
+      matrixBufferLayoutKey: descriptor.vertex.matrixBufferLayoutKey,
+    },
+    index: { ...descriptor.index },
+    primitive: { ...descriptor.primitive },
+    depthStencil: { ...descriptor.depthStencil },
+    colorTargets: [],
+  };
+}
+
+function unique(values: readonly string[]): readonly string[] {
+  return [...new Set(values)];
+}
+
 function determineStatus(
   commandEncodingStatus: ShadowPassCommandEncodingReport["status"],
   hasBlockingDiagnostics: boolean,
@@ -266,15 +344,16 @@ function report(input: {
   readonly status: ShadowCasterPipelineDescriptorStatus;
   readonly commandRecordCount: number;
   readonly descriptor: ShadowCasterPipelineDescriptorMetadata | null;
+  readonly descriptors: readonly ShadowCasterPipelineDescriptorMetadata[];
   readonly diagnostics: readonly ShadowCasterPipelineDescriptorDiagnostic[];
 }): ShadowCasterPipelineDescriptorReport {
-  const descriptorAvailable = input.descriptor !== null;
+  const descriptorAvailable = input.descriptors.length > 0;
 
   return {
     ready: input.status === "ready" || input.status === "not-required",
     status: input.status,
     commandRecordCount: input.commandRecordCount,
-    descriptorCount: descriptorAvailable ? 1 : 0,
+    descriptorCount: input.descriptors.length,
     sections: {
       commandEncoding: input.commandRecordCount > 0,
       vertexBufferLayout: descriptorAvailable,
@@ -287,6 +366,7 @@ function report(input: {
       shaderSampling: false,
     },
     descriptor: input.descriptor,
+    descriptors: input.descriptors,
     diagnostics: input.diagnostics,
   };
 }

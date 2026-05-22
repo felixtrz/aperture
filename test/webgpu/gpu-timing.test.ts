@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   createGpuTimestampQueryResources,
+  createGpuTimestampQueryResourcesChecked,
   readGpuTimestampQueryResults,
   resolveGpuTimestampQueries,
   writeGpuTimestampQuery,
@@ -116,15 +117,45 @@ describe("GPU timestamp query infrastructure", () => {
     expect(device.querySetDescriptors).toEqual([]);
     expect(device.bufferDescriptors).toEqual([]);
   });
+
+  it("uses validation error scopes to reject invalid timestamp resources", async () => {
+    const device = new FakeTimestampDevice({
+      validationError: "Cannot allocate sample buffer",
+    });
+    const created = await createGpuTimestampQueryResourcesChecked({
+      device,
+      label: "unit-gpu-timing",
+      queryCount: 2,
+    });
+
+    expect(created).toEqual({
+      supported: false,
+      resources: null,
+      diagnostics: [
+        {
+          code: "gpuTiming.resourceCreationFailed",
+          severity: "warning",
+          message:
+            "GPU timestamp query resource creation failed validation: Cannot allocate sample buffer",
+        },
+      ],
+    });
+    expect(device.errorScopes).toEqual(["validation"]);
+    expect(device.querySetDescriptors).toEqual([
+      { label: "unit-gpu-timing/queries", type: "timestamp", count: 2 },
+    ]);
+  });
 });
 
 interface FakeTimestampDeviceOptions {
   readonly timestampFeature?: boolean;
+  readonly validationError?: string | null;
 }
 
 class FakeTimestampDevice {
   readonly querySetDescriptors: unknown[] = [];
   readonly bufferDescriptors: unknown[] = [];
+  readonly errorScopes: string[] = [];
   readonly features = {
     has: (feature: string) =>
       feature === "timestamp-query" && this.timestampFeature,
@@ -139,9 +170,21 @@ class FakeTimestampDevice {
   submittedCommandBuffers = 0;
   private timestamp = 1_000n;
   private readonly timestampFeature: boolean;
+  private readonly validationError: string | null;
 
   constructor(options: FakeTimestampDeviceOptions = {}) {
     this.timestampFeature = options.timestampFeature ?? true;
+    this.validationError = options.validationError ?? null;
+  }
+
+  pushErrorScope(filter: "validation"): void {
+    this.errorScopes.push(filter);
+  }
+
+  async popErrorScope(): Promise<{ readonly message?: string } | null> {
+    return this.validationError === null
+      ? null
+      : { message: this.validationError };
   }
 
   createQuerySet(descriptor: {

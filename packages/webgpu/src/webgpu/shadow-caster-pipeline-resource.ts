@@ -18,7 +18,10 @@ import {
   createShadowCasterMatrixBindGroupLayoutDescriptor,
   SHADOW_CASTER_MATRIX_BIND_GROUP_LAYOUT_KEY,
 } from "./shadow-caster-matrix-bind-group-resource.js";
-import { UNLIT_PRIMITIVE_VERTEX_BUFFER_LAYOUT } from "./unlit-pipeline.js";
+import {
+  UNLIT_PRIMITIVE_VERTEX_BUFFER_LAYOUT,
+  type UnlitPrimitiveVertexBufferLayout,
+} from "./unlit-pipeline.js";
 
 export const SHADOW_CASTER_DEPTH_ONLY_WGSL = /* wgsl */ `
 struct ShadowMatrices {
@@ -86,12 +89,13 @@ export interface ShadowCasterPipelineResourceReport {
     readonly shaderSampling: false;
   };
   readonly resource: ShadowCasterPipelineResource | null;
+  readonly resources: readonly ShadowCasterPipelineResource[];
   readonly diagnostics: readonly ShadowCasterPipelineResourceDiagnostic[];
 }
 
 export type ShadowCasterPipelineResourceReportJsonValue = Omit<
   ShadowCasterPipelineResourceReport,
-  "resource"
+  "resource" | "resources"
 > & {
   readonly resource: {
     readonly pipelineKey: string;
@@ -99,6 +103,12 @@ export type ShadowCasterPipelineResourceReportJsonValue = Omit<
     readonly shaderModuleKey: string;
     readonly label: string;
   } | null;
+  readonly resources: readonly {
+    readonly pipelineKey: string;
+    readonly resourceKey: string;
+    readonly shaderModuleKey: string;
+    readonly label: string;
+  }[];
 };
 
 export interface ShadowCasterPipelineDeviceLike extends WebGpuRenderPipelineDeviceLike {
@@ -125,19 +135,26 @@ export function createShadowCasterPipelineResourceReport(
       createdPipelineCount: 0,
       reusedPipelineCount: 0,
       resource: null,
+      resources: [],
       diagnostics: [],
     });
   }
 
-  const metadata = options.descriptor.descriptor;
+  const metadataEntries =
+    options.descriptor.descriptors.length > 0
+      ? options.descriptor.descriptors
+      : options.descriptor.descriptor === null
+        ? []
+        : [options.descriptor.descriptor];
 
-  if (metadata === null) {
+  if (metadataEntries.length === 0) {
     return report({
       status: "missing",
       descriptorCount: 0,
       createdPipelineCount: 0,
       reusedPipelineCount: 0,
       resource: null,
+      resources: [],
       diagnostics: [
         {
           code: "shadowCasterPipelineResource.missingDescriptor",
@@ -149,15 +166,27 @@ export function createShadowCasterPipelineResourceReport(
     });
   }
 
-  const cached = options.cache?.get(metadata.pipelineKey);
+  const cachedResources: ShadowCasterPipelineResource[] = [];
+  const pendingMetadata: ShadowCasterPipelineDescriptorMetadata[] = [];
 
-  if (cached !== undefined) {
+  for (const metadata of metadataEntries) {
+    const cached = options.cache?.get(metadata.pipelineKey);
+
+    if (cached === undefined) {
+      pendingMetadata.push(metadata);
+    } else {
+      cachedResources.push(cached);
+    }
+  }
+
+  if (pendingMetadata.length === 0) {
     return report({
       status: "available",
-      descriptorCount: 1,
+      descriptorCount: metadataEntries.length,
       createdPipelineCount: 0,
-      reusedPipelineCount: 1,
-      resource: cached,
+      reusedPipelineCount: cachedResources.length,
+      resource: cachedResources[0] ?? null,
+      resources: cachedResources,
       diagnostics: deferredDiagnostics(),
     });
   }
@@ -165,10 +194,11 @@ export function createShadowCasterPipelineResourceReport(
   if (options.device.createShaderModule === undefined) {
     return report({
       status: "missing",
-      descriptorCount: 1,
+      descriptorCount: metadataEntries.length,
       createdPipelineCount: 0,
-      reusedPipelineCount: 0,
+      reusedPipelineCount: cachedResources.length,
       resource: null,
+      resources: cachedResources,
       diagnostics: [
         {
           code: "shadowCasterPipelineResource.createShaderModuleUnavailable",
@@ -183,10 +213,11 @@ export function createShadowCasterPipelineResourceReport(
   if (options.device.createRenderPipeline === undefined) {
     return report({
       status: "missing",
-      descriptorCount: 1,
+      descriptorCount: metadataEntries.length,
       createdPipelineCount: 0,
-      reusedPipelineCount: 0,
+      reusedPipelineCount: cachedResources.length,
       resource: null,
+      resources: cachedResources,
       diagnostics: [
         {
           code: "shadowCasterPipelineResource.createRenderPipelineUnavailable",
@@ -198,48 +229,58 @@ export function createShadowCasterPipelineResourceReport(
     });
   }
 
+  const createRenderPipeline = options.device.createRenderPipeline.bind(
+    options.device,
+  );
   const shaderModule = options.device.createShaderModule({
-    label: metadata.shader.label,
+    label: pendingMetadata[0]?.shader.label ?? "shadow-caster-depth-only",
     code: SHADOW_CASTER_DEPTH_ONLY_WGSL,
   });
   const explicitLayout = createExplicitShadowCasterPipelineLayout(
     options.device,
   );
-  const descriptor = createBrowserShadowCasterPipelineDescriptor(
-    metadata,
-    shaderModule,
-    explicitLayout.pipelineLayout ?? "auto",
-  );
 
   try {
-    const resource: ShadowCasterPipelineResource = {
-      pipelineKey: metadata.pipelineKey,
-      resourceKey: renderPipelineResourceKey(metadata.pipelineKey),
-      shaderModuleKey: shaderModuleResourceKey(metadata.shader.label),
-      label: metadata.label,
-      shaderModule,
-      matrixBindGroupLayout: explicitLayout.matrixBindGroupLayout,
-      pipeline: options.device.createRenderPipeline(descriptor),
-      descriptor,
-    };
+    const createdResources = pendingMetadata.map((metadata) => {
+      const descriptor = createBrowserShadowCasterPipelineDescriptor(
+        metadata,
+        shaderModule,
+        explicitLayout.pipelineLayout ?? "auto",
+      );
+      const resource: ShadowCasterPipelineResource = {
+        pipelineKey: metadata.pipelineKey,
+        resourceKey: renderPipelineResourceKey(metadata.pipelineKey),
+        shaderModuleKey: shaderModuleResourceKey(metadata.shader.label),
+        label: metadata.label,
+        shaderModule,
+        matrixBindGroupLayout: explicitLayout.matrixBindGroupLayout,
+        pipeline: createRenderPipeline(descriptor),
+        descriptor,
+      };
 
-    options.cache?.set(metadata.pipelineKey, resource);
+      options.cache?.set(metadata.pipelineKey, resource);
+
+      return resource;
+    });
+    const resources = [...cachedResources, ...createdResources];
 
     return report({
       status: "available",
-      descriptorCount: 1,
-      createdPipelineCount: 1,
-      reusedPipelineCount: 0,
-      resource,
+      descriptorCount: metadataEntries.length,
+      createdPipelineCount: createdResources.length,
+      reusedPipelineCount: cachedResources.length,
+      resource: resources[0] ?? null,
+      resources,
       diagnostics: deferredDiagnostics(),
     });
   } catch (error) {
     return report({
       status: "missing",
-      descriptorCount: 1,
+      descriptorCount: metadataEntries.length,
       createdPipelineCount: 0,
-      reusedPipelineCount: 0,
+      reusedPipelineCount: cachedResources.length,
       resource: null,
+      resources: cachedResources,
       diagnostics: [
         {
           code: "shadowCasterPipelineResource.pipelineCreationFailed",
@@ -265,7 +306,9 @@ export function createBrowserShadowCasterPipelineDescriptor(
     vertex: {
       module: shaderModule,
       entryPoint: metadata.shader.entryPoints.vertex,
-      buffers: [UNLIT_PRIMITIVE_VERTEX_BUFFER_LAYOUT],
+      buffers: resolveShadowCasterVertexBufferLayouts(
+        metadata.vertex.meshLayoutKey,
+      ),
     },
     primitive: {
       topology: metadata.primitive.topology,
@@ -331,6 +374,12 @@ export function shadowCasterPipelineResourceReportToJsonValue(
             shaderModuleKey: value.resource.shaderModuleKey,
             label: value.resource.label,
           },
+    resources: value.resources.map((resource) => ({
+      pipelineKey: resource.pipelineKey,
+      resourceKey: resource.resourceKey,
+      shaderModuleKey: resource.shaderModuleKey,
+      label: resource.label,
+    })),
     diagnostics: value.diagnostics.map((diagnostic) => ({ ...diagnostic })),
   };
 }
@@ -347,6 +396,7 @@ function report(input: {
   readonly createdPipelineCount: number;
   readonly reusedPipelineCount: number;
   readonly resource: ShadowCasterPipelineResource | null;
+  readonly resources: readonly ShadowCasterPipelineResource[];
   readonly diagnostics: readonly ShadowCasterPipelineResourceDiagnostic[];
 }): ShadowCasterPipelineResourceReport {
   const available = input.status === "available";
@@ -366,8 +416,193 @@ function report(input: {
       shaderSampling: false,
     },
     resource: input.resource,
+    resources: input.resources,
     diagnostics: input.diagnostics,
   };
+}
+
+function resolveShadowCasterVertexBufferLayouts(
+  meshLayoutKey: string | null,
+): readonly UnlitPrimitiveVertexBufferLayout[] {
+  const parsed = parseShadowCasterPositionLayout(meshLayoutKey);
+
+  return parsed === null ? [UNLIT_PRIMITIVE_VERTEX_BUFFER_LAYOUT] : [parsed];
+}
+
+function parseShadowCasterPositionLayout(
+  meshLayoutKey: string | null,
+): UnlitPrimitiveVertexBufferLayout | null {
+  if (meshLayoutKey === null || meshLayoutKey.trim().length === 0) {
+    return null;
+  }
+
+  const firstStream = meshLayoutKey.split("|")[0];
+
+  if (firstStream === undefined) {
+    return null;
+  }
+
+  let explicitStride: number | null = null;
+  let offset = 0;
+  let positionOffset: number | null = null;
+
+  for (const rawToken of firstStream.split(",")) {
+    const token = rawToken.trim();
+
+    if (token.length === 0) {
+      return null;
+    }
+
+    if (token.startsWith("stride=")) {
+      const stride = parseExplicitMeshLayoutStride(token);
+
+      if (stride === null || explicitStride !== null) {
+        return null;
+      }
+
+      explicitStride = stride;
+      continue;
+    }
+
+    const parsed = parseExplicitMeshLayoutAttributeOffset(token);
+    const semantic = meshLayoutTokenSemantic(parsed.token);
+    const format = shadowCasterMeshLayoutTokenFormat(parsed.token);
+
+    if (semantic === null || format === null) {
+      return null;
+    }
+
+    const attributeOffset = parsed.offset ?? offset;
+    const attributeEnd = attributeOffset + vertexFormatByteSize(format);
+
+    if (semantic === "POSITION") {
+      positionOffset = attributeOffset;
+    }
+
+    offset =
+      parsed.offset === null ? attributeEnd : Math.max(offset, attributeEnd);
+  }
+
+  const arrayStride = explicitStride ?? offset;
+
+  return positionOffset !== null && arrayStride >= positionOffset + 12
+    ? {
+        arrayStride,
+        stepMode: "vertex",
+        attributes: [
+          {
+            shaderLocation: 0,
+            offset: positionOffset,
+            format: "float32x3",
+          },
+        ],
+      }
+    : null;
+}
+
+function meshLayoutTokenSemantic(token: string): string | null {
+  const [semantic] = token.split(":");
+
+  return semantic === undefined || semantic.length === 0 ? null : semantic;
+}
+
+function shadowCasterMeshLayoutTokenFormat(token: string): string | null {
+  const [semantic, format] = token.split(":");
+
+  switch (semantic) {
+    case "POSITION":
+    case "NORMAL":
+    case "MORPH_POSITION_0":
+    case "MORPH_NORMAL_0":
+    case "MORPH_POSITION_1":
+    case "MORPH_NORMAL_1":
+      return format === undefined ? "float32x3" : null;
+    case "TEXCOORD_0":
+    case "TEXCOORD_1":
+      return format === undefined ? "float32x2" : null;
+    case "TANGENT":
+      return format === undefined ? "float32x4" : null;
+    case "COLOR_0":
+      return format === undefined || isShadowCasterColorFormat(format)
+        ? (format ?? "float32x4")
+        : null;
+    case "JOINTS_0":
+      return format === undefined
+        ? "uint16x4"
+        : format === "uint8x4" || format === "uint16x4"
+          ? format
+          : null;
+    case "WEIGHTS_0":
+      return format === undefined || isShadowCasterWeightFormat(format)
+        ? (format ?? "float32x4")
+        : null;
+    default:
+      return null;
+  }
+}
+
+function parseExplicitMeshLayoutStride(token: string): number | null {
+  const rawStride = token.slice("stride=".length);
+  const value = Number.parseInt(rawStride, 10);
+
+  return Number.isInteger(value) && value > 0 && String(value) === rawStride
+    ? value
+    : null;
+}
+
+function parseExplicitMeshLayoutAttributeOffset(token: string): {
+  readonly token: string;
+  readonly offset: number | null;
+} {
+  const offsetSeparator = token.lastIndexOf("@");
+
+  if (offsetSeparator < 0) {
+    return { token, offset: null };
+  }
+
+  const baseToken = token.slice(0, offsetSeparator);
+  const rawOffset = token.slice(offsetSeparator + 1);
+  const offset = Number.parseInt(rawOffset, 10);
+
+  return Number.isInteger(offset) &&
+    offset >= 0 &&
+    String(offset) === rawOffset &&
+    baseToken.length > 0
+    ? { token: baseToken, offset }
+    : { token: "", offset: null };
+}
+
+function isShadowCasterColorFormat(format: string): boolean {
+  return (
+    format === "float32x3" ||
+    format === "float32x4" ||
+    format === "unorm8x4" ||
+    format === "unorm16x4"
+  );
+}
+
+function isShadowCasterWeightFormat(format: string): boolean {
+  return (
+    format === "float32x4" || format === "unorm8x4" || format === "unorm16x4"
+  );
+}
+
+function vertexFormatByteSize(format: string): number {
+  switch (format) {
+    case "uint8x4":
+    case "unorm8x4":
+      return 4;
+    case "uint16x4":
+    case "unorm16x4":
+    case "float32x2":
+      return 8;
+    case "float32x3":
+      return 12;
+    case "float32x4":
+      return 16;
+    default:
+      return 0;
+  }
 }
 
 function deferredDiagnostics(): readonly ShadowCasterPipelineResourceDiagnostic[] {

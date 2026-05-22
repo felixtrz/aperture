@@ -42,10 +42,30 @@ export interface Ktx2BasisTranscoderSource {
 export interface Ktx2BasisTranscoder {
   readonly decode: (
     source: ArrayBuffer | ArrayBufferView,
+    options?: Ktx2BasisTranscodeOptions,
   ) => GltfDecodedImageData;
 }
 
-export interface Ktx2DecodeOptions {
+export type Ktx2TextureCompressionFeature =
+  | "texture-compression-astc"
+  | "texture-compression-bc"
+  | "texture-compression-etc2";
+
+export interface Ktx2TextureCompressionSupport {
+  readonly astc?: boolean;
+  readonly bc?: boolean;
+  readonly etc2?: boolean;
+}
+
+export interface Ktx2FeatureSetLike {
+  readonly has?: (feature: Ktx2TextureCompressionFeature) => boolean;
+}
+
+export interface Ktx2BasisTranscodeOptions {
+  readonly textureCompression?: Ktx2TextureCompressionSupport;
+}
+
+export interface Ktx2DecodeOptions extends Ktx2BasisTranscodeOptions {
   readonly basisTranscoder?: Ktx2BasisTranscoder;
 }
 
@@ -61,7 +81,21 @@ const KTX2_VK_FORMAT_UNDEFINED = 0;
 const KHR_DF_TRANSFER_SRGB = 2;
 const VK_FORMAT_R8G8B8A8_UNORM = 37;
 const VK_FORMAT_R8G8B8A8_SRGB = 43;
+const BASIS_TRANSCODER_FORMAT_ETC1 = 0;
+const BASIS_TRANSCODER_FORMAT_ETC2 = 1;
+const BASIS_TRANSCODER_FORMAT_BC7_M5 = 7;
+const BASIS_TRANSCODER_FORMAT_ASTC_4X4 = 10;
 const BASIS_TRANSCODER_FORMAT_RGBA32 = 13;
+
+type BasisKtx2Encoding = "etc1s" | "uastc";
+
+interface BasisKtx2TranscodeTarget {
+  readonly transcoderFormat: number;
+  readonly textureFormat: TextureFormat;
+  readonly blockWidth: number;
+  readonly blockHeight: number;
+  readonly blockByteLength: number;
+}
 
 export function parseKtx2Container(
   source: ArrayBuffer | ArrayBufferView,
@@ -201,7 +235,7 @@ export async function decodeKtx2TextureDataAsync(
     );
   }
 
-  return options.basisTranscoder.decode(source);
+  return options.basisTranscoder.decode(source, options);
 }
 
 export async function createBasisUniversalKtx2Transcoder(
@@ -228,9 +262,23 @@ export async function createBasisUniversalKtx2Transcoder(
   basisModule.initializeBasis();
 
   return {
-    decode(sourceBytes) {
-      return transcodeBasisKtx2TextureData(sourceBytes, basisModule);
+    decode(sourceBytes, options = {}) {
+      return transcodeBasisKtx2TextureData(sourceBytes, basisModule, options);
     },
+  };
+}
+
+export function createKtx2TextureCompressionSupportFromFeatures(
+  features:
+    | Ktx2FeatureSetLike
+    | Iterable<Ktx2TextureCompressionFeature | string>
+    | null
+    | undefined,
+): Ktx2TextureCompressionSupport {
+  return {
+    astc: featureSetHas(features, "texture-compression-astc"),
+    bc: featureSetHas(features, "texture-compression-bc"),
+    etc2: featureSetHas(features, "texture-compression-etc2"),
   };
 }
 
@@ -293,6 +341,7 @@ type BasisModuleFactory = (
 function transcodeBasisKtx2TextureData(
   source: ArrayBuffer | ArrayBufferView,
   basisModule: BasisModule,
+  options: Ktx2BasisTranscodeOptions,
 ): GltfDecodedImageData {
   const bytes = bytesView(source);
   const container = parseKtx2Container(bytes);
@@ -312,15 +361,27 @@ function transcodeBasisKtx2TextureData(
     }
     if (ktx2File.isHDR?.() === true) {
       throw new Error(
-        "BasisU HDR KTX2 textures are not supported by the RGBA8 upload path.",
+        "BasisU HDR KTX2 textures are not supported by the built-in transcoder.",
       );
     }
 
+    const encoding = basisKtx2Encoding(ktx2File);
     const width = ktx2File.getWidth();
     const height = ktx2File.getHeight();
     const levels = ktx2File.getLevels();
     const faces = ktx2File.getFaces();
     const layers = ktx2File.getLayers() || 1;
+    const hasAlpha = ktx2File.getHasAlpha() !== 0;
+    const target = chooseBasisKtx2TranscodeTarget({
+      encoding,
+      width,
+      height,
+      hasAlpha,
+      srgb: textureFormatFromDfdTransfer(container, bytes).endsWith("-srgb"),
+      ...(options.textureCompression === undefined
+        ? {}
+        : { textureCompression: options.textureCompression }),
+    });
 
     if (width <= 0 || height <= 0 || levels <= 0) {
       throw new Error("BasisU KTX2 texture dimensions are invalid.");
@@ -338,7 +399,7 @@ function transcodeBasisKtx2TextureData(
       0,
       0,
       0,
-      BASIS_TRANSCODER_FORMAT_RGBA32,
+      target.transcoderFormat,
     );
     const level0 = new Uint8Array(byteLength);
     const ok = ktx2File.transcodeImage(
@@ -346,7 +407,7 @@ function transcodeBasisKtx2TextureData(
       0,
       0,
       0,
-      BASIS_TRANSCODER_FORMAT_RGBA32,
+      target.transcoderFormat,
       0,
       -1,
       -1,
@@ -359,17 +420,134 @@ function transcodeBasisKtx2TextureData(
     return {
       width,
       height,
-      format: textureFormatFromDfdTransfer(container, bytes),
+      format: target.textureFormat,
       sourceData: {
         bytes: level0,
-        bytesPerRow: width * 4,
-        rowsPerImage: height,
+        bytesPerRow: textureLevelBytesPerRow(width, target),
+        rowsPerImage: textureLevelRowsPerImage(height, target),
       },
     };
   } finally {
     ktx2File.close();
     ktx2File.delete();
   }
+}
+
+function basisKtx2Encoding(ktx2File: BasisKtx2File): BasisKtx2Encoding {
+  if (ktx2File.isETC1S?.() === true) {
+    return "etc1s";
+  }
+  if (ktx2File.isUASTC?.() === true) {
+    return "uastc";
+  }
+  throw new Error("BasisU KTX2 texture uses an unknown Basis encoding.");
+}
+
+function chooseBasisKtx2TranscodeTarget(input: {
+  readonly encoding: BasisKtx2Encoding;
+  readonly width: number;
+  readonly height: number;
+  readonly hasAlpha: boolean;
+  readonly srgb: boolean;
+  readonly textureCompression?: Ktx2TextureCompressionSupport;
+}): BasisKtx2TranscodeTarget {
+  const support = input.textureCompression ?? {};
+  const compressedCandidates =
+    input.encoding === "uastc"
+      ? [
+          support.astc === true ? astc4x4Target(input.srgb) : null,
+          support.bc === true ? bc7Target(input.srgb) : null,
+          support.etc2 === true ? etc2Target(input.hasAlpha, input.srgb) : null,
+        ]
+      : [
+          support.etc2 === true ? etc2Target(input.hasAlpha, input.srgb) : null,
+          support.bc === true ? bc7Target(input.srgb) : null,
+          support.astc === true ? astc4x4Target(input.srgb) : null,
+        ];
+
+  for (const candidate of compressedCandidates) {
+    if (candidate !== null && textureDimensionsFitTarget(input, candidate)) {
+      return candidate;
+    }
+  }
+
+  return rgba32Target(input.srgb);
+}
+
+function rgba32Target(srgb: boolean): BasisKtx2TranscodeTarget {
+  return {
+    transcoderFormat: BASIS_TRANSCODER_FORMAT_RGBA32,
+    textureFormat: srgb ? "rgba8unorm-srgb" : "rgba8unorm",
+    blockWidth: 1,
+    blockHeight: 1,
+    blockByteLength: 4,
+  };
+}
+
+function etc2Target(
+  hasAlpha: boolean,
+  srgb: boolean,
+): BasisKtx2TranscodeTarget {
+  return hasAlpha
+    ? {
+        transcoderFormat: BASIS_TRANSCODER_FORMAT_ETC2,
+        textureFormat: srgb ? "etc2-rgba8unorm-srgb" : "etc2-rgba8unorm",
+        blockWidth: 4,
+        blockHeight: 4,
+        blockByteLength: 16,
+      }
+    : {
+        transcoderFormat: BASIS_TRANSCODER_FORMAT_ETC1,
+        textureFormat: srgb ? "etc2-rgb8unorm-srgb" : "etc2-rgb8unorm",
+        blockWidth: 4,
+        blockHeight: 4,
+        blockByteLength: 8,
+      };
+}
+
+function bc7Target(srgb: boolean): BasisKtx2TranscodeTarget {
+  return {
+    transcoderFormat: BASIS_TRANSCODER_FORMAT_BC7_M5,
+    textureFormat: srgb ? "bc7-rgba-unorm-srgb" : "bc7-rgba-unorm",
+    blockWidth: 4,
+    blockHeight: 4,
+    blockByteLength: 16,
+  };
+}
+
+function astc4x4Target(srgb: boolean): BasisKtx2TranscodeTarget {
+  return {
+    transcoderFormat: BASIS_TRANSCODER_FORMAT_ASTC_4X4,
+    textureFormat: srgb ? "astc-4x4-unorm-srgb" : "astc-4x4-unorm",
+    blockWidth: 4,
+    blockHeight: 4,
+    blockByteLength: 16,
+  };
+}
+
+function textureDimensionsFitTarget(
+  input: { readonly width: number; readonly height: number },
+  target: BasisKtx2TranscodeTarget,
+): boolean {
+  if (target.blockWidth === 1 && target.blockHeight === 1) {
+    return true;
+  }
+
+  return input.width > 0 && input.height > 0;
+}
+
+function textureLevelBytesPerRow(
+  width: number,
+  target: BasisKtx2TranscodeTarget,
+): number {
+  return Math.ceil(width / target.blockWidth) * target.blockByteLength;
+}
+
+function textureLevelRowsPerImage(
+  height: number,
+  target: BasisKtx2TranscodeTarget,
+): number {
+  return Math.ceil(height / target.blockHeight);
 }
 
 function textureFormatFromDfdTransfer(
@@ -506,6 +684,39 @@ function bytesView(source: ArrayBuffer | ArrayBufferView): Uint8Array {
     return new Uint8Array(source);
   }
   return new Uint8Array(source.buffer, source.byteOffset, source.byteLength);
+}
+
+function featureSetHas(
+  features:
+    | Ktx2FeatureSetLike
+    | Iterable<Ktx2TextureCompressionFeature | string>
+    | null
+    | undefined,
+  feature: Ktx2TextureCompressionFeature,
+): boolean {
+  if (features === null || features === undefined) {
+    return false;
+  }
+
+  if (typeof (features as Ktx2FeatureSetLike).has === "function") {
+    return (features as Ktx2FeatureSetLike).has?.(feature) === true;
+  }
+
+  const iterator = (features as { readonly [Symbol.iterator]?: unknown })[
+    Symbol.iterator
+  ];
+
+  if (typeof iterator !== "function") {
+    return false;
+  }
+
+  for (const candidate of features as Iterable<string>) {
+    if (candidate === feature) {
+      return true;
+    }
+  }
+
+  return false;
 }
 
 function readUint64(view: DataView, byteOffset: number): number {

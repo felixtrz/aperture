@@ -7,6 +7,7 @@ import {
   type WebGpuRenderPipelineCacheKeyInput,
   type WebGpuRenderPipelineCreateDescriptor,
 } from "./pipeline-cache.js";
+import { isColor0LayoutToken } from "./unlit-pipeline-descriptor.js";
 import {
   createWebGpuColorTargetDescriptor,
   createWebGpuColorTargetStateKey,
@@ -337,7 +338,7 @@ function standardTextureFeatures(
     morphed: standardMorphTargetsEnabledFromBatchKey(batchKey),
     vertexColor:
       typeof batchKey?.meshLayoutKey === "string" &&
-      batchKey.meshLayoutKey.split(",").includes("COLOR_0"),
+      batchKey.meshLayoutKey.split(/[|,]/).some(isColor0LayoutToken),
   };
 }
 

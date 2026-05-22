@@ -20,6 +20,11 @@ import type {
   GlbContainerDiagnostic,
   GlbContainerSource,
 } from "./glb-container.js";
+import type {
+  GltfDecodedImageData,
+  GltfImageDataResolver,
+  GltfImageDataResolverInput,
+} from "../materials/gltf-texture.js";
 
 export interface CreateNoFetchGlbSourceLoaderReportOptions extends Omit<
   GltfReportDrivenGlbImportOptions,
@@ -30,6 +35,7 @@ export interface CreateNoFetchGlbSourceLoaderReportOptions extends Omit<
     number,
     ArrayBuffer | ArrayBufferView
   >;
+  readonly decodedImageData?: ReadonlyMap<number, GltfDecodedImageData>;
   readonly sourceRegistration?: GltfSourceRegistrationOrchestrationReport | null;
   readonly ecsCommandPlan?: GltfEcsAuthoringCommandPlan | null;
 }
@@ -45,6 +51,7 @@ export function createNoFetchGlbSourceLoaderReport(
 ): NoFetchGlbSourceLoaderReport {
   const {
     externalBufferBytes,
+    decodedImageData,
     source,
     sourceRegistration,
     ecsCommandPlan,
@@ -53,6 +60,9 @@ export function createNoFetchGlbSourceLoaderReport(
   const glbImportReport = createGltfReportDrivenImportReportFromGlb({
     ...importOptions,
     source,
+    resolveImageData:
+      importOptions.resolveImageData ??
+      decodedImageDataResolver(decodedImageData),
     resolveBufferBytes: (bufferIndex) =>
       externalBufferBytes?.get(bufferIndex) ?? null,
   });
@@ -150,6 +160,19 @@ function sourceByteLength(source: GlbContainerSource): number {
 
 function byteLengthOf(bytes: ArrayBuffer | ArrayBufferView): number {
   return bytes instanceof ArrayBuffer ? bytes.byteLength : bytes.byteLength;
+}
+
+function decodedImageDataResolver(
+  decodedImageData: ReadonlyMap<number, GltfDecodedImageData> | undefined,
+): GltfImageDataResolver {
+  return (input: GltfImageDataResolverInput) => {
+    const image = decodedImageData?.get(input.imageIndex);
+    if (image === undefined) {
+      return null;
+    }
+
+    return image;
+  };
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

@@ -7,6 +7,7 @@ import {
 
 import {
   composeTrsMatrix,
+  decomposeTrsMatrix,
   identityMat4,
   invertMat4,
   mat4,
@@ -42,6 +43,58 @@ describe("Aperture matrix math", () => {
 
     expect(composeTrsMatrix(translation, rotation, scale, out)).toBe(out);
     expectMat4(out, expected);
+  });
+
+  it("decomposes affine TRS matrices and preserves round-trip composition", () => {
+    const translation = [4, 5, 6] as const;
+    const rotation = quatFromAxisAngle([0, 0, 1], Math.PI / 2);
+    const scale = [2, 3, 4] as const;
+    const matrix = composeTrsMatrix(translation, rotation, scale);
+
+    const decomposed = decomposeTrsMatrix(matrix);
+
+    expect(decomposed).not.toBeNull();
+    expectVec3(decomposed?.translation, translation);
+    expectVec3(decomposed?.scale, scale);
+    expectEquivalentQuat(decomposed?.rotation, rotation);
+    expectMat4(
+      composeTrsMatrix(
+        decomposed?.translation,
+        decomposed?.rotation,
+        decomposed?.scale,
+      ),
+      matrix,
+    );
+  });
+
+  it("decomposes reflected matrices with signed scale", () => {
+    const rotation = quatFromAxisAngle([0, 1, 0], Math.PI / 4);
+    const matrix = composeTrsMatrix([1, 2, 3], rotation, [-2, 3, 4]);
+
+    const decomposed = decomposeTrsMatrix(matrix);
+
+    expect(decomposed).not.toBeNull();
+    expectVec3(decomposed?.translation, [1, 2, 3]);
+    expectVec3(decomposed?.scale, [-2, 3, 4]);
+    expectMat4(
+      composeTrsMatrix(
+        decomposed?.translation,
+        decomposed?.rotation,
+        decomposed?.scale,
+      ),
+      matrix,
+    );
+  });
+
+  it("rejects non-TRS affine and perspective matrices", () => {
+    const shear = identityMat4();
+    shear[4] = 0.5;
+
+    const perspective = identityMat4();
+    perspective[3] = 0.25;
+
+    expect(decomposeTrsMatrix(shear)).toBeNull();
+    expect(decomposeTrsMatrix(perspective)).toBeNull();
   });
 
   it("multiplies and inverts matrices deterministically", () => {
@@ -126,6 +179,24 @@ function expectQuat(actual: QuatLike, expected: QuatLike): void {
   for (let index = 0; index < 4; index += 1) {
     expect(read(actual, index)).toBeCloseTo(read(expected, index), CLOSE_TO);
   }
+}
+
+function expectEquivalentQuat(
+  actual: QuatLike | undefined,
+  expected: QuatLike,
+): void {
+  expect(actual).toBeDefined();
+
+  if (actual === undefined) {
+    return;
+  }
+
+  const dot =
+    read(actual, 0) * read(expected, 0) +
+    read(actual, 1) * read(expected, 1) +
+    read(actual, 2) * read(expected, 2) +
+    read(actual, 3) * read(expected, 3);
+  expect(Math.abs(dot)).toBeCloseTo(1, CLOSE_TO);
 }
 
 function read(values: ArrayLike<number>, index: number): number {

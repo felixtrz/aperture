@@ -62,7 +62,7 @@ describe("glTF ECS authoring command plan", () => {
     ).not.toContain("entity");
   });
 
-  it("skips matrix nodes and descendants instead of authoring identity transforms", () => {
+  it("plans decomposed matrix node commands instead of authoring identity transforms", () => {
     const traversalReport = createGltfSceneTraversalReport({
       root: {
         asset: { version: "2.0" },
@@ -81,24 +81,24 @@ describe("glTF ECS authoring command plan", () => {
     const plan = createGltfEcsAuthoringCommandPlan({ traversalReport });
 
     expect(traversalReport.valid).toBe(true);
-    expect(plan.valid).toBe(false);
+    expect(plan.valid).toBe(true);
     expect(createEntityCommands(plan.commands)).toEqual([
       { type: "createEntity", entityKey: "gltf:scene:0", label: "Scene0" },
+      { type: "createEntity", entityKey: "gltf:node:0", label: "MatrixRoot" },
+      { type: "createEntity", entityKey: "gltf:node:1", label: "Child" },
     ]);
-    expect(plan.skipped).toMatchObject([
-      {
-        entityKey: "gltf:node:0",
-        reason: "gltfEcsAuthoring.matrixTransformDeferred",
-      },
-      {
-        entityKey: "gltf:node:1",
-        reason: "gltfEcsAuthoring.nodeSkippedByAncestor",
-      },
-    ]);
-    expect(plan.diagnostics.map((diagnostic) => diagnostic.code)).toEqual([
-      "gltfEcsAuthoring.matrixTransformDeferred",
-      "gltfEcsAuthoring.nodeSkippedByAncestor",
-    ]);
+    expect(
+      componentValue(plan.commands, "gltf:node:0", "LocalTransform"),
+    ).toEqual({
+      translation: [4, 5, 6],
+      rotation: [0, 0, 0, 1],
+      scale: [1, 1, 1],
+    });
+    expect(componentValue(plan.commands, "gltf:node:1", "Parent")).toEqual({
+      parentEntityKey: "gltf:node:0",
+    });
+    expect(plan.skipped).toEqual([]);
+    expect(plan.diagnostics).toEqual([]);
   });
 
   it("does not plan commands for invalid traversal reports", () => {

@@ -118,6 +118,37 @@ describe("WebGPU support boundary", () => {
     ]);
   });
 
+  it("requests supported texture compression features automatically", async () => {
+    const descriptors: unknown[] = [];
+    const device: WebGpuDeviceLike = {};
+    const gpu = fakeGpu({
+      features: {
+        has: (feature) =>
+          feature === "texture-compression-bc" ||
+          feature === "texture-compression-etc2",
+      },
+      requestDevice: async (descriptor) => {
+        descriptors.push(descriptor);
+        return device;
+      },
+    });
+
+    const result = await initializeWebGpu({
+      environment: { navigator: { gpu } },
+      context: fakeContext(),
+    });
+
+    expect(result).toMatchObject({ ok: true });
+    expect(descriptors).toEqual([
+      {
+        requiredFeatures: [
+          "texture-compression-bc",
+          "texture-compression-etc2",
+        ],
+      },
+    ]);
+  });
+
   it("does not request timestamp-query when disabled", async () => {
     const descriptors: unknown[] = [];
     const device: WebGpuDeviceLike = {};

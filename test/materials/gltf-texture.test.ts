@@ -62,6 +62,83 @@ describe("glTF texture mapping", () => {
     expect(Array.from(image.sourceData.bytes)).toEqual([255, 0, 0, 255]);
   });
 
+  it("passes provided image byte ranges to decoders without cloning", async () => {
+    const sourceBytes = new Uint8Array([0, 1, 2, 3, 4, 5]);
+    const imageBytes = sourceBytes.subarray(1, 5);
+    const decodedInput: { current: Uint8Array | null } = { current: null };
+
+    await loadGltfTextureAsync({
+      source: { kind: "bufferView", bufferView: 3, mimeType: "image/png" },
+      bytes: imageBytes,
+      decodeImageData: async ({ bytes }) => {
+        decodedInput.current = bytes;
+        return decodedImage;
+      },
+    });
+
+    expect(decodedInput.current).not.toBeNull();
+    expect(decodedInput.current?.buffer).toBe(sourceBytes.buffer);
+    expect(decodedInput.current?.byteOffset).toBe(imageBytes.byteOffset);
+    expect(decodedInput.current?.byteLength).toBe(imageBytes.byteLength);
+  });
+
+  it("reuses browser ImageData bytes without cloning after canvas decode", async () => {
+    const globals = globalThis as unknown as Record<string, unknown>;
+    const previousCreateImageBitmap = globals.createImageBitmap;
+    const previousOffscreenCanvas = globals.OffscreenCanvas;
+    const decodedPixels = new Uint8ClampedArray([12, 34, 56, 255]);
+    let bitmapClosed = false;
+
+    class FakeOffscreenCanvas {
+      constructor(
+        readonly width: number,
+        readonly height: number,
+      ) {}
+
+      getContext(type: string): unknown {
+        expect(type).toBe("2d");
+        return {
+          drawImage: () => {},
+          getImageData: () => ({ data: decodedPixels }),
+        };
+      }
+    }
+
+    globals.createImageBitmap = async () => ({
+      width: 1,
+      height: 1,
+      close: () => {
+        bitmapClosed = true;
+      },
+    });
+    globals.OffscreenCanvas = FakeOffscreenCanvas;
+
+    try {
+      const image = await loadGltfTextureAsync({
+        source: { kind: "bufferView", bufferView: 3, mimeType: "image/png" },
+        bytes: pngBytesFromBase64(onePixelPngBase64),
+      });
+
+      expect(image.sourceData.bytes.buffer).toBe(decodedPixels.buffer);
+      expect(image.sourceData.bytes.byteOffset).toBe(decodedPixels.byteOffset);
+      expect(image.sourceData.bytes.byteLength).toBe(decodedPixels.byteLength);
+      expect(Array.from(image.sourceData.bytes)).toEqual([12, 34, 56, 255]);
+      expect(bitmapClosed).toBe(true);
+    } finally {
+      if (previousCreateImageBitmap === undefined) {
+        Reflect.deleteProperty(globals, "createImageBitmap");
+      } else {
+        globals.createImageBitmap = previousCreateImageBitmap;
+      }
+
+      if (previousOffscreenCanvas === undefined) {
+        Reflect.deleteProperty(globals, "OffscreenCanvas");
+      } else {
+        globals.OffscreenCanvas = previousOffscreenCanvas;
+      }
+    }
+  });
+
   it("maps decoded GLB bufferView image data into a TextureAsset and SamplerAsset", () => {
     const report = createTextureAssetFromGltfTexture({
       textureIndex: 0,

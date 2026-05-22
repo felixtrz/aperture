@@ -281,10 +281,17 @@ export interface InitializeWebGpuOptions {
   readonly adapterOptions?: unknown;
   readonly deviceDescriptor?: unknown;
   readonly timestampQuery?: "auto" | boolean;
+  readonly textureCompression?: "auto" | boolean;
   readonly alphaMode?: "opaque" | "premultiplied";
   readonly textureUsage?: number;
   readonly displayColorSpace?: "srgb";
 }
+
+const WEBGPU_TEXTURE_COMPRESSION_FEATURES = [
+  "texture-compression-astc",
+  "texture-compression-bc",
+  "texture-compression-etc2",
+] as const;
 
 export const WEBGPU_FAILURE_MESSAGES: Record<WebGpuFailureReason, string> = {
   "navigator-gpu-unavailable":
@@ -327,11 +334,10 @@ export async function initializeWebGpu(
 
   try {
     device = await adapter.requestDevice(
-      deviceDescriptorWithTimestampQuery(
-        adapter,
-        options.deviceDescriptor,
-        options.timestampQuery ?? "auto",
-      ),
+      deviceDescriptorWithOptionalFeatures(adapter, options.deviceDescriptor, {
+        timestampQuery: options.timestampQuery ?? "auto",
+        textureCompression: options.textureCompression ?? "auto",
+      }),
     );
   } catch (cause) {
     return failure("device-request-failed", cause);
@@ -385,32 +391,61 @@ function defaultEnvironment(): WebGpuEnvironment {
   return globalThis as unknown as WebGpuEnvironment;
 }
 
-function deviceDescriptorWithTimestampQuery(
+function deviceDescriptorWithOptionalFeatures(
   adapter: WebGpuAdapterLike,
   descriptor: unknown,
-  mode: "auto" | boolean,
+  options: {
+    readonly timestampQuery: "auto" | boolean;
+    readonly textureCompression: "auto" | boolean;
+  },
 ): unknown {
-  if (mode === false) {
-    return descriptor;
+  const features: string[] = [];
+
+  if (options.timestampQuery !== false) {
+    const timestampSupported =
+      adapter.features?.has?.("timestamp-query") === true;
+    if (timestampSupported || options.timestampQuery === true) {
+      features.push("timestamp-query");
+    }
   }
 
-  const supported = adapter.features?.has?.("timestamp-query") === true;
+  if (options.textureCompression !== false) {
+    for (const feature of WEBGPU_TEXTURE_COMPRESSION_FEATURES) {
+      if (adapter.features?.has?.(feature) === true) {
+        features.push(feature);
+      }
+    }
+  }
 
-  if (!supported && mode !== true) {
+  return deviceDescriptorWithRequiredFeatures(descriptor, features);
+}
+
+function deviceDescriptorWithRequiredFeatures(
+  descriptor: unknown,
+  features: readonly string[],
+): unknown {
+  if (features.length === 0) {
     return descriptor;
   }
 
   const source =
     typeof descriptor === "object" && descriptor !== null ? descriptor : {};
   const requiredFeatures = requiredFeatureList(source);
+  const mergedFeatures = [...requiredFeatures];
 
-  if (requiredFeatures.includes("timestamp-query")) {
+  for (const feature of features) {
+    if (!mergedFeatures.includes(feature)) {
+      mergedFeatures.push(feature);
+    }
+  }
+
+  if (mergedFeatures.length === requiredFeatures.length) {
     return descriptor;
   }
 
   return {
     ...source,
-    requiredFeatures: [...requiredFeatures, "timestamp-query"],
+    requiredFeatures: mergedFeatures,
   };
 }
 

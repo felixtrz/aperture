@@ -354,7 +354,7 @@ describe("GLB source-loader output summary", () => {
           nodes: [
             {
               name: "MatrixRoot",
-              matrix: [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 4, 5, 6, 1],
+              matrix: [1, 0.25, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 4, 5, 6, 1],
             },
           ],
         },
@@ -372,18 +372,18 @@ describe("GLB source-loader output summary", () => {
       valid: false,
       sceneIndex: 0,
       rootEntityCount: 1,
-      commandCount: 6,
-      createEntityCount: 1,
-      addComponentCount: 5,
+      commandCount: 0,
+      createEntityCount: 0,
+      addComponentCount: 0,
       dependencyCount: 0,
-      skippedCount: 1,
-      diagnosticsCount: 2,
+      skippedCount: 0,
+      diagnosticsCount: 1,
     });
     expect(summary.ecsReplayReadiness).toMatchObject({
       status: "blocked",
       ready: false,
-      expectedCreateEntityCount: 1,
-      expectedAddComponentCount: 5,
+      expectedCreateEntityCount: 0,
+      expectedAddComponentCount: 0,
       blockerCount: 1,
       blockers: [{ code: "gltfEcsReplayReadiness.invalidPlan", count: 1 }],
     });

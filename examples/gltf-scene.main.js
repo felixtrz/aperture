@@ -642,6 +642,7 @@ async function publishFrameStatus(
     aperture.shadowCasterPipelineDescriptorReportToJsonValue(
       aperture.createShadowCasterPipelineDescriptorReport({
         commandEncoding: shadowPassCommandEncoding,
+        casterDrawList: shadowCasterDrawList,
       }),
     );
   const shadowCasterPipelineResourceReport =
@@ -679,18 +680,13 @@ async function publishFrameStatus(
     aperture.createShadowCasterCommandRecordPlanReport({
       frameResources: shadowCasterFrameResources,
       commandPlan: shadowCommandPlan,
-      pipelines:
-        shadowCasterPipelineResourceReport.resource === null
-          ? []
-          : [
-              {
-                pipelineKey:
-                  shadowCasterPipelineResourceReport.resource.pipelineKey,
-                resourceKey:
-                  shadowCasterPipelineResourceReport.resource.resourceKey,
-                pipeline: shadowCasterPipelineResourceReport.resource.pipeline,
-              },
-            ],
+      pipelines: shadowCasterPipelineResourceReport.resources.map(
+        (resource) => ({
+          pipelineKey: resource.pipelineKey,
+          resourceKey: resource.resourceKey,
+          pipeline: resource.pipeline,
+        }),
+      ),
       matrixBindGroups:
         shadowCasterMatrixBindGroupResourceReport.resource === null
           ? []

@@ -15,6 +15,10 @@ import {
 } from "./glb-source-loader-status.js";
 import type { GltfSourceRegistrationOrchestrationReport } from "./gltf-source-registration-orchestration.js";
 import type { GltfEcsAuthoringCommandPlan } from "./gltf-ecs-authoring-command-plan.js";
+import type {
+  GltfDecodedImageData,
+  GltfImageDataResolver,
+} from "../materials/gltf-texture.js";
 
 export interface CreateNoFetchGltfSourceLoaderReportOptions extends Omit<
   GltfReportDrivenImportOptions,
@@ -25,6 +29,11 @@ export interface CreateNoFetchGltfSourceLoaderReportOptions extends Omit<
     number,
     ArrayBuffer | ArrayBufferView
   >;
+  readonly externalImageBytes?: ReadonlyMap<
+    number,
+    ArrayBuffer | ArrayBufferView
+  >;
+  readonly decodedImageData?: ReadonlyMap<number, GltfDecodedImageData>;
   readonly sourceRegistration?: GltfSourceRegistrationOrchestrationReport | null;
   readonly ecsCommandPlan?: GltfEcsAuthoringCommandPlan | null;
 }
@@ -41,6 +50,8 @@ export function createNoFetchGltfSourceLoaderReport(
 ): NoFetchGltfSourceLoaderReport {
   const {
     externalBufferBytes,
+    externalImageBytes: _externalImageBytes,
+    decodedImageData,
     sourceByteLength,
     sourceRegistration,
     ecsCommandPlan,
@@ -48,6 +59,9 @@ export function createNoFetchGltfSourceLoaderReport(
   } = options;
   const gltfImportReport = createGltfReportDrivenImportReport({
     ...importOptions,
+    resolveImageData:
+      importOptions.resolveImageData ??
+      decodedImageDataResolver(decodedImageData),
     resolveBufferBytes: (bufferIndex) =>
       externalBufferBytes?.get(bufferIndex) ?? null,
   });
@@ -159,6 +173,15 @@ function diagnosticForBufferIndex(
 
 function byteLengthOf(bytes: ArrayBuffer | ArrayBufferView): number {
   return bytes instanceof ArrayBuffer ? bytes.byteLength : bytes.byteLength;
+}
+
+function decodedImageDataResolver(
+  decodedImageData: ReadonlyMap<number, GltfDecodedImageData> | undefined,
+): GltfImageDataResolver {
+  return (input) => {
+    const image = decodedImageData?.get(input.imageIndex);
+    return image === undefined ? null : image;
+  };
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

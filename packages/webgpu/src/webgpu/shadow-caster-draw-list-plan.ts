@@ -23,6 +23,7 @@ export interface ShadowCasterDrawRecord {
   readonly renderId: number;
   readonly meshKey: string;
   readonly materialKey: string;
+  readonly meshLayoutKey: string;
   readonly submesh: number;
   readonly layerMask: number;
 }
@@ -152,6 +153,7 @@ export function createShadowCasterDrawListPlanReport(
         renderId: draw.renderId,
         meshKey: assetHandleKey(draw.mesh),
         materialKey: assetHandleKey(draw.material),
+        meshLayoutKey: draw.batchKey.meshLayoutKey,
         submesh: draw.submesh,
         layerMask: draw.layerMask,
       }));

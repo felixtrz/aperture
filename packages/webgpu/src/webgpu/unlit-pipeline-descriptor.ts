@@ -222,8 +222,14 @@ export function hasUnlitVertexColorFeature(
 ): boolean {
   return (
     typeof batchKey?.meshLayoutKey === "string" &&
-    batchKey.meshLayoutKey.split(",").includes("COLOR_0")
+    batchKey.meshLayoutKey.split(/[|,]/).some(isColor0LayoutToken)
   );
+}
+
+export function isColor0LayoutToken(token: string): boolean {
+  const normalized = token.split("@")[0] ?? "";
+
+  return normalized === "COLOR_0" || normalized.startsWith("COLOR_0:");
 }
 
 function unlitShaderVariantKey(

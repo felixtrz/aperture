@@ -8,7 +8,9 @@ import {
   UNLIT_TEXTURED_VERTEX_COLOR_MESH_WGSL,
   UNLIT_VERTEX_COLOR_MESH_WGSL,
   UNLIT_PRIMITIVE_VERTEX_BUFFER_LAYOUT,
+  UNLIT_VERTEX_COLOR_FLOAT32X3_VERTEX_BUFFER_LAYOUT,
   UNLIT_VERTEX_COLOR_VERTEX_BUFFER_LAYOUT,
+  UNLIT_VERTEX_COLOR_UNORM8_VERTEX_BUFFER_LAYOUT,
   type BatchCompatibilityKey,
   type WebGpuRenderPipelineCreateDescriptor,
   type WebGpuShaderCreateDescriptor,
@@ -208,6 +210,137 @@ describe("browser unlit pipeline bridge", () => {
         buffers: [UNLIT_VERTEX_COLOR_VERTEX_BUFFER_LAYOUT],
       },
       fragment: { entryPoint: "fs_main" },
+    });
+  });
+
+  it("creates compact vertex-color layouts for compact COLOR_0 meshes", async () => {
+    const pipelineDescriptors: WebGpuRenderPipelineCreateDescriptor[] = [];
+    const device = {
+      createShaderModule() {
+        return { compilationInfo: async () => ({ messages: [] }) };
+      },
+      createRenderPipeline(descriptor: WebGpuRenderPipelineCreateDescriptor) {
+        pipelineDescriptors.push(descriptor);
+        return { kind: "render-pipeline" };
+      },
+    };
+
+    const result = await createUnlitRenderPipelineResource({
+      device,
+      colorFormat: "bgra8unorm",
+      batchKey: {
+        ...VERTEX_COLOR_BATCH_KEY,
+        meshLayoutKey: "POSITION,NORMAL,TEXCOORD_0,COLOR_0:float32x3",
+      },
+    });
+
+    expect(result.diagnostics).toEqual([]);
+    expect(result.resource?.cacheKey).toContain(
+      "aperture/unlit-mesh-vertex-color",
+    );
+    expect(pipelineDescriptors[0]).toMatchObject({
+      vertex: {
+        entryPoint: "vs_main",
+        buffers: [UNLIT_VERTEX_COLOR_FLOAT32X3_VERTEX_BUFFER_LAYOUT],
+      },
+    });
+
+    const normalized = createBrowserUnlitRenderPipelineDescriptor({
+      shaderModule: { compilationInfo: async () => ({ messages: [] }) },
+      colorFormat: "bgra8unorm",
+      batchKey: {
+        ...VERTEX_COLOR_BATCH_KEY,
+        meshLayoutKey: "POSITION,NORMAL,TEXCOORD_0,COLOR_0:unorm8x4",
+      },
+    });
+
+    expect(normalized.vertex).toMatchObject({
+      buffers: [UNLIT_VERTEX_COLOR_UNORM8_VERTEX_BUFFER_LAYOUT],
+    });
+  });
+
+  it("derives multi-stream vertex layouts from stream-aware mesh keys", async () => {
+    const shaderDescriptors: WebGpuShaderCreateDescriptor[] = [];
+    const pipelineDescriptors: WebGpuRenderPipelineCreateDescriptor[] = [];
+    const device = {
+      createShaderModule(descriptor: WebGpuShaderCreateDescriptor) {
+        shaderDescriptors.push(descriptor);
+        return { compilationInfo: async () => ({ messages: [] }) };
+      },
+      createRenderPipeline(descriptor: WebGpuRenderPipelineCreateDescriptor) {
+        pipelineDescriptors.push(descriptor);
+        return { kind: "render-pipeline" };
+      },
+    };
+
+    const result = await createUnlitRenderPipelineResource({
+      device,
+      colorFormat: "bgra8unorm",
+      batchKey: {
+        ...VERTEX_COLOR_BATCH_KEY,
+        meshLayoutKey: "POSITION,NORMAL|TEXCOORD_0|COLOR_0:unorm8x4",
+      },
+    });
+
+    expect(result.diagnostics).toEqual([]);
+    expect(shaderDescriptors[0]).toMatchObject({
+      label: "aperture/unlit-mesh-vertex-color",
+    });
+    expect(pipelineDescriptors[0]?.vertex).toMatchObject({
+      entryPoint: "vs_main",
+      buffers: [
+        {
+          arrayStride: 24,
+          attributes: [
+            { shaderLocation: 0, offset: 0, format: "float32x3" },
+            { shaderLocation: 1, offset: 12, format: "float32x3" },
+          ],
+        },
+        {
+          arrayStride: 8,
+          attributes: [{ shaderLocation: 2, offset: 0, format: "float32x2" }],
+        },
+        {
+          arrayStride: 4,
+          attributes: [{ shaderLocation: 5, offset: 0, format: "unorm8x4" }],
+        },
+      ],
+    });
+  });
+
+  it("honors explicit source stream stride and attribute offsets", async () => {
+    const pipelineDescriptors: WebGpuRenderPipelineCreateDescriptor[] = [];
+    const device = {
+      createShaderModule() {
+        return { compilationInfo: async () => ({ messages: [] }) };
+      },
+      createRenderPipeline(descriptor: WebGpuRenderPipelineCreateDescriptor) {
+        pipelineDescriptors.push(descriptor);
+        return { kind: "render-pipeline" };
+      },
+    };
+
+    const result = await createUnlitRenderPipelineResource({
+      device,
+      colorFormat: "bgra8unorm",
+      batchKey: {
+        ...BATCH_KEY,
+        meshLayoutKey: "stride=40,POSITION@4,NORMAL@20,TEXCOORD_0@32",
+      },
+    });
+
+    expect(result.diagnostics).toEqual([]);
+    expect(pipelineDescriptors[0]?.vertex).toMatchObject({
+      buffers: [
+        {
+          arrayStride: 40,
+          attributes: [
+            { shaderLocation: 0, offset: 4, format: "float32x3" },
+            { shaderLocation: 1, offset: 20, format: "float32x3" },
+            { shaderLocation: 2, offset: 32, format: "float32x2" },
+          ],
+        },
+      ],
     });
   });
 

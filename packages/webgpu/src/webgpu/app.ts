@@ -89,7 +89,7 @@ import {
 } from "./frame-boundary.js";
 import {
   createGpuPassTimingReport,
-  createGpuTimestampQueryResources,
+  createGpuTimestampQueryResourcesChecked,
   readGpuTimestampQueryResults,
   type GpuPassTimingReport,
   type GpuTimestampQueryDiagnostic,
@@ -545,6 +545,7 @@ interface WebGpuAppResourceCache {
   readonly preparedMaterials: PreparedBuiltInMaterialStore;
   readonly preparedMaterialFacade: PreparedMaterialStore;
   readonly idPickPipelines: Map<string, WebGpuIdBufferPickPipelineResource>;
+  readonly gpuTimings: Map<string, WebGpuAppGpuTimingCacheEntry>;
   readonly postPasses: WebGpuAppPostPassCache;
   readonly frameScratch: WebGpuAppFrameScratch;
   readonly unlitFrame: UnlitAppFrameResourceCacheSlot;
@@ -576,6 +577,12 @@ interface WebGpuAppFrameScratch {
   readonly queueRoute: QueuedBuiltInAppRouteCollectorScratch;
   readonly queuedBuiltInFrameResources: QueuedBuiltInFrameResourceScratch<WebGpuAppPipelinePlanResult>;
   readonly viewCommands: RenderPassCommand[];
+}
+
+interface WebGpuAppGpuTimingCacheEntry {
+  readonly passName: string;
+  readonly resources: GpuTimestampQueryResources | null;
+  readonly diagnostics: readonly GpuTimestampQueryDiagnostic[];
 }
 
 interface WebGpuAppPipelineLayouts {
@@ -929,6 +936,7 @@ function createWebGpuAppResourceCache(): WebGpuAppResourceCache {
     preparedMaterials: createPreparedBuiltInMaterialStore(),
     preparedMaterialFacade: createPreparedMaterialStore(),
     idPickPipelines: new Map(),
+    gpuTimings: new Map(),
     postPasses: {
       scene: createWebGpuPostPassTextureCacheSlot(),
       ping: createWebGpuPostPassTextureCacheSlot(),
@@ -1673,7 +1681,7 @@ async function renderQueuedBuiltInWebGpuAppFrame(options: {
     bindGroups: prepared.resources.bindGroups,
     scratch: options.cache.frameScratch.framePlan,
   });
-  const boundaries = assembleWebGpuAppFrameBoundaries({
+  const boundaries = await assembleWebGpuAppFrameBoundaries({
     app: options.app,
     assets: options.assets,
     cache: options.cache,
@@ -1747,7 +1755,7 @@ async function renderQueuedBuiltInWebGpuAppFrame(options: {
   });
 }
 
-function assembleWebGpuAppFrameBoundaries(options: {
+async function assembleWebGpuAppFrameBoundaries(options: {
   readonly app: WebGpuApp;
   readonly assets: AssetRegistry;
   readonly cache: WebGpuAppResourceCache;
@@ -1756,7 +1764,7 @@ function assembleWebGpuAppFrameBoundaries(options: {
   readonly label: string;
   readonly clearColor?: readonly number[];
   readonly readbackSamples?: readonly FrameBoundaryReadbackSampleRequest[];
-}): WebGpuAppFrameBoundaryAssemblyResult {
+}): Promise<WebGpuAppFrameBoundaryAssemblyResult> {
   const targetPlan = createWebGpuAppFrameBoundaryTargets(
     options.app,
     options.assets,
@@ -1811,8 +1819,9 @@ function assembleWebGpuAppFrameBoundaries(options: {
       options.readbackSamples !== undefined &&
       readbackBoundary === null &&
       target.source === "swapchain";
-    const gpuTiming = createWebGpuAppGpuTimingForTarget(
+    const gpuTiming = await createWebGpuAppGpuTimingForTarget(
       options.app,
+      options.cache,
       options.label,
       target,
     );
@@ -2029,7 +2038,7 @@ async function renderSpriteOnlyWebGpuAppFrame(
     });
   }
 
-  const boundaries = assembleWebGpuAppFrameBoundaries({
+  const boundaries = await assembleWebGpuAppFrameBoundaries({
     app,
     assets: sourceAssets,
     cache: resourceCache,
@@ -2659,28 +2668,38 @@ function appendFrameBoundaryDiagnostics(
   );
 }
 
-function createWebGpuAppGpuTimingForTarget(
+async function createWebGpuAppGpuTimingForTarget(
   app: WebGpuApp,
+  cache: WebGpuAppResourceCache,
   label: string,
   target: WebGpuAppFrameBoundaryTarget,
-): {
+): Promise<{
   readonly passName: string;
   readonly resources: GpuTimestampQueryResources | null;
   readonly diagnostics: readonly GpuTimestampQueryDiagnostic[];
-} {
+}> {
   const passName =
     target.renderTargetKey === null ? "main" : `main:${target.renderTargetKey}`;
-  const created = createGpuTimestampQueryResources({
+  const cacheKey = `${passName}:2`;
+  const cached = cache.gpuTimings.get(cacheKey);
+
+  if (cached !== undefined) {
+    return cached;
+  }
+
+  const created = await createGpuTimestampQueryResourcesChecked({
     device: app.initialization.device as GpuTimestampQueryDeviceLike,
     label: `${label}:${passName}:gpu-timing`,
     queryCount: 2,
   });
-
-  return {
+  const entry = {
     passName,
     resources: created.resources,
     diagnostics: created.diagnostics,
   };
+
+  cache.gpuTimings.set(cacheKey, entry);
+  return entry;
 }
 
 async function readWebGpuAppGpuTimings(input: {
@@ -3825,7 +3844,7 @@ async function renderWebGpuAppFrame(
     bindGroups: frameResources.bindGroups,
     scratch: resourceCache.frameScratch.framePlan,
   });
-  const boundaries = assembleWebGpuAppFrameBoundaries({
+  const boundaries = await assembleWebGpuAppFrameBoundaries({
     app,
     assets: sourceAssets,
     cache: resourceCache,

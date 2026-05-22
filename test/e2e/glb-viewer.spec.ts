@@ -371,6 +371,7 @@ interface GlbViewerStatus extends ExampleStatusBase {
     readonly jointCount: number;
     readonly skinnedEntities: number;
     readonly animatedJointCount: number;
+    readonly proceduralAnimation: boolean;
     readonly time: number;
     readonly entries?: readonly {
       readonly skinIndex: number;
@@ -4811,6 +4812,7 @@ test("Playwright renders and animates a skinned GLB mesh", async ({ page }) => {
               readonly jointCount?: number;
               readonly skinnedEntities?: number;
               readonly animatedJointCount?: number;
+              readonly proceduralAnimation?: boolean;
             };
             readonly extraction?: { readonly meshDraws?: number };
             readonly draw?: { readonly drawCalls?: number };
@@ -4847,6 +4849,7 @@ test("Playwright renders and animates a skinned GLB mesh", async ({ page }) => {
         status.skinning.skinCount === 1 &&
         status.skinning.jointCount === 2 &&
         status.skinning.skinnedEntities === 1 &&
+        status.skinning.proceduralAnimation === true &&
         (status.skinning.animatedJointCount ?? 0) >= 1 &&
         status.extraction?.meshDraws === 1 &&
         status.draw?.drawCalls === 1 &&
@@ -4942,6 +4945,7 @@ test("Playwright renders and animates a skinned GLB mesh", async ({ page }) => {
       jointCount: 2,
       skinnedEntities: 1,
       animatedJointCount: 1,
+      proceduralAnimation: true,
     },
     extraction: {
       views: 1,
@@ -19514,6 +19518,354 @@ test("Playwright decodes a same-origin PNG URI texture for the GLB viewer", asyn
   webGpuValidation.expectNoWarnings();
 });
 
+test("Playwright loads Khronos FlightHelmet glTF with external PNG textures", async ({
+  page,
+}) => {
+  const webGpuValidation = attachWebGpuValidationConsoleGuard(page);
+
+  await page.goto("/examples/glb-viewer.html?asset=flight-helmet-gltf");
+  const initialStatus = await waitForExampleStatus<GlbViewerStatus>(page);
+
+  expect(initialStatus, "GLB viewer status should publish").toBeDefined();
+
+  if (initialStatus === undefined) {
+    throw new Error("GLB viewer status did not publish.");
+  }
+
+  skipIfUnsupportedWebGpu(initialStatus);
+  await page.waitForFunction(
+    () => {
+      const status = (
+        globalThis as {
+          readonly __APERTURE_EXAMPLE_STATUS__?: {
+            readonly frame?: number;
+            readonly selectedAsset?: {
+              readonly id?: string;
+              readonly loading?: boolean;
+              readonly source?: string;
+            };
+            readonly source?: {
+              readonly ok?: boolean;
+              readonly status?: {
+                readonly sourceKind?: string;
+                readonly externalBuffers?: readonly {
+                  readonly status?: string;
+                }[];
+              } | null;
+              readonly imageDecode?: {
+                readonly decoded?: readonly {
+                  readonly uri?: string;
+                  readonly sourceKind?: string;
+                  readonly width?: number;
+                  readonly height?: number;
+                }[];
+                readonly diagnostics?: readonly unknown[];
+              };
+            };
+            readonly gltf?: {
+              readonly primitiveMaterials?: {
+                readonly resolved?: number;
+                readonly diagnostics?: number;
+              };
+              readonly replay?: { readonly valid?: boolean };
+            };
+            readonly extraction?: {
+              readonly meshDraws?: number;
+              readonly diagnostics?: number;
+            };
+            readonly draw?: { readonly drawCalls?: number };
+          };
+        }
+      ).__APERTURE_EXAMPLE_STATUS__;
+      const decoded = status?.source?.imageDecode?.decoded ?? [];
+
+      return (
+        (status?.frame ?? 0) >= 3 &&
+        status?.selectedAsset?.id === "flight-helmet-gltf" &&
+        status.selectedAsset.loading === false &&
+        status.selectedAsset.source === "khronos" &&
+        status.source?.ok === true &&
+        status.source.status?.sourceKind === "gltf" &&
+        status.source.status.externalBuffers?.[0]?.status === "loaded" &&
+        decoded.length >= 15 &&
+        decoded.every(
+          (entry) =>
+            entry.sourceKind === "external-uri" &&
+            typeof entry.uri === "string" &&
+            entry.uri.endsWith(".png") &&
+            (entry.width ?? 0) > 0 &&
+            (entry.height ?? 0) > 0,
+        ) &&
+        status.source.imageDecode?.diagnostics?.length === 0 &&
+        (status.gltf?.primitiveMaterials?.resolved ?? 0) >= 1 &&
+        status.gltf?.primitiveMaterials?.diagnostics === 0 &&
+        status.gltf?.replay?.valid === true &&
+        (status.extraction?.meshDraws ?? 0) >= 1 &&
+        status.extraction?.diagnostics === 0 &&
+        (status.draw?.drawCalls ?? 0) >= 1
+      );
+    },
+    undefined,
+    { timeout: 20000 },
+  );
+
+  const status = await waitForExampleStatus<GlbViewerStatus>(page);
+
+  expect(status, "FlightHelmet viewer status should publish").toBeDefined();
+
+  if (status === undefined) {
+    throw new Error("FlightHelmet viewer status did not publish.");
+  }
+
+  const canvasDisplay = await page
+    .locator("#aperture-canvas")
+    .evaluate((node: HTMLCanvasElement) => {
+      const rect = node.getBoundingClientRect();
+
+      return {
+        bufferWidth: node.width,
+        bufferHeight: node.height,
+        cssWidth: rect.width,
+        cssHeight: rect.height,
+      };
+    });
+  const bufferAspect =
+    canvasDisplay.bufferWidth / Math.max(1, canvasDisplay.bufferHeight);
+  const cssAspect =
+    canvasDisplay.cssWidth / Math.max(1, canvasDisplay.cssHeight);
+
+  expect(
+    Math.abs(cssAspect - bufferAspect),
+    `FlightHelmet canvas CSS aspect should match render buffer aspect; display=${JSON.stringify(
+      canvasDisplay,
+    )}`,
+  ).toBeLessThan(0.02);
+  expect(
+    Math.abs(bufferAspect - 1),
+    `FlightHelmet render buffer should be square; display=${JSON.stringify(
+      canvasDisplay,
+    )}`,
+  ).toBeLessThan(0.01);
+  expect(
+    Math.abs(cssAspect - 1),
+    `FlightHelmet displayed canvas should be square; display=${JSON.stringify(
+      canvasDisplay,
+    )}`,
+  ).toBeLessThan(0.02);
+
+  const screenshot = await page.locator("#aperture-canvas").screenshot();
+  const clear =
+    status.clearColor === undefined
+      ? { r: 4, g: 6, b: 9, a: 255 }
+      : rgbaColorToPixel(status.clearColor);
+  const visor = readPngPixel(screenshot, 0.5, 0.38);
+  const shell = readPngPixel(screenshot, 0.46, 0.45);
+  const side = readPngPixel(screenshot, 0.54, 0.62);
+  const decodedUris = status.source?.imageDecode.decoded.map(
+    (entry) => entry.uri,
+  );
+
+  expectStatusJsonSafeForGpu(status);
+  expect(status).toMatchObject({
+    selectedAsset: {
+      id: "flight-helmet-gltf",
+      label: "Khronos Flight Helmet glTF",
+      source: "khronos",
+      loading: false,
+    },
+    source: {
+      ok: true,
+      status: {
+        sourceKind: "gltf",
+        externalBuffers: [
+          {
+            uri: "FlightHelmet.bin",
+            status: "loaded",
+          },
+        ],
+      },
+      imageDecode: {
+        diagnostics: [],
+      },
+    },
+  });
+  expect(decodedUris).toContain(
+    "FlightHelmet_Materials_GlassPlasticMat_BaseColor.png",
+  );
+  expect(decodedUris).toContain(
+    "FlightHelmet_Materials_LensesMat_BaseColor.png",
+  );
+  expect(
+    pixelDistance(shell, clear),
+    `FlightHelmet shell should render visible textured pixels; sample=${JSON.stringify(
+      shell,
+    )}`,
+  ).toBeGreaterThan(20);
+  expect(
+    pixelDistance(visor, shell) + pixelDistance(shell, side),
+    "FlightHelmet texture samples should not collapse to a flat material",
+  ).toBeGreaterThan(18);
+  webGpuValidation.expectNoWarnings();
+});
+
+test("Playwright renders Khronos CesiumMan GLB with matrix node transforms", async ({
+  page,
+}) => {
+  const webGpuValidation = attachWebGpuValidationConsoleGuard(page);
+
+  await page.goto("/examples/glb-viewer.html?asset=cesium-man-glb");
+  const initialStatus = await waitForExampleStatus<GlbViewerStatus>(page);
+
+  expect(initialStatus, "GLB viewer status should publish").toBeDefined();
+
+  if (initialStatus === undefined) {
+    throw new Error("GLB viewer status did not publish.");
+  }
+
+  skipIfUnsupportedWebGpu(initialStatus);
+  await page.waitForFunction(
+    () => {
+      const status = (
+        globalThis as {
+          readonly __APERTURE_EXAMPLE_STATUS__?: {
+            readonly frame?: number;
+            readonly selectedAsset?: {
+              readonly id?: string;
+              readonly loading?: boolean;
+              readonly source?: string;
+            };
+            readonly source?: {
+              readonly ok?: boolean;
+              readonly status?: { readonly sourceKind?: string } | null;
+              readonly diagnostics?: readonly unknown[];
+            };
+            readonly gltf?: {
+              readonly commandPlan?: { readonly valid?: boolean };
+              readonly replay?: { readonly valid?: boolean };
+            };
+            readonly extraction?: {
+              readonly meshDraws?: number;
+              readonly diagnostics?: number;
+            };
+            readonly draw?: { readonly drawCalls?: number };
+            readonly skinning?: {
+              readonly status?: string;
+              readonly skinnedEntities?: number;
+              readonly jointCount?: number;
+              readonly proceduralAnimation?: boolean;
+            };
+          };
+        }
+      ).__APERTURE_EXAMPLE_STATUS__;
+
+      return (
+        (status?.frame ?? 0) >= 3 &&
+        status?.selectedAsset?.id === "cesium-man-glb" &&
+        status.selectedAsset.loading === false &&
+        status.selectedAsset.source === "khronos" &&
+        status.source?.ok === true &&
+        status.source.status?.sourceKind === "glb" &&
+        status.source.diagnostics?.length === 0 &&
+        status.gltf?.commandPlan?.valid === true &&
+        status.gltf?.replay?.valid === true &&
+        (status.extraction?.meshDraws ?? 0) >= 1 &&
+        status.extraction?.diagnostics === 0 &&
+        (status.draw?.drawCalls ?? 0) >= 1 &&
+        status.skinning?.status === "ready" &&
+        (status.skinning.skinnedEntities ?? 0) >= 1 &&
+        (status.skinning.jointCount ?? 0) >= 1 &&
+        status.skinning.proceduralAnimation === false
+      );
+    },
+    undefined,
+    { timeout: 20000 },
+  );
+
+  const status = await waitForExampleStatus<GlbViewerStatus>(page);
+
+  expect(status, "CesiumMan viewer status should publish").toBeDefined();
+
+  if (status === undefined) {
+    throw new Error("CesiumMan viewer status did not publish.");
+  }
+
+  const canvasDisplay = await page
+    .locator("#aperture-canvas")
+    .evaluate((node: HTMLCanvasElement) => {
+      const rect = node.getBoundingClientRect();
+
+      return {
+        bufferWidth: node.width,
+        bufferHeight: node.height,
+        cssWidth: rect.width,
+        cssHeight: rect.height,
+      };
+    });
+  const bufferAspect =
+    canvasDisplay.bufferWidth / Math.max(1, canvasDisplay.bufferHeight);
+  const cssAspect =
+    canvasDisplay.cssWidth / Math.max(1, canvasDisplay.cssHeight);
+  const screenshot = await page.locator("#aperture-canvas").screenshot();
+  const clear =
+    status.clearColor === undefined
+      ? { r: 4, g: 6, b: 9, a: 255 }
+      : rgbaColorToPixel(status.clearColor);
+  const strongest = strongestSample(screenshot, clear);
+
+  expectStatusJsonSafeForGpu(status);
+  expect(status).toMatchObject({
+    selectedAsset: {
+      id: "cesium-man-glb",
+      label: "Khronos Cesium Man GLB",
+      source: "khronos",
+      loading: false,
+    },
+    source: {
+      ok: true,
+      status: {
+        sourceKind: "glb",
+      },
+      diagnostics: [],
+    },
+    gltf: {
+      commandPlan: { valid: true },
+      replay: { valid: true },
+    },
+    extraction: {
+      meshDraws: 1,
+      diagnostics: 0,
+    },
+    draw: {
+      drawCalls: 1,
+    },
+    skinning: {
+      status: "ready",
+      skinCount: 1,
+      skinnedEntities: 1,
+      proceduralAnimation: false,
+    },
+  });
+  expect(
+    Math.abs(bufferAspect - 1),
+    `CesiumMan render buffer should be square; display=${JSON.stringify(
+      canvasDisplay,
+    )}`,
+  ).toBeLessThan(0.01);
+  expect(
+    Math.abs(cssAspect - 1),
+    `CesiumMan displayed canvas should be square; display=${JSON.stringify(
+      canvasDisplay,
+    )}`,
+  ).toBeLessThan(0.02);
+  expect(
+    pixelDistance(strongest, clear),
+    `CesiumMan should render visible non-clear pixels; sample=${JSON.stringify(
+      strongest,
+    )}`,
+  ).toBeGreaterThan(20);
+  webGpuValidation.expectNoWarnings();
+});
+
 test("Playwright decodes a same-origin JPEG URI texture for the GLB viewer", async ({
   page,
 }) => {
@@ -26011,6 +26363,77 @@ test("Playwright bootstraps a custom GLB URL from the query string", async ({
     pixelDistance(strongestNearCenterSample(screenshot, clear), clear),
     "query-loaded GLB should be visibly framed near the center",
   ).toBeGreaterThan(20);
+  webGpuValidation.expectNoWarnings();
+});
+
+test("Playwright loads GLB source bytes once for worker-authored viewer assets", async ({
+  page,
+}) => {
+  const webGpuValidation = attachWebGpuValidationConsoleGuard(page);
+  const customSource =
+    "/examples/assets/cube.glb?single-loader=worker-source-assets";
+  let sourceRequests = 0;
+
+  await page.route(
+    /\/examples\/assets\/cube\.glb\?single-loader=worker-source-assets$/,
+    async (route) => {
+      sourceRequests += 1;
+      await route.continue();
+    },
+  );
+  await page.goto(
+    `/examples/glb-viewer.html?url=${encodeURIComponent(customSource)}`,
+  );
+  await page.waitForFunction(
+    () => {
+      const status = (
+        globalThis as {
+          readonly __APERTURE_EXAMPLE_STATUS__?: {
+            readonly frame?: number;
+            readonly selectedAsset?: {
+              readonly id?: string;
+              readonly loading?: boolean;
+            };
+            readonly source?: { readonly ok?: boolean };
+            readonly extraction?: { readonly meshDraws?: number };
+          };
+        }
+      ).__APERTURE_EXAMPLE_STATUS__;
+
+      return (
+        (status?.frame ?? 0) >= 3 &&
+        status?.selectedAsset?.id === "custom-url" &&
+        status.selectedAsset.loading === false &&
+        status.source?.ok === true &&
+        status.extraction?.meshDraws === 1
+      );
+    },
+    undefined,
+    { timeout: 5000 },
+  );
+
+  const status = await waitForExampleStatus<GlbViewerStatus>(page);
+
+  expect(sourceRequests).toBe(1);
+  expect(status).toMatchObject({
+    selectedAsset: {
+      id: "custom-url",
+      source: "custom",
+      url: "/examples/assets/cube.glb",
+      loading: false,
+    },
+    source: {
+      ok: true,
+      status: {
+        status: "loaded",
+        sourceKind: "glb",
+      },
+    },
+    extraction: {
+      meshDraws: 1,
+    },
+  });
+  expectStatusJsonSafeForGpu(status);
   webGpuValidation.expectNoWarnings();
 });
 

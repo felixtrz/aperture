@@ -806,6 +806,14 @@ describe("WebGPU app facade", () => {
     expect(events).toContain("encoder:timestamp:0");
     expect(events).toContain("encoder:timestamp:1");
     expect(events).toContain("encoder:resolve:2");
+
+    const secondFrame = await app.stepAndRender(1 / 60, 2, 22);
+
+    expect(secondFrame.ok).toBe(true);
+    expect(secondFrame.gpuTimings?.ready).toBe(true);
+    expect(
+      events.filter((event) => event.startsWith("device:querySet:")),
+    ).toHaveLength(1);
   });
 
   it("submits ViewPacket render targets to registered off-screen textures and the swapchain", async () => {

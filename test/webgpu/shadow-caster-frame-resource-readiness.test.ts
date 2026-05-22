@@ -49,6 +49,7 @@ describe("shadow caster frame-resource readiness", () => {
         {
           renderId: 101,
           meshKey: "mesh:cube",
+          meshLayoutKey: "POSITION,NORMAL,TEXCOORD_0",
           passKey: "shadow-pass:7:light:11",
           meshResourceKey: "gpu-mesh:cube",
           vertexBufferResourceKeys: ["gpu-mesh:cube/position"],
@@ -119,6 +120,36 @@ describe("shadow caster frame-resource readiness", () => {
     });
   });
 
+  it("selects layout-specialized pipeline descriptors per caster draw", () => {
+    const json = shadowCasterFrameResourceReadinessReportToJsonValue(
+      createShadowCasterFrameResourceReadinessReport({
+        casterDrawList: casterDrawList("ready"),
+        preparedMeshes: [
+          {
+            meshKey: "mesh:cube",
+            meshResourceKey: "gpu-mesh:cube",
+            vertexBufferResourceKeys: ["gpu-mesh:cube/source-view-0"],
+            indexBufferResourceKey: "gpu-mesh:cube/index",
+          },
+        ],
+        matrixBufferResource: matrixBufferResource("available"),
+        pipelineDescriptor: pipelineDescriptor("ready", {
+          meshLayoutKey: "POSITION,NORMAL,TEXCOORD_0",
+        }),
+      }),
+    );
+
+    expect(json.records).toMatchObject([
+      {
+        renderId: 101,
+        meshLayoutKey: "POSITION,NORMAL,TEXCOORD_0",
+        pipelineKey:
+          "shadow-caster/depth-only/depth24plus/triangle-list/none/mesh-layout:POSITION%2CNORMAL%2CTEXCOORD_0",
+        ready: true,
+      },
+    ]);
+  });
+
   it("reports missing prepared mesh and matrix resources as blocking", () => {
     const json = shadowCasterFrameResourceReadinessReportToJsonValue(
       createShadowCasterFrameResourceReadinessReport({
@@ -143,6 +174,7 @@ describe("shadow caster frame-resource readiness", () => {
         {
           renderId: 101,
           meshKey: "mesh:cube",
+          meshLayoutKey: "POSITION,NORMAL,TEXCOORD_0",
           meshResourceKey: null,
           indexBufferResourceKey: null,
           matrixResourceKey: null,
@@ -219,6 +251,7 @@ function casterDrawList(
                 renderId: 101,
                 meshKey: "mesh:cube",
                 materialKey: "material:standard",
+                meshLayoutKey: "POSITION,NORMAL,TEXCOORD_0",
                 submesh: 0,
                 layerMask: 1,
               },
@@ -266,8 +299,54 @@ function matrixBufferResource(
 
 function pipelineDescriptor(
   status: ShadowCasterPipelineDescriptorReport["status"],
+  options: {
+    readonly meshLayoutKey?: string | null;
+  } = {},
 ): ShadowCasterPipelineDescriptorReport {
   const hasDescriptor = status !== "missing" && status !== "not-required";
+  const meshLayoutKey = options.meshLayoutKey ?? null;
+  const pipelineKey =
+    meshLayoutKey === null
+      ? "shadow-caster/depth-only/depth24plus/triangle-list/none"
+      : `shadow-caster/depth-only/depth24plus/triangle-list/none/mesh-layout:${encodeURIComponent(meshLayoutKey)}`;
+  const descriptor = hasDescriptor
+    ? {
+        pipelineKey,
+        label:
+          meshLayoutKey === null
+            ? "shadow-caster-depth-only:depth24plus:triangle-list"
+            : `shadow-caster-depth-only:depth24plus:triangle-list:${meshLayoutKey}`,
+        shader: {
+          family: "shadow-caster" as const,
+          label: "shadow-caster-depth-only" as const,
+          entryPoints: {
+            vertex: "vs_main" as const,
+            fragment: "fs_main" as const,
+          },
+        },
+        vertex: {
+          buffers: ["POSITION"] as const,
+          meshLayoutKey,
+          matrixBufferLayoutKey:
+            "shadow-caster/group-0:directional-shadow-matrices@0" as const,
+        },
+        index: {
+          required: true as const,
+          format: "uint32" as const,
+        },
+        primitive: {
+          topology: "triangle-list" as const,
+          cullMode: "none" as const,
+          frontFace: "ccw" as const,
+        },
+        depthStencil: {
+          format: "depth24plus" as const,
+          depthWriteEnabled: true as const,
+          depthCompare: "less-equal" as const,
+        },
+        colorTargets: [] as const,
+      }
+    : null;
 
   return {
     ready: status === "ready" || status === "not-required",
@@ -285,41 +364,8 @@ function pipelineDescriptor(
       passSubmission: false,
       shaderSampling: false,
     },
-    descriptor: hasDescriptor
-      ? {
-          pipelineKey:
-            "shadow-caster/depth-only/depth24plus/triangle-list/none",
-          label: "shadow-caster-depth-only:depth24plus:triangle-list",
-          shader: {
-            family: "shadow-caster",
-            label: "shadow-caster-depth-only",
-            entryPoints: {
-              vertex: "vs_main",
-              fragment: "fs_main",
-            },
-          },
-          vertex: {
-            buffers: ["POSITION"],
-            matrixBufferLayoutKey:
-              "shadow-caster/group-0:directional-shadow-matrices@0",
-          },
-          index: {
-            required: true,
-            format: "uint32",
-          },
-          primitive: {
-            topology: "triangle-list",
-            cullMode: "none",
-            frontFace: "ccw",
-          },
-          depthStencil: {
-            format: "depth24plus",
-            depthWriteEnabled: true,
-            depthCompare: "less-equal",
-          },
-          colorTargets: [],
-        }
-      : null,
+    descriptor,
+    descriptors: descriptor === null ? [] : [descriptor],
     diagnostics: [],
   };
 }

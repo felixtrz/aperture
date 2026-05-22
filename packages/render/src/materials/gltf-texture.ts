@@ -13,7 +13,11 @@ import type {
   TextureSemantic,
   TextureSourceData,
 } from "./types.js";
-import { decodeKtx2TextureDataAsync } from "../assets/ktx2-decoder.js";
+import {
+  decodeKtx2TextureDataAsync,
+  type Ktx2BasisTranscoder,
+  type Ktx2TextureCompressionSupport,
+} from "../assets/ktx2-decoder.js";
 
 export type GltfTextureMappingDiagnosticSeverity = "error" | "warning";
 
@@ -130,6 +134,8 @@ export interface GltfTextureAsyncLoadSource {
   readonly bytes?: ArrayBuffer | ArrayBufferView;
   readonly fetchImageBytes?: GltfImageBytesFetcher;
   readonly decodeImageData?: GltfImageBytesDecoder;
+  readonly basisTranscoder?: Ktx2BasisTranscoder;
+  readonly ktx2TextureCompression?: Ktx2TextureCompressionSupport;
 }
 
 export interface GltfTextureMappingOptions {
@@ -243,6 +249,26 @@ export async function loadGltfTextureAsync(
 ): Promise<GltfDecodedImageData> {
   const bytes = await loadGltfImageBytes(source);
   const mimeType = mimeTypeFromImageSource(source.source);
+
+  if (mimeType === "image/ktx2" && source.decodeImageData === undefined) {
+    const image = await decodeKtx2TextureDataAsync(bytes, {
+      ...(source.basisTranscoder === undefined
+        ? {}
+        : { basisTranscoder: source.basisTranscoder }),
+      ...(source.ktx2TextureCompression === undefined
+        ? {}
+        : { textureCompression: source.ktx2TextureCompression }),
+    });
+
+    if (!validDecodedImage(image)) {
+      throw new Error(
+        "Decoded glTF image data must include positive dimensions, row stride, and Uint8Array bytes.",
+      );
+    }
+
+    return image;
+  }
+
   const decoder = source.decodeImageData ?? decodeImageBytesWithBrowserCanvas;
   const image = await decoder({
     source: source.source,
@@ -991,7 +1017,7 @@ async function loadGltfImageBytes(
   input: GltfTextureAsyncLoadSource,
 ): Promise<Uint8Array> {
   if (input.bytes !== undefined) {
-    return copyBytes(input.bytes);
+    return bytesView(input.bytes);
   }
 
   if (input.source.kind === "uri") {
@@ -1055,14 +1081,14 @@ async function bytesFromFetchResult(
       );
     }
 
-    return copyBytes(await resultValue.arrayBuffer());
+    return new Uint8Array(await resultValue.arrayBuffer());
   }
 
   if (isBlobLike(resultValue)) {
-    return copyBytes(await resultValue.arrayBuffer());
+    return new Uint8Array(await resultValue.arrayBuffer());
   }
 
-  return copyBytes(resultValue);
+  return bytesView(resultValue);
 }
 
 async function decodeImageBytesWithBrowserCanvas(
@@ -1072,27 +1098,19 @@ async function decodeImageBytesWithBrowserCanvas(
     return decodeKtx2TextureDataAsync(input.bytes);
   }
 
-  if (
-    typeof Blob === "undefined" ||
-    typeof createImageBitmap !== "function" ||
-    typeof document === "undefined"
-  ) {
+  if (typeof Blob === "undefined" || typeof createImageBitmap !== "function") {
     throw new Error(
       "No browser image decoder is available; provide decodeImageData for this glTF image source.",
     );
   }
 
-  const blobBuffer = new ArrayBuffer(input.bytes.byteLength);
-  new Uint8Array(blobBuffer).set(input.bytes);
-  const blob = new Blob([blobBuffer], {
+  const blob = new Blob([blobPartFromBytes(input.bytes)], {
     ...(input.mimeType === undefined ? {} : { type: input.mimeType }),
   });
   const bitmap = await createImageBitmap(blob);
 
   try {
-    const canvas = document.createElement("canvas");
-    canvas.width = bitmap.width;
-    canvas.height = bitmap.height;
+    const canvas = createImageDecodeCanvas(bitmap.width, bitmap.height);
     const context = canvas.getContext("2d", { willReadFrequently: true });
 
     if (context === null) {
@@ -1106,7 +1124,11 @@ async function decodeImageBytesWithBrowserCanvas(
       width: bitmap.width,
       height: bitmap.height,
       sourceData: {
-        bytes: new Uint8Array(pixels.data),
+        bytes: new Uint8Array(
+          pixels.data.buffer,
+          pixels.data.byteOffset,
+          pixels.data.byteLength,
+        ),
         bytesPerRow: bitmap.width * 4,
         rowsPerImage: bitmap.height,
       },
@@ -1114,6 +1136,44 @@ async function decodeImageBytesWithBrowserCanvas(
   } finally {
     bitmap.close();
   }
+}
+
+function blobPartFromBytes(
+  bytes: Uint8Array,
+): ArrayBuffer | ArrayBufferView<ArrayBuffer> {
+  const buffer = bytes.buffer;
+
+  if (buffer instanceof ArrayBuffer) {
+    if (bytes.byteOffset === 0 && bytes.byteLength === buffer.byteLength) {
+      return buffer;
+    }
+
+    return new Uint8Array(buffer, bytes.byteOffset, bytes.byteLength);
+  }
+
+  const copiedBuffer = new ArrayBuffer(bytes.byteLength);
+  new Uint8Array(copiedBuffer).set(bytes);
+  return copiedBuffer;
+}
+
+function createImageDecodeCanvas(
+  width: number,
+  height: number,
+): OffscreenCanvas | HTMLCanvasElement {
+  if (typeof OffscreenCanvas === "function") {
+    return new OffscreenCanvas(width, height);
+  }
+
+  if (typeof document !== "undefined") {
+    const canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+    return canvas;
+  }
+
+  throw new Error(
+    "No browser canvas implementation is available for image decode.",
+  );
 }
 
 function decodeDataUriBytes(uri: string): Uint8Array {
@@ -1153,13 +1213,10 @@ function decodeDataUriBytes(uri: string): Uint8Array {
   return bytes;
 }
 
-function copyBytes(bytes: ArrayBuffer | ArrayBufferView): Uint8Array {
-  const view =
-    bytes instanceof ArrayBuffer
-      ? new Uint8Array(bytes)
-      : new Uint8Array(bytes.buffer, bytes.byteOffset, bytes.byteLength);
-
-  return new Uint8Array(view);
+function bytesView(bytes: ArrayBuffer | ArrayBufferView): Uint8Array {
+  return bytes instanceof ArrayBuffer
+    ? new Uint8Array(bytes)
+    : new Uint8Array(bytes.buffer, bytes.byteOffset, bytes.byteLength);
 }
 
 function mimeTypeFromImageSource(

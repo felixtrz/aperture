@@ -5,11 +5,14 @@ import {
   createWebGpuIdBufferEntries,
   createWebGpuIdBufferIdForEntity,
   createWebGpuIdBufferPickCommands,
+  createWebGpuIdBufferPickPipelineResource,
   createWebGpuIdBufferPickIdStorageValues,
   createMaterialHandle,
   createMeshHandle,
   WEBGPU_ID_BUFFER_EMPTY_ID,
   type WebGpuIdBufferPickPipelineResource,
+  type WebGpuRenderPipelineCreateDescriptor,
+  type WebGpuShaderCreateDescriptor,
 } from "@aperture-engine/webgpu";
 
 describe("WebGPU ID-buffer picking", () => {
@@ -142,6 +145,112 @@ describe("WebGPU ID-buffer picking", () => {
         firstInstance: 0,
       },
     ]);
+  });
+
+  it("creates a multi-stream pick pipeline for source-backed mesh layouts", async () => {
+    const pipelineDescriptors: WebGpuRenderPipelineCreateDescriptor[] = [];
+    const shaderDescriptors: WebGpuShaderCreateDescriptor[] = [];
+    const device = {
+      createShaderModule(descriptor: WebGpuShaderCreateDescriptor) {
+        shaderDescriptors.push(descriptor);
+        return { compilationInfo: async () => ({ messages: [] }) };
+      },
+      createBindGroupLayout(descriptor: unknown) {
+        return { descriptor };
+      },
+      createPipelineLayout(descriptor: unknown) {
+        return { descriptor };
+      },
+      createRenderPipeline(descriptor: WebGpuRenderPipelineCreateDescriptor) {
+        pipelineDescriptors.push(descriptor);
+        return { kind: "render-pipeline" };
+      },
+    };
+
+    const result = await createWebGpuIdBufferPickPipelineResource({
+      device,
+      batchKey: {
+        pipelineKey: "unlit|opaque|back|less|none",
+        materialKey: "material:pick",
+        meshLayoutKey: "POSITION,NORMAL|TEXCOORD_0|COLOR_0:unorm8x4",
+        topology: "triangle-list",
+        instanced: false,
+        skinned: false,
+        morphed: false,
+      },
+      depthFormat: "depth24plus",
+    });
+
+    expect(result.diagnostics).toEqual([]);
+    expect(shaderDescriptors[0]).toMatchObject({
+      label: "aperture/id-buffer-pick-vertex-color",
+    });
+    expect(pipelineDescriptors[0]?.vertex).toMatchObject({
+      buffers: [
+        {
+          arrayStride: 24,
+          attributes: [
+            { shaderLocation: 0, offset: 0, format: "float32x3" },
+            { shaderLocation: 1, offset: 12, format: "float32x3" },
+          ],
+        },
+        {
+          arrayStride: 8,
+          attributes: [{ shaderLocation: 2, offset: 0, format: "float32x2" }],
+        },
+        {
+          arrayStride: 4,
+          attributes: [{ shaderLocation: 5, offset: 0, format: "unorm8x4" }],
+        },
+      ],
+    });
+  });
+
+  it("creates a pick pipeline for padded source-backed mesh layouts", async () => {
+    const pipelineDescriptors: WebGpuRenderPipelineCreateDescriptor[] = [];
+    const device = {
+      createShaderModule() {
+        return { compilationInfo: async () => ({ messages: [] }) };
+      },
+      createBindGroupLayout(descriptor: unknown) {
+        return { descriptor };
+      },
+      createPipelineLayout(descriptor: unknown) {
+        return { descriptor };
+      },
+      createRenderPipeline(descriptor: WebGpuRenderPipelineCreateDescriptor) {
+        pipelineDescriptors.push(descriptor);
+        return { kind: "render-pipeline" };
+      },
+    };
+
+    const result = await createWebGpuIdBufferPickPipelineResource({
+      device,
+      batchKey: {
+        pipelineKey: "unlit|opaque|back|less|none",
+        materialKey: "material:pick",
+        meshLayoutKey: "stride=40,POSITION@4,NORMAL@20,TEXCOORD_0@32",
+        topology: "triangle-list",
+        instanced: false,
+        skinned: false,
+        morphed: false,
+      },
+      depthFormat: "depth24plus",
+    });
+
+    expect(result.diagnostics).toEqual([]);
+    expect(pipelineDescriptors[0]?.vertex).toMatchObject({
+      buffers: [
+        {
+          arrayStride: 40,
+          attributes: [
+            { shaderLocation: 0, offset: 4, format: "float32x3" },
+            { shaderLocation: 1, offset: 20, format: "float32x3" },
+            { shaderLocation: 2, offset: 32, format: "float32x2" },
+          ],
+        },
+      ],
+    });
   });
 });
 

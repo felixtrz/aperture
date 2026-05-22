@@ -275,9 +275,13 @@ function validateTextureUploadLayout(
   upload: TextureUploadInput,
 ): TextureGpuResourceDiagnostic | null {
   const [width, height] = descriptor.size;
-  const bytesPerPixel = textureFormatBytesPerPixel(descriptor.format);
+  const layout = textureFormatUploadLayout(descriptor.format);
+  const blockRows =
+    layout === null ? height : Math.ceil(height / layout.blockHeight);
   const minimumBytesPerRow =
-    bytesPerPixel === null ? null : width * bytesPerPixel;
+    layout === null
+      ? null
+      : Math.ceil(width / layout.blockWidth) * layout.blockByteLength;
 
   if (
     !Number.isInteger(upload.bytesPerRow) ||
@@ -296,20 +300,20 @@ function validateTextureUploadLayout(
 
   if (
     upload.rowsPerImage !== undefined &&
-    (!Number.isInteger(upload.rowsPerImage) || upload.rowsPerImage < height)
+    (!Number.isInteger(upload.rowsPerImage) || upload.rowsPerImage < blockRows)
   ) {
     return {
       code: "textureResource.invalidRowsPerImage",
       resourceKey,
-      message: `Texture upload rowsPerImage for resource '${resourceKey}' must be an integer at least ${height} row(s).`,
+      message: `Texture upload rowsPerImage for resource '${resourceKey}' must be an integer at least ${blockRows} row(s).`,
     };
   }
 
   if (minimumBytesPerRow !== null) {
-    const rowsPerImage = upload.rowsPerImage ?? height;
+    const rowsPerImage = upload.rowsPerImage ?? blockRows;
     const depthOrArrayLayers = descriptor.size[2];
     const minimumByteLength =
-      ((depthOrArrayLayers - 1) * rowsPerImage + (height - 1)) *
+      ((depthOrArrayLayers - 1) * rowsPerImage + (blockRows - 1)) *
         upload.bytesPerRow +
       minimumBytesPerRow;
 
@@ -325,22 +329,52 @@ function validateTextureUploadLayout(
   return null;
 }
 
-function textureFormatBytesPerPixel(format: string): number | null {
+interface TextureFormatUploadLayout {
+  readonly blockWidth: number;
+  readonly blockHeight: number;
+  readonly blockByteLength: number;
+}
+
+function textureFormatUploadLayout(
+  format: string,
+): TextureFormatUploadLayout | null {
   switch (format) {
     case "r8unorm":
-      return 1;
+      return texelLayout(1);
     case "rg8unorm":
-      return 2;
+      return texelLayout(2);
     case "rgba8unorm":
     case "rgba8unorm-srgb":
     case "bgra8unorm":
     case "bgra8unorm-srgb":
-      return 4;
+      return texelLayout(4);
     case "rgba16float":
-      return 8;
+      return texelLayout(8);
+    case "bc1-rgba-unorm":
+    case "bc1-rgba-unorm-srgb":
+    case "etc2-rgb8unorm":
+    case "etc2-rgb8unorm-srgb":
+      return blockLayout(8);
+    case "bc3-rgba-unorm":
+    case "bc3-rgba-unorm-srgb":
+    case "bc7-rgba-unorm":
+    case "bc7-rgba-unorm-srgb":
+    case "etc2-rgba8unorm":
+    case "etc2-rgba8unorm-srgb":
+    case "astc-4x4-unorm":
+    case "astc-4x4-unorm-srgb":
+      return blockLayout(16);
     default:
       return null;
   }
+}
+
+function texelLayout(byteLength: number): TextureFormatUploadLayout {
+  return { blockWidth: 1, blockHeight: 1, blockByteLength: byteLength };
+}
+
+function blockLayout(blockByteLength: number): TextureFormatUploadLayout {
+  return { blockWidth: 4, blockHeight: 4, blockByteLength };
 }
 
 function isSrgbTextureFormat(format: string): boolean {

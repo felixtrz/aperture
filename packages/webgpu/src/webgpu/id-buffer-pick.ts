@@ -9,10 +9,7 @@ import {
 } from "./id-buffer.js";
 import { createWebGpuBuffer, type WebGpuBufferDeviceLike } from "./buffer.js";
 import { WEBGPU_BUFFER_USAGE_FLAGS } from "./mesh-buffer-descriptors.js";
-import {
-  UNLIT_PRIMITIVE_VERTEX_BUFFER_LAYOUT,
-  UNLIT_VERTEX_COLOR_VERTEX_BUFFER_LAYOUT,
-} from "./unlit-pipeline.js";
+import { resolveUnlitVertexBufferLayouts } from "./unlit-pipeline.js";
 import { hasUnlitVertexColorFeature } from "./unlit-pipeline-descriptor.js";
 import {
   createWebGpuShaderModule,
@@ -327,11 +324,7 @@ export async function createWebGpuIdBufferPickPipelineResource(options: {
     vertex: {
       module: shaderModule.module,
       entryPoint: "vs_main",
-      buffers: [
-        usesVertexColor
-          ? UNLIT_VERTEX_COLOR_VERTEX_BUFFER_LAYOUT
-          : UNLIT_PRIMITIVE_VERTEX_BUFFER_LAYOUT,
-      ],
+      buffers: resolveUnlitVertexBufferLayouts(options.batchKey),
     },
     fragment: {
       module: shaderModule.module,
@@ -952,18 +945,40 @@ function validatePickBatchKey(
     };
   }
 
-  if (
-    batchKey.meshLayoutKey !== "POSITION,NORMAL,TEXCOORD_0" &&
-    batchKey.meshLayoutKey !== "POSITION,NORMAL,TEXCOORD_0,COLOR_0"
-  ) {
+  if (!hasSupportedPickMeshLayout(batchKey.meshLayoutKey)) {
     return {
       code: "idBufferPick.unsupportedBatchKey",
       pipelineKey: batchKey.pipelineKey,
-      message: `ID-buffer picking currently supports POSITION,NORMAL,TEXCOORD_0 meshes with optional COLOR_0, not '${batchKey.meshLayoutKey}'.`,
+      message: `ID-buffer picking currently supports mesh layouts with POSITION, NORMAL, TEXCOORD_0, and optional COLOR_0, not '${batchKey.meshLayoutKey}'.`,
     };
   }
 
   return null;
+}
+
+function hasSupportedPickMeshLayout(meshLayoutKey: string): boolean {
+  const tokens = meshLayoutKey.split(/[|,]/);
+  const semantics = new Set(
+    tokens.map(meshLayoutTokenSemantic).filter(isNonEmptyString),
+  );
+
+  return (
+    semantics.has("POSITION") &&
+    semantics.has("NORMAL") &&
+    semantics.has("TEXCOORD_0")
+  );
+}
+
+function meshLayoutTokenSemantic(token: string): string {
+  if (token.startsWith("stride=")) {
+    return "";
+  }
+
+  return token.split("@")[0]?.split(":")[0] ?? "";
+}
+
+function isNonEmptyString(value: string | undefined): value is string {
+  return value !== undefined && value.length > 0;
 }
 
 function mappedRangeBytes(range: ArrayBuffer | ArrayBufferView): Uint8Array {

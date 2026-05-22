@@ -232,6 +232,39 @@ describe("no-fetch GLB source-loader facade", () => {
     expect(serialized).not.toContain("[0,1,2]");
   });
 
+  it("reuses provided decoded image bytes for GLB texture source data", () => {
+    const source = createGlb([
+      jsonChunk({
+        asset: { version: "2.0" },
+        scene: 0,
+        scenes: [{ nodes: [] }],
+        nodes: [],
+        images: [{ uri: "data:image/png,%01%02%03%04" }],
+        textures: [{ source: 0 }],
+        materials: [
+          {
+            pbrMetallicRoughness: {
+              baseColorTexture: { index: 0 },
+            },
+          },
+        ],
+      }),
+    ]);
+    const decoded = decodedImage();
+
+    const report = createNoFetchGlbSourceLoaderReport({
+      source,
+      createAssetMapping: true,
+      decodedImageData: new Map([[0, decoded]]),
+    });
+
+    const sourceData =
+      report.glbImportReport.importReport?.assetMapping?.textures[0]?.texture
+        ?.sourceData;
+    expect(report.glbImportReport.valid).toBe(true);
+    expect(sourceData?.bytes).toBe(decoded.sourceData.bytes);
+  });
+
   it("preserves malformed chunk-order diagnostics in facade status", () => {
     const reports = [
       createNoFetchGlbSourceLoaderReport({
@@ -451,7 +484,7 @@ describe("no-fetch GLB source-loader facade", () => {
           nodes: [
             {
               name: "MatrixRoot",
-              matrix: [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 4, 5, 6, 1],
+              matrix: [1, 0.25, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 4, 5, 6, 1],
             },
           ],
         },
@@ -470,18 +503,18 @@ describe("no-fetch GLB source-loader facade", () => {
       valid: false,
       sceneIndex: 0,
       rootEntityCount: 1,
-      commandCount: 6,
-      createEntityCount: 1,
-      addComponentCount: 5,
+      commandCount: 0,
+      createEntityCount: 0,
+      addComponentCount: 0,
       dependencyCount: 0,
-      skippedCount: 1,
-      diagnosticsCount: 2,
+      skippedCount: 0,
+      diagnosticsCount: 1,
     });
     expect(report.outputSummary.ecsReplayReadiness).toMatchObject({
       status: "blocked",
       ready: false,
-      expectedCreateEntityCount: 1,
-      expectedAddComponentCount: 5,
+      expectedCreateEntityCount: 0,
+      expectedAddComponentCount: 0,
       blockerCount: 1,
       blockers: [{ code: "gltfEcsReplayReadiness.invalidPlan", count: 1 }],
     });
@@ -567,5 +600,17 @@ function browserShapedRootWithoutBufferData() {
         extensions: { KHR_materials_unlit: {} },
       },
     ],
+  };
+}
+
+function decodedImage() {
+  return {
+    width: 1,
+    height: 1,
+    sourceData: {
+      bytes: new Uint8Array([255, 0, 0, 255]),
+      bytesPerRow: 4,
+      rowsPerImage: 1,
+    },
   };
 }

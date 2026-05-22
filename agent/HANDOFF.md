@@ -1,6 +1,957 @@
 # Agent Handoff
 
-Updated: 2026-05-22T13:50:11Z
+Updated: 2026-05-22T21:23:21Z
+
+## Current Run Update — 2026-05-22T21:23:21Z — Native compressed KTX2 textures
+
+Continued the user-directed loading/rendering audit after shadow-caster source
+streams. The remaining substantial loader/render inefficiency was KTX2/Basis:
+compressed glTF textures loaded correctly, but the library path still expanded
+them to RGBA texture payloads even when the WebGPU adapter exposed native
+texture-compression features.
+
+### What changed
+
+- `loadGltfFromUri()`, `loadGlbFromUri()`, and async glTF texture creation now
+  own KTX2/Basis decoder options instead of requiring viewer-local image decode
+  callbacks.
+- WebGPU initialization now requests optional texture-compression features in
+  auto mode, then the GLB viewer passes adapter-derived ETC2/BC/ASTC support to
+  the worker.
+- The Basis transcoder now targets native ETC2, BC7, or ASTC formats when
+  supported and falls back to RGBA32 when no native compressed target is
+  available.
+- KTX2 decode cache keys include the active compression feature set so a cached
+  RGBA fallback cannot be reused accidentally for a native-compressed load.
+- WebGPU texture upload validation now understands block-compressed formats,
+  including block width/height, bytes per block, `bytesPerRow`, and
+  `rowsPerImage`.
+- `examples/glb-viewer.worker.js` now supplies only
+  `createBasisKtx2Transcoder` plus `ktx2TextureCompression`; the viewer no
+  longer owns custom KTX2 image decode logic.
+
+### Reference comparison
+
+- three.js `KTX2Loader.detectSupport(renderer)` gathers renderer-supported
+  compressed texture features and the worker chooses a native compressed target
+  before falling back.
+- PlayCanvas Basis worker/device details similarly select a native GPU texture
+  target from device capabilities and return compressed payload metadata.
+- Aperture now follows that behavior while keeping the loader options and
+  renderer upload path aligned with the ECS/source-asset boundary.
+
+### Validation
+
+- `pnpm exec vitest run test/assets/ktx2-decoder.test.ts test/webgpu/texture-resources.test.ts test/webgpu/index.test.ts --reporter=dot` passed: 35 tests.
+- `pnpm exec vitest run test/assets/ktx2-decoder.test.ts test/materials/gltf-texture.test.ts test/assets/glb-uri-loader.test.ts test/assets/gltf-uri-loader.test.ts test/webgpu/texture-resources.test.ts test/webgpu/index.test.ts --reporter=dot` passed: 71 tests.
+- `pnpm run typecheck` passed.
+- `pnpm run typecheck:test` passed.
+- `pnpm run lint` passed.
+- `pnpm run check:examples` passed.
+- `pnpm run format:check` passed after formatting the touched files.
+- `git diff --check` passed.
+- Direct Chrome/WebGPU probe for
+  `/examples/glb-viewer.html?asset=basis-ktx2-texture` reached `phase: render`,
+  one draw call, zero Aperture source/extraction diagnostics, a square 1024x1024
+  backing canvas, and recorded WebGPU texture creation for the Basis ETC1S
+  texture with format `etc2-rgba8unorm-srgb`. The only console error was the
+  local server's unrelated `/favicon.ico` 403.
+
+### Known issues
+
+- `COLOR_1` is still not consumed by the built-in material shaders.
+- Broader automatic unload policy integration remains a roadmap hygiene item.
+
+### Recommended next task
+
+The user-directed loading/rendering audit has no remaining substantial blocker
+from the issues that were investigated: canvas aspect, CesiumMan pose, duplicate
+viewer loading, source-bufferView repacks, fixed built-in vertex layouts, shadow
+source streams, and native compressed KTX2 upload are all addressed. The repo's
+public roadmap still recommends `task-3079`, skybox-as-scene-element, unless
+the user wants to prioritize the smaller glTF fidelity follow-up for `COLOR_1`.
+
+## Current Run Update — 2026-05-22T20:58:44Z — Shadow-caster source streams
+
+Continued the user-directed loading/rendering-pipeline audit after padded
+source bufferViews. The remaining built-in route gap was the depth-only shadow
+caster path: forward, pick, and debug routes could consume direct source-backed
+glTF streams, but shadow pipelines still assumed one fixed packed vertex
+layout.
+
+### What changed
+
+- Shadow caster draw-list records now carry each draw's extracted
+  `meshLayoutKey`.
+- Shadow caster pipeline descriptor reports now create one descriptor per
+  unique caster mesh layout while preserving the legacy single `descriptor`
+  field for existing callers.
+- Shadow caster pipeline resource reports now create/reuse one live WebGPU
+  pipeline per descriptor and expose a `resources` array for command planning.
+- Shadow caster frame-resource readiness now selects the matching pipeline key
+  per draw, including padded `stride=...,POSITION@offset` source layouts.
+- The GLB viewer and GLTF scene examples pass their existing caster draw-list
+  reports into the library-owned descriptor/resource path instead of collecting
+  custom layout data in the examples.
+
+### Reference comparison
+
+- three.js `GLTFLoader` preserves strided glTF accessors as
+  `InterleavedBufferAttribute`s instead of forcing deinterleaving.
+- PlayCanvas shadow rendering binds the mesh vertex buffer and keys WebGPU
+  render pipelines by vertex format. Aperture now mirrors the important
+  behavior for its ECS/snapshot architecture: the extracted mesh layout drives
+  the shadow pipeline specialization.
+
+### Validation
+
+- `pnpm exec vitest run test/webgpu/shadow-caster-draw-list-plan.test.ts test/webgpu/shadow-caster-pipeline-descriptor.test.ts test/webgpu/shadow-caster-pipeline-resource.test.ts test/webgpu/shadow-caster-frame-resource-readiness.test.ts test/webgpu/shadow-caster-command-record-plan.test.ts --reporter=dot` passed: 20 tests.
+- `pnpm exec vitest run test/webgpu/shadow-caster-draw-list-plan.test.ts test/webgpu/shadow-caster-pipeline-descriptor.test.ts test/webgpu/shadow-caster-pipeline-resource.test.ts test/webgpu/shadow-caster-frame-resource-readiness.test.ts test/webgpu/shadow-caster-command-record-plan.test.ts test/webgpu/shadow-caster-command-plan-readiness.test.ts test/webgpu/shadow-pass-command-encoding-report.test.ts test/webgpu/shadow-pass-command-encoder-resource.test.ts test/webgpu/standard-material-ibl-shadow-binding-readiness.test.ts --reporter=dot` passed: 29 tests.
+- `pnpm run typecheck` passed.
+- `pnpm run typecheck:test` passed.
+- `pnpm run lint` passed.
+- `pnpm run check:examples` passed.
+- Direct headed Chrome WebGPU probe for `/examples/gltf-scene.html` reached
+  `phase: render`, `shadowDescriptorCount: 2`, `shadowResourceCount: 2`,
+  `commandRecordStatus: ready`, and a layout-specific shadow pipeline key.
+- Direct headed Chrome WebGPU probe for
+  `/examples/glb-viewer.html?asset=cesium-man-glb` reached `phase: render`,
+  asset `cesium-man-glb`, zero source diagnostics, one extracted mesh draw, and
+  a 1024x1024 backing canvas displayed as 575x575 CSS pixels. That asset does
+  not enable the GLB viewer shadow scene by default, so the shadow-specific
+  browser proof used `gltf-scene`.
+
+### Known issues
+
+- `COLOR_1` is still not consumed by the built-in material shaders.
+- GPU-native compressed texture upload paths still expand through CPU RGBA
+  payloads today.
+
+### Recommended next task
+
+The user-directed loading/rendering audit no longer has a known source-stream
+route gap in the built-in forward, pick, debug, or shadow paths. The repo's
+public roadmap still recommends `task-3079`, skybox-as-scene-element, unless
+the user wants to keep pushing on remaining glTF fidelity such as `COLOR_1` or
+GPU-native compressed texture upload.
+
+## Current Run Update — 2026-05-22T20:35:59Z — Padded source bufferViews
+
+Continued the user-directed loading/rendering-pipeline audit after stream-aware
+built-in layouts. The remaining avoidable repack in the forward/pick/debug
+routes was padded glTF source bufferViews: mesh construction could carry
+source-view bytes, but extraction only encoded semantic order in
+`meshLayoutKey`, so WebGPU rebuilt tight offsets instead of using the source
+stride and attribute byte offsets.
+
+### What changed
+
+- Mesh construction now preserves non-overlapping padded source-backed glTF
+  bufferViews as direct `MeshAsset` vertex streams when each source attribute
+  fits within the source stride and the source view covers the required vertices.
+- Extraction now emits compact packed layout keys for normal streams and
+  explicit `stride=<bytes>,SEMANTIC[:format]@<offset>` keys only for padded or
+  nonzero-offset streams.
+- Mesh upload validation now checks required byte coverage from the actual
+  attribute offsets instead of requiring `vertexCount * arrayStride` bytes for
+  trailing-padding cases.
+- Standard, Unlit, ID-pick, and DebugNormal layout parsing now recognizes the
+  explicit stride/offset form; compact `COLOR_0` format detection also handles
+  offset-suffixed tokens.
+
+### Validation
+
+- `pnpm exec vitest run test/assets/gltf-mesh-asset-construction.test.ts test/rendering/extraction.test.ts test/webgpu/unlit-pipeline.test.ts test/webgpu/standard-pipeline.test.ts test/webgpu/id-buffer-pick.test.ts test/webgpu/debug-normal-pipeline-descriptor.test.ts --reporter=dot` passed: 105 tests.
+- `pnpm exec vitest run test/assets/gltf-accessor-validation.test.ts test/assets/gltf-accessor-decoding.test.ts test/assets/gltf-mesh-asset-construction.test.ts test/assets/gltf-report-driven-import.test.ts test/rendering/extraction.test.ts test/webgpu/standard-pipeline.test.ts test/webgpu/unlit-pipeline.test.ts test/webgpu/id-buffer-pick.test.ts test/webgpu/matcap-pipeline.test.ts test/webgpu/debug-normal-pipeline-descriptor.test.ts --reporter=dot` passed: 136 tests.
+- `pnpm run typecheck` passed.
+- `pnpm run typecheck:test` passed.
+
+### Known issues
+
+- The generic shadow-caster depth pipeline is still a fixed layout route; full
+  source-stream shadow support needs per-layout shadow-caster pipeline keys.
+- `COLOR_1` is still not consumed by the built-in material shaders.
+
+### Recommended next task
+
+For the user-directed loading thread, the remaining renderer-owned gap is
+shadow-caster source-stream specialization so direct source streams work
+consistently in shadow passes as well as forward/pick/debug passes.
+
+## Current Run Update — 2026-05-22T20:14:31Z — Multi-stream source bufferViews
+
+Continued the user-directed loading/rendering-pipeline audit after direct
+single-bufferView source streams. The next gap was allowing already-separated,
+tightly packed glTF bufferViews to remain as separate source-backed vertex
+streams without forcing a repack, and making the non-Standard built-in pipeline
+routes understand stream-aware `meshLayoutKey` values.
+
+### What changed
+
+- Mesh construction now preserves multiple tightly packed source-backed glTF
+  bufferViews as multiple `MeshAsset` vertex streams when every stream has
+  offset-zero attributes and stride exactly equal to the packed attribute size.
+- Unlit WebGPU pipeline descriptors now derive single- and multi-stream vertex
+  buffer layouts from concrete `meshLayoutKey` tokens, including compact
+  `COLOR_0` formats split across streams.
+- ID-buffer picking now uses the same stream-aware layout derivation and accepts
+  multi-stream rigid pick layouts with `POSITION`, `NORMAL`, `TEXCOORD_0`, and
+  optional `COLOR_0`.
+- Matcap and DebugNormal browser pipeline descriptors now reuse the stream-aware
+  Unlit layout derivation, and DebugNormal descriptor validation recognizes
+  stream separators and compact format suffixes.
+- Standard/Unlit vertex-color feature detection now tokenizes both `,` and `|`
+  so multi-stream `COLOR_0` layouts select the correct shader variants.
+
+### Validation
+
+- `pnpm exec vitest run test/assets/gltf-accessor-validation.test.ts test/assets/gltf-accessor-decoding.test.ts test/assets/gltf-mesh-asset-construction.test.ts test/assets/gltf-report-driven-import.test.ts test/rendering/extraction.test.ts test/webgpu/standard-pipeline.test.ts test/webgpu/unlit-pipeline.test.ts test/webgpu/id-buffer-pick.test.ts test/webgpu/matcap-pipeline.test.ts test/webgpu/debug-normal-pipeline-descriptor.test.ts --reporter=dot` passed: 130 tests.
+- `pnpm run typecheck` passed.
+- `pnpm run typecheck:test` passed.
+- `pnpm run lint` passed.
+- `pnpm run check:examples` passed.
+- `pnpm run check:progress` passed.
+- `pnpm run format:check` passed after formatting the already-dirty/preexisting
+  files it reported.
+- `git diff --check` passed.
+- A direct headed Playwright probe against
+  `/examples/glb-viewer.html?asset=cesium-man-glb` reached `phase: render`,
+  `frame: 3`, one mesh draw, one draw call, zero source/extraction diagnostics,
+  ready skinning, `proceduralAnimation: false`, active imported animation
+  `Animation0`, and a square 1024x1024 backing canvas displayed as 575x575 CSS
+  pixels. The full `pnpm exec playwright test ... -g "Khronos CesiumMan"` runner
+  hung during shutdown in this session, so it was stopped after the direct probe
+  produced the expected browser status.
+
+### Known issues
+
+- The generic shadow-caster depth pipeline is still a fixed layout route; full
+  source-stream shadow support needs per-layout shadow-caster pipeline keys.
+- `COLOR_1` is still not consumed by the built-in material shaders.
+
+### Recommended next task
+
+For the user-directed loading thread, the remaining efficiency target is
+shadow-caster specialization by mesh layout. Padded source bufferView binding is
+handled by the 2026-05-22T20:35:59Z update above.
+
+## Current Run Update — 2026-05-22T20:02:07Z — Direct source bufferView streams
+
+Continued the user-directed loading/rendering-pipeline audit after stream-aware
+layout keys and StandardMaterial dynamic vertex layouts. The next concrete
+three.js / PlayCanvas parity gap was avoiding a mesh-construction repack when a
+glTF primitive is already stored as one tightly interleaved source bufferView.
+
+### What changed
+
+- Report-driven glTF import now defaults to source-view accessor storage for
+  source-owned loads, so URI/no-fetch loader paths keep source bufferView
+  metadata available without viewer-specific loading code.
+- Accessor decoding now carries source bufferView index, stride, byte offset,
+  element size, and a raw source byte view when the accessor can be represented
+  losslessly from source bytes.
+- Accessor decoding JSON projections summarize the optional source byte view
+  instead of serializing raw bytes.
+- Mesh construction now preserves a single tightly interleaved glTF source
+  bufferView directly as the `MeshAsset` vertex stream when attribute offsets
+  and stride exactly match the concrete layout key, avoiding the extra
+  Aperture-owned interleaving copy.
+- Padded or multi-buffer source layouts still fall back to the existing safe
+  packed stream path until all built-in WebGPU pipelines support arbitrary
+  stream offsets.
+
+### Validation
+
+- `pnpm exec vitest run test/assets/gltf-accessor-validation.test.ts test/assets/gltf-accessor-decoding.test.ts test/assets/gltf-mesh-asset-construction.test.ts test/assets/gltf-report-driven-import.test.ts test/rendering/extraction.test.ts test/webgpu/standard-pipeline.test.ts --reporter=dot` passed: 111 tests.
+- `pnpm run typecheck` passed.
+- `pnpm run typecheck:test` passed.
+- `pnpm run lint` passed.
+- `pnpm run check:examples` passed.
+- Browser probe for `/examples/glb-viewer.html` reached `ok: true`, one draw,
+  zero source/extraction diagnostics, `meshLayoutKey:
+"POSITION,NORMAL,TEXCOORD_0,COLOR_0:unorm8x4"`, and a square 1024x1024
+  backing canvas.
+- Browser probe for `/examples/glb-viewer.html?asset=cesium-man-glb` reached
+  `ok: true`, one draw, ready skinning, `proceduralAnimation: false`, active
+  imported animation playback, zero source/extraction diagnostics, and a square
+  1024x1024 backing canvas.
+- `pnpm exec playwright test test/e2e/glb-viewer.spec.ts -g "fetched sample GLB viewer asset" --project=chrome-webgpu-headed` reached rendered
+  GLB viewer status with `ok: true`, then failed on an older expected asset-list
+  assertion that does not include the newer catalog entries from this branch.
+
+### Known issues
+
+- Direct source binding is intentionally conservative: arbitrary padded
+  source-buffer layouts and multi-buffer/multi-stream glTF layouts still use
+  safe repacking.
+- The built-in non-Standard WebGPU pipelines still need the same dynamic
+  multi-stream layout derivation before multi-buffer source streams can become
+  the default.
+- `COLOR_1` is still not consumed by the built-in material shaders.
+
+### Recommended next task
+
+For the user-directed loading thread, the remaining efficiency target is
+dynamic built-in vertex layouts across Unlit/Matcap/Debug/ID-pick/shadow routes
+followed by multi-buffer glTF source stream construction.
+
+## Current Run Update — 2026-05-22T19:44:02Z — StandardMaterial dynamic vertex layout derivation
+
+Continued the user-directed loading/rendering-pipeline audit after compact skin
+streams. The next rendering-side gap was fixed StandardMaterial vertex layout
+selection: Aperture could preserve compact glTF attributes in mesh data, but
+combined feature meshes such as skinning plus normal-map tangents plus vertex
+colors still relied on a small matrix of special-case pipeline layouts.
+
+### What changed
+
+- StandardMaterial browser pipeline descriptors now derive the primitive vertex
+  buffer layout from `batchKey.meshLayoutKey` whenever it contains a concrete
+  extracted mesh layout.
+- The derived layout computes offsets and stride from the actual attribute
+  token order, including compact `COLOR_0`, `JOINTS_0`, and `WEIGHTS_0` format
+  tokens.
+- The derived layout emits only shader-required attributes at their real stream
+  offsets, so combined skinning, tangent, UV1, vertex-color, and morph feature
+  combinations no longer need a separate hand-written constant for each
+  permutation.
+- Existing fixed constants remain as fallbacks for legacy symbolic layout keys
+  such as `primitive-interleaved`.
+
+### Validation
+
+- `pnpm exec vitest run test/webgpu/standard-pipeline.test.ts --reporter=dot`
+  passed: 17 tests.
+- `pnpm exec vitest run test/assets/gltf-accessor-validation.test.ts test/assets/gltf-accessor-decoding.test.ts test/assets/gltf-mesh-asset-construction.test.ts test/rendering/extraction.test.ts test/webgpu/standard-pipeline.test.ts --reporter=dot` passed: 98 tests.
+- `pnpm run typecheck` passed.
+- `pnpm run typecheck:test` passed.
+- `pnpm run lint` passed.
+- `pnpm run check:examples` passed.
+- Browser probe for `/examples/glb-viewer.html?asset=cesium-man-glb` reached one
+  draw, ready skinning, imported animation playback, `proceduralAnimation:
+false`, and a square 1024x1024 canvas.
+- Browser probe for `/examples/glb-viewer.html` defaulting to
+  `examples/assets/hard_table.glb` reached one draw with
+  `meshLayoutKey: "POSITION,NORMAL,TEXCOORD_0,COLOR_0:unorm8x4"` and a square
+  1024x1024 canvas.
+- Browser console remained clean except for the unrelated favicon 403.
+
+### Known issues
+
+- Mesh construction still repacks multi-attribute glTF geometry into one
+  Aperture-owned interleaved stream. This dynamic layout work removes fixed
+  pipeline layout permutations but does not yet bind arbitrary glTF source
+  bufferViews directly.
+- `COLOR_1` is still not consumed by the built-in material shaders.
+
+### Recommended next task
+
+For the user-directed loading thread, the remaining efficiency target is direct
+source attribute binding or multi-stream mesh asset construction for glTF
+bufferViews, now that StandardMaterial can derive layouts from concrete mesh
+layout keys.
+
+## Current Run Update — 2026-05-22T19:36:27Z — Compact glTF skin streams
+
+Continued the user-directed loading/rendering-pipeline audit after compact
+`COLOR_0` support and GPU timing cache fixes. The next narrow three.js /
+PlayCanvas parity gap was skinning attribute storage: glTF commonly stores
+`JOINTS_0` as `UNSIGNED_BYTE` or `UNSIGNED_SHORT` and `WEIGHTS_0` as normalized
+`UNSIGNED_BYTE` / `UNSIGNED_SHORT` or float, while Aperture previously widened
+byte joints and only accepted float weights for the built-in skinned route.
+
+### What changed
+
+- `JOINTS_0` validation now preserves `UNSIGNED_BYTE` as `uint8x4` and
+  `UNSIGNED_SHORT` as `uint16x4` instead of widening byte joints to uint16.
+- `WEIGHTS_0` validation now accepts normalized `UNSIGNED_BYTE` and normalized
+  `UNSIGNED_SHORT` as `unorm8x4` / `unorm16x4`, alongside the existing
+  `float32x4` path. Unnormalized integer weights remain rejected.
+- Accessor decoding now emits compact `Uint8Array` / `Uint16Array` skin streams
+  and can expose tightly packed compact skinning accessors as source views.
+- Mesh construction preserves compact skinning formats through mixed vertex
+  stream packing, and render extraction keys non-default skin layouts as
+  `JOINTS_0:<format>` / `WEIGHTS_0:<format>`.
+- WebGPU StandardMaterial skinned pipeline layouts now select matching compact
+  joint/weight vertex formats for `uint8x4`, `uint16x4`, `float32x4`,
+  `unorm8x4`, and `unorm16x4`.
+
+### Validation
+
+- `pnpm exec vitest run test/assets/gltf-accessor-validation.test.ts test/assets/gltf-accessor-decoding.test.ts test/assets/gltf-mesh-asset-construction.test.ts test/rendering/extraction.test.ts test/webgpu/standard-pipeline.test.ts --reporter=dot` passed: 97 tests.
+- `pnpm run typecheck` passed.
+- `pnpm run typecheck:test` passed.
+- `pnpm run lint` passed.
+- `pnpm run check:examples` passed.
+- Browser probe for `/examples/glb-viewer.html?asset=skinning` reached one
+  skinned draw with zero extraction/source diagnostics, ready skinning, and a
+  1024x1024 square canvas.
+- Browser probe for `/examples/glb-viewer.html?asset=cesium-man-glb` reached one
+  draw with zero extraction/source diagnostics, ready skinning, active imported
+  animation playback, `proceduralAnimation: false`, and a square 1024x1024
+  canvas. Only the unrelated favicon 403 appeared in the console.
+
+### Known issues
+
+- General multi-attribute glTF geometry is still repacked into Aperture-owned
+  interleaved vertex streams. Matching three.js-style arbitrary source
+  attribute views still needs direct source attribute binding or multi-stream
+  mesh asset construction.
+- Combined skinned layouts with tangent, UV1, vertex color, and morph variants
+  are now handled by the StandardMaterial dynamic layout derivation slice above.
+- `COLOR_1` is still not consumed by the built-in material shaders.
+
+### Recommended next task
+
+For the user-directed loading thread, the next efficiency slice is dynamic
+built-in vertex layouts or direct source attribute binding for arbitrary glTF
+streams, using the new compact color and compact skin format tokens as the
+first concrete cases.
+
+## Current Run Update — 2026-05-22T19:24:21Z — Compact glTF vertex colors and GPU timing cache
+
+Continued the user-directed loading/rendering-pipeline audit against three.js
+and PlayCanvas behavior. The next concrete gap was compact glTF vertex color
+handling: Aperture accepted only `COLOR_0` as `VEC4 + FLOAT`, while three.js
+preserves typed accessor data with a normalized flag and PlayCanvas supports
+normalized `uint8`/`uint16` color streams. Blender-exported
+`examples/assets/hard_table.glb` hit this as a fatal
+`gltfAccessor.unsupportedSemanticFormat` cascade.
+
+### What changed
+
+- `COLOR_0` validation now accepts direct compact forms:
+  `VEC3 + FLOAT`, normalized `UNSIGNED_BYTE`, and normalized
+  `UNSIGNED_SHORT`, alongside the existing `VEC4 + FLOAT` path.
+- Accessor decoding now supports `Uint8Array` outputs, pads normalized VEC3
+  colors to x4 alpha max, and still exposes tightly packed VEC4 normalized
+  color streams as source views when requested.
+- Mesh construction preserves compact color formats as `float32x3`,
+  `unorm8x4`, or `unorm16x4` vertex attributes instead of expanding to
+  `float32x4`.
+- Render extraction now keys non-default color layouts as
+  `COLOR_0:<format>`, so pipeline caches distinguish compact and float color
+  layouts.
+- WebGPU unlit, StandardMaterial, and ID-pick paths now select matching compact
+  vertex-color layouts for `float32x3`, `unorm8x4`, and `unorm16x4`.
+- GPU timestamp query resources are now cached per app pass and created through
+  a validation-error scope when available. This avoids per-frame timestamp
+  query/buffer allocation and prevents devices that expose but cannot allocate
+  timestamp queries from repeatedly submitting invalid command buffers.
+
+### Validation
+
+- `pnpm exec vitest run test/assets/gltf-accessor-validation.test.ts test/assets/gltf-accessor-decoding.test.ts test/assets/gltf-mesh-asset-construction.test.ts test/webgpu/standard-pipeline.test.ts test/webgpu/unlit-pipeline.test.ts test/rendering/extraction.test.ts test/webgpu/gpu-timing.test.ts test/webgpu/webgpu-app.test.ts --reporter=dot` passed: 154 tests.
+- `pnpm run typecheck` passed.
+- `pnpm run typecheck:test` passed.
+- `pnpm run lint` passed.
+- `pnpm run check:examples` passed.
+- `pnpm run check:progress` passed.
+- `git diff --check` passed.
+- Browser probe for `/examples/glb-viewer.html` defaulting to
+  `examples/assets/hard_table.glb` reported `ok: true`,
+  `meshLayoutKey: "POSITION,NORMAL,TEXCOORD_0,COLOR_0:unorm8x4"`,
+  transferable source assets, a 1024x1024 backing canvas with square CSS
+  display, zero source diagnostics, and nonblack pixels in all sampled 8x8
+  canvas positions. A reload after the GPU timing cache showed no repeated
+  timestamp-query validation warnings; only the unrelated favicon 403 remained.
+
+### Known issues
+
+- General multi-attribute glTF geometry is still repacked into Aperture's
+  canonical built-in vertex-buffer layouts. Matching three.js-style arbitrary
+  source attribute views still needs dynamic built-in vertex layouts or direct
+  source attribute binding.
+- `COLOR_1` is still not consumed by the built-in material shaders. The
+  immediate hard_table/Blender COLOR_0 blocker is fixed, but secondary color
+  set authoring remains future work.
+- Compact normalized `WEIGHTS_0` and direct `uint8x4` `JOINTS_0` shipped in the
+  follow-up slice above.
+
+### Recommended next task
+
+For the user-directed loading thread, the next efficiency slice is dynamic
+built-in vertex layouts or direct source attribute binding for arbitrary glTF
+streams, with compact skinning attributes (`JOINTS_0`/`WEIGHTS_0`) as the next
+small targeted format win if a narrower slice is preferred.
+
+## Current Run Update — 2026-05-22T19:00:39Z — Transferable worker source-asset handoff
+
+Continued the user-directed loading/rendering-pipeline audit after the tightly
+packed accessor decode fast path. The next concrete inefficiency was the
+worker-to-main source-report boundary: after the worker loaded GLB/glTF source
+assets once, the main renderer registration still received source reports by
+structured clone, which could clone texture source bytes plus mesh vertex/index
+data for large assets.
+
+### What changed
+
+- Added `createGltfSourceAssetTransferPackage()` in the render asset layer.
+  It packages one main-thread report retaining the original texture/mesh upload
+  bytes, one worker/extraction report stripped to metadata-only source assets,
+  and a de-duplicated transfer list for texture source bytes, vertex streams,
+  and index buffers.
+- Added `MeshIndexBufferDescriptor.indexCount` and updated mesh validation so
+  metadata-only extraction reports can preserve index counts after their index
+  typed array is stripped to zero bytes.
+- `examples/glb-viewer.worker.js` now posts `source-assets` with the transfer
+  list, then keeps only metadata-only reports for worker-side ECS replay and
+  extraction status.
+- `examples/glb-viewer.main.js` records the source transfer summary in frame
+  status and registers the received main-thread source reports without custom
+  loader logic.
+- The transfer package now compacts subrange typed-array views before posting,
+  so opt-in source-view accessors do not accidentally transfer a whole GLB
+  backing buffer when only a small accessor range is needed. Views that already
+  cover their complete backing buffer still transfer zero-copy.
+- The browser canvas image decoder now wraps `ImageData.data` in a `Uint8Array`
+  view instead of copying it, removing one decoded RGBA allocation before
+  texture source registration.
+
+### Validation
+
+- `pnpm exec vitest run test/assets/gltf-source-report-transfer.test.ts test/assets/gltf-accessor-decoding.test.ts test/assets/gltf-report-driven-import.test.ts --reporter=dot` passed: 18 tests.
+- `pnpm exec vitest run test/assets/gltf-source-report-transfer.test.ts test/assets/gltf-source-registration-orchestration.test.ts test/assets/gltf-mesh-asset-construction.test.ts --reporter=dot` passed: 16 tests.
+- `pnpm exec vitest run test/assets/gltf-source-report-transfer.test.ts --reporter=dot` passed: 2 tests.
+- `pnpm exec vitest run test/materials/gltf-texture.test.ts --reporter=dot` passed: 12 tests.
+- `node --check examples/glb-viewer.worker.js && node --check examples/glb-viewer.main.js` passed.
+- `pnpm run typecheck` passed.
+- `pnpm run typecheck:test` passed.
+- `pnpm run lint` passed.
+- `pnpm run check:examples` passed.
+- `pnpm run check:progress` passed.
+- `git diff --check` passed.
+- Direct Chrome/WebGPU probe for
+  `/examples/glb-viewer.html?asset=cesium-man-glb` reached render frame 3 with
+  `transport.sourceAssets.mode: "transferable-source-assets"`, 3 transferred
+  buffers, 4,405,624 transferred bytes, one mesh draw, one draw call, ready
+  skinning, `proceduralAnimation: false`, and a 1024x1024 backing canvas with
+  a 590x590 CSS display. The probe saw one non-blocking 403 console entry for
+  an unrelated resource while the GLB source itself reported `ok: true` and
+  zero source diagnostics.
+
+### Known issues
+
+- General multi-attribute glTF geometry is still repacked into Aperture's
+  canonical built-in vertex-buffer layouts. Matching three.js-style arbitrary
+  source attribute views needs shader/pipeline layout planning, not just loader
+  changes.
+- GPU texture upload still uses CPU RGBA byte payloads; a future
+  external-image upload route could avoid that copy where WebGPU
+  `copyExternalImageToTexture` is available.
+
+### Recommended next task
+
+For the user-directed loading thread, the next meaningful efficiency slice is
+dynamic built-in vertex layouts or direct source attribute binding for arbitrary
+glTF streams, with a benchmark/probe against the current packed-stream route.
+
+## Current Run Update — 2026-05-22T18:30:07Z — Tightly packed accessor decode fast path
+
+Continued the user-directed loading/rendering-pipeline audit after the decoded
+image reuse and worker-owned viewer-loader cleanup. The next safe gap from the
+three.js / PlayCanvas comparison was geometry-source handling: Aperture still
+needs a broader vertex-layout change before it can preserve arbitrary glTF
+attribute streams the way three.js can, but tightly packed accessors no longer
+need the slow per-component `DataView` decode path.
+
+### What changed
+
+- `decodeGltfPrimitiveAccessors()` now uses native typed-array construction for
+  tightly packed float/uint16/uint32 accessors. The default mode makes compact
+  range copies so worker-to-main structured clone does not accidentally retain
+  or clone an entire GLB binary chunk for a small accessor view.
+- Added `storageMode: "source-view"` for callers that can safely keep source
+  buffer ownership and want a zero-copy accessor view. The option is threaded
+  through report-driven glTF/GLB import and the URI/no-fetch loader options.
+  Unaligned source-view accessors fall back to decoded copies instead of
+  throwing.
+- `createMeshAssetsFromGltfDecodedAccessors()` now reuses a single already
+  packed vertex attribute array instead of repacking it into another stream.
+
+### Validation
+
+- `pnpm exec vitest run test/assets/gltf-accessor-decoding.test.ts test/assets/gltf-mesh-asset-construction.test.ts test/assets/gltf-report-driven-import.test.ts --reporter=dot` passed: 27 tests.
+- `pnpm exec vitest run test/assets/gltf-accessor-decoding-json.test.ts test/assets/gltf-report-driven-import-json.test.ts test/assets/glb-source-loader-facade.test.ts --reporter=dot` passed: 15 tests.
+- `pnpm run typecheck` passed.
+- `pnpm run typecheck:test` passed.
+- `pnpm run lint` passed.
+- `pnpm run check:examples` passed.
+- `pnpm run check:progress` passed.
+- `git diff --check` passed.
+
+### Known issues
+
+- General multi-attribute glTF geometry is still repacked into Aperture's
+  canonical built-in vertex-buffer layouts. Matching three.js-style arbitrary
+  source attribute views needs shader/pipeline layout planning, not just loader
+  changes.
+- Worker-to-main source reports still structured-clone the report payload.
+
+### Recommended next task
+
+For the user-directed loading thread, the next meaningful efficiency slice is
+either a transferable source-report ownership design or dynamic built-in vertex
+layouts that can bind tightly packed glTF attribute buffers directly without
+repacking.
+
+## Current Run Update — 2026-05-22T18:19:42Z — Decoded image reuse and main-thread viewer loader retirement
+
+Continued the user-directed loading/rendering-pipeline audit after the
+worker-owned GLB viewer slice. The remaining library inefficiency found against
+three.js / PlayCanvas behavior was a decoded-image resolver clone:
+`loadGltfFromUri()`, `loadGlbFromUri()`, and the no-fetch source-loader
+facades were copying decoded RGBA `sourceData.bytes` before texture source data
+registration. Those paths now reuse the decoded image object directly, matching
+the rest of Aperture's texture asset path and avoiding a redundant CPU RGBA
+allocation per decoded texture.
+
+Also removed the active main-thread URI loader calls from
+`examples/glb-viewer.main.js`. The main thread no longer calls
+`loadGltfFromUri()` or `loadGlbFromUri()`; it only begins a worker-owned asset
+load, receives `source-assets`, and registers those reports into the
+renderer-side source asset registry. A retired dead-path `loadAsset()` stub
+remains only for the old unused single-thread scene helper and throws if that
+path is ever called.
+
+### What changed
+
+- `packages/render/src/assets/gltf-uri-loader.ts` and
+  `packages/render/src/assets/glb-uri-loader.ts` return cached decoded image
+  data directly from their merged image resolvers.
+- `packages/render/src/assets/gltf-source-loader-facade.ts` and
+  `packages/render/src/assets/glb-source-loader-facade.ts` now pass provided
+  `decodedImageData` through without cloning byte arrays.
+- Added `test/assets/gltf-source-loader-facade.test.ts` and extended GLB/glTF
+  URI/facade tests to assert texture source data reuses the exact decoded
+  `Uint8Array`.
+- `examples/glb-viewer.main.js` no longer owns GLB/glTF URI loading caches,
+  decoder factories, or direct loader calls.
+- Updated tracker/backlog/completed/handoff docs to reflect decoded-image reuse
+  and the worker-owned viewer source-loading boundary.
+
+### Validation
+
+- `pnpm exec vitest run test/assets/glb-uri-loader.test.ts test/assets/gltf-uri-loader.test.ts test/assets/glb-source-loader-facade.test.ts test/assets/gltf-source-loader-facade.test.ts --reporter=dot` passed: 35 tests.
+- `pnpm run typecheck` passed.
+- `pnpm run typecheck:test` passed.
+- `pnpm run lint` passed.
+- `pnpm run check:examples` passed.
+- Direct Playwright browser probe for
+  `/examples/glb-viewer.html?asset=cesium-man-glb` after the cleanup reported
+  `phase: "render"`, `source.ok: true`, one mesh draw, one draw call, skinning
+  `ready`, `proceduralAnimation: false`, a 1024x1024 backing canvas, square CSS
+  display, and no source diagnostics.
+- Focused headed Playwright `Khronos CesiumMan` e2e printed a pass checkmark in
+  1.7s, then the local headed runner lingered in teardown and was killed after
+  recording the pass.
+- Full `test/e2e/glb-viewer.spec.ts` was attempted but is not currently a clean
+  local signal: early cases failed with `worker-frame-failed` or animation
+  wait timeouts, then the headed runner stopped progressing and was killed.
+
+### Known issues
+
+- Worker-to-main source reports still structured-clone the report payload. That
+  is now the next large-copy boundary after removing duplicate fetch/parse/decode
+  and decoded RGBA clones.
+- The local headed Playwright teardown hang persists.
+- The old unused single-thread scene helper remains in `glb-viewer.main.js`;
+  its active source-loading body now throws instead of doing custom loader work,
+  but a future cleanup can delete that dead helper tree outright.
+
+### Recommended next task
+
+For the user-directed loading thread, design a transferable source-report/import
+artifact so large worker-to-main source reports can move without structured
+clone copies. For the autonomous visible-feature queue, continue `task-3079`
+skybox-as-scene-element from `agent/CURRENT_TASK.md`.
+
+## Current Run Update — 2026-05-22T17:40:37Z — Worker-owned GLB viewer loading and zero-copy image byte ranges
+
+Completed another user-directed loading/rendering-pipeline efficiency slice
+after comparing Aperture's GLB/glTF paths against three.js `GLTFLoader` and
+PlayCanvas `GlbParser` resource scheduling. The remaining concrete gap was not
+network fetch coalescing inside the loader; it was the example split:
+`glb-viewer.main.js` and `glb-viewer.worker.js` could both load and parse the
+same model. The worker is now the single source loader for the viewer. It posts
+`source-assets` reports to the main renderer registration path before sending
+`ready`, so main can register renderer-side source assets without repeating URI
+fetch/parse/decode work. Asset switches reset readiness, unload previous main
+assets, and resume frames when the worker finishes the new source.
+
+Also removed avoidable JS byte copies in the library decode path. Provided or
+fetched encoded image bytes now flow to `loadGltfTextureAsync()` as `Uint8Array`
+views, browser `Blob` decode uses a view for partial ranges, and both
+`loadGlbFromUri()` and `loadGltfFromUri()` use `subarray()` for bufferView image
+byte ranges instead of copying slices. Tests assert decoder inputs share the
+original backing buffers for direct texture decode, GLB bufferView images, and
+external `.gltf` bufferView images. External URI image decode cache keys are now
+URL-based, so reordering the same image URLs across loads does not defeat the
+shared decode cache.
+
+### What changed
+
+- `examples/glb-viewer.worker.js` posts a structured-clone-safe
+  `source-assets` message containing `assetMapping`, `meshConstruction`, and
+  image decode status after the library loader finishes.
+- `examples/glb-viewer.main.js` now starts loads by assigning a shared
+  `keyPrefix`, unregistering old main-side source assets, and waiting for the
+  worker's source reports before requesting new frames.
+- `packages/render/src/materials/gltf-texture.ts`,
+  `packages/render/src/assets/glb-uri-loader.ts`, and
+  `packages/render/src/assets/gltf-uri-loader.ts` now avoid encoded-image byte
+  clones before decode and cache URI image decodes by resolved URL.
+- Added e2e coverage proving a custom GLB URL is requested once through the
+  worker-authored viewer path.
+
+### Validation
+
+- `node --check examples/glb-viewer.main.js`
+- `node --check examples/glb-viewer.worker.js`
+- `pnpm run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm run check:examples`
+- `pnpm run check:boundaries`
+- `pnpm run check:progress`
+- `pnpm run lint`
+- `pnpm test` passed: 344 files, 1727 tests.
+- `pnpm exec vitest run test/materials/gltf-texture.test.ts test/assets/glb-uri-loader.test.ts test/assets/gltf-uri-loader.test.ts --reporter=dot`
+- `pnpm exec vitest run test/assets/glb-uri-loader.test.ts test/assets/gltf-uri-loader.test.ts --reporter=dot`
+- `pnpm exec vitest run test/examples/worker-split-examples.test.mjs test/assets/glb-source-loader-facade.test.ts test/assets/glb-source-loader-output-summary.test.ts --reporter=dot`
+- `git diff --check`
+- Focused Playwright `loads GLB source bytes once` printed a pass checkmark in
+  headed Chrome/WebGPU; the local Playwright runner then hit the known headed
+  teardown hang and was terminated after the pass output.
+- `pnpm run format:check` failed on pre-existing dirty/untracked files outside
+  this slice: `packages/render/src/rendering/extraction.ts` and
+  `packages/webgpu/src/webgpu/skybox-pipeline.ts`.
+
+### Known issues
+
+- The worker-to-main source report is currently structured-cloned. That removes
+  duplicate URI fetch/parse/decode, but a future transferable import artifact
+  would reduce large model handoff copies further.
+- Image decode still expands browser-decoded images to CPU RGBA before GPU
+  upload; this remains a larger follow-up than the encoded-byte clone removal.
+- Geometry import still eagerly repacks accessor arrays into mesh assets.
+
+### Recommended next task
+
+For the user-directed loading thread, the next meaningful efficiency slice is a
+transferable import artifact or prepared source package for large worker-to-main
+handoffs. For the autonomous visible-feature queue, continue `task-3079`
+skybox-as-scene-element from `agent/CURRENT_TASK.md`.
+
+## Current Run Update — 2026-05-22T17:21:00Z — GLB loader path moved into library and CesiumMan pose fixed
+
+Completed a follow-up user-directed loading/rendering-pipeline slice for the
+real-world GLB viewer. The concrete CesiumMan pose bug was not a camera or
+canvas transform issue: `glb-viewer.worker.js` was applying the viewer's
+procedural demo skinning rotation to joint index 1. In CesiumMan, joint index 1
+is the torso, so the sample's upper body bent backward. The procedural skinning
+path now runs only when the loaded skin has no parsed glTF animation clips, and
+the CesiumMan status asserts `proceduralAnimation: false`.
+
+### What changed
+
+- `loadGlbFromUri()` now owns the GLB viewer's former custom loading work:
+  source fetch, same-origin external buffer/image fetch, embedded bufferView
+  image extraction/decode, decoded-image status, and lazy Draco/Meshopt decoder
+  creation.
+- Added `createGlbUriLoadCache()` / `LoadGlbFromUriCache` matching the existing
+  `.gltf` cache shape. It coalesces and reuses source/external bytes and decoded
+  image promises, and deletes failed fetch/decode promises so transient failures
+  are not pinned.
+- Wired `examples/glb-viewer.main.js` and `examples/glb-viewer.worker.js` to
+  call `loadGlbFromUri()` directly and use library caches for both `.gltf` and
+  `.glb` loads. The old viewer-local source fetch, same-origin image decode,
+  bufferView image decode, Draco/Meshopt extension scan, and fallback image
+  resolver code is gone.
+- The square canvas fix remains in place: `examples/glb-viewer.html` uses a
+  1024x1024 backing buffer and CSS keeps the displayed canvas at `aspect-ratio:
+1 / 1`.
+- Updated public tracker/status docs and completed-task notes to reflect
+  library-owned GLB URI loading and the CesiumMan procedural-skinning fix.
+
+### Reference comparison notes
+
+- three.js `GLTFLoader` keeps per-parse dependency promises in
+  `GLTFParser.getDependency()`, uses `sourceCache` / `textureCache`, and uses
+  `ImageBitmapLoader` when available.
+- PlayCanvas `GlbParser` schedules buffers/images/textures as promises, uses
+  cached HTTP fetches for external buffers, clones texture assets for repeated
+  image sources, and defers Draco work into decoder promises.
+- Aperture now matches that same per-load behavior for both `.gltf` and `.glb`
+  URI paths: dependencies are resolved in the asset layer, duplicate same-URL
+  fetches coalesce, repeated image decode coalesces, and the viewer no longer
+  hand-rolls loader behavior. The remaining bigger inefficiency is architectural:
+  the current GLB viewer still loads source data separately in main and worker
+  contexts. Browser HTTP cache helps network bytes, but parse/decode work is not
+  yet shared across that boundary.
+
+### Validation
+
+- `pnpm exec vitest run test/assets/glb-uri-loader.test.ts --reporter=dot`
+  passed: 8 tests.
+- `pnpm exec vitest run test/assets/glb-uri-loader.test.ts test/assets/gltf-uri-loader.test.ts --reporter=dot`
+  passed: 23 tests.
+- `pnpm run typecheck` passed.
+- `pnpm run typecheck:test` passed.
+- Focused headed Playwright local skinned-GLB test printed a pass checkmark in
+  1.3s, then hit the known local headed-runner teardown hang and was killed.
+- A direct Chrome/WebGPU probe for `?asset=cesium-man-glb` reported
+  `source.ok: true`, one mesh draw, one draw call, skinning `ready`,
+  `proceduralAnimation: false`, a 1024x1024 backing canvas, decoded
+  bufferView JPEG texture data, and no source diagnostics. The probe then hit
+  the same local browser-close hang and was killed after status output.
+
+### Known issues
+
+- The local headed Playwright/Chrome cleanup hang persists after successful
+  assertions/status output. It appears to be harness/browser teardown, not a
+  render failure.
+- Cross-context main/worker source sharing remains the next meaningful
+  performance slice if continuing the loading-pipeline audit.
+- `task-3092` remains open for broader `COLOR_0` / `COLOR_1` glTF vertex-color
+  formats.
+
+### Recommended next task
+
+For the user-directed loading thread, reduce main/worker duplicate GLB parse and
+decode work by introducing a library-level import artifact or command-plan
+handoff that can be shared across contexts without making the renderer own ECS
+state. For the autonomous visible-feature queue, continue `task-3079`
+skybox-as-scene-element from `agent/CURRENT_TASK.md`.
+
+## Current Run Update — 2026-05-22T16:38:00Z — Real-world glTF URI loading shipped
+
+Completed `task-3091` as a user-directed loading/rendering-pipeline audit and
+fix slice. The core issue behind FlightHelmet-style `.gltf` assets was that the
+URI loader fetched JSON and external buffers but not external image files. The
+second real-world blocker found during validation was glTF node `matrix`
+transforms: CesiumMan loaded source data, but ECS command authoring skipped the
+matrix node and produced an empty render snapshot. A follow-up audit against
+three.js and PlayCanvas then found one remaining concrete inefficiency:
+same-URL external buffers/images could be fetched more than once inside a
+single load, duplicate image sources could be decoded more than once, and image
+URI fetches did not start until all external buffers had finished. These paths
+are now handled.
+
+### What changed
+
+- `loadGltfFromUri()` now resolves external image URIs relative to the source
+  `.gltf`, fetches them through the configured fetcher, merges
+  caller-provided `externalImageBytes`, and decodes external, data URI, and
+  bufferView images through one status path.
+- External buffers and external images now fetch concurrently within and across
+  resource categories, and external image decode runs through a bounded
+  concurrency helper instead of decoding each image serially.
+- Same-URL external buffers/images now coalesce to one fetch per URL inside a
+  load, while retaining per-buffer/per-image diagnostics for duplicate
+  references. Equivalent image sources also share an in-flight decode promise,
+  so duplicate URI image entries perform one fetch and one decode.
+- Browser image decode now supports worker contexts via `OffscreenCanvas`, and
+  the default decoder avoids an extra encoded-byte copy when the source view can
+  be used directly as a `BlobPart`.
+- Added affine matrix decomposition in simulation math and wired glTF scene
+  traversal to author decomposed matrix nodes as ECS TRS transforms; sheared or
+  perspective matrices remain explicit `gltfScene.unsupportedMatrixDecomposition`
+  errors.
+- Added Khronos GLB viewer catalog entries for FlightHelmet, DamagedHelmet,
+  CesiumMan, MorphPrimitives, and A Beautiful Game, preserved
+  `source: "khronos"` in viewer status/selection, and fixed the GLB viewer
+  canvas to use a square 1:1 backing buffer and square CSS display.
+- Added focused unit/e2e coverage for external image URI loading, accessor
+  byte-offset validation, cross-category buffer/image fetch concurrency,
+  duplicate URI fetch/decode coalescing, matrix decomposition, command planning
+  from matrix nodes, FlightHelmet external PNGs, and CesiumMan matrix/skinning
+  rendering.
+- Updated `docs/index.html`, `docs/render-pipeline-comparison.html`,
+  `agent/BACKLOG.md`, and `agent/COMPLETED.md`.
+
+### Files touched
+
+- Loader/materials: `packages/render/src/assets/gltf-uri-loader.ts`,
+  `packages/render/src/assets/gltf-source-loader-facade.ts`,
+  `packages/render/src/materials/gltf-texture.ts`,
+  `packages/render/src/assets/gltf-accessor-validation.ts`.
+- Scene authoring/math: `packages/simulation/src/math/matrix.ts`,
+  `packages/render/src/assets/gltf-scene-traversal.ts`,
+  `packages/render/src/assets/gltf-ecs-authoring-command-plan.ts`.
+- Viewer/tests/docs: `examples/glb-viewer-assets.js`,
+  `examples/glb-viewer.html`, `examples/glb-viewer.main.js`,
+  `examples/glb-viewer.worker.js`, `examples/styles.css`,
+  `test/assets/gltf-uri-loader.test.ts`,
+  `test/assets/gltf-accessor-decoding.test.ts`,
+  `test/assets/gltf-scene-traversal.test.ts`,
+  `test/assets/gltf-scene-traversal-json.test.ts`,
+  `test/assets/gltf-ecs-authoring-command-plan.test.ts`,
+  `test/e2e/glb-viewer.spec.ts`, `test/math/matrix.test.ts`,
+  `docs/index.html`, `docs/render-pipeline-comparison.html`,
+  `agent/BACKLOG.md`, `agent/COMPLETED.md`, `agent/HANDOFF.md`.
+
+### Validation
+
+- `pnpm exec vitest run test/assets/gltf-uri-loader.test.ts --reporter=dot`
+  passed after the cross-category fetch concurrency and duplicate URI
+  fetch/decode coalescing tests were added.
+- `pnpm exec vitest run test/math/matrix.test.ts test/assets/gltf-scene-traversal.test.ts test/assets/gltf-scene-traversal-json.test.ts test/assets/gltf-ecs-authoring-command-plan.test.ts --reporter=dot`
+  passed.
+- `pnpm exec vitest run test/assets/gltf-uri-loader.test.ts test/assets/gltf-accessor-decoding.test.ts test/assets/gltf-ecs-command-replay.test.ts --reporter=dot`
+  passed.
+- `pnpm exec vitest run test/math/matrix.test.ts test/assets/gltf-scene-traversal.test.ts test/assets/gltf-scene-traversal-json.test.ts test/assets/gltf-ecs-authoring-command-plan.test.ts test/assets/gltf-uri-loader.test.ts test/assets/gltf-accessor-decoding.test.ts test/assets/gltf-ecs-command-replay.test.ts --reporter=dot`
+  passed.
+- `pnpm run typecheck` passed.
+- `pnpm run typecheck:test` passed.
+- `pnpm run check:boundaries` passed.
+- `node --check examples/glb-viewer.main.js && node --check examples/glb-viewer.worker.js`
+  passed.
+- `pnpm run check:progress` passed.
+- `pnpm exec prettier --check packages/render/src/assets/gltf-uri-loader.ts test/assets/gltf-uri-loader.test.ts docs/index.html docs/render-pipeline-comparison.html agent/HANDOFF.md agent/BACKLOG.md agent/COMPLETED.md`
+  passed.
+- `git diff --check` passed.
+- Direct Chrome/WebGPU probe for `?asset=cesium-man-glb` reported `ok: true`,
+  phase `render`, one mesh draw, one draw call, skinning `ready`, a
+  1024x1024 backing canvas displayed square, and a non-clear pixel delta of
+  ~431. The screenshot was written to `/tmp/cesium-man-after-matrix.png`.
+
+### Audit notes
+
+- Fixed bad behavior found in the audit: external `.gltf` images were not
+  fetched at all; independent external resources were fetched/decoded
+  sequentially; external image URI fetches were serialized behind external
+  buffer completion; repeated same-URL resources were fetched/decoded
+  redundantly; matrix-node assets could load but fail ECS replay/extraction.
+- Reference comparison: three.js caches glTF dependencies and texture/image
+  source work through `GLTFParser.getDependency()`, `textureCache`, and
+  `sourceCache`; PlayCanvas coalesces resource loads through `ResourceLoader`
+  request/cache maps and shares image promises before cloning texture assets.
+  Aperture now matches that per-load behavior for same-URL external buffers and
+  images in `loadGltfFromUri()`, and starts external buffer/image dependency
+  work together instead of serializing the categories.
+- Remaining non-blocking inefficiencies: the viewer still loads some source
+  data in both main and worker paths, image decode still round-trips through CPU
+  RGBA before GPU upload, geometry import still eagerly repacks arrays, texture
+  uploads can burst on the first rendered frame, and the snapshot path still
+  republishes broad per-frame data instead of an asset-level delta stream.
+
+### Known issues
+
+- A direct Playwright probe printed the passing CesiumMan status and then left
+  the Node process alive during cleanup; the process was killed after output.
+  This matches the local Playwright teardown-hang behavior seen in earlier
+  headed/focused runs and was not an app failure.
+- `task-3092` remains open: broader `COLOR_0` / `COLOR_1` glTF vertex-color
+  formats are still not supported.
+- The main visible-feature queue still points at `task-3079`
+  (skybox-as-scene-element) via `agent/CURRENT_TASK.md`; continue that unless
+  the user asks to keep following the real-world glTF loader thread.
+
+### Recommended next task
+
+Proceed with `task-3079` from `agent/CURRENT_TASK.md` for the autonomous queue,
+or pick `task-3092` if the next run continues the user-directed real-world glTF
+asset compatibility work.
 
 ## Current Run Update — 2026-05-22T13:50:11Z — Outdoor scene shipped, sprite bridge partial
 

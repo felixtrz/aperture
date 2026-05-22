@@ -101,6 +101,42 @@ describe("KTX2 decoder", () => {
     ]);
   });
 
+  it("transcodes BasisU KTX2 to native compressed texture bytes when supported", async () => {
+    const [ktx2Bytes, jsSource, wasmBinary] = await Promise.all([
+      readFile(new URL("./fixtures/basis-etc1s.ktx2", import.meta.url)),
+      readFile(
+        new URL(
+          "../../examples/assets/basis/basis_transcoder.js",
+          import.meta.url,
+        ),
+        "utf8",
+      ),
+      readFile(
+        new URL(
+          "../../examples/assets/basis/basis_transcoder.wasm",
+          import.meta.url,
+        ),
+      ),
+    ]);
+    const transcoder = await createBasisUniversalKtx2Transcoder({
+      jsSource,
+      wasmBinary,
+    });
+
+    const decoded = await decodeKtx2TextureDataAsync(ktx2Bytes, {
+      basisTranscoder: transcoder,
+      textureCompression: { etc2: true },
+    });
+
+    expect(decoded.width).toBe(40);
+    expect(decoded.height).toBe(40);
+    expect(["etc2-rgb8unorm-srgb", "etc2-rgba8unorm-srgb"]).toContain(
+      decoded.format,
+    );
+    expect(decoded.sourceData.rowsPerImage).toBe(10);
+    expect(decoded.sourceData.bytes.byteLength).toBeLessThan(40 * 40 * 4);
+  });
+
   it("keeps async BasisU decode honest when no transcoder is configured", async () => {
     const ktx2Bytes = await readFile(
       new URL("./fixtures/basis-etc1s.ktx2", import.meta.url),

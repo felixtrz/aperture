@@ -295,6 +295,80 @@ describe("render extraction", () => {
     });
   });
 
+  it("includes compact skinning formats in mesh layout keys", () => {
+    const world = createRuntimeWorld();
+    const assets = createReadyAssets({
+      meshAsset: withCompactSkinningAttributes(createBoxMeshAsset()),
+      materialAsset: createStandardMaterialAsset(),
+    });
+
+    createCameraEntity(world, { priority: 0, layerMask: 1 });
+    const entity = createMeshEntity(world, {
+      meshId: "mesh:cube",
+      materialId: "material:unlit",
+      layerMask: 1,
+    });
+
+    entity.addComponent(
+      Skin,
+      createSkin({
+        jointMatrices: identityMatrix(),
+      }),
+    );
+
+    const snapshot = extractRenderSnapshot(world, assets);
+
+    expect(snapshot.diagnostics).toEqual([]);
+    expect(snapshot.meshDraws[0]?.batchKey).toMatchObject({
+      skinned: true,
+      pipelineKey: "standard|skinned|opaque|back|less|none",
+      meshLayoutKey:
+        "POSITION,NORMAL,TEXCOORD_0,JOINTS_0:uint8x4,WEIGHTS_0:unorm8x4",
+    });
+  });
+
+  it("preserves vertex stream boundaries in mesh layout keys", () => {
+    const world = createRuntimeWorld();
+    const assets = createReadyAssets({
+      meshAsset: withSplitVertexStreams(createBoxMeshAsset()),
+    });
+
+    createCameraEntity(world, { priority: 0, layerMask: 1 });
+    createMeshEntity(world, {
+      meshId: "mesh:cube",
+      materialId: "material:unlit",
+      layerMask: 1,
+    });
+
+    const snapshot = extractRenderSnapshot(world, assets);
+
+    expect(snapshot.diagnostics).toEqual([]);
+    expect(snapshot.meshDraws[0]?.batchKey.meshLayoutKey).toBe(
+      "POSITION,NORMAL|TEXCOORD_0,COLOR_0:unorm8x4",
+    );
+  });
+
+  it("includes explicit stream stride and attribute offsets for padded layouts", () => {
+    const world = createRuntimeWorld();
+    const assets = createReadyAssets({
+      meshAsset: withPaddedVertexStream(createBoxMeshAsset()),
+    });
+
+    createCameraEntity(world, { priority: 0, layerMask: 1 });
+    createMeshEntity(world, {
+      meshId: "mesh:cube",
+      materialId: "material:unlit",
+      layerMask: 1,
+    });
+
+    const snapshot = extractRenderSnapshot(world, assets);
+
+    expect(snapshot.diagnostics).toEqual([]);
+    expect(snapshot.meshDraws[0]?.batchKey.meshLayoutKey).toBe(
+      "stride=40,POSITION@4,NORMAL@20,TEXCOORD_0@32",
+    );
+  });
+
   it("extracts named custom instance data into snapshot attribute packets", () => {
     const world = createRuntimeWorld();
     const assets = createReadyAssets();
@@ -1518,6 +1592,27 @@ describe("render extraction", () => {
     });
   });
 
+  it("includes normalized COLOR_0 formats in mesh layout keys", () => {
+    const world = createRuntimeWorld();
+    const assets = createReadyAssets({
+      meshAsset: withNormalizedColor0Attribute(createBoxMeshAsset()),
+    });
+
+    createCameraEntity(world, { priority: 0, layerMask: 1 });
+    createMeshEntity(world, {
+      meshId: "mesh:cube",
+      materialId: "material:unlit",
+      layerMask: 1,
+    });
+
+    const snapshot = extractRenderSnapshot(world, assets);
+
+    expect(snapshot.diagnostics).toEqual([]);
+    expect(snapshot.meshDraws[0]?.batchKey.meshLayoutKey).toBe(
+      "POSITION,NORMAL,TEXCOORD_0,COLOR_0:unorm8x4",
+    );
+  });
+
   it("preserves mesh validation codes in render diagnostics", () => {
     const world = createRuntimeWorld();
     const invalidMesh = createBoxMeshAsset();
@@ -2155,6 +2250,48 @@ function withTexCoord1Attribute(mesh: MeshAsset): MeshAsset {
   };
 }
 
+function withNormalizedColor0Attribute(mesh: MeshAsset): MeshAsset {
+  const stream = required(mesh.vertexStreams[0]);
+  const source = new Uint8Array(
+    stream.data.buffer,
+    stream.data.byteOffset,
+    stream.data.byteLength,
+  );
+  const arrayStride = stream.arrayStride + 4;
+  const data = new Uint8Array(stream.vertexCount * arrayStride);
+
+  for (let vertex = 0; vertex < stream.vertexCount; vertex += 1) {
+    const sourceOffset = vertex * stream.arrayStride;
+    const targetOffset = vertex * arrayStride;
+
+    data.set(
+      source.subarray(sourceOffset, sourceOffset + stream.arrayStride),
+      targetOffset,
+    );
+    data.set([255, 255, 255, 255], targetOffset + stream.arrayStride);
+  }
+
+  return {
+    ...mesh,
+    vertexStreams: [
+      {
+        ...stream,
+        id: `${stream.id}-color0-unorm8`,
+        arrayStride,
+        attributes: [
+          ...stream.attributes,
+          {
+            semantic: "COLOR_0",
+            format: "unorm8x4",
+            offset: stream.arrayStride,
+          },
+        ],
+        data,
+      },
+    ],
+  };
+}
+
 function withSkinningAttributes(mesh: MeshAsset): MeshAsset {
   const stream = required(mesh.vertexStreams[0]);
 
@@ -2183,6 +2320,86 @@ function withSkinningAttributes(mesh: MeshAsset): MeshAsset {
       joints0: "JOINTS_0",
       weights0: "WEIGHTS_0",
     },
+  };
+}
+
+function withCompactSkinningAttributes(mesh: MeshAsset): MeshAsset {
+  const stream = required(mesh.vertexStreams[0]);
+
+  return {
+    ...mesh,
+    vertexStreams: [
+      {
+        ...stream,
+        attributes: [
+          ...stream.attributes,
+          {
+            semantic: "JOINTS_0",
+            format: "uint8x4",
+            offset: stream.arrayStride,
+          },
+          {
+            semantic: "WEIGHTS_0",
+            format: "unorm8x4",
+            offset: stream.arrayStride + 4,
+          },
+        ],
+        arrayStride: stream.arrayStride + 8,
+      },
+    ],
+    skinning: {
+      joints0: "JOINTS_0",
+      weights0: "WEIGHTS_0",
+    },
+  };
+}
+
+function withSplitVertexStreams(mesh: MeshAsset): MeshAsset {
+  const stream = required(mesh.vertexStreams[0]);
+
+  return {
+    ...mesh,
+    vertexStreams: [
+      {
+        ...stream,
+        id: `${stream.id}-position-normal`,
+        arrayStride: 24,
+        attributes: [
+          { semantic: "POSITION", format: "float32x3", offset: 0 },
+          { semantic: "NORMAL", format: "float32x3", offset: 12 },
+        ],
+      },
+      {
+        ...stream,
+        id: `${stream.id}-uv-color`,
+        arrayStride: 12,
+        attributes: [
+          { semantic: "TEXCOORD_0", format: "float32x2", offset: 0 },
+          { semantic: "COLOR_0", format: "unorm8x4", offset: 8 },
+        ],
+        data: new Uint8Array(stream.vertexCount * 12),
+      },
+    ],
+  };
+}
+
+function withPaddedVertexStream(mesh: MeshAsset): MeshAsset {
+  const stream = required(mesh.vertexStreams[0]);
+
+  return {
+    ...mesh,
+    vertexStreams: [
+      {
+        ...stream,
+        arrayStride: 40,
+        attributes: [
+          { semantic: "POSITION", format: "float32x3", offset: 4 },
+          { semantic: "NORMAL", format: "float32x3", offset: 20 },
+          { semantic: "TEXCOORD_0", format: "float32x2", offset: 32 },
+        ],
+        data: new Uint8Array(stream.vertexCount * 40),
+      },
+    ],
   };
 }
 

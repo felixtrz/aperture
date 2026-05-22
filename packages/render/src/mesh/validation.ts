@@ -10,7 +10,8 @@ export function validateMeshAsset(mesh: MeshAsset): MeshValidationReport {
     0,
     ...mesh.vertexStreams.map((stream) => stream.vertexCount),
   );
-  const indexCount = mesh.indexBuffer?.data.length ?? 0;
+  const indexCount =
+    mesh.indexBuffer?.indexCount ?? mesh.indexBuffer?.data.length ?? 0;
 
   if (!hasPositionAttribute(mesh)) {
     diagnostics.push({

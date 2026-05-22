@@ -15,6 +15,7 @@ export * from "./gltf-scene-import-contract.js";
 export * from "./gltf-scene-traversal.js";
 export * from "./gltf-source-registration.js";
 export * from "./gltf-source-registration-orchestration.js";
+export * from "./gltf-source-report-transfer.js";
 export * from "./glb-source-loader-facade.js";
 export * from "./glb-source-loader-output-summary.js";
 export * from "./glb-source-loader-status.js";

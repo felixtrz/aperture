@@ -322,6 +322,8 @@ export function prepareAppTextureResource(options: {
   readonly handle: TextureHandle;
   readonly reuse: AppTextureSamplerResourceReuseReport;
   readonly diagnostics: WebGpuAppTextureSamplerPreparationDiagnostic[];
+  readonly viewDescriptor?: unknown;
+  readonly viewDescriptorKey?: string;
 }): {
   readonly cacheKey: string;
   readonly resource: TextureGpuResource;
@@ -339,7 +341,11 @@ export function prepareAppTextureResource(options: {
     return null;
   }
 
-  const cacheKey = sourceAssetCacheKey(options.handle, entry.version);
+  const cacheKey =
+    sourceAssetCacheKey(options.handle, entry.version) +
+    (options.viewDescriptorKey === undefined
+      ? ""
+      : `:${options.viewDescriptorKey}`);
   const cached = options.cache.textures.get(cacheKey);
 
   if (cached !== undefined) {
@@ -355,6 +361,9 @@ export function prepareAppTextureResource(options: {
     resourceKey,
     descriptor: textureDescriptorFromAsset(entry.asset),
     ...(upload === null ? {} : { upload }),
+    ...(options.viewDescriptor === undefined
+      ? {}
+      : { viewDescriptor: options.viewDescriptor }),
   });
 
   options.diagnostics.push(...result.diagnostics);

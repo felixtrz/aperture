@@ -11,7 +11,10 @@ import {
   STANDARD_TANGENT_PRIMITIVE_VERTEX_BUFFER_LAYOUT,
   STANDARD_TANGENT_TEXCOORD1_PRIMITIVE_VERTEX_BUFFER_LAYOUT,
   STANDARD_TEXCOORD1_PRIMITIVE_VERTEX_BUFFER_LAYOUT,
+  STANDARD_VERTEX_COLOR_FLOAT32X3_PRIMITIVE_VERTEX_BUFFER_LAYOUT,
   STANDARD_VERTEX_COLOR_PRIMITIVE_VERTEX_BUFFER_LAYOUT,
+  STANDARD_VERTEX_COLOR_UNORM16_PRIMITIVE_VERTEX_BUFFER_LAYOUT,
+  STANDARD_VERTEX_COLOR_UNORM8_PRIMITIVE_VERTEX_BUFFER_LAYOUT,
   UNLIT_PRIMITIVE_VERTEX_BUFFER_LAYOUT,
   createBrowserStandardRenderPipelineDescriptor,
   createOutputColorSpacePipelineKey,
@@ -183,6 +186,51 @@ describe("browser standard material pipeline bridge", () => {
     });
   });
 
+  it("uses normalized vertex-color layouts for compact COLOR_0 standard meshes", () => {
+    const shaderModule = {
+      compilationInfo: async () => ({ messages: [] }),
+    };
+    const shader = createStandardTextureVariantShader({
+      baseColorTexture: false,
+      metallicRoughnessTexture: false,
+      normalTexture: false,
+      occlusionTexture: false,
+      emissiveTexture: false,
+      vertexColor: true,
+    });
+
+    for (const testCase of [
+      {
+        meshLayoutKey: "POSITION,NORMAL,TEXCOORD_0,COLOR_0:float32x3",
+        layout: STANDARD_VERTEX_COLOR_FLOAT32X3_PRIMITIVE_VERTEX_BUFFER_LAYOUT,
+      },
+      {
+        meshLayoutKey: "POSITION,NORMAL,TEXCOORD_0,COLOR_0:unorm8x4",
+        layout: STANDARD_VERTEX_COLOR_UNORM8_PRIMITIVE_VERTEX_BUFFER_LAYOUT,
+      },
+      {
+        meshLayoutKey: "POSITION,NORMAL,TEXCOORD_0,COLOR_0:unorm16x4",
+        layout: STANDARD_VERTEX_COLOR_UNORM16_PRIMITIVE_VERTEX_BUFFER_LAYOUT,
+      },
+    ] as const) {
+      const descriptor = createBrowserStandardRenderPipelineDescriptor({
+        shader,
+        shaderModule,
+        colorFormat: "bgra8unorm",
+        batchKey: {
+          ...STANDARD_BATCH_KEY,
+          meshLayoutKey: testCase.meshLayoutKey,
+        },
+      });
+
+      expect(descriptor.vertex).toMatchObject({
+        module: shaderModule,
+        entryPoint: "vs_main",
+        buffers: [testCase.layout],
+      });
+    }
+  });
+
   it("adds an instance-rate tint vertex layout for instance tint shaders", () => {
     const shaderModule = {
       compilationInfo: async () => ({ messages: [] }),
@@ -276,6 +324,230 @@ describe("browser standard material pipeline bridge", () => {
           },
         },
       },
+    });
+  });
+
+  it("uses compact joint and weight layouts for compact skinned meshes", () => {
+    const shaderModule = {
+      compilationInfo: async () => ({ messages: [] }),
+    };
+    const shader = createStandardTextureVariantShader({
+      baseColorTexture: false,
+      metallicRoughnessTexture: false,
+      normalTexture: false,
+      occlusionTexture: false,
+      emissiveTexture: false,
+      skinned: true,
+    });
+    const cases = [
+      {
+        meshLayoutKey:
+          "POSITION,NORMAL,TEXCOORD_0,JOINTS_0:uint8x4,WEIGHTS_0:unorm8x4",
+        expected: {
+          arrayStride: 40,
+          attributes: [
+            { shaderLocation: 8, offset: 32, format: "uint8x4" },
+            { shaderLocation: 9, offset: 36, format: "unorm8x4" },
+          ],
+        },
+      },
+      {
+        meshLayoutKey:
+          "POSITION,NORMAL,TEXCOORD_0,JOINTS_0:uint16x4,WEIGHTS_0:unorm16x4",
+        expected: {
+          arrayStride: 48,
+          attributes: [
+            { shaderLocation: 8, offset: 32, format: "uint16x4" },
+            { shaderLocation: 9, offset: 40, format: "unorm16x4" },
+          ],
+        },
+      },
+      {
+        meshLayoutKey: "POSITION,NORMAL,TEXCOORD_0,JOINTS_0:uint8x4,WEIGHTS_0",
+        expected: {
+          arrayStride: 52,
+          attributes: [
+            { shaderLocation: 8, offset: 32, format: "uint8x4" },
+            { shaderLocation: 9, offset: 36, format: "float32x4" },
+          ],
+        },
+      },
+    ] as const;
+
+    for (const testCase of cases) {
+      const descriptor = createBrowserStandardRenderPipelineDescriptor({
+        shader,
+        shaderModule,
+        colorFormat: "bgra8unorm",
+        batchKey: {
+          ...STANDARD_BATCH_KEY,
+          pipelineKey: "standard|skinned|opaque|back|less|none",
+          meshLayoutKey: testCase.meshLayoutKey,
+          skinned: true,
+        },
+      });
+
+      expect(descriptor.vertex).toMatchObject({
+        module: shaderModule,
+        entryPoint: "vs_main",
+        buffers: [
+          {
+            arrayStride: testCase.expected.arrayStride,
+            attributes: expect.arrayContaining([
+              ...testCase.expected.attributes,
+            ]),
+          },
+        ],
+      });
+    }
+  });
+
+  it("derives combined StandardMaterial layouts from extracted mesh layout keys", () => {
+    const shaderModule = {
+      compilationInfo: async () => ({ messages: [] }),
+    };
+    const shader = createStandardTextureVariantShader({
+      baseColorTexture: false,
+      metallicRoughnessTexture: false,
+      normalTexture: true,
+      occlusionTexture: false,
+      emissiveTexture: false,
+      skinned: true,
+      vertexColor: true,
+    });
+    const descriptor = createBrowserStandardRenderPipelineDescriptor({
+      shader,
+      shaderModule,
+      colorFormat: "bgra8unorm",
+      batchKey: {
+        ...STANDARD_BATCH_KEY,
+        pipelineKey: "standard|normalTexture|skinned|opaque|back|less|none",
+        meshLayoutKey:
+          "POSITION,NORMAL,TEXCOORD_0,JOINTS_0:uint8x4,WEIGHTS_0:unorm8x4,TANGENT,COLOR_0:unorm8x4",
+        skinned: true,
+      },
+    });
+
+    expect(descriptor.vertex).toMatchObject({
+      module: shaderModule,
+      entryPoint: "vs_main",
+      buffers: [
+        {
+          arrayStride: 60,
+          attributes: expect.arrayContaining([
+            { shaderLocation: 0, offset: 0, format: "float32x3" },
+            { shaderLocation: 1, offset: 12, format: "float32x3" },
+            { shaderLocation: 2, offset: 24, format: "float32x2" },
+            { shaderLocation: 3, offset: 40, format: "float32x4" },
+            { shaderLocation: 5, offset: 56, format: "unorm8x4" },
+            { shaderLocation: 8, offset: 32, format: "uint8x4" },
+            { shaderLocation: 9, offset: 36, format: "unorm8x4" },
+          ]),
+        },
+      ],
+    });
+  });
+
+  it("derives multi-stream StandardMaterial layouts from stream-aware mesh keys", () => {
+    const shaderModule = {
+      compilationInfo: async () => ({ messages: [] }),
+    };
+    const shader = createStandardTextureVariantShader({
+      baseColorTexture: false,
+      metallicRoughnessTexture: false,
+      normalTexture: true,
+      occlusionTexture: false,
+      emissiveTexture: false,
+      skinned: true,
+      vertexColor: true,
+    });
+    const descriptor = createBrowserStandardRenderPipelineDescriptor({
+      shader,
+      shaderModule,
+      colorFormat: "bgra8unorm",
+      batchKey: {
+        ...STANDARD_BATCH_KEY,
+        pipelineKey: "standard|normalTexture|skinned|opaque|back|less|none",
+        meshLayoutKey:
+          "POSITION,NORMAL|TEXCOORD_0|JOINTS_0:uint8x4,WEIGHTS_0:unorm8x4|TANGENT,COLOR_0:unorm8x4",
+        skinned: true,
+      },
+    });
+
+    expect(descriptor.vertex).toMatchObject({
+      module: shaderModule,
+      entryPoint: "vs_main",
+      buffers: [
+        {
+          arrayStride: 24,
+          attributes: [
+            { shaderLocation: 0, offset: 0, format: "float32x3" },
+            { shaderLocation: 1, offset: 12, format: "float32x3" },
+          ],
+        },
+        {
+          arrayStride: 8,
+          attributes: [{ shaderLocation: 2, offset: 0, format: "float32x2" }],
+        },
+        {
+          arrayStride: 8,
+          attributes: [
+            { shaderLocation: 8, offset: 0, format: "uint8x4" },
+            { shaderLocation: 9, offset: 4, format: "unorm8x4" },
+          ],
+        },
+        {
+          arrayStride: 20,
+          attributes: [
+            { shaderLocation: 3, offset: 0, format: "float32x4" },
+            { shaderLocation: 5, offset: 16, format: "unorm8x4" },
+          ],
+        },
+      ],
+    });
+  });
+
+  it("honors explicit source stream stride and attribute offsets", () => {
+    const shaderModule = {
+      compilationInfo: async () => ({ messages: [] }),
+    };
+    const shader = createStandardTextureVariantShader({
+      baseColorTexture: false,
+      metallicRoughnessTexture: false,
+      normalTexture: true,
+      occlusionTexture: false,
+      emissiveTexture: false,
+      skinned: true,
+      vertexColor: true,
+    });
+    const descriptor = createBrowserStandardRenderPipelineDescriptor({
+      shader,
+      shaderModule,
+      colorFormat: "bgra8unorm",
+      batchKey: {
+        ...STANDARD_BATCH_KEY,
+        pipelineKey: "standard|normalTexture|skinned|opaque|back|less|none",
+        meshLayoutKey:
+          "stride=72,POSITION@4,NORMAL@20,TEXCOORD_0@32,JOINTS_0:uint8x4@40,WEIGHTS_0:unorm8x4@44,TANGENT@48,COLOR_0:unorm8x4@68",
+        skinned: true,
+      },
+    });
+
+    expect(descriptor.vertex).toMatchObject({
+      buffers: [
+        {
+          arrayStride: 72,
+          attributes: expect.arrayContaining([
+            { shaderLocation: 0, offset: 4, format: "float32x3" },
+            { shaderLocation: 1, offset: 20, format: "float32x3" },
+            { shaderLocation: 2, offset: 32, format: "float32x2" },
+            { shaderLocation: 3, offset: 48, format: "float32x4" },
+            { shaderLocation: 5, offset: 68, format: "unorm8x4" },
+            { shaderLocation: 8, offset: 40, format: "uint8x4" },
+            { shaderLocation: 9, offset: 44, format: "unorm8x4" },
+          ]),
+        },
+      ],
     });
   });
 

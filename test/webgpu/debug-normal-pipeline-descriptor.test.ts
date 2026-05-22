@@ -96,6 +96,22 @@ describe("debug-normal material pipeline descriptor planning", () => {
     expect(bgra).not.toBe(rgba);
   });
 
+  it("accepts padded source stream layout keys", () => {
+    const result = createDebugNormalPipelineDescriptorPlan({
+      colorFormat: "bgra8unorm",
+      depthFormat: "depth24plus",
+      batchKey: {
+        ...DEBUG_NORMAL_BATCH_KEY,
+        meshLayoutKey: "stride=40,POSITION@4,NORMAL@20,TEXCOORD_0@32",
+      },
+    });
+
+    expect(result.diagnostics).toEqual([]);
+    expect(result.plan?.keyInput.vertexLayoutKey).toBe(
+      "stride=40,POSITION@4,NORMAL@20,TEXCOORD_0@32",
+    );
+  });
+
   it("rejects missing normal attributes and unsupported topology", () => {
     const result = createDebugNormalPipelineDescriptorPlan({
       colorFormat: "bgra8unorm",
