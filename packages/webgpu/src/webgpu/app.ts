@@ -103,11 +103,13 @@ import {
 import { createLightBindGroupLayoutDescriptor } from "./light-bind-group-layout.js";
 import type { LightBindGroupLayoutResource } from "./light-bind-group-layout.js";
 import {
+  STANDARD_LIGHT_CASCADED_SHADOW_BIND_GROUP_LAYOUT_KEY,
   STANDARD_LIGHT_IBL_BIND_GROUP_LAYOUT_KEY,
   STANDARD_LIGHT_MULTI_SHADOW_BIND_GROUP_LAYOUT_KEY,
   STANDARD_LIGHT_POINT_SHADOW_BIND_GROUP_LAYOUT_KEY,
   STANDARD_LIGHT_SHADOW_BIND_GROUP_LAYOUT_KEY,
   STANDARD_LIGHT_SHADOW_IBL_BIND_GROUP_LAYOUT_KEY,
+  createStandardLightCascadedShadowBindGroupLayoutDescriptor,
   createStandardLightIblBindGroupLayoutDescriptor,
   createStandardLightMultiShadowBindGroupLayoutDescriptor,
   createStandardLightPointShadowBindGroupLayoutDescriptor,
@@ -1091,6 +1093,9 @@ function createStandardAppPipelineLayouts(
   const usesLightShadowGroup = pipelineResourceKey.includes(
     STANDARD_LIGHT_SHADOW_BIND_GROUP_LAYOUT_KEY,
   );
+  const usesLightCascadedShadowGroup = pipelineResourceKey.includes(
+    STANDARD_LIGHT_CASCADED_SHADOW_BIND_GROUP_LAYOUT_KEY,
+  );
   const usesLightPointShadowGroup = pipelineResourceKey.includes(
     STANDARD_LIGHT_POINT_SHADOW_BIND_GROUP_LAYOUT_KEY,
   );
@@ -1103,11 +1108,13 @@ function createStandardAppPipelineLayouts(
       ? "webgpu-app/standard/lights-ibl/group-3"
       : usesLightMultiShadowGroup
         ? "webgpu-app/standard/lights-multi-shadow/group-3"
-        : usesLightPointShadowGroup
-          ? "webgpu-app/standard/lights-point-shadow/group-3"
-          : usesLightShadowGroup
-            ? "webgpu-app/standard/lights-shadow/group-3"
-            : "webgpu-app/standard/group-3";
+        : usesLightCascadedShadowGroup
+          ? "webgpu-app/standard/lights-cascaded-shadow/group-3"
+          : usesLightPointShadowGroup
+            ? "webgpu-app/standard/lights-point-shadow/group-3"
+            : usesLightShadowGroup
+              ? "webgpu-app/standard/lights-shadow/group-3"
+              : "webgpu-app/standard/group-3";
 
   return {
     kind: "standard",
@@ -1141,14 +1148,16 @@ function createStandardAppPipelineLayouts(
             })
           : usesLightMultiShadowGroup
             ? createStandardLightMultiShadowBindGroupLayoutDescriptor()
-            : usesLightShadowGroup
-              ? createStandardLightShadowBindGroupLayoutDescriptor()
-              : usesLightPointShadowGroup
-                ? createStandardLightPointShadowBindGroupLayoutDescriptor()
-                : createLightBindGroupLayoutDescriptor({
-                    group: 3,
-                    label: "webgpu-app/standard/group-3",
-                  }),
+            : usesLightCascadedShadowGroup
+              ? createStandardLightCascadedShadowBindGroupLayoutDescriptor()
+              : usesLightShadowGroup
+                ? createStandardLightShadowBindGroupLayoutDescriptor()
+                : usesLightPointShadowGroup
+                  ? createStandardLightPointShadowBindGroupLayoutDescriptor()
+                  : createLightBindGroupLayoutDescriptor({
+                      group: 3,
+                      label: "webgpu-app/standard/group-3",
+                    }),
     },
   };
 }
@@ -2868,8 +2877,9 @@ async function renderWebGpuAppFrame(
   )
     ? withStandardShadowPipelineKeys(
         extractedSnapshot,
-        options.standardMaterialShadowReceiverResources.shadowKind ??
-          "directional",
+        standardShadowPipelineKind(
+          options.standardMaterialShadowReceiverResources,
+        ),
       )
     : extractedSnapshot;
   const snapshot = hasReadyStandardDiffuseIblResources(
@@ -4158,13 +4168,22 @@ function hasReadyStandardSpecularIblProofResources(
 
 function withStandardShadowPipelineKeys(
   snapshot: RenderSnapshot,
-  shadowKind: "directional" | "point" | "spot" | "multi" = "directional",
+  shadowKind:
+    | "directional"
+    | "directional-cascaded"
+    | "point"
+    | "spot"
+    | "multi" = "directional",
 ): RenderSnapshot {
   let changed = false;
   const shadowFeatures =
     shadowKind === "multi"
       ? ["shadowMap", "pointShadowMap"]
-      : [shadowKind === "point" ? "pointShadowMap" : "shadowMap"];
+      : shadowKind === "point"
+        ? ["pointShadowMap"]
+        : shadowKind === "directional-cascaded"
+          ? ["shadowMap", "cascadedShadowMap"]
+          : ["shadowMap"];
   const meshDraws = snapshot.meshDraws.map((draw) => {
     let pipelineKey = draw.batchKey.pipelineKey;
 
@@ -4195,6 +4214,22 @@ function withStandardShadowPipelineKeys(
   });
 
   return changed ? { ...snapshot, meshDraws } : snapshot;
+}
+
+function standardShadowPipelineKind(
+  resources: StandardFrameShadowReceiverResources,
+): "directional" | "directional-cascaded" | "point" | "spot" | "multi" {
+  if (resources.shadowKind !== undefined) {
+    return resources.shadowKind;
+  }
+
+  return resources.depthTextureResources.resources.some(
+    (resource) =>
+      resource.viewDimension === "2d-array" &&
+      (resource.layerCount ?? resource.faceCount) > 1,
+  )
+    ? "directional-cascaded"
+    : "directional";
 }
 
 function withStandardIblPipelineKeys(

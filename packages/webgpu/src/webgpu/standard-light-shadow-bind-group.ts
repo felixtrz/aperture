@@ -21,6 +21,8 @@ import type { ShadowSamplerResourceReport } from "./standard-material-shadow-bin
 export const STANDARD_LIGHT_SHADOW_BIND_GROUP = 3;
 export const STANDARD_LIGHT_SHADOW_BIND_GROUP_LAYOUT_KEY =
   "standard/lights-shadow/group-3";
+export const STANDARD_LIGHT_CASCADED_SHADOW_BIND_GROUP_LAYOUT_KEY =
+  "standard/lights-cascaded-shadow/group-3";
 export const STANDARD_LIGHT_POINT_SHADOW_BIND_GROUP_LAYOUT_KEY =
   "standard/lights-point-shadow/group-3";
 export const STANDARD_LIGHT_MULTI_SHADOW_BIND_GROUP_LAYOUT_KEY =
@@ -141,6 +143,10 @@ export function createStandardLightShadowBindGroupLayoutDescriptor(): WebGpuBind
   return createStandardLightShadowBindGroupLayoutDescriptorForView("2d");
 }
 
+export function createStandardLightCascadedShadowBindGroupLayoutDescriptor(): WebGpuBindGroupLayoutDescriptor {
+  return createStandardLightShadowBindGroupLayoutDescriptorForView("2d-array");
+}
+
 export function createStandardLightPointShadowBindGroupLayoutDescriptor(): WebGpuBindGroupLayoutDescriptor {
   return createStandardLightShadowBindGroupLayoutDescriptorForView("cube");
 }
@@ -189,13 +195,15 @@ export function createStandardLightMultiShadowBindGroupLayoutDescriptor(): WebGp
 }
 
 function createStandardLightShadowBindGroupLayoutDescriptorForView(
-  viewDimension: "2d" | "cube",
+  viewDimension: "2d" | "2d-array" | "cube",
 ): WebGpuBindGroupLayoutDescriptor {
   return {
     label:
       viewDimension === "cube"
         ? STANDARD_LIGHT_POINT_SHADOW_BIND_GROUP_LAYOUT_KEY
-        : STANDARD_LIGHT_SHADOW_BIND_GROUP_LAYOUT_KEY,
+        : viewDimension === "2d-array"
+          ? STANDARD_LIGHT_CASCADED_SHADOW_BIND_GROUP_LAYOUT_KEY
+          : STANDARD_LIGHT_SHADOW_BIND_GROUP_LAYOUT_KEY,
     entries: [
       { binding: 0, visibility: 0x2, buffer: { type: "read-only-storage" } },
       { binding: 1, visibility: 0x2, buffer: { type: "read-only-storage" } },
@@ -279,7 +287,10 @@ export function createStandardLightShadowBindGroupLayoutResource(
   ) => unknown,
   layoutKey = STANDARD_LIGHT_SHADOW_BIND_GROUP_LAYOUT_KEY,
 ): StandardLightShadowBindGroupLayoutResource {
-  const descriptor = createStandardLightShadowBindGroupLayoutDescriptor();
+  const descriptor =
+    layoutKey === STANDARD_LIGHT_CASCADED_SHADOW_BIND_GROUP_LAYOUT_KEY
+      ? createStandardLightCascadedShadowBindGroupLayoutDescriptor()
+      : createStandardLightShadowBindGroupLayoutDescriptor();
 
   return {
     group: STANDARD_LIGHT_SHADOW_BIND_GROUP,
@@ -380,8 +391,8 @@ export function createStandardLightShadowBindGroupDescriptorPlan(
     group: STANDARD_LIGHT_SHADOW_BIND_GROUP,
     label,
     resourceKey:
-      diagnostics.length === 0
-        ? standardLightShadowBindGroupResourceKey(entries)
+      diagnostics.length === 0 && layoutKey !== null
+        ? standardLightShadowBindGroupResourceKey(entries, layoutKey)
         : null,
     layoutKey,
     entries,

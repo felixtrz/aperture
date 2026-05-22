@@ -352,17 +352,14 @@ export function createStandardMaterialShadowBindGroupDescriptorPlan(
       message:
         "StandardMaterial shadow bind-group descriptor planning requires an available shadow depth texture resource.",
     });
-  } else if (
-    depthTexture.viewDimension !== "2d" ||
-    shadowDepthLayerCount(depthTexture) !== 1
-  ) {
+  } else if (!isSupportedDirectionalShadowDepthView(depthTexture)) {
     diagnostics.push({
       code: "standardMaterialShadowBindGroup.unsupportedDepthTextureView",
       severity: "warning",
       binding: 1,
       resourceKey: depthTexture.textureKey,
       message:
-        "StandardMaterial shadow bind-group descriptor planning currently supports one 2D directional shadow map; cascaded 2D-array shadow sampling is not implemented yet.",
+        "StandardMaterial shadow bind-group descriptor planning supports one 2D directional shadow map or a 2D-array cascaded directional shadow map.",
     });
   } else {
     entries.push({
@@ -767,6 +764,20 @@ function firstValidDepthTextureResource(
 
 function shadowDepthLayerCount(resource: ShadowDepthTextureResource): number {
   return resource.layerCount ?? resource.faceCount;
+}
+
+function isSupportedDirectionalShadowDepthView(
+  resource: ShadowDepthTextureResource,
+): boolean {
+  if (resource.viewDimension === "2d") {
+    return shadowDepthLayerCount(resource) === 1;
+  }
+
+  return (
+    resource.viewDimension === "2d-array" &&
+    shadowDepthLayerCount(resource) >= 1 &&
+    shadowDepthLayerCount(resource) <= 4
+  );
 }
 
 function createShadowSamplerDescriptor(

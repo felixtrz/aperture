@@ -3,8 +3,10 @@ import { describe, expect, it } from "vitest";
 import {
   STANDARD_BASE_COLOR_METALLIC_ROUGHNESS_TEXTURE_SHADER_VARIANT,
   STANDARD_BASE_COLOR_TEXTURE_SHADER_VARIANT,
+  STANDARD_CASCADED_SHADOW_MAP_SHADER_VARIANT,
   STANDARD_DIFFUSE_IBL_SHADER_VARIANT,
   STANDARD_DIRECT_LIGHT_SHADER_VARIANT,
+  STANDARD_LIGHT_CASCADED_SHADOW_BIND_GROUP_LAYOUT_KEY,
   STANDARD_METALLIC_ROUGHNESS_TEXTURE_SHADER_VARIANT,
   STANDARD_SPECULAR_IBL_PROOF_SHADER_VARIANT,
   createStandardPipelineDescriptorPlan,
@@ -155,6 +157,38 @@ describe("standard material pipeline descriptor planning", () => {
     expect(descriptor.diagnostics).toEqual([]);
     expect(descriptor.plan?.descriptor.vertex).toMatchObject({
       buffers: ["POSITION", "NORMAL", "TEXCOORD_0", "INSTANCE_TINT"],
+    });
+  });
+
+  it("selects the cascaded shadow shader and array-depth bind-group layout", () => {
+    const batchKey = {
+      ...STANDARD_BATCH_KEY,
+      pipelineKey: "standard|shadowMap|cascadedShadowMap|opaque|back|less|none",
+    };
+    const featurePlan = createStandardPipelineShaderFeaturePlan(batchKey);
+    const descriptor = createStandardPipelineDescriptorPlan({
+      colorFormat: "bgra8unorm",
+      depthFormat: "depth24plus",
+      batchKey,
+    });
+
+    expect(featurePlan.features).toMatchObject({
+      shadowMap: true,
+      cascadedShadowMap: true,
+    });
+    expect(featurePlan.variantKey).toBe(
+      STANDARD_CASCADED_SHADOW_MAP_SHADER_VARIANT,
+    );
+    expect(
+      JSON.parse(required(descriptor.plan).cacheKey) as unknown,
+    ).toMatchObject({
+      layouts: {
+        bindGroups: expect.arrayContaining([
+          expect.stringContaining(
+            STANDARD_LIGHT_CASCADED_SHADOW_BIND_GROUP_LAYOUT_KEY,
+          ),
+        ]),
+      },
     });
   });
 

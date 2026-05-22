@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-22 10:34 UTC</dd>
+            <dd>2026-05-22 12:51 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -1289,13 +1289,16 @@
               rect/disk/sphere shape metadata through extraction, packed
               snapshots, WebGPU light buffers, and WGSL evaluation.
               <code>examples/area-light-shapes.html</code> proves the three
-              shapes with browser readback. Cascaded shadow maps have started:
-              directional shadow settings now carry <code>cascadeCount</code>
-              through extraction, packed snapshot transport, and renderer shadow
-              planning reports.
+              shapes with browser readback. Cascaded shadow maps now bind
+              2D-array directional shadow textures, submit one pass per cascade,
+              pack cascade far bounds and matrix-base metadata into light
+              buffers, select receiver cascades by view distance in
+              StandardMaterial WGSL, and
+              <code>examples/csm-directional-shadow.html</code> proves near/far
+              receiver shadows in headed Chrome.
             </dd>
             <dt>Next focus</dt>
-            <dd>continue task-3076 cascaded shadow maps</dd>
+            <dd>task-3077 outdoor CSM + area-light scene</dd>
           </dl>
         </aside>
       </header>
@@ -4255,18 +4258,20 @@
             <h3>Recommended next tasks</h3>
             <ul>
               <li>
-                <span class="badge amber">next</span> Build the remaining
-                <code>task-3076</code> GPU cascade texture, receiver selection,
-                and outdoor browser proof.
+                <span class="badge amber">next</span> Build
+                <code>task-3077</code>, an outdoor-style scene combining the
+                shipped directional CSM path with the existing RectAreaLight
+                route.
               </li>
               <li>
-                Anchor on PlayCanvas and Bevy CSM patterns while keeping shadow
-                split selection renderer-owned and ECS-authored settings
-                data-only.
+                Anchor on Three.js RectAreaLight and PlayCanvas outdoor lighting
+                patterns while keeping scene authoring worker-owned and render
+                resources derived from snapshots.
               </li>
               <li>
-                The data contract is in place; keep the next step narrow around
-                executable cascaded shadow resources and visible pixel proof.
+                Assert multiple-distance CSM shadows and visible area-light
+                contribution in one browser proof without changing renderer
+                ownership boundaries.
               </li>
             </ul>
           </article>

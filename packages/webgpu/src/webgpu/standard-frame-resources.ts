@@ -202,7 +202,12 @@ export interface StandardFrameShadowReceiverResourceSet {
 }
 
 export interface StandardFrameShadowReceiverResources extends StandardFrameShadowReceiverResourceSet {
-  readonly shadowKind?: "directional" | "point" | "spot" | "multi";
+  readonly shadowKind?:
+    | "directional"
+    | "directional-cascaded"
+    | "point"
+    | "spot"
+    | "multi";
   readonly spotShadowReceiverResources?: StandardFrameShadowReceiverResourceSet;
   readonly pointShadowReceiverResources?: StandardFrameShadowReceiverResourceSet;
 }

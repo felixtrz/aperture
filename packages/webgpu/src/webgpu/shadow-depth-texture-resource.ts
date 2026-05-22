@@ -226,6 +226,26 @@ export function shadowDepthTextureResourceReportToJson(
   return JSON.stringify(shadowDepthTextureResourceReportToJsonValue(report));
 }
 
+export function resolveShadowDepthTextureAttachmentView(
+  report: ShadowDepthTextureResourceReport,
+  attachment: {
+    readonly shadowId: number;
+    readonly lightId: number;
+    readonly viewKey: string;
+  },
+): unknown | null {
+  const resource = report.resources.find(
+    (candidate) =>
+      candidate.shadowId === attachment.shadowId &&
+      candidate.lightId === attachment.lightId,
+  );
+  const attachmentView = resource?.attachmentViews.find(
+    (view) => view.viewKey === attachment.viewKey,
+  );
+
+  return attachmentView?.view ?? null;
+}
+
 function createShadowDepthTextureResource(
   device: TextureGpuDeviceLike,
   texture: ShadowTextureResourceDescriptor,

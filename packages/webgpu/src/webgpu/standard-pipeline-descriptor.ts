@@ -29,6 +29,7 @@ import {
   STANDARD_SKINNED_MORPH_TARGET_BIND_GROUP_LAYOUT_KEY,
   standardMorphTargetsEnabledFromBatchKey,
 } from "./standard-morph-target-shader.js";
+import { STANDARD_LIGHT_CASCADED_SHADOW_BIND_GROUP_LAYOUT_KEY } from "./standard-light-shadow-bind-group.js";
 import type { BuiltInShaderSourceModule } from "./unlit-shader.js";
 
 export const STANDARD_DEFERRED_PIPELINE_FEATURES = [] as const;
@@ -282,11 +283,13 @@ function standardBindGroupLayoutKeys(
       : features.pointShadowMap === true
         ? "standard/lights-point-shadow/group-3:light-floats@0,light-metadata@1,matrix@2,depth-cube@3,sampler@4"
         : features.shadowMap === true
-          ? features.iblDiffuse === true
-            ? features.iblSpecularProof === true
-              ? "standard/lights-shadow-ibl/group-3:light-floats@0,light-metadata@1,matrix@2,depth@3,sampler@4,diffuse-ibl@5,ibl-sampler@6,specular-ibl-proof@7"
-              : "standard/lights-shadow-ibl/group-3:light-floats@0,light-metadata@1,matrix@2,depth@3,sampler@4,diffuse-ibl@5,ibl-sampler@6"
-            : "standard/lights-shadow/group-3:light-floats@0,light-metadata@1,matrix@2,depth@3,sampler@4"
+          ? features.cascadedShadowMap === true && features.iblDiffuse !== true
+            ? `${STANDARD_LIGHT_CASCADED_SHADOW_BIND_GROUP_LAYOUT_KEY}:light-floats@0,light-metadata@1,matrix@2,depth-array@3,sampler@4`
+            : features.iblDiffuse === true
+              ? features.iblSpecularProof === true
+                ? "standard/lights-shadow-ibl/group-3:light-floats@0,light-metadata@1,matrix@2,depth@3,sampler@4,diffuse-ibl@5,ibl-sampler@6,specular-ibl-proof@7"
+                : "standard/lights-shadow-ibl/group-3:light-floats@0,light-metadata@1,matrix@2,depth@3,sampler@4,diffuse-ibl@5,ibl-sampler@6"
+              : "standard/lights-shadow/group-3:light-floats@0,light-metadata@1,matrix@2,depth@3,sampler@4"
           : features.iblDiffuse === true
             ? features.iblSpecularProof === true
               ? "standard/lights-ibl/group-3:light-floats@0,light-metadata@1,diffuse-ibl@5,ibl-sampler@6,specular-ibl-proof@7"
@@ -324,6 +327,7 @@ function standardTextureFeatures(
     occlusionTexture: tokens.includes("occlusionTexture"),
     emissiveTexture: tokens.includes("emissiveTexture"),
     shadowMap: tokens.includes("shadowMap"),
+    cascadedShadowMap: tokens.includes("cascadedShadowMap"),
     pointShadowMap: tokens.includes("pointShadowMap"),
     iblDiffuse: tokens.includes("iblDiffuse"),
     iblSpecularProof: tokens.includes("iblSpecularProof"),

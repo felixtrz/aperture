@@ -1,6 +1,8 @@
 import {
+  STANDARD_LIGHT_CASCADED_SHADOW_BIND_GROUP_LAYOUT_KEY,
   STANDARD_LIGHT_MULTI_SHADOW_BIND_GROUP_LAYOUT_KEY,
   STANDARD_LIGHT_SHADOW_BIND_GROUP_LAYOUT_KEY,
+  createStandardLightCascadedShadowBindGroupLayoutDescriptor,
   createStandardLightMultiShadowBindGroupDescriptorPlan,
   createStandardLightMultiShadowBindGroupLayoutDescriptor,
   createStandardLightShadowBindGroupDescriptorPlan,
@@ -24,6 +26,29 @@ describe("StandardMaterial light/shadow bind group", () => {
           texture: {
             sampleType: "depth",
             viewDimension: "2d",
+            multisampled: false,
+          },
+        },
+        { binding: 4, visibility: 2, sampler: { type: "comparison" } },
+      ],
+    });
+  });
+
+  it("plans a browser-safe group 3 layout for cascaded directional shadow arrays", () => {
+    expect(
+      createStandardLightCascadedShadowBindGroupLayoutDescriptor(),
+    ).toEqual({
+      label: STANDARD_LIGHT_CASCADED_SHADOW_BIND_GROUP_LAYOUT_KEY,
+      entries: [
+        { binding: 0, visibility: 2, buffer: { type: "read-only-storage" } },
+        { binding: 1, visibility: 2, buffer: { type: "read-only-storage" } },
+        { binding: 2, visibility: 3, buffer: { type: "read-only-storage" } },
+        {
+          binding: 3,
+          visibility: 2,
+          texture: {
+            sampleType: "depth",
+            viewDimension: "2d-array",
             multisampled: false,
           },
         },

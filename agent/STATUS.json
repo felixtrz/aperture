@@ -6,6 +6,6 @@
   "lastResult": "success",
   "lastCommit": "62aff5a",
   "activePid": null,
-  "notes": "Completed task-3075 area light shapes; started task-3076 CSM cascadeCount planning contract and guarded unsupported CSM 2D-array receiver path. Full check passed; CURRENT_TASK points to task-3076.",
-  "lastRunFinishedAt": "2026-05-22T11:50:44Z"
+  "notes": "Completed task-3076 directional CSM with 2D-array shadow textures, per-cascade passes, StandardMaterial CSM receiver sampling, browser example proof, tracker and handoff updates. Validation passed: diff check, progress tracker, typecheck/build, test typecheck, example syntax checks, and targeted WebGPU unit tests.",
+  "lastRunFinishedAt": "2026-05-22T12:55:06Z"
 }

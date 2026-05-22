@@ -1,6 +1,110 @@
 # Agent Handoff
 
-Updated: 2026-05-22T11:49:53Z
+Updated: 2026-05-22T12:51:48Z
+
+## Current Run Update — 2026-05-22T12:51:48Z — Directional CSM shipped
+
+Completed `task-3076`. Recommended next task is `task-3077`, the outdoor scene
+that combines the shipped directional CSM path with the existing RectAreaLight
+route.
+
+### What changed
+
+- Added executable directional cascaded shadow maps for 1-4 cascades using
+  renderer-owned 2D-array shadow depth textures and per-cascade attachment
+  views.
+- Extended StandardMaterial light packing so directional shadow receivers get
+  cascade count, far bounds, and matrix-base metadata in the existing light
+  buffers.
+- Added a cascaded StandardMaterial shadow-map shader/layout variant that binds
+  `texture_depth_2d_array`, selects a cascade by receiver view distance, and
+  samples the selected array layer with the existing receiver/caster factors.
+- Routed CSM light/shadow resources through standard app pipeline layout and
+  frame-resource paths while preserving the ECS-authored snapshot as the source
+  of truth.
+- Added `examples/csm-directional-shadow.html` with a renderer-only main entry,
+  worker-authored scene, 4-cascade directional shadow request, per-cascade pass
+  submission, and near/far receiver readbacks.
+- Updated public progress tracker pages, completed-task log, backlog, and the
+  current-task pointer.
+
+### Files touched
+
+- Agent/docs: `agent/BACKLOG.md`, `agent/COMPLETED.md`,
+  `agent/CURRENT_TASK.md`, `agent/HANDOFF.md`, `docs/index.html`,
+  `docs/render-pipeline-comparison.html`.
+- Examples/tests: `package.json`, `examples/index.html`,
+  `examples/csm-directional-shadow.html`,
+  `examples/csm-directional-shadow.js`,
+  `examples/csm-directional-shadow.main.js`,
+  `examples/csm-directional-shadow.worker.js`,
+  `examples/csm-directional-shadow-scene.js`,
+  `test/e2e/csm-directional-shadow.spec.ts`.
+- WebGPU: `packages/webgpu/src/webgpu/app.ts`,
+  `packages/webgpu/src/webgpu/light-packing.ts`,
+  `packages/webgpu/src/webgpu/shadow-depth-texture-resource.ts`,
+  `packages/webgpu/src/webgpu/standard-frame-resources.ts`,
+  `packages/webgpu/src/webgpu/standard-light-shadow-bind-group.ts`,
+  `packages/webgpu/src/webgpu/standard-material-shadow-bind-group.ts`,
+  `packages/webgpu/src/webgpu/standard-pipeline-descriptor.ts`,
+  `packages/webgpu/src/webgpu/standard-shader.ts`.
+- Targeted WebGPU tests: `test/webgpu/light-packing.test.ts`,
+  `test/webgpu/shadow-depth-texture-resource.test.ts`,
+  `test/webgpu/standard-light-shadow-bind-group.test.ts`,
+  `test/webgpu/standard-material-shadow-bind-group.test.ts`,
+  `test/webgpu/standard-pipeline-descriptor.test.ts`,
+  `test/webgpu/standard-shader.test.ts`.
+
+### References inspected
+
+- `references/engine/src/scene/renderer/shadow-renderer-directional.js`
+- `references/engine/src/scene/renderer/render-pass-shadow-directional.js`
+- `references/bevy/crates/bevy_light/src/cascade.rs`
+- `references/bevy/crates/bevy_pbr/src/render/light.rs`
+- `references/bevy/crates/bevy_pbr/src/render/mesh_view_types.wgsl`
+- `references/bevy/crates/bevy_pbr/src/render/mesh_view_bindings.wgsl`
+- `references/bevy/crates/bevy_pbr/src/render/shadows.wgsl`
+- `references/bevy/crates/bevy_pbr/src/render/shadow_sampling.wgsl`
+- `references/three.js/src/lights/LightShadow.js`
+- `references/three.js/src/lights/DirectionalLightShadow.js`
+
+Common pattern adapted: PlayCanvas renders directional CSM as per-layer shadow
+passes, Bevy stores cascade matrix/far-bound metadata in extracted light GPU
+payloads and samples a depth texture array, and Three.js's directional shadow
+matrix path provided the single-cascade baseline. Aperture keeps authored
+settings in ECS snapshots and derives all GPU resources/passes from those
+snapshots.
+
+### Validation
+
+- `git diff --check` passed.
+- `pnpm run check:progress` passed.
+- `pnpm exec vitest run test/webgpu/light-packing.test.ts test/webgpu/standard-shader.test.ts test/webgpu/standard-light-shadow-bind-group.test.ts test/webgpu/standard-pipeline-descriptor.test.ts test/webgpu/standard-material-shadow-bind-group.test.ts test/webgpu/shadow-depth-texture-resource.test.ts`
+  passed: 6 files, 88 tests.
+- `pnpm run typecheck` passed.
+- `pnpm run typecheck:test` passed.
+- `pnpm run check:examples` passed.
+- Focused headed Playwright for
+  `test/e2e/csm-directional-shadow.spec.ts` reached the passing assertion
+  checkmark for near/far CSM shadows, then hit the known local Playwright
+  teardown hang and was stopped after the checkmark.
+
+### Known issues
+
+- Local headed Playwright can hang during teardown after printing a passing
+  checkmark; no stale CSM Playwright/server processes were left running.
+- CSM split bounds use a first-slice practical split based on directional light
+  `range`; higher-quality split tuning remains future work.
+- Combined CSM + IBL and broader multi-shadow CSM permutations remain unproven.
+- Area-light evaluation still uses first-slice/procedural LTC resources; full
+  LTC table payloads remain future work.
+
+### Recommended next task
+
+Start `task-3077`: outdoor scene example with CSM + area light. Combine the
+new CSM directional sun path with the existing RectAreaLight route in a
+worker-authored scene, then add browser proof for multiple-distance CSM shadows
+and visible area-light contribution.
 
 ## Current Run Update — 2026-05-22T11:49:53Z — Area light shapes shipped, CSM contract started
 

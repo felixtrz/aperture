@@ -83,6 +83,30 @@ describe("light packet packing", () => {
     ]);
   });
 
+  it("packs directional cascade counts, far bounds, and matrix base indices from shadow requests", () => {
+    const packed = packLightPackets(
+      snapshot(
+        [light("directional", 1), light("directional", 2)],
+        [shadowRequest(101, 2), shadowRequest(102, 3)],
+      ),
+    );
+    const secondOffset = PACKED_LIGHT_FLOAT_STRIDE;
+
+    expect(packed.floats[5]).toBe(2);
+    expect(packed.floats[10]).toBe(0);
+    expect(packed.floats[secondOffset + 5]).toBe(3);
+    expect(packed.floats[secondOffset + 10]).toBe(2);
+    expect(packed.floats[secondOffset + 6]).toBeGreaterThan(0);
+    expect(packed.floats[secondOffset + 6]).toBeLessThan(
+      packed.floats[secondOffset + 7] ?? 0,
+    );
+    expect(packed.floats[secondOffset + 7]).toBeLessThan(
+      packed.floats[secondOffset + 8] ?? 0,
+    );
+    expect(packed.floats[secondOffset + 8]).toBe(40);
+    expect(packed.floats[secondOffset + 9]).toBe(40);
+  });
+
   it("returns stable empty typed arrays for snapshots without lights", () => {
     const packed = packLightPackets([]);
 
@@ -361,8 +385,23 @@ function required<T>(value: T | null | undefined): T {
 
 function snapshot(
   lights: readonly LightPacket[],
-): Pick<RenderSnapshot, "lights"> {
-  return { lights };
+  shadowRequests: RenderSnapshot["shadowRequests"] = [],
+): Pick<RenderSnapshot, "lights" | "shadowRequests"> {
+  return { lights, shadowRequests };
+}
+
+function shadowRequest(
+  lightId: number,
+  cascadeCount: number,
+): RenderSnapshot["shadowRequests"][number] {
+  return {
+    shadowId: lightId,
+    lightId,
+    lightKind: "directional",
+    cascadeCount,
+    casterLayerMask: 1,
+    receiverLayerMask: 1,
+  };
 }
 
 function metadataColumn(values: Int32Array, column: number): number[] {

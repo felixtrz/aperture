@@ -1,5 +1,25 @@
 # Completed Tasks
 
+## task-3076 — Cascaded shadow maps for directional lights
+
+Completed: 2026-05-22
+
+- Added executable directional CSM support for 1-4 cascades using
+  renderer-owned 2D-array shadow depth textures and per-cascade attachment
+  views.
+- Packed cascade far bounds and matrix-base metadata into the existing light
+  buffers so StandardMaterial can select the receiver cascade by view distance.
+- Added a cascaded shadow-map StandardMaterial shader/layout variant that
+  samples the selected depth-array layer while keeping ECS light/shadow settings
+  data-only.
+- Added `examples/csm-directional-shadow.html` with a worker-authored scene,
+  per-cascade shadow submission, near/far receiver readbacks, and headed Chrome
+  proof.
+- Validation run: targeted WebGPU Vitest coverage, typecheck, test typecheck,
+  example syntax checks, and tracker checks passed. The focused headed
+  Playwright assertion reached a pass checkmark, then hit the known local
+  runner teardown hang and was stopped after the checkmark.
+
 ## task-3075 — Disk and sphere area lights
 
 Completed: 2026-05-22

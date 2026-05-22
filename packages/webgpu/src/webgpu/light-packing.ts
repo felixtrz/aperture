@@ -3,6 +3,7 @@ import type {
   LightKind,
   LightPacket,
   RenderSnapshot,
+  ShadowRequestPacket,
 } from "@aperture-engine/render";
 import type { WebGpuBufferDescriptor } from "./buffer.js";
 import {
@@ -206,7 +207,8 @@ export interface CreateLightGpuBuffersResultJsonValue {
 
 export type PackLightPacketsInput =
   | readonly LightPacket[]
-  | Pick<RenderSnapshot, "lights">;
+  | (Pick<RenderSnapshot, "lights"> &
+      Partial<Pick<RenderSnapshot, "shadowRequests">>);
 
 export type CreateLightBufferDescriptorInput =
   | PackedLightPackets
@@ -245,6 +247,9 @@ export function writePackedLightPackets(
   scratch: LightPacketPackingScratch,
 ): PackedLightPackets {
   const lights = isLightPacketArray(input) ? input : input.lights;
+  const directionalShadows = isLightPacketArray(input)
+    ? null
+    : directionalShadowMetadata(input.shadowRequests ?? []);
 
   ensureLightPacketCapacity(scratch, lights.length);
 
@@ -257,6 +262,17 @@ export function writePackedLightPackets(
 
     const floatOffset = index * PACKED_LIGHT_FLOAT_STRIDE;
     const metadataOffset = index * PACKED_LIGHT_METADATA_STRIDE;
+    const directionalShadow =
+      light.kind === "directional"
+        ? (directionalShadows?.get(light.lightId) ?? null)
+        : null;
+    const directionalFarBounds =
+      directionalShadow === null
+        ? null
+        : directionalCascadeFarBounds(
+            directionalShadow.cascadeCount,
+            light.range,
+          );
 
     scratch.floats.set(
       [
@@ -265,12 +281,13 @@ export function writePackedLightPackets(
         light.color[2] ?? 0,
         light.color[3] ?? 1,
         light.intensity,
-        light.range,
-        light.innerConeAngle,
-        light.outerConeAngle,
-        light.width ?? 0,
-        light.height ?? 0,
-        packedAreaLightShapeId(light.shape),
+        directionalShadow?.cascadeCount ?? light.range,
+        directionalFarBounds?.[0] ?? light.innerConeAngle,
+        directionalFarBounds?.[1] ?? light.outerConeAngle,
+        directionalFarBounds?.[2] ?? light.width ?? 0,
+        directionalFarBounds?.[3] ?? light.height ?? 0,
+        directionalShadow?.matrixBaseIndex ??
+          packedAreaLightShapeId(light.shape),
         0,
       ],
       floatOffset,
@@ -549,6 +566,74 @@ function isPackedLightPackets(
     "floatStride" in input &&
     "metadataStride" in input
   );
+}
+
+interface DirectionalShadowMetadata {
+  readonly cascadeCount: number;
+  readonly matrixBaseIndex: number;
+}
+
+function directionalShadowMetadata(
+  shadowRequests: readonly ShadowRequestPacket[],
+): ReadonlyMap<number, DirectionalShadowMetadata> {
+  const metadata = new Map<number, DirectionalShadowMetadata>();
+  let matrixBaseIndex = 0;
+
+  for (const request of shadowRequests) {
+    if (
+      request.lightKind !== undefined &&
+      request.lightKind !== "directional"
+    ) {
+      continue;
+    }
+
+    const cascadeCount = clampDirectionalCascadeCount(
+      request.cascadeCount ?? 1,
+    );
+
+    metadata.set(request.lightId, {
+      cascadeCount,
+      matrixBaseIndex,
+    });
+    matrixBaseIndex += cascadeCount;
+  }
+
+  return metadata;
+}
+
+function directionalCascadeFarBounds(
+  cascadeCount: number,
+  shadowDistance: number,
+): readonly [number, number, number, number] {
+  const count = clampDirectionalCascadeCount(cascadeCount);
+  const maximumDistance = Math.max(1, shadowDistance);
+  const minimumDistance = Math.min(0.1, maximumDistance * 0.5);
+  const bounds = [
+    maximumDistance,
+    maximumDistance,
+    maximumDistance,
+    maximumDistance,
+  ] as [number, number, number, number];
+
+  for (let index = 0; index < count; index += 1) {
+    const fraction = (index + 1) / count;
+    const linear =
+      minimumDistance + (maximumDistance - minimumDistance) * fraction;
+    const logarithmic =
+      minimumDistance * Math.pow(maximumDistance / minimumDistance, fraction);
+    bounds[index] =
+      index + 1 === count ? maximumDistance : (linear + logarithmic) * 0.5;
+  }
+
+  return bounds;
+}
+
+function clampDirectionalCascadeCount(value: number): 1 | 2 | 3 | 4 {
+  if (!Number.isInteger(value)) {
+    return 1;
+  }
+
+  return Math.min(4, Math.max(1, value)) as 1 | 2 | 3 | 4;
 }
 
 function ensureLightPacketCapacity(

@@ -229,7 +229,7 @@ describe("StandardMaterial shadow bind group descriptor planning", () => {
     );
   });
 
-  it("blocks cascaded 2D-array depth textures until receiver sampling supports them", () => {
+  it("accepts cascaded 2D-array depth textures after receiver sampling support", () => {
     const device = deviceWithResources();
     const resources = shadowResources(device);
     const request = { ...shadowRequest(), cascadeCount: 3 };
@@ -252,9 +252,17 @@ describe("StandardMaterial shadow bind group descriptor planning", () => {
         depthTextureResources,
       });
 
-    expect(report.status).toBe("missing");
-    expect(report.sections.depthTextureResource).toBe(false);
-    expect(report.diagnostics.map((diagnostic) => diagnostic.code)).toContain(
+    expect(report.status).toBe("deferred");
+    expect(report.sections.depthTextureResource).toBe(true);
+    expect(report.plan?.entries).toContainEqual({
+      group: 5,
+      binding: 1,
+      resourceKey: "shadow-map:7:light:11:texture",
+      resourceKind: "texture-view",
+    });
+    expect(
+      report.diagnostics.map((diagnostic) => diagnostic.code),
+    ).not.toContain(
       "standardMaterialShadowBindGroup.unsupportedDepthTextureView",
     );
   });

@@ -59,17 +59,17 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Continue `task-3076`: Cascaded shadow maps for directional lights.
+Start `task-3077`: Outdoor scene example with CSM + area light.
 
 Why this next: Tier 16 now has RectAreaLight/LTC plus rect/disk/sphere
 area-light shape metadata carried through ECS authoring, extraction, fixed-stride
 snapshot encoding, WebGPU light packing, diagnostics, and the browser-proven
-`examples/area-light-shapes.html` comparison. `task-3076` has started with the
-data contract for directional shadow cascades: `cascadeCount` validates 1-4
-cascades and survives extraction, packed snapshot transport, and renderer shadow
-planning reports. The remaining visible gap is executable cascaded directional
-shadow sampling and an outdoor browser proof without changing the ECS-first
-ownership model.
+`examples/area-light-shapes.html` comparison. `task-3076` added executable
+directional CSM: 1-4 cascade settings survive extraction/transport, WebGPU
+creates 2D-array shadow resources and submits one pass per cascade, and
+StandardMaterial selects receiver cascades by view distance. The remaining
+visible gap is a combined outdoor scene that proves CSM and area-light
+contribution together without changing the ECS-first ownership model.
 
 Progress so far: `spinning-cube`, `multi-light-shadow`, and `glb-viewer` now
 use renderer-only `*.main.js` files plus ECS/extraction-owned `*.worker.js`
@@ -1074,26 +1074,27 @@ Acceptance criteria:
 - Browser proof distinguishes rect/disk/sphere illumination patterns with
   readback samples and no WebGPU validation warnings.
 
-### task-3076 — Cascaded shadow maps for directional lights (Tier 16 part 3)
+### task-3076 — Cascaded shadow maps for directional lights (Tier 16 part 3) — Completed 2026-05-22
 
 Category: `webgpu-render`
 Package/write-scope: `packages/webgpu/src/webgpu/directional-shadow-*.ts`, targeted tests.
 Reference anchor: `references/engine/src/scene/renderer/shadow-renderer-directional.js` (PlayCanvas CSM with up to 4 cascades); `references/bevy/crates/bevy_light/src/cascade.rs` and `references/bevy/crates/bevy_pbr/src/render/light.rs` (Bevy cascade config/extraction and GPU light payloads).
 Insertion point: extend the directional shadow path to render N cascades (1-4 configurable) with distance-based selection in the receiver shader.
 
-Progress 2026-05-22: `LightShadowSettings.cascadeCount` now validates 1-4,
+Completed 2026-05-22: `LightShadowSettings.cascadeCount` validates 1-4,
 extraction includes the count on directional `ShadowRequestPacket`s, packed
 snapshot encoding carries it, and WebGPU shadow descriptor/texture/pass,
 directional view-projection, and matrix-computation reports fan a directional
-shadow request into per-cascade records. StandardMaterial shadow bind-group
-planning now explicitly blocks cascaded 2D-array depth textures until receiver
-sampling supports them. Remaining: executable CSM texture-array binding, pass
-submission, receiver shader cascade selection, and outdoor browser proof.
+shadow request into per-cascade records. StandardMaterial now supports a
+cascaded shadow-map shader/layout variant, binds 2D-array depth textures,
+selects receiver cascades by view distance, samples the selected array layer,
+and `examples/csm-directional-shadow.html` proves near/far receiver shadows in
+headed Chrome.
 
 Acceptance criteria:
 
 - `LightShadowSettings.cascadeCount` (1-4) supported.
-- Outdoor scene with foreground + far background shows sharp shadows in both, proving the cascades are sampled by distance.
+- Worker-authored CSM scene with foreground + far background shows shadows in both, proving the cascades are sampled by distance.
 
 ### task-3077 — Outdoor scene example with CSM + area light (Tier 16 part 4)
 

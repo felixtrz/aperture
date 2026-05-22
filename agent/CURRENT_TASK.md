@@ -3,14 +3,12 @@
 If this file names a task, the next agent should prioritize that task over
 selecting a new one from `agent/BACKLOG.md`.
 
-Current task: `task-3076` — Cascaded shadow maps for directional lights.
+Current task: `task-3077` — Outdoor scene example with CSM + area light.
 
-Status: started 2026-05-22. The data-contract/planning slice is in place:
-`LightShadowSettings.cascadeCount` validates 1-4, extraction and packed snapshot
-transport preserve it, WebGPU shadow descriptor/texture/pass/view-projection and
-matrix reports fan directional shadow requests into per-cascade records, and
-StandardMaterial shadow bind-group planning blocks cascaded 2D-array depth views
-until receiver sampling supports them.
+Status: ready. Dependencies `task-3074` and `task-3076` are complete:
+RectAreaLight/LTC, area-light shape metadata, and executable directional CSM
+receiver sampling now exist.
 
-Next step: implement executable CSM texture-array binding/submission,
-distance-based receiver cascade selection, and the outdoor browser proof.
+Next step: add an outdoor-style worker-authored example combining a directional
+sun with 1-4 CSM cascades and a RectAreaLight contribution, then add Playwright
+proof for shadows at multiple distances plus visible area-light illumination.

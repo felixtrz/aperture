@@ -24,6 +24,7 @@ import {
   PACKED_LIGHT_METADATA_STRIDE,
   PackedAreaLightShapeId,
   PackedLightKindId,
+  STANDARD_CASCADED_SHADOW_MAP_SHADER_VARIANT,
   STANDARD_SKINNING_BIND_GROUP_LAYOUT_KEY,
   STANDARD_SHADOW_MAP_SHADER_VARIANT,
   STANDARD_SHADOW_RECEIVER_MESH_SHADER,
@@ -462,6 +463,47 @@ describe("built-in standard material WGSL shader metadata", () => {
     );
     expect(shader.code).not.toContain(
       "let receiverDepth = 1.0 - STANDARD_POINT_SHADOW_DEPTH_BIAS;",
+    );
+  });
+
+  it("declares cascaded directional shadow array sampling and distance selection", () => {
+    const shader = createStandardTextureVariantShader({
+      baseColorTexture: false,
+      metallicRoughnessTexture: false,
+      normalTexture: false,
+      occlusionTexture: false,
+      emissiveTexture: false,
+      shadowMap: true,
+      cascadedShadowMap: true,
+    });
+
+    expect(validateStandardShaderMetadata(shader)).toEqual({
+      valid: true,
+      diagnostics: [],
+    });
+    expect(STANDARD_CASCADED_SHADOW_MAP_SHADER_VARIANT).toBe(
+      "direct-lit-metallic-roughness-cascaded-shadow-map",
+    );
+    expect(shader.label).toBe(
+      "aperture/standard-mesh-cascaded-shadow-receiver",
+    );
+    expect(shader.code).toContain(
+      "@group(3) @binding(3) var directionalShadowMap: texture_depth_2d_array;",
+    );
+    expect(shader.code).toContain(
+      "fn selectDirectionalShadowCascade(lightIndex: u32, worldPosition: vec3f) -> u32",
+    );
+    expect(shader.code).toContain(
+      "let viewDistance = distance(view.cameraPosition.xyz, worldPosition);",
+    );
+    expect(shader.code).toContain(
+      "textureSampleCompareLevel(\n        directionalShadowMap,\n        directionalShadowSampler,\n        sampleUv,\n        i32(cascadeIndex),",
+    );
+    expect(shader.code).toContain(
+      "fn sampleDirectionalShadowReceiverFactor(worldPosition: vec3f) -> f32",
+    );
+    expect(shader.code).toContain(
+      "let shadowFactor = sampleDirectionalShadowFactor(lightIndex, input.worldPosition);",
     );
   });
 
