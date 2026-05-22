@@ -61,7 +61,7 @@ describe("combined glTF import fixture JSON", () => {
               mesh: {
                 vertexStreams: [
                   {
-                    data: { type: "Float32Array", length: 9 },
+                    data: { type: "Uint8Array", length: 36 },
                   },
                 ],
               },

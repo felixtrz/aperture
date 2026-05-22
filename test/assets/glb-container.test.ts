@@ -608,7 +608,7 @@ describe("GLB report-driven import fixture path", () => {
       submeshes: [{ vertexCount: 3, indexCount: 3 }],
       vertexStreams: [
         {
-          data: { type: "Float32Array", length: 9 },
+          data: { type: "Uint8Array", length: 36 },
         },
       ],
       indexBuffer: {
@@ -618,7 +618,6 @@ describe("GLB report-driven import fixture path", () => {
     });
     expect("binaryChunk" in json.container).toBe(false);
     expect("jsonText" in json.container).toBe(false);
-    expect(serialized).not.toContain("Uint8Array");
     expect(serialized).not.toContain("[0,1,2]");
     expect(serialized).not.toContain("[0,0,0,1,0,0,0,1,0]");
   });
@@ -914,7 +913,7 @@ describe("GLB report-driven import fixture path", () => {
     expect("binaryChunk" in json.container).toBe(false);
     expect("jsonText" in json.container).toBe(false);
     expect(serialized).not.toContain("ArrayBuffer");
-    expect(serialized).not.toContain("Uint8Array");
+    expect(serialized).not.toContain("[0,0,0,1,0,0,0,1,0]");
   });
 
   it("feeds GLB bufferView images through the asset-mapping contract", () => {

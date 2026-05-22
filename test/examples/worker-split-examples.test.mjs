@@ -338,8 +338,9 @@ describe("worker-split examples", () => {
       "packages/render/src/materials/gltf-texture.ts",
     );
 
-    expect(viewer).toContain("createGlbViewerImageDecoder");
     expect(viewer).toContain("loadGlbFromUri");
+    expect(viewer).toContain("createBasisKtx2Transcoder");
+    expect(viewer).toContain("ktx2TextureCompression");
     expect(texture).toContain('typeof createImageBitmap !== "function"');
     expect(texture).toContain('typeof OffscreenCanvas === "function"');
     expect(texture).toContain('typeof document !== "undefined"');
