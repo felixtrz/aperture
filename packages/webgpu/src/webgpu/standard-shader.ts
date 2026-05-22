@@ -58,6 +58,9 @@ export interface StandardTextureShaderFeatures {
   readonly instanceTint?: boolean;
   readonly skinned?: boolean;
   readonly morphed?: boolean;
+  readonly fogLinear?: boolean;
+  readonly fogExp?: boolean;
+  readonly fogExp2?: boolean;
 }
 
 export const STANDARD_MATERIAL_MVP_LIGHTING_MODEL = {
@@ -78,6 +81,9 @@ export const STANDARD_MATERIAL_MVP_LIGHTING_MODEL = {
     "rectAreaLight",
     "diskAreaLight",
     "sphereAreaLight",
+    "linearFog",
+    "exponentialFog",
+    "exponentialSquaredFog",
   ],
   deferred: ["imageBasedLighting", "shadows"],
 } as const;
@@ -89,6 +95,8 @@ export const STANDARD_MESH_WGSL = `
 struct ViewProjectionUniform {
   viewProjection: mat4x4f,
   cameraPosition: vec4f,
+  fogColor: vec4f,
+  fogParams: vec4f,
 };
 
 struct StandardMaterialUniform {
@@ -819,7 +827,8 @@ export function createStandardTextureShaderVariantKey(
     features.vertexColor !== true &&
     features.instanceTint !== true &&
     features.skinned !== true &&
-    features.morphed !== true
+    features.morphed !== true &&
+    !hasStandardFogFeature(features)
   ) {
     return STANDARD_METALLIC_ROUGHNESS_TEXTURE_SHADER_VARIANT;
   }
@@ -839,7 +848,8 @@ export function createStandardTextureShaderVariantKey(
     features.vertexColor !== true &&
     features.instanceTint !== true &&
     features.skinned !== true &&
-    features.morphed !== true
+    features.morphed !== true &&
+    !hasStandardFogFeature(features)
   ) {
     return STANDARD_SHADOW_MAP_SHADER_VARIANT;
   }
@@ -859,7 +869,8 @@ export function createStandardTextureShaderVariantKey(
     features.vertexColor !== true &&
     features.instanceTint !== true &&
     features.skinned !== true &&
-    features.morphed !== true
+    features.morphed !== true &&
+    !hasStandardFogFeature(features)
   ) {
     return STANDARD_CASCADED_SHADOW_MAP_SHADER_VARIANT;
   }
@@ -879,7 +890,8 @@ export function createStandardTextureShaderVariantKey(
     features.vertexColor !== true &&
     features.instanceTint !== true &&
     features.skinned !== true &&
-    features.morphed !== true
+    features.morphed !== true &&
+    !hasStandardFogFeature(features)
   ) {
     return STANDARD_POINT_SHADOW_MAP_SHADER_VARIANT;
   }
@@ -899,7 +911,8 @@ export function createStandardTextureShaderVariantKey(
     features.vertexColor !== true &&
     features.instanceTint !== true &&
     features.skinned !== true &&
-    features.morphed !== true
+    features.morphed !== true &&
+    !hasStandardFogFeature(features)
   ) {
     return STANDARD_MULTI_SHADOW_MAP_SHADER_VARIANT;
   }
@@ -919,7 +932,8 @@ export function createStandardTextureShaderVariantKey(
     features.vertexColor !== true &&
     features.instanceTint !== true &&
     features.skinned !== true &&
-    features.morphed !== true
+    features.morphed !== true &&
+    !hasStandardFogFeature(features)
   ) {
     return STANDARD_DIFFUSE_IBL_SHADER_VARIANT;
   }
@@ -939,7 +953,8 @@ export function createStandardTextureShaderVariantKey(
     features.vertexColor !== true &&
     features.instanceTint !== true &&
     features.skinned !== true &&
-    features.morphed !== true
+    features.morphed !== true &&
+    !hasStandardFogFeature(features)
   ) {
     return STANDARD_SPECULAR_IBL_PROOF_SHADER_VARIANT;
   }
@@ -1000,6 +1015,7 @@ export function createStandardTextureShaderVariantKey(
 
   appendStandardSkinningFeatureName(names, features);
   appendStandardMorphTargetFeatureName(names, features);
+  appendStandardFogFeatureName(names, features);
 
   return `${STANDARD_DIRECT_LIGHT_SHADER_VARIANT}-${names.join("-")}-texture`;
 }
@@ -1403,6 +1419,10 @@ ${emissive}
     code = applyStandardSpecularIblProofSampling(code);
   }
 
+  if (hasStandardFogFeature(features)) {
+    code = applyStandardFogSampling(code, features);
+  }
+
   return applyStandardMorphTargetsToWgsl(
     applyStandardSkinningToWgsl(code, features),
     features,
@@ -1787,7 +1807,8 @@ function standardTextureVariantShaderLabel(
     features.vertexColor !== true &&
     features.instanceTint !== true &&
     features.skinned !== true &&
-    features.morphed !== true
+    features.morphed !== true &&
+    !hasStandardFogFeature(features)
   ) {
     return "aperture/standard-mesh-base-color-textured";
   }
@@ -1807,7 +1828,8 @@ function standardTextureVariantShaderLabel(
     features.vertexColor !== true &&
     features.instanceTint !== true &&
     features.skinned !== true &&
-    features.morphed !== true
+    features.morphed !== true &&
+    !hasStandardFogFeature(features)
   ) {
     return "aperture/standard-mesh-metallic-roughness-textured";
   }
@@ -1826,7 +1848,8 @@ function standardTextureVariantShaderLabel(
     features.vertexColor !== true &&
     features.instanceTint !== true &&
     features.skinned !== true &&
-    features.morphed !== true
+    features.morphed !== true &&
+    !hasStandardFogFeature(features)
   ) {
     return "aperture/standard-mesh-base-color-metallic-roughness-textured";
   }
@@ -1845,7 +1868,8 @@ function standardTextureVariantShaderLabel(
     features.vertexColor !== true &&
     features.instanceTint !== true &&
     features.skinned !== true &&
-    features.morphed !== true
+    features.morphed !== true &&
+    !hasStandardFogFeature(features)
   ) {
     return "aperture/standard-mesh-shadow-receiver";
   }
@@ -1864,7 +1888,8 @@ function standardTextureVariantShaderLabel(
     features.vertexColor !== true &&
     features.instanceTint !== true &&
     features.skinned !== true &&
-    features.morphed !== true
+    features.morphed !== true &&
+    !hasStandardFogFeature(features)
   ) {
     return "aperture/standard-mesh-cascaded-shadow-receiver";
   }
@@ -1883,7 +1908,8 @@ function standardTextureVariantShaderLabel(
     features.vertexColor !== true &&
     features.instanceTint !== true &&
     features.skinned !== true &&
-    features.morphed !== true
+    features.morphed !== true &&
+    !hasStandardFogFeature(features)
   ) {
     return "aperture/standard-mesh-point-shadow-receiver";
   }
@@ -1902,7 +1928,8 @@ function standardTextureVariantShaderLabel(
     features.vertexColor !== true &&
     features.instanceTint !== true &&
     features.skinned !== true &&
-    features.morphed !== true
+    features.morphed !== true &&
+    !hasStandardFogFeature(features)
   ) {
     return "aperture/standard-mesh-multi-shadow-receiver";
   }
@@ -1922,7 +1949,8 @@ function standardTextureVariantShaderLabel(
     features.vertexColor !== true &&
     features.instanceTint !== true &&
     features.skinned !== true &&
-    features.morphed !== true
+    features.morphed !== true &&
+    !hasStandardFogFeature(features)
   ) {
     return "aperture/standard-mesh-diffuse-ibl";
   }
@@ -1942,7 +1970,8 @@ function standardTextureVariantShaderLabel(
     features.vertexColor !== true &&
     features.instanceTint !== true &&
     features.skinned !== true &&
-    features.morphed !== true
+    features.morphed !== true &&
+    !hasStandardFogFeature(features)
   ) {
     return "aperture/standard-mesh-diffuse-specular-ibl-proof";
   }
@@ -2011,8 +2040,36 @@ function standardTextureFeatureNames(
 
   appendStandardSkinningFeatureName(names, features);
   appendStandardMorphTargetFeatureName(names, features);
+  appendStandardFogFeatureName(names, features);
 
   return names;
+}
+
+function appendStandardFogFeatureName(
+  names: string[],
+  features: StandardTextureShaderFeatures,
+): void {
+  if (features.fogLinear === true) {
+    names.push("fog-linear");
+  }
+
+  if (features.fogExp === true) {
+    names.push("fog-exp");
+  }
+
+  if (features.fogExp2 === true) {
+    names.push("fog-exp2");
+  }
+}
+
+function hasStandardFogFeature(
+  features: StandardTextureShaderFeatures,
+): boolean {
+  return (
+    features.fogLinear === true ||
+    features.fogExp === true ||
+    features.fogExp2 === true
+  );
 }
 
 function hasAnyStandardTextureFeature(
@@ -2033,8 +2090,47 @@ function hasAnyStandardTextureFeature(
     features.vertexColor === true ||
     features.instanceTint === true ||
     features.skinned === true ||
-    features.morphed === true
+    features.morphed === true ||
+    hasStandardFogFeature(features)
   );
+}
+
+function applyStandardFogSampling(
+  code: string,
+  features: StandardTextureShaderFeatures,
+): string {
+  const fogFactor =
+    features.fogLinear === true
+      ? `  let fogFactor = 1.0 - saturate((view.fogParams.w - distanceToCamera) / max(view.fogParams.w - view.fogParams.z, 0.0001));`
+      : features.fogExp === true
+        ? `  let fogFactor = 1.0 - saturate(exp(-distanceToCamera * view.fogParams.y));`
+        : `  let fogFactor = 1.0 - saturate(exp(-distanceToCamera * distanceToCamera * view.fogParams.y * view.fogParams.y));`;
+
+  return code
+    .replace(
+      `fn evaluateDirectLight(
+  normal: vec3f,`,
+      `fn applyDistanceFog(color: vec3f, distanceToCamera: f32) -> vec3f {
+${fogFactor}
+  return mix(color, view.fogColor.rgb, saturate(fogFactor * view.fogColor.a));
+}
+
+fn evaluateDirectLight(
+  normal: vec3f,`,
+    )
+    .replace(
+      `  let color = ambientDiffuse + direct + material.emissiveFactor;`,
+      `  var color = ambientDiffuse + direct + material.emissiveFactor;`,
+    )
+    .replace(
+      `  let color = ambientDiffuse + direct + emissive;`,
+      `  var color = ambientDiffuse + direct + emissive;`,
+    )
+    .replace(
+      `  return vec4f(color, alpha);`,
+      `  color = applyDistanceFog(color, length(view.cameraPosition.xyz - input.worldPosition));
+  return vec4f(color, alpha);`,
+    );
 }
 
 function applyStandardShadowMapSampling(

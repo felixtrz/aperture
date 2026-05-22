@@ -41,6 +41,14 @@ export const AreaLightShape = {
 export type AreaLightShape =
   (typeof AreaLightShape)[keyof typeof AreaLightShape];
 
+export const FogMode = {
+  Linear: "linear",
+  Exp: "exp",
+  Exp2: "exp2",
+} as const;
+
+export type FogMode = (typeof FogMode)[keyof typeof FogMode];
+
 export interface CameraInput {
   readonly projection?: CameraProjection;
   readonly fovYRadians?: number;
@@ -97,6 +105,14 @@ export interface SkyboxInput {
   readonly intensity?: number;
 }
 
+export interface FogInput {
+  readonly mode?: FogMode;
+  readonly color?: Vec4Like;
+  readonly density?: number;
+  readonly start?: number;
+  readonly end?: number;
+}
+
 export interface InstanceTintInput {
   readonly color?: Vec4Like;
 }
@@ -128,6 +144,10 @@ export type RenderAuthoringDiagnosticCode =
   | "sprite.invalidSize"
   | "skybox.invalidTexture"
   | "skybox.invalidIntensity"
+  | "fog.invalidMode"
+  | "fog.invalidColor"
+  | "fog.invalidDensity"
+  | "fog.invalidRange"
   | "shadow.invalidMapSize"
   | "shadow.invalidBias"
   | "shadow.invalidCascadeCount"
@@ -180,6 +200,22 @@ export const Skybox = defineComponent(
     intensity: { type: EcsType.Float32, default: 1 },
   },
   "Renderer-independent skybox authoring component that stores cube texture and sampler handle ids only.",
+);
+
+export const Fog = defineComponent(
+  "aperture.render.fog",
+  {
+    mode: {
+      type: EcsType.Enum,
+      enum: FogMode,
+      default: FogMode.Linear,
+    },
+    color: { type: EcsType.Color, default: tuple4(0, 0, 0, 1) },
+    density: { type: EcsType.Float32, default: 0.00025 },
+    start: { type: EcsType.Float32, default: 1 },
+    end: { type: EcsType.Float32, default: 1000 },
+  },
+  "Renderer-independent distance fog authoring component for linear, exponential, and exponential-squared falloff.",
 );
 
 export const Visibility = defineComponent(
@@ -329,6 +365,7 @@ export function registerRenderAuthoringComponents(world: EcsWorld): EcsWorld {
   world.registerComponent(Material);
   world.registerComponent(Sprite);
   world.registerComponent(Skybox);
+  world.registerComponent(Fog);
   world.registerComponent(Camera);
   world.registerComponent(Visibility);
   world.registerComponent(RenderLayer);
@@ -429,6 +466,20 @@ export function createSkybox(
         ? ""
         : assetHandleKey(input.sampler),
     intensity: input.intensity ?? 1,
+  };
+}
+
+export function createFog(
+  input: FogInput = {},
+): ComponentInitialData<typeof Fog> {
+  const mode = input.mode ?? FogMode.Linear;
+
+  return {
+    mode,
+    color: toTuple4(input.color ?? [0, 0, 0, 1]),
+    density: input.density ?? (mode === FogMode.Linear ? 0 : 0.00025),
+    start: input.start ?? 1,
+    end: input.end ?? 1000,
   };
 }
 
@@ -698,6 +749,62 @@ export function validateSkyboxInput(
       code: "skybox.invalidIntensity",
       field: "intensity",
       message: "Skybox intensity must be a finite non-negative number.",
+    });
+  }
+
+  return { valid: diagnostics.length === 0, diagnostics };
+}
+
+export function validateFogInput(
+  input: FogInput,
+): RenderAuthoringValidationReport {
+  const fog = createFog(input);
+  const mode = fog.mode ?? FogMode.Linear;
+  const color = fog.color ?? tuple4(0, 0, 0, 1);
+  const density = fog.density ?? 0;
+  const start = fog.start ?? 1;
+  const end = fog.end ?? 1000;
+  const diagnostics: RenderAuthoringDiagnostic[] = [];
+
+  if (!Object.values(FogMode).includes(mode as FogMode)) {
+    diagnostics.push({
+      code: "fog.invalidMode",
+      field: "mode",
+      message: "Fog mode must be 'linear', 'exp', or 'exp2'.",
+    });
+  }
+
+  if (color.some((value) => !Number.isFinite(value))) {
+    diagnostics.push({
+      code: "fog.invalidColor",
+      field: "color",
+      message: "Fog color components must be finite numbers.",
+    });
+  }
+
+  if (
+    (mode === FogMode.Exp || mode === FogMode.Exp2) &&
+    (!Number.isFinite(density) || density < 0)
+  ) {
+    diagnostics.push({
+      code: "fog.invalidDensity",
+      field: "density",
+      message: "Exponential fog density must be a finite non-negative number.",
+    });
+  }
+
+  if (
+    mode === FogMode.Linear &&
+    (!Number.isFinite(start) ||
+      !Number.isFinite(end) ||
+      start < 0 ||
+      end <= start)
+  ) {
+    diagnostics.push({
+      code: "fog.invalidRange",
+      field: "start/end",
+      message:
+        "Linear fog requires finite start >= 0 and end greater than start.",
     });
   }
 

@@ -19,7 +19,7 @@ import {
   type TextureSemantic,
 } from "../materials/index.js";
 import type { MeshTopology } from "../mesh/index.js";
-import type { AreaLightShape, LightKind } from "./authoring.js";
+import type { AreaLightShape, FogMode, LightKind } from "./authoring.js";
 
 export type RenderQueue = "opaque" | "alpha-test" | "transparent";
 export type RenderDiagnosticSeverity = "info" | "warning" | "error";
@@ -85,6 +85,17 @@ export interface SkyboxPacket {
   readonly texture: TextureHandle;
   readonly sampler?: SamplerHandle | null;
   readonly intensity: number;
+  readonly layerMask: number;
+}
+
+export interface FogPacket {
+  readonly fogId: number;
+  readonly entity: RenderEntityRef;
+  readonly mode: FogMode;
+  readonly color: Vec4Like;
+  readonly density: number;
+  readonly start: number;
+  readonly end: number;
   readonly layerMask: number;
 }
 
@@ -192,6 +203,7 @@ export interface RenderSnapshotReport {
   readonly meshDraws: number;
   readonly spriteDraws?: number;
   readonly skyboxes?: number;
+  readonly fogs?: number;
   readonly lights: number;
   readonly environments: number;
   readonly shadowRequests: number;
@@ -216,6 +228,7 @@ export interface RenderSnapshot {
   readonly meshDraws: readonly MeshDrawPacket[];
   readonly spriteDraws?: readonly SpriteDrawPacket[];
   readonly skyboxes?: readonly SkyboxPacket[];
+  readonly fogs?: readonly FogPacket[];
   readonly lights: readonly LightPacket[];
   readonly environments: readonly EnvironmentPacket[];
   readonly shadowRequests: readonly ShadowRequestPacket[];

@@ -6,6 +6,6 @@
   "lastResult": "success",
   "lastCommit": "62aff5a",
   "activePid": null,
-  "notes": "User-directed loading/rendering audit added tightly packed and padded/nonzero-offset glTF source streams, stream-aware built-in and shadow-caster vertex layouts, source-view report-driven import defaults, StandardMaterial dynamic vertex layout derivation, upright CesiumMan animation handling, square GLB viewer canvas output, and native WebGPU compressed KTX2/Basis texture routing through library-owned URI loaders.",
-  "lastRunFinishedAt": "2026-05-22T21:23:21Z"
+  "notes": "Completed task-3080 fog: ECS Fog authoring/extraction/runtime helper, WebGPU StandardMaterial linear/exp/exp2 fog variants, square fog example, docs/trackers updated, and validation passed.",
+  "lastRunFinishedAt": "2026-05-22T23:06:52Z"
 }

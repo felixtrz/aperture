@@ -59,17 +59,18 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start `task-3080`: Fog.
+Start `task-3081`: Outdoor atmosphere example.
 
 Why this next: Tier 16 has RectAreaLight/LTC, rect/disk/sphere area-light shape
 metadata, executable directional CSM, and the combined
-`examples/outdoor-scene.html` proof. Tier 17 has started with ECS-authored
-sprites and a rendered cube-map skybox. `examples/sprite-billboard.html` proves
-camera-facing billboards, and `examples/skybox.html` proves an ECS-authored
-skybox background rendered behind scene geometry without introducing a scene
-graph or letting the renderer own app state. The next visible gap is fog:
-linear, exponential, and exponential-squared attenuation authored as data and
-consumed by the WebGPU StandardMaterial path.
+`examples/outdoor-scene.html` proof. Tier 17 now has ECS-authored sprites,
+skyboxes, and fog. `examples/sprite-billboard.html` proves camera-facing
+billboards, `examples/skybox.html` proves an ECS-authored skybox background
+rendered behind scene geometry, and `examples/fog.html` proves linear,
+exponential, and exponential-squared StandardMaterial fog falloff. The next
+visible gap is a combined outdoor atmosphere example proving all three
+scene-atmosphere features together without introducing a scene graph or letting
+the renderer own app state.
 
 Progress so far: `spinning-cube`, `multi-light-shadow`, and `glb-viewer` now
 use renderer-only `*.main.js` files plus ECS/extraction-owned `*.worker.js`
@@ -125,9 +126,10 @@ shader/pipeline/resource/importer tests.
 
 Reference anchors (read before writing):
 
-- `references/three.js/src/scenes/Fog.js`.
-- `references/three.js/src/scenes/FogExp2.js`.
-- `references/engine/src/scene/fog-params.js`.
+- `references/three.js/examples/webgpu_skybox.html`.
+- `references/three.js/examples/webgl_fog.html`.
+- Existing ECS authoring patterns in `examples/sprite-billboard-scene.js`,
+  `examples/skybox-scene.js`, and `examples/fog-scene.js`.
 
 ## Strategic Focus — Pipeline Maturity Roadmap
 
@@ -1173,10 +1175,17 @@ Acceptance criteria:
 
 ### task-3080 — Fog (linear + exponential + exponential-squared) (Tier 17 part 3)
 
+Status: completed 2026-05-22. See `agent/COMPLETED.md`.
+
 Category: `webgpu-render`
 Package/write-scope: `packages/render/src/rendering/authoring.ts` (`Fog` component or scene-level setting), `packages/webgpu/src/webgpu/standard-shader.ts`, targeted tests.
 Reference anchor: `references/three.js/src/scenes/Fog.js` + `FogExp2.js`; `references/engine/src/scene/fog-params.js`.
 Insertion point: fog params communicated through extraction; StandardMaterial fragment shader blends fog color by depth.
+Completion note 2026-05-22: ECS `Fog` authoring, `withFog`, snapshot `fogs`,
+layer/visibility validation, packed view-uniform fog parameters, and
+StandardMaterial fog shader variants shipped with `examples/fog.html` and
+headed Chrome WebGPU coverage for linear, exponential, and
+exponential-squared distance falloff.
 
 Acceptance criteria:
 

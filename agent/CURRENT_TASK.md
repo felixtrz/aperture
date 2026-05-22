@@ -3,15 +3,13 @@
 If this file names a task, the next agent should prioritize that task over
 selecting a new one from `agent/BACKLOG.md`.
 
-Current task: `task-3080` — Fog.
+Current task: `task-3081` — Outdoor atmosphere example.
 
-Status: ready. Tier 17 has started: `task-3078` added ECS `Sprite` authoring,
-`withSprite`, snapshot sprite packets, a WebGPU camera-facing billboard path,
-and `examples/sprite-billboard.html` with headed Chrome proof across front and
-orbit camera snapshots. `task-3079` added ECS `Skybox` authoring,
-`withSkybox`, snapshot skybox packets, an infinite-depth WebGPU cube-map
-background path, and `examples/skybox.html` with headed Chrome proof.
+Status: ready. Tier 17 has shipped `task-3078` ECS sprites, `task-3079` ECS
+skyboxes, and `task-3080` ECS-authored fog. Fog now supports linear,
+exponential, and exponential-squared modes through extraction, view uniforms,
+and StandardMaterial shader specialization, with `examples/fog.html` proving
+visible distance falloff in headed Chrome/WebGPU.
 
-Next step: add ECS-authored fog parameters for linear, exponential, and
-exponential-squared modes, route them through extraction, and prove visible
-distance falloff in the WebGPU StandardMaterial path.
+Next step: combine sprites, skybox, and fog in one worker-authored outdoor
+atmosphere scene and prove each feature remains visible.

@@ -4,6 +4,8 @@ import {
   AssetRegistry,
   AreaLightShape,
   Camera,
+  Fog,
+  FogMode,
   InstanceData,
   InstanceTint,
   Light,
@@ -21,6 +23,7 @@ import {
   WorldTransform,
   createBoxMeshAsset,
   createCamera,
+  createFog,
   createEnvironmentMapHandle,
   createInstanceData,
   createLight,
@@ -240,6 +243,99 @@ describe("render extraction", () => {
         code: "render.skybox.textureNotCube",
         entity: { index: entity.index, generation: entity.generation },
         assetKey: "texture:flat-background",
+      },
+    ]);
+  });
+
+  it("extracts fog packets and specializes standard draw pipeline keys", () => {
+    const world = createRuntimeWorld();
+    const assets = createReadyAssets();
+    const standard = createMaterialHandle("standard");
+
+    assets.register(standard);
+    assets.markReady(
+      standard,
+      createStandardMaterialAsset({
+        label: "FoggedStandard",
+      }),
+    );
+    createCameraEntity(world, { priority: 0, layerMask: 0b01 });
+    createMeshEntity(world, {
+      meshId: "mesh:cube",
+      materialId: "material:standard",
+      layerMask: 0b01,
+    });
+    const fog = world.createEntity();
+
+    fog.addComponent(
+      Fog,
+      createFog({
+        mode: FogMode.Linear,
+        color: [0.55, 0.68, 0.82, 0.9],
+        start: 3,
+        end: 12,
+      }),
+    );
+    fog.addComponent(RenderLayer, { mask: 0b01 });
+
+    const snapshot = extractRenderSnapshot(world, assets, { frame: 6 });
+
+    expect(snapshot.fogs).toHaveLength(1);
+    expect(snapshot.fogs?.[0]).toMatchObject({
+      fogId: createStableRenderId({
+        index: fog.index,
+        generation: fog.generation,
+      }),
+      mode: FogMode.Linear,
+      color: [
+        expect.closeTo(0.55, 5),
+        expect.closeTo(0.68, 5),
+        expect.closeTo(0.82, 5),
+        expect.closeTo(0.9, 5),
+      ],
+      start: 3,
+      end: 12,
+      layerMask: 0b01,
+    });
+    expect(snapshot.meshDraws[0]?.batchKey.pipelineKey).toBe(
+      "standard|fogLinear|opaque|back|less|none",
+    );
+    expect(snapshot.report).toMatchObject({
+      views: 1,
+      meshDraws: 1,
+      fogs: 1,
+      diagnostics: 0,
+    });
+    expect(snapshot.diagnostics).toEqual([]);
+  });
+
+  it("diagnoses invalid fog authoring fields", () => {
+    const world = createRuntimeWorld();
+    const assets = createReadyAssets();
+
+    createCameraEntity(world, { priority: 0, layerMask: 0b01 });
+    const fog = world.createEntity();
+
+    fog.addComponent(
+      Fog,
+      createFog({
+        mode: FogMode.Exp2,
+        density: -0.25,
+      }),
+    );
+
+    const snapshot = extractRenderSnapshot(world, assets, { frame: 7 });
+
+    expect(snapshot.fogs).toEqual([]);
+    expect(snapshot.report).toMatchObject({
+      views: 1,
+      fogs: 0,
+      diagnostics: 1,
+    });
+    expect(snapshot.diagnostics).toMatchObject([
+      {
+        code: "render.fog.invalidDensity",
+        entity: { index: fog.index, generation: fog.generation },
       },
     ]);
   });

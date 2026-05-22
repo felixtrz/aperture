@@ -1,6 +1,59 @@
 # Agent Handoff
 
-Updated: 2026-05-22T22:19:35Z
+Updated: 2026-05-22T23:00:24Z
+
+## Current Run Update — 2026-05-22T23:00:24Z — Fog
+
+Completed `task-3080`, the Tier 17 fog slice.
+
+### What changed
+
+- Added ECS `Fog` authoring with linear, exponential, and
+  exponential-squared modes, including validation for mode, color, density, and
+  linear start/end ranges.
+- Added `withFog(...)`, snapshot `fogs`, extraction layer/visibility filtering,
+  fog counts in render reports, and per-view packed fog uniforms.
+- Specialized StandardMaterial pipeline keys and WGSL variants for
+  `fogLinear`, `fogExp`, and `fogExp2`, blending fragment color toward the
+  authored fog color by world-space camera distance.
+- Added `examples/fog.html`, `examples/fog.main.js`,
+  `examples/fog.worker.js`, and `examples/fog-scene.js` with a square 1:1
+  canvas and worker-authored ECS scene.
+- Added unit coverage for authoring, extraction, runtime helper, view packing,
+  shader variants, and pipeline specialization plus headed Chrome/WebGPU e2e
+  coverage for all three fog modes.
+
+### Reference comparison
+
+- three.js exposes separate linear `Fog` and exponential-squared `FogExp2`
+  scene data; Aperture keeps equivalent parameters as ECS data and extraction
+  packets.
+- PlayCanvas stores fog mode/color/density/start/end on scene fog parameters;
+  Aperture packs those values into renderer-owned per-view uniform data.
+- Bevy extracts distance fog from ECS into view uniforms before rendering;
+  Aperture follows that boundary and keeps StandardMaterial fog as a derived
+  WebGPU view of ECS state.
+
+### Validation
+
+- `pnpm run typecheck` passed.
+- `pnpm run typecheck:test` passed.
+- `pnpm run check:examples` passed.
+- `pnpm exec vitest run test/rendering/components.test.ts test/rendering/extraction.test.ts test/rendering/view-pack.test.ts test/runtime/runtime.test.ts test/webgpu/standard-shader.test.ts test/webgpu/standard-pipeline.test.ts` passed: 6 files, 134 tests.
+- `pnpm exec playwright test test/e2e/fog.spec.ts` passed: linear, exp, and
+  exp2 fog browser proofs.
+
+### Known issues
+
+- SharedArrayBuffer packet encoding still covers view/mesh/light/environment/
+  shadow/bounds records; sprite, skybox, and fog optional packets currently
+  rely on the default transferable snapshot path.
+
+### Recommended next task
+
+Continue with `task-3081`, Outdoor atmosphere example, from
+`agent/CURRENT_TASK.md`. It should combine sprites, skybox, and fog in one
+worker-authored scene and prove all three remain visible.
 
 ## Current Run Update — 2026-05-22T22:19:35Z — Skybox scene element
 

@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 
 import {
   Camera,
+  Fog,
+  FogMode,
   InstanceTint,
   Light,
   LocalTransform,
@@ -35,6 +37,7 @@ import {
   createUnlitMaterialAsset,
   withCamera,
   withEnvironmentMap,
+  withFog,
   withInstanceTint,
   withMaterial,
   withMesh,
@@ -220,6 +223,40 @@ describe("runtime facade", () => {
     expect(snapshot.skyboxes?.[0]).toMatchObject({
       texture,
       intensity: 0.75,
+      layerMask: 1,
+    });
+    expect(snapshot.diagnostics).toEqual([]);
+  });
+
+  it("spawns ECS-authored fog parameters", () => {
+    const app = createExtractionApp({ worldOptions: { entityCapacity: 4 } });
+
+    app.spawn(
+      withTransform({ translation: [0, 0, 5] }),
+      withCamera({ priority: 0, layerMask: 1 }),
+    );
+    const fog = app.spawn(
+      withFog({
+        mode: FogMode.Exp,
+        color: [0.5, 0.62, 0.76, 0.85],
+        density: 0.08,
+      }),
+      withRenderLayer(1),
+    );
+    const snapshot = app.stepAndExtract(1 / 60, 1, 13);
+
+    expect(fog.hasComponent(Fog)).toBe(true);
+    expect(fog.getValue(Fog, "mode")).toBe(FogMode.Exp);
+    expect(snapshot.fogs).toHaveLength(1);
+    expect(snapshot.fogs?.[0]).toMatchObject({
+      mode: FogMode.Exp,
+      color: [
+        0.5,
+        expect.closeTo(0.62, 5),
+        expect.closeTo(0.76, 5),
+        expect.closeTo(0.85, 5),
+      ],
+      density: expect.closeTo(0.08, 5),
       layerMask: 1,
     });
     expect(snapshot.diagnostics).toEqual([]);

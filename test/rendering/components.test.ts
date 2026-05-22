@@ -7,6 +7,8 @@ import {
   Light,
   LightKind,
   LightShadowSettings,
+  Fog,
+  FogMode,
   Material,
   Mesh,
   RenderLayer,
@@ -16,6 +18,7 @@ import {
   Skybox,
   Visibility,
   createCamera,
+  createFog,
   createEnvironmentMapHandle,
   createLight,
   createLightShadowSettings,
@@ -24,6 +27,7 @@ import {
   createWorld,
   registerRenderAuthoringComponents,
   validateCameraInput,
+  validateFogInput,
   validateLightShadowSettingsInput,
   validateLightInput,
   validateSkyboxInput,
@@ -146,6 +150,39 @@ describe("render authoring ECS components", () => {
         intensity: -1,
       }).diagnostics.map((diagnostic) => diagnostic.code),
     ).toEqual(["skybox.invalidIntensity"]);
+  });
+
+  it("attaches and validates fog authoring data", () => {
+    const world = createWorld({ entityCapacity: 4 });
+    registerRenderAuthoringComponents(world);
+    const fog = world.createEntity();
+
+    fog.addComponent(
+      Fog,
+      createFog({
+        mode: FogMode.Exp2,
+        color: [0.62, 0.72, 0.84, 0.9],
+        density: 0.035,
+      }),
+    );
+
+    expect(fog.getValue(Fog, "mode")).toBe(FogMode.Exp2);
+    expectVector(fog.getVectorView(Fog, "color"), [0.62, 0.72, 0.84, 0.9]);
+    expect(fog.getValue(Fog, "density")).toBeCloseTo(0.035, 6);
+    expect(
+      validateFogInput({
+        mode: FogMode.Linear,
+        color: [0, Number.NaN, 0, 1],
+        start: 12,
+        end: 4,
+      }).diagnostics.map((diagnostic) => diagnostic.code),
+    ).toEqual(["fog.invalidColor", "fog.invalidRange"]);
+    expect(
+      validateFogInput({
+        mode: FogMode.Exp,
+        density: -0.1,
+      }).diagnostics.map((diagnostic) => diagnostic.code),
+    ).toEqual(["fog.invalidDensity"]);
   });
 
   it("validates invalid camera fields", () => {

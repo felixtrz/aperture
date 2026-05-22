@@ -1,8 +1,11 @@
-import type { RenderSnapshot, ViewPacket } from "./snapshot.js";
+import { FogMode } from "./authoring.js";
+import type { FogPacket, RenderSnapshot, ViewPacket } from "./snapshot.js";
 
 const VIEW_PROJECTION_FLOAT_COUNT = 16;
 const VIEW_CAMERA_POSITION_FLOAT_OFFSET = 16;
-export const PACKED_VIEW_UNIFORM_FLOAT_STRIDE = 20;
+const VIEW_FOG_COLOR_FLOAT_OFFSET = 20;
+const VIEW_FOG_PARAMS_FLOAT_OFFSET = 24;
+export const PACKED_VIEW_UNIFORM_FLOAT_STRIDE = 28;
 
 export type SnapshotViewUniformPackDiagnosticCode =
   | "viewUniform.emptySnapshot"
@@ -136,6 +139,13 @@ export function packSnapshotViewUniforms(
       snapshot.viewMatrices,
       view.viewMatrixOffset,
     );
+    writeFogParameters(
+      data,
+      packedOffset + VIEW_FOG_COLOR_FLOAT_OFFSET,
+      packedOffset + VIEW_FOG_PARAMS_FLOAT_OFFSET,
+      snapshot.fogs ?? [],
+      view,
+    );
     views.push({
       viewId: view.viewId,
       sourceOffset,
@@ -250,6 +260,13 @@ export function writePackedSnapshotViewUniforms(
       snapshot.viewMatrices,
       view.viewMatrixOffset,
     );
+    writeFogParameters(
+      scratch.data,
+      result.floatCount + VIEW_FOG_COLOR_FLOAT_OFFSET,
+      result.floatCount + VIEW_FOG_PARAMS_FLOAT_OFFSET,
+      snapshot.fogs ?? [],
+      view,
+    );
 
     const record = viewRecordAt(scratch, scratch.views.length);
 
@@ -297,6 +314,61 @@ function writeCameraPosition(
     (viewMatrices[viewMatrixOffset + 10] ?? 1) * tz
   );
   target[targetOffset + 3] = 1;
+}
+
+function writeFogParameters(
+  target: Float32Array,
+  colorOffset: number,
+  paramsOffset: number,
+  fogs: readonly FogPacket[],
+  view: ViewPacket,
+): void {
+  const fog = selectFogForView(fogs, view);
+
+  if (fog === null) {
+    target[colorOffset] = 0;
+    target[colorOffset + 1] = 0;
+    target[colorOffset + 2] = 0;
+    target[colorOffset + 3] = 0;
+    target[paramsOffset] = 0;
+    target[paramsOffset + 1] = 0;
+    target[paramsOffset + 2] = 0;
+    target[paramsOffset + 3] = 0;
+    return;
+  }
+
+  target[colorOffset] = fog.color[0] ?? 0;
+  target[colorOffset + 1] = fog.color[1] ?? 0;
+  target[colorOffset + 2] = fog.color[2] ?? 0;
+  target[colorOffset + 3] = fog.color[3] ?? 1;
+  target[paramsOffset] = fogModeId(fog.mode);
+  target[paramsOffset + 1] = fog.density;
+  target[paramsOffset + 2] = fog.start;
+  target[paramsOffset + 3] = fog.end;
+}
+
+function selectFogForView(
+  fogs: readonly FogPacket[],
+  view: ViewPacket,
+): FogPacket | null {
+  for (const fog of fogs) {
+    if ((fog.layerMask & view.layerMask) !== 0) {
+      return fog;
+    }
+  }
+
+  return null;
+}
+
+function fogModeId(mode: FogMode): number {
+  switch (mode) {
+    case FogMode.Linear:
+      return 1;
+    case FogMode.Exp:
+      return 2;
+    case FogMode.Exp2:
+      return 3;
+  }
 }
 
 function ensureViewUniformDataCapacity(

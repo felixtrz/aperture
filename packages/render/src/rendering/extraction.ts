@@ -48,6 +48,8 @@ import {
 } from "@aperture-engine/simulation";
 import {
   Camera,
+  Fog,
+  FogMode,
   InstanceData,
   InstanceTint,
   Light,
@@ -65,9 +67,11 @@ import {
   Visibility,
   registerRenderAuthoringComponents,
   type CameraInput,
+  type FogInput,
   type LightInput,
   type LightShadowSettingsInput,
   validateCameraInput,
+  validateFogInput,
   validateLightInput,
   validateLightShadowSettingsInput,
   validateSpriteInput,
@@ -82,6 +86,7 @@ import {
   createStableRenderId,
   type BoundsPacket,
   type EnvironmentPacket,
+  type FogPacket,
   type InstanceAttributePacket,
   type LightPacket,
   type MeshDrawPacket,
@@ -193,6 +198,7 @@ export function extractRenderSnapshot(
     0,
   );
   const viewCullSignature = createViewCullSignature(viewCullContexts);
+  const fogs = extractFogs(world, diagnostics, cameraLayerMask);
   const environments: EnvironmentPacket[] = [];
   const shadowRequests: ShadowRequestPacket[] = [];
   const lights = extractLights(
@@ -215,6 +221,7 @@ export function extractRenderSnapshot(
     bounds,
     diagnostics,
     cameraLayerMask,
+    fogs,
     viewCullContexts,
     viewCullSignature,
     options.cache,
@@ -236,6 +243,7 @@ export function extractRenderSnapshot(
     meshDraws,
     spriteDraws,
     skyboxes,
+    fogs,
     lights,
     environments,
     shadowRequests,
@@ -259,6 +267,7 @@ export function extractRenderSnapshot(
       meshDraws: meshDraws.length,
       spriteDraws: spriteDraws.length,
       skyboxes: skyboxes.length,
+      fogs: fogs.length,
       lights: lights.length,
       environments: environments.length,
       shadowRequests: shadowRequests.length,
@@ -584,6 +593,7 @@ function extractMeshDraws(
   bounds: BoundsPacket[],
   diagnostics: RenderDiagnostic[],
   cameraLayerMask: number,
+  fogs: readonly FogPacket[],
   viewCullContexts: readonly ViewCullContext[],
   viewCullSignature: number,
   cache: RenderExtractionCache | undefined,
@@ -831,6 +841,7 @@ function extractMeshDraws(
         instanceTint: instanceTintOffset !== undefined,
         skinned: skinning !== undefined,
         morphed: morphWeights !== undefined,
+        fogMode: selectFogModeForLayer(layerMask, fogs),
       });
 
       const stableId =
@@ -1207,6 +1218,74 @@ function extractSkyboxes(
       texture: input.texture,
       ...(input.sampler === undefined ? {} : { sampler: input.sampler }),
       intensity: entity.getValue(Skybox, "intensity") ?? 1,
+      layerMask,
+    });
+  }
+
+  return packets;
+}
+
+function extractFogs(
+  world: EcsWorld,
+  diagnostics: RenderDiagnostic[],
+  cameraLayerMask: number,
+): FogPacket[] {
+  const query = world.queryManager.registerQuery({ required: [Fog] });
+  const packets: FogPacket[] = [];
+
+  for (const entity of sortedEntities(query.entities)) {
+    if (
+      entity.hasComponent(Enabled) &&
+      entity.getValue(Enabled, "value") === false
+    ) {
+      diagnostics.push(diagnostic("render.disabled", entity));
+      continue;
+    }
+
+    if (
+      entity.hasComponent(Visibility) &&
+      entity.getValue(Visibility, "visible") === false
+    ) {
+      diagnostics.push(diagnostic("render.invisible", entity));
+      continue;
+    }
+
+    const input = fogInput(entity);
+    const validation = validateFogInput(input);
+    const layerMask = entity.hasComponent(RenderLayer)
+      ? (entity.getValue(RenderLayer, "mask") ?? 1)
+      : 1;
+
+    if (!validation.valid) {
+      for (const fogDiagnostic of validation.diagnostics) {
+        diagnostics.push(diagnostic(`render.${fogDiagnostic.code}`, entity));
+      }
+      continue;
+    }
+
+    if (layerMask === 0) {
+      diagnostics.push(diagnostic("render.zeroLayerMask", entity));
+      continue;
+    }
+
+    if (cameraLayerMask !== 0 && (layerMask & cameraLayerMask) === 0) {
+      diagnostics.push(diagnostic("render.layerMismatch", entity));
+      continue;
+    }
+
+    packets.push({
+      fogId: createStableRenderId(entityRef(entity)),
+      entity: entityRef(entity),
+      mode: input.mode ?? FogMode.Linear,
+      color: Array.from(entity.getVectorView(Fog, "color")) as [
+        number,
+        number,
+        number,
+        number,
+      ],
+      density: entity.getValue(Fog, "density") ?? 0,
+      start: entity.getValue(Fog, "start") ?? 1,
+      end: entity.getValue(Fog, "end") ?? 1000,
       layerMask,
     });
   }
@@ -1971,6 +2050,21 @@ function skyboxInput(entity: Entity): SkyboxInput {
   };
 }
 
+function fogInput(entity: Entity): FogInput {
+  return {
+    mode: (entity.getValue(Fog, "mode") ?? FogMode.Linear) as FogMode,
+    color: Array.from(entity.getVectorView(Fog, "color")) as [
+      number,
+      number,
+      number,
+      number,
+    ],
+    density: entity.getValue(Fog, "density") ?? 0,
+    start: entity.getValue(Fog, "start") ?? 1,
+    end: entity.getValue(Fog, "end") ?? 1000,
+  };
+}
+
 function pushMatrix(values: number[], matrix: Mat4): number {
   const offset = values.length;
   values.push(...matrix);
@@ -2189,10 +2283,14 @@ function createExtractedMaterialPipelineKeyInput(input: {
   readonly instanceTint: boolean;
   readonly skinned: boolean;
   readonly morphed: boolean;
+  readonly fogMode?: FogMode | null;
 }): MaterialPipelineKeyInput {
   if (
     input.material.kind !== "standard" ||
-    (!input.instanceTint && !input.skinned && !input.morphed)
+    (!input.instanceTint &&
+      !input.skinned &&
+      !input.morphed &&
+      input.fogMode == null)
   ) {
     return input.base;
   }
@@ -2211,10 +2309,43 @@ function createExtractedMaterialPipelineKeyInput(input: {
     features.add("morphed");
   }
 
+  const fogFeature = fogPipelineFeature(input.fogMode);
+
+  if (fogFeature !== null) {
+    features.add(fogFeature);
+  }
+
   return {
     ...input.base,
     features: [...features].sort(),
   };
+}
+
+function selectFogModeForLayer(
+  layerMask: number,
+  fogs: readonly FogPacket[],
+): FogMode | null {
+  for (const fog of fogs) {
+    if ((fog.layerMask & layerMask) !== 0) {
+      return fog.mode;
+    }
+  }
+
+  return null;
+}
+
+function fogPipelineFeature(mode: FogMode | null | undefined): string | null {
+  switch (mode) {
+    case FogMode.Linear:
+      return "fogLinear";
+    case FogMode.Exp:
+      return "fogExp";
+    case FogMode.Exp2:
+      return "fogExp2";
+    case null:
+    case undefined:
+      return null;
+  }
 }
 
 function meshHasVertexSemantic(

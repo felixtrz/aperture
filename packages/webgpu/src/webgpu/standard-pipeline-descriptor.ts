@@ -334,6 +334,9 @@ function standardTextureFeatures(
     iblSpecularProof: tokens.includes("iblSpecularProof"),
     texCoord1: tokens.includes("uv1"),
     instanceTint: tokens.includes("instance-tint"),
+    fogLinear: tokens.includes("fogLinear"),
+    fogExp: tokens.includes("fogExp"),
+    fogExp2: tokens.includes("fogExp2"),
     skinned: standardSkinningEnabledFromBatchKey(batchKey),
     morphed: standardMorphTargetsEnabledFromBatchKey(batchKey),
     vertexColor:

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   PACKED_VIEW_UNIFORM_FLOAT_STRIDE,
+  FogMode,
   createPackedSnapshotViewUniformsScratch,
   packSnapshotViewUniforms,
   writePackedSnapshotViewUniforms,
@@ -72,6 +73,43 @@ describe("snapshot view uniform packing", () => {
       Array.from(viewProjection),
     );
     expect(Array.from(result.data.slice(16, 20))).toEqual([2, 3, 4, 1]);
+  });
+
+  it("packs fog color and mode parameters after camera position", () => {
+    const viewMatrix = viewMatrixForCamera(2, 3, 4);
+    const viewProjection = matrixValues(100);
+    const result = packSnapshotViewUniforms(
+      snapshot({
+        views: [view(12, 16, 0)],
+        viewMatrices: new Float32Array([...viewMatrix, ...viewProjection]),
+        fogs: [
+          {
+            fogId: 99,
+            entity: { index: 99, generation: 0 },
+            mode: FogMode.Exp2,
+            color: [0.5, 0.65, 0.8, 0.75],
+            density: 0.035,
+            start: 3,
+            end: 18,
+            layerMask: 1,
+          },
+        ],
+      }),
+    );
+
+    expect(result.diagnostics).toEqual([]);
+    expect(Array.from(result.data.slice(20, 24))).toEqual([
+      0.5,
+      expect.closeTo(0.65, 5),
+      expect.closeTo(0.8, 5),
+      0.75,
+    ]);
+    expect(Array.from(result.data.slice(24, 28))).toEqual([
+      3,
+      expect.closeTo(0.035, 5),
+      3,
+      18,
+    ]);
   });
 
   it("diagnoses missing and out-of-range matrix data", () => {
@@ -180,11 +218,13 @@ function view(
 function snapshot(input: {
   readonly views: readonly ViewPacket[];
   readonly viewMatrices: ArrayLike<number>;
+  readonly fogs?: RenderSnapshot["fogs"];
 }): RenderSnapshot {
   return {
     frame: 1,
     views: input.views,
     meshDraws: [],
+    ...(input.fogs === undefined ? {} : { fogs: input.fogs }),
     lights: [],
     environments: [],
     shadowRequests: [],

@@ -32,6 +32,7 @@ import {
 } from "@aperture-engine/simulation";
 import {
   Camera,
+  Fog,
   InstanceData,
   InstanceTint,
   Light,
@@ -49,6 +50,7 @@ import {
   Skybox,
   Visibility,
   createCamera,
+  createFog,
   createInstanceData,
   createInstanceTint,
   createLight,
@@ -61,6 +63,7 @@ import {
   replayGltfEcsAuthoringCommands,
   registerRenderAuthoringComponents,
   type CameraInput,
+  type FogInput,
   type GltfEcsAuthoringCommandPlan,
   type GltfEcsCommandReplayReport,
   type InstanceDataValues,
@@ -287,6 +290,13 @@ export function withSkybox(
   return (entity, context) => {
     registerRenderAuthoringComponents(context.world);
     entity.addComponent(Skybox, createSkybox(input));
+  };
+}
+
+export function withFog(input: FogInput = {}): SpawnEntityInitializer {
+  return (entity, context) => {
+    registerRenderAuthoringComponents(context.world);
+    entity.addComponent(Fog, createFog(input));
   };
 }
 

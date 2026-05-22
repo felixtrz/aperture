@@ -265,6 +265,35 @@ describe("browser standard material pipeline bridge", () => {
     expect(shader.code).toContain("alpha = alpha * input.instanceTint.a");
   });
 
+  it("specializes StandardMaterial pipeline keys for fog without changing vertex layout", () => {
+    const batchKey: BatchCompatibilityKey = {
+      ...STANDARD_BATCH_KEY,
+      pipelineKey: "standard|fogExp|opaque|back|less|none",
+    };
+    const plan = createStandardPipelineDescriptorPlan({
+      batchKey,
+      colorFormat: "bgra8unorm",
+    });
+
+    expect(plan).toMatchObject({
+      valid: true,
+      plan: {
+        keyInput: {
+          shaderVariantKey: "direct-lit-metallic-roughness-fog-exp-texture",
+          vertexLayoutKey: "primitive-interleaved",
+          bindGroupLayoutKeys: expect.arrayContaining([
+            "standard/group-0:view-uniform@0",
+          ]),
+        },
+        descriptor: {
+          vertex: {
+            buffers: ["POSITION", "NORMAL", "TEXCOORD_0"],
+          },
+        },
+      },
+    });
+  });
+
   it("uses joint and weight attributes for skinned StandardMaterial shaders", () => {
     const shaderModule = {
       compilationInfo: async () => ({ messages: [] }),

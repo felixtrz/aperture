@@ -249,6 +249,47 @@ describe("built-in standard material WGSL shader metadata", () => {
     );
   });
 
+  it("generates fog-specialized StandardMaterial shader variants", () => {
+    const shader = createStandardTextureVariantShader({
+      baseColorTexture: false,
+      metallicRoughnessTexture: false,
+      normalTexture: false,
+      occlusionTexture: false,
+      emissiveTexture: false,
+      fogExp2: true,
+    });
+
+    expect(
+      createStandardTextureShaderVariantKey({
+        baseColorTexture: false,
+        metallicRoughnessTexture: false,
+        normalTexture: false,
+        occlusionTexture: false,
+        emissiveTexture: false,
+        fogExp2: true,
+      }),
+    ).toBe("direct-lit-metallic-roughness-fog-exp2-texture");
+    expect(shader.label).toBe("aperture/standard-mesh-fog-exp2-textured");
+    expect(validateStandardShaderMetadata(shader)).toEqual({
+      valid: true,
+      diagnostics: [],
+    });
+    expect(shader.code).toContain("fogColor: vec4f");
+    expect(shader.code).toContain("fogParams: vec4f");
+    expect(shader.code).toContain("fn applyDistanceFog");
+    expect(shader.code).toContain(
+      "exp(-distanceToCamera * distanceToCamera * view.fogParams.y * view.fogParams.y)",
+    );
+    expect(shader.code).toContain(
+      "var color = ambientDiffuse + direct + material.emissiveFactor;",
+    );
+    expect(shader.code).not.toContain(
+      "let color = ambientDiffuse + direct + material.emissiveFactor;",
+    );
+    expect(shader.code).toContain("color = applyDistanceFog");
+    expect(shader.code).toContain("return vec4f(color, alpha);");
+  });
+
   it("generates a skinned StandardMaterial shader variant", () => {
     const shader = createStandardTextureVariantShader({
       baseColorTexture: false,

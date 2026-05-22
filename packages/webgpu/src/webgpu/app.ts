@@ -327,6 +327,7 @@ export interface WebGpuAppRenderCounts {
   readonly meshDraws: number;
   readonly spriteDraws: number;
   readonly skyboxes: number;
+  readonly fogs: number;
   readonly drawPackages: number;
   readonly drawCommands: number;
   readonly drawCalls: number;
@@ -927,6 +928,8 @@ function createEmptyRenderSnapshot(frame: number): RenderSnapshot {
       views: 0,
       meshDraws: 0,
       spriteDraws: 0,
+      skyboxes: 0,
+      fogs: 0,
       lights: 0,
       environments: 0,
       shadowRequests: 0,
@@ -5467,6 +5470,7 @@ function renderReport(input: {
       meshDraws: input.snapshot.meshDraws.length,
       spriteDraws: input.snapshot.spriteDraws?.length ?? 0,
       skyboxes: input.snapshot.skyboxes?.length ?? 0,
+      fogs: input.snapshot.fogs?.length ?? 0,
       drawPackages: input.drawPackages ?? 0,
       drawCommands: input.drawCommands ?? 0,
       drawCalls: input.drawCalls ?? 0,

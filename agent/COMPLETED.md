@@ -1,5 +1,28 @@
 # Completed Tasks
 
+## task-3080 — Fog (linear + exponential + exponential-squared)
+
+Completed: 2026-05-22
+
+Summary:
+
+- Added ECS-authored `Fog` data with linear, exponential, and
+  exponential-squared modes plus `withFog(...)`.
+- Extracted fog packets from ECS into snapshots, packed per-view fog color and
+  parameters into WebGPU view uniforms, and specialized StandardMaterial
+  pipeline keys/shaders for each fog mode.
+- Added `examples/fog.html` with worker-owned ECS authoring and headed
+  Chrome/WebGPU proof that farther StandardMaterial pixels fade toward the fog
+  color.
+
+Validation:
+
+- `pnpm run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm run check:examples`
+- `pnpm exec vitest run test/rendering/components.test.ts test/rendering/extraction.test.ts test/rendering/view-pack.test.ts test/runtime/runtime.test.ts test/webgpu/standard-shader.test.ts test/webgpu/standard-pipeline.test.ts`
+- `pnpm exec playwright test test/e2e/fog.spec.ts`
+
 ## User-directed loading/rendering audit — Native compressed KTX2 textures
 
 Completed: 2026-05-22
