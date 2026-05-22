@@ -1,5 +1,48 @@
 # Completed Tasks
 
+## task-3061 — Meshopt decoder integration
+
+Completed: 2026-05-22
+
+- Added a public `createMeshoptDecoder(...)` helper and `MeshoptBufferDecoder`
+  contract for caller-provided Meshopt decoder JS assets.
+- Threaded `EXT_meshopt_compression` / `KHR_meshopt_compression` bufferView
+  decoding through the report-driven glTF/GLB import path by replacing
+  compressed bufferViews with decoded virtual buffers before normal accessor
+  validation and mesh construction.
+- Marked Meshopt compression as supported glTF root metadata once decoded
+  bufferViews can feed real `MeshAsset` data.
+- Added committed browser assets for the Meshopt decoder plus
+  `examples/assets/meshopt-cube.glb`, wired `glb-viewer` main/worker source
+  registration and replay to share the decoder, and added the sample selector
+  entry.
+- Added targeted public decoder/import/source-loader Vitest coverage and a
+  focused GLB viewer Playwright assertion proving one rendered Meshopt
+  StandardMaterial draw with no unsupported diagnostics. The local headed
+  Chrome teardown hang still required stopping the Playwright process after the
+  assertion passed.
+
+## task-3060 — Draco mesh decoder integration
+
+Completed: 2026-05-22
+
+- Threaded `KHR_draco_mesh_compression` through the report-driven glTF/GLB
+  import path when a caller provides `DracoMeshDecoder`.
+- Added compressed primitive metadata to mesh primitive planning, skipped normal
+  accessor bufferView validation for compressed primitives, decoded Draco
+  bufferViews by glTF unique attribute ids, and merged decoded arrays into
+  existing mesh construction reports.
+- Marked `KHR_draco_mesh_compression` as a supported glTF root extension once
+  the decoder path can produce real `MeshAsset` data.
+- Added committed browser assets for Draco JS/WASM plus
+  `examples/assets/draco-heart.glb`, wired `glb-viewer` main/worker source
+  registration and replay to share the decoder, and added the sample selector
+  entry.
+- Added targeted import/source-loader Vitest coverage and a focused GLB viewer
+  Playwright assertion proving one rendered Draco StandardMaterial draw with no
+  unsupported diagnostics. The local headed Chrome teardown hang still required
+  stopping the Playwright process after the assertion passed.
+
 ## task-3059 — KTX2 / BasisU texture decoder integration
 
 Completed: 2026-05-22

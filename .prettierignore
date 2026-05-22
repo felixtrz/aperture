@@ -6,4 +6,6 @@ test-results/
 .mcp.json
 docs/render-pipeline-comparison.html
 examples/assets/basis/
+examples/assets/draco/
+examples/assets/meshopt/
 test/assets/fixtures/draco/

@@ -6,6 +6,6 @@
   "lastResult": "success",
   "lastCommit": "97cf00e",
   "activePid": null,
-  "notes": "Completed task-3059 BasisU KTX2 texture decoding and GLB viewer proof; started task-3060 with public Draco decoder plus glTF accessor bridge. Next: thread KHR_draco_mesh_compression through glTF replay and add visible GLB viewer sample.",
-  "lastRunFinishedAt": "2026-05-22T04:50:20Z"
+  "notes": "Completed task-3060 Draco and task-3061 Meshopt decoder integrations; GLB viewer compressed geometry samples pass focused assertions; pnpm run check passes; next task task-3062 real-world compressed glTF sample.",
+  "lastRunFinishedAt": "2026-05-22T05:50:12Z"
 }

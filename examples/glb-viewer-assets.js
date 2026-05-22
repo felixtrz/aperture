@@ -213,6 +213,18 @@ export const sampleAssets = [
     source: "sample",
   },
   {
+    id: "draco-heart",
+    label: "Draco heart",
+    url: new URL("./assets/draco-heart.glb", import.meta.url),
+    source: "sample",
+  },
+  {
+    id: "meshopt-cube",
+    label: "Meshopt cube",
+    url: new URL("./assets/meshopt-cube.glb", import.meta.url),
+    source: "sample",
+  },
+  {
     id: "embedded-texture",
     label: "Embedded texture",
     url: new URL("./assets/embedded-texture.glb", import.meta.url),

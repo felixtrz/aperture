@@ -189,6 +189,10 @@ function validatePrimitive(
   context: ValidationContext,
   primitive: GltfPlannedMeshPrimitiveAsset,
 ): GltfPrimitiveAccessorPlan | null {
+  if (primitive.compression !== null) {
+    return null;
+  }
+
   const diagnosticsBefore = context.diagnostics.length;
   const attributes: GltfValidatedAccessorReference[] = [];
 

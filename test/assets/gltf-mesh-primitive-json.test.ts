@@ -46,6 +46,7 @@ describe("glTF mesh primitive mapping report JSON", () => {
           },
           indices: { accessorIndex: 2 },
           materialIndex: null,
+          compression: null,
           mesh: null,
         },
       ],

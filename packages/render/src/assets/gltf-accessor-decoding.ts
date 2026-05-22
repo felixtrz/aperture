@@ -16,6 +16,7 @@ export interface GltfAccessorDecodingDiagnostic {
   readonly primitiveIndex?: number;
   readonly semantic?: GltfAccessorSemantic;
   readonly accessorIndex?: number;
+  readonly bufferViewIndex?: number;
   readonly bufferIndex?: number;
   readonly byteOffset?: number;
   readonly byteLength?: number;

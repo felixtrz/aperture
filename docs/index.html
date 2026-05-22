@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-22 04:23 UTC</dd>
+            <dd>2026-05-22 05:36 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -420,13 +420,23 @@
               images through a caller-configured Basis Universal transcoder,
               routes <code>KHR_texture_basisu</code> images through async
               texture mapping, and proves a committed compressed GLB sample in
-              <code>glb-viewer</code>. The render-packet inspector example now
-              renders a worker-authored snapshot while publishing JSON-safe
-              packet tables for views, draws, lights, environments, bounds,
-              queue keys, handles, skipped-entity explanations, and culling
-              stats. Extraction now builds camera frustum planes from
-              view-projection matrices, skips mesh draws outside every matching
-              camera view, reports per-view <code>cullStats</code>, and exposes
+              <code>glb-viewer</code>. The Tier 12 compressed-geometry path now
+              decodes <code>KHR_draco_mesh_compression</code> primitives through
+              caller-provided Draco JS/WASM assets, feeds the decoded arrays
+              through normal mesh construction, and renders a committed
+              Draco-compressed GLB sample in <code>glb-viewer</code>. Meshopt
+              bufferView compression now decodes
+              <code>EXT_meshopt_compression</code> /
+              <code>KHR_meshopt_compression</code> payloads into virtual
+              bufferViews before normal accessor validation, and
+              <code>glb-viewer</code> renders a committed Meshopt-compressed
+              cube sample. The render-packet inspector example now renders a
+              worker-authored snapshot while publishing JSON-safe packet tables
+              for views, draws, lights, environments, bounds, queue keys,
+              handles, skipped-entity explanations, and culling stats.
+              Extraction now builds camera frustum planes from view-projection
+              matrices, skips mesh draws outside every matching camera view,
+              reports per-view <code>cullStats</code>, and exposes
               <code>frustumCulling: false</code> as a camera opt-out. Custom
               WGSL materials can now declare per-instance attribute layouts with
               <code>defineInstanceAttributes(...)</code>, runtime entities can
@@ -1246,7 +1256,7 @@
               key so live route changes do not reuse incompatible layouts.
             </dd>
             <dt>Next focus</dt>
-            <dd>task-3060 Draco mesh decoder integration</dd>
+            <dd>task-3062 Real-world compressed glTF sample</dd>
           </dl>
         </aside>
       </header>
@@ -4176,15 +4186,12 @@
             <ul>
               <li>
                 <span class="badge amber">next</span> Build
-                <code>task-3060</code>, Draco mesh decoder integration for
-                compressed glTF geometry. The public decoder helper is started;
-                next step is threading
-                <code>KHR_draco_mesh_compression</code> into glTF primitive
-                replay and <code>glb-viewer</code>.
+                <code>task-3062</code>, a real-world compressed glTF sample in
+                <code>glb-viewer</code>.
               </li>
               <li>
-                Follow-up visible slices add Draco and meshopt decoders, then a
-                real-world compressed glTF sample in <code>glb-viewer</code>.
+                Use the completed BasisU, Draco, and Meshopt decoder paths as
+                the import baseline for the sample choice.
               </li>
               <li>
                 Keep the recommended next task visible-feature first; avoid
@@ -4201,6 +4208,28 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3061</div>
+            <div>
+              <strong>Meshopt-compressed GLB geometry renders.</strong>
+              <span>
+                <code>EXT_meshopt_compression</code> bufferViews now decode
+                through a public Meshopt decoder and render a committed
+                <code>glb-viewer</code> sample.
+              </span>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="task-id">task-3060</div>
+            <div>
+              <strong>Draco-compressed GLB geometry renders.</strong>
+              <span>
+                <code>KHR_draco_mesh_compression</code> primitives now decode
+                through caller-provided Draco JS/WASM assets and render a
+                committed <code>glb-viewer</code> sample.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3059</div>
             <div>

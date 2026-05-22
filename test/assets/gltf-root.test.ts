@@ -65,7 +65,7 @@ describe("glTF root validation for asset mapping", () => {
   it("reports unsupported required extensions with JSON-safe output", () => {
     const report = validateGltfRootForAssetMapping({
       asset: { version: "2.0" },
-      extensionsRequired: ["KHR_draco_mesh_compression", 42],
+      extensionsRequired: ["EXT_mesh_gpu_instancing", 42],
     });
 
     expect(report.valid).toBe(false);
@@ -73,7 +73,7 @@ describe("glTF root validation for asset mapping", () => {
       {
         code: "gltfRoot.unsupportedRequiredExtension",
         severity: "error",
-        extensionName: "KHR_draco_mesh_compression",
+        extensionName: "EXT_mesh_gpu_instancing",
       },
       {
         code: "gltfRoot.unsupportedRequiredExtension",

@@ -1,6 +1,156 @@
 # Agent Handoff
 
-Updated: 2026-05-22T04:45:41Z
+Updated: 2026-05-22T05:41:30Z
+
+## Current Run Update — 2026-05-22T05:36:30Z — Meshopt compressed GLB geometry shipped
+
+Completed `task-3061` after `task-3060`.
+
+### What changed
+
+- Added `packages/render/src/assets/meshopt-decoder.ts` and exported it through
+  the render/core public surface.
+- Added `createMeshoptDecoder(...)`, which loads caller-provided
+  `meshopt_decoder.module.js`, waits for its WASM-backed decoder readiness, and
+  decodes glTF Meshopt buffer payloads into plain `Uint8Array` data.
+- `createGltfReportDrivenImportReportFromGlb(...)` now accepts
+  `meshoptDecoder`. When a root uses `EXT_meshopt_compression` or
+  `KHR_meshopt_compression`, compressed bufferViews are decoded into virtual
+  buffers before normal accessor validation/decoding, so existing mesh
+  construction stays the downstream path.
+- Marked `EXT_meshopt_compression` and `KHR_meshopt_compression` as supported
+  root metadata once real decoded mesh data is available.
+- Added browser-facing Meshopt decoder assets under `examples/assets/meshopt/`,
+  added `examples/assets/meshopt-cube.glb`, and added the `meshopt-cube` GLB
+  viewer sample.
+- Wired both `examples/glb-viewer.main.js` and
+  `examples/glb-viewer.worker.js` to lazily create the Meshopt decoder when the
+  loaded root uses/requires Meshopt compression.
+- Added targeted public decoder/import/source-loader Vitest coverage and a
+  focused GLB viewer Playwright assertion for the Meshopt sample.
+- Updated public tracker pages, backlog, and completed-task log. Recommended
+  next task is now `task-3062`.
+
+### References inspected
+
+- `references/three.js/examples/jsm/libs/meshopt_decoder.module.js`
+- `references/three.js/examples/jsm/loaders/GLTFLoader.js`
+  `GLTFMeshoptCompression`
+- Khronos `MeshoptCubeTest` sample asset metadata from
+  `KhronosGroup/glTF-Sample-Assets`
+
+Common pattern adapted: three.js resolves Meshopt compression at the bufferView
+boundary, decodes the extension source buffer into a plain buffer, and then
+lets normal accessor loading read from that decoded buffer. Aperture now does
+the same inside the report-driven import boundary with virtual buffers, keeping
+ECS replay and WebGPU resource ownership unchanged.
+
+### Validation
+
+- `pnpm exec tsc --noEmit -p packages/render/tsconfig.json` passed.
+- `pnpm exec tsc --noEmit -p tsconfig.test.json` passed.
+- `pnpm exec vitest run test/assets/meshopt-decoder.test.ts test/assets/draco-decoder.test.ts test/assets/gltf-root.test.ts`
+  passed.
+- `pnpm run check:examples` passed.
+- `pnpm run format:check` passed.
+- `pnpm run check` passed after updating the mesh primitive JSON expectation:
+  package boundaries, progress tracker freshness, package/test typecheck,
+  example syntax checks, lint, format check, and all 338 Vitest files / 1,671
+  tests.
+- Stop-hook-equivalent npm script checks also passed for `npm run typecheck`,
+  `npm run typecheck:test`, `npm run build`, `npm test`, `npm run lint`, and
+  `npm run format:check`.
+- Focused GLB viewer Playwright assertion for
+  `?asset=meshopt-cube` passed: status reported `EXT_meshopt_compression`
+  used/required, mesh construction ready with 24 vertices / 36 indices, one
+  StandardMaterial draw, zero unsupported diagnostics, and visible non-clear
+  pixels. The process hit the existing local headed Chrome teardown hang after
+  the assertion passed and was stopped manually.
+
+### Known issues
+
+- The headed Playwright teardown hang is unchanged from the Draco proof.
+
+### Recommended next task
+
+Start `task-3062`: add a real-world compressed glTF sample to `glb-viewer`
+using the completed BasisU, Draco, and Meshopt loader paths.
+
+Quick candidate scan: Khronos Sample Assets currently exposes
+`ABeautifulGame/glTF-Binary-KTX-ETC1S-Draco` and
+`CarConcept/glTF-KTX-BasisU-Draco` directories. The GitHub API returned a
+temporary 429 after that scan, so the next run should verify file sizes and
+extension metadata before committing either sample.
+
+## Current Run Update — 2026-05-22T05:14:08Z — Draco compressed GLB geometry shipped
+
+Completed `task-3060`.
+
+### What changed
+
+- Threaded `KHR_draco_mesh_compression` through the normal report-driven glTF
+  import path when a caller provides `DracoMeshDecoder`.
+- `createGltfMeshPrimitiveMappingReport(...)` can now preserve compressed
+  primitive metadata instead of reporting Draco as unsupported, and
+  `validateGltfPrimitiveAccessorReferences(...)` skips normal bufferView
+  validation for compressed primitive accessors.
+- `createGltfReportDrivenImportReportFromGlb(...)` now decodes Draco
+  bufferViews by glTF unique attribute ids, converts the decoded arrays through
+  `createGltfDecodedPrimitiveAccessorsFromDraco(...)`, and feeds existing mesh
+  construction/source registration.
+- Marked `KHR_draco_mesh_compression` as supported root metadata once real mesh
+  construction is available.
+- Added browser-facing Draco assets under `examples/assets/draco/`, added
+  `examples/assets/draco-heart.glb`, and added the `draco-heart` GLB viewer
+  sample.
+- Wired both `examples/glb-viewer.main.js` and
+  `examples/glb-viewer.worker.js` to lazily create the Draco decoder when the
+  loaded root uses/requires the Draco extension.
+- Added a focused GLB viewer Playwright assertion for the Draco sample.
+- Updated public tracker pages. Recommended next task is now `task-3061`.
+
+### References inspected
+
+- `references/three.js/examples/jsm/loaders/DRACOLoader.js`
+- `references/three.js/examples/jsm/loaders/GLTFLoader.js`
+  `GLTFDracoMeshCompressionExtension`
+- `references/engine/src/framework/parsers/draco-worker.js`
+- `references/engine/src/framework/parsers/draco-decoder.js`
+- `references/engine/src/framework/parsers/glb-parser.js` Draco mesh path
+
+Common pattern adapted: three.js and PlayCanvas both use the
+`KHR_draco_mesh_compression.attributes` semantic-to-unique-id map to decode a
+compressed bufferView into normal vertex/index arrays, then feed the same mesh
+construction/render path as uncompressed geometry. Aperture now does the same at
+the renderer-independent report boundary while keeping GPU resources and replay
+state outside the loader.
+
+### Validation
+
+- `pnpm exec tsc --noEmit -p packages/render/tsconfig.json` passed.
+- `pnpm exec tsc --noEmit -p tsconfig.test.json` passed.
+- `pnpm exec vitest run test/assets/draco-decoder.test.ts test/assets/gltf-root.test.ts`
+  passed.
+- `node --check examples/glb-viewer.main.js` passed.
+- `node --check examples/glb-viewer.worker.js` passed.
+- `pnpm run build` passed.
+- `pnpm run check:examples` passed.
+- Focused GLB viewer Playwright assertion for
+  `?asset=draco-heart` passed: status reported `KHR_draco_mesh_compression`
+  used/required, mesh construction ready with 540 vertices / 540 indices, one
+  StandardMaterial draw, zero unsupported diagnostics, and visible non-clear
+  pixels. The process hit the existing local headed Chrome teardown hang after
+  the assertion passed and was stopped manually.
+
+### Known issues
+
+- Meshopt compressed buffers remain unsupported (`task-3061`).
+- The headed Playwright teardown hang is unchanged from prior runs.
+
+### Recommended next task
+
+Start `task-3061`: integrate Meshopt decoding for `EXT_meshopt_compression`
+buffers and add targeted compressed-buffer coverage.
 
 ## Current Run Update — 2026-05-22T04:36:40Z — Draco decoder helper started
 

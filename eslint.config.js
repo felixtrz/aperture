@@ -17,6 +17,8 @@ export default tseslint.config(
       ".codex/**",
       "references/**",
       "examples/assets/basis/**",
+      "examples/assets/draco/**",
+      "examples/assets/meshopt/**",
     ],
   },
   {

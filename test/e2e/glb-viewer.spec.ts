@@ -18444,6 +18444,306 @@ test("Playwright renders a BasisU KTX2 texture in the GLB viewer", async ({
   webGpuValidation.expectNoWarnings();
 });
 
+test("Playwright renders a Draco-compressed GLB mesh in the viewer", async ({
+  page,
+}) => {
+  const webGpuValidation = attachWebGpuValidationConsoleGuard(page);
+
+  await page.goto("/examples/glb-viewer.html?asset=draco-heart");
+  const initialStatus = await waitForExampleStatus<GlbViewerStatus>(page);
+
+  expect(initialStatus, "Draco GLB viewer status should publish").toBeDefined();
+
+  if (initialStatus === undefined) {
+    throw new Error("Draco GLB viewer status did not publish.");
+  }
+
+  skipIfUnsupportedWebGpu(initialStatus);
+  await page.waitForFunction(
+    () => {
+      const status = (
+        globalThis as {
+          readonly __APERTURE_EXAMPLE_STATUS__?: {
+            readonly frame?: number;
+            readonly selectedAsset?: {
+              readonly id?: string;
+              readonly loading?: boolean;
+            };
+            readonly source?: {
+              readonly ok?: boolean;
+              readonly outputSummary?: {
+                readonly meshConstruction?: {
+                  readonly status?: string;
+                  readonly vertexCount?: number;
+                  readonly indexCount?: number;
+                  readonly diagnosticsCount?: number;
+                };
+              };
+            };
+            readonly gltf?: {
+              readonly metadata?: {
+                readonly extensions?: {
+                  readonly used?: readonly string[];
+                  readonly required?: readonly string[];
+                };
+                readonly unsupportedFeatureDiagnostics?: readonly unknown[];
+              };
+              readonly primitiveMaterials?: { readonly resolved?: number };
+              readonly replay?: { readonly valid?: boolean };
+            };
+            readonly extraction?: { readonly meshDraws?: number };
+            readonly draw?: { readonly drawCalls?: number };
+          };
+        }
+      ).__APERTURE_EXAMPLE_STATUS__;
+
+      return (
+        (status?.frame ?? 0) >= 3 &&
+        status?.selectedAsset?.id === "draco-heart" &&
+        status.selectedAsset.loading === false &&
+        status.source?.ok === true &&
+        status.source.outputSummary?.meshConstruction?.status === "ready" &&
+        status.source.outputSummary.meshConstruction.vertexCount === 540 &&
+        status.source.outputSummary.meshConstruction.indexCount === 540 &&
+        status.source.outputSummary.meshConstruction.diagnosticsCount === 0 &&
+        status.gltf?.metadata?.extensions?.required?.includes(
+          "KHR_draco_mesh_compression",
+        ) === true &&
+        (status.gltf.metadata.unsupportedFeatureDiagnostics?.length ?? 0) ===
+          0 &&
+        status.gltf?.primitiveMaterials?.resolved === 1 &&
+        status.gltf?.replay?.valid === true &&
+        status.extraction?.meshDraws === 1 &&
+        status.draw?.drawCalls === 1
+      );
+    },
+    undefined,
+    { timeout: 7000 },
+  );
+
+  const status = await waitForExampleStatus<GlbViewerStatus>(page);
+
+  expect(status, "Draco GLB viewer status should publish").toBeDefined();
+
+  if (status === undefined) {
+    throw new Error("Draco GLB viewer status did not publish.");
+  }
+
+  const screenshot = await page.locator("#aperture-canvas").screenshot();
+  const clear =
+    status.clearColor === undefined
+      ? { r: 4, g: 6, b: 9, a: 255 }
+      : rgbaColorToPixel(status.clearColor);
+  const visible = strongestNearCenterSample(screenshot, clear);
+
+  expectStatusJsonSafeForGpu(status);
+  expect(status).toMatchObject({
+    selectedAsset: {
+      id: "draco-heart",
+      label: "Draco heart",
+      source: "sample",
+      url: "/examples/assets/draco-heart.glb",
+      loading: false,
+      materialFamilies: [{ family: "standard", count: 1 }],
+    },
+    source: {
+      ok: true,
+      outputSummary: {
+        meshConstruction: {
+          status: "ready",
+          meshCount: 1,
+          submeshCount: 1,
+          vertexCount: 540,
+          indexCount: 540,
+          diagnosticsCount: 0,
+        },
+      },
+    },
+    gltf: {
+      metadata: {
+        extensions: {
+          used: ["KHR_draco_mesh_compression"],
+          required: ["KHR_draco_mesh_compression"],
+        },
+        unsupportedFeatureDiagnostics: [],
+      },
+      primitiveMaterials: {
+        valid: true,
+        resolved: 1,
+        diagnostics: 0,
+      },
+      replay: { valid: true, diagnostics: 0 },
+    },
+    extraction: {
+      views: 1,
+      meshDraws: 1,
+      diagnostics: 0,
+    },
+    draw: {
+      packages: 1,
+      drawCalls: 1,
+    },
+  });
+  expect(
+    pixelDistance(visible, clear),
+    `Draco GLB sample should render visible mesh pixels; sample=${JSON.stringify(
+      visible,
+    )}`,
+  ).toBeGreaterThan(20);
+  webGpuValidation.expectNoWarnings();
+});
+
+test("Playwright renders a Meshopt-compressed GLB mesh in the viewer", async ({
+  page,
+}) => {
+  const webGpuValidation = attachWebGpuValidationConsoleGuard(page);
+
+  await page.goto("/examples/glb-viewer.html?asset=meshopt-cube");
+  const initialStatus = await waitForExampleStatus<GlbViewerStatus>(page);
+
+  expect(
+    initialStatus,
+    "Meshopt GLB viewer status should publish",
+  ).toBeDefined();
+
+  if (initialStatus === undefined) {
+    throw new Error("Meshopt GLB viewer status did not publish.");
+  }
+
+  skipIfUnsupportedWebGpu(initialStatus);
+  await page.waitForFunction(
+    () => {
+      const status = (
+        globalThis as {
+          readonly __APERTURE_EXAMPLE_STATUS__?: {
+            readonly frame?: number;
+            readonly selectedAsset?: {
+              readonly id?: string;
+              readonly loading?: boolean;
+            };
+            readonly source?: {
+              readonly ok?: boolean;
+              readonly outputSummary?: {
+                readonly meshConstruction?: {
+                  readonly status?: string;
+                  readonly vertexCount?: number;
+                  readonly indexCount?: number;
+                  readonly diagnosticsCount?: number;
+                };
+              };
+            };
+            readonly gltf?: {
+              readonly metadata?: {
+                readonly extensions?: {
+                  readonly required?: readonly string[];
+                };
+                readonly unsupportedFeatureDiagnostics?: readonly unknown[];
+              };
+              readonly primitiveMaterials?: { readonly resolved?: number };
+              readonly replay?: { readonly valid?: boolean };
+            };
+            readonly extraction?: { readonly meshDraws?: number };
+            readonly draw?: { readonly drawCalls?: number };
+          };
+        }
+      ).__APERTURE_EXAMPLE_STATUS__;
+
+      return (
+        (status?.frame ?? 0) >= 3 &&
+        status?.selectedAsset?.id === "meshopt-cube" &&
+        status.selectedAsset.loading === false &&
+        status.source?.ok === true &&
+        status.source.outputSummary?.meshConstruction?.status === "ready" &&
+        status.source.outputSummary.meshConstruction.vertexCount === 24 &&
+        status.source.outputSummary.meshConstruction.indexCount === 36 &&
+        status.source.outputSummary.meshConstruction.diagnosticsCount === 0 &&
+        status.gltf?.metadata?.extensions?.required?.includes(
+          "EXT_meshopt_compression",
+        ) === true &&
+        (status.gltf.metadata.unsupportedFeatureDiagnostics?.length ?? 0) ===
+          0 &&
+        status.gltf?.primitiveMaterials?.resolved === 1 &&
+        status.gltf?.replay?.valid === true &&
+        status.extraction?.meshDraws === 1 &&
+        status.draw?.drawCalls === 1
+      );
+    },
+    undefined,
+    { timeout: 7000 },
+  );
+
+  const status = await waitForExampleStatus<GlbViewerStatus>(page);
+
+  expect(status, "Meshopt GLB viewer status should publish").toBeDefined();
+
+  if (status === undefined) {
+    throw new Error("Meshopt GLB viewer status did not publish.");
+  }
+
+  const screenshot = await page.locator("#aperture-canvas").screenshot();
+  const clear =
+    status.clearColor === undefined
+      ? { r: 4, g: 6, b: 9, a: 255 }
+      : rgbaColorToPixel(status.clearColor);
+  const visible = strongestNearCenterSample(screenshot, clear);
+
+  expectStatusJsonSafeForGpu(status);
+  expect(status).toMatchObject({
+    selectedAsset: {
+      id: "meshopt-cube",
+      label: "Meshopt cube",
+      source: "sample",
+      url: "/examples/assets/meshopt-cube.glb",
+      loading: false,
+      materialFamilies: [{ family: "standard", count: 1 }],
+    },
+    source: {
+      ok: true,
+      outputSummary: {
+        meshConstruction: {
+          status: "ready",
+          meshCount: 1,
+          submeshCount: 1,
+          vertexCount: 24,
+          indexCount: 36,
+          diagnosticsCount: 0,
+        },
+      },
+    },
+    gltf: {
+      metadata: {
+        extensions: {
+          used: ["EXT_meshopt_compression"],
+          required: ["EXT_meshopt_compression"],
+        },
+        unsupportedFeatureDiagnostics: [],
+      },
+      primitiveMaterials: {
+        valid: true,
+        resolved: 1,
+        diagnostics: 0,
+      },
+      replay: { valid: true, diagnostics: 0 },
+    },
+    extraction: {
+      views: 1,
+      meshDraws: 1,
+      diagnostics: 0,
+    },
+    draw: {
+      packages: 1,
+      drawCalls: 1,
+    },
+  });
+  expect(
+    pixelDistance(visible, clear),
+    `Meshopt GLB sample should render visible mesh pixels; sample=${JSON.stringify(
+      visible,
+    )}`,
+  ).toBeGreaterThan(20);
+  webGpuValidation.expectNoWarnings();
+});
+
 test("Playwright renders an embedded-image GLB texture sample", async ({
   page,
 }) => {

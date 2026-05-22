@@ -59,7 +59,7 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start `task-3060`: Draco mesh decoder integration.
+Start `task-3062`: Real-world glTF sample in glb-viewer.
 
 Why this next: the Tier 11 skinning and morph-target paths now have visible GLB
 viewer proofs. `task-3057` replaced the old skinning metadata diagnostic sample
@@ -72,8 +72,11 @@ attaches ECS `MorphTargetWeights`, publishes live slider state, and proves
 slider-driven pixel changes. `task-3059` completed the compressed texture slice:
 BasisU-compressed KTX2 payloads now transcode through caller-provided Basis
 Universal JS/WASM assets, `KHR_texture_basisu` is a supported root extension,
-and `glb-viewer` renders a committed compressed-texture sample. The next visible
-gap is compressed glTF geometry support via Draco.
+and `glb-viewer` renders a committed compressed-texture sample. `task-3060`
+completed Draco compressed geometry, and `task-3061` completed Meshopt
+compressed bufferView decoding with a committed `glb-viewer` sample. The next
+visible gap is proving a real-world compressed glTF sample through the combined
+loader paths.
 
 Progress so far: `spinning-cube`, `multi-light-shadow`, and `glb-viewer` now
 use renderer-only `*.main.js` files plus ECS/extraction-owned `*.worker.js`
@@ -129,9 +132,9 @@ shader/pipeline/resource/importer tests.
 
 Reference anchors (read before writing):
 
-- `references/three.js/examples/jsm/loaders/KTX2Loader.js`.
-- `references/engine/src/framework/parsers/texture/ktx2.js`.
-- Existing Aperture glTF texture decode and unsupported-extension diagnostics.
+- `references/three.js/examples/jsm/libs/meshopt_decoder.module.js`.
+- Existing Aperture glTF buffer/accessor decode and unsupported-extension
+  diagnostics.
 
 ## Strategic Focus — Pipeline Maturity Roadmap
 
@@ -193,7 +196,7 @@ Eleven cross-cutting gaps remain across the six phases. They are sequenced below
 
 **Tier 12 — Compressed assets + real-world glTF (queued after Tier 11):**
 
-19. KTX2/BasisU + Draco + Meshopt decoders (task-3059, task-3060, task-3061, task-3062) — integrates the standard wasm transcoders so Aperture can load production glTF assets. glb-viewer demonstrates loading a Khronos sample asset with compressed textures and Draco-compressed geometry. Today the loader detects these formats and emits unsupported diagnostics; this closes that gap. Closes gaps #4 and #10.
+19. KTX2/BasisU + Draco + Meshopt decoders (task-3059, task-3060, task-3061, task-3062) — integrates the standard wasm transcoders so Aperture can load production glTF assets. BasisU, Draco, and Meshopt sample paths now render in glb-viewer; the remaining slice demonstrates a real Khronos compressed asset with these loader paths. Closes gaps #4 and #10.
 
 **Tier 13 — MRT + picking + raycasting (queued after Tier 12):**
 
@@ -857,12 +860,7 @@ Acceptance criteria:
 
 ### task-3060 — Draco mesh decoder integration (Tier 12 part 2)
 
-Partial progress 2026-05-22: public `createDracoMeshDecoder(...)` support and
-`createGltfDecodedPrimitiveAccessorsFromDraco(...)` bridge coverage are in place
-with committed Draco JS/WASM fixtures plus `.drc`, GLB bufferView decode, and
-mesh-construction tests. Remaining work is to thread that decoder through
-`KHR_draco_mesh_compression` glTF primitive replay and add the visible
-`glb-viewer` sample.
+Status: completed 2026-05-22. See `agent/COMPLETED.md`.
 
 Category: `render-bridge`
 Package/write-scope: `packages/render/src/assets/draco-decoder.ts`,
@@ -879,7 +877,7 @@ Acceptance criteria:
 - Test loads a Draco-compressed glTF and asserts decoded primitive counts.
 - glb-viewer loads a Draco sample.
 
-### task-3061 — Meshopt decoder integration (Tier 12 part 3)
+### task-3061 — Meshopt decoder integration (Tier 12 part 3) — completed
 
 Category: `render-bridge`
 Package/write-scope: `packages/render/src/assets/meshopt-decoder.ts` (new) + wasm transcoder, targeted tests.

@@ -181,8 +181,13 @@ const supportedMetadataExtensions = new Set([
   "KHR_texture_transform",
   "KHR_lights_punctual",
   "KHR_texture_basisu",
+  "KHR_draco_mesh_compression",
+  "EXT_meshopt_compression",
+  "KHR_meshopt_compression",
 ]);
 let basisKtx2TranscoderPromise = null;
+let dracoMeshDecoderPromise = null;
+let meshoptDecoderPromise = null;
 let shadowDepthTextureResourceReport = null;
 const realUriTextureGalleryAssetIds = [
   "all-slot-uri-textures",
@@ -2496,12 +2501,20 @@ async function loadGlbViewerAsset(aperture, asset, keyPrefix, sceneIndex) {
     binary: preflightContainer?.binaryChunk ?? null,
     assetUrl: asset.url,
   });
+  const dracoDecoder = gltfUsesDraco(preflightContainer?.json)
+    ? await getGlbViewerDracoMeshDecoder(aperture)
+    : undefined;
+  const meshoptDecoder = gltfUsesMeshopt(preflightContainer?.json)
+    ? await getGlbViewerMeshoptDecoder(aperture)
+    : undefined;
   const loader = aperture.createNoFetchGlbSourceLoaderReport({
     source: fetched.bytes,
     keyPrefix,
     createAssetMapping: true,
     createMeshAssets: true,
     ...(sceneIndex === undefined ? {} : { sceneIndex }),
+    ...(dracoDecoder === undefined ? {} : { dracoDecoder }),
+    ...(meshoptDecoder === undefined ? {} : { meshoptDecoder }),
     resolveImageData: createGlbViewerImageDataResolver({
       assetUrl: asset.url,
       decodedByUrl: imageDecode.decodedByUrl,
@@ -2755,6 +2768,51 @@ function getGlbViewerBasisKtx2Transcoder(aperture) {
       .href,
   });
   return basisKtx2TranscoderPromise;
+}
+
+function getGlbViewerDracoMeshDecoder(aperture) {
+  dracoMeshDecoderPromise ??= aperture.createDracoMeshDecoder({
+    jsUrl: new URL("./assets/draco/draco_wasm_wrapper.js", import.meta.url)
+      .href,
+    wasmUrl: new URL("./assets/draco/draco_decoder.wasm", import.meta.url).href,
+  });
+  return dracoMeshDecoderPromise;
+}
+
+function getGlbViewerMeshoptDecoder(aperture) {
+  meshoptDecoderPromise ??= aperture.createMeshoptDecoder({
+    jsUrl: new URL(
+      "./assets/meshopt/meshopt_decoder.module.js",
+      import.meta.url,
+    ).href,
+  });
+  return meshoptDecoderPromise;
+}
+
+function gltfUsesDraco(root) {
+  return (
+    isRecord(root) &&
+    (stringArray(root.extensionsUsed).includes("KHR_draco_mesh_compression") ||
+      stringArray(root.extensionsRequired).includes(
+        "KHR_draco_mesh_compression",
+      ))
+  );
+}
+
+function gltfUsesMeshopt(root) {
+  if (!isRecord(root)) {
+    return false;
+  }
+
+  const used = stringArray(root.extensionsUsed);
+  const required = stringArray(root.extensionsRequired);
+
+  return (
+    used.includes("EXT_meshopt_compression") ||
+    used.includes("KHR_meshopt_compression") ||
+    required.includes("EXT_meshopt_compression") ||
+    required.includes("KHR_meshopt_compression")
+  );
 }
 
 function bufferViewBytes(root, binary, bufferViewIndex) {
