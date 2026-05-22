@@ -207,6 +207,12 @@ export const sampleAssets = [
     source: "sample",
   },
   {
+    id: "basis-ktx2-texture",
+    label: "Basis KTX2 texture",
+    url: new URL("./assets/basis-ktx2-texture.glb", import.meta.url),
+    source: "sample",
+  },
+  {
     id: "embedded-texture",
     label: "Embedded texture",
     url: new URL("./assets/embedded-texture.glb", import.meta.url),

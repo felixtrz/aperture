@@ -18295,6 +18295,155 @@ test("Playwright renders the GLB viewer textured StandardMaterial sample", async
   webGpuValidation.expectNoWarnings();
 });
 
+test("Playwright renders a BasisU KTX2 texture in the GLB viewer", async ({
+  page,
+}) => {
+  const webGpuValidation = attachWebGpuValidationConsoleGuard(page);
+
+  await page.goto("/examples/glb-viewer.html?asset=basis-ktx2-texture");
+  const initialStatus = await waitForExampleStatus<GlbViewerStatus>(page);
+
+  expect(initialStatus, "GLB viewer status should publish").toBeDefined();
+
+  if (initialStatus === undefined) {
+    throw new Error("GLB viewer status did not publish.");
+  }
+
+  skipIfUnsupportedWebGpu(initialStatus);
+  await page.waitForFunction(
+    () => {
+      const status = (
+        globalThis as {
+          readonly __APERTURE_EXAMPLE_STATUS__?: {
+            readonly frame?: number;
+            readonly selectedAsset?: {
+              readonly id?: string;
+              readonly loading?: boolean;
+            };
+            readonly source?: {
+              readonly ok?: boolean;
+              readonly imageDecode?: {
+                readonly decoded?: readonly {
+                  readonly mimeType?: string;
+                  readonly width?: number;
+                  readonly height?: number;
+                }[];
+              };
+            };
+            readonly gltf?: {
+              readonly primitiveMaterials?: {
+                readonly resolved?: number;
+              };
+              readonly metadata?: {
+                readonly unsupportedFeatureDiagnostics?: readonly unknown[];
+              };
+            };
+            readonly extraction?: { readonly meshDraws?: number };
+            readonly renderState?: {
+              readonly pipelineKeys?: readonly string[];
+            };
+          };
+        }
+      ).__APERTURE_EXAMPLE_STATUS__;
+
+      return (
+        (status?.frame ?? 0) >= 3 &&
+        status?.selectedAsset?.id === "basis-ktx2-texture" &&
+        status.selectedAsset.loading === false &&
+        status.source?.ok === true &&
+        status.source.imageDecode?.decoded?.some(
+          (entry) =>
+            entry.mimeType === "image/ktx2" &&
+            entry.width === 40 &&
+            entry.height === 40,
+        ) === true &&
+        status.gltf?.primitiveMaterials?.resolved === 1 &&
+        (status.gltf.metadata?.unsupportedFeatureDiagnostics?.length ?? 0) ===
+          0 &&
+        status.extraction?.meshDraws === 1 &&
+        status.renderState?.pipelineKeys?.some((key) =>
+          key.startsWith("standard|baseColorTexture|opaque|"),
+        ) === true
+      );
+    },
+    undefined,
+    { timeout: 7000 },
+  );
+
+  const status = await waitForExampleStatus<GlbViewerStatus>(page);
+
+  expect(status, "Basis KTX2 viewer status should publish").toBeDefined();
+
+  if (status === undefined) {
+    throw new Error("Basis KTX2 viewer status did not publish.");
+  }
+
+  const screenshot = await page.locator("#aperture-canvas").screenshot();
+  const clear =
+    status.clearColor === undefined
+      ? { r: 4, g: 6, b: 9, a: 255 }
+      : rgbaColorToPixel(status.clearColor);
+  const textured = readPngPixel(screenshot, 0.5, 0.5);
+
+  expectStatusJsonSafeForGpu(status);
+  expect(status).toMatchObject({
+    selectedAsset: {
+      id: "basis-ktx2-texture",
+      label: "Basis KTX2 texture",
+      source: "sample",
+      url: "/examples/assets/basis-ktx2-texture.glb",
+      loading: false,
+      materialFamilies: [{ family: "standard", count: 1 }],
+    },
+    source: {
+      ok: true,
+      imageDecode: {
+        decoded: [
+          expect.objectContaining({
+            sourceKind: "buffer-view",
+            decodeMode: "async-buffer-view",
+            mimeType: "image/ktx2",
+            width: 40,
+            height: 40,
+          }),
+        ],
+        diagnostics: [],
+      },
+    },
+    gltf: {
+      metadata: {
+        extensions: {
+          used: ["KHR_texture_basisu"],
+          required: ["KHR_texture_basisu"],
+        },
+        unsupportedFeatureDiagnostics: [],
+      },
+      primitiveMaterials: {
+        valid: true,
+        resolved: 1,
+        diagnostics: 0,
+      },
+      replay: { valid: true, diagnostics: 0 },
+    },
+    extraction: {
+      views: 1,
+      meshDraws: 1,
+      diagnostics: 0,
+    },
+    draw: {
+      packages: 1,
+      drawCalls: 1,
+    },
+  });
+  expect(
+    pixelDistance(textured, clear),
+    `Basis KTX2 sample should render visible textured pixels; sample=${JSON.stringify(
+      textured,
+    )}`,
+  ).toBeGreaterThan(20);
+  webGpuValidation.expectNoWarnings();
+});
+
 test("Playwright renders an embedded-image GLB texture sample", async ({
   page,
 }) => {

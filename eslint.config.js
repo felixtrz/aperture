@@ -16,6 +16,7 @@ export default tseslint.config(
       "agent/logs/**",
       ".codex/**",
       "references/**",
+      "examples/assets/basis/**",
     ],
   },
   {

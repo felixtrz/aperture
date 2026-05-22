@@ -35,6 +35,7 @@ const MAPPER_ARRAY_FIELDS = [
 const SUPPORTED_ROOT_EXTENSIONS = new Set([
   "KHR_materials_unlit",
   "KHR_texture_transform",
+  "KHR_texture_basisu",
 ]);
 
 export function validateGltfRootForAssetMapping(

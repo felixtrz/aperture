@@ -59,7 +59,7 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start `task-3059`: KTX2 / BasisU texture decoder integration.
+Start `task-3060`: Draco mesh decoder integration.
 
 Why this next: the Tier 11 skinning and morph-target paths now have visible GLB
 viewer proofs. `task-3057` replaced the old skinning metadata diagnostic sample
@@ -69,11 +69,11 @@ palettes, and proves animated joint matrices with a headed Chrome pixel smoke.
 `task-3058` replaced the morph metadata diagnostic sample with a visible
 StandardMaterial morph-target path: the importer maps two morph target streams,
 attaches ECS `MorphTargetWeights`, publishes live slider state, and proves
-slider-driven pixel changes. The next visible gap is compressed glTF texture
-support via KTX2 / BasisU. A partial `task-3059` slice now parses uncompressed
-KTX2 RGBA8/RGBA8-sRGB payloads and routes `KHR_texture_basisu.source` to
-`image/ktx2`; BasisU WASM transcoding and a compressed GLB viewer sample remain
-open.
+slider-driven pixel changes. `task-3059` completed the compressed texture slice:
+BasisU-compressed KTX2 payloads now transcode through caller-provided Basis
+Universal JS/WASM assets, `KHR_texture_basisu` is a supported root extension,
+and `glb-viewer` renders a committed compressed-texture sample. The next visible
+gap is compressed glTF geometry support via Draco.
 
 Progress so far: `spinning-cube`, `multi-light-shadow`, and `glb-viewer` now
 use renderer-only `*.main.js` files plus ECS/extraction-owned `*.worker.js`
@@ -841,6 +841,8 @@ Acceptance criteria:
 - Playwright drives the slider, asserts pixel content changes at the morphed region.
 
 ### task-3059 — KTX2 / BasisU texture decoder integration (Tier 12 part 1)
+
+Status: completed 2026-05-22. See `agent/COMPLETED.md`.
 
 Category: `render-bridge`
 Package/write-scope: `packages/render/src/assets/ktx2-decoder.ts` (new) + wasm transcoder integration, targeted tests.

@@ -5,3 +5,4 @@ playwright-report/
 test-results/
 .mcp.json
 docs/render-pipeline-comparison.html
+examples/assets/basis/

@@ -199,7 +199,9 @@ const supportedMetadataExtensions = new Set([
   "KHR_materials_unlit",
   "KHR_texture_transform",
   "KHR_lights_punctual",
+  "KHR_texture_basisu",
 ]);
+let basisKtx2TranscoderPromise = null;
 let shadowDepthTextureResourceReport = null;
 const realUriTextureGalleryAssetIds = [
   "all-slot-uri-textures",
@@ -2203,6 +2205,9 @@ async function decodeBufferViewImage({
       mimeType: image.mimeType,
     },
     bytes,
+    ...(image.mimeType === "image/ktx2"
+      ? { decodeImageData: createGlbViewerKtx2ImageDecoder(aperture) }
+      : {}),
   });
 
   return {
@@ -2221,6 +2226,22 @@ async function decodeBufferViewImage({
       byteLength: imageData.sourceData.bytes.byteLength,
     },
   };
+}
+
+function createGlbViewerKtx2ImageDecoder(aperture) {
+  return async (input) =>
+    aperture.decodeKtx2TextureDataAsync(input.bytes, {
+      basisTranscoder: await getGlbViewerBasisKtx2Transcoder(aperture),
+    });
+}
+
+function getGlbViewerBasisKtx2Transcoder(aperture) {
+  basisKtx2TranscoderPromise ??= aperture.createBasisUniversalKtx2Transcoder({
+    jsUrl: new URL("./assets/basis/basis_transcoder.js", import.meta.url).href,
+    wasmUrl: new URL("./assets/basis/basis_transcoder.wasm", import.meta.url)
+      .href,
+  });
+  return basisKtx2TranscoderPromise;
 }
 
 function bufferViewBytes(root, binary, bufferViewIndex) {

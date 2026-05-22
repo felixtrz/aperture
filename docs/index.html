@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-22 03:36 UTC</dd>
+            <dd>2026-05-22 04:23 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -415,14 +415,18 @@
               first two GLB morph target delta streams, exposes live
               <code>glb-viewer</code> weight sliders, attaches ECS-authored
               <code>MorphTargetWeights</code>, and renders through group 1
-              binding 2 with a <code>standard|morphed</code> pipeline. The
-              render-packet inspector example now renders a worker-authored
-              snapshot while publishing JSON-safe packet tables for views,
-              draws, lights, environments, bounds, queue keys, handles,
-              skipped-entity explanations, and culling stats. Extraction now
-              builds camera frustum planes from view-projection matrices, skips
-              mesh draws outside every matching camera view, reports per-view
-              <code>cullStats</code>, and exposes
+              binding 2 with a <code>standard|morphed</code> pipeline. The Tier
+              12 compressed-texture path now decodes BasisU-compressed KTX2
+              images through a caller-configured Basis Universal transcoder,
+              routes <code>KHR_texture_basisu</code> images through async
+              texture mapping, and proves a committed compressed GLB sample in
+              <code>glb-viewer</code>. The render-packet inspector example now
+              renders a worker-authored snapshot while publishing JSON-safe
+              packet tables for views, draws, lights, environments, bounds,
+              queue keys, handles, skipped-entity explanations, and culling
+              stats. Extraction now builds camera frustum planes from
+              view-projection matrices, skips mesh draws outside every matching
+              camera view, reports per-view <code>cullStats</code>, and exposes
               <code>frustumCulling: false</code> as a camera opt-out. Custom
               WGSL materials can now declare per-instance attribute layouts with
               <code>defineInstanceAttributes(...)</code>, runtime entities can
@@ -1242,7 +1246,7 @@
               key so live route changes do not reuse incompatible layouts.
             </dd>
             <dt>Next focus</dt>
-            <dd>task-3059 KTX2 / BasisU texture decoder integration</dd>
+            <dd>task-3060 Draco mesh decoder integration</dd>
           </dl>
         </aside>
       </header>
@@ -1618,9 +1622,9 @@
           <article class="phase">
             <div class="topline">
               <h3>2. collect</h3>
-              <span class="percent">84%</span>
+              <span class="percent">85%</span>
             </div>
-            <div class="bar"><span style="width: 84%"></span></div>
+            <div class="bar"><span style="width: 85%"></span></div>
             <p>
               Asset readiness and source-version dependency summaries exist for
               meshes, materials, textures, and samplers. GLB-shaped invalid
@@ -1628,12 +1632,13 @@
               now preserve slot, key, dependency-kind, and status context. glTF
               image resolution now has a Promise-capable decode contract, async
               mapping path, and GLB viewer bufferView PNG loading-to-ready
-              registry proof. Source asset unregister is now explicit, and GLB
-              viewer scene switching reports active/stale registry counts while
-              unregistering the previous scene's source handles. The GLB viewer
-              now fetches real GLB URLs, publishes parsed metadata counts, and
-              reports unsupported-feature diagnostics from import reports
-              without raw binary buffers.
+              registry proof, plus BasisU KTX2 async decode through
+              <code>KHR_texture_basisu</code>. Source asset unregister is now
+              explicit, and GLB viewer scene switching reports active/stale
+              registry counts while unregistering the previous scene's source
+              handles. The GLB viewer now fetches real GLB URLs, publishes
+              parsed metadata counts, and reports unsupported-feature
+              diagnostics from import reports without raw binary buffers.
             </p>
             <ul>
               <li>
@@ -1863,9 +1868,9 @@
           <article class="phase">
             <div class="topline">
               <h3>6. submit</h3>
-              <span class="percent">94%</span>
+              <span class="percent">95%</span>
             </div>
-            <div class="bar"><span style="width: 94%"></span></div>
+            <div class="bar"><span style="width: 95%"></span></div>
             <p>
               WebGPU command submission renders the current proof paths with
               pipeline, bind group, transform, light, mesh, and material
@@ -1874,7 +1879,8 @@
               1.0, stores it, and reports JSON-safe depth metadata. GLB viewer
               StandardMaterial routes now submit lit, IBL-enabled,
               shadow-receiving, opaque, transparent, and animation-driven proof
-              paths with live control coverage. Off-screen ViewPacket render
+              paths with live control coverage, including a BasisU KTX2
+              compressed-texture GLB sample. Off-screen ViewPacket render
               targets and the render-to-texture example now have Playwright
               proof, and PMREM compute has mip 0 plus mip-chain browser readback
               proof plus spinning-cube real RGBE environment-map IBL wiring. The
@@ -1929,6 +1935,12 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">task-3059</span> Added BasisU KTX2
+                texture transcoding, wired <code>KHR_texture_basisu</code>
+                through async image decode, and added a compressed-texture GLB
+                viewer sample with status and pixel proof.
+              </li>
               <li>
                 <span class="badge green">task-3058</span> Replaced the GLB
                 viewer morph metadata fixture with a visible StandardMaterial
@@ -4164,8 +4176,8 @@
             <ul>
               <li>
                 <span class="badge amber">next</span> Build
-                <code>task-3059</code>, KTX2 / BasisU texture decoder
-                integration for compressed glTF textures.
+                <code>task-3060</code>, Draco mesh decoder integration for
+                compressed glTF geometry.
               </li>
               <li>
                 Follow-up visible slices add Draco and meshopt decoders, then a
@@ -4186,6 +4198,17 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3059</div>
+            <div>
+              <strong>BasisU KTX2 textures render in GLB viewer.</strong>
+              <span>
+                The async KTX2 path now uses Basis Universal JS/WASM assets,
+                supports <code>KHR_texture_basisu</code>, and renders a
+                committed compressed-texture sample.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3058</div>
             <div>

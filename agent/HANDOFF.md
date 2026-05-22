@@ -1,6 +1,81 @@
 # Agent Handoff
 
-Updated: 2026-05-22T03:50:02Z
+Updated: 2026-05-22T04:28:49Z
+
+## Current Run Update — 2026-05-22T04:28:49Z — BasisU KTX2 textures shipped
+
+Completed `task-3059`.
+
+### What changed
+
+- Extended the KTX2 asset decoder with async BasisU support:
+  `decodeKtx2TextureDataAsync(...)` now keeps the uncompressed RGBA8 path and
+  can transcode BasisLZ KTX2 payloads through a caller-provided Basis Universal
+  JS/WASM transcoder.
+- Added `createBasisUniversalKtx2Transcoder(...)` so applications/examples can
+  provide local Basis transcoder assets without making the renderer fetch or own
+  those assets implicitly.
+- Marked `KHR_texture_basisu` as a supported glTF root extension and routed
+  `image/ktx2` decode through the async glTF texture-mapping path.
+- Added committed fixtures/assets:
+  `test/assets/fixtures/basis-etc1s.ktx2`,
+  `examples/assets/basis/basis_transcoder.js`,
+  `examples/assets/basis/basis_transcoder.wasm`, and
+  `examples/assets/basis-ktx2-texture.glb`.
+- Updated `glb-viewer` main and worker code so source registration and worker
+  replay both share the Basis transcoder and render the compressed-texture GLB
+  sample without unsupported diagnostics.
+- Updated public tracker pages, backlog, and completed-task log. Recommended
+  next task is now `task-3060`.
+
+### References inspected
+
+- `references/three.js/examples/jsm/loaders/KTX2Loader.js`
+- `references/three.js/examples/jsm/libs/basis/`
+- `references/engine/src/framework/parsers/texture/ktx2.js`
+- `references/engine/src/framework/handlers/basis.js`
+- `references/engine/src/framework/handlers/basis-worker.js`
+
+Common pattern adapted: engines load a small Basis Universal JS/WASM
+transcoder, then convert KTX2/Basis payloads into a GPU-uploadable texture
+format at the asset boundary. Aperture keeps that as an explicit async decode
+step that returns renderer-independent RGBA8 texture data, preserving the
+ECS/snapshot boundary and avoiding renderer-owned loader state.
+
+### Validation
+
+- `pnpm exec tsc --noEmit -p packages/render/tsconfig.json` passed.
+- `pnpm exec tsc --noEmit -p tsconfig.test.json` passed.
+- `pnpm exec vitest run test/assets/ktx2-decoder.test.ts test/assets/gltf-root.test.ts test/materials/gltf-texture.test.ts`
+  passed.
+- `node --check examples/glb-viewer.main.js` passed.
+- `node --check examples/glb-viewer.worker.js` passed.
+- `pnpm run check:examples` passed.
+- `pnpm run build` passed.
+- `pnpm run lint` passed.
+- `pnpm run format:check` passed.
+- `pnpm run check:progress` passed after tracker edits.
+- `pnpm run check` passed, including boundaries, progress tracker, build, test
+  typecheck, example syntax, lint, format, and all 336 Vitest files / 1,663
+  tests.
+- Focused GLB viewer Playwright assertion for
+  `?asset=basis-ktx2-texture` passed: status reported decoded `image/ktx2`
+  40x40 RGBA8-sRGB data, one StandardMaterial base-color texture draw, one
+  `standard|baseColorTexture|opaque|none|less|none` pipeline, zero unsupported
+  diagnostics, and non-clear pixels.
+
+### Known issues
+
+- The focused headed Playwright command reached the existing local Chrome
+  teardown hang after the assertion had passed, so the process was stopped
+  manually. The status/pixel assertion completed before teardown.
+- Draco and meshopt compressed geometry support are still open.
+
+### Recommended next task
+
+Start `task-3060`: integrate Draco mesh decoding so
+`KHR_draco_mesh_compression` primitives become real mesh buffers instead of
+unsupported diagnostics.
 
 ## Current Run Update — 2026-05-22T03:36:00Z — Visible GLB morph targets shipped
 

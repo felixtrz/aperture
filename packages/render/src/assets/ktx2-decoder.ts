@@ -28,6 +28,27 @@ export interface Ktx2ContainerInfo {
   readonly levels: readonly Ktx2LevelIndex[];
 }
 
+export interface Ktx2BasisTranscoderSource {
+  readonly jsSource?: string;
+  readonly jsUrl?: string;
+  readonly wasmBinary?: ArrayBuffer | ArrayBufferView;
+  readonly wasmUrl?: string;
+  readonly fetchText?: (url: string) => PromiseLike<string>;
+  readonly fetchBinary?: (
+    url: string,
+  ) => PromiseLike<ArrayBuffer | ArrayBufferView>;
+}
+
+export interface Ktx2BasisTranscoder {
+  readonly decode: (
+    source: ArrayBuffer | ArrayBufferView,
+  ) => GltfDecodedImageData;
+}
+
+export interface Ktx2DecodeOptions {
+  readonly basisTranscoder?: Ktx2BasisTranscoder;
+}
+
 const KTX2_IDENTIFIER = new Uint8Array([
   0xab, 0x4b, 0x54, 0x58, 0x20, 0x32, 0x30, 0xbb, 0x0d, 0x0a, 0x1a, 0x0a,
 ]);
@@ -35,8 +56,12 @@ const KTX2_IDENTIFIER = new Uint8Array([
 const KTX2_HEADER_BYTE_LENGTH = 80;
 const KTX2_LEVEL_INDEX_BYTE_LENGTH = 24;
 const KTX2_SUPERCOMPRESSION_NONE = 0;
+const KTX2_SUPERCOMPRESSION_BASIS_LZ = 1;
+const KTX2_VK_FORMAT_UNDEFINED = 0;
+const KHR_DF_TRANSFER_SRGB = 2;
 const VK_FORMAT_R8G8B8A8_UNORM = 37;
 const VK_FORMAT_R8G8B8A8_SRGB = 43;
+const BASIS_TRANSCODER_FORMAT_RGBA32 = 13;
 
 export function parseKtx2Container(
   source: ArrayBuffer | ArrayBufferView,
@@ -151,6 +176,64 @@ export function decodeKtx2TextureData(
   };
 }
 
+export async function decodeKtx2TextureDataAsync(
+  source: ArrayBuffer | ArrayBufferView,
+  options: Ktx2DecodeOptions = {},
+): Promise<GltfDecodedImageData> {
+  const container = parseKtx2Container(source);
+
+  if (container.supercompressionScheme === KTX2_SUPERCOMPRESSION_NONE) {
+    return decodeKtx2TextureData(source);
+  }
+
+  if (
+    container.supercompressionScheme !== KTX2_SUPERCOMPRESSION_BASIS_LZ ||
+    container.vkFormat !== KTX2_VK_FORMAT_UNDEFINED
+  ) {
+    throw new Error(
+      `Unsupported KTX2 supercompression scheme ${container.supercompressionScheme}.`,
+    );
+  }
+
+  if (options.basisTranscoder === undefined) {
+    throw new Error(
+      "BasisU-compressed KTX2 textures require a configured Basis Universal transcoder.",
+    );
+  }
+
+  return options.basisTranscoder.decode(source);
+}
+
+export async function createBasisUniversalKtx2Transcoder(
+  source: Ktx2BasisTranscoderSource,
+): Promise<Ktx2BasisTranscoder> {
+  const [jsSource, wasmBinary] = await Promise.all([
+    resolveTranscoderJsSource(source),
+    resolveTranscoderWasmBinary(source),
+  ]);
+  const basisFactory = compileBasisFactory(jsSource);
+  const basisModule = await basisFactory({
+    wasmBinary: arrayBufferFromBytes(wasmBinary),
+  });
+
+  if (typeof basisModule.initializeBasis !== "function") {
+    throw new Error(
+      "Basis Universal transcoder did not expose initializeBasis().",
+    );
+  }
+  if (typeof basisModule.KTX2File !== "function") {
+    throw new Error("Basis Universal transcoder does not support KTX2File.");
+  }
+
+  basisModule.initializeBasis();
+
+  return {
+    decode(sourceBytes) {
+      return transcodeBasisKtx2TextureData(sourceBytes, basisModule);
+    },
+  };
+}
+
 function textureFormatFromVkFormat(vkFormat: number): TextureFormat {
   switch (vkFormat) {
     case VK_FORMAT_R8G8B8A8_UNORM:
@@ -160,6 +243,262 @@ function textureFormatFromVkFormat(vkFormat: number): TextureFormat {
     default:
       throw new Error(`Unsupported KTX2 vkFormat ${vkFormat}.`);
   }
+}
+
+interface BasisModuleFactoryInput {
+  readonly wasmBinary: ArrayBuffer;
+}
+
+interface BasisModule {
+  readonly initializeBasis: () => void;
+  readonly KTX2File: new (bytes: Uint8Array) => BasisKtx2File;
+}
+
+interface BasisKtx2File {
+  readonly isValid: () => boolean;
+  readonly isETC1S?: () => boolean;
+  readonly isUASTC?: () => boolean;
+  readonly isHDR?: () => boolean;
+  readonly getWidth: () => number;
+  readonly getHeight: () => number;
+  readonly getLevels: () => number;
+  readonly getLayers: () => number;
+  readonly getFaces: () => number;
+  readonly getHasAlpha: () => number;
+  readonly startTranscoding: () => number;
+  readonly getImageTranscodedSizeInBytes: (
+    level: number,
+    layer: number,
+    face: number,
+    format: number,
+  ) => number;
+  readonly transcodeImage: (
+    dst: Uint8Array,
+    level: number,
+    layer: number,
+    face: number,
+    format: number,
+    decodeFlags: number,
+    outputRowPitchInBlocksOrPixels: number,
+    outputRowsInPixels: number,
+  ) => number;
+  readonly close: () => void;
+  readonly delete: () => void;
+}
+
+type BasisModuleFactory = (
+  input: BasisModuleFactoryInput,
+) => PromiseLike<BasisModule>;
+
+function transcodeBasisKtx2TextureData(
+  source: ArrayBuffer | ArrayBufferView,
+  basisModule: BasisModule,
+): GltfDecodedImageData {
+  const bytes = bytesView(source);
+  const container = parseKtx2Container(bytes);
+
+  if (
+    container.supercompressionScheme !== KTX2_SUPERCOMPRESSION_BASIS_LZ ||
+    container.vkFormat !== KTX2_VK_FORMAT_UNDEFINED
+  ) {
+    throw new Error("KTX2 payload is not BasisU supercompressed texture data.");
+  }
+
+  const ktx2File = new basisModule.KTX2File(new Uint8Array(bytes));
+
+  try {
+    if (!ktx2File.isValid()) {
+      throw new Error("BasisU KTX2 texture is invalid or unsupported.");
+    }
+    if (ktx2File.isHDR?.() === true) {
+      throw new Error(
+        "BasisU HDR KTX2 textures are not supported by the RGBA8 upload path.",
+      );
+    }
+
+    const width = ktx2File.getWidth();
+    const height = ktx2File.getHeight();
+    const levels = ktx2File.getLevels();
+    const faces = ktx2File.getFaces();
+    const layers = ktx2File.getLayers() || 1;
+
+    if (width <= 0 || height <= 0 || levels <= 0) {
+      throw new Error("BasisU KTX2 texture dimensions are invalid.");
+    }
+    if (faces !== 1 || layers !== 1) {
+      throw new Error(
+        "Only single-layer 2D BasisU KTX2 textures are supported.",
+      );
+    }
+    if (ktx2File.startTranscoding() !== 1) {
+      throw new Error("BasisU KTX2 transcoder failed to start.");
+    }
+
+    const byteLength = ktx2File.getImageTranscodedSizeInBytes(
+      0,
+      0,
+      0,
+      BASIS_TRANSCODER_FORMAT_RGBA32,
+    );
+    const level0 = new Uint8Array(byteLength);
+    const ok = ktx2File.transcodeImage(
+      level0,
+      0,
+      0,
+      0,
+      BASIS_TRANSCODER_FORMAT_RGBA32,
+      0,
+      -1,
+      -1,
+    );
+
+    if (ok !== 1) {
+      throw new Error("BasisU KTX2 level 0 transcode failed.");
+    }
+
+    return {
+      width,
+      height,
+      format: textureFormatFromDfdTransfer(container, bytes),
+      sourceData: {
+        bytes: level0,
+        bytesPerRow: width * 4,
+        rowsPerImage: height,
+      },
+    };
+  } finally {
+    ktx2File.close();
+    ktx2File.delete();
+  }
+}
+
+function textureFormatFromDfdTransfer(
+  container: Ktx2ContainerInfo,
+  bytes: Uint8Array,
+): TextureFormat {
+  return ktx2DfdTransferFunction(container, bytes) === KHR_DF_TRANSFER_SRGB
+    ? "rgba8unorm-srgb"
+    : "rgba8unorm";
+}
+
+function ktx2DfdTransferFunction(
+  container: Ktx2ContainerInfo,
+  bytes: Uint8Array,
+): number | null {
+  if (container.dfdByteLength < 15) {
+    return null;
+  }
+
+  const byteOffset = container.dfdByteOffset + 14;
+  if (byteOffset >= bytes.byteLength) {
+    return null;
+  }
+
+  return bytes[byteOffset] ?? null;
+}
+
+async function resolveTranscoderJsSource(
+  source: Ktx2BasisTranscoderSource,
+): Promise<string> {
+  if (source.jsSource !== undefined) {
+    return source.jsSource;
+  }
+  if (source.jsUrl === undefined) {
+    throw new Error("Basis Universal transcoder requires jsSource or jsUrl.");
+  }
+
+  if (source.fetchText !== undefined) {
+    return source.fetchText(source.jsUrl);
+  }
+  if (typeof fetch !== "function") {
+    throw new Error(
+      "No fetch implementation is available for Basis Universal JS glue.",
+    );
+  }
+
+  const response = await fetch(source.jsUrl);
+  if (!response.ok) {
+    throw new Error(
+      `Fetching Basis Universal JS glue failed with HTTP ${response.status}.`,
+    );
+  }
+  return response.text();
+}
+
+async function resolveTranscoderWasmBinary(
+  source: Ktx2BasisTranscoderSource,
+): Promise<Uint8Array> {
+  if (source.wasmBinary !== undefined) {
+    return new Uint8Array(bytesView(source.wasmBinary));
+  }
+  if (source.wasmUrl === undefined) {
+    throw new Error(
+      "Basis Universal transcoder requires wasmBinary or wasmUrl.",
+    );
+  }
+
+  if (source.fetchBinary !== undefined) {
+    return new Uint8Array(bytesView(await source.fetchBinary(source.wasmUrl)));
+  }
+  if (typeof fetch !== "function") {
+    throw new Error(
+      "No fetch implementation is available for Basis Universal WASM.",
+    );
+  }
+
+  const response = await fetch(source.wasmUrl);
+  if (!response.ok) {
+    throw new Error(
+      `Fetching Basis Universal WASM failed with HTTP ${response.status}.`,
+    );
+  }
+  return new Uint8Array(await response.arrayBuffer());
+}
+
+function compileBasisFactory(jsSource: string): BasisModuleFactory {
+  const moduleObject: { exports?: unknown } = {};
+  const evaluator = new Function(
+    "module",
+    "exports",
+    "process",
+    "__filename",
+    "__dirname",
+    "window",
+    "document",
+    "importScripts",
+    `${jsSource}\nreturn module.exports || BASIS;`,
+  ) as (
+    module: { exports?: unknown },
+    exports: Record<string, unknown>,
+    processValue: undefined,
+    filename: undefined,
+    dirname: undefined,
+    windowValue: Record<string, unknown>,
+    documentValue: undefined,
+    importScriptsValue: undefined,
+  ) => unknown;
+  const factory = evaluator(
+    moduleObject,
+    {},
+    undefined,
+    undefined,
+    undefined,
+    {},
+    undefined,
+    undefined,
+  );
+
+  if (typeof factory !== "function") {
+    throw new Error("Basis Universal JS glue did not expose a factory.");
+  }
+
+  return factory as BasisModuleFactory;
+}
+
+function arrayBufferFromBytes(bytes: Uint8Array): ArrayBuffer {
+  const buffer = new ArrayBuffer(bytes.byteLength);
+  new Uint8Array(buffer).set(bytes);
+  return buffer;
 }
 
 function bytesView(source: ArrayBuffer | ArrayBufferView): Uint8Array {

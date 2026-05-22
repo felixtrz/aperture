@@ -13,7 +13,7 @@ import type {
   TextureSemantic,
   TextureSourceData,
 } from "./types.js";
-import { decodeKtx2TextureData } from "../assets/ktx2-decoder.js";
+import { decodeKtx2TextureDataAsync } from "../assets/ktx2-decoder.js";
 
 export type GltfTextureMappingDiagnosticSeverity = "error" | "warning";
 
@@ -1069,7 +1069,7 @@ async function decodeImageBytesWithBrowserCanvas(
   input: GltfImageBytesDecoderInput,
 ): Promise<GltfDecodedImageData> {
   if (input.mimeType === "image/ktx2") {
-    return decodeKtx2TextureData(input.bytes);
+    return decodeKtx2TextureDataAsync(input.bytes);
   }
 
   if (

@@ -1,5 +1,27 @@
 # Completed Tasks
 
+## task-3059 — KTX2 / BasisU texture decoder integration
+
+Completed: 2026-05-22
+
+- Added async KTX2 decode support that keeps the existing uncompressed RGBA8
+  path and transcodes BasisLZ KTX2 payloads through caller-provided Basis
+  Universal JS/WASM assets.
+- Added a public `createBasisUniversalKtx2Transcoder(...)` helper and
+  actionable errors when BasisU-compressed KTX2 data is decoded without a
+  configured transcoder.
+- Marked `KHR_texture_basisu` as a supported glTF root extension and routed
+  `image/ktx2` texture decode through the async glTF texture mapping path.
+- Added a committed Basis KTX2 fixture, vendored Basis transcoder assets for
+  examples, and `examples/assets/basis-ktx2-texture.glb` for the GLB viewer.
+- Updated `glb-viewer` main/worker source registration so both paths share the
+  Basis transcoder and render the compressed-texture sample without unsupported
+  diagnostics.
+- Validation run: build, lint, format check, test typecheck, example syntax
+  checks, targeted KTX2/glTF texture Vitest, and a focused GLB viewer Playwright
+  assertion passed. The local Playwright process still hit the existing headed
+  Chrome teardown hang and was stopped after the assertion completed.
+
 ## task-3058 — Visible morph target in glb-viewer
 
 Completed: 2026-05-22
