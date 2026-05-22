@@ -16,6 +16,9 @@ Partial progress on `task-3060`.
 - Added attribute decode requests that can target default Draco attribute kinds
   or glTF-style unique attribute IDs, matching the way
   `KHR_draco_mesh_compression.attributes` maps semantics to Draco ids.
+- Added `createGltfDecodedPrimitiveAccessorsFromDraco(...)`, a small bridge that
+  turns decoded Draco arrays into the existing `GltfDecodedPrimitiveAccessors`
+  shape consumed by `createMeshAssetsFromGltfDecodedAccessors(...)`.
 - Added committed test fixtures under `test/assets/fixtures/draco/`, including
   `bunny.drc`, the glTF Draco WASM wrapper/decoder pair, and
   `heart_draco.glb` for compressed bufferView coverage.
@@ -44,6 +47,8 @@ to feed its output into the existing glTF accessor/mesh-construction reports.
 - `pnpm run build` passed.
 - `pnpm run lint` passed.
 - `pnpm run format:check` passed.
+- `pnpm run check` passed after the initial Draco helper checkpoint, including
+  all 337 Vitest files / 1,666 tests.
 
 ### Remaining `task-3060` work
 

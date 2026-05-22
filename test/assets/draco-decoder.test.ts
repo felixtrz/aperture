@@ -3,6 +3,8 @@ import { readFile } from "node:fs/promises";
 import { describe, expect, it } from "vitest";
 
 import {
+  createGltfDecodedPrimitiveAccessorsFromDraco,
+  createMeshAssetsFromGltfDecodedAccessors,
   createDracoMeshDecoder,
   parseGlbContainer,
 } from "../../packages/render/src/index.js";
@@ -91,5 +93,26 @@ describe("createDracoMeshDecoder", () => {
       "POSITION",
       "NORMAL",
     ]);
+
+    const decodedAccessors = createGltfDecodedPrimitiveAccessorsFromDraco({
+      meshHandleKey: "mesh:gltf:mesh:0:primitive:0",
+      meshIndex: 0,
+      primitiveIndex: 0,
+      decoded: mesh,
+    });
+    const construction = createMeshAssetsFromGltfDecodedAccessors({
+      decodedReport: {
+        valid: true,
+        primitives: [decodedAccessors],
+        diagnostics: [],
+      },
+    });
+
+    expect(construction.valid).toBe(true);
+    expect(construction.meshes[0]?.mesh).toMatchObject({
+      kind: "mesh",
+      label: "mesh:gltf:mesh:0:primitive:0",
+      submeshes: [{ vertexCount: 540, indexCount: 540 }],
+    });
   });
 });
