@@ -35,6 +35,7 @@ import {
   type PreparedMaterialStoreJsonValue,
   type PreparedMeshStore,
   type PreparedMeshStoreJsonValue,
+  type RenderEntityRef,
   type RenderSnapshot,
   type RenderQueueSortPhaseReport,
   type StandardMaterialAsset,
@@ -236,6 +237,23 @@ import {
   type RenderFramePlanScratch,
 } from "./render-frame-plan.js";
 import type { RenderPassCommand } from "./render-pass-commands.js";
+import {
+  createWebGpuIdBufferEntries,
+  findWebGpuIdBufferEntry,
+  WEBGPU_ID_BUFFER_EMPTY_ID,
+} from "./id-buffer.js";
+import {
+  createWebGpuIdBufferPickBindGroup,
+  createWebGpuIdBufferPickCommands,
+  createWebGpuIdBufferPickIdStorage,
+  createWebGpuIdBufferPickPipelineResource,
+  createWebGpuIdBufferPickTexture,
+  readWebGpuIdBufferPickPixel,
+  webGpuIdBufferPickPipelineCacheKey,
+  type WebGpuIdBufferPickBindGroupResource,
+  type WebGpuIdBufferPickPipelineResource,
+  type WebGpuIdBufferPickReadbackResult,
+} from "./id-buffer-pick.js";
 import { parseMaterialPipelineRenderStateTokens } from "./material-render-state.js";
 import {
   initializeWebGpu,
@@ -387,8 +405,33 @@ export interface WebGpuAppWorkerRenderErrorDiagnostic {
 
 export interface WebGpuAppDiagnostics {
   readonly lastFrame: WebGpuAppRenderReportJsonValue | null;
+  readonly lastPick: WebGpuAppPickReportJsonValue | null;
   readonly lastError: WebGpuAppWorkerRenderErrorDiagnostic | null;
   readonly transport: WebGpuAppSnapshotTransportDiagnostics;
+}
+
+export interface WebGpuAppPickReport {
+  readonly ok: boolean;
+  readonly x: number;
+  readonly y: number;
+  readonly width: number;
+  readonly height: number;
+  readonly id: number | null;
+  readonly entity: RenderEntityRef | null;
+  readonly diagnostics: readonly unknown[];
+  readonly readback?: WebGpuIdBufferPickReadbackResult;
+}
+
+export interface WebGpuAppPickReportJsonValue {
+  readonly ok: boolean;
+  readonly x: number;
+  readonly y: number;
+  readonly width: number;
+  readonly height: number;
+  readonly id: number | null;
+  readonly entity: RenderEntityRef | null;
+  readonly diagnostics: readonly WebGpuAppJsonValue[];
+  readonly readback?: WebGpuAppJsonValue;
 }
 
 export interface WebGpuAppRenderReport {
@@ -457,6 +500,7 @@ interface WebGpuAppResourceCache {
   readonly preparedMeshFacade: PreparedMeshStore;
   readonly preparedMaterials: PreparedBuiltInMaterialStore;
   readonly preparedMaterialFacade: PreparedMaterialStore;
+  readonly idPickPipelines: Map<string, WebGpuIdBufferPickPipelineResource>;
   readonly frameScratch: WebGpuAppFrameScratch;
   readonly unlitFrame: UnlitAppFrameResourceCacheSlot;
   readonly matcapFrame: MatcapAppFrameResourceCacheSlot;
@@ -563,6 +607,7 @@ export interface WebGpuApp {
   start(options?: WebGpuAppStartOptions): void;
   stop(): void;
   getDiagnostics(): WebGpuAppDiagnostics;
+  pick(x: number, y: number): Promise<RenderEntityRef | null>;
   renderSnapshot(
     snapshot: RenderSnapshot,
     options?: Omit<WebGpuAppRenderOptions, "snapshot">,
@@ -637,6 +682,7 @@ export async function createWebGpuApp(
   let unsubscribeError: (() => void) | null = null;
   let renderQueue: Promise<void> = Promise.resolve();
   let latestReport: WebGpuAppRenderReport | null = null;
+  let latestPickReport: WebGpuAppPickReport | null = null;
   let latestWorkerError: WebGpuAppWorkerRenderErrorDiagnostic | null = null;
 
   const app: WebGpuApp = {
@@ -708,9 +754,25 @@ export async function createWebGpuApp(
           latestReport === null
             ? null
             : webGpuAppRenderReportToJsonValue(latestReport),
+        lastPick:
+          latestPickReport === null
+            ? null
+            : webGpuAppPickReportToJsonValue(latestPickReport),
         lastError: latestWorkerError,
         transport: snapshotTransport.diagnostics,
       };
+    },
+    async pick(x, y) {
+      const report = await pickWebGpuAppEntity(
+        { app, sourceAssets },
+        resourceCache,
+        latestReport,
+        x,
+        y,
+      );
+
+      latestPickReport = report;
+      return report.entity;
     },
     async renderSnapshot(snapshot, renderOptions = {}) {
       const report = await renderWebGpuAppFrame(
@@ -804,6 +866,7 @@ function createWebGpuAppResourceCache(): WebGpuAppResourceCache {
     preparedMeshFacade: createPreparedMeshStore(),
     preparedMaterials: createPreparedBuiltInMaterialStore(),
     preparedMaterialFacade: createPreparedMaterialStore(),
+    idPickPipelines: new Map(),
     frameScratch: createWebGpuAppFrameScratch(),
     unlitFrame:
       createWebGpuAppFrameResourceCacheSlot<CachedUnlitAppFrameResources>(),
@@ -2881,6 +2944,679 @@ async function renderWebGpuAppFrame(
   });
 }
 
+async function pickWebGpuAppEntity(
+  context: WebGpuAppRenderContext,
+  resourceCache: WebGpuAppResourceCache,
+  latestReport: WebGpuAppRenderReport | null,
+  x: number,
+  y: number,
+): Promise<WebGpuAppPickReport> {
+  const dimensions = webGpuAppCanvasDimensions(context.app.canvas);
+  const pixel = webGpuAppPickPixel(dimensions, x, y);
+
+  if (pixel === null) {
+    return createWebGpuAppPickReport({
+      x,
+      y,
+      dimensions,
+      id: null,
+      entity: null,
+      diagnostics: [
+        {
+          code: "webGpuApp.pickInvalidCoordinates",
+          message: `Pick coordinates ${String(x)},${String(y)} are outside the ${dimensions.width}x${dimensions.height} canvas.`,
+        },
+      ],
+    });
+  }
+
+  if (latestReport === null) {
+    return createWebGpuAppPickReport({
+      x: pixel.x,
+      y: pixel.y,
+      dimensions,
+      id: null,
+      entity: null,
+      diagnostics: [
+        {
+          code: "webGpuApp.pickMissingFrame",
+          message: "WebGPU app picking requires a previously rendered frame.",
+        },
+      ],
+    });
+  }
+
+  if (!latestReport.ok) {
+    return createWebGpuAppPickReport({
+      x: pixel.x,
+      y: pixel.y,
+      dimensions,
+      id: null,
+      entity: null,
+      diagnostics: [
+        {
+          code: "webGpuApp.pickLastFrameNotReady",
+          message:
+            "WebGPU app picking requires the latest rendered frame to be ready.",
+        },
+        ...latestReport.diagnostics,
+      ],
+    });
+  }
+
+  const snapshot = latestReport.snapshot;
+  const prepared = await prepareWebGpuAppPickFrameResources(
+    context,
+    resourceCache,
+    snapshot,
+  );
+
+  if (
+    !prepared.valid ||
+    prepared.framePlan === null ||
+    prepared.resources === null
+  ) {
+    return createWebGpuAppPickReport({
+      x: pixel.x,
+      y: pixel.y,
+      dimensions,
+      id: null,
+      entity: null,
+      diagnostics: prepared.diagnostics,
+    });
+  }
+
+  const pipelines = await getOrCreateWebGpuIdBufferPickPipelines({
+    app: context.app,
+    cache: resourceCache,
+    snapshot,
+    pipelineResults: prepared.pipelineResults,
+  });
+
+  if (!pipelines.valid) {
+    return createWebGpuAppPickReport({
+      x: pixel.x,
+      y: pixel.y,
+      dimensions,
+      id: null,
+      entity: null,
+      diagnostics: pipelines.diagnostics,
+    });
+  }
+
+  const idStorage = createWebGpuIdBufferPickIdStorage({
+    device: context.app.initialization.device as Parameters<
+      typeof createWebGpuIdBufferPickIdStorage
+    >[0]["device"],
+    snapshot,
+  });
+
+  if (!idStorage.valid || idStorage.resource === null) {
+    return createWebGpuAppPickReport({
+      x: pixel.x,
+      y: pixel.y,
+      dimensions,
+      id: null,
+      entity: null,
+      diagnostics: idStorage.diagnostics,
+    });
+  }
+
+  const firstPickPipeline = pipelines.pipelines.values().next().value;
+
+  if (firstPickPipeline === undefined) {
+    return createWebGpuAppPickReport({
+      x: pixel.x,
+      y: pixel.y,
+      dimensions,
+      id: null,
+      entity: null,
+      diagnostics: [
+        {
+          code: "webGpuApp.pickMissingPipeline",
+          message: "WebGPU app picking could not create an ID-buffer pipeline.",
+        },
+      ],
+    });
+  }
+
+  const idBindGroup = createWebGpuIdBufferPickBindGroup({
+    device: context.app.initialization.device as Parameters<
+      typeof createWebGpuIdBufferPickBindGroup
+    >[0]["device"],
+    pipeline: firstPickPipeline,
+    ids: idStorage.resource,
+  });
+
+  if (!idBindGroup.valid || idBindGroup.resource === null) {
+    return createWebGpuAppPickReport({
+      x: pixel.x,
+      y: pixel.y,
+      dimensions,
+      id: null,
+      entity: null,
+      diagnostics: idBindGroup.diagnostics,
+    });
+  }
+
+  const sharedBindGroups = createWebGpuAppPickSharedBindGroups({
+    device: context.app.initialization.device,
+    pipeline: firstPickPipeline,
+    viewUniformBuffer: prepared.resources.viewUniform.buffer,
+    worldTransformBuffer: prepared.resources.worldTransforms.buffer,
+  });
+
+  if (!sharedBindGroups.valid) {
+    return createWebGpuAppPickReport({
+      x: pixel.x,
+      y: pixel.y,
+      dimensions,
+      id: null,
+      entity: null,
+      diagnostics: sharedBindGroups.diagnostics,
+    });
+  }
+
+  const pickCommands = createWebGpuIdBufferPickCommands({
+    commands: prepared.framePlan.commandPlan.commands,
+    pipelineByKey: pipelines.pipelines,
+    viewBindGroup: sharedBindGroups.viewBindGroup,
+    worldTransformBindGroup: sharedBindGroups.worldTransformBindGroup,
+    idBindGroup: idBindGroup.resource,
+  });
+
+  if (!pickCommands.valid) {
+    return createWebGpuAppPickReport({
+      x: pixel.x,
+      y: pixel.y,
+      dimensions,
+      id: null,
+      entity: null,
+      diagnostics: pickCommands.diagnostics,
+    });
+  }
+
+  const texture = createWebGpuIdBufferPickTexture({
+    device: context.app.initialization.device as Parameters<
+      typeof createWebGpuIdBufferPickTexture
+    >[0]["device"],
+    width: dimensions.width,
+    height: dimensions.height,
+  });
+
+  if (!texture.valid || texture.resource === null) {
+    return createWebGpuAppPickReport({
+      x: pixel.x,
+      y: pixel.y,
+      dimensions,
+      id: null,
+      entity: null,
+      diagnostics: texture.diagnostics,
+    });
+  }
+
+  try {
+    pushWebGpuPickErrorScope(context.app.initialization.device);
+    const target = {
+      source: "swapchain" as const,
+      view: snapshot.views[0] as RenderSnapshot["views"][number],
+      renderTargetKey: null,
+      width: dimensions.width,
+      height: dimensions.height,
+      format: context.app.initialization.format,
+    };
+    const depthAttachment = createWebGpuAppDepthAttachmentForTarget(
+      context.app,
+      resourceCache,
+      target,
+    );
+    const boundary = assembleFrameBoundary({
+      context: context.app.initialization.context as Parameters<
+        typeof assembleFrameBoundary
+      >[0]["context"],
+      device: context.app.initialization.device as Parameters<
+        typeof assembleFrameBoundary
+      >[0]["device"],
+      queue: (context.app.initialization.device as { readonly queue: unknown })
+        .queue as Parameters<typeof assembleFrameBoundary>[0]["queue"],
+      commands: pickCommands.commands,
+      label: "aperture-webgpu-app:pick-id-buffer",
+      colorTarget: {
+        source: "offscreen-target",
+        texture: texture.resource.texture as CurrentTextureLike,
+      },
+      clearColor: [WEBGPU_ID_BUFFER_EMPTY_ID, 0, 0, 0],
+      depthTarget: {
+        view: depthAttachment.view,
+        depthClearValue: snapshot.views[0]?.clearDepth ?? 1,
+        depthLoadOp: "clear",
+        depthStoreOp: "store",
+      },
+    });
+
+    await waitForSubmittedWork(context.app.initialization.device);
+    const validationMessage = await popWebGpuPickErrorScope(
+      context.app.initialization.device,
+    );
+
+    if (!boundary.valid || validationMessage !== null) {
+      return createWebGpuAppPickReport({
+        x: pixel.x,
+        y: pixel.y,
+        dimensions,
+        id: null,
+        entity: null,
+        diagnostics: [
+          ...(validationMessage === null
+            ? []
+            : [
+                {
+                  code: "webGpuApp.pickGpuValidationError",
+                  message: validationMessage,
+                },
+              ]),
+          ...boundary.texture.diagnostics,
+          ...(boundary.attachments?.diagnostics ?? []),
+          ...(boundary.encoder?.diagnostics ?? []),
+          ...(boundary.begin?.diagnostics ?? []),
+          ...(boundary.execution?.diagnostics ?? []),
+          ...(boundary.end?.diagnostics ?? []),
+          ...(boundary.finish?.diagnostics ?? []),
+          ...(boundary.submit?.diagnostics ?? []),
+        ],
+      });
+    }
+
+    const readback = await readWebGpuIdBufferPickPixel({
+      device: context.app.initialization.device as Parameters<
+        typeof readWebGpuIdBufferPickPixel
+      >[0]["device"],
+      texture: texture.resource.texture,
+      width: dimensions.width,
+      height: dimensions.height,
+      x: pixel.x,
+      y: pixel.y,
+    });
+
+    if (!readback.ok) {
+      return createWebGpuAppPickReport({
+        x: pixel.x,
+        y: pixel.y,
+        dimensions,
+        id: null,
+        entity: null,
+        readback,
+        diagnostics: [
+          {
+            code: readback.reason,
+            message: readback.message,
+          },
+        ],
+      });
+    }
+
+    const id = readback.id;
+    const entry =
+      id === WEBGPU_ID_BUFFER_EMPTY_ID
+        ? null
+        : findWebGpuIdBufferEntry(
+            createWebGpuIdBufferEntries(snapshot.meshDraws),
+            id,
+          );
+
+    return createWebGpuAppPickReport({
+      x: pixel.x,
+      y: pixel.y,
+      dimensions,
+      id,
+      entity: entry?.entity ?? null,
+      readback,
+      diagnostics: [],
+    });
+  } finally {
+    texture.resource.destroy?.();
+  }
+}
+
+function pushWebGpuPickErrorScope(device: unknown): void {
+  const scoped = device as {
+    readonly pushErrorScope?: (filter: "validation") => void;
+  };
+
+  try {
+    scoped.pushErrorScope?.("validation");
+  } catch {
+    // Error scopes are diagnostic-only; picking still returns readback results.
+  }
+}
+
+async function popWebGpuPickErrorScope(
+  device: unknown,
+): Promise<string | null> {
+  const scoped = device as {
+    readonly popErrorScope?: () => Promise<{
+      readonly message?: string;
+    } | null>;
+  };
+
+  if (scoped.popErrorScope === undefined) {
+    return null;
+  }
+
+  try {
+    const error = await scoped.popErrorScope();
+
+    return error?.message ?? null;
+  } catch {
+    return null;
+  }
+}
+
+function createWebGpuAppPickSharedBindGroups(options: {
+  readonly device: unknown;
+  readonly pipeline: WebGpuIdBufferPickPipelineResource;
+  readonly viewUniformBuffer: unknown;
+  readonly worldTransformBuffer: unknown;
+}): {
+  readonly valid: boolean;
+  readonly viewBindGroup: WebGpuIdBufferPickBindGroupResource;
+  readonly worldTransformBindGroup: WebGpuIdBufferPickBindGroupResource;
+  readonly diagnostics: readonly unknown[];
+} {
+  const device = options.device as {
+    readonly createBindGroup?: (descriptor: unknown) => unknown;
+  };
+
+  if (device.createBindGroup === undefined) {
+    return {
+      valid: false,
+      viewBindGroup: missingPickBindGroup(0),
+      worldTransformBindGroup: missingPickBindGroup(1),
+      diagnostics: [
+        {
+          code: "webGpuApp.pickCreateBindGroupUnavailable",
+          message:
+            "WebGPU app picking requires createBindGroup for view and transform resources.",
+        },
+      ],
+    };
+  }
+
+  return {
+    valid: true,
+    viewBindGroup: {
+      group: 0,
+      resourceKey: "id-buffer-pick/view",
+      bindGroup: device.createBindGroup({
+        label: "aperture/id-buffer-pick/view",
+        layout: options.pipeline.layouts.view,
+        entries: [
+          {
+            binding: 0,
+            resource: { buffer: options.viewUniformBuffer },
+          },
+        ],
+      }),
+    },
+    worldTransformBindGroup: {
+      group: 1,
+      resourceKey: "id-buffer-pick/world-transforms",
+      bindGroup: device.createBindGroup({
+        label: "aperture/id-buffer-pick/world-transforms",
+        layout: options.pipeline.layouts.worldTransforms,
+        entries: [
+          {
+            binding: 0,
+            resource: { buffer: options.worldTransformBuffer },
+          },
+        ],
+      }),
+    },
+    diagnostics: [],
+  };
+}
+
+function missingPickBindGroup(
+  group: number,
+): WebGpuIdBufferPickBindGroupResource {
+  return { group, resourceKey: "missing", bindGroup: null };
+}
+
+async function prepareWebGpuAppPickFrameResources(
+  context: WebGpuAppRenderContext,
+  resourceCache: WebGpuAppResourceCache,
+  snapshot: RenderSnapshot,
+): Promise<{
+  readonly valid: boolean;
+  readonly framePlan: ReturnType<
+    typeof writeRenderFramePlanFromSnapshot
+  > | null;
+  readonly resources: QueuedBuiltInFrameResources | null;
+  readonly pipelineResults: readonly WebGpuAppPipelinePlanResult[];
+  readonly diagnostics: readonly unknown[];
+}> {
+  const firstDraw = snapshot.meshDraws[0];
+  const firstView = snapshot.views[0];
+
+  if (firstDraw === undefined || firstView === undefined) {
+    return {
+      valid: false,
+      framePlan: null,
+      resources: null,
+      pipelineResults: [],
+      diagnostics: [
+        {
+          code: "webGpuApp.pickEmptySnapshot",
+          message:
+            "WebGPU app picking requires at least one view and one mesh draw.",
+        },
+      ],
+    };
+  }
+
+  prepareSnapshotMeshes({
+    registry: context.sourceAssets,
+    snapshot,
+    meshes: resourceCache.preparedMeshFacade,
+  });
+  prepareSnapshotMaterials({
+    registry: context.sourceAssets,
+    snapshot,
+    materials: resourceCache.preparedMaterialFacade,
+  });
+
+  const queuedBuiltIn = collectQueuedBuiltInAppResourceSet({
+    assets: context.sourceAssets,
+    snapshot,
+    materialQueueScratch: resourceCache.frameScratch.materialQueue,
+    routeScratch: resourceCache.frameScratch.queueRoute,
+    meshes: resourceCache.preparedMeshFacade,
+    materials: resourceCache.preparedMaterialFacade,
+    adapters: QUEUED_BUILT_IN_MATERIAL_ADAPTERS,
+  });
+
+  if (!queuedBuiltIn.valid || queuedBuiltIn.resourceSet === null) {
+    return {
+      valid: false,
+      framePlan: null,
+      resources: null,
+      pipelineResults: [],
+      diagnostics: queuedBuiltIn.diagnostics,
+    };
+  }
+
+  const packedViews = writePackedSnapshotViewUniforms(
+    snapshot,
+    resourceCache.frameScratch.viewUniforms,
+  );
+  const packedTransforms = writePackedSnapshotTransforms(
+    snapshot,
+    resourceCache.frameScratch.worldTransforms,
+  );
+  const packedInstanceTints = writePackedSnapshotInstanceTintsForVertexBuffer(
+    snapshot,
+    packedTransforms,
+    resourceCache.frameScratch.instanceTints,
+  );
+  const prepared = await prepareQueuedBuiltInFrameResources({
+    app: context.app,
+    assets: context.sourceAssets,
+    cache: resourceCache,
+    snapshot,
+    resourceSet: queuedBuiltIn.resourceSet,
+    reuse: createWebGpuAppResourceReuseReport(),
+    viewUniforms: packedViews,
+    worldTransforms: packedTransforms,
+    instanceTints: packedInstanceTints,
+  });
+
+  if (!prepared.valid || prepared.resources === null) {
+    return {
+      valid: false,
+      framePlan: null,
+      resources: null,
+      pipelineResults: prepared.pipelineResults,
+      diagnostics: [
+        ...packedViews.diagnostics,
+        ...packedTransforms.diagnostics,
+        ...packedInstanceTints.diagnostics,
+        ...prepared.diagnostics,
+      ],
+    };
+  }
+
+  const framePlan = writeRenderFramePlanFromSnapshot({
+    snapshot,
+    renderWorld: context.app.renderWorld,
+    transforms: packedTransforms,
+    resolveMeshResourceKey: (draw) =>
+      prepared.meshResourceKeys.get(assetHandleKey(draw.mesh)) ?? null,
+    resolveMaterialResourceKey: (draw) =>
+      prepared.materialResourceKeys.get(assetHandleKey(draw.material)) ?? null,
+    meshResources: prepared.resources.meshResources,
+    instanceTintResources: collectInstanceTintResources(prepared.resources),
+    pipelines: prepared.pipelineResults,
+    bindGroups: prepared.resources.bindGroups,
+    scratch: resourceCache.frameScratch.framePlan,
+  });
+  const diagnostics = [
+    ...packedViews.diagnostics,
+    ...packedTransforms.diagnostics,
+    ...packedInstanceTints.diagnostics,
+    ...framePlan.bindingPlan.diagnostics,
+    ...framePlan.readiness.diagnostics,
+    ...framePlan.packages.diagnostics,
+    ...framePlan.drawCommands.diagnostics,
+    ...framePlan.drawList.diagnostics,
+    ...framePlan.resources.diagnostics,
+    ...framePlan.commandPlan.diagnostics,
+  ];
+
+  return {
+    valid:
+      diagnostics.length === 0 &&
+      framePlan.drawList.valid &&
+      framePlan.resources.valid &&
+      framePlan.commandPlan.valid,
+    framePlan,
+    resources: prepared.resources,
+    pipelineResults: prepared.pipelineResults,
+    diagnostics,
+  };
+}
+
+async function getOrCreateWebGpuIdBufferPickPipelines(options: {
+  readonly app: WebGpuApp;
+  readonly cache: WebGpuAppResourceCache;
+  readonly snapshot: RenderSnapshot;
+  readonly pipelineResults: readonly WebGpuAppPipelinePlanResult[];
+}): Promise<{
+  readonly valid: boolean;
+  readonly pipelines: ReadonlyMap<string, WebGpuIdBufferPickPipelineResource>;
+  readonly diagnostics: readonly unknown[];
+}> {
+  const pipelines = new Map<string, WebGpuIdBufferPickPipelineResource>();
+  const diagnostics: unknown[] = [];
+
+  for (const draw of options.snapshot.meshDraws) {
+    if (pipelines.has(draw.batchKey.pipelineKey)) {
+      continue;
+    }
+
+    const cacheKey = webGpuIdBufferPickPipelineCacheKey(draw.batchKey);
+    const cached = options.cache.idPickPipelines.get(cacheKey);
+
+    if (cached !== undefined) {
+      pipelines.set(draw.batchKey.pipelineKey, cached);
+      continue;
+    }
+
+    const created = await createWebGpuIdBufferPickPipelineResource({
+      device: options.app.initialization.device as Parameters<
+        typeof createWebGpuIdBufferPickPipelineResource
+      >[0]["device"],
+      batchKey: draw.batchKey,
+      depthFormat: WEBGPU_APP_DEPTH_FORMAT,
+    });
+
+    diagnostics.push(...created.diagnostics);
+
+    if (created.valid && created.resource !== null) {
+      options.cache.idPickPipelines.set(cacheKey, created.resource);
+      pipelines.set(draw.batchKey.pipelineKey, created.resource);
+    }
+  }
+
+  return {
+    valid: diagnostics.length === 0,
+    pipelines,
+    diagnostics,
+  };
+}
+
+function webGpuAppPickPixel(
+  dimensions: { readonly width: number; readonly height: number },
+  x: number,
+  y: number,
+): { readonly x: number; readonly y: number } | null {
+  const pixel = { x: Math.floor(x), y: Math.floor(y) };
+
+  if (
+    !Number.isFinite(x) ||
+    !Number.isFinite(y) ||
+    pixel.x < 0 ||
+    pixel.y < 0 ||
+    pixel.x >= dimensions.width ||
+    pixel.y >= dimensions.height
+  ) {
+    return null;
+  }
+
+  return pixel;
+}
+
+function createWebGpuAppPickReport(input: {
+  readonly x: number;
+  readonly y: number;
+  readonly dimensions: { readonly width: number; readonly height: number };
+  readonly id: number | null;
+  readonly entity: RenderEntityRef | null;
+  readonly diagnostics: readonly unknown[];
+  readonly readback?: WebGpuIdBufferPickReadbackResult;
+}): WebGpuAppPickReport {
+  return {
+    ok: input.entity !== null && input.diagnostics.length === 0,
+    x: input.x,
+    y: input.y,
+    width: input.dimensions.width,
+    height: input.dimensions.height,
+    id: input.id,
+    entity: input.entity,
+    diagnostics: input.diagnostics,
+    ...(input.readback === undefined ? {} : { readback: input.readback }),
+  };
+}
+
 function hasReadyStandardShadowReceiverResources(
   resources: StandardFrameShadowReceiverResources | undefined,
 ): resources is StandardFrameShadowReceiverResources {
@@ -3202,6 +3938,26 @@ export function webGpuAppRenderReportToJsonValue(
     ...(materialDependencyReadiness.length === 0
       ? {}
       : { materialDependencyReadiness }),
+  };
+}
+
+export function webGpuAppPickReportToJsonValue(
+  report: WebGpuAppPickReport,
+): WebGpuAppPickReportJsonValue {
+  return {
+    ok: report.ok,
+    x: report.x,
+    y: report.y,
+    width: report.width,
+    height: report.height,
+    id: report.id,
+    entity: report.entity,
+    diagnostics: report.diagnostics.map((diagnostic) =>
+      toWebGpuAppJsonValue(diagnostic),
+    ),
+    ...(report.readback === undefined
+      ? {}
+      : { readback: toWebGpuAppJsonValue(report.readback) }),
   };
 }
 

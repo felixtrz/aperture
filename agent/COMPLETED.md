@@ -1,5 +1,41 @@
 # Completed Tasks
 
+## task-3066 — Math-side raycaster API
+
+Completed: 2026-05-22
+
+- Added a public `raycast(world, origin, direction)` API in the simulation
+  package that accepts bounds-style world data, normalizes the ray direction,
+  filters by optional max distance and layer mask, and returns hits sorted by
+  distance without any GPU dependency.
+- The API returns entity refs plus the intersected bounds and hit point, and it
+  uses optional bounding spheres as a conservative broad phase before the AABB
+  test.
+- Exported the raycaster through `@aperture-engine/simulation` and
+  `@aperture-engine/core`.
+- Validation run: targeted raycaster/bounds Vitest coverage passed,
+  `pnpm exec tsc --noEmit -p packages/simulation/tsconfig.json` passed,
+  `pnpm exec tsc --noEmit -p tsconfig.test.json` passed, and
+  `pnpm run build` passed.
+
+## task-3065 — Public `app.pick(x, y)` API
+
+Completed: 2026-05-22
+
+- Added `WebGpuApp.pick(x, y)`, which renders a pick-only `r32uint` ID pass from
+  the latest ECS-derived `RenderSnapshot`, reads one canvas pixel, and maps the
+  ID back to a `RenderEntityRef` or `null`.
+- Added pick diagnostics to the WebGPU app report, including canvas bounds,
+  texture bounds, readback ID, resolved entity, and error status.
+- Added pick-specific WebGPU bind groups and pipeline layouts so the ID pass can
+  reuse render packet command data without making the renderer own ECS/game
+  state.
+- Validation run: targeted ID-buffer-pick Vitest coverage passed,
+  `pnpm exec tsc --noEmit -p packages/webgpu/tsconfig.json` passed,
+  `pnpm exec tsc --noEmit -p tsconfig.test.json` passed,
+  `pnpm run build` passed, and the focused `webgpu-app-pick` Playwright test
+  passed.
+
 ## task-3064 — ID-buffer rendering for picking
 
 Completed: 2026-05-22

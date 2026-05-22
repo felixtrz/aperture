@@ -43,6 +43,7 @@ export * from "./ibl-sampler-resource.js";
 export * from "./ibl-texture-preparation.js";
 export * from "./ibl-texture-resource.js";
 export * from "./id-buffer.js";
+export * from "./id-buffer-pick.js";
 export * from "./instance-buffer.js";
 export * from "./instance-attribute-buffer.js";
 export * from "./instance-tint-buffer.js";

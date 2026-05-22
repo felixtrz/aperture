@@ -59,13 +59,14 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start `task-3065`: Public `app.pick(x, y)` API.
+Start `task-3067`: Post-pass framework.
 
-Why this next: `task-3063` established the render-pass MRT foundation, and
-`task-3064` added the `r32uint` ID-buffer proof that renders three stable ECS
-entity IDs into a second color attachment with browser readback. The next
-visible Tier 13 gap is the public app facade that reads that ID buffer for a
-screen-space pick request.
+Why this next: Tier 13 is now complete. `task-3063` established render-pass MRT
+support, `task-3064` added the `r32uint` ID-buffer proof, `task-3065` exposed
+public `app.pick(x, y)` readback through the WebGPU app facade, and
+`task-3066` added a pure simulation-side bounds raycaster. The next visible gap
+is Tier 14's post-pass framework, which should build on the existing output
+stage and off-screen render-target helpers before FXAA and bloom are added.
 
 Progress so far: `spinning-cube`, `multi-light-shadow`, and `glb-viewer` now
 use renderer-only `*.main.js` files plus ECS/extraction-owned `*.worker.js`
@@ -189,7 +190,7 @@ Eleven cross-cutting gaps remain across the six phases. They are sequenced below
 
 **Tier 13 — MRT + picking + raycasting (queued after Tier 12):**
 
-20. Multi-render-target + ID buffer + picking API (task-3063, task-3064, task-3065, task-3066) — task-3063 shipped render-pass MRT support and task-3064 shipped the `r32uint` ID-buffer proof; remaining slices add public `app.pick(x, y) → entity` and a math-side raycaster for non-screen-space queries. Required for any interactive 3D app. Closes gaps #5 and #11.
+20. Multi-render-target + ID buffer + picking API (task-3063, task-3064, task-3065, task-3066) — shipped. Render-pass MRT support, `r32uint` ID-buffer rendering, public `app.pick(x, y) → entity | null`, and a pure simulation-side bounds raycaster are in place. Required for any interactive 3D app. Closes gaps #5 and #11.
 
 **Tier 14 — Post-processing foundation + FXAA + bloom (queued after Tier 13):**
 
@@ -917,7 +918,7 @@ Acceptance criteria:
 - Test renders a scene with 3 known entities; reads the ID buffer at known coordinates; asserts the correct entity ID is at each.
 - ID texture format documented (`r32uint`).
 
-### task-3065 — Public `app.pick(x, y)` API (Tier 13 part 3)
+### task-3065 — Public `app.pick(x, y)` API (Tier 13 part 3) — Completed 2026-05-22
 
 Category: `runtime-orchestration`
 Package/write-scope: `packages/runtime/src/`, `packages/webgpu/src/webgpu/app.ts`, targeted tests.
@@ -931,7 +932,7 @@ Acceptance criteria:
 - Test calls `app.pick(...)` on a known scene; asserts correct entity returned.
 - Returns `null` for empty/background pixels.
 
-### task-3066 — Math-side raycaster API (Tier 13 part 4)
+### task-3066 — Math-side raycaster API (Tier 13 part 4) — Completed 2026-05-22
 
 Category: `simulation`
 Package/write-scope: `packages/simulation/src/raycaster.ts` (new), targeted tests.

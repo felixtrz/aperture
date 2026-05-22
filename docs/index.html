@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-22 06:40 UTC</dd>
+            <dd>2026-05-22 07:30 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -1264,10 +1264,16 @@
               outputs into two off-screen targets with readback from both. The
               ID-buffer path now documents <code>r32uint</code> targets and
               proves three stable ECS entity IDs can be rendered into a second
-              color attachment and read back for picking.
+              color attachment and read back for picking. The public
+              <code>app.pick(x, y)</code> facade now renders a pick-only ID pass
+              from the latest ECS-derived snapshot and resolves one canvas pixel
+              to a <code>RenderEntityRef</code> or <code>null</code>. The
+              simulation package also exposes a pure
+              <code>raycast(world, origin, direction)</code> helper for
+              bounds-based worker-side picking and spatial queries.
             </dd>
             <dt>Next focus</dt>
-            <dd>task-3065 Public app.pick API</dd>
+            <dd>task-3067 Post-pass framework</dd>
           </dl>
         </aside>
       </header>
@@ -1290,9 +1296,9 @@
         <div class="grid metrics">
           <article class="card metric">
             <div class="label">overall foundation</div>
-            <div class="value">45%</div>
-            <div class="bar" aria-label="45 percent complete">
-              <span style="width: 45%"></span>
+            <div class="value">46%</div>
+            <div class="bar" aria-label="46 percent complete">
+              <span style="width: 46%"></span>
             </div>
             <p>
               ECS, transforms, extraction, typed assets, diagnostics, and basic
@@ -1302,9 +1308,9 @@
           </article>
           <article class="card metric">
             <div class="label">render pipeline</div>
-            <div class="value">87%</div>
-            <div class="bar" aria-label="87 percent complete">
-              <span style="width: 87%"></span>
+            <div class="value">88%</div>
+            <div class="bar" aria-label="88 percent complete">
+              <span style="width: 88%"></span>
             </div>
             <p>
               The ECS-to-WebGPU spine is usable, app route reporting runs
@@ -1458,12 +1464,13 @@
                 <div class="label">simulation</div>
                 <h3>ECS, transforms, assets</h3>
               </div>
-              <span class="percent">55%</span>
+              <span class="percent">56%</span>
             </div>
-            <div class="bar"><span style="width: 55%"></span></div>
+            <div class="bar"><span style="width: 56%"></span></div>
             <p>
               EliCS-backed world, transform ownership, asset handles, and typed
-              collections are in place.
+              collections are in place, and worker-safe bounds raycasting now
+              returns sorted entity hits without depending on WebGPU.
             </p>
           </article>
           <article class="card track">
@@ -1489,9 +1496,9 @@
                 <div class="label">webgpu-render</div>
                 <h3>backend resources</h3>
               </div>
-              <span class="percent">70%</span>
+              <span class="percent">71%</span>
             </div>
-            <div class="bar"><span style="width: 70%"></span></div>
+            <div class="bar"><span style="width: 71%"></span></div>
             <p>
               Backend buffers, pipelines, bind groups, queues, and app facade
               exist; directional shadow pass submission and 3x3 PCF sampling are
@@ -1505,7 +1512,9 @@
               diffuse/specular-proof IBL, GLB viewer StandardMaterial alpha
               blend routing is browser-proven, material bind groups are scoped
               by pipeline key for live StandardMaterial route changes, and
-              profiling remains deferred.
+              public <code>app.pick(x, y)</code> now performs a pick-only ID
+              pass/readback against the latest snapshot. Profiling remains
+              deferred.
             </p>
           </article>
           <article class="card track">
@@ -1550,9 +1559,9 @@
                 <div class="label">examples/e2e</div>
                 <h3>browser proof points</h3>
               </div>
-              <span class="percent">75%</span>
+              <span class="percent">76%</span>
             </div>
-            <div class="bar"><span style="width: 75%"></span></div>
+            <div class="bar"><span style="width: 76%"></span></div>
             <p>
               Spinning cube, material showcase, GLTF scene, GLB viewer, worker
               cube, diagnostics, queue phases, and WebGPU readback examples have
@@ -1571,7 +1580,10 @@
               ECS light, shadow, IBL, animation scrub/speed/loop/direction,
               rotation/scale and STEP channel playback, imported glTF camera
               switching, embedded-image texture routing, imported punctual light
-              extraction, metadata, and sample-query bootstrap responses.
+              extraction, metadata, sample-query bootstrap responses, and a
+              focused browser assertion that <code>app.pick(...)</code> resolves
+              a known rendered entity while returning <code>null</code> for
+              background pixels.
             </p>
           </article>
           <article class="card track">
@@ -1889,9 +1901,9 @@
           <article class="phase">
             <div class="topline">
               <h3>6. submit</h3>
-              <span class="percent">95%</span>
+              <span class="percent">96%</span>
             </div>
-            <div class="bar"><span style="width: 95%"></span></div>
+            <div class="bar"><span style="width: 96%"></span></div>
             <p>
               WebGPU command submission renders the current proof paths with
               pipeline, bind group, transform, light, mesh, and material
@@ -1929,10 +1941,14 @@
               values visibly across a 256-box gradient swarm. Custom WGSL
               pipelines now also bind generic instance-attribute buffers; the
               instance-attributes example proves 576 ECS-authored phase/sway
-              rows through one custom material and one instanced draw.
+              rows through one custom material and one instanced draw. The
+              picking facade now submits a pick-only ID pass and reads one
+              <code>r32uint</code> pixel to resolve a snapshot entity.
             </p>
             <ul>
-              <li>Missing render graph and multi-pass architecture.</li>
+              <li>
+                Missing post-pass graph and multi-pass effect architecture.
+              </li>
               <li>
                 Missing full GGX importance sampling, post-processing, and
                 broader environment asset preparation.
@@ -4197,18 +4213,17 @@
             <ul>
               <li>
                 <span class="badge amber">next</span> Build
-                <code>task-3065</code>, the public
-                <code>app.pick(x, y)</code> facade on top of the ID-buffer
-                proof.
+                <code>task-3067</code>, the post-pass framework that chains
+                renderer-owned off-screen targets into the existing output
+                stage.
               </li>
               <li>
-                Use the <code>r32uint</code> ID-buffer helper and three-entity
-                Playwright proof as the baseline.
+                Use the current render-target helpers, MRT attachment planning,
+                and output-stage tonemap path as the baseline.
               </li>
               <li>
-                Keep the slice narrow: one pick readback returning an entity or
-                <code>null</code>, then leave math-side raycasting to
-                <code>task-3066</code>.
+                Keep the slice narrow: a no-op post pass should preserve the
+                rendered output before FXAA and bloom build on it.
               </li>
             </ul>
           </article>
@@ -4221,6 +4236,28 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3066</div>
+            <div>
+              <strong>Math-side raycaster shipped.</strong>
+              <span>
+                <code>raycast(world, origin, direction)</code> now runs in the
+                simulation package, filters bounds by distance/layer, and
+                returns sorted entity hits without WebGPU.
+              </span>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="task-id">task-3065</div>
+            <div>
+              <strong>Public app picking shipped.</strong>
+              <span>
+                <code>WebGpuApp.pick(x, y)</code> renders a pick-only
+                <code>r32uint</code> pass from the latest snapshot and resolves
+                a canvas pixel to an ECS entity or background <code>null</code>.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3064</div>
             <div>

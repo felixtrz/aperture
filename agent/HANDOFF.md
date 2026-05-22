@@ -1,6 +1,113 @@
 # Agent Handoff
 
-Updated: 2026-05-22T06:50:00Z
+Updated: 2026-05-22T07:50:00Z
+
+## Current Run Update — 2026-05-22T07:30:00Z — Public picking and raycasting shipped
+
+Completed `task-3065` and `task-3066`.
+
+### What changed
+
+- Added `WebGpuApp.pick(x, y)`, which renders a pick-only `r32uint` ID pass from
+  the latest successful `RenderSnapshot`, reads one canvas pixel, and resolves
+  the readback ID to a `RenderEntityRef` or `null`.
+- Added `packages/webgpu/src/webgpu/id-buffer-pick.ts` with ID-storage packing,
+  pick texture creation, pick-pass command rewriting, and `r32uint` readback.
+  The pick path creates explicit view/world/id bind groups for its pipeline so
+  it does not reuse incompatible default-layout bind groups.
+- Added app diagnostics for the last pick request, including canvas and texture
+  coordinates, readback ID, resolved entity, and error status.
+- Added a pure simulation-side `raycast(world, origin, direction)` API that
+  accepts bounds-style world data, normalizes the ray direction, supports max
+  distance and layer-mask filters, and returns sorted entity hits without any
+  GPU dependency.
+- Updated public tracker pages, backlog, and completed-task log. Recommended
+  next task is now `task-3067`.
+
+### References inspected
+
+- `references/engine/src/framework/components/camera/component.js`
+- `references/engine/src/scene/picker-id.js`
+- `references/engine/src/framework/graphics/render-pass-picker.js`
+- `references/three.js/src/core/Raycaster.js`
+- `references/three.js/src/math/Ray.js`
+- `references/engine/src/core/shape/ray.js`
+- `references/engine/src/core/shape/bounding-sphere.js`
+- `references/engine/src/core/shape/tri.js`
+- `references/three.js/examples/jsm/postprocessing/EffectComposer.js`
+- `references/three.js/examples/jsm/postprocessing/Pass.js`
+- `references/three.js/examples/jsm/postprocessing/ShaderPass.js`
+- `references/engine/scripts/posteffects/posteffect-fxaa.js`
+- `references/engine/scripts/posteffects/posteffect-bloom.js`
+- `references/engine/scripts/posteffects/posteffect-sepia.js`
+- `references/engine/src/extras/render-passes/frame-pass-camera-frame.js`
+- `references/engine/src/extras/render-passes/render-pass-compose.js`
+- `references/engine/src/scene/graphics/render-pass-shader-quad.js`
+- `references/engine/src/scene/graphics/quad-render-utils.js`
+
+Common pattern adapted: PlayCanvas renders stable picker IDs into a dedicated
+selection pass and maps readback IDs to objects, while Three/PlayCanvas ray APIs
+keep CPU ray tests as pure math with normalized rays and sorted/filterable hit
+lists. Aperture keeps both paths derived from ECS/snapshot data: GPU picking
+uses render snapshots only, and simulation raycasting accepts data-only bounds
+without renderer or WebGPU ownership.
+
+### Validation
+
+- `pnpm exec tsc --noEmit -p packages/webgpu/tsconfig.json` passed.
+- `pnpm exec tsc --noEmit -p packages/simulation/tsconfig.json` passed.
+- `pnpm exec tsc --noEmit -p tsconfig.test.json` passed.
+- `pnpm exec vitest run test/webgpu/id-buffer-pick.test.ts test/webgpu/id-buffer.test.ts --reporter=dot` passed.
+- `pnpm exec vitest run test/math/raycaster.test.ts test/math/bounds-ray.test.ts --reporter=dot` passed.
+- `pnpm exec playwright test test/e2e/webgpu-app-pick.spec.ts --reporter=list` passed.
+- Post-checkpoint combined browser prerequisites passed:
+  `pnpm exec playwright test test/e2e/offscreen-color-target.spec.ts test/e2e/id-buffer.spec.ts test/e2e/webgpu-app-pick.spec.ts --reporter=list`.
+- Focused WebGPU browser stress repeat passed:
+  `pnpm exec playwright test test/e2e/offscreen-color-target.spec.ts test/e2e/id-buffer.spec.ts test/e2e/webgpu-app-pick.spec.ts --repeat-each=20 --reporter=line`
+  (100/100 passed).
+- `pnpm run build` passed.
+- `pnpm run lint` passed.
+- `pnpm run format:check` passed.
+- `pnpm run check:progress` passed.
+- `pnpm run check` passed, including package-boundary checks, tracker checks,
+  build/typecheck, test typecheck, example syntax checks, lint, format check,
+  and all 341 Vitest files / 1,681 tests.
+
+### Known issues
+
+- None for these slices.
+
+### Recommended next task
+
+Start `task-3067`: add the post-pass framework. Inspect
+`references/three.js/examples/jsm/postprocessing/EffectComposer.js` and
+PlayCanvas post-effect chain helpers, then build Aperture's version around
+renderer-owned off-screen targets feeding the existing output stage.
+
+### task-3067 preflight notes
+
+- Three's `EffectComposer` uses ordered passes with paired read/write render
+  targets, swaps buffers after passes that need it, and renders the last enabled
+  pass to screen.
+- PlayCanvas post effects expose a `render(inputTarget, outputTarget, rect)`
+  shape; effects sample the prior color buffer and draw a full-screen quad into
+  either an intermediate render target or the final target.
+- Aperture's likely insertion points are `CreateWebGpuAppOptions` for the
+  public `postEffects` list, `assembleWebGpuAppFrameBoundaries(...)` for
+  routing the main scene into an intermediate texture, and the existing
+  `createOffscreenColorTarget(...)` / `createOffscreenColorTargets(...)` helpers
+  for attachment setup. Keep the public pass contract data-oriented and
+  renderer-owned; do not expose scene graph or ECS state to post passes.
+- The current app readback path is attached to the swapchain frame boundary.
+  Once a post chain is active, readback samples should come from the final
+  post-output pass rather than the intermediate scene texture.
+- `assembleFrameBoundary(...)` currently owns one render pass, one command
+  encoder finish, and one queue submit. The post-pass slice will likely stay
+  cleaner as a small post-chain assembly helper that creates its own
+  full-screen pass commands and reports, then plugs that helper into the
+  swapchain target path.
+- A narrow first slice should implement a no-op/copy pass that proves
+  input-to-output preservation before adding FXAA or bloom.
 
 ## Current Run Update — 2026-05-22T06:40:00Z — ID-buffer render proof shipped
 
