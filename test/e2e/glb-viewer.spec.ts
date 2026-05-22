@@ -352,6 +352,22 @@ interface GlbViewerStatus extends ExampleStatusBase {
       readonly value: readonly number[];
     }[];
   };
+  readonly skinning?: {
+    readonly status: string;
+    readonly skinCount: number;
+    readonly jointCount: number;
+    readonly skinnedEntities: number;
+    readonly animatedJointCount: number;
+    readonly time: number;
+    readonly entries?: readonly {
+      readonly skinIndex: number;
+      readonly nodeIndex: number;
+      readonly meshIndex: number;
+      readonly primitiveIndex: number;
+      readonly entityKey: string;
+      readonly jointNodeIndices: readonly number[];
+    }[];
+  };
   readonly hierarchy?: {
     readonly nodes: readonly {
       readonly nodeIndex: number;
@@ -688,7 +704,7 @@ test("Playwright renders the fetched sample GLB viewer asset", async ({
     "Imported camera",
     "Imported cameras",
     "Morph target",
-    "Skin metadata",
+    "Skinned character",
     "Orthographic camera",
     "Unsupported primitive",
     "Emissive standard",
@@ -4466,9 +4482,7 @@ test("Playwright reports unsupported morph targets while rendering the base GLB 
   webGpuValidation.expectNoWarnings();
 });
 
-test("Playwright reports unsupported skinning while rendering the base GLB mesh", async ({
-  page,
-}) => {
+test("Playwright renders and animates a skinned GLB mesh", async ({ page }) => {
   const webGpuValidation = attachWebGpuValidationConsoleGuard(page);
 
   await page.goto("/examples/glb-viewer.html?asset=skinning");
@@ -4494,19 +4508,37 @@ test("Playwright reports unsupported skinning while rendering the base GLB mesh"
             readonly source?: { readonly ok?: boolean };
             readonly gltf?: {
               readonly metadata?: {
-                readonly unsupportedFeatureDiagnostics?: readonly {
-                  readonly code?: string;
-                  readonly skinCount?: number;
-                  readonly jointCount?: number;
-                  readonly inverseBindMatrixCount?: number;
-                }[];
+                readonly unsupportedFeatureDiagnostics?: readonly unknown[];
               };
               readonly primitiveMaterials?: { readonly resolved?: number };
+              readonly meshAttributes?: readonly {
+                readonly streams?: readonly {
+                  readonly arrayStride?: number;
+                  readonly attributes?: readonly {
+                    readonly semantic?: string;
+                    readonly format?: string;
+                    readonly offset?: number;
+                  }[];
+                }[];
+              }[];
+            };
+            readonly skinning?: {
+              readonly status?: string;
+              readonly skinCount?: number;
+              readonly jointCount?: number;
+              readonly skinnedEntities?: number;
+              readonly animatedJointCount?: number;
             };
             readonly extraction?: { readonly meshDraws?: number };
+            readonly draw?: { readonly drawCalls?: number };
+            readonly renderState?: {
+              readonly pipelineKeys?: readonly string[];
+            };
           };
         }
       ).__APERTURE_EXAMPLE_STATUS__;
+      const attributes =
+        status?.gltf?.meshAttributes?.[0]?.streams?.[0]?.attributes ?? [];
 
       return (
         (status?.frame ?? 0) >= 3 &&
@@ -4514,13 +4546,29 @@ test("Playwright reports unsupported skinning while rendering the base GLB mesh"
         status.selectedAsset.loading === false &&
         status.source?.ok === true &&
         status.gltf?.primitiveMaterials?.resolved === 1 &&
+        status.gltf?.metadata?.unsupportedFeatureDiagnostics?.length === 0 &&
+        status.gltf?.meshAttributes?.[0]?.streams?.[0]?.arrayStride === 56 &&
+        attributes.some(
+          (attribute) =>
+            attribute.semantic === "JOINTS_0" &&
+            attribute.format === "uint16x4" &&
+            attribute.offset === 32,
+        ) &&
+        attributes.some(
+          (attribute) =>
+            attribute.semantic === "WEIGHTS_0" &&
+            attribute.format === "float32x4" &&
+            attribute.offset === 40,
+        ) &&
+        status.skinning?.status === "ready" &&
+        status.skinning.skinCount === 1 &&
+        status.skinning.jointCount === 2 &&
+        status.skinning.skinnedEntities === 1 &&
+        (status.skinning.animatedJointCount ?? 0) >= 1 &&
         status.extraction?.meshDraws === 1 &&
-        status.gltf?.metadata?.unsupportedFeatureDiagnostics?.some(
-          (diagnostic) =>
-            diagnostic.code === "gltfMetadata.unsupportedSkins" &&
-            diagnostic.skinCount === 1 &&
-            diagnostic.jointCount === 2 &&
-            diagnostic.inverseBindMatrixCount === 2,
+        status.draw?.drawCalls === 1 &&
+        status.renderState?.pipelineKeys?.includes(
+          "standard|skinned|opaque|none|less|none",
         ) === true
       );
     },
@@ -4537,6 +4585,7 @@ test("Playwright reports unsupported skinning while rendering the base GLB mesh"
   }
 
   const screenshot = await page.locator("#aperture-canvas").screenshot();
+  const firstFrame = status.frame;
   const clear =
     status.clearColor === undefined
       ? { r: 4, g: 6, b: 9, a: 255 }
@@ -4550,11 +4599,11 @@ test("Playwright reports unsupported skinning while rendering the base GLB mesh"
   expect(status).toMatchObject({
     selectedAsset: {
       id: "skinning",
-      label: "Skin metadata",
+      label: "Skinned character",
       source: "sample",
       url: "/examples/assets/skinning.glb",
       loading: false,
-      materialFamilies: [{ family: "unlit", count: 1 }],
+      materialFamilies: [{ family: "standard", count: 1 }],
     },
     gltf: {
       metadata: {
@@ -4568,27 +4617,48 @@ test("Playwright reports unsupported skinning while rendering the base GLB mesh"
           animations: 0,
         },
         extensions: {
-          used: ["KHR_materials_unlit"],
+          used: [],
           required: [],
         },
-        unsupportedFeatureDiagnostics: [
-          {
-            code: "gltfMetadata.unsupportedSkins",
-            severity: "warning",
-            count: 1,
-            skinCount: 1,
-            jointCount: 2,
-            inverseBindMatrixCount: 2,
-          },
-        ],
+        unsupportedFeatureDiagnostics: [],
       },
       primitiveMaterials: {
         valid: true,
         resolved: 1,
         diagnostics: 0,
-        families: [{ family: "unlit", count: 1 }],
+        families: [{ family: "standard", count: 1 }],
       },
+      meshAttributes: [
+        {
+          meshIndex: 0,
+          primitiveIndex: 0,
+          streams: [
+            {
+              arrayStride: 56,
+              vertexCount: 4,
+              attributes: expect.arrayContaining([
+                { semantic: "POSITION", format: "float32x3", offset: 0 },
+                { semantic: "NORMAL", format: "float32x3", offset: 12 },
+                { semantic: "TEXCOORD_0", format: "float32x2", offset: 24 },
+                { semantic: "JOINTS_0", format: "uint16x4", offset: 32 },
+                { semantic: "WEIGHTS_0", format: "float32x4", offset: 40 },
+              ]),
+            },
+          ],
+          indexBuffer: {
+            format: "uint16",
+            count: 6,
+          },
+        },
+      ],
       replay: { valid: true, diagnostics: 0 },
+    },
+    skinning: {
+      status: "ready",
+      skinCount: 1,
+      jointCount: 2,
+      skinnedEntities: 1,
+      animatedJointCount: 1,
     },
     extraction: {
       views: 1,
@@ -4601,12 +4671,41 @@ test("Playwright reports unsupported skinning while rendering the base GLB mesh"
       drawCalls: 1,
     },
   });
+  expect(status.skinning?.entries?.[0]).toMatchObject({
+    skinIndex: 0,
+    nodeIndex: 0,
+    meshIndex: 0,
+    primitiveIndex: 0,
+    jointNodeIndices: [1, 2],
+  });
+  expect(status.renderState?.pipelineKeys).toContain(
+    "standard|skinned|opaque|none|less|none",
+  );
   expect(
     pixelDistance(center, clear),
-    `skinning base mesh should still render visible pixels; sample=${JSON.stringify(
+    `skinned mesh should render visible pixels; sample=${JSON.stringify(
       center,
     )}`,
   ).toBeGreaterThan(20);
+  await page.waitForFunction(
+    (frame) =>
+      ((
+        globalThis as {
+          readonly __APERTURE_EXAMPLE_STATUS__?: { readonly frame?: number };
+        }
+      ).__APERTURE_EXAMPLE_STATUS__?.frame ?? 0) >=
+      frame + 30,
+    firstFrame,
+    { timeout: 5000 },
+  );
+  const animatedScreenshot = await page
+    .locator("#aperture-canvas")
+    .screenshot();
+
+  expect(
+    maxSampleDelta(screenshot, animatedScreenshot),
+    "procedural skinning should update joint palettes and change visible pixels",
+  ).toBeGreaterThan(8);
   webGpuValidation.expectNoWarnings();
 });
 
@@ -19593,14 +19692,6 @@ test("Playwright renders GLB viewer unsupported-feature summary rows", async ({
   await expect(
     unsupportedRow("gltfMetadata.unsupportedMorphTargets"),
   ).toContainText("2 targets, 1 primitives");
-
-  await waitForUnsupportedSample({
-    assetId: "skinning",
-    code: "gltfMetadata.unsupportedSkins",
-  });
-  await expect(unsupportedRow("gltfMetadata.unsupportedSkins")).toContainText(
-    "1 skins, 2 joints, 2 inverse binds",
-  );
 
   await waitForUnsupportedSample({
     assetId: "unsupported-primitive",

@@ -9,20 +9,24 @@ describe("glTF accessor and buffer reference validation", () => {
   it("plans byte ranges and expected formats for a valid primitive", () => {
     const root = {
       asset: { version: "2.0" },
-      buffers: [{ byteLength: 160 }],
+      buffers: [{ byteLength: 207 }],
       bufferViews: [
         { buffer: 0, byteOffset: 0, byteLength: 36 },
         { buffer: 0, byteOffset: 36, byteLength: 36 },
         { buffer: 0, byteOffset: 72, byteLength: 24 },
-        { buffer: 0, byteOffset: 96, byteLength: 48 },
-        { buffer: 0, byteOffset: 144, byteLength: 3 },
+        { buffer: 0, byteOffset: 96, byteLength: 12 },
+        { buffer: 0, byteOffset: 108, byteLength: 48 },
+        { buffer: 0, byteOffset: 156, byteLength: 48 },
+        { buffer: 0, byteOffset: 204, byteLength: 3 },
       ],
       accessors: [
         { bufferView: 0, componentType: 5126, type: "VEC3", count: 3 },
         { bufferView: 1, componentType: 5126, type: "VEC3", count: 3 },
         { bufferView: 2, componentType: 5126, type: "VEC2", count: 3 },
-        { bufferView: 3, componentType: 5126, type: "VEC4", count: 3 },
-        { bufferView: 4, componentType: 5121, type: "SCALAR", count: 3 },
+        { bufferView: 3, componentType: 5121, type: "VEC4", count: 3 },
+        { bufferView: 4, componentType: 5126, type: "VEC4", count: 3 },
+        { bufferView: 5, componentType: 5126, type: "VEC4", count: 3 },
+        { bufferView: 6, componentType: 5121, type: "SCALAR", count: 3 },
       ],
       meshes: [
         {
@@ -32,9 +36,11 @@ describe("glTF accessor and buffer reference validation", () => {
                 POSITION: 0,
                 NORMAL: 1,
                 TEXCOORD_0: 2,
-                TANGENT: 3,
+                JOINTS_0: 3,
+                WEIGHTS_0: 4,
+                TANGENT: 5,
               },
-              indices: 4,
+              indices: 6,
             },
           ],
         },
@@ -44,7 +50,7 @@ describe("glTF accessor and buffer reference validation", () => {
     const report = validateGltfPrimitiveAccessorReferences({
       root,
       primitiveReport,
-      binaryChunkByteLength: 160,
+      binaryChunkByteLength: 207,
     });
 
     expect(report.valid).toBe(true);
@@ -78,16 +84,28 @@ describe("glTF accessor and buffer reference validation", () => {
             expectedFormat: "float32x2",
           },
           {
-            semantic: "TANGENT",
+            semantic: "JOINTS_0",
             accessorIndex: 3,
             byteOffset: 96,
+            expectedFormat: "uint8-to-uint16",
+          },
+          {
+            semantic: "WEIGHTS_0",
+            accessorIndex: 4,
+            byteOffset: 108,
+            expectedFormat: "float32x4",
+          },
+          {
+            semantic: "TANGENT",
+            accessorIndex: 5,
+            byteOffset: 156,
             expectedFormat: "float32x4",
           },
         ],
         indices: {
           semantic: "INDICES",
-          accessorIndex: 4,
-          byteOffset: 144,
+          accessorIndex: 6,
+          byteOffset: 204,
           byteLength: 3,
           expectedFormat: "uint8-to-uint16",
         },

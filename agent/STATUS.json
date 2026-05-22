@@ -6,6 +6,6 @@
   "lastResult": "success",
   "lastCommit": "a1e1e10",
   "activePid": null,
-  "notes": "Completed task-3055 skinning joint buffers and task-3056 morph shader variant; validated targeted suites, build/check, lint, and refreshed handoff for task-3057.",
-  "lastRunFinishedAt": "2026-05-22T01:50:29Z"
+  "notes": "Completed task-3057 visible GLB skinning: imported JOINTS_0/WEIGHTS_0, packed mixed skinned mesh streams, added GLB viewer Skin palette animation/status, updated tests/docs/backlog, and validated with pnpm run check plus direct headed Chrome skinning smoke.",
+  "lastRunFinishedAt": "2026-05-22T02:50:10Z"
 }

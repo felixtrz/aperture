@@ -243,6 +243,64 @@ describe("glTF mesh source asset construction", () => {
     ]);
   });
 
+  it("packs skinned glTF mesh attributes into the standard mixed stream layout", () => {
+    const decodedReport = decodedFixture({
+      positions: new Float32Array([
+        -0.5, 0, 0, 0.5, 0, 0, -0.5, 1, 0, 0.5, 1, 0,
+      ]),
+      normals: new Float32Array([0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1]),
+      texcoords: new Float32Array([0, 0, 1, 0, 0, 1, 1, 1]),
+      joints: new Uint16Array([0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0]),
+      weights: new Float32Array([
+        1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0,
+      ]),
+      indices: new Uint16Array([0, 1, 2, 2, 1, 3]),
+    });
+    const report = createMeshAssetsFromGltfDecodedAccessors({ decodedReport });
+    const mesh = report.meshes[0]?.mesh;
+    const stream = mesh?.vertexStreams[0];
+
+    expect(report.valid).toBe(true);
+    expect(report.diagnostics).toEqual([]);
+    expect(mesh?.skinning).toEqual({
+      joints0: "JOINTS_0",
+      weights0: "WEIGHTS_0",
+    });
+    expect(stream).toMatchObject({
+      arrayStride: 56,
+      vertexCount: 4,
+      attributes: [
+        { semantic: "POSITION", format: "float32x3", offset: 0 },
+        { semantic: "NORMAL", format: "float32x3", offset: 12 },
+        { semantic: "TEXCOORD_0", format: "float32x2", offset: 24 },
+        { semantic: "JOINTS_0", format: "uint16x4", offset: 32 },
+        { semantic: "WEIGHTS_0", format: "float32x4", offset: 40 },
+      ],
+    });
+    expect(stream?.data).toBeInstanceOf(Uint8Array);
+    if (!(stream?.data instanceof Uint8Array)) {
+      throw new Error("Expected skinned mesh stream data to be byte-packed.");
+    }
+
+    const view = new DataView(
+      stream.data.buffer,
+      stream.data.byteOffset,
+      stream.data.byteLength,
+    );
+
+    expect(view.getFloat32(0, true)).toBe(-0.5);
+    expect(view.getFloat32(12 + 8, true)).toBe(1);
+    expect(view.getFloat32(24 + 4, true)).toBe(0);
+    expect(view.getUint16(32, true)).toBe(0);
+    expect(view.getFloat32(40, true)).toBe(1);
+
+    const vertex2 = 2 * 56;
+    expect(view.getFloat32(vertex2, true)).toBe(-0.5);
+    expect(view.getFloat32(vertex2 + 4, true)).toBe(1);
+    expect(view.getUint16(vertex2 + 32, true)).toBe(1);
+    expect(view.getFloat32(vertex2 + 40, true)).toBe(1);
+  });
+
   it("reports mismatched optional attribute counts", () => {
     const decodedReport = decodedFixture({
       positions: new Float32Array([0, 0, 0, 1, 0, 0]),
@@ -269,8 +327,57 @@ function decodedFixture(input: {
   readonly texcoords1?: Float32Array;
   readonly tangents?: Float32Array;
   readonly colors?: Float32Array;
+  readonly joints?: Uint16Array;
+  readonly weights?: Float32Array;
   readonly indices?: Uint16Array;
 }): GltfAccessorDecodingReport {
+  const attributes: GltfAccessorDecodingReport["primitives"][number]["attributes"][number][] =
+    [];
+  let sourceByteOffset = 0;
+  let accessorIndex = 0;
+  const addAttribute = (
+    semantic: GltfAccessorDecodingReport["primitives"][number]["attributes"][number]["semantic"],
+    array: GltfAccessorDecodingReport["primitives"][number]["attributes"][number]["array"],
+    expectedFormat: GltfAccessorDecodingReport["primitives"][number]["attributes"][number]["expectedFormat"],
+    itemSize: number,
+  ) => {
+    attributes.push({
+      semantic,
+      accessorIndex,
+      bufferIndex: 0,
+      sourceByteOffset,
+      sourceByteLength: array.byteLength,
+      expectedFormat,
+      itemSize,
+      array,
+    });
+    accessorIndex += 1;
+    sourceByteOffset += array.byteLength;
+  };
+
+  addAttribute("POSITION", input.positions, "float32x3", 3);
+  if (input.normals !== undefined) {
+    addAttribute("NORMAL", input.normals, "float32x3", 3);
+  }
+  if (input.texcoords !== undefined) {
+    addAttribute("TEXCOORD_0", input.texcoords, "float32x2", 2);
+  }
+  if (input.joints !== undefined) {
+    addAttribute("JOINTS_0", input.joints, "uint16", 4);
+  }
+  if (input.weights !== undefined) {
+    addAttribute("WEIGHTS_0", input.weights, "float32x4", 4);
+  }
+  if (input.tangents !== undefined) {
+    addAttribute("TANGENT", input.tangents, "float32x4", 4);
+  }
+  if (input.texcoords1 !== undefined) {
+    addAttribute("TEXCOORD_1", input.texcoords1, "float32x2", 2);
+  }
+  if (input.colors !== undefined) {
+    addAttribute("COLOR_0", input.colors, "float32x4", 4);
+  }
+
   return {
     valid: true,
     primitives: [
@@ -279,108 +386,13 @@ function decodedFixture(input: {
         meshIndex: 0,
         primitiveIndex: 0,
         vertexCount: input.positions.length / 3,
-        attributes: [
-          {
-            semantic: "POSITION",
-            accessorIndex: 0,
-            bufferIndex: 0,
-            sourceByteOffset: 0,
-            sourceByteLength: input.positions.byteLength,
-            expectedFormat: "float32x3",
-            itemSize: 3,
-            array: input.positions,
-          },
-          ...(input.normals === undefined
-            ? []
-            : [
-                {
-                  semantic: "NORMAL" as const,
-                  accessorIndex: 1,
-                  bufferIndex: 0,
-                  sourceByteOffset: input.positions.byteLength,
-                  sourceByteLength: input.normals.byteLength,
-                  expectedFormat: "float32x3" as const,
-                  itemSize: 3,
-                  array: input.normals,
-                },
-              ]),
-          ...(input.texcoords === undefined
-            ? []
-            : [
-                {
-                  semantic: "TEXCOORD_0" as const,
-                  accessorIndex: 2,
-                  bufferIndex: 0,
-                  sourceByteOffset:
-                    input.positions.byteLength +
-                    (input.normals?.byteLength ?? 0),
-                  sourceByteLength: input.texcoords.byteLength,
-                  expectedFormat: "float32x2" as const,
-                  itemSize: 2,
-                  array: input.texcoords,
-                },
-              ]),
-          ...(input.tangents === undefined
-            ? []
-            : [
-                {
-                  semantic: "TANGENT" as const,
-                  accessorIndex: 3,
-                  bufferIndex: 0,
-                  sourceByteOffset:
-                    input.positions.byteLength +
-                    (input.normals?.byteLength ?? 0) +
-                    (input.texcoords?.byteLength ?? 0),
-                  sourceByteLength: input.tangents.byteLength,
-                  expectedFormat: "float32x4" as const,
-                  itemSize: 4,
-                  array: input.tangents,
-                },
-              ]),
-          ...(input.texcoords1 === undefined
-            ? []
-            : [
-                {
-                  semantic: "TEXCOORD_1" as const,
-                  accessorIndex: 4,
-                  bufferIndex: 0,
-                  sourceByteOffset:
-                    input.positions.byteLength +
-                    (input.normals?.byteLength ?? 0) +
-                    (input.texcoords?.byteLength ?? 0) +
-                    (input.tangents?.byteLength ?? 0),
-                  sourceByteLength: input.texcoords1.byteLength,
-                  expectedFormat: "float32x2" as const,
-                  itemSize: 2,
-                  array: input.texcoords1,
-                },
-              ]),
-          ...(input.colors === undefined
-            ? []
-            : [
-                {
-                  semantic: "COLOR_0" as const,
-                  accessorIndex: 5,
-                  bufferIndex: 0,
-                  sourceByteOffset:
-                    input.positions.byteLength +
-                    (input.normals?.byteLength ?? 0) +
-                    (input.texcoords?.byteLength ?? 0) +
-                    (input.tangents?.byteLength ?? 0) +
-                    (input.texcoords1?.byteLength ?? 0),
-                  sourceByteLength: input.colors.byteLength,
-                  expectedFormat: "float32x4" as const,
-                  itemSize: 4,
-                  array: input.colors,
-                },
-              ]),
-        ],
+        attributes,
         indices:
           input.indices === undefined
             ? null
             : {
                 semantic: "INDICES",
-                accessorIndex: 2,
+                accessorIndex,
                 bufferIndex: 0,
                 sourceByteOffset: 0,
                 sourceByteLength: input.indices.byteLength,

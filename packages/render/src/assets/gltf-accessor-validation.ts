@@ -213,6 +213,18 @@ function validatePrimitive(
   appendOptionalAttribute(
     context,
     primitive,
+    primitive.attributes.joints0,
+    attributes,
+  );
+  appendOptionalAttribute(
+    context,
+    primitive,
+    primitive.attributes.weights0,
+    attributes,
+  );
+  appendOptionalAttribute(
+    context,
+    primitive,
     primitive.attributes.tangent,
     attributes,
   );
@@ -604,6 +616,34 @@ function expectationForSemantic(
         : null;
     case "TANGENT":
     case "COLOR_0":
+      return accessor.type === "VEC4" &&
+        accessor.componentType === GLTF_COMPONENT_FLOAT
+        ? {
+            type: "VEC4",
+            componentTypes: [GLTF_COMPONENT_FLOAT],
+            expectedFormat: "float32x4",
+          }
+        : null;
+    case "JOINTS_0":
+      if (accessor.type !== "VEC4") {
+        return null;
+      }
+      if (accessor.componentType === GLTF_COMPONENT_UNSIGNED_BYTE) {
+        return {
+          type: "VEC4",
+          componentTypes: [GLTF_COMPONENT_UNSIGNED_BYTE],
+          expectedFormat: "uint8-to-uint16",
+        };
+      }
+      if (accessor.componentType === GLTF_COMPONENT_UNSIGNED_SHORT) {
+        return {
+          type: "VEC4",
+          componentTypes: [GLTF_COMPONENT_UNSIGNED_SHORT],
+          expectedFormat: "uint16",
+        };
+      }
+      return null;
+    case "WEIGHTS_0":
       return accessor.type === "VEC4" &&
         accessor.componentType === GLTF_COMPONENT_FLOAT
         ? {

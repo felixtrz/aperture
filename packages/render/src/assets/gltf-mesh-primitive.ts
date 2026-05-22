@@ -31,7 +31,9 @@ export type GltfMeshPrimitiveAttributeSemantic =
   | "TEXCOORD_0"
   | "TEXCOORD_1"
   | "TANGENT"
-  | "COLOR_0";
+  | "COLOR_0"
+  | "JOINTS_0"
+  | "WEIGHTS_0";
 
 export interface GltfMeshPrimitiveMappingDiagnostic {
   readonly layer: GltfMeshPrimitiveMappingLayer;
@@ -71,6 +73,8 @@ export interface GltfMeshPrimitiveAttributeReferences {
   readonly texcoord1?: GltfMeshPrimitiveAttributeReference;
   readonly tangent?: GltfMeshPrimitiveAttributeReference;
   readonly color0?: GltfMeshPrimitiveAttributeReference;
+  readonly joints0?: GltfMeshPrimitiveAttributeReference;
+  readonly weights0?: GltfMeshPrimitiveAttributeReference;
 }
 
 export interface GltfMeshPrimitiveIndexReference {
@@ -415,6 +419,8 @@ function mapAttributes(input: {
   const texcoord1 = mapAttributeReference(input, attributes, "TEXCOORD_1");
   const tangent = mapAttributeReference(input, attributes, "TANGENT");
   const color0 = mapAttributeReference(input, attributes, "COLOR_0");
+  const joints0 = mapAttributeReference(input, attributes, "JOINTS_0");
+  const weights0 = mapAttributeReference(input, attributes, "WEIGHTS_0");
   const hasOptionalAttributeError = input.diagnostics.some(
     (diagnostic) =>
       diagnostic.severity === "error" &&
@@ -424,7 +430,9 @@ function mapAttributes(input: {
         diagnostic.attribute === "TEXCOORD_0" ||
         diagnostic.attribute === "TEXCOORD_1" ||
         diagnostic.attribute === "TANGENT" ||
-        diagnostic.attribute === "COLOR_0"),
+        diagnostic.attribute === "COLOR_0" ||
+        diagnostic.attribute === "JOINTS_0" ||
+        diagnostic.attribute === "WEIGHTS_0"),
   );
   if (hasOptionalAttributeError) {
     return null;
@@ -437,6 +445,8 @@ function mapAttributes(input: {
     ...(texcoord1 === null ? {} : { texcoord1 }),
     ...(tangent === null ? {} : { tangent }),
     ...(color0 === null ? {} : { color0 }),
+    ...(joints0 === null ? {} : { joints0 }),
+    ...(weights0 === null ? {} : { weights0 }),
   };
 }
 

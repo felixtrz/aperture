@@ -1030,8 +1030,14 @@ function createGlbWorkerSnapshotMessage(aperture, scene, data) {
   const elapsedSeconds = finiteNumber(data.timestamp, frame * 1000) / 1000;
 
   updateActiveAnimation(aperture, scene.active?.animation ?? null, frame / 60);
+  updateProceduralSkinningAnimation(
+    aperture,
+    scene.active?.skinning ?? null,
+    frame / 60,
+  );
   updateViewerCamera(aperture, scene);
   const step = scene.app.step(0, frame / 60);
+  updateSkinningPalettesFromWorld(aperture, scene.active?.skinning ?? null);
   const snapshot = scene.app.extract(frame);
   const status = createWorkerFrameStatus(
     aperture,
@@ -1141,6 +1147,7 @@ function createWorkerFrameStatus(aperture, scene, step, snapshot, frame) {
     importedLights: createImportedLightsStatus(scene, snapshot),
     lighting: createLightingControlStatus(aperture, scene, snapshot),
     animation: createAnimationStatus(active?.animation ?? null),
+    skinning: createSkinningStatus(active?.skinning ?? null),
     hierarchy: createHierarchyStatus(aperture, active),
     extraction: {
       views: snapshot.views.length,
@@ -1735,9 +1742,19 @@ async function loadAsset(aperture, app, scene, asset, options = {}) {
     replay,
     enabled: importedLightControls.enabled,
   });
+  const skinning = createGltfSkinningState({
+    aperture,
+    root: loaded.root,
+    binary: loaded.binary,
+    keyPrefix,
+    replay,
+    primitiveMaterials,
+  });
 
   updateActiveAnimation(aperture, animation, 0);
+  updateProceduralSkinningAnimation(aperture, skinning, 0);
   aperture.resolveWorldTransforms(app.world);
+  updateSkinningPalettesFromWorld(aperture, skinning);
   const fit = fitOrbitToReplayBounds(aperture, app, replay, scene.orbit);
   const shadowScene =
     asset.id === "brass"
@@ -1759,6 +1776,7 @@ async function loadAsset(aperture, app, scene, asset, options = {}) {
     commandPlan,
     replay,
     animation,
+    skinning,
     importedCamera,
     importedLights,
     fit,
@@ -4456,6 +4474,243 @@ function createGltfAnimationState(options) {
   };
 }
 
+function createGltfSkinningState({
+  aperture,
+  root,
+  binary,
+  keyPrefix,
+  replay,
+  primitiveMaterials,
+}) {
+  if (!isRecord(root)) {
+    return { status: "absent", skinCount: 0, jointCount: 0, entries: [] };
+  }
+
+  const skins = arrayEntries(root.skins);
+  if (skins.length === 0) {
+    return { status: "absent", skinCount: 0, jointCount: 0, entries: [] };
+  }
+
+  const nodes = arrayEntries(root.nodes);
+  const entries = [];
+  let jointCount = 0;
+
+  nodes.forEach((node, nodeIndex) => {
+    if (!isRecord(node)) {
+      return;
+    }
+
+    const skinIndex = integerOrNull(node.skin);
+    const meshIndex = integerOrNull(node.mesh);
+    if (skinIndex === null || meshIndex === null) {
+      return;
+    }
+
+    const skin = skins[skinIndex];
+    if (!isRecord(skin)) {
+      return;
+    }
+
+    const jointNodeIndices = arrayEntries(skin.joints).flatMap((value) => {
+      const index = integerOrNull(value);
+      return index === null ? [] : [index];
+    });
+    const inverseBindMatrices = readSkinInverseBindMatrices({
+      root,
+      binary,
+      skin,
+      jointCount: jointNodeIndices.length,
+    });
+    const meshEntityKey = `${keyPrefix}:node:${nodeIndex}`;
+    const meshEntity = replay.entitiesByKey.get(meshEntityKey) ?? null;
+    const jointEntities = jointNodeIndices.map(
+      (jointNodeIndex) =>
+        replay.entitiesByKey.get(`${keyPrefix}:node:${jointNodeIndex}`) ?? null,
+    );
+    const resolved = arrayEntries(primitiveMaterials.resolved).filter(
+      (entry) => entry.meshIndex === meshIndex,
+    );
+
+    jointCount += jointNodeIndices.length;
+
+    for (const primitive of resolved) {
+      const entityKey = `${meshEntityKey}:mesh:${meshIndex}:primitive:${primitive.primitiveIndex}`;
+      const entity = replay.entitiesByKey.get(entityKey) ?? null;
+
+      if (
+        entity === null ||
+        meshEntity === null ||
+        jointEntities.length === 0
+      ) {
+        continue;
+      }
+
+      const jointMatrices = new Float32Array(jointNodeIndices.length * 16);
+      for (let index = 0; index < jointNodeIndices.length; index += 1) {
+        jointMatrices.set(identityMatrix(), index * 16);
+      }
+
+      if (entity.hasComponent(aperture.Skin)) {
+        entity.setValue(aperture.Skin, "jointCount", jointNodeIndices.length);
+        entity.setValue(
+          aperture.Skin,
+          "jointMatricesJson",
+          JSON.stringify(Array.from(jointMatrices)),
+        );
+      } else {
+        entity.addComponent(
+          aperture.Skin,
+          aperture.createSkin({ jointMatrices }),
+        );
+      }
+
+      entries.push({
+        skinIndex,
+        nodeIndex,
+        meshIndex,
+        primitiveIndex: primitive.primitiveIndex,
+        entityKey,
+        entity,
+        meshEntity,
+        jointNodeIndices,
+        jointEntities,
+        inverseBindMatrices,
+        jointMatrices,
+      });
+    }
+  });
+
+  return {
+    status: entries.length > 0 ? "ready" : "unsupported",
+    skinCount: skins.length,
+    jointCount,
+    entries,
+    time: 0,
+    animatedJointCount: 0,
+  };
+}
+
+function readSkinInverseBindMatrices({ root, binary, skin, jointCount }) {
+  const accessorIndex = integerOrNull(skin.inverseBindMatrices);
+  const matrices =
+    accessorIndex === null
+      ? []
+      : readGltfFloatAccessorTuples(root, binary, accessorIndex, "MAT4");
+
+  return Array.from({ length: jointCount }, (_, index) => {
+    const matrix = matrices[index];
+
+    return Array.isArray(matrix) && matrix.length === 16
+      ? Float32Array.from(matrix)
+      : identityMatrix();
+  });
+}
+
+function updateProceduralSkinningAnimation(aperture, skinning, elapsedSeconds) {
+  if (skinning?.status !== "ready") {
+    return;
+  }
+
+  const angle = Math.sin(elapsedSeconds * 2.25) * 0.82;
+  const rotation = [0, 0, Math.sin(angle / 2), Math.cos(angle / 2)];
+  let animatedJointCount = 0;
+
+  for (const entry of skinning.entries) {
+    const tipJoint = entry.jointEntities[1] ?? null;
+
+    if (tipJoint === null || !tipJoint.hasComponent(aperture.LocalTransform)) {
+      continue;
+    }
+
+    tipJoint.getVectorView(aperture.LocalTransform, "rotation").set(rotation);
+    animatedJointCount += 1;
+  }
+
+  skinning.time = Number(elapsedSeconds.toFixed(3));
+  skinning.animatedJointCount = animatedJointCount;
+}
+
+function updateSkinningPalettesFromWorld(aperture, skinning) {
+  if (skinning?.status !== "ready") {
+    return;
+  }
+
+  for (const entry of skinning.entries) {
+    const meshWorld = readWorldMatrix(aperture, entry.entity);
+    const inverseMeshWorld = aperture.invertMat4(meshWorld, aperture.mat4());
+
+    if (inverseMeshWorld === null) {
+      continue;
+    }
+
+    for (let index = 0; index < entry.jointEntities.length; index += 1) {
+      const jointEntity = entry.jointEntities[index];
+      const inverseBind = entry.inverseBindMatrices[index] ?? identityMatrix();
+
+      if (
+        jointEntity === null ||
+        !jointEntity.hasComponent(aperture.WorldTransform)
+      ) {
+        entry.jointMatrices.set(identityMatrix(), index * 16);
+        continue;
+      }
+
+      const jointWorld = readWorldMatrix(aperture, jointEntity);
+      const jointLocal = aperture.multiplyMat4(
+        inverseMeshWorld,
+        jointWorld,
+        aperture.mat4(),
+      );
+      const palette = aperture.multiplyMat4(
+        jointLocal,
+        inverseBind,
+        aperture.mat4(),
+      );
+
+      entry.jointMatrices.set(palette, index * 16);
+    }
+
+    entry.entity.setValue(
+      aperture.Skin,
+      "jointCount",
+      entry.jointEntities.length,
+    );
+    entry.entity.setValue(
+      aperture.Skin,
+      "jointMatricesJson",
+      JSON.stringify(Array.from(entry.jointMatrices)),
+    );
+  }
+}
+
+function createSkinningStatus(skinning) {
+  if (skinning === null) {
+    return {
+      status: "absent",
+      skinCount: 0,
+      jointCount: 0,
+      skinnedEntities: 0,
+    };
+  }
+
+  return {
+    status: skinning.status,
+    skinCount: skinning.skinCount,
+    jointCount: skinning.jointCount,
+    skinnedEntities: skinning.entries.length,
+    animatedJointCount: skinning.animatedJointCount ?? 0,
+    time: skinning.time ?? 0,
+    entries: skinning.entries.map((entry) => ({
+      skinIndex: entry.skinIndex,
+      nodeIndex: entry.nodeIndex,
+      meshIndex: entry.meshIndex,
+      primitiveIndex: entry.primitiveIndex,
+      entityKey: entry.entityKey,
+      jointNodeIndices: entry.jointNodeIndices,
+    })),
+  };
+}
+
 function createImportedCameraState({ root, keyPrefix, targetCanvas }) {
   if (!isRecord(root)) {
     return {
@@ -5302,6 +5557,8 @@ function componentCountForAccessorType(type) {
       return 3;
     case "VEC4":
       return 4;
+    case "MAT4":
+      return 16;
     default:
       return null;
   }
@@ -5631,21 +5888,7 @@ function rootExtensionDiagnostics(extensionsUsed, extensionsRequired) {
 
 function rootFeatureDiagnostics(root, primitives) {
   const diagnostics = [];
-  const skins = arrayEntries(root.skins);
-  const skinStats = countSkinMetadata(root, skins);
   const morphTargetStats = countMorphTargetPrimitives(primitives);
-
-  if (skinStats.skinCount > 0) {
-    diagnostics.push({
-      code: "gltfMetadata.unsupportedSkins",
-      severity: "warning",
-      count: skinStats.skinCount,
-      skinCount: skinStats.skinCount,
-      jointCount: skinStats.jointCount,
-      inverseBindMatrixCount: skinStats.inverseBindMatrixCount,
-      message: `GLB viewer metadata detected ${skinStats.skinCount} skin(s), ${skinStats.jointCount} joint reference(s), and ${skinStats.inverseBindMatrixCount} inverse bind matrix row(s); skinning is not replayed yet.`,
-    });
-  }
 
   if (morphTargetStats.targetCount > 0) {
     diagnostics.push({
@@ -6566,6 +6809,10 @@ function readWorldMatrix(aperture, entity) {
   matrix.set(entity.getVectorView(aperture.WorldTransform, "col2"), 8);
   matrix.set(entity.getVectorView(aperture.WorldTransform, "col3"), 12);
   return matrix;
+}
+
+function identityMatrix() {
+  return Float32Array.from([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]);
 }
 
 function transformAabb(aabb, matrix) {

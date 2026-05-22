@@ -1,5 +1,22 @@
 # Completed Tasks
 
+## task-3057 — Visible skinned character in glb-viewer
+
+Completed: 2026-05-22
+
+- Replaced the old skinning metadata fixture with a visible StandardMaterial
+  skinned-character GLB sample in `examples/assets/skinning.glb`.
+- Mapped `JOINTS_0` and `WEIGHTS_0` through glTF primitive mapping, accessor
+  validation/decoding, and mixed float/uint16 mesh stream packing.
+- Added GLB viewer skinning state that attaches ECS `Skin` components to
+  replayed primitives, computes joint palettes from world transforms and
+  inverse-bind matrices, and procedurally animates the tip joint each frame.
+- Updated GLB viewer status and e2e expectations so skinning is now a supported
+  rendered path instead of an unsupported metadata warning.
+- Validation run: build, lint, format check, test typecheck, full Vitest, asset
+  importer Vitest, example syntax checks, and a direct headed Chrome smoke with
+  visible pixel and animation-delta assertions passed.
+
 ## task-3056 — Morph target shader variant + interpolation
 
 Completed: 2026-05-22

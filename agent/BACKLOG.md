@@ -59,19 +59,17 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start `task-3057`: Visible skinned character in glb-viewer.
+Start `task-3058`: Visible morph target in glb-viewer.
 
-Why this next: the Tier 10 output-stage/color-management track is now complete:
-tonemap operators route through explicit sRGB output encoding, native RGBE
-`.hdr` loading feeds the HDR IBL examples, and the tonemap showcase compares
-Linear, Reinhard, ACES, and AgX over the same worker-authored HDR scene.
-`task-3054` landed the StandardMaterial skinned WGSL variant and pipeline
-metadata for `JOINTS_0` / `WEIGHTS_0`, and `task-3055` wires ECS-authored skin
-palettes into snapshot `bones` data plus draw-scoped WebGPU storage-buffer
-resources. `task-3056` adds the first StandardMaterial `morphed` shader variant
+Why this next: the Tier 11 skinning path now has a visible GLB viewer proof.
+`task-3057` replaced the old skinning metadata diagnostic sample with a visible
+StandardMaterial skinned-character GLB path: the importer maps
+`JOINTS_0`/`WEIGHTS_0`, packs the mixed vertex stream, attaches ECS `Skin`
+palettes, and proves animated joint matrices with a headed Chrome pixel smoke.
+`task-3056` already added the first StandardMaterial `morphed` shader variant
 with two delta target streams and draw-instance morph weights. The next visible
-gap is proving the skeletal path in `glb-viewer` with an animated rigged
-sample.
+gap is driving a GLB morph-target sample through the viewer with live weights
+instead of reporting unsupported morph metadata.
 
 Progress so far: `spinning-cube`, `multi-light-shadow`, and `glb-viewer` now
 use renderer-only `*.main.js` files plus ECS/extraction-owned `*.worker.js`
@@ -121,15 +119,14 @@ worker-authored HDR scene. StandardMaterial now has a `skinned` shader variant
 with JOINTS_0/WEIGHTS_0 vertex attributes, browser-safe group-1 joint matrix
 metadata, ECS `Skin` palette extraction into snapshot `bones`, draw-scoped
 skinning joint storage buffers, a `morphed` shader variant with two
-position/normal delta target streams, and targeted
-shader/pipeline/resource/interpolation tests.
+position/normal delta target streams, visible GLB viewer skinning import and
+animation, and targeted shader/pipeline/resource/interpolation tests.
 
 Reference anchors (read before writing):
 
-- `references/three.js/examples/webgpu_skinning.html` if present, else
-  `references/three.js/examples/webgl_animation_skinning_blending.html`.
-- Khronos sample rigged character patterns plus the existing Aperture
-  `glb-viewer` sample asset/status wiring.
+- Khronos morph-target sample (`MorphPrimitivesTest` or similar).
+- `references/three.js/examples/webgl_morphtargets.html`.
+- Existing Aperture `glb-viewer` sample asset/status wiring.
 
 ## Strategic Focus — Pipeline Maturity Roadmap
 
@@ -808,6 +805,8 @@ Acceptance criteria:
 - Synthetic test with two morph targets and known weights produces expected interpolated positions.
 
 ### task-3057 — Visible skinned character in glb-viewer (Tier 11 part 4)
+
+Status: completed 2026-05-22. See `agent/COMPLETED.md`.
 
 Category: `runtime-orchestration`
 Package/write-scope: `examples/glb-viewer.{main.js,worker.js}`, commit a rigged GLB sample to `examples/assets/`, `test/e2e/glb-viewer.spec.ts`.

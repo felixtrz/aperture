@@ -7,7 +7,7 @@ describe("glTF mesh primitive mapping report", () => {
     const report = createGltfMeshPrimitiveMappingReport({
       root: {
         asset: { version: "2.0" },
-        accessors: [{}, {}, {}, {}],
+        accessors: [{}, {}, {}, {}, {}, {}],
         meshes: [
           {
             name: "Cube",
@@ -17,8 +17,10 @@ describe("glTF mesh primitive mapping report", () => {
                   POSITION: 0,
                   NORMAL: 1,
                   TEXCOORD_0: 2,
+                  JOINTS_0: 3,
+                  WEIGHTS_0: 4,
                 },
-                indices: 3,
+                indices: 5,
                 material: 4,
               },
             ],
@@ -40,8 +42,10 @@ describe("glTF mesh primitive mapping report", () => {
           position: { semantic: "POSITION", accessorIndex: 0 },
           normal: { semantic: "NORMAL", accessorIndex: 1 },
           texcoord0: { semantic: "TEXCOORD_0", accessorIndex: 2 },
+          joints0: { semantic: "JOINTS_0", accessorIndex: 3 },
+          weights0: { semantic: "WEIGHTS_0", accessorIndex: 4 },
         },
-        indices: { accessorIndex: 3 },
+        indices: { accessorIndex: 5 },
         materialIndex: 4,
         mesh: null,
       },

@@ -6157,21 +6157,7 @@ function rootExtensionDiagnostics(extensionsUsed, extensionsRequired) {
 
 function rootFeatureDiagnostics(root, primitives) {
   const diagnostics = [];
-  const skins = arrayEntries(root.skins);
-  const skinStats = countSkinMetadata(root, skins);
   const morphTargetStats = countMorphTargetPrimitives(primitives);
-
-  if (skinStats.skinCount > 0) {
-    diagnostics.push({
-      code: "gltfMetadata.unsupportedSkins",
-      severity: "warning",
-      count: skinStats.skinCount,
-      skinCount: skinStats.skinCount,
-      jointCount: skinStats.jointCount,
-      inverseBindMatrixCount: skinStats.inverseBindMatrixCount,
-      message: `GLB viewer metadata detected ${skinStats.skinCount} skin(s), ${skinStats.jointCount} joint reference(s), and ${skinStats.inverseBindMatrixCount} inverse bind matrix row(s); skinning is not replayed yet.`,
-    });
-  }
 
   if (morphTargetStats.targetCount > 0) {
     diagnostics.push({

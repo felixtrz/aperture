@@ -90,6 +90,75 @@ describe("glTF accessor typed-array decoding", () => {
     });
   });
 
+  it("decodes skin joint and weight attributes as VEC4 streams", () => {
+    const root = {
+      asset: { version: "2.0" },
+      buffers: [{ byteLength: 64 }],
+      bufferViews: [
+        { buffer: 0, byteOffset: 0, byteLength: 24 },
+        { buffer: 0, byteOffset: 24, byteLength: 8 },
+        { buffer: 0, byteOffset: 32, byteLength: 32 },
+      ],
+      accessors: [
+        { bufferView: 0, componentType: 5126, type: "VEC3", count: 2 },
+        { bufferView: 1, componentType: 5121, type: "VEC4", count: 2 },
+        { bufferView: 2, componentType: 5126, type: "VEC4", count: 2 },
+      ],
+      meshes: [
+        {
+          primitives: [
+            {
+              attributes: {
+                POSITION: 0,
+                JOINTS_0: 1,
+                WEIGHTS_0: 2,
+              },
+            },
+          ],
+        },
+      ],
+    };
+    const bytes = new Uint8Array(64);
+    const view = new DataView(bytes.buffer);
+    [0, 0, 0, 0, 1, 0].forEach((value, index) =>
+      view.setFloat32(index * 4, value, true),
+    );
+    bytes.set([0, 0, 0, 0, 1, 0, 0, 0], 24);
+    [1, 0, 0, 0, 0.75, 0.25, 0, 0].forEach((value, index) =>
+      view.setFloat32(32 + index * 4, value, true),
+    );
+
+    const report = decodeGltfPrimitiveAccessors({
+      validationReport: validateGltfPrimitiveAccessorReferences({
+        root,
+        primitiveReport: createGltfMeshPrimitiveMappingReport({ root }),
+      }),
+      resolveBufferBytes: () => bytes,
+    });
+
+    expect(report.valid).toBe(true);
+    expect(report.diagnostics).toEqual([]);
+    expect(report.primitives[0]?.attributes[1]).toMatchObject({
+      semantic: "JOINTS_0",
+      expectedFormat: "uint8-to-uint16",
+      itemSize: 4,
+    });
+    expect(report.primitives[0]?.attributes[1]?.array).toBeInstanceOf(
+      Uint16Array,
+    );
+    expect(
+      Array.from(report.primitives[0]?.attributes[1]?.array ?? []),
+    ).toEqual([0, 0, 0, 0, 1, 0, 0, 0]);
+    expect(report.primitives[0]?.attributes[2]).toMatchObject({
+      semantic: "WEIGHTS_0",
+      expectedFormat: "float32x4",
+      itemSize: 4,
+    });
+    expect(
+      Array.from(report.primitives[0]?.attributes[2]?.array ?? []),
+    ).toEqual([1, 0, 0, 0, 0.75, 0.25, 0, 0]);
+  });
+
   it("reports missing source buffers", () => {
     const root = {
       asset: { version: "2.0" },

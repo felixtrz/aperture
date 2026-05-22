@@ -1,6 +1,108 @@
 # Agent Handoff
 
-Updated: 2026-05-22T01:50:02Z
+Updated: 2026-05-22T02:47:02Z
+
+## Current Run Update — 2026-05-22T02:36:58Z — Visible GLB skinning shipped
+
+Completed `task-3057`.
+
+### What changed
+
+- Replaced `examples/assets/skinning.glb` with a committed visible
+  StandardMaterial skinned-character quad fixture that includes
+  POSITION/NORMAL/TEXCOORD_0/JOINTS_0/WEIGHTS_0, indices, one skin, two joints,
+  and inverse-bind matrices.
+- Extended glTF mesh primitive mapping, accessor validation/decoding, and mesh
+  asset construction so `JOINTS_0`/`WEIGHTS_0` flow into a mixed packed stream
+  with `JOINTS_0` at `uint16x4` offset 32, `WEIGHTS_0` at `float32x4` offset
+  40, stride 56, and a mesh skinning schema.
+- Added GLB viewer skinning state that attaches ECS `Skin` components after
+  replay, computes `inverse(meshWorld) * jointWorld * inverseBind` palettes,
+  procedurally animates the tip joint, and updates palettes before extraction
+  each frame.
+- Changed the GLB viewer sample/status/e2e path so skinning is now supported
+  (`standard|skinned|opaque|none|less|none`) instead of reported as
+  `gltfMetadata.unsupportedSkins`.
+- Updated public tracker pages, backlog, and completed-task log. Recommended
+  next task is now `task-3058`.
+
+### References inspected
+
+- `references/three.js/examples/webgpu_skinning.html`
+- `references/three.js/src/objects/SkinnedMesh.js`
+- `references/three.js/src/objects/Skeleton.js`
+- `references/engine/src/scene/skin-instance.js`
+- `references/engine/src/scene/skin.js`
+
+Common pattern adapted: skinned renderables consume joint/weight vertex
+attributes while a per-draw joint palette is generated from current joint world
+matrices plus inverse binds, then renderer-owned buffers feed the shader.
+
+### Validation
+
+- `node --check examples/glb-viewer.worker.js && node --check examples/glb-viewer.main.js && node --check examples/glb-viewer-assets.js`
+  passed.
+- `pnpm exec tsc --noEmit -p packages/render/tsconfig.json` passed.
+- `pnpm exec tsc --noEmit -p tsconfig.test.json` passed.
+- `pnpm exec vitest run test/assets/gltf-mesh-primitive.test.ts test/assets/gltf-accessor-validation.test.ts test/assets/gltf-accessor-decoding.test.ts test/assets/gltf-mesh-asset-construction.test.ts`
+  passed.
+- `pnpm run build` passed.
+- `pnpm run lint` passed.
+- `pnpm run format:check` passed after formatting touched files.
+- `pnpm run check` passed in the final review pass, including boundaries,
+  progress tracker freshness, build, test typecheck, example syntax, lint,
+  format, and all 334 Vitest files / 1,650 tests.
+- `pnpm test -- --runInBand` completed successfully despite the extra Vitest
+  argument, with all 334 files / 1,650 tests passing.
+- Direct headed Chrome WebGPU smoke against
+  `examples/glb-viewer.html?asset=skinning` passed: status reported the skinned
+  Standard pipeline, visible distance was ~385.7, and animation delta was
+  ~382.8 across frames.
+
+### Known issues
+
+- The standard headed Playwright runner command for the new e2e assertion
+  reached the local Chrome teardown hang path and was killed; the direct
+  watchdog Chrome smoke above verified the same skinning status and pixel
+  contract without leaving processes behind.
+- The direct smoke reported one existing local GPU timestamp-query warning
+  about query-set allocation on this Chrome/Metal setup. The rendered frame
+  still reported `ok: true` with one draw and zero extraction diagnostics.
+- Visible morph-target import and UI weight control are still open.
+
+### Recommended next task
+
+Start `task-3058`: add a visible morph-target GLB viewer path with live weights
+and pixel proof.
+
+### task-3058 context gathered
+
+- Reference pattern: three.js `webgpu_morphtargets.html` and
+  `webgl_morphtargets.html` create two morph target position buffers and expose
+  GUI sliders that update per-mesh morph target influences.
+- Existing Aperture sample `examples/assets/morph-target.glb` has one node, one
+  unlit mesh primitive, POSITION/NORMAL/index accessors, two POSITION-only
+  primitive targets, and default mesh weights `[0.65, 0.2]`. It has no
+  TEXCOORD_0 and no morph normal targets.
+- Current unsupported diagnostic path lives in both
+  `examples/glb-viewer.worker.js` and `examples/glb-viewer.main.js` via
+  `rootFeatureDiagnostics()` / `countMorphTargetPrimitives()`, and the e2e test
+  to replace is "Playwright reports unsupported morph targets while rendering
+  the base GLB mesh".
+- Import gaps for `task-3058`: `packages/render/src/assets/*` do not yet map
+  `primitive.targets[]` accessors into `MORPH_POSITION_0`,
+  `MORPH_NORMAL_0`, `MORPH_POSITION_1`, or `MORPH_NORMAL_1` vertex streams or
+  set `mesh.morphTargets`; extraction never adds the `morphed` feature based on
+  mesh morph metadata; there is no ECS/runtime component for per-entity morph
+  weights; and WebGPU currently has shader/layout metadata for
+  `standardMorphTargetWeights` but no frame-resource buffer/bind-group upload
+  for live morph weights.
+- The existing Standard morphed pipeline expects a single interleaved stream
+  layout of POSITION/NORMAL/TEXCOORD_0/MORPH_POSITION_0/MORPH_NORMAL_0/
+  MORPH_POSITION_1/MORPH_NORMAL_1 with stride 80. A practical visible slice
+  should regenerate or adapt the GLB fixture so it includes TEXCOORD_0 and two
+  normal delta streams, or explicitly add zero-normal-target filling in mesh
+  construction.
 
 ## Current Run Update — 2026-05-22T01:35:26Z — Morph shader variant added
 

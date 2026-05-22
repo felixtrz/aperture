@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-22 01:34 UTC</dd>
+            <dd>2026-05-22 02:32 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -1239,7 +1239,7 @@
               key so live route changes do not reuse incompatible layouts.
             </dd>
             <dt>Next focus</dt>
-            <dd>task-3057 visible skinned character in glb-viewer</dd>
+            <dd>task-3058 visible morph target in glb-viewer</dd>
           </dl>
         </aside>
       </header>
@@ -1486,31 +1486,34 @@
                 <div class="label">asset import</div>
                 <h3>GLB/glTF path</h3>
               </div>
-              <span class="percent">65%</span>
+              <span class="percent">66%</span>
             </div>
-            <div class="bar"><span style="width: 65%"></span></div>
+            <div class="bar"><span style="width: 66%"></span></div>
             <p>
               Container parsing, diagnostics, source registration, material
-              mapping, URI loading, and a thirty-three-asset local GLB viewer
-              path with lit StandardMaterial, animated, multi-clip,
-              rotation/scale, STEP interpolation, imported-camera,
-              embedded-image texture, imported-light, unsupported
-              morph-target/skinning/orthographic
-              camera/primitive-mode/CUBICSPLINE diagnostics, multi-scene
-              metadata/default-scene rendering, emissive StandardMaterial,
-              occlusion/emissive texture status, occlusion texture transforms,
-              alpha-mask status, sampler-state texture status, texture-transform
-              metadata, missing-UV1 extraction diagnostics, supported base-color
-              UV1, metallic-roughness UV1, normal-scale, dual-primitive,
-              hierarchy, and mixed alpha-state samples, custom URL plus
-              query-URL loading, and bounds-driven camera fitting have landed.
-              The viewer now includes camera reset, ECS light controls, live
-              shadow/IBL controls, animation pause/scrub/speed/loop/direction
-              controls, imported camera transform/projection replay, imported
-              punctual light replay, parsed metadata status, and
+              mapping, URI loading, and a broad local GLB viewer path with lit
+              StandardMaterial, animated, multi-clip, rotation/scale, STEP
+              interpolation, imported-camera, embedded-image texture,
+              imported-light, visible skinned-character, unsupported
+              morph-target/orthographic camera/primitive-mode/CUBICSPLINE
+              diagnostics, multi-scene metadata/default-scene rendering,
+              emissive StandardMaterial, occlusion/emissive texture status,
+              occlusion texture transforms, alpha-mask status, sampler-state
+              texture status, texture-transform metadata, missing-UV1 extraction
+              diagnostics, supported base-color UV1, metallic-roughness UV1,
+              normal-scale, dual-primitive, hierarchy, and mixed alpha-state
+              samples, custom URL plus query-URL loading, and bounds-driven
+              camera fitting have landed. The viewer now includes camera reset,
+              ECS light controls, live shadow/IBL controls, animation
+              pause/scrub/speed/loop/direction controls, imported camera
+              transform/projection replay, imported punctual light replay,
+              parsed metadata status, and
               <code>?asset=</code> sample bootstrapping, while the lit brass
               sample adds a shadow-receiver floor and environment-map IBL
-              through ECS-authored scene state.
+              through ECS-authored scene state. The skinned-character sample now
+              decodes <code>JOINTS_0</code>/<code>WEIGHTS_0</code>, attaches ECS
+              <code>Skin</code> palettes to the replayed primitive, and animates
+              visible pixels through the StandardMaterial skinned route.
             </p>
           </article>
           <article class="card track">
@@ -1519,9 +1522,9 @@
                 <div class="label">examples/e2e</div>
                 <h3>browser proof points</h3>
               </div>
-              <span class="percent">74%</span>
+              <span class="percent">75%</span>
             </div>
-            <div class="bar"><span style="width: 74%"></span></div>
+            <div class="bar"><span style="width: 75%"></span></div>
             <p>
               Spinning cube, material showcase, GLTF scene, GLB viewer, worker
               cube, diagnostics, queue phases, and WebGPU readback examples have
@@ -1532,15 +1535,15 @@
               IBL/shadow sampling, and a shadow-darkened GLB viewer receiver
               floor with IBL-enabled pixel comparison. GLB viewer coverage now
               also verifies mixed opaque/transparent StandardMaterial routing,
-              unsupported morph/skinning/camera/mode diagnostics, CUBICSPLINE
-              interpolation status, multi-scene default-scene metadata,
-              texture-transform metadata, emissive factors, and non-default
-              sampler metadata. StandardMaterial render-state routing,
-              fitted-camera reset, and ECS light, shadow, IBL, animation
-              scrub/speed/loop/direction, rotation/scale and STEP channel
-              playback, imported glTF camera switching, embedded-image texture
-              routing, imported punctual light extraction, metadata, and
-              sample-query bootstrap responses.
+              visible skinned-character rendering and animation, unsupported
+              morph/camera/mode diagnostics, CUBICSPLINE interpolation status,
+              multi-scene default-scene metadata, texture-transform metadata,
+              emissive factors, and non-default sampler metadata.
+              StandardMaterial render-state routing, fitted-camera reset, and
+              ECS light, shadow, IBL, animation scrub/speed/loop/direction,
+              rotation/scale and STEP channel playback, imported glTF camera
+              switching, embedded-image texture routing, imported punctual light
+              extraction, metadata, and sample-query bootstrap responses.
             </p>
           </article>
           <article class="card track">
@@ -1923,6 +1926,14 @@
           <article class="card task-list">
             <h3>Latest work in this update</h3>
             <ul>
+              <li>
+                <span class="badge green">task-3057</span> Replaced the GLB
+                viewer skinning metadata fixture with a visible StandardMaterial
+                skinned-character sample. The loader now maps
+                <code>JOINTS_0</code>/<code>WEIGHTS_0</code>, packs the mixed
+                vertex stream, creates ECS <code>Skin</code> palettes, and
+                animates joint matrices with a browser pixel proof.
+              </li>
               <li>
                 <span class="badge green">task-3045</span> Added
                 <code>instance-attributes</code>, a worker-split custom WGSL

@@ -326,7 +326,7 @@ export const sampleAssets = [
   },
   {
     id: "skinning",
-    label: "Skin metadata",
+    label: "Skinned character",
     url: new URL("./assets/skinning.glb", import.meta.url),
     source: "sample",
   },

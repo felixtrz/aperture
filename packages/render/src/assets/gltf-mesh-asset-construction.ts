@@ -191,6 +191,7 @@ function createMeshAssetFromPrimitive(
   if (bounds === null) {
     return null;
   }
+  const skinning = createMeshSkinningSchema(packed.descriptors);
 
   return {
     kind: "mesh",
@@ -198,7 +199,7 @@ function createMeshAssetFromPrimitive(
     vertexStreams: [
       {
         id: "gltf-primitive-interleaved",
-        arrayStride: packed.strideFloats * 4,
+        arrayStride: packed.strideBytes,
         vertexCount: primitive.vertexCount,
         attributes: packed.descriptors,
         data: packed.data,
@@ -219,7 +220,23 @@ function createMeshAssetFromPrimitive(
     materialSlots: [{ index: 0, label: "default" }],
     localAabb: bounds.aabb,
     localSphere: bounds.sphere,
+    ...(skinning === null ? {} : { skinning }),
   };
+}
+
+function createMeshSkinningSchema(
+  descriptors: readonly MeshVertexAttributeDescriptor[],
+): NonNullable<MeshAsset["skinning"]> | null {
+  const hasJoints0 = descriptors.some(
+    (descriptor) => descriptor.semantic === "JOINTS_0",
+  );
+  const hasWeights0 = descriptors.some(
+    (descriptor) => descriptor.semantic === "WEIGHTS_0",
+  );
+
+  return hasJoints0 && hasWeights0
+    ? { joints0: "JOINTS_0", weights0: "WEIGHTS_0" }
+    : null;
 }
 
 function collectAttributes(
@@ -229,7 +246,7 @@ function collectAttributes(
   tangentRequest: GltfMeshAssetTangentGenerationRequest | undefined,
 ): readonly AttributeSource[] | null {
   const sources: AttributeSource[] = [{ decoded: position, offset: 0 }];
-  let offset = position.itemSize * 4;
+  let offset = decodedAttributeByteSize(position);
   const decodedBySemantic = new Map(
     primitive.attributes.map((attribute) => [attribute.semantic, attribute]),
   );
@@ -252,6 +269,8 @@ function collectAttributes(
   for (const semantic of [
     "NORMAL",
     "TEXCOORD_0",
+    "JOINTS_0",
+    "WEIGHTS_0",
     "TANGENT",
     "TEXCOORD_1",
     "COLOR_0",
@@ -264,7 +283,7 @@ function collectAttributes(
     const count = decoded.array.length / decoded.itemSize;
     if (
       count !== primitive.vertexCount ||
-      !(decoded.array instanceof Float32Array)
+      !isSupportedMeshAttributeArray(decoded)
     ) {
       diagnostics.push(
         diagnostic(primitive, "gltfMeshAsset.mismatchedAttributeCount", {
@@ -277,7 +296,7 @@ function collectAttributes(
     }
 
     sources.push({ decoded, offset });
-    offset += decoded.itemSize * 4;
+    offset += decodedAttributeByteSize(decoded);
   }
 
   return sources;
@@ -547,50 +566,130 @@ function packAttributes(
   vertexCount: number,
   sources: readonly AttributeSource[],
 ): {
-  readonly data: Float32Array;
+  readonly data: Float32Array | Uint8Array;
   readonly descriptors: readonly MeshVertexAttributeDescriptor[];
-  readonly strideFloats: number;
+  readonly strideBytes: number;
 } {
-  const strideFloats = sources.reduce(
-    (sum, source) => sum + source.decoded.itemSize,
+  const strideBytes = sources.reduce(
+    (sum, source) => sum + decodedAttributeByteSize(source.decoded),
     0,
   );
-  const data = new Float32Array(vertexCount * strideFloats);
   const descriptors: MeshVertexAttributeDescriptor[] = [];
-  let floatOffset = 0;
+  const floatOnly = sources.every(
+    (source) => source.decoded.array instanceof Float32Array,
+  );
 
   for (const source of sources) {
     descriptors.push({
-      semantic: source.decoded.semantic as
-        | "POSITION"
-        | "NORMAL"
-        | "TEXCOORD_0"
-        | "TEXCOORD_1"
-        | "TANGENT"
-        | "COLOR_0",
-      format:
-        source.decoded.itemSize === 2
-          ? "float32x2"
-          : source.decoded.itemSize === 4
-            ? "float32x4"
-            : "float32x3",
+      semantic: source.decoded
+        .semantic as MeshVertexAttributeDescriptor["semantic"],
+      format: meshVertexFormatForDecodedAccessor(source.decoded),
       offset: source.offset,
     });
+  }
+
+  if (floatOnly) {
+    const strideFloats = strideBytes / 4;
+    const data = new Float32Array(vertexCount * strideFloats);
+
+    for (const source of sources) {
+      for (let vertex = 0; vertex < vertexCount; vertex += 1) {
+        const targetFloatOffset = vertex * strideFloats + source.offset / 4;
+
+        for (
+          let component = 0;
+          component < source.decoded.itemSize;
+          component += 1
+        ) {
+          data[targetFloatOffset + component] =
+            source.decoded.array[
+              vertex * source.decoded.itemSize + component
+            ] ?? 0;
+        }
+      }
+    }
+
+    return { data, descriptors, strideBytes };
+  }
+
+  const data = new Uint8Array(vertexCount * strideBytes);
+  const view = new DataView(data.buffer, data.byteOffset, data.byteLength);
+
+  for (const source of sources) {
     for (let vertex = 0; vertex < vertexCount; vertex += 1) {
+      const targetByteOffset = vertex * strideBytes + source.offset;
+
       for (
         let component = 0;
         component < source.decoded.itemSize;
         component += 1
       ) {
-        data[vertex * strideFloats + floatOffset + component] =
-          source.decoded.array[vertex * source.decoded.itemSize + component] ??
-          0;
+        writeDecodedComponent(
+          view,
+          targetByteOffset,
+          source,
+          vertex,
+          component,
+        );
       }
     }
-    floatOffset += source.decoded.itemSize;
   }
 
-  return { data, descriptors, strideFloats };
+  return { data, descriptors, strideBytes };
+}
+
+function isSupportedMeshAttributeArray(decoded: GltfDecodedAccessor): boolean {
+  if (decoded.semantic === "JOINTS_0") {
+    return decoded.array instanceof Uint16Array && decoded.itemSize === 4;
+  }
+
+  return decoded.array instanceof Float32Array;
+}
+
+function decodedAttributeByteSize(decoded: GltfDecodedAccessor): number {
+  return decoded.itemSize * decodedComponentByteSize(decoded);
+}
+
+function decodedComponentByteSize(decoded: GltfDecodedAccessor): 1 | 2 | 4 {
+  if (decoded.array instanceof Uint16Array) {
+    return 2;
+  }
+
+  return 4;
+}
+
+function meshVertexFormatForDecodedAccessor(
+  decoded: GltfDecodedAccessor,
+): MeshVertexAttributeDescriptor["format"] {
+  if (decoded.semantic === "JOINTS_0") {
+    return "uint16x4";
+  }
+
+  return decoded.itemSize === 2
+    ? "float32x2"
+    : decoded.itemSize === 4
+      ? "float32x4"
+      : "float32x3";
+}
+
+function writeDecodedComponent(
+  view: DataView,
+  targetByteOffset: number,
+  source: AttributeSource,
+  vertex: number,
+  component: number,
+): void {
+  const sourceIndex = vertex * source.decoded.itemSize + component;
+  const byteOffset =
+    targetByteOffset + component * decodedComponentByteSize(source.decoded);
+  const value = source.decoded.array[sourceIndex] ?? 0;
+
+  if (source.decoded.array instanceof Uint16Array) {
+    view.setUint16(byteOffset, value, true);
+    return;
+  }
+
+  view.setFloat32(byteOffset, value, true);
 }
 
 function createIndexBuffer(

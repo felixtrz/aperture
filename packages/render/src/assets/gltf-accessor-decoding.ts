@@ -87,6 +87,13 @@ interface DecodeShape {
   readonly output: "float32" | "uint16" | "uint32";
 }
 
+const ACCESSOR_COMPONENTS = new Map<string, number>([
+  ["SCALAR", 1],
+  ["VEC2", 2],
+  ["VEC3", 3],
+  ["VEC4", 4],
+]);
+
 export function decodeGltfPrimitiveAccessors(
   options: GltfAccessorDecodingOptions,
 ): GltfAccessorDecodingReport {
@@ -270,19 +277,23 @@ function sourceBytesView(
 function decodeShape(
   accessor: GltfValidatedAccessorReference,
 ): DecodeShape | null {
+  const itemSize = ACCESSOR_COMPONENTS.get(accessor.accessorType);
+
+  if (itemSize === undefined) {
+    return null;
+  }
+
   switch (accessor.expectedFormat) {
     case "float32x2":
-      return { itemSize: 2, sourceComponentBytes: 4, output: "float32" };
     case "float32x3":
-      return { itemSize: 3, sourceComponentBytes: 4, output: "float32" };
     case "float32x4":
-      return { itemSize: 4, sourceComponentBytes: 4, output: "float32" };
+      return { itemSize, sourceComponentBytes: 4, output: "float32" };
     case "uint8-to-uint16":
-      return { itemSize: 1, sourceComponentBytes: 1, output: "uint16" };
+      return { itemSize, sourceComponentBytes: 1, output: "uint16" };
     case "uint16":
-      return { itemSize: 1, sourceComponentBytes: 2, output: "uint16" };
+      return { itemSize, sourceComponentBytes: 2, output: "uint16" };
     case "uint32":
-      return { itemSize: 1, sourceComponentBytes: 4, output: "uint32" };
+      return { itemSize, sourceComponentBytes: 4, output: "uint32" };
   }
 }
 
