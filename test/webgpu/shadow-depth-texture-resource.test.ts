@@ -40,6 +40,7 @@ describe("shadow depth texture resource", () => {
           resourceKey: "shadow-map:7:light:11",
           textureKey: "shadow-map:7:light:11:texture",
           viewKey: "shadow-map:7:light:11:view",
+          layerCount: 1,
           faceCount: 1,
           viewDimension: "2d",
           attachmentViewKeys: ["shadow-map:7:light:11:view"],

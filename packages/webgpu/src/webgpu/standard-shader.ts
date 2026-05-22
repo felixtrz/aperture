@@ -1,6 +1,7 @@
 import {
   PACKED_LIGHT_FLOAT_STRIDE,
   PACKED_LIGHT_METADATA_STRIDE,
+  PackedAreaLightShapeId,
   PackedLightKindId,
 } from "./light-packing.js";
 import {
@@ -72,6 +73,8 @@ export const STANDARD_MATERIAL_MVP_LIGHTING_MODEL = {
     "ambientLight",
     "directionalLight",
     "rectAreaLight",
+    "diskAreaLight",
+    "sphereAreaLight",
   ],
   deferred: ["imageBasedLighting", "shadows"],
 } as const;
@@ -147,6 +150,9 @@ const LIGHT_KIND_DIRECTIONAL: i32 = ${PackedLightKindId.Directional};
 const LIGHT_KIND_POINT: i32 = ${PackedLightKindId.Point};
 const LIGHT_KIND_SPOT: i32 = ${PackedLightKindId.Spot};
 const LIGHT_KIND_RECT_AREA: i32 = ${PackedLightKindId.RectArea};
+const AREA_LIGHT_SHAPE_RECT: i32 = ${PackedAreaLightShapeId.Rect};
+const AREA_LIGHT_SHAPE_DISK: i32 = ${PackedAreaLightShapeId.Disk};
+const AREA_LIGHT_SHAPE_SPHERE: i32 = ${PackedAreaLightShapeId.Sphere};
 const STANDARD_FEATURE_ALPHA_MASK: u32 = 32u;
 
 @group(0) @binding(0) var<uniform> view: ViewProjectionUniform;
@@ -306,6 +312,11 @@ fn rectAreaLightSize(lightIndex: u32) -> vec2f {
   return max(vec2f(lightFloats[offset + 8u], lightFloats[offset + 9u]), vec2f(0.0001));
 }
 
+fn areaLightShape(lightIndex: u32) -> i32 {
+  let offset = lightFloatOffset(lightIndex);
+  return i32(lightFloats[offset + 10u]);
+}
+
 fn rectAreaLightCenter(lightIndex: u32) -> vec3f {
   let world = worldTransforms[lightTransformIndex(lightIndex)];
   return world[3].xyz;
@@ -380,7 +391,63 @@ fn rectAreaLightFormFactor(
   return saturate(abs(dot(normal, vectorFormFactor)) / (2.0 * PI));
 }
 
-fn evaluateRectAreaLight(
+fn diskAreaLightFormFactor(
+  lightIndex: u32,
+  normal: vec3f,
+  position: vec3f,
+  center: vec3f,
+  halfWidth: vec3f,
+  halfHeight: vec3f,
+) -> f32 {
+  let toCenter = center - position;
+  let distance2 = max(dot(toCenter, toCenter), 0.0001);
+  let lightDir = safeNormalize(toCenter, normal);
+  let receiverFacing = saturate(dot(normal, lightDir));
+  let lightFacing = saturate(dot(rectAreaLightNormal(lightIndex), -lightDir));
+  let diskArea = PI * max(length(halfWidth), 0.0001) * max(length(halfHeight), 0.0001);
+  return saturate((diskArea * receiverFacing * lightFacing) / max(distance2 + diskArea, 0.0001));
+}
+
+fn sphereAreaLightFormFactor(
+  normal: vec3f,
+  position: vec3f,
+  center: vec3f,
+  radius: f32,
+) -> f32 {
+  let toCenter = center - position;
+  let distance = max(length(toCenter), 0.0001);
+  let lightDir = safeNormalize(toCenter, normal);
+  let angularRadius = radius / distance;
+  let receiverFacing = saturate((dot(normal, lightDir) + angularRadius) / (1.0 + angularRadius));
+  let solidAngleApprox = (radius * radius) / max(distance * distance + radius * radius, 0.0001);
+  return saturate(receiverFacing * solidAngleApprox);
+}
+
+fn areaLightFormFactor(
+  lightIndex: u32,
+  shape: i32,
+  normal: vec3f,
+  position: vec3f,
+  center: vec3f,
+  halfWidth: vec3f,
+  halfHeight: vec3f,
+) -> f32 {
+  if (shape == AREA_LIGHT_SHAPE_DISK) {
+    return diskAreaLightFormFactor(lightIndex, normal, position, center, halfWidth, halfHeight);
+  }
+
+  if (shape == AREA_LIGHT_SHAPE_SPHERE) {
+    return sphereAreaLightFormFactor(normal, position, center, max(length(halfWidth), length(halfHeight)));
+  }
+
+  let p0 = center - halfWidth - halfHeight;
+  let p1 = center + halfWidth - halfHeight;
+  let p2 = center + halfWidth + halfHeight;
+  let p3 = center - halfWidth + halfHeight;
+  return rectAreaLightFormFactor(normal, position, p0, p1, p2, p3);
+}
+
+fn evaluateAreaLight(
   lightIndex: u32,
   position: vec3f,
   normal: vec3f,
@@ -399,11 +466,15 @@ fn evaluateRectAreaLight(
 
   let halfWidth = rectAreaLightHalfWidth(lightIndex);
   let halfHeight = rectAreaLightHalfHeight(lightIndex);
-  let p0 = center - halfWidth - halfHeight;
-  let p1 = center + halfWidth - halfHeight;
-  let p2 = center + halfWidth + halfHeight;
-  let p3 = center - halfWidth + halfHeight;
-  let formFactor = rectAreaLightFormFactor(normal, position, p0, p1, p2, p3);
+  let formFactor = areaLightFormFactor(
+    lightIndex,
+    areaLightShape(lightIndex),
+    normal,
+    position,
+    center,
+    halfWidth,
+    halfHeight,
+  );
 
   if (formFactor <= 0.0) {
     return vec3f(0.0);
@@ -498,7 +569,7 @@ fn fs_main(input: VertexOutput) -> @location(0) vec4f {
     }
 
     if (kind == LIGHT_KIND_RECT_AREA) {
-      direct = direct + evaluateRectAreaLight(
+      direct = direct + evaluateAreaLight(
         lightIndex,
         input.worldPosition,
         normal,

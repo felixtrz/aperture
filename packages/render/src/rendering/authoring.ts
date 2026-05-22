@@ -30,6 +30,15 @@ export const LightKind = {
 
 export type LightKind = (typeof LightKind)[keyof typeof LightKind];
 
+export const AreaLightShape = {
+  Rect: "rect",
+  Disk: "disk",
+  Sphere: "sphere",
+} as const;
+
+export type AreaLightShape =
+  (typeof AreaLightShape)[keyof typeof AreaLightShape];
+
 export interface CameraInput {
   readonly projection?: CameraProjection;
   readonly fovYRadians?: number;
@@ -51,6 +60,7 @@ export interface CameraInput {
 
 export interface LightInput {
   readonly kind?: LightKind;
+  readonly shape?: AreaLightShape;
   readonly color?: Vec4Like;
   readonly intensity?: number;
   readonly range?: number;
@@ -67,6 +77,7 @@ export interface LightShadowSettingsInput {
   readonly mapSize?: number;
   readonly bias?: number;
   readonly normalBias?: number;
+  readonly cascadeCount?: number;
   readonly casterLayerMask?: number;
   readonly receiverLayerMask?: number;
 }
@@ -100,6 +111,7 @@ export type RenderAuthoringDiagnosticCode =
   | "light.zeroLayerMask"
   | "shadow.invalidMapSize"
   | "shadow.invalidBias"
+  | "shadow.invalidCascadeCount"
   | "shadow.zeroLayerMask";
 
 export interface RenderAuthoringDiagnostic {
@@ -223,6 +235,11 @@ export const Light = defineComponent(
       enum: LightKind,
       default: LightKind.Directional,
     },
+    shape: {
+      type: EcsType.Enum,
+      enum: AreaLightShape,
+      default: AreaLightShape.Rect,
+    },
     color: { type: EcsType.Color, default: tuple4(1, 1, 1, 1) },
     intensity: { type: EcsType.Float32, default: 1 },
     range: { type: EcsType.Float32, default: 10 },
@@ -259,6 +276,7 @@ export const LightShadowSettings = defineComponent(
     mapSize: { type: EcsType.Int32, default: 1024 },
     bias: { type: EcsType.Float32, default: 0 },
     normalBias: { type: EcsType.Float32, default: 0 },
+    cascadeCount: { type: EcsType.Int32, default: 1 },
     casterLayerMask: { type: EcsType.Int32, default: -1 },
     receiverLayerMask: { type: EcsType.Int32, default: -1 },
   },
@@ -311,6 +329,7 @@ export function createLight(
 ): ComponentInitialData<typeof Light> {
   return {
     kind: input.kind ?? LightKind.Directional,
+    shape: input.shape ?? AreaLightShape.Rect,
     color: toTuple4(input.color ?? [1, 1, 1, 1]),
     intensity: input.intensity ?? 1,
     range: input.range ?? 10,
@@ -334,6 +353,7 @@ export function createLightShadowSettings(
     mapSize: input.mapSize ?? 1024,
     bias: input.bias ?? 0,
     normalBias: input.normalBias ?? 0,
+    cascadeCount: input.cascadeCount ?? 1,
     casterLayerMask: input.casterLayerMask ?? -1,
     receiverLayerMask: input.receiverLayerMask ?? -1,
   };
@@ -488,7 +508,7 @@ export function validateLightInput(
     diagnostics.push({
       code: "light.invalidAreaSize",
       field: "width/height",
-      message: "Rect area lights require finite width > 0 and height > 0.",
+      message: "Area lights require finite width > 0 and height > 0.",
     });
   }
 
@@ -510,6 +530,7 @@ export function validateLightShadowSettingsInput(
   const mapSize = settings.mapSize ?? 1024;
   const bias = settings.bias ?? 0;
   const normalBias = settings.normalBias ?? 0;
+  const cascadeCount = settings.cascadeCount ?? 1;
   const casterLayerMask = settings.casterLayerMask ?? -1;
   const receiverLayerMask = settings.receiverLayerMask ?? -1;
   const diagnostics: RenderAuthoringDiagnostic[] = [];
@@ -527,6 +548,15 @@ export function validateLightShadowSettingsInput(
       code: "shadow.invalidBias",
       field: "bias/normalBias",
       message: "Light shadow bias and normalBias must be non-negative.",
+    });
+  }
+
+  if (!Number.isInteger(cascadeCount) || cascadeCount < 1 || cascadeCount > 4) {
+    diagnostics.push({
+      code: "shadow.invalidCascadeCount",
+      field: "cascadeCount",
+      message:
+        "Directional shadow cascadeCount must be an integer from 1 to 4.",
     });
   }
 

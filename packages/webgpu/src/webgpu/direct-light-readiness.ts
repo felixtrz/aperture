@@ -1,4 +1,8 @@
-import type { LightKind, RenderSnapshot } from "@aperture-engine/render";
+import type {
+  AreaLightShape,
+  LightKind,
+  RenderSnapshot,
+} from "@aperture-engine/render";
 import {
   createLightShaderResourceReadinessReport,
   lightShaderResourceReadinessReportToJsonValue,
@@ -17,6 +21,13 @@ export interface DirectLightKindCounts {
   readonly spot: number;
   readonly rectArea: number;
   readonly environment: number;
+  readonly areaShapes: DirectAreaLightShapeCounts;
+}
+
+export interface DirectAreaLightShapeCounts {
+  readonly rect: number;
+  readonly disk: number;
+  readonly sphere: number;
 }
 
 export interface DirectLightReadinessResourceState {
@@ -151,7 +162,10 @@ function directLightReadinessReportFromShaderReadiness(input: {
 }
 
 function countDirectLightKinds(
-  lights: readonly { readonly kind: LightKind }[],
+  lights: readonly {
+    readonly kind: LightKind;
+    readonly shape?: AreaLightShape;
+  }[],
 ): DirectLightKindCounts {
   const counts: MutableDirectLightKindCounts = {
     total: lights.length,
@@ -162,6 +176,11 @@ function countDirectLightKinds(
     spot: 0,
     rectArea: 0,
     environment: 0,
+    areaShapes: {
+      rect: 0,
+      disk: 0,
+      sphere: 0,
+    },
   };
 
   for (const light of lights) {
@@ -169,6 +188,10 @@ function countDirectLightKinds(
 
     if (isDirectLightKind(light.kind)) {
       counts.direct += 1;
+    }
+
+    if (light.kind === "rect-area") {
+      incrementAreaLightShapeCount(counts.areaShapes, light.shape);
     }
   }
 
@@ -185,7 +208,13 @@ function isDirectLightKind(kind: LightKind): boolean {
 }
 
 type MutableDirectLightKindCounts = {
-  -readonly [Key in keyof DirectLightKindCounts]: DirectLightKindCounts[Key];
+  -readonly [Key in keyof DirectLightKindCounts]: Key extends "areaShapes"
+    ? MutableDirectAreaLightShapeCounts
+    : DirectLightKindCounts[Key];
+};
+
+type MutableDirectAreaLightShapeCounts = {
+  -readonly [Key in keyof DirectAreaLightShapeCounts]: DirectAreaLightShapeCounts[Key];
 };
 
 function incrementLightKindCount(
@@ -210,6 +239,24 @@ function incrementLightKindCount(
       return;
     case "environment":
       counts.environment += 1;
+      return;
+  }
+}
+
+function incrementAreaLightShapeCount(
+  counts: MutableDirectAreaLightShapeCounts,
+  shape: AreaLightShape | undefined,
+): void {
+  switch (shape) {
+    case "disk":
+      counts.disk += 1;
+      return;
+    case "sphere":
+      counts.sphere += 1;
+      return;
+    case "rect":
+    case undefined:
+      counts.rect += 1;
       return;
   }
 }

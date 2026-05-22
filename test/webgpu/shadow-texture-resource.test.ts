@@ -46,6 +46,8 @@ describe("shadow texture resources", () => {
           width: 1024,
           height: 1024,
           depthFormat: "depth24plus",
+          cascadeCount: 1,
+          layerCount: 1,
           faceCount: 1,
           viewDimension: "2d",
           usageIntent: "render-attachment",
@@ -63,6 +65,35 @@ describe("shadow texture resources", () => {
     });
     expect(JSON.parse(shadowTextureResourceReportToJson(report))).toEqual(json);
     expect(JSON.stringify(json)).not.toMatch(/GPUTexture|GPUTextureView|raw/);
+  });
+
+  it("plans one attachment view per directional cascade", () => {
+    const report = createShadowTextureResourceReport({
+      descriptors: createShadowMapDescriptorReport({
+        shadowRequests: [{ ...shadowRequest(7, 11), cascadeCount: 3 }],
+        descriptors: [
+          {
+            shadowId: 7,
+            lightId: 11,
+            mapSize: 1024,
+            depthBias: 0.001,
+          },
+        ],
+      }),
+    });
+    const json = shadowTextureResourceReportToJsonValue(report);
+
+    expect(json.textureCount).toBe(1);
+    expect(json.textures[0]).toMatchObject({
+      cascadeCount: 3,
+      layerCount: 3,
+      viewDimension: "2d-array",
+      attachmentViewKeys: [
+        "shadow-map:7:light:11:cascade-0:view",
+        "shadow-map:7:light:11:cascade-1:view",
+        "shadow-map:7:light:11:cascade-2:view",
+      ],
+    });
   });
 
   it("reports missing shadow-map descriptors", () => {

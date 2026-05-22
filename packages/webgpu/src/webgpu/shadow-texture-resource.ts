@@ -21,8 +21,10 @@ export interface ShadowTextureResourceDescriptor {
   readonly width: number;
   readonly height: number;
   readonly depthFormat: "depth24plus";
+  readonly cascadeCount?: number;
+  readonly layerCount?: number;
   readonly faceCount: 1 | 6;
-  readonly viewDimension: "2d" | "cube";
+  readonly viewDimension: "2d" | "2d-array" | "cube";
   readonly usageIntent: "render-attachment";
   readonly allocation: "deferred";
 }
@@ -76,15 +78,27 @@ export function createShadowTextureResourceReport(
       textureKey: `${descriptor.resourceKey}:texture`,
       viewKey: `${descriptor.resourceKey}:view`,
       attachmentViewKeys: Array.from(
-        { length: descriptor.faceCount },
-        (_, face) =>
-          descriptor.faceCount === 1
+        {
+          length:
+            descriptor.lightKind === "directional"
+              ? descriptor.cascadeCount
+              : descriptor.faceCount,
+        },
+        (_, index) =>
+          descriptor.faceCount === 1 && descriptor.cascadeCount === 1
             ? `${descriptor.resourceKey}:view`
-            : `${descriptor.resourceKey}:face-${face}:view`,
+            : descriptor.lightKind === "directional"
+              ? `${descriptor.resourceKey}:cascade-${index}:view`
+              : `${descriptor.resourceKey}:face-${index}:view`,
       ),
       width: descriptor.mapSize,
       height: descriptor.mapSize,
       depthFormat: descriptor.depthFormat,
+      cascadeCount: descriptor.cascadeCount,
+      layerCount:
+        descriptor.lightKind === "directional"
+          ? descriptor.cascadeCount
+          : descriptor.faceCount,
       faceCount: descriptor.faceCount,
       viewDimension: descriptor.viewDimension,
       usageIntent: "render-attachment" as const,

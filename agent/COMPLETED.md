@@ -1,5 +1,24 @@
 # Completed Tasks
 
+## task-3075 — Disk and sphere area lights
+
+Completed: 2026-05-22
+
+- Added public `AreaLightShape` rect/disk/sphere metadata on ECS light
+  authoring, with rect as the typed default for area lights.
+- Preserved the selected shape through extraction, fixed-stride packed snapshot
+  encoding, WebGPU light packing, and StandardMaterial shader metadata.
+- Extended StandardMaterial WGSL to evaluate rect, disk, and sphere area-light
+  variants while keeping LTC resources renderer-owned.
+- Added JSON-safe direct-light readiness counts for submitted area-light shapes.
+- Added `examples/area-light-shapes.html` with worker-authored snapshots for
+  all three shapes and browser readback samples proving distinct illumination.
+- Validation run: typecheck, test typecheck, example syntax checks, targeted
+  Vitest coverage, focused direct-light diagnostics coverage, and focused
+  headed Chrome WebGPU proof coverage passed. The local headed Playwright runner
+  assertion passed but hit the known teardown hang and was stopped after the
+  checkmark.
+
 ## task-3074 — RectAreaLight + LTC
 
 Completed: 2026-05-22

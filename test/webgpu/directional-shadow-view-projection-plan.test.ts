@@ -40,6 +40,10 @@ describe("directional shadow view-projection planning", () => {
           planKey: "directional-shadow-view-projection:7:light:11",
           passKey: "shadow-pass:7:light:11",
           lightKind: "directional",
+          cascadeIndex: 0,
+          cascadeCount: 1,
+          cascadeNear: 0,
+          cascadeFar: 1,
           lightTransformOffset: 64,
           mapSize: 1024,
           casterLayerMask: 1,
@@ -66,6 +70,34 @@ describe("directional shadow view-projection planning", () => {
       JSON.parse(directionalShadowViewProjectionPlanReportToJson(report)),
     ).toEqual(json);
     expect(JSON.stringify(json)).not.toMatch(/GPU|Object3D|GraphNode|raw/);
+  });
+
+  it("plans stable keys and normalized split bounds for each directional cascade", () => {
+    const request = { ...shadowRequest(7, 11), cascadeCount: 3 };
+    const report = createDirectionalShadowViewProjectionPlanReport({
+      shadowRequests: [request],
+      lights: [light(11, "directional")],
+      shadowPassPlan: shadowPassPlan(request),
+    });
+    const json = directionalShadowViewProjectionPlanReportToJsonValue(report);
+
+    expect(json.planCount).toBe(3);
+    expect(json.plans.map((plan) => plan.planKey)).toEqual([
+      "directional-shadow-view-projection:7:light:11:cascade:0",
+      "directional-shadow-view-projection:7:light:11:cascade:1",
+      "directional-shadow-view-projection:7:light:11:cascade:2",
+    ]);
+    expect(
+      json.plans.map((plan) => [
+        plan.cascadeIndex,
+        plan.cascadeNear,
+        plan.cascadeFar,
+      ]),
+    ).toEqual([
+      [0, 0, 1 / 3],
+      [1, 1 / 3, 2 / 3],
+      [2, 2 / 3, 1],
+    ]);
   });
 
   it("reports missing light or unsupported light kind", () => {
@@ -97,12 +129,12 @@ describe("directional shadow view-projection planning", () => {
   });
 });
 
-function shadowPassPlan() {
+function shadowPassPlan(request: ShadowRequestPacket = shadowRequest(7, 11)) {
   return createShadowPassPlanReport({
-    shadowRequests: [shadowRequest(7, 11)],
+    shadowRequests: [request],
     textures: createShadowTextureResourceReport({
       descriptors: createShadowMapDescriptorReport({
-        shadowRequests: [shadowRequest(7, 11)],
+        shadowRequests: [request],
         descriptors: [
           {
             shadowId: 7,

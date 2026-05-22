@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   Camera,
   CameraProjection,
+  AreaLightShape,
   Light,
   LightKind,
   LightShadowSettings,
@@ -83,6 +84,7 @@ describe("render authoring ECS components", () => {
       Light,
       createLight({
         kind: LightKind.RectArea,
+        shape: AreaLightShape.Disk,
         color: [1, 0.8, 0.5, 1],
         intensity: 2,
         width: 4,
@@ -107,6 +109,7 @@ describe("render authoring ECS components", () => {
       [0.1, 0.2, 0.3, 1],
     );
     expect(light.getValue(Light, "kind")).toBe(LightKind.RectArea);
+    expect(light.getValue(Light, "shape")).toBe(AreaLightShape.Disk);
     expect(light.getValue(Light, "intensity")).toBe(2);
     expect(light.getValue(Light, "width")).toBe(4);
     expect(light.getValue(Light, "height")).toBe(2);
@@ -137,6 +140,7 @@ describe("render authoring ECS components", () => {
   it("validates invalid light fields", () => {
     const report = validateLightInput({
       kind: LightKind.RectArea,
+      shape: AreaLightShape.Sphere,
       intensity: -1,
       width: 0,
       height: Number.NaN,
@@ -163,6 +167,7 @@ describe("render authoring ECS components", () => {
         mapSize: 2048,
         bias: 0.001,
         normalBias: 0.02,
+        cascadeCount: 3,
         casterLayerMask: 0b0011,
         receiverLayerMask: 0b0101,
       }),
@@ -172,6 +177,7 @@ describe("render authoring ECS components", () => {
     expect(defaultLight.getValue(LightShadowSettings, "mapSize")).toBe(1024);
     expect(defaultLight.getValue(LightShadowSettings, "bias")).toBe(0);
     expect(defaultLight.getValue(LightShadowSettings, "normalBias")).toBe(0);
+    expect(defaultLight.getValue(LightShadowSettings, "cascadeCount")).toBe(1);
     expect(defaultLight.getValue(LightShadowSettings, "casterLayerMask")).toBe(
       -1,
     );
@@ -188,6 +194,7 @@ describe("render authoring ECS components", () => {
     expect(
       explicitLight.getValue(LightShadowSettings, "normalBias"),
     ).toBeCloseTo(0.02, 6);
+    expect(explicitLight.getValue(LightShadowSettings, "cascadeCount")).toBe(3);
     expect(explicitLight.getValue(LightShadowSettings, "casterLayerMask")).toBe(
       0b0011,
     );
@@ -201,6 +208,7 @@ describe("render authoring ECS components", () => {
       mapSize: 0,
       bias: -0.001,
       normalBias: -0.02,
+      cascadeCount: 5,
       casterLayerMask: 0,
       receiverLayerMask: 0,
     });
@@ -208,6 +216,7 @@ describe("render authoring ECS components", () => {
     expect(report.diagnostics.map((diagnostic) => diagnostic.code)).toEqual([
       "shadow.invalidMapSize",
       "shadow.invalidBias",
+      "shadow.invalidCascadeCount",
       "shadow.zeroLayerMask",
     ]);
   });

@@ -47,6 +47,8 @@ describe("shadow pass planning", () => {
           shadowId: 7,
           lightId: 11,
           lightKind: "directional",
+          cascadeIndex: 0,
+          cascadeCount: 1,
           faceIndex: 0,
           faceCount: 1,
           passKey: "shadow-pass:7:light:11",
@@ -77,6 +79,34 @@ describe("shadow pass planning", () => {
     expect(JSON.stringify(json)).not.toMatch(
       /GPUTexture|GPUTextureView|GPURenderPass|GPUCommandEncoder|raw/,
     );
+  });
+
+  it("fans a directional shadow request into one pass per cascade", () => {
+    const report = createShadowPassPlanReport({
+      shadowRequests: [{ ...shadowRequest(7, 11), cascadeCount: 3 }],
+      textures: createShadowTextureResourceReport({
+        descriptors: createShadowMapDescriptorReport({
+          shadowRequests: [{ ...shadowRequest(7, 11), cascadeCount: 3 }],
+          descriptors: [
+            {
+              shadowId: 7,
+              lightId: 11,
+              mapSize: 1024,
+              depthBias: 0.001,
+            },
+          ],
+        }),
+      }),
+    });
+    const json = shadowPassPlanReportToJsonValue(report);
+
+    expect(json.passCount).toBe(3);
+    expect(json.passes.map((pass) => pass.cascadeIndex)).toEqual([0, 1, 2]);
+    expect(json.passes.map((pass) => pass.passKey)).toEqual([
+      "shadow-pass:7:light:11:cascade:0",
+      "shadow-pass:7:light:11:cascade:1",
+      "shadow-pass:7:light:11:cascade:2",
+    ]);
   });
 
   it("reports missing texture resources", () => {

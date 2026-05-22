@@ -324,6 +324,11 @@ function directLightingSummary() {
       spot: 0,
       rectArea: 0,
       environment: 0,
+      areaShapes: {
+        rect: 0,
+        disk: 0,
+        sphere: 0,
+      },
     },
     sections: {
       lightGpuBuffers: true,

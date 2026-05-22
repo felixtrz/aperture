@@ -24,6 +24,8 @@ export interface ShadowPassPlan {
   readonly shadowId: number;
   readonly lightId: number;
   readonly lightKind: NonNullable<ShadowRequestPacket["lightKind"]>;
+  readonly cascadeIndex?: number;
+  readonly cascadeCount?: number;
   readonly faceIndex: number;
   readonly faceCount: 1 | 6;
   readonly passKey: string;
@@ -199,19 +201,28 @@ function createShadowPassPlans(
   request: ShadowRequestPacket,
   submission: ShadowPassSubmissionMode,
 ): readonly ShadowPassPlan[] {
-  return Array.from({ length: texture.faceCount }, (_, faceIndex) => ({
+  const passCount =
+    texture.lightKind === "directional"
+      ? Math.max(1, texture.cascadeCount ?? 1)
+      : texture.faceCount;
+
+  return Array.from({ length: passCount }, (_, passIndex) => ({
     shadowId: request.shadowId,
     lightId: request.lightId,
     lightKind: request.lightKind ?? "directional",
-    faceIndex,
+    cascadeIndex: texture.lightKind === "directional" ? passIndex : 0,
+    cascadeCount: texture.lightKind === "directional" ? passCount : 1,
+    faceIndex: texture.lightKind === "point" ? passIndex : 0,
     faceCount: texture.faceCount,
     passKey:
-      texture.faceCount === 1
-        ? `shadow-pass:${request.shadowId}:light:${request.lightId}`
-        : `shadow-pass:${request.shadowId}:light:${request.lightId}:face:${faceIndex}`,
+      texture.lightKind === "directional" && passCount > 1
+        ? `shadow-pass:${request.shadowId}:light:${request.lightId}:cascade:${passIndex}`
+        : texture.faceCount === 1
+          ? `shadow-pass:${request.shadowId}:light:${request.lightId}`
+          : `shadow-pass:${request.shadowId}:light:${request.lightId}:face:${passIndex}`,
     resourceKey: texture.resourceKey,
     textureKey: texture.textureKey,
-    viewKey: texture.attachmentViewKeys[faceIndex] ?? texture.viewKey,
+    viewKey: texture.attachmentViewKeys[passIndex] ?? texture.viewKey,
     width: texture.width,
     height: texture.height,
     depthFormat: texture.depthFormat,

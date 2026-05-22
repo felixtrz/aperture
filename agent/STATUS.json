@@ -6,6 +6,6 @@
   "lastResult": "success",
   "lastCommit": "62aff5a",
   "activePid": null,
-  "notes": "Completed task-3074 RectAreaLight/LTC first slice with ECS width/height extraction, renderer-owned LTC resources, StandardMaterial WGSL path, visible rect-area-light example, tracker/backlog updates, and validation.",
-  "lastRunFinishedAt": "2026-05-22T10:51:22Z"
+  "notes": "Completed task-3075 area light shapes; started task-3076 CSM cascadeCount planning contract and guarded unsupported CSM 2D-array receiver path. Full check passed; CURRENT_TASK points to task-3076.",
+  "lastRunFinishedAt": "2026-05-22T11:50:44Z"
 }

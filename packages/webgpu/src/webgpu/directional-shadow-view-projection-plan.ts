@@ -1,6 +1,9 @@
 import type { LightPacket, ShadowRequestPacket } from "@aperture-engine/render";
 
-import type { ShadowPassPlanReport } from "./shadow-pass-plan.js";
+import type {
+  ShadowPassPlan,
+  ShadowPassPlanReport,
+} from "./shadow-pass-plan.js";
 
 export type DirectionalShadowViewProjectionStatus =
   | "ready"
@@ -23,6 +26,10 @@ export interface DirectionalShadowViewProjectionPlan {
   readonly planKey: string;
   readonly passKey: string;
   readonly lightKind: "directional";
+  readonly cascadeIndex?: number;
+  readonly cascadeCount?: number;
+  readonly cascadeNear?: number;
+  readonly cascadeFar?: number;
   readonly lightTransformOffset: number;
   readonly mapSize: number;
   readonly casterLayerMask: number;
@@ -97,17 +104,12 @@ export function createDirectionalShadowViewProjectionPlanReport(
   const lightsById = new Map(
     input.lights.map((light) => [light.lightId, light]),
   );
-  const passesByKey = new Map(
-    input.shadowPassPlan.passes.map((pass) => [
-      shadowInputKey(pass.shadowId, pass.lightId),
-      pass,
-    ]),
-  );
+  const passesByKey = groupPassesByShadowRequest(input.shadowPassPlan.passes);
   const plans: DirectionalShadowViewProjectionPlan[] = [];
 
   for (const request of input.shadowRequests) {
     const light = lightsById.get(request.lightId);
-    const pass = passesByKey.get(
+    const passes = passesByKey.get(
       shadowInputKey(request.shadowId, request.lightId),
     );
 
@@ -133,7 +135,7 @@ export function createDirectionalShadowViewProjectionPlanReport(
       continue;
     }
 
-    if (pass === undefined) {
+    if (passes === undefined || passes.length === 0) {
       diagnostics.push({
         code: "directionalShadowViewProjection.missingPassPlan",
         severity: "warning",
@@ -144,22 +146,35 @@ export function createDirectionalShadowViewProjectionPlanReport(
       continue;
     }
 
-    plans.push({
-      shadowId: request.shadowId,
-      lightId: request.lightId,
-      planKey: `directional-shadow-view-projection:${request.shadowId}:light:${request.lightId}`,
-      passKey: pass.passKey,
-      lightKind: "directional",
-      lightTransformOffset: light.worldTransformOffset,
-      mapSize: pass.width,
-      casterLayerMask: request.casterLayerMask,
-      receiverLayerMask: request.receiverLayerMask,
-      projection: "orthographic",
-      viewMatrixKey: `${pass.passKey}:view`,
-      projectionMatrixKey: `${pass.passKey}:projection`,
-      viewProjectionMatrixKey: `${pass.passKey}:view-projection`,
-      computation,
-    });
+    for (const pass of passes) {
+      const cascadeIndex = pass.cascadeIndex ?? 0;
+      const cascadeCount = pass.cascadeCount ?? 1;
+      const split = cascadeSplit(cascadeIndex, cascadeCount);
+
+      plans.push({
+        shadowId: request.shadowId,
+        lightId: request.lightId,
+        planKey:
+          cascadeCount === 1
+            ? `directional-shadow-view-projection:${request.shadowId}:light:${request.lightId}`
+            : `directional-shadow-view-projection:${request.shadowId}:light:${request.lightId}:cascade:${cascadeIndex}`,
+        passKey: pass.passKey,
+        lightKind: "directional",
+        cascadeIndex,
+        cascadeCount,
+        cascadeNear: split.near,
+        cascadeFar: split.far,
+        lightTransformOffset: light.worldTransformOffset,
+        mapSize: pass.width,
+        casterLayerMask: request.casterLayerMask,
+        receiverLayerMask: request.receiverLayerMask,
+        projection: "orthographic",
+        viewMatrixKey: `${pass.passKey}:view`,
+        projectionMatrixKey: `${pass.passKey}:projection`,
+        viewProjectionMatrixKey: `${pass.passKey}:view-projection`,
+        computation,
+      });
+    }
   }
 
   if (plans.length > 0 && computation === "deferred") {
@@ -244,4 +259,30 @@ function determineStatus(input: {
 
 function shadowInputKey(shadowId: number, lightId: number): string {
   return `${shadowId}:${lightId}`;
+}
+
+function groupPassesByShadowRequest(
+  passes: readonly ShadowPassPlan[],
+): Map<string, readonly ShadowPassPlan[]> {
+  const grouped = new Map<string, readonly ShadowPassPlan[]>();
+
+  for (const pass of passes) {
+    const key = shadowInputKey(pass.shadowId, pass.lightId);
+    const existing = grouped.get(key) ?? [];
+
+    grouped.set(key, [...existing, pass]);
+  }
+
+  return grouped;
+}
+
+function cascadeSplit(
+  cascadeIndex: number,
+  cascadeCount: number,
+): { readonly near: number; readonly far: number } {
+  const clampedCount = Math.max(1, cascadeCount);
+  const near = cascadeIndex / clampedCount;
+  const far = (cascadeIndex + 1) / clampedCount;
+
+  return { near, far };
 }

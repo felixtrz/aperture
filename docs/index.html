@@ -1285,12 +1285,17 @@
               renderer. Tier 16 has started: ECS lights now include
               <code>LightKind.RectArea</code> with extracted
               <code>width</code>/<code>height</code>, StandardMaterial binds
-              renderer-owned LTC resources, and
-              <code>examples/rect-area-light.html</code> proves a
-              worker-authored rectangular area light with browser readback.
+              renderer-owned LTC resources, and area lights now carry
+              rect/disk/sphere shape metadata through extraction, packed
+              snapshots, WebGPU light buffers, and WGSL evaluation.
+              <code>examples/area-light-shapes.html</code> proves the three
+              shapes with browser readback. Cascaded shadow maps have started:
+              directional shadow settings now carry <code>cascadeCount</code>
+              through extraction, packed snapshot transport, and renderer shadow
+              planning reports.
             </dd>
             <dt>Next focus</dt>
-            <dd>task-3075 disk and sphere area lights</dd>
+            <dd>continue task-3076 cascaded shadow maps</dd>
           </dl>
         </aside>
       </header>
@@ -4250,17 +4255,18 @@
             <h3>Recommended next tasks</h3>
             <ul>
               <li>
-                <span class="badge amber">next</span> Build
-                <code>task-3075</code>, disk and sphere area-light shape
-                variants on top of the RectAreaLight/LTC path.
+                <span class="badge amber">next</span> Build the remaining
+                <code>task-3076</code> GPU cascade texture, receiver selection,
+                and outdoor browser proof.
               </li>
               <li>
-                Anchor on PlayCanvas area-light shape constants and keep ECS
-                authoring data-only.
+                Anchor on PlayCanvas and Bevy CSM patterns while keeping shadow
+                split selection renderer-owned and ECS-authored settings
+                data-only.
               </li>
               <li>
-                Keep the slice narrow: shape authoring, packed light metadata,
-                WGSL shape evaluation, and one pixel-proven comparison example.
+                The data contract is in place; keep the next step narrow around
+                executable cascaded shadow resources and visible pixel proof.
               </li>
             </ul>
           </article>
@@ -4273,6 +4279,18 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3075</div>
+            <div>
+              <strong>Area light shapes shipped.</strong>
+              <span>
+                ECS-authored area lights now preserve rect/disk/sphere shape
+                metadata through snapshots and WebGPU light packing, and
+                <code>examples/area-light-shapes.html</code> proves distinct
+                browser readbacks for all three.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3074</div>
             <div>

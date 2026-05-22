@@ -229,6 +229,36 @@ describe("StandardMaterial shadow bind group descriptor planning", () => {
     );
   });
 
+  it("blocks cascaded 2D-array depth textures until receiver sampling supports them", () => {
+    const device = deviceWithResources();
+    const resources = shadowResources(device);
+    const request = { ...shadowRequest(), cascadeCount: 3 };
+    const depthTextureResources = createShadowDepthTextureResourceReport({
+      device,
+      textures: createShadowTextureResourceReport({
+        descriptors: createShadowMapDescriptorReport({
+          shadowRequests: [request],
+          descriptors: [
+            { shadowId: 7, lightId: 11, mapSize: 1024, depthBias: 0.001 },
+          ],
+        }),
+      }),
+    });
+
+    const report =
+      createStandardMaterialShadowBindGroupDescriptorReadinessReport({
+        standardMaterialCount: 1,
+        matrixBufferResource: resources.matrixBufferResource,
+        depthTextureResources,
+      });
+
+    expect(report.status).toBe("missing");
+    expect(report.sections.depthTextureResource).toBe(false);
+    expect(report.diagnostics.map((diagnostic) => diagnostic.code)).toContain(
+      "standardMaterialShadowBindGroup.unsupportedDepthTextureView",
+    );
+  });
+
   it("creates and reuses a JSON-safe shadow sampler resource", () => {
     const createdSamplers: unknown[] = [];
     const cache = new Map();

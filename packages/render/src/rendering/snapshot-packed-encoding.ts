@@ -7,7 +7,7 @@ import {
 } from "@aperture-engine/simulation";
 
 import type { MeshTopology } from "../mesh/index.js";
-import type { LightKind } from "./authoring.js";
+import type { AreaLightShape, LightKind } from "./authoring.js";
 import type {
   BoundsPacket,
   EnvironmentPacket,
@@ -20,14 +20,14 @@ import type {
 } from "./snapshot.js";
 
 export const SNAPSHOT_PACKET_ENCODING_MAGIC = 0x4150_5350; // "APSP"
-export const SNAPSHOT_PACKET_ENCODING_VERSION = 1;
+export const SNAPSHOT_PACKET_ENCODING_VERSION = 3;
 
 export const SNAPSHOT_PACKET_HEADER_WORDS = 8;
 export const VIEW_PACKET_WORDS = 36;
 export const MESH_DRAW_PACKET_WORDS = 30;
-export const LIGHT_PACKET_WORDS = 26;
+export const LIGHT_PACKET_WORDS = 27;
 export const ENVIRONMENT_PACKET_WORDS = 13;
-export const SHADOW_REQUEST_PACKET_WORDS = 5;
+export const SHADOW_REQUEST_PACKET_WORDS = 6;
 export const BOUNDS_PACKET_WORDS = 43;
 
 export const SNAPSHOT_PACKET_WORD_STRIDES = Object.freeze({
@@ -129,6 +129,12 @@ const LightKindId = Object.freeze({
   Point: 4,
   Spot: 5,
   RectArea: 6,
+});
+
+const AreaLightShapeId = Object.freeze({
+  Rect: 1,
+  Disk: 2,
+  Sphere: 3,
 });
 
 const TopologyId = Object.freeze({
@@ -558,8 +564,9 @@ function writeLightPacket(
   writeFloat64(words, offset + 18, packet.outerConeAngle);
   writeFloat64(words, offset + 20, packet.width ?? 0);
   writeFloat64(words, offset + 22, packet.height ?? 0);
-  words[offset + 24] = packet.worldTransformOffset >>> 0;
-  words[offset + 25] = packet.layerMask >>> 0;
+  words[offset + 24] = areaLightShapeId(packet.shape);
+  words[offset + 25] = packet.worldTransformOffset >>> 0;
+  words[offset + 26] = packet.layerMask >>> 0;
 }
 
 function readLightPacket(words: Uint32Array, offset: number): LightPacket {
@@ -567,6 +574,7 @@ function readLightPacket(words: Uint32Array, offset: number): LightPacket {
     lightId: words[offset] ?? 0,
     entity: readEntity(words, offset + 1),
     kind: lightKindValue(words[offset + 3] ?? 0),
+    shape: areaLightShapeValue(words[offset + 24] ?? AreaLightShapeId.Rect),
     color: readVec4(words, offset + 4),
     intensity: readFloat64(words, offset + 12),
     range: readFloat64(words, offset + 14),
@@ -574,8 +582,8 @@ function readLightPacket(words: Uint32Array, offset: number): LightPacket {
     outerConeAngle: readFloat64(words, offset + 18),
     width: readFloat64(words, offset + 20),
     height: readFloat64(words, offset + 22),
-    worldTransformOffset: words[offset + 24] ?? 0,
-    layerMask: words[offset + 25] ?? 0,
+    worldTransformOffset: words[offset + 25] ?? 0,
+    layerMask: words[offset + 26] ?? 0,
   };
 }
 
@@ -619,6 +627,7 @@ function writeShadowRequestPacket(
     packet.lightKind === undefined ? 0 : lightKindId(packet.lightKind);
   words[offset + 3] = packet.casterLayerMask >>> 0;
   words[offset + 4] = packet.receiverLayerMask >>> 0;
+  words[offset + 5] = Math.max(1, Math.floor(packet.cascadeCount ?? 1)) >>> 0;
 }
 
 function readShadowRequestPacket(
@@ -632,10 +641,12 @@ function readShadowRequestPacket(
     casterLayerMask: words[offset + 3] ?? 0,
     receiverLayerMask: words[offset + 4] ?? 0,
   };
+  const cascadeCount = words[offset + 5] ?? 1;
 
   return {
     ...packet,
     ...(lightKind === 0 ? {} : { lightKind: lightKindValue(lightKind) }),
+    ...(cascadeCount > 1 ? { cascadeCount } : {}),
   };
 }
 
@@ -866,6 +877,33 @@ function lightKindValue(id: number): LightKind {
       return "rect-area";
     default:
       throw new RangeError(`Unknown snapshot packet light kind id '${id}'.`);
+  }
+}
+
+function areaLightShapeId(shape: AreaLightShape | undefined): number {
+  switch (shape) {
+    case "disk":
+      return AreaLightShapeId.Disk;
+    case "sphere":
+      return AreaLightShapeId.Sphere;
+    case "rect":
+    case undefined:
+      return AreaLightShapeId.Rect;
+  }
+}
+
+function areaLightShapeValue(id: number): AreaLightShape {
+  switch (id) {
+    case AreaLightShapeId.Rect:
+      return "rect";
+    case AreaLightShapeId.Disk:
+      return "disk";
+    case AreaLightShapeId.Sphere:
+      return "sphere";
+    default:
+      throw new RangeError(
+        `Unknown snapshot packet area light shape id '${id}'.`,
+      );
   }
 }
 

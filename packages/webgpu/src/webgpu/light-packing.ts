@@ -1,4 +1,5 @@
 import type {
+  AreaLightShape,
   LightKind,
   LightPacket,
   RenderSnapshot,
@@ -25,6 +26,15 @@ export const PackedLightKindId = {
 
 export type PackedLightKindId =
   (typeof PackedLightKindId)[keyof typeof PackedLightKindId];
+
+export const PackedAreaLightShapeId = {
+  Rect: 1,
+  Disk: 2,
+  Sphere: 3,
+} as const;
+
+export type PackedAreaLightShapeId =
+  (typeof PackedAreaLightShapeId)[keyof typeof PackedAreaLightShapeId];
 
 export interface PackedLightPackets {
   readonly count: number;
@@ -260,7 +270,7 @@ export function writePackedLightPackets(
         light.outerConeAngle,
         light.width ?? 0,
         light.height ?? 0,
-        0,
+        packedAreaLightShapeId(light.shape),
         0,
       ],
       floatOffset,
@@ -630,5 +640,19 @@ export function packedLightKindId(kind: LightKind): PackedLightKindId {
       return PackedLightKindId.Environment;
     case "rect-area":
       return PackedLightKindId.RectArea;
+  }
+}
+
+export function packedAreaLightShapeId(
+  shape: AreaLightShape | undefined,
+): PackedAreaLightShapeId {
+  switch (shape) {
+    case "disk":
+      return PackedAreaLightShapeId.Disk;
+    case "sphere":
+      return PackedAreaLightShapeId.Sphere;
+    case "rect":
+    case undefined:
+      return PackedAreaLightShapeId.Rect;
   }
 }

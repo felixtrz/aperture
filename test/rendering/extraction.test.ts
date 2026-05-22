@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   AssetRegistry,
+  AreaLightShape,
   Camera,
   InstanceData,
   InstanceTint,
@@ -1821,6 +1822,7 @@ describe("render extraction", () => {
     });
     const rectAreaLight = createLightEntity(world, {
       kind: LightKind.RectArea,
+      shape: AreaLightShape.Sphere,
       intensity: 5,
       width: 3,
       height: 1.5,
@@ -1837,6 +1839,7 @@ describe("render extraction", () => {
     expect(
       snapshot.lights.map((light) => ({
         kind: light.kind,
+        shape: light.shape,
         intensity: light.intensity,
         range: light.range,
         innerConeAngle: light.innerConeAngle,
@@ -1848,6 +1851,7 @@ describe("render extraction", () => {
     ).toEqual([
       {
         kind: LightKind.Point,
+        shape: AreaLightShape.Rect,
         intensity: 3,
         range: 12,
         innerConeAngle: 0.125,
@@ -1858,6 +1862,7 @@ describe("render extraction", () => {
       },
       {
         kind: LightKind.Spot,
+        shape: AreaLightShape.Rect,
         intensity: 4,
         range: 9,
         innerConeAngle: 0.25,
@@ -1868,6 +1873,7 @@ describe("render extraction", () => {
       },
       {
         kind: LightKind.RectArea,
+        shape: AreaLightShape.Sphere,
         intensity: 5,
         range: 10,
         innerConeAngle: 0.39269909262657166,
@@ -1919,6 +1925,7 @@ describe("render extraction", () => {
       LightShadowSettings,
       createLightShadowSettings({
         enabled: true,
+        cascadeCount: 3,
         casterLayerMask: 0b0011,
         receiverLayerMask: 0b0101,
       }),
@@ -1959,6 +1966,7 @@ describe("render extraction", () => {
         shadowId: directionalLightId,
         lightId: directionalLightId,
         lightKind: "directional",
+        cascadeCount: 3,
         casterLayerMask: 0b0011,
         receiverLayerMask: 0b0101,
       },

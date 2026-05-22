@@ -37,6 +37,10 @@ export interface DirectionalShadowMatrixComputation {
   readonly passKey: string;
   readonly matrixKey: string;
   readonly lightTransformOffset: number;
+  readonly cascadeIndex?: number;
+  readonly cascadeCount?: number;
+  readonly cascadeNear?: number;
+  readonly cascadeFar?: number;
   readonly center: readonly [number, number, number];
   readonly lightDirection: readonly [number, number, number];
   readonly lightPosition: readonly [number, number, number];
@@ -181,6 +185,10 @@ export function directionalShadowMatrixComputationReportToJsonValue(
     sections: { ...report.sections },
     matrices: report.matrices.map((matrix) => ({
       ...matrix,
+      cascadeIndex: matrix.cascadeIndex ?? 0,
+      cascadeCount: matrix.cascadeCount ?? 1,
+      cascadeNear: sanitizeNumber(matrix.cascadeNear ?? 0),
+      cascadeFar: sanitizeNumber(matrix.cascadeFar ?? 1),
       center: sanitizeTuple3(matrix.center),
       lightDirection: sanitizeTuple3(matrix.lightDirection),
       lightPosition: sanitizeTuple3(matrix.lightPosition),
@@ -247,7 +255,9 @@ function computeDirectionalShadowMatrix(
     center[1] - direction[1] * distance,
     center[2] - direction[2] * distance,
   ]);
-  const size = input.orthographicSize ?? DEFAULT_ORTHOGRAPHIC_SIZE;
+  const size =
+    (input.orthographicSize ?? DEFAULT_ORTHOGRAPHIC_SIZE) *
+    (plan.cascadeFar ?? 1);
   const halfSize = size * 0.5;
   const near = input.near ?? DEFAULT_NEAR;
   const far = input.far ?? DEFAULT_FAR;
@@ -270,6 +280,10 @@ function computeDirectionalShadowMatrix(
       passKey: plan.passKey,
       matrixKey: plan.viewProjectionMatrixKey,
       lightTransformOffset: plan.lightTransformOffset,
+      cascadeIndex: plan.cascadeIndex ?? 0,
+      cascadeCount: plan.cascadeCount ?? 1,
+      cascadeNear: plan.cascadeNear ?? 0,
+      cascadeFar: plan.cascadeFar ?? 1,
       center,
       lightDirection: direction,
       lightPosition,

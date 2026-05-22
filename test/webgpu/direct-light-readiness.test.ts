@@ -18,7 +18,7 @@ describe("direct light readiness report", () => {
           light("directional", 2),
           light("point", 3),
           light("spot", 4),
-          light("rect-area", 5),
+          light("rect-area", 5, "disk"),
           light("environment", 6),
         ],
       }),
@@ -41,6 +41,11 @@ describe("direct light readiness report", () => {
         spot: 1,
         rectArea: 1,
         environment: 1,
+        areaShapes: {
+          rect: 0,
+          disk: 1,
+          sphere: 0,
+        },
       },
       sections: {
         lightGpuBuffers: true,
@@ -93,6 +98,11 @@ describe("direct light readiness report", () => {
         spot: 0,
         rectArea: 0,
         environment: 0,
+        areaShapes: {
+          rect: 0,
+          disk: 0,
+          sphere: 0,
+        },
       },
       sections: {
         lightGpuBuffers: false,
@@ -193,11 +203,16 @@ function snapshot(input: {
   };
 }
 
-function light(kind: LightPacket["kind"], seed: number): LightPacket {
+function light(
+  kind: LightPacket["kind"],
+  seed: number,
+  shape?: LightPacket["shape"],
+): LightPacket {
   return {
     lightId: seed,
     entity: { index: seed, generation: 1 },
     kind,
+    ...(shape === undefined ? {} : { shape }),
     color: [seed, seed + 0.1, seed + 0.2, 1],
     intensity: seed + 1,
     range: seed + 2,

@@ -22,6 +22,7 @@ import {
   STANDARD_POINT_SHADOW_MAP_SHADER_VARIANT,
   PACKED_LIGHT_FLOAT_STRIDE,
   PACKED_LIGHT_METADATA_STRIDE,
+  PackedAreaLightShapeId,
   PackedLightKindId,
   STANDARD_SKINNING_BIND_GROUP_LAYOUT_KEY,
   STANDARD_SHADOW_MAP_SHADER_VARIANT,
@@ -156,6 +157,12 @@ describe("built-in standard material WGSL shader metadata", () => {
     );
     expect(STANDARD_MESH_WGSL).toContain(
       `const LIGHT_KIND_RECT_AREA: i32 = ${PackedLightKindId.RectArea};`,
+    );
+    expect(STANDARD_MESH_WGSL).toContain(
+      `const AREA_LIGHT_SHAPE_DISK: i32 = ${PackedAreaLightShapeId.Disk};`,
+    );
+    expect(STANDARD_MESH_WGSL).toContain(
+      `const AREA_LIGHT_SHAPE_SPHERE: i32 = ${PackedAreaLightShapeId.Sphere};`,
     );
     expect(STANDARD_MESH_WGSL).toContain("LIGHT_KIND_AMBIENT");
     expect(STANDARD_MESH_WGSL).toContain("standardAreaLightLtcMatrixTexture");

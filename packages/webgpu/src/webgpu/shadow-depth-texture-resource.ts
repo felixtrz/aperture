@@ -41,8 +41,9 @@ export interface ShadowDepthTextureResource {
   readonly resourceKey: string;
   readonly textureKey: string;
   readonly viewKey: string;
+  readonly layerCount?: number;
   readonly faceCount: 1 | 6;
-  readonly viewDimension: "2d" | "cube";
+  readonly viewDimension: "2d" | "2d-array" | "cube";
   readonly attachmentViews: readonly ShadowDepthTextureAttachmentView[];
   readonly allocation: CreateTextureGpuResourceResult;
 }
@@ -83,8 +84,9 @@ export interface ShadowDepthTextureResourceReportJsonValue {
     readonly resourceKey: string;
     readonly textureKey: string;
     readonly viewKey: string;
+    readonly layerCount?: number;
     readonly faceCount: 1 | 6;
-    readonly viewDimension: "2d" | "cube";
+    readonly viewDimension: "2d" | "2d-array" | "cube";
     readonly attachmentViewKeys: readonly string[];
     readonly descriptor: {
       readonly label?: string;
@@ -148,14 +150,14 @@ export function createShadowDepthTextureResourceReport(
 
     if (
       resource.allocation.valid &&
-      resource.attachmentViews.length !== resource.faceCount
+      resource.attachmentViews.length !== shadowLayerCount(resource)
     ) {
       diagnostics.push({
         code: "shadowDepthTextureResource.faceViewCreationFailed",
         severity: "warning",
         resourceKey: resource.resourceKey,
         faceIndex: resource.attachmentViews.length,
-        message: `Shadow depth texture '${resource.resourceKey}' could not create all ${resource.faceCount} render attachment view(s).`,
+        message: `Shadow depth texture '${resource.resourceKey}' could not create all ${shadowLayerCount(resource)} render attachment view(s).`,
       });
     }
   }
@@ -164,7 +166,7 @@ export function createShadowDepthTextureResourceReport(
     status: resources.every(
       (resource) =>
         resource.allocation.valid &&
-        resource.attachmentViews.length === resource.faceCount,
+        resource.attachmentViews.length === shadowLayerCount(resource),
     )
       ? "available"
       : "missing",
@@ -191,6 +193,7 @@ export function shadowDepthTextureResourceReportToJsonValue(
       resourceKey: resource.resourceKey,
       textureKey: resource.textureKey,
       viewKey: resource.viewKey,
+      layerCount: shadowLayerCount(resource),
       faceCount: resource.faceCount,
       viewDimension: resource.viewDimension,
       attachmentViewKeys: resource.attachmentViews.map((view) => view.viewKey),
@@ -232,7 +235,7 @@ function createShadowDepthTextureResource(
     resourceKey: texture.textureKey,
     descriptor: {
       label: `${texture.resourceKey}:depth`,
-      size: [texture.width, texture.height, texture.faceCount],
+      size: [texture.width, texture.height, shadowTextureLayerCount(texture)],
       format: texture.depthFormat,
       usage:
         WEBGPU_TEXTURE_USAGE_FLAGS.RENDER_ATTACHMENT |
@@ -240,7 +243,14 @@ function createShadowDepthTextureResource(
       mipLevelCount: 1,
     },
     viewDescriptor:
-      texture.viewDimension === "cube" ? { dimension: "cube" } : undefined,
+      texture.viewDimension === "cube"
+        ? { dimension: "cube" }
+        : texture.viewDimension === "2d-array"
+          ? {
+              dimension: "2d-array",
+              arrayLayerCount: shadowTextureLayerCount(texture),
+            }
+          : undefined,
   });
 
   return {
@@ -249,6 +259,7 @@ function createShadowDepthTextureResource(
     resourceKey: texture.resourceKey,
     textureKey: texture.textureKey,
     viewKey: texture.viewKey,
+    layerCount: shadowTextureLayerCount(texture),
     faceCount: texture.faceCount,
     viewDimension: texture.viewDimension,
     attachmentViews: createAttachmentViews(texture, allocation),
@@ -266,7 +277,7 @@ function createAttachmentViews(
     return [];
   }
 
-  if (texture.faceCount === 1) {
+  if (shadowTextureLayerCount(texture) === 1) {
     return [{ faceIndex: 0, viewKey: texture.viewKey, view: resource.view }];
   }
 
@@ -298,6 +309,16 @@ function createAttachmentViews(
       return [];
     }
   });
+}
+
+function shadowTextureLayerCount(
+  texture: ShadowTextureResourceDescriptor,
+): number {
+  return texture.layerCount ?? texture.faceCount;
+}
+
+function shadowLayerCount(resource: ShadowDepthTextureResource): number {
+  return resource.layerCount ?? resource.faceCount;
 }
 
 function report(input: {

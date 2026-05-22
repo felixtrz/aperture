@@ -45,6 +45,10 @@ describe("directional shadow matrix computation", () => {
       passKey: "shadow-pass:7:light:11",
       matrixKey: "shadow-pass:7:light:11:view-projection",
       lightTransformOffset: 0,
+      cascadeIndex: 0,
+      cascadeCount: 1,
+      cascadeNear: 0,
+      cascadeFar: 1,
       center: [0, 0, 0],
       lightDirection: [0, 0, -1],
       lightPosition: [0, 0, 25],
@@ -63,6 +67,25 @@ describe("directional shadow matrix computation", () => {
       JSON.parse(directionalShadowMatrixComputationReportToJson(report)),
     ).toEqual(json);
     expect(JSON.stringify(json)).not.toMatch(/GPUBuffer|GPUTexture|raw/);
+  });
+
+  it("computes one JSON-safe matrix per planned directional cascade", () => {
+    const request = { ...shadowRequest(), cascadeCount: 3 };
+    const report = createDirectionalShadowMatrixComputationReport({
+      viewProjection: viewProjection(request),
+      transforms: identityTransform(),
+      orthographicSize: 30,
+    });
+    const json = directionalShadowMatrixComputationReportToJsonValue(report);
+
+    expect(json.ready).toBe(true);
+    expect(json.matrixCount).toBe(3);
+    expect(json.matrices.map((matrix) => matrix.cascadeIndex)).toEqual([
+      0, 1, 2,
+    ]);
+    expect(json.matrices.map((matrix) => matrix.orthographicSize)).toEqual([
+      10, 20, 30,
+    ]);
   });
 
   it("reports missing light transform data", () => {
@@ -94,15 +117,15 @@ describe("directional shadow matrix computation", () => {
   });
 });
 
-function viewProjection() {
+function viewProjection(request: ShadowRequestPacket = shadowRequest()) {
   return createDirectionalShadowViewProjectionPlanReport({
-    shadowRequests: [shadowRequest()],
+    shadowRequests: [request],
     lights: [light()],
     shadowPassPlan: createShadowPassPlanReport({
-      shadowRequests: [shadowRequest()],
+      shadowRequests: [request],
       textures: createShadowTextureResourceReport({
         descriptors: createShadowMapDescriptorReport({
-          shadowRequests: [shadowRequest()],
+          shadowRequests: [request],
           descriptors: [
             {
               shadowId: 7,

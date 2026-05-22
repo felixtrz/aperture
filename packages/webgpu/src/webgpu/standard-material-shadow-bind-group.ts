@@ -1,5 +1,8 @@
 import { bindGroupResourceKey } from "./resource-keys.js";
-import type { ShadowDepthTextureResourceReport } from "./shadow-depth-texture-resource.js";
+import type {
+  ShadowDepthTextureResource,
+  ShadowDepthTextureResourceReport,
+} from "./shadow-depth-texture-resource.js";
 import type { ShadowMatrixBufferResourceReport } from "./shadow-matrix-buffer-resource.js";
 import type {
   StandardMaterialBindGroupDeviceLike,
@@ -20,6 +23,7 @@ export type StandardMaterialShadowBindGroupDescriptorDiagnosticCode =
   | "standardMaterialShadowBindGroup.invalidLayout"
   | "standardMaterialShadowBindGroup.missingMatrixBufferResource"
   | "standardMaterialShadowBindGroup.missingDepthTextureResource"
+  | "standardMaterialShadowBindGroup.unsupportedDepthTextureView"
   | "standardMaterialShadowBindGroup.missingSamplerResource"
   | "standardMaterialShadowBindGroup.samplerResourceDeferred"
   | "standardMaterialShadowBindGroup.bindGroupCreationDeferred"
@@ -336,11 +340,11 @@ export function createStandardMaterialShadowBindGroupDescriptorPlan(
     });
   }
 
-  const depthTextureKey = firstValidDepthTextureKey(
+  const depthTexture = firstValidDepthTextureResource(
     options.depthTextureResources,
   );
 
-  if (depthTextureKey === null) {
+  if (depthTexture === null) {
     diagnostics.push({
       code: "standardMaterialShadowBindGroup.missingDepthTextureResource",
       severity: "warning",
@@ -348,11 +352,23 @@ export function createStandardMaterialShadowBindGroupDescriptorPlan(
       message:
         "StandardMaterial shadow bind-group descriptor planning requires an available shadow depth texture resource.",
     });
+  } else if (
+    depthTexture.viewDimension !== "2d" ||
+    shadowDepthLayerCount(depthTexture) !== 1
+  ) {
+    diagnostics.push({
+      code: "standardMaterialShadowBindGroup.unsupportedDepthTextureView",
+      severity: "warning",
+      binding: 1,
+      resourceKey: depthTexture.textureKey,
+      message:
+        "StandardMaterial shadow bind-group descriptor planning currently supports one 2D directional shadow map; cascaded 2D-array shadow sampling is not implemented yet.",
+    });
   } else {
     entries.push({
       group: 5,
       binding: 1,
-      resourceKey: depthTextureKey,
+      resourceKey: depthTexture.textureKey,
       resourceKind: "texture-view",
     });
   }
@@ -430,6 +446,8 @@ export function createStandardMaterialShadowBindGroupDescriptorReadinessReport(
         "standardMaterialShadowBindGroup.missingMatrixBufferResource" ||
       diagnostic.code ===
         "standardMaterialShadowBindGroup.missingDepthTextureResource" ||
+      diagnostic.code ===
+        "standardMaterialShadowBindGroup.unsupportedDepthTextureView" ||
       diagnostic.code ===
         "standardMaterialShadowBindGroup.missingSamplerResource",
   );
@@ -741,13 +759,14 @@ export function createStandardMaterialShadowBindGroupResourceKey(
   );
 }
 
-function firstValidDepthTextureKey(
+function firstValidDepthTextureResource(
   report: ShadowDepthTextureResourceReport,
-): string | null {
-  return (
-    report.resources.find((resource) => resource.allocation.valid)
-      ?.textureKey ?? null
-  );
+): ShadowDepthTextureResource | null {
+  return report.resources.find((resource) => resource.allocation.valid) ?? null;
+}
+
+function shadowDepthLayerCount(resource: ShadowDepthTextureResource): number {
+  return resource.layerCount ?? resource.faceCount;
 }
 
 function createShadowSamplerDescriptor(

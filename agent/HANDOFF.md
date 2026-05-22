@@ -1,6 +1,149 @@
 # Agent Handoff
 
-Updated: 2026-05-22T10:40:00Z
+Updated: 2026-05-22T11:49:53Z
+
+## Current Run Update — 2026-05-22T11:49:53Z — Area light shapes shipped, CSM contract started
+
+Completed `task-3075`. Started `task-3076` with a data-contract/planning slice;
+CSM GPU sampling and the outdoor browser proof remain open.
+
+### What changed
+
+- Added public `AreaLightShape` metadata for rect, disk, and sphere area lights.
+  `LightKind.RectArea` defaults to rect while preserving the selected shape as
+  data through ECS authoring.
+- Preserved area-light shape through render extraction, `LightPacket`, and
+  fixed-stride packed snapshot encoding. The packet encoding version is now 2.
+- Extended WebGPU light packing and StandardMaterial shader metadata so packed
+  area lights carry a shape id without changing the current light buffer stride.
+- Extended StandardMaterial WGSL area-light evaluation to branch across rect,
+  disk, and sphere shapes while keeping LTC resources renderer-owned.
+- Added JSON-safe direct-light readiness counts for rect/disk/sphere submitted
+  area-light shapes.
+- Added `examples/area-light-shapes.html` with renderer-only main thread,
+  worker-authored snapshots for all three shapes, status/readback publication,
+  and browser proof that the three shapes produce distinct samples.
+- Started `task-3076` by adding `LightShadowSettings.cascadeCount` validation
+  for 1-4 directional cascades, carrying that count through extraction and
+  packed snapshot transport, and fanning directional shadow requests into
+  per-cascade renderer-owned descriptor/pass/view-projection/matrix reports.
+- Added a StandardMaterial shadow bind-group guard so cascaded 2D-array depth
+  textures are not treated as compatible with the current single-map receiver
+  shader until CSM sampling is implemented.
+- Tightened the area-light shapes e2e proof so rect/disk/sphere center samples
+  must have opaque alpha and nontrivial luma, preventing transparent readback
+  zeros from satisfying the visual assertion.
+- Updated public progress tracker pages, completed-task log, and backlog.
+  Recommended next task is to continue `task-3076`.
+
+### Files touched
+
+- Agent/docs: `agent/BACKLOG.md`, `agent/COMPLETED.md`,
+  `agent/CURRENT_TASK.md`, `agent/HANDOFF.md`, `docs/index.html`,
+  `docs/render-pipeline-comparison.html`.
+- Render bridge: `packages/render/src/rendering/authoring.ts`,
+  `packages/render/src/rendering/extraction.ts`,
+  `packages/render/src/rendering/snapshot.ts`,
+  `packages/render/src/rendering/snapshot-packed-encoding.ts`.
+- WebGPU: `packages/webgpu/src/webgpu/direct-light-readiness.ts`,
+  `packages/webgpu/src/webgpu/directional-shadow-matrix-computation.ts`,
+  `packages/webgpu/src/webgpu/directional-shadow-view-projection-plan.ts`,
+  `packages/webgpu/src/webgpu/light-packing.ts`,
+  `packages/webgpu/src/webgpu/light-shader-metadata.ts`,
+  `packages/webgpu/src/webgpu/shadow-depth-texture-resource.ts`,
+  `packages/webgpu/src/webgpu/shadow-map-descriptor.ts`,
+  `packages/webgpu/src/webgpu/shadow-pass-plan.ts`,
+  `packages/webgpu/src/webgpu/shadow-texture-resource.ts`,
+  `packages/webgpu/src/webgpu/standard-material-shadow-bind-group.ts`,
+  `packages/webgpu/src/webgpu/standard-shader.ts`.
+- Examples/tests: `package.json`, `examples/index.html`,
+  `examples/area-light-shapes.html`, `examples/area-light-shapes.js`,
+  `examples/area-light-shapes.main.js`,
+  `examples/area-light-shapes.worker.js`,
+  `examples/area-light-shapes-scene.js`,
+  `test/e2e/area-light-shapes.spec.ts`, plus targeted render/WebGPU/example
+  tests updated for area-light shape metadata and CSM cascade planning.
+
+### References inspected
+
+- `references/engine/src/scene/light.js`
+- `references/engine/src/scene/constants.js`
+- `references/engine/src/scene/lighting/lights-buffer.js`
+- `references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/ltc.js`
+- `references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/clusteredLight.js`
+- `references/engine/src/scene/renderer/shadow-renderer-directional.js`
+- `references/bevy/crates/bevy_light/src/cascade.rs`
+- `references/bevy/crates/bevy_pbr/src/render/light.rs`
+
+Common pattern adapted: PlayCanvas keeps area-light shape as authored light
+metadata, packs that metadata into renderer light buffers, derives area axes from
+the light transform, and branches in WGSL. Aperture keeps the ECS snapshot as
+the source of truth and only consumes the shape id in WebGPU packing/shading.
+For CSM, PlayCanvas and Bevy both keep cascade settings/counts in extracted
+light data while the renderer creates per-cascade view/projection records and
+shadow resources. Aperture has implemented that data/planning boundary but not
+the executable texture-array receiver path yet.
+
+### Validation
+
+- `pnpm run typecheck` passed.
+- `pnpm run typecheck:test` passed.
+- `pnpm run check:examples` passed.
+- `pnpm exec vitest run test/rendering/components.test.ts test/rendering/extraction.test.ts test/rendering/snapshot-packed-encoding.test.ts test/webgpu/light-packing.test.ts test/webgpu/light-shader-metadata.test.ts test/webgpu/standard-shader.test.ts test/examples/worker-split-examples.test.mjs --reporter=dot`
+  passed.
+- `pnpm exec vitest run test/webgpu/direct-light-readiness.test.ts test/webgpu/app-diagnostics-summary.test.ts --reporter=dot`
+  passed.
+- `pnpm exec vitest run test/rendering/components.test.ts test/rendering/extraction.test.ts test/rendering/snapshot-packed-encoding.test.ts test/webgpu/shadow-map-descriptor.test.ts test/webgpu/shadow-texture-resource.test.ts test/webgpu/shadow-depth-texture-resource.test.ts test/webgpu/shadow-pass-plan.test.ts test/webgpu/directional-shadow-view-projection-plan.test.ts test/webgpu/directional-shadow-matrix-computation.test.ts --reporter=dot`
+  passed.
+- `pnpm exec vitest run test/webgpu/shadow-command-resource-summary.test.ts test/webgpu/shadow-pass-attachment-descriptor.test.ts test/webgpu/standard-light-shadow-bind-group.test.ts test/webgpu/standard-material-shadow-receiver-binding-readiness.test.ts test/webgpu/shadow-pass-command-encoding-report.test.ts test/webgpu/shadow-pass-encoder-assembly-report.test.ts test/webgpu/shadow-depth-resource-summary.test.ts --reporter=dot`
+  passed.
+- `pnpm exec vitest run test/webgpu/standard-material-shadow-bind-group.test.ts --reporter=dot`
+  passed after adding the CSM 2D-array compatibility guard.
+- `pnpm run check` passed after the full area-light shape plus CSM planning
+  diff. It covered package boundaries, progress tracker freshness, build,
+  runtime TypeScript, test TypeScript, example syntax checks, lint, format, and
+  all 343 Vitest files / 1,696 tests.
+- A later `pnpm run check` attempt hit a timing-sensitive microbenchmark miss in
+  `test/rendering/extraction.test.ts`; rerunning that file immediately passed
+  all 47 tests. A final `pnpm run check` rerun then passed all 343 Vitest files /
+  1,696 tests.
+- Focused direct Playwright status probe against
+  `http://127.0.0.1:4173/examples/area-light-shapes.html` passed with
+  `submittedShapes: 3`, no diagnostics, and distinct rect/disk/sphere center
+  samples.
+- `pnpm exec playwright test test/e2e/area-light-shapes.spec.ts --project=chrome-webgpu-headed --timeout=60000 --reporter=list`
+  reached the passing assertion, then the local headed runner hit the known
+  teardown hang and was stopped after the checkmark.
+- In-app browser validation showed state `ready`, published readback samples,
+  and no WebGPU validation errors. The only console error was the expected
+  missing favicon request.
+
+### Known issues
+
+- Area-light evaluation still uses first-slice approximations/procedural LTC
+  resources; production-fidelity LTC table payloads remain future work.
+- Area-light shadows remain unsupported by design; extraction continues to
+  report `render.shadowUnsupportedLightKind.rect-area` when requested.
+- The local headed Playwright runner has the same teardown hang seen in prior
+  GLB/cross-fade runs. The focused area-light assertion itself passed before
+  the runner was killed.
+- An ad hoc headless Chromium status probe reached `ok: true` but returned
+  transparent disk readback samples, so it was not counted as visual validation.
+  The e2e assertion now explicitly rejects transparent center samples.
+- CSM is not complete. The new `cascadeCount` data contract reaches renderer
+  planning reports, and the current StandardMaterial bind-group path now blocks
+  2D-array CSM views instead of silently treating them as single-map-compatible.
+  Executable texture-array binding, per-cascade pass submission, distance-based
+  receiver selection, and the outdoor browser proof remain for the next step.
+
+### Recommended next task
+
+Continue `task-3076`: cascaded shadow maps for directional lights. Inspect
+`references/engine/src/scene/renderer/shadow-renderer-directional.js` and
+`references/bevy/crates/bevy_pbr/src/render/light.rs`; keep ECS-authored shadow
+settings data-only, move from the validated cascade planning records into
+render-owned CSM texture resources/submission, update receiver shader selection,
+and add one outdoor pixel-readback proof.
 
 ## Current Run Update — 2026-05-22T10:40:00Z — RectAreaLight first slice shipped
 

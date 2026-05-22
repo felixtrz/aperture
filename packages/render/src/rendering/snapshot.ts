@@ -17,7 +17,7 @@ import {
   type TextureSemantic,
 } from "../materials/index.js";
 import type { MeshTopology } from "../mesh/index.js";
-import type { LightKind } from "./authoring.js";
+import type { AreaLightShape, LightKind } from "./authoring.js";
 
 export type RenderQueue = "opaque" | "alpha-test" | "transparent";
 export type RenderDiagnosticSeverity = "info" | "warning" | "error";
@@ -67,6 +67,7 @@ export interface LightPacket {
   readonly lightId: number;
   readonly entity: RenderEntityRef;
   readonly kind: LightKind;
+  readonly shape?: AreaLightShape;
   readonly color: Vec4Like;
   readonly intensity: number;
   readonly range: number;
@@ -90,6 +91,7 @@ export interface ShadowRequestPacket {
   readonly shadowId: number;
   readonly lightId: number;
   readonly lightKind?: LightKind;
+  readonly cascadeCount?: number;
   readonly casterLayerMask: number;
   readonly receiverLayerMask: number;
 }

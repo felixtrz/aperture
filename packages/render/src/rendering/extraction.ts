@@ -438,6 +438,10 @@ function extractLights(
       lightId: createStableRenderId(entityRef(entity)),
       entity: entityRef(entity),
       kind,
+      shape: (entity.getValue(Light, "shape") ?? "rect") as
+        | "rect"
+        | "disk"
+        | "sphere",
       color: Array.from(entity.getVectorView(Light, "color")) as [
         number,
         number,
@@ -483,6 +487,7 @@ function readShadowSettings(
     mapSize: entity.getValue(LightShadowSettings, "mapSize") ?? 1024,
     bias: entity.getValue(LightShadowSettings, "bias") ?? 0,
     normalBias: entity.getValue(LightShadowSettings, "normalBias") ?? 0,
+    cascadeCount: entity.getValue(LightShadowSettings, "cascadeCount") ?? 1,
     casterLayerMask:
       entity.getValue(LightShadowSettings, "casterLayerMask") ?? -1,
     receiverLayerMask:
@@ -522,6 +527,9 @@ function appendShadowRequest(
     shadowId: lightId,
     lightId,
     lightKind: kind,
+    ...(kind === "directional"
+      ? { cascadeCount: settings.cascadeCount ?? 1 }
+      : {}),
     casterLayerMask: settings.casterLayerMask ?? -1,
     receiverLayerMask: settings.receiverLayerMask ?? -1,
   });
@@ -1539,6 +1547,10 @@ function lightInput(entity: Entity): LightInput {
       | "point"
       | "spot"
       | "rect-area",
+    shape: (entity.getValue(Light, "shape") ?? "rect") as
+      | "rect"
+      | "disk"
+      | "sphere",
     intensity: entity.getValue(Light, "intensity") ?? 1,
     range: entity.getValue(Light, "range") ?? 10,
     innerConeAngle: entity.getValue(Light, "innerConeAngle") ?? Math.PI / 8,

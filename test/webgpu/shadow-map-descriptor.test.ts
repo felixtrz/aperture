@@ -42,6 +42,7 @@ describe("shadow-map descriptors", () => {
           mapSize: 1024,
           depthBias: 0.001,
           normalBias: 0.01,
+          cascadeCount: 1,
           faceCount: 1,
           viewDimension: "2d",
           casterLayerMask: 1,
@@ -53,6 +54,28 @@ describe("shadow-map descriptors", () => {
     });
     expect(JSON.parse(shadowMapDescriptorReportToJson(report))).toEqual(json);
     expect(JSON.stringify(json)).not.toMatch(/GPUTexture|GPURenderPass|handle/);
+  });
+
+  it("carries directional cascade counts into descriptor metadata", () => {
+    const report = createShadowMapDescriptorReport({
+      shadowRequests: [{ ...shadowRequest(7, 11), cascadeCount: 3 }],
+      descriptors: [
+        {
+          shadowId: 7,
+          lightId: 11,
+          mapSize: 1024,
+          depthBias: 0.001,
+        },
+      ],
+    });
+    const json = shadowMapDescriptorReportToJsonValue(report);
+
+    expect(json.ready).toBe(true);
+    expect(json.descriptors[0]).toMatchObject({
+      cascadeCount: 3,
+      faceCount: 1,
+      viewDimension: "2d-array",
+    });
   });
 
   it("diagnoses missing descriptors without creating renderer state", () => {

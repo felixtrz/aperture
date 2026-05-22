@@ -10,9 +10,10 @@ export interface ShadowMapDescriptorSource {
   readonly mapSize: number;
   readonly depthBias: number;
   readonly normalBias?: number;
+  readonly cascadeCount?: number;
   readonly depthFormat?: "depth24plus";
   readonly faceCount?: 1 | 6;
-  readonly viewDimension?: "2d" | "cube";
+  readonly viewDimension?: "2d" | "2d-array" | "cube";
   readonly resourceKey?: string;
 }
 
@@ -25,8 +26,9 @@ export interface ShadowMapDescriptor {
   readonly mapSize: number;
   readonly depthBias: number;
   readonly normalBias: number;
+  readonly cascadeCount: number;
   readonly faceCount: 1 | 6;
-  readonly viewDimension: "2d" | "cube";
+  readonly viewDimension: "2d" | "2d-array" | "cube";
   readonly casterLayerMask: number;
   readonly receiverLayerMask: number;
   readonly ready: boolean;
@@ -105,9 +107,19 @@ export function createShadowMapDescriptorReport(
       mapSize: source?.mapSize ?? 0,
       depthBias: source?.depthBias ?? 0,
       normalBias: source?.normalBias ?? 0,
+      cascadeCount:
+        lightKind === "directional"
+          ? clampCascadeCount(source?.cascadeCount ?? request.cascadeCount ?? 1)
+          : 1,
       faceCount: source?.faceCount ?? (lightKind === "point" ? 6 : 1),
       viewDimension:
-        source?.viewDimension ?? (lightKind === "point" ? "cube" : "2d"),
+        source?.viewDimension ??
+        (lightKind === "point"
+          ? "cube"
+          : lightKind === "directional" &&
+              (source?.cascadeCount ?? request.cascadeCount ?? 1) > 1
+            ? "2d-array"
+            : "2d"),
       casterLayerMask: request.casterLayerMask,
       receiverLayerMask: request.receiverLayerMask,
       ready: source !== undefined && source.mapSize > 0,
@@ -153,4 +165,12 @@ export function shadowMapDescriptorReportToJson(
 
 function descriptorKey(shadowId: number, lightId: number): string {
   return `${shadowId}:${lightId}`;
+}
+
+function clampCascadeCount(value: number): number {
+  if (!Number.isInteger(value)) {
+    return 1;
+  }
+
+  return Math.min(4, Math.max(1, value));
 }

@@ -5,6 +5,7 @@ import {
   PACKED_LIGHT_METADATA_STRIDE,
   DEFAULT_LIGHT_BUFFER_RESOURCE_KEY,
   DEFAULT_LIGHT_BUFFER_USAGE,
+  PackedAreaLightShapeId,
   PackedLightKindId,
   createLightBufferDescriptor,
   createLightBufferDescriptorPlanScratch,
@@ -38,7 +39,18 @@ describe("light packet packing", () => {
     expect(packed.floatStride).toBe(PACKED_LIGHT_FLOAT_STRIDE);
     expect(packed.metadataStride).toBe(PACKED_LIGHT_METADATA_STRIDE);
     expect(Array.from(packed.floats.slice(0, 12))).toEqual([
-      1, 0.5, 0.25, 1, 10, 20, 0.125, 0.25, 2.5, 1.5, 0, 0,
+      1,
+      0.5,
+      0.25,
+      1,
+      10,
+      20,
+      0.125,
+      0.25,
+      2.5,
+      1.5,
+      PackedAreaLightShapeId.Rect,
+      0,
     ]);
     expect(metadataColumn(packed.metadata, 0)).toEqual([
       PackedLightKindId.Ambient,
@@ -55,11 +67,14 @@ describe("light packet packing", () => {
   });
 
   it("packs snapshot lights without reading ECS state", () => {
-    const packed = packLightPackets(snapshot([light("directional", 5)]));
+    const packed = packLightPackets(
+      snapshot([light("rect-area", 5, "sphere")]),
+    );
 
     expect(packed.count).toBe(1);
+    expect(packed.floats[10]).toBe(PackedAreaLightShapeId.Sphere);
     expect(Array.from(packed.metadata)).toEqual([
-      PackedLightKindId.Directional,
+      PackedLightKindId.RectArea,
       80,
       32,
       105,
@@ -303,11 +318,16 @@ describe("light packet packing", () => {
   });
 });
 
-function light(kind: LightPacket["kind"], seed: number): LightPacket {
+function light(
+  kind: LightPacket["kind"],
+  seed: number,
+  shape?: LightPacket["shape"],
+): LightPacket {
   return {
     lightId: 100 + seed,
     entity: { index: seed, generation: 0 },
     kind,
+    ...(shape === undefined ? {} : { shape }),
     color: [1, 0.5, 0.25, 1],
     intensity: 10 * seed,
     range: 20 * seed,

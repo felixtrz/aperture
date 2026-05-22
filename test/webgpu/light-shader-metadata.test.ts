@@ -95,7 +95,7 @@ describe("light shader binding metadata", () => {
       "@group(3) @binding(1) var<storage, read> lightMetadata: array<i32>;",
     );
     expect(LIGHT_SHADER_WGSL_DECLARATION.source).toContain(
-      "0 color.r, 1 color.g, 2 color.b, 3 color.a, 4 intensity, 5 range, 6 innerConeAngle, 7 outerConeAngle, 8 width, 9 height, 10-11 reserved.",
+      "0 color.r, 1 color.g, 2 color.b, 3 color.a, 4 intensity, 5 range, 6 innerConeAngle, 7 outerConeAngle, 8 width, 9 height, 10 areaShape, 11 reserved.",
     );
     expect(createLightShaderWgslDeclarationContract().source).toBe(
       LIGHT_SHADER_WGSL_DECLARATION.source,
