@@ -1077,16 +1077,16 @@ function createGltfFixtureRoot(config) {
     name: materialNameForConfig(config),
     pbrMetallicRoughness,
     ...(config.usesUnsupportedRequiredMaterialExtension
-      ? { extensions: { KHR_materials_clearcoat: {} } }
+      ? { extensions: { KHR_materials_transmission: {} } }
       : {}),
     ...(config.usesUnsupportedOptionalMaterialExtension
-      ? { extensions: { KHR_materials_clearcoat: {} } }
+      ? { extensions: { KHR_materials_transmission: {} } }
       : {}),
     ...(config.usesMultipleOptionalMaterialExtensions
       ? {
           extensions: {
-            KHR_materials_clearcoat: {},
             KHR_materials_transmission: {},
+            KHR_materials_sheen: {},
           },
         }
       : {}),
@@ -1192,7 +1192,7 @@ function createGltfFixtureRoot(config) {
   return {
     asset: { version: "2.0" },
     ...(config.usesUnsupportedRequiredMaterialExtension
-      ? { extensionsRequired: ["KHR_materials_clearcoat"] }
+      ? { extensionsRequired: ["KHR_materials_transmission"] }
       : {}),
     materials: [material],
     ...(config.textureSlot === null

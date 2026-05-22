@@ -6,6 +6,6 @@
   "lastResult": "success",
   "lastCommit": "62aff5a",
   "activePid": null,
-  "notes": "Completed task-3080 fog: ECS Fog authoring/extraction/runtime helper, WebGPU StandardMaterial linear/exp/exp2 fog variants, square fog example, docs/trackers updated, and validation passed.",
-  "lastRunFinishedAt": "2026-05-22T23:06:52Z"
+  "notes": "Completed task-3082 clearcoat: StandardMaterial scalar clearcoat fields, glTF KHR_materials_clearcoat scalar mapping, WebGPU uniform/shader support, clearcoat example, trackers, and validation passed.",
+  "lastRunFinishedAt": "2026-05-22T23:59:15Z"
 }

@@ -1,6 +1,69 @@
 # Agent Handoff
 
-Updated: 2026-05-22T23:23:58Z
+Updated: 2026-05-22T23:58:11Z
+
+## Current Run Update — 2026-05-22T23:58:11Z — Clearcoat
+
+Completed `task-3082`, the Tier 18 scalar clearcoat slice.
+
+### What changed
+
+- Added StandardMaterial scalar clearcoat fields:
+  `clearcoatFactor` and `clearcoatRoughnessFactor`.
+- Added default values, proof-point validation, material pipeline-key routing,
+  and WebGPU StandardMaterial uniform packing for clearcoat.
+- Added glTF `KHR_materials_clearcoat` scalar mapping in the library material
+  mapper. Clearcoat texture slots are now explicit optional warnings rather
+  than viewer-local behavior.
+- Added a clearcoat WGSL path that attenuates the base diffuse/specular layer
+  by clearcoat Fresnel and adds a direct-light coating specular lobe.
+- Added `examples/clearcoat.html`, `examples/clearcoat.main.js`,
+  `examples/clearcoat.worker.js`, and `examples/clearcoat-scene.js` with a
+  square worker-authored base-coat vs clearcoat comparison.
+- Added headed Chrome/WebGPU coverage proving the coated sphere has a brighter
+  highlight than the matching base sphere, plus unit coverage for material
+  schema, glTF mapping, pipeline keys, uniform packing, shader variants, and
+  pipeline descriptors.
+
+### Reference comparison
+
+- three.js exposes clearcoat scalar factors on `MeshPhysicalMaterial` and maps
+  glTF `KHR_materials_clearcoat` into that physical-material path.
+- PlayCanvas routes clearcoat through its StandardMaterial physical-shading
+  path with clearcoat-specific shader features and material parameters.
+- Aperture now keeps the equivalent scalar material data in
+  renderer-independent StandardMaterial assets, derives the clearcoat pipeline
+  feature through extraction/material keys, and keeps WebGPU uniforms/shaders
+  renderer-owned.
+
+### Validation
+
+- `pnpm run typecheck` passed.
+- `pnpm run typecheck:test` passed.
+- `pnpm run check:examples` passed.
+- `pnpm run check:progress` passed.
+- `pnpm run check:boundaries` passed.
+- `pnpm run lint` passed.
+- `pnpm run format:check` passed.
+- `git diff --check` passed.
+- `pnpm exec vitest run test/materials/materials.test.ts test/materials/standard-proof-point.test.ts test/materials/gltf-material.test.ts test/webgpu/standard-material-buffer.test.ts test/webgpu/standard-shader.test.ts test/webgpu/standard-pipeline.test.ts` passed: 6 files, 98 tests.
+- `pnpm test` passed: 347 files, 1790 tests.
+- `pnpm exec playwright test test/e2e/clearcoat.spec.ts --reporter=line --timeout=30000` passed.
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "unsupported .*material extension" --reporter=line --timeout=30000` passed: 3 tests.
+
+### Known issues
+
+- Clearcoat texture slots (`clearcoatTexture`,
+  `clearcoatRoughnessTexture`, and `clearcoatNormalTexture`) are detected and
+  reported as optional warnings, but are not sampled yet.
+- Tier 18 still needs transmission, sheen, and iridescence.
+
+### Recommended next task
+
+Continue with `task-3083`, Transmission extension, from
+`agent/CURRENT_TASK.md`. The visible proof should show a glass-like surface with
+background visible through the transmitted material, while keeping the loading
+and material mapping in the library path.
 
 ## Current Run Update — 2026-05-22T23:23:58Z — Outdoor atmosphere
 

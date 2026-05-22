@@ -92,6 +92,23 @@ describe("material, texture, sampler, and render-state schemas", () => {
     );
   });
 
+  it("adds a stable StandardMaterial clearcoat pipeline feature", () => {
+    const material = createStandardMaterialAsset({
+      metallicFactor: 0,
+      roughnessFactor: 0.6,
+      clearcoatFactor: 1,
+      clearcoatRoughnessFactor: 0.05,
+    });
+
+    expect(validateMaterialAsset(material)).toEqual({
+      valid: true,
+      diagnostics: [],
+    });
+    expect(createMaterialPipelineKeyInput(material).features).toEqual([
+      "clearcoat",
+    ]);
+  });
+
   it("validates texture color-space rules", () => {
     const invalidNormal = createTextureAsset({
       label: "Normal",

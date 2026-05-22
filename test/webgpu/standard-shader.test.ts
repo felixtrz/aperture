@@ -25,6 +25,7 @@ import {
   PackedAreaLightShapeId,
   PackedLightKindId,
   STANDARD_CASCADED_SHADOW_MAP_SHADER_VARIANT,
+  STANDARD_CLEARCOAT_SHADER_VARIANT,
   STANDARD_SKINNING_BIND_GROUP_LAYOUT_KEY,
   STANDARD_SHADOW_MAP_SHADER_VARIANT,
   STANDARD_SHADOW_RECEIVER_MESH_SHADER,
@@ -288,6 +289,45 @@ describe("built-in standard material WGSL shader metadata", () => {
     );
     expect(shader.code).toContain("color = applyDistanceFog");
     expect(shader.code).toContain("return vec4f(color, alpha);");
+  });
+
+  it("generates a scalar clearcoat StandardMaterial shader variant", () => {
+    const shader = createStandardTextureVariantShader({
+      baseColorTexture: false,
+      metallicRoughnessTexture: false,
+      normalTexture: false,
+      occlusionTexture: false,
+      emissiveTexture: false,
+      clearcoat: true,
+    });
+    const material = createStandardMaterialAsset({
+      clearcoatFactor: 1,
+      clearcoatRoughnessFactor: 0.08,
+    });
+
+    expect(
+      createStandardTextureShaderVariantKey({
+        baseColorTexture: false,
+        metallicRoughnessTexture: false,
+        normalTexture: false,
+        occlusionTexture: false,
+        emissiveTexture: false,
+        clearcoat: true,
+      }),
+    ).toBe(STANDARD_CLEARCOAT_SHADER_VARIANT);
+    expect(shader.label).toBe("aperture/standard-mesh-clearcoat");
+    expect(validateStandardShaderMetadata(shader)).toEqual({
+      valid: true,
+      diagnostics: [],
+    });
+    expect(shader.bindings).toEqual(STANDARD_MESH_SHADER.bindings);
+    expect(shader.code).toContain("clearcoatFactor: f32");
+    expect(shader.code).toContain("clearcoatRoughnessFactor: f32");
+    expect(shader.code).toContain("let clearcoatFresnel = fresnelSchlick");
+    expect(shader.code).toContain("clearcoatAttenuation");
+    expect(
+      materialPipelineKeyInputToKey(createMaterialPipelineKeyInput(material)),
+    ).toBe("standard|clearcoat|opaque|back|less|none");
   });
 
   it("generates a skinned StandardMaterial shader variant", () => {

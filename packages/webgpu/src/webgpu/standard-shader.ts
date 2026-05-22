@@ -41,6 +41,8 @@ export const STANDARD_DIFFUSE_IBL_SHADER_VARIANT =
   "direct-lit-metallic-roughness-diffuse-ibl";
 export const STANDARD_SPECULAR_IBL_PROOF_SHADER_VARIANT =
   "direct-lit-metallic-roughness-diffuse-specular-ibl-proof";
+export const STANDARD_CLEARCOAT_SHADER_VARIANT =
+  "direct-lit-metallic-roughness-clearcoat";
 
 export interface StandardTextureShaderFeatures {
   readonly baseColorTexture: boolean;
@@ -58,6 +60,7 @@ export interface StandardTextureShaderFeatures {
   readonly instanceTint?: boolean;
   readonly skinned?: boolean;
   readonly morphed?: boolean;
+  readonly clearcoat?: boolean;
   readonly fogLinear?: boolean;
   readonly fogExp?: boolean;
   readonly fogExp2?: boolean;
@@ -81,6 +84,8 @@ export const STANDARD_MATERIAL_MVP_LIGHTING_MODEL = {
     "rectAreaLight",
     "diskAreaLight",
     "sphereAreaLight",
+    "clearcoatFactor",
+    "clearcoatRoughnessFactor",
     "linearFog",
     "exponentialFog",
     "exponentialSquaredFog",
@@ -133,8 +138,8 @@ struct StandardMaterialUniform {
   emissiveTextureScale: vec2f,
   emissiveTextureRotation: f32,
   padding5: f32,
-  padding6: f32,
-  padding7: f32,
+  clearcoatFactor: f32,
+  clearcoatRoughnessFactor: f32,
   padding8: f32,
   padding9: f32,
 };
@@ -828,7 +833,7 @@ export function createStandardTextureShaderVariantKey(
     features.instanceTint !== true &&
     features.skinned !== true &&
     features.morphed !== true &&
-    !hasStandardFogFeature(features)
+    !hasStandardGenericOnlyFeature(features)
   ) {
     return STANDARD_METALLIC_ROUGHNESS_TEXTURE_SHADER_VARIANT;
   }
@@ -849,7 +854,7 @@ export function createStandardTextureShaderVariantKey(
     features.instanceTint !== true &&
     features.skinned !== true &&
     features.morphed !== true &&
-    !hasStandardFogFeature(features)
+    !hasStandardGenericOnlyFeature(features)
   ) {
     return STANDARD_SHADOW_MAP_SHADER_VARIANT;
   }
@@ -870,7 +875,7 @@ export function createStandardTextureShaderVariantKey(
     features.instanceTint !== true &&
     features.skinned !== true &&
     features.morphed !== true &&
-    !hasStandardFogFeature(features)
+    !hasStandardGenericOnlyFeature(features)
   ) {
     return STANDARD_CASCADED_SHADOW_MAP_SHADER_VARIANT;
   }
@@ -891,7 +896,7 @@ export function createStandardTextureShaderVariantKey(
     features.instanceTint !== true &&
     features.skinned !== true &&
     features.morphed !== true &&
-    !hasStandardFogFeature(features)
+    !hasStandardGenericOnlyFeature(features)
   ) {
     return STANDARD_POINT_SHADOW_MAP_SHADER_VARIANT;
   }
@@ -912,7 +917,7 @@ export function createStandardTextureShaderVariantKey(
     features.instanceTint !== true &&
     features.skinned !== true &&
     features.morphed !== true &&
-    !hasStandardFogFeature(features)
+    !hasStandardGenericOnlyFeature(features)
   ) {
     return STANDARD_MULTI_SHADOW_MAP_SHADER_VARIANT;
   }
@@ -933,7 +938,7 @@ export function createStandardTextureShaderVariantKey(
     features.instanceTint !== true &&
     features.skinned !== true &&
     features.morphed !== true &&
-    !hasStandardFogFeature(features)
+    !hasStandardGenericOnlyFeature(features)
   ) {
     return STANDARD_DIFFUSE_IBL_SHADER_VARIANT;
   }
@@ -954,9 +959,31 @@ export function createStandardTextureShaderVariantKey(
     features.instanceTint !== true &&
     features.skinned !== true &&
     features.morphed !== true &&
-    !hasStandardFogFeature(features)
+    !hasStandardGenericOnlyFeature(features)
   ) {
     return STANDARD_SPECULAR_IBL_PROOF_SHADER_VARIANT;
+  }
+
+  if (
+    features.clearcoat === true &&
+    !features.baseColorTexture &&
+    !features.metallicRoughnessTexture &&
+    !features.normalTexture &&
+    !features.occlusionTexture &&
+    !features.emissiveTexture &&
+    features.shadowMap !== true &&
+    features.cascadedShadowMap !== true &&
+    features.pointShadowMap !== true &&
+    features.iblDiffuse !== true &&
+    features.iblSpecularProof !== true &&
+    features.texCoord1 !== true &&
+    features.vertexColor !== true &&
+    features.instanceTint !== true &&
+    features.skinned !== true &&
+    features.morphed !== true &&
+    !hasStandardFogFeature(features)
+  ) {
+    return STANDARD_CLEARCOAT_SHADER_VARIANT;
   }
 
   const names: string[] = [];
@@ -1011,6 +1038,10 @@ export function createStandardTextureShaderVariantKey(
 
   if (features.instanceTint === true) {
     names.push("instance-tint");
+  }
+
+  if (features.clearcoat === true) {
+    names.push("clearcoat");
   }
 
   appendStandardSkinningFeatureName(names, features);
@@ -1419,6 +1450,10 @@ ${emissive}
     code = applyStandardSpecularIblProofSampling(code);
   }
 
+  if (features.clearcoat === true) {
+    code = applyStandardClearcoatSampling(code);
+  }
+
   if (hasStandardFogFeature(features)) {
     code = applyStandardFogSampling(code, features);
   }
@@ -1441,7 +1476,7 @@ function standardTextureVariantComment(
 
   return `// Direct lights use a small metallic/roughness GGX BRDF. ${active.join(
     ", ",
-  )} sampling is active; ${deferred} deferred.`;
+  )} features are active; ${deferred} deferred.`;
 }
 
 function standardTextureUvExpression(
@@ -1808,7 +1843,7 @@ function standardTextureVariantShaderLabel(
     features.instanceTint !== true &&
     features.skinned !== true &&
     features.morphed !== true &&
-    !hasStandardFogFeature(features)
+    !hasStandardGenericOnlyFeature(features)
   ) {
     return "aperture/standard-mesh-base-color-textured";
   }
@@ -1829,7 +1864,7 @@ function standardTextureVariantShaderLabel(
     features.instanceTint !== true &&
     features.skinned !== true &&
     features.morphed !== true &&
-    !hasStandardFogFeature(features)
+    !hasStandardGenericOnlyFeature(features)
   ) {
     return "aperture/standard-mesh-metallic-roughness-textured";
   }
@@ -1849,7 +1884,7 @@ function standardTextureVariantShaderLabel(
     features.instanceTint !== true &&
     features.skinned !== true &&
     features.morphed !== true &&
-    !hasStandardFogFeature(features)
+    !hasStandardGenericOnlyFeature(features)
   ) {
     return "aperture/standard-mesh-base-color-metallic-roughness-textured";
   }
@@ -1869,7 +1904,7 @@ function standardTextureVariantShaderLabel(
     features.instanceTint !== true &&
     features.skinned !== true &&
     features.morphed !== true &&
-    !hasStandardFogFeature(features)
+    !hasStandardGenericOnlyFeature(features)
   ) {
     return "aperture/standard-mesh-shadow-receiver";
   }
@@ -1889,7 +1924,7 @@ function standardTextureVariantShaderLabel(
     features.instanceTint !== true &&
     features.skinned !== true &&
     features.morphed !== true &&
-    !hasStandardFogFeature(features)
+    !hasStandardGenericOnlyFeature(features)
   ) {
     return "aperture/standard-mesh-cascaded-shadow-receiver";
   }
@@ -1909,7 +1944,7 @@ function standardTextureVariantShaderLabel(
     features.instanceTint !== true &&
     features.skinned !== true &&
     features.morphed !== true &&
-    !hasStandardFogFeature(features)
+    !hasStandardGenericOnlyFeature(features)
   ) {
     return "aperture/standard-mesh-point-shadow-receiver";
   }
@@ -1929,7 +1964,7 @@ function standardTextureVariantShaderLabel(
     features.instanceTint !== true &&
     features.skinned !== true &&
     features.morphed !== true &&
-    !hasStandardFogFeature(features)
+    !hasStandardGenericOnlyFeature(features)
   ) {
     return "aperture/standard-mesh-multi-shadow-receiver";
   }
@@ -1950,7 +1985,7 @@ function standardTextureVariantShaderLabel(
     features.instanceTint !== true &&
     features.skinned !== true &&
     features.morphed !== true &&
-    !hasStandardFogFeature(features)
+    !hasStandardGenericOnlyFeature(features)
   ) {
     return "aperture/standard-mesh-diffuse-ibl";
   }
@@ -1971,9 +2006,31 @@ function standardTextureVariantShaderLabel(
     features.instanceTint !== true &&
     features.skinned !== true &&
     features.morphed !== true &&
-    !hasStandardFogFeature(features)
+    !hasStandardGenericOnlyFeature(features)
   ) {
     return "aperture/standard-mesh-diffuse-specular-ibl-proof";
+  }
+
+  if (
+    features.clearcoat === true &&
+    !features.baseColorTexture &&
+    !features.metallicRoughnessTexture &&
+    !features.normalTexture &&
+    !features.occlusionTexture &&
+    !features.emissiveTexture &&
+    features.shadowMap !== true &&
+    features.cascadedShadowMap !== true &&
+    features.pointShadowMap !== true &&
+    features.iblDiffuse !== true &&
+    features.iblSpecularProof !== true &&
+    features.texCoord1 !== true &&
+    features.vertexColor !== true &&
+    features.instanceTint !== true &&
+    features.skinned !== true &&
+    features.morphed !== true &&
+    !hasStandardFogFeature(features)
+  ) {
+    return "aperture/standard-mesh-clearcoat";
   }
 
   return `aperture/standard-mesh-${standardTextureFeatureNames(features).join(
@@ -2038,6 +2095,10 @@ function standardTextureFeatureNames(
     names.push("instance-tint");
   }
 
+  if (features.clearcoat === true) {
+    names.push("clearcoat");
+  }
+
   appendStandardSkinningFeatureName(names, features);
   appendStandardMorphTargetFeatureName(names, features);
   appendStandardFogFeatureName(names, features);
@@ -2072,6 +2133,12 @@ function hasStandardFogFeature(
   );
 }
 
+function hasStandardGenericOnlyFeature(
+  features: StandardTextureShaderFeatures,
+): boolean {
+  return features.clearcoat === true || hasStandardFogFeature(features);
+}
+
 function hasAnyStandardTextureFeature(
   features: StandardTextureShaderFeatures,
 ): boolean {
@@ -2091,7 +2158,26 @@ function hasAnyStandardTextureFeature(
     features.instanceTint === true ||
     features.skinned === true ||
     features.morphed === true ||
+    features.clearcoat === true ||
     hasStandardFogFeature(features)
+  );
+}
+
+function applyStandardClearcoatSampling(code: string): string {
+  return code.replace(
+    `  return (diffuse + specular) * radiance * nDotL;`,
+    `  let clearcoat = clamp(material.clearcoatFactor, 0.0, 1.0);
+  let clearcoatRoughness = clamp(material.clearcoatRoughnessFactor, 0.045, 1.0);
+  let clearcoatFresnel = fresnelSchlick(
+    max(dot(halfVector, viewDir), 0.0),
+    vec3f(0.04),
+  );
+  let clearcoatDistribution = distributionGGX(normal, halfVector, clearcoatRoughness);
+  let clearcoatVisibility = geometrySmith(normal, viewDir, lightDir, clearcoatRoughness);
+  let clearcoatSpecular = (clearcoatDistribution * clearcoatVisibility * clearcoatFresnel) /
+    max(4.0 * max(dot(normal, viewDir), 0.0) * nDotL, 0.0001);
+  let clearcoatAttenuation = vec3f(1.0) - clearcoat * clearcoatFresnel;
+  return ((diffuse + specular) * clearcoatAttenuation + clearcoatSpecular * clearcoat) * radiance * nDotL;`,
   );
 }
 

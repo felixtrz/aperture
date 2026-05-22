@@ -101,7 +101,11 @@ export interface GltfMaterialMappingReportJsonValue {
   readonly diagnostics: readonly GltfMaterialMappingDiagnostic[];
 }
 
-const SUPPORTED_MATERIAL_EXTENSIONS = new Set(["KHR_materials_unlit"]);
+const CLEARCOAT_EXTENSION = "KHR_materials_clearcoat";
+const SUPPORTED_MATERIAL_EXTENSIONS = new Set([
+  "KHR_materials_unlit",
+  CLEARCOAT_EXTENSION,
+]);
 const TEXTURE_TRANSFORM_EXTENSION = "KHR_texture_transform";
 
 export function createMaterialAssetFromGltfMaterial(
@@ -150,6 +154,16 @@ export function createMaterialAssetFromGltfMaterial(
   const unlit = isRecord(materialExtensions)
     ? materialExtensions.KHR_materials_unlit !== undefined
     : false;
+  const clearcoatSource =
+    isRecord(materialExtensions) &&
+    materialExtensions[CLEARCOAT_EXTENSION] !== undefined
+      ? optionalRecordField({
+          source: materialExtensions,
+          field: CLEARCOAT_EXTENSION,
+          materialKey,
+          diagnostics,
+        })
+      : undefined;
 
   if (unlit) {
     const mapped = createUnlitMaterialAsset({
@@ -215,6 +229,20 @@ export function createMaterialAssetFromGltfMaterial(
       fallback: 1,
       diagnostics,
     }),
+    clearcoatFactor: mapFiniteNumber({
+      materialKey,
+      field: `extensions.${CLEARCOAT_EXTENSION}.clearcoatFactor`,
+      value: clearcoatSource?.clearcoatFactor,
+      fallback: 0,
+      diagnostics,
+    }),
+    clearcoatRoughnessFactor: mapFiniteNumber({
+      materialKey,
+      field: `extensions.${CLEARCOAT_EXTENSION}.clearcoatRoughnessFactor`,
+      value: clearcoatSource?.clearcoatRoughnessFactor,
+      fallback: 0,
+      diagnostics,
+    }),
     metallicRoughnessTexture: mapTextureBinding({
       materialKey,
       slot: "metallicRoughnessTexture",
@@ -269,6 +297,11 @@ export function createMaterialAssetFromGltfMaterial(
       diagnostics,
     }),
   });
+  inspectUnsupportedClearcoatTextures(
+    clearcoatSource,
+    materialKey,
+    diagnostics,
+  );
 
   return {
     valid: diagnostics.every((diagnostic) => diagnostic.severity !== "error"),
@@ -292,6 +325,35 @@ export function gltfMaterialMappingReportToJson(
   report: GltfMaterialMappingReport,
 ): string {
   return JSON.stringify(gltfMaterialMappingReportToJsonValue(report));
+}
+
+function inspectUnsupportedClearcoatTextures(
+  clearcoatSource: Record<string, unknown> | undefined,
+  materialKey: string,
+  diagnostics: GltfMaterialMappingDiagnostic[],
+): void {
+  if (clearcoatSource === undefined) {
+    return;
+  }
+
+  for (const field of [
+    "clearcoatTexture",
+    "clearcoatRoughnessTexture",
+    "clearcoatNormalTexture",
+  ] as const) {
+    if (clearcoatSource[field] === undefined) {
+      continue;
+    }
+
+    diagnostics.push({
+      code: "gltfMaterial.unsupportedOptionalExtension",
+      severity: "warning",
+      materialKey,
+      field: `extensions.${CLEARCOAT_EXTENSION}.${field}`,
+      extensionName: CLEARCOAT_EXTENSION,
+      message: `${CLEARCOAT_EXTENSION}.${field} is preserved in source data but scalar clearcoat rendering does not sample clearcoat textures yet.`,
+    });
+  }
 }
 
 function gltfRenderState(

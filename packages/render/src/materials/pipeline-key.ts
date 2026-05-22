@@ -16,6 +16,10 @@ export function createMaterialPipelineKeyInput(
     features.push("uv1");
   }
 
+  if (usesStandardClearcoat(material)) {
+    features.push("clearcoat");
+  }
+
   return {
     shaderFamily: material.kind,
     features: features.sort(),
@@ -35,6 +39,10 @@ function usesStandardTexCoord1(material: MaterialAsset): boolean {
       ([, binding]) => binding.texture !== null && binding.texCoord === 1,
     )
   );
+}
+
+function usesStandardClearcoat(material: MaterialAsset): boolean {
+  return material.kind === "standard" && material.clearcoatFactor > 0;
 }
 
 export function materialPipelineKeyInputToKey(

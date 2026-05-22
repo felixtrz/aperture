@@ -23,6 +23,8 @@ describe("standard material WebGPU uniform packing", () => {
       baseColorFactor: new Float32Array([0.2, 0.4, 0.6, 0.8]),
       metallicFactor: 0.25,
       roughnessFactor: 0.75,
+      clearcoatFactor: 0.85,
+      clearcoatRoughnessFactor: 0.12,
       normalScale: 0.5,
       occlusionStrength: 0.9,
       emissiveFactor: [0.1, 0.2, 0.3],
@@ -63,6 +65,8 @@ describe("standard material WebGPU uniform packing", () => {
       STANDARD_MATERIAL_FEATURE_FLAGS.ALPHA_MASK |
         STANDARD_MATERIAL_FEATURE_FLAGS.DOUBLE_SIDED,
     );
+    expect(result.packed?.uniformFloat32[48]).toBeCloseTo(0.85);
+    expect(result.packed?.uniformFloat32[49]).toBeCloseTo(0.12);
   });
 
   it("records texture dependencies and feature flags without raw handles", () => {
@@ -239,6 +243,10 @@ describe("standard material WebGPU uniform packing", () => {
       expect.closeTo(1.5, 5),
     ]);
     expect(result.packed?.uniformFloat32[46]).toBeCloseTo(Math.PI / 3);
+    expect(STANDARD_MATERIAL_UNIFORM_LAYOUT[48]).toBe("clearcoatFactor");
+    expect(STANDARD_MATERIAL_UNIFORM_LAYOUT[49]).toBe(
+      "clearcoatRoughnessFactor",
+    );
     expect(STANDARD_MATERIAL_UNIFORM_BYTE_LENGTH).toBe(208);
   });
 

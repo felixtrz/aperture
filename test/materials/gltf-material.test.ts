@@ -28,6 +28,8 @@ describe("glTF material mapping", () => {
       label: "Default Standard",
       metallicFactor: 1,
       roughnessFactor: 1,
+      clearcoatFactor: 0,
+      clearcoatRoughnessFactor: 0,
       normalScale: 1,
       occlusionStrength: 1,
       emissiveFactor: [0, 0, 0],
@@ -38,6 +40,81 @@ describe("glTF material mapping", () => {
         blend: { preset: "none" },
       },
     });
+  });
+
+  it("maps KHR_materials_clearcoat scalar factors to StandardMaterial fields", () => {
+    const report = createMaterialAssetFromGltfMaterial(
+      {
+        name: "Clearcoat Paint",
+        extensions: {
+          KHR_materials_clearcoat: {
+            clearcoatFactor: 0.9,
+            clearcoatRoughnessFactor: 0.08,
+          },
+        },
+        pbrMetallicRoughness: {
+          metallicFactor: 0,
+          roughnessFactor: 0.55,
+        },
+      },
+      {
+        materialKey: "material:clearcoat",
+        extensionsRequired: ["KHR_materials_clearcoat"],
+      },
+    );
+
+    expect(report.valid).toBe(true);
+    expect(report.diagnostics).toEqual([]);
+    expect(report.material).toMatchObject({
+      kind: "standard",
+      label: "Clearcoat Paint",
+      metallicFactor: 0,
+      roughnessFactor: 0.55,
+      clearcoatFactor: 0.9,
+      clearcoatRoughnessFactor: 0.08,
+    });
+  });
+
+  it("warns when KHR_materials_clearcoat uses unsupported texture slots", () => {
+    const report = createMaterialAssetFromGltfMaterial(
+      {
+        extensions: {
+          KHR_materials_clearcoat: {
+            clearcoatFactor: 1,
+            clearcoatTexture: { index: 0 },
+            clearcoatRoughnessTexture: { index: 1 },
+            clearcoatNormalTexture: { index: 2 },
+          },
+        },
+      },
+      { materialKey: "material:clearcoat-textures" },
+    );
+
+    expect(report.valid).toBe(true);
+    expect(report.material).toMatchObject({
+      kind: "standard",
+      clearcoatFactor: 1,
+    });
+    expect(report.diagnostics).toMatchObject([
+      {
+        code: "gltfMaterial.unsupportedOptionalExtension",
+        severity: "warning",
+        field: "extensions.KHR_materials_clearcoat.clearcoatTexture",
+        extensionName: "KHR_materials_clearcoat",
+      },
+      {
+        code: "gltfMaterial.unsupportedOptionalExtension",
+        severity: "warning",
+        field: "extensions.KHR_materials_clearcoat.clearcoatRoughnessTexture",
+        extensionName: "KHR_materials_clearcoat",
+      },
+      {
+        code: "gltfMaterial.unsupportedOptionalExtension",
+        severity: "warning",
+        field: "extensions.KHR_materials_clearcoat.clearcoatNormalTexture",
+        extensionName: "KHR_materials_clearcoat",
+      },
+    ]);
   });
 
   it("maps metallic-roughness texture slots through caller-provided handles", () => {
@@ -572,14 +649,14 @@ describe("glTF material mapping", () => {
   it("reports unsupported required extensions and unresolved texture handles", () => {
     const report = createMaterialAssetFromGltfMaterial(
       {
-        extensions: { KHR_materials_clearcoat: {} },
+        extensions: { KHR_materials_transmission: {} },
         pbrMetallicRoughness: {
           baseColorTexture: { index: 2 },
         },
       },
       {
         materialKey: "material:bad",
-        extensionsRequired: ["KHR_materials_clearcoat"],
+        extensionsRequired: ["KHR_materials_transmission"],
       },
     );
 
@@ -588,7 +665,7 @@ describe("glTF material mapping", () => {
       {
         code: "gltfMaterial.unsupportedRequiredExtension",
         severity: "error",
-        extensionName: "KHR_materials_clearcoat",
+        extensionName: "KHR_materials_transmission",
       },
       {
         code: "gltfMaterial.unresolvedTextureBinding",

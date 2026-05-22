@@ -1,5 +1,37 @@
 # Completed Tasks
 
+## task-3082 — Clearcoat extension
+
+Completed: 2026-05-22
+
+Summary:
+
+- Added scalar StandardMaterial clearcoat fields for `clearcoatFactor` and
+  `clearcoatRoughnessFactor`, with defaults, proof-point validation, material
+  pipeline-key routing, and WebGPU uniform packing.
+- Added glTF `KHR_materials_clearcoat` scalar mapping to the library material
+  mapper and warnings for currently unsupported clearcoat texture slots.
+- Added a clearcoat WGSL shader variant that attenuates the base lobe and adds a
+  clearcoat specular lobe for direct lights.
+- Added `examples/clearcoat.html` with a square worker-authored scene comparing
+  a base coat and coated sphere, plus headed Chrome/WebGPU readback proof that
+  the clearcoat highlight is visibly distinct.
+
+Validation:
+
+- `pnpm run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm run check:examples`
+- `pnpm run check:boundaries`
+- `pnpm run check:progress`
+- `pnpm run lint`
+- `pnpm run format:check`
+- `git diff --check`
+- `pnpm exec vitest run test/materials/materials.test.ts test/materials/standard-proof-point.test.ts test/materials/gltf-material.test.ts test/webgpu/standard-material-buffer.test.ts test/webgpu/standard-shader.test.ts test/webgpu/standard-pipeline.test.ts`
+- `pnpm test`
+- `pnpm exec playwright test test/e2e/clearcoat.spec.ts --reporter=line --timeout=30000`
+- `pnpm exec playwright test test/e2e/standard-gltf-texture.spec.ts -g "unsupported .*material extension" --reporter=line --timeout=30000`
+
 ## task-3081 — Outdoor atmosphere example
 
 Completed: 2026-05-22

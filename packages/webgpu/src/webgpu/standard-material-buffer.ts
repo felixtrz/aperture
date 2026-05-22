@@ -68,8 +68,8 @@ export const STANDARD_MATERIAL_UNIFORM_LAYOUT = [
   "emissiveTextureScale.v",
   "emissiveTextureRotation",
   "padding5",
-  "padding6",
-  "padding7",
+  "clearcoatFactor",
+  "clearcoatRoughnessFactor",
   "padding8",
   "padding9",
 ] as const;
@@ -249,6 +249,8 @@ export function packStandardMaterial(
   uniformFloat32.set(readTextureTransform(material.normalTexture), 30);
   uniformFloat32.set(readTextureTransform(material.occlusionTexture), 36);
   uniformFloat32.set(readTextureTransform(material.emissiveTexture), 42);
+  uniformFloat32[48] = material.clearcoatFactor;
+  uniformFloat32[49] = material.clearcoatRoughnessFactor;
 
   return {
     valid: true,

@@ -118,6 +118,8 @@ export interface StandardMaterialAsset extends BaseMaterialAsset {
   readonly baseColorTexture: MaterialTextureBinding | null;
   readonly metallicFactor: number;
   readonly roughnessFactor: number;
+  readonly clearcoatFactor: number;
+  readonly clearcoatRoughnessFactor: number;
   readonly metallicRoughnessTexture: MaterialTextureBinding | null;
   readonly normalTexture: MaterialTextureBinding | null;
   readonly normalScale: number;

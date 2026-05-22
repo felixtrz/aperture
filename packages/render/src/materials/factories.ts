@@ -77,6 +77,8 @@ export function createStandardMaterialAsset(
     baseColorTexture: input.baseColorTexture ?? null,
     metallicFactor: input.metallicFactor ?? 1,
     roughnessFactor: input.roughnessFactor ?? 1,
+    clearcoatFactor: input.clearcoatFactor ?? 0,
+    clearcoatRoughnessFactor: input.clearcoatRoughnessFactor ?? 0,
     metallicRoughnessTexture: input.metallicRoughnessTexture ?? null,
     normalTexture: input.normalTexture ?? null,
     normalScale: input.normalScale ?? 1,

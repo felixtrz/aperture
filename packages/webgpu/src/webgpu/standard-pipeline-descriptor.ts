@@ -334,6 +334,7 @@ function standardTextureFeatures(
     iblSpecularProof: tokens.includes("iblSpecularProof"),
     texCoord1: tokens.includes("uv1"),
     instanceTint: tokens.includes("instance-tint"),
+    clearcoat: tokens.includes("clearcoat"),
     fogLinear: tokens.includes("fogLinear"),
     fogExp: tokens.includes("fogExp"),
     fogExp2: tokens.includes("fogExp2"),

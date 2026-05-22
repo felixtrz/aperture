@@ -59,15 +59,15 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start `task-3082`: Clearcoat extension.
+Start `task-3083`: Transmission extension.
 
-Why this next: Tier 17 scene atmosphere is complete. ECS-authored sprites,
-skyboxes, and fog now render independently and together in
-`examples/atmosphere.html`; the WebGPU mixed-scene path also submits sprite
-billboards alongside opaque mesh draws instead of only in sprite-only scenes.
-The next visible gap is Tier 18 PBR material extensions, starting with
-clearcoat as the first `MeshPhysicalMaterial`/glTF PBR-extension surface that
-should produce a visible highlight distinct from the base specular lobe.
+Why this next: Tier 17 scene atmosphere is complete, and Tier 18 has started
+with scalar StandardMaterial clearcoat. `examples/clearcoat.html` now proves a
+clearcoat highlight distinct from the base StandardMaterial specular response,
+with library-owned schema, glTF scalar mapping, uniform packing, pipeline-key
+routing, and WGSL shader support. The next visible gap is transmission as the
+second `MeshPhysicalMaterial`/glTF PBR-extension surface: a glass-like material
+where the background remains visible through the object.
 
 Progress so far: `spinning-cube`, `multi-light-shadow`, and `glb-viewer` now
 use renderer-only `*.main.js` files plus ECS/extraction-owned `*.worker.js`
@@ -1210,10 +1210,19 @@ Acceptance criteria:
 
 ### task-3082 — Clearcoat extension (Tier 18 part 1)
 
+Status: completed 2026-05-22. See `agent/COMPLETED.md`.
+
 Category: `webgpu-render`
 Package/write-scope: `packages/render/src/materials/types.ts` (StandardMaterial clearcoat fields), `packages/webgpu/src/webgpu/standard-shader.ts`, targeted tests + example.
 Reference anchor: `references/three.js/src/materials/MeshPhysicalMaterial.js` (clearcoat fields); `references/engine/src/scene/materials/standard-material.js` clearcoat path; glTF `KHR_materials_clearcoat` extension.
 Insertion point: extend StandardMaterial with `clearcoatFactor`, `clearcoatRoughnessFactor`, optional `clearcoatNormalTexture`. Adds clearcoat BRDF lobe in fragment shader.
+Completion note 2026-05-22: scalar StandardMaterial clearcoat shipped with
+`clearcoatFactor` and `clearcoatRoughnessFactor` fields, glTF
+`KHR_materials_clearcoat` scalar mapping, clearcoat pipeline-key routing,
+uniform packing, WGSL direct-light clearcoat contribution, and
+`examples/clearcoat.html` browser coverage showing a brighter coating highlight
+than the matching base coat. Clearcoat texture slots remain follow-up work and
+are reported as unsupported optional slots.
 
 Acceptance criteria:
 
