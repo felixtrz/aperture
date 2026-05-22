@@ -4,6 +4,8 @@ import {
   createMaterialHandle,
   createMeshHandle,
   createRenderTargetHandle,
+  createSamplerHandle,
+  createTextureHandle,
   type AssetHandle,
   type EnvironmentMapHandle,
   type AssetRegistry,
@@ -58,6 +60,7 @@ import {
   ShadowCaster,
   ShadowReceiver,
   Skin,
+  Sprite,
   Visibility,
   registerRenderAuthoringComponents,
   type CameraInput,
@@ -66,6 +69,8 @@ import {
   validateCameraInput,
   validateLightInput,
   validateLightShadowSettingsInput,
+  validateSpriteInput,
+  type SpriteInput,
 } from "./index.js";
 import {
   compareRenderSortKeys,
@@ -82,6 +87,7 @@ import {
   type RenderQueue,
   type RenderSnapshot,
   type ShadowRequestPacket,
+  type SpriteDrawPacket,
   type ViewPacket,
   type ViewCullStats,
 } from "./snapshot.js";
@@ -209,11 +215,21 @@ export function extractRenderSnapshot(
     viewCullSignature,
     options.cache,
   ).sort((a, b) => compareRenderSortKeys(a.sortKey, b.sortKey));
+  const spriteDraws = extractSpriteDraws(
+    world,
+    assets,
+    transforms,
+    bounds,
+    diagnostics,
+    cameraLayerMask,
+    viewCullContexts,
+  ).sort((a, b) => compareRenderSortKeys(a.sortKey, b.sortKey));
 
   return {
     frame: options.frame ?? 0,
     views,
     meshDraws,
+    spriteDraws,
     lights,
     environments,
     shadowRequests,
@@ -235,6 +251,7 @@ export function extractRenderSnapshot(
     report: {
       views: views.length,
       meshDraws: meshDraws.length,
+      spriteDraws: spriteDraws.length,
       lights: lights.length,
       environments: environments.length,
       shadowRequests: shadowRequests.length,
@@ -913,6 +930,137 @@ function extractMeshDraws(
   return draws;
 }
 
+function extractSpriteDraws(
+  world: EcsWorld,
+  assets: AssetRegistry,
+  transforms: number[],
+  bounds: BoundsPacket[],
+  diagnostics: RenderDiagnostic[],
+  cameraLayerMask: number,
+  viewCullContexts: readonly ViewCullContext[],
+): SpriteDrawPacket[] {
+  const query = world.queryManager.registerQuery({ required: [Sprite] });
+  const draws: SpriteDrawPacket[] = [];
+
+  for (const entity of sortedEntities(query.entities)) {
+    if (
+      entity.hasComponent(Enabled) &&
+      entity.getValue(Enabled, "value") === false
+    ) {
+      diagnostics.push(diagnostic("render.disabled", entity));
+      continue;
+    }
+
+    if (
+      entity.hasComponent(Visibility) &&
+      entity.getValue(Visibility, "visible") === false
+    ) {
+      diagnostics.push(diagnostic("render.invisible", entity));
+      continue;
+    }
+
+    if (!entity.hasComponent(WorldTransform)) {
+      diagnostics.push(diagnostic("render.missingWorldTransform", entity));
+      continue;
+    }
+
+    const input = spriteInput(entity);
+    const validation = validateSpriteInput(input);
+
+    if (!validation.valid) {
+      for (const spriteDiagnostic of validation.diagnostics) {
+        diagnostics.push(diagnostic(`render.${spriteDiagnostic.code}`, entity));
+      }
+      continue;
+    }
+
+    const layerMask = entity.hasComponent(RenderLayer)
+      ? (entity.getValue(RenderLayer, "mask") ?? 1)
+      : 1;
+
+    if (layerMask === 0) {
+      diagnostics.push(diagnostic("render.zeroLayerMask", entity));
+      continue;
+    }
+
+    if (cameraLayerMask !== 0 && (layerMask & cameraLayerMask) === 0) {
+      diagnostics.push(diagnostic("render.layerMismatch", entity));
+      continue;
+    }
+
+    if (
+      !validateTextureAssetState(input.texture, assets, entity, diagnostics)
+    ) {
+      continue;
+    }
+
+    if (
+      input.sampler !== undefined &&
+      input.sampler !== null &&
+      !validateSamplerAssetState(input.sampler, assets, entity, diagnostics)
+    ) {
+      continue;
+    }
+
+    const worldMatrix = readWorldMatrix(entity);
+    const width = entity.getValue(Sprite, "width") ?? 1;
+    const height = entity.getValue(Sprite, "height") ?? 1;
+    const boundsPacket = createSpriteBoundsPacket(
+      bounds.length,
+      entity,
+      worldMatrix,
+      width,
+      height,
+    );
+
+    if (
+      !isVisibleInAnyMatchingView(
+        boundsPacket.worldAabb,
+        layerMask,
+        viewCullContexts,
+      )
+    ) {
+      continue;
+    }
+
+    const stableId = createStableRenderId(entityRef(entity));
+    const textureKey = assetHandleKey(input.texture);
+    const boundsIndex = bounds.length;
+
+    bounds.push(boundsPacket);
+    draws.push({
+      renderId: stableId,
+      entity: entityRef(entity),
+      texture: input.texture,
+      ...(input.sampler === undefined ? {} : { sampler: input.sampler }),
+      color: Array.from(entity.getVectorView(Sprite, "color")) as [
+        number,
+        number,
+        number,
+        number,
+      ],
+      width,
+      height,
+      worldTransformOffset: pushMatrix(transforms, worldMatrix),
+      boundsIndex,
+      layerMask,
+      sortKey: createRenderSortKey({
+        queue: "transparent",
+        layer: layerMask,
+        order: entity.hasComponent(RenderOrder)
+          ? (entity.getValue(RenderOrder, "value") ?? 0)
+          : 0,
+        pipelineKey: "sprite-billboard",
+        materialKey: textureKey,
+        meshKey: "sprite-quad",
+        stableId,
+      }),
+    });
+  }
+
+  return draws;
+}
+
 function appendCachedMeshDrawEntity(
   cached: CachedMeshDrawEntity,
   transforms: number[],
@@ -1447,6 +1595,40 @@ function createBoundsPacket(
   };
 }
 
+function createSpriteBoundsPacket(
+  boundsId: number,
+  entity: Entity,
+  worldMatrix: Mat4,
+  width: number,
+  height: number,
+): BoundsPacket {
+  const halfWidth = width * 0.5;
+  const halfHeight = height * 0.5;
+  const radius = Math.hypot(halfWidth, halfHeight);
+  const center = transformPoint(worldMatrix, [0, 0, 0]);
+  const localAabb: Aabb = {
+    min: [-halfWidth, -halfHeight, -0.001],
+    max: [halfWidth, halfHeight, 0.001],
+  };
+  const worldAabb: Aabb = {
+    min: [center[0] - radius, center[1] - radius, center[2] - radius],
+    max: [center[0] + radius, center[1] + radius, center[2] + radius],
+  };
+  const localSphere: BoundingSphere = {
+    center: [0, 0, 0],
+    radius,
+  };
+
+  return {
+    boundsId,
+    entity: entityRef(entity),
+    localAabb,
+    worldAabb,
+    localSphere,
+    worldSphere: { center, radius },
+  };
+}
+
 function readWorldMatrix(entity: Entity): Mat4 {
   const matrix = identityMat4();
 
@@ -1558,6 +1740,33 @@ function lightInput(entity: Entity): LightInput {
     width: entity.getValue(Light, "width") ?? 2,
     height: entity.getValue(Light, "height") ?? 2,
     layerMask: entity.getValue(Light, "layerMask") ?? 1,
+  };
+}
+
+function spriteInput(entity: Entity): SpriteInput {
+  const texture = parseTextureHandle(
+    entity.getValue(Sprite, "textureId") ?? "",
+  );
+  const samplerId = entity.getValue(Sprite, "samplerId") ?? "";
+  const sampler = samplerId === "" ? null : parseSamplerHandle(samplerId);
+
+  return {
+    texture: texture ?? createTextureHandle("__invalid_sprite_texture__"),
+    ...(samplerId === ""
+      ? {}
+      : {
+          sampler: sampler ?? createSamplerHandle("__invalid_sprite_sampler__"),
+        }),
+    size: [
+      entity.getValue(Sprite, "width") ?? 1,
+      entity.getValue(Sprite, "height") ?? 1,
+    ],
+    color: Array.from(entity.getVectorView(Sprite, "color")) as [
+      number,
+      number,
+      number,
+      number,
+    ],
   };
 }
 
@@ -1883,6 +2092,16 @@ function parseMeshHandle(value: string): MeshHandle | null {
 function parseMaterialHandle(value: string): MaterialHandle | null {
   const id = parseAssetId(value, "material");
   return id === null ? null : createMaterialHandle(id);
+}
+
+function parseTextureHandle(value: string): TextureHandle | null {
+  const id = parseAssetId(value, "texture");
+  return id === null ? null : createTextureHandle(id);
+}
+
+function parseSamplerHandle(value: string): SamplerHandle | null {
+  const id = parseAssetId(value, "sampler");
+  return id === null ? null : createSamplerHandle(id);
 }
 
 function parseAssetId(value: string, kind: string): string | null {

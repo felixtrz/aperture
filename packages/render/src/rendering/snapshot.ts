@@ -3,6 +3,8 @@ import type {
   MaterialHandle,
   MeshHandle,
   RenderTargetHandle,
+  SamplerHandle,
+  TextureHandle,
 } from "@aperture-engine/simulation";
 import type {
   Aabb,
@@ -61,6 +63,20 @@ export interface MeshDrawPacket {
   readonly receivesShadow?: boolean;
   readonly sortKey: RenderSortKey;
   readonly batchKey: BatchCompatibilityKey;
+}
+
+export interface SpriteDrawPacket {
+  readonly renderId: number;
+  readonly entity: RenderEntityRef;
+  readonly texture: TextureHandle;
+  readonly sampler?: SamplerHandle | null;
+  readonly color: Vec4Like;
+  readonly width: number;
+  readonly height: number;
+  readonly worldTransformOffset: number;
+  readonly boundsIndex: number;
+  readonly layerMask: number;
+  readonly sortKey: RenderSortKey;
 }
 
 export interface LightPacket {
@@ -165,6 +181,7 @@ export interface RenderDiagnostic {
 export interface RenderSnapshotReport {
   readonly views: number;
   readonly meshDraws: number;
+  readonly spriteDraws?: number;
   readonly lights: number;
   readonly environments: number;
   readonly shadowRequests: number;
@@ -187,6 +204,7 @@ export interface RenderSnapshot {
   readonly frame: number;
   readonly views: readonly ViewPacket[];
   readonly meshDraws: readonly MeshDrawPacket[];
+  readonly spriteDraws?: readonly SpriteDrawPacket[];
   readonly lights: readonly LightPacket[];
   readonly environments: readonly EnvironmentPacket[];
   readonly shadowRequests: readonly ShadowRequestPacket[];

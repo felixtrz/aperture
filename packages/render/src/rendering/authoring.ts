@@ -7,6 +7,8 @@ import {
 import {
   assetHandleKey,
   type EnvironmentMapHandle,
+  type SamplerHandle,
+  type TextureHandle,
 } from "@aperture-engine/simulation";
 import type { Vec4Like } from "@aperture-engine/simulation";
 import type { InstanceDataValues } from "../materials/index.js";
@@ -82,6 +84,13 @@ export interface LightShadowSettingsInput {
   readonly receiverLayerMask?: number;
 }
 
+export interface SpriteInput {
+  readonly texture: TextureHandle;
+  readonly sampler?: SamplerHandle | null;
+  readonly size?: number | readonly [number, number];
+  readonly color?: Vec4Like;
+}
+
 export interface InstanceTintInput {
   readonly color?: Vec4Like;
 }
@@ -109,6 +118,8 @@ export type RenderAuthoringDiagnosticCode =
   | "light.invalidSpotCone"
   | "light.invalidAreaSize"
   | "light.zeroLayerMask"
+  | "sprite.invalidTexture"
+  | "sprite.invalidSize"
   | "shadow.invalidMapSize"
   | "shadow.invalidBias"
   | "shadow.invalidCascadeCount"
@@ -139,6 +150,18 @@ export const Material = defineComponent(
     materialId: { type: EcsType.String, default: "" },
   },
   "Renderer-independent material authoring component that stores a material asset handle id only.",
+);
+
+export const Sprite = defineComponent(
+  "aperture.render.sprite",
+  {
+    textureId: { type: EcsType.String, default: "" },
+    samplerId: { type: EcsType.String, default: "" },
+    color: { type: EcsType.Color, default: tuple4(1, 1, 1, 1) },
+    width: { type: EcsType.Float32, default: 1 },
+    height: { type: EcsType.Float32, default: 1 },
+  },
+  "Renderer-independent sprite authoring component for camera-facing billboard quads.",
 );
 
 export const Visibility = defineComponent(
@@ -286,6 +309,7 @@ export const LightShadowSettings = defineComponent(
 export function registerRenderAuthoringComponents(world: EcsWorld): EcsWorld {
   world.registerComponent(Mesh);
   world.registerComponent(Material);
+  world.registerComponent(Sprite);
   world.registerComponent(Camera);
   world.registerComponent(Visibility);
   world.registerComponent(RenderLayer);
@@ -356,6 +380,23 @@ export function createLightShadowSettings(
     cascadeCount: input.cascadeCount ?? 1,
     casterLayerMask: input.casterLayerMask ?? -1,
     receiverLayerMask: input.receiverLayerMask ?? -1,
+  };
+}
+
+export function createSprite(
+  input: SpriteInput,
+): ComponentInitialData<typeof Sprite> {
+  const size = spriteSize(input.size);
+
+  return {
+    textureId: assetHandleKey(input.texture),
+    samplerId:
+      input.sampler === undefined || input.sampler === null
+        ? ""
+        : assetHandleKey(input.sampler),
+    color: toTuple4(input.color ?? [1, 1, 1, 1]),
+    width: size[0],
+    height: size[1],
   };
 }
 
@@ -571,6 +612,39 @@ export function validateLightShadowSettingsInput(
   return { valid: diagnostics.length === 0, diagnostics };
 }
 
+export function validateSpriteInput(
+  input: SpriteInput,
+): RenderAuthoringValidationReport {
+  const sprite = createSprite(input);
+  const textureId = sprite.textureId ?? "";
+  const width = sprite.width ?? 1;
+  const height = sprite.height ?? 1;
+  const diagnostics: RenderAuthoringDiagnostic[] = [];
+
+  if (textureId.trim().length === 0) {
+    diagnostics.push({
+      code: "sprite.invalidTexture",
+      field: "texture",
+      message: "Sprites require a texture handle.",
+    });
+  }
+
+  if (
+    !Number.isFinite(width) ||
+    !Number.isFinite(height) ||
+    width <= 0 ||
+    height <= 0
+  ) {
+    diagnostics.push({
+      code: "sprite.invalidSize",
+      field: "size",
+      message: "Sprites require finite positive width and height.",
+    });
+  }
+
+  return { valid: diagnostics.length === 0, diagnostics };
+}
+
 function validateRect(
   rect: readonly [number, number, number, number],
   field: string,
@@ -600,6 +674,14 @@ function tuple4(
   w: number,
 ): [number, number, number, number] {
   return [x, y, z, w];
+}
+
+function spriteSize(size: SpriteInput["size"]): readonly [number, number] {
+  if (size === undefined) {
+    return [1, 1];
+  }
+
+  return typeof size === "number" ? [size, size] : [size[0] ?? 1, size[1] ?? 1];
 }
 
 function read(values: ArrayLike<number>, index: number): number {

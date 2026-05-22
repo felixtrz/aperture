@@ -1,6 +1,131 @@
 # Agent Handoff
 
-Updated: 2026-05-22T12:51:48Z
+Updated: 2026-05-22T13:50:11Z
+
+## Current Run Update — 2026-05-22T13:50:11Z — Outdoor scene shipped, sprite bridge partial
+
+Completed `task-3077`. Started `task-3078`, but it is not complete: the
+authoring/extraction/runtime bridge exists and has unit coverage, while the
+WebGPU sprite-only path still needs browser pixel proof before the public
+example/E2E can land. Recommended next task remains `task-3078`.
+
+### What changed
+
+- Added `examples/outdoor-scene.html` with a renderer-only main module, a
+  worker-authored ECS scene, shared source asset registration, near/far receiver
+  panels, two CSM casters, a separate area-lit receiver, one 4-cascade
+  directional sun, and a warm RectAreaLight contribution.
+- Routed the outdoor scene through the existing renderer-owned directional CSM
+  path: 2D-array shadow depth texture resources, per-cascade attachment views,
+  shadow pass submission, matrix buffers, sampler resources, and cascaded
+  StandardMaterial receiver bindings are derived from worker snapshots.
+- Added status and screenshot comparison coverage proving multiple-distance CSM
+  shadow deltas and visible area-light brightening in the same headed Chrome
+  WebGPU scene.
+- Added the outdoor example to the browser index, example syntax checks, and
+  worker-split guard.
+- Added the first slice of the sprite data bridge: public ECS `Sprite`
+  component authoring, `withSprite({ texture, size, color })`, snapshot-safe
+  sprite draw packets, and extraction validation for texture/sampler handles.
+- Added an experimental WebGPU sprite-only path and `sprite-pipeline.ts`, but
+  the attempted browser proof reported a draw call with black/zero pixels, so
+  the public sprite billboard example and E2E were removed before handoff.
+- Updated public progress tracker pages, completed-task log, backlog, and
+  current-task pointer.
+
+### Files touched
+
+- Agent/docs: `agent/BACKLOG.md`, `agent/COMPLETED.md`,
+  `agent/CURRENT_TASK.md`, `agent/HANDOFF.md`, `docs/index.html`,
+  `docs/render-pipeline-comparison.html`.
+- Examples/tests: `package.json`, `examples/index.html`,
+  `examples/outdoor-scene.html`, `examples/outdoor-scene.js`,
+  `examples/outdoor-scene-scene.js`, `examples/outdoor-scene.main.js`,
+  `examples/outdoor-scene.worker.js`, `test/e2e/outdoor-scene.spec.ts`,
+  `test/examples/worker-split-examples.test.mjs`,
+  `test/rendering/extraction.test.ts`.
+- Sprite bridge/runtime/WebGPU:
+  `packages/render/src/rendering/authoring.ts`,
+  `packages/render/src/rendering/extraction.ts`,
+  `packages/render/src/rendering/snapshot.ts`,
+  `packages/runtime/src/index.ts`,
+  `packages/webgpu/src/webgpu/app-texture-sampler-resources.ts`,
+  `packages/webgpu/src/webgpu/app.ts`,
+  `packages/webgpu/src/webgpu/sprite-pipeline.ts`.
+
+### References inspected
+
+- `references/three.js/examples/webgpu_lights_rectarealight.html`
+- `references/engine/src/scene/light.js`
+- `references/engine/src/scene/lighting/lights-buffer.js`
+- `references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/ltc.js`
+- `references/three.js/src/objects/Sprite.js`
+- `references/three.js/src/materials/SpriteMaterial.js`
+- `references/engine/src/scene/sprite.js`
+- `packages/render/src/rendering/authoring.ts`
+- `packages/render/src/rendering/extraction.ts`
+- `packages/render/src/rendering/snapshot.ts`
+- `packages/runtime/src/index.ts`
+- `packages/webgpu/src/webgpu/app.ts`
+- `packages/webgpu/src/webgpu/render-frame-plan.ts`
+- `packages/webgpu/src/webgpu/render-pass-commands.ts`
+- `packages/webgpu/src/webgpu/unlit-pipeline.ts`
+- `packages/webgpu/src/webgpu/unlit-shader.ts`
+
+Common pattern adapted: Three.js and PlayCanvas keep area-light shape/source
+authoring separate from renderer-owned LTC and light-buffer resources. Aperture
+keeps the outdoor example worker-authored and derives all CSM/LTC WebGPU
+resources from the extracted snapshot. Sprite references were inspected for
+`task-3078`; the current sprite implementation follows the first-class sprite
+packet direction instead of pretending sprites are mesh draws. The incomplete
+piece is the WebGPU pixel path: extraction reports valid sprite packets and the
+app reported one sprite draw call in the attempted browser proof, but the canvas
+remained black.
+
+### Validation
+
+- `pnpm run check:examples` passed.
+- `pnpm exec vitest run test/examples/worker-split-examples.test.mjs --reporter=dot`
+  passed.
+- `pnpm exec vitest run test/examples/worker-split-examples.test.mjs test/examples/navigation.test.mjs --reporter=dot`
+  passed.
+- `pnpm exec vitest run test/rendering/extraction.test.ts --reporter=dot`
+  passed.
+- `pnpm run typecheck` passed after sprite cleanup.
+- `pnpm run typecheck:test` passed.
+- `pnpm run build` passed.
+- `pnpm run lint` passed.
+- `pnpm run check` passed after formatting the changed example, E2E, and
+  tracker files.
+- `git diff --check` passed.
+- Focused headed Playwright for `test/e2e/outdoor-scene.spec.ts` reached the
+  passing assertion checkmark, then hit the known local Playwright teardown hang
+  and was stopped after the checkmark.
+- A temporary focused Playwright proof for a sprite billboard failed: WebGPU
+  frame status showed `ok: true`, `drawCalls: 1`, and no diagnostics, but
+  screenshot/readback pixels stayed black/zero. The temporary public sprite
+  example and E2E were removed; `task-3078` remains open.
+
+### Known issues
+
+- Local headed Playwright can hang during teardown after printing a passing
+  checkmark; this run saw the same behavior and the runner was stopped after
+  the outdoor-scene pass checkmark.
+- Outdoor scene geometry is intentionally a compact proof scene, not a full
+  atmosphere/skybox/fog scene. Tier 17 is still needed for sprites, skybox, and
+  fog.
+- Area-light evaluation still uses the current approximate/procedural LTC
+  resources; production-fidelity LTC table payloads remain future work.
+- The experimental sprite WebGPU path is not visually validated. Next run
+  should debug bind group/layout/resource usage or replace that path before
+  restoring a public sprite example.
+
+### Recommended next task
+
+Continue `task-3078`: Sprite component + billboard renderer. The authoring,
+runtime helper, and extraction packet slice exists; finish or rewrite the
+WebGPU sprite pixel path and restore a public sprite billboard example only
+after Playwright can prove visible camera-facing pixels.
 
 ## Current Run Update — 2026-05-22T12:51:48Z — Directional CSM shipped
 

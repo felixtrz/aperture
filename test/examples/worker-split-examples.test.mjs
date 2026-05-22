@@ -102,6 +102,12 @@ const workerSplitExamples = [
     legacy: "examples/area-light-shapes.js",
   },
   {
+    html: "examples/outdoor-scene.html",
+    main: "examples/outdoor-scene.main.js",
+    worker: "examples/outdoor-scene.worker.js",
+    legacy: "examples/outdoor-scene.js",
+  },
+  {
     html: "examples/instancing.html",
     main: "examples/instancing.main.js",
     worker: "examples/instancing.worker.js",

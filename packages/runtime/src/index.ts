@@ -26,6 +26,7 @@ import {
   type MaterialHandle,
   type MeshHandle,
   type TransformResolutionReport,
+  type TextureHandle,
   type Vec4Like,
   type WorldOptions,
 } from "@aperture-engine/simulation";
@@ -44,6 +45,7 @@ import {
   ShadowCaster,
   ShadowReceiver,
   Skin,
+  Sprite,
   Visibility,
   createCamera,
   createInstanceData,
@@ -52,6 +54,7 @@ import {
   createLightShadowSettings,
   createMorphTargetWeights,
   createSkin,
+  createSprite,
   extractRenderSnapshot,
   replayGltfEcsAuthoringCommands,
   registerRenderAuthoringComponents,
@@ -64,6 +67,7 @@ import {
   type MorphTargetWeightsInput,
   type RenderSnapshot,
   type SkinInput,
+  type SpriteInput,
 } from "@aperture-engine/render";
 
 export * from "./simulation-worker.js";
@@ -262,6 +266,15 @@ export function withMaterial(handle: MaterialHandle): SpawnEntityInitializer {
   return (entity, context) => {
     registerRenderAuthoringComponents(context.world);
     entity.addComponent(Material, { materialId: assetHandleKey(handle) });
+  };
+}
+
+export function withSprite(
+  input: Omit<SpriteInput, "texture"> & { readonly texture: TextureHandle },
+): SpawnEntityInitializer {
+  return (entity, context) => {
+    registerRenderAuthoringComponents(context.world);
+    entity.addComponent(Sprite, createSprite(input));
   };
 }
 

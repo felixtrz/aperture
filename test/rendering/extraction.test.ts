@@ -15,6 +15,7 @@ import {
   ShadowCaster,
   ShadowReceiver,
   Skin,
+  Sprite,
   Visibility,
   WorldTransform,
   createBoxMeshAsset,
@@ -35,6 +36,7 @@ import {
   createRenderExtractionCache,
   createSkin,
   createStableRenderId,
+  createSprite,
   createUnlitMaterialAsset,
   createWorld,
   extractRenderSnapshot,
@@ -77,6 +79,67 @@ describe("render extraction", () => {
       bounds: 1,
       diagnostics: 0,
     });
+  });
+
+  it("extracts sprite draws as snapshot-safe billboard packets", () => {
+    const world = createRuntimeWorld();
+    const assets = createReadyAssets();
+    const texture = createTextureHandle("marker");
+
+    assets.register(texture);
+    assets.markReady(
+      texture,
+      createTextureAsset({
+        label: "Marker",
+        dimension: "2d",
+        width: 2,
+        height: 2,
+        format: "rgba8unorm",
+        colorSpace: "srgb",
+        semantic: "base-color",
+      }),
+    );
+    createCameraEntity(world, { priority: 0, layerMask: 0b01 });
+
+    const entity = world.createEntity();
+    const root = createRootTransform({ translation: [0, 0, -3] });
+
+    entity.addComponent(WorldTransform, root.world);
+    entity.addComponent(
+      Sprite,
+      createSprite({
+        texture,
+        size: [2, 3],
+        color: [0.25, 0.5, 0.75, 1],
+      }),
+    );
+    entity.addComponent(RenderLayer, { mask: 0b01 });
+
+    const snapshot = extractRenderSnapshot(world, assets, { frame: 3 });
+
+    expect(snapshot.meshDraws).toEqual([]);
+    expect(snapshot.spriteDraws).toHaveLength(1);
+    expect(snapshot.spriteDraws?.[0]).toMatchObject({
+      renderId: createStableRenderId({
+        index: entity.index,
+        generation: entity.generation,
+      }),
+      texture,
+      width: 2,
+      height: 3,
+      layerMask: 0b01,
+      worldTransformOffset: 0,
+      boundsIndex: 0,
+    });
+    expect(snapshot.spriteDraws?.[0]?.color).toEqual([0.25, 0.5, 0.75, 1]);
+    expect(snapshot.report).toMatchObject({
+      views: 1,
+      meshDraws: 0,
+      spriteDraws: 1,
+      bounds: 1,
+      diagnostics: 0,
+    });
+    expect(snapshot.diagnostics).toEqual([]);
   });
 
   it("reuses unchanged entity versions during cached mesh extraction", () => {

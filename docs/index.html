@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-22 12:51 UTC</dd>
+            <dd>2026-05-22 13:35 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -1295,10 +1295,12 @@
               buffers, select receiver cascades by view distance in
               StandardMaterial WGSL, and
               <code>examples/csm-directional-shadow.html</code> proves near/far
-              receiver shadows in headed Chrome.
+              receiver shadows in headed Chrome. The outdoor scene proof now
+              combines the same directional CSM receiver path with a
+              RectAreaLight contribution in one worker-authored browser scene.
             </dd>
             <dt>Next focus</dt>
-            <dd>task-3077 outdoor CSM + area-light scene</dd>
+            <dd>task-3078 sprite component + billboard renderer</dd>
           </dl>
         </aside>
       </header>
@@ -1333,9 +1335,9 @@
           </article>
           <article class="card metric">
             <div class="label">render pipeline</div>
-            <div class="value">90%</div>
-            <div class="bar" aria-label="90 percent complete">
-              <span style="width: 90%"></span>
+            <div class="value">91%</div>
+            <div class="bar" aria-label="91 percent complete">
+              <span style="width: 91%"></span>
             </div>
             <p>
               The ECS-to-WebGPU spine is usable, app route reporting runs
@@ -1928,9 +1930,9 @@
           <article class="phase">
             <div class="topline">
               <h3>6. submit</h3>
-              <span class="percent">96%</span>
+              <span class="percent">97%</span>
             </div>
-            <div class="bar"><span style="width: 96%"></span></div>
+            <div class="bar"><span style="width: 97%"></span></div>
             <p>
               WebGPU command submission renders the current proof paths with
               pipeline, bind group, transform, light, mesh, and material
@@ -1970,7 +1972,10 @@
               instance-attributes example proves 576 ECS-authored phase/sway
               rows through one custom material and one instanced draw. The
               picking facade now submits a pick-only ID pass and reads one
-              <code>r32uint</code> pixel to resolve a snapshot entity.
+              <code>r32uint</code> pixel to resolve a snapshot entity. The
+              outdoor scene example now proves directional CSM and RectAreaLight
+              LTC contribution together through the same worker-snapshot and
+              renderer-owned WebGPU resource path.
             </p>
             <ul>
               <li>
@@ -4259,19 +4264,20 @@
             <ul>
               <li>
                 <span class="badge amber">next</span> Build
-                <code>task-3077</code>, an outdoor-style scene combining the
-                shipped directional CSM path with the existing RectAreaLight
-                route.
+                <code>task-3078</code>, a sprite component plus billboard
+                renderer.
               </li>
               <li>
-                Anchor on Three.js RectAreaLight and PlayCanvas outdoor lighting
-                patterns while keeping scene authoring worker-owned and render
-                resources derived from snapshots.
+                Anchor on Three.js <code>Sprite</code>/<code
+                  >SpriteMaterial</code
+                >
+                and PlayCanvas sprite mesh generation while keeping ECS
+                authoring data-only.
               </li>
               <li>
-                Assert multiple-distance CSM shadows and visible area-light
-                contribution in one browser proof without changing renderer
-                ownership boundaries.
+                Add <code>withSprite({ texture, size, color })</code> and a
+                browser proof that rotating the camera leaves sprite screen
+                orientation stable.
               </li>
             </ul>
           </article>
@@ -4284,6 +4290,28 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3077</div>
+            <div>
+              <strong>Outdoor CSM plus area-light scene shipped.</strong>
+              <span>
+                <code>examples/outdoor-scene.html</code> combines the
+                directional CSM depth-array receiver path with a warm
+                RectAreaLight contribution and headed Chrome proof for both.
+              </span>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="task-id">task-3076</div>
+            <div>
+              <strong>Directional CSM shipped.</strong>
+              <span>
+                Directional lights now support 1-4 cascades, renderer-owned
+                2D-array shadow textures, per-cascade passes, and
+                StandardMaterial receiver sampling by view distance.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3075</div>
             <div>

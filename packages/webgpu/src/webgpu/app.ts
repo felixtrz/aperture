@@ -13,6 +13,7 @@ import {
   createPackedSnapshotInstanceTintsScratch,
   createPackedSnapshotViewUniformsScratch,
   createMaterialDependencyReadinessReport,
+  createSamplerAsset,
   materialDependencyReadinessReportToJsonValue,
   prepareSnapshotMeshes,
   prepareSnapshotMaterials,
@@ -38,11 +39,13 @@ import {
   type RenderEntityRef,
   type RenderSnapshot,
   type RenderQueueSortPhaseReport,
+  type SpriteDrawPacket,
   type StandardMaterialAsset,
   type UnlitMaterialAsset,
 } from "@aperture-engine/render";
 import {
   createAppTextureSamplerResourceCacheSummary,
+  prepareAppTextureResource,
   prepareMatcapAppTextureSamplerResources,
   prepareStandardAppTextureSamplerResources,
   prepareUnlitAppTextureSamplerResources,
@@ -100,6 +103,8 @@ import {
   type CachedWebGpuDepthTextureResource,
   type WebGpuDepthTextureCacheSlot,
 } from "./depth-texture-resource.js";
+import { createWebGpuBuffer } from "./buffer.js";
+import { WEBGPU_BUFFER_USAGE_FLAGS } from "./mesh-buffer-descriptors.js";
 import { createLightBindGroupLayoutDescriptor } from "./light-bind-group-layout.js";
 import type { LightBindGroupLayoutResource } from "./light-bind-group-layout.js";
 import {
@@ -234,9 +239,16 @@ import {
   type CreateUnlitRenderPipelineResourceResult,
 } from "./unlit-pipeline.js";
 import {
+  createSamplerGpuResource,
   type SamplerGpuResource,
   type TextureGpuResource,
 } from "./texture-resources.js";
+import {
+  createSpriteRenderPipelineResource,
+  spritePipelineCacheKey,
+  type CreateSpriteRenderPipelineResourceResult,
+  type SpriteRenderPipelineResource,
+} from "./sprite-pipeline.js";
 import {
   createRenderFramePlanScratch,
   writeRenderFramePlanFromSnapshot,
@@ -305,6 +317,7 @@ export interface WebGpuAppRenderTargetAsset {
 export interface WebGpuAppRenderCounts {
   readonly views: number;
   readonly meshDraws: number;
+  readonly spriteDraws: number;
   readonly drawPackages: number;
   readonly drawCommands: number;
   readonly drawCalls: number;
@@ -503,7 +516,8 @@ export type WebGpuAppPipelineResourceResult =
   | CreateUnlitRenderPipelineResourceResult
   | CreateMatcapRenderPipelineResourceResult
   | CreateStandardRenderPipelineResourceResult
-  | CreateDebugNormalRenderPipelineResourceResult;
+  | CreateDebugNormalRenderPipelineResourceResult
+  | CreateSpriteRenderPipelineResourceResult;
 
 export type WebGpuAppFrameResourcesResult =
   | CreateUnlitAppFrameResourcesResult
@@ -517,6 +531,10 @@ type WebGpuAppMaterialKind = BuiltInMaterialQueueFamily;
 
 interface WebGpuAppResourceCache {
   readonly pipelines: Map<string, WebGpuAppPipelineResourceResult>;
+  readonly spritePipelines: Map<
+    string,
+    CreateSpriteRenderPipelineResourceResult
+  >;
   readonly layouts: Map<string, WebGpuAppPipelineLayouts>;
   readonly textures: Map<string, TextureGpuResource>;
   readonly samplers: Map<string, SamplerGpuResource>;
@@ -875,6 +893,7 @@ function createEmptyRenderSnapshot(frame: number): RenderSnapshot {
     frame,
     views: [],
     meshDraws: [],
+    spriteDraws: [],
     lights: [],
     environments: [],
     shadowRequests: [],
@@ -886,6 +905,7 @@ function createEmptyRenderSnapshot(frame: number): RenderSnapshot {
     report: {
       views: 0,
       meshDraws: 0,
+      spriteDraws: 0,
       lights: 0,
       environments: 0,
       shadowRequests: 0,
@@ -898,6 +918,7 @@ function createEmptyRenderSnapshot(frame: number): RenderSnapshot {
 function createWebGpuAppResourceCache(): WebGpuAppResourceCache {
   return {
     pipelines: new Map(),
+    spritePipelines: new Map(),
     layouts: new Map(),
     textures: new Map(),
     samplers: new Map(),
@@ -1947,6 +1968,423 @@ function assembleWebGpuAppFrameBoundaries(options: {
   };
 }
 
+async function renderSpriteOnlyWebGpuAppFrame(
+  context: WebGpuAppRenderContext,
+  resourceCache: WebGpuAppResourceCache,
+  options: WebGpuAppRenderOptions & { readonly snapshot: RenderSnapshot },
+): Promise<WebGpuAppRenderReport> {
+  const { app, sourceAssets } = context;
+  const reuse = createWebGpuAppResourceReuseReport();
+  const spriteDraws = options.snapshot.spriteDraws ?? [];
+  const packedViews = writePackedSnapshotViewUniforms(
+    options.snapshot,
+    resourceCache.frameScratch.viewUniforms,
+  );
+  const packedTransforms = writePackedSnapshotTransforms(
+    options.snapshot,
+    resourceCache.frameScratch.worldTransforms,
+  );
+  const pipeline = await getOrCreateWebGpuAppSpritePipeline(app, resourceCache);
+
+  if (!pipeline.valid || pipeline.resource === null) {
+    return renderReport({
+      ok: false,
+      snapshot: options.snapshot,
+      pipeline,
+      resourceReuse: reuse,
+      diagnostics: [
+        ...options.snapshot.diagnostics,
+        ...packedViews.diagnostics,
+        ...packedTransforms.diagnostics,
+        ...pipeline.diagnostics,
+      ],
+    });
+  }
+
+  const spriteResources = createSpriteFrameResources({
+    app,
+    assets: sourceAssets,
+    cache: resourceCache,
+    snapshot: options.snapshot,
+    spriteDraws,
+    viewUniforms: packedViews,
+    worldTransforms: packedTransforms,
+    pipeline: pipeline.resource,
+    reuse,
+  });
+
+  if (!spriteResources.valid) {
+    return renderReport({
+      ok: false,
+      snapshot: options.snapshot,
+      pipeline,
+      resourceReuse: reuse,
+      diagnostics: [
+        ...options.snapshot.diagnostics,
+        ...packedViews.diagnostics,
+        ...packedTransforms.diagnostics,
+        ...spriteResources.diagnostics,
+      ],
+    });
+  }
+
+  const boundaries = assembleWebGpuAppFrameBoundaries({
+    app,
+    assets: sourceAssets,
+    cache: resourceCache,
+    snapshot: options.snapshot,
+    commands: spriteResources.commands,
+    label: options.label ?? "aperture-webgpu-sprite-app",
+    ...(options.clearColor === undefined
+      ? {}
+      : { clearColor: options.clearColor }),
+    ...(options.readbackSamples === undefined
+      ? {}
+      : { readbackSamples: options.readbackSamples }),
+  });
+
+  await waitForSubmittedWork(app.initialization.device);
+
+  const frameOk =
+    packedViews.diagnostics.length === 0 &&
+    packedTransforms.diagnostics.length === 0 &&
+    spriteResources.diagnostics.length === 0 &&
+    boundaries.valid;
+  const readback = await mapFrameBoundaryReadbackSamples(
+    boundaries.readbackBoundary?.readback,
+    frameOk,
+  );
+
+  return renderReport({
+    ok: frameOk,
+    snapshot: options.snapshot,
+    pipeline,
+    boundary: boundaries.boundary,
+    boundaries: boundaries.boundaries,
+    renderTargets: boundaries.renderTargets,
+    postEffects: boundaries.postEffects,
+    ...(boundaries.depthAttachment === undefined
+      ? {}
+      : { depthAttachment: boundaries.depthAttachment }),
+    ...(readback === undefined ? {} : { readback }),
+    resourceReuse: reuse,
+    drawCommands: boundaries.plannedCommands,
+    drawCalls: boundaries.drawCalls,
+    diagnostics: [
+      ...options.snapshot.diagnostics,
+      ...packedViews.diagnostics,
+      ...packedTransforms.diagnostics,
+      ...spriteResources.diagnostics,
+      ...boundaries.diagnostics,
+    ],
+  });
+}
+
+interface SpriteFrameResources {
+  readonly valid: boolean;
+  readonly commands: readonly RenderPassCommand[];
+  readonly diagnostics: readonly unknown[];
+}
+
+function createSpriteFrameResources(options: {
+  readonly app: WebGpuApp;
+  readonly assets: AssetRegistry;
+  readonly cache: WebGpuAppResourceCache;
+  readonly snapshot: RenderSnapshot;
+  readonly spriteDraws: readonly SpriteDrawPacket[];
+  readonly viewUniforms: PackedSnapshotViewUniforms;
+  readonly worldTransforms: PackedSnapshotTransforms;
+  readonly pipeline: SpriteRenderPipelineResource;
+  readonly reuse: WebGpuAppResourceReuseReport;
+}): SpriteFrameResources {
+  const diagnostics: unknown[] = [];
+  const commands: RenderPassCommand[] = [];
+  const device = options.app.initialization.device as {
+    readonly createBindGroup?: (descriptor: unknown) => unknown;
+  } & Parameters<typeof createWebGpuBuffer>[0]["device"];
+  const pipeline = options.pipeline.pipeline as {
+    readonly getBindGroupLayout?: (group: number) => unknown;
+  };
+  const viewUniformData = options.viewUniforms.data.subarray(
+    0,
+    options.viewUniforms.floatCount ?? options.viewUniforms.data.length,
+  );
+  const worldTransformData = options.worldTransforms.data.subarray(
+    0,
+    options.worldTransforms.floatCount ?? options.worldTransforms.data.length,
+  );
+
+  if (pipeline.getBindGroupLayout === undefined) {
+    return {
+      valid: false,
+      commands,
+      diagnostics: [
+        {
+          code: "spriteFrame.missingPipelineLayouts",
+          message: "Sprite pipeline does not expose bind group layouts.",
+        },
+      ],
+    };
+  }
+
+  if (device.createBindGroup === undefined) {
+    return {
+      valid: false,
+      commands,
+      diagnostics: [
+        {
+          code: "spriteFrame.createBindGroupUnavailable",
+          message: "WebGPU device cannot create sprite bind groups.",
+        },
+      ],
+    };
+  }
+
+  const viewBuffer = createWebGpuBuffer({
+    device,
+    descriptor: {
+      label: "Sprite/ViewUniforms",
+      size: viewUniformData.byteLength,
+      usage:
+        WEBGPU_BUFFER_USAGE_FLAGS.UNIFORM | WEBGPU_BUFFER_USAGE_FLAGS.COPY_DST,
+      initialData: viewUniformData,
+    },
+  });
+  const transformBuffer = createWebGpuBuffer({
+    device,
+    descriptor: {
+      label: "Sprite/WorldTransforms",
+      size: worldTransformData.byteLength,
+      usage:
+        WEBGPU_BUFFER_USAGE_FLAGS.STORAGE | WEBGPU_BUFFER_USAGE_FLAGS.COPY_DST,
+      initialData: worldTransformData,
+    },
+  });
+  const spriteData = packSpriteData(options.snapshot, options.spriteDraws);
+  const spriteBuffer = createWebGpuBuffer({
+    device,
+    descriptor: {
+      label: "Sprite/Data",
+      size: spriteData.byteLength,
+      usage:
+        WEBGPU_BUFFER_USAGE_FLAGS.STORAGE | WEBGPU_BUFFER_USAGE_FLAGS.COPY_DST,
+      initialData: spriteData,
+    },
+  });
+
+  if (!viewBuffer.ok) {
+    diagnostics.push(
+      bufferDiagnostic("spriteFrame.viewBufferFailed", viewBuffer.message),
+    );
+  }
+
+  if (!transformBuffer.ok) {
+    diagnostics.push(
+      bufferDiagnostic(
+        "spriteFrame.transformBufferFailed",
+        transformBuffer.message,
+      ),
+    );
+  }
+
+  if (!spriteBuffer.ok) {
+    diagnostics.push(
+      bufferDiagnostic("spriteFrame.spriteBufferFailed", spriteBuffer.message),
+    );
+  }
+
+  if (!viewBuffer.ok || !transformBuffer.ok || !spriteBuffer.ok) {
+    return { valid: false, commands, diagnostics };
+  }
+
+  const defaultSampler = getOrCreateSpriteDefaultSampler(
+    options.app,
+    options.cache,
+    options.reuse,
+    diagnostics,
+  );
+
+  if (defaultSampler === null) {
+    return { valid: false, commands, diagnostics };
+  }
+
+  const viewBindGroup = device.createBindGroup({
+    label: "Sprite/ViewBindGroup",
+    layout: pipeline.getBindGroupLayout(0),
+    entries: [{ binding: 0, resource: { buffer: viewBuffer.buffer } }],
+  });
+  const transformBindGroup = device.createBindGroup({
+    label: "Sprite/TransformBindGroup",
+    layout: pipeline.getBindGroupLayout(1),
+    entries: [{ binding: 0, resource: { buffer: transformBuffer.buffer } }],
+  });
+
+  for (const draw of options.spriteDraws) {
+    const texture = prepareAppTextureResource({
+      assets: options.assets,
+      device: options.app.initialization.device,
+      cache: options.cache,
+      handle: draw.texture,
+      reuse: options.reuse,
+      diagnostics: diagnostics as Parameters<
+        typeof prepareAppTextureResource
+      >[0]["diagnostics"],
+    });
+
+    if (texture === null) {
+      continue;
+    }
+
+    const spriteBindGroup = device.createBindGroup({
+      label: `Sprite/TextureBindGroup/${draw.renderId}`,
+      layout: pipeline.getBindGroupLayout(2),
+      entries: [
+        { binding: 0, resource: { buffer: spriteBuffer.buffer } },
+        { binding: 1, resource: texture.resource.view },
+        { binding: 2, resource: defaultSampler.sampler },
+      ],
+    });
+
+    commands.push(
+      {
+        kind: "setPipeline",
+        renderId: draw.renderId,
+        pipelineKey: options.pipeline.cacheKey,
+        pipeline: options.pipeline.pipeline,
+      },
+      {
+        kind: "setBindGroup",
+        renderId: draw.renderId,
+        index: 0,
+        resourceKey: "sprite:view",
+        bindGroup: viewBindGroup,
+      },
+      {
+        kind: "setBindGroup",
+        renderId: draw.renderId,
+        index: 1,
+        resourceKey: "sprite:transforms",
+        bindGroup: transformBindGroup,
+      },
+      {
+        kind: "setBindGroup",
+        renderId: draw.renderId,
+        index: 2,
+        resourceKey: `sprite:${texture.cacheKey}`,
+        bindGroup: spriteBindGroup,
+      },
+      {
+        kind: "draw",
+        renderId: draw.renderId,
+        vertexCount: 6,
+        instanceCount: 1,
+        firstVertex: 0,
+        firstInstance: draw.worldTransformOffset / 16,
+      },
+    );
+  }
+
+  return {
+    valid: diagnostics.length === 0 && commands.length > 0,
+    commands,
+    diagnostics,
+  };
+}
+
+async function getOrCreateWebGpuAppSpritePipeline(
+  app: WebGpuApp,
+  cache: WebGpuAppResourceCache,
+): Promise<CreateSpriteRenderPipelineResourceResult> {
+  const key = spritePipelineCacheKey(
+    app.initialization.format,
+    WEBGPU_APP_DEPTH_FORMAT,
+  );
+  const cached = cache.spritePipelines.get(key);
+
+  if (cached !== undefined) {
+    return cached;
+  }
+
+  const result = await createSpriteRenderPipelineResource({
+    device: app.initialization.device as Parameters<
+      typeof createSpriteRenderPipelineResource
+    >[0]["device"],
+    colorFormat: app.initialization.format,
+    depthFormat: WEBGPU_APP_DEPTH_FORMAT,
+  });
+
+  cache.spritePipelines.set(key, result);
+  return result;
+}
+
+function packSpriteData(
+  snapshot: RenderSnapshot,
+  spriteDraws: readonly SpriteDrawPacket[],
+): Float32Array {
+  const transformCount = Math.max(
+    1,
+    Math.ceil(snapshot.transforms.length / 16),
+  );
+  const data = new Float32Array(transformCount * 8);
+
+  for (const draw of spriteDraws) {
+    const index = Math.floor(draw.worldTransformOffset / 16);
+    const offset = index * 8;
+
+    data.set(draw.color, offset);
+    data[offset + 4] = draw.width;
+    data[offset + 5] = draw.height;
+  }
+
+  return data;
+}
+
+function getOrCreateSpriteDefaultSampler(
+  app: WebGpuApp,
+  cache: WebGpuAppResourceCache,
+  reuse: WebGpuAppResourceReuseReport,
+  diagnostics: unknown[],
+): SamplerGpuResource | null {
+  const cacheKey = "sprite:default-sampler";
+  const cached = cache.samplers.get(cacheKey);
+
+  if (cached !== undefined) {
+    reuse.samplerResourcesReused += 1;
+    return cached;
+  }
+
+  const sampler = createSamplerGpuResource({
+    device: app.initialization.device as Parameters<
+      typeof createSamplerGpuResource
+    >[0]["device"],
+    resourceKey: cacheKey,
+    sampler: createSamplerAsset({
+      label: "SpriteDefaultSampler",
+      addressModeU: "clamp-to-edge",
+      addressModeV: "clamp-to-edge",
+      addressModeW: "clamp-to-edge",
+      magFilter: "nearest",
+      minFilter: "nearest",
+      mipmapFilter: "nearest",
+      lodMaxClamp: 0,
+    }),
+  });
+
+  diagnostics.push(...sampler.diagnostics);
+
+  if (!sampler.valid || sampler.resource === null) {
+    return null;
+  }
+
+  cache.samplers.set(cacheKey, sampler.resource);
+  reuse.samplerResourcesCreated += 1;
+  return sampler.resource;
+}
+
+function bufferDiagnostic(code: string, message: string): unknown {
+  return { code, message };
+}
+
 interface WebGpuAppPostProcessedSwapchainTargetResult {
   readonly valid: boolean;
   readonly boundaries: readonly FrameBoundaryAssemblyReport[];
@@ -2473,7 +2911,15 @@ function isRenderPassCommandVisibleToView(
     (packet) => packet.renderId === command.renderId,
   );
 
-  return draw === undefined || (draw.layerMask & view.layerMask) !== 0;
+  if (draw !== undefined) {
+    return (draw.layerMask & view.layerMask) !== 0;
+  }
+
+  const sprite = snapshot.spriteDraws?.find(
+    (packet) => packet.renderId === command.renderId,
+  );
+
+  return sprite === undefined || (sprite.layerMask & view.layerMask) !== 0;
 }
 
 function countDrawCommands(commands: readonly RenderPassCommand[]): number {
@@ -2894,7 +3340,19 @@ async function renderWebGpuAppFrame(
     : shadowSnapshot;
   const firstDraw = snapshot.meshDraws[0];
   const firstView = snapshot.views[0];
+  const spriteDraws = snapshot.spriteDraws ?? [];
   const resourceSetPlan = createWebGpuAppDrawResourceSetPlan(snapshot);
+
+  if (
+    firstDraw === undefined &&
+    firstView !== undefined &&
+    spriteDraws.length > 0
+  ) {
+    return renderSpriteOnlyWebGpuAppFrame(context, resourceCache, {
+      ...options,
+      snapshot,
+    });
+  }
 
   if (firstDraw === undefined || firstView === undefined) {
     const materialDependencyDiagnostics = diagnoseSnapshotMaterialDependencies(
@@ -4555,6 +5013,7 @@ function renderReport(input: {
     counts: {
       views: input.snapshot.views.length,
       meshDraws: input.snapshot.meshDraws.length,
+      spriteDraws: input.snapshot.spriteDraws?.length ?? 0,
       drawPackages: input.drawPackages ?? 0,
       drawCommands: input.drawCommands ?? 0,
       drawCalls: input.drawCalls ?? 0,

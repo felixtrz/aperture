@@ -1,5 +1,27 @@
 # Completed Tasks
 
+## task-3077 — Outdoor scene example with CSM + area light
+
+Completed: 2026-05-22
+
+- Added `examples/outdoor-scene.html` with renderer-only main-thread WebGPU
+  orchestration and worker-owned ECS authoring/extraction.
+- Registered an outdoor-style source scene with near/far CSM receivers, two
+  shadow casters, a separate area-lit receiver, a 4-cascade directional sun, and
+  a warm RectAreaLight window contribution.
+- Reused the renderer-owned directional CSM resource path: 2D-array shadow
+  depth textures, per-cascade attachment views, shadow pass submission, matrix
+  buffers, sampler resources, and cascaded StandardMaterial receiver bindings
+  are derived from the worker snapshot.
+- Added `test/e2e/outdoor-scene.spec.ts` with screenshot comparisons that prove
+  near/far cascaded shadow deltas and RectAreaLight brightening in the same
+  browser scene.
+- Validation run: example syntax checks, worker-split example tests, navigation
+  example tests, package build, test typecheck, lint, and diff checks passed.
+  The focused headed Chrome WebGPU Playwright assertion reached a pass
+  checkmark, then hit the known local teardown hang and was stopped after the
+  checkmark.
+
 ## task-3076 — Cascaded shadow maps for directional lights
 
 Completed: 2026-05-22

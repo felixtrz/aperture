@@ -59,17 +59,14 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start `task-3077`: Outdoor scene example with CSM + area light.
+Start `task-3078`: Sprite component + billboard renderer.
 
-Why this next: Tier 16 now has RectAreaLight/LTC plus rect/disk/sphere
-area-light shape metadata carried through ECS authoring, extraction, fixed-stride
-snapshot encoding, WebGPU light packing, diagnostics, and the browser-proven
-`examples/area-light-shapes.html` comparison. `task-3076` added executable
-directional CSM: 1-4 cascade settings survive extraction/transport, WebGPU
-creates 2D-array shadow resources and submits one pass per cascade, and
-StandardMaterial selects receiver cascades by view distance. The remaining
-visible gap is a combined outdoor scene that proves CSM and area-light
-contribution together without changing the ECS-first ownership model.
+Why this next: Tier 16 now has RectAreaLight/LTC, rect/disk/sphere area-light
+shape metadata, executable directional CSM, and the combined
+`examples/outdoor-scene.html` proof for multiple-distance CSM shadows plus
+visible RectAreaLight contribution. Tier 17 begins scene-atmosphere work. The
+next visible gap is ECS-authored sprites that render as camera-facing billboards
+without introducing a scene graph or letting the renderer own app state.
 
 Progress so far: `spinning-cube`, `multi-light-shadow`, and `glb-viewer` now
 use renderer-only `*.main.js` files plus ECS/extraction-owned `*.worker.js`
@@ -125,10 +122,9 @@ shader/pipeline/resource/importer tests.
 
 Reference anchors (read before writing):
 
-- `references/engine/src/scene/light.js` (`LIGHTSHAPE_DISK`,
-  `LIGHTSHAPE_SPHERE`).
-- `references/engine/src/scene/lighting/lights-buffer.js`.
-- `references/engine/src/scene/shader-lib/wgsl/chunks/lit/frag/ltc.js`.
+- `references/three.js/src/objects/Sprite.js`.
+- `references/three.js/src/materials/SpriteMaterial.js`.
+- `references/engine/src/scene/sprite.js`.
 
 ## Strategic Focus — Pipeline Maturity Roadmap
 
@@ -1098,11 +1094,19 @@ Acceptance criteria:
 
 ### task-3077 — Outdoor scene example with CSM + area light (Tier 16 part 4)
 
+Status: completed 2026-05-22. See `agent/COMPLETED.md`.
+
 Category: `runtime-orchestration`
 Package/write-scope: `examples/outdoor-scene.{html,main.js,worker.js}`, `test/e2e/outdoor-scene.spec.ts`.
 Dependencies: task-3074, task-3076.
 Reference anchor: `references/three.js/examples/webgpu_lights_rectarealight.html`; PlayCanvas architectural visualization examples.
 Insertion point: new outdoor example combining CSM directional shadow + RectAreaLight (e.g., a window).
+Completion note 2026-05-22: added `examples/outdoor-scene.html` with
+renderer-only main entry, worker-owned ECS scene authoring, shared source asset
+registration, 4-cascade directional sun shadow, RectAreaLight window
+contribution, and headed Chrome proof for near/far CSM deltas plus area-light
+brightening. The example keeps CSM depth textures, matrix buffers, samplers,
+bind groups, and pass submission renderer-owned and derived from snapshots.
 
 Acceptance criteria:
 
@@ -1115,6 +1119,12 @@ Category: `render-bridge`
 Package/write-scope: `packages/render/src/rendering/authoring.ts` (`Sprite` component), `packages/webgpu/src/webgpu/sprite-pipeline-*.ts`, targeted tests.
 Reference anchor: `references/three.js/src/objects/Sprite.js` + `references/three.js/src/materials/SpriteMaterial.js`; `references/engine/src/scene/sprite.js`.
 Insertion point: new ECS component `Sprite { texture, color, sizeMode }`. New render pipeline that draws camera-facing billboard quads.
+Progress note 2026-05-22: first bridge slice added ECS `Sprite` authoring,
+`withSprite({ texture, size, color })`, snapshot `spriteDraws`, extraction unit
+coverage, and an experimental WebGPU sprite-only path. The browser proof failed:
+the app reported one draw call and no diagnostics, but readback pixels stayed
+black/zero. Keep the task open; next work should debug or replace the WebGPU
+pixel path and then restore a public sprite billboard example/E2E.
 
 Acceptance criteria:
 

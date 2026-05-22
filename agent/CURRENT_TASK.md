@@ -3,12 +3,14 @@
 If this file names a task, the next agent should prioritize that task over
 selecting a new one from `agent/BACKLOG.md`.
 
-Current task: `task-3077` — Outdoor scene example with CSM + area light.
+Current task: `task-3078` — Sprite component + billboard renderer.
 
-Status: ready. Dependencies `task-3074` and `task-3076` are complete:
-RectAreaLight/LTC, area-light shape metadata, and executable directional CSM
-receiver sampling now exist.
+Status: in progress / partial. Tier 16 is complete: RectAreaLight/LTC,
+area-light shape metadata, executable directional CSM receiver sampling, and the
+combined outdoor scene proof now exist. A first `task-3078` slice added ECS
+`Sprite` authoring, `withSprite`, snapshot sprite packets, and an experimental
+WebGPU sprite-only path, but browser pixel proof failed with black/zero pixels.
 
-Next step: add an outdoor-style worker-authored example combining a directional
-sun with 1-4 CSM cascades and a RectAreaLight contribution, then add Playwright
-proof for shadows at multiple distances plus visible area-light illumination.
+Next step: debug or replace the WebGPU sprite pixel path, then restore a public
+sprite billboard example and Playwright proof that camera rotation does not
+rotate the sprite on screen.

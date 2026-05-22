@@ -315,7 +315,7 @@ export function sourceAssetCacheKey(
   return `${assetHandleKey(handle)}@${version}`;
 }
 
-function prepareAppTextureResource(options: {
+export function prepareAppTextureResource(options: {
   readonly assets: AssetRegistry;
   readonly device: unknown;
   readonly cache: AppTextureSamplerResourceCache;
@@ -368,7 +368,7 @@ function prepareAppTextureResource(options: {
   return { cacheKey, resource: result.resource };
 }
 
-function prepareAppSamplerResource(options: {
+export function prepareAppSamplerResource(options: {
   readonly assets: AssetRegistry;
   readonly device: unknown;
   readonly cache: AppTextureSamplerResourceCache;
