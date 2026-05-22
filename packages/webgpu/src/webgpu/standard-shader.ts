@@ -3,6 +3,10 @@ import {
   PACKED_LIGHT_METADATA_STRIDE,
   PackedLightKindId,
 } from "./light-packing.js";
+import {
+  appendStandardSkinningFeatureName,
+  applyStandardSkinningToWgsl,
+} from "./standard-skinning-shader.js";
 import type { WebGpuShaderModuleDescriptor } from "./shader.js";
 import type {
   BuiltInShaderBindingId,
@@ -44,6 +48,7 @@ export interface StandardTextureShaderFeatures {
   readonly texCoord1?: boolean;
   readonly vertexColor?: boolean;
   readonly instanceTint?: boolean;
+  readonly skinned?: boolean;
 }
 
 export const STANDARD_MATERIAL_MVP_LIGHTING_MODEL = {
@@ -586,7 +591,8 @@ export function createStandardTextureShaderVariantKey(
     features.pointShadowMap !== true &&
     features.texCoord1 !== true &&
     features.vertexColor !== true &&
-    features.instanceTint !== true
+    features.instanceTint !== true &&
+    features.skinned !== true
   ) {
     return STANDARD_METALLIC_ROUGHNESS_TEXTURE_SHADER_VARIANT;
   }
@@ -603,7 +609,8 @@ export function createStandardTextureShaderVariantKey(
     features.iblSpecularProof !== true &&
     features.texCoord1 !== true &&
     features.vertexColor !== true &&
-    features.instanceTint !== true
+    features.instanceTint !== true &&
+    features.skinned !== true
   ) {
     return STANDARD_SHADOW_MAP_SHADER_VARIANT;
   }
@@ -620,7 +627,8 @@ export function createStandardTextureShaderVariantKey(
     features.iblSpecularProof !== true &&
     features.texCoord1 !== true &&
     features.vertexColor !== true &&
-    features.instanceTint !== true
+    features.instanceTint !== true &&
+    features.skinned !== true
   ) {
     return STANDARD_POINT_SHADOW_MAP_SHADER_VARIANT;
   }
@@ -637,7 +645,8 @@ export function createStandardTextureShaderVariantKey(
     features.iblSpecularProof !== true &&
     features.texCoord1 !== true &&
     features.vertexColor !== true &&
-    features.instanceTint !== true
+    features.instanceTint !== true &&
+    features.skinned !== true
   ) {
     return STANDARD_MULTI_SHADOW_MAP_SHADER_VARIANT;
   }
@@ -654,7 +663,8 @@ export function createStandardTextureShaderVariantKey(
     features.pointShadowMap !== true &&
     features.texCoord1 !== true &&
     features.vertexColor !== true &&
-    features.instanceTint !== true
+    features.instanceTint !== true &&
+    features.skinned !== true
   ) {
     return STANDARD_DIFFUSE_IBL_SHADER_VARIANT;
   }
@@ -671,7 +681,8 @@ export function createStandardTextureShaderVariantKey(
     features.pointShadowMap !== true &&
     features.texCoord1 !== true &&
     features.vertexColor !== true &&
-    features.instanceTint !== true
+    features.instanceTint !== true &&
+    features.skinned !== true
   ) {
     return STANDARD_SPECULAR_IBL_PROOF_SHADER_VARIANT;
   }
@@ -725,6 +736,8 @@ export function createStandardTextureShaderVariantKey(
   if (features.instanceTint === true) {
     names.push("instance-tint");
   }
+
+  appendStandardSkinningFeatureName(names, features);
 
   return `${STANDARD_DIRECT_LIGHT_SHADER_VARIANT}-${names.join("-")}-texture`;
 }
@@ -1126,7 +1139,7 @@ ${emissive}
     code = applyStandardSpecularIblProofSampling(code);
   }
 
-  return code;
+  return applyStandardSkinningToWgsl(code, features);
 }
 
 function standardTextureVariantComment(
@@ -1461,6 +1474,16 @@ function standardTextureVariantBindings(
     });
   }
 
+  if (features.skinned === true) {
+    bindings.push({
+      id: "skinJointMatrices",
+      label: "Standard material skin joint matrices",
+      group: 5,
+      binding: 0,
+      resource: "read-only-storage-buffer",
+    });
+  }
+
   return bindings;
 }
 
@@ -1479,7 +1502,8 @@ function standardTextureVariantShaderLabel(
     features.iblSpecularProof !== true &&
     features.texCoord1 !== true &&
     features.vertexColor !== true &&
-    features.instanceTint !== true
+    features.instanceTint !== true &&
+    features.skinned !== true
   ) {
     return "aperture/standard-mesh-base-color-textured";
   }
@@ -1496,7 +1520,8 @@ function standardTextureVariantShaderLabel(
     features.iblSpecularProof !== true &&
     features.texCoord1 !== true &&
     features.vertexColor !== true &&
-    features.instanceTint !== true
+    features.instanceTint !== true &&
+    features.skinned !== true
   ) {
     return "aperture/standard-mesh-metallic-roughness-textured";
   }
@@ -1512,7 +1537,8 @@ function standardTextureVariantShaderLabel(
     features.iblSpecularProof !== true &&
     features.texCoord1 !== true &&
     features.vertexColor !== true &&
-    features.instanceTint !== true
+    features.instanceTint !== true &&
+    features.skinned !== true
   ) {
     return "aperture/standard-mesh-base-color-metallic-roughness-textured";
   }
@@ -1528,7 +1554,8 @@ function standardTextureVariantShaderLabel(
     features.iblDiffuse !== true &&
     features.texCoord1 !== true &&
     features.vertexColor !== true &&
-    features.instanceTint !== true
+    features.instanceTint !== true &&
+    features.skinned !== true
   ) {
     return "aperture/standard-mesh-shadow-receiver";
   }
@@ -1544,7 +1571,8 @@ function standardTextureVariantShaderLabel(
     features.iblDiffuse !== true &&
     features.texCoord1 !== true &&
     features.vertexColor !== true &&
-    features.instanceTint !== true
+    features.instanceTint !== true &&
+    features.skinned !== true
   ) {
     return "aperture/standard-mesh-point-shadow-receiver";
   }
@@ -1560,7 +1588,8 @@ function standardTextureVariantShaderLabel(
     features.iblDiffuse !== true &&
     features.texCoord1 !== true &&
     features.vertexColor !== true &&
-    features.instanceTint !== true
+    features.instanceTint !== true &&
+    features.skinned !== true
   ) {
     return "aperture/standard-mesh-multi-shadow-receiver";
   }
@@ -1577,7 +1606,8 @@ function standardTextureVariantShaderLabel(
     features.pointShadowMap !== true &&
     features.texCoord1 !== true &&
     features.vertexColor !== true &&
-    features.instanceTint !== true
+    features.instanceTint !== true &&
+    features.skinned !== true
   ) {
     return "aperture/standard-mesh-diffuse-ibl";
   }
@@ -1594,7 +1624,8 @@ function standardTextureVariantShaderLabel(
     features.pointShadowMap !== true &&
     features.texCoord1 !== true &&
     features.vertexColor !== true &&
-    features.instanceTint !== true
+    features.instanceTint !== true &&
+    features.skinned !== true
   ) {
     return "aperture/standard-mesh-diffuse-specular-ibl-proof";
   }
@@ -1657,6 +1688,8 @@ function standardTextureFeatureNames(
     names.push("instance-tint");
   }
 
+  appendStandardSkinningFeatureName(names, features);
+
   return names;
 }
 
@@ -1675,7 +1708,8 @@ function hasAnyStandardTextureFeature(
     features.iblSpecularProof === true ||
     features.texCoord1 === true ||
     features.vertexColor === true ||
-    features.instanceTint === true
+    features.instanceTint === true ||
+    features.skinned === true
   );
 }
 

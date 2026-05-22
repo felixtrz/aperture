@@ -4,13 +4,17 @@ import {
   STANDARD_SHADOW_RECEIVER_MESH_WGSL,
   INSTANCE_TINT_VERTEX_BUFFER_LAYOUT,
   STANDARD_MESH_WGSL,
+  STANDARD_SKINNED_PRIMITIVE_VERTEX_BUFFER_LAYOUT,
+  STANDARD_SKINNING_BIND_GROUP_LAYOUT_KEY,
   STANDARD_TANGENT_PRIMITIVE_VERTEX_BUFFER_LAYOUT,
   STANDARD_TANGENT_TEXCOORD1_PRIMITIVE_VERTEX_BUFFER_LAYOUT,
   STANDARD_TEXCOORD1_PRIMITIVE_VERTEX_BUFFER_LAYOUT,
   STANDARD_VERTEX_COLOR_PRIMITIVE_VERTEX_BUFFER_LAYOUT,
   UNLIT_PRIMITIVE_VERTEX_BUFFER_LAYOUT,
   createBrowserStandardRenderPipelineDescriptor,
+  createOutputColorSpacePipelineKey,
   createStandardRenderPipelineResource,
+  createStandardPipelineDescriptorPlan,
   createStandardTextureVariantShader,
   createTonemapPipelineKey,
   type BatchCompatibilityKey,
@@ -211,6 +215,68 @@ describe("browser standard material pipeline bridge", () => {
     expect(shader.code).toContain("alpha = alpha * input.instanceTint.a");
   });
 
+  it("uses joint and weight attributes for skinned StandardMaterial shaders", () => {
+    const shaderModule = {
+      compilationInfo: async () => ({ messages: [] }),
+    };
+    const shader = createStandardTextureVariantShader({
+      baseColorTexture: false,
+      metallicRoughnessTexture: false,
+      normalTexture: false,
+      occlusionTexture: false,
+      emissiveTexture: false,
+      skinned: true,
+    });
+    const batchKey: BatchCompatibilityKey = {
+      ...STANDARD_BATCH_KEY,
+      pipelineKey: "standard|skinned|opaque|back|less|none",
+      meshLayoutKey: "POSITION,NORMAL,TEXCOORD_0,JOINTS_0,WEIGHTS_0",
+      skinned: true,
+    };
+    const descriptor = createBrowserStandardRenderPipelineDescriptor({
+      shader,
+      shaderModule,
+      colorFormat: "bgra8unorm",
+      batchKey,
+    });
+    const plan = createStandardPipelineDescriptorPlan({
+      batchKey,
+      colorFormat: "bgra8unorm",
+    });
+
+    expect(descriptor.vertex).toMatchObject({
+      module: shaderModule,
+      entryPoint: "vs_main",
+      buffers: [STANDARD_SKINNED_PRIMITIVE_VERTEX_BUFFER_LAYOUT],
+    });
+    expect(shader.code).toContain("@location(8) joints0: vec4u");
+    expect(shader.code).toContain("@location(9) weights0: vec4f");
+    expect(shader.code).toContain("apertureSkinPosition(input.position");
+    expect(plan).toMatchObject({
+      valid: true,
+      plan: {
+        keyInput: {
+          shaderVariantKey: "direct-lit-metallic-roughness-skinned-texture",
+          batchKey: { skinned: true },
+          bindGroupLayoutKeys: expect.arrayContaining([
+            STANDARD_SKINNING_BIND_GROUP_LAYOUT_KEY,
+          ]),
+        },
+        descriptor: {
+          vertex: {
+            buffers: [
+              "POSITION",
+              "NORMAL",
+              "TEXCOORD_0",
+              "JOINTS_0",
+              "WEIGHTS_0",
+            ],
+          },
+        },
+      },
+    });
+  });
+
   it("builds browser descriptors for opaque, mask, and alpha-blend standard render states", () => {
     const shaderModule = {
       compilationInfo: async () => ({ messages: [] }),
@@ -301,12 +367,23 @@ describe("browser standard material pipeline bridge", () => {
     expect(required(result.resource).cacheKey).toContain(
       "aperture/standard-mesh",
     );
-    expect(shaderDescriptors).toEqual([
-      {
-        label: "aperture/standard-mesh",
-        code: STANDARD_MESH_WGSL,
-      },
-    ]);
+    expect(shaderDescriptors).toHaveLength(1);
+    expect(shaderDescriptors[0]?.label).toBe(
+      [
+        "aperture/standard-mesh",
+        createTonemapPipelineKey("none"),
+        createOutputColorSpacePipelineKey("srgb"),
+      ].join("|"),
+    );
+    expect(shaderDescriptors[0]?.code).toContain(
+      STANDARD_MESH_WGSL.slice(0, 80),
+    );
+    expect(shaderDescriptors[0]?.code).toContain(
+      "fn apertureLinearToSrgbChannel",
+    );
+    expect(shaderDescriptors[0]?.code).toContain(
+      "return vec4f(apertureOutputColorSpace(apertureOutputTonemap(color)), alpha);",
+    );
     expect(pipelineDescriptors).toHaveLength(1);
     expect(pipelineDescriptors[0]).toMatchObject({
       vertex: {
@@ -347,14 +424,25 @@ describe("browser standard material pipeline bridge", () => {
     expect(required(result.resource).cacheKey).toContain(
       createTonemapPipelineKey("aces"),
     );
+    expect(required(result.resource).cacheKey).toContain(
+      createOutputColorSpacePipelineKey("srgb"),
+    );
     expect(shaderDescriptors[0]).toMatchObject({
-      label: `aperture/standard-mesh|${createTonemapPipelineKey("aces")}`,
+      label: [
+        "aperture/standard-mesh",
+        createTonemapPipelineKey("aces"),
+        createOutputColorSpacePipelineKey("srgb"),
+      ].join("|"),
     });
     expect(shaderDescriptors[0]?.code).toContain(
-      "return vec4f(apertureOutputTonemap(color), alpha);",
+      "return vec4f(apertureOutputColorSpace(apertureOutputTonemap(color)), alpha);",
     );
     expect(pipelineDescriptors[0]?.label).toBe(
-      `aperture/standard-mesh|${createTonemapPipelineKey("aces")}:bgra8unorm:triangle-list`,
+      [
+        "aperture/standard-mesh",
+        createTonemapPipelineKey("aces"),
+        createOutputColorSpacePipelineKey("srgb"),
+      ].join("|") + ":bgra8unorm:triangle-list",
     );
   });
 
@@ -393,14 +481,27 @@ describe("browser standard material pipeline bridge", () => {
     expect(required(result.resource).cacheKey).toContain(
       "standard/lights-shadow/group-3:light-floats@0,light-metadata@1,matrix@2,depth@3,sampler@4",
     );
-    expect(shaderDescriptors).toEqual([
-      {
-        label: "aperture/standard-mesh-shadow-receiver",
-        code: STANDARD_SHADOW_RECEIVER_MESH_WGSL,
-      },
-    ]);
+    expect(shaderDescriptors).toHaveLength(1);
+    expect(shaderDescriptors[0]?.label).toBe(
+      [
+        "aperture/standard-mesh-shadow-receiver",
+        createTonemapPipelineKey("none"),
+        createOutputColorSpacePipelineKey("srgb"),
+      ].join("|"),
+    );
+    expect(shaderDescriptors[0]?.code).toContain(
+      STANDARD_SHADOW_RECEIVER_MESH_WGSL.slice(0, 80),
+    );
+    expect(shaderDescriptors[0]?.code).toContain(
+      "fn apertureLinearToSrgbChannel",
+    );
     expect(pipelineDescriptors[0]).toMatchObject({
-      label: "aperture/standard-mesh-shadow-receiver:bgra8unorm:triangle-list",
+      label:
+        [
+          "aperture/standard-mesh-shadow-receiver",
+          createTonemapPipelineKey("none"),
+          createOutputColorSpacePipelineKey("srgb"),
+        ].join("|") + ":bgra8unorm:triangle-list",
       layout: "auto",
     });
   });
@@ -438,9 +539,15 @@ describe("browser standard material pipeline bridge", () => {
     expect(required(result.resource).cacheKey).toContain(
       "standard/lights-multi-shadow/group-3:light-floats@0,light-metadata@1,directional-matrix@2,directional-depth@3,directional-sampler@4,spot-matrix@5,spot-depth@6,spot-sampler@7,point-matrix@8,point-depth-cube@9,point-sampler@10",
     );
-    expect(shaderDescriptors[0]).toEqual({
-      label: "aperture/standard-mesh-multi-shadow-receiver",
-      code: createStandardTextureVariantShader({
+    expect(shaderDescriptors[0]?.label).toBe(
+      [
+        "aperture/standard-mesh-multi-shadow-receiver",
+        createTonemapPipelineKey("none"),
+        createOutputColorSpacePipelineKey("srgb"),
+      ].join("|"),
+    );
+    expect(shaderDescriptors[0]?.code).toContain(
+      createStandardTextureVariantShader({
         baseColorTexture: false,
         metallicRoughnessTexture: false,
         normalTexture: false,
@@ -448,8 +555,11 @@ describe("browser standard material pipeline bridge", () => {
         emissiveTexture: false,
         shadowMap: true,
         pointShadowMap: true,
-      }).code,
-    });
+      }).code.slice(0, 80),
+    );
+    expect(shaderDescriptors[0]?.code).toContain(
+      "fn apertureLinearToSrgbChannel",
+    );
   });
 
   it("diagnoses missing pipeline creation separately from shader creation", async () => {

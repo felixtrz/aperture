@@ -32,6 +32,7 @@ export type BuiltInShaderBindingId =
   | "standardDiffuseIblTexture"
   | "standardSpecularIblTexture"
   | "standardIblSampler"
+  | "skinJointMatrices"
   | "matcapTexture"
   | "matcapSampler";
 

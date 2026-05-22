@@ -20,6 +20,10 @@ import {
   validateStandardShaderMetadata,
   type StandardTextureShaderFeatures,
 } from "./standard-shader.js";
+import {
+  STANDARD_SKINNING_BIND_GROUP_LAYOUT_KEY,
+  standardSkinningEnabledFromBatchKey,
+} from "./standard-skinning-shader.js";
 import type { BuiltInShaderSourceModule } from "./unlit-shader.js";
 
 export const STANDARD_DEFERRED_PIPELINE_FEATURES = [] as const;
@@ -78,6 +82,11 @@ export interface StandardPipelineShaderFeaturePlan {
     readonly authored: boolean;
     readonly requiresTangents: boolean;
     readonly output: "tangent-space-normal-mapping" | "unchanged";
+  };
+  readonly skinning: {
+    readonly enabled: boolean;
+    readonly jointAttributeSemantic: "JOINTS_0" | null;
+    readonly weightAttributeSemantic: "WEIGHTS_0" | null;
   };
 }
 
@@ -226,6 +235,11 @@ export function createStandardPipelineShaderFeaturePlan(
         ? "tangent-space-normal-mapping"
         : "unchanged",
     },
+    skinning: {
+      enabled: features.skinned === true,
+      jointAttributeSemantic: features.skinned === true ? "JOINTS_0" : null,
+      weightAttributeSemantic: features.skinned === true ? "WEIGHTS_0" : null,
+    },
   };
 }
 
@@ -253,6 +267,9 @@ function standardBindGroupLayoutKeys(
               ? "standard/lights-ibl/group-3:light-floats@0,light-metadata@1,diffuse-ibl@5,ibl-sampler@6,specular-ibl-proof@7"
               : "standard/lights-ibl/group-3:light-floats@0,light-metadata@1,diffuse-ibl@5,ibl-sampler@6"
             : "lights/group-3:light-floats@0,light-metadata@1",
+    ...(features.skinned === true
+      ? [STANDARD_SKINNING_BIND_GROUP_LAYOUT_KEY]
+      : []),
   ];
 }
 
@@ -290,6 +307,7 @@ function standardTextureFeatures(
     iblSpecularProof: tokens.includes("iblSpecularProof"),
     texCoord1: tokens.includes("uv1"),
     instanceTint: tokens.includes("instance-tint"),
+    skinned: standardSkinningEnabledFromBatchKey(batchKey),
     vertexColor:
       typeof batchKey?.meshLayoutKey === "string" &&
       batchKey.meshLayoutKey.split(",").includes("COLOR_0"),
@@ -315,6 +333,10 @@ function standardVertexBufferSemantics(
 
   if (features.instanceTint === true) {
     semantics.push("INSTANCE_TINT");
+  }
+
+  if (features.skinned === true) {
+    semantics.push("JOINTS_0", "WEIGHTS_0");
   }
 
   return semantics;

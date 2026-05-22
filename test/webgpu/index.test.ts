@@ -85,6 +85,7 @@ describe("WebGPU support boundary", () => {
     expect(configured[0]).toMatchObject({
       device,
       format: "rgba8unorm",
+      colorSpace: "srgb",
       usage: 17,
     });
   });

@@ -160,6 +160,7 @@ export type MaterialDiagnosticCode =
   | "material.invalidAlphaCutoff"
   | "material.unsupportedFeature"
   | "material.invalidTextureColorSpace"
+  | "material.invalidTextureColorSpaceFormat"
   | "material.incompatibleRenderState";
 
 export interface MaterialValidationDiagnostic {

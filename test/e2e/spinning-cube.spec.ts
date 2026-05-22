@@ -44,8 +44,11 @@ interface SpinningCubeStatus extends ExampleStatusBase {
     readonly specularPrefiltering?: boolean;
     readonly source?: {
       readonly kind: string;
+      readonly loader?: string;
       readonly asset: string;
       readonly label: string;
+      readonly format?: string;
+      readonly colorSpace?: string;
       readonly width: number;
       readonly height: number;
       readonly faceSize: number;
@@ -65,6 +68,8 @@ interface SpinningCubeStatus extends ExampleStatusBase {
     readonly operator: string;
     readonly requested: string | null;
     readonly pipelineKey: string;
+    readonly outputColorSpace?: string;
+    readonly outputPipelineKey?: string;
   };
   readonly readback?: {
     readonly ok: boolean;
@@ -206,8 +211,11 @@ test("Playwright shows an ECS-driven spinning lit standard cube", async ({
       samplerKey: "texture:spinning-cube-pisa-studio:diffuse:sampler",
       source: {
         kind: "radiance-rgbe-cube-atlas",
+        loader: "loadHdrFromUri",
         asset: "./assets/pisa-studio-rgbe-cube.hdr",
         label: "Pisa HDR studio cube atlas",
+        format: "rgba32float",
+        colorSpace: "linear",
         width: 48,
         height: 8,
         faceSize: 8,
@@ -395,11 +403,17 @@ async function waitForTonemapReadback(
     operator,
     requested: operator,
     pipelineKey: `tonemap:${operator}`,
+    outputColorSpace: "srgb",
+    outputPipelineKey: "output-color:srgb",
   });
   expect(
     status.pipeline?.cacheKey ?? "",
     JSON.stringify(status, null, 2),
   ).toContain(`tonemap:${operator}`);
+  expect(
+    status.pipeline?.cacheKey ?? "",
+    JSON.stringify(status, null, 2),
+  ).toContain("output-color:srgb");
 
   if (status.readback?.ok !== true) {
     test.skip(

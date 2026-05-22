@@ -426,6 +426,8 @@ function textureDescriptorFromAsset(
     label: texture.label,
     size: [texture.width, texture.height, texture.depthOrLayers],
     format: texture.format,
+    colorSpace: texture.colorSpace,
+    semantic: texture.semantic,
     mipLevelCount: texture.mipLevelCount,
     usage: textureUsageFlags(texture.usage),
   };

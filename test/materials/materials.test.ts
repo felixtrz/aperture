@@ -108,6 +108,25 @@ describe("material, texture, sampler, and render-state schemas", () => {
         (diagnostic) => diagnostic.code,
       ),
     ).toEqual(["material.invalidTextureColorSpace"]);
+
+    const mismatchedBaseColor = createTextureAsset({
+      label: "Base Color",
+      dimension: "2d",
+      width: 4,
+      height: 4,
+      format: "rgba8unorm",
+      colorSpace: "srgb",
+      semantic: "base-color",
+    });
+
+    expect(validateTextureAsset(mismatchedBaseColor).diagnostics).toEqual([
+      {
+        code: "material.invalidTextureColorSpaceFormat",
+        field: "format",
+        message:
+          "base-color texture 'Base Color' declares color space 'srgb' but uses format 'rgba8unorm'.",
+      },
+    ]);
   });
 
   it("reports missing handles, invalid alpha cutoff, unsupported features, and incompatible render state", () => {

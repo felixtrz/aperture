@@ -1,6 +1,84 @@
 # Agent Handoff
 
-Updated: 2026-05-21T23:49:00Z
+Updated: 2026-05-22T00:46:09Z
+
+## Current Run Update — 2026-05-22T00:46:09Z — Tier 10 color path and skinning shader variant shipped
+
+Completed `task-3051`, `task-3052`, `task-3053`, and `task-3054`.
+
+### What changed
+
+- Added explicit StandardMaterial output color-space support. WebGPU app output
+  defaults to sRGB, the canvas context is configured for sRGB display, shader
+  labels/cache keys include `output-color:*`, and StandardMaterial fragment
+  output now tonemaps in linear before encoding to sRGB.
+- Added texture color-space/semantic metadata through render/WebGPU descriptors
+  plus diagnostics for color-space/format mismatches.
+- Added `docs/COLOR_MANAGEMENT.md` and linked color invariants from
+  `docs/ARCHITECTURE.md`.
+- Added `loadHdrFromUri()` in `packages/render/src/assets/hdr-rgbe-loader.ts`
+  for Radiance RGBE `.hdr` parsing into linear `Float32Array` RGBA data.
+- Updated `examples/spinning-cube.main.js` to load the compact Pisa HDR cube
+  atlas through the public HDR loader instead of an example-local parser.
+- Added `examples/tonemap-showcase.html` with Linear, Reinhard, ACES, and AgX
+  operator controls over a worker-authored HDR IBL probe scene, plus
+  Playwright readback coverage comparing operators.
+- Added the first Tier 11 slice: StandardMaterial now has a `skinned` shader
+  variant with JOINTS_0/WEIGHTS_0 vertex attributes, group-5 joint-matrix
+  metadata, pipeline cache-key/layout planning, and targeted shader/pipeline
+  tests.
+- Updated public tracker pages, backlog, and completed-task log. Recommended
+  next task is now `task-3055`.
+
+### References inspected
+
+- `references/three.js/src/constants.js`
+- `references/three.js/src/renderers/common/Renderer.js`
+- `references/engine/src/platform/graphics/webgpu/webgpu-graphics-device.js`
+- `references/three.js/examples/jsm/loaders/RGBELoader.js`
+- `references/three.js/examples/jsm/loaders/HDRLoader.js`
+- `references/engine/src/framework/parsers/texture/hdr.js`
+- `references/three.js/examples/webgpu_tonemapping.html`
+- `references/engine/examples/src/examples/graphics/hdr.example.mjs`
+- `references/three.js/src/renderers/shaders/ShaderChunk/skinning_pars_vertex.glsl.js`
+- `references/three.js/src/renderers/shaders/ShaderChunk/skinning_vertex.glsl.js`
+
+### Validation
+
+- `pnpm run check` passed.
+- `pnpm run build` passed.
+- `pnpm run check:examples` passed.
+- `pnpm run check:progress` passed.
+- `pnpm run format:check` passed.
+- `pnpm run lint` passed.
+- `pnpm test` passed after updating deterministic WebGPU app pipeline-label
+  expectations for the new `output-color:srgb` shader label token.
+- Targeted checks passed for WebGPU/render/test TypeScript, HDR loader Vitest,
+  output-stage/pipeline/material/texture Vitest, StandardMaterial
+  shader/pipeline Vitest, and targeted ESLint.
+- `pnpm exec playwright test test/e2e/tonemap-showcase.spec.ts --project=chrome-webgpu-headed --timeout=90000`
+  passed its assertion, but the headed Playwright runner again hung during
+  browser/server shutdown and was killed.
+- Browser plugin smoke opened
+  `http://127.0.0.1:4173/examples/tonemap-showcase.html?tonemap=aces`; page
+  status reached `ok: true`, `phase: "animate"`, and ACES tonemap. The smoke
+  produced existing GPU timestamp-query warnings in that
+  browser environment.
+
+### Known issues
+
+- Local headed Playwright/WebGPU shutdown remains unreliable after assertions
+  pass. This run saw the same shutdown hang on the new tonemap-showcase spec.
+- Browser plugin smoke emitted GPU timestamp query allocation warnings, but the
+  example status reached a successful animated frame.
+- `task-3055` should wire real skin joint-matrix buffer/bind-group resources;
+  `task-3054` only adds shader/pipeline support.
+
+### Recommended next task
+
+Start `task-3055`: add the StandardMaterial skinning bind group and bone matrix
+buffer so skinned batches can provide real joint palettes to the new group-5
+shader binding.
 
 ## Current Run Update — 2026-05-21T23:49:00Z — Tonemap operators selectable
 

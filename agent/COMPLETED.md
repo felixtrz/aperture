@@ -1,5 +1,68 @@
 # Completed Tasks
 
+## task-3054 — GPU skinning shader variant
+
+Completed: 2026-05-21
+
+- Added `packages/webgpu/src/webgpu/standard-skinning-shader.ts` with the
+  StandardMaterial skinned WGSL transform helper, `JOINTS_0` / `WEIGHTS_0`
+  attribute locations, and the group-5 joint matrix bind-group layout key.
+- Extended StandardMaterial shader feature planning so `batchKey.skinned` or a
+  `skinned` pipeline token generates a skinned variant, adds skinning metadata,
+  includes joint/weight vertex semantics, and includes the skinning bind group
+  in pipeline cache keys.
+- Added a skinned primitive vertex-buffer layout and shader/pipeline tests that
+  cover WGSL generation, metadata validation, pipeline-key shape, and a
+  synthetic weighted deformation calculation.
+- Validation run: WebGPU TypeScript, test TypeScript, targeted StandardMaterial
+  Vitest, and targeted ESLint passed.
+
+## task-3053 — Output-stage tonemap comparison example
+
+Completed: 2026-05-21
+
+- Added `examples/tonemap-showcase.html` with four operator controls for
+  Linear, Reinhard, ACES, and AgX over the same worker-authored HDR probe scene.
+- Reused the worker-owned spinning HDR scene shape while adding renderer-side
+  tonemap recreation, RGBE IBL resource setup, and JSON-safe readback status.
+- Added `test/e2e/tonemap-showcase.spec.ts`, comparing GPU readback pixels
+  across the four operators and checking HDR source/tonemap/output-color status.
+- Validation run: `pnpm run check:examples`, `pnpm exec tsc --noEmit -p
+tsconfig.test.json`, targeted ESLint, browser plugin smoke, and the targeted
+  Playwright assertion passed. The headed Playwright runner again hung during
+  local shutdown and was killed after the spec assertion passed.
+
+## task-3052 — HDR `.hdr` (RGBE) loader
+
+Completed: 2026-05-21
+
+- Added `packages/render/src/assets/hdr-rgbe-loader.ts` with Radiance RGBE
+  header parsing, flat/RLE scanline decode, RGBE-to-linear-float conversion,
+  and `loadHdrFromUri(url)`.
+- Exported the loader from `@aperture-engine/render`.
+- Updated `examples/spinning-cube.main.js` to load the committed Pisa RGBE cube
+  atlas through `loadHdrFromUri()` instead of an example-local parser.
+- Added fixture coverage for the committed `.hdr`, fake-fetch loading, and
+  invalid-header diagnostics.
+- Validation run: render/test TypeScript, targeted HDR/Vitest coverage,
+  targeted ESLint, and example syntax checks passed.
+
+## task-3051 — sRGB pipeline + color-space audit
+
+Completed: 2026-05-21
+
+- Added explicit output color-space helpers and WGSL linear-to-sRGB encoding for
+  StandardMaterial output.
+- Defaulted `createWebGpuApp()` to sRGB display output, included
+  `output-color:*` in StandardMaterial pipeline cache keys, and configured the
+  WebGPU canvas context with sRGB display color space.
+- Added texture descriptor color-space/semantic metadata and diagnostics for
+  color-space/format mismatches.
+- Documented color-management invariants in `docs/COLOR_MANAGEMENT.md` and
+  linked them from architecture docs.
+- Validation run: WebGPU/render/test TypeScript, targeted Vitest coverage,
+  targeted ESLint, and example syntax checks passed.
+
 ## task-3050 — Tonemap operator pipeline
 
 Completed: 2026-05-21

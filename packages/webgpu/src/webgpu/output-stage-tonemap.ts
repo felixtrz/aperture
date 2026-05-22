@@ -1,4 +1,9 @@
 import type { BuiltInShaderSourceModule } from "./unlit-shader.js";
+import {
+  createOutputColorSpacePipelineKey,
+  createOutputColorSpaceWgsl,
+  type OutputColorSpace,
+} from "./output-stage-color-space.js";
 
 export const TONEMAP_OPERATORS = [
   "none",
@@ -113,31 +118,39 @@ fn apertureOutputTonemap(color: vec3f) -> vec3f {
 export function applyOutputTonemapToStandardShader(
   shader: BuiltInShaderSourceModule,
   operator: TonemapOperator,
+  outputColorSpace: OutputColorSpace = "linear",
 ): BuiltInShaderSourceModule {
-  if (operator === "none") {
+  if (operator === "none" && outputColorSpace === "linear") {
     return shader;
   }
 
   if (!shader.code.includes(STANDARD_FRAGMENT_RETURN)) {
     throw new Error(
-      `Cannot apply ${createTonemapPipelineKey(operator)} to '${shader.label}' because the standard fragment output marker was not found.`,
+      `Cannot apply ${createTonemapPipelineKey(operator)} and ${createOutputColorSpacePipelineKey(outputColorSpace)} to '${shader.label}' because the standard fragment output marker was not found.`,
     );
   }
 
-  const tonemapWgsl = createOutputTonemapWgsl(operator);
+  const outputWgsl = [
+    createOutputTonemapWgsl(operator),
+    createOutputColorSpaceWgsl(outputColorSpace),
+  ].join("\n\n");
   const codeWithFunction = shader.code.includes(STANDARD_FRAGMENT_ANCHOR)
     ? shader.code.replace(
         STANDARD_FRAGMENT_ANCHOR,
-        `${tonemapWgsl}\n\n${STANDARD_FRAGMENT_ANCHOR}`,
+        `${outputWgsl}\n\n${STANDARD_FRAGMENT_ANCHOR}`,
       )
-    : `${tonemapWgsl}\n\n${shader.code}`;
+    : `${outputWgsl}\n\n${shader.code}`;
 
   return {
     ...shader,
-    label: `${shader.label}|${createTonemapPipelineKey(operator)}`,
+    label: [
+      shader.label,
+      createTonemapPipelineKey(operator),
+      createOutputColorSpacePipelineKey(outputColorSpace),
+    ].join("|"),
     code: codeWithFunction.replace(
       STANDARD_FRAGMENT_RETURN,
-      "return vec4f(apertureOutputTonemap(color), alpha);",
+      "return vec4f(apertureOutputColorSpace(apertureOutputTonemap(color)), alpha);",
     ),
   };
 }

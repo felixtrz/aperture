@@ -1,4 +1,8 @@
-import type { SamplerAsset } from "@aperture-engine/render";
+import type {
+  SamplerAsset,
+  TextureColorSpace,
+  TextureSemantic,
+} from "@aperture-engine/render";
 
 export const WEBGPU_TEXTURE_USAGE_FLAGS = {
   COPY_SRC: 0x1,
@@ -15,6 +19,7 @@ export type TextureGpuResourceDiagnosticCode =
   | "textureResource.invalidBytesPerRow"
   | "textureResource.invalidRowsPerImage"
   | "textureResource.uploadDataTooSmall"
+  | "textureResource.invalidColorSpaceFormat"
   | "textureResource.textureCreationFailed"
   | "textureResource.textureViewCreationFailed"
   | "textureResource.textureUploadFailed"
@@ -62,6 +67,8 @@ export interface TextureDescriptorInput {
   readonly size: readonly [number, number, number];
   readonly format: string;
   readonly usage: number;
+  readonly colorSpace?: TextureColorSpace;
+  readonly semantic?: TextureSemantic;
   readonly mipLevelCount?: number;
   readonly label?: string;
 }
@@ -114,6 +121,19 @@ export interface CreateSamplerGpuResourceResult {
 export function createTextureGpuResource(
   options: CreateTextureGpuResourceOptions,
 ): CreateTextureGpuResourceResult {
+  const colorSpaceDiagnostic = validateTextureDescriptorColorSpace(
+    options.resourceKey,
+    options.descriptor,
+  );
+
+  if (colorSpaceDiagnostic !== null) {
+    return {
+      valid: false,
+      resource: null,
+      diagnostics: [colorSpaceDiagnostic],
+    };
+  }
+
   if (options.device.createTexture === undefined) {
     return failure(
       "textureResource.createTextureUnavailable",
@@ -125,7 +145,9 @@ export function createTextureGpuResource(
   let texture: TextureLike;
 
   try {
-    texture = options.device.createTexture(options.descriptor);
+    texture = options.device.createTexture(
+      textureDescriptorForWebGpu(options.descriptor),
+    );
   } catch (error) {
     return failure(
       "textureResource.textureCreationFailed",
@@ -213,6 +235,40 @@ export function createTextureGpuResource(
   };
 }
 
+function validateTextureDescriptorColorSpace(
+  resourceKey: string,
+  descriptor: TextureDescriptorInput,
+): TextureGpuResourceDiagnostic | null {
+  if (descriptor.colorSpace === undefined) {
+    return null;
+  }
+
+  if (
+    isSrgbTextureFormat(descriptor.format) !==
+    (descriptor.colorSpace === "srgb")
+  ) {
+    return {
+      code: "textureResource.invalidColorSpaceFormat",
+      resourceKey,
+      message: `Texture resource '${resourceKey}' declares color space '${descriptor.colorSpace}' but uses texture format '${descriptor.format}'.`,
+    };
+  }
+
+  return null;
+}
+
+function textureDescriptorForWebGpu(
+  descriptor: TextureDescriptorInput,
+): Omit<TextureDescriptorInput, "colorSpace" | "semantic"> {
+  const {
+    colorSpace: _colorSpace,
+    semantic: _semantic,
+    ...webGpuDescriptor
+  } = descriptor;
+
+  return webGpuDescriptor;
+}
+
 function validateTextureUploadLayout(
   resourceKey: string,
   descriptor: TextureDescriptorInput,
@@ -285,6 +341,10 @@ function textureFormatBytesPerPixel(format: string): number | null {
     default:
       return null;
   }
+}
+
+function isSrgbTextureFormat(format: string): boolean {
+  return format.endsWith("-srgb");
 }
 
 export function createSamplerGpuResource(

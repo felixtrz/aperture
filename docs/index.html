@@ -393,26 +393,30 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-21 23:49 UTC</dd>
+            <dd>2026-05-22 00:35 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
             <dd>
-              The new <code>instance-attributes</code> example renders 576
-              worker-authored entities sharing one mesh and one custom WGSL
-              material. Each entity carries ECS-owned
-              <code>withInstanceData(...)</code> values for
-              <code>phase</code> and <code>swayAmount</code>; the main-thread
-              renderer prepares the custom instance-rate vertex buffer, WGSL
-              consumes it, readback samples change across animation frames, and
-              the render pass collapses the swarm to one indexed draw call. The
-              render-packet inspector example now renders a worker-authored
-              snapshot while publishing JSON-safe packet tables for views,
-              draws, lights, environments, bounds, queue keys, handles,
-              skipped-entity explanations, and culling stats. Extraction now
-              builds camera frustum planes from view-projection matrices, skips
-              mesh draws outside every matching camera view, reports per-view
-              <code>cullStats</code>, and exposes
+              The Tier 10 output-stage track is complete:
+              <code>createWebGpuApp({ tonemap })</code> selects Linear,
+              Reinhard, ACES, AgX, Neutral, or None; StandardMaterial output now
+              encodes through explicit sRGB display color space; texture
+              descriptors carry color-space/semantic metadata; native
+              <code>loadHdrFromUri()</code> parses Radiance RGBE
+              <code>.hdr</code> assets; and
+              <code>examples/tonemap-showcase.html</code> compares four
+              operators over the same worker-authored HDR IBL probe scene. The
+              StandardMaterial shader planner now also recognizes skinned
+              batches, emits JOINTS_0/WEIGHTS_0 vertex attributes, includes a
+              group-5 joint-matrix layout key, and has targeted pipeline tests
+              for the first Tier 11 skinning slice. The render-packet inspector
+              example now renders a worker-authored snapshot while publishing
+              JSON-safe packet tables for views, draws, lights, environments,
+              bounds, queue keys, handles, skipped-entity explanations, and
+              culling stats. Extraction now builds camera frustum planes from
+              view-projection matrices, skips mesh draws outside every matching
+              camera view, reports per-view <code>cullStats</code>, and exposes
               <code>frustumCulling: false</code> as a camera opt-out. Custom
               WGSL materials can now declare per-instance attribute layouts with
               <code>defineInstanceAttributes(...)</code>, runtime entities can
@@ -1231,7 +1235,7 @@
               key so live route changes do not reuse incompatible layouts.
             </dd>
             <dt>Next focus</dt>
-            <dd>task-3051 sRGB pipeline + color-space audit</dd>
+            <dd>task-3055 skinning bind group + bone matrix buffer</dd>
           </dl>
         </aside>
       </header>
@@ -1254,9 +1258,9 @@
         <div class="grid metrics">
           <article class="card metric">
             <div class="label">overall foundation</div>
-            <div class="value">44%</div>
-            <div class="bar" aria-label="44 percent complete">
-              <span style="width: 44%"></span>
+            <div class="value">45%</div>
+            <div class="bar" aria-label="45 percent complete">
+              <span style="width: 45%"></span>
             </div>
             <p>
               ECS, transforms, extraction, typed assets, diagnostics, and basic
@@ -4143,13 +4147,13 @@
             <ul>
               <li>
                 <span class="badge amber">next</span> Build
-                <code>task-3051</code>, the sRGB pipeline and color-space audit
-                on top of the new tonemap hook.
+                <code>task-3055</code>, the skinning bind group and bone matrix
+                buffer for StandardMaterial.
               </li>
               <li>
-                Follow-up visible slices include native RGBE <code>.hdr</code>
-                loading, a tonemap showcase, and bloom/auto-exposure output
-                work.
+                Follow-up visible slices wire the skinning bind group/bone
+                matrix buffer, then show a rigged character in
+                <code>glb-viewer</code>.
               </li>
               <li>
                 Keep the recommended next task visible-feature first; avoid
@@ -4166,6 +4170,30 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3054</div>
+            <div>
+              <strong>StandardMaterial has a skinned shader variant.</strong>
+              <span>
+                The WebGPU pipeline now plans JOINTS_0/WEIGHTS_0 attributes and
+                a group-5 joint-matrix layout key for skinned batches.
+              </span>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="task-id">task-3051–3053</div>
+            <div>
+              <strong
+                >Output color, HDR loading, and tonemap showcase landed.</strong
+              >
+              <span>
+                StandardMaterial now encodes linear tonemapped output to sRGB,
+                <code>loadHdrFromUri()</code> parses RGBE <code>.hdr</code>
+                assets, and a new showcase compares four operators over one HDR
+                scene.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3050</div>
             <div>

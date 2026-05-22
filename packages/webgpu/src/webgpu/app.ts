@@ -204,6 +204,11 @@ import {
   type TonemapOperator,
 } from "./output-stage-tonemap.js";
 import {
+  createOutputColorSpacePipelineKey,
+  resolveOutputColorSpace,
+  type OutputColorSpace,
+} from "./output-stage-color-space.js";
+import {
   createMultiMaterialUnlitFrameGpuResources,
   type CreateMultiMaterialUnlitFrameGpuResourcesResult,
 } from "./unlit-frame-resources.js";
@@ -554,6 +559,7 @@ export interface WebGpuApp {
   readonly initialization: WebGpuInitializationSuccess;
   readonly renderWorld: RenderWorld;
   readonly tonemap: TonemapOperator;
+  readonly outputColorSpace: OutputColorSpace;
   start(options?: WebGpuAppStartOptions): void;
   stop(): void;
   getDiagnostics(): WebGpuAppDiagnostics;
@@ -575,6 +581,7 @@ export interface CreateWebGpuAppOptions extends Omit<
   readonly transport?: WebGpuAppSnapshotTransportMode;
   readonly sharedSnapshotTransport?: WebGpuAppSharedSnapshotTransportOptions;
   readonly tonemap?: TonemapOperator;
+  readonly outputColorSpace?: OutputColorSpace;
 }
 
 export interface CreateWebGpuAppSuccess {
@@ -617,6 +624,7 @@ export async function createWebGpuApp(
   const sourceAssets = options.sourceAssets ?? new AssetRegistry();
   const renderWorld = new RenderWorld();
   const tonemap = resolveTonemapOperator(options.tonemap);
+  const outputColorSpace = resolveOutputColorSpace(options.outputColorSpace);
   const resourceCache = createWebGpuAppResourceCache();
   const snapshotTransport = createWebGpuAppSnapshotTransport({
     ...(options.transport === undefined ? {} : { mode: options.transport }),
@@ -636,6 +644,7 @@ export async function createWebGpuApp(
     initialization,
     renderWorld,
     tonemap,
+    outputColorSpace,
     start(startOptions = {}) {
       if (running) {
         return;
@@ -845,6 +854,9 @@ async function getOrCreateWebGpuAppPipeline(options: {
     options.kind === "standard"
       ? createTonemapPipelineKey(options.app.tonemap)
       : "tonemap:none",
+    options.kind === "standard"
+      ? createOutputColorSpacePipelineKey(options.app.outputColorSpace)
+      : createOutputColorSpacePipelineKey("linear"),
   ].join("|");
   const cached = options.cache.pipelines.get(key);
 
@@ -865,6 +877,7 @@ async function getOrCreateWebGpuAppPipeline(options: {
           depthFormat: WEBGPU_APP_DEPTH_FORMAT,
           batchKey: options.batchKey,
           tonemap: options.app.tonemap,
+          outputColorSpace: options.app.outputColorSpace,
         })
       : options.kind === "debug-normal"
         ? await createDebugNormalRenderPipelineResource({

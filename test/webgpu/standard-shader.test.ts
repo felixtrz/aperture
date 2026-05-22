@@ -23,6 +23,7 @@ import {
   PACKED_LIGHT_FLOAT_STRIDE,
   PACKED_LIGHT_METADATA_STRIDE,
   PackedLightKindId,
+  STANDARD_SKINNING_BIND_GROUP_LAYOUT_KEY,
   STANDARD_SHADOW_MAP_SHADER_VARIANT,
   STANDARD_SHADOW_RECEIVER_MESH_SHADER,
   STANDARD_SHADOW_RECEIVER_MESH_WGSL,
@@ -233,6 +234,63 @@ describe("built-in standard material WGSL shader metadata", () => {
     expect(shader.code).toContain(
       "baseColorSample.a * material.baseColorFactor.a * input.vertexColor.a",
     );
+  });
+
+  it("generates a skinned StandardMaterial shader variant", () => {
+    const shader = createStandardTextureVariantShader({
+      baseColorTexture: false,
+      metallicRoughnessTexture: false,
+      normalTexture: false,
+      occlusionTexture: false,
+      emissiveTexture: false,
+      skinned: true,
+    });
+
+    expect(
+      createStandardTextureShaderVariantKey({
+        baseColorTexture: false,
+        metallicRoughnessTexture: false,
+        normalTexture: false,
+        occlusionTexture: false,
+        emissiveTexture: false,
+        skinned: true,
+      }),
+    ).toBe("direct-lit-metallic-roughness-skinned-texture");
+    expect(shader.label).toBe("aperture/standard-mesh-skinned-textured");
+    expect(validateStandardShaderMetadata(shader)).toEqual({
+      valid: true,
+      diagnostics: [],
+    });
+    expect(shader.code).toContain("@location(8) joints0: vec4u");
+    expect(shader.code).toContain("@location(9) weights0: vec4f");
+    expect(shader.code).toContain(
+      "@group(5) @binding(0) var<storage, read> skinJointMatrices",
+    );
+    expect(shader.code).toContain("fn apertureSkinMatrix");
+    expect(shader.code).toContain("apertureSkinPosition(input.position");
+    expect(shader.code).toContain("apertureSkinDirection(input.normal");
+    expect(
+      shader.bindings.map((binding) => [
+        binding.id,
+        binding.group,
+        binding.binding,
+        binding.resource,
+      ]),
+    ).toContainEqual(["skinJointMatrices", 5, 0, "read-only-storage-buffer"]);
+    expect(STANDARD_SKINNING_BIND_GROUP_LAYOUT_KEY).toBe(
+      "standard/skinning/group-5:joint-matrices@0",
+    );
+
+    const deformed = applySyntheticSkinningPosition({
+      position: [1, 2, 3],
+      joints: [0, 1, 0, 0],
+      weights: [0.25, 0.75, 0, 0],
+      matrices: [identityMatrix(), scaleMatrix(3, 1, 1)],
+    });
+
+    expect(deformed[0]).toBeCloseTo(2.5);
+    expect(deformed[1]).toBeCloseTo(2);
+    expect(deformed[2]).toBeCloseTo(3);
   });
 
   it("declares browser-safe group 3 bindings and 3x3 PCF comparison sampling for shadow receivers", () => {
@@ -1347,3 +1405,50 @@ describe("built-in standard material WGSL shader metadata", () => {
     ]);
   });
 });
+
+function applySyntheticSkinningPosition(input: {
+  readonly position: readonly [number, number, number];
+  readonly joints: readonly [number, number, number, number];
+  readonly weights: readonly [number, number, number, number];
+  readonly matrices: readonly (readonly number[])[];
+}): readonly [number, number, number] {
+  const weightSum = input.weights.reduce((sum, weight) => sum + weight, 0);
+  const weights =
+    weightSum <= 0.0001
+      ? ([1, 0, 0, 0] as const)
+      : input.weights.map((weight) => weight / weightSum);
+  const blended = new Array(16).fill(0) as number[];
+
+  for (let jointSlot = 0; jointSlot < 4; jointSlot += 1) {
+    const joint = input.joints[jointSlot] ?? 0;
+    const matrix = input.matrices[joint] ?? identityMatrix();
+    const weight = weights[jointSlot] ?? 0;
+
+    for (let index = 0; index < 16; index += 1) {
+      blended[index] = (blended[index] ?? 0) + (matrix[index] ?? 0) * weight;
+    }
+  }
+
+  return [
+    (blended[0] ?? 0) * input.position[0] +
+      (blended[4] ?? 0) * input.position[1] +
+      (blended[8] ?? 0) * input.position[2] +
+      (blended[12] ?? 0),
+    (blended[1] ?? 0) * input.position[0] +
+      (blended[5] ?? 0) * input.position[1] +
+      (blended[9] ?? 0) * input.position[2] +
+      (blended[13] ?? 0),
+    (blended[2] ?? 0) * input.position[0] +
+      (blended[6] ?? 0) * input.position[1] +
+      (blended[10] ?? 0) * input.position[2] +
+      (blended[14] ?? 0),
+  ];
+}
+
+function identityMatrix(): readonly number[] {
+  return scaleMatrix(1, 1, 1);
+}
+
+function scaleMatrix(x: number, y: number, z: number): readonly number[] {
+  return [x, 0, 0, 0, 0, y, 0, 0, 0, 0, z, 0, 0, 0, 0, 1];
+}

@@ -59,12 +59,16 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start `task-3051`: sRGB pipeline + color-space audit.
+Start `task-3055`: Skinning bind group + bone matrix buffer.
 
-Why this next: task-3050 added configurable tonemap operators to the
-StandardMaterial WebGPU output path. The next strict roadmap slice audits the
-linear-to-display color-space path so tonemap output is encoded correctly and
-texture color-space invariants are explicit.
+Why this next: the Tier 10 output-stage/color-management track is now complete:
+tonemap operators route through explicit sRGB output encoding, native RGBE
+`.hdr` loading feeds the HDR IBL examples, and the tonemap showcase compares
+Linear, Reinhard, ACES, and AgX over the same worker-authored HDR scene.
+`task-3054` also landed the StandardMaterial skinned WGSL variant and pipeline
+metadata for `JOINTS_0` / `WEIGHTS_0`. The next visible gap is wiring extracted
+skin assets into a WebGPU group-5 joint-matrix buffer so the shader variant can
+consume real bone palettes.
 
 Progress so far: `spinning-cube`, `multi-light-shadow`, and `glb-viewer` now
 use renderer-only `*.main.js` files plus ECS/extraction-owned `*.worker.js`
@@ -105,13 +109,21 @@ attribute packets, and WebGPU can create/bind the resulting instance-rate
 vertex buffer. `examples/instance-attributes.html` now proves that contract with
 576 ECS-authored entities sharing one mesh and one custom WGSL material, browser
 readbacks at three sample points changing across frames, and one indexed draw
-after draw-list coalescing.
+after draw-list coalescing. `createWebGpuApp({ tonemap })` now supports the
+output-stage operators, StandardMaterial output defaults through sRGB display
+encoding, texture metadata carries explicit color-space/semantic information,
+`loadHdrFromUri()` parses Radiance RGBE `.hdr` data into linear floats, and
+`examples/tonemap-showcase.html` compares four operators over the same
+worker-authored HDR scene. StandardMaterial now has a `skinned` shader variant
+with JOINTS_0/WEIGHTS_0 vertex attributes, group-5 joint matrix metadata, and
+targeted shader/pipeline tests.
 
 Reference anchors (read before writing):
 
-- `references/three.js/examples/webgpu_instancing_morph.html` if present, else
-  `references/three.js/examples/webgl_instancing_dynamic.html`
-- `references/engine/examples/graphics/instancing.html`
+- `references/three.js/src/renderers/webgpu/nodes/WGSLNodeBuilder.js` and
+  StandardMaterial/skinning shader paths around skin/joint attributes.
+- `references/engine/src/scene/skin-instance.js` and PlayCanvas shader chunks
+  for joint matrix palette sampling.
 
 ## Strategic Focus — Pipeline Maturity Roadmap
 
@@ -708,7 +720,7 @@ Acceptance criteria:
 - Vitest covers shader chunk generation per operator + pipeline-key inclusion.
 - Spinning-cube example renders with measurably different output under each operator (Playwright pixel readback at the same coordinate differs by ≥ N units between operators).
 
-### task-3051 — sRGB pipeline + color-space audit (Tier 10 part 2)
+### task-3051 — sRGB pipeline + color-space audit (Tier 10 part 2) — Completed 2026-05-21
 
 Category: `webgpu-render`
 Package/write-scope: `packages/render/src/materials/types.ts`, `packages/webgpu/src/webgpu/`, targeted tests + diagnostic updates.
@@ -722,7 +734,7 @@ Acceptance criteria:
 - Diagnostics catch mismatches (e.g., sRGB texture sampled as linear).
 - Tonemap output goes through correct sRGB encoding when display is sRGB.
 
-### task-3052 — HDR `.hdr` (RGBE) loader (Tier 10 part 3)
+### task-3052 — HDR `.hdr` (RGBE) loader (Tier 10 part 3) — Completed 2026-05-21
 
 Category: `render-bridge`
 Package/write-scope: `packages/render/src/assets/hdr-rgbe-loader.ts` (new), `examples/assets/` (commit a sample `.hdr`), targeted tests.
@@ -735,7 +747,7 @@ Acceptance criteria:
 - Test loads a small committed `.hdr` and asserts pixel values match expected RGBE-decoded floats.
 - Spinning-cube (or new pmrem-showcase) example loads the `.hdr` directly without pre-conversion.
 
-### task-3053 — Output-stage tonemap comparison example (Tier 10 part 4)
+### task-3053 — Output-stage tonemap comparison example (Tier 10 part 4) — Completed 2026-05-21
 
 Category: `runtime-orchestration`
 Package/write-scope: `examples/tonemap-showcase.{html,main.js,worker.js}`, `test/e2e/tonemap-showcase.spec.ts`.
@@ -749,7 +761,7 @@ Acceptance criteria:
 - Playwright pixel comparison shows ≥ N-unit difference between operators at the same coordinate.
 - Bright highlights (specular reflections from HDR env) tonemap correctly under ACES/AgX (no blowout).
 
-### task-3054 — GPU skinning shader variant (Tier 11 part 1)
+### task-3054 — GPU skinning shader variant (Tier 11 part 1) — Completed 2026-05-21
 
 Category: `webgpu-render`
 Package/write-scope: `packages/webgpu/src/webgpu/standard-shader.ts` + new `standard-skinning-*.ts`, targeted tests.

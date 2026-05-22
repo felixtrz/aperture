@@ -18,10 +18,18 @@ import {
   STANDARD_MESH_SHADER,
 } from "./standard-shader.js";
 import {
+  STANDARD_SKINNING_JOINTS_LOCATION,
+  STANDARD_SKINNING_WEIGHTS_LOCATION,
+} from "./standard-skinning-shader.js";
+import {
   applyOutputTonemapToStandardShader,
   DEFAULT_TONEMAP_OPERATOR,
   type TonemapOperator,
 } from "./output-stage-tonemap.js";
+import {
+  DEFAULT_OUTPUT_COLOR_SPACE,
+  type OutputColorSpace,
+} from "./output-stage-color-space.js";
 import { INSTANCE_TINT_VERTEX_BUFFER_LAYOUT } from "./instance-tint-buffer.js";
 import {
   createWebGpuShaderModule,
@@ -62,6 +70,26 @@ export const STANDARD_VERTEX_COLOR_PRIMITIVE_VERTEX_BUFFER_LAYOUT = {
     { shaderLocation: 1, offset: 12, format: "float32x3" },
     { shaderLocation: 2, offset: 24, format: "float32x2" },
     { shaderLocation: 5, offset: 32, format: "float32x4" },
+  ],
+} as const;
+
+export const STANDARD_SKINNED_PRIMITIVE_VERTEX_BUFFER_LAYOUT = {
+  arrayStride: 56,
+  stepMode: "vertex",
+  attributes: [
+    { shaderLocation: 0, offset: 0, format: "float32x3" },
+    { shaderLocation: 1, offset: 12, format: "float32x3" },
+    { shaderLocation: 2, offset: 24, format: "float32x2" },
+    {
+      shaderLocation: STANDARD_SKINNING_JOINTS_LOCATION,
+      offset: 32,
+      format: "uint16x4",
+    },
+    {
+      shaderLocation: STANDARD_SKINNING_WEIGHTS_LOCATION,
+      offset: 40,
+      format: "float32x4",
+    },
   ],
 } as const;
 
@@ -107,6 +135,7 @@ export interface CreateStandardRenderPipelineResourceOptions {
   readonly batchKey: BatchCompatibilityKey;
   readonly shader?: BuiltInShaderSourceModule;
   readonly tonemap?: TonemapOperator;
+  readonly outputColorSpace?: OutputColorSpace;
 }
 
 export interface StandardRenderPipelineResource {
@@ -131,6 +160,7 @@ export async function createStandardRenderPipelineResource(
   const shader = applyOutputTonemapToStandardShader(
     resolveStandardShaderForBatchKey(options.batchKey, options.shader),
     options.tonemap ?? DEFAULT_TONEMAP_OPERATOR,
+    options.outputColorSpace ?? DEFAULT_OUTPUT_COLOR_SPACE,
   );
   const descriptorPlan = createStandardPipelineDescriptorPlan({
     shader,
@@ -276,12 +306,18 @@ function standardPrimitiveVertexBufferLayout(
   | typeof STANDARD_TANGENT_PRIMITIVE_VERTEX_BUFFER_LAYOUT
   | typeof STANDARD_TEXCOORD1_PRIMITIVE_VERTEX_BUFFER_LAYOUT
   | typeof STANDARD_VERTEX_COLOR_PRIMITIVE_VERTEX_BUFFER_LAYOUT
+  | typeof STANDARD_SKINNED_PRIMITIVE_VERTEX_BUFFER_LAYOUT
   | typeof STANDARD_TANGENT_TEXCOORD1_PRIMITIVE_VERTEX_BUFFER_LAYOUT {
   const needsTangents = shader.bindings.some(
     (binding) => binding.id === "normalTexture",
   );
   const needsTexCoord1 = shader.code.includes("@location(4) uv1: vec2f");
   const needsVertexColor = shader.code.includes("@location(5) color: vec4f");
+  const needsSkinning = shader.code.includes("@location(8) joints0: vec4u");
+
+  if (needsSkinning && !needsTangents && !needsTexCoord1 && !needsVertexColor) {
+    return STANDARD_SKINNED_PRIMITIVE_VERTEX_BUFFER_LAYOUT;
+  }
 
   if (needsTangents && needsTexCoord1) {
     return STANDARD_TANGENT_TEXCOORD1_PRIMITIVE_VERTEX_BUFFER_LAYOUT;

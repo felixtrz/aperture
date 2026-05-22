@@ -485,6 +485,7 @@ describe("WebGPU app facade", () => {
     }
 
     expect(created.app.tonemap).toBe("aces");
+    expect(created.app.outputColorSpace).toBe("srgb");
   });
 
   it("initializes WebGPU and renders the unlit queue path from ECS-authored entities", async () => {
@@ -5438,7 +5439,7 @@ describe("WebGPU app facade", () => {
       "standard|iblDiffuse|opaque|back|less|none",
     );
     expect(events).toContain(
-      "device:pipeline:aperture/standard-mesh-diffuse-ibl:bgra8unorm:triangle-list",
+      "device:pipeline:aperture/standard-mesh-diffuse-ibl|tonemap:none|output-color:srgb:bgra8unorm:triangle-list",
     );
     expect(events).toContain("device:bindGroup:standard/lights-ibl");
     expect(events).toContain("pass:bind:3");
@@ -6140,7 +6141,7 @@ describe("WebGPU app facade", () => {
       standard: 1,
     });
     expect(events).toContain(
-      "device:pipeline:aperture/standard-mesh-base-color-textured:bgra8unorm:triangle-list",
+      "device:pipeline:aperture/standard-mesh-base-color-textured|tonemap:none|output-color:srgb:bgra8unorm:triangle-list",
     );
     expect(events).toContain("device:texture:StandardBaseColor");
     expect(events).toContain("queue:writeTexture:16");
@@ -6516,7 +6517,7 @@ describe("WebGPU app facade", () => {
       lightBuffersCreated: 1,
     });
     expect(events).toContain(
-      "device:pipeline:aperture/standard-mesh-metallic-roughness-textured:bgra8unorm:triangle-list",
+      "device:pipeline:aperture/standard-mesh-metallic-roughness-textured|tonemap:none|output-color:srgb:bgra8unorm:triangle-list",
     );
     expect(events).toContain("device:texture:StandardMetallicRoughness");
     expect(events).toContain("queue:writeTexture:16");
@@ -6836,7 +6837,7 @@ describe("WebGPU app facade", () => {
       lightBuffersCreated: 1,
     });
     expect(events).toContain(
-      "device:pipeline:aperture/standard-mesh-occlusion-emissive-textured:bgra8unorm:triangle-list",
+      "device:pipeline:aperture/standard-mesh-occlusion-emissive-textured|tonemap:none|output-color:srgb:bgra8unorm:triangle-list",
     );
     expect(events).toContain("device:texture:StandardOcclusion");
     expect(events).toContain("device:texture:StandardEmissive");
@@ -7109,7 +7110,7 @@ describe("WebGPU app facade", () => {
       lightBuffersCreated: 1,
     });
     expect(events).toContain(
-      "device:pipeline:aperture/standard-mesh-normal-map-textured:bgra8unorm:triangle-list",
+      "device:pipeline:aperture/standard-mesh-normal-map-textured|tonemap:none|output-color:srgb:bgra8unorm:triangle-list",
     );
     expect(events).toContain("device:texture:StandardNormal");
     expect(events).toContain("device:sampler:StandardNormalSampler");

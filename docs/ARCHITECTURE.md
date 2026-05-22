@@ -310,6 +310,13 @@ as renderer-independent source data. That source payload is not a GPU resource:
 the WebGPU backend is responsible for turning it into `GPUQueue.writeTexture`
 work and prepared texture views keyed by source handle/version.
 
+Texture assets also carry renderer-independent `semantic` and `colorSpace`
+metadata. The current color-management contract is documented in
+[`COLOR_MANAGEMENT.md`](./COLOR_MANAGEMENT.md): StandardMaterial renders in
+linear RGB, base-color/emissive textures use sRGB source formats, data textures
+stay linear/data, and browser StandardMaterial output tonemaps before sRGB
+display encoding.
+
 The current renderer-independent contract is documented in
 [`RENDER_ASSET_PREPARATION.md`](./RENDER_ASSET_PREPARATION.md). It defines
 typed prepare/unload adapters and prepared mesh/material stores without exposing

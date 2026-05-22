@@ -85,6 +85,67 @@ describe("texture GPU resource creation", () => {
     ]);
   });
 
+  it("keeps color-space metadata on Aperture descriptors but omits it from WebGPU creation", () => {
+    const texture = textureWithView({ label: "srgb-view" });
+    const created: unknown[] = [];
+    const descriptor = textureDescriptor({
+      format: "rgba8unorm-srgb",
+      colorSpace: "srgb",
+      semantic: "base-color",
+    });
+    const result = createTextureGpuResource({
+      device: {
+        createTexture: (input) => {
+          created.push(input);
+          return texture;
+        },
+      },
+      resourceKey: "texture:base-color",
+      descriptor,
+    });
+
+    expect(result.valid).toBe(true);
+    expect(result.resource?.descriptor).toEqual(descriptor);
+    expect(created).toEqual([
+      {
+        label: "albedo",
+        size: [2, 2, 1],
+        format: "rgba8unorm-srgb",
+        usage: 0x6,
+        mipLevelCount: 1,
+      },
+    ]);
+  });
+
+  it("diagnoses texture descriptor color-space and format mismatches before GPU creation", () => {
+    const created: unknown[] = [];
+    const result = createTextureGpuResource({
+      device: {
+        createTexture: (input) => {
+          created.push(input);
+          return textureWithView({});
+        },
+      },
+      resourceKey: "texture:bad-base-color",
+      descriptor: textureDescriptor({
+        format: "rgba8unorm",
+        colorSpace: "srgb",
+        semantic: "base-color",
+      }),
+    });
+
+    expect(result.valid).toBe(false);
+    expect(result.resource).toBeNull();
+    expect(result.diagnostics).toEqual([
+      {
+        code: "textureResource.invalidColorSpaceFormat",
+        resourceKey: "texture:bad-base-color",
+        message: expect.stringContaining("color space 'srgb'"),
+      },
+    ]);
+    expect(created).toEqual([]);
+  });
+
   it("accepts padded rowsPerImage for single-layer texture uploads without requiring extra bytes", () => {
     const writes: unknown[] = [];
     const result = createTextureGpuResource({

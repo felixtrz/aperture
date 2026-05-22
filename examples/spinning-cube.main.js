@@ -92,7 +92,10 @@ async function createLitSpinningCubePresentationScene(
   app,
   sourceAssets,
 ) {
-  const environmentSource = await loadRgbeCubeEnvironment(environmentAsset);
+  const environmentSource = await loadRgbeCubeEnvironment(
+    aperture,
+    environmentAsset,
+  );
   const assets = aperture.createRenderAssetCollections({
     registry: sourceAssets,
   });
@@ -330,6 +333,8 @@ function createFrameStatus(
       operator: app.tonemap,
       requested: requestedTonemap,
       pipelineKey: `tonemap:${app.tonemap}`,
+      outputColorSpace: app.outputColorSpace,
+      outputPipelineKey: `output-color:${app.outputColorSpace}`,
     },
     clearColor: {
       r: clearColor[0],
@@ -361,8 +366,11 @@ function createFrameStatus(
       handleKey: aperture.assetHandleKey(scene.environmentMap),
       source: {
         kind: scene.environmentSource.kind,
+        loader: scene.environmentSource.loader,
         asset: scene.environmentSource.assetPath,
         label: scene.environmentSource.label,
+        format: scene.environmentSource.sourceFormat,
+        colorSpace: scene.environmentSource.sourceColorSpace,
         width: scene.environmentSource.width,
         height: scene.environmentSource.height,
         faceSize: scene.environmentSource.faceSize,
@@ -923,29 +931,24 @@ function createDiffuseIblSampler(device, resourceKey) {
   };
 }
 
-async function loadRgbeCubeEnvironment(asset) {
-  const response = await fetch(asset.url);
+async function loadRgbeCubeEnvironment(aperture, asset) {
+  const loaded = await aperture.loadHdrFromUri(asset.url.href);
 
-  if (!response.ok) {
+  if (!loaded.ok || loaded.image === null) {
+    const firstDiagnostic = loaded.diagnostics[0];
+
     throw new Error(
-      `Could not load ${asset.path}: ${response.status} ${response.statusText}`,
+      firstDiagnostic?.message ??
+        `Could not load Radiance HDR environment ${asset.path}.`,
     );
   }
 
-  return decodeRgbeCubeAtlas(await response.arrayBuffer(), asset);
+  return decodeRgbeCubeAtlas(loaded.image, asset);
 }
 
-function decodeRgbeCubeAtlas(arrayBuffer, asset) {
-  const bytes = new Uint8Array(arrayBuffer);
-  const header = decodeAsciiHeader(bytes);
-  const match = /(?:^|\n)([-+]Y)\s+(\d+)\s+([-+]X)\s+(\d+)\n/.exec(header.text);
-
-  if (match === null) {
-    throw new Error(`Radiance HDR asset ${asset.path} has no size line.`);
-  }
-
-  const height = Number(match[2]);
-  const width = Number(match[4]);
+function decodeRgbeCubeAtlas(image, asset) {
+  const height = image.height;
+  const width = image.width;
   const faceCount = asset.faceOrder.length;
 
   if (height <= 0 || width <= 0 || width % faceCount !== 0) {
@@ -962,14 +965,6 @@ function decodeRgbeCubeAtlas(arrayBuffer, asset) {
     );
   }
 
-  const pixelBytes = bytes.subarray(header.endOffset);
-
-  if (pixelBytes.length < width * height * 4) {
-    throw new Error(
-      `Radiance HDR asset ${asset.path} ended before pixel data.`,
-    );
-  }
-
   const faces = asset.faceOrder.map((name, faceIndex) => {
     const rgba = new Uint8Array(faceSize * faceSize * 4);
 
@@ -979,11 +974,10 @@ function decodeRgbeCubeAtlas(arrayBuffer, asset) {
         const dst = (y * faceSize + x) * 4;
 
         rgba.set(
-          rgbeToDisplayRgba(
-            pixelBytes[src],
-            pixelBytes[src + 1],
-            pixelBytes[src + 2],
-            pixelBytes[src + 3],
+          linearRgbToDisplayRgba(
+            image.data[src],
+            image.data[src + 1],
+            image.data[src + 2],
           ),
           dst,
         );
@@ -999,8 +993,11 @@ function decodeRgbeCubeAtlas(arrayBuffer, asset) {
 
   return {
     kind: "radiance-rgbe-cube-atlas",
+    loader: "loadHdrFromUri",
     assetPath: asset.path,
     label: asset.label,
+    sourceFormat: image.format,
+    sourceColorSpace: image.colorSpace,
     width,
     height,
     faceSize,
@@ -1010,36 +1007,11 @@ function decodeRgbeCubeAtlas(arrayBuffer, asset) {
   };
 }
 
-function decodeAsciiHeader(bytes) {
-  for (let index = 0; index < bytes.length - 1; index += 1) {
-    if (bytes[index] === 0x0a && bytes[index + 1] === 0x2d) {
-      const nextNewline = bytes.indexOf(0x0a, index + 1);
-
-      if (nextNewline !== -1) {
-        return {
-          text: new TextDecoder("ascii").decode(
-            bytes.subarray(0, nextNewline + 1),
-          ),
-          endOffset: nextNewline + 1,
-        };
-      }
-    }
-  }
-
-  throw new Error("Radiance HDR header does not contain a resolution line.");
-}
-
-function rgbeToDisplayRgba(r, g, b, e) {
-  if (e === 0) {
-    return [0, 0, 0, 255];
-  }
-
-  const scale = Math.pow(2, e - 128) / 256;
-
+function linearRgbToDisplayRgba(r, g, b) {
   return [
-    linearToDisplayByte((r + 0.5) * scale),
-    linearToDisplayByte((g + 0.5) * scale),
-    linearToDisplayByte((b + 0.5) * scale),
+    linearToDisplayByte(r),
+    linearToDisplayByte(g),
+    linearToDisplayByte(b),
     255,
   ];
 }

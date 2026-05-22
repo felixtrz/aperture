@@ -6,6 +6,6 @@
   "lastResult": "success",
   "lastCommit": "a1e1e10",
   "activePid": null,
-  "notes": "Completed task-3050: selectable StandardMaterial tonemap operators, spinning-cube tonemap status/readback probe, tests and tracker updates; next task is task-3051 sRGB pipeline + color-space audit.",
-  "lastRunFinishedAt": "2026-05-21T23:50:41Z"
+  "notes": "Completed tasks 3051-3054: sRGB output color path, shared HDR RGBE loader, tonemap showcase example, and StandardMaterial skinning shader/pipeline variant. Validation passed: targeted typechecks/tests, build, check:examples, check:progress, format:check, lint, full pnpm test, and pnpm run check. Known issue: headed Playwright WebGPU test assertion passed but local browser/server teardown can hang after the visible window flashes; no listener remains on port 4173. Next task: task-3055 skinning bind group and bone matrix buffer wiring.",
+  "lastRunFinishedAt": "2026-05-22T00:50:08Z"
 }

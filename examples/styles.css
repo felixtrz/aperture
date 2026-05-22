@@ -186,6 +186,12 @@ body {
   background: #2a3440;
 }
 
+.runtime-controls button[aria-pressed="true"] {
+  border-color: #81d69d;
+  background: #26362d;
+  color: #c7f7d3;
+}
+
 .runtime-controls button:focus-visible {
   outline: 2px solid #81d69d;
   outline-offset: 3px;

@@ -84,6 +84,7 @@ export * from "./pipeline-cache.js";
 export * from "./pipeline-cache-integration.js";
 export * from "./pipeline-scoped-bind-groups.js";
 export * from "./output-stage-tonemap.js";
+export * from "./output-stage-color-space.js";
 export * from "./pmrem-compute-pipeline.js";
 export * from "./point-shadow-matrix-computation.js";
 export * from "./point-shadow-view-projection-plan.js";
@@ -167,6 +168,7 @@ export * from "./standard-material-texture-fidelity-summary.js";
 export * from "./standard-pipeline-descriptor.js";
 export * from "./standard-pipeline.js";
 export * from "./standard-render-state-summary.js";
+export * from "./standard-skinning-shader.js";
 export * from "./standard-shader.js";
 export * from "./texture-resources.js";
 export * from "./unlit-material-buffer.js";
@@ -211,6 +213,7 @@ export interface WebGpuInitializationSuccess {
   readonly device: WebGpuDeviceLike;
   readonly context: WebGpuCanvasContextLike;
   readonly format: string;
+  readonly displayColorSpace: "srgb";
   readonly deviceLost: Promise<WebGpuFailure> | null;
 }
 
@@ -255,6 +258,7 @@ export interface WebGpuCanvasContextLike {
   configure(configuration: {
     readonly device: WebGpuDeviceLike;
     readonly format: string;
+    readonly colorSpace?: "srgb";
     readonly alphaMode?: "opaque" | "premultiplied";
     readonly usage?: number;
   }): void;
@@ -269,6 +273,7 @@ export interface InitializeWebGpuOptions {
   readonly timestampQuery?: "auto" | boolean;
   readonly alphaMode?: "opaque" | "premultiplied";
   readonly textureUsage?: number;
+  readonly displayColorSpace?: "srgb";
 }
 
 export const WEBGPU_FAILURE_MESSAGES: Record<WebGpuFailureReason, string> = {
@@ -335,6 +340,7 @@ export async function initializeWebGpu(
     context.configure({
       device,
       format,
+      colorSpace: options.displayColorSpace ?? "srgb",
       alphaMode: options.alphaMode ?? "opaque",
       ...(options.textureUsage === undefined
         ? {}
@@ -351,6 +357,7 @@ export async function initializeWebGpu(
     device,
     context,
     format,
+    displayColorSpace: options.displayColorSpace ?? "srgb",
     deviceLost:
       device.lost === undefined
         ? null

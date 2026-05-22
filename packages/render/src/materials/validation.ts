@@ -62,10 +62,22 @@ export function validateTextureAsset(
     });
   }
 
+  if (textureFormatIsSrgb(texture.format) !== (texture.colorSpace === "srgb")) {
+    diagnostics.push({
+      code: "material.invalidTextureColorSpaceFormat",
+      field: "format",
+      message: `${texture.semantic} texture '${texture.label}' declares color space '${texture.colorSpace}' but uses format '${texture.format}'.`,
+    });
+  }
+
   return {
     valid: diagnostics.length === 0,
     diagnostics,
   };
+}
+
+function textureFormatIsSrgb(format: TextureAsset["format"]): boolean {
+  return format.endsWith("-srgb");
 }
 
 function validateRenderState(
