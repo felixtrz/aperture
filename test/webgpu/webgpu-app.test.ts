@@ -28,6 +28,7 @@ import {
   withMesh,
   withRenderLayer,
   withSkybox,
+  withSprite,
   withTransform,
   withVisibility,
   type MeshAsset,
@@ -1898,6 +1899,93 @@ describe("WebGPU app facade", () => {
     expect(events).toContain("textureResource:view:UnitSkybox");
     expect(events.indexOf("pass:draw:3")).toBeLessThan(
       events.indexOf("pass:drawIndexed:36"),
+    );
+  });
+
+  it("renders ECS sprite billboards alongside opaque mesh draws", async () => {
+    const events: string[] = [];
+    const { canvas, environment } = webGpuHarness(events);
+    const created = await createWebGpuApp({
+      canvas,
+      environment,
+      worldOptions: { entityCapacity: 8 },
+    });
+
+    expect(created.ok).toBe(true);
+
+    if (!created.ok) {
+      return;
+    }
+
+    const app = created.app;
+    const assets = createRenderAssetCollections({ registry: app.assets });
+    const mesh = assets.meshes.add(createBoxMeshAsset({ label: "Cube" }));
+    const material = assets.materials.unlit.add(createUnlitMaterialAsset());
+    const spriteTexture = createTextureHandle("unit-sprite");
+    const spriteSampler = createSamplerHandle("unit-sprite-sampler");
+
+    app.assets.register(spriteTexture);
+    app.assets.markReady(
+      spriteTexture,
+      createTextureAsset({
+        label: "UnitSprite",
+        dimension: "2d",
+        width: 1,
+        height: 1,
+        format: "rgba8unorm",
+        colorSpace: "data",
+        semantic: "base-color",
+        usage: ["sampled", "copy-dst"],
+        sourceData: {
+          bytes: new Uint8Array([255, 255, 255, 255]),
+          bytesPerRow: 4,
+          rowsPerImage: 1,
+        },
+      }),
+    );
+    app.assets.register(spriteSampler);
+    app.assets.markReady(
+      spriteSampler,
+      createSamplerAsset({ label: "UnitSpriteSampler" }),
+    );
+    app.spawn(
+      withTransform({ translation: [0, 0, 5] }),
+      withCamera({ priority: 0, layerMask: 1 }),
+    );
+    app.spawn(
+      withTransform({ translation: [-0.6, 0, 0] }),
+      withMesh(mesh),
+      withMaterial(material),
+      withRenderLayer(1),
+      withVisibility(true),
+    );
+    app.spawn(
+      withTransform({ translation: [0.6, 0, 0] }),
+      withSprite({
+        texture: spriteTexture,
+        sampler: spriteSampler,
+        size: [0.5, 0.5],
+      }),
+      withRenderLayer(1),
+      withVisibility(true),
+    );
+
+    const frame = await app.stepAndRender(1 / 60, 1, 24);
+
+    expect(frame.ok).toBe(true);
+    expect(frame.counts).toMatchObject({
+      views: 1,
+      meshDraws: 1,
+      spriteDraws: 1,
+      drawCalls: 2,
+      diagnostics: 0,
+    });
+    expect(events).toContain(
+      "device:pipeline:aperture/sprite-billboard:bgra8unorm",
+    );
+    expect(events).toContain("textureResource:view:UnitSprite");
+    expect(events.indexOf("pass:drawIndexed:36")).toBeLessThan(
+      events.lastIndexOf("pass:draw:6"),
     );
   });
 

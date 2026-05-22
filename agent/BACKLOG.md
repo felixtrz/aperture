@@ -59,18 +59,15 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start `task-3081`: Outdoor atmosphere example.
+Start `task-3082`: Clearcoat extension.
 
-Why this next: Tier 16 has RectAreaLight/LTC, rect/disk/sphere area-light shape
-metadata, executable directional CSM, and the combined
-`examples/outdoor-scene.html` proof. Tier 17 now has ECS-authored sprites,
-skyboxes, and fog. `examples/sprite-billboard.html` proves camera-facing
-billboards, `examples/skybox.html` proves an ECS-authored skybox background
-rendered behind scene geometry, and `examples/fog.html` proves linear,
-exponential, and exponential-squared StandardMaterial fog falloff. The next
-visible gap is a combined outdoor atmosphere example proving all three
-scene-atmosphere features together without introducing a scene graph or letting
-the renderer own app state.
+Why this next: Tier 17 scene atmosphere is complete. ECS-authored sprites,
+skyboxes, and fog now render independently and together in
+`examples/atmosphere.html`; the WebGPU mixed-scene path also submits sprite
+billboards alongside opaque mesh draws instead of only in sprite-only scenes.
+The next visible gap is Tier 18 PBR material extensions, starting with
+clearcoat as the first `MeshPhysicalMaterial`/glTF PBR-extension surface that
+should produce a visible highlight distinct from the base specular lobe.
 
 Progress so far: `spinning-cube`, `multi-light-shadow`, and `glb-viewer` now
 use renderer-only `*.main.js` files plus ECS/extraction-owned `*.worker.js`
@@ -126,10 +123,9 @@ shader/pipeline/resource/importer tests.
 
 Reference anchors (read before writing):
 
-- `references/three.js/examples/webgpu_skybox.html`.
-- `references/three.js/examples/webgl_fog.html`.
-- Existing ECS authoring patterns in `examples/sprite-billboard-scene.js`,
-  `examples/skybox-scene.js`, and `examples/fog-scene.js`.
+- `references/three.js/src/materials/MeshPhysicalMaterial.js`.
+- `references/engine/src/scene/materials/standard-material.js`.
+- glTF `KHR_materials_clearcoat` extension behavior.
 
 ## Strategic Focus — Pipeline Maturity Roadmap
 
@@ -229,7 +225,7 @@ Eleven cross-cutting gaps remain across the six phases. They are sequenced below
 
 **Tier 17 — Scene atmosphere (sprites, skybox, fog) (queued after Tier 16):**
 
-24. Sprite component + skybox-as-scene-element + fog (task-3078, task-3079, task-3080, task-3081) — adds camera-facing billboarded sprites, a rendered skybox (cube-map background visible behind the scene, distinct from IBL), and fog (linear / exponential / exponential-squared). Outdoor atmosphere example combines all three. Closes gaps #12, #13, and #14.
+24. Sprite component + skybox-as-scene-element + fog (task-3078, task-3079, task-3080, task-3081 shipped) — adds camera-facing billboarded sprites, a rendered skybox (cube-map background visible behind the scene, distinct from IBL), and fog (linear / exponential / exponential-squared). Outdoor atmosphere example combines all three. Closes gaps #12, #13, and #14.
 
 **Tier 18 — PBR material extensions (queued after Tier 17):**
 
@@ -1194,11 +1190,19 @@ Acceptance criteria:
 
 ### task-3081 — Outdoor atmosphere example (Tier 17 part 4)
 
+Status: completed 2026-05-22. See `agent/COMPLETED.md`.
+
 Category: `runtime-orchestration`
 Package/write-scope: `examples/atmosphere.{html,main.js,worker.js}`, `test/e2e/atmosphere.spec.ts`.
 Dependencies: task-3078, task-3079, task-3080.
-Reference anchor: `references/three.js/examples/webgpu_skybox.html` and `webgl_fog.html`.
+Reference anchor: `references/three.js/examples/webgpu_sky.html` and `references/three.js/manual/examples/fog.html`.
 Insertion point: new example combining skybox + fog + sprite billboards (e.g., distance markers).
+Completion note 2026-05-22: `examples/atmosphere.html` now combines an
+ECS-authored skybox, linear StandardMaterial fog, and sprite billboard marker in
+one square worker-authored scene. The WebGPU app mixed-scene path now appends
+sprite billboard commands alongside opaque mesh draws, and headed Chrome/WebGPU
+coverage proves sky pixels, sprite quadrant pixels, and near/far fog falloff in
+the same submitted frame.
 
 Acceptance criteria:
 

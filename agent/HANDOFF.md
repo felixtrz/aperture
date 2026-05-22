@@ -1,6 +1,65 @@
 # Agent Handoff
 
-Updated: 2026-05-22T23:00:24Z
+Updated: 2026-05-22T23:23:58Z
+
+## Current Run Update — 2026-05-22T23:23:58Z — Outdoor atmosphere
+
+Completed `task-3081`, the Tier 17 outdoor atmosphere slice.
+
+### What changed
+
+- Added `examples/atmosphere.html`, `examples/atmosphere.main.js`,
+  `examples/atmosphere.worker.js`, and `examples/atmosphere-scene.js`.
+- The new example uses worker-owned ECS authoring and a square 960x960 canvas
+  to combine an ECS skybox, a sprite billboard marker, and linear
+  StandardMaterial fog in one frame.
+- Fixed the WebGPU app mixed-scene submit path so sprite billboard commands are
+  appended alongside opaque mesh commands before frame boundary assembly. Before
+  this, `spriteDraws` were counted in mixed snapshots but only rendered in
+  sprite-only scenes.
+- Added `test/e2e/atmosphere.spec.ts` to assert skybox pixels, four sprite
+  quadrant pixels, and near/far fog falloff in the same headed Chrome/WebGPU
+  frame.
+- Added WebGPU app unit coverage proving a sprite billboard renders alongside
+  an opaque mesh draw.
+
+### Reference comparison
+
+- three.js keeps atmosphere pieces as distinct scene objects/background/fog
+  concerns; Aperture keeps them as ECS-authored packets derived through
+  extraction.
+- PlayCanvas renders sky through a dedicated sky layer and sprites through
+  texture-backed quads; Aperture keeps equivalent GPU resources renderer-owned
+  and driven by snapshot packets.
+- Bevy extracts skybox/fog/sprite components across render boundaries; Aperture
+  follows the same ECS-to-render-view split without adding a mutable scene graph.
+
+### Validation
+
+- `pnpm run typecheck` passed.
+- `pnpm run typecheck:test` passed.
+- `pnpm run check:examples` passed.
+- `pnpm run check:progress` passed.
+- `pnpm run check:boundaries` passed.
+- `pnpm run lint` passed.
+- `pnpm run format:check` passed.
+- `git diff --check` passed.
+- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts` passed: 54 tests.
+- `pnpm test` passed: 347 files, 1785 tests.
+- `CI=true pnpm exec playwright test test/e2e/atmosphere.spec.ts --reporter=line --timeout=30000` passed.
+- Direct Browser check of `http://127.0.0.1:4173/examples/atmosphere.html`
+  loaded the new example; the only console error was the local server's
+  unrelated `/favicon.ico` 403.
+
+### Known issues
+
+- SharedArrayBuffer packet encoding still covers view/mesh/light/environment/
+  shadow/bounds records; sprite, skybox, and fog optional packets currently
+  rely on the default transferable snapshot path.
+
+### Recommended next task
+
+Start `task-3082`, Clearcoat extension, from `agent/CURRENT_TASK.md`.
 
 ## Current Run Update — 2026-05-22T23:00:24Z — Fog
 

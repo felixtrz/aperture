@@ -3,13 +3,14 @@
 If this file names a task, the next agent should prioritize that task over
 selecting a new one from `agent/BACKLOG.md`.
 
-Current task: `task-3081` — Outdoor atmosphere example.
+Current task: `task-3082` — Clearcoat extension.
 
 Status: ready. Tier 17 has shipped `task-3078` ECS sprites, `task-3079` ECS
-skyboxes, and `task-3080` ECS-authored fog. Fog now supports linear,
-exponential, and exponential-squared modes through extraction, view uniforms,
-and StandardMaterial shader specialization, with `examples/fog.html` proving
-visible distance falloff in headed Chrome/WebGPU.
+skyboxes, `task-3080` ECS-authored fog, and `task-3081` combined outdoor
+atmosphere. `examples/atmosphere.html` now proves a worker-authored square
+scene with visible skybox pixels, sprite billboard quadrant pixels, and near/far
+StandardMaterial fog falloff in one submitted Chrome/WebGPU frame.
 
-Next step: combine sprites, skybox, and fog in one worker-authored outdoor
-atmosphere scene and prove each feature remains visible.
+Next step: start Tier 18 by adding the StandardMaterial clearcoat extension and
+a visible proof surface with a clearcoat highlight distinct from the base
+specular lobe.

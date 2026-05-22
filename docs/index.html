@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-22 23:00 UTC</dd>
+            <dd>2026-05-22 23:23 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -1353,11 +1353,15 @@
               renderer-owned resources.
               <code>examples/sprite-billboard.html</code>,
               <code>examples/skybox.html</code>, and
-              <code>examples/fog.html</code> prove the paths in headed
-              Chrome/WebGPU.
+              <code>examples/fog.html</code> prove the individual paths, while
+              <code>examples/atmosphere.html</code> proves all three together in
+              one worker-authored square scene. The mixed-scene WebGPU submit
+              path now also appends sprite billboard commands alongside opaque
+              mesh draws instead of only rendering sprites in sprite-only
+              snapshots.
             </dd>
             <dt>Next focus</dt>
-            <dd>task-3081 outdoor atmosphere example</dd>
+            <dd>task-3082 clearcoat extension</dd>
           </dl>
         </aside>
       </header>
@@ -4360,17 +4364,17 @@
             <ul>
               <li>
                 <span class="badge amber">next</span> Build
-                <code>task-3081</code>, the outdoor atmosphere example combining
-                sprites, skybox, and fog.
+                <code>task-3082</code>, the StandardMaterial clearcoat
+                extension.
               </li>
               <li>
-                Anchor on the existing sprite, skybox, and fog examples plus the
-                Three.js skybox/fog references while keeping ECS authoring in
-                the worker and WebGPU resources renderer-owned.
+                Anchor on three.js <code>MeshPhysicalMaterial</code>, PlayCanvas
+                StandardMaterial clearcoat behavior, and glTF
+                <code>KHR_materials_clearcoat</code>.
               </li>
               <li>
-                Add browser proof that a skybox, billboard sprites, and visible
-                fog falloff are all active in one scene.
+                Add schema, shader, and browser proof for a clearcoat highlight
+                distinct from the base StandardMaterial specular response.
               </li>
             </ul>
           </article>

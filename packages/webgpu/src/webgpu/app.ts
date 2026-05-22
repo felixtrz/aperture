@@ -1699,12 +1699,44 @@ async function renderQueuedBuiltInWebGpuAppFrame(options: {
     bindGroups: prepared.resources.bindGroups,
     scratch: options.cache.frameScratch.framePlan,
   });
+  const spriteFrame = await prepareSpriteFrameResourcesForSnapshot({
+    app: options.app,
+    assets: options.assets,
+    cache: options.cache,
+    snapshot: options.snapshot,
+    viewUniforms: packedViews,
+    worldTransforms: packedTransforms,
+    reuse: options.reuse,
+  });
+
+  if (!spriteFrame.resources.valid) {
+    return renderReport({
+      ok: false,
+      snapshot: options.snapshot,
+      pipeline: prepared.firstPipeline,
+      resources: prepared.resourcesResult,
+      resourceReuse: options.reuse,
+      diagnosticsSummary,
+      diagnostics: [
+        ...options.snapshot.diagnostics,
+        ...packedViews.diagnostics,
+        ...packedTransforms.diagnostics,
+        ...packedInstanceTints.diagnostics,
+        ...spriteFrame.resources.diagnostics,
+      ],
+    });
+  }
+
+  const frameCommands =
+    spriteFrame.resources.commands.length === 0
+      ? framePlan.commandPlan.commands
+      : [...framePlan.commandPlan.commands, ...spriteFrame.resources.commands];
   const boundaries = await assembleWebGpuAppFrameBoundaries({
     app: options.app,
     assets: options.assets,
     cache: options.cache,
     snapshot: options.snapshot,
-    commands: framePlan.commandPlan.commands,
+    commands: frameCommands,
     label: options.label ?? "aperture-webgpu-app",
     reuse: options.reuse,
     ...(options.clearColor === undefined
@@ -1735,6 +1767,7 @@ async function renderQueuedBuiltInWebGpuAppFrame(options: {
     framePlan.drawList.valid &&
     framePlan.resources.valid &&
     framePlan.commandPlan.valid &&
+    spriteFrame.resources.diagnostics.length === 0 &&
     boundaries.valid;
   const readback = await mapFrameBoundaryReadbackSamples(
     boundaries.readbackBoundary?.readback,
@@ -1769,6 +1802,7 @@ async function renderQueuedBuiltInWebGpuAppFrame(options: {
       ...framePlan.drawList.diagnostics,
       ...framePlan.resources.diagnostics,
       ...framePlan.commandPlan.diagnostics,
+      ...spriteFrame.resources.diagnostics,
       ...boundaries.diagnostics,
     ],
   });
@@ -2136,6 +2170,65 @@ interface SpriteFrameResources {
   readonly valid: boolean;
   readonly commands: readonly RenderPassCommand[];
   readonly diagnostics: readonly unknown[];
+}
+
+interface PreparedSpriteFrameResources {
+  readonly pipeline: CreateSpriteRenderPipelineResourceResult | null;
+  readonly resources: SpriteFrameResources;
+}
+
+async function prepareSpriteFrameResourcesForSnapshot(options: {
+  readonly app: WebGpuApp;
+  readonly assets: AssetRegistry;
+  readonly cache: WebGpuAppResourceCache;
+  readonly snapshot: RenderSnapshot;
+  readonly viewUniforms: PackedSnapshotViewUniforms;
+  readonly worldTransforms: PackedSnapshotTransforms;
+  readonly reuse: WebGpuAppResourceReuseReport;
+}): Promise<PreparedSpriteFrameResources> {
+  const spriteDraws = options.snapshot.spriteDraws ?? [];
+
+  if (spriteDraws.length === 0) {
+    return {
+      pipeline: null,
+      resources: {
+        valid: true,
+        commands: [],
+        diagnostics: [],
+      },
+    };
+  }
+
+  const pipeline = await getOrCreateWebGpuAppSpritePipeline(
+    options.app,
+    options.cache,
+  );
+
+  if (!pipeline.valid || pipeline.resource === null) {
+    return {
+      pipeline,
+      resources: {
+        valid: false,
+        commands: [],
+        diagnostics: pipeline.diagnostics,
+      },
+    };
+  }
+
+  return {
+    pipeline,
+    resources: createSpriteFrameResources({
+      app: options.app,
+      assets: options.assets,
+      cache: options.cache,
+      snapshot: options.snapshot,
+      spriteDraws,
+      viewUniforms: options.viewUniforms,
+      worldTransforms: options.worldTransforms,
+      pipeline: pipeline.resource,
+      reuse: options.reuse,
+    }),
+  };
 }
 
 function createSpriteFrameResources(options: {
@@ -4257,12 +4350,43 @@ async function renderWebGpuAppFrame(
     bindGroups: frameResources.bindGroups,
     scratch: resourceCache.frameScratch.framePlan,
   });
+  const spriteFrame = await prepareSpriteFrameResourcesForSnapshot({
+    app,
+    assets: sourceAssets,
+    cache: resourceCache,
+    snapshot,
+    viewUniforms: packedViews,
+    worldTransforms: packedTransforms,
+    reuse,
+  });
+
+  if (!spriteFrame.resources.valid) {
+    return renderReport({
+      ok: false,
+      snapshot,
+      pipeline,
+      resources,
+      resourceReuse: reuse,
+      diagnostics: [
+        ...snapshot.diagnostics,
+        ...packedViews.diagnostics,
+        ...packedTransforms.diagnostics,
+        ...packedInstanceTints.diagnostics,
+        ...spriteFrame.resources.diagnostics,
+      ],
+    });
+  }
+
+  const frameCommands =
+    spriteFrame.resources.commands.length === 0
+      ? framePlan.commandPlan.commands
+      : [...framePlan.commandPlan.commands, ...spriteFrame.resources.commands];
   const boundaries = await assembleWebGpuAppFrameBoundaries({
     app,
     assets: sourceAssets,
     cache: resourceCache,
     snapshot,
-    commands: framePlan.commandPlan.commands,
+    commands: frameCommands,
     label: options.label ?? "aperture-webgpu-app",
     reuse,
     ...(options.clearColor === undefined
@@ -4282,6 +4406,7 @@ async function renderWebGpuAppFrame(
     framePlan.drawList.valid &&
     framePlan.resources.valid &&
     framePlan.commandPlan.valid &&
+    spriteFrame.resources.diagnostics.length === 0 &&
     boundaries.valid;
   const readback = await mapFrameBoundaryReadbackSamples(
     boundaries.readbackBoundary?.readback,
@@ -4314,6 +4439,7 @@ async function renderWebGpuAppFrame(
       ...framePlan.drawList.diagnostics,
       ...framePlan.resources.diagnostics,
       ...framePlan.commandPlan.diagnostics,
+      ...spriteFrame.resources.diagnostics,
       ...boundaries.diagnostics,
     ],
   });

@@ -1,5 +1,36 @@
 # Completed Tasks
 
+## task-3081 — Outdoor atmosphere example
+
+Completed: 2026-05-22
+
+Summary:
+
+- Added `examples/atmosphere.html` with a square worker-authored ECS scene that
+  combines an ECS skybox, sprite billboard marker, and linear
+  StandardMaterial fog.
+- Added shared atmosphere asset registration for the main-thread renderer and
+  worker-owned extraction app, including skybox cube texture, sprite texture,
+  mesh, material, and deterministic readback sample positions.
+- Fixed the WebGPU app mixed-scene submit path so sprite billboard commands are
+  appended alongside opaque mesh draws, not only through the sprite-only path.
+- Added browser proof that the same submitted frame contains non-clear skybox
+  pixels, four sprite quadrant colors, and near/far fog falloff.
+
+Validation:
+
+- `pnpm run typecheck`
+- `pnpm run typecheck:test`
+- `pnpm run check:examples`
+- `pnpm run check:progress`
+- `pnpm run check:boundaries`
+- `pnpm run lint`
+- `pnpm run format:check`
+- `git diff --check`
+- `pnpm exec vitest run test/webgpu/webgpu-app.test.ts`
+- `pnpm test`
+- `CI=true pnpm exec playwright test test/e2e/atmosphere.spec.ts --reporter=line --timeout=30000`
+
 ## task-3080 — Fog (linear + exponential + exponential-squared)
 
 Completed: 2026-05-22
