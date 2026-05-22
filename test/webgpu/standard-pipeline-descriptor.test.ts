@@ -158,6 +158,25 @@ describe("standard material pipeline descriptor planning", () => {
     });
   });
 
+  it("recognizes the morphed StandardMaterial pipeline feature", () => {
+    const featurePlan = createStandardPipelineShaderFeaturePlan({
+      ...STANDARD_BATCH_KEY,
+      pipelineKey: "standard|morphed|opaque|back|less|none",
+      meshLayoutKey:
+        "POSITION,NORMAL,TEXCOORD_0,MORPH_POSITION_0,MORPH_NORMAL_0,MORPH_POSITION_1,MORPH_NORMAL_1",
+      morphed: true,
+    });
+
+    expect(featurePlan.features.morphed).toBe(true);
+    expect(featurePlan.morphedEnabled).toBe(true);
+    expect(featurePlan.morphTargets).toEqual({
+      enabled: true,
+      positionAttributeSemantics: ["MORPH_POSITION_0", "MORPH_POSITION_1"],
+      normalAttributeSemantics: ["MORPH_NORMAL_0", "MORPH_NORMAL_1"],
+    });
+    expect(featurePlan.variantKey).toContain("morphed");
+  });
+
   it("derives cache keys and descriptor render state from standard alpha, depth, and cull tokens", () => {
     const opaque = required(
       createStandardPipelineDescriptorPlan({

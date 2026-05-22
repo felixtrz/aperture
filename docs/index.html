@@ -393,7 +393,7 @@
         <aside class="status-panel" aria-label="Current project status">
           <dl>
             <dt>Updated</dt>
-            <dd>2026-05-22 01:21 UTC</dd>
+            <dd>2026-05-22 01:34 UTC</dd>
             <dt>Branch</dt>
             <dd>main</dd>
             <dt>Run state</dt>
@@ -411,9 +411,12 @@
               <code>Skin</code> palettes, extracts snapshot
               <code>bones</code> data with per-draw offsets, and binds
               draw-scoped joint-matrix storage buffers through browser-safe
-              group 1 binding 1. The render-packet inspector example now renders
-              a worker-authored snapshot while publishing JSON-safe packet
-              tables for views, draws, lights, environments, bounds, queue keys,
+              group 1 binding 1. The StandardMaterial shader planner now also
+              has a <code>morphed</code> variant that reads two position/normal
+              delta target streams plus per-instance morph weights from group 1
+              binding 2. The render-packet inspector example now renders a
+              worker-authored snapshot while publishing JSON-safe packet tables
+              for views, draws, lights, environments, bounds, queue keys,
               handles, skipped-entity explanations, and culling stats.
               Extraction now builds camera frustum planes from view-projection
               matrices, skips mesh draws outside every matching camera view,
@@ -1236,7 +1239,7 @@
               key so live route changes do not reuse incompatible layouts.
             </dd>
             <dt>Next focus</dt>
-            <dd>task-3056 morph target shader variant + interpolation</dd>
+            <dd>task-3057 visible skinned character in glb-viewer</dd>
           </dl>
         </aside>
       </header>
@@ -4148,12 +4151,12 @@
             <ul>
               <li>
                 <span class="badge amber">next</span> Build
-                <code>task-3056</code>, the morph target shader variant and
-                interpolation path for StandardMaterial.
+                <code>task-3057</code>, a visible rigged character path in
+                <code>glb-viewer</code>.
               </li>
               <li>
-                Follow-up visible slices show a rigged character and a
-                morph-target sample in <code>glb-viewer</code>.
+                Follow-up visible slices add a morph-target sample in
+                <code>glb-viewer</code>, then move into KTX2/BasisU.
               </li>
               <li>
                 Keep the recommended next task visible-feature first; avoid
@@ -4170,6 +4173,16 @@
           <p class="section-note">Condensed from agent/COMPLETED.md.</p>
         </div>
         <article class="card timeline">
+          <div class="timeline-item">
+            <div class="task-id">task-3056</div>
+            <div>
+              <strong>StandardMaterial has a morph shader variant.</strong>
+              <span>
+                The WebGPU pipeline now plans morph delta vertex streams,
+                group-1 morph weights, and two-target weighted interpolation.
+              </span>
+            </div>
+          </div>
           <div class="timeline-item">
             <div class="task-id">task-3055</div>
             <div>

@@ -1,5 +1,22 @@
 # Completed Tasks
 
+## task-3056 — Morph target shader variant + interpolation
+
+Completed: 2026-05-22
+
+- Added a StandardMaterial `morphed` shader feature that reads two
+  position/normal morph delta streams plus per-instance morph weights from group
+  1 binding 2.
+- Extended Standard pipeline planning with `morphedEnabled`, morph target
+  semantic metadata, group-1 morph weight layout keys, and morph vertex-buffer
+  layout variants.
+- Extended mesh vertex semantics with `MORPH_POSITION_0`, `MORPH_NORMAL_0`,
+  `MORPH_POSITION_1`, and `MORPH_NORMAL_1`.
+- Added targeted shader/pipeline tests plus a synthetic weighted-blend helper
+  test for two morph targets.
+- Validation run: WebGPU package TypeScript, test TypeScript, targeted
+  StandardMaterial Vitest, and targeted ESLint passed.
+
 ## task-3055 — Skinning bind group + bone matrix buffer
 
 Completed: 2026-05-22

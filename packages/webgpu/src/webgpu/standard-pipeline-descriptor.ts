@@ -24,6 +24,11 @@ import {
   STANDARD_SKINNING_BIND_GROUP_LAYOUT_KEY,
   standardSkinningEnabledFromBatchKey,
 } from "./standard-skinning-shader.js";
+import {
+  STANDARD_MORPH_TARGET_BIND_GROUP_LAYOUT_KEY,
+  STANDARD_SKINNED_MORPH_TARGET_BIND_GROUP_LAYOUT_KEY,
+  standardMorphTargetsEnabledFromBatchKey,
+} from "./standard-morph-target-shader.js";
 import type { BuiltInShaderSourceModule } from "./unlit-shader.js";
 
 export const STANDARD_DEFERRED_PIPELINE_FEATURES = [] as const;
@@ -87,6 +92,16 @@ export interface StandardPipelineShaderFeaturePlan {
     readonly enabled: boolean;
     readonly jointAttributeSemantic: "JOINTS_0" | null;
     readonly weightAttributeSemantic: "WEIGHTS_0" | null;
+  };
+  readonly morphedEnabled: boolean;
+  readonly morphTargets: {
+    readonly enabled: boolean;
+    readonly positionAttributeSemantics:
+      | readonly ["MORPH_POSITION_0", "MORPH_POSITION_1"]
+      | null;
+    readonly normalAttributeSemantics:
+      | readonly ["MORPH_NORMAL_0", "MORPH_NORMAL_1"]
+      | null;
   };
 }
 
@@ -240,6 +255,16 @@ export function createStandardPipelineShaderFeaturePlan(
       jointAttributeSemantic: features.skinned === true ? "JOINTS_0" : null,
       weightAttributeSemantic: features.skinned === true ? "WEIGHTS_0" : null,
     },
+    morphedEnabled: features.morphed === true,
+    morphTargets: {
+      enabled: features.morphed === true,
+      positionAttributeSemantics:
+        features.morphed === true
+          ? ["MORPH_POSITION_0", "MORPH_POSITION_1"]
+          : null,
+      normalAttributeSemantics:
+        features.morphed === true ? ["MORPH_NORMAL_0", "MORPH_NORMAL_1"] : null,
+    },
   };
 }
 
@@ -250,9 +275,7 @@ function standardBindGroupLayoutKeys(
 
   return [
     "standard/group-0:view-uniform@0",
-    features.skinned === true
-      ? STANDARD_SKINNING_BIND_GROUP_LAYOUT_KEY
-      : "standard/group-1:world-transforms@0",
+    standardTransformBindGroupLayoutKey(features),
     standardMaterialLayoutKey(features),
     features.shadowMap === true && features.pointShadowMap === true
       ? "standard/lights-multi-shadow/group-3:light-floats@0,light-metadata@1,directional-matrix@2,directional-depth@3,directional-sampler@4,spot-matrix@5,spot-depth@6,spot-sampler@7,point-matrix@8,point-depth-cube@9,point-sampler@10"
@@ -307,10 +330,29 @@ function standardTextureFeatures(
     texCoord1: tokens.includes("uv1"),
     instanceTint: tokens.includes("instance-tint"),
     skinned: standardSkinningEnabledFromBatchKey(batchKey),
+    morphed: standardMorphTargetsEnabledFromBatchKey(batchKey),
     vertexColor:
       typeof batchKey?.meshLayoutKey === "string" &&
       batchKey.meshLayoutKey.split(",").includes("COLOR_0"),
   };
+}
+
+function standardTransformBindGroupLayoutKey(
+  features: Pick<StandardTextureShaderFeatures, "skinned" | "morphed">,
+): string {
+  if (features.skinned === true && features.morphed === true) {
+    return STANDARD_SKINNED_MORPH_TARGET_BIND_GROUP_LAYOUT_KEY;
+  }
+
+  if (features.skinned === true) {
+    return STANDARD_SKINNING_BIND_GROUP_LAYOUT_KEY;
+  }
+
+  if (features.morphed === true) {
+    return STANDARD_MORPH_TARGET_BIND_GROUP_LAYOUT_KEY;
+  }
+
+  return "standard/group-1:world-transforms@0";
 }
 
 function standardVertexBufferSemantics(
@@ -336,6 +378,15 @@ function standardVertexBufferSemantics(
 
   if (features.skinned === true) {
     semantics.push("JOINTS_0", "WEIGHTS_0");
+  }
+
+  if (features.morphed === true) {
+    semantics.push(
+      "MORPH_POSITION_0",
+      "MORPH_NORMAL_0",
+      "MORPH_POSITION_1",
+      "MORPH_NORMAL_1",
+    );
   }
 
   return semantics;

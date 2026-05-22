@@ -168,6 +168,7 @@ export * from "./standard-material-texture-fidelity-summary.js";
 export * from "./standard-pipeline-descriptor.js";
 export * from "./standard-pipeline.js";
 export * from "./standard-render-state-summary.js";
+export * from "./standard-morph-target-shader.js";
 export * from "./standard-skinning-shader.js";
 export * from "./skinning-joint-buffer.js";
 export * from "./standard-shader.js";

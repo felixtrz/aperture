@@ -4,6 +4,8 @@ import {
   STANDARD_SHADOW_RECEIVER_MESH_WGSL,
   INSTANCE_TINT_VERTEX_BUFFER_LAYOUT,
   STANDARD_MESH_WGSL,
+  STANDARD_MORPHED_PRIMITIVE_VERTEX_BUFFER_LAYOUT,
+  STANDARD_MORPH_TARGET_BIND_GROUP_LAYOUT_KEY,
   STANDARD_SKINNED_PRIMITIVE_VERTEX_BUFFER_LAYOUT,
   STANDARD_SKINNING_BIND_GROUP_LAYOUT_KEY,
   STANDARD_TANGENT_PRIMITIVE_VERTEX_BUFFER_LAYOUT,
@@ -270,6 +272,71 @@ describe("browser standard material pipeline bridge", () => {
               "TEXCOORD_0",
               "JOINTS_0",
               "WEIGHTS_0",
+            ],
+          },
+        },
+      },
+    });
+  });
+
+  it("uses morph delta attributes for morphed StandardMaterial shaders", () => {
+    const shaderModule = {
+      compilationInfo: async () => ({ messages: [] }),
+    };
+    const shader = createStandardTextureVariantShader({
+      baseColorTexture: false,
+      metallicRoughnessTexture: false,
+      normalTexture: false,
+      occlusionTexture: false,
+      emissiveTexture: false,
+      morphed: true,
+    });
+    const batchKey: BatchCompatibilityKey = {
+      ...STANDARD_BATCH_KEY,
+      pipelineKey: "standard|morphed|opaque|back|less|none",
+      meshLayoutKey:
+        "POSITION,NORMAL,TEXCOORD_0,MORPH_POSITION_0,MORPH_NORMAL_0,MORPH_POSITION_1,MORPH_NORMAL_1",
+      morphed: true,
+    };
+    const descriptor = createBrowserStandardRenderPipelineDescriptor({
+      shader,
+      shaderModule,
+      colorFormat: "bgra8unorm",
+      batchKey,
+    });
+    const plan = createStandardPipelineDescriptorPlan({
+      batchKey,
+      colorFormat: "bgra8unorm",
+    });
+
+    expect(descriptor.vertex).toMatchObject({
+      module: shaderModule,
+      entryPoint: "vs_main",
+      buffers: [STANDARD_MORPHED_PRIMITIVE_VERTEX_BUFFER_LAYOUT],
+    });
+    expect(shader.code).toContain("@location(10) morphPosition0: vec3f");
+    expect(shader.code).toContain("@location(13) morphNormal1: vec3f");
+    expect(shader.code).toContain("apertureMorphPosition(input.position");
+    expect(plan).toMatchObject({
+      valid: true,
+      plan: {
+        keyInput: {
+          shaderVariantKey: "direct-lit-metallic-roughness-morphed-texture",
+          batchKey: { morphed: true },
+          bindGroupLayoutKeys: expect.arrayContaining([
+            STANDARD_MORPH_TARGET_BIND_GROUP_LAYOUT_KEY,
+          ]),
+        },
+        descriptor: {
+          vertex: {
+            buffers: [
+              "POSITION",
+              "NORMAL",
+              "TEXCOORD_0",
+              "MORPH_POSITION_0",
+              "MORPH_NORMAL_0",
+              "MORPH_POSITION_1",
+              "MORPH_NORMAL_1",
             ],
           },
         },

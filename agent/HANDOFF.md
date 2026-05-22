@@ -1,6 +1,51 @@
 # Agent Handoff
 
-Updated: 2026-05-22T01:25:13Z
+Updated: 2026-05-22T01:35:26Z
+
+## Current Run Update — 2026-05-22T01:35:26Z — Morph shader variant added
+
+Completed `task-3056` after checkpoint commit `f7a6768` for `task-3055`.
+
+### What changed
+
+- Added `standard-morph-target-shader.ts` with the StandardMaterial `morphed`
+  feature, two position/normal morph delta streams, group 1 binding 2
+  per-instance morph weights, and a synthetic weighted-blend helper.
+- Extended Standard pipeline planning with `morphedEnabled`, morph target
+  semantic metadata, group-1 morph weight layout keys, and browser vertex-buffer
+  layouts for morphed and skinned+morphed primitive streams.
+- Extended mesh vertex semantics with `MORPH_POSITION_0`, `MORPH_NORMAL_0`,
+  `MORPH_POSITION_1`, and `MORPH_NORMAL_1`.
+- Updated public tracker pages, backlog, and completed-task log. Recommended
+  next task is now `task-3057`.
+
+### References inspected
+
+- `references/three.js/src/renderers/shaders/ShaderChunk/morphtarget_pars_vertex.glsl.js`
+- `references/three.js/src/renderers/shaders/ShaderChunk/morphtarget_vertex.glsl.js`
+- `references/three.js/src/renderers/shaders/ShaderChunk/morphnormal_vertex.glsl.js`
+- `references/engine/src/scene/morph.js`
+- `references/engine/src/scene/morph-instance.js`
+
+### Validation
+
+- `pnpm exec tsc --noEmit -p packages/webgpu/tsconfig.json` passed.
+- `pnpm exec tsc --noEmit -p tsconfig.test.json` passed.
+- `pnpm exec vitest run test/webgpu/standard-shader.test.ts test/webgpu/standard-pipeline.test.ts test/webgpu/standard-pipeline-descriptor.test.ts`
+  passed.
+- Targeted ESLint passed for the touched mesh/WebGPU/test files.
+
+### Known issues
+
+- This is a shader/pipeline slice only. Runtime extraction of morph weights,
+  WebGPU morph-weight buffer upload, and a visible morph-target browser sample
+  remain for later visible slices.
+- `task-3057` is still the recommended next visible feature: prove the
+  skeletal path with a rigged `glb-viewer` sample.
+
+### Recommended next task
+
+Start `task-3057`: add a visible rigged character path in `glb-viewer`.
 
 ## Current Run Update — 2026-05-22T01:25:13Z — Skin palettes reach WebGPU buffers
 

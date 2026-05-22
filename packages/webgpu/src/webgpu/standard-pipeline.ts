@@ -22,6 +22,12 @@ import {
   STANDARD_SKINNING_WEIGHTS_LOCATION,
 } from "./standard-skinning-shader.js";
 import {
+  STANDARD_MORPH_TARGET_NORMAL_0_LOCATION,
+  STANDARD_MORPH_TARGET_NORMAL_1_LOCATION,
+  STANDARD_MORPH_TARGET_POSITION_0_LOCATION,
+  STANDARD_MORPH_TARGET_POSITION_1_LOCATION,
+} from "./standard-morph-target-shader.js";
+import {
   applyOutputTonemapToStandardShader,
   DEFAULT_TONEMAP_OPERATOR,
   type TonemapOperator,
@@ -89,6 +95,76 @@ export const STANDARD_SKINNED_PRIMITIVE_VERTEX_BUFFER_LAYOUT = {
       shaderLocation: STANDARD_SKINNING_WEIGHTS_LOCATION,
       offset: 40,
       format: "float32x4",
+    },
+  ],
+} as const;
+
+export const STANDARD_MORPHED_PRIMITIVE_VERTEX_BUFFER_LAYOUT = {
+  arrayStride: 80,
+  stepMode: "vertex",
+  attributes: [
+    { shaderLocation: 0, offset: 0, format: "float32x3" },
+    { shaderLocation: 1, offset: 12, format: "float32x3" },
+    { shaderLocation: 2, offset: 24, format: "float32x2" },
+    {
+      shaderLocation: STANDARD_MORPH_TARGET_POSITION_0_LOCATION,
+      offset: 32,
+      format: "float32x3",
+    },
+    {
+      shaderLocation: STANDARD_MORPH_TARGET_NORMAL_0_LOCATION,
+      offset: 44,
+      format: "float32x3",
+    },
+    {
+      shaderLocation: STANDARD_MORPH_TARGET_POSITION_1_LOCATION,
+      offset: 56,
+      format: "float32x3",
+    },
+    {
+      shaderLocation: STANDARD_MORPH_TARGET_NORMAL_1_LOCATION,
+      offset: 68,
+      format: "float32x3",
+    },
+  ],
+} as const;
+
+export const STANDARD_SKINNED_MORPHED_PRIMITIVE_VERTEX_BUFFER_LAYOUT = {
+  arrayStride: 104,
+  stepMode: "vertex",
+  attributes: [
+    { shaderLocation: 0, offset: 0, format: "float32x3" },
+    { shaderLocation: 1, offset: 12, format: "float32x3" },
+    { shaderLocation: 2, offset: 24, format: "float32x2" },
+    {
+      shaderLocation: STANDARD_SKINNING_JOINTS_LOCATION,
+      offset: 32,
+      format: "uint16x4",
+    },
+    {
+      shaderLocation: STANDARD_SKINNING_WEIGHTS_LOCATION,
+      offset: 40,
+      format: "float32x4",
+    },
+    {
+      shaderLocation: STANDARD_MORPH_TARGET_POSITION_0_LOCATION,
+      offset: 56,
+      format: "float32x3",
+    },
+    {
+      shaderLocation: STANDARD_MORPH_TARGET_NORMAL_0_LOCATION,
+      offset: 68,
+      format: "float32x3",
+    },
+    {
+      shaderLocation: STANDARD_MORPH_TARGET_POSITION_1_LOCATION,
+      offset: 80,
+      format: "float32x3",
+    },
+    {
+      shaderLocation: STANDARD_MORPH_TARGET_NORMAL_1_LOCATION,
+      offset: 92,
+      format: "float32x3",
     },
   ],
 } as const;
@@ -307,6 +383,8 @@ function standardPrimitiveVertexBufferLayout(
   | typeof STANDARD_TEXCOORD1_PRIMITIVE_VERTEX_BUFFER_LAYOUT
   | typeof STANDARD_VERTEX_COLOR_PRIMITIVE_VERTEX_BUFFER_LAYOUT
   | typeof STANDARD_SKINNED_PRIMITIVE_VERTEX_BUFFER_LAYOUT
+  | typeof STANDARD_MORPHED_PRIMITIVE_VERTEX_BUFFER_LAYOUT
+  | typeof STANDARD_SKINNED_MORPHED_PRIMITIVE_VERTEX_BUFFER_LAYOUT
   | typeof STANDARD_TANGENT_TEXCOORD1_PRIMITIVE_VERTEX_BUFFER_LAYOUT {
   const needsTangents = shader.bindings.some(
     (binding) => binding.id === "normalTexture",
@@ -314,6 +392,29 @@ function standardPrimitiveVertexBufferLayout(
   const needsTexCoord1 = shader.code.includes("@location(4) uv1: vec2f");
   const needsVertexColor = shader.code.includes("@location(5) color: vec4f");
   const needsSkinning = shader.code.includes("@location(8) joints0: vec4u");
+  const needsMorphTargets = shader.code.includes(
+    "@location(10) morphPosition0: vec3f",
+  );
+
+  if (
+    needsSkinning &&
+    needsMorphTargets &&
+    !needsTangents &&
+    !needsTexCoord1 &&
+    !needsVertexColor
+  ) {
+    return STANDARD_SKINNED_MORPHED_PRIMITIVE_VERTEX_BUFFER_LAYOUT;
+  }
+
+  if (
+    needsMorphTargets &&
+    !needsSkinning &&
+    !needsTangents &&
+    !needsTexCoord1 &&
+    !needsVertexColor
+  ) {
+    return STANDARD_MORPHED_PRIMITIVE_VERTEX_BUFFER_LAYOUT;
+  }
 
   if (needsSkinning && !needsTangents && !needsTexCoord1 && !needsVertexColor) {
     return STANDARD_SKINNED_PRIMITIVE_VERTEX_BUFFER_LAYOUT;

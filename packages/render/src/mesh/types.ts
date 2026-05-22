@@ -24,7 +24,11 @@ export type MeshVertexSemantic =
   | "JOINTS_0"
   | "WEIGHTS_0"
   | "JOINTS_1"
-  | "WEIGHTS_1";
+  | "WEIGHTS_1"
+  | "MORPH_POSITION_0"
+  | "MORPH_NORMAL_0"
+  | "MORPH_POSITION_1"
+  | "MORPH_NORMAL_1";
 
 export type MeshIndexFormat = "uint16" | "uint32";
 

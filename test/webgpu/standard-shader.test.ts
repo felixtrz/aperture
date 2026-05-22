@@ -30,10 +30,12 @@ import {
   STANDARD_MATERIAL_MVP_LIGHTING_MODEL,
   STANDARD_MESH_SHADER,
   STANDARD_MESH_WGSL,
+  STANDARD_MORPH_TARGET_BIND_GROUP_LAYOUT_KEY,
   createStandardMeshShaderModuleDescriptor,
   createStandardTextureShaderVariantKey,
   createStandardTextureVariantShader,
   createWebGpuShaderModule,
+  evaluateStandardMorphTargetBlend,
   validateStandardShaderMetadata,
   type BuiltInShaderSourceModule,
   type WebGpuShaderDeviceLike,
@@ -290,6 +292,70 @@ describe("built-in standard material WGSL shader metadata", () => {
 
     expect(deformed[0]).toBeCloseTo(2.5);
     expect(deformed[1]).toBeCloseTo(2);
+    expect(deformed[2]).toBeCloseTo(3);
+  });
+
+  it("generates a morphed StandardMaterial shader variant", () => {
+    const shader = createStandardTextureVariantShader({
+      baseColorTexture: false,
+      metallicRoughnessTexture: false,
+      normalTexture: false,
+      occlusionTexture: false,
+      emissiveTexture: false,
+      morphed: true,
+    });
+
+    expect(
+      createStandardTextureShaderVariantKey({
+        baseColorTexture: false,
+        metallicRoughnessTexture: false,
+        normalTexture: false,
+        occlusionTexture: false,
+        emissiveTexture: false,
+        morphed: true,
+      }),
+    ).toBe("direct-lit-metallic-roughness-morphed-texture");
+    expect(shader.label).toBe("aperture/standard-mesh-morphed-textured");
+    expect(validateStandardShaderMetadata(shader)).toEqual({
+      valid: true,
+      diagnostics: [],
+    });
+    expect(shader.code).toContain("@location(10) morphPosition0: vec3f");
+    expect(shader.code).toContain("@location(11) morphNormal0: vec3f");
+    expect(shader.code).toContain("@location(12) morphPosition1: vec3f");
+    expect(shader.code).toContain("@location(13) morphNormal1: vec3f");
+    expect(shader.code).toContain(
+      "@group(1) @binding(2) var<storage, read> standardMorphTargetWeights",
+    );
+    expect(shader.code).toContain("fn apertureMorphPosition");
+    expect(shader.code).toContain("apertureMorphPosition(input.position");
+    expect(shader.code).toContain("apertureMorphDirection(input.normal");
+    expect(
+      shader.bindings.map((binding) => [
+        binding.id,
+        binding.group,
+        binding.binding,
+        binding.resource,
+      ]),
+    ).toContainEqual([
+      "standardMorphTargetWeights",
+      1,
+      2,
+      "read-only-storage-buffer",
+    ]);
+    expect(STANDARD_MORPH_TARGET_BIND_GROUP_LAYOUT_KEY).toBe(
+      "standard/group-1:world-transforms@0,morph-target-weights@2",
+    );
+
+    const deformed = evaluateStandardMorphTargetBlend({
+      base: [1, 2, 3],
+      target0: [2, 0, -1],
+      target1: [-1, 4, 0.5],
+      weights: [0.25, 0.5],
+    });
+
+    expect(deformed[0]).toBeCloseTo(1);
+    expect(deformed[1]).toBeCloseTo(4);
     expect(deformed[2]).toBeCloseTo(3);
   });
 

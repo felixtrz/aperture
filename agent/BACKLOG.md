@@ -59,7 +59,7 @@ to catch drift before it compounds.
 
 ## Recommended Next Task
 
-Start `task-3056`: Morph target shader variant + interpolation.
+Start `task-3057`: Visible skinned character in glb-viewer.
 
 Why this next: the Tier 10 output-stage/color-management track is now complete:
 tonemap operators route through explicit sRGB output encoding, native RGBE
@@ -68,8 +68,10 @@ Linear, Reinhard, ACES, and AgX over the same worker-authored HDR scene.
 `task-3054` landed the StandardMaterial skinned WGSL variant and pipeline
 metadata for `JOINTS_0` / `WEIGHTS_0`, and `task-3055` wires ECS-authored skin
 palettes into snapshot `bones` data plus draw-scoped WebGPU storage-buffer
-resources. The next visible gap is morph target interpolation so the Tier 11
-deformation track has both skeletal and blend-shape paths.
+resources. `task-3056` adds the first StandardMaterial `morphed` shader variant
+with two delta target streams and draw-instance morph weights. The next visible
+gap is proving the skeletal path in `glb-viewer` with an animated rigged
+sample.
 
 Progress so far: `spinning-cube`, `multi-light-shadow`, and `glb-viewer` now
 use renderer-only `*.main.js` files plus ECS/extraction-owned `*.worker.js`
@@ -118,15 +120,16 @@ encoding, texture metadata carries explicit color-space/semantic information,
 worker-authored HDR scene. StandardMaterial now has a `skinned` shader variant
 with JOINTS_0/WEIGHTS_0 vertex attributes, browser-safe group-1 joint matrix
 metadata, ECS `Skin` palette extraction into snapshot `bones`, draw-scoped
-skinning joint storage buffers, and targeted shader/pipeline/resource tests.
+skinning joint storage buffers, a `morphed` shader variant with two
+position/normal delta target streams, and targeted
+shader/pipeline/resource/interpolation tests.
 
 Reference anchors (read before writing):
 
-- `references/three.js/src/renderers/shaders/ShaderChunk/morphtarget_*.glsl.js`
-  and StandardMaterial morph-target shader planning.
-- `references/engine/src/scene/morph.js` and
-  `references/engine/src/scene/morph-instance.js` for morph target weights and
-  per-instance state.
+- `references/three.js/examples/webgpu_skinning.html` if present, else
+  `references/three.js/examples/webgl_animation_skinning_blending.html`.
+- Khronos sample rigged character patterns plus the existing Aperture
+  `glb-viewer` sample asset/status wiring.
 
 ## Strategic Focus — Pipeline Maturity Roadmap
 
@@ -791,7 +794,7 @@ Acceptance criteria:
 - WebGPU layer binds the bones buffer per draw via a storage-buffer bind group.
 - Test with one skinned entity confirms bone matrices reach the shader (readback or pixel check via known deformation).
 
-### task-3056 — Morph target shader variant + interpolation (Tier 11 part 3)
+### task-3056 — Morph target shader variant + interpolation (Tier 11 part 3) — Completed 2026-05-22
 
 Category: `webgpu-render`
 Package/write-scope: `packages/webgpu/src/webgpu/standard-shader.ts`, `packages/render/src/mesh/`, targeted tests.
